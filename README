@@ -1,0 +1,19 @@
+#
+# The purpose of this project is to make it insanely easy to start up a 
+# python3.4 + django1.7 project. It uses Vagrant to do so.
+#
+# Prerequisites:
+#  	1) 	 Vagrant 	- https://www.vagrantup.com/downloads.html
+# 	2) 	 Git 		
+#
+# Step 1:
+# 	1.	 git clone https://GITUSERNAME@bitbucket.org/GITUSERNAME/vagrant-django.git
+# 	2.	 cd vagrant-django
+#	3. 	 vagrant up
+# 	4. 	 vagrant ssh
+#   
+# 		To connect from a browser on your local computer, bring up gunicorn or runserver:
+#
+# 	5a.   cd /vagrant && ./manage.py runserver 127.0.0.1:8000
+#       or
+#   5b.   cd /vagrant && /home/vagrant/venv/bin/gunicorn mysite.wsgi	 

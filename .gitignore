@@ -1,54 +1,16 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
+# bkup files you forgot to erase that start with 'bkup-'
+bkup-*
 
-# C extensions
-*.so
+# OS-specific - .DS_Store is an OSX file system thing
+.DS_Store
 
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+# Vagrant stuff
+.vagrant
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+# Python
+*.pyc
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# some pycharm thing
+.idea*
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.cache
-nosetests.xml
-coverage.xml
 
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/

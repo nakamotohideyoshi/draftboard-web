@@ -1,0 +1,50 @@
+[
+  {
+    "pk": 1,
+    "model": "account.emailnotification",
+    "fields":
+      {
+        "category": "contest",
+        "description": "Contests are starting",
+        "name": "starting",
+        "deprecated": false,
+        "default_value": true
+      }
+  },
+  {
+    "pk": 2,
+    "model": "account.emailnotification",
+    "fields":
+      {
+        "category": "contest",
+        "description": "Contests victories",
+        "name": "victories",
+        "deprecated": false,
+        "default_value": true
+      }
+  },
+  {
+    "pk": 3,
+    "model": "account.emailnotification",
+    "fields":
+      {
+        "category": "campaign",
+        "description": "Newsletter",
+        "name": "newsletter",
+        "deprecated": false,
+        "default_value": true
+      }
+  },
+  {
+    "pk": 4,
+    "model": "account.emailnotification",
+    "fields":
+      {
+        "category": "campaign",
+        "description": "Upcoming Contest",
+        "name": "upcoming-contest",
+        "deprecated": false,
+        "default_value": true
+      }
+  }
+]
