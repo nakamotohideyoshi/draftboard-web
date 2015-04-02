@@ -36,7 +36,7 @@ urlpatterns = [
 
     #
     # sandbox kind of app
-    url(r'^', include('snippets.urls')),
+    # url(r'^', include('snippets.urls')),
 
     #
     # this came with rest_framework

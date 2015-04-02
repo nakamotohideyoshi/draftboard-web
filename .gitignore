@@ -13,4 +13,8 @@ bkup-*
 # some pycharm thing
 .idea*
 
+# prevent node modules from showing up
+node_modules/*
 
+# redis dump files, specific to each instance
+*.rdb
