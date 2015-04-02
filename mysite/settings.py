@@ -48,7 +48,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'rest_framework',   # for api stuff
-    'snippets',         # optional, rest_framework example code
 
     #
     ####################################
