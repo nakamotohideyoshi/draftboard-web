@@ -1,10 +1,10 @@
 from subprocess import check_output
-
 from .base import *
 
 # Determine db name according to git branch
 git_branch_cmd = 'git rev-parse --abbrev-ref HEAD'
-db_name = 'dfs_' + check_output(git_branch_cmd.split())[:-1]
+db_name = 'dfs_' + check_output(git_branch_cmd.split()).decode('utf-8')[:-1]
+
 
 # Run the Postgres OSX app by Heroku.
 # Create database by running `psql -d postgres -c "CREATE DATABASE rio_[BRANCH_NAME];"` in terminal
