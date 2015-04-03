@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-sudo -u vagrant createdb dfs
+sudo -u postgres createdb dfs_master
 sudo su - postgres
-sudo psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE dfs TO vagrant;"
 exit

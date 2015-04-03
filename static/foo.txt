@@ -1,1 +1,0 @@
-Needed static file to make collectstatic work
