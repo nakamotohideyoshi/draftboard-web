@@ -71,6 +71,7 @@ service nginx restart
 
 #
 cd /vagrant
+./manage.py makemigrations
 ./manage.py migrate
 ./manage.py loaddata site-setup/initial_data.json
 ./manage.py syncdb --noinput
