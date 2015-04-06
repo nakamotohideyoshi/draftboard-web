@@ -35,10 +35,6 @@ urlpatterns = [
     url(r'^', include(router.urls)),
 
     #
-    # sandbox kind of app
-    url(r'^', include('snippets.urls')),
-
-    #
     # this came with rest_framework
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 

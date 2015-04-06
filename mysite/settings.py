@@ -48,7 +48,6 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'rest_framework',   # for api stuff
-    'snippets',         # optional, rest_framework example code
 
     #
     ####################################
@@ -56,6 +55,7 @@ INSTALLED_APPS = (
     ####################################
     'account',
     'dfslog',
+    'transaction',
 )
 
 REST_FRAMEWORK = {
