@@ -2,6 +2,7 @@ from django.conf.urls import patterns
 from django.contrib import admin
 
 import account.urls
+import cash.urls
 
 from django.conf.urls import url, include
 from django.contrib.auth.models import User
@@ -29,6 +30,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'^account/', include(account.urls)),
+    url(r'^cash/', include(cash.urls)),
 
     #
     # this came with rest_framework
