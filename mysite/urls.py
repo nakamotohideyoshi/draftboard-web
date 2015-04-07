@@ -35,6 +35,10 @@ urlpatterns = [
     url(r'^', include(router.urls)),
 
     #
+    # url includes from django_braintree
+    url(r'', include('django_braintree.urls')),
+
+    #
     # this came with rest_framework
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 

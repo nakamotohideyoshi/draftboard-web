@@ -62,6 +62,8 @@ venv/bin/pip3 install djangorestframework    	# optional - for creating apis
 venv/bin/pip3 install markdown 					# optional - for creating apis
 venv/bin/pip3 install django-filter 			# optional - for creating apis
 venv/bin/pip3 install sphinx 				    # !?  install in virtualenv. maybe do system-wide??
+venv/bin/pip3 install braintree                 # payment processing
+venv/bin/pip3 install django_braintree          # third party braintree integration we might use
 
 #
 # we will need a webserver of course, and drop in our nginx server conf file & restart
@@ -70,8 +72,6 @@ cp /vagrant/site-setup/nginx-default /etc/nginx/sites-available/default        #
 service nginx restart
 
 #
+# switch to user 'vagrant' because manage.py doesnt like connecting to postgres otherwise
 cd /vagrant
-./manage.py makemigrations
-./manage.py migrate
-./manage.py loaddata site-setup/initial_data.json
-./manage.py syncdb --noinput
+./site-setup/migrate_and_syncdb.sh

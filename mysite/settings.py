@@ -49,6 +49,8 @@ INSTALLED_APPS = (
 
     'rest_framework',   # for api stuff
 
+    'django_braintree',     # third part braintree integration, going to test it out
+
     #
     ####################################
     # rio-dfs specific apps below here #
@@ -58,12 +60,34 @@ INSTALLED_APPS = (
     'transaction',
 )
 
+#
+##########################################################################
+#        django_braintree
+##########################################################################
+BRAINTREE_MERCHANT      = 'dq2z693r9mcjn22k'
+BRAINTREE_PUBLIC_KEY    = 'dh8qw5597zxk8x95'
+BRAINTREE_PRIVATE_KEY   = '524955b562899917ebf7878dd45da7ee'
+
+from braintree import Configuration, Environment
+
+Configuration.configure(
+    Environment.Sandbox,
+    BRAINTREE_MERCHANT,     # sandbox BRAINTREE_MERCHANT_ID,
+    BRAINTREE_PUBLIC_KEY,
+    BRAINTREE_PRIVATE_KEY
+)
+
+#
+##########################################################################
+#        rest_framework
+##########################################################################
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     )
 }
+
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -85,8 +109,8 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE'    : 'django.db.backends.postgresql_psycopg2',
-        'NAME'      : 'dfs',           # name of the database
-        #'USER'      : 'postgres',           # superuser 
+        'NAME'      : 'dfs',               # name of the database
+        #'USER'      : 'postgres',           # superuser
         #'PASSWORD'  : '',
         #'HOST'      : 'localhost'           # for dev, the postgres db is on same server
     }
