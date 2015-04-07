@@ -7,6 +7,11 @@ Cash Transaction
 .. automodule:: cash.classes
     :members:
 
+Views
+-----
+.. automodule:: cash.views
+    :members:
+    
 Models
 ------
 .. automodule:: cash.models
