@@ -10,3 +10,7 @@ class IncorrectVariableTypeException(Exception):
        super(IncorrectVariableTypeException, self).__init__(\
            "In the class "+class_name+" the variable "+ variable_name +" is the wrong class type.")
 
+class AmountNegativeException(Exception):
+    def __init__(self, class_name, variable_name):
+       super(AmountNegativeException, self).__init__(\
+           "Incorrect usage of amount argument. The amount value must be a positive number.")

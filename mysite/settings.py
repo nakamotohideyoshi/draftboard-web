@@ -56,6 +56,7 @@ INSTALLED_APPS = (
     'account',
     'dfslog',
     'transaction',
+    'cash',
 )
 
 REST_FRAMEWORK = {
