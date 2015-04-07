@@ -81,3 +81,12 @@ class CashTransaction(AbstractTransaction):
         Logger.log(ErrorCodes.INFO, "Deposit", self.user.username+" deposited $"+str(amount)+" into their cash account.")
 
 
+    def get_balance_string_formatted(self):
+        """
+
+        :return: the string representation of the cash balance
+            i.e. $5.50
+
+        """
+        bal = self.get_balance_amount()
+        return '${:,.2f}'.format(bal)
