@@ -52,7 +52,7 @@ apt-get build-dep -y psycopg2
 
 #
 # install django and the basic things it needs...
-venv/bin/pip3 install django
+venv/bin/pip3 install Django==1.8               # LTS April 1, 2015 (no foolin!)
 venv/bin/pip3 install psycopg2
 venv/bin/pip3 install gunicorn
 venv/bin/pip3 install dj-database-url
@@ -63,7 +63,7 @@ venv/bin/pip3 install markdown 					# optional - for creating apis
 venv/bin/pip3 install django-filter 			# optional - for creating apis
 venv/bin/pip3 install sphinx 				    # !?  install in virtualenv. maybe do system-wide??
 venv/bin/pip3 install braintree                 # payment processing
-venv/bin/pip3 install django_braintree          # third party braintree integration we might use
+#venv/bin/pip3 install django_braintree          # third party braintree integration we might use
 
 #
 # we will need a webserver of course, and drop in our nginx server conf file & restart

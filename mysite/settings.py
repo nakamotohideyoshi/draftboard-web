@@ -49,8 +49,6 @@ INSTALLED_APPS = (
 
     'rest_framework',   # for api stuff
 
-    'django_braintree',     # third part braintree integration, going to test it out
-
     #
     ####################################
     # rio-dfs specific apps below here #

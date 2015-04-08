@@ -33,7 +33,7 @@ class Transaction( models.Model ):
     """
     category = models.ForeignKey( TransactionType )
     user 	 = models.ForeignKey( User )
-    created  = models.DateTimeField(auto_now_add=True)
+    created  = models.DateTimeField(auto_now_add=True, null=True)
 
 
 class TransactionDetail( models.Model ):
@@ -44,7 +44,7 @@ class TransactionDetail( models.Model ):
     amount      = models.DecimalField(decimal_places=2, max_digits=7)
     user        = models.ForeignKey( User )
     transaction = models.ForeignKey( Transaction )
-    created  = models.DateTimeField(auto_now_add=True)
+    created  = models.DateTimeField(auto_now_add=True, null=True)
 
     class Meta:
         abstract = True
@@ -59,7 +59,7 @@ class Balance( models.Model ):
     off the TransactionDetail.
 
     """
-    user 				= models.ForeignKey( User , unique=True)
+    user 				= models.OneToOneField( User, primary_key=True  )
     amount 				= models.DecimalField(decimal_places=2, max_digits=7)
 
     #
