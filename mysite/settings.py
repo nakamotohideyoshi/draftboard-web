@@ -57,8 +57,8 @@ INSTALLED_APPS = (
     'dfslog',
     'transaction',
     'cash',
+    'test',
 )
-
 #
 ##########################################################################
 #        django_braintree

@@ -5,13 +5,9 @@ from transaction.models import TransactionDetail, Balance, TransactionType
 from transaction.exceptions import VariableNotSetException, IncorrectVariableTypeException, AmountNegativeException
 import decimal
 from django.core.exceptions import ValidationError
-#
-# Test models must be created outside of the test
-# class
-class TransactionDetailChild(TransactionDetail):
-    pass
-class BalanceChild(Balance):
-    pass
+from test.models import TransactionDetailChild, BalanceChild
+
+
 class AbstractTransactionTest(unittest.TestCase):
     """
     Tests the :class:`transaction.classes.AbstractTransaction` class
@@ -22,13 +18,13 @@ class AbstractTransactionTest(unittest.TestCase):
         Tests to verify the exceptions are thrown when the child
         class is implemented improperly.
         """
-
         class TransactionChild(AbstractTransaction):
             def __init__(self, user):
                 super().__init__(user)
                 self.transaction_detail_class = TransactionDetailChild
                 self.balance_class = BalanceChild
                 self.accountName = "test"
+
 
         USERNAME = 'test_user'
         TRANSACTION_TYPE_CATEGORY = 'test_cat'
