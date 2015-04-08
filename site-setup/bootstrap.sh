@@ -64,6 +64,7 @@ venv/bin/pip3 install django-filter 			# optional - for creating apis
 venv/bin/pip3 install sphinx 				    # !?  install in virtualenv. maybe do system-wide??
 venv/bin/pip3 install braintree                 # payment processing
 #venv/bin/pip3 install django_braintree          # third party braintree integration we might use
+venv/bin/pip3 install django-suit
 
 #
 # we will need a webserver of course, and drop in our nginx server conf file & restart

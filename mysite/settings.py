@@ -17,11 +17,33 @@ import os
 BASE_DIR    = os.path.dirname(os.path.dirname(__file__))
 SITE_ROOT   = os.path.dirname(os.path.realpath(__file__))
 
-from os.path import join
-TEMPLATE_DIRS = (
-    join(BASE_DIR, 'account/templates'),
-    join(BASE_DIR,  'mysite/templates'),
-)
+# from os.path import join
+# TEMPLATE_DIRS = (
+#     join(BASE_DIR, 'account/templates'),
+#     join(BASE_DIR,  'mysite/templates'),
+# )
+
+#
+#
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True, # defaults to False
+        'OPTIONS' : {
+            'context_processors' : (
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.contrib.messages.context_processors.messages",
+
+                'django.template.context_processors.request',   # django-suit needs this
+            )
+        }
+    },
+]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -36,10 +58,11 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
-# Application definition
-
+#
+# these are the apps we use
 INSTALLED_APPS = (
+    'suit',     # django-suit - needs to go before django.contrib.admin they say
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -59,6 +82,16 @@ INSTALLED_APPS = (
     'cash',
     'test',
 )
+
+#
+##########################################################################
+#        django-suit requires this context processor
+##########################################################################
+# from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
+# TEMPLATE_CONTEXT_PROCESSORS = TCP + (
+#     'django.core.context_processors.request',
+# )
+
 #
 ##########################################################################
 #        django_braintree
