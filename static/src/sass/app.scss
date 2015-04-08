@@ -1,6 +1,42 @@
 /**
   In here we can @import anything that doesn't belong to a specific component.
-  
-  For css that does belong to a component, just require() it in the 
+
+  For css that does belong to a component, just require() it in the
   component's jsx file.
 **/
+
+
+
+
+
+
+// Junk prototype styles - plz dump these once development gets started.
+
+#contest-table {
+  width: 70%;
+  display: inline-block;
+  border: 1px solid #ddd;
+
+  table {
+    tr {
+      cursor: pointer;
+
+      &:hover {
+        background: yellow;
+      }
+    }
+    td {
+      padding: 3px 30px;
+
+
+    }
+  }
+
+}
+
+#contest-detail {
+  display: inline-block;
+  width: 25%;
+  border: 1px solid #ddd;
+}
+
