@@ -27,6 +27,9 @@ class TransactionType( models.Model ):
     class Meta:
         unique_together = ('category', 'name')
 
+    def __str__(self):
+        return '%s  %s' % (self.category, self.name)
+
 class Transaction( models.Model ):
     """
     This class keeps track of all
@@ -34,6 +37,9 @@ class Transaction( models.Model ):
     category = models.ForeignKey( TransactionType )
     user 	 = models.ForeignKey( User )
     created  = models.DateTimeField(auto_now_add=True, null=True)
+
+    def __str__(self):
+        return '%s  %s  %s' % (self.created.date(), self.user, self.category)
 
 
 class TransactionDetail( models.Model ):
