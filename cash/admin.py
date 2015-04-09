@@ -22,5 +22,6 @@ class AdminCashDepositFormAdmin(admin.ModelAdmin):
     """
     form = AdminCashDepositForm
 
+    #list_display = ['created','user','amount','reason']
     list_display = ['user','amount','reason']
 
