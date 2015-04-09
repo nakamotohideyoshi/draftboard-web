@@ -41,7 +41,6 @@ class Transaction( models.Model ):
     def __str__(self):
         return '%s  %s  %s' % (self.created.date(), self.user, self.category)
 
-
 class TransactionDetail( models.Model ):
     """
     The base model for the classes to keep track of
@@ -78,6 +77,4 @@ class Balance( models.Model ):
 
     class Meta:
         abstract = True
-
-
 

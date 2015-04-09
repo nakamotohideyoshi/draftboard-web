@@ -1,4 +1,5 @@
-from cash.models import CashBalance, CashTransactionDetail
+#from cash.models import CashBalance, CashTransactionDetail
+import cash.models
 from transaction.classes import AbstractTransaction
 from transaction.models import TransactionType
 from transaction.constants import TransactionTypeConstants
@@ -12,8 +13,8 @@ class CashTransaction(AbstractTransaction):
     """
     def __init__(self, user):
         super().__init__(user)
-        self.transaction_detail_class = CashTransactionDetail
-        self.balance_class = CashBalance
+        self.transaction_detail_class = cash.models.CashTransactionDetail
+        self.balance_class = cash.models.CashBalance
         self.accountName = "cash"
 
     def check_sufficient_funds(self, amount):

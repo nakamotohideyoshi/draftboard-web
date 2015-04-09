@@ -11,4 +11,4 @@ class TransactionTypeAdmin(admin.ModelAdmin):
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
 
-    list_display = ['user','category']
+    list_display = ['created','user','category']
