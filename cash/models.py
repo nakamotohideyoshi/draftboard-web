@@ -35,11 +35,6 @@ class AdminCashDeposit( models.Model ):
     #
     # for now as a hack, dont even try to create entries in this table
     def save(self, *args, **kwargs):
-        request = kwargs.get('request', None )
-        if request is None:
-            print('request was not passed into the AdminCashDeposit save()')
-        else:
-            print('request WAS PASSED into the AdminCashDeposit save()')
 
         if self.pk is None:
             t = cash.classes.CashTransaction( self.user )
