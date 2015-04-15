@@ -2,41 +2,57 @@
 
 var Reflux = require("reflux");
 var ContestActions = require("../actions/contest-actions");
+var request = require("superagent");
+var _ = require("lodash");
 
 
 var ContestStore = Reflux.createStore({
   data: [],
 
   init: function() {
-    this.listenTo(ContestActions.contestsUpdated, this.getContests);
+    this.listenTo(ContestActions.load, this.fetchContests);
     this.listenTo(ContestActions.contestFocused, this.setFocusedContest);
 
     this.data = {
-      // Some dummy data.
-      contests: [
-        {id: 0, "title": "NBA - Anonymouse Head-to-Head", "entries_total": "14,231", "entries_filled": "12,014",
-          "prize": "$350,000"},
-        {id: 1, "title": "NBA - $150,000 Championship", "entries_total": "10,001", "entries_filled": "2,993",
-          "prize": "$150,000"},
-        {id: 2, "title": "NBA - $50,000 Championship", "entries_total": "10,001", "entries_filled": "2,993",
-          "prize": "2150,000"},
-        {id: 3, "title": "NBA - $666 Championship", "entries_total": "2,001", "entries_filled": "2,993",
-          "prize": "$666"},
-        {id: 4, "title": "NBA - $9 Sunday game", "entries_total": "54,001", "entries_filled": "2,993",
-          "prize": "$150,000"},
-        {id: 5, "title": "NBA - Throwback 1999 thing", "entries_total": "10,001", "entries_filled": "2,993",
-          "prize": "$150,000"},
-      ],
-
+      contests: [],
       focusedContestId: null
     };
+
+    this.fetchContests();
+  },
+
+  fetchContests: function() {
+    var self = this;
+    // This obviously fails... but let's pretend the request was successful, and set the returned data to data.contests.
+    request
+      .get("http://bogus.url/contests")
+      .end(function(err, res) {
+        if(err) {
+          self.data.contests = [
+            {id: 0, "title": "NBA - Anonymous Head-to-Head", "entries_total": "14,231", "entries_filled": "12,014", "prize": "$350,000"},
+            {id: 1, "title": "NBA - $150,000 Championship", "entries_total": "10,001", "entries_filled": "2,993", "prize": "$150,000"},
+            {id: 2, "title": "NFL - $50,000 Championship", "entries_total": "10,001", "entries_filled": "2,993", "prize": "2150,000"},
+            {id: 3, "title": "NBA - $666 Championship", "entries_total": "2,001", "entries_filled": "2,993", "prize": "$666"},
+            {id: 4, "title": "NBA - $9 Sunday game", "entries_total": "54,001", "entries_filled": "2,993", "prize": "$150,000"},
+            {id: 5, "title": "NBA - Throwback 1999 thing", "entries_total": "10,001", "entries_filled": "2,993", "prize": "$150,000"}
+          ];
+
+          ContestActions.load.failed(err);
+        } else {
+          self.data.contests = res.body;
+          ContestActions.load.completed();
+        }
+
+        self.trigger(self.data);
+    });
+
   },
 
   getInitialState: function() {
     return this.data;
   },
 
-  getContests: function() {
+  getAllContests: function() {
     return this.data.contests;
   },
 
@@ -46,6 +62,12 @@ var ContestStore = Reflux.createStore({
 
   setFocusedContest: function(contestId) {
     this.data.focusedContestId = contestId;
+    this.trigger(this.data);
+  },
+
+  sortByKey: function(key) {
+    this.data.contests = _.sortByOrder(this.data.contests, key);
+    //Descending order is: this.data.contests.reverse()
     this.trigger(this.data);
   }
 

@@ -18,7 +18,7 @@ var ContestListItemDetail = React.createClass({
     };
   },
 
-  onContestsChange: function(contestData) {
+  onContestsChange: function() {
     // Since the store changed, grab the newest focused contest.
     this.setProps({focusedContest: ContestStore.getFocusedContest()});
   },
@@ -33,7 +33,7 @@ var ContestListItemDetail = React.createClass({
     var contest = <div>Select a contest</div>;
 
     // Show focused contest info, if there is one.
-    if (typeof(this.props.focusedContest) !== "undefined" && this.props.focusedContest !== null) {
+    if (typeof (this.props.focusedContest) !== "undefined" && this.props.focusedContest !== null) {
       contest = (
         <div>
           <h5>Selected Contest</h5>

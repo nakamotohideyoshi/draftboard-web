@@ -1,2 +1,1 @@
-#main{background:#ff0}
-/*# sourceMappingURL=app.css.map*/
+#contest-detail,#contest-table{display:inline-block;border:1px solid #ddd}#contest-table{width:70%}#contest-table table tr{cursor:pointer}#contest-table table tr:hover{background:#ff0}#contest-table table td{padding:3px 30px}#contest-detail{width:25%}

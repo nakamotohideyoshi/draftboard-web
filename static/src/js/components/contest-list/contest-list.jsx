@@ -1,22 +1,41 @@
 "use strict";
 
 var React = require("react");
-var Reflux = require("reflux");
 var ContestStore = require("../../stores/contest-store");
 var ContestListItem = require("./contest-list-item.jsx");
 
 
 var ContestTable = React.createClass({
   mixins: [
-    Reflux.connect(ContestStore, "contestData")
+    //Reflux.connect(ContestStore, "contestData")
   ],
 
   getInitialState: function() {
-    return {};
+    return {contests: ContestStore.getAllContests()};
+  },
+
+  onChange: function(contestData) {
+    this.setState({
+      contests: contestData.contests
+    });
+  },
+
+  componentDidMount: function() {
+    this.unsubscribe = ContestStore.listen(this.onChange);
+  },
+
+  componentWillUnmount: function() {
+    this.unsubscribe();
+  },
+
+  sortTableByKey: function(key) {
+    ContestStore.sortByKey(key);
   },
 
   render: function () {
-    var contestListItems = this.state.contestData.contests.map(function(contest) {
+    var contests = this.state.contests || [];
+
+    var contestListItems = contests.map(function(contest) {
       return (
         <ContestListItem key={contest.id} contest={contest} />
       );
@@ -24,12 +43,14 @@ var ContestTable = React.createClass({
 
     return (
       <table>
-        <tr>
-          <th>Title</th>
-          <th>Entries</th>
-          <th>Prize</th>
-        </tr>
-        {contestListItems}
+        <tbody>
+          <tr>
+            <th onClick={this.sortTableByKey.bind(this, "title")}>Title</th>
+            <th onClick={this.sortTableByKey.bind(this, "entries_total")}>Entries</th>
+            <th onClick={this.sortTableByKey.bind(this, "prize")}>Prize</th>
+          </tr>
+          {contestListItems}
+        </tbody>
       </table>
     );
   }
@@ -37,6 +58,5 @@ var ContestTable = React.createClass({
 });
 
 
-React.render(<ContestTable />, document.getElementById("contest-table"));
 
 module.exports = ContestTable;
