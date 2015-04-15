@@ -1,0 +1,19 @@
+<form id="deposit_form" method="post">
+    {% csrf_token %}
+
+    {{ form }}
+    <h4>Payment Info</h4>
+
+    {# Where Braintree does its drop in, see https://developers.braintreepayments.com/javascript+python/sdk/client/drop-in #}
+    <div id="dropin"></div>
+
+    <input type="submit" value="Deposit">
+
+</form>
+
+<script src="https://js.braintreegateway.com/v2/braintree.js"></script>
+<script>
+    braintree.setup('{{ braintree_client_token }}', 'dropin', {
+      container: 'dropin'
+    });
+</script>

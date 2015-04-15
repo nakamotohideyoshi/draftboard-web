@@ -7,6 +7,14 @@ from datetime import datetime, timedelta
 from cash.classes import CashTransaction
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.response import Response
+from django.views.generic.edit import FormView
+import braintree
+from django.conf import settings
+from braces.views import LoginRequiredMixin
+from cash.forms import DepositAmountForm
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from cash.classes import CashTransaction
 
 class TransactionHistoryAPIView(generics.ListAPIView):
     """
@@ -64,3 +72,51 @@ class BalanceAPIView(generics.GenericAPIView):
         content = {'cash_balance': cash_transaction.get_balance_string_formatted()}
         return Response(content)
 
+
+class DepositView( LoginRequiredMixin, FormView ):
+    template_name = 'deposit.html'
+    form_class = DepositAmountForm
+
+    def form_valid(self, form):
+        user = self.request.user
+        cleaned_data = form.cleaned_data
+        payment_method_nonce = self.request.POST.get('payment_method_nonce', None)
+
+        #if payment_method_nonce is None:
+           # raise SubscriptionException('Did not receive response from payment gateway')
+
+        amount = cleaned_data['amount']
+        result = braintree.Transaction.sale({
+                    "amount":amount,
+                    "payment_method_nonce": payment_method_nonce,
+                    "customer": {
+                        "id": user.pk
+                    },})
+        if(result.is_success):
+            messages.success(
+                self.request,
+                'The deposit was a success!',
+            )
+            trans = CashTransaction(user)
+            trans.deposit_braintree(amount, result.transaction.id)
+            return HttpResponseRedirect( '/cash/balance/' )
+        messages.success(
+            self.request,
+            result.transaction.processor_response_text,
+        )
+        return HttpResponseRedirect( '/cash/deposit/' )
+
+
+
+
+    def get_context_data(self, **kwargs):
+        """
+
+        """
+        context = super().get_context_data(**kwargs)
+        braintree.Configuration.configure(settings.BRAINTREE_MODE,
+                                          merchant_id=settings.BRAINTREE_MERCHANT,
+                                          public_key=settings.BRAINTREE_PUBLIC_KEY,
+                                          private_key=settings.BRAINTREE_PRIVATE_KEY)
+        context['braintree_client_token'] = braintree.ClientToken.generate()
+        return context

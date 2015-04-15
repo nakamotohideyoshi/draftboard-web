@@ -8,8 +8,8 @@ from django.conf import settings
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('transaction', '0002_auto_20150408_0015'),
         ('contenttypes', '0002_remove_content_type_name'),
+        ('transaction', '0002_auto_20150408_0015'),
         ('auth', '0006_require_contenttypes_0002'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('cash', '0001_initial'),
@@ -19,20 +19,20 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='AdminCashDeposit',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('amount', models.DecimalField(max_digits=20, default=0, decimal_places=2)),
-                ('reason', models.CharField(blank=True, max_length=255, default='')),
-                ('created', models.DateTimeField(auto_now_add=True, null=True)),
+                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
+                ('amount', models.DecimalField(default=0, max_digits=20, decimal_places=2)),
+                ('reason', models.CharField(max_length=255, default='', blank=True)),
+                ('created', models.DateTimeField(null=True, auto_now_add=True)),
             ],
         ),
         migrations.CreateModel(
             name='CashBalance',
             fields=[
-                ('user', models.OneToOneField(serialize=False, primary_key=True, to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL, serialize=False, primary_key=True)),
                 ('amount', models.DecimalField(max_digits=7, decimal_places=2)),
                 ('transaction_id', models.PositiveIntegerField(null=True)),
                 ('updated', models.DateTimeField(auto_now=True)),
-                ('transaction_type', models.ForeignKey(to='contenttypes.ContentType', null=True)),
+                ('transaction_type', models.ForeignKey(null=True, to='contenttypes.ContentType')),
             ],
             options={
                 'abstract': False,
@@ -41,9 +41,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CashTransactionDetail',
             fields=[
-                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
                 ('amount', models.DecimalField(max_digits=7, decimal_places=2)),
-                ('created', models.DateTimeField(auto_now_add=True, null=True)),
+                ('created', models.DateTimeField(null=True, auto_now_add=True)),
                 ('transaction', models.ForeignKey(to='transaction.Transaction')),
                 ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],

@@ -4,7 +4,7 @@ from django.db import models
 from transaction.models import TransactionDetail, Balance
 from django.contrib.auth.models import User
 import cash.classes
-
+from transaction.models import Transaction
 class CashBalance(Balance):
     """
     Implements the :class:`transaction.models.Balance` model.
@@ -16,6 +16,16 @@ class CashTransactionDetail(TransactionDetail):
     Implements the :class:`transaction.models.TransactionDetail` model.
     """
     pass
+
+
+class BraintreeTransaction(models.Model):
+    """
+    Keeps a record of the Braintree transaction ids in association
+    with the DFS internal :class:`transaction.models.Transaction` model.
+    """
+    transaction             = models.ForeignKey( Transaction )
+    braintree_transaction   = models.CharField( max_length=128, null=False )
+    created                 = models.DateTimeField(auto_now_add=True, null=True)
 
 class AdminCashDeposit( models.Model ):
     """

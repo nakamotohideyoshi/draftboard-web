@@ -82,6 +82,15 @@ class CashTransaction(AbstractTransaction):
         Logger.log(ErrorCodes.INFO, "Deposit", self.user.username+" deposited $"+str(amount)+" into their cash account.")
 
 
+    def deposit_braintree(self, amount, braintree_transaction):
+        self.deposit(amount)
+        braintree_model = cash.models.BraintreeTransaction()
+        braintree_model.braintree_transaction = braintree_transaction
+        braintree_model.transaction = self.transaction_detail.transaction
+        braintree_model.save()
+
+
+
     def get_balance_string_formatted(self):
         """
 

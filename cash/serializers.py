@@ -10,3 +10,4 @@ class CashTransactionDetailSerializer(serializers.ModelSerializer):
         model = CashTransactionDetail
         fields = ("amount", "created","transaction")
 
+

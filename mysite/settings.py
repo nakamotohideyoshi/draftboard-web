@@ -14,36 +14,15 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import braintree
 BASE_DIR    = os.path.dirname(os.path.dirname(__file__))
 SITE_ROOT   = os.path.dirname(os.path.realpath(__file__))
 
-# from os.path import join
-# TEMPLATE_DIRS = (
-#     join(BASE_DIR, 'account/templates'),
-#     join(BASE_DIR,  'mysite/templates'),
-# )
-
-#
-#
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'APP_DIRS': True, # defaults to False
-        'OPTIONS' : {
-            'context_processors' : (
-                "django.contrib.auth.context_processors.auth",
-                "django.template.context_processors.debug",
-                "django.template.context_processors.i18n",
-                "django.template.context_processors.media",
-                "django.template.context_processors.static",
-                "django.template.context_processors.tz",
-                "django.contrib.messages.context_processors.messages",
-
-                'django.template.context_processors.request',   # django-suit needs this
-            )
-        }
-    },
-]
+from os.path import join
+TEMPLATE_DIRS = (
+    join(BASE_DIR, 'account/templates'),
+    join(BASE_DIR,  'mysite/templates'),
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
@@ -58,11 +37,10 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = []
 
-#
-# these are the apps we use
-INSTALLED_APPS = (
-    'suit',     # django-suit - needs to go before django.contrib.admin they say
 
+# Application definition
+
+INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -71,7 +49,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'rest_framework',   # for api stuff
-
+    'braces',
     #
     ####################################
     # rio-dfs specific apps below here #
@@ -82,16 +60,6 @@ INSTALLED_APPS = (
     'cash',
     'test',
 )
-
-#
-##########################################################################
-#        django-suit requires this context processor
-##########################################################################
-# from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
-# TEMPLATE_CONTEXT_PROCESSORS = TCP + (
-#     'django.core.context_processors.request',
-# )
-
 #
 ##########################################################################
 #        django_braintree
@@ -99,7 +67,7 @@ INSTALLED_APPS = (
 BRAINTREE_MERCHANT      = 'dq2z693r9mcjn22k'
 BRAINTREE_PUBLIC_KEY    = 'dh8qw5597zxk8x95'
 BRAINTREE_PRIVATE_KEY   = '524955b562899917ebf7878dd45da7ee'
-
+BRAINTREE_MODE          = braintree.Environment.Sandbox
 from braintree import Configuration, Environment
 
 Configuration.configure(
