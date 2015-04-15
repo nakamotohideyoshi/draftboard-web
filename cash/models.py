@@ -1,6 +1,7 @@
 # cash/models.py
 
 from django.db import models
+from django.core.validators import MinValueValidator
 from transaction.models import TransactionDetail, Balance
 from django.contrib.auth.models import User
 import cash.classes
@@ -22,7 +23,8 @@ class AdminCashDeposit( models.Model ):
     keep track of times the admin has deposited cash
     """
     user    = models.ForeignKey( User, related_name='admincashdeposit_user' )
-    amount  = models.DecimalField( decimal_places=2, max_digits=20, default=0 )
+    amount  = models.DecimalField( decimal_places=2, max_digits=20, default=0,
+                                   validators=[MinValueValidator(0.01)] )
     reason  = models.CharField( max_length=255, default='', null=False, blank=True )
 
     created = models.DateTimeField(auto_now_add=True, null=True)
@@ -41,4 +43,31 @@ class AdminCashDeposit( models.Model ):
             t.deposit( self.amount )
 
         super(AdminCashDeposit, self).save(*args, **kwargs)
+
+
+class AdminCashWithdrawal( models.Model ):
+    """
+    keep track of times the admin has withdrawn cash
+    """
+    user    = models.ForeignKey( User, related_name='admincashwithdrawal_user' )
+    amount  = models.DecimalField( decimal_places=2, max_digits=20, default=0,
+                                   validators=[MinValueValidator(0.01)] )
+    reason  = models.CharField( max_length=255, default='', null=False, blank=True )
+
+    created = models.DateTimeField(auto_now_add=True, null=True)
+
+    #
+    #
+    def __str__(self):
+        return '+ $%s - %s (%s)' % (self.amount, self.user.username, self.user.email)
+
+    #
+    # for now as a hack, dont even try to create entries in this table
+    def save(self, *args, **kwargs):
+
+        if self.pk is None:
+            t = cash.classes.CashTransaction( self.user )
+            t.withdraw( self.amount )
+
+        super(AdminCashWithdrawal, self).save(*args, **kwargs)
 
