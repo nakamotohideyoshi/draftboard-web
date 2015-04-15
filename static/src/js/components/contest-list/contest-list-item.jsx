@@ -1,7 +1,7 @@
 "use strict";
 
 var React = require("react");
-var ContestActions = require('../../actions/contest-actions');
+var ContestActions = require("../../actions/contest-actions");
 
 var ContestListItem = React.createClass({
 

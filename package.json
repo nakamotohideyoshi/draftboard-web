@@ -2,27 +2,36 @@
   "name": "dfs",
   "version": "1.0.0",
   "description": "DFS App",
+  "author": "Run It Once Dev Team",
+  "license": "NONE",
   "main": "index.js",
+  "private": true,
   "dependencies": {},
   "devDependencies": {
-    "css-loader": "^0.9.1",
-    "eslint": "^0.18.0",
+    "chai": "*",
+    "css-loader": "^0.10.1",
+    "eslint": "^0.19.0",
     "eslint-plugin-react": "^2.1.0",
     "eslint-plugin-require": "0.0.1",
     "extract-text-webpack-plugin": "^0.5.0",
-    "jsx-loader": "^0.12.2",
-    "node-sass": "^3.0.0-beta.4",
+    "jsdom": "^4.4.0",
+    "jsx-loader": "^0.13.1",
+    "lodash": "^3.6.0",
+    "loglevel": "^1.2.0",
+    "node-sass": "^2.1.1",
+    "npm": "^2.7.6",
     "react": "^0.13.1",
+    "react-tools": "^0.13.1",
     "reflux": "^0.2.7",
-    "sass-loader": "^1.0.0",
-    "style-loader": "^0.9.0",
-    "superagent": "^1.1.0"
+    "sass-loader": "^0.6.0",
+    "sinon": "^1.14.1",
+    "style-loader": "^0.10.2",
+    "superagent": "^1.2.0",
+    "superagent-mock": "^1.0.0"
   },
   "scripts": {
-    "test": "jest",
+    "test": "mocha --compilers .:static/src/js/test/compiler.js static/src/js/test/*/*-test.js",
     "devserver": "webpack-dev-server --content-base build/ --hot --colors --progress",
     "webpack": "webpack --optimize-minimize"
-  },
-  "author": "Run It Once Dev Team",
-  "license": "ISC"
+  }
 }
