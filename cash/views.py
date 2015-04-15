@@ -74,24 +74,47 @@ class BalanceAPIView(generics.GenericAPIView):
 
 
 class DepositView( LoginRequiredMixin, FormView ):
+    """
+    The form for submitting the deposit via Braintree.
+
+    This view requires the user to be logged in.
+    """
     template_name = 'deposit.html'
     form_class = DepositAmountForm
+    failure_redirect_url  = '/cash/deposit/'
+    success_redirect_url  = '/cash/balance/'
 
     def form_valid(self, form):
+
         user = self.request.user
         cleaned_data = form.cleaned_data
         payment_method_nonce = self.request.POST.get('payment_method_nonce', None)
 
-        #if payment_method_nonce is None:
-           # raise SubscriptionException('Did not receive response from payment gateway')
-
+        #
+        # Error out of there is not message
+        if payment_method_nonce is None:
+            messages.error(
+                self.request,
+                'Did not receive response from payment gateway'
+            )
+            return HttpResponseRedirect( self.failure_redirect_url )
+        #
+        # Attempts the transaction via braintree setting
+        # customers pk and email in the braintree database
         amount = cleaned_data['amount']
         result = braintree.Transaction.sale({
                     "amount":amount,
                     "payment_method_nonce": payment_method_nonce,
                     "customer": {
-                        "id": user.pk
-                    },})
+                        "id": user.pk,
+                        "email": user.email,
+                    },
+                })
+        #
+        # If the transaction is a success we return a success
+        # message, create the database transaction, and
+        # link the braintree transaction id with the dfs
+        # transaction.
         if(result.is_success):
             messages.success(
                 self.request,
@@ -99,24 +122,31 @@ class DepositView( LoginRequiredMixin, FormView ):
             )
             trans = CashTransaction(user)
             trans.deposit_braintree(amount, result.transaction.id)
-            return HttpResponseRedirect( '/cash/balance/' )
-        messages.success(
-            self.request,
-            result.transaction.processor_response_text,
-        )
-        return HttpResponseRedirect( '/cash/deposit/' )
+            return HttpResponseRedirect(self.success_redirect_url)
+        #
+        # On failure we redirect them and report the transaction
+        # failure to the user.
+        else:
+            messages.error(
+                self.request,
+                result.transaction.processor_response_text,
+            )
+            return HttpResponseRedirect(self.failure_redirect_url)
 
 
 
 
     def get_context_data(self, **kwargs):
         """
-
+        Adds the braintree client token into the context data
+        for the braintree javascript to insert payment_method_nonce
         """
         context = super().get_context_data(**kwargs)
-        braintree.Configuration.configure(settings.BRAINTREE_MODE,
-                                          merchant_id=settings.BRAINTREE_MERCHANT,
-                                          public_key=settings.BRAINTREE_PUBLIC_KEY,
-                                          private_key=settings.BRAINTREE_PRIVATE_KEY)
+        braintree.Configuration.configure(
+            settings.BRAINTREE_MODE,
+            merchant_id=settings.BRAINTREE_MERCHANT,
+            public_key=settings.BRAINTREE_PUBLIC_KEY,
+            private_key=settings.BRAINTREE_PRIVATE_KEY
+        )
         context['braintree_client_token'] = braintree.ClientToken.generate()
         return context

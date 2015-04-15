@@ -84,6 +84,36 @@ class CashTransactionTest(AbstractTest):
         # Tests creation of object with an object that is not a user
         self.assertRaises(IncorrectVariableTypeException, lambda: CashTransaction(1))
 
+class DepositViewTest(AbstractTest):
+    """
+    TODOs
+        - Amount Field
+            -No amount
+            -Improper value
+            -Max amount
+            -Min amount
+        - payment_method_nonce
+            - missing
+            - incorrect
+        - Test being logged out
+    """
+    pass
+
+class BalanceAPIViewTest(AbstractTest):
+    """
+    TODOs
+        -Balance of user with no balance
+        -Validate format of the json
+    """
+    pass
+class TransactionHistoryAPIViewTest(AbstractTest):
+    """
+    TODOs
+        -Test dates
+    """
+    pass
+
+
 
 class AdminPanelCashDeposit(AbstractTest):
     """
