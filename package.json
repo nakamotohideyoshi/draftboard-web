@@ -10,16 +10,12 @@
   "devDependencies": {
     "chai": "*",
     "css-loader": "^0.10.1",
-    "eslint": "^0.19.0",
-    "eslint-plugin-react": "^2.1.0",
-    "eslint-plugin-require": "0.0.1",
     "extract-text-webpack-plugin": "^0.5.0",
-    "jsdom": "^4.4.0",
+    "jsdom": "^3.*",
     "jsx-loader": "^0.13.1",
     "lodash": "^3.6.0",
     "loglevel": "^1.2.0",
     "node-sass": "^2.1.1",
-    "npm": "^2.7.6",
     "react": "^0.13.1",
     "react-tools": "^0.13.1",
     "reflux": "^0.2.7",
@@ -32,6 +28,7 @@
   "scripts": {
     "test": "mocha --compilers .:static/src/js/test/compiler.js static/src/js/test/*/*-test.js",
     "devserver": "webpack-dev-server --content-base build/ --hot --colors --progress",
-    "webpack": "webpack --optimize-minimize"
+    "webpack": "webpack --optimize-minimize",
+    "install_global_modules": "npm install -g webpack webpack-dev-server eslint eslint-plugin-react mocha"
   }
 }
