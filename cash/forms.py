@@ -11,3 +11,11 @@ class AdminCashDepositForm(forms.ModelForm):
 
 class DepositAmountForm(forms.Form):
     amount = forms.DecimalField(max_digits=8, decimal_places=2, min_value=10.00)
+
+
+class AdminCashWithdrawalForm(forms.ModelForm):
+
+    class Meta:
+        model = cash.models.AdminCashWithdrawal
+        fields = ['user','amount','reason']   # these are the fields displayed to the admin
+
