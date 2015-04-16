@@ -1,0 +1,3 @@
+--compilers .:static/src/js/test/compiler.js
+--reporter spec
+--recursive
