@@ -5,7 +5,12 @@ var ContestActions = require("../../actions/contest-actions");
 
 var ContestListItem = React.createClass({
 
+  propTypes: {
+    contest: React.PropTypes.object
+  },
+
   setContestFocus: function(e) {
+    e.preventDefault();
     ContestActions.contestFocused(this.props.contest.id);
   },
 

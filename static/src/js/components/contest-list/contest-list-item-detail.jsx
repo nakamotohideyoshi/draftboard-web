@@ -2,11 +2,14 @@
 
 var React = require("react");
 var Reflux = require("reflux");
-var ContestStore = require("../../stores/contest-store");
+var ContestStore = require("stores/contest-store");
 
 
 var ContestListItemDetail = React.createClass({
-  mixins: [ContestStore, Reflux.ListenerMixin],
+  mixins: [
+    ContestStore,
+    Reflux.ListenerMixin
+  ],
 
   getInitialState: function() {
     return {};

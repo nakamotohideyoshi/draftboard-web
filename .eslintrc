@@ -25,7 +25,9 @@
     "global-strict": [0, "global"],
     "no-underscore-dangle": 0,
     "sort-vars": 0,
-    // React
+    "no-trailing-spaces": 1,
+
+    // React Plugin rules
     "react/display-name": 0,
     "react/jsx-boolean-value": 1,
     "react/jsx-quotes": 1,
