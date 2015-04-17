@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
+from rest_framework.pagination import LimitOffsetPagination
 from cash.models import CashTransactionDetail
 from cash.serializers import CashTransactionDetailSerializer
 from datetime import datetime, timedelta
@@ -33,6 +34,7 @@ class TransactionHistoryAPIView(generics.ListAPIView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
     serializer_class = CashTransactionDetailSerializer
+    pagination_class = LimitOffsetPagination
 
     def get_queryset(self):
         """
@@ -52,7 +54,8 @@ class TransactionHistoryAPIView(generics.ListAPIView):
         now = datetime.now()
         days_ago = now - timedelta(days=days)
 
-        return CashTransactionDetail.objects.filter(user=user, created__range=(days_ago, now))
+        return CashTransactionDetail.objects.filter( user=user,
+                                                    created__range=(days_ago, now) ).order_by('-created')
 
 
 class BalanceAPIView(generics.GenericAPIView):

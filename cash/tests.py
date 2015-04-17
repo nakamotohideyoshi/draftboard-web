@@ -7,13 +7,16 @@ from transaction.exceptions import IncorrectVariableTypeException
 import django.test
 from cash.forms import AdminCashDepositForm
 from cash.admin import AdminCashDepositFormAdmin
-from cash.models import AdminCashDeposit, AdminCashWithdrawal
+from cash.models import AdminCashDeposit, AdminCashWithdrawal, BraintreeTransaction
 from test.classes import AbstractTest
 
 from django.test.client import Client
 from django.test import RequestFactory
 from django.contrib import admin
 from django.contrib.auth.models import Permission
+from cash.views import DepositView
+
+from django.utils.crypto import get_random_string   # usage: get_random_string( length=8 )
 
 class CashTransactionTest(AbstractTest):
     """
@@ -84,8 +87,10 @@ class CashTransactionTest(AbstractTest):
         # Tests creation of object with an object that is not a user
         self.assertRaises(IncorrectVariableTypeException, lambda: CashTransaction(1))
 
-class DepositViewTest(AbstractTest):
+class DepositViewTest(AbstractTest): # im not sure its possible, because of the way braintree form works
     """
+    test the functionality of adding funds to the site using braintree.
+
     TODOs
         - Amount Field
             -No amount
@@ -97,7 +102,74 @@ class DepositViewTest(AbstractTest):
             - incorrect
         - Test being logged out
     """
-    pass
+
+    def setUp(self):
+        self.admin          = self.get_admin_user()
+        self.url_submit     = '/cash/deposit/'
+        self.url_success    = DepositView.success_redirect_url
+        self.url_fail       = DepositView.failure_redirect_url
+
+        client = Client()
+        client.login( username=self.admin.username, password=self.get_password() )
+        self.client = client
+
+    def __post(self, val):
+        form_data = {
+            'user'      : self.admin.pk,
+            'amount'    : val, # dont cast it - in case we're trying to test something tricky
+            'reason'    : 'testing...'
+        }
+        response = self.client.post( self.url_submit )
+        self.assertIsNotNone( response )
+        return response
+
+    def test_deposit_zero_amount(self):
+        AMOUNT = 0.0
+        response = self.__post( AMOUNT )
+        self.assertEquals( response.status_code, 200 )
+
+        #braintree_deposits = BraintreeTransaction.objects.all()
+        #self.assertEquals(len(braintree_deposits), 1)
+
+    # def test_deposit_negative_value(self):
+    #     AMOUNT = -0.0
+    #     response = self.__post( AMOUNT )
+    #
+    # def test_deposit_non_numeric_value(self):
+    #     AMOUNT = 'abc'
+    #     response = self.__post( AMOUNT )
+
+class BraintreeDeposit(AbstractTest):
+    """
+    test the CashTransaction.braintree_deposit() method.
+
+    creates random braintree_transaction_ids for testing purposes!
+    (ie: you cant look them up in the braintree account)
+
+    """
+    def setUp(self):
+        self.admin     = self.get_admin_user()
+        self.ct         = CashTransaction( self.admin )
+
+    def __braintree_transaction_deposit(self, amount):
+        # count the braintree transactions before we create the new one
+        count_btree_trans_before = len( BraintreeTransaction.objects.all() )
+
+        # generate a fake id
+        braintree_transaction_id = get_random_string( 8 )
+        self.ct.deposit_braintree( amount, braintree_transaction_id )
+
+        count_btree_trans_after = len( BraintreeTransaction.objects.all() )
+
+        self.assertEquals(count_btree_trans_before + 1, count_btree_trans_after)
+
+    def test_braintree_deposit_zero(self):
+        AMOUNT = 0.0
+        self.__braintree_transaction_deposit( AMOUNT )
+
+    def test_braintree_deposit_negative_zero(self):
+        AMOUNT = -0.0
+        self.__braintree_transaction_deposit( AMOUNT )
 
 class BalanceAPIViewTest(AbstractTest):
     """
@@ -106,6 +178,7 @@ class BalanceAPIViewTest(AbstractTest):
         -Validate format of the json
     """
     pass
+
 class TransactionHistoryAPIViewTest(AbstractTest):
     """
     TODOs
