@@ -14,3 +14,8 @@ class AmountNegativeException(Exception):
     def __init__(self, class_name, variable_name):
        super(AmountNegativeException, self).__init__(\
            "Incorrect usage of amount argument. The amount value must be a positive number.")
+
+class AmountZeroException(Exception):
+    def __init__(self, class_name, variable_name):
+       super(AmountZeroException, self).__init__(\
+           "Incorrect usage of amount argument. The amount value must be greater than 0.00.")

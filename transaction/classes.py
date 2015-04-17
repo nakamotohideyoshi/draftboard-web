@@ -1,5 +1,5 @@
 from transaction.models import Transaction, TransactionDetail, Balance, TransactionType
-from transaction.exceptions import VariableNotSetException, IncorrectVariableTypeException, AmountNegativeException
+from transaction.exceptions import VariableNotSetException, IncorrectVariableTypeException, AmountNegativeException,AmountZeroException
 from django.contrib.auth.models import User
 import decimal
 from dfslog.classes import Logger, ErrorCodes
@@ -172,3 +172,5 @@ class AbstractTransaction (object):
         """
         if(amount < 0.00):
             raise AmountNegativeException(type(self).__name__, amount)
+        if(amount == 0.00):
+            raise AmountZeroException(type(self).__name__, amount)

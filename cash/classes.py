@@ -119,12 +119,12 @@ class CashTransaction(AbstractTransaction):
             pk=TransactionTypeConstants.CashWithdrawal.value
         )
 
-        today = datetime.today()
-        end_date = today + datetime.timedelta(days=past_days)
-        return self.transaction_detail_class.objects.count(
-            created__range=[today, end_date],
-            category = category
-        )
+        today = datetime.datetime.now()
+        start_date = today - datetime.timedelta(days=past_days)
+        return self.transaction_detail_class.objects.filter(
+            created__range=[start_date, today],
+            transaction__category=category
+        ).count()
 
     def get_withdrawal_amount_current_year(self ):
         """
@@ -138,15 +138,15 @@ class CashTransaction(AbstractTransaction):
             pk=TransactionTypeConstants.CashDeposit.value
         )
         total_deposit = self.transaction_detail_class.objects.filter(
-            created__year=datetime.now().year,
-            category = category_deposit
+            created__year=datetime.datetime.now().year,
+            transaction__category=category_deposit
         ).aggregate(models.Sum('amount'))
         total_withdrawal = self.transaction_detail_class.objects.filter(
-            created__year=datetime.now().year,
-            category = category_deposit
+            created__year=datetime.datetime.now().year,
+            transaction__category=category_deposit
         ).aggregate(models.Sum('amount'))
 
-        return abs(total_withdrawal) - total_deposit
+        return abs(total_withdrawal['amount__sum']) - total_deposit['amount__sum']
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
@@ -160,7 +160,7 @@ class CashWithdrawalManager:
             )
 
         self.user = user
-
+        self.withdrawal_status = None
 
 
     def withdraw(self, amount, paypal_email= None):
@@ -171,7 +171,7 @@ class CashWithdrawalManager:
         ct.withdraw(amount)
 
 
-        withdrawal_status = cash.models.WithdrawalStatus()
+        self.withdrawal_status = cash.models.WithdrawalStatus()
 
 
         #
@@ -195,12 +195,12 @@ class CashWithdrawalManager:
            amount >=
                 settings.DFS_CASH_WITHDRAWAL_APPROVAL_REQ_AMOUNT
            ):
-            withdrawal_status.flagged = True
+            self.withdrawal_status.flagged = True
 
 
         #
-        # Gets the profit for the year + the amount requested by the user
-        current_year_profit = ct.get_withdrawal_amount_current_year() + amount
+        # Gets the profit for the year (includes current amount requested)
+        current_year_profit = ct.get_withdrawal_amount_current_year()
 
         #
         # If they have profited enough for the site to have to
@@ -213,15 +213,15 @@ class CashWithdrawalManager:
             # for the given user. If not flag them and set tax_info_required
             tax_info_manager = TaxInfoManager(self.user)
             if(not tax_info_manager.info_collected()):
-                withdrawal_status.flagged = True
-                withdrawal_status.tax_info_required = True
+                self.withdrawal_status.flagged = True
+                self.withdrawal_status.tax_info_required = True
 
         #
         # If nothing has been flagged as an issue and PayPal was set,
         # it means we can try to automatically pay them out.
-        if(paypal_email != None and withdrawal_status.flagged == False):
-            withdrawal_status.paypal_email = paypal_email
-            withdrawal_status.approved = self.__payout_paypal(
+        if(paypal_email != None and self.withdrawal_status.flagged == False):
+            self.withdrawal_status.paypal_email = paypal_email
+            self.withdrawal_status.approved = self.__payout_paypal(
                                             amount,
                                             paypal_email
                                         )
@@ -230,14 +230,14 @@ class CashWithdrawalManager:
         # Otherwise the admin needs to write the check or approve the
         # PayPal payout.
         else:
-            withdrawal_status.mail_check = True
-            withdrawal_status.paypal_email = ''
+            self.withdrawal_status.mail_check = True
+            self.withdrawal_status.paypal_email = ''
 
         #
         # link the withdrawal status to the transaction_detail
         # from the newly withdrawn cash transaction
-        withdrawal_status.cash_transaction_detail = ct.transaction_detail
-        withdrawal_status.save()
+        self.withdrawal_status.cash_transaction_detail = ct.transaction_detail
+        self.withdrawal_status.save()
 
 
 

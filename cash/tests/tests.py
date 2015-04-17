@@ -1,7 +1,7 @@
 import unittest
 import decimal
 from django.contrib.auth.models import User
-from cash.classes import CashTransaction
+from cash.classes import CashTransaction, CashWithdrawalManager
 from cash.models import CashBalance, CashTransactionDetail
 from transaction.exceptions import IncorrectVariableTypeException
 import django.test
@@ -15,9 +15,8 @@ from django.test import RequestFactory
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from cash.views import DepositView
-
 from django.utils.crypto import get_random_string   # usage: get_random_string( length=8 )
-
+import transaction
 class CashTransactionTest(AbstractTest):
     """
     Tests the :class:`cash.classes.CashTransaction` class
@@ -139,6 +138,9 @@ class DepositViewTest(AbstractTest): # im not sure its possible, because of the 
     #     AMOUNT = 'abc'
     #     response = self.__post( AMOUNT )
 
+
+
+
 class BraintreeDeposit(AbstractTest):
     """
     test the CashTransaction.braintree_deposit() method.
@@ -165,11 +167,18 @@ class BraintreeDeposit(AbstractTest):
 
     def test_braintree_deposit_zero(self):
         AMOUNT = 0.0
-        self.__braintree_transaction_deposit( AMOUNT )
+        self.assertRaises(
+            transaction.exceptions.AmountZeroException,
+            lambda: self.__braintree_transaction_deposit( AMOUNT )
+        )
+
 
     def test_braintree_deposit_negative_zero(self):
         AMOUNT = -0.0
-        self.__braintree_transaction_deposit( AMOUNT )
+        self.assertRaises(
+            transaction.exceptions.AmountZeroException,
+            lambda: self.__braintree_transaction_deposit( AMOUNT )
+        )
 
 class BalanceAPIViewTest(AbstractTest):
     """
