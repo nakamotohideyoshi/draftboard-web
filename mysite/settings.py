@@ -64,9 +64,9 @@ INSTALLED_APPS = (
 ##########################################################################
 #        django_braintree
 ##########################################################################
-BRAINTREE_MERCHANT      = 'dq2z693r9mcjn22k'
-BRAINTREE_PUBLIC_KEY    = 'dh8qw5597zxk8x95'
-BRAINTREE_PRIVATE_KEY   = '524955b562899917ebf7878dd45da7ee'
+BRAINTREE_MERCHANT      = 'xh2x3fhngf3nnkk5'
+BRAINTREE_PUBLIC_KEY    = 'th4fw4rpz3rhn8bq'
+BRAINTREE_PRIVATE_KEY   = '9122b2a8557887e27a6de0da7221a7d7'
 BRAINTREE_MODE          = braintree.Environment.Sandbox
 from braintree import Configuration, Environment
 
@@ -76,6 +76,16 @@ Configuration.configure(
     BRAINTREE_PUBLIC_KEY,
     BRAINTREE_PRIVATE_KEY
 )
+#
+##########################################################################
+#        cash -Withdrawal Rules
+##########################################################################
+DFS_CASH_WITHDRAWAL_APPROVAL_REQ_AMOUNT          = 100.00
+DFS_CASH_WITHDRAWAL_APPROVAL_REQ_DAILY_FREQ      = 2
+DFS_CASH_WITHDRAWAL_APPROVAL_REQ_WEEKLY_FREQ     = 3
+DFS_CASH_WITHDRAWAL_APPROVAL_REQ_MONTHLY_FREQ    = 6
+DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO      = 750.00
+
 
 #
 ##########################################################################
