@@ -3,7 +3,7 @@ import decimal
 from django.contrib.auth.models import User
 from cash.classes import CashTransaction, CashWithdrawalManager
 from cash.models import CashBalance, CashTransactionDetail
-from transaction.exceptions import IncorrectVariableTypeException
+from mysite.exceptions import IncorrectVariableTypeException, AmountZeroException
 import django.test
 from cash.forms import AdminCashDepositForm
 from cash.admin import AdminCashDepositFormAdmin
@@ -17,6 +17,7 @@ from django.contrib.auth.models import Permission
 from cash.views import DepositView
 from django.utils.crypto import get_random_string   # usage: get_random_string( length=8 )
 import transaction
+
 class CashTransactionTest(AbstractTest):
     """
     Tests the :class:`cash.classes.CashTransaction` class
@@ -168,7 +169,7 @@ class BraintreeDeposit(AbstractTest):
     def test_braintree_deposit_zero(self):
         AMOUNT = 0.0
         self.assertRaises(
-            transaction.exceptions.AmountZeroException,
+            AmountZeroException,
             lambda: self.__braintree_transaction_deposit( AMOUNT )
         )
 
@@ -176,7 +177,7 @@ class BraintreeDeposit(AbstractTest):
     def test_braintree_deposit_negative_zero(self):
         AMOUNT = -0.0
         self.assertRaises(
-            transaction.exceptions.AmountZeroException,
+            AmountZeroException,
             lambda: self.__braintree_transaction_deposit( AMOUNT )
         )
 
@@ -458,147 +459,3 @@ class AdminPanelCashWithdrawal(AbstractTest):
 #         'permissions'   : [ Permission.objects.get(name = 'Can add admin cash withdrawal' ) ]
 #     }
 #     amount      = 2.99
-
-"""
-##### class hierarchy ####
-class NeedsUser(django.test.TestCase):
-
-    def __init__(self):
-        # create a superuser
-        pass
-
-class NeedsBalance(NeedsUser):
-
-    def __init__(self, initial_balance=100.00):
-        super().__init__()
-        self.intiial_balance = initial_balance
-
-    def setUp(self):
-        # make a CashTransaction thats a deposit
-        pass
-
-class TestWithdraw( NeedsUser, NeedsBalance ):
-    rng = range(-100000, 1000000)
-    def __init__(self, amount=0.00):
-        super().__init__()
-        # now somewhere you can have a test method that creates withdraw
-
-    def test_withdraw_xxx(self):
-        pass # TODO
-
-class Withdraw1000(TestWithdraw):
-    amount = 1000
-class Withdraw2000(TestWithdraw):
-    amount = 2000
-class Withdraw1000(TestWithdraw):
-    amount = 3000
-"""
-
-
-"""
-class AdminPanelCashDeposit(django.test.TestCase):
-
-
-    c       = Client()
-    url     = '/admin/cash/admincashdeposit/add/'
-    user_data = {
-        'username'      : 'admin',      # subclasses should set the username here
-        'password'      : 'password',      # subclasses should set the password here
-        'is_superuser'  : True,
-        'is_staff'      : True,
-        'permissions'   : []            # superusers will have all permissions regardless of this list
-    }
-    amount = 1.00
-
-    def setUp(self):
-        # nothing much to do here
-        pass
-
-    def __user_exists(self, username):
-        try:
-            u = User.objects.get( username=username )
-            return True
-        except User.DoesNotExist:
-            return False
-
-    def __get_or_create_user_with_perm(self, username='', password='',
-                                       is_superuser=False, is_staff=False, permissions=[]):
-        #
-        # get the user if they exist.
-        # if they dont exist, create them with the specified status and permissions
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            user = User.objects.create_user(username=username, password=password)
-            if is_superuser:
-                # superuser, by default is also staff
-                user.is_superuser   = True
-                user.is_staff       = True
-            elif is_staff == True and is_superuser == False:
-                # staff , but not super user
-                user.is_superuser = False
-                user.is_staff = True
-
-                # if there are specified permissions, apply them to the staff
-                for perm in permissions:
-                    user.user_permissions.add( perm )
-
-            else:
-                # basic user
-                user.is_superuser = False
-                user.is_staff   = False
-
-            user.save()
-        return user
-
-    def test_admin_add_cash_deposit_view(self):
-        self.assertEquals( self.__user_exists( self.user_data['username'] ), False )
-
-        #admin = self.get_admin_user(username=self.user_data['username'])
-
-        self.assertEquals( admin.username, self.user_data['username'])
-
-
-        self.assertEquals( self.c.login( username=self.user_data['username'],
-                                    password=self.user_data['password'], ), True )
-
-        # confirm again the person we think is logged in really is:
-        logged_in_user_id = None
-        for tup in self.c.session.items():
-            if tup[0] == '_auth_user_id':
-                logged_in_user_id = tup[1]
-        self.assertEquals( logged_in_user_id, '%s' % str(admin.pk) )
-
-        form_data = {
-            'user'      : admin.pk,          # set later on when the user is created
-            'amount'    : self.amount,
-            'reason'    : 'testing-%s' % self.__class__.__name__
-        }
-        #form_data['user'] = admin.pk
-
-        #
-        # in django 1.8...
-        # there is a problem with a built in method get_language() somewhere deep in Client
-        #  and it throws AttributeError - lets just catch that, because we still should have worked
-        perms = admin.user_permissions
-        print( 'permissions: is_superuser ', admin.is_superuser )
-        print( 'permissions: is_staff     ', admin.is_staff )
-        #print( 'permissions count: ', str(len(perms)))
-        # for p in perms:
-        #     print( p )
-
-        #try:
-        response = self.c.post( self.url, form_data )
-        #except AttributeError:
-        #    pass
-
-        #
-        # check if there are ANY new AdminCashDeposits in the database
-        acds = AdminCashDeposit.objects.all()
-        print('%s - total AdminCashDeposit objects in database' % (str(len(acds))) )
-        self.assertEqual( len(acds), 1 )   ### we only expect one item here, because no existing data should exist
-
-        acd = AdminCashDeposit.objects.get ( user=admin, reason=form_data['reason'] )
-        print( acd )
-        self.assertEqual( acd.reason, form_data['reason'] )
-"""

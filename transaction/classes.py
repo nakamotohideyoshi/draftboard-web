@@ -1,10 +1,11 @@
 from transaction.models import Transaction, TransactionDetail, Balance, TransactionType
-from transaction.exceptions import VariableNotSetException, IncorrectVariableTypeException, AmountNegativeException,AmountZeroException
+from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException, AmountNegativeException, AmountZeroException
 from django.contrib.auth.models import User
 import decimal
 from dfslog.classes import Logger, ErrorCodes
+from mysite.classes import  AbstractSiteUserClass
 
-class AbstractTransaction (object):
+class AbstractTransaction (AbstractSiteUserClass):
     """
     This class is to be implemented by any of the financial
     systems that require a transaction system. The class deals
@@ -29,12 +30,7 @@ class AbstractTransaction (object):
             When the transaction_detail and balance not set.
 
         """
-        #
-        # Validate that user and category are proper types
-        if(not isinstance(user, User)):
-            raise IncorrectVariableTypeException(type(self).__name__,
-                                          "user")
-        self.user = user
+        super().__init__(user)
         self.transaction_detail_class = None
         self.balance_class = None
         self.transaction_detail = None
@@ -48,7 +44,6 @@ class AbstractTransaction (object):
         if(self.balance_class == None):
             raise VariableNotSetException(type(self).__name__,
                                           "balance_class")
-        val = issubclass(self.transaction_detail_class, TransactionDetail)
         if(not issubclass(self.transaction_detail_class, TransactionDetail)):
             raise IncorrectVariableTypeException(type(self).__name__,
                                           "transaction_detail_class")

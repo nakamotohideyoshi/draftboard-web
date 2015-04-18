@@ -2,7 +2,7 @@ import unittest
 from transaction.classes import AbstractTransaction
 from django.contrib.auth.models import User
 from transaction.models import TransactionDetail, Balance, TransactionType
-from transaction.exceptions import VariableNotSetException, IncorrectVariableTypeException, AmountNegativeException
+from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException, AmountNegativeException
 import decimal
 from django.core.exceptions import ValidationError
 from test.models import TransactionDetailChild, BalanceChild

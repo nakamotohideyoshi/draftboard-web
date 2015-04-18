@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models, migrations
 from django.conf import settings
-
+from ..constants import TransactionTypeConstants
 def load_initial_transaction_types(apps, schema_editor):
     """
     Loads the initial TransactionType(s). This function will be passed to 'migrations.RunPython' which supplies the arguments.
@@ -14,7 +14,7 @@ def load_initial_transaction_types(apps, schema_editor):
     """
     transaction_types = [
       {
-        "pk": 1,
+        "pk": TransactionTypeConstants.CashWithdrawal.value,
         "model": "transaction.transactiontype",
         "fields":
           {
@@ -24,7 +24,7 @@ def load_initial_transaction_types(apps, schema_editor):
           }
       },
       {
-        "pk": 2,
+        "pk": TransactionTypeConstants.CashDeposit.value,
         "model": "transaction.transactiontype",
         "fields":
           {

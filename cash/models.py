@@ -42,6 +42,12 @@ class WithdrawalStatus(models.Model):
     paypal_email            = models.CharField( max_length=255, default='', null=False, blank=True )
 
 
+
+
+
+#-------------------------------------------------------------------
+#-------------------------------------------------------------------
+# Admin Tables
 class AdminCashDeposit( models.Model ):
     """
     keep track of times the admin has deposited cash

@@ -4,6 +4,9 @@ import json
 from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from test.classes import AbstractTest
+from .classes import AccountInformation
+from .exceptions import AccountInformationException
 class RegisterAccountTest( APITestCase ):
 
     def test_api(self):
@@ -78,3 +81,85 @@ class RegisterAccountTest( APITestCase ):
 
 
 
+class AccountInformationTest(AbstractTest):
+    def setUp(self):
+        self.user     = self.get_admin_user()
+
+
+    def should_fail_validate_mailing_address(self, information):
+        self.assertRaises(
+            AccountInformationException,
+            lambda :information.validate_mailing_address()
+        )
+
+    def test_validate_mailing_address_missing_all_fields(self):
+        information = AccountInformation(self.user)
+        self.should_fail_validate_mailing_address(information)
+
+        #
+        # Working Fields
+        information.set_fields(
+            fullname        = 'Ryan',
+            address1        = 'address1',
+            city            = 'city',
+            state           = 'NH',
+            zipcode         = '03820'
+        )
+        information.validate_mailing_address()
+
+        #
+        # missing fullname
+        information.set_fields(
+            fullname        = '',
+            address1        = 'address1',
+            city            = 'city',
+            state           = 'NH',
+            zipcode         = '03820'
+        )
+        self.should_fail_validate_mailing_address(information)
+
+
+        #
+        # missing address1
+        information.set_fields(
+            fullname        = 'Ryan',
+            address1        = '',
+            city            = 'city',
+            state           = 'NH',
+            zipcode         = '03820'
+        )
+        self.should_fail_validate_mailing_address(information)
+
+        #
+        # missing city
+        information.set_fields(
+            fullname        = 'Ryan',
+            address1        = 'address1',
+            city            = '',
+            state           = 'NH',
+            zipcode         = '03820'
+        )
+        self.should_fail_validate_mailing_address(information)
+
+
+        #
+        # missing state
+        information.set_fields(
+            fullname        = 'Ryan',
+            address1        = 'address1',
+            city            = 'city',
+            state           = '',
+            zipcode         = '03820'
+        )
+        self.should_fail_validate_mailing_address(information)
+
+        #
+        # missing zipcode
+        information.set_fields(
+            fullname        = 'Ryan',
+            address1        = 'address1',
+            city            = 'city',
+            state           = 'NH',
+            zipcode         = ''
+        )
+        self.should_fail_validate_mailing_address(information)

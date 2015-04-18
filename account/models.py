@@ -16,7 +16,7 @@ class Information(models.Model):
     city            = models.CharField(max_length=64, null=False, default='')
     state           = models.CharField(choices=US_STATES, max_length=2,  default='')
     zipcode         = models.CharField(max_length=5, null=False, default='')
-    dob             = models.DateField(default='', null=True)
+    dob             = models.DateField( default=None,  null=True)
 
 
 
@@ -32,8 +32,7 @@ class EmailNotification(models.Model):
     default_value   = models.BooleanField( default= True )
     deprecated      = models.BooleanField( default= False )
 
-    caleb_temp1      = models.CharField(max_length=100, null=False, default='')
-    #caleb_temp2      = models.max_length=100, null=False, default='')
+
 
     class Meta:
         unique_together = ("category", "name")

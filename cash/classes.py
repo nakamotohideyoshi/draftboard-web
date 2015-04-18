@@ -3,7 +3,8 @@ import cash.models
 from transaction.classes import AbstractTransaction
 from transaction.models import TransactionType
 from transaction.constants import TransactionTypeConstants
-from cash.exceptions import OverdraftException, IncorrectVariableTypeException
+from cash.exceptions import OverdraftException
+from mysite.exceptions import IncorrectVariableTypeException
 from dfslog.classes import Logger, ErrorCodes
 from django.contrib.auth.models import User
 from django.conf import settings
@@ -205,7 +206,7 @@ class CashWithdrawalManager:
         #
         # If they have profited enough for the site to have to
         # provide tax documentation.
-        if(current_year_profit >
+        if(current_year_profit >=
             settings.DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO):
 
             #
