@@ -1,7 +1,7 @@
 var path = require("path");
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 var WebpackNotifierPlugin = require('webpack-notifier');
-
+var webpack = require("webpack");
 
 module.exports = {
 
@@ -9,7 +9,7 @@ module.exports = {
   entry: {
     // Main app file.
     app: [
-      // Enable Webpack's dev server for this entry.
+      // Enable Webpack's dev server hot reloads for this entry.
       "webpack/hot/dev-server",
       // Our app to be bundled.
       path.join(__dirname, "static/src/js/app.jsx")
@@ -23,9 +23,6 @@ module.exports = {
     filename: "js/[name].js"
   },
 
-  // Add source maps inline.
-  devtool: "source-map",
-
   module: {
     loaders: [
       // jsx loader - to convert jsx to native js.
@@ -37,9 +34,7 @@ module.exports = {
       {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract(
-          // Activate source maps via loader query.
-          "css?sourceMap!" +
-          "sass?sourceMap"
+          "css!sass"
         )
       },
       // Run ESLint on jsx + js files.
@@ -65,7 +60,9 @@ module.exports = {
     new WebpackNotifierPlugin({
       title: "Webpack",
       contentImage: "https://dl.dropboxusercontent.com/spa/wn0oryty1do7jho/rq03wbw9.png"
-    })
+    }),
+    // Remove comments in js when uglifying.
+    //new webpack.optimize.UglifyJsPlugin({ output: {comments: false} })
   ],
 
   // Tell webpack where to look for require()'d files. If it can't locate a file, make sure you're requiring it

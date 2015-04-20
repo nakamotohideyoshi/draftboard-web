@@ -32,7 +32,7 @@
   "scripts": {
     "test": "mocha static/src/js/test --opts static/src/js/test/mocha.opts",
     "devserver": "webpack-dev-server --content-base build/ --hot --colors --progress",
-    "webpack": "webpack --optimize-minimize",
+    "webpack": "webpack --optimize-dedupe --colors --progress",
     "install_global_modules": "npm install -g webpack webpack-dev-server eslint eslint-plugin-react mocha"
   }
 }

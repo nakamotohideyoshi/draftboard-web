@@ -5,6 +5,8 @@
   component's jsx file.
 **/
 
+@import"./base.scss";
+@import"./blocks/button.scss";
 
 
 
@@ -27,11 +29,8 @@
     }
     td {
       padding: 3px 30px;
-
-
     }
   }
-
 }
 
 #contest-detail {
