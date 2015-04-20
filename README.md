@@ -1,5 +1,7 @@
 # DFS
 
+[![Codeship Status for runitoncedevs/dfs](https://codeship.com/projects/c31f7a20-ae27-0132-eb40-0283b9bcbbf1/status?branch=master)](https://codeship.com/projects/68807)
+
 <!--
 
 NOTE: Pulled from 'readme' file, not sure if this is accurate.
