@@ -1,5 +1,32 @@
-# dfs
+# DFS
 
+<!--
+
+NOTE: Pulled from 'readme' file, not sure if this is accurate.
+
+
+The purpose of this project is to make it insanely easy to start up a python3.4 + django1.7 project. It uses Vagrant to do so.
+
+##### Prerequisites:
+
+* [Vagrant](https://www.vagrantup.com/downloads.html)
+* Git 		
+
+##### Step 1:
+
+1. git <code>clone https://GITUSERNAME@bitbucket.org/GITUSERNAME/vagrant-django.git</code>
+2.	 cd vagrant-django
+3. 	 vagrant up
+4. 	 vagrant ssh
+  
+To connect from a browser on your local computer, bring up gunicorn or runserver:
+
+    cd /vagrant && ./manage.py runserver 127.0.0.1:8000
+
+or
+
+    cd /vagrant && /home/vagrant/venv/bin/gunicorn mysite.wsgi 
+-->
 
 ##Client-Side Development
 
@@ -15,11 +42,11 @@ To build the front-end project you'll need to install the following.
 ### Setup
 
     
-In the project root, install all global dependencies. 
+In the project root, install all global dependiencies. 
 
     $ npm run install_global_modules
 
-Install local project dependencies.
+Install local prject dependencies.
 
     $ npm install
 
