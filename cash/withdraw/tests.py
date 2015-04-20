@@ -5,7 +5,15 @@ from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeExce
 import datetime
 from django.conf import settings
 import decimal
+import mysite
 from cash.classes import CashTransaction
+from account.classes import AccountInformation
+from cash.exceptions import  TaxInformationException, OverdraftException
+from .exceptions import  WithdrawStatusException
+from .constants import WithdrawStatusConstants
+from . import models
+import django
+from cash.tax.classes import TaxManager
 class WithdrawTest(AbstractTest):
     """
     Test the :class:`cash.classes.CashWithdrawalManager` class
@@ -14,26 +22,32 @@ class WithdrawTest(AbstractTest):
            the withdraw function for cash withdrawal
     """
     def setUp(self):
-        self.dailyFreq = \
-            settings.DFS_CASH_WITHDRAWAL_APPROVAL_REQ_DAILY_FREQ
-        self.weeklyFreq = \
-            settings.DFS_CASH_WITHDRAWAL_APPROVAL_REQ_WEEKLY_FREQ
-        self.monthlyFreq = \
-            settings.DFS_CASH_WITHDRAWAL_APPROVAL_REQ_MONTHLY_FREQ
         self.withdraw_amount = decimal.Decimal(10.00)
-
+        self.account_balance = 1000.00
         self.user     = self.get_admin_user()
         r = self.move_time(days = 365, hours = 1)
         ct = CashTransaction(self.user)
-        ct.deposit(1000.00)
+
+        ct.deposit(self.account_balance)
+        information = AccountInformation(self.user)
+        information.set_fields(
+            fullname        = 'Ryan',
+            address1        = 'address1',
+            city            = 'city',
+            state           = 'NH',
+            zipcode         = '03820'
+        )
         r.restore()
 
 
-    def __make_withdrawal(self, amount, withdraw_class):
-        w = withdraw_class( self.user )
+    def __make_withdrawal_check(self, amount):
+        w = CheckWithdraw( self.user )
         w.withdraw(amount)
         return w
-
+    def __make_withdrawal_paypal(self, amount):
+        w = PayPalWithdraw( self.user )
+        w.withdraw(amount,self.user.email)
+        return w
 
 
 
@@ -77,85 +91,81 @@ class WithdrawTest(AbstractTest):
         self.assertIsNotNone(CheckWithdraw(self.user))
 
 
+
+
+    def test_negative_withdrawal(self):
+        self.assertRaises(
+            mysite.exceptions.AmountNegativeException,
+            lambda: self.__make_withdrawal_check(decimal.Decimal(-1))
+        )
+        self.assertRaises(
+            mysite.exceptions.AmountNegativeException,
+            lambda: self.__make_withdrawal_paypal(decimal.Decimal(-1))
+        )
+    def test_zero_withdrawal(self):
+        self.assertRaises(
+            mysite.exceptions.AmountZeroException,
+            lambda: self.__make_withdrawal_check(decimal.Decimal(0.00))
+        )
+        self.assertRaises(
+            mysite.exceptions.AmountZeroException,
+            lambda: self.__make_withdrawal_paypal(decimal.Decimal(0.00))
+        )
+
+    def test_overdraft(self):
+        self.assertRaises(
+            OverdraftException,
+            lambda: self.__make_withdrawal_check(decimal.Decimal(self.account_balance +1) )
+        )
+        self.assertRaises(
+            OverdraftException,
+            lambda: self.__make_withdrawal_paypal(decimal.Decimal(self.account_balance +1) )
+        )
+
+
     def test_check_withdraw(self):
-       cw = self.__make_withdrawal(self.withdraw_amount, CheckWithdraw)
+        cw = self.__make_withdrawal_check(self.withdraw_amount)
+        pending = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Pending.value)
+        self.assertEquals(cw.withdraw_object.status, pending)
+
+        #
+        # Tests the withdrawal over the amount where tax info is required
+        self.assertRaises(TaxInformationException, lambda:self.__make_withdrawal_check(decimal.Decimal(settings.DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO)))
+
+        #
+        # Test that there is no error when we have the amount to withdraw
+        tm = TaxManager(self.user)
+        tm.set_tax_id("012345678")
+        cw = self.__make_withdrawal_check(
+                decimal.Decimal(settings.DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO)
+        )
+        self.assertEquals(cw.withdraw_object.status, pending)
 
 
 
-    # def create_max_daily_transactions(self):
-    #     for count in range(self.dailyFreq-1):
-    #         cm = self.__make_withdrawal(self.withdraw_amount)
-    #         self.__validate_withdrawal_results(
-    #             cm, -self.withdraw_amount, False, False, False,True,'')
-    #
-    # def create_max_weekly_transactions(self):
-    #     #
-    #     # moves the time back a week so we can create transactions
-    #     # almost a week ago
-    #     r= self.move_time(6, 4)
-    #     for count in range(self.weeklyFreq-1):
-    #         cm = self.__make_withdrawal(self.withdraw_amount)
-    #     r.restore()
-    #
-    # def create_max_monthly_transactions(self):
-    #     #
-    #     # moves the time back a month so we can create transactions
-    #     # almost a month ago
-    #     r= self.move_time(29, 4)
-    #     for count in range(self.monthlyFreq-1):
-    #         cm = self.__make_withdrawal(self.withdraw_amount)
-    #     r.restore()
-    #
-    # def test_daily_withdraw_limit(self):
-    #     #
-    #     # creates dailyFreq-1 transactions
-    #     self.create_max_daily_transactions()
-    #
-    #     #
-    #     # Now we should get a True for the flagged field
-    #     withdraw_amount = decimal.Decimal(10.00)
-    #     cm = self.__make_withdrawal(self.withdraw_amount)
-    #     self.__validate_withdrawal_results(
-    #         cm, -self.withdraw_amount, False, True, False,True,'')
-    #
-    # def test_weekly_withdraw_limit(self):
-    #     #
-    #     # creates weeklyFreq-1 transactions
-    #     self.create_max_weekly_transactions()
-    #
-    #
-    #     #
-    #     # Now we should get a True for the flagged field
-    #     cm = self.__make_withdrawal(self.withdraw_amount)
-    #     self.__validate_withdrawal_results(
-    #         cm, -self.withdraw_amount, False, True, False,True,'')
-    #
-    # def test_monthly_withdraw_limit(self):
-    #     #
-    #     # creates monthlyFreq-1 transactions
-    #     self.create_max_monthly_transactions()
-    #
-    #
-    #     #
-    #     # Now we should get a True for the flagged field
-    #     cm = self.__make_withdrawal(self.withdraw_amount)
-    #     self.__validate_withdrawal_results(
-    #         cm, -self.withdraw_amount, False, True, False,True,'')
-    #
-    #
-    # def test_negative_withdrawal(self):
-    #     self.assertRaises(
-    #         transaction.exceptions.AmountNegativeException,
-    #         lambda: self.__make_withdrawal(decimal.Decimal(-1))
-    #     )
-    # def test_zero_withdrawal(self):
-    #     self.assertRaises(
-    #         transaction.exceptions.AmountZeroException,
-    #         lambda: self.__make_withdrawal(decimal.Decimal(0.00))
-    #     )
-    #
-    # def test_no_user_cash_withdrawal_manager(self):
-    #     self.assertRaises(
-    #         cash.exceptions.IncorrectVariableTypeException,
-    #         lambda: CashWithdrawalManager(1)
-    #     )
+    def test_check_payout(self):
+        cw = self.__make_withdrawal_check(self.withdraw_amount)
+        pending = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Pending.value)
+        self.assertEquals(cw.withdraw_object.status, pending)
+        check_number = 101
+        #
+        # Tests proper payout
+        processed = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processed.value)
+        new_cw =CheckWithdraw(self.user)
+        new_cw.payout(cw.withdraw_object.pk, check_number)
+        self.assertEqual(new_cw.withdraw_object.status , processed)
+
+        #
+        # Tests already marked version
+        new_cw =CheckWithdraw(self.user)
+        self.assertRaises(WithdrawStatusException, lambda:new_cw.payout(cw.withdraw_object.pk, check_number))
+
+        #
+        # Tests duplicate check number
+        cw = self.__make_withdrawal_check(self.withdraw_amount)
+        self.assertEquals(cw.withdraw_object.status, pending)
+        new_cw =CheckWithdraw(self.user)
+        self.assertRaises(django.db.utils.IntegrityError, lambda:new_cw.payout(cw.withdraw_object.pk, check_number))
+
+
+

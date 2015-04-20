@@ -59,6 +59,7 @@ INSTALLED_APPS = (
     'transaction',
     'cash',
     'cash.withdraw',
+    'cash.tax',
     'test',
 )
 #
@@ -82,9 +83,6 @@ Configuration.configure(
 #        cash -Withdrawal Rules
 ##########################################################################
 DFS_CASH_WITHDRAWAL_APPROVAL_REQ_AMOUNT          = 100.00
-DFS_CASH_WITHDRAWAL_APPROVAL_REQ_DAILY_FREQ      = 2
-DFS_CASH_WITHDRAWAL_APPROVAL_REQ_WEEKLY_FREQ     = 3
-DFS_CASH_WITHDRAWAL_APPROVAL_REQ_MONTHLY_FREQ    = 6
 DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO      = 750.00
 
 

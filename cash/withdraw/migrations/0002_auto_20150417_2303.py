@@ -2,7 +2,35 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+from ..constants import WithdrawStatusConstants
 
+def load_initial_data(apps, schema_editor):
+    """
+    Loads the initial WithdrawStatus(s). This function will be passed to 'migrations.RunPython' which supplies the arguments.
+
+    :param apps:
+    :param schema_editor:
+    :return:
+    """
+
+
+    #
+    # get the model by name
+    WithdrawStatus = apps.get_model('withdraw', 'WithdrawStatus')
+    arr =  WithdrawStatusConstants.getJSON()
+    for data in arr:
+        fields = data['fields']
+        try:
+            t = WithdrawStatus.objects.get( pk=data['pk'] )
+        except WithdrawStatus.DoesNotExist:
+            t = WithdrawStatus()
+
+        #
+        # set the data['fields'] to the email notification
+        t.category     = fields['category']
+        t.description  = fields['description']
+        t.name         = fields['name']
+        t.save()
 
 class Migration(migrations.Migration):
 
@@ -68,4 +96,8 @@ class Migration(migrations.Migration):
             name='status',
             field=models.ForeignKey(to='withdraw.WithdrawStatus'),
         ),
+
+        #
+        # additionally, run function to load the initial objects
+        migrations.RunPython( load_initial_data )
     ]

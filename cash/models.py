@@ -30,19 +30,6 @@ class BraintreeTransaction(models.Model):
 
 
 
-class WithdrawalStatus(models.Model):
-    """
-    List of all the withdrawals and their associated statuses
-    """
-    cash_transaction_detail = models.ForeignKey( CashTransactionDetail )
-    approved                = models.BooleanField(default=False)
-    flagged                 = models.BooleanField(default=False)
-    tax_info_required       = models.BooleanField(default=False)
-    mail_check              = models.BooleanField(default=False)
-    paypal_email            = models.CharField( max_length=255, default='', null=False, blank=True )
-
-
-
 
 
 #-------------------------------------------------------------------

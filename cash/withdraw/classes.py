@@ -6,6 +6,9 @@ from account.classes import AccountInformation
 from cash.classes import CashTransaction
 from .constants import WithdrawStatusConstants
 from .exceptions import WithdrawStatusException
+from django.conf import settings
+from cash.exceptions import  TaxInformationException, OverdraftException
+from cash.tax.classes import TaxManager
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 
@@ -39,9 +42,28 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         Sets the standard withdraw data in the :class:`cash.withdraw.models.Withdraw`
         abstract model.
 
-        :return:
         """
-        pass
+        #
+        # Checks to make sure we are not withdrawing more than we have
+        ct= CashTransaction(self.user)
+        balance = ct.get_balance_amount()
+        if(balance < amount ):
+            raise OverdraftException(self.user.username)
+
+
+        #
+        # Gets the profit for the year before the current withdrawal
+        # and raises an exception if their tax information needs to
+        # be collected.
+        current_year_profit = ct.get_withdrawal_amount_current_year()
+        if(current_year_profit + amount >= settings.DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO):
+            #
+            # Checks to see if we collected tax information for the user
+            tm = TaxManager(self.user)
+            if(not tm.info_collected()):
+                raise TaxInformationException(self.user.username)
+
+
 
     def update_status(self):
         pass
@@ -57,7 +79,7 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         if(self.withdraw_object == None):
             self.withdraw_object = self.withdraw_class()
 
-        self.validate_withdraw()
+        self.validate_withdraw(amount)
 
         #
         # Performs the transaction since everything has been validated
@@ -74,11 +96,14 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         # updates the status and pays out if possible
         self.update_status()
 
-    def __check_status_pending(self, withdraw):
-        if(self.withdraw_object.status.pk != WithdrawStatusConstants.Pending ):
+    def __check_status_pending(self):
+
+
+        if(self.withdraw_object.status != self.get_withdraw_status(WithdrawStatusConstants.Pending.value)):
+            print(self.withdraw_object.status.description)
             raise WithdrawStatusException(
                 str(self.withdraw_object.pk),
-                type(self.withdraw_class).__name__
+                type(self.withdraw_object).__name__
             )
 
     def cancel(self, withdraw_pk, status_pk ):
@@ -98,6 +123,7 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         Marks the check as paid by updating hte status to processed
         """
         self.withdraw_object = self.withdraw_class.objects.get(pk=withdraw_pk)
+
         self.__check_status_pending()
 
 
@@ -114,14 +140,15 @@ class PayPalWithdraw(AbstractWithdraw):
         super().__init__(user)
 
 
-    def validate_withdraw(self):
-        super().validate_withdraw()
+    def validate_withdraw(self, amount):
+        super().validate_withdraw(amount)
 
     def update_status(self):
         """
         Sets the status to Pending
         """
         super().update_status()
+
 
     def withdraw(self, amount, email):
         self.withdraw_object =  models.PayPalWithdraw()
@@ -144,7 +171,7 @@ class CheckWithdraw(AbstractWithdraw):
         super().__init__(user)
 
 
-    def validate_withdraw(self):
+    def validate_withdraw(self, amount):
         """
         Validates the user has the proper mailing address.
 
@@ -157,7 +184,9 @@ class CheckWithdraw(AbstractWithdraw):
         account_information = AccountInformation(self.user)
         account_information.validate_mailing_address()
 
-        super().validate_withdraw()
+        #
+        # Then call the super class's validation for balance and tax checks
+        super().validate_withdraw(amount)
 
         #
         # sets the local variables in the withdraw object
@@ -174,7 +203,7 @@ class CheckWithdraw(AbstractWithdraw):
         Marks the check as paid by updating hte status to processed
         """
         super().payout(withdraw_pk)
-        self.withdraw_object = models.PayPalWithdraw.objects.get(pk=withdraw_pk)
+        self.withdraw_object = models.CheckWithdraw.objects.get(pk=withdraw_pk)
         self.withdraw_object.check_number = check_number
         self.withdraw_object.status = self.get_withdraw_status(WithdrawStatusConstants.Processed.value)
         self.withdraw_object.save()

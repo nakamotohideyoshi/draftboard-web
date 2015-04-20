@@ -17,7 +17,7 @@ class AbstractTest(django.test.TestCase):
             user = User.objects.get(username = username)
         except User.DoesNotExist:
             user = User.objects.create_user(username=username, password=self.PASSWORD)
-
+            user.email = 'admin@test.com'
         if is_superuser:
             # superuser, by default is also staff
             user.is_superuser   = True

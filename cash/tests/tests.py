@@ -1,7 +1,7 @@
 import unittest
 import decimal
 from django.contrib.auth.models import User
-from cash.classes import CashTransaction, CashWithdrawalManager
+from cash.classes import CashTransaction
 from cash.models import CashBalance, CashTransactionDetail
 from mysite.exceptions import IncorrectVariableTypeException, AmountZeroException
 import django.test
