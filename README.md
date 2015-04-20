@@ -15,11 +15,11 @@ To build the front-end project you'll need to install the following.
 ### Setup
 
     
-In the project root, install all global dependiencies. 
+In the project root, install all global dependencies. 
 
     $ npm run install_global_modules
 
-Install local prject dependencies.
+Install local project dependencies.
 
     $ npm install
 
