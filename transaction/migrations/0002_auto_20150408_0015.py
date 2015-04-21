@@ -13,26 +13,36 @@ def load_initial_transaction_types(apps, schema_editor):
     :return:
     """
     transaction_types = [
-      {
-        "pk": TransactionTypeConstants.CashWithdrawal.value,
-        "model": "transaction.transactiontype",
-        "fields":
-          {
-            "category": "cash",
-            "description": "Cash Withdrawal",
-            "name": "witdrawal"
-          }
-      },
-      {
-        "pk": TransactionTypeConstants.CashDeposit.value,
-        "model": "transaction.transactiontype",
-        "fields":
-          {
-            "category": "cash",
-            "description": "Cash Deposit",
-            "name": "deposit"
-          }
-      }
+        {
+            "pk": TransactionTypeConstants.CashWithdraw.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "cash",
+                "description": "Cash Withdraw",
+                "name": "withdraw"
+              }
+        },
+        {
+            "pk": TransactionTypeConstants.CashDeposit.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "cash",
+                "description": "Cash Deposit",
+                "name": "deposit"
+              }
+        },
+        {
+            "pk": TransactionTypeConstants.AdminCancelWithdraw.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "cash",
+                "description": "Cancel Cash Withdraw",
+                "name": "cancel withdraw"
+              }
+        }
     ]
 
     #

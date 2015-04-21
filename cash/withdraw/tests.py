@@ -168,4 +168,18 @@ class WithdrawTest(AbstractTest):
         self.assertRaises(django.db.utils.IntegrityError, lambda:new_cw.payout(cw.withdraw_object.pk, check_number))
 
 
+    def test_check_cancel_payout(self):
 
+        cw = self.__make_withdrawal_check(self.withdraw_amount)
+        pending = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Pending.value)
+        self.assertEquals(cw.withdraw_object.status, pending)
+
+        #
+        # Tests cancel payout
+        cancelled = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.CancelledAdminDefault.value)
+        new_cw =CheckWithdraw(self.user)
+        new_cw.cancel(cw.withdraw_object.pk, WithdrawStatusConstants.CancelledAdminDefault.value)
+        self.assertEqual(new_cw.withdraw_object.status , cancelled)
+
+        ct = CashTransaction(self.user)
+        self.assertAlmostEquals(ct.get_balance_amount(), decimal.Decimal(self.account_balance))

@@ -5,5 +5,6 @@ class TransactionTypeConstants(Enum):
     """
     Constants for the :class:`transaction.models.TransactionType`.
     """
-    CashWithdrawal = 1
+    CashWithdraw = 1
     CashDeposit = 2
+    AdminCancelWithdraw = 3

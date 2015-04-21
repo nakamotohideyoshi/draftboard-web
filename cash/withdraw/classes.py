@@ -9,12 +9,14 @@ from .exceptions import WithdrawStatusException
 from django.conf import settings
 from cash.exceptions import  TaxInformationException, OverdraftException
 from cash.tax.classes import TaxManager
+from transaction.constants import TransactionTypeConstants
+from transaction.models import TransactionType
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 
 class AbstractWithdraw( AbstractSiteUserClass ):
     """
-    Abstract class that imports
+    Abstract class for maintaining the Withdraw process
     """
     withdraw_class = None
     def __init__(self, user):
@@ -108,7 +110,8 @@ class AbstractWithdraw( AbstractSiteUserClass ):
 
     def cancel(self, withdraw_pk, status_pk ):
         """
-        Cancels a withdraw assuming the status is still pending
+        Cancels a withdraw assuming the status is still pending. Also refunds
+        the bad amount.
         :param withdraw_pk:
         :param status_pk:
         """
@@ -117,6 +120,11 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         self.withdraw_object.status = self.get_withdraw_status(status_pk)
         self.withdraw_object.save()
 
+        #
+        # Creates a new transaction for the refunded amount.
+        category = TransactionType.objects.get(pk=TransactionTypeConstants.AdminCancelWithdraw.value)
+        ct = CashTransaction(self.user)
+        ct.deposit(abs(self.withdraw_object.cash_transaction_detail.amount), category)
 
     def payout(self, withdraw_pk):
         """
@@ -134,6 +142,11 @@ class AbstractWithdraw( AbstractSiteUserClass ):
 #-------------------------------------------------------------------
 
 class PayPalWithdraw(AbstractWithdraw):
+    """
+    Class for interfacing with paypal. Allows the admin to process payouts
+    and update the statuses of withdrawals.
+
+    """
     def __init__(self, user):
         self.withdraw_class = models.PayPalWithdraw
 
@@ -148,9 +161,18 @@ class PayPalWithdraw(AbstractWithdraw):
         Sets the status to Pending
         """
         super().update_status()
-
+        if(self.withdraw_object.cash_transaction_detail.amount < settings.DFS_CASH_WITHDRAWAL_APPROVAL_REQ_AMOUNT):
+            #
+            # TODO payout automatically
+            pass
 
     def withdraw(self, amount, email):
+        """
+        :param amount:
+        :param email: the PayPal email. This MUST be validated twice by the front end
+            because it will automatically get paid out and once that is done, it
+            cannot be undone.
+        """
         self.withdraw_object =  models.PayPalWithdraw()
         self.withdraw_object.email = email
         super().withdraw(amount)

@@ -59,14 +59,14 @@ class CashTransaction(AbstractTransaction):
 
         #
         #creates the transaction
-        category = TransactionType.objects.get(pk=TransactionTypeConstants.CashWithdrawal.value)
+        category = TransactionType.objects.get(pk=TransactionTypeConstants.CashWithdraw.value)
         #
         # makes the amount negative because it is a withdrawal
         self.create(category,-amount)
         Logger.log(ErrorCodes.INFO,"Withdrawal", self.user.username+" withdrew $"+str(amount)+" from their cash account.")
 
 
-    def deposit(self, amount):
+    def deposit(self, amount, category = None):
         """
         Creates a Deposit in the user's Cash account.
 
@@ -83,7 +83,8 @@ class CashTransaction(AbstractTransaction):
 
         #
         #creates the transaction
-        category = TransactionType.objects.get(pk=TransactionTypeConstants.CashDeposit.value)
+        if(category == None):
+            category = TransactionType.objects.get(pk=TransactionTypeConstants.CashDeposit.value)
         self.create(category,amount)
         Logger.log(ErrorCodes.INFO, "Deposit", self.user.username+" deposited $"+str(amount)+" into their cash account.")
 
@@ -117,7 +118,7 @@ class CashTransaction(AbstractTransaction):
         if(past_days <=0):
             return 0
         category = TransactionType.objects.get(
-            pk=TransactionTypeConstants.CashWithdrawal.value
+            pk=TransactionTypeConstants.CashWithdraw.value
         )
 
         today = datetime.datetime.now()
@@ -133,7 +134,7 @@ class CashTransaction(AbstractTransaction):
         :return:dollars withdrawn for the year - deposits
         """
         category_withdrawal = TransactionType.objects.get(
-            pk=TransactionTypeConstants.CashWithdrawal.value
+            pk=TransactionTypeConstants.CashWithdraw.value
         )
         category_deposit = TransactionType.objects.get(
             pk=TransactionTypeConstants.CashDeposit.value
