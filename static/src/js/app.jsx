@@ -3,19 +3,18 @@
 // Pull in the main scss file.
 require("app.scss");
 
-var config = require("config");
-var log = require("loglevel");
+//var config = require("config");
 var React = require("react");
+var log = require("lib/logging");
 
-// Set logging level.
-log.setLevel(config.logLevel);
 
+require("components/app-state-class");
 
 // Add top-level react components to the app, any dependencies of those components will be loaded also.
 var ContestTable = require("components/contest-list/contest-list.jsx");
 
 if (document.querySelectorAll("#contest-table").length) {
-  log.info("React.rendering ContestTable into DOM.");
+  log.debug("React.rendering ContestTable into DOM.");
   React.render(<ContestTable />, document.getElementById("contest-table"));
 }
 

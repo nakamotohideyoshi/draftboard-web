@@ -2,6 +2,7 @@
 
 var React = require("react");
 var ContestActions = require("../../actions/contest-actions");
+var AppActions = require("../../actions/app-actions");
 
 var ContestListItem = React.createClass({
 
@@ -12,6 +13,7 @@ var ContestListItem = React.createClass({
   setContestFocus: function(e) {
     e.preventDefault();
     ContestActions.contestFocused(this.props.contest.id);
+    AppActions.somethingOn();
   },
 
   render: function() {
