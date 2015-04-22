@@ -11,6 +11,7 @@ from cash.exceptions import  TaxInformationException, OverdraftException
 from cash.tax.classes import TaxManager
 from transaction.constants import TransactionTypeConstants
 from transaction.models import TransactionType
+from cash.withdraw.models import WithdrawStatus
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 
@@ -166,6 +167,8 @@ class PayPalWithdraw(AbstractWithdraw):
             # TODO payout automatically
             pass
 
+        # paypalrestsdk.PAYOUT()
+
     def withdraw(self, amount, email):
         """
         :param amount:
@@ -229,6 +232,22 @@ class CheckWithdraw(AbstractWithdraw):
         self.withdraw_object.check_number = check_number
         self.withdraw_object.status = self.get_withdraw_status(WithdrawStatusConstants.Processed.value)
         self.withdraw_object.save()
+
+
+#-------------------------------------------------------------------
+#-------------------------------------------------------------------
+class ReviewWithdraw(AbstractWithdraw):
+    def __init__(self, user):
+        self.withdraw_class = models.ReviewWithdraw
+        super().__init__(user)
+
+    def get_pending_withdraws(self):
+        """
+        Gets the pending check and paypal transactions
+        :return:
+        """
+        category = WithdrawStatusConstants.Processed.value
+        return models.Withdraw.objects.filter(status=category)
 
 
 

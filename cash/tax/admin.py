@@ -1,3 +1,9 @@
-from django.contrib import admin
+# cash.tax/admin.py
 
-# Register your models here.
+from django.contrib import admin
+from cash.tax.models import Tax
+
+@admin.register(Tax)
+class TaxAdmin(admin.ModelAdmin):
+
+    list_display = ['user','tax_identifier','created']
