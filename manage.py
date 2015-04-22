@@ -1,4 +1,4 @@
-#!/usr/bin/env /home/vagrant/venv/bin/python
+#!/usr/bin/env /home/vagrant/venv/bin/python3
 import os
 import sys
 

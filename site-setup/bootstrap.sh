@@ -65,6 +65,12 @@ venv/bin/pip3 install sphinx 				    # !?  install in virtualenv. maybe do syste
 venv/bin/pip3 install braintree                 # payment processing
 #venv/bin/pip3 install django_braintree          # third party braintree integration we might use
 venv/bin/pip3 install django-suit
+venv/bin/pip3 install django-braces
+
+#
+# we will need this for ssl stuff (including python paypal sdk)
+apt-get install libssl-dev libffi-dev
+venv/bin/pip3 install paypalrestsdk
 
 #
 # we will need a webserver of course, and drop in our nginx server conf file & restart
