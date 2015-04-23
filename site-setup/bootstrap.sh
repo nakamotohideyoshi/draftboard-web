@@ -70,7 +70,11 @@ venv/bin/pip3 install django-braces
 #
 # we will need this for ssl stuff (including python paypal sdk)
 apt-get install libssl-dev libffi-dev
-venv/bin/pip3 install paypalrestsdk
+#venv/bin/pip3 install paypalrestsdk
+
+apt-get install redis-server
+venv/bin/pip3 install django-redis
+venv/bin/pip3 install django-celery
 
 #
 # we will need a webserver of course, and drop in our nginx server conf file & restart
