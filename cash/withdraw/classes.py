@@ -12,6 +12,9 @@ from cash.tax.classes import TaxManager
 from transaction.constants import TransactionTypeConstants
 from transaction.models import TransactionType
 from cash.withdraw.models import WithdrawStatus
+
+from decimal import Decimal
+
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 
@@ -79,6 +82,10 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         :param amount:
         :return:
         """
+
+        # cast the amount to Decimal() to ensure validation
+        amount = Decimal( amount )
+
         if(self.withdraw_object == None):
             self.withdraw_object = self.withdraw_class()
 
@@ -148,11 +155,30 @@ class PayPalWithdraw(AbstractWithdraw):
     and update the statuses of withdrawals.
 
     """
-    def __init__(self, user):
+    def __init__(self, user, pk=0):
+        """
+        to create a new PayPalWithdraw, specify only the user
+
+        if pk is non-zero, attempt to get an existing PayPalWithdraw object
+
+        :param user:
+        :param paypal_withdraw_pk:
+        :return:
+        """
         self.withdraw_class = models.PayPalWithdraw
 
-        super().__init__(user)
+        if pk > 0:
+            # get the withdraw object from the primary key given to constructor.
+            #
+            # uncaught DoesNotExist exception on purpose! we dont
+            #  really want to create a new one, if the pk is ever specified
+            #  because that indicates the programmer may have thought it existed!
+            self.withdraw_object = self.withdraw_class.objects.get(pk=pk)
 
+            # we know who the user is, if the withdraw already exists
+            user = self.withdraw_object.cash_transaction_detail.user
+
+        super().__init__(user)
 
     def validate_withdraw(self, amount):
         super().validate_withdraw(amount)
@@ -162,10 +188,12 @@ class PayPalWithdraw(AbstractWithdraw):
         Sets the status to Pending
         """
         super().update_status()
+
+        ### this should be moved to the end of validate_withdraw() most likely!
         if(self.withdraw_object.cash_transaction_detail.amount < settings.DFS_CASH_WITHDRAWAL_APPROVAL_REQ_AMOUNT):
             #
-            # TODO payout automatically
-            pass
+            # do payout immediately
+            self.payout()
 
         # paypalrestsdk.PAYOUT()
 
@@ -191,8 +219,19 @@ class PayPalWithdraw(AbstractWithdraw):
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 class CheckWithdraw(AbstractWithdraw):
-    def __init__(self, user):
+    def __init__(self, user, pk=0):
         self.withdraw_class = models.CheckWithdraw
+        if pk > 0:
+            # get the withdraw object from the primary key given to constructor.
+            #
+            # uncaught DoesNotExist exception on purpose! we dont
+            #  really want to create a new one, if the pk is ever specified
+            #  because that indicates the programmer may have thought it existed!
+            self.withdraw_object = self.withdraw_class.objects.get(pk=pk)
+
+            # we know who the user is, if the withdraw already exists
+            user = self.withdraw_object.cash_transaction_detail.user
+
         super().__init__(user)
 
 
@@ -232,22 +271,4 @@ class CheckWithdraw(AbstractWithdraw):
         self.withdraw_object.check_number = check_number
         self.withdraw_object.status = self.get_withdraw_status(WithdrawStatusConstants.Processed.value)
         self.withdraw_object.save()
-
-
-#-------------------------------------------------------------------
-#-------------------------------------------------------------------
-class ReviewWithdraw(AbstractWithdraw):
-    def __init__(self, user):
-        self.withdraw_class = models.ReviewWithdraw
-        super().__init__(user)
-
-    def get_pending_withdraws(self):
-        """
-        Gets the pending check and paypal transactions
-        :return:
-        """
-        category = WithdrawStatusConstants.Processed.value
-        return models.Withdraw.objects.filter(status=category)
-
-
 

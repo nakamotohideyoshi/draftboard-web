@@ -8,6 +8,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.7/ref/settings/
 """
 
+from datetime import timedelta
+
+import djcelery
+djcelery.setup_loader()
+
 #
 # the admin account password for dev is: admin
 #
@@ -38,6 +43,7 @@ TEMPLATE_DEBUG = True
 ALLOWED_HOSTS = []
 
 
+
 # Application definition
 
 INSTALLED_APPS = (
@@ -48,8 +54,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'djcelery',
+
     'rest_framework',   # for api stuff
     'braces',
+
     #
     ####################################
     # rio-dfs specific apps below here #
@@ -162,3 +171,4 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE' : 50,
 }
+

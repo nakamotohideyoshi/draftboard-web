@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+
 from ..constants import WithdrawStatusConstants
 
 def load_initial_data(apps, schema_editor):
@@ -32,10 +33,12 @@ def load_initial_data(apps, schema_editor):
         t.name         = fields['name']
         t.save()
 
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('cash', '0003_withdrawalstatus'),
+        ('cash', '0002_auto_20150422_1944'),
         ('withdraw', '0001_initial'),
     ]
 
@@ -43,16 +46,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CheckWithdraw',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(null=True, auto_now_add=True)),
                 ('status_updated', models.DateTimeField(auto_now=True)),
                 ('check_number', models.IntegerField(unique=True, null=True)),
-                ('fullname', models.CharField(default='', max_length=100)),
-                ('address1', models.CharField(default='', max_length=255)),
-                ('address2', models.CharField(default='', max_length=255)),
-                ('city', models.CharField(default='', max_length=64)),
-                ('state', models.CharField(choices=[('NH', 'NH'), ('CA', 'CA'), ('FL', 'FL')], default='', max_length=2)),
-                ('zipcode', models.CharField(default='', max_length=5)),
+                ('fullname', models.CharField(max_length=100, default='')),
+                ('address1', models.CharField(max_length=255, default='')),
+                ('address2', models.CharField(max_length=255, default='')),
+                ('city', models.CharField(max_length=64, default='')),
+                ('state', models.CharField(max_length=2, default='', choices=[('NH', 'NH'), ('CA', 'CA'), ('FL', 'FL')])),
+                ('zipcode', models.CharField(max_length=5, default='')),
                 ('cash_transaction_detail', models.OneToOneField(to='cash.CashTransactionDetail')),
             ],
             options={
@@ -62,7 +65,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PayPalWithdraw',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('created', models.DateTimeField(null=True, auto_now_add=True)),
                 ('status_updated', models.DateTimeField(auto_now=True)),
                 ('email', models.EmailField(max_length=254)),
@@ -74,9 +77,30 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='ReviewWithdraw',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('created', models.DateTimeField(null=True, auto_now_add=True)),
+                ('status_updated', models.DateTimeField(auto_now=True)),
+                ('email', models.EmailField(max_length=254)),
+                ('paypal_transaction', models.CharField(max_length=255)),
+                ('check_number', models.IntegerField(unique=True, null=True)),
+                ('fullname', models.CharField(max_length=100, default='')),
+                ('address1', models.CharField(max_length=255, default='')),
+                ('address2', models.CharField(max_length=255, default='')),
+                ('city', models.CharField(max_length=64, default='')),
+                ('state', models.CharField(max_length=2, default='', choices=[('NH', 'NH'), ('CA', 'CA'), ('FL', 'FL')])),
+                ('zipcode', models.CharField(max_length=5, default='')),
+                ('cash_transaction_detail', models.OneToOneField(to='cash.CashTransactionDetail')),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
             name='WithdrawStatus',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('category', models.CharField(max_length=100)),
                 ('name', models.CharField(max_length=100)),
                 ('description', models.CharField(max_length=255)),
@@ -85,6 +109,11 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='withdrawstatus',
             unique_together=set([('category', 'name')]),
+        ),
+        migrations.AddField(
+            model_name='reviewwithdraw',
+            name='status',
+            field=models.ForeignKey(to='withdraw.WithdrawStatus'),
         ),
         migrations.AddField(
             model_name='paypalwithdraw',

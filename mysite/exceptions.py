@@ -16,3 +16,8 @@ class AmountZeroException(Exception):
     def __init__(self, class_name, variable_name):
        super().__init__(\
            "Incorrect usage of amount argument. The amount value must be greater than 0.00.")
+
+class AdminDoNotDeleteException(Exception):
+    def __init__(self, class_name, variable_name):
+       super().__init__(\
+           "These objects are not allowed to be deleted!")

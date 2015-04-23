@@ -14,6 +14,7 @@ from .constants import WithdrawStatusConstants
 from . import models
 import django
 from cash.tax.classes import TaxManager
+
 class WithdrawTest(AbstractTest):
     """
     Test the :class:`cash.classes.CashWithdrawalManager` class
@@ -39,12 +40,18 @@ class WithdrawTest(AbstractTest):
         )
         r.restore()
 
-
+    #
+    # casts 'amount' to decimal.Decimal(), but does NOT check for more than 2 decimal places!
     def __make_withdrawal_check(self, amount):
+        amount = decimal.Decimal( amount )
         w = CheckWithdraw( self.user )
         w.withdraw(amount)
         return w
+
+    #
+    # casts 'amount' to decimal.Decimal(), but does NOT check for more than 2 decimal places!
     def __make_withdrawal_paypal(self, amount):
+        amount = decimal.Decimal( amount )
         w = PayPalWithdraw( self.user )
         w.withdraw(amount,self.user.email)
         return w
