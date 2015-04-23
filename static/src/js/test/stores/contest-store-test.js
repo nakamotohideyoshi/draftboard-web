@@ -27,13 +27,10 @@ describe("ContestStore", function() {
     var self = this;
 
     // Trigger the load action
-    ContestActions.load.triggerPromise().then(function(body) {
-      // This is dumb to statically set '7', but we know there are 7 contests in the fixtures, so make sure they get
-      // retrieved and set when the action is fired.
-      expect(self.ContestStore.data.length).to.equal(7);
-    }).catch(function(err) {
-      expect(self.ContestStore.data.length).to.equal(7);
-      console.log(err);
+    return ContestActions.load.triggerPromise().then(function() {
+      // This is dumb to statically set '6', but we know there are 6 contests in the
+      // fixtures, so make sure they get retrieved.
+      expect(self.ContestStore.data.contests.length).to.equal(6);
     });
   });
 
