@@ -21,7 +21,7 @@
 
   "rules": {
     // Ignore default string double quote requirement.
-    // "quotes": [0, "double"],
+    "quotes": [0, "double"],
     "global-strict": [0, "global"],
     "no-underscore-dangle": 0,
     "sort-vars": 0,

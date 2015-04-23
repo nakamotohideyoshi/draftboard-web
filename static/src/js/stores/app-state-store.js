@@ -25,6 +25,15 @@ var AppStateStore = Reflux.createStore({
     }
   },
 
+  removeClass: function(className) {
+    var index = this.classes.indexOf(className);
+    // If the class is in the list, delete it.
+    if (index > -1) {
+      this.classes.splice(index, 1);
+      this.trigger(this.classes);
+    }
+  },
+
   onSomething: function() {
     this.addClass("appstate-something");
   }
