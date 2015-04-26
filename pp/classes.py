@@ -4,6 +4,7 @@ import requests
 import random
 import string
 import json
+import time
 
 class Payout( object ):
 
@@ -90,3 +91,25 @@ class Payout( object ):
 
         # response to payout_batch_id (the master of all of the items)
         # {'batch_header': {'fees': {'value': '0.0', 'currency': 'USD'}, 'amount': {'value': '0.01', 'currency': 'USD'}, 'time_completed': '2015-04-22T04:17:34Z', 'time_created': '2015-04-22T04:17:09Z', 'payout_batch_id': 'AP393JT3TEUF2', 'batch_status': 'SUCCESS', 'sender_batch_header': {'sender_batch_id': 'FUFFEPGMVBGX', 'email_subject': 'You have a Payout!'}}, 'items': [{'links': [{'method': 'GET', 'href': 'https://api.sandbox.paypal.com/v1/payments/payouts-item/HVBG5X7F9MYSS', 'rel': 'item'}], 'payout_item': {'recipient_type': 'EMAIL', 'receiver': 'testtest@coderden.com', 'sender_item_id': '201403140001', 'note': 'Thanks for your patronage!', 'amount': {'value': '0.01', 'currency': 'USD'}}, 'transaction_id': '68696867XP9554523', 'transaction_status': 'SUCCESS', 'payout_item_fee': {'value': '0.0', 'currency': 'USD'}, 'time_processed': '2015-04-22T04:17:26Z', 'payout_batch_id': 'AP393JT3TEUF2', 'payout_item_id': 'HVBG5X7F9MYSS'}], 'links': [{'method': 'GET', 'href': 'https://api.sandbox.paypal.com/v1/payments/payouts/AP393JT3TEUF2', 'rel': 'self'}]}
+
+    def payout_debug_test_error_50_percent(self):
+        """
+        delays for a few seconds, and then, randomly decides to succeed or error.
+
+        returns a randomly generated string of 12 characters upon success
+
+        :return:
+        """
+        r = random.Random()
+        status = bool( r.randrange(0, 2) )     # randomly a 0 or a 1
+
+        random_transaction_id = ''.join(random.choice(string.ascii_uppercase) for i in range(12))
+        self.debug_delay_sec_payout( status=status )
+
+    def debug_delay_sec_payout(self, t=5.0, status=False):
+        time.sleep( t )
+
+        if status == False:
+            raise Exception('debug_delay_sec_payout - randomized exception')
+
+        print( 'the task [debug_delay_sec_payout] had this for status:', str(status) )

@@ -2,8 +2,9 @@
 
 from django.contrib import admin
 from django.contrib.auth.models import User
-from cash.withdraw.models import WithdrawStatus, PayPalWithdraw, CheckWithdraw, \
-                                    ReviewPendingWithdraw
+from cash.withdraw.models import WithdrawStatus, AutomaticWithdraw, PendingWithdrawMax, \
+                                                        PayPalWithdraw, CheckWithdraw
+
 
 import cash.withdraw.classes
 # from cash.withdraw.classes import PayPalWithdraw as PpWithdraw
@@ -21,76 +22,104 @@ from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 from django.core import urlresolvers
 
-# @admin.register(WithdrawStatus)
-# class WithdrawStatusAdmin(admin.ModelAdmin):
 #
-#    list_display = ['category', 'name', 'description']
+# this is actually global for the whole project - dont remove this,
+# you can still add the delete_selected to specific models if you want to
+admin.site.disable_action('delete_selected')
 
-@admin.register(PayPalWithdraw)
-class PayPalWithdrawAdmin(admin.ModelAdmin):
+@admin.register(WithdrawStatus)
+class WithdrawStatusAdmin(admin.ModelAdmin):
 
-    list_display = ['email', 'paypal_transaction']
+    list_display    = ['category','name','description']
 
-    # non PayPalWithdraw models should throw an exception if this is called on them.
-    def paypal_confirm_and_send_payout(self, request, queryset):
-        for obj in queryset:
-            print( obj.pk, obj.content_type, 'withdraw:', obj.withdraw )
-            ppw = cash.withdraw.classes.PayPalWithdraw( pk=obj.pk )
-            ppw.update_status()
 
-    actions = [ paypal_confirm_and_send_payout ]
+class CheckWithdrawTabularInline(admin.TabularInline):
+    model = CheckWithdraw
 
-class PayPalWithdrawInline(GenericStackedInline):
+class PayPalWithdrawStackedInline(admin.StackedInline):
     model = PayPalWithdraw
 
 @admin.register(CheckWithdraw)
 class CheckWithdrawAdmin(admin.ModelAdmin):
 
-    list_display    = ['created','cash_transaction_detail','check_number',
+    list_display    = ['created','status','amount','user','check_number',
                        'fullname','address1','address2','city','state','zipcode']
     list_editable   = ['check_number'] # to be editable, it must also be in list_display !
 
     #
     def check_number_entered_and_check_mailed(self, request, queryset):
+        processed = 0
+        for obj in queryset:
+            if obj.check_number:
+                ppw = cash.withdraw.classes.CheckWithdraw( pk=obj.pk )
+                ppw.payout()
+                processed += 1
+            else:
+                pass
+        total = len(queryset)
+        self.message_user( request, '%s / %s selected withdraws processed. %s did not have a check_number.' % (
+                                        str(processed), str(total), str(total - processed)))
+    check_number_entered_and_check_mailed.short_description = 'I mailed the check for the selected withdraw(s).'
+
+    #
+    def decline_withdraw_request(self, request, queryset):
         for obj in queryset:
             print( obj.pk, obj.content_type, 'withdraw:', obj.withdraw )
+
             ppw = cash.withdraw.classes.CheckWithdraw( pk=obj.pk )
-            ppw.update_status()
+            ppw.cancel()
 
-    actions = [ check_number_entered_and_check_mailed ]
+        total = len(queryset)
+        self.message_user( request, '%s Check withdraw(s) cancelled and refunded.')
+    decline_withdraw_request.short_description = 'Decline & refund the selected check withdraw(s)'
 
-class CheckWithdrawInline(GenericStackedInline):
-    model = CheckWithdraw
+    #
+    # add these actions this modeladmin's view
+    actions = [ check_number_entered_and_check_mailed, decline_withdraw_request ]
 
-@admin.register(ReviewPendingWithdraw)
-class ReviewPendingWithdrawAdmin(admin.ModelAdmin):
-    """
-    the base paypal withdraw request record
-    """
+@admin.register(PayPalWithdraw)
+class PayPalWithdrawAdmin(admin.ModelAdmin):
 
-    list_display    = ['status','review_now','user','withdraw']
+    list_display    = ['created','status','amount','user','email','paypal_transaction']
+    list_editable   = ['status']
 
-    def get_list_display_links(self, request, list_display):
-        return None # dont link the first column to the edit page
+    # non PayPalWithdraw models should throw an exception if this is called on them.
+    def paypal_confirm_and_send_payout(self, request, queryset):
+        processing = 0
+        for obj in queryset:
+            print( obj.pk, obj.content_type, 'withdraw:', obj.withdraw )
 
-    def review_now(self, instance):
-        ctype = ContentType.objects.get_for_model( instance.content_object ) # get the dynamic withdraw type
-        # model_cls = ctype.model_class()
-        # example:  ctype.app_label     == 'withdraw'
-        # example:  ctype.model         == 'checkwithdraw'
-        #
-        # if this function call doesnt crash, its a valid url !
-        # func, args, kwargs = urlresolvers.resolve( '/admin/withdraw/checkwithdraw/')
-        url = '/admin/%s/%s/' % (ctype.app_label, ctype.model)
-        a_tag = '<a href="%s">Review %ss</a>' % (url, ctype.model_class().__name__)
+            ppw = cash.withdraw.classes.PayPalWithdraw( pk=obj.pk )
+            try:
+                ppw.payout()
+                processing += 1
+            except:
+                pass
 
-        try:
-            func, args, kwargs = urlresolvers.resolve( url )
-        except:
-            a_tag = '<span class="errors">Unkonwn Withdraw Type</span>'
+        total = len(queryset)
+        self.message_user( request, '%s / %s selected withdraws are processing. %s could not be processed.' % (
+                                        str(processing), str(total), str(total - processing)))
+    paypal_confirm_and_send_payout.short_description = 'Confirm and process selected PayPal cashout(s)'
 
-        #print( a_tag )
-        return a_tag
+    #
+    def decline_withdraw_request(self, request, queryset):
+        for obj in queryset:
+            print( obj.pk, obj.content_type, 'withdraw:', obj.withdraw )
 
-    review_now.short_description    = 'Review Link'
-    review_now.allow_tags           = True    # True because the output has html tags
+            ppw = cash.withdraw.classes.PayPalWithdraw( pk=obj.pk )
+            ppw.cancel()
+        total = len(queryset)
+        self.message_user( request, '%s PayPal withdraw(s) cancelled and refunded.' )
+    decline_withdraw_request.short_description = 'Decline & refund the selected PayPal withdraw(s)'
+
+    actions = [ paypal_confirm_and_send_payout, decline_withdraw_request ]
+
+@admin.register(AutomaticWithdraw)
+class AutomaticWithdrawAdmin(admin.ModelAdmin):
+    list_display = ['updated','auto_payout_below']
+    list_editable = ['auto_payout_below']
+
+@admin.register(PendingWithdrawMax)
+class PendingWithdrawMaxAdmin(admin.ModelAdmin):
+    list_display = ['updated','max_pending']
+    list_editable = ['max_pending']

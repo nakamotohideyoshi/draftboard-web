@@ -54,5 +54,21 @@ class AbstractTest(django.test.TestCase):
                         is_staff=False)
         return user
 
+    def get_alternate_user(self, existing_user):
+        """
+        return a user who is different from the existing user argument,
+        by at least its primary key (pk) and username.
+
+        is_superuser & is_staff should also match.
+
+        permissions will not match however
+
+        :param existing_user:
+        :return:
+        """
+        return self.get_user(username=existing_user.username + 'alt',
+                             is_superuser=existing_user.is_superuser,
+                             is_staff=existing_user.is_staff )
+
     def get_password(self):
         return self.PASSWORD

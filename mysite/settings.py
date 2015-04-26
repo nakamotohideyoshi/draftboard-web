@@ -10,9 +10,6 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 from datetime import timedelta
 
-import djcelery
-djcelery.setup_loader()
-
 #
 # the admin account password for dev is: admin
 #
@@ -24,13 +21,36 @@ BASE_DIR    = os.path.dirname(os.path.dirname(__file__))
 SITE_ROOT   = os.path.dirname(os.path.realpath(__file__))
 
 from os.path import join
-TEMPLATE_DIRS = (
-    join(BASE_DIR, 'account/templates'),
-    join(BASE_DIR,  'mysite/templates'),
-)
+# TEMPLATE_DIRS = (
+#     join(BASE_DIR, 'account/templates'),
+#     join(BASE_DIR,  'mysite/templates'),
+# )
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
+#
+#
+TEMPLATES = [
+    {
+        'BACKEND' : 'django.template.backends.django.DjangoTemplates',
+        'DIRS'    : [
+            join(BASE_DIR, 'account/templates'),
+            join(BASE_DIR,  'mysite/templates'),
+        ],
+        'APP_DIRS': True, # defaults to False
+        'OPTIONS' : {
+            'context_processors' : (
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.contrib.messages.context_processors.messages",
+                'django.template.context_processors.request',
+                'cash.withdraw.context_processors.model_badges',
+            )
+        }
+    },
+]
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '9^1kzl5mo3pfgy1f402)27s*jz=s00^#rtznm_2)i!tkz7s-ed'
@@ -47,6 +67,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
+    'suit',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

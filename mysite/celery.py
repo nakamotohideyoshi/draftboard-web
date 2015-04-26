@@ -12,6 +12,9 @@ import os
 
 from celery import Celery
 from datetime import timedelta
+import time
+
+from pp.classes import Payout
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
@@ -23,7 +26,7 @@ app = Celery('mysite')
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
 app.config_from_object('django.conf:settings')
-app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+app.autodiscover_tasks(settings.INSTALLED_APPS)
 
 # # hook up the database backend
 # app.conf.update(
@@ -80,5 +83,32 @@ def debug_task(self):
     print('Request: {0!r}'.format(self.request))
 
 @app.task(bind=True)
+def pause(self, t=5.0, msg='finished'):
+    time.sleep( t )
+    print( msg )
+    return True
+
+@app.task(bind=True)
+def pause_then_raise(self, t=5.0, msg='finished'):
+    time.sleep( t )
+    raise Exception('this was throw on purpose to test')
+    return True
+
+@app.task(bind=True)
 def heartbeat(self):
     print( 'heartbeat' )
+
+
+class PayoutTask( object ):
+    """
+    lets extend the Payout object i wrote, and make one of its test functions a test
+    """
+
+    @app.task(bind=True)
+    def payout(self):
+        raise Exception('unimplemented currently')
+
+    @app.task(bind=True)
+    def payout_debug(self):
+        p = Payout()
+        p.payout_debug_test_error_50_percent()

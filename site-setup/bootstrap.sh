@@ -66,6 +66,7 @@ venv/bin/pip3 install braintree                 # payment processing
 #venv/bin/pip3 install django_braintree          # third party braintree integration we might use
 venv/bin/pip3 install django-suit
 venv/bin/pip3 install django-braces
+venv/bin/pip3 install testfixtures
 
 #
 # we will need this for ssl stuff (including python paypal sdk)

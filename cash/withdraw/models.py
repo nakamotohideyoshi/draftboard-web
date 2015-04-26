@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save
-
+from django.utils import timezone
 from mysite.legal import state_choices          # list of tuples, ie: [('NH','NH'), ..., ]
 
 from cash.models import CashTransactionDetail
@@ -22,7 +22,7 @@ class WithdrawStatus( models.Model ):
         unique_together = ('category', 'name')
 
     def __str__(self):
-        return '%s  %s' % (self.category, self.name)
+        return '%s' % (self.category)
 
 class Withdraw(models.Model):
     """
@@ -42,21 +42,33 @@ class Withdraw(models.Model):
     def __str__(self):
         raise Exception( self.__class__.__name__ + ' must be overridden in child class!' )
 
+    # note: there is a template tag called 'timesince' & 'timeuntil' , just fyi
+
     @property
-    def age(self):
-        now = datetime.datetime.now()
-        return '%s' % (now - self.created)   # ie: 2 days, hh:mm:ss
+    def user(self):
+        return self.cash_transaction_detail.user
+
+    @property
+    def username(self):
+        return self.cash_transaction_detail.user.username
+
+    @property
+    def amount(self):
+        return self.cash_transaction_detail.amount
 
 class PayPalWithdraw(Withdraw):
     email               = models.EmailField(null=False)
     paypal_transaction  = models.CharField( max_length=255, null=False )
+
+    started_processing  = models.DateTimeField(null=True)
+    paypal_errors       = models.CharField(max_length=2048, default='')
 
     def __str__(self):
         return '%s paypal-account-email[  %s  ]' % (self.__class__.__name__, self.email)
 
 class CheckWithdraw(Withdraw):
 
-    check_number    = models.IntegerField(null=True, unique=True )
+    check_number    = models.IntegerField(null=True, unique=True, blank=True )
     fullname        = models.CharField(max_length=100, null=False, default='')
     address1        = models.CharField(max_length=255, null=False, default='')
     address2        = models.CharField(max_length=255, null=False, default='')
@@ -119,3 +131,31 @@ class ReviewPendingWithdraw(models.Model):
     @property
     def status(self):
         return self.content_object.status.name
+
+class AutomaticWithdraw( models.Model ):
+    """
+    a model for the cutoff where we will automatically process a withdraw (cashout)
+    """
+    created = models.DateTimeField(auto_now_add=True, null=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    auto_payout_below 	 = models.DecimalField(decimal_places=2, max_digits=9)
+
+class PendingWithdrawMax( models.Model ):
+    """
+    a model for the cutoff where we will automatically process a withdraw (cashout)
+    """
+    created = models.DateTimeField(auto_now_add=True, null=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    max_pending = models.IntegerField(default=3, null=False)
+
+class CashoutWithdrawSetting(models.Model):
+    """
+    holds the min and max dollar amounts for individual cashout requests
+    """
+    created = models.DateTimeField(auto_now_add=True, null=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    max_withdraw_amount  = models.DecimalField(decimal_places=2, max_digits=9, default=10000.00)
+    min_withdraw_amount  = models.DecimalField(decimal_places=2, max_digits=9, default=5.00)
