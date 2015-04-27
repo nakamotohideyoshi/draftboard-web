@@ -80,8 +80,7 @@ class CheckWithdrawAdmin(admin.ModelAdmin):
 @admin.register(PayPalWithdraw)
 class PayPalWithdrawAdmin(admin.ModelAdmin):
 
-    list_display    = ['created','status','amount','user','email','paypal_transaction']
-    list_editable   = ['status']
+    list_display    = ['created','status','amount','user','email','paypal_transaction','get_status','paypal_errors']
 
     # non PayPalWithdraw models should throw an exception if this is called on them.
     def paypal_confirm_and_send_payout(self, request, queryset):

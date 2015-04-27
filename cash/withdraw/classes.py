@@ -2,7 +2,7 @@ from . import models
 from mysite.exceptions import IncorrectVariableTypeException, VariableNotSetException, \
                             InvalidArgumentException, AmbiguousArgumentException, \
                             UnimplementedException, MaxCurrentWithdrawsException, \
-                            CashoutWithdrawOutOfRangeException
+                            CashoutWithdrawOutOfRangeException, CheckWithdrawCheckNumberRequiredException
 from django.contrib.auth.models import User
 from mysite.classes import  AbstractSiteUserClass
 from account.classes import AccountInformation
@@ -15,6 +15,7 @@ from cash.tax.classes import TaxManager
 from transaction.constants import TransactionTypeConstants
 from transaction.models import TransactionType
 from cash.withdraw.models import WithdrawStatus
+import pp.classes  # for Payout
 
 from decimal import Decimal
 
@@ -29,7 +30,7 @@ class WithdrawMinMax(object):
             self.cashout_withdraw_setting = models.CashoutWithdrawSetting()
             self.cashout_withdraw_setting.min_withdraw_amount = Decimal(5.00)
             self.cashout_withdraw_setting.max_withdraw_amount = Decimal(10000.00)
-            self.save()
+            self.cashout_withdraw_setting.save()
 
     def set_min(self, min):
         self.cashout_withdraw_setting.min_withdraw_amount = Decimal( min )
@@ -111,6 +112,11 @@ class AbstractWithdraw( AbstractSiteUserClass ):
     Abstract class for maintaining the Withdraw process
     """
 
+    OUTSTANDING_WITHDRAW_STATUSES = [
+        WithdrawStatusConstants.Pending.value,
+        WithdrawStatusConstants.Processing.value,
+    ]
+
     withdraw_class = None # this represents the class of the model
 
     def __init__(self, user, pk):
@@ -165,7 +171,8 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         #
         # make sure they dont have more than the max outstanding withdraw requests
         max_pending = PendingMax().value()
-        user_pending_withdraws = self.withdraw_class.objects.filter( cash_transaction_detail__user=self.user )
+        user_pending_withdraws = self.withdraw_class.objects.filter( cash_transaction_detail__user=self.user,
+                                        status__in=self.OUTSTANDING_WITHDRAW_STATUSES )
         if len(user_pending_withdraws) >= max_pending:
             raise MaxCurrentWithdrawsException(type(self).__name__, "user at max pending withdraws")
 
@@ -229,15 +236,18 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         #
         # if this instance wasnt created by pk, its not set/created yet.
         if self.withdraw_object == None:
+            print( 'creating withdraw_object in parent')
             self.withdraw_object = self.withdraw_class()
 
         #
         # throws exceptions if insufficient funds, or tax info required
+        print('parent - call validate_withdraw')
         self.validate_withdraw(amount)
 
         #
         # Performs the transaction since everything has been validated
         # and saves the the transaction detail with the withdraw object.
+        print('parent - create the cash transaction')
         ct = CashTransaction(self.user)
         ct.withdraw(amount)
         self.withdraw_object.cash_transaction_detail = ct.transaction_detail
@@ -323,11 +333,19 @@ class PayPalWithdraw(AbstractWithdraw):
         :param amount:
         :return:
         """
-        super().validate_withdraw(amount)
-
+        print('child - check if paypal email has been set')
         # if the email doesnt already exist in the withdraw_object, nor has it been set yet...
-        if self.__get_paypal_email() is None:
+        if not self.__get_paypal_email():
             raise PayPalEmailNotSetException(type(self).__name__, 'paypal_email')
+
+        print( 'child - self.__get_paypal_email()', self.__get_paypal_email() )
+        self.withdraw_object.email = self.__get_paypal_email()
+        # self.withdraw_object.email = self.__get_paypal_email()
+        # self.withdraw_object.save()
+        print('child calls super() validate_withdraw()')
+        print('child withdraw_object.pk', self.withdraw_object.pk )
+        print('child withdraw_object.email', self.withdraw_object.email )
+        super().validate_withdraw(amount)
 
     #
     # Must be called before withdraw()
@@ -353,7 +371,7 @@ class PayPalWithdraw(AbstractWithdraw):
         and if it doesnt exist there, returns self.paypal_email.
         :return:
         """
-        if self.withdraw_object:
+        if self.withdraw_object and self.withdraw_object.email:
             # try to get the email from the withdraw_object
             return self.withdraw_object.email
         else:
@@ -367,11 +385,7 @@ class PayPalWithdraw(AbstractWithdraw):
 
         #
         # task off the long running process of the payout
-        #
-
-        #
-        # ... that long running thing needs to update the model when its done.
-        #
+        r = pp.classes.test_payout( self.withdraw_object.pk )
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
@@ -380,7 +394,7 @@ class CheckWithdraw(AbstractWithdraw):
     def __init__(self, user=None, pk=None):
         self.withdraw_class = models.CheckWithdraw  # before super()
         super().__init__(user, pk)
-
+        
     def validate_withdraw(self, amount):
         """
         raises exception if user doesnt have a valid mailing address.
@@ -388,7 +402,6 @@ class CheckWithdraw(AbstractWithdraw):
         :raise :class:`account.exceptions.AccountInformationException`: When there are
             missing fields for the user's mailing address.
         """
-
         #
         # raise execption if overdraft possible, or tax info does not exist
         super().validate_withdraw(amount)
@@ -412,8 +425,13 @@ class CheckWithdraw(AbstractWithdraw):
         """
         Marks the check as paid by updating hte status to processed
         """
-        super().payout()
 
-        self.withdraw_object.status = self.get_withdraw_status(WithdrawStatusConstants.Processed.value)
+        if not self.withdraw_object.check_number:
+        #if self.withdraw_object.check_number is None or self.withdraw_object.check_number == '':
+            raise CheckWithdrawCheckNumberRequiredException(type(self).__name__, 'check_number')
+
+        super().payout()    # primarily flags status as processing
+
+        #p = pp.classes.payout_test( pk=self.withdraw_object.pk )
+        self.withdraw_object.status = self.get_withdraw_status( WithdrawStatusConstants.Processed.value )
         self.withdraw_object.save()
-

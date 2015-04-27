@@ -12,7 +12,7 @@ class Information(models.Model):
 
     fullname        = models.CharField(max_length=100, null=False, default='')
     address1        = models.CharField(max_length=255, null=False, default='')
-    address2        = models.CharField(max_length=255, null=False, default='')
+    address2        = models.CharField(max_length=255, null=False, default='', blank=True)
     city            = models.CharField(max_length=64, null=False, default='')
     state           = models.CharField(choices=US_STATES, max_length=2,  default='')
     zipcode         = models.CharField(max_length=5, null=False, default='')

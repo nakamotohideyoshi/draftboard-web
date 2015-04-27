@@ -63,6 +63,12 @@ class PayPalWithdraw(Withdraw):
     started_processing  = models.DateTimeField(null=True)
     paypal_errors       = models.CharField(max_length=2048, default='')
 
+    # this is the batch_status, which starts "PROCESSING" when payment is called
+    #  and becomes "PENDING" soon after
+    auth_status         = models.CharField(max_length=128, default='', null=True)
+    payout_status       = models.CharField(max_length=128, default='', null=True)
+    get_status          = models.CharField(max_length=128, default='', null=True)
+
     def __str__(self):
         return '%s paypal-account-email[  %s  ]' % (self.__class__.__name__, self.email)
 

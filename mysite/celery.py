@@ -14,8 +14,6 @@ from celery import Celery
 from datetime import timedelta
 import time
 
-from pp.classes import Payout
-
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
 
@@ -44,9 +42,9 @@ app.conf.update(
 
     #: Only add pickle to this list if your broker is secured
     #: from unwanted access (see userguide/security.html)
-    CELERY_ACCEPT_CONTENT = ['json'],
-    CELERY_TASK_SERIALIZER = 'json',
-    CELERY_RESULT_SERIALIZER = 'json',
+    CELERY_ACCEPT_CONTENT = ['pickle'],     #['json'],
+    CELERY_TASK_SERIALIZER = 'pickle',      #'json',
+    CELERY_RESULT_SERIALIZER = 'pickle',    #'json',
 
     #CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler',
 
@@ -98,17 +96,27 @@ def pause_then_raise(self, t=5.0, msg='finished'):
 def heartbeat(self):
     print( 'heartbeat' )
 
+@app.task(bind=True)
+def payout(self, instance, **kwargs):
+    r_payout    = instance.payout()
 
-class PayoutTask( object ):
-    """
-    lets extend the Payout object i wrote, and make one of its test functions a test
-    """
 
-    @app.task(bind=True)
-    def payout(self):
-        raise Exception('unimplemented currently')
 
-    @app.task(bind=True)
-    def payout_debug(self):
-        p = Payout()
-        p.payout_debug_test_error_50_percent()
+# class PayoutTask( object ):
+#     """
+#
+#     """
+#
+#     @app.task(bind=True)
+#     def payout(self):
+#         raise Exception('unimplemented currently')
+#         return None # TODO the result
+#
+#     @app.task(bind=True)
+#     def payout_debug(self):
+#         p = Payout()
+#         return p.payout_debug_test_error_50_percent()
+#
+#     @app.task(bind=True)
+#     def execute(self, func, **kwargs):
+#          print( 'function name:', func.__name__ )

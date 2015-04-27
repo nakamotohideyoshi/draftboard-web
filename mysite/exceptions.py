@@ -45,4 +45,8 @@ class MaxCurrentWithdrawsException(Exception):
 
 class CashoutWithdrawOutOfRangeException(Exception):
     def __init__(self, class_name, variable_name):
-       super().__init__('Cashout mount out of range.')
+       super().__init__('Cashout amount out of range.')
+
+class CheckWithdrawCheckNumberRequiredException(Exception):
+    def __init__(self, class_name, variable_name):
+       super().__init__('You need to save the check number before you process the cashout')
