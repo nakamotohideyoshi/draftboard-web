@@ -394,7 +394,7 @@ class CheckWithdraw(AbstractWithdraw):
     def __init__(self, user=None, pk=None):
         self.withdraw_class = models.CheckWithdraw  # before super()
         super().__init__(user, pk)
-        
+
     def validate_withdraw(self, amount):
         """
         raises exception if user doesnt have a valid mailing address.

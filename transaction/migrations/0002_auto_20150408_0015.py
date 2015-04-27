@@ -42,6 +42,26 @@ def load_initial_transaction_types(apps, schema_editor):
                 "description": "Cancel Cash Withdraw",
                 "name": "cancel withdraw"
               }
+        },
+        {
+            "pk": TransactionTypeConstants.TicketConsume.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "ticket",
+                "description": "Ticket Consume",
+                "name": "ticket consume"
+              }
+        },
+        {
+            "pk": TransactionTypeConstants.TicketDeposit.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "ticket",
+                "description": "Ticket Deposit",
+                "name": "ticketDeposit"
+              }
         }
     ]
 
