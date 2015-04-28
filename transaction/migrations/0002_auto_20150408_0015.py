@@ -82,6 +82,26 @@ def load_initial_transaction_types(apps, schema_editor):
                 "description": "FPP Deposit",
                 "name": "fpp-deposit"
               }
+        },
+        {
+            "pk": TransactionTypeConstants.BonusCashWithdraw.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "bonuscash",
+                "description": "BonusCash Withdraw",
+                "name": "bonuscash-withdraw"
+              }
+        },
+        {
+            "pk": TransactionTypeConstants.BonusCashDeposit.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "bonuscash",
+                "description": "BonusCash Deposit",
+                "name": "bonuscash-deposit"
+              }
         }
     ]
 

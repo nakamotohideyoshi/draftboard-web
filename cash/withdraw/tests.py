@@ -57,11 +57,6 @@ class AbstractWithdrawTest(AbstractTest):
         # self.withdraw = None
 
     #
-    ######################################################
-    # FOR_COPY_AND_PASTE
-    ######################################################
-
-    #
     ##########################
     # must override methods  #
     ##########################
@@ -69,6 +64,7 @@ class AbstractWithdrawTest(AbstractTest):
         # self.user is set to the withdraw_object
         instance = self.WITHDRAW_CLASS( user=user )
         return instance
+
     #
     ##########################
     # internal class methods #
@@ -226,6 +222,9 @@ class WithdrawTestCheckWithdraw( AbstractWithdrawTest ):
     def test_payout_raises_exception_check_number_invalid(self):
         pass # TODO
 
+    def test_withdraw_method_called_more_than_once_in_a_row(self):
+        pass # TODO
+
 class WithdrawTestPayPalWithdraw( AbstractWithdrawTest ):
 
     WITHDRAW_USER   = WithdrawUser.ADMIN
@@ -265,6 +264,9 @@ class WithdrawTestPayPalWithdraw( AbstractWithdrawTest ):
         pass # TODO
 
     def test_paypal_cancel_bulk(self):
+        pass # TODO
+
+    def test_withdraw_method_called_more_than_once_in_a_row(self):
         pass # TODO
 
 class WithdrawTest(AbstractTest):

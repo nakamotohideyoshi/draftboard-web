@@ -93,6 +93,8 @@ INSTALLED_APPS = (
     'cash.tax',
     'ticket',
     'fpp',
+    'promocode',
+    'promocode.bonuscash',
     'test',
 )
 #
