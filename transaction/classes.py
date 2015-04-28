@@ -112,14 +112,14 @@ class AbstractTransaction (AbstractSiteUserClass):
             # in the transaction list
             self.balance.transaction = transactions[len(transactions)-1]
             self.balance.save()
-            Logger.log(ErrorCodes.INFO, "Balance Update", self.user.username+"'s "+self.accountName+" account balance is now $"+str(self.balance.amount))
 
-
-
-
-
-
-
+            #
+            # keep in mind that changing this log messages could change a format
+            # that we've been using to parse logs for very long time!
+            msg = 'User[%s] Account[%s] balance is now: %s' % (self.user.username,
+                                                            self.accountName, self.balance.amount )
+            #Logger.log(ErrorCodes.INFO, "Balance Update", self.user.username+"'s "+self.accountName+" account balance is now "+str(self.balance.amount))
+            Logger.log(ErrorCodes.INFO, "Balance Update", msg )
 
     def __get_balance(self):
         """

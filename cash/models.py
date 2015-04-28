@@ -52,7 +52,7 @@ class AdminCashDeposit( models.Model ):
         return '+ $%s - %s (%s)' % (self.amount, self.user.username, self.user.email)
 
     #
-    # for now as a hack, dont even try to create entries in this table
+    # create the transaction
     def save(self, *args, **kwargs):
 
         if self.pk is None:
@@ -76,10 +76,10 @@ class AdminCashWithdrawal( models.Model ):
     #
     #
     def __str__(self):
-        return '+ $%s - %s (%s)' % (self.amount, self.user.username, self.user.email)
+        return '- $%s - %s (%s)' % (self.amount, self.user.username, self.user.email)
 
     #
-    # for now as a hack, dont even try to create entries in this table
+    # create the transaction
     def save(self, *args, **kwargs):
 
         if self.pk is None:

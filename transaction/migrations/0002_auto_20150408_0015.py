@@ -62,6 +62,26 @@ def load_initial_transaction_types(apps, schema_editor):
                 "description": "Ticket Deposit",
                 "name": "ticketDeposit"
               }
+        },
+        {
+            "pk": TransactionTypeConstants.FppWithdraw.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "fpp",
+                "description": "FPP Withdraw",
+                "name": "fpp-withdraw"
+              }
+        },
+        {
+            "pk": TransactionTypeConstants.FppDeposit.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "fpp",
+                "description": "FPP Deposit",
+                "name": "fpp-deposit"
+              }
         }
     ]
 

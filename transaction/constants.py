@@ -10,3 +10,6 @@ class TransactionTypeConstants(Enum):
     AdminCancelWithdraw = 3
     TicketConsume = 4
     TicketDeposit = 5
+
+    FppWithdraw = 6
+    FppDeposit = 7

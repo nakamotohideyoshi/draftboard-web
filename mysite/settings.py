@@ -92,6 +92,7 @@ INSTALLED_APPS = (
     'cash.withdraw',
     'cash.tax',
     'ticket',
+    'fpp',
     'test',
 )
 #
