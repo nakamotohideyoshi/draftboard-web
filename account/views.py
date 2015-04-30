@@ -44,6 +44,7 @@ class UserAPIView(generics.GenericAPIView):
     Allows the logged in user to modify their password and email.
 
         .. note::
+
             If username is modified in the put, it will not be saved.
 
         * |api-text| :dfs:`account/settings/`

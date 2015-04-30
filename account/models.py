@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class Information(models.Model):
     """
@@ -8,15 +8,15 @@ class Information(models.Model):
 
     US_STATES = [('NH','NH'), ('CA','CA'), ('FL','FL')] # TODO - finish adding the rest of available states
 
-    user            = models.ForeignKey( 'auth.User', unique=True )
+    user            = models.OneToOneField( User, primary_key=True  )
 
     fullname        = models.CharField(max_length=100, null=False, default='')
     address1        = models.CharField(max_length=255, null=False, default='')
-    address2        = models.CharField(max_length=255, null=False, default='')
+    address2        = models.CharField(max_length=255, null=False, default='', blank=True)
     city            = models.CharField(max_length=64, null=False, default='')
     state           = models.CharField(choices=US_STATES, max_length=2,  default='')
     zipcode         = models.CharField(max_length=5, null=False, default='')
-    dob             = models.DateField(default='', null=True)
+    dob             = models.DateField( default=None,  null=True)
 
 
 
@@ -31,6 +31,8 @@ class EmailNotification(models.Model):
     description     = models.CharField(max_length=255, null=False, default='')
     default_value   = models.BooleanField( default= True )
     deprecated      = models.BooleanField( default= False )
+
+
 
     class Meta:
         unique_together = ("category", "name")

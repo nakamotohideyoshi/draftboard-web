@@ -5,17 +5,32 @@ from .base import *
 git_branch_cmd = 'git rev-parse --abbrev-ref HEAD'
 db_name = 'dfs_' + check_output(git_branch_cmd.split()).decode('utf-8')[:-1]
 
+#
+# try to create the database, if it already exists, this will have no effect
+create_db_cmd = 'sudo -u postgres createdb %s' % db_name
+try:
+    if check_output(create_db_cmd.split()).decode('utf-8').strip() == '':
+        print( 'mysite/settings/local.py >>> created', db_name )
+except Exception:
+    print( 'could not create', db_name, ' - it may already exist' )
 
+#
 # Run the Postgres OSX app by Heroku.
-# Create database by running `psql -d postgres -c "CREATE DATABASE rio_[BRANCH_NAME];"` in terminal
-# Ask for a db dump from another dev to then import into the db
+
+#
+# Now you can:
+#       migrate - you will need to specify the settings file,
+#       $> ./manage.py migrate --settings mysite.settings.local
+# Or:
+#       Ask for a db dump from another dev to then import into the db
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': db_name,
-        'USER': 'postgres',
-        'HOST': 'localhost',
-        'CONN_MAX_AGE': 60,
+        #'USER': 'vagrant',      # by not specifying a user at all, it will not prompt for password
+        #'HOST': 'localhost',    # default to localhost
+        #'CONN_MAX_AGE': 60,
     }
 }
 

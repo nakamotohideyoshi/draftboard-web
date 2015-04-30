@@ -16,6 +16,7 @@ bkup-*
 # redis dump files, specific to each instance
 *.rdb
 
+#
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -95,3 +96,8 @@ node_modules
 
 # Bower
 bower_components
+
+celerybeat-schedule
+
+logs*
+
