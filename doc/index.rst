@@ -11,6 +11,8 @@ Table of Contents:
 
     account
     dfslog
+    transaction
+    cash
 
 Indices and tables
 ==================

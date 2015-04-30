@@ -1,12 +1,12 @@
 import unittest
-from dfslog.logger import AbstractLog
+from dfslog.classes import AbstractLog
 from dfslog.exceptions import LogMethodException
-from dfslog.logger import Logger
+from dfslog.classes import Logger
 from dfslog.exceptions import  ErrorCodeException
 from dfslog.exceptions import ActionException
 from dfslog.exceptions import MessageException
-from dfslog.logger import ErrorCodes
-from dfslog.logger import ModelNotImplementedException
+from dfslog.classes import ErrorCodes
+from dfslog.classes import ModelNotImplementedException
 
 class AbstractLogTest( unittest.TestCase ):
     """

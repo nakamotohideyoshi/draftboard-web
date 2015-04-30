@@ -1,0 +1,90 @@
+# cash/models.py
+
+from django.db import models
+from django.core.validators import MinValueValidator
+from transaction.models import TransactionDetail, Balance
+from django.contrib.auth.models import User
+import cash.classes
+from transaction.models import Transaction
+class CashBalance(Balance):
+    """
+    Implements the :class:`transaction.models.Balance` model.
+    """
+    pass
+
+class CashTransactionDetail(TransactionDetail):
+    """
+    Implements the :class:`transaction.models.TransactionDetail` model.
+    """
+    pass
+
+
+class BraintreeTransaction(models.Model):
+    """
+    Keeps a record of the Braintree transaction ids in association
+    with the DFS internal :class:`transaction.models.Transaction` model.
+    """
+    transaction             = models.ForeignKey( Transaction )
+    braintree_transaction   = models.CharField( max_length=128, null=False )
+    created                 = models.DateTimeField(auto_now_add=True, null=True)
+
+
+
+
+
+#-------------------------------------------------------------------
+#-------------------------------------------------------------------
+# Admin Tables
+class AdminCashDeposit( models.Model ):
+    """
+    keep track of times the admin has deposited cash
+    """
+    user    = models.ForeignKey( User, related_name='admincashdeposit_user' )
+    amount  = models.DecimalField( decimal_places=2, max_digits=20, default=0,
+                                   validators=[MinValueValidator(0.01)] )
+    reason  = models.CharField( max_length=255, default='', null=False, blank=True )
+
+    created = models.DateTimeField(auto_now_add=True, null=True)
+
+    #
+    #
+    def __str__(self):
+        return '+ $%s - %s (%s)' % (self.amount, self.user.username, self.user.email)
+
+    #
+    # create the transaction
+    def save(self, *args, **kwargs):
+
+        if self.pk is None:
+            t = cash.classes.CashTransaction( self.user )
+            t.deposit( self.amount )
+
+        super(AdminCashDeposit, self).save(*args, **kwargs)
+
+
+class AdminCashWithdrawal( models.Model ):
+    """
+    keep track of times the admin has withdrawn cash
+    """
+    user    = models.ForeignKey( User, related_name='admincashwithdrawal_user' )
+    amount  = models.DecimalField( decimal_places=2, max_digits=20, default=0,
+                                   validators=[MinValueValidator(0.01)] )
+    reason  = models.CharField( max_length=255, default='', null=False, blank=True )
+
+    created = models.DateTimeField(auto_now_add=True, null=True)
+
+    #
+    #
+    def __str__(self):
+        return '- $%s - %s (%s)' % (self.amount, self.user.username, self.user.email)
+
+    #
+    # create the transaction
+    def save(self, *args, **kwargs):
+
+        if self.pk is None:
+            t = cash.classes.CashTransaction( self.user )
+            t.withdraw( self.amount )
+
+        super(AdminCashWithdrawal, self).save(*args, **kwargs)
+

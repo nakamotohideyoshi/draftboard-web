@@ -13,7 +13,8 @@ class Logger:
     def __init__(self):
         pass
 
-    def log(self, error_code, action, message, classes = [], **kwargs):
+    @staticmethod
+    def log(error_code, action, message, classes = [], **kwargs):
         """
         :param errorCode: This should use one of the predefined error codes listed in the class
             :class:`dfslog.logger.ErrorCodes`
@@ -41,7 +42,7 @@ class Logger:
             message +=" "+ c.log()
 
 
-        log_string = "action: "+ action + "message: " +message
+        log_string = "action: "+ action + " message: " +message
         print(log_string)
 
 

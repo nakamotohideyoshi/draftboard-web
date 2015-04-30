@@ -22,12 +22,44 @@ PROJECT_ROOT = Path(__file__).ancestor(3)
 STATIC_ROOT = PROJECT_ROOT.child('collected_static')
 INTERNAL_IPS = ()
 
+import os
+
+BASE_DIR    = os.path.dirname(os.path.dirname(__file__))
+SITE_ROOT   = os.path.dirname(os.path.realpath(__file__))
+
+from os.path import join
+
+#
+# Django 1.8 removed TEMPLATE_DIRS. It is now TEMPLATES = {}
+# https://docs.djangoproject.com/en/1.8/ref/templates/upgrading/
+# TEMPLATE_DIRS = ( PROJECT_ROOT.child('templates'), )
+TEMPLATES = [
+    {
+        'BACKEND' : 'django.template.backends.django.DjangoTemplates',
+        'DIRS'    : [
+            join(BASE_DIR, 'account/templates'),
+            join(BASE_DIR,  'mysite/templates'),
+        ],
+        'APP_DIRS': True, # defaults to False
+        'OPTIONS' : {
+            'context_processors' : (
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.contrib.messages.context_processors.messages",
+                'django.template.context_processors.request',
+                'cash.withdraw.context_processors.model_badges',
+            )
+        }
+    },
+]
+
 # Folder locations
 STATICFILES_DIRS = (
     PROJECT_ROOT.child('static'),
-)
-TEMPLATE_DIRS = (
-    PROJECT_ROOT.child('templates'),
 )
 
 # Templates
@@ -106,16 +138,46 @@ PIPELINE_JS = {
     # },
 }
 
+#
+##########################################################################
+#        cash -Withdrawal Rules
+##########################################################################
+DFS_CASH_WITHDRAWAL_APPROVAL_REQ_AMOUNT          = 100.00
+DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO      = 750.00
+
+#
+##########################################################################
+#        django_braintree
+##########################################################################
+import braintree
+BRAINTREE_MERCHANT      = 'xh2x3fhngf3nnkk5'
+BRAINTREE_PUBLIC_KEY    = 'th4fw4rpz3rhn8bq'
+BRAINTREE_PRIVATE_KEY   = '9122b2a8557887e27a6de0da7221a7d7'
+BRAINTREE_MODE          = braintree.Environment.Sandbox
+from braintree import Configuration, Environment
+
+Configuration.configure(
+    Environment.Sandbox,
+    BRAINTREE_MERCHANT,     # sandbox BRAINTREE_MERCHANT_ID,
+    BRAINTREE_PUBLIC_KEY,
+    BRAINTREE_PRIVATE_KEY
+)
+
 # REST currently defaulting to session authentication
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
-    'DEFAULT_RENDERER_CLASSES': (
-        'rest_framework.renderers.JSONRenderer',
-        # 'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
-    ),
+
+    # 'DEFAULT_RENDERER_CLASSES': (
+    #     'rest_framework.renderers.JSONRenderer',
+    #     # 'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
+    # ),
+
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE' : 50,
+
 }
 
 
@@ -125,6 +187,8 @@ INSTALLED_APPS = (
     # heroku installs
     'raven.contrib.django.raven_compat',
 
+    'suit',
+
     # django defaults
     'django.contrib.admin',
     'django.contrib.auth',
@@ -133,9 +197,12 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'djcelery',
+
     # 3rd party installs
     'rest_framework',   # for api stuff
-    # 'snippets',         # optional, rest_framework example code
+    'braces',
+
     'django_extensions',  # shell_plus
     'cachalot',         # caching models
     'pipeline',         # minifying/compressing static assets
@@ -147,6 +214,15 @@ INSTALLED_APPS = (
     ####################################
     'account',
     'dfslog',
+    'transaction',
+    'cash',
+    'cash.withdraw',
+    'cash.tax',
+    'ticket',
+    'fpp',
+    'promocode',
+    'promocode.bonuscash',
+    'test',
 )
 
 MIDDLEWARE_CLASSES = (

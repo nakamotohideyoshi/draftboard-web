@@ -76,13 +76,40 @@ apt-get build-dep -y psycopg2
 
 #
 # install django and the basic things it needs...
-venv/bin/pip3 install -r /vagrant/requirements/local.txt
+    #<<<<<<< HEAD
+    #venv/bin/pip3 install -r /vagrant/requirements/local.txt
+    #
+    ## Add an environment variable to tell django to always use the local settings by default.
+    #echo "export DJANGO_SETTINGS_MODULE=mysite.settings.local" >> /home/vagrant/.bashrc
+    #
+    ## Activate the virtualenv on every login
+    #echo "source venv/bin/activate" >> /home/vagrant/.bashrc
+    #=======
+venv/bin/pip3 install Django==1.8               # LTS April 1, 2015 (no foolin!)
+venv/bin/pip3 install psycopg2
+venv/bin/pip3 install gunicorn
+venv/bin/pip3 install dj-database-url
+venv/bin/pip3 install dj-static
+venv/bin/pip3 install static
+venv/bin/pip3 install djangorestframework    	# optional - for creating apis
+venv/bin/pip3 install markdown 					# optional - for creating apis
+venv/bin/pip3 install django-filter 			# optional - for creating apis
+venv/bin/pip3 install sphinx 				    # !?  install in virtualenv. maybe do system-wide??
+venv/bin/pip3 install braintree                 # payment processing
+#venv/bin/pip3 install django_braintree          # third party braintree integration we might use
+venv/bin/pip3 install django-suit
+venv/bin/pip3 install django-braces
+venv/bin/pip3 install testfixtures
 
-# Add an environment variable to tell django to always use the local settings by default.
-echo "export DJANGO_SETTINGS_MODULE=mysite.settings.local" >> /home/vagrant/.bashrc
+#
+# we will need this for ssl stuff (including python paypal sdk)
+apt-get install libssl-dev libffi-dev
+#venv/bin/pip3 install paypalrestsdk
 
-# Activate the virtualenv on every login
-echo "source venv/bin/activate" >> /home/vagrant/.bashrc
+#apt-get install redis-server           #installed above
+venv/bin/pip3 install django-redis
+venv/bin/pip3 install django-celery
+    #>>>>>>> 30e843f782ed8651ae0e562d73221396a1afc0eb
 
 #
 # we will need a webserver of course, and drop in our nginx server conf file & restart
@@ -90,8 +117,11 @@ echo "source venv/bin/activate" >> /home/vagrant/.bashrc
 #cp /vagrant/site-setup/nginx-default /etc/nginx/sites-available/default        # websrv/nginx-default is a simple server{}
 #service nginx restart
 
-# TODO: these still fail for me, not quite sure why, something about django's database configuration.
+    #<<<<<<< HEAD
+    ## TODO: these still fail for me, not quite sure why, something about django's database configuration.
+    #=======
+    ##
+    ## switch to user 'vagrant' because manage.py doesnt like connecting to postgres otherwise
+    #>>>>>>> 30e843f782ed8651ae0e562d73221396a1afc0eb
 cd /vagrant
-./manage.py migrate
-./manage.py loaddata site-setup/initial_data.json
-./manage.py syncdb --noinput
+./site-setup/migrate_and_syncdb.sh

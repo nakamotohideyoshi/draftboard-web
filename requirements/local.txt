@@ -1,5 +1,5 @@
 # Install Django before base dependencies
-Django==1.7.7
+Django==1.8
 
 # Base dependencies
 -r _base.txt
@@ -7,4 +7,4 @@ Django==1.7.7
 # Fabric for running commands
 # NOTE: after install you must comment out lines 220-223 in fabric/operations.py, fixed confirmation messages
 # TODO upgrade to unforked version when Python3 is supported by Fabric
-git+git://github.com/pashinin/fabric.git@6783d2f7ad7a449c97cd1ee0df9a2dbc29422fce#egg=Fabric
+#git+git://github.com/pashinin/fabric.git@6783d2f7ad7a449c97cd1ee0df9a2dbc29422fce#egg=Fabric

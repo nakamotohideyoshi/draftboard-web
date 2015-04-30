@@ -25,6 +25,7 @@ Vagrant.configure(2) do |config|
     #
     # specify the base vm
     web.vm.box = "ubuntu/trusty64"
+    #web.vm.box = "hashicorp/precise64"
 
     #
     # forward "outside" traffic to port 80 on the vagrant box
