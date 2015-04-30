@@ -2,7 +2,8 @@ from . import models
 from mysite.exceptions import IncorrectVariableTypeException, VariableNotSetException, \
                             InvalidArgumentException, AmbiguousArgumentException, \
                             UnimplementedException, MaxCurrentWithdrawsException, \
-                            CashoutWithdrawOutOfRangeException, CheckWithdrawCheckNumberRequiredException
+                            CashoutWithdrawOutOfRangeException, CheckWithdrawCheckNumberRequiredException, \
+                            AmountNegativeException, AmountZeroException, WithdrawCalledTwiceException
 from django.contrib.auth.models import User
 from mysite.classes import  AbstractSiteUserClass
 from account.classes import AccountInformation
@@ -168,6 +169,12 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         abstract model.
 
         """
+
+        if amount < Decimal( 0.0 ):
+            raise AmountNegativeException(type(self).__name__, 'amount: ' + str(amount))
+        elif amount == Decimal( 0.0 ):
+            raise AmountZeroException(type(self).__name__, 'amount: ' + str(amount))
+
         #
         # make sure they dont have more than the max outstanding withdraw requests
         max_pending = PendingMax().value()
@@ -231,6 +238,11 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         :param amount:
         :return:
         """
+
+        if self.withdraw_object and self.withdraw_object.status:
+            raise WithdrawCalledTwiceException(type(self).__name__,
+                'withdraw() can only be called on the object one time')
+
         amount = Decimal( amount )
 
         #

@@ -63,3 +63,6 @@ class TooLittleArgumentsException(Exception):
         super().__init__(\
            "In the class "+class_name+", too little arguments were used. You must set one of the following arguments: "+arguments_str)
 
+class WithdrawCalledTwiceException(Exception):
+    def __init__(self, class_name, variable_name):
+       super().__init__('Withdraw can not be called more than once the object')
