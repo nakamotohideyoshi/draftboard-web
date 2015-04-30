@@ -3,7 +3,8 @@ from test.classes import AbstractTest
 from .classes import AbstractWithdraw, PayPalWithdraw, CheckWithdraw
 from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException, \
                                 InvalidArgumentException, AmbiguousArgumentException, \
-                                MethodNotOverriddenInChildException
+                                MethodNotOverriddenInChildException, WithdrawCalledTwiceException, \
+                                CheckWithdrawCheckNumberRequiredException
 import datetime
 from django.conf import settings
 import decimal
@@ -17,6 +18,8 @@ from . import models
 import django
 from cash.tax.classes import TaxManager
 from enum import Enum
+from decimal import Decimal
+import psycopg2 # for IntegrityError exception
 
 class WithdrawUser(Enum):
     """
@@ -27,100 +30,48 @@ class WithdrawUser(Enum):
     MAANGER = 2
     REGULAR = 3
 
-class AbstractWithdrawTest(AbstractTest):
+# class CanGetNewWithdraw(object):
+#     pass
+
+class AdminCheckWithdrawTest(AbstractTest):
     """
     for the purpose of simplifying the testing of CheckWithdraw, PayPalWithdraw,
     and any addition classes which inherit AbstractWithdraw
 
     """
-    WITHDRAW_USER   = None  # a WithdrawUser enumeration, ie: WithdrawUser.ADMIN
-    WITHDRAW_CLASS  = None  # must be a child of AbstractWithdraw, ie: CheckWithdraw
+    WITHDRAW_CLASS  = CheckWithdraw  # must be a child of AbstractWithdraw, ie: CheckWithdraw
 
     def setUp(self):
-        #
-        # __validate_settings() MUST be the first call,
-        #  to ensure WITHDRAW_USER, etc... were set up by the programmer
-        self.__validate_settings()
+        self.user               = self.get_admin_user()     # get a superuser
+        self.withdraw_amount    = 10.00                     # using float here on purpose
+        self.account_balance    = 1000.00                   # balance starting amount (once we add it)
 
-        self.user = self.__get_user_from_type( self.WITHDRAW_USER )   # get the user by their WithdrawUser enum type
-        self.withdraw_amount = 10.00                    # using float here on purpose
-        self.account_balance = 1000.00                  # balance starting amount (once we add it)
+        ct = CashTransaction(self.user)                     # get a new CashTransaction instance
+        ct.deposit(self.account_balance)                    # start the balance with self.account_balance
 
-        ct = CashTransaction(self.user)                 # get a new CashTransaction instance
-        ct.deposit(self.account_balance)                # start the balance with self.account_balance
+    def get_balance(self):
+        return CashTransaction(self.user).get_balance_amount()
 
-        #
-        # we can move time, and restore if we'd like...
-        #r = self.move_time(days = 365, hours = 1)
-        #r.restore()
 
-        # self.withdraw = None
-
-    #
-    ##########################
-    # must override methods  #
-    ##########################
     def get_a_new_withdraw(self, user):
+        # information must exist for the user who makes a withdraw
+        information = AccountInformation(user)     # give self.user an Information object
+        information.set_fields(
+            fullname        = user.username + ' Mc' + user.username,
+            address1        = 'address1',
+            city            = 'city',
+            state           = 'NH',
+            zipcode         = '03820'
+        )
+
         # self.user is set to the withdraw_object
         instance = self.WITHDRAW_CLASS( user=user )
         return instance
 
     #
-    ##########################
-    # internal class methods #
-    ##########################
-    def __validate_settings(self):
-        err_msg = '\n\n'
-
-        if self.__class__.__name__ == 'AbstractWithdrawTest':
-            err_msg += self.__class__.__name__ + ' *** you may not instantiate this class directly\n'
-            err_msg += self.__class__.__name__ + ' *** must not have any methods that start with "test"\n'
-
-        if self.WITHDRAW_USER is None:
-            err_msg += self.__class__.__name__ + ' *** you didnt set WITHDRAW_USER\n'
-        if self.WITHDRAW_CLASS is None:
-            err_msg += self.__class__.__name__ + ' *** you didnt set WITHDRAW_CLASS\n'
-        # if self.WITHDRAW_MODEL is None:
-        #     err_msg +=  self.__class__.__name__ + ' *** you didnt set WITHDRAW_MODEL\n'
-
-        if err_msg.strip(): # if after stripping it of whitespace its empty...
-            raise Exception( err_msg )
-
-    def __get_user_from_type(self, withdraw_user):
-        if withdraw_user == WithdrawUser.ADMIN:
-            return self.get_admin_user()
-        elif withdraw_user == WithdrawUser.MANAGER:
-            return self.get_staff_user()
-        else:
-            return self.get_basic_user()
-
-    #
-    ##########################
-    # helper methods
-    ##########################
-    def move_time(self, days, hours):
-        today = datetime.datetime.now()
-        time = today - datetime.timedelta(
-                            days= days,
-                            hours = hours
-        )
-        return self.set_time(time)
-
-    def set_time(self, dt):
-        r = Replacer()
-        r.replace(
-            'testfixtures.tests.sample1.datetime',
-            test_datetime(
-                dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second
-            )
-        )
-        return r
-
-    #
     ###################################################
     # test the core functionality of Withdraw.
     # specific tests related to PayPal, or Checks
-    # should go in their own classes: PayPal
     ###################################################
     def test_invalid_instantiation_argument_user(self):
         self.assertRaises(IncorrectVariableTypeException, lambda: self.WITHDRAW_CLASS( user=int(1) ) )
@@ -143,6 +94,119 @@ class AbstractWithdrawTest(AbstractTest):
         alternate_user = self.get_alternate_user( self.user ) # retrieve a user DIFFERENT than the one given
         self.assertNotEqual( alternate_user, self.user )
         self.assertRaises(AmbiguousArgumentException, lambda: self.WITHDRAW_CLASS( alternate_user, instance.withdraw_object.pk ) )
+
+    #
+    #######################################################
+    # tests for calling withdraw() and for its side effects
+    #######################################################
+    def test_too_many_withdraws(self):
+        w = self.get_a_new_withdraw(self.user) # ie: w = CheckWithdraw( user )
+        w.withdraw( 101.00 )
+        self.assertRaises(WithdrawCalledTwiceException, lambda: w.withdraw( 95.00 ) )
+
+    def test_balance_the_same_after_too_many_withdraws(self):
+        w = self.get_a_new_withdraw(self.user) # ie: w = CheckWithdraw( user )
+        w.withdraw( 101.00 )
+        balance_after_first_withdraw = self.get_balance()
+        self.assertRaises(WithdrawCalledTwiceException, lambda: w.withdraw( 95.00 ) )
+        self.assertEquals( balance_after_first_withdraw, self.get_balance() )
+
+    def test_cancel_sets_proper_status_when_complete(self):
+        cancelled = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.CancelledAdminDefault.value)
+        w = self.get_a_new_withdraw(self.user) # ie: w = CheckWithdraw( user )
+        w.withdraw( 64.00 )
+        w.cancel()
+        self.assertEquals( w.withdraw_object.status, cancelled )
+
+    def test_cancel_doesnt_modify_status_on_exception(self):
+        pass # TODO - i dont think you can test this for CheckWithdraw
+
+    def test_cancel_and_verify_balance_updates(self):
+        amount = Decimal( 101.00 )
+        start_balance = self.get_balance()
+        w = self.get_a_new_withdraw(self.user) # ie: w = CheckWithdraw( user )
+        w.withdraw( amount )
+        balance_after_withdraw = self.get_balance()
+        self.assertEquals( (balance_after_withdraw + amount), start_balance )
+        w.cancel()
+        self.assertEquals( start_balance, self.get_balance() )
+
+    def test_cancel_bulk_list_of_withdraws(self):
+        pass # TODO
+
+    def test_payout_sets_proper_status_when_complete(self):
+        processed = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processed.value)
+        w = self.get_a_new_withdraw(self.user) # ie: w = CheckWithdraw( user )
+        w.withdraw( 80.00 )
+        w.withdraw_object.check_number = 85
+        w.payout()
+        self.assertEquals( w.withdraw_object.status, processed )
+
+    def test_payout_doesnt_modify_status_on_exception(self):
+        w = self.get_a_new_withdraw(self.user) # ie: w = CheckWithdraw( user )
+        w.withdraw( 195.00 )
+        status_before = w.withdraw_object.status
+        w.withdraw_object.check_number = None
+        self.assertRaises( CheckWithdrawCheckNumberRequiredException, lambda: w.payout() ) # we dont care the type of exception in this test
+        self.assertEquals( status_before, w.withdraw_object.status )
+
+    def test_payout_bulk_list_of_withdraws(self):
+        pass # TODO
+
+    def test_autopayout_threshold(self):
+        pass # TODO
+
+    def test_withdraw_below_minimum_raises_exception(self):
+        pass # TODO
+
+    def test_withdraw_above_maximum_raises_exception(self):
+        pass # TODO
+
+    def test_withdraw_minimim_amount(self):
+        pass # TODO
+
+    def test_withdraw_maximum_amount(self):
+        pass # TODO
+
+    def test_amounts_with_decimals_dont_get_truncated_or_rounded(self):
+        pass # TODO
+
+    #
+    #######################################################
+    # tests specifically for CheckWithdraw
+    #######################################################
+    def test_payout_raises_exception_check_number_invalid(self):
+        pass # TODO
+
+    def test_withdraw_method_called_more_than_once_in_a_row(self):
+        pass # TODO
+
+class AdminPayPalWithdrawTest( AbstractTest ):
+
+    WITHDRAW_USER   = WithdrawUser.ADMIN
+    WITHDRAW_CLASS  = PayPalWithdraw
+
+    def setUp(self):
+        self.user               = self.get_admin_user()     # get a superuser
+        self.withdraw_amount    = 10.00                     # using float here on purpose
+        self.account_balance    = 1000.00                   # balance starting amount (once we add it)
+
+        ct = CashTransaction(self.user)                 # get a new CashTransaction instance
+        ct.deposit(self.account_balance)                # start the balance with self.account_balance
+
+    def get_a_new_withdraw(self, user):
+        # information must exist for the user who makes a withdraw
+        information = AccountInformation(user)     # give self.user an Information object
+        information.set_fields(
+            fullname        = user.username + ' Mc' + user.username,
+            address1        = 'address1',
+            city            = 'city',
+            state           = 'NH',
+            zipcode         = '03820'
+        )
+        # self.user is set to the withdraw_object
+        instance = self.WITHDRAW_CLASS( user=user )
+        return instance
 
     #
     #######################################################
@@ -195,48 +259,6 @@ class AbstractWithdrawTest(AbstractTest):
 
     def test_amounts_with_decimals_dont_get_truncated_or_rounded(self):
         pass # TODO
-
-class WithdrawTestCheckWithdraw( AbstractWithdrawTest ):
-
-    WITHDRAW_USER   = WithdrawUser.ADMIN
-    WITHDRAW_CLASS  = CheckWithdraw
-
-    # Override
-    def get_a_new_withdraw(self, user):
-
-        information = AccountInformation( user )     # give self.user an Information object
-        information.set_fields(
-            fullname        = 'Ryan',
-            address1        = 'address1',
-            city            = 'city',
-            state           = 'NH',
-            zipcode         = '03820'
-        ) # calls save() by default
-
-        return super().get_a_new_withdraw( user )
-
-    #
-    #######################################################
-    # tests specifically for CheckWithdraw
-    #######################################################
-    def test_payout_raises_exception_check_number_invalid(self):
-        pass # TODO
-
-    def test_withdraw_method_called_more_than_once_in_a_row(self):
-        pass # TODO
-
-class WithdrawTestPayPalWithdraw( AbstractWithdrawTest ):
-
-    WITHDRAW_USER   = WithdrawUser.ADMIN
-    WITHDRAW_CLASS  = PayPalWithdraw
-
-    # Override
-    def get_a_new_withdraw(self, user):
-        instance = super().get_a_new_withdraw( user )
-
-        # we must set the email before withdraw can be called
-        instance.set_paypal_email( 'testpaypal@test.com' )
-        return instance
 
     #
     #######################################################
@@ -293,10 +315,6 @@ class WithdrawTest(AbstractTest):
         )
         r.restore()
 
-    #
-    ##########################
-    # internal class methods #
-    ##########################
     def move_time(self, days, hours):
         today = datetime.datetime.now()
         time = today - datetime.timedelta(
@@ -326,12 +344,6 @@ class WithdrawTest(AbstractTest):
         w.set_paypal_email(self.user.email)
         w.withdraw(amount)
         return w
-
-    # def __make_payout_check(self):
-    #     pass
-    #
-    # def __make_payout_paypal(self):
-    #     pass
 
     #
     #########################################################################################
@@ -408,22 +420,25 @@ class WithdrawTest(AbstractTest):
         #
         # Tests proper payout
         processed = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processed.value)
-        new_cw =CheckWithdraw(self.user)
-        new_cw.payout(cw.withdraw_object.pk, check_number)
-        self.assertEqual(new_cw.withdraw_object.status , processed)
+        cw.withdraw_object.check_number = check_number # set it in the model
+        cw.withdraw_object.save()
+        cw.payout()
+        self.assertEqual(cw.withdraw_object.status , processed)
 
         #
-        # Tests already marked version
-        new_cw =CheckWithdraw(self.user)
-        self.assertRaises(WithdrawStatusException, lambda:new_cw.payout(cw.withdraw_object.pk, check_number))
+        # attempt to payout() again!
+        self.assertRaises(WithdrawStatusException, lambda:cw.payout())
 
         #
         # Tests duplicate check number
-        cw = self.__make_withdrawal_check(self.withdraw_amount)
-        self.assertEquals(cw.withdraw_object.status, pending)
-        new_cw =CheckWithdraw(self.user)
-        self.assertRaises(django.db.utils.IntegrityError, lambda:new_cw.payout(cw.withdraw_object.pk, check_number))
+        another_cw = self.__make_withdrawal_check(self.withdraw_amount)
+        self.assertEquals(another_cw.withdraw_object.status, pending)
+        another_cw.withdraw_object.check_number = check_number
+        self.assertRaises(django.db.utils.IntegrityError, lambda:another_cw.withdraw_object.save() )
+        #self.assertRaises(django.db.utils.IntegrityError, lambda:another_cw.payout())
 
+        # it wont ever be able to save, so lets just make sure this throws some kind of exception
+        self.assertRaises(Exception, lambda:another_cw.payout())
 
     def test_check_cancel_payout(self):
 
@@ -431,12 +446,9 @@ class WithdrawTest(AbstractTest):
         pending = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Pending.value)
         self.assertEquals(cw.withdraw_object.status, pending)
 
-        #
-        # Tests cancel payout
         cancelled = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.CancelledAdminDefault.value)
-        new_cw =CheckWithdraw(self.user)
-        new_cw.cancel(cw.withdraw_object.pk, WithdrawStatusConstants.CancelledAdminDefault.value)
-        self.assertEqual(new_cw.withdraw_object.status , cancelled)
+        cw.cancel()
+        self.assertEqual(cw.withdraw_object.status , cancelled)
 
         ct = CashTransaction(self.user)
         self.assertAlmostEquals(ct.get_balance_amount(), decimal.Decimal(self.account_balance))

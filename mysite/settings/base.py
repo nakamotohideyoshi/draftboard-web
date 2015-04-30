@@ -203,9 +203,11 @@ INSTALLED_APPS = (
     'rest_framework',   # for api stuff
     'braces',
 
-    'django_extensions',  # shell_plus
-    'cachalot',         # caching models
-    'pipeline',         # minifying/compressing static assets
+    'django_extensions',      # shell_plus
+
+    # --- removed for testing only ---
+    #'cachalot',              # caching models
+    'pipeline',               # minifying/compressing static assets
 
 
     #
