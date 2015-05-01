@@ -66,3 +66,19 @@ class TooLittleArgumentsException(Exception):
 class WithdrawCalledTwiceException(Exception):
     def __init__(self, class_name, variable_name):
        super().__init__('Withdraw can not be called more than once the object')
+
+class InvalidPromoCodeException(Exception):
+    def __init__(self, class_name, variable_name):
+       super().__init__('That promo code does not exist')
+
+class PromoCodeAlreadyUsedException(Exception):
+    def __init__(self, class_name, variable_name):
+       super().__init__('The promo code has already been used.')
+
+class PromoCodeExpiredException(Exception):
+    def __init__(self, class_name, variable_name):
+       super().__init__('The promo code is no longer valid.')
+
+class CanNotRemovePromoCodeException(Exception):
+    def __init__(self, class_name, variable_name):
+       super().__init__('The promo code does not exist for the user.')

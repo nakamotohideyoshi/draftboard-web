@@ -102,6 +102,26 @@ def load_initial_transaction_types(apps, schema_editor):
                 "description": "BonusCash Deposit",
                 "name": "bonuscash-deposit"
               }
+        },
+        {
+            "pk": TransactionTypeConstants.PromoCodeAdd.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "promocode",
+                "description": "Promo Code Added",
+                "name": "promocode-add"
+              }
+        },
+        {
+            "pk": TransactionTypeConstants.PromoCodeRemove.value,
+            "model": "transaction.transactiontype",
+            "fields":
+              {
+                "category": "promocode",
+                "description": "Promo Code Removed",
+                "name": "promocode-remove"
+              }
         }
     ]
 
