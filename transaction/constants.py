@@ -17,5 +17,8 @@ class TransactionTypeConstants(Enum):
     BonusCashWithdraw   = 8
     BonusCashDeposit    = 9
 
+    PromoCodeAdd        = 10
+    PromoCodeRemove     = 11
+
     # if you add more to this class, remember to add to
     # the migration that puts them in the database!
