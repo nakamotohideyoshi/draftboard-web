@@ -171,6 +171,9 @@ class AdminCheckWithdrawTest(AbstractTest):
     def test_amounts_with_decimals_dont_get_truncated_or_rounded(self):
         pass # TODO
 
+    def test_call_withdraw_twice_after_overdraft_withdraw(self):
+        pass # TODO
+
     #
     #######################################################
     # tests specifically for CheckWithdraw
