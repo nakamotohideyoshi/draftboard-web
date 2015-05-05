@@ -24,19 +24,24 @@ Vagrant.configure(2) do |config|
   config.vm.define "web" do |web|
     #
     # specify the base vm
-    web.vm.box = "ubuntu/trusty64"
-    #web.vm.box = "hashicorp/precise64"
+    web.vm.box = "ubuntu/trusty32"
+    #web.vm.box = "hashicorp/precise32"
 
     #
     # forward "outside" traffic to port 80 on the vagrant box
     ###web.vm.network "public_network", ip: "192.168.51.101"
 
-    web.vm.network "private_network", ip: "192.168.50.101"
+    #web.vm.network "private_network", ip: "192.168.50.101"
     web.vm.network "forwarded_port", host: 8888, guest: 80
 
     #
     # lets use 'bootstrap.sh' for provisioning
     web.vm.provision :shell, path: "./site-setup/bootstrap.sh"
+
+
+    config.vm.provider "virtualbox" do |v|
+        v.gui = true
+    end
 
   end
 
