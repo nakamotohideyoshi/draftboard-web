@@ -101,6 +101,13 @@ venv/bin/pip3 install django-suit
 venv/bin/pip3 install django-braces
 venv/bin/pip3 install testfixtures
 
+venv/bin/pip3 install unipath
+venv/bin/pip3 install raven
+venv/bin/pip3 install django_extensions
+venv/bin/pip3 install django-pipeline
+venv/bin/pip3 install django-debreach
+venv/bin/pip3 install whitenoise
+
 #
 # we will need this for ssl stuff (including python paypal sdk)
 apt-get install libssl-dev libffi-dev
@@ -113,9 +120,9 @@ venv/bin/pip3 install django-celery
 
 #
 # we will need a webserver of course, and drop in our nginx server conf file & restart
-#apt-get install -y nginx
-#cp /vagrant/site-setup/nginx-default /etc/nginx/sites-available/default        # websrv/nginx-default is a simple server{}
-#service nginx restart
+apt-get install -y nginx
+cp /vagrant/site-setup/nginx-default /etc/nginx/sites-available/default        # websrv/nginx-default is a simple server{}
+service nginx restart
 
     #<<<<<<< HEAD
     ## TODO: these still fail for me, not quite sure why, something about django's database configuration.
