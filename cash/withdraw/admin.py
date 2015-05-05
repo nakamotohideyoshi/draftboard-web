@@ -111,6 +111,9 @@ class PayPalWithdrawAdmin(admin.ModelAdmin):
         self.message_user( request, '%s PayPal withdraw(s) cancelled and refunded.' )
     decline_withdraw_request.short_description = 'Decline & refund the selected PayPal withdraw(s)'
 
+    #
+    # the 'action' list is where we can specify
+    # functions wed like to show in the admin dropdown menu
     actions = [ paypal_confirm_and_send_payout, decline_withdraw_request ]
 
 @admin.register(AutomaticWithdraw)

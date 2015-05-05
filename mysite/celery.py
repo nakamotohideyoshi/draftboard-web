@@ -16,7 +16,7 @@ import time
 
 # set the default Django settings module for the 'celery' program.
 #os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.base')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.local')
 
 from django.conf import settings
 
@@ -81,7 +81,7 @@ app.conf.update(
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))
 
-@app.task(bind=True)
+@app.task(bind=True, time_limit=2)
 def pause(self, t=5.0, msg='finished'):
     time.sleep( t )
     print( msg )
@@ -97,7 +97,7 @@ def pause_then_raise(self, t=5.0, msg='finished'):
 def heartbeat(self):
     print( 'heartbeat' )
 
-@app.task(bind=True)
+@app.task(bind=True, time_limit=300)
 def payout(self, instance, **kwargs):
     r_payout    = instance.payout()
 
