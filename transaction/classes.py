@@ -160,6 +160,7 @@ class AbstractTransaction (AbstractSiteUserClass):
         """
         Validates that amount is a positive number.
 
+
         :param amount: The amount that is being added to a transaction.
 
         :raises :class:`transaction.exceptions.AmountNegativeException`:

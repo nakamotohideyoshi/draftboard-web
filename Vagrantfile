@@ -24,7 +24,7 @@ Vagrant.configure(2) do |config|
   config.vm.define "web" do |web|
     #
     # specify the base vm
-    web.vm.box = "ubuntu/trusty32"
+    web.vm.box = "ubuntu/trusty64"
     #web.vm.box = "hashicorp/precise32"
 
     #
