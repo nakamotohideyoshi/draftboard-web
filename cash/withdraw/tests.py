@@ -21,6 +21,7 @@ import django
 from cash.tax.classes import TaxManager
 from enum import Enum
 from decimal import Decimal
+import time
 import psycopg2 # for IntegrityError exception
 
 class WithdrawUser(Enum):
@@ -125,12 +126,12 @@ class AdminCheckWithdrawTest(AbstractTest):
         for w in withdraws:
             w.cancel()
 
-
     def test_too_many_withdraws_for_same_withdraw_object(self):
         # The withdraw method should only be called once per withdraw object
         w = self.get_a_new_withdraw(self.user) # ie: w = CheckWithdraw( user )
         w.withdraw( 101.00 )
         self.assertRaises(WithdrawCalledTwiceException, lambda: w.withdraw( 95.00 ) )
+        w.cancel()
 
     def test_balance_the_same_after_too_many_withdraws(self):
         w = self.get_a_new_withdraw(self.user) # ie: w = CheckWithdraw( user )
@@ -138,6 +139,7 @@ class AdminCheckWithdrawTest(AbstractTest):
         balance_after_first_withdraw = self.get_balance()
         self.assertRaises(WithdrawCalledTwiceException, lambda: w.withdraw( 95.00 ) )
         self.assertEquals( balance_after_first_withdraw, self.get_balance() )
+        w.cancel()
 
     def test_cancel_sets_proper_status_when_complete(self):
         cancelled = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.CancelledAdminDefault.value)
@@ -289,10 +291,14 @@ class AdminPayPalWithdrawTest( AbstractTest ):
     def setUp(self):
         self.user               = self.get_admin_user()     # get a superuser
         self.withdraw_amount    = 10.00                     # using float here on purpose
-        self.account_balance    = 1000.00                   # balance starting amount (once we add it)
+        self.account_balance    = 10000.00                  # balance starting amount (once we add it)
 
         ct = CashTransaction(self.user)                 # get a new CashTransaction instance
         ct.deposit(self.account_balance)                # start the balance with self.account_balance
+
+        tm = TaxManager(self.user)
+        tm.set_tax_id("123456789")
+
 
     def get_a_new_withdraw(self, user):
         # information must exist for the user who makes a withdraw
@@ -312,32 +318,97 @@ class AdminPayPalWithdrawTest( AbstractTest ):
     #######################################################
     # tests for calling withdraw() and for its side effects
     #######################################################
-    def test_too_many_withdraws(self):
-        pass # TODO
+    def test_too_many_withdraws_for_same_user(self):
+        # Make sure that we cannot add more than the max allowed withdraws for one user
+        max_pending = PendingMax().value()
+        print ("max_pending = " + str(max_pending))
+        withdraws = []
+
+        # This loop will create exactly the maximum allowable withdraws
+        for withdrawAmount in range(11, 11 + max_pending):
+            w = self.get_a_new_withdraw(self.user) # ie: w = PaypalWithdraw( user )
+            w.withdraw(Decimal(withdrawAmount))
+            withdraws.append(w)
+
+        # This withdraw should exceed the maximum allowable
+        w = self.get_a_new_withdraw(self.user) # ie: w = PaypalWithdraw( user )
+        self.assertRaises(MaxCurrentWithdrawsException, lambda: w.withdraw( 95.00 ) )
+
+        # Clean up the pending withdraws
+        for w in withdraws:
+            w.cancel()
+
+    def test_too_many_withdraws_for_same_withdraw_object(self):
+        # The withdraw method should only be called once per withdraw object
+        w = self.get_a_new_withdraw(self.user) # ie: w = PaypalWithdraw( user )
+        w.withdraw( 101.00 )
+        self.assertRaises(WithdrawCalledTwiceException, lambda: w.withdraw( 95.00 ) )
+        w.cancel()
 
     def test_balance_the_same_after_too_many_withdraws(self):
-        pass # TODO
+        w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
+        w.withdraw( 101.00 )
+        balance_after_first_withdraw = self.get_balance()
+        self.assertRaises(WithdrawCalledTwiceException, lambda: w.withdraw( 95.00 ) )
+        self.assertEquals( balance_after_first_withdraw, self.get_balance() )
+        w.cancel()
 
     def test_cancel_sets_proper_status_when_complete(self):
-        pass # TODO
+        cancelled = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.CancelledAdminDefault.value)
+        w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
+        w.withdraw( 64.00 )
+        w.cancel()
+        self.assertEquals( w.withdraw_object.status, cancelled )
 
     def test_cancel_doesnt_modify_status_on_exception(self):
         pass # TODO
 
     def test_cancel_and_verify_balance_updates(self):
-        pass # TODO
+        amount = Decimal( 101.00 )
+        start_balance = self.get_balance()
+        w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
+        w.withdraw( amount )
+        balance_after_withdraw = self.get_balance()
+        self.assertEquals( (balance_after_withdraw + amount), start_balance )
+        w.cancel()
+        self.assertEquals( start_balance, self.get_balance() )
 
     def test_cancel_bulk_list_of_withdraws(self):
         pass # TODO
 
     def test_payout_sets_proper_status_when_complete(self):
-        pass # TODO
+        processed = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processed.value)
+        processing = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processing.value)
+        w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
+        w.withdraw( 80.00 )
+        w.payout()
+        self.assertEquals( w.withdraw_object.status, processing )
+        # Wait up to 3 minutes for PayPal to process the payment
+        for i in range(0, 6):
+            time.sleep(30)
+            if w.withdraw_object.status == processed:
+                break
+        # Check that the paypal processing has finished and the status in processed
+        self.assertEquals( w.withdraw_object.status, processing )
+
+
 
     def test_payout_doesnt_modify_status_on_exception(self):
-        pass # TODO
+        # TODO - may not be able to test this.  PayPal payout doesn't generate an exception unless status is not pending,
+        # which is what we are testing for
+        # w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
+        # w.withdraw( 195.00 )
+        # status_before = w.withdraw_object.status
+        # self.assertRaises( ???, lambda: w.payout() ) # we dont care the type of exception in this test
+        # self.assertEquals( status_before, w.withdraw_object.status )
 
     def test_payout_withdraw(self):
-        pass # TODO
+        processed = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processed.value)
+        processing = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processing.value)
+        w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
+        w.withdraw( 80.00 )
+        w.payout()
+        self.assertEquals( w.withdraw_object.status, processing )
 
     def test_payout_bulk_list_of_withdraws(self):
         pass # TODO
@@ -346,16 +417,38 @@ class AdminPayPalWithdrawTest( AbstractTest ):
         pass # TODO
 
     def test_withdraw_below_minimum_raises_exception(self):
-        pass # TODO
+        cashout = WithdrawMinMax()
+        amount = cashout.get_min()
+
+        w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
+        self.assertRaises( CashoutWithdrawOutOfRangeException, lambda: w.withdraw( Decimal(amount - 1)) )
 
     def test_withdraw_above_maximum_raises_exception(self):
-        pass # TODO
+        cashout = WithdrawMinMax()
+        amount = cashout.get_max()
+
+        w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
+        self.assertRaises( CashoutWithdrawOutOfRangeException, lambda: w.withdraw( Decimal(amount + 1)) )
 
     def test_withdraw_minimim_amount(self):
-        pass # TODO
+        processed = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processed.value)
+        cashout = WithdrawMinMax()
+        amount = cashout.get_min()
+
+        w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
+        w.withdraw(Decimal(amount))
+        w.payout()
+        self.assertEquals( w.withdraw_object.status, processed )
 
     def test_withdraw_maximum_amount(self):
-        pass # TODO
+        processed = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processed.value)
+        cashout = WithdrawMinMax()
+        amount = cashout.get_max()
+
+        w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
+        w.withdraw(Decimal(amount))
+        w.payout()
+        self.assertEquals( w.withdraw_object.status, processed )
 
     def test_amounts_with_decimals_dont_get_truncated_or_rounded(self):
         pass # TODO
