@@ -22,19 +22,12 @@
 
 #
 ######################################################################
-#     				MongoDB
-#
-# If we ever move to using a 64 bit version of mongo for the VM:
-# http://docs.mongodb.org/manual/tutorial/install-mongodb-on-ubuntu/
+#     				MongoDB (version >= 3.0.x)
 ######################################################################
-
-apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-echo "deb http://repo.mongodb.org/apt/ubuntu "$(lsb_release -sc)"/mongodb-org/3.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-3.0.list
-apt-get udpate
-### apt-get install -y mongodb-org   ### install latest.   the speficic version install is on the next line
-apt-get install -y mongodb-org=3.0.2 mongodb-org-server=3.0.2 mongodb-org-shell=3.0.2 mongodb-org-mongos=3.0.2 mongodb-org-tools=3.0.2
-
-#cp site-setup/mongodb.conf /etc/mongodb.conf       # make it use our conf file
+cd /vagrant
+./site-setup/install_mongo.sh
+cp site-setup/mongod.conf /etc/mongod.conf      # make it use our conf file
+service mongod stop                             # dont want the original running
 
 #
 #################################################################
@@ -133,6 +126,10 @@ cp /vagrant/site-setup/nginx-default /etc/nginx/sites-available/default
 service nginx restart
 
 #
+# manage.py migrate to install db tables and schema
+./site-setup/migrate.sh
+
+#
 # Add an environment variable to tell django to always use the local settings by default
 echo "export DJANGO_SETTINGS_MODULE=mysite.settings.local" >> /home/vagrant/.bashrc
 
@@ -141,5 +138,24 @@ echo "export DJANGO_SETTINGS_MODULE=mysite.settings.local" >> /home/vagrant/.bas
 echo "source venv/bin/activate" >> /home/vagrant/.bashrc
 
 #
-# migrate - ie: have django create all the db tables. (will install custom fixtures in migration files)
-./migrate.sh
+####################################################################
+# potentially useful commands:
+#
+# start celery in terminal:
+#   $> /home/vagrant/venv/bin/celery -A mysite worker -l info
+#
+# start mongo replica set (for dataden) in a terminal:
+#   $> sudo mongod --replSet "rs0"
+#       # you will need to login, and type the command 'rs.initialize()'
+#
+# start dataden.jar in a terminal:
+#   $> java -jar dataden.jar -k YOUR_LICENSE_KEY
+#
+####################################################################
+
+#
+####################################################################
+# ... and at this point you should be able to
+#       ssh into the vagrant box and do djangos runserver.
+#       Then you can hit the site from localhost:8888/admin/login/
+#####################################################################
