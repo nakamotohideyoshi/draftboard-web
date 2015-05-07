@@ -22,6 +22,10 @@ class OpLogObj( Hashable ):
         self.ns     = obj.get('ns')
         self.o      = obj.get('o')
 
+        #
+        # certain fields we want to remove because
+        # they arent relevant, or serializable and
+        # will break the hash mechanism
         for field_name in self.exclude_field_names:
             self.o.pop(field_name, None)
 
@@ -146,12 +150,9 @@ class Trigger(object):
         :return:
         """
         if cursor_type is None:
-            #cursor_type = CursorType.TAILABLE_AWAIT
             cursor_type = CursorType.TAILABLE_AWAIT
 
         cur = collection.find(query, cursor_type=cursor_type)
-        # t.stop(msg='after collection.find()')
-        # t.start()
         cur = cur.hint(hint)
         return cur
 
