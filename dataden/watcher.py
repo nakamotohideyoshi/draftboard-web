@@ -105,7 +105,7 @@ class Trigger(object):
             self.timer.stop(msg='run() loop process time [avg time per object %s]' % str(self.timer.get_sum()))
             print( '(%s of %s) total objects are new in <<< %s >>>' % \
                     (str(added), str(count), self.get_ns()) )
-
+            self.timer.start(clear_sum=True) # and then the next start() will correct
 
 
     def get_ns(self):
