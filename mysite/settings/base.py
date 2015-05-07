@@ -197,6 +197,9 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # testing this out
+    #'django_toolbar',
+
     'djcelery',
 
     # 3rd party installs
@@ -224,6 +227,9 @@ INSTALLED_APPS = (
     'fpp',
     'promocode',
     'promocode.bonuscash',
+
+    'keyprefix', # cache namespace
+    'dataden',   # DataDen/MongoDB triggers
     'test',
 )
 
