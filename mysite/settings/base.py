@@ -230,6 +230,9 @@ INSTALLED_APPS = (
 
     'keyprefix', # cache namespace
     'dataden',   # DataDen/MongoDB triggers
+
+    'sports',
+
     'test',
 )
 
