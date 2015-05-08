@@ -3,7 +3,12 @@
 
 from django.db import models
 
-# class Update(models.Model):
-#     hsh = models.CharField(max_length=64, null=False)
-#     o   = models.CharField(max_length=1024, null=False)
+class Game(models.Model):
+    created     = models.DateTimeField(auto_now_add=True, null=True)
+    updated     = models.DateTimeField(auto_now=True, null=False)
 
+class NbaGame( Game ):
+    pass
+
+class MlbGame( Game ):
+    pass
