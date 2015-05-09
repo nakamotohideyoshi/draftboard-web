@@ -35,14 +35,14 @@ class Ping(object):
 
 class Update(AbstractSignal):
     """
-    a signal that contains the object 'o' which has potentially new data to inspect
+    a signal that contains an object with stats that need to be saved
     """
 
     signal = Signal(providing_args=['sport','object','parent_api'])
 
     def __init__(self, o):
         super().__init__()
-        self.o = o # the json object which is new stuff from dataden!
+        self.o = o # a Hashable object created created from oplog entry
 
     def send(self):
         """

@@ -3,10 +3,7 @@
 
 from django.dispatch import receiver
 from dataden.signals import Ping, Update
-
-# @receiver(signal=Ping.signal)
-# def ping_receiver(sender, **kwargs):
-#     print(str(sender), 'ping')
+from sports.classes import ProviderParser, DataDenParser
 
 class DataDenReceiver(object):
     """
@@ -27,7 +24,7 @@ class DataDenReceiver(object):
 
     @receiver(signal=Update.signal)
     def update(sender, **kwargs):
-        print('update received')
-        for k,v in kwargs.items():
-            print( 'k', str(k), ':', str(v) )
-
+        print('update signal')
+        obj = kwargs['o']
+        parser = ProviderParser.get_for_provider('dataden')
+        parser.parse( obj ) # routes the object to its proper sport
