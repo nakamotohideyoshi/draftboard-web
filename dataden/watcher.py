@@ -123,7 +123,7 @@ class Trigger(object):
                     #
                     # send the 'o' object (a stat update) out as a
                     # signal because its been updated!!
-                    Update( hashable_object.get_o() ).send()
+                    Update( hashable_object ).send()
                     added += 1
 
                 count += 1
@@ -211,3 +211,15 @@ class NbaPlayerStats(Trigger):
 
     def __init__(self):
         super().__init__(db=self.DB_NBA, coll=self.COLL_PLAYER, parent_api=self.PARENT_API)
+
+class NbaPbpEvent(Trigger):
+
+    #
+    # may want to specify the parent api id as well
+
+    DB          = 'nba'
+    COLL        = 'event'
+    PARENT_API  = 'pbp'
+
+    def __init__(self):
+        super().__init__(db=self.DB, coll=self.COLL, parent_api=self.PARENT_API)

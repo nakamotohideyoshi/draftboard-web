@@ -10,6 +10,8 @@ from dataden.util.hsh import Hashable
 
 from random import Random
 
+from dataden.models import LiveStatsCacheConfig
+
 # >>> cache1 = caches['myalias']
 # >>> cache  = caches['default'] # ie: settings.CACHES = { 'default' : THIS }
 
@@ -43,17 +45,48 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
     This timeout modifier can be adjusted with the 'timeout_modifier' variable.
     """
 
-    def __init__(self, name='default', key_version=1, to=60, to_mod=25, clear=False):
+    class Config(object):
+
+        def __init__(self):
+            try:
+                self.conf = LiveStatsCacheConfig.objects.get( pk=1 )
+            except LiveStatsCacheConfig.DoesNotExist:
+                self.conf = LiveStatsCacheConfig()
+                self.conf.key_timeout = 1800
+                self.conf.timeout_mod = 25
+                self.conf.save()
+
+        def get_key_timeout(self):
+            return self.conf.key_timeout
+
+        def set_key_timeout(self, seconds):
+            self.conf.key_timeout = seconds
+            self.conf.save()
+
+        def get_timeout_mod(self):
+            return self.conf.timeout_mod
+
+        def set_timeout_mod(self, percent_as_int):
+            self.conf.timeout_mod = percent_as_int
+            self.conf.save()
+
+    def __init__(self, name='default', key_version=1, to=1800,
+                        to_mod=25, clear=False, use_admin_conf=True):
         """
         'to' is the timeout when setting an object in the cache
         'to_mod' is an integer value from 0 to anything that specifies the percentage
          to adjust the timeout. ex: to_mod=25 indicates we should randomize the
          timeout by 25%. negative values will be absolute valued.
 
+         this class will attempt to use the config in the database by default,
+         you can force you own values to be used if you use: use_admin_conf=False
+
         :param name:
         :param key_version:
         :param to:
         :param to_mod:
+        :param clear:
+        :param use_admin_conf:
         :return:
         """
         super().__init__()
@@ -63,8 +96,14 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
             self.c.clear() # REMOVE THE WORLD from the cache. everything. is. gone.
 
         self.key_version    = key_version
-        self.to             = abs(to)       # seconds until expires from cache
-        self.to_mod         = abs(to_mod)   # +/- percentage to randomly adjust timeout
+
+        if use_admin_conf:
+            self.config = self.Config()
+            self.to             = self.config.get_key_timeout()
+            self.to_mod         = self.config.get_timeout_mod()
+        else:
+            self.to             = abs(to)       # seconds until expires from cache
+            self.to_mod         = abs(to_mod)   # +/- percentage to randomly adjust timeout
 
         self.r = Random()
 
@@ -100,7 +139,6 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
         rand = self.r.randint( -1 * self.to_mod, self.to_mod )
         modifier = int( float(self.to) * (float(rand) / 100.0) )
         return self.to + modifier
-
 
 
 

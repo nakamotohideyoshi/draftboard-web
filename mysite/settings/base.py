@@ -232,6 +232,8 @@ INSTALLED_APPS = (
     'dataden',   # DataDen/MongoDB triggers
 
     'sports',
+    'sports.mlb',
+    'sports.nba',
 
     'test',
 )
