@@ -59,3 +59,9 @@ CACHES = {
 
 # Asset locations
 STATIC_URL = '/static/'
+
+#
+# we will need a better way of connecting to mongo for production, but for dev:
+from pymongo import MongoClient
+def get_mongo_client():
+    return MongoClient() # defaults to localhost:27017  or whatever the standard port is

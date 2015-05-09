@@ -2,7 +2,7 @@
 # sports/signals.py
 
 from django.dispatch import receiver
-from dataden.signals import Ping
+from dataden.signals import Ping, Update
 
 # @receiver(signal=Ping.signal)
 # def ping_receiver(sender, **kwargs):
@@ -23,3 +23,11 @@ class DataDenReceiver(object):
         being processed by mongo for any namespaces we have configured.
         """
         print(str(sender), 'ping')
+        # TODO
+
+    @receiver(signal=Update.signal)
+    def update(sender, **kwargs):
+        print('update received')
+        for k,v in kwargs.items():
+            print( 'k', str(k), ':', str(v) )
+

@@ -5,6 +5,27 @@
 
 from django.dispatch import Signal
 
+class SignalNotSetupProperlyException(Exception):
+    def __init__(self, class_name, variable_name):
+       super().__init__('You must set "signal"')
+
+class AbstractSignal(object):
+    """
+    all dataden.signals.py should inherit this object.
+    """
+
+    signal = None # child will have to set this
+
+    def __init__(self):
+        self.__validate()
+
+    def send(self, **kwargs):
+        self.signal.send(sender=self.__class__, **kwargs)
+
+    def __validate(self):
+        if self.signal is None:
+            raise SignalNotSetupProperlyException(self.__class__.__name__, 'signal')
+
 class Ping(object):
 
     signal = Signal(providing_args=[])
@@ -12,13 +33,33 @@ class Ping(object):
     def send(self):
         self.signal.send_robust(sender=self.__class__)
 
-class Update(object):
-    pass
+class Update(AbstractSignal):
+    """
+    a signal that contains the object 'o' which has potentially new data to inspect
+    """
+
+    signal = Signal(providing_args=['sport','object','parent_api'])
+
+    def __init__(self, o):
+        super().__init__()
+        self.o = o # the json object which is new stuff from dataden!
+
+    def send(self):
+        """
+        call parent send() with the object which has had a change to it
+        """
+        super().send( o=self.o )
 
 class Push(object):
+    """
+    im playing around with the idea of sending data
+    """
     pass
 
 class Pull(object):
+    """
+    ... but also the idea of telling it about the data it should pull
+    """
     pass
 
 
