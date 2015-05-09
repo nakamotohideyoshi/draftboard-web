@@ -1,6 +1,8 @@
 #
 # dataden/watcher.py
 
+from mysite.settings import local
+
 from dataden.util.hsh import Hashable
 from dataden.util.simpletimer import SimpleTimer
 from dataden.cache.caches import LiveStatsCache
@@ -8,10 +10,21 @@ from dataden.cache.caches import LiveStatsCache
 from pymongo import MongoClient
 from pymongo.cursor import _QUERY_OPTIONS, CursorType
 import re, time
+from dataden.signals import Update
 
 class UnimplementedTriggerCallbackException(Exception):
     def __init__(self, class_name, variable_name):
         super().__init__( "The trigger() callback is unimplemented.")
+
+class ParentApis(object):
+
+    def __init__(self, mongo_client=None):
+        self.client = mongo_client
+        if not self.client:
+            self.client = local.get_mongo_client() # cheese
+
+    def all(self):
+        pass # TODO
 
 class OpLogObj( Hashable ):
 
@@ -31,8 +44,14 @@ class OpLogObj( Hashable ):
 
         super().__init__( self.o )
 
+    def get_o(self):
+        """
+        retrieve the dataden object - extracting it from its oplog wrapper
+        """
+        return self.o
+
     def get_id(self):
-        self.o.get('_id')
+        return self.o.get('_id')  ######### IF EVERYTHING BREAK ITS BEAUSE THIS WAS LACKING THE 'return'
 
     def get_ts(self):
         return self.ts
@@ -45,7 +64,9 @@ class Trigger(object):
     DB_LOCAL    = 'local'
     OPLOG       = 'oplog.rs'
 
-    def __init__(self, db, coll, cache='default', clear=False, init=False):
+    PARENT_API__ID = 'parent_api__id'
+
+    def __init__(self, db, coll, parent_api=None, cache='default', clear=False, init=False):
         """
         clear=True  does a world wipe of the cache.
         all=True    parses the oplog from the begining, instead of from "now"
@@ -62,6 +83,7 @@ class Trigger(object):
         self.last_ts      = None
         self.db_name      = db              # ie: 'nba', 'nfl'
         self.coll_name    = coll            # ie: 'player', 'standings'
+        self.parent_api   = parent_api      # dataden's name for the feed to look in
 
         self.timer      = SimpleTimer()
 
@@ -87,7 +109,7 @@ class Trigger(object):
         while True:
             self.timer.start()
             cur = self.get_cursor( self.oplog, self.query() )
-            self.timer.stop(msg='get_cursor()')
+            #self.timer.stop(msg='get_cursor()')
 
             count = 0
             added = 0
@@ -98,15 +120,20 @@ class Trigger(object):
                 self.last_ts = hashable_object.get_ts()
 
                 if self.live_stats_cache.update( hashable_object ):
+                    #
+                    # send the 'o' object (a stat update) out as a
+                    # signal because its been updated!!
+                    Update( hashable_object.get_o() ).send()
                     added += 1
+
                 count += 1
                 self.timer.stop(print_now=False, sum=True)
 
-            self.timer.stop(msg='run() loop process time [avg time per object %s]' % str(self.timer.get_sum()))
-            print( '(%s of %s) total objects are new in <<< %s >>>' % \
-                    (str(added), str(count), self.get_ns()) )
+            msg = '(%s of %s) total objects are new in <<< %s >>>' % \
+                                (str(added), str(count), self.get_ns())
+            self.timer.stop(msg='%s | loop time [avg time per object %s]' % \
+                                            (msg, str(self.timer.get_sum())) )
             self.timer.start(clear_sum=True) # and then the next start() will correct
-
 
     def get_ns(self):
         return '%s.%s' % (self.db_name, self.coll_name)
@@ -128,8 +155,14 @@ class Trigger(object):
     def query(self):
         q = {
             'ts' : {'$gt' : self.last_ts},
-            'ns' : '%s.%s' % (self.db_name, self.coll_name)
+            'ns' : '%s.%s' % (self.db_name, self.coll_name),
+
+            # specific parent_api__id - will be removed if parent_api__id is None
+            'o.%s' % self.PARENT_API__ID : self.parent_api
         }
+
+        if not self.parent_api:
+            q.pop('o.%s' % self.PARENT_API__ID, None)
 
         if self.init == True:  # explicity showing if its == True, because this will be rare
             self.init = False  # toggle it off after the first run though !
@@ -157,7 +190,8 @@ class Trigger(object):
         return cur
 
     def display(self):
-        print('trigger running on <<< %s.%s >>' % (self.db_name, self.coll_name) )
+        print('%s [ trigger running on <<< %s.%s %s >>' % (self.__class__.__name__,
+                                    self.db_name, self.coll_name, 'parent_api: %s' % self.parent_api) )
 
     def trigger_debug(self, object):
         print( object )
@@ -166,45 +200,14 @@ class Trigger(object):
         raise UnimplementedTriggerCallbackException(
             self.__class__.__name__ + 'must implement trigger() method')
 
-class NbaPlayer(Trigger):
+class NbaPlayerStats(Trigger):
 
     #
     # may want to specify the parent api id as well
 
     DB_NBA      = 'nba'
     COLL_PLAYER = 'player'
+    PARENT_API  = 'stats'
 
     def __init__(self):
-        super().__init__(self.DB_NBA, self.COLL_PLAYER)
-
-
-    #
-    # ORIGINAL
-    # last_id = -1
-    # cur = db.capped_collection.find().sort([('$natural', -1)])
-    # for msg in cur:
-    #     last_id = msg['ts']
-    #     break
-    #
-    # while True:
-    #     cur = get_cursor(
-    #         db.capped_collection,
-    #         re.compile('^foo'),
-    #         await_data=True)
-    #     for msg in cur:
-    #         last_id = msg['ts']
-    #         do_something(msg)
-    #     time.sleep(0.1)
-    #
-    # def get_cursor(collection, topic_re, last_id=-1, await_data=True):
-    #     options = { 'tailable': True }
-    #     spec = {
-    #         'ts': { '$gt': last_id }, # only new messages
-    #         'k': topic_re }
-    #     if await_data:
-    #         options['await_data'] = True
-    #     cur = collection.find(spec, **options)
-    #     cur = cur.hint([('$natural', 1)]) # ensure we don't use any indexes
-    #     if await:
-    #         cur = cur.add_option(_QUERY_OPTIONS['oplog_replay'])
-    #     return cur
+        super().__init__(db=self.DB_NBA, coll=self.COLL_PLAYER, parent_api=self.PARENT_API)
