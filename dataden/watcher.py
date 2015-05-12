@@ -5,7 +5,7 @@ from mysite.settings import local
 
 from dataden.util.hsh import Hashable
 from dataden.util.simpletimer import SimpleTimer
-from dataden.cache.caches import LiveStatsCache
+from dataden.cache.caches import LiveStatsCache, TriggerCache
 
 from pymongo import MongoClient
 from pymongo.cursor import _QUERY_OPTIONS, CursorType
@@ -44,16 +44,34 @@ class OpLogObj( Hashable ):
 
         super().__init__( self.o )
 
+    def get_ns(self):
+        """
+        return the namespace. its a string like this: 'nba.player', ie: 'DB.COLLECTION'
+        """
+        return self.ns
+
     def get_o(self):
         """
         retrieve the dataden object - extracting it from its oplog wrapper
         """
         return self.o
 
+    def get_parent_api(self):
+        """
+        try to get the 'parent_api__id' value from the 'o'
+        """
+        return self.o.get('parent_api__id', None)
+
     def get_id(self):
-        return self.o.get('_id')  ######### IF EVERYTHING BREAK ITS BEAUSE THIS WAS LACKING THE 'return'
+        """
+        get the dataden mongo _id base64 encoded hash of the keys
+        """
+        return self.o.get('_id', None)  ######### IF EVERYTHING BREAK ITS BEAUSE THIS WAS LACKING THE 'return'
 
     def get_ts(self):
+        """
+        get the 'ts' property of the oplog object
+        """
         return self.ts
 
 class Trigger(object):
@@ -66,21 +84,32 @@ class Trigger(object):
 
     PARENT_API__ID = 'parent_api__id'
 
-    def __init__(self, db, coll, parent_api=None, cache='default', clear=False, init=False):
+    def __init__(self, cache='default', clear=False, init=False,
+                                db=None, coll=None, parent_api=None ):
         """
+        by default, uses all the enabled Trigger(s), see /admin/dataden/trigger/
+
         clear=True  does a world wipe of the cache.
         all=True    parses the oplog from the begining, instead of from "now"
 
+        if 'db', 'coll', and 'parent_api' all exist, just run
+        the Trigger with a single trigger enabled, specified by those params
+
         :param db:
         :param coll:
+        :param parent_api:
         :param cache:
         :param clear:
-        :param all:
+        :param init:
+        :param triggers:
         :return:
         """
         self.init         = init            # default: False, if True, parse entire log
         self.client       = MongoClient()   # defaults to localhost:27017
         self.last_ts      = None
+
+        #
+        # usually these are all set to None, and we use the admin configured triggers
         self.db_name      = db              # ie: 'nba', 'nfl'
         self.coll_name    = coll            # ie: 'player', 'standings'
         self.parent_api   = parent_api      # dataden's name for the feed to look in
@@ -90,7 +119,21 @@ class Trigger(object):
         self.db_local   = self.client.get_database( self.DB_LOCAL )
         self.oplog      = self.db_local.get_collection( self.OPLOG )
 
-        self.live_stats_cache = LiveStatsCache( cache, clear=clear )
+        self.live_stats_cache   = LiveStatsCache( cache, clear=clear )
+        self.trigger_cache      = TriggerCache()
+
+    def single_trigger_override(self):
+        """
+        if this returns True, it will block the query() from
+        building a query for all the enabled Triggers,
+        and thus making Trigger capable of applying 1-off triggers
+        even if there are others running. Should really only
+        be used for dev/testing purposes because too many
+        single Triggers will put a load on cpu/mongodb
+
+        :return:
+        """
+        return self.db_name and self.coll_name and self.parent_api
 
     def run(self, last_ts=None):
         """
@@ -99,7 +142,7 @@ class Trigger(object):
 
         :return:
         """
-        self.display()
+        #self.display()
 
         if last_ts:
             self.last_ts = last_ts # user wants to start from at least this specific ts
@@ -108,14 +151,14 @@ class Trigger(object):
 
         while True:
             self.timer.start()
+            self.reload_triggers() # do this pre query() being called
             cur = self.get_cursor( self.oplog, self.query() )
-            #self.timer.stop(msg='get_cursor()')
 
             count = 0
             added = 0
+
             for obj in cur:
                 self.timer.start()
-
                 hashable_object = OpLogObj(obj)
                 self.last_ts = hashable_object.get_ts()
 
@@ -129,11 +172,13 @@ class Trigger(object):
                 count += 1
                 self.timer.stop(print_now=False, sum=True)
 
-            msg = '(%s of %s) total objects are new in <<< %s >>>' % \
-                                (str(added), str(count), self.get_ns())
+            msg = '(%s of %s) total objects are new' % (str(added), str(count))
             self.timer.stop(msg='%s | loop time [avg time per object %s]' % \
                                             (msg, str(self.timer.get_sum())) )
             self.timer.start(clear_sum=True) # and then the next start() will correct
+
+    def reload_triggers(self):
+        self.triggers = self.trigger_cache.get_triggers()
 
     def get_ns(self):
         return '%s.%s' % (self.db_name, self.coll_name)
@@ -153,16 +198,56 @@ class Trigger(object):
             return self.last_ts
 
     def query(self):
-        q = {
-            'ts' : {'$gt' : self.last_ts},
-            'ns' : '%s.%s' % (self.db_name, self.coll_name),
+        """
+        when we get many triggers, the need arises for us to run the results
+        thru a filter of our originally requested filters, because we are
+        trying to get it done in a single query, and there will be permutations
+        of namespace-parent_api that we dont actually want!!!
 
-            # specific parent_api__id - will be removed if parent_api__id is None
-            'o.%s' % self.PARENT_API__ID : self.parent_api
-        }
+        we do query for efficiency, because itll actually
+        be a lot faster to get more than we need in a single query + filter out some things,
+        than it would be to get exactly what we need in multiple queries.
 
-        if not self.parent_api:
-            q.pop('o.%s' % self.PARENT_API__ID, None)
+        :return:
+        """
+        if self.single_trigger_override():
+            #
+            # single trigger specified
+            single_trig = '<<< %s.%s %s >>>' % (self.db_name, self.coll_name, self.parent_api)
+            print('single_trigger_override() True - triggering on %s' % single_trig)
+            q = {
+                'ts' : {'$gt' : self.last_ts},
+                'ns' : '%s.%s' % (self.db_name, self.coll_name),
+                'o.%s' % self.PARENT_API__ID : self.parent_api,
+            }
+        else:
+            #
+            # "normal" operation - uses the enabled triggers to build the query!
+            # coll.find(
+            #   {
+            #       '$or' : [
+            #           {'$and' : [ {'ns':'mlb.game'}, {'o.parent_api__id':'pbp'} ] },
+            #           {'$and' : [ {'ns':'mlb.game'}, {'o.parent_api__id':'summary'} ] }
+            #       ]
+            #   }
+            # ).count()
+            q_triggers = []
+            for trig in self.triggers:
+                where_args = [
+                    {'ns':'%s.%s'%(trig.db,trig.collection)},
+                    {'o.%s'%self.PARENT_API__ID:trig.parent_api}
+                ]
+                q_triggers.append(
+                    { '$and' : where_args }
+                )
+
+            q = {
+                'ts' : {'$gt' : self.last_ts},
+                # 'ns' : { '$in' : ns_list },
+                # 'o.%s' % self.PARENT_API__ID : { '$in': api_list },
+                '$or' : q_triggers,
+
+            }
 
         if self.init == True:  # explicity showing if its == True, because this will be rare
             self.init = False  # toggle it off after the first run though !
@@ -184,14 +269,13 @@ class Trigger(object):
         """
         if cursor_type is None:
             cursor_type = CursorType.TAILABLE_AWAIT
-
         cur = collection.find(query, cursor_type=cursor_type)
         cur = cur.hint(hint)
         return cur
 
-    def display(self):
-        print('%s [ trigger running on <<< %s.%s %s >>' % (self.__class__.__name__,
-                                    self.db_name, self.coll_name, 'parent_api: %s' % self.parent_api) )
+    # def display(self):
+    #     print('%s [ trigger running on <<< %s.%s %s >>' % (self.__class__.__name__,
+    #                                 self.db_name, self.coll_name, 'parent_api: %s' % self.parent_api) )
 
     def trigger_debug(self, object):
         print( object )
