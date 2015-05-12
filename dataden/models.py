@@ -24,6 +24,13 @@ class Trigger(models.Model):
     def ns(self):
         return '%s.%s' % (self.db, self.collection)
 
+    def __str__(self):
+        if self.enabled:
+            enabled_str = 'ENABLED'
+        else:
+            enabled_str = 'DISABLED'
+        return '[%s] %s | %s' % (enabled_str, self.ns, self.parent_api)
+
 class LiveStatsCacheConfig(models.Model):
     """
     used by

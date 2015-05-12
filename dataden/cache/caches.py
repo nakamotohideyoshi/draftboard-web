@@ -10,14 +10,14 @@ from dataden.util.hsh import Hashable
 
 from random import Random
 
-from dataden.models import LiveStatsCacheConfig
+from dataden.models import LiveStatsCacheConfig, Trigger
 
 # >>> cache1 = caches['myalias']
 # >>> cache  = caches['default'] # ie: settings.CACHES = { 'default' : THIS }
 
 #
 # cache methods
-# set( key, duration )                  # alwasy adds
+# set( key, duration )                  # always adds
 # add( key, duration )                  # only adds if doesnt exist
 # get( key, default )                   # get, if not exists, return default
 # set_many({'a': 1, 'b': 2, 'c': 3})    # more efficient for multiple key:value pairs
@@ -139,6 +139,73 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
         rand = self.r.randint( -1 * self.to_mod, self.to_mod )
         modifier = int( float(self.to) * (float(rand) / 100.0) )
         return self.to + modifier
+
+class TriggerCache( UsesCacheKeyPrefix ):
+    """
+    loads enabled triggers from redis
+
+    Store all of the site DataDen Triggers in cache, because without
+    this cache there could be a polling effect on the actual db and we dont want that.
+    """
+
+    KEY = "enabled_triggers"
+    TIMEOUT = 100 # seconds
+
+    def __init__(self, name='default', clear=False, key_version=1):
+        """
+        get the cache from django.core.caches with the 'name', by default its 'default'
+
+        if clear=True, wipes out any existing cached triggers
+
+        :param name:
+        :param clear:
+        :param key_version:
+        :return:
+        """
+        super().__init__()
+        self.c = caches[ name ]     # 'default' is the settings.CACHES['default'] !
+        if clear == True:
+            self.clear()
+        self.key_version    = key_version
+        self.triggers       = self.get_triggers()
+
+        print('TriggerCache...')
+        for t in self.triggers:
+            print( '  ', t )
+
+    def __key(self):
+        """
+        helper/wrapper function for getting the key
+        :return:
+        """
+        return self.get_key(self.KEY)
+
+    def clear(self):
+        self.c.delete( self.__key() ) # removes the item at the key
+        self.triggers = []
+
+    def add_triggers(self, triggers):
+        was_added = self.c.add( self.__key(), self.triggers,
+                                self.TIMEOUT, version=self.key_version )
+        return was_added
+
+    def get_triggers(self):
+        """
+        tries to get the enabled triggers from the cache. If it cant find them there
+        it defaults to getting them from the regular database.
+
+        :return:
+        """
+        self.triggers = self.c.get( self.__key(), None )
+        if not self.triggers:
+            #
+            # retrieve them from the regular database
+            self.triggers = Trigger.objects.filter( enabled=True )
+            self.add_triggers( triggers=self.triggers )
+
+        return self.triggers
+
+
 
 
 

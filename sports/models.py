@@ -11,18 +11,18 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 # abstract models for each sport to inherit as use as they wish
 #########################################################################
 
-# class Sport( models.Model ):
-#     created     = models.DateTimeField(auto_now_add=True, null=False)
-#     updated     = models.DateTimeField(auto_now=True)
-#
-#     #
-#     # the generic foreign key to
-#     content_type    = models.ForeignKey(ContentType)
-#     object_id       = models.PositiveIntegerField()
-#     content_object  = GenericForeignKey()   # 'content_object', 'object_id'  are only necessary if custom
-#
-#     class Meta:
-#         abstract = True
+class Sport( models.Model ):
+    created     = models.DateTimeField(auto_now_add=True, null=False)
+    updated     = models.DateTimeField(auto_now=True)
+
+    #
+    # the generic foreign key to
+    content_type    = models.ForeignKey(ContentType)
+    object_id       = models.PositiveIntegerField()
+    content_object  = GenericForeignKey()   # 'content_object', 'object_id'  are only necessary if custom
+
+    class Meta:
+        abstract = True
 
 class Season( models.Model ):
     """
@@ -45,26 +45,48 @@ class Game( models.Model ):
     class Meta:
         abstract = True
 
-# class GameBoxscore(models.Model):
-#     pass
-#
-# class Player(models.Model):
-#     pass
-#
-# class Team(models.Model):
-#     pass
-#
-# class PlayerStats(models.Model):
-#     pass
-#
-# class PlayerStatsSeason(models.Model):
-#     pass
-#
-# class Injury(models.Model):
-#     pass
-#
-# class RosterPlayer(models.Model):
-#     pass
-#
-# class Venue(models.Model):
-#     pass
+class GameBoxscore(models.Model):
+    class Meta:
+        abstract = True
+
+class Player(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    srid = models.CharField(max_length=64, unique=True, null=False,
+                                help_text='the sportsradar global id')
+    first_name = models.CharField(max_length=32)
+    last_name = models.CharField(max_length=32)
+
+    class Meta:
+        abstract = True
+
+class Team(models.Model):
+    class Meta:
+        abstract = True
+
+class PlayerStats(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+
+    srid_game   = models.CharField(max_length=64, null=False,
+                            help_text='the sportsradar global id for the game')
+    srid_player = models.CharField(max_length=64, null=False,
+                            help_text='the sportsradar global id for the player')
+
+    class Meta:
+        abstract = True
+        unique_together = ('srid_game', 'srid_player')
+
+class PlayerStatsSeason(models.Model):
+    class Meta:
+        abstract = True
+
+class Injury(models.Model):
+    class Meta:
+        abstract = True
+
+class RosterPlayer(models.Model):
+    class Meta:
+        abstract = True
+
+class Venue(models.Model):
+    class Meta:
+        abstract = True
