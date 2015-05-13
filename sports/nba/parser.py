@@ -129,12 +129,14 @@ class TeamHierachy(AbstractParseable):
 
         o = obj.get_o() # strip off the oplog wrapper
 
-        srid            = o.get('id')
-        srid_league     = o.get('league__id', None)
-        srid_conference = o.get('conference__id', None)
-        srid_division   = o.get('division__id', None)
-        name            = o.get('name', None)
-        alias           = o.get('alias', None)
+        srid            = o.get('id',               None)
+        srid_league     = o.get('league__id',       None)
+        srid_conference = o.get('conference__id',   None)
+        srid_division   = o.get('division__id',     None)
+        market          = o.get('market',           None)
+        name            = o.get('name',             None)
+        alias           = o.get('alias',            None)
+        srid_venue      = o.get('venue',            '')
 
         try:
             t = sports.nba.models.Team.objects.get( srid=srid )
@@ -146,8 +148,10 @@ class TeamHierachy(AbstractParseable):
         t.srid_league       = srid_league
         t.srid_conference   = srid_conference
         t.srid_division     = srid_division
+        t.market            = market
         t.name              = name
         t.alias             = alias
+        t.srid_venue        = srid_venue
 
         t.save()
 
@@ -265,10 +269,8 @@ class PlayerStats(AbstractParseable):
             ps = sports.nba.models.PlayerStats()
             ps.srid_game    = srid_game
             ps.srid_player  = srid_player
-            ps.save()
-
-        ps.player  = p
-        ps.game    = g
+            ps.player  = p
+            ps.game    = g
 
         #content_type    = models.ForeignKey(ContentType, related_name='nba_playerstats')
 
