@@ -1,4 +1,7 @@
 
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericRelation
+from django.db import models
 import sports.models
 
 class Season( sports.models.Season ):
@@ -22,6 +25,7 @@ class Team( sports.models.Team ):
         abstract = False
 
 class PlayerStats( sports.models.PlayerStats ):
+
     class Meta:
         abstract = False
 
