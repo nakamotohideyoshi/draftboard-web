@@ -16,6 +16,8 @@ class GameSchedule(AbstractParseable):
 class GameStats(AbstractParseable):
     def __init__(self):
         super().__init__()
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
 
 class PlayerStats(AbstractParseable):
     def __init__(self):
@@ -57,6 +59,9 @@ class DataDenMlb(AbstractDataDenParser):
         if self.target == ('mlb.game','schedule_reg'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pre'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pst'): GameSchedule().parse( obj )
+        #
+        elif self.target == ('mlb.game','summary'): GameStats().parse( obj )
+
         #
         # player
         elif self.target == ('mlb.player','summary'): PlayerStats().parse( obj )

@@ -149,7 +149,7 @@ class TriggerCache( UsesCacheKeyPrefix ):
     """
 
     KEY = "enabled_triggers"
-    TIMEOUT = 100 # seconds
+    TIMEOUT = 1 # 100 # seconds - turned down to 1 second for debugging
 
     def __init__(self, name='default', clear=False, key_version=1):
         """

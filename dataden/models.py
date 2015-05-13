@@ -31,6 +31,9 @@ class Trigger(models.Model):
             enabled_str = 'DISABLED'
         return '[%s] %s | %s' % (enabled_str, self.ns, self.parent_api)
 
+    class Meta:
+        unique_together = ('db','collection','parent_api')
+
 class LiveStatsCacheConfig(models.Model):
     """
     used by
