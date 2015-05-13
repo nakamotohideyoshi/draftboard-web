@@ -25,7 +25,8 @@ class AbstractDataDenParser(object):
         return self.__class__.__name__
 
     def unimplemented(self, ns, parent_api):
-        print('UNIMPLEMENTED <<< %s | %s >>>' % (ns,parent_api))
+        print('')
+        print('UNIMPLEMENTED <<< %s | %s >>> ... generally this means DataDen<Sport> .parse() just needs an addition to the switch statement.' % (ns,parent_api))
 
     def parse(self, obj):
         self.ns         = obj.get_ns()
