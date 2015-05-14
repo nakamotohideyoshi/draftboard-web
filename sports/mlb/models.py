@@ -129,6 +129,7 @@ class PlayerStatsPitcher(PlayerStats):
     loss    = models.BooleanField(default=False, null=False)
     qstart  = models.BooleanField(default=False, null=False)
     er      = models.IntegerField(default=0, null=False) # earned runs allowed
+    r_total = models.IntegerField(default=0, null=False) # total runs allowed
     h       = models.IntegerField(default=0, null=False) # hits against
     bb      = models.IntegerField(default=0, null=False) # walks against
     hbp     = models.IntegerField(default=0, null=False) # hit batsmen
