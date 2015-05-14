@@ -274,6 +274,7 @@ class PlayerStats(AbstractParseable):
 
         #content_type    = models.ForeignKey(ContentType, related_name='nba_playerstats')
 
+        o = o.get('statistics__list', {})
         #   { 'defensive_rebounds': 1.0,
         ps.defensive_rebounds = o.get('defensive_rebounds', 0.0)
         #         'two_points_pct': 0.6,

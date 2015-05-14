@@ -18,4 +18,5 @@ class PlayerAdmin(admin.ModelAdmin):
 
 @admin.register(sports.nba.models.PlayerStats)
 class PlayerStatsAdmin(admin.ModelAdmin):
-    list_display = ['game','player','points']
+    list_display = ['game','player','points','three_points_made','rebounds','assists','steals','blocks','turnovers']
+

@@ -484,10 +484,11 @@ class PlayerStats(AbstractParseable):
             ps.loss    = bool( games.get('loss', 0) )
             ps.qstart  = bool( games.get('qstart', 0) )
             ps.ktotal  = outs.get('ktotal', 0)
-            ps.er      = runs.get('earned', 0) # earned runs allowed
-            ps.h       = onbase.get('h', 0) # hits against
-            ps.bb      = onbase.get('bb', 0) # walks against
-            ps.hbp     = onbase.get('hbp', 0) # hit batsmen
+            ps.er      = runs.get('earned', 0)  # earned runs allowed
+            ps.r_total = runs.get('total', 0)   # total runs allowed (earned and unearned)
+            ps.h       = onbase.get('h', 0)     # hits against
+            ps.bb      = onbase.get('bb', 0)    # walks against
+            ps.hbp     = onbase.get('hbp', 0)   # hit batsmen
             ps.cg      = bool( games.get('complete', 0) ) # complete game
             ps.cgso    = bool( games.get('shutout', 0) ) and ps.cg # complete game shut out
             ps.nono    = bool( ps.h ) and ps.cg # no hitter if hits == 0, and complete game

@@ -47,6 +47,9 @@ class Game( models.Model ):
     start   = models.DateTimeField(null=False)
     status  = models.CharField(max_length=32, null=False)
 
+    def __str__(self):
+        return '%s | %s | %s' % (self.status, self.start, self.srid)
+
     class Meta:
         abstract = True
 
@@ -65,6 +68,9 @@ class Player(models.Model):
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
 
+    def __str__(self):
+        return '%s %s' % (self.first_name, self.last_name)
+
     class Meta:
         abstract = True
 
@@ -80,6 +86,9 @@ class Team(models.Model):
                                    help_text='the team name, without the market/city. ie: "Lakers", or "Eagles"')
     alias       = models.CharField(max_length=64, null=False, default='',
                                    help_text='the abbreviation for the team, ie: for Boston Celtic alias == "BOS"')
+
+    def __str__(self):
+        return '%s | %s' % (self.name, self.alias)
 
     class Meta:
         abstract = True
