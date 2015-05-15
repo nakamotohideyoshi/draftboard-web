@@ -10,6 +10,315 @@ class AbstractParseable(object):
     def parse(self, obj, target=None):
         print( self.name, str(obj)[:100], 'target='+str(target) )
 
+class HomeAwaySummary(AbstractParseable):
+    def __init__(self):
+        super().__init__()
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        # db.home.findOne({'parent_api__id':'summary', 'game__id':'31781430-ed00-49c7-827f-e03a9a1e80d4'})
+        # {
+        #     "_id" : "cGFyZW50X2FwaV9faWRzdW1tYXJ5Z2FtZV9faWQzMTc4MTQzMC1lZDAwLTQ5YzctODI3Zi1lMDNhOWExZTgwZDRpZGM4NzRhMDY1LWMxMTUtNGU3ZC1iMGYwLTIzNTU4NGZiMGU2Zg==",
+        #     "abbr" : "CIN",
+        #     "errors" : 0,
+        #     "hits" : 0,
+        #     "id" : "c874a065-c115-4e7d-b0f0-235584fb0e6f",
+        #     "market" : "Cincinnati",
+        #     "name" : "Reds",
+        #     "runs" : 0,
+        #     "parent_api__id" : "summary",
+        #     "dd_updated__id" : NumberLong("1431648742069"),
+        #     "game__id" : "31781430-ed00-49c7-827f-e03a9a1e80d4",
+        #     "probable_pitcher" : "1a574c70-eb33-4202-ab97-548645a4d15e",
+        #     "starting_pitcher" : "1a574c70-eb33-4202-ab97-548645a4d15e",
+        #     "roster__list" : [
+        #         { "player" : "07af23d5-a3b9-4526-9e89-8c7f9f5facb4" },
+        #         { "player" : "090ff436-c1e8-4927-b457-355cf4f9993b" }, ... more players
+        #
+        #     "lineup__list" : [
+        #         { "player" : "07af23d5-a3b9-4526-9e89-8c7f9f5facb4" },
+        #         { "player" : "090ff436-c1e8-4927-b457-355cf4f9993b" }, ... more players
+        #     ],
+        #     "scoring__list" : [
+        #         {
+        #             "inning" : {
+        #                 "number" : 1,
+        #                 "runs" : 0,
+        #                 "sequence" : 1
+        #             }
+        #         },
+        #         {
+        #             "inning" : {
+        #                 "number" : 2,
+        #                 "runs" : 0,
+        #                 "sequence" : 2
+        #             }
+        #         },
+        #         {
+        #             "inning" : {
+        #                 "number" : 3,
+        #                 "runs" : 0,
+        #                 "sequence" : 3
+        #             }
+        #         },
+        #         {
+        #             "inning" : {
+        #                 "number" : 4,
+        #                 "runs" : "X",
+        #                 "sequence" : 4
+        #             }
+        #         }
+        #     ],
+        #     "statistics__list" : {
+        #         "hitting__list" : {
+        #             "ab" : 8,
+        #             "abhr" : 0,
+        #             "abk" : 4,
+        #             "ap" : 12,
+        #             "avg" : 0,
+        #             "babip" : 0,
+        #             "bbk" : 2,
+        #             "bbpa" : 0.333,
+        #             "bip" : 6,
+        #             "gofo" : 0.5,
+        #             "iso" : 0,
+        #             "lob" : 4,
+        #             "obp" : 0.333,
+        #             "ops" : 0.333,
+        #             "pitch_count" : 59,
+        #             "rbi" : 0,
+        #             "seca" : 0.625,
+        #             "slg" : 0,
+        #             "xbh" : 0,
+        #             "onbase__list" : {
+        #                 "bb" : 4,
+        #                 "d" : 0,
+        #                 "fc" : 0,
+        #                 "h" : 0,
+        #                 "hbp" : 0,
+        #                 "hr" : 0,
+        #                 "ibb" : 0,
+        #                 "roe" : 0,
+        #                 "s" : 0,
+        #                 "t" : 0,
+        #                 "tb" : 0
+        #             },
+        #             "runs__list" : {
+        #                 "earned" : 0,
+        #                 "total" : 0,
+        #                 "unearned" : 0
+        #             },
+        #             "outcome__list" : {
+        #                 "ball" : 29,
+        #                 "dirtball" : 2,
+        #                 "foul" : 3,
+        #                 "iball" : 0,
+        #                 "klook" : 11,
+        #                 "kswing" : 8,
+        #                 "ktotal" : 19
+        #             },
+        #             "outs__list" : {
+        #                 "fidp" : 0,
+        #                 "fo" : 1,
+        #                 "gidp" : 0,
+        #                 "go" : 2,
+        #                 "klook" : 1,
+        #                 "kswing" : 1,
+        #                 "ktotal" : 2,
+        #                 "lidp" : 0,
+        #                 "lo" : 3,
+        #                 "po" : 0,
+        #                 "sacfly" : 0,
+        #                 "sachit" : 0
+        #             },
+        #             "steal__list" : {
+        #                 "caught" : 1,
+        #                 "pct" : 0.667,
+        #                 "stolen" : 2
+        #             }
+        #         },
+        #         "pitching__list" : {
+        #             "bf" : 13,
+        #             "era" : 6,
+        #             "error" : 0,
+        #             "gofo" : 0,
+        #             "ip_1" : 9,
+        #             "ip_2" : 3,
+        #             "k9" : 6.003,
+        #             "kbb" : 1,
+        #             "lob" : 6,
+        #             "oba" : 0.273,
+        #             "pitch_count" : 50,
+        #             "whip" : 1.667,
+        #             "onbase__list" : {
+        #                 "bb" : 2,
+        #                 "d" : 1,
+        #                 "fc" : 0,
+        #                 "h" : 3,
+        #                 "hbp" : 0,
+        #                 "hr" : 0,
+        #                 "ibb" : 0,
+        #                 "roe" : 0,
+        #                 "s" : 2,
+        #                 "t" : 0,
+        #                 "tb" : 4
+        #             },
+        #             "runs__list" : {
+        #                 "earned" : 2,
+        #                 "total" : 2,
+        #                 "unearned" : 0
+        #             },
+        #             "outcome__list" : {
+        #                 "ball" : 18,
+        #                 "dirtball" : 0,
+        #                 "foul" : 8,
+        #                 "iball" : 0,
+        #                 "klook" : 9,
+        #                 "kswing" : 6,
+        #                 "ktotal" : 15
+        #             },
+        #             "outs__list" : {
+        #                 "fidp" : 0,
+        #                 "fo" : 0,
+        #                 "gidp" : 0,
+        #                 "go" : 6,
+        #                 "klook" : 0,
+        #                 "kswing" : 2,
+        #                 "ktotal" : 2,
+        #                 "lidp" : 0,
+        #                 "lo" : 0,
+        #                 "po" : 0,
+        #                 "sacfly" : 0,
+        #                 "sachit" : 0
+        #             },
+        #             "steal__list" : {
+        #                 "caught" : 1,
+        #                 "stolen" : 0
+        #             },
+        #             "games__list" : {
+        #                 "blown_save" : 0,
+        #                 "complete" : 0,
+        #                 "hold" : 0,
+        #                 "loss" : 0,
+        #                 "qstart" : 0,
+        #                 "save" : 0,
+        #                 "shutout" : 0,
+        #                 "svo" : 0,
+        #                 "win" : 0
+        #             }
+        #         },
+        #         "fielding__list" : {
+        #             "a" : 9,
+        #             "dp" : 0,
+        #             "error" : 0,
+        #             "fpct" : 1,
+        #             "po" : 9,
+        #             "tc" : 18,
+        #             "tp" : 0
+        #         }
+        #     },
+        #     "players__list" : [
+        #         { "player" : "07af23d5-a3b9-4526-9e89-8c7f9f5facb4" },
+        #         { "player" : "090ff436-c1e8-4927-b457-355cf4f9993b" }, ... more players who played
+        #     ]
+        # }
+
+        o = obj.get_o()
+
+
+class GameBoxscores(AbstractParseable):
+    def __init__(self):
+        super().__init__()
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        # FOR A CLOSED GAME!!!!
+        # db.game.findOne({'parent_api__id':'boxscores', 'status':'closed'})  # NOTE: 'status':'closed'
+        # {
+        #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZGM4MjQ1NmFjLWE0YjktNGNhZi04MTI0LTBhZmE3NGY5Y2YzNA==",
+        #     "attendance" : 37441,
+        #     "away_team" : "27a59d3b-ff7c-48ea-b016-4798f560f5e1",
+        #     "coverage" : "full",
+        #     "day_night" : "N",
+        #     "game_number" : 1,
+        #     "home_team" : "43a39081-52b4-4f93-ad29-da7f329ea960",
+        #     "id" : "c82456ac-a4b9-4caf-8124-0afa74f9cf34",
+        #     "scheduled" : "2015-05-10T01:10:00+00:00",
+        #     "status" : "closed",
+        #     "xmlns" : "http://feed.elasticstats.com/schema/baseball/v5/game.xsd",
+        #     "parent_api__id" : "boxscores",
+        #     "dd_updated__id" : NumberLong("1431234264301"),
+        #     "venue" : "f1c03dac-3c0f-437c-a325-8d5702cd321a",
+        #     "broadcast__list" : {
+        #         "network" : "ROOT SPORTS"
+        #     },
+        #     "final__list" : {  ##### when the game is OVER it holds this
+        #         "inning" : 9,
+        #         "inning_half" : "T"
+        #     },
+        #     "home" : "43a39081-52b4-4f93-ad29-da7f329ea960",
+        #     "away" : "27a59d3b-ff7c-48ea-b016-4798f560f5e1",
+        #     "pitching__list" : {
+        #         "win__list" : {
+        #             "player" : "9760f1d6-9560-45ed-bc73-5ec2205905a2"
+        #         },
+        #         "loss__list" : {
+        #             "player" : "a193c72e-e252-49c4-8ae5-2836039afda7"
+        #         },
+        #         "hold__list" : {
+        #             "player" : "6f61629a-8c64-4469-b67a-48d470b7c990"
+        #         }
+        #     }
+        # }
+
+        #### FOR AN ACTIVE GAME!!! ...
+        # db.game.findOne({'parent_api__id':'boxscores', 'status':'inprogress'})
+        # {
+        #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDMxNzgxNDMwLWVkMDAtNDljNy04MjdmLWUwM2E5YTFlODBkNA==",
+        #     "away_team" : "a7723160-10b7-4277-a309-d8dd95a8ae65",
+        #     "coverage" : "full",
+        #     "day_night" : "N",
+        #     "game_number" : 1,
+        #     "home_team" : "c874a065-c115-4e7d-b0f0-235584fb0e6f",
+        #     "id" : "31781430-ed00-49c7-827f-e03a9a1e80d4",
+        #     "scheduled" : "2015-05-14T23:10:00+00:00",
+        #     "status" : "inprogress",
+        #     "xmlns" : "http://feed.elasticstats.com/schema/baseball/v5/game.xsd",
+        #     "parent_api__id" : "boxscores",
+        #     "dd_updated__id" : NumberLong("1431645673334"),
+        #     "venue" : "f102d8fb-de67-4b86-9053-8b55f578d45c",
+        #     "broadcast__list" : {
+        #         "network" : "FS-O"
+        #     },
+        #     "outcome__list" : {
+        #         "current_inning" : 1,
+        #         "current_inning_half" : "T",
+        #         "type" : "pitch",
+        #         "count__list" : {
+        #             "balls" : 1,
+        #             "half_over" : "false",
+        #             "inning" : 1,
+        #             "inning_half" : "T",
+        #             "outs" : 1,
+        #             "strikes" : 2
+        #         },
+        #         "hitter" : "36ee970b-0cff-4d50-b8ac-9bd16fae2dd1",
+        #         "pitcher" : "1a574c70-eb33-4202-ab97-548645a4d15e",
+        #         "runners__list" : [
+        #             {
+        #                 "runner" : "898c62b6-95bf-4973-a435-c6cb42a52158"
+        #             },
+        #             {
+        #                 "runner" : "e47bf865-f612-47f6-8a21-3110bb455e31"
+        #             }
+        #         ]
+        #     },
+        #     "home" : "c874a065-c115-4e7d-b0f0-235584fb0e6f",
+        #     "away" : "a7723160-10b7-4277-a309-d8dd95a8ae65"
+        # }
+
+        o = obj.get_o()
+
 class TeamHierarchy(AbstractParseable):
     def __init__(self):
         super().__init__()
@@ -563,7 +872,11 @@ class DataDenMlb(AbstractDataDenParser):
         if self.target == ('mlb.game','schedule_reg'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pre'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pst'): GameSchedule().parse( obj )
-        # elif self.target == ('mlb.game','summary'): GameStats().parse( obj )
+
+        elif self.target == ('mlb.game','boxscores'): GameBoxscores().parse( obj )  # top level boxscore info
+        elif self.target == ('mlb.home','summary'): HomeAwaySummary().parse( obj )  # home team of boxscore
+        elif self.target == ('mlb.away','summary'): HomeAwaySummary().parse( obj )  # away team of boxscore
+
         #
         # team
         elif self.target == ('mlb.team','hierarchy'): TeamHierarchy().parse( obj ) # parse each team
