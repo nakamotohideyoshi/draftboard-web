@@ -64,22 +64,24 @@ class GameBoxscore( sports.models.GameBoxscore ):
     inning          = models.CharField(max_length=16, null=False, default='')
     inning_half     = models.CharField(max_length=16, null=False, default='')
 
-    srid_home_pp = models.CharField(max_length=64, null=False,
+    srid_home_pp = models.CharField(max_length=64, null=True,
                                 help_text='srid of the HOME probable pitcher set before the game starts')
-    srid_home_sp = models.CharField(max_length=64, null=False,
+    srid_home_sp = models.CharField(max_length=64, null=True,
                                 help_text='srid of the HOME starting pitcher')
-    srid_away_pp = models.CharField(max_length=64, null=False,
+    srid_away_pp = models.CharField(max_length=64, null=True,
                                 help_text='srid of the AWAY probable pitcher set before the game starts')
-    srid_away_sp = models.CharField(max_length=64, null=False,
+    srid_away_sp = models.CharField(max_length=64, null=True,
                                 help_text='srid of the AWAY starting pitcher')
-    srid_win        = models.CharField(max_length=64, null=False,
+    srid_win        = models.CharField(max_length=64, null=True,
                                 help_text='')
-    srid_loss       = models.CharField(max_length=64, null=False,
+    srid_loss       = models.CharField(max_length=64, null=True,
                                 help_text='')
-    srid_hold       = models.CharField(max_length=64, null=False,
-                                help_text='')
-    srid_save       = models.CharField(max_length=64, null=False,
-                                help_text='')
+    # srid_hold       = models.CharField(max_length=64, null=True,
+    #                             help_text='')
+    #srid_save       = models.CharField(max_length=64, null=True,
+    #                            help_text='')
+    #srid_blown_save  = models.CharField(max_length=64, null=True,
+    #                            help_text='')
 
     #
     home_errors     = models.IntegerField(default=0, null=False)
