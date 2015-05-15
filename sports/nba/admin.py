@@ -21,7 +21,7 @@ class PlayerStatsAdmin(admin.ModelAdmin):
     list_display = ['game','player','points','three_points_made','rebounds','assists','steals','blocks','turnovers']
 
 @admin.register(sports.nba.models.GameBoxscore)
-class PlayerStatsAdmin(admin.ModelAdmin):
+class GameBoxscoreAdmin(admin.ModelAdmin):
     list_display = ['srid_game','status','title','home_score','home',
                     'away','away_score','quarter','clock','coverage',
                     'home_scoring_json','away_scoring_json']

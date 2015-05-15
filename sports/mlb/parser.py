@@ -3,6 +3,7 @@
 import sports.mlb.models
 from sports.sport.base_parser import AbstractDataDenParser
 from dataden.util.timestamp import Parse as DataDenDatetime
+import json
 
 class AbstractParseable(object):
     def __init__(self):
@@ -224,7 +225,47 @@ class HomeAwaySummary(AbstractParseable):
         # }
 
         o = obj.get_o()
+        srid_team   = o.get('id', None)  # its either home or away team, need to determine
+        srid_game   = o.get('game__id', None)
 
+        try:
+            boxscore = sports.mlb.models.GameBoxscore.objects.get(srid_game=srid_game)
+        except sports.mlb.models.GameBoxscore.DoesNotExist:
+            print( str(o) )
+            print( 'HomeAwaySummary gameboxscore does not exist yet')
+            return
+
+        probable_pitcher    = o.get('probable_pitcher', None)
+        starting_pitcher    = o.get('starting_pitcher', None)
+        scoring_json        = json.loads( json.dumps( o.get('scoring__list', {}) ) )
+        runs                = o.get('runs', 0)
+        hits                = o.get('hits', 0)
+        errors              = o.get('errors', 0)
+
+        if boxscore.srid_home == srid_team:
+            # home
+            boxscore.srid_home_pp = probable_pitcher
+            boxscore.srid_home_sp = starting_pitcher
+            boxscore.home_scoring_json = scoring_json
+            boxscore.home_score     = runs
+            boxscore.home_hits      = hits
+            boxscore.home_errors    = errors
+
+        elif boxscore.srid_away == srid_team:
+            # away
+            boxscore.srid_away_pp = probable_pitcher
+            boxscore.srid_away_sp = starting_pitcher
+            boxscore.away_scoring_json = scoring_json
+            boxscore.away_score     = runs
+            boxscore.away_hits      = hits
+            boxscore.away_errors    = errors
+
+        else:
+            print( str(o) )
+            print( 'HomeAwaySummary team[%s] does not match home or away!' % srid_team)
+            return
+
+        boxscore.save()
 
 class GameBoxscores(AbstractParseable):
     def __init__(self):
@@ -318,6 +359,95 @@ class GameBoxscores(AbstractParseable):
         # }
 
         o = obj.get_o()
+        srid_game   = o.get('id', None)
+        srid_home   = o.get('home_team', None)
+        srid_away   = o.get('away_team', None)
+
+        try:
+            h = sports.mlb.models.Team.objects.get(srid=srid_home)
+        except sports.mlb.models.Team.DoesNotExist:
+            print( str(o) )
+            print( 'GameBoxscore HOME team does not exist')
+            return
+
+        try:
+            a = sports.mlb.models.Team.objects.get(srid=srid_away)
+        except sports.mlb.models.Team.DoesNotExist:
+            print( str(o) )
+            print( 'GameBoxscore AWAY team does not exist')
+            return
+
+        try:
+            boxscore = sports.mlb.models.GameBoxscore.objects.get(srid_game=srid_game)
+        except sports.mlb.models.GameBoxscore.DoesNotExist:
+            boxscore = sports.mlb.models.GameBoxscore()
+            boxscore.srid_game = srid_game
+
+        boxscore.srid_home  = srid_home
+        boxscore.home       = h
+        boxscore.away       = a
+        boxscore.srid_away  = srid_away
+
+        boxscore.attendance = o.get('attendance', 0)
+        boxscore.coverage   = o.get('coverage', '')
+        boxscore.status     = o.get('status', '')
+        boxscore.title      = o.get('title', '')
+
+        boxscore.day_night  = o.get('day_night', '')
+        boxscore.game_number = o.get('game_number', '')
+
+        #     "pitching__list" : {
+        #         "win__list" : {
+        #             "player" : "9760f1d6-9560-45ed-bc73-5ec2205905a2"
+        #         },
+        #         "loss__list" : {
+        #             "player" : "a193c72e-e252-49c4-8ae5-2836039afda7"
+        #         },
+        #         "hold__list" : {
+        #             "player" : "6f61629a-8c64-4469-b67a-48d470b7c990"
+        #         }
+        #     }
+
+        pitching_list   = o.get('pitching__list', {})
+        win_list        = pitching_list.get('win__list', {})
+        loss_list       = pitching_list.get('loss__list', {})
+        #hold_list       = pitching_list.get('hold__list', {}) # can return an array, (multiple "holds")
+        #save_list       = pitching_list.get('save__list', {})
+        #blown_save_list = pitching_list.get('blown_save__list', {})
+
+        # when its final
+        boxscore.srid_win       = win_list.get('player', None)
+        boxscore.srid_loss      = loss_list.get('player', None)
+        #boxscore.srid_hold      = hold_list.get('player', None)
+        #boxscore.srid_save      = save_list.get('player', None)
+        #boxscore.srid_blown_save = blown_save_list.get('player', None)
+
+        outcome_list    = o.get('outcome__list', None)
+        if outcome_list:
+            #         "current_inning" : 1,
+            #         "current_inning_half" : "T",
+            #         "type" : "pitch",
+            #         "count__list" : {
+            #             "balls" : 1,
+            #             "half_over" : "false",
+            #             "inning" : 1,
+            #             "inning_half" : "T",
+            #             "outs" : 1,
+            #             "strikes" : 2
+            #         },
+            boxscore.inning         = outcome_list.get('current_inning', '')
+            boxscore.inning_half    = outcome_list.get('current_inning_half', '')
+
+        final_list      = o.get('final__list', None)
+        if final_list:
+            #     "final__list" : {  ##### when the game is OVER it holds this
+            #         "inning" : 9,
+            #         "inning_half" : "T"
+            #     },
+            boxscore.inning         = final_list.get('inning', '')
+            boxscore.inning_half    = final_list.get('inning_half', '')
+
+        boxscore.save() # commit changes
 
 class TeamHierarchy(AbstractParseable):
     def __init__(self):

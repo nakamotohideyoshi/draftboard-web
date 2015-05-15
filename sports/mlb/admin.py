@@ -24,3 +24,8 @@ class PlayerStatsHitterAdmin(admin.ModelAdmin):
 class PlayerStatsPitcherAdmin(admin.ModelAdmin):
     list_display = ['game','player','ip_1','ip_2','win','loss','qstart','ktotal','er','h','bb','hbp','cg','cgso','nono']
 
+@admin.register(sports.mlb.models.GameBoxscore)
+class GameBoxscoreAdmin(admin.ModelAdmin):
+    list_display = ['srid_game','status','title','home_score','home',
+                    'away','away_score','inning','inning_half','coverage',
+                    'home_scoring_json','away_scoring_json']
