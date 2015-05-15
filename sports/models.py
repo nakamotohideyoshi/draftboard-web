@@ -55,8 +55,25 @@ class Game( models.Model ):
 
 class GameBoxscore(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    srid_game   = models.CharField(max_length=64, null=False,
+    srid_game   = models.CharField(max_length=64, null=False, unique=True, default=None,
                             help_text='the sportsradar global id for the game')
+
+    srid_home   = models.CharField(max_length=64, null=False)
+    srid_away   = models.CharField(max_length=64, null=False)
+
+    attendance  = models.IntegerField(default=0, null=False)
+    coverage    = models.CharField(max_length=16, null=False, default='')
+    status      = models.CharField(max_length=64, null=False, default='')
+
+    home_score = models.IntegerField(default=0, null=False)
+    away_score = models.IntegerField(default=0, null=False)
+
+    title       = models.CharField(max_length=256, null=False, default='')
+
+    # sport specific json for the scoring list,
+    # if its mlb, its innings, if its nba its quarters...
+    home_scoring_json   = models.CharField(max_length=2048, null=False, default = '')
+    away_scoring_json   = models.CharField(max_length=2048, null=False, default = '')
 
     class Meta:
         abstract = True

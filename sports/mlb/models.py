@@ -55,8 +55,41 @@ class Game( sports.models.Game ):
         abstract = False
 
 class GameBoxscore( sports.models.GameBoxscore ):
+
+    home        = models.ForeignKey(Team, null=False, related_name='gameboxscore_home')
+    away        = models.ForeignKey(Team, null=False, related_name='gameboxscore_away')
+
+    day_night       = models.CharField(max_length=8, null=False, default='')
+    game_number     = models.IntegerField(default=1, null=False)
+    inning          = models.CharField(max_length=16, null=False, default='')
+    inning_half     = models.CharField(max_length=16, null=False, default='')
+
+    srid_home_pp = models.CharField(max_length=64, null=False,
+                                help_text='srid of the HOME probable pitcher set before the game starts')
+    srid_home_sp = models.CharField(max_length=64, null=False,
+                                help_text='srid of the HOME starting pitcher')
+    srid_away_pp = models.CharField(max_length=64, null=False,
+                                help_text='srid of the AWAY probable pitcher set before the game starts')
+    srid_away_sp = models.CharField(max_length=64, null=False,
+                                help_text='srid of the AWAY starting pitcher')
+    srid_win        = models.CharField(max_length=64, null=False,
+                                help_text='')
+    srid_loss       = models.CharField(max_length=64, null=False,
+                                help_text='')
+    srid_hold       = models.CharField(max_length=64, null=False,
+                                help_text='')
+    srid_save       = models.CharField(max_length=64, null=False,
+                                help_text='')
+
+    #
+    home_errors     = models.IntegerField(default=0, null=False)
+    home_hits       = models.IntegerField(default=0, null=False)
+    #
+    away_errors     = models.IntegerField(default=0, null=False)
+    away_hits       = models.IntegerField(default=0, null=False)
+
     class Meta:
-        abstract = True # TODO
+        abstract = False
 
 class Player( sports.models.Player ):
     """

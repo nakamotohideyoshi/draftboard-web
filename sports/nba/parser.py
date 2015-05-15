@@ -2,12 +2,179 @@
 import sports.nba.models
 from sports.sport.base_parser import AbstractDataDenParser
 from dataden.util.timestamp import Parse as DataDenDatetime
+import json
 
 class AbstractParseable(object):
     def __init__(self):
         self.name = self.__class__.__name__
     def parse(self, obj, target=None):
         print( self.name, str(obj)[:200], 'target='+str(target) )
+
+class TeamBoxscores(AbstractParseable):
+    def __init__(self):
+        super().__init__()
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        # db.team.findOne({'parent_api__id':'boxscores'})
+        # {
+        #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZDY4MWU3NmUxLTdlNjMtNDUwMy04OWQxLTg2NDgwYjZkY2MzYmlkNTgzZWM3NzMtZmI0Ni0xMWUxLTgyY2ItZjRjZTQ2ODRlYTRj",
+        #     "id" : "583ec773-fb46-11e1-82cb-f4ce4684ea4c",
+        #     "market" : "Cleveland",
+        #     "name" : "Cavaliers",
+        #     "points" : 106,
+        #     "parent_api__id" : "boxscores",
+        #     "dd_updated__id" : NumberLong("1431490937239"),
+        #     "game__id" : "681e76e1-7e63-4503-89d1-86480b6dcc3b",
+        #     "scoring__list" : [
+        #         {
+        #             "quarter" : {
+        #                 "number" : 1,
+        #                 "points" : 25,
+        #                 "sequence" : 1
+        #             }
+        #         },
+        #         {
+        #             "quarter" : {
+        #                 "number" : 2,
+        #                 "points" : 29,
+        #                 "sequence" : 2
+        #             }
+        #         },
+        #         {
+        #             "quarter" : {
+        #                 "number" : 3,
+        #                 "points" : 26,
+        #                 "sequence" : 3
+        #             }
+        #         },
+        #         {
+        #             "quarter" : {
+        #                 "number" : 4,
+        #                 "points" : 26,
+        #                 "sequence" : 4
+        #             }
+        #         }
+        #     ],
+        #     "leaders__list" : {
+        #         ...
+        #     }
+        # }
+        o = obj.get_o()
+        srid_team = o.get('id', None)
+        srid_game = o.get('game__id', None)
+
+        try:
+            gb = sports.nba.models.GameBoxscore.objects.get(srid_game=srid_game)
+        except sports.nba.models.GameBoxscore.DoesNotExist:
+            print( str(o) )
+            print( 'GameBoxscore does not exist yet!')
+            return
+
+        score           = o.get('points', 0)
+        scoring_json    = json.loads( json.dumps( o.get('scoring__list', []) ) )
+
+        if gb.srid_home == srid_team:
+            # we have the home team
+            gb.home_score           = score
+            gb.home_scoring_json    = scoring_json
+        elif gb.srid_away == srid_team:
+            # we have the away team
+            gb.away_score           = score
+            gb.away_scoring_json    = scoring_json
+
+        else:
+            # something doesnt match up
+            print( str(o) )
+            print( 'TeamBoxscores.parse() for srid_team[%s] didnt match home or away!' % srid_team )
+            return
+
+        gb.save() # commit any changes
+
+class GameBoxscores(AbstractParseable):
+    """
+    updates most boxscore information, BUT:
+        - does not update the score of each team
+
+    """
+    def __init__(self):
+        super().__init__()
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        # db.game.findOne({'parent_api__id':'boxscores'})
+        # {
+        #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDY4MWU3NmUxLTdlNjMtNDUwMy04OWQxLTg2NDgwYjZkY2MzYg==",
+        #     "attendance" : 20562,
+        #     "away_team" : "583ec5fd-fb46-11e1-82cb-f4ce4684ea4c",
+        #     "clock" : "00:00",
+        #     "coverage" : "full",
+        #     "duration" : "2:37",
+        #     "home_team" : "583ec773-fb46-11e1-82cb-f4ce4684ea4c",
+        #     "id" : "681e76e1-7e63-4503-89d1-86480b6dcc3b",
+        #     "lead_changes" : 1,
+        #     "quarter" : 4,
+        #     "scheduled" : "2015-05-12T23:00:00+00:00",
+        #     "status" : "closed",
+        #     "times_tied" : 0,
+        #     "title" : "Game 5",
+        #     "xmlns" : "http://feed.elasticstats.com/schema/basketball/game-v2.0.xsd",
+        #     "parent_api__id" : "boxscores",
+        #     "dd_updated__id" : NumberLong("1431490937239"),
+        #     "teams" : [
+        #         {
+        #             "team" : "583ec773-fb46-11e1-82cb-f4ce4684ea4c"
+        #         },
+        #         {
+        #             "team" : "583ec5fd-fb46-11e1-82cb-f4ce4684ea4c"
+        #         }
+        #     ]
+        # }
+
+        o = obj.get_o()
+        srid_game   = o.get('id', None)
+        srid_home   = o.get('home_team', None)
+        srid_away   = o.get('away_team', None)
+
+        try:
+            h = sports.nba.models.Team.objects.get( srid=srid_home )
+        except sports.nba.models.Team.DoesNotExist:
+            print( str(o) )
+            print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
+            return
+
+        try:
+            a = sports.nba.models.Team.objects.get( srid=srid_away )
+        except sports.nba.models.Team.DoesNotExist:
+            print( str(o) )
+            print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
+            return
+
+        try:
+            boxscore = sports.nba.models.GameBoxscore.objects.get(srid_game=srid_game)
+        except sports.nba.models.GameBoxscore.DoesNotExist:
+            boxscore = sports.nba.models.GameBoxscore()
+            boxscore.srid_game = srid_game
+
+        boxscore.srid_home  = srid_home
+        boxscore.home       = h
+        boxscore.away       = a
+        boxscore.srid_away  = srid_away
+
+        boxscore.attendance = o.get('attendance', 0)
+        boxscore.clock      = o.get('clock', '' )
+        boxscore.coverage   = o.get('coverage', '')
+        boxscore.duration   = o.get('duration', '')
+        boxscore.lead_changes = o.get('lead_changes', 0)
+        boxscore.quarter    = o.get('quarter', '')
+        boxscore.status     = o.get('status', '')
+        boxscore.times_tied = o.get('times_tied', 0)
+        boxscore.title      = o.get('title', '')
+
+        # although GameBoxscore has 'home_points' and 'away_points',
+        #  those fields are not updated here!
+
+        boxscore.save()
 
 class PlayerRosters(AbstractParseable):
     def __init__(self):
@@ -357,10 +524,11 @@ class DataDenNba(AbstractDataDenParser):
         #
         # nba.game
         if self.target == ('nba.game','schedule'): GameSchedule().parse( obj )
-        #elif self.target == ('nba.game','stats'): GameStats().parse( obj )
+        elif self.target == ('nba.game','boxscores'): GameBoxscores().parse( obj )
         #
         # nba.team
         elif self.target == ('nba.team','hierarchy'): TeamHierachy().parse( obj )
+        elif self.target == ('nba.team','boxscores'): TeamBoxscores().parse( obj )
         #
         # nba.player
         elif self.target == ('nba.player','rosters'): PlayerRosters().parse( obj )

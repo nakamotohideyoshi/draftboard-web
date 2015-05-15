@@ -57,8 +57,23 @@ class Game( sports.models.Game ):
         abstract = False
 
 class GameBoxscore( sports.models.GameBoxscore ):
+
+    # srid_home   = models.CharField(max_length=64, null=False)
+    home        = models.ForeignKey(Team, null=False, related_name='gameboxscore_home')
+    away        = models.ForeignKey(Team, null=False, related_name='gameboxscore_away')
+    # srid_away   = models.CharField(max_length=64, null=False)
+    #
+    # attendance  = models.IntegerField(default=0, null=False)
+    clock       = models.CharField(max_length=16, null=False, default='')
+    # coverage    = models.CharField(max_length=16, null=False, default='')
+    duration    = models.CharField(max_length=16, null=False, default='')
+    lead_changes = models.IntegerField(default=0, null=False)
+    quarter     = models.CharField(max_length=16, null=False, default='')
+    # status      = models.CharField(max_length=64, null=False, default='')
+    times_tied  = models.IntegerField(default=0, null=False)
+
     class Meta:
-        abstract = True # TODO
+        abstract = False
 
 class Player( sports.models.Player ):
     """
