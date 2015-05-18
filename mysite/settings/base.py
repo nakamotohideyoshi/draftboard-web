@@ -234,6 +234,8 @@ INSTALLED_APPS = (
     'sports',
     'sports.mlb',
     'sports.nba',
+    'sports.nhl',
+    'sports.nfl',
 
     'scoring',
 

@@ -13,6 +13,7 @@ class AbstractParseable(object):
 class TeamBoxscores(AbstractParseable):
     def __init__(self):
         super().__init__()
+
     def parse(self, obj, target=None):
         super().parse( obj, target )
 
