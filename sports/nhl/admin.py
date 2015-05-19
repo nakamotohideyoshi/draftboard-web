@@ -18,10 +18,15 @@ class PlayerAdmin(admin.ModelAdmin):
 
 @admin.register(sports.nhl.models.PlayerStats)
 class PlayerStatsAdmin(admin.ModelAdmin):
-    list_display = ['game','player']
+    list_display = [
+        # skater stats:
+        'game','player','goal','assist','sog','blk','sh_goal','pp_goal', 'so_goal',
+        # goalie stats:
+        'w', 'l', 'otl', 'saves', 'ga', 'shutout'
+    ]
 
-# @admin.register(sports.nhl.models.GameBoxscore)
-# class GameBoxscoreAdmin(admin.ModelAdmin):
-#     list_display = ['srid_game','status','title','home_score','home',
-#                     'away','away_score','period','clock','coverage',
-#                     'home_scoring_json','away_scoring_json']
+@admin.register(sports.nhl.models.GameBoxscore)
+class GameBoxscoreAdmin(admin.ModelAdmin):
+    list_display = ['srid_game','status','title','home_score','home',
+                    'away','away_score','period','clock','coverage',
+                    'home_scoring_json','away_scoring_json']

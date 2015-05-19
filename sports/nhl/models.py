@@ -41,24 +41,15 @@ class Game( sports.models.Game ):
     class Meta:
         abstract = False
 
-# class GameBoxscore( sports.models.GameBoxscore ):
-#
-#     # srid_home   = models.CharField(max_length=64, null=False)
-#     home        = models.ForeignKey(Team, null=False, related_name='gameboxscore_home')
-#     away        = models.ForeignKey(Team, null=False, related_name='gameboxscore_away')
-#     # srid_away   = models.CharField(max_length=64, null=False)
-#     #
-#     # attendance  = models.IntegerField(default=0, null=False)
-#     clock       = models.CharField(max_length=16, null=False, default='')
-#     # coverage    = models.CharField(max_length=16, null=False, default='')
-#     duration    = models.CharField(max_length=16, null=False, default='')
-#     lead_changes = models.IntegerField(default=0, null=False)
-#     quarter     = models.CharField(max_length=16, null=False, default='')
-#     # status      = models.CharField(max_length=64, null=False, default='')
-#     times_tied  = models.IntegerField(default=0, null=False)
-#
-#     class Meta:
-#         abstract = False
+class GameBoxscore( sports.models.GameBoxscore ):
+
+    home        = models.ForeignKey(Team, null=False, related_name='gameboxscore_home')
+    away        = models.ForeignKey(Team, null=False, related_name='gameboxscore_away')
+    clock       = models.CharField(max_length=16, null=False, default='')
+    period     = models.CharField(max_length=16, null=False, default='')
+
+    class Meta:
+        abstract = False
 
 class Player( sports.models.Player ):
     """
@@ -93,7 +84,22 @@ class PlayerStats( sports.models.PlayerStats ):
     player  = models.ForeignKey(Player, null=False)
     game    = models.ForeignKey(Game, null=False)
 
-    # TODO ... add the player stats !
+    # skater stats
+    goal    = models.IntegerField(default=0, null=False)
+    assist  = models.IntegerField(default=0, null=False)
+    sog     = models.IntegerField(default=0, null=False)
+    blk     = models.IntegerField(default=0, null=False)
+    sh_goal = models.IntegerField(default=0, null=False)        # short-handed goal
+    pp_goal = models.IntegerField(default=0, null=False)        # power play goal
+    so_goal  = models.IntegerField(default=0, null=False)       # shootout goal
+
+    # goalie stats    ... [ "win", "loss", "overtime_loss", "none" ] are the "credit" types for goalies
+    w       = models.BooleanField(default=False, null=False)
+    l       = models.BooleanField(default=False, null=False)
+    otl     = models.BooleanField(default=False, null=False)
+    saves   = models.IntegerField(default=0, null=False)        # dont name it 'save' ! django would hate that
+    ga      = models.IntegerField(default=0, null=False)        # goals allowed
+    shutout = models.BooleanField(default=False, null=False)    # shutout - complete game, and no goals allowed
 
     class Meta:
         abstract = False
