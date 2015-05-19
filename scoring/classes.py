@@ -267,3 +267,76 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
         return value * self.get_value_of(self.CGSO)
     def no_hitter(self, value):
         return value * self.get_value_of(self.NO_HITTER)
+
+class NhlSalaryScoreSystem(AbstractScoreSystem):
+    """
+    defines the NHL Salary draft scoring metrics
+    """
+
+    GOAL        = 'goal'          # goals scored
+    ASSIST      = 'assist'        # assists
+    SOG         = 'sog'           # shots on goal
+    BLK         = 'blk'           # blocked shot
+    SH_BONUS    = 'sh-bonus'      # bonus points for goals/assists when shorthanded
+    SO_GOAL     = 'so-goal'       # goal in a shootout
+    HAT         = 'hat'           # hattrick is 3 goals scored
+
+    WIN         = 'win'           # goalie - win
+    SAVE        = 'save'          # goalie - shots saved
+    GA          = 'ga'            # goalie - goals allowed
+    SHUTOUT     = 'shutout'       # goalie - complete game(includes OT) no goals (doesnt count shootout goals)
+
+    def __init__(self):
+        self.score_system = ScoreSystem.objects.get(sport='nhl', name='salary')
+
+        # call super last - ensures you have class variables setup
+        super().__init__()
+
+    def score_player(self, player_stats):
+        """
+        scores and returns a float for the amount of fantasy points for this PlayerStats instance
+
+        :param player_stats:
+        :return:
+        """
+        total = 0.0
+
+        # skater stats
+        total += self.goals(player_stats.goal)
+        total += self.assists(player_stats.assist)
+        total += self.shots_on_goal(player_stats.sog)
+        total += self.blocks( player_stats.blk )
+        total += self.short_handed_bonus(player_stats.sh_goal)
+        total += self.shootout_goals(player_stats.so_goal)
+        total += self.hattrick(player_stats.goal) # goals minus shootout goals
+
+        # goalie stats
+        total += self.win(player_stats.w)
+        total += self.saves(player_stats.saves)
+        total += self.goals_allowed(player_stats.ga)
+        total += self.shutout(player_stats.shutout)
+
+        return total
+
+    def goals(self, val):
+        return val * self.get_value_of(self.GOAL)
+    def assists(self, val):
+        return val * self.get_value_of(self.ASSIST)
+    def shots_on_goal(self, val):
+        return val * self.get_value_of(self.SOG)
+    def blocks(self, val):
+        return val * self.get_value_of(self.BLK)
+    def short_handed_bonus(self, sh_goals):
+        return sh_goals * self.get_value_of(self.SH_BONUS)
+    def shootout_goals(self, so_goals):
+        return so_goals * self.get_value_of(self.SO_GOAL)
+    def hattrick(self, tot_goals):
+        return int(tot_goals >= 3) * self.get_value_of(self.HAT) # ie: 0 or 1 times the value of a hattrick
+    def win(self, val):
+        return int(val) * self.get_value_of(self.WIN)
+    def saves(self, val):
+        return val * self.get_value_of(self.SAVE)
+    def goals_allowed(self, val):
+        return val * self.get_value_of(self.GA)
+    def shutout(self, val):
+        return int(val) * self.get_value_of(self.SHUTOUT)
