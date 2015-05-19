@@ -1,18 +1,17 @@
 #
 # sports/nfl/parser.py
 
-import sports.nfl.models
-from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
-                                        DataDenTeamHierachy, DataDenGameSchedule
+from sports.nfl.models import Team, Game, Player, PlayerStats, GameBoxscore
 
-from dataden.util.timestamp import Parse as DataDenDatetime
-import json
+from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
+                        DataDenTeamHierachy, DataDenGameSchedule, DataDenPlayerRosters, \
+                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores
 
 class TeamHierarchy(DataDenTeamHierachy):
     """
     TeamHierarchy simply needs to set the right Team model internally.
     """
-    team_model = sports.nfl.models.Team
+    team_model = Team
 
     def __init__(self):
         super().__init__()
@@ -21,8 +20,8 @@ class GameSchedule(DataDenGameSchedule):
     """
     GameSchedule simply needs to set the right Team & Game model internally
     """
-    team_model = sports.nfl.models.Team
-    game_model = sports.nfl.models.Game
+    team_model = Team
+    game_model = Game
 
     def __init__(self):
         super().__init__()
@@ -30,7 +29,7 @@ class GameSchedule(DataDenGameSchedule):
 class DataDenNfl(AbstractDataDenParser):
 
     def __init__(self):
-        self.game_model = sports.nfl.models.Game # unused
+        self.game_model = Game # unused
 
     def parse(self, obj):
         """
