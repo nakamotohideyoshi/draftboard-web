@@ -204,3 +204,8 @@ class TicketManager(AbstractSiteUserClass):
 
 
 
+    def get_available_tickets(self):
+        return Ticket.objects.filter(
+                user = self.user,
+                consume_transaction = None
+            ).order_by('-created')
