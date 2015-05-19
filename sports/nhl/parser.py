@@ -7,9 +7,6 @@ from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParse
                         DataDenTeamHierachy, DataDenGameSchedule, DataDenPlayerRosters, \
                         DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores
 
-from dataden.util.timestamp import Parse as DataDenDatetime
-import json
-
 class TeamHierarchy(DataDenTeamHierachy):
     """
     TeamHierarchy simply needs to set the right Team model internally.
