@@ -178,8 +178,10 @@ class GameBoxscores(AbstractParseable):
         boxscore.save()
 
 class PlayerRosters(AbstractParseable):
+
     def __init__(self):
         super().__init__()
+
     def parse(self, obj, target=None):
         super().parse( obj, target )
 
