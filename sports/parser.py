@@ -2,6 +2,8 @@
 
 import sports.nba.parser
 import sports.mlb.parser
+import sports.nhl.parser
+import sports.nfl.parser
 
 class DataDenParser(object):
     """
@@ -12,6 +14,8 @@ class DataDenParser(object):
     parsers = {
         'nba' : sports.nba.parser.DataDenNba,
         'mlb' : sports.mlb.parser.DataDenMlb,
+        'nhl' : sports.nhl.parser.DataDenNhl,
+        'nfl' : sports.nfl.parser.DataDenNfl,
     }
 
     def __init__(self):
