@@ -4,10 +4,11 @@ from transaction.models import TransactionType, Transaction
 from .models import Ticket, TicketAmount
 from mysite.classes import  AbstractSiteUserClass
 from mysite.exceptions import AmountZeroException, AmountNegativeException, TooManyArgumentsException, TooLittleArgumentsException, IncorrectVariableTypeException
+from .exceptions import  InvalidTicketAmountException, TicketAlreadyUsedException, UserDoesNotHaveTicketException
 class TicketManager(AbstractSiteUserClass):
     """
     Manages the ticket accounts for a given user. Each ticket
-    is createed via the deposit method and then used via the
+    is created via the deposit method and then used via the
     consume method.
     """
     def __init__(self, user):
@@ -60,6 +61,7 @@ class TicketManager(AbstractSiteUserClass):
             the amount is 0.
         :raise :class:`mysite.exceptions.AmounNegativeException`:
             if the amount argument is less than 0.
+
         """
         ta = self.__get_ticket_amount(amount)
 
@@ -96,11 +98,21 @@ class TicketManager(AbstractSiteUserClass):
         This consume method can only take one of the following arguments:
             * amount
             * ticket
-        :param amount: The
+        :param amount: The dollar amount (decimal) that the user wishes to use
+            for a ticket.
         :param ticket_obj: The :class:`ticket.models.Ticket` model object.
         :param transaction_obj: The :class:`transaction.models.Transaction`
             model object. If not set it will create one and then make
             the reference.
+        :raise :class:`mysite.exceptions.IncorrectVariableTypeException`:
+            if arguments are the wrong types
+        :raise :class:`ticket.exceptions.InvalidTicketAmountException`:
+            if the ticket amount is an amount not in the TicketAmount table.
+        :raise :class:`ticket.exceptions.TicketAlreadyUsedException`:
+            if the ticket object passed has already been consumed.
+        :raise :class:`ticket.exceptions.UserDoesNotHaveTicketException`:
+            if the user does not have a ticket with the amount provided.
+
         """
         #---------------------------------------------------------------
         #---------------------------------------------------------------
@@ -123,24 +135,72 @@ class TicketManager(AbstractSiteUserClass):
             )
 
 
-        #
-        # TODO get the tickets that are not consumed and throw and
-        # exception if there are no tickets for the given user.
 
         #
-        # TODO
-#
-# ●	@override __update_balance ⇒ need to figure out a way to do this. I want at the very least for __update_balance to be protected. We don’t want this public. This has to be modified to do the proper accounting.
-# ●	deposit(amount)
-# ●	consume(amount =0, ticket_transaction_pk= None) ⇒ can take one or the other. If both are given throw an exception. This should update the balance and set the transaction_used in the TicketTransactionDetail model.
-# ○	Exceptions
-# ■	general
-# ●	No tickets
-# ●	amount=0 and ticket_transaction_pk = None
-# ●	amount >0 and ticket_transaction_pk != None
-# ■	amount
-# ●	doesnt match any existing tickets
-# ■	ticket_transaction_pk
-# ●	if transaction_used != None
+        # Gets the tickets that are not consumed and throw and
+        # exception if there are no tickets for the given user.
+        if(amount != None):
+
+            #
+            # Gets the amount from the pre-defined Ticket Amounts
+            amount_obj = self.__get_ticket_amount(amount)
+
+
+            #
+            # Checks the ticket
+            tickets = Ticket.objects.filter(
+                amount = amount_obj,
+                user = self.user,
+                consume_transaction = None
+            ).order_by('-created')
+
+
+            if(len(tickets) == 0):
+                raise UserDoesNotHaveTicketException(
+                    type(self).__name__,
+                    amount,
+                    self.user
+                )
+            self.ticket = tickets[0]
+
+        else:
+            if(not isinstance(ticket_obj, Ticket)):
+                raise IncorrectVariableTypeException(type(self).__name__,
+                                          "ticket_obj")
+            self.ticket = ticket_obj
+
+        #
+        # Makes sure that the ticket has not been consumed, and throws
+        # an exception if has been.
+        if(self.ticket.consume_transaction != None):
+            raise TicketAlreadyUsedException(
+                type(self).__name__,
+                amount,
+                self.ticket.pk
+            )
+
+        #
+        # Creates a new transaction if it was not supplied by the
+        # consume functionality.
+        if(transaction_obj == None):
+            self.transaction = Transaction(
+                user=self.user,
+                category=self.__get_consume_category()
+            )
+            self.transaction.save()
+        else:
+            #
+            # check to make sure the transaction object is in fact
+            # a transaction
+            if(not isinstance(transaction_obj, Transaction)):
+                raise IncorrectVariableTypeException(type(self).__name__,
+                                          "transaction_obj")
+            self.transaction = transaction_obj
+        #
+        # Sets the ticket's consume_transaction field so that
+        # it will be marked as used.
+        self.ticket.consume_transaction = self.transaction
+        self.ticket.save()
+
 
 

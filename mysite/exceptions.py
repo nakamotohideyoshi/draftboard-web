@@ -1,7 +1,7 @@
 class IncorrectVariableTypeException(Exception):
     def __init__(self, class_name, variable_name):
-        super().__init__(\
-           "In the class "+class_name+" the variable "+ variable_name +" is the wrong class type.")
+        super().__init__(
+           "In the class "+class_name+" the variable "+ variable_name +" is the wrong class type." )
 
 class VariableNotSetException(Exception):
     def __init__(self, class_name, variable_name):
