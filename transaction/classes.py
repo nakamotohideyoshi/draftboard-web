@@ -170,3 +170,4 @@ class AbstractTransaction (AbstractSiteUserClass):
             raise AmountNegativeException(type(self).__name__, amount)
         if(amount == 0.00):
             raise AmountZeroException(type(self).__name__, amount)
+
