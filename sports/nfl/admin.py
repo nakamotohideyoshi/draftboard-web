@@ -6,15 +6,15 @@ import sports.nfl.models
 
 @admin.register(sports.nfl.models.Team)
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ['srid','name']
+    list_display = ['srid','market','name','alias']
 
 @admin.register(sports.nfl.models.Game)
 class GameAdmin(admin.ModelAdmin):
-    list_display = ['srid','start','home','away']
+    list_display = ['srid','status','start','home','away','weather_json']
 
 @admin.register(sports.nfl.models.Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ['srid','first_name','last_name']
+    list_display = ['srid','position','first_name','last_name']
 
 @admin.register(sports.nfl.models.PlayerStats)
 class PlayerStatsAdmin(admin.ModelAdmin):

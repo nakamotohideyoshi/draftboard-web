@@ -16,6 +16,10 @@ class TeamHierarchy(DataDenTeamHierachy):
     def __init__(self):
         super().__init__()
 
+    def parse(self, obj):
+        super().parse(obj)
+        self.team.save()
+
 class GameSchedule(DataDenGameSchedule):
     """
     GameSchedule simply needs to set the right Team & Game model internally
@@ -25,6 +29,10 @@ class GameSchedule(DataDenGameSchedule):
 
     def __init__(self):
         super().__init__()
+
+    def parse(self, obj):
+        super().parse(obj)
+        self.game.save()
 
 class PlayerRosters(DataDenPlayerRosters):
 

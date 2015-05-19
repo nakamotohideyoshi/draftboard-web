@@ -53,6 +53,8 @@ class Game( sports.models.Game ):
                                 help_text='away team sportsradar global id')
     title       = models.CharField(max_length=128, null=True)
 
+    weather_json = models.CharField(max_length=512, null=False)
+
     class Meta:
         abstract = False
 
