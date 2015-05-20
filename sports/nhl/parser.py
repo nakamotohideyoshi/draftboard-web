@@ -7,9 +7,6 @@ from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParse
                         DataDenTeamHierachy, DataDenGameSchedule, DataDenPlayerRosters, \
                         DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores
 
-from dataden.util.timestamp import Parse as DataDenDatetime
-import json
-
 class TeamHierarchy(DataDenTeamHierachy):
     """
     TeamHierarchy simply needs to set the right Team model internally.
@@ -18,6 +15,10 @@ class TeamHierarchy(DataDenTeamHierachy):
 
     def __init__(self):
         super().__init__()
+
+    def parse(self, obj):
+        super().parse(obj)
+        self.team.save()
 
 class GameSchedule(DataDenGameSchedule):
     """
@@ -28,6 +29,10 @@ class GameSchedule(DataDenGameSchedule):
 
     def __init__(self):
         super().__init__()
+
+    def parse(self, obj):
+        super().parse(obj)
+        self.game.save()
 
 class PlayerRosters(DataDenPlayerRosters):
 

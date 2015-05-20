@@ -6,7 +6,7 @@ import sports.nba.models
 
 @admin.register(sports.nba.models.Team)
 class TeamAdmin(admin.ModelAdmin):
-    list_display = ['srid','name']
+    list_display = ['srid','name','market','alias']
 
 @admin.register(sports.nba.models.Game)
 class GameAdmin(admin.ModelAdmin):

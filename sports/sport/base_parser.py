@@ -69,6 +69,9 @@ class DataDenTeamHierachy(AbstractDataDenParseable):
     def __init__(self):
         if self.team_model is None:
             raise Exception('"team_model" cant be None')
+
+        self.team = None
+
         super().__init__()
 
     def parse(self, obj, target=None):
@@ -101,20 +104,22 @@ class DataDenTeamHierachy(AbstractDataDenParseable):
         srid_venue      = o.get('venue',            '')
 
         try:
-            t = self.team_model.objects.get( srid=srid )
+            self.team = self.team_model.objects.get( srid=srid )
         except self.team_model.DoesNotExist:
-            t = self.team_model()
-            t.srid      = srid
+            self.team = self.team_model()
+            self.team.srid      = srid
 
-        t.srid_league       = srid_league
-        t.srid_conference   = srid_conference
-        t.srid_division     = srid_division
-        t.market            = market
-        t.name              = name
-        t.alias             = alias
-        t.srid_venue        = srid_venue
-
-        t.save()
+        self.team.srid_league       = srid_league
+        self.team.srid_conference   = srid_conference
+        self.team.srid_division     = srid_division
+        self.team.market            = market
+        self.team.name              = name
+        self.team.alias             = alias
+        self.team.srid_venue        = srid_venue
+        # NOTE:
+        # save() is NOT called here on purpose!
+        # subclasses should must call super().parse(obj),
+        # then make any applicable changes and save
 
 class DataDenGameSchedule(AbstractDataDenParseable):
     """
@@ -132,6 +137,9 @@ class DataDenGameSchedule(AbstractDataDenParseable):
             raise Exception('"team_model cant be None!')
         if self.game_model is None:
             raise Exception('"game_model" cant be None!')
+
+        self.game = None
+
         super().__init__()
 
     def parse(self, obj, target=None):
@@ -171,7 +179,7 @@ class DataDenGameSchedule(AbstractDataDenParseable):
 
         srid_home   = o.get('home')
         srid_away   = o.get('away')
-        title       = o.get('title', True)
+        title       = o.get('title', '')
 
         try:
             h = self.team_model.objects.get(srid=srid_home)
@@ -188,19 +196,19 @@ class DataDenGameSchedule(AbstractDataDenParseable):
             return
 
         try:
-            g = self.game_model.objects.get(srid=srid)
+            self.game = self.game_model.objects.get(srid=srid)
         except self.game_model.DoesNotExist:
-            g = self.game_model()
-            g.srid = srid
+            self.game = self.game_model()
+            self.game.srid = srid
 
-        g.home      = h
-        g.away      = a
-        g.start     = start
-        g.status    = status
-        g.srid_home = srid_home
-        g.srid_away = srid_away
-        g.title     = title
-        g.save()
+        self.game.home      = h
+        self.game.away      = a
+        self.game.start     = start
+        self.game.status    = status
+        self.game.srid_home = srid_home
+        self.game.srid_away = srid_away
+        self.game.title     = title
+        # child class must save the self.game !
 
 class DataDenPlayerRosters(AbstractDataDenParseable):
 
@@ -212,6 +220,9 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
             raise Exception('"team_model" cant be None!')
         if self.player_model is None:
             raise Exception('"player_model" cant be None!')
+
+        self.player = None
+
         super().__init__()
 
     def parse(self, obj, target=None):
@@ -251,6 +262,8 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
         birth_place = o.get('birth_place', '')
         birthdate   = o.get('birthdate', '')
         experience  = o.get('experience', 0.0)
+        if experience == '':
+            experience = 0.0
         height      = o.get('height', 0.0)      # inches
         weight      = o.get('weight', 0.0)      # lbs.
         jersey_number       = o.get('jersey_number', 0.0)
@@ -268,26 +281,26 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
             return
 
         try:
-            p = self.player_model.objects.get(srid=srid)
+            self.player = self.player_model.objects.get(srid=srid)
         except self.player_model.DoesNotExist:
-            p = self.player_model()
-            p.srid = srid
+            self.player = self.player_model()
+            self.player.srid = srid
 
-        p.team          = t             # team could easily change of course
-        p.first_name    = first_name
-        p.last_name     = last_name
+        self.player.team          = t             # team could easily change of course
+        self.player.first_name    = first_name
+        self.player.last_name     = last_name
 
-        p.birth_place   = birth_place
-        p.birthdate     = birthdate
-        p.experience    = experience
-        p.height        = height
-        p.weight        = weight
-        p.jersey_number = jersey_number
-        p.position      = position
-        p.primary_position  = primary_position
-        p.status        = status
+        self.player.birth_place   = birth_place
+        self.player.birthdate     = birthdate
+        self.player.experience    = experience
+        self.player.height        = height
+        self.player.weight        = weight
+        self.player.jersey_number = jersey_number
+        self.player.position      = position
+        self.player.primary_position  = primary_position
+        self.player.status        = status
 
-        p.save()
+        # self.player.save() is done in inheriting class!
 
 class DataDenPlayerStats(AbstractDataDenParseable):
 
