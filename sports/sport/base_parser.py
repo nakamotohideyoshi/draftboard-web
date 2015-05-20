@@ -362,6 +362,10 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             self.ps.player  = p
             self.ps.game    = g
 
+        self.ps.position            = o.get('position',             None)
+        self.ps.primary_position    = o.get('primary_position',     None)
+
+
 class DataDenGameBoxscores(AbstractDataDenParseable):
 
     gameboxscore_model  = None

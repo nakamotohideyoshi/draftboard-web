@@ -1,6 +1,8 @@
 #
 # sports/mlb/models.py
 
+from django.contrib.contenttypes.models import ContentType
+
 from django.db import models
 import sports.models
 
@@ -125,15 +127,14 @@ class Player( sports.models.Player ):
 
 class PlayerStats( sports.models.PlayerStats ):
 
-    player  = models.ForeignKey(Player, null=False)
-    game    = models.ForeignKey(Game, null=False)
+    # player  = models.ForeignKey(Player, null=False)
+    # game    = models.ForeignKey(Game, null=False)
 
     play    = models.BooleanField(default=False, null=False) # indicates they PLAYED in the game
     start   = models.BooleanField(default=False, null=False) # indicates they STARTED the game
 
     class Meta:
         abstract = True
-        unique_together = ('player','game')
 
 class PlayerStatsHitter(PlayerStats):
 
