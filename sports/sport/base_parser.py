@@ -90,7 +90,7 @@ class DataDenTeamHierachy(AbstractDataDenParseable):
         #     "conference__id" : "3960cfac-7361-4b30-bc25-8d393de6f62f",
         #     "division__id" : "54dc7348-c1d2-40d8-88b3-c4c0138e085d",
         #     "venue" : "b67d5f09-28b2-5bc6-9097-af312007d2f4"
-        # }
+        #   }
 
         o = obj.get_o() # strip off the oplog wrapper
 
