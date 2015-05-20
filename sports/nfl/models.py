@@ -5,14 +5,27 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 import sports.models
+from django.db.models.signals import post_save
 
 # Any classes that still have the abtract = True, just havent been migrated/implemented yet!
+
+DST_PLAYER_LAST_NAME    = 'DST'
+DST_POSITION            = 'DST'
 
 class Season( sports.models.Season ):
     class Meta:
         abstract = False
 
 class Team( sports.models.Team ):
+    """
+
+    !!!!
+    NOTE: there is a special signal hooked up to the post_save of
+            this model. that signal creates the "dst player" that
+            is related to this team. (we dont get DST's by default!)
+
+
+    """
 
     # db.team.findOne({'parent_api__id':'hierarchy'})
     # {
@@ -52,6 +65,8 @@ class Game( sports.models.Game ):
     srid_away   = models.CharField(max_length=64, null=False,
                                 help_text='away team sportsradar global id')
     title       = models.CharField(max_length=128, null=True)
+
+    weather_json = models.CharField(max_length=512, null=False)
 
     class Meta:
         abstract = False
@@ -93,6 +108,7 @@ class PlayerStats( sports.models.PlayerStats ):
     player  = models.ForeignKey(Player, null=False)
     game    = models.ForeignKey(Game, null=False)
 
+    #
     class Meta:
         abstract = False
 
@@ -111,3 +127,27 @@ class RosterPlayer( sports.models.RosterPlayer ):
 class Venue( sports.models.Venue ):
     class Meta:
         abstract = True # TODO
+
+def create_dst_player(sender, **kwargs):
+    """
+ signal handler to create the DST Player object after a Team object is created.
+    """
+    if 'created' in kwargs:
+        if kwargs['created']:
+            instance = kwargs['instance']
+            # ctype = ContentType.objects.get_for_model(instance)
+            # entry = Player.objects.get_or_create(content_type=ctype,
+            #                                         object_id=instance.id,
+            #                                         pub_date=instance.pub_date)
+            print( 'DEBUG: hi im the signal --', type(instance) )
+            dst = Player()
+            dst.team        = instance
+            dst.srid        = instance.srid     #
+            dst.first_name  = instance.name     # ie: "Patriots"
+            dst.last_name   = DST_PLAYER_LAST_NAME
+            dst.position    = DST_POSITION
+            dst.primary_position = DST_POSITION
+            dst.status      = ''
+            dst.save() # commit changes
+
+post_save.connect(create_dst_player, sender=Team)
