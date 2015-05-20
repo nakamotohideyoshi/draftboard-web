@@ -87,8 +87,10 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
 
         #
         # to determined a dbl-dbl or triple-dbl, we have to pass the whole object
-        total += self.double_double( self.get_dbl_dbl(player_stats) )
-        total += self.triple_double( self.get_tpl_dbl(player_stats) )
+        if self.get_tpl_dbl(player_stats):
+            total += self.triple_double( self.get_tpl_dbl(player_stats) )
+        else:
+            total += self.double_double( self.get_dbl_dbl(player_stats) )
         return total
 
     def points(self, value):
