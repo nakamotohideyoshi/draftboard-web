@@ -43,8 +43,6 @@ class Game( sports.models.Game ):
 
 class GameBoxscore( sports.models.GameBoxscore ):
 
-    home        = models.ForeignKey(Team, null=False, related_name='gameboxscore_home')
-    away        = models.ForeignKey(Team, null=False, related_name='gameboxscore_away')
     clock       = models.CharField(max_length=16, null=False, default='')
     period     = models.CharField(max_length=16, null=False, default='')
 

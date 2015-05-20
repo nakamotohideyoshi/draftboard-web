@@ -1,6 +1,7 @@
 #
 # sports/nfl/parser.py
 
+import sports.nfl.models
 from sports.nfl.models import Team, Game, Player, PlayerStats, GameBoxscore
 
 from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
@@ -232,14 +233,25 @@ class PlayerStats(DataDenPlayerStats):
     ***** The main point: Make sure to update stats in all categories for each player!!
     """
 
+    game_model          = Game
+    player_model        = Player
+    player_stats_model  = sports.nfl.models.PlayerStats
+
     def __init__(self):
         super().__init__()
 
     def parse(self, obj):
         super().parse(obj)   # sets up self.ps  (the PlayerStats instance - may be None)
 
+        if self.p is None or self.ps is None or self.g is None:
+            return
+
         # if self.ps is None:
         o = obj.get_o()
+
+        # nfl only has 'position' -- there is no concept of 'primary_position', so use 'position'
+        self.ps.position            = self.p.position # copy the dst Player's position in here
+        self.ps.primary_position    = self.p.position # copy the dst Player's position in here
 
         parent_list = o.get('parent_list__id', None)
 
@@ -288,6 +300,189 @@ class PlayerStats(DataDenPlayerStats):
             print( 'obj parent_list__id was not found !')
             return
 
+        self.ps.save()
+
+class DstStats(DataDenPlayerStats):
+    """
+    Similar to PlayerStats, also inherits from DataDenPlayerStats!
+    """
+
+    game_model          = Game
+    player_model        = Player
+    player_stats_model  = sports.nfl.models.PlayerStats
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj):
+        super().parse(obj)   # sets up self.ps  (the PlayerStats instance - may be None)
+
+        if self.p is None or self.ps is None or self.g is None:
+            return
+
+        # if self.ps is None:
+        o = obj.get_o()
+
+        defense_list    = o.get('defense__list', {})
+
+        self.ps.position            = self.p.position # copy the dst Player's position in here
+        self.ps.primary_position    = self.p.position # copy the dst Player's position in here
+
+        self.ps.sack    = defense_list.get('sack',      0)
+        self.ps.ints    = defense_list.get('int',       0)
+        self.ps.fum_rec = defense_list.get('fum_rec',   0)
+
+        self.ps.sfty    = defense_list.get('sfty',      0)
+        self.ps.blk_kick = defense_list.get('bk',       0)
+
+        # defensive touchdowns can happen in a handful of ways:
+        touchdowns_list             = o.get('touchdowns__list', {})
+        blocked_punt_return_list    = o.get('blocked_punt_return__list', {})
+        field_goal_return_list      = o.get('field_goal_return__list',  {})
+        blocked_fg_return_list      = o.get('blocked_field_goal_return__list', {})
+        passing_list                = o.get('passing__list', {})
+        fumble_list                 = o.get('fumble__list', {})
+        rushing_list                = o.get('rushing__list', {})
+        punting_list                = o.get('punting__list', {})
+
+        self.ps.ret_kick_td     = touchdowns_list.get('kick_ret', 0)
+        self.ps.ret_punt_td     = touchdowns_list.get('punt_ret', 0) # will NOT include BLOCKED punt return tds!
+        self.ps.ret_int_td      = touchdowns_list.get('int',      0)
+        self.ps.ret_fum_td      = touchdowns_list.get('fum_ret',  0)
+        self.ps.ret_blk_punt    = blocked_punt_return_list.get('td', 0)
+        self.ps.ret_fg_td       = field_goal_return_list.get('td', 0)
+        self.ps.ret_blk_fg_td   = blocked_fg_return_list.get('td', 0)
+
+        self.ps.int_td_against  = passing_list.get('int_td', 0)
+        self.ps.fum_td_against  = fumble_list.get('opp_rec_td', 0)
+
+        #
+        # get the safeties the offense has committed, because it wont count against DST points allowed!
+        self.off_pass_sfty      = passing_list.get('sfty', 0)     # this team's OFFENSE got safetied
+        self.off_rush_sfty      = rushing_list.get('sfty', 0)
+        self.off_punt_sfty      = punting_list.get('sfty', 0)
+
+        self.ps.save()
+
+class GameBoxscores(DataDenGameBoxscores):
+
+    gameboxscore_model  = GameBoxscore
+    team_model          = Team
+
+    def __init__(self):
+        super().__init__()
+
+        self.HOME       = 'home' # override parent field name for HOME
+        self.AWAY       = 'away' # override parent field name for AWAY
+
+    def parse(self, obj):
+        """
+        :param obj:
+        :return:
+        """
+
+        # "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDIwMDQ4OTc4LTBmNDMtNDc1NS1hNmRlLWUyZDZiM2IzZmNkMg==",
+        # "away" : "ARI",
+        #X "clock" : ":00",
+        # "completed" : "2015-01-04T00:54:36+00:00",
+        # "home" : "CAR",
+        # "id" : "20048978-0f43-4755-a6de-e2d6b3b3fcd2",
+        # "quarter" : 4,
+        # "scheduled" : "2015-01-03T21:20:00+00:00",
+        #X "status" : "closed",
+        # "xmlns" : "http://feed.elasticstats.com/schema/nfl/boxscore-v1.0.xsd",
+        # "parent_api__id" : "boxscores",
+        # "dd_updated__id" : NumberLong("1432078858338"),
+        # "teams" : [
+        #     {
+        #         "team" : "CAR"
+        #     },
+        #     {
+        #         "team" : "ARI"
+        #     }
+        # ],
+        super().parse( obj )
+
+        o = obj.get_o()
+        self.boxscore.clock     = o.get('clock',    '')
+        self.boxscore.quarter   = o.get('quarter',  '')
+        self.completed          = o.get('completed', '')
+
+        self.boxscore.save()
+
+class TeamBoxscores(DataDenTeamBoxscores):
+
+    gameboxscore_model  = GameBoxscore
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj):
+        """
+        :param obj:
+        :return:
+        """
+        # "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZDIwMDQ4OTc4LTBmNDMtNDc1NS1hNmRlLWUyZDZiM2IzZmNkMmlkQ0FS",
+        # "id" : "CAR",
+        # "market" : "Carolina",
+        # "name" : "Panthers",
+        # "remaining_challenges" : 2,
+        # "remaining_timeouts" : 2,
+        # "parent_api__id" : "boxscores",
+        # "dd_updated__id" : NumberLong("1432078858338"),
+        # "game__id" : "20048978-0f43-4755-a6de-e2d6b3b3fcd2",
+        # "scoring__list" : {
+        #     "points" : 27,
+        #     "quarters" : [
+        #         {
+        #             "quarter" : {
+        #                 "number" : 1,
+        #                 "points" : 10
+        #             }
+        #         },
+        #         {
+        #             "quarter" : {
+        #                 "number" : 2,
+        #                 "points" : 3
+        #             }
+        #         },
+        #         {
+        #             "quarter" : {
+        #                 "number" : 3,
+        #                 "points" : 14
+        #             }
+        #         },
+        #         {
+        #             "quarter" : {
+        #                 "number" : 4,
+        #                 "points" : 0
+        #             }
+        #         }
+        #     ]
+        # }
+
+        super().parse( obj )
+
+        o = obj.get_o()
+
+        srid_team           = o.get('id', None)
+        scoring_list        = o.get('scoring__list', {})
+        points              = scoring_list.get('points', 0)
+        scoring_list_json   = json.loads( json.dumps( scoring_list ) )
+
+        if srid_team == self.boxscore.srid_home:
+            self.boxscore.home_score = points
+            self.boxscore.home_scoring_json = scoring_list_json
+        elif srid_team == self.boxscore.srid_away:
+            self.boxscore.away_score = points
+            self.boxscore.away_scoring_json = scoring_list_json
+        else:
+            print( str(o) )
+            print( 'TeamBoxscores srid_team[%s] did not match either home or away team!' % srid_team)
+            return
+
+        self.boxscore.save()
+
 class DataDenNfl(AbstractDataDenParser):
 
     def __init__(self):
@@ -307,9 +502,12 @@ class DataDenNfl(AbstractDataDenParser):
         #
         # nfl.game
         if self.target == ('nfl.game','schedule'): GameSchedule().parse( obj )
+        elif self.target == ('nfl.game','boxscores'): GameBoxscores().parse( obj )
         #
         # nfl.team
         elif self.target == ('nfl.team','hierarchy'): TeamHierarchy().parse( obj )
+        elif self.target == ('nfl.team','stats'): DstStats().parse( obj )
+        elif self.target == ('nfl.team','boxscores'): TeamBoxscores().parse( obj )
         #
         # nfl.player
         elif self.target == ('nfl.player','rosters'): PlayerRosters().parse( obj )

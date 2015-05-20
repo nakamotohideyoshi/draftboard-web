@@ -18,10 +18,28 @@ class PlayerAdmin(admin.ModelAdmin):
 
 @admin.register(sports.nfl.models.PlayerStats)
 class PlayerStatsAdmin(admin.ModelAdmin):
-    list_display = ['game','player']
+    list_display = [
+        'game','player',
 
-# @admin.register(sports.nfl.models.GameBoxscore)
-# class GameBoxscoreAdmin(admin.ModelAdmin):
-#     list_display = ['srid_game','status','title','home_score','home',
-#                     'away','away_score','quarter','clock','coverage',
-#                     'home_scoring_json','away_scoring_json']
+        # passing stats, receiving, rushing:
+        'pass_td','pass_yds','pass_int',
+        'rush_td','rush_yds',
+        'rec_td','rec_yds','rec_rec',
+        'off_fum_lost','off_fum_rec_td',
+        'two_pt_conv',
+
+        # dst related:
+        'sack','ints','fum_rec','sfty','blk_kick',
+        'ret_kick_td','ret_punt_td','ret_int_td',
+        'ret_fum_td','ret_blk_punt_td','ret_fg_td',
+
+        # related to dst points allowed:
+        'int_td_against','fum_td_against',
+        'off_pass_sfty','off_rush_sfty','off_punt_sfty'
+    ]
+
+@admin.register(sports.nfl.models.GameBoxscore)
+class GameBoxscoreAdmin(admin.ModelAdmin):
+    list_display = ['srid_game','status','title','home_score','home',
+                    'away','away_score','quarter','clock','coverage',
+                    'home_scoring_json','away_scoring_json']
