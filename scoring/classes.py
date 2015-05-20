@@ -342,3 +342,214 @@ class NhlSalaryScoreSystem(AbstractScoreSystem):
         return val * self.get_value_of(self.GA)
     def shutout(self, val):
         return int(val) * self.get_value_of(self.SHUTOUT)
+
+class NflSalaryScoreSystem(AbstractScoreSystem):
+    """
+    defines the NFL Salary draft scoring metrics
+    """
+
+    PASS_TD     = 'pass-td'         # thrown touchdowns
+    PASS_YDS    = 'pass-yds'        # pts per passing yard
+    PASS_BONUS  = 'pass-bonus'      # bonus for passing 300+ yards
+    PASS_INT    = 'pass-int'        # passed interceptions
+
+    RUSH_YDS    = 'rush-yds'        # rushing points per yard
+    RUSH_TD     = 'rush-td'         # rushed touchdowns
+    RUSH_BONUS  = 'rush-bonus'      # bonus for rushing 100+ yards
+
+    REC_YDS     = 'rec-yds'         # receiving points per yard
+    REC_TD      = 'rec-td'          # receiving touchdowns
+    REC_BONUS   = 'rec-bonus'       # bonus for receiving 100+ yards
+
+    PPR         = 'ppr'             # points per reception
+
+    FUMBLE_LOST = 'fumble-lost'     # fumble lost (offensive player)
+    TWO_PT_CONV = 'two-pt-conv'     # passed, rushed, or received succesful 2-pt conversion
+    OFF_FUM_TD  = 'off-fum-td'      # offensive fumble recovered for TD (unique situation)
+
+    # -- dst scoring --
+    SACK        = 'sack'                # sacks
+    INTS        = 'ints'                # interceptions
+    FUM_REC     = 'fum-rec'             # fumble recoveries
+    KICK_RET_TD     = 'kick-ret-td'         # kickoff returned for TD
+    PUNT_RET_TD     = 'punt-ret-td'         # punt returned for TD
+    INT_RET_TD      = 'int-ret-td'          # int returned for TD
+    FUM_RET_TD      = 'fum-ret-td'          # fumble recovered for TD
+    BLK_PUNT_RET_TD = 'blk-punt-ret-td' # blocked punt returned for TD
+    FG_RET_TD       = 'fg-ret-td'           # missed FG, returned for TD
+    BLK_FG_RET_TD   = 'blk-fg-ret-td'
+
+    SAFETY      = 'safety'              # safeties
+    BLK_KICK    = 'blk-kick'            # blocked kick
+
+    PA_0        = 'pa-0'        # 0 points allowed
+    PA_6        = 'pa-6'        # 6 or less points allowed
+    PA_13       = 'pa-13'       # 13 or less points allowed
+    PA_20       = 'pa-20'       # 20 or less points allowed
+    PA_27       = 'pa-27'       # 27 or less points allowed
+    PA_34       = 'pa-34'       # 34 or less points allowed
+    PA_35_PLUS  = 'pa-35plus'   # 35 or MORE points allowed
+
+    def __init__(self):
+        self.score_system = ScoreSystem.objects.get(sport='nfl', name='salary')
+
+        self.PASSING_BONUS_REQUIRED_YDS = 300
+        self.RUSHING_BONUS_REQUIRED_YDS = 100
+        self.RECEIVING_BONUS_REQUIRED_YDS = 100
+
+        # call super last - ensures you have class variables setup
+        super().__init__()
+
+    def score_player(self, player_stats):
+        """
+        scores and returns a float for the amount of fantasy points for this PlayerStats instance
+
+        :param player_stats:
+        :return:
+        """
+        total = 0.0
+
+        # passing
+        total += self.passing_yds(player_stats.pass_yds)
+        total += self.passing_tds(player_stats.pass_td)
+        total += self.passing_bonus(int(player_stats.pass_yds >= self.PASSING_BONUS_REQUIRED_YDS))
+        total += self.passing_interceptions(player_stats.pass_int)
+        # rushing
+        total += self.rushing_yds(player_stats.rush_yds)
+        total += self.rushing_tds(player_stats.rush_td)
+        total += self.rushing_bonus(int(player_stats.rush_yds >= self.RUSHING_BONUS_REQUIRED_YDS))
+        # receiving
+        total += self.receiving_yds(player_stats.rec_yds)
+        total += self.receiving_tds(player_stats.rec_td)
+        total += self.receiving_bonus(int(player_stats.rec_yds >= self.RECEIVING_BONUS_REQUIRED_YDS))
+        total += self.ppr(player_stats.rec_rec)
+        # misc
+        total += self.fumble_lost(player_stats.off_fum_lost)
+        total += self.two_pt_conversion(player_stats.two_pt_conv)
+        total += self.offensive_fumble_td(player_stats.off_fum_rec_td)
+
+        #
+        # dst scoring
+        total += self.sacks(player_stats.sack)
+        total += self.interceptions(player_stats.ints)
+        total += self.fumble_recoveries(player_stats.fum_rec)
+        total += self.safeties(player_stats.sfty)
+        total += self.blocked_kicks(player_stats.blk_kick)
+        # dst touchdowns
+        total += self.kick_return_tds(player_stats.ret_kick_td)
+        total += self.punt_return_tds(player_stats.ret_punt_td)
+        total += self.interception_return_tds(player_stats.ret_int_td)
+        total += self.fumble_return_tds(player_stats.ret_fum_td)
+        total += self.blocked_punt_return_tds(player_stats.ret_blk_punt_td)
+        total += self.field_goal_return_tds(player_stats.ret_fg_td)
+
+        dst_pa = self.get_dst_points_allowed(player_stats)
+        total += self.get_dst_pa_bracket_points( dst_pa )
+
+        return total
+
+    # offensive scoring methods below:
+    def passing_yds(self, val):
+        return val * self.get_value_of(self.PASS_YDS)
+    def passing_tds(self, val):
+        return val * self.get_value_of(self.PASS_TD)
+    def passing_bonus(self, val):
+        return val * self.get_value_of(self.PASS_BONUS)
+    def passing_interceptions(self, val):
+        return val * self.get_value_of(self.PASS_INT)
+    def rushing_yds(self, val):
+        return val * self.get_value_of(self.RUSH_YDS)
+    def rushing_tds(self, val):
+        return val * self.get_value_of(self.RUSH_TD)
+    def rushing_bonus(self, val):
+        return val * self.get_value_of(self.RUSH_BONUS)
+    def receiving_yds(self, val):
+        return val * self.get_value_of(self.REC_YDS)
+    def receiving_tds(self, val):
+        return val * self.get_value_of(self.REC_TD)
+    def receiving_bonus(self, val):
+        return val * self.get_value_of(self.REC_BONUS)
+    def ppr(self, val):
+        return val * self.get_value_of(self.PPR)
+    def fumble_lost(self, val):
+        return val * self.get_value_of(self.FUMBLE_LOST)
+    def two_pt_conversion(self, val):
+        return val * self.get_value_of(self.TWO_PT_CONV)
+    def offensive_fumble_td(self, val):
+        return val * self.get_value_of(self.OFF_FUM_TD)
+
+    # defensive scoring methods below:
+    def sacks(self, val):
+        return val * self.get_value_of(self.SACK)
+    def interceptions(self, val):
+        return val * self.get_value_of(self.INTS)
+    def fumble_recoveries(self, val):
+        return val * self.get_value_of(self.FUM_REC)
+    # types of return touchdowns
+    def kick_return_tds(self, val):
+        return val * self.get_value_of(self.KICK_RET_TD)
+    def punt_return_tds(self, val):
+        return val * self.get_value_of(self.PUNT_RET_TD)
+    def interception_return_tds(self, val):
+        return val * self.get_value_of(self.INT_RET_TD)
+    def fumble_return_tds(self, val):
+        return val * self.get_value_of(self.FUM_RET_TD)
+    def blocked_punt_return_tds(self, val):
+        return val * self.get_value_of(self.BLK_PUNT_RET_TD)
+    def field_goal_return_tds(self, val):
+        return val * self.get_value_of(self.FG_RET_TD)
+    def blocked_field_goal_return_tds(self, val):
+        return val * self.get_value_of(self.BLK_FG_RET_TD)
+    # misc dst
+    def safeties(self, val): # safety
+        return val * self.get_value_of(self.SAFETY)
+    def blocked_kicks(self, val): # blocked kick (punts, fgs)
+        return val * self.get_value_of(self.BLK_KICK)
+
+    def get_dst_points_allowed(self, player_stats): # dst points allowed
+        """
+        DST fantasy scoring is based on the "points the DST has allowed".
+        This does not include points the teams Offense has allowed!
+        We disregard 6 points for interceptions and fumbles returned for TDs,
+        as well as 2 points for safeties against the offense for which the DST plays.
+
+        :param player_stats:
+        :return:
+        """
+        opp_total_points = 0 # TODO - get the nominal number of points the opposing team scored
+        dst_points_allowed = opp_total_points
+        dst_points_allowed -= player_stats.int_td_against
+        dst_points_allowed -= player_stats.fum_td_against
+        dst_points_allowed -= player_stats.off_pass_sfty
+        dst_points_allowed -= player_stats.off_rush_sfty
+        dst_points_allowed -= player_stats.off_punt_sfty
+        return dst_points_allowed
+
+    def get_dst_pa_bracket_points(self, dst_pa):
+        """
+        this method returns the fantasy points bonus associated with
+        how few (or a potential penalty) points the DST allowed in the game.
+        The "dst_pa" is points the opposing team scored against the DST only.
+        Ie: "dst_pa" does not include points which their offense gave up,
+        which result from interecption/fumble return TDs and safeties.
+
+        "dst_pa" includes, but is not limited to: extra points, field goals,
+        passing/rushing/receiving/kick-return/punt-return tds.
+
+        :param dst_pa:
+        :return:
+        """
+        if dst_pa <= 0:
+            return self.get_value_of(self.PA_0) # 0 points allowed bracket
+        elif dst_pa <= 6:
+            return self.get_value_of(self.PA_6)
+        elif dst_pa <= 13:
+            return self.get_value_of(self.PA_13)
+        elif dst_pa <= 20:
+            return self.get_value_of(self.PA_20)
+        elif dst_pa <= 27:
+            return self.get_value_of(self.PA_27)
+        elif dst_pa <= 34:
+            return self.get_value_of(self.PA_34)
+        else:
+            return self.get_value_of(self.PA_35_PLUS)
