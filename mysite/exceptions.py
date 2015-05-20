@@ -82,3 +82,7 @@ class PromoCodeExpiredException(Exception):
 class CanNotRemovePromoCodeException(Exception):
     def __init__(self, class_name, variable_name):
        super().__init__('The promo code does not exist for the user.')
+
+class NullModelValuesException(Exception):
+    def __init__(self, class_name, model_name):
+       super().__init__('In the '+class_name+' the model has null values for the object '+ model_name)
