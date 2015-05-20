@@ -155,7 +155,7 @@ class PlayerStats(models.Model):
 
     class Meta:
         abstract = True
-        unique_together = ('player','game')
+        unique_together = ('srid_player','srid_game')
 
 
 class PlayerStatsSeason(models.Model):
