@@ -1,4 +1,5 @@
 from transaction.models import TransactionDetail, Balance
+from sports.models import Game, PlayerStats, Player
 
 
 
@@ -9,4 +10,14 @@ class TransactionDetailChild(TransactionDetail):
     pass
 
 class BalanceChild(Balance):
+    pass
+
+
+class GameChild(Game):
+    pass
+
+class PlayerChild(Player):
+    pass
+
+class PlayerStatsChild(PlayerStats):
     pass
