@@ -61,6 +61,16 @@ class GameBoxscore(models.Model):
     srid_home   = models.CharField(max_length=64, null=False)
     srid_away   = models.CharField(max_length=64, null=False)
 
+    # the GFK to the home team
+    home_type           = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_home_team')
+    home_id             = models.PositiveIntegerField()
+    home                = GenericForeignKey('home_type', 'home_id')
+
+    # the GFK to the away team
+    away_type         = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_away_team')
+    away_id           = models.PositiveIntegerField()
+    away              = GenericForeignKey('away_type', 'away_id')
+
     attendance  = models.IntegerField(default=0, null=False)
     coverage    = models.CharField(max_length=16, null=False, default='')
     status      = models.CharField(max_length=64, null=False, default='')

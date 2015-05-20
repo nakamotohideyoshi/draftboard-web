@@ -9,8 +9,8 @@ from django.db.models.signals import post_save
 
 # Any classes that still have the abtract = True, just havent been migrated/implemented yet!
 
-DST_PLAYER_LAST_NAME    = 'DST'
-DST_POSITION            = 'DST'
+DST_PLAYER_LAST_NAME    = 'DST' # dst Player objects last_name
+DST_POSITION            = 'DST' # dont change this
 
 class Season( sports.models.Season ):
     class Meta:
@@ -72,8 +72,12 @@ class Game( sports.models.Game ):
         abstract = False
 
 class GameBoxscore( sports.models.GameBoxscore ):
+    clock       = models.CharField(max_length=16, null=False, default='')
+    completed   = models.CharField(max_length=64, null=False, default='')
+    quarter     = models.CharField(max_length=16, null=False, default='')
+
     class Meta:
-        abstract = True
+        abstract = False
 
 class Player( sports.models.Player ):
     """
@@ -147,6 +151,15 @@ class PlayerStats( sports.models.PlayerStats ):
     # misc
     sfty            = models.IntegerField(default=0, null=False)
     blk_kick        = models.IntegerField(default=0, null=False)
+
+    # stats which factor into the DST "points allowed"
+    #  ... includes safeties against the teams offense,
+    #      plus interceptions and fumbles returned for TDs!
+    int_td_against  = models.IntegerField(default=0, null=False)
+    fum_td_against  = models.IntegerField(default=0, null=False)
+    off_pass_sfty   = models.IntegerField(default=0, null=False)
+    off_rush_sfty   = models.IntegerField(default=0, null=False)
+    off_punt_sfty   = models.IntegerField(default=0, null=False)
 
     class Meta:
         abstract = False
