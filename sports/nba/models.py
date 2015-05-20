@@ -150,10 +150,12 @@ class PlayerStats( sports.models.PlayerStats ):
     # 'starter': 'true'
     # }
 
-    player  = models.ForeignKey(Player, null=False)
-    game    = models.ForeignKey(Game, null=False)
+    # player  = models.ForeignKey(Player, null=False)
+    # game    = models.ForeignKey(Game, null=False)
+
 
     #content_type    = models.ForeignKey(ContentType, related_name='nba_playerstats')
+
 
     #   { 'defensive_rebounds': 1.0,
     defensive_rebounds = models.FloatField(null=False, default=0.0)

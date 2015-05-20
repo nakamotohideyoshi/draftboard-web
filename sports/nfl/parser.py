@@ -236,10 +236,57 @@ class PlayerStats(DataDenPlayerStats):
         super().__init__()
 
     def parse(self, obj):
-        super().parse(obj)   # sets up the unsaved PlayerStats instance for us
+        super().parse(obj)   # sets up self.ps  (the PlayerStats instance - may be None)
 
+        # if self.ps is None:
         o = obj.get_o()
 
+        parent_list = o.get('parent_list__id', None)
+
+        if parent_list == "touchdowns__list":
+            pass # TODO
+        elif parent_list == "rushing__list":
+            self.ps.rush_td     = o.get('td',   0)
+            self.ps.rush_yds    = o.get('yds',  0)
+        elif parent_list == "receiving__list":
+            self.ps.rec_td      = o.get('td',   0)
+            self.ps.rec_yds     = o.get('yds',  0)
+            self.ps.rec_rec     = o.get('rec',  0)
+        elif parent_list == "punting__list":
+            pass # TODO
+        elif parent_list == "punt_return__list":
+            pass # TODO
+        elif parent_list == "penalty__list":
+            pass # TODO
+        elif parent_list == "passing__list":
+            self.ps.pass_td     = o.get('td',   0)
+            self.ps.pass_yds    = o.get('yds',  0)
+            self.ps.pass_int    = o.get('int',  0)
+        elif parent_list == "kickoffs__list":
+            pass # TODO
+        elif parent_list == "kick_return__list":
+            pass # TODO
+        elif parent_list == "fumbles__list":
+            self.ps.off_fum_lost    = o.get('lost',         0)
+            self.ps.off_fum_rec_td  = o.get('own_rec_td',   0)
+        elif parent_list == "first_downs__list":
+            pass # TODO
+        elif parent_list == "field_goal__list":
+            pass # TODO
+        elif parent_list == "extra_point__list":
+            pass # TODO
+        elif parent_list == "two_point_conversion__list":
+            self.ps.two_pt_conv     = o.get('pass',0) + o.get('rec',0) + o.get('rush',0)
+        elif parent_list == "blocked_field_goal_return__list":
+            pass # TODO
+        elif parent_list == "blocked_punt_return__list":
+            pass # TODO
+        elif parent_list == 'field_goal_return__list':
+            pass # TODO
+        else:
+            print( str(o) )
+            print( 'obj parent_list__id was not found !')
+            return
 
 class DataDenNfl(AbstractDataDenParser):
 

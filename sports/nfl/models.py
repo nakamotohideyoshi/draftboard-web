@@ -105,10 +105,49 @@ class Player( sports.models.Player ):
 
 class PlayerStats( sports.models.PlayerStats ):
 
-    player  = models.ForeignKey(Player, null=False)
-    game    = models.ForeignKey(Game, null=False)
+    # player  = models.ForeignKey(Player, null=False)
+    # game    = models.ForeignKey(Game, null=False)
+
+    # passing
+    pass_td     = models.IntegerField(default=0, null=False)
+    pass_yds    = models.IntegerField(default=0, null=False)
+    pass_int    = models.IntegerField(default=0, null=False)
+
+    # rushing
+    rush_td     = models.IntegerField(default=0, null=False)
+    rush_yds    = models.IntegerField(default=0, null=False)
+
+    # receiving
+    rec_td      = models.IntegerField(default=0, null=False)
+    rec_yds     = models.IntegerField(default=0, null=False)
+    rec_rec     = models.IntegerField(default=0, null=False)
+
+    # (offensive) fumbles lost
+    off_fum_lost = models.IntegerField(default=0, null=False)
+    # (offensive) fum recovery for td
+    off_fum_rec_td = models.IntegerField(default=0, null=False)
+
+    # 2 point conversion
+    two_pt_conv     = models.IntegerField(default=0, null=False)
 
     #
+    # defensive stats:
+    sack            = models.IntegerField(default=0, null=False)
+    ints            = models.IntegerField(default=0, null=False)
+    fum_rec         = models.IntegerField(default=0, null=False)
+
+    # return tds
+    ret_kick_td     = models.IntegerField(default=0, null=False)
+    ret_punt_td     = models.IntegerField(default=0, null=False)
+    ret_int_td      = models.IntegerField(default=0, null=False)
+    ret_fum_td      = models.IntegerField(default=0, null=False)
+    ret_blk_punt_td = models.IntegerField(default=0, null=False)
+    ret_fg_td       = models.IntegerField(default=0, null=False)
+
+    # misc
+    sfty            = models.IntegerField(default=0, null=False)
+    blk_kick        = models.IntegerField(default=0, null=False)
+
     class Meta:
         abstract = False
 

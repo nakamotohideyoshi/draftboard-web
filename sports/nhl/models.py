@@ -81,8 +81,8 @@ class Player( sports.models.Player ):
 
 class PlayerStats( sports.models.PlayerStats ):
 
-    player  = models.ForeignKey(Player, null=False)
-    game    = models.ForeignKey(Game, null=False)
+    # player  = models.ForeignKey(Player, null=False)
+    # game    = models.ForeignKey(Game, null=False)
 
     # skater stats
     goal    = models.IntegerField(default=0, null=False)
