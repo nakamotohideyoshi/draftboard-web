@@ -59,8 +59,8 @@ class Game( sports.models.Game ):
 class GameBoxscore( sports.models.GameBoxscore ):
 
     # srid_home   = models.CharField(max_length=64, null=False)
-    home        = models.ForeignKey(Team, null=False, related_name='gameboxscore_home')
-    away        = models.ForeignKey(Team, null=False, related_name='gameboxscore_away')
+    #home        = models.ForeignKey(Team, null=False, related_name='gameboxscore_home')
+    #away        = models.ForeignKey(Team, null=False, related_name='gameboxscore_away')
     # srid_away   = models.CharField(max_length=64, null=False)
     #
     # attendance  = models.IntegerField(default=0, null=False)
