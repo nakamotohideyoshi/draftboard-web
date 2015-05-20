@@ -147,6 +147,7 @@ class PlayerStats( sports.models.PlayerStats ):
     ret_fum_td      = models.IntegerField(default=0, null=False)
     ret_blk_punt_td = models.IntegerField(default=0, null=False)
     ret_fg_td       = models.IntegerField(default=0, null=False)
+    ret_blk_fg_td   = models.IntegerField(default=0, null=False)
 
     # misc
     sfty            = models.IntegerField(default=0, null=False)

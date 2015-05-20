@@ -83,12 +83,13 @@ def load_initial_scoring_systems(apps, schema_editor):
             ('sack',        1.0),       # sacks
             ('ints',        2.0),       # interceptions
             ('fum-rec',     2.0),       # fumble recoveries
-            ('kick-ret-td', 6.0),       # kickoff returned for TD
-            ('punt-ret-td', 6.0),       # punt returned for TD
-            ('int-ret-td',  6.0),       # int returned for TD
-            ('fum-ret-td',  6.0),       # fumble recovered for TD
+            ('kick-ret-td',     6.0),       # kickoff returned for TD
+            ('punt-ret-td',     6.0),       # punt returned for TD
+            ('int-ret-td',      6.0),       # int returned for TD
+            ('fum-ret-td',      6.0),       # fumble recovered for TD
             ('blk-punt-ret-td', 6.0),   # blocked punt returned for TD
-            ('fg-ret-td',   6.0),       # missed FG, returned for TD
+            ('fg-ret-td',       6.0),       # missed FG, returned for TD
+            ('blk-fg-ret-td',   6.0),
             ('safety',      2.0),       # safeties
             ('blk-kick',    2.0),       # blocked kick
 
