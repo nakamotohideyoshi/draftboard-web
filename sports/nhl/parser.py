@@ -1,6 +1,6 @@
 #
 # sports/nhl/parser.py
-
+from scoring.classes import NhlSalaryScoreSystem
 from sports.nhl.models import Team, Game, Player, PlayerStats, GameBoxscore
 
 from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
@@ -42,6 +42,10 @@ class PlayerRosters(DataDenPlayerRosters):
     def __init__(self):
         super().__init__()
 
+    def parse(self, obj):
+        super().parse(obj)
+        self.player.save()
+
 class PlayerStats(DataDenPlayerStats):
 
     game_model          = Game
@@ -50,6 +54,7 @@ class PlayerStats(DataDenPlayerStats):
 
     def __init__(self):
         super().__init__()
+        self.scorer = NhlSalaryScoreSystem()
 
     def parse(self, obj):
 
@@ -85,6 +90,10 @@ class PlayerStats(DataDenPlayerStats):
         self.ps.saves       = goaltending_list.get('saves', 0)
         self.ps.ga          = goaltending_list.get('goals_against', 0)
         self.ps.shutout     = goaltending_list.get('shutout', '').lower() == "true"
+
+        #
+        # set the fantasy points
+        self.ps.fantasy_points = self.scorer.score_player( self.ps )
 
         self.ps.save() # commit changes
 

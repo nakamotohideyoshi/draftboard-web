@@ -129,14 +129,24 @@ class PlayerStats(models.Model):
     srid_player = models.CharField(max_length=64, null=False,
                             help_text='the sportsradar global id for the player')
 
-    # # the generic foreign key to the Player
-    # content_type    = models.ForeignKey(ContentType)
-    # object_id       = models.PositiveIntegerField()
-    # content_object  = GenericForeignKey()   # 'content_object', 'object_id'  are only necessary if custom
+    # the GFK to the Game
+    game_type           = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_sport_game')
+    game_id             = models.PositiveIntegerField()
+    game                = GenericForeignKey('game_type', 'game_id')
+
+    # the GFK to the Player
+    player_type         = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_sport_player')
+    player_id           = models.PositiveIntegerField()
+    player              = GenericForeignKey('player_type', 'player_id')
+
+    fantasy_points      = models.FloatField(default=0.0, null=False)
+    position            = models.CharField(max_length=16, null=False, default='')
+    primary_position    = models.CharField(max_length=16, null=False, default='')
 
     class Meta:
         abstract = True
-        unique_together = ('srid_game', 'srid_player')
+        unique_together = ('player','game')
+
 
 class PlayerStatsSeason(models.Model):
     class Meta:
