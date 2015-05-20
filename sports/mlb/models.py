@@ -58,9 +58,6 @@ class Game( sports.models.Game ):
 
 class GameBoxscore( sports.models.GameBoxscore ):
 
-    home        = models.ForeignKey(Team, null=False, related_name='gameboxscore_home')
-    away        = models.ForeignKey(Team, null=False, related_name='gameboxscore_away')
-
     day_night       = models.CharField(max_length=8, null=False, default='')
     game_number     = models.IntegerField(default=1, null=False)
     inning          = models.CharField(max_length=16, null=False, default='')

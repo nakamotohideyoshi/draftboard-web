@@ -316,7 +316,8 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         if self.player_stats_model is None:
             raise Exception('"player_stats_model" cant be None!')
 
-        self.ps = None # this will hold the PlayerStats object
+        self.p  = None  # the Player associated with the player stats
+        self.ps = None  # this will hold the PlayerStats object
 
         super().__init__()
 
@@ -337,7 +338,7 @@ class DataDenPlayerStats(AbstractDataDenParseable):
         srid_player = o.get('id', None)
 
         try:
-            p = self.player_model.objects.get(srid=srid_player)
+            self.p = self.player_model.objects.get(srid=srid_player)
         except self.player_model.DoesNotExist:
             # first_name  = o.get('first_name', None)
             # last_name   = o.get('last_name', None)
@@ -347,7 +348,7 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             return # dont create the playerstats then
 
         try:
-            g = self.game_model.objects.get(srid=srid_game)
+            self.g = self.game_model.objects.get(srid=srid_game)
         except self.game_model.DoesNotExist:
             print( str(o) )
             print('Game object for PlayerStats DoesNotExist')
@@ -359,8 +360,8 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             self.ps = self.player_stats_model()
             self.ps.srid_game    = srid_game
             self.ps.srid_player  = srid_player
-            self.ps.player  = p
-            self.ps.game    = g
+            self.ps.player  = self.p
+            self.ps.game    = self.g
 
         self.ps.position            = o.get('position',             None)
         self.ps.primary_position    = o.get('primary_position',     None)
@@ -378,6 +379,9 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
             raise Exception('"team_model" cant be None!')
 
         self.boxscore = None
+
+        self.HOME = 'home_team'
+        self.AWAY = 'away_team'
 
         super().__init__()
 
@@ -412,8 +416,8 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
 
         o = obj.get_o()
         srid_game   = o.get('id', None)
-        srid_home   = o.get('home_team', None)
-        srid_away   = o.get('away_team', None)
+        srid_home   = o.get(self.HOME, None)
+        srid_away   = o.get(self.AWAY, None)
 
         try:
             h = self.team_model.objects.get( srid=srid_home )
@@ -454,6 +458,8 @@ class DataDenTeamBoxscores(AbstractDataDenParseable):
             raise Exception('"gameboxscore_model" cant be None!')
 
         self.boxscore = None
+
+        self.POINTS = 'points' # default field name where points are found
 
         super().__init__()
 
