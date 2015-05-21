@@ -32,7 +32,9 @@ class GameSchedule(DataDenGameSchedule):
 
     def parse(self, obj):
         super().parse(obj)
-        self.game.save()
+
+        if self.game:
+            self.game.save()
 
 class PlayerRosters(DataDenPlayerRosters):
 
