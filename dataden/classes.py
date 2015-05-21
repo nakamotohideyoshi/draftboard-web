@@ -9,6 +9,7 @@ class Trigger(object):
     """
     retrieve a Trigger from the database by its pk, throws DoesNotExist
     """
+
     def __init__(self, pk):
         """
         assumes it exists since you are getting it by pk
@@ -86,6 +87,18 @@ class DataDen(object):
     def db(self, db_name):
         self.connect()
         return self.client.get_database( db_name )
+
+    def find(self, db, coll, parent_api, target={}):
+        """
+        Perform a mongo find( target ) on the namespace and parent_api!
+
+        'parent_api' is always added as a top level field of 'target' dictionary
+
+        :return:
+        """
+        coll = self.db( db ).get_collection(coll)
+        target[ self.PARENT_API__ID ] = parent_api
+        return coll.find( target )
 
     def enabled_sports(self):
         coll = self.db(self.DB_CONFIG).get_collection(self.COLL_SCHEDULE)
