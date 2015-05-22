@@ -8,17 +8,10 @@ class AbstractDataDenParser(object):
     """
     for parsing each individual sport, which will have some differences
     """
-    game_model = None
-
     def __init__(self):
-        self.validate_models()
-
         self.ns         = None
         self.parent_api = None
-
-    def validate_models(self):
-        if self.game_model is None:
-            raise Exception('game_model is not set')
+        self.o          = None
 
     def name(self):
         """
@@ -35,29 +28,40 @@ class AbstractDataDenParser(object):
         self.ns         = obj.get_ns()
         self.parent_api = obj.get_parent_api()
         self.target     = (self.ns, self.parent_api)
+        self.o          = obj.get_o()
 
         print ('%s.parse() | %s %s %s' % ( self.name(),
                self.ns, self.parent_api, str(obj.get_o()) ) )
-        #
+
         # child parse() will execute here -- they must call super().parse( obj )
-        #  then this class will have setup self.ns and self.parent_api for them
+        # then this class will have setup self.ns and self.parent_api for them
 
 class AbstractDataDenParseable(object):
     """
+    Essentially provides an interface via the 'parse()' method,
     for parsing a specific object from dataden mongo db,
-     specifically an object which has a namespace and a parent_api,
-     such as: nba.player stats
+    specifically an object which has a namespace and a parent_api,
+    such as: nba.player stats.
     """
 
     def __init__(self):
-        self.name = self.__class__.__name__
+        self.name   = self.__class__.__name__
+        self.o      = None
 
     def parse(self, obj, target=None):
+        """
+        Subclasses should call super().parse(obj,target) which
+        will strip the oplog wrapper from the obj, and set
+        the mongo object to self.o.
+        """
         print( self.name, str(obj)[:100], 'target='+str(target) )
+        self.o  = obj.get_o()
 
-class DataDenTeamHierachy(AbstractDataDenParseable):
+class DataDenTeamHierarchy(AbstractDataDenParseable):
     """
-    from dataden/mongo, parse the <sport>.team namespace for the parent_api: 'hierarchy',
+    Parse a team object form the hieraarchy feed (parent_api).
+
+    From dataden/mongo, parse the <sport>.team namespace for the parent_api: 'hierarchy',
     ie: parse a team from the the sport.
 
     this class should work as-is for nba and nhl,
@@ -92,7 +96,7 @@ class DataDenTeamHierachy(AbstractDataDenParseable):
         #     "venue" : "b67d5f09-28b2-5bc6-9097-af312007d2f4"
         #   }
 
-        o = obj.get_o() # strip off the oplog wrapper
+        o = self.o
 
         srid            = o.get('id',               None)
         srid_league     = o.get('league__id',       None)
@@ -145,32 +149,7 @@ class DataDenGameSchedule(AbstractDataDenParseable):
     def parse(self, obj, target=None):
         super().parse( obj, target )
 
-        # db.game.findOne({'parent_api__id':'schedule'})
-        # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRzY2hlZHVsZWxlYWd1ZV9faWQ0MzUzMTM4ZC00YzIyLTQzOTYtOTVkOC01ZjU4N2QyZGYyNWNzZWFzb24tc2NoZWR1bGVfX2lkNWJhM2NkNGQtNDk1Yi00NjgzLWJmYmUtNTZiYTJlYjg0Y2YycGFyZW50X2xpc3RfX2lkZ2FtZXNfX2xpc3RpZDVmYmQzMjk1LTMyY2EtNDQ1Zi1iYWY1LWM3YzAwODM1MTM5OA==",
-        #     "away_team" : "583ec8d4-fb46-11e1-82cb-f4ce4684ea4c",
-                            #     "coverage" : "full",
-        #     "home_team" : "583ecda6-fb46-11e1-82cb-f4ce4684ea4c",
-        #     "id" : "5fbd3295-32ca-445f-baf5-c7c008351398",
-        #     "scheduled" : "2015-04-18T16:30:00+00:00",
-        #     "status" : "closed",
-        #     "title" : "Game 1",
-                            #     "parent_api__id" : "schedule",
-                            #     "dd_updated__id" : NumberLong("1431472812731"),
-                            #     "league__id" : "4353138d-4c22-4396-95d8-5f587d2df25c",
-                            #     "season_schedule__id" : "5ba3cd4d-495b-4683-bfbe-56ba2eb84cf2",
-                            #     "parent_list__id" : "games__list",
-                            #     "venue" : "62cc9661-7b13-56e7-bf4a-bba7ad7be8da",
-        #     "home" : "583ecda6-fb46-11e1-82cb-f4ce4684ea4c",
-        #     "away" : "583ec8d4-fb46-11e1-82cb-f4ce4684ea4c",
-                            #     "broadcast__list" : {
-                            #         "internet" : "WatchESPN",
-                            #         "network" : "ESPN",
-                            #         "satellite" : 206
-                            #     }
-        # }
-
-        o = obj.get_o()
+        o = self.o
 
         srid        = o.get('id')
         start_str   = o.get('scheduled')
@@ -212,8 +191,8 @@ class DataDenGameSchedule(AbstractDataDenParseable):
 
 class DataDenPlayerRosters(AbstractDataDenParseable):
 
-    team_model = None
-    player_model = None
+    team_model      = None
+    player_model    = None
 
     def __init__(self):
         if self.team_model is None:
@@ -228,30 +207,7 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
     def parse(self, obj, target=None):
         super().parse( obj, target )
 
-        # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRyb3N0ZXJzdGVhbV9faWQ0NDE1NTkwOS0wZjI0LTExZTItODUyNS0xOGE5MDU3NjdlNDRwYXJlbnRfbGlzdF9faWRwbGF5ZXJzX19saXN0aWQyZmRmNTI4OS1lNmQwLTRlZDMtODJmMC1hZDk1ZmI5OGMwNjU=",
-        #     "abbr_name" : "M.Karlsson",
-        #     "birth_place" : "Lycksele,, SWE",
-        #     "birthdate" : "1990-07-18",
-        #     "first_name" : "Melker",
-        #     "full_name" : "Melker Karlsson",
-        #     "handedness" : "R",
-        #     "height" : 72,
-        #     "id" : "2fdf5289-e6d0-4ed3-82f0-ad95fb98c065",
-        #     "jersey_number" : 68,
-        #     "last_name" : "Karlsson",
-        #     "position" : "F",
-        #     "primary_position" : "C",
-        #     "status" : "ACT",
-        #     "updated" : "2014-12-09T20:19:44+00:00",
-        #     "weight" : 180,
-        #     "parent_api__id" : "rosters",
-        #     "dd_updated__id" : NumberLong("1431977962274"),
-        #     "team__id" : "44155909-0f24-11e2-8525-18a905767e44",
-        #     "parent_list__id" : "players__list"
-        # }
-
-        o = obj.get_o()
+        o = self.o
 
         srid        = o.get('id')
         srid_team   = o.get('team__id')
@@ -264,8 +220,9 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
         experience  = o.get('experience', 0.0)
         if experience == '':
             experience = 0.0
-        height      = o.get('height', 0.0)      # inches
-        weight      = o.get('weight', 0.0)      # lbs.
+
+        height              = o.get('height', 0.0)      # inches
+        weight              = o.get('weight', 0.0)      # lbs.
         jersey_number       = o.get('jersey_number', 0.0)
 
         position            = o.get('position')
@@ -286,19 +243,19 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
             self.player = self.player_model()
             self.player.srid = srid
 
-        self.player.team          = t             # team could easily change of course
-        self.player.first_name    = first_name
-        self.player.last_name     = last_name
+        self.player.team                = t             # team could easily change of course
+        self.player.first_name          = first_name
+        self.player.last_name           = last_name
 
-        self.player.birth_place   = birth_place
-        self.player.birthdate     = birthdate
-        self.player.experience    = experience
-        self.player.height        = height
-        self.player.weight        = weight
-        self.player.jersey_number = jersey_number
-        self.player.position      = position
-        self.player.primary_position  = primary_position
-        self.player.status        = status
+        self.player.birth_place         = birth_place
+        self.player.birthdate           = birthdate
+        self.player.experience          = experience
+        self.player.height              = height
+        self.player.weight              = weight
+        self.player.jersey_number       = jersey_number
+        self.player.position            = position
+        self.player.primary_position    = primary_position
+        self.player.status              = status
 
         # self.player.save() is done in inheriting class!
 
@@ -365,7 +322,6 @@ class DataDenPlayerStats(AbstractDataDenParseable):
 
         self.ps.position            = o.get('position',             None)
         self.ps.primary_position    = o.get('primary_position',     None)
-
 
 class DataDenGameBoxscores(AbstractDataDenParseable):
 
@@ -524,4 +480,3 @@ class DataDenTeamBoxscores(AbstractDataDenParseable):
             print( 'The team[%s] doesnt match home or away team!')
             return
 
-        self.boxscore.save()
