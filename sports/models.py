@@ -4,7 +4,7 @@
 from django.db import models
 
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 
 #
 #########################################################################
@@ -175,5 +175,36 @@ class Venue(models.Model):
 
     srid = models.CharField(max_length=64, unique=True, null=False,
                                 help_text='the sportsradar global id')
+    class Meta:
+        abstract = True
+
+class PbpDescription(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+
+    # the GFK to the main pbp object
+    pbp_type            = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_sport_game')
+    pbp_id              = models.PositiveIntegerField()
+    pbp                 = GenericForeignKey('pbp_type', 'pbp_id')
+
+    idx                 = models.IntegerField(default=0, null=False)
+    description         = models.CharField(max_length=1024, null=False, default='')
+
+    class Meta:
+        abstract = True
+
+class Pbp(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+
+    srid_game   = models.CharField(max_length=64, null=False,
+                            help_text='the sportsradar global id for the game')
+
+    # the GFK to the Game
+    game_type           = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_sport_game')
+    game_id             = models.PositiveIntegerField()
+    game                = GenericForeignKey('game_type', 'game_id')
+
+    descriptions        = GenericRelation(PbpDescription,
+                                          content_type_field='pbp_type',
+                                          object_id_field='pbp_id' )
     class Meta:
         abstract = True

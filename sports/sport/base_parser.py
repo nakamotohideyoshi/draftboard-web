@@ -480,3 +480,45 @@ class DataDenTeamBoxscores(AbstractDataDenParseable):
             print( 'The team[%s] doesnt match home or away team!')
             return
 
+class DataDenPbpDescription(AbstractDataDenParseable):
+    """
+    Parses the pbp text description objects.
+    """
+
+    game_model              = None
+    pbp_model               = None
+    pbp_description_model   = None
+
+    def __init__(self):
+        if self.game_model is None:
+            raise Exception('"game_model" cant be None!')
+        if self.pbp_model is None:
+            raise Exception('"pbp_model" cant be None!')
+        if self.pbp_description_model is None:
+            raise Exception('"pbp_description_model" cant be None!')
+
+        self.game           = None
+        self.pbp            = None
+        self.description    = None
+
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        srid_game = self.o.get('id', None)
+        try:
+            self.game = self.game_model.objects.get(srid=srid_game)
+        except self.game_model.DoesNotExist:
+            print( str(self.o) )
+            print( 'Game for pbp does not exist' )
+            return
+
+        try:
+            self.pbp = self.pbp_model.objects.get(srid_game=srid_game)
+        except self.pbp_model.DoesNotExist:
+            self.pbp = self.pbp_model()
+            self.pbp.srid_game  = srid_game
+            self.pbp.game       = self.game
+            self.pbp.save() # create it
+

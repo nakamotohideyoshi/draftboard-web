@@ -185,3 +185,11 @@ class RosterPlayer( sports.models.RosterPlayer ):
 class Venue( sports.models.Venue ):
     class Meta:
         abstract = True # TODO
+
+class PbpDescription(sports.models.PbpDescription):
+    class Meta:
+        abstract = False
+
+class Pbp(sports.models.Pbp):
+    class Meta:
+        abstract = False
