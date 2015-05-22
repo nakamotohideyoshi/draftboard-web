@@ -2,15 +2,17 @@
 # scoring/classes.py
 
 from scoring.models import ScoreSystem, StatPoint
+from scoring.cache import ScoreSystemCache
 
 class AbstractScoreSystem(object):
 
-    score_system    = None
-    stat_values     = None
+    score_system        = None
+    stat_values         = None
 
-    def __init__(self):
+    def __init__(self, sport):
+        self.stat_values_cache = ScoreSystemCache(sport)
         self.stat_values = self.get_stat_values()
-        print('stat_values', str(self.stat_values))
+        # print('stat_values', str(self.stat_values))
         self.__validate()
 
     def __validate(self):
@@ -30,7 +32,16 @@ class AbstractScoreSystem(object):
         from the db, load the StatValue objects associated with this scoring system
         :return:
         """
-        return StatPoint.objects.filter(score_system=self.score_system)
+        cached_stat_values = self.stat_values_cache.get_stat_values()
+        if cached_stat_values is not None:
+            return cached_stat_values
+        else:
+            # get the stat values from the db
+            db_stat_values = StatPoint.objects.filter(score_system=self.score_system)
+            # set them in the cache
+            self.stat_values_cache.add_stat_values(db_stat_values)
+            # return them
+            return db_stat_values
 
     def format_stat(self, real_stat, stat_value):
         """
@@ -54,6 +65,7 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
     """
     defines the NBA Salary Draft scoring metrics
     """
+    THE_SPORT = 'nba'
 
     POINT       = 'point'            # points scored (fgs, foul shots, whatever)
     THREE_PM    = 'three_pm'         # three-point shot made
@@ -66,11 +78,11 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
     TRIPLE_DBL  = 'triple-dbl'       # three 10+ categories from (points, rebs, asts, blks, steals)
 
     def __init__(self):
-        self.score_system = ScoreSystem.objects.get(sport='nba', name='salary')
+        self.score_system = ScoreSystem.objects.get(sport=self.THE_SPORT, name='salary')
 
         #
         # call super last - it will perform validation and ensure proper setup
-        super().__init__()
+        super().__init__(self.THE_SPORT)
 
     def score_player(self, player_stats):
         """
@@ -152,6 +164,7 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
     """
     defines the MLB Salary draft scoring metrics
     """
+    THE_SPORT = 'mlb'
 
     SINGLE  = 'single'           # hitter - singles
     DOUBLE  = 'double'           # hitter - doubles
@@ -175,10 +188,10 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
     NO_HITTER = 'no-hitter'      # pitcher - complete game AND no hits allowed
 
     def __init__(self):
-        self.score_system = ScoreSystem.objects.get(sport='mlb', name='salary')
+        self.score_system = ScoreSystem.objects.get(sport=self.THE_SPORT, name='salary')
 
         # call super last - ensures you have class variables setup
-        super().__init__()
+        super().__init__(self.THE_SPORT)
 
     def score_player(self, player_stats):
         """
@@ -274,6 +287,7 @@ class NhlSalaryScoreSystem(AbstractScoreSystem):
     """
     defines the NHL Salary draft scoring metrics
     """
+    THE_SPORT = 'nhl'
 
     GOAL        = 'goal'          # goals scored
     ASSIST      = 'assist'        # assists
@@ -289,10 +303,10 @@ class NhlSalaryScoreSystem(AbstractScoreSystem):
     SHUTOUT     = 'shutout'       # goalie - complete game(includes OT) no goals (doesnt count shootout goals)
 
     def __init__(self):
-        self.score_system = ScoreSystem.objects.get(sport='nhl', name='salary')
+        self.score_system = ScoreSystem.objects.get(sport=self.THE_SPORT, name='salary')
 
         # call super last - ensures you have class variables setup
-        super().__init__()
+        super().__init__(self.THE_SPORT)
 
     def score_player(self, player_stats):
         """
@@ -347,6 +361,7 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
     """
     defines the NFL Salary draft scoring metrics
     """
+    THE_SPORT = 'nfl'
 
     PASS_TD     = 'pass-td'         # thrown touchdowns
     PASS_YDS    = 'pass-yds'        # pts per passing yard
@@ -391,14 +406,14 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
     PA_35_PLUS  = 'pa-35plus'   # 35 or MORE points allowed
 
     def __init__(self):
-        self.score_system = ScoreSystem.objects.get(sport='nfl', name='salary')
+        self.score_system = ScoreSystem.objects.get(sport=self.THE_SPORT, name='salary')
 
         self.PASSING_BONUS_REQUIRED_YDS = 300
         self.RUSHING_BONUS_REQUIRED_YDS = 100
         self.RECEIVING_BONUS_REQUIRED_YDS = 100
 
         # call super last - ensures you have class variables setup
-        super().__init__()
+        super().__init__(self.THE_SPORT)
 
     def score_player(self, player_stats):
         """

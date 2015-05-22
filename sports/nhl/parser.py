@@ -3,11 +3,11 @@
 from scoring.classes import NhlSalaryScoreSystem
 from sports.nhl.models import Team, Game, Player, PlayerStats, GameBoxscore
 
-from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
-                        DataDenTeamHierachy, DataDenGameSchedule, DataDenPlayerRosters, \
+from sports.sport.base_parser import AbstractDataDenParser, \
+                        DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
                         DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores
 
-class TeamHierarchy(DataDenTeamHierachy):
+class TeamHierarchy(DataDenTeamHierarchy):
     """
     TeamHierarchy simply needs to set the right Team model internally.
     """
