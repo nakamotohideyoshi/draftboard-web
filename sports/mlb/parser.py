@@ -1,11 +1,13 @@
 #
 #
 import sports.mlb.models
-from sports.mlb.models import Team, Game, Player, PlayerStats, GameBoxscore
+from sports.mlb.models import Team, Game, Player, PlayerStats, GameBoxscore, Pbp, PbpDescription
 from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
                         DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
-                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores
+                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
+                        DataDenPbpDescription
 import json
+from django.contrib.contenttypes.models import ContentType
 
 class HomeAwaySummary(DataDenTeamBoxscores):
 
@@ -815,6 +817,84 @@ class PlayerStats(DataDenPlayerStats):
 
         self.ps.save() # commit changes
 
+class GamePbp(DataDenPbpDescription):
+
+    game_model              = Game
+    pbp_model               = Pbp
+    pbp_description_model   = PbpDescription
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        # self.game & self.pbp are setup by super().parse()
+
+        print('srid game', self.o.get('id'))
+        innings = self.o.get('innings', {})
+        overall_idx = 0
+        for inning_json in innings:
+            inning = inning_json.get('inning', {})
+            inning_sequence = inning.get('sequence', None)
+            if inning_sequence == 0:
+                print('skipping inning sequence 0 - its just lineup information')
+                continue
+
+            if inning_sequence is None:
+                raise Exception('inning sequence is None! what the!?')
+            #print( inning )
+            #print( '' )
+            #
+            # each 'inning' is
+            # inning.keys()  --> dict_keys(['scoring__list', 'sequence', 'inning_halfs', 'number'])
+            # inning.get('inning_halfs', []) # gets() a list of dicts
+            inning_halfs = inning.get('inning_halfs', [])
+            for half_json in inning_halfs:
+                half = half_json.get('inning_half')
+                half_type = half.get('type', None)
+                if half_type is None:
+                    raise Exception('half type is None! what the!?')
+                #print(str(half))
+                #print("")
+
+                #
+                # all pbp decriptions are associated with an
+                # inning (integer) & inning_half (T or B).
+                # get the hitter id too
+                at_bats = half.get('at_bats', [])
+                half_idx = 0
+                for at_bat_json in at_bats:
+                    at_bat = at_bat_json.get('at_bat')
+                    srid_hitter = at_bat.get('hitter_id', '')
+                    desc = at_bat.get('description', None)
+                    if desc is None:
+                        continue
+
+                    half_idx += 1
+                    overall_idx += 1
+
+                    print( str(overall_idx), str(half_idx),
+                            'inning:%s' % str(inning_sequence),
+                           'half:%s' % str(half_type),
+                           'hitter:%s' % srid_hitter,
+                                                desc )
+                    #
+                    # we should cache this so we dont
+                    # repetetively save the same object!
+                    try:
+                        pbp_ctype = ContentType.objects.get_for_model(self.pbp)
+                        self.description = self.pbp_description_model.objects.get(pbp_type__pk=pbp_ctype.id,
+                                                                        pbp_id=self.pbp.id,
+                                                                        idx=overall_idx )
+                        #self.description = self.pbp_description_model.objects.get(pbp=self.pbp, idx=overall_idx)
+                    except self.pbp_description_model.DoesNotExist:
+                        self.description = self.pbp_description_model()
+                        self.description.pbp = self.pbp
+                        self.description.idx = overall_idx
+                    self.description.description = desc
+                    self.description.save()
+
 class DataDenMlb(AbstractDataDenParser):
 
     def __init__(self):
@@ -828,11 +908,11 @@ class DataDenMlb(AbstractDataDenParser):
         if self.target == ('mlb.game','schedule_reg'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pre'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pst'): GameSchedule().parse( obj )
-
+        elif self.target == ('mlb.game','pbp'): GamePbp().parse( obj )
+        #
         elif self.target == ('mlb.game','boxscores'): GameBoxscores().parse( obj )  # top level boxscore info
         elif self.target == ('mlb.home','summary'): HomeAwaySummary().parse( obj )  # home team of boxscore
         elif self.target == ('mlb.away','summary'): HomeAwaySummary().parse( obj )  # away team of boxscore
-
         #
         # team
         elif self.target == ('mlb.team','hierarchy'): TeamHierarchy().parse( obj ) # parse each team
