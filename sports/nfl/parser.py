@@ -2,11 +2,13 @@
 # sports/nfl/parser.py
 
 import sports.nfl.models
-from sports.nfl.models import Team, Game, Player, PlayerStats, GameBoxscore
+from sports.nfl.models import Team, Game, Player, PlayerStats, \
+                                GameBoxscore, GamePortion, Pbp, PbpDescription
 
 from sports.sport.base_parser import AbstractDataDenParser, \
                         DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
-                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores
+                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
+                        DataDenPbpDescription
 import json
 
 class TeamHierarchy(DataDenTeamHierarchy):
@@ -483,6 +485,112 @@ class TeamBoxscores(DataDenTeamBoxscores):
 
         self.boxscore.save()
 
+class GamePbp(DataDenPbpDescription):
+
+    game_model              = Game
+    pbp_model               = Pbp
+    portion_model           = GamePortion
+    pbp_description_model   = PbpDescription
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        if self.game is None:
+            return
+
+        # self.game & self.pbp are setup by super().parse()
+        #
+        # "quarters" : [
+		# {
+		# 	"quarter" : {
+		# 		"number" : 1,
+		# 		"event__list" : {
+		# 			"clock" : "15:00",
+		# 			"sequence" : 1,
+		# 			"type" : "cointoss",
+		# 			"updated" : "2015-01-03T21:36:00+00:00",
+		# 			"winner" : "ARI",
+		# 			"summary" : "ARI wins coin toss, elects to receive."
+		# 		},
+		# 		"drives" : [
+		# 			{
+		# 				"drive" : {
+		# 					"clock" : "15:00",
+		# 					"team" : "ARI",
+		# 					"plays" : [
+		# 						{
+		# 							"play" : "5974dc8d-692e-4f26-b6ff-8341d8a02a31"
+		# 						},
+		# 						{ play }, ..., { play },
+
+        print('srid game', self.o.get('id'))
+        quarters = self.o.get('quarters', {})
+
+        for quarter_json in quarters:
+            quarter_play_idx = 0
+            quarter = quarter_json.get('quarter', {})
+            quarter_number = quarter.get('number', None)
+
+            if quarter_number is None:
+                raise Exception('quarter_number is None! what the!?')
+
+            #
+            # get (or create) the game portion object
+            game_portion = self.get_game_portion( 'quarter', quarter_number )
+
+            drives = quarter.get('drives', [])
+
+            for drive_json in drives:
+                drive = drive_json.get('drive')     # half is a drive object! ill rename later
+                #
+                # create the plays
+                plays = drive.get('plays', {})
+                for play_json in plays:
+                    srid_play   = play_json.get('play', -1)
+                    summary     = play_json.get('summary','')
+                    pbp_desc = self.get_pbp_description(game_portion, quarter_play_idx, '', save=False)
+                    pbp_desc.srid = srid_play
+                    pbp_desc.save()
+                    quarter_play_idx += 1
+
+                #
+                # create the event s
+                events = drive.get('events', {})
+                for event_json in events:
+                    sequence    = event_json.get('sequence', -1)
+                    summary     = event_json.get('summary','')
+                    pbp_desc = self.get_pbp_description(game_portion, sequence, summary)
+
+class PlayPbp(DataDenPbpDescription):
+
+    game_model              = Game
+    pbp_model               = Pbp
+    portion_model           = GamePortion
+    pbp_description_model   = PbpDescription
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        #
+        # dont need to call super for EventPbp - just get the event by srid.
+        # if it doesnt exist dont do anything, else set the description
+        #super().parse( obj, target )
+        self.o = obj.get_o() # we didnt call super so we should do thisv
+        srid_pbp_desc = self.o.get('id', None)
+        pbp_desc = self.get_pbp_description_by_srid( srid_pbp_desc )
+        if pbp_desc:
+            description = self.o.get('summary', None)
+            if pbp_desc.description != description:
+                # only save it if its changed
+                pbp_desc.description = description
+                pbp_desc.save()
+        else:
+            print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
+
 class DataDenNfl(AbstractDataDenParser):
 
     def __init__(self):
@@ -503,6 +611,10 @@ class DataDenNfl(AbstractDataDenParser):
         # nfl.game
         if self.target == ('nfl.game','schedule'): GameSchedule().parse( obj )
         elif self.target == ('nfl.game','boxscores'): GameBoxscores().parse( obj )
+        elif self.target == ('nfl.game','pbp'): GamePbp().parse( obj )
+        #
+        # nfl.play (events are parsed in the nfl.game | pbp feed, but the PLAYS are parsed here:
+        elif self.target == ('nfl.play','pbp'): PlayPbp().parse( obj )
         #
         # nfl.team
         elif self.target == ('nfl.team','hierarchy'): TeamHierarchy().parse( obj )

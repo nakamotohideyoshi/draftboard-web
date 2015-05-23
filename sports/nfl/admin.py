@@ -43,3 +43,11 @@ class GameBoxscoreAdmin(admin.ModelAdmin):
     list_display = ['srid_game','status','title','home_score','home',
                     'away','away_score','quarter','clock','coverage',
                     'home_scoring_json','away_scoring_json']
+
+@admin.register(sports.nfl.models.GamePortion)
+class GamePortionAdmin(admin.ModelAdmin):
+    list_display = ['srid_game','category','sequence']
+
+@admin.register(sports.nfl.models.PbpDescription)
+class PbpDescriptionAdmin(admin.ModelAdmin):
+    list_display = ['pbp','srid_game','category','sequence','idx','description']
