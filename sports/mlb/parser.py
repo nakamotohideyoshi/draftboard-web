@@ -1,19 +1,22 @@
 #
 #
 import sports.mlb.models
-from sports.sport.base_parser import AbstractDataDenParser
-from dataden.util.timestamp import Parse as DataDenDatetime
+from sports.mlb.models import Team, Game, Player, PlayerStats, \
+                                GameBoxscore, Pbp, PbpDescription, GamePortion
+from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
+                        DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
+                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
+                        DataDenPbpDescription
 import json
+from django.contrib.contenttypes.models import ContentType
 
-class AbstractParseable(object):
-    def __init__(self):
-        self.name = self.__class__.__name__
-    def parse(self, obj, target=None):
-        print( self.name, str(obj)[:100], 'target='+str(target) )
+class HomeAwaySummary(DataDenTeamBoxscores):
 
-class HomeAwaySummary(AbstractParseable):
+    gameboxscore_model  = GameBoxscore
+
     def __init__(self):
         super().__init__()
+
     def parse(self, obj, target=None):
         super().parse( obj, target )
 
@@ -223,53 +226,49 @@ class HomeAwaySummary(AbstractParseable):
         #         { "player" : "090ff436-c1e8-4927-b457-355cf4f9993b" }, ... more players who played
         #     ]
         # }
+        srid_team = self.o.get('id', None)
 
-        o = obj.get_o()
-        srid_team   = o.get('id', None)  # its either home or away team, need to determine
-        srid_game   = o.get('game__id', None)
+        probable_pitcher    = self.o.get('probable_pitcher', None)
+        starting_pitcher    = self.o.get('starting_pitcher', None)
+        scoring_json        = json.loads( json.dumps( self.o.get('scoring__list', {}) ) )
+        runs                = self.o.get('runs', 0)
+        hits                = self.o.get('hits', 0)
+        errors              = self.o.get('errors', 0)
 
-        try:
-            boxscore = sports.mlb.models.GameBoxscore.objects.get(srid_game=srid_game)
-        except sports.mlb.models.GameBoxscore.DoesNotExist:
-            print( str(o) )
-            print( 'HomeAwaySummary gameboxscore does not exist yet')
-            return
-
-        probable_pitcher    = o.get('probable_pitcher', None)
-        starting_pitcher    = o.get('starting_pitcher', None)
-        scoring_json        = json.loads( json.dumps( o.get('scoring__list', {}) ) )
-        runs                = o.get('runs', 0)
-        hits                = o.get('hits', 0)
-        errors              = o.get('errors', 0)
-
-        if boxscore.srid_home == srid_team:
+        if self.boxscore.srid_home == srid_team:
             # home
-            boxscore.srid_home_pp = probable_pitcher
-            boxscore.srid_home_sp = starting_pitcher
-            boxscore.home_scoring_json = scoring_json
-            boxscore.home_score     = runs
-            boxscore.home_hits      = hits
-            boxscore.home_errors    = errors
+            print( 'home_score / runs:', str(runs) )
+            self.boxscore.home_score        = runs
+            self.boxscore.srid_home_pp      = probable_pitcher
+            self.boxscore.srid_home_sp      = starting_pitcher
+            self.boxscore.home_hits         = hits
+            self.boxscore.home_errors       = errors
 
-        elif boxscore.srid_away == srid_team:
+        elif self.boxscore.srid_away == srid_team:
             # away
-            boxscore.srid_away_pp = probable_pitcher
-            boxscore.srid_away_sp = starting_pitcher
-            boxscore.away_scoring_json = scoring_json
-            boxscore.away_score     = runs
-            boxscore.away_hits      = hits
-            boxscore.away_errors    = errors
+            print( 'away_score / runs:', str(runs) )
+            self.boxscore.away_score        = runs
+            self.boxscore.srid_away_pp      = probable_pitcher
+            self.boxscore.srid_away_sp      = starting_pitcher
+            self.boxscore.away_hits         = hits
+            self.boxscore.away_errors       = errors
 
         else:
-            print( str(o) )
+            print( str(self.o) )
             print( 'HomeAwaySummary team[%s] does not match home or away!' % srid_team)
             return
 
-        boxscore.save()
+        print( 'boxscore results | home_score %s | away_score %s' % (str(self.boxscore.home_score),str(self.boxscore.away_score)))
+        self.boxscore.save()
 
-class GameBoxscores(AbstractParseable):
+class GameBoxscores(DataDenGameBoxscores):
+
+    gameboxscore_model  = GameBoxscore
+    team_model          = Team
+
     def __init__(self):
         super().__init__()
+
     def parse(self, obj, target=None):
         super().parse( obj, target )
 
@@ -358,43 +357,11 @@ class GameBoxscores(AbstractParseable):
         #     "away" : "a7723160-10b7-4277-a309-d8dd95a8ae65"
         # }
 
-        o = obj.get_o()
-        srid_game   = o.get('id', None)
-        srid_home   = o.get('home_team', None)
-        srid_away   = o.get('away_team', None)
 
-        try:
-            h = sports.mlb.models.Team.objects.get(srid=srid_home)
-        except sports.mlb.models.Team.DoesNotExist:
-            print( str(o) )
-            print( 'GameBoxscore HOME team does not exist')
-            return
 
-        try:
-            a = sports.mlb.models.Team.objects.get(srid=srid_away)
-        except sports.mlb.models.Team.DoesNotExist:
-            print( str(o) )
-            print( 'GameBoxscore AWAY team does not exist')
-            return
-
-        try:
-            boxscore = sports.mlb.models.GameBoxscore.objects.get(srid_game=srid_game)
-        except sports.mlb.models.GameBoxscore.DoesNotExist:
-            boxscore = sports.mlb.models.GameBoxscore()
-            boxscore.srid_game = srid_game
-
-        boxscore.srid_home  = srid_home
-        boxscore.home       = h
-        boxscore.away       = a
-        boxscore.srid_away  = srid_away
-
-        boxscore.attendance = o.get('attendance', 0)
-        boxscore.coverage   = o.get('coverage', '')
-        boxscore.status     = o.get('status', '')
-        boxscore.title      = o.get('title', '')
-
-        boxscore.day_night  = o.get('day_night', '')
-        boxscore.game_number = o.get('game_number', '')
+        self.boxscore.attendance     = self.o.get('attendance', 0)
+        self.boxscore.day_night      = self.o.get('day_night', '')
+        self.boxscore.game_number    = self.o.get('game_number', '')
 
         #     "pitching__list" : {
         #         "win__list" : {
@@ -408,7 +375,7 @@ class GameBoxscores(AbstractParseable):
         #         }
         #     }
 
-        pitching_list   = o.get('pitching__list', {})
+        pitching_list   = self.o.get('pitching__list', {})
         win_list        = pitching_list.get('win__list', {})
         loss_list       = pitching_list.get('loss__list', {})
         #hold_list       = pitching_list.get('hold__list', {}) # can return an array, (multiple "holds")
@@ -416,13 +383,13 @@ class GameBoxscores(AbstractParseable):
         #blown_save_list = pitching_list.get('blown_save__list', {})
 
         # when its final
-        boxscore.srid_win       = win_list.get('player', None)
-        boxscore.srid_loss      = loss_list.get('player', None)
+        self.boxscore.srid_win       = win_list.get('player', None)
+        self.boxscore.srid_loss      = loss_list.get('player', None)
         #boxscore.srid_hold      = hold_list.get('player', None)
         #boxscore.srid_save      = save_list.get('player', None)
         #boxscore.srid_blown_save = blown_save_list.get('player', None)
 
-        outcome_list    = o.get('outcome__list', None)
+        outcome_list    = self.o.get('outcome__list', None)
         if outcome_list:
             #         "current_inning" : 1,
             #         "current_inning_half" : "T",
@@ -435,69 +402,47 @@ class GameBoxscores(AbstractParseable):
             #             "outs" : 1,
             #             "strikes" : 2
             #         },
-            boxscore.inning         = outcome_list.get('current_inning', '')
-            boxscore.inning_half    = outcome_list.get('current_inning_half', '')
+            self.boxscore.inning         = outcome_list.get('current_inning', '')
+            self.boxscore.inning_half    = outcome_list.get('current_inning_half', '')
 
-        final_list      = o.get('final__list', None)
+        final_list      = self.o.get('final__list', None)
         if final_list:
             #     "final__list" : {  ##### when the game is OVER it holds this
             #         "inning" : 9,
             #         "inning_half" : "T"
             #     },
-            boxscore.inning         = final_list.get('inning', '')
-            boxscore.inning_half    = final_list.get('inning_half', '')
+            self.boxscore.inning         = final_list.get('inning', '')
+            self.boxscore.inning_half    = final_list.get('inning_half', '')
 
-        boxscore.save() # commit changes
+        self.boxscore.save() # commit changes
 
-class TeamHierarchy(AbstractParseable):
+class TeamHierarchy(DataDenTeamHierarchy):
+
+    team_model = Team
+
     def __init__(self):
         super().__init__()
+
     def parse(self, obj, target=None):
         super().parse( obj, target )
 
-        # db.team.findOne({'parent_api__id':'hierarchy'})
-        # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkMmVhNmVmZTctMmUyMS00ZjI5LTgwYTItMGEyNGFkMWY1Zjg1ZGl2aXNpb25fX2lkMWQ3NGU4ZTktN2ZhZi00Y2RiLWI2MTMtMzk0NGZhNWFhNzM5aWQxZDY3ODQ0MC1iNGIxLTQ5NTQtOWIzOS03MGFmYjNlYmJjZmE=",
-        #     "abbr" : "TOR",
-        #     "id" : "1d678440-b4b1-4954-9b39-70afb3ebbcfa",
-        #     "market" : "Toronto",
-        #     "name" : "Blue Jays",
-        #     "parent_api__id" : "hierarchy",
-        #     "dd_updated__id" : NumberLong("1431469575341"),
-        #     "league__id" : "2ea6efe7-2e21-4f29-80a2-0a24ad1f5f85",
-        #     "division__id" : "1d74e8e9-7faf-4cdb-b613-3944fa5aa739",
-        #     "venue" : "84d72338-2173-4a90-9d25-99adc6c86f4b"
-        # }
-        o = obj.get_o()
-        srid            = o.get('id', None)
-        srid_league     = o.get('league__id',   None)
-        srid_division   = o.get('division__id', None)
-        market          = o.get('market',       None)
-        name            = o.get('name',         None)
-        alias           = o.get('abbr',         None)  # mlb calls alias "abbr"
-        srid_venue      = o.get('venue',        '')
+        # in mlb, we set the 'abbr' to the alias
+        self.team.alias = self.o.get('abbr', None)
+        self.team.save()
 
-        try:
-            t = sports.mlb.models.Team.objects.get( srid=srid )
-        except sports.mlb.models.Team.DoesNotExist:
-            t = sports.mlb.models.Team()
-            t.srid      = srid
-            t.save()
+class GameSchedule(DataDenGameSchedule):
 
-        t.srid_league       = srid_league
-        t.srid_division     = srid_division
-        t.market            = market
-        t.name              = name
-        t.alias             = alias
-        t.srid_venue        = srid_venue
+    team_model = Team
+    game_model = Game
 
-        t.save()
-
-class GameSchedule(AbstractParseable):
     def __init__(self):
         super().__init__()
+
     def parse(self, obj, target=None):
         super().parse(obj, target)
+
+        if self.game is None:
+            return
 
         # {
         #     "_id" : "cGFyZW50X2FwaV9faWRzY2hlZHVsZV9yZWdsZWFndWVfX2lkMmZhNDQ4YmMtZmMxNy00ZDNkLWJlMDMtZTYwZTA4MGZkYzI2c2Vhc29uLXNjaGVkdWxlX19pZDk1MjNmMDM5LTA3MGMtNDlkMS1iMmUzLTVmMThiNTdjNWVlM3BhcmVudF9saXN0X19pZGdhbWVzX19saXN0aWQwMDI1NWYyNC0zNGI1LTQ4MDgtODRkOS04NjNkNDA5Nzc2ODU=",
@@ -523,69 +468,21 @@ class GameSchedule(AbstractParseable):
         #     }
         # }
 
-        o = obj.get_o()
+        self.game.attendance  = self.o.get('attendance',   0)
+        self.game.day_night   = self.o.get('day_night',    None)
+        self.game.game_number = self.o.get('game_number',  None)
+        self.game.srid_venue  = self.o.get('venue', '')
 
-        srid        = o.get('id')
-        start_str   = o.get('scheduled')
-        start       = DataDenDatetime.from_string( start_str )
-        status      = o.get('status')
+        self.game.save()
 
-        srid_home   = o.get('home')
-        srid_away   = o.get('away')
-        title       = o.get('title', True)
+class PlayerTeamProfile(DataDenPlayerRosters):
 
-        attendance  = o.get('attendance',   0)
-        day_night   = o.get('day_night',    None)
-        game_number = o.get('game_number',  None)
+    team_model      = Team
+    player_model    = Player
 
-        srid_venue  = o.get('venue', '')
-
-        try:
-            h = sports.mlb.models.Team.objects.get(srid=srid_home)
-        except sports.mlb.models.Team.DoesNotExist:
-            print( str(o) )
-            print( 'Team (home) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
-            return
-
-        try:
-            a = sports.mlb.models.Team.objects.get(srid=srid_away)
-        except sports.mlb.models.Team.DoesNotExist:
-            print( str(o) )
-            print( 'Team (away) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
-            return
-
-        try:
-            g = sports.mlb.models.Game.objects.get(srid=srid)
-        except sports.mlb.models.Game.DoesNotExist:
-            g = sports.mlb.models.Game()
-            g.srid = srid
-
-        g.home      = h
-        g.away      = a
-        g.start     = start
-        g.status    = status
-        g.srid_home = srid_home
-        g.srid_away = srid_away
-        g.title     = title
-
-        g.attendance    = attendance
-        g.day_night     = day_night
-        g.game_number   = game_number
-
-        g.srid_venue    = srid_venue
-
-        g.save()
-
-class GameStats(AbstractParseable):
     def __init__(self):
         super().__init__()
-    def parse(self, obj, target=None):
-        super().parse( obj, target )
 
-# PlayerTeamProfile
-class PlayerTeamProfile(AbstractParseable):
-    def __init__(self):
-        super().__init__()
     def parse(self, obj, target=None):
         super().parse( obj, target )
 
@@ -617,73 +514,33 @@ class PlayerTeamProfile(AbstractParseable):
         #     "parent_list__id" : "players__list"
         # }
 
-        o = obj.get_o()
+        self.player.preferred_name  = self.o.get('preferred_name', None)
 
-        srid        = o.get('id')
-        srid_team   = o.get('team__id')
+        self.player.birthcity       = self.o.get('birthcity', '')
+        self.player.birthcountry    = self.o.get('birthcountry', '')
 
-        preferred_name = o.get('preferred_name', None)
-        first_name  = o.get('first_name')
-        last_name   = o.get('last_name')
+        self.player.pro_debut       = self.o.get('pro_debut',    '')
+        self.player.throw_hand      = self.o.get('throw_hand',   '')
+        self.player.bat_hand        = self.o.get('bat_hand',     '')
 
-        birthcity   = o.get('birthcity', '')
-        birthcountry = o.get('birthcountry', '')
-        birthdate   = o.get('birthdate', '')
+        self.player.save()
 
-        height      = o.get('height', 0.0)      # inches
-        weight      = o.get('weight', 0.0)      # lbs.
-        jersey_number       = o.get('jersey_number', 0.0)
+class PlayerStats(DataDenPlayerStats):
 
-        position            = o.get('position')
-        primary_position    = o.get('primary_position')
+    game_model          = Game
+    player_model        = Player
 
-        status              = o.get('status')   # roster status, ie: basically whether they are on it
+    #
+    # Set PlayerStatsPitcher when necessary - this gets set
+    # just to make the constructor happy and not throw exceptions.
+    # But we need to (and we will) dynamically set the right
+    # playerstats model based on whether its a pitcher or hitting in parse() method
+    player_stats_model  = sports.mlb.models.PlayerStatsHitter
 
-        pro_debut       = o.get('pro_debut',    '')
-        throw_hand      = o.get('throw_hand',   '')
-        bat_hand        = o.get('bat_hand',     '')
-
-        try:
-            t = sports.mlb.models.Team.objects.get(srid=srid_team)
-        except sports.mlb.models.Team.DoesNotExist:
-            print( str(o) )
-            print( 'Team for Player DoesNotExist!')
-            return
-
-        try:
-            p = sports.mlb.models.Player.objects.get(srid=srid)
-        except sports.mlb.models.Player.DoesNotExist:
-            p = sports.mlb.models.Player()
-            p.srid = srid
-
-        p.team          = t             # team could easily change of course
-        p.first_name    = first_name
-        p.preferred_name = preferred_name
-        p.last_name     = last_name
-
-        p.birthcity     = birthcity
-        p.birthcountry  = birthcountry
-        p.birthdate     = birthdate
-
-        p.height        = height
-        p.weight        = weight
-        p.jersey_number = jersey_number
-        p.position      = position
-        p.primary_position  = primary_position
-        p.status        = status
-
-        p.pro_debut     = pro_debut
-        p.throw_hand    = throw_hand
-        p.bat_hand      = bat_hand
-
-        p.save()
-
-class PlayerStats(AbstractParseable):
     def __init__(self):
         super().__init__()
-    def parse(self, obj, target=None):
-        super().parse( obj, target )
 
+    def parse(self, obj, target=None):
         #     {
         #     "_id" : "cGFyZW50X2FwaV9faWRzdW1tYXJ5Z2FtZV9faWRjODI0NTZhYy1hNGI5LTRjYWYtODEyNC0wYWZhNzRmOWNmMzRob21lX19pZDQzYTM5MDgxLTUyYjQtNGY5My1hZDI5LWRhN2YzMjllYTk2MHBhcmVudF9saXN0X19pZHBsYXllcnNfX2xpc3RpZDAxZWFmZjU5LTliMzQtNDdmZC1hZjY0LTU0YjJlNmYyMjYyOA==",
         #     "first_name" : "Nelson",
@@ -870,39 +727,25 @@ class PlayerStats(AbstractParseable):
         # db.player.distinct('primary_position')
         # >>> [ "1B", "LF", "3B", "CF", "RF", "C", "2B", "SP", "RP", "SS", "DH" ]
         o = obj.get_o()
-        srid_game   = o.get('game__id', None)
-        srid_player = o.get('id', None)
+
+        #
+        # we do NOT want to parse the objects if they do not have 'statistics__list' key!
+        the_stats = o.get('statistics__list', None)
+        if the_stats is None:
+            return
 
         fielding = o.get('fielding__list', {}) # info about whether they played/started the game
         game_info = fielding.get('games__list', {})
-
-        try:
-            p = sports.mlb.models.Player.objects.get(srid=srid_player)
-        except sports.mlb.models.Player.DoesNotExist:
-            print( str(o) )
-            print('Player object for PlayerStats DoesNotExist')
-            return # dont create the playerstats then
-
-        try:
-            g = sports.mlb.models.Game.objects.get(srid=srid_game)
-        except sports.mlb.models.Game.DoesNotExist:
-            print( str(o) )
-            print('Game object for PlayerStats DoesNotExist')
-            return # dont create the playerstats then
 
         #
         # decide whether this is a hitter or pitcher here, based on 'position'
         position = o.get('position')  # ['IF','OF','C','P','DH']
         if position == 'P':
-            # its a pitcher
-            try:
-                ps = sports.mlb.models.PlayerStatsPitcher.objects.get( srid_game=srid_game, srid_player=srid_player )
-            except sports.mlb.models.PlayerStatsPitcher.DoesNotExist:
-                ps = sports.mlb.models.PlayerStatsPitcher()
-                ps.srid_game    = srid_game
-                ps.srid_player  = srid_player
-                ps.player  = p
-                ps.game    = g
+            self.player_stats_model  = sports.mlb.models.PlayerStatsPitcher
+            super().parse( obj, target )
+            # after calling super().parse() check if self.ps is None, return if it is
+            if self.ps is None:
+                return
 
             # collect pitching stats
             statistics = o.get('statistics__list', {}) # default will useful if it doenst exist
@@ -917,33 +760,27 @@ class PlayerStats(AbstractParseable):
             steals  = pitching.get('steal__list', {})
             outs    = pitching.get('outs__list', {})
 
-            ps.ip_1    = pitching.get('ip_1', 0.0) # outs, basically. for 1 inning pitched == 3 (4 possible?)
-            ps.ip_2    = pitching.get('ip_2', 0.0) # 1 == one inning pitched
-            ps.win     = bool( games.get('win', 0) )
-            ps.loss    = bool( games.get('loss', 0) )
-            ps.qstart  = bool( games.get('qstart', 0) )
-            ps.ktotal  = outs.get('ktotal', 0)
-            ps.er      = runs.get('earned', 0)  # earned runs allowed
-            ps.r_total = runs.get('total', 0)   # total runs allowed (earned and unearned)
-            ps.h       = onbase.get('h', 0)     # hits against
-            ps.bb      = onbase.get('bb', 0)    # walks against
-            ps.hbp     = onbase.get('hbp', 0)   # hit batsmen
-            ps.cg      = bool( games.get('complete', 0) ) # complete game
-            ps.cgso    = bool( games.get('shutout', 0) ) and ps.cg # complete game shut out
-            ps.nono    = bool( ps.h ) and ps.cg # no hitter if hits == 0, and complete game
-
-            ps.save() # commit changes
+            self.ps.ip_1    = pitching.get('ip_1', 0.0) # outs, basically. for 1 inning pitched == 3 (4 possible?)
+            self.ps.ip_2    = pitching.get('ip_2', 0.0) # 1 == one inning pitched
+            self.ps.win     = bool( games.get('win', 0) )
+            self.ps.loss    = bool( games.get('loss', 0) )
+            self.ps.qstart  = bool( games.get('qstart', 0) )
+            self.ps.ktotal  = outs.get('ktotal', 0)
+            self.ps.er      = runs.get('earned', 0)  # earned runs allowed
+            self.ps.r_total = runs.get('total', 0)   # total runs allowed (earned and unearned)
+            self.ps.h       = onbase.get('h', 0)     # hits against
+            self.ps.bb      = onbase.get('bb', 0)    # walks against
+            self.ps.hbp     = onbase.get('hbp', 0)   # hit batsmen
+            self.ps.cg      = bool( games.get('complete', 0) ) # complete game
+            self.ps.cgso    = bool( games.get('shutout', 0) ) and self.ps.cg # complete game shut out
+            self.ps.nono    = bool( self.ps.h ) and self.ps.cg # no hitter if hits == 0, and complete game
 
         else:
             # its a hitter
-            try:
-                ps = sports.mlb.models.PlayerStatsHitter.objects.get( srid_game=srid_game, srid_player=srid_player )
-            except sports.mlb.models.PlayerStatsHitter.DoesNotExist:
-                ps = sports.mlb.models.PlayerStatsHitter()
-                ps.srid_game    = srid_game
-                ps.srid_player  = srid_player
-                ps.player  = p
-                ps.game    = g
+            self.player_stats_model  = sports.mlb.models.PlayerStatsHitter
+            super().parse( obj, target )
+            if self.ps is None:
+                return # if super().parse() doesnt create this, get out of here
 
             statistics = o.get('statistics__list', {})
             print('')
@@ -956,38 +793,185 @@ class PlayerStats(AbstractParseable):
             steals  = hitting.get('steal__list', {})
             outs    = hitting.get('outs__list', {})
 
-            ps.bb  = onbase.get('bb', 0)
-            ps.s   = onbase.get('s', 0)
-            ps.d   = onbase.get('d', 0)
-            ps.t   = onbase.get('t', 0)
-            ps.hr  = onbase.get('hr', 0)
-            ps.rbi = hitting.get('rbi', 0)
-            ps.r   = runs.get('total', 0)
-            ps.hbp = onbase.get('hbp', 0)
-            ps.sb  = steals.get('stolen', 0)
-            ps.cs  = steals.get('caught', 0)
+            self.ps.bb  = onbase.get('bb', 0)
+            self.ps.s   = onbase.get('s', 0)
+            self.ps.d   = onbase.get('d', 0)
+            self.ps.t   = onbase.get('t', 0)
+            self.ps.hr  = onbase.get('hr', 0)
+            self.ps.rbi = hitting.get('rbi', 0)
+            self.ps.r   = runs.get('total', 0)
+            self.ps.hbp = onbase.get('hbp', 0)
+            self.ps.sb  = steals.get('stolen', 0)
+            self.ps.cs  = steals.get('caught', 0)
 
-            ps.ktotal  = outs.get('ktotal', 0)
+            self.ps.ktotal  = outs.get('ktotal', 0)
 
-            ps.ab  = hitting.get('ab', 0)
-            ps.ap  = hitting.get('ap', 0)
-            ps.lob = hitting.get('lob', 0)
-            ps.xbh = hitting.get('xhb', 0)
+            self.ps.ab  = hitting.get('ab', 0)
+            self.ps.ap  = hitting.get('ap', 0)
+            self.ps.lob = hitting.get('lob', 0)
+            self.ps.xbh = hitting.get('xhb', 0)
 
-            ps.save() # commit changes
+        #
+        # hitters and pitchers both get these pieces of info
+        self.ps.play = bool( game_info.get('play', 0) )
+        self.ps.start = bool( game_info.get('start', 0) )
 
-        ps.play = bool( game_info.get('play', 0) )
-        ps.start = bool( game_info.get('start', 0) )
+        self.ps.save() # commit changes
 
-        return ps
+class GamePbp(DataDenPbpDescription):
 
-class PlayerPbp(AbstractParseable):
+    game_model              = Game
+    pbp_model               = Pbp
+    portion_model           = GamePortion
+    pbp_description_model   = PbpDescription
+
     def __init__(self):
         super().__init__()
 
-class EventPbp(AbstractParseable):
-    def __init__(self):
-        super().__init__()
+    def parse(self, obj, target=None):
+        pass
+        # super().parse( obj, target )
+        #
+        # # self.game & self.pbp are setup by super().parse()
+        #
+        # print('srid game', self.o.get('id'))
+        # innings = self.o.get('innings', {})
+        # overall_idx = 0
+        # for inning_json in innings:
+        #     inning = inning_json.get('inning', {})
+        #     inning_sequence = inning.get('sequence', None)
+        #     if inning_sequence == 0:
+        #         print('skipping inning sequence 0 - its just lineup information')
+        #         continue
+        #
+        #     if inning_sequence is None:
+        #         raise Exception('inning sequence is None! what the!?')
+        #     #print( inning )
+        #     #print( '' )
+        #     #
+        #     # each 'inning' is
+        #     # inning.keys()  --> dict_keys(['scoring__list', 'sequence', 'inning_halfs', 'number'])
+        #     # inning.get('inning_halfs', []) # gets() a list of dicts
+        #     inning_halfs = inning.get('inning_halfs', [])
+        #     for half_json in inning_halfs:
+        #         half = half_json.get('inning_half')
+        #         half_type = half.get('type', None)
+        #         if half_type is None:
+        #             raise Exception('half type is None! what the!?')
+        #         #print(str(half))
+        #         #print("")
+        #
+        #         #
+        #         # all pbp decriptions are associated with an
+        #         # inning (integer) & inning_half (T or B).
+        #         # get the hitter id too
+        #         at_bats = half.get('at_bats', [])
+        #         half_idx = 0
+        #         for at_bat_json in at_bats:
+        #             at_bat = at_bat_json.get('at_bat')
+        #             srid_hitter = at_bat.get('hitter_id', '')
+        #             desc = at_bat.get('description', None)
+        #             if desc is None:
+        #                 continue
+        #
+        #             half_idx += 1
+        #             overall_idx += 1
+        #
+        #             print( str(overall_idx), str(half_idx),
+        #                     'inning:%s' % str(inning_sequence),
+        #                    'half:%s' % str(half_type),
+        #                    'hitter:%s' % srid_hitter,
+        #                                         desc )
+        #             #
+        #             # we should cache this so we dont
+        #             # repetetively save the same object!
+        #             try:
+        #                 pbp_ctype = ContentType.objects.get_for_model(self.pbp)
+        #                 self.description = self.pbp_description_model.objects.get(pbp_type__pk=pbp_ctype.id,
+        #                                                                 pbp_id=self.pbp.id,
+        #                                                                 idx=overall_idx )
+        #                 #self.description = self.pbp_description_model.objects.get(pbp=self.pbp, idx=overall_idx)
+        #             except self.pbp_description_model.DoesNotExist:
+        #                 self.description = self.pbp_description_model()
+        #                 self.description.pbp = self.pbp
+        #                 self.description.idx = overall_idx
+        #             self.description.description = desc
+        #             self.description.save()
+
+        super().parse( obj, target )
+
+        # self.game & self.pbp are setup by super().parse()
+
+        print('srid game', self.o.get('id'))
+        innings = self.o.get('innings', {})
+        overall_idx = 0
+        inning_half_idx = 0
+        for inning_json in innings:
+            inning = inning_json.get('inning', {})
+            inning_sequence = inning.get('sequence', None)
+            if inning_sequence == 0:
+                print('skipping inning sequence 0 - its just lineup information')
+                continue
+
+            if inning_sequence is None:
+                raise Exception('inning sequence is None! what the!?')
+            #print( inning )
+            #print( '' )
+            #
+            # each 'inning' is
+            # inning.keys()  --> dict_keys(['scoring__list', 'sequence', 'inning_halfs', 'number'])
+            # inning.get('inning_halfs', []) # gets() a list of dicts
+            inning_halfs = inning.get('inning_halfs', [])
+            for half_json in inning_halfs:
+                half = half_json.get('inning_half')
+                half_type = half.get('type', None)
+                if half_type is None:
+                    raise Exception('half type is None! what the!?')
+                #print(str(half))
+                #print("")
+
+                #
+                # get the game portion object
+                game_portion = self.get_game_portion( 'inning_half', inning_half_idx )
+                inning_half_idx += 1
+
+                #
+                # all pbp decriptions are associated with an
+                # inning (integer) & inning_half (T or B).
+                # get the hitter id too
+                at_bats = half.get('at_bats', [])
+                half_idx = 0
+                for at_bat_json in at_bats:
+                    at_bat = at_bat_json.get('at_bat')
+                    srid_hitter = at_bat.get('hitter_id', '')
+                    desc = at_bat.get('description', None)
+                    if desc is None:
+                        continue
+
+                    half_idx += 1
+                    overall_idx += 1
+
+                    print( str(overall_idx), str(half_idx),
+                            'inning:%s' % str(inning_sequence),
+                           'half:%s' % str(half_type),
+                           'hitter:%s' % srid_hitter, desc )
+
+                    pbp_desc = self.get_pbp_description(game_portion, overall_idx, desc)
+                    # #
+                    # # we should cache this so we dont
+                    # # repetetively save the same object!
+                    # try:
+                    #     pbp_ctype = ContentType.objects.get_for_model(self.pbp)
+                    #     self.description = self.pbp_description_model.objects.get(pbp_type__pk=pbp_ctype.id,
+                    #                                                     pbp_id=self.pbp.id,
+                    #                                                     idx=overall_idx )
+                    #     #self.description = self.pbp_description_model.objects.get(pbp=self.pbp, idx=overall_idx)
+                    # except self.pbp_description_model.DoesNotExist:
+                    #     self.description = self.pbp_description_model()
+                    #     self.description.pbp = self.pbp
+                    #     self.description.idx = overall_idx
+                    # self.description.description = desc
+                    # self.description.save()
 
 class DataDenMlb(AbstractDataDenParser):
 
@@ -1002,11 +986,11 @@ class DataDenMlb(AbstractDataDenParser):
         if self.target == ('mlb.game','schedule_reg'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pre'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pst'): GameSchedule().parse( obj )
-
+        elif self.target == ('mlb.game','pbp'): GamePbp().parse( obj )
+        #
         elif self.target == ('mlb.game','boxscores'): GameBoxscores().parse( obj )  # top level boxscore info
         elif self.target == ('mlb.home','summary'): HomeAwaySummary().parse( obj )  # home team of boxscore
         elif self.target == ('mlb.away','summary'): HomeAwaySummary().parse( obj )  # away team of boxscore
-
         #
         # team
         elif self.target == ('mlb.team','hierarchy'): TeamHierarchy().parse( obj ) # parse each team

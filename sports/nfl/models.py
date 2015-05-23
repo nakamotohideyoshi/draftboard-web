@@ -147,6 +147,7 @@ class PlayerStats( sports.models.PlayerStats ):
     ret_fum_td      = models.IntegerField(default=0, null=False)
     ret_blk_punt_td = models.IntegerField(default=0, null=False)
     ret_fg_td       = models.IntegerField(default=0, null=False)
+    ret_blk_fg_td   = models.IntegerField(default=0, null=False)
 
     # misc
     sfty            = models.IntegerField(default=0, null=False)
@@ -179,6 +180,18 @@ class RosterPlayer( sports.models.RosterPlayer ):
 class Venue( sports.models.Venue ):
     class Meta:
         abstract = True # TODO
+
+class GamePortion(sports.models.GamePortion):
+    class Meta:
+        abstract = False
+
+class PbpDescription(sports.models.PbpDescription):
+    class Meta:
+        abstract = False
+
+class Pbp(sports.models.Pbp):
+    class Meta:
+        abstract = False
 
 def create_dst_player(sender, **kwargs):
     """

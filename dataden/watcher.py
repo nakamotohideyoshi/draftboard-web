@@ -74,6 +74,66 @@ class OpLogObj( Hashable ):
         """
         return self.ts
 
+class OpLogObjWrapper( OpLogObj ):
+    """
+    Use this class to construct "fake" oplog objects for the primary purpose
+    of being able to send any object we want as a signal using Update().send().
+
+    ie: if you used some class to get a cursor of mongo objects from
+    a specific db & collection, you can send that object as a signal
+    if you create an instance of this class with the mongo obj and
+    send it with the Update() signal !
+
+    usage: >>> Update( OpLogObjWrapper( obj_not_from_oplog ) ).send()
+
+    Details of whats really happening: mongo objects that come from the oplog.rs
+    collection can be sent via Update(obj).send() because they are essentially
+    just regular mongo objects stuff in the 'o' field of a dictionary like this:
+        oplogobj = {
+            "ts" : Timestamp(1431580464, 163),
+            "h" : NumberLong("-9089075734746773552"),
+            "v" : 2,
+            "op" : "u",
+            "ns" : "nba.player",
+            "o2" : {
+                "_id" : "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGU4NGExNDI1LTY2NmEtNDEzZS04NDA4LThhZTBlZTZmNjMwM3F1YXJ0ZXJfX2lkN2Q0OTMzMWUtODIzMS00ZjMxLTllZWYtYjBiMjUxMWY5MmZmcGFyZW50X2xpc3RfX2lkZmllbGRnb2FsX19saXN0ZXZlbnRfX2lkN2M0NzBmNDQtM2JiMS00MTYzLWI0ZTEtZmUzOWQ3ZjYzOTkwaWQyNjczNDg1MS1kY2U2LTRlNWItODI5MS01OTRhN2ViZDY2NTg="
+            },
+            "o" : regular_mongo_obj (ie: {})
+        }
+    This class just wraps the object given to it with a fake oplog wrapper,
+    putting theh fake mongo obj into the 'o' field!
+    """
+    OPLOG_WRAPPER = {
+        "ts" : 0,   # currently, we dont care about this field
+        "h" : 0,    # currently, we dont care about this field
+        "v" : 2,    # currently, we dont care about this field
+        "op" : "u", # currently, we dont care about this field
+
+        "ns" : None, # ie: "nba.player",
+        "o2" : {
+            "_id" : None # mongo obj's "_id" field
+        },
+        "o" : None, #regular_mongo_obj (ie: {})
+    }
+
+    def __init__(self, db, coll, mongo_obj):
+        #
+        # copy OPLOG_WRAPPER, and create our new wrapped obj with the important fields
+        wrapped_obj = {}
+        for key, val in self.OPLOG_WRAPPER.items():
+            if key == 'ns':
+                new_val = '%s.%s' % (db,coll)   # create the 'ns' string!
+            elif key == 'o':
+                new_val = mongo_obj   # !
+            else:
+                # set with whatever is in OPLOG_WRAPPER
+                new_val = val
+            wrapped_obj[ key ] = new_val
+
+        #
+        # now create the OpLogObj with our spoofed obj
+        super().__init__(wrapped_obj)
+
 class Trigger(object):
     """
     uses local.oplog.rs to implement mongo triggers

@@ -4,12 +4,12 @@
 import sports.nfl.models
 from sports.nfl.models import Team, Game, Player, PlayerStats, GameBoxscore
 
-from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
-                        DataDenTeamHierachy, DataDenGameSchedule, DataDenPlayerRosters, \
+from sports.sport.base_parser import AbstractDataDenParser, \
+                        DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
                         DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores
 import json
 
-class TeamHierarchy(DataDenTeamHierachy):
+class TeamHierarchy(DataDenTeamHierarchy):
     """
     TeamHierarchy simply needs to set the right Team model internally.
     """

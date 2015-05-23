@@ -1,517 +1,265 @@
 #
+# sports/nba/models.py
 import sports.nba.models
-from sports.sport.base_parser import AbstractDataDenParser
-from dataden.util.timestamp import Parse as DataDenDatetime
+from sports.nba.models import Team, Game, Player, PlayerStats, \
+                                GameBoxscore, Pbp, PbpDescription, GamePortion
+
+from sports.sport.base_parser import AbstractDataDenParser, \
+                        DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
+                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
+                        DataDenPbpDescription
+
 import json
 
-class AbstractParseable(object):
-    def __init__(self):
-        self.name = self.__class__.__name__
-    def parse(self, obj, target=None):
-        print( self.name, str(obj)[:200], 'target='+str(target) )
+class TeamBoxscores(DataDenTeamBoxscores):
 
-class TeamBoxscores(AbstractParseable):
+    gameboxscore_model = GameBoxscore
+
     def __init__(self):
         super().__init__()
 
     def parse(self, obj, target=None):
         super().parse( obj, target )
+        # super() does all the work !
 
-        # db.team.findOne({'parent_api__id':'boxscores'})
-        # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZDY4MWU3NmUxLTdlNjMtNDUwMy04OWQxLTg2NDgwYjZkY2MzYmlkNTgzZWM3NzMtZmI0Ni0xMWUxLTgyY2ItZjRjZTQ2ODRlYTRj",
-        #     "id" : "583ec773-fb46-11e1-82cb-f4ce4684ea4c",
-        #     "market" : "Cleveland",
-        #     "name" : "Cavaliers",
-        #     "points" : 106,
-        #     "parent_api__id" : "boxscores",
-        #     "dd_updated__id" : NumberLong("1431490937239"),
-        #     "game__id" : "681e76e1-7e63-4503-89d1-86480b6dcc3b",
-        #     "scoring__list" : [
-        #         {
-        #             "quarter" : {
-        #                 "number" : 1,
-        #                 "points" : 25,
-        #                 "sequence" : 1
-        #             }
-        #         },
-        #         {
-        #             "quarter" : {
-        #                 "number" : 2,
-        #                 "points" : 29,
-        #                 "sequence" : 2
-        #             }
-        #         },
-        #         {
-        #             "quarter" : {
-        #                 "number" : 3,
-        #                 "points" : 26,
-        #                 "sequence" : 3
-        #             }
-        #         },
-        #         {
-        #             "quarter" : {
-        #                 "number" : 4,
-        #                 "points" : 26,
-        #                 "sequence" : 4
-        #             }
-        #         }
-        #     ],
-        #     "leaders__list" : {
-        #         ...
-        #     }
-        # }
-        o = obj.get_o()
-        srid_team = o.get('id', None)
-        srid_game = o.get('game__id', None)
-
-        try:
-            gb = sports.nba.models.GameBoxscore.objects.get(srid_game=srid_game)
-        except sports.nba.models.GameBoxscore.DoesNotExist:
-            print( str(o) )
-            print( 'GameBoxscore does not exist yet!')
-            return
-
-        score           = o.get('points', 0)
-        scoring_json    = json.loads( json.dumps( o.get('scoring__list', []) ) )
-
-        if gb.srid_home == srid_team:
-            # we have the home team
-            gb.home_score           = score
-            gb.home_scoring_json    = scoring_json
-        elif gb.srid_away == srid_team:
-            # we have the away team
-            gb.away_score           = score
-            gb.away_scoring_json    = scoring_json
-
-        else:
-            # something doesnt match up
-            print( str(o) )
-            print( 'TeamBoxscores.parse() for srid_team[%s] didnt match home or away!' % srid_team )
-            return
-
-        gb.save() # commit any changes
-
-class GameBoxscores(AbstractParseable):
+class GameBoxscores(DataDenGameBoxscores):
     """
-    updates most boxscore information, BUT:
-        - does not update the score of each team
-
+    Updates most boxscore information, BUT:
+    Does not update the score of each team, that is handled by TeamBoxscores
     """
+    gameboxscore_model  = GameBoxscore
+    team_model          = Team
+
     def __init__(self):
         super().__init__()
+
     def parse(self, obj, target=None):
         super().parse( obj, target )
 
-        # db.game.findOne({'parent_api__id':'boxscores'})
-        # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDY4MWU3NmUxLTdlNjMtNDUwMy04OWQxLTg2NDgwYjZkY2MzYg==",
-        #     "attendance" : 20562,
-        #     "away_team" : "583ec5fd-fb46-11e1-82cb-f4ce4684ea4c",
-        #     "clock" : "00:00",
-        #     "coverage" : "full",
-        #     "duration" : "2:37",
-        #     "home_team" : "583ec773-fb46-11e1-82cb-f4ce4684ea4c",
-        #     "id" : "681e76e1-7e63-4503-89d1-86480b6dcc3b",
-        #     "lead_changes" : 1,
-        #     "quarter" : 4,
-        #     "scheduled" : "2015-05-12T23:00:00+00:00",
-        #     "status" : "closed",
-        #     "times_tied" : 0,
-        #     "title" : "Game 5",
-        #     "xmlns" : "http://feed.elasticstats.com/schema/basketball/game-v2.0.xsd",
-        #     "parent_api__id" : "boxscores",
-        #     "dd_updated__id" : NumberLong("1431490937239"),
-        #     "teams" : [
-        #         {
-        #             "team" : "583ec773-fb46-11e1-82cb-f4ce4684ea4c"
-        #         },
-        #         {
-        #             "team" : "583ec5fd-fb46-11e1-82cb-f4ce4684ea4c"
-        #         }
-        #     ]
-        # }
+        if self.boxscore is None:
+            return
+
+        self.boxscore.attendance    = self.o.get('attendance', 0)
+        self.boxscore.duration      = self.o.get('duration', '')
+        self.boxscore.lead_changes  = self.o.get('lead_changes', 0)
+        self.boxscore.quarter       = self.o.get('quarter', '')
+        self.boxscore.times_tied    = self.o.get('times_tied', 0)
+
+        self.boxscore.save()
+
+class PlayerRosters(DataDenPlayerRosters):
+
+    team_model      = Team
+    player_model    = Player
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        if self.player is None:
+            return
+
+        college         = self.o.get('college', '')
+        draft_pick      = self.o.get('draft__list.pick', '')
+        draft_round     = self.o.get('draft__list.round', '')
+        draft_year      = self.o.get('draft__list.year', '')
+        srid_draft_team = self.o.get('draft__list.team_id', '')
+
+        self.player.college          = college
+        self.player.draft_pick       = draft_pick
+        self.player.draft_round      = draft_round
+        self.player.draft_year       = draft_year
+        self.player.srid_draft_team  = srid_draft_team
+
+        self.player.save() # commit to db
+
+class TeamHierarchy(DataDenTeamHierarchy):
+    """
+    Parse an object from which represents a Team for this sport into the db.
+    """
+
+    team_model = Team
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        if self.team is None:
+            return
+
+        self.team.save()
+
+class GameSchedule(DataDenGameSchedule):
+
+    team_model  = Team
+    game_model  = Game
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        if self.game is None:
+            return
+
+        self.game.save()
+
+# class GameStats(AbstractParseable):
+#     def __init__(self):
+#         super().__init__()
+
+class PlayerStats(DataDenPlayerStats):
+
+    game_model          = Game
+    player_model        = Player
+    player_stats_model  = sports.nba.models.PlayerStats
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        if self.ps is None:
+            return
 
         o = obj.get_o()
-        srid_game   = o.get('id', None)
-        srid_home   = o.get('home_team', None)
-        srid_away   = o.get('away_team', None)
-
-        try:
-            h = sports.nba.models.Team.objects.get( srid=srid_home )
-        except sports.nba.models.Team.DoesNotExist:
-            print( str(o) )
-            print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
-            return
-
-        try:
-            a = sports.nba.models.Team.objects.get( srid=srid_away )
-        except sports.nba.models.Team.DoesNotExist:
-            print( str(o) )
-            print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
-            return
-
-        try:
-            boxscore = sports.nba.models.GameBoxscore.objects.get(srid_game=srid_game)
-        except sports.nba.models.GameBoxscore.DoesNotExist:
-            boxscore = sports.nba.models.GameBoxscore()
-            boxscore.srid_game = srid_game
-
-        boxscore.srid_home  = srid_home
-        boxscore.home       = h
-        boxscore.away       = a
-        boxscore.srid_away  = srid_away
-
-        boxscore.attendance = o.get('attendance', 0)
-        boxscore.clock      = o.get('clock', '' )
-        boxscore.coverage   = o.get('coverage', '')
-        boxscore.duration   = o.get('duration', '')
-        boxscore.lead_changes = o.get('lead_changes', 0)
-        boxscore.quarter    = o.get('quarter', '')
-        boxscore.status     = o.get('status', '')
-        boxscore.times_tied = o.get('times_tied', 0)
-        boxscore.title      = o.get('title', '')
-
-        # although GameBoxscore has 'home_points' and 'away_points',
-        #  those fields are not updated here!
-
-        boxscore.save()
-
-class PlayerRosters(AbstractParseable):
-
-    def __init__(self):
-        super().__init__()
-
-    def parse(self, obj, target=None):
-        super().parse( obj, target )
-
-        # db.player.findOne({'parent_api__id':'rosters'})
-        # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRyb3N0ZXJzdGVhbV9faWQ1ODNlYzc3My1mYjQ2LTExZTEtODJjYi1mNGNlNDY4NGVhNGNwYXJlbnRfbGlzdF9faWRwbGF5ZXJzX19saXN0aWQwOWQyNTE1NS1jM2JlLTQyNDYtYTk4Ni01NTkyMWExYjVlNjE=",
-        #     "abbr_name" : "J.Jones",
-        #     "birth_place" : "Miami, FL, USA",
-        #     "birthdate" : "1980-10-04",
-        #     "college" : "Miami",
-        #     "experience" : 11,
-        #     "first_name" : "James",
-        #     "full_name" : "James Jones",
-        #     "height" : 80,
-        #     "id" : "09d25155-c3be-4246-a986-55921a1b5e61",
-        #     "jersey_number" : 1,
-        #     "last_name" : "Jones",
-        #     "position" : "F-G",
-        #     "primary_position" : "SF",
-        #     "status" : "ACT",
-        #     "updated" : "2014-12-08T03:48:40+00:00",
-        #     "weight" : 215,
-        #     "parent_api__id" : "rosters",
-        #     "dd_updated__id" : NumberLong("1431472891718"),
-        #     "team__id" : "583ec773-fb46-11e1-82cb-f4ce4684ea4c",
-        #     "parent_list__id" : "players__list",
-        #     "draft__list" : {
-        #         "pick" : 49,
-        #         "round" : 2,
-        #         "team_id" : "583ec7cd-fb46-11e1-82cb-f4ce4684ea4c",
-        #         "year" : 2003
-        #     }
-        # }
-
-        o = obj.get_o()
-
-        srid        = o.get('id')
-        srid_team   = o.get('team__id')
-
-        first_name  = o.get('first_name')
-        last_name   = o.get('last_name')
-
-        birth_place = o.get('birth_place', '')
-        birthdate   = o.get('birthdate', '')
-        college     = o.get('college', '')
-        experience  = o.get('experience', 0.0)
-        height      = o.get('height', 0.0)      # inches
-        weight      = o.get('weight', 0.0)      # lbs.
-        jersey_number       = o.get('jersey_number', 0.0)
-
-        position            = o.get('position')
-        primary_position    = o.get('primary_position')
-
-        status              = o.get('status')   # roster status, ie: basically whether they are on it
-
-        draft_pick      = o.get('draft__list.pick', '')
-        draft_round     = o.get('draft__list.round', '')
-        draft_year      = o.get('draft__list.year', '')
-        srid_draft_team = o.get('draft__list.team_id', '')
-
-        try:
-            t = sports.nba.models.Team.objects.get(srid=srid_team)
-        except sports.nba.models.Team.DoesNotExist:
-            print( str(o) )
-            print( 'Team for Player DoesNotExist!')
-            return
-
-        try:
-            p = sports.nba.models.Player.objects.get(srid=srid)
-        except sports.nba.models.Player.DoesNotExist:
-            p = sports.nba.models.Player()
-            p.srid = srid
-
-        p.team          = t             # team could easily change of course
-        p.first_name    = first_name
-        p.last_name     = last_name
-
-        p.birth_place   = birth_place
-        p.birthdate     = birthdate
-        p.college       = college
-        p.experience    = experience
-        p.height        = height
-        p.weight        = weight
-        p.jersey_number = jersey_number
-        p.position      = position
-        p.primary_position  = primary_position
-        p.status        = status
-        p.draft_pick    = draft_pick
-        p.draft_round   = draft_round
-        p.draft_year    = draft_year
-        p.srid_draft_team = srid_draft_team
-
-        p.save()
-
-class TeamHierachy(AbstractParseable):
-    def __init__(self):
-        super().__init__()
-    def parse(self, obj, target=None):
-        super().parse( obj, target )
-
-        # db.team.findOne({'parent_api__id':'hierarchy'})
-        # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkNDM1MzEzOGQtNGMyMi00Mzk2LTk1ZDgtNWY1ODdkMmRmMjVjY29uZmVyZW5jZV9faWQzOTYwY2ZhYy03MzYxLTRiMzAtYmMyNS04ZDM5M2RlNmY2MmZkaXZpc2lvbl9faWQ1NGRjNzM0OC1jMWQyLTQwZDgtODhiMy1jNGMwMTM4ZTA4NWRpZDU4M2VjZWE2LWZiNDYtMTFlMS04MmNiLWY0Y2U0Njg0ZWE0Yw==",
-        #     "alias" : "MIA",
-        #     "id" : "583ecea6-fb46-11e1-82cb-f4ce4684ea4c",
-        #     "market" : "Miami",
-        #     "name" : "Heat",
-        #     "parent_api__id" : "hierarchy",
-        #     "dd_updated__id" : NumberLong("1431472829579"),
-        #     "league__id" : "4353138d-4c22-4396-95d8-5f587d2df25c",
-        #     "conference__id" : "3960cfac-7361-4b30-bc25-8d393de6f62f",
-        #     "division__id" : "54dc7348-c1d2-40d8-88b3-c4c0138e085d",
-        #     "venue" : "b67d5f09-28b2-5bc6-9097-af312007d2f4"
-        # }
-
-        o = obj.get_o() # strip off the oplog wrapper
-
-        srid            = o.get('id',               None)
-        srid_league     = o.get('league__id',       None)
-        srid_conference = o.get('conference__id',   None)
-        srid_division   = o.get('division__id',     None)
-        market          = o.get('market',           None)
-        name            = o.get('name',             None)
-        alias           = o.get('alias',            None)
-        srid_venue      = o.get('venue',            '')
-
-        try:
-            t = sports.nba.models.Team.objects.get( srid=srid )
-        except sports.nba.models.Team.DoesNotExist:
-            t = sports.nba.models.Team()
-            t.srid      = srid
-            t.save()
-
-        t.srid_league       = srid_league
-        t.srid_conference   = srid_conference
-        t.srid_division     = srid_division
-        t.market            = market
-        t.name              = name
-        t.alias             = alias
-        t.srid_venue        = srid_venue
-
-        t.save()
-
-class GameSchedule(AbstractParseable):
-    def __init__(self):
-        super().__init__()
-    def parse(self, obj, target=None):
-        super().parse( obj, target )
-
-        # db.game.findOne({'parent_api__id':'schedule'})
-        # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRzY2hlZHVsZWxlYWd1ZV9faWQ0MzUzMTM4ZC00YzIyLTQzOTYtOTVkOC01ZjU4N2QyZGYyNWNzZWFzb24tc2NoZWR1bGVfX2lkNWJhM2NkNGQtNDk1Yi00NjgzLWJmYmUtNTZiYTJlYjg0Y2YycGFyZW50X2xpc3RfX2lkZ2FtZXNfX2xpc3RpZDVmYmQzMjk1LTMyY2EtNDQ1Zi1iYWY1LWM3YzAwODM1MTM5OA==",
-        #     "away_team" : "583ec8d4-fb46-11e1-82cb-f4ce4684ea4c",
-                            #     "coverage" : "full",
-        #     "home_team" : "583ecda6-fb46-11e1-82cb-f4ce4684ea4c",
-        #     "id" : "5fbd3295-32ca-445f-baf5-c7c008351398",
-        #     "scheduled" : "2015-04-18T16:30:00+00:00",
-        #     "status" : "closed",
-        #     "title" : "Game 1",
-                            #     "parent_api__id" : "schedule",
-                            #     "dd_updated__id" : NumberLong("1431472812731"),
-                            #     "league__id" : "4353138d-4c22-4396-95d8-5f587d2df25c",
-                            #     "season_schedule__id" : "5ba3cd4d-495b-4683-bfbe-56ba2eb84cf2",
-                            #     "parent_list__id" : "games__list",
-                            #     "venue" : "62cc9661-7b13-56e7-bf4a-bba7ad7be8da",
-        #     "home" : "583ecda6-fb46-11e1-82cb-f4ce4684ea4c",
-        #     "away" : "583ec8d4-fb46-11e1-82cb-f4ce4684ea4c",
-                            #     "broadcast__list" : {
-                            #         "internet" : "WatchESPN",
-                            #         "network" : "ESPN",
-                            #         "satellite" : 206
-                            #     }
-        # }
-
-        o = obj.get_o()
-
-        srid        = o.get('id')
-        start_str   = o.get('scheduled')
-        start       = DataDenDatetime.from_string( start_str )
-        status      = o.get('status')
-
-        srid_home   = o.get('home')
-        srid_away   = o.get('away')
-        title       = o.get('title', True)
-
-        try:
-            h = sports.nba.models.Team.objects.get(srid=srid_home)
-        except sports.nba.models.Team.DoesNotExist:
-            print( str(o) )
-            print( 'Team (home) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
-            return
-
-        try:
-            a = sports.nba.models.Team.objects.get(srid=srid_away)
-        except sports.nba.models.Team.DoesNotExist:
-            print( str(o) )
-            print( 'Team (away) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
-            return
-
-        try:
-            g = sports.nba.models.Game.objects.get(srid=srid)
-        except sports.nba.models.Game.DoesNotExist:
-            g = sports.nba.models.Game()
-            g.srid = srid
-
-        g.home      = h
-        g.away      = a
-        g.start     = start
-        g.status    = status
-        g.srid_home = srid_home
-        g.srid_away = srid_away
-        g.title     = title
-        g.save()
-
-class GameStats(AbstractParseable):
-    def __init__(self):
-        super().__init__()
-
-class PlayerStats(AbstractParseable):
-    def __init__(self):
-        super().__init__()
-    def parse(self, obj, target=None):
-        super().parse( obj, target )
-
-        o = obj.get_o()
-        srid_game   = o.get('game__id', None)
-        srid_team   = o.get('team__id', None)
-        srid_player = o.get('id', None)
-
-        try:
-            p = sports.nba.models.Player.objects.get(srid=srid_player)
-        except sports.nba.models.Player.DoesNotExist:
-            # first_name  = o.get('first_name', None)
-            # last_name   = o.get('last_name', None)
-            # full_name   = '%s %s' % (str(first_name), str(last_name))
-            print( str(o) )
-            print('Player object for PlayerStats DoesNotExist')
-            return # dont create the playerstats then
-
-        try:
-            g = sports.nba.models.Game.objects.get(srid=srid_game)
-        except sports.nba.models.Game.DoesNotExist:
-            print( str(o) )
-            print('Game object for PlayerStats DoesNotExist')
-            return # dont create the playerstats then
-
-        try:
-            ps = sports.nba.models.PlayerStats.objects.get( srid_game=srid_game, srid_player=srid_player )
-
-            ###### TODO
-            # its possible we could save our hash value, and save this player
-            # only if his stats have actually changed ! - maybe not the best idea
-
-        except sports.nba.models.PlayerStats.DoesNotExist:
-            ps = sports.nba.models.PlayerStats()
-            ps.srid_game    = srid_game
-            ps.srid_player  = srid_player
-            ps.player  = p
-            ps.game    = g
-
-        #content_type    = models.ForeignKey(ContentType, related_name='nba_playerstats')
-
         o = o.get('statistics__list', {})
         #   { 'defensive_rebounds': 1.0,
-        ps.defensive_rebounds = o.get('defensive_rebounds', 0.0)
+        self.ps.defensive_rebounds = o.get('defensive_rebounds', 0.0)
         #         'two_points_pct': 0.6,
-        ps.two_points_pct = o.get('two_points_pct', 0.0)
+        self.ps.two_points_pct = o.get('two_points_pct', 0.0)
         #         'assists': 0.0,
-        ps.assists = o.get('assists', 0.0)
+        self.ps.assists = o.get('assists', 0.0)
         #         'free_throws_att': 2.0,
-        ps.free_throws_att = o.get('free_throws_att', 0.0)
+        self.ps.free_throws_att = o.get('free_throws_att', 0.0)
         #         'flagrant_fouls': 0.0,
-        ps.flagrant_fouls = o.get('flagrant_fouls', 0.0)
+        self.ps.flagrant_fouls = o.get('flagrant_fouls', 0.0)
         #         'offensive_rebounds': 1.0,
-        ps.offensive_rebounds = o.get('offensive_rebounds', 0.0)
+        self.ps.offensive_rebounds = o.get('offensive_rebounds', 0.0)
         #         'personal_fouls': 0.0,
-        ps.personal_fouls = o.get('personal_fouls', 0.0)
+        self.ps.personal_fouls = o.get('personal_fouls', 0.0)
         #         'field_goals_att': 5.0,
-        ps.field_goals_att = o.get('field_goals_att', 0.0)
+        self.ps.field_goals_att = o.get('field_goals_att', 0.0)
         #         'three_points_att': 0.0,
-        ps.three_points_att = o.get('three_points_att', 0.0)
+        self.ps.three_points_att = o.get('three_points_att', 0.0)
         #         'field_goals_pct': 60.0,
-        ps.field_goals_pct = o.get('field_goals_pct', 0.0)
+        self.ps.field_goals_pct = o.get('field_goals_pct', 0.0)
         #         'turnovers': 0.0,
-        ps.turnovers = o.get('turnovers', 0.0)
+        self.ps.turnovers = o.get('turnovers', 0.0)
         #         'points': 8.0,
-        ps.points = o.get('points', 0.0)
+        self.ps.points = o.get('points', 0.0)
         #         'rebounds': 2.0,
-        ps.rebounds = o.get('rebounds', 0.0)
+        self.ps.rebounds = o.get('rebounds', 0.0)
         #         'two_points_att': 5.0,
-        ps.two_points_att = o.get('two_points_att', 0.0)
+        self.ps.two_points_att = o.get('two_points_att', 0.0)
         #         'field_goals_made': 3.0,
-        ps.field_goals_made = o.get('field_goals_made', 0.0)
+        self.ps.field_goals_made = o.get('field_goals_made', 0.0)
         #         'blocked_att': 0.0,
-        ps.blocked_att = o.get('blocked_att', 0.0)
+        self.ps.blocked_att = o.get('blocked_att', 0.0)
         #         'free_throws_made': 2.0,
-        ps.free_throws_made = o.get('free_throws_made', 0.0)
+        self.ps.free_throws_made = o.get('free_throws_made', 0.0)
         #         'blocks': 0.0,
-        ps.blocks = o.get('blocks', 0.0)
+        self.ps.blocks = o.get('blocks', 0.0)
         #         'assists_turnover_ratio': 0.0,
-        ps.assists_turnover_ratio = o.get('assists_turnover_ratio', 0.0)
+        self.ps.assists_turnover_ratio = o.get('assists_turnover_ratio', 0.0)
         #         'tech_fouls': 0.0,
-        ps.tech_fouls = o.get('tech_fouls', 0.0)
+        self.ps.tech_fouls = o.get('tech_fouls', 0.0)
         #         'three_points_made': 0.0,
-        ps.three_points_made = o.get('three_points_made', 0.0)
+        self.ps.three_points_made = o.get('three_points_made', 0.0)
         #         'steals': 0.0,
-        ps.steals = o.get('steals', 0.0)
+        self.ps.steals = o.get('steals', 0.0)
         #         'two_points_made': 3.0,
-        ps.two_points_made = o.get('two_points_made', 0.0)
+        self.ps.two_points_made = o.get('two_points_made', 0.0)
         #         'free_throws_pct': 100.0,
-        ps.free_throws_pct = o.get('free_throws_pct', 0.0)
+        self.ps.free_throws_pct = o.get('free_throws_pct', 0.0)
         #         'three_points_pct': 0.0
-        ps.three_points_pct = o.get('three_points_pct', 0.0)
+        self.ps.three_points_pct = o.get('three_points_pct', 0.0)
 
-        ps.save() # commit changes
+        self.ps.save() # commit changes
 
-        return ps
+class QuarterPbp(DataDenPbpDescription):
+    """
+    Parse the list of quarters.
+    """
 
-class PlayerPbp(AbstractParseable):
+    game_model              = Game
+    pbp_model               = Pbp
+    portion_model           = GamePortion
+    pbp_description_model   = PbpDescription
+
+    def __init__(self):
+        super().__init__()
+        self.KEY_GAME_ID = 'game__id'
+
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        if self.game is None:
+            return
+
+        #
+        # super().parse() the GamePortions for the periods
+        #       so that when the pbp events are parsed
+        #       the game,pbp,gameportion exists
+        # get or create GamePortion for thsi period
+        srid_period     = self.o.get('id', None)
+        sequence        = self.o.get('sequence')
+        game_portion    = self.get_game_portion( 'quarter', sequence, save=False ) # defer save
+        game_portion.srid = srid_period
+        game_portion.save() # now save that we added the srid_period
+
+        events = self.o.get('events__list', [])
+
+        print('events__list count: %s' % str(len(events)))
+
+        idx = 0
+        for event_json in events:
+            #
+            # each event is a pbp item with a description
+            srid_event = event_json.get('event', None)
+            pbp_desc    = self.get_pbp_description(game_portion, idx, '', save=False) # defer save
+            pbp_desc.srid = srid_event # the 'event' is the PbpDescription
+            pbp_desc.save()
+            idx += 1
+
+            # EventPbp will take care of saving the 'description' field
+
+class EventPbp(DataDenPbpDescription):
+
+    game_model              = Game
+    pbp_model               = Pbp
+    portion_model           = GamePortion
+    pbp_description_model   = PbpDescription
+
     def __init__(self):
         super().__init__()
 
-class EventPbp(AbstractParseable):
-    def __init__(self):
-        super().__init__()
+    def parse(self, obj, target=None):
+        #
+        # dont need to call super for EventPbp - just get the event by srid.
+        # if it doesnt exist dont do anything, else set the description
+        self.o = obj.get_o() # we didnt call super so we should do this
+        srid_pbp_desc = self.o.get('id', None)
+        pbp_desc = self.get_pbp_description_by_srid( srid_pbp_desc )
+        if pbp_desc:
+            description = self.o.get('description', None)
+            if pbp_desc.description != description:
+                # only save it if its changed
+                pbp_desc.description = description
+                pbp_desc.save()
+        else:
+            print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
 
 class DataDenNba(AbstractDataDenParser):
 
     def __init__(self):
-        self.game_model = sports.nba.models.Game
+        pass
 
     def parse(self, obj):
         """
@@ -530,16 +278,18 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.game','boxscores'): GameBoxscores().parse( obj )
         #
         # nba.team
-        elif self.target == ('nba.team','hierarchy'): TeamHierachy().parse( obj )
+        elif self.target == ('nba.team','hierarchy'): TeamHierarchy().parse( obj )
         elif self.target == ('nba.team','boxscores'): TeamBoxscores().parse( obj )
+        #
+        # nhl.period
+        elif self.target == ('nba.quarter','pbp'): QuarterPbp().parse( obj )
+        #
+        # nhl.event
+        elif self.target == ('nba.event','pbp'): EventPbp().parse( obj )
         #
         # nba.player
         elif self.target == ('nba.player','rosters'): PlayerRosters().parse( obj )
         elif self.target == ('nba.player','stats'): PlayerStats().parse( obj )
-        #elif self.target == ('nba.player','pbp'): PlayerPbp().parse( obj )
-        #
-        # nba.event
-        #elif self.target == ('nba.event','pbp'): EventPbp().parse( obj )
         #
         # default case, print this message for now
         else: self.unimplemented( self.target[0], self.target[1] )
