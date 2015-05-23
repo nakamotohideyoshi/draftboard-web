@@ -30,6 +30,10 @@ class GameBoxscoreAdmin(admin.ModelAdmin):
                     'away','away_score','inning','inning_half','coverage',
                     'home_scoring_json','away_scoring_json']
 
+@admin.register(sports.mlb.models.GamePortion)
+class GamePortionAdmin(admin.ModelAdmin):
+    list_display = ['srid_game','category','sequence']
+
 @admin.register(sports.mlb.models.PbpDescription)
 class PbpDescriptionAdmin(admin.ModelAdmin):
-    list_display = ['pbp','idx','description']
+    list_display = ['pbp','srid_game','category','sequence','idx','description']

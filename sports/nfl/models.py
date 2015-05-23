@@ -181,6 +181,18 @@ class Venue( sports.models.Venue ):
     class Meta:
         abstract = True # TODO
 
+class GamePortion(sports.models.GamePortion):
+    class Meta:
+        abstract = False
+
+class PbpDescription(sports.models.PbpDescription):
+    class Meta:
+        abstract = False
+
+class Pbp(sports.models.Pbp):
+    class Meta:
+        abstract = False
+
 def create_dst_player(sender, **kwargs):
     """
  signal handler to create the DST Player object after a Team object is created.

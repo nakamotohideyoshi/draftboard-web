@@ -241,58 +241,72 @@ class ProviderParser(object):
         return provider_parser()
 
 #
-# test function to print mlb pbp
+#
 def pbp():
     from pymongo import MongoClient
     c = MongoClient()
-    db = c.get_database('mlb')
-    coll = db.get_collection('game')
+    db = c.get_database('nhl')
+    coll = db.get_collection('period')
     pbp = coll.find_one({'parent_api__id':'pbp'})
     print('srid game', pbp.get('id'))
     innings = pbp.get('innings', {})
     overall_idx = 0
     for inning_json in innings:
-        inning = inning_json.get('inning', {})
-        inning_sequence = inning.get('sequence', None)
-        if inning_sequence == 0:
-            print('skipping inning sequence 0 - its just lineup information')
-            continue
-
-        if inning_sequence is None:
-            raise Exception('inning sequence is None! what the!?')
-        #print( inning )
-        #print( '' )
-        #
-        # each 'inning' is
-        # inning.keys()  --> dict_keys(['scoring__list', 'sequence', 'inning_halfs', 'number'])
-        # inning.get('inning_halfs', []) # gets() a list of dicts
-        inning_halfs = inning.get('inning_halfs', [])
-        for half_json in inning_halfs:
-            half = half_json.get('inning_half')
-            half_type = half.get('type', None)
-            if half_type is None:
-                raise Exception('half type is None! what the!?')
-            #print(str(half))
-            #print("")
-
-            #
-            # all pbp decriptions are associated with an
-            # inning (integer) & inning_half (T or B).
-            # get the hitter id too
-            at_bats = half.get('at_bats', [])
-            half_idx = 0
-            for at_bat_json in at_bats:
-                at_bat = at_bat_json.get('at_bat')
-                srid_hitter = at_bat.get('hitter_id', '')
-                desc = at_bat.get('description', None)
-                if desc is None:
-                    continue
-
-                half_idx += 1
-                overall_idx += 1
-
-                print( str(overall_idx), str(half_idx),
-                        'inning:%s' % str(inning_sequence),
-                       'half:%s' % str(half_type),
-                       'hitter:%s' % srid_hitter,
-                                            desc )
+        break
+#
+# This code has been moved into the sports.mlb.parser.GamePbp!
+# test function to print mlb pbp
+# def pbp():
+#     from pymongo import MongoClient
+#     c = MongoClient()
+#     db = c.get_database('mlb')
+#     coll = db.get_collection('game')
+#     pbp = coll.find_one({'parent_api__id':'pbp'})
+#     print('srid game', pbp.get('id'))
+#     innings = pbp.get('innings', {})
+#     overall_idx = 0
+#     for inning_json in innings:
+#         inning = inning_json.get('inning', {})
+#         inning_sequence = inning.get('sequence', None)
+#         if inning_sequence == 0:
+#             print('skipping inning sequence 0 - its just lineup information')
+#             continue
+#
+#         if inning_sequence is None:
+#             raise Exception('inning sequence is None! what the!?')
+#         #print( inning )
+#         #print( '' )
+#         #
+#         # each 'inning' is
+#         # inning.keys()  --> dict_keys(['scoring__list', 'sequence', 'inning_halfs', 'number'])
+#         # inning.get('inning_halfs', []) # gets() a list of dicts
+#         inning_halfs = inning.get('inning_halfs', [])
+#         for half_json in inning_halfs:
+#             half = half_json.get('inning_half')
+#             half_type = half.get('type', None)
+#             if half_type is None:
+#                 raise Exception('half type is None! what the!?')
+#             #print(str(half))
+#             #print("")
+#
+#             #
+#             # all pbp decriptions are associated with an
+#             # inning (integer) & inning_half (T or B).
+#             # get the hitter id too
+#             at_bats = half.get('at_bats', [])
+#             half_idx = 0
+#             for at_bat_json in at_bats:
+#                 at_bat = at_bat_json.get('at_bat')
+#                 srid_hitter = at_bat.get('hitter_id', '')
+#                 desc = at_bat.get('description', None)
+#                 if desc is None:
+#                     continue
+#
+#                 half_idx += 1
+#                 overall_idx += 1
+#
+#                 print( str(overall_idx), str(half_idx),
+#                         'inning:%s' % str(inning_sequence),
+#                        'half:%s' % str(half_type),
+#                        'hitter:%s' % srid_hitter,
+#                                             desc )

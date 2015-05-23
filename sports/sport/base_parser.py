@@ -3,6 +3,7 @@
 
 from dataden.util.timestamp import Parse as DataDenDatetime
 import json
+from django.contrib.contenttypes.models import ContentType
 
 class AbstractDataDenParser(object):
     """
@@ -485,7 +486,8 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     Parses the pbp text description objects.
     """
 
-    game_model              = None
+    game_model              = None # fields: srid
+    portion_model           = None #
     pbp_model               = None
     pbp_description_model   = None
 
@@ -497,23 +499,120 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         if self.pbp_description_model is None:
             raise Exception('"pbp_description_model" cant be None!')
 
+        self.KEY_GAME_ID = 'id'
+
         self.game           = None
+        self.game_ctype     = None # set if self.game is set
+
         self.pbp            = None
-        self.description    = None
+        self.pbp_ctype      = None # set if self.pbp is set
 
         super().__init__()
 
+    def __get_content_type(self, model):
+        """
+        Helper for ContentType.objects.get_for_model(model)
+
+        :param model:
+        :return:
+        """
+        return ContentType.objects.get_for_model(model)
+
+    def get_game_portion(self, category, sequence, save=True):
+        """
+        Get or create the GamePortion for this PbpDescription.
+        The GamePortion is the inning_half(mlb), quarter(nba/nfl), or period(nhl)
+        that the PbpDescription is associated with.
+
+        :param category:
+        :param sequence:
+        :return:
+        """
+        try:
+            #
+            # GamePortions are unique based on their srid_game, category, & sequence!
+            portion = self.portion_model.objects.get(game_type__pk=self.game_ctype.id,
+                                game_id=self.game.id, sequence=sequence )
+        except self.portion_model.DoesNotExist:
+            portion = self.portion_model()
+            portion.srid_game          = self.game.srid
+            portion.game               = self.game
+            portion.sequence           = sequence
+            portion.category           = category # pulling this out will allow us to change the category
+            if save:
+                portion.save()
+        return portion
+
+    def get_game_portion_by_srid(self, srid):
+        try:
+            portion = self.portion_model.objects.get(srid=srid)
+        except self.portion_model.DoesNotExist:
+            portion = None
+        return portion
+
+    def get_pbp_description(self, portion, idx, description, save=True):
+        """
+        Get or create the PbpDescription for the GamePortion,
+        and the Pbp object this pbp is associated with.
+
+        Caller should set the idx, and the text description.
+
+        :param portion:
+        :return:
+        """
+        portion_ctype = self.__get_content_type(portion)
+        try:
+            #
+            # GamePortions are unique based on their srid_game, category, & sequence!
+            desc = self.pbp_description_model.objects.get( idx=idx,
+                                portion_type__pk=portion_ctype.id, portion_id=portion.id,
+                                pbp_type__pk=self.pbp_ctype.id, pbp_id=self.pbp.id )
+        except self.pbp_description_model.DoesNotExist:
+            desc = self.pbp_description_model()
+            desc.pbp         = self.pbp
+            desc.portion     = portion
+            desc.idx         = idx
+
+        if desc.description != description:
+            desc.description = description
+            if save:
+                desc.save()
+        return desc
+
+    def get_pbp_description_by_srid(self, srid):
+        try:
+            pbp_desc = self.pbp_description_model.objects.get(srid=srid)
+        except self.pbp_description_model.DoesNotExist:
+            pbp_desc = None
+        return pbp_desc
+
     def parse(self, obj, target=None):
+        """
+        For the given obj:
+        a) set self.game to the game the pbp data is from
+        b) get or create the self.pbp that points to game for the pbp
+        c) determine which GamePortion this pbp is specifically for
+        d) create/update the pbp description
+
+        :param obj:
+        :param target:
+        :return:
+        """
         super().parse( obj, target )
 
-        srid_game = self.o.get('id', None)
+        #
+        # get the Game and set it to self.game
+        srid_game = self.o.get(self.KEY_GAME_ID, None)
         try:
             self.game = self.game_model.objects.get(srid=srid_game)
         except self.game_model.DoesNotExist:
             print( str(self.o) )
             print( 'Game for pbp does not exist' )
             return
+        self.game_ctype = self.__get_content_type(self.game)
 
+        #
+        # get the Pbp model, and set it to self.pbp for subclasses to use
         try:
             self.pbp = self.pbp_model.objects.get(srid_game=srid_game)
         except self.pbp_model.DoesNotExist:
@@ -521,4 +620,11 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             self.pbp.srid_game  = srid_game
             self.pbp.game       = self.game
             self.pbp.save() # create it
+        self.pbp_ctype = self.__get_content_type(self.pbp)
+
+        #
+        # from here the child class may need to use:
+        #   self.get_game_portion()
+        #   self.get_pbp_description()
+
 
