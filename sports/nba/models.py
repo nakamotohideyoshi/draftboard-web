@@ -228,10 +228,6 @@ class Venue( sports.models.Venue ):
         abstract = True # TODO
 
 class GamePortion(sports.models.GamePortion):
-    class Meta:
-        abstract = False
-
-class GamePortion(sports.models.GamePortion):
     #
     # this is the srid or the period or quarter
     srid = models.CharField(max_length=64, null=False, default='')

@@ -182,10 +182,19 @@ class Venue( sports.models.Venue ):
         abstract = True # TODO
 
 class GamePortion(sports.models.GamePortion):
+    #
+    # TODO - REMOVE -- we dont need srid in nfl GamePortions - they dont have one
+    # this is the srid of the quarter
+    srid = models.CharField(max_length=64, null=False, default='')
+
     class Meta:
         abstract = False
 
 class PbpDescription(sports.models.PbpDescription):
+    #
+    # this is the srid of the play, aka specific pbp object
+    srid = models.CharField(max_length=64, null=False, default='')
+
     class Meta:
         abstract = False
 
