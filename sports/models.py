@@ -4,7 +4,7 @@
 from django.db import models
 
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 
 #
 #########################################################################
@@ -175,5 +175,76 @@ class Venue(models.Model):
 
     srid = models.CharField(max_length=64, unique=True, null=False,
                                 help_text='the sportsradar global id')
+    class Meta:
+        abstract = True
+
+class GamePortion(models.Model):
+    """
+    Defines the least divisible part of a game.
+    ie: there can be a GamePortion for each inning-half of mlb games,
+    quarters or nba/nfl games, and periods of nhl games.
+    """
+    created = models.DateTimeField(auto_now_add=True)
+    srid_game   = models.CharField(max_length=64, null=False,
+                            help_text='the sportsradar global id for the game this is associate with')
+
+    # the GFK to the Game
+    game_type           = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_sport_game')
+    game_id             = models.PositiveIntegerField()
+    game                = GenericForeignKey('game_type', 'game_id')
+
+    category = models.CharField(max_length=32, null=False, default='',
+                                help_text='typically one of these: ["inning-half","quarter","period"]' )
+    sequence = models.IntegerField(default=0, null=False,
+                                   help_text='an ordering of all GamePortions with the same srid_game')
+
+    class Meta:
+        abstract = True
+        unique_together = ('srid_game','sequence')
+
+class PbpDescription(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+
+    # the GFK to the main pbp object
+    pbp_type            = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_pbpdesc_pbp')
+    pbp_id              = models.PositiveIntegerField()
+    pbp                 = GenericForeignKey('pbp_type', 'pbp_id')
+
+    portion_type        = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_pbpdesc_portion')
+    portion_id          = models.PositiveIntegerField()
+    portion             = GenericForeignKey('portion_type', 'portion_id')
+
+    idx                 = models.IntegerField(default=0, null=False)
+    description         = models.CharField(max_length=1024, null=False, default='')
+
+    @property
+    def srid_game(self):
+        return self.pbp.srid_game
+
+    @property
+    def category(self):
+        return self.portion.category
+
+    @property
+    def sequence(self):
+        return self.portion.sequence
+
+    class Meta:
+        abstract = True
+
+class Pbp(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+
+    srid_game   = models.CharField(max_length=64, null=False,
+                            help_text='the sportsradar global id for the game')
+
+    # the GFK to the Game
+    game_type           = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_sport_game')
+    game_id             = models.PositiveIntegerField()
+    game                = GenericForeignKey('game_type', 'game_id')
+
+    descriptions        = GenericRelation(PbpDescription,
+                                          content_type_field='pbp_type',
+                                          object_id_field='pbp_id' )
     class Meta:
         abstract = True

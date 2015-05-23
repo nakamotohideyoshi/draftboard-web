@@ -226,3 +226,27 @@ class RosterPlayer( sports.models.RosterPlayer ):
 class Venue( sports.models.Venue ):
     class Meta:
         abstract = True # TODO
+
+class GamePortion(sports.models.GamePortion):
+    class Meta:
+        abstract = False
+
+class GamePortion(sports.models.GamePortion):
+    #
+    # this is the srid or the period or quarter
+    srid = models.CharField(max_length=64, null=False, default='')
+
+    class Meta:
+        abstract = False
+
+class PbpDescription(sports.models.PbpDescription):
+    #
+    # this is the srid of the event, aka specific pbp object
+    srid = models.CharField(max_length=64, null=False, default='')
+
+    class Meta:
+        abstract = False
+
+class Pbp(sports.models.Pbp):
+    class Meta:
+        abstract = False
