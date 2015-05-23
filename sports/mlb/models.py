@@ -186,6 +186,10 @@ class Venue( sports.models.Venue ):
     class Meta:
         abstract = True # TODO
 
+class GamePortion(sports.models.GamePortion):
+    class Meta:
+        abstract = False
+
 class PbpDescription(sports.models.PbpDescription):
     class Meta:
         abstract = False
