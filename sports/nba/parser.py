@@ -1,11 +1,13 @@
 #
 # sports/nba/models.py
 import sports.nba.models
-from sports.nba.models import Team, Game, Player, PlayerStats, GameBoxscore
+from sports.nba.models import Team, Game, Player, PlayerStats, \
+                                GameBoxscore, Pbp, PbpDescription, GamePortion
 
 from sports.sport.base_parser import AbstractDataDenParser, \
                         DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
-                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores
+                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
+                        DataDenPbpDescription
 
 import json
 
@@ -181,21 +183,78 @@ class PlayerStats(DataDenPlayerStats):
 
         self.ps.save() # commit changes
 
-# class PlayerPbp(AbstractParseable):
-#
-#     def __init__(self):
-#         super().__init__()
-#
-#     def parse(self, obj, target=None):
-#         super().parse( obj, target )
-#
-# class EventPbp(AbstractParseable):
-#
-#     def __init__(self):
-#         super().__init__()
-#
-#     def parse(self, obj, target=None):
-#         super().parse( obj, target )
+class QuarterPbp(DataDenPbpDescription):
+    """
+    Parse the list of quarters.
+    """
+
+    game_model              = Game
+    pbp_model               = Pbp
+    portion_model           = GamePortion
+    pbp_description_model   = PbpDescription
+
+    def __init__(self):
+        super().__init__()
+        self.KEY_GAME_ID = 'game__id'
+
+    def parse(self, obj, target=None):
+        super().parse( obj, target )
+
+        if self.game is None:
+            return
+
+        #
+        # super().parse() the GamePortions for the periods
+        #       so that when the pbp events are parsed
+        #       the game,pbp,gameportion exists
+        # get or create GamePortion for thsi period
+        srid_period     = self.o.get('id', None)
+        sequence        = self.o.get('sequence')
+        game_portion    = self.get_game_portion( 'quarter', sequence, save=False ) # defer save
+        game_portion.srid = srid_period
+        game_portion.save() # now save that we added the srid_period
+
+        events = self.o.get('events__list', [])
+
+        print('events__list count: %s' % str(len(events)))
+
+        idx = 0
+        for event_json in events:
+            #
+            # each event is a pbp item with a description
+            srid_event = event_json.get('event', None)
+            pbp_desc    = self.get_pbp_description(game_portion, idx, '', save=False) # defer save
+            pbp_desc.srid = srid_event # the 'event' is the PbpDescription
+            pbp_desc.save()
+            idx += 1
+
+            # EventPbp will take care of saving the 'description' field
+
+class EventPbp(DataDenPbpDescription):
+
+    game_model              = Game
+    pbp_model               = Pbp
+    portion_model           = GamePortion
+    pbp_description_model   = PbpDescription
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        #
+        # dont need to call super for EventPbp - just get the event by srid.
+        # if it doesnt exist dont do anything, else set the description
+        self.o = obj.get_o() # we didnt call super so we should do this
+        srid_pbp_desc = self.o.get('id', None)
+        pbp_desc = self.get_pbp_description_by_srid( srid_pbp_desc )
+        if pbp_desc:
+            description = self.o.get('description', None)
+            if pbp_desc.description != description:
+                # only save it if its changed
+                pbp_desc.description = description
+                pbp_desc.save()
+        else:
+            print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
 
 class DataDenNba(AbstractDataDenParser):
 
@@ -222,13 +281,15 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.team','hierarchy'): TeamHierarchy().parse( obj )
         elif self.target == ('nba.team','boxscores'): TeamBoxscores().parse( obj )
         #
+        # nhl.period
+        elif self.target == ('nba.quarter','pbp'): QuarterPbp().parse( obj )
+        #
+        # nhl.event
+        elif self.target == ('nba.event','pbp'): EventPbp().parse( obj )
+        #
         # nba.player
         elif self.target == ('nba.player','rosters'): PlayerRosters().parse( obj )
         elif self.target == ('nba.player','stats'): PlayerStats().parse( obj )
-        #elif self.target == ('nba.player','pbp'): PlayerPbp().parse( obj )
-        #
-        # nba.event
-        #elif self.target == ('nba.event','pbp'): EventPbp().parse( obj )
         #
         # default case, print this message for now
         else: self.unimplemented( self.target[0], self.target[1] )
