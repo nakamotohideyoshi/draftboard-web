@@ -238,7 +238,7 @@ INSTALLED_APPS = (
     'sports.nfl',
 
     'scoring',
-
+    'salary',
     'test',
 )
 
