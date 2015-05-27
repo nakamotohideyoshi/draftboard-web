@@ -5,6 +5,7 @@ from django.utils import timezone
 from .classes import SalaryPlayerStatsObject, SalaryGenerator
 from datetime import date, timedelta
 from random import randint
+from .models import SalaryConfig, TrailingGameWeight
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
@@ -83,28 +84,42 @@ class PlayerStatsObjectTest(AbstractTest):
         self.player_stats = create_basic_player_stats()
 
     def test_proper_init(self):
-        self.assertIsNotNone(PlayerStatsObject(self.player_stats))
+        self.assertIsNotNone(SalaryPlayerStatsObject(self.player_stats))
 
     def test_improper_init(self):
         self.assertRaises(mysite.exceptions.IncorrectVariableTypeException,
-                          lambda: PlayerStatsObject(1))
+                          lambda: SalaryPlayerStatsObject(1))
 
     def test_missing_data_types (self):
         self.player_stats.fantasy_points = None
         self.assertRaises(mysite.exceptions.NullModelValuesException,
-                          lambda: PlayerStatsObject(self.player_stats))
+                          lambda: SalaryPlayerStatsObject(self.player_stats))
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 # Tests the Salary Generator
-class SalaryConf(object):
-    def __init__(self):
-        self.trailing_games  = 10
-
-
 class SalaryGeneratorTest(AbstractTest):
     def setUp(self):
-        self.salary_conf = SalaryConf()
+        self.salary_conf                            = SalaryConfig()
+        self.salary_conf.trailing_games             = 10
+        self.salary_conf.days_since_last_game_flag  = 10
+        self.salary_conf.min_games_flag             = 7
+        self.salary_conf.min_player_salary          = 3000
+        self.salary_conf.max_team_salary            = 50000
+        self.salary_conf.save()
+
+        self.createTrailingGameWeight(self.salary_conf, 3,3)
+        self.createTrailingGameWeight(self.salary_conf, 7,2)
+        self.createTrailingGameWeight(self.salary_conf, 10,1)
+
+    def createTrailingGameWeight(self, salary_config, through, weight):
+        trailing_game_weight                        = TrailingGameWeight()
+        trailing_game_weight.salary                 = salary_config
+        trailing_game_weight.through                = through
+        trailing_game_weight.weight                 = weight
+        trailing_game_weight.save()
+
+
 
     def test_proper_init(self):
         self.assertIsNotNone(SalaryGenerator(PlayerStatsChild,self.salary_conf))

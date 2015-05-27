@@ -22,3 +22,4 @@ class TrailingGameWeight(models.Model):
 
     class Meta:
         unique_together = ( 'salary', 'through' )
+
