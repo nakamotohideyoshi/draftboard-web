@@ -122,7 +122,7 @@ class DataDenParser(object):
             trg = Trigger.create( db, coll, parent_api, enable=enable )
         print('created triggers')
 
-    def setup(self, sport):
+    def setup(self, sport, async=False):
         """
         NOTE: This method should ONLY BE CALLED after dataden.jar has run
         and populated its own database for whatever sport you
@@ -171,9 +171,9 @@ class DataDenParser(object):
                 #
                 # create a oplog wrapper with the mongo object and signal it
                 # so the parser takes care of the rest!
-                self.parse_obj( db, coll, mongo_obj )
+                self.parse_obj( db, coll, mongo_obj, async=async )
 
-    def parse_obj(self, db, coll, mongo_obj):
+    def parse_obj(self, db, coll, mongo_obj, async=False):
         """
         mongo_obj is a dataden object without the oplog wrapper
 
@@ -185,7 +185,7 @@ class DataDenParser(object):
         :param mongo_obj:
         :return:
         """
-        Update( OpLogObjWrapper( db, coll, mongo_obj ) ).send()
+        Update( OpLogObjWrapper( db, coll, mongo_obj ) ).send( async=async )
 
     def setup_all(self):
         """

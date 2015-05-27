@@ -1,6 +1,14 @@
 #
 # dataden/watcher.py
 
+#
+# this setting can have a huge impact on the speed of stat updates
+# because it will us celery tasks to do all the updates, but
+# that can have the affect of hammering the disk - it works, but
+# has not been battle tested on heroku yet. currently it will
+# bring a vagrant VM to its knees.
+ASYNC_UPDATES = False
+
 from mysite.settings import local
 
 from dataden.util.hsh import Hashable
@@ -226,7 +234,7 @@ class Trigger(object):
                     #
                     # send the 'o' object (a stat update) out as a
                     # signal because its been updated!!
-                    Update( hashable_object ).send()
+                    Update( hashable_object ).send(async=ASYNC_UPDATES)
                     added += 1
 
                 count += 1

@@ -293,3 +293,13 @@ class DataDenNba(AbstractDataDenParser):
         #
         # default case, print this message for now
         else: self.unimplemented( self.target[0], self.target[1] )
+
+    def parse_injuries(self):
+        #
+        # injury process:
+        # 1) get all the updates
+        # 2) get all the existing players with injuries
+        # 3) for each updated injury, get the existing player to match and set their injury
+        # 4)      if they arent an existin injury thats fine, set their injury
+        # 5) with the leftover existing players, remove their injury status since they dont seem to have injuries anymore
+        pass

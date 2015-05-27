@@ -107,8 +107,12 @@ class PlayerStatsSeason( sports.models.PlayerStatsSeason ):
         abstract = True # TODO
 
 class Injury( sports.models.Injury ):
+    #
+    # nba injuries have ids
+    srid = models.CharField(max_length=64, null=False, default='')
+
     class Meta:
-        abstract = True # TODO
+        abstract = False
 
 class RosterPlayer( sports.models.RosterPlayer ):
     class Meta:

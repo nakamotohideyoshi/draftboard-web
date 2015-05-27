@@ -101,23 +101,8 @@ def heartbeat(self):
 def payout(self, instance, **kwargs):
     r_payout    = instance.payout()
 
-
-
-# class PayoutTask( object ):
-#     """
-#
-#     """
-#
-#     @app.task(bind=True)
-#     def payout(self):
-#         raise Exception('unimplemented currently')
-#         return None # TODO the result
-#
-#     @app.task(bind=True)
-#     def payout_debug(self):
-#         p = Payout()
-#         return p.payout_debug_test_error_50_percent()
-#
-#     @app.task(bind=True)
-#     def execute(self, func, **kwargs):
-#          print( 'function name:', func.__name__ )
+@app.task(bind=True, time_limit=60) # 60 seconds is an eternity for a stat update
+def stat_update(self, updateable, **kwargs):
+    #
+    # call send() on a dataden.signals.Updateable instance
+    updateable.send()
