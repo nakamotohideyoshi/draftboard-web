@@ -226,6 +226,10 @@ class HomeAwaySummary(DataDenTeamBoxscores):
         #         { "player" : "090ff436-c1e8-4927-b457-355cf4f9993b" }, ... more players who played
         #     ]
         # }
+
+        if self.boxscore is None:
+            return
+
         srid_team = self.o.get('id', None)
 
         probable_pitcher    = self.o.get('probable_pitcher', None)

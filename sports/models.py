@@ -88,12 +88,30 @@ class GameBoxscore(models.Model):
     class Meta:
         abstract = True
 
+class Injury(models.Model):
+    created     = models.DateTimeField(auto_now_add=True)
+
+    player_type           = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_injured_player')
+    player_id             = models.PositiveIntegerField()
+    player                = GenericForeignKey('player_type', 'player_id')
+
+    status      = models.CharField(max_length=32, default='')
+    description = models.CharField(max_length=1024, default='')
+
+    class Meta:
+        abstract = True
+
 class Player(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     srid = models.CharField(max_length=64, unique=True, null=False,
                                 help_text='the sportsradar global id')
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
+
+    # the GFK to the Game
+    injury_type           = models.ForeignKey(ContentType, null=True, related_name='%(app_label)s_%(class)s_players_injury')
+    injury_id             = models.PositiveIntegerField(null=True)
+    injury                = GenericForeignKey('injury_type', 'injury_id')
 
     def __str__(self):
         return '%s %s' % (self.first_name, self.last_name)
@@ -159,10 +177,6 @@ class PlayerStats(models.Model):
 
 
 class PlayerStatsSeason(models.Model):
-    class Meta:
-        abstract = True
-
-class Injury(models.Model):
     class Meta:
         abstract = True
 

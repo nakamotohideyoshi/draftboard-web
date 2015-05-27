@@ -3,6 +3,8 @@
 #
 # docs: https://docs.djangoproject.com/en/1.8/topics/signals/
 
+from mysite.celery import stat_update
+
 from django.dispatch import Signal
 
 class SignalNotSetupProperlyException(Exception):
@@ -33,6 +35,14 @@ class Ping(object):
     def send(self):
         self.signal.send_robust(sender=self.__class__)
 
+class Updateable(object):
+
+    def __init__(self, update):
+        self.update = update
+
+    def send(self):
+        self.update.send()
+
 class Update(AbstractSignal):
     """
     a signal that contains an object with stats that need to be saved
@@ -44,11 +54,15 @@ class Update(AbstractSignal):
         super().__init__()
         self.o = o # a Hashable object created created from oplog entry
 
-    def send(self):
+    def send(self, async=False):
         """
         call parent send() with the object which has had a change to it
         """
-        super().send( o=self.o )
+        if async:
+            updateable = Updateable( self )
+            stat_update.apply_async( (updateable, ), serializer='pickle' )
+        else:
+            super().send( o=self.o )
 
 class Push(object):
     """
