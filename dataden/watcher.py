@@ -12,7 +12,7 @@ ASYNC_UPDATES = False
 from mysite.settings import local
 
 from dataden.util.hsh import Hashable
-from dataden.util.simpletimer import SimpleTimer
+from dataden.util import SimpleTimer
 from dataden.cache.caches import LiveStatsCache, TriggerCache
 
 from pymongo import MongoClient
