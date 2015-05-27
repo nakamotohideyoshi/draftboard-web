@@ -1,7 +1,8 @@
 from sports.models import PlayerStats, Player, Game
 from mysite.exceptions import IncorrectVariableTypeException, NullModelValuesException
 from django.contrib.contenttypes.models import ContentType
-
+from .models import SalaryConfig, TrailingGameWeight
+from django.utils import timezone
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
@@ -42,6 +43,7 @@ class SalaryPlayerStatsObject(object):
         self.primary_position   = player_stats_object.primary_position
         self.player_id          = player_stats_object.player_id
 
+
         #
         # Throw an exception if any of the important data types
         # are missing data.
@@ -65,9 +67,12 @@ class SalaryPlayerObject(object):
     def __init__(self):
         self.player_stats_list = []
         self.player_id = None
+        self.fantasy_weighted_average = None
+        self.flagged = False
 
     def __str__(self):
-        string_ret = str(self.player_id)+": \n"
+        string_ret = str(self.player_id)+ " w_points="+str(self.fantasy_weighted_average)+\
+                     " flagged="+str(self.flagged)+": \n"
         for player in self.player_stats_list:
             string_ret += "\t"+str(player)+"\n"
         return string_ret
@@ -106,6 +111,12 @@ class SalaryGenerator(object):
                                                  type(player_stats_class).__name__)
 
         #
+        # Makes sure the salary_conf is an instance
+        # of the subclass SalaryConfig
+        if(not isinstance(salary_conf, SalaryConfig)):
+            raise IncorrectVariableTypeException(type(self).__name__,
+                                                 "salary_conf")
+        #
         # sets the variables after being validated
         self.player_stats_class = player_stats_class
         self.salary_conf        = salary_conf
@@ -136,11 +147,14 @@ class SalaryGenerator(object):
         #
         # apply weights to each score to come up with the
         # average weighted score for each player
-
+        self.__apply_weight_and_flag(players)
+        self.__print_players_list(players)
 
         #
         # Calculate the salaries for each player based on
         # the mean of weighted score of their position
+
+
 
 
 
@@ -231,7 +245,6 @@ class SalaryGenerator(object):
 
             del arrToSort[self.salary_conf.trailing_games : ]
 
-        self.__print_players_list(players)
 
 
 
@@ -240,6 +253,53 @@ class SalaryGenerator(object):
             print(player)
 
 
+
+
+
+    def __apply_weight_and_flag(self, players):
+        """
+        Updates the flags for the players if they do not meet the requirements for
+        salary generation. This method also generates each players weighted salary.
+        :param players:
+        """
+        trailing_game_weights = TrailingGameWeight.objects.filter(salary=self.salary_conf)
+        trailing_game_weights.order_by("-through")
+        #
+        # Iterate through the player objects and weigh their stats and update
+        # their flags if applies
+        for player in players:
+            number_of_games = len(player.player_stats_list)
+            player.fantasy_weighted_average = 0
+
+            if(number_of_games > 0 ):
+                #
+                # check to makes sure the most recent game played has been less than
+                # days_since_last_game_flag days ago.
+                #  OR
+                # check to makes sure the min games are played
+
+                delta = timezone.now() - player.player_stats_list[0].start
+                if (delta.days < self.salary_conf.days_since_last_game_flag) or \
+                    (number_of_games < self.salary_conf.min_games_flag ):
+                    player.flagged= True
+
+
+                #
+                # Iterates through the weights and applies them to the fantasy points
+                i = 0
+                for tgw in trailing_game_weights:
+                    for j in range(i, tgw.through-1):
+                        if(j < number_of_games):
+                            player.fantasy_weighted_average += \
+                                player.player_stats_list[j].fantasy_points * (float)(tgw.weight)
+
+                    i = tgw.through -1
+                #
+                # takes the sum and divides by the total allowed games
+                player.fantasy_weighted_average /= (float)(self.salary_conf.trailing_games)
+
+            else:
+                player.flagged= True
 
 
 
