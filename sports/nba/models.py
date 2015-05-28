@@ -219,6 +219,7 @@ class Injury( sports.models.Injury ):
     #
     # nba injuries have ids
     srid = models.CharField(max_length=64, null=False, default='')
+    comment = models.CharField(max_length=1024, null=False, default='')
 
     class Meta:
         abstract = False

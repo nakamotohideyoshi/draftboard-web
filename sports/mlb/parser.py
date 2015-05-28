@@ -977,6 +977,9 @@ class GamePbp(DataDenPbpDescription):
                     # self.description.description = desc
                     # self.description.save()
 
+class Injury(object):
+    pass
+
 class DataDenMlb(AbstractDataDenParser):
 
     def __init__(self):

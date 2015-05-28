@@ -8,7 +8,7 @@ from sports.nfl.models import Team, Game, Player, PlayerStats, \
 from sports.sport.base_parser import AbstractDataDenParser, \
                         DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
                         DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
-                        DataDenPbpDescription
+                        DataDenPbpDescription, DataDenInjury
 import json
 
 class TeamHierarchy(DataDenTeamHierarchy):
@@ -590,6 +590,9 @@ class PlayPbp(DataDenPbpDescription):
                 pbp_desc.save()
         else:
             print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
+
+class Injury(DataDenInjury):
+    pass # TODO
 
 class DataDenNfl(AbstractDataDenParser):
 

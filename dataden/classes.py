@@ -1,7 +1,7 @@
 #
 # dataden/classes.py
 
-from pymongo import MongoClient
+from pymongo import MongoClient, ASCENDING, DESCENDING
 import dataden.cache.caches
 import dataden.models
 
@@ -57,6 +57,7 @@ class DataDen(object):
     COLL_SCHEDULE = 'schedule'
 
     PARENT_API__ID = 'parent_api__id'
+    DD_UPDATED__ID = 'dd_updated__id'
 
     def __init__(self, client=None):
         """
@@ -99,6 +100,35 @@ class DataDen(object):
         coll = self.db( db ).get_collection(coll)
         target[ self.PARENT_API__ID ] = parent_api
         return coll.find( target )
+
+    def find_recent(self, db, coll, parent_api, target={}):
+        """
+        Get a cursor the objects from these args which were parsed by the most recent parsing.
+
+        If there are objects with different 'dd_updated__id' values (a timestamp),
+        this method only returns the objects with the most recent timestamp.
+
+        Returns None if no objects are found.
+
+        :param db:
+        :param coll:
+        :param parent_api:
+        :param target:
+        :return:
+        """
+        all_objects = self.find(db, coll, parent_api, target).sort(self.DD_UPDATED__ID, DESCENDING)
+        for obj in all_objects:
+            #
+            # get the timestamp of the first object (because we are sorted descending
+            ts_last_parse = obj.get(self.DD_UPDATED__ID, None)
+
+            #
+            # get all the most recently parsed injury objects from dataden.
+            #  use '$gte' in case new objects have been added recently !
+            return self.find(db, coll, parent_api, {self.DD_UPDATED__ID:{'$gte':ts_last_parse }})
+        #
+        # return empty cursor if no objects exist
+        return all_objects
 
     def enabled_sports(self):
         coll = self.db(self.DB_CONFIG).get_collection(self.COLL_SCHEDULE)

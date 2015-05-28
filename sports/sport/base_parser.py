@@ -45,9 +45,10 @@ class AbstractDataDenParseable(object):
     such as: nba.player stats.
     """
 
-    def __init__(self):
+    def __init__(self, wrapped=True):
         self.name   = self.__class__.__name__
         self.o      = None
+        self.wrapped = wrapped
 
     def parse(self, obj, target=None):
         """
@@ -56,7 +57,10 @@ class AbstractDataDenParseable(object):
         the mongo object to self.o.
         """
         print( self.name, str(obj)[:100], 'target='+str(target) )
-        self.o  = obj.get_o()
+        if self.wrapped:
+            self.o  = obj.get_o()
+        else:
+            self.o  = obj
 
 class DataDenTeamHierarchy(AbstractDataDenParseable):
     """
@@ -626,5 +630,93 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         # from here the child class may need to use:
         #   self.get_game_portion()
         #   self.get_pbp_description()
+
+class DataDenInjury(AbstractDataDenParseable):
+    """
+    Ensures the player associated with the injury exists, and sets
+    up both objects for subclasses.
+    """
+
+    player_model    = None
+    injury_model    = None
+
+    key_iid    = '' # 'id' # for nba/nhl - other sports will want to override this
+
+    def __init__(self, wrapped=True):
+        if self.player_model is None:
+            raise Exception('"player_model" cant be None!')
+        if self.injury_model is None:
+            raise Exception('"injury_model" cant be None!')
+        if self.key_iid == '':
+            raise Exception('"key_iid" must be set to the name of the specal injury "iid" field')
+
+        self.player         = None # the player associated with the injury
+        self.player_ctype   = None
+        self.injury         = None
+        self.parse_called   = False # flipped True if parse() method has been called
+
+        super().__init__(wrapped) # validates to ensure the subclass set the models properly
+
+    def get_player(self):
+        """
+        Throws exception if called before parse() is called.
+
+        Returns the sports.model.Player instance associated with the injury.
+
+        May return None if player was not found.
+
+        :return:
+        """
+        if not self.parse_called:
+            raise Exception('parse() has not been called yet.')
+        return self.player
+
+    def parse(self, obj, target=None):
+        """
+        Setup self.player and self.injury, but does NOT call save() on self.injury.
+        Subclass must make any additional edits and save() the instance if necessary!
+
+        :param obj:
+        :param target:
+        :return:
+        """
+        super().parse( obj, target )
+        self.parse_called = True
+
+        srid_player = self.o.get('player__id', None)
+        try:
+            self.player = self.player_model.objects.get(srid=srid_player)
+        except self.player_model.DoesNotExist:
+            print( str(self.o) )
+            print( 'Player for injury does not exist' )
+            return
+
+        self.player_ctype = ContentType.objects.get_for_model(self.player)
+
+        iid = self.o.get(self.key_iid, None)
+        try:
+            self.injury = self.injury_model.objects.get(iid=iid) #,
+                                # player_type__pk=self.player_ctype.id,
+                                # player_id=self.player.id )
+        except self.injury_model.DoesNotExist:
+            self.injury = self.injury_model()
+            self.injury.iid     = iid
+        self.injury.player  = self.player
+
+        # subclass will need to perform the save() to create/update !
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

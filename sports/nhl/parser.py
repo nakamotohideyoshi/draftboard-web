@@ -1,5 +1,6 @@
 #
 # sports/nhl/parser.py
+import sports.nhl.models
 from scoring.classes import NhlSalaryScoreSystem
 from sports.nhl.models import Team, Game, Player, PlayerStats, \
                                 GameBoxscore, Pbp, PbpDescription, GamePortion
@@ -7,7 +8,9 @@ from sports.nhl.models import Team, Game, Player, PlayerStats, \
 from sports.sport.base_parser import AbstractDataDenParser, \
                         DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
                         DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
-                        DataDenPbpDescription
+                        DataDenPbpDescription, DataDenInjury
+
+from dataden.classes import DataDen
 
 class TeamHierarchy(DataDenTeamHierarchy):
     """
@@ -218,6 +221,44 @@ class EventPbp(DataDenPbpDescription): # ADD TO PARSER SWITCH
         else:
             print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
 
+class Injury(DataDenInjury):
+
+    player_model = Player
+    injury_model = sports.nhl.models.Injury
+
+    key_iid     = 'id' # the name of the field in the obj
+
+    def __init__(self, wrapped=True):
+        super().__init__(wrapped)
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        if self.player is None or self.injury is None:
+            return
+
+        # "comment" : "Wroten had successful surgery on his knee on Tuesday (2/3).",
+        # "desc" : "Knee",
+        # "id" : "c2c3e64b-3363-411d-b55a-a9878fd79310",
+        # "start_date" : "2015-01-14",
+        # "status" : "Out For Season",
+        # "update_date" : "2015-02-04",
+        # "parent_api__id" : "injuries",
+        #
+
+        #
+        # extract the information from self.o
+        self.injury.srid        = self.o.get('id',      '') # not set by parent
+        self.injury.comment     = self.o.get('comment', '')
+        self.injury.status      = self.o.get('status',  '')
+        self.injury.description = self.o.get('desc',    '')
+        self.injury.save()
+
+        #
+        # connect the player object to the injury object
+        self.player.injury = self.injury
+        self.player.save()
+
 class DataDenNhl(AbstractDataDenParser):
 
     def __init__(self):
@@ -252,8 +293,56 @@ class DataDenNhl(AbstractDataDenParser):
         # nhl.player
         elif self.target == ('nhl.player','rosters'): PlayerRosters().parse( obj )
         elif self.target == ('nhl.player','stats'): PlayerStats().parse( obj )
-
+        #
         # elif self.target == ('nhl.event','pbp'): EventPbp().parse( obj )
+        #
+        #
+        elif self.target == ('nhl.injury','injuries'): Injury().parse( obj )
         #
         # default case, print this message for now
         else: self.unimplemented( self.target[0], self.target[1] )
+
+    def cleanup_injuries(self):
+        """
+        When injury objects are parsed, they connect players with injuries.
+
+        However, there needs to be a method which removes injuries objects
+        from players who are no longer injured. This is that process,
+        and it should be run rather frequently - or at least about as
+        frequently as injury feeds are parsed.
+        :return:
+        """
+
+        #
+        # get an instance of DataDen - ie: a connection to mongo db with all the stats
+        dd = DataDen()
+
+        #
+        # injury process:
+        # 1) get all the updates (ie: get the most recent dd_updated__id, and get all objects with that value)
+        injury_objects = list( dd.find_recent('nhl','injury','injuries') )
+        print(str(len(injury_objects)), 'recent injury updates')
+
+        # 2) get all the existing players with injuries
+        # players = list( Player.objects.filter( injury_type__isnull=False,
+        #                                        injury_id__isnull=False ) )
+        all_players = list( Player.objects.all() )
+
+        # 3) for each updated injury, remove the player from the all-players list
+        for inj in injury_objects:
+            #
+            # wrapped=False just means the obj isnt wrapped by the oplogwrapper
+            i = Injury(wrapped=False)
+            i.parse( inj )
+            try:
+                all_players.remove( i.get_player() )
+            except ValueError:
+                pass # thrown if player not in the list.
+
+        # 5) with the leftover existing players,
+        #    remove their injury since theres no current injury for them
+        ctr_removed = 0
+        for player in all_players:
+            if player.remove_injury():
+                ctr_removed += 1
+        print(str(ctr_removed), 'leftover/stale injuries removed')
