@@ -129,6 +129,9 @@ class Player(models.Model):
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
 
+    # reference the position
+    position    = models.ForeignKey(Position, null=False, related_name='%(app_label)s_%(class)s_player_position')
+
     # the GFK to the Game
     injury_type           = models.ForeignKey(ContentType, null=True, related_name='%(app_label)s_%(class)s_players_injury')
     injury_id             = models.PositiveIntegerField(null=True)

@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
+        ('sports', '0003_auto_20150528_2131'),
         ('nfl', '0001_initial'),
     ]
 
@@ -15,14 +16,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Game',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('srid', models.CharField(max_length=64, help_text='the sportsradar global id', unique=True)),
+                ('srid', models.CharField(help_text='the sportsradar global id', unique=True, max_length=64)),
                 ('start', models.DateTimeField()),
                 ('status', models.CharField(max_length=32)),
-                ('srid_home', models.CharField(max_length=64, help_text='home team sportsradar global id')),
-                ('srid_away', models.CharField(max_length=64, help_text='away team sportsradar global id')),
-                ('title', models.CharField(max_length=128, null=True)),
+                ('srid_home', models.CharField(help_text='home team sportsradar global id', max_length=64)),
+                ('srid_away', models.CharField(help_text='away team sportsradar global id', max_length=64)),
+                ('title', models.CharField(null=True, max_length=128)),
                 ('weather_json', models.CharField(max_length=512)),
             ],
             options={
@@ -32,9 +33,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameBoxscore',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('srid_game', models.CharField(default=None, max_length=64, help_text='the sportsradar global id for the game', unique=True)),
+                ('srid_game', models.CharField(help_text='the sportsradar global id for the game', default=None, unique=True, max_length=64)),
                 ('srid_home', models.CharField(max_length=64)),
                 ('srid_away', models.CharField(max_length=64)),
                 ('home_id', models.PositiveIntegerField()),
@@ -60,12 +61,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GamePortion',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('srid_game', models.CharField(max_length=64, help_text='the sportsradar global id for the game this is associate with')),
+                ('srid_game', models.CharField(help_text='the sportsradar global id for the game this is associate with', max_length=64)),
                 ('game_id', models.PositiveIntegerField()),
-                ('category', models.CharField(default='', max_length=32, help_text='typically one of these: ["inning-half","quarter","period"]')),
-                ('sequence', models.IntegerField(default=0, help_text='an ordering of all GamePortions with the same srid_game')),
+                ('category', models.CharField(help_text='typically one of these: ["inning-half","quarter","period"]', default='', max_length=32)),
+                ('sequence', models.IntegerField(help_text='an ordering of all GamePortions with the same srid_game', default=0)),
                 ('srid', models.CharField(default='', max_length=64)),
                 ('game_type', models.ForeignKey(related_name='nfl_gameportion_sport_game', to='contenttypes.ContentType')),
             ],
@@ -74,11 +75,28 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
+            name='Injury',
+            fields=[
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('iid', models.CharField(help_text='custom injury id', unique=True, max_length=64)),
+                ('player_id', models.PositiveIntegerField()),
+                ('status', models.CharField(default='', max_length=32)),
+                ('description', models.CharField(default='', max_length=1024)),
+                ('srid', models.CharField(default='', max_length=64)),
+                ('practice_status', models.CharField(default='', max_length=1024)),
+                ('player_type', models.ForeignKey(related_name='nfl_injury_injured_player', to='contenttypes.ContentType')),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
             name='Pbp',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('srid_game', models.CharField(max_length=64, help_text='the sportsradar global id for the game')),
+                ('srid_game', models.CharField(help_text='the sportsradar global id for the game', max_length=64)),
                 ('game_id', models.PositiveIntegerField()),
                 ('game_type', models.ForeignKey(related_name='nfl_pbp_sport_game', to='contenttypes.ContentType')),
             ],
@@ -89,7 +107,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PbpDescription',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('pbp_id', models.PositiveIntegerField()),
                 ('portion_id', models.PositiveIntegerField()),
@@ -106,26 +124,28 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Player',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('srid', models.CharField(max_length=64, help_text='the sportsradar global id', unique=True)),
+                ('srid', models.CharField(help_text='the sportsradar global id', unique=True, max_length=64)),
                 ('first_name', models.CharField(max_length=32)),
                 ('last_name', models.CharField(max_length=32)),
+                ('injury_id', models.PositiveIntegerField(null=True)),
                 ('srid_team', models.CharField(default='', max_length=64)),
                 ('birth_place', models.CharField(default='', max_length=64)),
                 ('birthdate', models.CharField(default='', max_length=64)),
                 ('college', models.CharField(default='', max_length=64)),
                 ('experience', models.FloatField(default=0.0)),
-                ('height', models.FloatField(default=0.0, help_text='inches')),
-                ('weight', models.FloatField(default=0.0, help_text='lbs')),
+                ('height', models.FloatField(help_text='inches', default=0.0)),
+                ('weight', models.FloatField(help_text='lbs', default=0.0)),
                 ('jersey_number', models.CharField(default='', max_length=64)),
-                ('position', models.CharField(default='', max_length=64)),
                 ('primary_position', models.CharField(default='', max_length=64)),
-                ('status', models.CharField(default='', max_length=64, help_text='roster status - ie: "ACT" means they are ON the roster. Not particularly active as in not-injured!')),
+                ('status', models.CharField(help_text='roster status - ie: "ACT" means they are ON the roster. Not particularly active as in not-injured!', default='', max_length=64)),
                 ('draft_pick', models.CharField(default='', max_length=64)),
                 ('draft_round', models.CharField(default='', max_length=64)),
                 ('draft_year', models.CharField(default='', max_length=64)),
                 ('srid_draft_team', models.CharField(default='', max_length=64)),
+                ('injury_type', models.ForeignKey(null=True, to='contenttypes.ContentType', related_name='nfl_player_players_injury')),
+                ('position', models.ForeignKey(related_name='nfl_player_player_position', to='sports.Position')),
             ],
             options={
                 'abstract': False,
@@ -134,10 +154,10 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PlayerStats',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('srid_game', models.CharField(max_length=64, help_text='the sportsradar global id for the game')),
-                ('srid_player', models.CharField(max_length=64, help_text='the sportsradar global id for the player')),
+                ('srid_game', models.CharField(help_text='the sportsradar global id for the game', max_length=64)),
+                ('srid_player', models.CharField(help_text='the sportsradar global id for the player', max_length=64)),
                 ('game_id', models.PositiveIntegerField()),
                 ('player_id', models.PositiveIntegerField()),
                 ('fantasy_points', models.FloatField(default=0.0)),
@@ -181,7 +201,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Season',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('start_year', models.CharField(max_length=100)),
                 ('season_type', models.CharField(max_length=255)),
             ],
@@ -192,15 +212,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Team',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('srid', models.CharField(max_length=64, help_text='the sportsradar global id', unique=True)),
-                ('srid_venue', models.CharField(max_length=64, help_text='the sportsradar global id')),
-                ('name', models.CharField(default='', max_length=64, help_text='the team name, without the market/city. ie: "Lakers", or "Eagles"')),
-                ('alias', models.CharField(default='', max_length=64, help_text='the abbreviation for the team, ie: for Boston Celtic alias == "BOS"')),
-                ('srid_league', models.CharField(max_length=64, help_text='league sportsradar id')),
-                ('srid_conference', models.CharField(max_length=64, help_text='conference sportsradar id')),
-                ('srid_division', models.CharField(max_length=64, help_text='division sportsradar id')),
+                ('srid', models.CharField(help_text='the sportsradar global id', unique=True, max_length=64)),
+                ('srid_venue', models.CharField(help_text='the sportsradar global id', max_length=64)),
+                ('name', models.CharField(help_text='the team name, without the market/city. ie: "Lakers", or "Eagles"', default='', max_length=64)),
+                ('alias', models.CharField(help_text='the abbreviation for the team, ie: for Boston Celtic alias == "BOS"', default='', max_length=64)),
+                ('srid_league', models.CharField(help_text='league sportsradar id', max_length=64)),
+                ('srid_conference', models.CharField(help_text='conference sportsradar id', max_length=64)),
+                ('srid_division', models.CharField(help_text='division sportsradar id', max_length=64)),
                 ('market', models.CharField(max_length=64)),
             ],
             options={
