@@ -12,7 +12,7 @@ ASYNC_UPDATES = False
 from mysite.settings import local
 
 from dataden.util.hsh import Hashable
-from dataden.util import SimpleTimer
+from dataden.util.simpletimer import SimpleTimer
 from dataden.cache.caches import LiveStatsCache, TriggerCache
 
 from pymongo import MongoClient
@@ -39,18 +39,27 @@ class OpLogObj( Hashable ):
     exclude_field_names = ['dd_updated__id']
 
     def __init__(self, obj):
-        self.ts     = obj.get('ts')
-        self.ns     = obj.get('ns')
-        self.o      = obj.get('o')
+        self.ts                     = obj.get('ts')
+        self.ns                     = obj.get('ns')
+        self.o                      = obj.get('o')
 
         #
         # certain fields we want to remove because
         # they arent relevant, or serializable and
         # will break the hash mechanism
+        tmp = {}
         for field_name in self.exclude_field_names:
-            self.o.pop(field_name, None)
+            val = self.o.pop(field_name, None)
+            if val:
+                tmp[ field_name ] = val
 
+        #
+        # the constructor for Hashable hashes the object once
+        # so after this call, we can put the exclude fields back in
         super().__init__( self.o )
+
+        for k,v in tmp.items():
+            self.o[ k ] = v
 
     def get_ns(self):
         """
