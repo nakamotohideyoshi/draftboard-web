@@ -10,6 +10,7 @@ from sports.sport.base_parser import AbstractDataDenParser, \
                         DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
                         DataDenPbpDescription, DataDenInjury
 import json
+from dataden.classes import DataDen
 
 class TeamHierarchy(DataDenTeamHierarchy):
     """
@@ -592,7 +593,45 @@ class PlayPbp(DataDenPbpDescription):
             print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
 
 class Injury(DataDenInjury):
-    pass # TODO
+
+    player_model = Player
+    injury_model = sports.nfl.models.Injury
+
+    key_iid     = 'id' # the name of the field in the obj
+
+    def __init__(self, wrapped=True):
+        super().__init__(wrapped)
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        if self.player is None or self.injury is None:
+            return
+
+        # "game_status" : "PRO",
+        # "id" : "54106d2b-dd47-4f39-9139-5b36c084a78d",
+        # "practice_status" : "Unknown",
+        # "start_date" : "2015-01-02T00:00:00+00:00",
+        # "parent_api__id" : "gameroster",
+        # "dd_updated__id" : NumberLong("1432749271863"),
+        # "game__id" : "20048978-0f43-4755-a6de-e2d6b3b3fcd2",
+        # "team__id" : "CAR",
+        # "player__id" : "f4baa4a3-8548-4cc1-bba8-e5e8d5d4656e",
+        # "parent_list__id" : "injuries__list",
+        # "description" : "Not Injury Related",
+
+        #
+        # extract the information from self.o
+        self.injury.srid        = self.o.get('id',          '') # not set by parent
+        self.injury.practice_status     = self.o.get('practice_status', '')
+        self.injury.status      = self.o.get('game_status', '')
+        self.injury.description = self.o.get('description', '')
+        self.injury.save()
+
+        #
+        # connect the player object to the injury object
+        self.player.injury = self.injury
+        self.player.save()
 
 class DataDenNfl(AbstractDataDenParser):
 
@@ -627,6 +666,48 @@ class DataDenNfl(AbstractDataDenParser):
         # nfl.player
         elif self.target == ('nfl.player','rosters'): PlayerRosters().parse( obj )
         elif self.target == ('nfl.player','stats'): PlayerStats().parse( obj )
+        # #
+        # # nfl.injury
+        # elif self.target == ('nfl.injury','gameroster'): Injury().parse( obj )
         #
         # default case, print this message for now
         else: self.unimplemented( self.target[0], self.target[1] )
+
+    def cleanup_injuries(self):
+        """
+
+        :return:
+        """
+        #
+        # get an instance of DataDen - ie: a connection to mongo db with all the stats
+        dd = DataDen()
+
+        #
+        # injury process:
+        # 1) get all the updates (ie: get the most recent dd_updated__id, and get all objects with that value)
+        injury_objects = list( dd.find_recent('nfl','injury','gameroster') )
+        print(str(len(injury_objects)), 'recent injury updates')
+
+        # 2) get all the existing players with injuries
+        # players = list( Player.objects.filter( injury_type__isnull=False,
+        #                                        injury_id__isnull=False ) )
+        all_players = list( Player.objects.all() )
+
+        # 3) for each updated injury, remove the player from the all-players list
+        for inj in injury_objects:
+            #
+            # wrapped=False just means the obj isnt wrapped by the oplogwrapper
+            i = Injury(wrapped=False)
+            i.parse( inj )
+            try:
+                all_players.remove( i.get_player() )
+            except ValueError:
+                pass # thrown if player not in the list.
+
+        # 5) with the leftover existing players,
+        #    remove their injury since theres no current injury for them
+        ctr_removed = 0
+        for player in all_players:
+            if player.remove_injury():
+                ctr_removed += 1
+        print(str(ctr_removed), 'leftover/stale injuries removed')
