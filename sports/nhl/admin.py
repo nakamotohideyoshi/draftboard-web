@@ -20,7 +20,7 @@ class PlayerAdmin(admin.ModelAdmin):
 class PlayerStatsAdmin(admin.ModelAdmin):
     list_display = [
         # skater stats:
-        'game','player','position','primary_position','fantasy_points','goal','assist','sog','blk','sh_goal','pp_goal', 'so_goal',
+        'game','player','position','fantasy_points','goal','assist','sog','blk','sh_goal','pp_goal', 'so_goal',
         # goalie stats:
         'w', 'l', 'otl', 'saves', 'ga', 'shutout'
     ]

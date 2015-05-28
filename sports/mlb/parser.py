@@ -9,6 +9,7 @@ from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParse
                         DataDenPbpDescription, DataDenInjury
 import json
 from django.contrib.contenttypes.models import ContentType
+from dataden.classes import DataDen
 
 class HomeAwaySummary(DataDenTeamBoxscores):
 
@@ -980,7 +981,11 @@ class GamePbp(DataDenPbpDescription):
 class Injury(DataDenInjury):
     """
     MLB injuries dont have sports radar global ids (srids).
-    We just use the status, 'DL15', 'DTD' etc...
+    We just use the status, 'DL15', 'DTD'.
+
+    To conform to the way the other three major sports injuries work,
+    we use the 'updated' and 'id' fields to generate an iid for mlb players!
+
     """
     player_model = Player
     injury_model = sports.mlb.models.Injury
@@ -990,30 +995,55 @@ class Injury(DataDenInjury):
     def __init__(self, wrapped=True):
         super().__init__(wrapped)
 
+    def get_custom_iid(self, status, updated, srid_player):
+        """
+        DO NOT CHANGE THIS FUNCTION or it will break the injury_cleaup method.
+
+        :param srid_player:
+        :param updated:
+        :param status:
+        :return:
+        """
+        return '%s-%s-%s' % (status, updated, srid_player)
+
     def parse(self, obj, target=None):
         super().parse(obj, target)
 
         if self.player is None or self.injury is None:
             return
 
-        # "game_status" : "PRO",
-        # "id" : "54106d2b-dd47-4f39-9139-5b36c084a78d",
-        # "practice_status" : "Unknown",
-        # "start_date" : "2015-01-02T00:00:00+00:00",
-        # "parent_api__id" : "gameroster",
-        # "dd_updated__id" : NumberLong("1432749271863"),
-        # "game__id" : "20048978-0f43-4755-a6de-e2d6b3b3fcd2",
-        # "team__id" : "CAR",
-        # "player__id" : "f4baa4a3-8548-4cc1-bba8-e5e8d5d4656e",
-        # "parent_list__id" : "injuries__list",
-        # "description" : "Not Injury Related",
+        # "bat_hand" : "B",
+        # "birthcity" : "Caracas",
+        # "birthcountry" : "Venezuela",
+        # "birthdate" : "1984-02-09",
+        # "first_name" : "Dioner",
+        # "full_name" : "Dioner Navarro",
+        # "height" : 69,
+        # "id" : "cbfa52c5-ef2e-4d7c-8e28-0ec6a63c6c6f",
+        # "jersey_number" : 30,
+        # "last_name" : "Navarro",
+        # "mlbam_id" : 425900,
+        # "position" : "C",
+        # "preferred_name" : "Dioner",
+        # "primary_position" : "C",
+        # "pro_debut" : "2004-09-07",
+        # "status" : "D15",
+        # "throw_hand" : "R",
+        # "updated" : "2015-04-23T15:59:54+00:00",
 
         #
         # extract the information from self.o
-        self.injury.srid        = self.o.get('id',          '') # not set by parent
-        self.injury.comment     = 'Practice Status - ' + self.o.get('practice_status', '')
-        self.injury.status      = self.o.get('game_status', '')
-        self.injury.description = self.o.get('description', '')
+        status  = self.o.get('status', None)
+        if status is None:
+            raise Exception('mlb Injury.parse() error - "status" cant be None!')
+        updated = self.o.get('updated', None)
+        if updated is None:
+            raise Exception('mlb Injury.parse() error - "updated" cant be None because get_custom_iid() will break!')
+
+        self.injury.iid         = self.get_custom_iid(status, updated, self.player.srid)
+        self.injury.comment     = ''
+        self.injury.status      = status
+        self.injury.description = ''
         self.injury.save()
 
         #
@@ -1051,4 +1081,41 @@ class DataDenMlb(AbstractDataDenParser):
         else: self.unimplemented( self.target[0], self.target[1] )
 
     def cleanup_injuries(self):
-        pass # TODO
+        """
+
+
+        :return:
+        """
+        #
+        # get an instance of DataDen - ie: a connection to mongo db with all the stats
+        dd = DataDen()
+
+        #
+        # injury process:
+        # 1) get all the updates (ie: get the most recent dd_updated__id, and get all objects with that value)
+        injury_objects = list( dd.find_recent('mlb','player','rostersfull') )
+        print(str(len(injury_objects)), 'recent injury updates (for mlb its from the rostersfull parent api')
+
+        # 2) get all the existing players with injuries
+        # players = list( Player.objects.filter( injury_type__isnull=False,
+        #                                        injury_id__isnull=False ) )
+        all_players = list( Player.objects.all() )
+
+        # 3) for each updated injury, remove the player from the all-players list
+        for inj in injury_objects:
+            #
+            # wrapped=False just means the obj isnt wrapped by the oplogwrapper
+            i = Injury(wrapped=False)
+            i.parse( inj )
+            try:
+                all_players.remove( i.get_player() )
+            except ValueError:
+                pass # thrown if player not in the list.
+
+        # 5) with the leftover existing players,
+        #    remove their injury since theres no current injury for them
+        ctr_removed = 0
+        for player in all_players:
+            if player.remove_injury():
+                ctr_removed += 1
+        print(str(ctr_removed), 'leftover/stale injuries removed')

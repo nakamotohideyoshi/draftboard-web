@@ -109,7 +109,7 @@ class Injury(models.Model):
     # for some sports this is the srid (nba/nhl), for sports like
     # mlb it is a standard injury type like "DL15". each sport
     # may use it for its own purposes, but must be consistent about its usage
-    iid = models.CharField(max_length=64, unique=True, null=False,
+    iid = models.CharField(max_length=128, unique=True, null=False,
                                     help_text='custom injury id')
 
     player_type           = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_injured_player')
@@ -204,8 +204,15 @@ class PlayerStats(models.Model):
     player              = GenericForeignKey('player_type', 'player_id')
 
     fantasy_points      = models.FloatField(default=0.0, null=False)
-    position            = models.CharField(max_length=16, null=False, default='')
-    primary_position    = models.CharField(max_length=16, null=False, default='')
+
+    # reference the position FROM THE PLAYER WHEN THEY PLAYED THE GAME.
+    #   ie: the players position might be different now! but we want
+    #       the position they were when the played in the game!
+    position    = models.ForeignKey(Position, null=False,
+                    related_name='%(app_label)s_%(class)s_playerstats_position')
+
+    #position            = models.CharField(max_length=16, null=False, default='')
+    # primary_position    = models.CharField(max_length=16, null=False, default='')
 
     class Meta:
         abstract = True

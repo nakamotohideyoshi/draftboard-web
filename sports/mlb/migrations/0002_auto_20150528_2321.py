@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
-        ('sports', '0003_auto_20150528_2131'),
+        ('sports', '0003_auto_20150528_2321'),
         ('mlb', '0001_initial'),
     ]
 
@@ -16,14 +16,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Game',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('srid', models.CharField(help_text='the sportsradar global id', unique=True, max_length=64)),
                 ('start', models.DateTimeField()),
                 ('status', models.CharField(max_length=32)),
                 ('srid_home', models.CharField(help_text='home team sportsradar global id', max_length=64)),
                 ('srid_away', models.CharField(help_text='away team sportsradar global id', max_length=64)),
-                ('title', models.CharField(null=True, max_length=128)),
+                ('title', models.CharField(max_length=128, null=True)),
                 ('attendance', models.IntegerField(default=0)),
                 ('day_night', models.CharField(default='', max_length=8)),
                 ('game_number', models.IntegerField(default=0)),
@@ -35,9 +35,9 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GameBoxscore',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('srid_game', models.CharField(help_text='the sportsradar global id for the game', default=None, unique=True, max_length=64)),
+                ('srid_game', models.CharField(default=None, help_text='the sportsradar global id for the game', unique=True, max_length=64)),
                 ('srid_home', models.CharField(max_length=64)),
                 ('srid_away', models.CharField(max_length=64)),
                 ('home_id', models.PositiveIntegerField()),
@@ -54,18 +54,18 @@ class Migration(migrations.Migration):
                 ('game_number', models.IntegerField(default=1)),
                 ('inning', models.CharField(default='', max_length=16)),
                 ('inning_half', models.CharField(default='', max_length=16)),
-                ('srid_home_pp', models.CharField(help_text='srid of the HOME probable pitcher set before the game starts', null=True, max_length=64)),
-                ('srid_home_sp', models.CharField(help_text='srid of the HOME starting pitcher', null=True, max_length=64)),
-                ('srid_away_pp', models.CharField(help_text='srid of the AWAY probable pitcher set before the game starts', null=True, max_length=64)),
-                ('srid_away_sp', models.CharField(help_text='srid of the AWAY starting pitcher', null=True, max_length=64)),
-                ('srid_win', models.CharField(null=True, max_length=64)),
-                ('srid_loss', models.CharField(null=True, max_length=64)),
+                ('srid_home_pp', models.CharField(help_text='srid of the HOME probable pitcher set before the game starts', max_length=64, null=True)),
+                ('srid_home_sp', models.CharField(help_text='srid of the HOME starting pitcher', max_length=64, null=True)),
+                ('srid_away_pp', models.CharField(help_text='srid of the AWAY probable pitcher set before the game starts', max_length=64, null=True)),
+                ('srid_away_sp', models.CharField(help_text='srid of the AWAY starting pitcher', max_length=64, null=True)),
+                ('srid_win', models.CharField(max_length=64, null=True)),
+                ('srid_loss', models.CharField(max_length=64, null=True)),
                 ('home_errors', models.IntegerField(default=0)),
                 ('home_hits', models.IntegerField(default=0)),
                 ('away_errors', models.IntegerField(default=0)),
                 ('away_hits', models.IntegerField(default=0)),
-                ('away_type', models.ForeignKey(related_name='mlb_gameboxscore_away_team', to='contenttypes.ContentType')),
-                ('home_type', models.ForeignKey(related_name='mlb_gameboxscore_home_team', to='contenttypes.ContentType')),
+                ('away_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_gameboxscore_away_team')),
+                ('home_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_gameboxscore_home_team')),
             ],
             options={
                 'abstract': False,
@@ -74,13 +74,28 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='GamePortion',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('srid_game', models.CharField(help_text='the sportsradar global id for the game this is associate with', max_length=64)),
                 ('game_id', models.PositiveIntegerField()),
-                ('category', models.CharField(help_text='typically one of these: ["inning-half","quarter","period"]', default='', max_length=32)),
-                ('sequence', models.IntegerField(help_text='an ordering of all GamePortions with the same srid_game', default=0)),
-                ('game_type', models.ForeignKey(related_name='mlb_gameportion_sport_game', to='contenttypes.ContentType')),
+                ('category', models.CharField(default='', help_text='typically one of these: ["inning-half","quarter","period"]', max_length=32)),
+                ('sequence', models.IntegerField(default=0, help_text='an ordering of all GamePortions with the same srid_game')),
+                ('game_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_gameportion_sport_game')),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='Injury',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
+                ('created', models.DateTimeField(auto_now_add=True)),
+                ('iid', models.CharField(help_text='custom injury id', unique=True, max_length=128)),
+                ('player_id', models.PositiveIntegerField()),
+                ('status', models.CharField(default='', max_length=32)),
+                ('description', models.CharField(default='', max_length=1024)),
+                ('player_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_injury_injured_player')),
             ],
             options={
                 'abstract': False,
@@ -89,11 +104,11 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Pbp',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('srid_game', models.CharField(help_text='the sportsradar global id for the game', max_length=64)),
                 ('game_id', models.PositiveIntegerField()),
-                ('game_type', models.ForeignKey(related_name='mlb_pbp_sport_game', to='contenttypes.ContentType')),
+                ('game_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_pbp_sport_game')),
             ],
             options={
                 'abstract': False,
@@ -102,14 +117,14 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PbpDescription',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('pbp_id', models.PositiveIntegerField()),
                 ('portion_id', models.PositiveIntegerField()),
                 ('idx', models.IntegerField(default=0)),
                 ('description', models.CharField(default='', max_length=1024)),
-                ('pbp_type', models.ForeignKey(related_name='mlb_pbpdescription_pbpdesc_pbp', to='contenttypes.ContentType')),
-                ('portion_type', models.ForeignKey(related_name='mlb_pbpdescription_pbpdesc_portion', to='contenttypes.ContentType')),
+                ('pbp_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_pbpdescription_pbpdesc_pbp')),
+                ('portion_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_pbpdescription_pbpdesc_portion')),
             ],
             options={
                 'abstract': False,
@@ -118,7 +133,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Player',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('srid', models.CharField(help_text='the sportsradar global id', unique=True, max_length=64)),
                 ('first_name', models.CharField(max_length=32)),
@@ -129,16 +144,15 @@ class Migration(migrations.Migration):
                 ('birthcity', models.CharField(default='', max_length=64)),
                 ('birthcountry', models.CharField(default='', max_length=64)),
                 ('birthdate', models.CharField(default='', max_length=64)),
-                ('height', models.FloatField(help_text='inches', default=0.0)),
-                ('weight', models.FloatField(help_text='lbs', default=0.0)),
+                ('height', models.FloatField(default=0.0, help_text='inches')),
+                ('weight', models.FloatField(default=0.0, help_text='lbs')),
                 ('jersey_number', models.CharField(default='', max_length=64)),
-                ('primary_position', models.CharField(default='', max_length=64)),
-                ('status', models.CharField(help_text='roster status - ie: "A" means they are ON the roster. Not particularly active as in not-injured!', default='', max_length=64)),
+                ('status', models.CharField(default='', help_text='roster status - ie: "A" means they are ON the roster. Not particularly active as in not-injured!', max_length=64)),
                 ('pro_debut', models.CharField(default='', max_length=64)),
                 ('throw_hand', models.CharField(default='', max_length=8)),
                 ('bat_hand', models.CharField(default='', max_length=8)),
-                ('injury_type', models.ForeignKey(null=True, to='contenttypes.ContentType', related_name='mlb_player_players_injury')),
-                ('position', models.ForeignKey(related_name='mlb_player_player_position', to='sports.Position')),
+                ('injury_type', models.ForeignKey(to='contenttypes.ContentType', null=True, related_name='mlb_player_players_injury')),
+                ('position', models.ForeignKey(to='sports.Position', related_name='mlb_player_player_position')),
             ],
             options={
                 'abstract': False,
@@ -147,15 +161,13 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PlayerStatsHitter',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('srid_game', models.CharField(help_text='the sportsradar global id for the game', max_length=64)),
                 ('srid_player', models.CharField(help_text='the sportsradar global id for the player', max_length=64)),
                 ('game_id', models.PositiveIntegerField()),
                 ('player_id', models.PositiveIntegerField()),
                 ('fantasy_points', models.FloatField(default=0.0)),
-                ('position', models.CharField(default='', max_length=16)),
-                ('primary_position', models.CharField(default='', max_length=16)),
                 ('play', models.BooleanField(default=False)),
                 ('start', models.BooleanField(default=False)),
                 ('bb', models.IntegerField(default=0)),
@@ -173,8 +185,9 @@ class Migration(migrations.Migration):
                 ('ap', models.IntegerField(default=0)),
                 ('lob', models.IntegerField(default=0)),
                 ('xbh', models.IntegerField(default=0)),
-                ('game_type', models.ForeignKey(related_name='mlb_playerstatshitter_sport_game', to='contenttypes.ContentType')),
-                ('player_type', models.ForeignKey(related_name='mlb_playerstatshitter_sport_player', to='contenttypes.ContentType')),
+                ('game_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_playerstatshitter_sport_game')),
+                ('player_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_playerstatshitter_sport_player')),
+                ('position', models.ForeignKey(to='sports.Position', related_name='mlb_playerstatshitter_playerstats_position')),
             ],
             options={
                 'abstract': False,
@@ -183,15 +196,13 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='PlayerStatsPitcher',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('srid_game', models.CharField(help_text='the sportsradar global id for the game', max_length=64)),
                 ('srid_player', models.CharField(help_text='the sportsradar global id for the player', max_length=64)),
                 ('game_id', models.PositiveIntegerField()),
                 ('player_id', models.PositiveIntegerField()),
                 ('fantasy_points', models.FloatField(default=0.0)),
-                ('position', models.CharField(default='', max_length=16)),
-                ('primary_position', models.CharField(default='', max_length=16)),
                 ('play', models.BooleanField(default=False)),
                 ('start', models.BooleanField(default=False)),
                 ('ip_1', models.FloatField(default=0.0)),
@@ -208,8 +219,9 @@ class Migration(migrations.Migration):
                 ('cg', models.BooleanField(default=False)),
                 ('cgso', models.BooleanField(default=False)),
                 ('nono', models.BooleanField(default=False)),
-                ('game_type', models.ForeignKey(related_name='mlb_playerstatspitcher_sport_game', to='contenttypes.ContentType')),
-                ('player_type', models.ForeignKey(related_name='mlb_playerstatspitcher_sport_player', to='contenttypes.ContentType')),
+                ('game_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_playerstatspitcher_sport_game')),
+                ('player_type', models.ForeignKey(to='contenttypes.ContentType', related_name='mlb_playerstatspitcher_sport_player')),
+                ('position', models.ForeignKey(to='sports.Position', related_name='mlb_playerstatspitcher_playerstats_position')),
             ],
             options={
                 'abstract': False,
@@ -218,7 +230,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Season',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
                 ('start_year', models.CharField(max_length=100)),
                 ('season_type', models.CharField(max_length=255)),
             ],
@@ -229,12 +241,12 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Team',
             fields=[
-                ('id', models.AutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')),
+                ('id', models.AutoField(auto_created=True, primary_key=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('srid', models.CharField(help_text='the sportsradar global id', unique=True, max_length=64)),
                 ('srid_venue', models.CharField(help_text='the sportsradar global id', max_length=64)),
-                ('name', models.CharField(help_text='the team name, without the market/city. ie: "Lakers", or "Eagles"', default='', max_length=64)),
-                ('alias', models.CharField(help_text='the abbreviation for the team, ie: for Boston Celtic alias == "BOS"', default='', max_length=64)),
+                ('name', models.CharField(default='', help_text='the team name, without the market/city. ie: "Lakers", or "Eagles"', max_length=64)),
+                ('alias', models.CharField(default='', help_text='the abbreviation for the team, ie: for Boston Celtic alias == "BOS"', max_length=64)),
                 ('srid_league', models.CharField(help_text='league sportsradar id', max_length=64)),
                 ('srid_division', models.CharField(help_text='division sportsradar id', max_length=64)),
                 ('market', models.CharField(max_length=64)),
@@ -251,11 +263,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='game',
             name='away',
-            field=models.ForeignKey(related_name='game_awayteam', to='mlb.Team'),
+            field=models.ForeignKey(to='mlb.Team', related_name='game_awayteam'),
         ),
         migrations.AddField(
             model_name='game',
             name='home',
-            field=models.ForeignKey(related_name='game_hometeam', to='mlb.Team'),
+            field=models.ForeignKey(to='mlb.Team', related_name='game_hometeam'),
         ),
     ]
