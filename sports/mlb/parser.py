@@ -6,7 +6,7 @@ from sports.mlb.models import Team, Game, Player, PlayerStats, \
 from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
                         DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
                         DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
-                        DataDenPbpDescription
+                        DataDenPbpDescription, DataDenInjury
 import json
 from django.contrib.contenttypes.models import ContentType
 
@@ -977,8 +977,49 @@ class GamePbp(DataDenPbpDescription):
                     # self.description.description = desc
                     # self.description.save()
 
-class Injury(object):
-    pass
+class Injury(DataDenInjury):
+    """
+    MLB injuries dont have sports radar global ids (srids).
+    We just use the status, 'DL15', 'DTD' etc...
+    """
+    player_model = Player
+    injury_model = sports.mlb.models.Injury
+
+    key_iid     = 'id' # the name of the field in the obj
+
+    def __init__(self, wrapped=True):
+        super().__init__(wrapped)
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        if self.player is None or self.injury is None:
+            return
+
+        # "game_status" : "PRO",
+        # "id" : "54106d2b-dd47-4f39-9139-5b36c084a78d",
+        # "practice_status" : "Unknown",
+        # "start_date" : "2015-01-02T00:00:00+00:00",
+        # "parent_api__id" : "gameroster",
+        # "dd_updated__id" : NumberLong("1432749271863"),
+        # "game__id" : "20048978-0f43-4755-a6de-e2d6b3b3fcd2",
+        # "team__id" : "CAR",
+        # "player__id" : "f4baa4a3-8548-4cc1-bba8-e5e8d5d4656e",
+        # "parent_list__id" : "injuries__list",
+        # "description" : "Not Injury Related",
+
+        #
+        # extract the information from self.o
+        self.injury.srid        = self.o.get('id',          '') # not set by parent
+        self.injury.comment     = 'Practice Status - ' + self.o.get('practice_status', '')
+        self.injury.status      = self.o.get('game_status', '')
+        self.injury.description = self.o.get('description', '')
+        self.injury.save()
+
+        #
+        # connect the player object to the injury object
+        self.player.injury = self.injury
+        self.player.save()
 
 class DataDenMlb(AbstractDataDenParser):
 
@@ -1008,3 +1049,6 @@ class DataDenMlb(AbstractDataDenParser):
         #
         # default case, print this message for now
         else: self.unimplemented( self.target[0], self.target[1] )
+
+    def cleanup_injuries(self):
+        pass # TODO

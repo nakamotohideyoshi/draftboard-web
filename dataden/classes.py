@@ -19,6 +19,28 @@ class Trigger(object):
     def get_enabled(self):
         return self.t.enabled
 
+    def enable(sport):
+        """
+        Enables all the triggers for the specific sport.
+        """
+        triggers = dataden.models.Trigger.objects.all()
+        for t in triggers:
+            if t.db == sport:
+                t.enabled = True
+                t.save()
+    enable = staticmethod(enable)
+
+    def disable(sport):
+        """
+        Enables all the triggers for the specific sport.
+        """
+        triggers = dataden.models.Trigger.objects.all()
+        for t in triggers:
+            if t.db == sport:
+                t.enabled = False
+                t.save()
+    disable = staticmethod(disable)
+
     def __str__(self):
         """
         print the model this class is a wrapper for
