@@ -63,7 +63,7 @@ class Player( sports.models.Player ):
     weight      = models.FloatField(default=0.0, null=False, help_text='lbs')
     jersey_number = models.CharField(max_length=64, null=False, default='')
 
-    primary_position = models.CharField(max_length=64, null=False, default='')
+    #primary_position = models.CharField(max_length=64, null=False, default='')
 
     status = models.CharField(max_length=64, null=False, default='',
                 help_text='roster status - ie: "ACT" means they are ON the roster. Not particularly active as in not-injured!')

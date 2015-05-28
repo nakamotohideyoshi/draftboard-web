@@ -4,6 +4,7 @@
 from dataden.util.timestamp import Parse as DataDenDatetime
 import json
 from django.contrib.contenttypes.models import ContentType
+from sports.models import SiteSport, Position
 
 class AbstractDataDenParser(object):
     """
@@ -61,6 +62,24 @@ class AbstractDataDenParseable(object):
             self.o  = obj.get_o()
         else:
             self.o  = obj
+
+    def get_site_sport(self, obj):
+        """
+        Return the sport by splitting the mongo object's 'ns' on the dot
+        and taking the leftmost part!
+
+        As long as sports never have dots in their name we're fine.
+
+        """
+        #
+        # get the sport name (ie: the db from where this obj came)
+        sport_name = obj.get_ns().split('.')[0]
+
+        #
+        # if this excepts, i dont want to catch the exception
+        # because i want it to crash.
+        return SiteSport.objects.get( name=sport_name )
+
 
 class DataDenTeamHierarchy(AbstractDataDenParseable):
     """
@@ -230,11 +249,15 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
         weight              = o.get('weight', 0.0)      # lbs.
         jersey_number       = o.get('jersey_number', 0.0)
 
-        position            = o.get('position')
+        position_name       = o.get('position')
         primary_position    = o.get('primary_position')
 
         status              = o.get('status')   # roster status, ie: basically whether they are on it
 
+        #
+        # get the team - if it doesnt exist, return,
+        # because if the team doesnt exist, we dont
+        # want to create a player if they cant have a team
         try:
             t = self.team_model.objects.get(srid=srid_team)
         except self.team_model.DoesNotExist:
@@ -242,6 +265,19 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
             print( 'Team for Player DoesNotExist!')
             return
 
+        #
+        # determine the players sport, and then get or create their Position
+        site_sport = self.get_site_sport(obj)
+        try:
+            position = Position.objects.get(site_sport=site_sport, name=position_name)
+        except Position.DoesNotExist:
+            position = Position()
+            position.site_sport = site_sport
+            position.name       = position_name
+            position.save()
+
+        #
+        # get or create the player
         try:
             self.player = self.player_model.objects.get(srid=srid)
         except self.player_model.DoesNotExist:
