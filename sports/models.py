@@ -12,6 +12,13 @@ class SiteSport(models.Model):
     created     = models.DateTimeField(auto_now_add=True, null=False)
     name        = models.CharField(max_length=128, null=False)
 
+class Position(models.Model):
+    created     = models.DateTimeField(auto_now_add=True, null=False)
+    name        = models.CharField(max_length=128, null=False)
+    site_sport  = models.ForeignKey(SiteSport, null=False)
+
+    class Meta:
+        unique_together = ('name', 'site_sport')
 #
 #########################################################################
 # abstract models for each sport to inherit as use as they wish
