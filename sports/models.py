@@ -7,6 +7,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 
 #
+# an object for a sport which anything can reference to identify its sport
+class SiteSport(models.Model):
+    created     = models.DateTimeField(auto_now_add=True, null=False)
+    name        = models.CharField(max_length=128, null=False)
+
+#
 #########################################################################
 # abstract models for each sport to inherit as use as they wish
 #########################################################################
