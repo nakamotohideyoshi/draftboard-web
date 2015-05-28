@@ -3,7 +3,7 @@ from .base import *
 
 # Determine db name according to git branch
 git_branch_cmd = 'git rev-parse --abbrev-ref HEAD'
-db_name = 'dfsx_' + check_output(git_branch_cmd.split()).decode('utf-8')[:-1]
+db_name = 'dfs_' + check_output(git_branch_cmd.split()).decode('utf-8')[:-1]
 
 #
 # try to create the database, if it already exists, this will have no effect
