@@ -14,7 +14,7 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(sports.mlb.models.Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ['srid','preferred_name','first_name','last_name']
+    list_display = ['srid','position','preferred_name','first_name','last_name']
 
 @admin.register(sports.mlb.models.PlayerStatsHitter)
 class PlayerStatsHitterAdmin(admin.ModelAdmin):

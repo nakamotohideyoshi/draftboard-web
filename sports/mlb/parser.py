@@ -743,9 +743,10 @@ class PlayerStats(DataDenPlayerStats):
         game_info = fielding.get('games__list', {})
 
         #
+        # before super().parse()
         # decide whether this is a hitter or pitcher here, based on 'position'
-        position = o.get('position')  # ['IF','OF','C','P','DH']
-        if position == 'P':
+        arch_position = o.get('position')  # ['IF','OF','C','P','DH']
+        if arch_position == 'P':
             self.player_stats_model  = sports.mlb.models.PlayerStatsPitcher
             super().parse( obj, target )
             # after calling super().parse() check if self.ps is None, return if it is
@@ -990,10 +991,13 @@ class Injury(DataDenInjury):
     player_model = Player
     injury_model = sports.mlb.models.Injury
 
-    key_iid     = 'id' # the name of the field in the obj
+    key_iid     = 'UNUSED' # the name of the field in the obj
 
     def __init__(self, wrapped=True):
         super().__init__(wrapped)
+
+        self.srid_player_key = 'id'
+        self.NON_INJURY_STATUSES = ['A']
 
     def get_custom_iid(self, status, updated, srid_player):
         """
@@ -1009,26 +1013,13 @@ class Injury(DataDenInjury):
     def parse(self, obj, target=None):
         super().parse(obj, target)
 
-        if self.player is None or self.injury is None:
+        if self.player is None: # ignore injury, because were going to get it manually below
             return
 
-        # "bat_hand" : "B",
-        # "birthcity" : "Caracas",
-        # "birthcountry" : "Venezuela",
-        # "birthdate" : "1984-02-09",
-        # "first_name" : "Dioner",
         # "full_name" : "Dioner Navarro",
-        # "height" : 69,
         # "id" : "cbfa52c5-ef2e-4d7c-8e28-0ec6a63c6c6f",
-        # "jersey_number" : 30,
-        # "last_name" : "Navarro",
         # "mlbam_id" : 425900,
-        # "position" : "C",
-        # "preferred_name" : "Dioner",
-        # "primary_position" : "C",
-        # "pro_debut" : "2004-09-07",
         # "status" : "D15",
-        # "throw_hand" : "R",
         # "updated" : "2015-04-23T15:59:54+00:00",
 
         #
@@ -1036,11 +1027,23 @@ class Injury(DataDenInjury):
         status  = self.o.get('status', None)
         if status is None:
             raise Exception('mlb Injury.parse() error - "status" cant be None!')
+        # IGNORE CERTAIN STATUSES WHICH ARENT INJURY RELATED
+        if status in self.NON_INJURY_STATUSES:
+            return
         updated = self.o.get('updated', None)
         if updated is None:
             raise Exception('mlb Injury.parse() error - "updated" cant be None because get_custom_iid() will break!')
 
-        self.injury.iid         = self.get_custom_iid(status, updated, self.player.srid)
+        #
+        # get the custom "iid" and look it up with that
+        iid = self.get_custom_iid(status, updated, self.player.srid)
+        try:
+            self.injury = self.injury_model.objects.get(iid=iid)
+        except self.injury_model.DoesNotExist:
+            self.injury         = self.injury_model()
+            self.injury.iid     = iid
+            self.injury.player  = self.player
+
         self.injury.comment     = ''
         self.injury.status      = status
         self.injury.description = ''

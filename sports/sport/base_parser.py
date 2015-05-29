@@ -80,7 +80,6 @@ class AbstractDataDenParseable(object):
         # because i want it to crash.
         return SiteSport.objects.get( name=sport_name )
 
-
 class DataDenTeamHierarchy(AbstractDataDenParseable):
     """
     Parse a team object form the hieraarchy feed (parent_api).
@@ -224,6 +223,7 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
         if self.player_model is None:
             raise Exception('"player_model" cant be None!')
 
+        self.position_key = 'primary_position'
         self.player = None
 
         super().__init__()
@@ -249,8 +249,11 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
         weight              = o.get('weight', 0.0)      # lbs.
         jersey_number       = o.get('jersey_number', 0.0)
 
-        position_name       = o.get('position')
-        primary_position    = o.get('primary_position')
+        position_name       = o.get(self.position_key, None) # nfl will want to override this
+        if position_name is None:
+            raise Exception('"%s" was None! cannot create player if their position is invalid!'%self.position_key)
+
+        #primary_position    = o.get('primary_position')
 
         status              = o.get('status')   # roster status, ie: basically whether they are on it
 
@@ -295,7 +298,6 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
         self.player.weight              = weight
         self.player.jersey_number       = jersey_number
         self.player.position            = position
-        self.player.primary_position    = primary_position
         self.player.status              = status
 
         # self.player.save() is done in inheriting class!
@@ -313,6 +315,8 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             raise Exception('"player_model" cant be None!')
         if self.player_stats_model is None:
             raise Exception('"player_stats_model" cant be None!')
+
+        self.position_key = 'primary_position' # NFL will need to override this!
 
         self.p  = None  # the Player associated with the player stats
         self.ps = None  # this will hold the PlayerStats object
@@ -360,9 +364,24 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             self.ps.srid_player  = srid_player
             self.ps.player  = self.p
             self.ps.game    = self.g
-
-        self.ps.position            = o.get('position',             None)
-        self.ps.primary_position    = o.get('primary_position',     None)
+            #
+            # #
+            # # only setup the position inside "except" so that we dont perform extra
+            # # queries after it has been created. because we really only care the first time.
+            # site_sport      = self.get_site_sport(obj)
+            # position_name   = self.o.get(self.position_key, None)
+            # if position_name is None:
+            #     raise Exception('"%s" value is None -- cant determine player position!'%self.position_key)
+            # try:
+            #     position = Position.objects.get(name=position_name)
+            # except Position.DoesNotExist:
+            #     position = Position()
+            #     position.name = position_name
+            #     position.save()
+            #
+            # #
+            # # set it but it wont be saved until child performs save()
+            self.ps.position = self.p.position
 
 class DataDenGameBoxscores(AbstractDataDenParseable):
 
@@ -686,6 +705,8 @@ class DataDenInjury(AbstractDataDenParseable):
         if self.key_iid == '':
             raise Exception('"key_iid" must be set to the name of the specal injury "iid" field')
 
+        self.srid_player_key = 'player__id'
+
         self.player         = None # the player associated with the injury
         self.player_ctype   = None
         self.injury         = None
@@ -719,12 +740,12 @@ class DataDenInjury(AbstractDataDenParseable):
         super().parse( obj, target )
         self.parse_called = True
 
-        srid_player = self.o.get('player__id', None)
+        srid_player = self.o.get(self.srid_player_key, None)
         try:
             self.player = self.player_model.objects.get(srid=srid_player)
         except self.player_model.DoesNotExist:
             print( str(self.o) )
-            print( 'Player for injury does not exist' )
+            print( 'Player (%s) for injury does not exist'%srid_player)
             return
 
         self.player_ctype = ContentType.objects.get_for_model(self.player)
