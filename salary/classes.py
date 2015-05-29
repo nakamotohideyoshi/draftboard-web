@@ -1,8 +1,11 @@
-from sports.models import PlayerStats, Player, Game
+from sports.models import PlayerStats, Player, Game, SiteSport, Position
+from roster.models import RosterSpot, RosterSpotPosition
 from mysite.exceptions import IncorrectVariableTypeException, NullModelValuesException
 from django.contrib.contenttypes.models import ContentType
-from .models import SalaryConfig, TrailingGameWeight
+from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
 from django.utils import timezone
+from math import ceil
+
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
@@ -40,8 +43,8 @@ class SalaryPlayerStatsObject(object):
         self.start              = player_stats_object.game.start
         self.fantasy_points     = player_stats_object.fantasy_points
         self.position           = player_stats_object.position
-        self.primary_position   = player_stats_object.primary_position
         self.player_id          = player_stats_object.player_id
+        self.player             = player_stats_object.player
 
 
         #
@@ -53,7 +56,7 @@ class SalaryPlayerStatsObject(object):
             self.start              == None or
             self.fantasy_points     == None or
             self.position           == None or
-            self.primary_position   == None):
+            self.player             == None):
             raise NullModelValuesException(type(self).__name__,
                                           "player_stats_object")
     def __str__(self):
@@ -67,6 +70,7 @@ class SalaryPlayerObject(object):
     def __init__(self):
         self.player_stats_list = []
         self.player_id = None
+        self.player = None
         self.fantasy_weighted_average = None
         self.flagged = False
 
@@ -88,8 +92,20 @@ class SalaryPositionPointsAverageObject(object):
         self.average  = self.total_points / self.count
 
     def __str__(self):
-        return "POS:"+self.pos+" average_score:"+str(self.average)
+        return "POS:"+self.pos.name+" average_score:"+str(self.average)
 
+
+class SalaryRosterSpotObject(object):
+    def __init__(self, name):
+        self.name = name
+        self.percentage_of_sum = 0.0
+        self.average_cost = 0.0
+        self.average_salary=  0.0
+
+
+    def __str__(self):
+        return "Roster_Spot_Name:"+self.name+" average_salary:"+str(self.average_salary)\
+               +" percentage_of_sum:"+str(self.percentage_of_sum)
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 class SalaryGenerator(object):
@@ -98,7 +114,7 @@ class SalaryGenerator(object):
     """
     PLAYER_STATS_LIST = 'psl'
 
-    def __init__(self, player_stats_class, salary_conf):
+    def __init__(self, player_stats_class, salary_conf, site_sport):
         """
 
         :return:
@@ -116,11 +132,18 @@ class SalaryGenerator(object):
         if(not isinstance(salary_conf, SalaryConfig)):
             raise IncorrectVariableTypeException(type(self).__name__,
                                                  "salary_conf")
+
+        #
+        # Makes sure the site_sport is an instance
+        # of the subclass SiteSport
+        if(not isinstance(site_sport, SiteSport)):
+            raise IncorrectVariableTypeException(type(self).__name__,
+                                                 "site_sport")
         #
         # sets the variables after being validated
         self.player_stats_class = player_stats_class
         self.salary_conf        = salary_conf
-
+        self.site_sport         = site_sport
 
 
 
@@ -150,10 +173,13 @@ class SalaryGenerator(object):
         self.__apply_weight_and_flag(players)
         self.__print_players_list(players)
 
+        sum_average_points = self.__sum_average_points_per_roster_spot(position_average_list)
+        print("\n\n avg points: "+str(sum_average_points) + "\n")
+
         #
         # Calculate the salaries for each player based on
         # the mean of weighted score of their position
-
+        self.__update_salaries(players, position_average_list,sum_average_points)
 
 
 
@@ -164,7 +190,7 @@ class SalaryGenerator(object):
         """
         For each player in the PlayerStats table, get the games
         that are relevant.
-        :return: a list of SalaryPlayerObjects
+        :retu a list of SalaryPlayerObjects
 
         """
         #
@@ -190,6 +216,7 @@ class SalaryGenerator(object):
             else:
                 player = SalaryPlayerObject()
                 player.player_id = player_stats_object.player_id
+                player.player =player_stats_object.player
                 players.append(player)
             player.player_stats_list.append(player_stats_object)
 
@@ -209,14 +236,16 @@ class SalaryGenerator(object):
                 # Creates a new SalaryPositionPointsAverageObject if the
                 # object is not created for the given position
                 position_points_obj = None
-                if player_stats.primary_position not in position_average_list:
+                if player_stats.position not in position_average_list:
                     position_points_obj = SalaryPositionPointsAverageObject(
-                                                player_stats.primary_position
+                                                player_stats.position
                                           )
 
                     position_average_list.update(
                         {player_stats.position:position_points_obj}
                     )
+                else:
+                    position_points_obj = position_average_list[player_stats.position]
 
                 #
                 # adds the points the SalaryPositionPointsAverageObject for
@@ -304,11 +333,93 @@ class SalaryGenerator(object):
 
 
 
+    def __sum_average_points_per_roster_spot(self, position_average_list):
+        #
+        # get all the roster spots for the sport and sum up the average
+        # fantasy points for each spot * spot.amount
+        roster_spots = RosterSpot.objects.filter(site_sport = self.site_sport)
+        sum_average_points = 0.0
+        for roster_spot in roster_spots:
+            #
+            # find the positions that map to the specified roster spot and average the
+            # average fantasy points for the position from the position_average_list
+            roster_maps = RosterSpotPosition.objects.filter(roster_spot = roster_spot)
+            count = 0
+            sum   = 0.0
+            for roster_map in roster_maps:
+                position = roster_map.position
+                sum     += position_average_list[position].average
+                count   += 1
+            sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
+        return sum_average_points
+
+
+
+    def __update_salaries(self, players, position_average_list, sum_average_points):
+        #
+        # Creates a salary pool
+        pool = Pool()
+        pool.site_sport = self.site_sport
+        pool.salary_config = self.salary_conf
+        pool.save()
+
+
+        roster_spots = RosterSpot.objects.filter(site_sport = self.site_sport)
+        for roster_spot in roster_spots:
+            #
+            # creates a list of the primary positions for the roster spot
+            roster_maps = RosterSpotPosition.objects.filter(roster_spot = roster_spot,
+                                                            is_primary = True)
+
+            pos_arr= []
+            count = 0
+            sum   = 0.0
+            average_salary = 0.0
+            for roster_map in roster_maps:
+                pos_arr.append(roster_map.position)
+                sum     += position_average_list[roster_map.position].average
+                count   += 1
+            average_salary += (((sum / ((float)(count))) / sum_average_points) * ((float)(self.salary_conf.max_team_salary)))
+            average_salary = self.__round_salary(average_salary)
+
+
+            #
+            # Get the average weighted fantasy points for the specific positions
+            # in the pos_arr
+            count = 0
+            sum   = 0.0
+            for player in players:
+                if(player.player_stats_list[0].position in pos_arr):
+                    sum   += player.fantasy_weighted_average
+                    count += 1
+            average_weighted_fantasy_points_for_pos = (sum / ((float)(count)))
+
+
+            #
+            # creates the salary for each player in the specified roster spot
+            for player in players:
+                if(player.player_stats_list[0].position in pos_arr):
+
+                    salary          = Salary()
+                    salary.amount   = ((player.fantasy_weighted_average /
+                                      average_weighted_fantasy_points_for_pos) *
+                                     average_salary)
+                    salary.amount   = self.__round_salary(salary.amount)
+                    if(salary.amount < self.salary_conf.min_player_salary):
+                        salary.amount = self.salary_conf.min_player_salary
+                    salary.flagged  = player.flagged
+                    salary.pool     = pool
+                    salary.player   = player.player
+                    salary.save()
+                    print("player: "+salary.player.first_name+" salary: "+str(salary.amount)+ "\n")
 
 
 
 
 
+
+    def __round_salary(self, val):
+        return (int) (ceil((val/100.0)) *100.0)
 
 
 

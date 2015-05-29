@@ -6,12 +6,81 @@ from .classes import SalaryPlayerStatsObject, SalaryGenerator
 from datetime import date, timedelta
 from random import randint
 from .models import SalaryConfig, TrailingGameWeight
-
+from sports.models import SiteSport, Position
+from roster.models import RosterSpot, RosterSpotPosition
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 # Shared setup methods for the test cases
+def create_sport_and_rosters():
+    sitesport       = SiteSport()
+    sitesport.name  = 'testsport'
+    sitesport.save()
+
+    position1                = Position()
+    position1.name           = "1"
+    position1.site_sport     = sitesport
+    position1.save()
+
+    position2                = Position()
+    position2.name           = "2"
+    position2.site_sport     = sitesport
+    position2.save()
+
+    rosterspot1             = RosterSpot()
+    rosterspot1.name        = 'one'
+    rosterspot1.site_sport  = sitesport
+    rosterspot1.amount      = 1
+    rosterspot1.idx         = 0
+    rosterspot1.save()
+
+    rosterspot2             = RosterSpot()
+    rosterspot2.name        = 'two'
+    rosterspot2.site_sport  = sitesport
+    rosterspot2.amount      = 1
+    rosterspot2.idx         = 1
+    rosterspot2.save()
+
+    rosterspot3             = RosterSpot()
+    rosterspot3.name        = 'flex'
+    rosterspot3.site_sport  = sitesport
+    rosterspot3.amount      = 1
+    rosterspot3.idx         = 2
+    rosterspot3.save()
+
+    maptable                = RosterSpotPosition()
+    maptable.position       = position1
+    maptable.roster_spot    = rosterspot1
+    maptable.is_primary     = True
+    maptable.save()
+
+    maptable                = RosterSpotPosition()
+    maptable.position       = position1
+    maptable.roster_spot    = rosterspot3
+    maptable.is_primary     = False
+
+    maptable.save()
+
+    maptable                = RosterSpotPosition()
+    maptable.position       = position2
+    maptable.roster_spot    = rosterspot2
+    maptable.is_primary     = True
+
+    maptable.save()
+
+    maptable                = RosterSpotPosition()
+    maptable.position       = position2
+    maptable.roster_spot    = rosterspot3
+    maptable.is_primary     = False
+
+    maptable.save()
+
+    return sitesport
+
 
 def create_basic_player_stats():
+    position = Position.objects.get(name="1")
+
+
     game                            = GameChild()
     game.created                    = timezone.now()
     game.srid                       = "1121231232"
@@ -24,6 +93,7 @@ def create_basic_player_stats():
     player.first_name               = "Jon"
     player.last_name                = "Doe"
     player.created                  = timezone.now()
+    player.position                 = position
     player.save()
 
     player_stats                    = PlayerStatsChild()
@@ -33,8 +103,7 @@ def create_basic_player_stats():
     player_stats.player             = player
     player_stats.srid_game          = game.srid
     player_stats.srid_player        = player.srid
-    player_stats.position           = "F-C"
-    player_stats.primary_position   = "PF"
+    player_stats.position           = position
     player_stats.save()
 
     return player_stats
@@ -43,18 +112,26 @@ def create_basic_player_stats():
 def create_simple_player_stats_list():
 
     players = []
+    position1 = Position.objects.get(name="1")
+    position2 = Position.objects.get(name="2")
+
     for i in range(10,20):
         player                          = PlayerChild()
         player.srid                     = ""+str(i)
         player.first_name               = ""+str(i)
         player.last_name                = ""+str(i)
         player.created                  = timezone.now()
+        if(i < 15):
+            player.position             = position1
+        else:
+            player.position             = position2
+
         player.save()
         players.append(player)
 
     for i in range(1,30):
 
-        d = date.today() - timedelta(days=i)
+        d =timezone.now() - timedelta(days=i)
         game                            = GameChild()
         game.created                    = d
         game.srid                       = i
@@ -72,8 +149,7 @@ def create_simple_player_stats_list():
             player_stats.player             = player
             player_stats.srid_game          = game.srid
             player_stats.srid_player        = player.srid
-            player_stats.position           = "F-C"
-            player_stats.primary_position   = "PF"
+            player_stats.position           = player.position
             player_stats.save()
 
 #-------------------------------------------------------------------
@@ -81,6 +157,7 @@ def create_simple_player_stats_list():
 # Tests the Player Stats Object
 class PlayerStatsObjectTest(AbstractTest):
     def setUp(self):
+        create_sport_and_rosters()
         self.player_stats = create_basic_player_stats()
 
     def test_proper_init(self):
@@ -100,6 +177,8 @@ class PlayerStatsObjectTest(AbstractTest):
 # Tests the Salary Generator
 class SalaryGeneratorTest(AbstractTest):
     def setUp(self):
+        self.site_sport = create_sport_and_rosters()
+
         self.salary_conf                            = SalaryConfig()
         self.salary_conf.trailing_games             = 10
         self.salary_conf.days_since_last_game_flag  = 10
@@ -122,17 +201,17 @@ class SalaryGeneratorTest(AbstractTest):
 
 
     def test_proper_init(self):
-        self.assertIsNotNone(SalaryGenerator(PlayerStatsChild,self.salary_conf))
+        self.assertIsNotNone(SalaryGenerator(PlayerStatsChild,self.salary_conf, self.site_sport))
 
     def test_improper_init(self):
         self.assertRaises(mysite.exceptions.IncorrectVariableTypeException,
-                          lambda: SalaryGenerator(SalaryPlayerStatsObject, self.salary_conf)
+                          lambda: SalaryGenerator(SalaryPlayerStatsObject, self.salary_conf, self.site_sport)
                           )
 
 
     def test_generate_salaries(self):
         create_simple_player_stats_list()
-        salary_gen =SalaryGenerator(PlayerStatsChild, self.salary_conf)
+        salary_gen =SalaryGenerator(PlayerStatsChild, self.salary_conf, self.site_sport)
         salary_gen.generate_salaries()
 
 

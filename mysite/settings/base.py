@@ -239,6 +239,7 @@ INSTALLED_APPS = (
 
     'scoring',
     'salary',
+    'roster',
     'test',
 )
 
