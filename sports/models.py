@@ -19,6 +19,10 @@ class Position(models.Model):
 
     class Meta:
         unique_together = ('name', 'site_sport')
+
+    def __str__(self):
+        return self.name
+
 #
 #########################################################################
 # abstract models for each sport to inherit as use as they wish
