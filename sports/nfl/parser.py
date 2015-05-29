@@ -135,6 +135,7 @@ class PlayerRosters(DataDenPlayerRosters):
 
     def __init__(self):
         super().__init__()
+        self.position_key = 'position'
 
     def parse(self, obj, target=None):
         super().parse( obj )
@@ -144,8 +145,6 @@ class PlayerRosters(DataDenPlayerRosters):
         o = obj.get_o()
         self.player.first_name      = o.get('name_first',   None)
         self.player.last_name       = o.get('name_last',    None)
-        self.player.position        = o.get('position',     None)
-        self.player.primary_position = self.player.position # no "archtype" positions in nfl
 
         self.player.draft_pick      = o.get('draft_pick', '')
         self.player.draft_round     = o.get('draft_round', '')

@@ -208,7 +208,7 @@ class Pbp(sports.models.Pbp):
 
 def create_dst_player(sender, **kwargs):
     """
- signal handler to create the DST Player object after a Team object is created.
+    signal handler to create the DST Player object after a Team object is created.
     """
     if 'created' in kwargs:
         if kwargs['created']:
@@ -223,8 +223,19 @@ def create_dst_player(sender, **kwargs):
             dst.srid        = instance.srid     #
             dst.first_name  = instance.name     # ie: "Patriots"
             dst.last_name   = DST_PLAYER_LAST_NAME
-            dst.position    = DST_POSITION
-            dst.primary_position = DST_POSITION
+
+            #
+            # get or create the custom 'dst' position for nfl
+            try:
+                position = sports.models.Position.objects.get(site_sport__name='nfl', name=DST_POSITION)
+            except sports.models.Position.DoesNotExist:
+                position = sports.models.Position()
+                position.site_sport = sports.models.SiteSport.objects.get(name='nfl')
+                position.name       = DST_POSITION
+                position.save()
+
+            dst.position = position
+
             dst.status      = ''
             dst.save() # commit changes
 
