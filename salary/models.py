@@ -6,12 +6,16 @@ class SalaryConfig(models.Model):
     """
     The class that keeps a Salary algorithm for a specified sport
     """
-    trailing_games              = models.PositiveIntegerField(null = False)
-    days_since_last_game_flag   = models.PositiveIntegerField(null = False)
-    min_games_flag              = models.PositiveIntegerField(null = False)
-    min_player_salary           = models.PositiveIntegerField(null = False)
-    max_team_salary             = models.PositiveIntegerField(null = False)
+    trailing_games                      = models.PositiveIntegerField(null = False)
+    days_since_last_game_flag           = models.PositiveIntegerField(null = False)
+    min_games_flag                      = models.PositiveIntegerField(null = False)
+    min_player_salary                   = models.PositiveIntegerField(null = False)
+    max_team_salary                     = models.PositiveIntegerField(null = False)
+    min_avg_fppg_allowed_for_avg_calc   = models.FloatField(null = False, default=0.0)
 
+
+    def __str__(self):
+        return '%s' % (str(self.id))
 
 class TrailingGameWeight(models.Model):
     """
@@ -20,6 +24,7 @@ class TrailingGameWeight(models.Model):
     salary                      = models.ForeignKey( SalaryConfig, null = False)
     through                     = models.PositiveIntegerField(null = False)
     weight                      = models.FloatField(null = False)
+
 
     class Meta:
         unique_together = ( 'salary', 'through' )
@@ -51,6 +56,8 @@ class Pool(models.Model):
                 pass
         super(Pool, self).save(*args, **kwargs)
 
+    def __str__(self):
+        return '%s: %s' % (str(self.id), str(self.site_sport))
 
 class Salary(models.Model):
     """
@@ -66,3 +73,6 @@ class Salary(models.Model):
     player_type     = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_sport_player')
     player_id       = models.PositiveIntegerField()
     player          = GenericForeignKey('player_type', 'player_id')
+
+
+

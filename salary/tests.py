@@ -2,12 +2,14 @@ from test.classes import AbstractTest
 import mysite.exceptions
 from test.models import PlayerChild, PlayerStatsChild, GameChild
 from django.utils import timezone
-from .classes import SalaryPlayerStatsObject, SalaryGenerator
+from .classes import SalaryPlayerStatsObject, SalaryGenerator, SalaryPlayerObject
 from datetime import date, timedelta
 from random import randint
 from .models import SalaryConfig, TrailingGameWeight
 from sports.models import SiteSport, Position
 from roster.models import RosterSpot, RosterSpotPosition
+
+
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 # Shared setup methods for the test cases
@@ -179,17 +181,21 @@ class SalaryGeneratorTest(AbstractTest):
     def setUp(self):
         self.site_sport = create_sport_and_rosters()
 
-        self.salary_conf                            = SalaryConfig()
-        self.salary_conf.trailing_games             = 10
-        self.salary_conf.days_since_last_game_flag  = 10
-        self.salary_conf.min_games_flag             = 7
-        self.salary_conf.min_player_salary          = 3000
-        self.salary_conf.max_team_salary            = 50000
+        self.salary_conf                                    = SalaryConfig()
+        self.salary_conf.trailing_games                     = 10
+        self.salary_conf.days_since_last_game_flag          = 10
+        self.salary_conf.min_games_flag                     = 7
+        self.salary_conf.min_player_salary                  = 3000
+        self.salary_conf.max_team_salary                    = 50000
+        self.salary_conf.min_avg_fppg_allowed_for_avg_calc  = 5
         self.salary_conf.save()
 
         self.createTrailingGameWeight(self.salary_conf, 3,3)
         self.createTrailingGameWeight(self.salary_conf, 7,2)
         self.createTrailingGameWeight(self.salary_conf, 10,1)
+
+        self.position1 = Position.objects.get(name="1")
+
 
     def createTrailingGameWeight(self, salary_config, through, weight):
         trailing_game_weight                        = TrailingGameWeight()
@@ -217,7 +223,67 @@ class SalaryGeneratorTest(AbstractTest):
 
 
 
+    def test_helper_get_player_stats(self):
+        create_simple_player_stats_list()
+        salary_gen =SalaryGenerator(PlayerStatsChild, self.salary_conf, self.site_sport)
+        players = salary_gen.helper_get_player_stats()
 
+        self.assertEquals(len(players) , 10)
+        self.assertEquals(len(players[0].player_stats_list) , 29)
+
+
+
+    def test_helper_get_average_score_per_position(self):
+        salary_gen =SalaryGenerator(PlayerStatsChild, self.salary_conf, self.site_sport)
+        players = []
+
+        #
+        # Creates player stat with 1 fppg under the min for keeping the average
+        d =timezone.now()
+        game                            = GameChild()
+        game.created                    = ""
+        game.srid                       = ""
+        game.start                      = d
+        game.status                     = "closed"
+        game.save()
+        player                          = PlayerChild()
+        player.srid                     = "111111111"
+        player.first_name               = "Jon"
+        player.last_name                = "Doe"
+        player.created                  = timezone.now()
+        player.position                 = self.position1
+        player.save()
+        player_stats                    = PlayerStatsChild()
+        player_stats.created            = timezone.now()
+        player_stats.fantasy_points     = 4
+        player_stats.game               = game
+        player_stats.player             = player
+        player_stats.srid_game          = game.srid
+        player_stats.srid_player        = player.srid
+        player_stats.position           = self.position1
+        player_stats.save()
+
+        player_stats_object = SalaryPlayerStatsObject(player_stats)
+
+        #
+        # test to make sure that the player is not added
+        player = SalaryPlayerObject()
+        player.player_id = player_stats_object.player_id
+        player.player =player_stats_object.player
+        player.player_stats_list = [player_stats_object]
+        players.append(player)
+        self.assertEquals(0, len(salary_gen.helper_get_average_score_per_position(players)))
+
+
+        #
+        # tests equal to the min
+        player_stats_object.fantasy_points     =5
+        player = SalaryPlayerObject()
+        player.player_id = player_stats_object.player_id
+        player.player =player_stats_object.player
+        player.player_stats_list = [player_stats_object]
+        players.append(player)
+        self.assertEquals(1, len(salary_gen.helper_get_average_score_per_position(players)))
 
 
 
