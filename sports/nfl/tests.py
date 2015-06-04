@@ -4,8 +4,12 @@
 from django.test import TestCase
 from sports.nfl.models import Team, Player
 
-class DstPlayerCreation(TestCase):
 
+class DstPlayerCreation(TestCase):
+    """
+    Ensure that the nfl teams DST player objects get created
+    when a new team is created.
+    """
     def setUp(self):
         self.srid_team  = 'TEST'            # default team srid/alias
         self.player     = None

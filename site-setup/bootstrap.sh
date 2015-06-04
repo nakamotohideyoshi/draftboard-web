@@ -148,3 +148,10 @@ echo "source venv/bin/activate" >> /home/vagrant/.bashrc
 #       Then you can hit the site from localhost:8888/admin/login/
 #####################################################################
 
+#
+# in order to use dataden.jar and have mongo setup all you have to do is
+# 1. Start mongo normally       :   sudo mongod
+# 2. ctrl-c & start as replSet  :   sudo mongod --replSet "rs0"
+# 3. log in to the mongo shell  :   mongo
+# 4. type this in mongo shell   :   rs.initiate()
+
