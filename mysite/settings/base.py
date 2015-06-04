@@ -237,6 +237,7 @@ INSTALLED_APPS = (
     'sports.nhl',
     'sports.nfl',
 
+    'prize',
     'scoring',
     'salary',
     'roster',
