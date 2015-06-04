@@ -111,7 +111,7 @@ class DataDen(object):
         self.connect()
         return self.client.get_database( db_name )
 
-    def find(self, db, coll, parent_api, target={}):
+    def find(self, db, coll, parent_api, target={}, projection={}):
         """
         Perform a mongo find( target ) on the namespace and parent_api!
 
@@ -119,8 +119,15 @@ class DataDen(object):
 
         :return:
         """
+
         coll = self.db( db ).get_collection(coll)
         target[ self.PARENT_API__ID ] = parent_api
+        if projection and projection.keys():
+            #
+            # if the projection has any keys, use it
+            return coll.find( target, projection )
+
+        # by default, dont apply projection
         return coll.find( target )
 
     def find_recent(self, db, coll, parent_api, target={}):

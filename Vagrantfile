@@ -24,6 +24,13 @@ Vagrant.configure(2) do |config|
     # simply cant let us know about via cmd line
     config.vm.provider "virtualbox" do |v|
         v.gui = true
+
+        #
+        # should drastically help performance,
+        # but remove if anything stops working
+        v.memory = 1024
+        v.cpus = 1
+
     end
 
   end

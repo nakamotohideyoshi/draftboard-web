@@ -5,6 +5,7 @@ from dataden.util.timestamp import Parse as DataDenDatetime
 import json
 from django.contrib.contenttypes.models import ContentType
 from sports.models import SiteSport, Position
+from dataden.classes import DataDen
 
 class AbstractDataDenParser(object):
     """
