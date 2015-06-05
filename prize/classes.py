@@ -71,6 +71,19 @@ class Generator(object):
         ordered_data = OrderedDict( sorted(data.items(), key=lambda t: t[1]) )
         self.range_list = list( ordered_data.items() )
 
+    def get_prize_pool(self):
+        """
+        Returns the prize_pool
+        :return:
+        """
+        return self.prize_pool
+
+    def get_buyin(self):
+        return self.buyin
+
+    def get_max_entries(self):
+        return self.prize_pool / self.buyin
+
     def get_prize_list(self):
         """
         The list of tuples, where each tuple represents a rank and payout.
