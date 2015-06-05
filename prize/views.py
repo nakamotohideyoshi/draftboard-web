@@ -3,13 +3,35 @@
 
 from django.views.generic import TemplateView
 from prize.classes import Generator
+import json
+
+class PieDataObj(object):
+    #
+    # example:
+    # {
+    #     'value': 300,
+    #     'color':"#F7464A",
+    #     'highlight': "#FF5A5E",
+    #     'label': "Red"
+    # },
+
+    def __init__(self, value, color, highlight, label):
+        self.data = {
+            'value':        int(value),
+            'color':        color,
+            'highlight':    highlight,
+            'label':        label
+        }
+
+    def get_data(self):
+        return self.data
 
 class CreatePrizeStructureView(TemplateView):
     """
     Usage:
 
         http://localhost:8888/prize/create-prize-structure/?b=10&fp=1700&rp=10&ps=120&pp=10000
-        
+
     """
     template_name = 'create_prize_structure.html'
 
@@ -44,12 +66,76 @@ class CreatePrizeStructureView(TemplateView):
         context['values'] = [1,2,3,4,5,6]
 
         prize_list = self.prize_generator.get_prize_list()
+        range_list = self.prize_generator.get_range_list()
 
-        prizes = [ x[1] for x in prize_list ]
-
+        prizes          = [ x[1] for x in prize_list ]
+        distinct_prizes = [ x[0] for x in range_list ]
+        distinct_prize_players = [ len(x[1]) for x in range_list ]
+        min_rank_for_prize = [ x[1][len(x[1]) - 1] for x in range_list ]
 
         context['prizes'] = prizes
         context['ranks']  = list( range(1, len(prizes)) )
         context['ranges'] = self.prize_generator.get_range_list() # list( odata.items() )
+        context['distinctprizes']       = distinct_prizes
+        context['distinctprizeplayers'] = distinct_prize_players
+        context['min_rank_for_prize']   = min_rank_for_prize
+
+        # some values we might want
+        context['maxentries'] = self.prize_generator.get_max_entries()
+        paid = len(prize_list)
+        context['paid'] = paid
+        not_paid = int(self.prize_generator.get_max_entries() - len(prize_list))
+        context['notpaid'] = not_paid
+
+        # generate the data for 1st pie wheel
+        payoutsdata_list = []
+        payoutsdata_list.append( PieDataObj(paid,"#46BFBD","#5AD3D1",'Paid' ).get_data() )
+        payoutsdata_list.append( PieDataObj(not_paid,"#F7464A","#FF5A5E",'Not Paid' ).get_data() )
+        context['payoutsdata'] = json.dumps( payoutsdata_list )
+
+        # top 10 prizes versus the rest of the prizes
+        sum_top_10 = 0
+        sum_11_plus = 0
+        for i,p in enumerate( prizes ):
+            if i < 10:
+                sum_top_10 += p
+            else:
+                sum_11_plus += p
+
+        piedata_list = []
+        piedata_list.append( PieDataObj(sum_top_10,"#46BFBD","#5AD3D1","Top 10").get_data() )
+        piedata_list.append( PieDataObj(sum_11_plus,"#FDB45C","#FFC870","All Other").get_data() )
+        context['piedata'] = json.dumps( piedata_list )
+
+        # context['piedata'] = json.dumps( [
+        #     {
+        #         'value': 300,
+        #         'color':"#F7464A",
+        #         'highlight': "#FF5A5E",
+        #         'label': "Red"
+        #     },
+        #     {
+        #         'value': 50,
+        #         'color': "#46BFBD",
+        #         'highlight': "#5AD3D1",
+        #         'label': "Green"
+        #     },
+        #     {
+        #         'value': 100,
+        #         'color': "#FDB45C",
+        #         'highlight': "#FFC870",
+        #         'label': "Yellow"
+        #     }
+        # ] )
+
+        # top 3 prizes (if there are that many
+        topprizes_list = []
+        topprizes_list.append( PieDataObj(prizes[0],"#46BFBD","#5AD3D1", '1st').get_data() )
+        if len(prizes) >= 2:
+            topprizes_list.append( PieDataObj(prizes[1],"#FDB45C","#FFC870",'2nd').get_data() )
+        if len(prizes) >= 3:
+            topprizes_list.append( PieDataObj(prizes[2],"#F7464A","#FF5A5E",'3rd').get_data() )
+
+        context['topprizes'] = json.dumps( topprizes_list )
 
         return context
