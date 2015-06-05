@@ -12,10 +12,15 @@ from django.views.generic import TemplateView
 #
 # )
 
-from prize.views import CreatePrizeStructureView
+from prize.views import CreatePrizeStructureView, PrizeGeneratorView
 
 urlpatterns = patterns(
     '',
+
+    #
     (r'^create-prize-structure/$', CreatePrizeStructureView.as_view()),
+
+    #
+    (r'^generator/$', PrizeGeneratorView.as_view()),
 
 )
