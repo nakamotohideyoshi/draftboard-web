@@ -26,10 +26,14 @@ Vagrant.configure(2) do |config|
         v.gui = true
 
         #
+        # Note: non-default settings and/or giving
+        #   too much memory/cores to the VM
+        #   can really hammer your computers performance!
+        #
         # should drastically help performance,
         # but remove if anything stops working
-        v.memory = 1024
-        v.cpus = 1
+        #v.memory = 1024
+        #v.cpus = 2
 
     end
 
