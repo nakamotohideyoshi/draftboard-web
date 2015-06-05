@@ -4,6 +4,7 @@ from django.contrib import admin
 import account.urls
 import cash.urls
 import ticket.urls
+import prize.urls
 
 from django.conf.urls import url, include
 from django.contrib.auth.models import User
@@ -38,6 +39,7 @@ urlpatterns = [
     url(r'^account/', include(account.urls)),
     url(r'^cash/', include(cash.urls)),
     url(r'^ticket/', include(ticket.urls)),
+    url(r'^prize/',  include(prize.urls)),
 
     #
     # this came with rest_framework

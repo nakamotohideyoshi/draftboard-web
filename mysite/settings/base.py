@@ -38,6 +38,7 @@ TEMPLATES = [
         'BACKEND' : 'django.template.backends.django.DjangoTemplates',
         'DIRS'    : [
             join(BASE_DIR, 'account/templates'),
+            join(BASE_DIR, 'prize/templates'),
             join(BASE_DIR,  'mysite/templates'),
         ],
         'APP_DIRS': True, # defaults to False

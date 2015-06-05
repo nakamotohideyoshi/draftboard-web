@@ -1,0 +1,122 @@
+
+
+{% block extra_head %}
+    <script src="/static/prize/js/Chart.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <style type="text/css">
+    .pie-legend li span {
+        width: 1em;
+        height: 1em;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .pie-legend {
+        list-style: none;
+    }
+    .doughnut-legend li span {
+        width: 1em;
+        height: 1em;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .doughnut-legend {
+        list-style: none;
+    }
+    </style>
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+        var data = {
+            //labels: ["January", "February", "March", "April", "May", "June", "July"],
+            labels: {{ ranks }},
+            datasets: [
+                {
+                    label: "My First dataset",
+                    fillColor: "rgba(220,220,220,0.5)",
+                    strokeColor: "rgba(220,220,220,0.8)",
+                    highlightFill: "rgba(220,220,220,0.75)",
+                    highlightStroke: "rgba(220,220,220,1)",
+                    data: {{ prizes }}
+                },
+                {
+                    label: "My Second dataset",
+                    fillColor: "rgba(151,187,205,0.5)",
+                    strokeColor: "rgba(151,187,205,0.8)",
+                    highlightFill: "rgba(151,187,205,0.75)",
+                    highlightStroke: "rgba(151,187,205,1)",
+                    data: [11,22,33,44]
+                }
+            ]
+        };
+
+        var salaries = document.getElementById('salaries').getContext('2d');
+        // var salaryChart = new Chart(salaries).Bar(data);
+        var salaryChart = new Chart(salaries).Line(data);
+
+
+
+        // this pie data works for pie and doughnut charts
+        {% verbatim vblock %}
+        var pie_options = {
+            // source: http://www.chartjs.org/docs/#doughnut-pie-chart
+            legendTemplate: "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li><span style=\"background-color:<%=segments[i].fillColor%>\"></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>"
+
+        };
+        {% endverbatim vblock %}
+
+        var pie_data = [
+            {
+                value: 300,
+                color:"#F7464A",
+                highlight: "#FF5A5E",
+                label: "Red"
+            },
+            {
+                value: 50,
+                color: "#46BFBD",
+                highlight: "#5AD3D1",
+                label: "Green"
+            },
+            {
+                value: 100,
+                color: "#FDB45C",
+                highlight: "#FFC870",
+                label: "Yellow"
+            }
+        ];
+
+        //
+        //
+        // For a pie chart
+        var pie = document.getElementById('pie').getContext('2d');
+        var myPieChart = new Chart(pie).Pie(pie_data); // ,options);
+
+        // And for a doughnut chart
+        var doughnut = document.getElementById('doughnut').getContext('2d');
+        var myDoughnutChart = new Chart(doughnut).Doughnut(pie_data, pie_options); //,options);
+
+        var legend = myDoughnutChart.generateLegend();
+        $("#legend").html(legend);
+    });
+    </script>
+{% endblock %}
+
+{% block salary_block %}
+
+    <h2>Create Prize Structure</h2>
+
+    <canvas id="salaries" width="1200" height="550"></canvas>
+    <canvas id="pie" width="200" height="200"></canvas>
+    <canvas id="doughnut" width="200" height="200"></canvas>
+
+    <div id="legend"></div>
+
+    <ul>
+        {% for data in ranges %}
+            <!-- https://docs.djangoproject.com/en/1.8/ref/templates/builtins/ -->
+            <li>{{ data }}</li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}
