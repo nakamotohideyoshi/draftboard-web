@@ -130,9 +130,8 @@ class SalaryGenerator(object):
     """
     This class is responsible for generating the salaries for a given sport.
     """
-    PLAYER_STATS_LIST = 'psl'
 
-    def __init__(self, player_stats_class, salary_conf, site_sport):
+    def __init__(self, player_stats_classes, pool):
         """
 
         :return:
@@ -140,29 +139,25 @@ class SalaryGenerator(object):
         #
         # Makes sure the player_stats_object is an instance
         # of the subclass PlayerStats
-        if(not issubclass(player_stats_class, PlayerStats)):
-            raise IncorrectVariableTypeException(type(self).__name__,
-                                                 type(player_stats_class).__name__)
+        for player_stats_class in player_stats_classes:
+            if not issubclass(player_stats_class, PlayerStats):
+                raise IncorrectVariableTypeException(type(self).__name__,
+                                                     type(player_stats_class).__name__)
 
         #
-        # Makes sure the salary_conf is an instance
-        # of the subclass SalaryConfig
-        if(not isinstance(salary_conf, SalaryConfig)):
+        # Makes sure the pool is an instance
+        # of the subclass Pool
+        if not isinstance(pool, Pool):
             raise IncorrectVariableTypeException(type(self).__name__,
-                                                 "salary_conf")
+                                                 type(pool).__name__)
 
-        #
-        # Makes sure the site_sport is an instance
-        # of the subclass SiteSport
-        if(not isinstance(site_sport, SiteSport)):
-            raise IncorrectVariableTypeException(type(self).__name__,
-                                                 "site_sport")
+
         #
         # sets the variables after being validated
-        self.player_stats_class = player_stats_class
-        self.salary_conf        = salary_conf
-        self.site_sport         = site_sport
-
+        self.player_stats_classes = player_stats_classes
+        self.pool = pool
+        self.salary_conf = pool.salary_config
+        self.site_sport = pool.site_sport
 
 
     def generate_salaries(self):
@@ -213,29 +208,31 @@ class SalaryGenerator(object):
         #
         #
         players = []
-        #
-        # iterate through all player_stats ever
-        all_player_stats = self.player_stats_class.objects.all()
 
-        for player_stat in all_player_stats:
+        for player_stats_class in self.player_stats_classes:
             #
-            # Creates an object for the PlayerStat
-            player_stats_object = SalaryPlayerStatsObject(player_stat)
+            # iterate through all player_stats ever
+            all_player_stats = player_stats_class.objects.all()
 
-            #
-            # checks to see if the player exists in the player_list,
-            # if not, create a index for the player and add to the
-            # list
-            arr =[x for x in players if x.player_id == player_stats_object.player_id]
-            player = None
-            if(len(arr) >0 ):
-                player= arr[0]
-            else:
-                player = SalaryPlayerObject()
-                player.player_id = player_stats_object.player_id
-                player.player =player_stats_object.player
-                players.append(player)
-            player.player_stats_list.append(player_stats_object)
+            for player_stat in all_player_stats:
+                #
+                # Creates an object for the PlayerStat
+                player_stats_object = SalaryPlayerStatsObject(player_stat)
+
+                #
+                # checks to see if the player exists in the player_list,
+                # if not, create a index for the player and add to the
+                # list
+                arr =[x for x in players if x.player_id == player_stats_object.player_id]
+                player = None
+                if(len(arr) >0 ):
+                    player= arr[0]
+                else:
+                    player = SalaryPlayerObject()
+                    player.player_id = player_stats_object.player_id
+                    player.player =player_stats_object.player
+                    players.append(player)
+                player.player_stats_list.append(player_stats_object)
 
         return players
 
@@ -380,13 +377,6 @@ class SalaryGenerator(object):
 
 
     def helper_update_salaries(self, players, position_average_list, sum_average_points):
-        #
-        # Creates a salary pool
-        pool = Pool()
-        pool.site_sport = self.site_sport
-        pool.salary_config = self.salary_conf
-        pool.save()
-
 
         roster_spots = RosterSpot.objects.filter(site_sport = self.site_sport)
         for roster_spot in roster_spots:
@@ -441,7 +431,7 @@ class SalaryGenerator(object):
                         if(salary.amount < self.salary_conf.min_player_salary):
                             salary.amount = self.salary_conf.min_player_salary
                         salary.flagged  = player.flagged
-                        salary.pool     = pool
+                        salary.pool     = self.pool
                         salary.player   = player.player
                         salary.save()
                         print("player: "+salary.player.first_name+" salary: "+str(salary.amount)+ "\n")
@@ -453,6 +443,7 @@ class SalaryGenerator(object):
 
     def __round_salary(self, val):
         return (int) (ceil((val/100.0)) *100.0)
+
 
 
 

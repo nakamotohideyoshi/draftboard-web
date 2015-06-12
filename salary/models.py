@@ -6,29 +6,57 @@ class SalaryConfig(models.Model):
     """
     The class that keeps a Salary algorithm for a specified sport
     """
-    trailing_games                      = models.PositiveIntegerField(null = False)
-    days_since_last_game_flag           = models.PositiveIntegerField(null = False)
-    min_games_flag                      = models.PositiveIntegerField(null = False)
-    min_player_salary                   = models.PositiveIntegerField(null = False)
-    max_team_salary                     = models.PositiveIntegerField(null = False)
-    min_avg_fppg_allowed_for_avg_calc   = models.FloatField(null = False, default=0.0)
+    created                             = models.DateTimeField( auto_now_add=True)
+
+    trailing_games                      = models.PositiveIntegerField(null = False,
+                                                                      help_text="The number of games to trail.",
+                                                                      verbose_name="Trailing Games")
+    days_since_last_game_flag           = models.PositiveIntegerField(null = False,
+                                                                      help_text="Flag the player if X days since last game played",
+                                                                      verbose_name="Days Since Last Game Flag")
+    min_games_flag                      = models.PositiveIntegerField(null = False,
+                                                                      help_text="Flag the player if X games have not been played",
+                                                                      verbose_name="Min Games Flag")
+    min_player_salary                   = models.PositiveIntegerField(null = False,
+                                                                      help_text="The minimum salary a player can be worth.",
+                                                                      verbose_name="Min Player Salary")
+    max_team_salary                     = models.PositiveIntegerField(null = False,
+                                                                      help_text="The total team salary for drafting",
+                                                                      verbose_name="Team Salary")
+    min_avg_fppg_allowed_for_avg_calc   = models.FloatField(null = False,
+                                                            default=0.0,
+                                                            help_text="The minimum fppg allowed for a player's stats to be used to calculate position averages.",
+                                                            verbose_name="Min FPPG Allowed for Avg Calc")
+
+    name                                = models.CharField(default="",
+                                                           null=False,
+                                                           help_text= "The plain text name of the configuration",
+                                                           verbose_name="Name",
+                                                           max_length=64)
+
+
+
+
+
 
 
     def __str__(self):
-        return '%s' % (str(self.id))
+        return '%s: %s' % (str(self.id), self.name)
+
+
 
 class TrailingGameWeight(models.Model):
     """
     The weights of the scores for each tier of trailing games
     """
-    salary                      = models.ForeignKey( SalaryConfig, null = False)
+    salary                      = models.ForeignKey( SalaryConfig, null = False, related_name='trailing_game_weights')
     through                     = models.PositiveIntegerField(null = False)
     weight                      = models.FloatField(null = False)
 
 
     class Meta:
         unique_together = ( 'salary', 'through' )
-
+        ordering = ('through',)
 
 class Pool(models.Model):
     """
@@ -58,6 +86,8 @@ class Pool(models.Model):
 
     def __str__(self):
         return '%s: %s' % (str(self.id), str(self.site_sport))
+    class Meta:
+        ordering = ('-active', 'site_sport')
 
 class Salary(models.Model):
     """

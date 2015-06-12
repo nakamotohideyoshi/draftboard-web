@@ -5,7 +5,7 @@ from django.utils import timezone
 from .classes import SalaryPlayerStatsObject, SalaryGenerator, SalaryPlayerObject
 from datetime import date, timedelta
 from random import randint
-from .models import SalaryConfig, TrailingGameWeight
+from .models import SalaryConfig, TrailingGameWeight, Pool
 from sports.models import SiteSport, Position
 from roster.models import RosterSpot, RosterSpotPosition
 
@@ -190,6 +190,12 @@ class SalaryGeneratorTest(AbstractTest):
         self.salary_conf.min_avg_fppg_allowed_for_avg_calc  = 5
         self.salary_conf.save()
 
+        self.pool = Pool()
+        self.pool.site_sport = self.site_sport
+        self.pool.salary_config = self.salary_conf
+        self.pool.save()
+
+
         self.createTrailingGameWeight(self.salary_conf, 3,3)
         self.createTrailingGameWeight(self.salary_conf, 7,2)
         self.createTrailingGameWeight(self.salary_conf, 10,1)
@@ -207,17 +213,17 @@ class SalaryGeneratorTest(AbstractTest):
 
 
     def test_proper_init(self):
-        self.assertIsNotNone(SalaryGenerator(PlayerStatsChild,self.salary_conf, self.site_sport))
+        self.assertIsNotNone(SalaryGenerator(PlayerStatsChild, self.pool))
 
     def test_improper_init(self):
         self.assertRaises(mysite.exceptions.IncorrectVariableTypeException,
-                          lambda: SalaryGenerator(SalaryPlayerStatsObject, self.salary_conf, self.site_sport)
+                          lambda: SalaryGenerator(SalaryPlayerStatsObject, self.pool)
                           )
 
 
     def test_generate_salaries(self):
         create_simple_player_stats_list()
-        salary_gen =SalaryGenerator(PlayerStatsChild, self.salary_conf, self.site_sport)
+        salary_gen =SalaryGenerator(PlayerStatsChild, self.pool)
         salary_gen.generate_salaries()
 
 
@@ -225,7 +231,7 @@ class SalaryGeneratorTest(AbstractTest):
 
     def test_helper_get_player_stats(self):
         create_simple_player_stats_list()
-        salary_gen =SalaryGenerator(PlayerStatsChild, self.salary_conf, self.site_sport)
+        salary_gen =SalaryGenerator(PlayerStatsChild, self.pool)
         players = salary_gen.helper_get_player_stats()
 
         self.assertEquals(len(players) , 10)
@@ -234,7 +240,7 @@ class SalaryGeneratorTest(AbstractTest):
 
 
     def test_helper_get_average_score_per_position(self):
-        salary_gen =SalaryGenerator(PlayerStatsChild, self.salary_conf, self.site_sport)
+        salary_gen =SalaryGenerator(PlayerStatsChild, self.pool)
         players = []
 
         #
