@@ -412,16 +412,30 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
         self.RUSHING_BONUS_REQUIRED_YDS = 100
         self.RECEIVING_BONUS_REQUIRED_YDS = 100
 
+        self.verbose = False
+        self.str_stats = None # string
+
         # call super last - ensures you have class variables setup
         super().__init__(self.THE_SPORT)
 
-    def score_player(self, player_stats):
+    def set_verbose(self, verbose):
+        if verbose:
+            self.str_stats = ''
+            self.verbose = True
+        else:
+            self.verbose = False
+            self.str_stats = None
+
+    def score_player(self, player_stats, verbose=True):
         """
         scores and returns a float for the amount of fantasy points for this PlayerStats instance
 
         :param player_stats:
         :return:
         """
+
+        self.set_verbose( verbose )
+
         total = 0.0
 
         # passing
@@ -458,67 +472,97 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
         total += self.blocked_punt_return_tds(player_stats.ret_blk_punt_td)
         total += self.field_goal_return_tds(player_stats.ret_fg_td)
 
-        dst_pa = self.get_dst_points_allowed(player_stats)
-        total += self.get_dst_pa_bracket_points( dst_pa )
+        if player_stats.position == 'DST':
+            dst_pa = self.get_dst_points_allowed(player_stats)
+            total += self.get_dst_pa_bracket_points( dst_pa )
 
         return total
 
+    def get_str_stats(self):
+        return self.str_stats
+
     # offensive scoring methods below:
     def passing_yds(self, val):
+        if self.verbose: self.str_stats += '%s PassYds ' % val
         return val * self.get_value_of(self.PASS_YDS)
     def passing_tds(self, val):
+        if self.verbose: self.str_stats += '%s PassTd ' % val
         return val * self.get_value_of(self.PASS_TD)
     def passing_bonus(self, val):
+        if self.verbose: self.str_stats += '%s PassBns ' % val
         return val * self.get_value_of(self.PASS_BONUS)
     def passing_interceptions(self, val):
+        if self.verbose: self.str_stats += '%s PassINT ' % val
         return val * self.get_value_of(self.PASS_INT)
     def rushing_yds(self, val):
+        if self.verbose: self.str_stats += '%s RushYds ' % val
         return val * self.get_value_of(self.RUSH_YDS)
     def rushing_tds(self, val):
+        if self.verbose: self.str_stats += '%s RushTd ' % val
         return val * self.get_value_of(self.RUSH_TD)
     def rushing_bonus(self, val):
+        if self.verbose: self.str_stats += '%s RushBns ' % val
         return val * self.get_value_of(self.RUSH_BONUS)
     def receiving_yds(self, val):
+        if self.verbose: self.str_stats += '%s RecYds ' % val
         return val * self.get_value_of(self.REC_YDS)
     def receiving_tds(self, val):
+        if self.verbose: self.str_stats += '%s RecTd ' % val
         return val * self.get_value_of(self.REC_TD)
     def receiving_bonus(self, val):
+        if self.verbose: self.str_stats += '%s RecBns ' % val
         return val * self.get_value_of(self.REC_BONUS)
     def ppr(self, val):
+        if self.verbose: self.str_stats += '%s Recs ' % val
         return val * self.get_value_of(self.PPR)
     def fumble_lost(self, val):
+        if self.verbose: self.str_stats += '%s FumLost ' % val
         return val * self.get_value_of(self.FUMBLE_LOST)
     def two_pt_conversion(self, val):
+        if self.verbose: self.str_stats += '%s 2PtConv ' % val
         return val * self.get_value_of(self.TWO_PT_CONV)
     def offensive_fumble_td(self, val):
+        if self.verbose: self.str_stats += '%s OffFumTd ' % val
         return val * self.get_value_of(self.OFF_FUM_TD)
 
     # defensive scoring methods below:
     def sacks(self, val):
+        if self.verbose: self.str_stats += '%s Sck ' % val
         return val * self.get_value_of(self.SACK)
     def interceptions(self, val):
+        if self.verbose: self.str_stats += '%s Int ' % val
         return val * self.get_value_of(self.INTS)
     def fumble_recoveries(self, val):
+        if self.verbose: self.str_stats += '%s FumRec ' % val
         return val * self.get_value_of(self.FUM_REC)
     # types of return touchdowns
     def kick_return_tds(self, val):
+        if self.verbose: self.str_stats += '%s KckRetTd ' % val
         return val * self.get_value_of(self.KICK_RET_TD)
     def punt_return_tds(self, val):
+        if self.verbose: self.str_stats += '%s PntRetTd ' % val
         return val * self.get_value_of(self.PUNT_RET_TD)
     def interception_return_tds(self, val):
+        if self.verbose: self.str_stats += '%s IntRetTd ' % val
         return val * self.get_value_of(self.INT_RET_TD)
     def fumble_return_tds(self, val):
+        if self.verbose: self.str_stats += '%s FumRetTd ' % val
         return val * self.get_value_of(self.FUM_RET_TD)
     def blocked_punt_return_tds(self, val):
+        if self.verbose: self.str_stats += '%s BlkPntTd ' % val
         return val * self.get_value_of(self.BLK_PUNT_RET_TD)
     def field_goal_return_tds(self, val):
+        if self.verbose: self.str_stats += '%s FgRetTd ' % val
         return val * self.get_value_of(self.FG_RET_TD)
     def blocked_field_goal_return_tds(self, val):
+        if self.verbose: self.str_stats += '%s BlkFgRetTd ' % val
         return val * self.get_value_of(self.BLK_FG_RET_TD)
     # misc dst
     def safeties(self, val): # safety
+        if self.verbose: self.str_stats += '%s Sfty ' % val
         return val * self.get_value_of(self.SAFETY)
     def blocked_kicks(self, val): # blocked kick (punts, fgs)
+        if self.verbose: self.str_stats += '%s BlkKick ' % val
         return val * self.get_value_of(self.BLK_KICK)
 
     def get_dst_points_allowed(self, player_stats): # dst points allowed
@@ -554,17 +598,22 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
         :param dst_pa:
         :return:
         """
+        fantasy_pts = 0
         if dst_pa <= 0:
-            return self.get_value_of(self.PA_0) # 0 points allowed bracket
+            fantasy_pts = self.get_value_of(self.PA_0) # 0 points allowed bracket
         elif dst_pa <= 6:
-            return self.get_value_of(self.PA_6)
+            fantasy_pts = self.get_value_of(self.PA_6)
         elif dst_pa <= 13:
-            return self.get_value_of(self.PA_13)
+            fantasy_pts = self.get_value_of(self.PA_13)
         elif dst_pa <= 20:
-            return self.get_value_of(self.PA_20)
+            fantasy_pts = self.get_value_of(self.PA_20)
         elif dst_pa <= 27:
-            return self.get_value_of(self.PA_27)
+            fantasy_pts = self.get_value_of(self.PA_27)
         elif dst_pa <= 34:
-            return self.get_value_of(self.PA_34)
+            fantasy_pts = self.get_value_of(self.PA_34)
         else:
-            return self.get_value_of(self.PA_35_PLUS)
+            fantasy_pts = self.get_value_of(self.PA_35_PLUS)
+
+        if self.verbose: self.str_stats += '%s DstPts ' % fantasy_pts
+
+        return fantasy_pts
