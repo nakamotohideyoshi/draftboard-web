@@ -121,9 +121,10 @@
 
     <ul>
         {% if created == True %}
-            <li>prize structure created!</li>
+            <h2>New Prize Structure created! You can go to the standard django admin to see it.</h2>
         {% else %}
-            <li>prize structure was not created</li>
+            <h5>You may keep submitting any values to see the prize structure they would create.</h5>
+            <h5>If you wish to create an actual Prize Structure which can be used for Contests, check the save box and submit one more time!</h5>
         {% endif %}
     </ul>
     <!-- end form -->
