@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
-
+from ..classes import SiteSportManager
 def load_initial_data(apps, schema_editor):
     """
     Loads the initial WithdrawStatus(s). This function will be passed to 'migrations.RunPython' which supplies the arguments.
@@ -13,7 +13,8 @@ def load_initial_data(apps, schema_editor):
     """
     #
     # get the model by name
-    sports = ['nfl','mlb','nba','nhl']
+    spm = SiteSportManager()
+    sports = spm.sports
     SiteSport = apps.get_model('sports', 'SiteSport')
     for sport in sports:
         model = SiteSport()

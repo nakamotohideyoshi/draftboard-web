@@ -9,8 +9,14 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 #
 # an object for a sport which anything can reference to identify its sport
 class SiteSport(models.Model):
-    created     = models.DateTimeField(auto_now_add=True, null=False)
-    name        = models.CharField(max_length=128, null=False)
+    created             = models.DateTimeField(auto_now_add=True, null=False)
+    name                = models.CharField(max_length=128, null=False, unique=True)
+
+
+    def __str__(self):
+        return '%s' % (self.name )
+
+
 
 class Position(models.Model):
     created     = models.DateTimeField(auto_now_add=True, null=False)
@@ -21,7 +27,7 @@ class Position(models.Model):
         unique_together = ('name', 'site_sport')
 
     def __str__(self):
-        return self.name
+        return '%s' % (self.name )
 
 #
 #########################################################################
@@ -37,6 +43,8 @@ class Sport( models.Model ):
     content_type    = models.ForeignKey(ContentType)
     object_id       = models.PositiveIntegerField()
     content_object  = GenericForeignKey()   # 'content_object', 'object_id'  are only necessary if custom
+
+
 
     class Meta:
         abstract = True

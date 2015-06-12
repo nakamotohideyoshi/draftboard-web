@@ -5,7 +5,7 @@ import account.urls
 import cash.urls
 import ticket.urls
 import prize.urls
-
+import salary.urls
 from django.conf.urls import url, include
 from django.contrib.auth.models import User
 from rest_framework import routers, serializers, viewsets
@@ -40,6 +40,7 @@ urlpatterns = [
     url(r'^cash/', include(cash.urls)),
     url(r'^ticket/', include(ticket.urls)),
     url(r'^prize/',  include(prize.urls)),
+    url(r'^salary/', include(salary.urls)),
 
     #
     # this came with rest_framework
