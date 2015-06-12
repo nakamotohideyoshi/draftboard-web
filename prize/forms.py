@@ -11,5 +11,5 @@ class PrizeGeneratorForm( forms.Form ):
     payout_spots    = forms.IntegerField(label='Payout Spots')  # total # of prizes
     prize_pool      = forms.IntegerField(label='Prize Pool')    # total prize pool
 
-    create          = forms.BooleanField(required=False, label='Save This Prize Pool?')
+    create          = forms.BooleanField(required=False, label='Create This Prize Pool?')
 
