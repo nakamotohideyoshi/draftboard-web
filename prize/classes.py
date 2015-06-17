@@ -17,13 +17,20 @@ class Generator(object):
     """
     Generate a prize structure, given some basic information about its size and prizepool, etc...
     """
-    def __init__(self, buyin, first_place, round_payouts, payout_spots, prize_pool):
+    def __init__(self, buyin, first_place, round_payouts, payout_spots, prize_pool, exact=True):
         self.buyin                  = buyin
         self.first_place            = first_place
+
+        if round_payouts < self.buyin or round_payouts % buyin != 0:
+            raise InvalidArgumentException(type(self).__name__,
+                    'round_payouts must be greater than or equal to, and a also a multiple of the buyin')
         self.round_payouts          = round_payouts
         self.payout_spots           = payout_spots
         self.prize_pool             = prize_pool
         self.modified_prize_pool    = prize_pool
+
+        self.exact                  = exact
+
         self.multiplier             = 0
         self.final_x                = 0.0
         self.update_prize_pool()
@@ -69,16 +76,45 @@ class Generator(object):
         Internal list to hold all the prize information so we dont have to regenerate it.
         :return:
         """
+
+        print('__build_prize_list')
         self.prize_list = []
         for i in range(1, self.payout_spots+1):
             self.prize_list.append( (i, self.equation(i, self.final_x) ) )
 
+        if self.exact:
+            print('exact')
+            # take buyins off the end until we have the original
+            # prize pool specified (no added buyins from alogrithm)
+            prize_list_with_extra_buyins = list(self.prize_list)
+            print('prize_list_with_extra_buyins', prize_list_with_extra_buyins)
+            self.prize_list = []
+            original_prize_pool_remaining = self.prize_pool
+            print('original_prize_pool_remaining', original_prize_pool_remaining)
+            for rank, value in prize_list_with_extra_buyins:
+                if original_prize_pool_remaining <= 0:
+                    break
+                elif original_prize_pool_remaining >= value:
+                    original_prize_pool_remaining -= value
+                    new_prize = value
+                else:
+                    new_prize = original_prize_pool_remaining # the difference
+                    original_prize_pool_remaining -= value
+
+                self.prize_list.append( (rank, new_prize) )
+        else:
+            print('not exact - modified potentially')
+
         data = {}
+        #total = 0
         for prize in self.prize_list:
+            #total += prize[1]
             try:
                 data[ prize[1] ].append( prize[0] )
             except KeyError:
                 data[ prize[1] ] = [ prize[0] ]
+
+        # print('total:', total)
         ordered_data = OrderedDict( sorted(data.items(), key=lambda t: t[1]) )
         self.range_list = list( ordered_data.items() )
 
@@ -134,11 +170,18 @@ class Generator(object):
 
     def print_each_position(self):
 
-        for i in range(1, self.payout_spots+1):
-            print(str(i)+":"+str(self.equation(i, self.final_x)))
+        # for i in range(1, self.payout_spots+1):
+        #     print(str(i)+":"+str(self.equation(i, self.final_x)))
 
-        print("new prize pool            :"+str(self.modified_prize_pool))
+
+        total = 0
+        for rank,value in self.get_prize_list():
+            total += value
+            print( str(rank) + ':' + str(value) )
+        print('original prize pool       :'+str(self.prize_pool))
+        print("modified prize pool       :"+str(self.modified_prize_pool))
         print("additional buyins required:"+str(self.multiplier))
+        print('total after exact fix     :', total)
 
     def get_generator_settings_instance(self):
         """
