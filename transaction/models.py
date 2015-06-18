@@ -13,6 +13,14 @@ TRANSACTION_CATEGORY = (
 	# ('xxx', 'Xxx'),
 )
 
+class AbstractAmount(models.Model):
+
+    def get_transaction_class(self):
+        raise Exception('inheriting class must implement this method')
+
+    class Meta:
+        abstract = True
+
 class TransactionType( models.Model ):
     """
     The class that keeps a list of all the transaction
@@ -52,8 +60,6 @@ class TransactionDetail( models.Model ):
     class Meta:
         abstract = True
         unique_together = ('user', 'transaction')
-
-
 
 class Balance( models.Model ):
 
