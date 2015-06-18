@@ -1,10 +1,12 @@
 from transaction.classes import AbstractTransaction
 from transaction.constants import TransactionTypeConstants
 from transaction.models import TransactionType, Transaction
-from .models import Ticket, TicketAmount
+#from .models import Ticket, TicketAmount
+import ticket.models # transaction.models.
 from mysite.classes import  AbstractSiteUserClass
 from mysite.exceptions import AmountZeroException, AmountNegativeException, TooManyArgumentsException, TooLittleArgumentsException, IncorrectVariableTypeException
 from .exceptions import  InvalidTicketAmountException, TicketAlreadyUsedException, UserDoesNotHaveTicketException
+
 class TicketManager(AbstractSiteUserClass):
     """
     Manages the ticket accounts for a given user. Each ticket
@@ -15,6 +17,20 @@ class TicketManager(AbstractSiteUserClass):
         super().__init__(user)
         self.transaction = None
         self.ticket = None
+
+    def create_default_ticket_amounts():
+        """
+        Create the default TicketAmounts if they do not alrady exist
+        """
+        for amt in ticket.models.DEFAULT_TICKET_VALUES:
+            try:
+                ta = ticket.models.TicketAmount.objects.get( amount = amt )
+            except ticket.models.TicketAmount.DoesNotExist:
+                ta = ticket.models.TicketAmount()
+                ta.amount = amt
+                ta.save()
+            print(str(ta))
+    create_default_ticket_amounts = staticmethod( create_default_ticket_amounts )
 
     def __get_ticket_amount(self, amount):
         """
@@ -33,7 +49,8 @@ class TicketManager(AbstractSiteUserClass):
         if(amount < 0 ):
             raise AmountNegativeException(type(self).__name__, 'amount')
 
-        return TicketAmount.objects.get(amount = amount)
+        return ticket.models.TicketAmount.objects.get(amount = amount)
+
     def __get_deposit_category(self):
         """
         Gets the deposit ticket category for the Transaction
@@ -85,7 +102,7 @@ class TicketManager(AbstractSiteUserClass):
 
         #
         # creates the ticket
-        self.ticket = Ticket()
+        self.ticket = ticket.models.Ticket()
         self.ticket.deposit_transaction = self.transaction
         self.ticket.user = self.user
         self.ticket.amount = ta
@@ -148,7 +165,7 @@ class TicketManager(AbstractSiteUserClass):
 
             #
             # Checks the ticket
-            tickets = Ticket.objects.filter(
+            tickets = ticket.models.Ticket.objects.filter(
                 amount = amount_obj,
                 user = self.user,
                 consume_transaction = None
@@ -164,7 +181,7 @@ class TicketManager(AbstractSiteUserClass):
             self.ticket = tickets[0]
 
         else:
-            if(not isinstance(ticket_obj, Ticket)):
+            if(not isinstance(ticket_obj, ticket.models.Ticket)):
                 raise IncorrectVariableTypeException(type(self).__name__,
                                           "ticket_obj")
             self.ticket = ticket_obj
@@ -183,7 +200,7 @@ class TicketManager(AbstractSiteUserClass):
         # Creates a new transaction if it was not supplied by the
         # consume functionality.
         if(transaction_obj == None):
-            self.transaction = Transaction(
+            self.transaction = ticket.models.Transaction(
                 user=self.user,
                 category=self.__get_consume_category()
             )
@@ -205,7 +222,7 @@ class TicketManager(AbstractSiteUserClass):
 
 
     def get_available_tickets(self):
-        return Ticket.objects.filter(
+        return ticket.models.Ticket.objects.filter(
                 user = self.user,
                 consume_transaction = None
             ).order_by('-created')

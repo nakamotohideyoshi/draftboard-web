@@ -3,7 +3,7 @@
 
 from django.shortcuts import render
 from django.views.generic import TemplateView, View
-from prize.classes import Generator
+from prize.classes import Generator, CashPrizeStructureCreator
 from prize.forms import PrizeGeneratorForm
 from django.http import HttpResponseRedirect
 
@@ -149,7 +149,9 @@ class PrizeGeneratorView(View):
             #
             # at this point, if 'create' is True, we should
             # actually save & commit a new prize structure
-
+            if create:
+                creator = CashPrizeStructureCreator( self.prize_generator, 'gui' )
+                creator.save()
 
             context['created']   = create # we should ACTUALLY create it though.
 
