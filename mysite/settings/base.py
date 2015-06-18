@@ -189,7 +189,7 @@ INSTALLED_APPS = (
     # heroku installs
     'raven.contrib.django.raven_compat',
 
-    #'suit',
+    'suit',
 
     # django defaults
     'django.contrib.admin',

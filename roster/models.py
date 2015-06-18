@@ -1,6 +1,5 @@
 from django.db import models
-from sports.models import SiteSport, Position
-
+import sports.models
 class RosterSpot(models.Model):
     """
     Model is responsible for holding the Roster Archtypes and their
@@ -8,9 +7,13 @@ class RosterSpot(models.Model):
     """
     name        = models.CharField(max_length=64, null=False, default='',
                                    help_text='the roster position spot, i.e. FLEX or WR')
-    site_sport  = models.ForeignKey(SiteSport, null=False)
+    site_sport  = models.ForeignKey(sports.models.SiteSport, null=False)
     amount      = models.PositiveIntegerField(default = 0, help_text='the quantity of these spots allowed in a lineup for the sport.', null = False)
     idx         = models.PositiveIntegerField(default = 0, help_text='the order the spot will be displayed to the user.', null = False)
+
+    def __str__(self):
+        return self.name
+
     class Meta:
         unique_together = ('name', 'site_sport')
 
@@ -21,7 +24,7 @@ class RosterSpotPosition(models.Model):
     to the many :class:`roster.models.RosterSpot` objects.
     """
     roster_spot = models.ForeignKey(RosterSpot, null=False)
-    position    = models.ForeignKey(Position, null=False)
+    position    = models.ForeignKey(sports.models.Position, null=False)
     is_primary  = models.BooleanField(null = False, default=False)
 
     def save(self, *args, **kwargs):

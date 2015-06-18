@@ -6,7 +6,8 @@ from .classes import  SalaryGenerator
 from sports.classes import SiteSportManager
 from django.contrib.contenttypes.admin import GenericTabularInline
 from sports.models import Player
-
+from roster.models import RosterSpotPosition, RosterSpot
+from mysite.mixins.generic_search import GenericSearchMixin
 class TrailingGameWeightInline(admin.TabularInline):
     model = TrailingGameWeight
 
@@ -16,10 +17,14 @@ class PlayerInline(admin.TabularInline):
 class SalaryInline(admin.TabularInline):
     model = Salary
     extra = 0
-
+    readonly_fields = ('player', 'primary_roster', 'fppg')
+    exclude = ('player_id', 'player_type')
     def player(self, obj):
         return obj.player
 
+
+    def has_add_permission(self, request):
+        return False
     # TODO add this here if it will let me so it can properly filter player type
     # def get_inline_instances(self, request, obj=None):
     #     if obj is None:
@@ -57,6 +62,7 @@ class PoolAdmin(admin.ModelAdmin):
                 sg.generate_salaries()
 
     actions = [generate_salaries, ]
+    list_filter = ['salary__flagged', 'salary__primary_roster']
 
     def get_inline_instances(self, request, obj=None):
         if obj is None:
@@ -67,15 +73,25 @@ class PoolAdmin(admin.ModelAdmin):
 
 
 @admin.register(Salary)
-class SalaryAdmin(admin.ModelAdmin):
+class SalaryAdmin(GenericSearchMixin, admin.ModelAdmin):
     # TODO going to need to disable editing of SalaryAdmins if any games point to the Pool that the Salary points to.
-    list_display = ['id', 'created', 'pool', 'amount', 'flagged', 'player']
-    search_fields = ['pool', 'player']
+    list_display = ['player','amount','flagged','pool', 'primary_roster', 'fppg']
+    list_editable = ['amount', 'flagged']
     model = Salary
-
+    list_filter = [ 'primary_roster', 'flagged', 'pool']
+    raw_id_admin = ('pool', )
+    search_fields = ('player__first_name', 'player__last_name')
+    save_on_top = True
     def has_add_permission(self, request):
         return False
 
 
+    related_search_mapping = {
+        'player': {
+            'content_type':'player_type',
+            'object_id': 'player_id',
+            'ctypes': SiteSportManager().get_player_classes()
+        }
+    }
 
 

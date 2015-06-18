@@ -54,7 +54,7 @@ class DataDenParser(object):
 
         # nfl
         ('nfl','team','hierarchy'),     # 1
-        ('nfl','game','schdedule'),     # 2
+        ('nfl','game','schedule'),     # 2
         ('nfl','player','rosters'),     # 3 ordered for setup priority
         ('nfl','game','boxscores'),
         ('nfl','team','stats'),
