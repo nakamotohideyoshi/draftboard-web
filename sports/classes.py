@@ -61,7 +61,7 @@ class SiteSportManager(object):
 
 
     def __get_array_of_classes(self, sport, filter_string, parent_class):
-        content_types = ct = ContentType.objects.filter(app_label=sport.name,
+        content_types = ContentType.objects.filter(app_label=sport.name,
                                              model__icontains=filter_string)
         #
         # Iterates through all of the content_types that contain the filter
@@ -107,3 +107,24 @@ class SiteSportManager(object):
         self.__check_sport(sport)
         arr = self.__get_array_of_classes(sport, 'player', Player)
         return arr[0]
+
+    def get_player_classes(self):
+        """
+        Class that fetches an array of Classes that represent all instances of
+            :class:`sports.models.Player` class.
+
+
+
+        :return: an array of Classes that represent all instances of
+            :class:`sports.models.Player` class.
+
+
+        """
+        content_types = ContentType.objects.filter(model__icontains='player')
+        matching_arr = []
+        for content_type in content_types:
+            content_class = content_type.model_class()
+            if issubclass(content_class, Player):
+                matching_arr.append(content_class)
+
+        return matching_arr

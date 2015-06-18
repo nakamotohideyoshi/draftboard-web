@@ -1,7 +1,8 @@
 from django.db import models
-from sports.models import SiteSport
+import sports.models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from roster.models import RosterSpot
 class SalaryConfig(models.Model):
     """
     The class that keeps a Salary algorithm for a specified sport
@@ -66,7 +67,7 @@ class Pool(models.Model):
     pool, the old active pool will automatically be deactivated.
     """
     created                     = models.DateTimeField( auto_now_add=True )
-    site_sport                  = models.ForeignKey( SiteSport, null = False )
+    site_sport                  = models.ForeignKey( sports.models.SiteSport, null = False )
     active                      = models.BooleanField( null = False, default=False )
     salary_config               = models.ForeignKey( SalaryConfig, null = False )
 
@@ -85,7 +86,7 @@ class Pool(models.Model):
         super(Pool, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s: %s' % (str(self.id), str(self.site_sport))
+        return '%s: %s : %s' % (str(self.id), str(self.site_sport), str(self.created))
     class Meta:
         ordering = ('-active', 'site_sport')
 
@@ -98,11 +99,16 @@ class Salary(models.Model):
     pool            = models.ForeignKey( Pool, null = False )
     amount          = models.PositiveIntegerField(null=False)
     flagged         = models.BooleanField(default=False, null=False)
+    primary_roster  = models.ForeignKey(RosterSpot, null = False)
+    fppg            = models.FloatField(default=0.0)
+
 
     # the GFK to the Player
-    player_type     = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_sport_player')
+    player_type     = models.ForeignKey(ContentType)
     player_id       = models.PositiveIntegerField()
-    player          = GenericForeignKey('player_type', 'player_id')
+    player          = GenericForeignKey('player_type',
+                                        'player_id')
 
 
-
+    class Meta:
+        ordering = ('primary_roster', '-amount')

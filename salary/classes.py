@@ -5,6 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
 from django.utils import timezone
 from math import ceil
+from django.db.transaction import atomic
 
 
 #-------------------------------------------------------------------
@@ -64,7 +65,7 @@ class SalaryPlayerStatsObject(object):
 class SalaryPlayerObject(object):
     """
     Object that wraps the the list of SalaryPLayerStatsObjects
-    and their derrived data
+    and their derived data
     """
 
     def __init__(self):
@@ -84,17 +85,16 @@ class SalaryPlayerObject(object):
         return string_ret
 
     def get_fantasy_average(self):
-        if self.fantasy_weighted_average == None:
-            self.fantasy_weighted_average = 0.0
+        if self.fantasy_average == None:
+            self.fantasy_average = 0.0
             count = 0
             for player_stat in self.player_stats_list:
-                self.fantasy_weighted_average += player_stat.fantasy_points
+                self.fantasy_average += player_stat.fantasy_points
                 count+=1
 
             if count > 0:
-                self.fantasy_weighted_average /= count
-        print("\n\nweight:"+str(self.fantasy_weighted_average))
-        return self.fantasy_weighted_average
+                self.fantasy_average /= count
+        return self.fantasy_average
 
 
 
@@ -184,7 +184,7 @@ class SalaryGenerator(object):
         # apply weights to each score to come up with the
         # average weighted score for each player
         self.helper_apply_weight_and_flag(players)
-        self.__print_players_list(players)
+        #self.__print_players_list(players)
 
         sum_average_points = self.helper_sum_average_points_per_roster_spot(position_average_list)
 
@@ -247,6 +247,7 @@ class SalaryGenerator(object):
             #
             # Make sure the player has an acceptable average FPPG to be included
             # in getting the average points per position
+            player_avg = player.get_fantasy_average()
             if player.get_fantasy_average() >= self.salary_conf.min_avg_fppg_allowed_for_avg_calc:
                 for player_stats in player.player_stats_list:
 
@@ -329,9 +330,12 @@ class SalaryGenerator(object):
                 # check to makes sure the min games are played
 
                 delta = timezone.now() - player.player_stats_list[0].start
-                if (delta.days < self.salary_conf.days_since_last_game_flag) or \
+                if (delta.days > self.salary_conf.days_since_last_game_flag) or \
                     (number_of_games < self.salary_conf.min_games_flag ):
                     player.flagged= True
+
+
+
 
 
                 #
@@ -355,6 +359,12 @@ class SalaryGenerator(object):
 
 
     def helper_sum_average_points_per_roster_spot(self, position_average_list):
+        """
+        Sums up the fppg for each roster spot so we can use it for calculating the
+        the salaries
+        :param position_average_list:
+        :return:
+        """
         #
         # get all the roster spots for the sport and sum up the average
         # fantasy points for each spot * spot.amount
@@ -369,15 +379,25 @@ class SalaryGenerator(object):
             sum   = 0.0
             for roster_map in roster_maps:
                 position = roster_map.position
-                sum     += position_average_list[position].average
-                count   += 1
+                if position in position_average_list:
+                    sum     += position_average_list[position].average
+                    count   += 1
             sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
+
         return sum_average_points
 
-
-
+    @atomic
     def helper_update_salaries(self, players, position_average_list, sum_average_points):
-
+        """
+        Helper method in charge of creating salary entries for players for the pool
+        passed to this class. This method will update existing entries for players
+        that already exist. THis method should *not* be called outside of this
+        class.
+        :param players:
+        :param position_average_list:
+        :param sum_average_points:
+        :return:
+        """
         roster_spots = RosterSpot.objects.filter(site_sport = self.site_sport)
         for roster_spot in roster_spots:
             #
@@ -398,12 +418,14 @@ class SalaryGenerator(object):
                 sum   = 0.0
                 for roster_map in roster_maps:
                     pos_arr.append(roster_map.position)
-                    sum     += position_average_list[roster_map.position].average
-                    count   += 1
+                    if roster_map.position in position_average_list:
+                        sum     += position_average_list[roster_map.position].average
+                        count   += 1
 
                 average_salary = (((sum / ((float)(count))) / sum_average_points)
                                    * ((float)(self.salary_conf.max_team_salary)))
                 average_salary = self.__round_salary(average_salary)
+                print( roster_spot.name+" average salary "+ str(average_salary))
 
 
                 #
@@ -413,17 +435,17 @@ class SalaryGenerator(object):
                 sum   = 0.0
                 for player in players:
                     if(player.player_stats_list[0].position in pos_arr):
-                        sum   += player.fantasy_weighted_average
-                        count += 1
+                        if player.get_fantasy_average() >= self.salary_conf.min_avg_fppg_allowed_for_avg_calc:
+                            sum   += player.fantasy_weighted_average
+                            count += 1
                 average_weighted_fantasy_points_for_pos = (sum / ((float)(count)))
 
 
                 #
                 # creates the salary for each player in the specified roster spot
                 for player in players:
-                    if(player.player_stats_list[0].position in pos_arr):
-
-                        salary          = Salary()
+                    if player.player_stats_list[0].position in pos_arr:
+                        salary          = self.get_salary_for_player(player.player)
                         salary.amount   = ((player.fantasy_weighted_average /
                                           average_weighted_fantasy_points_for_pos) *
                                          average_salary)
@@ -433,13 +455,27 @@ class SalaryGenerator(object):
                         salary.flagged  = player.flagged
                         salary.pool     = self.pool
                         salary.player   = player.player
+                        salary.primary_roster = roster_spot
+                        salary.fppg     = player.get_fantasy_average()
                         salary.save()
-                        print("player: "+salary.player.first_name+" salary: "+str(salary.amount)+ "\n")
 
+    def get_salary_for_player(self, player):
+        """
+        Method takes in a :class:`sports.models.Player` model object and
+        either gets the Salary object for that player and the pool or returns
+        a new Salary Object
+        :param player:  a :class:`sports.models.Player` model object
+        :return: a :class:`salary.models.Salary` object
+        """
+        try:
+            player_type = ContentType.objects.get_for_model(player)
+            salary_obj = Salary.objects.get(pool=self.pool,
+                                            player_type=player_type,
+                                            player_id=player.id)
 
-
-
-
+            return salary_obj
+        except Salary.DoesNotExist:
+            return Salary()
 
     def __round_salary(self, val):
         return (int) (ceil((val/100.0)) *100.0)
