@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 import ticket.classes
 
 DEFAULT_TICKET_VALUES = [
+    5.00,
     10.00,
     20.00,
     50.00,
