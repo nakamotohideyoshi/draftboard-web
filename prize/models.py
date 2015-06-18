@@ -58,3 +58,10 @@ class Rank( models.Model ):
     def __str__(self):
         return '<%s | %s>' % (self.__class__.__name__, self.value)
 
+class CreateTicketPrizeStructure(models.Model):
+
+    created         = models.DateTimeField(auto_now_add=True)
+    ticket_value    = models.FloatField(default=0.0, null=False,
+                                verbose_name='Ticket Value')
+    num_prizes      = models.IntegerField(default=0, null=False,
+                                verbose_name='The Number of Total Tickets')
