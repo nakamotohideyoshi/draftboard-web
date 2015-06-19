@@ -3,8 +3,9 @@
 
 from django.shortcuts import render
 from django.views.generic import TemplateView, View
-from prize.classes import Generator, CashPrizeStructureCreator, TicketPrizeStructureCreator
-from prize.forms import PrizeGeneratorForm, TicketPrizeCreatorForm
+from prize.classes import Generator, CashPrizeStructureCreator, \
+                            TicketPrizeStructureCreator, FlatCashPrizeStructureCreator
+from prize.forms import PrizeGeneratorForm, TicketPrizeCreatorForm, FlatCashPrizeCreatorForm
 from django.http import HttpResponseRedirect
 
 import json
@@ -355,6 +356,97 @@ class TicketPrizeStructureCreatorView(View):
             # actually save & commit a new prize structure
             if create:
                 creator = TicketPrizeStructureCreator( ticket_value, num_prizes, 'ticket-gui' )
+                creator.save()
+
+            context['created']   = create # we should ACTUALLY create it though.
+
+            #return HttpResponseRedirect('/success/')
+            return render(request, self.template_name, context)
+
+        #
+        #
+        context = {'form'  : form}
+        return render(request, self.template_name, context)
+
+class FlatCashPrizeStructureCreatorView(View):
+
+    template_name   = 'flat_cash_prize_creator.html'
+    form_class      = FlatCashPrizeCreatorForm
+    initial         = {
+        'buyin'         : 10,
+        'first_place'   : 20,
+        'payout_spots'  : 50,
+        'create'        : False
+    }
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class(initial=self.initial)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            # <process form cleaned data>
+            buyin           = form.cleaned_data['buyin']
+            first_place     = form.cleaned_data['first_place']
+            payout_spots    = form.cleaned_data['payout_spots']
+            create          = form.cleaned_data['create']
+
+            print('buyin', buyin, 'first_place:', first_place,
+                  'payout_spots:', payout_spots, 'create:', create)
+
+            max_entries = (float(first_place) * payout_spots) / buyin
+
+            context = { 'form' : form }
+
+            context['prizes']               = payout_spots
+            context['ranks']                = list( range(1, payout_spots) )
+            context['ranges']               = [(first_place, list(range(1, payout_spots + 1)))]
+            context['distinctprizes']       = 1
+            context['distinctprizeplayers'] = payout_spots
+            context['min_rank_for_prize']   = payout_spots
+
+            # some values we might want
+            context['maxentries']   = max_entries
+            context['paid']         = payout_spots
+            not_paid                = max_entries - payout_spots
+            context['notpaid']      = not_paid
+
+            # generate the data for 1st pie wheel
+            payoutsdata_list = []
+            payoutsdata_list.append( PieDataObj(payout_spots,"#46BFBD","#5AD3D1",'Paid' ).get_data() )
+            payoutsdata_list.append( PieDataObj(not_paid,"#F7464A","#FF5A5E",'Not Paid' ).get_data() )
+            context['payoutsdata'] = json.dumps( payoutsdata_list )
+
+            # top 10 prizes versus the rest of the prizes
+            sum_top_10 = 0
+            sum_11_plus = 0
+            for i,p in enumerate(range( 0, payout_spots )):
+                if i < 10:
+                    sum_top_10 += first_place
+                else:
+                    sum_11_plus += first_place
+
+            piedata_list = []
+            piedata_list.append( PieDataObj(sum_top_10,"#46BFBD","#5AD3D1","Top 10").get_data() )
+            piedata_list.append( PieDataObj(sum_11_plus,"#FDB45C","#FFC870","All Other").get_data() )
+            context['piedata'] = json.dumps( piedata_list )
+
+            # top 3 prizes (if there are that many
+            topprizes_list = []
+            topprizes_list.append( PieDataObj(first_place,"#46BFBD","#5AD3D1", '1st').get_data() )
+            if payout_spots >= 2:
+                topprizes_list.append( PieDataObj(first_place,"#FDB45C","#FFC870",'2nd').get_data() )
+            if payout_spots >= 3:
+                topprizes_list.append( PieDataObj(first_place,"#F7464A","#FF5A5E",'3rd').get_data() )
+
+            context['topprizes'] = json.dumps( topprizes_list )
+
+            #
+            # at this point, if 'create' is True, we should
+            # actually save & commit a new prize structure
+            if create:
+                creator = FlatCashPrizeStructureCreator( first_place, payout_spots, 'flat-gui' )
                 creator.save()
 
             context['created']   = create # we should ACTUALLY create it though.
