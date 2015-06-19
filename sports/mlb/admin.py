@@ -11,6 +11,7 @@ class TeamAdmin(admin.ModelAdmin):
 @admin.register(sports.mlb.models.Game)
 class GameAdmin(admin.ModelAdmin):
     list_display = ['srid','start','home','away','day_night','game_number']
+    list_filter = ['start','home','away']
 
 @admin.register(sports.mlb.models.Player)
 class PlayerAdmin(admin.ModelAdmin):
