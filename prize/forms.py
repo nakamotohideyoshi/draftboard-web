@@ -2,6 +2,7 @@
 # prize/forms.py
 
 from django import forms
+from ticket.models import TicketAmount
 
 class PrizeGeneratorForm( forms.Form ):
 
@@ -13,3 +14,11 @@ class PrizeGeneratorForm( forms.Form ):
 
     create          = forms.BooleanField(required=False, label='Create This Prize Pool?')
 
+class TicketPrizeCreatorForm( forms.Form ):
+
+    ticket_amount   = forms.ModelChoiceField(queryset=TicketAmount.objects.all(),
+                                             label='the Ticket prize for each spot')
+    #ticket_value    = forms.FloatField(label='Ticket Value (must be a valid Ticket amount')
+    num_prizes      = forms.IntegerField(label='The number of prize spots paid')
+    buyin           = forms.FloatField(label='The amount of the buyin for the contest')
+    create          = forms.BooleanField(required=False, label='Create This Prize Pool?')
