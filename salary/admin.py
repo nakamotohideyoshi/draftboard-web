@@ -53,7 +53,7 @@ class PoolAdmin(admin.ModelAdmin):
     inlines = [SalaryInline,]
     def generate_salaries(self, request, queryset):
         if len(queryset) > 1:
-            self.message_user( request, 'You must select only one pool to generate salaries for at a time.')
+            self.message_user(request, 'You must select only one pool to generate salaries for at a time.')
         else:
             for pool in queryset:
                 ssm = SiteSportManager()
@@ -81,7 +81,6 @@ class SalaryAdmin(GenericSearchMixin, admin.ModelAdmin):
     list_filter = [ 'primary_roster', 'flagged', 'pool']
     raw_id_admin = ('pool', )
     search_fields = ('player__first_name', 'player__last_name')
-    save_on_top = True
     def has_add_permission(self, request):
         return False
 
