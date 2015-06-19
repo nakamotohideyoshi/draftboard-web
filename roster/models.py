@@ -1,5 +1,6 @@
 from django.db import models
 import sports.models
+
 class RosterSpot(models.Model):
     """
     Model is responsible for holding the Roster Archtypes and their
@@ -27,6 +28,9 @@ class RosterSpotPosition(models.Model):
     position    = models.ForeignKey(sports.models.Position, null=False)
     is_primary  = models.BooleanField(null = False, default=False)
 
+    def __str__(self):
+        return '%s - %s' % (self.position.name, self.position.site_sport.name)
+
     def save(self, *args, **kwargs):
         if self.is_primary:
             try:
@@ -37,6 +41,7 @@ class RosterSpotPosition(models.Model):
             except RosterSpotPosition.DoesNotExist:
                 pass
         super(RosterSpotPosition, self).save(*args, **kwargs)
+
     class Meta:
         unique_together = ('roster_spot', 'position')
 

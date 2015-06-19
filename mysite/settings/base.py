@@ -302,3 +302,52 @@ LOGGING = {
         },
     },
 }
+
+SUIT_CONFIG = {
+    'MENU_ORDER': (
+
+        # # To reorder existing apps use following definition
+        ('sites',),
+        ('auth',),
+        #('auth', ('user', 'group')),
+
+        ('account',),
+        ('cash',),
+        ('dataden',),
+        ('finance',),
+        ('fpp',),
+        ('pp',),
+        ('prize',),
+        ('promocode',),
+        ('roster',),
+        ('salary',),
+        ('scoring',),
+        #('sports.nfl',),
+        ('nfl',),
+        ('nba',),
+        ('nhl',),
+        ('mlb',),
+        ('ticket',),
+        ('transaction',),
+
+        #
+        # # If you want to link app models from different app use full name:
+        # ('sites', ('auth.user', 'auth.group')),
+
+        # To add custom item, define it as tuple or list:
+        # For parent: (Name, Link, Icon, Permission) - Last two are optional
+        # For child: (Name, Link, Permission) - Last one is optional
+        # You can also mix custom and native apps and models
+        # Link can be absolute url or url name
+        # Permission can be string or tuple/list for multiple
+        # If MENU_OPEN_FIRST_CHILD=True and children exists, you can leave parent link blank
+
+        # Example:
+        (('Prize Structure Creator', '/prize/generator/', 'icon-cog', ('auth.add_group',)),
+            (
+                ('Cash',     '/prize/generator/',    'auth.add_user'),
+                ('Ticket',   '/prize/ticket/',       'auth.add_user')
+            )
+        )
+    ) # end MENU_ORDER
+} # end SUIT_CONFIG
