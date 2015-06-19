@@ -3,8 +3,8 @@
 
 from django.shortcuts import render
 from django.views.generic import TemplateView, View
-from prize.classes import Generator, CashPrizeStructureCreator
-from prize.forms import PrizeGeneratorForm
+from prize.classes import Generator, CashPrizeStructureCreator, TicketPrizeStructureCreator
+from prize.forms import PrizeGeneratorForm, TicketPrizeCreatorForm
 from django.http import HttpResponseRedirect
 
 import json
@@ -199,8 +199,7 @@ class CreatePrizeStructureView(TemplateView):
 
         # ex url GET params: ?b=10&fp=1500&rp=10&ps=120&pp=10000
         # Generator(b, fp, rp, ps, pp)
-        #gen = Generator(10, 1500, 10, 120, 10000)
-
+        #gen = Generator(10, 1500, 10, 120, 1000
         context['values'] = [1,2,3,4,5,6]
 
         prize_list = self.prize_generator.get_prize_list()
@@ -277,3 +276,93 @@ class CreatePrizeStructureView(TemplateView):
         context['topprizes'] = json.dumps( topprizes_list )
 
         return context
+
+class TicketPrizeStructureCreatorView(View):
+
+    template_name   = 'ticket_prize_creator.html'
+    form_class      = TicketPrizeCreatorForm
+    initial         = {
+        'ticket_amount' : 2,
+        'num_prizes'    : 25,
+        'create'        : False
+    }
+
+    def get(self, request, *args, **kwargs):
+        form = self.form_class(initial=self.initial)
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            # <process form cleaned data>
+            ticket_amount   = form.cleaned_data['ticket_amount']
+            num_prizes      = form.cleaned_data['num_prizes']
+            buyin           = form.cleaned_data['buyin']
+            create          = form.cleaned_data['create']
+
+            print('ticket_amount:', ticket_amount, 'num_prizes:', num_prizes, 'create:', create)
+
+            ticket_value = float(ticket_amount.amount) # TODO - get TicketAmount and calculate
+            max_entries = (float(ticket_value) * num_prizes) / buyin
+
+            context = { 'form' : form }
+
+            context['prizes']               = num_prizes
+            context['ranks']                = list( range(1, num_prizes) )
+            context['ranges']               = [(ticket_value, list(range(1, num_prizes + 1)))]
+            context['distinctprizes']       = 1
+            context['distinctprizeplayers'] = num_prizes
+            context['min_rank_for_prize']   = num_prizes
+
+            # some values we might want
+            context['maxentries']   = max_entries
+            context['paid']         = num_prizes
+            not_paid                = max_entries - num_prizes
+            context['notpaid']      = not_paid
+
+            # generate the data for 1st pie wheel
+            payoutsdata_list = []
+            payoutsdata_list.append( PieDataObj(num_prizes,"#46BFBD","#5AD3D1",'Paid' ).get_data() )
+            payoutsdata_list.append( PieDataObj(not_paid,"#F7464A","#FF5A5E",'Not Paid' ).get_data() )
+            context['payoutsdata'] = json.dumps( payoutsdata_list )
+
+            # top 10 prizes versus the rest of the prizes
+            sum_top_10 = 0
+            sum_11_plus = 0
+            for i,p in enumerate(range( 0, num_prizes )):
+                if i < 10:
+                    sum_top_10 += ticket_value
+                else:
+                    sum_11_plus += ticket_value
+
+            piedata_list = []
+            piedata_list.append( PieDataObj(sum_top_10,"#46BFBD","#5AD3D1","Top 10").get_data() )
+            piedata_list.append( PieDataObj(sum_11_plus,"#FDB45C","#FFC870","All Other").get_data() )
+            context['piedata'] = json.dumps( piedata_list )
+
+            # top 3 prizes (if there are that many
+            topprizes_list = []
+            topprizes_list.append( PieDataObj(ticket_value,"#46BFBD","#5AD3D1", '1st').get_data() )
+            if num_prizes >= 2:
+                topprizes_list.append( PieDataObj(ticket_value,"#FDB45C","#FFC870",'2nd').get_data() )
+            if num_prizes >= 3:
+                topprizes_list.append( PieDataObj(ticket_value,"#F7464A","#FF5A5E",'3rd').get_data() )
+
+            context['topprizes'] = json.dumps( topprizes_list )
+
+            #
+            # at this point, if 'create' is True, we should
+            # actually save & commit a new prize structure
+            if create:
+                creator = TicketPrizeStructureCreator( ticket_value, num_prizes, 'ticket-gui' )
+                creator.save()
+
+            context['created']   = create # we should ACTUALLY create it though.
+
+            #return HttpResponseRedirect('/success/')
+            return render(request, self.template_name, context)
+
+        #
+        #
+        context = {'form'  : form}
+        return render(request, self.template_name, context)

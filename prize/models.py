@@ -26,9 +26,11 @@ class PrizeStructure( models.Model ):
     """
 
     created = models.DateTimeField(auto_now_add=True)
-    name    = models.CharField(max_length=128, default='', null=False, blank=True)
+    name    = models.CharField(max_length=128, default='', null=False, blank=True,
+                                    help_text='Use a name that will help you remember what the prize structure is for.')
 
-    generator = models.ForeignKey( GeneratorSettings, null=True )
+    generator = models.ForeignKey( GeneratorSettings, null=True, blank=True,
+                                    help_text='You do not need to specify one of these. But automatically created prize pools may be associated with a generator.')
 
     def __str__(self):
         return '%s %s' % (self.__class__.__name__, self.name)
@@ -44,8 +46,9 @@ class Rank( models.Model ):
     """
     prize_structure = models.ForeignKey( PrizeStructure, null=False )
     rank            = models.IntegerField(default=0, null=False)
-    amount_type     = models.ForeignKey(ContentType)
-    amount_id       = models.IntegerField()
+    amount_type     = models.ForeignKey(ContentType,
+                                         help_text='MUST be a CashAmount or TicketAmount')
+    amount_id       = models.IntegerField(help_text='the id of the amount_type field')
     amount          = GenericForeignKey( 'amount_type', 'amount_id' )
 
     @property
@@ -58,3 +61,20 @@ class Rank( models.Model ):
     def __str__(self):
         return '<%s | %s>' % (self.__class__.__name__, self.value)
 
+class CreateTicketPrizeStructure(models.Model):
+
+    created         = models.DateTimeField(auto_now_add=True)
+    ticket_value    = models.FloatField(default=0.0, null=False,
+                                verbose_name='Ticket Value',
+                                help_text='Enter the value of a valid ticket.')
+    num_prizes      = models.IntegerField(default=0, null=False,
+                                verbose_name='The Number of Total Tickets',
+                                help_text='The number of tickets this prize structure should pay out.')
+
+    # def save(self, *args, **kwargs):
+    #     if self.pk is None:
+    #         # create the ticket prize structure
+    #         tps = prize.classes.TicketPrizeStructureCreator( self.ticket_value, self.num_prizes )
+    #         tps.save()
+    #
+    #     super().save( *args, **kwargs )

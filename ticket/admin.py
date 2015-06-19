@@ -1,3 +1,11 @@
-from django.contrib import admin
+#
+# ticket/admin.py
 
-# Register your models here.
+from django.contrib import admin
+import ticket.models
+
+@admin.register(ticket.models.TicketAmount)
+class TicketAmountAdmin(admin.ModelAdmin):
+    list_display = ['amount']
+
+

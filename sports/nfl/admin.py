@@ -11,6 +11,7 @@ class TeamAdmin(admin.ModelAdmin):
 @admin.register(sports.nfl.models.Game)
 class GameAdmin(admin.ModelAdmin):
     list_display = ['srid','status','start','home','away','weather_json']
+    list_filter = ['start','home','away']
 
 @admin.register(sports.nfl.models.Player)
 class PlayerAdmin(admin.ModelAdmin):
