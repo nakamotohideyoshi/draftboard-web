@@ -17,4 +17,4 @@ class RankAdmin(admin.ModelAdmin):
 
 @admin.register(prize.models.CreateTicketPrizeStructure)
 class CreateTicketPrizeStructureAdmin(admin.ModelAdmin):
-    list1_display = ['ticket_value','num_prizes']
+    list_display = ['ticket_value','num_prizes']

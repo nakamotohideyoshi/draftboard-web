@@ -12,15 +12,17 @@ from django.views.generic import TemplateView
 #
 # )
 
-from prize.views import CreatePrizeStructureView, PrizeGeneratorView
+from prize.views import CreatePrizeStructureView, PrizeGeneratorView, TicketPrizeStructureCreatorView
 
 urlpatterns = patterns(
     '',
 
-    #
+    # deprecated
     (r'^create-prize-structure/$', CreatePrizeStructureView.as_view()),
 
-    #
+    # cash prize structure creator view
     (r'^generator/$', PrizeGeneratorView.as_view()),
 
+    # ticket prize structure creator view
+    (r'^ticket/$', TicketPrizeStructureCreatorView.as_view()),
 )

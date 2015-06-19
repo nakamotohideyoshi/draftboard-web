@@ -1,0 +1,169 @@
+
+{% block extra_head %}
+    <script src="/static/prize/js/Chart.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <style type="text/css">
+    .payouts-legend li span {
+        width: 1em;
+        height: 1em;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .payouts-legend {
+        list-style: none;
+    }
+    .pie-legend li span {
+        width: 1em;
+        height: 1em;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .pie-legend {
+        list-style: none;
+    }
+    .doughnut-legend li span {
+        width: 1em;
+        height: 1em;
+        display: inline-block;
+        margin-right: 5px;
+    }
+    .doughnut-legend {
+        list-style: none;
+    }
+    </style>
+
+    <script type="text/javascript">
+
+    $(document).ready(function(){
+        //
+        // every spot (if there are ~100+ payout spots, the numbers get squished)
+        var data = {
+            //labels: ["January", "February", "March", "April", "May", "June", "July"],
+            labels: {{ min_rank_for_prize }},
+            datasets: [
+                {
+                    titleText: 'YO ITS A TITLE',
+                    label: "My First dataset",
+                    fillColor: "rgba(220,220,220,0.5)",
+                    strokeColor: "rgba(220,220,220,0.8)",
+                    highlightFill: "rgba(220,220,220,0.75)",
+                    highlightStroke: "rgba(220,220,220,1)",
+                    data: {{ distinctprizes }}
+                }
+            ]
+        };
+        var salaries = document.getElementById('salaries').getContext('2d');
+        var salaryChart = new Chart(salaries).Line(data);
+
+        //
+        // data about the distinct payouts
+        var range_data = {
+            labels: {{ distinctprizes }},
+            datasets: [
+                {
+                    label: "My First dataset",
+                    fillColor: "rgba(220,220,220,0.5)",
+                    strokeColor: "rgba(220,220,220,0.8)",
+                    highlightFill: "rgba(220,220,220,0.75)",
+                    highlightStroke: "rgba(220,220,220,1)",
+                    data: {{ distinctprizeplayers }}
+                }
+            ]
+        };
+        var ranges = document.getElementById('ranges').getContext('2d');
+        var rangeChart = new Chart(ranges).Bar(range_data);
+
+        //
+        // this pie data works for pie and doughnut charts
+        {% verbatim vblock %}
+        var pie_options = {
+            // source: http://www.chartjs.org/docs/#doughnut-pie-chart
+            legendTemplate: "<ul class=\"<%=name.toLowerCase()%>-legend\"><% for (var i=0; i<segments.length; i++){%><li><span style=\"background-color:<%=segments[i].fillColor%>\"></span><%if(segments[i].label){%><%=segments[i].label%><%}%></li><%}%></ul>"
+
+        };
+        {% endverbatim vblock %}
+
+        //
+        // ratio of people paid vs those that dont make any money
+        var payouts = document.getElementById('payouts').getContext('2d');
+        var payoutsChart = new Chart(payouts).Pie({{ payoutsdata|safe }}, pie_options); // ,options);
+        var payouts_pie = payoutsChart.generateLegend();
+        $("#legend-payouts").html(payouts_pie);
+
+        //
+        // For a pie chart
+        var pie = document.getElementById('pie').getContext('2d');
+        var myPieChart = new Chart(pie).Pie({{ piedata|safe }}, pie_options); // ,options);
+        var legend_pie = myPieChart.generateLegend();
+        $("#legend-pie").html(legend_pie);
+
+        // And for a doughnut chart
+        var doughnut = document.getElementById('doughnut').getContext('2d');
+        var myDoughnutChart = new Chart(doughnut).Doughnut({{ topprizes|safe }}, pie_options); //,options);
+        var legend = myDoughnutChart.generateLegend();
+        $("#legend").html(legend);
+    });
+    </script>
+{% endblock %}
+
+{% block salary_block %}
+
+    <!-- form -->
+
+    <div style="float: left; width: 1500px;">
+        <h3>Ticket Prize Structure Generator</h3>
+        <form action="/prize/ticket/" method="post">
+        {% csrf_token %}
+        {{ form.as_ul }}
+        <input type="submit" value="Submit" />
+    </form>
+    </div>
+
+    <ul>
+        {% if created == True %}
+            <h2>New Prize Structure created! You can go to the standard django admin to see it.</h2>
+        {% else %}
+            <h5>You may keep submitting any values to see the prize structure they would create.</h5>
+            <h5>If you wish to create an actual Prize Structure which can be used for Contests, check the save box and submit one more time!</h5>
+        {% endif %}
+    </ul>
+    <!-- end form -->
+
+    <div style="float: left; width: 1500px;">
+        <h3>Payout Curve: <h2>Flat</h2></h3>
+        <canvas id="salaries" width="800" height="0"></canvas>
+    </div>
+    <div style="float: left; width: 1500px;">
+        <h3>Payout Spots per Prize: <h2>All entries paid the same Ticket</h2>.</h3>
+        <canvas id="ranges" width="800" height="0"></canvas>
+    </div>
+
+    <div style="float: left; width: 200px; margin-left: 75px;" >   <!-- text-align: center; -->
+        <h3>Paid vs. Not Paid</h3>
+        <canvas id="payouts" width="200" height="200"></canvas>
+        <div id="legend-payouts" style="display: inline-block;" ></div>
+    </div>
+
+    <div style="float: left; width: 200px; margin-left: 75px;" >   <!-- text-align: center; -->
+        <h3>Top 10 Prizes vs. All Others</h3>
+        <canvas id="pie" width="200" height="200" ></canvas>
+        <div id="legend-pie" style="display: inline-block;" ></div>
+    </div>
+
+    <div style="float: left; width: 200px; margin-left: 75px;" >   <!-- text-align: center; -->
+        <h3>Top 3 Prizes</h3>
+        <canvas id="doughnut" width="200" height="200" ></canvas>
+        <div id="legend" style="display: inline-block;"></div>
+    </div>
+
+    <div style="float: left; width: 1000px;">
+        <h3> Prize($), [Ranks for Prize]</h3>
+        <ul>
+
+            {% for data in ranges %}
+                <!-- https://docs.djangoproject.com/en/1.8/ref/templates/builtins/ -->
+                <li>{{ data }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
