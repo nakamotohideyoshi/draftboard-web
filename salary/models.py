@@ -9,9 +9,11 @@ class SalaryConfig(models.Model):
     """
     created                             = models.DateTimeField( auto_now_add=True)
 
-    trailing_games                      = models.PositiveIntegerField(null = False,
-                                                                      help_text="The number of games to trail.",
-                                                                      verbose_name="Trailing Games")
+    name                                = models.CharField(default="",
+                                                           null=False,
+                                                           help_text= "The plain text name of the configuration",
+                                                           verbose_name="Name",
+                                                           max_length=64)
     days_since_last_game_flag           = models.PositiveIntegerField(null = False,
                                                                       help_text="Flag the player if X days since last game played",
                                                                       verbose_name="Days Since Last Game Flag")
@@ -29,20 +31,21 @@ class SalaryConfig(models.Model):
                                                             help_text="The minimum fppg allowed for a player's stats to be used to calculate position averages.",
                                                             verbose_name="Min FPPG Allowed for Avg Calc")
 
-    name                                = models.CharField(default="",
-                                                           null=False,
-                                                           help_text= "The plain text name of the configuration",
-                                                           verbose_name="Name",
-                                                           max_length=64)
 
 
 
+    trailing_games                      = models.PositiveIntegerField(null = False,
+                                                                      help_text="The total number of games considered in the trailing weight section.",
+                                                                      verbose_name="Trailing Games")
 
 
 
 
     def __str__(self):
         return '%s: %s' % (str(self.id), self.name)
+
+    class Meta:
+        verbose_name = 'Algorithm Configuration'
 
 
 
@@ -52,7 +55,8 @@ class TrailingGameWeight(models.Model):
     """
     salary                      = models.ForeignKey( SalaryConfig, null = False, related_name='trailing_game_weights')
     through                     = models.PositiveIntegerField(null = False)
-    weight                      = models.FloatField(null = False)
+    weight                      = models.FloatField(null = False,
+                                                    help_text="Multiplier")
 
 
     class Meta:
@@ -86,9 +90,10 @@ class Pool(models.Model):
         super(Pool, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '%s: %s : %s' % (str(self.id), str(self.site_sport), str(self.created))
+        return '%s: %s : %s' % (str(self.id), str(self.site_sport), self.created.strftime('%Y-%m-%d %H:%M'))
     class Meta:
-        ordering = ('-active', 'site_sport')
+        ordering = ('-active', 'site_sport', '-created')
+        verbose_name = 'Player Pool'
 
 class Salary(models.Model):
     """
@@ -112,3 +117,4 @@ class Salary(models.Model):
 
     class Meta:
         ordering = ('primary_roster', '-amount')
+        verbose_name = 'Player'

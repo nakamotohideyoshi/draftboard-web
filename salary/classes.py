@@ -343,11 +343,23 @@ class SalaryGenerator(object):
                 i = 0
                 for tgw in trailing_game_weights:
                     for j in range(i, tgw.through-1):
-                        if(j < number_of_games):
-                            player.fantasy_weighted_average += \
-                                player.player_stats_list[j].fantasy_points * (float)(tgw.weight)
+                        if i < self.salary_conf.trailing_games:
+                            if j < number_of_games:
+                                player.fantasy_weighted_average += \
+                                    player.player_stats_list[j].fantasy_points * (float)(tgw.weight)
 
                     i = tgw.through -1
+
+
+                #
+                # If the configuration does not account trailing games use a 1x multiplier
+                # on the remainder
+                while i < self.salary_conf.trailing_games:
+                    if i < number_of_games:
+                        player.fantasy_weighted_average += \
+                            player.player_stats_list[i].fantasy_points * (float)(tgw.weight)
+
+
                 #
                 # takes the sum and divides by the total allowed games
                 player.fantasy_weighted_average /= (float)(self.salary_conf.trailing_games)
