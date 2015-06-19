@@ -12,7 +12,9 @@ from django.views.generic import TemplateView
 #
 # )
 
-from prize.views import CreatePrizeStructureView, PrizeGeneratorView, TicketPrizeStructureCreatorView
+from prize.views import CreatePrizeStructureView, PrizeGeneratorView, \
+                        TicketPrizeStructureCreatorView, \
+                        FlatCashPrizeStructureCreatorView
 
 urlpatterns = patterns(
     '',
@@ -25,4 +27,8 @@ urlpatterns = patterns(
 
     # ticket prize structure creator view
     (r'^ticket/$', TicketPrizeStructureCreatorView.as_view()),
+
+    # flat cash prize structure (for 50-50's and triple ups)
+    (r'^flat/$', FlatCashPrizeStructureCreatorView.as_view()),
+
 )

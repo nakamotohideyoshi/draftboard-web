@@ -346,7 +346,8 @@ SUIT_CONFIG = {
         (('Prize Structure Creator', '/prize/generator/', 'icon-cog', ('auth.add_group',)),
             (
                 ('Cash',     '/prize/generator/',    'auth.add_user'),
-                ('Ticket',   '/prize/ticket/',       'auth.add_user')
+                ('Ticket',   '/prize/ticket/',       'auth.add_user'),
+                ('Flat',     '/prize/flat/',         'auth.add_user'),
             )
         )
     ) # end MENU_ORDER

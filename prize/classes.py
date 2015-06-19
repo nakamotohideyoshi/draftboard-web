@@ -413,3 +413,5 @@ class TicketPrizeStructureCreator(AbstractPrizeStructureCreator):
         :return:
         """
         return self.ticket_amount
+
+class FlatCashPrizeStructureCreator( AbstractPrizeStructureCreator )
