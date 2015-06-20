@@ -414,4 +414,11 @@ class TicketPrizeStructureCreator(AbstractPrizeStructureCreator):
         """
         return self.ticket_amount
 
-class FlatCashPrizeStructureCreator( AbstractPrizeStructureCreator )
+class FlatCashPrizeStructureCreator( AbstractPrizeStructureCreator ):
+    """
+    Used to create a cash prize strucutre with flat payouts.
+    Flat payouts are like 50/50s or Triple ups
+    """
+
+    def __init__(self):
+        pass # TODO finish this
