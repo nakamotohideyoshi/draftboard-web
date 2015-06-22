@@ -2,6 +2,7 @@
 # sports/nfl/admin.py
 
 from django.contrib import admin
+import sports.admin
 import sports.nfl.models
 
 @admin.register(sports.nfl.models.Team)
@@ -14,8 +15,8 @@ class GameAdmin(admin.ModelAdmin):
     list_filter = ['start','home','away']
 
 @admin.register(sports.nfl.models.Player)
-class PlayerAdmin(admin.ModelAdmin):
-    list_display = ['srid','position','first_name','last_name']
+class PlayerAdmin(sports.admin.PlayerAdmin):
+    pass
 
 @admin.register(sports.nfl.models.PlayerStats)
 class PlayerStatsAdmin(admin.ModelAdmin):

@@ -25,15 +25,7 @@ class SalaryInline(admin.TabularInline):
 
     def has_add_permission(self, request):
         return False
-    # TODO add this here if it will let me so it can properly filter player type
-    # def get_inline_instances(self, request, obj=None):
-    #     if obj is None:
-    #         return None
-    #     else:
-    #         ssm = SiteSportManager()
-    #         player_stats_class = ssm.get_player_class(obj.site_sport)
-    #         PlayerInline.model = player_stats_class
-    #         return [PlayerInline]
+
 
 
 @admin.register(SalaryConfig)
@@ -74,7 +66,6 @@ class PoolAdmin(admin.ModelAdmin):
 
 @admin.register(Salary)
 class SalaryAdmin(GenericSearchMixin, admin.ModelAdmin):
-    # TODO going to need to disable editing of SalaryAdmins if any games point to the Pool that the Salary points to.
     list_display = ['player','amount','flagged','pool', 'primary_roster', 'fppg']
     list_editable = ['amount', 'flagged']
     model = Salary
