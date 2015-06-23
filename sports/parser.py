@@ -9,6 +9,13 @@ import sports.mlb.parser
 import sports.nhl.parser
 import sports.nfl.parser
 
+import scoring.classes
+
+import sports.nba.models
+import sports.mlb.models
+import sports.nhl.models
+import sports.nfl.models
+
 class DataDenParser(object):
     """
     returns a parser for a sport
@@ -172,6 +179,33 @@ class DataDenParser(object):
                 # create a oplog wrapper with the mongo object and signal it
                 # so the parser takes care of the rest!
                 self.parse_obj( db, coll, mongo_obj, async=async )
+
+    def setup_score_players_for_sport(self, sport):
+        if sport == 'nfl':
+            self.setup_score_players(score_system_class=scoring.classes.NflSalaryScoreSystem,
+                                            player_stats_model=sports.nfl.models.PlayerStats)
+        elif sport == 'nhl':
+            self.setup_score_players(score_system_class=scoring.classes.NhlSalaryScoreSystem,
+                                            player_stats_model=sports.nhl.models.PlayerStats)
+        elif sport == 'nba':
+            self.setup_score_players(score_system_class=scoring.classes.NbaSalaryScoreSystem,
+                                            player_stats_model=sports.nba.models.PlayerStats)
+        elif sport == 'mlb':
+            self.setup_score_players(score_system_class=scoring.classes.MlbSalaryScoreSystem,
+                                            player_stats_model=sports.mlb.models.PlayerStats)
+
+    def setup_score_players(self, score_system_class, player_stats_model):
+        #from scoring.classes import NflSalaryScoreSystem
+        #from sports.nfl.models import PlayerStats
+        sport_scorer = score_system_class()
+        stats = player_stats_model.objects.all()
+        size = len(stats)
+        for i,s in enumerate(stats):
+            #print( '(%s of %s)', i+1, size)
+            s.fantasy_points = sport_scorer.score_player( s, verbose=True )
+            print('')
+            print( '(%s of %s)' % (str(i+1), size), 'total', s.fantasy_points, '|', sport_scorer.get_str_stats() )
+            s.save()
 
     def parse_obj(self, db, coll, mongo_obj, async=False):
         """
