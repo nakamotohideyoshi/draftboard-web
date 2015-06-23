@@ -1,6 +1,14 @@
 import mysite.exceptions
-from contest.models import Contest
+from contest.models import Contest, Entry
+from prize.models import Rank
 from django.db.models import Q
+from django.contrib.contenttypes.models import  ContentType
+from transaction.models import  AbstractAmount
+import mysite.exceptions
+from transaction.classes import  CanDeposit
+from .models import Payout
+from cash.classes import CashTransaction
+import decimal
 class PayoutManager(object):
     """
     Responsible for performing the payouts for all active contests for both
@@ -69,7 +77,101 @@ class PayoutManager(object):
         """
 
         #
-        # get the prize pool
-        pass
+        # get the prize pool ranks for the contest
+        ranks = Rank.objects.filter(prize_structure= contest.prize_structure)
 
+        #
+        # get the entries for the contest
+        entries = Entry.objects.filter(contest=contest)
+        entries = entries.order_by('-lineup__fantasy_points')
+
+        #
+        # Validate the ranks are setup properly
+        for rank in ranks:
+            #
+            # verify the abstract amount is correct type
+            if not isinstance(rank.amount, AbstractAmount):
+                raise mysite.exceptions.IncorrectVariableTypeException(
+                    type(self).__name,
+                    'rank')
+
+            #
+            # Get the transaction class and verify that it can deposit
+            transaction_class = rank.amount.get_transaction_class()
+            if not issubclass(transaction_class, CanDeposit):
+                raise mysite.exceptions.IncorrectVariableTypeException(
+                    type(self).__name,
+                    'transaction_class')
+
+
+        #
+        # perform the payouts by going through each entry and finding
+        # ties and ranks for the ties to chop.
+        i = 0
+        while i < len(ranks):
+            entries_to_pay = list()
+            ranks_to_pay = list()
+            entries_to_pay.append(entries[i])
+            ranks_to_pay.append(ranks[i])
+            score = entries[i].lineup.fantasy_points
+
+            while score == entries[i+1].lineup.fantasy_points:
+                i += 1
+                entries_to_pay.append(entries[i])
+                if(len(ranks) > i):
+                    ranks_to_pay.append(i)
+
+            self.__payout_spot(ranks_to_pay, entries_to_pay, contest)
+            i += 1
+
+    def __payout_spot(self, ranks_to_pay, entries_to_pay, contest):
+
+
+        #
+        # if there are the same number of ranks and entries to pay
+        # and the ranks to pay are all equal, we can divide evenly
+        if (self.array_objects_are_equal(ranks_to_pay) and len(ranks_to_pay) == len(entries_to_pay)) or len(entries_to_pay) == 1:
+            place = ranks_to_pay[0].rank
+            for i in range(0, len(ranks_to_pay)):
+                rank = ranks_to_pay[i]
+                entry = entries_to_pay[i]
+                payout = Payout()
+                payout.rank = place
+                payout.contest = contest
+                payout.entry = entry
+                transaction_class = rank.amount.get_transaction_class()
+                tm = transaction_class(entry.lineup.user)
+                tm.deposit(rank.amount.get_cash_value())
+                payout.transaction = tm.transaction
+                payout.save()
+        #
+        # We need to convert the rank amount to a cash value to payout
+        else:
+            place = ranks_to_pay[0].rank
+            cash_to_chop = decimal.Decimal(0.0)
+            for rank in ranks_to_pay:
+                cash_to_chop += rank.amount.get_cash_value()
+            cash_to_chop /= len(entries_to_pay)
+            for entry in entries_to_pay:
+                payout = Payout()
+                payout.rank = place
+                payout.contest = contest
+                payout.entry = entry
+                tm = CashTransaction(entry.lineup.user)
+                tm.deposit(cash_to_chop)
+                payout.transaction = tm.transaction
+                payout.save()
+
+
+
+    def array_objects_are_equal(self, arr):
+        prev = None
+        for obj in arr:
+            if prev is None:
+                prev = obj
+
+            elif prev != obj:
+                return False
+
+        return True
 

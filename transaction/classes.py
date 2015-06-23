@@ -36,6 +36,7 @@ class AbstractTransaction (AbstractSiteUserClass):
         self.transaction_detail = None
         self.balance = None
         self.accountName = "accountNotNamed"
+        self.transaction = None
 
     def validate_local_variables(self):
         if(self.transaction_detail_class == None):
@@ -76,11 +77,11 @@ class AbstractTransaction (AbstractSiteUserClass):
             raise IncorrectVariableTypeException(type(self).__name__,
                                           "category")
 
-        transaction = Transaction(user=self.user, category=category)
-        transaction.save()
+        self.transaction = Transaction(user=self.user, category=category)
+        self.transaction.save()
         self.transaction_detail = self.transaction_detail_class()
         self.transaction_detail.amount = amount
-        self.transaction_detail.transaction = transaction
+        self.transaction_detail.transaction = self.transaction
         self.transaction_detail.user = self.user
         self.transaction_detail.save()
 
@@ -171,3 +172,7 @@ class AbstractTransaction (AbstractSiteUserClass):
         if(amount == 0.00):
             raise AmountZeroException(type(self).__name__, amount)
 
+
+
+class CanDeposit(object):
+    pass

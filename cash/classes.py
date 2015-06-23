@@ -1,6 +1,6 @@
 #from cash.models import CashBalance, CashTransactionDetail
 import cash.models
-from transaction.classes import AbstractTransaction
+from transaction.classes import AbstractTransaction, CanDeposit
 from transaction.models import TransactionType
 from transaction.constants import TransactionTypeConstants
 from cash.exceptions import OverdraftException
@@ -11,7 +11,7 @@ from django.conf import settings
 from django.db import models
 import datetime
 
-class CashTransaction(AbstractTransaction):
+class CashTransaction(CanDeposit, AbstractTransaction):
     """
     Implements the :class:`transaction.classes.AbstractTransaction` class.
     This class handles all dealings with accounting for managing the cash
@@ -149,14 +149,6 @@ class CashTransaction(AbstractTransaction):
         ).aggregate(models.Sum('amount'))
 
         return abs(total_withdrawal['amount__sum']) - total_deposit['amount__sum']
-
-
-
-
-
-
-
-
 
 
 

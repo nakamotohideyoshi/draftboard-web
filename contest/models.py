@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class Contest(models.Model):
     SCHEDULED = 'SCH'
     INPROGRESS = 'INP'
@@ -18,7 +17,7 @@ class Contest(models.Model):
                             help_text= "The plain text name of the Contest",
                                                            verbose_name="Name",
                                                            max_length=64)
-    prize = models.ForeignKey('prize.models.PrizeStructure',
+    prize_structure = models.ForeignKey('prize.PrizeStructure',
                               null=False)
     status = models.CharField(max_length=3,
                               choices=STATUS,
@@ -42,4 +41,4 @@ class Entry(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     contest = models.ForeignKey(Contest, null=False)
-    lineup = models.ForeignKey("lineup.models.Lineup")
+    lineup = models.ForeignKey("lineup.Lineup")

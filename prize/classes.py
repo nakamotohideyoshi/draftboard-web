@@ -208,6 +208,7 @@ class AbstractPrizeStructureCreator(object):
     DEFAULT_NAME = 'new prize structure'
 
     def __init__(self, amount_model, name='default'):
+        self.prize_structure = None
         self.prize_structure_model  = PrizeStructure
         self.rank_model             = Rank
         self.ranks                  = None  # list of the rank instances once generated
