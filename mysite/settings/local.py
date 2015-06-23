@@ -24,6 +24,9 @@ except Exception:
 # Or:
 #       Ask for a db dump from another dev to then import into the db
 
+#
+# This will dump the raw postgres db:
+# $> sudo -u postgres pg_dump -Fc --no-acl --no-owner dfs_master > dfs_exported.dump
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
