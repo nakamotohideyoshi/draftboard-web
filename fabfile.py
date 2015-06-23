@@ -33,6 +33,16 @@ def deploy():
     ))
 
 
+def exportdb():
+    """fab [environment] exportdb (exports the environment database to `/tmp/dfs_exported.dump`)"""
+
+    operations.require('environment')
+
+    if env.environment == 'local':
+        _puts('Exporting local database to `/tmp/dfs_exported.dump`')
+        operations.local('sudo -u postgres pg_dump -Fc --no-acl --no-owner %s > /tmp/dfs_exported.dump' % (env.db_name))
+
+
 def flush_cache():
     """fab [environment] flush_cache (wipes redis)"""
 
