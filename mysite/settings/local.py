@@ -12,8 +12,8 @@ try:
     if check_output(create_db_cmd.split()).decode('utf-8').strip() == '':
         print( 'mysite/settings/local.py >>> created', db_name )
 except Exception:
-    print( 'could not create', db_name, ' - it may already exist' )
-
+    #print( 'could not create', db_name, ' - it may already exist' )
+    pass
 #
 # Run the Postgres OSX app by Heroku.
 
