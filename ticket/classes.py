@@ -6,8 +6,8 @@ import ticket.models # transaction.models.
 from mysite.classes import  AbstractSiteUserClass
 from mysite.exceptions import AmountZeroException, AmountNegativeException, TooManyArgumentsException, TooLittleArgumentsException, IncorrectVariableTypeException
 from .exceptions import  InvalidTicketAmountException, TicketAlreadyUsedException, UserDoesNotHaveTicketException
-
-class TicketManager(AbstractSiteUserClass):
+from transaction.classes import CanDeposit
+class TicketManager(CanDeposit, AbstractSiteUserClass):
     """
     Manages the ticket accounts for a given user. Each ticket
     is created via the deposit method and then used via the

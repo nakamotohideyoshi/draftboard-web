@@ -20,12 +20,16 @@ class TicketAmount(AbstractAmount):
     created  = models.DateTimeField(auto_now_add=True, null=True)
     amount   = models.DecimalField(decimal_places=2, max_digits=10, unique=True)
 
+
+
     def get_transaction_class(self):
         """
         return a class with which we can create an instance and make a deposit transaction
         """
         return ticket.classes.TicketManager
 
+    def get_cash_value(self):
+        return self.amount
     def __str__(self):
         return '%s | %s' % (self.__class__.__name__, self.amount)
 

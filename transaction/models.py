@@ -17,6 +17,8 @@ class AbstractAmount(models.Model):
 
     def get_transaction_class(self):
         raise Exception('inheriting class must implement this method')
+    def get_cash_value(self):
+        raise Exception('inheriting class must implement this method')
 
     class Meta:
         abstract = True

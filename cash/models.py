@@ -19,6 +19,9 @@ class CashAmount( AbstractAmount ):
         """
         return cash.classes.CashTransaction
 
+    def get_cash_value(self):
+        return self.amount
+
     def __str__(self):
         return '%s | %s' % (self.__class__.__name__, self.amount)
 
