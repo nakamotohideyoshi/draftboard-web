@@ -3,11 +3,14 @@ from django.contrib import admin
 # Register your models here.
 from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
 from .classes import  SalaryGenerator
-from sports.classes import SiteSportManager
-from django.contrib.contenttypes.admin import GenericTabularInline
+#from sports.classes import SiteSportManager
+import sports.classes
+#from django.contrib.contenttypes.admin import GenericTabularInline
 from sports.models import Player
-from roster.models import RosterSpotPosition, RosterSpot
-from mysite.mixins.generic_search import GenericSearchMixin
+#from roster.models import RosterSpotPosition, RosterSpot
+#from mysite.mixins.generic_search import GenericSearchMixin
+import mysite.mixins.generic_search
+
 class TrailingGameWeightInline(admin.TabularInline):
     model = TrailingGameWeight
 
@@ -48,7 +51,7 @@ class PoolAdmin(admin.ModelAdmin):
             self.message_user(request, 'You must select only one pool to generate salaries for at a time.')
         else:
             for pool in queryset:
-                ssm = SiteSportManager()
+                ssm = sports.classes.SiteSportManager()
                 player_stats_class = ssm.get_player_stats_class(pool.site_sport)
                 sg = SalaryGenerator(player_stats_class, pool)
                 sg.generate_salaries()
@@ -65,7 +68,7 @@ class PoolAdmin(admin.ModelAdmin):
 
 
 @admin.register(Salary)
-class SalaryAdmin(GenericSearchMixin, admin.ModelAdmin):
+class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
     list_display = ['player','amount','flagged','pool', 'primary_roster', 'fppg']
     list_editable = ['amount', 'flagged']
     model = Salary
@@ -80,7 +83,7 @@ class SalaryAdmin(GenericSearchMixin, admin.ModelAdmin):
         'player': {
             'content_type':'player_type',
             'object_id': 'player_id',
-            'ctypes': SiteSportManager().get_player_classes()
+            'ctypes': sports.classes.SiteSportManager().get_player_classes()
         }
     }
 

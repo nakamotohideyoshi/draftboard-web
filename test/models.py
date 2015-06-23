@@ -19,13 +19,16 @@ class BalanceChild(Balance):
 
 
 class GameChild(Game):
-    pass
+    class Meta:
+        abstract = False
 
 class PlayerChild(Player):
-    pass
+    class Meta:
+        abstract = False
 
 class PlayerStatsChild(PlayerStats):
-    pass
+    class Meta:
+        abstract = False
 
 # class Parent(models.Model):
 #     """

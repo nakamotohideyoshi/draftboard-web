@@ -124,7 +124,31 @@ class SiteSportManager(object):
         matching_arr = []
         for content_type in content_types:
             content_class = content_type.model_class()
+            if content_class is None:
+                continue
+            #print( content_class )
             if issubclass(content_class, Player):
                 matching_arr.append(content_class)
 
         return matching_arr
+
+class PlayerNamesCsv(object):
+
+    SPORTS = [
+        'nfl',
+        'nba',
+        'nhl',
+        'mlb'
+    ]
+
+    def __init__(self, filename='playernames.csv', sport='nfl'):
+        self.filename   = filename
+        if sport not in self.SPORTS:
+            raise Exception
+
+        self.sport      = sport
+
+    def generate(self):
+        """
+        generate the csv file with the params this object was constructed with
+        """

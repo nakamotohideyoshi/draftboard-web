@@ -190,8 +190,8 @@ INSTALLED_APPS = (
     'raven.contrib.django.raven_compat',
 
     'suit',
-
-    # django defaults
+    #
+    # # django defaults
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -246,7 +246,7 @@ INSTALLED_APPS = (
     'scoring',
     'salary',
     'roster',
-    'test',
+    'test'
 )
 
 MIDDLEWARE_CLASSES = (
