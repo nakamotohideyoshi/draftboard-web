@@ -37,16 +37,19 @@ DATABASES = {
 
 #
 # (Dev) Redis Settings
-REDIS_HOST      = '127.0.0.1'
-REDIS_PORT      = 6379
-REDIS_DB        = 1
-REDIS_LOCATION  = 'redis://%s:%s/%s' % (REDIS_HOST, REDIS_PORT, REDIS_DB)
+REDIS_FORMAT_URL        = 'redis://%s:%s/%s'
+REDIS_HOST              = '127.0.0.1'
+REDIS_PORT              = 6379
+REDIS_CELERY_DB         = 0
+REDIS_CELERY_LOCATION   = REDIS_FORMAT_URL % (REDIS_HOST, REDIS_PORT, REDIS_CELERY_DB)
+REDIS_CACHE_DB          = 1
+REDIS_CACHE_LOCATION    = REDIS_FORMAT_URL % (REDIS_HOST, REDIS_PORT, REDIS_CACHE_DB)
 
 # Run the command `redis-server` in another window to start up caching.
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_LOCATION,
+        "LOCATION": REDIS_CACHE_LOCATION,
         "OPTIONS": {
             "CLIENT_CLASS"  : "django_redis.client.DefaultClient",
             'MAX_ENTRIES'   : 10000,
@@ -57,7 +60,7 @@ CACHES = {
     # separate one to invalidate all of cachalot if need be
     "cachalot": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": REDIS_LOCATION,
+        "LOCATION": REDIS_CACHE_LOCATION,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
