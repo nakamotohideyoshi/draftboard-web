@@ -41,8 +41,10 @@ app.autodiscover_tasks(settings.INSTALLED_APPS)
 app.conf.update(
     #CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
     #CELERY_RESULT_BACKEND='djcelery.backends.cache:CacheBackend',
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379/0',
-    BROKER_URL = 'redis://localhost:6379/0',
+    # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0',
+    # BROKER_URL = 'redis://localhost:6379/0',
+    CELERY_RESULT_BACKEND   = 'redis://localhost:6379/0',
+    BROKER_URL              = 'redis://localhost:6379/0',
 
     #: Only add pickle to this list if your broker is secured
     #: from unwanted access (see userguide/security.html)
