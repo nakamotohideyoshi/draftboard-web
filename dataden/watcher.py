@@ -9,7 +9,7 @@
 # bring a vagrant VM to its knees.
 ASYNC_UPDATES = False
 
-from mysite.settings import local
+from django.conf import settings
 
 from dataden.util.hsh import Hashable
 from dataden.util.simpletimer import SimpleTimer
@@ -29,7 +29,8 @@ class ParentApis(object):
     def __init__(self, mongo_client=None):
         self.client = mongo_client
         if not self.client:
-            self.client = local.get_mongo_client() # cheese
+            #self.client = local.get_mongo_client() # cheese
+            self.client = MongoClient(settings.MONGO_HOST, settings.MONGO_PORT)
 
     def all(self):
         pass # TODO
@@ -182,7 +183,7 @@ class Trigger(object):
         :return:
         """
         self.init         = init            # default: False, if True, parse entire log
-        self.client       = MongoClient()   # defaults to localhost:27017
+        self.client       = MongoClient(settings.MONGO_HOST, settings.MONGO_PORT)
         self.last_ts      = None
 
         #
