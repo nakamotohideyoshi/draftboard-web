@@ -3,7 +3,7 @@
 #
 # docs: https://docs.djangoproject.com/en/1.8/topics/signals/
 
-from mysite.celery import stat_update
+from mysite.celery_app import stat_update
 
 from django.dispatch import Signal
 
