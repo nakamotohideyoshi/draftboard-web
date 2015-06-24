@@ -276,17 +276,17 @@ class ProviderParser(object):
 
 #
 #
-def pbp():
-    from pymongo import MongoClient
-    c = MongoClient()
-    db = c.get_database('nhl')
-    coll = db.get_collection('period')
-    pbp = coll.find_one({'parent_api__id':'pbp'})
-    print('srid game', pbp.get('id'))
-    innings = pbp.get('innings', {})
-    overall_idx = 0
-    for inning_json in innings:
-        break
+# def pbp():
+#     from pymongo import MongoClient
+#     c = MongoClient()
+#     db = c.get_database('nhl')
+#     coll = db.get_collection('period')
+#     pbp = coll.find_one({'parent_api__id':'pbp'})
+#     print('srid game', pbp.get('id'))
+#     innings = pbp.get('innings', {})
+#     overall_idx = 0
+#     for inning_json in innings:
+#         break
 #
 # This code has been moved into the sports.mlb.parser.GamePbp!
 # test function to print mlb pbp
