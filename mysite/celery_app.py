@@ -15,8 +15,8 @@ from datetime import timedelta
 import time
 
 # set the default Django settings module for the 'celery' program.
-#os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.local')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.production')
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.local')
 
 from django.conf import settings
 
