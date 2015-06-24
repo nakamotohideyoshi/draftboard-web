@@ -2,6 +2,7 @@ from .models import SiteSport, PlayerStats, Player
 from django.contrib.contenttypes.models import ContentType
 from .exceptions import SportNameException
 from mysite.exceptions import IncorrectVariableTypeException
+import dataden.classes
 
 class SiteSportManager(object):
 
@@ -143,12 +144,19 @@ class PlayerNamesCsv(object):
 
     def __init__(self, filename='playernames.csv', sport='nfl'):
         self.filename   = filename
+
         if sport not in self.SPORTS:
             raise Exception
-
         self.sport      = sport
+
+        self.f          = None                      # dont create the file yet
+        self.dataden    = dataden.classes.DataDen() # access dataden/mongo player data
+
+    def get_players(self):
+        return self.dataden
 
     def generate(self):
         """
         generate the csv file with the params this object was constructed with
         """
+        self.f = open(self.filename,'w') # open the file with the filename and overwrite it
