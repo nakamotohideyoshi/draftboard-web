@@ -7,7 +7,7 @@ import json
 import time
 
 # import mysite.exceptions
-from mysite.celery import heartbeat, payout
+from mysite.celery_app import heartbeat, payout
 
 import cash.withdraw.constants
 import cash.withdraw.models
