@@ -1,0 +1,9 @@
+#
+# this comment, along with the below lines
+# should be written into /etc/profile
+#
+# on linux, you can do:
+#
+# 	$> cat <thisfile> | sudo tee -a /etc/profile
+DJANGO_SETTINGS_MODULE="mysite.settings.local"
+export DJANGO_SETTINGS_MODULE 

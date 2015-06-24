@@ -14,8 +14,6 @@ try:
 except Exception:
     #print( 'could not create', db_name, ' - it may already exist' )
     pass
-#
-# Run the Postgres OSX app by Heroku.
 
 #
 # Now you can:
@@ -37,12 +35,18 @@ DATABASES = {
     }
 }
 
-# Redis settings
+#
+# (Dev) Redis Settings
+REDIS_HOST      = '127.0.0.1'
+REDIS_PORT      = 6379
+REDIS_DB        = 1
+REDIS_LOCATION  = 'redis://%s:%s/%s' % (REDIS_HOST, REDIS_PORT, REDIS_DB)
+
 # Run the command `redis-server` in another window to start up caching.
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": REDIS_LOCATION,
         "OPTIONS": {
             "CLIENT_CLASS"  : "django_redis.client.DefaultClient",
             'MAX_ENTRIES'   : 10000,
@@ -53,7 +57,7 @@ CACHES = {
     # separate one to invalidate all of cachalot if need be
     "cachalot": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": REDIS_LOCATION,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -63,8 +67,7 @@ CACHES = {
 # Asset locations
 STATIC_URL = '/static/'
 
-#
-# we will need a better way of connecting to mongo for production, but for dev:
-from pymongo import MongoClient
-def get_mongo_client():
-    return MongoClient() # defaults to localhost:27017  or whatever the standard port is
+# (Dev) Mongo Connection settings
+MONGO_PASSWORD  = ''
+MONGO_HOST      = 'localhost'
+MONGO_PORT      = 27017         # default port may be the actual port

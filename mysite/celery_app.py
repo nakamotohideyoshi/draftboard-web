@@ -14,9 +14,12 @@ from celery import Celery
 from datetime import timedelta
 import time
 
-# set the default Django settings module for the 'celery' program.
+#
+# setdefault ONLY sets the default value if the key (ie: DJANGO_SETTINGS_MODULE)
+# does not already exist. for dev machines, you should set it to
+# mysite.settings.local in /etc/profile on linux (see comments in
+# manage.py for more explanation)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.production')
-# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.local')
 
 from django.conf import settings
 
