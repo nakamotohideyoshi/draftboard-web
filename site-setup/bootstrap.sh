@@ -119,6 +119,7 @@ service nginx restart
 
 #
 # Add an environment variable to tell django to always use the local settings by default
+#cat site-setup/etc_profile_add_django_settings_module.txt | sudo tee -a /etc/profile
 echo "export DJANGO_SETTINGS_MODULE=mysite.settings.local" >> /home/vagrant/.bashrc
 
 #

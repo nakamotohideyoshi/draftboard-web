@@ -58,3 +58,8 @@ TEMPLATE_LOADERS = (
 INSTALLED_APPS += (
     'gunicorn',
 )
+
+# Mongo Connection settings
+MONGO_PASSWORD  = ''
+MONGO_HOST      = 'TODO' # TODO
+MONGO_PORT      = 27017 # default port may be the actual port
