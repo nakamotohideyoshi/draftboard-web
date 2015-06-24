@@ -229,24 +229,22 @@ INSTALLED_APPS = (
     'fpp',
     'promocode',
     'promocode.bonuscash',
-
     'keyprefix', # cache namespace
     'dataden',   # DataDen/MongoDB triggers
-
     'sports',
     'sports.mlb',
     'sports.nba',
     'sports.nhl',
     'sports.nfl',
-
-    'contest',
     'lineup',
-    'payout',
     'prize',
+    'contest',
+    'payout',
     'scoring',
-    'salary',
     'roster',
-    'test'
+    'test',
+
+    'salary',
 )
 
 MIDDLEWARE_CLASSES = (
