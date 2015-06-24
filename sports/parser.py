@@ -196,7 +196,7 @@ class DataDenParser(object):
 
     def setup_score_players(self, score_system_class, player_stats_model):
         #from scoring.classes import NflSalaryScoreSystem
-        #from sports.nfl.models import PlayerStats 
+        #from sports.nfl.models import PlayerStats
         sport_scorer = score_system_class()
         stats = player_stats_model.objects.all()
         size = len(stats)
