@@ -43,8 +43,8 @@ app.conf.update(
     #CELERY_RESULT_BACKEND='djcelery.backends.cache:CacheBackend',
     # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0',
     # BROKER_URL = 'redis://localhost:6379/0',
-    CELERY_RESULT_BACKEND   = 'redis://localhost:6379/0',
-    BROKER_URL              = 'redis://localhost:6379/0',
+    CELERY_RESULT_BACKEND = settings.CACHES['default']['LOCATION'],
+    BROKER_URL = settings.CACHES['default']['LOCATION'],
 
     #: Only add pickle to this list if your broker is secured
     #: from unwanted access (see userguide/security.html)
