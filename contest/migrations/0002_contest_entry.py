@@ -7,8 +7,8 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('prize', '0010_auto_20150622_2126'),
         ('lineup', '0002_lineup'),
+        ('prize', '0002_createticketprizestructure_generatorsettings_prizestructure_rank'),
         ('contest', '0001_initial'),
     ]
 
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Contest',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('name', models.CharField(default='', verbose_name='Name', max_length=64, help_text='The plain text name of the Contest')),
                 ('status', models.CharField(default='SCH', choices=[('SCH', 'Scheduled'), ('INP', 'In Progress'), ('CMP', 'Completed'), ('CLS', 'Closed')], max_length=3)),
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Entry',
             fields=[
-                ('id', models.AutoField(primary_key=True, verbose_name='ID', auto_created=True, serialize=False)),
+                ('id', models.AutoField(primary_key=True, auto_created=True, verbose_name='ID', serialize=False)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('updated', models.DateTimeField(auto_now=True)),
                 ('contest', models.ForeignKey(to='contest.Contest')),

@@ -1,15 +1,11 @@
 from django.contrib import admin
 
-# Register your models here.
 from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
 from .classes import  SalaryGenerator
-#from sports.classes import SiteSportManager
 import sports.classes
-#from django.contrib.contenttypes.admin import GenericTabularInline
 from sports.models import Player
-#from roster.models import RosterSpotPosition, RosterSpot
-#from mysite.mixins.generic_search import GenericSearchMixin
 import mysite.mixins.generic_search
+import django.db.utils
 
 class TrailingGameWeightInline(admin.TabularInline):
     model = TrailingGameWeight
@@ -79,12 +75,14 @@ class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAd
         return False
 
 
-    related_search_mapping = {
-        'player': {
-            'content_type':'player_type',
-            'object_id': 'player_id',
-            'ctypes': sports.classes.SiteSportManager().get_player_classes()
+    try:
+        related_search_mapping = {
+            'player': {
+                'content_type':'player_type',
+                'object_id': 'player_id',
+                'ctypes': sports.classes.SiteSportManager().get_player_classes()
+            }
         }
-    }
-
-
+    except django.db.utils.ProgrammingError:
+        # relation "django_content_type" does not exist
+        print('relation "django_content_type" does not exist - this should only happen on the first migrate!')
