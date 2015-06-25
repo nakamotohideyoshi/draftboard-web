@@ -22,13 +22,22 @@ class GameChild(Game):
     class Meta:
         abstract = False
 
+    def __str__(self):
+        return super().__str__()
+
 class PlayerChild(Player):
     class Meta:
         abstract = False
 
+    def __str__(self):
+        return super().__str__()
+
 class PlayerStatsChild(PlayerStats):
     class Meta:
         abstract = False
+
+    def __str__(self):
+        return super().__str__()
 
 # class Parent(models.Model):
 #     """

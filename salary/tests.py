@@ -9,6 +9,17 @@ from .models import SalaryConfig, TrailingGameWeight, Pool
 from sports.models import SiteSport, Position
 from roster.models import RosterSpot, RosterSpotPosition
 
+#
+# quick caleb test of dummy data class
+from salary.dummy import Dummy
+class SomeTest(AbstractTest):
+    def setUp(self):
+        #self.roster_spot_positions  = Dummy.create_roster()
+        #self.player_stats_list      = Dummy.create_player_stats_list()
+        Dummy.generate_salaries() # defaults to sport: Dummy.DEFAULT_SPORT
+
+    def test_it(self):
+        pass
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
@@ -223,7 +234,10 @@ class SalaryGeneratorTest(AbstractTest):
 
     def test_generate_salaries(self):
         create_simple_player_stats_list()
-        salary_gen =SalaryGenerator(PlayerStatsChild, self.pool)
+        player_stats_classes = [
+            PlayerStatsChild
+        ]
+        salary_gen =SalaryGenerator(player_stats_classes, self.pool)
         salary_gen.generate_salaries()
 
 
@@ -231,7 +245,10 @@ class SalaryGeneratorTest(AbstractTest):
 
     def test_helper_get_player_stats(self):
         create_simple_player_stats_list()
-        salary_gen =SalaryGenerator(PlayerStatsChild, self.pool)
+        player_stats_classes = [
+            PlayerStatsChild
+        ]
+        salary_gen = SalaryGenerator(player_stats_classes, self.pool)
         players = salary_gen.helper_get_player_stats()
 
         self.assertEquals(len(players) , 10)
@@ -240,7 +257,10 @@ class SalaryGeneratorTest(AbstractTest):
 
 
     def test_helper_get_average_score_per_position(self):
-        salary_gen =SalaryGenerator(PlayerStatsChild, self.pool)
+        player_stats_classes = [
+            PlayerStatsChild
+        ]
+        salary_gen = SalaryGenerator(player_stats_classes, self.pool)
         players = []
 
         #

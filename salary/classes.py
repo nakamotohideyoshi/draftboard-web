@@ -358,7 +358,7 @@ class SalaryGenerator(object):
                     if i < number_of_games:
                         player.fantasy_weighted_average += \
                             player.player_stats_list[i].fantasy_points * (float)(tgw.weight)
-
+                    i += 1
 
                 #
                 # takes the sum and divides by the total allowed games
