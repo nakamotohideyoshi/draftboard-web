@@ -246,6 +246,8 @@ INSTALLED_APPS = (
     'test',
 
     'salary',
+
+    'draftgroup',
 )
 
 MIDDLEWARE_CLASSES = (
