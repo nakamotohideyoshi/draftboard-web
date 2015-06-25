@@ -135,28 +135,110 @@ class SiteSportManager(object):
 
 class PlayerNamesCsv(object):
 
-    SPORTS = [
-        'nfl',
-        'nba',
-        'nhl',
-        'mlb'
-    ]
+    def __init__(self, sport='nfl', positions=None, filename=None):
 
-    def __init__(self, filename='playernames.csv', sport='nfl'):
-        self.filename   = filename
+        self.sports     = ['nfl','nba','mlb','nhl']     # dataden four major sports
 
-        if sport not in self.SPORTS:
-            raise Exception
-        self.sport      = sport
+        if isinstance(sport, str):          # sport is a string
+            if sport not in self.sports:
+                raise Exception('sport [%s] is not a valid sport in %s' % (sport, str(self.sports)))
+            self.site_sport = SiteSport.objects.get(name=sport)
 
-        self.f          = None                      # dont create the file yet
-        self.dataden    = dataden.classes.DataDen() # access dataden/mongo player data
+        elif isinstance(sport, SiteSport):  # sport is an instance of sports.models.SiteSport
+            self.site_sport = sport
+        else:
+            raise Exception('sport needs to be a string in %s, or an instance of SiteSport' % str(self.sports))
+
+        if positions is None:
+            raise Exception('self.positions is None - you must provide a list of the positions')
+
+        self.positions = positions
+
+        if filename:
+            self.filename = filename
+        else:
+            self.filename = '%s_playernames_%s.csv' % (sport, '_'.join( self.positions ))
+
+        self.f                  = None                      # dont create the file yet
+        self.dataden            = dataden.classes.DataDen() # access dataden/mongo player data
+
+        self.player_collection  = 'player'
+        self.parent_api         = 'rosters'         # for nfl. other classes may override this
+
+        self.key_fullname       = 'name_full'       # for nfl. other classes may override this
+        self.key_position       = 'position'        # for nfl. other classes may override this
 
     def get_players(self):
-        return self.dataden
+        """
+        get the cursor of players from dataden from their respective sport
+        """
+        if self.positions is None:
+            raise Exception('self.positions is None (ie: you need to set it to a list of the string positions ie: ["QB","RB"]')
+        target = {self.key_position : {'$in':self.positions}}
+        return self.dataden.find(self.site_sport.name, self.player_collection, self.parent_api, target)
 
     def generate(self):
         """
         generate the csv file with the params this object was constructed with
         """
         self.f = open(self.filename,'w') # open the file with the filename and overwrite it
+        players = self.get_players()
+        print(players.count(), 'players')
+        for p in players:
+            self.f.write('%s, %s, "%s", %s,\n' % (self.site_sport.name,
+                    p.get('id'),p.get(self.key_fullname),p.get(self.key_position)))
+        self.f.close()
+        print('...generated file: ', self.filename)
+
+class NflPlayerNamesCsv(PlayerNamesCsv):
+    """
+    get a csv list of the nfl players names
+    """
+    DEFAULT_SPORT       = 'nfl'
+    DEFAULT_POSITIONS   = ['QB','RB','FB','WR','TE']
+
+    def __init__(self, sport=DEFAULT_SPORT, positions=DEFAULT_POSITIONS):
+        super().__init__(sport, positions)
+
+class NhlPlayerNamesCsv(PlayerNamesCsv):
+    """
+    get a csv list of the nfl players names
+    """
+    DEFAULT_SPORT       = 'nhl'
+    DEFAULT_POSITIONS   = ['G','LW','RW','C','D']
+
+    def __init__(self, sport=DEFAULT_SPORT, positions=DEFAULT_POSITIONS):
+        super().__init__(sport, positions)
+
+        # override
+        self.key_fullname   = 'full_name'
+        self.key_position   = 'primary_position'
+
+class NbaPlayerNamesCsv(PlayerNamesCsv):
+    """
+    get a csv list of the nfl players names
+    """
+    DEFAULT_SPORT       = 'nba'
+    DEFAULT_POSITIONS   = ['PG','SG','PF','SF','C']
+
+    def __init__(self, sport=DEFAULT_SPORT, positions=DEFAULT_POSITIONS):
+        super().__init__(sport, positions)
+
+        # override
+        self.key_fullname   = 'full_name'
+        self.key_position   = 'primary_position'
+
+class MlbPlayerNamesCsv(PlayerNamesCsv):
+    """
+    get a csv list of the nfl players names
+    """
+    DEFAULT_SPORT       = 'mlb'
+    DEFAULT_POSITIONS   = ['P','C','1B','2B','SS','3B','LF','CF','RF','DH']
+
+    def __init__(self, sport=DEFAULT_SPORT, positions=DEFAULT_POSITIONS):
+        super().__init__(sport, positions)
+
+        # override
+        self.parent_api     = 'rostersfull'
+        self.key_fullname   = 'full_name'
+        self.key_position   = 'primary_position'
