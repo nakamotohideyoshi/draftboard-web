@@ -137,20 +137,9 @@ class PlayerNamesCsv(object):
 
     def __init__(self, sport='nfl', positions=None, filename=None):
 
-        self.sports     = ['nfl','nba','mlb','nhl']     # dataden four major sports
+        self.sports = ['nfl','nba','mlb','nhl']     # dataden four major sports
 
-        if isinstance(sport, str):          # sport is a string
-            if sport not in self.sports:
-                raise Exception('sport [%s] is not a valid sport in %s' % (sport, str(self.sports)))
-            self.site_sport = SiteSport.objects.get(name=sport)
-
-        elif isinstance(sport, SiteSport):  # sport is an instance of sports.models.SiteSport
-            self.site_sport = sport
-        else:
-            raise Exception('sport needs to be a string in %s, or an instance of SiteSport' % str(self.sports))
-
-        if positions is None:
-            raise Exception('self.positions is None - you must provide a list of the positions')
+        self.site_sport = self.__validate_site_sport(sport)
 
         self.positions = positions
 
@@ -168,6 +157,17 @@ class PlayerNamesCsv(object):
         self.key_fullname       = 'name_full'       # for nfl. other classes may override this
         self.key_position       = 'position'        # for nfl. other classes may override this
 
+    def __validate_site_sport(self, sport):
+        if isinstance(sport, str):          # sport is a string
+            if sport not in self.sports:
+                raise Exception('sport [%s] is not a valid sport in %s' % (sport, self.sports))
+            return SiteSport.objects.get(name=sport)
+
+        elif isinstance(sport, SiteSport):  # sport is an instance of sports.models.SiteSport
+            return sport
+        else:
+            raise Exception('sport needs to be a string in %s, or an instance of SiteSport' % str(self.sports))
+
     def get_players(self):
         """
         get the cursor of players from dataden from their respective sport
@@ -177,6 +177,9 @@ class PlayerNamesCsv(object):
         target = {self.key_position : {'$in':self.positions}}
         return self.dataden.find(self.site_sport.name, self.player_collection, self.parent_api, target)
 
+    def get_row_str(self, p):
+        return '%s, %s, "%s", %s,\n' % (self.site_sport.name,
+                    p.get('id'), p.get(self.key_fullname), p.get(self.key_position))
     def generate(self):
         """
         generate the csv file with the params this object was constructed with
@@ -185,10 +188,17 @@ class PlayerNamesCsv(object):
         players = self.get_players()
         print(players.count(), 'players')
         for p in players:
-            self.f.write('%s, %s, "%s", %s,\n' % (self.site_sport.name,
-                    p.get('id'),p.get(self.key_fullname),p.get(self.key_position)))
+            # self.f.write('%s, %s, "%s", %s,\n' % (self.site_sport.name,
+            #         p.get('id'),p.get(self.key_fullname),p.get(self.key_position)))
+            self.f.write( self.get_row_str( p ) )
         self.f.close()
         print('...generated file: ', self.filename)
+
+    def get_rows(self):
+        rows = []
+        for p in self.get_players():
+            rows.append( self.get_row_str( p ) )
+        return rows
 
 class NflPlayerNamesCsv(PlayerNamesCsv):
     """
