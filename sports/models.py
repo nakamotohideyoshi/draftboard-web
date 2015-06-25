@@ -95,7 +95,7 @@ class GameBoxscore(models.Model):
     away              = GenericForeignKey('away_type', 'away_id')
 
     attendance  = models.IntegerField(default=0, null=False)
-    coverage    = models.CharField(max_length=16, null=False, default='')
+    coverage    = models.CharField(max_length=64, null=False, default='')
     status      = models.CharField(max_length=64, null=False, default='')
 
     home_score = models.IntegerField(default=0, null=False)
