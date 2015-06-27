@@ -7,7 +7,6 @@ from django.utils import timezone
 from math import ceil
 from django.db.transaction import atomic
 
-
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 class SalaryPlayerStatsObject(object):
@@ -491,8 +490,6 @@ class SalaryGenerator(object):
 
     def __round_salary(self, val):
         return (int) (ceil((val/100.0)) *100.0)
-
-
 
 
 

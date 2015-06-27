@@ -1,46 +1,96 @@
-from .models import SiteSport, PlayerStats, Player
+from .models import SiteSport, PlayerStats, Player, Game
 from django.contrib.contenttypes.models import ContentType
-from .exceptions import SportNameException
+from .exceptions import SportNameException, SiteSportWithNameDoesNotExistException, GameClassNotFoundException
 from mysite.exceptions import IncorrectVariableTypeException
 import dataden.classes
 
+import sports.nfl.models
+import sports.nhl.models
+import sports.nba.models
+import sports.mlb.models
+
+class AbstractGameManager(object):
+    """
+    Parent class with common behavior of GameManager classes.
+    """
+
+    class MethodNotImplementedException(Exception): pass
+
+    def __init__(self, game_model):
+        self.game_model = game_model
+
+    def get_daily_games_gte(self, start):
+        """
+        get games relevant to daily fantasy contests
+        at or after the start.time() on the start.date()
+        """
+        raise self.MethodNotImplementedException('method ' + self.get_daily_games_gte.__name__ + '()')
+
+class NhlGameManager(AbstractGameManager):
+    """
+    NHL games database wrapper
+    """
+    def __init__(self):
+        super().__init__(sports.nhl.models.Game)
+
+    def get_daily_games_gte(self, start):
+        """
+        get the relevant games for daily fantasy on the start.date() on or after start.time()
+        """
+        pass # TODO
+
+class NflGameManager(AbstractGameManager):
+    """
+    NFL games database wrapper
+    """
+    def __init__(self):
+        super().__init__(sports.nfl.models.Game)
+
+class NbaGameManager(AbstractGameManager): pass # TODO - implement
+
+class MlbGameManager(AbstractGameManager): pass # TODO - implement
+
 class SiteSportManager(object):
+    """
+    SiteSportManager helps get the model classes related to a sport.
+
+    SiteSportManager.SPORTS is used in a migration file to
+    automatically create the initial SiteSport entries in the database.
+    Modify it at your own risk.
+    """
+
+    SPORTS = [
+        'nfl',
+        'mlb',
+        'nba',
+        'nhl'
+    ]
 
     def __init__(self):
-        self.sports = ['nfl','mlb','nba','nhl']
+        super().__init__()
+        self.sports = []
 
+    @staticmethod
+    def get_sport_names():
+        """
+        :return: a list of the string names of the sports predefined in this object.
+        """
+        return list(SiteSportManager.SPORTS)
 
-
-    def create_or_update_sports(self):
-        #
-        # updates the databases or creates the rows if they do
-        # not exist for each sport
-        for sport in self.sports:
-            site_sport = None
+    def __get_site_sport_from_str(self, sport):
+        """
+        :param sport: a string like 'nfl' or 'mlb'
+        :return: the corresponding SiteSport instance if it exists,
+            otherwise returns the value passed into method
+        """
+        if isinstance( sport, str ):
             try:
-                site_sport = SiteSport.objects.get(name = sport)
+                return SiteSport.objects.get(name=sport)
             except SiteSport.DoesNotExist:
-                site_sport = SiteSport()
+                raise SiteSportWithNameDoesNotExistException(type(self).__name__, sport)
 
-
-
-            #
-            # updates the information for each row for the given sport
-            for field in self.fields:
-                ct = None
-                try:
-                    ct = ContentType.objects.get(app_label=sport,
-                                             model=field)
-
-                except ContentType.DoesNotExist:
-                    # meaning the app did not implement this particular
-                    # abstract class.
-                    print("fail on: "+sport+" "+field)
-
-                setattr(site_sport, field, ct)
-
-
-
+        # default: return parameter passed into this method
+        return sport
 
     def __check_sport(self, sport):
         """
@@ -51,15 +101,12 @@ class SiteSportManager(object):
         :raises :class:`sports.exceptions.SportNameException`: when the string sport
             does not match a sport in the sports array
         """
-         #
+        #
         # Makes sure the player_stats_object is an instance
         # of the subclass PlayerStats
         if not isinstance(sport, SiteSport):
             raise IncorrectVariableTypeException(type(self).__name__,
                                                  type(sport).__name__)
-
-
-
 
     def __get_array_of_classes(self, sport, filter_string, parent_class):
         content_types = ContentType.objects.filter(app_label=sport.name,
@@ -76,6 +123,9 @@ class SiteSportManager(object):
 
         return matching_arr
 
+    #########
+    #########   this method returns a list()
+    #########
     def get_player_stats_class(self, sport):
         """
         Class that fetches the class or classes required for the specified
@@ -114,12 +164,8 @@ class SiteSportManager(object):
         Class that fetches an array of Classes that represent all instances of
             :class:`sports.models.Player` class.
 
-
-
         :return: an array of Classes that represent all instances of
             :class:`sports.models.Player` class.
-
-
         """
         content_types = ContentType.objects.filter(model__icontains='player')
         matching_arr = []
@@ -132,6 +178,27 @@ class SiteSportManager(object):
                 matching_arr.append(content_class)
 
         return matching_arr
+
+    def get_game_class(self, sport):
+        """
+        Class that fetches the class that inherits sports.models.Game for the sport
+
+        :param sport: string OR SiteSport. method is intelligent about the runtime type of 'sport'
+
+        :return: the sport's
+            :class:`sports.models.Game` class.
+
+        :raises :class:`sports.exceptions.SportNameException`: when the string sport
+            does not match a sport in the sports array
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+        arr = self.__get_array_of_classes(sport, 'game', Game)
+        if len(arr) >= 1:
+            return arr[0]
+
+        # by default raise an exception if we couldnt return a game class
+        raise GameClassNotFoundException(type(self).__name__, sport)
 
 class PlayerNamesCsv(object):
 
