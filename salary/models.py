@@ -65,10 +65,11 @@ class TrailingGameWeight(models.Model):
 
 class Pool(models.Model):
     """
+    Creating a Pool with active=True will mark the existing active pool False!
+
     This model keeps track of all the player pools for all the sports and also
     maintains the active player pool status. Only one pool per site_sport can be
-    active. If setting a new pool to active  for a given sport that already has an active
-    pool, the old active pool will automatically be deactivated.
+    active.
     """
     created                     = models.DateTimeField( auto_now_add=True )
     site_sport                  = models.ForeignKey( sports.models.SiteSport, null = False )
@@ -76,8 +77,7 @@ class Pool(models.Model):
     salary_config               = models.ForeignKey( SalaryConfig, null = False )
 
     #
-    # overrides the save ot make sure that only one Pool can be active at any
-    # given time.
+    # make sure that only one Pool can be active at a time (for the site_sport)
     def save(self, *args, **kwargs):
         if self.active:
             try:
@@ -87,13 +87,15 @@ class Pool(models.Model):
                     temp.save()
             except Pool.DoesNotExist:
                 pass
-        super(Pool, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return '%s: %s : %s' % (str(self.id), str(self.site_sport), self.created.strftime('%Y-%m-%d %H:%M'))
+        return '%s: active[%s] : %s : %s' % (str(self.id), self.active,
+                    str(self.site_sport), self.created.strftime('%Y-%m-%d %H:%M'))
+
     class Meta:
-        ordering = ('-active', 'site_sport', '-created')
-        verbose_name = 'Player Pool'
+        ordering        = ('-active', 'site_sport', '-created')
+        verbose_name    = 'Player Pool'
 
 class Salary(models.Model):
     """

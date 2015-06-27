@@ -208,9 +208,23 @@ class Dummy(object):
         return player_stats_list
 
     @staticmethod
-    def generate_salaries(sport=DEFAULT_SPORT):
+    def create_salary_config():
+        salary_conf                                    = SalaryConfig()
+        salary_conf.trailing_games                     = 10
+        salary_conf.days_since_last_game_flag          = 10
+        salary_conf.min_games_flag                     = 7
+        salary_conf.min_player_salary                  = 3000
+        salary_conf.max_team_salary                    = 50000
+        salary_conf.min_avg_fppg_allowed_for_avg_calc  = 5
+        salary_conf.save()
+        return salary_conf
+
+    @staticmethod
+    def generate_salaries(sport=DEFAULT_SPORT, pool_active=True):
         """
         it is a prerequisite that create_roster() and create_player_stats_list() have been called first
+
+        returns the SalaryGenerator which created the salaries.
         """
 
         # prerequisite calls to create_roster(), create_player_stats_list()
@@ -221,18 +235,12 @@ class Dummy(object):
         # create the config and the pool
         site_sport, c = SiteSport.objects.get_or_create(name=sport)
 
-        salary_conf                                    = SalaryConfig()
-        salary_conf.trailing_games                     = 10
-        salary_conf.days_since_last_game_flag          = 10
-        salary_conf.min_games_flag                     = 7
-        salary_conf.min_player_salary                  = 3000
-        salary_conf.max_team_salary                    = 50000
-        salary_conf.min_avg_fppg_allowed_for_avg_calc  = 5
-        salary_conf.save()
+        salary_conf = Dummy.create_salary_config()
 
         pool                = Pool()
         pool.site_sport     = site_sport
         pool.salary_config  = salary_conf
+        pool.active         = pool_active
         pool.save()
 
         Dummy.create_trailing_game_weight(salary_conf, 3,  3)
@@ -246,6 +254,7 @@ class Dummy(object):
         ]
         generator = SalaryGenerator( player_stats_classes, pool )
         generator.generate_salaries()
+        return generator
 
     @staticmethod
     def create_trailing_game_weight(salary_config, through, weight):
