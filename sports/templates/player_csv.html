@@ -1,0 +1,22 @@
+
+
+{% block salary_block %}
+
+    <!-- form -->
+
+    <div style="float: left; width: 1500px;">
+        <h3>Players</h3>
+        <form action="/sports/player-csv/" method="post">
+        {% csrf_token %}
+        {{ form.as_ul }}
+        <input type="submit" value="Submit" />
+    </form>
+    </div>
+
+    <ul>
+        {% for row in rows %}
+            <h5>{{ row }}</h5>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

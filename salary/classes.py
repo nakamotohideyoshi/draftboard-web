@@ -7,7 +7,6 @@ from django.utils import timezone
 from math import ceil
 from django.db.transaction import atomic
 
-
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 class SalaryPlayerStatsObject(object):
@@ -360,7 +359,7 @@ class SalaryGenerator(object):
                     if i < number_of_games:
                         player.fantasy_weighted_average += \
                             player.player_stats_list[i].fantasy_points * (float)(tgw.weight)
-
+                    i += 1
 
                 #
                 # takes the sum and divides by the total allowed games
@@ -493,8 +492,6 @@ class SalaryGenerator(object):
 
     def __round_salary(self, val):
         return (int) (ceil((val/100.0)) *100.0)
-
-
 
 
 

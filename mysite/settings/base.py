@@ -40,7 +40,8 @@ TEMPLATES = [
             join(BASE_DIR, 'account/templates'),
             join(BASE_DIR, 'prize/templates'),
             join(BASE_DIR, 'salary/templates'),
-            join(BASE_DIR,  'mysite/templates'),
+            join(BASE_DIR, 'mysite/templates'),
+            join(BASE_DIR, 'sports/templates')
         ],
         'APP_DIRS': True, # defaults to False
         'OPTIONS' : {
@@ -245,6 +246,8 @@ INSTALLED_APPS = (
     'test',
 
     'salary',
+
+    'draftgroup',
 )
 
 MIDDLEWARE_CLASSES = (
