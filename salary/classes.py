@@ -176,6 +176,7 @@ class SalaryGenerator(object):
         position_average_list =self.helper_get_average_score_per_position(players)
         #
         # Trim the stats to the games we care about
+        print("Trim Stats")
         self.helper_trim_players_stats(players)
         #print(players)
 
@@ -185,12 +186,13 @@ class SalaryGenerator(object):
         # average weighted score for each player
         self.helper_apply_weight_and_flag(players)
         #self.__print_players_list(players)
-
+        print("Summing Average Points")
         sum_average_points = self.helper_sum_average_points_per_roster_spot(position_average_list)
 
         #
         # Calculate the salaries for each player based on
         # the mean of weighted score of their position
+        print("Updating Salaries")
         self.helper_update_salaries(players, position_average_list,sum_average_points)
 
 
