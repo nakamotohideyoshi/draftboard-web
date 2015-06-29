@@ -1,12 +1,12 @@
 from django.contrib import admin
 
 from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
-from .classes import  SalaryGenerator
 import sports.classes
 from sports.models import Player
 import mysite.mixins.generic_search
 import django.db.utils
-
+from .tasks import generate_salary
+import celery.states
 class TrailingGameWeightInline(admin.TabularInline):
     model = TrailingGameWeight
 
@@ -39,18 +39,33 @@ class SalaryConfigAdmin(admin.ModelAdmin):
 
 @admin.register(Pool)
 class PoolAdmin(admin.ModelAdmin):
-    list_display = ['site_sport', 'active', 'salary_config', 'created']
+    list_display = ['site_sport', 'generating_salary', 'active', 'salary_config', 'created']
     model = Pool
+    exclude = ('generate_salary_task_id',)
     inlines = [SalaryInline,]
+
     def generate_salaries(self, request, queryset):
         if len(queryset) > 1:
             self.message_user(request, 'You must select only one pool to generate salaries for at a time.')
         else:
             for pool in queryset:
-                ssm = sports.classes.SiteSportManager()
-                player_stats_class = ssm.get_player_stats_class(pool.site_sport)
-                sg = SalaryGenerator(player_stats_class, pool)
-                sg.generate_salaries()
+                task = generate_salary.delay(pool)
+                pool.generate_salary_task_id = task.id
+                print("task.id "+task.id)
+                pool.save()
+
+    def generating_salary(self, obj):
+        if obj.generate_salary_task_id is None:
+            return ""
+        result = generate_salary.AsyncResult(obj.generate_salary_task_id)
+        status = result.status
+        if status == celery.states.SUCCESS:
+            obj.generate_salary_task_id = None
+            obj.save()
+            return celery.states.SUCCESS
+        elif status == celery.states.FAILURE or status == celery.states.STARTED:
+            return status
+        return ""
 
     actions = [generate_salaries, ]
     list_filter = ['salary__flagged', 'salary__primary_roster']
