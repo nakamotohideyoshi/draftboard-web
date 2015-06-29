@@ -103,7 +103,13 @@ CORS_ORIGIN_ALLOW_ALL = True
 # ----------------------------------------------------------
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+#
+# using 'America/New_York' will make the admin
+# display times in EST, however, in code
+# the models (because of the server!) will
+# have datetimes stored in UTC. This is quite useful!
+TIME_ZONE = 'America/New_York'
+# TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
