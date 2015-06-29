@@ -71,6 +71,7 @@ app.conf.update(
     },
 
     CELERY_TIMEZONE = 'UTC',
+    CELERY_TRACK_STARTED = True,
 
 )
 
