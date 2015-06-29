@@ -95,7 +95,7 @@ class GameBoxscore(models.Model):
     away              = GenericForeignKey('away_type', 'away_id')
 
     attendance  = models.IntegerField(default=0, null=False)
-    coverage    = models.CharField(max_length=16, null=False, default='')
+    coverage    = models.CharField(max_length=64, null=False, default='')
     status      = models.CharField(max_length=64, null=False, default='')
 
     home_score = models.IntegerField(default=0, null=False)
@@ -230,6 +230,9 @@ class PlayerStats(models.Model):
         abstract = True
         unique_together = ('srid_player','srid_game')
 
+    def __str__(self):
+        return 'game %s | player %s | fantasy_points %s' % (self.srid_game,
+                                        self.srid_player, self.fantasy_points)
 
 class PlayerStatsSeason(models.Model):
     class Meta:

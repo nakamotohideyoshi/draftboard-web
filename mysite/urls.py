@@ -6,11 +6,11 @@ import cash.urls
 import ticket.urls
 import prize.urls
 import salary.urls
+import sports.urls
+
 from django.conf.urls import url, include
 from django.contrib.auth.models import User
 from rest_framework import routers, serializers, viewsets
-
-
 
 # Serializers define the API representation.
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -43,6 +43,7 @@ urlpatterns = [
     url(r'^ticket/', include(ticket.urls)),
     url(r'^prize/',  include(prize.urls)),
     url(r'^salary/', include(salary.urls)),
+    url(r'^sports/', include(sports.urls)),
 
     #
     # this came with rest_framework
