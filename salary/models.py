@@ -75,6 +75,10 @@ class Pool(models.Model):
     site_sport                  = models.ForeignKey( sports.models.SiteSport, null = False )
     active                      = models.BooleanField( null = False, default=False )
     salary_config               = models.ForeignKey( SalaryConfig, null = False )
+    generate_salary_task_id     = models.CharField(default=None,
+                                                   null=True,
+                                                   verbose_name="Generating Salary",
+                                                   max_length=255)
 
     #
     # make sure that only one Pool can be active at a time (for the site_sport)
