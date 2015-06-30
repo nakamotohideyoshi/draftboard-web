@@ -1,0 +1,109 @@
+.nav-main {
+  background: #0f161e;
+  border-left: 20px solid #0f161e;
+  border-right: 20px solid #0f161e;
+  font-family: $font-open-sans;
+
+  // used to hide, the container has a border
+  .inner {
+    background: #0f161e;
+    position: fixed;
+    height: 100%;
+    overflow: hidden;
+    padding: 0 10px;
+    width: 50px;
+  }
+
+  &:hover .inner {
+    width: 242px;
+    background-color: #0f161e;
+
+    hr {
+      width: 48px;
+    }
+
+    a.my-account {
+      text-align: center;
+    }
+  }
+
+  a {
+    color: #a4acb4;
+    text-decoration: none;
+  }
+
+  .logo {
+    display: block;
+    line-height: 1;
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 16px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+
+    background-position: 9px center;
+    background-repeat: no-repeat;
+    background-size: auto 50%;
+    padding: 16px 0 12px 42px;
+    background-image: url(../img/blocks/nav-main/logo.png);
+  }
+
+  hr {
+    background: #3a4a5a;
+    height: 2px;
+    margin: 20px 0;
+    width: 34px;
+    border: none;
+  }
+
+  ul {
+    list-style: none;
+  }
+
+  li {
+    display: block;
+    margin: 16px 0;
+
+    a {
+      display: block;
+      font-size: 13px;
+      padding: 8px 0 8px 35px;
+      margin-left: 8px;
+      background-position: left center;
+      background-repeat: no-repeat;
+      background-size: auto 50%;
+    }
+
+    &.active a {
+      color: #fff;
+    }
+
+    &.lobby a {
+      background-image: url(../img/blocks/nav-main/lobby.png);
+    }
+    &.lineups a {
+      background-image: url(../img/blocks/nav-main/lineups.png);
+    }
+    &.live a {
+      background-image: url(../img/blocks/nav-main/live.png);
+    }
+  }
+
+  .my-account {
+    position: absolute;
+    background: #1b242f;
+    font-size: 14px;
+    bottom: 45px;
+    width: 230px;
+    left: -10px;
+    padding: 12px 27px;
+    display: block;
+
+    span {
+      background: url(../img/blocks/nav-main/my-account.png) no-repeat left center;
+      padding-left: 33px;
+      display: inline-block;
+      background-size: auto 90%;
+    }
+  }
+}

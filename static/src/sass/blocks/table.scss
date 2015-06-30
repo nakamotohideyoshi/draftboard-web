@@ -1,0 +1,80 @@
+@import "../variables.scss";
+
+.table {
+  border-collapse: collapse;
+  font-family: $font-open-sans;
+  width: 100%;
+
+  thead {
+    border-bottom: 1px solid #e6e9eb;
+    background: #2f404e;
+  }
+
+  tbody {
+    padding: 10px 20px;
+
+    tr:first-child {
+      td {
+        padding-top: 20px;
+      }
+    }
+  }
+
+  tr {
+    &:hover {
+      background: #F1F2F5;
+    }
+
+    &.active {
+      background: #eee;
+    }
+  }
+
+  td, th {
+    font-size: 12px;
+    padding: 8px 10px;
+    text-align: left;
+
+    &:first-child {
+      padding-left: 20px;
+    }
+  }
+
+  &__sort-icon {
+    display: inline-block;
+    height: 5px;
+    position: relative;
+    margin-left: 2px;
+    top: -1px;
+    width: 6px;
+  }
+
+  th {
+    color: #a2a8ae;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 200;
+    padding: 5px;
+
+    &.active {
+      color: #fff;
+      font-weight: 600;
+
+      .table__sort-icon {
+        background: url(../img/components/table/arrow-down-white.png) no-repeat;
+        background-size: 6px 5px;
+        transition: all .25s;
+      }
+    }
+
+    &.sort-asc .table__sort-icon {
+      transform: rotateX(180deg);
+    }
+  }
+
+
+  &__title {
+    font-weight: 600;
+  }
+
+}

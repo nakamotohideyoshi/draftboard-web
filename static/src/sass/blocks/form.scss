@@ -1,0 +1,66 @@
+// rather than create default styles for form elements, create class names for the overarching form
+.form--default {
+  fieldset {
+    border: none;
+    margin: 0;
+    padding: 0 0 0 100px;
+    width: 100%;
+
+    > div {
+      margin-bottom: 18px;
+      position: relative;
+
+      // used to show checkmark on certain form elements only
+      &.valid {
+        background: #fff url(../img/blocks/form/checkmark.svg) no-repeat right center;
+      }
+    }
+  }
+
+  label {
+    display: inline-block;
+    font-size: 12px;
+    left: -116px;
+    min-width: 100px;
+    position: absolute;
+    text-align: right;
+    top: 20px;
+  }
+
+  input[type="email"],
+  input[type="text"], {
+    border: 1px solid $primary-grey;
+    color: $secondary-grey;
+    font-family: $font-open-sans;
+    font-size: 13px;
+    padding: 18px 20px;
+    transition: all 0.2s;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: 100%;
+
+    &:focus {
+      border-color: $secondary-charcoal;
+      color: $primary-charcoal;
+      // prevent the safari glow
+      outline-width: 0;
+    }
+
+    &:disabled {
+      background: #f8f9f9;
+      color: $primary-charcoal;
+    }
+
+    &.attempted{
+      &:invalid {
+        border-color: $error-red;
+        color: $error-red;
+      }
+
+      &:valid {
+        border-color: $success-green;
+        color: $success-green;
+      }
+    }
+  }
+}
