@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block body_class %}styleguide{% endblock %}
+
+{% block sidebar %}
+  <h1>
+    Open Sans Bold - 16px
+  </h1>
+{% endblock sidebar %}
+
+{% block page_content %}
+  <h1>UI Style Guide</h1>
+
+  <hr>
+
+  <section class="colors">
+    <header>
+      <div class="number">01.</div>
+      <div class="title">Colors</div>
+    </header>
+    <section>
+      <ul>
+        <li>
+          <div class="color--primary-red" title="$primary-red">#e63d3d</div>
+          <div class="color--secondary-red" title="$secondary-red">#ae1919</div>
+        </li>
+        <li>
+          <div class="color--primary-charcoal" title="$primary-charcoal">#525c63</div>
+          <div class="color--secondary-charcoal" title="$secondary-charcoal">#162530</div>
+        </li>
+        <li>
+          <div class="color--primary-grey" title="$primary-grey">#dbdee0</div>
+          <div class="color--secondary-grey" title="$secondary-grey">#adb4b9</div>
+        </li>
+        <li class="gradient--green">
+          <div class="color--primary-green" title="$primary-green">#4dd328</div>
+          <div class="color--secondary-green" title="$secondary-green">#30e583</div>
+        </li>
+      </ul>
+    </section>
+  </section>
+
+  <section class="typography">
+    <header>
+      <div class="number">02.</div>
+      <div class="title">Typography</div>
+    </header>
+    <section>
+      <header>General</header>
+      <ul>
+        <li>
+          <div class="element-name">
+            H1
+          </div>
+          <h1>
+            Georgia Bold - 30px
+            <sub>Sub-headline: Open Sans Semibold - 10px</sub>
+          </h1>
+        </li>
+        <li>
+          <div class="element-name">
+            H2
+          </div>
+          <h2>
+            Georgia Bold - 22px
+          </h2>
+        </li>
+        <li>
+          <div class="element-name">
+            H3
+          </div>
+          <h3>
+            <sub>Sub-headline: Open Sans Semibold - 10px</sub>
+            Georgia Bold - 18px
+          </h3>
+        </li>
+        <li>
+          <div class="element-name">
+            p
+          </div>
+          <p>
+            Open Sans - Regular - 14pt. Pellentesque ornare sem lacinia quam venenatis vestibulum. Praesent commodo
+            cursus magna, vel scelerisque nisl consectetur et. Integer posuere erat a ante venenatis dapibus posuere
+            velit aliquet. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec
+            elit. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Integer posuere erat a ante venenatis
+            dapibus posuere velit aliquet. Etiam porta sem malesuada magna mollis euismod.
+          </p>
+          <p>
+            Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Praesent commodo cursus
+            magna, vel scelerisque nisl consectetur et. Integer posuere erat a ante venenatis dapibus posuere velit
+            aliquet. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.
+            Cras justo odio, dapibus ac facilisis in, egestas eget quam. Integer posuere erat a ante venenatis dapibus
+            posuere velit aliquet. Etiam porta sem malesuada magna mollis euismod.
+          </p>
+        </li>
+      </ul>
+    </section>
+  </section>
+
+  <section class="buttons">
+    <header>
+      <div class="number">03.</div>
+      <div class="title">Buttons</div>
+    </header>
+    <section>
+      <div class="buttons--large">
+        <button class="button--large">Large - Section Width</button>
+      </div>
+      <div class="buttons--medium">
+        <button class="button--medium">Medium</button>
+        <button class="button--medium--outline">Outline</button>
+      </div>
+      <div class="buttons--small">
+        <button class="button--small">Small</button>
+        <button class="button--small--outline">Outline</button>
+      </div>
+    </section>
+  </section>
+
+  <section class="inputs">
+    <header>
+      <div class="number">04.</div>
+      <div class="title">Inputs</div>
+    </header>
+    <section>
+      <form class="form--default">
+        <fieldset>
+          <div>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="i.e. joe@hotmail.com" required onblur="this.className+=' attempted'">
+          </div>
+
+          <div>
+            <label for="username">Non-Editable</label>
+            <input type="text" id="username" name="username" placeholder="marshallwilde" disabled="disabled">
+          </div>
+
+          <input type="submit" class="button--medium">
+        </fieldset>
+      </form>
+    </section>
+  </section>
+{% endblock page_content %}
