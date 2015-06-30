@@ -5,6 +5,7 @@ from django.db import models
 
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+import re
 
 # an object for a sport which anything can reference to identify its sport
 class SiteSport(models.Model):
@@ -27,6 +28,9 @@ class Position(models.Model):
     def __str__(self):
         return '%s - %s' % (self.site_sport.name, self.name )
 
+    def get_matchname(self):
+        """Returns the match name for a tag"""
+        return re.sub("\W+" , "", self.name)
 #
 #########################################################################
 # abstract models for each sport to inherit as use as they wish

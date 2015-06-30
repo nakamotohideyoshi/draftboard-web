@@ -160,7 +160,13 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
 
             #
             # Gets the amount from the pre-defined Ticket Amounts
-            amount_obj = self.__get_ticket_amount(amount)
+            try:
+                amount_obj = self.__get_ticket_amount(amount)
+            except ticket.models.TicketAmount.DoesNotExist:
+                raise InvalidTicketAmountException(
+                    type(self).__name__,
+                    amount
+                )
 
 
             #

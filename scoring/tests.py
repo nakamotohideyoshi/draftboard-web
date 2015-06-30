@@ -5,10 +5,29 @@ import itertools
 import sports.nba.models
 import sports.nhl.models
 import sports.mlb.models
+import sports.nfl.models
 from django.test import TestCase
 from test.classes import AbstractTest
-from scoring.classes import NbaSalaryScoreSystem, NhlSalaryScoreSystem, MlbSalaryScoreSystem
+from scoring.classes import NbaSalaryScoreSystem, NhlSalaryScoreSystem, MlbSalaryScoreSystem, NflSalaryScoreSystem
 from dataden.util.timestamp import Parse as DataDenDatetime
+from sports.models import SiteSport, Position
+
+class SiteSportPosition():
+    def get_position(self, site_sport, name):
+        try:
+            position = Position.objects.get(site_sport__name=site_sport, name=name)
+        except Position.DoesNotExist:
+            position = Position()
+            try:
+                ss = SiteSport.objects.get( name=site_sport )
+            except SiteSport.DoesNotExist:
+                ss = SiteSport()
+                ss.name = site_sport
+                ss.save()
+            position.site_sport = ss
+            position.name       = name
+            position.save()
+        return position
 
 class NbaScoringTest(AbstractTest):
     """
@@ -67,8 +86,9 @@ class NbaScoringTest(AbstractTest):
         weight      = 215      # lbs.
         jersey_number       = 1
 
-        position            = "F-G"
-        primary_position    = "SF"
+        ssp = SiteSportPosition()
+        position            = ssp.get_position(site_sport="nba", name="SF")
+        primary_position    = ssp.get_position(site_sport="nba", name="SF")
 
         status              = "ACT"   # roster status, ie: basically whether they are on it
 
@@ -177,6 +197,10 @@ class NbaScoringTest(AbstractTest):
         ps.two_points_made = 0.0
         ps.free_throws_pct = 0.0
         ps.three_points_pct = 0.0
+
+        ps.position = p.position
+
+        self.player_stats = ps
 
         ps.save() # commit changes
 
@@ -369,8 +393,9 @@ class NhlScoringTest(AbstractTest):
         weight      = 215      # lbs.
         jersey_number       = 1
 
-        position            = "G"
-        primary_position    = "G"
+        ssp = SiteSportPosition()
+        position            = ssp.get_position(site_sport="nhl", name="G")
+        primary_position    = ssp.get_position(site_sport="nhl", name="G")
 
         status              = "ACT"   # roster status, ie: basically whether they are on it
 
@@ -470,6 +495,10 @@ class NhlScoringTest(AbstractTest):
         ps.saves       = 0
         ps.ga          = 0
         ps.shutout     = bool(0)
+
+        ps.position = p.position
+
+        self.player_stats = ps
 
         ps.save() # commit changes
 
@@ -683,8 +712,9 @@ class MlbScoringTest(AbstractTest):
         weight      = 215      # lbs.
         jersey_number       = 1
 
-        position            = "P"
-        primary_position    = "SP"
+        ssp = SiteSportPosition()
+        position            = ssp.get_position(site_sport="mlb", name="SP")
+        primary_position    = ssp.get_position(site_sport="mlb", name="SP")
 
         status              = "ACT"   # roster status, ie: basically whether they are on it
 
@@ -737,8 +767,9 @@ class MlbScoringTest(AbstractTest):
         weight      = 215      # lbs.
         jersey_number       = 1
 
-        position            = "IF"
-        primary_position    = "1B"
+        ssp = SiteSportPosition()
+        position            = ssp.get_position(site_sport="mlb", name="1B")
+        primary_position    = ssp.get_position(site_sport="mlb", name="1B")
 
         status              = "ACT"   # roster status, ie: basically whether they are on it
 
@@ -838,7 +869,11 @@ class MlbScoringTest(AbstractTest):
         ps.cgso    = bool( 0 ) and ps.cg # complete game shut out
         ps.nono    = bool( ps.h ) and ps.cg # no hitter if hits == 0, and complete game
 
+        ps.position = p.position
+
         ps.save() # commit changes
+
+        self.pitcher_stats = ps
 
         return ps
 
@@ -878,6 +913,10 @@ class MlbScoringTest(AbstractTest):
         ps.ap  = 0
         ps.lob = 0
         ps.xbh = 0
+
+        ps.position = p.position
+
+        self.hitter_stats = ps
 
         ps.save() # commit changes
 
@@ -1138,4 +1177,495 @@ class MlbScoringTest(AbstractTest):
                     cs * self.mlb_Salary_Score_System.get_value_of('cs'))
 
             self.assertAlmostEquals(self.mlb_Salary_Score_System.score_player(self.hitter_stats), total)
+
+
+class NflScoringTest(AbstractTest):
+    """
+    Test the scoring system for NFL.  The test method will be:
+        - Create a dummy player in the Postgres database with all stats set to 0
+        - Increment individual stats and compare the calculated point value against the scoring system projected value
+        - Increment groups of stats and compare the calculated point value against the scoring system projected value
+    """
+
+    def setUp(self):
+        self.create_team()
+        self.create_game()
+        self.create_player()
+        self.player_stats = self.create_player_stats()
+        self.nfl_Salary_Score_System = NflSalaryScoreSystem()
+
+    def create_team(self):
+        srid            = "NE"
+        srid_league     = "NFL"
+        srid_conference = "AFC"
+        srid_division   = "AFC_EAST"
+        market          = "New England"
+        name            = "Patriots"
+        alias           = "NE"
+        srid_venue      = "e43310b1-cb82-4df9-8be5-e9b39637031b"
+
+        try:
+            t = sports.nfl.models.Team.objects.get( srid=srid )
+        except sports.nfl.models.Team.DoesNotExist:
+            t = sports.nfl.models.Team()
+            t.srid      = srid
+            t.save()
+
+        t.srid_league       = srid_league
+        t.srid_conference   = srid_conference
+        t.srid_division     = srid_division
+        t.market            = market
+        t.name              = name
+        t.alias             = alias
+        t.srid_venue        = srid_venue
+
+        t.save()
+
+    def create_player(self):
+        srid        = "096943d8-5430-49ad-9788-7f38415d6a75"
+        srid_team   = "NE"
+
+        first_name  = "Jimmy"
+        last_name   = "Jean"
+
+        birth_place = "Pompano Beach, FL, USA"
+        birthdate   = ""
+        college     = "UAB"
+        experience  = 0
+        height      = 73      # inches
+        weight      = 201      # lbs.
+        jersey_number       = 0
+
+        ssp = SiteSportPosition()
+        position            = ssp.get_position(site_sport="nfl", name="QB")
+        primary_position    = ssp.get_position(site_sport="nfl", name="QB")
+
+        status              = "ACT"   # roster status, ie: basically whether they are on it
+
+        draft_pick      = ""
+        draft_round     = ""
+        draft_year      = ""
+        srid_draft_team = ""
+
+        t = sports.nfl.models.Team.objects.get(srid=srid_team)
+
+        try:
+            p = sports.nfl.models.Player.objects.get(srid=srid)
+        except sports.nfl.models.Player.DoesNotExist:
+            p = sports.nfl.models.Player()
+            p.srid = srid
+
+        p.team          = t
+        p.first_name    = first_name
+        p.last_name     = last_name
+
+        p.birth_place   = birth_place
+        p.birthdate     = birthdate
+        p.college       = college
+        p.experience    = experience
+        p.height        = height
+        p.weight        = weight
+        p.jersey_number = jersey_number
+        p.position      = position
+        p.primary_position  = primary_position
+        p.status        = status
+        p.draft_pick    = draft_pick
+        p.draft_round   = draft_round
+        p.draft_year    = draft_year
+        p.srid_draft_team = srid_draft_team
+
+        p.save()
+
+    def create_game(self):
+        srid        = "0b02fc10-01fe-4a78-8168-4b9e5979a0f5"
+        start_str   = "2015-04-18T16:30:00+00:00"
+        start       = DataDenDatetime.from_string( start_str )
+        status      = "closed"
+
+        srid_home   = "NE"
+        srid_away   = "NE"
+        title       = "Game 1"
+
+        h = sports.nfl.models.Team.objects.get(srid=srid_home)
+        a = sports.nfl.models.Team.objects.get(srid=srid_away)
+
+        try:
+            g = sports.nfl.models.Game.objects.get(srid=srid)
+        except sports.nfl.models.Game.DoesNotExist:
+            g = sports.nfl.models.Game()
+            g.srid = srid
+
+        g.home      = h
+        g.away      = a
+        g.start     = start
+        g.status    = status
+        g.srid_home = srid_home
+        g.srid_away = srid_away
+        g.title     = title
+        g.save()
+
+    def create_player_stats(self, position_name = None):
+        srid_game   = "0b02fc10-01fe-4a78-8168-4b9e5979a0f5"
+        srid_player = "096943d8-5430-49ad-9788-7f38415d6a75"
+
+        p = sports.nfl.models.Player.objects.get(srid=srid_player)
+        g = sports.nfl.models.Game.objects.get(srid=srid_game)
+
+        try:
+            ps = sports.nfl.models.PlayerStats.objects.get( srid_game=srid_game, srid_player=srid_player )
+        except sports.nfl.models.PlayerStats.DoesNotExist:
+            ps = sports.nfl.models.PlayerStats()
+            ps.srid_game    = srid_game
+            ps.srid_player  = srid_player
+            ps.player  = p
+            ps.game    = g
+
+        #content_type    = models.ForeignKey(ContentType, related_name='nfl_playerstats')
+
+        # passing
+        ps.pass_td     = 0
+        ps.pass_yds    = 0
+        ps.pass_int    = 0
+
+        # rushing
+        ps.rush_td     = 0
+        ps.rush_yds    = 0
+
+        # receiving
+        ps.rec_td      = 0
+        ps.rec_yds     = 0
+        ps.rec_rec     = 0
+
+        # (offensive) fumbles lost
+        ps.off_fum_lost = 0
+        # (offensive) fum recovery for td
+        ps.off_fum_rec_td = 0
+
+        # 2 point conversion
+        ps.two_pt_conv     = 0
+
+        #
+        # defensive stats:
+        ps.sack            = 0
+        ps.ints            = 0
+        ps.fum_rec         = 0
+
+        # return tds
+        ps.ret_kick_td     = 0
+        ps.ret_punt_td     = 0
+        ps.ret_int_td      = 0
+        ps.ret_fum_td      = 0
+        ps.ret_blk_punt_td = 0
+        ps.ret_fg_td       = 0
+        ps.ret_blk_fg_td   = 0
+
+        # misc
+        ps.sfty            = 0
+        ps.blk_kick        = 0
+
+        # stats which factor into the DST "points allowed"
+        #  ... includes safeties against the teams offense,
+        #      plus interceptions and fumbles returned for TDs!
+        ps.int_td_against  = 0
+        ps.fum_td_against  = 0
+        ps.off_pass_sfty   = 0
+        ps.off_rush_sfty   = 0
+        ps.off_punt_sfty   = 0
+
+        if position_name == None:
+            ps.position = p.position
+        else:
+            ssp = SiteSportPosition()
+            position = ssp.get_position(site_sport="nfl", name=position_name)
+            ps.position = position
+
+        ps.save() # commit changes
+
+        self.player_stats = ps
+
+        return ps
+
+    def update_player_stats(self, stat_list):
+        for stat in stat_list.keys():
+            setattr(self.player_stats, stat, stat_list[stat])
+        self.player_stats.save()
+
+    def test_stats_all_0(self):
+        # Test that when all stats are set to 0, the score is 0
+        self.create_player_stats()
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), 0)
+
+    def test_passing_yds(self):
+        # Test various values of passing yards to make sure the calculations are correct, including yardage bonus
+        self.create_player_stats()
+        for yards in range(0, 400, 36):
+            self.update_player_stats({'pass_yds': yards})
+            total = yards * self.nfl_Salary_Score_System.get_value_of('pass-yds')
+            total += self.nfl_Salary_Score_System.get_value_of('pass-bonus') if yards >= self.nfl_Salary_Score_System.PASSING_BONUS_REQUIRED_YDS else 0
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_passing_tds(self):
+        # Test various values of passing touchdowns to make sure the calculations are correct
+        self.create_player_stats()
+        for tds in range(0, 10):
+            self.update_player_stats({'pass_td': tds})
+            total = tds * self.nfl_Salary_Score_System.get_value_of('pass-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_passing_int(self):
+        # Test various values of passing interceptions to make sure the calculations are correct
+        self.create_player_stats()
+        for yards in range(0, 10):
+            self.update_player_stats({'pass_int': yards})
+            total = yards * self.nfl_Salary_Score_System.get_value_of('pass-int')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_rushing_yds(self):
+        # Test various values of rushing yards to make sure the calculations are correct, including yardage bonus
+        self.create_player_stats()
+        for yards in range(0, 200, 18):
+            self.update_player_stats({'rush_yds': yards})
+            total = yards * self.nfl_Salary_Score_System.get_value_of('rush-yds')
+            total += self.nfl_Salary_Score_System.get_value_of('rush-bonus') if yards >= self.nfl_Salary_Score_System.RUSHING_BONUS_REQUIRED_YDS else 0
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_rushing_tds(self):
+        # Test various values of rushing touchdowns to make sure the calculations are correct
+        self.create_player_stats()
+        for tds in range(0, 10):
+            self.update_player_stats({'rush_td': tds})
+            total = tds * self.nfl_Salary_Score_System.get_value_of('rush-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_receiving_yds(self):
+        # Test various values of receiving yards to make sure the calculations are correct, including yardage bonus
+        self.create_player_stats()
+        for yards in range(0, 400, 36):
+            self.update_player_stats({'rec_yds': yards})
+            total = yards * self.nfl_Salary_Score_System.get_value_of('rec-yds')
+            total += self.nfl_Salary_Score_System.get_value_of('rec-bonus') if yards >= self.nfl_Salary_Score_System.RECEIVING_BONUS_REQUIRED_YDS else 0
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_receiving_tds(self):
+        # Test various values of receiving touchdowns to make sure the calculations are correct
+        self.create_player_stats()
+        for tds in range(0, 10):
+            self.update_player_stats({'rec_td': tds})
+            total = tds * self.nfl_Salary_Score_System.get_value_of('rec-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_receiving_receptions(self):
+        # Test various values of receptions to make sure the calculations are correct
+        self.create_player_stats()
+        for receptions in range(0, 10):
+            self.update_player_stats({'rec_rec': receptions})
+            total = receptions * self.nfl_Salary_Score_System.get_value_of('ppr')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_fumble_lost(self):
+        # Test various values of fumbles lost to make sure the calculations are correct
+        self.create_player_stats()
+        for fumbles in range(0, 10):
+            self.update_player_stats({'off_fum_lost': fumbles})
+            total = fumbles * self.nfl_Salary_Score_System.get_value_of('fumble-lost')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_fumble_recovered_for_td(self):
+        # Test various values of fumbles recovered for a touchdown to make sure the calculations are correct
+        self.create_player_stats()
+        for fumbles in range(0, 400, 36):
+            self.update_player_stats({'off_fum_rec_td': fumbles})
+            total = fumbles * self.nfl_Salary_Score_System.get_value_of('off-fum-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_two_point_conversion(self):
+        # Test various values of two point conversions to make sure the calculations are correct
+        self.create_player_stats()
+        for tpc in range(0, 400, 36):
+            self.update_player_stats({'two_pt_conv': tpc})
+            total = tpc * self.nfl_Salary_Score_System.get_value_of('two-pt-conv')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_sacks(self):
+        # Test various values of sacks to make sure the calculations are correct
+        self.create_player_stats()
+        for sacks in range(0, 10):
+            self.update_player_stats({'sack': sacks})
+            total = sacks * self.nfl_Salary_Score_System.get_value_of('sack')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_interceptions(self):
+        # Test various values of interceptions to make sure the calculations are correct
+        self.create_player_stats()
+        for sacks in range(0, 10):
+            self.update_player_stats({'ints': sacks})
+            total = sacks * self.nfl_Salary_Score_System.get_value_of('ints')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_fumble_recoveries(self):
+        # Test various values of fumble recoveries to make sure the calculations are correct
+        self.create_player_stats()
+        for recoveries in range(0, 10):
+            self.update_player_stats({'fum_rec': recoveries})
+            total = recoveries * self.nfl_Salary_Score_System.get_value_of('fum-rec')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_kick_return_td(self):
+        # Test various values of kick return touchdowns to make sure the calculations are correct
+        self.create_player_stats()
+        for kick_ret_td in range(0, 10):
+            self.update_player_stats({'ret_kick_td': kick_ret_td})
+            total = kick_ret_td * self.nfl_Salary_Score_System.get_value_of('kick-ret-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_punt_return_td(self):
+        # Test various values of punt return touchdowns to make sure the calculations are correct
+        self.create_player_stats()
+        for punt_ret_td in range(0, 10):
+            self.update_player_stats({'ret_punt_td': punt_ret_td})
+            total = punt_ret_td * self.nfl_Salary_Score_System.get_value_of('punt-ret-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_interception_return_td(self):
+        # Test various values of nterception return touchdowns to make sure the calculations are correct
+        self.create_player_stats()
+        for interception_ret_td in range(0, 10):
+            self.update_player_stats({'ret_int_td': interception_ret_td})
+            total = interception_ret_td * self.nfl_Salary_Score_System.get_value_of('int-ret-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_fumble_return_td(self):
+        # Test various values of fumble return touchdowns to make sure the calculations are correct
+        self.create_player_stats()
+        for fumble_ret_td in range(0, 10):
+            self.update_player_stats({'ret_fum_td': fumble_ret_td})
+            total = fumble_ret_td * self.nfl_Salary_Score_System.get_value_of('fum-ret-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_blocked_punt_return_td(self):
+        # Test various values of blocked punt return touchdowns to make sure the calculations are correct
+        self.create_player_stats()
+        for blocked_punt_ret_td in range(0, 10):
+            self.update_player_stats({'ret_blk_punt_td': blocked_punt_ret_td})
+            total = blocked_punt_ret_td * self.nfl_Salary_Score_System.get_value_of('blk-punt-ret-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_field_goal_return_td(self):
+        # Test various values of field goal return touchdowns to make sure the calculations are correct
+        self.create_player_stats()
+        for field_goal_ret_td in range(0, 10):
+            self.update_player_stats({'ret_fg_td': field_goal_ret_td})
+            total = field_goal_ret_td * self.nfl_Salary_Score_System.get_value_of('fg-ret-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_blocked_field_goal_return_td(self):
+        # Test various values of blocked field goal return touchdowns to make sure the calculations are correct
+        self.create_player_stats()
+        for field_goal_ret_td in range(0, 10):
+            self.update_player_stats({'ret_blk_fg_td': field_goal_ret_td})
+            total = field_goal_ret_td * self.nfl_Salary_Score_System.get_value_of('blk-fg-ret-td')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_safety(self):
+        # Test various values of safety to make sure the calculations are correct
+        self.create_player_stats()
+        for safety in range(0, 10):
+            self.update_player_stats({'sfty': safety})
+            total = safety * self.nfl_Salary_Score_System.get_value_of('safety')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_blocked_kick(self):
+        # Test various values of blocked kick to make sure the calculations are correct
+        self.create_player_stats()
+        for blocked_kick in range(0, 10):
+            self.update_player_stats({'blk_kick': blocked_kick})
+            total = blocked_kick * self.nfl_Salary_Score_System.get_value_of('blk-kick')
+            self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats), total)
+
+    def test_points_allowed(self):
+        # Test various values of points allowed to make sure the calculations are correct
+        self.create_player_stats(position_name='DST')
+        # Start with 46 points scored by the opponent.  Then, add points scored by the opponent as a result of DST points.
+        # This will reduce the points that are used to calculate points against.
+        points_allowed = 46
+        total = self.nfl_Salary_Score_System.get_value_of('pa-35plus')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Add an interception returned for a touchdown, reducing the DST points to 40.
+        # This should still be in the pa-35plus category
+        self.update_player_stats({'int_td_against': 1})
+        total = self.nfl_Salary_Score_System.get_value_of('pa-35plus')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Add a fumble returned for a touchdown, reducing the DST points to 34.
+        # This should be in the pa-34 category
+        self.update_player_stats({'fum_td_against': 1})
+        total = self.nfl_Salary_Score_System.get_value_of('pa-34')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Add another fumble returned for a touchdown, reducing the DST points to 28.
+        # This should still be in the pa-34 category
+        self.update_player_stats({'fum_td_against': 2})
+        total = self.nfl_Salary_Score_System.get_value_of('pa-34')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Change the points allowed to 45, reducing the DST points to 27.
+        # This should be in the pa-27 category
+        points_allowed = 45
+        total = self.nfl_Salary_Score_System.get_value_of('pa-27')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Add a pass, rush, and punt safety, reducing the DST points to 21.
+        # This should still be in the pa-27 category
+        self.update_player_stats({'off_pass_sfty': 1, 'off_rush_sfty': 1, 'off_punt_sfty': 1})
+        total = self.nfl_Salary_Score_System.get_value_of('pa-27')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Change the points allowed to 44, reducing the DST points to 20.
+        # This should be in the pa-20 category
+        points_allowed = 44
+        total = self.nfl_Salary_Score_System.get_value_of('pa-20')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Add another interception returned for a touchdown, reducing the DST points to 14.
+        # This should still be in the pa-20 category
+        self.update_player_stats({'int_td_against': 2})
+        total = self.nfl_Salary_Score_System.get_value_of('pa-20')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Change the points allowed to 43, reducing the DST points to 13.
+        # This should be in the pa-13 category
+        points_allowed = 43
+        total = self.nfl_Salary_Score_System.get_value_of('pa-13')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Add another fumble returned for a touchdown, reducing the DST points to 7.
+        # This should still be in the pa-13 category
+        self.update_player_stats({'fum_td_against': 3})
+        total = self.nfl_Salary_Score_System.get_value_of('pa-13')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Change the points allowed to 42, reducing the DST points to 6.
+        # This should be in the pa-6 category
+        points_allowed = 42
+        total = self.nfl_Salary_Score_System.get_value_of('pa-6')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Add another pass, and punt safety, reducing the DST points to 2.
+        # This should still be in the pa-6 category
+        self.update_player_stats({'off_pass_sfty': 2, 'off_punt_sfty': 2})
+        total = self.nfl_Salary_Score_System.get_value_of('pa-6')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Change the points allowed to 41, reducing the DST points to 1.
+        # This should be in the pa-6 category
+        points_allowed = 41
+        total = self.nfl_Salary_Score_System.get_value_of('pa-6')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
+
+        # Change the points allowed to 40, reducing the DST points to 0.
+        # This should be in the pa-0 category
+        points_allowed = 40
+        total = self.nfl_Salary_Score_System.get_value_of('pa-0')
+        self.assertAlmostEquals(self.nfl_Salary_Score_System.score_player(self.player_stats, opp_score = points_allowed), total)
 
