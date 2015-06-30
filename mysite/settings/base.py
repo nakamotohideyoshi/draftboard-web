@@ -37,10 +37,10 @@ TEMPLATES = [
     {
         'BACKEND' : 'django.template.backends.django.DjangoTemplates',
         'DIRS'    : [
+            join(BASE_DIR, 'templates'),
             join(BASE_DIR, 'account/templates'),
             join(BASE_DIR, 'prize/templates'),
             join(BASE_DIR, 'salary/templates'),
-            join(BASE_DIR, 'mysite/templates'),
             join(BASE_DIR, 'sports/templates')
         ],
         'APP_DIRS': True, # defaults to False
@@ -63,6 +63,7 @@ TEMPLATES = [
 # Folder locations
 STATICFILES_DIRS = (
     PROJECT_ROOT.child('static'),
+    PROJECT_ROOT.child('static').child('build')
 )
 
 # Templates
@@ -80,7 +81,7 @@ TEMPLATE_DEBUG = DEBUG
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 # Static assets, served via django-whitenoise
-STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
+STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/build/'
 
 # Redirects to same URL with end slash if it can't find the page
 APPEND_SLASH = True
@@ -250,10 +251,9 @@ INSTALLED_APPS = (
     'scoring',
     'roster',
     'test',
-
     'salary',
-
     'draftgroup',
+    'frontend', # front end styles, layout, etc
 )
 
 MIDDLEWARE_CLASSES = (
