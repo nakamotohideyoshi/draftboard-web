@@ -1,24 +1,37 @@
+#
+# test/models.py
 
 from django.db import models
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-
 from transaction.models import TransactionDetail, Balance
-from sports.models import Game, PlayerStats, Player
-
-
+from sports.models import Game, PlayerStats, Player, Team
 
 #
-# Test models must be created outside of the test
-# class
+# Test models must be created outside of the tests
 class TransactionDetailChild(TransactionDetail):
     pass
 
 class BalanceChild(Balance):
     pass
 
+class TeamChild(Team):
+
+    class Meta:
+        abstract = False
+
+    def __str__(self):
+        return super().__str__()
 
 class GameChild(Game):
+
+    home = models.ForeignKey( TeamChild, null=True, related_name='gamechild_hometeam')
+    srid_home   = models.CharField(max_length=64, null=True,
+                                help_text='home team sportsradar global id')
+
+    away = models.ForeignKey( TeamChild, null=True, related_name='gamechild_awayteam')
+    srid_away   = models.CharField(max_length=64, null=True,
+                                help_text='away team sportsradar global id')
+    title       = models.CharField(max_length=128, null=True)
+
     class Meta:
         abstract = False
 
@@ -26,6 +39,9 @@ class GameChild(Game):
         return super().__str__()
 
 class PlayerChild(Player):
+
+    team    = models.ForeignKey( TeamChild, null=True )
+
     class Meta:
         abstract = False
 
@@ -33,42 +49,9 @@ class PlayerChild(Player):
         return super().__str__()
 
 class PlayerStatsChild(PlayerStats):
+
     class Meta:
         abstract = False
 
     def __str__(self):
         return super().__str__()
-
-# class Parent(models.Model):
-#     """
-#     quick test of generic foreign key for something else
-#     """
-#     created     = models.DateTimeField(auto_now_add=True, null=False)
-#     val         = models.IntegerField(default=0, null=False)
-#
-#     #
-#     # the generic foreign key to
-#     parent_type = models.ForeignKey(ContentType)
-#     parent_id   = models.PositiveIntegerField()
-#     parent      = GenericForeignKey('parent_type', 'parent_id')
-#
-#     #grandchilds = GenericRelation('GrandChild', )
-#
-# class Child(models.Model):
-#
-#     created     = models.DateTimeField(auto_now_add=True, null=False)
-#     text        = models.TextField(max_length=16, null=False, default='')
-#
-#     parents     = GenericRelation(Parent, content_type_field='parent_type',
-#                                   object_id_field='parent_id')
-#
-#
-#     class Meta:
-#         abstract = True
-#
-# class GrandChild(Child):
-#
-#     text_2 = models.TextField(max_length=32, default='', null=False)
-#
-#     class Meta:
-#         abstract = False

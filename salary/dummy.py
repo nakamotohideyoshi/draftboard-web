@@ -8,7 +8,7 @@ salary pools (and this code may also be useful for testing draft groups & lineup
 or anything that interacts with salary stuff.
 """
 from collections import OrderedDict
-from test.models import PlayerChild, PlayerStatsChild, GameChild
+from test.models import PlayerChild, PlayerStatsChild, GameChild, TeamChild
 from django.utils import timezone
 from .classes import SalaryGenerator
 from datetime import date, timedelta
@@ -39,6 +39,13 @@ class Dummy(object):
         ('WR',1,1,True)     :['WR'],
         ('FLEX',1,2,False)  :['RB','WR','TE']
     }
+
+    # this class will iterate these to create dummy teams
+    # if game or player objects need foreign keys to them
+    DEFAULT_TEAMS = [
+        ('away','AWAY'),
+        ('home','HOME')
+    ]
 
     # Shared setup methods for the test cases
     @staticmethod
@@ -120,30 +127,53 @@ class Dummy(object):
         dt_now  = timezone.now()
         unix_ts = dt_now.strftime('%s') # unix timestamp as srid ... not bad
 
+
         game    = Dummy.create_game(srid='game'+unix_ts)
-        player  = Dummy.create_player(srid='player'+unix_ts, position=position)
+
+        player  = Dummy.create_player(srid='player'+unix_ts, position=position, team=game.home)
 
         player_stats = Dummy.create_player_stats_model(game, player)
 
         return player_stats
 
     @staticmethod
-    def create_game(srid, status='closed'):
+    def create_team(srid, alias):
+        t, created = TeamChild.objects.get_or_create(srid=srid, alias=alias)
+        return t
+
+    @staticmethod
+    def create_game(srid=None, status='closed', away=None, home=None):
+        #site_sport, created = SiteSport.objects.get_or_create(name=sport)
+
+        if away is None:
+            away    = Dummy.create_team('away', 'AWAY')
+        if home is None:
+            home    = Dummy.create_team('home', 'HOME')
+
         dt_now = timezone.now()
-        game                            = GameChild()
-        game.srid                       = srid
-        game.start                      = dt_now
-        game.status                     = status
+        game                    = GameChild()
+
+        game.srid               = srid
+        game.start              = dt_now
+        game.status             = status
+
+        game.away               = away
+        game.home               = home
+
         game.save()
         return game
 
     @staticmethod
-    def create_player(srid, position):
+    def create_player(srid, position, team):
+
         player                          = PlayerChild()
         player.srid                     = srid
         player.first_name               = "Jon"
         player.last_name                = "Doe"
         player.position                 = position
+
+        player.team                     = team
+
         player.save()
         return player
 
@@ -161,6 +191,7 @@ class Dummy(object):
 
     @staticmethod
     def create_games(n=20):
+        #site_sport, created = SiteSport.objects.get_or_create(name=sport)
         dt_now  = timezone.now()
         unix_ts = int(dt_now.strftime('%s')) # unix timestamp as srid ... not bad
         games = []
@@ -169,10 +200,16 @@ class Dummy(object):
         return games
 
     @staticmethod
-    def create_players(n=20):
+    def create_players(n=20, teams=DEFAULT_TEAMS):
         """
         calls Dummy.create_roster() and then creates X players using the positions from the roster
         """
+        team_list = []
+        for t in teams:
+            team, create = TeamChild.objects.get_or_create( srid=t[0], alias=t[1] )
+            team_list.append( team )
+        n_teams = len(team_list)
+
         dt_now = timezone.now()
         unix_ts = int(dt_now.strftime('%s'))
         Dummy.create_roster()
@@ -181,7 +218,9 @@ class Dummy(object):
         players = []
         for x in range(0, n):
             pos_idx = x % (size)
-            players.append( Dummy.create_player(srid='%s' % (unix_ts+x), position=positions[pos_idx]))
+            players.append( Dummy.create_player(srid='%s' % (unix_ts+x),
+                                                position=positions[ pos_idx ],
+                                                team=team_list[ x % n_teams ] ))
         return players
 
     @staticmethod
