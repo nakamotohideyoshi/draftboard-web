@@ -118,6 +118,7 @@ class SiteSportManager(object):
         matching_arr = []
         for content_type in content_types:
             content_class = content_type.model_class()
+            #print( content_class, 'type:', type(content_class))
             if issubclass(content_class, parent_class):
                 matching_arr.append(content_class)
 

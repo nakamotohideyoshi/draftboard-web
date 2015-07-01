@@ -64,6 +64,11 @@ class DfsDateTimeUtil(object):
         if dt.tzinfo is not self.UTC_TIMEZONE:
             raise self.NotUtcTimezoneException('the supplied datetime object must be in utc')
 
+    @staticmethod
+    def create(date, time, tzinfo=UTC_TIMEZONE):
+        dt = datetime(date.year, date.month, date.day, time.hour, time.minute, tzinfo=tzinfo)
+        return dt
+
     # def get_(self, dt):
     #     """
     #     For the given datetime 'dt', return a new datetime object
