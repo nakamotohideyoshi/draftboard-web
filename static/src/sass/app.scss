@@ -1,32 +1,41 @@
-@import "./variables.scss";
+/**
+  In here we can @import anything that doesn't belong to a specific component.
 
-// Font import
-@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700|Oswald:400);
+  For css that does belong to a component, just require() it in the
+  component's jsx file.
+**/
 
-
-// Reusable mixins
-@import "./mixins/_media-queries.scss";
-
-
-// In here we can @import anything that doesn't belong to a specific component
-// For css that does belong to a component, just require() it in the component's jsx file.
-@import "./base.scss";
-@import "./layouts.scss";
-
-// Per the BEM methodology, these are where the blocks are imported
-@import "./blocks/button.scss";
-@import "./blocks/form.scss";
-@import "./blocks/nav-main.scss";
-@import "./blocks/pane.scss";
-@import "./blocks/score-ticker.scss";
-@import "./blocks/sidebar.scss";
-@import "./blocks/table.scss";
+@import"./base.scss";
+@import"./blocks/button.scss";
 
 
-/* Components */
-@import "./blocks/cmp-data-table-filter.scss";
-@import "./blocks/cmp-contest-list.scss";
-@import "./blocks/cmp-contest-detail.scss";
 
-// For now have style guide in here (not needed on production)
-@import "./styleguide.scss";
+
+
+// Junk prototype styles - plz dump these once development gets started.
+
+#contest-table {
+  width: 70%;
+  display: inline-block;
+  border: 1px solid #ddd;
+
+  table {
+    tr {
+      cursor: pointer;
+
+      &:hover {
+        background: yellow;
+      }
+    }
+    td {
+      padding: 3px 30px;
+    }
+  }
+}
+
+#contest-detail {
+  display: inline-block;
+  width: 25%;
+  border: 1px solid #ddd;
+}
+
