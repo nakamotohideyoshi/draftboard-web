@@ -12,7 +12,7 @@ The purpose of this project is to make it insanely easy to start up a python3.4 
 ##### Prerequisites:
 
 * [Vagrant](https://www.vagrantup.com/downloads.html)
-* Git 		
+* Git
 
 ##### Step 1:
 
@@ -20,14 +20,14 @@ The purpose of this project is to make it insanely easy to start up a python3.4 
 2.	 cd vagrant-django
 3. 	 vagrant up
 4. 	 vagrant ssh
-  
+
 To connect from a browser on your local computer, bring up gunicorn or runserver:
 
     cd /vagrant && ./manage.py runserver 127.0.0.1:8000
 
 or
 
-    cd /vagrant && /home/vagrant/venv/bin/gunicorn mysite.wsgi 
+    cd /vagrant && /home/vagrant/venv/bin/gunicorn mysite.wsgi
 -->
 
 ##Client-Side Development
@@ -43,23 +43,25 @@ To build the front-end project you'll need to install the following.
 
 ### Setup
 
-    
-In the project root, install all global dependiencies. 
+
+In the project root, install all global dependiencies.
 
     $ npm run install_global_modules
 
-Install local prject dependencies.
+Install local prject dependencies. Note that you have to explicitly associate python 2.7 due to gyp, used by node-sass.
 
-    $ npm install
+    $ npm install --python=PATH_TO_PYTHON2.7
 
 
 ### Building
-    
+
 Install and activate the node version the project uses (dictated by the .nvrmc file)
 
     $ nvm install
     $ nvm use
 
+NOTE: If nvm install fails due to a print statement error, then it's a python3/python2 issue. Try running `nvm install`
+outside the virtualenv where python 2.7 is the default.
 
 In the package.json file, you'll see our npm tasks under the "scripts" key. These are what we'll use to run Webpack's devserver, test, and build the app.
 
@@ -75,3 +77,10 @@ We're using Mocha, the testing options are defined in <code>/static/src/js/test/
 To run the tests:
 
     $ npm run test
+
+
+### Running
+
+- Run `npm run devserver` to begin using webpack and generating all necessary frontend files.
+- Run `python manage.py runserver 0.0.0.0:8000 --verbosity 3` to start up Django instance. This will require that Postgres
+and Redis are both running.

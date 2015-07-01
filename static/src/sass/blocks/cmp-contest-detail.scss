@@ -1,0 +1,68 @@
+.cmp-contest-detail {
+  height: 100%;
+
+  &--contest {
+    background: #fff;
+    height: 100%;
+    width: 412px;
+  }
+
+  &--title {
+    font-family: $font-georgia;
+    font-size: 30px;
+  }
+
+  &--header {
+    background: linear-gradient(135deg, rgba(21,30,46,1) 0%, rgba(70,89,120,1) 100%);
+    color: #fff;
+    padding: 20px 50px;
+  }
+
+  &--details {
+    li {
+      display: inline-block;
+      padding: 10px;
+    }
+
+    .title {
+      display: block;
+      font-size: 10px;
+    }
+  }
+
+  > div {
+    height: 100%;
+  }
+}
+
+
+
+/* enter */
+.example-enter {
+  position: absolute;
+  transform: translateX(100%);
+  transition: all .35s ease-out;
+  top: 0px;
+  left: 0px;
+}
+
+.example-enter.example-enter-active {
+  transform: translateX(0%);
+}
+
+/* Leave */
+.example-leave {
+  transform-style: preserve-3d;
+  opacity: 1;
+  transform-origin: left;
+  perspective-origin: left;
+  position: absolute;
+  transition: all .35s ease-out;
+}
+
+.example-leave.example-leave-active {
+  top: 0;
+  left: 0px;
+  transform: perspective(412px) rotateY(45deg);
+  opacity: 0.01;
+}

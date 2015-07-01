@@ -4,7 +4,7 @@
 */
 
 var log = require("loglevel");
-var config = require("config");
+var config = require("../config");
 
 
 log.setLevel(config.logLevel);

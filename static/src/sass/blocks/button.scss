@@ -1,33 +1,139 @@
 // Button Styles
 
-.button {
-  background: #525c63;
-  border: 1px solid transparent;
-  color: #fff;
-  cursor:  pointer;
+// @extends
+// -----------------------------------------------------
+
+// extend from this to
+// - prevent a button from wrapping text
+// - have a default open sans font
+// - proper touch handling
+// - default animations
+%button {
+  border-radius: 2px;
+  cursor: pointer;
   display: inline-block;
+  font-family: $font-open-sans;
+  font-weight: 200;
   margin: 0;
-  padding: 12px 40px;
   text-align: center;
   text-decoration: none;
+  transition: all 0.2s;
   touch-action: manipulation;
   vertical-align: middle;
   white-space: nowrap;
 
-  &:hover {
-    background-color: #121B24;
+  &:focus {
+    // prevent the safari glow
+    outline-width: 0;
+  }
+}
+
+// extend from for white text, transparent border
+%button--primary {
+  // so that if outline mode needed, it doesn't change size
+  border: 1px solid transparent;
+  color: #fff;
+}
+
+// extend from for outline mode, aka gray border, white background
+%button--outline {
+  background: none;
+  // so that if outline mode needed, it doesn't change size
+  border: 1px solid $secondary-grey;
+  color: #525c63;
+
+  &:hover,
+  &:focus {
+    border-color: $secondary-charcoal;
+    color: $secondary-charcoal;
+  }
+  &:focus {
+    box-shadow: inset 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// extend from for small sizing
+%button--medium {
+  font-size: 9.5px;
+  letter-spacing: 1.5px;
+  min-width: 100px;
+  padding: 11px 18px;
+  text-transform: uppercase;
+}
+
+// extend from for small sizing
+%button--small {
+  font-size: 11px;
+  padding: 10px 30px;
+}
+
+
+// class styles
+// -----------------------------------------------------
+
+.button--large {
+  @extend %button;
+  @extend %button--primary;
+
+  background: $secondary-charcoal;
+  font-size: 13px;
+  padding: 18px 0;
+  width: 100%;
+
+  &:hover,
+  &:focus {
+    background: #38424a;
   }
 
-  // Alternate button
-  &__alt {
-    background: #fff;
-    border: 1px solid #A6ADB3;
-    color: #7D868A;
+  &:focus {
+    box-shadow: inset 0px 0px 15px 0px #000;
+  }
+}
 
-    &:hover {
-      background: #fff;
-      border-color: #232D36;
-    }
+.button--medium {
+  @extend %button;
+  @extend %button--medium;
+  @extend %button--primary;
+
+  background: #252939;
+
+  &:hover,
+  &:focus {
+    background: #252939;
   }
 
+  &:focus {
+    box-shadow: inset 0px 0px 10px 0px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.button--medium--outline {
+  @extend %button;
+  @extend %button--medium;
+  @extend %button--outline;
+}
+
+
+.button--small {
+  @extend %button;
+  @extend %button--primary;
+  @extend %button--small;
+
+  background: $primary-charcoal;
+
+  &:hover,
+  &:focus {
+    background: $secondary-charcoal;
+  }
+  &:focus {
+    box-shadow: inset 0px 0px 10px 0px #000;
+  }
+  &.active {
+    background: #d83036;
+  }
+}
+.button--small--outline {
+  @extend %button;
+  @extend %button--small;
+  @extend %button--outline;
 }

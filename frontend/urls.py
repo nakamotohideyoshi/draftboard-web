@@ -1,0 +1,11 @@
+from django.conf.urls import patterns
+
+from frontend import views
+
+urlpatterns = patterns(
+    '',
+    (r'^frontend/layout/$', views.FrontendLayoutTemplateView.as_view()),
+    (r'^frontend/styleguide/$', views.FrontendStyleGuideTemplateView.as_view()),
+    (r'^frontend/lobby/$', views.FrontendLobbyTemplateView.as_view()),
+    (r'^frontend/settings/$', views.FrontendSettingsTemplateView.as_view()),
+)

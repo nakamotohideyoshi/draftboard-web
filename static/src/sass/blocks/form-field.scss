@@ -1,0 +1,97 @@
+.form-field {
+  margin-bottom: 12px;
+  position: relative;
+
+  // used to show checkmark on certain form elements only
+  &--valid {
+    background: #fff url(../img/blocks/form/checkmark.svg) no-repeat right center;
+  }
+
+  // when there's an error, set input to red
+  &--error {
+    .form-field__text-input,
+    .form-field__password-input {
+      border-color: $error-red;
+    }
+  }
+
+  &__label {
+    font-size: 12px;
+    left: -122px;
+    min-width: 100px;
+    position: absolute;
+    text-align: right;
+    top: 14px;
+
+    &--twoline {
+      top: 4px;
+    }
+  }
+
+  &__input-wrapper {
+
+  }
+
+  &__text-input,
+  &__password-input {
+    border: 1px solid $primary-grey;
+    border-radius: 2px;
+    color: $primary-charcoal;
+    font-family: $font-open-sans;
+    font-size: 13px;
+    max-width: 346px;
+    padding: 12px 20px;
+    transition: all 0.2s;
+    vertical-align: middle;
+    white-space: nowrap;
+    width: 100%;
+
+    // placeholder color needs to be separated by browser prefix
+    &::-webkit-input-placeholder {
+      color: $primary-charcoal;
+    }
+    &::-moz-placeholder {
+      color: $primary-charcoal;
+    }
+    &:-ms-input-placeholder {
+      color: $primary-charcoal;
+    }
+
+    &:focus {
+      border-color: $secondary-charcoal;
+      color: $primary-charcoal;
+      // prevent the safari glow
+      outline-width: 0;
+    }
+    &:focus::-webkit-input-placeholder {
+      color:transparent;
+    }
+
+    &:disabled {
+      background: #f8f9f9;
+      color: $primary-charcoal;
+    }
+
+    &.attempted{
+      &:invalid {
+        border-color: $error-red;
+      }
+
+      &:valid {
+        border-color: $success-green;
+      }
+    }
+  }
+
+  // when there's a paragraph of help text at the top of the field
+  &--with-help {
+    .form-field__info {
+      padding-top: 8px;
+      max-width: 348px;
+    }
+
+    .form-field__label {
+      top: 10px;
+    }
+  }
+}

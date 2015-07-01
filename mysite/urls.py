@@ -45,6 +45,8 @@ urlpatterns = [
     url(r'^salary/', include(salary.urls)),
     url(r'^sports/', include(sports.urls)),
 
+    url(r'', include('frontend.urls', namespace='frontend')),
+
     #
     # this came with rest_framework
     url(r'^', include(router.urls)),
