@@ -222,13 +222,15 @@ class Dummy(object):
     @staticmethod
     def generate_salaries(sport=DEFAULT_SPORT, pool_active=True):
         """
-        it is a prerequisite that create_roster() and create_player_stats_list() have been called first
+        internally, in this order, calls:
+            - create_roster()
+            - create_player_stats_list()
 
         returns the SalaryGenerator which created the salaries.
         """
 
         # prerequisite calls to create_roster(), create_player_stats_list()
-        Dummy.create_roster()
+        Dummy.create_roster(sport=sport)
         Dummy.create_player_stats_list()
 
         #

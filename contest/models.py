@@ -70,7 +70,7 @@ class Contest(models.Model):
     def games(self):
         game_model = self.__get_game_model()
         return game_model.objects.filter( start__gte=self.start, start__lt=self.end )
-        
+
 class Entry(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
