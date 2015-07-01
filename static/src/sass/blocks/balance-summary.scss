@@ -1,0 +1,65 @@
+@import "../variables.scss";
+
+// Block on the account settings page in the sidebar
+// Shows the user their account balance and actions to deposit, withdraw
+.balance-summary {
+  background: #252939;
+  margin: 42px 0;
+  text-align: center;
+  padding: 20px;
+
+  h2 {
+    color: #fff;
+    font-size: 26px;
+    font-family: $font-oswald;
+    text-transform: uppercase;
+    font-weight: 400;
+    margin: 0;
+    padding: 24px 0;
+
+    sup {
+      color: #726d8a;
+      font-family: $font-open-sans;
+      font-size: 9px;
+      display: block;
+      letter-spacing: 1px;
+      padding-bottom: 2px;
+    }
+
+    &:first-child {
+      padding-top: 6px;
+    }
+  }
+
+  .currency {
+    color: #726d8a;
+  }
+
+  hr {
+    height: 1px;
+    border: none;
+    background: #726d8a;
+    width: 174px;
+  }
+
+  .balance-summary--action {
+    border: 1px solid #726d8a;
+    border-radius: 2px;
+    color: #fff;
+    display: block;
+    font-family: $font-open-sans;
+    text-transform: uppercase;
+    font-size: 9px;
+    letter-spacing: 1px;
+    margin: 6px 0;
+    cursor: pointer;
+    font-weight: 200;
+    text-align: center;
+    text-decoration: none;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    vertical-align: middle;
+    white-space: nowrap;
+    padding: 14px 40px;
+  }
+}

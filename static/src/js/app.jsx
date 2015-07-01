@@ -4,19 +4,14 @@
 require("app.scss");
 
 //var config = require("config");
-var React = require("react");
 var log = require("lib/logging");
+log.debug('Bootstrapping app via app.jsx');
 
-
-require("components/app-state-class");
+require('actions/keypress-actions');
 
 // Add top-level react components to the app, any dependencies of those components will be loaded also.
-var ContestTable = require("components/contest-list/contest-list.jsx");
-
-if (document.querySelectorAll("#contest-table").length) {
-  log.debug("React.rendering ContestTable into DOM.");
-  React.render(<ContestTable />, document.getElementById("contest-table"));
-}
-
-
-require("components/contest-list/contest-list-item-detail.jsx");
+require("components/form-field/ssn");
+require("components/site/hamburger-menu");
+require("components/site/app-state-class");
+require("components/score-ticker/score-ticker");
+require("components/contest-list/contest-list");

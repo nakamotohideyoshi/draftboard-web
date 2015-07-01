@@ -1,0 +1,48 @@
+// When you are in account settings, this is the top left portion of the sidebar where you can sign out
+.settings-section--nav {
+  ul {
+    list-style: none;
+    border-bottom: 2px solid #e0e3e4;
+  }
+
+  li {
+    display: inline-block;
+    padding: 0 23px;
+
+    a {
+      border-bottom: 2px solid #e0e3e4;
+      color: #c6cacc;
+      display: inline-block;
+      padding: 18px 0 56px;
+      text-decoration: none;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-family: $font-open-sans;
+      font-weight: 600;
+      letter-spacing: 1px;
+      position: relative;
+      bottom: -2px;
+    }
+
+    &:first-child {
+      padding-left: 0;
+    }
+    &:last-child {
+      padding-right: 0;
+    }
+
+    &:hover {
+      a {
+        color: #525c63;
+      }
+    }
+
+    &.active {
+      a {
+        color: #293f4f;
+        border-image: linear-gradient(to right, #219d87, #34cc68) 100% 1;
+        border-width: 0 0 2px 0;
+      }
+    }
+  }
+}

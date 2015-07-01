@@ -1,0 +1,35 @@
+@import "../variables.scss";
+
+.sidebar {
+  background: #1c1824 url(../img/blocks/sidebar/bg.jpg) no-repeat left bottom;
+  background-attachment: fixed;
+  background-size: auto 150%;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+
+  .sidebar-content {
+    margin: 54px 34px;
+    position: relative;
+  }
+
+  h1 {
+    color: #fff;
+    font-family: $font-open-sans;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .sign-out {
+    background: url(../img/blocks/sidebar/sign-out.png) no-repeat right 1px;
+    background-size: auto 100%;
+    font-size: 13px;
+    color: #72708a;
+    position: absolute;
+    right: 0;
+    padding-right: 20px;
+    top: 2px;
+    text-decoration: none;
+  }
+}

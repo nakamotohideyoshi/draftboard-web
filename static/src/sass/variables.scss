@@ -1,0 +1,32 @@
+// Media query sizes
+$break-tablet:  768px;
+$break-laptop:  1024px;
+$break-desktop: 1440px;
+$break-max:     1640px;
+
+
+// Reusable z-index levels
+$zindex-game-ticker: 1000;
+$zindex-nav-main: 1010;
+$zindex-modal: 1050;
+
+
+// Reusable colors
+$primary-red: #e63d3d;
+$secondary-red: #ae1919;
+$primary-charcoal: #525c63;
+$secondary-charcoal: #162530;
+$primary-grey: #dbdee0;
+$secondary-grey: #adb4b9;
+$primary-green: #4dd328;
+$secondary-green: #30e583;
+
+$primary-text: #293f4f;
+$success-green: #3bde5f;
+$error-red: #d83036;
+
+
+// Reusable fonts
+$font-open-sans: "Open Sans", "Arial", "Helvetica", sans-serif;
+$font-oswald: "Oswald", "Arial", "Helvetica", sans-serif;
+$font-georgia: "Georgia", "Times", "Times New Roman", serif;

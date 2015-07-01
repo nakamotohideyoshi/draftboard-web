@@ -1,0 +1,60 @@
+// this block should always be within blocks/form-field.scss
+.form-field-message {
+  border-radius: 2px;
+  position: relative;
+  width: 330px;
+
+  // left arrow
+  &:after {
+    background: transparent;
+    right: 100%;
+    top: 50%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-color: rgba(216, 48, 54, 0);
+    border-width: 8px;
+    margin-top: -8px;
+  }
+
+  &__title {
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1;
+    margin: 0;
+  }
+
+  &__description {
+    font-size: 10.5px;
+    margin: 0;
+    padding: 2px 0 0;
+  }
+
+  // adjust colors for error
+  &--error {
+    background: #d83036;
+
+    &:after {
+      border-right-color: #d83036;
+    }
+
+    .form-field-message__title {
+      color: #fff;
+    }
+
+    .form-field-message__description {
+      color: #e8bfc1;
+    }
+  }
+
+  // default positioning within the settings area
+  &--settings {
+    position: absolute;
+    padding: 14px 16px 10px 16px;
+    right: 0;
+    top: -6px;
+  }
+}

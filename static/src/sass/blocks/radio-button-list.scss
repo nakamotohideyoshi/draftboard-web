@@ -1,0 +1,64 @@
+.radio-button-list {
+  list-style: none;
+
+  > li {
+    @extend %clearfix;
+    display: block;
+    padding: 1px 0;
+    max-width: 348px;
+  }
+
+  &__header-label {
+    color: #162530;
+    display: block;
+    float: right;
+    font-size: 10px;
+    margin: 0 6px;
+    text-align: center;
+    text-transform: uppercase;
+    width: 24px;
+  }
+
+  &__title {
+    display: inline-block;
+    float: left;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 2;
+  }
+
+  &__button-container {
+    float: right;
+    position: relative;
+  }
+
+  &__input {
+    margin: 0 6px;
+    padding: 0;
+    opacity: 0;
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+
+    // not BEM, but required to target label of checked input
+    &:checked + label {
+      background-position: 0 0;
+    }
+  }
+
+  &__label {
+    background: url('../img/blocks/form/radio-button.png') no-repeat -38px 0;
+    position: absolute;
+    left: 0;
+    cursor: pointer;
+    text-indent: -10000px;
+    overflow: hidden;
+    display: block;
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    margin: 0 6px;
+    top: 0;
+    background-size: auto 100%;
+  }
+}

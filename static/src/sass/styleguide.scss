@@ -1,0 +1,160 @@
+.styleguide {
+  background: #fff;
+
+  .page-content {
+    > h1 {
+      color: #525c63;
+      font-family: $font-open-sans;
+      font-size: 40px;
+      font-weight: 200;
+      padding-bottom: 20px;
+    }
+
+    > hr {
+      background: $primary-grey;
+      border: none;
+      height: 3px;
+    }
+
+    > section {
+      padding: 70px 0;
+
+      > header,
+      > section {
+        display: inline-block;
+        vertical-align: top;
+      }
+
+      > header {
+        width: 280px;
+
+        .number {
+          border-bottom: 1px solid $primary-red;
+          color: $primary-red;
+          font-family: $font-georgia;
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 1;
+          padding-bottom: 8px;
+          width: 62px;
+        }
+        .title {
+          color: $secondary-charcoal;
+          font-size: 15px;
+          font-weight: 200;
+          line-height: 2;
+        }
+      }
+
+      > section {
+        width: 700px;
+      }
+
+
+      &.colors {
+        ul {
+          list-style: none;
+        }
+
+        li {
+          display: inline-block;
+          margin-right: 33px;
+          width: 150px;
+
+          &:last-child {
+            margin-right: 0;
+          }
+
+          > div {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            line-height: 6.16;
+            text-align: center;
+            transition: all 0.2s ease-out;
+
+            &:hover {
+              color: #fff;
+            }
+          }
+        }
+
+        .color--primary-red {
+          background: $primary-red;
+        }
+        .color--secondary-red {
+          background: $secondary-red;
+        }
+        .color--primary-charcoal {
+          background: $primary-charcoal;
+        }
+        .color--secondary-charcoal {
+          background: $secondary-charcoal;
+        }
+        .color--primary-grey {
+          background: $primary-grey;
+        }
+        .color--secondary-grey {
+          background: $secondary-grey;
+        }
+        .gradient--green {
+          background: linear-gradient(to bottom, $primary-green, $secondary-green);
+        }
+
+      }
+
+      &.typography {
+        ul {
+          list-style: none;
+        }
+
+        li {
+          min-height: 120px;
+          position: relative;
+        }
+
+        > section > header {
+          border-bottom: 1px solid $primary-grey;
+          color: $primary-red;
+          font-family: $font-georgia;
+          font-size: 16px;
+          font-weight: 700;
+          line-height: 1;
+          padding-bottom: 8px;
+        }
+
+        .element-name {
+          font-size: 11px;
+          color: $secondary-grey;
+          position: absolute;
+          top: -20px;
+        }
+      }
+
+      &.buttons {
+        > section > div {
+          display: inline-block;
+          vertical-align: top;
+        }
+
+        button {
+          margin-bottom: 12px;
+        }
+
+        .buttons--large {
+          margin-right: 86px;
+          width: 300px;
+        }
+
+        .buttons--medium {
+          margin-right: 86px;
+          width: 132px;
+        }
+
+        .buttons--small {
+          width: 90px;
+        }
+      }
+    }
+  }
+
+}
