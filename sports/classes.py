@@ -59,6 +59,8 @@ class SiteSportManager(object):
     Modify it at your own risk.
     """
 
+    #
+    # there should exist a single sports.models.SiteSport for these strings!
     SPORTS = [
         'nfl',
         'mlb',
@@ -69,6 +71,14 @@ class SiteSportManager(object):
     def __init__(self):
         super().__init__()
         self.sports = []
+
+    @staticmethod
+    def get_site_sport(sport):
+        """
+        :param sport: the string name of the sport, must be in SiteSportManager.SPORTS.
+        :return:
+        """
+        return SiteSport.objects.get(name=sport)
 
     @staticmethod
     def get_sport_names():

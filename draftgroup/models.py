@@ -8,6 +8,7 @@ class DraftGroup( models.Model ):
     """
     The "master" id table for a group of draftable players on a day.
     """
+    dt_format   = "%a, %d @ %I:%M%p" # strftime("%A, %d. %B %Y %I:%M%p")
     created     = models.DateTimeField(auto_now_add=True)
 
     salary_pool = models.ForeignKey(salary.models.Pool,
@@ -18,10 +19,13 @@ class DraftGroup( models.Model ):
     end         = models.DateTimeField(null=False,
                         help_text='the DateTime on, or after which no players from games are included')
 
-    # def save(self, *args, **kwargs):
-    #     # if self.start_dt:
-    #     #     self.start_ts = int(self.start_dt.strftime('%s'))
-    #     super().save(*args, **kwargs)
+    def __str__(self):
+        return 'pk: %s  |  %s thru %s' % (self.pk,
+                                        self.__format_dt(self.start),
+                                        self.__format_dt(self.end) )
+
+    def __format_dt(self, dt):
+        return dt.strftime(self.dt_format)
 
 class Player( models.Model ):
     """
@@ -36,6 +40,11 @@ class Player( models.Model ):
 
     salary      = models.FloatField(default=0, null=False,
                     help_text='the amount of salary for the player at the this draft group was created')
+
+    @property
+    def player(self):
+        return self.salary_player.player
+
     class Meta:
         # each player should only exist once in each group!
         unique_together = ('draft_group','salary_player')
