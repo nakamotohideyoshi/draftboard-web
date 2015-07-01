@@ -3,9 +3,10 @@
 
 from django.db.transaction import atomic    # @atomic decorator for atomic transactions
 from django.utils import timezone
-from .models import DraftGroup, Player
+from .models import DraftGroup, Player, GameTeam
 from sports.models import SiteSport
 from salary.models import Pool, Salary
+from sports.classes import SiteSportManager
 import datetime
 
 class InvalidSiteSportTypeException(Exception):
@@ -68,6 +69,24 @@ class AbstractDraftGroupManager(object):
         """
         pass # TODO
 
+    def save_gameteam(self, draft_group, game, team, alias, start):
+        """
+        create and return a new draftgroup.models.GameTeam object
+        """
+        return GameTeam.objects.create( draft_group=draft_group,
+                                            start=start,
+                                            game_srid=game,
+                                            team_srid=team,
+                                            alias=alias )
+
+    def save_player(self, draft_group, player, salary):
+        """
+        create and return a new draftgroup.models.Player object
+        """
+        return Player.objects.create( draft_group=draft_group,
+                                      salary_player=player,
+                                      salary=salary )
+
 class DraftGroupManager( AbstractDraftGroupManager ):
     """
     This class helps get or create a "draft group".
@@ -99,12 +118,15 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         return None # TODO - actually try to get one
 
     @atomic
-    def create(self, site_sport, start):
+    def create(self, site_sport, start, end=None):
         """
-        create and return a NEW draft group for the SiteSport and start Datetime
+        create and return a NEW draft group for the SiteSport
+        which contains players included in games starting
+        on or after the start time, and before the end time.
 
         :param site_sport:
         :param start:
+        :param end:
         :return:
         """
         if not isinstance(site_sport, SiteSport):
@@ -112,15 +134,39 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         if not isinstance(start, datetime.datetime):
             raise InvalidStartTypeException('start must be a datetime object')
 
-        salaries    = self.get_active_salary_pool(site_sport)
-        draft_group = DraftGroup.objects.create(salary_pool=salaries.get_pool(), start_dt=start)
+        # we will use the SiteSportManager to get the game_model and player_model below
+        ssm = SiteSportManager()
+
+        # method returns a Salary object from which we can
+        #   - get_pool()  - get the salary.models.Pool
+        #   - get_salaries() - get a list of salary.model.Salary (players w/ salaries)
+        salary    = self.get_active_salary_pool(site_sport)
+
+        draft_group = DraftGroup.objects.get_or_create(salary_pool=salary.get_pool(),
+                                                        start=start, end=end )
+        # get the game model for the site sport
+        game_model = ssm.get_game_class(site_sport)
+
+        # get all games equal to or greater than start, and less than end.
+        games = game_model.objects.filter( start__gte=start, start__lt=end )
+
+        # build lists of all the teams, and all the player srids in the draft group
+        team_srids      = []
+        for g in games:
+            self.save_gameteam( draft_group, g.away.srid, g.away.alias, g.start )
+            self.save_gameteam( draft_group, g.home.srid, g.home.alias, g.start )
+
+            if g.away.srid not in team_srids: team_srids.append( g.away.srid )
+            if g.home.srid not in team_srids: team_srids.append( g.home.srid )
+
+        # get all the players in those games,
+        # and create the draftgroup.models.Player objects
+        player_model = ssm.get_player_class(site_sport)
 
         #
-        # TODO - we need to add each Salary.player (a GFK to the sports.models.Player)
-        #        who will play in the game on a day, on or after 'start' datetime
-        #         TODO TODO TODO
-
-
+        # TODO - i need to add the Team to the sports.models.Player,
+        #        or start parsing TeamRoster or something.... wow
+        players = player_model.objects.filter()
 
         return draft_group
 
