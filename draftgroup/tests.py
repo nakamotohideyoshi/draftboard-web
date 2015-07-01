@@ -1,35 +1,61 @@
 #
 # draftgroup/tests.py
 
+from dataden.util.timestamp import DfsDateTimeUtil
 from django.utils import timezone   # for timezone.now()
-from datetime import datetime
+from datetime import datetime, timedelta, time
 from test.classes import AbstractTest
+from test.models import GameChild, TeamChild, PlayerChild
 from draftgroup.classes import InvalidSiteSportTypeException, \
-                                InvalidStartTypeException,\
-                                SalaryPoolException
+                                InvalidStartTypeException, InvalidEndTypeException, \
+                                SalaryPoolException, NoGamesInRangeException
 from draftgroup.classes import DraftGroupManager
+
+from sports.classes import SiteSportManager
 from sports.models import SiteSport
-from salary.dummy import Dummy
+from salary.dummy import Dummy as SalaryDummy
 from salary.models import Pool, Salary
+
+from ticket.classes import TicketManager
+from ticket.models import TicketAmount
+from prize.classes import TicketPrizeStructureCreator
+
+from contest.models import Contest
 
 class DraftGroupManagerCreateParams(AbstractTest):
 
     def setUp(self):
-        self.site_sport         = SiteSport.objects.get_or_create(name='validsitesport')
+        self.site_sport, created = SiteSport.objects.get_or_create(name='nfl')
         self.start              = timezone.now()        # a (timezone aware) datetime object
+        self.end                = timezone.now()        # a (timezone aware) datetime object
         self.invalid_site_sport = 'invalidsitesport'
-        self.invalid_start      = datetime.now().date() # invalid because just date() wont work!
+        self.invalid_start      = 1420000000 # int is invalid here
+        self.invalid_end        = datetime.now().date() # invalid because just date() wont work!
 
     def test_draft_group_manager_create_invalid_site_sport(self):
         manager = DraftGroupManager()
         date_time = datetime.now()
         self.assertRaises(InvalidSiteSportTypeException,
-                  lambda: manager.create(self.invalid_site_sport, self.start))
+                  lambda: manager.create(self.invalid_site_sport, self.start, self.end))
 
     def test_draft_group_manager_create_invalid_start(self):
         manager = DraftGroupManager()
-        self.assertRaises(InvalidSiteSportTypeException,
-                  lambda: manager.create(self.site_sport, 1420000000))
+        self.assertRaises(InvalidStartTypeException,
+                  lambda: manager.create(self.site_sport, self.invalid_start, self.end ))
+
+    def test_draft_group_manager_create_invalid_end(self):
+        manager = DraftGroupManager()
+        self.assertRaises(InvalidEndTypeException,
+                  lambda: manager.create(self.site_sport, self.start, self.invalid_end ))
+
+    def test_draft_group_manager_create_no_games_in_range_exception(self):
+        manager = DraftGroupManager()
+        #
+        # create a start & end range that cant possibly have games in it
+        start   = timezone.now()
+        end     = start - timedelta(days=1) # subtract a day from start
+        self.assertRaises(NoGamesInRangeException,
+                  lambda: manager.create(self.site_sport, start, end ))
 
 class DraftGroupManagerNoSalaryPool(AbstractTest):
 
@@ -40,36 +66,38 @@ class DraftGroupManagerNoSalaryPool(AbstractTest):
         manager = DraftGroupManager()
         self.assertRaises(SalaryPoolException, lambda: manager.get_active_salary_pool(self.site_sport))
 
-class GroupCreationTest(AbstractTest):
+class DraftGroupCreate(AbstractTest):
 
     def setUp(self):
+        """
+        create the underlying objects like SiteSport instance
+        and salary pool players to be able to create draft group
+        """
+        self.sport = 'test'  # doesnt HAVE to be a valid site_sport value though
+        self.site_sport, created = SiteSport.objects.get_or_create(name=self.sport)
+
+        # dummy.generate_salaries will use the current time
+        # when it creates games, so lets capture the time now, and then after
+        # it generates stuff to make sure we have a start & end range
+        # that will include the games it created                                                                                             more
+        now             = timezone.now()
+        self.start      = DfsDateTimeUtil.create( now.date(), time(23,0) )
+
         #
-        # creates dummy site_sport, players, games, playerstats,
-        # salary config, pool and players. see: the world
-        self.salary_generator = Dummy.generate_salaries(pool_active=True) # ensure we create an active pool
-        self.site_sport = self.salary_generator.site_sport
-        self.pool       = self.salary_generator.pool
-        #print( 'created pool pk[%s]' % self.pool, 'with Dummy.generate_salaries()')
+        # we MUST create games, players, teams, salary pool stuff:
+        self.salary_generator = SalaryDummy.generate_salaries(sport=self.sport)
+        #self.__print_games_in_db()
 
-    def test_draft_group_manager_get_active_group_none_found(self):
-        """
-        a draft group for the current time should not exist in this test
-        """
-        now         = timezone.now()
-        manager     = DraftGroupManager()
-        draft_group = manager.get(pk=1)
-        #
-        self.assertIsNone( draft_group )
+        # create end datetime after generate_salaries() is run
+        self.end        = DfsDateTimeUtil.create( now.date() + timedelta(days=1), time(0,0) )
 
-    def test_draft_group_manager_create(self):
-        """
-        create a draft group from the salary pool we created with Dummy.generate_salaries()
-        """
+    def __print_games_in_db(self):
+        print( 'GameChild instances in db...')
+        for g in GameChild.objects.all():
+            print( '    ', str(g), str(g.start) )
 
-        pools = Pool.objects.all()
-        for p in pools:
-            print( 'pk:', p.pk, 'active:', p.active )
-        now         = timezone.now()
-        manager     = DraftGroupManager()
-        draft_group = manager.create(site_sport=self.site_sport, start=now)
+    def test_draftgroupmanager_create(self):
+        dgm = DraftGroupManager()
+        draft_group = dgm.create( self.site_sport, self.start, self.end )
+        self.assertIsNotNone(draft_group) # very fluffy test here
 
