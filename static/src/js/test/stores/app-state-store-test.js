@@ -11,11 +11,9 @@ describe("AppStateStore", function() {
     this.AppStateStore.classes = [];
   });
 
-
   it("should start with an empty class list", function() {
     expect(this.AppStateStore.classes).to.be.empty;
   });
-
 
   it("should add a class to the classes list with addClass()", function() {
     this.AppStateStore.addClass('appstate-newclass');
@@ -27,25 +25,12 @@ describe("AppStateStore", function() {
     expect(this.AppStateStore.classes.length).to.equal(2);
   });
 
-
   it("should remove a class from the classes list with removeClass()", function() {
     // Add a class.
     this.AppStateStore.addClass('appstate-newclass2');
     expect(this.AppStateStore.classes.length).to.equal(1);
     // Remove the class.
     this.AppStateStore.removeClass('appstate-newclass2');
-    expect(this.AppStateStore.classes.length).to.equal(0);
-  });
-
-
-  it("should toggle classes", function() {
-    // Add via toggle()
-    this.AppStateStore.toggleClass('toggled');
-    expect(this.AppStateStore.classes.length).to.equal(1);
-    expect(this.AppStateStore.classes[0]).to.equal('toggled');
-
-    // Remove via toggle()
-    this.AppStateStore.toggleClass('toggled');
     expect(this.AppStateStore.classes.length).to.equal(0);
   });
 

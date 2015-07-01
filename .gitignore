@@ -96,8 +96,8 @@ node_modules
 
 # Bower
 bower_components
+
 celerybeat-schedule
+
 logs*
 
-# User-specific settings
-mysite/settings/zach.py

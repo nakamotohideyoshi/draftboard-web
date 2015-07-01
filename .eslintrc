@@ -6,7 +6,7 @@
   },
 
   "plugins": [
-    "react"
+    "react",
   ],
 
   "ecmaFeatures": {
@@ -15,12 +15,14 @@
   },
 
   "globals": {
+    "jest": true,
+    "describe": true
   },
 
   "rules": {
     // Ignore default string double quote requirement.
     "quotes": [0, "double"],
-    "strict": [1, "global"],
+    "global-strict": [0, "global"],
     "no-underscore-dangle": 0,
     "sort-vars": 0,
     "no-trailing-spaces": 1,
