@@ -269,6 +269,7 @@ class AbstractPrizeStructureCreator(object):
         useful for speed and also if there are any problems
         we wont get partial saves...
 
+        Returns the newly created PrizeStructure model
         """
 
         # create the PrizeStructure
@@ -289,6 +290,7 @@ class AbstractPrizeStructureCreator(object):
 
             # if that worked, add it to the list of rank instances
             self.ranks.append( r )
+        return self.prize_structure
 
     def get_amount_instance(self, amount):
         """
