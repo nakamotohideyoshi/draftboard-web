@@ -147,6 +147,11 @@ class Player(models.Model):
     injury_id             = models.PositiveIntegerField(null=True)
     injury                = GenericForeignKey('injury_type', 'injury_id')
 
+    # # the GFK to the Team
+    # team_type         = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_player_team')
+    # team_id           = models.PositiveIntegerField()
+    # team              = GenericForeignKey('team_type', 'team_id')
+
     def remove_injury(self):
         """
         Remove the injury, if one exists.

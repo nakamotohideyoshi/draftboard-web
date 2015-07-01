@@ -69,7 +69,7 @@ class AbstractDraftGroupManager(object):
         """
         pass # TODO
 
-    def save_gameteam(self, draft_group, game, team, alias, start):
+    def create_gameteam(self, draft_group, game, team, alias, start):
         """
         create and return a new draftgroup.models.GameTeam object
         """
@@ -79,12 +79,12 @@ class AbstractDraftGroupManager(object):
                                             team_srid=team,
                                             alias=alias )
 
-    def save_player(self, draft_group, player, salary):
+    def create_player(self, draft_group, salary_player, salary):
         """
         create and return a new draftgroup.models.Player object
         """
         return Player.objects.create( draft_group=draft_group,
-                                      salary_player=player,
+                                      salary_player=salary_player,
                                       salary=salary )
 
 class DraftGroupManager( AbstractDraftGroupManager ):
@@ -118,7 +118,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         return None # TODO - actually try to get one
 
     @atomic
-    def create(self, site_sport, start, end=None):
+    def create(self, site_sport, start, end):
         """
         create and return a NEW draft group for the SiteSport
         which contains players included in games starting
@@ -134,39 +134,37 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         if not isinstance(start, datetime.datetime):
             raise InvalidStartTypeException('start must be a datetime object')
 
-        # we will use the SiteSportManager to get the game_model and player_model below
-        ssm = SiteSportManager()
+        # we will use the SiteSportManager the model class for player, game
+        ssm             = SiteSportManager()
+        game_model      = ssm.get_game_class(site_sport)
+        player_model    = ssm.get_player_class(site_sport)
 
         # method returns a Salary object from which we can
         #   - get_pool()  - get the salary.models.Pool
         #   - get_salaries() - get a list of salary.model.Salary (players w/ salaries)
         salary    = self.get_active_salary_pool(site_sport)
 
-        draft_group = DraftGroup.objects.get_or_create(salary_pool=salary.get_pool(),
+        draft_group, created = DraftGroup.objects.get_or_create(salary_pool=salary.get_pool(),
                                                         start=start, end=end )
-        # get the game model for the site sport
-        game_model = ssm.get_game_class(site_sport)
-
         # get all games equal to or greater than start, and less than end.
         games = game_model.objects.filter( start__gte=start, start__lt=end )
 
         # build lists of all the teams, and all the player srids in the draft group
         team_srids      = []
         for g in games:
-            self.save_gameteam( draft_group, g.away.srid, g.away.alias, g.start )
-            self.save_gameteam( draft_group, g.home.srid, g.home.alias, g.start )
+            self.create_gameteam( draft_group, g.srid, g.away.srid, g.away.alias, g.start )
+            self.create_gameteam( draft_group, g.srid, g.home.srid, g.home.alias, g.start )
 
             if g.away.srid not in team_srids: team_srids.append( g.away.srid )
             if g.home.srid not in team_srids: team_srids.append( g.home.srid )
 
-        # get all the players in those games,
-        # and create the draftgroup.models.Player objects
-        player_model = ssm.get_player_class(site_sport)
-
-        #
-        # TODO - i need to add the Team to the sports.models.Player,
-        #        or start parsing TeamRoster or something.... wow
-        players = player_model.objects.filter()
+        # for each salaried player, create their draftgroup.models.Player
+        # instance if their team is in the team srids list we generated above
+        for p in salary.get_players():    # these 3 lines work but lets get rid of if statement
+            if p.player.team.srid in team_srids:
+                self.create_player(draft_group, p, p.amount)
+        # for p in Salary.objects.filter(player__team__srid__in=team_srids):
+        #     self.create_player( draft_group, p.player, p.amount )
 
         return draft_group
 
