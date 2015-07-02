@@ -1,3 +1,10 @@
-from django.test import TestCase
+#
+# contest/tests.py
 
-# Create your tests here.
+from test.classes import AbstractTest
+from contest.models import Contest
+
+class ContestSimpleTest(AbstractTest):
+
+    def setUp(self):
+        pass
