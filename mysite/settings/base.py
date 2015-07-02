@@ -254,6 +254,7 @@ INSTALLED_APPS = (
     'salary',
     'draftgroup',
     'frontend', # front end styles, layout, etc
+    'mysite', # just for management command access
 )
 
 MIDDLEWARE_CLASSES = (

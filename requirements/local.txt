@@ -5,6 +5,5 @@ Django==1.8
 -r _base.txt
 
 # Fabric for running commands
-# NOTE: after install you must comment out lines 220-223 in fabric/operations.py, fixed confirmation messages
-# TODO upgrade to unforked version when Python3 is supported by Fabric
-#git+git://github.com/pashinin/fabric.git@6783d2f7ad7a449c97cd1ee0df9a2dbc29422fce#egg=Fabric
+# Currently need to target this fork that is python3 compatible
+git+git://github.com/pashinin/fabric.git@6783d2f7ad7a449c97cd1ee0df9a2dbc29422fce#egg=Fabric
