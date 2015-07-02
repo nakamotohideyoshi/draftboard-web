@@ -9,16 +9,64 @@ class Contest(models.Model):
     Represents all the settings, and statuses of a Contest.
     """
 
-    SCHEDULED = 'SCH'
-    INPROGRESS = 'INP'
-    COMPLETED = 'CMP'
-    CLOSED = 'CLS'
+    #
+    # all possible statuses
+    RESERVABLE  = 'reservable'
+    SCHEDULED   = 'scheduled'
+    INPROGRESS  = 'inprogress'
+    COMPLETED   = 'completed'
+    CLOSED      = 'closed'
+    CANCELLED   = 'cancelled'
+
+    #
+    # categories of statuses
+    STATUS_UPCOMING = [
+        RESERVABLE,
+        SCHEDULED
+    ]
+
+    STATUS_LIVE = [
+        INPROGRESS,
+        COMPLETED
+    ]
+
+    STATUS_HISTORY = [
+        CLOSED,
+        CANCELLED
+    ]
+
+    STATUS_ALL = []
+    STATUS_ALL += STATUS_UPCOMING
+    STATUS_ALL += STATUS_LIVE
+    STATUS_ALL += STATUS_HISTORY
+
+    #
+    # group
     STATUS = (
-        (SCHEDULED, 'Scheduled'), # initial state
-        (INPROGRESS, 'In Progress'), # game is locked, no new entries
-        (COMPLETED, 'Completed'), # all scores are completed
-        (CLOSED, 'Closed'), # game is paid out, last status
+        (
+            'Upcoming', (
+                (RESERVABLE,    'Reservable'),      # no players pools, but challenge can be bought into
+                (SCHEDULED,     'Scheduled'),       # contest is draftable - it hasnt started yet
+            )
+        ),
+        (
+            'Live', (
+                (INPROGRESS,    'In Progress'),     # game is locked, no new entries
+                (COMPLETED,     'Completed'),       # the live games are completed (but potentially not finalized)
+            )
+        ),
+        (
+            'History', (
+                (CLOSED,        'Closed'),          # game is paid out, this is a final status
+                (CANCELLED,     'Cancelled'),       # game has been refunded, and closed. was not, and wont pay out
+            )
+        ),
+
     )
+
+    def __str__(self):
+        return 'pk:%-10s | %-16s | %s' % (self.pk, self.status, self.name)
+
     created = models.DateTimeField(auto_now_add=True)
 
     site_sport = models.ForeignKey('sports.SiteSport', null=False)
@@ -30,7 +78,7 @@ class Contest(models.Model):
                                                            max_length=64)
     prize_structure = models.ForeignKey('prize.PrizeStructure',
                               null=False)
-    status = models.CharField(max_length=3,
+    status = models.CharField(max_length=32,
                               choices=STATUS,
                               default=SCHEDULED,
                               null=False)
@@ -41,7 +89,7 @@ class Contest(models.Model):
     start       = models.DateTimeField(null=False,
                     verbose_name='The time this contest will start!',
                     help_text='the start should coincide with the start of a real-life game.')
-    today_only  = models.BooleanField(default=True, null=False)
+    #today_only  = models.BooleanField(default=True, null=False)
     end         = models.DateTimeField(null=False,
                     verbose_name='the time, after which real-life games will not be included in this contest',
                     help_text='this field is overridden if the TodayOnly box is enabled')
@@ -70,6 +118,49 @@ class Contest(models.Model):
     def games(self):
         game_model = self.__get_game_model()
         return game_model.objects.filter( start__gte=self.start, start__lt=self.end )
+
+class UpcomingContest(Contest):
+    """
+    PROXY model for viewing the upcoming Contests (contests which havent started yet)
+    """
+
+    class UpcomingContestManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status__in=Contest.STATUS_UPCOMING)
+
+    # yes, the UpcomingContest.objects on which you can get() or filter(), etc...
+    objects = UpcomingContestManager()
+
+    class Meta:
+        proxy = True
+
+class LiveContest(Contest):
+    """
+    PROXY model for viewing live contests
+    """
+
+    class LiveContestManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status__in=Contest.STATUS_LIVE)
+
+    objects = LiveContestManager()
+
+    class Meta:
+        proxy = True
+
+class HistoryContest(Contest):
+    """
+    PROXY model for viewing only the Historical contests
+    """
+
+    class HistoryContestManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status__in=Contest.STATUS_HISTORY)
+
+    objects = HistoryContestManager()
+
+    class Meta:
+        proxy = True
 
 class Entry(models.Model):
     created = models.DateTimeField(auto_now_add=True)
