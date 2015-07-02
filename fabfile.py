@@ -1,8 +1,27 @@
 from fabric.api import env, warn_only
-from fabric.contrib import console
 from fabric.contrib import django
 from fabric import operations
 from fabric import utils
+from distutils.util import strtobool
+
+
+def _confirm(prompt='Continue?\n', failure_prompt='User cancelled task'):
+    '''
+    Prompt the user to continue. Repeat on unknown response. Raise
+    ParseError on negative response
+    '''
+    response = input(prompt)
+
+    try:
+        response_bool = strtobool(response)
+    except ValueError:
+        print('Unkown Response. Confirm with y, yes, t, true, on or 1; cancel with n, no, f, false, off or 0.')
+        _confirm(prompt, failure_prompt)
+
+    if not response_bool:
+        utils.abort(failure_prompt)
+
+    return response_bool
 
 
 ENVS = {
@@ -18,7 +37,7 @@ django.settings_module('mysite.settings.local')
 
 def _confirm_env():
     """Confirms you want to run the commands on Heroku"""
-    if not console.confirm('Are you sure you want to run these commands on the %s environment?' % env.environment):
+    if not _confirm('Are you sure you want to run these commands on the %s environment? ' % env.environment):
         utils.abort('Aborting at user request')
 
 
@@ -50,10 +69,9 @@ def flush_cache():
 
     if env.environment == 'local':
         _puts('Flushing memcached')
-        operations.local('python manage.py flush_cache')
-        operations.local('python manage.py flush_cache --settings mysite.settings.codeship')
+        operations.local('python manage.py flush_cache --settings mysite.settings.local')
     else:
-        if env.environment == 'production' and not console.confirm('Are you sure you want to wipe memcached on the production server?'):
+        if env.environment == 'production' and not _confirm('Are you sure you want to wipe memcached on the production server?'):
             utils.abort('Aborting at user request')
 
         operations.local('heroku run python manage.py flush_cache --app %s' % env.heroku_repo)
@@ -103,7 +121,7 @@ def importdb():
 
     _puts('Backing up %s db' % env.environment)
     operations.local(
-        'heroku pgbackups:capture --app %s --expire' % ENVS[env.environment]['heroku_repo']
+        'heroku pg:backups capture --app %s' % ENVS[env.environment]['heroku_repo']
     )
 
     _puts('Wiping %s db' % env.environment)
@@ -113,7 +131,7 @@ def importdb():
     ))
 
     _puts('Creating %s db from uploaded backup' % env.environment)
-    operations.local('heroku pgbackups:restore %s --app %s %s --confirm %s' % (
+    operations.local('heroku pg:backups restore %s --app %s %s --confirm %s' % (
         ENVS[env.environment]['database_url'],
         ENVS[env.environment]['heroku_repo'],
         env.db_url,
@@ -130,19 +148,20 @@ def syncdb():
         utils.abort('You cannot sync the production database to itself')
 
     # always wipe memcached before putting in new db
-    flush_cache()
+    # TODO fix with virtualenv
+    # flush_cache()
 
     # if we want a new version, then capture new backup of production
     if 'no_backup' not in env:
         _puts('Capturing new production backup')
         operations.local(
-            'heroku pgbackups:capture --app %s --expire' % ENVS['production']['heroku_repo']
+            'heroku pg:backups capture --app %s' % ENVS['production']['heroku_repo']
         )
 
         # pull down db to local
         if env.environment == 'local':
             _puts('Pull latest production down to local')
-            operations.local('curl -so /tmp/latest.dump `heroku pgbackups:url --app rio-dfs`')
+            operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app rio-dfs`')
 
     # restore locally
     if (env.environment == 'local'):
@@ -153,7 +172,7 @@ def syncdb():
             _puts('Creating local database')
             operations.local('createdb -U postgres -T template0 %s' % env.db_name)
             operations.local(
-                'pg_restore --no-acl --no-owner -U postgres -h localhost -d %s /tmp/latest.dump' %
+                'sudo -u postgres pg_restore --no-acl --no-owner -d %s /tmp/latest.dump' %
                 env.db_name
             )
 
