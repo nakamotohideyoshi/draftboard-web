@@ -1,0 +1,20 @@
+/**
+ * Helper classes for small, common things that don't make a lot of sense to create a class for.
+ *
+ *
+ * “BEM shouldn’t be the goal of a project, it should be something you keep in mind as you’re
+ * developing and apply where useful. Don’t get too carried away trying to stick to some
+ * theoretical ‘standard’. Helper classes (like .pull-right or .text-center) are totally cool
+ * to co-exist with BEM. Where you might have had class="story--centered", class="story text-center"
+ * will do just as well (perhaps even better).''
+ *
+ * - http://www.sitepoint.com/bem-smacss-advice-from-developers/
+ */
+
+.pull-right {
+  float: right;
+}
+
+.pull-left {
+  float: left;
+}

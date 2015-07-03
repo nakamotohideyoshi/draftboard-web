@@ -22,3 +22,6 @@ class FrontendSettingsTemplateView(TemplateView):
     Build out of settings page. Coderden should take this and incorporate into their backend.
     """
     template_name = 'frontend/settings.html'
+
+class FrontendSettingsTransactionHistoryTemplateView(TemplateView):
+    template_name = 'frontend/settings_transactions.html'

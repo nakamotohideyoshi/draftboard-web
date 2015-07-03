@@ -8,4 +8,5 @@ urlpatterns = patterns(
     (r'^frontend/styleguide/$', views.FrontendStyleGuideTemplateView.as_view()),
     (r'^frontend/lobby/$', views.FrontendLobbyTemplateView.as_view()),
     (r'^frontend/settings/$', views.FrontendSettingsTemplateView.as_view()),
+    (r'^frontend/settings/transactions/$', views.FrontendSettingsTransactionHistoryTemplateView.as_view()),
 )

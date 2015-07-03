@@ -1,0 +1,30 @@
+@import "../variables.scss";
+
+/*
+  The overview box on the top of the transaction history table in the settings section.
+*/
+
+.table-summary {
+  background: #252939;
+  border-radius: 4px 4px 0 0;
+  color: #fff;
+  font-size: 15px;
+  margin-top: 15px;
+  padding: 10px;
+  text-align: center;
+  font-family: $font-oswald;
+
+  &--item {
+    display: inline-block;
+    padding: 0 20px;
+  }
+
+  &--label {
+    display: block;
+    color: #726d8a;
+    font-family: $font-open-sans;
+    font-size: 9px;
+    padding-bottom: 3px;
+    text-transform: uppercase;
+  }
+}
