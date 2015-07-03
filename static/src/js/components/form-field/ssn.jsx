@@ -29,7 +29,16 @@ var SSNMaskedInput = React.createClass({
 
   render: function() {
     return (
-      <MaskedInput className="form-field__text-input" type="text" id="ssn" name="ssn" pattern="111\-11\-1111" size="11" placeholder="*** ** ****" onChange={this._onChange}/>
+      <MaskedInput
+        className="form-field__text-input"
+        type="text"
+        id="ssn"
+        name="ssn"
+        pattern="111\-11\-1111"
+        size="11"
+        placeholder="*** ** ****"
+        onChange={this._onChange}
+      />
     );
   }
 

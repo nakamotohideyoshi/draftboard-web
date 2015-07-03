@@ -5,7 +5,7 @@ var log = require("./logging");
 /**
  * Render a React Component to all instances of the given DOM selector.
  * @param  {string} selector  A css-style dom selector.
- * @param  {object} component A React comopnent instance.
+ * @param  {Object} component A React comopnent instance.
  */
 module.exports = function(component, selector) {
 

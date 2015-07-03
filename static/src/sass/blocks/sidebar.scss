@@ -2,8 +2,7 @@
 
 .sidebar {
   background: #1c1824 url(../img/blocks/sidebar/bg.jpg) no-repeat left bottom;
-  background-attachment: fixed;
-  background-size: auto 150%;
+  background-size: 378px auto;  /* the width of the sidebar */
   overflow-y: auto;
   -ms-overflow-style: none;
 

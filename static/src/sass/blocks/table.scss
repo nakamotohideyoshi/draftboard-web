@@ -12,17 +12,11 @@
 
   tbody {
     padding: 10px 20px;
-
-    tr:first-child {
-      td {
-        padding-top: 20px;
-      }
-    }
   }
 
-  tr {
+  tbody tr {
     &:hover {
-      background: #F1F2F5;
+      background: #F1F2F5 !important;
     }
 
     &.active {
@@ -36,8 +30,14 @@
     text-align: left;
 
     &:first-child {
-      padding-left: 20px;
+      padding-left: 20px; 
     }
+  }
+
+  &__sub {
+    color: #adb0be;
+    display: block;
+    font-size: 9px;
   }
 
   &__sort-icon {
@@ -76,5 +76,20 @@
   &__title {
     font-weight: 600;
   }
+
+
+  // Zebra-striped tables
+  &--zebra {
+    @extend .table;
+
+    tbody tr {
+      border-bottom: 1px solid #d4d7e3;
+
+      &:nth-of-type(odd) {
+        background: #f9f9f9;
+      }
+    }
+  }
+
 
 }

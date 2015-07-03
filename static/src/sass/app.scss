@@ -12,6 +12,7 @@
 // For css that does belong to a component, just require() it in the component's jsx file.
 @import "./base.scss";
 @import "./layouts.scss";
+@import "./helpers.scss";
 
 // Per the BEM methodology, these are where the blocks are imported
 @import "./blocks/balance-summary.scss";
@@ -26,6 +27,7 @@
 @import "./blocks/settings-section--nav.scss";
 @import "./blocks/sidebar.scss";
 @import "./blocks/table.scss";
+@import "./blocks/table-summary.scss";
 
 
 /* Components */
