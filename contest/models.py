@@ -14,7 +14,7 @@ class Contest(models.Model):
     RESERVABLE  = 'reservable'
     SCHEDULED   = 'scheduled'
     INPROGRESS  = 'inprogress'
-    COMPLETED   = 'completed'
+    #COMPLETED   = 'completed'
     CLOSED      = 'closed'
     CANCELLED   = 'cancelled'
 
@@ -27,13 +27,18 @@ class Contest(models.Model):
 
     STATUS_LIVE = [
         INPROGRESS,
-        COMPLETED
+        #COMPLETED
     ]
 
     STATUS_HISTORY = [
         CLOSED,
         CANCELLED
     ]
+
+    # combination of UPCOMING & LIVE for the main contest lobby
+    STATUS_LOBBY_CONTESTS = []
+    STATUS_LOBBY_CONTESTS += STATUS_UPCOMING
+    STATUS_LOBBY_CONTESTS += STATUS_LIVE
 
     STATUS_ALL = []
     STATUS_ALL += STATUS_UPCOMING
@@ -52,7 +57,7 @@ class Contest(models.Model):
         (
             'Live', (
                 (INPROGRESS,    'In Progress'),     # game is locked, no new entries
-                (COMPLETED,     'Completed'),       # the live games are completed (but potentially not finalized)
+                #(COMPLETED,     'Completed'),       # the live games are completed (but potentially not finalized)
             )
         ),
         (
@@ -119,9 +124,28 @@ class Contest(models.Model):
         game_model = self.__get_game_model()
         return game_model.objects.filter( start__gte=self.start, start__lt=self.end )
 
+class LobbyContest(Contest):
+    """
+    PROXY model for Upcoming & Live Contests ... and rest API use.
+
+    This is the model which gets the Contests for
+    display on the home lobby, so make sure you know
+    what you are doing if you are making changes.
+    """
+    class LobbyContestManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status__in=Contest.STATUS_LOBBY_CONTESTS)
+
+    objects = LobbyContestManager()
+
+    class Meta:
+        proxy = True
+
 class UpcomingContest(Contest):
     """
-    PROXY model for viewing the upcoming Contests (contests which havent started yet)
+    PROXY model for upcoming Contests ... and rest API use.
+
+    This model has access to all contests which have not started yet.
     """
 
     class UpcomingContestManager(models.Manager):
@@ -136,7 +160,9 @@ class UpcomingContest(Contest):
 
 class LiveContest(Contest):
     """
-    PROXY model for viewing live contests
+    PROXY model for Live Contests ... and rest API use.
+
+    This model can get any Contest which is currently live on the site.
     """
 
     class LiveContestManager(models.Manager):
@@ -150,7 +176,10 @@ class LiveContest(Contest):
 
 class HistoryContest(Contest):
     """
-    PROXY model for viewing only the Historical contests
+    PROXY model for viewing only the Historical contests .. and rest API use.
+
+    This model can get any Contests which are over -- those are any contests
+    which have been successfully closed and paid, or were perhaps cancelled or refunded.
     """
 
     class HistoryContestManager(models.Manager):
@@ -163,7 +192,17 @@ class HistoryContest(Contest):
         proxy = True
 
 class Entry(models.Model):
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-    contest = models.ForeignKey(Contest, null=False)
-    lineup = models.ForeignKey("lineup.Lineup")
+    """
+    An instance of a Lineup in a Contest. One of these is created
+    every time a user pays the entry fee.
+    """
+
+    created     = models.DateTimeField(auto_now_add=True)
+    updated     = models.DateTimeField(auto_now=True)
+
+    contest     = models.ForeignKey(Contest, null=False)
+    lineup      = models.ForeignKey("lineup.Lineup")
+
+    def __str__(self):
+        return '%s %s' % (self.contest.name, str(self.lineup))
+
