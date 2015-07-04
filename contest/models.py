@@ -3,6 +3,7 @@
 
 from django.db import models
 from sports.classes import SiteSportManager
+from django.utils.crypto import get_random_string
 
 class Contest(models.Model):
     """
@@ -11,18 +12,19 @@ class Contest(models.Model):
 
     #
     # all possible statuses
-    RESERVABLE  = 'reservable'
-    SCHEDULED   = 'scheduled'
-    INPROGRESS  = 'inprogress'
+    CLONED      = 'cloned'          # needs admin review and potential modifications
+    RESERVABLE  = 'reservable'      # far off contest you can buy into, but cannot draft a team for yet.
+    SCHEDULED   = 'scheduled'       # standard draftable contest before it begins
+    INPROGRESS  = 'inprogress'      # a live contest!
     #COMPLETED   = 'completed'
-    CLOSED      = 'closed'
-    CANCELLED   = 'cancelled'
+    CLOSED      = 'closed'          # a paid out contest
+    CANCELLED   = 'cancelled'       # a non-guarantee that did not fill up, and did not run (any users were refunded)
 
     #
     # categories of statuses
     STATUS_UPCOMING = [
-        RESERVABLE,
-        SCHEDULED
+        SCHEDULED,   # scheduled first in list because its going to be the default option
+        RESERVABLE
     ]
 
     STATUS_LIVE = [
@@ -69,24 +71,24 @@ class Contest(models.Model):
 
     )
 
+    DEFAULT_CID_LENGTH = 6 # the default number of characters in the contest 'cid'
+
     def __str__(self):
         return 'pk:%-10s | %-16s | %s' % (self.pk, self.status, self.name)
 
     created = models.DateTimeField(auto_now_add=True)
+    cid     = models.CharField(max_length=DEFAULT_CID_LENGTH, default='',
+                               null=False, blank=True, editable=False,
+                                help_text='unique, randomly chosen when Contest is created')
 
     site_sport = models.ForeignKey('sports.SiteSport', null=False)
 
-    name = models.CharField(default="",
-                            null=False,
-                            help_text= "The plain text name of the Contest",
-                                                           verbose_name="Name",
-                                                           max_length=64)
-    prize_structure = models.ForeignKey('prize.PrizeStructure',
-                              null=False)
-    status = models.CharField(max_length=32,
-                              choices=STATUS,
-                              default=SCHEDULED,
-                              null=False)
+    name = models.CharField(default="", null=False, verbose_name="Public Name", max_length=64,
+                            help_text= "The front-end name of the Contest")
+
+    prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
+
+    status = models.CharField(max_length=32, choices=STATUS, default=STATUS_UPCOMING, null=False)
 
     # start & today_only/end determine the range of time,
     # in between which live sporting events will be included
@@ -95,9 +97,9 @@ class Contest(models.Model):
                     verbose_name='The time this contest will start!',
                     help_text='the start should coincide with the start of a real-life game.')
     #today_only  = models.BooleanField(default=True, null=False)
-    end         = models.DateTimeField(null=False,
+    end         = models.DateTimeField(null=False, blank=True,
                     verbose_name='the time, after which real-life games will not be included in this contest',
-                    help_text='this field is overridden if the TodayOnly box is enabled')
+                    help_text='forces the end time of the contest (will override "Ends tonight" checkbox!!')
 
     # set the pool of players this contest can draft from
     draft_group = models.ForeignKey('draftgroup.DraftGroup', null=True,
@@ -123,6 +125,11 @@ class Contest(models.Model):
     def games(self):
         game_model = self.__get_game_model()
         return game_model.objects.filter( start__gte=self.start, start__lt=self.end )
+
+    def save(self, *args, **kwargs):
+        if self.pk is None and self.cid is None:
+            self.cid = get_random_string(length=self.DEFAULT_CID_LENGTH)
+        super().save(*args, **kwargs)
 
 class LobbyContest(Contest):
     """
