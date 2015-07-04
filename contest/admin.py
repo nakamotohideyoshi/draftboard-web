@@ -9,24 +9,58 @@ CONTEST_LIST_DISPLAY = ['created','status','name','start','end']
 
 @admin.register(contest.models.Contest)
 class ContestAdmin(admin.ModelAdmin):
+    """
+    Note to programmer:
+        - the clean()'ing (ie: field validation) is done in contest.forms.ContestForm
+        - the post-processing, like setting the proper draft group is done in this class
+
+    Administratively create a contest.
+    """
+
     #list_display = CONTEST_LIST_DISPLAY
     form = contest.forms.ContestForm
 
     # create some "sections" of the form"
     fieldsets = (
-        (None, {
-            'fields': ('clone_from', 'name')
-        }),
-        ('Advanced options', {
-            'classes': ('collapse',),
+        # ('Create Contest from Existing', {
+        #     'classes': ('collapse',),
+        #     'fields': ('clone_from', 'name')
+        # }),
+
+
+
+        ('Create Contest', {
+            #'classes': ('collapse',),
             'fields': (
+                'site_sport',
+                'name',
                 'prize_structure',
                 'start',
-                'end'
+                'ends_tonight'
+            )
+        }),
+
+        ('Custom End Time', {
+            'classes': ('collapse',),
+            'fields': (
+                'end',
             )
         }),
     )
 
+    def save_model(self, request, obj, form, change):
+        """
+        Override save_model to hook up draftgroup and anything else
+        we can do dynamically without forcing user to do it manually.
+
+        :param request: http request with authenticated user
+        :param obj: the model instance about to be saved
+        :param form:
+        :param change:
+        :return:
+        """
+
+        obj.save()
 
 @admin.register(contest.models.UpcomingContest)
 class UpcomingContestAdmin(admin.ModelAdmin):

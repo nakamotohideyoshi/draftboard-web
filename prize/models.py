@@ -7,6 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 
 from transaction.models import AbstractAmount
 from cash.classes import CashTransaction
+from util.timesince import timesince
 
 class GeneratorSettings( models.Model ):
     buyin           = models.IntegerField(default=0, null=False)    # label='the amount of the buyin')
@@ -33,7 +34,7 @@ class PrizeStructure( models.Model ):
                                     help_text='You do not need to specify one of these. But automatically created prize pools may be associated with a generator.')
 
     def __str__(self):
-        return '%s %s' % (self.__class__.__name__, self.name)
+        return '(%s) %s' % (timesince(self.created), self.name)
 
 class Rank( models.Model ):
     """
