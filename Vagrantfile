@@ -23,7 +23,7 @@ Vagrant.configure(2) do |config|
     # help alert us to errors which vagrant
     # simply cant let us know about via cmd line
     config.vm.provider "virtualbox" do |v|
-        v.gui = true
+        v.gui = false
 
         #
         # Note: non-default settings and/or giving
