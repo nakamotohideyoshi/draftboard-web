@@ -67,6 +67,48 @@ var ContestNav = React.createClass({
           'winning': "$82",
           'position': '22',
           'entries': '1.8k'
+        },
+        {
+          'id': 22,
+          'title': '$150k NBA Championship',
+          'winning': "$82",
+          'position': '22',
+          'entries': '1.8k'
+        },
+        {
+          'id': 33,
+          'title': '$150k NBA Championship',
+          'winning': "$82",
+          'position': '22',
+          'entries': '1.8k'
+        },
+        {
+          'id': 44,
+          'title': '$150k NBA Championship',
+          'winning': "$82",
+          'position': '22',
+          'entries': '1.8k'
+        },
+        {
+          'id': 55,
+          'title': '$150k NBA Championship',
+          'winning': "$82",
+          'position': '22',
+          'entries': '1.8k'
+        },
+        {
+          'id': 66,
+          'title': '$150k NBA Championship',
+          'winning': "$82",
+          'position': '22',
+          'entries': '1.8k'
+        },
+        {
+          'id': 77,
+          'title': '$150k NBA Championship',
+          'winning': "$82",
+          'position': '22',
+          'entries': '1.8k'
         }
       ]
     };

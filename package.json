@@ -40,7 +40,7 @@
   "scripts": {
     "test": "NODE_ENV=test mocha static/src/js/test --opts static/src/js/test/mocha.opts",
     "devserver": "NODE_ENV=development webpack-dev-server --progress --hot --config webpack-development.config.js",
-    "webpack": "NODE_ENV=production webpack --optimize-minimize --optimize-dedupe --colors --progress --config webpack-production.config.js",
+    "webpack": "NODE_ENV=production webpack --optimize-minimize --optimize-dedupe --optimize-occurence-order --colors --progress --config webpack-production.config.js",
     "install_global_modules": "npm install -g webpack webpack-dev-server eslint eslint-plugin-react mocha"
   }
 }
