@@ -1,8 +1,8 @@
-"use strict";
+'use strict';
 
-var path = require("path");
-var _ = require("lodash");
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
+var path = require('path');
+var _ = require('lodash');
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var WebpackNotifierPlugin = require('webpack-notifier');
 
 
@@ -13,27 +13,27 @@ module.exports = function(options) {
       // Main app file.
       'app': [
         // Enable Webpack's dev server hot reloads for this entry.
-        "webpack/hot/dev-server",
-        path.join(__dirname, "static", "src", "js", "app.jsx")
+        'webpack/hot/dev-server',
+        path.join(__dirname, 'static', 'src', 'js', 'app.jsx')
       ],
       // unauthenticated users - they get a slimmed down set of static files.
       'logged-out': [
         // Enable Webpack's dev server hot reloads for this entry.
-        "webpack/hot/dev-server",
-        path.join(__dirname, "static", "src", "js", "app-logged-out.jsx")
+        'webpack/hot/dev-server',
+        path.join(__dirname, 'static', 'src', 'js', 'app-logged-out.jsx')
       ]
     },
 
     // Configure the output of compiled entry files.
     output: {
-      path: path.join(__dirname, "static", "build"),
-      publicPath: "/static/",
-      filename: "js/[name].js"
+      path: path.join(__dirname, 'static', 'build'),
+      publicPath: '/static/',
+      filename: 'js/[name].js'
     },
 
     // Devserver config
     devServer: {
-      contentBase: "./build",
+      contentBase: './build',
       noInfo: false,
       colors: true,
       host: '0.0.0.0',
@@ -48,7 +48,7 @@ module.exports = function(options) {
         // jsx loader - to convert jsx to native js.
         {
           test: /\.jsx$/,
-          loader: "jsx-loader"
+          loader: 'jsx-loader'
         },
         // Transform sass into css & extract the text.
         {
@@ -62,7 +62,7 @@ module.exports = function(options) {
         // Run ESLint on jsx + js files.
         {
           test: /(\.jsx|\.js)$/,
-          loader: "eslint-loader",
+          loader: 'eslint-loader',
           exclude: /node_modules/
         },
         // Images.
@@ -79,33 +79,33 @@ module.exports = function(options) {
 
     plugins: [
       // Extract css text and save to file.
-      new ExtractTextPlugin("css/[name].css", {
+      new ExtractTextPlugin('css/[name].css', {
         allChunks: false
       }),
       // Build error notifications.
       new WebpackNotifierPlugin({
-        title: "Webpack",
-        contentImage: "https://dl.dropboxusercontent.com/spa/wn0oryty1do7jho/rq03wbw9.png"
+        title: 'Webpack',
+        contentImage: 'https://dl.dropboxusercontent.com/spa/wn0oryty1do7jho/rq03wbw9.png'
       })
     ],
 
-    // Tell webpack where to look for require()'d files. If it can't locate a file, make sure you're requiring it
-    // relative to one of these paths, and that the file extension is allowed.
+    // Tell webpack where to look for require()'d files. If it can't locate a file, make sure you're
+    //  requiring it relative to one of these paths, and that the file extension is allowed.
     resolve: {
-      extensions: ["", ".js", ".jsx", ".scss"],
+      extensions: ['', '.js', '.jsx', '.scss'],
       // Add in bower components + sass dirs.
       root: [
-        //path.join(__dirname, "bower_components"),
-        path.join(__dirname, "static", "src", "js"),
-        path.join(__dirname, "static", "src", "sass")
+        //path.join(__dirname, 'bower_components'),
+        path.join(__dirname, 'static', 'src', 'js'),
+        path.join(__dirname, 'static', 'src', 'sass')
       ]
     },
 
     eslint: {
       // ESLint configuration file location.
-      configFile: ".eslintrc",
+      configFile: '.eslintrc',
       // Add a nicer readout formatter.
-      formatter: require("eslint-friendly-formatter")
+      formatter: require('eslint-friendly-formatter')
     }
   };
 
