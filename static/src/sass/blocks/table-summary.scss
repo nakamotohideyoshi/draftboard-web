@@ -1,8 +1,32 @@
+/*doc
+---
+title: Table Summary
+category: Tables
+---
+
+The overview box on the top of the transaction history table in the settings section.
+
+```html_example
+<div class="table-summary">
+  <div class="table-summary--item">
+    <span class="table-summary--label">Winnings</span> $3,421.42
+  </div>
+  <div class="table-summary--item">
+    <span class="table-summary--label">Contests</span> 527
+  </div>
+  <div class="table-summary--item">
+    <span class="table-summary--label">Cashes</span> 389
+  </div>
+    <div class="table-summary--item">
+      <span class="table-summary--label">Transactions</span> 1,029
+  </div>
+</div>
+```
+*/
+
+
 @import "../variables.scss";
 
-/*
-  The overview box on the top of the transaction history table in the settings section.
-*/
 
 .table-summary {
   background: #252939;
