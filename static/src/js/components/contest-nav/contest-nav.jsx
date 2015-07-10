@@ -114,6 +114,7 @@ var ContestNav = React.createClass({
     };
   },
 
+
   render: function() {
     return (
       <div className="inner">
@@ -123,6 +124,7 @@ var ContestNav = React.createClass({
     );
   }
 });
+
 
 renderComponent(<ContestNav />, '.cmp-contest-nav');
 

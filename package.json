@@ -1,8 +1,8 @@
 {
-  "name": "dfs",
+  "name": "Draftboard",
   "version": "1.0.0",
-  "description": "DFS App",
-  "author": "Run It Once Dev Team",
+  "description": "Draftboard App",
+  "author": "Draftboard Team",
   "license": "NONE",
   "main": "index.js",
   "private": true,
