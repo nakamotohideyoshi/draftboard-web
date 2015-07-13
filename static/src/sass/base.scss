@@ -192,6 +192,7 @@ category: HTML Elements
 
 @import "./variables.scss";
 
+
 // Default to box layout http://www.w3schools.com/css/css_boxmodel.asp
 *, *:before, *:after {
   box-sizing: border-box;
@@ -210,10 +211,15 @@ html, body {
   color: $primary-text;
 }
 
-// reset ul tag
+// reset ol, ul tag
+ol,
 ul {
   margin: 0;
-  padding: 0;
+  padding: 0 0 1.7em;
+}
+
+li {
+  list-style-position: inside;
 }
 
 p {
@@ -221,6 +227,8 @@ p {
   font-size: 12px;
   font-weight: 400;
   line-height: 1.9;
+  margin: 0;
+  padding: 0 0 1.7em;
 }
 
 .clearfix:after {
@@ -237,7 +245,8 @@ a {
 }
 
 hr {
-  background-color: #adb4b9;
+  background-color: $primary-grey;
   border: none;
   height: 1px;
+  margin: 15px 0;
 }

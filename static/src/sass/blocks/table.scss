@@ -4,7 +4,63 @@ title: Table
 category: Tables
 ---
 ```html_example
-<table class="table--zebra">
+<table class="table">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Amount</th>
+      <th>Balance</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>04/23/2015 <sub class="table__sub">7:15:32 PM</sub></td>
+      <td>$1,300.32</td>
+      <td>$2,249.32</td>
+      <td>GPP</td>
+      <td>Contest with multiple entries.</td>
+      <td><a href="#">Details</a></td>
+    </tr>
+    <tr>
+      <td>04/23/2015 <sub class="table__sub">7:15:32 PM</sub></td>
+      <td>$1,300.32</td>
+      <td>$2,249.32</td>
+      <td>GPP</td>
+      <td>Contest with multiple entries.</td>
+      <td><a href="#">Details</a></td>
+    </tr>
+    <tr>
+      <td>04/23/2015 <sub class="table__sub">7:15:32 PM</sub></td>
+      <td>$1,300.32</td>
+      <td>$2,249.32</td>
+      <td>GPP</td>
+      <td>Contest with multiple entries.</td>
+      <td><a href="#">Details</a></td>
+    </tr>
+    <tr>
+      <td>04/23/2015 <sub class="table__sub">7:15:32 PM</sub></td>
+      <td>$1,300.32</td>
+      <td>$2,249.32</td>
+      <td>GPP</td>
+      <td>Contest with multiple entries.</td>
+      <td><a href="#">Details</a></td>
+    </tr>
+  </tbody>
+</table>
+```
+*/
+
+
+/*doc
+---
+title: Zebra Striped Table
+category: Tables
+---
+```html_example
+<table class="table table--zebra">
   <thead>
     <tr>
       <th>Date</th>
@@ -71,6 +127,8 @@ category: Tables
   }
 
   tbody tr {
+    border-bottom: 1px solid #d4d7e3;
+    
     &:hover {
       background: #F1F2F5 !important;
     }
@@ -132,20 +190,16 @@ category: Tables
   &__title {
     font-weight: 600;
   }
+}
 
 
-  // Zebra-striped tables
-  &--zebra {
-    @extend .table;
+// Zebra-striped tables
+.table--zebra {
+  @extend .table;
 
-    tbody tr {
-      border-bottom: 1px solid #d4d7e3;
-
-      &:nth-of-type(odd) {
-        background: #f9f9f9;
-      }
+  tbody tr {
+    &:nth-of-type(odd) {
+      background: #f9f9f9;
     }
   }
-
-
 }
