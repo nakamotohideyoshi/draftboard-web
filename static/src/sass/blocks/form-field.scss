@@ -1,3 +1,47 @@
+/*doc
+---
+title: Input with error
+category: Forms
+---
+```html_example
+<form class="form">
+  <fieldset class="form__fieldset">
+    <div class="form-field form-field--error">
+      <label class="form-field__label" for="email">Email</label>
+      <input class="form-field__text-input" type="email" id="email" name="email" placeholder="i.e. joe@hotmail.com" required="" onblur="this.className+=' attempted'">
+      <div class="form-field-message form-field-message--error form-field-message--settings">
+        <h6 class="form-field-message__title">Invalid Email Address</h6>
+        <p class="form-field-message__description">Your email must contain an ‘@’ symbol as well as a ‘.’</p>
+      </div>
+    </div>
+  </fieldset>
+</form>
+```
+*/
+
+
+/*doc
+---
+title: Select
+category: Forms
+---
+```html_example
+<form class="form">
+  <fieldset class="form__fieldset">
+    <div class="form-field">
+      <label class="form-field__label" for="state">State</label>
+      <select class="form-field__select" id="state" name="state" required="" onblur="this.className+=' attempted'">
+        <option>Alabama</option>
+        <option>Florida</option>
+        <option>Texas</option>
+      </select>
+    </div>
+  </fieldset>
+</form>
+```
+*/
+
+
 .form-field {
   margin-bottom: 12px;
   position: relative;
@@ -91,20 +135,34 @@
 
   // Select boxes.
   &__select {
-    // -webkit-appearance: none;
-    background-color: #fff;
-    border: 1px solid $primary-grey;
+    -moz-appearance: none;
+    -webkit-appearance:none;
+    background: #fff url('../img/blocks/form/select-bg-arrow.png') no-repeat 95% 50%;
+    background-size: 8px 5px;
     border-radius: 2px;
+    border: 1px solid $primary-grey;
     color: $primary-charcoal;
     font-family: $font-open-sans;
     font-size: 13px;
     height: 3.5em;
-    width: 346px;
+    outline: none;
     padding: 12px 20px;
-    transition: all 0.2s;
     text-indent: 12px;
+    transition: all 0.2s;
     vertical-align: middle;
     white-space: nowrap;
+    width: 346px;
+
+    // remove focused outline in firefox.
+    &:-moz-focusring {
+      color: transparent;
+      text-shadow: 0 0 0 #000;
+    }
+
+    // Hide dropdown arrow in IE.
+    &::-ms-expand {
+        display: none;
+    }
 
     &--small {
       width: 100px;
