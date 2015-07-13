@@ -37,13 +37,15 @@
       
         <li><a href="#Table_Summary">Table Summary</a></li>
       
+        <li><a href="#Zebra_Striped_Table">Zebra Striped Table</a></li>
+      
       </ul>
 
       <section class="content clearfix" id="style-content">
 <h1 id="Table" class="styleguide">Table</h1>
 <div class="codeExample">
   <div class="exampleOutput">
-    <table class="table--zebra">
+    <table class="table">
   <thead>
     <tr>
       <th>Date</th>
@@ -93,7 +95,7 @@
   </div>
   <div class="codeBlock">
     <div class="highlight">
-      <pre><span class="nt">&lt;table</span> <span class="na">class=</span><span class="s">"table--zebra"</span><span class="nt">&gt;</span>
+      <pre><span class="nt">&lt;table</span> <span class="na">class=</span><span class="s">"table"</span><span class="nt">&gt;</span>
   <span class="nt">&lt;thead&gt;</span>
     <span class="nt">&lt;tr&gt;</span>
       <span class="nt">&lt;th&gt;</span>Date<span class="nt">&lt;/th&gt;</span>
@@ -178,6 +180,109 @@
       <span class="nt">&lt;span</span> <span class="na">class=</span><span class="s">"table-summary--label"</span><span class="nt">&gt;</span>Transactions<span class="nt">&lt;/span&gt;</span> 1,029
   <span class="nt">&lt;/div&gt;</span>
 <span class="nt">&lt;/div&gt;</span></pre>
+    </div>
+  </div>
+</div>
+
+<h1 id="Zebra_Striped_Table" class="styleguide">Zebra Striped Table</h1>
+<div class="codeExample">
+  <div class="exampleOutput">
+    <table class="table table--zebra">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Amount</th>
+      <th>Balance</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>04/23/2015 <sub class="table__sub">7:15:32 PM</sub></td>
+      <td>$1,300.32</td>
+      <td>$2,249.32</td>
+      <td>GPP</td>
+      <td>Contest with multiple entries.</td>
+      <td><a href="#">Details</a></td>
+    </tr>
+    <tr>
+      <td>04/23/2015 <sub class="table__sub">7:15:32 PM</sub></td>
+      <td>$1,300.32</td>
+      <td>$2,249.32</td>
+      <td>GPP</td>
+      <td>Contest with multiple entries.</td>
+      <td><a href="#">Details</a></td>
+    </tr>
+    <tr>
+      <td>04/23/2015 <sub class="table__sub">7:15:32 PM</sub></td>
+      <td>$1,300.32</td>
+      <td>$2,249.32</td>
+      <td>GPP</td>
+      <td>Contest with multiple entries.</td>
+      <td><a href="#">Details</a></td>
+    </tr>
+    <tr>
+      <td>04/23/2015 <sub class="table__sub">7:15:32 PM</sub></td>
+      <td>$1,300.32</td>
+      <td>$2,249.32</td>
+      <td>GPP</td>
+      <td>Contest with multiple entries.</td>
+      <td><a href="#">Details</a></td>
+    </tr>
+  </tbody>
+</table>
+
+  </div>
+  <div class="codeBlock">
+    <div class="highlight">
+      <pre><span class="nt">&lt;table</span> <span class="na">class=</span><span class="s">"table table--zebra"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;thead&gt;</span>
+    <span class="nt">&lt;tr&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Date<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Amount<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Balance<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Type<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Description<span class="nt">&lt;/th&gt;</span>
+      <span class="nt">&lt;th&gt;</span>Details<span class="nt">&lt;/th&gt;</span>
+    <span class="nt">&lt;/tr&gt;</span>
+  <span class="nt">&lt;/thead&gt;</span>
+  <span class="nt">&lt;tbody&gt;</span>
+    <span class="nt">&lt;tr&gt;</span>
+      <span class="nt">&lt;td&gt;</span>04/23/2015 <span class="nt">&lt;sub</span> <span class="na">class=</span><span class="s">"table__sub"</span><span class="nt">&gt;</span>7:15:32 PM<span class="nt">&lt;/sub&gt;&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>$1,300.32<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>$2,249.32<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>GPP<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>Contest with multiple entries.<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;&lt;a</span> <span class="na">href=</span><span class="s">"#"</span><span class="nt">&gt;</span>Details<span class="nt">&lt;/a&gt;&lt;/td&gt;</span>
+    <span class="nt">&lt;/tr&gt;</span>
+    <span class="nt">&lt;tr&gt;</span>
+      <span class="nt">&lt;td&gt;</span>04/23/2015 <span class="nt">&lt;sub</span> <span class="na">class=</span><span class="s">"table__sub"</span><span class="nt">&gt;</span>7:15:32 PM<span class="nt">&lt;/sub&gt;&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>$1,300.32<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>$2,249.32<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>GPP<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>Contest with multiple entries.<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;&lt;a</span> <span class="na">href=</span><span class="s">"#"</span><span class="nt">&gt;</span>Details<span class="nt">&lt;/a&gt;&lt;/td&gt;</span>
+    <span class="nt">&lt;/tr&gt;</span>
+    <span class="nt">&lt;tr&gt;</span>
+      <span class="nt">&lt;td&gt;</span>04/23/2015 <span class="nt">&lt;sub</span> <span class="na">class=</span><span class="s">"table__sub"</span><span class="nt">&gt;</span>7:15:32 PM<span class="nt">&lt;/sub&gt;&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>$1,300.32<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>$2,249.32<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>GPP<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>Contest with multiple entries.<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;&lt;a</span> <span class="na">href=</span><span class="s">"#"</span><span class="nt">&gt;</span>Details<span class="nt">&lt;/a&gt;&lt;/td&gt;</span>
+    <span class="nt">&lt;/tr&gt;</span>
+    <span class="nt">&lt;tr&gt;</span>
+      <span class="nt">&lt;td&gt;</span>04/23/2015 <span class="nt">&lt;sub</span> <span class="na">class=</span><span class="s">"table__sub"</span><span class="nt">&gt;</span>7:15:32 PM<span class="nt">&lt;/sub&gt;&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>$1,300.32<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>$2,249.32<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>GPP<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;</span>Contest with multiple entries.<span class="nt">&lt;/td&gt;</span>
+      <span class="nt">&lt;td&gt;&lt;a</span> <span class="na">href=</span><span class="s">"#"</span><span class="nt">&gt;</span>Details<span class="nt">&lt;/a&gt;&lt;/td&gt;</span>
+    <span class="nt">&lt;/tr&gt;</span>
+  <span class="nt">&lt;/tbody&gt;</span>
+<span class="nt">&lt;/table&gt;</span></pre>
     </div>
   </div>
 </div>

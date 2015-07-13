@@ -19,16 +19,20 @@
   border-bottom: 1px solid #ddd;
 }
 
+#style-main-nav ul {
+  padding: 0;
+}
+
 #style-main-nav li {
   display: inline-block;
   padding: 15px;
 }
 
 #style-secondary-nav {
-  margin-right: 80px;
   position: fixed;
   top: 250px;
   left: 30px;
+  width: 200px;
 }
 
 #style-content {
