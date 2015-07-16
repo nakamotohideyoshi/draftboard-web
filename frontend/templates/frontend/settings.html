@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block body_class %}two-col--left{% endblock %}
+{% block body_class %}two-col two-col--left{% endblock %}
 
 {% block sidebar %}
 <header class="settings-sidebar-actions">
@@ -25,22 +25,7 @@
 {% endblock sidebar %}
 
 {% block page_content %}
-  <nav class="settings-section--nav">
-    <ul>
-      <li class="active">
-        <a href="/frontend/settings/">Account Settings</a>
-      </li>
-      <li>
-        <a href="/frontend/withdraws/">Withdraws</a>
-      </li>
-      <li>
-        <a href="#">Deposits</a>
-      </li>
-      <li>
-        <a href="#">Transaction History</a>
-      </li>
-    </ul>
-  </nav>
+  {% include "frontend/settings/nav.html" %}
 
   <form class="form">
     <fieldset class="form__fieldset">
@@ -83,11 +68,11 @@
                 Contests are starting
               </div>
 
-              <div class="radio-button-list__button-container">
+              <div class="radio-button-list__button-container pull-right">
                 <input class="radio-button-list__input" type="radio" name="radio--contests--starting" id="contests--starting2" value="0">
                 <label class="radio-button-list__label" for="contests--starting2">Off</label>
               </div>
-              <div class="radio-button-list__button-container">
+              <div class="radio-button-list__button-container pull-right">
                 <input class="radio-button-list__input" type="radio" name="radio--contests--starting" id="contests--starting1" value="1" checked="checked">
                 <label class="radio-button-list__label" for="contests--starting1">On</label>
               </div>
@@ -97,11 +82,11 @@
                 Contests victories
               </div>
 
-              <div class="radio-button-list__button-container">
+              <div class="radio-button-list__button-container pull-right">
                 <input class="radio-button-list__input" type="radio" name="radio--contests--starting2" id="contests--starting4" value="0">
                 <label class="radio-button-list__label" for="contests--starting4">Off</label>
               </div>
-              <div class="radio-button-list__button-container">
+              <div class="radio-button-list__button-container pull-right">
                 <input class="radio-button-list__input" type="radio" name="radio--contests--starting2" id="contests--starting3" value="1" checked="checked">
                 <label class="radio-button-list__label" for="contests--starting3">On</label>
               </div>
@@ -111,11 +96,11 @@
                 Newsletter
               </div>
 
-              <div class="radio-button-list__button-container">
+              <div class="radio-button-list__button-container pull-right">
                 <input class="radio-button-list__input" type="radio" name="radio--contests--starting3" id="contests--starting6" value="0">
                 <label class="radio-button-list__label" for="contests--starting6">Off</label>
               </div>
-              <div class="radio-button-list__button-container">
+              <div class="radio-button-list__button-container pull-right">
                 <input class="radio-button-list__input" type="radio" name="radio--contests--starting3" id="contests--starting5" value="1" checked="checked">
                 <label class="radio-button-list__label" for="contests--starting5">On</label>
               </div>
@@ -125,11 +110,11 @@
                 Upcoming Contests
               </div>
 
-              <div class="radio-button-list__button-container">
+              <div class="radio-button-list__button-container pull-right">
                 <input class="radio-button-list__input" type="radio" name="radio--contests--starting4" id="contests--starting8" value="0">
                 <label class="radio-button-list__label" for="contests--starting8">Off</label>
               </div>
-              <div class="radio-button-list__button-container">
+              <div class="radio-button-list__button-container pull-right">
                 <input class="radio-button-list__input" type="radio" name="radio--contests--starting4" id="contests--starting7" value="1" checked="checked">
                 <label class="radio-button-list__label" for="contests--starting7">On</label>
               </div>

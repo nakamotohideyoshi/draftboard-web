@@ -180,11 +180,21 @@ category: Forms
     }
   }
 
+  // a field that contains static content
+  &__static-content {
+    clear: both;
+    color: #adb6bc;
+
+    a {
+      color: #2ab378;
+    }
+  }
+
   // when there's a paragraph of help text at the top of the field
   &--with-help {
     .form-field__info {
       padding-top: 8px;
-      max-width: 348px;
+      max-width: 300px;
     }
 
     .form-field__label {

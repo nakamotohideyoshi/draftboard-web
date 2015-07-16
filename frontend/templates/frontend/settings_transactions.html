@@ -25,22 +25,7 @@
 {% endblock sidebar %}
 
 {% block page_content %}
-  <nav class="settings-section--nav">
-    <ul>
-      <li>
-        <a href="/frontend/settings/">Account Settings</a>
-      </li>
-      <li>
-        <a href="/frontend/withdraws/">Withdraws</a>
-      </li>
-      <li>
-        <a href="#">Deposits</a>
-      </li>
-      <li class="active">
-        <a href="#">Transaction History</a>
-      </li>
-    </ul>
-  </nav>
+  {% include "frontend/settings/nav.html" %}
 
   <form action="" class="form">
     <fieldset class="form__fieldset form__fieldset--no-labels">

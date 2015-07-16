@@ -16,6 +16,7 @@
 
   .content-container {
     background: #fff;
+    min-height: 100%;
     perspective-origin: left;
     transform-origin: left;
     transition: all 316ms cubic-bezier(.8,.16,.18,.85);
@@ -29,7 +30,6 @@
     min-width: $nav-main-min-width;
     z-index: $zindex-nav-main;
   }
-
 
   // for < 768px only use the hamburglar for menu
   // ---------------
@@ -81,11 +81,6 @@
   // |         |                                                  |
   // --------------------------------------------------------------
   @media (min-width: $break-tablet + 1) {
-    .content-container {
-      // flex-direction: row;
-      margin-left: $nav-main-min-width + $sidebar-width;
-    }
-
     .page-content {
       // the top padding is to offset the area for the sports ticker
       padding: $contest-nav-height + 40px 70px 0;
@@ -162,6 +157,12 @@
     }
   }
 
+  @media (min-width: $break-tablet + 1) {
+    .content-container {
+      // flex-direction: row;
+      margin-left: $nav-main-min-width + $sidebar-width;
+    }
+  }
 
   // at desktop size, show the sports ticker and make three column
   // --------------------------------------------------------------
