@@ -1,3 +1,7 @@
+html, body {
+  background: #fff !important;
+}
+
 #style-header {
   background: #252939;
   color: #fff;

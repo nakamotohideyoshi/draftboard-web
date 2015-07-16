@@ -30,7 +30,6 @@ describe('ContesetNav Component', function() {
 
 
   it('should render a div tag and a list component', function() {
-    console.log(this.contestNavComponent);
     expect(this.ContestNavElement.tagName).to.equal('DIV');
     expect(
       this.ContestNavElement.querySelectorAll('.cmp-contest-nav--contests-list').length
