@@ -1,6 +1,10 @@
 from django.views.generic.base import TemplateView
 
 
+class FrontendLiveCourtTemplateView(TemplateView):
+    template_name = 'frontend/live/court.html'
+
+
 class FrontendLayoutTemplateView(TemplateView):
     """
     Shows the fluid layout we will be using
@@ -23,5 +27,14 @@ class FrontendSettingsTemplateView(TemplateView):
     """
     template_name = 'frontend/settings.html'
 
+class FrontendSettingsDepositsTemplateView(TemplateView):
+    template_name = 'frontend/settings/deposits.html'
+
 class FrontendSettingsTransactionHistoryTemplateView(TemplateView):
     template_name = 'frontend/settings_transactions.html'
+
+class FrontendSettingsWithdrawsTemplateView(TemplateView):
+    """
+    Build out of settings page. Coderden should take this and incorporate into their backend.
+    """
+    template_name = 'frontend/settings/withdraws.html'

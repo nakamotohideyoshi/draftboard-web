@@ -1,0 +1,23 @@
+.content-message {
+  margin: 8px 0;
+  padding: 22px 30px 18px;
+  width: 100%;
+
+  .content-message__title {
+    color: #172132;
+    margin: 0 0 6px;
+    font-size: 12.5px;
+  }
+
+  .content-message__description {
+    color: #525c63;
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+    width: 75%;
+  }
+
+  &--info {
+    background: #f7f8f9;
+  }
+}

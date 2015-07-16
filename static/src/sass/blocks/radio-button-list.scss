@@ -13,10 +13,10 @@
     display: block;
     float: right;
     font-size: 10px;
-    margin: 0 6px;
+    margin-right: 10px;
     text-align: center;
     text-transform: uppercase;
-    width: 24px;
+    width: 20px;
   }
 
   &__title {
@@ -28,16 +28,16 @@
   }
 
   &__button-container {
-    float: right;
+    margin-right: 6px;
     position: relative;
+    top: -1px;
   }
 
   &__input {
-    margin: 0 6px;
     padding: 0;
     opacity: 0;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     display: inline-block;
 
     // not BEM, but required to target label of checked input
@@ -55,10 +55,19 @@
     overflow: hidden;
     display: block;
     display: inline-block;
-    width: 24px;
-    height: 24px;
-    margin: 0 6px;
+    width: 20px;
+    height: 20px;
     top: 0;
-    background-size: auto 100%;
+    background-size: auto 120%;
+  }
+
+  // on the withdraw.html settings view we push the radio buttons to flush against the left
+  // may make this a more generic modifier if this happens more often
+  &--withdraw-method {
+    .radio-button-list__button-container,
+    .radio-button-list__title {
+      left: -6px;
+      position: relative;
+    }
   }
 }
