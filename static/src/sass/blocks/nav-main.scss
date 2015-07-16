@@ -15,7 +15,8 @@
   }
 
   &:hover .inner {
-    width: 242px;
+    // The width of the main nav, minus the 20px padding of .inner.
+    width: $nav-main-width - 20px;
     background-color: #0f161e;
 
     hr {

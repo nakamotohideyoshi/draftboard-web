@@ -1,3 +1,17 @@
+/*doc
+---
+title: Basics
+name: Basics
+category: Basics
+---
+Hello WOrld!
+
+```html_example
+Hello WOrld!
+```
+*/
+
+
 @import "./variables.scss";
 
 // Font import
@@ -23,7 +37,6 @@
 @import "./blocks/nav-main.scss";
 @import "./blocks/pane.scss";
 @import "./blocks/radio-button-list.scss";
-@import "./blocks/score-ticker.scss";
 @import "./blocks/settings-section--nav.scss";
 @import "./blocks/sidebar.scss";
 @import "./blocks/table.scss";
@@ -34,6 +47,7 @@
 @import "./blocks/cmp-data-table-filter.scss";
 @import "./blocks/cmp-contest-list.scss";
 @import "./blocks/cmp-contest-detail.scss";
+@import "./blocks/cmp-contest-nav.scss";
 
 // For now have style guide in here (not needed on production)
 @import "./styleguide.scss";

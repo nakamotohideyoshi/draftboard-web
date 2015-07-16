@@ -13,5 +13,5 @@ require('actions/keypress-actions');
 require("components/form-field/ssn");
 require("components/site/hamburger-menu");
 require("components/site/app-state-class");
-require("components/score-ticker/score-ticker");
 require("components/contest-list/contest-list");
+require("components/contest-nav/contest-nav.jsx");

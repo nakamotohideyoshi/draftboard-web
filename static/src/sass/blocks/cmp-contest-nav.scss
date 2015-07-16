@@ -1,0 +1,178 @@
+@import "../variables";
+
+$contest-nav-height: 60px;
+
+.cmp-contest-nav {
+  background: #1E1D28;
+  color: #fff;
+  height: $contest-nav-height;
+  left: 0;
+  padding-left: $nav-main-width;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+
+
+  // We need a single top-level element that react renders to (aaaannoying).
+  .inner {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+  }
+
+  // Wrapper for dropdowns
+  &--filters {
+    background: rgba(30, 29, 40, .95);
+    display: inline-block;
+    font-size: 12px;
+    height: $contest-nav-height;
+    z-index: 120;
+  }
+
+
+  // Sport selection dropdown
+  &--sport-nav {
+    display: inline-block;
+    padding: 15px;
+  }
+
+
+  // Team selection dropdown
+  &--team-nav {
+    display: inline-block;
+    padding: 15px;
+  }
+
+
+  // Wrapper around the contest list.
+  &--contests {
+    background: #3F424C;
+    flex: 1;
+    position: relative;
+    // Must set min-width here otherwise firefox doesn't flex properly.
+    min-width: 225px;
+  }
+
+
+  // The UL that holds contests - this is what gets scrolled.
+  &--contests-list {
+    display: table;
+    left: 0;
+    position: relative;
+  }
+
+
+  // A single contest box.
+  &--contest {
+    border-right: 1px solid #4C505C;
+    display: table-cell;
+    font-size: 11px;
+    position: relative;
+
+    a {
+      color: #fff;
+      display: block;
+      height: $contest-nav-height;
+      min-width: 185px;
+      padding: 10px 15px 0;
+      text-decoration: none;
+
+      &:hover {
+        background: #444754;
+      }
+
+      > div {
+        color: #adb0be;
+        display: inline-block;
+        padding: 0 15px 0 0;
+
+        &:last-child {
+          padding-right: 0;
+        }
+      }
+    }
+
+    h5 {
+      color: #fff;
+      font-size: 11px;
+      font-weight: 300;
+      margin: 0;
+      padding: 0;
+    }
+
+    .key {
+      display: block;
+      font-size: 8px;
+      text-transform: uppercase;
+    }
+
+   .value {
+       font-family: $font-oswald;
+       font-size: 10px;
+       font-weight: 100;
+    }
+  }
+
+
+  // Next/Prev controls.
+  &--control {
+    background: #5E5F6F;
+    cursor: pointer;
+    height: $contest-nav-height;
+    padding: 20px 15px;
+    position: absolute;
+    top: 0;
+    z-index: 130;
+  }
+
+  &--prev {
+    // Hidden by default.
+    display: none;
+    left: 0;
+  }
+
+  &--next {
+    right: 0;
+  }
+}
+
+
+// When the left main nav collapses.
+@media (max-width: $break-desktop) {
+  // keep the contest list aligned with the main nav.
+  .cmp-contest-nav {
+    padding-left: $nav-main-min-width;
+  }
+}
+
+
+
+
+// TODO: These should maybe be abstracted out to generic fake select lists.
+.select-list {
+  position: relative;
+
+  &--options {
+    background: #1E1D28;
+    display: none;
+    left: 0;
+    list-style: none;
+    padding: 10px 15px;
+    position: absolute;
+    text-align: center;
+    top: 2.5em;
+  }
+
+  &:hover {
+    .select-list--options {
+      display: block;
+    }
+  }
+
+  &--active {
+
+  }
+
+
+}
