@@ -15,6 +15,12 @@ var ContestNavContestList = React.createClass({
     };
   },
 
+  getDefaultProps: function() {
+    return {
+      contests: []
+    };
+  },
+
   componentDidMount: function() {
     this.getContestElementWidth();
   },
@@ -24,8 +30,8 @@ var ContestNavContestList = React.createClass({
   },
 
   getContestElementWidth: function() {
-    var contestWidth = React.findDOMNode(this.refs.contestList).querySelector('li').offsetWidth;
-    // var visibleListWidth = React.findDOMNode(this).offsetWidth;
+    var contestCollection = React.findDOMNode(this.refs.contestList).querySelectorAll('li');
+    var contestWidth = contestCollection.length > 0 ? contestCollection[0].offsetWidth : '0px';
 
     this.setState({
       contestElementWidth: contestWidth
