@@ -1,12 +1,36 @@
+/*doc
+---
+title: Balance Summary
+category: Components
+---
+Block on the account settings page in the sidebar. Shows the user their account balance and actions
+to deposit, withdraw
+
+```html_example
+<section class="balance-summary">
+  <h2>
+    <sup>Current Balance</sup><span class="currency">$</span>4,832.94
+  </h2>
+  <hr>
+  <h2>
+    <sup>Pending Bonus</sup><span class="currency">$</span>78.52
+  </h2>
+  <a class="balance-summary--action" href="#">Deposit</a>
+  <a class="balance-summary--action" href="#">Withdraw</a>
+</section>
+```
+*/
+
+
 @import "../variables.scss";
 
-// Block on the account settings page in the sidebar
-// Shows the user their account balance and actions to deposit, withdraw
+
 .balance-summary {
   background: #252939;
   margin: 42px 0;
   text-align: center;
   padding: 20px;
+  max-width: 310px;
 
   h2 {
     color: #fff;
@@ -39,6 +63,7 @@
     height: 1px;
     border: none;
     background: #726d8a;
+    margin: 0 auto;
     width: 174px;
   }
 

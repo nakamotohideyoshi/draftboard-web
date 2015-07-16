@@ -5,6 +5,13 @@ $break-desktop: 1440px;
 $break-max:     1640px;
 
 
+// Layout block sizes
+$nav-main-width: 252px;
+$nav-main-min-width: 92px;
+$sidebar-width: 378px;
+$contest-nav-height: 26px;
+
+
 // Reusable z-index levels
 $zindex-game-ticker: 1000;
 $zindex-nav-main: 1010;
@@ -24,7 +31,7 @@ $secondary-green: #30e583;
 $primary-text: #293f4f;
 $success-green: #3bde5f;
 $error-red: #d83036;
-
+$link-green: #2ab378;
 
 // Reusable fonts
 $font-open-sans: "Open Sans", "Arial", "Helvetica", sans-serif;

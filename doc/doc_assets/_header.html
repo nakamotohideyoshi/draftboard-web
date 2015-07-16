@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+  <head>
+    <title>a brand new styleguide: <%= title %></title>
+    <link rel="stylesheet" href="./doc_styles.css">
+    <link rel="stylesheet" href="../../static/build/css/app.css">
+    <link rel="stylesheet" href="../../static/build/css/logged-out.css">
+  </head>
+  <body>
+    <header id="style-header">
+      <h1>Draftboard Component Style Guide.</h1>
+    </header>
+
+    <nav id="style-main-nav">
+      <ul>
+      <% @categories.each do |category, file_name| %>
+        <li><a href="<%= file_name %>"><%= category %></a></li>
+      <% end %>
+      </ul>
+    </nav>
+
+    <div id="content-wrap" class="clearfix">
+
+      <ul id="style-secondary-nav">
+      <% @blocks.each do |b| %>
+        <li><a href="#<%= b[:name] %>"><%= b[:title] %></a></li>
+      <% end %>
+      </ul>
+
+      <section class="content clearfix" id="style-content">
