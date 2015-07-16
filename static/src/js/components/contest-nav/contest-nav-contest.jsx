@@ -14,16 +14,20 @@ var ContestNavContest = React.createClass({
       <li className="cmp-contest-nav--contest">
         <a href="#">
           <h5>{this.props.contest.title}</h5>
+
           <div className="winning">
             <span className="key">Winning</span>
             <span className="value">{this.props.contest.winning}</span>
-
           </div>
+
           <div className="position">
             <span className="key">Pos.</span>
-            <span className="value">{this.props.contest.position}/{this.props.contest.entries}</span>
+            <span className="value">
+              <strong>{this.props.contest.position}</strong>/{this.props.contest.entries}
+            </span>
           </div>
-          <div className="chart">
+
+          <div className="cmp-contest-nav--chart">
             -------------
           </div>
         </a>
