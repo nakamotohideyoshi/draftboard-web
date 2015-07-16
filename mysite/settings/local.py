@@ -7,13 +7,13 @@ db_name = 'dfs_' + check_output(git_branch_cmd.split()).decode('utf-8')[:-1]
 
 #
 # try to create the database, if it already exists, this will have no effect
-create_db_cmd = 'sudo -u postgres createdb %s' % db_name
-try:
-    if check_output(create_db_cmd.split()).decode('utf-8').strip() == '':
-        print( 'mysite/settings/local.py >>> created', db_name )
-except Exception:
-    #print( 'could not create', db_name, ' - it may already exist' )
-    pass
+# create_db_cmd = 'sudo -u postgres createdb %s' % db_name
+# try:
+#     if check_output(create_db_cmd.split()).decode('utf-8').strip() == '':
+#         print( 'mysite/settings/local.py >>> created', db_name )
+# except Exception:
+#     #print( 'could not create', db_name, ' - it may already exist' )
+#     pass
 
 #
 # Now you can:
