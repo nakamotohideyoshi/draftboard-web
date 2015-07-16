@@ -65,7 +65,9 @@ $contest-nav-height: 60px;
   &--contests-list {
     display: table;
     left: 0px;
+    padding: 0;
     position: relative;
+    margin: 0;
     transition: all .5s;
   }
 
