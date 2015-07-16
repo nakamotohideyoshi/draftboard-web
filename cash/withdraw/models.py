@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save
 from django.utils import timezone
@@ -102,7 +102,7 @@ class ReviewPendingWithdraw(models.Model):
 
     content_type    = models.ForeignKey( ContentType )
     object_id       = models.PositiveIntegerField()
-    content_object  = generic.GenericForeignKey( 'content_type', 'object_id' )
+    content_object  = GenericForeignKey( 'content_type', 'object_id' )
 
     #
     # this is the method that listens for PayPayl, Check withdraws and creates itself

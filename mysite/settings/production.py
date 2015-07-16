@@ -57,6 +57,9 @@ TEMPLATE_LOADERS = (
 # Add gunicorn
 INSTALLED_APPS += (
     'gunicorn',
+
+    # sentry for heroku
+    'raven.contrib.django.raven_compat',
 )
 
 # Mongo Connection settings

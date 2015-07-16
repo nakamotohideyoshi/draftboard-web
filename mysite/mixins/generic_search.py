@@ -3,8 +3,8 @@ import logging
 import operator
 import django.db
 
-from django.contrib.admin.util import lookup_needs_distinct
-from django.contrib.contenttypes.generic import GenericForeignKey
+from django.contrib.admin.utils import lookup_needs_distinct
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 import functools
