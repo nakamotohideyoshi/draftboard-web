@@ -194,9 +194,6 @@ REST_FRAMEWORK = {
 # Django installs
 # ----------------------------------------------------------
 INSTALLED_APPS = (
-    # heroku installs
-    'raven.contrib.django.raven_compat',
-
     'suit',
     #
     # # django defaults
