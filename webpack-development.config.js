@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var baseConfig = require('./webpack-base.config.js');
 
@@ -7,5 +7,5 @@ var baseConfig = require('./webpack-base.config.js');
 module.exports = baseConfig({
   debug: true,
   cache: true,
-  devtool: "source-map"
+  devtool: 'source-map'
 });

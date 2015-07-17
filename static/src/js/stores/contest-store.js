@@ -4,7 +4,7 @@ var Reflux = require("reflux");
 var ContestActions = require("../actions/contest-actions");
 var request = require("superagent");
 var log = require("../lib/logging");
-var _ = require("lodash");
+var _sortByOrder = require("lodash/collection/sortByOrder");
 
 
 var ContestStore = Reflux.createStore({
@@ -95,9 +95,9 @@ var ContestStore = Reflux.createStore({
 
     // Sort the rows by the currently active filter.
     if (this.data.sortDirection === 'desc') {
-      rows = _.sortByOrder(rows, this.data.sortKey).reverse();
+      rows = _sortByOrder(rows, this.data.sortKey).reverse();
     } else {
-      rows = _.sortByOrder(rows, this.data.sortKey);
+      rows = _sortByOrder(rows, this.data.sortKey);
     }
 
     this.data.filteredContests = rows;
