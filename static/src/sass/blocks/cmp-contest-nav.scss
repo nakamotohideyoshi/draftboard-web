@@ -13,7 +13,6 @@ $contest-nav-height: 60px;
   width: 100%;
   z-index: 100;
 
-
   // We need a single top-level element that react renders to (aaaannoying).
   .inner {
     display: flex;
@@ -23,25 +22,32 @@ $contest-nav-height: 60px;
 
   // Wrapper for dropdowns
   &--filters {
-    background: rgba(30, 29, 40, .95);
     display: inline-block;
     font-size: 12px;
-    height: $contest-nav-height;
     z-index: 120;
+
+    .select-list {
+      height: $contest-nav-height;
+      padding: 0 30px;
+
+      &--selected {
+        padding: 20px 0 0;
+      }
+    }
   }
 
 
   // Sport selection dropdown
   &--sport-nav {
+    background: #282735;
     display: inline-block;
-    padding: 15px;
   }
 
 
   // Team selection dropdown
   &--team-nav {
+    background: #3A3C4B;
     display: inline-block;
-    padding: 15px;
   }
 
 
@@ -58,14 +64,19 @@ $contest-nav-height: 60px;
   // The UL that holds contests - this is what gets scrolled.
   &--contests-list {
     display: table;
-    left: 0;
+    left: 0px;
+    padding: 0;
     position: relative;
+    margin: 0;
+    transition: all .5s;
   }
 
 
-  // A single contest box.
+  /*
+    A single contest box.
+   */
   &--contest {
-    border-right: 1px solid #4C505C;
+    border-right: 1px solid #50545F;
     display: table-cell;
     font-size: 11px;
     position: relative;
@@ -111,11 +122,31 @@ $contest-nav-height: 60px;
        font-family: $font-oswald;
        font-size: 10px;
        font-weight: 100;
+       -webkit-font-smoothing: antialiased;
+    }
+
+    .winning {
+      .value {
+        color: #29CB63;
+
+      }
+    }
+
+    .position {
+      strong {
+        color: #fff;
+        font-weight: normal;
+      }
+    }
+
+    .chart {
+
     }
   }
 
-
-  // Next/Prev controls.
+  /*
+    Next/Prev controls.
+  */
   &--control {
     background: #5E5F6F;
     cursor: pointer;
@@ -128,7 +159,7 @@ $contest-nav-height: 60px;
 
   &--prev {
     // Hidden by default.
-    display: none;
+    // display: none;
     left: 0;
   }
 
