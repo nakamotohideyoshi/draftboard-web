@@ -1,6 +1,7 @@
 #
 # contest/admin.py
 
+from django.db import transaction
 from django.contrib import admin
 import contest.models
 import contest.forms
@@ -21,33 +22,45 @@ class ContestAdmin(admin.ModelAdmin):
     form = contest.forms.ContestForm
 
     # create some "sections" of the form"
-    fieldsets = (
-        # ('Create Contest from Existing', {
-        #     'classes': ('collapse',),
-        #     'fields': ('clone_from', 'name')
-        # }),
+    # fieldsets = (
+    #     # ('Create Contest from Existing', {
+    #     #     'classes': ('collapse',),
+    #     #     'fields': ('clone_from', 'name')
+    #     # }),
+    #
+    #
+    #
+    #     ('Create Contest', {
+    #         #'classes': ('collapse',),
+    #         'fields': (
+    #             'site_sport',
+    #             'name',
+    #             'prize_structure',
+    #             'start',
+    #             #'ends_tonight'
+    #         )
+    #     }),
+    #
+    #     ('Custom End Time', {
+    #         'classes': ('collapse',),
+    #         'fields': (
+    #             'end',
+    #         )
+    #     }),
+    # )
 
+    # def get_form(self, request, obj=None, **kwargs):
+    #     if obj is None:
+    #         return contest.forms.ContestFormAdd
+    #     else:
+    #         return contest.forms.ContestForm(request, obj, **kwargs)
 
+    def get_form(self, request, obj=None, **kwargs):
+        if obj is None:
+            kwargs['form'] = contest.forms.ContestFormAdd
+        return super().get_form(request, obj, **kwargs)
 
-        ('Create Contest', {
-            #'classes': ('collapse',),
-            'fields': (
-                'site_sport',
-                'name',
-                'prize_structure',
-                'start',
-                'ends_tonight'
-            )
-        }),
-
-        ('Custom End Time', {
-            'classes': ('collapse',),
-            'fields': (
-                'end',
-            )
-        }),
-    )
-
+    #@transaction.atomic
     def save_model(self, request, obj, form, change):
         """
         Override save_model to hook up draftgroup and anything else
@@ -59,8 +72,8 @@ class ContestAdmin(admin.ModelAdmin):
         :param change:
         :return:
         """
-
         obj.save()
+
 
 @admin.register(contest.models.UpcomingContest)
 class UpcomingContestAdmin(admin.ModelAdmin):
