@@ -86,6 +86,7 @@
       padding: $contest-nav-height + 40px 70px 0;
       margin: 0 auto;
       max-width: 970px;
+
     }
 
     .nav-main {
@@ -150,19 +151,29 @@
   // this layout is the same as two column, except that the sidebar now exists
   @extend .one-col;
 
-  // for now don't show sidebar on mobile
+  .content-container {
+    margin-left: $nav-main-width + $sidebar-width;
+  }
+
+  // anything larger than a tablet (768px).
+  @media (min-width: $break-tablet + 1) {
+    .content-container {
+      margin-left: $nav-main-min-width  + $sidebar-width;
+    }
+  }
+
+  // anything smaller than a laptop (1024px).
   @media (max-width: $break-laptop) {
+    // for now don't show sidebar on mobile
+    .content-container {
+      margin-left: $nav-main-min-width;
+    }
+
     .sidebar {
       display: none;
     }
   }
 
-  @media (min-width: $break-tablet + 1) {
-    .content-container {
-      // flex-direction: row;
-      margin-left: $nav-main-min-width + $sidebar-width;
-    }
-  }
 
   // at desktop size, show the sports ticker and make three column
   // --------------------------------------------------------------
@@ -172,6 +183,8 @@
   // |         |                               |                  |
   // |         |                               |                  |
   // --------------------------------------------------------------
+
+  // anything larger than 1024px.
   @media (min-width: $break-laptop + 1) {
     .sidebar {
       left: $nav-main-min-width;
@@ -183,7 +196,12 @@
     }
   }
 
+  // the biggest size.
   @media (min-width: $break-desktop + 1) {
+    .content-container {
+      margin-left: $nav-main-width + $sidebar-width;
+    }
+
     .sidebar {
       left: $nav-main-width;
     }
