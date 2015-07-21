@@ -7,10 +7,25 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.pagination import LimitOffsetPagination
 
 from contest.serializers import ContestSerializer
-from contest.models import Entry, LobbyContest, \
+from contest.models import Contest, Entry, LobbyContest, \
                             UpcomingContest, LiveContest, HistoryContest
 
 from dataden.util.simpletimer import SimpleTimer
+
+from django.views.generic.edit import CreateView, UpdateView
+from contest.forms import ContestForm, ContestFormAdd
+
+# test the generic add view
+class ContestCreate(CreateView):
+    model       = Contest
+    form_class  = ContestFormAdd
+    #fields      = ['name','ends_tonight','start']
+
+# testing the generic edit view
+class ContestUpdate(UpdateView):
+    model       = Contest
+    form_class  = ContestForm
+    #fields      = ['name','start']
 
 class LobbyAPIView(generics.ListAPIView):
     """
