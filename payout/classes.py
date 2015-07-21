@@ -125,6 +125,7 @@ class PayoutManager(object):
             i += 1
 
     def __payout_spot(self, ranks_to_pay, entries_to_pay, contest):
+        print("saving payout")
 
 
         #

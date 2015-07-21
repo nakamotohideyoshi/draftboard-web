@@ -16,7 +16,7 @@ class Contest(models.Model):
     RESERVABLE  = 'reservable'      # far off contest you can buy into, but cannot draft a team for yet.
     SCHEDULED   = 'scheduled'       # standard draftable contest before it begins
     INPROGRESS  = 'inprogress'      # a live contest!
-    #COMPLETED   = 'completed'
+    COMPLETED   = 'completed'
     CLOSED      = 'closed'          # a paid out contest
     CANCELLED   = 'cancelled'       # a non-guarantee that did not fill up, and did not run (any users were refunded)
 
@@ -29,7 +29,7 @@ class Contest(models.Model):
 
     STATUS_LIVE = [
         INPROGRESS,
-        #COMPLETED
+        COMPLETED
     ]
 
     STATUS_HISTORY = [
@@ -59,7 +59,7 @@ class Contest(models.Model):
         (
             'Live', (
                 (INPROGRESS,    'In Progress'),     # game is locked, no new entries
-                #(COMPLETED,     'Completed'),       # the live games are completed (but potentially not finalized)
+                (COMPLETED,     'Completed'),       # the live games are completed (but potentially not finalized)
             )
         ),
         (
