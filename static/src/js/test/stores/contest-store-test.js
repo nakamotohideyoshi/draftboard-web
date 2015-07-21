@@ -7,13 +7,14 @@ require("superagent-mock")(request, fixtures);
 var expect = require("chai").expect;
 var sinon = require("sinon");
 var ContestActions = require("../../actions/contest-actions");
-
+var MatchFilter = require('../../components/data-table/data-table-column-match-filter.jsx');
 
 describe("ContestStore", function() {
 
   beforeEach(function() {
     this.ContestStore = require("../../stores/contest-store");
   });
+
 
   it("should connect contestFocused action to setFocusedContest()", function() {
     sinon.spy(ContestActions, "contestFocused");
@@ -22,6 +23,7 @@ describe("ContestStore", function() {
     this.ContestStore.setFocusedContest(666);
     expect(this.ContestStore.data.focusedContestId).to.equal(666);
   });
+
 
   it("should return a collection of contests", function() {
     var self = this;
@@ -32,6 +34,15 @@ describe("ContestStore", function() {
       // fixtures, so make sure they get retrieved.
       expect(self.ContestStore.data.contests.length).to.equal(6);
     });
+  });
+
+
+  it("should register a filter", function() {
+    // Empty filters, register one, check that it was added.
+    this.ContestStore.filters = [];
+    expect(this.ContestStore.filters.length).to.equal(0);
+    this.ContestStore.registerFilter(MatchFilter);
+    expect(this.ContestStore.filters.length).to.equal(1);
   });
 
 });

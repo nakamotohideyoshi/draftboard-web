@@ -36,7 +36,10 @@ var DataTable = React.createClass({
 
 
   getDefaultProps: function() {
-    return {focusedContestId: null};
+    return {
+      focusedContestId: null,
+      data: []
+    };
   },
 
 
