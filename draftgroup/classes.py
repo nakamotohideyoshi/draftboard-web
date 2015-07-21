@@ -125,6 +125,17 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         """
         return None # TODO - actually try to get one
 
+    def get_for_site_sport(self, site_sport):
+        """
+        get the most recent draftgroup for the given site_sport
+
+        :param site_sport:
+        :return:
+        """
+
+        # return the most recently created draftgroup for the site_sport
+        return DraftGroup.objects.filter( salary_pool__site_sport=site_sport ).order_by('-created')[0]
+
     @atomic
     def create(self, site_sport, start, end):
         """

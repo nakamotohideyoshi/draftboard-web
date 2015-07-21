@@ -2,8 +2,10 @@
 # contest/models.py
 
 from django.db import models
+from draftgroup.classes import DraftGroupManager
 from sports.classes import SiteSportManager
 from django.utils.crypto import get_random_string
+from django.core.urlresolvers import reverse
 
 class Contest(models.Model):
     """
@@ -126,10 +128,39 @@ class Contest(models.Model):
         game_model = self.__get_game_model()
         return game_model.objects.filter( start__gte=self.start, start__lt=self.end )
 
+    def set_draftgroup_on_create(self):
+        # only automatically do this on object creation
+        if self.pk is None and not self.draft_group:
+            dgm = DraftGroupManager()
+            self.draft_group = dgm.get_for_site_sport( self.site_sport )
+
     def save(self, *args, **kwargs):
-        if self.pk is None and self.cid is None:
-            self.cid = get_random_string(length=self.DEFAULT_CID_LENGTH)
+        # if self.pk is None and not self.cid:
+        #     self.cid = get_random_string(length=self.DEFAULT_CID_LENGTH)
+        # super().save(*args, **kwargs)
+
+        if self.pk is None and not self.cid:
+            while True: # we'll break when we've found a non-existing id
+                random_str = get_random_string(length=self.DEFAULT_CID_LENGTH)
+                try:
+                    Contest.objects.get( cid=random_str )
+                    continue # this one existed apparently, keep trying
+                except self.DoesNotExist:
+                    # this one is unique!
+                    #print(random_str, 'is a unique, unused searchid. lets use it.')
+                    self.cid = random_str
+                    break # out of while
+
+        # set the draftgroup, if its not set
+        self.set_draftgroup_on_create()
+
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        """
+        this method exists to support generic views ContestCreate, ContestUpdate, and ContestDelete
+        """
+        return reverse('contest-detail', kwargs={'pk': self.pk})
 
 class LobbyContest(Contest):
     """
