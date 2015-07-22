@@ -97,7 +97,6 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         braintree_model.save()
 
 
-
     def get_balance_string_formatted(self):
         """
 

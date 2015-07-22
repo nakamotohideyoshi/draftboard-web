@@ -247,7 +247,7 @@ INSTALLED_APPS = (
     'lineup',
     'prize',
     'contest',
-    'payout',
+    'contest.payout',
     'scoring',
     'roster',
     'test',

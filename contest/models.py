@@ -132,7 +132,7 @@ class Contest(models.Model):
         # only automatically do this on object creation
         if self.pk is None and not self.draft_group:
             dgm = DraftGroupManager()
-            self.draft_group = dgm.get_for_site_sport( self.site_sport )
+            self.draft_group = dgm.get_for_site_sport( self.site_sport, self.start, self.end )
 
     def save(self, *args, **kwargs):
         # if self.pk is None and not self.cid:
