@@ -1,4 +1,3 @@
-from django.test import TestCase
 from test.classes import AbstractTest
 from contest.models import Contest, Entry
 from prize.classes import CashPrizeStructureCreator, TicketPrizeStructureCreator
@@ -11,8 +10,12 @@ from django.utils import timezone
 from datetime import timedelta
 from datetime import time
 from ticket.models import TicketAmount
+from salary.dummy import Dummy
+
 class PayoutTest(AbstractTest):
     def setUp(self):
+        Dummy.generate_salaries()
+
         self.first = 100.0
         self.second = 50.0
         self.third = 25.0
