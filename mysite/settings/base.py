@@ -248,6 +248,8 @@ INSTALLED_APPS = (
     'prize',
     'contest',
     'contest.payout',
+    'contest.buyin',
+    'contest.refund',
     'scoring',
     'roster',
     'test',
@@ -364,3 +366,7 @@ SUIT_CONFIG = {
         )
     ) # end MENU_ORDER
 } # end SUIT_CONFIG
+
+# GLOBAL CONSTANTS
+USERNAME_DRAFTBOARD = "draftboard"
+USERNAME_ESCROW = "escrow"

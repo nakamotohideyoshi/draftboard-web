@@ -96,7 +96,8 @@ class PayoutTest(AbstractTest):
         pm.payout()
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
-            print("\n"+str(payout))
+            self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+
 
     def test_simple_tie_payout(self):
         self.create_last_place_tie_teams()
@@ -104,7 +105,11 @@ class PayoutTest(AbstractTest):
         pm.payout()
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
-            print("\n"+str(payout))
+            if payout.entry.lineup.user.username == str(4):
+                self.assertEqual(payout.rank, 3)
+            else:
+                self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+
 
     def test_simple_ticket_payout(self):
         self.create_ticket_contest()
@@ -113,7 +118,8 @@ class PayoutTest(AbstractTest):
         pm.payout()
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
-            print("\n"+str(payout))
+            self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+
 
     def test_simple_ticket_payout_tie(self):
         self.create_ticket_contest()
@@ -122,5 +128,7 @@ class PayoutTest(AbstractTest):
         pm.payout()
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
-            print("\n"+str(payout))
-
+            if payout.entry.lineup.user.username == str(4):
+                self.assertEqual(payout.rank, 3)
+            else:
+                self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)

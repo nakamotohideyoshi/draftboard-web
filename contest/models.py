@@ -108,6 +108,19 @@ class Contest(models.Model):
                     verbose_name='DraftGroup',
                     help_text='the pool of draftable players and their salaries, for the games this contest includes.' )
 
+
+    max_entries = models.PositiveIntegerField(null=False,
+                                              default=1,
+                                              help_text="The total number of entries a user can add to a contest")
+
+    entries = models.PositiveIntegerField(null=False,
+                                          default=2,
+                                          help_text="Total spots available for the contest")
+    current_entries = models.PositiveIntegerField(null=False,
+                                                  default=0,
+                                                  help_text="The number of entries submitted to the contest")
+
+
     def update_status(self):
         """
         Updates the status for the contest based on the player pool's game
@@ -244,3 +257,16 @@ class Entry(models.Model):
     def __str__(self):
         return '%s %s' % (self.contest.name, str(self.lineup))
 
+
+class Action(models.Model):
+    created = models.DateTimeField( auto_now_add=True)
+    transaction = models.OneToOneField("transaction.Transaction",
+                                    null=False,)
+    contest = models.ForeignKey(Contest,
+                                null=False)
+    entry = models.OneToOneField(Entry,
+                                 null=False)
+
+    class Meta:
+
+        abstract = True

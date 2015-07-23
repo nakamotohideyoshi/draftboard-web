@@ -60,7 +60,7 @@ class BonusCashTransaction(AbstractTransaction):
         #
         # makes the amount negative because it is a withdrawal
         self.create(category, -amount)
-        Logger.log(ErrorCodes.INFO,"Withdraw", self.user.username+" withdrew "+str(amount)+" "+self.accountName+" from their account.")
+        Logger.log(ErrorCodes.INFO,"Bonus Cash Withdraw", self.user.username+" withdrew "+str(amount)+" "+self.accountName+" from their account.")
 
     def deposit(self, amount, category = None):
         """
@@ -81,7 +81,7 @@ class BonusCashTransaction(AbstractTransaction):
         if(category == None):
             category = TransactionType.objects.get(pk=TransactionTypeConstants.BonusCashDeposit.value)
         self.create(category,amount)
-        Logger.log(ErrorCodes.INFO, "Deposit", self.user.username+" deposited "+str(amount)+" "+self.accountName+" into their account.")
+        Logger.log(ErrorCodes.INFO, "Bonus Cash Deposit", self.user.username+" deposited "+str(amount)+" "+self.accountName+" into their account.")
 
     def get_balance_string_formatted(self):
         """
