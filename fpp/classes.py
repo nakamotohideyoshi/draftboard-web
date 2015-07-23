@@ -61,7 +61,7 @@ class FppTransaction(AbstractTransaction):
         #
         # makes the amount negative because it is a withdrawal
         self.create(category, -amount)
-        Logger.log(ErrorCodes.INFO,"Withdraw", self.user.username+" withdrew "+str(amount)+" FPP from their account.")
+        Logger.log(ErrorCodes.INFO,"FPP Withdraw", self.user.username+" withdrew "+str(amount)+" FPP from their account.")
 
     def deposit(self, amount, category = None):
         """
@@ -82,7 +82,7 @@ class FppTransaction(AbstractTransaction):
         if(category == None):
             category = TransactionType.objects.get(pk=TransactionTypeConstants.FppDeposit.value)
         self.create(category,amount)
-        Logger.log(ErrorCodes.INFO, "Deposit", self.user.username+" deposited "+str(amount)+" FPP into their account.")
+        Logger.log(ErrorCodes.INFO, "FPP Deposit", self.user.username+" deposited "+str(amount)+" FPP into their account.")
 
     def get_balance_string_formatted(self):
         """

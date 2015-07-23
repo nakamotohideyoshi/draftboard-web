@@ -12,6 +12,6 @@ class Lineup(models.Model):
 
     fantasy_points  = models.FloatField(default=0.0, null=False, blank=True)
     user            = models.ForeignKey(User, null=False)
-
+    draftgroup      = models.ForeignKey('draftgroup.DraftGroup', null=None)
     def __str__(self):
         return '%s %s %s' % (self.user, self.fantasy_points, 'NAME_TODO')

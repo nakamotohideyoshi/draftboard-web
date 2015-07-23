@@ -63,8 +63,9 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         #
         # makes the amount negative because it is a withdrawal
         self.create(category,-amount)
-        Logger.log(ErrorCodes.INFO,"Withdrawal", self.user.username+" withdrew $"+str(amount)+" from their cash account.")
 
+        msg = "User["+self.user.username+"] withdrew $"+str(amount)+" from their cash account."
+        Logger.log(ErrorCodes.INFO, "Cash Withdraw", msg)
 
     def deposit(self, amount, category = None):
         """
@@ -86,7 +87,9 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         if(category == None):
             category = TransactionType.objects.get(pk=TransactionTypeConstants.CashDeposit.value)
         self.create(category,amount)
-        Logger.log(ErrorCodes.INFO, "Deposit", self.user.username+" deposited $"+str(amount)+" into their cash account.")
+
+        msg = "User["+self.user.username+"] deposited $"+str(amount)+" into their cash account."
+        Logger.log(ErrorCodes.INFO, "Cash Deposit", msg)
 
 
     def deposit_braintree(self, amount, braintree_transaction):

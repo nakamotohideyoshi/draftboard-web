@@ -2,13 +2,14 @@ import mysite.exceptions
 from contest.models import Contest, Entry
 from prize.models import Rank
 from django.db.models import Q
-from django.contrib.contenttypes.models import  ContentType
 from transaction.models import  AbstractAmount
 import mysite.exceptions
 from transaction.classes import  CanDeposit
 from .models import Payout
 from cash.classes import CashTransaction
 import decimal
+from dfslog.classes import Logger, ErrorCodes
+from cash.classes import CashTransaction
 class PayoutManager(object):
     """
     Responsible for performing the payouts for all active contests for both
@@ -118,16 +119,14 @@ class PayoutManager(object):
             while score == entries[i+1].lineup.fantasy_points:
                 i += 1
                 entries_to_pay.append(entries[i])
-                if(len(ranks) > i):
+                if len(ranks) > i:
                     ranks_to_pay.append(i)
 
             self.__payout_spot(ranks_to_pay, entries_to_pay, contest)
             i += 1
 
     def __payout_spot(self, ranks_to_pay, entries_to_pay, contest):
-        print("saving payout")
-
-
+        # TODO- splitting pennies!!!!!!
         #
         # if there are the same number of ranks and entries to pay
         # and the ranks to pay are all equal, we can divide evenly
@@ -145,6 +144,8 @@ class PayoutManager(object):
                 tm.deposit(rank.amount.get_cash_value())
                 payout.transaction = tm.transaction
                 payout.save()
+                self.send_payout_signal(payout)
+
         #
         # We need to convert the rank amount to a cash value to payout
         else:
@@ -162,8 +163,19 @@ class PayoutManager(object):
                 tm.deposit(cash_to_chop)
                 payout.transaction = tm.transaction
                 payout.save()
+                self.send_payout_signal(payout)
 
-
+    def send_payout_signal(self, payout):
+        """
+        Sends out a signal that a payout has occurred so that loyalty programs can listen
+        to the signal and act upon it.
+        :param payout:
+        :return:
+        """
+        msg = "User["+payout.entry.lineup.user.username+"] was ranked #"+str(payout.rank)+" for contest #"+str(payout.contest.pk)+" and was paid out."
+        Logger.log(ErrorCodes.INFO, "Contest Payout", msg )
+        #
+        # TODO send out a signal that the payout occurred
 
     def array_objects_are_equal(self, arr):
         prev = None
