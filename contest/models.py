@@ -6,6 +6,7 @@ from draftgroup.classes import DraftGroupManager
 from sports.classes import SiteSportManager
 from django.utils.crypto import get_random_string
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 class Contest(models.Model):
     """
@@ -243,4 +244,24 @@ class Entry(models.Model):
 
     def __str__(self):
         return '%s %s' % (self.contest.name, str(self.lineup))
+
+#
+# TODO - finish porting this over to Contest
+#
+class TransactionDetail( models.Model ):
+    """
+    The base model for the classes to keep track of
+    the contest transactions like buyins and refunds, etc...
+    """
+
+    BUYIN       = 'buyin'
+
+    user        = models.ForeignKey( User, null=False )
+    transaction = models.ForeignKey( 'transaction.Transaction', null=False )
+    created     = models.DateTimeField( auto_now_add=True, null=True )
+    entry       = models.ForeignKey( Entry, null=False )
+
+    class Meta:
+        abstract = True
+        unique_together = ('user', 'transaction')
 
