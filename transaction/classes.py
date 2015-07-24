@@ -53,7 +53,7 @@ class AbstractTransaction (AbstractSiteUserClass):
                                           "balance_class")
 
         return
-    def create(self, category, amount):
+    def create(self, category, amount, trans=None):
         """
 
         :param user: The user the transaction will be associated
@@ -61,6 +61,7 @@ class AbstractTransaction (AbstractSiteUserClass):
         :param category: The category type. The category must be
             a TransactionType model.
         :param amount: the amount stored for the transaction.
+        :param trans: the optional transaction to point the transaction to
 
         :raises :class:`transaction.exceptions.IncorrectVariableTypeException`:
             If the variables are not the correct types it will
@@ -76,9 +77,11 @@ class AbstractTransaction (AbstractSiteUserClass):
         if(not isinstance(category, TransactionType)):
             raise IncorrectVariableTypeException(type(self).__name__,
                                           "category")
-
-        self.transaction = Transaction(user=self.user, category=category)
-        self.transaction.save()
+        if trans is None:
+            self.transaction = Transaction(user=self.user, category=category)
+            self.transaction.save()
+        else:
+            self.transaction = trans
         self.transaction_detail = self.transaction_detail_class()
         self.transaction_detail.amount = amount
         self.transaction_detail.transaction = self.transaction
@@ -141,7 +144,7 @@ class AbstractTransaction (AbstractSiteUserClass):
             balance = self.balance_class()
             balance.user = self.user
             balance.transaction = None
-            balance.amount=0.00
+            balance.amount = 0.00
             balance.save()
         return balance
 

@@ -6,6 +6,7 @@ from draftgroup.classes import DraftGroupManager
 from sports.classes import SiteSportManager
 from django.utils.crypto import get_random_string
 from django.core.urlresolvers import reverse
+from django.contrib.auth.models import User
 
 class Contest(models.Model):
     """
@@ -252,7 +253,8 @@ class Entry(models.Model):
     updated     = models.DateTimeField(auto_now=True)
 
     contest     = models.ForeignKey(Contest, null=False)
-    lineup      = models.ForeignKey("lineup.Lineup")
+    lineup      = models.ForeignKey("lineup.Lineup", null=True)
+    user = models.ForeignKey(User, null=False)
 
     def __str__(self):
         return '%s %s' % (self.contest.name, str(self.lineup))
@@ -268,5 +270,4 @@ class Action(models.Model):
                                  null=False)
 
     class Meta:
-
         abstract = True

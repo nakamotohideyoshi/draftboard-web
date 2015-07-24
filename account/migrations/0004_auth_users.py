@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 from django.db import models, migrations
 from django.conf import settings
+from django.contrib.auth.hashers import make_password
 
 def load_initial_data(apps, schema_editor):
     """
@@ -15,15 +16,22 @@ def load_initial_data(apps, schema_editor):
 
     #
     # get the model by name
-    user = apps.get_model('auth', 'User')
-    draftboard = user.objects.create_user(username=settings.USERNAME_DRAFTBOARD, password="")
-    draftboard.is_superuser   = False
-    draftboard.is_staff       = True
+    User = apps.get_model('auth', 'User')
+    password = User.objects.make_random_password()
+
+
+    draftboard = User()
+    draftboard.username= settings.USERNAME_DRAFTBOARD
+    draftboard.password = make_password(password)
+    draftboard.is_superuser = False
+    draftboard.is_staff = True
     draftboard.save()
 
-    escrow = user.objects.create_user(username=settings.USERNAME_ESCROW, password="")
-    escrow.is_superuser   = False
-    escrow.is_staff       = True
+    escrow = User()
+    escrow.username = settings.USERNAME_ESCROW
+    escrow.password= make_password(password)
+    escrow.is_superuser = False
+    escrow.is_staff = True
     escrow.save()
 
 class Migration(migrations.Migration):

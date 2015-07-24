@@ -1,16 +1,16 @@
-from django.conf import settings
 from mysite.classes import AbstractSiteUserClass
-from contest.models import Contest
-import mysite.exceptions
 from lineup.models import Lineup
-from ..exceptions import ContestLineupMismatchedDraftGroupsException, ContestIsInProgressOrClosedException, ContestIsFullException, ContestCouldNotEnterException
+from ..exceptions import ContestLineupMismatchedDraftGroupsException, ContestIsInProgressOrClosedException, ContestIsFullException, ContestCouldNotEnterException, ContestMaxEntriesReachedException, ContestIsNotAcceptingLineupsException
 from django.db.transaction import atomic
 from django.db import IntegrityError
 from cash.classes import CashTransaction
+from ticket.classes import TicketManager
 from ..models import Entry, Contest
 from .models import Buyin
 from lineup.exceptions import LineupDoesNotMatchUser
 from dfslog.classes import Logger, ErrorCodes
+from ticket.exceptions import  UserDoesNotHaveTicketException
+import ticket.models
 class BuyinManager(AbstractSiteUserClass):
     """
     Responsible for performing the buyins for all active contests for both
@@ -18,7 +18,7 @@ class BuyinManager(AbstractSiteUserClass):
     """
 
     def __init__(self, user):
-        super(user)
+        super().__init__(user)
 
     def validate_arguments(self, contest, lineup=None):
         """
@@ -43,10 +43,25 @@ class BuyinManager(AbstractSiteUserClass):
         :param contest:
         :param lineup: assumed the lineup is validated on creation
 
+        :raises :class:`contest.exceptions.ContestCouldNotEnterException`: When the
+        there is a race condition and the contest cannot be entered after max_retries
+        :raises :class:`contest.exceptions.ContestIsNotAcceptingLineupsException`: When
+            contest does not have a draftgroup, because it is not accepting teams yet. The
+            contest will most likely be a future contest.
+        :raises :class:`contest.exceptions.ContestLineupMismatchedDraftGroupsException`:
+            When the lineup was picked from a draftgroup that does not match the contest.
+        :raises :class:`contest.exceptions.ContestIsInProgressOrClosedException`: When
+            The contest has either started, been cancelled, or is completed.
+        :raises :class:`contest.exceptions.LineupDoesNotMatchUser`: When the lineup
+            is not owned by the user.
+        :raises :class:`contest.exceptions.ContestMaxEntriesReachedException`: When the
+            max entries is reached by the lineup.
+        :raises :class:`contest.exceptions.ContestIsFullException`: When the contest is full
+            and is no longer accepting new entries.
         """
         #
         # validate the contest and the lineup are allowed to be created
-        self.lineup_contest(contest,lineup)
+        self.lineup_contest(contest, lineup)
 
         max_retries = 5
         i = 0
@@ -61,7 +76,7 @@ class BuyinManager(AbstractSiteUserClass):
                       +str(contest.pk)+" with entry #"+str(entry.pk)
                 Logger.log(ErrorCodes.INFO, "Contest Buyin", msg )
                 return
-            #
+
             # throws integrity error if there is a race condition on the
             # contest.current_entries field
             except IntegrityError:
@@ -85,32 +100,60 @@ class BuyinManager(AbstractSiteUserClass):
     @atomic
     def __create_buyin_entry(self, contest, lineup=None):
         """
-        Creates the entry, buyin, and cash transaction in one atomic method.
+        Creates the entry, buyin, and cash transaction from user to escrow
+        in one atomic method.
         :param contest:
         :param lineup: assumed the lineup is validated on creation
+
+        :raises :class:`contest.exceptions.ContestIsNotAcceptingLineupsException`: When
+            contest does not have a draftgroup, because it is not accepting teams yet. The
+            contest will most likely be a future contest.
+        :raises :class:`contest.exceptions.ContestLineupMismatchedDraftGroupsException`:
+            When the lineup was picked from a draftgroup that does not match the contest.
+        :raises :class:`contest.exceptions.ContestIsInProgressOrClosedException`: When
+            The contest has either started, been cancelled, or is completed.
+        :raises :class:`contest.exceptions.LineupDoesNotMatchUser`: When the lineup
+            is not owned by the user.
+        :raises :class:`contest.exceptions.ContestMaxEntriesReachedException`: When the
+            max entries is reached by the lineup.
+        :raises :class:`contest.exceptions.ContestIsFullException`: When the contest is full
+            and is no longer accepting new entries.
         """
         #
         # Create either the ticket or cash transaction
-        ct = CashTransaction(self.user)
-        ct.withdraw(contest.prize_structure.buyin)
+        tm = TicketManager(self.user)
+        try:
+            tm.consume(amount=contest.prize_structure.buyin)
+            transaction = tm.transaction
+
+        except (UserDoesNotHaveTicketException, ticket.models.TicketAmount.DoesNotExist):
+            ct = CashTransaction(self.user)
+            ct.withdraw(contest.prize_structure.buyin)
+            transaction = ct.transaction
+        #
+        # Transfer money into escrow
+        escrow_ct = CashTransaction(self.get_escrow_user())
+        escrow_ct.deposit(contest.prize_structure.buyin, trans=transaction)
 
         #
         # Create the Entry
         entry = Entry()
         entry.contest = contest
         entry.lineup = lineup
+        entry.user = self.user
         entry.save()
 
         #
         # Create the Buyin model
         buyin = Buyin()
-        buyin.transaction = ct.transaction
+        buyin.transaction = transaction
         buyin.contest = contest
         buyin.entry = entry
         buyin.save()
 
         #
         # Increment the contest_entry variable
+        self.check_contest_full(contest)
         contest.current_entries +=1
         contest.save()
 
@@ -122,19 +165,35 @@ class BuyinManager(AbstractSiteUserClass):
         together.
         :param contest:
         :param lineup:
-        :return:
+
+        :raises :class:`contest.exceptions.ContestIsNotAcceptingLineupsException`: When
+            contest does not have a draftgroup, because it is not accepting teams yet. The
+            contest will most likely be a future contest.
+        :raises :class:`contest.exceptions.ContestLineupMismatchedDraftGroupsException`:
+            When the lineup was picked from a draftgroup that does not match the contest.
+        :raises :class:`contest.exceptions.ContestIsInProgressOrClosedException`: When
+            The contest has either started, been cancelled, or is completed.
+        :raises :class:`contest.exceptions.LineupDoesNotMatchUser`: When the lineup
+            is not owned by the user.
+        :raises :class:`contest.exceptions.ContestMaxEntriesReachedException`: When the
+            max entries is reached by the lineup.
+        :raises :class:`contest.exceptions.ContestIsFullException`: When the contest is full
+            and is no longer accepting new entries.
+
         """
         self.validate_arguments(contest,lineup)
 
         #
-        # Make sure they share draftgroups
-        if lineup is not None and contest.draft_group.pk != lineup.draftgroup.pk :
-            raise ContestLineupMismatchedDraftGroupsException()
+        # Make sure the contest has a draftgroup if there is a lineup
+        if lineup is not None and contest.draft_group is None:
+            raise ContestIsNotAcceptingLineupsException()
 
         #
-        # Make sure the contest is accepting new entries
-        if contest.current_entries >= contest.entries:
-            raise ContestIsFullException()
+        # Make sure they share draftgroups
+        if lineup is not None and contest.draft_group.pk != lineup.draftgroup.pk:
+            raise ContestLineupMismatchedDraftGroupsException()
+
+        self.check_contest_full(contest)
         #
         # Make sure the contest status is active
         if contest.status not in Contest.STATUS_UPCOMING:
@@ -145,3 +204,22 @@ class BuyinManager(AbstractSiteUserClass):
         if lineup is not None and lineup.user != self.user:
             raise LineupDoesNotMatchUser()
 
+        #
+        # Make sure that a contest cannot be entered and the user has not entered
+        # more teams than they are allowed.
+        entries = Entry.objects.filter(user=self.user, contest=contest)
+        if len(entries) >= contest.max_entries:
+            raise ContestMaxEntriesReachedException()
+
+    def check_contest_full(self, contest):
+        """
+        Method takes in a contest and throws an
+        :class:`contest.exceptions.ContestIsFullException` exception
+        if the contest is full
+        :param contest:
+
+        :raises :class:`contest.exceptions.ContestIsFullException`: When the contest is full
+            and is no longer accepting new entries.
+        """
+        if contest.current_entries >= contest.entries:
+            raise ContestIsFullException()
