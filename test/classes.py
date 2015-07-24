@@ -1,13 +1,11 @@
 import django.test
 from django.contrib.auth.models import User
+import threading
+from django.db import connections
 
-class AbstractTest(django.test.TestCase):
+class MasterAbstractTest():
 
     PASSWORD = 'password'
-
-    def setUp(self):
-        pass
-
     def get_user(self, username='username', is_superuser=False,
                  is_staff=False, permissions=[]):
         #
@@ -72,3 +70,37 @@ class AbstractTest(django.test.TestCase):
 
     def get_password(self):
         return self.PASSWORD
+
+
+
+class AbstractTest(django.test.TestCase, MasterAbstractTest):
+
+    def setUp(self):
+        pass
+
+
+
+class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTest):
+
+    def setUp(self):
+        pass
+
+    def concurrent_test(self, times, test_func, *args, **kwargs ):
+        exceptions = []
+        def call_test_func():
+            try:
+                test_func(*args, **kwargs)
+            except Exception as e:
+                exceptions.append(e)
+                return
+            for conn in connections.all():
+                conn.close()
+        threads = []
+        for i in range(times):
+            threads.append(threading.Thread(target=call_test_func))
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        return exceptions

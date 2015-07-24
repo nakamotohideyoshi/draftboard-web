@@ -19,7 +19,7 @@ class Contest(models.Model):
     RESERVABLE  = 'reservable'      # far off contest you can buy into, but cannot draft a team for yet.
     SCHEDULED   = 'scheduled'       # standard draftable contest before it begins
     INPROGRESS  = 'inprogress'      # a live contest!
-    #COMPLETED   = 'completed'
+    COMPLETED   = 'completed'
     CLOSED      = 'closed'          # a paid out contest
     CANCELLED   = 'cancelled'       # a non-guarantee that did not fill up, and did not run (any users were refunded)
 
@@ -32,7 +32,7 @@ class Contest(models.Model):
 
     STATUS_LIVE = [
         INPROGRESS,
-        #COMPLETED
+        COMPLETED
     ]
 
     STATUS_HISTORY = [
@@ -62,7 +62,7 @@ class Contest(models.Model):
         (
             'Live', (
                 (INPROGRESS,    'In Progress'),     # game is locked, no new entries
-                #(COMPLETED,     'Completed'),       # the live games are completed (but potentially not finalized)
+                (COMPLETED,     'Completed'),       # the live games are completed (but potentially not finalized)
             )
         ),
         (
@@ -109,6 +109,19 @@ class Contest(models.Model):
                     verbose_name='DraftGroup',
                     help_text='the pool of draftable players and their salaries, for the games this contest includes.' )
 
+
+    max_entries = models.PositiveIntegerField(null=False,
+                                              default=1,
+                                              help_text="The total number of entries a user can add to a contest")
+
+    entries = models.PositiveIntegerField(null=False,
+                                          default=2,
+                                          help_text="Total spots available for the contest")
+    current_entries = models.PositiveIntegerField(null=False,
+                                                  default=0,
+                                                  help_text="The number of entries submitted to the contest")
+
+
     def update_status(self):
         """
         Updates the status for the contest based on the player pool's game
@@ -133,7 +146,7 @@ class Contest(models.Model):
         # only automatically do this on object creation
         if self.pk is None and not self.draft_group:
             dgm = DraftGroupManager()
-            self.draft_group = dgm.get_for_site_sport( self.site_sport )
+            self.draft_group = dgm.get_for_site_sport( self.site_sport, self.start, self.end )
 
     def save(self, *args, **kwargs):
         # if self.pk is None and not self.cid:
@@ -240,28 +253,20 @@ class Entry(models.Model):
     updated     = models.DateTimeField(auto_now=True)
 
     contest     = models.ForeignKey(Contest, null=False)
-    lineup      = models.ForeignKey("lineup.Lineup")
+    lineup      = models.ForeignKey("lineup.Lineup", null=True)
+    user = models.ForeignKey(User, null=False)
 
     def __str__(self):
         return '%s %s' % (self.contest.name, str(self.lineup))
 
-#
-# TODO - finish porting this over to Contest
-#
-class TransactionDetail( models.Model ):
-    """
-    The base model for the classes to keep track of
-    the contest transactions like buyins and refunds, etc...
-    """
-
-    BUYIN       = 'buyin'
-
-    user        = models.ForeignKey( User, null=False )
-    transaction = models.ForeignKey( 'transaction.Transaction', null=False )
-    created     = models.DateTimeField( auto_now_add=True, null=True )
-    entry       = models.ForeignKey( Entry, null=False )
+class Action(models.Model):
+    created = models.DateTimeField( auto_now_add=True)
+    transaction = models.OneToOneField("transaction.Transaction",
+                                    null=False,)
+    contest = models.ForeignKey(Contest,
+                                null=False)
+    entry = models.OneToOneField(Entry,
+                                 null=False)
 
     class Meta:
         abstract = True
-        unique_together = ('user', 'transaction')
-

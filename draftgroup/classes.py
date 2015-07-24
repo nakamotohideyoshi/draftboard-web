@@ -125,7 +125,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         """
         return None # TODO - actually try to get one
 
-    def get_for_site_sport(self, site_sport):
+    def get_for_site_sport(self, site_sport, start, end):
         """
         get the most recent draftgroup for the given site_sport
 
@@ -134,7 +134,13 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         """
 
         # return the most recently created draftgroup for the site_sport
-        return DraftGroup.objects.filter( salary_pool__site_sport=site_sport ).order_by('-created')[0]
+        # TODO this is not complete. It needs to check for an active DraftGroup
+        # dgs = DraftGroup.objects.filter( salary_pool__site_sport=site_sport ).order_by('-created')[
+        # if len(dgs) == 0:
+        #     return self.create(site_sport, start, end)
+        # else
+        #     return dgs[0]
+        return None
 
     @atomic
     def create(self, site_sport, start, end):
