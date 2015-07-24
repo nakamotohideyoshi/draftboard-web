@@ -223,3 +223,13 @@ class BuyinManager(AbstractSiteUserClass):
         """
         if contest.current_entries >= contest.entries:
             raise ContestIsFullException()
+
+    def entry_did_use_ticket(self,entry):
+        self.validate_variable(Entry, entry)
+        buyin = Buyin.objects.get(entry=entry)
+        buyin.transaction
+        try:
+            ticket.models.Ticket.objects.get(transaction=buyin.transaction)
+            return True
+        except ticket.models.Ticket.DoesNotExist:
+            return False
