@@ -134,13 +134,16 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         """
 
         # return the most recently created draftgroup for the site_sport
-        # TODO this is not complete. It needs to check for an active DraftGroup
-        # dgs = DraftGroup.objects.filter( salary_pool__site_sport=site_sport ).order_by('-created')[
-        # if len(dgs) == 0:
-        #     return self.create(site_sport, start, end)
-        # else
-        #     return dgs[0]
-        return None
+        dgs = DraftGroup.objects.filter( salary_pool__site_sport=site_sport,
+                                         start=start, end=end ).order_by('-created')
+        if len(dgs) == 0:
+            #
+            # no matching draftgroups? create a new one! PlayerPool must exist
+            return self.create(site_sport, start, end)
+        else:
+            #
+            # otherwise, return the most recently created one
+            return dgs[0]
 
     @atomic
     def create(self, site_sport, start, end):
@@ -177,8 +180,12 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         #   - get_salaries() - get a list of salary.model.Salary (players w/ salaries)
         salary    = self.get_active_salary_pool(site_sport)
 
-        draft_group, created = DraftGroup.objects.get_or_create(salary_pool=salary.get_pool(),
+        # draft_group, created = DraftGroup.objects.get_or_create(salary_pool=salary.get_pool(),
+        #                                                 start=start, end=end )
+
+        draft_group = DraftGroup.objects.create(salary_pool=salary.get_pool(),
                                                         start=start, end=end )
+
 
         # build lists of all the teams, and all the player srids in the draft group
         team_srids      = []

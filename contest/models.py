@@ -142,11 +142,11 @@ class Contest(models.Model):
         game_model = self.__get_game_model()
         return game_model.objects.filter( start__gte=self.start, start__lt=self.end )
 
-    def set_draftgroup_on_create(self):
-        # only automatically do this on object creation
-        if self.pk is None and not self.draft_group:
-            dgm = DraftGroupManager()
-            self.draft_group = dgm.get_for_site_sport( self.site_sport, self.start, self.end )
+    # def set_draftgroup_on_create(self):
+    #     # only automatically do this on object creation
+    #     if self.pk is None and not self.draft_group:
+    #         dgm = DraftGroupManager()
+    #         self.draft_group = dgm.get_for_site_sport( self.site_sport, self.start, self.end )
 
     def save(self, *args, **kwargs):
         # if self.pk is None and not self.cid:
@@ -166,7 +166,7 @@ class Contest(models.Model):
                     break # out of while
 
         # set the draftgroup, if its not set
-        self.set_draftgroup_on_create()
+        #self.set_draftgroup_on_create()
 
         super().save(*args, **kwargs)
 
@@ -258,7 +258,6 @@ class Entry(models.Model):
 
     def __str__(self):
         return '%s %s' % (self.contest.name, str(self.lineup))
-
 
 class Action(models.Model):
     created = models.DateTimeField( auto_now_add=True)
