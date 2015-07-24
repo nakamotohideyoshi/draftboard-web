@@ -15,8 +15,9 @@ from cash.classes import CashTransaction
 from contest import exceptions
 import mysite.exceptions
 from lineup.models import Lineup
-from ticket.models import TicketAmount, Ticket
-
+from ticket.models import TicketAmount
+from draftgroup.models import DraftGroup
+from lineup.exceptions import LineupDoesNotMatchUser
 class BuyinTest(AbstractTest):
     def setUp(self):
 
@@ -24,10 +25,12 @@ class BuyinTest(AbstractTest):
         ct = CashTransaction(self.user)
         ct.deposit(100)
 
-        Dummy.generate_salaries()
+        salary_generator = Dummy.generate_salaries()
+        self.salary_pool = salary_generator.pool
         self.first = 100.0
         self.second = 50.0
         self.third = 25.0
+
         #
         # create a simple Rank and Prize Structure
         self.buyin =10
@@ -52,6 +55,12 @@ class BuyinTest(AbstractTest):
         self.contest.status = Contest.RESERVABLE
         self.contest.save()
 
+        self.draftgroup = DraftGroup()
+        self.draftgroup.salary_pool = self.salary_pool
+        self.draftgroup.start = start
+        self.draftgroup.end = end
+        self.draftgroup.save()
+
     def test_incorrect_contest_type(self):
         bm = BuyinManager(self.user)
         self.assertRaises(mysite.exceptions.IncorrectVariableTypeException,
@@ -61,7 +70,6 @@ class BuyinTest(AbstractTest):
         bm = BuyinManager(self.user)
         self.assertRaises(mysite.exceptions.IncorrectVariableTypeException,
                           lambda: bm.buyin(self.contest, 0))
-
 
     def test_simple_buyin(self):
         bm = BuyinManager(self.user)
@@ -83,12 +91,30 @@ class BuyinTest(AbstractTest):
         self.assertEqual((tm.ticket.consume_transaction is not None), True)
 
     def test_lineup_no_contest_draft_group(self):
-        # TODO need to have draftgroup working for this to be tested
-        pass
+        lineup = Lineup()
+        lineup.draftgroup = self.draftgroup
+        lineup.user = self.user
+        bm = BuyinManager(self.user)
+        self.assertRaises(exceptions.ContestIsNotAcceptingLineupsException,
+                  lambda: bm.buyin(self.contest, lineup))
 
     def test_lineup_share_draft_group(self):
-        # TODO need to have draftgroup working for this to be tested
-        pass
+        draftgroup2 = DraftGroup()
+        draftgroup2.salary_pool = self.salary_pool
+        draftgroup2.start = self.contest.start
+        draftgroup2.end = self.contest.end
+        draftgroup2.save()
+
+        lineup = Lineup()
+        lineup.draftgroup = self.draftgroup
+        lineup.user = self.user
+
+        self.contest.draft_group =draftgroup2
+        self.contest.save()
+
+        bm = BuyinManager(self.user)
+        self.assertRaises(exceptions.ContestLineupMismatchedDraftGroupsException,
+                  lambda: bm.buyin(self.contest, lineup))
 
     def test_contest_full(self):
         self.contest.entries = 3
@@ -124,8 +150,16 @@ class BuyinTest(AbstractTest):
                   lambda: bm.buyin(self.contest))
 
     def test_user_owns_lineup(self):
-        # TODO need to have draftgroup working for this to be tested
-        pass
+        lineup = Lineup()
+        lineup.draftgroup = self.draftgroup
+        lineup.user = self.get_admin_user()
+
+        self.contest.draft_group =self.draftgroup
+        self.contest.save()
+
+        bm = BuyinManager(self.user)
+        self.assertRaises(LineupDoesNotMatchUser,
+                  lambda: bm.buyin(self.contest, lineup))
 
     def test_user_submits_past_max_entries(self):
         self.contest.max_entries = 1
@@ -143,6 +177,7 @@ class BuyinTest(AbstractTest):
 
 class BuyinRaceTest(AbstractTestTransaction):
     pass
+    #TODO add the Race condition test
     # def test_race_condition_to_fill_last_spot_of_contest(self):
     #     self.contest.max_entries = 5
     #     self.contest.entries = 3

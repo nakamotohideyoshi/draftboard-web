@@ -11,6 +11,7 @@ from lineup.exceptions import LineupDoesNotMatchUser
 from dfslog.classes import Logger, ErrorCodes
 from ticket.exceptions import  UserDoesNotHaveTicketException
 import ticket.models
+
 class BuyinManager(AbstractSiteUserClass):
     """
     Responsible for performing the buyins for all active contests for both

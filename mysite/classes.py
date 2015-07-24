@@ -12,14 +12,23 @@ class AbstractSiteUserClass( object ):
         """
         #
         # Validate that user and category are proper types
-        if(not isinstance(user, User)):
-            raise IncorrectVariableTypeException(type(self).__name__,
-                                          "user")
+        self.validate_variable(User, user)
+
 
         self.user = user
 
     def validate_variable(self, expected_class, variable=None):
         if variable is not None:
+            #
+            # validate the contest is an instance of contest.models.Contest
+            if not isinstance(variable, expected_class):
+                raise IncorrectVariableTypeException(
+                    type(self).__name__,
+                    'contest')
+
+    def validate_variable_array(self, expected_class, variable_array=[]):
+        self.validate_variable(list, variable_array)
+        for variable in variable_array:
             #
             # validate the contest is an instance of contest.models.Contest
             if not isinstance(variable, expected_class):
