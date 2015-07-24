@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from mysite.exceptions import IncorrectVariableTypeException
+from django.conf import settings
 
 class AbstractSiteUserClass( object ):
 
@@ -25,3 +26,9 @@ class AbstractSiteUserClass( object ):
                 raise IncorrectVariableTypeException(
                     type(self).__name__,
                     'contest')
+
+    def get_escrow_user(self):
+        return User.objects.get(username=settings.USERNAME_ESCROW)
+
+    def get_draftboard_user(self):
+        return User.objects.get(username=settings.USERNAME_DRAFTBOARD)

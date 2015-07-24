@@ -34,7 +34,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
             print(str(ta))
     create_default_ticket_amounts = staticmethod( create_default_ticket_amounts )
 
-    def __get_ticket_amount(self, amount):
+    def get_ticket_amount(self, amount):
         """
         Validates and gets  the amount.
 
@@ -82,7 +82,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
             if the amount argument is less than 0.
 
         """
-        ta = self.__get_ticket_amount(amount)
+        ta = self.get_ticket_amount(amount)
 
         #
         # creates a Transaction if it does not exists
@@ -167,7 +167,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
 
             #
             # Gets the amount from the pre-defined Ticket Amounts
-            amount_obj = self.__get_ticket_amount(amount)
+            amount_obj = self.get_ticket_amount(amount)
 
 
             #
