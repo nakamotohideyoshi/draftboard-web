@@ -31,7 +31,7 @@ from roster.models import RosterSpot, RosterSpotPosition
 
 class Dummy(object):
 
-    DEFAULT_SPORT = 'testsport'
+    DEFAULT_SPORT = 'nfl'
 
     DEFAULT_ROSTER_MAP = {
 

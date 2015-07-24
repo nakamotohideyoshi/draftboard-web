@@ -7,6 +7,8 @@ from mysite.classes import  AbstractSiteUserClass
 from mysite.exceptions import AmountZeroException, AmountNegativeException, TooManyArgumentsException, TooLittleArgumentsException, IncorrectVariableTypeException
 from .exceptions import  InvalidTicketAmountException, TicketAlreadyUsedException, UserDoesNotHaveTicketException
 from transaction.classes import CanDeposit
+from dfslog.classes import Logger, ErrorCodes
+
 class TicketManager(CanDeposit, AbstractSiteUserClass):
     """
     Manages the ticket accounts for a given user. Each ticket
@@ -32,7 +34,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
             print(str(ta))
     create_default_ticket_amounts = staticmethod( create_default_ticket_amounts )
 
-    def __get_ticket_amount(self, amount):
+    def get_ticket_amount(self, amount):
         """
         Validates and gets  the amount.
 
@@ -80,7 +82,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
             if the amount argument is less than 0.
 
         """
-        ta = self.__get_ticket_amount(amount)
+        ta = self.get_ticket_amount(amount)
 
         #
         # creates a Transaction if it does not exists
@@ -107,6 +109,11 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         self.ticket.user = self.user
         self.ticket.amount = ta
         self.ticket.save()
+
+        msg = "User["+self.user.username+"] had a $"+str(self.ticket.amount.amount)+" ticket #"+str(self.ticket.pk)+" deposited into their ticket account."
+
+        Logger.log(ErrorCodes.INFO, "Ticket Deposit", msg )
+
 
 
     def consume(self, amount = None, ticket_obj = None, transaction_obj = None):
@@ -160,7 +167,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
 
             #
             # Gets the amount from the pre-defined Ticket Amounts
-            amount_obj = self.__get_ticket_amount(amount)
+            amount_obj = self.get_ticket_amount(amount)
 
 
             #
@@ -219,6 +226,10 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         self.ticket.consume_transaction = self.transaction
         self.ticket.save()
 
+
+
+        msg =  "User["+self.user.username+"] used ticket #"+str(self.ticket.pk)+" valued at $"+str(self.ticket.amount.amount)+" on transaction #"+str(self.transaction.pk)
+        Logger.log(ErrorCodes.INFO, "Ticket Consume", msg )
 
 
     def get_available_tickets(self):

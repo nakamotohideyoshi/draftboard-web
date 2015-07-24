@@ -1,0 +1,159 @@
+#
+# contest/buyin/tests.py
+from test.classes import AbstractTest, AbstractTestTransaction
+from salary.dummy import Dummy
+from prize.classes import CashPrizeStructureCreator
+from ticket.classes import TicketManager
+from django.utils import timezone
+from datetime import timedelta
+from datetime import time
+from dataden.util.timestamp import DfsDateTimeUtil
+from ..classes import ContestCreator
+from ..models import Contest
+from .classes import BuyinManager
+from cash.classes import CashTransaction
+from contest import exceptions
+import mysite.exceptions
+from lineup.models import Lineup
+from ticket.models import TicketAmount, Ticket
+
+class BuyinTest(AbstractTest):
+    def setUp(self):
+
+        self.user = self.get_basic_user()
+        ct = CashTransaction(self.user)
+        ct.deposit(100)
+
+        Dummy.generate_salaries()
+        self.first = 100.0
+        self.second = 50.0
+        self.third = 25.0
+        #
+        # create a simple Rank and Prize Structure
+        self.buyin =10
+        cps = CashPrizeStructureCreator(name='test')
+        cps.add(1, self.first)
+        cps.add(2, self.second)
+        cps.add(3, self.third)
+        cps.save()
+        cps.prize_structure.buyin = self.buyin
+        cps.prize_structure.save()
+
+        self.prize_structure = cps.prize_structure
+        self.ranks = cps.ranks
+
+        #
+        # create the Contest
+        now = timezone.now()
+        start = DfsDateTimeUtil.create(now.date(), time(23,0))
+        end = DfsDateTimeUtil.create(now.date() + timedelta(days=1), time(0,0))
+        cc= ContestCreator("test_contest", "nfl", self.prize_structure, start, end)
+        self.contest = cc.create()
+        self.contest.status = Contest.RESERVABLE
+        self.contest.save()
+
+    def test_incorrect_contest_type(self):
+        bm = BuyinManager(self.user)
+        self.assertRaises(mysite.exceptions.IncorrectVariableTypeException,
+                          lambda: bm.buyin(0))
+
+    def test_incorrect_linup_type(self):
+        bm = BuyinManager(self.user)
+        self.assertRaises(mysite.exceptions.IncorrectVariableTypeException,
+                          lambda: bm.buyin(self.contest, 0))
+
+
+    def test_simple_buyin(self):
+        bm = BuyinManager(self.user)
+        bm.buyin(self.contest)
+
+    def test_simple_ticket_buyin(self):
+        tm = TicketManager(self.user)
+        try:
+            tm.get_ticket_amount(self.buyin)
+
+        except Exception:
+            ta = TicketAmount()
+            ta.amount = self.buyin
+            ta.save()
+        tm.deposit(amount=self.buyin)
+        bm = BuyinManager(self.user)
+        bm.buyin(self.contest)
+        tm.ticket.refresh_from_db()
+        self.assertEqual((tm.ticket.consume_transaction is not None), True)
+
+    def test_lineup_no_contest_draft_group(self):
+        # TODO need to have draftgroup working for this to be tested
+        pass
+
+    def test_lineup_share_draft_group(self):
+        # TODO need to have draftgroup working for this to be tested
+        pass
+
+    def test_contest_full(self):
+        self.contest.entries = 3
+        self.contest.current_entries = 3
+        self.contest.save()
+        bm = BuyinManager(self.user)
+        self.assertRaises(exceptions.ContestIsFullException,
+                  lambda: bm.buyin(self.contest))
+
+    def test_contest_is_in_progress(self):
+        self.contest.status = self.contest.INPROGRESS
+        self.contest.save()
+        self.should_raise_contest_is_in_progress_or_closed_exception()
+
+    def test_contest_is_cancelled(self):
+        self.contest.status = self.contest.CANCELLED
+        self.contest.save()
+        self.should_raise_contest_is_in_progress_or_closed_exception()
+
+    def test_contest_is_closed(self):
+        self.contest.status = self.contest.CLOSED
+        self.contest.save()
+        self.should_raise_contest_is_in_progress_or_closed_exception()
+
+    def test_contest_is_completed(self):
+        self.contest.status = self.contest.COMPLETED
+        self.contest.save()
+        self.should_raise_contest_is_in_progress_or_closed_exception()
+
+    def should_raise_contest_is_in_progress_or_closed_exception(self):
+        bm = BuyinManager(self.user)
+        self.assertRaises(exceptions.ContestIsInProgressOrClosedException,
+                  lambda: bm.buyin(self.contest))
+
+    def test_user_owns_lineup(self):
+        # TODO need to have draftgroup working for this to be tested
+        pass
+
+    def test_user_submits_past_max_entries(self):
+        self.contest.max_entries = 1
+        self.contest.entries = 3
+        self.contest.save()
+
+        bm = BuyinManager(self.user)
+        bm.buyin(self.contest)
+
+        bm = BuyinManager(self.user)
+        self.assertRaises(exceptions.ContestMaxEntriesReachedException,
+                  lambda: bm.buyin(self.contest))
+
+
+
+class BuyinRaceTest(AbstractTestTransaction):
+    pass
+    # def test_race_condition_to_fill_last_spot_of_contest(self):
+    #     self.contest.max_entries = 5
+    #     self.contest.entries = 3
+    #     self.contest.save()
+    #
+    #     def run_now(self_obj):
+    #         bm = BuyinManager(self_obj.user)
+    #         bm.buyin(self_obj.contest)
+    #
+    #     exceptions_list = self.test_concurrently(4, run_now, self)
+    #     self.assertEqual(len(exceptions_list), 1)
+    #     ct = CashTransaction(self.user)
+    #     print("User Balance: "+str(ct.get_balance_amount())+ " pointer:"+str(ct.get_balance_transaction_pk()))
+
