@@ -31,6 +31,7 @@ class RefundManager(AbstractSiteUserClass):
     @atomic
     def refund(self, contest):
         #TODO make a task and test in the test script with celery running
+        #TODO special ID to prevent other refunds from runnint at same time
         """
         Task that refunds all contest entries and sets the contest to Cancelled
         :param contest:

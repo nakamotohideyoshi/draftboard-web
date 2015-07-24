@@ -93,6 +93,9 @@ class AbstractTransaction (AbstractSiteUserClass):
        # self.__updateBalance(user)
 
     def __update_balance(self):
+        #
+        # TODO - Change to a task that is unique based on they user_id
+        # TODO - update based on created NOT pk
         """
         Updates the balance for a given user.
         """
