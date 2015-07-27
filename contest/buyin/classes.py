@@ -11,6 +11,9 @@ from lineup.exceptions import LineupDoesNotMatchUser
 from dfslog.classes import Logger, ErrorCodes
 from ticket.exceptions import  UserDoesNotHaveTicketException
 import ticket.models
+import traceback
+import sys
+from django.db.models import F
 
 class BuyinManager(AbstractSiteUserClass):
     """
@@ -155,10 +158,12 @@ class BuyinManager(AbstractSiteUserClass):
         #
         # Increment the contest_entry variable
         self.check_contest_full(contest)
-        contest.current_entries +=1
+        contest.current_entries = F('current_entries') + 1
         contest.save()
+        contest.refresh_from_db()
 
         return entry
+
 
     def lineup_contest(self, contest, lineup=None):
         """
