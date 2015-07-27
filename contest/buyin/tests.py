@@ -18,6 +18,7 @@ from lineup.models import Lineup
 from ticket.models import TicketAmount
 from draftgroup.models import DraftGroup
 from lineup.exceptions import LineupDoesNotMatchUser
+from django.db.transaction import atomic
 
 #
 # information about celery queues (and customization)
@@ -199,19 +200,57 @@ class BuyinTest(AbstractTest):
 
 
 class BuyinRaceTest(AbstractTestTransaction):
-    pass
-    #TODO add the Race condition test
-    # def test_race_condition_to_fill_last_spot_of_contest(self):
-    #     self.contest.max_entries = 5
-    #     self.contest.entries = 3
-    #     self.contest.save()
-    #
-    #     def run_now(self_obj):
-    #         bm = BuyinManager(self_obj.user)
-    #         bm.buyin(self_obj.contest)
-    #
-    #     exceptions_list = self.test_concurrently(4, run_now, self)
-    #     self.assertEqual(len(exceptions_list), 1)
-    #     ct = CashTransaction(self.user)
-    #     print("User Balance: "+str(ct.get_balance_amount())+ " pointer:"+str(ct.get_balance_transaction_pk()))
+    def setUp(self):
 
+        self.user = self.get_basic_user()
+        ct = CashTransaction(self.user)
+        ct.deposit(100)
+
+        salary_generator = Dummy.generate_salaries()
+        self.salary_pool = salary_generator.pool
+        self.first = 100.0
+        self.second = 50.0
+        self.third = 25.0
+
+        #
+        # create a simple Rank and Prize Structure
+        self.buyin =10
+        cps = CashPrizeStructureCreator(name='test')
+        cps.add(1, self.first)
+        cps.add(2, self.second)
+        cps.add(3, self.third)
+        cps.save()
+        cps.prize_structure.buyin = self.buyin
+        cps.prize_structure.save()
+
+        self.prize_structure = cps.prize_structure
+        self.ranks = cps.ranks
+
+        #
+        # create the Contest
+        now = timezone.now()
+        start = DfsDateTimeUtil.create(now.date(), time(23,0))
+        end = DfsDateTimeUtil.create(now.date() + timedelta(days=1), time(0,0))
+        cc= ContestCreator("test_contest", "nfl", self.prize_structure, start, end)
+        self.contest = cc.create()
+        self.contest.status = Contest.RESERVABLE
+        self.contest.save()
+
+        self.draftgroup = DraftGroup()
+        self.draftgroup.salary_pool = self.salary_pool
+        self.draftgroup.start = start
+        self.draftgroup.end = end
+        self.draftgroup.save()
+
+    def test_race_condition_to_fill_last_spot_of_contest(self):
+        self.contest.max_entries = 5
+        self.contest.entries = 3
+        self.contest.save()
+
+        def run_now(self_obj):
+            bm = BuyinManager(self_obj.user)
+            bm.buyin(self_obj.contest)
+
+        self.concurrent_test(4, run_now, self)
+        ct = CashTransaction(self.user)
+        self.assertEqual(70, ct.get_balance_amount())

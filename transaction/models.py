@@ -72,12 +72,6 @@ class Balance( models.Model ):
     """
     user 				= models.OneToOneField( User, primary_key=True  )
     amount 				= models.DecimalField(decimal_places=2, max_digits=7)
-
-    #
-    # The foreign key to the Transaction Detail type
-    transaction_type = models.ForeignKey(ContentType, null=True)
-    transaction_id = models.PositiveIntegerField(null = True)
-    transaction = GenericForeignKey('transaction_type', 'transaction_id')
     updated  = models.DateTimeField(auto_now=True)
 
 

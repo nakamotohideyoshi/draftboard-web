@@ -2,7 +2,7 @@ import django.test
 from django.contrib.auth.models import User
 import threading
 from django.db import connections
-
+import traceback
 class MasterAbstractTest():
 
     PASSWORD = 'password'
@@ -92,7 +92,8 @@ class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTes
                 test_func(*args, **kwargs)
             except Exception as e:
                 exceptions.append(e)
-                return
+                #print(traceback.format_exc())
+
             for conn in connections.all():
                 conn.close()
         threads = []
