@@ -10,6 +10,11 @@ from cash.classes import CashTransaction
 import decimal
 from dfslog.classes import Logger, ErrorCodes
 from cash.classes import CashTransaction
+from django.db.transaction import atomic
+from promocode.bonuscash.classes import BonusCashTransaction
+from django.conf import settings
+from rakepaid.classes import RakepaidTransaction
+import math
 class PayoutManager(object):
     """
     Responsible for performing the payouts for all active contests for both
@@ -18,6 +23,7 @@ class PayoutManager(object):
 
     def __init__(self):
         pass
+
 
     def payout(self, contests=None):
         """
@@ -69,7 +75,7 @@ class PayoutManager(object):
             self.__payout_contest(contest)
 
 
-
+    @atomic
     def __payout_contest(self, contest):
         """
         Method assumes the contest has never been paid out and is ready
@@ -125,6 +131,11 @@ class PayoutManager(object):
             self.__payout_spot(ranks_to_pay, entries_to_pay, contest)
             i += 1
 
+        #
+        # TODO Payout rake for the contest itself
+
+
+
     def __payout_spot(self, ranks_to_pay, entries_to_pay, contest):
         # TODO- splitting pennies!!!!!!
         #
@@ -144,7 +155,7 @@ class PayoutManager(object):
                 tm.deposit(rank.amount.get_cash_value())
                 payout.transaction = tm.transaction
                 payout.save()
-                self.send_payout_signal(payout)
+                self.__update_accounts(payout)
 
         #
         # We need to convert the rank amount to a cash value to payout
@@ -163,19 +174,71 @@ class PayoutManager(object):
                 tm.deposit(cash_to_chop)
                 payout.transaction = tm.transaction
                 payout.save()
-                self.send_payout_signal(payout)
+                self.__update_accounts(payout)
 
-    def send_payout_signal(self, payout):
+    def __update_accounts(self, payout):
         """
-        Sends out a signal that a payout has occurred so that loyalty programs can listen
-        to the signal and act upon it.
-        :param payout:
+        Updates the accounts for FPP, Bonus, and Rake
+        :param payout: :class:`payout.models.Payout` object
         :return:
         """
         msg = "User["+payout.entry.lineup.user.username+"] was ranked #"+str(payout.rank)+" for contest #"+str(payout.contest.pk)+" and was paid out."
         Logger.log(ErrorCodes.INFO, "Contest Payout", msg )
+
+        user = payout.entry.lineup.user
+        rake_paid = 5
+
         #
-        # TODO send out a signal that the payout occurred
+        # TODO Payout FPP for the user
+
+        #
+        # TODO payout Bonus cash to the user and finish testing
+        self.__convert_bonus_cash(user, rake_paid, payout.transaction)
+
+        #
+        # Create a rake transaction for the user
+        rpt = RakepaidTransaction(user)
+        rpt.deposit(rake_paid, trans=payout.transaction)
+
+
+    def __convert_bonus_cash(self, user, rake_paid, transaction):
+        """
+        Creates the conversion from bonus cash to real cash
+        based on the rake_paid for the given entry
+        :param user:
+        :param rake_paid:
+        """
+        bct = BonusCashTransaction(user)
+        balance = bct.get_balance_amount()
+
+        #
+        #  Create the conversion if there is a balance
+        # to the user's bonus cash account
+        if balance > 0:
+            #
+            # get the conversion amount based on rake paid
+            amount = rake_paid * settings.BONUS_CASH_RAKE_PERCENTAGE
+
+            #
+            # round to the nearest cent
+            val = math.floor(amount * 100)
+            amount = val / 100.0
+
+            #
+            # if the amount is greater than the balance make the
+            # amount the balance
+            if balance < amount:
+                amount = balance
+            #
+            # create the withdraw from the bonus cash
+            bct.withdraw(amount, trans=transaction)
+
+            #
+            # create the deposit from the bonus cash
+            ct = CashTransaction(user)
+            ct.deposit(amount, trans=transaction)
+
+
 
     def array_objects_are_equal(self, arr):
         prev = None
