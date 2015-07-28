@@ -11,7 +11,8 @@ class VariableNotSetException(Exception):
 class AmountNegativeException(Exception):
     def __init__(self, class_name, variable_name):
         super().__init__(\
-           "Incorrect usage of amount argument. The amount value must be a positive number.")
+           "Incorrect usage of "+variable_name+"  argument. The amount value must be a positive number.")
+
 
 class AmountZeroException(Exception):
     def __init__(self, class_name, variable_name):

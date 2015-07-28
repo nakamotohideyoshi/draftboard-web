@@ -2,20 +2,11 @@ from django.contrib.auth.models import User
 from mysite.exceptions import IncorrectVariableTypeException
 from django.conf import settings
 
-class AbstractSiteUserClass( object ):
 
-    def __init__(self, user):
-        """
-        Initializes the variables
-        :param user:
-        :return:
-        """
-        #
-        # Validate that user and category are proper types
-        self.validate_variable(User, user)
+class AbstractManagerClass( object ):
 
-
-        self.user = user
+    def __init__(self):
+        pass
 
     def validate_variable(self, expected_class, variable=None):
         if variable is not None:
@@ -41,3 +32,21 @@ class AbstractSiteUserClass( object ):
 
     def get_draftboard_user(self):
         return User.objects.get(username=settings.USERNAME_DRAFTBOARD)
+
+
+class AbstractSiteUserClass( AbstractManagerClass ):
+
+    def __init__(self, user):
+        """
+        Initializes the variables
+        :param user:
+        :return:
+        """
+        #
+        # Validate that user and category are proper types
+        self.validate_variable(User, user)
+
+
+        self.user = user
+
+
