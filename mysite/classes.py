@@ -50,3 +50,6 @@ class AbstractSiteUserClass( AbstractManagerClass ):
         self.user = user
 
 
+
+
+
