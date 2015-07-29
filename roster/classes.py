@@ -1,7 +1,7 @@
 from .models import RosterSpot, RosterSpotPosition
 from mysite.classes import AbstractManagerClass
 from sports.models import SiteSport, Player
-import mysite.exceptions
+
 class RosterManager(AbstractManagerClass):
     def __init__(self, site_sport):
         self.validate_variable(SiteSport, site_sport)
@@ -37,3 +37,6 @@ class RosterManager(AbstractManagerClass):
 
     def get_roster_spots_count(self):
         return len(self.roster_spot_arr)
+
+    def get_roster_spot_for_index(self, index):
+        return self.roster_spot_arr[index][0].roster_spot
