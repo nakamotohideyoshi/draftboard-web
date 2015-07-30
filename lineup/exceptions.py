@@ -44,3 +44,8 @@ class LineupUnchangedException(Exception):
     def __init__(self):
         super().__init__(
            "The lineup you are trying to edit had not changes.")
+
+class CreateLineupExpiredDraftgroupException(Exception):
+    def __init__(self):
+        super().__init__(
+           "The draftgroup has expired, you cannot create a new lineup for this contest.")
