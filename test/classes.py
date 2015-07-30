@@ -115,6 +115,7 @@ class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTes
                 test_func(*args, **kwargs)
             except Exception as e:
                 exceptions.append(e)
+                print(str(e))
                 #print(traceback.format_exc())
 
             for conn in connections.all():
