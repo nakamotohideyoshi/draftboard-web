@@ -1,4 +1,4 @@
-from test.classes import AbstractTest
+from test.classes import AbstractTest, AbstractTestTransaction
 from test.models import PlayerChild
 from .classes import LineupManager
 from test.classes import BuildWorldForTesting
@@ -8,9 +8,15 @@ from django.contrib.contenttypes.models import ContentType
 from .models import Lineup, Player as LineupPlayer
 from datetime import timedelta, time
 from django.utils import timezone
-class LineupTest(AbstractTest):
-    def setUp(self):
+from .tasks import edit_lineup, edit_entry
+from django.test.utils import override_settings             # for testing celery
+from contest.models import Entry
 
+class LineupBaseTest(AbstractTest):
+    def setUp(self):
+        self.build_world()
+
+    def build_world(self):
 
         self.world = BuildWorldForTesting()
         self.world.build_world()
@@ -33,13 +39,15 @@ class LineupTest(AbstractTest):
             draftgroup_player.salary = 10000
             draftgroup_player.save()
 
+
     def create_valid_lineup(self):
         self.lm = LineupManager(self.user)
         self.team = [self.one.pk, self.two.pk, self.three.pk]
         self.lineup = self.lm.create_lineup(self.team, self.draftgroup)
 
-
-
+class LineupTest(LineupBaseTest):
+    def setUp(self):
+        self.build_world()
     def test_create_and_edit_lineup(self):
         #
         # create test
@@ -147,3 +155,90 @@ class LineupTest(AbstractTest):
         self.assertRaises(lineup.exceptions.PlayerSwapGameStartedException,
                           lambda: self.lm.edit_lineup(team, self.lineup))
 
+
+    def test_edit_entry_same_lineup(self):
+        self.create_valid_lineup()
+
+        team = [self.one.pk, self.two.pk, self.three.pk]
+        entry = Entry()
+        entry.lineup = self.lineup
+        entry.contest = self.world.contest
+        entry.user = self.user
+        entry.save()
+
+        self.assertRaises(lineup.exceptions.LineupUnchangedException,
+                          lambda: self.lm.edit_entry(team, entry))
+
+    def test_edit_entry_split_lineup(self):
+        self.create_valid_lineup()
+
+        team = [self.one.pk, self.two.pk, self.four.pk]
+        entry = Entry()
+        entry.lineup = self.lineup
+        entry.contest = self.world.contest
+        entry.user = self.user
+        entry.save()
+
+        entry2 = Entry()
+        entry2.lineup = self.lineup
+        entry2.contest = self.world.contest
+        entry2.user = self.user
+        entry2.save()
+
+        self.lm.edit_entry(team, entry)
+
+        entry.refresh_from_db()
+        lineup_players = LineupPlayer.objects.get(lineup=entry.lineup, idx= 2)
+        lineup_players2 = LineupPlayer.objects.get(lineup=entry2.lineup, idx= 2)
+
+        self.assertNotEquals(lineup_players.pk, lineup_players2.pk)
+
+    def test_edit_entry_single(self):
+        self.create_valid_lineup()
+
+        team = [self.one.pk, self.two.pk, self.four.pk]
+        entry = Entry()
+        entry.lineup = self.lineup
+        entry.contest = self.world.contest
+        entry.user = self.user
+        entry.save()
+
+        self.lm.edit_entry(team, entry)
+        entry.refresh_from_db()
+
+        self.assertEquals(entry.lineup.pk, self.lineup.pk)
+
+class LineupConcurrentTest(AbstractTestTransaction, LineupBaseTest):
+    def setUp(self):
+        self.build_world()
+    @override_settings(TEST_RUNNER=LineupBaseTest.CELERY_TEST_RUNNER, CELERY_ALWAYS_EAGER=True, CELERYD_CONCURRENCY=3)
+    def test_edit_lineup_as_task(self):
+        self.create_valid_lineup()
+        team = [self.one.pk, self.two.pk, self.four.pk]
+
+        def run_test(user, team, lineup):
+            task = edit_lineup.delay(user, team, lineup)
+            self.assertFalse(task.successful())
+
+        task = edit_lineup.delay(self.user, team, self.lineup)
+        self.concurrent_test(3, run_test, self.user, team, self.lineup)
+        self.assertTrue(task.successful())
+
+    @override_settings(TEST_RUNNER=LineupBaseTest.CELERY_TEST_RUNNER, CELERY_ALWAYS_EAGER=True, CELERYD_CONCURRENCY=3)
+    def test_edit_entry_as_task(self):
+        self.create_valid_lineup()
+        entry = Entry()
+        entry.lineup = self.lineup
+        entry.contest = self.world.contest
+        entry.user = self.user
+        entry.save()
+
+        team = [self.one.pk, self.two.pk, self.four.pk]
+
+        def run_test(user, team, entry):
+            task = edit_entry.delay(user, team, entry)
+            self.assertFalse(task.successful())
+
+        task = edit_entry.delay(self.user, team, entry)
+        self.concurrent_test(3, run_test, self.user, team, entry)
+        self.assertTrue(task.successful())

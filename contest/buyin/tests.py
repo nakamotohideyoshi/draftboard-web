@@ -18,25 +18,6 @@ from lineup.models import Lineup
 from ticket.models import TicketAmount
 from draftgroup.models import DraftGroup
 from lineup.exceptions import LineupDoesNotMatchUser
-from django.db.transaction import atomic
-
-#
-# information about celery queues (and customization)
-# source: http://docs.celeryproject.org/en/latest/userguide/routing.html#automatic-routing
-from django.test import TestCase                            # for testing celery
-from django.test.utils import override_settings             # for testing celery
-from mysite.celery_app import pause, pause_then_raise       # for testing celery
-# this test runner can be dynamically used to override settings.TEST_RUNNER
-# and allow us to test with tasks from here in django's test facilities
-CELERY_TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
-class PauseTest(TestCase):
-    """
-    This is really just a test to see if django is setup properly to test a celery task.
-    """
-    @override_settings(TEST_RUNNER=CELERY_TEST_RUNNER, CELERY_ALWAYS_EAGER=True) # , BROKER_BACKEND='memory')  #broker_backend done by always eager true
-    def test_pause(self):
-        result = pause.delay(t=0.5)
-        self.assertTrue( result.successful() )
 
 class BuyinTest(AbstractTest):
     """
