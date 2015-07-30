@@ -82,7 +82,6 @@ class RefundManager(AbstractSiteUserClass):
         contest.status = Contest.CANCELLED
         contest.save()
 
-
     def __create_refund(self, transaction, entry):
         """
         Creates the :class:`contest.refund.models.Refund` object based on
