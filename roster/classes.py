@@ -30,7 +30,6 @@ class RosterManager(AbstractManagerClass):
         position_arr = self.roster_spot_arr[spot_index]
 
         for position in position_arr:
-            print("position_class "+str(position.position.site_sport.name)+ " "+str(player.position.site_sport.name))
             if player.position == position.position:
                 return True
         return False

@@ -284,6 +284,7 @@ class BuildWorldForTesting(object):
             dgp.draft_group = self.draftgroup
             dgp.salary_player = player
             dgp.salary = player.amount
+            dgp.start = timezone.now() + timedelta(hours=1)
             dgp.save()
 
 

@@ -4,9 +4,9 @@ from draftgroup.models import DraftGroup, Player
 from .models import Lineup, Player as LineupPlayer
 from sports.classes import SiteSportManager
 from roster.classes import RosterManager
-from.exceptions import LineupInvalidRosterSpotException, InvalidLineupSizeException, PlayerDoesNotExistInDraftGroupException, InvalidLineupSalaryException, DuplicatePlayerException
+from.exceptions import LineupInvalidRosterSpotException, InvalidLineupSizeException, PlayerDoesNotExistInDraftGroupException, InvalidLineupSalaryException, DuplicatePlayerException, PlayerSwapGameStartedException
 from django.contrib.contenttypes.models import ContentType
-
+from django.utils import timezone
 class LineupManager(AbstractSiteUserClass):
     """
     Responsible for performing all lineup actions for all active contests for both
@@ -90,6 +90,8 @@ class LineupManager(AbstractSiteUserClass):
             has a salary larger than the maximum allowed for the salary pool
         :raise :class:`lineup.exception.DuplicatePlayerException`: If there are
             duplicate ids in the player_ids list
+        :raise :class:`lineup.exception.PlayerSwapGameStartedException`: If trying
+            to swap players that are already in games.
         """
         self.validate_arguments(player_ids=player_ids, lineup=lineup)
 
@@ -105,15 +107,35 @@ class LineupManager(AbstractSiteUserClass):
         self.__validate_lineup(players, lineup.draftgroup, roster_manager)
 
         #
-        # TODO check the earliest time for a draftgroup or for each player
-
-        #
         # adds the player ids to the corresponding spots in the lineup
-        lineup_players =  LineupPlayer.objects.filter(lineup=lineup).order_by('idx')
+        lineup_players = LineupPlayer.objects.filter(lineup=lineup).order_by('idx')
         i = 0
+        now = timezone.now()
         for lineup_player in lineup_players:
-            if lineup_player.player != players[i]:
-                lineup_player.player = players[i]
+            player = players[i]
+
+            if lineup_player.player != player:
+
+                #
+                # Get the draftgroup player for both players to get their start time
+                c_type = ContentType.objects.get_for_model(player)
+                draftgroup_player = Player.objects.get(salary_player__player_type=c_type,
+                                                       salary_player__player_id=player.pk,
+                                                       draft_group=lineup.draftgroup)
+
+                draftgroup_lineup_player = Player.objects.get(
+                    salary_player__player_type=lineup_player.player_type,
+                    salary_player__player_id=lineup_player.player_id,
+                    draft_group=lineup.draftgroup)
+                #
+                # check the player start_time for both players
+                # TODO needs update the start time of draftgroup players based on TRADES!!
+                if draftgroup_lineup_player.start < now or draftgroup_player.start < now:
+                    raise PlayerSwapGameStartedException()
+
+                #
+                # replace the player
+                lineup_player.player = player
             i+=1
             lineup_player.save()
 
