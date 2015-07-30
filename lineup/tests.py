@@ -280,7 +280,10 @@ class LineupTest(LineupBaseTest):
 class LineupConcurrentTest(AbstractTestTransaction, LineupBaseTest):
     def setUp(self):
         self.build_world()
-    @override_settings(TEST_RUNNER=LineupBaseTest.CELERY_TEST_RUNNER, CELERY_ALWAYS_EAGER=True, CELERYD_CONCURRENCY=3)
+
+    @override_settings(TEST_RUNNER=LineupBaseTest.CELERY_TEST_RUNNER,
+                       CELERY_ALWAYS_EAGER=True,
+                       CELERYD_CONCURRENCY=3)
     def test_edit_lineup_as_task(self):
         self.create_valid_lineup()
         team = [self.one.pk, self.two.pk, self.four.pk]
@@ -293,7 +296,9 @@ class LineupConcurrentTest(AbstractTestTransaction, LineupBaseTest):
         self.concurrent_test(3, run_test, self.user, team, self.lineup)
         self.assertTrue(task.successful())
 
-    @override_settings(TEST_RUNNER=LineupBaseTest.CELERY_TEST_RUNNER, CELERY_ALWAYS_EAGER=True, CELERYD_CONCURRENCY=3)
+    @override_settings(TEST_RUNNER=LineupBaseTest.CELERY_TEST_RUNNER,
+                       CELERY_ALWAYS_EAGER=True,
+                       CELERYD_CONCURRENCY=3)
     def test_edit_entry_as_task(self):
         self.create_valid_lineup()
         entry = Entry()

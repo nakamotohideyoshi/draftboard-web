@@ -211,7 +211,6 @@ INSTALLED_APPS = (
     #'django_toolbar',
 
     'djcelery',
-
     # 3rd party installs
     'rest_framework',   # for api stuff
     'braces',
