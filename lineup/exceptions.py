@@ -29,3 +29,8 @@ class DuplicatePlayerException(Exception):
     def __init__(self):
         super().__init__(
            "You have a lineup with duplicate players" )
+
+class PlayerSwapGameStartedException(Exception):
+    def __init__(self):
+        super().__init__(
+           "You cannot swap players that are already in games" )

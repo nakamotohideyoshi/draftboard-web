@@ -40,6 +40,7 @@ class Player( models.Model ):
 
     salary      = models.FloatField(default=0, null=False,
                     help_text='the amount of salary for the player at the this draft group was created')
+    start = models.DateTimeField(null=False)
 
     @property
     def player(self):
