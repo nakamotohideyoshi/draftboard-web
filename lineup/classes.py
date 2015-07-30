@@ -4,7 +4,7 @@ from draftgroup.models import DraftGroup, Player
 from .models import Lineup, Player as LineupPlayer
 from sports.classes import SiteSportManager
 from roster.classes import RosterManager
-from.exceptions import LineupInvalidRosterSpotException, InvalidLineupSizeException, PlayerDoesNotExistInDraftGroupException, InvalidLineupSalaryException, DuplicatePlayerException, PlayerSwapGameStartedException, LineupUnchangedException
+from.exceptions import LineupInvalidRosterSpotException, InvalidLineupSizeException, PlayerDoesNotExistInDraftGroupException, InvalidLineupSalaryException, DuplicatePlayerException, PlayerSwapGameStartedException, LineupUnchangedException, CreateLineupExpiredDraftgroupException
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from contest.models import Entry
@@ -31,6 +31,36 @@ class LineupManager(AbstractSiteUserClass):
     @atomic
     def create_lineup(self,  player_ids, draftgroup):
         """
+        Creates a Lineup based off the draftgroup and player_ids
+
+        :param player_ids:
+        :param draftgroup:
+
+        :raise :class:`lineup.exception.LineupInvalidRosterSpotException`: When a player
+            does not match the corresponding roster spot.
+        :raise :class:`lineup.exception.PlayerDoesNotExistInDraftGroupException`: When a
+            player does not exist in the draftgroup.
+        :raise :class:`lineup.exception.InvalidLineupSalaryException`: When a lineup
+            has a salary larger than the maximum allowed for the salary pool
+        :raise :class:`lineup.exception.DuplicatePlayerException`: If there are
+            duplicate ids in the player_ids list
+        :raise :class:`lineup.exception.DuplicatePlayerException`: If there are
+            duplicate ids in the player_ids list
+
+        :returns lineup: an instance of :class:`lineup.models.Lineup` model
+        """
+        self.validate_arguments(player_ids=player_ids, draftgroup=draftgroup)
+
+        #
+        # Throw an exception if the draftgroup is expired
+        if draftgroup.start < timezone.now():
+            raise CreateLineupExpiredDraftgroupException()
+
+        return self.__create_lineup(player_ids, draftgroup)
+
+    def __create_lineup(self,  player_ids, draftgroup):
+        """
+        Create Lineup helper
 
         :param player_ids:
         :param draftgroup:
@@ -46,7 +76,7 @@ class LineupManager(AbstractSiteUserClass):
 
         :returns lineup: an instance of :class:`lineup.models.Lineup` model
         """
-        self.validate_arguments(player_ids=player_ids, draftgroup=draftgroup)
+
         #
         # get the players and put them into an ordered array
         players = self.get_player_array_from_player_ids_array(player_ids, draftgroup.salary_pool.site_sport)
@@ -74,6 +104,7 @@ class LineupManager(AbstractSiteUserClass):
             lineup_player.save()
             i += 1
 
+        self.__merge_lineups(lineup)
         return lineup
 
     @atomic
@@ -97,18 +128,18 @@ class LineupManager(AbstractSiteUserClass):
         :raise :class:`lineup.exception.InvalidLineupSalaryException`: When a lineup
             is unchanged
         """
-        # TODO merge edit entries if they share the same lineup
         self.validate_arguments(player_ids=player_ids, entry=entry)
 
         self.__validate_lineup_changed(player_ids, entry)
 
+        self.__validate_changed_players_have_not_started(player_ids, entry.lineup)
         #
         # Gets the count of entries using the same lineup
         count = Entry.objects.filter(lineup=entry.lineup).count()
         if count == 1:
-            self.edit_lineup(player_ids, entry.lineup)
+            self.__edit_lineup(player_ids, entry.lineup)
         else:
-            entry.lineup = self.create_lineup(player_ids, entry.lineup.draftgroup)
+            entry.lineup = self.__create_lineup(player_ids, entry.lineup.draftgroup)
             entry.save()
 
 
@@ -137,6 +168,29 @@ class LineupManager(AbstractSiteUserClass):
 
         """
         self.validate_arguments(player_ids=player_ids, lineup=lineup)
+        self.__validate_changed_players_have_not_started(player_ids, lineup)
+        self.__edit_lineup(player_ids, lineup)
+
+    def __edit_lineup(self, player_ids, lineup):
+        """
+        This should only be called via a task
+
+        Mass Edits a lineup helper
+
+        :param player_ids: an ordered list of :class:`sports.models.Player` ids
+            for the lineup.
+        :param lineup:
+
+        :raise :class:`lineup.exception.LineupInvalidRosterSpotException`: When a player
+            does not match the corresponding roster spot.
+        :raise :class:`lineup.exception.PlayerDoesNotExistInDraftGroupException`: When a
+            player does not exist in the draftgroup.
+        :raise :class:`lineup.exception.InvalidLineupSalaryException`: When a lineup
+            has a salary larger than the maximum allowed for the salary pool
+        :raise :class:`lineup.exception.DuplicatePlayerException`: If there are
+            duplicate ids in the player_ids list
+
+        """
 
         #
         # get the players and put them into an ordered array
@@ -149,38 +203,21 @@ class LineupManager(AbstractSiteUserClass):
         roster_manager = RosterManager(site_sport)
         self.__validate_lineup(players, lineup.draftgroup, roster_manager)
 
+
         #
         # adds the player ids to the corresponding spots in the lineup
         lineup_players = LineupPlayer.objects.filter(lineup=lineup).order_by('idx')
         i = 0
-        now = timezone.now()
         for lineup_player in lineup_players:
             player = players[i]
-
+            #
+            # replace the player if they are not equal
             if lineup_player.player != player:
-
-                #
-                # Get the draftgroup player for both players to get their start time
-                c_type = ContentType.objects.get_for_model(player)
-                draftgroup_player = Player.objects.get(salary_player__player_type=c_type,
-                                                       salary_player__player_id=player.pk,
-                                                       draft_group=lineup.draftgroup)
-
-                draftgroup_lineup_player = Player.objects.get(
-                    salary_player__player_type=lineup_player.player_type,
-                    salary_player__player_id=lineup_player.player_id,
-                    draft_group=lineup.draftgroup)
-                #
-                # check the player start_time for both players
-                # TODO needs update the start time of draftgroup players based on TRADES!!
-                if draftgroup_lineup_player.start < now or draftgroup_player.start < now:
-                    raise PlayerSwapGameStartedException()
-
-                #
-                # replace the player
                 lineup_player.player = player
             i+=1
             lineup_player.save()
+
+        self.__merge_lineups(lineup)
 
 
     def __validate_lineup(self, players, draftgroup, roster_manager):
@@ -317,3 +354,94 @@ class LineupManager(AbstractSiteUserClass):
             players.append(player_class.objects.get(pk=player_id))
 
         return players
+
+    def __merge_lineups(self, lineup):
+        """
+        Merges lineups that have the same lineup players to consolidate to one lineup.
+        Delete the duplicate  :class:`lineup.models.Lineup` and  :class:`lineup.models.Player`
+        objects.
+
+        :param lineup: a :class:`lineup.models.Lineup` object
+
+        """
+        #
+        # get the lineups for the draftgroup that are not the lineup passed to
+        # the method
+        lineups = Lineup.objects.filter(draftgroup=lineup.draftgroup,
+                                        user=self.user).exclude(pk=lineup.pk)
+        lineup_players_arr = []
+        for l in lineups:
+            lineup_players_arr.append(LineupPlayer.objects.filter(lineup=l).order_by('idx'))
+
+        #
+        # get the current lineup
+        current_lineup_players = LineupPlayer.objects.filter(lineup=lineup).order_by('idx')
+
+        #
+        # remove non-matching lineups from the lineup players_arr
+        i = 0
+        for current_player in current_lineup_players:
+            copy_lineup_players_arr = list(lineup_players_arr)
+            for lineup_player_arr in copy_lineup_players_arr:
+                if current_player.player_id != lineup_player_arr[i].player_id:
+                    lineup_players_arr.remove(lineup_player_arr)
+            i += 1
+        #
+        # exit if we have nothing to merge
+        if len(lineup_players_arr) == 0:
+            return
+
+        #
+        # get the list of lineups to delete
+        lineups_to_delete = []
+        for lineup_player_arr in lineup_players_arr:
+            lineups_to_delete.append(lineup_player_arr[0].lineup)
+
+        #
+        # get the Entries for the lineups and point them to the new lineup
+        Entry.objects.filter(lineup__in=lineups_to_delete).update(lineup=lineup)
+
+
+        #
+        # Delete the lineups and players that have not entries
+        LineupPlayer.objects.filter(lineup__in=lineups_to_delete).delete()
+        for lineups_to_delete in lineups_to_delete:
+            lineups_to_delete.delete()
+
+
+    def __validate_changed_players_have_not_started(self, player_ids, lineup):
+        """
+        Makes sure none of the players being swapped have started playing in
+        a game.
+
+        :param player_ids:
+        :param lineup:
+        :return:
+        """
+        #
+        # adds the player ids to the corresponding spots in the lineup
+        lineup_players = LineupPlayer.objects.filter(lineup=lineup).order_by('idx')
+        i = 0
+        now = timezone.now()
+        for lineup_player in lineup_players:
+            player_id = player_ids[i]
+
+            if lineup_player.player_id != player_id:
+
+                #
+                # Get the draftgroup player for both players to get their start time
+                c_type = lineup_player.player_type
+                draftgroup_player = Player.objects.get(salary_player__player_type=c_type,
+                                                       salary_player__player_id=player_id,
+                                                       draft_group=lineup.draftgroup)
+
+                draftgroup_lineup_player = Player.objects.get(
+                    salary_player__player_type=lineup_player.player_type,
+                    salary_player__player_id=lineup_player.player_id,
+                    draft_group=lineup.draftgroup)
+                #
+                # check the player start_time for both players
+                # TODO needs update the start time of draftgroup players based on TRADES!!
+                if draftgroup_lineup_player.start < now or draftgroup_player.start < now:
+                    raise PlayerSwapGameStartedException()
+            i += 1

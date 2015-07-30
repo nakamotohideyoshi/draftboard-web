@@ -18,6 +18,10 @@ from lineup.models import Lineup
 from ticket.models import TicketAmount
 from draftgroup.models import DraftGroup
 from lineup.exceptions import LineupDoesNotMatchUser
+from .tasks import buyin_task
+from django.test.utils import override_settings
+import time as time_thread
+
 
 class BuyinTest(AbstractTest):
     """
@@ -179,8 +183,8 @@ class BuyinTest(AbstractTest):
                   lambda: bm.buyin(self.contest))
 
 
-
 class BuyinRaceTest(AbstractTestTransaction):
+
     def setUp(self):
 
         self.user = self.get_basic_user()
@@ -223,15 +227,19 @@ class BuyinRaceTest(AbstractTestTransaction):
         self.draftgroup.end = end
         self.draftgroup.save()
 
+    @override_settings(TEST_RUNNER=BuyinTest.CELERY_TEST_RUNNER,
+                       CELERY_ALWAYS_EAGER=True,
+                       CELERYD_CONCURRENCY=3)
     def test_race_condition_to_fill_last_spot_of_contest(self):
-        self.contest.max_entries = 5
+        self.contest.max_entries = 3
         self.contest.entries = 3
         self.contest.save()
 
         def run_now(self_obj):
-            bm = BuyinManager(self_obj.user)
-            bm.buyin(self_obj.contest)
+            task = buyin_task.delay(self_obj.user, self_obj.contest)
+            self.assertTrue(task.successful())
 
-        self.concurrent_test(4, run_now, self)
+        self.concurrent_test(3, run_now, self)
         ct = CashTransaction(self.user)
+
         self.assertEqual(70, ct.get_balance_amount())

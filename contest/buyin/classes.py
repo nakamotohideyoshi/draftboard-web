@@ -40,10 +40,14 @@ class BuyinManager(AbstractSiteUserClass):
         # validation if the lineup argument
         self.validate_variable(Lineup, lineup)
 
+    @atomic
     def buyin(self, contest, lineup=None):
         """
         Creates the buyin for the user based on the contest and lineup. Lineup can
         be null or not passed to allow for reserving contest spots.
+
+        This should be only run in a task
+
         :param contest:
         :param lineup: assumed the lineup is validated on creation
 
@@ -63,66 +67,10 @@ class BuyinManager(AbstractSiteUserClass):
         :raises :class:`contest.exceptions.ContestIsFullException`: When the contest is full
             and is no longer accepting new entries.
         """
+        # TODO need a queue/contest in celery for buyings
         #
         # validate the contest and the lineup are allowed to be created
         self.lineup_contest(contest, lineup)
-
-        max_retries = 5
-        i = 0
-        #
-        # Retries if there is a concurrency error
-        while i < max_retries:
-            try:
-                entry = self.__create_buyin_entry(contest, lineup)
-                #
-                # Contest entry successful
-                msg = "User["+self.user.username+"] bought into the contest #"\
-                      +str(contest.pk)+" with entry #"+str(entry.pk)
-                Logger.log(ErrorCodes.INFO, "Contest Buyin", msg )
-                return
-
-            # throws integrity error if there is a race condition on the
-            # contest.current_entries field
-            except IntegrityError:
-                if contest.current_entries >= contest.entries:
-                    #
-                    # Contest is full
-                    msg = "User["+self.user.username+"] tried to buyin into the" \
-                            " contest #"+str(contest.pk)+" but the contest was full"
-                    Logger.log(ErrorCodes.INFO, "Contest Full", msg )
-                    raise ContestIsFullException()
-            i+=1
-
-        #
-        # Worst case scenario when there have been max_retries attempts to
-        # create an buyin entry.
-        msg = "User["+self.user.username+"] could not enter contest #"+str(contest.pk)+\
-              " after "+str(max_retries)+" retries due to race conditions"
-        Logger.log(ErrorCodes.ERROR, "Contest Buyin", msg )
-        raise ContestCouldNotEnterException()
-
-    @atomic
-    def __create_buyin_entry(self, contest, lineup=None):
-        """
-        Creates the entry, buyin, and cash transaction from user to escrow
-        in one atomic method.
-        :param contest:
-        :param lineup: assumed the lineup is validated on creation
-
-        :raises :class:`contest.exceptions.ContestIsNotAcceptingLineupsException`: When
-            contest does not have a draftgroup, because it is not accepting teams yet. The
-            contest will most likely be a future contest.
-        :raises :class:`contest.exceptions.ContestLineupMismatchedDraftGroupsException`:
-            When the lineup was picked from a draftgroup that does not match the contest.
-        :raises :class:`contest.exceptions.ContestIsInProgressOrClosedException`: When
-            The contest has either started, been cancelled, or is completed.
-        :raises :class:`contest.exceptions.LineupDoesNotMatchUser`: When the lineup
-            is not owned by the user.
-        :raises :class:`contest.exceptions.ContestMaxEntriesReachedException`: When the
-            max entries is reached by the lineup.
-        :raises :class:`contest.exceptions.ContestIsFullException`: When the contest is full
-            and is no longer accepting new entries.
-        """
         #
         # Create either the ticket or cash transaction
         tm = TicketManager(self.user)
@@ -157,12 +105,13 @@ class BuyinManager(AbstractSiteUserClass):
 
         #
         # Increment the contest_entry variable
-        self.check_contest_full(contest)
         contest.current_entries = F('current_entries') + 1
         contest.save()
         contest.refresh_from_db()
 
-        return entry
+        msg = "User["+self.user.username+"] bought into the contest #"\
+                      +str(contest.pk)+" with entry #"+str(entry.pk)
+        Logger.log(ErrorCodes.INFO, "Contest Buyin", msg )
 
 
     def lineup_contest(self, contest, lineup=None):
@@ -200,6 +149,7 @@ class BuyinManager(AbstractSiteUserClass):
             raise ContestLineupMismatchedDraftGroupsException()
 
         self.check_contest_full(contest)
+
         #
         # Make sure the contest status is active
         if contest.status not in Contest.STATUS_UPCOMING:
@@ -228,6 +178,8 @@ class BuyinManager(AbstractSiteUserClass):
             and is no longer accepting new entries.
         """
         if contest.current_entries >= contest.entries:
+            print('raising ContestIsFullException!!!')
+
             raise ContestIsFullException()
 
     def entry_did_use_ticket(self,entry):
