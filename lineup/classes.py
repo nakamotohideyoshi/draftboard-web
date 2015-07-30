@@ -4,9 +4,11 @@ from draftgroup.models import DraftGroup, Player
 from .models import Lineup, Player as LineupPlayer
 from sports.classes import SiteSportManager
 from roster.classes import RosterManager
-from.exceptions import LineupInvalidRosterSpotException, InvalidLineupSizeException, PlayerDoesNotExistInDraftGroupException, InvalidLineupSalaryException, DuplicatePlayerException, PlayerSwapGameStartedException
+from.exceptions import LineupInvalidRosterSpotException, InvalidLineupSizeException, PlayerDoesNotExistInDraftGroupException, InvalidLineupSalaryException, DuplicatePlayerException, PlayerSwapGameStartedException, LineupUnchangedException
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from contest.models import Entry
+
 class LineupManager(AbstractSiteUserClass):
     """
     Responsible for performing all lineup actions for all active contests for both
@@ -16,13 +18,15 @@ class LineupManager(AbstractSiteUserClass):
     def __init__(self, user):
         super().__init__(user)
 
-    def validate_arguments(self, player_ids, draftgroup=None, lineup=None):
+    def validate_arguments(self, player_ids, draftgroup=None, lineup=None, entry=None):
         if player_ids is not None:
             self.validate_variable_array(int, player_ids)
         if draftgroup is not None:
             self.validate_variable(DraftGroup, draftgroup)
         if lineup is not None:
             self.validate_variable(Lineup, lineup)
+        if entry is not None:
+            self.validate_variable(Entry, entry)
 
     @atomic
     def create_lineup(self,  player_ids, draftgroup):
@@ -60,7 +64,7 @@ class LineupManager(AbstractSiteUserClass):
         lineup.draftgroup = draftgroup
         lineup.save()
 
-        i  = 0
+        i = 0
         for player in players:
             lineup_player = LineupPlayer()
             lineup_player.player = player
@@ -68,15 +72,53 @@ class LineupManager(AbstractSiteUserClass):
             lineup_player.roster_spot = roster_manager.get_roster_spot_for_index(i)
             lineup_player.idx = i
             lineup_player.save()
-            i +=1
+            i += 1
 
         return lineup
+
+    @atomic
+    def edit_entry(self, player_ids, entry):
+        """
+        Edits the entry
+        :param player_ids:
+        :param entry:
+        :return:
+
+        :raise :class:`lineup.exception.LineupInvalidRosterSpotException`: When a player
+            does not match the corresponding roster spot.
+        :raise :class:`lineup.exception.PlayerDoesNotExistInDraftGroupException`: When a
+            player does not exist in the draftgroup.
+        :raise :class:`lineup.exception.InvalidLineupSalaryException`: When a lineup
+            has a salary larger than the maximum allowed for the salary pool
+        :raise :class:`lineup.exception.DuplicatePlayerException`: If there are
+            duplicate ids in the player_ids list
+        :raise :class:`lineup.exception.PlayerSwapGameStartedException`: If trying
+            to swap players that are already in games.
+        :raise :class:`lineup.exception.InvalidLineupSalaryException`: When a lineup
+            is unchanged
+        """
+        # TODO merge edit entries if they share the same lineup
+        self.validate_arguments(player_ids=player_ids, entry=entry)
+
+        self.__validate_lineup_changed(player_ids, entry)
+
+        #
+        # Gets the count of entries using the same lineup
+        count = Entry.objects.filter(lineup=entry.lineup).count()
+        if count == 1:
+            self.edit_lineup(player_ids, entry.lineup)
+        else:
+            entry.lineup = self.create_lineup(player_ids, entry.lineup.draftgroup)
+            entry.save()
+
 
 
     @atomic
     def edit_lineup(self, player_ids, lineup):
-        # TODO this should be a task so users cannot have collisions on edit lineup
         """
+        This should only be called via a task
+
+        Mass Edits a lineup
 
         :param player_ids: an ordered list of :class:`sports.models.Player` ids
             for the lineup.
@@ -92,6 +134,7 @@ class LineupManager(AbstractSiteUserClass):
             duplicate ids in the player_ids list
         :raise :class:`lineup.exception.PlayerSwapGameStartedException`: If trying
             to swap players that are already in games.
+
         """
         self.validate_arguments(player_ids=player_ids, lineup=lineup)
 
@@ -224,6 +267,28 @@ class LineupManager(AbstractSiteUserClass):
         # a team in a contest.
         if salary_sum > max_team_salary:
             raise InvalidLineupSalaryException(self.user.username, salary_sum, max_team_salary)
+
+    def __validate_lineup_changed(self, player_ids, entry):
+        """
+        Makes sure the lineup is modified
+
+        :param player_ids: an ordered list of :class:`sports.models.Player` ids
+            for the lineup.
+        :param entry: a :class:`contest.models.Entry` object
+
+        :raise :class:`lineup.exception.InvalidLineupSalaryException`: When a lineup
+            is unchanged
+        """
+        lineup_players = LineupPlayer.objects.filter(lineup=entry.lineup).order_by('idx')
+        i = 0
+        same_lineup = True
+        for lineup_player in lineup_players:
+            if lineup_player.player_id != player_ids[i]:
+                same_lineup = False
+            i += 1
+
+        if same_lineup:
+            raise LineupUnchangedException()
 
     def get_player_array_from_player_ids_array(self, player_ids, site_sport):
         """
