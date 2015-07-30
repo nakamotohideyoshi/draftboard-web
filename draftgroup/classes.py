@@ -87,13 +87,14 @@ class AbstractDraftGroupManager(object):
                                             team_srid=team,
                                             alias=alias )
 
-    def create_player(self, draft_group, salary_player, salary):
+    def create_player(self, draft_group, salary_player, salary, start):
         """
         create and return a new draftgroup.models.Player object
         """
         return Player.objects.create( draft_group=draft_group,
                                       salary_player=salary_player,
-                                      salary=salary )
+                                      salary=salary,
+                                      start=start)
 
 class DraftGroupManager( AbstractDraftGroupManager ):
     """
@@ -180,33 +181,26 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         #   - get_salaries() - get a list of salary.model.Salary (players w/ salaries)
         salary    = self.get_active_salary_pool(site_sport)
 
-        # draft_group, created = DraftGroup.objects.get_or_create(salary_pool=salary.get_pool(),
-        #                                                 start=start, end=end )
 
         draft_group = DraftGroup.objects.create(salary_pool=salary.get_pool(),
                                                         start=start, end=end )
 
 
         # build lists of all the teams, and all the player srids in the draft group
-        team_srids      = []
+        team_srids      = {}
         for g in games:
             self.create_gameteam( draft_group, g.srid, g.away.srid, g.away.alias, g.start )
             self.create_gameteam( draft_group, g.srid, g.home.srid, g.home.alias, g.start )
 
-            if g.away.srid not in team_srids: team_srids.append( g.away.srid )
-            if g.home.srid not in team_srids: team_srids.append( g.home.srid )
+            team_srids[g.away.srid]  = g.start
+            team_srids[g.home.srid]  = g.start
 
         # for each salaried player, create their draftgroup.models.Player
         # instance if their team is in the team srids list we generated above
-        # print('debug - print salary.get_players() contents ...')
-        # for p in salary.get_players():
-        #     print('    ', str(p))
-
         for p in salary.get_players():    # these 3 lines work but lets get rid of if statement
             if p.player.team.srid in team_srids:
-                self.create_player(draft_group, p, p.amount)
-        # for p in Salary.objects.filter(player__team__srid__in=team_srids):
-        #     self.create_player( draft_group, p.player, p.amount )
+                self.create_player(draft_group, p, p.amount, team_srids.get(p.player.team.srid))
+
 
         return draft_group
 
