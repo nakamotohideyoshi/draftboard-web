@@ -34,3 +34,13 @@ class PlayerSwapGameStartedException(Exception):
     def __init__(self):
         super().__init__(
            "You cannot swap players that are already in games" )
+
+class EditLineupInProgressException(Exception):
+    def __init__(self):
+        super().__init__(
+           "You are currently saving an edit. Please try again later.")
+
+class LineupUnchangedException(Exception):
+    def __init__(self):
+        super().__init__(
+           "The lineup you are trying to edit had not changes.")
