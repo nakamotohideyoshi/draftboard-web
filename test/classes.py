@@ -4,6 +4,7 @@ import threading
 from django.db import connections
 import traceback
 from sports.classes import SiteSport
+from prize.classes import CashPrizeStructureCreator
 
 from test.models import PlayerChild, PlayerStatsChild, GameChild
 from django.utils import timezone
@@ -16,8 +17,16 @@ from dataden.util.timestamp import DfsDateTimeUtil
 from draftgroup.models import DraftGroup, Player
 from datetime import timedelta, time
 from salary.classes import SalaryGenerator
+from django.test import TestCase                            # for testing celery
+from django.test.utils import override_settings             # for testing celery
+from mysite.celery_app import pause, pause_then_raise       # for testing celery
+from contest.classes import ContestCreator
+from contest.models import Contest
 #
+
+
 class MasterAbstractTest():
+    CELERY_TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
 
     PASSWORD = 'password'
     def get_user(self, username='username', is_superuser=False,
@@ -126,6 +135,7 @@ class BuildWorldForTesting(object):
         self.create_sport_and_rosters()
         self.create_simple_player_stats_list()
         self.create_pool_and_draftgroup()
+        self.create_contest()
         pass
     #-------------------------------------------------------------------
     #-------------------------------------------------------------------
@@ -287,6 +297,34 @@ class BuildWorldForTesting(object):
             dgp.start = timezone.now() + timedelta(hours=1)
             dgp.save()
 
+    def create_contest(self):
+
+        self.first = 100.0
+        self.second = 50.0
+        self.third = 25.0
+
+        #
+        # create a simple Rank and Prize Structure
+        self.buyin =10
+        cps = CashPrizeStructureCreator(name='test')
+        cps.add(1, self.first)
+        cps.add(2, self.second)
+        cps.add(3, self.third)
+        cps.save()
+        cps.prize_structure.buyin = self.buyin
+        cps.prize_structure.save()
+
+        self.prize_structure = cps.prize_structure
+        self.ranks = cps.ranks
+        #
+        # create the Contest
+        now = timezone.now()
+        start = DfsDateTimeUtil.create(now.date(), time(23,0))
+        end = DfsDateTimeUtil.create(now.date() + timedelta(days=1), time(0,0))
+        cc= ContestCreator("test_contest", "nfl", self.prize_structure, start, end)
+        self.contest = cc.create()
+        self.contest.status = Contest.RESERVABLE
+        self.contest.save()
 
     def createTrailingGameWeight(self, salary_config, through, weight):
         trailing_game_weight                        = TrailingGameWeight()
