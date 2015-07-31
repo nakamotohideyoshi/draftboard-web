@@ -2,25 +2,16 @@
 # draftgroup/tests.py
 
 from dataden.util.timestamp import DfsDateTimeUtil
-from django.utils import timezone   # for timezone.now()
+from django.utils import timezone
 from datetime import datetime, timedelta, time
 from test.classes import AbstractTest
-from test.models import GameChild, TeamChild, PlayerChild
-from draftgroup.classes import InvalidSiteSportTypeException, \
+from test.models import GameChild
+from mysite.exceptions import InvalidSiteSportTypeException, \
                                 InvalidStartTypeException, InvalidEndTypeException, \
                                 SalaryPoolException, NoGamesInRangeException
 from draftgroup.classes import DraftGroupManager
-
-from sports.classes import SiteSportManager
 from sports.models import SiteSport
 from salary.dummy import Dummy as SalaryDummy
-from salary.models import Pool, Salary
-
-from ticket.classes import TicketManager
-from ticket.models import TicketAmount
-from prize.classes import TicketPrizeStructureCreator
-
-from contest.models import Contest
 
 class DraftGroupManagerCreateParams(AbstractTest):
 
@@ -81,7 +72,7 @@ class DraftGroupCreate(AbstractTest):
         # it generates stuff to make sure we have a start & end range
         # that will include the games it created                                                                                             more
         now             = timezone.now()
-        self.start      = DfsDateTimeUtil.create( now.date(), time(23,0) )
+        self.start      = DfsDateTimeUtil.create( now.date() - timedelta(days=1), time(0,0) )
 
         #
         # we MUST create games, players, teams, salary pool stuff:
@@ -97,7 +88,10 @@ class DraftGroupCreate(AbstractTest):
             print( '    ', str(g), str(g.start) )
 
     def test_draftgroupmanager_create(self):
+        """
+        will fail if create() method returns None ! possible if no games, or no salary pool exists
+        """
         dgm = DraftGroupManager()
         draft_group = dgm.create( self.site_sport, self.start, self.end )
-        self.assertIsNotNone(draft_group) # very fluffy test here
+        self.assertIsNotNone(draft_group)
 
