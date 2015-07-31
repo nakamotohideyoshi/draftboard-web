@@ -182,12 +182,11 @@ class BuyinManager(AbstractSiteUserClass):
 
             raise ContestIsFullException()
 
-    def entry_did_use_ticket(self,entry):
+    def entry_did_use_ticket(self, entry):
         self.validate_variable(Entry, entry)
         buyin = Buyin.objects.get(entry=entry)
-        buyin.transaction
         try:
-            ticket.models.Ticket.objects.get(transaction=buyin.transaction)
+            ticket.models.Ticket.objects.get(consume_transaction=buyin.transaction)
             return True
         except ticket.models.Ticket.DoesNotExist:
             return False

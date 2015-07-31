@@ -1,4 +1,4 @@
-from mysite.classes import AbstractSiteUserClass
+from mysite.classes import AbstractManagerClass
 from ..models import Entry, Contest
 from contest.buyin.classes import BuyinManager
 from ticket.classes import TicketManager
@@ -7,14 +7,14 @@ from .models import Refund
 from django.db.transaction import atomic
 from ..exceptions import ContestIsInProgressOrClosedException
 
-class RefundManager(AbstractSiteUserClass):
+class RefundManager(AbstractManagerClass):
     """
     Responsible for performing the refunds for all active contests for both
     cash and ticket games.
     """
 
-    def __init__(self, user):
-        super().__init__(user)
+    def __init__(self):
+        super().__init__()
 
     def validate_arguments(self, contest):
         """
@@ -30,10 +30,11 @@ class RefundManager(AbstractSiteUserClass):
 
     @atomic
     def refund(self, contest):
-        #TODO make a task and test in the test script with celery running
-        #TODO special ID to prevent other refunds from runnint at same time
         """
-        Task that refunds all contest entries and sets the contest to Cancelled
+        Task that refunds all contest entries and sets the contest to Cancelled.
+
+        This should only be run in a task on the live site.
+
         :param contest:
 
         :raises :class:`contest.exceptions.ContestIsInProgressOrClosedException`: When
