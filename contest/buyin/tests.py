@@ -20,7 +20,6 @@ from draftgroup.models import DraftGroup
 from lineup.exceptions import LineupDoesNotMatchUser
 from .tasks import buyin_task
 from django.test.utils import override_settings
-import time as time_thread
 
 
 class BuyinTest(AbstractTest):
