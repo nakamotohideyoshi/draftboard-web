@@ -5,7 +5,6 @@ import transaction.models
 import transaction.constants
 import mysite.classes
 from promocode.models import Promotion, PromoCode
-from promocode.bonuscash.classes import BonusCashTransaction
 from django.db import transaction as django_db_transaction   # for 'atomic'
 from mysite.exceptions import InvalidPromoCodeException, PromoCodeAlreadyUsedException, \
                                 PromoCodeExpiredException, CanNotRemovePromoCodeException
