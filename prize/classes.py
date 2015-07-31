@@ -371,6 +371,7 @@ class CashPrizeStructureCreator(AbstractPrizeStructureCreator):
         return s # strip off leading & trailing whitespace/newlines
 
 class TicketPrizeStructureCreator(AbstractPrizeStructureCreator):
+    # TODO should set the buyin
     """
     Used to create a prize structure based on tickets
     """

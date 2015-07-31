@@ -56,7 +56,7 @@ class TransactionDetail( models.Model ):
     """
     amount      = models.DecimalField(decimal_places=2, max_digits=7)
     user        = models.ForeignKey( User )
-    transaction = models.ForeignKey( Transaction )
+    transaction = models.ForeignKey( Transaction, null=False, related_name='+')
     created  = models.DateTimeField(auto_now_add=True, null=True)
 
     class Meta:

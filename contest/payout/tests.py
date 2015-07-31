@@ -11,34 +11,41 @@ from datetime import timedelta
 from datetime import time
 from ticket.models import TicketAmount
 from salary.dummy import Dummy
+from test.classes import BuildWorldForTesting
+from contest.buyin.classes import BuyinManager
+from cash.classes import CashTransaction
+from ticket.classes import TicketManager
+from ticket.models import TicketAmount
 
 class PayoutTest(AbstractTest):
     def setUp(self):
-        Dummy.generate_salaries()
 
-        self.first = 100.0
-        self.second = 50.0
-        self.third = 25.0
+        self.first = 12.0
+        self.second = 11.0
+        self.third = 10.0
         #
         # create a simple Rank and Prize Structure
-        cps = CashPrizeStructureCreator(name='test')
+        cps = CashPrizeStructureCreator(name='test1')
         cps.add(1, self.first)
         cps.add(2, self.second)
         cps.add(3, self.third)
         cps.save()
         self.prize_structure = cps.prize_structure
+        self.prize_structure.buyin = self.third
         self.ranks = cps.ranks
 
-        #
-        # create the Contest
-        now = timezone.now()
-        start = DfsDateTimeUtil.create(now.date(), time(23,0))
-        end = DfsDateTimeUtil.create(now.date() + timedelta(days=1), time(0,0))
-        cc= ContestCreator("test_contest", "nfl", self.prize_structure, start, end)
-        self.contest = cc.create()
-        self.contest.status = Contest.COMPLETED
-        self.contest.save()
 
+
+        self.world = BuildWorldForTesting()
+        self.world.build_world()
+        self.draftgroup = self.world.draftgroup
+
+        self.contest = self.world.contest
+        self.contest.status = Contest.SCHEDULED
+        self.contest.prize_structure = self.prize_structure
+        self.contest.draft_group = self.draftgroup
+        self.contest.entries = 6
+        self.contest.save()
 
     def create_ticket_contest(self):
         #
@@ -51,24 +58,35 @@ class PayoutTest(AbstractTest):
         tps = TicketPrizeStructureCreator(self.third, 3, "ticket_prize")
         tps.save()
         self.prize_structure = tps.prize_structure
+        self.prize_structure.buyin = self.third
         self.ranks = tps.ranks
         self.contest.prize_structure = self.prize_structure
         self.contest.save()
+
+    def fund_user_account(self, user):
+        ct = CashTransaction(user)
+        ct.deposit(100)
 
     def create_simple_teams(self):
         #
         # create Lineups
         max = 5
         for i in range(1,max):
+            user = self.get_user(username=str(i))
+
+            self.fund_user_account(user)
+
             lineup = Lineup()
             lineup.fantasy_points = max - i
             lineup.user = self.get_user(username=str(i))
+            lineup.draftgroup = self.draftgroup
             lineup.save()
 
-            entry = Entry()
-            entry.contest = self.contest
-            entry.lineup = lineup
-            entry.save()
+            bm = BuyinManager(lineup.user)
+            bm.buyin(self.contest, lineup)
+
+        self.contest.status = Contest.COMPLETED
+        self.contest.save()
 
 
     def create_last_place_tie_teams(self):
@@ -76,19 +94,26 @@ class PayoutTest(AbstractTest):
         # create Lineups
         max = 6
         for i in range(1,max):
+            user = self.get_user(username=str(i))
+            self.fund_user_account(user)
+
             lineup = Lineup()
             if i ==3 or i == 4:
                 lineup.fantasy_points = max -3
             else:
                 lineup.fantasy_points = max -i
 
-            lineup.user = self.get_user(username=str(i))
+            lineup.user = user
+            lineup.draftgroup = self.draftgroup
             lineup.save()
 
-            entry = Entry()
-            entry.contest = self.contest
-            entry.lineup = lineup
-            entry.save()
+
+            bm = BuyinManager(lineup.user)
+            bm.buyin(self.contest, lineup)
+
+        self.contest.status = Contest.COMPLETED
+        self.contest.save()
+
 
     def test_simple_payout(self):
         self.create_simple_teams()
@@ -132,3 +157,11 @@ class PayoutTest(AbstractTest):
                 self.assertEqual(payout.rank, 3)
             else:
                 self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+
+
+    def validate_side_effects_of_transaction(self):
+        #TODO test rake paid shows up
+
+        #TODO test Bonus cash conversion on accounts that have bonus cash
+        #   and ones that dont
+        pass

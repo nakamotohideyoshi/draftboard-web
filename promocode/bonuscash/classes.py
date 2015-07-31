@@ -31,12 +31,14 @@ class BonusCashTransaction(AbstractTransaction):
             return False
         return True
 
-    def withdraw(self, amount, trans=None):
+    def withdraw(self, amount, trigger_transaction, trans=None):
         """
         Creates a Withdraw from the users bonuscash account
 
         :param amount: The amount that is being removed from the account.
             This should be a positive number.
+        :param trigger_transaction: The transaction that triggered the bonus
+            withdraw from the account.
         :param trans: the optional transaction to point the transaction to
 
 
@@ -62,6 +64,9 @@ class BonusCashTransaction(AbstractTransaction):
         #
         # makes the amount negative because it is a withdrawal
         self.create(category, -amount, trans)
+        self.transaction_detail.trigger_transaction = trigger_transaction
+        self.transaction_detail.save()
+
         Logger.log(ErrorCodes.INFO,"Bonus Cash Withdraw", self.user.username+" withdrew "+str(amount)+" "+self.accountName+" from their account.")
 
     def deposit(self, amount, category=None, trans=None):
