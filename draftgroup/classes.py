@@ -1,37 +1,20 @@
 #
 # draftgroup/classes.py
 
-from django.db.transaction import atomic    # @atomic decorator for atomic transactions
-from django.utils import timezone
+import mysite.exceptions
+from django.db.transaction import atomic
 from .models import DraftGroup, Player, GameTeam
 from sports.models import SiteSport
 from salary.models import Pool, Salary
 from sports.classes import SiteSportManager
 import datetime
 
-class InvalidSiteSportTypeException(Exception):
-    """ Exception - raised for an invalid site sport argument """
-    pass
-
-class InvalidStartTypeException(Exception):
-    """ Exception - raised for an invalid start argument """
-    pass
-
-class InvalidEndTypeException(Exception):
-    """ Exception - raised if end param is not a datetime object """
-    pass
-
-class SalaryPoolException(Exception):
-    """ Exception - thrown in __init__ if there is no active salary pool """
-    pass
-
-class NoGamesInRangeException(Exception):
-    """ Exception - there are zero games in the start(inclusive) to end(exclusive) range """
-    pass
-
 class AbstractDraftGroupManager(object):
     """
-    Parent class for all DraftGroup common functionality
+    Parent class for all DraftGroup common functionality.
+    DraftGroups are used to define pools of players for a range of time,
+    and these players have salary amounts which will not be changed
+    after the creation of the DraftGroup.
     """
 
     class Salaries(object):
@@ -64,7 +47,7 @@ class AbstractDraftGroupManager(object):
 
         active_pools = Pool.objects.filter(site_sport=site_sport, active=True)
         if len(active_pools) == 0:
-            raise SalaryPoolException('could not find active salary pool for given site_sport')
+            raise mysite.exceptions.SalaryPoolException('could not find active salary pool for given site_sport')
 
         pool = active_pools[0]
         salaried_players = Salary.objects.filter( pool=pool )
@@ -159,33 +142,31 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         :return:
         """
         if not isinstance(site_sport, SiteSport):
-            raise InvalidSiteSportTypeException('site_sport param must be an instance of SiteSport')
+            raise mysite.exceptions.InvalidSiteSportTypeException('site_sport param must be an instance of SiteSport')
         if not isinstance(start, datetime.datetime):
-            raise InvalidStartTypeException('start param must be a datetime object')
+            raise mysite.exceptions.InvalidStartTypeException('start param must be a datetime object')
         if not isinstance(end, datetime.datetime):
-            raise InvalidEndTypeException('end param must be a datetime object')
+            raise mysite.exceptions.InvalidEndTypeException('end param must be a datetime object')
 
+        #
         # we will use the SiteSportManager the model class for player, game
         ssm             = SiteSportManager()
         game_model      = ssm.get_game_class(site_sport)
-        #print( '>>>>>> game_model:', str(game_model))
-        player_model    = ssm.get_player_class(site_sport)
 
         # get all games equal to or greater than start, and less than end.
         games = game_model.objects.filter( start__gte=start, start__lt=end )
         if len(games) == 0:
-            raise NoGamesInRangeException('there are ZERO games in [%s until %s' % (start, end))
+            raise mysite.exceptions.NoGamesInRangeException('there are ZERO games in [%s until %s' % (start, end))
 
         # method returns a Salary object from which we can
         #   - get_pool()  - get the salary.models.Pool
         #   - get_salaries() - get a list of salary.model.Salary (players w/ salaries)
         salary    = self.get_active_salary_pool(site_sport)
 
-
         draft_group = DraftGroup.objects.create(salary_pool=salary.get_pool(),
                                                         start=start, end=end )
 
-
+        #
         # build lists of all the teams, and all the player srids in the draft group
         team_srids      = {}
         for g in games:
@@ -195,13 +176,14 @@ class DraftGroupManager( AbstractDraftGroupManager ):
             team_srids[g.away.srid]  = g.start
             team_srids[g.home.srid]  = g.start
 
+        #
         # for each salaried player, create their draftgroup.models.Player
         # instance if their team is in the team srids list we generated above
         for p in salary.get_players():    # these 3 lines work but lets get rid of if statement
             if p.player.team.srid in team_srids:
                 self.create_player(draft_group, p, p.amount, team_srids.get(p.player.team.srid))
 
-
+        #
         return draft_group
 
 # easy usage:
