@@ -251,6 +251,7 @@ INSTALLED_APPS = (
     'contest.refund',
     'scoring',
     'roster',
+    'rakepaid',
     'test',
     'salary',
     'draftgroup',

@@ -14,8 +14,10 @@ from django.db.transaction import atomic
 from promocode.bonuscash.classes import BonusCashTransaction
 from django.conf import settings
 from rakepaid.classes import RakepaidTransaction
+from mysite.classes import AbstractManagerClass
+
 import math
-class PayoutManager(object):
+class PayoutManager(AbstractManagerClass):
     """
     Responsible for performing the payouts for all active contests for both
     cash and ticket games.
@@ -146,16 +148,7 @@ class PayoutManager(object):
             for i in range(0, len(ranks_to_pay)):
                 rank = ranks_to_pay[i]
                 entry = entries_to_pay[i]
-                payout = Payout()
-                payout.rank = place
-                payout.contest = contest
-                payout.entry = entry
-                transaction_class = rank.amount.get_transaction_class()
-                tm = transaction_class(entry.lineup.user)
-                tm.deposit(rank.amount.get_cash_value())
-                payout.transaction = tm.transaction
-                payout.save()
-                self.__update_accounts(payout)
+                self.__update_accounts(place, contest, entry, rank.amount.get_cash_value())
 
         #
         # We need to convert the rank amount to a cash value to payout
@@ -166,27 +159,35 @@ class PayoutManager(object):
                 cash_to_chop += rank.amount.get_cash_value()
             cash_to_chop /= len(entries_to_pay)
             for entry in entries_to_pay:
-                payout = Payout()
-                payout.rank = place
-                payout.contest = contest
-                payout.entry = entry
-                tm = CashTransaction(entry.lineup.user)
-                tm.deposit(cash_to_chop)
-                payout.transaction = tm.transaction
-                payout.save()
-                self.__update_accounts(payout)
+                self.__update_accounts(place, contest, entry, cash_to_chop)
 
-    def __update_accounts(self, payout):
+    def __update_accounts(self, place, contest, entry, amount):
         """
-        Updates the accounts for FPP, Bonus, and Rake
-        :param payout: :class:`payout.models.Payout` object
+        Updates the accounts for Payout,  FPP, Bonus, and Rake
+        :param place:
+        :param contest:
+        :param entry:
+        :param amount:
         :return:
         """
-        msg = "User["+payout.entry.lineup.user.username+"] was ranked #"+str(payout.rank)+" for contest #"+str(payout.contest.pk)+" and was paid out."
-        Logger.log(ErrorCodes.INFO, "Contest Payout", msg )
+        payout = Payout()
+        payout.rank = place
+        payout.contest = contest
+        payout.entry = entry
+        tm = CashTransaction(entry.lineup.user)
+        tm.deposit(amount)
+        #
+        # Take cash out of escrow
+        ct = CashTransaction(self.get_escrow_user())
+        ct.withdraw(amount, tm.transaction)
+
+        payout.transaction = tm.transaction
+        payout.save()
 
         user = payout.entry.lineup.user
         rake_paid = 5
+
+
 
         #
         # TODO Payout FPP for the user
@@ -200,6 +201,8 @@ class PayoutManager(object):
         rpt = RakepaidTransaction(user)
         rpt.deposit(rake_paid, trans=payout.transaction)
 
+        msg = "User["+payout.entry.lineup.user.username+"] was ranked #"+str(payout.rank)+" for contest #"+str(payout.contest.pk)+" and was paid out."
+        Logger.log(ErrorCodes.INFO, "Contest Payout", msg)
 
     def __convert_bonus_cash(self, user, rake_paid, transaction):
         """
@@ -231,12 +234,12 @@ class PayoutManager(object):
                 amount = balance
             #
             # create the withdraw from the bonus cash
-            bct.withdraw(amount, trans=transaction)
+            bct.withdraw(amount, transaction)
 
             #
             # create the deposit from the bonus cash
             ct = CashTransaction(user)
-            ct.deposit(amount, trans=transaction)
+            ct.deposit(amount, trans=bct.transaction)
 
 
 
