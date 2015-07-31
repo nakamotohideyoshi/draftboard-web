@@ -71,7 +71,7 @@ class Dummy(object):
         ordered_roster = OrderedDict(sorted(roster.items(), key=lambda k: k[0][2]))
 
         site_sport, created = SiteSport.objects.get_or_create(name=sport)
-        print(site_sport, 'site_sport')
+        #print(site_sport, 'site_sport')
 
         # create the roster spot mappings
         for rs_tuple, pos_names_list in ordered_roster.items():
@@ -79,8 +79,8 @@ class Dummy(object):
             roster_spot_amount  = rs_tuple[1]
             roster_spot_idx     = rs_tuple[2]
             primary             = rs_tuple[3]
-            print('roster spot: %s, amount:%s, idx:%s, is_primary:%s' % (roster_spot_name,
-                                    roster_spot_amount, roster_spot_idx, primary))
+            # print('roster spot: %s, amount:%s, idx:%s, is_primary:%s' % (roster_spot_name,
+            #                         roster_spot_amount, roster_spot_idx, primary))
             for pos_name in pos_names_list:
                     #
                     # 'c' is a boolean indicating whether the object was created or not
@@ -96,8 +96,8 @@ class Dummy(object):
                                                                                roster_spot=roster_spot,
                                                                                is_primary=primary)
                     ret_roster_spot_position_list.append(roster_spot_position)
-                    print('    ', roster_spot_position)
-        print('...created!')
+                    #print('    ', roster_spot_position)
+        #print('...created!')
         return ret_roster_spot_position_list
 
     @staticmethod
@@ -241,9 +241,9 @@ class Dummy(object):
         for game in games:
             for player in players:
                 player_stats_list.append( Dummy.create_player_stats_model( game, player ) )
-        print(len(player_stats_list), 'player_stats objects created. here are the first 15...')
-        for ps in player_stats_list[:15]:
-            print('    ', str(ps))
+        #print(len(player_stats_list), 'player_stats objects created. here are the first 15...')
+        # for ps in player_stats_list[:15]:
+        #     print('    ', str(ps))
         return player_stats_list
 
     @staticmethod

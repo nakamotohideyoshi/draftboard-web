@@ -53,13 +53,6 @@ class AbstractDraftGroupManager(object):
         salaried_players = Salary.objects.filter( pool=pool )
         return self.Salaries( pool, list(salaried_players) )
 
-    def get_games_gte_start(self, start):
-        """
-        Get all the game objects for the date contained in start
-        which start exactly on, or after the start time.
-        """
-        pass # TODO
-
     def create_gameteam(self, draft_group, game, team, alias, start):
         """
         create and return a new draftgroup.models.GameTeam object
@@ -95,19 +88,6 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
     def __init__(self):
         super().__init__()
-
-    def get(self, pk):
-        """
-        Return the active draft group for the method arguments, or None if does not exist.
-
-        'site_sport' is a sports.models.SiteSport
-        'start' is a datetime object
-
-        :param site_sport:
-        :param start:
-        :return:
-        """
-        return None # TODO - actually try to get one
 
     def get_for_site_sport(self, site_sport, start, end):
         """
