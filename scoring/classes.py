@@ -575,7 +575,7 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
         :param player_stats:
         :return:
         """
-        opp_total_points = 0 # TODO - get the nominal number of points the opposing team scored
+        opp_total_points = 0 # TODO - theres a bunch of code in the branch: stats_sprint needs to be merged with contest_sprint basically
         dst_points_allowed = opp_total_points
         dst_points_allowed -= player_stats.int_td_against
         dst_points_allowed -= player_stats.fum_td_against

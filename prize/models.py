@@ -4,9 +4,6 @@
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
-
-from transaction.models import AbstractAmount
-from cash.classes import CashTransaction
 from util.timesince import timesince
 
 class GeneratorSettings( models.Model ):
@@ -72,11 +69,3 @@ class CreateTicketPrizeStructure(models.Model):
     num_prizes      = models.IntegerField(default=0, null=False,
                                 verbose_name='The Number of Total Tickets',
                                 help_text='The number of tickets this prize structure should pay out.')
-
-    # def save(self, *args, **kwargs):
-    #     if self.pk is None:
-    #         # create the ticket prize structure
-    #         tps = prize.classes.TicketPrizeStructureCreator( self.ticket_value, self.num_prizes )
-    #         tps.save()
-    #
-    #     super().save( *args, **kwargs )
