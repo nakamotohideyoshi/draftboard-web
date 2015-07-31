@@ -3,19 +3,18 @@ from .exceptions import PrizeGenerationException
 from collections import OrderedDict
 from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException
 from ticket.exceptions import InvalidTicketAmountException
-
 from mysite.exceptions import InvalidArgumentException
-
 from prize.models import PrizeStructure, Rank, GeneratorSettings
 from transaction.models import AbstractAmount
 from cash.models import CashAmount
 from ticket.models import TicketAmount
-
-from django.db.transaction import atomic # decorator for bulk save, effectively
+from django.db.transaction import atomic
 
 class Generator(object):
     """
     Generate a prize structure, given some basic information about its size and prizepool, etc...
+
+    # TODO - Generator only works for integers
     """
     def __init__(self, buyin, first_place, round_payouts, payout_spots, prize_pool, exact=True):
         self.buyin                  = buyin
