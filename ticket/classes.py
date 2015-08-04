@@ -20,7 +20,8 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         self.transaction = None
         self.ticket = None
 
-    def create_default_ticket_amounts():
+    @staticmethod
+    def create_default_ticket_amounts(verbose=True):
         """
         Create the default TicketAmounts if they do not alrady exist
         """
@@ -31,8 +32,9 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
                 ta = ticket.models.TicketAmount()
                 ta.amount = amt
                 ta.save()
-            print(str(ta))
-    create_default_ticket_amounts = staticmethod( create_default_ticket_amounts )
+
+            if verbose:
+                print(str(ta))
 
     def get_ticket_amount(self, amount):
         """
@@ -167,8 +169,13 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
 
             #
             # Gets the amount from the pre-defined Ticket Amounts
-            amount_obj = self.get_ticket_amount(amount)
-
+            try:
+                amount_obj = self.get_ticket_amount(amount)
+            except ticket.models.TicketAmount.DoesNotExist:
+                raise InvalidTicketAmountException(
+                    type(self).__name__,
+                    amount
+                )
 
             #
             # Checks the ticket

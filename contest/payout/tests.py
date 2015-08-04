@@ -1,24 +1,22 @@
+#
+# contest/buyin/tests.py
+
 from test.classes import AbstractTest
-from contest.models import Contest, Entry
+from contest.models import Contest
 from prize.classes import CashPrizeStructureCreator, TicketPrizeStructureCreator
 from lineup.models import Lineup
 from .classes import PayoutManager
 from .models import Payout
-from contest.classes import ContestCreator
-from dataden.util.timestamp import DfsDateTimeUtil
-from django.utils import timezone
-from datetime import timedelta
-from datetime import time
-from ticket.models import TicketAmount
-from salary.dummy import Dummy
 from test.classes import BuildWorldForTesting
 from contest.buyin.classes import BuyinManager
 from cash.classes import CashTransaction
 from ticket.classes import TicketManager
-from ticket.models import TicketAmount
 
 class PayoutTest(AbstractTest):
+
     def setUp(self):
+        # creates very standard ticket amounts like 1,2,5, 10, 20, 50
+        TicketManager.create_default_ticket_amounts(verbose=False)
 
         self.first = 12.0
         self.second = 11.0
@@ -51,9 +49,7 @@ class PayoutTest(AbstractTest):
         #
         # Contest where the top 3 players get paid the value of self.third as a ticket
         # value.
-        ta = TicketAmount()
-        ta.amount = self.third
-        ta.save()
+        # ta, created = TicketAmount.objects.get_or_create( amount = self.third )
 
         tps = TicketPrizeStructureCreator(self.third, 3, "ticket_prize")
         tps.save()
@@ -137,7 +133,7 @@ class PayoutTest(AbstractTest):
 
 
     def test_simple_ticket_payout(self):
-        self.create_ticket_contest()
+        #self.create_ticket_contest()
         self.create_simple_teams()
         pm = PayoutManager()
         pm.payout()
@@ -147,7 +143,7 @@ class PayoutTest(AbstractTest):
 
 
     def test_simple_ticket_payout_tie(self):
-        self.create_ticket_contest()
+        #self.create_ticket_contest()
         self.create_last_place_tie_teams()
         pm = PayoutManager()
         pm.payout()

@@ -16,7 +16,9 @@ from ticket.classes import TicketManager
 from ticket.models import TicketAmount
 from ..exceptions import ContestIsInProgressOrClosedException
 from .tasks import refund_task
+
 class RefundBaseTest(AbstractTest):
+
     def setUp(self):
         self.build_world()
 
@@ -60,6 +62,7 @@ class RefundBaseTest(AbstractTest):
         bm.buyin(self.world.contest)
 
 class RefundTest(RefundBaseTest):
+
     def setUp(self):
         self.build_world()
 
@@ -116,6 +119,7 @@ class RefundTest(RefundBaseTest):
 
 
 class RefundConcurrentTest(AbstractTestTransaction, RefundBaseTest):
+
     def setUp(self):
         self.build_world()
 

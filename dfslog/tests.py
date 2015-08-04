@@ -55,20 +55,28 @@ class LoggerTest( unittest.TestCase):
         class TestProperAbstract( AbstractLog ):
             def log(self):
                 return "Test 1"
-        class TestUnimplementedAbstract(  ):
-            def log(self):
-                return "Test 1"
-        class TestUnimplementedLog( AbstractLog ):
-            pass
+
+        # class TestUnimplementedAbstract(  ):
+        #     def log(self):
+        #         return "Test 1"
+
+
 
         logger = Logger()
         self.assertRaises(ErrorCodeException, lambda: logger.log(0, "someAction", "someMessage"))
         self.assertRaises(ActionException, lambda: logger.log(ErrorCodes.DEBUG, 0, "someMessage"))
         self.assertRaises(MessageException, lambda: logger.log(ErrorCodes.CRITICAL, "someAction", 0))
-        self.assertRaises(ModelNotImplementedException, lambda: \
-                    logger.log(ErrorCodes.CRITICAL, "someAction", "someMessage", \
-                               [TestProperAbstract(), TestUnimplementedAbstract()]))
-        self.assertRaises(LogMethodException, lambda: \
-                    logger.log(ErrorCodes.CRITICAL, "someAction", "someMessage", \
-                               [TestProperAbstract(), TestUnimplementedLog()]))
+        # self.assertRaises(ModelNotImplementedException, lambda: \
+        #             logger.log(ErrorCodes.CRITICAL, "someAction", "someMessage", \
+        #                        [TestUnimplementedAbstract()]))
+
+    def test_unimplemented_log_method(self):
+        class UnimplementedLog( AbstractLog ):
+            """
+            This class purposely does not override the log() method.
+            :return:
+            """
+            pass
+
+        self.assertRaises(LogMethodException, lambda: UnimplementedLog().log() )
 

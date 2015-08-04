@@ -29,6 +29,8 @@ class BuyinTest(AbstractTest):
 
     def setUp(self):
 
+        TicketManager.create_default_ticket_amounts(verbose=False)
+
         self.user = self.get_basic_user()
         ct = CashTransaction(self.user)
         ct.deposit(100)

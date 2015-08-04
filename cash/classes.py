@@ -34,7 +34,6 @@ class CashTransaction(CanDeposit, AbstractTransaction):
             return False
         return True
 
-
     def withdraw(self, amount, trans=None):
         """
         Creates a Withdraw in the user's Cash account.

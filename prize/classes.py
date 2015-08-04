@@ -16,7 +16,7 @@ class Generator(object):
 
     # TODO - Generator only works for integers
     """
-    def __init__(self, buyin, first_place, round_payouts, payout_spots, prize_pool, exact=True):
+    def __init__(self, buyin, first_place, round_payouts, payout_spots, prize_pool, exact=True, verbose=False):
         self.buyin                  = buyin
         self.first_place            = first_place
 
@@ -38,7 +38,8 @@ class Generator(object):
         self.range_list = None
         self.__build_prize_list()         # so every time we get it we dont have to build it
 
-        self.print_each_position()
+        if verbose:
+            self.print_each_position()
 
     def update_prize_pool(self):
         best_x          = None
@@ -76,20 +77,20 @@ class Generator(object):
         :return:
         """
 
-        print('__build_prize_list')
+        #print('__build_prize_list')
         self.prize_list = []
         for i in range(1, self.payout_spots+1):
             self.prize_list.append( (i, self.equation(i, self.final_x) ) )
 
         if self.exact:
-            print('exact')
+            #print('exact')
             # take buyins off the end until we have the original
             # prize pool specified (no added buyins from alogrithm)
             prize_list_with_extra_buyins = list(self.prize_list)
-            print('prize_list_with_extra_buyins', prize_list_with_extra_buyins)
+            #print('prize_list_with_extra_buyins', prize_list_with_extra_buyins)
             self.prize_list = []
             original_prize_pool_remaining = self.prize_pool
-            print('original_prize_pool_remaining', original_prize_pool_remaining)
+            #print('original_prize_pool_remaining', original_prize_pool_remaining)
             for rank, value in prize_list_with_extra_buyins:
                 if original_prize_pool_remaining <= 0:
                     break
@@ -102,7 +103,8 @@ class Generator(object):
 
                 self.prize_list.append( (rank, new_prize) )
         else:
-            print('not exact - modified potentially')
+            print('not exact - prizes modified potentially')
+            pass
 
         data = {}
         #total = 0
@@ -157,7 +159,7 @@ class Generator(object):
         sum = 0
         for i in range(1, self.payout_spots+1):
             sum += self.equation(i, x)
-        print("x:"+str(x)+"  sum:"+str(sum))
+        #print("x:"+str(x)+"  sum:"+str(sum))
 
         return sum
 
@@ -401,10 +403,7 @@ class TicketPrizeStructureCreator(AbstractPrizeStructureCreator):
         try:
             return TicketAmount.objects.get( amount=ticket_value )
         except TicketAmount.DoesNotExist:
-            raise InvalidTicketAmountException(
-                type(self).__name__,
-                ticket_value
-            )
+            raise InvalidTicketAmountException( type(self).__name__, ticket_value )
 
     def get_amount_instance(self, amount):
         """
