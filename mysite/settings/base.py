@@ -221,7 +221,6 @@ INSTALLED_APPS = (
     #'cachalot',              # caching models
     'pipeline',               # minifying/compressing static assets
 
-
     #
     ####################################
     # rio-dfs specific apps below here #

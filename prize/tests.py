@@ -24,9 +24,8 @@ class GeneratorTest(AbstractTest):
                            lambda: Generator(100, 1500, 101, 23, 10000) )
 
     def test_create_with_generator(self):
-        gen = Generator(10, 1000, 10, 150, 10000)
+        gen = Generator(10, 1000, 10, 150, 10000, verbose=False)
         gen.update_prize_pool()
-        gen.print_each_position()
 
         name = 'custom_name'
         cps = CashPrizeStructureCreator(generator=gen, name=name)

@@ -217,7 +217,6 @@ def create_dst_player(sender, **kwargs):
             # entry = Player.objects.get_or_create(content_type=ctype,
             #                                         object_id=instance.id,
             #                                         pub_date=instance.pub_date)
-            print( 'DEBUG: hi im the signal --', type(instance) )
             dst = Player()
             dst.team        = instance
             dst.srid        = instance.srid     #
@@ -239,4 +238,6 @@ def create_dst_player(sender, **kwargs):
             dst.status      = ''
             dst.save() # commit changes
 
+#
+# listen for Team object save() and create its DST if it does not exist
 post_save.connect(create_dst_player, sender=Team)

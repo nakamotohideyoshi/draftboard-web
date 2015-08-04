@@ -1,4 +1,7 @@
+#
+# bonuscash/classes.py
 
+from mysite.exceptions import IncorrectVariableTypeException
 from transaction.constants import TransactionTypeConstants
 from transaction.classes import AbstractTransaction
 from transaction.models import TransactionType
@@ -30,6 +33,18 @@ class BonusCashTransaction(AbstractTransaction):
         if(balance < amount):
             return False
         return True
+
+    def validate_amount(self, amount):
+        """
+        adds additional type checking. make sure super().validate_amount() is called last.
+        :return:
+        """
+        try:
+            amount = float(amount)
+        except ValueError:
+            raise IncorrectVariableTypeException(self.__class__.__name__, 'amount: [%s]' % str(amount))
+
+        super().validate_amount( amount )
 
     def withdraw(self, amount, trigger_transaction, trans=None):
         """

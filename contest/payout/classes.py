@@ -15,8 +15,8 @@ from promocode.bonuscash.classes import BonusCashTransaction
 from django.conf import settings
 from rakepaid.classes import RakepaidTransaction
 from mysite.classes import AbstractManagerClass
-
 import math
+
 class PayoutManager(AbstractManagerClass):
     """
     Responsible for performing the payouts for all active contests for both
@@ -25,7 +25,6 @@ class PayoutManager(AbstractManagerClass):
 
     def __init__(self):
         pass
-
 
     def payout(self, contests=None):
         """

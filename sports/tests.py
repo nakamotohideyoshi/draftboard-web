@@ -8,6 +8,7 @@ from .exceptions import GameClassNotFoundException,\
                         SportNameException
 
 from test.classes import AbstractTest
+from sports.models import SiteSport
 
 class SiteSportManagerGetPlayerClassTest(AbstractTest):
 
@@ -27,13 +28,15 @@ class SiteSportManagerGetPlayerStatsClassTest(AbstractTest):
         # nfl
         site_sport = SiteSport.objects.get(name='nfl')
         player_stats_class = SiteSportManager().get_player_stats_class( site_sport )
-        self.assertTrue( issubclass( player_stats_class, PlayerStats ))
+        for ps_class in player_stats_class:
+            self.assertTrue( issubclass( ps_class, PlayerStats ))
 
     def test_get_player_stats_class_nhl(self):
         # nhl
         site_sport = SiteSport.objects.get(name='nhl')
         player_stats_class = SiteSportManager().get_player_stats_class( site_sport )
-        self.assertTrue( issubclass( player_stats_class, PlayerStats ))
+        for ps_class in player_stats_class:
+            self.assertTrue( issubclass( ps_class, PlayerStats ))
 
     def test_all_sports_get_player_stats_class(self):
         """
@@ -43,7 +46,8 @@ class SiteSportManagerGetPlayerStatsClassTest(AbstractTest):
         for sport in SiteSportManager.SPORTS:
             site_sport = SiteSport.objects.get(name=sport)
             player_stats_class = SiteSportManager().get_player_stats_class( site_sport )
-            self.assertTrue( issubclass( player_stats_class, PlayerStats ))
+            for ps_class in player_stats_class:
+                self.assertTrue( issubclass( ps_class, PlayerStats ))
 
 class SiteSportManagerGetGameClassTest(AbstractTest):
 

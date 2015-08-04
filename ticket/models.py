@@ -4,13 +4,20 @@ from django.contrib.auth.models import User
 import ticket.classes
 
 DEFAULT_TICKET_VALUES = [
+    1.00,
+    2.00,
     5.00,
     10.00,
     20.00,
+    25.00,
+    30.00,
+    40.00,
     50.00,
     100.00,
     200.00,
-    500.00
+    300.00,
+    500.00,
+    1000.00
 ]
 
 class TicketAmount(AbstractAmount):
