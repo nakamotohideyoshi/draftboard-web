@@ -21,7 +21,6 @@ from lineup.exceptions import LineupDoesNotMatchUser
 from .tasks import buyin_task
 from django.test.utils import override_settings
 
-
 class BuyinTest(AbstractTest):
     """
     create a basic contest, and use the BuyinManager to buy into it.

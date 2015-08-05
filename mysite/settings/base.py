@@ -342,6 +342,7 @@ SUIT_CONFIG = {
         ('mlb',),
         ('ticket',),
         ('transaction',),
+        ('rakepaid',),
 
         #
         # # If you want to link app models from different app use full name:

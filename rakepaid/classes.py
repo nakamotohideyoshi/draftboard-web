@@ -1,12 +1,94 @@
 import fpp.models
 
+from django.utils import timezone
+from datetime import timedelta
 from transaction.constants import TransactionTypeConstants
 from transaction.classes import AbstractTransaction
 from transaction.models import TransactionType
 from .exceptions import WithdrawRakepaidException
 from .models import RakepaidBalance, RakepaidTransactionDetail
-
+from .models import LoyaltyStatus, PlayerTier
+from django.db.models import Sum
 from dfslog.classes import Logger, ErrorCodes
+
+class LoyaltyStatusManager(object):
+
+    #
+    # used by a migration to install the initial loyalty statuses
+    DEFAULT_STATUSES = [
+        {
+            'name'              : 'Bronze',
+            'rank'              : 1,
+            'thirty_day_avg'    : 0.0,
+            'multiplier'        : 1.0
+        },
+        {
+            'name'              : 'Silver',
+            'rank'              : 2,
+            'thirty_day_avg'    : 10.0,
+            'multiplier'        : 1.1
+        },
+        {
+            'name'              : 'Gold',
+            'rank'              : 2,
+            'thirty_day_avg'    : 100.0,
+            'multiplier'        : 1.2
+        },
+        {
+            'name'              : 'Platinum',
+            'rank'              : 3,
+            'thirty_day_avg'    : 1000.0,
+            'multiplier'        : 1.3
+        }
+    ]
+
+    def __init__(self, user):
+        self.user                   = user
+        try:
+            self.player_tier = PlayerTier.objects.get(user=self.user)
+        except PlayerTier.DoesNotExist:
+            self.player_tier = PlayerTier()
+            self.player_tier.user   = self.user
+            self.player_tier.status = LoyaltyStatus.objects.get( rank=1 ) # start at the lowest status
+            self.player_tier.save()
+
+    def update(self):
+        """
+        based on the last 30 days, update this users LoyaltyStatus
+        """
+
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+        rake_agg = RakepaidTransactionDetail.objects.filter( created__gte=thirty_days_ago,
+                                                  user=self.user ).aggregate(Sum('amount'))
+
+        #
+        # all the rakepaid transactions times a 1.0 multiplier are considered the
+        # "base" fpp really -- from a calculation standpoint, that is.
+        total = rake_agg.get('amount__sum')  # will return None if its 0 !
+        if total is None:
+            total = 0.0
+
+        #
+        # figure out which loyalty tier this total puts this user into, and apply it
+        statuses        = LoyaltyStatus.objects.filter(thirty_day_avg__gte=total).order_by('rank')  # sort ascending
+        highest_tier    = statuses[ len(statuses) - 1 ]                 # highest status
+        new_tier        = list(statuses[:1])[0]                         # the first item in the sorted list
+
+        if not new_tier:
+            new_tier = highest_tier
+
+        #
+        # at this point, simply set the new_tier, but only if it differs from
+        # what is already set, because theres no point in calling save() otherwise!
+        if self.player_tier.status != new_tier:
+            self.player_tier.status = new_tier
+            self.player_tier.save()
+
+    def get_fpp_multiplier(self):
+        """
+        Return the users current FPP multiplier.
+        """
+        return self.player_tier.status.multiplier
 
 class RakepaidTransaction(AbstractTransaction):
     """
