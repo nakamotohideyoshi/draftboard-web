@@ -1,0 +1,22 @@
+.live-lineup {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  padding-top: 42px;
+  min-height: 558px;
+
+  &--me {
+    left: 0;
+  }
+
+  &--opponent {
+    right: 0;
+  }
+
+  // vertical centering achieved with flexbox centering
+  // tut available at https://goo.gl/pMVBPE
+  &__players {
+    flex: none;
+    list-style: none;
+  }
+}
