@@ -1,0 +1,41 @@
+$live-lineup-width: 200px;
+
+.live-nba {
+  background: transparent url(../img/blocks/live-nba/bg.jpg) no-repeat left top;
+  background-size: 120% auto;
+  margin: 0 auto;
+  min-width: 1024px;
+  max-width: 1920px;
+  position: relative;
+  width: 100%;
+
+  & > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  &__court-scoreboard {
+    min-height: 600px;
+    padding: 0 $live-lineup-width;
+    width: 100%;
+  }
+
+  &__lineup {
+    position: absolute;
+    top: 0;
+  }
+
+  &--with-opponent {
+    &:after {
+      content: " ";
+      width: 50%;
+      height: 100%;
+      position: absolute;
+      right: 0;
+      top: 0;
+      background: transparent url(../img/blocks/live-nba/opponent-bg.jpg) no-repeat left top;
+      background-size: 120% auto;
+      z-index: 1;
+    }
+  }
+}

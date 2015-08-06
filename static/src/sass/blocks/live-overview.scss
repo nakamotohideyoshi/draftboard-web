@@ -1,0 +1,44 @@
+.live-overview {
+  // temp figure until we put in the PMR circle
+  padding: 40px 0 70px;
+  text-align: center;
+  position: relative;
+
+  &__contests,
+  &__points,
+  &__entries {
+    display: inline-block;
+    padding: 0 26px;
+    vertical-align: middle;
+    width: 120px;
+  }
+
+  &__help {
+    color: #6d718a;
+    font-size: 9.5px;
+    font-family: $font-open-sans;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  &__quantity {
+    color: #fff;
+    font-family: $font-oswald;
+    font-weight: 400;
+    margin: 0;
+  }
+
+  &__contests,
+  &__entries {
+    .live-overview__quantity {
+      font-size: 25px;
+    }
+  }
+
+  &__points {
+    .live-overview__quantity {
+      font-size: 35px;
+    }
+  }
+
+}
