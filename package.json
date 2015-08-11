@@ -41,7 +41,7 @@
     "webpack-notifier": "^1.2.1"
   },
   "scripts": {
-    "coverage": "NODE_ENV=test istanbul --include-all-sources cover _mocha  -- static/src/js/test --compilers js:babel/register --recursive",
+    "coverage": "NODE_ENV=test istanbul --include-all-sources cover _mocha  -- static/src/js/test --compilers js:babel/register --recursive && cat ./coverage/coverage.json | ./node_modules/codecov.io/bin/codecov.io.js",
     "test": "NODE_ENV=test mocha static/src/js/test --opts static/src/js/test/mocha.opts",
     "devserver": "NODE_ENV=development webpack-dev-server --progress --hot --config webpack-development.config.js",
     "webpack": "NODE_ENV=production webpack --optimize-minimize --optimize-dedupe --optimize-occurence-order --colors --progress --config webpack-production.config.js",
