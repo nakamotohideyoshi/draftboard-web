@@ -1,7 +1,7 @@
 "use strict";
 
 var React = require('react');
-var renderComponent = require('lib/render-component');
+var renderComponent = require('../../lib/render-component');
 
 /**
  * The score ticker on the top of the page.

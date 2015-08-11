@@ -48,7 +48,8 @@ module.exports = function(options) {
         // jsx loader - to convert jsx to native js.
         {
           test: /\.jsx$/,
-          loader: 'jsx-loader'
+          exclude: /node_modules/,
+          loader: 'babel-loader'
         },
         // Transform sass into css & extract the text.
         {
