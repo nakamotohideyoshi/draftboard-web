@@ -1,13 +1,19 @@
 #
 # draftgroup/classes.py
 
+from django.dispatch import receiver
 import mysite.exceptions
 from django.db.transaction import atomic
 from .models import DraftGroup, Player, GameTeam
-from sports.models import SiteSport
+from sports.models import Game, SiteSport, GameStatusChangedSignal
 from salary.models import Pool, Salary
 from sports.classes import SiteSportManager
 import datetime
+
+# @receiver(signal=GameStatusChangedSignal.signal)
+# def on_game_status_changed(sender, **kwargs):
+#     print( 'on_game_status_changed' )
+
 
 class AbstractDraftGroupManager(object):
     """
@@ -88,6 +94,17 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
     def __init__(self):
         super().__init__()
+
+    @receiver(signal=GameStatusChangedSignal.signal)
+    def on_game_status_changed(sender, **kwargs):
+        print( 'on_game_status_changed' )
+        # TODO
+        #       1) get the draftgroups the kwargs.get('game') is contained in
+        #       2) call the task that does stuff to those draftgroups.
+        #
+        # example:
+        #
+        #       mysite.tasks.live_game_status_changed( game=kwargs.get('game') )
 
     def get_for_site_sport(self, site_sport, start, end):
         """
