@@ -1,6 +1,6 @@
 "use strict";
 
-var AppActions = require('actions/app-actions');
+var AppActions = require('../../actions/app-actions');
 
 
 /*
