@@ -7,6 +7,51 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 import re
 
+from django.dispatch import Signal, receiver
+from django.db.models.signals import pre_save
+from dirtyfields import DirtyFieldsMixin
+
+class SignalNotSetupProperlyException(Exception):
+    def __init__(self, class_name, variable_name):
+       super().__init__('You must set "signal"')
+
+class AbstractSportSignal(object):
+
+    signal = None # child will have to set this
+
+    def __init__(self):
+        self.__validate()
+
+    def __validate(self):
+        if self.signal is None:
+            raise SignalNotSetupProperlyException(self.__class__.__name__, 'signal')
+
+    def send(self, **kwargs):
+        print( 'sender', str(self.__class__.__name__))
+        for k,v in kwargs.items():
+            print( str(k), '=>', str(v) )
+            if k == 'game':
+                print( '... type: ', str(type(v).__name__) )
+                print( '... srid: ', v.srid )
+        self.signal.send(sender=self.__class__, **kwargs)
+
+class GameStatusChangedSignal(AbstractSportSignal):
+    """
+    a signal that contains an object with stats that need to be saved
+    """
+
+    signal = Signal(providing_args=['game'])
+
+    def __init__(self, game):
+        super().__init__()
+        self.game = game
+
+    def send(self):
+        """
+        call parent send() with the object which has had a change to it
+        """
+        super().send( game=self.game )
+
 # an object for a sport which anything can reference to identify its sport
 class SiteSport(models.Model):
     created             = models.DateTimeField(auto_now_add=True, null=False)
@@ -62,7 +107,7 @@ class Season( models.Model ):
         abstract = True
         unique_together = ('start_year', 'season_type')
 
-class Game( models.Model ):
+class Game( DirtyFieldsMixin, models.Model ):
     """
     information about the scheduled game - mainly the start, and status
     """
@@ -71,14 +116,34 @@ class Game( models.Model ):
     srid = models.CharField(max_length=64, unique=True, null=False,
                                 help_text='the sportsradar global id')
 
-    start   = models.DateTimeField(null=False)
-    status  = models.CharField(max_length=32, null=False)
+    start       = models.DateTimeField(null=False)
+    status      = models.CharField(max_length=32, null=False)
+    prev_status = models.CharField(max_length=32, null=False, default='')
 
     def __str__(self):
         return '%s | %s | %s' % (self.status, self.start, self.srid)
 
     class Meta:
         abstract = True
+
+    def save(self, *args, **kwargs):
+        """
+        override save so we can signal certain changes
+        to this object after the "real" save()
+        """
+
+        # cache the changed fields before save() called because it will reset them
+        changed_fields = self.get_dirty_fields()
+
+        super().save(*args, **kwargs) # Call the "real" save() method.
+
+        # check if status had been changed, now that the save() was successful
+        if changed_fields.get('status', None):
+            # send signal that the Game status has changed
+            print( 'going to send signal' )
+            GameStatusChangedSignal( self ).send()
+        else:
+            print( 'not sending signal - unchanged status')
 
 class GameBoxscore(models.Model):
     created = models.DateTimeField(auto_now_add=True)

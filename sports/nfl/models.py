@@ -1,13 +1,11 @@
 #
 # sports/nfl/models.py
 
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 import sports.models
 from django.db.models.signals import post_save
+from ..models import GameStatusChangedSignal
 
-# Any classes that still have the abtract = True, just havent been migrated/implemented yet!
 
 DST_PLAYER_LAST_NAME    = 'DST' # dst Player objects last_name
 DST_POSITION            = 'DST' # dont change this
