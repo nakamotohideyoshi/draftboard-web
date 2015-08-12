@@ -9,11 +9,7 @@ from sports.models import Game, SiteSport, GameStatusChangedSignal
 from salary.models import Pool, Salary
 from sports.classes import SiteSportManager
 import datetime
-
-# @receiver(signal=GameStatusChangedSignal.signal)
-# def on_game_status_changed(sender, **kwargs):
-#     print( 'on_game_status_changed' )
-
+from draftgroup.tasks import on_game_closed
 
 class AbstractDraftGroupManager(object):
     """
@@ -97,14 +93,23 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
     @receiver(signal=GameStatusChangedSignal.signal)
     def on_game_status_changed(sender, **kwargs):
-        print( 'on_game_status_changed' )
-        # TODO
-        #       1) get the draftgroups the kwargs.get('game') is contained in
-        #       2) for each draftgroup, check if all its games are closed...
-        #
-        # example:
-        #
-        #       mysite.tasks.live_game_status_changed( game=kwargs.get('game') )
+        #print( 'on_game_status_changed' )
+
+        # get the game instance from the signal
+        game = kwargs.get('game')
+
+        # logic depends on the new game status
+        if game.is_closed(): # is_closed() indicates the live game is all done getting stat updates
+            #print( 'game.is_closed() is True |', 'Game', str(game) )
+            dgm = DraftGroupManager()
+            draft_groups = dgm.get_for_game( game )
+
+            results = []
+            for draft_group in draft_groups:
+                res = on_game_closed.delay( draft_group )
+                # build list of tuples of (DraftGroup, task result) pairs
+                results.append( (draft_group, res))
+            # check results... ?
 
     def get_for_site_sport(self, site_sport, start, end):
         """
@@ -158,6 +163,18 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         ssm = SiteSportManager()
         game_model = ssm.get_game_class( sport=draft_group.salary_pool.site_sport )
         return game_model.objects.filter( srid__in=game_srids )
+
+    def get_for_game(self, game):
+        """
+        return a list of all the DraftGroups which contain this Game
+
+        :param game:
+        :return: list of distinct DraftGroups objects which contain the specified Game
+        """
+
+        # get a list of GameTeam objects, with distinct DraftGroups
+        distinct_draft_groups = GameTeam.objects.filter(game_srid=game.srid).distinct('draft_group')
+        return [ x.draft_group for x in distinct_draft_groups ]
 
     @atomic
     def create(self, site_sport, start, end):
@@ -215,7 +232,3 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
         #
         return draft_group
-
-# easy usage:
-# >>> from draftgroup.classes import manager
-manager = DraftGroupManager()

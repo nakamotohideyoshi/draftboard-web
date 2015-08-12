@@ -28,12 +28,12 @@ class AbstractSportSignal(object):
             raise SignalNotSetupProperlyException(self.__class__.__name__, 'signal')
 
     def send(self, **kwargs):
-        print( 'sender', str(self.__class__.__name__))
-        for k,v in kwargs.items():
-            print( str(k), '=>', str(v) )
-            if k == 'game':
-                print( '... type: ', str(type(v).__name__) )
-                print( '... srid: ', v.srid )
+        # print( 'sender', str(self.__class__.__name__))
+        # for k,v in kwargs.items():
+        #     print( str(k), '=>', str(v) )
+        #     if k == 'game':
+        #         print( '... type: ', str(type(v).__name__) )
+        #         print( '... srid: ', v.srid )
         self.signal.send(sender=self.__class__, **kwargs)
 
 class GameStatusChangedSignal(AbstractSportSignal):
@@ -158,10 +158,10 @@ class Game( DirtyFieldsMixin, models.Model ):
         # check if status had been changed, now that the save() was successful
         if changed_fields.get('status', None):
             # send signal that the Game status has changed
-            print( 'going to send signal' )
+            #print( 'game.status changed: sending signal' )
             GameStatusChangedSignal( self ).send()
-        else:
-            print( 'not sending signal - unchanged status')
+        # else:
+        #     print( 'not sending signal - unchanged status')
 
 class GameBoxscore(models.Model):
     created = models.DateTimeField(auto_now_add=True)

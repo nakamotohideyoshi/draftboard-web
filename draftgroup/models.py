@@ -3,6 +3,7 @@
 
 from django.db import models
 import salary.models
+import draftgroup.classes
 
 class DraftGroup( models.Model ):
     """
@@ -18,6 +19,13 @@ class DraftGroup( models.Model ):
                         help_text='the DateTime for the earliest possible players in the group.')
     end         = models.DateTimeField(null=False,
                         help_text='the DateTime on, or after which no players from games are included')
+
+    def get_games(self):
+        """
+        return the underlying sport.<sport>.Game objects this draft group was created with
+        """
+        dgm = draftgroup.classes.DraftGroupManager()
+        return dgm.get_games( self )
 
     def __str__(self):
         return 'pk: %s  |  %s thru %s' % (self.pk,
