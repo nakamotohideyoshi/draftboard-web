@@ -28,26 +28,43 @@ def on_game_closed(self, draft_group):
 
     if acquire_lock():
         try:
-            dgm = DraftGroupManager()
-            # get all the Games
-            games = dgm.get_games( draft_group=draft_group )
-            b = True  # default
-            for g in games:
-                # AND each game with True
-                b = b and g.is_closed()
-
-            # b will be True when all the games are closed!
-            if b:
-                #
-                # update all Contest's with this draft_group, to be completed
-                Contest.objects.filter( draft_group=draft_group ).update( status=Contest.COMPLETED )
+            # dgm = DraftGroupManager()
+            # # get all the Games
+            # games = dgm.get_games( draft_group=draft_group )
+            # b = True  # default
+            # for g in games:
+            #     # AND each game with True
+            #     b = b and g.is_closed()
+            #
+            # # b will be True when all the games are closed!
+            # if b:
+            #     #
+            #     # update all Contest's with this draft_group, to be completed
+            #     Contest.objects.filter( draft_group=draft_group ).update( status=Contest.COMPLETED )
+            __on_game_closed( draft_group )
 
         finally:
             release_lock()
     else:
         self.retry(countdown=3, max_retries=100)
 
+def __on_game_closed( draft_group ):
+    """
+    this method should only be called inside of the lock in on_game_closed()
+    """
+    dgm = DraftGroupManager()
+    # get all the Games
+    games = dgm.get_games( draft_group=draft_group )
+    b = True  # default
+    for g in games:
+        # AND each game with True
+        b = b and g.is_closed()
 
+    # b will be True when all the games are closed!
+    if b:
+        #
+        # update all Contest's with this draft_group, to be completed
+        Contest.objects.filter( draft_group=draft_group ).update( status=Contest.COMPLETED )
 
 
 
