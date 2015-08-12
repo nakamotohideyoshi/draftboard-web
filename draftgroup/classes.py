@@ -100,7 +100,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         print( 'on_game_status_changed' )
         # TODO
         #       1) get the draftgroups the kwargs.get('game') is contained in
-        #       2) call the task that does stuff to those draftgroups.
+        #       2) for each draftgroup, check if all its games are closed...
         #
         # example:
         #
@@ -125,6 +125,39 @@ class DraftGroupManager( AbstractDraftGroupManager ):
             #
             # otherwise, return the most recently created one
             return dgs[0]
+
+    def get_game_teams(self, draft_group):
+        """
+        Return a QuerySet of the draftgroup.models.GameTeam objects
+        for the draftgroup.
+
+        Each GameTeam object has srids for the game, and for one of the teams.
+        (So there will typically be one GameTeam for home, and one for away.)
+
+        :param draftgroup: draftgroup.models.DraftGroup instance
+        :return:
+        """
+        return GameTeam.objects.filter( draft_group=draft_group )
+
+    def get_games(self, draft_group):
+        """
+        Return the sports.<sport>.Game objects of the DraftGroup instance.
+
+        This method simply gets the distinct('game_srid') rows
+        from the QuerySet returned by get_game_teams().
+
+        :param draft_group:
+        :return: QuerySet of sports.<sport>.Game objects
+        """
+
+        # get the distinct games from the gameteam model
+        distinct_gameteam_games = self.get_game_teams( draft_group=draft_group ).distinct('game_srid')
+        game_srids = [ x.game_srid for x in distinct_gameteam_games ]
+
+        # get the sports game_model (ie: sports.<sport>.Game)
+        ssm = SiteSportManager()
+        game_model = ssm.get_game_class( sport=draft_group.salary_pool.site_sport )
+        return game_model.objects.filter( srid__in=game_srids )
 
     @atomic
     def create(self, site_sport, start, end):

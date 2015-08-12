@@ -111,6 +111,9 @@ class Game( DirtyFieldsMixin, models.Model ):
     """
     information about the scheduled game - mainly the start, and status
     """
+
+    STATUS_CLOSED = 'closed'
+
     created = models.DateTimeField(auto_now_add=True)
 
     srid = models.CharField(max_length=64, unique=True, null=False,
@@ -119,6 +122,15 @@ class Game( DirtyFieldsMixin, models.Model ):
     start       = models.DateTimeField(null=False)
     status      = models.CharField(max_length=32, null=False)
     prev_status = models.CharField(max_length=32, null=False, default='')
+
+    def is_closed(self):
+        """
+        Indicates if this game is closed (complete + all stat corrections are in).
+
+        Return a boolean indicating if this instance's
+        status field is equal to the STATUS_CLOSED value.
+        """
+        return self.status == self.STATUS_CLOSED
 
     def __str__(self):
         return '%s | %s | %s' % (self.status, self.start, self.srid)

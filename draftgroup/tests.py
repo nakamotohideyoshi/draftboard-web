@@ -10,6 +10,7 @@ from mysite.exceptions import InvalidSiteSportTypeException, \
                                 InvalidStartTypeException, InvalidEndTypeException, \
                                 SalaryPoolException, NoGamesInRangeException
 from draftgroup.classes import DraftGroupManager
+from draftgroup.models import GameTeam
 from sports.models import SiteSport
 from salary.dummy import Dummy as SalaryDummy
 
@@ -94,4 +95,37 @@ class DraftGroupCreate(AbstractTest):
         dgm = DraftGroupManager()
         draft_group = dgm.create( self.site_sport, self.start, self.end )
         self.assertIsNotNone(draft_group)
+
+    def test_draftgroup_create_makes_game_team_entries(self):
+        dgm = DraftGroupManager()
+        draft_group = dgm.create( self.site_sport, self.start, self.end )
+        gameteams = GameTeam.objects.filter( draft_group=draft_group )
+        num_gameteams = len(gameteams)
+        if num_gameteams <= 0:
+            raise Exception('i assumed there was going to be at least one game here')
+        self.assertGreater( num_gameteams, 0 )
+
+        # get one o the games and change the status to 'closed',
+        # which should fire the GameStatusChangedSignal... and result
+        # in the DraftGroupManager method being called which checks
+        # to see if it should change any Contest statuses which reference that draftgroup
+        game = GameChild.objects.get( srid=gameteams[0].game_srid )
+        print( 'game.status', str(game.status) )
+        game.status = 'steve'
+        game.save()
+
+        game.status = 'closed' # back to closed
+        game.save() # should signal all DraftGroups to close Contests with matching draftgroup!
+
+    def test_live_game_status_change_signals_draftgroup_on_game_status_changed(self):
+
+        # dgm = DraftGroupManager()
+        # draft_group = dgm.create( self.site_sport, self.start, self.end )
+        #
+        # # get one of the underlying games, and change its status
+        # games = GameChild.objects.filter()
+        pass # TODO
+
+
+
 
