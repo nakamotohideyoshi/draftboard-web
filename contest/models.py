@@ -139,14 +139,11 @@ class Contest(models.Model):
         return ssm.get_game_class(self.site_sport)
 
     def games(self):
-        game_model = self.__get_game_model()
-        return game_model.objects.filter( start__gte=self.start, start__lt=self.end )
-
-    # def set_draftgroup_on_create(self):
-    #     # only automatically do this on object creation
-    #     if self.pk is None and not self.draft_group:
-    #         dgm = DraftGroupManager()
-    #         self.draft_group = dgm.get_for_site_sport( self.site_sport, self.start, self.end )
+        """
+        return a QuerySet of the games which are included in the draft_group
+        """
+        dgm = DraftGroupManager()
+        return dgm.get_games( self.draft_group )
 
     def save(self, *args, **kwargs):
         # if self.pk is None and not self.cid:
