@@ -13,3 +13,7 @@ class SiteSportWithNameDoesNotExistException(Exception):
 class GameClassNotFoundException(Exception):
     def __init__(self, class_name, sport_name):
         super().__init__( "game class for %s not found" % sport_name )
+
+class TeamClassNotFoundException(Exception):
+    def __init__(self, class_name, sport_name):
+        super().__init__( "team class for %s not found" % sport_name )
