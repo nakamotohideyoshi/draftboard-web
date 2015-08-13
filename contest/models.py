@@ -121,6 +121,11 @@ class Contest(models.Model):
                                                   default=0,
                                                   help_text="The number of entries submitted to the contest")
 
+    gpp = models.BooleanField(default=False, null=False,
+                              help_text='a gpp Contest will not be cancelled if it does not fill')
+
+    respawn = models.BooleanField(default=False, null=False,
+                                  help_text='indicates whether a new identical Contest should be created when this one fills up')
 
     def update_status(self):
         """

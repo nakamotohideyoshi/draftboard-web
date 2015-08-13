@@ -38,11 +38,11 @@ def recalculate_user_loyalty():
 def check_pending_withdraws():
     pass # TODO
 
-#
-# example: send an email report including the name and
-#           information of all the signups from a time period
-def email_daily_user_signups_EXAMPLE():
-    pass # TODO
+# #
+# # example: send an email report including the name and
+# #           information of all the signups from a time period
+# def email_daily_user_signups_EXAMPLE():
+#     pass # TODO
 
 #
 #########################################################################

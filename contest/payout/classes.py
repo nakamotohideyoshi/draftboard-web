@@ -63,6 +63,7 @@ class PayoutManager(AbstractManagerClass):
             #
             # update the status for all of the contests
             for contest in contests:
+                # TODO - update_status() method has 1 line of code: "pass"
                 contest.update_status()
 
 
