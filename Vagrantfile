@@ -33,7 +33,7 @@ Vagrant.configure(2) do |config|
         # should drastically help performance,
         # but remove if anything stops working
         v.memory = 2048
-        #v.cpus = 1
+        v.cpus = 2
 
     end
 

@@ -104,3 +104,6 @@ mysite/settings/zach.py
 
 # swap files
 *.swp
+
+# any files with "mongodump-" prefix -- this is just my naming convention
+mongodump-*

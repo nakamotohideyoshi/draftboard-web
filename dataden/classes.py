@@ -4,7 +4,7 @@
 from pymongo import MongoClient, ASCENDING, DESCENDING
 import dataden.cache.caches
 import dataden.models
-from mysite.settings import base as base_settings
+from django.conf import settings
 
 class Trigger(object):
     """
@@ -103,7 +103,7 @@ class DataDen(object):
         #
         # else
         try:
-            self.client = MongoClient(base_settings.MONGO_HOST, base_settings.MONGO_PORT)
+            self.client = MongoClient(settings.MONGO_HOST, settings.MONGO_PORT)
         except:
             self.client = None
             raise Exception('error connecting to mongo!')
