@@ -12,4 +12,7 @@ class RosterSportAdmin(admin.ModelAdmin):
     ]
     model = RosterSpot
 
+@admin.register(RosterSpotPosition)
+class RosterSpotPositionAdmin(admin.ModelAdmin):
+    list_display = [ 'roster_spot', 'position', 'is_primary' ]
 

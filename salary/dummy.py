@@ -290,8 +290,8 @@ class Dummy(object):
         unix_ts = int(dt_now.strftime('%s'))
         if site_sport is None:
             Dummy.create_roster()
-        else:
-            Dummy.create_roster( sport = site_sport.name )
+
+        Dummy.create_roster( sport=site_sport )
         positions = Position.objects.all()
         size = len(positions)
         players = []
