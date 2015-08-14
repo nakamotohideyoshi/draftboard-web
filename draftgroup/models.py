@@ -9,7 +9,7 @@ class DraftGroup( models.Model ):
     """
     The "master" id table for a group of draftable players on a day.
     """
-    dt_format   = "%a, %d @ %I:%M%p" # strftime("%A, %d. %B %Y %I:%M%p")
+    #dt_format   = "%a, %d @ %I:%M%p" # strftime("%A, %d. %B %Y %I:%M%p")
     created     = models.DateTimeField(auto_now_add=True)
 
     salary_pool = models.ForeignKey(salary.models.Pool,
@@ -28,9 +28,7 @@ class DraftGroup( models.Model ):
         return dgm.get_games( self )
 
     def __str__(self):
-        return 'pk: %s  |  %s thru %s' % (self.pk,
-                                        self.__format_dt(self.start),
-                                        self.__format_dt(self.end) )
+        return '%s' % (self.pk, )
 
     def __format_dt(self, dt):
         return dt.strftime(self.dt_format)
@@ -49,6 +47,9 @@ class Player( models.Model ):
     salary      = models.FloatField(default=0, null=False,
                     help_text='the amount of salary for the player at the this draft group was created')
     start = models.DateTimeField(null=False)
+
+    def __str__(self):
+        return '%s $%0.2f' % (str(self.player), self.salary)
 
     @property
     def player(self):

@@ -66,3 +66,6 @@ django-cachalot==1.0.0
 
 # python api for mongodb
 pymongo==3.0.1
+
+# python-dateutil is a better datetime parser
+python-dateutil==2.4.2
