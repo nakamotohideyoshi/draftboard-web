@@ -465,6 +465,9 @@ class TeamBoxscores(DataDenTeamBoxscores):
 
         super().parse( obj )
 
+        if self.boxscore is None:
+            return
+
         o = obj.get_o()
 
         srid_team           = o.get('id', None)

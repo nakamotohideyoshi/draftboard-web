@@ -5,7 +5,7 @@ from django.db import models
 import sports.models
 from django.db.models.signals import post_save
 from ..models import GameStatusChangedSignal
-
+import scoring.classes
 
 DST_PLAYER_LAST_NAME    = 'DST' # dst Player objects last_name
 DST_POSITION            = 'DST' # dont change this
@@ -161,6 +161,12 @@ class PlayerStats( sports.models.PlayerStats ):
 
     class Meta:
         abstract = False
+
+    def save(self, *args, **kwargs):
+        # perform score update
+        scorer = scoring.classes.NflSalaryScoreSystem()
+        self.fantasy_points = scorer.score_player( self )
+        super().save(*args, **kwargs)
 
 class PlayerStatsSeason( sports.models.PlayerStatsSeason ):
     class Meta:

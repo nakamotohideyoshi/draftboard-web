@@ -323,8 +323,8 @@ class PlayerStats(models.Model):
         unique_together = ('srid_player','srid_game')
 
     def __str__(self):
-        return 'game %s | player %s | fantasy_points %s' % (self.srid_game,
-                                        self.srid_player, self.fantasy_points)
+        return 'game %s | player %s | fantasy_points %s | %s' % (self.srid_game,
+                           self.srid_player, self.fantasy_points, str(self.player))
 
 class PlayerStatsSeason(models.Model):
     class Meta:
