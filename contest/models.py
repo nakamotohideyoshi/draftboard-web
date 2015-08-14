@@ -172,6 +172,10 @@ class Contest(models.Model):
 
         super().save(*args, **kwargs)
 
+    def players(self):
+        dgm = DraftGroupManager()
+        return dgm.get_players( self.draft_group )
+
     def get_absolute_url(self):
         """
         this method exists to support generic views ContestCreate, ContestUpdate, and ContestDelete

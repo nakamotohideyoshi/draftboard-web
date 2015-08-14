@@ -3,6 +3,7 @@
 
 from django.dispatch import receiver
 import mysite.exceptions
+from .exceptions import EmptySalaryPoolException
 from django.db.transaction import atomic
 from .models import DraftGroup, Player, GameTeam
 from sports.models import Game, SiteSport, GameStatusChangedSignal
@@ -131,6 +132,16 @@ class DraftGroupManager( AbstractDraftGroupManager ):
             # otherwise, return the most recently created one
             return dgs[0]
 
+    def get_players(self, draft_group):
+        """
+        return a list of sports.<sport>.Player models who are in this DraftGroup
+
+        :param draft_group:
+        :return:
+        """
+        ssm = SiteSportManager()
+        return Player.objects.filter( draft_group=draft_group )
+
     def get_game_teams(self, draft_group):
         """
         Return a QuerySet of the draftgroup.models.GameTeam objects
@@ -176,6 +187,20 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         distinct_draft_groups = GameTeam.objects.filter(game_srid=game.srid).distinct('draft_group')
         return [ x.draft_group for x in distinct_draft_groups ]
 
+    def create_for(self, contest):
+        """
+        wrapper for create( site_sport, start, end ) method
+        which uses the contest's site_sport, start, and end
+        for the creation of the draft_group
+
+        Warning: this does NOT set the draft_group to the contest,
+                    so dont assume that it does.
+
+        :param contest:
+        :return: DraftGroup instance
+        """
+        return self.create( contest.site_sport, contest.start, contest.end )
+
     @atomic
     def create(self, site_sport, start, end):
         """
@@ -208,7 +233,11 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         # method returns a Salary object from which we can
         #   - get_pool()  - get the salary.models.Pool
         #   - get_salaries() - get a list of salary.model.Salary (players w/ salaries)
-        salary    = self.get_active_salary_pool(site_sport)
+        salary          = self.get_active_salary_pool(site_sport)
+        if len(salary.get_players()) <= 0:
+            #
+            # we dont want to allow a draft group without players!
+            raise EmptySalaryPoolException()
 
         draft_group = DraftGroup.objects.create(salary_pool=salary.get_pool(),
                                                         start=start, end=end )
