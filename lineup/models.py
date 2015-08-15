@@ -40,7 +40,10 @@ class Player(models.Model):
 
     #
     # Actual layout not per position from 0-X
-    idx = models.PositiveIntegerField(default=0,
-                                      null=False)
+    idx = models.PositiveIntegerField(default=0, null=False)
+
+    @property
+    def full_name(self):
+        return '%s %s' % (self.player.first_name, self.player.last_name)
 
 

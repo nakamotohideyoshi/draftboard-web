@@ -69,3 +69,6 @@ pymongo==3.0.1
 
 # python-dateutil is a better datetime parser
 python-dateutil==2.4.2
+
+# Flower (celery task metrics/logging/captures)
+flower==0.8.3

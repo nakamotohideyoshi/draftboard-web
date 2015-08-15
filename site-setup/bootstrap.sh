@@ -188,6 +188,8 @@ echo "source venv/bin/activate" >> /home/vagrant/.bashrc
     5) start celery if its not running (in a terminal, with this command):
 
         $> celery -A mysite worker -l info
+        $> celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler      # along with worker, allow admin tasks
+        $> celery -A mysite flower                                             # localhost:5555/monitor/
 
     5) now you can check the checkbox for that Player Pool
        and select the admin action "Generate Salaries"

@@ -1,68 +1,142 @@
-# from __future__ import absolute_import
+from __future__ import absolute_import
+
 #
-# from mysite.celery_app import app
-# from django.core.cache import cache
-# from contest.models import Contest
+# mysite/tasks.py
+
+from mysite.celery_app import app
+from datetime import timedelta
+from django.utils import timezone
+from contest.models import LiveContest
+
 #
-# LOCK_EXPIRE = 60 # Lock expires in 5 minutes
-# SHARED_LOCK_NAME = "contest_task__on_game_closed"
+# very important/required notify email list
+HIGH_PRIORITY_EMAILS = [
+    'cbanister@coderden.com',
+    'manager@draftboard.com'
+]
+
 #
-# @app.task(bind=True)
-# def on_game_closed(self, draft_group):
-#     """
-#     Updates the Contest(s) with this DraftGroup
-#     to be complete (ie: ready to be paid out)
-#     if ALL the games in the draft_group are closed.
+# for stuff that isnt life-or-death.
+LOW_PRIORITY_EMAILS = [
+    'cbanister@coderden.com'
+]
+
 #
-#     This task will likely be called for each Game
-#     as it gets closed.
+#########################################################################
+# miscellaneous
+#########################################################################
+
 #
-#     It is important that this task be unique PER DRAFTGROUP.
-#     """
+# at some point in the evening, just after all contests
+# have been paid out, we need to recalculate every users
+# loyalty status. we must do this for all users
+# because everyone is on a 30 day rolling window.
+def recalculate_user_loyalty():
+    pass # TODO
+
 #
-#     lock_id = '%s-LOCK-[%s]'%(SHARED_LOCK_NAME, draft_group.pk)
+#########################################################################
+# admin
+#########################################################################
+
 #
-#     acquire_lock = lambda: cache.add(lock_id, True, LOCK_EXPIRE)
-#     release_lock = lambda: cache.delete(lock_id)
+# check if there are user withdraw requests which need to be processed,
+# and email the appropriate list of people if there are.
+def check_pending_withdraws():
+    pass # TODO
+
+# #
+# # example: send an email report including the name and
+# #           information of all the signups from a time period
+# def email_daily_user_signups_EXAMPLE():
+#     pass # TODO
+
 #
-#     if acquire_lock():
-#         try:
-#             # dgm = DraftGroupManager()
-#             # # get all the Games
-#             # games = dgm.get_games( draft_group=draft_group )
-#             # b = True  # default
-#             # for g in games:
-#             #     # AND each game with True
-#             #     b = b and g.is_closed()
-#             #
-#             # # b will be True when all the games are closed!
-#             # if b:
-#             #     #
-#             #     # update all Contest's with this draft_group, to be completed
-#             #     Contest.objects.filter( draft_group=draft_group ).update( status=Contest.COMPLETED )
-#             __on_game_closed( draft_group )
+#########################################################################
+# contests
+#########################################################################
+
 #
-#         finally:
-#             release_lock()
-#     else:
-#         self.retry(countdown=3, max_retries=100)
+# check if we are getting within a few days of any contests
+# which dont have a draft_group set. (this implies the contests
+# were allowing early registration.)
 #
-# def __on_game_closed( draft_group ):
-#     """
-#     this method should only be called inside of the lock in on_game_closed()
-#     """
+# notifiy someone to remind them to create the draft group asap!
+@app.task
+def notifiy_admin_contests_require_draft_group():
+    pass # TODO
+
 #
-#     # get all the Games
-#     b = True  # default
-#     for g in draft_group.get_games():
-#         # AND each game with True
-#         b = b and g.is_closed()
+# based on the time it is, make sure there are no Contests
+# that should have started, but whose statuses remain
+# in ANY kind of registering/pregame state, and email
+# all admin asap if there is an issue.
+@app.task
+def validate_daily_contests_started():
+    #print( 'validate_daily_contests_started' )
+    pass # TODO
+
 #
-#     # b will be True when all the games are closed!
-#     if b:
-#         #
-#         # update all Contest's with this draft_group, to be completed
-#         Contest.objects.filter( draft_group=draft_group ).exclude( status__in=Contest.STATUS_HISTORY ).update( status=Contest.COMPLETED )
+# if it 'hours' past the start time of the latest
+# game in the draft_group, notifiy admins to check
+# to make sure things are running as intended.
 #
+# this situation may arise from a postponed/delayed
+# game or stat provider issue.
+@app.task(bind=True)
+def validate_daily_contests_paid(self, *args, **kwargs):
+    #print( 'validate_daily_contests_paid' )
+    print( str(args) )
+
+    print( str(args) )
+    for k,v in kwargs.items():
+        print( str(k), ':', str(v) )
+
+    #
+    # if its 8 hours since the start, and its still in progress... something may be wrong
+
+    # now = timezone.now() - timedelta(hours=24)
+    # eight_hours_ago = timezone.now() - timedelta(hours=8)
+    # red_flag_contests = LiveContest.objects.filter( start__in=range() )
+
+#
+#########################################################################
+# NFL
+#########################################################################
+
+#
+#
+def nfl_task():
+    pass # TODO
+
+#
+#########################################################################
+# NBA
+#########################################################################
+
+#
+#
+def nba_task():
+    pass # TODO
+
+#
+#########################################################################
+# NHL
+#########################################################################
+
+#
+#
+def nhl_task():
+    pass # TODO
+
+#
+#########################################################################
+# MLB
+#########################################################################
+
+#
+#
+def mlb_task():
+    pass # TODO
 
 
