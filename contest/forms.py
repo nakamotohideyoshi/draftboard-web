@@ -41,7 +41,11 @@ class ContestForm(ModelForm):
             'start',
             #'ends_tonight',         # make visible in modeladmin !
             'end',
-            'draft_group'           # not displayed by modeladmin however!
+            'draft_group',           # not displayed by modeladmin however!
+            'max_entries',
+            'entries',
+            'gpp',
+            'respawn',
         ]
 
         #
@@ -124,6 +128,10 @@ class ContestFormAdd(ContestForm):
             'ends_tonight',
             'end',
             #'draft_group'
+            'max_entries',
+            'entries',
+            'gpp',
+            'respawn',
         ]
 
         #
@@ -173,3 +181,9 @@ class ContestFormAdd(ContestForm):
 
         if end < start:
             raise ValidationError( 'The "end" time cant be before the "start" time... Do you know how time works!?')
+
+        #
+        # if no draftgroup selected, set the status to Contest.RESERVABLE,
+        # otherwise Contest.SCHEDULED should be used
+
+        # HACK: for now always set to reservable - they can edit the contest to have a draft group though
