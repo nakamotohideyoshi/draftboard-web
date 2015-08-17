@@ -9,4 +9,7 @@ class ContestSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = Contest
-        fields = ('name','status','start')
+        fields = ('name','status','start',
+                  'draft_group','max_entries',
+                  'entries','current_entries','gpp',
+                  'respawn')
