@@ -39,7 +39,7 @@ class Player( models.Model ):
     """
     created     = models.DateTimeField(auto_now_add=True, null=False)
     draft_group = models.ForeignKey( DraftGroup, null=False,
-                    verbose_name='the DraftGroup this player is a member of')
+                    verbose_name='the DraftGroup this player is a member of', related_name='players')
 
     salary_player = models.ForeignKey(salary.models.Salary, null=False,
                     verbose_name='points to the player salary object, which has fantasy salary information')
@@ -54,6 +54,26 @@ class Player( models.Model ):
     @property
     def player(self):
         return self.salary_player.player
+
+    @property
+    def first_name(self):
+        return self.salary_player.player.first_name
+
+    @property
+    def last_name(self):
+        return self.salary_player.player.last_name
+
+    @property
+    def player_id(self):
+        return self.salary_player.player.pk
+
+    @property
+    def position(self):
+        return self.salary_player.player.position.name
+
+    @property
+    def team_alias(self):
+        return self.salary_player.player.team.alias
 
     class Meta:
         # each player should only exist once in each group!
