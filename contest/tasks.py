@@ -86,18 +86,17 @@ def validate_daily_contests_started():
 @app.task(bind=True)
 def validate_daily_contests_paid(self, *args, **kwargs):
     #print( 'validate_daily_contests_paid' )
-    print( str(args) )
-
-    print( str(args) )
-    for k,v in kwargs.items():
-        print( str(k), ':', str(v) )
-
+    # print( str(args) )
     #
-    # if its 8 hours since the start, and its still in progress... something may be wrong
+    # print( str(args) )
+    # for k,v in kwargs.items():
+    #     print( str(k), ':', str(v) )
 
-    # now = timezone.now() - timedelta(hours=24)
-    # eight_hours_ago = timezone.now() - timedelta(hours=8)
-    # red_flag_contests = LiveContest.objects.filter( start__in=range() )
+    # if we check on the live contests, in any early AM timezone,
+    # we should be cautious about any that are still live because
+    # typically contests finish by now.
+    red_flag_contests = LiveContest.objects.all()
+    print( len(red_flag_contests), 'contests still live!')
 
 #
 #########################################################################

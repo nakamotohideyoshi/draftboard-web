@@ -7,6 +7,7 @@ from sports.classes import SiteSportManager
 from django.utils.crypto import get_random_string
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class Contest(models.Model):
     """
@@ -91,7 +92,7 @@ class Contest(models.Model):
 
     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
 
-    status = models.CharField(max_length=32, choices=STATUS, default=STATUS_UPCOMING, null=False)
+    status = models.CharField(max_length=32, choices=STATUS, default=RESERVABLE, null=False)
 
     # start & today_only/end determine the range of time,
     # in between which live sporting events will be included
@@ -168,6 +169,10 @@ class Contest(models.Model):
                     break # out of while
 
         # set the draftgroup, if its not set
+        print( 'pk:', str(self.pk), 'draft_group:', str(self.draft_group), 'status:', str(self.status) )
+        if self.pk is None and self.draft_group is None and self.status is None:
+            self.status = Contest.RESERVABLE
+
         #self.set_draftgroup_on_create()
 
         super().save(*args, **kwargs)
@@ -208,7 +213,8 @@ class UpcomingContest(Contest):
 
     class UpcomingContestManager(models.Manager):
         def get_queryset(self):
-            return super().get_queryset().filter(status__in=Contest.STATUS_UPCOMING)
+            now = timezone.now()
+            return super().get_queryset().filter(start__gt=now)
 
     # yes, the UpcomingContest.objects on which you can get() or filter(), etc...
     objects = UpcomingContestManager()
@@ -224,8 +230,14 @@ class LiveContest(Contest):
     """
 
     class LiveContestManager(models.Manager):
+        """
+        Contests are considered to be in progress when its past
+        the start time!
+        """
+
         def get_queryset(self):
-            return super().get_queryset().filter(status__in=Contest.STATUS_LIVE)
+            now = timezone.now()
+            return super().get_queryset().filter(start__lte=now).exclude(status__in=Contest.STATUS_HISTORY)
 
     objects = LiveContestManager()
 
