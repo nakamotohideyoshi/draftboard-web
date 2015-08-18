@@ -169,7 +169,7 @@ class Contest(models.Model):
                     break # out of while
 
         # set the draftgroup, if its not set
-        print( 'pk:', str(self.pk), 'draft_group:', str(self.draft_group), 'status:', str(self.status) )
+        #print( 'pk:', str(self.pk), 'draft_group:', str(self.draft_group), 'status:', str(self.status) )
         if self.pk is None and self.draft_group is None and self.status is None:
             self.status = Contest.RESERVABLE
 

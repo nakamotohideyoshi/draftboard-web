@@ -75,7 +75,7 @@ class PayoutTest(AbstractTest):
             lineup = Lineup()
             lineup.fantasy_points = max - i
             lineup.user = self.get_user(username=str(i))
-            lineup.draftgroup = self.draftgroup
+            lineup.draft_group = self.draftgroup
             lineup.save()
 
             bm = BuyinManager(lineup.user)
@@ -100,7 +100,7 @@ class PayoutTest(AbstractTest):
                 lineup.fantasy_points = max -i
 
             lineup.user = user
-            lineup.draftgroup = self.draftgroup
+            lineup.draft_group = self.draftgroup
             lineup.save()
 
 

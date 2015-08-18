@@ -1,6 +1,8 @@
 #
 # lineup/views.py
 
+from django.core.cache import caches
+from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -9,7 +11,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from lineup.serializers import LineupSerializer, PlayerSerializer
 from lineup.models import Lineup, Player
 
-class PlayersAPIView(generics.ListAPIView):
+class PlayersAPIView(generics.GenericAPIView):
     """
     get the lineup Players
     """
@@ -17,11 +19,17 @@ class PlayersAPIView(generics.ListAPIView):
     permission_classes      = (IsAuthenticated,)
     serializer_class        = PlayerSerializer
 
-    def get_queryset(self):
+    def get_object(self, id):
+        return Player.objects.filter(lineup__id=id)
+
+    def get(self, request, format=None):
         """
-        get the players TODO - get players for a specific lineup
+        get the lineup along with its players
         """
-        return Player.objects.all()
+        pk = self.request.GET.get('id')
+
+        serialized_data = PlayerSerializer( self.get_object(pk), many=True ).data
+        return Response(serialized_data)
 
 class AbstractLineupAPIView(generics.ListAPIView):
     """

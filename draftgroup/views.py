@@ -21,8 +21,7 @@ class DraftGroupAPIView(generics.GenericAPIView):
 
     def get(self, request, format=None):
         """
-        TODO - right now im getting all draft_groups,
-                but we will want to accept arguments asap like contest_id
+        given the GET param 'id', get the draft_group
         """
         pk = self.request.GET.get('id')
         #print( 'pk:', pk )
