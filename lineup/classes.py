@@ -91,7 +91,7 @@ class LineupManager(AbstractSiteUserClass):
         # creates a lineup based on the player ids
         lineup = Lineup()
         lineup.user = self.user
-        lineup.draftgroup = draftgroup
+        lineup.draft_group = draftgroup
         lineup.save()
 
         i = 0
@@ -139,7 +139,7 @@ class LineupManager(AbstractSiteUserClass):
         if count == 1:
             self.__edit_lineup(player_ids, entry.lineup)
         else:
-            entry.lineup = self.__create_lineup(player_ids, entry.lineup.draftgroup)
+            entry.lineup = self.__create_lineup(player_ids, entry.lineup.draft_group)
             entry.save()
 
 
@@ -194,14 +194,14 @@ class LineupManager(AbstractSiteUserClass):
 
         #
         # get the players and put them into an ordered array
-        site_sport = lineup.draftgroup.salary_pool.site_sport
+        site_sport = lineup.draft_group.salary_pool.site_sport
         players = self.get_player_array_from_player_ids_array(player_ids, site_sport)
 
 
         #
         # validates the lineup based on the players and draftgroup
         roster_manager = RosterManager(site_sport)
-        self.__validate_lineup(players, lineup.draftgroup, roster_manager)
+        self.__validate_lineup(players, lineup.draft_group, roster_manager)
 
 
         #
@@ -367,7 +367,7 @@ class LineupManager(AbstractSiteUserClass):
         #
         # get the lineups for the draftgroup that are not the lineup passed to
         # the method
-        lineups = Lineup.objects.filter(draftgroup=lineup.draftgroup,
+        lineups = Lineup.objects.filter(draft_group=lineup.draft_group,
                                         user=self.user).exclude(pk=lineup.pk)
         lineup_players_arr = []
         for l in lineups:
@@ -433,12 +433,12 @@ class LineupManager(AbstractSiteUserClass):
                 c_type = lineup_player.player_type
                 draftgroup_player = Player.objects.get(salary_player__player_type=c_type,
                                                        salary_player__player_id=player_id,
-                                                       draft_group=lineup.draftgroup)
+                                                       draft_group=lineup.draft_group)
 
                 draftgroup_lineup_player = Player.objects.get(
                     salary_player__player_type=lineup_player.player_type,
                     salary_player__player_id=lineup_player.player_id,
-                    draft_group=lineup.draftgroup)
+                    draft_group=lineup.draft_group)
                 #
                 # check the player start_time for both players
                 # TODO needs update the start time of draftgroup players based on TRADES!!

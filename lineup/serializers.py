@@ -9,7 +9,7 @@ class LineupSerializer(serializers.ModelSerializer):
     class Meta:
 
         model   = Lineup
-        fields  = ('user', 'fantasy_points', 'draftgroup')
+        fields  = ('id','user', 'fantasy_points', 'draft_group')
 
 class PlayerSerializer(serializers.ModelSerializer):
 
@@ -17,3 +17,4 @@ class PlayerSerializer(serializers.ModelSerializer):
 
         model = Player
         fields = ('player_id', 'full_name', 'lineup', 'roster_spot', 'idx')
+

@@ -101,7 +101,7 @@ class BuyinTest(AbstractTest):
 
     def test_lineup_no_contest_draft_group(self):
         lineup = Lineup()
-        lineup.draftgroup = self.draftgroup
+        lineup.draft_group = self.draft_group
         lineup.user = self.user
         bm = BuyinManager(self.user)
         self.assertRaises(exceptions.ContestIsNotAcceptingLineupsException,
@@ -115,10 +115,10 @@ class BuyinTest(AbstractTest):
         draftgroup2.save()
 
         lineup = Lineup()
-        lineup.draftgroup = self.draftgroup
+        lineup.draft_group = self.draftgroup
         lineup.user = self.user
 
-        self.contest.draft_group =draftgroup2
+        self.contest.draft_group = draftgroup2
         self.contest.save()
 
         bm = BuyinManager(self.user)
@@ -160,7 +160,7 @@ class BuyinTest(AbstractTest):
 
     def test_user_owns_lineup(self):
         lineup = Lineup()
-        lineup.draftgroup = self.draftgroup
+        lineup.draft_group = self.draftgroup
         lineup.user = self.get_admin_user()
 
         self.contest.draft_group =self.draftgroup

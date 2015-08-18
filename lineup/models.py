@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 from roster.models import RosterSpot
+
 class Lineup(models.Model):
     """
     Lineup is an object which represents a user-created team.
@@ -14,10 +15,10 @@ class Lineup(models.Model):
 
     fantasy_points  = models.FloatField(default=0.0, null=False, blank=True)
     user            = models.ForeignKey(User, null=False)
-    draftgroup      = models.ForeignKey('draftgroup.DraftGroup', null=False)
+    draft_group      = models.ForeignKey('draftgroup.DraftGroup', null=False)
+
     def __str__(self):
         return '%s %s %s' % (self.user, self.fantasy_points, 'NAME_TODO')
-
 
 class Player(models.Model):
     """
