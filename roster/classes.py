@@ -62,10 +62,38 @@ class Initial(object):
         ('DST',1,8,True)    :['DST']
     }
 
+    DEFAULT_ROSTER_MAP_MLB = {
+        ('SP',2,0,True)     :['SP'],                    # x2 starting pitchers
+        ('C',1,2,True)      :['C'],
+        ('1B',1,3,True)     :['1B'],
+        ('2B',1,4,True)     :['2B'],
+        ('3B',1,5,True)     :['3B'],
+        ('SS',1,6,True)     :['SS'],
+        ('OF',3,7,True)     :['LF','CF','RF'],          # x3 outfield
+    }
+
+    DEFAULT_ROSTER_MAP_NHL = {
+        ('G',1,0,True)      :['G'],             #    goalie
+        ('C',1,1,True)      :['C'],             #    center
+        ('F',2,2,True)      :['F'],             # x2 forwards
+        ('D',2,4,True)      :['D'],             # x2 defense
+        ('FX',2,6,False)    :['C','F','D'],     # x2 flex
+    }
+
+    DEFAULT_ROSTER_MAP_NBA = {
+        ('PG',1,0,True)     :['PG'],
+        ('SG',1,1,True)     :['SG'],
+        ('SF',1,2,True)     :['SF'],
+        ('PF',1,3,True)     :['PF'],
+        ('C',1,4,True)      :['C'],                             #    center
+        ('FX',3,5,False)    :['PG','SG','SF','PF','C'],         # x3 flex
+    }
+
     ROSTERS = {
         'nfl' : DEFAULT_ROSTER_MAP_NFL,
-        # 'nhl' : DEFAULT_ROSTER_MAP_NHL, # TODO
-        #  ... TODO add mlb and nba
+        'nhl' : DEFAULT_ROSTER_MAP_NHL,
+        'mlb' : DEFAULT_ROSTER_MAP_MLB,
+        'nba' : DEFAULT_ROSTER_MAP_NBA
     }
 
     def __init__(self):
@@ -113,5 +141,5 @@ class Initial(object):
                                                                            is_primary=primary)
                 #ret_roster_spot_position_list.append(roster_spot_position)
                 print('    ', roster_spot_position)
-        print('...created!')
+        print('...created roster!')
         #return ret_roster_spot_position_list

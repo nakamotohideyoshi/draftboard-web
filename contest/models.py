@@ -128,6 +128,12 @@ class Contest(models.Model):
     respawn = models.BooleanField(default=False, null=False,
                                   help_text='indicates whether a new identical Contest should be created when this one fills up')
 
+    def is_filled(self):
+        """
+        :return: True if there are no more entry spots left in this contest, otherwse returns False
+        """
+        return self.entries == self.current_entries
+
     def update_status(self):
         """
         Updates the status for the contest based on the player pool's game

@@ -1,10 +1,9 @@
 #
 # sports/nhl/models.py
 
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 import sports.models
+import scoring.classes
 
 # Any classes that still have the abtract = True, just havent been migrated/implemented yet!
 
@@ -100,6 +99,12 @@ class PlayerStats( sports.models.PlayerStats ):
 
     class Meta:
         abstract = False
+
+    def save(self, *args, **kwargs):
+        # perform score update
+        scorer = scoring.classes.NhlSalaryScoreSystem()
+        self.fantasy_points = scorer.score_player( self )
+        super().save(*args, **kwargs)
 
 class PlayerStatsSeason( sports.models.PlayerStatsSeason ):
     class Meta:

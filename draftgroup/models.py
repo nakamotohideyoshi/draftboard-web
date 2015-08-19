@@ -28,7 +28,7 @@ class DraftGroup( models.Model ):
         return dgm.get_games( self )
 
     def __str__(self):
-        return '%s' % (self.pk, )
+        return '%s id:%s' % (self.salary_pool.site_sport.name, str(self.pk))
 
     def __format_dt(self, dt):
         return dt.strftime(self.dt_format)

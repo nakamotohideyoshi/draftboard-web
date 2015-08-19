@@ -4,6 +4,7 @@ from mysite.celery_app import app
 from .classes import RefundManager
 from django.core.cache import cache
 from .exceptions import ContestRefundInProgressException
+
 LOCK_EXPIRE = 60*10 # Lock expires in 10 minutes
 SHARED_LOCK_NAME = "refund_task"
 
