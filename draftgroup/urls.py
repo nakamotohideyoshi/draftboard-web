@@ -9,6 +9,6 @@ urlpatterns = patterns( '',
 
     #
     # get the contests for display on the main contest lobby
-    (r'^all/$', DraftGroupAPIView.as_view()),
+    (r'^get/$', DraftGroupAPIView.as_view()),
 
 )
