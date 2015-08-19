@@ -195,6 +195,47 @@ class Contest(models.Model):
         """
         return reverse('contest-detail', kwargs={'pk': self.pk})
 
+    def __prepare_copy(self):
+        self.pk                 = None
+        self.cid                = None
+        self.current_entries    = 0
+
+    def spawn(self):
+        """
+        caveat: spawn() changes 'self' to the NEW contest instance!
+
+        creates a new instance of the underlying Contest with the same
+        properties, with a few notable exceptions:
+
+            1) the current_entries is reset to zero to allow buy-ins
+
+        """
+        self.__prepare_copy()
+        self.save()
+        pass # TODO - finish implementation
+        return self
+
+    def clone(self, start, end):
+        """
+        create a new instance of the underlying Contest with
+        nearly the same properties, but with the start & end time specified.
+
+        clone() modified the status (resets it to scheduled).
+
+        clone() is similar, but different than spawn().
+        It may result in a new draft group being created, etc...
+
+        by default clone() sets the 'end' property to the datetime
+        which is offset by exactly as much as
+        """
+        self.__prepare_copy()
+        self.start  = start
+        self.end    = end
+        dgm = DraftGroupManager()
+        self.draft_group = dgm.get_for_contest( self )
+        pass # TODO - finish implementation
+        return self
+
 class LobbyContest(Contest):
     """
     PROXY model for Upcoming & Live Contests ... and rest API use.
