@@ -1,0 +1,61 @@
+.live-history {
+  display: inline-block;
+  height: 80px;
+  position: relative;
+  width: 50%;
+
+  .live-history__slider {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    width: 10000px;
+  }
+
+  &--me {
+    text-align: right;
+
+    .live-history__slider {
+      right: 0;
+    }
+  }
+
+  &--opponent {
+    text-align: left;
+
+    .live-history__slider {
+      left: 0;
+    }
+  }
+
+  &__event {
+    display: inline-block;
+    opacity: 0.25;
+    padding: 0 30px;
+  }
+
+  &__player-name {
+    color: #fff;
+    font-family: $font-open-sans;
+    font-weight: normal;
+    font-size: 16px;
+    line-height: 1.8;
+    margin: 0;
+  }
+
+  &__points {
+    font-family: $font-oswald;
+    color: #26c661;
+    font-size: 13px;
+  }
+
+  &__event--newest {
+    opacity: 1;
+  }
+
+  &__event-name {
+    color: #a5a9c1;
+    font-family: $font-open-sans;
+    font-weight: normal;
+    font-size: 12px;
+  }
+}

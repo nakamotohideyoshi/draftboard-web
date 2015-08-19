@@ -9,22 +9,22 @@ var renderComponent = require('../../lib/render-component');
 var LiveNBAShooter = React.createClass({
   getInitialState: function() {
     // example coordinates from the API
-    var xCoord = 350;
-    var yCoord = 350;
+    var xCoord = 400;
+    var yCoord = 300;
 
     // width and height of image
     var imgWidth = 2003;
     var imgHeight = 495;
 
     // left backcourt x coordinates
-    var xTopLeft = 358;
+    var xTopLeft = 378;
 
     // right backcourt x coordinates
-    var xTopRight = 1645;
+    var xTopRight = 1633;
 
     // sidecourts y coordinates
-    var yTop = 45;
-    var yBottom = 350;
+    var yTop = 44;
+    var yBottom = 340;
 
     // distance between the two sidecourts
     var yHeight = yBottom - yTop;
@@ -82,6 +82,5 @@ var LiveNBAShooter = React.createClass({
 
 // Render the component.
 renderComponent(<LiveNBAShooter />, '.live-nba-court');
-
 
 module.exports = LiveNBAShooter;
