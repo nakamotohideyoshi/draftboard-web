@@ -9,6 +9,7 @@ from dataden.util.hsh import Hashable, InvalidArgumentException, \
                              ObjectNotHashableException, InvalidCryptoException
 
 from dataden.util.simpletimer import SimpleTimer
+from dataden.cache.caches import LiveStatsCache
 from dataden.classes import DataDen
 
 import datetime
@@ -50,10 +51,10 @@ class TestSimpleTimer(TestCase):
         t.start()
         t.stop()
 
-class StatsCache(TestCase):
+class TestStatsCache(TestCase):
     """
     general tests for the StatsCache class
     """
 
     def test_instantiate(self):
-        stats = StatsCache()
+        stats = LiveStatsCache()

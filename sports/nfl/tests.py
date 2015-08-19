@@ -1,11 +1,55 @@
 #
 # sports/nfl/test.py
 
+from test.classes import AbstractTest
 from django.test import TestCase
-from sports.nfl.models import Team, Player
+from sports.nfl.models import Team, Player, Game
+from datetime import datetime
+from django.utils import timezone
 
+class GameStatusChangedSignal(AbstractTest):
 
-class DstPlayerCreation(TestCase):
+    def __create_team(self, alias, market):
+        team = Team()
+        team.srid               = 'test-srid-' + alias
+        team.alias              = alias
+        team.market             = market
+
+        team.srid_league        = '4353138d-4c22-4396-95d8-5f587d2df25c'
+        team.srid_conference    = '3960cfac-7361-4b30-bc25-8d393de6f62f'
+        team.srid_division      = '54dc7348-c1d2-40d8-88b3-c4c0138e085d'
+        team.save()
+        return team
+
+    def setUp(self):
+        self.SCHEDULED = 'scheduled' # the default game status
+        self.COMPLETE  = 'complete'  # made up - does not actually reflect a real status, necessarily
+
+        self.home = self.__create_team('alias-home', 'market-home')
+        self.away = self.__create_team('alias-away', 'market-away')
+
+        self.game = Game()
+        self.game.srid      = '%s--test--%s' % (self.away.srid, self.home.srid)
+
+        self.game.home      = self.home
+        self.game.srid_home = self.home.srid
+
+        self.game.away      = self.away
+        self.game.srid_away = self.away.srid
+
+        self.game.title         = 'testing game for status change signal'
+        self.game.weather_json  = '{}'
+        self.game.start         = timezone.now()
+
+        self.game.status        = self.SCHEDULED
+
+        self.game.save()
+
+    def test_signal_sent_on_game_status_changed(self):
+        self.game.status = self.COMPLETE
+        self.game.save()
+
+class DstPlayerCreation(AbstractTest):
     """
     Ensure that the nfl teams DST player objects get created
     when a new team is created.

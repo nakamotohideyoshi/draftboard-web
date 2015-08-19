@@ -61,6 +61,7 @@ class SalaryPlayerStatsObject(object):
                                           "player_stats_object")
     def __str__(self):
         return str(self.game_id)+"--" +str(self.fantasy_points)+"pts\t "+str(self.start)
+
 class SalaryPlayerObject(object):
     """
     Object that wraps the the list of SalaryPLayerStatsObjects
@@ -171,33 +172,23 @@ class SalaryGenerator(object):
         #
         # Get the average score per position so we know
         # which positions should have more value
-
         position_average_list =self.helper_get_average_score_per_position(players)
+
         #
         # Trim the stats to the games we care about
-        print("Trim Stats")
         self.helper_trim_players_stats(players)
-        #print(players)
-
 
         #
         # apply weights to each score to come up with the
         # average weighted score for each player
         self.helper_apply_weight_and_flag(players)
-        #self.__print_players_list(players)
-        print("Summing Average Points")
+
         sum_average_points = self.helper_sum_average_points_per_roster_spot(position_average_list)
 
         #
         # Calculate the salaries for each player based on
         # the mean of weighted score of their position
-        print("Updating Salaries")
         self.helper_update_salaries(players, position_average_list,sum_average_points)
-
-
-
-
-
 
     def helper_get_player_stats(self):
         """
@@ -276,18 +267,10 @@ class SalaryGenerator(object):
 
         for key in position_average_list:
             position_average_list[key].update_average()
-            print("\n"+str(position_average_list[key]))
-
-
+            #print("\n"+str(position_average_list[key]))
         return position_average_list
 
-
-
-
-
     def helper_trim_players_stats(self, players):
-
-
         #
         # Sort the lists by newest game first and trim the array to
         # include  self.salary_conf.trailing_games
@@ -297,16 +280,9 @@ class SalaryGenerator(object):
 
             del arrToSort[self.salary_conf.trailing_games : ]
 
-
-
-
     def __print_players_list(self, players):
         for player in players:
             print(player)
-
-
-
-
 
     def helper_apply_weight_and_flag(self, players):
         """
@@ -329,15 +305,10 @@ class SalaryGenerator(object):
                 # days_since_last_game_flag days ago.
                 #  OR
                 # check to makes sure the min games are played
-
                 delta = timezone.now() - player.player_stats_list[0].start
                 if (delta.days > self.salary_conf.days_since_last_game_flag) or \
                     (number_of_games < self.salary_conf.min_games_flag ):
                     player.flagged= True
-
-
-
-
 
                 #
                 # Iterates through the weights and applies them to the fantasy points
@@ -350,7 +321,6 @@ class SalaryGenerator(object):
                                     player.player_stats_list[j].fantasy_points * (float)(tgw.weight)
 
                     i = tgw.through -1
-
 
                 #
                 # If the configuration does not account trailing games use a 1x multiplier
@@ -367,9 +337,6 @@ class SalaryGenerator(object):
 
             else:
                 player.flagged= True
-
-
-
 
     def helper_sum_average_points_per_roster_spot(self, position_average_list):
         """
@@ -438,8 +405,7 @@ class SalaryGenerator(object):
                 average_salary = (((sum / ((float)(count))) / sum_average_points)
                                    * ((float)(self.salary_conf.max_team_salary)))
                 average_salary = self.__round_salary(average_salary)
-                print( roster_spot.name+" average salary "+ str(average_salary))
-
+                #print( roster_spot.name+" average salary "+ str(average_salary))
 
                 #
                 # Get the average weighted fantasy points for the specific positions
@@ -452,7 +418,6 @@ class SalaryGenerator(object):
                             sum   += player.fantasy_weighted_average
                             count += 1
                 average_weighted_fantasy_points_for_pos = (sum / ((float)(count)))
-
 
                 #
                 # creates the salary for each player in the specified roster spot

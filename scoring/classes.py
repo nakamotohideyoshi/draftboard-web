@@ -10,6 +10,10 @@ class AbstractScoreSystem(object):
     stat_values         = None
 
     def __init__(self, sport):
+
+        self.verbose = False
+        self.str_stats = None # string
+
         self.stat_values_cache = ScoreSystemCache(sport)
         self.stat_values = self.get_stat_values()
         # print('stat_values', str(self.stat_values))
@@ -26,6 +30,14 @@ class AbstractScoreSystem(object):
             raise Exception('"stat_values" cant be None')
         if len(self.stat_values) == 0:
             raise Exception('"stat_values" list cant be empty')
+
+    def set_verbose(self, verbose):
+        if verbose:
+            self.str_stats = ''
+            self.verbose = True
+        else:
+            self.verbose = False
+            self.str_stats = None
 
     def get_stat_values(self):
         """
@@ -84,10 +96,12 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
         # call super last - it will perform validation and ensure proper setup
         super().__init__(self.THE_SPORT)
 
-    def score_player(self, player_stats):
+    def score_player(self, player_stats, verbose=True):
         """
         return the fantasy points accrued by this nba PlayerStats object
         """
+        self.set_verbose( verbose )
+
         total = 0
         total += self.points(player_stats.points)
         total += self.three_pms(player_stats.three_points_made)
@@ -106,30 +120,39 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
         return total
 
     def points(self, value):
+        if self.verbose: self.str_stats += '%s Pts ' % value
         return value * self.get_value_of(self.POINT)
 
     def three_pms(self, value):
+        if self.verbose: self.str_stats += '%s ThreePm ' % value
         return value * self.get_value_of(self.THREE_PM)
 
     def rebounds(self, value):
+        if self.verbose: self.str_stats += '%s Reb ' % value
         return value * self.get_value_of(self.REBOUND)
 
     def assists(self, value):
+        if self.verbose: self.str_stats += '%s Ast ' % value
         return value * self.get_value_of(self.ASSIST)
 
     def steals(self, value):
+        if self.verbose: self.str_stats += '%s Stl ' % value
         return value * self.get_value_of(self.STEAL)
 
     def blocks(self, value):
+        if self.verbose: self.str_stats += '%s Blk ' % value
         return value * self.get_value_of(self.BLOCK)
 
     def turnovers(self, value):
+        if self.verbose: self.str_stats += '%s TO ' % value
         return value * self.get_value_of(self.TURNOVER)
 
     def double_double(self, value):
+        if self.verbose: self.str_stats += '%s DblDbl ' % value
         return value * self.get_value_of(self.DBL_DBL)
 
     def triple_double(self, value):
+        if self.verbose: self.str_stats += '%s TrpDbl ' % value
         return value * self.get_value_of(self.TRIPLE_DBL)
 
     # return int(1) if player_stats have a double double.
@@ -137,7 +160,7 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
     # the list with at least a value of 10:
     #           [points, rebs, asts, blks, steals]
     def get_dbl_dbl(self, player_stats):
-        return int(self.__double_digits_count(player_stats) >= 2)
+        return int(self.__double_digits_count(player_stats) == 2)
 
     # return int(1) if player_stats have a triple double.
     # a triple double is THREE or more categories from
@@ -193,7 +216,7 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
         # call super last - ensures you have class variables setup
         super().__init__(self.THE_SPORT)
 
-    def score_player(self, player_stats):
+    def score_player(self, player_stats, verbose=True):
         """
         determines whether the player_stats object represents a hitter or a pitcher,
         and scores it accordingly.
@@ -201,7 +224,9 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
         :param player_stats:
         :return:
         """
-        if player_stats.player.position == 'P':
+        self.set_verbose( verbose )
+
+        if player_stats.player.position.get_matchname() in ['P', 'SP', 'RP']:
             return self.__score_pitcher( player_stats )
         else:
             return self.__score_hitter( player_stats )
@@ -226,24 +251,34 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
         return total
 
     def singles(self, value):
+        if self.verbose: self.str_stats += '%s Sgl ' % value
         return value * self.get_value_of(self.SINGLE)
     def doubles(self, value):
+        if self.verbose: self.str_stats += '%s Dbl ' % value
         return value * self.get_value_of(self.DOUBLE)
     def triples(self, value):
+        if self.verbose: self.str_stats += '%s Trpl ' % value
         return value * self.get_value_of(self.TRIPLE)
     def home_runs(self, value):
+        if self.verbose: self.str_stats += '%s HR ' % value
         return value * self.get_value_of(self.HR)
     def rbis(self, value):
+        if self.verbose: self.str_stats += '%s RBI ' % value
         return value * self.get_value_of(self.RBI)
     def runs(self, value):
+        if self.verbose: self.str_stats += '%s Run ' % value
         return value * self.get_value_of(self.RUN)
     def bbs(self, value):
+        if self.verbose: self.str_stats += '%s BB ' % value
         return value * self.get_value_of(self.BB)
     def hit_by_pitch(self, value):
+        if self.verbose: self.str_stats += '%s HBP ' % value
         return value * self.get_value_of(self.HBP)
     def stolen_bases(self, value):
+        if self.verbose: self.str_stats += '%s SB ' % value
         return value * self.get_value_of(self.SB)
     def caught_stealing(self, value):
+        if self.verbose: self.str_stats += '%s CS ' % value
         return value * self.get_value_of(self.CS)
 
     def __score_pitcher(self, player_stats_pitcher):
@@ -265,22 +300,31 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
         return total
 
     def innings_pitched(self, value):
+        if self.verbose: self.str_stats += '%s IP ' % value
         return value * self.get_value_of(self.IP)
     def strikeouts(self, value):
+        if self.verbose: self.str_stats += '%s K ' % value
         return value * self.get_value_of(self.K)
     def wins(self, value):
+        if self.verbose: self.str_stats += '%s Win ' % value
         return value * self.get_value_of(self.WIN)
     def earned_runs(self, value):
+        if self.verbose: self.str_stats += '%s ER ' % value
         return value * self.get_value_of(self.ER)
     def hits_against(self, value):
+        if self.verbose: self.str_stats += '%s Hit ' % value
         return value * self.get_value_of(self.HIT)
     def walks_against(self, value):
+        if self.verbose: self.str_stats += '%s Walk ' % value
         return value * self.get_value_of(self.WALK)
     def complete_game(self, value):
+        if self.verbose: self.str_stats += '%s CG ' % value
         return value * self.get_value_of(self.CG)
     def complete_game_shutout(self, value):
+        if self.verbose: self.str_stats += '%s CGSO ' % value
         return value * self.get_value_of(self.CGSO)
     def no_hitter(self, value):
+        if self.verbose: self.str_stats += '%s NoHitter ' % value
         return value * self.get_value_of(self.NO_HITTER)
 
 class NhlSalaryScoreSystem(AbstractScoreSystem):
@@ -308,13 +352,15 @@ class NhlSalaryScoreSystem(AbstractScoreSystem):
         # call super last - ensures you have class variables setup
         super().__init__(self.THE_SPORT)
 
-    def score_player(self, player_stats):
+    def score_player(self, player_stats, verbose=True):
         """
         scores and returns a float for the amount of fantasy points for this PlayerStats instance
 
         :param player_stats:
         :return:
         """
+        self.set_verbose( verbose )
+
         total = 0.0
 
         # skater stats
@@ -335,26 +381,37 @@ class NhlSalaryScoreSystem(AbstractScoreSystem):
         return total
 
     def goals(self, val):
+        if self.verbose: self.str_stats += '%s Goal ' % val
         return val * self.get_value_of(self.GOAL)
     def assists(self, val):
+        if self.verbose: self.str_stats += '%s Ast ' % val
         return val * self.get_value_of(self.ASSIST)
     def shots_on_goal(self, val):
+        if self.verbose: self.str_stats += '%s SOG ' % val
         return val * self.get_value_of(self.SOG)
     def blocks(self, val):
+        if self.verbose: self.str_stats += '%s Blk ' % val
         return val * self.get_value_of(self.BLK)
     def short_handed_bonus(self, sh_goals):
+        if self.verbose: self.str_stats += '%s SHGoals ' % sh_goals
         return sh_goals * self.get_value_of(self.SH_BONUS)
     def shootout_goals(self, so_goals):
+        if self.verbose: self.str_stats += '%s SOGoals ' % so_goals
         return so_goals * self.get_value_of(self.SO_GOAL)
     def hattrick(self, tot_goals):
+        if self.verbose: self.str_stats += '%s HatTrk ' % '1' if tot_goals >=3 else '0'
         return int(tot_goals >= 3) * self.get_value_of(self.HAT) # ie: 0 or 1 times the value of a hattrick
     def win(self, val):
+        if self.verbose: self.str_stats += '%s Win ' % val
         return int(val) * self.get_value_of(self.WIN)
     def saves(self, val):
+        if self.verbose: self.str_stats += '%s Save ' % val
         return val * self.get_value_of(self.SAVE)
     def goals_allowed(self, val):
+        if self.verbose: self.str_stats += '%s GA ' % val
         return val * self.get_value_of(self.GA)
     def shutout(self, val):
+        if self.verbose: self.str_stats += '%s Shutout ' % val
         return int(val) * self.get_value_of(self.SHUTOUT)
 
 class NflSalaryScoreSystem(AbstractScoreSystem):
@@ -405,28 +462,17 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
     PA_34       = 'pa-34'       # 34 or less points allowed
     PA_35_PLUS  = 'pa-35plus'   # 35 or MORE points allowed
 
+    PASSING_BONUS_REQUIRED_YDS = 300
+    RUSHING_BONUS_REQUIRED_YDS = 100
+    RECEIVING_BONUS_REQUIRED_YDS = 100
+
     def __init__(self):
         self.score_system = ScoreSystem.objects.get(sport=self.THE_SPORT, name='salary')
-
-        self.PASSING_BONUS_REQUIRED_YDS = 300
-        self.RUSHING_BONUS_REQUIRED_YDS = 100
-        self.RECEIVING_BONUS_REQUIRED_YDS = 100
-
-        self.verbose = False
-        self.str_stats = None # string
 
         # call super last - ensures you have class variables setup
         super().__init__(self.THE_SPORT)
 
-    def set_verbose(self, verbose):
-        if verbose:
-            self.str_stats = ''
-            self.verbose = True
-        else:
-            self.verbose = False
-            self.str_stats = None
-
-    def score_player(self, player_stats, verbose=True):
+    def score_player(self, player_stats, opp_score = 0, verbose=True):
         """
         scores and returns a float for the amount of fantasy points for this PlayerStats instance
 
@@ -471,9 +517,11 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
         total += self.fumble_return_tds(player_stats.ret_fum_td)
         total += self.blocked_punt_return_tds(player_stats.ret_blk_punt_td)
         total += self.field_goal_return_tds(player_stats.ret_fg_td)
+        total += self.blocked_field_goal_return_tds(player_stats.ret_blk_fg_td)
 
-        if player_stats.position == 'DST':
-            dst_pa = self.get_dst_points_allowed(player_stats)
+        pos = player_stats.position
+        if pos.get_matchname() == 'DST':
+            dst_pa = self.get_dst_points_allowed(player_stats, opp_score)
             total += self.get_dst_pa_bracket_points( dst_pa )
 
         return total
@@ -565,7 +613,7 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
         if self.verbose: self.str_stats += '%s BlkKick ' % val
         return val * self.get_value_of(self.BLK_KICK)
 
-    def get_dst_points_allowed(self, player_stats): # dst points allowed
+    def get_dst_points_allowed(self, player_stats, opp_score): # dst points allowed
         """
         DST fantasy scoring is based on the "points the DST has allowed".
         This does not include points the teams Offense has allowed!
@@ -575,13 +623,12 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
         :param player_stats:
         :return:
         """
-        opp_total_points = 0 # TODO - get the nominal number of points the opposing team scored
-        dst_points_allowed = opp_total_points
-        dst_points_allowed -= player_stats.int_td_against
-        dst_points_allowed -= player_stats.fum_td_against
-        dst_points_allowed -= player_stats.off_pass_sfty
-        dst_points_allowed -= player_stats.off_rush_sfty
-        dst_points_allowed -= player_stats.off_punt_sfty
+        dst_points_allowed = opp_score
+        dst_points_allowed -= 6 * player_stats.int_td_against
+        dst_points_allowed -= 6 * player_stats.fum_td_against
+        dst_points_allowed -= 2 * player_stats.off_pass_sfty
+        dst_points_allowed -= 2 * player_stats.off_rush_sfty
+        dst_points_allowed -= 2 * player_stats.off_punt_sfty
         return dst_points_allowed
 
     def get_dst_pa_bracket_points(self, dst_pa):

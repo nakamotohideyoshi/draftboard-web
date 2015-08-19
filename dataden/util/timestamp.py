@@ -3,23 +3,25 @@
 
 from datetime import datetime, time, date, timedelta
 from pytz import timezone as pytz_timezone
+from dateutil import parser
 
 class Parse(object):
 
     @staticmethod
     def from_string(s):
         """
-        parse a timestamp from sportsradar feeds of the form: 2015-04-18T16:30:00+00:00
+        Parses timestamps, such as "2015-08-13T23:30:00+00:00".
 
-        :return:
+        Assumes the string timestamp 's' is in UTC.
+
+        :return: datetime object
         """
 
-        DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
-        dt_str = s.split('+')[0]
-        dt = datetime.strptime( dt_str, DATETIME_FORMAT )
-        int_val = int(dt.strftime('%s'))
-        #return datetime.datetime.fromtimestamp( int_val, tz=timezone.utc )
-        return datetime.fromtimestamp( int_val, tz=pytz_timezone('UTC'))
+        local = parser.parse( s )
+        date = local.date()
+        time = local.time()
+        return datetime( date.year, date.month, date.day,
+                         time.hour, time.minute, tzinfo=pytz_timezone('UTC') )
 
 class DfsDateTimeUtil(object):
     """
@@ -63,6 +65,11 @@ class DfsDateTimeUtil(object):
     def __valid_utc(self, dt):
         if dt.tzinfo is not self.UTC_TIMEZONE:
             raise self.NotUtcTimezoneException('the supplied datetime object must be in utc')
+
+    @staticmethod
+    def create(date, time, tzinfo=UTC_TIMEZONE):
+        dt = datetime(date.year, date.month, date.day, time.hour, time.minute, tzinfo=tzinfo)
+        return dt
 
     # def get_(self, dt):
     #     """

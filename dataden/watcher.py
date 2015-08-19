@@ -215,6 +215,9 @@ class Trigger(object):
 
     def run(self, last_ts=None):
         """
+        if last_ts is not specified, we start parsing essentially any second now,
+        but we do not get anything that happened a short while ago.
+
         run the watcher, and start triggering on relevant db_name/coll_name.
         if last_ts is set, start from as far back as (but not guaranteed to be) last_ts.
 

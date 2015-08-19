@@ -266,7 +266,7 @@ class AdminCheckWithdrawTest(AbstractTest):
         self.assertRaises(WithdrawCalledTwiceException, lambda: w.withdraw( 95.00 ) )
 
     def test_need_tax_id_if_withdraws_too_high(self):
-        pass # TODO
+       pass # TODO
 
     #
     #######################################################
@@ -288,6 +288,8 @@ class AdminPayPalWithdrawTest( AbstractTest ):
     WITHDRAW_USER   = WithdrawUser.ADMIN
     WITHDRAW_CLASS  = PayPalWithdraw
 
+    use_paypal = False
+
     def setUp(self):
         self.user               = self.get_admin_user()     # get a superuser
         self.withdraw_amount    = 10.00                     # using float here on purpose
@@ -298,6 +300,10 @@ class AdminPayPalWithdrawTest( AbstractTest ):
 
         tm = TaxManager(self.user)
         tm.set_tax_id("123456789")
+
+
+    def get_balance(self):
+        return CashTransaction(self.user).get_balance_amount()
 
 
     def get_a_new_withdraw(self, user):
@@ -312,6 +318,8 @@ class AdminPayPalWithdrawTest( AbstractTest ):
         )
         # self.user is set to the withdraw_object
         instance = self.WITHDRAW_CLASS( user=user )
+        instance.set_paypal_email('test@test.com')
+
         return instance
 
     #
@@ -383,17 +391,20 @@ class AdminPayPalWithdrawTest( AbstractTest ):
         w.withdraw( 80.00 )
         w.payout()
         self.assertEquals( w.withdraw_object.status, processing )
-        # Wait up to 3 minutes for PayPal to process the payment
-        for i in range(0, 6):
-            time.sleep(30)
-            if w.withdraw_object.status == processed:
-                break
-        # Check that the paypal processing has finished and the status in processed
-        self.assertEquals( w.withdraw_object.status, processing )
 
-
+        if self.use_paypal:
+            # Wait up to 3 minutes for PayPal to process the payment
+            for i in range(0, 6):
+                time.sleep(30)
+                if w.withdraw_object.status == processed:
+                    break
+            # Check that the paypal processing has finished and the status in processed
+            self.assertEquals( w.withdraw_object.status, processed )
+        else:
+            self.assertEquals( w.withdraw_object.status, processing )
 
     def test_payout_doesnt_modify_status_on_exception(self):
+        pass
         # TODO - may not be able to test this.  PayPal payout doesn't generate an exception unless status is not pending,
         # which is what we are testing for
         # w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
@@ -432,23 +443,45 @@ class AdminPayPalWithdrawTest( AbstractTest ):
 
     def test_withdraw_minimim_amount(self):
         processed = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processed.value)
+        processing = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processing.value)
         cashout = WithdrawMinMax()
         amount = cashout.get_min()
 
         w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
         w.withdraw(Decimal(amount))
         w.payout()
-        self.assertEquals( w.withdraw_object.status, processed )
+
+        if self.use_paypal:
+            # Wait up to 3 minutes for PayPal to process the payment
+            for i in range(0, 6):
+                time.sleep(30)
+                if w.withdraw_object.status == processed:
+                    break
+            # Check that the paypal processing has finished and the status in processed
+            self.assertEquals( w.withdraw_object.status, processed )
+        else:
+            self.assertEquals( w.withdraw_object.status, processing )
 
     def test_withdraw_maximum_amount(self):
         processed = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processed.value)
+        processing = models.WithdrawStatus.objects.get(pk=WithdrawStatusConstants.Processing.value)
         cashout = WithdrawMinMax()
         amount = cashout.get_max()
 
         w = self.get_a_new_withdraw(self.user) # ie: w = PayPalWithdraw( user )
         w.withdraw(Decimal(amount))
         w.payout()
-        self.assertEquals( w.withdraw_object.status, processed )
+
+        if self.use_paypal:
+            # Wait up to 3 minutes for PayPal to process the payment
+            for i in range(0, 6):
+                time.sleep(30)
+                if w.withdraw_object.status == processed:
+                    break
+            # Check that the paypal processing has finished and the status in processed
+            self.assertEquals( w.withdraw_object.status, processed )
+        else:
+            self.assertEquals( w.withdraw_object.status, processing )
 
     def test_amounts_with_decimals_dont_get_truncated_or_rounded(self):
         pass # TODO

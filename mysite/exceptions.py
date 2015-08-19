@@ -11,7 +11,8 @@ class VariableNotSetException(Exception):
 class AmountNegativeException(Exception):
     def __init__(self, class_name, variable_name):
         super().__init__(\
-           "Incorrect usage of amount argument. The amount value must be a positive number.")
+           "Incorrect usage of "+str(variable_name)+"  argument. The amount value must be a positive number.")
+
 
 class AmountZeroException(Exception):
     def __init__(self, class_name, variable_name):
@@ -86,3 +87,23 @@ class CanNotRemovePromoCodeException(Exception):
 class NullModelValuesException(Exception):
     def __init__(self, class_name, model_name):
        super().__init__('In the '+class_name+' the model has null values for the object '+ model_name)
+
+class InvalidSiteSportTypeException(Exception):
+    def __init__(self, msg):
+        super().__init__(msg)
+
+class InvalidStartTypeException(Exception):
+    def __init__(self, msg):
+        super().__init__(msg)
+
+class InvalidEndTypeException(Exception):
+   def __init__(self, msg):
+        super().__init__(msg)
+
+class SalaryPoolException(Exception):
+    def __init__(self, msg):
+        super().__init__(msg)
+
+class NoGamesInRangeException(Exception):
+    def __init__(self, msg):
+        super().__init__(msg)

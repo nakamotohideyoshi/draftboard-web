@@ -3,6 +3,9 @@ from django.contrib import admin
 
 import account.urls
 import cash.urls
+import contest.urls
+import draftgroup.urls
+import lineup.urls
 import ticket.urls
 import prize.urls
 import salary.urls
@@ -40,6 +43,9 @@ urlpatterns = [
 
     url(r'^account/', include(account.urls)),
     url(r'^cash/', include(cash.urls)),
+    url(r'^contest/', include(contest.urls)),
+    url(r'^draft-group/', include(draftgroup.urls)),
+    url(r'^lineup/',      include(lineup.urls)),
     url(r'^ticket/', include(ticket.urls)),
     url(r'^prize/',  include(prize.urls)),
     url(r'^salary/', include(salary.urls)),

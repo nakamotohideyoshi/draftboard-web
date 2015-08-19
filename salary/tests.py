@@ -222,11 +222,11 @@ class SalaryGeneratorTest(AbstractTest):
 
 
     def test_proper_init(self):
-        self.assertIsNotNone(SalaryGenerator(PlayerStatsChild, self.pool))
+        self.assertIsNotNone(SalaryGenerator([PlayerStatsChild], self.pool))
 
     def test_improper_init(self):
         self.assertRaises(mysite.exceptions.IncorrectVariableTypeException,
-                    lambda: SalaryGenerator(SalaryPlayerStatsObject, self.pool))
+                    lambda: SalaryGenerator([SalaryPlayerStatsObject], self.pool))
 
     def test_generate_salaries(self):
         create_simple_player_stats_list()

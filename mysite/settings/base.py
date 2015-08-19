@@ -208,7 +208,6 @@ INSTALLED_APPS = (
     #'django_toolbar',
 
     'djcelery',
-
     # 3rd party installs
     'rest_framework',   # for api stuff
     'braces',
@@ -218,7 +217,6 @@ INSTALLED_APPS = (
     # --- removed for testing only ---
     #'cachalot',              # caching models
     'pipeline',               # minifying/compressing static assets
-
 
     #
     ####################################
@@ -244,9 +242,12 @@ INSTALLED_APPS = (
     'lineup',
     'prize',
     'contest',
-    'payout',
+    'contest.payout',
+    'contest.buyin',
+    'contest.refund',
     'scoring',
     'roster',
+    'rakepaid',
     'test',
     'salary',
     'draftgroup',
@@ -321,7 +322,9 @@ SUIT_CONFIG = {
 
         ('account',),
         ('cash',),
+        ('contest'),
         ('dataden',),
+        ('draftgroup'),
         ('finance',),
         ('fpp',),
         ('pp',),
@@ -337,6 +340,7 @@ SUIT_CONFIG = {
         ('mlb',),
         ('ticket',),
         ('transaction',),
+        ('rakepaid',),
 
         #
         # # If you want to link app models from different app use full name:
@@ -360,3 +364,8 @@ SUIT_CONFIG = {
         )
     ) # end MENU_ORDER
 } # end SUIT_CONFIG
+
+# GLOBAL CONSTANTS
+USERNAME_DRAFTBOARD = "draftboard"
+USERNAME_ESCROW = "escrow"
+BONUS_CASH_RAKE_PERCENTAGE = .4
