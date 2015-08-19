@@ -23,14 +23,10 @@ class DraftGroupAPIView(generics.GenericAPIView):
         except DraftGroup.DoesNotExist:
             raise NotFound()
 
-    def get(self, request, format=None):
+    def get(self, request, pk, format=None):
         """
         given the GET param 'id', get the draft_group
         """
-        pk = int(self.request.GET.get('id'))
-        if pk is None or pk <= 0:
-            raise ValidationError('GET param "id" not specified or is invalid: %s' % str(pk))
-        #print( 'pk:', pk )
         c = caches['default']
         serialized_data = c.get(self.__class__.__name__ + str(pk), None)
         if serialized_data is None:
