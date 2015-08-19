@@ -99,9 +99,16 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         # get the game instance from the signal
         game = kwargs.get('game')
 
-        # logic depends on the new game status
-        if game.is_closed(): # is_closed() indicates the live game is all done getting stat updates
-            #print( 'game.is_closed() is True |', 'Game', str(game) )
+        if game.is_inprogress():
+            #
+            # this live game status just changed to inprogress
+            dgm = DraftGroupManager()
+            draft_groups = dgm.get_for_game( game )
+            refund_task_results = []
+
+        elif game.is_closed():
+            #
+            # the live game is all done getting stat updates. it was just closed.
             dgm = DraftGroupManager()
             draft_groups = dgm.get_for_game( game )
 

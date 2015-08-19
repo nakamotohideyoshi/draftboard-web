@@ -68,3 +68,28 @@ def __on_game_closed( draft_group ):
         contests = Contest.objects.filter( draft_group=draft_group ).exclude( status__in=Contest.STATUS_HISTORY )
         num_updated = contests.update( status=Contest.COMPLETED )
         print( str(num_updated), 'contests updated to status[%s]' % Contest.COMPLETED )
+
+@app.task(bind=True)
+def on_game_inprogress(self, draft_group):
+    """
+    checks to see if there are any Contest's that need to be
+    cancelled and refunded every time a live game goes to "inprogress"
+
+    Contests which are not guaranteed prize pools (contest.gpp=True),
+    must fill up before their start time, or they will
+    be cancelled and refunded by this task.
+    """
+    import contest.refund.tasks
+    contests = contest.models.LiveContest.objects.filter( gpp=False )
+    refund_task_results = []
+    for c in contests:
+        if not c.is_filled():
+            #
+            # call the refund_task with the contest
+            res = contest.refund.tasks.refund_task.delay( c )
+
+            #
+            # create a list of tuples, of pairs of (DraftGroup, taskresult)
+            refund_task_results.append( (draft_group, res) )
+
+
