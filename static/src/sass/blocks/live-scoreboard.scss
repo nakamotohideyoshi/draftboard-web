@@ -1,0 +1,12 @@
+.live-scoreboard {
+  padding-top: 48px;
+  text-align: center;
+
+  &__contest-name {
+    color: #fff;
+    font-weight: 200;
+    font-size: 25px;
+    line-height: 1;
+    margin: 0 0 32px;
+  }
+}

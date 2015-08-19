@@ -1,23 +1,24 @@
 // the court that shows for nba when you are live
 .live-nba-court {
-  background: transparent url(../img/blocks/live-nba-court/temp-bg.jpg) no-repeat left bottom;
-  background-size: 100% auto;
-  width: 997px;
-  height: 254px;
+  background: transparent url(../img/blocks/live-nba-court/bg.png) no-repeat center top;
+  background-size: 102% auto;
+  width: 100%;
+  margin: 0 auto;
+  padding-bottom: 24.7%;
   position: relative;
 
   // convert the following to BEM when we have a finalized comp
   .shooter-position {
-    width: 40px;
-    height: 98px;
+    width: 3.94%;
+    height: 39.3%;
     position: absolute;
 
     .shooter-centered {
       background: url(../img/blocks/live-nba-court/temp-shooter.png) no-repeat left top;
       background-size: 100% auto;
       position: relative;
-      left: -50%;
-      top: -50%;
+      left: -56%;
+      top: -45%;
       height: 100%;
       width: 100%;
     }

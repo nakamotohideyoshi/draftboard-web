@@ -1,0 +1,47 @@
+.live-lineup-player {
+  padding: 8px 0;
+
+  // shortcut for each child, if it's too slow we can define all the children manually
+  > * {
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 4px;
+  }
+
+  &__position {
+    color: #6d718a;
+    font-weight: 600;
+    font-size: 9px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  &__photo {
+    background: #3a3f52 url(../img/blocks/live-lineup-player/example-player-photo.png) no-repeat -4px 6px;
+    background-size: 120% auto;
+    border-radius: 50%;
+    height: 48px;
+    width: 48px;
+  }
+
+  &__status {
+    border-radius: 50%;
+    width: 6px;
+    height: 6px;
+  }
+
+  &__points {
+    color: #fff;
+    font-size: 14px;
+    font-family: $font-oswald;
+    text-transform: uppercase;
+    font-weight: 400;
+  }
+
+  // when playing show the green status indicator as well as make the PMR circle around the photo
+  &.state--is-playing {
+    .live-lineup-player__status {
+      background-color: #26cc65;
+    }
+  }
+}

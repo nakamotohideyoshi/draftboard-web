@@ -207,3 +207,9 @@
     }
   }
 }
+
+// not sure if this should go here, it's not BEM but neither is the layout structure sooo...
+.one-col--live-nba .content-container {
+  background: -webkit-radial-gradient(at 50% 70%, #354b6b, #141c28, #141c28);
+  background: radial-gradient(at 50% 70%, #354b6b, #141c28, #141c28);
+}
