@@ -239,9 +239,20 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         :return:
         """
 
-        if self.withdraw_object and self.withdraw_object.status:
-            raise WithdrawCalledTwiceException(type(self).__name__,
-                'withdraw() can only be called on the object one time')
+        # The first time withdraw is called, withdraw_object and withdraw_object.status will both not be set.
+        # On a successful withdraw, withdraw_object and withdraw_object.status will both be set.
+        # On an invalid withdraw (amount 0, amount too large, etc),
+        #  withdraw_object will be set but withdraw_object.status will not.
+        # If withdraw_object is set, we want to raise a WithdrawCalledTwice exception if withdraw_object.status is set
+        #  or if it does not exist.
+        if self.withdraw_object:
+            try:
+                if self.withdraw_object.status:
+                    raise WithdrawCalledTwiceException(type(self).__name__,
+                            'withdraw() can only be called on the object one time')
+            except:
+                raise WithdrawCalledTwiceException(type(self).__name__,
+                        'withdraw() can only be called on the object one time')
 
         amount = Decimal( amount )
 

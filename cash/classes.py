@@ -34,13 +34,13 @@ class CashTransaction(CanDeposit, AbstractTransaction):
             return False
         return True
 
-
-    def withdraw(self, amount):
+    def withdraw(self, amount, trans=None):
         """
         Creates a Withdraw in the user's Cash account.
 
         :param amount: The dollar amount that is being removed from the account.
             This should be a positive number.
+        :param trans: the optional transaction to point the transaction to
 
         :raises :class:`cash.exceptions.OverdraftException`: When
             the user does not have enough cash for the withdrawal
@@ -59,19 +59,22 @@ class CashTransaction(CanDeposit, AbstractTransaction):
 
         #
         #creates the transaction
-        category = TransactionType.objects.get(pk=TransactionTypeConstants.CashWithdraw.value)
+        category = TransactionType.objects.get(
+            pk=TransactionTypeConstants.CashWithdraw.value)
         #
         # makes the amount negative because it is a withdrawal
-        self.create(category,-amount)
-        Logger.log(ErrorCodes.INFO,"Withdrawal", self.user.username+" withdrew $"+str(amount)+" from their cash account.")
+        self.create(category,-amount, trans)
 
+        msg = "User["+self.user.username+"] withdrew $"+str(amount)+" from their cash account."
+        Logger.log(ErrorCodes.INFO, "Cash Withdraw", msg)
 
-    def deposit(self, amount, category = None):
+    def deposit(self, amount, category=None, trans=None):
         """
         Creates a Deposit in the user's Cash account.
 
         :param user: The user the cash is being added to.
         :param amount: The dollar amount that is being added to the account.
+        :param trans: the optional transaction to point the transaction to
 
         :raises :class:`transaction.exceptions.AmountNegativeException`:
             When the amount is a negative number.
@@ -85,8 +88,10 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         #creates the transaction
         if(category == None):
             category = TransactionType.objects.get(pk=TransactionTypeConstants.CashDeposit.value)
-        self.create(category,amount)
-        Logger.log(ErrorCodes.INFO, "Deposit", self.user.username+" deposited $"+str(amount)+" into their cash account.")
+        self.create(category, amount, trans)
+
+        msg = "User["+self.user.username+"] deposited $"+str(amount)+" into their cash account."
+        Logger.log(ErrorCodes.INFO, "Cash Deposit", msg)
 
 
     def deposit_braintree(self, amount, braintree_transaction):
@@ -95,7 +100,6 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         braintree_model.braintree_transaction = braintree_transaction
         braintree_model.transaction = self.transaction_detail.transaction
         braintree_model.save()
-
 
 
     def get_balance_string_formatted(self):
@@ -131,7 +135,7 @@ class CashTransaction(CanDeposit, AbstractTransaction):
     def get_withdrawal_amount_current_year(self ):
         """
         Gets the currents years profit for a given user.
-        :return:dollars withdrawn for the year - deposits
+        :return: dollars withdrawn for the year - deposits
         """
         category_withdrawal = TransactionType.objects.get(
             pk=TransactionTypeConstants.CashWithdraw.value

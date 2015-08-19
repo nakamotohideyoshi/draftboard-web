@@ -4,6 +4,12 @@
 #   2.  You can now use celery beat. ex: $> ./manage.py celery beat
 #   3.  View the logs in the root directory /logs/celeryd.log
 #
+#   *4. If you want to be able to add periodic tasks using the django admin, run:
+#
+#       $> celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler
+#
+#       then visit: http://localhost/admin/djcelery/periodictask/
+#
 # Of course, this is only an example of how to run celery concurrently in your terminals...
 
 from __future__ import absolute_import

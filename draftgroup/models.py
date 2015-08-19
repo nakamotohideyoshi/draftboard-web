@@ -3,36 +3,95 @@
 
 from django.db import models
 import salary.models
+import draftgroup.classes
 
 class DraftGroup( models.Model ):
     """
     The "master" id table for a group of draftable players on a day.
     """
+    #dt_format   = "%a, %d @ %I:%M%p" # strftime("%A, %d. %B %Y %I:%M%p")
     created     = models.DateTimeField(auto_now_add=True)
 
     salary_pool = models.ForeignKey(salary.models.Pool,
                     verbose_name='the Salary Pool is the set of active player salaries for a sport')
 
-    start_dt    = models.DateTimeField(null=False,
+    start       = models.DateTimeField(null=False,
                         help_text='the DateTime for the earliest possible players in the group.')
-    start_ts    = models.IntegerField(null=False, default=0,
-                        help_text='save() converts start_dt into a unix timestamp and sets the value to this field')
+    end         = models.DateTimeField(null=False,
+                        help_text='the DateTime on, or after which no players from games are included')
 
-    def save(self, *args, **kwargs):
-        if self.start_dt:
-            self.start_ts = int(self.start_dt.strftime('%s'))
-        super().save(*args, **kwargs)
+    def get_games(self):
+        """
+        return the underlying sport.<sport>.Game objects this draft group was created with
+        """
+        dgm = draftgroup.classes.DraftGroupManager()
+        return dgm.get_games( self )
+
+    def __str__(self):
+        return '%s id:%s' % (self.salary_pool.site_sport.name, str(self.pk))
+
+    def __format_dt(self, dt):
+        return dt.strftime(self.dt_format)
 
 class Player( models.Model ):
     """
     A player is associated with a DraftGroup and a salary.models.Salary
     """
+    created     = models.DateTimeField(auto_now_add=True, null=False)
     draft_group = models.ForeignKey( DraftGroup, null=False,
-                    verbose_name='the DraftGroup this player is a member of')
+                    verbose_name='the DraftGroup this player is a member of', related_name='players')
 
-    salary = models.ForeignKey(salary.models.Salary, null=False,
+    salary_player = models.ForeignKey(salary.models.Salary, null=False,
                     verbose_name='points to the player salary object, which has fantasy salary information')
+
+    salary      = models.FloatField(default=0, null=False,
+                    help_text='the amount of salary for the player at the this draft group was created')
+    start = models.DateTimeField(null=False)
+
+    def __str__(self):
+        return '%s $%0.2f' % (str(self.player), self.salary)
+
+    @property
+    def player(self):
+        return self.salary_player.player
+
+    @property
+    def first_name(self):
+        return self.salary_player.player.first_name
+
+    @property
+    def last_name(self):
+        return self.salary_player.player.last_name
+
+    @property
+    def player_id(self):
+        return self.salary_player.player.pk
+
+    @property
+    def position(self):
+        return self.salary_player.player.position.name
+
+    @property
+    def team_alias(self):
+        return self.salary_player.player.team.alias
 
     class Meta:
         # each player should only exist once in each group!
-        unique_together = ('draft_group','salary')
+        unique_together = ('draft_group','salary_player')
+
+class GameTeam( models.Model ):
+    """
+    Keep track of the Teams in the Games from which we've
+    created the draft group.
+
+    Most just a historical thing , or potentially for debugging later on
+    """
+    created     = models.DateTimeField(auto_now_add=True, null=False)
+
+    draft_group = models.ForeignKey( DraftGroup, null=False )
+
+    # the start time of the game when the draftgroup was created!
+    start  = models.DateTimeField(null=False)
+    game_srid   = models.CharField(max_length=64, null=False)
+    team_srid   = models.CharField(max_length=64, null=False)
+    alias       = models.CharField(max_length=64, null=False)

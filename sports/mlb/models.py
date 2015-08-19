@@ -1,12 +1,9 @@
 #
 # sports/mlb/models.py
 
-from django.contrib.contenttypes.models import ContentType
-
 from django.db import models
 import sports.models
-
-# Any classes that still have the abtract = True, just havent been migrated/implemented yet!
+import scoring.classes
 
 class Season( sports.models.Season ):
     class Meta:
@@ -131,6 +128,12 @@ class PlayerStats( sports.models.PlayerStats ):
 
     class Meta:
         abstract = True
+
+    def save(self, *args, **kwargs):
+        # perform score update
+        scorer = scoring.classes.MlbSalaryScoreSystem()
+        self.fantasy_points = scorer.score_player( self )
+        super().save(*args, **kwargs)
 
 class PlayerStatsHitter(PlayerStats):
 

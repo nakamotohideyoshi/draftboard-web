@@ -35,6 +35,10 @@ static==1.1.1
 static3==0.5.1
 testfixtures==4.1.2
 
+# ie: from dirtyfields import DirtyFieldsMixin
+# models use this mixin to see what fields of an instance have changed
+django-dirtyfields==0.7
+
 # De-BREACH security (see http://goo.gl/KPTym3 for info)
 django-debreach==1.1.0
 
@@ -62,3 +66,9 @@ django-cachalot==1.0.0
 
 # python api for mongodb
 pymongo==3.0.1
+
+# python-dateutil is a better datetime parser
+python-dateutil==2.4.2
+
+# Flower (celery task metrics/logging/captures)
+flower==0.8.3

@@ -102,3 +102,10 @@ logs*
 # User-specific settings
 mysite/settings/zach.py
 mysite/settings/craigruks.py
+
+# swap files
+*.swp
+
+# any files with "mongodump-" prefix -- this is just my naming convention
+mongodump-*
+

@@ -1,6 +1,7 @@
-from .models import SiteSport, PlayerStats, Player, Game
+from .models import SiteSport, PlayerStats, Player, Game, Team
 from django.contrib.contenttypes.models import ContentType
-from .exceptions import SportNameException, SiteSportWithNameDoesNotExistException, GameClassNotFoundException
+from .exceptions import SportNameException, \
+    SiteSportWithNameDoesNotExistException, GameClassNotFoundException, TeamClassNotFoundException
 from mysite.exceptions import IncorrectVariableTypeException
 import dataden.classes
 
@@ -59,6 +60,8 @@ class SiteSportManager(object):
     Modify it at your own risk.
     """
 
+    #
+    # there should exist a single sports.models.SiteSport for these strings!
     SPORTS = [
         'nfl',
         'mlb',
@@ -69,6 +72,14 @@ class SiteSportManager(object):
     def __init__(self):
         super().__init__()
         self.sports = []
+
+    @staticmethod
+    def get_site_sport(sport):
+        """
+        :param sport: the string name of the sport, must be in SiteSportManager.SPORTS.
+        :return:
+        """
+        return SiteSport.objects.get(name=sport)
 
     @staticmethod
     def get_sport_names():
@@ -199,6 +210,27 @@ class SiteSportManager(object):
 
         # by default raise an exception if we couldnt return a game class
         raise GameClassNotFoundException(type(self).__name__, sport)
+
+    def get_team_class(self, sport):
+        """
+        Class that fetches the Team that inherits sports.models.Team for the sport
+
+        :param sport: string OR SiteSport. method is intelligent about the runtime type of 'sport'
+
+        :return: the sport's
+            :class:`sports.models.Team` class.
+
+        :raises :class:`sports.exceptions.SportNameException`: when the string sport
+            does not match a sport in the sports array
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+        arr = self.__get_array_of_classes(sport, 'team', Team)
+        if len(arr) >= 1:
+            return arr[0]
+
+        # by default raise an exception if we couldnt return a game class
+        raise TeamClassNotFoundException(type(self).__name__, sport)
 
 class PlayerNamesCsv(object):
 

@@ -1,13 +1,11 @@
 #
 # sports/nfl/models.py
 
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 import sports.models
 from django.db.models.signals import post_save
-
-# Any classes that still have the abtract = True, just havent been migrated/implemented yet!
+from ..models import GameStatusChangedSignal
+import scoring.classes
 
 DST_PLAYER_LAST_NAME    = 'DST' # dst Player objects last_name
 DST_POSITION            = 'DST' # dont change this
@@ -164,6 +162,12 @@ class PlayerStats( sports.models.PlayerStats ):
     class Meta:
         abstract = False
 
+    def save(self, *args, **kwargs):
+        # perform score update
+        scorer = scoring.classes.NflSalaryScoreSystem()
+        self.fantasy_points = scorer.score_player( self )
+        super().save(*args, **kwargs)
+
 class PlayerStatsSeason( sports.models.PlayerStatsSeason ):
     class Meta:
         abstract = True # TODO
@@ -217,7 +221,6 @@ def create_dst_player(sender, **kwargs):
             # entry = Player.objects.get_or_create(content_type=ctype,
             #                                         object_id=instance.id,
             #                                         pub_date=instance.pub_date)
-            print( 'DEBUG: hi im the signal --', type(instance) )
             dst = Player()
             dst.team        = instance
             dst.srid        = instance.srid     #
@@ -239,4 +242,6 @@ def create_dst_player(sender, **kwargs):
             dst.status      = ''
             dst.save() # commit changes
 
+#
+# listen for Team object save() and create its DST if it does not exist
 post_save.connect(create_dst_player, sender=Team)

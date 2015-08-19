@@ -2,7 +2,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 import promocode.bonuscash.classes
-from transaction.models import TransactionDetail, Balance
+from transaction.models import TransactionDetail, Balance, Transaction
 
 class BonusCashBalance(Balance):
     """
@@ -14,6 +14,10 @@ class BonusCashTransactionDetail(TransactionDetail):
     """
     Implements the :class:`transaction.models.TransactionDetail` model.
     """
+    #
+    # The transaction that triggered bonus cash conversion
+    trigger_transaction = models.ForeignKey(Transaction, null=True, default=None, related_name='+')
+
     pass
 
 class AdminBonusCash(models.Model):

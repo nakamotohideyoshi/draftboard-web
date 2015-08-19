@@ -2,8 +2,9 @@ from django.test import TestCase
 
 import mysite.exceptions
 from django.test.client import Client
+from cash.classes import CashTransaction
 from .classes import BonusCashTransaction
-from .models import BonusCashBalance, BonusCashTransactionDetail, AdminBonusCashDeposit, AdminBonusCashWithdraw
+from .models import AdminBonusCashDeposit
 
 from test.classes import AbstractTest
 
@@ -28,45 +29,91 @@ class TestBonusCashTransaction(AbstractTest):
     test a wide range of behaviors for BonusCashTransaction including its constructor, deposit, and withdraw
     """
     def setUp(self):
-        self.user               = self.get_admin_user()
-        self.starting_balance   = self.__get_starting_balance(self.user)
+        self.user                   = self.get_admin_user()
+        self.starting_balance       = self.__get_starting_balance(self.user)
+
+        self.initial_bonus_cash     = 1000
+        self.zero_amount            = 0
+        self.negative_amount        = -1
+        self.positive_amount        = 1
+        self.large_negative_amount  = -1000000  # 1 million (negative)
+        self.large_positive_amount  = 1000000   # 1 million
 
     def __get_starting_balance(self, user):
         return BonusCashTransaction(self.user).get_balance_amount()
+
+    def __get_trigger_transaction(self):
+        ct = CashTransaction( self.user )
+        ct.deposit( 1 )
+        return ct.transaction
 
     def test_bonuscash_transaction_constructor_throws_invalid_type_exception(self):
         self.assertRaises( mysite.exceptions.IncorrectVariableTypeException,
                                             lambda: BonusCashTransaction( 'string' ) )
 
     def test_bonuscash_transaction_deposit_invalid_type(self):
-        pass # TODO
+        bct = BonusCashTransaction( self.user )
+        self.assertRaises( mysite.exceptions.IncorrectVariableTypeException,
+                                                lambda: bct.deposit( 'asdf' ))
 
     def test_bonuscash_transaction_withdraw_invalid_type(self):
-        pass # TODO
+        bct = BonusCashTransaction( self.user )
+        self.assertRaises( mysite.exceptions.IncorrectVariableTypeException,
+                           lambda: bct.withdraw( 'asdf', self.__get_trigger_transaction() ))
 
     def test_bonuscash_deposit_negative_amount(self):
-        pass # TODO
+        bct = BonusCashTransaction( self.user )
+        self.assertRaises( mysite.exceptions.AmountNegativeException,
+                           lambda: bct.deposit( self.negative_amount ))
 
     def test_bonuscash_deposit_zero_amount(self):
-        pass # TODO
+        bct = BonusCashTransaction( self.user )
+        self.assertRaises( mysite.exceptions.AmountZeroException,
+                           lambda: bct.deposit( self.zero_amount ))
 
     def test_bonuscash_deposit_positive_amount(self):
-        pass # TODO
+        try:
+            bct = BonusCashTransaction( self.user )
+            bct.deposit( self.positive_amount )
+            exception = None
+        except Exception as e:
+            exception = e
+        self.assertIsNone( exception )
 
     def test_bonuscash_deposit_positive_large_amount(self):
-        pass # TODO
+        try:
+            bct = BonusCashTransaction( self.user )
+            bct.deposit( self.large_positive_amount )
+            exception = None
+        except Exception as e:
+            exception = e
+        self.assertIsNone( exception )
 
     def test_bonuscash_deposit_positive_very_large_amount(self):
         pass # TODO
 
     def test_bonuscash_withdraw_negative_amount(self):
-        pass # TODO
+        bct = BonusCashTransaction( self.user )
+        self.assertRaises( mysite.exceptions.AmountNegativeException,
+            lambda: bct.withdraw( self.negative_amount, self.__get_trigger_transaction() ))
 
     def test_bonuscash_withdraw_zero_amount(self):
-        pass # TODO
+        bct = BonusCashTransaction( self.user )
+        self.assertRaises( mysite.exceptions.AmountZeroException,
+            lambda: bct.withdraw( self.zero_amount, self.__get_trigger_transaction() ))
 
     def test_bonuscash_withdraw_positive_amount(self):
-        pass # TODO
+        # give them some bonus cash to be withdrawn
+        bct_initial_depo = BonusCashTransaction( self.user )
+        bct_initial_depo.deposit( self.initial_bonus_cash )
+
+        try:
+            bct = BonusCashTransaction( self.user )
+            bct.withdraw( self.positive_amount, self.__get_trigger_transaction() )
+            exception = None
+        except Exception as e:
+            exception = e
+        self.assertIsNone( exception )
 
     def test_bonuscash_withdraw_positive_large_amount(self):
         pass # TODO
@@ -157,25 +204,6 @@ class TestAdminPanelBonusCashDeposit(AbstractTest):
         self.assertEqual( acd.amount, self.form_data['amount'] )
         self.assertEqual( acd.reason, self.form_data['reason'] )
 
-    def test_admin_bonuscash_deposit_view_negative_amount(self):
-        self.form_data = self.__get_form_data_for_amount( -10.00 )
-        self.assertRaises( mysite.exceptions.AmountNegativeException,
-                                    lambda: self.__login_and_post_data() )
-
-    def test_admin_bonuscash_deposit_view_zero_amount(self):
-        self.form_data = self.__get_form_data_for_amount( 0.00 )
-        self.assertRaises( mysite.exceptions.AmountZeroException,
-                                    lambda: self.__login_and_post_data() )
-
-class TestAdminPanelBonusCashWithdraw(AbstractTest):
-
-    # def test_admin_bonuscash_deposit_view_positive_amount(self):
-
-    # def test_admin_bonuscash_deposit_view_negative_amount(self):
-
-    # def test_admin_bonuscash_deposit_view_zero_amount(self):
-
-    pass # TODO ... TestAdminpanelBonusCashWithdraw (its very similar to TestAdminPanelBonusCashDeposit)
 
 
 

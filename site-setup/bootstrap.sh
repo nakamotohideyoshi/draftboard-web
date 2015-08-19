@@ -156,3 +156,75 @@ echo "source venv/bin/activate" >> /home/vagrant/.bashrc
 # 3. log in to the mongo shell  :   mongo
 # 4. type this in mongo shell   :   rs.initiate()
 
+
+#
+#####################################################################
+# Tutorial on how to get NFL up from scratch (same for other sports)
+#####################################################################
+
+    1) you have done a ./manage migrate successfully as a prerequisite
+
+    2) run dataden to pull stats into mongo (from root directory of project, ie: /vagrant)
+
+        $> java -jar dataden/dataden.jar -k <licenseKey>
+
+        $> ./manage.py shell
+        >>> from sports.parser import DataDenParser
+        >>> p = DataDenParser()
+        >>> p.setup_triggers('nfl')
+        >>> p.setup('nfl')                          # initializes teams, games, players + any playerstats for nfl
+
+        >>> p.setup_score_players_for_sport('nfl')  # scores and saves the fantasy points for each PlayerStats object
+
+        >>> from roster.classes import Initial
+        >>> initial = Initial()
+        >>> initial.setup('nfl')                    # creates the NFL fantasy roster
+
+
+    3) create a salary "Algorithm Configuration" at http://localhost/admin/salary/salaryconfig/
+
+    4) add a Play Pool at http://localhost/admin/salary/pool/
+
+    5) start celery if its not running (in a terminal, with this command):
+
+        $> celery -A mysite worker -l info
+        $> celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler      # along with worker, allow admin tasks
+        $> celery -A mysite flower                                             # localhost:5555/monitor/
+
+    5) now you can check the checkbox for that Player Pool
+       and select the admin action "Generate Salaries"
+
+    6) create a prize structure
+
+        In [1]: from prize.classes import CashPrizeStructureCreator
+
+        In [2]: creator = CashPrizeStructureCreator()
+
+        In [3]: creator.ad
+        creator.add          creator.added_ranks
+
+        In [3]: creator.add( 1, 1.80 )
+
+        In [4]: create.save()
+        ---------------------------------------------------------------------------
+        NameError                                 Traceback (most recent call last)
+        <ipython-input-4-4c7c22da37e0> in <module>()
+        ----> 1 create.save()
+
+        NameError: name 'create' is not defined
+
+        In [5]: creator.save()
+        <class 'cash.models.CashAmount'>
+
+        In [6]: creator.pr
+        creator.prize_structure        creator.prize_structure_model
+
+        In [6]: creator.prize_structure.buyin = 1
+
+        In [7]: creator.prize_structure.save()
+
+    1) create a contest via the admin panel
+
+    6) create a draftgroup (the draftable players)
+
+        >>>

@@ -35,11 +35,11 @@ class Logger:
 
         #
         # Validation to make sure all of the classes implement AbstractLog
-        message += " classes:"
-        for c in classes:
-            if not isinstance(c, AbstractLog):
-                raise ModelNotImplementedException(type(c).__name__)
-            message +=" "+ c.log()
+        # message += " classes:"
+        # for c in classes:
+        #     if not isinstance(c, AbstractLog):
+        #         raise ModelNotImplementedException(type(c).__name__)
+        #     message +=" "+ c.log()
 
 
         log_string = "action: "+ action + " message: " +message

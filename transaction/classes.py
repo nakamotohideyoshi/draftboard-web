@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 import decimal
 from dfslog.classes import Logger, ErrorCodes
 from mysite.classes import  AbstractSiteUserClass
-
+from django.db.models import F
+from django.db.transaction import atomic
 class AbstractTransaction (AbstractSiteUserClass):
     """
     This class is to be implemented by any of the financial
@@ -53,14 +54,16 @@ class AbstractTransaction (AbstractSiteUserClass):
                                           "balance_class")
 
         return
-    def create(self, category, amount):
-        """
 
+    @atomic
+    def create(self, category, amount, trans=None):
+        """
         :param user: The user the transaction will be associated
             with.
         :param category: The category type. The category must be
             a TransactionType model.
         :param amount: the amount stored for the transaction.
+        :param trans: the optional transaction to point the transaction to
 
         :raises :class:`transaction.exceptions.IncorrectVariableTypeException`:
             If the variables are not the correct types it will
@@ -76,51 +79,38 @@ class AbstractTransaction (AbstractSiteUserClass):
         if(not isinstance(category, TransactionType)):
             raise IncorrectVariableTypeException(type(self).__name__,
                                           "category")
-
-        self.transaction = Transaction(user=self.user, category=category)
-        self.transaction.save()
+        if trans is None:
+            self.transaction = Transaction(user=self.user, category=category)
+            self.transaction.save()
+        else:
+            self.transaction = trans
         self.transaction_detail = self.transaction_detail_class()
         self.transaction_detail.amount = amount
         self.transaction_detail.transaction = self.transaction
         self.transaction_detail.user = self.user
         self.transaction_detail.save()
 
-        self.__update_balance()
+        self.__update_balance(amount)
 
-       # self.__updateBalance(user)
-
-    def __update_balance(self):
+    def __update_balance(self, amount):
         """
         Updates the balance for a given user.
         """
-        self.balance =  self.__get_balance()
+        self.balance = self.__get_balance()
 
-        if(self.balance.transaction == None):
-            transactions = self.transaction_detail_class.objects.filter(user=self.user)
-        else:
-            transactions = self.transaction_detail_class.objects.filter(
-                                        user=self.user,
-                                        pk__gt= self.balance.transaction.pk)
-            transactions = transactions.order_by('pk')
-        if(transactions != []):
-            #
-            # Sums the transactions for the given user to come up
-            # with the new balance
-            for transaction in transactions:
-                self.balance.amount = decimal.Decimal(self.balance.amount) + decimal.Decimal(transaction.amount)
-            #
-            # sets the pointer to in balance to the last transaction
-            # in the transaction list
-            self.balance.transaction = transactions[len(transactions)-1]
-            self.balance.save()
+        self.balance.amount = F('amount') + amount
 
-            #
-            # keep in mind that changing this log messages could change a format
-            # that we've been using to parse logs for very long time!
-            msg = 'User[%s] Account[%s] balance is now: %s' % (self.user.username,
-                                                            self.accountName, self.balance.amount )
-            #Logger.log(ErrorCodes.INFO, "Balance Update", self.user.username+"'s "+self.accountName+" account balance is now "+str(self.balance.amount))
-            Logger.log(ErrorCodes.INFO, "Balance Update", msg )
+        self.balance.save()
+        self.balance.refresh_from_db()
+
+        #
+        # keep in mind that changing this log messages could change a format
+        # that we've been using to parse logs for very long time!
+        msg = 'User[%s] Account[%s] balance is now: %s' % (self.user.username,
+                                                           self.accountName,
+                                                           self.balance.amount)
+
+        Logger.log(ErrorCodes.INFO, "Balance Update", msg )
 
     def __get_balance(self):
         """
@@ -141,7 +131,7 @@ class AbstractTransaction (AbstractSiteUserClass):
             balance = self.balance_class()
             balance.user = self.user
             balance.transaction = None
-            balance.amount=0.00
+            balance.amount = 0.00
             balance.save()
         return balance
 
@@ -171,8 +161,6 @@ class AbstractTransaction (AbstractSiteUserClass):
             raise AmountNegativeException(type(self).__name__, amount)
         if(amount == 0.00):
             raise AmountZeroException(type(self).__name__, amount)
-
-
 
 class CanDeposit(object):
     pass

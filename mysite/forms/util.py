@@ -7,6 +7,9 @@ from collections import OrderedDict
 class OrderableFieldForm( Form ):
     """
     Works in django 1.8
+
+    Example usage:
+
     """
 
     order = None

@@ -1,11 +1,11 @@
 import fpp.models
 
+from mysite.exceptions import IncorrectVariableTypeException
 from transaction.constants import TransactionTypeConstants
 from transaction.classes import AbstractTransaction
 from transaction.models import TransactionType
 from cash.exceptions import OverdraftException
 
-import datetime
 import fpp.models
 
 from dfslog.classes import Logger, ErrorCodes
@@ -32,12 +32,26 @@ class FppTransaction(AbstractTransaction):
             return False
         return True
 
-    def withdraw(self, amount):
+    def validate_amount(self, amount):
+        """
+        adds additional type checking. make sure super().validate_amount() is called last.
+        :return:
+        """
+        try:
+            amount = float(amount)
+        except ValueError:
+            raise IncorrectVariableTypeException(self.__class__.__name__, 'amount: [%s]' % str(amount))
+
+        super().validate_amount( amount )
+
+    def withdraw(self, amount, trans=None):
         """
         Creates a Withdraw from the users fpp account
 
         :param amount: The FPP amount that is being removed from the account.
             This should be a positive number.
+        :param trans: the optional transaction to point the transaction to
+
 
         :raises :class:`cash.exceptions.OverdraftException`: When
             the user does not have the amount for the withdraw
@@ -60,15 +74,17 @@ class FppTransaction(AbstractTransaction):
 
         #
         # makes the amount negative because it is a withdrawal
-        self.create(category, -amount)
-        Logger.log(ErrorCodes.INFO,"Withdraw", self.user.username+" withdrew "+str(amount)+" FPP from their account.")
+        self.create(category, -amount, trans)
+        Logger.log(ErrorCodes.INFO,"FPP Withdraw", self.user.username+" withdrew "+str(amount)+" FPP from their account.")
 
-    def deposit(self, amount, category = None):
+    def deposit(self, amount, category=None, trans=None):
         """
         Creates a Deposit in the users FPP account
 
         :param user: The user the amount is being added to.
         :param amount: The amount being added to the account.
+        :param trans: the optional transaction to point the transaction to
+
 
         :raises :class:`transaction.exceptions.AmountNegativeException`:
             When the amount is a negative number.
@@ -81,8 +97,8 @@ class FppTransaction(AbstractTransaction):
         # creates the transaction
         if(category == None):
             category = TransactionType.objects.get(pk=TransactionTypeConstants.FppDeposit.value)
-        self.create(category,amount)
-        Logger.log(ErrorCodes.INFO, "Deposit", self.user.username+" deposited "+str(amount)+" FPP into their account.")
+        self.create(category,amount, trans)
+        Logger.log(ErrorCodes.INFO, "FPP Deposit", self.user.username+" deposited "+str(amount)+" FPP into their account.")
 
     def get_balance_string_formatted(self):
         """

@@ -1,4 +1,7 @@
+#
+# bonuscash/classes.py
 
+from mysite.exceptions import IncorrectVariableTypeException
 from transaction.constants import TransactionTypeConstants
 from transaction.classes import AbstractTransaction
 from transaction.models import TransactionType
@@ -31,12 +34,28 @@ class BonusCashTransaction(AbstractTransaction):
             return False
         return True
 
-    def withdraw(self, amount):
+    def validate_amount(self, amount):
+        """
+        adds additional type checking. make sure super().validate_amount() is called last.
+        :return:
+        """
+        try:
+            amount = float(amount)
+        except ValueError:
+            raise IncorrectVariableTypeException(self.__class__.__name__, 'amount: [%s]' % str(amount))
+
+        super().validate_amount( amount )
+
+    def withdraw(self, amount, trigger_transaction, trans=None):
         """
         Creates a Withdraw from the users bonuscash account
 
         :param amount: The amount that is being removed from the account.
             This should be a positive number.
+        :param trigger_transaction: The transaction that triggered the bonus
+            withdraw from the account.
+        :param trans: the optional transaction to point the transaction to
+
 
         :raises :class:`cash.exceptions.OverdraftException`: When
             the user does not have the amount for the withdraw
@@ -59,15 +78,19 @@ class BonusCashTransaction(AbstractTransaction):
 
         #
         # makes the amount negative because it is a withdrawal
-        self.create(category, -amount)
-        Logger.log(ErrorCodes.INFO,"Withdraw", self.user.username+" withdrew "+str(amount)+" "+self.accountName+" from their account.")
+        self.create(category, -amount, trans)
+        self.transaction_detail.trigger_transaction = trigger_transaction
+        self.transaction_detail.save()
 
-    def deposit(self, amount, category = None):
+        Logger.log(ErrorCodes.INFO,"Bonus Cash Withdraw", self.user.username+" withdrew "+str(amount)+" "+self.accountName+" from their account.")
+
+    def deposit(self, amount, category=None, trans=None):
         """
         Creates a Deposit in the users bonuscash account
 
         :param user: The user the amount is being added to.
         :param amount: The amount being added to the account.
+        :param trans: the optional transaction to point the transaction to
 
         :raises :class:`transaction.exceptions.AmountNegativeException`:
             When the amount is a negative number.
@@ -80,8 +103,8 @@ class BonusCashTransaction(AbstractTransaction):
         # creates the transaction
         if(category == None):
             category = TransactionType.objects.get(pk=TransactionTypeConstants.BonusCashDeposit.value)
-        self.create(category,amount)
-        Logger.log(ErrorCodes.INFO, "Deposit", self.user.username+" deposited "+str(amount)+" "+self.accountName+" into their account.")
+        self.create(category,amount, trans)
+        Logger.log(ErrorCodes.INFO, "Bonus Cash Deposit", self.user.username+" deposited "+str(amount)+" "+self.accountName+" into their account.")
 
     def get_balance_string_formatted(self):
         """
