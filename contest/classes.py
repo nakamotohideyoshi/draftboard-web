@@ -37,6 +37,15 @@ class AbstractContestCreator(object):
         return c
 
 class ContestCreator(AbstractContestCreator):
+    """
+    this can be used to make a quick 'n dirty contest,
+    but the admin form (ie: localhost/admin/contest/contest/add/)
+    performs all the logic and validation behind the scenes
+    and should be the primary tool for creating new Contests.
+
+    To clone/respawn existing Contests, use Contest's own clone(), or
+    respawn() methods, respectively.
+    """
 
     def __init__(self, name, sport, prize_structure, start, end):
         self.name               = name
