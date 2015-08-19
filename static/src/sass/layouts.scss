@@ -26,11 +26,6 @@
     display: none;
   }
 
-  .nav-main {
-    min-width: $nav-main-min-width;
-    z-index: $zindex-nav-main;
-  }
-
   // for < 768px only use the hamburglar for menu
   // ---------------
   // | B           |
@@ -38,37 +33,7 @@
   // |             |
   // ---------------
   @media (max-width: $break-tablet) {
-    .nav-main {
-      height: 100%;
-      position: absolute;
-      left: -200px;
-      top: 0;
-      transition: all 0.2s ease-out;
-      width: $nav-main-width;
 
-      &--hamburglar {
-        &:before {
-          content:'\2630';
-          font-size: 40px;
-          left: 10px;
-          position: relative;
-        }
-
-        cursor: pointer;
-        height: 60px;
-        left: 10px;
-        position: absolute;
-        top: 10px;
-        touch-action: manipulation;
-        width: 60px;
-        z-index: $zindex-nav-main + 1;
-      }
-    }
-
-    // add app state to pane open will animate the pane open
-    &.appstate--nav-main--open .nav-main {
-      left: 0;
-    }
   }
 
 
@@ -88,11 +53,6 @@
       max-width: 970px;
 
     }
-
-    .nav-main {
-      position: fixed;
-      height: 100%;
-    }
   }
 
 
@@ -107,29 +67,6 @@
   @media (min-width: $break-laptop + 1) {
     .cmp-contest-nav {
       display: block;
-    }
-  }
-
-  // at > 1440px, show full menu
-  @media (min-width: $break-desktop + 1) {
-    .nav-main {
-      width: $nav-main-width;
-
-      .inner {
-        width: 232px;
-      }
-
-      hr {
-        width: 48px;
-      }
-
-      a.my-account {
-        text-align: center;
-      }
-    }
-
-    .content-container {
-      margin-left: $nav-main-width + $sidebar-width;
     }
   }
 }
@@ -152,23 +89,18 @@
   @extend .one-col;
 
   .content-container {
-    margin-left: $nav-main-width + $sidebar-width;
+    margin-left: $sidebar-width;
   }
 
   // anything larger than a tablet (768px).
   @media (min-width: $break-tablet + 1) {
     .content-container {
-      margin-left: $nav-main-min-width  + $sidebar-width;
+      margin-left: $sidebar-width;
     }
   }
 
   // anything smaller than a laptop (1024px).
   @media (max-width: $break-laptop) {
-    // for now don't show sidebar on mobile
-    .content-container {
-      margin-left: $nav-main-min-width;
-    }
-
     .sidebar {
       display: none;
     }
@@ -187,7 +119,7 @@
   // anything larger than 1024px.
   @media (min-width: $break-laptop + 1) {
     .sidebar {
-      left: $nav-main-min-width;
+      left: 0;
       padding-top: $contest-nav-height;
       top: 0;
       position: fixed;
@@ -199,11 +131,11 @@
   // the biggest size.
   @media (min-width: $break-desktop + 1) {
     .content-container {
-      margin-left: $nav-main-width + $sidebar-width;
+      margin-left: $sidebar-width;
     }
 
     .sidebar {
-      left: $nav-main-width;
+      left: 0;
     }
   }
 }

@@ -15,6 +15,7 @@ var AppStateStore = Reflux.createStore({
   init: function() {
     // Connect AppActions to methods in this store.
     this.listenTo(AppActions.openNavMain, this.onOpenNavMain);
+    this.listenTo(AppActions.closeNavMain, this.onCloseNavMain);
     this.listenTo(AppActions.openPane, this.onOpenPane);
     this.listenTo(AppActions.closePane, this.onClosePane);
   },
@@ -65,9 +66,14 @@ var AppStateStore = Reflux.createStore({
    * Actions - NOTE: These might make more sense being somewhere else.
    */
 
-  // When the hamburger icon gets clicked.
+  // When the hamburger icon gets opened.
   onOpenNavMain: function() {
-    this.toggleClass('appstate--nav-main--open');
+    this.addClass('appstate--nav-main--open');
+  },
+
+  // When the hamburger icon gets closed.
+  onCloseNavMain: function() {
+    this.removeClass('appstate--nav-main--open');
   },
 
   // Open the slideover pane.
