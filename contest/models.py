@@ -130,6 +130,10 @@ class Contest(models.Model):
     respawn = models.BooleanField(default=False, null=False,
                                   help_text='indicates whether a new identical Contest should be created when this one fills up')
 
+    @property
+    def sport(self):
+        return self.site_sport.name
+
     def is_filled(self):
         """
         :return: True if there are no more entry spots left in this contest, otherwse returns False
