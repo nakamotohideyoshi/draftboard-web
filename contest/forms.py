@@ -7,6 +7,7 @@ from django.forms.widgets import SplitDateTimeWidget
 from contest.models import Contest
 from util.midnight import midnight
 from datetime import datetime
+import draftgroup.classes
 
 class ContestForm(ModelForm):
     """
@@ -108,6 +109,9 @@ class ContestFormAdd(ContestForm):
     ends_tonight = forms.BooleanField( initial=True,
         help_text='to set a custom time for the contest to end, you must set it below')
 
+    early_registration = forms.BooleanField( initial=False, required=False,
+        help_text='do not let users draft teams for this contest yet, but allow them to buy in to reserve a spot.')
+
     class Meta:
 
         abstract = False
@@ -126,8 +130,9 @@ class ContestFormAdd(ContestForm):
             'prize_structure',
             'start',
             'ends_tonight',
+            'early_registration',
             'end',
-            #'draft_group'
+            'draft_group',
             'max_entries',
             'entries',
             'gpp',
@@ -183,7 +188,21 @@ class ContestFormAdd(ContestForm):
             raise ValidationError( 'The "end" time cant be before the "start" time... Do you know how time works!?')
 
         #
-        # if no draftgroup selected, set the status to Contest.RESERVABLE,
-        # otherwise Contest.SCHEDULED should be used
+        # typically early_registration will be false, and
+        # we should automatically associate with the active draft group
+        draft_group        = cleaned_data.get('draft_group', None)
+        early_registration = cleaned_data.get('early_registration')
+        if early_registration and draft_group is not None:
+            raise ValidationError('You cant enable "early_registration" AND set a Draft Group.')
+        elif early_registration == True:
+            pass # dont set a draftgroup, let it be None
+        elif draft_group is not None:
+            pass # the draft_group they set will potentially be used after some validity checking
+            # TODO -- should we do checking???
+        else:
+            #
+            # get the active draftgroup for this contest
+            dgm = draftgroup.classes.DraftGroupManager()
+            draft_group = dgm.get_for_site_sport( site_sport, start, end )
+            self.cleaned_data['draft_group'] = draft_group
 
-        # HACK: for now always set to reservable - they can edit the contest to have a draft group though

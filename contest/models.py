@@ -92,7 +92,9 @@ class Contest(models.Model):
 
     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
 
-    status = models.CharField(max_length=32, choices=STATUS, default=RESERVABLE, null=False)
+    # NOTE: contests which are created for "early registration" will
+    # be set to the REGISTERING status -- and they will have a None draft_group
+    status = models.CharField(max_length=32, choices=STATUS, default=SCHEDULED, null=False)
 
     # start & today_only/end determine the range of time,
     # in between which live sporting events will be included
@@ -106,7 +108,7 @@ class Contest(models.Model):
                     help_text='forces the end time of the contest (will override "Ends tonight" checkbox!!')
 
     # set the pool of players this contest can draft from
-    draft_group = models.ForeignKey('draftgroup.DraftGroup', null=True,
+    draft_group = models.ForeignKey('draftgroup.DraftGroup', null=True, blank=True,
                     verbose_name='DraftGroup',
                     help_text='the pool of draftable players and their salaries, for the games this contest includes.' )
 

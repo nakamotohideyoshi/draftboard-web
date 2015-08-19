@@ -194,6 +194,16 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         distinct_draft_groups = GameTeam.objects.filter(game_srid=game.srid).distinct('draft_group')
         return [ x.draft_group for x in distinct_draft_groups ]
 
+    def get_for_contest(self, contest):
+        """
+        Wrapper for method get_for_site_sport().
+        Uses the contest site_sport, start, end properties to get DraftGroup
+
+        :param contest:
+        :return:
+        """
+        return self.get_for_site_sport( contest.site_sport, contest.start, contest.end )
+
     def create_for(self, contest):
         """
         wrapper for create( site_sport, start, end ) method
