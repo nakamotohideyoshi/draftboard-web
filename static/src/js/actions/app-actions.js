@@ -9,6 +9,7 @@ var Reflux = require("reflux");
 */
 var AppActions = Reflux.createActions([
   'openNavMain',
+  'closeNavMain',
   'openPane',
   'closePane'
 ]);

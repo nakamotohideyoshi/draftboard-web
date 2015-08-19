@@ -1,44 +1,56 @@
+// add app state to pane open will animate the pane open
+body.appstate--nav-main--open .nav-main {
+  left: 0;
+}
+
+.nav-main-trigger {
+  cursor: pointer;
+  position: fixed;
+  left: 10px;
+  top: 18px;
+  z-index: $zindex-nav-main - 1;
+
+  &__logo {
+    display: inline-block;
+    width: 34px;
+    height: 18px;
+    background: transparent url(../img/blocks/nav-main/logo.png) no-repeat center top;
+    background-size: auto 100%;
+  }
+
+  &__menu {
+    display: inline-block;
+    width: 23px;
+    height: 15px;
+    background: transparent url(../img/blocks/nav-main/menu.png) no-repeat center top;
+    background-size: auto 100%;
+  }
+}
+
 .nav-main {
   background: #0f161e;
   border-left: 20px solid #0f161e;
   border-right: 20px solid #0f161e;
   font-family: $font-open-sans;
-
-  // used to hide, the container has a border
-  .inner {
-    background: #0f161e;
-    position: fixed;
-    height: 100%;
-    overflow: hidden;
-    padding: 0 10px;
-    width: 50px;
-  }
-
-  &:hover .inner {
-    // The width of the main nav, minus the 20px padding of .inner.
-    width: $nav-main-width - 20px;
-    background-color: #0f161e;
-
-    hr {
-      width: 48px;
-    }
-
-    a.my-account {
-      text-align: center;
-    }
-  }
+  height: 100%;
+  position: fixed;
+  left: -$nav-main-width;
+  top: 0;
+  transition: all 0.2s ease-out;
+  width: $nav-main-width;
+  z-index: $zindex-nav-main;
 
   a {
-    color: #a4acb4;
     text-decoration: none;
   }
 
-  .logo {
+  &__logo {
+    color: #fff;
     display: block;
     line-height: 1;
     font-size: 10px;
     font-weight: 600;
-    margin-top: 16px;
+    margin: 36px 0 20px;
     letter-spacing: 4px;
     text-transform: uppercase;
 
@@ -46,15 +58,7 @@
     background-repeat: no-repeat;
     background-size: auto 50%;
     padding: 16px 0 12px 42px;
-    background-image: url(../img/blocks/nav-main/logo.png);
-  }
-
-  hr {
-    background: #3a4a5a;
-    height: 2px;
-    margin: 20px 0;
-    width: 34px;
-    border: none;
+    background-image: url(../img/blocks/nav-main/logo-active.png);
   }
 
   ul {
@@ -63,42 +67,31 @@
 
   li {
     display: block;
-    margin: 16px 0;
+    padding: 14px 10px;
 
     a {
+      color: #6d718a;
       display: block;
-      font-size: 13px;
-      padding: 8px 0 8px 35px;
-      margin-left: 8px;
-      background-position: left center;
-      background-repeat: no-repeat;
-      background-size: auto 50%;
+      font-weight: 300;
+      font-size: 18px;
     }
 
     &.active a {
       color: #fff;
     }
-
-    &.lobby a {
-      background-image: url(../img/blocks/nav-main/lobby.png);
-    }
-    &.lineups a {
-      background-image: url(../img/blocks/nav-main/lineups.png);
-    }
-    &.live a {
-      background-image: url(../img/blocks/nav-main/live.png);
-    }
   }
 
   .my-account {
     position: absolute;
+    color: #a4acb4;
     background: #1b242f;
     font-size: 14px;
     bottom: 45px;
-    width: 230px;
+    width: 260px;
     left: -10px;
     padding: 12px 27px;
     display: block;
+    text-align: center;
 
     span {
       background: url(../img/blocks/nav-main/my-account.png) no-repeat left center;
