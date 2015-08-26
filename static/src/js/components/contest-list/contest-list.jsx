@@ -88,16 +88,14 @@ var ContestList = React.createClass({
 
     return (
       <div>
-        <div className="contest-list-filter">
-          <div className="contest-list-type-filter">
-            <ContestStorePropertyMatchFilter
-              className="contest-list-filter--contest-type"
-              filters={this.state.contestTypeFilters}
-              filterName="contestTypeFilter"
-              property='contestType'
-              match=''
-            />
-          </div>
+        <div className="contest-list-type-filter">
+          <ContestStorePropertyMatchFilter
+            className="contest-list-filter--contest-type"
+            filters={this.state.contestTypeFilters}
+            filterName="contestTypeFilter"
+            property='contestType'
+            match=''
+          />
         </div>
 
         <table className="cmp-contest-list__table table">
