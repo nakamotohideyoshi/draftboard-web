@@ -1,16 +1,17 @@
 "use strict";
 
-var React = require("react");
+var React = require('react');
 var Reflux = require('reflux');
 var ContestStore = require("../../stores/contest-store.js");
 var renderComponent = require('../../lib/render-component');
-var DataTable = require('../data-table/data-table.jsx');
-var DataTableColumnMatchFilter = require('../data-table/data-table-column-match-filter.jsx');
-var Tr = require('./contest-list-tr.jsx');
+var ContestStorePropertyMatchFilter = require('./contest-store-property-match-filter.jsx');
+var ContestListRow = require('./contest-list-row.jsx');
+var ContestListDetail = require('./contest-list-detail.jsx');
 var KeypressActions = require('../../actions/keypress-actions');
-var AppActions = require('../../actions/app-actions');
 var ContestActions = require('../../actions/contest-actions');
+require('./contest-list-header.jsx');
 require('./contest-list-detail.jsx');
+require('./contest-list-sport-filter.jsx');
 
 
 /**
@@ -25,54 +26,24 @@ var ContestList = React.createClass({
 
   getInitialState: function() {
     return ({
-      // League filter data.
-      leagueFilters: [
-        {title: 'All', column: 'league', match: ''},
-        {title: 'NBA', column: 'league', match: 'nba'},
-        {title: 'NFL', column: 'league', match: 'nfl'},
-        {title: 'MLB', column: 'league', match: 'mlb'}
-      ],
-
+      filteredContests: [],
       // Contest type filter data.
       contestTypeFilters: [
         {title: 'All', column: 'contestType', match: ''},
-        {title: 'GPP', column: 'contestType', match: 'gpp'},
-        {title: 'Head-to-Head', column: 'contestType', match: 'h2h'},
-        {title: 'Double Up', column: 'contestType', match: 'double-up'}
-      ],
-
-      // Optional - Which columns in each data row should be displayed?
-      columns: [
-        'id',
-        'title',
-        'entries_total',
-        'entries_filled',
-        'prize',
-        'startTime'
-      ],
-
-      // Optional - Map keys in the data row columns to a table header title.
-      columnHeaders: {
-        'title': 'Contest',
-        'entries_total': 'Total Entries',
-        'entries_filled': 'Entries Filled',
-        'prize': 'Prize Pool',
-        'startTime': 'Starting'
-      }
-
+        {title: 'Guaranteed', column: 'contestType', match: 'gpp'},
+        {title: 'Double-Up', column: 'contestType', match: 'double-up'},
+        {title: 'Heads-Up', column: 'contestType', match: 'h2h'}
+      ]
     });
   },
 
   /**
    * When a row is clicked (or something else) we want to make that contest the 'focused' one.
    * @param {integer} id the ID of the contest to be focused.
-   * @param {Object} e  Click event - Supplied by the click handler.
    */
   setContestFocus: function(id) {
     if (id !== 'undefined') {
       ContestActions.contestFocused(id);
-      // Open the side pane.
-      AppActions.openPane();
     }
   },
 
@@ -88,9 +59,6 @@ var ContestList = React.createClass({
    */
   focusNextRow: function() {
     this.setContestFocus(ContestStore.getNextVisibleRowId());
-    // Open the side pane.
-    AppActions.openPane();
-
   },
 
 
@@ -99,40 +67,53 @@ var ContestList = React.createClass({
    */
   focusPreviousRow: function() {
     this.setContestFocus(ContestStore.getPreviousVisibleRowId());
-    // Open the side pane.
-    AppActions.openPane();
   },
 
 
   render: function() {
     var contests = this.state.filteredContests || [];
+    // Build up a list of rows to be displayed.
+    var visibleRows = contests.map(function(row) {
+      // Determine if this row should have it's details shown as a TR after it.
+      var detailRow;
+      if (this.state.focusedContestId === row.id) {
+        detailRow = <ContestListDetail key={row.id + '-detail'} />;
+      }
+
+      return (
+        [<ContestListRow key={row.id} row={row} focusedContestId={this.state.focusedContestId} />, detailRow]
+      );
+    }, this);
+
 
     return (
       <div>
-        <div className="clearfix">
-          <DataTableColumnMatchFilter
-            className="data-table-filter--league"
-            filters={this.state.leagueFilters}
-            column='league'
-            match=''
-          />
-
-          <DataTableColumnMatchFilter
-            className="data-table-filter--contest-type"
-            filters={this.state.contestTypeFilters}
-            column='contestType'
-            match=''
-          />
+        <div className="contest-list-filter">
+          <div className="contest-list-type-filter">
+            <ContestStorePropertyMatchFilter
+              className="contest-list-filter--contest-type"
+              filters={this.state.contestTypeFilters}
+              filterName="contestTypeFilter"
+              property='contestType'
+              match=''
+            />
+          </div>
         </div>
 
-        <DataTable
-          data={contests}
-          columns={this.state.columns}
-          columnHeaders={this.state.columnHeaders}
-          trComponent={Tr}
-          sortKey={this.state.sortKey}
-          sortDirection={this.state.sortDirection}
-        />
+        <table className="cmp-contest-list__table table">
+          <thead>
+            <tr className="cmp-contest-list__header-row">
+              <th></th>
+              <th>Contest</th>
+              <th>Entries / Size</th>
+              <th>Fee</th>
+              <th>Prizes</th>
+              <th>Live In</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>{visibleRows}</tbody>
+        </table>
       </div>
     );
   }

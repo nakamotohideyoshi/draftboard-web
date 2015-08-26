@@ -1,0 +1,289 @@
+/*doc
+---
+title: Lineup Card
+category: Lineup
+---
+
+```html_example
+
+<div class="cmp-lineup-card">
+  <header class="cmp-lineup-card__header">
+    <h3 class="cmp-lineup-card__title">Best Team Ever 3</h3>
+  </header>
+
+  <ul>
+    <li class="cmp-lineup-card__player">
+      <span class="cmp-lineup-card__position" title="Position">PG</span>
+      <span class="cmp-lineup-card__photo" title="Player Photo">😀</span>
+      <span class="cmp-lineup-card__name" title="Player Name">E. Mudiay</span>
+      <span class="cmp-lineup-card__average" title="Projected Fantasy Points">8</span>
+    </li>
+    <li class="cmp-lineup-card__player">
+      <span class="cmp-lineup-card__position">PG</span>
+      <span class="cmp-lineup-card__photo">😀</span>
+      <span  class="cmp-lineup-card__name">E. Mudiay</span>
+      <span  class="cmp-lineup-card__average">8</span>
+    </li>
+    <li class="cmp-lineup-card__player">
+      <span class="cmp-lineup-card__position">PG</span>
+      <span class="cmp-lineup-card__photo">😀</span>
+      <span  class="cmp-lineup-card__name">E. Mudiay</span>
+      <span  class="cmp-lineup-card__average">8</span>
+    </li>
+    <li class="cmp-lineup-card__player">
+      <span class="cmp-lineup-card__position">PG</span>
+      <span class="cmp-lineup-card__photo">😀</span>
+      <span  class="cmp-lineup-card__name">E. Mudiay</span>
+      <span  class="cmp-lineup-card__average">8</span>
+    </li>
+    <li class="cmp-lineup-card__player">
+      <span class="cmp-lineup-card__position">PG</span>
+      <span class="cmp-lineup-card__photo">😀</span>
+      <span  class="cmp-lineup-card__name">E. Mudiay</span>
+      <span  class="cmp-lineup-card__average">8</span>
+    </li>
+    <li class="cmp-lineup-card__player">
+      <span class="cmp-lineup-card__position">PG</span>
+      <span class="cmp-lineup-card__photo">😀</span>
+      <span  class="cmp-lineup-card__name">E. Mudiay</span>
+      <span  class="cmp-lineup-card__average">8</span>
+    </li>
+    <li class="cmp-lineup-card__player">
+      <span class="cmp-lineup-card__position">PG</span>
+      <span class="cmp-lineup-card__photo">😀</span>
+      <span  class="cmp-lineup-card__name">E. Mudiay</span>
+      <span  class="cmp-lineup-card__average">8</span>
+    </li>
+    <li class="cmp-lineup-card__player">
+      <span class="cmp-lineup-card__position">PG</span>
+      <span class="cmp-lineup-card__photo">😀</span>
+      <span  class="cmp-lineup-card__name">E. Mudiay</span>
+      <span  class="cmp-lineup-card__average">8</span>
+    </li>
+  </ul>
+
+  <footer class="cmp-lineup-card__footer">
+    <div class="cmp-lineup-card__fees cmp-lineup-card__footer-section">
+      <span class="cmp-lineup-card__footer-title">Fees</span>
+      120
+    </div>
+    <div class="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
+      <span class="cmp-lineup-card__footer-title">Live In</span>
+      00:38:48
+    </div>
+    <div class="cmp-lineup-card__entries cmp-lineup-card__footer-section">
+      <span class="cmp-lineup-card__footer-title">Entries</span>
+      22
+    </div>
+  </footer>
+</div>
+
+```
+*/
+
+
+
+@import "../variables.scss";
+
+
+.cmp-lineup-card {
+  background: #fff;
+  margin: 0 auto 10px;
+  max-width: 290px;
+  position: relative;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    list-style: none;
+    margin: 0;
+  }
+
+  &__header {
+    padding: 15px;
+  }
+
+  &__title {
+    font-size: 16px;
+    font-weight: 400;
+    margin: 0;
+    padding: 0px;
+  }
+
+  &__plus {
+    position: absolute;
+    right: 15px;
+  }
+
+  &__player {
+    &:first-child {
+      border-top: 1px solid #ebedf2;
+    }
+
+    border-bottom: 1px solid #ebedf2;
+    display: table;
+    font-size: 13px;
+    padding: 10px 5px;
+    width: 100%;
+
+    span {
+      display: table-cell;
+      padding: 0 5px;
+    }
+  }
+
+  &__position {
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  &__photo {
+    width: 25px;
+  }
+
+  &__name {
+    width: 100%;
+  }
+
+  &__average {
+    font-family: $font-oswald;
+  }
+
+  &__footer {
+    padding: 15px;
+  }
+
+  &__footer-section {
+      display: inline-block;
+      width: 33%;
+      text-align: center;
+      font-size: 18px;
+      font-family: $font-oswald;
+  }
+
+  &__footer-title {
+    font-family: $font-open-sans;
+    color: #b4b7c4;
+    text-transform: uppercase;
+    font-size: 9px;
+    display: block;
+  }
+
+
+  /**
+   * Collapsed Card
+   */
+  &--collapsed {
+    background: #3a3f52;
+    color: #ffffff;
+    cursor: pointer;
+    position: relative;
+
+    // Select CTA.
+    .cmp-lineup-card__select {
+      background-color: rgba(95, 99, 116, .95);
+      font-size: 10px;
+      height: 100%;
+      left: 0;
+      opacity: 0;
+      position: absolute;
+      text-align: center;
+      text-transform: uppercase;
+      top: 0;
+      transition: none;
+      visibility: hidden;
+      width: 100%;
+
+      h4 {
+        padding-top: 20px;
+      }
+    }
+
+    &:hover {
+      // Show select CTA on hover.
+      .cmp-lineup-card__select {
+        transition: opacity 0.2s ease-in-out;
+          opacity: 1;
+          visibility: visible;
+      }
+    }
+  }
+
+  // Create CTA - collapsed version.
+  &--create-collapsed {
+    background: #3a3f52;
+    color: #9c9faf;
+    cursor: pointer;
+    position: relative;
+
+    &:hover {
+      .cmp-lineup-card__title {
+        color: #fff;
+      }
+    }
+
+    .cmp-lineup-card__title {
+      background-size: 13px auto;
+      background: url(../img/common/nba.svg) no-repeat 5px 50%;
+      padding-left: 25px;
+    }
+
+    .cmp-lineup-card__plus {
+      font-size: 28px;
+      font-weight: 100;
+      top: 6px;
+    }
+  }
+
+  // Expanded CTA version.
+  &--create {
+    border: 1px solid #252c3d;
+    text-align: center;
+    -webkit-box-shadow: 0px 0px 20px 5px rgba(35,45,61,0.7);
+    -moz-box-shadow: 0px 0px 20px 5px rgba(35,45,61,0.7);
+    box-shadow: 0px 0px 20px 5px rgba(35,45,61,0.7);
+
+    .cmp-lineup-card__title {
+      background: url(../img/common/nba.svg) no-repeat bottom center;
+      background-size: 13px auto;
+      color: #fff;
+      font-size: 21px;
+      margin-top: 145px;
+      padding-bottom: 25px;
+
+      .sub {
+        color: #9c9faf;
+        display: block;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+    }
+
+    .button {
+      display: block;
+      font-size: 10px;
+      margin: 150px 20px 25px;
+      text-transform: uppercase;
+
+
+    }
+  }
+
+  // Expanded sport-specific versions.
+  &--create__nba {
+    background: url(../img/blocks/lineup-card/draft-cta-bg-nba.jpg) #161922 no-repeat;
+    background-size: 100% auto;
+    min-height: 450px;
+  }
+}
+
+
+
+.lineup-sidebar-list {
+    margin-top: 100px;
+}

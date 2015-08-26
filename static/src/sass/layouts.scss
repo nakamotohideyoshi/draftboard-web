@@ -46,12 +46,13 @@
   // |         |                                                  |
   // --------------------------------------------------------------
   @media (min-width: $break-tablet + 1) {
-    .page-content {
+    .page-content__content,
+    .page-content__header-content {
       // the top padding is to offset the area for the sports ticker
-      padding: $contest-nav-height + 40px 70px 0;
-      margin: 0 auto;
+      padding: 40px 70px 0;
+      position: relative;
+      margin: $contest-nav-height auto 0;
       max-width: 970px;
-
     }
   }
 
@@ -109,11 +110,11 @@
 
   // at desktop size, show the sports ticker and make three column
   // --------------------------------------------------------------
-  // |         |                               |                  |
-  // |         |                               |                  |
-  // |   nav   |           section             |     sidebar      |
-  // |         |                               |                  |
-  // |         |                               |                  |
+  // |         |                  |                               |
+  // |         |                  |                               |
+  // |   nav   |     sidebar      |           section             |
+  // |         |                  |                               |
+  // |         |                  |                               |
   // --------------------------------------------------------------
 
   // anything larger than 1024px.

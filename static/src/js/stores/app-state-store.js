@@ -1,7 +1,8 @@
 "use strict";
 
-var Reflux = require("reflux");
-var AppActions = require("../actions/app-actions");
+var Reflux = require('reflux');
+var AppActions = require('../actions/app-actions');
+var ContestActions = require('../actions/contest-actions.js');
 
 /*
 * A store to keep track of our app's state. this works in conjunction with AppStateClass component to add
@@ -18,6 +19,7 @@ var AppStateStore = Reflux.createStore({
     this.listenTo(AppActions.closeNavMain, this.onCloseNavMain);
     this.listenTo(AppActions.openPane, this.onOpenPane);
     this.listenTo(AppActions.closePane, this.onClosePane);
+    this.listenTo(ContestActions.contestTypeFiltered, this.onContestTypeFiltered);
   },
 
 
@@ -84,6 +86,10 @@ var AppStateStore = Reflux.createStore({
   // Close the slideover pane.
   onClosePane: function() {
     this.removeClass('appstate--pane--open');
+  },
+
+  onContestTypeFiltered: function() {
+    this.addClass('appstate--contest-filters-open');
   }
 
 });

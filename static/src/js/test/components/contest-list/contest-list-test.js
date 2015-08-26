@@ -42,8 +42,8 @@ describe("ContestList Component", function() {
   });
 
 
-  it('should render 2 filters', function() {
-    expect(this.contestListElement.querySelectorAll('.data-table-filter').length).to.equal(2);
+  it('should render the contest type filter', function() {
+    expect(this.contestListElement.querySelectorAll('.contest-list-filter').length).to.equal(1);
   });
 
 });

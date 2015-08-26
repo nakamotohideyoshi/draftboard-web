@@ -29,8 +29,10 @@ Hello WOrld!
 @import "./helpers.scss";
 
 // Per the BEM methodology, these are where the blocks are imported
+@import "./blocks/lobby.scss";
 @import "./blocks/balance-summary.scss";
 @import "./blocks/button.scss";
+@import "./blocks/button-multi-entry.scss";
 @import "./blocks/content-message.scss";
 @import "./blocks/form.scss";
 @import "./blocks/form-field.scss";
@@ -54,10 +56,11 @@ Hello WOrld!
 
 
 /* Components */
-@import "./blocks/cmp-data-table-filter.scss";
 @import "./blocks/cmp-contest-list.scss";
-@import "./blocks/cmp-contest-detail.scss";
+@import "./blocks/cmp-contest-list-header.scss";
+@import "./blocks/cmp-contest-list-filter.scss";
 @import "./blocks/cmp-contest-nav.scss";
+@import "./blocks/cmp-lineup-card.scss";
 
 // For now have style guide in here (not needed on production)
 @import "./styleguide.scss";

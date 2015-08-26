@@ -55,9 +55,9 @@ module.exports = function(options) {
         {
           test: /\.scss$/,
           loader: ExtractTextPlugin.extract(
-            'css-loader!' +
+            'css-loader?sourceMap!' +
             'autoprefixer-loader?browsers=last 2 version!' +
-            'sass-loader'
+            'sass-loader?sourceMap'
           )
         },
         // Run ESLint on jsx + js files.

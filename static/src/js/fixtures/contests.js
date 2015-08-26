@@ -3,18 +3,137 @@
 module.exports = [
   {
     // regular expression of URL
-    pattern: "/contests",
+    pattern: "/contest/lobby/",
 
     // callback that returns the data
     fixtures: function () {
-      return [
-        {id: 0, "title": "NBA - Anonymous Head-to-Head", "entries_total": "14,231", "entries_filled": "12,014", "prize": "$350,000", "startTime": "03:06:28", "league": 'nba', 'contestType': 'gpp'},
-        {id: 1, "title": "NBA - $150,000 Championship", "entries_total": "10,001", "entries_filled": "2,993", "prize": "$150,000", "startTime": "03:06:28", "league": 'nba', 'contestType': 'gpp'},
-        {id: 2, "title": "NFL - $50,000 Championship", "entries_total": "10,001", "entries_filled": "2,993", "prize": "2150,000", "startTime": "03:06:28", "league": 'nfl', 'contestType': 'gpp'},
-        {id: 3, "title": "NFL - $666 Championship", "entries_total": "2,001", "entries_filled": "2,993", "prize": "$666", "startTime": "03:06:28", "league": 'nfl', 'contestType': 'h2h'},
-        {id: 4, "title": "MLB - $9 Sunday game", "entries_total": "54,001", "entries_filled": "2,993", "prize": "$150,000", "startTime": "03:06:28", "league": 'mlb', 'contestType': 'h2h'},
-        {id: 5, "title": "MLB - Throwback 1999 thing", "entries_total": "10,001", "entries_filled": "2,993", "prize": "$150,000", "startTime": "03:06:28", "league": 'mlb', 'contestType': 'h2h'}
-      ];
+      return {
+        "count": 10,
+        "next": null,
+        "previous": null,
+        "results": [
+          {
+            "name": "ContestThree",
+            "sport": "nfl",
+            "status": "scheduled",
+            "start": "2015-08-20T23:30:00Z",
+            "draft_group": null,
+            "max_entries": 1,
+            "entries": 2,
+            "current_entries": 0,
+            "gpp": true,
+            "respawn": true
+          },
+          {
+            "name": "ContestFour",
+            "sport": "nfl",
+            "status": "scheduled",
+            "start": "2015-08-20T23:00:00Z",
+            "draft_group": null,
+            "max_entries": 1,
+            "entries": 2,
+            "current_entries": 0,
+            "gpp": true,
+            "respawn": false
+          },
+          {
+            "name": "ContestFive",
+            "sport": "nfl",
+            "status": "scheduled",
+            "start": "2015-08-21T23:30:00Z",
+            "draft_group": null,
+            "max_entries": 1,
+            "entries": 2,
+            "current_entries": 0,
+            "gpp": false,
+            "respawn": true
+          },
+          {
+            "name": "ContestSix",
+            "sport": "nfl",
+            "status": "scheduled",
+            "start": "2015-08-22T23:00:00Z",
+            "draft_group": null,
+            "max_entries": 1,
+            "entries": 2,
+            "current_entries": 0,
+            "gpp": false,
+            "respawn": true
+          },
+          {
+            "name": "MLB Head-to-Head",
+            "sport": "mlb",
+            "status": "reservable",
+            "start": "2015-08-19T02:00:00Z",
+            "draft_group": null,
+            "max_entries": 1,
+            "entries": 2,
+            "current_entries": 0,
+            "gpp": false,
+            "respawn": true
+          },
+          {
+            "name": "NFL Test Early Reg",
+            "sport": "nfl",
+            "status": "scheduled",
+            "start": "2015-08-20T23:30:00Z",
+            "draft_group": null,
+            "max_entries": 1,
+            "entries": 2,
+            "current_entries": 0,
+            "gpp": false,
+            "respawn": true
+          },
+          {
+            "name": "NFL NoEarlyReg",
+            "sport": "nfl",
+            "status": "scheduled",
+            "start": "2015-08-20T23:30:00Z",
+            "draft_group": null,
+            "max_entries": 1,
+            "entries": 2,
+            "current_entries": 0,
+            "gpp": false,
+            "respawn": true
+          },
+          {
+            "name": "NFL Test AutoCreateDraftGroup",
+            "sport": "nfl",
+            "status": "scheduled",
+            "start": "2015-08-20T23:30:00Z",
+            "draft_group": 5,
+            "max_entries": 1,
+            "entries": 2,
+            "current_entries": 1,
+            "gpp": false,
+            "respawn": true
+          },
+          {
+            "name": "NFL Test AutoCreateDraftGroup",
+            "sport": "nfl",
+            "status": "scheduled",
+            "start": "2015-08-20T23:30:00Z",
+            "draft_group": 5,
+            "max_entries": 1,
+            "entries": 2,
+            "current_entries": 0,
+            "gpp": false,
+            "respawn": true
+          },
+          {
+            "name": "NFL Test AutoCreateDraftGroup",
+            "sport": "nfl",
+            "status": "scheduled",
+            "start": "2015-08-20T23:30:00Z",
+            "draft_group": 5,
+            "max_entries": 1,
+            "entries": 2,
+            "current_entries": 0,
+            "gpp": false,
+            "respawn": true
+          }
+        ]
+      };
     },
 
     // `match`: result of the resolution of the regular expression

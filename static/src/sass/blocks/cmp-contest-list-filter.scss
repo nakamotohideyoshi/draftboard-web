@@ -1,0 +1,97 @@
+/**
+ * Radio-like selection links to enable filters on the contest list.
+ */
+.contest-list-filter {
+  padding-top: 5px;
+  padding-bottom: 15px;
+  // Hide these by default - they get shown when the header display is selected.
+  display: none;
+
+  &__option {
+    color: #46495e;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 0 15px 0 0;
+    padding: 0 0 3px;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+
+    &:hover {
+      color: #6d718a;
+    }
+
+    &--active {
+      @extend .table-contests-filter__filter;
+      color: #fff;
+      border: 0px solid transparent;
+      -moz-border-image: -moz-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+      -webkit-border-image: -webkit-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+      border-image: linear-gradient(to right, #1f907c 0%, #34cc68 100%);
+      border-image-slice: 1;
+      border-bottom: 2px solid;
+
+      &:hover {
+        color: #fff;
+        cursor: default;
+      }
+    }
+  }
+
+  &--contest-type {
+    .contest-list-filter__option {
+      color: #babdc9;
+
+      &:hover {
+        color: #777983;
+      }
+
+      &--active {
+        color: #46495e;
+
+        &:hover {
+          color: #46495e;
+        }
+      }
+    }
+  }
+}
+
+
+// Specific filters.
+.contest-list-type-filter,
+.contest-list-sport-filter {
+  &__title {
+    color: #6d718a;
+    font-size: 9px;
+    font-weight: 500;
+    margin-bottom: 0px;
+    padding-bottom: 0px;
+    text-transform: uppercase;
+  }
+}
+
+// Contest Type
+.contest-list-type-filter {
+  &__title {
+    color: #a7aabd;
+  }
+}
+
+.contest-list-filter--league {
+  display: block;
+}
+
+// Contest Sport/League
+.contest-list-sport-filter {
+  padding: 20px 40px;
+  position: absolute;
+  width: 100%;
+  background: rgba(19, 26, 37, .95);
+  z-index: 100;
+
+  .contest-list-filter {
+    padding: 0;
+  }
+}
