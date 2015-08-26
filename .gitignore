@@ -83,6 +83,7 @@ lib-cov
 
 # Coverage directory used by tools like istanbul
 coverage
+coverage.html
 
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
@@ -108,4 +109,3 @@ mysite/settings/craigruks.py
 
 # any files with "mongodump-" prefix -- this is just my naming convention
 mongodump-*
-
