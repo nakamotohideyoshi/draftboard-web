@@ -118,8 +118,7 @@ category: Tables
   width: 100%;
 
   thead {
-    border-bottom: 1px solid #e6e9eb;
-    background: #2f404e;
+    background: #dee0e8;
   }
 
   tbody {
@@ -128,13 +127,9 @@ category: Tables
 
   tbody tr {
     border-bottom: 1px solid #d4d7e3;
-    
-    &:hover {
-      background: #F1F2F5 !important;
-    }
 
-    &.active {
-      background: #eee;
+    &:hover {
+      background: #F1F2F5;
     }
   }
 
@@ -164,11 +159,12 @@ category: Tables
   }
 
   th {
-    color: #a2a8ae;
+    color: #6d718a;
     cursor: pointer;
     font-size: 10px;
-    font-weight: 200;
-    padding: 5px;
+    font-weight: 500;
+    padding: 3px 5px;
+    text-transform: uppercase;
 
     &.active {
       color: #fff;
@@ -185,7 +181,6 @@ category: Tables
       transform: rotateX(180deg);
     }
   }
-
 
   &__title {
     font-weight: 600;

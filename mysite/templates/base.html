@@ -53,16 +53,22 @@
         {% include 'frontend/partials/contest-nav.html' %}
 
         <aside class="sidebar">
-          <div class="sidebar-content">
-            {% block sidebar %}
-            {% endblock %}
-          </div>
+          {% block sidebar-header %}{% endblock %}
+          <div class="sidebar-inner">
+            <div class="sidebar-content">
+              {% block sidebar %}{% endblock %}
+            </div>
+          </div>9
         </aside>
 
         <section class="page-content">
-          {% block page_content %}
-            .page-content
-          {% endblock %}
+          {% block page-content-header %}{% endblock %}
+
+          <div class="page-content__content">
+            {% block page_content %}
+              .page-content
+            {% endblock %}
+          </div>
         </section>
       </div>
 

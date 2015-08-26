@@ -1,0 +1,78 @@
+/**
+ * This is the header that displays the current filters
+ *
+ * NBA Contest / Heads-Up
+ */
+.cmp-contest-list__header {
+  padding-bottom: 20px;
+
+  h2 {
+    font-weight: 100;
+    padding-bottom: 0px;
+  }
+
+  &-league {
+    font-size: 22px;
+  }
+
+  &-divider,
+  &-type {
+    color: #46495e;
+    font-size: 16px;
+  }
+
+  &-type {
+    background: url(../img/blocks/button-multi-entry/select_arrow.png) no-repeat 100% 50%;
+    background-size: 7px auto;
+    padding-right: 12px;
+    cursor: pointer;
+
+    &:hover {
+      color: #26c661;
+    }
+  }
+
+  &-divider {
+    padding: 0 10px;
+  }
+}
+
+// When the header has been clicked and the filters are shown.
+.appstate--contest-filters-open {
+
+  .cmp-contest-list__header {
+    padding-bottom: 40px;
+  }
+
+  .page-content__header {
+    position: relative;
+
+    // Arrow tab thing.
+    &:after{
+        content: ' ';
+        display: block;
+        position: absolute;
+        left: 50%;
+        bottom: -7px;
+        width: 12px;
+        height: 12px;
+        margin-left: -5px;
+        border-color: #babdc9;
+        border-width: 1px;
+        border-style: none none solid solid;
+        background-color: #fff;
+        transform: rotate(-45deg);
+    }
+  }
+
+  // Show the contest list filter
+  .contest-list-filter {
+    display: block;
+  }
+}
+
+
+// When in the lobby, and the filters are open...
+.page-lobby.appstate--contest-filters-open .page-content__header {
+    border-bottom: 1px solid #babdc9;
+}

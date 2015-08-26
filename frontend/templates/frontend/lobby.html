@@ -2,10 +2,40 @@
 
 {% block body_class %}section-lobby page-lobby two-col two-col--left{% endblock %}
 
+
+{% block sidebar-header %}
+<div class="contest-list-sport-filter">
+  <h5 class="contest-list-sport-filter__title">Choose a Sport</h5>
+  <div class="cmp-contest-list-sport-filter"></div>
+</div>
+{% endblock sidebar-header %}
+
+
+{% block sidebar %}
+  <div class="cmp-lineup-card-list lineup-sidebar-list"></div>
+{% endblock sidebar %}
+
+
+{% block page-content-header %}
+<header class="page-content__header">
+  <div class="page-content__header-content">
+    <div class="cmp-contest-list-header"></div>
+
+    <div class="contest-list-key">
+      <span class="contest-list-key__item">
+        <span class="contest-icon contest-icon__multi-entry">M</span>
+        Multi-Entry Allowed
+      </span>
+      <span class="contest-list-key__item">
+        <span class="contest-icon contest-icon__guaranteed">G</span>
+        Guaranteed Prize Pool
+      </span>
+    </div>
+  </div>
+</header>
+{% endblock page-content-header %}
+
+
 {% block page_content %}
   <div class="cmp-contest-list"></div>
 {% endblock page_content %}
-
-{% block slideover-pane %}
-  <div class="cmp-contest-detail"></div>
-{% endblock slideover-pane %}

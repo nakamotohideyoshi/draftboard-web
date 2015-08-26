@@ -1,0 +1,51 @@
+@import "../variables.scss";
+
+
+.section-lobby {
+  &.page-lobby {
+    .page-content__content {
+      padding-top: 20px;
+      margin-top: 0;
+    }
+  }
+}
+
+
+// Contest icon definitions.
+.contest-list-key {
+  position: absolute;
+  top: 50px;
+  right: 70px;
+
+  &__item {
+    color: #46495e;
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding-left: 20px;
+  }
+
+  .contest-icon {
+    margin-right: 3px;
+  }
+}
+
+
+// Contest icons.
+.contest-icon {
+  display: inline-block;
+  font-family: $font-open-sans;
+  font-size: 8px;
+  padding: 2px 4px;
+  text-transform: uppercase;
+}
+
+.contest-icon__guaranteed {
+  background: #34cc68;
+  color: white;
+}
+
+.contest-icon__multi-entry {
+  background: #babdc9;
+  color: white;
+}

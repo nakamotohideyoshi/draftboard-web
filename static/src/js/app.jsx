@@ -15,6 +15,7 @@ require("components/site/hamburger-menu");
 require("components/site/app-state-class");
 require("components/contest-list/contest-list");
 require("components/contest-nav/contest-nav.jsx");
+require("components/lineup/lineup-card-list.jsx");
 
 // temporary, need to make into parent component for the court and then have multiple shooters required within there
 require("components/live-nba-court/live-nba-court-shooter");

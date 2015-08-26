@@ -17,7 +17,9 @@ var ContestActions = Reflux.createActions({
   // Activate the next visible row.
   'focusNextRow': {},
   // Activate the previous visible row.
-  'focusPreviousRow': {}
+  'focusPreviousRow': {},
+  // The contest type filters have been selected - the other filters need to reveal.
+  'contestTypeFiltered': {}
 });
 
 

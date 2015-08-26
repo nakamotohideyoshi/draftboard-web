@@ -11,7 +11,8 @@ var KeypressActions = Reflux.createActions([
 
 var ignoredElements = [
   'INPUT',
-  'TEXTAREA'
+  'TEXTAREA',
+  'SELECT'
 ];
 
 var keyCodeMap = {

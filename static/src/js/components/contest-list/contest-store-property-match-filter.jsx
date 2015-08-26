@@ -6,23 +6,33 @@ var ContestActions = require('../../actions/contest-actions');
 
 
 /**
- * Creates a radio-like selection list that filters a DataTable.
- * Filter actions are passed to a DataTable via DataTableActions.
+ * Creates a radio-like selection list that filters the ContestStore.
+ * Filtering actions are passed to the ContestStore via ContestActions.
  */
-var DataTableColumnMatchFilter = React.createClass({
+var ContestStorePropertyMatchFilter = React.createClass({
 
   propTypes: {
     filters: React.PropTypes.array,
-    column: React.PropTypes.string,
+    // A default match to look for.
     match: React.PropTypes.string,
-    className: React.PropTypes.string
+    // The propety in the row that we are filtering against.
+    property: React.PropTypes.string,
+    className: React.PropTypes.string,
+    // filterName is used in the ContestStore to store the active filter so other components can
+    // reference it. ContestStore.data.filters[{filterName}]
+    filterName: React.PropTypes.string
+  },
+
+
+  getDefaultProps: function() {
+    return {
+      'filterName': 'unnamed filter'
+    };
   },
 
 
   getInitialState: function() {
     return {
-      // The table column to match against.
-      'column': this.props.column,
       // Initial match value.
       'match': this.props.match,
       // Used to update the rendered HTML with an active class.
@@ -42,9 +52,9 @@ var DataTableColumnMatchFilter = React.createClass({
     // filter has been updated - this will re-render() the DataTable.
     this.setState({
         'match': filter.match,
-        'activeFilter': filter.match
+        'activeFilter': filter
       }, function() {
-        ContestActions.filterUpdated('DataTableColumnMatchFilter');
+        ContestActions.filterUpdated(this.props.filterName, filter);
       });
   },
 
@@ -62,8 +72,8 @@ var DataTableColumnMatchFilter = React.createClass({
    * @return {boolean} Should the row be displayed?
    */
   filter: function(row) {
-    // Check if the row's column matches this filter's match value.
-    if (this.state.match === '' || row[this.state.column] === this.state.match) {
+    // Check if the row's property matches this filter's match value.
+    if (this.state.match === '' || row[this.props.property] === this.state.match) {
       return true;
     }
 
@@ -73,19 +83,27 @@ var DataTableColumnMatchFilter = React.createClass({
 
   // Render filter options.
   render: function() {
-    var filterClass = this.props.className + ' data-table-filter';
+    var filterClass = this.props.className + ' contest-list-filter';
 
     // Build up html for filter options.
     var filterOpts = this.props.filters.map(function(filter) {
-      var cssClass = 'data-table-filter__option';
+      var cssClass = 'contest-list-filter__option';
+
 
       // Add active class if the filter is currently active.
-      if(this.state.activeFilter === filter.match) {
-        cssClass += ' data-table-filter__option--active';
+      if(
+        this.state.activeFilter === '' && filter.match === '' ||
+        this.state.activeFilter.match === filter.match
+      ) {
+        cssClass += ' contest-list-filter__option--active';
       }
 
       return (
-        <span key={filter.match} className={cssClass} onClick={this.selectFilter.bind(this, filter)}>
+        <span
+          key={filter.match}
+          className={cssClass}
+          onClick={this.selectFilter.bind(this, filter)}
+        >
           {filter.title}
         </span>
       );
@@ -101,6 +119,6 @@ var DataTableColumnMatchFilter = React.createClass({
 });
 
 
-renderComponent(<DataTableColumnMatchFilter />, '.table-contests-filter');
+renderComponent(<ContestStorePropertyMatchFilter />, '.table-contests-filter');
 
-module.exports = DataTableColumnMatchFilter;
+module.exports = ContestStorePropertyMatchFilter;

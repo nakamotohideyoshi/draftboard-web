@@ -1,7 +1,96 @@
+$table-row-hover-bg: #f9fafb;
+
+
+/**
+ * Contest List.
+ */
 .cmp-contest-list {
-  tr {
+  font-size: 12px;
+  padding-bottom: 40px;
+
+  .active {
+    background: $table-row-hover-bg;
+  }
+
+  &__row {
     &:hover {
+      background: $table-row-hover-bg !important;
       cursor: pointer;
+
+      .button-multi input {
+        color: #fff;
+        background: #219d87; /* Old browsers */
+        background: -moz-linear-gradient(left, #219d87 0%, #34cc68 100%); /* FF3.6+ */
+        background: -webkit-gradient(linear, left top, right top, color-stop(0%, #219d87), color-stop(100%, #34cc68)); /* Chrome,Safari4+ */
+        background: -webkit-linear-gradient(left, #219d87 0%, #34cc68 100%); /* Chrome10+,Safari5.1+ */
+        background: -o-linear-gradient(left, #219d87 0%, #34cc68 100%); /* Opera 11.10+ */
+        background: -ms-linear-gradient(left, #219d87 0%, #34cc68 100%); /* IE10+ */
+        background: linear-gradient(to right, #219d87 0%, #34cc68 100%); /* W3C */
+        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#219d87', endColorstr='#34cc68', GradientType=1); /* IE6-9 */
+      }
     }
+  }
+
+  .icon-mlb,
+  .icon-nfl,
+  .icon-nba {
+    background: url(../img/common/nba.svg) no-repeat bottom center;
+    background-size: 13px auto;
+    display: block;
+    height: 13px;
+    width: 13px;
+    color: transparent;
+    font-size: 0px;
+  }
+}
+
+// Timestamp for time remaining till contest is live.
+.contest-list__live-in {
+  color: #9c9faf;
+
+  &-minutes,
+  &-seconds {
+    color: #46495e;
+  }
+
+}
+
+/**
+ * Contest list detail inline dropdown.
+ */
+.cmp-contest-list__detail {
+  background: $table-row-hover-bg;
+
+  .col {
+    width: 40%;
+    padding-right: 5%;
+    display: block;
+    float: left;
+  }
+
+  .col-1 {
+    padding: 20px 0 20px 35px;
+  }
+
+  .col-2 {
+    padding: 20px 35px 20px 10%;
+  }
+
+  &-header {
+    font-size: 16px;
+    font-weight: 400;
+    padding-bottom: 10px;
+  }
+
+  ul {
+    column-count: 2;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    font-size: 11px;
+    line-height: 2em;
   }
 }

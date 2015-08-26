@@ -1,0 +1,72 @@
+/*doc
+---
+title: Multi Entry Button
+category: Buttons
+---
+
+```html_example
+<span class="button-multi">
+  <select>
+    <option>1x</option>
+    <option>2x</option>
+    <option>3x</option>
+    <option>4x</option>
+  </select>
+
+  <input type="submit" value="Enter" />
+</span>
+
+```
+*/
+
+
+
+@import './button.scss';
+$button-multi-color: #26c661;
+
+.button-multi {
+  @extend %button;
+  @extend %button--medium;
+  @extend %button--outline;
+  padding: 0;
+  margin: 0;
+  width: auto;
+  min-width: 0;
+  text-align: left;
+  border-color: $button-multi-color;
+  overflow: hidden;
+
+  &:hover {
+    border-color: $button-multi-color;
+    color: #fff;
+  }
+
+  select, input {
+    color: #26c661;
+    border: none;
+    background: transparent;
+    -moz-appearance: none;
+    -webkit-appearance:none;
+    padding: 0px 5px;
+    border-radius: 0;
+    margin: 0;
+    height: 2.5em;
+
+    &:focus {
+      outline: 0;
+      outline: none;
+    }
+  }
+
+  select {
+    background: url(../img/blocks/button-multi-entry/select_arrow.png) no-repeat 80% 50%;
+    background-size: 6px auto;
+    padding-right: 15px;
+  }
+
+  input {
+    cursor: pointer;
+    border-left: 1px solid $button-multi-color;
+    min-width: 60px;
+  }
+}

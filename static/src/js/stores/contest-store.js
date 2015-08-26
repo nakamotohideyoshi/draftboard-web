@@ -24,7 +24,8 @@ var ContestStore = Reflux.createStore({
       contests: {},
       focusedContestId: null,
       sortKey: 'id',
-      sortDirection: 'asc'
+      sortDirection: 'asc',
+      activeFilters: []
     };
 
     this.fetchContests();
@@ -36,24 +37,17 @@ var ContestStore = Reflux.createStore({
    */
   fetchContests: function() {
     var self = this;
-    // This obviously fails...
-    // Until we have a real server, let's pretend the request was successful and
-    // set the returned fixture to data.contests.
     request
-      .get("http://bogus.url/contests")
+      .get("/contest/lobby/")
       .end(function(err, res) {
         if(err) {
-          // Pull the contest fixture data
-          self.data.contests = require('../fixtures/contests')[0].fixtures();
-          self.data.filteredContests = self.data.contests;
           ContestActions.load.failed(err);
         } else {
-          self.data.contests = res.body;
-          self.data.filteredContests = res.body;
+          self.data.contests = res.body.results;
+          self.data.filteredContests = res.body.results;
           ContestActions.load.completed();
+          self.trigger(self.data);
         }
-
-        self.trigger(self.data);
     });
   },
 
@@ -65,6 +59,18 @@ var ContestStore = Reflux.createStore({
   getFocusedContest: function() {
     return this.data.contests[this.data.focusedContestId];
   },
+
+  /**
+   * Return the focused contest's id attribute.
+   * @return {Object} the focused contest.
+   */
+  // getFocusedContestId: function() {
+  //   if (this.data.contests[this.data.focusedContestId]) {
+  //     return this.data.focusedContestId;
+  //   } else {
+  //     return null;
+  //   }
+  // },
 
 
   /**
@@ -253,9 +259,9 @@ var ContestStore = Reflux.createStore({
    *
    * @param {string} filterName - The name of the filter component.
    */
-  filterUpdated: function(filterName) {
-    log.debug('DataTable.filterUpdated() - ' + filterName);
-
+  filterUpdated: function(filterName, filter) {
+    log.debug('DataTable.filterUpdated() - ' + filterName, filter);
+    this.data.activeFilters[filterName] = filter;
     // When a filter is updated, update our stored display rows.
     this.filterContests();
   }
