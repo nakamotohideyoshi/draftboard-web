@@ -255,6 +255,8 @@ INSTALLED_APPS = (
     'salary',
     'draftgroup',
     'frontend', # front end styles, layout, etc
+
+    'replayer',
 )
 
 MIDDLEWARE_CLASSES = (

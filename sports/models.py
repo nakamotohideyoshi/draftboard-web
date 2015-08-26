@@ -114,6 +114,7 @@ class Game( DirtyFieldsMixin, models.Model ):
     """
 
     STATUS_CLOSED = 'closed'
+    STATUS_INPROGRESS = 'inprogress'
 
     created = models.DateTimeField(auto_now_add=True)
 
@@ -132,6 +133,15 @@ class Game( DirtyFieldsMixin, models.Model ):
         status field is equal to the STATUS_CLOSED value.
         """
         return self.status == self.STATUS_CLOSED
+
+    def is_inprogress(self):
+        """
+        Indicates if this game is closed (complete + all stat corrections are in).
+
+        Return a boolean indicating if this instance's
+        status field is equal to the STATUS_CLOSED value.
+        """
+        return self.status == self.STATUS_INPROGRESS
 
     def __str__(self):
         return '%s | %s | %s' % (self.status, self.start, self.srid)
