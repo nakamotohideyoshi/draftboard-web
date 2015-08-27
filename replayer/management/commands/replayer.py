@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         # Positional arguments
-        parser.add_argument('cmd', nargs='+', type=str)
+        parser.add_argument('cmd', choices=['play','record','list'])
 
     def handle(self, *args, **options):
         """
@@ -25,19 +25,17 @@ class Command(BaseCommand):
         :return:
         """
 
-        for cmd in options['cmd']:
-            if cmd == 'play':
-                pass # TODO
-                self.stdout.write('unimplemented')
+        cmd = options['cmd']
+        if cmd == 'play':
+            pass # TODO
+            self.stdout.write('play unimplemented')
 
-            elif cmd == 'record':
-                pass # TODO
-                self.stdout.write('unimplemented')
+        elif cmd == 'record':
+            pass # TODO
+            self.stdout.write('record unimplemented')
 
-            elif cmd == 'list':
-                ReplayManager.list()
+        elif cmd == 'list':
+            ReplayManager.list()
 
-            else:
-                raise CommandError('invalid command! usage: ' + self.USAGE_STR)
 
 

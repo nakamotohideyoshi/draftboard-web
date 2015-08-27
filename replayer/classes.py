@@ -10,6 +10,9 @@
 #   >>>> https://gist.github.com/X0nic/4724674
 ##################################################
 
+from mysite.settings.local import get_db_name
+import ast
+import sys
 from os import listdir
 from os.path import isfile, join
 import os.path
@@ -23,12 +26,36 @@ import replayer.models
 from django.dispatch import receiver
 from dataden.signals import Update
 from django.core.cache import caches
+import sports.parser
+import time
 
 class ReplayManager(object):
     """
-    Begins capturing live data objects from the stat provider.
+    The four methods involved with creating a replay are (in order):
 
-    There can only be one recording being run at a time.
+        1) db_dump()
+            - you need to save a snapshot of the current database
+        2) record()
+            - this will start logging all the mongo triggered stats in replayer_update,
+              and there is a master replayer_replay entry made for this recording
+        3) stop()
+            - stop logging stats
+        4) db_dump()
+            - with replay=True which will put the db dump with the stats
+              into the replay directory
+
+    In order to play a replay the server time must be reset to the start time
+    of the Replay entry. Then restore the database to a restore point,
+    and then we need to run the related Update objects thru the parser.
+
+        1) set_system_time()
+            - changes the time of the system
+
+        2) db_restore()
+            - reload the database to a certain restore point
+
+        3) play()
+            - start executing stats on the same time intervals they occurred on in real-time.
     """
 
     class RecordingInProgressException(Exception): pass
@@ -63,14 +90,39 @@ class ReplayManager(object):
 
     def record(self, name):
         if self.replay:
-            raise self.RecordingInProgressException('record() was already called')
+            raise self.RecordingInProgressException('record() was already called on this ReplayManager instance')
+
+        print('resetting the current system time to the actual time...')
+        self.reset_system_time()
+
+        try:
+            Replay.objects.get( name=name )
+            print('the replay "%s" already exists. call play() with a unique name.' % name)
+            return
+        except Replay.DoesNotExist:
+            pass # this is good, we dont want a new recording with the same name to already exist
 
         try:
             existing_replay = Replay.objects.get( end__isnull=True )
-            raise self.RecordingInProgressException('there is an existing recording in progress')
+
+            print('')
+            print('Do you want to end the current recording and start a new one? [yN]:' )
+            user_input = sys.stdin.readline().strip()
+            if 'y' in user_input:
+                print(' ... stopped current recording.')
+                self.stop()
+            else:
+                print(' ... exiting.')
+                return
+            #raise self.RecordingInProgressException('there is an existing recording in progress')
         except Replay.DoesNotExist:
             pass
 
+        # get_db_name() should return the postgres database name for the branch
+        # we are on. ie: "dfs_replayer_sprint"
+        self.db_dump( db_name=get_db_name(), dump_name=name, replay=False ) # replay=False indicates a restore point
+
+        print( 'new recording "%s" in progress...'%name)
         self.replay = Replay()
         self.replay.name   = name
         self.replay.start  = timezone.now()
@@ -89,6 +141,81 @@ class ReplayManager(object):
         self.replay.end = timezone.now()
         self.replay.save()
         self.__flag_cache(False)   # flag cache we've stopped recording
+
+        # now save the current database as a replay file
+        self.db_dump( db_name=get_db_name(), dump_name=self.replay.name, replay=True )
+
+        # set the system time back to the hardware clock time.
+        # the hwclock should still be the actual real time.
+        print('resetting the current system time to the actual time...')
+        self.reset_system_time()
+        
+    def play(self, start_from=None, fast_forward=1.0, no_delay=False, pk=None, tick=6.0, offset_minutes=0):
+        """
+        Run the stat object thru sports.parser.DataDenParser.parse_obj(db, collection, obj)
+
+        'start_from' param defaults to None which means: start at the beginning,
+            but if it is set to a valid datetime (within the range of the replay)
+            start from there instead.
+
+        'fast_forward' is a float multiplier that speeds up the replay (TODO - unimplemented).
+            1.0 means 1second == 1second, 2.0 means 1second (actual) == 2seconds of replay time, etc..
+
+        'no_delay' is False by default. If set to True, all the updates are run with no delay.
+            this can result in tens of thousands of updates (the whole replay) being run
+            as fast as the system can process them.
+
+        'pk' param overrides the Replay object gets the Replay by its primary key
+
+        'tick' is the interval in seconds we delay before processing more objects
+
+        'offset_minutes' are added to the start time (whether default or from start_time param)
+
+        :return:
+        """
+
+        if pk is not None:
+            self.replay = Replay.objects.get( pk = pk )
+
+        if self.replay is None:
+            raise Exception('instance of ReplayManager has no Replay object set')
+
+        # TODO - reload the specific restore point for this Replay
+
+        # TODO - reset the system time to the start of this Replay
+
+        # TODO - reload the replayer_update table for this Replay
+
+        # TODO - get all the updates for this Replay
+
+        # TODO - determine the start and end times of the Replay
+
+        start   = self.replay.start
+        if start_from is not None: start = start_from   # start from here, if specified
+        start   = start + timedelta(minutes=offset_minutes)
+        end     = self.replay.end
+        last    = start # trailing time since which we have no parsed Updates
+
+        # update the system time to the start time of the replay
+        print('set system time to:')
+        self.set_system_time( start )
+        print( '' )
+
+        parser = sports.parser.DataDenParser()
+
+        while last <= end: # break out of while once our 'last' update time is past the end
+            time.sleep( tick ) # every 'tick' seconds, get all the updates since the last update
+            now = timezone.now()
+            updates = replayer.models.Update.objects.filter( ts__range=( last, now ) )
+            print( '%s | %s updates this tick' % (str(now), str(len(updates))))
+            for update in updates:
+                ns_parts    = update.ns.split('.') # split namespace on dot for db and coll
+                db          = ns_parts[0]
+                collection  = ns_parts[1]
+                # send it thru parser! Triggers do NOT need to be running for this to work!
+                parser.parse_obj( db, collection, ast.literal_eval( update.o ) )
+
+            last = now # update last, now that we've parsed up until now
 
     def __flag_cache(self, enable):
         if enable:
@@ -110,7 +237,7 @@ class ReplayManager(object):
         """
         proc = subprocess.call(['sudo','hwclock','-s'])
 
-    def db_dump(self, db_name, dump_name):
+    def db_dump(self, db_name, dump_name, replay=False):
         # basically, to save the current state of the db, do this:
         #   $> sudo -u postgres pg_dump -Fc --no-acl --no-owner dfs_master > dfs_exported.dump
         #pass
@@ -118,15 +245,18 @@ class ReplayManager(object):
         # proc = subprocess.call(['sudo','-u','postgres','pg_dump',
         #             '-Fc','--no-acl','--no-owner','dfs_master','>','%s.dump' % name])
 
-        dump_filename = self.get_restore_filename( dump_name )
+        dump_filename = self.get_restore_filename( dump_name, replay=replay )
         if os.path.isfile(dump_filename):
             raise Exception('the file [%s] already exists' % dump_filename)
         with open(dump_filename, 'w') as dumpfile:
             subprocess.call("sudo -u postgres pg_dump -Fc --no-acl --no-owner %s" % db_name,
                                                                 stdout=dumpfile, shell=True)
 
-    def get_restore_filename(self, restore_dump_name):
-        return '%s/%s' % (self.RESTORE_DIR, restore_dump_name)
+    def get_restore_filename(self, restore_dump_name, replay=False):
+        if replay:
+            return '%s%s' % (self.REPLAY_DIR, restore_dump_name)
+        else:
+            return '%s%s' % (self.RESTORE_DIR, restore_dump_name)
 
     def db_restore(self, db_name, restore_dump_name):
         """
@@ -151,7 +281,7 @@ class ReplayManager(object):
         subprocess.call( restore_cmd, shell=True)
 
     def get_replay_filename(self, replay_dump_name):
-        return '%s/%s' % (self.RESTORE_DIR, replay_dump_name)
+        return '%s%s' % (self.RESTORE_DIR, replay_dump_name)
 
     def db_load_replay(self, db_name, replay_dump_name):
         """
