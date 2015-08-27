@@ -4,8 +4,6 @@
 .contest-list-filter {
   padding-top: 5px;
   padding-bottom: 25px;
-  // Hide these by default - they get shown when the header display is selected.
-  display: none;
 
   &__option {
     color: #46495e;
@@ -60,7 +58,7 @@
 
 
 // Specific filters.
-.contest-list-type-filter,
+.contest-list-filter--contest-type,
 .contest-list-sport-filter {
   &__title {
     color: #6d718a;
@@ -73,7 +71,7 @@
 }
 
 // Contest Type
-.contest-list-type-filter {
+.contest-list-filter--contest-type {
   &__title {
     color: #a7aabd;
   }
