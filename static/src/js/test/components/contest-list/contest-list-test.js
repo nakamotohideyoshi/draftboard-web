@@ -42,8 +42,9 @@ describe("ContestList Component", function() {
   });
 
 
-  it('should render the contest type filter', function() {
-    expect(this.contestListElement.querySelectorAll('.contest-list-filter').length).to.equal(1);
+  // Make sure it's rendiring the contest list filters (there will eventually be 3).
+  it('should render the contest type filters', function() {
+    expect(this.contestListElement.querySelectorAll('.contest-list-filter').length).to.equal(2);
   });
 
 });
