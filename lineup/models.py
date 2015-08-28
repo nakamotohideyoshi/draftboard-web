@@ -17,6 +17,8 @@ class Lineup(models.Model):
     user            = models.ForeignKey(User, null=False)
     draft_group      = models.ForeignKey('draftgroup.DraftGroup', null=False)
 
+    name            = models.CharField(max_length=64, null=False, default='')
+
     def __str__(self):
         return '%s %s %s' % (self.user, self.fantasy_points, 'NAME_TODO')
 
