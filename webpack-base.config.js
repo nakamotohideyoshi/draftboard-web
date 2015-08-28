@@ -4,6 +4,7 @@ var path = require('path');
 var _ = require('lodash');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 var WebpackNotifierPlugin = require('webpack-notifier');
+var webpack = require('webpack');
 
 
 module.exports = function(options) {
@@ -87,7 +88,10 @@ module.exports = function(options) {
       new WebpackNotifierPlugin({
         title: 'Webpack',
         contentImage: 'https://dl.dropboxusercontent.com/spa/wn0oryty1do7jho/rq03wbw9.png'
-      })
+      }),
+      // Don't let Moment (and presumably other libs) load in their full locale info - it's a lot.
+      // https://github.com/webpack/webpack/issues/198#issuecomment-124924974
+      new webpack.ContextReplacementPlugin(/.*$/, /NEVER_MATCH^/)
     ],
 
     // Tell webpack where to look for require()'d files. If it can't locate a file, make sure you're
