@@ -149,7 +149,7 @@ class ReplayManager(object):
         # the hwclock should still be the actual real time.
         print('resetting the current system time to the actual time...')
         self.reset_system_time()
-        
+
     def play(self, start_from=None, fast_forward=1.0, no_delay=False, pk=None, tick=6.0, offset_minutes=0):
         """
         Run the stat object thru sports.parser.DataDenParser.parse_obj(db, collection, obj)
