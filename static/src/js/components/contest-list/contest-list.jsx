@@ -5,6 +5,7 @@ var Reflux = require('reflux');
 var ContestStore = require("../../stores/contest-store.js");
 var renderComponent = require('../../lib/render-component');
 var ContestStorePropertyMatchFilter = require('./contest-store-property-match-filter.jsx');
+var ContestListSearchFilter = require('./contest-list-search-filter.jsx');
 var ContestListRow = require('./contest-list-row.jsx');
 var ContestListDetail = require('./contest-list-detail.jsx');
 var KeypressActions = require('../../actions/keypress-actions');
@@ -37,6 +38,7 @@ var ContestList = React.createClass({
     });
   },
 
+
   /**
    * When a row is clicked (or something else) we want to make that contest the 'focused' one.
    * @param {integer} id the ID of the contest to be focused.
@@ -46,6 +48,7 @@ var ContestList = React.createClass({
       ContestActions.contestFocused(id);
     }
   },
+
 
   componentWillMount: function() {
     // Listen to j/k keypress actions to focus contests.
@@ -81,19 +84,30 @@ var ContestList = React.createClass({
       }
 
       return (
-        [<ContestListRow key={row.id} row={row} focusedContestId={this.state.focusedContestId} />, detailRow]
+        [<ContestListRow
+          key={row.id}
+          row={row}
+          focusedContestId={this.state.focusedContestId} />,
+        detailRow]
       );
     }, this);
 
 
     return (
       <div>
-        <div className="contest-list-type-filter">
+        <div className="contest-list-filter-set">
           <ContestStorePropertyMatchFilter
             className="contest-list-filter--contest-type"
             filters={this.state.contestTypeFilters}
             filterName="contestTypeFilter"
             property='contestType'
+            match=''
+          />
+
+          <ContestListSearchFilter
+            className="contest-list-filter--contest-type"
+            filterName="contestSearchFilter"
+            property='name'
             match=''
           />
         </div>

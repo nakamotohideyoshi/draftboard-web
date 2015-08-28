@@ -65,9 +65,21 @@
     }
   }
 
-  // Show the contest list filter
-  .contest-list-filter {
+  // Show the contest list filters
+  .contest-list-filter-set {
     display: block;
+  }
+}
+
+
+// The groupoing of filters above the contest list.
+.contest-list-filter-set {
+  // Hide these by default - they get shown when the header display is selected.
+  display: none;
+  position: relative;
+
+  .contest-list-filter {
+    display: inline-block;
   }
 }
 

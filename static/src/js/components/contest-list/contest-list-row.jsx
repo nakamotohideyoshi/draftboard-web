@@ -38,7 +38,12 @@ var ContestListRow = React.createClass({
 
   componentDidMount: function() {
     this.setTimeRemaining();
-    window.setInterval(this.setTimeRemaining, 1000);
+    this.updateTimeRemainingLoop = window.setInterval(this.setTimeRemaining, 1000);
+  },
+
+
+  componentWillUnmount: function() {
+    window.clearInterval(this.updateTimeRemainingLoop);
   },
 
 
@@ -60,9 +65,11 @@ var ContestListRow = React.createClass({
     }
   },
 
+
   addLeadingZero: function(number) {
     return (Math.abs(number) < 10) ? "0" + Math.abs(number) : Math.abs(number);
   },
+
 
   setTimeRemaining: function() {
     // difference between when the contest starts and now (in ms).
