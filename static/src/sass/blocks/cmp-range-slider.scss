@@ -1,0 +1,143 @@
+.cmp-range-slider {
+  position: relative;
+
+  display: inline-block;
+  top: 5px;
+
+  &__slider {
+    display: inline-block;
+    width: 192px;
+    position: relative;
+    margin-right: 20px;
+    top: -3px;
+  }
+
+  &__values {
+    color: #46495e;
+    font-size: 12px;
+    text-align: center;
+    display: inline-block;
+    width: 100px;
+  }
+}
+
+
+/* Functional styling;
+ * These styles are required for noUiSlider to function.
+ * You don't need to change these rules to apply your design.
+ */
+.noUi-target,
+.noUi-target * {
+-webkit-touch-callout: none;
+-webkit-user-select: none;
+-ms-touch-action: none;
+-ms-user-select: none;
+-moz-user-select: none;
+-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+.noUi-target {
+	position: relative;
+	direction: ltr;
+}
+.noUi-base {
+	width: 100%;
+	height: 100%;
+	position: relative;
+	z-index: 1; /* Fix 401 */
+}
+.noUi-origin {
+	position: absolute;
+	right: 0;
+	top: 0;
+	left: 0;
+	bottom: 0;
+}
+.noUi-handle {
+	position: relative;
+	z-index: 1;
+}
+.noUi-stacking .noUi-handle {
+/* This class is applied to the lower origin when
+   its values is > 50%. */
+	z-index: 10;
+}
+.noUi-state-tap .noUi-origin {
+-webkit-transition: left 0.3s, top 0.3s;
+	transition: left 0.3s, top 0.3s;
+}
+.noUi-state-drag * {
+	cursor: inherit !important;
+}
+
+/* Painting and performance;
+ * Browsers can paint handles in their own layer.
+ */
+.noUi-base {
+	-webkit-transform: translate3d(0,0,0);
+	transform: translate3d(0,0,0);
+}
+
+/* Slider size and handle placement;
+ */
+.noUi-horizontal {
+    height: 2px;
+    box-shadow: 0px 0px 0px #460000, 0px 0px 0px #600000;
+    background: #dee0e8;
+    border-radius: 0px;
+    border: 0px solid #019d01;
+}
+
+.noUi-horizontal .noUi-handle {
+	left: -7px;
+	top: -6px;
+}
+.noUi-vertical {
+	width: 18px;
+}
+.noUi-vertical .noUi-handle {
+	width: 28px;
+	height: 34px;
+	left: -6px;
+	top: -17px;
+}
+
+/* Handles and cursors;
+ */
+.noUi-dragable {
+	cursor: w-resize;
+}
+.noUi-vertical .noUi-dragable {
+	cursor: n-resize;
+}
+.noUi-handle {
+    box-shadow: 1px 1px 3px #999999, 0px 0px 1px #a6a6a6;
+    border: 4px solid #ffffff;
+    height: 12px;
+    width: 12px;
+    border-radius: 12px;
+    background: #26aa7e;
+    cursor: ew-resize;
+}
+.noUi-active {
+}
+
+/* Disabled state;
+ */
+[disabled].noUi-connect,
+[disabled] .noUi-connect {
+	background: #B8B8B8;
+}
+[disabled].noUi-origin,
+[disabled] .noUi-handle {
+	cursor: not-allowed;
+}
+.noUi-horizontal.noUi-extended {
+	padding-right: 32px;
+}
+.noUi-horizontal.noUi-extended .noUi-handle {
+	left: -1px;
+}
+.noUi-horizontal.noUi-extended .noUi-origin  {
+	right: -32px;
+}
