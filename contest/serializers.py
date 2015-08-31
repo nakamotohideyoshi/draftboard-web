@@ -3,10 +3,30 @@
 
 from rest_framework import serializers
 from contest.models import Contest
+from prize.models import PrizeStructure, Rank
+
+
+class RankSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rank
+
+
+class PrizeStructureSerializer(serializers.ModelSerializer):
+    ranks = RankSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PrizeStructure
+        fields = (
+            'id',
+            'name',
+            'buyin',
+            'generator',
+            'ranks'
+        )
+
 
 class ContestSerializer(serializers.ModelSerializer):
-    # TODO: Create a prize structure serializer to nest data into a contest.
-    prize_structure = serializers.StringRelatedField()
+    prize_structure = PrizeStructureSerializer(read_only=True)
 
     class Meta:
 
