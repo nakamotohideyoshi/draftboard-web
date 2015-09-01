@@ -6,6 +6,7 @@ var ContestStore = require("../../stores/contest-store.js");
 var renderComponent = require('../../lib/render-component');
 var ContestStorePropertyMatchFilter = require('./contest-store-property-match-filter.jsx');
 var ContestListSearchFilter = require('./contest-list-search-filter.jsx');
+var ContestListFeeFilter = require('./contest-list-fee-filter.jsx');
 var ContestListRow = require('./contest-list-row.jsx');
 var ContestListDetail = require('./contest-list-detail.jsx');
 var KeypressActions = require('../../actions/keypress-actions');
@@ -104,12 +105,19 @@ var ContestList = React.createClass({
             match=''
           />
 
-          <ContestListSearchFilter
-            className="contest-list-filter--contest-type"
-            filterName="contestSearchFilter"
-            property='name'
-            match=''
-          />
+          <div className="contest-list-filter-set__group">
+            <ContestListFeeFilter
+              className="contest-list-filter--contest-fee"
+              filterName="contestFeeFilter"
+             />
+
+            <ContestListSearchFilter
+              className="contest-list-filter--contest-type"
+              filterName="contestSearchFilter"
+              property='name'
+              match=''
+            />
+          </div>
         </div>
 
         <table className="cmp-contest-list__table table">
