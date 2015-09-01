@@ -121,8 +121,8 @@ var ContestListRow = React.createClass({
         </td>
         <td key="name" className="name">{this.props.row.name}</td>
         <td key="entries" className="entries">{multiEntryIcon} {this.props.row.current_entries}/{this.props.row.entries}</td>
-        <td key="fee" className="fee">FEE</td>
-        <td key="prizes" className="prizes">{guaranteedIcon} PRIZES</td>
+        <td key="fee" className="fee">{this.props.row.prize_structure.buyin}</td>
+        <td key="prizes" className="prizes">{guaranteedIcon} {this.props.row.prize_structure.buyin}</td>
         <td key="start" className="start">{timeRemaining}</td>
 
         <td className="cmp-contest-list__cell">

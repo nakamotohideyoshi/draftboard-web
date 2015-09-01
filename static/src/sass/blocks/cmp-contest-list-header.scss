@@ -83,6 +83,11 @@
   }
 }
 
+.contest-list-filter-set__group {
+  float: right;
+  display: inline-block;
+}
+
 
 // When in the lobby, and the filters are open...
 .page-lobby.appstate--contest-filters-open .page-content__header {
