@@ -131,6 +131,10 @@ class Contest(models.Model):
                                   help_text='indicates whether a new identical Contest should be created when this one fills up')
 
     @property
+    def buyin(self):
+        return self.prize_structure.buyin
+
+    @property
     def sport(self):
         return self.site_sport.name
 

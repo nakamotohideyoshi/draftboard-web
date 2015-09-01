@@ -1,17 +1,20 @@
 #
 # contest/views.py
 
+from rest_framework import renderers
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.pagination import LimitOffsetPagination
 
 from contest.serializers import ContestSerializer
+from contest.classes import ContestLineupManager
 from contest.models import Contest, Entry, LobbyContest, \
                             UpcomingContest, LiveContest, HistoryContest
 
 from dataden.util.simpletimer import SimpleTimer
-
+from django.http import HttpResponse
+from django.views.generic import View
 from django.views.generic.edit import CreateView, UpdateView
 from contest.forms import ContestForm, ContestFormAdd
 
@@ -112,4 +115,15 @@ class UserHistoryAPIView(UserEntryAPIView):
 
     contest_model   = HistoryContest
     pagination_class = LimitOffsetPagination
+
+class AllLineupsView(View):
+    """
+    return all the lineups for a given contest as raw bytes, in our special compact format
+
+    """
+
+    def get(self, request):
+        clm = ContestLineupManager( contest_id = 2 )
+        #return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
+        return HttpResponse( clm.get_http_payload() )
 
