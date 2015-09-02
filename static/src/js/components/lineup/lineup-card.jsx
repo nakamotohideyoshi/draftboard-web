@@ -2,6 +2,8 @@
 
 var React = require('react');
 var LineupCardPlayer = require('./lineup-card-player.jsx');
+var Tooltip = require('../site/tooltip.jsx');
+
 
 var LineupCard = React.createClass({
 
@@ -18,14 +20,33 @@ var LineupCard = React.createClass({
   },
 
 
+  // Toggle the visibility of the tooltip.
+  showControls: function() {
+    this.refs.lineupCardTip.toggle();
+  },
+
+
   render: function() {
     var lineup = '';
 
     if(this.props.isActive) {
       lineup = (
         <div className="cmp-lineup-card">
-          <header className="cmp-lineup-card__header">
+          <header className="cmp-lineup-card__header" onClick={this.showControls}>
             <h3 className="cmp-lineup-card__title">Nuggs Stack {this.props.tempId}</h3>
+
+            <Tooltip
+              additionalClassName="testClass"
+              position="top"
+              isVisible={true}
+              ref="lineupCardTip"
+            >
+              <span>
+                Ok. whatever crap you want in the tooltip goes here. Note that it needs to be
+                wrapped in an element of any kind.
+              </span>
+            </Tooltip>
+
           </header>
 
           <ul>

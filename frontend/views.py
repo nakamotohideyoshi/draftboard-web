@@ -38,3 +38,9 @@ class FrontendSettingsWithdrawsTemplateView(TemplateView):
     Build out of settings page. Coderden should take this and incorporate into their backend.
     """
     template_name = 'frontend/settings/withdraws.html'
+
+class FrontendTooltipTemplateView(TemplateView):
+    """
+    Shows the fluid layout we will be using
+    """
+    template_name = 'frontend/tooltip.html'
