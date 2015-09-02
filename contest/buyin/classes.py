@@ -67,7 +67,7 @@ class BuyinManager(AbstractSiteUserClass):
         :raises :class:`contest.exceptions.ContestIsFullException`: When the contest is full
             and is no longer accepting new entries.
         """
-        # TODO need a queue/contest in celery for buyings
+
         #
         # validate the contest and the lineup are allowed to be created
         self.lineup_contest(contest, lineup)
@@ -145,7 +145,7 @@ class BuyinManager(AbstractSiteUserClass):
 
         #
         # Make sure they share draftgroups
-        if lineup is not None and contest.draft_group.pk != lineup.draftgroup.pk:
+        if lineup is not None and contest.draft_group.pk != lineup.draft_group.pk:
             raise ContestLineupMismatchedDraftGroupsException()
 
         self.check_contest_full(contest)

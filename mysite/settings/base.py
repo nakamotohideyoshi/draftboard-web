@@ -253,6 +253,7 @@ INSTALLED_APPS = (
     'draftgroup',
     'frontend', # front end styles, layout, etc
     'mysite', # just for management command access
+    'replayer',
 )
 
 MIDDLEWARE_CLASSES = (
