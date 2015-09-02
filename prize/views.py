@@ -1,14 +1,44 @@
 #
 # prize/views.py
 
+import json
 from django.shortcuts import render
+from rest_framework.response import Response
 from django.views.generic import TemplateView, View
+from rest_framework import generics
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from prize.classes import Generator, CashPrizeStructureCreator, \
                             TicketPrizeStructureCreator, FlatCashPrizeStructureCreator
 from prize.forms import PrizeGeneratorForm, TicketPrizeCreatorForm, FlatCashPrizeCreatorForm
-from django.http import HttpResponseRedirect
+from prize.serializers import PrizeStructureSerializer
+from prize.models import PrizeStructure
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError, NotFound
+from django.core.cache import caches
 
-import json
+class PrizeStructureAPIView(generics.GenericAPIView):
+
+    authentication_classes  = (SessionAuthentication, BasicAuthentication)
+    serializer_class        = PrizeStructureSerializer
+    permission_classes      = (IsAuthenticated,)
+
+    def get_object(self, id):
+        try:
+            return PrizeStructure.objects.get(pk=id)
+        except PrizeStructure.DoesNotExist:
+            raise NotFound()
+
+    def get(self, request, pk, format=None):
+        """
+        given the GET param 'id', get the draft_group
+        """
+        serialized_data = None
+        #c = caches['default']
+        #serialized_data = c.get(self.__class__.__name__ + str(pk), None)
+        if serialized_data is None:
+            serialized_data = PrizeStructureSerializer( self.get_object(pk), many=False ).data
+        #     c.add( self.__class__.__name__ + str(pk), serialized_data, 1 ) # 300 seconds
+        return Response(serialized_data)
 
 class PieDataObj(object):
     #
