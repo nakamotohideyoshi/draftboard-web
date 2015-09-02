@@ -1,0 +1,135 @@
+/*doc
+---
+title: Tooltip Styles
+category: Tooltips
+---
+
+```html_example
+
+<div class="parent-that-has-position-relative">
+  <div class="tooltip tooltip--top-arrow">
+    <div class="tooltip__center">
+      .tooltip--top-arrow
+    </div>
+  </div>
+</div>
+*/
+
+
+@import "../variables.scss";
+
+
+// Method to generate all the tooltip styles, based on the direction the arrow points
+// variable  $arrow-direction  Possible options: top, right, bottom, left
+@mixin generate-tooltip($arrow-direction) {
+  // Default variables
+  $tooltip-arrow-height: 9px;
+
+  // set initial variables of direction and opposite for arrow positioning
+  @if $arrow-direction == 'top' {
+    $direction: 'top';
+    $opposite-direction: 'bottom';
+
+  } @else if $arrow-direction == "bottom" {
+    $direction: 'bottom';
+    $opposite-direction: 'top';
+
+  } @else if $arrow-direction == "left" {
+    $direction: 'left';
+    $opposite-direction: 'right';
+
+  } @else if $arrow-direction == "right" {
+    $direction: 'right';
+    $opposite-direction: 'left';
+  }
+
+  // set the opposite axis in order to center the arrow
+  @if $direction == 'top' or $direction == 'bottom'  {
+    $opposite-axis: 'left';
+  } @else {
+    $opposite-axis: 'top';
+  }
+
+
+  // set the tooltip to be 50%, then on the __center bring back -50% to effectively center
+  #{$opposite-axis}: 50%;
+
+  // set the tooltip to be just a few pixels from the edge
+  margin-#{$direction}: -4px;
+  #{$direction}: 100%;
+
+  .tooltip__content {
+    #{$opposite-axis}: -50%;
+
+    &:after, &:before {
+      #{$opposite-axis}: 50%;
+      #{$opposite-direction}: 100%;
+      border: solid transparent;
+      border-color: transparent;
+      content: " ";
+      height: 0;
+      width: 0;
+      position: absolute;
+      pointer-events: none;
+    }
+
+    &:after {
+      border-width: $tooltip-arrow-height;
+      border-#{$opposite-direction}-color: #fff;
+      margin-#{$opposite-axis}: -($tooltip-arrow-height - 1);
+
+      // set the side you're on to zero, which creates a triangle
+      border-#{$direction}-width: 0;
+    }
+    &:before {
+      box-shadow: 0px 11px 51px 0px rgba(0, 0, 0, 0.11);
+      border-width: $tooltip-arrow-height + 1;
+      margin-#{$opposite-axis}: -$tooltip-arrow-height;
+      border-#{$opposite-direction}-color: #d8dadf;
+
+      // set the side you're on to zero, which creates a triangle
+      border-#{$direction}-width: 0;
+    }
+  }
+}
+
+
+// Default block styles
+// -----------------------------------------------------
+
+// default from this to
+// - have default font, shadow, border-radius
+// - TODO default animations
+.tooltip {
+  position: absolute;
+  margin: 0;
+  z-index: $zindex-tooltip;
+
+  .tooltip__content {
+    background: #fff;
+    border-radius: 3px;
+    border: 1px solid #d8dadf;
+    box-shadow: 0px 11px 51px 0px rgba(0, 0, 0, 0.11);
+    padding: 10px 18px;
+    position: relative;
+    text-align: center;
+  }
+
+  &--hidden {
+    display: none;
+  }
+
+  // Tooltip variations
+  &--top-arrow {
+    @include generate-tooltip('top');
+  }
+  &--bottom-arrow {
+    @include generate-tooltip('bottom');
+  }
+  &--left-arrow {
+    @include generate-tooltip('left');
+  }
+  &--right-arrow {
+    @include generate-tooltip('right');
+  }
+}

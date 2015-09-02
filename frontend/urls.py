@@ -5,6 +5,7 @@ from frontend import views
 urlpatterns = patterns(
     '',
     (r'^frontend/layout/$', views.FrontendLayoutTemplateView.as_view()),
+    (r'^frontend/tooltip/$', views.FrontendTooltipTemplateView.as_view()),
     (r'^frontend/live/court/$', views.FrontendLiveCourtTemplateView.as_view()),
     (r'^frontend/styleguide/$', views.FrontendStyleGuideTemplateView.as_view()),
     (r'^frontend/lobby/$', views.FrontendLobbyTemplateView.as_view()),
