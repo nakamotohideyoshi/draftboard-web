@@ -43,12 +43,16 @@ class Rank( models.Model ):
     this models __str__ method works properly, as well
     as the "_____PrizeStructureCreator" classes which build prize structures
     """
-    prize_structure = models.ForeignKey( PrizeStructure, null=False )
+    prize_structure = models.ForeignKey( PrizeStructure, null=False, related_name='ranks' )
     rank            = models.IntegerField(default=0, null=False)
     amount_type     = models.ForeignKey(ContentType,
                                          help_text='MUST be a CashAmount or TicketAmount')
     amount_id       = models.IntegerField(help_text='the id of the amount_type field')
     amount          = GenericForeignKey( 'amount_type', 'amount_id' )
+
+    @property
+    def category(self):
+        return self.amount.get_category()
 
     @property
     def value(self):

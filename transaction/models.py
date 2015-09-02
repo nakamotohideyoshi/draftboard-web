@@ -15,10 +15,15 @@ TRANSACTION_CATEGORY = (
 
 class AbstractAmount(models.Model):
 
+    def get_category(self):
+        # should return "CashAmount", or "TicketAmount", etc...
+        raise Exception('inheriting class must implement this method: transaction.models.AbstractAmount.get_amount_type()')
+
     def get_transaction_class(self):
-        raise Exception('inheriting class must implement this method')
+        raise Exception('inheriting class must implement this method: transaction.models.AbstractAmount.get_transaction_class()')
+
     def get_cash_value(self):
-        raise Exception('inheriting class must implement this method')
+        raise Exception('inheriting class must implement this method: transaction.models.AbstractAmount.get_cash_value()')
 
     class Meta:
         abstract = True
