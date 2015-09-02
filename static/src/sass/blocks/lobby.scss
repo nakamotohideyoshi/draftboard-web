@@ -3,6 +3,30 @@
 
 .section-lobby {
   &.page-lobby {
+
+    .sidebar {
+      background: url(../img/blocks/lobby/sidebar-nba-bottom.jpg) no-repeat bottom left #0C1524;
+      background-size: 100% auto;
+
+      // Arrow tab thing.
+      &:after{
+          content: ' ';
+          display: block;
+          position: absolute;
+          right: -7px;
+          top: 115px;
+          width: 15px;
+          height: 15px;
+          background-color: #141d2c;
+          transform: scaleY(1.3) rotate(-45deg);
+      }
+    }
+
+    .sidebar-inner {
+      background: url(../img/blocks/lobby/sidebar-nba-top.jpg) no-repeat;
+      background-size: 100% auto;
+    }
+
     .page-content__content {
       padding-top: 20px;
       margin-top: 0;
