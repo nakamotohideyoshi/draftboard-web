@@ -29,7 +29,10 @@ class PrizeStructure( models.Model ):
 
     generator = models.ForeignKey( GeneratorSettings, null=True, blank=True,
                                     help_text='You do not need to specify one of these. But automatically created prize pools may be associated with a generator.')
-    buyin = models.DecimalField(decimal_places=2, max_digits=7, default=0)
+
+    @property
+    def buyin(self):
+        return self.generator.buyin
 
     def __str__(self):
         return '(%s) %s' % (timesince(self.created), self.name)
