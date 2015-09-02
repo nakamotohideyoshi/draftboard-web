@@ -181,7 +181,7 @@ class PrizeGeneratorView(View):
             # at this point, if 'create' is True, we should
             # actually save & commit a new prize structure
             if create:
-                creator = CashPrizeStructureCreator( self.prize_generator, 'gui' )
+                creator = CashPrizeStructureCreator( self.prize_generator, 'generated' )
                 creator.save()
 
             context['created']   = create # we should ACTUALLY create it though.

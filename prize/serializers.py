@@ -19,7 +19,7 @@ class PrizeStructureSerializer(serializers.ModelSerializer):
     class Meta:
 
         model   = PrizeStructure
-        fields  = ('pk','name', 'buyin', 'ranks')
+        fields  = ('pk','name', 'prize_pool', 'payout_spots', 'buyin', 'ranks')
 
 
 

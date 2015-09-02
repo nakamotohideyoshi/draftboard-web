@@ -357,6 +357,7 @@ class CashPrizeStructureCreator(AbstractPrizeStructureCreator):
 
         self.generator          = generator     # an instance of the class
         if self.generator:
+            self.buyin = generator.buyin
             for rank, value in self.generator.get_prize_list():
                 self.add( rank, value )
 

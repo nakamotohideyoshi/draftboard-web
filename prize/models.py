@@ -7,11 +7,11 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from util.timesince import timesince
 
 class GeneratorSettings( models.Model ):
-    buyin           = models.IntegerField(default=0, null=False)    # label='the amount of the buyin')
-    first_place     = models.IntegerField(default=0, null=False)    # label='value ($) of first place as integer')
+    buyin           = models.FloatField(default=0, null=False)    # label='the amount of the buyin')
+    first_place     = models.FloatField(default=0, null=False)    # label='value ($) of first place as integer')
     round_payouts   = models.IntegerField(default=0, null=False)    # label='each ranks prize must be a multiple of this integer value')
     payout_spots    = models.IntegerField(default=0, null=False)    # total # of prizes
-    prize_pool      = models.IntegerField(default=0, null=False)    # total prize pool
+    prize_pool      = models.FloatField(default=0, null=False)    # total prize pool
 
     def __str__(self):
         return 'buyin: %s, first_place: %s, round_payouts: %s, payout_spots: %s, prize_pool: %s' % \
@@ -33,6 +33,14 @@ class PrizeStructure( models.Model ):
     @property
     def buyin(self):
         return self.generator.buyin
+
+    @property
+    def prize_pool(self):
+        return self.generator.prize_pool
+
+    @property
+    def payout_spots(self):
+        return self.generator.payout_spots
 
     def __str__(self):
         return '(%s) %s' % (timesince(self.created), self.name)
