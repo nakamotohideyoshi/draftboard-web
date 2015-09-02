@@ -11,5 +11,5 @@ class ContestSerializer(serializers.ModelSerializer):
         model = Contest
         fields = ('name','sport','status','start',
                   'draft_group','max_entries',
-                  'entries','current_entries','gpp',
+                  'entries','current_entries','gpp','doubleup',
                   'respawn')
