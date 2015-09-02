@@ -47,6 +47,7 @@ class ContestForm(ModelForm):
             'entries',
             'gpp',
             'respawn',
+            'doubleup'
         ]
 
         #
@@ -137,6 +138,7 @@ class ContestFormAdd(ContestForm):
             'entries',
             'gpp',
             'respawn',
+            'doubleup'
         ]
 
         #

@@ -33,5 +33,5 @@ class ContestSerializer(serializers.ModelSerializer):
         model = Contest
         fields = ('id','name','sport','status','start',
                   'draft_group','max_entries',
-                  'entries','current_entries','gpp',
-                  'respawn', 'prize_structure')
+                  'entries','current_entries','gpp','doubleup',
+                  'respawn')

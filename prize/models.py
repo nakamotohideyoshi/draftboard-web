@@ -7,11 +7,11 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from util.timesince import timesince
 
 class GeneratorSettings( models.Model ):
-    buyin           = models.IntegerField(default=0, null=False)    # label='the amount of the buyin')
-    first_place     = models.IntegerField(default=0, null=False)    # label='value ($) of first place as integer')
+    buyin           = models.FloatField(default=0, null=False)    # label='the amount of the buyin')
+    first_place     = models.FloatField(default=0, null=False)    # label='value ($) of first place as integer')
     round_payouts   = models.IntegerField(default=0, null=False)    # label='each ranks prize must be a multiple of this integer value')
     payout_spots    = models.IntegerField(default=0, null=False)    # total # of prizes
-    prize_pool      = models.IntegerField(default=0, null=False)    # total prize pool
+    prize_pool      = models.FloatField(default=0, null=False)    # total prize pool
 
     def __str__(self):
         return 'buyin: %s, first_place: %s, round_payouts: %s, payout_spots: %s, prize_pool: %s' % \
@@ -29,7 +29,18 @@ class PrizeStructure( models.Model ):
 
     generator = models.ForeignKey( GeneratorSettings, null=True, blank=True,
                                     help_text='You do not need to specify one of these. But automatically created prize pools may be associated with a generator.')
-    buyin = models.DecimalField(decimal_places=2, max_digits=7, default=0)
+
+    @property
+    def buyin(self):
+        return self.generator.buyin
+
+    @property
+    def prize_pool(self):
+        return self.generator.prize_pool
+
+    @property
+    def payout_spots(self):
+        return self.generator.payout_spots
 
     def __str__(self):
         return '(%s) %s' % (timesince(self.created), self.name)
@@ -43,12 +54,16 @@ class Rank( models.Model ):
     this models __str__ method works properly, as well
     as the "_____PrizeStructureCreator" classes which build prize structures
     """
-    prize_structure = models.ForeignKey( PrizeStructure, null=False )
+    prize_structure = models.ForeignKey( PrizeStructure, null=False, related_name='ranks' )
     rank            = models.IntegerField(default=0, null=False)
     amount_type     = models.ForeignKey(ContentType,
                                          help_text='MUST be a CashAmount or TicketAmount')
     amount_id       = models.IntegerField(help_text='the id of the amount_type field')
     amount          = GenericForeignKey( 'amount_type', 'amount_id' )
+
+    @property
+    def category(self):
+        return self.amount.get_category()
 
     @property
     def value(self):

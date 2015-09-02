@@ -27,7 +27,8 @@ class TicketAmount(AbstractAmount):
     created  = models.DateTimeField(auto_now_add=True, null=True)
     amount   = models.DecimalField(decimal_places=2, max_digits=10, unique=True)
 
-
+    def get_category(self):
+        return 'ticket'
 
     def get_transaction_class(self):
         """
@@ -37,6 +38,7 @@ class TicketAmount(AbstractAmount):
 
     def get_cash_value(self):
         return self.amount
+
     def __str__(self):
         return '%s | %s' % (self.__class__.__name__, self.amount)
 

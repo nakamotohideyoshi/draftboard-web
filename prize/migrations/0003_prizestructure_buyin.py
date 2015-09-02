@@ -11,9 +11,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='prizestructure',
-            name='buyin',
-            field=models.DecimalField(max_digits=7, default=0, decimal_places=2),
-        ),
+        # removed - no longer needed
     ]
