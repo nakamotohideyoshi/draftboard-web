@@ -277,6 +277,9 @@ class GameBoxscores(DataDenGameBoxscores):
     def parse(self, obj, target=None):
         super().parse( obj, target )
 
+        if self.boxscore is None:
+            return
+
         # FOR A CLOSED GAME!!!!
         # db.game.findOne({'parent_api__id':'boxscores', 'status':'closed'})  # NOTE: 'status':'closed'
         # {

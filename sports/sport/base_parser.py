@@ -243,7 +243,9 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
         birth_place = o.get('birth_place', '')
         birthdate   = o.get('birthdate', '')
         experience  = o.get('experience', 0.0)
-        if experience == '':
+        try:
+            experience = float( experience )
+        except ValueError:
             experience = 0.0
 
         height              = o.get('height', 0.0)      # inches

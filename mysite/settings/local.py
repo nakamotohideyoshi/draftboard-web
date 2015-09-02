@@ -1,9 +1,14 @@
 from subprocess import check_output
 from .base import *
 
-# Determine db name according to git branch
-git_branch_cmd = 'git rev-parse --abbrev-ref HEAD'
-db_name = 'dfs_' + check_output(git_branch_cmd.split()).decode('utf-8')[:-1]
+def get_db_name():
+
+    # Determine db name according to git branch
+    git_branch_cmd = 'git rev-parse --abbrev-ref HEAD'
+    db_name = 'dfs_' + check_output(git_branch_cmd.split()).decode('utf-8')[:-1]
+    return db_name
+
+db_name = get_db_name()
 
 #
 # try to create the database, if it already exists, this will have no effect
