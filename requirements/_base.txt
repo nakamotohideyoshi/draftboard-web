@@ -10,6 +10,7 @@ dj-static==0.0.6
 django-braces==1.8.0
 django-celery==3.1.16
 django-filter==0.9.2
+django-lockdown==1.1
 django-redis==3.8.3
 django-suit==0.2.13
 djangorestframework==3.1.1
