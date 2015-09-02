@@ -52,7 +52,7 @@ class Command(BaseCommand):
             for player_stats_model in player_stats_class_list:
                 stats = player_stats_model.objects.filter( fantasy_points__gt=0 )
                 if len(stats) <= 0:
-                    raise CommandError('there are no PlayerStat objects for this sport that have fantasy points')
+                    raise CommandError('you need to import player stats. try doing a one-time sports.DataDenParser.setup("SPORT")')
                 else:
                     self.stdout.write('[%s] valid %s objects for ' % (str(len(stats)), str(player_stats_model.__name__)))
 

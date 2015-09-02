@@ -3,7 +3,7 @@
 
 from django.conf.urls import patterns
 from django.conf.urls import url
-from contest.views import LobbyAPIView, \
+from contest.views import LobbyAPIView, AllLineupsView, \
                           UserUpcomingAPIView, UserLiveAPIView, UserHistoryAPIView
 #from myapp.views import AuthorCreate, AuthorUpdate, AuthorDelete
 from contest.views import ContestCreate, ContestUpdate
@@ -29,6 +29,10 @@ urlpatterns = patterns( '',
     #
     # get a logged in user's historical contests
     (r'^history/$', UserHistoryAPIView.as_view()),
+
+    #
+    # get the complete set of specially packed lineups for a contest
+    (r'^all-lineups/$', AllLineupsView.as_view()),
 )
 
 

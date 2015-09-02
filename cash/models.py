@@ -13,6 +13,9 @@ class CashAmount( AbstractAmount ):
     created  = models.DateTimeField(auto_now_add=True, null=True)
     amount   = models.DecimalField(decimal_places=2, max_digits=10)
 
+    def get_category(self):
+        return 'cash'
+
     def get_transaction_class(self):
         """
         return a class with which we can create an instance and make a deposit transaction

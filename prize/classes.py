@@ -204,12 +204,16 @@ class AbstractPrizeStructureCreator(object):
 
     AbstractPrizeManager contains functionality common to all prize structures, but
     the programmer should use CashPrizeStructure or TicketPrizeStructure, etc...
+
     """
+
+    class InvalidSettingsException(Exception): pass
 
     DEFAULT_NAME = 'new prize structure'
 
     def __init__(self, amount_model, name='default'):
-        self.prize_structure = None
+        self.prize_structure        = None
+        self.buyin                  = None
         self.prize_structure_model  = PrizeStructure
         self.rank_model             = Rank
         self.ranks                  = None  # list of the rank instances once generated
@@ -239,6 +243,16 @@ class AbstractPrizeStructureCreator(object):
             if n_similar_names:
                 return '%s %s' % ( self.DEFAULT_NAME, str(n_similar_names) )
             return self.DEFAULT_NAME
+
+    def set_buyin(self, value):
+        """
+        associate a buyin value which will be set to the prize_structure
+        when save() is called.
+
+        :param value:
+        :return:
+        """
+        self.buyin = value
 
     def add(self, rank, value):
         """
@@ -279,6 +293,7 @@ class AbstractPrizeStructureCreator(object):
         self.prize_structure.save()
 
         # create the ranks
+        total_prize_value = 0
         if self.ranks is None:
             self.ranks = []
         for rank_number, prize_value in self.added_ranks:
@@ -289,8 +304,26 @@ class AbstractPrizeStructureCreator(object):
             r.amount            = self.get_amount_instance( prize_value )
             r.save()
 
+            # sum all the values
+            total_prize_value += r.value
+
             # if that worked, add it to the list of rank instances
             self.ranks.append( r )
+
+        # try:
+            settings = GeneratorSettings()
+            settings.buyin          = self.buyin
+            settings.first_place    = self.ranks[0].value
+            settings.round_payouts  = 0
+            settings.payout_spots   = len(self.ranks)
+            settings.prize_pool     = total_prize_value
+            settings.save()
+        # except:
+        #     raise self.InvalidSettingsException('buy, first_place, payout_spots, or prize_pool not set, or calculated improperly')
+
+        self.prize_structure.generator = settings
+        self.prize_structure.save()
+
         return self.prize_structure
 
     def get_amount_instance(self, amount):
@@ -324,6 +357,7 @@ class CashPrizeStructureCreator(AbstractPrizeStructureCreator):
 
         self.generator          = generator     # an instance of the class
         if self.generator:
+            self.buyin = generator.buyin
             for rank, value in self.generator.get_prize_list():
                 self.add( rank, value )
 

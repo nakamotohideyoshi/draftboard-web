@@ -28,6 +28,15 @@ class LineupManager(AbstractSiteUserClass):
         if entry is not None:
             self.validate_variable(Entry, entry)
 
+    def get_player_ids(self, lineup):
+        """
+        get an array of player ids for the given lineup, ordered by the roster
+
+        :param lineup:
+        :return:
+        """
+        return [ p.pk for p in LineupPlayer.objects.filter( lineup=lineup ).order_by('idx') ]
+
     @atomic
     def create_lineup(self,  player_ids, draftgroup):
         """

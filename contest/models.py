@@ -130,6 +130,13 @@ class Contest(models.Model):
     respawn = models.BooleanField(default=False, null=False,
                                   help_text='indicates whether a new identical Contest should be created when this one fills up')
 
+    doubleup    = models.BooleanField(default=False, null=False,
+                            help_text='whether this contest has a double-up style prize structure')
+
+    @property
+    def buyin(self):
+        return self.prize_structure.buyin
+
     @property
     def sport(self):
         return self.site_sport.name
