@@ -1,9 +1,13 @@
 'use strict';
 
 var React = require('react');
+var Reflux = require('reflux');
 var LineupCard = require('./lineup-card.jsx');
 var renderComponent = require('../../lib/render-component');
 var smoothScrollTo = require('../../lib/smooth-scroll-to.js');
+var LineupStore = require('../../stores/lineup-store.js');
+var LineupActions = require('../../actions/lineup-actions.js');
+
 
 /**
  * Renders a list of lineup cards. Feed it lineup data and it will render LineupCard components for
@@ -11,68 +15,73 @@ var smoothScrollTo = require('../../lib/smooth-scroll-to.js');
  */
 var LineupCardList = React.createClass({
 
-  propTypes: {
-    lineups: React.PropTypes.array
-  },
+  mixins: [
+    Reflux.connect(LineupStore)
+  ],
 
-  getDefaultProps: function(){
-    // Since we don't have real data yet, add some empty lineups and let the LineupCard render
-    // whatever it likes.
-    return {
-      lineups: [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}]
-    };
-  },
 
   getInitialState: function() {
     return {
-      activeLineupId: 0
+      lineups: [],
+      focusedLineupId: 10
     };
   },
 
+
   /**
    * Smoothly scroll to a lineup card.
-   * @param  {Object} cardDom DOM object of the card to be scrolled to.
+   * @param  {int} the id of the lineup to scroll to.
    */
-  scrollToCard: function(cardDom) {
+  scrollToCard: function(lineupId) {
+    var cardDom = React.findDOMNode(this.refs['lineup-' + lineupId]);
     var scrollingElement = document.querySelector('.sidebar .sidebar-inner');
     smoothScrollTo(scrollingElement, cardDom.offsetTop - 20, 600);
   },
 
+
   /**
-   * Set a lineupCard as being 'active' - this un-collapses and scrolls to it.
+   * Set a lineupCard as being 'focused' - this un-collapses and scrolls to it.
    * @param  {int}   lineupId   The ID of the lineup.
-   * @param  {Function} callback a callback to be done after the lineup is set as active
-   *                    (and expanded).
    */
-  setActiveLineup: function(lineupId, callback) {
-    return this.setState({
-      activeLineupId: lineupId
-    }, callback);
+  setActiveLineup: function(lineupId) {
+    LineupActions.lineupFocused(lineupId);
   },
+
+
+  componentDidUpdate: function(prevProps, prevState) {
+    // We need to wait until the lineup has been activated before it is scrolled to because if the
+    // previously activated lineup is above it in the list, the offset dimensions change when it
+    // collapses. This will wait until the DOM has been updated and the old focused lineup has
+    // collapsed.
+    if (this.state.focusedLineupId !== prevState.focusedLineupId) {
+      this.scrollToCard(this.state.focusedLineupId);
+    }
+  },
+
 
   /**
    * Click handler for a lineupCard
-   * @param  {Object} lineupCard the lineupCard react component.
    * @param  {int} id The cards ID TODO: this can be removed once we have legit data.
    */
-  onCardClick: function(lineupCard, id) {
-    // We need to wait until the lineup has been activated before it is scrolled to because if the
-    // previously activated lineup is above it in the list, the offset dimensions change when it
-    // collapses. Pass it as a callback that eventually gets used as a setState() callback.
-    this.setActiveLineup(id, function() {
-      this.scrollToCard(lineupCard.getDOMNode());
-    });
+  onCardClick: function(id) {
+    this.setActiveLineup(id);
   },
 
+
   render: function() {
-    var lineups = this.props.lineups.map(function(lineup, i) {
+
+    var lineups = this.state.lineups.map(function(lineup) {
+      // We'll need a reference to the card in order to get it's DOM element and scroll to it when
+      // it gets focused.
+      var refName = 'lineup-' + lineup.id;
+
       return (
         <LineupCard
-          key={i}
+          key={lineup.id}
           lineup={lineup}
-          isActive={this.state.activeLineupId === i}
+          isActive={this.state.focusedLineupId === lineup.id}
+          ref={refName}
           onCardClick={this.onCardClick}
-          tempId={i}
         />
       );
     }, this);
