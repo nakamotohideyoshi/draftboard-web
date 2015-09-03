@@ -11,7 +11,7 @@ var LineupCard = React.createClass({
     isActive: React.PropTypes.bool,
     onCardClick: React.PropTypes.func,
     // TODO: Once we have real data coming in, this needs to be removed
-    tempId: React.PropTypes.any
+    lineup: React.PropTypes.object.isRequired
   },
 
 
@@ -30,15 +30,22 @@ var LineupCard = React.createClass({
     var lineup = '';
 
     if(this.props.isActive) {
+
+      var players = this.props.lineup.players.map(function(player) {
+        return (
+          <LineupCardPlayer player={player} key={player.player_id} />
+        );
+      });
+
       lineup = (
         <div className="cmp-lineup-card">
           <header className="cmp-lineup-card__header" onClick={this.showControls}>
-            <h3 className="cmp-lineup-card__title">Nuggs Stack {this.props.tempId}</h3>
+            <h3 className="cmp-lineup-card__title">{this.props.lineup.id}</h3>
 
             <Tooltip
               additionalClassName="testClass"
               position="top"
-              isVisible={true}
+              isVisible={false}
               ref="lineupCardTip"
             >
               <span>
@@ -50,14 +57,7 @@ var LineupCard = React.createClass({
           </header>
 
           <ul>
-            <LineupCardPlayer />
-            <LineupCardPlayer />
-            <LineupCardPlayer />
-            <LineupCardPlayer />
-            <LineupCardPlayer />
-            <LineupCardPlayer />
-            <LineupCardPlayer />
-            <LineupCardPlayer />
+            {players}
           </ul>
 
           <footer className="cmp-lineup-card__footer">
@@ -80,10 +80,10 @@ var LineupCard = React.createClass({
       lineup = (
         <div
           className="cmp-lineup-card cmp-lineup-card--collapsed"
-          onClick={this.props.onCardClick.bind(null, this, this.props.tempId)}
+          onClick={this.props.onCardClick.bind(null, this.props.lineup.id)}
         >
           <header className="cmp-lineup-card__header">
-            <h3 className="cmp-lineup-card__title">Nuggs Stack {this.props.tempId}</h3>
+            <h3 className="cmp-lineup-card__title">Lineup id: {this.props.lineup.id}</h3>
           </header>
           <div className="cmp-lineup-card__select">
             <h4>Select This Lineup</h4>
