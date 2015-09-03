@@ -32,7 +32,10 @@ class PrizeStructure( models.Model ):
 
     @property
     def buyin(self):
-        return self.generator.buyin
+        # TODO - Accommodate for PrizeStructures without a generator since they are optional.
+        if self.generator:
+            return self.generator.buyin
+        return None
 
     @property
     def prize_pool(self):

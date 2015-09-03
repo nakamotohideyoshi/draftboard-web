@@ -35,7 +35,7 @@ class Player(models.Model):
                                'player_id')
 
     lineup = models.ForeignKey(Lineup,
-                               null=False)
+                               null=False, related_name="players")
 
     roster_spot = models.ForeignKey(RosterSpot)
 
@@ -46,5 +46,3 @@ class Player(models.Model):
     @property
     def full_name(self):
         return '%s %s' % (self.player.first_name, self.player.last_name)
-
-

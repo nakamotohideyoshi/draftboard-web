@@ -5,19 +5,21 @@ from rest_framework import serializers
 from lineup.models import Lineup, Player
 import draftgroup.models
 
-class LineupSerializer(serializers.ModelSerializer):
-
-    class Meta:
-
-        model   = Lineup
-        fields  = ('id','user', 'fantasy_points', 'draft_group')
 
 class PlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
-
         model = Player
         fields = ('player_id', 'full_name', 'lineup', 'roster_spot', 'idx')
+
+
+class LineupSerializer(serializers.ModelSerializer):
+    players = PlayerSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Lineup
+        fields = ('id', 'user', 'fantasy_points', 'draft_group', 'players')
+
 
 class CreateLineupSerializer(serializers.Serializer):
 
@@ -40,6 +42,7 @@ class CreateLineupSerializer(serializers.Serializer):
             raise serializers.ValidationError('invalid draft_group id')
 
         return data
+
 
 class EditLineupSerializer(serializers.Serializer):
 
