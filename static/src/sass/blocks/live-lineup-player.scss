@@ -1,5 +1,6 @@
 .live-lineup-player {
   padding: 8px 0;
+  position: relative;
 
   // shortcut for each child, if it's too slow we can define all the children manually
   > * {
@@ -30,6 +31,15 @@
     height: 6px;
   }
 
+  &__play-status {
+    border-radius: 50%;
+    width: 6px;
+    height: 6px;
+    position: absolute;
+    top: 46%;
+    right: -10px;
+  }
+
   &__points {
     color: #fff;
     font-size: 14px;
@@ -43,5 +53,16 @@
     .live-lineup-player__status {
       background-color: #26cc65;
     }
+
+    .play-status--eventInProgress {
+      background-color: #ff0000;
+    }
   }
+}
+
+
+
+// NON BEM not sure how else to though...
+.live-lineup--opponent .live-lineup-player__play-status {
+  left: -10px;
 }

@@ -1,8 +1,23 @@
 .live-history {
   display: inline-block;
   height: 80px;
+  overflow: hidden;
   position: relative;
   width: 50%;
+
+  // animation for an event entering
+  .event-enter {
+    position: relative;
+    transform: none;
+    width: 0;
+    opacity: 0.01;
+  }
+  .event-enter.event-enter-active {
+    opacity: 1;
+    transition: all 290ms cubic-bezier(.8,.16,.18,.85);
+    transform: none;
+    width: 230px;
+  }
 
   .live-history__slider {
     height: 100%;
@@ -17,6 +32,10 @@
     .live-history__slider {
       right: 0;
     }
+
+    .live-history-event:last-child {
+      opacity: 1;
+    }
   }
 
   &--opponent {
@@ -25,37 +44,9 @@
     .live-history__slider {
       left: 0;
     }
-  }
 
-  &__event {
-    display: inline-block;
-    opacity: 0.25;
-    padding: 0 30px;
-  }
-
-  &__player-name {
-    color: #fff;
-    font-family: $font-open-sans;
-    font-weight: normal;
-    font-size: 16px;
-    line-height: 1.8;
-    margin: 0;
-  }
-
-  &__points {
-    font-family: $font-oswald;
-    color: #26c661;
-    font-size: 13px;
-  }
-
-  &__event--newest {
-    opacity: 1;
-  }
-
-  &__event-name {
-    color: #a5a9c1;
-    font-family: $font-open-sans;
-    font-weight: normal;
-    font-size: 12px;
+    .live-history-event:first-child {
+      opacity: 1;
+    }
   }
 }

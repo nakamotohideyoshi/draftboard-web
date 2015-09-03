@@ -1,16 +1,20 @@
 "use strict";
 
 var React = require('react');
-var renderComponent = require('../../lib/render-component');
 
 /**
  * The score ticker on the top of the page.
  */
-var LiveNBAShooter = React.createClass({
+var LiveNBACourtShooter = React.createClass({
+  propTypes: {
+    x: React.PropTypes.number.isRequired,
+    y: React.PropTypes.number.isRequired
+  },
+
   getInitialState: function() {
     // example coordinates from the API
-    var xCoord = 400;
-    var yCoord = 300;
+    var xCoord = this.props.x;
+    var yCoord = this.props.y;
 
     // width and height of image
     var imgWidth = 2003;
@@ -80,7 +84,4 @@ var LiveNBAShooter = React.createClass({
 });
 
 
-// Render the component.
-renderComponent(<LiveNBAShooter />, '.live-nba-court');
-
-module.exports = LiveNBAShooter;
+module.exports = LiveNBACourtShooter;

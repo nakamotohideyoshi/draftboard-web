@@ -1,7 +1,7 @@
 from django.views.generic.base import TemplateView
 
 
-class FrontendLiveCourtTemplateView(TemplateView):
+class FrontendLiveTemplateView(TemplateView):
     template_name = 'frontend/live/court.html'
 
 
