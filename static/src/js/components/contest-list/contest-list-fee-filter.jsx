@@ -21,6 +21,7 @@ var ContestListFeeFilter = React.createClass({
     };
   },
 
+
   componentDidMount: function() {
     // Register this filter with the ContestStore.
     ContestActions.registerFilter(this);
@@ -31,14 +32,15 @@ var ContestListFeeFilter = React.createClass({
     // Is the property value less than the minimum range value, or greater than the biggest?
     // TODO: make the row property this is checking dynamic based on the 'props.property'
     if (
-      row.prize_structure.buyin < this.state.match.minVal ||
-      row.prize_structure.buyin > this.state.match.maxVal
+      row.buyin < this.state.match.minVal ||
+      row.buyin > this.state.match.maxVal
     ) {
       return false;
     }
 
     return true;
   },
+
 
   handleChange: function(sliderState) {
     var match = {
@@ -60,6 +62,7 @@ var ContestListFeeFilter = React.createClass({
       );
     });
   },
+
 
   render: function() {
     return (
