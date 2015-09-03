@@ -34,3 +34,4 @@ class DraftGroupAPIView(generics.GenericAPIView):
             c.add( self.__class__.__name__ + str(pk), serialized_data, 300 ) # 300 seconds
         return Response(serialized_data)
 
+

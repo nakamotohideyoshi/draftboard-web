@@ -351,3 +351,4 @@ class MlbPlayerNamesCsv(PlayerNamesCsv):
         self.parent_api     = 'rostersfull'
         self.key_fullname   = 'full_name'
         self.key_position   = 'primary_position'
+
