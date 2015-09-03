@@ -1,11 +1,11 @@
 $live-lineup-width: 200px;
 
 .live-nba {
-  background: transparent url(../img/blocks/live-nba/bg.jpg) no-repeat left top;
+  background: transparent url(../img/blocks/live-nba/bg.png) no-repeat left top;
   background-size: 120% auto;
+  height: 100%;
   margin: 0 auto;
   min-width: 1024px;
-  max-width: 1920px;
   position: relative;
   width: 100%;
 
@@ -33,7 +33,7 @@ $live-lineup-width: 200px;
       position: absolute;
       right: 0;
       top: 0;
-      background: transparent url(../img/blocks/live-nba/opponent-bg.jpg) no-repeat left top;
+      background: transparent url(../img/blocks/live-nba/opponent-bg.png) no-repeat left top;
       background-size: 120% auto;
       z-index: 1;
     }

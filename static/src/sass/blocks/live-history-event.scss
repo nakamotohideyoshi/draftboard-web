@@ -1,0 +1,38 @@
+.live-history-event {
+  display: inline-block;
+  height: 100%;
+  opacity: 0.25;
+  overflow: hidden;
+  position: relative;
+  width: 230px;
+
+  &__inner {
+    height: 100%;
+    left: 15px;
+    position: absolute;
+    top: 0;
+    width: 200px;
+  }
+
+  &__player-name {
+    color: #fff;
+    font-family: $font-open-sans;
+    font-weight: normal;
+    font-size: 16px;
+    line-height: 1.8;
+    margin: 18px 0 0;
+  }
+
+  &__points {
+    font-family: $font-oswald;
+    color: #26c661;
+    font-size: 13px;
+  }
+
+  &__event-name {
+    color: #a5a9c1;
+    font-family: $font-open-sans;
+    font-weight: normal;
+    font-size: 12px;
+  }
+}
