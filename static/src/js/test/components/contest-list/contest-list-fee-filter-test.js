@@ -46,9 +46,7 @@ describe('ContestListFeeFilterComponent Component', function() {
 
   it('should filter rows based on a value range', function() {
     var testRow = {
-      'prize_structure': {
-        'buyin': '50.00'
-      }
+      'buyin': '50.00'
     };
 
     this.feeFilterComponent.setState({
