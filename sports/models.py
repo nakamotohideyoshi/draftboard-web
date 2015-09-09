@@ -12,6 +12,9 @@ from django.db.models.signals import pre_save
 from dirtyfields import DirtyFieldsMixin
 import django.core.exceptions
 
+import json
+from django.core import serializers # we will serialize select models, mainly for api use
+
 class SignalNotSetupProperlyException(Exception):
     def __init__(self, class_name, variable_name):
        super().__init__('You must set "signal"')
@@ -60,8 +63,6 @@ class SiteSport(models.Model):
 
     def __str__(self):
         return '%s' % (self.name )
-
-
 
 class Position(models.Model):
     created     = models.DateTimeField(auto_now_add=True, null=False)
@@ -205,6 +206,9 @@ class GameBoxscore(models.Model):
     home_scoring_json   = models.CharField(max_length=2048, null=False, default = '')
     away_scoring_json   = models.CharField(max_length=2048, null=False, default = '')
 
+    def to_json(self):
+        return json.loads( serializers.serialize('json', [self]))[0] # always only 1
+
     class Meta:
         abstract = True
 
@@ -327,6 +331,9 @@ class PlayerStats(models.Model):
 
     #position            = models.CharField(max_length=16, null=False, default='')
     # primary_position    = models.CharField(max_length=16, null=False, default='')
+
+    def to_json(self):
+        return json.loads( serializers.serialize('json', [self]))[0] # always only 1
 
     class Meta:
         abstract = True

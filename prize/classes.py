@@ -1,5 +1,5 @@
 import math
-from .exceptions import PrizeGenerationException
+from .exceptions import PrizeGenerationException, InvalidBuyinAndPrizePoolException
 from collections import OrderedDict
 from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException
 from ticket.exceptions import InvalidTicketAmountException
@@ -14,12 +14,12 @@ class Generator(object):
     """
     Generate a prize structure, given some basic information about its size and prizepool, etc...
 
-    # TODO - Generator only works for integers
     """
     def __init__(self, buyin, first_place, round_payouts, payout_spots, prize_pool, exact=True, verbose=False):
         self.buyin                  = buyin
         self.first_place            = first_place
-
+        if prize_pool % self.buyin != 0:
+            raise InvalidBuyinAndPrizePoolException()
         if round_payouts < self.buyin or round_payouts % buyin != 0:
             raise InvalidArgumentException(type(self).__name__,
                     'round_payouts must be greater than or equal to, and a also a multiple of the buyin')
