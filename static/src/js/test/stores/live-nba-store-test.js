@@ -9,7 +9,7 @@ var expect = require('chai').expect;
 describe('LiveNBAStore', function() {
   it('should update data.courtEvents after timeout within onEventReceived', function(done) {
     var self = this;
-    this.timeout(3000);
+    this.timeout(2000);
 
     var currentSize = Object.keys(LiveNBAStore.data.courtEvents).length;
 
@@ -26,7 +26,7 @@ describe('LiveNBAStore', function() {
     setTimeout(function () {
       expect(Object.keys(LiveNBAStore.data.courtEvents).length).to.be.above(currentSize);
       done();
-    }, 2500);
+    }, 1500);
 
   });
 
