@@ -228,3 +228,14 @@ echo "source venv/bin/activate" >> /home/vagrant/.bashrc
     6) create a draftgroup (the draftable players)
 
         >>>
+
+#
+# Replayer
+#   ... in order for the stats replayer to function properly, VM "time syncing"
+#       _must_ be disabled. below are commands to list your VM names, and
+#       read/modify the time syncing setting via command line.
+#
+# $> VBoxManage list vms
+# $> VBoxManage getextradata dfs_web_1439500760009_74161 VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled
+# $> VBoxManage setextradata dfs_web_1439500760009_74161 VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled 1
+# $> VBoxManage getextradata dfs_web_1439500760009_74161 VBoxInternal/Devices/VMMDev/0/Config/GetHostTimeDisabled

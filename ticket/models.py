@@ -3,21 +3,25 @@ from transaction.models import Transaction, AbstractAmount
 from django.contrib.auth.models import User
 import ticket.classes
 
+#
+# the total buyin amount and description of the buyin/ticket.
+# 10% rake is implied, but the text part of the tuple
+# includes the contest contribution and rake amount
 DEFAULT_TICKET_VALUES = [
-    1.00,
-    2.00,
-    5.00,
-    10.00,
-    20.00,
-    25.00,
-    30.00,
-    40.00,
-    50.00,
-    100.00,
-    200.00,
-    300.00,
-    500.00,
-    1000.00
+    (1.00,'$0.90 + 0.10'),
+    (2.00,'$1.80 + 0.20'),
+    (5.00,'$4.50 + 0.50'),
+    (10.00,'$9.00 + 1.00'),
+    (20.00,'$18.00 + 2.00'),
+    # 25.00,
+    # 30.00,
+    # 40.00,
+    (50.00,'$45.00 + 5.00'),
+    (100.00,'$90.00 + 10.00'),
+    # 200.00,
+    # 300.00,
+    # 500.00,
+    # 1000.00
 ]
 
 class TicketAmount(AbstractAmount):
