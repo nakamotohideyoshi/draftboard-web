@@ -3,7 +3,7 @@
 
 from django import forms
 from mysite.forms.util import OrderableFieldForm
-from ticket.models import TicketAmount
+from ticket.models import TicketAmount, DEFAULT_TICKET_VALUES
 
 class PrizeCreatorForm( OrderableFieldForm ):
     """
@@ -24,6 +24,7 @@ class PrizeCreatorForm( OrderableFieldForm ):
         """
         super().__init__(*args, **kwargs)
 
+    #choice          = forms.ChoiceField(choices=['1.00','2.00','5.00'])
     buyin           = forms.FloatField(label='The amount of the buyin for the contest')
     create          = forms.BooleanField(required=False, label='Create This Prize Pool?')
 
@@ -57,6 +58,7 @@ class PrizeGeneratorForm( FlatCashPrizeCreatorForm ):
     """
 
     order = [
+        'choicer',
         'buyin',
         'first_place',
         'round_payouts',
@@ -68,8 +70,12 @@ class PrizeGeneratorForm( FlatCashPrizeCreatorForm ):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    round_payouts   = forms.IntegerField(label='Round Payouts') # label='each ranks prize must be a multiple of this integer value')
-    prize_pool      = forms.IntegerField(label='Prize Pool')    # total prize pool
+    choicer         = forms.ChoiceField(choices=DEFAULT_TICKET_VALUES, label='buyin')
+
+    round_payouts   = forms.IntegerField(label='Round Payouts',
+                           help_text='... must be >= buyin, and be a multiple of the buyin') # label='each ranks prize must be a multiple of this integer value')
+    prize_pool      = forms.IntegerField(label='Prize Pool',
+                           help_text='must be a multiple of the prize pool contribution portion of the buyin.')    # total prize pool
 
 class TicketPrizeCreatorForm( PrizeCreatorForm ):
     """
@@ -88,5 +94,4 @@ class TicketPrizeCreatorForm( PrizeCreatorForm ):
     ticket_amount   = forms.ModelChoiceField(queryset=TicketAmount.objects.all(),
                                              label='the Ticket prize for each spot')
     num_prizes      = forms.IntegerField(label='The number of prize spots paid')
-
 
