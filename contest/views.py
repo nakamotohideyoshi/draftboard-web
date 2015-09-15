@@ -122,8 +122,8 @@ class AllLineupsView(View):
 
     """
 
-    def get(self, request):
-        clm = ContestLineupManager( contest_id = 2 )
+    def get(self, request, contest_id):
+        clm = ContestLineupManager( contest_id = contest_id )
         #return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
         return HttpResponse( clm.get_http_payload() )
 

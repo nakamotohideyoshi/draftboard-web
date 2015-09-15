@@ -25,7 +25,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         """
         Create the default TicketAmounts if they do not alrady exist
         """
-        for amt in ticket.models.DEFAULT_TICKET_VALUES:
+        for amt, description in ticket.models.DEFAULT_TICKET_VALUES:
             try:
                 ta = ticket.models.TicketAmount.objects.get( amount = amt )
             except ticket.models.TicketAmount.DoesNotExist:

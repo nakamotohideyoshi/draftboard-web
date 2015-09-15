@@ -91,6 +91,8 @@ class ContestLineupManager(object):
     # size in bytes of these portions of the payload
     SIZE_LINEUPS                = 4
     SIZE_PLAYERS_PER_LINEUP     = 2
+
+    SIZE_LINEUP_ID              = 4
     SIZE_PLAYER                 = 2     # a single player is 2 bytes
 
     def __init__(self, contest=None, contest_id=None):
@@ -136,9 +138,10 @@ class ContestLineupManager(object):
 
         :return:
         """
-        return self.players_per_lineup * self.SIZE_PLAYER * self.contest.entries
+        return (self.SIZE_LINEUP_ID + self.players_per_lineup * self.SIZE_PLAYER) * self.contest.entries
 
     def get_size_in_bytes(self):
+        print( '__header_size() = %s' %str(self.__header_size()), '__payload_size() = %s' % str(self.__payload_size()))
         return self.__header_size() + self.__payload_size()
 
     def pack_into_h(self, fmt, bytes, offset, val):
@@ -159,6 +162,7 @@ class ContestLineupManager(object):
         """
 
         size = struct.calcsize( fmt )
+        print('<size so far>', str(size), 'raw:', str(bytes))
         struct.pack_into( fmt, bytes, offset, val )
         new_offset = offset + size
         return (new_offset, bytes)
@@ -179,16 +183,20 @@ class ContestLineupManager(object):
         """
 
         bytes = bytearray( self.get_size_in_bytes() )
-        offset, bytes = self.pack_into_h( '>i', bytes, 0, 1000 )
+        #print( '# contest entries:', str(self.contest.entries))
+        offset, bytes = self.pack_into_h( '>i', bytes, 0, self.contest.entries )
+        #print( '# players per lineup:', str(self.players_per_lineup))
         offset, bytes = self.pack_into_h( '>h', bytes, offset, self.players_per_lineup )
 
         for e in self.entries:
             # pack the lineup id
+            #print( '    <add lineup> %s' % str(e.lineup.pk), '  : bytes[%s]' % str(len(bytes) ) )
             offset, bytes = self.pack_into_h('>i', bytes, offset, e.lineup.pk )
 
             # pack in each player in the lineup, in order of course
             lm = LineupManager( e.user )
             for pid in lm.get_player_ids( e.lineup ):
+                #print( '        pid:', str(pid ))
                 offset, bytes = self.pack_into_h( '>h', bytes, offset, pid )
 
         # all the bytes should be packed in there now!

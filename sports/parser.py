@@ -331,7 +331,7 @@ class PbpPushStatPrinter(ObjectPrinter):
                     # now print it
                     self.print( event, '%s example %s' % (event_type, str(n+1)) )
 
-pbp_printer = PbpPushStatPrinter()
+#pbp_printer = PbpPushStatPrinter()
 
 class PlayerPushStatPrinter(ObjectPrinter):
     """
@@ -359,7 +359,7 @@ class PlayerPushStatPrinter(ObjectPrinter):
                 # TODO - serialize the player_stat_obj, then convert to dictionary
                 self.print( player_stat_obj.to_json(), 'example %s' % (str(n+1)) )
 
-player_printer = PlayerPushStatPrinter()
+#player_printer = PlayerPushStatPrinter()
 
 class BoxscorePushStatPrinter(ObjectPrinter):
     """
@@ -386,4 +386,4 @@ class BoxscorePushStatPrinter(ObjectPrinter):
             # TODO - serialize the boxscore, then convert to dictionary
             self.print( boxscore.to_json(), 'example %s' % (str(n+1)) )
 
-boxscore_printer = BoxscorePushStatPrinter()
+#boxscore_printer = BoxscorePushStatPrinter()
