@@ -335,6 +335,13 @@ class PlayerStats(models.Model):
     def to_json(self):
         return json.loads( serializers.serialize('json', [self]))[0] # always only 1
 
+    def to_score(self):
+        return {
+            #'player_id'         : self.player_id,
+            'fantasy_points'    : self.fantasy_points,
+            'position'          : self.position.name
+        }
+
     class Meta:
         abstract = True
         unique_together = ('srid_player','srid_game')

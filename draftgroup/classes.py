@@ -56,6 +56,12 @@ class AbstractDraftGroupManager(object):
         salaried_players = Salary.objects.filter( pool=pool )
         return self.Salaries( pool, list(salaried_players) )
 
+    def get_draft_group(self, draft_group_id):
+        """
+        raises DraftGroup.DoesNotExist if the draft_group_id specified is not found
+        """
+        return DraftGroup.objects.get(pk = draft_group_id )
+
     def create_gameteam(self, draft_group, game, team, alias, start):
         """
         create and return a new draftgroup.models.GameTeam object
@@ -146,8 +152,33 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         :param draft_group:
         :return:
         """
-        ssm = SiteSportManager()
+        #ssm = SiteSportManager()
         return Player.objects.filter( draft_group=draft_group )
+
+    def get_player_stats(self, draft_group):
+        """
+        get the sports.<sport>.models.PlayerStats objects for the given draft_group
+        returned in a dictionary of:
+
+            {
+                <model name> : [ list of objects ],
+                <model name> : [ list of objects ],
+                ... etc...
+            }
+
+        :param draft_group:
+        :return:
+        """
+        ssm = SiteSportManager()
+        game_srids = [ x.game_srid for x in self.get_game_teams(draft_group=draft_group) ]
+        player_stats_models = ssm.get_player_stats_class( sport=draft_group.salary_pool.site_sport )
+        data = {}
+        for stats_model in player_stats_models:
+            for player_stat_obj in stats_model.objects.filter( srid_game__in=game_srids ):
+                # l.append( player_stat_obj.to_json() )
+                data[ player_stat_obj.player_id ] = player_stat_obj.to_score()
+
+        return data
 
     def get_game_teams(self, draft_group):
         """
