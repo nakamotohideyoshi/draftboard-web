@@ -8,10 +8,18 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.pagination import LimitOffsetPagination
 from draftgroup.models import DraftGroup
+from draftgroup.classes import DraftGroupManager
 from draftgroup.serializers import DraftGroupSerializer
 from django.core.cache import caches
 
+import json
+from django.http import HttpResponse
+from django.views.generic import View
+
 class DraftGroupAPIView(generics.GenericAPIView):
+    """
+    return the draft group players for the given draftgroup id
+    """
 
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     serializer_class = DraftGroupSerializer
@@ -34,4 +42,18 @@ class DraftGroupAPIView(generics.GenericAPIView):
             c.add( self.__class__.__name__ + str(pk), serialized_data, 300 ) # 300 seconds
         return Response(serialized_data)
 
+class DraftGroupFantasyPointsView(View):
+    """
+    return all the lineups for a given contest as raw bytes, in our special compact format
+    """
+
+    def get(self, request, draft_group_id):
+        dgm = DraftGroupManager()
+        draft_group = dgm.get_draft_group( draft_group_id )
+        data = {
+            'draft_group'   : draft_group_id,
+            'players'       : dgm.get_player_stats( draft_group=draft_group ),
+        }
+        #return HttpResponse( dgm.get_player_stats( draft_group=draft_group ) )
+        return HttpResponse(json.dumps(data), content_type="application/json" )
 
