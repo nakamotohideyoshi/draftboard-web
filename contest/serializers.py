@@ -21,17 +21,17 @@ class PrizeStructureSerializer(serializers.ModelSerializer):
             'name',
             'buyin',
             'generator',
-            'ranks'
+            'ranks',
+            'prize_pool'
         )
 
 class ContestSerializer(serializers.ModelSerializer):
-    prize_structure = PrizeStructureSerializer(read_only=True)
 
     class Meta:
 
         model = Contest
         fields = ('id','name','sport','status','start',
-                  'draft_group','max_entries',
+                  'draft_group','max_entries', 'prize_structure','prize_pool',
                   'entries','current_entries','gpp','doubleup',
                   'respawn')
 

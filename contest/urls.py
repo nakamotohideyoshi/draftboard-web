@@ -32,7 +32,7 @@ urlpatterns = patterns( '',
 
     #
     # get the complete set of specially packed lineups for a contest
-    (r'^all-lineups/$', AllLineupsView.as_view()),
+    (r'^all-lineups/(?P<contest_id>[0-9]+)$', AllLineupsView.as_view()),
 )
 
 
