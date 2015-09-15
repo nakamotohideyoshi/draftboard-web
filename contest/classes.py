@@ -87,6 +87,15 @@ class Dummy(object):
         return contest
 
 class ContestLineupManager(object):
+    """
+    In [12]: hex( 65535 ) # max short int
+    Out[12]: '0xffff'
+
+    """
+
+    # invalid player or no player
+    PLAYER_INVALID      = 0
+    PLAYER_NOT_STARTED  = 65535
 
     # size in bytes of these portions of the payload
     SIZE_LINEUPS                = 4
@@ -117,11 +126,34 @@ class ContestLineupManager(object):
         dgm = DraftGroupManager()
         self.draft_group_players    = dgm.get_players( self.contest.draft_group )
 
+        # a map where the player id points to their own id if their game
+        # has started, or to 0xffff if they havent started yet
+        self.starter_map = self.get_starter_map(self.draft_group_players)
+
         # determine the size of a lineup in bytes
         rm = RosterManager( self.contest.site_sport )
         self.players_per_lineup = rm.get_roster_spots_count()
 
         self.entries = Entry.objects.filter( contest=self.contest )
+
+    def get_starter_map(self, draft_group_players):
+        """
+        build a mapping of player ids to their 1) their own id if their game
+        has started, or 2) to the PLAYER_NOT_STARTED value if they
+        have not started their game yet!
+
+        :param draft_group_players:
+        :return:
+        """
+        self.starter_map = {}
+        now = timezone.now()
+        for p in self.draft_group_players:
+            print( str(now), ' >= ', str(p.start))
+            if now >= p.start:
+                self.starter_map[ p.pk ] = p.pk
+            else:
+                self.starter_map[ p.pk ] = self.PLAYER_NOT_STARTED
+        return self.starter_map
 
     def __header_size(self):
         """
@@ -186,7 +218,7 @@ class ContestLineupManager(object):
         #print( '# contest entries:', str(self.contest.entries))
         offset, bytes = self.pack_into_h( '>i', bytes, 0, self.contest.entries )
         #print( '# players per lineup:', str(self.players_per_lineup))
-        offset, bytes = self.pack_into_h( '>h', bytes, offset, self.players_per_lineup )
+        offset, bytes = self.pack_into_h( '>H', bytes, offset, self.players_per_lineup )
 
         for e in self.entries:
             # pack the lineup id
@@ -197,7 +229,8 @@ class ContestLineupManager(object):
             lm = LineupManager( e.user )
             for pid in lm.get_player_ids( e.lineup ):
                 #print( '        pid:', str(pid ))
-                offset, bytes = self.pack_into_h( '>h', bytes, offset, pid )
+                # offset, bytes = self.pack_into_h( '>h', bytes, offset, pid )
+                offset, bytes = self.pack_into_h( '>H', bytes, offset, self.starter_map[ pid ] )
 
         # all the bytes should be packed in there now!
         return bytes
