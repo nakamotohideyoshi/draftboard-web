@@ -48,13 +48,13 @@ class DataDenParser(object):
         ('mlb','away','summary'),
         ('mlb','player','summary'),
 
-        # nba
-        ('nba','team','hierarchy'),     # 1
-        ('nba','game','schedule'),      # 2
-        ('nba','player','rosters'),     # 3
-        ('nba','game','boxscores'),
-        ('nba','team','boxscores'),
-        ('nba','player','stats'),
+        # nba   # temporary commented out
+                # ('nba','team','hierarchy'),     # 1
+                # ('nba','game','schedule'),      # 2
+                # ('nba','player','rosters'),     # 3
+                # ('nba','game','boxscores'),
+                # ('nba','team','boxscores'),
+                # ('nba','player','stats'),
         # ... pbp quarter + event parsing:
         ('nba','quarter','pbp'),        # parent of the following
         ('nba','event','pbp'),          # contains the play data, including players

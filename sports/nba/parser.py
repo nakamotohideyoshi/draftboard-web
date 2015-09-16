@@ -225,9 +225,9 @@ class QuarterPbp(DataDenPbpDescription):
             #
             # each event is a pbp item with a description
             srid_event = event_json.get('event', None)
-            #pbp_desc    = self.get_pbp_description(game_portion, idx, '', save=False) # defer save
+            pbp_desc    = self.get_pbp_description(game_portion, idx, '', save=False) # defer save
             ### previous line should probably be the following line:
-            pbp_desc    = self.get_pbp_description_by_srid( srid_event )
+            #pbp_desc    = self.get_pbp_description_by_srid( srid_event )
             pbp_desc.srid = srid_event # the 'event' is the PbpDescription
             pbp_desc.save()
             idx += 1

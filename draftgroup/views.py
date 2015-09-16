@@ -57,3 +57,38 @@ class DraftGroupFantasyPointsView(View):
         #return HttpResponse( dgm.get_player_stats( draft_group=draft_group ) )
         return HttpResponse(json.dumps(data), content_type="application/json" )
 
+class DraftGroupGameBoxscoresView(View):
+    """
+    return all the boxscores for the given draft group (basically, all
+    the live games (ie: Home @ Away with scores) from the context
+    of the draftgroup)
+    """
+
+    def get(self, request, draft_group_id):
+
+        dgm = DraftGroupManager()
+        draft_group = dgm.get_draft_group( draft_group_id )
+        boxscores = dgm.get_game_boxscores( draft_group )
+
+        data = []
+        for b in boxscores:
+            data.append( b.to_json() )
+
+        return HttpResponse( json.dumps(data), content_type='application/json' )
+
+class DraftGroupPbpDescriptionView(View):
+    """
+    return the most recent PbpDescription objects for this draft group
+    """
+
+    def get(self, request, draft_group_id):
+
+        dgm = DraftGroupManager()
+        draft_group = dgm.get_draft_group( draft_group_id )
+        pbp_descriptions = dgm.get_pbp_descriptions( draft_group )
+
+        data = []
+        for pbp in pbp_descriptions:
+            data.append( pbp.to_json() )
+
+        return HttpResponse( json.dumps(data), content_type='application/json' )

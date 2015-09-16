@@ -337,7 +337,7 @@ class PlayerStats(models.Model):
 
     def to_score(self):
         return {
-            #'player_id'         : self.player_id,
+            '#player_id'         : self.player_id,
             'fantasy_points'    : self.fantasy_points,
             'position'          : self.position.name
         }
@@ -416,6 +416,9 @@ class PbpDescription(models.Model):
     @property
     def sequence(self):
         return self.portion.sequence
+
+    def to_json(self):
+        return { 'idx':self.idx, 'd':self.description }
 
     class Meta:
         abstract = True
