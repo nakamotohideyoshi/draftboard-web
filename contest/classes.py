@@ -14,6 +14,7 @@ from ticket.classes import TicketManager
 from ticket.models import TicketAmount
 from contest.models import Contest, Entry
 from lineup.classes import LineupManager
+import lineup.models
 from prize.classes import TicketPrizeStructureCreator
 from draftgroup.classes import DraftGroupManager
 from roster.classes import RosterManager
@@ -128,6 +129,8 @@ class ContestLineupManager(object):
 
         # a map where the player id points to their own id if their game
         # has started, or to 0xffff if they havent started yet
+        #
+        # i can see a reason we would want to cache the get_starter_map result ....
         self.starter_map = self.get_starter_map(self.draft_group_players)
 
         # determine the size of a lineup in bytes
@@ -145,15 +148,87 @@ class ContestLineupManager(object):
         :param draft_group_players:
         :return:
         """
+        print( 'TODO - dont forget to cache the starter_map -- it cant be too fast!!')
         self.starter_map = {}
         now = timezone.now()
         for p in self.draft_group_players:
-            print( str(now), ' >= ', str(p.start))
+            # print( str(now), ' >= ', str(p.start))
             if now >= p.start:
-                self.starter_map[ p.pk ] = p.pk
+                self.starter_map[ p.salary_player.player_id ] = p.salary_player.player_id
             else:
-                self.starter_map[ p.pk ] = self.PLAYER_NOT_STARTED
+                self.starter_map[ p.salary_player.player_id ] = self.PLAYER_NOT_STARTED
         return self.starter_map
+
+    def is_player_game_started(self, player_id):
+        """
+        return a boolean indicating if this players game has started
+
+        :param player_id:
+        :return:
+        """
+        return self.starter_map[ player_id ] < self.PLAYER_NOT_STARTED
+
+    def get_lineup_data(self, lineup_id):
+        """
+        get lineup data we can show to other users, with masked
+        out players whos games have not started yet.
+
+        this is the "single team" version of the ContestLineupManager
+        method that gets all lineups in a contest,
+
+        ... this gets all the player stats for players in games.
+
+        :param lineup_id:
+        :return:
+        """
+
+        data = []
+        ssm = SSM()
+
+        lineup_players = lineup.models.Player.objects.filter( lineup__pk=lineup_id ).order_by('idx')
+
+        player_stats_models = ssm.get_player_stats_class( self.contest.site_sport )
+
+        for lineup_player in lineup_players:
+            player_stats = None # havent found them yet
+            # check easy stats model type ( ie: baseball has PlayerStatsHitter & PlayerStatsPitcher
+            started         = False
+            category_stats  = []
+            for player_stats_model in player_stats_models:
+                #
+                # if the player is masked out in the starter map, do not display which player it is
+                started = self.is_player_game_started( lineup_player.player_id )
+                if not started:
+                    continue
+
+                #
+                # try to get actual stats for the player
+                try:
+                    player_stats = player_stats_model.objects.get( player_id=lineup_player.player_id,
+                                        srid_game=lineup_player.draft_group_player.game_team.game_srid )
+                except player_stats_model.DoesNotExist:
+                    player_stats = None
+                    pass # the stats werent found for this person ( possibly wont ever be found! )
+
+                if player_stats is not None:
+                    # at this point, if player_stats is not None, add it
+                    # to the return data (if player game started!)
+                    #data.append( player_stats.to_json() )
+                    category_stats.append( player_stats.to_json() )
+
+            # add the "category_stats" list  -- ie: the stats for each roster idx
+            data.append( {
+                'started'   : started,
+                'i'         : lineup_player.idx,
+                'data'      : category_stats,
+            } )
+
+            started         = False # reset flag after adding this player
+
+        # this data is safe to return via the API because
+        # the players whos games have not yet started have
+        # not been shown!
+        return data
 
     def __header_size(self):
         """
@@ -230,6 +305,7 @@ class ContestLineupManager(object):
             for pid in lm.get_player_ids( e.lineup ):
                 #print( '        pid:', str(pid ))
                 # offset, bytes = self.pack_into_h( '>h', bytes, offset, pid )
+                print( 'pid:', str( pid ) )
                 offset, bytes = self.pack_into_h( '>H', bytes, offset, self.starter_map[ pid ] )
 
         # all the bytes should be packed in there now!

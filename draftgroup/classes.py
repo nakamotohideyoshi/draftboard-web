@@ -72,14 +72,15 @@ class AbstractDraftGroupManager(object):
                                             team_srid=team,
                                             alias=alias )
 
-    def create_player(self, draft_group, salary_player, salary, start):
+    def create_player(self, draft_group, salary_player, salary, start, game_team):
         """
         create and return a new draftgroup.models.Player object
         """
         return Player.objects.create( draft_group=draft_group,
                                       salary_player=salary_player,
                                       salary=salary,
-                                      start=start)
+                                      start=start,
+                                      game_team=game_team)
 
 class DraftGroupManager( AbstractDraftGroupManager ):
     """
@@ -293,9 +294,12 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         #
         # build lists of all the teams, and all the player srids in the draft group
         team_srids      = {}
+        game_teams      = {} # newly created game_team objects will need to be associated with draftgroup players
         for g in games:
-            self.create_gameteam( draft_group, g.srid, g.away.srid, g.away.alias, g.start )
-            self.create_gameteam( draft_group, g.srid, g.home.srid, g.home.alias, g.start )
+            gt = self.create_gameteam( draft_group, g.srid, g.away.srid, g.away.alias, g.start )
+            game_teams[ g.away.srid ] = gt
+            gt = self.create_gameteam( draft_group, g.srid, g.home.srid, g.home.alias, g.start )
+            game_teams[ g.home.srid ] = gt
 
             team_srids[g.away.srid]  = g.start
             team_srids[g.home.srid]  = g.start
@@ -305,7 +309,9 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         # instance if their team is in the team srids list we generated above
         for p in salary.get_players():    # these 3 lines work but lets get rid of if statement
             if p.player.team.srid in team_srids:
-                self.create_player(draft_group, p, p.amount, team_srids.get(p.player.team.srid))
+                self.create_player(draft_group, p, p.amount,
+                                   team_srids.get( p.player.team.srid ),
+                                   game_teams[ p.player.team.srid ])
 
         #
         return draft_group

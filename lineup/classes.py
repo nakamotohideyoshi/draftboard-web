@@ -18,6 +18,8 @@ class LineupManager(AbstractSiteUserClass):
     def __init__(self, user):
         super().__init__(user)
 
+        self.draft_group_players = None
+
     def validate_arguments(self, player_ids, draftgroup=None, lineup=None, entry=None):
         if player_ids is not None:
             self.validate_variable_array(int, player_ids)
@@ -35,7 +37,7 @@ class LineupManager(AbstractSiteUserClass):
         :param lineup:
         :return:
         """
-        return [ p.pk for p in LineupPlayer.objects.filter( lineup=lineup ).order_by('idx') ]
+        return [ p.player_id for p in LineupPlayer.objects.filter( lineup=lineup ).order_by('idx') ]
 
     @atomic
     def create_lineup(self,  player_ids, draftgroup):
@@ -106,10 +108,11 @@ class LineupManager(AbstractSiteUserClass):
         i = 0
         for player in players:
             lineup_player = LineupPlayer()
-            lineup_player.player = player
-            lineup_player.lineup = lineup
-            lineup_player.roster_spot = roster_manager.get_roster_spot_for_index(i)
-            lineup_player.idx = i
+            lineup_player.player                = player
+            lineup_player.lineup                = lineup
+            lineup_player.draft_group_player    = self.draft_group_players[ player.pk ]
+            lineup_player.roster_spot           = roster_manager.get_roster_spot_for_index(i)
+            lineup_player.idx                   = i
             lineup_player.save()
             i += 1
 
@@ -291,6 +294,9 @@ class LineupManager(AbstractSiteUserClass):
         :raise :class:`lineup.exception.InvalidLineupSalaryException`: When a lineup
             has a salary larger than the maximum allowed for the salary pool
         """
+
+        self.draft_group_players = {}
+
         salary_sum = 0
         #
         # sum all salaries
@@ -300,6 +306,9 @@ class LineupManager(AbstractSiteUserClass):
                 draftgroup_player = Player.objects.get(salary_player__player_type=c_type,
                                                        salary_player__player_id=player.pk,
                                                        draft_group=draftgroup)
+                #
+                self.draft_group_players[ draftgroup_player.salary_player.player_id ] = draftgroup_player
+
                 salary_sum += draftgroup_player.salary
             except Player.DoesNotExist:
                 raise PlayerDoesNotExistInDraftGroupException(player.pk, draftgroup.pk)
@@ -427,6 +436,9 @@ class LineupManager(AbstractSiteUserClass):
         :param lineup:
         :return:
         """
+
+        self.draft_group_players = {}
+
         #
         # adds the player ids to the corresponding spots in the lineup
         lineup_players = LineupPlayer.objects.filter(lineup=lineup).order_by('idx')
@@ -443,6 +455,8 @@ class LineupManager(AbstractSiteUserClass):
                 draftgroup_player = Player.objects.get(salary_player__player_type=c_type,
                                                        salary_player__player_id=player_id,
                                                        draft_group=lineup.draft_group)
+                # add each draftgroup_player to the table, by their actual player_id (unique to sport!)
+                self.draft_group_players[ draftgroup_player.salary_player.player_id ] = draftgroup_player
 
                 draftgroup_lineup_player = Player.objects.get(
                     salary_player__player_type=lineup_player.player_type,
