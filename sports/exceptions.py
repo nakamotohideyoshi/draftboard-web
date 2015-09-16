@@ -21,3 +21,7 @@ class TeamClassNotFoundException(Exception):
 class GameBoxscoreClassNotFoundException(Exception):
     def __init__(self, class_name, sport_name):
         super().__init__( "GameBoxscore class for %s not found" % sport_name )
+
+class PbpDescriptionClassNotFoundException(Exception):
+    def __init__(self, class_name, sport_name):
+        super().__init__( "PbpDescription class for %s not found" % sport_name )

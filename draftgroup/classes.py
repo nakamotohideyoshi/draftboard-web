@@ -214,6 +214,45 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         game_model = ssm.get_game_class( sport=draft_group.salary_pool.site_sport )
         return game_model.objects.filter( srid__in=game_srids )
 
+    def get_game_boxscores(self, draft_group):
+        """
+        Return the sports.<sport>.GameBoxscore objects related to the DraftGroup instance.
+
+        This method simply gets the distinct('game_srid') rows
+        from the QuerySet returned by get_game_teams().
+
+        :param draft_group:
+        :return: QuerySet of sports.<sport>.Game objects
+        """
+
+        # get the distinct games from the gameteam model
+        distinct_gameteam_games = self.get_game_teams( draft_group=draft_group ).distinct('game_srid')
+        game_srids = [ x.game_srid for x in distinct_gameteam_games ]
+
+        # get the sports game_model (ie: sports.<sport>.Game)
+        ssm = SiteSportManager()
+        game_boxscore_model = ssm.get_game_boxscore_class( sport=draft_group.salary_pool.site_sport )
+        return game_boxscore_model.objects.filter( srid_game__in=game_srids )
+
+    def get_pbp_descriptions(self, draft_group, max=15):
+        """
+        get the most recent pbp descriptions for this draft group
+
+        does not return the full list, but a capped (short) trailing history
+        :param draft_group:
+        :return:
+        """
+
+        # get the distinct games from the gameteam model
+        distinct_gameteam_games = self.get_game_teams( draft_group=draft_group ).distinct('game_srid')
+        game_srids = [ x.game_srid for x in distinct_gameteam_games ]
+
+        # get the sports game_model (ie: sports.<sport>.Game)
+        ssm = SiteSportManager()
+        pbp_description_model = ssm.get_pbp_description_class( sport=draft_group.salary_pool.site_sport )
+        #return pbp_description_model.objects.filter( description__srid_game__in=game_srids )[:15]
+        return pbp_description_model.objects.filter( )[:15] # TODO
+
     def get_for_game(self, game):
         """
         return a list of all the DraftGroups which contain this Game
