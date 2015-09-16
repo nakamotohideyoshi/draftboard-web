@@ -4,7 +4,8 @@
 from django.conf.urls import patterns
 from django.conf.urls import url
 from contest.views import LobbyAPIView, AllLineupsView, \
-                          UserUpcomingAPIView, UserLiveAPIView, UserHistoryAPIView
+                          UserUpcomingAPIView, UserLiveAPIView, UserHistoryAPIView, \
+                          SingleLineupView
 #from myapp.views import AuthorCreate, AuthorUpdate, AuthorDelete
 from contest.views import ContestCreate, ContestUpdate
 urlpatterns = patterns( '',
@@ -29,6 +30,12 @@ urlpatterns = patterns( '',
     #
     # get a logged in user's historical contests
     (r'^history/$', UserHistoryAPIView.as_view()),
+
+    #
+    # get a single lineup with stats - the lineup can
+    # be viewed by any user, and will mask out
+    # players who are not yet starting.
+    (r'^single-lineup/(?P<contest_id>[0-9]+)/(?P<lineup_id>[0-9]+)$', SingleLineupView.as_view()),
 
     #
     # get the complete set of specially packed lineups for a contest
