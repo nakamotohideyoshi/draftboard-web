@@ -337,9 +337,9 @@ class PlayerStats(models.Model):
 
     def to_score(self):
         return {
-            '#player_id'         : self.player_id,
-            'fantasy_points'    : self.fantasy_points,
-            'position'          : self.position.name
+            'id'         : self.player_id,
+            'fp'    : self.fantasy_points,
+            'pos'          : self.position.name
         }
 
     class Meta:
