@@ -177,7 +177,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         for stats_model in player_stats_models:
             for player_stat_obj in stats_model.objects.filter( srid_game__in=game_srids ):
                 # l.append( player_stat_obj.to_json() )
-                data[ player_stat_obj.player_id ] = player_stat_obj.to_score()
+                data[ player_stat_obj.player_id  ] = player_stat_obj.to_score()
 
         return data
 
