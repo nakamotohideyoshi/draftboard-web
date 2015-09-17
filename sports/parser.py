@@ -1,9 +1,12 @@
 #
 
+#from django.core import serializers
+
 from dataden.watcher import OpLogObjWrapper
 from dataden.classes import Trigger, DataDen
 from dataden.signals import Update
 
+import sports.classes
 import sports.nba.parser
 import sports.mlb.parser
 import sports.nhl.parser
@@ -15,6 +18,8 @@ import sports.nba.models
 import sports.mlb.models
 import sports.nhl.models
 import sports.nfl.models
+
+from pprint import PrettyPrinter
 
 class DataDenParser(object):
     """
@@ -43,13 +48,16 @@ class DataDenParser(object):
         ('mlb','away','summary'),
         ('mlb','player','summary'),
 
-        # nba
-        ('nba','team','hierarchy'),     # 1
-        ('nba','game','schedule'),      # 2
-        ('nba','player','rosters'),     # 3
-        ('nba','game','boxscores'),
-        ('nba','team','boxscores'),
-        ('nba','player','stats'),
+        # nba   # temporary commented out
+                # ('nba','team','hierarchy'),     # 1
+                # ('nba','game','schedule'),      # 2
+                # ('nba','player','rosters'),     # 3
+                # ('nba','game','boxscores'),
+                # ('nba','team','boxscores'),
+                # ('nba','player','stats'),
+        # ... pbp quarter + event parsing:
+        ('nba','quarter','pbp'),        # parent of the following
+        ('nba','event','pbp'),          # contains the play data, including players
 
         # nhl
         ('nhl','team','hierarchy'),     # 1
@@ -273,3 +281,109 @@ class ProviderParser(object):
             raise Exception('provider_parser [%s] does not exist' % str(provider))
 
         return provider_parser()
+
+class ObjectPrinter(object):
+    """
+    helper class that has a self.print() method
+    that uses pprint.PrettyPrinter(indent=4) to print objects
+    """
+    def __init__(self, indent=4):
+        self.pp = PrettyPrinter(indent=indent)
+
+    def print(self, obj, msg='', use_header=True):
+        if use_header:
+            print('--------------------------%s--------------------------' % str(msg))
+        self.pp.pprint( obj )
+        print('')
+
+class PbpPushStatPrinter(ObjectPrinter):
+    """
+    helper print examples of real-time (socket pushed) Play-by-Play objects.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.dataden            = DataDen()
+        self.examples           = 2             # number of printed examples per type
+        self.categories         = [
+            #  db,  coll,  parent_api,  distinct types
+            ('nba','event','pbp',       'event_type'),
+            # 'player',
+            # 'boxscores'
+        ]
+
+    def print_examples(self):
+        for db, coll, parent_api, distinct in self.categories:
+            event_types = self.dataden.find( db, coll, parent_api ).distinct( distinct )
+
+            # print the array of event types
+            print('')
+            print('[%s] example object(s) for distinct values of field: %s ...' % (str(self.examples), distinct))
+            self.print( event_types, distinct )
+
+            # print the unique values for the 'distinct' field
+            for event_type in event_types:
+                # get the objects of this type (probably many thousands!)
+                events = self.dataden.find( db, coll, parent_api, target={ distinct : event_type } )
+                # print X examples
+                for n, event in enumerate(events):
+                    if n >= self.examples: break
+                    # now print it
+                    self.print( event, '%s example %s' % (event_type, str(n+1)) )
+
+#pbp_printer = PbpPushStatPrinter()
+
+class PlayerPushStatPrinter(ObjectPrinter):
+    """
+    helper class that can print examples of PlayerStats objects
+    that may be pushed out the socket to clients
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.ssm = sports.classes.SiteSportManager()
+        self.examples = 5
+
+    def print_examples(self, sport):
+        site_sport = self.ssm.get_site_sport(sport)
+        # the the list of <sport>.models.PlayerStats objects for the sport specified
+        player_stats_models = self.ssm.get_player_stats_class( site_sport )
+
+        print('')
+        print('[%s] example object(s) for: %s ...' % (str(self.examples), str(player_stats_models) ))
+
+        # get some objects and print them
+        for player_stats_model in player_stats_models:
+            player_stats = player_stats_model.objects.all()
+            for n, player_stat_obj in enumerate(player_stats):
+                # TODO - serialize the player_stat_obj, then convert to dictionary
+                self.print( player_stat_obj.to_json(), 'example %s' % (str(n+1)) )
+
+#player_printer = PlayerPushStatPrinter()
+
+class BoxscorePushStatPrinter(ObjectPrinter):
+    """
+    helper class that can print examples of GameBoxscore objects
+    that may be pushed out a socket to listening clients
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.ssm = sports.classes.SiteSportManager()
+        self.examples = 5
+
+    def print_examples(self, sport):
+        site_sport = self.ssm.get_site_sport(sport)
+        # the the list of <sport>.models.GameBoxscore objects for the sport specified
+        game_boxscore_model = self.ssm.get_game_boxscore_class( site_sport )
+
+        print('')
+        print('[%s] example object(s) for: %s ...' % (str(self.examples), str(game_boxscore_model) ))
+
+        # get some objects and print them
+        boxscores = game_boxscore_model.objects.all()
+        for n, boxscore in enumerate(boxscores):
+            # TODO - serialize the boxscore, then convert to dictionary
+            self.print( boxscore.to_json(), 'example %s' % (str(n+1)) )
+
+#boxscore_printer = BoxscorePushStatPrinter()

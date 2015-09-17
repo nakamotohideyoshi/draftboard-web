@@ -41,6 +41,12 @@ class Player(models.Model):
 
     roster_spot = models.ForeignKey(RosterSpot)
 
+    # we save the pk to the draft_group_player for easier
+    # lookups later. it also allows us to know which
+    # team the player played for at the time of the draftgroup
+    # which is very important
+    draft_group_player = models.ForeignKey('draftgroup.Player', null=False)
+
     #
     # Actual layout not per position from 0-X
     idx = models.PositiveIntegerField(default=0, null=False)

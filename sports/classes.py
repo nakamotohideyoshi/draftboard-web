@@ -1,7 +1,8 @@
-from .models import SiteSport, PlayerStats, Player, Game, Team
+from .models import SiteSport, PlayerStats, Player, Game, Team, GameBoxscore, PbpDescription
 from django.contrib.contenttypes.models import ContentType
-from .exceptions import SportNameException, \
-    SiteSportWithNameDoesNotExistException, GameClassNotFoundException, TeamClassNotFoundException
+from .exceptions import SportNameException, GameBoxscoreClassNotFoundException, \
+    SiteSportWithNameDoesNotExistException, GameClassNotFoundException, \
+    TeamClassNotFoundException, PbpDescriptionClassNotFoundException
 from mysite.exceptions import IncorrectVariableTypeException
 import dataden.classes
 
@@ -232,6 +233,48 @@ class SiteSportManager(object):
         # by default raise an exception if we couldnt return a game class
         raise TeamClassNotFoundException(type(self).__name__, sport)
 
+    def get_pbp_description_class(self, sport):
+        """
+        Class that fetches the class that inherits sports.models.Game for the sport
+
+        :param sport: string OR SiteSport. method is intelligent about the runtime type of 'sport'
+
+        :return: the sport's
+            :class:`sports.models.Game` class.
+
+        :raises :class:`sports.exceptions.SportNameException`: when the string sport
+            does not match a sport in the sports array
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+        arr = self.__get_array_of_classes(sport, 'pbpdescription', PbpDescription)
+        if len(arr) >= 1:
+            return arr[0]
+
+        # by default raise an exception if we couldnt return a game class
+        raise PbpDescriptionClassNotFoundException(type(self).__name__, sport)
+
+    def get_game_boxscore_class(self, sport):
+        """
+        Class that fetches the class that inherits sports.models.Game for the sport
+
+        :param sport: string OR SiteSport. method is intelligent about the runtime type of 'sport'
+
+        :return: the sport's
+            :class:`sports.models.Game` class.
+
+        :raises :class:`sports.exceptions.SportNameException`: when the string sport
+            does not match a sport in the sports array
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+        arr = self.__get_array_of_classes(sport, 'gameboxscore', GameBoxscore)
+        if len(arr) >= 1:
+            return arr[0]
+
+        # by default raise an exception if we couldnt return a game class
+        raise GameBoxscoreClassNotFoundException(type(self).__name__, sport)
+
 class PlayerNamesCsv(object):
 
     def __init__(self, sport='nfl', positions=None, filename=None):
@@ -351,3 +394,4 @@ class MlbPlayerNamesCsv(PlayerNamesCsv):
         self.parent_api     = 'rostersfull'
         self.key_fullname   = 'full_name'
         self.key_position   = 'primary_position'
+

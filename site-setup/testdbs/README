@@ -1,0 +1,43 @@
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
++++++ from directory: (venv)vagrant@vagrant-ubuntu-trusty-64:/vagrant$ +++++++++++++
++++++
++++++ make sure to use the right postgres db for the sprint you have checked out
++++++ $> sudo -u postgres dropdb dfs_live_contest_apis      # for dfs_live_contest_sprint
++++++ $> sudo -u postgres createdb dfs_live_contest_apis    # for dfs_live_contest_sprint
++++++
++++++   you should be able to copy and paste the below drop/create tables
++++++   and loaddata commands into a terminal to populate some "real" data
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+sudo -u postgres dropdb dfs_master
+sudo -u postgres createdb dfs_master
+./manage.py migrate
+./manage.py loaddata site-setup/testdbs/users.json
+./manage.py loaddata site-setup/testdbs/sports.json
+./manage.py loaddata site-setup/testdbs/nba_with_pbp.json
+./manage.py loaddata site-setup/testdbs/roster.json
+./manage.py loaddata site-setup/testdbs/prize.json
+./manage.py loaddata site-setup/testdbs/ticket
+./manage.py loaddata site-setup/testdbs/transaction
+./manage.py loaddata site-setup/testdbs/cash
+./manage.py loaddata site-setup/testdbs/salary.json
+./manage.py loaddata site-setup/testdbs/draftgroup.json
+./manage.py loaddata site-setup/testdbs/contest.json
+./manage.py loaddata site-setup/testdbs/lineups.json
+./manage.py loaddata site-setup/testdbs/contest_transactions.json
+./manage.py loaddata site-setup/testdbs/contest_cash.json
+./manage.py loaddata site-setup/testdbs/contest_entries.json
+
+
+
+
+
+
+### notes
+http://localhost/contest/lobby/                         # get the lobby contests
+http://localhost/draft-group/1                          # get the draft group
+http://localhost/draft-group/fantasy-points/1           # get the fantasy scores of all players in the draft group
+http://localhost/contest/all-lineups/1                  # get packed lineup version of a contest
+http://localhost/contest/single-lineup/1/1              # get a lineups with stats, PLUS masked out players who havent started
+http://localhost/draft-group/boxscores/1                # get the boxscores for this draftgroup
+http://localhost/draft-group/pbp/1                      # requires mongo - not final

@@ -226,6 +226,8 @@ class QuarterPbp(DataDenPbpDescription):
             # each event is a pbp item with a description
             srid_event = event_json.get('event', None)
             pbp_desc    = self.get_pbp_description(game_portion, idx, '', save=False) # defer save
+            ### previous line should probably be the following line:
+            #pbp_desc    = self.get_pbp_description_by_srid( srid_event )
             pbp_desc.srid = srid_event # the 'event' is the PbpDescription
             pbp_desc.save()
             idx += 1
@@ -250,11 +252,23 @@ class EventPbp(DataDenPbpDescription):
         srid_pbp_desc = self.o.get('id', None)
         pbp_desc = self.get_pbp_description_by_srid( srid_pbp_desc )
         if pbp_desc:
+            # DataDenNba.parse() | nba.event pbp {'updated': '2015-06-17T03:58:49+00:00', 'parent_list__id': 'events__list', 'possession': '583ec825-fb46-11e1-82cb-f4ce4684ea4c', 'dd_updated__id': 1441316758302, 'parent_api__id': 'pbp', 'clock': '00:00', 'description': 'End of 4th Quarter.', 'event_type': 'endperiod', 'quarter__id': '37d8a2b0-eb65-431d-827f-1c25396a3f1f', 'game__id': '63aa3abe-c1c2-4d69-8d0f-5e3e2f263470', 'id': '3688ff8b-f056-412f-9189-7f123073217f', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDYzYWEzYWJlLWMxYzItNGQ2OS04ZDBmLTVlM2UyZjI2MzQ3MHF1YXJ0ZXJfX2lkMzdkOGEyYjAtZWI2NS00MzFkLTgyN2YtMWMyNTM5NmEzZjFmcGFyZW50X2xpc3RfX2lkZXZlbnRzX19saXN0aWQzNjg4ZmY4Yi1mMDU2LTQxMmYtOTE4OS03ZjEyMzA3MzIxN2Y='}
+            # pbp_description_model: <class 'sports.nba.models.PbpDescription'> srid: 3688ff8b-f056-412f-9189-7f123073217f
+            # ... got it: PbpDescription object pk: 461
+            print( '>>>>>>', str(self.o) )
             description = self.o.get('description', None)
+            print( 'description:', str(description))
             if pbp_desc.description != description:
                 # only save it if its changed
+                print( '...... saving it because it doesnt match the description we currently have (must have changed)')
                 pbp_desc.description = description
                 pbp_desc.save()
+                print( 'before:', str(pbp_desc.description))
+                pbp_desc.refresh_from_db()
+                print( 'after:', str(pbp_desc.description))
+
+            else:
+                print( '...... not saving description because it matches what we currently have.')
         else:
             print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
 
@@ -321,10 +335,10 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.team','hierarchy'): TeamHierarchy().parse( obj )
         elif self.target == ('nba.team','boxscores'): TeamBoxscores().parse( obj )
         #
-        # nhl.period
+        # nba.period
         elif self.target == ('nba.quarter','pbp'): QuarterPbp().parse( obj )
         #
-        # nhl.event
+        # nba.event
         elif self.target == ('nba.event','pbp'): EventPbp().parse( obj )
         #
         # nba.player
@@ -381,6 +395,4 @@ class DataDenNba(AbstractDataDenParser):
             if player.remove_injury():
                 ctr_removed += 1
         print(str(ctr_removed), 'leftover/stale injuries removed')
-
-
 
