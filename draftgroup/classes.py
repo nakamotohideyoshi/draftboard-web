@@ -56,6 +56,12 @@ class AbstractDraftGroupManager(object):
         salaried_players = Salary.objects.filter( pool=pool )
         return self.Salaries( pool, list(salaried_players) )
 
+    def get_draft_group(self, draft_group_id):
+        """
+        raises DraftGroup.DoesNotExist if the draft_group_id specified is not found
+        """
+        return DraftGroup.objects.get(pk = draft_group_id )
+
     def create_gameteam(self, draft_group, game, team, alias, start):
         """
         create and return a new draftgroup.models.GameTeam object
@@ -66,14 +72,15 @@ class AbstractDraftGroupManager(object):
                                             team_srid=team,
                                             alias=alias )
 
-    def create_player(self, draft_group, salary_player, salary, start):
+    def create_player(self, draft_group, salary_player, salary, start, game_team):
         """
         create and return a new draftgroup.models.Player object
         """
         return Player.objects.create( draft_group=draft_group,
                                       salary_player=salary_player,
                                       salary=salary,
-                                      start=start)
+                                      start=start,
+                                      game_team=game_team)
 
 class DraftGroupManager( AbstractDraftGroupManager ):
     """
@@ -146,8 +153,33 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         :param draft_group:
         :return:
         """
-        ssm = SiteSportManager()
+        #ssm = SiteSportManager()
         return Player.objects.filter( draft_group=draft_group )
+
+    def get_player_stats(self, draft_group):
+        """
+        get the sports.<sport>.models.PlayerStats objects for the given draft_group
+        returned in a dictionary of:
+
+            {
+                <model name> : [ list of objects ],
+                <model name> : [ list of objects ],
+                ... etc...
+            }
+
+        :param draft_group:
+        :return:
+        """
+        ssm = SiteSportManager()
+        game_srids = [ x.game_srid for x in self.get_game_teams(draft_group=draft_group) ]
+        player_stats_models = ssm.get_player_stats_class( sport=draft_group.salary_pool.site_sport )
+        data = {}
+        for stats_model in player_stats_models:
+            for player_stat_obj in stats_model.objects.filter( srid_game__in=game_srids ):
+                # l.append( player_stat_obj.to_json() )
+                data[ player_stat_obj.player_id  ] = player_stat_obj.to_score()
+
+        return data
 
     def get_game_teams(self, draft_group):
         """
@@ -181,6 +213,45 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         ssm = SiteSportManager()
         game_model = ssm.get_game_class( sport=draft_group.salary_pool.site_sport )
         return game_model.objects.filter( srid__in=game_srids )
+
+    def get_game_boxscores(self, draft_group):
+        """
+        Return the sports.<sport>.GameBoxscore objects related to the DraftGroup instance.
+
+        This method simply gets the distinct('game_srid') rows
+        from the QuerySet returned by get_game_teams().
+
+        :param draft_group:
+        :return: QuerySet of sports.<sport>.Game objects
+        """
+
+        # get the distinct games from the gameteam model
+        distinct_gameteam_games = self.get_game_teams( draft_group=draft_group ).distinct('game_srid')
+        game_srids = [ x.game_srid for x in distinct_gameteam_games ]
+
+        # get the sports game_model (ie: sports.<sport>.Game)
+        ssm = SiteSportManager()
+        game_boxscore_model = ssm.get_game_boxscore_class( sport=draft_group.salary_pool.site_sport )
+        return game_boxscore_model.objects.filter( srid_game__in=game_srids )
+
+    def get_pbp_descriptions(self, draft_group, max=15):
+        """
+        get the most recent pbp descriptions for this draft group
+
+        does not return the full list, but a capped (short) trailing history
+        :param draft_group:
+        :return:
+        """
+
+        # get the distinct games from the gameteam model
+        distinct_gameteam_games = self.get_game_teams( draft_group=draft_group ).distinct('game_srid')
+        game_srids = [ x.game_srid for x in distinct_gameteam_games ]
+
+        # get the sports game_model (ie: sports.<sport>.Game)
+        ssm = SiteSportManager()
+        pbp_description_model = ssm.get_pbp_description_class( sport=draft_group.salary_pool.site_sport )
+        #return pbp_description_model.objects.filter( description__srid_game__in=game_srids )[:15]
+        return pbp_description_model.objects.filter( )[:15] # TODO
 
     def get_for_game(self, game):
         """
@@ -262,9 +333,12 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         #
         # build lists of all the teams, and all the player srids in the draft group
         team_srids      = {}
+        game_teams      = {} # newly created game_team objects will need to be associated with draftgroup players
         for g in games:
-            self.create_gameteam( draft_group, g.srid, g.away.srid, g.away.alias, g.start )
-            self.create_gameteam( draft_group, g.srid, g.home.srid, g.home.alias, g.start )
+            gt = self.create_gameteam( draft_group, g.srid, g.away.srid, g.away.alias, g.start )
+            game_teams[ g.away.srid ] = gt
+            gt = self.create_gameteam( draft_group, g.srid, g.home.srid, g.home.alias, g.start )
+            game_teams[ g.home.srid ] = gt
 
             team_srids[g.away.srid]  = g.start
             team_srids[g.home.srid]  = g.start
@@ -274,7 +348,9 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         # instance if their team is in the team srids list we generated above
         for p in salary.get_players():    # these 3 lines work but lets get rid of if statement
             if p.player.team.srid in team_srids:
-                self.create_player(draft_group, p, p.amount, team_srids.get(p.player.team.srid))
+                self.create_player(draft_group, p, p.amount,
+                                   team_srids.get( p.player.team.srid ),
+                                   game_teams[ p.player.team.srid ])
 
         #
         return draft_group

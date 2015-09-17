@@ -141,6 +141,10 @@ class Contest(models.Model):
     def sport(self):
         return self.site_sport.name
 
+    @property
+    def prize_pool(self):
+        return self.prize_structure.prize_pool
+
     def is_filled(self):
         """
         :return: True if there are no more entry spots left in this contest, otherwse returns False

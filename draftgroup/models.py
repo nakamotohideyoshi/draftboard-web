@@ -5,6 +5,9 @@ from django.db import models
 import salary.models
 import draftgroup.classes
 
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+
 class DraftGroup( models.Model ):
     """
     The "master" id table for a group of draftable players on a day.
@@ -33,6 +36,23 @@ class DraftGroup( models.Model ):
     def __format_dt(self, dt):
         return dt.strftime(self.dt_format)
 
+class GameTeam( models.Model ):
+    """
+    Keep track of the Teams in the Games from which we've
+    created the draft group.
+
+    Most just a historical thing , or potentially for debugging later on
+    """
+    created     = models.DateTimeField(auto_now_add=True, null=False)
+
+    draft_group = models.ForeignKey( DraftGroup, null=False )
+
+    # the start time of the game when the draftgroup was created!
+    start  = models.DateTimeField(null=False)
+    game_srid   = models.CharField(max_length=64, null=False)
+    team_srid   = models.CharField(max_length=64, null=False)
+    alias       = models.CharField(max_length=64, null=False)
+
 class Player( models.Model ):
     """
     A player is associated with a DraftGroup and a salary.models.Salary
@@ -49,7 +69,10 @@ class Player( models.Model ):
     start = models.DateTimeField(null=False)
 
     def __str__(self):
-        return '%s $%0.2f' % (str(self.player), self.salary)
+        return '%s $%.2f' % (str(self.player), self.salary)
+
+    # we need to create the draft group player associated with a certain team
+    game_team = models.ForeignKey(GameTeam, null=False)
 
     @property
     def player(self):
@@ -79,19 +102,3 @@ class Player( models.Model ):
         # each player should only exist once in each group!
         unique_together = ('draft_group','salary_player')
 
-class GameTeam( models.Model ):
-    """
-    Keep track of the Teams in the Games from which we've
-    created the draft group.
-
-    Most just a historical thing , or potentially for debugging later on
-    """
-    created     = models.DateTimeField(auto_now_add=True, null=False)
-
-    draft_group = models.ForeignKey( DraftGroup, null=False )
-
-    # the start time of the game when the draftgroup was created!
-    start  = models.DateTimeField(null=False)
-    game_srid   = models.CharField(max_length=64, null=False)
-    team_srid   = models.CharField(max_length=64, null=False)
-    alias       = models.CharField(max_length=64, null=False)

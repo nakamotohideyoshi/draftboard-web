@@ -636,6 +636,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             desc.idx         = idx
 
         if desc.description != description:
+            print( '>>>>> setting description to:"%s"' % description)
             desc.description = description
             if save:
                 desc.save()
@@ -643,8 +644,11 @@ class DataDenPbpDescription(AbstractDataDenParseable):
 
     def get_pbp_description_by_srid(self, srid):
         try:
+            print( 'pbp_description_model:', str(self.pbp_description_model), 'srid:', srid )
             pbp_desc = self.pbp_description_model.objects.get(srid=srid)
+            print( '... got it:', str(pbp_desc), 'pk:', str(pbp_desc.pk))
         except self.pbp_description_model.DoesNotExist:
+            print( '... does not exist!')
             pbp_desc = None
         return pbp_desc
 

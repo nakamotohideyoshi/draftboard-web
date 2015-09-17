@@ -1,6 +1,8 @@
 #
 # contest/views.py
 
+import json
+
 from rest_framework import renderers
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -119,11 +121,25 @@ class UserHistoryAPIView(UserEntryAPIView):
 class AllLineupsView(View):
     """
     return all the lineups for a given contest as raw bytes, in our special compact format
-
     """
 
-    def get(self, request):
-        clm = ContestLineupManager( contest_id = 2 )
+    def get(self, request, contest_id):
+        clm = ContestLineupManager( contest_id = contest_id )
         #return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
         return HttpResponse( clm.get_http_payload() )
+
+class SingleLineupView(View):
+    """
+    get a single lineup for any contest, lineup_id combination.
+
+    this api will mask out players who should not yet be seen
+    """
+
+    def get(self, request, contest_id, lineup_id):
+        clm = ContestLineupManager( contest_id = contest_id )
+        lineup_data = clm.get_lineup_data( lineup_id=lineup_id )
+
+        return HttpResponse( json.dumps(lineup_data), content_type="application/json" )
+
+
 

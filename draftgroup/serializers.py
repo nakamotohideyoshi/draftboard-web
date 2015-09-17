@@ -47,3 +47,4 @@ class DraftGroupSerializer(serializers.ModelSerializer):
         fields = ('pk','start','end','players')
 
 
+

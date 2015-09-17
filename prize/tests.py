@@ -10,6 +10,11 @@ from prize.classes import CashPrizeStructureCreator, TicketPrizeStructureCreator
 from ticket.models import TicketAmount
 from ticket.classes import TicketManager
 
+# quick way to create/use a prize.Generator
+def gen(buyin=100, first=1500, round=100, payouts=23, prize_pool=10000, exact=True, verbose=False):
+
+    return Generator(buyin, first, round, payouts, prize_pool, exact, verbose)
+
 class GeneratorTest(AbstractTest):
 
     def setUp(self):
