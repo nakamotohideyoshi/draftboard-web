@@ -41,3 +41,51 @@ http://localhost/contest/all-lineups/1                  # get packed lineup vers
 http://localhost/contest/single-lineup/1/1              # get a lineups with stats, PLUS masked out players who havent started
 http://localhost/draft-group/boxscores/1                # get the boxscores for this draftgroup
 http://localhost/draft-group/pbp/1                      # requires mongo - not final
+
+
+
+
+
+*** player1 Team ***
+Rajon Rondo(81-4600-PG),
+Tony Allen(443-5500-SG),
+Rudy Ray(77-3000-SF),
+Nick Collison(46-3300-PF),
+Kosta Koufos(78-4000-C),
+Jrue Holiday(456-4700-PG),          FX
+Marreese Speights(247-3000-PF)      FX
+Kevin Love(371-3000-PF)             FX
+c
+
+*** player2 Team ***
+Jeremy Lin(11-3000-SG),
+Tony Allen(443-5500-SG),
+Rudy Ray(77-3000-SF),
+Nick Collison(46-3300-PF),
+Kosta Koufos(78-4000-C),
+Jrue Holiday(456-4700-PG),          FX
+Marreese Speights(247-3000-PF)      FX
+Kevin Love(371-3000-PF)             FX
+team = [11, 443, 77, 46, 78, 456, 247, 371]
+
+*** player1 team2 ***
+Darren Collison(91-3000-PG),
+Tony Allen(443-5500-SG),
+Rudy Ray(77-3000-SF),
+Nick Collison(46-3300-PF),
+Kosta Koufos(78-4000-C),
+Jrue Holiday(456-4700-PG),          FX
+Marreese Speights(247-3000-PF)      FX
+Kevin Love(371-3000-PF)             FX
+team = [91, 443, 77, 46, 78, 456, 247, 371]
+
+*** player2 team2 ***
+Kyrie Irving(372-3700-PG),
+Tony Allen(443-5500-SG),
+Rudy Ray(77-3000-SF),
+Nick Collison(46-3300-PF),
+Kosta Koufos(78-4000-C),
+Jrue Holiday(456-4700-PG),          FX
+Marreese Speights(247-3000-PF)      FX
+Kevin Love(371-3000-PF)             FX
+team = [372, 443, 77, 46, 78, 456, 247, 371]

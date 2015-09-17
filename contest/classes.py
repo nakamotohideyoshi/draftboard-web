@@ -311,6 +311,37 @@ class ContestLineupManager(object):
         # all the bytes should be packed in there now!
         return bytes
 
+    def dev_get_all_lineups(self, contest_id):
+        """
+        for testing purposes, get all the lineups as json.
+        """
+
+        lineups = []
+
+        for e in self.entries:
+
+            lineup_id = e.lineup.pk
+            player_ids = []
+
+            # pack in each player in the lineup, in order of course
+            lm = LineupManager( e.user )
+            for pid in lm.get_player_ids( e.lineup ):
+                player_ids.append( self.starter_map[ pid ] )
+
+            lineups.append( {
+                'lineup_id'     : lineup_id,
+                'player_ids'    : player_ids,
+            } )
+
+        data = {
+            'endpoint'                          : '/contest/all-lineups/%s?json' % int( contest_id ),
+            'bytes_for_condensed_response'      : self.get_size_in_bytes(),
+            'total_lineups'                 : self.contest.entries,
+            'players_per_lineup'            : self.players_per_lineup,
+            'lineups'                       : lineups,
+        }
+        return data
+
     def get_http_payload(self):
         return ''.join('{:02x}'.format(x) for x in self.get_raw_bytes() )
 
