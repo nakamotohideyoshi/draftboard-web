@@ -6,8 +6,7 @@
   "license": "NONE",
   "main": "index.js",
   "private": true,
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "autoprefixer-loader": "^2.1.0",
     "babel": "^5.8.23",
@@ -33,8 +32,8 @@
     "mocha": "^2.3.0",
     "mocha-lcov-reporter": "0.0.2",
     "moment": "^2.10.6",
-    "nouislider": "git://github.com/leongersen/noUiSlider.git",
     "node-sass": "^3.3.2",
+    "nouislider": "git://github.com/leongersen/noUiSlider.git",
     "react": "^0.13.3",
     "react-maskedinput": "^2.0.0",
     "react-tools": "^0.13.3",
@@ -44,6 +43,7 @@
     "sinon": "^1.16.1",
     "style-loader": "^0.12.3",
     "superagent": "^1.3.0",
+    "superagent-django-csrf": "^0.1.3",
     "superagent-mock": "^1.3.0",
     "webpack": "^1.12.0",
     "webpack-dev-server": "^1.10.1",

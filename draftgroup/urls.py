@@ -7,8 +7,8 @@ from draftgroup.views import DraftGroupAPIView, \
     DraftGroupFantasyPointsView, DraftGroupGameBoxscoresView, \
     DraftGroupPbpDescriptionView
 
-urlpatterns = patterns( '',
-
+urlpatterns = patterns(
+    '',
     #
     # get recent play by play for this draftgroup
     (r'^pbp/(?P<draft_group_id>[0-9]+)$', DraftGroupPbpDescriptionView.as_view()),
@@ -25,6 +25,5 @@ urlpatterns = patterns( '',
     #
     # Get the draftgroup players for a draftgroup id.
     # Use this api to get the lists of draftable players for a contest.
-    (r'^(?P<pk>[0-9]+)$', DraftGroupAPIView.as_view()),
-
+    (r'^(?P<pk>[0-9]+)/$', DraftGroupAPIView.as_view()),
 )
