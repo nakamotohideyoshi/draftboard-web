@@ -1,4 +1,5 @@
 {
+  "extends": "eslint:recommended",
   "env": {
     "browser": true,
     "node": true,
@@ -18,14 +19,14 @@
   },
 
   "rules": {
-    // Ignore default string double quote requirement.
     "quotes": [0, "double"],
     "strict": [1, "global"],
     "no-underscore-dangle": 0,
     "sort-vars": 0,
+    "no-console": 0,
     "no-trailing-spaces": 1,
+    "semi": [1, "always"],
 
-    // React Plugin rules
     "react/display-name": 0,
     "react/jsx-boolean-value": 1,
     "react/jsx-quotes": 1,

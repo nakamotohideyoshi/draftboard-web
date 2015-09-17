@@ -12,30 +12,30 @@
 
 
 {% block sidebar %}
-  <div class="cmp-lineup-card-list lineup-sidebar-list"></div>
+  <div class="cmp-lineup-card-list-draft lineup-sidebar-list"></div>
 {% endblock sidebar %}
 
 
 {% block page-content-header %}
 <header class="page-content__header">
   <div class="page-content__header-content">
-    <div class="cmp-contest-list-header"></div>
 
-    <div class="contest-list-key">
-      <span class="contest-list-key__item">
-        <span class="contest-icon contest-icon__multi-entry">M</span>
-        Multi-Entry Allowed
+    <h2>
+      <span class="cmp-contest-list__header-league">
+        Draft a Team
       </span>
-      <span class="contest-list-key__item">
-        <span class="contest-icon contest-icon__guaranteed">G</span>
-        Guaranteed Prize Pool
-      </span>
-    </div>
+      <span class="cmp-contest-list__header-type">7:10pm Aug, 15</span>
+    </h2>
+
   </div>
 </header>
 {% endblock page-content-header %}
 
 
 {% block page_content %}
-  <div class="cmp-lobby-contests"></div>
+  <pre>{{roster_spots}}</pre>
+
+  <div class="cmp-draft-player-list">
+
+  </div>
 {% endblock page_content %}

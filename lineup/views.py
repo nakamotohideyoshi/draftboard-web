@@ -16,7 +16,7 @@ from lineup.models import Lineup, Player
 from lineup.classes import LineupManager
 from lineup.tasks import edit_lineup, edit_entry
 from lineup.exceptions import CreateLineupExpiredDraftgroupException, InvalidLineupSizeException, \
-                                LineupInvalidRosterSpotException
+                                LineupInvalidRosterSpotException, PlayerDoesNotExistInDraftGroupException
 from draftgroup.models import DraftGroup
 
 class CreateLineupAPIView(generics.CreateAPIView):
@@ -53,6 +53,11 @@ class CreateLineupAPIView(generics.CreateAPIView):
         except LineupInvalidRosterSpotException:
             return Response(
                 'One or more of the players are invalid for the roster.',
+                status=status.HTTP_403_FORBIDDEN
+            )
+        except PlayerDoesNotExistInDraftGroupException as e:
+            return Response(
+                str(e),
                 status=status.HTTP_403_FORBIDDEN
             )
 
