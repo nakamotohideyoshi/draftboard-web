@@ -1,6 +1,8 @@
 #
 # draftgroup/views.py
 
+from dataden.classes import DataDen
+
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -85,10 +87,16 @@ class DraftGroupPbpDescriptionView(View):
 
         dgm = DraftGroupManager()
         draft_group = dgm.get_draft_group( draft_group_id )
-        pbp_descriptions = dgm.get_pbp_descriptions( draft_group )
+        boxscores = dgm.get_game_boxscores( draft_group )
 
-        data = []
-        for pbp in pbp_descriptions:
-            data.append( pbp.to_json() )
+        dd = DataDen()
+        game_srids = []
+        for b in boxscores:
+            game_srids.append( b.srid_game )
 
-        return HttpResponse( json.dumps(data), content_type='application/json' )
+        game_events = dd.find('nba','event','pbp', {'game__id':{'$in':game_srids}})
+        events = []
+        for e in game_events:
+            events.append( e )
+
+        return HttpResponse( json.dumps(events), content_type='application/json' )
