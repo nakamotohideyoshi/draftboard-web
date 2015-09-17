@@ -7,8 +7,6 @@ var AppActions = require('../../actions/app-actions');
 * Handles events for the hamburger menu.
 */
 var HamburgerMenu = (function() {
-  var attachedEventListener;
-
   var exports = {
     // Attach nav to DOM - this is a method in case we need to initialize elsewhere + needed for testing
     // return {boolean} whether or not the nav successfully attached to the DOM
@@ -22,8 +20,8 @@ var HamburgerMenu = (function() {
 
       var isOpen = false;
 
-      attachedEventListener = window.addEventListener('click', function(node) {
-        if ((navNode.contains(node.target) === 0 && navNode !== node.target) && isOpen === true) {
+      this.attachedEventListener = window.addEventListener('click', function(node) {
+        if ((navNode.contains(node.target) === false && navNode !== node.target) && isOpen === true) {
           AppActions.closeNavMain();
           isOpen = false;
         } else if ((el.contains(node.target) === true || el === node.target) && isOpen === false) {
@@ -37,7 +35,7 @@ var HamburgerMenu = (function() {
 
     // Removes the window click event handlers (used for testing only to date)
     removeNavEventHandlers: function() {
-      attachedEventListener = null;
+      this.attachedEventListener = null;
     }
   };
 

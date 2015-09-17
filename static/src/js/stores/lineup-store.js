@@ -32,6 +32,7 @@ var LineupStore = Reflux.createStore({
     var self = this;
     request
       .get("/lineup/upcoming/")
+      .set('Accept', 'application/json')
       .end(function(err, res) {
         if(err) {
           LineupActions.load.failed(err);

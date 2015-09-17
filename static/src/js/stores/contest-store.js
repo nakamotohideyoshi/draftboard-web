@@ -39,8 +39,10 @@ var ContestStore = Reflux.createStore({
     var self = this;
     request
       .get("/contest/lobby/")
+      .set('Accept', 'application/json')
       .end(function(err, res) {
         if(err) {
+          log.error(err);
           ContestActions.load.failed(err);
         } else {
           self.data.contests = res.body.results;
