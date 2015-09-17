@@ -11,9 +11,15 @@ var LineupCard = React.createClass({
     isActive: React.PropTypes.bool,
     onCardClick: React.PropTypes.func,
     // TODO: Once we have real data coming in, this needs to be removed
-    lineup: React.PropTypes.object.isRequired
+    lineup: React.PropTypes.object.isRequired,
+    hoverText: React.PropTypes.string
   },
 
+  getDefaultProps: function() {
+    return ({
+      hoverText: "Select This Lineup"
+    });
+  },
 
   getInitialState: function() {
     return {};
@@ -40,7 +46,7 @@ var LineupCard = React.createClass({
       lineup = (
         <div className="cmp-lineup-card">
           <header className="cmp-lineup-card__header" onClick={this.showControls}>
-            <h3 className="cmp-lineup-card__title">{this.props.lineup.id}</h3>
+            <h3 className="cmp-lineup-card__title">{this.props.lineup.sport} - {this.props.lineup.id}</h3>
 
             <Tooltip
               additionalClassName="testClass"
@@ -86,7 +92,7 @@ var LineupCard = React.createClass({
             <h3 className="cmp-lineup-card__title">Lineup id: {this.props.lineup.id}</h3>
           </header>
           <div className="cmp-lineup-card__select">
-            <h4>Select This Lineup</h4>
+            <h4>{this.props.hoverText}</h4>
           </div>
         </div>
       );

@@ -44,8 +44,3 @@ class RosterSpotPosition(models.Model):
 
     class Meta:
         unique_together = ('roster_spot', 'position')
-
-
-
-
-

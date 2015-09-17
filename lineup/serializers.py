@@ -3,14 +3,51 @@
 
 from rest_framework import serializers
 from lineup.models import Lineup, Player
+from sports.nfl.models import Player as NflPlayer
+from sports.nfl.models import Team as NflTeam
+from sports.models import Position, Injury
+
 import draftgroup.models
 
 
+class NflTeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NflTeam
+        fields = ('id', 'alias', 'market', 'name')
+
+
+class InjurySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Injury
+
+
+# Choose the correct serializer for the sport the player plays.
+class GenericSportPlayerSerializer(serializers.RelatedField):
+    def to_representation(self, value):
+        if isinstance(value, NflPlayer):
+            serializer = NflPlayerSerializer(value)
+        else:
+            raise Exception('Unexpected type of player object in GenericSportPlayerSerializer')
+
+        return serializer.data
+
+
+class NflPlayerSerializer(serializers.ModelSerializer):
+    injury = InjurySerializer()
+    team = NflTeamSerializer()
+
+    class Meta:
+        model = NflPlayer
+        fields = ('first_name', 'last_name', 'injury', 'status', 'team')
+
+
 class PlayerSerializer(serializers.ModelSerializer):
+    player_meta = GenericSportPlayerSerializer(read_only=True, source='player')
+    roster_spot = serializers.StringRelatedField()
 
     class Meta:
         model = Player
-        fields = ('player_id', 'full_name', 'lineup', 'roster_spot', 'idx')
+        fields = ('player_id', 'full_name', 'roster_spot', 'idx', 'player_meta')
 
 
 class LineupSerializer(serializers.ModelSerializer):
@@ -18,7 +55,7 @@ class LineupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lineup
-        fields = ('id', 'user', 'fantasy_points', 'draft_group', 'players')
+        fields = ('id', 'user', 'sport', 'fantasy_points', 'draft_group', 'players')
 
 
 class CreateLineupSerializer(serializers.Serializer):
