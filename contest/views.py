@@ -125,8 +125,13 @@ class AllLineupsView(View):
 
     def get(self, request, contest_id):
         clm = ContestLineupManager( contest_id = contest_id )
-        #return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
-        return HttpResponse( clm.get_http_payload() )
+        if 'json' in request.GET:
+            print ('json please!' )
+            return HttpResponse( json.dumps( clm.dev_get_all_lineups( contest_id ) ) )
+        else:
+            #clm = ContestLineupManager( contest_id = contest_id )
+            #return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
+            return HttpResponse( clm.get_http_payload() )
 
 class SingleLineupView(View):
     """
