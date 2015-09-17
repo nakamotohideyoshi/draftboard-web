@@ -10,7 +10,7 @@
 #   >>>> https://gist.github.com/X0nic/4724674
 ##################################################
 
-from mysite.settings.local import get_db_name
+from django.conf import settings
 import ast
 import sys
 from os import listdir
@@ -70,6 +70,7 @@ class ReplayManager(object):
 
     DEFAULT_CACHE                   = 'default'
     CACHE_KEY_RECORDING_IN_PROGRESS = 'recording_in_progress'
+    db_name                         = settings.DATABASES['default']['NAME']
 
     def __init__(self):
         self.replay = None
@@ -133,10 +134,10 @@ class ReplayManager(object):
             pass
 
         if create_restore_point:
-            # get_db_name() should return the postgres database name for the branch
+            # self.db_name should return the postgres database name for the branch
             # we are on. ie: "dfs_replayer_sprint"
             print( '...creating restore dump in %s' % self.RESTORE_DIR )
-            self.db_dump( db_name=get_db_name(), dump_name=name, replay=False ) # replay=False indicates a restore point
+            self.db_dump( db_name=self.db_name, dump_name=name, replay=False ) # replay=False indicates a restore point
         else:
             print( '...not creating restore point (to enable, set "create_restore_point" = True)')
 
@@ -162,7 +163,7 @@ class ReplayManager(object):
         self.__flag_cache(False)   # flag cache we've stopped recording
 
         # now save the current database as a replay file
-        self.db_dump( db_name=get_db_name(), dump_name=self.replay.name, replay=True )
+        self.db_dump( db_name=self.db_name, dump_name=self.replay.name, replay=True )
 
         # set the system time back to the hardware clock time.
         # the hwclock should still be the actual real time.
