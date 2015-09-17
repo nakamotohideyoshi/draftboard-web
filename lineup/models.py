@@ -19,6 +19,10 @@ class Lineup(models.Model):
 
     name            = models.CharField(max_length=64, null=False, default='')
 
+    @property
+    def sport(self):
+        return self.draft_group.salary_pool.site_sport.name
+
     def __str__(self):
         return '%s %s %s' % (self.user, self.fantasy_points, 'NAME_TODO')
 

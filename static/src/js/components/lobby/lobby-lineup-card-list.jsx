@@ -2,7 +2,7 @@
 
 var React = require('react');
 var Reflux = require('reflux');
-var LineupCard = require('./lineup-card.jsx');
+var LineupCard = require('../lineup/lineup-card.jsx');
 var renderComponent = require('../../lib/render-component');
 var smoothScrollTo = require('../../lib/smooth-scroll-to.js');
 var LineupStore = require('../../stores/lineup-store.js');
