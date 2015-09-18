@@ -21,7 +21,14 @@ var HamburgerMenu = (function() {
       var isOpen = false;
 
       this.attachedEventListener = window.addEventListener('click', function(node) {
-        if ((navNode.contains(node.target) === false && navNode !== node.target) && isOpen === true) {
+        // I'm very sorry for all of this.
+        if (
+          (
+            navNode.contains(node.target) === false || navNode.contains(node.target) === 0
+            && navNode !== node.target
+          )
+          && isOpen === true
+        ) {
           AppActions.closeNavMain();
           isOpen = false;
         } else if ((el.contains(node.target) === true || el === node.target) && isOpen === false) {
