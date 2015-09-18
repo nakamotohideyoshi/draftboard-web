@@ -305,7 +305,7 @@ class AbstractPrizeStructureCreator(object):
             r.save()
 
             # sum all the values
-            total_prize_value += r.value
+            total_prize_value += float( r.value )
 
             # if that worked, add it to the list of rank instances
             self.ranks.append( r )

@@ -294,6 +294,7 @@ class BuildWorldForTesting(object):
             dgp = Player()
             dgp.draft_group = self.draftgroup
             dgp.salary_player = player
+            dgp.game_team_id = 1 # we arent going to check it, so it can be the first one that exists
             dgp.salary = player.amount
             dgp.start = timezone.now() + timedelta(hours=1)
             dgp.save()
@@ -311,8 +312,9 @@ class BuildWorldForTesting(object):
         cps.add(1, self.first)
         cps.add(2, self.second)
         cps.add(3, self.third)
+        cps.set_buyin(self.buyin)
         cps.save()
-        cps.prize_structure.buyin = self.buyin
+        #cps.prize_structure.buyin = self.buyin
         cps.prize_structure.save()
 
         self.prize_structure = cps.prize_structure
