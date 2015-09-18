@@ -4,7 +4,7 @@ var Reflux = require("reflux");
 var DraftActions = require("../actions/draft-actions");
 var request = require("superagent");
 var log = require("../lib/logging");
-// var _sortByOrder = require("lodash/collection/sortByOrder");
+var _sortBy = require("lodash/collection/sortBy");
 
 
 /**
@@ -17,11 +17,13 @@ var DraftGroupStore = Reflux.createStore({
 
   init: function() {
     this.listenTo(DraftActions.loadDraftGroup, this.fetchDraftGroup);
+    this.listenTo(DraftActions.playerFocused, this.setFocusedPlayer);
 
     this.data = {
-      players: {},
+      players: [],
+      filteredPlayers: [],
       sport: null,
-      focusedplayerId: null
+      focusedPlayerId: null
     };
   },
 
@@ -46,6 +48,7 @@ var DraftGroupStore = Reflux.createStore({
         } else {
           self.data.sport = res.body.sport;
           self.data.players = res.body.players;
+          self.data.filteredPlayers = self.sortBySalary(self.data.players);
           // Trigger a data flow.
           self.trigger(self.data);
           // Complete the promise.
@@ -55,13 +58,18 @@ var DraftGroupStore = Reflux.createStore({
   },
 
 
+  sortBySalary: function(players) {
+    return _sortBy(players, 'salary').reverse();
+  },
+
+
   /**
    * Set the focused player based on the provided player ID.
    * @param {number} lineupId the ID of the lineup to set as active.
    */
   setFocusedPlayer: function(playerId) {
     if(typeof playerId === 'number') {
-      this.data.focusedplayerId = playerId;
+      this.data.focusedPlayerId = playerId;
       this.trigger(this.data);
     }
   }

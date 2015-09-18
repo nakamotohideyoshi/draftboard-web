@@ -19,6 +19,10 @@ var DraftNewLineupStore = Reflux.createStore({
 
   data: {},
 
+  salaryCaps: {
+    'nba': 50000
+  },
+
   rosterTemplates: {
     'nfl': [
       {idx: 0, name: 'QB', positions: ['QB'], player: null},
@@ -54,8 +58,9 @@ var DraftNewLineupStore = Reflux.createStore({
       lineup: [],
       remainingSalary: 150000,
       avgPlayerSalary: 0,
-      contestSalaryLimit: 150000,
-      availablePositions: []
+      contestSalaryLimit: 0,
+      availablePositions: [],
+      errorMessage: ''
     };
 
     this.findAvailablePositions();
@@ -89,6 +94,8 @@ var DraftNewLineupStore = Reflux.createStore({
         .end(function(err, res) {
           if(err) {
             log.error(res.body);
+            this.data.errorMessage = res.body;
+            this.trigger(this.data);
           } else {
             log.info(res);
           }
@@ -99,6 +106,12 @@ var DraftNewLineupStore = Reflux.createStore({
 
   // TODO: Validate lineup before attempting to save.
   isValid: function() {
+    console.log(this.data.lineup.length);
+    if (this.getPlayerCount() !== this.data.lineup.length) {
+      this.data.errorMessage = 'You need to add more players';
+      this.trigger(this.data);
+      return false;
+    }
     return true;
   },
 
@@ -113,6 +126,7 @@ var DraftNewLineupStore = Reflux.createStore({
   DraftGroupUpdated: function(draftGroupData) {
     if (this.data.lineup.length === 0) {
       this.data.lineup = this.rosterTemplates[draftGroupData.sport];
+      this.data.contestSalaryLimit = this.salaryCaps[draftGroupData.sport];
       this.trigger(this.data);
     }
 
@@ -126,14 +140,12 @@ var DraftNewLineupStore = Reflux.createStore({
     var player = this.getPlayerByPlayerId(playerId);
 
     if(this.canAddPlayer(player)) {
-      log.debug('Adding Player:', this.getPlayerByPlayerId(playerId));
       this.insertPlayerIntoLineup(player);
       this.trigger(this.data);
+      this.refreshLineupStats();
     } else {
       log.error('Cannot add player to lineup!');
     }
-
-    this.refreshLineupStats();
   },
 
 
@@ -187,7 +199,26 @@ var DraftNewLineupStore = Reflux.createStore({
       return false;
     }
 
-    // Now run through each unoccupied slot and determine if any are able to accept this player's
+    // Check if the player is already in the lineup.
+    if (this.isPlayerInLineup(player)) {
+      log.error("Selected player is already in the lineup.");
+      return false;
+    }
+
+    // Check if there is a valid slot for the player.
+    if (!this.isSlotAvailableForPlayer(player)) {
+      log.error("There is no slot available for this player.");
+      return false;
+    }
+
+    // If all checks pass, the player can be added.
+    return true;
+  },
+
+
+  isSlotAvailableForPlayer: function(player) {
+    log.debug('DraftNewLineupStore.isSlotAvailableForPlayer()', player);
+    // Run through each unoccupied slot and determine if any are able to accept this player's
     // position type. At this point, We don't care which slot specifically is open for the player,
     // just that there is one.
     var openSlots = this.getAvailableLineupSlots();
@@ -199,7 +230,6 @@ var DraftNewLineupStore = Reflux.createStore({
       }
     }
 
-    // No open slots were found. :(
     return false;
   },
 
@@ -210,7 +240,8 @@ var DraftNewLineupStore = Reflux.createStore({
    * @return {Boolean}
    */
   isPlayerInLineup: function(player) {
-    log.debug(player);
+    log.debug('DraftNewLineupStore.isPlayerInLineup()', player);
+    return typeof _find(this.data.lineup, 'player', player) !== 'undefined';
   },
 
 
@@ -220,6 +251,7 @@ var DraftNewLineupStore = Reflux.createStore({
    * @param  {Object} player A row from the DraftGroupStore.
    */
   insertPlayerIntoLineup: function(player) {
+    log.debug('DraftNewLineupStore.insertPlayerIntoLineup()', player);
     var openSlots = this.getAvailableLineupSlots();
 
     for (var i=0; i < openSlots.length; i++) {
@@ -298,6 +330,7 @@ var DraftNewLineupStore = Reflux.createStore({
 
 
   refreshLineupStats: function() {
+    log.debug('DraftNewLineupStore.refreshLineupStats()');
     this.data.avgPlayerSalary =  this.getAvgPlayerSalary();
     this.data.remainingSalary = this.getRemainingSalary();
     this.findAvailablePositions();
