@@ -59,7 +59,7 @@ class TransactionDetail( models.Model ):
     The base model for the classes to keep track of
     the transactions.
     """
-    amount      = models.DecimalField(decimal_places=2, max_digits=7)
+    amount      = models.DecimalField(decimal_places=2, max_digits=11)
     user        = models.ForeignKey( User )
     transaction = models.ForeignKey( Transaction, null=False, related_name='+')
     created  = models.DateTimeField(auto_now_add=True, null=True)
@@ -76,7 +76,7 @@ class Balance( models.Model ):
 
     """
     user 				= models.OneToOneField( User, primary_key=True  )
-    amount 				= models.DecimalField(decimal_places=2, max_digits=7)
+    amount 				= models.DecimalField(decimal_places=2, max_digits=11)
     updated  = models.DateTimeField(auto_now=True)
 
 

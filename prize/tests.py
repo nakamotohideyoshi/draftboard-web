@@ -44,13 +44,14 @@ class GeneratorTest(AbstractTest):
         self.assertIsNotNone( ps )
 
     def test_create_cash_prize_structure_with_adds(self):
-        name = 'custom_name'
+        name        = 'custom_name'
         total_ranks = 2
-        first = 75.00
-        second = 25.00
-        cps = CashPrizeStructureCreator(name=name)
+        first       = 75.00
+        second      = 25.00
+        cps         = CashPrizeStructureCreator(name=name)
         cps.add( 1, first )
         cps.add( 2, second )
+        cps.set_buyin( 5.00 )
         cps.save()
 
         try:
@@ -75,6 +76,7 @@ class GeneratorTest(AbstractTest):
         ticket_value = 5.00
         total_prizes = 10
         creator = TicketPrizeStructureCreator( ticket_value, total_prizes, name=name )
+        creator.set_buyin( 1 )
         creator.save()
         # print( str(creator) )
 

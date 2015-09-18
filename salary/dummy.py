@@ -39,8 +39,15 @@ class Dummy(object):
 
         ('QB',1,0,True)     :['QB'],
         ('WR',1,1,True)     :['WR'],
-        ('FLEX',1,2,False)  :['RB','WR','TE']
+        ('FX',1,2,False)  :['RB','WR','TE']
     }
+
+    #
+    # DEFAULT_SPORT_FIELD_FOR_FANTASY_POINTS = {
+    #     'nfl' : ['pass_yds', 'rush_yds', 'rec_yds'],
+    #     'nba' : ['assists', 'rebounds', 'blocks'],
+    #
+    # }
 
     # this class will iterate these to create dummy teams
     # if game or player objects need foreign keys to them
@@ -105,7 +112,7 @@ class Dummy(object):
             >>> roster = {
             ...     ('QB',1,0,True)     :['QB'],
             ...     ('WR',1,1,True)     :['WR'],
-            ...     ('FLEX',1,1,False)  :['RB','WR','TE']
+            ...     ('FX',1,1,False)  :['RB','WR','TE']
             ... }
             >>> site_sport = Dummy.create_roster(sport='mysport', roster=roster ) #example!
 
@@ -248,6 +255,7 @@ class Dummy(object):
         may not work to well for baseball since there
         are 2 PlayerStats types (hitter/pitcher)
         """
+        player_stats = None
         if site_sport is None:
             player_stats = PlayerStatsChild()
         else:
@@ -256,13 +264,14 @@ class Dummy(object):
             player_stats_model = player_stats_model_list[0]
             player_stats = player_stats_model()
 
-        player_stats.fantasy_points     = randint(0, 100)
+        player_stats.fantasy_points     = randint( 0, 100 )
+
         player_stats.game               = game
         player_stats.player             = player
         player_stats.srid_game          = game.srid
         player_stats.srid_player        = player.srid
         player_stats.position           = player.position
-        player_stats.save()
+        player_stats.save( fantasy_points_override=player_stats.fantasy_points )
         return player_stats
 
     @staticmethod
