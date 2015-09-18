@@ -70,6 +70,7 @@ class AbstractScoreSystem(object):
 
         return the value for the stat based on on the scoring system
         """
+        #print( str(self.stat_values), stat_name)
         stat_value = self.stat_values.get(stat=stat_name)
         return stat_value.value
 

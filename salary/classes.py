@@ -1,3 +1,7 @@
+#
+# salary/classes.py
+
+from .exceptions import NoPlayersAtRosterSpotException
 from sports.models import PlayerStats, Player, Game, SiteSport, Position
 from roster.models import RosterSpot, RosterSpotPosition
 from mysite.exceptions import IncorrectVariableTypeException, NullModelValuesException
@@ -362,7 +366,10 @@ class SalaryGenerator(object):
                 if position in position_average_list:
                     sum     += position_average_list[position].average
                     count   += 1
-            sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
+            try:
+                sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
+            except ZeroDivisionError:
+                raise NoPlayersAtRosterSpotException()
 
         return sum_average_points
 

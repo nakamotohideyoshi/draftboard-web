@@ -73,7 +73,6 @@ class AbstractTransactionTest(unittest.TestCase):
         # Tests with a working class.
         create_transaction(user, category, AMOUNT, AMOUNT )
 
-
         #
         # Tests the create method with improper arguments
         test = TransactionChild(user)
@@ -83,33 +82,24 @@ class AbstractTransactionTest(unittest.TestCase):
         # Tests teh validate amount record to make sure it only accepts positive integers
         self.assertRaises(AmountNegativeException, lambda:test.validate_amount(-0.01))
 
-
         #
         # Tests that balance gets updated when there is a creation
         # of an additional transaction_detail
         create_transaction(user, category, AMOUNT_2, AMOUNT + AMOUNT_2)
-
-
 
         #
         # Tests that balance gets updated when there is a creation
         # of an additional NEGATIVE transaction_detail
         create_transaction(user, category, AMOUNT_3_NEGATIVE, AMOUNT + AMOUNT_2 + AMOUNT_3_NEGATIVE)
 
-
-
-        #
-        # Test with multiple transactions and no existance of a balance
-        BalanceChild.objects.get(user=user).delete()
-        create_transaction(user, category, AMOUNT_4, (AMOUNT + AMOUNT_2 + AMOUNT_3_NEGATIVE+ AMOUNT_4))
+        # # TODO - ryan needs to tell me why if this last create_transaction should still be here
+        # # Test with multiple transactions and no existance of a balance
+        # BalanceChild.objects.get(user=user).delete()
+        # create_transaction(user, category, AMOUNT_4, (AMOUNT + AMOUNT_2 + AMOUNT_3_NEGATIVE+ AMOUNT_4))
 
         #
         # Tests creation of object with an object that is not a user
         self.assertRaises(IncorrectVariableTypeException, lambda: TransactionChild(1))
-
-
-
-
 
 class AbstractTransactionConcurrencyTest(AbstractTestTransaction):
     class TransactionChild(AbstractTransaction):
