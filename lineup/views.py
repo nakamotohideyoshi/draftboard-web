@@ -129,7 +129,7 @@ class UserUpcomingAPIView(AbstractLineupAPIView):
 
     def get_queryset(self):
         """
-        get the lineups whos draft groups' start times are greater than the current time
+        get the Lineup objects
         """
         return Lineup.objects.filter( user=self.request.user,
                                       draft_group__start__gt=timezone.now() )
@@ -143,14 +143,7 @@ class UserLiveAPIView(AbstractLineupAPIView):
 
     def get_queryset(self):
         """
-        Get a User's lineups where the current time (now) is greater than the
-        draft group start time ( ie: draftgroup start is LTE now)
-        and where the draft group end time is greater than now + 8.
-
-        This retrieves draftgroups within 12 hours after the end
-        time of the draft_group which will have the affect
-        of showing "live" lineups for some time after payouts
-        reasonably occur.
+        retrieve the Lineup objects
         """
         offset_hours = 12
         now = timezone.now()
@@ -169,7 +162,7 @@ class UserHistoryAPIView(AbstractLineupAPIView):
 
     def get_queryset(self):
         """
-        retrieve the lineups
+        retrieve the Lineup objects
         """
         offset_hours = 12
         now = timezone.now()

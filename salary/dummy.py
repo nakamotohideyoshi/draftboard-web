@@ -351,7 +351,8 @@ class Dummy(object):
 
         # prerequisite calls to create_roster(), create_player_stats_list()
         Dummy.create_roster(sport=sport)
-        Dummy.create_player_stats_list()
+        site_sport, created = SiteSport.objects.get_or_create(name=sport)
+        Dummy.create_player_stats_list(site_sport=site_sport)
 
         #
         # create the config and the pool

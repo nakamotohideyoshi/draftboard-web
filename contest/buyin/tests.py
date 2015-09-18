@@ -47,8 +47,8 @@ class BuyinTest(AbstractTest):
         cps.add(1, self.first)
         cps.add(2, self.second)
         cps.add(3, self.third)
+        cps.set_buyin(self.buyin)
         cps.save()
-        cps.prize_structure.buyin = self.buyin
         cps.prize_structure.save()
 
         self.prize_structure = cps.prize_structure
@@ -64,11 +64,11 @@ class BuyinTest(AbstractTest):
         self.contest.status = Contest.RESERVABLE
         self.contest.save()
 
-        self.draftgroup = DraftGroup()
-        self.draftgroup.salary_pool = self.salary_pool
-        self.draftgroup.start = start
-        self.draftgroup.end = end
-        self.draftgroup.save()
+        self.draft_group = DraftGroup()
+        self.draft_group.salary_pool = self.salary_pool
+        self.draft_group.start = start
+        self.draft_group.end = end
+        self.draft_group.save()
 
     def test_incorrect_contest_type(self):
         bm = BuyinManager(self.user)
@@ -115,7 +115,7 @@ class BuyinTest(AbstractTest):
         draftgroup2.save()
 
         lineup = Lineup()
-        lineup.draft_group = self.draftgroup
+        lineup.draft_group = self.draft_group
         lineup.user = self.user
 
         self.contest.draft_group = draftgroup2
@@ -160,10 +160,10 @@ class BuyinTest(AbstractTest):
 
     def test_user_owns_lineup(self):
         lineup = Lineup()
-        lineup.draft_group = self.draftgroup
+        lineup.draft_group = self.draft_group
         lineup.user = self.get_admin_user()
 
-        self.contest.draft_group =self.draftgroup
+        self.contest.draft_group = self.draft_group
         self.contest.save()
 
         bm = BuyinManager(self.user)
@@ -204,8 +204,8 @@ class BuyinRaceTest(AbstractTestTransaction):
         cps.add(1, self.first)
         cps.add(2, self.second)
         cps.add(3, self.third)
+        cps.set_buyin(self.buyin)
         cps.save()
-        cps.prize_structure.buyin = self.buyin
         cps.prize_structure.save()
 
         self.prize_structure = cps.prize_structure
@@ -221,11 +221,11 @@ class BuyinRaceTest(AbstractTestTransaction):
         self.contest.status = Contest.RESERVABLE
         self.contest.save()
 
-        self.draftgroup = DraftGroup()
-        self.draftgroup.salary_pool = self.salary_pool
-        self.draftgroup.start = start
-        self.draftgroup.end = end
-        self.draftgroup.save()
+        self.draft_group = DraftGroup()
+        self.draft_group.salary_pool = self.salary_pool
+        self.draft_group.start = start
+        self.draft_group.end = end
+        self.draft_group.save()
 
     @override_settings(TEST_RUNNER=BuyinTest.CELERY_TEST_RUNNER,
                        CELERY_ALWAYS_EAGER=True,

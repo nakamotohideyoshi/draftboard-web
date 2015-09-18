@@ -18,8 +18,8 @@ class PayoutTest(AbstractTest):
         # creates very standard ticket amounts like 1,2,5, 10, 20, 50
         TicketManager.create_default_ticket_amounts(verbose=False)
 
-        self.first = 12.0
-        self.second = 11.0
+        self.first = 10.0
+        self.second = 10.0
         self.third = 10.0
         #
         # create a simple Rank and Prize Structure
@@ -27,9 +27,9 @@ class PayoutTest(AbstractTest):
         cps.add(1, self.first)
         cps.add(2, self.second)
         cps.add(3, self.third)
+        cps.set_buyin( 10 )
         cps.save()
         self.prize_structure = cps.prize_structure
-        self.prize_structure.buyin = self.third
         self.ranks = cps.ranks
 
 
