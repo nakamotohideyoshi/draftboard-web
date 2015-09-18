@@ -304,6 +304,9 @@ class TeamStats(models.Model):
         unique_together = ('srid_game', 'srid_team')
 
 class PlayerStats(models.Model):
+
+    FANTASY_POINTS_OVERRIDE = 'fantasy_points_override'
+
     created = models.DateTimeField(auto_now_add=True)
 
     srid_game   = models.CharField(max_length=64, null=False,
@@ -349,6 +352,13 @@ class PlayerStats(models.Model):
     def __str__(self):
         return 'game %s | player %s | fantasy_points %s | %s' % (self.srid_game,
                            self.srid_player, self.fantasy_points, str(self.player))
+
+    def save(self, *args, **kwargs):
+        if self.FANTASY_POINTS_OVERRIDE in kwargs:
+            #print( self.FANTASY_POINTS_OVERRIDE, True )
+            self.fantasy_points = kwargs.get(self.FANTASY_POINTS_OVERRIDE)
+        #
+        super().save()
 
 class PlayerStatsSeason(models.Model):
     class Meta:

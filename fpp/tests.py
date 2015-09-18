@@ -38,8 +38,8 @@ class TestFppTransaction(AbstractTest):
         self.amount_negative        = -1
         self.amount_positive_large  = 1000000
         self.amount_negative_large  = -1000000
-        self.amount_positive_xlarge = 1000000000
-        self.amount_negative_xlarge = 1000000000
+        self.amount_positive_xlarge = 999999999
+        #self.amount_negative_xlarge = -999999999
 
     def __get_starting_balance(self, user):
         return FppTransaction(self.user).get_balance_amount()
@@ -86,15 +86,14 @@ class TestFppTransaction(AbstractTest):
             exception = e
         self.assertIsNone( exception )
 
-    # there is an issue with the large amount, so this will definitely be a problem
-    # def test_fpp_deposit_positive_very_large_amount(self):
-    #     try:
-    #         ft = FppTransaction( self.user )
-    #         ft.deposit( self.amount_positive_xlarge )
-    #         exception = None
-    #     except Exception as e:
-    #         exception = e
-    #     self.assertIsNone( exception )
+    def test_fpp_deposit_positive_very_large_amount(self):
+        try:
+            ft = FppTransaction( self.user )
+            ft.deposit( self.amount_positive_xlarge )
+            exception = None
+        except Exception as e:
+            exception = e
+        self.assertIsNone( exception )
 
     def test_fpp_withdraw_negative_amount(self):
         ft = FppTransaction( self.user )
@@ -118,10 +117,26 @@ class TestFppTransaction(AbstractTest):
         self.assertIsNone( exception )
 
     def test_fpp_withdraw_positive_large_amount(self):
-        pass # TODO
+        fpp_initial = FppTransaction( self.user )
+        fpp_initial.deposit( self.amount_positive_large )
+        try:
+            ft = FppTransaction( self.user )
+            ft.withdraw( self.amount_positive_large )
+            exception = None
+        except Exception as e:
+            exception = e
+        self.assertIsNone( exception )
 
     def test_fpp_withdraw_positive_very_large_amount(self):
-        pass # TODO
+        fpp_initial = FppTransaction( self.user )
+        fpp_initial.deposit( self.amount_positive_xlarge )
+        try:
+            ft = FppTransaction( self.user )
+            ft.withdraw( self.amount_positive_xlarge )
+            exception = None
+        except Exception as e:
+            exception = e
+        self.assertIsNone( exception )
 
 class TestAdminPanelFppDeposit(AbstractTest):
 
