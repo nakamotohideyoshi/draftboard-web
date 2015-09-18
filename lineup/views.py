@@ -18,6 +18,9 @@ from lineup.tasks import edit_lineup, edit_entry
 from lineup.exceptions import CreateLineupExpiredDraftgroupException, InvalidLineupSizeException, \
                                 LineupInvalidRosterSpotException, PlayerDoesNotExistInDraftGroupException
 from draftgroup.models import DraftGroup
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Q
 
 class CreateLineupAPIView(generics.CreateAPIView):
     """
@@ -119,39 +122,58 @@ class AbstractLineupAPIView(generics.ListAPIView):
 
 class UserUpcomingAPIView(AbstractLineupAPIView):
     """
-    TODO/unimplemented - Get the upcoming lineups for the authenticated user
+    Get the User's upcoming lineups which are before the draft group start time
     """
 
     lineup_model = Lineup
 
     def get_queryset(self):
         """
-
+        get the lineups whos draft groups' start times are greater than the current time
         """
-        return Lineup.objects.all() # TODO - just get upcoming
+        return Lineup.objects.filter( user=self.request.user,
+                                      draft_group__start__gt=timezone.now() )
 
 class UserLiveAPIView(AbstractLineupAPIView):
     """
-    TODO/unimplemented - Get the live lineups for the authenticated user
+    Get the User's lineups that are after the draft group start time, and within 12 hours of the end time
     """
 
     lineup_model = Lineup
 
     def get_queryset(self):
         """
+        Get a User's lineups where the current time (now) is greater than the
+        draft group start time ( ie: draftgroup start is LTE now)
+        and where the draft group end time is greater than now + 8.
 
+        This retrieves draftgroups within 12 hours after the end
+        time of the draft_group which will have the affect
+        of showing "live" lineups for some time after payouts
+        reasonably occur.
         """
-        return Lineup.objects.all() # TODO - just get upcoming
+        offset_hours = 12
+        now = timezone.now()
+        dt = now - timedelta(hours=offset_hours)
+        #print('now', str(now), 'dt', str(dt))
+        return Lineup.objects.filter( user=self.request.user,
+                                      draft_group__start__lte=now,
+                                      draft_group__end__gt=dt )
 
 class UserHistoryAPIView(AbstractLineupAPIView):
     """
-    TODO/unimplemented - Get the historical lineups for the authenticated user
+    Get a User's lineups that are within 12 hours of the draft group's end datetime
     """
 
     lineup_model = Lineup
 
     def get_queryset(self):
         """
-
+        retrieve the lineups
         """
-        return Lineup.objects.all() # TODO - just get upcoming
+        offset_hours = 12
+        now = timezone.now()
+        dt = now - timedelta(hours=offset_hours)
+        #print(str(dt))
+        return Lineup.objects.filter( user=self.request.user,
+                                      draft_group__end__lte=dt )
