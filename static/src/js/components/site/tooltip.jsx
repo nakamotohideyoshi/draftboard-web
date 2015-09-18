@@ -13,6 +13,7 @@ var React = require('react');
 var Tooltip = React.createClass({
 
   propTypes: {
+    // Default visiblity.
     isVisible: React.PropTypes.bool,
     position: React.PropTypes.string,
     additionalClassName: React.PropTypes.string,
@@ -26,6 +27,13 @@ var Tooltip = React.createClass({
       position: 'bottom',
       additionalClassName: ''
     };
+  },
+
+  // We pass isVisible via props to set the default visiblity state. but we also want to be able
+  // to override what the internal state is from a parent component, so if the props change, sync
+  // up the state.
+  componentWillReceiveProps: function(newProps) {
+      this.setState({isVisible: newProps.isVisible});
   },
 
 

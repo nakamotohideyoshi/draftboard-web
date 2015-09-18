@@ -145,6 +145,11 @@ Note: Buttons are inline-block by default. HR's added for spacing.
   padding: 10px 30px;
 }
 
+%button--mini {
+  font-size: 10px;
+  padding: 5px 20px;
+}
+
 
 // Button variations -- these are the only classes you should use.
 // ---------------------------------------------------------------
@@ -190,5 +195,18 @@ Note: Buttons are inline-block by default. HR's added for spacing.
 .button--small--outline {
   @extend %button;
   @extend %button--small;
+  @extend %button--outline;
+}
+
+// Mini variations.
+.button--mini {
+  @extend %button;
+  @extend %button--primary;
+  @extend %button--mini;
+}
+
+.button--mini--outline {
+  @extend %button;
+  @extend %button--mini;
   @extend %button--outline;
 }
