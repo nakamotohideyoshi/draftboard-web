@@ -2,6 +2,8 @@
 # optimal_payments/classes.py
 
 from django.conf import settings
+from datetime import datetime, date, timedelta
+from django.utils import timezone
 
 from PythonNetBanxSDK.OptimalApiClient import OptimalApiClient
 from PythonNetBanxSDK.CardPayments.Authorization import Authorization
@@ -75,6 +77,9 @@ class CardPurchase(object):
     # raised when a function argument is invalid for whatever reason
     class InvalidArgumentException(Exception): pass
 
+    # if the exp_month and exp_year are expired
+    class ExpiredCreditCardException(Exception): pass
+
     def __init__(self):
         '''
         Constructor
@@ -141,6 +146,63 @@ class CardPurchase(object):
 
         return cc_num
 
+    def __validate_credit_card_expiration_month_and_year(self, exp_month, exp_year):
+        """
+
+        :param exp_month:
+        :param exp_year:
+        :return:
+        """
+        if exp_month is None:
+            raise self.InvalidArgumentException('exp_month cant be None')
+        if exp_year is None:
+            raise self.InvalidArgumentException('exp_year cant be None')
+
+        try:
+            exp_month = int( exp_month )
+        except:
+            raise self.InvalidArgumentException('exp_month [%s] must be an integer value!' % str(exp_month))
+
+        try:
+            exp_year = int( exp_year )
+        except:
+            raise self.InvalidArgumentException('exp_year [%s] must be an integer value!' % str(exp_year))
+
+        # make sure its withing the range, but not against current date yet
+        if exp_month not in range(1,12+1):
+            # the month is not in the range 1 to 12
+            raise self.InvalidArgumentException('exp_month [%s]' % str(exp_month))
+
+        # check potential ranges, but not against current date yet
+        if exp_year <= 2000:
+            raise self.InvalidArgumentException('exp_year [%s] - must be greater than 2000' % str(exp_year))
+
+        now = timezone.now()
+        now_date = now.date()
+        expiration_date = date( exp_year, exp_month, 1 )
+
+        if expiration_date <= now_date:
+            msg_fmt = 'expiration date: %s/%s'
+            raise self.ExpiredCreditCardException( msg_fmt % (str(exp_month), str(exp_year)))
+
+        return str(exp_month), str(exp_year)
+
+    def __validate_credit_card_cvv(self, cvv):
+        """
+
+        :param cvv:
+        :return:
+        """
+        if cvv is None:
+            raise self.InvalidArgumentException('cvv [%s]' % str(cvv))
+
+        try:
+            cvv = int(cvv)
+        except:
+            raise self.InvalidArgumentException('cvv [%s] must contain an integer value' % str(cvv))
+
+        return str(cvv) # back to string, because that is what the api requires
+
     def __validate_zipcode(self, billing_zipcode):
         """
 
@@ -186,11 +248,13 @@ class CardPurchase(object):
         """
         # validate the arguments passed in here for type, and size validity,
         # but let the API do the rest of the work.
-        amt_hundreds    = self.__validate_amount( amt )
-        cc_num          = self.__validate_credit_card_number( cc_num )
-        billing_zipcode = self.__validate_zipcode( billing_zipcode )
+        amt_hundreds        = self.__validate_amount( amt )
+        cc_num              = self.__validate_credit_card_number( cc_num )
+        exp_month, exp_year = self.__validate_credit_card_expiration_month_and_year( exp_month, exp_year )
+        cvv                 = self.__validate_credit_card_cvv( cvv )
+        billing_zipcode     = self.__validate_zipcode( billing_zipcode )
 
-        return None
+        #return None
 
         #
         # ensure the payemnts api is ready by checking status of the card payments monitor
