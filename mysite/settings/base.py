@@ -173,6 +173,13 @@ Configuration.configure(
     BRAINTREE_PRIVATE_KEY
 )
 
+#
+##########################################################################
+#       OPTIMAL payments
+##########################################################################
+OPTIMAL_API_KEY         = '18643-1000031963:B-qa2-0-55660e4b-0-302d021500882760fb4ae1dbf19ff320ee1c35ed7f61f0dcc302141a7c49c9b7333e87f429cba3a6ad4d6b7c7b2a7c'
+OPTIMAL_ACCOUNT_NUMBER  = 1000031963
+
 # REST currently defaulting to session authentication
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
