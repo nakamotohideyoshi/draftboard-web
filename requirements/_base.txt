@@ -73,3 +73,8 @@ python-dateutil==2.4.2
 
 # Flower (celery task metrics/logging/captures)
 flower==0.8.3
+
+# for optimal payments.  any version >= than certifi 2015.9.6.2 will likely work
+urllib3==1.10.2
+certifi==2015.9.6.2
+# then go into the <project>/optimal/src/ and run python setup.py install
