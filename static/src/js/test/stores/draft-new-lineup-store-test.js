@@ -24,6 +24,10 @@ describe("DraftNewLineupStore", function() {
 
     // Load in some fixture data into the draft group.
     DraftActions.loadDraftGroup(1).then(function() {
+      // Since the DraftNewLineupStore is listening for the DraftGroupStore to update - and is an
+      // asynchronous action, we don't have any way of knowing when the store gets populated with
+      // data, so we'll just manually jam the fixtures in there.
+      DraftNewLineupStore.draftGroupUpdated(fixtures[0].fixtures());
       // Tell Mocha that the promise is complete.
       done();
     }).catch(function(err) {
