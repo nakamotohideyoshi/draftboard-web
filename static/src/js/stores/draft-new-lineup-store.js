@@ -76,9 +76,9 @@ var DraftNewLineupStore = Reflux.createStore({
   resetLineup: function() {
     log.debug('DraftNewLineupStore.resetLineup()');
 
-    for (var i = 0; i < this.data.lineup.length; i++) {
-        this.data.lineup[i].player = null;
-    }
+    this.data.lineup.forEach(function(slot) {
+      slot.player = null;
+    });
 
     this.refreshLineupStats();
     this.trigger(this.data);
@@ -159,11 +159,12 @@ var DraftNewLineupStore = Reflux.createStore({
 
     if(this.canAddPlayer(player)) {
       this._insertPlayerIntoLineup(player);
-      this.trigger(this.data);
       this.refreshLineupStats();
     } else {
       log.error('Cannot add player to lineup!');
     }
+
+    this.trigger(this.data);
   },
 
 
@@ -184,9 +185,9 @@ var DraftNewLineupStore = Reflux.createStore({
     var openSlots = this.getAvailableLineupSlots();
     var availablePositions = [];
 
-    for (var i=0; i < openSlots.length; i++) {
-      availablePositions = availablePositions.concat(openSlots[i].positions);
-    }
+    openSlots.forEach(function(slot) {
+      availablePositions = availablePositions.concat(slot.positions);
+    });
 
     this.data.availablePositions = availablePositions;
   },
@@ -213,18 +214,21 @@ var DraftNewLineupStore = Reflux.createStore({
 
     // First check if there is room in the salary cap.
     if (this.getTotalSalary() + player.salary > this.data.contestSalaryLimit) {
+      this.data.errorMessage = 'Player exceeds maximum salary';
       log.error('Player exceeds maximum salary.');
       return false;
     }
 
     // Check if the player is already in the lineup.
     if (this.isPlayerInLineup(player)) {
+      this.data.errorMessage = 'Selected player is already in the lineup';
       log.error("Selected player is already in the lineup.");
       return false;
     }
 
     // Check if there is a valid slot for the player.
     if (!this.isSlotAvailableForPlayer(player)) {
+      this.data.errorMessage = 'There is no slot available for this player';
       log.error("There is no slot available for this player.");
       return false;
     }

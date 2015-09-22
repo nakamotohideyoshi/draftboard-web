@@ -11,7 +11,7 @@ var DraftActions = require("../../actions/draft-actions");
  * @param {array} columns - The columns that should be displayed. This is directly passed down
  * through DataTable.
  */
-var ContestListRow = React.createClass({
+var DraftPlayerListRow = React.createClass({
 
   propTypes: {
     row: React.PropTypes.object.isRequired,
@@ -46,7 +46,7 @@ var ContestListRow = React.createClass({
 
 
   render: function() {
-    var classes = 'cmp-contest-list__row';
+    var classes = 'cmp-player-list__row';
 
     if (this.props.draftable === false) {
       classes += ' fade';
@@ -77,4 +77,4 @@ var ContestListRow = React.createClass({
 });
 
 
-module.exports = ContestListRow;
+module.exports = DraftPlayerListRow;
