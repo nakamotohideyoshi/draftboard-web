@@ -32,33 +32,47 @@ var DraftGroupStore = Reflux.createStore({
    * Get a list of the user's lineups from the data source.
    */
   fetchDraftGroup: function(draftGroupId) {
+    log.debug('DraftGroupStore.fetchDraftGroup()', draftGroupId);
+
+    // Nope outta here if there wasn't an id provided.
     if (!draftGroupId) {
       log.error('fetchDraftGroup() - No draftGroupId specified.');
+      DraftActions.loadDraftGroup.failed('fetchDraftGroup() - No draftGroupId specified.');
       return;
     }
-
-    var self = this;
 
     request
       .get("/draft-group/" + draftGroupId + '/')
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .end(function(err, res) {
         if(err) {
+          // Fail the action's promise.
+          log.error(err);
           DraftActions.loadDraftGroup.failed(err);
         } else {
-          self.data.sport = res.body.sport;
-          self.data.players = res.body.players;
-          self.data.filteredPlayers = self.sortBySalary(self.data.players);
-          // Trigger a data flow.
-          self.trigger(self.data);
-          // Complete the promise.
+          this.newDataFetched(res.body);
+          // Complete the action's promise.
           DraftActions.loadDraftGroup.completed();
         }
-    });
+    }.bind(this));
+  },
+
+
+  newDataFetched: function(payload) {
+    log.debug('DraftGroupStore.newDataReceived()');
+
+    // Update the store with our new data.
+    this.data.sport = payload.sport;
+    this.data.players = payload.players;
+    this.data.filteredPlayers = this.sortBySalary(payload.players);
+
+    // Trigger a data flow.
+    this.trigger(this.data);
   },
 
 
   sortBySalary: function(players) {
+    log.debug('DraftGroupStore.sortBySalary()');
     return _sortBy(players, 'salary').reverse();
   },
 
@@ -68,6 +82,7 @@ var DraftGroupStore = Reflux.createStore({
    * @param {number} lineupId the ID of the lineup to set as active.
    */
   setFocusedPlayer: function(playerId) {
+    log.debug('DraftGroupStore.setFocusedPlayer()');
     if(typeof playerId === 'number') {
       this.data.focusedPlayerId = playerId;
       this.trigger(this.data);
