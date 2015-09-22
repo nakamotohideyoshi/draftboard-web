@@ -5,7 +5,7 @@ var request = require("superagent");
 var fixtures = require('../../fixtures/draft-group-nba.js');
 require('superagent-mock')(request, fixtures);
 var expect = require('chai').expect;
-var sinon = require('sinon');
+// var sinon = require('sinon');
 var DraftActions = require('../../actions/draft-actions');
 var DraftGroupStore = require('../../stores/draft-group-store.js');
 var DraftNewLineupStore = require('../../stores/draft-new-lineup-store.js');
@@ -34,6 +34,7 @@ describe("DraftNewLineupStore", function() {
 
 
   beforeEach(function() {
+    // Empty the lineup before each test.
     DraftNewLineupStore.resetLineup();
   });
 
@@ -155,5 +156,29 @@ describe("DraftNewLineupStore", function() {
     ).to.equal(true);
   });
 
+
+  it("findAvailablePositions() should find available positions", function() {
+    // First do a simple count to make sure that it's adding all of the positions.
+    var positionCount = 0;
+
+     DraftNewLineupStore.rosterTemplates.nba.forEach(function(slot) {
+        positionCount +=  slot.positions.length;
+
+        // Make sure each of the positions in the template are in
+        // DraftNewLineupStore.data.availablePositions.
+        slot.positions.forEach(function(position) {
+          expect(
+            DraftNewLineupStore.data.availablePositions.indexOf(position)
+          ).to.not.equal(-1);
+        });
+    });
+
+    expect(DraftNewLineupStore.data.availablePositions.length).to.equal(positionCount);
+
+    // Next fill up a slot and re-check the count.
+    DraftNewLineupStore.addPlayer(DraftGroupStore.data.players[1].player_id);
+    DraftNewLineupStore.findAvailablePositions();
+    expect(DraftNewLineupStore.data.availablePositions.length).to.equal(positionCount - 1);
+  });
 
 });
