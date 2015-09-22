@@ -49,10 +49,7 @@ var DraftNewLineupStore = Reflux.createStore({
 
 
   init: function() {
-    this.listenTo(DraftActions.addPlayerToLineup, this.addPlayer);
-    this.listenTo(DraftActions.removePlayerToLineup, this.removePlayer);
-    this.listenTo(DraftActions.saveLineup, this.save);
-    this.listenTo(DraftGroupStore, this.DraftGroupUpdated);
+    log.debug('DraftNewLineupStore.init()');
 
     this.data = {
       lineup: [],
@@ -63,10 +60,28 @@ var DraftNewLineupStore = Reflux.createStore({
       errorMessage: ''
     };
 
+    this.listenTo(DraftActions.addPlayerToLineup, this.addPlayer);
+    this.listenTo(DraftActions.removePlayerToLineup, this.removePlayer);
+    this.listenTo(DraftActions.saveLineup, this.save);
+    this.listenTo(DraftGroupStore, this.draftGroupUpdated);
+
     this.findAvailablePositions();
 
     this.trigger(this.data);
-    log.debug('DraftNewLineupStore.init()');
+  },
+
+  /**
+   * Remove all players from the lineup.
+   */
+  resetLineup: function() {
+    log.debug('DraftNewLineupStore.resetLineup()');
+
+    for (var i = 0; i < this.data.lineup.length; i++) {
+        this.data.lineup[i].player = null;
+    }
+
+    this.refreshLineupStats();
+    this.trigger(this.data);
   },
 
 
@@ -74,6 +89,8 @@ var DraftNewLineupStore = Reflux.createStore({
    * Save the lineup.
    */
   save: function() {
+    log.debug('DraftNewLineupStore.save()');
+
     if(this.isValid()) {
       // Build an array of player_ids.
       var playerIds = this.data.lineup.map(function(slot) {
@@ -86,17 +103,17 @@ var DraftNewLineupStore = Reflux.createStore({
         draft_group: 1
       };
 
-      log.debug('DraftNewLineupStore.save()', postData);
-
       request.post('/lineup/create/')
         .set('Content-Type', 'application/json')
         .send(postData)
         .end(function(err, res) {
           if(err) {
+            DraftActions.saveLineup.failed(err);
             log.error(res.body);
             this.data.errorMessage = res.body;
             this.trigger(this.data);
           } else {
+            DraftActions.saveLineup.completed();
             log.info(res);
           }
       });
@@ -106,7 +123,7 @@ var DraftNewLineupStore = Reflux.createStore({
 
   // TODO: Validate lineup before attempting to save.
   isValid: function() {
-    console.log(this.data.lineup.length);
+    log.debug('DraftNewLineupCard.isValid()');
     if (this.getPlayerCount() !== this.data.lineup.length) {
       this.data.errorMessage = 'You need to add more players';
       this.trigger(this.data);
@@ -123,8 +140,9 @@ var DraftNewLineupStore = Reflux.createStore({
    *
    * @param  {[type]} draftGroupData [description]
    */
-  DraftGroupUpdated: function(draftGroupData) {
-    if (this.data.lineup.length === 0) {
+  draftGroupUpdated: function(draftGroupData) {
+    log.debug('DraftNewLineupCard.draftGroupUpdated()');
+    if (this.data.lineup.length === 0 && draftGroupData.sport) {
       this.data.lineup = this.rosterTemplates[draftGroupData.sport];
       this.data.contestSalaryLimit = this.salaryCaps[draftGroupData.sport];
       this.trigger(this.data);
@@ -140,7 +158,7 @@ var DraftNewLineupStore = Reflux.createStore({
     var player = this.getPlayerByPlayerId(playerId);
 
     if(this.canAddPlayer(player)) {
-      this.insertPlayerIntoLineup(player);
+      this._insertPlayerIntoLineup(player);
       this.trigger(this.data);
       this.refreshLineupStats();
     } else {
@@ -247,10 +265,10 @@ var DraftNewLineupStore = Reflux.createStore({
 
   /**
    * Insert the provided player into the lineup. This will place the player in the next avialable
-   * slot that is valid for the player's position.
+   * slot that is valid for the player's position. NOTE: You should use addPlayer(), not this.
    * @param  {Object} player A row from the DraftGroupStore.
    */
-  insertPlayerIntoLineup: function(player) {
+  _insertPlayerIntoLineup: function(player) {
     log.debug('DraftNewLineupStore.insertPlayerIntoLineup()', player);
     var openSlots = this.getAvailableLineupSlots();
 
