@@ -1,6 +1,7 @@
 #
 # lineup/serializers.py
 
+from django.contrib.auth.models import User
 from rest_framework import serializers
 from lineup.models import Lineup, Player
 from sports.nfl.models import Player as NflPlayer
@@ -28,6 +29,21 @@ class InjurySerializer(serializers.ModelSerializer):
     class Meta:
         model = Injury
 
+class LineupUsernameSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model   = User
+        fields  = ('id', 'username')
+
+class LineupIdSerializer(serializers.ModelSerializer):
+
+    user = LineupUsernameSerializer()
+
+    class Meta:
+
+        model   = Lineup
+        fields  = ('id','user')
 
 # Choose the correct serializer for the sport the player plays.
 class GenericSportPlayerSerializer(serializers.RelatedField):

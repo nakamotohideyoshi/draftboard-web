@@ -7,7 +7,7 @@ from roster.classes import RosterManager
 from.exceptions import LineupInvalidRosterSpotException, InvalidLineupSizeException, PlayerDoesNotExistInDraftGroupException, InvalidLineupSalaryException, DuplicatePlayerException, PlayerSwapGameStartedException, LineupUnchangedException, CreateLineupExpiredDraftgroupException
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
-from contest.models import Entry
+from contest.models import Contest, Entry
 
 class LineupManager(AbstractSiteUserClass):
     """
@@ -68,6 +68,32 @@ class LineupManager(AbstractSiteUserClass):
             raise CreateLineupExpiredDraftgroupException()
 
         return self.__create_lineup(player_ids, draftgroup)
+
+    def get_for_contest_by_ids(self, contest_id, lineup_ids):
+        """
+
+        :param contest_id:
+        :param lineup_ids:
+        :return: list of lineup.models.Lineup objects where the lineup id in the contest is found
+        """
+        contests = Contest.objects.filter( pk__in=[contest_id] )
+        distinct_lineup_entries = Entry.objects.filter( contest__in=contests,
+                                                        lineup__pk__in=lineup_ids )
+        lineups = [ entry.lineup for entry in distinct_lineup_entries ]
+        return lineups
+
+    def get_for_contest_by_search_str(self, contest_id, search_str):
+        """
+
+        :param contest_id:
+        :param search_str:
+        :return: list of lineup.models.Lineup objects where the owner's username contains 'search_str'
+        """
+        contests = Contest.objects.filter( pk__in=[contest_id] )
+        distinct_lineup_entries = Entry.objects.filter( contest__in=contests,
+                                                        lineup__user__username__icontains=search_str )
+        lineups = [ entry.lineup for entry in distinct_lineup_entries ]
+        return lineups
 
     def __create_lineup(self,  player_ids, draftgroup):
         """
