@@ -148,3 +148,109 @@ class CardPaymentArguments(TestCase):
                 lambda: cp.process_purchase( self.valid_amount, self.valid_visa_cc_num, self.valid_cvv,
                              self.valid_exp_month, self.valid_exp_year,  1234 ) )
 
+#
+# test all the known response codes for Optimal
+#
+# source: https://developer.optimalpayments.com/en/documentation/card-payments-api/simulating-response-codes/
+class CardPaymentResponses(TestCase):
+    """
+    test OptimalPayments credit card payment processing response information
+
+    "Minor Units" are what Optimal refers to a lot.
+    An amount of $0.01 is equal to 1 "Minor Unit"
+    """
+
+    #
+    # WARNING:
+    #
+    #  changing the values in this list affects nothing!
+    #  its mainly for readability, but it should be accurate.
+    #
+    RESPONSE_INFO = [
+        # ( Amount in $USD,     HTTP status code,   Error code,     Response msg )
+        ( '0.01',               200,                None,           'Approved' ),
+        ( '0.04',               402,                3015,           'The bank has requested that you process the transaction manually by calling the ard holders cc company' ),
+        ( '0.05',               402,                3009,           'Your request has been declined by the issuing bank'),
+        ( '0.06',               500,                1007,           'Clearing house timeout (although the simulator returns immediately; if delay is required see amount 96)'),
+        ( '0.11',               402,                3022,           'The card has been declined due to insufficient funds'),
+        ( '0.12',               402,                3023,           'declined by issuing bank - proprietary usage reasons'),
+        ( '0.13',               402,                3024,           'declined by issuing bank - does not permit the transaction for this card.'),
+        ( '0.20',               500,                1007,           'internal error occurred'),
+        ( '0.23',               402,                4002,           'declined by our risk management team'),
+        ( '0.24',               402,                3007,           'your request failed the AVS check'),
+        ( '0.25',               402,                4001,           'the card # or email address associated is in our negative database'),
+        #
+        # 90 - 96 are 5 thru 35 second delay, in 5 second incrememnts
+        ( '0.91',               500,                1007,           'declined - test delay'), # 10 second delay
+    ]
+
+    def __process_amount(self, amount):
+        """
+        call process_purchase with valid static param, but with the amount specified
+        """
+        cp = CardPurchase()
+        cp.process_purchase( amount, '4530910000012345', '111', '11','2017','03055' )
+
+    def test_error_code_3015(self):
+        """
+
+        """
+        self.assertRaises( CardPurchase.PaymentDeclinedException,
+                           lambda: self.__process_amount('0.04'))
+
+
+    def test_error_code_3009(self):
+        """
+
+        """
+        self.assertRaises( CardPurchase.PaymentDeclinedException,
+                           lambda: self.__process_amount('0.05'))
+
+    def test_error_code_1007(self):
+        """
+
+        """
+        self.assertRaises( CardPurchase.ProcessingException,
+                           lambda: self.__process_amount('0.06'))
+
+    def test_error_code_3022(self):
+        """
+
+        """
+        self.assertRaises( CardPurchase.PaymentDeclinedException,
+                           lambda: self.__process_amount('0.11'))
+
+    def test_error_code_3023(self):
+        """
+
+        """
+        self.assertRaises( CardPurchase.PaymentDeclinedException,
+                           lambda: self.__process_amount('0.12'))
+
+    def test_error_code_3024(self):
+        """
+
+        """
+        self.assertRaises( CardPurchase.PaymentDeclinedException,
+                           lambda: self.__process_amount('0.13'))
+
+    def test_error_code_4002(self):
+        """
+
+        """
+        self.assertRaises( CardPurchase.PaymentDeclinedException,
+                           lambda: self.__process_amount('0.23'))
+
+    def test_error_code_3007(self):
+        """
+
+        """
+        self.assertRaises( CardPurchase.PaymentDeclinedException,
+                           lambda: self.__process_amount('0.24'))
+
+    def test_error_code_4001(self):
+        """
+
+        """
+        self.assertRaises( CardPurchase.PaymentDeclinedException,
+                           lambda: self.__process_amount('0.25'))

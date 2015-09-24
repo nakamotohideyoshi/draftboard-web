@@ -17,6 +17,8 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from cash.classes import CashTransaction
 
+from optimal_payments.classes import CardPurchase
+
 class TransactionHistoryAPIView(generics.ListAPIView):
     """
     Allows the logged in user to get their transaction history
@@ -153,3 +155,48 @@ class DepositView( LoginRequiredMixin, FormView ):
         )
         context['braintree_client_token'] = braintree.ClientToken.generate()
         return context
+
+# #
+# # psuedo code/class for using OptimalPayments to swipe a credit card
+# class OptimalPaymentsDepositView( LoginRequiredMixin, FormView ):
+#     """
+#     The form for submitting the deposit via OptimalPayments (Netbanx).
+#
+#     This view requires the user to be logged in.
+#     """
+#     template_name           = 'netbanx-optimal-deposit.html'    # needs to be created
+#     form_class              = NetBanxDepositAmountForm          # needs to be created
+#     failure_redirect_url    = '/cash/deposit/'
+#     success_redirect_url    = '/cash/balance/'
+#
+#     def psuedo_form_submission_method(self):
+#         #
+#         # get the POST params... amount, cc number, cvv, etc...
+#         # TODO ...
+#
+#         #
+#         # get the django User from the request
+#         # TODO ...
+#
+#         #
+#         # process the payment with the optimal_payments.classes.CardPurchase object
+#         # TODO ...
+#         cp = CardPurchase()
+#         optimal_api_response   = cp.process_purchase( '0.25', '4530910000012345', '111', '11','2017','03055' )
+#
+#         #
+#         # CardPurchase.process_payment() may raise the following Exceptions:
+#         #     CardPurchase.OptimalServiceMonitorDownException
+#         #     CardPurchase.OptimalServiceMonitorNotReadyException
+#         #     CardPurchase.InvalidArgumentException
+#         #     CardPurchase.ExpiredCreditCardException
+#         #     CardPurchase.ProcessingException
+#         #     CardPurchase.PaymentDeclinedException
+#         #     CardPurchase.UnknownNetbanxErrorCodeException
+#         #     CardPurchase.ProcessPaymentResponseStatusException
+#
+#         # create a record of the transaction in our own database
+#         # with enough information so we could match this
+#         # payment with the same payment on the netbanx/optimal account
+#         ct = CashTransaction( request.user )
+#         ct.deposit_optimal( amount, optimal_api_response.id )   # optimal_api_response.id  example: 'a6e29e26-74a3-4a70-a7ac-b9bf25a06f3e'
