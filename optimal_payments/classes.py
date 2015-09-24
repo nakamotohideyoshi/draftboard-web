@@ -24,16 +24,19 @@ import string
 # source: https://developer.optimalpayments.com/en/sdk/server-side/python/card-payments-api/
 
 class RandomTokenGenerator(object):
-    '''
-    classdocs
-    '''
+    """
 
+    """
     def __init__(self):
-        '''
-        Constructor
-        '''
+        """
+        """
+
+        pass
 
     def generateToken(self):
+        """
+
+        """
         token = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(16))
         return (token)
 
@@ -218,16 +221,18 @@ class CardPurchase(object):
 
         billing_zipcode = billing_zipcode.strip()
         if len(billing_zipcode) != self.BILLING_ZIPCODE_LENGTH:
-            raise self.InvalidArgumentException('the zipcode must contain 5 characters: ' % billing_zipcode)
+            raise self.InvalidArgumentException('the zipcode must contain 5 characters: %s' % billing_zipcode)
 
         try:
             billing_zipcode = int(billing_zipcode)
-        except TypeError:
-            raise self.InvalidArgumentException('the zipcode must only contain numerical characters: ' % billing_zipcode)
+        except ValueError:
+            raise self.InvalidArgumentException('the zipcode must only contain numerical characters: %s' % billing_zipcode)
+
+        billing_zipcode = str(billing_zipcode).zfill(self.BILLING_ZIPCODE_LENGTH)
 
         return billing_zipcode
 
-    def process_purchase_test(self, amt, cc_num, cvv,
+    def process_purchase(self, amt, cc_num, cvv,
                                       exp_month, exp_year,
                                       billing_zipcode,
                                       settleWithAuth=True):
