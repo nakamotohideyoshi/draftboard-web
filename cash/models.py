@@ -49,6 +49,16 @@ class BraintreeTransaction(models.Model):
     braintree_transaction   = models.CharField( max_length=128, null=False )
     created                 = models.DateTimeField(auto_now_add=True, null=True)
 
+class OptimalPaymentsTransaction(models.Model):
+    """
+    Keeps a record of the Braintree transaction ids in association
+    with the DFS internal :class:`transaction.models.Transaction` model.
+    """
+    transaction             = models.ForeignKey( Transaction )
+    netbanx_transaction_id  = models.CharField( max_length=128, null=False,
+                                        help_text='netbanx id found in the payment processor account')
+    created                 = models.DateTimeField(auto_now_add=True, null=True)
+
 class AdminCashDeposit( models.Model ):
     """
     keep track of times the admin has deposited cash

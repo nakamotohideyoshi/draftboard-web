@@ -63,13 +63,26 @@ class CardPurchase(object):
     ]
 
     RESPONSE_STATUS = 'status'
+    COMPLETED       = 'COMPLETED'
     MONITOR_READY   = 'READY'
+
+    #
+    # error codes in the various ranges will raise different exceptions.
+    # consolidating the exceptions will be useful because
+    # we really dont care about the majority of the specific error cases.
+    PROCESSING_EXCEPTION_ERROR_RANGE    = range(0,      1999+1)  # 0     - 1999
+    PAYMENT_DECLINED_ERROR_RANGE        = range(2000,   4999+1) # 2000  - 4999
 
     # Static data
     _environment    = settings.OPTIMAL_ENVIRONMENT      # 'TEST' or 'LIVE'
-    _api_key        = settings.OPTIMAL_API_KEY          #'devcentre4628'
+    _api_key        = settings.OPTIMAL_API_KEY          # 'devcentre4628'
     _api_password   = settings.OPTIMAL_API_PASSWORD     # 'B-qa2-0-548ef25d-302b0213119f70d83213f828bc442dfd0af3280a7b48b1021400972746f9abe438554699c8fa3617063ca4c69a'
     _account_number = settings.OPTIMAL_ACCOUNT_NUMBER   # '89983472'
+
+    #
+    #################################################################
+    # exceptions - class related exception
+    #################################################################
 
     # the api service is not currently accessible
     class OptimalServiceMonitorDownException(Exception): pass
@@ -83,13 +96,34 @@ class CardPurchase(object):
     # if the exp_month and exp_year are expired
     class ExpiredCreditCardException(Exception): pass
 
+    #
+    #################################################################
+    # exceptions - response related errors from the card payment api
+    #################################################################
+
+    # error codes: < 2999  (timeouts, internal errors w/ proccessor)
+    class ProcessingException(Exception): pass
+
+    # error codes >= 3000: 3009, 3015, 3022, 3023, 3024, etc...
+    class PaymentDeclinedException(Exception): pass
+
+    # used for error codes outside of the range, as
+    # well as other exception cases we dont have a
+    # good reason for, but which happened because of the api
+    class UnknownNetbanxErrorCodeException(Exception): pass
+
+    # raise when we get a response from the api for
+    # processing a payment, but the status does not indicate success
+    class ProcessPaymentResponseStatusException(Exception): pass
+
     def __init__(self):
         '''
         Constructor
         '''
         print('OptimalPayments: %s' % settings.OPTIMAL_ENVIRONMENT)
 
-        self.optimal_obj = None
+        self.optimal_obj        = None
+        self.r_process_payment  = None   # the last process_payment() response
 
     def approx_equal(self, a, b, tol):
         return abs(a-b) <= max(abs(a), abs(b)) * tol
@@ -242,13 +276,32 @@ class CardPurchase(object):
         the 'amt' specified should be the intuitive amount, ie: 55.34,
         although internally this method will multiply by 100 and truncate remaining decimal places!
 
+        Note on 'settleWithAuth':
+
+           "... by setting the flag settleWithAuth to true, the card processing
+           system will automatically charge the card as part of the same request.
+           If you are shipping physical items, you should not perform the
+           settlement until the items are actually shipped."
+
+           src: https://developer.optimalpayments.com/en/documentation/card-payments-api/process-a-purchase/
+
+        The response for sucessfully processing a purchase:
+
+           "The status is set to COMPLETED and the value for availableToSettle is 0
+            because the card was automatically charged as part of the request,
+            since the settleWithAuth flag was set to true. You may look up the
+            transaction at any future time using either the
+            merchantRefNum (demo-1) or the id (ebf6ae3d-88e1-40da-9b98-81044467345b)."
+
+            src: https://developer.optimalpayments.com/en/documentation/card-payments-api/purchase-response/
+
         :param amt:
-        :param settleWithAuth:
         :param cc_num:
         :param cvv:
         :param exp_month:
         :param exp_year:
         :param billing_zipcode:
+        :param settleWithAuth:
         :return:
         """
         # validate the arguments passed in here for type, and size validity,
@@ -282,8 +335,49 @@ class CardPurchase(object):
         card_obj.cardExpiry(cardExpiry_obj)
         billing_obj.zip(billing_zipcode)
         auth_obj.billingDetails(billing_obj)
-        response_object = self.optimal_obj.card_payments_service_handler().create_authorization(auth_obj)
-        return response_object
+
+        # call the api to swipe the credit card!
+        self.r_process_payment = self.optimal_obj.card_payments_service_handler().create_authorization(auth_obj)
+
+        # check the response -- will raise errors if they exist
+        self.__validate_payment( self.r_process_payment )
+
+    def __validate_payment(self, response):
+        """
+        inspect the API response of a credit card payment.
+
+        exceptions will be raised if errors or  status codes are found which
+        do not indicate a successful payment has been processed.
+
+        :param response:
+        :return:
+        """
+
+        #
+        # for reasons that escape me, the designers
+        # of the netbanx api use method names
+        # that they want to be property names,
+        # so if response.error is of type 'method' then it hasnt
+        # had an instance of Error() set to it (ie: there is no error)
+        if type(response.error) != 'method':
+            #
+            # there is an error.
+            # check on the error range, and raise the appropriate exception
+            ecode       = int(response.error.code)
+            err_msg     = 'netbanx error: %s' % ecode
+            if ecode in self.PROCESSING_EXCEPTION_ERROR_RANGE:
+                raise self.ProcessingException(err_msg)
+
+            elif ecode in self.PAYMENT_DECLINED_ERROR_RANGE:
+                raise self.PaymentDeclinedException(err_msg)
+
+            else:
+                raise self.UnknownNetbanxErrorCodeException(err_msg)
+
+        #
+        # also make sure the status matches the processed payment status expected
+        if response.status and response.status != self.COMPLETED:
+            raise self.ProcessPaymentResponseStatusException(str(response.status))
 
     def card_payments_monitor(self):
         '''
@@ -307,6 +401,58 @@ class CardPurchase(object):
         if status != self.MONITOR_READY:
             raise self.OptimalServiceMonitorNotReadyException('Optimal Payment monitor is not ready -- cannot process transaction')
 
+    def lookup_authorization_with_id(self):
+        '''
+        Lookup Authorization with Id
+        '''
+
+        # get the authorization id from the response of the process_payment method
+        authorization_id = self.r_process_payment.__dict__.get('id')
+
+        auth_obj = Authorization(None)
+        #auth_obj.id("5406f84a-c728-499e-b310-c55f4e52af9f")
+        auth_obj.id( authorization_id )
+
+        self.optimal_obj = OptimalApiClient(self._api_key,
+                                             self._api_password,
+                                             self._environment,
+                                             self._account_number)
+
+        self.r_lookup_auth_with_id = self.optimal_obj.card_payments_service_handler(
+                                            ).lookup_authorization_with_id(auth_obj)
+        print ("lookup_authorization_with_id response: ")
+        print (self.r_lookup_auth_with_id.__dict__)
+
+
+
+
+    # def lookup_authorization_with_merchant_ref_num(self):
+    #     '''
+    #     Lookup Authorization with Id
+    #     '''
+    #     pagination_obj = Pagination(None)
+    #     #pagination_obj.limit = "4"
+    #     #pagination_obj.offset = "0"
+    #     #pagination_obj.startDate = "2015-02-10T06:08:56Z"
+    #     #pagination_obj.endDate = "2015-02-20T06:08:56Z"
+    #     #f0yxu8w57de4lris
+    #     #zyp2pt3yi8p8ag9c
+    #     auth_obj = Authorization(None)
+    #     auth_obj.merchantRefNum("f0yxu8w57de4lris")
+    #     self._optimal_obj = OptimalApiClient(self._api_key,
+    #                                          self._api_password,
+    #                                          "TEST",
+    #                                          self._account_number)
+    #     response_object = self._optimal_obj.card_payments_service_handler(
+    #                                         ).lookup_authorization_with_merchant_no(auth_obj, pagination_obj)
+    #     print ("Complete Response : ")
+    #     print (response_object)
+    #     #print (response_object.links[0].rel)
+    #     #print (response_object.links[0].href)
+    #     #print (response_object[0].links[0].href)
+    #     print (response_object[0].__dict__)
+    #     #print (response_object.error.fieldErrors[0].__dict__)
+    #     #print (response_object.error.fieldErrors[1].__dict__)
 
     # def request_conflict_example_for_auth(self):
     #     '''
@@ -829,7 +975,4 @@ class CardPurchase(object):
     #     print ("Complete Response : ")
     #     print (response_object.__dict__)
 
-
-# Call Object
-#o = SampleTest_Card().lookup_verification_using_merchant_ref_num()
 cardp = CardPurchase()
