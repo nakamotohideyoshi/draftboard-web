@@ -101,6 +101,12 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         braintree_model.transaction = self.transaction_detail.transaction
         braintree_model.save()
 
+    def deposit_optimal(self, amount, optimal_transaction):
+        self.deposit(amount)
+        optimal_model = cash.models.OptimalPaymentsTransaction()
+        optimal_model.netbanx_transaction_id = optimal_transaction
+        optimal_model.transaction = self.transaction_detail.transaction
+        optimal_model.save()
 
     def get_balance_string_formatted(self):
         """
