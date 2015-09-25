@@ -70,6 +70,11 @@ INSTALLED_APPS += (
     'raven.contrib.django.raven_compat',
 )
 
+# Pusher
+PUSHER_APP_ID = '144195'
+PUSHER_KEY = '9754d03a7816e43abb64'
+PUSHER_SECRET = environ.get('PUSHER_SECRET')
+
 # Mongo Connection settings
 MONGO_PASSWORD  = ''
 MONGO_HOST      = 'TODO' # TODO
