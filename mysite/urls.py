@@ -10,6 +10,7 @@ import ticket.urls
 import prize.urls
 import salary.urls
 import sports.urls
+import push.urls
 
 from django.conf.urls import url, include
 from django.contrib.auth.models import User
@@ -50,6 +51,9 @@ urlpatterns = [
     url(r'^prize/',  include(prize.urls)),
     url(r'^salary/', include(salary.urls)),
     url(r'^sports/', include(sports.urls)),
+
+    # TEMP to show pusher
+    url(r'^push/', include(push.urls, namespace='push')),
 
     url(r'', include('frontend.urls', namespace='frontend')),
 

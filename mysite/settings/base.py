@@ -157,6 +157,15 @@ DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO      = 750.00
 
 #
 ##########################################################################
+#        pusher
+##########################################################################
+# Test creds
+PUSHER_APP_ID = '144196'
+PUSHER_KEY = 'f23775e0c1d0da57bb4b'
+PUSHER_SECRET = 'fc815c85237d726b9d8e'
+
+#
+##########################################################################
 #        django_braintree
 ##########################################################################
 import braintree
@@ -250,6 +259,7 @@ INSTALLED_APPS = (
     'sports.nfl',
     'lineup',
     'prize',
+    'push',
     'contest',
     'contest.payout',
     'contest.buyin',
