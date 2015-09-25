@@ -13,6 +13,7 @@ from django.test.utils import override_settings             # for testing celery
 from contest.models import Entry
 
 class LineupBaseTest(AbstractTest):
+
     def setUp(self):
         self.build_world()
 
@@ -46,8 +47,10 @@ class LineupBaseTest(AbstractTest):
         self.lineup = self.lm.create_lineup(self.team, self.draftgroup)
 
 class LineupTest(LineupBaseTest):
+
     def setUp(self):
         self.build_world()
+
     def test_create_and_edit_lineup(self):
         #
         # create test

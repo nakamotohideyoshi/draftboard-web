@@ -274,8 +274,8 @@ class BuildWorldForTesting(object):
 
 
         now = timezone.now()
-        start = DfsDateTimeUtil.create(now.date(), time(23,0))
-        end = DfsDateTimeUtil.create(now.date() + timedelta(days=1), time(0,0))
+        start = DfsDateTimeUtil.create(now.date() + timedelta(days=1), time(23,0))
+        end = DfsDateTimeUtil.create(now.date() + timedelta(days=2), time(0,0))
         self.draftgroup = DraftGroup()
         self.draftgroup.start = start
         self.draftgroup.end = end

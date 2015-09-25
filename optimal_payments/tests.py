@@ -7,6 +7,11 @@ from datetime import timedelta
 from django.test import TestCase
 from optimal_payments.classes import CardPurchase
 
+#
+# Important:
+# force the test/sandbox environemtn for test.py !
+CardPurchase._environment = 'TEST'
+
 class CardPaymentArguments(TestCase):
     """
     test the Optimal Payments class that processes credit card payments
@@ -189,7 +194,11 @@ class CardPaymentResponses(TestCase):
         call process_purchase with valid static param, but with the amount specified
         """
         cp = CardPurchase()
-        cp.process_purchase( amount, '4530910000012345', '111', '11','2017','03055' )
+        dt = timezone.now() + timedelta(days=500)
+        d = dt.date()
+        month   = str(d.month).zfill(2)
+        year    = str(d.year)
+        cp.process_purchase( amount, '4530910000012345', '111', month, year,'03055' )
 
     def test_error_code_3015(self):
         """
@@ -215,7 +224,7 @@ class CardPaymentResponses(TestCase):
 
     def test_error_code_3022(self):
         """
-
+        sometimes this throws ProcessingException, strangely !
         """
         self.assertRaises( CardPurchase.PaymentDeclinedException,
                            lambda: self.__process_amount('0.11'))
