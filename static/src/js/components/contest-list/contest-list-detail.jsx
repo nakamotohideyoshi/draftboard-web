@@ -15,7 +15,7 @@ var ContestListDetail = React.createClass({
       <ReactCSSTransitionGroup
         component="tr"
         transitionName="fade-in"
-        transitionAppear={true}
+        transitionAppear="true"
         className="cmp-contest-list__detail cmp-contest-list__row clearfix"
       >
         <td colSpan="9" className="cmp-contest-list__cell" key="details">

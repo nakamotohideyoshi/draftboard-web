@@ -22,6 +22,7 @@ var ContestListHeader = React.createClass({
   render: function() {
     // Determine the contest type filter title.
     var currentLeague;
+
     if (ContestStore.data.activeFilters.hasOwnProperty('leagueFilter')) {
       currentLeague = (
         <span>
@@ -32,15 +33,18 @@ var ContestListHeader = React.createClass({
         </span>
       );
     }
+
     if (!currentLeague || ContestStore.data.activeFilters.leagueFilter.title === 'All') {
       currentLeague = '';
     }
 
     // Determine the league filter title.
     var currentContestType;
+
     if (ContestStore.data.activeFilters.hasOwnProperty('contestTypeFilter')) {
       currentContestType = ContestStore.data.activeFilters.contestTypeFilter.title;
     }
+
     if (!currentContestType || currentContestType === 'All') {
       currentContestType = 'All Upcoming';
     }
