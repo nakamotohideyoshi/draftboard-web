@@ -14,16 +14,17 @@ var DraftNewLineupCard = React.createClass({
     isActive: React.PropTypes.bool,
     lineup: React.PropTypes.array.isRequired,
     remainingSalary: React.PropTypes.number,
-    avgPlayerSalary: React.PropTypes.number
+    avgPlayerSalary: React.PropTypes.number,
+    errorMessage: React.PropTypes.string
   },
 
 
   getDefaultProps: function() {
     return {
         lineup: [],
-        rosterSpots: 8,
         remainingSalary: 0,
-        avgPlayerSalary: 0
+        avgPlayerSalary: 0,
+        errorMessage: ''
     };
   },
 
@@ -42,17 +43,18 @@ var DraftNewLineupCard = React.createClass({
 
   // Toggle the visibility of the tooltip.
   showControls: function() {
-    this.refs.lineupCardTip.toggle();
+    // this.refs.lineupCardTip.toggle();
   },
 
 
   render: function() {
+    var showError = (this.props.errorMessage === '')? false : true;
 
     var players = this.props.lineup.map(function(player) {
       if (player.player) {
         return (
-          <li className="cmp-lineup-card__player" key={player.player_id}>
-            <span className="cmp-lineup-card__position">{player.player.position}</span>
+          <li className="cmp-lineup-card__player" key={player.idx}>
+            <span className="cmp-lineup-card__position">{player.name}</span>
             <span className="cmp-lineup-card__photo">😀</span>
             <span className="cmp-lineup-card__name">
               {player.player.first_name[0]}. {player.player.last_name}
@@ -82,10 +84,10 @@ var DraftNewLineupCard = React.createClass({
             Save
             <Tooltip
               position="bottom"
-              isVisible={false}
+              isVisible={showError}
               ref="lineupCardTip"
             >
-              <span>You may only continue with a complete lineup.</span>
+              <span>{this.props.errorMessage}</span>
             </Tooltip>
           </span>
         </header>
