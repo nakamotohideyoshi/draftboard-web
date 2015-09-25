@@ -78,3 +78,6 @@ flower==0.8.3
 urllib3==1.10.2
 certifi==2015.9.6.2
 # then go into the <project>/optimal/src/ and run python setup.py install
+
+# this will install the python netbanx sdk from source using pip
+optimal_source/src/
