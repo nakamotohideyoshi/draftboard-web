@@ -142,7 +142,7 @@ class SingleLineupView(View):
 
     def get(self, request, contest_id, lineup_id):
         clm = ContestLineupManager( contest_id = contest_id )
-        lineup_data = clm.get_lineup_data( lineup_id=lineup_id )
+        lineup_data = clm.get_lineup_data( user= request.user, lineup_id=lineup_id )
 
         return HttpResponse( json.dumps(lineup_data), content_type="application/json" )
 

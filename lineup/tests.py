@@ -134,42 +134,36 @@ class LineupTest(LineupBaseTest):
 
 
 
-    def test_swap_player_for_active(self):
+    def test_edit_entry_past_start(self):
         self.create_valid_lineup()
-        team = [self.one.pk, self.two.pk, self.four.pk]
-
         #
-        # TEST swap active for inactive
-        c_type = ContentType.objects.get_for_model(self.four)
-        draftgroup_player_four = Player.objects.get(salary_player__player_type=c_type,
-                                               salary_player__player_id=self.four.pk,
-                                               draft_group=self.draftgroup)
-        draftgroup_player_four.start = timezone.now() - timedelta(minutes=1)
-        draftgroup_player_four.save()
+        # move the draftgroup time
+        self.draftgroup.start = timezone.now() - timedelta(minutes=1)
+        self.draftgroup.save()
 
+        lm = LineupManager(self.user)
+        team = [self.one.pk, self.two.pk, self.three.pk]
+        entry = Entry()
+        entry.lineup = self.lineup
+        entry.contest = self.world.contest
+        entry.user = self.user
+        entry.save()
 
-        self.assertRaises(lineup.exceptions.PlayerSwapGameStartedException,
-                          lambda: self.lm.edit_lineup(team, self.lineup))
+        self.assertRaises(lineup.exceptions.CreateLineupExpiredDraftgroupException,
+                          lambda: lm.edit_entry(team, entry))
+
+    def test_edit_lineup_past_start(self):
+        self.create_valid_lineup()
         #
-        # TEST swap active for active
-        c_type = ContentType.objects.get_for_model(self.three)
-        draftgroup_player_three = Player.objects.get(salary_player__player_type=c_type,
-                                               salary_player__player_id=self.three.pk,
-                                               draft_group=self.draftgroup)
-        draftgroup_player_three.start = timezone.now() - timedelta(minutes=1)
-        draftgroup_player_three.save()
+        # move the draftgroup time
+        self.draftgroup.start = timezone.now() - timedelta(minutes=1)
+        self.draftgroup.save()
 
-        self.assertRaises(lineup.exceptions.PlayerSwapGameStartedException,
-                          lambda: self.lm.edit_lineup(team, self.lineup))
+        lm = LineupManager(self.user)
+        team = [self.one.pk, self.two.pk, self.three.pk]
 
-        #
-        # TEST swap inactive for active
-        draftgroup_player_four.start = timezone.now() + timedelta(minutes=15)
-        draftgroup_player_four.save()
-
-        self.assertRaises(lineup.exceptions.PlayerSwapGameStartedException,
-                          lambda: self.lm.edit_lineup(team, self.lineup))
-
+        self.assertRaises(lineup.exceptions.CreateLineupExpiredDraftgroupException,
+                          lambda: lm.edit_lineup(team, self.lineup))
 
     def test_edit_entry_same_lineup(self):
         self.create_valid_lineup()
@@ -278,6 +272,36 @@ class LineupTest(LineupBaseTest):
 
         self.assertRaises(Lineup.DoesNotExist,
                           lambda: Lineup.objects.get(pk=self.lineup.pk))
+
+    def test_get_lineup_from_id(self):
+        self.create_valid_lineup()
+        #
+        # Tests the future to make sure that we dont give user lineups
+        # before a contest starts
+        self.draftgroup.start = timezone.now() + timedelta(minutes=1)
+        self.draftgroup.save()
+
+        lm = LineupManager(self.user)
+        data = lm.get_lineup_from_id(self.lineup.pk, self.world.contest)
+        for player_obj_arr in data:
+            self.assertEquals(player_obj_arr['started'], False)
+            self.assertEquals(player_obj_arr['data'], [])
+
+        #
+        # Tests the future to make sure that we show all players as started
+        self.draftgroup.start = timezone.now() - timedelta(minutes=1)
+        self.draftgroup.save()
+
+        lm = LineupManager(self.user)
+        data = lm.get_lineup_from_id(self.lineup.pk, self.world.contest)
+        for player_obj_arr in data:
+            self.assertEquals(player_obj_arr['started'], True)
+
+
+
+
+
+
 
 
 class LineupConcurrentTest(AbstractTestTransaction, LineupBaseTest):

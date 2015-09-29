@@ -4,7 +4,7 @@
 from django.db import models
 import salary.models
 import draftgroup.classes
-
+from  django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
 
@@ -29,6 +29,12 @@ class DraftGroup( models.Model ):
         """
         dgm = draftgroup.classes.DraftGroupManager()
         return dgm.get_games( self )
+
+    def is_started(self):
+        """
+        :return: True if the system time is past the start time for the draftgroup
+        """
+        return timezone.now() >= self.start
 
     def __str__(self):
         return '%s id:%s' % (self.salary_pool.site_sport.name, str(self.pk))
