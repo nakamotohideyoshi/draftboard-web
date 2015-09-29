@@ -1,7 +1,12 @@
+#
+# test/classes.py
+
 import django.test
 from django.contrib.auth.models import User
 import threading
 from django.db import connections
+from django.db.transaction import atomic
+
 import traceback
 from sports.classes import SiteSport
 from prize.classes import CashPrizeStructureCreator
@@ -21,9 +26,115 @@ from django.test import TestCase                            # for testing celery
 from django.test.utils import override_settings             # for testing celery
 from mysite.celery_app import pause, pause_then_raise       # for testing celery
 from contest.classes import ContestCreator
+from contest.buyin.classes import BuyinManager
 from contest.models import Contest
-#
+from sports.classes import SiteSportManager
+from roster.classes import RosterManager
+from random import Random
+from lineup.classes import LineupManager
+from lineup.exceptions import InvalidLineupSalaryException
+from cash.classes import CashTransaction
 
+class RandomLineupCreator(object):
+    """
+    for testing purposes, this class is used to create dummy
+    lineups in a contest with randomly chosen players.
+
+    the underlying transactions are not created for the buyins, etc...
+
+    all teams are created with the admin user (pk: 1)
+    """
+
+    def __init__(self, sport):
+        print( 'WARNING - This class can & will submit teams that EXCEED SALARY REQUIREMENTS')
+        self.user               = User.objects.get(username='admin')
+
+        self.site_sport_manager = SiteSportManager()
+        self.site_sport         = self.site_sport_manager.get_site_sport( sport )
+        self.roster_manager     = RosterManager( self.site_sport )
+
+        self.r = Random()
+
+        self.position_lists     = None
+        self.lineup_player_ids  = None
+
+    @atomic
+    def create(self, contest_id):
+        """
+        creates a loosly validated lineup (may be over max salary)
+        and associates it (creates a contest.models.Entry) with the contest.
+
+        the players for each roster spot are chosen at random
+
+        :param contest_id:
+        :return:
+        """
+        self.lineup_player_ids = [] # initialize the player ids list
+
+        # from the contest, use the draft group to build positional player lists
+        # from which we can select players for each roster spot
+        contest             = Contest.objects.get( pk=contest_id )
+        self.build_positional_lists( contest.draft_group )
+
+        # select a random player for each roster spot,
+        # making sure not to reuse players we have already chosen
+        roster_size = self.roster_manager.get_roster_spots_count()
+        for roster_idx in range(0, roster_size):
+            player_id = self.get_random_player( roster_idx )
+            self.lineup_player_ids.append( player_id )
+
+        #
+        #
+        #  ** this hacks the total salary  for the contest ***
+        #
+        #
+        salary_config = contest.draft_group.salary_pool.salary_config
+        original_max_team_salary = salary_config.max_team_salary
+        salary_config.max_team_salary = 999999
+        salary_config.save()
+
+        # create the lineup
+        lm = LineupManager( self.user )
+        # this lineup will very likely exceed the total, salary, so
+        # lets hack it to make sure it gets created
+        lineup = lm.create_lineup( self.lineup_player_ids, contest.draft_group )
+
+        # give the admin just enough cash to buy this team into the contest
+        ct = CashTransaction( self.user )
+        ct.deposit( contest.buyin )
+
+        # attempt to buy the team into the contest
+        bm = BuyinManager( self.user )
+        bm.buyin( contest, lineup )
+
+        # set the salary back to its original value
+        salary_config.max_team_salary = original_max_team_salary
+        salary_config.save()
+
+    def get_random_player(self, position_list_idx):
+        players = self.position_lists[position_list_idx]
+        while True: # keep trying
+            random_number = self.r.randint(0, len(players))
+            player_id = players[ random_number ].salary_player.player_id
+            if player_id not in self.lineup_player_ids:
+                return player_id
+        # if we made it thru without finding one, raise exception -- not enough players
+        raise Exception('get_random_player() couldnt find a player -- maybe the pool is too small?')
+
+    def build_positional_lists(self, draft_group):
+        self.position_lists = []
+        roster_size = self.roster_manager.get_roster_spots_count()
+        for roster_idx in range(0, roster_size):
+            self.position_lists.append( [] ) # initialize with the # of lists as are roster spots
+
+        # put each player in each list he could be drafted from
+        draft_group_players = Player.objects.filter( draft_group=draft_group )
+        for player in draft_group_players:
+            for roster_idx in range(0, roster_size):
+                sport_player = player.salary_player.player  # the sports.<sport>.models.Player
+                if self.roster_manager.player_matches_spot( sport_player, roster_idx ):
+                    # add the draft group player
+                    self.position_lists[ roster_idx ].append( player )
 
 class MasterAbstractTest():
     CELERY_TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'

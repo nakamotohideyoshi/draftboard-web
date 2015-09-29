@@ -44,6 +44,32 @@ class DraftGroupAPIView(generics.GenericAPIView):
             c.add( self.__class__.__name__ + str(pk), serialized_data, 300 ) # 300 seconds
         return Response(serialized_data)
 
+class UpcomingDraftGroupAPIView(generics.GenericAPIView):
+    """
+    return the draft group players for the given draftgroup id
+    """
+
+    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    serializer_class = DraftGroupSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, id):
+        try:
+            return DraftGroup.objects.get(pk=id)
+        except DraftGroup.DoesNotExist:
+            raise NotFound()
+
+    def get(self, request, pk, format=None):
+        """
+        given the GET param 'id', get the draft_group
+        """
+        c = caches['default']
+        serialized_data = c.get(self.__class__.__name__ + str(pk), None)
+        if serialized_data is None:
+            serialized_data = DraftGroupSerializer( self.get_object(pk), many=False ).data
+            c.add( self.__class__.__name__ + str(pk), serialized_data, 300 ) # 300 seconds
+        return Response(serialized_data)
+
 class DraftGroupFantasyPointsView(View):
     """
     return all the lineups for a given contest as raw bytes, in our special compact format
