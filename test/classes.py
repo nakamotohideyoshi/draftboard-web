@@ -14,7 +14,7 @@ from sports.models import SiteSport, Position
 from roster.models import RosterSpot, RosterSpotPosition
 from salary.models import SalaryConfig, Pool, TrailingGameWeight, Salary
 from dataden.util.timestamp import DfsDateTimeUtil
-from draftgroup.models import DraftGroup, Player
+from draftgroup.models import DraftGroup, Player, GameTeam
 from datetime import timedelta, time
 from salary.classes import SalaryGenerator
 from django.test import TestCase                            # for testing celery
@@ -287,6 +287,13 @@ class BuildWorldForTesting(object):
             PlayerStatsChild
         ]
 
+        gameteam = GameTeam()
+        gameteam.start = self.draftgroup.start
+        gameteam.game_srid = "1"
+        gameteam.draft_group = self.draftgroup
+        gameteam.team_srid = "1"
+        gameteam.save()
+
         salary_gen =SalaryGenerator(player_stats_classes, self.pool)
         salary_gen.generate_salaries()
         player_salaries = Salary.objects.all()
@@ -294,7 +301,7 @@ class BuildWorldForTesting(object):
             dgp = Player()
             dgp.draft_group = self.draftgroup
             dgp.salary_player = player
-            dgp.game_team_id = 1 # we arent going to check it, so it can be the first one that exists
+            dgp.game_team = gameteam
             dgp.salary = player.amount
             dgp.start = timezone.now() + timedelta(hours=1)
             dgp.save()

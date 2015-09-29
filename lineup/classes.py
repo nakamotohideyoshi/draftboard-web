@@ -167,10 +167,12 @@ class LineupManager(AbstractSiteUserClass):
             is unchanged
         """
         self.validate_arguments(player_ids=player_ids, entry=entry)
+        #
+        # Throw an exception if the draftgroup is expired
+        if entry.lineup.draft_group.start < timezone.now():
+            raise CreateLineupExpiredDraftgroupException()
 
         self.__validate_lineup_changed(player_ids, entry)
-
-        self.__validate_changed_players_have_not_started(player_ids, entry.lineup)
         #
         # Gets the count of entries using the same lineup
         count = Entry.objects.filter(lineup=entry.lineup).count()
@@ -206,7 +208,11 @@ class LineupManager(AbstractSiteUserClass):
 
         """
         self.validate_arguments(player_ids=player_ids, lineup=lineup)
-        self.__validate_changed_players_have_not_started(player_ids, lineup)
+        #
+        # Throw an exception if the draftgroup is expired
+        if lineup.draft_group.start < timezone.now():
+            raise CreateLineupExpiredDraftgroupException()
+
         self.__edit_lineup(player_ids, lineup)
 
     def __edit_lineup(self, player_ids, lineup):
@@ -494,3 +500,76 @@ class LineupManager(AbstractSiteUserClass):
                 if draftgroup_lineup_player.start < now or draftgroup_player.start < now:
                     raise PlayerSwapGameStartedException()
             i += 1
+
+
+    def get_lineup_from_id(self, lineup_id, contest):
+        """
+        get lineup data we can show to other users, with masked
+        out players if the contest has not started yet.
+
+        :param lineup_id:
+        :return:
+        """
+
+        data = []
+        ssm = SiteSportManager()
+
+        #
+        # Get the lineup players for a lineup id
+        lineup_players = LineupPlayer.objects.filter( lineup__pk=lineup_id ).order_by('idx')
+        #
+        # sets the started flag to False if draftgroup has not started
+        started = True
+        if len(lineup_players) > 0 and not lineup_players[0].lineup.draft_group.is_started():
+            started = False
+
+        #
+        # get the player model(s) for the sport used (multiple for MLB)
+        player_stats_models = ssm.get_player_stats_class( contest.site_sport )
+
+        #
+        # add all the players to the data array, but if the contest has not started make the
+        # specific player information be an empty array.
+        for lineup_player in lineup_players:
+
+            #
+            # check every stats model type ( ie: baseball has PlayerStatsHitter & PlayerStatsPitcher)
+            category_stats = []
+            for player_stats_model in player_stats_models:
+
+                player_stats = None
+                #
+                # if the player is masked out in the starter map, do not display which player it is
+                if not started:
+                    continue
+
+
+                #
+                # Get the player stats if the model type applies to the player and they have stats
+                try:
+                    player_stats = player_stats_model.objects.get( player_id=lineup_player.player_id,
+                                        srid_game=lineup_player.draft_group_player.game_team.game_srid )
+                except player_stats_model.DoesNotExist:
+                    player_stats = None
+                    pass
+
+                #
+                # add the stats to the data field for the given player.
+                if player_stats is not None:
+                    category_stats.append( player_stats.to_json() )
+
+            #
+            # add the "category_stats" list  -- ie: the stats for each roster idx
+            data.append( {
+                'started'   : started,
+                'i'         : lineup_player.idx,
+                'data'      : category_stats,
+            } )
+
+
+        # this data is safe to return via the API because
+        # the players whos games have not yet started have
+        # not been shown!
+        return data
+
+
