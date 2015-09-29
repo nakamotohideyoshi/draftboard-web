@@ -36,7 +36,6 @@ var DraftPlayerList = React.createClass({
     DraftActions.loadDraftGroup(draftgroupId);
 
     return ({
-      players: [],
       filteredPlayers: [],
       // Contest type filter data.
       contestTypeFilters: [
@@ -60,10 +59,6 @@ var DraftPlayerList = React.createClass({
     if (id !== 'undefined') {
       ContestActions.contestFocused(id);
     }
-  },
-
-  onPlayerClick: function(playerId) {
-    DraftActions.addPlayerToLineup(playerId);
   },
 
 
@@ -92,10 +87,8 @@ var DraftPlayerList = React.createClass({
 
   render: function() {
     // Build up a list of rows to be displayed.
-    var visibleRows = this.state.players.map(function(row) {
+    var visibleRows = this.state.filteredPlayers.map(function(row) {
       var draftable = true;
-
-
 
       if (this.state.newLineup.availablePositions.indexOf(row.position) === -1) {
         draftable = false;
@@ -106,8 +99,7 @@ var DraftPlayerList = React.createClass({
           key={row.player_id}
           row={row}
           draftable={draftable}
-          handleOnClick={this.onPlayerClick}
-          focusedContestId={this.state.focusedContestId} />
+        />
       );
     }, this);
 

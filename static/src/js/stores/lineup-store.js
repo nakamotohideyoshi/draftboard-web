@@ -7,6 +7,9 @@ var request = require("superagent");
 // var _sortByOrder = require("lodash/collection/sortByOrder");
 
 
+/**
+ * A store to manage a user's upcoming lineup collection.
+ */
 var LineupStore = Reflux.createStore({
 
   data: {},

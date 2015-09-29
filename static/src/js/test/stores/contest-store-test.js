@@ -26,6 +26,12 @@ describe("ContestStore", function() {
   });
 
 
+  it("setFocusedContest()9 should set focusedContestId", function() {
+    this.ContestStore.setFocusedContest(999);
+    expect(this.ContestStore.data.focusedContestId).to.equal(999);
+  });
+
+
   // TODO: This is intermittently not working on codeship, ignore it until I figure it out.
   // it("should return a collection of contests", function() {
   //   var self = this;

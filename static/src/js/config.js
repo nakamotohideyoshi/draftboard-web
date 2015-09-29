@@ -5,7 +5,7 @@ var level = 'error';
 
 // If 'development' or nothing is set, use warn. Stay with 'error' for prod.
 if (process.env.NODE_ENV !== 'production') {
-  level = 'debug';
+  level = 'warn';
 }
 
 if (process.env.NODE_ENV === 'test') {
