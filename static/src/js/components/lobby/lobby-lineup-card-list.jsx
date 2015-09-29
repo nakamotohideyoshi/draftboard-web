@@ -7,6 +7,7 @@ var renderComponent = require('../../lib/render-component');
 var smoothScrollTo = require('../../lib/smooth-scroll-to.js');
 var LineupStore = require('../../stores/lineup-store.js');
 var LineupActions = require('../../actions/lineup-actions.js');
+var DraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx');
 
 
 /**
@@ -23,7 +24,8 @@ var LineupCardList = React.createClass({
   getInitialState: function() {
     return {
       lineups: [],
-      focusedLineupId: 10
+      focusedLineupId: 10,
+      draftGroupSelectionModalVisible: false
     };
   },
 
@@ -34,8 +36,11 @@ var LineupCardList = React.createClass({
    */
   scrollToCard: function(lineupId) {
     var cardDom = React.findDOMNode(this.refs['lineup-' + lineupId]);
-    var scrollingElement = document.querySelector('.sidebar .sidebar-inner');
-    smoothScrollTo(scrollingElement, cardDom.offsetTop - 20, 600);
+
+    if (cardDom) {
+      var scrollingElement = document.querySelector('.sidebar .sidebar-inner');
+      smoothScrollTo(scrollingElement, cardDom.offsetTop - 20, 600);
+    }
   },
 
 
@@ -68,6 +73,11 @@ var LineupCardList = React.createClass({
   },
 
 
+  handleDraftButtonClick: function() {
+    this.refs.draftModal.open();
+  },
+
+
   render: function() {
 
     var lineups = this.state.lineups.map(function(lineup) {
@@ -90,7 +100,10 @@ var LineupCardList = React.createClass({
       <div>
         {lineups}
 
-        <div className="cmp-lineup-card cmp-lineup-card--collapsed cmp-lineup-card--create-collapsed">
+        <div
+          className="cmp-lineup-card cmp-lineup-card--collapsed cmp-lineup-card--create-collapsed"
+          onClick={this.handleDraftButtonClick}
+        >
           <header className="cmp-lineup-card__header">
             <h3 className="cmp-lineup-card__title">
               Create a Lineup <span className="cmp-lineup-card__plus">+</span>
@@ -106,11 +119,18 @@ var LineupCardList = React.createClass({
             </h3>
           </header>
 
-          <div className="button button--medium button--gradient-outline">Draft a Team</div>
+          <div
+            className="button button--medium button--gradient-outline"
+            onClick={this.handleDraftButtonClick}
+          >
+            Draft a Team
+          </div>
         </div>
+
+        <DraftGroupSelectionModal
+          ref="draftModal"
+        />
       </div>
-
-
     );
   }
 });

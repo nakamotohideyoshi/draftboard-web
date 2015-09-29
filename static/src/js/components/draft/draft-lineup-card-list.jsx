@@ -72,6 +72,7 @@ var DraftLineupCardList = React.createClass({
           ref="lineupCardNew"
           remainingSalary={this.state.newLineup.remainingSalary}
           avgPlayerSalary={this.state.newLineup.avgPlayerSalary}
+          errorMessage={this.state.newLineup.errorMessage}
         />
 
         {lineups}
