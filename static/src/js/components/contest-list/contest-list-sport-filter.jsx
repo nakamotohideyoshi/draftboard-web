@@ -2,7 +2,8 @@
 
 var React = require('react');
 var renderComponent = require('../../lib/render-component');
-var ContestStorePropertyMatchFilter = require('./contest-store-property-match-filter.jsx');
+var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
+var ContestActions = require('../../actions/contest-actions.js');
 
 
 /**
@@ -24,12 +25,14 @@ var ContestListSportFilter = React.createClass({
 
   render: function() {
     return (
-        <ContestStorePropertyMatchFilter
+        <CollectionMatchFilter
           className="contest-list-filter--league"
           filters={this.state.leagueFilters}
-          property='sport'
+          filterProperty='sport'
           match=''
           filterName='leagueFilter'
+          onUpdate={ContestActions.filterUpdated}
+          onMount={ContestActions.registerFilter}
         />
     );
   }

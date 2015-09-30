@@ -115,9 +115,18 @@ category: Lineup
     padding: 0px;
   }
 
+  // Feedback tooltip.
+  .tooltip {
+    width: 280px;
+  }
+
   &__plus {
     position: absolute;
     right: 15px;
+  }
+
+  &__save {
+    float: right;
   }
 
   &__player {
@@ -283,6 +292,15 @@ category: Lineup
   }
 }
 
+
+// When in the draft section, this is the new lineup card that you are creating.
+.cmp-lineup-card--new {
+  .cmp-lineup-card {
+    &__title {
+        float: left;
+    }
+  }
+}
 
 
 .lineup-sidebar-list {

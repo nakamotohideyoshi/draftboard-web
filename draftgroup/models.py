@@ -87,6 +87,10 @@ class Player( models.Model ):
         return self.salary_player.player.last_name
 
     @property
+    def name(self):
+        return '%s %s' % (self.salary_player.player.first_name, self.salary_player.player.last_name)
+
+    @property
     def player_id(self):
         return self.salary_player.player.pk
 
@@ -101,4 +105,3 @@ class Player( models.Model ):
     class Meta:
         # each player should only exist once in each group!
         unique_together = ('draft_group','salary_player')
-

@@ -1,6 +1,8 @@
 "use strict";
 
 var AppStateStore = require("../../stores/app-state-store");
+var log = require('../../lib/logging.js');
+
 
 /*
 * This component listens to the AppStateStore store and keeps the <body> tag's classes in sync with whatever
@@ -13,6 +15,7 @@ var AppStateClass = (function() {
   var exports = {
     // Sync up classes in the AppStateStore to the <body> tag.
     updateBodyClasses: function(classes) {
+      log.debug("AppStateClass.updateBodyClasses()", classes);
       // Remove any existing appstate classes
       bodyEl.className = bodyEl.className.replace(/appstate-\S*(?!\S)/g, "");
       // Add the current set.

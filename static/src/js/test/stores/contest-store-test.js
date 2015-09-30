@@ -7,7 +7,8 @@ require("superagent-mock")(request, fixtures);
 var expect = require("chai").expect;
 var sinon = require("sinon");
 var ContestActions = require("../../actions/contest-actions");
-var MatchFilter = require('../../components/contest-list/contest-store-property-match-filter.jsx');
+// var MatchFilter = require('../../components/filters/collection-match-filter.jsx');
+
 
 describe("ContestStore", function() {
 
@@ -44,12 +45,12 @@ describe("ContestStore", function() {
   // });
 
 
-  it("should register a filter", function() {
-    // Empty filters, register one, check that it was added.
-    this.ContestStore.filters = [];
-    expect(this.ContestStore.filters.length).to.equal(0);
-    this.ContestStore.registerFilter(MatchFilter);
-    expect(this.ContestStore.filters.length).to.equal(1);
-  });
+  // it("should register a filter", function() {
+  //   // Empty filters, register one, check that it was added.
+  //   this.ContestStore.filters = [];
+  //   expect(this.ContestStore.filters.length).to.equal(0);
+  //   this.ContestStore.registerFilter(MatchFilter);
+  //   expect(this.ContestStore.filters.length).to.equal(1);
+  // });
 
 });

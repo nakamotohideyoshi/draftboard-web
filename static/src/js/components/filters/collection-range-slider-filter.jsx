@@ -2,16 +2,22 @@
 
 var React = require('react');
 var RangeSlider = require('../form-field/range-slider.jsx');
-var ContestActions = require('../../actions/contest-actions');
 
 
-var ContestListFeeFilter = React.createClass({
+var CollectionRangeSliderFilter = React.createClass({
 
   propTypes: {
-    className: React.PropTypes.string.isRequired,
-    // filterName is used in the ContestStore to store the active filter so other components can
-    // reference it. ContestStore.data.filters[{filterName}]
-    filterName: React.PropTypes.string.isRequired
+    className: React.PropTypes.string,
+    // The propety in the row that we are filtering against.
+    filterProperty: React.PropTypes.string.isRequired,
+    // filterName is used in the datastore to store the active filter so other components can
+    // reference it. Store.data.filters[{filterName}]
+    filterName: React.PropTypes.string.isRequired,
+    // When the filter values have changed, let the store it's registered with know so it can
+    // re-run all of it's filters.
+    onUpdate: React.PropTypes.func.isRequired,
+    // Once the filter has mounted, it needs to register itself with a store.
+    onMount: React.PropTypes.func.isRequired
   },
 
 
@@ -23,8 +29,8 @@ var ContestListFeeFilter = React.createClass({
 
 
   componentDidMount: function() {
-    // Register this filter with the ContestStore.
-    ContestActions.registerFilter(this);
+    // Register this filter with the Store with the provided function.
+    this.props.onMount(this);
   },
 
 
@@ -49,11 +55,10 @@ var ContestListFeeFilter = React.createClass({
     };
 
     this.setState({'match': match}, function() {
-      ContestActions.filterUpdated(
+      this.props.onUpdate(
         this.props.filterName,
-        // TODO: Make the column dynamic based on the 'props.property'
         {title: this.props.filterName,
-          column: 'fee',
+          column: this.props.filterProperty,
           match: {
             minVal: sliderState.minVal,
             maxVal: sliderState.maxVal
@@ -73,4 +78,4 @@ var ContestListFeeFilter = React.createClass({
 });
 
 
-module.exports = ContestListFeeFilter;
+module.exports = CollectionRangeSliderFilter;
