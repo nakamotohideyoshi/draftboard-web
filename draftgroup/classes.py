@@ -289,6 +289,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         """
         return self.create( contest.site_sport, contest.start, contest.end )
 
+
     @atomic
     def create(self, site_sport, start, end):
         """

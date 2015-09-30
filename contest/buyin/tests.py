@@ -182,7 +182,7 @@ class BuyinTest(AbstractTest):
         self.assertRaises(exceptions.ContestMaxEntriesReachedException,
                   lambda: bm.buyin(self.contest))
 
-#
+
 # NOTE:
 # 1.)   The buyin task has been tested thoroughly and works.
 # 2.)   However(!) the way the django test harness runs threads
