@@ -19,6 +19,7 @@ from PythonNetBanxSDK.CardPayments.ShippingDetails import ShippingDetails
 
 import random
 import string
+import inspect
 
 #
 # source: https://developer.optimalpayments.com/en/sdk/server-side/python/card-payments-api/
@@ -359,7 +360,9 @@ class CardPurchase(object):
         # that they want to be property names,
         # so if response.error is of type 'method' then it hasnt
         # had an instance of Error() set to it (ie: there is no error)
-        if type(response.error) != 'method':
+        #
+        # if its NOT a method, then there is an error object instance instead
+        if not inspect.ismethod( response.error ):
             #
             # there is an error.
             # check on the error range, and raise the appropriate exception
