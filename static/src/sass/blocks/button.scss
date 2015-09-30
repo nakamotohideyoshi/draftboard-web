@@ -103,15 +103,12 @@ Note: Buttons are inline-block by default. HR's added for spacing.
 .button--gradient-outline {
   @extend %button;
   background: none;
-  border-width: 1px;
-  border-style: solid;
-  -moz-border-image: -moz-linear-gradient(top, #1f907c 0%, #34cc68 100%);
-  -webkit-border-image: -webkit-linear-gradient(top, #1f907c 0%, #34cc68 100%);
-  border-image: linear-gradient(to top, #1f907c 0%, #34cc68 100%);
-  border-image-slice: 1;
-  color: #fff;
+  border-color: #2dba74;
+  color: #32c565;
 
   &:hover {
+    color: #fff;
+    border-color: #2dba74;
     background: #219d87; /* Old browsers */
     background: -moz-linear-gradient(left, #219d87 0%, #34cc68 100%); /* FF3.6+ */
     background: -webkit-gradient(linear, left top, right top, color-stop(0%,#219d87), color-stop(100%,#34cc68)); /* Chrome,Safari4+ */
@@ -123,6 +120,19 @@ Note: Buttons are inline-block by default. HR's added for spacing.
   }
 }
 
+.button--gradient {
+  color: #fff;
+  border: none;
+  background: #219d87; /* Old browsers */
+  background: -moz-linear-gradient(left, #219d87 0%, #34cc68 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, right top, color-stop(0%,#219d87), color-stop(100%,#34cc68)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(left, #219d87 0%,#34cc68 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(left, #219d87 0%,#34cc68 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(left, #219d87 0%,#34cc68 100%); /* IE10+ */
+  background: linear-gradient(to right, #219d87 0%,#34cc68 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#219d87', endColorstr='#34cc68',GradientType=1 ); /* IE6-9 */
+
+}
 
 
 // button sizes
@@ -210,3 +220,15 @@ Note: Buttons are inline-block by default. HR's added for spacing.
   @extend %button--mini;
   @extend %button--outline;
 }
+
+
+// .button--green-outline {
+//   border-color: #2dba74;
+//   color: #32c565;
+//
+//   &:hover {
+//     border-color: #2dba74;
+//     color: #32c565;
+//
+//   }
+// }

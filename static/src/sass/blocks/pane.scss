@@ -1,34 +1,69 @@
+@import "../variables.scss";
 // requires layouts.scss";
 
 
 // when a user requests something and a pane slides out from the right hand side
 // drew says it will always be the same width
 .pane {
-  background: transparent;
-  // background: url(../img/blocks/pane.jpg) no-repeat left top;
+  background: #fff;
   background-size: auto 110%;
   height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
   position: fixed;
-  right: -412px;
+  right: -480px;
   top: 0;
-  transition: all 230ms cubic-bezier(.8,.16,.18,.85);
+  transition: right 230ms cubic-bezier(.8,.16,.18,.85);
   -webkit-animation-delay: 100ms; /* Chrome, Safari, Opera */
   animation-delay: 100ms;
-  width: 412px;
+  width: 480px;
+  z-index: $zindex-modal + 1;
 
-  // * {
-  //   display: none;
-  // }
+  &__close {
+    background: url('../img/blocks/pane/btn-close.png');
+    background-size: 36px auto;
+    cursor: pointer;
+    display: block;
+    height: 36px;
+    position: absolute;
+    right: 30px;
+    top: 30px;
+    width: 36px;
+    z-index: 30;
+
+    &:hover {
+      opacity: .75;
+    }
+  }
+}
+
+.pane__bg-cover {
+  background: rgba(26, 31, 48, .95);
+  height: 0;
+  left: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: $zindex-modal;
+  opacity: 0;
+  transition: opacity .25s;
+  visibility: hidden;
 }
 
 // add app state to pane open will animate the pane open
 body.appstate--pane--open {
-  .pane {
-    right: 0px;
+  // Disable main window content scrolling.
+  overflow: hidden;
+
+  .pane__bg-cover {
+    height: 100%;
+    opacity: 1;
+    visibility: visible;
   }
 
-  .content-container {
-    transform: perspective(1300px) rotateY(2deg) scale(0.93);
-    opacity: 0.6;
+  .pane {
+    right: 0px;
   }
 }

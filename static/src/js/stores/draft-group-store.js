@@ -4,7 +4,8 @@ var Reflux = require("reflux");
 var DraftActions = require("../actions/draft-actions");
 var request = require("superagent");
 var log = require("../lib/logging");
-var _sortBy = require("lodash/collection/sortBy");
+var FilterableMixin = require('./filterable-mixin.js');
+var SortableMixin = require('./sortable-mixin.js');
 
 
 /**
@@ -12,18 +13,26 @@ var _sortBy = require("lodash/collection/sortBy");
  */
 var DraftGroupStore = Reflux.createStore({
 
+  mixins: [FilterableMixin, SortableMixin],
   data: {},
   filters: [],
+  allPlayers: [],
+  // Default sort to descending salaries.
+  sortProperty: 'salary',
+  sortDirection: 'desc',
+
 
   init: function() {
     this.listenTo(DraftActions.loadDraftGroup, this.fetchDraftGroup);
-    this.listenTo(DraftActions.playerFocused, this.setFocusedPlayer);
+    this.listenTo(DraftActions.registerFilter, this.registerFilter);
+    this.listenTo(DraftActions.filterUpdated, this.filterUpdated);
+    this.listenTo(DraftActions.setSortProperty, this.setSortProperty);
+    this.listenTo(DraftActions.setSortDirection, this.setSortDirection);
 
     this.data = {
-      players: [],
       filteredPlayers: [],
       sport: null,
-      focusedPlayerId: null
+      activeFilters: []
     };
   },
 
@@ -44,6 +53,7 @@ var DraftGroupStore = Reflux.createStore({
     request
       .get("/draft-group/" + draftGroupId + '/')
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
+      .set('Accept', 'application/json')
       .end(function(err, res) {
         if(err) {
           // Fail the action's promise.
@@ -63,30 +73,33 @@ var DraftGroupStore = Reflux.createStore({
 
     // Update the store with our new data.
     this.data.sport = payload.sport;
-    this.data.players = payload.players;
-    this.data.filteredPlayers = this.sortBySalary(payload.players);
+    this.allPlayers = payload.players;
+    this.data.filteredPlayers = this.sort(payload.players);
 
     // Trigger a data flow.
     this.trigger(this.data);
   },
 
 
-  sortBySalary: function(players) {
-    log.debug('DraftGroupStore.sortBySalary()');
-    return _sortBy(players, 'salary').reverse();
+  sortableUpdated: function() {
+    this.data.filteredPlayers = this.sort(this.data.filteredPlayers);
+    this.trigger(this.data);
   },
 
 
   /**
-   * Set the focused player based on the provided player ID.
-   * @param {number} lineupId the ID of the lineup to set as active.
+   * A hook for filters to notify us that one of the filters has changed and this
+   * store needs to re-filter the data.
+   *
+   * @param {string} filterName - The name of the filter component.
    */
-  setFocusedPlayer: function(playerId) {
-    log.debug('DraftGroupStore.setFocusedPlayer()');
-    if(typeof playerId === 'number') {
-      this.data.focusedPlayerId = playerId;
-      this.trigger(this.data);
-    }
+  filterUpdated: function(filterName, filter) {
+    log.debug('DraftGroupStore.filterUpdated() - ' + filterName, filter);
+    this.data.activeFilters[filterName] = filter;
+    // When a filter is updated, update our stored display rows.
+    this.data.filteredPlayers = this.runFilters(this.allPlayers);
+    this.data.filteredPlayers = this.sort(this.data.filteredPlayers);
+    this.trigger(this.data);
   }
 
 });
