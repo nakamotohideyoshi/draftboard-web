@@ -28,6 +28,7 @@ import time
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.production')
 
 from django.conf import settings
+import subprocess
 
 app = Celery('mysite')
 
@@ -80,6 +81,12 @@ app.conf.update(
             'task': 'mysite.celery_app.heartbeat',
             'schedule': timedelta(seconds=3),
             #'args': (16, 16)
+        },
+
+        'dataden': {
+            'task': 'mysite.celery_app.dataden',
+            'schedule': timedelta(seconds=60),
+            #'args': (16, 16)
         }
     },
 
@@ -116,6 +123,20 @@ def pause_then_raise(self, t=5.0, msg='finished'):
 def heartbeat(self):
     print( 'heartbeat' )
 
+@app.task(bind=True)
+def dataden(self):
+    """
+    run dataden via in a task
+
+    :return:
+    """
+    cmd_str = 'java -jar dataden/dataden-rio.jar -k 5babdb76f29059e767247af964285984'
+    command = cmd_str.split()
+    popen = subprocess.Popen(command, stdout=subprocess.PIPE)
+    lines_iterator = iter(popen.stdout.readline, b"")
+    for line in lines_iterator:
+        print(line) # yield line
+
 @app.task(bind=True, time_limit=300)
 def payout(self, instance, **kwargs):
     r_payout    = instance.payout()
@@ -125,3 +146,4 @@ def stat_update(self, updateable, **kwargs):
     #
     # call send() on a dataden.signals.Updateable instance
     updateable.send()
+
