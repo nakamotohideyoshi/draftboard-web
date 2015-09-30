@@ -63,14 +63,21 @@ app.conf.update(
     CELERYBEAT_SCHEDULE = {
         # 'heartbeat': {
         #     'task': 'heartbeat',
-        #     'schedule': timedelta(seconds=9),
+        #     'schedule': timedelta(seconds=3),
         #     #'args': (16, 16)
         # },
 
+        # #
+        # # this is an example of how to call a function in this .py file
+        # 'heartbeat': {
+        #     'task': 'mysite.celery.heartbeat',
+        #     'schedule': timedelta(seconds=3),
+        #     #'args': (16, 16)
+        # }
         #
         # this is an example of how to call a function in this .py file
         'heartbeat': {
-            'task': 'mysite.celery.heartbeat',
+            'task': 'mysite.celery_app.heartbeat',
             'schedule': timedelta(seconds=3),
             #'args': (16, 16)
         }
