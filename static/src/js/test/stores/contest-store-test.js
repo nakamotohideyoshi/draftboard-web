@@ -7,7 +7,6 @@ require("superagent-mock")(request, fixtures);
 var expect = require("chai").expect;
 var sinon = require("sinon");
 var ContestActions = require("../../actions/contest-actions");
-// var MatchFilter = require('../../components/filters/collection-match-filter.jsx');
 
 
 describe("ContestStore", function() {
@@ -27,9 +26,41 @@ describe("ContestStore", function() {
   });
 
 
-  it("setFocusedContest()9 should set focusedContestId", function() {
+  it("setFocusedContest() should set focusedContestId", function() {
     this.ContestStore.setFocusedContest(999);
     expect(this.ContestStore.data.focusedContestId).to.equal(999);
+  });
+
+
+  it("getFocusedContest() should get the focused contest object", function() {
+    // Get contest fixtures.
+    // Trigger the load action
+    return ContestActions.load.triggerPromise().then(function() {
+      // grab a contest.
+      var focusedContest = this.ContestStore.allContests[0];
+      // set it as active.
+      this.ContestStore.data.focusedContestId = focusedContest.id;
+      // make sure getFocusedContest() gets the one we set.
+      expect(this.ContestStore.getFocusedContest()).to.equal(focusedContest);
+    }.bind(this));
+  });
+
+
+  it(
+  "getCurrentfocusedContestIndex() should get the index of the contest in the allContests array",
+  function ()  {
+    // Get contest fixtures.
+    // Trigger the load action
+    return ContestActions.load.triggerPromise().then(function() {
+      var index = 2;
+      // grab a contest.
+      var focusedContest = this.ContestStore.allContests[index];
+      // set it as active.
+      this.ContestStore.data.focusedContestId = focusedContest.id;
+      // make sure getFocusedContest() gets the one we set.
+      expect(this.ContestStore.getCurrentfocusedContestIndex()).to.equal(index);
+    }.bind(this));
+
   });
 
 

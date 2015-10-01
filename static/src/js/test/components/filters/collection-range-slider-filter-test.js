@@ -72,7 +72,7 @@ describe('CollectionRangeSliderFilter Component', function() {
   });
 
 
-  it('should alert the ContestStore that something has changed via an action', function() {
+  it('should alert the Contest Store that something has changed via an action', function() {
     this.component.handleChange({
       match: {
         minVal: 99,

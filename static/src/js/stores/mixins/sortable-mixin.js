@@ -1,6 +1,6 @@
 'use strict';
 
-var log = require("../lib/logging");
+var log = require("../../lib/logging");
 var _sortByOrder = require("lodash/collection/sortByOrder");
 
 

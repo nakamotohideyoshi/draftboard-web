@@ -4,8 +4,8 @@ var Reflux = require("reflux");
 var DraftActions = require("../actions/draft-actions");
 var request = require("superagent");
 var log = require("../lib/logging");
-var FilterableMixin = require('./filterable-mixin.js');
-var SortableMixin = require('./sortable-mixin.js');
+var FilterableMixin = require('./mixins/filterable-mixin.js');
+var SortableMixin = require('./mixins/sortable-mixin.js');
 
 
 /**
