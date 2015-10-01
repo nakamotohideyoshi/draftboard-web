@@ -4,7 +4,8 @@ var Reflux = require("reflux");
 var ContestActions = require("../actions/contest-actions");
 var request = require("superagent");
 var log = require("../lib/logging");
-var FilterableMixin = require('./filterable-mixin.js');
+var FilterableMixin = require('./mixins/filterable-mixin.js');
+var _find = require('lodash/collection/find');
 
 
 var ContestStore = Reflux.createStore({
@@ -61,7 +62,7 @@ var ContestStore = Reflux.createStore({
    * @return {Object} the focused contest.
    */
   getFocusedContest: function() {
-    return this.allContests[this.data.focusedContestId];
+    return _find(this.allContests, 'id', this.data.focusedContestId);
   },
 
 
