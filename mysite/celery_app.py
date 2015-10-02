@@ -28,7 +28,6 @@ import time
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.production')
 
 from django.conf import settings
-import subprocess
 
 app = Celery('mysite')
 
@@ -62,32 +61,54 @@ app.conf.update(
     #CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler',
 
     CELERYBEAT_SCHEDULE = {
-        # 'heartbeat': {
-        #     'task': 'heartbeat',
-        #     'schedule': timedelta(seconds=3),
-        #     #'args': (16, 16)
-        # },
-
-        # #
-        # # this is an example of how to call a function in this .py file
-        # 'heartbeat': {
-        #     'task': 'mysite.celery.heartbeat',
-        #     'schedule': timedelta(seconds=3),
-        #     #'args': (16, 16)
-        # }
         #
-        # this is an example of how to call a function in this .py file
+        # very fast, low cpu-intensity task. use default queue (ie: dont specify one)
+        #
+        # this is a task that simply prints 'heartbeat' in the logs.
+        # its only real purposes right now is to put
+        # tasks in the default queue for testing purposes
         'heartbeat': {
             'task': 'mysite.celery_app.heartbeat',
             'schedule': timedelta(seconds=3),
-            #'args': (16, 16)
+            # 'args': (16, 16)
+            # if no queue is specified uses the default 'celery' queue
         },
 
+        #
+        ########################################################################
+        # THIS LONG-RUNNING, CRITICAL TASK REQUIRES ITS OWN QUEUE & WORKER     #
+        ########################################################################
+        # this is the tasks that maintains a running dataden process.
+        # without this task, live stats will never be parsed into
+        # the mongolab database.
         'dataden': {
-            'task': 'mysite.celery_app.dataden',
+            'task': 'dataden.tasks.dataden',
             'schedule': timedelta(seconds=60),
-            #'args': (16, 16)
+            #
+            # for this task, the queue MUST match the queue for
+            # the corresponding worker in the Procfile
+            'options': {'queue' : 'q_dataden'}
+        },
+
+        #
+        ########################################################################
+        # THIS LONG-RUNNING, CRITICAL TASK REQUIRES ITS OWN QUEUE & WORKER     #
+        ########################################################################
+        # this is the process monitoring the mongolab instance
+        # for any changes, and it sends django signals
+        # when it finds new sports data.
+        #
+        # without this task, stats will never be pushed
+        # from the mongo instance to the django/postgres site!
+        #
+        # see: dataden.watcher.Trigger
+        'dataden_trigger': {
+            'task': 'dataden.tasks.dataden_trigger',
+            'schedule': timedelta(seconds=60),
+
+            'options': {'queue' : 'q_dataden_trigger'}
         }
+
     },
 
     CELERY_TIMEZONE = 'UTC',
@@ -122,20 +143,6 @@ def pause_then_raise(self, t=5.0, msg='finished'):
 @app.task(bind=True)
 def heartbeat(self):
     print( 'heartbeat' )
-
-@app.task(bind=True)
-def dataden(self):
-    """
-    run dataden via in a task
-
-    :return:
-    """
-    cmd_str = 'java -jar dataden/dataden-rio.jar -k %s' % settings.DATADEN_LICENSE_KEY
-    command = cmd_str.split()
-    popen = subprocess.Popen(command, stdout=subprocess.PIPE)
-    lines_iterator = iter(popen.stdout.readline, b"")
-    for line in lines_iterator:
-        print(line) # yield line
 
 @app.task(bind=True, time_limit=300)
 def payout(self, instance, **kwargs):
