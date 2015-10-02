@@ -69,7 +69,7 @@ app.conf.update(
         # tasks in the default queue for testing purposes
         'heartbeat': {
             'task': 'mysite.celery_app.heartbeat',
-            'schedule': timedelta(seconds=3),
+            'schedule': timedelta(seconds=20),
             # 'args': (16, 16)
             # if no queue is specified uses the default 'celery' queue
         },
@@ -144,6 +144,23 @@ def pause_then_raise(self, t=5.0, msg='finished'):
 def heartbeat(self):
     print( 'heartbeat' )
 
+<<<<<<< HEAD
+=======
+@app.task(bind=True)
+def dataden(self):
+    """
+    run dataden via in a task
+
+    :return:
+    """
+    cmd_str = 'java -jar dataden/dataden-rio.jar -k %s -q' % settings.DATADEN_LICENSE_KEY
+    command = cmd_str.split()
+    popen = subprocess.Popen(command, stdout=subprocess.PIPE)
+    lines_iterator = iter(popen.stdout.readline, b"")
+    for line in lines_iterator:
+        print(line) # yield line
+
+>>>>>>> 433f37524e4bae69faf94a11876a4e0d1b8cd290
 @app.task(bind=True, time_limit=300)
 def payout(self, instance, **kwargs):
     r_payout    = instance.payout()
