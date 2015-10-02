@@ -62,24 +62,11 @@ app.conf.update(
     #CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler',
 
     CELERYBEAT_SCHEDULE = {
-        # 'heartbeat': {
-        #     'task': 'heartbeat',
-        #     'schedule': timedelta(seconds=3),
-        #     #'args': (16, 16)
-        # },
-
-        # #
-        # # this is an example of how to call a function in this .py file
-        # 'heartbeat': {
-        #     'task': 'mysite.celery.heartbeat',
-        #     'schedule': timedelta(seconds=3),
-        #     #'args': (16, 16)
-        # }
         #
         # this is an example of how to call a function in this .py file
         'heartbeat': {
             'task': 'mysite.celery_app.heartbeat',
-            'schedule': timedelta(seconds=3),
+            'schedule': timedelta(seconds=20),
             #'args': (16, 16)
         },
 
@@ -130,7 +117,7 @@ def dataden(self):
 
     :return:
     """
-    cmd_str = 'java -jar dataden/dataden-rio.jar -k %s' % settings.DATADEN_LICENSE_KEY
+    cmd_str = 'java -jar dataden/dataden-rio.jar -k %s -q' % settings.DATADEN_LICENSE_KEY
     command = cmd_str.split()
     popen = subprocess.Popen(command, stdout=subprocess.PIPE)
     lines_iterator = iter(popen.stdout.readline, b"")

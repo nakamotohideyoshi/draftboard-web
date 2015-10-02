@@ -2,7 +2,8 @@ web: newrelic-admin run-program gunicorn --pythonpath mysite mysite.wsgi -b 0.0.
 
 #celery: python ./manage.py celeryd
 #celery: celery -A mysite worker -l info
-worker: celery -A mysite worker -l info
+#worker: celery -A mysite worker -l info
+worker: celery -A mysite worker -l info -P eventlet -c 1000
 
 #celery: python ./manage.py celerybeat
 celery: celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler
