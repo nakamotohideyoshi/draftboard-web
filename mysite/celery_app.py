@@ -130,7 +130,7 @@ def dataden(self):
 
     :return:
     """
-    cmd_str = 'java -jar dataden/dataden-rio.jar -k 5babdb76f29059e767247af964285984'
+    cmd_str = 'java -jar dataden/dataden-rio.jar -k %s' % settings.DATADEN_LICENSE_KEY
     command = cmd_str.split()
     popen = subprocess.Popen(command, stdout=subprocess.PIPE)
     lines_iterator = iter(popen.stdout.readline, b"")
