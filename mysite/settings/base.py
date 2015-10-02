@@ -391,3 +391,7 @@ SUIT_CONFIG = {
 USERNAME_DRAFTBOARD = "draftboard"
 USERNAME_ESCROW = "escrow"
 BONUS_CASH_RAKE_PERCENTAGE = .4
+
+#
+# DataDen license key for account: devs@draftboard.com
+DATADEN_LICENSE_KEY = '20491e2a4feda595b7347708915b200b'
