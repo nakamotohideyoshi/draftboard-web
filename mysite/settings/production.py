@@ -75,7 +75,16 @@ PUSHER_APP_ID = '144195'
 PUSHER_KEY = '9754d03a7816e43abb64'
 PUSHER_SECRET = environ.get('PUSHER_SECRET')
 
-# Mongo Connection settings
-MONGO_PASSWORD  = ''
-MONGO_HOST      = 'TODO' # TODO
-MONGO_PORT      = 27017 # default port may be the actual port
+#
+# dataden mongo database connection
+MONGO_AUTH_DB   = 'admin'
+MONGO_USER      = 'admin'
+MONGO_PASSWORD  = 'dataden1'
+MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
+MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
+# MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
+
+# # if this config var exists, override the default production value
+# dataden_mongo_uri = urlparse(environ.get('DATADEN_MONGO_URI'))
+# if dataden_mongo_uri:
+#     MONGO_HOST = dataden_mongo_uri
