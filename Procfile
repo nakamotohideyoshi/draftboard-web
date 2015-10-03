@@ -24,4 +24,8 @@ dataden: java -jar dataden/dataden-rio.jar -k 20491e2a4feda595b7347708915b200b -
 # on the mongo database. this task ensures data is being pushed from mongo to django/postgres.
 # no other worker should consume from the this worker consumes from
 #dataden_trigger: celery -A mysite worker -l info -c 1 -Q q_dataden_trigger
-dataden_trigger: celery -A mysite worker -c 1 -l info -Q q_dataden_trigger -n dataden_trigger1.%h
+#dataden_trigger: celery -A mysite worker -c 1 -l info -Q q_dataden_trigger -n dataden_trigger1.%h
+
+#
+# non-celery way of running dataden triggers on the mongo database
+dataden_trigger: python manage.py dataden_trigger

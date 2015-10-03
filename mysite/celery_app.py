@@ -74,21 +74,21 @@ app.conf.update(
             # if no queue is specified uses the default 'celery' queue
         },
 
-        #
-        ########################################################################
-        # THIS LONG-RUNNING, CRITICAL TASK REQUIRES ITS OWN QUEUE & WORKER     #
-        ########################################################################
-        # this is the tasks that maintains a running dataden process.
-        # without this task, live stats will never be parsed into
-        # the mongolab database.
-        'dataden': {
-            'task': 'dataden.tasks.dataden',
-            'schedule': timedelta(seconds=20),
-            #
-            # for this task, the queue in the comment match the queue for
-            # the corresponding worker in the Procfile
-            #'options': {'queue' : 'q_dataden'}
-        },
+        # #
+        # ########################################################################
+        # # THIS LONG-RUNNING, CRITICAL TASK REQUIRES ITS OWN QUEUE & WORKER     #
+        # ########################################################################
+        # # this is the tasks that maintains a running dataden process.
+        # # without this task, live stats will never be parsed into
+        # # the mongolab database.
+        # 'dataden': {
+        #     'task': 'dataden.tasks.dataden',
+        #     'schedule': timedelta(seconds=20),
+        #     #
+        #     # for this task, the queue in the comment match the queue for
+        #     # the corresponding worker in the Procfile
+        #     #'options': {'queue' : 'q_dataden'}
+        # },
 
         #
         ########################################################################
