@@ -69,7 +69,7 @@ app.conf.update(
         # tasks in the default queue for testing purposes
         'heartbeat': {
             'task': 'mysite.celery_app.heartbeat',
-            'schedule': timedelta(seconds=20),
+            'schedule': timedelta(seconds=60),
             # 'args': (16, 16)
             # if no queue is specified uses the default 'celery' queue
         },
@@ -83,11 +83,11 @@ app.conf.update(
         # the mongolab database.
         'dataden': {
             'task': 'dataden.tasks.dataden',
-            'schedule': timedelta(seconds=60),
+            'schedule': timedelta(seconds=20),
             #
-            # for this task, the queue MUST match the queue for
+            # for this task, the queue in the comment match the queue for
             # the corresponding worker in the Procfile
-            'options': {'queue' : 'q_dataden'}
+            #'options': {'queue' : 'q_dataden'}
         },
 
         #
@@ -104,9 +104,12 @@ app.conf.update(
         # see: dataden.watcher.Trigger
         'dataden_trigger': {
             'task': 'dataden.tasks.dataden_trigger',
-            'schedule': timedelta(seconds=60),
+            'schedule': timedelta(seconds=19),
 
-            'options': {'queue' : 'q_dataden_trigger'}
+            #
+            # for this task, the queue in the comment match the queue for
+            # the corresponding worker in the Procfile
+            #'options': {'queue' : 'q_dataden_trigger'}
         }
 
     },
