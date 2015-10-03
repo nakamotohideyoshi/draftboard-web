@@ -16,8 +16,8 @@ celery: celery -A mysite worker -l info -n celery1.%h
 #
 # the mandatory (and the only) worker responsible for running dataden.
 # no other worker should consume from the queue this worker consumes from
-#dataden: celery -A mysite worker -l info -c 1 -Q q_dataden
-dataden: celery -A mysite worker -c 1 -l info -Q q_dataden -n dataden1.%h
+#dataden: celery -A mysite worker -c 1 -l info -Q q_dataden -n dataden1.%h
+dataden: java -jar dataden/dataden-rio.jar -k 20491e2a4feda595b7347708915b200b -q
 
 #
 # the mandatory (and the only) worker responsible for running dataden triggers
