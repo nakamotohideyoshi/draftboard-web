@@ -1,7 +1,7 @@
 #
 # sports/serializers.py
 
-from .models import Player, PlayerStats, PbpDescription, GameBoxscore
+from .models import Player, PlayerStats, PbpDescription, GameBoxscore, Injury
 from rest_framework import serializers
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -34,3 +34,10 @@ class PlayerStatsSerializer(serializers.ModelSerializer):
 
         model = PlayerStats
         fields = ('game_id', 'player_id','fantasy_points')
+
+class InjurySerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = Injury
+        fields = ('iid', 'status','description')

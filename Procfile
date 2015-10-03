@@ -15,10 +15,10 @@ celery: celery -A mysite worker -l info --purge
 #
 # the mandatory (and the only) worker responsible for running dataden.
 # no other worker should consume from the queue this worker consumes from
-dataden: celery -A mysite worker -l info -Q q_dataden
+dataden: celery -A mysite worker -l info -Q q_dataden --purge
 
 #
 # the mandatory (and the only) worker responsible for running dataden triggers
 # on the mongo database. this task ensures data is being pushed from mongo to django/postgres.
 # no other worker should consume from the this worker consumes from
-dataden_trigger: celery -A mysite worker -l info -Q q_dataden_trigger
+dataden_trigger: celery -A mysite worker -l info -Q q_dataden_trigger --purge
