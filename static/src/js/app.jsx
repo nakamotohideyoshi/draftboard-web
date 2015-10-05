@@ -8,6 +8,13 @@ log.debug('Bootstrapping app via app.jsx');
 require('actions/keypress-actions');
 
 // Add top-level react components to the app, any dependencies of those components will be loaded also.
+require("components/account/deposits.jsx");
+require("components/account/settings.jsx");
+require("components/account/sidebar.jsx");
+require("components/account/transactions.jsx");
+require("components/account/withdrawals.jsx");
+
+
 require("components/form-field/ssn");
 require("components/site/hamburger-menu");
 require("components/site/pane.js");

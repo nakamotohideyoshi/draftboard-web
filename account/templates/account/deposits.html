@@ -1,0 +1,20 @@
+{% extends "account/skeleton.html" %}
+
+{% block section_content %}
+
+<header class="content-message content-message--info">
+  <h5 class="content-message__title">
+    Security information regarding deposits.
+  </h5>
+  <p class="content-message__description">
+    Depositing cash allows you to play in real money contests and win cash prizes. Your funds are
+    held safely and securely in segregated accounts.
+  </p>
+</header>
+
+
+{% csrf_token %}
+<div id="account-deposits" />
+
+
+{% endblock %}

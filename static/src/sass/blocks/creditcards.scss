@@ -1,0 +1,116 @@
+.creditcard-icon {
+  height: 24px;
+  width: 35px;
+  display: inline-block;
+  margin-top: 8px;
+
+  &__amex {
+    @extend .creditcard-icon;
+    background: url(../img/blocks/form/creditcard_amex.jpg) no-repeat;
+    background-size: 100% 100%;
+  }
+
+  &__discover {
+    @extend .creditcard-icon;
+    background: url(../img/blocks/form/creditcard_discover.jpg) no-repeat;
+    background-size: 100% 100%;
+  }
+
+  &__mastercard {
+    @extend .creditcard-icon;
+    background: url(../img/blocks/form/creditcard_mastercard.jpg) no-repeat;
+    background-size: 100% 100%;
+  }
+
+  &__visa {
+    @extend .creditcard-icon;
+    background: url(../img/blocks/form/creditcard_visa.jpg) no-repeat;
+    background-size: 100% 100%;
+  }
+}
+
+
+ul.creditcard-listing {
+  width: 420px;
+  list-style: none;
+  font-size: 13px;
+  padding-bottom: 0px;
+
+  li {
+    height: 40px;
+    line-height: 40px;
+    border-top: 1px solid $primary-grey;
+
+    p.details {
+      display: inline-block;
+      font-size: 13px;
+      margin-left: 10px;
+      color: $primary-charcoal;
+      padding-bottom: 0px;
+      vertical-align: top;
+      margin-top: 10px;
+    }
+
+    p.is-default {
+      display: inline-block;
+      font-size: 13px;
+      margin-left: 10px;
+      color: $secondary-grey;
+      padding-bottom: 0px;
+      vertical-align: top;
+      margin-top: 10px;
+    }
+
+    span.remove {
+      background: url(../img/blocks/sidebar/sign-out.png) no-repeat;
+      background-size: auto 100%;
+      height: 30px;
+      width: 30px;
+      color: #72708a;
+      text-decoration: none;
+      position: relative;
+      display: inline-block;
+      float: right;
+    }
+
+    // explicit __classname as it will be handled by react afterwards
+    a.setdefault__creditcard {
+      font-size: 12px;
+      float: right;
+      margin-right: 20px;
+    }
+
+    // explicit __classname as it will be handled by react afterwards
+    a.remove__creditcard {
+      background: url(../img/blocks/sidebar/sign-out.png) no-repeat;
+      background-size: auto 100%;
+      height: 20px;
+      width: 20px;
+      color: #72708a;
+      text-decoration: none;
+      margin-top: 10px;
+      position: relative;
+      float: right;
+    }
+
+    // explicit __classname as it will be handled by react afterwards
+    // must take effect when sign-out is svg
+    a.remove__creditcard:hover {
+      color: #000;
+    }
+
+    // explicit __classname as it will be handled by react afterwards
+  }
+
+  li:first-child {
+    border-top: none;
+  }
+
+  li:last-of-type {
+    margin-bottom: 20px;
+  }
+}
+
+.add__paymentmethod {
+  font-size: 12px;
+}

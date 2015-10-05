@@ -104,6 +104,7 @@ logs*
 mysite/settings/zach.py
 mysite/settings/craigruks.py
 mysite/settings/ivo.py
+mysite/settings/hristo.py
 
 # swap files
 *.swp

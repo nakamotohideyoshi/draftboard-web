@@ -70,4 +70,42 @@
       position: relative;
     }
   }
+
+  &--quick-deposit {
+    display: flex;
+    list-style: none;
+    margin-top: 20px;
+
+    li:not(:last-of-type) {
+      margin-right: 10px;
+    }
+
+    // hide them checkmarks but leave the default browser functionalities
+    input[type="radio"] {
+      position:fixed;
+      opacity:0;
+    }
+
+    input[type="radio"]:checked + label {
+      border: 2px solid transparent;
+      border-radius: 2px;
+      -moz-border-image: -moz-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+      -webkit-border-image: -webkit-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+      border-image: linear-gradient(to right, #1f907c 0%, #34cc68 100%);
+      border-image-slice: 1;
+      color: #000;
+    }
+
+    label {
+      padding: 20px;
+      border: 2px solid $primary-grey;
+      border-radius: 2px;
+      color: $secondary-grey;
+    }
+  }
+
+  &--payment-method {
+    display: flex;
+    list-style: none;
+  }
 }

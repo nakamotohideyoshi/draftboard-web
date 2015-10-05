@@ -149,7 +149,7 @@ category: Forms
     margin-right: 5px;
     outline: none;
     padding: 12px 8px;
-    text-indent: 12px;
+    text-indent: 5px;
     transition: all 0.2s;
     vertical-align: middle;
     white-space: nowrap;
@@ -200,5 +200,48 @@ category: Forms
     .form-field__label {
       top: 10px;
     }
+  }
+
+  .username-display {
+    font-size: 13px;
+    padding: 12px 15px;
+    vertical-align: middle;
+  }
+
+  // display $ sign inside the input (from the left side)
+  .input-symbol-dollar {
+    position: relative;
+  }
+  .input-symbol-dollar &__text-input {
+    padding-left: 18px;
+  }
+  .input-symbol-dollar:before {
+    color: $secondary-grey;
+    position: absolute;
+    top: 0;
+    content:"$";
+    left: 5px;
+  }
+
+  // display # sign inside the input (from the right side)
+  .input-symbol-number {
+    position: relative;
+  }
+
+  .input-symbol-number:before {
+    color: $secondary-grey;
+    position: absolute;
+    top: 0;
+    content: "#";
+    right: 12px;
+    font-size: 15px;
+  }
+}
+
+
+// as we have 3 forms combined in settings__base, shrink the bottom padding
+.settings__base {
+  .form__fieldset {
+    padding-bottom: 0px;
   }
 }

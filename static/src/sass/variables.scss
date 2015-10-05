@@ -8,8 +8,11 @@ $break-max:     1640px;
 // Layout block sizes
 $nav-main-width: 280px;
 $nav-main-min-width: 92px;
+$pane-width: 480px;
+$pane-header-height: 350px;
 $sidebar-width: 378px;
 $contest-nav-height: 60px;
+$transaction-detail-width: 360px;
 
 
 // Reusable z-index levels
@@ -17,6 +20,7 @@ $zindex-game-ticker: 1000;
 $zindex-nav-main: 1010;
 $zindex-modal: 1050;
 $zindex-tooltip: 1040;
+$zindex-transaction-detail: 1030;
 
 
 // Reusable colors
@@ -28,6 +32,8 @@ $primary-grey: #dbdee0;
 $secondary-grey: #adb4b9;
 $primary-green: #4dd328;
 $secondary-green: #30e583;
+
+$primary-white: #f5f6ff;
 
 $primary-text: #293f4f;
 $success-green: #3bde5f;
