@@ -134,6 +134,19 @@ Note: Buttons are inline-block by default. HR's added for spacing.
 
 }
 
+// may be removed later
+.button--gradient--background {
+  @extend %button;
+  background: #229d85; /* Old browsers */
+  background: -moz-linear-gradient(left,  #229d85 23%, #229d85 29%, #34cc68 100%, #61c419 100%, #37d3ac 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, right top, color-stop(23%,#229d85), color-stop(29%,#229d85), color-stop(100%,#34cc68), color-stop(100%,#61c419), color-stop(100%,#37d3ac)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(left,  #229d85 23%,#229d85 29%,#34cc68 100%,#61c419 100%,#37d3ac 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(left,  #229d85 23%,#229d85 29%,#34cc68 100%,#61c419 100%,#37d3ac 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(left,  #229d85 23%,#229d85 29%,#34cc68 100%,#61c419 100%,#37d3ac 100%); /* IE10+ */
+  background: linear-gradient(to right,  #229d85 23%,#229d85 29%,#34cc68 100%,#61c419 100%,#37d3ac 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#229d85', endColorstr='#37d3ac',GradientType=1 ); /* IE6-9 */
+}
+
 
 // button sizes
 // -----------------------------------------------------

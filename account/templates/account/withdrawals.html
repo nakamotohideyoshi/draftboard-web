@@ -1,0 +1,20 @@
+{% extends "account/skeleton.html" %}
+
+{% block section_content %}
+
+<header class="content-message content-message--info">
+  <h5 class="content-message__title">
+    Important information regarding withdraws
+  </h5>
+  <p class="content-message__description">
+    Vestibulum id ligula porta felis euismod semper. Cum sociis natoque penatibus et magnis dis parturient montes.
+    Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Nullam id dolor id nibh
+    ultricies vehicula ut id elit. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+    Nullam id dolor id nibh ultricies vehicula ut id elit.
+  </p>
+</header>
+
+{% csrf_token %}
+<div id='account-withdrawals' />
+
+{% endblock %}

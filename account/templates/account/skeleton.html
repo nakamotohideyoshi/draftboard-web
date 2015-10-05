@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block body_class %}two-col two-col--left{% endblock %}
+
+{% block sidebar %}
+<div id="account-sidebar" />
+{% endblock sidebar %}
+
+
+{% block page_content %}
+  <nav class="settings-section--nav">
+    <ul>
+      <li {% if '/base' in request.path %}class="active"{% endif %}>
+        <a href="{% url 'account-settings-base' %}">Account Settings</a>
+      </li>
+      <li {% if '/withdrawals' in request.path %}class="active"{% endif %}>
+        <a href="{% url 'account-settings-withdrawals' %}">Withdraws</a>
+      </li>
+      <li {% if '/deposits' in request.path %}class="active"{% endif %}>
+        <a href="{% url 'account-settings-deposits' %}">Deposits</a>
+      </li>
+      <li {% if '/transactions' in request.path %}class="active"{% endif %}>
+        <a href="{% url 'account-settings-transactions' %}">Transaction History</a>
+      </li>
+    </ul>
+  </nav>
+
+  {% block section_content %}{% endblock section_content %}
+
+{% endblock %}

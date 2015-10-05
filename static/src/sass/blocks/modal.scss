@@ -28,7 +28,10 @@
   }
 
   &__content {
-
+    .button--confirm {
+      color: #fff;
+      width: 75%;
+    }
   }
 
   &__close {
