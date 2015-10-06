@@ -35,7 +35,7 @@ var DraftLineupCardList = React.createClass({
 
 
   importLineup: function(lineupId) {
-    log.debug('LineupDraftCardList.importLineup()', lineupId);
+    log.debug('DraftLineupCardList.importLineup()', lineupId);
   },
 
 
@@ -82,7 +82,7 @@ var DraftLineupCardList = React.createClass({
 });
 
 // Render the component.
-renderComponent(<DraftLineupCardList />, '.cmp-lineup-card-list-draft');
+renderComponent(<DraftLineupCardList />, '.cmp-draft-lineup-card-list');
 
 
 module.exports = DraftLineupCardList;

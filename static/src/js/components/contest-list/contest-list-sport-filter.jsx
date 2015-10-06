@@ -26,11 +26,11 @@ var ContestListSportFilter = React.createClass({
   render: function() {
     return (
         <CollectionMatchFilter
-          className="contest-list-filter--league"
+          className="contest-list-filter--sport"
           filters={this.state.leagueFilters}
           filterProperty='sport'
           match=''
-          filterName='leagueFilter'
+          filterName='sportFilter'
           onUpdate={ContestActions.filterUpdated}
           onMount={ContestActions.registerFilter}
         />

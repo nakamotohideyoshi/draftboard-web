@@ -51,6 +51,7 @@ var DraftNewLineupStore = Reflux.createStore({
     log.debug('DraftNewLineupStore.init()');
 
     this.data = {
+      lineupTitle: null,
       lineup: [],
       remainingSalary: 150000,
       avgPlayerSalary: 0,
@@ -114,7 +115,7 @@ var DraftNewLineupStore = Reflux.createStore({
             DraftActions.saveLineup.completed();
             log.info(res);
           }
-      });
+      }.bind(this));
     }
   },
 

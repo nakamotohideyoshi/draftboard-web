@@ -62,6 +62,7 @@ var DraftPlayerListRow = React.createClass({
         onClick={this.onRowClick.bind(this, this.props.row.player_id)}
       >
         <td>{this.props.row.position}</td>
+        <td>👤</td>
         <td>{this.props.row.name} / {this.props.row.team_alias}</td>
         <td>STATUS</td>
         <td>OPP</td>

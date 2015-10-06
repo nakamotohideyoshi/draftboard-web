@@ -64,24 +64,66 @@ describe("ContestStore", function() {
   });
 
 
-  // TODO: This is intermittently not working on codeship, ignore it until I figure it out.
-  // it("should return a collection of contests", function() {
-  //   var self = this;
-  //   // Trigger the load action
-  //   return ContestActions.load.triggerPromise().then(function() {
-  //     // This is dumb to statically set '6', but we know there are 10 contests in the
-  //     // fixtures, so make sure they get retrieved.
-  //     expect(self.ContestStore.data.contests.length).to.equal(10);
-  //   });
-  // });
+  it('should get the next row with getNextVisibleRowId()', function() {
+    return ContestActions.load.triggerPromise().then(function() {
+      var index = 0;
+      // grab a contest.
+      var focusedContest = this.ContestStore.data.filteredContests[index];
+      // set it as focused.
+      this.ContestStore.data.focusedContestId = focusedContest.id;
+
+      expect(
+        this.ContestStore.getNextVisibleRowId()).to.equal(
+        this.ContestStore.data.filteredContests[index + 1].id
+      );
+
+      expect(
+        this.ContestStore.getCurrentfocusedContestIndex()
+      ).to.equal(index);
+    }.bind(this));
+  });
 
 
-  // it("should register a filter", function() {
-  //   // Empty filters, register one, check that it was added.
-  //   this.ContestStore.filters = [];
-  //   expect(this.ContestStore.filters.length).to.equal(0);
-  //   this.ContestStore.registerFilter(MatchFilter);
-  //   expect(this.ContestStore.filters.length).to.equal(1);
-  // });
+  it('should get the prev row with getPreviousVisibleRowId()', function() {
+    return ContestActions.load.triggerPromise().then(function() {
+      var index = 1;
+      // grab a contest.
+      var focusedContest = this.ContestStore.data.filteredContests[index];
+      // set it as focused.
+      this.ContestStore.data.focusedContestId = focusedContest.id;
+
+      expect(
+        this.ContestStore.getPreviousVisibleRowId()).to.equal(
+        this.ContestStore.data.filteredContests[index - 1].id
+      );
+
+      expect(
+        this.ContestStore.getCurrentfocusedContestIndex()
+      ).to.equal(index);
+    }.bind(this));
+  });
+
+
+
+  it("should run the sortable mixin's sort method on sortableUpdated()", function() {
+    this.ContestStore.sort = function(){};
+    var sortSpy = sinon.spy(this.ContestStore, 'sort');
+    this.ContestStore.sortableUpdated();
+    expect(sortSpy.callCount).to.equal(1);
+  });
+
+
+  it("should run the sortable mixin's sort method on filterUpdated()", function() {
+    this.ContestStore.runFilters = function(){};
+    var filterSpy = sinon.spy(this.ContestStore, 'runFilters');
+    this.ContestStore.sort = function(){};
+    var sortSpy = sinon.spy(this.ContestStore, 'sort');
+
+    this.ContestStore.filterUpdated();
+    expect(filterSpy.callCount).to.equal(1);
+    expect(sortSpy.callCount).to.equal(1);
+
+  });
+
 
 });
