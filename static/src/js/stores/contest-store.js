@@ -5,11 +5,15 @@ var ContestActions = require("../actions/contest-actions");
 var request = require("superagent");
 var log = require("../lib/logging");
 var FilterableMixin = require('./mixins/filterable-mixin.js');
+var SortableMixin = require('./mixins/sortable-mixin');
 var _find = require('lodash/collection/find');
 
 
 var ContestStore = Reflux.createStore({
-  mixins: [FilterableMixin],
+  mixins: [
+    FilterableMixin,
+    SortableMixin
+  ],
   data: {},
   filters: [],
   allContests: [],
