@@ -1,33 +1,30 @@
 'use strict';
 
 var React = require('react');
-var renderComponent = require('../../lib/render-component');
-var ContestActions = require('../../actions/contest-actions');
+var log = require('../../lib/logging.js');
 
 
 /**
  * Creates a radio-like selection list that filters the ContestStore.
  * Filtering actions are passed to the ContestStore via ContestActions.
  */
-var ContestStorePropertyMatchFilter = React.createClass({
+var CollectionMatchFilter = React.createClass({
 
   propTypes: {
     filters: React.PropTypes.array,
     // A default match to look for.
     match: React.PropTypes.string,
     // The propety in the row that we are filtering against.
-    property: React.PropTypes.string,
+    filterProperty: React.PropTypes.string.isRequired,
     className: React.PropTypes.string,
-    // filterName is used in the ContestStore to store the active filter so other components can
-    // reference it. ContestStore.data.filters[{filterName}]
-    filterName: React.PropTypes.string
-  },
-
-
-  getDefaultProps: function() {
-    return {
-      'filterName': 'unnamed filter'
-    };
+    // filterName is used in the datastore to store the active filter so other components can
+    // reference it. Store.data.filters[{filterName}]
+    filterName: React.PropTypes.string.isRequired,
+    // When the filter values have changed, let the store it's registered with know so it can
+    // re-run all of it's filters.
+    onUpdate: React.PropTypes.func.isRequired,
+    // Once the filter has mounted, it needs to register itself with a store.
+    onMount: React.PropTypes.func.isRequired
   },
 
 
@@ -54,14 +51,14 @@ var ContestStorePropertyMatchFilter = React.createClass({
         'match': filter.match,
         'activeFilter': filter
       }, function() {
-        ContestActions.filterUpdated(this.props.filterName, filter);
+        this.props.onUpdate(this.props.filterName, filter);
       });
   },
 
 
   componentDidMount: function() {
-    // Register the filter with the parent DataTable.
-    ContestActions.registerFilter(this);
+    // Register this filter with the Store with the provided function.
+    this.props.onMount(this);
   },
 
 
@@ -72,22 +69,31 @@ var ContestStorePropertyMatchFilter = React.createClass({
    * @return {boolean} Should the row be displayed?
    */
   filter: function(row) {
-    // Check if the row's property matches this filter's match value.
-    if (this.state.match === '' || row[this.props.property] === this.state.match) {
-      return true;
+
+    if(!row.hasOwnProperty(this.props.filterProperty)) {
+        log.warn('CollectionMatchFilter.filter() Row does not contain property',
+          this.props.filterProperty);
+        // return true;
+    } else {
+      // Check if the row's property matches this filter's match value.
+      if (this.state.match === '' ||
+          row[this.props.filterProperty].toLowerCase() === this.state.match.toLowerCase()) {
+        return true;
+      }
+
+      return false;
     }
 
-    return false;
   },
 
 
   // Render filter options.
   render: function() {
-    var filterClass = this.props.className + ' contest-list-filter';
+    var filterClass = this.props.className + ' cmp-collection-match-filter';
 
     // Build up html for filter options.
     var filterOpts = this.props.filters.map(function(filter) {
-      var cssClass = 'contest-list-filter__option';
+      var cssClass = 'cmp-collection-match-filter__option';
 
 
       // Add active class if the filter is currently active.
@@ -95,7 +101,7 @@ var ContestStorePropertyMatchFilter = React.createClass({
         this.state.activeFilter === '' && filter.match === '' ||
         this.state.activeFilter.match === filter.match
       ) {
-        cssClass += ' contest-list-filter__option--active';
+        cssClass += ' cmp-collection-match-filter__option--active';
       }
 
       return (
@@ -118,7 +124,4 @@ var ContestStorePropertyMatchFilter = React.createClass({
 
 });
 
-
-renderComponent(<ContestStorePropertyMatchFilter />, '.table-contests-filter');
-
-module.exports = ContestStorePropertyMatchFilter;
+module.exports = CollectionMatchFilter;

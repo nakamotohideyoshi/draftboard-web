@@ -26,10 +26,9 @@
     "no-console": 0,
     "no-trailing-spaces": 1,
     "semi": [1, "always"],
-
+    "jsx-quotes": 0,
     "react/display-name": 0,
     "react/jsx-boolean-value": 1,
-    "react/jsx-quotes": 1,
     "react/jsx-no-undef": 1,
     "react/jsx-uses-react": 1,
     "react/jsx-uses-vars": 1,

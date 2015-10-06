@@ -13,7 +13,8 @@ var ContestActions = Reflux.createActions({
   // Clear out any active filters from a DataTable.
   'clearFilters': {},
   // Sort the list of contests.
-  'sortByKey': {},
+  'setSortProperty': {},
+  'setSortDirection': {},
   // Activate the next visible row.
   'focusNextRow': {},
   // Activate the previous visible row.

@@ -69,13 +69,13 @@ describe("DraftNewLineupStore", function() {
     );
 
     // add a player
-    DraftNewLineupStore.addPlayer(DraftGroupStore.data.players[0].player_id);
+    DraftNewLineupStore.addPlayer(DraftGroupStore.allPlayers[0].player_id);
     expect(DraftNewLineupStore.getPlayerCount()).to.equal(
       1, "addPlayer() is not increasing the player count."
     );
 
     // add another player
-    DraftNewLineupStore.addPlayer(DraftGroupStore.data.players[2].player_id);
+    DraftNewLineupStore.addPlayer(DraftGroupStore.allPlayers[2].player_id);
     expect(DraftNewLineupStore.getPlayerCount()).to.equal(
       2, "addPlayer() is not increasing the player count."
     );
@@ -83,8 +83,8 @@ describe("DraftNewLineupStore", function() {
 
 
   it("addPlayer() should not allow a player to be in the lineup twice.", function() {
-    DraftNewLineupStore.addPlayer(DraftGroupStore.data.players[0].player_id);
-    DraftNewLineupStore.addPlayer(DraftGroupStore.data.players[0].player_id);
+    DraftNewLineupStore.addPlayer(DraftGroupStore.allPlayers[0].player_id);
+    DraftNewLineupStore.addPlayer(DraftGroupStore.allPlayers[0].player_id);
 
     expect(DraftNewLineupStore.getPlayerCount()).to.equal(
       1, "addPlayer() is allowing the a player to be in the lineup more than once."
@@ -98,8 +98,8 @@ describe("DraftNewLineupStore", function() {
     );
 
     // add any player and keep track of their salary.
-    DraftNewLineupStore.addPlayer(DraftGroupStore.data.players[0].player_id);
-    var playerSalary = DraftGroupStore.data.players[0].salary;
+    DraftNewLineupStore.addPlayer(DraftGroupStore.allPlayers[0].player_id);
+    var playerSalary = DraftGroupStore.allPlayers[0].salary;
 
     expect(DraftNewLineupStore.getTotalSalary()).to.be.above(0,
       "Lineup salary does not increase when a player is added"
@@ -110,8 +110,8 @@ describe("DraftNewLineupStore", function() {
     );
 
     // add another player. + salary
-    DraftNewLineupStore.addPlayer(DraftGroupStore.data.players[2].player_id);
-    playerSalary += DraftGroupStore.data.players[2].salary;
+    DraftNewLineupStore.addPlayer(DraftGroupStore.allPlayers[2].player_id);
+    playerSalary += DraftGroupStore.allPlayers[2].salary;
 
     expect(DraftNewLineupStore.getTotalSalary()).to.equal(playerSalary,
       "Lineup.salary does not match salary of 2 players."
@@ -125,18 +125,18 @@ describe("DraftNewLineupStore", function() {
 
 
   it('getAvgPlayerSalary() should return the mean of player salaries.', function() {
-    var player1Salary = DraftGroupStore.data.players[1].salary;
-    var player2Salary = DraftGroupStore.data.players[2].salary;
+    var player1Salary = DraftGroupStore.allPlayers[1].salary;
+    var player2Salary = DraftGroupStore.allPlayers[2].salary;
 
     // are we starting at 0?
     expect(DraftNewLineupStore.getAvgPlayerSalary()).to.equal(0);
 
     // add a player + calculate.
-    DraftNewLineupStore.addPlayer(DraftGroupStore.data.players[1].player_id);
+    DraftNewLineupStore.addPlayer(DraftGroupStore.allPlayers[1].player_id);
     expect(DraftNewLineupStore.getAvgPlayerSalary()).to.equal(player1Salary);
 
     // add player2 + calculate.
-    DraftNewLineupStore.addPlayer(DraftGroupStore.data.players[2].player_id);
+    DraftNewLineupStore.addPlayer(DraftGroupStore.allPlayers[2].player_id);
     expect(DraftNewLineupStore.getAvgPlayerSalary()).to.equal(
       (player1Salary + player2Salary) / 2
     );
@@ -144,7 +144,7 @@ describe("DraftNewLineupStore", function() {
 
 
   it('isPlayerInLineup() should detect players already in the lineup', function() {
-    var player = DraftGroupStore.data.players[2];
+    var player = DraftGroupStore.allPlayers[2];
 
     // should not be in the lineup.
     expect(
@@ -180,7 +180,7 @@ describe("DraftNewLineupStore", function() {
     expect(DraftNewLineupStore.data.availablePositions.length).to.equal(positionCount);
 
     // Next fill up a slot and re-check the count.
-    DraftNewLineupStore.addPlayer(DraftGroupStore.data.players[1].player_id);
+    DraftNewLineupStore.addPlayer(DraftGroupStore.allPlayers[1].player_id);
     DraftNewLineupStore.findAvailablePositions();
     expect(DraftNewLineupStore.data.availablePositions.length).to.equal(positionCount - 1);
   });

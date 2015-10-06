@@ -3,7 +3,7 @@
 var React = require('react');
 var Tooltip = require('../site/tooltip.jsx');
 var DraftActions = require('../../actions/draft-actions.js');
-
+var DraftNewLineupCardTitle = require('./draft-new-lineup-card-title.jsx');
 
 /**
  * Lineup creation card on the sidebar of the draft page.
@@ -52,12 +52,14 @@ var DraftNewLineupCard = React.createClass({
 
     var players = this.props.lineup.map(function(player) {
       if (player.player) {
+        var names = player.player.name.split(' ');
+
         return (
           <li className="cmp-lineup-card__player" key={player.idx}>
             <span className="cmp-lineup-card__position">{player.name}</span>
             <span className="cmp-lineup-card__photo">😀</span>
             <span className="cmp-lineup-card__name">
-              {player.player.first_name[0]}. {player.player.last_name}
+              {names[0][0]}. {names[names.length - 1]}
               <span className="cmp-lineup-card__team">- {player.player.team_alias}</span>
             </span>
             <span className="cmp-lineup-card__average">???</span>
@@ -76,20 +78,25 @@ var DraftNewLineupCard = React.createClass({
     });
 
     return (
-      <div className="cmp-lineup-card">
-        <header className="cmp-lineup-card__header" onClick={this.showControls}>
-          <h3 className="cmp-lineup-card__title">{this.state.lineupTitle}</h3>
+      <div className="cmp-lineup-card cmp-lineup-card--new">
+        <header className="cmp-lineup-card__header clearfix" onClick={this.showControls}>
+          <DraftNewLineupCardTitle
+            title={this.state.lineupTitle}
+          />
 
-          <span className="button--small--outline" onClick={this.saveLineup}>
+          <span
+            className="cmp-lineup-card__save button--mini--outline button--gradient-outline"
+            onClick={this.saveLineup}>
             Save
-            <Tooltip
-              position="bottom"
-              isVisible={showError}
-              ref="lineupCardTip"
-            >
-              <span>{this.props.errorMessage}</span>
-            </Tooltip>
           </span>
+
+          <Tooltip
+            position="bottom"
+            isVisible={showError}
+            ref="lineupCardTip">
+            <span>{this.props.errorMessage}</span>
+          </Tooltip>
+
         </header>
 
         <ul>

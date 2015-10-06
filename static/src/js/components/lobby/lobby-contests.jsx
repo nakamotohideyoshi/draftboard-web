@@ -4,10 +4,11 @@ var React = require('react');
 var Reflux = require('reflux');
 var ContestStore = require("../../stores/contest-store.js");
 var renderComponent = require('../../lib/render-component');
-var ContestStorePropertyMatchFilter = require('../contest-list/contest-store-property-match-filter.jsx');
-var ContestListSearchFilter = require('../contest-list/contest-list-search-filter.jsx');
-var ContestListFeeFilter = require('../contest-list/contest-list-fee-filter.jsx');
+var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
+var CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
+var CollectionRangeSliderFilter = require('../filters/collection-range-slider-filter.jsx');
 var ContestList = require('../contest-list/contest-list.jsx');
+var ContestActions = require('../../actions/contest-actions.js');
 require('../contest-list/contest-list-header.jsx');
 require('../contest-list/contest-list-detail.jsx');
 require('../contest-list/contest-list-sport-filter.jsx');
@@ -42,25 +43,31 @@ var LobbyContests = React.createClass({
     return (
       <div>
         <div className="contest-list-filter-set">
-          <ContestStorePropertyMatchFilter
+          <CollectionMatchFilter
             className="contest-list-filter--contest-type"
             filters={this.state.contestTypeFilters}
             filterName="contestTypeFilter"
-            property='contestType'
+            filterProperty='contestType'
             match=''
+            onUpdate={ContestActions.filterUpdated}
+            onMount={ContestActions.registerFilter}
           />
 
           <div className="contest-list-filter-set__group">
-            <ContestListFeeFilter
+            <CollectionRangeSliderFilter
               className="contest-list-filter--contest-fee"
               filterName="contestFeeFilter"
+              filterProperty='fee'
+              onUpdate={ContestActions.filterUpdated}
+              onMount={ContestActions.registerFilter}
              />
 
-            <ContestListSearchFilter
-              className="contest-list-filter--contest-type"
+           <CollectionSearchFilter
+              className="contest-list-filter--contest-name"
               filterName="contestSearchFilter"
-              property='name'
-              match=''
+              filterProperty='name'
+              onUpdate={ContestActions.filterUpdated}
+              onMount={ContestActions.registerFilter}
             />
           </div>
         </div>

@@ -12,6 +12,7 @@ require('actions/keypress-actions');
 // Add top-level react components to the app, any dependencies of those components will be loaded also.
 require("components/form-field/ssn");
 require("components/site/hamburger-menu");
+require("components/site/pane.js");
 require("components/site/app-state-class");
 
 // Lobby
