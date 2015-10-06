@@ -109,3 +109,6 @@ mysite/settings/craigruks.py
 
 # any files with "mongodump-" prefix -- this is just my naming convention
 mongodump-*
+
+# Temporary TernJS files
+.tern-port
