@@ -3,7 +3,7 @@
 var React = require('react');
 var Tooltip = require('../site/tooltip.jsx');
 var DraftActions = require('../../actions/draft-actions.js');
-
+var DraftNewLineupCardTitle = require('./draft-new-lineup-card-title.jsx');
 
 /**
  * Lineup creation card on the sidebar of the draft page.
@@ -80,7 +80,9 @@ var DraftNewLineupCard = React.createClass({
     return (
       <div className="cmp-lineup-card cmp-lineup-card--new">
         <header className="cmp-lineup-card__header clearfix" onClick={this.showControls}>
-          <h3 className="cmp-lineup-card__title">{this.state.lineupTitle}</h3>
+          <DraftNewLineupCardTitle
+            title={this.state.lineupTitle}
+          />
 
           <span
             className="cmp-lineup-card__save button--mini--outline button--gradient-outline"

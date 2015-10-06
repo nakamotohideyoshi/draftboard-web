@@ -212,14 +212,14 @@ html, body {
   color: $primary-text;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
   margin: 0;
   padding: 0 0 1.7em;
+}
+
+h1, h2 {
+  font-family: $font-oswald;
+  text-transform: uppercase;
 }
 
 // reset ol, ul tag

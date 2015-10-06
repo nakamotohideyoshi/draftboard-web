@@ -71,28 +71,29 @@ var CollectionMatchFilter = React.createClass({
   filter: function(row) {
 
     if(!row.hasOwnProperty(this.props.filterProperty)) {
-        log.error('CollectionMatchFilter.filter() Row does not contain property',
+        log.warn('CollectionMatchFilter.filter() Row does not contain property',
           this.props.filterProperty);
+        // return true;
+    } else {
+      // Check if the row's property matches this filter's match value.
+      if (this.state.match === '' ||
+          row[this.props.filterProperty].toLowerCase() === this.state.match.toLowerCase()) {
         return true;
+      }
+
+      return false;
     }
 
-    // Check if the row's property matches this filter's match value.
-    if (this.state.match === '' ||
-        row[this.props.filterProperty].toLowerCase() === this.state.match.toLowerCase()) {
-      return true;
-    }
-
-    return false;
   },
 
 
   // Render filter options.
   render: function() {
-    var filterClass = this.props.className + ' contest-list-filter';
+    var filterClass = this.props.className + ' cmp-collection-match-filter';
 
     // Build up html for filter options.
     var filterOpts = this.props.filters.map(function(filter) {
-      var cssClass = 'contest-list-filter__option';
+      var cssClass = 'cmp-collection-match-filter__option';
 
 
       // Add active class if the filter is currently active.
@@ -100,7 +101,7 @@ var CollectionMatchFilter = React.createClass({
         this.state.activeFilter === '' && filter.match === '' ||
         this.state.activeFilter.match === filter.match
       ) {
-        cssClass += ' contest-list-filter__option--active';
+        cssClass += ' cmp-collection-match-filter__option--active';
       }
 
       return (

@@ -121,7 +121,7 @@ var DraftPlayerList = React.createClass({
 
     return (
       <div>
-        <div className="contest-list-filter-set">
+        <div className="player-list-filter-set">
           <CollectionSearchFilter
             className="collection-filter--player-name"
             filterName="playerSearchFilter"
@@ -132,7 +132,7 @@ var DraftPlayerList = React.createClass({
           />
 
         <CollectionMatchFilter
-            className="collection-filter--contest-type"
+            className="collection-filter--player-type"
             filters={this.playerPositionFilters}
             filterName="contestTypeFilter"
             filterProperty='position'
@@ -146,6 +146,7 @@ var DraftPlayerList = React.createClass({
           <thead>
             <tr className="cmp-player-list__header-row">
               <th>POS</th>
+              <th></th>
               <th
                 className="table__sortable"
                 onClick={this.sortList.bind(this, 'name')}>Player</th>

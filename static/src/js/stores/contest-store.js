@@ -20,7 +20,8 @@ var ContestStore = Reflux.createStore({
     this.listenTo(ContestActions.registerFilter, this.registerFilter);
     this.listenTo(ContestActions.filterUpdated, this.filterUpdated);
     this.listenTo(ContestActions.clearFilters, this.clearFilters);
-    this.listenTo(ContestActions.sortByKey, this.sortByKey);
+    this.listenTo(ContestActions.setSortProperty, this.setSortProperty);
+    this.listenTo(ContestActions.setSortDirection, this.setSortDirection);
 
     this.data = {
       filteredContests: {},
@@ -64,19 +65,6 @@ var ContestStore = Reflux.createStore({
   getFocusedContest: function() {
     return _find(this.allContests, 'id', this.data.focusedContestId);
   },
-
-
-  /**
-   * Return the focused contest's id attribute.
-   * @return {Object} the focused contest.
-   */
-  // getFocusedContestId: function() {
-  //   if (this.data.contests[this.data.focusedContestId]) {
-  //     return this.data.focusedContestId;
-  //   } else {
-  //     return null;
-  //   }
-  // },
 
 
   /**
@@ -173,25 +161,8 @@ var ContestStore = Reflux.createStore({
   },
 
 
-  /**
-   * Sort the data by providing a column key.
-   *
-   * @param  {string} key -  The column key to sort by.
-   */
-  sortByKey: function(key) {
-    // Set the sort states.
-    // Flip the sort if it's the currently sorted column.
-    var direction = this.data.sortDirection;
-
-    if (this.data.sortKey === key) {
-      direction = this.data.sortDirection === 'desc' ? 'asc' : 'desc';
-    }
-
-    // Regardless of the sort direction, set the new sortKey.
-    this.data.sortKey = key;
-    this.data.sortDirection = direction;
-    log.debug('Sort column: ' + key + ' - ' + this.data.sortDirection);
-    this.data.filteredContests = this.runFilters(this.allContests);
+  sortableUpdated: function() {
+    this.data.filteredContests = this.sort(this.data.filteredContests);
     this.trigger(this.data);
   },
 
@@ -207,6 +178,7 @@ var ContestStore = Reflux.createStore({
     this.data.activeFilters[filterName] = filter;
     // When a filter is updated, update our stored display rows.
     this.data.filteredContests = this.runFilters(this.allContests);
+    this.data.filteredPlayers = this.sort(this.data.filteredPlayers);
     this.trigger(this.data);
   }
 
