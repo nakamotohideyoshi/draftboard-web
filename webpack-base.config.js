@@ -48,7 +48,7 @@ module.exports = function(options) {
       loaders: [
         // jsx loader - to convert jsx to native js.
         {
-          test: /\.jsx$/,
+          test: /\.jsx?$/,
           exclude: /node_modules/,
           loader: 'babel-loader'
         },

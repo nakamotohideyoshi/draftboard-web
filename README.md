@@ -17,9 +17,9 @@ The purpose of this project is to make it insanely easy to start up a python3.4 
 ##### Step 1:
 
 1. git <code>clone https://GITUSERNAME@bitbucket.org/GITUSERNAME/vagrant-django.git</code>
-2.	 cd vagrant-django
-3. 	 vagrant up
-4. 	 vagrant ssh
+2.   cd vagrant-django
+3.   vagrant up
+4.   vagrant ssh
 
 To connect from a browser on your local computer, bring up gunicorn or runserver:
 
@@ -42,11 +42,6 @@ To build the front-end project you'll need to install the following.
 
 
 ### Setup
-
-
-In the project root, install all global dependiencies.
-
-    $ npm run install_global_modules
 
 Install local prject dependencies. Note that you have to explicitly associate python 2.7 due to gyp, used by node-sass.
 
