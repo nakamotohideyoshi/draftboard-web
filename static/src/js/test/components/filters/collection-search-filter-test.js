@@ -2,31 +2,33 @@
 
 require('../../test-dom')();
 var React = require('react/addons');
-var ContestListSearchFilterComponent = require(
-  '../../../components/contest-list/contest-list-search-filter.jsx');
+var Component = require('../../../components/filters/collection-search-filter.jsx');
 var expect = require('chai').expect;
 
 
-describe('ContestListSearchFilterComponent Component', function() {
+describe('CollectionSearchFilter Component', function() {
 
   beforeEach(function(done) {
     var self = this;
+    var onUpdate = function() {};
+    var onMount = function() {};
+
     document.body.innerHTML = '';
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.searchFilterComponent = React.render(
-      <ContestListSearchFilterComponent
-        className="contest-list-filter--contest-type"
-        filterName="contestSearchFilter"
-        property='name'
-        match=''
+    this.component = React.render(
+      <Component
+        filterProperty='name'
+        filterName='test'
+        onUpdate={onUpdate}
+        onMount={onMount}
       />,
       this.targetElement,
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.searchFilterElement = this.getDOMNode();
+        self.domElement = this.getDOMNode();
         done();
       }
     );
@@ -40,8 +42,8 @@ describe('ContestListSearchFilterComponent Component', function() {
 
 
   it('should render the search input field', function() {
-    expect(this.searchFilterElement.querySelectorAll('.cmp-contest-list-search-filter__input').length).to.equal(1);
-    expect(this.searchFilterElement.querySelector('.cmp-contest-list-search-filter__input').tagName).to.equal('INPUT');
+    expect(this.domElement.querySelectorAll('.cmp-collection-search-filter__input').length).to.equal(1);
+    expect(this.domElement.querySelector('.cmp-collection-search-filter__input').tagName).to.equal('INPUT');
   });
 
 
@@ -49,37 +51,37 @@ describe('ContestListSearchFilterComponent Component', function() {
     var testRow = {'name': 'the TeSt_qEery-exists!'};
     var self = this;
 
-    this.searchFilterComponent.setState({
+    this.component.setState({
       match: 'test_qeery'
     }, function() {
-      expect(self.searchFilterComponent.filter(testRow)).to.equal(true);
+      expect(self.component.filter(testRow)).to.equal(true);
     });
 
-    this.searchFilterComponent.setState({
+    this.component.setState({
       match: 'no_match_should_be_found'
     }, function() {
-      expect(self.searchFilterComponent.filter(testRow)).to.equal(false);
+      expect(self.component.filter(testRow)).to.equal(false);
     });
   });
 
 
   it("should add an 'active' className when expanded", function() {
     // make sure it's not expanded at first.
-    expect(this.searchFilterComponent.state.isExpanded).to.equal(false);
+    expect(this.component.state.isExpanded).to.equal(false);
     // after the expand method is called..
-    this.searchFilterComponent.showSearchField();
+    this.component.showSearchField();
     // check if the state changed...
-    expect(this.searchFilterComponent.state.isExpanded).to.equal(true);
+    expect(this.component.state.isExpanded).to.equal(true);
     // and the class was added.
-    expect(this.searchFilterComponent.getDOMNode().className).to.contain('cmp-contest-list-search-filter--active');
+    expect(this.component.getDOMNode().className).to.contain('cmp-collection-search-filter--active');
   });
 
 
   it("should show the search field when clicked", function() {
     // Click the element.
-    React.addons.TestUtils.Simulate.click(this.searchFilterComponent.getDOMNode());
+    React.addons.TestUtils.Simulate.click(this.component.getDOMNode());
     // ensure the active class was added.
-    expect(this.searchFilterComponent.getDOMNode().className).to.contain('cmp-contest-list-search-filter--active');
+    expect(this.component.getDOMNode().className).to.contain('cmp-collection-search-filter--active');
   });
 
 });

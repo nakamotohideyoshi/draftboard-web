@@ -8,7 +8,11 @@ var DraftActions = Reflux.createActions({
   "saveLineup": {children: ["completed", "failed"]},
   "addPlayerToLineup": {},
   "removePlayerToLineup": {},
-  "playerFocused": {}
+  "playerFocused": {},
+  "registerFilter": {},
+  "filterUpdated": {},
+  "setSortProperty": {},
+  "setSortDirection": {}
 });
 
 
