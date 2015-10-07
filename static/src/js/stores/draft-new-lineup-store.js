@@ -63,12 +63,13 @@ var DraftNewLineupStore = Reflux.createStore({
     this.listenTo(DraftActions.addPlayerToLineup, this.addPlayer);
     this.listenTo(DraftActions.removePlayerToLineup, this.removePlayer);
     this.listenTo(DraftActions.saveLineup, this.save);
+    this.listenTo(DraftActions.setLineupTitle, this.setLineupTitle);
     this.listenTo(DraftGroupStore, this.draftGroupUpdated);
 
     this.findAvailablePositions();
-
     this.trigger(this.data);
   },
+
 
   /**
    * Remove all players from the lineup.
@@ -98,6 +99,7 @@ var DraftNewLineupStore = Reflux.createStore({
 
       // TODO: this sucks fix this.
       var postData = {
+        name: this.data.lineupTitle || '',
         players: playerIds,
         draft_group: 1
       };
@@ -345,6 +347,11 @@ var DraftNewLineupStore = Reflux.createStore({
     }
 
     return 0;
+  },
+
+
+  setLineupTitle: function(title) {
+    this.data.lineupTitle = title;
   },
 
 

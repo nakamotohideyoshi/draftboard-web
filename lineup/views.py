@@ -35,6 +35,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
         #print( request.data )
         draft_group_id  = request.data.get('draft_group')
         players         = request.data.get('players', [])
+        name = request.data.get('name', '')
 
         # the draft_group_id has been validated by the serializer
         draft_group = DraftGroup.objects.get(pk=draft_group_id)
@@ -43,7 +44,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
         # call task
         lm = LineupManager( request.user )
         try:
-            lineup = lm.create_lineup( players, draft_group )
+            lineup = lm.create_lineup( players, draft_group, name)
         except CreateLineupExpiredDraftgroupException:
             return Response(
                 'You can no longer create lineups for this draft group',
