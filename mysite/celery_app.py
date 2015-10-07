@@ -110,7 +110,27 @@ app.conf.update(
             # for this task, the queue in the comment match the queue for
             # the corresponding worker in the Procfile
             #'options': {'queue' : 'q_dataden_trigger'}
-        }
+        },
+
+        'nba_injuries' : {
+            'task': 'sports.nba.tasks.update_injuries',
+            'schedule': timedelta(minutes=4*60),
+        },
+
+        'nhl_injuries' : {
+            'task': 'sports.nhl.tasks.update_injuries',
+            'schedule': timedelta(minutes=4*60),
+        },
+
+        'nfl_injuries' : {
+            'task': 'sports.nfl.tasks.update_injuries',
+            'schedule': timedelta(minutes=4*60),
+        },
+
+        'mlb_injuries' : {
+            'task': 'sports.mlb.tasks.update_injuries',
+            'schedule': timedelta(minutes=4*60),
+        },
 
     },
 

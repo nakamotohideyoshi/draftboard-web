@@ -7,9 +7,11 @@ from roster.models import RosterSpot
 
 
 class PlayerSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Player
-        fields = ('player_id', 'first_name', 'last_name', 'salary', 'start', 'position',
+        fields = ('player_id', 'first_name', 'last_name',
+                  'salary', 'start', 'position', 'fppg',
                   'team_alias')
 
 

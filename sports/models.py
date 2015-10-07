@@ -230,6 +230,11 @@ class Injury(models.Model):
     status      = models.CharField(max_length=32, default='')
     description = models.CharField(max_length=1024, default='')
 
+    def get_serializer_class(self):
+        """
+        """
+        raise Exception('Injury get_serializer_class() error - inheriting model must override this method')
+
     class Meta:
         abstract = True
 

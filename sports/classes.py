@@ -1,10 +1,17 @@
-from .models import SiteSport, PlayerStats, Player, Game, Team, GameBoxscore, PbpDescription
+from .models import SiteSport, PlayerStats, Player, Game, Team, GameBoxscore, PbpDescription, Injury
 from django.contrib.contenttypes.models import ContentType
 from .exceptions import SportNameException, GameBoxscoreClassNotFoundException, \
     SiteSportWithNameDoesNotExistException, GameClassNotFoundException, \
-    TeamClassNotFoundException, PbpDescriptionClassNotFoundException
+    TeamClassNotFoundException, PbpDescriptionClassNotFoundException, \
+    InjuryClassNotFoundException, InjurySerializerClassNotFoundException
+from .serializers import InjurySerializer
 from mysite.exceptions import IncorrectVariableTypeException
 import dataden.classes
+
+#import sports.nfl.serializers
+#import sports.nhl.serializers
+import sports.nba.serializers
+#import sports.mlb.serializers
 
 import sports.nfl.models
 import sports.nhl.models
@@ -131,6 +138,7 @@ class SiteSportManager(object):
         for content_type in content_types:
             content_class = content_type.model_class()
             if issubclass(content_class, parent_class):
+                #print( content_class )
                 matching_arr.append(content_class)
 
         return matching_arr
@@ -274,6 +282,45 @@ class SiteSportManager(object):
 
         # by default raise an exception if we couldnt return a game class
         raise GameBoxscoreClassNotFoundException(type(self).__name__, sport)
+
+    def get_injury_class(self, sport):
+        """
+        Class that fetches the class that inherits sports.models.Injury for the sport
+
+        :param sport: string OR SiteSport. method is intelligent about the runtime type of 'sport'
+
+        :return: the sport's
+            :class:`sports.models.Injury` class.
+
+        :raises :class:`sports.exceptions.SportNameException`: when the string sport
+            does not match a sport in the sports array
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+        arr = self.__get_array_of_classes(sport, 'injury', Injury)
+        if len(arr) >= 1:
+            return arr[0]
+
+        # by default raise an exception if we couldnt return a game class
+        raise InjuryClassNotFoundException(type(self).__name__, sport)
+
+    def get_injury_serializer_class(self, sport):
+        """
+
+        :param sport:
+        :return:
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.InjurySerializer' % sport.name)
+
+        except:
+
+
+            # by default raise an exception if we couldnt return a game class
+            raise InjurySerializerClassNotFoundException(type(self).__name__, sport)
 
 class PlayerNamesCsv(object):
 
