@@ -40,7 +40,7 @@ class LineupManager(AbstractSiteUserClass):
         return [ p.player_id for p in LineupPlayer.objects.filter( lineup=lineup ).order_by('idx') ]
 
     @atomic
-    def create_lineup(self,  player_ids, draftgroup, name):
+    def create_lineup(self,  player_ids, draftgroup, name=''):
         """
         Creates a Lineup based off the draftgroup and player_ids
 
@@ -95,7 +95,7 @@ class LineupManager(AbstractSiteUserClass):
         lineups = [ entry.lineup for entry in distinct_lineup_entries ]
         return lineups
 
-    def __create_lineup(self,  player_ids, draftgroup, name):
+    def __create_lineup(self,  player_ids, draftgroup, name=''):
         """
         Create Lineup helper
 
