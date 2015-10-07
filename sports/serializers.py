@@ -35,9 +35,9 @@ class PlayerStatsSerializer(serializers.ModelSerializer):
         model = PlayerStats
         fields = ('game_id', 'player_id','fantasy_points')
 
-class InjurySerializer(serializers.ModelSerializer):
+class InjurySerializer(serializers.ModelSerializer): pass
 
-    class Meta:
+    #class Meta:
 
-        model = Injury
-        fields = ('iid', 'status','description')
+        #model = Injury
+        #fields = ('iid', 'status','description')

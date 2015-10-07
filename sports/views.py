@@ -5,7 +5,38 @@ from django.shortcuts import render
 from django.views.generic import TemplateView, View
 from sports.forms import PlayerCsvForm
 import sports.classes
+from sports.nba.serializers import InjurySerializer
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 import json
+
+class LeagueInjuryAPIView(generics.ListAPIView):
+    """
+    Retrieve the contests which are relevant to the home page lobby.
+    """
+
+    authentication_classes  = (SessionAuthentication, BasicAuthentication)
+    permission_classes      = (IsAuthenticated,)
+
+    #serializer_class        = None #InjurySerializer
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        injury_serializer_class = site_sport_manager.get_injury_serializer_class( sport )
+        return injury_serializer_class
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the LobbyContest model.
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        injury_model_class = site_sport_manager.get_injury_class( sport )
+        return injury_model_class.objects.all()
 
 class PlayerCsvView(View):
     template_name   = 'player_csv.html'

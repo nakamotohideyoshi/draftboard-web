@@ -104,6 +104,10 @@ class Player( models.Model ):
     def team_alias(self):
         return self.salary_player.player.team.alias
 
+    @property
+    def fppg(self):
+        return self.salary_player.fppg
+
     class Meta:
         # each player should only exist once in each group!
         unique_together = ('draft_group','salary_player')
