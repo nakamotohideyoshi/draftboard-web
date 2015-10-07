@@ -1,5 +1,5 @@
 #
-# sports.nba.serializers.py
+# sports.nfl.serializers.py
 
 from sports.serializers import InjurySerializer
 from .models import Injury

@@ -8,10 +8,10 @@ from .serializers import InjurySerializer
 from mysite.exceptions import IncorrectVariableTypeException
 import dataden.classes
 
-#import sports.nfl.serializers
-#import sports.nhl.serializers
+import sports.nfl.serializers
+import sports.nhl.serializers
 import sports.nba.serializers
-#import sports.mlb.serializers
+import sports.mlb.serializers
 
 import sports.nfl.models
 import sports.nhl.models
