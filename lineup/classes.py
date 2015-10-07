@@ -40,7 +40,7 @@ class LineupManager(AbstractSiteUserClass):
         return [ p.player_id for p in LineupPlayer.objects.filter( lineup=lineup ).order_by('idx') ]
 
     @atomic
-    def create_lineup(self,  player_ids, draftgroup):
+    def create_lineup(self,  player_ids, draftgroup, name):
         """
         Creates a Lineup based off the draftgroup and player_ids
 
@@ -67,7 +67,7 @@ class LineupManager(AbstractSiteUserClass):
         if draftgroup.start < timezone.now():
             raise CreateLineupExpiredDraftgroupException()
 
-        return self.__create_lineup(player_ids, draftgroup)
+        return self.__create_lineup(player_ids, draftgroup, name)
 
     def get_for_contest_by_ids(self, contest_id, lineup_ids):
         """
@@ -95,7 +95,7 @@ class LineupManager(AbstractSiteUserClass):
         lineups = [ entry.lineup for entry in distinct_lineup_entries ]
         return lineups
 
-    def __create_lineup(self,  player_ids, draftgroup):
+    def __create_lineup(self,  player_ids, draftgroup, name):
         """
         Create Lineup helper
 
@@ -129,6 +129,7 @@ class LineupManager(AbstractSiteUserClass):
         lineup = Lineup()
         lineup.user = self.user
         lineup.draft_group = draftgroup
+        lineup.name = name
         lineup.save()
 
         i = 0
@@ -571,5 +572,3 @@ class LineupManager(AbstractSiteUserClass):
         # the players whos games have not yet started have
         # not been shown!
         return data
-
-

@@ -9,7 +9,8 @@ var React = require('react');
 var DraftNewLineupCardTitle = React.createClass({
 
   propTypes: {
-    title: React.PropTypes.string
+    title: React.PropTypes.string,
+    setTitle: React.PropTypes.func
   },
 
   getInitialState: function() {
@@ -20,8 +21,9 @@ var DraftNewLineupCardTitle = React.createClass({
 
 
   handleChange: function(event) {
-    console.log(event);
-    this.setState({title: event.target.value});
+    this.setState({title: event.target.value}, function() {
+      this.props.setTitle(this.state.title);
+    });
   },
 
 

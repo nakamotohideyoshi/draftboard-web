@@ -41,6 +41,10 @@ var DraftNewLineupCard = React.createClass({
   },
 
 
+  setLineupTitle: function(title) {
+    DraftActions.setLineupTitle(title);
+  },
+
   // Toggle the visibility of the tooltip.
   showControls: function() {
     // this.refs.lineupCardTip.toggle();
@@ -82,6 +86,7 @@ var DraftNewLineupCard = React.createClass({
         <header className="cmp-lineup-card__header clearfix" onClick={this.showControls}>
           <DraftNewLineupCardTitle
             title={this.state.lineupTitle}
+            setTitle={this.setLineupTitle}
           />
 
           <span

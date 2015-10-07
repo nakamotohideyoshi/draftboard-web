@@ -112,3 +112,7 @@ mongodump-*
 
 # Temporary TernJS files
 .tern-port
+
+# ctags files
+.tags*
+.tags_swap

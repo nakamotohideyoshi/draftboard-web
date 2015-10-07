@@ -29,21 +29,20 @@ class InjurySerializer(serializers.ModelSerializer):
     class Meta:
         model = Injury
 
+
 class LineupUsernameSerializer(serializers.ModelSerializer):
-
     class Meta:
+        model = User
+        fields = ('id', 'username')
 
-        model   = User
-        fields  = ('id', 'username')
 
 class LineupIdSerializer(serializers.ModelSerializer):
-
     user = LineupUsernameSerializer()
 
     class Meta:
+        model = Lineup
+        fields = ('id', 'user')
 
-        model   = Lineup
-        fields  = ('id','user')
 
 # Choose the correct serializer for the sport the player plays.
 class GenericSportPlayerSerializer(serializers.RelatedField):
@@ -90,11 +89,10 @@ class LineupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Lineup
-        fields = ('id', 'user', 'sport', 'fantasy_points', 'draft_group', 'players')
+        fields = ('id', 'user', 'name', 'sport', 'fantasy_points', 'draft_group', 'players')
 
 
 class CreateLineupSerializer(serializers.Serializer):
-
     draft_group = serializers.IntegerField()
 
     players = serializers.ListField(
@@ -117,7 +115,6 @@ class CreateLineupSerializer(serializers.Serializer):
 
 
 class EditLineupSerializer(serializers.Serializer):
-
     lineup = serializers.IntegerField()
 
     players = serializers.ListField(

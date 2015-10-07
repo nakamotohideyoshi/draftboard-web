@@ -12,7 +12,8 @@ var DraftActions = Reflux.createActions({
   "registerFilter": {},
   "filterUpdated": {},
   "setSortProperty": {},
-  "setSortDirection": {}
+  "setSortDirection": {},
+  "setLineupTitle": {}
 });
 
 
