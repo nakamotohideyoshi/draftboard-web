@@ -1,0 +1,55 @@
+@import "../variables.scss";
+
+
+.cmp-player-list {
+  &__row {
+    cursor: pointer;
+  }
+}
+
+
+// Page header
+.player-list__header {
+  position: absolute; // this sucks but whatever.
+  font-family: $font-open-sans;
+  font-size: 13px;
+  font-weight: 400;
+
+  &-title {
+    font-family: $font-oswald;
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  &-divider {
+    padding: 0 10px;
+    display: inline-block;
+    color: #babdc9
+  }
+}
+
+
+// Player list filters.
+.player-list-filter-set {
+  display: block;
+  text-align: right;
+
+  // Search
+  .cmp-collection-search-filter {
+    float: none;
+    display: inline-block;
+    border-left: none;
+    border-right: 1px solid #ebedf2;
+    margin-right: 20px;
+    padding-right: 15px;
+
+  }
+
+  // Player position radio.
+  .collection-filter--player-type {
+    float: none;
+    display: inline-block;
+  }
+
+}

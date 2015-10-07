@@ -63,6 +63,11 @@ var ContestList = React.createClass({
   },
 
 
+  sortList: function(property) {
+    ContestActions.setSortProperty(property);
+  },
+
+
   render: function() {
     var contests = this.props.contests || [];
 
@@ -82,12 +87,24 @@ var ContestList = React.createClass({
       <table className="cmp-contest-list__table table">
         <thead>
           <tr className="cmp-contest-list__header-row">
-            <th></th>
-            <th>Contest</th>
-            <th>Entries / Size</th>
-            <th>Fee</th>
-            <th>Prizes</th>
-            <th>Live In</th>
+            <th
+              className="table__sortable"
+              onClick={this.sortList.bind(this, 'sport')}></th>
+            <th
+              className="table__sortable"
+              onClick={this.sortList.bind(this, 'name')}>Contest</th>
+            <th
+              className="table__sortable"
+              onClick={this.sortList.bind(this, 'entries')}>Entries / Size</th>
+            <th
+              className="table__sortable"
+              onClick={this.sortList.bind(this, 'buyin')}>Fee</th>
+            <th
+              className="table__sortable"
+              onClick={this.sortList.bind(this, 'prize_pool')}>Prizes</th>
+            <th
+              className="table__sortable"
+              onClick={this.sortList.bind(this, 'start')}>Live In</th>
             <th></th>
           </tr>
         </thead>

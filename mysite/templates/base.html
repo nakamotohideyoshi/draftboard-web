@@ -73,13 +73,14 @@
       </div>
 
       <section class="pane">
+        <div class="pane__close"></div>
         {% block slideover-pane %}
           .pane
         {% endblock %}
       </section>
     {% endblock body %}
 
-
+  <div class="pane__bg-cover"></div>
   <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
 </body>
 </html>

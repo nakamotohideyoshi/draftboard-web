@@ -23,18 +23,18 @@ var ContestListHeader = React.createClass({
     // Determine the contest type filter title.
     var currentLeague;
 
-    if (ContestStore.data.activeFilters.hasOwnProperty('leagueFilter')) {
+    if (ContestStore.data.activeFilters.hasOwnProperty('sportFilter')) {
       currentLeague = (
         <span>
-          <span className="cmp-contest-list__header-league">
-            {ContestStore.data.activeFilters.leagueFilter.title} Contests
+          <span className="cmp-contest-list--sport">
+            {ContestStore.data.activeFilters.sportFilter.title} Contests
           </span>
           <span className="cmp-contest-list__header-divider">/</span>
         </span>
       );
     }
 
-    if (!currentLeague || ContestStore.data.activeFilters.leagueFilter.title === 'All') {
+    if (!currentLeague || ContestStore.data.activeFilters.sportFilter.title === 'All') {
       currentLeague = '';
     }
 

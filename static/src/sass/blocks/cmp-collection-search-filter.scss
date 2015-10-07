@@ -1,9 +1,9 @@
 @import "../variables.scss";
 
 /**
- * The search input filter on the lobby contest list.
+ * The search filter on a store.
  */
-.cmp-contest-list-search-filter {
+.cmp-collection-search-filter {
   background: url(../img/common/icon-search.svg) no-repeat 20px 8px;
   background-size: 14px auto;
   border-left: 1px solid #ebedf2;
@@ -27,6 +27,13 @@
     &:focus {
       // prevent the safari glow
       outline-width: 0;
+      border: 0px solid transparent;
+      -moz-border-image: -moz-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+      -webkit-border-image: -webkit-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+      border-image: linear-gradient(to right, #1f907c 0%, #34cc68 100%);
+      border-image-slice: 1;
+      border-bottom: 2px solid;
+
       }
 
     // remove focused outline in firefox.
@@ -46,11 +53,11 @@
 }
 
 
-.cmp-contest-list-search-filter--active {
+.cmp-collection-search-filter--active {
   cursor: default;
   opacity: 1;
 
-  .cmp-contest-list-search-filter__sliding-door {
+  .cmp-collection-search-filter__sliding-door {
     width: 120px;
   }
 }
