@@ -3,6 +3,8 @@
 var Reflux = require('reflux');
 var AppActions = require('../actions/app-actions');
 var ContestActions = require('../actions/contest-actions.js');
+var log = require('../lib/logging.js');
+
 
 /*
 * A store to keep track of our app's state. this works in conjunction with AppStateClass component to add
@@ -29,6 +31,7 @@ var AppStateStore = Reflux.createStore({
    * @param {string} className The class to be added.
    */
   addClass: function(className) {
+    log.debug("AppStateStore.addClass()", className);
     // If the class isn't already in our list, add it.
     if (this.classes.indexOf(className) === -1) {
       this.classes.push(className);
@@ -42,6 +45,7 @@ var AppStateStore = Reflux.createStore({
    * @param  {string} className Class to be removed
    */
   removeClass: function(className) {
+    log.debug("AppStateStore.removeClass()", className);
     var index = this.classes.indexOf(className);
     // If the class is in the list, delete it.
     if (index > -1) {

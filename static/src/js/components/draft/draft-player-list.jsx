@@ -2,21 +2,18 @@
 
 var React = require('react');
 var Reflux = require('reflux');
-var ContestStore = require("../../stores/contest-store.js");
 var DraftGroupStore = require("../../stores/draft-group-store.js");
 var DraftNewLineupStore = require("../../stores/draft-new-lineup-store.js");
 var renderComponent = require('../../lib/render-component');
-var ContestStorePropertyMatchFilter = require('../contest-list/contest-store-property-match-filter.jsx');
-var ContestListSearchFilter = require('../contest-list/contest-list-search-filter.jsx');
-var ContestListFeeFilter = require('../contest-list/contest-list-fee-filter.jsx');
+var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
+var CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
 var PlayerListRow = require('./draft-player-list-row.jsx');
-// var ContestListDetail = require('../contest-list/contest-list-detail.jsx');
-var KeypressActions = require('../../actions/keypress-actions');
 var ContestActions = require('../../actions/contest-actions');
 var DraftActions = require("../../actions/draft-actions");
 require('../contest-list/contest-list-header.jsx');
 require('../contest-list/contest-list-detail.jsx');
 require('../contest-list/contest-list-sport-filter.jsx');
+require('./draft-player-detail.jsx');
 
 
 /**
@@ -30,6 +27,17 @@ var DraftPlayerList = React.createClass({
   ],
 
 
+  // Contest type filter data.
+  playerPositionFilters: [
+    {title: 'All', column: 'position', match: ''},
+    {title: 'PG', column: 'position', match: 'pg'},
+    {title: 'SG', column: 'position', match: 'sg'},
+    {title: 'SF', column: 'position', match: 'sf'},
+    {title: 'PF', column: 'position', match: 'pf'},
+    {title: 'C', column: 'position', match: 'c'}
+  ],
+
+
   getInitialState: function() {
     // TODO: this sucks fix this.
     var draftgroupId = window.location.pathname.split('/')[2];
@@ -37,13 +45,6 @@ var DraftPlayerList = React.createClass({
 
     return ({
       filteredPlayers: [],
-      // Contest type filter data.
-      contestTypeFilters: [
-        {title: 'All', column: 'contestType', match: ''},
-        {title: 'Guaranteed', column: 'contestType', match: 'gpp'},
-        {title: 'Double-Up', column: 'contestType', match: 'double-up'},
-        {title: 'Heads-Up', column: 'contestType', match: 'h2h'}
-      ],
       newLineup: {
         availablePositions: []
       }
@@ -62,10 +63,11 @@ var DraftPlayerList = React.createClass({
   },
 
 
+  //TODO: Make keyboard keys select players in the list.
   componentWillMount: function() {
-    // Listen to j/k keypress actions to focus contests.
-    KeypressActions.keypressJ.listen(this.focusNextRow);
-    KeypressActions.keypressK.listen(this.focusPreviousRow);
+    // Listen to j/k keypress actions to focus players.
+    // KeypressActions.keypressJ.listen(this.focusNextRow);
+    // KeypressActions.keypressK.listen(this.focusPreviousRow);
   },
 
 
@@ -73,7 +75,7 @@ var DraftPlayerList = React.createClass({
    * Focus the next visible row in the contest list and open the detail pane.
    */
   focusNextRow: function() {
-    this.setContestFocus(ContestStore.getNextVisibleRowId());
+    // this.setContestFocus(ContestStore.getNextVisibleRowId());
   },
 
 
@@ -81,7 +83,12 @@ var DraftPlayerList = React.createClass({
    * Focus the previous row in the contest list and open the detail pane.
    */
   focusPreviousRow: function() {
-    this.setContestFocus(ContestStore.getPreviousVisibleRowId());
+    // this.setContestFocus(ContestStore.getPreviousVisibleRowId());
+  },
+
+
+  sortList: function(property) {
+    DraftActions.setSortProperty(property);
   },
 
 
@@ -89,8 +96,12 @@ var DraftPlayerList = React.createClass({
     // Build up a list of rows to be displayed.
     var visibleRows = this.state.filteredPlayers.map(function(row) {
       var draftable = true;
-
+      // Is there a slot available?
       if (this.state.newLineup.availablePositions.indexOf(row.position) === -1) {
+        draftable = false;
+      }
+      // Can we afford this player?
+      if (this.state.newLineup.remainingSalary < row.salary) {
         draftable = false;
       }
 
@@ -103,42 +114,48 @@ var DraftPlayerList = React.createClass({
       );
     }, this);
 
+    // If the draftgroup hasn't been fetched yet, show a loading indicator.
+    if(!DraftGroupStore.allPlayers.length) {
+      visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>;
+    }
 
     return (
       <div>
-        <div className="contest-list-filter-set">
-          <ContestStorePropertyMatchFilter
-            className="contest-list-filter--contest-type"
-            filters={this.state.contestTypeFilters}
-            filterName="contestTypeFilter"
-            property='contestType'
+        <div className="player-list-filter-set">
+          <CollectionSearchFilter
+            className="collection-filter--player-name"
+            filterName="playerSearchFilter"
+            filterProperty='player.name'
             match=''
+            onUpdate={DraftActions.filterUpdated}
+            onMount={DraftActions.registerFilter}
           />
 
-          <div className="contest-list-filter-set__group">
-            <ContestListFeeFilter
-              className="contest-list-filter--contest-fee"
-              filterName="contestFeeFilter"
-             />
-
-            <ContestListSearchFilter
-              className="contest-list-filter--contest-type"
-              filterName="contestSearchFilter"
-              property='name'
-              match=''
-            />
-          </div>
+        <CollectionMatchFilter
+            className="collection-filter--player-type"
+            filters={this.playerPositionFilters}
+            filterName="contestTypeFilter"
+            filterProperty='position'
+            match=''
+            onUpdate={DraftActions.filterUpdated}
+            onMount={DraftActions.registerFilter}
+          />
         </div>
 
-        <table className="cmp-contest-list__table table">
+        <table className="cmp-player-list__table table">
           <thead>
-            <tr className="cmp-contest-list__header-row">
+            <tr className="cmp-player-list__header-row">
               <th>POS</th>
-              <th>Player</th>
+              <th></th>
+              <th
+                className="table__sortable"
+                onClick={this.sortList.bind(this, 'name')}>Player</th>
               <th>Status</th>
               <th>OPP</th>
               <th>FPPG</th>
-              <th>Salary</th>
+              <th
+                className="table__sortable"
+                onClick={this.sortList.bind(this, 'salary')}>Salary</th>
               <th></th>
             </tr>
           </thead>
@@ -152,7 +169,7 @@ var DraftPlayerList = React.createClass({
 
 
 // Render the component.
-renderComponent(<DraftPlayerList />, '.cmp-draft-player-list');
+renderComponent(<DraftPlayerList />, '.cmp-player-list');
 
 
 module.exports = DraftPlayerList;

@@ -3,7 +3,7 @@
 var Reflux = require("reflux");
 var LineupActions = require("../actions/lineup-actions");
 var request = require("superagent");
-// var log = require("../lib/logging");
+var log = require("../lib/logging");
 // var _sortByOrder = require("lodash/collection/sortByOrder");
 
 
@@ -32,6 +32,7 @@ var LineupStore = Reflux.createStore({
    * Get a list of the user's lineups from the data source.
    */
   fetchLineups: function() {
+    log.debug('LineupStore.fetchLineups()');
     var self = this;
     request
       .get("/lineup/upcoming/")
@@ -40,7 +41,6 @@ var LineupStore = Reflux.createStore({
         if(err) {
           LineupActions.load.failed(err);
         } else {
-
           self.data.lineups = res.body.results;
 
           // If this is the first time fetching lineups, make the first one active.
@@ -50,7 +50,7 @@ var LineupStore = Reflux.createStore({
           // Trigger a data flow.
           self.trigger(self.data);
           // Complete the promise.
-          // LineupActions.load.completed();
+          LineupActions.load.completed();
         }
     });
   },

@@ -4,38 +4,33 @@
 
 
 {% block sidebar-header %}
-<div class="contest-list-sport-filter">
-  <h5 class="contest-list-sport-filter__title">Choose a Sport</h5>
-  <div class="cmp-contest-list-sport-filter"></div>
-</div>
+  <h2>Lineups</h2>
 {% endblock sidebar-header %}
 
 
 {% block sidebar %}
-  <div class="cmp-lineup-card-list-draft lineup-sidebar-list"></div>
+  <div class="cmp-draft-lineup-card-list lineup-sidebar-list"></div>
 {% endblock sidebar %}
 
 
 {% block page-content-header %}
 <header class="page-content__header">
-  <div class="page-content__header-content">
-
-    <h2>
-      <span class="cmp-contest-list__header-league">
-        Draft a Team
-      </span>
-      <span class="cmp-contest-list__header-type">7:10pm Aug, 15</span>
-    </h2>
-
-  </div>
+  <div class="page-content__header-content"></div>
 </header>
 {% endblock page-content-header %}
 
 
 {% block page_content %}
-  <pre>{{roster_spots}}</pre>
+  <h2 class="player-list__header">
+    <span class="player-list__header-title">Draft a Team</span>
+    <span class="player-list__header-divider">/</span>
+    <span class="player-list__header-group">7:10pm Aug, 15</span>
+  </h2>
 
-  <div class="cmp-draft-player-list">
-
-  </div>
+  <div class="cmp-player-list"></div>
 {% endblock page_content %}
+
+
+{% block slideover-pane %}
+  <div class="cmp-draft-player-detail"></div>
+{% endblock %}

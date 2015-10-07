@@ -2,31 +2,34 @@
 
 require('../../test-dom')();
 var React = require('react/addons');
-var ContestListFeeFilterComponent = require(
-  '../../../components/contest-list/contest-list-fee-filter.jsx');
+var Component = require('../../../components/filters/collection-range-slider-filter.jsx');
 var expect = require('chai').expect;
 var sinon = require("sinon");
-var ContestActions = require("../../../actions/contest-actions");
+var onMount = function() {};
+var onUpdateSpy = sinon.spy(function() {});
 
 
-describe('ContestListFeeFilterComponent Component', function() {
+describe('CollectionRangeSliderFilter Component', function() {
 
   beforeEach(function(done) {
     var self = this;
+
     document.body.innerHTML = '';
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.feeFilterComponent = React.render(
-      <ContestListFeeFilterComponent
-        className="contest-list-filter--contest-fee"
-        filterName="contestFeeFilter"
+    this.component = React.render(
+      <Component
+        filterProperty='name'
+        filterName='test'
+        onUpdate={onUpdateSpy}
+        onMount={onMount}
       />,
       this.targetElement,
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.searchFilterElement = this.getDOMNode();
+        self.domElement = this.getDOMNode();
         done();
       }
     );
@@ -40,7 +43,7 @@ describe('ContestListFeeFilterComponent Component', function() {
 
 
   it('should instantiate the noUiSlider plugin', function() {
-    expect(this.searchFilterElement.querySelectorAll('.noUi-target').length).to.equal(1);
+    expect(this.domElement.querySelectorAll('.noUi-target').length).to.equal(1);
   });
 
 
@@ -49,36 +52,34 @@ describe('ContestListFeeFilterComponent Component', function() {
       'buyin': '50.00'
     };
 
-    this.feeFilterComponent.setState({
+    this.component.setState({
       match: {
         minVal: 1,
         maxVal: 100
       }
     }, function() {
-      expect(this.feeFilterComponent.filter(testRow)).to.equal(true);
+      expect(this.component.filter(testRow)).to.equal(true);
     }.bind(this));
 
-    this.feeFilterComponent.setState({
+    this.component.setState({
       match: {
         minVal: 51,
         maxVal: 100
       }
     }, function() {
-      expect(this.feeFilterComponent.filter(testRow)).to.equal(false);
+      expect(this.component.filter(testRow)).to.equal(false);
     }.bind(this));
   });
 
 
-  it('should alert the ContestStore that something has changed via an action', function() {
-    sinon.spy(ContestActions, "filterUpdated");
-
-    this.feeFilterComponent.handleChange({
+  it('should alert the Contest Store that something has changed via an action', function() {
+    this.component.handleChange({
       match: {
         minVal: 99,
         maxVal: 100
       }
     });
 
-    sinon.assert.calledOnce(ContestActions.filterUpdated);
+    sinon.assert.calledOnce(onUpdateSpy);
   });
 });

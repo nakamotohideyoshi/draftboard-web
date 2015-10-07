@@ -3,7 +3,6 @@
 var Reflux = require('reflux');
 var DraftActions = require('../actions/draft-actions');
 var log = require('../lib/logging');
-// var _sortByOrder = require('lodash/collection/sortByOrder');
 var DraftGroupStore = require('./draft-group-store.js');
 var _find = require("lodash/collection/find");
 var request = require('superagent');
@@ -52,6 +51,7 @@ var DraftNewLineupStore = Reflux.createStore({
     log.debug('DraftNewLineupStore.init()');
 
     this.data = {
+      lineupTitle: null,
       lineup: [],
       remainingSalary: 150000,
       avgPlayerSalary: 0,
@@ -81,7 +81,6 @@ var DraftNewLineupStore = Reflux.createStore({
     });
 
     this.refreshLineupStats();
-    this.trigger(this.data);
   },
 
 
@@ -116,7 +115,7 @@ var DraftNewLineupStore = Reflux.createStore({
             DraftActions.saveLineup.completed();
             log.info(res);
           }
-      });
+      }.bind(this));
     }
   },
 
@@ -145,10 +144,8 @@ var DraftNewLineupStore = Reflux.createStore({
     if (this.data.lineup.length === 0 && draftGroupData.sport) {
       this.data.lineup = this.rosterTemplates[draftGroupData.sport];
       this.data.contestSalaryLimit = this.salaryCaps[draftGroupData.sport];
-      this.trigger(this.data);
+      this.refreshLineupStats();
     }
-
-    this.refreshLineupStats();
   },
 
 
@@ -162,9 +159,8 @@ var DraftNewLineupStore = Reflux.createStore({
       this.refreshLineupStats();
     } else {
       log.error('Cannot add player to lineup!');
+      this.trigger(this.data);
     }
-
-    this.trigger(this.data);
   },
 
 
@@ -200,7 +196,7 @@ var DraftNewLineupStore = Reflux.createStore({
    */
   getPlayerByPlayerId: function(playerId) {
     log.debug('DraftNewLineupStore.getPlayerByPlayerId()', playerId);
-    return _find(DraftGroupStore.data.players, 'player_id', playerId);
+    return _find(DraftGroupStore.allPlayers, 'player_id', playerId);
   },
 
 
@@ -212,17 +208,17 @@ var DraftNewLineupStore = Reflux.createStore({
   canAddPlayer: function(player) {
     log.debug('DraftNewLineupStore.canAddPlayer()', player);
 
-    // First check if there is room in the salary cap.
-    if (this.getTotalSalary() + player.salary > this.data.contestSalaryLimit) {
-      this.data.errorMessage = 'Player exceeds maximum salary';
-      log.error('Player exceeds maximum salary.');
-      return false;
-    }
-
     // Check if the player is already in the lineup.
     if (this.isPlayerInLineup(player)) {
       this.data.errorMessage = 'Selected player is already in the lineup';
       log.error("Selected player is already in the lineup.");
+      return false;
+    }
+
+    // Check if there is room in the salary cap.
+    if (this.getTotalSalary() + player.salary > this.data.contestSalaryLimit) {
+      this.data.errorMessage = 'Player exceeds maximum salary';
+      log.error('Player exceeds maximum salary.');
       return false;
     }
 
@@ -287,6 +283,7 @@ var DraftNewLineupStore = Reflux.createStore({
 
   /**
    * Remove a player from the lineup.
+   * TODO: Remove a player from the lineup.
    */
   removePlayer: function() {
     log.debug('removePlayer()');

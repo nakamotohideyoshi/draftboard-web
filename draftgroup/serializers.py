@@ -10,10 +10,7 @@ class PlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ('player_id', 'first_name', 'last_name',
-                  'salary', 'start', 'position', 'fppg',
-                  'team_alias')
-
+        fields = ('player_id', 'name', 'salary', 'start', 'position', 'fppg', 'team_alias')
 
 class DraftGroupSerializer(serializers.ModelSerializer):
     players = PlayerSerializer(many=True, read_only=True)

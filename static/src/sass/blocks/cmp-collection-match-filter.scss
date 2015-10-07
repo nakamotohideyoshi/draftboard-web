@@ -1,0 +1,40 @@
+/**
+ * Radio-like selection links to enable filters on the contest list.
+ */
+.cmp-collection-match-filter {
+  padding-top: 5px;
+  padding-bottom: 25px;
+
+  &__option {
+    color: #babdc9;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    margin: 0 15px 0 0;
+    padding: 0 0 3px;
+    text-transform: uppercase;
+    letter-spacing: .09em;
+
+    &:hover {
+      color: #6d718a;
+    }
+
+    &--active {
+      @extend .table-contests-filter__filter;
+      color: #46495e;
+      font-weight: 700;
+      border: 0px solid transparent;
+      -moz-border-image: -moz-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+      -webkit-border-image: -webkit-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+      border-image: linear-gradient(to right, #1f907c 0%, #34cc68 100%);
+      border-image-slice: 1;
+      border-bottom: 2px solid;
+
+      &:hover {
+        cursor: default;
+      }
+    }
+  }
+
+}

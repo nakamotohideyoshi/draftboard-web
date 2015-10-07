@@ -2,6 +2,8 @@
 
 var React = require('react');
 var DraftActions = require("../../actions/draft-actions");
+var AppActions = require("../../actions/app-actions");
+var log = require('../../lib/logging.js');
 
 
 /**
@@ -19,6 +21,7 @@ var DraftPlayerListRow = React.createClass({
     draftable: React.PropTypes.bool
   },
 
+
   getInitialState: function() {
     return {};
   },
@@ -32,14 +35,14 @@ var DraftPlayerListRow = React.createClass({
 
 
   onRowClick: function(playerId) {
-    console.log('ContestListRow.onRowClick()', playerId);
-    // this.props.handleOnClick(args);
+    AppActions.openPane();
+    log.debug('ContestListRow.onRowClick()', playerId);
     DraftActions.playerFocused(playerId);
   },
 
 
   onDraftClick: function(playerId, e) {
-    console.log('ContestListRow.onDraftClick()', playerId);
+    log.debug('ContestListRow.onDraftClick()', playerId);
     e.stopPropagation();
     DraftActions.addPlayerToLineup(playerId);
   },
@@ -59,14 +62,15 @@ var DraftPlayerListRow = React.createClass({
         onClick={this.onRowClick.bind(this, this.props.row.player_id)}
       >
         <td>{this.props.row.position}</td>
-        <td>{this.props.row.first_name} {this.props.row.last_name} / {this.props.row.team_alias}</td>
+        <td>👤</td>
+        <td>{this.props.row.name} / {this.props.row.team_alias}</td>
         <td>STATUS</td>
         <td>OPP</td>
         <td>FPPG</td>
         <td>${this.props.row.salary.toLocaleString('en')}</td>
         <td>
           <div
-            className="button--mini--outline"
+            className="button--mini button--gradient"
             onClick={this.onDraftClick.bind(this, this.props.row.player_id)}
             >Draft</div>
         </td>

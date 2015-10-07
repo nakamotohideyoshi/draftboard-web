@@ -115,9 +115,18 @@ category: Lineup
     padding: 0px;
   }
 
+  // Feedback tooltip.
+  .tooltip {
+    width: 280px;
+  }
+
   &__plus {
     position: absolute;
     right: 15px;
+  }
+
+  &__save {
+    float: right;
   }
 
   &__player {
@@ -283,6 +292,67 @@ category: Lineup
   }
 }
 
+
+
+
+// When in the draft section, this is the new lineup card that you are creating.
+.cmp-lineup-card--new {
+  // float: left;
+
+
+
+  .cmp-lineup-card {
+
+    // Editable title input field.
+    &__title {
+
+      &:before {
+        content: "⚾︎";
+        display: inline-block;
+      }
+
+      &:hover:before {
+        content: "✎";
+        display: inline-block;
+      }
+    }
+
+    &__title-input {
+      display: inline-block;
+      cursor: pointer;
+      border: 0px solid transparent;
+      max-width: 185px;
+
+      &::placeholder {
+        transition: color .25s;
+        color: #46495e;
+      }
+
+
+      &:hover {
+        &::placeholder {
+          color: #babdc9;
+        }
+
+        // background: #eee;
+      }
+
+      &:focus {
+        // -moz-border-image: -moz-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+        // -webkit-border-image: -webkit-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+        // border-image: linear-gradient(to right, #1f907c 0%, #34cc68 100%);
+        // border-image-slice: 1;
+        // border-bottom: 2px solid;
+
+        &::placeholder {
+          color: #babdc9;
+        }
+
+      }
+    }
+  }
+
+}
 
 
 .lineup-sidebar-list {
