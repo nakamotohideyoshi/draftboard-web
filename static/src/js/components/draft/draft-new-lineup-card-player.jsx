@@ -32,8 +32,8 @@ var DraftNewLineupCardPlayer = React.createClass({
           <span
             className="cmp-lineup-card__delete"
             onClick={this.props.removePlayer.bind(null, this.props.player.player.player_id)}
-          ><div className="icon"></div>
-
+          >
+            <div className="icon"></div>
           </span>
         </li>
       );
