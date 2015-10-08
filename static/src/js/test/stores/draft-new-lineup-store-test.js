@@ -185,4 +185,92 @@ describe("DraftNewLineupStore", function() {
     expect(DraftNewLineupStore.data.availablePositions.length).to.equal(positionCount - 1);
   });
 
+
+  it('removePlayer() should remove a player from the lineup', function() {
+    var player0 = DraftGroupStore.allPlayers[0];
+    var player1 = DraftGroupStore.allPlayers[DraftGroupStore.allPlayers.length - 3];
+    var player2 = DraftGroupStore.allPlayers[DraftGroupStore.allPlayers.length - 2];
+    var player3 = DraftGroupStore.allPlayers[DraftGroupStore.allPlayers.length - 4];
+
+    /**
+      Test with one player in the lineup.
+     */
+
+    // make sure we're starting off with all slots open.
+    expect(
+      DraftNewLineupStore.getAvailableLineupSlots().length).to.equal(
+      DraftNewLineupStore.data.lineup.length
+    );
+
+    // add a player
+    DraftNewLineupStore.addPlayer(player0.player_id);
+    expect(DraftNewLineupStore.getPlayerCount()).to.equal(
+      1, "addPlayer() is not increasing the player count."
+    );
+
+    // Make sure that one of the slots is filled.
+    expect(
+      DraftNewLineupStore.getAvailableLineupSlots().length).to.equal(
+      DraftNewLineupStore.data.lineup.length - 1
+    );
+
+    // remove that player
+    DraftNewLineupStore.removePlayer(player0.player_id);
+
+    // do we have an extra slot open now?
+    expect(
+      DraftNewLineupStore.getAvailableLineupSlots().length).to.equal(
+      DraftNewLineupStore.data.lineup.length
+    );
+
+
+    /**
+      Test with multiple players in the lineup.
+    */
+
+    // make sure we're starting off with all slots open.
+    expect(
+      DraftNewLineupStore.getAvailableLineupSlots().length).to.equal(
+      DraftNewLineupStore.data.lineup.length
+    );
+
+    // add three  players
+    DraftNewLineupStore.addPlayer(player1.player_id);
+    DraftNewLineupStore.addPlayer(player2.player_id);
+    DraftNewLineupStore.addPlayer(player3.player_id);
+
+    expect(DraftNewLineupStore.getPlayerCount()).to.equal(
+      3, "addPlayer() is not increasing the player count."
+    );
+
+    // remove one.
+    DraftNewLineupStore.removePlayer(
+      player1.player_id
+    );
+
+    // Make sure that two of the slots are still filled.
+    expect(
+      DraftNewLineupStore.getAvailableLineupSlots().length
+    ).to.equal(
+      DraftNewLineupStore.data.lineup.length - 2,
+      "removePlayer is not reducing the number of available lineup slots."
+    );
+
+    // ensure that we removed the correct player.
+    expect(
+      DraftNewLineupStore.isPlayerInLineup(player2)
+    ).to.equal(
+      true,
+      "removePlayer is not removing the specified player."
+    );
+
+    expect(
+      DraftNewLineupStore.isPlayerInLineup(player3)
+    ).to.equal(
+      true,
+      "removePlayer is not removing the specified player."
+    );
+  });
+
+
 });

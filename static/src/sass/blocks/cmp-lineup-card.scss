@@ -137,12 +137,12 @@ category: Lineup
     border-bottom: 1px solid #ebedf2;
     display: table;
     font-size: 13px;
-    padding: 10px 5px;
+    padding: 0 5px;
     width: 100%;
 
     > span {
       display: table-cell;
-      padding: 0 5px;
+      padding: 10px 5px;
     }
   }
 
@@ -161,6 +161,26 @@ category: Lineup
 
   &__average {
     font-family: $font-oswald;
+  }
+
+  &__delete {
+    // hidden by default.
+    display: none !important;
+    cursor: pointer;
+    padding: 0px 5px !important;
+
+    &:hover {
+      opacity: .8;
+    }
+
+    .icon {
+      position: relative;
+      top: 5px;
+      background: url(../img/blocks/lineup-card/icon-delete.png) no-repeat;
+      background-size: 23px auto;
+      height: 23px;
+      width: 23px;
+    }
   }
 
   &__footer {
@@ -279,8 +299,17 @@ category: Lineup
       font-size: 10px;
       margin: 150px 20px 25px;
       text-transform: uppercase;
+    }
+  }
 
+  &__list-header {
+    color: #6d718a;
+    padding: 3px 20px;
+    text-align: right;
 
+    &-average {
+      font-size: 9px;
+      text-transform: uppercase;
     }
   }
 
@@ -297,12 +326,8 @@ category: Lineup
 
 // When in the draft section, this is the new lineup card that you are creating.
 .cmp-lineup-card--new {
-  // float: left;
-
-
 
   .cmp-lineup-card {
-
     // Editable title input field.
     &__title {
 
@@ -347,11 +372,40 @@ category: Lineup
         &::placeholder {
           color: #babdc9;
         }
+      }
+    }
+
+
+    // Player row
+    &__player {
+      // With a player.
+      &.occupied {
+        &:hover {
+          background: #f8fcf8;
+
+          .cmp-lineup-card {
+            &__delete {
+              display: table-cell !important;
+            }
+
+            &__average {
+              display: none;
+            }
+          }
+        }
+
+
+      }
+
+
+      // an empty player row.
+      &.vacant {
 
       }
     }
-  }
 
+
+  }
 }
 
 

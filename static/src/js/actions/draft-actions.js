@@ -7,7 +7,7 @@ var DraftActions = Reflux.createActions({
   "loadDraftGroup": {children: ["completed", "failed"]},
   "saveLineup": {children: ["completed", "failed"]},
   "addPlayerToLineup": {},
-  "removePlayerToLineup": {},
+  "removePlayerFromLineup": {},
   "playerFocused": {},
   "registerFilter": {},
   "filterUpdated": {},

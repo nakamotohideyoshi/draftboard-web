@@ -4,6 +4,8 @@ var React = require('react');
 var Tooltip = require('../site/tooltip.jsx');
 var DraftActions = require('../../actions/draft-actions.js');
 var DraftNewLineupCardTitle = require('./draft-new-lineup-card-title.jsx');
+var DraftNewLineupCardPlayer = require('./draft-new-lineup-card-player.jsx');
+
 
 /**
  * Lineup creation card on the sidebar of the draft page.
@@ -41,9 +43,15 @@ var DraftNewLineupCard = React.createClass({
   },
 
 
+  removePlayer: function(playerId) {
+    DraftActions.removePlayerFromLineup(playerId);
+  },
+
+
   setLineupTitle: function(title) {
     DraftActions.setLineupTitle(title);
   },
+
 
   // Toggle the visibility of the tooltip.
   showControls: function() {
@@ -55,31 +63,14 @@ var DraftNewLineupCard = React.createClass({
     var showError = (this.props.errorMessage === '')? false : true;
 
     var players = this.props.lineup.map(function(player) {
-      if (player.player) {
-        var names = player.player.name.split(' ');
-
-        return (
-          <li className="cmp-lineup-card__player" key={player.idx}>
-            <span className="cmp-lineup-card__position">{player.name}</span>
-            <span className="cmp-lineup-card__photo">😀</span>
-            <span className="cmp-lineup-card__name">
-              {names[0][0]}. {names[names.length - 1]}
-              <span className="cmp-lineup-card__team">- {player.player.team_alias}</span>
-            </span>
-            <span className="cmp-lineup-card__average">???</span>
-          </li>
-        );
-      } else {
-        return (
-          <li className="cmp-lineup-card__player" key={player.idx}>
-            <span className="cmp-lineup-card__position">{player.name}</span>
-            <span className="cmp-lineup-card__photo">👤</span>
-            <span className="cmp-lineup-card__name"></span>
-            <span className="cmp-lineup-card__average"></span>
-          </li>
-        );
-      }
-    });
+      return (
+        <DraftNewLineupCardPlayer
+          player={player}
+          key={player.idx}
+          removePlayer={this.removePlayer}
+        />
+      );
+    }.bind(this));
 
     return (
       <div className="cmp-lineup-card cmp-lineup-card--new">
@@ -103,6 +94,10 @@ var DraftNewLineupCard = React.createClass({
           </Tooltip>
 
         </header>
+
+        <div className="cmp-lineup-card__list-header">
+          <span className="cmp-lineup-card__list-header-average">avg</span>
+        </div>
 
         <ul>
           {players}
