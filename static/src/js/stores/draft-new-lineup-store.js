@@ -61,7 +61,7 @@ var DraftNewLineupStore = Reflux.createStore({
     };
 
     this.listenTo(DraftActions.addPlayerToLineup, this.addPlayer);
-    this.listenTo(DraftActions.removePlayerToLineup, this.removePlayer);
+    this.listenTo(DraftActions.removePlayerFromLineup, this.removePlayer);
     this.listenTo(DraftActions.saveLineup, this.save);
     this.listenTo(DraftActions.setLineupTitle, this.setLineupTitle);
     this.listenTo(DraftGroupStore, this.draftGroupUpdated);
@@ -285,10 +285,22 @@ var DraftNewLineupStore = Reflux.createStore({
 
   /**
    * Remove a player from the lineup.
-   * TODO: Remove a player from the lineup.
+   * @param  {int} playerId the player.player_id to remove.
    */
-  removePlayer: function() {
-    log.debug('removePlayer()');
+  removePlayer: function(playerId) {
+    log.debug('DraftNewLineupStore.removePlayer()', playerId);
+
+      // Loop through each lineup slot looking for the specified player. once found, set the
+      // player property to null.
+      for (let slot of this.data.lineup) {
+        if (slot.player) {
+          if (playerId === slot.player.player_id) {
+            slot.player = null;
+            this.refreshLineupStats();
+            return;
+          }
+        }
+      }
   },
 
 
