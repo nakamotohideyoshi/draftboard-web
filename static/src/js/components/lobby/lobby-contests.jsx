@@ -9,6 +9,7 @@ var CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
 var CollectionRangeSliderFilter = require('../filters/collection-range-slider-filter.jsx');
 var ContestList = require('../contest-list/contest-list.jsx');
 var ContestActions = require('../../actions/contest-actions.js');
+require('../../stores/draft-groups-store.js');
 require('../contest-list/contest-list-header.jsx');
 require('../contest-list/contest-list-detail.jsx');
 require('../contest-list/contest-list-sport-filter.jsx');

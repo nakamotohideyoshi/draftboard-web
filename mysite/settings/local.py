@@ -79,3 +79,6 @@ STATIC_URL = '/static/'
 MONGO_PASSWORD  = ''
 MONGO_HOST      = 'localhost'
 MONGO_PORT      = 27017         # default port may be the actual port
+
+
+DEBUG = True
