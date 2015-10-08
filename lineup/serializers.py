@@ -5,9 +5,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from lineup.models import Lineup, Player
 from sports.nfl.models import Player as NflPlayer
-from sports.nfl.models import Injury as NflInjury
 from sports.nba.models import Player as NbaPlayer
-from sports.nba.models import Injury as NbaInjury
 from sports.nfl.models import Team as NflTeam
 from sports.nba.models import Team as NbaTeam
 
@@ -21,18 +19,12 @@ class NflTeamSerializer(serializers.ModelSerializer):
         fields = ('id', 'alias', 'market', 'name')
 
 
-class NflInjurySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NflInjury
-
-
 class NflPlayerSerializer(serializers.ModelSerializer):
-    injury = NflInjurySerializer()
     team = NflTeamSerializer()
 
     class Meta:
         model = NflPlayer
-        fields = ('first_name', 'last_name', 'injury', 'status', 'team')
+        fields = ('first_name', 'last_name', 'status', 'team')
 
 
 # NBA specific
@@ -42,18 +34,12 @@ class NbaTeamSerializer(serializers.ModelSerializer):
         fields = ('id', 'alias', 'market', 'name')
 
 
-class NbaInjurySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NbaInjury
-
-
 class NbaPlayerSerializer(serializers.ModelSerializer):
-    injury = NbaInjurySerializer()
     team = NbaTeamSerializer()
 
     class Meta:
         model = NbaPlayer
-        fields = ('first_name', 'last_name', 'injury', 'status', 'team')
+        fields = ('first_name', 'last_name', 'status', 'team')
 
 
 class LineupUsernameSerializer(serializers.ModelSerializer):
