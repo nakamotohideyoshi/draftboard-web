@@ -1,17 +1,25 @@
 #
 # draftgroup/models.py
 
+from django.utils import timezone
 from django.db import models
 import salary.models
 import draftgroup.classes
 from  django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+import contest.models
 
 class DraftGroup( models.Model ):
     """
     The "master" id table for a group of draftable players on a day.
     """
+
+    #
+    # DEFAULT_CATEGORY is the default name of the draft group -- just empty string for now.
+    # it may end up being something like "Early", "Late", "All Day", etc... for partial-day groups
+    DEFAULT_CATEGORY = ''
+
     #dt_format   = "%a, %d @ %I:%M%p" # strftime("%A, %d. %B %Y %I:%M%p")
     created     = models.DateTimeField(auto_now_add=True)
 
@@ -22,6 +30,10 @@ class DraftGroup( models.Model ):
                         help_text='the DateTime for the earliest possible players in the group.')
     end         = models.DateTimeField(null=False,
                         help_text='the DateTime on, or after which no players from games are included')
+
+    num_games   = models.IntegerField(null=False, help_text="the number of live games this draft group spans")
+
+    category    = models.CharField(max_length=32, null=True)
 
     def get_games(self):
         """
@@ -41,6 +53,25 @@ class DraftGroup( models.Model ):
 
     def __format_dt(self, dt):
         return dt.strftime(self.dt_format)
+
+class UpcomingDraftGroup(DraftGroup):
+    """
+    PROXY model for Upcoming DraftGroups ... and rest API use.
+
+    """
+    class UpcomingDraftGroupManager(models.Manager):
+
+        def get_queryset(self):
+            # get the distinct DraftGroup(s) associated with contest currently in the lobby
+            distinct_contest_draft_groups = contest.models.LobbyContest.objects.filter().distinct('draft_group')
+            # build a list of the (distinct) draft_group.pk's
+            draft_group_ids = [c.draft_group.pk for c in distinct_contest_draft_groups ]
+            return super().get_queryset().filter(pk__in=draft_group_ids)
+
+    objects = UpcomingDraftGroupManager()
+
+    class Meta:
+        proxy = True
 
 class GameTeam( models.Model ):
     """

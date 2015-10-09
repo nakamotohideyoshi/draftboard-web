@@ -9,9 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.pagination import LimitOffsetPagination
-from draftgroup.models import DraftGroup
+from draftgroup.models import DraftGroup, UpcomingDraftGroup
 from draftgroup.classes import DraftGroupManager
-from draftgroup.serializers import DraftGroupSerializer
+from draftgroup.serializers import DraftGroupSerializer, UpcomingDraftGroupSerializer
 from django.core.cache import caches
 
 import json
@@ -44,31 +44,19 @@ class DraftGroupAPIView(generics.GenericAPIView):
             c.add( self.__class__.__name__ + str(pk), serialized_data, 300 ) # 300 seconds
         return Response(serialized_data)
 
-class UpcomingDraftGroupAPIView(generics.GenericAPIView):
+class UpcomingDraftGroupAPIView(generics.ListAPIView):
     """
     return the draft group players for the given draftgroup id
     """
 
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
-    serializer_class = DraftGroupSerializer
-    permission_classes = (IsAuthenticated,)
+    authentication_classes  = (SessionAuthentication, BasicAuthentication)
+    serializer_class        = UpcomingDraftGroupSerializer
 
-    def get_object(self, id):
-        try:
-            return DraftGroup.objects.get(pk=id)
-        except DraftGroup.DoesNotExist:
-            raise NotFound()
-
-    def get(self, request, pk, format=None):
+    def get_queryset(self):
         """
-        given the GET param 'id', get the draft_group
+        Return a QuerySet from the UpcomingDraftGroup model (DraftGroup objects).
         """
-        c = caches['default']
-        serialized_data = c.get(self.__class__.__name__ + str(pk), None)
-        if serialized_data is None:
-            serialized_data = DraftGroupSerializer( self.get_object(pk), many=False ).data
-            c.add( self.__class__.__name__ + str(pk), serialized_data, 300 ) # 300 seconds
-        return Response(serialized_data)
+        return UpcomingDraftGroup.objects.all()
 
 class DraftGroupFantasyPointsView(View):
     """
