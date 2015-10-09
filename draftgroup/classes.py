@@ -96,6 +96,8 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
     """
 
+
+
     def __init__(self):
         super().__init__()
 
@@ -251,7 +253,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         ssm = SiteSportManager()
         pbp_description_model = ssm.get_pbp_description_class( sport=draft_group.salary_pool.site_sport )
         #return pbp_description_model.objects.filter( description__srid_game__in=game_srids )[:15]
-        return pbp_description_model.objects.filter( )[:15] # TODO
+        return pbp_description_model.objects.filter( )[:15]
 
     def get_for_game(self, game):
         """
@@ -329,7 +331,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
             raise EmptySalaryPoolException()
 
         draft_group = DraftGroup.objects.create(salary_pool=salary.get_pool(),
-                                                        start=start, end=end )
+                                                  start=start, end=end, num_games=0 )
 
         #
         # build lists of all the teams, and all the player srids in the draft group
@@ -352,6 +354,10 @@ class DraftGroupManager( AbstractDraftGroupManager ):
                 self.create_player(draft_group, p, p.amount,
                                    team_srids.get( p.player.team.srid ),
                                    game_teams[ p.player.team.srid ])
+        #
+        draft_group.num_games   = len(games)
+        draft_group.category    = DraftGroup.DEFAULT_CATEGORY
+        draft_group.save()
 
         #
         return draft_group
