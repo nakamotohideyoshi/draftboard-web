@@ -212,6 +212,8 @@ class DraftGroupCreate(AbstractTest):
     def test_draftgroup_create_makes_game_team_entries(self):
         dgm = DraftGroupManager()
         draft_group = dgm.create( self.site_sport, self.start, self.end )
+        # make sure num_games is non zero -- it should really be the # of games spanned
+        self.assertGreater( draft_group.num_games, 0)
         gameteams = GameTeam.objects.filter( draft_group=draft_group )
         num_gameteams = len(gameteams)
         if num_gameteams <= 0:
