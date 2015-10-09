@@ -9,4 +9,4 @@ class InjurySerializer(InjurySerializer):
     class Meta:
 
         model = Injury
-        fields = ('iid', 'status','description','srid', 'comment', 'player_id')
+        fields = ('iid', 'status','description','srid', 'practice_status', 'player_id')

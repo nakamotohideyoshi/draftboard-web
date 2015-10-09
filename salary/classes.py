@@ -361,11 +361,14 @@ class SalaryGenerator(object):
             roster_maps = RosterSpotPosition.objects.filter(roster_spot = roster_spot)
             count = 0
             sum   = 0.0
+            print('roster_maps:', len(roster_maps), 'for %s' % str(roster_spot))
             for roster_map in roster_maps:
                 position = roster_map.position
                 if position in position_average_list:
                     sum     += position_average_list[position].average
                     count   += 1
+                # debug print:
+                print( '    roster_map', str(count), str(roster_map) )
             try:
                 sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
             except ZeroDivisionError:
