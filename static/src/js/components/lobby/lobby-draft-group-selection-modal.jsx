@@ -1,7 +1,9 @@
 'use strict';
 
+var Reflux = require('reflux');
 var React = require('react');
 var Modal = require('../modal/modal.jsx');
+var DraftGroupInfoStore = require('../../stores/draft-group-info-store.js');
 
 
 /**
@@ -13,10 +15,16 @@ var Modal = require('../modal/modal.jsx');
  */
 var LobbyDraftGroupSelectionModal = React.createClass({
 
+  mixins: [
+    Reflux.connect(DraftGroupInfoStore, 'DraftGroupInfo')
+  ],
+
+
   getInitialState: function() {
     return {
       isOpen: false,
-      selectedSport: null
+      selectedSport: null,
+      DraftGroupInfo: {}
     };
   },
 
@@ -48,6 +56,31 @@ var LobbyDraftGroupSelectionModal = React.createClass({
   },
 
 
+  getSportCountList: function() {
+    if (!this.state.DraftGroupInfo.hasOwnProperty('sportCounts')) {
+      return (<li>There are no active contests.</li>);
+    }
+
+    var sportList = [];
+
+    for (var sport in this.state.DraftGroupInfo.sportCounts) {
+      if (this.state.DraftGroupInfo.sportCounts.hasOwnProperty(sport)) {
+        sportList.push(
+          <li
+            key={sport}
+            className="cmp-draft-group-select__sport"
+            onClick={this.selectSport.bind(this, sport)}
+          >
+            <h4>{sport}</h4>
+            <p>{this.state.DraftGroupInfo.sportCounts[sport]} contests</p>
+          </li>
+        );
+      }
+    }
+
+    return sportList;
+  },
+
   /**
    * Return either a sport or draft group selection panel depending on which step we're on.
    * @return {Object} jsx component.
@@ -55,11 +88,10 @@ var LobbyDraftGroupSelectionModal = React.createClass({
   getModalContent: function() {
     // If a sport has not been selected yet, show the sports.
     if (this.state.selectedSport === null) {
+      var sports = this.getSportCountList();
       return (
         <ul>
-          <li className="cmp-draft-group-select__sport" onClick={this.selectSport.bind(this, 'nba')}>NBA</li>
-          <li className="cmp-draft-group-select__sport" onClick={this.selectSport.bind(this, 'mlb')}>MLB</li>
-          <li className="cmp-draft-group-select__sport" onClick={this.selectSport.bind(this, 'nfl')}>NFL</li>
+          {sports}
         </ul>
       );
     }
@@ -102,9 +134,10 @@ var LobbyDraftGroupSelectionModal = React.createClass({
       <Modal
         isOpen={this.state.isOpen}
         onClose={this.close}
+        className="cmp-modal--draft-group-select"
       >
         <div>
-          <header className="cmp-modal__header">Choose a Sport &amp; Time</header>
+          <header className="cmp-modal__header">Choose a Sport</header>
 
           <div className="cmp-draft-group-select">
             {modalContent}

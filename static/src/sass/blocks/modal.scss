@@ -3,7 +3,7 @@
 
 .cmp-modal {
   align-items: center;
-  background: rgba(26, 31, 48, .95);
+  background: rgba(96, 98, 105, .90);
   display: none;
   height: 100%;
   justify-content: center;
@@ -21,9 +21,10 @@
   }
 
   &__dialog {
-    width: 500px;
     background: #fff;
-    padding: 20px;
+    padding: 25px;
+    transition: width .25s;
+    width: 500px;
   }
 
   &__content {
@@ -31,20 +32,26 @@
   }
 
   &__close {
-    border-radius: 10px;
-    border: 1px solid #37c078;
-    color: #37c078;
     cursor: pointer;
-    font-size: 10px;
-    height: 20px;
-    line-height: 16px;
-    margin: 0 auto 20px;
-    text-align: center;
-    width: 20px;
+    margin: 0 auto 15px;
+    background: url('../img/components/modal/close.png');
+    background-size: 27px auto;
+    cursor: pointer;
+    display: block;
+    height: 27px;
+    width: 27px;
+    z-index: 30;
+
+    &:hover {
+      opacity: .75;
+    }
+
   }
 
   &__header {
     font-size: 18px;
+    font-family: $font-oswald;
+    text-transform: uppercase;
 
     &:after {
       content: " ";
