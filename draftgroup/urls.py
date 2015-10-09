@@ -5,10 +5,15 @@ from django.conf.urls import patterns
 from django.conf.urls import url
 from draftgroup.views import DraftGroupAPIView, \
     DraftGroupFantasyPointsView, DraftGroupGameBoxscoresView, \
-    DraftGroupPbpDescriptionView
+    DraftGroupPbpDescriptionView, UpcomingDraftGroupAPIView
 
 urlpatterns = patterns(
     '',
+
+    #
+    # get the upcoming draft groups
+    (r'upcoming/$', UpcomingDraftGroupAPIView.as_view()),
+
     #
     # get recent play by play for this draftgroup
     (r'^pbp/(?P<draft_group_id>[0-9]+)$', DraftGroupPbpDescriptionView.as_view()),
