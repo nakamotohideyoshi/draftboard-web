@@ -31,7 +31,8 @@ class DraftGroup( models.Model ):
     end         = models.DateTimeField(null=False,
                         help_text='the DateTime on, or after which no players from games are included')
 
-    num_games   = models.IntegerField(null=False, help_text="the number of live games this draft group spans")
+    num_games   = models.IntegerField(null=False, default=0,
+                        help_text="the number of live games this draft group spans")
 
     category    = models.CharField(max_length=32, null=True)
 
