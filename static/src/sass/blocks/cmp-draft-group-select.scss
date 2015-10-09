@@ -1,16 +1,81 @@
-.cmp-draft-group-select {
+@import "../variables.scss";
 
-  &__sport {
-    cursor: pointer;
-    display: inline-block;
-    font-size: 50px;
-    list-style: none;
-    margin: 0 15px;
 
-    &:hover {
-      color: #dee0e8;
+// The modal
+.cmp-modal--draft-group-select {
+  .cmp-modal {
+    &__header {
+      padding-bottom: 15px;
+
+      &:after {
+        content: none;
+        border: none;
+      }
+    }
+
+    &__dialog {
+      background: #262a3b;
+      color: #fff;
+      width: 370px;
     }
   }
+}
+
+
+// Modal content.
+.cmp-draft-group-select {
+
+  ul {
+    margin: 0;
+    padding: 0;
+  }
+
+  &__sport {
+    background: #fff url(../img/blocks/draft-group-select/arrows.png) no-repeat;
+    background-size: 15px auto;
+    background-position: 90% 38px;
+    border-bottom: 1px solid #d8dadf;
+    color: #9c9faf;
+    cursor: pointer;
+    display: block;
+    font-size: 50px;
+    list-style: none;
+    margin: 0 5px;
+    padding: 15px 25px;
+    text-align: left;
+    transition: margin .25s;
+
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      color: #46495e;
+      background-position: 90% -73px;
+      margin: 0;
+
+      p {
+        color: #46495e;
+      }
+    }
+
+    h4 {
+      font-family: $font-oswald;
+      font-size: 20px;
+      margin: 0;
+      padding: 0;
+      text-transform: uppercase;
+    }
+
+    p {
+      color: #9c9faf;
+      font-size: 12px;
+      margin: 0;
+      padding: 0;
+    }
+  }
+
 
   &__selected-sport {
     > span {
