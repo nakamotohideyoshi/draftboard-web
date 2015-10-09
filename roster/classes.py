@@ -73,11 +73,11 @@ class Initial(object):
     }
 
     DEFAULT_ROSTER_MAP_NHL = {
-        ('G',1,0,True)      :['G'],             #    goalie
-        ('C',1,1,True)      :['C'],             #    center
-        ('F',2,2,True)      :['F'],             # x2 forwards
-        ('D',2,4,True)      :['D'],             # x2 defense
-        ('FX',2,6,False)    :['C','F','D'],     # x2 flex
+        ('G',1,0,True)      :['G'],                 #    goalie
+        ('C',1,1,True)      :['C'],                 #    center
+        ('F',2,2,True)      :['LW','RW'],           # x2 forwards
+        ('D',2,4,True)      :['D'],                 # x2 defense
+        ('FX',2,6,False)    :['C','D','LW','RW'],   # x2 flex
     }
 
     DEFAULT_ROSTER_MAP_NBA = {

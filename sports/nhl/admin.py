@@ -15,7 +15,7 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(sports.nhl.models.Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ['srid','first_name','last_name']
+    list_display = ['srid','position','first_name','last_name']
 
 @admin.register(sports.nhl.models.PlayerStats)
 class PlayerStatsAdmin(admin.ModelAdmin):
