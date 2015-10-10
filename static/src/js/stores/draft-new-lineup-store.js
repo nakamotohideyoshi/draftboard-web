@@ -97,11 +97,11 @@ var DraftNewLineupStore = Reflux.createStore({
         return slot.player.player_id;
       });
 
-      // TODO: this sucks fix this.
       var postData = {
         name: this.data.lineupTitle || '',
         players: playerIds,
-        draft_group: 1
+        // Grab the current draftGroupId from the DraftGroupStore.
+        draft_group: DraftGroupStore.data.draftGroupId
       };
 
       request.post('/lineup/create/')
@@ -116,6 +116,8 @@ var DraftNewLineupStore = Reflux.createStore({
           } else {
             DraftActions.saveLineup.completed();
             log.info(res);
+            // Upon save success, send user to the lobby.
+            document.location.href = '/frontend/lobby/';
           }
       }.bind(this));
     }

@@ -4,6 +4,7 @@ var Reflux = require('reflux');
 var React = require('react');
 var Modal = require('../modal/modal.jsx');
 var DraftGroupInfoStore = require('../../stores/draft-group-info-store.js');
+var moment = require('moment');
 
 
 /**
@@ -57,22 +58,24 @@ var LobbyDraftGroupSelectionModal = React.createClass({
 
 
   getSportCountList: function() {
-    if (!this.state.DraftGroupInfo.hasOwnProperty('sportCounts')) {
+    if (!this.state.DraftGroupInfo.hasOwnProperty('sportContestCounts')) {
       return (<li>There are no active contests.</li>);
     }
 
     var sportList = [];
 
-    for (var sport in this.state.DraftGroupInfo.sportCounts) {
-      if (this.state.DraftGroupInfo.sportCounts.hasOwnProperty(sport)) {
+    for (var sport in this.state.DraftGroupInfo.sportContestCounts) {
+      if (this.state.DraftGroupInfo.sportContestCounts.hasOwnProperty(sport)) {
         sportList.push(
           <li
             key={sport}
             className="cmp-draft-group-select__sport"
             onClick={this.selectSport.bind(this, sport)}
           >
-            <h4>{sport}</h4>
-            <p>{this.state.DraftGroupInfo.sportCounts[sport]} contests</p>
+            <h4 className="cmp-draft-group-select__title">{sport}</h4>
+            <div className="cmp-draft-group-select__sub">
+              {this.state.DraftGroupInfo.sportContestCounts[sport]} contests
+            </div>
           </li>
         );
       }
@@ -97,30 +100,31 @@ var LobbyDraftGroupSelectionModal = React.createClass({
     }
     // If a sport HAS been selected, show the upcoming draft groups.
     else {
+
+      var groups = this.state.DraftGroupInfo.draftGroups.map(function(group) {
+        if (group.sport === this.state.selectedSport) {
+          var url = '/draft/' + group.pk + '/';
+
+          return (
+            <li className="cmp-draft-group-select__group" key={group.pk}>
+              <a href={url} title="Draft a lineup">
+                <h4 className="cmp-draft-group-select__title">{moment(group.start).format("dddd, MMM Do - h:mmA")}</h4>
+                <div className="cmp-draft-group-select__sub">
+                  {group.contestCount} contests - {group.num_games} games
+                </div>
+              </a>
+            </li>
+          );
+        }
+
+        return;
+      }.bind(this));
+
+
       return (
         <div>
-          <h3
-            className="cmp-draft-group-select__selected-sport"
-            onClick={this.resetSport}
-          >
-            <span>{this.state.selectedSport}</span>
-          </h3>
-
           <ul>
-            <li className="cmp-draft-group-select__group">
-              <a href="/draft/1/" title="Draft a lineup">
-                <span className="cmp-draft-group-select__title">Today</span>
-                <span className="cmp-draft-group-select__date">18</span>
-                <span className="cmp-draft-group-select__time">1:20PM</span>
-              </a>
-            </li>
-            <li className="cmp-draft-group-select__group">
-              <a href="/draft/1/" title="Draft a lineup">
-                <span className="cmp-draft-group-select__title">Today</span>
-                <span className="cmp-draft-group-select__date">18</span>
-                <span className="cmp-draft-group-select__time">5:00PM</span>
-              </a>
-            </li>
+            {groups}
           </ul>
         </div>
       );
@@ -130,6 +134,11 @@ var LobbyDraftGroupSelectionModal = React.createClass({
 
   render: function() {
     var modalContent = this.getModalContent();
+    var title = "Choose a Sport";
+    if (this.state.selectedSport) {
+      title = "Choose a Start Time";
+    }
+
     return (
       <Modal
         isOpen={this.state.isOpen}
@@ -137,7 +146,7 @@ var LobbyDraftGroupSelectionModal = React.createClass({
         className="cmp-modal--draft-group-select"
       >
         <div>
-          <header className="cmp-modal__header">Choose a Sport</header>
+          <header className="cmp-modal__header">{title}</header>
 
           <div className="cmp-draft-group-select">
             {modalContent}

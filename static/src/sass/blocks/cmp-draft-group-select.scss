@@ -30,15 +30,15 @@
     padding: 0;
   }
 
+  // Sport + DraftGroup selection
+  &__group,
   &__sport {
     background: #fff url(../img/blocks/draft-group-select/arrows.png) no-repeat;
     background-size: 15px auto;
     background-position: 90% 38px;
     border-bottom: 1px solid #d8dadf;
-    color: #9c9faf;
     cursor: pointer;
     display: block;
-    font-size: 50px;
     list-style: none;
     margin: 0 5px;
     padding: 15px 25px;
@@ -51,31 +51,41 @@
     }
 
     &:hover {
-      color: #46495e;
       background-position: 90% -73px;
       margin: 0;
 
-      p {
-        color: #46495e;
+      .cmp-draft-group-select {
+        &__title {
+          color: #46495e;
+        }
+
+        &__sub {
+          color: #46495e;
+        }
       }
-    }
-
-    h4 {
-      font-family: $font-oswald;
-      font-size: 20px;
-      margin: 0;
-      padding: 0;
-      text-transform: uppercase;
-    }
-
-    p {
-      color: #9c9faf;
-      font-size: 12px;
-      margin: 0;
-      padding: 0;
     }
   }
 
+  a {
+    display: block;
+    text-decoration: none;
+  }
+
+  &__title {
+    color: #9c9faf;
+    font-family: $font-oswald;
+    font-size: 20px;
+    margin: 0;
+    padding: 0;
+    text-transform: uppercase;
+  }
+
+  &__sub {
+    color: #9c9faf;
+    font-size: 12px;
+    margin: 0;
+    padding: 0;
+  }
 
   &__selected-sport {
     > span {
@@ -90,41 +100,22 @@
     }
   }
 
-  &__group {
-    border-radius: 2px;
-    border: 1px solid #e0e2ea;
-    display: inline-block;
-    list-style: none;
-    margin: 10px;
-    text-transform: uppercase;
-    width: 110px;
 
-    &:hover {
-      border: 1px solid #37c078;
-    }
+  // Just DraftGroup (time) selection.
+  &__group {
+    padding: 0;
+    cursor: default;
+    // background: #fff;
 
     a {
-      color: #46495e;
-      display: block;
-      padding: 15px;
-      text-decoration: none;
+      padding: 15px 25px;
+    }
+
+    .cmp-draft-group-select {
+      &__title {
+        text-transform: capitalize;
+      }
     }
   }
-
-  &__title {
-    display: block;
-    font-size: 9px;
-  }
-
-  &__date {
-    display: block;
-    font-size: 30px;
-  }
-
-  &__time {
-    display: block;
-    font-size: 9px;
-  }
-
 
 }
