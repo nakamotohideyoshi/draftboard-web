@@ -30,6 +30,7 @@ var DraftGroupStore = Reflux.createStore({
     this.listenTo(DraftActions.setSortDirection, this.setSortDirection);
 
     this.data = {
+      draftGroupId: null,
       filteredPlayers: [],
       sport: null,
       activeFilters: []
@@ -60,6 +61,7 @@ var DraftGroupStore = Reflux.createStore({
           log.error(err);
           DraftActions.loadDraftGroup.failed(err);
         } else {
+          this.data.draftGroupId = draftGroupId;
           this.newDataFetched(res.body);
           // Complete the action's promise.
           DraftActions.loadDraftGroup.completed();
