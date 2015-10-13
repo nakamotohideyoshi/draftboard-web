@@ -15,7 +15,7 @@ var _filter = require('lodash/collection/filter');
 var DraftGroupInfoStore = Reflux.createStore({
 
   data: {
-    sportContestCounts: [],
+    sportContestCounts: {},
     draftGroups: []
   },
 
