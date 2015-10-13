@@ -1,13 +1,16 @@
 @import "../variables";
 
 $contest-nav-height: 60px;
+$contest-nav-background-color: #272A3B;;
+$contest-nav-secondary-font-color: #9EA2A9;
+$contest-nav-separator-color: #3e4453;
+$contest-nav-foreground-color: #25A758;
 
 .cmp-contest-nav {
-  background: #1E1D28;
+  background: $contest-nav-background-color;
   color: #fff;
   height: $contest-nav-height;
   left: 0;
-  padding-left: $nav-main-width;
   position: fixed;
   top: 0;
   width: 100%;
@@ -20,11 +23,130 @@ $contest-nav-height: 60px;
     position: relative;
   }
 
+  &--separator {
+    border-left: solid 1px $contest-nav-separator-color;
+    display: inline-block;
+    height: $contest-nav-height;
+    transform: scale(1) skewX(-15deg);
+    margin: 0 15px 0 10px;
+
+    &.half {
+      transform: scale(0.5) skewX(-15deg);
+    }
+  }
+
+  &--shadow {
+    transform: scale(1) skewX(-15deg);
+    height: $contest-nav-height;
+    display: inline-block;
+    position: absolute;
+    left: 38px;
+    width: 60px;
+    z-index: -1;
+    background: linear-gradient(to right, rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.4) 38%,rgba(0,0,0,0) 100%);
+
+    &.right {
+      left: -51px;
+      background: linear-gradient(to left, rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.4) 38%,rgba(0,0,0,0) 100%);
+    }
+  }
+
+  &--menu {
+    min-width: 65px;
+    max-width: 65px;
+
+    .mobile-forum-hamburger {
+      position: relative;
+      top: 17px;
+      left: 23px;
+
+      .line-top {
+        transition: all 0.2s ease-in-out;
+        transform-origin: 77% 0%;
+      }
+
+      .line-middle {
+        opacity: 1;
+      }
+
+      .line-bottom {
+        transition: all 0.2s ease-in-out;
+        transform-origin: 77% 0%;
+      }
+
+      &.closed {
+        .icon {
+          margin-top: 3px;
+        }
+
+        .line-top {
+          transition: all 0.2s ease-in-out;
+          transform: rotate(-45deg);
+          transform-origin: 77% 0%;
+        }
+
+        .line-middle {
+          opacity: 0;
+        }
+
+        .line-bottom {
+          transition: all 0.2s ease-in-out;
+          transform: rotate(45deg);
+          transform-origin: 77% 0%;
+        }
+      }
+    }
+  }
+
+  &--user-info {
+    display: inline-block;
+    font-size: 12px;
+    z-index: 120;
+    height: $contest-nav-height;
+    padding: 0px 15px 0 10px;
+    line-height: $contest-nav-height;
+    min-width: 210px;
+    max-width: 210px;
+
+    .name {
+      color: $contest-nav-secondary-font-color;
+      display: inline-block;
+      margin-right: 30px;
+    }
+
+    .balance {
+      width: 80px;
+      display: inline-block;
+      font-weight: bold;
+      text-align: right;
+      line-height: 15px;
+
+      .add-funds {
+        display: none;
+        cursor: pointer;
+        color: $contest-nav-foreground-color;
+        font-size: 10px;
+        text-transform: uppercase;
+      }
+
+      &:hover {
+        position: relative;
+        top: 8px;
+
+        .add-funds {
+          display: block;
+        }
+      }
+    }
+  }
+
   // Wrapper for dropdowns
   &--filters {
     display: inline-block;
     font-size: 12px;
     z-index: 120;
+    min-width: 130px;
+    max-width: 130px;
 
     .select-list {
       height: $contest-nav-height;
@@ -36,174 +158,209 @@ $contest-nav-height: 60px;
     }
   }
 
-
   // Sport selection dropdown
   &--sport-nav {
-    background: #282735;
     display: inline-block;
   }
 
+  &--slider {
+    width: calc(100% - 130px - 210px - 65px - 150px);
 
-  // Team selection dropdown
-  &--team-nav {
-    background: #3A3C4B;
+    position: relative;
     display: inline-block;
-  }
+    height: $contest-nav-height;
+    white-space: nowrap;
+    overflow: hidden;
 
-
-  // Wrapper around the contest list.
-  &--contests {
-    background: #3F424C;
-    flex: 1;
-    position: relative;
-    // Must set min-width here otherwise firefox doesn't flex properly.
-    min-width: 225px;
-  }
-
-
-  // The UL that holds contests - this is what gets scrolled.
-  &--contests-list {
-    display: table;
-    left: 0px;
-    padding: 0;
-    position: relative;
-    margin: 0;
-    transition: all .5s;
-  }
-
-
-  /*
-    A single contest box.
-   */
-  &--contest {
-    border-right: 1px solid #50545F;
-    display: table-cell;
-    font-size: 11px;
-    position: relative;
-
-    a {
-      color: #fff;
-      display: block;
+    .slider-content {
+      display: inline-block;
       height: $contest-nav-height;
-      min-width: 185px;
-      padding: 10px 15px 0;
-      text-decoration: none;
+      overflow: hidden;
+      min-width: 300px;
+      max-width: calc(100% - 100px);
+      padding-right: 52px;
 
-      &:hover {
-        background: #444754;
+      &--holder {
+        position: relative;
+        left: 0px;
+        transition: left 1s;
+      }
+    }
+
+    .arrow {
+      position: relative;
+      display: inline-block;
+      z-index: 2;
+
+      &.left {
+        width: 42px;
       }
 
-      > div {
-        color: #adb0be;
+      .left-arrow-icon, .right-arrow-icon {
         display: inline-block;
-        padding: 0 15px 0 0;
 
-        &:last-child {
-          padding-right: 0;
+        cursor: pointer;
+        background: url('../img/blocks/contest-nav/contest-nav-slider-arrow.png');
+        background-size: 7px auto;
+        width: 7px;
+        height: 11px;
+        position: absolute;
+        top: 25px;
+        left: 21px;
+      }
+
+      .right-arrow-icon {
+        transform: rotate(180deg);
+        left: 19px;
+      }
+    }
+  }
+
+  &--games-list {
+    display: inline-block;
+
+    .game {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 14px 5px;
+      height: $contest-nav-height;
+      overflow: hidden;
+
+      .left {
+        display: inline-block;
+        margin-right: 30px;
+      }
+
+      .right {
+        font-size: 11px;
+        display: inline-block;
+        color: $contest-nav-secondary-font-color;
+      }
+    }
+  }
+
+  &--lineups-list {
+    display: inline-block;
+
+    .lineup {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 14px 5px;
+      height: $contest-nav-height;
+      overflow: hidden;
+
+      .left {
+        display: inline-block;
+        margin-right: 30px;
+        text-transform: uppercase;
+
+        .header {
+          font-size: 11px;
+          display: inline-block;
+          color: $contest-nav-secondary-font-color;
+        }
+      }
+
+      .right {
+        display: inline-block;
+        position: relative;
+        top: -10px;
+
+        .unit {
+          color: $contest-nav-secondary-font-color;
+        }
+
+        .balance {
+          color: $contest-nav-foreground-color;
         }
       }
     }
-
-    h5 {
-      color: #fff;
-      font-size: 11px;
-      font-weight: 300;
-      margin: 0;
-      padding: 0;
-    }
-
-    .key {
-      display: block;
-      font-size: 8px;
-      text-transform: uppercase;
-    }
-
-   .value {
-       font-family: $font-oswald;
-       font-size: 10px;
-       font-weight: 100;
-       -webkit-font-smoothing: antialiased;
-    }
-
-    .winning {
-      .value {
-        color: #29CB63;
-
-      }
-    }
-
-    .position {
-      strong {
-        color: #fff;
-        font-weight: normal;
-      }
-    }
-
-    .chart {
-
-    }
   }
 
-  /*
-    Next/Prev controls.
-  */
-  &--control {
-    background: #5E5F6F;
-    cursor: pointer;
-    height: $contest-nav-height;
-    padding: 20px 15px;
-    position: absolute;
-    top: 0;
-    z-index: 130;
-  }
+  &--logo {
+    min-width: 150px;
+    max-width: 150px;
+    display: inline-block;
 
-  &--prev {
-    // Hidden by default.
-    // display: none;
-    left: 0;
-  }
+    color: $contest-nav-secondary-font-color;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    line-height: $contest-nav-height;
 
-  &--next {
-    right: 0;
+    .logo {
+      display: inline-block;
+      background: url('../img/blocks/contest-nav/contest-nav-logo.png');
+      background-size: 25px auto;
+      width: 25px;
+      height: 23px;
+      position: relative;
+      top: 7px;
+      margin: 0 5px 0 15px;
+    }
+
+    .text {
+      display: inline-block;
+    }
   }
 }
-
-
-// When the left main nav collapses.
-@media (max-width: $break-desktop) {
-  // keep the contest list aligned with the main nav.
-  .cmp-contest-nav {
-    padding-left: $nav-main-min-width;
-  }
-}
-
-
-
 
 // TODO: These should maybe be abstracted out to generic fake select lists.
 .select-list {
   position: relative;
 
   &--options {
-    background: #1E1D28;
+    /* background: #1E1D28; */
+    background: $contest-nav-background-color;
     display: none;
-    left: 0;
+    top: 60px;
+    left: -26px;
     list-style: none;
-    padding: 10px 15px;
+    padding: 0;
     position: absolute;
-    text-align: center;
-    top: 2.5em;
-  }
+    text-align: left;
+    width: 230px;
+    box-shadow: 0px 0px 50px -7px #000;
 
-  &:hover {
-    .select-list--options {
+    &.visible {
       display: block;
     }
+
+    li {
+      padding: 20px;
+      cursor: pointer;
+      border-bottom: solid 1px $contest-nav-separator-color;
+      color: $contest-nav-secondary-font-color;
+      font-size: 11px;
+      font-weight: bold;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        color: white;
+        background: #1F2231;
+      }
+
+      .counter {
+        position: absolute;
+        right: 20px;
+      }
+    }
+
+    .arrow-up {
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-bottom: 8px solid $contest-nav-background-color;
+      position: absolute;
+      top: -8px;
+      left: 8%;
+    }
   }
-
-  &--active {
-
-  }
-
-
 }
