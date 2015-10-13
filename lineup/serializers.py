@@ -8,26 +8,38 @@ from sports.nfl.models import Player as NflPlayer
 from sports.nba.models import Player as NbaPlayer
 from sports.nfl.models import Team as NflTeam
 from sports.nba.models import Team as NbaTeam
-from sports.models import Position, Injury
 
 import draftgroup.models
 
 
+# NFL specific
 class NflTeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = NflTeam
         fields = ('id', 'alias', 'market', 'name')
 
 
+class NflPlayerSerializer(serializers.ModelSerializer):
+    team = NflTeamSerializer()
+
+    class Meta:
+        model = NflPlayer
+        fields = ('first_name', 'last_name', 'status', 'team')
+
+
+# NBA specific
 class NbaTeamSerializer(serializers.ModelSerializer):
     class Meta:
         model = NbaTeam
         fields = ('id', 'alias', 'market', 'name')
 
 
-class InjurySerializer(serializers.ModelSerializer):
+class NbaPlayerSerializer(serializers.ModelSerializer):
+    team = NbaTeamSerializer()
+
     class Meta:
-        model = Injury
+        model = NbaPlayer
+        fields = ('first_name', 'last_name', 'status', 'team')
 
 
 class LineupUsernameSerializer(serializers.ModelSerializer):
@@ -55,24 +67,6 @@ class GenericSportPlayerSerializer(serializers.RelatedField):
             raise Exception('Unexpected type of player object in GenericSportPlayerSerializer')
 
         return serializer.data
-
-
-class NflPlayerSerializer(serializers.ModelSerializer):
-    injury = InjurySerializer()
-    team = NflTeamSerializer()
-
-    class Meta:
-        model = NflPlayer
-        fields = ('first_name', 'last_name', 'injury', 'status', 'team')
-
-
-class NbaPlayerSerializer(serializers.ModelSerializer):
-    injury = InjurySerializer()
-    team = NbaTeamSerializer()
-
-    class Meta:
-        model = NbaPlayer
-        fields = ('first_name', 'last_name', 'injury', 'status', 'team')
 
 
 class PlayerSerializer(serializers.ModelSerializer):

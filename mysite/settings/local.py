@@ -10,6 +10,8 @@ def get_db_name():
 
 db_name = get_db_name()
 
+DEBUG = True
+
 #
 # try to create the database, if it already exists, this will have no effect
 # create_db_cmd = 'sudo -u postgres createdb %s' % db_name

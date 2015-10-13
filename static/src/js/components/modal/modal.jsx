@@ -3,6 +3,7 @@
 var React = require('react');
 var ModalWrap = require('./modal-wrap.jsx');
 var classnames = require('classnames');
+var KeypressActions = require('../../actions/keypress-actions');
 
 
 /**
@@ -22,8 +23,16 @@ var Modal = React.createClass({
     // parent component.
     // This will be called when the user clicks the close button or the esc key or whatever else.
     // The function in the parent component needs to handle changing isOpen to false.
-    onClose: React.PropTypes.func.isRequired
+    onClose: React.PropTypes.func.isRequired,
+    className: React.PropTypes.string
   },
+
+
+  componentDidMount: function() {
+    // Close the modal with the ESC key.
+    KeypressActions.keypressESC.listen(this.handleClose);
+  },
+
 
   getDefaultProps: function() {
     return {
@@ -32,12 +41,14 @@ var Modal = React.createClass({
     };
   },
 
+
   handleClose: function() {
     this.props.onClose();
   },
 
+
   render: function() {
-    var classNames = classnames('cmp-modal', {'cmp-modal--visible': this.props.isOpen});
+    var classNames = classnames(this.props.className, 'cmp-modal', {'cmp-modal--visible': this.props.isOpen});
     var closeBtn = '';
 
     if (this.props.showCloseBtn) {
@@ -46,9 +57,7 @@ var Modal = React.createClass({
         ref="closeBtn"
         className="cmp-modal__close"
         onClick={this.handleClose}
-      >
-        x
-      </div>
+      ></div>
       );
     }
 
