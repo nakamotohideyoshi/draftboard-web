@@ -13,6 +13,15 @@
 
   "ecmaFeatures": {
     "jsx": true,
+    "spread": true,
+    "blockBindings": true,
+    "destructuring": true,
+    "defaultParams": true,
+    "arrowFunctions": true,
+    "templateStrings": true,
+    "objectLiteralShorthandMethods": true,
+    "objectLiteralShorthandProperties": true,
+    "objectLiteralComputedProperties": true,
     "modules": false
   },
 
