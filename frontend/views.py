@@ -1,6 +1,10 @@
 from django.views.generic.base import TemplateView
 
 
+class FrontendHomepageTemplateView(TemplateView):
+    template_name = 'frontend/homepage.html'
+
+
 class FrontendLiveTemplateView(TemplateView):
     template_name = 'frontend/live/court.html'
 
