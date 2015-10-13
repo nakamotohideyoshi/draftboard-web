@@ -27,14 +27,6 @@ var DraftNewLineupCardTitle = React.createClass({
   },
 
 
-  handleClick: function(event) {
-    console.log(event);
-    // if (this.state.title === this.props.title) {
-    //   event.target.select();
-    // }
-  },
-
-
   render: function() {
 
     // var renderVal = this.state.title;
@@ -51,7 +43,6 @@ var DraftNewLineupCardTitle = React.createClass({
           value={this.state.title}
           placeholder={this.props.title}
           onChange={this.handleChange}
-          onClick={this.handleClick}
         />
 
       </div>

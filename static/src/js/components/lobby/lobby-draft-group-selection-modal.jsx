@@ -1,22 +1,29 @@
 'use strict';
 
+var Reflux = require('reflux');
 var React = require('react');
 var Modal = require('../modal/modal.jsx');
+var DraftGroupInfoStore = require('../../stores/draft-group-info-store.js');
+var LobbyDraftGroupSelectionSport = require('./lobby-draft-group-selection-sport.jsx');
+var LobbyDraftGroupSelectionTime = require('./lobby-draft-group-selection-time.jsx');
 
 
 /**
  * When in the lobby, to draft a team you first need to select a Draft Group, this creates a Modal
  * to lets the user do that.
- *
- * TODO: once we have a Draft Group API endpoint, make the sport + draft group selections use real
- * data.
  */
 var LobbyDraftGroupSelectionModal = React.createClass({
+
+  mixins: [
+    Reflux.connect(DraftGroupInfoStore, 'DraftGroupInfo')
+  ],
+
 
   getInitialState: function() {
     return {
       isOpen: false,
-      selectedSport: null
+      selectedSport: null,
+      DraftGroupInfo: {}
     };
   },
 
@@ -56,41 +63,20 @@ var LobbyDraftGroupSelectionModal = React.createClass({
     // If a sport has not been selected yet, show the sports.
     if (this.state.selectedSport === null) {
       return (
-        <ul>
-          <li className="cmp-draft-group-select__sport" onClick={this.selectSport.bind(this, 'nba')}>NBA</li>
-          <li className="cmp-draft-group-select__sport" onClick={this.selectSport.bind(this, 'mlb')}>MLB</li>
-          <li className="cmp-draft-group-select__sport" onClick={this.selectSport.bind(this, 'nfl')}>NFL</li>
-        </ul>
+        <LobbyDraftGroupSelectionSport
+          sportContestCounts={this.state.DraftGroupInfo.sportContestCounts}
+          onSportClick={this.selectSport}
+        />
       );
     }
+
     // If a sport HAS been selected, show the upcoming draft groups.
     else {
       return (
-        <div>
-          <h3
-            className="cmp-draft-group-select__selected-sport"
-            onClick={this.resetSport}
-          >
-            <span>{this.state.selectedSport}</span>
-          </h3>
-
-          <ul>
-            <li className="cmp-draft-group-select__group">
-              <a href="/draft/1/" title="Draft a lineup">
-                <span className="cmp-draft-group-select__title">Today</span>
-                <span className="cmp-draft-group-select__date">18</span>
-                <span className="cmp-draft-group-select__time">1:20PM</span>
-              </a>
-            </li>
-            <li className="cmp-draft-group-select__group">
-              <a href="/draft/1/" title="Draft a lineup">
-                <span className="cmp-draft-group-select__title">Today</span>
-                <span className="cmp-draft-group-select__date">18</span>
-                <span className="cmp-draft-group-select__time">5:00PM</span>
-              </a>
-            </li>
-          </ul>
-        </div>
+        <LobbyDraftGroupSelectionTime
+          draftGroups={this.state.DraftGroupInfo.draftGroups}
+          selectedSport={this.state.selectedSport}
+        />
       );
     }
   },
@@ -98,13 +84,16 @@ var LobbyDraftGroupSelectionModal = React.createClass({
 
   render: function() {
     var modalContent = this.getModalContent();
+    var title = (this.state.selectedSport) ? "Choose a Start Time" : "Choose a Sport";
+
     return (
       <Modal
         isOpen={this.state.isOpen}
         onClose={this.close}
+        className="cmp-modal--draft-group-select"
       >
         <div>
-          <header className="cmp-modal__header">Choose a Sport &amp; Time</header>
+          <header className="cmp-modal__header">{title}</header>
 
           <div className="cmp-draft-group-select">
             {modalContent}
