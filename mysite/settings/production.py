@@ -49,6 +49,9 @@ if USE_LOCKDOWN:
     LOCKDOWN_PASSWORDS = (os.environ.get('LOCKDOWN_PASSWORD', 'False'),)
     # LOCKDOWN_URL_EXCEPTIONS = (r'^/some/url/not/locked/down/$',)
 
+# Static assets, served via django-whitenoise
+STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
+
 # Testing mode off for production
 DEBUG = False
 # Match template debugging to what environment debug is
