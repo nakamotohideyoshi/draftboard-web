@@ -17,12 +17,8 @@ describe("ContestStore", function() {
 
 
   it("should connect contestFocused action to setFocusedContest()", function() {
-    sinon.spy(ContestActions, "contestFocused");
-
-    ContestActions.contestFocused(666).then(function() {
-      sinon.assert.calledOnce(ContestActions.contestFocused);
-      expect(this.ContestStore.data.focusedContestId).to.equal(666);
-    });
+    ContestActions.contestFocused.trigger(666);
+    expect(this.ContestStore.data.focusedContestId).to.equal(666);
   });
 
 
@@ -33,16 +29,14 @@ describe("ContestStore", function() {
 
 
   it("getFocusedContest() should get the focused contest object", function() {
-    // Get contest fixtures.
-    // Trigger the load action
-    return ContestActions.load.triggerPromise().then(function() {
-      // grab a contest.
-      var focusedContest = this.ContestStore.allContests[0];
-      // set it as active.
-      this.ContestStore.data.focusedContestId = focusedContest.id;
-      // make sure getFocusedContest() gets the one we set.
-      expect(this.ContestStore.getFocusedContest()).to.equal(focusedContest);
-    }.bind(this));
+    // Get contest fixtures by triggering the load action.
+    ContestActions.load.trigger();
+    // Grab any old contest.
+    var focusedContest = this.ContestStore.allContests[0];
+    // set it as active.
+    this.ContestStore.data.focusedContestId = focusedContest.id;
+    // make sure getFocusedContest() gets the one we set.
+    expect(this.ContestStore.getFocusedContest()).to.equal(focusedContest);
   });
 
 
@@ -51,56 +45,58 @@ describe("ContestStore", function() {
   function ()  {
     // Get contest fixtures.
     // Trigger the load action
-    return ContestActions.load.triggerPromise().then(function() {
-      var index = 2;
-      // grab a contest.
-      var focusedContest = this.ContestStore.allContests[index];
-      // set it as active.
-      this.ContestStore.data.focusedContestId = focusedContest.id;
-      // make sure getFocusedContest() gets the one we set.
-      expect(this.ContestStore.getCurrentfocusedContestIndex()).to.equal(index);
-    }.bind(this));
+    ContestActions.load.trigger();
 
+    var index = 2;
+    // grab a contest.
+    var focusedContest = this.ContestStore.allContests[index];
+    // set it as active.
+    this.ContestStore.data.focusedContestId = focusedContest.id;
+    // make sure getFocusedContest() gets the one we set.
+    expect(this.ContestStore.getCurrentfocusedContestIndex()).to.equal(index);
   });
 
 
+
   it('should get the next row with getNextVisibleRowId()', function() {
-    return ContestActions.load.triggerPromise().then(function() {
-      var index = 0;
-      // grab a contest.
-      var focusedContest = this.ContestStore.data.filteredContests[index];
-      // set it as focused.
-      this.ContestStore.data.focusedContestId = focusedContest.id;
+    ContestActions.load.trigger();
 
-      expect(
-        this.ContestStore.getNextVisibleRowId()).to.equal(
-        this.ContestStore.data.filteredContests[index + 1].id
-      );
+    var index = 0;
+    // grab a contest.
+    var focusedContest = this.ContestStore.data.filteredContests[index];
+    // set it as focused.
+    this.ContestStore.data.focusedContestId = focusedContest.id;
 
-      expect(
-        this.ContestStore.getCurrentfocusedContestIndex()
-      ).to.equal(index);
-    }.bind(this));
+    expect(
+      this.ContestStore.getNextVisibleRowId()).to.equal(
+      this.ContestStore.data.filteredContests[index + 1].id
+    );
+
+    expect(
+      this.ContestStore.getCurrentfocusedContestIndex()
+    ).to.equal(index);
+
   });
 
 
   it('should get the prev row with getPreviousVisibleRowId()', function() {
-    return ContestActions.load.triggerPromise().then(function() {
-      var index = 1;
-      // grab a contest.
-      var focusedContest = this.ContestStore.data.filteredContests[index];
-      // set it as focused.
-      this.ContestStore.data.focusedContestId = focusedContest.id;
+    ContestActions.load.trigger();
 
-      expect(
-        this.ContestStore.getPreviousVisibleRowId()).to.equal(
-        this.ContestStore.data.filteredContests[index - 1].id
-      );
+    var index = 1;
+    // grab a contest.
+    var focusedContest = this.ContestStore.data.filteredContests[index];
+    // set it as focused.
+    this.ContestStore.data.focusedContestId = focusedContest.id;
 
-      expect(
-        this.ContestStore.getCurrentfocusedContestIndex()
-      ).to.equal(index);
-    }.bind(this));
+    expect(
+      this.ContestStore.getPreviousVisibleRowId()).to.equal(
+      this.ContestStore.data.filteredContests[index - 1].id
+    );
+
+    expect(
+      this.ContestStore.getCurrentfocusedContestIndex()
+    ).to.equal(index);
+
   });
 
 
