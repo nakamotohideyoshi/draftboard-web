@@ -18,7 +18,7 @@ describe("DraftGroupStore", function() {
    * Before the test are run, test that store is initialized empty, then load it up with the
    * data fixtures.
    */
-  before(function(done) {
+  before(function() {
     expect(DraftGroupStore.allPlayers.length).to.equal(
       0, "data.players is not initially empty"
     );
@@ -30,13 +30,7 @@ describe("DraftGroupStore", function() {
     );
 
     // Load in some fixture data.
-    DraftActions.loadDraftGroup(1).then(function() {
-      // Tell Mocha that the promise is complete.
-      done();
-    }).catch(function(err) {
-      // Blow up if the promise fails.
-      done(err);
-    });
+    DraftActions.loadDraftGroup.trigger(1);
   });
 
 

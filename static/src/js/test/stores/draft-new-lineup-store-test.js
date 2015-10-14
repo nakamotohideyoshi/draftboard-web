@@ -17,23 +17,16 @@ describe("DraftNewLineupStore", function() {
    * Before the test are run, test that store is initialized empty, then load it up with the
    * data fixtures.
    */
-  before(function(done) {
+  before(function() {
     expect(DraftNewLineupStore.data.errorMessage).to.equal(
       "", "data.errorMessage is not empty on initialization."
     );
 
     // Load in some fixture data into the draft group.
-    DraftActions.loadDraftGroup(1).then(function() {
-      // Since the DraftNewLineupStore is listening for the DraftGroupStore to update - and is an
-      // asynchronous action, we don't have any way of knowing when the store gets populated with
-      // data, so we'll just manually jam the fixtures in there.
-      DraftNewLineupStore.draftGroupUpdated(fixtures[0].fixtures());
-      // Tell Mocha that the promise is complete.
-      done();
-    }).catch(function(err) {
-      // Blow up if the promise fails.
-      done(err);
-    });
+    DraftActions.loadDraftGroup.trigger(1);
+    // Since the DraftNewLineupStore is listening for the DraftGroupStore to update, we'll just
+    // manually jam the fixtures in there.
+    DraftNewLineupStore.draftGroupUpdated(fixtures[0].fixtures());
   });
 
 
