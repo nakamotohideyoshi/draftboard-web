@@ -20,7 +20,8 @@ from roster.models import RosterSpot, RosterSpotPosition
 from salary.models import SalaryConfig, Pool, TrailingGameWeight, Salary
 from dataden.util.timestamp import DfsDateTimeUtil
 from draftgroup.models import DraftGroup, Player, GameTeam
-from datetime import timedelta, time
+from draftgroup.classes import DraftGroupManager
+from datetime import timedelta, time, datetime
 from salary.classes import SalaryGenerator
 from django.test import TestCase                            # for testing celery
 from django.test.utils import override_settings             # for testing celery
@@ -34,6 +35,9 @@ from random import Random
 from lineup.classes import LineupManager
 from lineup.exceptions import InvalidLineupSalaryException
 from cash.classes import CashTransaction
+from ticket.classes import TicketManager
+from replayer.classes import ReplayManager
+from random import Random
 
 class RandomLineupCreator(object):
     """
@@ -45,9 +49,14 @@ class RandomLineupCreator(object):
     all teams are created with the admin user (pk: 1)
     """
 
-    def __init__(self, sport):
+    def __init__(self, sport, username):
         print( 'WARNING - This class can & will submit teams that EXCEED SALARY REQUIREMENTS')
-        self.user               = User.objects.get(username='admin')
+        self.user, created               = User.objects.get_or_create(username=username)
+        self.user.set_password('test')
+        self.user.save()
+
+        ct = CashTransaction( self.user )
+        ct.deposit( 1000 )
 
         self.site_sport_manager = SiteSportManager()
         self.site_sport         = self.site_sport_manager.get_site_sport( sport )
@@ -114,7 +123,7 @@ class RandomLineupCreator(object):
     def get_random_player(self, position_list_idx):
         players = self.position_lists[position_list_idx]
         while True: # keep trying
-            random_number = self.r.randint(0, len(players))
+            random_number = self.r.randint(0, len(players) - 1)
             player_id = players[ random_number ].salary_player.player_id
             if player_id not in self.lineup_player_ids:
                 return player_id
@@ -135,6 +144,93 @@ class RandomLineupCreator(object):
                 if self.roster_manager.player_matches_spot( sport_player, roster_idx ):
                     # add the draft group player
                     self.position_lists[ roster_idx ].append( player )
+
+class ReplayNbaTest(object):
+
+    def __init__(self):
+        # the name of the primary user
+        self.hero_username = 'Hero'
+
+        self.r = Random() # we will use a random number generator for a few things
+        # create default ticket amounts
+        TicketManager.create_default_ticket_amounts()
+
+        # number headsups, and GPPs
+        self.max_headsups = 10
+
+        # the site sport for NBA
+        site_sport_manager = SiteSportManager()
+        self.site_sport = site_sport_manager.get_site_sport( 'nba' )
+        # set the start and end time for contests associated with this replay test (7pm EST)
+        self.start  = timezone.now().replace(year=2015, month=10, day=15, hour=23, minute=0, second=0, microsecond=0)
+        self.end    = self.start + timedelta(hours = 8) # 8 hours ahead of start.
+        # create prize structures to associate with contests
+        self.prize_structure_headsup = self.build_prize_structure_headsup()
+        # create (or get) draft group
+        self.draft_group = self.build_draft_group( self.start, self.end )
+        # create contests
+        self.contest_headsup    = self.build_contest_headsup()
+        self.contest_headsup_id = self.contest_headsup.pk
+
+        #
+        # use replay manager to rewind to before this the time of the contest/draft_group !
+        self.replay_manager = ReplayManager()
+        self.replay_manager.set_system_time( self.start - timedelta(minutes=3) ) # 3 min previous to start
+
+        #
+        # now that we have rewound time to before the  contest,
+        # use the random lineup create to add lineups, but all validation appplies except for salary!
+        for x in range(0,self.max_headsups):
+            self.clone_and_fill_contest( self.contest_headsup_id )
+
+    def clone_and_fill_contest(self, contest_id):
+        contest = Contest.objects.get( pk = contest_id )
+        contest.spawn() # creates a new copy of the original contest
+        rlc = RandomLineupCreator( self.site_sport.name, self.hero_username ) # always the name of our hero
+        rlc.create( contest.pk )
+        rlc = RandomLineupCreator( self.site_sport.name, self.__get_villain_name() )
+        rlc.create( contest.pk )
+
+    def __get_villain_name(self):
+        """
+        :return: random villain name from: Villain0 thru Villain99
+        """
+        return 'Villain' + str(self.r.randint(0, 100))
+
+    def build_prize_structure_headsup(self):
+        creator = CashPrizeStructureCreator()
+        creator.set_buyin( 5.00 )
+        creator.add( 1, 9.00 )
+        creator.save()
+        return creator.prize_structure
+
+    def build_draft_group(self, start, end):
+        dgm = DraftGroupManager()
+        return dgm.get_for_site_sport( self.site_sport, start, end )
+
+    def build_contest_headsup(self):
+        contest = Contest()
+        contest.site_sport      = self.site_sport
+        contest.start           = self.start
+        contest.end             = self.end
+        contest.draft_group     = self.draft_group
+        contest.name            = 'NBA $5 Head-to-Head'
+        contest.max_entries     = 1
+        contest.entries         = 2
+        contest.respawn         = True
+        contest.prize_structure = self.prize_structure_headsup
+        contest.save()
+
+        return contest
+
+    def play(self, replay_name='nba-thursday-oct-15-2015', offset_minutes=12):
+        """
+
+        :param replay_name:     the name of the replay
+        :param offset_minutes:  the number of minutes to add to the start time, if we want to start in the middle
+        :return:
+        """
+        self.replay_manager.play( replay_name=replay_name, offset_minutes=offset_minutes)
 
 class MasterAbstractTest():
     CELERY_TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
