@@ -2,7 +2,7 @@
 # contest/serializers.py
 
 from rest_framework import serializers
-from contest.models import Contest
+from contest.models import Contest, Entry
 from prize.models import PrizeStructure, Rank
 
 class RankSerializer(serializers.ModelSerializer):
@@ -35,3 +35,21 @@ class ContestSerializer(serializers.ModelSerializer):
                   'entries','current_entries','gpp','doubleup',
                   'respawn')
 
+class ContestIdSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model   = Contest
+        fields  = ('id', 'draft_group')
+
+class CurrentEntrySerializer(serializers.ModelSerializer):
+
+    draft_group = serializers.SerializerMethodField()
+
+    def get_draft_group(self, entry):
+        return entry.contest.draft_group.id
+
+    class Meta:
+
+        model  = Entry
+        fields = ('id', 'contest', 'lineup', 'draft_group') #, 'lineup')

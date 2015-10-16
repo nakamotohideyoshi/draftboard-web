@@ -46,6 +46,13 @@ class Contest(models.Model):
     STATUS_LOBBY_CONTESTS += STATUS_UPCOMING
     STATUS_LOBBY_CONTESTS += STATUS_LIVE
 
+    # this status, which contains LIVE and UPCOMING contests, will be used
+    # primarily for deciding which Lineups/ Entries we care about in api endpoints.
+    # ... historical lineups/entries will be dealt with another way.
+    STATUS_CURRENT_CONTESTS = []
+    STATUS_CURRENT_CONTESTS += STATUS_UPCOMING
+    STATUS_CURRENT_CONTESTS += STATUS_LIVE
+
     STATUS_ALL = []
     STATUS_ALL += STATUS_UPCOMING
     STATUS_ALL += STATUS_LIVE
@@ -268,6 +275,25 @@ class LobbyContest(Contest):
     class Meta:
         proxy = True
 
+class CurrentContest(Contest):
+    """
+    PROXY model for Upcoming & Live Contests ... but for which User Entries will be pulled out of.
+
+    The reason for separating this from LobbyContest is in preparation for potential future changes.
+
+    This is the model which gets the Contests for
+    display on the home lobby, so make sure you know
+    what you are doing if you are making changes.
+    """
+    class CurrentContestManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status__in=Contest.STATUS_CURRENT_CONTESTS)
+
+    objects = CurrentContestManager()
+
+    class Meta:
+        proxy = True
+
 class UpcomingContest(Contest):
     """
     PROXY model for upcoming Contests ... and rest API use.
@@ -336,7 +362,7 @@ class Entry(models.Model):
 
     contest     = models.ForeignKey(Contest, null=False)
     lineup      = models.ForeignKey("lineup.Lineup", null=True)
-    user = models.ForeignKey(User, null=False)
+    user        = models.ForeignKey(User, null=False)
 
     def __str__(self):
         return '%s %s' % (self.contest.name, str(self.lineup))
