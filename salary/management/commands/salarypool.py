@@ -77,12 +77,15 @@ class Command(BaseCommand):
         self.salary_conf.min_games_flag                     = 7
         self.salary_conf.min_player_salary                  = 3000
         self.salary_conf.max_team_salary                    = 50000
-        self.salary_conf.min_avg_fppg_allowed_for_avg_calc  = 5
+        self.salary_conf.min_avg_fppg_allowed_for_avg_calc  = 0.1
         self.salary_conf.save()
 
         self.pool               = salary.models.Pool()
         self.pool.site_sport    = site_sport
         self.pool.salary_config = self.salary_conf
+        self.pool.save()
+
+        self.pool.active = True
         self.pool.save()
 
         self.__createTrailingGameWeight(self.salary_conf, 3,3)

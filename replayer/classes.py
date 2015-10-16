@@ -170,7 +170,7 @@ class ReplayManager(object):
         print('resetting the current system time to the actual time...')
         self.reset_system_time()
 
-    def play(self, replay=None, start_from=None, fast_forward=1.0, no_delay=False, pk=None, tick=6.0, offset_minutes=0):
+    def play(self, replay_name='', start_from=None, fast_forward=1.0, no_delay=False, pk=None, tick=6.0, offset_minutes=0):
         """
         Run the stat object thru sports.parser.DataDenParser.parse_obj(db, collection, obj)
 
@@ -198,15 +198,10 @@ class ReplayManager(object):
         :return:
         """
 
-        if pk is not None:
-            self.replay = Replay.objects.get( pk = pk )
+        self.clear()
+        self.db_load_replay(self.db_name, replay_name )
 
-        if self.replay is None:
-            # get all existing Replay objects from the db
-            # and use the most recently created one
-            replays = Replay.objects.filter().order_by('-pk')
-            if len(replays) > 0:
-                self.replay = replays[0] # set the first one (largest pk)
+        self.replay = Replay.objects.get( name = replay_name )
 
         if self.replay is None:
             raise Exception('instance of ReplayManager has no Replay object set')
@@ -316,7 +311,7 @@ class ReplayManager(object):
         subprocess.call( restore_cmd, shell=True)
 
     def get_replay_filename(self, replay_dump_name):
-        return '%s%s' % (self.RESTORE_DIR, replay_dump_name)
+        return '%s%s' % (self.REPLAY_DIR, replay_dump_name)
 
     def db_load_replay(self, db_name, replay_dump_name):
         """
