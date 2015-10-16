@@ -5,8 +5,7 @@ from django.conf.urls import patterns
 from django.conf.urls import url
 from contest.views import LobbyAPIView, AllLineupsView, \
                           UserUpcomingAPIView, UserLiveAPIView, UserHistoryAPIView, \
-                          SingleLineupView
-#from myapp.views import AuthorCreate, AuthorUpdate, AuthorDelete
+                          SingleLineupView, CurrentEntryAPIView
 from contest.views import ContestCreate, ContestUpdate
 urlpatterns = patterns( '',
 
@@ -14,6 +13,10 @@ urlpatterns = patterns( '',
     url(r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest-detail'),
     # (r'^add/$', ContestCreate.as_view(), name='contest_add'),
     # (r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest_update'),
+
+    #
+    # get a users current entries (the Entries they current have in live/upcoming contests
+    (r'^current-entries/$', CurrentEntryAPIView.as_view()),
 
     #
     # get the contests for display on the main contest lobby
@@ -42,12 +45,3 @@ urlpatterns = patterns( '',
     (r'^all-lineups/(?P<contest_id>[0-9]+)$', AllLineupsView.as_view()),
 )
 
-
-
-
-# urlpatterns += [
-#     # ...
-#     url(r'contest/add/$', ContestCreate.as_view(), name='contest_add'),
-#     url(r'contest/(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest_update'),
-#     #url(r'contest/(?P<pk>[0-9]+)/delete/$', ContestDelete.as_view(), name='author_delete'),
-# ]

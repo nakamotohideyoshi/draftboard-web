@@ -9,10 +9,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.pagination import LimitOffsetPagination
 
-from contest.serializers import ContestSerializer
+from contest.serializers import ContestSerializer, CurrentEntrySerializer
 from contest.classes import ContestLineupManager
 from contest.models import Contest, Entry, LobbyContest, \
-                            UpcomingContest, LiveContest, HistoryContest
+                            UpcomingContest, LiveContest, HistoryContest, CurrentContest
 
 from dataden.util.simpletimer import SimpleTimer
 from django.http import HttpResponse
@@ -94,6 +94,35 @@ class UserEntryAPIView(generics.ListAPIView):
         data =  [ x.contest for x in distinct_entry_contests ]
         # timer.stop() - takes about 40 milliseconds for small datasets: ie: 100 entries
         return data
+
+class CurrentEntryAPIView(generics.ListAPIView):
+
+    authentication_classes  = (SessionAuthentication, BasicAuthentication)
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = CurrentEntrySerializer
+
+    def get_entries(self, user, contests):
+        """
+        return a queryset of the users entries (a map between contest & lineup)
+        which are from the
+        """
+        return Entry.objects.filter(lineup__user=user, contest__in=contests)
+
+    def get_contests(self, user):
+        # get a list of our entries to every possible distinct contest
+        # timer = SimpleTimer()
+        # timer.start()
+        return CurrentContest.objects.all()
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the UpcomingContest model, for authenticated user.
+
+        raises Exception if the inheriting class did not set 'contest_model'
+        """
+
+        contests = self.get_contests(self.request.user)
+        return self.get_entries(self.request.user, contests)
 
 class UserUpcomingAPIView(UserEntryAPIView):
     """
