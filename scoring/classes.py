@@ -41,19 +41,33 @@ class AbstractScoreSystem(object):
 
     def get_stat_values(self):
         """
+        TODO - the cache was taken out of this method for testing purposes
+               It should be put back in for production.
+
         from the db, load the StatValue objects associated with this scoring system
         :return:
         """
-        cached_stat_values = self.stat_values_cache.get_stat_values()
-        if cached_stat_values is not None:
-            return cached_stat_values
-        else:
-            # get the stat values from the db
-            db_stat_values = StatPoint.objects.filter(score_system=self.score_system)
-            # set them in the cache
-            self.stat_values_cache.add_stat_values(db_stat_values)
-            # return them
-            return db_stat_values
+
+        # #
+        # # original code:
+        # cached_stat_values = self.stat_values_cache.get_stat_values()
+        # if cached_stat_values is not None:
+        #     return cached_stat_values
+        # else:
+        #     # get the stat values from the db
+        #     db_stat_values = StatPoint.objects.filter(score_system=self.score_system)
+        #     # set them in the cache
+        #     self.stat_values_cache.add_stat_values(db_stat_values)
+        #     # return them
+        #     return db_stat_values
+
+        #
+        # temp code without cache:
+        db_stat_values = StatPoint.objects.filter(score_system=self.score_system)
+        # set them in the cache
+        self.stat_values_cache.add_stat_values(db_stat_values)
+        # return them
+        return db_stat_values
 
     def format_stat(self, real_stat, stat_value):
         """
