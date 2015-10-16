@@ -9,6 +9,7 @@ import salary.models
 import salary.classes
 import roster.models
 import roster.classes
+from sports.parser import DataDenParser
 
 class Command(BaseCommand):
 
@@ -52,6 +53,13 @@ class Command(BaseCommand):
             for player_stats_model in player_stats_class_list:
                 stats = player_stats_model.objects.filter( fantasy_points__gt=0 )
                 if len(stats) <= 0:
+                    #
+                    #
+                    p = DataDenParser()
+                    p.setup('nba')
+
+                stats = player_stats_model.objects.filter( fantasy_points__gt=0 )
+                if len(stats) <= 0:
                     raise CommandError('you need to import player stats. try doing a one-time sports.DataDenParser.setup("SPORT")')
                 else:
                     self.stdout.write('[%s] valid %s objects for ' % (str(len(stats)), str(player_stats_model.__name__)))
@@ -77,7 +85,7 @@ class Command(BaseCommand):
         self.salary_conf.min_games_flag                     = 7
         self.salary_conf.min_player_salary                  = 3000
         self.salary_conf.max_team_salary                    = 50000
-        self.salary_conf.min_avg_fppg_allowed_for_avg_calc  = 0.1
+        self.salary_conf.min_avg_fppg_allowed_for_avg_calc  = 7
         self.salary_conf.save()
 
         self.pool               = salary.models.Pool()

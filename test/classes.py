@@ -147,7 +147,7 @@ class RandomLineupCreator(object):
 
 class ReplayNbaTest(object):
 
-    def __init__(self):
+    def __init__(self, headsup_contests=10):
         # the name of the primary user
         self.hero_username = 'Hero'
 
@@ -156,7 +156,7 @@ class ReplayNbaTest(object):
         TicketManager.create_default_ticket_amounts()
 
         # number headsups, and GPPs
-        self.max_headsups = 10
+        self.max_headsups = headsup_contests
 
         # the site sport for NBA
         site_sport_manager = SiteSportManager()
@@ -175,7 +175,7 @@ class ReplayNbaTest(object):
         #
         # use replay manager to rewind to before this the time of the contest/draft_group !
         self.replay_manager = ReplayManager()
-        self.replay_manager.set_system_time( self.start - timedelta(minutes=3) ) # 3 min previous to start
+        self.replay_manager.set_system_time( self.start - timedelta(minutes=5) ) # 3 min previous to start
 
         #
         # now that we have rewound time to before the  contest,
