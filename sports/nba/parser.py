@@ -12,6 +12,7 @@ from sports.sport.base_parser import AbstractDataDenParser, \
 from pymongo import DESCENDING
 from dataden.classes import DataDen
 import json
+from push.classes import DataDenPush
 
 class TeamBoxscores(DataDenTeamBoxscores):
 
@@ -313,7 +314,7 @@ class Injury(DataDenInjury):
 class DataDenNba(AbstractDataDenParser):
 
     def __init__(self):
-        pass
+        self.sport = 'nba'
 
     def parse(self, obj):
         """
@@ -336,10 +337,14 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.team','boxscores'): TeamBoxscores().parse( obj )
         #
         # nba.period
-        elif self.target == ('nba.quarter','pbp'): QuarterPbp().parse( obj )
+        elif self.target == ('nba.quarter','pbp'):
+            QuarterPbp().parse( obj )
+            DataDenPush( self.sport ).send( obj, async=True ) # use Pusher to send this object after DB entry created
         #
         # nba.event
-        elif self.target == ('nba.event','pbp'): EventPbp().parse( obj )
+        elif self.target == ('nba.event','pbp'):
+            EventPbp().parse( obj )
+            DataDenPush( self.sport ).send( obj, async=True ) # use Pusher to send this object after DB entry created
         #
         # nba.player
         elif self.target == ('nba.player','rosters'): PlayerRosters().parse( obj )

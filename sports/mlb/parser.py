@@ -838,7 +838,7 @@ class GamePbp(DataDenPbpDescription):
         super().__init__()
 
     def parse(self, obj, target=None):
-        pass
+        #pass
         # super().parse( obj, target )
         #
         # # self.game & self.pbp are setup by super().parse()
@@ -1070,7 +1070,11 @@ class DataDenMlb(AbstractDataDenParser):
         if self.target == ('mlb.game','schedule_reg'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pre'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pst'): GameSchedule().parse( obj )
-        elif self.target == ('mlb.game','pbp'): GamePbp().parse( obj )
+        #
+        # specal case: 'pbp' where we also send the object to Pusher !
+        elif self.target == ('mlb.game','pbp'):
+            GamePbp().parse( obj )
+
         #
         elif self.target == ('mlb.game','boxscores'): GameBoxscores().parse( obj )  # top level boxscore info
         elif self.target == ('mlb.home','summary'): HomeAwaySummary().parse( obj )  # home team of boxscore
