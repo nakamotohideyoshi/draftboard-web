@@ -1,1 +1,7 @@
-__author__ = 'cbanister'
+#
+# push/exceptions.py
+
+class ChannelNotSetException(Exception): pass
+
+class EventNotSetException(Exception): pass
+

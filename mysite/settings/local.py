@@ -77,17 +77,17 @@ CACHES = {
 # Asset locations
 STATIC_URL = '/static/'
 
-# # (Dev) Mongo Connection settings
-# MONGO_PASSWORD  = ''
-# MONGO_HOST      = 'localhost'
-# MONGO_PORT      = 27017         # default port may be the actual port
+# (Dev) Mongo Connection settings
+MONGO_PASSWORD  = ''
+MONGO_HOST      = 'localhost'
+MONGO_PORT      = 27017         # default port may be the actual port
 
-# dataden mongo database connection
-MONGO_AUTH_DB   = 'admin'
-MONGO_USER      = 'admin'
-MONGO_PASSWORD  = 'dataden1'
-MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
-MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
+# # dataden mongo database connection
+# MONGO_AUTH_DB   = 'admin'
+# MONGO_USER      = 'admin'
+# MONGO_PASSWORD  = 'dataden1'
+# MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
+# MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
 # MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
 
 #
