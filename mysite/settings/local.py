@@ -89,3 +89,11 @@ MONGO_PASSWORD  = 'dataden1'
 MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
 MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
 # MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
+
+#
+##########################################################################
+#        pusher - DEVELOPMENT ids
+##########################################################################
+PUSHER_APP_ID   = '144196'
+PUSHER_KEY      = 'f23775e0c1d0da57bb4b'
+PUSHER_SECRET   = 'fc815c85237d726b9d8e'

@@ -157,12 +157,11 @@ DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO      = 750.00
 
 #
 ##########################################################################
-#        pusher
+#        pusher - LIVE
 ##########################################################################
-# Test creds
-PUSHER_APP_ID = '144196'
-PUSHER_KEY = 'f23775e0c1d0da57bb4b'
-PUSHER_SECRET = 'fc815c85237d726b9d8e'
+PUSHER_APP_ID   = '144195'
+PUSHER_KEY      = '9754d03a7816e43abb64'
+PUSHER_SECRET   = 'fcbe16f4bf9e8c0b2b51'
 
 #
 ##########################################################################
