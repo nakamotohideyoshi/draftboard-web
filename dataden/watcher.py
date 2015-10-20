@@ -346,7 +346,7 @@ class Trigger(object):
 
         return q
 
-    def get_cursor(self, collection, query, cursor_type=None, hint=[('$natural', 1)]):
+    def get_cursor(self, collection, query, cursor_type=None, hint=[('$natural', -1)]):
         """
         Gets a Cursor for the given collection and target query.
         If cursor_type is None it defaults to CursorType.TAILABLE_AWAIT.
