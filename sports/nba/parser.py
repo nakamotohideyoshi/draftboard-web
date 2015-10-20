@@ -13,6 +13,7 @@ from pymongo import DESCENDING
 from dataden.classes import DataDen
 import json
 from push.classes import DataDenPush
+from django.conf import settings
 
 class TeamBoxscores(DataDenTeamBoxscores):
 
@@ -339,13 +340,13 @@ class DataDenNba(AbstractDataDenParser):
         # nba.period
         elif self.target == ('nba.quarter','pbp'):
             QuarterPbp().parse( obj )
-            DataDenPush( self.sport ).send( obj, async=True ) # use Pusher to send this object after DB entry created
+            DataDenPush( self.sport ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
             self.add_pbp( obj )
         #
         # nba.event
         elif self.target == ('nba.event','pbp'):
             EventPbp().parse( obj )
-            DataDenPush( self.sport ).send( obj, async=True ) # use Pusher to send this object after DB entry created
+            DataDenPush( self.sport ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
             self.add_pbp( obj )
         #
         # nba.player

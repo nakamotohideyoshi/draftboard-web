@@ -7,9 +7,9 @@
 # that can have the affect of hammering the disk - it works, but
 # has not been battle tested on heroku yet. currently it will
 # bring a vagrant VM to its knees.
-ASYNC_UPDATES = False
 
 from django.conf import settings
+ASYNC_UPDATES = settings.DATADEN_ASYNC_UPDATES # False for dev
 
 from dataden.util.hsh import Hashable
 from dataden.util.simpletimer import SimpleTimer
@@ -230,6 +230,7 @@ class Trigger(object):
         else:
             self.last_ts = self.get_last_ts() # get most recent ts, (by default, dont reparse the world)
 
+        print('got here!')
         while True:
             self.timer.start()
             self.reload_triggers() # do this pre query() being called
@@ -277,6 +278,7 @@ class Trigger(object):
             self.last_ts = OpLogObj( obj ).get_ts()
             self.timer.stop(msg='get_last_ts()')
             return self.last_ts
+
 
     def query(self):
         """
