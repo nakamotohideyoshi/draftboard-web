@@ -230,7 +230,7 @@ class Trigger(object):
         else:
             self.last_ts = self.get_last_ts() # get most recent ts, (by default, dont reparse the world)
 
-        print('got here!')
+        print('last_ts():', str(self.last_ts))
         while True:
             self.timer.start()
             self.reload_triggers() # do this pre query() being called
