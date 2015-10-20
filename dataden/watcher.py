@@ -307,7 +307,8 @@ class Trigger(object):
             single_trig = '<<< %s.%s %s >>>' % (self.db_name, self.coll_name, self.parent_api)
             print('single_trigger_override() True - triggering on %s' % single_trig)
             q = {
-                'ts' : {'$gt' : self.last_ts},
+                #'ts' : {'$gt' : self.last_ts},
+                'ts' : {'$gt' : str( self.last_ts.time * 1000 + self.last_ts.inc) },
                 'ns' : '%s.%s' % (self.db_name, self.coll_name),
                 'o.%s' % self.PARENT_API__ID : self.parent_api,
             }
@@ -333,7 +334,8 @@ class Trigger(object):
                 )
 
             q = {
-                'ts' : {'$gt' : self.last_ts},
+                #'ts' : {'$gt' : self.last_ts},   # older version required this
+                'ts' : {'$gt' : str( self.last_ts.time * 1000 + self.last_ts.inc) },
                 # 'ns' : { '$in' : ns_list },
                 # 'o.%s' % self.PARENT_API__ID : { '$in': api_list },
                 '$or' : q_triggers,
@@ -346,7 +348,7 @@ class Trigger(object):
 
         return q
 
-    def get_cursor(self, collection, query, cursor_type=None, hint=[('$natural', -1)]):
+    def get_cursor(self, collection, query, cursor_type=None, hint=[('$natural', 1)]):
         """
         Gets a Cursor for the given collection and target query.
         If cursor_type is None it defaults to CursorType.TAILABLE_AWAIT.
