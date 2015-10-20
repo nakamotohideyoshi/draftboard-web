@@ -233,8 +233,10 @@ class Trigger(object):
         print('last_ts():', str(self.last_ts))
         while True:
             self.timer.start()
+            print('timer.start()ed')
             self.reload_triggers() # do this pre query() being called
             cur = self.get_cursor( self.oplog, self.query() )
+            print('get_cursor() worked')
 
             count = 0
             added = 0
@@ -248,7 +250,7 @@ class Trigger(object):
                     #
                     # send the 'o' object (a stat update) out as a
                     # signal because its been updated!!
-                    Update( hashable_object ).send(async=ASYNC_UPDATES)
+                    Update( hashable_object ).send(async=False)
                     added += 1
 
                 count += 1
