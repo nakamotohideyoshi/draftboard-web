@@ -8,7 +8,7 @@ from sports.sport.base_parser import AbstractDataDenParser, \
                         DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
                         DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
                         DataDenPbpDescription, DataDenInjury
-
+from dataden.cache.caches import PlayByPlayCache
 from pymongo import DESCENDING
 from dataden.classes import DataDen
 import json
@@ -340,11 +340,13 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.quarter','pbp'):
             QuarterPbp().parse( obj )
             DataDenPush( self.sport ).send( obj, async=True ) # use Pusher to send this object after DB entry created
+            self.add_pbp( obj )
         #
         # nba.event
         elif self.target == ('nba.event','pbp'):
             EventPbp().parse( obj )
             DataDenPush( self.sport ).send( obj, async=True ) # use Pusher to send this object after DB entry created
+            self.add_pbp( obj )
         #
         # nba.player
         elif self.target == ('nba.player','rosters'): PlayerRosters().parse( obj )

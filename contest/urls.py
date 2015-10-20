@@ -7,6 +7,7 @@ from contest.views import LobbyAPIView, AllLineupsView, \
                           UserUpcomingAPIView, UserLiveAPIView, UserHistoryAPIView, \
                           SingleLineupView, CurrentEntryAPIView
 from contest.views import ContestCreate, ContestUpdate
+
 urlpatterns = patterns( '',
 
     url(r'^add/$', ContestCreate.as_view(), name='contest_add'),

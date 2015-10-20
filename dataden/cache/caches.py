@@ -205,7 +205,103 @@ class TriggerCache( UsesCacheKeyPrefix ):
 
         return self.triggers
 
+class PlayByPlayCache( UsesCacheKeyPrefix ):
+    """
+    Stores a short, trailing history, of a particular sports play by play objects,
+    so the front end can get a list of these objects to display. Does not contain
+    all of the pbp objects for entire games or days by design -- this is meant only
+    to keep track of a small window in time behind the actual time.
+    """
 
+    KEY         = "PlayByPlayCache_"
+    TIMEOUT     = 60*60*48                 #  before this cache data expires. (add() refreshes countdown)
+    MAX         = 100
+
+    def __init__(self, sport, name='default', clear=False, key_version=1, max=0):
+        """
+        get the cache from django.core.caches with the 'name', by default its 'default'
+
+        if clear=True, wipes out any existing cached triggers
+
+        :param name:
+        :param clear:
+        :param key_version:
+        :return:
+        """
+        super().__init__()
+
+        self.sport  = sport
+
+        self.c = caches[ name ]     # 'default' is the settings.CACHES['default'] !
+
+        if clear == True:
+            self.clear()
+
+        self.key_version    = key_version
+
+        self.max = self.MAX # default value
+        if max > 0:
+            self.max = max
+
+    def __key(self):
+        """
+        return the key for which we can retrieve the pbp objects
+
+        :return:
+        """
+        return self.get_key(self.KEY) + self.sport
+
+    def clear(self):
+        self.c.delete( self.__key() ) # removes the item at the key
+
+    def add(self, pbp):
+        """
+        add a pbp object to the capped list of pbp objects for this sport
+
+        :param pbp:
+        :return:
+        """
+        current = self.get_pbps()
+        new = [ pbp ] + current[0:self.max - 1]     # get the first MAX pbp objects, and push on the new one
+        self.c.set( self.__key(), new, self.TIMEOUT, version=self.key_version )
+
+    def get_pbps(self):
+        """
+        tries to get the play by play objects from the cache.
+
+        returns an empty list if there are no objects in the cache
+
+        :return:
+        """
+        return self.c.get( self.__key(), [] )
+
+# class PbpCacheNba( PlayByPlayCache ):
+#     """
+#     NBA pbp cache
+#     """
+#     def __init__(self):
+#         super().__init__('nba')
+#
+# class PbpCacheNhl( PlayByPlayCache ):
+#     """
+#     NHL pbp cache
+#     """
+#     def __init__(self):
+#         super().__init__('nhl')
+#
+# class PbpCacheNfl( PlayByPlayCache ):
+#     """
+#     NFL pbp cache
+#     """
+#     def __init__(self):
+#         super().__init__('nfl')
+#
+# class PbpCacheMlb( PlayByPlayCache ):
+#     """
+#     MLB pbp cache
+#     """
+#     def __init__(self):
+#         super().__init__('mlb')
 
 
 

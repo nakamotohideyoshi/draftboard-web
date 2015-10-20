@@ -10,6 +10,8 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 import json
+from dataden.cache.caches import PlayByPlayCache
+from django.http import HttpResponse
 
 class LeagueInjuryAPIView(generics.ListAPIView):
     """
@@ -90,3 +92,13 @@ class PlayerCsvView(View):
         #
         context = {'form'  : form}
         return render(request, self.template_name, context)
+
+class LivePbpView(View):
+    """
+    uses dataden.cache.caches.PlayByPlayCache to access the most recent pbp objects (~100 per sport)
+    """
+
+    def get(self, request, sport):
+        pbp_cache = PlayByPlayCache( sport )
+
+        return HttpResponse( json.dumps(pbp_cache.get_pbps()), content_type='application/json' )
