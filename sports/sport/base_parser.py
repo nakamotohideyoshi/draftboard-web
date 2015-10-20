@@ -2,6 +2,7 @@
 # sports/sport/base_parser.py
 
 from dataden.util.timestamp import Parse as DataDenDatetime
+from dataden.cache.caches import PlayByPlayCache
 import json
 from django.contrib.contenttypes.models import ContentType
 from sports.models import SiteSport, Position
@@ -15,6 +16,11 @@ class AbstractDataDenParser(object):
         self.ns         = None
         self.parent_api = None
         self.o          = None
+
+    def add_pbp(self, obj):
+        pbp_cache = PlayByPlayCache( self.ns.split('.')[0] ) # the self.ns is "sport.collection"
+        pbp_obj = obj.get_o()
+        pbp_cache.add( pbp_obj )
 
     def name(self):
         """
