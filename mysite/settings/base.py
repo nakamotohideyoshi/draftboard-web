@@ -393,4 +393,5 @@ BONUS_CASH_RAKE_PERCENTAGE = .4
 
 #
 # DataDen license key for account: devs@draftboard.com
-DATADEN_LICENSE_KEY = '20491e2a4feda595b7347708915b200b'
+DATADEN_LICENSE_KEY     = '20491e2a4feda595b7347708915b200b'
+DATADEN_ASYNC_UPDATES   = True  # uses celery for signaling stat updates from triggers
