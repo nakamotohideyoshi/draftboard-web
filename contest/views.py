@@ -3,12 +3,13 @@
 
 import json
 
+from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.pagination import LimitOffsetPagination
-
+from rest_framework.exceptions import ValidationError, NotFound
 from contest.serializers import ContestSerializer, CurrentEntrySerializer
 from contest.classes import ContestLineupManager
 from contest.models import Contest, Entry, LobbyContest, \
@@ -31,6 +32,28 @@ class ContestUpdate(UpdateView):
     model       = Contest
     form_class  = ContestForm
     #fields      = ['name','start']
+
+class SingleContestAPIView(generics.GenericAPIView):
+    """
+    get the information related to a specific Contest
+    """
+
+    authentication_classes  = (SessionAuthentication, BasicAuthentication)
+    serializer_class        = ContestSerializer
+    permission_classes      = (IsAuthenticated,)
+
+    def get_object(self, pk):
+        try:
+            return Contest.objects.get(pk=pk)
+        except Contest.DoesNotExist:
+            raise NotFound()
+
+    def get(self, request, contest_id, format=None):
+        """
+        given the GET param 'contest_id', get the contest
+        """
+        serialized_data = ContestSerializer( self.get_object(contest_id), many=False ).data
+        return Response(serialized_data)
 
 class LobbyAPIView(generics.ListAPIView):
     """
