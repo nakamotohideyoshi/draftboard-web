@@ -242,7 +242,7 @@ class Trigger(object):
             added = 0
 
             for obj in cur:
-                self.timer.start()
+                #self.timer.start()
                 print('inner timer start')
                 hashable_object = OpLogObj(obj)
                 print( 'hashable_object' )
