@@ -5,7 +5,7 @@ from django.conf.urls import patterns
 from django.conf.urls import url
 from contest.views import LobbyAPIView, AllLineupsView, \
                           UserUpcomingAPIView, UserLiveAPIView, UserHistoryAPIView, \
-                          SingleLineupView, CurrentEntryAPIView
+                          SingleLineupView, CurrentEntryAPIView, SingleContestAPIView
 from contest.views import ContestCreate, ContestUpdate
 
 urlpatterns = patterns( '',
@@ -14,6 +14,10 @@ urlpatterns = patterns( '',
     url(r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest-detail'),
     # (r'^add/$', ContestCreate.as_view(), name='contest_add'),
     # (r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest_update'),
+
+    #
+    # get the info for a single Contest by its id
+    (r'^info/(?P<contest_id>[0-9]+)/$', SingleContestAPIView.as_view()),
 
     #
     # get a users current entries (the Entries they current have in live/upcoming contests
