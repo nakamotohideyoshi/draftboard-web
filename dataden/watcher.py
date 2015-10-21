@@ -233,40 +233,32 @@ class Trigger(object):
         print('last_ts():', str(self.last_ts))
         while True:
             self.timer.start()
-            print('timer.start()ed')
             self.reload_triggers() # do this pre query() being called
             cur = self.get_cursor( self.oplog, self.query() )
-            print('get_cursor() worked')
 
             count = 0
             added = 0
 
             for obj in cur:
                 #self.timer.start()
-                print('inner timer start')
                 hashable_object = OpLogObj(obj)
-                print( 'hashable_object' )
                 self.last_ts = hashable_object.get_ts()
-                print('hashable_object.get_ts()')
 
                 if self.live_stats_cache.update( hashable_object ):
                     #
                     # send the 'o' object (a stat update) out as a
                     # signal because its been updated!!
-                    print( 'if self.live_stats_cache.update( hashable_object ):' )
                     Update( hashable_object ).send(async=False)
-                    print( 'update.send(async=?)' )
                     added += 1
 
                 count += 1
                 self.timer.stop(print_now=False, sum=True)
-                print('end for')
+
             msg = '(%s of %s) total objects are new' % (str(added), str(count))
             self.timer.stop(msg='%s | loop time [avg time per object %s]' % \
                                             (msg, str(self.timer.get_sum())) )
             self.timer.start(clear_sum=True) # and then the next start() will correct
-            print('looping')
-        print('out of main for!!!')
+
     def reload_triggers(self):
         self.triggers = self.trigger_cache.get_triggers()
 
