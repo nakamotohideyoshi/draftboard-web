@@ -307,8 +307,8 @@ class Trigger(object):
             single_trig = '<<< %s.%s %s >>>' % (self.db_name, self.coll_name, self.parent_api)
             print('single_trigger_override() True - triggering on %s' % single_trig)
             q = {
-                #'ts' : {'$gt' : self.last_ts},
-                'ts' : {'$gt' : str( self.last_ts.time * 1000 + self.last_ts.inc) },
+                'ts' : {'$gt' : self.last_ts},
+                #'ts' : {'$gt' : str( self.last_ts.time * 1000 + self.last_ts.inc) },
                 'ns' : '%s.%s' % (self.db_name, self.coll_name),
                 'o.%s' % self.PARENT_API__ID : self.parent_api,
             }
@@ -334,8 +334,8 @@ class Trigger(object):
                 )
 
             q = {
-                #'ts' : {'$gt' : self.last_ts},   # older version required this
-                'ts' : {'$gt' : str( self.last_ts.time * 1000 + self.last_ts.inc) },
+                'ts' : {'$gt' : self.last_ts},   # older version required this
+                #'ts' : {'$gt' : str( self.last_ts.time * 1000 + self.last_ts.inc) },
                 # 'ns' : { '$in' : ns_list },
                 # 'o.%s' % self.PARENT_API__ID : { '$in': api_list },
                 '$or' : q_triggers,
