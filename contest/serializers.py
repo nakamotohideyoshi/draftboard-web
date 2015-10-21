@@ -49,7 +49,12 @@ class CurrentEntrySerializer(serializers.ModelSerializer):
     def get_draft_group(self, entry):
         return entry.contest.draft_group.id
 
+    start = serializers.SerializerMethodField()
+
+    def get_start(self, entry):
+        return entry.contest.start
+
     class Meta:
 
         model  = Entry
-        fields = ('id', 'contest', 'lineup', 'draft_group') #, 'lineup')
+        fields = ('id', 'contest', 'lineup', 'draft_group', 'start') #, 'lineup')
