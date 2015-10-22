@@ -193,8 +193,8 @@ OPTIMAL_ACCOUNT_NUMBER          = '1000031963'
 # REST currently defaulting to session authentication
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
 
     # 'DEFAULT_RENDERER_CLASSES': (
