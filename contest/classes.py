@@ -242,7 +242,7 @@ class ContestLineupManager(object):
 
         :return: bytes
         """
-        if self.contest.draft_group.start < timezone.now():
+        if self.contest.draft_group.start > timezone.now():
             return bytearray()
 
         bytes = bytearray( self.get_size_in_bytes() )

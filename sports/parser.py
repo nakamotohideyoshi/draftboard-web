@@ -55,9 +55,9 @@ class DataDenParser(object):
         ('nba','game','boxscores'),
         ('nba','team','boxscores'),
         ('nba','player','stats'),
-        # ... pbp quarter + event parsing:
-        ('nba','quarter','pbp'),        # parent of the following
-        ('nba','event','pbp'),          # contains the play data, including players
+        # ... pbp quarter + event parsing: --- we dont really want to do this for setup purposes
+        # ('nba','quarter','pbp'),        # parent of the following
+        # ('nba','event','pbp'),          # contains the play data, including players
 
         # nhl
         ('nhl','team','hierarchy'),     # 1
