@@ -5,7 +5,8 @@ from django.conf.urls import patterns
 from django.conf.urls import url
 from contest.views import LobbyAPIView, AllLineupsView, \
                           UserUpcomingAPIView, UserLiveAPIView, UserHistoryAPIView, \
-                          SingleLineupView, CurrentEntryAPIView, SingleContestAPIView
+                          SingleLineupView, CurrentEntryAPIView, SingleContestAPIView, \
+                          RegisteredUsersAPIView
 from contest.views import ContestCreate, ContestUpdate
 
 urlpatterns = patterns( '',
@@ -48,5 +49,10 @@ urlpatterns = patterns( '',
     #
     # get the complete set of specially packed lineups for a contest
     (r'^all-lineups/(?P<contest_id>[0-9]+)$', AllLineupsView.as_view()),
+
+    #
+    # get the complete set of specially packed lineups for a contest
+    (r'^registered-users/(?P<contest_id>[0-9]+)$', RegisteredUsersAPIView.as_view()),
+
 )
 

@@ -58,3 +58,15 @@ class CurrentEntrySerializer(serializers.ModelSerializer):
 
         model  = Entry
         fields = ('id', 'contest', 'lineup', 'draft_group', 'start') #, 'lineup')
+
+class RegisteredUserSerializer(serializers.Serializer):
+
+    #lineup__user__username  = serializers.CharField()
+    total_entries = serializers.IntegerField()
+
+    username = serializers.SerializerMethodField()
+    def get_username(self, entry):
+        return entry.get('lineup__user__username')
+
+    # class Meta:
+    #     fields  = ('total', 'username')
