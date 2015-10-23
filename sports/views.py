@@ -1,6 +1,7 @@
 #
 # sports/views.py
 
+from django.db import connection
 from rest_framework.response import Response
 from django.shortcuts import render
 from django.views.generic import TemplateView, View
@@ -114,6 +115,14 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
     authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
 
+    def dictfetchall(self, cursor):
+        """Return all rows from a cursor as a dict"""
+        columns = [col[0] for col in cursor.description]
+        return [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
     def get_serializer_class(self):
         """
         override for having to set the self.serializer_class
@@ -124,7 +133,8 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         """
-
+        from django.db import connections
+        cursor = connections['my_db_alias'].cursor()
         """
         sport = self.kwargs['sport']
         site_sport_manager = sports.classes.SiteSportManager()
@@ -134,10 +144,15 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
         for player_stats_class in player_stats_class_list:
             ct = ContentType.objects.get_for_model( player_stats_class )
             database_table_name = ct.app_label + '_' + ct.model    # ie: 'nba_playerstats'
-            player_stats += player_stats_class.objects.raw(
-                #
-                # example:
-                # "select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10;"
-                "select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10;" % (database_table_name, database_table_name)
-            )
+            # player_stats_list = player_stats_class.objects.raw(
+            #     #
+            #     # example:
+            #     # "select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10;"
+            #     "select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10;" % (database_table_name, database_table_name)
+            # )
+
+            with connection.cursor() as c:
+                c.execute("select player_id, array_agg(fantasy_points) from (select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10) as agg group by player_id" % (database_table_name, database_table_name))
+                player_stats += self.dictfetchall( c )
+
         return player_stats
