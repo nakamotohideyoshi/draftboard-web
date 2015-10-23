@@ -322,6 +322,18 @@ class SiteSportManager(object):
             # by default raise an exception if we couldnt return a game class
             raise InjurySerializerClassNotFoundException(type(self).__name__, sport)
 
+    def get_fantasypoints_serializer_class(self, sport):
+        """
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.FantasyPointsSerializer' % sport.name)
+        except:
+            # by default raise an exception if we couldnt return a game class
+            raise InjurySerializerClassNotFoundException(type(self).__name__, sport)
+
 class PlayerNamesCsv(object):
 
     def __init__(self, sport='nfl', positions=None, filename=None):
