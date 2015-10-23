@@ -1,10 +1,12 @@
 #
 # sports/views.py
 
+from rest_framework.response import Response
 from django.shortcuts import render
 from django.views.generic import TemplateView, View
 from sports.forms import PlayerCsvForm
 import sports.classes
+from sports.serializers import FantasyPointsSerializer
 from sports.nba.serializers import InjurySerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -12,6 +14,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 import json
 from dataden.cache.caches import PlayByPlayCache
 from django.http import HttpResponse
+from django.contrib.contenttypes.models import ContentType
 
 class LeagueInjuryAPIView(generics.ListAPIView):
     """
@@ -102,3 +105,39 @@ class LivePbpView(View):
         pbp_cache = PlayByPlayCache( sport )
 
         return HttpResponse( json.dumps(pbp_cache.get_pbps()), content_type='application/json' )
+
+class FantasyPointsHistoryAPIView(generics.ListAPIView):
+    """
+
+    """
+
+    authentication_classes  = (SessionAuthentication, BasicAuthentication)
+    permission_classes      = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        return site_sport_manager.get_fantasypoints_serializer_class( sport )
+
+    def get_queryset(self):
+        """
+
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport( sport )
+        player_stats_class_list = site_sport_manager.get_player_stats_class( site_sport )
+        player_stats = []
+        for player_stats_class in player_stats_class_list:
+            ct = ContentType.objects.get_for_model( player_stats_class )
+            database_table_name = ct.app_label + '_' + ct.model    # ie: 'nba_playerstats'
+            player_stats += player_stats_class.objects.raw(
+                #
+                # example:
+                # "select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10;"
+                "select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10;" % (database_table_name, database_table_name)
+            )
+        return player_stats
