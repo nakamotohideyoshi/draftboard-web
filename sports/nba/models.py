@@ -245,7 +245,7 @@ class GamePortion(sports.models.GamePortion):
 class PbpDescription(sports.models.PbpDescription):
     #
     # this is the srid of the event, aka specific pbp object
-    srid = models.CharField(max_length=64, null=False, default='')
+    srid = models.CharField(max_length=64, null=False, default='', unique=True )
 
     class Meta:
         abstract = False
