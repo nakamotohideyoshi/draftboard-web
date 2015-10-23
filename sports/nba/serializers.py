@@ -1,6 +1,7 @@
 #
 # sports.nba.serializers.py
 
+from rest_framework import serializers
 from sports.serializers import InjurySerializer, FantasyPointsSerializer
 from .models import Injury, PlayerStats
 
@@ -13,6 +14,13 @@ class InjurySerializer(InjurySerializer):
 
 class FantasyPointsSerializer(FantasyPointsSerializer):
 
-    class Meta:
-        model   = PlayerStats
-        fields  = ('created','player_id','fantasy_points')
+    # class Meta:
+    #     model   = PlayerStats
+    #     fields  = ('created','player_id','fantasy_points')
+
+    player_id = serializers.IntegerField()
+
+    fantasy_points = serializers.ListField(
+        source='array_agg',
+        child=serializers.FloatField() # min_value=-9999, max_value=9999)
+    )
