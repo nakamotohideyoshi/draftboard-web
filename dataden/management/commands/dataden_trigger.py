@@ -16,7 +16,13 @@ class Command(NoArgsCommand):
         :return:
         """
 
-        t = Trigger()
-        t.run()
+        while True:
+            try:
+                t = Trigger()
+                t.run()
+            except Exception as e:
+                print( e )
+                print( 'exception caught in ./manage.py dataden_trigger... restarting trigger!')
+                # ... and continue
 
         # self.stdout.write('a msg\n')
