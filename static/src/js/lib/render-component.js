@@ -1,5 +1,5 @@
 'use strict';
-var React = require('react');
+var ReactDOM = require('react-dom');
 var log = require("./logging");
 
 /**
@@ -15,7 +15,7 @@ module.exports = function(component, selector) {
   // Render the component on each existing DOM element.
   for (var i = 0; i < elements.length; i++) {
     log.debug('Rendering component: ' + component.type.displayName);
-    React.render(component, elements[i]);
+    ReactDOM.render(component, elements[i]);
   }
 
 };

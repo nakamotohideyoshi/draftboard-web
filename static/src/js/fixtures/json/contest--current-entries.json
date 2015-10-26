@@ -1,0 +1,77 @@
+{
+  "count": 10,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "contest": 2,
+      "lineup": 1,
+      "draft_group": 1,
+      "is_live": false
+    },
+    {
+      "id": 3,
+      "contest": 3,
+      "lineup": 3,
+      "draft_group": 1,
+      "is_live": false
+    },
+    {
+      "id": 5,
+      "contest": 4,
+      "lineup": 5,
+      "draft_group": 1,
+      "is_live": false
+    },
+    {
+      "id": 7,
+      "contest": 5,
+      "lineup": 7,
+      "draft_group": 1,
+      "is_live": false
+    },
+    {
+      "id": 9,
+      "contest": 6,
+      "lineup": 9,
+      "draft_group": 1,
+      "is_live": false
+    },
+    {
+      "id": 11,
+      "contest": 7,
+      "lineup": 11,
+      "draft_group": 1,
+      "is_live": false
+    },
+    {
+      "id": 13,
+      "contest": 8,
+      "lineup": 13,
+      "draft_group": 1,
+      "is_live": true
+    },
+    {
+      "id": 15,
+      "contest": 9,
+      "lineup": 15,
+      "draft_group": 1,
+      "is_live": true
+    },
+    {
+      "id": 17,
+      "contest": 10,
+      "lineup": 17,
+      "draft_group": 1,
+      "is_live": false
+    },
+    {
+      "id": 19,
+      "contest": 11,
+      "lineup": 19,
+      "draft_group": 1,
+      "is_live": false
+    }
+  ]
+}

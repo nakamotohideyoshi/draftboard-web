@@ -3,16 +3,27 @@
 require("../test-dom")();
 var request = require("superagent");
 var fixtures = require("../../fixtures/contests.js");
-require("superagent-mock")(request, fixtures);
+var sinon = require('sinon');
 var expect = require("chai").expect;
-var sinon = require("sinon");
 var ContestActions = require("../../actions/contest-actions");
 
 
 describe("ContestStore", function() {
 
-  beforeEach(function() {
+  before(function() {
+    this.requestMock = require('superagent-mock')(request, fixtures);
     this.ContestStore = require("../../stores/contest-store.js");
+  });
+
+
+  after(function() {
+    // unset mock urls
+    this.requestMock.unset();
+  });
+
+
+  afterEach(function() {
+    this.ContestStore.resetState();
   });
 
 

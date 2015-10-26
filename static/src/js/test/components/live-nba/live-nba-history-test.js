@@ -2,7 +2,8 @@
 
 require("../../test-dom")();
 var assert = require("assert");
-var React = require("react/addons");
+var React = require("react");
+var ReactDOM = require('react-dom');
 var LiveHistory = require("../../../components/live-nba/live-nba-history.jsx");
 var fixtures = require('../../../fixtures/live-nba-history')[0].fixtures();
 var expect = require('chai').expect;
@@ -16,13 +17,13 @@ describe("LiveHistory Component", function() {
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.liveHistoryComponent = React.render(
+    this.liveHistoryComponent = ReactDOM.render(
       <LiveHistory data={fixtures} />,
       this.targetElement,
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.liveHIstoryElement = this.getDOMNode();
+        self.liveHIstoryElement = ReactDOM.findDOMNode(this);
         assert.equal(self.liveHIstoryElement.tagName, "DIV");
       }
     );
@@ -37,13 +38,13 @@ describe("LiveHistory Component", function() {
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.liveHistoryComponent = React.render(
+    this.liveHistoryComponent = ReactDOM.render(
       <LiveHistory data={fixtures} />,
       this.targetElement,
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.liveHIstoryElement = this.getDOMNode();
+        self.liveHIstoryElement = ReactDOM.findDOMNode(this);
         expect(self.liveHIstoryElement.querySelectorAll('.live-history__event').length).to.equal(fixtures.length);
       }
     );
@@ -56,13 +57,13 @@ describe("LiveHistory Component", function() {
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.liveHistoryComponent = React.render(
+    this.liveHistoryComponent = ReactDOM.render(
       <LiveHistory />,
       this.targetElement,
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.liveHIstoryElement = this.getDOMNode();
+        self.liveHIstoryElement = ReactDOM.findDOMNode(this);
         expect(self.liveHIstoryElement.querySelectorAll('.live-history__event').length).to.equal(0);
       }
     );

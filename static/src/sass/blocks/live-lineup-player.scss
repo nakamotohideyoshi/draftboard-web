@@ -2,6 +2,13 @@
   padding: 8px 0;
   position: relative;
 
+  .live-nba-pmr {
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    width: 52px;
+  }
+
   // shortcut for each child, if it's too slow we can define all the children manually
   > * {
     display: inline-block;
@@ -22,6 +29,7 @@
     background-size: 120% auto;
     border-radius: 50%;
     height: 48px;
+    position: relative;
     width: 48px;
   }
 
