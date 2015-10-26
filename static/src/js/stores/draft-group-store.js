@@ -23,12 +23,22 @@ var DraftGroupStore = Reflux.createStore({
 
 
   init: function() {
+    log.debug('DraftGroupStore.init()');
+    this.resetState();
+
     this.listenTo(DraftActions.loadDraftGroup, this.fetchDraftGroup);
     this.listenTo(DraftActions.registerFilter, this.registerFilter);
     this.listenTo(DraftActions.filterUpdated, this.filterUpdated);
     this.listenTo(DraftActions.setSortProperty, this.setSortProperty);
     this.listenTo(DraftActions.setSortDirection, this.setSortDirection);
+  },
 
+
+  resetState: function() {
+    this.filters = [];
+    this.allPlayers = [];
+    this.sortProperty = 'salary';
+    this.sortDirection = 'desc';
     this.data = {
       draftGroupId: null,
       filteredPlayers: [],

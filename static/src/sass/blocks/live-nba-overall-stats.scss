@@ -1,9 +1,23 @@
-.live-overview {
-  display: none;
-  // temp figure until we put in the PMR circle
-  padding: 20px 0;
+.live-nba-overall-stats {
+  display: inline-block;
   text-align: center;
   position: relative;
+
+  // because the pmr circle needs to be absolute
+  min-height: 260px;
+
+  &__pmr-background {
+    position: absolute;
+    left: -10px;
+    top: -10px;
+    z-index: 4000;
+  }
+
+  // BREAKING BEM
+  .pmr {
+    position: relative;
+    z-index: 4010;
+  }
 
   &__contests,
   &__points,

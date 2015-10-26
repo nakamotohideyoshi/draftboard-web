@@ -4,6 +4,8 @@
 import json
 
 from rest_framework.response import Response
+from debreach.decorators import random_comment_exempt
+
 from rest_framework import renderers
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -177,6 +179,7 @@ class AllLineupsView(View):
     return all the lineups for a given contest as raw bytes, in our special compact format
     """
 
+    @random_comment_exempt
     def get(self, request, contest_id):
         clm = ContestLineupManager( contest_id = contest_id )
         if 'json' in request.GET:
@@ -185,7 +188,7 @@ class AllLineupsView(View):
         else:
             #clm = ContestLineupManager( contest_id = contest_id )
             #return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
-            return HttpResponse( clm.get_http_payload() )
+            return HttpResponse(clm.get_http_payload(), content_type='application/octet-stream')
 
 class SingleLineupView(View):
     """

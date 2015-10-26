@@ -1,7 +1,8 @@
 'use strict';
 
 require('../../test-dom')();
-var React = require('react/addons');
+var React = require('react');
+var ReactDOM = require('react-dom');
 var LiveNBA = require('../../../components/live-nba/live-nba.jsx');
 var expect = require('chai').expect;
 
@@ -13,12 +14,12 @@ describe('LiveNBA Component', function() {
     var self = this;
 
     // Render the component into our fake jsdom element.
-    this.sectionComponent = React.render(
+    this.sectionComponent = ReactDOM.render(
       <LiveNBA />,
       document.body.appendChild(document.createElement('div')),
       function() {
         // Once it has been rendered, grab it from the DOM.
-        var element = this.getDOMNode();
+        var element = ReactDOM.findDOMNode(this);
         expect(element.tagName).to.equal('DIV');
       }
     );
