@@ -10,4 +10,3 @@ urlpatterns = patterns('',
     (r'^email/settings/$', UserEmailNotificationAPIView.as_view()),
 
 )
-
