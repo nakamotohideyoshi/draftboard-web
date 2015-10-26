@@ -213,7 +213,6 @@ class RegisteredUsersAPIView(generics.GenericAPIView):
     """
     get the lineup Players
     """
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     serializer_class        = RegisteredUserSerializer
 
     def get_object(self, contest_id):

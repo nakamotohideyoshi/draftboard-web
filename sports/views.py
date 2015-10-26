@@ -113,8 +113,6 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
     """
 
     """
-
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
 
     def dictfetchall(self, cursor):
