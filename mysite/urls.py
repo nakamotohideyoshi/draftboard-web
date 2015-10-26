@@ -64,7 +64,8 @@ urlpatterns = [
     #
     # this came with rest_framework
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-
+    # JWT support.
+    url(r'^api-token-auth/', 'rest_framework_jwt.views.obtain_jwt_token'),
 ]
 
 # urlpatterns = patterns('',

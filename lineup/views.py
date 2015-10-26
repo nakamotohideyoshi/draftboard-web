@@ -7,7 +7,6 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.pagination import LimitOffsetPagination
 
 from lineup.serializers import LineupSerializer, PlayerSerializer, \
@@ -23,11 +22,11 @@ from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Q
 
+
 class CreateLineupAPIView(generics.CreateAPIView):
     """
     create a new lineup
     """
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
     serializer_class        = CreateLineupSerializer
 
@@ -69,6 +68,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
         # on successful lineup creation:
         return Response('Lineup created.', status=status.HTTP_201_CREATED)
 
+
 class LineupUserAPIView(generics.ListAPIView):
     """
     Get the usernames for lineups by providing a list of lineup ids.
@@ -89,7 +89,6 @@ class LineupUserAPIView(generics.ListAPIView):
         search_str      : the search string for the lineup name (lineup names are based on username)
 
     """
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
     serializer_class        = LineupIdSerializer
 
@@ -128,11 +127,11 @@ class LineupUserAPIView(generics.ListAPIView):
             msg = 'You must supply one of the following POST params: "lineup_ids", "search_str"'
             raise ValidationError(msg)
 
+
 class EditLineupAPIView(generics.CreateAPIView):
     """
     edit an existing lineup
     """
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
     serializer_class        = EditLineupSerializer
 
@@ -147,11 +146,11 @@ class EditLineupAPIView(generics.CreateAPIView):
 
         return Response('lineup created')
 
+
 class PlayersAPIView(generics.GenericAPIView):
     """
     get the lineup Players
     """
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
     serializer_class        = PlayerSerializer
 
@@ -165,13 +164,13 @@ class PlayersAPIView(generics.GenericAPIView):
         serialized_data = PlayerSerializer( self.get_object(pk), many=True ).data
         return Response(serialized_data)
 
+
 class AbstractLineupAPIView(generics.ListAPIView):
     """
     Abstract class.
     """
     lineup_model            = None
 
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
     serializer_class        = LineupSerializer
 
@@ -180,6 +179,7 @@ class AbstractLineupAPIView(generics.ListAPIView):
 
         """
         return [] # TODO
+
 
 class UserUpcomingAPIView(AbstractLineupAPIView):
     """
@@ -194,6 +194,7 @@ class UserUpcomingAPIView(AbstractLineupAPIView):
         """
         return Lineup.objects.filter( user=self.request.user,
                                       draft_group__start__gt=timezone.now() )
+
 
 class UserLiveAPIView(AbstractLineupAPIView):
     """
@@ -213,6 +214,7 @@ class UserLiveAPIView(AbstractLineupAPIView):
         return Lineup.objects.filter( user=self.request.user,
                                       draft_group__start__lte=now,
                                       draft_group__end__gt=dt )
+
 
 class UserHistoryAPIView(AbstractLineupAPIView):
     """

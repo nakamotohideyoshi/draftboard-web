@@ -9,7 +9,6 @@ from debreach.decorators import random_comment_exempt
 from rest_framework import renderers
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import ValidationError, NotFound
 from contest.serializers import ContestSerializer, CurrentEntrySerializer, RegisteredUserSerializer
@@ -25,11 +24,13 @@ from contest.forms import ContestForm, ContestFormAdd
 
 from django.db.models import Count
 
+
 # test the generic add view
 class ContestCreate(CreateView):
     model       = Contest
     form_class  = ContestFormAdd
     #fields      = ['name','ends_tonight','start']
+
 
 # testing the generic edit view
 class ContestUpdate(UpdateView):
@@ -37,12 +38,12 @@ class ContestUpdate(UpdateView):
     form_class  = ContestForm
     #fields      = ['name','start']
 
+
 class SingleContestAPIView(generics.GenericAPIView):
     """
     get the information related to a specific Contest
     """
 
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     serializer_class        = ContestSerializer
     permission_classes      = (IsAuthenticated,)
 
@@ -59,12 +60,11 @@ class SingleContestAPIView(generics.GenericAPIView):
         serialized_data = ContestSerializer( self.get_object(contest_id), many=False ).data
         return Response(serialized_data)
 
+
 class LobbyAPIView(generics.ListAPIView):
     """
     Retrieve the contests which are relevant to the home page lobby.
     """
-
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
 
     #
     # Dont need permission - we want everyone to be able to view upcoming contests!
@@ -83,11 +83,11 @@ class LobbyAPIView(generics.ListAPIView):
         """
         return LobbyContest.objects.all()
 
+
 class UserEntryAPIView(generics.ListAPIView):
 
     contest_model           = None # child class must set this, see UserUpcomingAPIView for example
 
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
     serializer_class        = ContestSerializer
 
@@ -122,9 +122,9 @@ class UserEntryAPIView(generics.ListAPIView):
         # timer.stop() - takes about 40 milliseconds for small datasets: ie: 100 entries
         return data
 
+
 class CurrentEntryAPIView(generics.ListAPIView):
 
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
     serializer_class        = CurrentEntrySerializer
 
@@ -151,17 +151,20 @@ class CurrentEntryAPIView(generics.ListAPIView):
         contests = self.get_contests(self.request.user)
         return self.get_entries(self.request.user, contests)
 
+
 class UserUpcomingAPIView(UserEntryAPIView):
     """
     A User's upcoming Contests
     """
     contest_model = UpcomingContest
 
+
 class UserLiveAPIView(UserEntryAPIView):
     """
     A User's live Contests
     """
     contest_model = LiveContest
+
 
 class UserHistoryAPIView(UserEntryAPIView):
     """
@@ -173,6 +176,7 @@ class UserHistoryAPIView(UserEntryAPIView):
 
     contest_model   = HistoryContest
     pagination_class = LimitOffsetPagination
+
 
 class AllLineupsView(View):
     """
@@ -190,6 +194,7 @@ class AllLineupsView(View):
             #return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
             return HttpResponse(clm.get_http_payload(), content_type='application/octet-stream')
 
+
 class SingleLineupView(View):
     """
     get a single lineup for any contest, lineup_id combination.
@@ -202,6 +207,7 @@ class SingleLineupView(View):
         lineup_data = clm.get_lineup_data( user= request.user, lineup_id=lineup_id )
 
         return HttpResponse( json.dumps(lineup_data), content_type="application/json" )
+
 
 class RegisteredUsersAPIView(generics.GenericAPIView):
     """
@@ -237,4 +243,3 @@ class RegisteredUsersAPIView(generics.GenericAPIView):
         """
         serialized_data = RegisteredUserSerializer( self.get_object(contest_id), many=True ).data
         return Response(serialized_data)
-
