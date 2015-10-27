@@ -255,7 +255,6 @@ class EnterLineupAPIView(generics.CreateAPIView):
     """
     enter a lineup into the contest. (exceptions may occur based on user balance, etc...)
     """
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
     serializer_class        = EnterLineupSerializer
 
