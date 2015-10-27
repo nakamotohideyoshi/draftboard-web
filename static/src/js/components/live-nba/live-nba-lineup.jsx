@@ -25,18 +25,22 @@ var LiveNBALineup = React.createClass({
   },
 
   render: function() {
-    var lineupPlayers;
+    var lineupData;
 
     if (this.props.whichSide === 'me') {
-      lineupPlayers = LiveNBAStore.data.myLineupPlayers;
+      lineupData = LiveNBAStore.data.myLineupPlayers;
     } else {
-      lineupPlayers = LiveNBAStore.data.opponentLineupPlayers;
+      lineupData = LiveNBAStore.data.opponentLineupPlayers;
     }
 
+    var currentPlayers = lineupData.order.map(function(playerId) {
+      // need a better check here
+      if (lineupData.players[playerId] === undefined) {
+        return null;
+      }
 
-    var currentPlayers = lineupPlayers.map(function(player) {
       return (
-        <LiveNBALineupPlayer key={player.id} player={player} />
+        <LiveNBALineupPlayer key={playerId} player={lineupData.players[playerId]} />
       );
     });
 

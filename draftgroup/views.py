@@ -6,7 +6,6 @@ from dataden.classes import DataDen
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.pagination import LimitOffsetPagination
 from draftgroup.models import DraftGroup, UpcomingDraftGroup
@@ -18,12 +17,12 @@ import json
 from django.http import HttpResponse
 from django.views.generic import View
 
+
 class DraftGroupAPIView(generics.GenericAPIView):
     """
     return the draft group players for the given draftgroup id
     """
 
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
     serializer_class = DraftGroupSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -44,12 +43,12 @@ class DraftGroupAPIView(generics.GenericAPIView):
             c.add( self.__class__.__name__ + str(pk), serialized_data, 300 ) # 300 seconds
         return Response(serialized_data)
 
+
 class UpcomingDraftGroupAPIView(generics.ListAPIView):
     """
     return the draft group players for the given draftgroup id
     """
 
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     serializer_class        = UpcomingDraftGroupSerializer
 
     def get_queryset(self):
@@ -57,6 +56,7 @@ class UpcomingDraftGroupAPIView(generics.ListAPIView):
         Return a QuerySet from the UpcomingDraftGroup model (DraftGroup objects).
         """
         return UpcomingDraftGroup.objects.all()
+
 
 class DraftGroupFantasyPointsView(View):
     """
@@ -72,6 +72,7 @@ class DraftGroupFantasyPointsView(View):
         }
         #return HttpResponse( dgm.get_player_stats( draft_group=draft_group ) )
         return HttpResponse(json.dumps(data), content_type="application/json" )
+
 
 class DraftGroupGameBoxscoresView(View):
     """
@@ -91,6 +92,7 @@ class DraftGroupGameBoxscoresView(View):
             data.append( b.to_json() )
 
         return HttpResponse( json.dumps(data), content_type='application/json' )
+
 
 class DraftGroupPbpDescriptionView(View):
     """

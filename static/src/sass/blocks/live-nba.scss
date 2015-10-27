@@ -1,13 +1,16 @@
 $live-lineup-width: 200px;
 
 .live-nba {
-  background: transparent url(../img/blocks/live-nba/bg.png) no-repeat left top;
-  background-size: 120% auto;
+  background: transparent url(../img/blocks/live-nba/bg.jpg) no-repeat left top;
+  background-size: 100% auto;
   height: 100%;
   margin: 0 auto;
   min-width: 1024px;
   position: relative;
   width: 100%;
+
+  // for the top menu
+  margin-top: 60px;
 
   & > * {
     position: relative;
@@ -33,9 +36,14 @@ $live-lineup-width: 200px;
       position: absolute;
       right: 0;
       top: 0;
-      background: transparent url(../img/blocks/live-nba/opponent-bg.png) no-repeat left top;
-      background-size: 120% auto;
       z-index: 1;
     }
+  }
+}
+
+.pmr {
+  &--complete {
+    opacity: 0.9;
+    stroke: #46495e;
   }
 }

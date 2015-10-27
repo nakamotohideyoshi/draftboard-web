@@ -11,18 +11,17 @@ from sports.serializers import FantasyPointsSerializer
 from sports.nba.serializers import InjurySerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 import json
 from dataden.cache.caches import PlayByPlayCache
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
+
 
 class LeagueInjuryAPIView(generics.ListAPIView):
     """
     Retrieve the contests which are relevant to the home page lobby.
     """
 
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
 
     #serializer_class        = None #InjurySerializer
@@ -43,6 +42,7 @@ class LeagueInjuryAPIView(generics.ListAPIView):
         site_sport_manager = sports.classes.SiteSportManager()
         injury_model_class = site_sport_manager.get_injury_class( sport )
         return injury_model_class.objects.all()
+
 
 class PlayerCsvView(View):
     template_name   = 'player_csv.html'
@@ -97,6 +97,7 @@ class PlayerCsvView(View):
         context = {'form'  : form}
         return render(request, self.template_name, context)
 
+
 class LivePbpView(View):
     """
     uses dataden.cache.caches.PlayByPlayCache to access the most recent pbp objects (~100 per sport)
@@ -107,12 +108,11 @@ class LivePbpView(View):
 
         return HttpResponse( json.dumps(pbp_cache.get_pbps()), content_type='application/json' )
 
+
 class FantasyPointsHistoryAPIView(generics.ListAPIView):
     """
 
     """
-
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     permission_classes      = (IsAuthenticated,)
 
     def dictfetchall(self, cursor):
