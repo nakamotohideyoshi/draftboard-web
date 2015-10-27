@@ -3,6 +3,7 @@
 
 import json
 
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import renderers
 from rest_framework import generics
@@ -10,11 +11,18 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import ValidationError, NotFound
-from contest.serializers import ContestSerializer, CurrentEntrySerializer, RegisteredUserSerializer
+from contest.serializers import ContestSerializer, CurrentEntrySerializer, \
+                                RegisteredUserSerializer, EnterLineupSerializer
 from contest.classes import ContestLineupManager
 from contest.models import Contest, Entry, LobbyContest, \
                             UpcomingContest, LiveContest, HistoryContest, CurrentContest
-
+from contest.buyin.classes import BuyinManager
+from contest.exceptions import ContestLineupMismatchedDraftGroupsException, \
+                                ContestIsInProgressOrClosedException, \
+                                ContestIsFullException, ContestCouldNotEnterException, \
+                                ContestMaxEntriesReachedException, \
+                                ContestIsNotAcceptingLineupsException
+from lineup.models import Lineup
 from dataden.util.simpletimer import SimpleTimer
 from django.http import HttpResponse
 from django.views.generic import View
@@ -235,3 +243,46 @@ class RegisteredUsersAPIView(generics.GenericAPIView):
         serialized_data = RegisteredUserSerializer( self.get_object(contest_id), many=True ).data
         return Response(serialized_data)
 
+class EnterLineupAPIView(generics.CreateAPIView):
+    """
+    enter a lineup into the contest. (exceptions may occur based on user balance, etc...)
+    """
+    authentication_classes  = (SessionAuthentication, BasicAuthentication)
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = EnterLineupSerializer
+
+    def post(self, request, format=None):
+        #print( request.data )
+        lineup_id       = request.data.get('lineup')
+        contest_id      = request.data.get('contest')
+
+        # ensure the contest is valid
+        try:
+            contest = Contest.objects.get( pk=contest_id )
+        except Contest.DoesNotExist:
+            return Response( 'Contest does not exist', status=status.HTTP_403_FORBIDDEN )
+
+        # ensure the lineup is valid for this user
+        try:
+            lineup = Lineup.objects.get( pk=lineup_id, user=request.user )
+        except Lineup.DoesNotExist:
+            return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
+
+        #
+        # call the buyin task
+        bm = BuyinManager( request.user )
+        try:
+            bm.buyin( contest, lineup )
+        except ContestLineupMismatchedDraftGroupsException:
+            return Response( 'This lineup was not drafted from the same group as this contest.', status=status.HTTP_403_FORBIDDEN )
+        except ContestIsInProgressOrClosedException:
+            return Response( 'You may no longer enter this contest', status=status.HTTP_403_FORBIDDEN )
+        except ContestCouldNotEnterException:
+            return Response( 'ContestCouldNotEnterException', status=status.HTTP_403_FORBIDDEN )
+        except ContestIsNotAcceptingLineupsException:
+            return Response( 'Contest is not accepting entries', status=status.HTTP_403_FORBIDDEN )
+        except (ContestMaxEntriesReachedException, ContestIsFullException) as e:
+            return Response( 'Contest is full', status=status.HTTP_403_FORBIDDEN )
+
+        #
+        return Response('Lineup was successfully entered into the Contest!')

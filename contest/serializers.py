@@ -70,3 +70,8 @@ class RegisteredUserSerializer(serializers.Serializer):
 
     # class Meta:
     #     fields  = ('total', 'username')
+
+class EnterLineupSerializer(serializers.Serializer):
+
+    contest = serializers.IntegerField()
+    lineup = serializers.IntegerField()
