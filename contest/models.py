@@ -140,6 +140,13 @@ class Contest(models.Model):
     doubleup    = models.BooleanField(default=False, null=False,
                             help_text='whether this contest has a double-up style prize structure')
 
+    def is_started(self):
+        """
+        used in the contest.buyin.classes.BuyinManager validation
+        :return:
+        """
+        return timezone.now() >= self.start
+
     @property
     def buyin(self):
         return self.prize_structure.buyin

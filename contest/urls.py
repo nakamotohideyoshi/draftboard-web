@@ -6,7 +6,7 @@ from django.conf.urls import url
 from contest.views import LobbyAPIView, AllLineupsView, \
                           UserUpcomingAPIView, UserLiveAPIView, UserHistoryAPIView, \
                           SingleLineupView, CurrentEntryAPIView, SingleContestAPIView, \
-                          RegisteredUsersAPIView
+                          RegisteredUsersAPIView, EnterLineupAPIView
 from contest.views import ContestCreate, ContestUpdate
 
 urlpatterns = patterns( '',
@@ -15,6 +15,10 @@ urlpatterns = patterns( '',
     url(r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest-detail'),
     # (r'^add/$', ContestCreate.as_view(), name='contest_add'),
     # (r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest_update'),
+
+    #
+    #
+    (r'^enter-lineup/$', EnterLineupAPIView.as_view()),
 
     #
     # get the info for a single Contest by its id

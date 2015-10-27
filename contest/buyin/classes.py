@@ -148,12 +148,17 @@ class BuyinManager(AbstractSiteUserClass):
         if lineup is not None and contest.draft_group.pk != lineup.draft_group.pk:
             raise ContestLineupMismatchedDraftGroupsException()
 
-        self.check_contest_full(contest)
-
         #
         # Make sure the contest status is active
-        if contest.status not in Contest.STATUS_UPCOMING:
+        if contest.is_started():
             raise ContestIsInProgressOrClosedException()
+
+        self.check_contest_full(contest)
+
+        # #
+        # # Make sure the contest status is active
+        # if contest.status not in Contest.STATUS_UPCOMING:
+        #     raise ContestIsInProgressOrClosedException()
 
         #
         # Verify the lineup is the User's Lineup
