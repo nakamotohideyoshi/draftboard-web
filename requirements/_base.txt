@@ -78,6 +78,9 @@ python-dateutil==2.4.2
 # Flower (celery task metrics/logging/captures)
 flower==0.8.3
 
+# for testing
+djangorestframework-jwt==1.7.2
+
 # for optimal payments.  any version >= than certifi 2015.9.6.2 will likely work
 urllib3==1.10.2
 certifi==2015.9.6.2
