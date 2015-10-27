@@ -8,9 +8,9 @@ module.exports = [
     // callback that returns the data
     fixtures: function () {
       return [
-        {id: 'cbb8bb72-4d7d-11e5-885d-feff819cdc9a', "player": "Lebron James", "position": "PG", "photo": "", "status": "playing", "points": 23.5},
-        {id: 'cbb8be42-4d7d-11e5-885d-feff819cdc9b', "player": "Demarcus Cousins", "position": "PG", "photo": "", "status": "", "points": 3},
-        {id: 'cbb8bf6e-4d7d-11e5-885d-feff819cdc9h', "player": "Kyle Korver", "position": "PG", "photo": "", "status": "", "points": 6}
+        {id: '8ec91366-faea-4196-bbfd-b8fab7434795', "player": "Lebron James", "position": "PG", "photo": "", "status": "playing", "points": 23.5},
+        {id: 'ce8d0944-b277-499e-9701-02a5f1828615', "player": "Demarcus Cousins", "position": "PG", "photo": "", "status": "", "points": 3},
+        {id: 'df187cd4-4d7d-11e5-885d-feff819cdc9g', "player": "Kyle Korver", "position": "PG", "photo": "", "status": "", "points": 6}
       ];
     },
 

@@ -1,9 +1,10 @@
 "use strict";
 
 var React = require('react');
+var ReactCSSTransitionGroup = require('react-addons-css-transition-group');
 var renderComponent = require('../../lib/render-component');
 var LiveNBAHistoryEvent = require('./live-nba-history-event');
-var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
+
 
 /**
  * The history ticker at the bottom of the live page
@@ -35,7 +36,11 @@ var LiveNBAHistory = React.createClass({
 
     return (
       <div className={ className }>
-        <ReactCSSTransitionGroup transitionName="event" className="live-history__slider">
+        <ReactCSSTransitionGroup
+          transitionEnterTimeout={290}
+          transitionLeaveTimeout={290}
+          transitionName="event"
+          className="live-history__slider">
           {currentEvents}
         </ReactCSSTransitionGroup>
       </div>

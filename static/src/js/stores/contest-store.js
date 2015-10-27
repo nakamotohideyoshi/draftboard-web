@@ -19,6 +19,9 @@ var ContestStore = Reflux.createStore({
   allContests: [],
 
   init: function() {
+    log.debug('ContestStore.init()');
+    this.resetState();
+
     this.listenTo(ContestActions.load, this.fetchContests);
     this.listenTo(ContestActions.contestFocused, this.setFocusedContest);
     this.listenTo(ContestActions.registerFilter, this.registerFilter);
@@ -27,6 +30,13 @@ var ContestStore = Reflux.createStore({
     this.listenTo(ContestActions.setSortProperty, this.setSortProperty);
     this.listenTo(ContestActions.setSortDirection, this.setSortDirection);
 
+    this.fetchContests();
+  },
+
+
+  resetState: function() {
+    this.filters = [];
+    this.allContests = [];
     this.data = {
       filteredContests: {},
       focusedContestId: null,
@@ -34,8 +44,6 @@ var ContestStore = Reflux.createStore({
       sortDirection: 'asc',
       activeFilters: []
     };
-
-    this.fetchContests();
   },
 
 

@@ -1,6 +1,7 @@
 'use strict';
 
 var React = require('react');
+var ReactDOM = require('react-dom');
 
 
 /**
@@ -30,7 +31,7 @@ var ModalWrap = React.createClass({
 
   componentDidUpdate: function() {
     this.modalElement.className = this.props.className;
-    React.render(<div className="cmp-modal__inner">{this.props.children}</div>, this.modalElement);
+    ReactDOM.render(<div className="cmp-modal__inner">{this.props.children}</div>, this.modalElement);
   },
 
   render: function() {

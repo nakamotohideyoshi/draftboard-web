@@ -21,7 +21,7 @@ var LiveNBACourt = React.createClass({
       var event = LiveNBAStore.data.courtEvents[key];
 
       return (
-        <LiveNBACourtShooter key={ event.id } x={ event.x } y={ event.y } />
+        <LiveNBACourtShooter key={ event.id } x={ event.location.coord_x } y={ event.location.coord_y } />
       );
     });
 

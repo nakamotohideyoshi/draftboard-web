@@ -18,13 +18,6 @@ var DraftNewLineupStore = Reflux.createStore({
 
   data: {},
 
-  salaryCaps: {
-    'nba': 50000,
-    'nfl': 50000,
-    'nhl': 50000,
-    'mlb': 50000
-  },
-
   rosterTemplates: {
     'nfl': [
       {idx: 0, name: 'QB', positions: ['QB'], player: null},
@@ -74,16 +67,7 @@ var DraftNewLineupStore = Reflux.createStore({
 
   init: function() {
     log.debug('DraftNewLineupStore.init()');
-
-    this.data = {
-      lineupTitle: null,
-      lineup: [],
-      remainingSalary: 150000,
-      avgPlayerSalary: 0,
-      contestSalaryLimit: 0,
-      availablePositions: [],
-      errorMessage: ''
-    };
+    this.resetState();
 
     this.listenTo(DraftActions.addPlayerToLineup, this.addPlayer);
     this.listenTo(DraftActions.removePlayerFromLineup, this.removePlayer);
@@ -93,6 +77,26 @@ var DraftNewLineupStore = Reflux.createStore({
 
     this.findAvailablePositions();
     this.trigger(this.data);
+  },
+
+
+  resetState: function() {
+    this.data = {
+      lineupTitle: null,
+      lineup: [],
+      remainingSalary: 150000,
+      avgPlayerSalary: 0,
+      contestSalaryLimit: 0,
+      availablePositions: [],
+      errorMessage: ''
+    };
+    this.salaryCaps = {
+      'nba': 50000,
+      'nfl': 50000,
+      'nhl': 50000,
+      'mlb': 50000
+    };
+    this.findAvailablePositions();
   },
 
 
