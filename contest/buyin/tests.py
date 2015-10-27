@@ -133,30 +133,30 @@ class BuyinTest(AbstractTest):
         self.assertRaises(exceptions.ContestIsFullException,
                   lambda: bm.buyin(self.contest))
 
-    def test_contest_is_in_progress(self):
-        self.contest.status = self.contest.INPROGRESS
-        self.contest.save()
-        self.should_raise_contest_is_in_progress_or_closed_exception()
-
-    def test_contest_is_cancelled(self):
-        self.contest.status = self.contest.CANCELLED
-        self.contest.save()
-        self.should_raise_contest_is_in_progress_or_closed_exception()
-
-    def test_contest_is_closed(self):
-        self.contest.status = self.contest.CLOSED
-        self.contest.save()
-        self.should_raise_contest_is_in_progress_or_closed_exception()
-
-    def test_contest_is_completed(self):
-        self.contest.status = self.contest.COMPLETED
-        self.contest.save()
-        self.should_raise_contest_is_in_progress_or_closed_exception()
-
-    def should_raise_contest_is_in_progress_or_closed_exception(self):
-        bm = BuyinManager(self.user)
-        self.assertRaises(exceptions.ContestIsInProgressOrClosedException,
-                  lambda: bm.buyin(self.contest))
+    # def test_contest_is_in_progress(self):
+    #     self.contest.status = self.contest.INPROGRESS
+    #     self.contest.save()
+    #     self.should_raise_contest_is_in_progress_or_closed_exception()
+    #
+    # def test_contest_is_cancelled(self):
+    #     self.contest.status = self.contest.CANCELLED
+    #     self.contest.save()
+    #     self.should_raise_contest_is_in_progress_or_closed_exception()
+    #
+    # def test_contest_is_closed(self):
+    #     self.contest.status = self.contest.CLOSED
+    #     self.contest.save()
+    #     self.should_raise_contest_is_in_progress_or_closed_exception()
+    #
+    # def test_contest_is_completed(self):
+    #     self.contest.status = self.contest.COMPLETED
+    #     self.contest.save()
+    #     self.should_raise_contest_is_in_progress_or_closed_exception()
+    #
+    # def should_raise_contest_is_in_progress_or_closed_exception(self):
+    #     bm = BuyinManager(self.user)
+    #     self.assertRaises(exceptions.ContestIsInProgressOrClosedException,
+    #               lambda: bm.buyin(self.contest))
 
     def test_user_owns_lineup(self):
         lineup = Lineup()
