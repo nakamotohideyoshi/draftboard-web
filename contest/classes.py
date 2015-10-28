@@ -1,6 +1,7 @@
 #
 # contest/classes.py
 
+import os
 import struct
 from .models import Contest
 from sports.models import SiteSport, PlayerStats
@@ -273,6 +274,11 @@ class ContestLineupManager(object):
         for testing purposes, get all the lineups as json.
         """
 
+        settings_module_name = os.environ['DJANGO_SETTINGS_MODULE']
+        # 'mysite.settings.local'   should let this method work
+        if 'local' not in settings_module_name:
+            raise Exception('json from dev_get_all_lineups not allowed unless local settings being used')
+
         lineups = []
 
         for e in self.entries:
@@ -283,7 +289,8 @@ class ContestLineupManager(object):
             # pack in each player in the lineup, in order of course
             lm = LineupManager( e.user )
             for pid in lm.get_player_ids( e.lineup ):
-                player_ids.append( self.starter_map[ pid ] )
+                #player_ids.append( self.starter_map[ pid ] ) # masks out no-yet-started players
+                player_ids.append( pid )
 
             lineups.append( {
                 'lineup_id'     : lineup_id,
@@ -291,8 +298,8 @@ class ContestLineupManager(object):
             } )
 
         data = {
-            'endpoint'                          : '/contest/all-lineups/%s?json' % int( contest_id ),
-            'bytes_for_condensed_response'      : self.get_size_in_bytes(),
+            'endpoint'                      : '/contest/all-lineups/%s?json' % int( contest_id ),
+            'bytes_for_condensed_response'  : self.get_size_in_bytes(),
             'total_lineups'                 : self.contest.entries,
             'players_per_lineup'            : self.players_per_lineup,
             'lineups'                       : lineups,
