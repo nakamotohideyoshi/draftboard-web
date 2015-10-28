@@ -54,15 +54,16 @@ class AbstractPush(object):
         # THIS NETWORK CALL SOMETIMES TAKES ~1second and MUST be tasked off asynchronously!
         #
         # send the data on the channel with the specified event name.
-        send_data = data.get_o()
+        if not isinstance( data, dict ):
+            data = data.get_o()
         if async:
-            pusher_send_task.apply_async( (self, send_data), serializer='pickle' )
+            pusher_send_task.apply_async( (self, data), serializer='pickle' )
         else:
             # json.loads(json.dumps(data)) --> dumps json in a serialized form, so it can be re-loaded as a real json object
             # print( 'data:', str(data))
             # json_data = ast.literal_eval(data)
             # print( 'json_data:', json_data )
-            self.pusher.trigger( self.channel, self.event, send_data )
+            self.pusher.trigger( self.channel, self.event, data )
 
 class DataDenPush( AbstractPush ):
     """
