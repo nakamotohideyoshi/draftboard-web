@@ -1,97 +1,85 @@
 {
   "pk": 1,
-  "start": "2015-10-15T23:00:00Z",
-  "end": "2015-10-16T07:00:00Z",
-  "sport": "nba",
   "players": [
     {
       "player_id": 185,
       "name": "Stephen Curry",
-      "salary": 13500,
+      "salary": 11200,
       "start": "2015-10-16T02:00:00Z",
       "position": "PG",
-      "fppg": 32.125,
+      "fppg": 26.375,
       "team_alias": "GSW"
-    },
-    {
-      "player_id": 296,
-      "name": "Patrick Beverley",
-      "salary": 10600,
-      "start": "2015-10-16T02:00:00Z",
-      "position": "PG",
-      "fppg": 19.9,
-      "team_alias": "HOU"
     },
     {
       "player_id": 13,
       "name": "George Hill",
-      "salary": 9800,
+      "salary": 9300,
       "start": "2015-10-15T23:00:00Z",
       "position": "PG",
-      "fppg": 18.7,
+      "fppg": 20.0833333333333,
       "team_alias": "IND"
     },
     {
-      "player_id": 12,
-      "name": "Toney Douglas",
-      "salary": 8000,
-      "start": "2015-10-15T23:00:00Z",
+      "player_id": 296,
+      "name": "Patrick Beverley",
+      "salary": 8800,
+      "start": "2015-10-16T02:00:00Z",
       "position": "PG",
-      "fppg": 14.15,
-      "team_alias": "IND"
+      "fppg": 17.375,
+      "team_alias": "HOU"
+    },
+    {
+      "player_id": 298,
+      "name": "Ty Lawson",
+      "salary": 7200,
+      "start": "2015-10-16T02:00:00Z",
+      "position": "PG",
+      "fppg": 12.875,
+      "team_alias": "HOU"
     },
     {
       "player_id": 455,
       "name": "Mo Williams",
-      "salary": 7400,
+      "salary": 6200,
       "start": "2015-10-15T23:00:00Z",
       "position": "PG",
-      "fppg": 13.1,
+      "fppg": 12.75,
       "team_alias": "CLE"
     },
     {
-      "player_id": 292,
-      "name": "Will Cummings",
-      "salary": 7000,
-      "start": "2015-10-16T02:00:00Z",
+      "player_id": 12,
+      "name": "Toney Douglas",
+      "salary": 5200,
+      "start": "2015-10-15T23:00:00Z",
       "position": "PG",
-      "fppg": 12.2,
-      "team_alias": "HOU"
+      "fppg": 11.7916666666667,
+      "team_alias": "IND"
     },
     {
       "player_id": 182,
       "name": "Shaun Livingston",
-      "salary": 4800,
+      "salary": 4700,
       "start": "2015-10-16T02:00:00Z",
       "position": "PG",
-      "fppg": 11.1875,
+      "fppg": 10.4583333333333,
       "team_alias": "GSW"
     },
     {
       "player_id": 26,
       "name": "Rodney Stuckey",
-      "salary": 4800,
+      "salary": 4400,
       "start": "2015-10-15T23:00:00Z",
       "position": "PG",
-      "fppg": 9.75,
+      "fppg": 10.1666666666667,
       "team_alias": "IND"
     },
     {
-      "player_id": 452,
-      "name": "Quinn Cook",
-      "salary": 4500,
-      "start": "2015-10-15T23:00:00Z",
-      "position": "PG",
-      "fppg": 9.1,
-      "team_alias": "CLE"
-    },
-    {
-      "player_id": 298,
-      "name": "Ty Lawson",
-      "salary": 3800,
+      "player_id": 292,
+      "name": "Will Cummings",
+      "salary": 4300,
       "start": "2015-10-16T02:00:00Z",
       "position": "PG",
-      "fppg": 8.75,
+      "fppg": 9.46428571428571,
       "team_alias": "HOU"
     },
     {
@@ -113,31 +101,49 @@
       "team_alias": "CLE"
     },
     {
-      "player_id": 304,
-      "name": "K.J. McDaniels",
-      "salary": 12600,
+      "player_id": 452,
+      "name": "Quinn Cook",
+      "salary": 3000,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "PG",
+      "fppg": 7,
+      "team_alias": "CLE"
+    },
+    {
+      "player_id": 299,
+      "name": "James Harden",
+      "salary": 11900,
       "start": "2015-10-16T02:00:00Z",
       "position": "SG",
-      "fppg": 24.75,
+      "fppg": 22.375,
       "team_alias": "HOU"
     },
     {
       "player_id": 440,
       "name": "Jared Cunningham",
-      "salary": 11000,
+      "salary": 10600,
       "start": "2015-10-15T23:00:00Z",
       "position": "SG",
-      "fppg": 22.55,
+      "fppg": 22.2142857142857,
       "team_alias": "CLE"
     },
     {
-      "player_id": 19,
-      "name": "Glenn Robinson",
-      "salary": 9500,
+      "player_id": 304,
+      "name": "K.J. McDaniels",
+      "salary": 9200,
+      "start": "2015-10-16T02:00:00Z",
+      "position": "SG",
+      "fppg": 20.125,
+      "team_alias": "HOU"
+    },
+    {
+      "player_id": 457,
+      "name": "Matthew Dellavedova",
+      "salary": 8500,
       "start": "2015-10-15T23:00:00Z",
       "position": "SG",
-      "fppg": 19.45,
-      "team_alias": "IND"
+      "fppg": 17,
+      "team_alias": "CLE"
     },
     {
       "player_id": 171,
@@ -145,133 +151,115 @@
       "salary": 8200,
       "start": "2015-10-16T02:00:00Z",
       "position": "SG",
-      "fppg": 20.0625,
+      "fppg": 18.9583333333333,
       "team_alias": "GSW"
     },
     {
-      "player_id": 21,
-      "name": "Joseph Young",
-      "salary": 7700,
-      "start": "2015-10-15T23:00:00Z",
+      "player_id": 302,
+      "name": "Marcus Thornton",
+      "salary": 7800,
+      "start": "2015-10-16T02:00:00Z",
       "position": "SG",
-      "fppg": 16.35,
-      "team_alias": "IND"
+      "fppg": 15.125,
+      "team_alias": "HOU"
     },
     {
       "player_id": 1,
       "name": "Monta Ellis",
-      "salary": 7300,
+      "salary": 7500,
       "start": "2015-10-15T23:00:00Z",
       "position": "SG",
-      "fppg": 14.75,
+      "fppg": 16.2916666666667,
       "team_alias": "IND"
     },
     {
-      "player_id": 457,
-      "name": "Matthew Dellavedova",
-      "salary": 6900,
+      "player_id": 19,
+      "name": "Glenn Robinson",
+      "salary": 6600,
       "start": "2015-10-15T23:00:00Z",
       "position": "SG",
-      "fppg": 14.45,
-      "team_alias": "CLE"
+      "fppg": 16.2083333333333,
+      "team_alias": "IND"
     },
     {
-      "player_id": 299,
-      "name": "James Harden",
-      "salary": 6600,
-      "start": "2015-10-16T02:00:00Z",
+      "player_id": 21,
+      "name": "Joseph Young",
+      "salary": 6400,
+      "start": "2015-10-15T23:00:00Z",
       "position": "SG",
-      "fppg": 15.8,
-      "team_alias": "HOU"
+      "fppg": 14.6666666666667,
+      "team_alias": "IND"
+    },
+    {
+      "player_id": 442,
+      "name": "J.R. Smith",
+      "salary": 6100,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "SG",
+      "fppg": 13.25,
+      "team_alias": "CLE"
     },
     {
       "player_id": 165,
       "name": "Leandro Barbosa",
-      "salary": 6200,
+      "salary": 5400,
       "start": "2015-10-16T02:00:00Z",
       "position": "SG",
-      "fppg": 14.5,
+      "fppg": 12.7083333333333,
       "team_alias": "GSW"
+    },
+    {
+      "player_id": 448,
+      "name": "Joe Harris",
+      "salary": 5000,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "SG",
+      "fppg": 9.75,
+      "team_alias": "CLE"
     },
     {
       "player_id": 168,
       "name": "Brandon Rush",
-      "salary": 5400,
+      "salary": 4800,
       "start": "2015-10-16T02:00:00Z",
       "position": "SG",
-      "fppg": 12.0625,
+      "fppg": 11.1666666666667,
       "team_alias": "GSW"
     },
     {
       "player_id": 16,
       "name": "C.J. Miles",
-      "salary": 5300,
+      "salary": 4700,
       "start": "2015-10-15T23:00:00Z",
       "position": "SG",
-      "fppg": 11.05,
+      "fppg": 10.5416666666667,
       "team_alias": "IND"
     },
     {
-      "player_id": 302,
-      "name": "Marcus Thornton",
-      "salary": 5100,
+      "player_id": 188,
+      "name": "Ian Clark",
+      "salary": 4100,
       "start": "2015-10-16T02:00:00Z",
       "position": "SG",
-      "fppg": 12.25,
-      "team_alias": "HOU"
+      "fppg": 8.79166666666667,
+      "team_alias": "GSW"
     },
     {
-      "player_id": 442,
-      "name": "J.R. Smith",
-      "salary": 5000,
+      "player_id": 574,
+      "name": "Dionte Christmas",
+      "salary": 3900,
       "start": "2015-10-15T23:00:00Z",
       "position": "SG",
-      "fppg": 10.25,
-      "team_alias": "CLE"
-    },
-    {
-      "player_id": 448,
-      "name": "Joe Harris",
-      "salary": 4400,
-      "start": "2015-10-15T23:00:00Z",
-      "position": "SG",
-      "fppg": 8.65,
+      "fppg": 10.3,
       "team_alias": "CLE"
     },
     {
       "player_id": 191,
       "name": "Andre Iguodala",
-      "salary": 4200,
+      "salary": 3600,
       "start": "2015-10-16T02:00:00Z",
       "position": "SG",
-      "fppg": 9.5625,
-      "team_alias": "GSW"
-    },
-    {
-      "player_id": 188,
-      "name": "Ian Clark",
-      "salary": 3300,
-      "start": "2015-10-16T02:00:00Z",
-      "position": "SG",
-      "fppg": 7.375,
-      "team_alias": "GSW"
-    },
-    {
-      "player_id": 161,
-      "name": "Chris Babb",
-      "salary": 3000,
-      "start": "2015-10-16T02:00:00Z",
-      "position": "SG",
-      "fppg": 3.8125,
-      "team_alias": "GSW"
-    },
-    {
-      "player_id": 199,
-      "name": "Ben Gordon",
-      "salary": 3000,
-      "start": "2015-10-16T02:00:00Z",
-      "position": "SG",
-      "fppg": 1.1875,
+      "fppg": 8.5,
       "team_alias": "GSW"
     },
     {
@@ -280,8 +268,26 @@
       "salary": 3000,
       "start": "2015-10-16T02:00:00Z",
       "position": "SG",
-      "fppg": 3.55,
+      "fppg": 4.46875,
       "team_alias": "HOU"
+    },
+    {
+      "player_id": 161,
+      "name": "Chris Babb",
+      "salary": 3000,
+      "start": "2015-10-16T02:00:00Z",
+      "position": "SG",
+      "fppg": 3.29166666666667,
+      "team_alias": "GSW"
+    },
+    {
+      "player_id": 199,
+      "name": "Ben Gordon",
+      "salary": 3000,
+      "start": "2015-10-16T02:00:00Z",
+      "position": "SG",
+      "fppg": 0.791666666666667,
+      "team_alias": "GSW"
     },
     {
       "player_id": 458,
@@ -289,7 +295,7 @@
       "salary": 3000,
       "start": "2015-10-15T23:00:00Z",
       "position": "SG",
-      "fppg": 3.55,
+      "fppg": 2.53571428571429,
       "team_alias": "CLE"
     },
     {
@@ -304,101 +310,110 @@
     {
       "player_id": 31,
       "name": "Paul George",
-      "salary": 14500,
+      "salary": 14900,
       "start": "2015-10-15T23:00:00Z",
       "position": "SF",
-      "fppg": 29.45,
+      "fppg": 33,
       "team_alias": "IND"
     },
     {
-      "player_id": 290,
-      "name": "Corey Brewer",
-      "salary": 12000,
+      "player_id": 297,
+      "name": "Trevor Ariza",
+      "salary": 11500,
       "start": "2015-10-16T02:00:00Z",
       "position": "SF",
-      "fppg": 24.05,
+      "fppg": 21.09375,
       "team_alias": "HOU"
     },
     {
       "player_id": 174,
       "name": "Draymond Green",
-      "salary": 11300,
+      "salary": 9300,
       "start": "2015-10-16T02:00:00Z",
       "position": "SF",
-      "fppg": 27.375,
+      "fppg": 22.7916666666667,
       "team_alias": "GSW"
+    },
+    {
+      "player_id": 290,
+      "name": "Corey Brewer",
+      "salary": 8700,
+      "start": "2015-10-16T02:00:00Z",
+      "position": "SF",
+      "fppg": 18.3125,
+      "team_alias": "HOU"
     },
     {
       "player_id": 436,
       "name": "Richard Jefferson",
-      "salary": 9800,
+      "salary": 7400,
       "start": "2015-10-15T23:00:00Z",
       "position": "SF",
-      "fppg": 19.05,
+      "fppg": 16.4642857142857,
+      "team_alias": "CLE"
+    },
+    {
+      "player_id": 429,
+      "name": "James Jones",
+      "salary": 5900,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "SF",
+      "fppg": 13.1071428571429,
       "team_alias": "CLE"
     },
     {
       "player_id": 291,
       "name": "Sam Dekker",
-      "salary": 7300,
+      "salary": 4900,
       "start": "2015-10-16T02:00:00Z",
       "position": "SF",
-      "fppg": 14.9,
+      "fppg": 11.71875,
       "team_alias": "HOU"
     },
     {
-      "player_id": 297,
-      "name": "Trevor Ariza",
-      "salary": 6900,
+      "player_id": 196,
+      "name": "Harrison Barnes",
+      "salary": 4300,
       "start": "2015-10-16T02:00:00Z",
       "position": "SF",
-      "fppg": 14.2,
-      "team_alias": "HOU"
-    },
-    {
-      "player_id": 429,
-      "name": "James Jones",
-      "salary": 6700,
-      "start": "2015-10-15T23:00:00Z",
-      "position": "SF",
-      "fppg": 13.5,
-      "team_alias": "CLE"
+      "fppg": 9.41666666666667,
+      "team_alias": "GSW"
     },
     {
       "player_id": 451,
       "name": "Austin Daye",
-      "salary": 6300,
+      "salary": 3900,
       "start": "2015-10-15T23:00:00Z",
       "position": "SF",
-      "fppg": 13.9,
+      "fppg": 10.3214285714286,
       "team_alias": "CLE"
     },
     {
       "player_id": 431,
       "name": "LeBron James",
-      "salary": 4500,
+      "salary": 3000,
       "start": "2015-10-15T23:00:00Z",
       "position": "SF",
-      "fppg": 10.65,
+      "fppg": 7.60714285714286,
+      "team_alias": "CLE"
+    },
+    {
+      "player_id": 446,
+      "name": "Nick Minnerath",
+      "salary": 3000,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "SF",
+      "fppg": 2.57142857142857,
       "team_alias": "CLE"
     },
     {
       "player_id": 36,
       "name": "C.J. Fair",
-      "salary": 3500,
+      "salary": 3000,
       "start": "2015-10-15T23:00:00Z",
       "position": "SF",
-      "fppg": 6.85,
+      "fppg": 5.70833333333333,
       "team_alias": "IND"
-    },
-    {
-      "player_id": 196,
-      "name": "Harrison Barnes",
-      "salary": 3300,
-      "start": "2015-10-16T02:00:00Z",
-      "position": "SF",
-      "fppg": 8.125,
-      "team_alias": "GSW"
     },
     {
       "player_id": 6,
@@ -406,7 +421,25 @@
       "salary": 3000,
       "start": "2015-10-15T23:00:00Z",
       "position": "SF",
-      "fppg": 3.15,
+      "fppg": 2.83333333333333,
+      "team_alias": "IND"
+    },
+    {
+      "player_id": 33,
+      "name": "Solomon Hill",
+      "salary": 3000,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "SF",
+      "fppg": 5.33333333333333,
+      "team_alias": "IND"
+    },
+    {
+      "player_id": 580,
+      "name": "Kadeem Jack",
+      "salary": 3000,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "SF",
+      "fppg": 0.5,
       "team_alias": "IND"
     },
     {
@@ -415,106 +448,88 @@
       "salary": 3000,
       "start": "2015-10-16T02:00:00Z",
       "position": "SF",
-      "fppg": 4.125,
+      "fppg": 2.75,
       "team_alias": "GSW"
-    },
-    {
-      "player_id": 33,
-      "name": "Solomon Hill",
-      "salary": 3000,
-      "start": "2015-10-15T23:00:00Z",
-      "position": "SF",
-      "fppg": 5.75,
-      "team_alias": "IND"
-    },
-    {
-      "player_id": 446,
-      "name": "Nick Minnerath",
-      "salary": 3000,
-      "start": "2015-10-15T23:00:00Z",
-      "position": "SF",
-      "fppg": 3.35,
-      "team_alias": "CLE"
     },
     {
       "player_id": 288,
       "name": "Terrence Jones",
-      "salary": 8500,
+      "salary": 9500,
       "start": "2015-10-16T02:00:00Z",
       "position": "PF",
-      "fppg": 15.4,
+      "fppg": 18.375,
       "team_alias": "HOU"
     },
     {
       "player_id": 201,
       "name": "Marreese Speights",
-      "salary": 7800,
+      "salary": 7700,
       "start": "2015-10-16T02:00:00Z",
       "position": "PF",
-      "fppg": 17.625,
+      "fppg": 17.4583333333333,
       "team_alias": "GSW"
-    },
-    {
-      "player_id": 9,
-      "name": "Lavoy Allen",
-      "salary": 6400,
-      "start": "2015-10-15T23:00:00Z",
-      "position": "PF",
-      "fppg": 12.1,
-      "team_alias": "IND"
     },
     {
       "player_id": 294,
       "name": "Montrezl Harrell",
-      "salary": 6000,
+      "salary": 6500,
       "start": "2015-10-16T02:00:00Z",
       "position": "PF",
-      "fppg": 9.95,
+      "fppg": 11.09375,
       "team_alias": "HOU"
     },
     {
-      "player_id": 202,
-      "name": "James Michael McAdoo",
-      "salary": 4800,
-      "start": "2015-10-16T02:00:00Z",
+      "player_id": 9,
+      "name": "Lavoy Allen",
+      "salary": 6300,
+      "start": "2015-10-15T23:00:00Z",
       "position": "PF",
-      "fppg": 11.9375,
-      "team_alias": "GSW"
-    },
-    {
-      "player_id": 286,
-      "name": "Chris Walker",
-      "salary": 4800,
-      "start": "2015-10-16T02:00:00Z",
-      "position": "PF",
-      "fppg": 8.2,
-      "team_alias": "HOU"
+      "fppg": 13.75,
+      "team_alias": "IND"
     },
     {
       "player_id": 163,
       "name": "Jason Thompson",
-      "salary": 4600,
+      "salary": 6200,
       "start": "2015-10-16T02:00:00Z",
       "position": "PF",
-      "fppg": 10.0625,
+      "fppg": 13.125,
       "team_alias": "GSW"
     },
     {
-      "player_id": 17,
-      "name": "Rakeem Christmas",
+      "player_id": 202,
+      "name": "James Michael McAdoo",
+      "salary": 5600,
+      "start": "2015-10-16T02:00:00Z",
+      "position": "PF",
+      "fppg": 12.5416666666667,
+      "team_alias": "GSW"
+    },
+    {
+      "player_id": 450,
+      "name": "Kevin Love",
       "salary": 3700,
       "start": "2015-10-15T23:00:00Z",
       "position": "PF",
-      "fppg": 7.25,
-      "team_alias": "IND"
+      "fppg": 5.5,
+      "team_alias": "CLE"
+    },
+    {
+      "player_id": 71,
+      "name": "Jack Cooley",
+      "salary": 3600,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "PF",
+      "fppg": 6.79166666666667,
+      "team_alias": "CLE"
     },
     {
       "player_id": 4,
       "name": "Shayne Whittington",
-      "salary": 3400,
+      "salary": 3200,
       "start": "2015-10-15T23:00:00Z",
       "position": "PF",
-      "fppg": 6.7,
+      "fppg": 7.29166666666667,
       "team_alias": "IND"
     },
     {
@@ -527,8 +542,17 @@
       "team_alias": "GSW"
     },
     {
-      "player_id": 450,
-      "name": "Kevin Love",
+      "player_id": 325,
+      "name": "Arsalan Kazemi",
+      "salary": 3000,
+      "start": "2015-10-16T02:00:00Z",
+      "position": "PF",
+      "fppg": 1.82142857142857,
+      "team_alias": "HOU"
+    },
+    {
+      "player_id": 428,
+      "name": "Michael Dunigan",
       "salary": 3000,
       "start": "2015-10-15T23:00:00Z",
       "position": "PF",
@@ -536,8 +560,17 @@
       "team_alias": "CLE"
     },
     {
-      "player_id": 428,
-      "name": "Michael Dunigan",
+      "player_id": 17,
+      "name": "Rakeem Christmas",
+      "salary": 3000,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "PF",
+      "fppg": 6.04166666666667,
+      "team_alias": "IND"
+    },
+    {
+      "player_id": 575,
+      "name": "Tristan Thompson",
       "salary": 3000,
       "start": "2015-10-15T23:00:00Z",
       "position": "PF",
@@ -554,102 +587,111 @@
       "team_alias": "HOU"
     },
     {
+      "player_id": 286,
+      "name": "Chris Walker",
+      "salary": 3000,
+      "start": "2015-10-16T02:00:00Z",
+      "position": "PF",
+      "fppg": 5.85714285714286,
+      "team_alias": "HOU"
+    },
+    {
+      "player_id": 28,
+      "name": "Ian Mahinmi",
+      "salary": 9100,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "C",
+      "fppg": 19.25,
+      "team_alias": "IND"
+    },
+    {
       "player_id": 301,
       "name": "Clint Capela",
-      "salary": 9900,
+      "salary": 8800,
       "start": "2015-10-16T02:00:00Z",
       "position": "C",
-      "fppg": 20.75,
+      "fppg": 18.53125,
+      "team_alias": "HOU"
+    },
+    {
+      "player_id": 444,
+      "name": "Timofey Mozgov",
+      "salary": 7600,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "C",
+      "fppg": 15.4285714285714,
+      "team_alias": "CLE"
+    },
+    {
+      "player_id": 158,
+      "name": "Festus Ezeli",
+      "salary": 7300,
+      "start": "2015-10-16T02:00:00Z",
+      "position": "C",
+      "fppg": 16.4166666666667,
+      "team_alias": "GSW"
+    },
+    {
+      "player_id": 439,
+      "name": "Anderson Varejao",
+      "salary": 7200,
+      "start": "2015-10-15T23:00:00Z",
+      "position": "C",
+      "fppg": 15.4285714285714,
+      "team_alias": "CLE"
+    },
+    {
+      "player_id": 303,
+      "name": "Joshua Smith",
+      "salary": 6900,
+      "start": "2015-10-16T02:00:00Z",
+      "position": "C",
+      "fppg": 13.53125,
       "team_alias": "HOU"
     },
     {
       "player_id": 8,
       "name": "Myles Turner",
-      "salary": 9000,
+      "salary": 6300,
       "start": "2015-10-15T23:00:00Z",
       "position": "C",
-      "fppg": 17.65,
+      "fppg": 14.7083333333333,
       "team_alias": "IND"
-    },
-    {
-      "player_id": 28,
-      "name": "Ian Mahinmi",
-      "salary": 8400,
-      "start": "2015-10-15T23:00:00Z",
-      "position": "C",
-      "fppg": 16.35,
-      "team_alias": "IND"
-    },
-    {
-      "player_id": 303,
-      "name": "Joshua Smith",
-      "salary": 7900,
-      "start": "2015-10-16T02:00:00Z",
-      "position": "C",
-      "fppg": 14.65,
-      "team_alias": "HOU"
-    },
-    {
-      "player_id": 439,
-      "name": "Anderson Varejao",
-      "salary": 7900,
-      "start": "2015-10-15T23:00:00Z",
-      "position": "C",
-      "fppg": 15.9,
-      "team_alias": "CLE"
     },
     {
       "player_id": 24,
       "name": "Jordan Hill",
-      "salary": 7100,
+      "salary": 4800,
       "start": "2015-10-15T23:00:00Z",
       "position": "C",
-      "fppg": 14.75,
+      "fppg": 12.2916666666667,
       "team_alias": "IND"
     },
     {
       "player_id": 159,
       "name": "Andrew Bogut",
-      "salary": 6700,
+      "salary": 4000,
       "start": "2015-10-16T02:00:00Z",
       "position": "C",
-      "fppg": 16.125,
+      "fppg": 10.75,
       "team_alias": "GSW"
-    },
-    {
-      "player_id": 158,
-      "name": "Festus Ezeli",
-      "salary": 6700,
-      "start": "2015-10-16T02:00:00Z",
-      "position": "C",
-      "fppg": 15.25,
-      "team_alias": "GSW"
-    },
-    {
-      "player_id": 444,
-      "name": "Timofey Mozgov",
-      "salary": 5900,
-      "start": "2015-10-15T23:00:00Z",
-      "position": "C",
-      "fppg": 11.5,
-      "team_alias": "CLE"
     },
     {
       "player_id": 454,
       "name": "Sasha Kaun",
-      "salary": 5100,
+      "salary": 3300,
       "start": "2015-10-15T23:00:00Z",
       "position": "C",
-      "fppg": 10,
+      "fppg": 7.67857142857143,
       "team_alias": "CLE"
     },
     {
       "player_id": 456,
       "name": "Chris Johnson",
-      "salary": 3200,
+      "salary": 3000,
       "start": "2015-10-15T23:00:00Z",
       "position": "C",
-      "fppg": 5.85,
+      "fppg": 4.17857142857143,
       "team_alias": "CLE"
     },
     {
@@ -658,7 +700,7 @@
       "salary": 3000,
       "start": "2015-10-16T02:00:00Z",
       "position": "C",
-      "fppg": 4.55,
+      "fppg": 2.84375,
       "team_alias": "HOU"
     },
     {
@@ -667,8 +709,11 @@
       "salary": 3000,
       "start": "2015-10-16T02:00:00Z",
       "position": "C",
-      "fppg": 3.8,
+      "fppg": 2.71428571428571,
       "team_alias": "HOU"
     }
-  ]
+  ],
+  "sport": "nba",
+  "start": "2015-10-15T23:00:00Z",
+  "end": "2015-10-16T07:00:00Z"
 }

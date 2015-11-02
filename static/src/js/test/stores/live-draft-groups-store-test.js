@@ -18,6 +18,7 @@ describe('LiveDraftGroupsStore', function() {
 
     this.superagentMock = require('superagent-mock')(request, config);
     this.LiveDraftGroupsStore = require('../../stores/live-draft-groups-store');
+    this.LiveDraftGroupsStore.resetData();
   });
 
   after(function() {
@@ -25,6 +26,7 @@ describe('LiveDraftGroupsStore', function() {
     this.superagentMock.unset();
 
     // reset data
+    Lockr.flush();
     this.LiveDraftGroupsStore.resetData();
   });
 
@@ -38,7 +40,7 @@ describe('LiveDraftGroupsStore', function() {
 
     log.debug = function (arg) {
       if (arg === 'onLoadDraftGroupFantasyPointsCompleted()') {
-        expect(_size(self.LiveDraftGroupsStore.data.draftGroups[1])).to.equal(74);
+        expect(_size(self.LiveDraftGroupsStore.data.draftGroups[1])).to.equal(79);
         expect(1 in self.LiveDraftGroupsStore.data.fantasyPointsLastUpdated);
 
         // restore logging
@@ -62,7 +64,7 @@ describe('LiveDraftGroupsStore', function() {
     log.debug = function (arg) {
       if (arg === 'onLoadDraftGroup() - Already in self.data') {
         // make sure that the size of draft groups is still the same as last test
-        expect(_size(self.LiveDraftGroupsStore.data.draftGroups[1])).to.equal(74);
+        expect(_size(self.LiveDraftGroupsStore.data.draftGroups[1])).to.equal(79);
 
         // restore logging
         log.debug = prev;
@@ -85,7 +87,7 @@ describe('LiveDraftGroupsStore', function() {
     log.debug = function (arg) {
       if (arg === 'onLoadDraftGroup() - Using localStorage') {
         // make sure that the size of draft groups is still the same as last test
-        expect(_size(self.LiveDraftGroupsStore.data.draftGroups[1])).to.equal(74);
+        expect(_size(self.LiveDraftGroupsStore.data.draftGroups[1])).to.equal(79);
 
         // restore logging
         log.debug = prev;

@@ -24,6 +24,7 @@ describe('LiveNBAStore', function() {
     this.superagentMock.unset();
 
     // reset data
+    Lockr.flush();
     this.LiveNBAStore.resetData();
   });
 
