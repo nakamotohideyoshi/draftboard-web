@@ -1,131 +1,61 @@
 'use strict';
 
 var React = require('react');
+var ReactRedux = require('react-redux');
+var Reselect = require('reselect');
 var ContestNavFilters = require('./contest-nav-filters.jsx');
 var ContestNavContestList = require('./contest-nav-contest-list.jsx');
 var renderComponent = require('../../lib/render-component');
+var store = require('../../store');
 
 
 var ContestNav = React.createClass({
-
-  getInitialState: function() {
-    // Fake contest data.
-    return {
-      contests: [
-        {
-          'id': 0,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 1,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 2,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 3,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 4,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 5,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 6,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 7,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 22,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 33,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 44,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 55,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 66,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        },
-        {
-          'id': 77,
-          'title': '$150k NBA Championship',
-          'winning': "$82",
-          'position': '22',
-          'entries': '1.8k'
-        }
-      ]
-    };
+  propTypes: {
+    contests: React.PropTypes.array.isRequired
   },
 
-
   render: function() {
+    // Use `this.props.dispatch(action)` for updating the store.
     return (
       <div className="inner">
         <ContestNavFilters />
-        <ContestNavContestList contests={this.state.contests} />
+        <ContestNavContestList contests={this.props.contests} />
       </div>
     );
   }
 });
 
 
-renderComponent(<ContestNav />, '.cmp-contest-nav');
+// =============================================================================
+// Redux integration
 
-module.exports = ContestNav;
+let {Provider, connect} = ReactRedux;
+let {createSelector} = Reselect;
+
+// Select portions of the state the component is interested in. Returned
+// object will be merged with `this.props` of the connected component.
+//
+// Here the reselect library is used for creating memoized selectors.
+//
+let select = createSelector(
+  // If all input selectors hit the cache, the pre-computed value for
+  // the whole selector is returned and shouldComponentUpdate hook
+  // (implemented by `react-redux`) will prevent component from
+  // re-rendering.
+  (state => state.contests),
+  (contests) => {
+    return { contests };
+  }
+);
+
+// Wrap the component to inject dispatch and selected state into it.
+var ContestNavConnected = connect(select)(ContestNav);
+
+renderComponent(
+  <Provider store={store}>
+    <ContestNavConnected />
+  </Provider>,
+  '.cmp-contest-nav'
+);
+
+module.exports = ContestNavConnected;
