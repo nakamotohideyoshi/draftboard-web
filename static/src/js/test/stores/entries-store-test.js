@@ -24,6 +24,7 @@ describe('EntriesStore', function() {
     this.superagentMock.unset();
 
     // reset data
+    Lockr.flush();
     this.EntriesStore.resetData();
   });
 
