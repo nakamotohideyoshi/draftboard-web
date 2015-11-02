@@ -263,6 +263,7 @@ INSTALLED_APPS = (
     'contest.payout',
     'contest.buyin',
     'contest.refund',
+    'contest.schedule',
     'scoring',
     'roster',
     'rakepaid',
