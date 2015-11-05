@@ -60,6 +60,10 @@ $contest-nav-foreground-color: #25A758;
       top: 17px;
       left: 23px;
 
+      > svg {
+        cursor: pointer;
+      }
+
       .line-top {
         transition: all 0.2s ease-in-out;
         transform-origin: 77% 0%;
@@ -200,18 +204,18 @@ $contest-nav-foreground-color: #25A758;
         display: inline-block;
 
         cursor: pointer;
-        background: url('../img/blocks/contest-nav/contest-nav-slider-arrow.png');
-        background-size: 7px auto;
-        width: 7px;
-        height: 11px;
+        background: url('../img/blocks/contest-nav/contest-nav-slider-arrow.png') no-repeat center center;
+        background-size: 7px 11px;
+        width: 24px;
+        height: 60px;
         position: absolute;
-        top: 25px;
-        left: 21px;
+        top: 0;
+        left: 12px;
+        z-index: 2000;
       }
 
       .right-arrow-icon {
         transform: rotate(180deg);
-        left: 19px;
       }
     }
   }
