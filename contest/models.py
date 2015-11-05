@@ -122,14 +122,14 @@ class Contest(models.Model):
 
     max_entries = models.PositiveIntegerField(null=False,
                                               default=1,
-                                              help_text="The total number of entries a user can add to a contest")
+                                              help_text="USER entry limit")
 
     entries = models.PositiveIntegerField(null=False,
                                           default=2,
-                                          help_text="Total spots available for the contest")
+                                          help_text="CONTEST limit")
     current_entries = models.PositiveIntegerField(null=False,
                                                   default=0,
-                                                  help_text="The number of entries submitted to the contest")
+                                                  help_text="The current # of entries in the contest")
 
     gpp = models.BooleanField(default=False, null=False,
                               help_text='a gpp Contest will not be cancelled if it does not fill')
@@ -197,7 +197,9 @@ class Contest(models.Model):
             while True: # we'll break when we've found a non-existing id
                 random_str = get_random_string(length=self.DEFAULT_CID_LENGTH)
                 try:
-                    Contest.objects.get( cid=random_str )
+                    # Contest.objects.get( cid=random_str )
+                    #print( type(self.model) )
+                    self.__class__.objects.get( cid=random_str )
                     continue # this one existed apparently, keep trying
                 except self.DoesNotExist:
                     # this one is unique!

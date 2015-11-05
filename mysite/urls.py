@@ -40,17 +40,17 @@ router.register(r'users', UserViewSet)
 
 urlpatterns = [
 
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/',         include(admin.site.urls)),
 
-    url(r'^account/', include(account.urls)),
-    url(r'^cash/', include(cash.urls)),
-    url(r'^contest/', include(contest.urls)),
-    url(r'^draft-group/', include(draftgroup.urls)),
-    url(r'^lineup/',      include(lineup.urls)),
-    url(r'^ticket/', include(ticket.urls)),
-    url(r'^prize/',  include(prize.urls)),
-    url(r'^salary/', include(salary.urls)),
-    url(r'^sports/', include(sports.urls)),
+    url(r'^account/',       include(account.urls)),
+    url(r'^cash/',          include(cash.urls)),
+    url(r'^contest/',       include(contest.urls)),
+    url(r'^draft-group/',   include(draftgroup.urls)),
+    url(r'^lineup/',        include(lineup.urls)),
+    url(r'^ticket/',        include(ticket.urls)),
+    url(r'^prize/',         include(prize.urls)),
+    url(r'^salary/',        include(salary.urls)),
+    url(r'^sports/',        include(sports.urls)),
 
     # TEMP to show pusher
     url(r'^push/', include(push.urls, namespace='push')),
