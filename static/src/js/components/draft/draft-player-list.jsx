@@ -1,15 +1,19 @@
 'use strict';
 
 var React = require('react');
-var Reflux = require('reflux');
-var DraftGroupStore = require("../../stores/draft-group-store.js");
-var DraftNewLineupStore = require("../../stores/draft-new-lineup-store.js");
+var ReactRedux = require('react-redux');
+var Reselect = require('reselect');
+var store = require('../../store');
+// var Reflux = require('reflux');
+// var DraftGroupStore = require("../../stores/draft-group-store.js");
+// var DraftNewLineupStore = require("../../stores/draft-new-lineup-store.js");
 var renderComponent = require('../../lib/render-component');
 var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
 var CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
 var PlayerListRow = require('./draft-player-list-row.jsx');
-var ContestActions = require('../../actions/contest-actions');
-var DraftActions = require("../../actions/draft-actions");
+var draftGroupActions = require('../../actions/draft-group-actions.js');
+// var ContestActions = require('../../actions/contest-actions');
+// var DraftActions = require("../../actions/draft-actions");
 require('../contest-list/contest-list-header.jsx');
 require('../contest-list/contest-list-detail.jsx');
 require('../contest-list/contest-list-sport-filter.jsx');
@@ -21,10 +25,10 @@ require('./draft-player-detail.jsx');
  */
 var DraftPlayerList = React.createClass({
 
-  mixins: [
-    Reflux.connect(DraftGroupStore),
-    Reflux.connect(DraftNewLineupStore, 'newLineup')
-  ],
+  // mixins: [
+  //   Reflux.connect(DraftGroupStore),
+  //   Reflux.connect(DraftNewLineupStore, 'newLineup')
+  // ],
 
 
   // Contest type filter data.
@@ -38,11 +42,14 @@ var DraftPlayerList = React.createClass({
   ],
 
 
-  getInitialState: function() {
+  loadData: function() {
     // TODO: this sucks fix this.
-    var draftgroupId = window.location.pathname.split('/')[2];
-    DraftActions.loadDraftGroup(draftgroupId);
+    let draftgroupId = window.location.pathname.split('/')[2];
+    draftGroupActions.fetchDraftGroup(draftgroupId);
+  },
 
+
+  getInitialState: function() {
     return ({
       filteredPlayers: [],
       newLineup: {
@@ -58,7 +65,7 @@ var DraftPlayerList = React.createClass({
    */
   setContestFocus: function(id) {
     if (id !== 'undefined') {
-      ContestActions.contestFocused(id);
+      // ContestActions.contestFocused(id);
     }
   },
 
@@ -68,6 +75,7 @@ var DraftPlayerList = React.createClass({
     // Listen to j/k keypress actions to focus players.
     // KeypressActions.keypressJ.listen(this.focusNextRow);
     // KeypressActions.keypressK.listen(this.focusPreviousRow);
+    this.loadData();
   },
 
 
@@ -88,7 +96,8 @@ var DraftPlayerList = React.createClass({
 
 
   sortList: function(property) {
-    DraftActions.setSortProperty(property);
+    console.log("sortList()", property);
+    // DraftActions.setSortProperty(property);
   },
 
 
@@ -127,8 +136,8 @@ var DraftPlayerList = React.createClass({
             filterName="playerSearchFilter"
             filterProperty='player.name'
             match=''
-            onUpdate={DraftActions.filterUpdated}
-            onMount={DraftActions.registerFilter}
+            onUpdate={draftGroupActions.filterUpdated}
+            onMount={draftGroupActions.registerFilter}
           />
 
         <CollectionMatchFilter
@@ -137,8 +146,8 @@ var DraftPlayerList = React.createClass({
             filterName="contestTypeFilter"
             filterProperty='position'
             match=''
-            onUpdate={DraftActions.filterUpdated}
-            onMount={DraftActions.registerFilter}
+            onUpdate={draftGroupActions.filterUpdated}
+            onMount={draftGroupActions.registerFilter}
           />
         </div>
 
@@ -168,8 +177,38 @@ var DraftPlayerList = React.createClass({
 });
 
 
-// Render the component.
-renderComponent(<DraftPlayerList />, '.cmp-player-list');
+// =============================================================================
+// Redux integration
+
+let {Provider, connect} = ReactRedux;
+let {createSelector} = Reselect;
+
+// Select portions of the state the component is interested in. Returned
+// object will be merged with `this.props` of the connected component.
+//
+// Here the reselect library is used for creating memoized selectors.
+//
+let select = createSelector(
+  // If all input selectors hit the cache, the pre-computed value for
+  // the whole selector is returned and shouldComponentUpdate hook
+  // (implemented by `react-redux`) will prevent component from
+  // re-rendering.
+  (state => state.contests),
+  (contests) => {
+    return { contests };
+  }
+);
+
+// Wrap the component to inject dispatch and selected state into it.
+var ContestNavConnected = connect(select)(ContestNav);
+
+renderComponent(
+  <Provider store={store}>
+    <DraftPlayerList />
+  </Provider>,
+  '.cmp-player-list'
+);
+
 
 
 module.exports = DraftPlayerList;
