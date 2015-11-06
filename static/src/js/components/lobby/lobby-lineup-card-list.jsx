@@ -1,13 +1,11 @@
-'use strict';
-
-var React = require('react');
-var Reflux = require('reflux');
-var LineupCard = require('../lineup/lineup-card.jsx');
-var renderComponent = require('../../lib/render-component');
-var smoothScrollTo = require('../../lib/smooth-scroll-to.js');
-var LineupStore = require('../../stores/lineup-store.js');
-var LineupActions = require('../../actions/lineup-actions.js');
-var DraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx');
+const React = require('react');
+const ReactRedux = require('react-redux');
+const store = require('../../store');
+const LineupCard = require('../lineup/lineup-card.jsx');
+const renderComponent = require('../../lib/render-component');
+const smoothScrollTo = require('../../lib/smooth-scroll-to.js');
+const DraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx');
+import {fetchUpcomingLineups, lineupFocused} from '../../actions/lineup-actions.js';
 
 
 /**
@@ -15,11 +13,6 @@ var DraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx'
  * each lineup.
  */
 var LineupCardList = React.createClass({
-
-  mixins: [
-    Reflux.connect(LineupStore)
-  ],
-
 
   getInitialState: function() {
     return {
@@ -49,7 +42,7 @@ var LineupCardList = React.createClass({
    * @param  {int}   lineupId   The ID of the lineup.
    */
   setActiveLineup: function(lineupId) {
-    LineupActions.lineupFocused(lineupId);
+    lineupFocused(lineupId);
   },
 
 
@@ -135,8 +128,38 @@ var LineupCardList = React.createClass({
   }
 });
 
-// Render the component.
-renderComponent(<LineupCardList />, '.cmp-lineup-card-list');
 
+// =============================================================================
+// Redux integration
+let {Provider, connect} = ReactRedux;
+
+// Which part of the Redux global state does our component want to receive as props?
+function mapStateToProps(state) {
+  return {
+  };
+}
+
+// Which action creators does it want to receive by props?
+function mapDispatchToProps(dispatch) {
+  return {
+    fetchUpcomingLineups,
+    lineupFocused: (lineupId) => dispatch(lineupFocused(lineupId))
+  };
+}
+
+// Wrap the component to inject dispatch and selected state into it.
+var LineupCardListConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(LineupCardList);
+
+
+// Render the component.
+renderComponent(
+  <Provider store={store}>
+    <LineupCardListConnected />
+  </Provider>,
+  '.cmp-lineup-card-list'
+);
 
 module.exports = LineupCardList;

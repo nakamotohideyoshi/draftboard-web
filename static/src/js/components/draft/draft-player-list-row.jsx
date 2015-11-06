@@ -1,7 +1,7 @@
 'use strict';
 
 var React = require('react');
-var DraftActions = require("../../actions/draft-actions");
+// var DraftActions = require("../../actions/draft-actions");
 var AppActions = require("../../actions/app-actions");
 var log = require('../../lib/logging.js');
 
@@ -37,14 +37,14 @@ var DraftPlayerListRow = React.createClass({
   onRowClick: function(playerId) {
     AppActions.openPane();
     log.debug('ContestListRow.onRowClick()', playerId);
-    DraftActions.playerFocused(playerId);
+    // DraftActions.playerFocused(playerId);
   },
 
 
   onDraftClick: function(playerId, e) {
     log.debug('ContestListRow.onDraftClick()', playerId);
     e.stopPropagation();
-    DraftActions.addPlayerToLineup(playerId);
+    // DraftActions.addPlayerToLineup(playerId);
   },
 
 
