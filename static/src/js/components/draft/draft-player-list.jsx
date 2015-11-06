@@ -1,34 +1,29 @@
-'use strict';
-
-var React = require('react');
-var ReactRedux = require('react-redux');
-var Reselect = require('reselect');
-var store = require('../../store');
-// var Reflux = require('reflux');
-// var DraftGroupStore = require("../../stores/draft-group-store.js");
-// var DraftNewLineupStore = require("../../stores/draft-new-lineup-store.js");
-var renderComponent = require('../../lib/render-component');
-var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
-var CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
-var PlayerListRow = require('./draft-player-list-row.jsx');
-var draftGroupActions = require('../../actions/draft-group-actions.js');
-// var ContestActions = require('../../actions/contest-actions');
-// var DraftActions = require("../../actions/draft-actions");
+const React = require('react');
+const ReactRedux = require('react-redux');
+const store = require('../../store');
+const renderComponent = require('../../lib/render-component');
+// const CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
+// const CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
+const PlayerListRow = require('./draft-player-list-row.jsx');
+import {fetchDraftGroup} from '../../actions/draft-group-actions.js';
+// Other components that will take care of themselves on the draft page.
 require('../contest-list/contest-list-header.jsx');
-require('../contest-list/contest-list-detail.jsx');
-require('../contest-list/contest-list-sport-filter.jsx');
-require('./draft-player-detail.jsx');
+// require('../contest-list/contest-list-detail.jsx');
+// require('../contest-list/contest-list-sport-filter.jsx');
+// require('./draft-player-detail.jsx');
 
 
 /**
  * Render a list of players able to be drafted.
  */
-var DraftPlayerList = React.createClass({
+const DraftPlayerList = React.createClass({
 
-  // mixins: [
-  //   Reflux.connect(DraftGroupStore),
-  //   Reflux.connect(DraftNewLineupStore, 'newLineup')
-  // ],
+
+  propTypes: {
+    fetchDraftGroup: React.PropTypes.func.isRequired,
+    allPlayers: React.PropTypes.array,
+    filteredPlayers: React.PropTypes.array
+  },
 
 
   // Contest type filter data.
@@ -45,7 +40,8 @@ var DraftPlayerList = React.createClass({
   loadData: function() {
     // TODO: this sucks fix this.
     let draftgroupId = window.location.pathname.split('/')[2];
-    draftGroupActions.fetchDraftGroup(draftgroupId);
+
+    this.props.fetchDraftGroup(draftgroupId);
   },
 
 
@@ -59,14 +55,10 @@ var DraftPlayerList = React.createClass({
   },
 
 
-  /**
-   * When a row is clicked (or something else) we want to make that contest the 'focused' one.
-   * @param {integer} id the ID of the contest to be focused.
-   */
-  setContestFocus: function(id) {
-    if (id !== 'undefined') {
-      // ContestActions.contestFocused(id);
-    }
+  getDefaultProps: function() {
+    return {
+      allPlayers: []
+    };
   },
 
 
@@ -78,23 +70,6 @@ var DraftPlayerList = React.createClass({
     this.loadData();
   },
 
-
-  /**
-   * Focus the next visible row in the contest list and open the detail pane.
-   */
-  focusNextRow: function() {
-    // this.setContestFocus(ContestStore.getNextVisibleRowId());
-  },
-
-
-  /**
-   * Focus the previous row in the contest list and open the detail pane.
-   */
-  focusPreviousRow: function() {
-    // this.setContestFocus(ContestStore.getPreviousVisibleRowId());
-  },
-
-
   sortList: function(property) {
     console.log("sortList()", property);
     // DraftActions.setSortProperty(property);
@@ -103,7 +78,7 @@ var DraftPlayerList = React.createClass({
 
   render: function() {
     // Build up a list of rows to be displayed.
-    var visibleRows = this.state.filteredPlayers.map(function(row) {
+    var visibleRows = this.props.filteredPlayers.map(function(row) {
       var draftable = true;
       // Is there a slot available?
       if (this.state.newLineup.availablePositions.indexOf(row.position) === -1) {
@@ -124,32 +99,33 @@ var DraftPlayerList = React.createClass({
     }, this);
 
     // If the draftgroup hasn't been fetched yet, show a loading indicator.
-    if(!DraftGroupStore.allPlayers.length) {
+    if(!this.props.allPlayers.length) {
       visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>;
     }
 
+      // <div className="player-list-filter-set">
+      //   <CollectionSearchFilter
+      //     className="collection-filter--player-name"
+      //     filterName="playerSearchFilter"
+      //     filterProperty='player.name'
+      //     match=''
+      //     onUpdate={draftGroupActions.filterUpdated}
+      //     onMount={draftGroupActions.registerFilter}
+      //   />
+      //
+      // <CollectionMatchFilter
+      //     className="collection-filter--player-type"
+      //     filters={this.playerPositionFilters}
+      //     filterName="contestTypeFilter"
+      //     filterProperty='position'
+      //     match=''
+      //     onUpdate={draftGroupActions.filterUpdated}
+      //     onMount={draftGroupActions.registerFilter}
+      //   />
+      // </div>
+
     return (
       <div>
-        <div className="player-list-filter-set">
-          <CollectionSearchFilter
-            className="collection-filter--player-name"
-            filterName="playerSearchFilter"
-            filterProperty='player.name'
-            match=''
-            onUpdate={draftGroupActions.filterUpdated}
-            onMount={draftGroupActions.registerFilter}
-          />
-
-        <CollectionMatchFilter
-            className="collection-filter--player-type"
-            filters={this.playerPositionFilters}
-            filterName="contestTypeFilter"
-            filterProperty='position'
-            match=''
-            onUpdate={draftGroupActions.filterUpdated}
-            onMount={draftGroupActions.registerFilter}
-          />
-        </div>
 
         <table className="cmp-player-list__table table">
           <thead>
@@ -179,32 +155,34 @@ var DraftPlayerList = React.createClass({
 
 // =============================================================================
 // Redux integration
-
 let {Provider, connect} = ReactRedux;
-let {createSelector} = Reselect;
 
-// Select portions of the state the component is interested in. Returned
-// object will be merged with `this.props` of the connected component.
-//
-// Here the reselect library is used for creating memoized selectors.
-//
-let select = createSelector(
-  // If all input selectors hit the cache, the pre-computed value for
-  // the whole selector is returned and shouldComponentUpdate hook
-  // (implemented by `react-redux`) will prevent component from
-  // re-rendering.
-  (state => state.contests),
-  (contests) => {
-    return { contests };
-  }
-);
+// Which part of the Redux global state does our component want to receive as props?
+function mapStateToProps(state) {
+  return {
+    allPlayers: state.draftDraftGroup.allPlayers || [],
+    filteredPlayers: state.draftDraftGroup.allPlayers || [],
+    sport: state.draftDraftGroup.sport
+  };
+}
+
+// Which action creators does it want to receive by props?
+function mapDispatchToProps(dispatch) {
+  return {
+    fetchDraftGroup: (draftGroupId) => dispatch(fetchDraftGroup(draftGroupId))
+  };
+}
 
 // Wrap the component to inject dispatch and selected state into it.
-var ContestNavConnected = connect(select)(ContestNav);
+var DraftPlayerListConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(DraftPlayerList);
+
 
 renderComponent(
   <Provider store={store}>
-    <DraftPlayerList />
+    <DraftPlayerListConnected />
   </Provider>,
   '.cmp-player-list'
 );

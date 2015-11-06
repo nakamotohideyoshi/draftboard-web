@@ -1,13 +1,10 @@
-'use strict';
-
-var React = require('react');
-var Reflux = require('reflux');
+const React = require('react');
+const ReactRedux = require('react-redux');
+const store = require('../../store');
 var LineupCard = require('../lineup/lineup-card.jsx');
 var DraftNewLineupCard = require('./draft-new-lineup-card.jsx');
 var renderComponent = require('../../lib/render-component');
-var DraftNewLineupStore = require('../../stores/draft-new-lineup-store.js');
-var LineupStore = require('../../stores/lineup-store.js');
-// var LineupActions = require('../../actions/lineup-actions.js');
+import {fetchUpcomingLineups, createLineupInit} from '../../actions/lineup-actions.js';
 var log = require("../../lib/logging");
 
 
@@ -17,19 +14,39 @@ var log = require("../../lib/logging");
  */
 var DraftLineupCardList = React.createClass({
 
-  mixins: [
-    Reflux.connect(LineupStore),
-    Reflux.connect(DraftNewLineupStore, 'newLineup')
-  ],
+  propTypes: {
+    fetchUpcomingLineups: React.PropTypes.func.isRequired,
+    lineups: React.PropTypes.array.isRequired,
+    newLineup: React.PropTypes.object.isRequired,
+    createLineupInit: React.PropTypes.func.isRequired,
+    sport: React.PropTypes.string
+  },
 
 
-  getInitialState: function() {
+  componentWillMount: function() {
+    this.props.fetchUpcomingLineups();
+
+    if (this.props.sport) {
+      this.props.createLineupInit(this.props.sport);
+    }
+  },
+
+
+  componentWillReceiveProps: function(nextProps) {
+    // If we get new props, and a new sport is passed (meaning a new draftgroup has been loaded)
+    // initializes a new lineup creation card.
+    if (nextProps.sport !== this.props.sport) {
+      this.props.createLineupInit(nextProps.sport);
+    }
+  },
+
+
+  getDefaultProps: function() {
     return {
       lineups: [],
       newLineup: {
         lineup: []
-      },
-      focusedLineupId: 10
+      }
     };
   },
 
@@ -50,7 +67,7 @@ var DraftLineupCardList = React.createClass({
 
 
   render: function() {
-    var lineups = this.state.lineups.map(function(lineup) {
+    var lineups = this.props.lineups.map(function(lineup) {
       var refName = 'lineup-' + lineup.id;
       return (
         <LineupCard
@@ -67,12 +84,12 @@ var DraftLineupCardList = React.createClass({
     return (
       <div>
         <DraftNewLineupCard
-          lineup={this.state.newLineup.lineup}
+          lineup={this.props.newLineup.lineup}
           isActive={false}
           ref="lineupCardNew"
-          remainingSalary={this.state.newLineup.remainingSalary}
-          avgPlayerSalary={this.state.newLineup.avgPlayerSalary}
-          errorMessage={this.state.newLineup.errorMessage}
+          remainingSalary={this.props.newLineup.remainingSalary}
+          avgPlayerSalary={this.props.newLineup.avgPlayerSalary}
+          errorMessage={this.props.newLineup.errorMessage}
         />
 
         {lineups}
@@ -81,8 +98,40 @@ var DraftLineupCardList = React.createClass({
   }
 });
 
-// Render the component.
-renderComponent(<DraftLineupCardList />, '.cmp-draft-lineup-card-list');
 
+// =============================================================================
+// Redux integration
+let {Provider, connect} = ReactRedux;
+
+// Which part of the Redux global state does our component want to receive as props?
+function mapStateToProps(state) {
+  return {
+    lineups: state.upcomingLineups.lineups || [],
+    newLineup: state.createLineup || {},
+    sport: state.draftDraftGroup.sport
+  };
+}
+
+// Which action creators does it want to receive by props?
+function mapDispatchToProps(dispatch) {
+  return {
+    fetchUpcomingLineups: () => dispatch(fetchUpcomingLineups()),
+    createLineupInit: (sport) => dispatch(createLineupInit(sport))
+  };
+}
+
+// Wrap the component to inject dispatch and selected state into it.
+var DraftLineupCardListConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(DraftLineupCardList);
+
+
+renderComponent(
+  <Provider store={store}>
+    <DraftLineupCardListConnected />
+  </Provider>,
+  '.cmp-draft-lineup-card-list'
+);
 
 module.exports = DraftLineupCardList;
