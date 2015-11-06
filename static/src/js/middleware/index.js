@@ -1,9 +1,10 @@
 "use strict";
 
-import createLogger from 'redux-logger';
-import { createStore, applyMiddleware } from 'redux';
-import { logLevel } from '../config';
-import { thunkMiddleware } from 'redux-thunk';
+const createStore = require('redux').createStore
+const applyMiddleware = require('redux').applyMiddleware
+const createLogger =  require('redux-logger')
+const logLevel = require('../config').logLevel
+const thunkMiddleware = require('redux-thunk')
 
 
 // only show redux actions logs in development mode
