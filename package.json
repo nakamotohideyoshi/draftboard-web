@@ -41,6 +41,7 @@
     "react": "^0.14.0",
     "react-addons-css-transition-group": "^0.14.0",
     "react-addons-pure-render-mixin": "^0.14.0",
+    "react-addons-update": "^0.14.2",
     "react-dom": "^0.14.0",
     "react-maskedinput": "^2.0.0",
     "react-redux": "^4.0.0",
