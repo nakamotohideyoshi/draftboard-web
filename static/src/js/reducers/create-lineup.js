@@ -1,5 +1,6 @@
-const ActionTypes = require('../action-types');
+import ActionTypes from '../action-types'
 
+// Roster templates for empty lineup cards.
 const rosterTemplates = {
   'nfl': [
     {idx: 0, name: 'QB', positions: ['QB'], player: null},
@@ -44,30 +45,26 @@ const rosterTemplates = {
     {idx: 8, name: 'OF', positions: ['LF','CF','RF'], player: null},
     {idx: 9, name: 'OF', positions: ['LF','CF','RF'], player: null}
   ]
-};
+}
 
 
 
 module.exports = function(state = {}, action) {
   switch (action.type) {
 
-
+    // Create an empty lineup card based on the roster of the sport of the current draftgroup.
     case ActionTypes.CREATE_LINEUP_INIT:
-      console.log(action);
-
       // Return a copy of the previous state with our new things added to it.
       return Object.assign({}, state, {
         lineup: rosterTemplates[action.sport],
         remainingSalary: 666,
         avgPlayerSalary: 111,
         errorMessage: ''
-      });
-
-      // this.data.lineup = this.rosterTemplates[draftGroupData.sport];
+      })
 
 
     default:
-      return state;
+      return state
 
   }
-};
+}

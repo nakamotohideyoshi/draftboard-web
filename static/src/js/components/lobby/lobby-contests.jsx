@@ -2,13 +2,13 @@
 
 var React = require('react');
 var Reflux = require('reflux');
-var ContestStore = require("../../stores/contest-store.js");
+// var ContestStore = require("../../stores/contest-store.js");
 var renderComponent = require('../../lib/render-component');
 var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
 var CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
 var CollectionRangeSliderFilter = require('../filters/collection-range-slider-filter.jsx');
 var ContestList = require('../contest-list/contest-list.jsx');
-var ContestActions = require('../../actions/contest-actions.js');
+// var ContestActions = require('../../actions/contest-actions.js');
 require('../contest-list/contest-list-header.jsx');
 require('../contest-list/contest-list-detail.jsx');
 require('../contest-list/contest-list-sport-filter.jsx');
@@ -19,9 +19,14 @@ require('../contest-list/contest-list-sport-filter.jsx');
  */
 var LobbyContests = React.createClass({
 
-  mixins: [
-    Reflux.connect(ContestStore)
-  ],
+  // mixins: [
+  //   Reflux.connect(ContestStore)
+  // ],
+
+  propTypes: {
+    filteredContests: React.PropTypes.object,
+    focusedContestId: React.PropTypes.number
+  },
 
 
   getInitialState: function() {
@@ -40,41 +45,43 @@ var LobbyContests = React.createClass({
 
   render: function() {
 
+    // <div className="contest-list-filter-set">
+    //   <CollectionMatchFilter
+    //     className="contest-list-filter--contest-type"
+    //     filters={this.state.contestTypeFilters}
+    //     filterName="contestTypeFilter"
+    //     filterProperty='contestType'
+    //     match=''
+    //     onUpdate={this.props.filterUpdated}
+    //     onMount={this.props.registerFilter}
+    //   />
+    //
+    //   <div className="contest-list-filter-set__group">
+    //     <CollectionRangeSliderFilter
+    //       className="contest-list-filter--contest-fee"
+    //       filterName="contestFeeFilter"
+    //       filterProperty='fee'
+    //       onUpdate={this.props.filterUpdated}
+    //       onMount={this.props.registerFilter}
+    //      />
+    //
+    //    <CollectionSearchFilter
+    //       className="contest-list-filter--contest-name"
+    //       filterName="contestSearchFilter"
+    //       filterProperty='name'
+    //       onUpdate={this.props.filterUpdated}
+    //       onMount={this.props.registerFilter}
+    //     />
+    //   </div>
+    // </div>
+
+
     return (
       <div>
-        <div className="contest-list-filter-set">
-          <CollectionMatchFilter
-            className="contest-list-filter--contest-type"
-            filters={this.state.contestTypeFilters}
-            filterName="contestTypeFilter"
-            filterProperty='contestType'
-            match=''
-            onUpdate={ContestActions.filterUpdated}
-            onMount={ContestActions.registerFilter}
-          />
-
-          <div className="contest-list-filter-set__group">
-            <CollectionRangeSliderFilter
-              className="contest-list-filter--contest-fee"
-              filterName="contestFeeFilter"
-              filterProperty='fee'
-              onUpdate={ContestActions.filterUpdated}
-              onMount={ContestActions.registerFilter}
-             />
-
-           <CollectionSearchFilter
-              className="contest-list-filter--contest-name"
-              filterName="contestSearchFilter"
-              filterProperty='name'
-              onUpdate={ContestActions.filterUpdated}
-              onMount={ContestActions.registerFilter}
-            />
-          </div>
-        </div>
 
         <ContestList
-          contests={this.state.filteredContests}
-          focusedContestId={this.state.focusedContestId}
+          contests={this.props.filteredContests}
+          focusedContestId={this.props.focusedContestId}
         />
       </div>
     );

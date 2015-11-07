@@ -3,13 +3,19 @@
 var React = require('react');
 var renderComponent = require('../../lib/render-component');
 var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
-var ContestActions = require('../../actions/contest-actions.js');
+// var ContestActions = require('../../actions/contest-actions.js');
 
 
 /**
  * A league filter for a ContestList DataTable - This sits above the lineup cards in the sidebar.
  */
 var ContestListSportFilter = React.createClass({
+
+  propTypes: {
+    filterUpdated: React.PropTypes.function,
+    registerFilter: React.PropTypes.function
+  },
+
 
   getInitialState: function() {
     return {
@@ -31,8 +37,8 @@ var ContestListSportFilter = React.createClass({
           filterProperty='sport'
           match=''
           filterName='sportFilter'
-          onUpdate={ContestActions.filterUpdated}
-          onMount={ContestActions.registerFilter}
+          onUpdate={this.props.filterUpdated}
+          onMount={this.props.registerFilter}
         />
     );
   }

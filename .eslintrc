@@ -36,7 +36,7 @@
     "sort-vars": 0,
     "no-console": 0,
     "no-trailing-spaces": 1,
-    "semi": [1, "always"],
+    "semi": 0,
     "jsx-quotes": 0,
     "react/display-name": 0,
     "react/jsx-boolean-value": 1,

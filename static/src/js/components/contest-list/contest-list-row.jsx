@@ -1,7 +1,7 @@
 'use strict';
 
 var React = require('react');
-var ContestActions = require('../../actions/contest-actions');
+// var ContestActions = require('../../actions/contest-actions');
 var MultiEntryButton = require('./multi-entry-button.jsx');
 var moment = require('moment');
 
@@ -61,7 +61,7 @@ var ContestListRow = React.createClass({
    */
   setContestFocus: function(id) {
     if (typeof id === 'number') {
-      ContestActions.contestFocused(id);
+      // ContestActions.contestFocused(id);
     }
   },
 

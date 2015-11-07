@@ -5,13 +5,13 @@ const renderComponent = require('../../lib/render-component');
 // const CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
 // const CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
 const PlayerListRow = require('./draft-player-list-row.jsx');
-import {fetchDraftGroup} from '../../actions/draft-group-actions.js';
+import {fetchDraftGroup, setFocusedPlayer} from '../../actions/draft-group-actions.js';
 // Other components that will take care of themselves on the draft page.
 require('../contest-list/contest-list-header.jsx');
 // require('../contest-list/contest-list-detail.jsx');
 // require('../contest-list/contest-list-sport-filter.jsx');
-// require('./draft-player-detail.jsx');
-
+import { forEach as _forEach } from 'lodash'
+import './draft-player-detail.jsx'
 
 /**
  * Render a list of players able to be drafted.
@@ -21,8 +21,10 @@ const DraftPlayerList = React.createClass({
 
   propTypes: {
     fetchDraftGroup: React.PropTypes.func.isRequired,
-    allPlayers: React.PropTypes.array,
-    filteredPlayers: React.PropTypes.array
+    allPlayers: React.PropTypes.object,
+    filteredPlayers: React.PropTypes.object,
+    focusPlayer: React.PropTypes.func,
+    newLineup: React.PropTypes.array
   },
 
 
@@ -77,29 +79,34 @@ const DraftPlayerList = React.createClass({
 
 
   render: function() {
-    // Build up a list of rows to be displayed.
-    var visibleRows = this.props.filteredPlayers.map(function(row) {
-      var draftable = true;
-      // Is there a slot available?
-      if (this.state.newLineup.availablePositions.indexOf(row.position) === -1) {
-        draftable = false;
-      }
-      // Can we afford this player?
-      if (this.state.newLineup.remainingSalary < row.salary) {
-        draftable = false;
-      }
+    let visibleRows = [];
 
-      return (
+    // Build up a list of rows to be displayed.
+    _forEach(this.props.filteredPlayers, function(row) {
+      var draftable = true;
+      // // Is there a slot available?
+      // if (this.props.newLineup.availablePositions.indexOf(row.position) === -1) {
+      //   draftable = false;
+      // }
+      // // Can we afford this player?
+      // if (this.props.newLineup.remainingSalary < row.salary) {
+      //   draftable = false;
+      // }
+
+      visibleRows.push(
         <PlayerListRow
           key={row.player_id}
           row={row}
           draftable={draftable}
+          focusPlayer={this.props.focusPlayer}
         />
       );
-    }, this);
+    }.bind(this))
+
+
 
     // If the draftgroup hasn't been fetched yet, show a loading indicator.
-    if(!this.props.allPlayers.length) {
+    if(this.props.allPlayers === {}) {
       visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>;
     }
 
@@ -160,16 +167,18 @@ let {Provider, connect} = ReactRedux;
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    allPlayers: state.draftDraftGroup.allPlayers || [],
-    filteredPlayers: state.draftDraftGroup.allPlayers || [],
-    sport: state.draftDraftGroup.sport
+    allPlayers: state.draftDraftGroup.allPlayers || {},
+    filteredPlayers: state.draftDraftGroup.allPlayers || {},
+    sport: state.draftDraftGroup.sport,
+    newLineup: state.createLineup.lineup
   };
 }
 
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    fetchDraftGroup: (draftGroupId) => dispatch(fetchDraftGroup(draftGroupId))
+    fetchDraftGroup: (draftGroupId) => dispatch(fetchDraftGroup(draftGroupId)),
+    focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId))
   };
 }
 

@@ -1,6 +1,6 @@
 var React = require('react');
 var renderComponent = require('../../lib/render-component');
-var ContestActions = require('../../actions/contest-actions.js');
+// var ContestActions = require('../../actions/contest-actions.js');
 const store = require('../../store');
 const ReactRedux = require('react-redux');
 
@@ -20,7 +20,7 @@ var ContestListHeader = React.createClass({
 
 
   revealFilters: function() {
-    ContestActions.contestTypeFiltered();
+    // ContestActions.contestTypeFiltered();
   },
 
   render: function() {

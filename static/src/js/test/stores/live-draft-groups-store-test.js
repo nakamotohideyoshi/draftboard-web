@@ -14,7 +14,7 @@ var LiveDraftGroupsActions = require('../../actions/live-draft-groups-actions');
 
 describe('LiveDraftGroupsStore', function() {
   before(function() {
-    var config = require('../../fixtures/live-draft-groups-store-config.js');
+    var config = require('../../fixtures/live-draft-groups-config.js');
 
     this.superagentMock = require('superagent-mock')(request, config);
     this.LiveDraftGroupsStore = require('../../stores/live-draft-groups-store');
