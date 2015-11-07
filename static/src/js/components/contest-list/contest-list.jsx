@@ -1,11 +1,11 @@
 'use strict';
 
 var React = require('react');
-var ContestStore = require('../../stores/contest-store.js');
+// var ContestStore = require('../../stores/contest-store.js');
 var renderComponent = require('../../lib/render-component');
 var ContestListRow = require('./contest-list-row.jsx');
 var KeypressActions = require('../../actions/keypress-actions');
-var ContestActions = require('../../actions/contest-actions');
+// var ContestActions = require('../../actions/contest-actions');
 require('./contest-list-header.jsx');
 require('./contest-list-detail.jsx');
 require('./contest-list-sport-filter.jsx');
@@ -35,7 +35,7 @@ var ContestList = React.createClass({
    */
   setContestFocus: function(id) {
     if (id !== 'undefined') {
-      ContestActions.contestFocused(id);
+      // ContestActions.contestFocused(id);
     }
   },
 
@@ -51,7 +51,7 @@ var ContestList = React.createClass({
    * Focus the next visible row in the contest list.
    */
   focusNextRow: function() {
-    this.setContestFocus(ContestStore.getNextVisibleRowId());
+    // this.setContestFocus(ContestStore.getNextVisibleRowId());
   },
 
 
@@ -59,12 +59,12 @@ var ContestList = React.createClass({
    * Focus the previous row in the contest list.
    */
   focusPreviousRow: function() {
-    this.setContestFocus(ContestStore.getPreviousVisibleRowId());
+    // this.setContestFocus(ContestStore.getPreviousVisibleRowId());
   },
 
 
   sortList: function(property) {
-    ContestActions.setSortProperty(property);
+    // ContestActions.setSortProperty(property);
   },
 
 

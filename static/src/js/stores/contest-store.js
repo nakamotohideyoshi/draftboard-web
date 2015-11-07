@@ -1,7 +1,7 @@
 "use strict";
 
 var Reflux = require("reflux");
-var ContestActions = require("../actions/contest-actions");
+// var ContestActions = require("../actions/contest-actions");
 var request = require("superagent");
 var log = require("../lib/logging");
 var FilterableMixin = require('./mixins/filterable-mixin.js');
@@ -22,13 +22,13 @@ var ContestStore = Reflux.createStore({
     log.debug('ContestStore.init()');
     this.resetState();
 
-    this.listenTo(ContestActions.load, this.fetchContests);
-    this.listenTo(ContestActions.contestFocused, this.setFocusedContest);
-    this.listenTo(ContestActions.registerFilter, this.registerFilter);
-    this.listenTo(ContestActions.filterUpdated, this.filterUpdated);
-    this.listenTo(ContestActions.clearFilters, this.clearFilters);
-    this.listenTo(ContestActions.setSortProperty, this.setSortProperty);
-    this.listenTo(ContestActions.setSortDirection, this.setSortDirection);
+    // this.listenTo(ContestActions.load, this.fetchContests);
+    // this.listenTo(ContestActions.contestFocused, this.setFocusedContest);
+    // this.listenTo(ContestActions.registerFilter, this.registerFilter);
+    // this.listenTo(ContestActions.filterUpdated, this.filterUpdated);
+    // this.listenTo(ContestActions.clearFilters, this.clearFilters);
+    // this.listenTo(ContestActions.setSortProperty, this.setSortProperty);
+    // this.listenTo(ContestActions.setSortDirection, this.setSortDirection);
 
     this.fetchContests();
   },
@@ -59,11 +59,11 @@ var ContestStore = Reflux.createStore({
       .end(function(err, res) {
         if(err) {
           log.error(err);
-          ContestActions.load.failed(err);
+          // ContestActions.load.failed(err);
         } else {
           self.allContests = res.body.results;
           self.data.filteredContests = res.body.results;
-          ContestActions.load.completed();
+          // ContestActions.load.completed();
           self.trigger(self.data);
         }
     });

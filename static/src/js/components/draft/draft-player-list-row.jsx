@@ -17,7 +17,7 @@ var DraftPlayerListRow = React.createClass({
 
   propTypes: {
     row: React.PropTypes.object.isRequired,
-    handleOnClick: React.PropTypes.func,
+    focusPlayer: React.PropTypes.func,
     draftable: React.PropTypes.bool
   },
 
@@ -37,6 +37,7 @@ var DraftPlayerListRow = React.createClass({
   onRowClick: function(playerId) {
     AppActions.openPane();
     log.debug('ContestListRow.onRowClick()', playerId);
+    this.props.focusPlayer(playerId);
     // DraftActions.playerFocused(playerId);
   },
 

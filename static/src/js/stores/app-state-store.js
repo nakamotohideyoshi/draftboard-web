@@ -2,7 +2,7 @@
 
 var Reflux = require('reflux');
 var AppActions = require('../actions/app-actions');
-var ContestActions = require('../actions/contest-actions.js');
+// var ContestActions = require('../actions/contest-actions.js');
 var log = require('../lib/logging.js');
 
 
@@ -21,7 +21,7 @@ var AppStateStore = Reflux.createStore({
     this.listenTo(AppActions.closeNavMain, this.onCloseNavMain);
     this.listenTo(AppActions.openPane, this.onOpenPane);
     this.listenTo(AppActions.closePane, this.onClosePane);
-    this.listenTo(ContestActions.contestTypeFiltered, this.onContestTypeFiltered);
+    // this.listenTo(ContestActions.contestTypeFiltered, this.onContestTypeFiltered);
   },
 
 
