@@ -18,17 +18,26 @@ class ScheduleAdmin(admin.ModelAdmin):
 @admin.register(contest.schedule.models.TemplateContest)
 class TemplateContestAdmin(admin.ModelAdmin):
 
-    # list_display = [
-    #     'site_sport',
-    #     'name',
-    #     'prize_structure',
-    # ]
+    list_display = [
+        'site_sport',
+        'name',
+        'scheduler',
+    ]
 
-    # from django.utils.html import format_html
-    # def colored_first_name(self):
-    #     return format_html('<span style="color: #{};">{}</span>',
-    #                        self.color_code,
-    #                        self.first_name)
+    def scheduler(self, obj):
+        """
+        Add a button into the admin views so its easy to add a TemplateSchedule to an existing schedule
+
+        :param obj:   the model instance for each row
+        :return:
+        """
+
+        # the {} in the first argument are like %s for python strings,
+        # and the subsequent arguments fill the {}
+        return format_html('<a href="{}={}" class="btn btn-success">{}</a>',
+                            "/admin/schedule/scheduledtemplatecontest/add/?template_contest",
+                             obj.pk,
+                             'Add to Schedule')
 
     form = contest.schedule.forms.TemplateContestForm
 
@@ -90,4 +99,11 @@ class ScheduledTemplateContestAdmin(admin.ModelAdmin):
         'template_contest',
         'start_time',
         'duration_minutes',
+    ]
+
+@admin.register(contest.schedule.models.Interval)
+class IntervalAdmin(admin.ModelAdmin):
+
+    list_display = [
+        'monday','tuesday','wednesday','thursday','friday','saturday','sunday'
     ]

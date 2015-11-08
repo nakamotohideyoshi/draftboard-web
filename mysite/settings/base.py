@@ -186,12 +186,17 @@ Configuration.configure(
 #       OPTIMAL payments
 ##########################################################################
 OPTIMAL_ENVIRONMENT             = 'TEST' # 'LIVE'
-OPTIMAL_API_KEY                 = '18643-1000031963'
+OPTIMAL_API_KEY                 = '18643-1000031963'   # api key is actually API_KEY +':'+API_PASSWORD
 OPTIMAL_API_PASSWORD            = 'B-qa2-0-55660e4b-0-302d021500882760fb4ae1dbf19ff320ee1c35ed7f61f0dcc302141a7c49c9b7333e87f429cba3a6ad4d6b7c7b2a7c'
 OPTIMAL_ACCOUNT_NUMBER          = '1000031963'
 
 # REST currently defaulting to session authentication
 REST_FRAMEWORK = {
+    # 'DEFAULT_RENDERER_CLASSES': (
+    #     'rest_framework.renderers.JSONRenderer',
+    #     'rest_framework.renderers.BrowsableAPIRenderer',
+    # ),
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
@@ -206,7 +211,6 @@ REST_FRAMEWORK = {
     'PAGE_SIZE' : 50,
 
 }
-
 
 # Django installs
 # ----------------------------------------------------------
