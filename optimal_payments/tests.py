@@ -263,3 +263,19 @@ class CardPaymentResponses(TestCase):
         """
         self.assertRaises( CardPurchase.PaymentDeclinedException,
                            lambda: self.__process_amount('0.25'))
+
+
+#
+# COPY & PASTE THIS CODE TO TEST CREATING A PROFILE
+# userid 	= '108'    			# change this
+# phone 	= '111-111-1118'  	# change this
+# from django.contrib.auth.models import User
+# usr_name = 'user%s'%userid
+# usr_first = 'firstname%s'%userid
+# usr_last = 'lastname%s'%userid
+# usr_email = '%s@coderden.com'%usr_name
+# print( usr_name, usr_first, usr_last, usr_email)
+# u, c = User.objects.get_or_create(username=usr_name, first_name=usr_first, last_name=usr_last, email=usr_email)
+# from optimal_payments.classes import CustomerProfile
+# cp = CustomerProfile()
+# cp.create( u, phone )

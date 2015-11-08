@@ -23,7 +23,7 @@ class Schedule( models.Model ):
         unique_together = ('site_sport', 'category')
 
     def __str__(self):
-        return 'sport:%s category:%s enable:%s' % (self.site_sport.name, self.category.name, self.enable)
+        return '%s -- category:%s enable:%s' % (self.site_sport.name, self.category.name, self.enable)
 
 class TemplateContest( contest.models.Contest ):
     """
@@ -38,6 +38,30 @@ class TemplateContest( contest.models.Contest ):
     # the model's table gets created properly
     class Meta:
         abstract = False
+
+class Interval(models.Model):
+
+    monday      = models.BooleanField(default=False, null=False)
+    tuesday     = models.BooleanField(default=False, null=False)
+    wednesday   = models.BooleanField(default=False, null=False)
+    thursday    = models.BooleanField(default=False, null=False)
+    friday      = models.BooleanField(default=False, null=False)
+    saturday    = models.BooleanField(default=False, null=False)
+    sunday      = models.BooleanField(default=False, null=False)
+
+    def __str__(self):
+        days = []
+        if self.monday:     days.append('Mon')
+        if self.tuesday:    days.append('Tue')
+        if self.wednesday:  days.append('Wed')
+        if self.thursday:   days.append('Thu')
+        if self.friday:     days.append('Fri')
+        if self.saturday:   days.append('Sat')
+        if self.sunday:     days.append('Sun')
+
+        days_str = '*%s* ' % str(len(days))
+        return days_str +  '|'.join(days)
+
 
 class ScheduledTemplateContest( models.Model ):
     """
@@ -56,8 +80,10 @@ class ScheduledTemplateContest( models.Model ):
     duration_minutes    = models.IntegerField(default=0, null=False,
                             help_text='so we can calculate the end time. end_time = (start_time + timedelta(minutes=duration_minutes)).')
 
+    interval            = models.ForeignKey(Interval, null=False)
     class Meta:
         unique_together = ('schedule','template_contest','start_time','duration_minutes')
+
 #
 # UNCOMMENT THIS AND MAKE THIS BE THE HISTORY ROW FOR EACH TIME WE CREATE A NEW CONTEST BEAUSE OF THE SCHEDULE
 #
