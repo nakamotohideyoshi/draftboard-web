@@ -25,8 +25,8 @@ class Schedule( models.Model ):
     def __str__(self):
         return '%s -- category:%s enable:%s' % (self.site_sport.name, self.category.name, self.enable)
 
-#class TemplateContest( contest.models.AbstractContest ):
-class TemplateContest( contest.models.Contest ):
+class TemplateContest( contest.models.AbstractContest ):
+#class TemplateContest( contest.models.Contest ):
     """
     a Contest - for all intents and purposes - just in a different table,
     and used by the scheduler.

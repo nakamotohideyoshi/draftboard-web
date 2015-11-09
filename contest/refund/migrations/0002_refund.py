@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('transaction', '0002_auto_20150408_0015'),
-        ('contest', '0010_auto_20150722_1328'),
+        ('contest', '0002_contest_currentcontest_entry_historycontest_livecontest_lobbycontest_upcomingcontest'),
         ('refund', '0001_initial'),
     ]
 
@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Refund',
             fields=[
-                ('id', models.AutoField(auto_created=True, verbose_name='ID', primary_key=True, serialize=False)),
+                ('id', models.AutoField(verbose_name='ID', auto_created=True, serialize=False, primary_key=True)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('contest', models.ForeignKey(to='contest.Contest')),
                 ('entry', models.OneToOneField(to='contest.Entry')),
