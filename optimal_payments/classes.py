@@ -186,6 +186,8 @@ class CustomerProfile( NetBanxApi ):
     def create(self, user, phone):
         """
         create a Customer Profile via the api, so that we can get a token to identify it
+
+        returns the new Profile upon successful creation
         """
 
         self.user = user    # set the user before the model instance is created
@@ -207,7 +209,8 @@ class CustomerProfile( NetBanxApi ):
         response_json = self.validate_response( self.r )
 
         # save the customers profile to the database on success
-        self.save_model( response_json )
+        self.model_instance = self.save_model( response_json )
+        return self.model_instance
 
     def save_model(self, response_json):
         """
@@ -269,9 +272,11 @@ class CreateAddress(NetBanxApi):
 
         self.r                  = None # the response from the api
 
-    def create(self, nickname, street, city, state, country, zip):
+    def create(self, nickname, street, city, state, zip, country='US'):
         """
         create an Address to associate with a  Customer Profile via the api.
+
+        this method returns the newly created Address on successful creation
         """
         params = {
             "nickname"      : nickname,
@@ -288,10 +293,21 @@ class CreateAddress(NetBanxApi):
 
         # save the Address for the customer profile
         self.model_instance = self.save_model( response_json )
+        return self.model_instance
 
     def save_model(self, response_json):
         """
         save this Adddress for the Profile
+
+        a successful response example:
+
+            {
+                "id":"28df601f-934e-4590-a1a0-0947eb4eb0c2",
+                "street":"1 Some Street","city":"Sometown","country":"US",
+                "state":"NH","zip":"03055",
+                "defaultShippingAddressIndicator":false,"status":"ACTIVE"
+            }
+
         """
 
         # parent save_model() gets an instance with the user, and oid set
@@ -302,7 +318,7 @@ class CreateAddress(NetBanxApi):
         address.state       = response_json.get('state')
         address.country     = response_json.get('country')
         address.zip         = response_json.get('zip')
-        address.default     = response_json.get('default')      # boolean
+        address.default     = response_json.get('defaultShippingAddressIndicator')  # boolean
         address.save()      # commit it to db
         return address
 
@@ -316,21 +332,35 @@ class CreateAddress(NetBanxApi):
 
 class CreateCard(NetBanxApi):
 
-    def __init__(self, address_instance):
+    def __init__(self, profile_instance, address_instance):
         super().__init__()
         self.model_class        = Card
         # self.model_instance     = None
         self.user               = address_instance.user
         self.address_instance   = address_instance
 
-        self.url_create = 'https://api.test.netbanx.com/customervault/v1/profiles'
-        self.url_create += '/%s/cards' % self.address_instance.oid
+        self.url = 'https://api.test.netbanx.com/customervault/v1'
+        self.url_create = self.url + '/profiles'
+        self.url_create += '/%s/cards' % profile_instance.oid
+
+        self.url_delete = self.url + '/profiles'
+        self.url_delete += '/%s/cards/%s' % (profile_instance.oid, address_instance.oid)
 
         self.r                  = None # the response from the api
+
+    def delete(self):
+        """
+        remove a card (and its CustomerProfile & Address objects!)
+
+        url: /profiles/{PROFILE_ID}/cards/{CARD_ID}
+        """
+        self.r = self.session.delete( self.url_delete, headers=self.headers )
 
     def create(self, nickname, holder_name, cc_num, exp_month, exp_year):
         """
         create an Address to associate with a  Customer Profile via the api.
+
+        returns the newly created Card instance if successfully created
         """
         params = {
             "billingAddressId"  : self.address_instance.oid,
@@ -339,16 +369,32 @@ class CreateCard(NetBanxApi):
             "cardNum"           : cc_num,
             "cardExpiry"        : { 'month' : exp_month, 'year' : exp_year },
         }
+        print('CreateCard params:')
+        print( str(params) )
         self.r = self.session.post( self.url_create, headers=self.headers, data=json.dumps( params ) )
 
         response_json = self.validate_response( self.r )
         self.model_instance = self.save_model( response_json )
+        return self.model_instance
 
     def save_model(self, response_json):
         """
         create the Card which is associated with an Address.
 
-        returns the newly created model instance
+        returns the newly created model instance.
+
+        here is an example of what the response_json looks like on success:
+
+            {
+                "status":"ACTIVE","id":"b3505d3e-dd30-4785-bbf8-39bc5e65faf1",
+                "cardBin":"453091","lastDigits":"2345",
+                "cardExpiry":{"year":2017,"month":11},
+                "holderName":"Holder Name","nickName":"nicknameOfCard",
+                "billingAddressId":"31847648-9401-48c7-b9ec-3515e19c50d1",
+                "cardType":"VI","paymentToken":"CTPvTXm3IrLGMgy",
+                "defaultCardIndicator":true
+            }
+
         """
 
         # parent save_model() gets an instance with the user, and oid set
