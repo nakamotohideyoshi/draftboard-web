@@ -11,6 +11,7 @@ import prize.urls
 import salary.urls
 import sports.urls
 import push.urls
+import optimal_payments.urls
 
 from django.conf.urls import url, include
 from django.contrib.auth.models import User
@@ -41,6 +42,8 @@ router.register(r'users', UserViewSet)
 urlpatterns = [
 
     url(r'^admin/',         include(admin.site.urls)),
+
+    url(r'^api/payments/',  include(optimal_payments.urls)),
 
     url(r'^account/',       include(account.urls)),
     url(r'^cash/',          include(cash.urls)),

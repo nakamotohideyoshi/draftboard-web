@@ -4,6 +4,7 @@
 from django.conf import settings
 from datetime import datetime, date, timedelta
 from django.utils import timezone
+from django.db.transaction import atomic    # for transactions
 
 from PythonNetBanxSDK.OptimalApiClient import OptimalApiClient
 from PythonNetBanxSDK.CardPayments.Authorization import Authorization
@@ -183,11 +184,33 @@ class CustomerProfile( NetBanxApi ):
         self.url_create     = 'https://api.test.netbanx.com/customervault/v1/profiles'
         self.r              = None # the response from the api
 
-    def create(self, user, phone):
+    def get_or_create(self, user):
         """
-        create a Customer Profile via the api, so that we can get a token to identify it
+        Returns a tuple in the same form as models get_or_create() method.
+        ie: it will return: (object, boolean) and the boolean indicates
+        if the object was just created or not.
 
-        returns the new Profile upon successful creation
+        if it cant be gotten because it doesnt exist, create it and return it.
+
+        calls the create() method in the case it must be created.
+
+        :param user:
+        :return:
+        """
+        newly_created = False
+        try:
+            profile = self.model_class.objects.get( user=user )
+        except self.model_class.DoesNotExist:
+            profile = self.create( user )
+            newly_created = True
+
+        return profile, newly_created
+
+    def create(self, user):
+        """
+        Create a Customer Profile via the api and create a models.Profile entry
+
+        returns the created profile instance
         """
 
         self.user = user    # set the user before the model instance is created
@@ -200,7 +223,7 @@ class CustomerProfile( NetBanxApi ):
             "locale"                : "en_US",
             "firstName"             : user.first_name,
             "lastName"              : user.last_name,
-            "phone"                 : phone,
+            "phone"                 : '',
             "email"                 : user.email
         }
         self.r = self.session.post( self.url_create, headers=self.headers, data=json.dumps( params ) )
@@ -267,10 +290,29 @@ class CreateAddress(NetBanxApi):
         self.user               = profile_instance.user
         self.profile_instance   = profile_instance
 
-        self.url_create = 'https://api.test.netbanx.com/customervault/v1/profiles'
+        self.url = 'https://api.test.netbanx.com/customervault/v1'
+
+        self.url_create = self.url + '/profiles'
         self.url_create += '/%s/addresses' % self.profile_instance.oid
 
+        self.url_delete = self.url + '/profiles'
+        self.url_delete += '/%s/addresses/' % (profile_instance.oid)
+
         self.r                  = None # the response from the api
+
+    def delete(self, oid):
+        """
+        remove an Address from a netbanx Profile
+
+        url: /profiles/{PROFILE_ID}/addresses/{ADDRESS_ID}
+        """
+
+        # get the address object in our own database
+        address = Address.objects.get( oid=oid )
+        address_oid = address.oid
+
+        # delete the address from optimal with the api
+        self.r = self.session.delete( self.url_delete + address_oid, headers=self.headers )
 
     def create(self, nickname, street, city, state, zip, country='US'):
         """
@@ -335,7 +377,7 @@ class CreateCard(NetBanxApi):
     def __init__(self, profile_instance, address_instance):
         super().__init__()
         self.model_class        = Card
-        # self.model_instance     = None
+        self.profile_instance   = profile_instance
         self.user               = address_instance.user
         self.address_instance   = address_instance
 
@@ -344,17 +386,23 @@ class CreateCard(NetBanxApi):
         self.url_create += '/%s/cards' % profile_instance.oid
 
         self.url_delete = self.url + '/profiles'
-        self.url_delete += '/%s/cards/%s' % (profile_instance.oid, address_instance.oid)
+        self.url_delete += '/%s/cards/' % (profile_instance.oid)
 
         self.r                  = None # the response from the api
 
-    def delete(self):
+    def delete(self, oid):
         """
-        remove a card (and its CustomerProfile & Address objects!)
+        remove a card from a netbanx profile
 
         url: /profiles/{PROFILE_ID}/cards/{CARD_ID}
         """
-        self.r = self.session.delete( self.url_delete, headers=self.headers )
+
+        # get the Card model
+        c = Card.objects.get(oid=oid)
+        address_oid = c.address_oid
+
+        # delete this card from the profile
+        self.r = self.session.delete( self.url_delete + c.oid, headers=self.headers )
 
     def create(self, nickname, holder_name, cc_num, exp_month, exp_year):
         """
@@ -415,6 +463,92 @@ class CreateCard(NetBanxApi):
         print( r.text )
         response_json = self.check_errors( r.text )
         return response_json
+
+class PaymentMethodManager(object):
+    """
+    This class is a wrapper for the CustomerProfile, CreateAddress, and CreateCard classes
+    to make it easier to add and remove payment methods.
+
+    Note: Many of the methods in this class make use of an external api
+    and take tangible time to complete (a few seconds at most).
+
+    a User has a single CustomerProfile object. This is created with the
+    netbanx api and exists on their servers, but we hold a record for it
+    in our own database using CustomerProfile.
+
+    A "Payment Method" is represented thru this class as a single entity,
+    because we are abstracting the fact that we create a brand new address
+    for every card we add. (And we delete that address when we delete a Card.)
+
+    This abstraction is possible because we can create multiple identical
+    Address objects associated with the Customer Profile via the netbanx api
+    and it simplifies things on our end to group them together.
+    """
+
+    def __init__(self, user):
+        self.user = user
+
+    def get_profile(self):
+        """
+        create a profile using the CustomerProfile object
+        """
+        cp = CustomerProfile()
+        profile, created = cp.get_or_create(self.user)
+        return profile
+
+    def get_payment_methods(self):
+        """
+        returns a list of the user's Card objects
+        """
+        return Card.objects.filter(user=self.user)
+
+    @atomic
+    def create(self, billing_nickname, street, city, country, zip,
+                     card_nickname, holder_name, card_num, exp_month, exp_year):
+        """
+        Create a new payment method by a) creating a new Address
+        and b) by creating a new Card object.
+
+        This is an atomic method.
+
+        TODO - exception handling?
+        """
+
+        address_manager = CreateAddress( self.get_profile() )
+        address_instance = address_manager.create(billing_nickname, street, city, country, zip)
+
+        card_manager = CreateCard( self.get_profile(), address_instance )
+        card_instance = card_manager.create(card_nickname, holder_name, card_num, exp_month, exp_year)
+
+    @atomic
+    def delete(self, card_oid):
+        """
+        Delete a payment method by deleting the Card, as well as the Address.
+
+        This is an atomic method.
+        """
+
+        profile_instance = self.get_profile()
+
+        #
+        # we need to get the Card entry first, so we also know the Address oid
+        card_instance       = Card.objects.get(oid=card_oid)
+        address_oid         = card_instance.address_oid
+        address_instance    = Address.objects.get(oid=address_oid)
+
+        #
+        # use the address manager to remove the Card
+        # from netbanx, as well as in our own database
+        card_manager    = CreateCard( profile_instance, address_instance )
+        card_manager.delete(card_oid)           # delete from netxbanx server
+        card_instance.delete()                  # delete model
+
+        #
+        # now we can remove the Address from netbanx
+        # and from our own datbase
+        address_manager = CreateAddress( profile_instance )
+        address_manager.delete(address_oid)     # delete from netbanx server
+        address_instance.delete()               # delete model
 
 class CardPurchase(object):
     """
