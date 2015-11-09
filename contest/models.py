@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+#class AbstractContest(models.Model):
 class Contest(models.Model):
     """
     Represents all the settings, and statuses of a Contest.
@@ -266,6 +267,13 @@ class Contest(models.Model):
         self.draft_group = dgm.get_for_contest( self )
         pass # TODO - finish implementation
         return self
+
+#     class Meta:
+#         abstract = True
+#
+# class Contest(AbstractContest):
+#     class Meta:
+#         abstract = False
 
 class LobbyContest(Contest):
     """
