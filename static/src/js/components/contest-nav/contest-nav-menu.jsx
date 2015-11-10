@@ -33,11 +33,11 @@ const ContestNavMenu = React.createClass({
                height="30" width="30" className="icon icon-hamburger">
             <g>
               <path className="line-top" d="M3,13h36" fill="none"
-                    stroke="white" stroke-linejoin="bevel" stroke-width="3"></path>
+                    stroke="white" strokeLinejoin="bevel" strokeWidth="3"></path>
               <path className="line-middle" d="M3,21h36" fill="none"
-                    stroke="white" stroke-linejoin="bevel" stroke-width="3"></path>
+                    stroke="white" strokeLinejoin="bevel" strokeWidth="3"></path>
               <path className="line-bottom" d="M3,28h36" fill="none"
-                    stroke="white" stroke-linejoin="bevel" stroke-width="3"></path>
+                    stroke="white" strokeLinejoin="bevel" strokeWidth="3"></path>
             </g>
           </svg>
         </div>
