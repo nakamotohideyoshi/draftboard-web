@@ -18,7 +18,8 @@ from PythonNetBanxSDK.CardPayments.CardExpiry import CardExpiry
 from PythonNetBanxSDK.CardPayments.BillingDetails import BillingDetails
 from PythonNetBanxSDK.CardPayments.ShippingDetails import ShippingDetails
 
-from .models import Profile, Address, Card
+from .models import Profile, Address
+import optimal_payments.models
 
 import random
 import string
@@ -376,7 +377,7 @@ class CreateCard(NetBanxApi):
 
     def __init__(self, profile_instance, address_instance):
         super().__init__()
-        self.model_class        = Card
+        self.model_class        = optimal_payments.models.Card
         self.profile_instance   = profile_instance
         self.user               = address_instance.user
         self.address_instance   = address_instance
@@ -398,7 +399,7 @@ class CreateCard(NetBanxApi):
         """
 
         # get the Card model
-        c = Card.objects.get(oid=oid)
+        c = self.model_class.objects.get(oid=oid)
         address_oid = c.address_oid
 
         # delete this card from the profile
@@ -500,7 +501,7 @@ class PaymentMethodManager(object):
         """
         returns a list of the user's Card objects
         """
-        return Card.objects.filter(user=self.user)
+        return optimal_payments.models.Card.objects.filter(user=self.user)
 
     @atomic
     def create(self, billing_nickname, street, city, country, zip,
@@ -776,6 +777,36 @@ class CardPurchase(object):
 
         return billing_zipcode
 
+    def process_purchase_token(self, amt, payment_token, settleWithAuth=True):
+        """
+
+        :param amt:
+        :param settleWithAuth:
+        :return:
+        """
+        amt_hundreds        = self.__validate_amount( amt )
+
+        #
+        # ensure the payemnts api is ready by checking status of the card payments monitor
+        self.card_payments_monitor()
+
+        #
+        # build the card purchase
+        auth_obj = Authorization(None)
+        card_obj = Card(None)
+        auth_obj.merchantRefNum(RandomTokenGenerator().generateToken())
+        auth_obj.amount(str(amt_hundreds))
+        auth_obj.settleWithAuth("true" if settleWithAuth else "false")
+        card_obj.paymentToken( payment_token )
+        auth_obj.card( card_obj )
+
+        # call the api to swipe the credit card!
+        self.r_process_payment = self.optimal_obj.card_payments_service_handler().create_authorization(auth_obj)
+
+        # check the response -- will raise errors if they exist
+        self.__validate_payment( self.r_process_payment )
+        return self.r_process_payment.__dict__.get('id')
+
     def process_purchase(self, amt, cc_num, cvv,
                                       exp_month, exp_year,
                                       billing_zipcode,
@@ -851,6 +882,7 @@ class CardPurchase(object):
 
         # check the response -- will raise errors if they exist
         self.__validate_payment( self.r_process_payment )
+        return self.r_process_payment.__dict__.get('id')
 
     def __validate_payment(self, response):
         """

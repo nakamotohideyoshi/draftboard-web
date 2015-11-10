@@ -47,4 +47,24 @@ class RemovePaymentMethodSerializer(serializers.Serializer):
 
     oid    = serializers.CharField()
 
+class DepositPaymentTokenSerializer(serializers.Serializer):
+    """
+    serializer for the params necessary to remove a payment method
+    """
+
+    amount  = serializers.CharField()
+    oid     = serializers.CharField()
+
+class DepositCreditCardSerializer(serializers.Serializer):
+    """
+    serializer for the params necessary to remove a payment method
+    """
+
+    amount          = serializers.CharField()
+    cc_num          = serializers.CharField()
+    cvv             = serializers.CharField()
+    exp_month       = serializers.CharField()
+    exp_year        = serializers.CharField()
+    billing_zipcode = serializers.CharField()
+
 
