@@ -109,7 +109,8 @@ class RandomLineupCreator(object):
         lineup = lm.create_lineup( self.lineup_player_ids, contest.draft_group )
 
         # give the admin just enough cash to buy this team into the contest
-        ct = CashTransaction( self.user )
+        admin = User.objects.get(username='admin')
+        ct = CashTransaction( admin )
         ct.deposit( contest.buyin )
 
         # attempt to buy the team into the contest

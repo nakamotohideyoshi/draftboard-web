@@ -41,24 +41,40 @@ class TransactionHistoryAPIView(generics.ListAPIView):
     def get_queryset(self):
         """
         Gets the filtered Cash Transaction Details for the logged in user.
-
-
         """
-        days = self.request.QUERY_PARAMS.get('days', None)
-        if(days == None):
-            days = 30
-        else:
-            days = int(days)
-        if(days > 30):
-            days = 30
-
         user = self.request.user
-        now = datetime.now()
-        days_ago = now - timedelta(days=days)
+
+        #
+        # if the start_ts & end_ts params exist:
+        start_ts = self.request.QUERY_PARAMS.get('start_ts', None)
+        end_ts = self.request.QUERY_PARAMS.get('end_ts', None)
+        if start_ts and end_ts:
+            return self.filter_on_range( user, int(start_ts), int(end_ts) )
+
+        #
+        # default to looking for 'days' param
+        days = self.request.QUERY_PARAMS.get('days', None)
+        return self.filter_on_days( user, days )
+
+    def filter_on_range(self, user, start_ts, end_ts):
+        start   = datetime.utcfromtimestamp( start_ts )
+        end     = datetime.utcfromtimestamp( end_ts )
 
         return CashTransactionDetail.objects.filter( user=user,
-                                                    created__range=(days_ago, now) ).order_by('-created')
+                       created__range=(start, end) ).order_by('-created')
 
+    def filter_on_days(self, user, days):
+        d = 30
+        if days:
+            d = int(days)
+        if d > 30:
+            d = 30
+
+        now = datetime.now()
+        days_ago = now - timedelta(days=d)
+
+        return CashTransactionDetail.objects.filter( user=user,
+                   created__range=(days_ago, now) ).order_by('-created')
 
 class BalanceAPIView(generics.GenericAPIView):
     """
@@ -138,9 +154,6 @@ class DepositView( LoginRequiredMixin, FormView ):
             )
             return HttpResponseRedirect(self.failure_redirect_url)
 
-
-
-
     def get_context_data(self, **kwargs):
         """
         Adds the braintree client token into the context data
@@ -155,48 +168,3 @@ class DepositView( LoginRequiredMixin, FormView ):
         )
         context['braintree_client_token'] = braintree.ClientToken.generate()
         return context
-
-# #
-# # psuedo code/class for using OptimalPayments to swipe a credit card
-# class OptimalPaymentsDepositView( LoginRequiredMixin, FormView ):
-#     """
-#     The form for submitting the deposit via OptimalPayments (Netbanx).
-#
-#     This view requires the user to be logged in.
-#     """
-#     template_name           = 'netbanx-optimal-deposit.html'    # needs to be created
-#     form_class              = NetBanxDepositAmountForm          # needs to be created
-#     failure_redirect_url    = '/cash/deposit/'
-#     success_redirect_url    = '/cash/balance/'
-#
-#     def psuedo_form_submission_method(self):
-#         #
-#         # get the POST params... amount, cc number, cvv, etc...
-#         # TODO ...
-#
-#         #
-#         # get the django User from the request
-#         # TODO ...
-#
-#         #
-#         # process the payment with the optimal_payments.classes.CardPurchase object
-#         # TODO ...
-#         cp = CardPurchase()
-#         optimal_api_response   = cp.process_purchase( '0.25', '4530910000012345', '111', '11','2017','03055' )
-#
-#         #
-#         # CardPurchase.process_payment() may raise the following Exceptions:
-#         #     CardPurchase.OptimalServiceMonitorDownException
-#         #     CardPurchase.OptimalServiceMonitorNotReadyException
-#         #     CardPurchase.InvalidArgumentException
-#         #     CardPurchase.ExpiredCreditCardException
-#         #     CardPurchase.ProcessingException
-#         #     CardPurchase.PaymentDeclinedException
-#         #     CardPurchase.UnknownNetbanxErrorCodeException
-#         #     CardPurchase.ProcessPaymentResponseStatusException
-#
-#         # create a record of the transaction in our own database
-#         # with enough information so we could match this
-#         # payment with the same payment on the netbanx/optimal account
-#         ct = CashTransaction( request.user )
-#         ct.deposit_optimal( amount, optimal_api_response.id )   # optimal_api_response.id  example: 'a6e29e26-74a3-4a70-a7ac-b9bf25a06f3e'
