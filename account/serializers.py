@@ -23,6 +23,13 @@ class EmailNotificationSerializer(serializers.ModelSerializer):
         fields = ("pk", "category", "name", "description", "default_value", "deprecated")
 
 class UserEmailNotificationSerializer(serializers.ModelSerializer):
+
+    #
+    # we also want to display the displayed_text from EmailNotification
+    title = serializers.SerializerMethodField()
+    def get_title(self, obj):
+        return obj.email_notification.displayed_text
+
     class Meta:
         model = UserEmailNotification
-        fields = ("email_notification", "enabled")
+        fields = ('email_notification', 'enabled', 'title')
