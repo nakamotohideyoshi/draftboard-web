@@ -7,10 +7,6 @@ const playerSchema = new Schema('players', {
 })
 
 
-// function determineDraftability(player) {
-//   return true;
-// }
-
 
 function fetchDraftgroupSuccess(body) {
   return {
@@ -63,4 +59,16 @@ export function fetchDraftGroup(draftGroupId) {
         }
       });
   };
+}
+
+
+export function updateFilter(filterName, filterProperty, match) {
+  return {
+    type: types.DRAFTGROUP_FILTER_CHANGED,
+    filter: {
+      filterName,
+      filterProperty,
+      match
+    }
+  }
 }

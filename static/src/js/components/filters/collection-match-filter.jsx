@@ -1,7 +1,4 @@
-'use strict';
-
 var React = require('react');
-var log = require('../../lib/logging.js');
 
 
 /**
@@ -22,9 +19,7 @@ var CollectionMatchFilter = React.createClass({
     filterName: React.PropTypes.string.isRequired,
     // When the filter values have changed, let the store it's registered with know so it can
     // re-run all of it's filters.
-    onUpdate: React.PropTypes.func.isRequired,
-    // Once the filter has mounted, it needs to register itself with a store.
-    onMount: React.PropTypes.func.isRequired
+    onUpdate: React.PropTypes.func.isRequired
   },
 
 
@@ -51,39 +46,8 @@ var CollectionMatchFilter = React.createClass({
         'match': filter.match,
         'activeFilter': filter
       }, function() {
-        this.props.onUpdate(this.props.filterName, filter);
+        this.props.onUpdate(this.props.filterName, this.props.filterProperty, filter.match);
       });
-  },
-
-
-  componentDidMount: function() {
-    // Register this filter with the Store with the provided function.
-    this.props.onMount(this);
-  },
-
-
-  /**
-   * Determines whether a row should be shown or not based on the selected filter criteria.
-   *
-   * @param {Object} row - A row in the table.
-   * @return {boolean} Should the row be displayed?
-   */
-  filter: function(row) {
-
-    if(!row.hasOwnProperty(this.props.filterProperty)) {
-        log.warn('CollectionMatchFilter.filter() Row does not contain property',
-          this.props.filterProperty);
-        // return true;
-    } else {
-      // Check if the row's property matches this filter's match value.
-      if (this.state.match === '' ||
-          row[this.props.filterProperty].toLowerCase() === this.state.match.toLowerCase()) {
-        return true;
-      }
-
-      return false;
-    }
-
   },
 
 

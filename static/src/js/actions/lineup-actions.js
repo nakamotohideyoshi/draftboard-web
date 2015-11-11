@@ -75,12 +75,3 @@ export function createLineupSave() {
 export function createLineupSetTitle(title) {
   console.log('createLineupSetTitle()', title)
 }
-
-
-
-
-
-// var LineupActions = Reflux.createActions({
-//   "load": {children: ["completed", "failed"]},
-//   "lineupFocused": {}
-// });

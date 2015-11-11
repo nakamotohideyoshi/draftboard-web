@@ -1,9 +1,9 @@
-'use strict';
-
-var React = require('react');
-var renderComponent = require('../../lib/render-component');
-var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
-// var ContestActions = require('../../actions/contest-actions.js');
+import React from 'react'
+const ReactRedux = require('react-redux')
+const store = require('../../store')
+const renderComponent = require('../../lib/render-component')
+var CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
+import {updateFilter} from '../../actions/upcoming-contests-actions.js'
 
 
 /**
@@ -12,8 +12,7 @@ var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
 var ContestListSportFilter = React.createClass({
 
   propTypes: {
-    filterUpdated: React.PropTypes.function,
-    registerFilter: React.PropTypes.function
+    updateFilter: React.PropTypes.func
   },
 
 
@@ -29,6 +28,12 @@ var ContestListSportFilter = React.createClass({
     };
   },
 
+
+  handleFilterChange: function(filterName, filterProperty, match) {
+    this.props.updateFilter(filterName, filterProperty, match)
+  },
+
+
   render: function() {
     return (
         <CollectionMatchFilter
@@ -37,17 +42,42 @@ var ContestListSportFilter = React.createClass({
           filterProperty='sport'
           match=''
           filterName='sportFilter'
-          onUpdate={this.props.filterUpdated}
-          onMount={this.props.registerFilter}
+          onUpdate={this.handleFilterChange}
         />
     );
   }
 
-});
+})
 
+
+// Redux integration
+let {Provider, connect} = ReactRedux
+
+// Which part of the Redux global state does our component want to receive as props?
+function mapStateToProps(state) {
+  return {};
+}
+
+// Which action creators does it want to receive by props?
+function mapDispatchToProps(dispatch) {
+  return {
+    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match))
+  }
+}
+
+// Wrap the component to inject dispatch and selected state into it.
+var ContestListSportFilterConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(ContestListSportFilter)
 
 // Render the component.
-renderComponent(<ContestListSportFilter />, '.cmp-contest-list-sport-filter');
+renderComponent(
+  <Provider store={store}>
+    <ContestListSportFilterConnected />
+  </Provider>,
+  '.cmp-contest-list-sport-filter'
+);
 
 
-module.exports = ContestListSportFilter;
+module.exports = ContestListSportFilter

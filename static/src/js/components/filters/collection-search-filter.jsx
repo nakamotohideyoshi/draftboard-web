@@ -1,6 +1,6 @@
-'use strict';
+import React from 'react'
+import ReactDom  from 'react-dom'
 
-var React = require('react');
 
 
 /**
@@ -22,9 +22,7 @@ var CollectionSearchFilter = React.createClass({
     filterName: React.PropTypes.string.isRequired,
     // When the filter values have changed, let the store it's registered with know so it can
     // re-run all of it's filters.
-    onUpdate: React.PropTypes.func.isRequired,
-    // Once the filter has mounted, it needs to register itself with a store.
-    onMount: React.PropTypes.func.isRequired
+    onUpdate: React.PropTypes.func.isRequired
   },
 
 
@@ -47,44 +45,6 @@ var CollectionSearchFilter = React.createClass({
 
 
   /**
-   * This filter performs a string match on the specified row property (this.props.filterProperty).
-   * @param  {Object} row The single collection row.
-   * @return {boolean} Should the row be displayed in the filtered collection list?
-   */
-  filter: function(row) {
-    // Show the row if there is no search query.
-    if (!this.state.match) {
-      return true;
-    }
-
-    // We can account for nested resources here. so if we want to search for the row.player.name
-    // property, just set 'row.player.name' as the search property, this will drill down into the
-    // nested properties for it's search target.
-    var nestedProps = this.props.filterProperty.split('.');
-    var searchTarget = row;
-
-    nestedProps.forEach(function(prop) {
-      if (searchTarget.hasOwnProperty(prop)) {
-        searchTarget = searchTarget[prop];
-      }
-    });
-
-    // Search in the row's scpecified property for the search string.
-    if (searchTarget.toLowerCase().indexOf(this.state.match.toLowerCase()) === -1) {
-      return false;
-    }
-    // Default to show.
-    return true;
-  },
-
-
-  componentDidMount: function() {
-    // Register this filter with the Store with the provided function.
-    this.props.onMount(this);
-  },
-
-
-  /**
    * When the searchField value changes, the Store will re-run any active filters via the provided
    * onUpdate function.
    * @param  {Object} e The dom event that triggered this.
@@ -93,9 +53,10 @@ var CollectionSearchFilter = React.createClass({
     this.setState({match: e.target.value}, function() {
       this.props.onUpdate(
         this.props.filterName,
-        {title: this.props.filterName, column: this.props.filterProperty, match: this.state.match}
-      );
-    });
+        this.props.filterProperty,
+        this.state.match
+      )
+    })
   },
 
 
@@ -104,7 +65,7 @@ var CollectionSearchFilter = React.createClass({
    */
   showSearchField: function() {
     this.setState({isExpanded: true});
-    React.findDOMNode(this.refs.searchField).focus();
+    ReactDom.findDOMNode(this.refs.searchField).focus();
   },
 
 
