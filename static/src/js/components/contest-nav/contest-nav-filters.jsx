@@ -1,34 +1,105 @@
 'use strict';
 
-var React = require('react');
+const React = require('react');
 
 
-var ContestNavFilters = React.createClass({
+/*
+ *   Responsible for rendering the contest navigation filters
+ * select menu.
+*/
+const ContestNavFilters = React.createClass({
 
-  getInitialState: function() {
-    return {};
+  propTypes: {
+    // Selected option text.
+    selected: React.PropTypes.any,
+
+    // Options array:
+    //
+    //   option -> Option text
+    //   type:  -> Option type
+    //   key:   -> Option subtype
+    //   count: -> Items count on this option
+    //
+    options: React.PropTypes.array.isRequired,
+
+    //
+    // Called on select menu change.
+    //
+    // @param {String} selectedOption Name of the selected option
+    // @param {String} selectedType Type of the selected item
+    // @param {String} selectedKey Key of the selected item type
+    //
+    onChangeSelection: React.PropTypes.func.isRequired
   },
 
-  render: function() {
+  getInitialState() {
+    return {expanded: false};
+  },
+
+  componentDidMount() {
+    if (this.props.selected === null) {
+      this.selectFirstOption();
+    }
+  },
+
+  /**
+   * Selects first available option.
+  */
+  selectFirstOption() {
+    const {option, type, key} = this.props.options[0];
+
+    this.props.onChangeSelection(option, type, key);
+  },
+
+  /**
+   * Show select menu options.
+  */
+  handleMenuShow() {
+    this.setState({expanded: true});
+  },
+
+  /**
+   * Hide select menu options.
+  */
+  handleMenuLeave () {
+    this.setState({expanded: false});
+  },
+
+  /**
+   * Change selected menu item.
+  */
+  handleChangeSelection(option) {
+    const results = this.props.options.filter((opt) => {
+      return opt.option === option;
+    });
+    const {type, key} = results[0];
+
+    this.props.onChangeSelection(option, type, key);
+    this.handleMenuLeave();
+  },
+
+  render() {
+    const items = this.props.options.map((opt) => {
+      let {option, count} = opt;
+
+      return (
+        <li key={option} onClick={this.handleChangeSelection.bind(this, option)}>
+          {option}
+          <span className="counter"> {count}</span>
+        </li>
+      );
+    });
+
     return (
       <div className="cmp-contest-nav--filters">
-        <div className="cmp-contest-nav--sport-nav select-list">
-          <div className="select-list--selected">NBA</div>
-
-          <ul className="select-list--options">
-            <li>NBA</li>
-            <li>MLB</li>
-            <li>NFL</li>
-          </ul>
-        </div>
-
-        <div className="cmp-contest-nav--team-nav select-list">
-          <div className="select-list--selected">Warriors Stack Team</div>
-
-          <ul className="select-list--options">
-            <li>Warriors Stack Team</li>
-            <li>Nuggets Stack Team</li>
-            <li>Fire Fire Fire!! </li>
+        <div className="cmp-contest-nav--sport-nav select-list"
+             onMouseEnter={this.handleMenuShow}
+             onMouseLeave={this.handleMenuLeave}>
+          <div className="select-list--selected">{this.props.selected}</div>
+          <ul className={"select-list--options" +
+                         (this.state.expanded ? " visible" : "")}>
+            <div className="arrow-up"></div>
+            {items}
           </ul>
         </div>
       </div>

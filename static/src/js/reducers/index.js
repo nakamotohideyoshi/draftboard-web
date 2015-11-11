@@ -8,8 +8,10 @@
 const { combineReducers } = require('redux');
 
 const contests = require('./contests');
+const entries = require('./entries');
 
 
 module.exports = combineReducers({
-  contests
+  contests,
+  entries
 });
