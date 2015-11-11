@@ -2,58 +2,114 @@
 
 import update from 'react-addons-update'
 import { map as _map, forEach as _forEach } from 'lodash'
-const ActionTypes = require('../action-types')
+
+import * as ActionTypes from '../action-types'
+import log from '../lib/logging'
+
+
+// shortcut method to $set new state if the key doesn't exist, otherwise $merges the properties in to existing
+function setOrMerge(state, action, newProps) {
+  // if does not exist, then $set to create
+  if (action.id in state === false) {
+    var newProps = Object.assign({}, newProps, {
+      playersInfo: {},
+      playersStats: {},
+      boxScores: {}
+    })
+
+    return update(state, {
+      $set: {
+        [action.id]: newProps
+      }
+    })
+  }
+
+  // otherwise merge
+  return update(state, {
+    [action.id]: {
+      $merge: newProps
+    }
+  })
+};
 
 
 // update initialState to be a function to get from localStorage if it exists
 module.exports = (state = {}, action) => {
   switch (action.type) {
-    // note that the way this is written, it will overwrite the draft group
     case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_INFO:
-      return update(state, { $merge: {
-        [action.id]: {
-          id: action.id,
-          isFetchingInfo: true,
-          isFetchingFP: false
-        }
-      }})
+      log.debug('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_INFO')
+
+      var newProps = {
+        id: action.id,
+        isFetchingInfo: true
+      }
+
+      return setOrMerge(state, action, newProps)
+
 
     case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_INFO:
+      log.debug('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_INFO')
+
       return update(state, {
         [action.id]: {
           $merge: {
-            players: action.players,
+            isFetchingInfo: false,
             expiresAt: action.expiresAt,
-            isFetchingInfo: false
+            playersInfo: action.players
           }
         }
       })
+
 
     case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP:
+      log.debug('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_FP')
+
+      var newProps = {
+        id: action.id,
+        isFetchingFP: true
+      }
+
+      return setOrMerge(state, action, newProps)
+
+
+    case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP:
+      log.debug('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_FP')
+
       return update(state, {
         [action.id]: {
           $merge: {
-            isFetchingFP: true
+            isFetchingFP: false,
+            fpUpdatedAt: action.updatedAt,
+            playersStats: action.players
           }
         }
       })
 
-    case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP:
-      var newState = Object.assign({}, state)
-      var draftGroup = newState[action.id]
 
-      _forEach(draftGroup.players, (player, id) => {
-        if (id in action.playersFP === false) {
-          return
+    case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES:
+      log.debug('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES')
+
+      var newProps = {
+        id: action.id,
+        isFetchingBoxScores: true
+      }
+
+      return setOrMerge(state, action, newProps)
+
+
+    case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES:
+      log.debug('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
+
+      return update(state, {
+        [action.id]: {
+          $merge: {
+            isFetchingBoxScores: true,
+            boxScoresUpdatedAt: action.updatedAt,
+            boxScores: action.boxScores
+          }
         }
-
-        var playerFP = action.playersFP[id]
-
-        player['fp'] = playerFP.fp
-        player['fpLastUpdated'] = Date.now()
       })
 
-      return newState
 
     default:
       return state
