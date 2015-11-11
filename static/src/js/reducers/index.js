@@ -3,22 +3,29 @@
  * single place.
  */
 
-const { combineReducers } = require('redux')
+const { combineReducers } = require('redux');
+
 
 const contests = require('./contests')
+const createLineup = require('./create-lineup.js')
+const currentLineups = require('./current-lineups');
 const draftDraftGroup = require('./draft-group')
+const entries = require('./entries')
+const liveContests = require('./live-contests');
+const liveDraftGroups = require('./live-draft-groups');
+const upcomingContests = require('./upcoming-contests.js')
 const upcomingDraftGroups = require('./upcoming-draft-groups.js')
 const upcomingLineups = require('./lineups')
-const upcomingContests = require('./upcoming-contests.js')
-const createLineup = require('./create-lineup.js')
-const entries = require('./entries')
 
 module.exports = combineReducers({
   contests,
-  entries,
+  createLineup,
+  currentLineups,
   draftDraftGroup,
-  upcomingLineups,
+  entries,
+  liveContests,
+  liveDraftGroups,
   upcomingContests,
   upcomingDraftGroups,
-  createLineup
-})
+  upcomingLineups
+});
