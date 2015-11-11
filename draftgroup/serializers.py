@@ -5,12 +5,21 @@ from rest_framework import serializers
 from draftgroup.models import DraftGroup, Player
 from roster.models import RosterSpot
 
-
 class PlayerSerializer(serializers.ModelSerializer):
+
+    game_srid = serializers.SerializerMethodField()
+    def get_game_srid(self, draft_group_player):
+        return draft_group_player.game_team.game_srid
+
+    team_srid = serializers.SerializerMethodField()
+    def get_team_srid(self, draft_group_player):
+        return draft_group_player.game_team.team_srid
 
     class Meta:
         model = Player
-        fields = ('player_id', 'name', 'salary', 'start', 'position', 'fppg', 'team_alias')
+        fields = ('player_id', 'name', 'salary',
+                  'start', 'position', 'fppg',
+                  'team_alias', 'game_srid', 'team_srid')
 
 class AbstractDraftGroupSerializer(serializers.ModelSerializer):
     """

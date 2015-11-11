@@ -17,8 +17,8 @@ from dataden.models import LiveStatsCacheConfig, Trigger
 
 #
 # cache methods
-# set( key, duration )                  # always adds
-# add( key, duration )                  # only adds if doesnt exist
+# set( key, val, duration )                  # always adds
+# add( key, val, duration )                  # only adds if doesnt exist
 # get( key, default )                   # get, if not exists, return default
 # set_many({'a': 1, 'b': 2, 'c': 3})    # more efficient for multiple key:value pairs
 # get_many(['a', 'b', 'c'])             # more efficient get() for multiple key:value pairs

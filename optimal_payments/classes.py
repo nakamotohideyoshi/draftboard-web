@@ -4,6 +4,7 @@
 from django.conf import settings
 from datetime import datetime, date, timedelta
 from django.utils import timezone
+from django.db.transaction import atomic    # for transactions
 
 from PythonNetBanxSDK.OptimalApiClient import OptimalApiClient
 from PythonNetBanxSDK.CardPayments.Authorization import Authorization
@@ -17,9 +18,15 @@ from PythonNetBanxSDK.CardPayments.CardExpiry import CardExpiry
 from PythonNetBanxSDK.CardPayments.BillingDetails import BillingDetails
 from PythonNetBanxSDK.CardPayments.ShippingDetails import ShippingDetails
 
+from .models import Profile, Address
+import optimal_payments.models
+
 import random
 import string
 import inspect
+import requests
+import json
+import base64
 
 #
 # source: https://developer.optimalpayments.com/en/sdk/server-side/python/card-payments-api/
@@ -40,6 +47,509 @@ class RandomTokenGenerator(object):
         """
         token = ''.join(random.choice(string.ascii_lowercase + string.digits) for x in range(16))
         return (token)
+
+class NetBanxApi(object):
+
+    # for general exceptions in the api
+    class NetBanxApiException(Exception): pass              # last resort error from unkonwn API error
+
+    # specific error codes result in these exceptions:
+    ERROR_CODE_7503 = '7503'
+    ERROR_CODE_7505 = '7505'
+    ERROR_CODE_7508 = '7508'
+    ERROR_CODE_7511 = '7511'
+    class CustomerCardExistsException(Exception): pass      # 7503 - card is already on the profile
+    class CustomerIdExistsException(Exception): pass        # 7505 - a profile with this customer id already exists
+    class InvalidCardNumOrBrand(Exception): pass            # 7508 - wrong cc number or brand or combo
+    class AddressDoesNotExist(Exception): pass              # 7511 - address not found by its id
+
+    # Static data
+    _environment    = settings.OPTIMAL_ENVIRONMENT      # 'TEST' or 'LIVE'
+    _api_key        = settings.OPTIMAL_API_KEY          # 'devcentre4628'
+    _api_password   = settings.OPTIMAL_API_PASSWORD     # 'B-qa2-0-548ef25d-302b0213119f70d83213f828bc442dfd0af3280a7b48b1021400972746f9abe438554699c8fa3617063ca4c69a'
+    _account_number = settings.OPTIMAL_ACCOUNT_NUMBER   # '89983472'
+
+    def __init__(self):
+        self.session = requests.Session()
+        self.headers        = self.generate_base64_basic_auth_header(self._api_key, self._api_password)
+        # also specify the content-type
+        self.headers['Content-Type'] = 'application/json'
+
+        self.user           = None # child classes MUSt set this
+        self.model_class    = None # child classes MUST set this
+        self.model_instance = None # child classes should set this in save_model() on successful save
+
+    def save_model(self, response_json):
+        """
+        create but do not save an instance of the internal model_class.
+
+        child classes should call this method to get a new unsaved
+        model instance with the user, and oid set
+
+        :param response_json:
+        :return:
+        """
+        if self.model_class is None:
+            raise Exception('self.model_class was never set (its None!)')
+
+        instance = self.model_class()
+
+        if self.user is None:
+            raise Exception('self.user was never set (its None!)')
+        instance.user   = self.user
+
+        oid = response_json.get('id')
+        if oid is None:
+            raise Exception('oid was not set in super().save_model()!')
+
+        instance.oid = oid
+        return instance
+
+    def generate_base64_basic_auth_header(self, key, password):
+        """
+        base64 encode the api_key and return it formatted for the http request header
+        """
+        api_key = '%s:%s' % (key, password)
+        utf8 = 'utf8'
+        return { 'Authorization' : 'Basic %s' % base64.b64encode(api_key.encode(utf8)).decode(utf8) }
+
+    def handle_error(self, error_obj):
+        """
+        if error_obj is None - then no checking is done, and the method returns immediately
+
+        display and deal with whatever the error is.
+
+        each error will have a code and a link to the error,
+        and a message
+
+        example error object:
+
+            {   'code': '7505',
+                 'links': [
+                    {   'rel': 'errorinfo',
+                        'href': 'https://developer.optimalpayments.com/en/documentation/customer-vault-api/error-7505'
+                    }, # there could be more than 1 object seems like
+                ],
+                'message': 'The merchantCustomerId provided for this profile has already been used for another profile - 94649a20-5da7-4c34-b8e2-3d6c7ea4c092'}
+            }
+
+        :param error:
+        :return:
+        """
+        if error_obj is None:
+            return # there is no error
+
+        code    = error_obj.get('code')
+        links   = error_obj.get('links', [])  # the error link
+        message = error_obj.get('message')
+
+        if code == self.ERROR_CODE_7503:
+            raise self.CustomerCardExistsException( str(message) )
+        elif code == self.ERROR_CODE_7505:
+            raise self.CustomerIdExistsException( str(message) )
+        elif code == self.ERROR_CODE_7508:
+            raise self.InvalidCardNumOrBrand( str(message) )
+        elif code == self.ERROR_CODE_7511:
+            raise self.AddressDoesNotExist( str(message) )
+        elif code is not None:
+            print( str(links) )
+            raise self.NetBanxApiException( str(message) )
+
+    def check_errors(self, json_str):
+        """
+        convert a string (from the body of an http response) to json.
+
+        check for errors, and then if there are none return the json response
+        """
+        try:
+            response_json = json.loads( json_str )
+        except:
+            e = 'could not convert response text to json object!'
+            print( e )
+            raise Exception( e )
+
+        # check if there is an error first
+        err = response_json.get('error')
+        # handle the error if there is one - this may raise exceptions
+        self.handle_error( err )
+
+        #
+        return response_json
+
+class CustomerProfile( NetBanxApi ):
+
+    def __init__(self):
+        super().__init__()
+        self.model_class    = Profile
+        # self.model_instance = None
+        self.url_create     = 'https://api.test.netbanx.com/customervault/v1/profiles'
+        self.r              = None # the response from the api
+
+    def get_or_create(self, user):
+        """
+        Returns a tuple in the same form as models get_or_create() method.
+        ie: it will return: (object, boolean) and the boolean indicates
+        if the object was just created or not.
+
+        if it cant be gotten because it doesnt exist, create it and return it.
+
+        calls the create() method in the case it must be created.
+
+        :param user:
+        :return:
+        """
+        newly_created = False
+        try:
+            profile = self.model_class.objects.get( user=user )
+        except self.model_class.DoesNotExist:
+            profile = self.create( user )
+            newly_created = True
+
+        return profile, newly_created
+
+    def create(self, user):
+        """
+        Create a Customer Profile via the api and create a models.Profile entry
+
+        returns the created profile instance
+        """
+
+        self.user = user    # set the user before the model instance is created
+
+        # payment_email = user.email
+        # if email is not None: payment_email = email
+
+        params = {
+            "merchantCustomerId"    : str(user.pk),
+            "locale"                : "en_US",
+            "firstName"             : user.first_name,
+            "lastName"              : user.last_name,
+            "phone"                 : '',
+            "email"                 : user.email
+        }
+        self.r = self.session.post( self.url_create, headers=self.headers, data=json.dumps( params ) )
+
+        # get response json, and check for errors
+        response_json = self.validate_response( self.r )
+
+        # save the customers profile to the database on success
+        self.model_instance = self.save_model( response_json )
+        return self.model_instance
+
+    def save_model(self, response_json):
+        """
+        save the profile to the database
+        """
+
+        # parent save_model() gets an instance with the user, and oid set
+        p = super().save_model( response_json )
+
+        p.status              = response_json.get('status')               # unused, however
+        p.merchant_customer   = response_json.get('merchantCustomerId')
+        p.first_name          = response_json.get('firstName')
+        p.last_name           = response_json.get('lastName')
+        p.phone               = response_json.get('phone')              # form: "111-111-1117"
+        p.email               = response_json.get('email')
+        p.payment_token       = response_json.get('paymentToken')
+        p.save()              # commit to db
+        return p
+
+    def validate_response(self, r):
+        """
+        check for errors
+        """
+        print( r.text )
+
+        # error-5279 - the authentication credentials are invalid
+        # {"error": {"code": "5279","message": "The authentication credentials are invalid.",
+        #   "links": [{"rel": "errorinfo","href": "https://developer.optimalpayments.com/en/documentation/customer-vault-api/error-5279"}]}}
+
+        # error-5023 - the request is not parseable
+        # {"error":{"code":"5023","message":"Cannot process request",
+        #   "links":[{"rel":"errorinfo","href":"https://developer.optimalpayments.com/en/documentation/customer-vault-api/error-5023"}]}}
+
+        # if it already exists:
+        # {"error":{"code":"7505",
+        #   "message":"The merchantCustomerId provided for this profile has already been used for another profile - 94649a20-5da7-4c34-b8e2-3d6c7ea4c092",
+        #   "links":[{"rel":"errorinfo","href":"https://developer.optimalpayments.com/en/documentation/customer-vault-api/error-7505"}]},"links":[{"rel":"existing_entity","href":"https://api.test.netbanx.com/customervault/v1/profiles/94649a20-5da7-4c34-b8e2-3d6c7ea4c092"}]}
+
+        # success will look something like:
+        # {"id":"9ec08740-24a3-48d7-8021-ff6817512165","status":"ACTIVE",
+        #   "merchantCustomerId":"mycustomer1","locale":"en_US",
+        #   "firstName":"John","lastName":"Smith","paymentToken":"Pg8M8PiG8606Bdf",
+        #   "phone":"713-444-5555","email":"john.smith@somedomain.com"}
+
+        response_json = self.check_errors( r.text )
+        return response_json
+
+class CreateAddress(NetBanxApi):
+
+    def __init__(self, profile_instance):
+        super().__init__()
+        self.model_class        = Address
+        # self.model_instance     = None
+        self.user               = profile_instance.user
+        self.profile_instance   = profile_instance
+
+        self.url = 'https://api.test.netbanx.com/customervault/v1'
+
+        self.url_create = self.url + '/profiles'
+        self.url_create += '/%s/addresses' % self.profile_instance.oid
+
+        self.url_delete = self.url + '/profiles'
+        self.url_delete += '/%s/addresses/' % (profile_instance.oid)
+
+        self.r                  = None # the response from the api
+
+    def delete(self, oid):
+        """
+        remove an Address from a netbanx Profile
+
+        url: /profiles/{PROFILE_ID}/addresses/{ADDRESS_ID}
+        """
+
+        # get the address object in our own database
+        address = Address.objects.get( oid=oid )
+        address_oid = address.oid
+
+        # delete the address from optimal with the api
+        self.r = self.session.delete( self.url_delete + address_oid, headers=self.headers )
+
+    def create(self, nickname, street, city, state, zip, country='US'):
+        """
+        create an Address to associate with a  Customer Profile via the api.
+
+        this method returns the newly created Address on successful creation
+        """
+        params = {
+            "nickname"      : nickname,
+            "street"        : street,
+            "city"          : city,
+            "state"         : state,
+            "country"       : country,
+            "zip"           : zip
+        }
+        self.r = self.session.post( self.url_create, headers=self.headers, data=json.dumps( params ) )
+
+        # get response json, and check for errors
+        response_json = self.validate_response( self.r )
+
+        # save the Address for the customer profile
+        self.model_instance = self.save_model( response_json )
+        return self.model_instance
+
+    def save_model(self, response_json):
+        """
+        save this Adddress for the Profile
+
+        a successful response example:
+
+            {
+                "id":"28df601f-934e-4590-a1a0-0947eb4eb0c2",
+                "street":"1 Some Street","city":"Sometown","country":"US",
+                "state":"NH","zip":"03055",
+                "defaultShippingAddressIndicator":false,"status":"ACTIVE"
+            }
+
+        """
+
+        # parent save_model() gets an instance with the user, and oid set
+        address = super().save_model( response_json )
+
+        address.street      = response_json.get('street')
+        address.city        = response_json.get('city')
+        address.state       = response_json.get('state')
+        address.country     = response_json.get('country')
+        address.zip         = response_json.get('zip')
+        address.default     = response_json.get('defaultShippingAddressIndicator')  # boolean
+        address.save()      # commit it to db
+        return address
+
+    def validate_response(self, r):
+        """
+        check for errors, and get the json from the response
+        """
+        print( r.text )
+        response_json = self.check_errors( r.text )
+        return response_json
+
+class CreateCard(NetBanxApi):
+
+    def __init__(self, profile_instance, address_instance):
+        super().__init__()
+        self.model_class        = optimal_payments.models.Card
+        self.profile_instance   = profile_instance
+        self.user               = address_instance.user
+        self.address_instance   = address_instance
+
+        self.url = 'https://api.test.netbanx.com/customervault/v1'
+        self.url_create = self.url + '/profiles'
+        self.url_create += '/%s/cards' % profile_instance.oid
+
+        self.url_delete = self.url + '/profiles'
+        self.url_delete += '/%s/cards/' % (profile_instance.oid)
+
+        self.r                  = None # the response from the api
+
+    def delete(self, oid):
+        """
+        remove a card from a netbanx profile
+
+        url: /profiles/{PROFILE_ID}/cards/{CARD_ID}
+        """
+
+        # get the Card model
+        c = self.model_class.objects.get(oid=oid)
+        address_oid = c.address_oid
+
+        # delete this card from the profile
+        self.r = self.session.delete( self.url_delete + c.oid, headers=self.headers )
+
+    def create(self, nickname, holder_name, cc_num, exp_month, exp_year):
+        """
+        create an Address to associate with a  Customer Profile via the api.
+
+        returns the newly created Card instance if successfully created
+        """
+        params = {
+            "billingAddressId"  : self.address_instance.oid,
+            "nickName"          : nickname,
+            "holderName"        : holder_name,
+            "cardNum"           : cc_num,
+            "cardExpiry"        : { 'month' : exp_month, 'year' : exp_year },
+        }
+        print('CreateCard params:')
+        print( str(params) )
+        self.r = self.session.post( self.url_create, headers=self.headers, data=json.dumps( params ) )
+
+        response_json = self.validate_response( self.r )
+        self.model_instance = self.save_model( response_json )
+        return self.model_instance
+
+    def save_model(self, response_json):
+        """
+        create the Card which is associated with an Address.
+
+        returns the newly created model instance.
+
+        here is an example of what the response_json looks like on success:
+
+            {
+                "status":"ACTIVE","id":"b3505d3e-dd30-4785-bbf8-39bc5e65faf1",
+                "cardBin":"453091","lastDigits":"2345",
+                "cardExpiry":{"year":2017,"month":11},
+                "holderName":"Holder Name","nickName":"nicknameOfCard",
+                "billingAddressId":"31847648-9401-48c7-b9ec-3515e19c50d1",
+                "cardType":"VI","paymentToken":"CTPvTXm3IrLGMgy",
+                "defaultCardIndicator":true
+            }
+
+        """
+
+        # parent save_model() gets an instance with the user, and oid set
+        card = super().save_model( response_json )
+
+        card.address_oid    = response_json.get('billingAddressId')
+        card.holder_name    = response_json.get('holderName')
+        card.last_digits    = response_json.get('lastDigits')
+        card.card_type      = response_json.get('cardType')
+        card.payment_token  = response_json.get('paymentToken')
+        card.save()     # commit to db
+        return card
+
+    def validate_response(self, r):
+        """
+        check for errors
+        """
+        print( r.text )
+        response_json = self.check_errors( r.text )
+        return response_json
+
+class PaymentMethodManager(object):
+    """
+    This class is a wrapper for the CustomerProfile, CreateAddress, and CreateCard classes
+    to make it easier to add and remove payment methods.
+
+    Note: Many of the methods in this class make use of an external api
+    and take tangible time to complete (a few seconds at most).
+
+    a User has a single CustomerProfile object. This is created with the
+    netbanx api and exists on their servers, but we hold a record for it
+    in our own database using CustomerProfile.
+
+    A "Payment Method" is represented thru this class as a single entity,
+    because we are abstracting the fact that we create a brand new address
+    for every card we add. (And we delete that address when we delete a Card.)
+
+    This abstraction is possible because we can create multiple identical
+    Address objects associated with the Customer Profile via the netbanx api
+    and it simplifies things on our end to group them together.
+    """
+
+    def __init__(self, user):
+        self.user = user
+
+    def get_profile(self):
+        """
+        create a profile using the CustomerProfile object
+        """
+        cp = CustomerProfile()
+        profile, created = cp.get_or_create(self.user)
+        return profile
+
+    def get_payment_methods(self):
+        """
+        returns a list of the user's Card objects
+        """
+        return optimal_payments.models.Card.objects.filter(user=self.user)
+
+    @atomic
+    def create(self, billing_nickname, street, city, country, zip,
+                     card_nickname, holder_name, card_num, exp_month, exp_year):
+        """
+        Create a new payment method by a) creating a new Address
+        and b) by creating a new Card object.
+
+        This is an atomic method.
+
+        TODO - exception handling?
+        """
+
+        address_manager = CreateAddress( self.get_profile() )
+        address_instance = address_manager.create(billing_nickname, street, city, country, zip)
+
+        card_manager = CreateCard( self.get_profile(), address_instance )
+        card_instance = card_manager.create(card_nickname, holder_name, card_num, exp_month, exp_year)
+
+    @atomic
+    def delete(self, card_oid):
+        """
+        Delete a payment method by deleting the Card, as well as the Address.
+
+        This is an atomic method.
+        """
+
+        profile_instance = self.get_profile()
+
+        #
+        # we need to get the Card entry first, so we also know the Address oid
+        card_instance       = Card.objects.get(oid=card_oid)
+        address_oid         = card_instance.address_oid
+        address_instance    = Address.objects.get(oid=address_oid)
+
+        #
+        # use the address manager to remove the Card
+        # from netbanx, as well as in our own database
+        card_manager    = CreateCard( profile_instance, address_instance )
+        card_manager.delete(card_oid)           # delete from netxbanx server
+        card_instance.delete()                  # delete model
+
+        #
+        # now we can remove the Address from netbanx
+        # and from our own datbase
+        address_manager = CreateAddress( profile_instance )
+        address_manager.delete(address_oid)     # delete from netbanx server
+        address_instance.delete()               # delete model
 
 class CardPurchase(object):
     """
@@ -267,6 +777,36 @@ class CardPurchase(object):
 
         return billing_zipcode
 
+    def process_purchase_token(self, amt, payment_token, settleWithAuth=True):
+        """
+
+        :param amt:
+        :param settleWithAuth:
+        :return:
+        """
+        amt_hundreds        = self.__validate_amount( amt )
+
+        #
+        # ensure the payemnts api is ready by checking status of the card payments monitor
+        self.card_payments_monitor()
+
+        #
+        # build the card purchase
+        auth_obj = Authorization(None)
+        card_obj = Card(None)
+        auth_obj.merchantRefNum(RandomTokenGenerator().generateToken())
+        auth_obj.amount(str(amt_hundreds))
+        auth_obj.settleWithAuth("true" if settleWithAuth else "false")
+        card_obj.paymentToken( payment_token )
+        auth_obj.card( card_obj )
+
+        # call the api to swipe the credit card!
+        self.r_process_payment = self.optimal_obj.card_payments_service_handler().create_authorization(auth_obj)
+
+        # check the response -- will raise errors if they exist
+        self.__validate_payment( self.r_process_payment )
+        return self.r_process_payment.__dict__.get('id')
+
     def process_purchase(self, amt, cc_num, cvv,
                                       exp_month, exp_year,
                                       billing_zipcode,
@@ -342,6 +882,7 @@ class CardPurchase(object):
 
         # check the response -- will raise errors if they exist
         self.__validate_payment( self.r_process_payment )
+        return self.r_process_payment.__dict__.get('id')
 
     def __validate_payment(self, response):
         """
@@ -425,557 +966,5 @@ class CardPurchase(object):
                                             ).lookup_authorization_with_id(auth_obj)
         print ("lookup_authorization_with_id response: ")
         print (self.r_lookup_auth_with_id.__dict__)
-
-
-
-
-    # def lookup_authorization_with_merchant_ref_num(self):
-    #     '''
-    #     Lookup Authorization with Id
-    #     '''
-    #     pagination_obj = Pagination(None)
-    #     #pagination_obj.limit = "4"
-    #     #pagination_obj.offset = "0"
-    #     #pagination_obj.startDate = "2015-02-10T06:08:56Z"
-    #     #pagination_obj.endDate = "2015-02-20T06:08:56Z"
-    #     #f0yxu8w57de4lris
-    #     #zyp2pt3yi8p8ag9c
-    #     auth_obj = Authorization(None)
-    #     auth_obj.merchantRefNum("f0yxu8w57de4lris")
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).lookup_authorization_with_merchant_no(auth_obj, pagination_obj)
-    #     print ("Complete Response : ")
-    #     print (response_object)
-    #     #print (response_object.links[0].rel)
-    #     #print (response_object.links[0].href)
-    #     #print (response_object[0].links[0].href)
-    #     print (response_object[0].__dict__)
-    #     #print (response_object.error.fieldErrors[0].__dict__)
-    #     #print (response_object.error.fieldErrors[1].__dict__)
-
-    # def request_conflict_example_for_auth(self):
-    #     '''
-    #     Request Conflict Exception
-    #     '''
-    #     auth_obj = Authorization(None)
-    #     card_obj = Card(None)
-    #     cardExpiry_obj = CardExpiry(None)
-    #     billing_obj = BillingDetails(None)
-    #     auth_obj.merchantRefNum(RandomTokenGenerator().generateToken())
-    #     auth_obj.amount("1")
-    #     auth_obj.settleWithAuth("false")
-    #     card_obj.cardNum("4917480000000008")
-    #     card_obj.cvv("123")
-    #     auth_obj.card(card_obj)
-    #     cardExpiry_obj.month("12")
-    #     cardExpiry_obj.year("2017")
-    #     card_obj.cardExpiry(cardExpiry_obj)
-    #     billing_obj.zip("M5H 2N2")
-    #     auth_obj.billingDetails(billing_obj)
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler().create_authorization(auth_obj)
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #     response_object = self._optimal_obj.card_payments_service_handler().create_authorization(auth_obj)
-    #     print ("Complete Response : ")
-    #     print (response_object.error.code)
-    #     print (response_object.error.message)
-    #
-    #
-    # def create_authorization_with_payment_token(self):
-    #     '''
-    #     Create Authorization with payment token
-    #     '''
-    #     auth_obj = Authorization(None)
-    #     auth_obj.merchantRefNum(RandomTokenGenerator().generateToken())
-    #     auth_obj.amount("1200")
-    #
-    #     card_obj = Card(None)
-    #     card_obj.paymentToken("C7dEdq9Mcz4nwyy")
-    #
-    #     auth_obj.card(card_obj)
-    #
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).create_authorization(auth_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #     print ("Card ID: ", response_object.card.__dict__)
-    #
-    #
-    # def create_complex_authorization(self):
-    #     '''
-    #     Create Complex Authorization
-    #     '''
-    #     auth_obj = Authorization(None)
-    #     authentication_obj = Authentication(None)
-    #     card_obj = Card(None)
-    #     cardExpiry_obj = CardExpiry(None)
-    #     billing_obj = BillingDetails(None)
-    #     shipping_obj = ShippingDetails(None)
-    #
-    #     auth_obj.merchantRefNum(RandomTokenGenerator().generateToken())
-    #     auth_obj.amount("5")
-    #     auth_obj.settleWithAuth("false")
-    #     auth_obj.customerIp("204.91.0.12")
-    #
-    #     card_obj.cardNum("5036150000001115")
-    #     card_obj.cvv("123")
-    #     auth_obj.card(card_obj)
-    #
-    #     cardExpiry_obj.month("4")
-    #     cardExpiry_obj.year("2017")
-    #     card_obj.cardExpiry(cardExpiry_obj)
-    #
-    #     authentication_obj.eci("5")
-    #     authentication_obj.cavv("AAABCIEjYgAAAAAAlCNiENiWiV+=")
-    #     authentication_obj.xid("OU9rcTRCY1VJTFlDWTFESXFtTHU=")
-    #     authentication_obj.threeDEnrollment("Y")
-    #     authentication_obj.threeDResult("Y")
-    #     authentication_obj.signatureStatus("Y")
-    #     auth_obj.authentication(authentication_obj)
-    #
-    #     billing_obj.street("100 Queen Street West")
-    #     billing_obj.city("Toronto")
-    #     billing_obj.state("ON")
-    #     billing_obj.country("CA")
-    #     billing_obj.zip("M5H 2N2")
-    #     auth_obj.billingDetails(billing_obj)
-    #
-    #     shipping_obj.carrier("FEX")
-    #     shipping_obj.shipMethod("C")
-    #     shipping_obj.street("100 Queen Street West")
-    #     shipping_obj.city("Toronto")
-    #     shipping_obj.state("ON")
-    #     shipping_obj.country("CA")
-    #     shipping_obj.zip("M5H 2N2")
-    #     auth_obj.shippingDetails(shipping_obj)
-    #
-    #     #self.optimal_obj.card_payments_service_handler().lookup_authorization_with_id(auth_obj)
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).create_authorization(auth_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #
-    #
-    # def create_authorization_with_card(self):
-    #     '''
-    #     Create Authorization with payment token
-    #     '''
-    #
-    #     auth_obj = Authorization(None)
-    #     card_obj = Card(None)
-    #     cardExpiry_obj = CardExpiry(None)
-    #     billing_obj = BillingDetails(None)
-    #
-    #     auth_obj.merchantRefNum(RandomTokenGenerator().generateToken())
-    #     auth_obj.amount("1400")
-    #     auth_obj.settleWithAuth("false")
-    #
-    #     card_obj.cardNum("4530910000012345")
-    #     card_obj.cvv("123")
-    #     auth_obj.card(card_obj)
-    #
-    #     cardExpiry_obj.month("2")
-    #     cardExpiry_obj.year("2017")
-    #     card_obj.cardExpiry(cardExpiry_obj)
-    #
-    #     billing_obj.zip("M5H 2N2")
-    #     auth_obj.billingDetails(billing_obj)
-    #
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).create_authorization(auth_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #     print ("Card ID: ", response_object.card.__dict__)
-    #
-    # def payment_process_with_card_settle_with_auth_true(self):
-    #     '''
-    #     Process a card purchase (settleWithAuth=true)
-    #     '''
-    #
-    #     auth_obj = Authorization(None)
-    #     card_obj = Card(None)
-    #     cardExpiry_obj = CardExpiry(None)
-    #     billing_obj = BillingDetails(None)
-    #
-    #     auth_obj.merchantRefNum(RandomTokenGenerator().generateToken())
-    #     auth_obj.amount("4")
-    #     auth_obj.settleWithAuth("true")
-    #
-    #     card_obj.cardNum("4530910000012345")
-    #     card_obj.cvv("123")
-    #     auth_obj.card(card_obj)
-    #
-    #     cardExpiry_obj.month("2")
-    #     cardExpiry_obj.year("2017")
-    #     card_obj.cardExpiry(cardExpiry_obj)
-    #
-    #     billing_obj.zip("M5H 2N2")
-    #     auth_obj.billingDetails(billing_obj)
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).create_authorization(auth_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #     print ("Card ID: ", response_object.card.__dict__)
-    #     print("error code: ", response_object.error.code)
-    #     print("error message: ", response_object.error.message)
-    #
-    #
-    # def partial_authorization_reversal(self):
-    #     '''
-    #     Partial authorization reversal
-    #     '''
-    #     auth_obj = Authorization(None)
-    #     auth_obj.merchantRefNum(RandomTokenGenerator().generateToken())
-    #     auth_obj.amount(555)
-    #     auth_obj.settleWithAuth("false")
-    #
-    #     card_obj = Card(None)
-    #     card_obj.cardNum("4530910000012345")
-    #     card_obj.cvv("123")
-    #     auth_obj.card(card_obj)
-    #
-    #     cardExpiry_obj = CardExpiry(None)
-    #     cardExpiry_obj.month("1")
-    #     cardExpiry_obj.year("2017")
-    #     card_obj.cardExpiry(cardExpiry_obj)
-    #
-    #     billing_obj = BillingDetails(None)
-    #     billing_obj.zip("M5H 2 N2")
-    #     auth_obj.billingDetails(billing_obj)
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).create_authorization(auth_obj)
-    #
-    #     print ("Authorization Response : ", response_object.__dict__)
-    #     auth_id = response_object.id
-    #     print ("Authorization Id : ", auth_id)
-    #     # dea6fd3a-3e47-4b44-a303-c5c38f7104f6
-    #     auth_rev =  AuthorizationReversal(None)
-    #     auth_rev.merchantRefNum(RandomTokenGenerator().generateToken())
-    #     auth_rev.amount(222)
-    #
-    #     auth_obj2 = Authorization(None)
-    #     auth_obj2.id(auth_id)
-    #     auth_rev.authorization(auth_obj2)
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).reverse_authorization_using_merchant_no(auth_rev)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #
-    #
-    #
-    # def lookup_authorization_with_id(self):
-    #     '''
-    #     Lookup Authorization with Id
-    #     '''
-    #     auth_obj = Authorization(None)
-    #     auth_obj.id("5406f84a-c728-499e-b310-c55f4e52af9f")
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).lookup_authorization_with_id(auth_obj)
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #
-    #
-    #
-    #
-    # def lookup_authorization_with_merchant_ref_num(self):
-    #     '''
-    #     Lookup Authorization with Id
-    #     '''
-    #     pagination_obj = Pagination(None)
-    #     #pagination_obj.limit = "4"
-    #     #pagination_obj.offset = "0"
-    #     #pagination_obj.startDate = "2015-02-10T06:08:56Z"
-    #     #pagination_obj.endDate = "2015-02-20T06:08:56Z"
-    #     #f0yxu8w57de4lris
-    #     #zyp2pt3yi8p8ag9c
-    #     auth_obj = Authorization(None)
-    #     auth_obj.merchantRefNum("f0yxu8w57de4lris")
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).lookup_authorization_with_merchant_no(auth_obj, pagination_obj)
-    #     print ("Complete Response : ")
-    #     print (response_object)
-    #     #print (response_object.links[0].rel)
-    #     #print (response_object.links[0].href)
-    #     #print (response_object[0].links[0].href)
-    #     print (response_object[0].__dict__)
-    #     #print (response_object.error.fieldErrors[0].__dict__)
-    #     #print (response_object.error.fieldErrors[1].__dict__)
-    #
-    #
-    #
-    # def complete_authorization(self):
-    #     '''
-    #     Complete
-    #     '''
-    #     auth_obj = Authorization(None)
-    #     auth_obj.id("55b77870-266c-4796-bce1-008334aad424")
-    #     auth_obj.status("COMPLETED")
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).complete_authorization_request(auth_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #
-    #
-    #
-    # def settle_authorization(self):
-    #     '''
-    #     Settle an Authorization
-    #     '''
-    #     auth_obj = Authorization(None)
-    #     auth_obj.id("55b77870-266c-4796-bce1-008334aad424")
-    #     auth_obj.merchantRefNum("5m8652wc1pirizft")
-    #     auth_obj.amount("500")
-    #     #auth_obj.dupCheck(True)
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).settle_authorization(auth_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #
-    # def verify_card_billing_details(self):
-    #     '''
-    #     Sample of verifying a card and billing details
-    #     '''
-    #     verify_obj = Verification(None)
-    #     card_obj = Card(None)
-    #     card_exp_obj = CardExpiry(None)
-    #     billing_obj = BillingDetails(None)
-    #     profile_obj = Profile(None)
-    #
-    #     verify_obj.merchantRefNum("4lnvozq01d1pbkr0")
-    #     #verify_obj.customerIp("204.91.0.12")
-    #     #verify_obj.description("This is  a test transaction")
-    #
-    #     #profile_obj.firstName("John")
-    #     #profile_obj.lastName("Smith")
-    #     #profile_obj.email("john.smith@somedomain.com")
-    #     #verify_obj.profile(profile_obj)
-    #
-    #     card_obj.cardNum("4530910000012345")
-    #     card_obj.cvv("123")
-    #     verify_obj.card(card_obj)
-    #
-    #     card_exp_obj.month("02")
-    #     card_exp_obj.year("2017")
-    #     card_obj.cardExpiry(card_exp_obj)
-    #
-    #     #billing_obj.street("100 Queen Street West")
-    #     #billing_obj.city("Toronto")
-    #     #billing_obj.state("ON")
-    #     #billing_obj.country("CA")
-    #     billing_obj.zip("M5H 2N2")
-    #     verify_obj.billingDetails(billing_obj)
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).verify_card(verify_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #
-    # def verify_card_using_payment_token(self):
-    #     '''
-    #     Sample of verifying a card using payment token
-    #     '''
-    #     verify_obj = Verification(None)
-    #     card_obj = Card(None)
-    #     #card_exp_obj = CardExpiry(None)
-    #     #billing_obj = BillingDetails(None)
-    #     #profile_obj = Profile(None)
-    #     #shipping_obj = ShippingDetails(None)
-    #
-    #     verify_obj.merchantRefNum("rp12jb19igryjqff")
-    #     card_obj.paymentToken("C7dEdq9Mcz4nwyy")
-    #     #card_obj.cvv("123")
-    #     verify_obj.card(card_obj)
-    #
-    #     #shipping_obj.carrier("FEX")
-    #     #shipping_obj.shipMethod("C")
-    #     #shipping_obj.street("100 Queen Street West")
-    #     #shipping_obj.city("Toronto")
-    #     #shipping_obj.state("ON")
-    #     #shipping_obj.country("CA")
-    #     #shipping_obj.zip("M5H 2N2")
-    #     #verify_obj.shippingDetails(shipping_obj)
-    #
-    #     #card_exp_obj.month("09")
-    #     #card_exp_obj.year("2019")
-    #     #card_obj.cardExpiry(card_exp_obj)
-    #
-    #     #billing_obj.street("100 Queen Street West")
-    #     #billing_obj.city("Toronto")
-    #     #billing_obj.state("ON")
-    #     #billing_obj.country("CA")
-    #     #billing_obj.zip("M5H 2N2")
-    #     #verify_obj.billingDetails(billing_obj)
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).verify_card(verify_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #
-    # def lookup_verification_using_id(self):
-    #     '''
-    #     dd655ad9-2ebe-4178-9b3f-c88707a193f3
-    #     '''
-    #     verify_obj = Verification(None)
-    #     verify_obj.id("dd655ad9-2ebe-4178-9b3f-c88707a193f3")
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).lookup_verification_using_id(verify_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
-    #
-    # def lookup_verification_using_merchant_ref_num(self):
-    #     '''
-    #     4lnvozq01d1pbkr0
-    #     '''
-    #     pagination_obj = Pagination(None)
-    #     pagination_obj.limit = "4"
-    #     pagination_obj.offset = "0"
-    #     #pagination_obj.startDate = "2015-02-10T06:08:56Z"
-    #     #pagination_obj.endDate = "2015-02-20T06:08:56Z"
-    #
-    #     verify_obj = Verification(None)
-    #     verify_obj.merchantRefNum("4lnvozq01d1pbkr0")
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).lookup_verification_using_merchant_ref_num(verify_obj, pagination_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object)
-    #     #print (response_object.links[0].rel)
-    #     #print (response_object.links[0].href)
-    #     #print (response_object[0].links[0].href)
-    #     print (response_object[0].__dict__)
-    #     #print (response_object.error.fieldErrors[0].__dict__)
-    #     #print (response_object.error.fieldErrors[1].__dict__)
-    #
-    #     for c in range(0, response_object.__len__()):
-    #         print ('Records : ', c)
-    #         print ('Verifications : ', response_object[c].__dict__)
-    #
-    #
-    # def create_transaction_test(self):
-    #     '''
-    #     Sample of complete transaction request
-    #     '''
-    #     billing_obj = BillingDetails(None)
-    #     shipping_obj = ShippingDetails(None)
-    #     auth_obj = Authorization(None)
-    #     card_obj = Card(None)
-    #     card_exp_obj = CardExpiry(None)
-    #
-    #     billing_obj.street("Carlos Pellegrini 551")
-    #     billing_obj.city("Buenos Aires")
-    #     billing_obj.state("CA")
-    #     billing_obj.country("US")
-    #     billing_obj.zip("M5H 2N2")
-    #
-    #     shipping_obj.carrier("CAD")
-    #     shipping_obj.city("Buenos Aires")
-    #     shipping_obj.state("ON")
-    #     shipping_obj.country("CA")
-    #     shipping_obj.zip("M5H 2N2")
-    #
-    #     card_obj.cardNum("5191330000004415")
-    #     card_exp_obj.month("09")
-    #     card_exp_obj.year("2019")
-    #     card_obj.cardExpiry(card_exp_obj)
-    #
-    #     auth_obj.merchantRefNum(RandomTokenGenerator().generateToken())
-    #     auth_obj.amount("1200")
-    #     auth_obj.settleWithAuth(True)
-    #     auth_obj.dupCheck(True)
-    #     auth_obj.card(card_obj)
-    #     auth_obj.billingDetails(billing_obj)
-    #     auth_obj.shippingDetails(shipping_obj)
-    #
-    #     self._optimal_obj = OptimalApiClient(self._api_key,
-    #                                          self._api_password,
-    #                                          "TEST",
-    #                                          self._account_number)
-    #     response_object = self._optimal_obj.card_payments_service_handler(
-    #                                         ).create_authorization(auth_obj)
-    #
-    #     print ("Complete Response : ")
-    #     print (response_object.__dict__)
 
 cardp = CardPurchase()

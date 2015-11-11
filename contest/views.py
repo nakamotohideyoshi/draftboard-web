@@ -31,7 +31,7 @@ from django.views.generic.edit import CreateView, UpdateView
 from contest.forms import ContestForm, ContestFormAdd
 
 from django.db.models import Count
-
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer
 
 # test the generic add view
 class ContestCreate(CreateView):
@@ -257,6 +257,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
     """
     permission_classes      = (IsAuthenticated,)
     serializer_class        = EnterLineupSerializer
+    # renderer_classes        = (JSONRenderer, BrowsableAPIRenderer)
 
     def post(self, request, format=None):
         #print( request.data )
