@@ -1,8 +1,6 @@
-'use strict';
-
 var React = require('react');
 var Tooltip = require('../site/tooltip.jsx');
-var DraftActions = require('../../actions/draft-actions.js');
+// var DraftActions = require('../../actions/draft-actions.js');
 var DraftNewLineupCardTitle = require('./draft-new-lineup-card-title.jsx');
 var DraftNewLineupCardPlayer = require('./draft-new-lineup-card-player.jsx');
 
@@ -39,17 +37,17 @@ var DraftNewLineupCard = React.createClass({
 
 
   saveLineup: function() {
-    DraftActions.saveLineup();
+    // DraftActions.saveLineup();
   },
 
 
   removePlayer: function(playerId) {
-    DraftActions.removePlayerFromLineup(playerId);
+    // DraftActions.removePlayerFromLineup(playerId);
   },
 
 
   setLineupTitle: function(title) {
-    DraftActions.setLineupTitle(title);
+    // DraftActions.setLineupTitle(title);
   },
 
 

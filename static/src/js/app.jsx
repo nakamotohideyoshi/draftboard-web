@@ -1,5 +1,3 @@
-"use strict";
-
 // Pull in the main scss file.
 require("app.scss");
 
@@ -13,7 +11,6 @@ require('actions/keypress-actions');
 require("components/form-field/ssn");
 require("components/site/hamburger-menu");
 require("components/site/pane.js");
-require("components/site/app-state-class");
 
 // Lobby
 require("components/contest-nav/contest-nav.jsx");

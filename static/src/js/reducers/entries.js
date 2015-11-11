@@ -1,5 +1,3 @@
-"use strict";
-
 import update from 'react-addons-update'
 const ActionTypes = require('../action-types');
 

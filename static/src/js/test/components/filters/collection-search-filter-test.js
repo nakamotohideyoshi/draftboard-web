@@ -11,7 +11,6 @@ describe('CollectionSearchFilter Component', function() {
   beforeEach(function(done) {
     var self = this;
     var onUpdate = function() {};
-    var onMount = function() {};
 
     document.body.innerHTML = '';
     // The DOM element that the component will be rendered to.
@@ -22,7 +21,6 @@ describe('CollectionSearchFilter Component', function() {
         filterProperty='name'
         filterName='test'
         onUpdate={onUpdate}
-        onMount={onMount}
       />,
       this.targetElement,
       function() {
@@ -46,23 +44,23 @@ describe('CollectionSearchFilter Component', function() {
     expect(this.domElement.querySelector('.cmp-collection-search-filter__input').tagName).to.equal('INPUT');
   });
 
-
-  it('should case-insensitively filter a row based on the state.match', function() {
-    var testRow = {'name': 'the TeSt_qEery-exists!'};
-    var self = this;
-
-    this.component.setState({
-      match: 'test_qeery'
-    }, function() {
-      expect(self.component.filter(testRow)).to.equal(true);
-    });
-
-    this.component.setState({
-      match: 'no_match_should_be_found'
-    }, function() {
-      expect(self.component.filter(testRow)).to.equal(false);
-    });
-  });
+  //
+  // it('should case-insensitively filter a row based on the state.match', function() {
+  //   var testRow = {'name': 'the TeSt_qEery-exists!'};
+  //   var self = this;
+  //
+  //   this.component.setState({
+  //     match: 'test_qeery'
+  //   }, function() {
+  //     expect(self.component.filter(testRow)).to.equal(true);
+  //   });
+  //
+  //   this.component.setState({
+  //     match: 'no_match_should_be_found'
+  //   }, function() {
+  //     expect(self.component.filter(testRow)).to.equal(false);
+  //   });
+  // });
 
 
   it("should add an 'active' className when expanded", function() {
