@@ -68,7 +68,7 @@ export function mockStore(reducer, initialState, checks = [], done) {
       const check = checks.shift()
       try {
         if (typeof check === 'function') {
-          check(action)
+          check(action, getState())
         }
 
         if (done && !checks.length) {

@@ -1,5 +1,6 @@
 "use strict"
 
+import 'babel-core/polyfill'; // so I can use Promises
 import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
@@ -10,6 +11,8 @@ export const REQUEST_LIVE_DRAFT_GROUP_INFO = 'REQUEST_LIVE_DRAFT_GROUP_INFO'
 export const RECEIVE_LIVE_DRAFT_GROUP_INFO = 'RECEIVE_LIVE_DRAFT_GROUP_INFO'
 export const REQUEST_LIVE_DRAFT_GROUP_FP = 'REQUEST_LIVE_DRAFT_GROUP_FP'
 export const RECEIVE_LIVE_DRAFT_GROUP_FP = 'RECEIVE_LIVE_DRAFT_GROUP_FP'
+export const REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES = 'REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES'
+export const RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES = 'RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES'
 
 const playerSchema = new Schema('players', {
   idAttribute: 'player_id'
@@ -61,7 +64,8 @@ function receiveDraftGroupFP(id, response) {
   return {
     type: RECEIVE_LIVE_DRAFT_GROUP_FP,
     id: id,
-    playersFP: normalizedPlayers.entities.players
+    players: normalizedPlayers.entities.players,
+    updatedAt: Date.now()
   }
 }
 
@@ -69,11 +73,13 @@ function receiveDraftGroupFP(id, response) {
 function shouldFetchDraftGroupFP(state, id) {
   log.debug('actionsLiveDraftGroup.shouldFetchDraftGroupFP')
 
-  if (id in state === false)
+  var liveDraftGroups = state.liveDraftGroups;
+
+  if (id in liveDraftGroups === false)
     throw new Error('You cannot get fantasy points for a player that is not in the draft group')
-  if (state[id].isFetchingInfo === true)
+  if (liveDraftGroups[id].isFetchingInfo === true)
     return false
-  if (state[id].isFetchingFP === true)
+  if (liveDraftGroups[id].isFetchingFP === true)
     return false
 
   return true
@@ -95,8 +101,8 @@ export function fetchDraftGroupFPIfNeeded(id) {
 // DRAFT GROUP INFO
 // -----------------------------------------------------------------------
 
-function requestDraftGroup(id) {
-  log.debug('actionsLiveDraftGroup.requestDraftGroup')
+function requestDraftGroupInfo(id) {
+  log.debug('actionsLiveDraftGroup.requestDraftGroupInfo')
 
   return {
     id: id,
@@ -105,8 +111,8 @@ function requestDraftGroup(id) {
 }
 
 
-function receiveDraftGroup(id, response) {
-  log.debug('actionsLiveDraftGroup.receiveDraftGroup')
+function receiveDraftGroupInfo(id, response) {
+  log.debug('actionsLiveDraftGroup.receiveDraftGroupInfo')
 
   const normalizedPlayers = normalize(
     response.players,
@@ -122,11 +128,11 @@ function receiveDraftGroup(id, response) {
 }
 
 
-function fetchDraftGroup(id) {
-  log.debug('actionsLiveDraftGroup.fetchDraftGroup')
+function fetchDraftGroupInfo(id) {
+  log.debug('actionsLiveDraftGroup.fetchDraftGroupInfo')
 
   return dispatch => {
-    dispatch(requestDraftGroup(id))
+    dispatch(requestDraftGroupInfo(id))
 
     request
       .get("/draft-group/" + id + '/')
@@ -136,18 +142,69 @@ function fetchDraftGroup(id) {
         if(err) {
           // TODO
         } else {
-          dispatch(receiveDraftGroup(id, res.body))
-          dispatch(fetchDraftGroupFP(id))
+          Promise.all([
+            dispatch(receiveDraftGroupInfo(id, res.body)),
+          ])
         }
     })
   }
 }
 
 
+
+// DRAFT GROUP INFO
+// -----------------------------------------------------------------------
+
+function requestDraftGroupBoxScores(id) {
+  log.debug('actionsLiveDraftGroup.requestDraftGroupBoxScores')
+
+  return {
+    id: id,
+    type: REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES
+  }
+}
+
+
+function receiveDraftGroupBoxScores(id, response) {
+  log.debug('actionsLiveDraftGroup.receiveDraftGroupBoxScores')
+
+  return {
+    type: RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES,
+    id: id,
+    boxScores: response,
+    updatedAt: Date.now() + 86400000
+  }
+}
+
+
+function fetchDraftGroupBoxScores(id) {
+  log.debug('actionsLiveDraftGroup.fetchDraftGroupBoxScores')
+
+  return dispatch => {
+    dispatch(requestDraftGroupBoxScores(id))
+
+    request
+      .get("/draft-group/box-scores/" + id)
+      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
+      .set('Accept', 'application/json')
+      .end(function(err, res) {
+        if(err) {
+          // TODO
+        } else {
+          Promise.all([
+            dispatch(receiveDraftGroupBoxScores(id, res.body)),
+          ])
+        }
+    })
+  }
+}
+
+
+
 function shouldFetchDraftGroup(state, id) {
   log.debug('actionsLiveDraftGroup.shouldFetchDraftGroup')
 
-  return id in state === false
+  return id in state.liveDraftGroups === false
 }
 
 
@@ -156,7 +213,11 @@ export function fetchDraftGroupIfNeeded(id) {
 
   return (dispatch, getState) => {
     if (shouldFetchDraftGroup(getState(), id)) {
-      return dispatch(fetchDraftGroup(id))
+      return Promise.all([
+        dispatch(fetchDraftGroupInfo(id)),
+        dispatch(fetchDraftGroupFP(id)),
+        dispatch(fetchDraftGroupBoxScores(id))
+      ])
     }
   }
 }

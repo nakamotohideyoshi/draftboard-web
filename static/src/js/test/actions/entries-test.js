@@ -5,9 +5,9 @@ import sinon from 'sinon'
 import { expect } from 'chai'
 import { size as _size } from 'lodash'
 
-import reducersEntries from '../../reducers/entries'
+import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/entries-config'
-import { fetchEntriesIfNeeded } from '../../actions/entries'
+import { fetchEntriesIfNeeded, addEntriesPlayers } from '../../actions/entries'
 import { mockStore } from '../mock-store'
 
 
@@ -36,12 +36,33 @@ describe('actionsEntries', () => {
       // receiveEntries
       function(action) {
         expect(action.type).to.equal('RECEIVE_ENTRIES')
-        expect(_size(action.items)).to.equal(10)
+        expect(_size(action.items)).to.equal(1)
+      },
+
+      // to pull in the related contest information and fantasy points
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+
+      // confirm that related data exists here
+      function(action, state) {
+        // TODO craig - write test for confirming data in entries
+        // console.log(action.type)
       }
     ]
 
-    const store = mockStore(reducersEntries, { entries: {} }, expectedActions, done)
-    store.dispatch(fetchEntriesIfNeeded())
+    const store = mockStore(reducers, { entries: {} }, expectedActions)
+    store.dispatch(fetchEntriesIfNeeded()).then(() => {
+      done()
+    })
   })
 
 
@@ -52,7 +73,7 @@ describe('actionsEntries', () => {
     ]
 
     const store = mockStore(
-      reducersEntries,
+      reducers,
       {
         entries: {
           items: ['foo', 'bar']
@@ -73,7 +94,7 @@ describe('actionsEntries', () => {
     ]
 
     const store = mockStore(
-      reducersEntries,
+      reducers,
       {
         entries: {
           isFetching: true
@@ -86,4 +107,14 @@ describe('actionsEntries', () => {
     store.dispatch(fetchEntriesIfNeeded())
   })
 
+
+  it('should properly addEntriesPlayers', (done) => {
+    const store = mockStore(reducers, { entries: {} })
+    store.dispatch(fetchEntriesIfNeeded()).then(() => {
+      store.dispatch(addEntriesPlayers()).then(() => {
+        expect(store.getState().entries.items[1].roster.length).to.equal(8)
+        done()
+      })
+    })
+  })
 })
