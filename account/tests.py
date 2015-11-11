@@ -37,7 +37,7 @@ class RegisterAccountTest( APITestCase ):
                      }
 
 
-        url = '/account/register/'
+        url = '/api/account/register/'
 
         #
         # Tests for invalid password
