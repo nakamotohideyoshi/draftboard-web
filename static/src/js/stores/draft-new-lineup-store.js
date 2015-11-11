@@ -69,10 +69,10 @@ var DraftNewLineupStore = Reflux.createStore({
     log.debug('DraftNewLineupStore.init()');
     this.resetState();
 
-    this.listenTo(DraftActions.addPlayerToLineup, this.addPlayer);
-    this.listenTo(DraftActions.removePlayerFromLineup, this.removePlayer);
-    this.listenTo(DraftActions.saveLineup, this.save);
-    this.listenTo(DraftActions.setLineupTitle, this.setLineupTitle);
+    // this.listenTo(DraftActions.addPlayerToLineup, this.addPlayer);
+    // this.listenTo(DraftActions.removePlayerFromLineup, this.removePlayer);
+    // this.listenTo(DraftActions.saveLineup, this.save);
+    // this.listenTo(DraftActions.setLineupTitle, this.setLineupTitle);
     this.listenTo(DraftGroupStore, this.draftGroupUpdated);
 
     this.findAvailablePositions();

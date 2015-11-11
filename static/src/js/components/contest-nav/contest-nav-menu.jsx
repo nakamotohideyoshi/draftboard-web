@@ -2,7 +2,7 @@
 
 const React = require('react');
 
-const AppActions = require('../../actions/app-actions');
+import {AppActions} from '../../stores/app-state-store.js'
 
 
 /**

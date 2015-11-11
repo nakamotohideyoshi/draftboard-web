@@ -1,20 +1,13 @@
-'use strict';
-
-var React = require('react');
-var ContestStore = require('../../stores/contest-store.js');
-var renderComponent = require('../../lib/render-component');
-var ContestListRow = require('./contest-list-row.jsx');
-var KeypressActions = require('../../actions/keypress-actions');
-var ContestActions = require('../../actions/contest-actions');
-require('./contest-list-header.jsx');
-require('./contest-list-detail.jsx');
-require('./contest-list-sport-filter.jsx');
+import React from 'react'
+var ContestListRow = require('./contest-list-row.jsx')
+var KeypressActions = require('../../actions/keypress-actions')
+import { forEach as _forEach } from 'lodash'
 
 
 /**
  * Render a list (table) of contests.
  */
-var ContestList = React.createClass({
+const ContestList = React.createClass({
 
   propTypes: {
     contests: React.PropTypes.array,
@@ -22,10 +15,10 @@ var ContestList = React.createClass({
   },
 
 
-  getDefaultProps: function() {
-    return {
-      contests: []
-    };
+  componentDidMount: function() {
+    // Listen to j/k keypress actions to focus contests.
+    // KeypressActions.keypressJ.listen(this.focusNextRow);
+    // KeypressActions.keypressK.listen(this.focusPreviousRow);
   },
 
 
@@ -35,53 +28,29 @@ var ContestList = React.createClass({
    */
   setContestFocus: function(id) {
     if (id !== 'undefined') {
-      ContestActions.contestFocused(id);
+      // ContestActions.contestFocused(id);
     }
   },
 
 
-  componentWillMount: function() {
-    // Listen to j/k keypress actions to focus contests.
-    KeypressActions.keypressJ.listen(this.focusNextRow);
-    KeypressActions.keypressK.listen(this.focusPreviousRow);
-  },
-
-
-  /**
-   * Focus the next visible row in the contest list.
-   */
-  focusNextRow: function() {
-    this.setContestFocus(ContestStore.getNextVisibleRowId());
-  },
-
-
-  /**
-   * Focus the previous row in the contest list.
-   */
-  focusPreviousRow: function() {
-    this.setContestFocus(ContestStore.getPreviousVisibleRowId());
-  },
-
-
   sortList: function(property) {
-    ContestActions.setSortProperty(property);
+    // ContestActions.setSortProperty(property);
   },
 
 
   render: function() {
-    var contests = this.props.contests || [];
+    var visibleRows = [];
 
     // Build up a list of rows to be displayed.
-    var visibleRows = contests.map(function(row) {
-      return (
+    _forEach(this.props.contests, function(row) {
+      visibleRows.push(
         <ContestListRow
             key={row.id}
             row={row}
             focusedContestId={this.props.focusedContestId}
         />
-      );
+      )
     }, this);
-
 
     return (
       <table className="cmp-contest-list__table table">
@@ -114,10 +83,6 @@ var ContestList = React.createClass({
   }
 
 });
-
-
-// Render the component.
-renderComponent(<ContestList />, '.cmp-contest-list');
 
 
 module.exports = ContestList;

@@ -1,13 +1,14 @@
-'use strict';
-
-var React = require('react');
-var Reflux = require('reflux');
-var LineupCard = require('../lineup/lineup-card.jsx');
-var renderComponent = require('../../lib/render-component');
-var smoothScrollTo = require('../../lib/smooth-scroll-to.js');
-var LineupStore = require('../../stores/lineup-store.js');
-var LineupActions = require('../../actions/lineup-actions.js');
-var DraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx');
+import React from 'react'
+import ReactDom  from 'react-dom'
+const ReactRedux = require('react-redux')
+const store = require('../../store')
+const LineupCard = require('../lineup/lineup-card.jsx')
+const renderComponent = require('../../lib/render-component')
+const smoothScrollTo = require('../../lib/smooth-scroll-to.js')
+const LobbyDraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx')
+import {fetchUpcomingLineups, lineupFocused} from '../../actions/lineup-actions.js'
+import {draftGroupInfoSelector} from '../../selectors/draft-group-info-selector.js'
+import '../contest-list/contest-list-sport-filter.jsx'
 
 
 /**
@@ -16,17 +17,12 @@ var DraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx'
  */
 var LineupCardList = React.createClass({
 
-  mixins: [
-    Reflux.connect(LineupStore)
-  ],
-
-
-  getInitialState: function() {
-    return {
-      lineups: [],
-      focusedLineupId: 10,
-      draftGroupSelectionModalVisible: false
-    };
+  propTypes: {
+    lineupFocused: React.PropTypes.func,
+    fetchUpcomingLineups: React.PropTypes.func.isRequired,
+    lineups: React.PropTypes.array.isRequired,
+    focusedLineupId: React.PropTypes.number,
+    draftGroupInfo: React.PropTypes.object
   },
 
 
@@ -35,11 +31,11 @@ var LineupCardList = React.createClass({
    * @param  {int} the id of the lineup to scroll to.
    */
   scrollToCard: function(lineupId) {
-    var cardDom = React.findDOMNode(this.refs['lineup-' + lineupId]);
+    var cardDom = ReactDom.findDOMNode(this.refs['lineup-' + lineupId])
 
     if (cardDom) {
-      var scrollingElement = document.querySelector('.sidebar .sidebar-inner');
-      smoothScrollTo(scrollingElement, cardDom.offsetTop - 20, 600);
+      var scrollingElement = document.querySelector('.sidebar .sidebar-inner')
+      smoothScrollTo(scrollingElement, cardDom.offsetTop - 20, 600)
     }
   },
 
@@ -49,17 +45,22 @@ var LineupCardList = React.createClass({
    * @param  {int}   lineupId   The ID of the lineup.
    */
   setActiveLineup: function(lineupId) {
-    LineupActions.lineupFocused(lineupId);
+    this.props.lineupFocused(lineupId);
   },
 
 
-  componentDidUpdate: function(prevProps, prevState) {
+  componentWillMount: function() {
+    this.props.fetchUpcomingLineups()
+  },
+
+
+  componentDidUpdate: function(prevProps) {
     // We need to wait until the lineup has been activated before it is scrolled to because if the
     // previously activated lineup is above it in the list, the offset dimensions change when it
     // collapses. This will wait until the DOM has been updated and the old focused lineup has
     // collapsed.
-    if (this.state.focusedLineupId !== prevState.focusedLineupId) {
-      this.scrollToCard(this.state.focusedLineupId);
+    if (this.props.focusedLineupId !== prevProps.focusedLineupId) {
+      this.scrollToCard(this.props.focusedLineupId);
     }
   },
 
@@ -69,6 +70,7 @@ var LineupCardList = React.createClass({
    * @param  {int} id The cards ID TODO: this can be removed once we have legit data.
    */
   onCardClick: function(id) {
+    lineupFocused
     this.setActiveLineup(id);
   },
 
@@ -79,8 +81,7 @@ var LineupCardList = React.createClass({
 
 
   render: function() {
-
-    var lineups = this.state.lineups.map(function(lineup) {
+    var lineups = this.props.lineups.map(function(lineup) {
       // We'll need a reference to the card in order to get it's DOM element and scroll to it when
       // it gets focused.
       var refName = 'lineup-' + lineup.id;
@@ -89,7 +90,7 @@ var LineupCardList = React.createClass({
         <LineupCard
           key={lineup.id}
           lineup={lineup}
-          isActive={this.state.focusedLineupId === lineup.id}
+          isActive={this.props.focusedLineupId === lineup.id}
           ref={refName}
           onCardClick={this.onCardClick}
         />
@@ -127,16 +128,49 @@ var LineupCardList = React.createClass({
           </div>
         </div>
 
-        <DraftGroupSelectionModal
+        <LobbyDraftGroupSelectionModal
           ref="draftModal"
+          draftGroupInfo={this.props.draftGroupInfo}
         />
       </div>
     );
   }
 });
 
+
+// Redux integration
+let {Provider, connect} = ReactRedux;
+
+// Which part of the Redux global state does our component want to receive as props?
+function mapStateToProps(state) {
+  return {
+    lineups: state.upcomingLineups.lineups,
+    focusedLineupId: state.upcomingLineups.focusedLineupId,
+    draftGroupInfo: draftGroupInfoSelector(state)
+  };
+}
+
+// Which action creators does it want to receive by props?
+function mapDispatchToProps(dispatch) {
+  return {
+    fetchUpcomingLineups: () => dispatch(fetchUpcomingLineups()),
+    lineupFocused: (lineupId) => dispatch(lineupFocused(lineupId))
+  };
+}
+
+// Wrap the component to inject dispatch and selected state into it.
+var LineupCardListConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(LineupCardList);
+
 // Render the component.
-renderComponent(<LineupCardList />, '.cmp-lineup-card-list');
+renderComponent(
+  <Provider store={store}>
+    <LineupCardListConnected />
+  </Provider>,
+  '.cmp-lineup-card-list'
+);
 
 
 module.exports = LineupCardList;

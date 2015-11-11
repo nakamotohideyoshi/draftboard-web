@@ -1,9 +1,7 @@
-'use strict';
-
-var React = require('react');
-var DraftActions = require("../../actions/draft-actions");
-var AppActions = require("../../actions/app-actions");
-var log = require('../../lib/logging.js');
+var React = require('react')
+// var DraftActions = require("../../actions/draft-actions");
+import * as AppActions from '../../stores/app-state-store.js'
+var log = require('../../lib/logging.js')
 
 
 /**
@@ -17,7 +15,7 @@ var DraftPlayerListRow = React.createClass({
 
   propTypes: {
     row: React.PropTypes.object.isRequired,
-    handleOnClick: React.PropTypes.func,
+    focusPlayer: React.PropTypes.func,
     draftable: React.PropTypes.bool
   },
 
@@ -36,15 +34,16 @@ var DraftPlayerListRow = React.createClass({
 
   onRowClick: function(playerId) {
     AppActions.openPane();
-    log.debug('ContestListRow.onRowClick()', playerId);
-    DraftActions.playerFocused(playerId);
+    log.debug('DraftPlayerListRow.onRowClick()', playerId);
+    this.props.focusPlayer(playerId);
+    // DraftActions.playerFocused(playerId);
   },
 
 
   onDraftClick: function(playerId, e) {
     log.debug('ContestListRow.onDraftClick()', playerId);
     e.stopPropagation();
-    DraftActions.addPlayerToLineup(playerId);
+    // DraftActions.addPlayerToLineup(playerId);
   },
 
 
@@ -78,7 +77,7 @@ var DraftPlayerListRow = React.createClass({
     );
   }
 
-});
+})
 
 
-module.exports = DraftPlayerListRow;
+module.exports = DraftPlayerListRow

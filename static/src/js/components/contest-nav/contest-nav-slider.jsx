@@ -1,5 +1,3 @@
-'use strict';
-
 const React = require('react');
 const ContestNavSeparator = require('./contest-nav-separator.jsx');
 
@@ -12,7 +10,7 @@ const ContestNavSeparator = require('./contest-nav-separator.jsx');
 const ContestNavSlider = React.createClass({
 
   propTypes: {
-    children: React.PropTypes.element.isRequired,
+    children: React.PropTypes.element,
     type: React.PropTypes.string
   },
 

@@ -1,9 +1,5 @@
-'use strict';
-
-var Reflux = require('reflux');
 var React = require('react');
 var Modal = require('../modal/modal.jsx');
-var DraftGroupInfoStore = require('../../stores/draft-group-info-store.js');
 var LobbyDraftGroupSelectionSport = require('./lobby-draft-group-selection-sport.jsx');
 var LobbyDraftGroupSelectionTime = require('./lobby-draft-group-selection-time.jsx');
 
@@ -14,16 +10,15 @@ var LobbyDraftGroupSelectionTime = require('./lobby-draft-group-selection-time.j
  */
 var LobbyDraftGroupSelectionModal = React.createClass({
 
-  mixins: [
-    Reflux.connect(DraftGroupInfoStore, 'DraftGroupInfo')
-  ],
+  propTypes: {
+    draftGroupInfo: React.PropTypes.object
+  },
 
 
   getInitialState: function() {
     return {
       isOpen: false,
-      selectedSport: null,
-      DraftGroupInfo: {}
+      selectedSport: null
     };
   },
 
@@ -64,7 +59,7 @@ var LobbyDraftGroupSelectionModal = React.createClass({
     if (this.state.selectedSport === null) {
       return (
         <LobbyDraftGroupSelectionSport
-          sportContestCounts={this.state.DraftGroupInfo.sportContestCounts}
+          sportContestCounts={this.props.draftGroupInfo.sportContestCounts}
           onSportClick={this.selectSport}
         />
       );
@@ -74,7 +69,7 @@ var LobbyDraftGroupSelectionModal = React.createClass({
     else {
       return (
         <LobbyDraftGroupSelectionTime
-          draftGroups={this.state.DraftGroupInfo.draftGroups}
+          draftGroups={this.props.draftGroupInfo.draftGroups}
           selectedSport={this.state.selectedSport}
         />
       );

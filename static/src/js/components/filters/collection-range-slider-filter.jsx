@@ -15,9 +15,7 @@ var CollectionRangeSliderFilter = React.createClass({
     filterName: React.PropTypes.string.isRequired,
     // When the filter values have changed, let the store it's registered with know so it can
     // re-run all of it's filters.
-    onUpdate: React.PropTypes.func.isRequired,
-    // Once the filter has mounted, it needs to register itself with a store.
-    onMount: React.PropTypes.func.isRequired
+    onUpdate: React.PropTypes.func.isRequired
   },
 
 
@@ -25,12 +23,6 @@ var CollectionRangeSliderFilter = React.createClass({
     return {
       'match': {}
     };
-  },
-
-
-  componentDidMount: function() {
-    // Register this filter with the Store with the provided function.
-    this.props.onMount(this);
   },
 
 

@@ -1,5 +1,3 @@
-"use strict";
-
 const createStore = require('redux').createStore
 const applyMiddleware = require('redux').applyMiddleware
 const createLogger =  require('redux-logger')
@@ -9,7 +7,7 @@ const thunkMiddleware = require('redux-thunk')
 
 // only show redux actions logs in development mode
 const loggerMiddleware = createLogger({
-  predicate: (getState, action) => logLevel === 'debug'
+  predicate: () => logLevel === 'debug'
 });
 
 

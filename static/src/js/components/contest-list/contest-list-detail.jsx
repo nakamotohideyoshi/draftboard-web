@@ -1,8 +1,5 @@
-"use strict";
-
-var React = require("react");
-var ReactAddons = require('react/addons');
-var ReactCSSTransitionGroup = ReactAddons.addons.CSSTransitionGroup;
+import React from 'react'
+import {ReactCSSTransitionGroup} from 'react-addons-css-transition-group'
 
 
 /**
@@ -50,10 +47,10 @@ var ContestListDetail = React.createClass({
           </div>
         </td>
       </ReactCSSTransitionGroup>
-    );
+    )
   }
 
-});
+})
 
 
-module.exports = ContestListDetail;
+module.exports = ContestListDetail

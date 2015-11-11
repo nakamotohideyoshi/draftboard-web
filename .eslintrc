@@ -13,6 +13,7 @@
 
   "ecmaFeatures": {
     "jsx": true,
+    "modules": true,
     "spread": true,
     "blockBindings": true,
     "destructuring": true,
@@ -21,8 +22,7 @@
     "templateStrings": true,
     "objectLiteralShorthandMethods": true,
     "objectLiteralShorthandProperties": true,
-    "objectLiteralComputedProperties": true,
-    "modules": false
+    "objectLiteralComputedProperties": true
   },
 
   "globals": {
@@ -30,12 +30,13 @@
 
   "rules": {
     "quotes": [0, "double"],
-    "strict": [1, "global"],
+    "strict": [0, "global"],
+    "no-unused-vars": 0,
     "no-underscore-dangle": 0,
     "sort-vars": 0,
     "no-console": 0,
     "no-trailing-spaces": 1,
-    "semi": [1, "always"],
+    "semi": 0,
     "jsx-quotes": 0,
     "react/display-name": 0,
     "react/jsx-boolean-value": 1,
