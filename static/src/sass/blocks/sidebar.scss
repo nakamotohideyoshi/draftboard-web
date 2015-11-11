@@ -1,6 +1,8 @@
 @import "../variables.scss";
 
+
 .sidebar {
+  color: #fff;
   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#131a25+42,223044+78,161f2b+100 */
   background: rgb(19,26,37); /* Old browsers */
   background: -moz-linear-gradient(-45deg, rgba(19,26,37,1) 42%, rgba(34,48,68,1) 78%, rgba(22,31,43,1) 100%); /* FF3.6+ */
@@ -10,6 +12,31 @@
   background: -ms-linear-gradient(-45deg, rgba(19,26,37,1) 42%,rgba(34,48,68,1) 78%,rgba(22,31,43,1) 100%); /* IE10+ */
   background: linear-gradient(135deg, rgba(19,26,37,1) 42%,rgba(34,48,68,1) 78%,rgba(22,31,43,1) 100%); /* W3C */
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#131a25', endColorstr='#161f2b',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+  position: relative;
+
+  &--header {
+    // background: rgba(19, 26, 37, 0.5);
+    background: rgba(19, 26, 37, .95);
+    position: absolute;
+    top: $contest-nav-height;
+    left: 0;
+    width: 100%;
+    z-index: 30;
+  }
+
+  &--header-inner {
+      margin: 0 auto;
+      max-width: 290px;
+      padding: 40px 0;
+  }
+
+  &--header-title {
+      font-family: $font-oswald;
+      font-size: 16px;
+      margin: 0;
+      padding: 0;
+      text-transform: uppercase;
+  }
 
   .sidebar-inner {
     overflow: auto;
