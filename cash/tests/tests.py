@@ -110,57 +110,57 @@ class CashTransactionTest(AbstractTest):
         # Tests creation of object with an object that is not a user
         self.assertRaises(IncorrectVariableTypeException, lambda: CashTransaction(1))
 
-class DepositViewTest(AbstractTest): # im not sure its possible, because of the way braintree form works
-    """
-    test the functionality of adding funds to the site using braintree.
-
-    TODOs
-        - Amount Field
-            -No amount
-            -Improper value
-            -Max amount
-            -Min amount
-        - payment_method_nonce
-            - missing
-            - incorrect
-        - Test being logged out
-    """
-
-    def setUp(self):
-        self.admin          = self.get_admin_user()
-        self.url_submit     = '/api/cash/deposit/'
-        self.url_success    = DepositView.success_redirect_url
-        self.url_fail       = DepositView.failure_redirect_url
-
-        client = Client()
-        client.login( username=self.admin.username, password=self.get_password() )
-        self.client = client
-
-    def __post(self, val):
-        form_data = {
-            'user'      : self.admin.pk,
-            'amount'    : val, # dont cast it - in case we're trying to test something tricky
-            'reason'    : 'testing...'
-        }
-        response = self.client.post( self.url_submit )
-        self.assertIsNotNone( response )
-        return response
-
-    def test_deposit_zero_amount(self):
-        AMOUNT = 0.0
-        response = self.__post( AMOUNT )
-        self.assertEquals( response.status_code, 200 )
-
-        #braintree_deposits = BraintreeTransaction.objects.all()
-        #self.assertEquals(len(braintree_deposits), 1)
-
-    # def test_deposit_negative_value(self):
-    #     AMOUNT = -0.0
-    #     response = self.__post( AMOUNT )
-    #
-    # def test_deposit_non_numeric_value(self):
-    #     AMOUNT = 'abc'
-    #     response = self.__post( AMOUNT )
+# class DepositViewTest(AbstractTest): # im not sure its possible, because of the way braintree form works
+#     """
+#     test the functionality of adding funds to the site using braintree.
+#
+#     TODOs
+#         - Amount Field
+#             -No amount
+#             -Improper value
+#             -Max amount
+#             -Min amount
+#         - payment_method_nonce
+#             - missing
+#             - incorrect
+#         - Test being logged out
+#     """
+#
+#     def setUp(self):
+#         self.admin          = self.get_admin_user()
+#         self.url_submit     = '/api/cash/deposit/'
+#         self.url_success    = DepositView.success_redirect_url
+#         self.url_fail       = DepositView.failure_redirect_url
+#
+#         client = Client()
+#         client.login( username=self.admin.username, password=self.get_password() )
+#         self.client = client
+#
+#     def __post(self, val):
+#         form_data = {
+#             'user'      : self.admin.pk,
+#             'amount'    : val, # dont cast it - in case we're trying to test something tricky
+#             'reason'    : 'testing...'
+#         }
+#         response = self.client.post( self.url_submit )
+#         self.assertIsNotNone( response )
+#         return response
+#
+#     def test_deposit_zero_amount(self):
+#         AMOUNT = 0.0
+#         response = self.__post( AMOUNT )
+#         self.assertEquals( response.status_code, 200 )
+#
+#         #braintree_deposits = BraintreeTransaction.objects.all()
+#         #self.assertEquals(len(braintree_deposits), 1)
+#
+#     # def test_deposit_negative_value(self):
+#     #     AMOUNT = -0.0
+#     #     response = self.__post( AMOUNT )
+#     #
+#     # def test_deposit_non_numeric_value(self):
+#     #     AMOUNT = 'abc'
+#     #     response = self.__post( AMOUNT )
 
 
 
