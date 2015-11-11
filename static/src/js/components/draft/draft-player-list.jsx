@@ -1,30 +1,30 @@
-const React = require('react');
-const ReactRedux = require('react-redux');
-const store = require('../../store');
-const renderComponent = require('../../lib/render-component');
-// const CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
-// const CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
-const PlayerListRow = require('./draft-player-list-row.jsx');
-import {fetchDraftGroup, setFocusedPlayer} from '../../actions/draft-group-actions.js';
-// Other components that will take care of themselves on the draft page.
-require('../contest-list/contest-list-header.jsx');
-// require('../contest-list/contest-list-detail.jsx');
-// require('../contest-list/contest-list-sport-filter.jsx');
+import React from 'react'
+const ReactRedux = require('react-redux')
+const store = require('../../store')
+const renderComponent = require('../../lib/render-component')
+const CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
+const CollectionSearchFilter = require('../filters/collection-search-filter.jsx')
+const PlayerListRow = require('./draft-player-list-row.jsx')
+import { fetchDraftGroup, setFocusedPlayer, updateFilter } from '../../actions/draft-group-actions.js'
 import { forEach as _forEach } from 'lodash'
+import { draftGroupPlayerSelector } from '../../selectors/draft-group-players-selector.js'
+
+// Other components that will take care of themselves on the draft page.
 import './draft-player-detail.jsx'
+
 
 /**
  * Render a list of players able to be drafted.
  */
 const DraftPlayerList = React.createClass({
 
-
   propTypes: {
     fetchDraftGroup: React.PropTypes.func.isRequired,
     allPlayers: React.PropTypes.object,
-    filteredPlayers: React.PropTypes.object,
+    filteredPlayers: React.PropTypes.array,
     focusPlayer: React.PropTypes.func,
-    newLineup: React.PropTypes.array
+    newLineup: React.PropTypes.array,
+    updateFilter: React.PropTypes.func
   },
 
 
@@ -78,6 +78,11 @@ const DraftPlayerList = React.createClass({
   },
 
 
+  handleFilterChange: function(filterName, filterProperty, match) {
+    this.props.updateFilter(filterName, filterProperty, match)
+  },
+
+
   render: function() {
     let visibleRows = [];
 
@@ -110,29 +115,26 @@ const DraftPlayerList = React.createClass({
       visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>;
     }
 
-      // <div className="player-list-filter-set">
-      //   <CollectionSearchFilter
-      //     className="collection-filter--player-name"
-      //     filterName="playerSearchFilter"
-      //     filterProperty='player.name'
-      //     match=''
-      //     onUpdate={draftGroupActions.filterUpdated}
-      //     onMount={draftGroupActions.registerFilter}
-      //   />
-      //
-      // <CollectionMatchFilter
-      //     className="collection-filter--player-type"
-      //     filters={this.playerPositionFilters}
-      //     filterName="contestTypeFilter"
-      //     filterProperty='position'
-      //     match=''
-      //     onUpdate={draftGroupActions.filterUpdated}
-      //     onMount={draftGroupActions.registerFilter}
-      //   />
-      // </div>
-
     return (
       <div>
+        <div className="player-list-filter-set">
+          <CollectionSearchFilter
+            className="collection-filter--player-name"
+            filterName="playerSearchFilter"
+            filterProperty='player.name'
+            match=''
+            onUpdate={this.handleFilterChange}
+          />
+
+          <CollectionMatchFilter
+              className="collection-filter--player-type"
+              filters={this.playerPositionFilters}
+              filterName="positionFilter"
+              filterProperty='position'
+              match=''
+              onUpdate={this.handleFilterChange}
+            />
+        </div>
 
         <table className="cmp-player-list__table table">
           <thead>
@@ -160,15 +162,15 @@ const DraftPlayerList = React.createClass({
 });
 
 
-// =============================================================================
 // Redux integration
 let {Provider, connect} = ReactRedux;
 
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
+
   return {
     allPlayers: state.draftDraftGroup.allPlayers || {},
-    filteredPlayers: state.draftDraftGroup.allPlayers || {},
+    filteredPlayers: draftGroupPlayerSelector(state),
     sport: state.draftDraftGroup.sport,
     newLineup: state.createLineup.lineup
   };
@@ -178,7 +180,8 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     fetchDraftGroup: (draftGroupId) => dispatch(fetchDraftGroup(draftGroupId)),
-    focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId))
+    focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
+    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match))
   };
 }
 
@@ -188,14 +191,12 @@ var DraftPlayerListConnected = connect(
   mapDispatchToProps
 )(DraftPlayerList);
 
-
 renderComponent(
   <Provider store={store}>
     <DraftPlayerListConnected />
   </Provider>,
   '.cmp-player-list'
 );
-
 
 
 module.exports = DraftPlayerList;

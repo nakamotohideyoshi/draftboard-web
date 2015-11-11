@@ -99,14 +99,13 @@ var DraftLineupCardList = React.createClass({
 });
 
 
-// =============================================================================
 // Redux integration
 let {Provider, connect} = ReactRedux;
 
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    lineups: state.upcomingLineups.lineups || [],
+    lineups: state.upcomingLineups.lineups,
     newLineup: state.createLineup || {},
     sport: state.draftDraftGroup.sport
   };
@@ -126,12 +125,13 @@ var DraftLineupCardListConnected = connect(
   mapDispatchToProps
 )(DraftLineupCardList);
 
-
+// Render the component.
 renderComponent(
   <Provider store={store}>
     <DraftLineupCardListConnected />
   </Provider>,
   '.cmp-draft-lineup-card-list'
 );
+
 
 module.exports = DraftLineupCardList;

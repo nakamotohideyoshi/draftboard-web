@@ -6,9 +6,10 @@
 const { combineReducers } = require('redux')
 
 const contests = require('./contests')
-const draftDraftGroup = require('./draft-groups')
+const draftDraftGroup = require('./draft-group')
+const upcomingDraftGroups = require('./upcoming-draft-groups.js')
 const upcomingLineups = require('./lineups')
-const upcomingContests = require('./upcoming-contests')
+const upcomingContests = require('./upcoming-contests.js')
 const createLineup = require('./create-lineup.js')
 const entries = require('./entries')
 
@@ -18,5 +19,6 @@ module.exports = combineReducers({
   draftDraftGroup,
   upcomingLineups,
   upcomingContests,
+  upcomingDraftGroups,
   createLineup
 })

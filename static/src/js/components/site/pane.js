@@ -1,6 +1,5 @@
-'use strict';
-var AppActions = require('../../actions/app-actions');
-var KeypressActions = require('../../actions/keypress-actions');
+var KeypressActions = require('../../actions/keypress-actions')
+import * as AppActions from '../../stores/app-state-store.js'
 
 
 /**
@@ -26,7 +25,7 @@ var Pane = (function() {
     });
   }
 
-})();
+})()
 
 
-module.exports = Pane;
+module.exports = Pane

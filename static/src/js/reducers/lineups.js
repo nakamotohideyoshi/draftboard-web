@@ -1,7 +1,11 @@
 const ActionTypes = require('../action-types');
 
+const initialState = {
+  lineups: [],
+  focusedLineupId: null
+}
 
-module.exports = function(state = {}, action) {
+module.exports = function(state = initialState, action) {
   switch (action.type) {
 
     case ActionTypes.FETCH_UPCOMING_LINEUPS_SUCCESS:

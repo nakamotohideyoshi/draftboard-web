@@ -1,6 +1,6 @@
 "use strict";
 
-var AppActions = require('../../actions/app-actions');
+import * as AppStateStore from '../../stores/app-state-store.js'
 
 
 /*
@@ -29,10 +29,10 @@ var HamburgerMenu = (function() {
           )
           && isOpen === true
         ) {
-          AppActions.closeNavMain();
+          AppStateStore.closeNavMain();
           isOpen = false;
         } else if ((el.contains(node.target) === true || el === node.target) && isOpen === false) {
-          AppActions.openNavMain();
+          AppStateStore.openNavMain();
           isOpen = true;
         }
       });

@@ -25,6 +25,17 @@ function fetchUpcomingContestsFail(ex) {
 }
 
 
+/**
+ * Set the focused contest based on the provided contest ID.
+ * @param {number} contestId the ID of the contest to set as active.
+ */
+// setFocusedContest: function(contestId) {
+//   if(typeof contestId === 'number') {
+//     this.data.focusedContestId = contestId;
+//     this.trigger(this.data);
+//   }
+// },
+
 // export function setFocusedPlayer(playerId) {
 //   return (dispatch) => {
 //     dispatch({
@@ -55,6 +66,19 @@ export function fetchUpcomingContests() {
             contests: normalizedContests.entities.contests
           }));
         }
-      });
+      }
+    );
   };
+}
+
+
+export function updateFilter(filterName, filterProperty, match) {
+  return {
+    type: types.UPCOMING_CONTESTS_FILTER_CHANGED,
+    filter: {
+      filterName,
+      filterProperty,
+      match
+    }
+  }
 }

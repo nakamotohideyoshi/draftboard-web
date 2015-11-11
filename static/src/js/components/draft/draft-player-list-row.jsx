@@ -1,9 +1,7 @@
-'use strict';
-
-var React = require('react');
+var React = require('react')
 // var DraftActions = require("../../actions/draft-actions");
-var AppActions = require("../../actions/app-actions");
-var log = require('../../lib/logging.js');
+import * as AppActions from '../../stores/app-state-store.js'
+var log = require('../../lib/logging.js')
 
 
 /**
@@ -36,7 +34,7 @@ var DraftPlayerListRow = React.createClass({
 
   onRowClick: function(playerId) {
     AppActions.openPane();
-    log.debug('ContestListRow.onRowClick()', playerId);
+    log.debug('DraftPlayerListRow.onRowClick()', playerId);
     this.props.focusPlayer(playerId);
     // DraftActions.playerFocused(playerId);
   },
@@ -79,7 +77,7 @@ var DraftPlayerListRow = React.createClass({
     );
   }
 
-});
+})
 
 
-module.exports = DraftPlayerListRow;
+module.exports = DraftPlayerListRow
