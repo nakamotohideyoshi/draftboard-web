@@ -307,7 +307,8 @@ class PbpPushStatPrinter(ObjectPrinter):
         self.examples           = 2             # number of printed examples per type
         self.categories         = [
             #  db,  coll,  parent_api,  distinct types
-            ('nba','event','pbp',       'event_type'),
+            #('nba','event','pbp',       'event_type'),
+            ('nhl','event','pbp',       'event_type'),
             # 'player',
             # 'boxscores'
         ]

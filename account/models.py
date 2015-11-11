@@ -18,8 +18,6 @@ class Information(models.Model):
     zipcode         = models.CharField(max_length=5, null=False, default='')
     dob             = models.DateField( default=None,  null=True)
 
-
-
 class EmailNotification(models.Model):
     """
     The Individual Notifications table
@@ -29,10 +27,10 @@ class EmailNotification(models.Model):
     category        = models.CharField(choices=CATEGORIES, max_length=100, null=False, default='')
     name            = models.CharField(max_length=100, null=False, default='')
     description     = models.CharField(max_length=255, null=False, default='')
+    displayed_text  = models.CharField(max_length=512, null=False, default='',
+                        help_text='this text is shown to users')
     default_value   = models.BooleanField( default= True )
     deprecated      = models.BooleanField( default= False )
-
-
 
     class Meta:
         unique_together = ("category", "name")

@@ -11,6 +11,7 @@ import prize.urls
 import salary.urls
 import sports.urls
 import push.urls
+import optimal_payments.urls
 
 from django.conf.urls import url, include
 from django.contrib.auth.models import User
@@ -40,17 +41,18 @@ router.register(r'users', UserViewSet)
 
 urlpatterns = [
 
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/',         include(admin.site.urls)),
 
-    url(r'^account/', include(account.urls)),
-    url(r'^cash/', include(cash.urls)),
-    url(r'^contest/', include(contest.urls)),
-    url(r'^draft-group/', include(draftgroup.urls)),
-    url(r'^lineup/',      include(lineup.urls)),
-    url(r'^ticket/', include(ticket.urls)),
-    url(r'^prize/',  include(prize.urls)),
-    url(r'^salary/', include(salary.urls)),
-    url(r'^sports/', include(sports.urls)),
+    url(r'^api/payments/',      include(optimal_payments.urls)),
+    url(r'^api/account/',       include(account.urls)),
+    url(r'^api/cash/',          include(cash.urls)),
+    url(r'^api/contest/',       include(contest.urls)),
+    url(r'^api/draft-group/',   include(draftgroup.urls)),
+    url(r'^api/lineup/',        include(lineup.urls)),
+    url(r'^api/ticket/',        include(ticket.urls)),
+    url(r'^api/prize/',         include(prize.urls)),
+    url(r'^api/salary/',        include(salary.urls)),
+    url(r'^api/sports/',        include(sports.urls)),
 
     # TEMP to show pusher
     url(r'^push/', include(push.urls, namespace='push')),
