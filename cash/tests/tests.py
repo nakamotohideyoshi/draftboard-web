@@ -128,7 +128,7 @@ class DepositViewTest(AbstractTest): # im not sure its possible, because of the 
 
     def setUp(self):
         self.admin          = self.get_admin_user()
-        self.url_submit     = '/cash/deposit/'
+        self.url_submit     = '/api/cash/deposit/'
         self.url_success    = DepositView.success_redirect_url
         self.url_fail       = DepositView.failure_redirect_url
 
