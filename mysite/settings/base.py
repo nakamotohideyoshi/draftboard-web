@@ -359,6 +359,10 @@ SUIT_CONFIG = {
         ('roster',),
         ('salary',),
         ('scoring',),
+
+        # schedule
+        ('schedule',),
+
         #('sports.nfl',),
         ('nfl',),
         ('nba',),
