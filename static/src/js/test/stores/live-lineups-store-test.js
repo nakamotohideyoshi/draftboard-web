@@ -18,7 +18,7 @@ var LiveLineupsActions = require('../../actions/live-lineups-actions');
 describe('LiveLineupsStore', function() {
   before(function(done) {
     this.timeout(5000);
-    var config = require('../../fixtures/live-contests-store-config.js');
+    var config = require('../../fixtures/live-contests-config.js');
 
     this.superagentMock = require('superagent-mock')(request, config);
     this.LiveLineupsStore = require('../../stores/live-lineups-store');

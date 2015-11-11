@@ -14,6 +14,8 @@ module.exports = [
           return require('./json/draft-group--1.json');
         case '/draft-group/fantasy-points/1':
           return require('./json/draft-group--fantasy-points--1.json');
+        case '/draft-group/box-scores/1':
+          return require('./json/draft-group--box-scores--1.json');
       }
     },
 

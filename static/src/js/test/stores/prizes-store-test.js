@@ -13,7 +13,7 @@ var PrizesActions = require('../../actions/prizes-actions');
 
 describe('PrizesStore', function() {
   before(function() {
-    var config = require('../../fixtures/prizes-store-config.js');
+    var config = require('../../fixtures/prizes-config.js');
 
     this.superagentMock = require('superagent-mock')(request, config);
     this.PrizesStore = require('../../stores/prizes-store');
