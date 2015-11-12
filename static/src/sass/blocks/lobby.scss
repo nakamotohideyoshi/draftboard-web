@@ -9,6 +9,14 @@
       background: url(../img/blocks/lobby/sidebar-nba-bottom.jpg) no-repeat bottom left #0C1524;
       background-size: 100% auto;
 
+      &--header-title {
+        display: inline-block;
+      }
+
+      .cmp-contest-list-sport-filter {
+        display: inline-block;
+      }
+
       // Arrow tab thing.
       &:after{
           content: ' ';

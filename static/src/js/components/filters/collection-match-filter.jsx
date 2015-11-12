@@ -1,4 +1,6 @@
 var React = require('react');
+var log = require('../../lib/logging.js');
+var _find = require('lodash/collection/find');
 
 
 /**
@@ -10,7 +12,10 @@ var CollectionMatchFilter = React.createClass({
   propTypes: {
     filters: React.PropTypes.array,
     // A default match to look for.
-    match: React.PropTypes.string,
+    match: React.PropTypes.oneOfType([
+      React.PropTypes.string,
+      React.PropTypes.array
+    ]),
     // The propety in the row that we are filtering against.
     filterProperty: React.PropTypes.string.isRequired,
     className: React.PropTypes.string,
@@ -19,7 +24,9 @@ var CollectionMatchFilter = React.createClass({
     filterName: React.PropTypes.string.isRequired,
     // When the filter values have changed, let the store it's registered with know so it can
     // re-run all of it's filters.
-    onUpdate: React.PropTypes.func.isRequired
+    onUpdate: React.PropTypes.func.isRequired,
+    // 'span' or 'select' - defaults to span.
+    elementType: React.PropTypes.string
   },
 
 
@@ -40,6 +47,12 @@ var CollectionMatchFilter = React.createClass({
    * @param {string} filter.match
    */
   selectFilter: function(filter) {
+    // We have to account for a select value being changed.
+    if (filter.hasOwnProperty('target')) {
+      // Find the filter with the title of the select value.
+      filter = _find(this.props.filters, 'title', filter.target.value);
+    }
+
     // Update the filter match value, then tell the parent DataTable that the
     // filter has been updated - this will re-render() the DataTable.
     this.setState({
@@ -51,14 +64,53 @@ var CollectionMatchFilter = React.createClass({
   },
 
 
-  // Render filter options.
-  render: function() {
-    var filterClass = this.props.className + ' cmp-collection-match-filter';
+  /**
+   * Determines whether a row should be shown or not based on the selected filter criteria.
+   * This works for either strings or an array of strings to match for.
+   *
+   * @param {Object} row - A row in the table.
+   * @return {boolean} Should the row be displayed?
+   */
+  filter: function(row) {
 
+    // First check that the row even contains the property we're trying to match against.
+    if(!row.hasOwnProperty(this.props.filterProperty)) {
+        log.warn('CollectionMatchFilter.filter() Row does not contain property',
+          this.props.filterProperty
+        );
+        return true;
+    }
+
+
+    // Check if the row's property matches this filter's match value.
+    switch (typeof this.state.match) {
+      // If the match is a string...
+      case 'string':
+        if (this.state.match === '' ||
+          row[this.props.filterProperty].toLowerCase() === this.state.match.toLowerCase()) {
+          return true;
+        }
+        break;
+
+      // But the match can also be an array. Like in MLB, 'OF' can be either 'lf','cf' or 'rf'.
+      case 'object':
+        if (this.state.match === '' ||
+          -1 !== this.state.match.indexOf(row[this.props.filterProperty].toLowerCase())
+        ) {
+          return true;
+        }
+        break;
+    }
+
+    // if a match was not found, return false.
+    return false;
+  },
+
+
+  getSpans: function() {
     // Build up html for filter options.
-    var filterOpts = this.props.filters.map(function(filter) {
+    return this.props.filters.map(function(filter) {
       var cssClass = 'cmp-collection-match-filter__option';
-
 
       // Add active class if the filter is currently active.
       if(
@@ -77,11 +129,61 @@ var CollectionMatchFilter = React.createClass({
           {filter.title}
         </span>
       );
+
     }.bind(this));
+  },
+
+
+  getOptions: function() {
+    // Build up html for filter options.
+    return this.props.filters.map(function(filter) {
+      var cssClass = 'cmp-collection-match-filter__option';
+
+      // Add active class if the filter is currently active.
+      if(
+        this.state.activeFilter === '' && filter.match === '' ||
+        this.state.activeFilter.match === filter.match
+      ) {
+        cssClass += ' cmp-collection-match-filter__option--active';
+      }
+
+      return (
+        <option
+          key={filter.match}
+          className={cssClass}
+        >
+          {filter.title}
+        </option>
+      );
+
+    }.bind(this));
+  },
+
+
+  getOptionsContainer: function() {
+    var options = this.getOptions();
+
+    if (this.props.elementType == 'select') {
+      return (
+        <select onChange={this.selectFilter}>{options}</select>
+      );
+    } else {
+      options = this.getSpans();
+      return (
+        <div>{options}</div>
+      );
+    }
+  },
+
+
+  // Render filter options.
+  render: function() {
+    var filterClass = this.props.className + ' cmp-collection-match-filter';
+    var optionsContainer = this.getOptionsContainer();
 
     return (
       <div className={filterClass}>
-          {filterOpts}
+        {optionsContainer}
       </div>
     );
   }
