@@ -127,6 +127,7 @@ class AbstractOptimalDepositAPIView(generics.CreateAPIView):
     """
     parent class for views that perform any type of deposit using OpitmalPayments(NetBanx)
     """
+
     permission_classes      = (IsAuthenticated,)
 
     def deposit(self, user, amount, optimal_transaction_id):
@@ -161,7 +162,7 @@ class DepositCreditCardAPIView(AbstractOptimalDepositAPIView):
     make a deposit with a credit card
     """
 
-    serializer_class        = DepositPaymentTokenSerializer
+    serializer_class        = DepositCreditCardSerializer
 
     @atomic
     def post(self, request, format=None):
