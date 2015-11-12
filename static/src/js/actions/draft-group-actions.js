@@ -37,7 +37,7 @@ export function setFocusedPlayer(playerId) {
 export function fetchDraftGroup(draftGroupId) {
   return (dispatch) => {
     return request
-      .get("/draft-group/" + draftGroupId + '/')
+      .get("/api/draft-group/" + draftGroupId + '/')
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .set('Accept', 'application/json')
       .end(function(err, res) {

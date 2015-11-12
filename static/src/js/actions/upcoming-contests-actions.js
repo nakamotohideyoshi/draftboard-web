@@ -49,7 +49,7 @@ function fetchUpcomingContestsFail(ex) {
 export function fetchUpcomingContests() {
   return (dispatch) => {
     return request
-      .get("/contest/lobby/")
+      .get("/api/contest/lobby/")
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .set('Accept', 'application/json')
       .end(function(err, res) {
