@@ -43,6 +43,7 @@ var ContestListSportFilter = React.createClass({
           match=''
           filterName='sportFilter'
           onUpdate={this.handleFilterChange}
+          elementType='select'
         />
     );
   }
