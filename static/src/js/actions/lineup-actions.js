@@ -22,7 +22,7 @@ function fetchUpcomingLineupsFail(ex) {
 export function fetchUpcomingLineups() {
   return (dispatch) => {
     return request
-      .get("/lineup/upcoming/")
+      .get("/api/lineup/upcoming/")
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .set('Accept', 'application/json')
       .end(function(err, res) {

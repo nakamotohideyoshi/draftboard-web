@@ -28,7 +28,7 @@ function fetchFail(ex) {
 export function fetchUpcomingDraftGroupsInfo() {
   return (dispatch) => {
     return request
-      .get("/draft-group/upcoming/")
+      .get("/api/draft-group/upcoming/")
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .set('Accept', 'application/json')
       .end(function(err, res) {

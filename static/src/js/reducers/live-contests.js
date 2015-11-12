@@ -24,15 +24,17 @@ function setOrMerge(state, action, newProps) {
       $merge: newProps
     }
   })
-};
+}
 
 
 module.exports = function(state = {}, action) {
+  let newProps = {};
+
   switch (action.type) {
     case ActionTypes.REQUEST_LIVE_CONTEST_INFO:
       log.debug('reducersLiveDraftGroup.REQUEST_LIVE_CONTEST_INFO')
 
-      var newProps = {
+      newProps = {
         id: action.id,
         isFetchingInfo: true,
         hasRelatedInfo: false
@@ -58,7 +60,7 @@ module.exports = function(state = {}, action) {
     case ActionTypes.REQUEST_LIVE_CONTEST_LINEUPS:
       log.debug('reducersLiveDraftGroup.REQUEST_LIVE_CONTEST_LINEUPS')
 
-      var newProps = {
+      newProps = {
         id: action.id,
         isFetchingLineups: true,
         hasRelatedInfo: false

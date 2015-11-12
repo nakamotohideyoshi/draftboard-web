@@ -112,7 +112,7 @@ const DraftPlayerList = React.createClass({
 
     // If the draftgroup hasn't been fetched yet, show a loading indicator.
     if(this.props.allPlayers === {}) {
-      visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>;
+      visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>
     }
 
     return (
@@ -127,13 +127,13 @@ const DraftPlayerList = React.createClass({
           />
 
           <CollectionMatchFilter
-              className="collection-filter--player-type"
-              filters={this.playerPositionFilters}
-              filterName="positionFilter"
-              filterProperty='position'
-              match=''
-              onUpdate={this.handleFilterChange}
-            />
+            className="collection-filter--player-type"
+            filters={this.playerPositionFilters}
+            filterName="positionFilter"
+            filterProperty='position'
+            match=''
+            onUpdate={this.handleFilterChange}
+          />
         </div>
 
         <table className="cmp-player-list__table table">
