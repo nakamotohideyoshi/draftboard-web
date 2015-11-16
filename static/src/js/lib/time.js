@@ -122,3 +122,16 @@ export function daysToWeekView(days) {
 
   return result;
 }
+
+
+/**
+ * Returns date in string format with the selected delimiter
+ * MM [-] DD [-] YYYY
+ */
+export function stringifyDate(date, delimiter) {
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+
+  return month + delimiter + day + delimiter + year
+}

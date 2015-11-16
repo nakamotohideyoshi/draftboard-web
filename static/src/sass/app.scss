@@ -78,11 +78,9 @@ Hello WOrld!
 @import "./blocks/cmp-draft-player-detail.scss";
 @import "./blocks/cmp-input-day-picker.scss";
 @import "./blocks/cmp-player-list.scss";
-@import "./blocks/cmp-react-credit-card-renderer.scss";
+@import "./blocks/cmp-creditcard-form.scss";
+
+@import "./blocks/cmp-transactions-form.scss";
 
 // For now have style guide in here (not needed on production)
 @import "./styleguide.scss";
-
-
-// // css coming from external packages
-@import "./card.css";
