@@ -16,7 +16,8 @@ var DraftPlayerListRow = React.createClass({
   propTypes: {
     row: React.PropTypes.object.isRequired,
     focusPlayer: React.PropTypes.func,
-    draftable: React.PropTypes.bool
+    draftable: React.PropTypes.bool,
+    draftPlayer: React.PropTypes.func
   },
 
 
@@ -34,16 +35,13 @@ var DraftPlayerListRow = React.createClass({
 
   onRowClick: function(playerId) {
     AppActions.openPane();
-    log.debug('DraftPlayerListRow.onRowClick()', playerId);
     this.props.focusPlayer(playerId);
-    // DraftActions.playerFocused(playerId);
   },
 
 
-  onDraftClick: function(playerId, e) {
-    log.debug('ContestListRow.onDraftClick()', playerId);
+  onDraftClick: function(player, e) {
     e.stopPropagation();
-    // DraftActions.addPlayerToLineup(playerId);
+    this.props.draftPlayer(player);
   },
 
 
@@ -70,7 +68,7 @@ var DraftPlayerListRow = React.createClass({
         <td>
           <div
             className="button--mini button--gradient"
-            onClick={this.onDraftClick.bind(this, this.props.row.player_id)}
+            onClick={this.onDraftClick.bind(this, this.props.row)}
             >Draft</div>
         </td>
       </tr>

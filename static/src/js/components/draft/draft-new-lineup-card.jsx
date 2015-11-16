@@ -13,9 +13,11 @@ var DraftNewLineupCard = React.createClass({
   propTypes: {
     isActive: React.PropTypes.bool,
     lineup: React.PropTypes.array.isRequired,
+    removePlayer: React.PropTypes.func.isRequired,
     remainingSalary: React.PropTypes.number,
     avgPlayerSalary: React.PropTypes.number,
-    errorMessage: React.PropTypes.string
+    errorMessage: React.PropTypes.string,
+    saveLineup: React.PropTypes.func
   },
 
 
@@ -37,12 +39,7 @@ var DraftNewLineupCard = React.createClass({
 
 
   saveLineup: function() {
-    // DraftActions.saveLineup();
-  },
-
-
-  removePlayer: function(playerId) {
-    // DraftActions.removePlayerFromLineup(playerId);
+    this.props.saveLineup()
   },
 
 
@@ -65,7 +62,7 @@ var DraftNewLineupCard = React.createClass({
         <DraftNewLineupCardPlayer
           player={player}
           key={player.idx}
-          removePlayer={this.removePlayer}
+          removePlayer={this.props.removePlayer}
         />
       );
     }.bind(this));

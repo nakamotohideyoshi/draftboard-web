@@ -4,7 +4,8 @@ const store = require('../../store');
 var LineupCard = require('../lineup/lineup-card.jsx');
 var DraftNewLineupCard = require('./draft-new-lineup-card.jsx');
 var renderComponent = require('../../lib/render-component');
-import {fetchUpcomingLineups, createLineupInit} from '../../actions/lineup-actions.js';
+import {importLineup, saveLineup, removePlayer, fetchUpcomingLineups, createLineupInit
+  } from '../../actions/lineup-actions.js';
 var log = require("../../lib/logging");
 
 
@@ -19,7 +20,11 @@ var DraftLineupCardList = React.createClass({
     lineups: React.PropTypes.array.isRequired,
     newLineup: React.PropTypes.object.isRequired,
     createLineupInit: React.PropTypes.func.isRequired,
-    sport: React.PropTypes.string
+    removePlayer: React.PropTypes.func.isRequired,
+    sport: React.PropTypes.string,
+    draftGroupId: React.PropTypes.number,
+    saveLineup: React.PropTypes.func,
+    importLineup: React.PropTypes.func
   },
 
 
@@ -60,10 +65,14 @@ var DraftLineupCardList = React.createClass({
    * Click handler for a lineupCard
    * @param  {int} id The cards ID TODO: this can be removed once we have legit data.
    */
-  onCardClick: function(id) {
-    this.importLineup(id);
+  handleCardClick: function(lineup) {
+    this.props.importLineup(lineup);
   },
 
+
+  handleSaveLineup: function() {
+    this.props.saveLineup(this.props.newLineup.lineup, 'no given title', this.props.draftGroupId)
+  },
 
 
   render: function() {
@@ -75,7 +84,7 @@ var DraftLineupCardList = React.createClass({
           lineup={lineup}
           isActive={false}
           ref={refName}
-          onCardClick={this.onCardClick}
+          onCardClick={this.handleCardClick}
           hoverText="Import Lineup"
         />
       );
@@ -90,6 +99,8 @@ var DraftLineupCardList = React.createClass({
           remainingSalary={this.props.newLineup.remainingSalary}
           avgPlayerSalary={this.props.newLineup.avgPlayerSalary}
           errorMessage={this.props.newLineup.errorMessage}
+          removePlayer={this.props.removePlayer}
+          saveLineup={this.handleSaveLineup}
         />
 
         {lineups}
@@ -106,8 +117,9 @@ let {Provider, connect} = ReactRedux;
 function mapStateToProps(state) {
   return {
     lineups: state.upcomingLineups.lineups,
-    newLineup: state.createLineup || {},
-    sport: state.draftDraftGroup.sport
+    newLineup: state.createLineup,
+    sport: state.draftDraftGroup.sport,
+    draftGroupId: state.draftDraftGroup.id
   };
 }
 
@@ -115,7 +127,10 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     fetchUpcomingLineups: () => dispatch(fetchUpcomingLineups()),
-    createLineupInit: (sport) => dispatch(createLineupInit(sport))
+    createLineupInit: (sport) => dispatch(createLineupInit(sport)),
+    removePlayer: (playerId) => dispatch(removePlayer(playerId)),
+    saveLineup: (lineup, title, draftGroupId) => dispatch(saveLineup(lineup, title, draftGroupId)),
+    importLineup: (lineup) => dispatch(importLineup(lineup))
   };
 }
 
