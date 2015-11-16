@@ -2,66 +2,51 @@
 @import "../mixins/_placeholder.scss";
 
 
-.input-day-picker {
-  input.date-picker {
-    @include placeholder {
-      color: #000;
-      font-weight: 900;
-      font-size: 12px;
-      font-family: $font-open-sans;
-    }
+.cmp-input-date-picker {
+  position: relative;
 
-    padding: 5px;
-    max-width: 120px;
-    height: 40px;
-    font-size: 15px;
-    font-family: $font-georgia;
-    margin-left: 5px;
-    margin-right: 5px;
+  .date-picker {
+    left: -60px; // half the size of the input field
+    top: 45px; // slightly more than the height of the input
+  }
+}
+
+
+input.date-picker-input {
+  @include placeholder {
+    color: #000;
+    font-weight: 900;
+    font-size: 12px;
+    font-family: $font-open-sans;
   }
 
-  input.date-picker:hover {
+  position: relative;
+  max-width: 120px;
+  height: 40px;
+  font-size: 15px;
+  padding-left: 20px;
+  font-family: $font-georgia;
+
+  &:hover {
     cursor: pointer;
   }
 
-  // hacky way to hide the placeholder when the input is selected
-  // hide the input value as of now too...
-  input.date-picker:focus {
+  &:focus {
+    // hacky way to hide the placeholder when the input is selected
+    // hide the input value as of now too...
     @include placeholder {
       color: #fff;
     }
     color: #fff;
   }
-
-  // input label that is to be show inside the input when calendar is open
-  label.calendar-input-label {
-    position: absolute;
-    color: $secondary-grey;
-    top: -5px;
-    left: 9px;
-    font-size: 10px;
-    font-family: $font-oswald;
-    transition: all 0.5s ease 0.5s;
-  }
 }
 
-
-#daypicker-backdrop {
-  z-index: 499; // same as.DayPicker, but minus 1
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
-
-
-.start-date-daypicker {
+label.calendar-input-label {
   position: absolute;
-  top: 5px;
-}
-
-.end-date-daypicker {
-  position: absolute;
-  top: 5px;
+  color: $secondary-grey;
+  top: 0px;
+  left: 35px;
+  font-size: 11px;
+  font-family: $font-oswald;
+  transition: all 0.5s ease 0.5s;
 }

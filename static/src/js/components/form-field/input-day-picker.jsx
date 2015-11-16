@@ -1,8 +1,10 @@
 'use strict';
 
 import React from 'react';
+import ReactDOM from 'react-dom';
 
 import DatePicker from '../site/date-picker';
+import { stringifyDate } from '../../lib/time.js';
 
 
 const InputDayPicker = React.createClass({
@@ -20,7 +22,7 @@ const InputDayPicker = React.createClass({
 
   getInitialState() {
     return {
-      date:         new Date,
+      date:         null,
       showCalendar: false
     };
   },
@@ -35,6 +37,20 @@ const InputDayPicker = React.createClass({
 
   handleShowCalendar() {
     this.setState({showCalendar: true});
+  },
+
+  handleHide(e) {
+    if (ReactDOM.findDOMNode(this).contains(e.target)) return;
+
+    this.setState({showCalendar: false});
+  },
+
+  componentWillMount() {
+    document.body.addEventListener('click', this.handleHide, false);
+  },
+
+  componentWillUnmount() {
+    document.body.removeEventListener('click', this.handleHide);
   },
 
   /**
@@ -53,18 +69,18 @@ const InputDayPicker = React.createClass({
   },
 
   renderSelectedDate() {
-    const today    = this.state.date;
-    const year     = today.getFullYear();
-    const month    = today.getMonth() + 1; // Months are zero-counted.
-    const day      = today.getDate();
-
-    return month + '/' + day + '/' + year;
+    if (this.state.date) {
+      const today    = this.state.date;
+      return stringifyDate(today, '/')
+    } else {
+      return '';
+    }
   },
 
   renderCalendar() {
     if (!this.state.showCalendar) return null;
 
-    const today    = this.state.date;
+    const today    = this.state.date || new Date;
     const year     = today.getFullYear();
     const month    = today.getMonth();
     const day      = today.getDate();
@@ -77,21 +93,28 @@ const InputDayPicker = React.createClass({
     );
   },
 
+  renderLabel() {
+    if (!this.state.showCalendar) return null;
+
+    return (
+      <label className="calendar-input-label">{this.props.placeholder}</label>
+    )
+  },
+
   render() {
     return (
-      <span className="input-day-picker">
-
-        <span className="input-symbol-number">
-          <input
-            className='date-picker'
-            ref='input'
-            type='text'
-            value={this.renderSelectedDate()}
-            placeholder={this.props.placeholder}
-            onChange={this.handleInputChange}
-            onFocus={this.handleShowCalendar} />
+      <span className='cmp-input-date-picker'>
+        <span className='input-symbol-number'>
+        <input
+          className="date-picker-input"
+          ref='input'
+          type='text'
+          value={this.renderSelectedDate()}
+          placeholder={this.props.placeholder}
+          onChange={this.handleInputChange}
+          onFocus={this.handleShowCalendar} />
         </span>
-
+        {this.renderLabel()}
         {this.renderCalendar()}
       </span>
     );
