@@ -6,7 +6,8 @@ const CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
 const CollectionSearchFilter = require('../filters/collection-search-filter.jsx')
 const PlayerListRow = require('./draft-player-list-row.jsx')
 import { fetchDraftGroup, setFocusedPlayer, updateFilter } from '../../actions/draft-group-actions.js'
-import { forEach as _forEach } from 'lodash'
+import { createLineupAddPlayer } from '../../actions/lineup-actions.js'
+import { forEach as _forEach, find as _find, matchesProperty as _matchesProperty } from 'lodash'
 import { draftGroupPlayerSelector } from '../../selectors/draft-group-players-selector.js'
 
 // Other components that will take care of themselves on the draft page.
@@ -23,8 +24,10 @@ const DraftPlayerList = React.createClass({
     allPlayers: React.PropTypes.object,
     filteredPlayers: React.PropTypes.array,
     focusPlayer: React.PropTypes.func,
+    draftPlayer: React.PropTypes.func,
     newLineup: React.PropTypes.array,
-    updateFilter: React.PropTypes.func
+    updateFilter: React.PropTypes.func,
+    availablePositions: React.PropTypes.array
   },
 
 
@@ -88,15 +91,16 @@ const DraftPlayerList = React.createClass({
 
     // Build up a list of rows to be displayed.
     _forEach(this.props.filteredPlayers, function(row) {
-      var draftable = true;
-      // // Is there a slot available?
-      // if (this.props.newLineup.availablePositions.indexOf(row.position) === -1) {
-      //   draftable = false;
-      // }
-      // // Can we afford this player?
-      // if (this.props.newLineup.remainingSalary < row.salary) {
-      //   draftable = false;
-      // }
+      var draftable = true
+      // Is there a slot available?
+      if (this.props.availablePositions.indexOf(row.position) === -1) {
+        draftable = false
+      }
+
+      // Is the player already drafted?
+      if (undefined !== _find(this.props.newLineup, _matchesProperty('player', row))) {
+        draftable = false
+      }
 
       visibleRows.push(
         <PlayerListRow
@@ -104,8 +108,9 @@ const DraftPlayerList = React.createClass({
           row={row}
           draftable={draftable}
           focusPlayer={this.props.focusPlayer}
+          draftPlayer={this.props.draftPlayer}
         />
-      );
+      )
     }.bind(this))
 
 
@@ -167,12 +172,12 @@ let {Provider, connect} = ReactRedux;
 
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
-
   return {
     allPlayers: state.draftDraftGroup.allPlayers || {},
     filteredPlayers: draftGroupPlayerSelector(state),
     sport: state.draftDraftGroup.sport,
-    newLineup: state.createLineup.lineup
+    newLineup: state.createLineup.lineup,
+    availablePositions: state.createLineup.availablePositions
   };
 }
 
@@ -180,6 +185,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     fetchDraftGroup: (draftGroupId) => dispatch(fetchDraftGroup(draftGroupId)),
+    draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
     focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
     updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match))
   };
