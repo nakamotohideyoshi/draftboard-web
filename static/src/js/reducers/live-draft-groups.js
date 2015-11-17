@@ -25,7 +25,7 @@ function setOrMerge(state, action, props) {
   // otherwise merge
   return update(state, {
     [action.id]: {
-      $merge: proprops
+      $merge: props
     }
   })
 }
