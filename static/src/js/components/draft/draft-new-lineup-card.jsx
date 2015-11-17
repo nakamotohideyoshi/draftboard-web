@@ -1,8 +1,8 @@
 var React = require('react');
 var Tooltip = require('../site/tooltip.jsx');
-// var DraftActions = require('../../actions/draft-actions.js');
 var DraftNewLineupCardTitle = require('./draft-new-lineup-card-title.jsx');
 var DraftNewLineupCardPlayer = require('./draft-new-lineup-card-player.jsx');
+var defaultLineupTitle = 'New Lineup'
 
 
 /**
@@ -33,18 +33,23 @@ var DraftNewLineupCard = React.createClass({
 
   getInitialState: function() {
     return {
-      lineupTitle: 'New Lineup'
+      lineupTitle: defaultLineupTitle
     };
   },
 
 
   saveLineup: function() {
-    this.props.saveLineup()
+    var title = this.state.lineupTitle
+    if (title === defaultLineupTitle) {
+      title = ''
+    }
+
+    this.props.saveLineup(title)
   },
 
 
-  setLineupTitle: function(title) {
-    // DraftActions.setLineupTitle(title);
+  setTitle: function(title) {
+    this.state.lineupTitle = title
   },
 
 
@@ -55,7 +60,7 @@ var DraftNewLineupCard = React.createClass({
 
 
   render: function() {
-    var showError = (this.props.errorMessage === '')? false : true;
+    var showError = (!this.props.errorMessage)? false : true;
 
     var players = this.props.lineup.map(function(player) {
       return (
@@ -72,7 +77,7 @@ var DraftNewLineupCard = React.createClass({
         <header className="cmp-lineup-card__header clearfix" onClick={this.showControls}>
           <DraftNewLineupCardTitle
             title={this.state.lineupTitle}
-            setTitle={this.setLineupTitle}
+            setTitle={this.setTitle}
           />
 
           <span

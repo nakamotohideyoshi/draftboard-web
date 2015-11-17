@@ -22,7 +22,9 @@ module.exports = function(state = initialState, action) {
       return Object.assign({}, state, {
         sport: action.body.sport,
         allPlayers: action.body.players,
-        id: action.body.id
+        id: action.body.id,
+        start: action.body.start,
+        end: action.body.end
       });
 
 

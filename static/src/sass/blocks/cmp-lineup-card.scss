@@ -115,6 +115,7 @@ category: Lineup
     font-weight: 400;
     margin: 0;
     padding: 0px;
+    display: inline-block;
   }
 
   // Feedback tooltip.
@@ -128,7 +129,8 @@ category: Lineup
   }
 
   &__save {
-    float: right;
+    display: inline-block;
+    text-align: right;
   }
 
   &__player {
@@ -335,7 +337,9 @@ category: Lineup
 
       &:before {
         content: "⚾︎";
+        width: 16px;
         display: inline-block;
+        text-align: center;
       }
 
       &:hover:before {
@@ -348,7 +352,7 @@ category: Lineup
       display: inline-block;
       cursor: pointer;
       border: 0px solid transparent;
-      max-width: 185px;
+      max-width: 170px;
 
       &::placeholder {
         transition: color .25s;

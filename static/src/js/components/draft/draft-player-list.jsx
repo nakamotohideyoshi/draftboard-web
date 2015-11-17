@@ -9,6 +9,7 @@ import { fetchDraftGroup, setFocusedPlayer, updateFilter } from '../../actions/d
 import { createLineupAddPlayer } from '../../actions/lineup-actions.js'
 import { forEach as _forEach, find as _find, matchesProperty as _matchesProperty } from 'lodash'
 import { draftGroupPlayerSelector } from '../../selectors/draft-group-players-selector.js'
+import * as moment from 'moment'
 
 // Other components that will take care of themselves on the draft page.
 import './draft-player-detail.jsx'
@@ -27,7 +28,8 @@ const DraftPlayerList = React.createClass({
     draftPlayer: React.PropTypes.func,
     newLineup: React.PropTypes.array,
     updateFilter: React.PropTypes.func,
-    availablePositions: React.PropTypes.array
+    availablePositions: React.PropTypes.array,
+    draftGroupTime: React.PropTypes.string
   },
 
 
@@ -87,6 +89,11 @@ const DraftPlayerList = React.createClass({
 
 
   render: function() {
+    let formattedDraftTime = ''
+    if (this.props.draftGroupTime) {
+      formattedDraftTime = moment.utc(this.props.draftGroupTime).format('MMM Do YYYY, h:mma')
+    }
+
     let visibleRows = [];
 
     // Build up a list of rows to be displayed.
@@ -122,6 +129,13 @@ const DraftPlayerList = React.createClass({
 
     return (
       <div>
+        <h2 className="player-list__header">
+          <span className="player-list__header-title">Draft a Team</span>
+          <span className="player-list__header-divider">/</span>
+
+          <span className="player-list__header-group">{formattedDraftTime}</span>
+        </h2>
+
         <div className="player-list-filter-set">
           <CollectionSearchFilter
             className="collection-filter--player-name"
@@ -175,6 +189,7 @@ function mapStateToProps(state) {
   return {
     allPlayers: state.draftDraftGroup.allPlayers || {},
     filteredPlayers: draftGroupPlayerSelector(state),
+    draftGroupTime: state.draftDraftGroup.start,
     sport: state.draftDraftGroup.sport,
     newLineup: state.createLineup.lineup,
     availablePositions: state.createLineup.availablePositions
