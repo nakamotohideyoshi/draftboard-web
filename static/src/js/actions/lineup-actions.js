@@ -105,9 +105,6 @@ function isValidLineup(lineup) {
 
 
 export function saveLineup(lineup, title, draftGroupId) {
-
-  console.log('lineup', lineup)
-
   return (dispatch) => {
     if (!isValidLineup(lineup)) {
       return dispatch(saveLineupFail('lineup is not valid'))
@@ -139,20 +136,10 @@ export function saveLineup(lineup, title, draftGroupId) {
             // Upon save success, send user to the lobby.
             document.location.href = '/frontend/lobby/?lineup-saved=true';
           }
-      }.bind(this));
+      });
     }
-
-
   }
 }
-
-
-//TODO: add lineup name change action.
-export function createLineupSetTitle(title) {
-  // CREATE_LINEUP_SAVE
-  console.log('createLineupSetTitle()', title)
-}
-
 
 
 export function importLineup(lineup, getState) {

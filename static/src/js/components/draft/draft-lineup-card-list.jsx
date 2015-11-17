@@ -56,22 +56,17 @@ var DraftLineupCardList = React.createClass({
   },
 
 
-  importLineup: function(lineupId) {
-    log.debug('DraftLineupCardList.importLineup()', lineupId);
-  },
-
 
   /**
-   * Click handler for a lineupCard
-   * @param  {int} id The cards ID TODO: this can be removed once we have legit data.
+   * Click handler for a lineupCard - imports the clicked lineup onto the new one.
    */
   handleCardClick: function(lineup) {
     this.props.importLineup(lineup);
   },
 
 
-  handleSaveLineup: function() {
-    this.props.saveLineup(this.props.newLineup.lineup, 'no given title', this.props.draftGroupId)
+  handleSaveLineup: function(title) {
+    this.props.saveLineup(this.props.newLineup.lineup, title, this.props.draftGroupId)
   },
 
 
