@@ -55,8 +55,7 @@ var LineupCard = React.createClass({
               ref="lineupCardTip"
             >
               <span>
-                Ok. whatever crap you want in the tooltip goes here. Note that it needs to be
-                wrapped in an element of any kind.
+                Edit and stuff in here
               </span>
             </Tooltip>
 
@@ -86,7 +85,7 @@ var LineupCard = React.createClass({
       lineup = (
         <div
           className="cmp-lineup-card cmp-lineup-card--collapsed"
-          onClick={this.props.onCardClick.bind(null, this.props.lineup.id)}
+          onClick={this.props.onCardClick.bind(null, this.props.lineup)}
         >
           <header className="cmp-lineup-card__header">
             <h3 className="cmp-lineup-card__title">{this.props.lineup.name} - id: {this.props.lineup.id}</h3>

@@ -26,20 +26,6 @@ var CollectionRangeSliderFilter = React.createClass({
   },
 
 
-  filter: function(row) {
-    // Is the property value less than the minimum range value, or greater than the biggest?
-    // TODO: make the row property this is checking dynamic based on the 'props.property'
-    if (
-      row.buyin < this.state.match.minVal ||
-      row.buyin > this.state.match.maxVal
-    ) {
-      return false;
-    }
-
-    return true;
-  },
-
-
   handleChange: function(sliderState) {
     var match = {
       minVal: sliderState.minVal,
@@ -49,13 +35,8 @@ var CollectionRangeSliderFilter = React.createClass({
     this.setState({'match': match}, function() {
       this.props.onUpdate(
         this.props.filterName,
-        {title: this.props.filterName,
-          column: this.props.filterProperty,
-          match: {
-            minVal: sliderState.minVal,
-            maxVal: sliderState.maxVal
-          }
-        }
+        this.props.filterProperty,
+        {minVal: sliderState.minVal, maxVal: sliderState.maxVal}
       );
     });
   },

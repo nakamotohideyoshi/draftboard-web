@@ -4,6 +4,7 @@ const ActionTypes = require('../action-types');
 
 const initialState = {
   sport: null,
+  id: null,
   allPlayers: {},
   filters: {
     playerSearchFilter: {},
@@ -20,7 +21,10 @@ module.exports = function(state = initialState, action) {
       // Return a copy of the previous state with our new things added to it.
       return Object.assign({}, state, {
         sport: action.body.sport,
-        allPlayers: action.body.players
+        allPlayers: action.body.players,
+        id: action.body.id,
+        start: action.body.start,
+        end: action.body.end
       });
 
 

@@ -1,6 +1,7 @@
 import * as types from '../action-types.js'
 import request from 'superagent'
-
+import Cookies from 'js-cookie'
+import {forEach as _forEach} from 'lodash'
 
 
 function fetchUpcomingLineupsSuccess(body) {
@@ -58,20 +59,108 @@ export function createLineupInit(sport) {
 
 
 export function createLineupAddPlayer(player) {
-  console.log('createLineupAddPlayer()', player)
+  return (dispatch) => {
+    dispatch({
+      type: types.CREATE_LINEUP_ADD_PLAYER,
+      player
+    })
+  }
 }
 
 
-export function createLineupRemovePlayer(player) {
-  console.log('createLineupRemovePlayer()', player)
+export function removePlayer(playerId) {
+  return (dispatch) => {
+    dispatch({
+      type: types.CREATE_LINEUP_REMOVE_PLAYER,
+      playerId
+    })
+  }
 }
 
 
-export function createLineupSave() {
-  console.log('createLineupSave()')
+function saveLineupFail(err) {
+  return (dispatch) => {
+    dispatch({
+      type: types.CREATE_LINEUP_SAVE_FAIL,
+      err
+    })
+  }
+
 }
 
 
-export function createLineupSetTitle(title) {
-  console.log('createLineupSetTitle()', title)
+// TODO: some basic save lineup validation
+// Check for salary cap restrictions
+function isValidLineup(lineup) {
+  // Does each slot have a player in it?
+  for (let slot of lineup) {
+    if (!slot.player) {
+      return false
+    }
+  }
+
+  return true
+}
+
+
+
+export function saveLineup(lineup, title, draftGroupId) {
+  return (dispatch) => {
+    if (!isValidLineup(lineup)) {
+      return dispatch(saveLineupFail('lineup is not valid'))
+    }
+    else {
+      // Build an array of player_ids.
+      var playerIds = lineup.map(function(slot) {
+        return slot.player.player_id;
+      });
+
+      var postData = {
+        name: title || '',
+        players: playerIds,
+        // Grab the current draftGroupId from the DraftGroupStore.
+        draft_group: draftGroupId
+      };
+
+      request.post('/api/lineup/create/')
+        .set({
+          'X-REQUESTED-WITH':  'XMLHttpRequest',
+          'X-CSRFToken': Cookies.get('csrftoken'),
+          'Accept': 'application/json'
+        })
+        .send(postData)
+        .end(function(err, res) {
+          if(err) {
+            dispatch(saveLineupFail(res.body))
+          } else {
+            // Upon save success, send user to the lobby.
+            document.location.href = '/frontend/lobby/?lineup-saved=true';
+          }
+      });
+    }
+  }
+}
+
+
+export function importLineup(lineup, getState) {
+  return (dispatch, getState) => {
+    let state = getState()
+    let players = [];
+
+    // Since the lineup API endpoint 'player' doesn't have the same info as the DraftGruoup
+    // 'player', we need to grab the corresponding DraftGroup player object and use that.
+    _forEach(lineup.players, function(player) {
+      // Get the DraftGroup player
+      let DraftGroupPlayer = state.draftDraftGroup.allPlayers[player.player_id];
+      //  Copy and append the idx to the player.
+      DraftGroupPlayer = Object.assign({}, DraftGroupPlayer, {'idx': player.idx})
+      // push them into a list of players.
+      players.push(DraftGroupPlayer)
+    })
+
+    dispatch({
+      type: types.CREATE_LINEUP_IMPORT,
+      players: players
+    })
+  }
 }

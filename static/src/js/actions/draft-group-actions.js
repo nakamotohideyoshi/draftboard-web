@@ -54,7 +54,8 @@ export function fetchDraftGroup(draftGroupId) {
             players: normalizedPlayers.entities.players,
             start: res.body.start,
             end: res.body.end,
-            sport: res.body.sport
+            sport: res.body.sport,
+            id: res.body.pk
           }));
         }
       });

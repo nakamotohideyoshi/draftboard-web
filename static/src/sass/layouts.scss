@@ -52,7 +52,8 @@
       padding: 40px 70px 0;
       position: relative;
       margin: $contest-nav-height auto 0;
-      max-width: 970px;
+      // Let it be as wide as possible - blame DrewDro
+      // max-width: 970px;
     }
   }
 

@@ -38,7 +38,27 @@ const ContestList = React.createClass({
   },
 
 
+  getFeaturedContests: function() {
+    return (
+      <tr>
+        <td colSpan="7" className="featured-contests">
+          <div className="featured-contests--contest">
+            <img src="/static/src/img/temp/featured-contest.png" />
+          </div>
+          <div className="featured-contests--contest">
+            <img src="/static/src/img/temp/featured-contest.png" />
+          </div>
+          <div className="featured-contests--contest">
+            <img src="/static/src/img/temp/featured-contest.png" />
+          </div>
+        </td>
+      </tr>
+    )
+  },
+
+
   render: function() {
+    let featuredContests = this.getFeaturedContests()
     var visibleRows = [];
 
     // Build up a list of rows to be displayed.
@@ -77,7 +97,10 @@ const ContestList = React.createClass({
             <th></th>
           </tr>
         </thead>
-        <tbody>{visibleRows}</tbody>
+        <tbody>
+          {featuredContests}
+          {visibleRows}
+        </tbody>
       </table>
     );
   }
