@@ -1,8 +1,8 @@
 var React = require('react');
 var Tooltip = require('../site/tooltip.jsx');
-// var DraftActions = require('../../actions/draft-actions.js');
 var DraftNewLineupCardTitle = require('./draft-new-lineup-card-title.jsx');
 var DraftNewLineupCardPlayer = require('./draft-new-lineup-card-player.jsx');
+var defaultLineupTitle = 'New Lineup'
 
 
 /**
@@ -13,9 +13,11 @@ var DraftNewLineupCard = React.createClass({
   propTypes: {
     isActive: React.PropTypes.bool,
     lineup: React.PropTypes.array.isRequired,
+    removePlayer: React.PropTypes.func.isRequired,
     remainingSalary: React.PropTypes.number,
     avgPlayerSalary: React.PropTypes.number,
-    errorMessage: React.PropTypes.string
+    errorMessage: React.PropTypes.string,
+    saveLineup: React.PropTypes.func
   },
 
 
@@ -31,23 +33,23 @@ var DraftNewLineupCard = React.createClass({
 
   getInitialState: function() {
     return {
-      lineupTitle: 'New Lineup'
+      lineupTitle: defaultLineupTitle
     };
   },
 
 
   saveLineup: function() {
-    // DraftActions.saveLineup();
+    var title = this.state.lineupTitle
+    if (title === defaultLineupTitle) {
+      title = ''
+    }
+
+    this.props.saveLineup(title)
   },
 
 
-  removePlayer: function(playerId) {
-    // DraftActions.removePlayerFromLineup(playerId);
-  },
-
-
-  setLineupTitle: function(title) {
-    // DraftActions.setLineupTitle(title);
+  setTitle: function(title) {
+    this.state.lineupTitle = title
   },
 
 
@@ -58,14 +60,14 @@ var DraftNewLineupCard = React.createClass({
 
 
   render: function() {
-    var showError = (this.props.errorMessage === '')? false : true;
+    var showError = (!this.props.errorMessage)? false : true;
 
     var players = this.props.lineup.map(function(player) {
       return (
         <DraftNewLineupCardPlayer
           player={player}
           key={player.idx}
-          removePlayer={this.removePlayer}
+          removePlayer={this.props.removePlayer}
         />
       );
     }.bind(this));
@@ -75,7 +77,7 @@ var DraftNewLineupCard = React.createClass({
         <header className="cmp-lineup-card__header clearfix" onClick={this.showControls}>
           <DraftNewLineupCardTitle
             title={this.state.lineupTitle}
-            setTitle={this.setLineupTitle}
+            setTitle={this.setTitle}
           />
 
           <span

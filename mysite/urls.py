@@ -1,5 +1,7 @@
 from django.conf.urls import patterns
+from django.conf import settings
 from django.contrib import admin
+from django.contrib.staticfiles import views
 
 import account.urls
 import cash.urls
@@ -70,12 +72,7 @@ urlpatterns = [
     url(r'^api-token-auth/', 'rest_framework_jwt.views.obtain_jwt_token'),
 ]
 
-# urlpatterns = patterns('',
-#     # Examples:
-#     # url(r'^$', 'mysite.views.home', name='home'),
-#     # url(r'^blog/', include('blog.urls')),
-#
-#     url(r'^admin/', include(admin.site.urls)),
-#
-#     url(r'^account/', include(account.urls)),
-# )
+if settings.DEBUG:
+    urlpatterns += [
+        url(r'^static/(?P<path>.*)$', views.serve),
+    ]
