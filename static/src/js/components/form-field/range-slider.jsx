@@ -1,6 +1,5 @@
-'use strict';
-
 var React = require('react');
+var ReactDom = require('react-dom')
 var noUiSlider = require('nouislider');
 
 
@@ -25,7 +24,7 @@ var RangeSlider = React.createClass({
 
 
   componentDidMount: function() {
-    this.slider = React.findDOMNode(this.refs.slider);
+    this.slider = ReactDom.findDOMNode(this.refs.slider);
 
     if(this.slider) {
       // Create the slider.
@@ -62,7 +61,7 @@ var RangeSlider = React.createClass({
       this.props.onChange(this.state);
       // Update the value readout. If we ever need this for anyything other than the contest list,
       // this will need to be abstracted out of this component and dynamic via props.
-      React.findDOMNode(this.refs.values).innerHTML = "$" + min + " - " + "$" + max;
+      ReactDom.findDOMNode(this.refs.values).innerHTML = "$" + min + " - " + "$" + max;
       callback();
     });
   },

@@ -6,7 +6,9 @@ const initialState = {
   focusedContestId: null,
   filters: {
     contestTypeFilter: {},
-    contestFeeFilter: {},
+    contestFeeFilter: {
+      match: {minVal: 0, maxVal: null}
+    },
     contestSearchFilter: {},
     sportFilter: {}
   }

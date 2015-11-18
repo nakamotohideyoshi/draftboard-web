@@ -5,7 +5,7 @@ const renderComponent = require('../../lib/render-component')
 import {updateFilter} from '../../actions/upcoming-contests-actions.js'
 var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
 var CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
-var CollectionRangeSliderFilter = require('../filters/collection-range-slider-filter.jsx');
+var ContestRangeSliderFilter = require('../contest-list/contest-range-slider-filter.jsx');
 var ContestList = require('../contest-list/contest-list.jsx');
 import { upcomingContestSelector } from '../../selectors/upcoming-contest-selector.js'
 import {fetchUpcomingContests} from '../../actions/upcoming-contests-actions.js'
@@ -60,17 +60,6 @@ var LobbyContests = React.createClass({
 
 
   render: function() {
-
-
-
-
-    // <CollectionRangeSliderFilter
-    //   className="contest-list-filter--contest-fee"
-    //   filterName="contestFeeFilter"
-    //   filterProperty='fee'
-    //   onUpdate={this.handleFilterChange}
-    //  />
-
     return (
       <div>
         <div className="contest-list-filter-set">
@@ -84,8 +73,14 @@ var LobbyContests = React.createClass({
           />
 
           <div className="contest-list-filter-set__group">
-            //CollectionRangeSliderFilter
-           <CollectionSearchFilter
+            <ContestRangeSliderFilter
+              className="contest-list-filter--contest-fee"
+              filterName="contestFeeFilter"
+              filterProperty='buyin'
+              onUpdate={this.handleFilterChange}
+             />
+
+            <CollectionSearchFilter
               className="contest-list-filter--contest-name"
               filterName="contestSearchFilter"
               filterProperty='name'
