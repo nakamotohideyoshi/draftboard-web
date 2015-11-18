@@ -14,7 +14,7 @@ const contestsFilterSelector = (state) => state.upcomingContests.allContests
  * End result is something like:
  *
  {
- 	draftGroups [
+   draftGroups [
      {pk: 1, sport: 'nba', start: '2016-03-20T20:56:25Z'},
      {pk: 2, sport: 'nfl', start: '2016-03-20T20:56:25Z'},
      {pk: 3, sport: 'nfl', start: '2016-03-20T20:56:25Z'}
