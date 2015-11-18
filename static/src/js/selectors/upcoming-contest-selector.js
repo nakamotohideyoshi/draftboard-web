@@ -1,4 +1,4 @@
-import { stringSearchFilter, matchFilter } from './filters'
+import { stringSearchFilter, matchFilter, rangeFilter } from './filters'
 import { createSelector } from 'reselect'
 
 /**
@@ -42,13 +42,29 @@ const contestsWithMatchingSport = createSelector(
 
 
 /**
+ * Then filter that list by the sport selection dropdown...
+ */
+const feeSelectorProperty = (state) => state.upcomingContests.filters.contestFeeFilter.filterProperty
+const feeSelectorMatch = (state) => state.upcomingContests.filters.contestFeeFilter.match
+
+// cosnsole.log()
+// filter the contests by sport.
+const contestsWithMatchingFee = createSelector(
+  [contestsWithMatchingSport, feeSelectorProperty, feeSelectorMatch],
+  (collection, filterProperty, feeSelectorMatch) => {
+    return rangeFilter(collection, filterProperty, feeSelectorMatch.minVal, feeSelectorMatch.maxVal)
+  }
+)
+
+
+/**
  * Finally, filter them by the contest type [GPP, H2H, etc..].
  */
 const typeFilterPropertySelector = (state) => state.upcomingContests.filters.contestTypeFilter.filterProperty
 const typeFilterMatchSelector = (state) => state.upcomingContests.filters.contestTypeFilter.match
 
 export const upcomingContestSelector = createSelector(
-  [contestsWithMatchingSport, typeFilterPropertySelector, typeFilterMatchSelector],
+  [contestsWithMatchingFee, typeFilterPropertySelector, typeFilterMatchSelector],
   (collection, filterProperty, searchString) => {
     return matchFilter(collection, filterProperty, searchString)
   }

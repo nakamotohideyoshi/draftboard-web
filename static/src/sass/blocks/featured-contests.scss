@@ -1,0 +1,22 @@
+/**
+ * Featured contest row in the contest list of the lobby.
+ */
+.featured-contests {
+  padding: 10px 0 !important;
+
+  &--contest {
+    display: inline-block;
+    width: 32%;
+    margin-right: 2%;
+    cursor: pointer;
+
+    &:last-child {
+      margin-right: 0;
+    }
+
+    img {
+      width: 100%;
+      height: auto;
+    }
+  }
+}

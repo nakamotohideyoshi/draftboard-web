@@ -62,3 +62,21 @@ export const matchFilter = function(collection, filterProperty, match) {
     }
   })
 }
+
+
+
+/**
+ * This filter performs a range match on the specified row property (this.props.filterProperty).
+ * @param  {Object} row The single collection row.
+ * @return {boolean} Should the row be displayed in the filtered collection list?
+ */
+export const rangeFilter = function(collection, filterProperty, minVal, maxVal) {
+  return _filter(collection, function(item) {
+    // Is the property value less than the minimum range value, or greater than the biggest?
+    if (item[filterProperty] < minVal || item[filterProperty] > maxVal) {
+      return false;
+    }
+
+    return true;
+  })
+}
