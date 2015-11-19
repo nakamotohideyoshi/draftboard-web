@@ -62,3 +62,11 @@ class FrontendDraftTemplateView(TemplateView):
     """
     # TODO: Check if the draft_group_id GET param is for a valid draft group. 404 otherwise.
     template_name = 'frontend/draft.html'
+
+
+class FrontendPaneTemplateView(TemplateView):
+    """
+    Right side pane styling and display
+    """
+
+    template_name = 'frontend/partials/pane.html'

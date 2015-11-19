@@ -1,0 +1,48 @@
+<form id="information-settings" class="form" method="POST" action=".">
+  {% csrf_token %}
+
+  <input type="hidden" name="form_type" value="1">
+
+  <legend class="form__legend">User Profile</legend>
+
+  <fieldset class="form__fieldset">
+
+    <div class="form-field">
+      <label class="form-field__label" for="name">Name</label>
+      <input class="form-field__text-input" type="text" id="name" name="fullname.name" value="{{ user.fullname }}" placeholder="John Doe" onblur="this.className+=' attempted'" required>
+    </div>
+
+    <div class="form-field">
+      <label class="form-field__label" for="address1">Address 1</label>
+      <input class="form-field__text-input" type="text" id="address1" name="address1" value="{{ user.address1 }}" onblur="this.className+=' attempted'" required>
+    </div>
+
+    <div class="form-field">
+      <label class="form-field__label" for="address2">Address 2</label>
+      <input class="form-field__text-input" type="text" id="address2" name="address2" value="{{ user.address2 }}">
+    </div>
+
+    <div class="form-field">
+      <label class="form-field__label" for="city">City</label>
+      <input class="form-field__text-input" type="text" id="city" name="city" value="{{ user.city }}" onblur="this.className+=' attempted'" required>
+    </div>
+
+    <div class="form-field">
+      <label class="form-field__label" for="state">State</label>
+      <select class="form-field__select" id="state" name="state" value="{{ user.state }}" onblur="this.className+=' attempted'" required>
+        {% for choice in consts.STATES %}
+          <option value="{{ choice }}" {% if choice == user.state %}selected="selected"{% endif %}>{{ choice }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label class="form-field__label" for="zipcode">Zip Code</label>
+      <input class="form-field__text-input" type="text" id="zipcode" name="zipcode" value="{{ user.zipcode }}" placeholder="32806" onblur="this.className+=' attempted'" required>
+    </div>
+
+    <input type="submit" class="button--medium" value="Save">
+
+  </fieldset>
+</form>
+

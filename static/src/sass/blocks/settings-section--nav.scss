@@ -5,17 +5,18 @@
   ul {
     list-style: none;
     border-bottom: 2px solid #e0e3e4;
+    padding-bottom: 0px;
   }
 
   li {
     display: inline-block;
-    padding: 0 23px;
+    // padding: 0 23px;
 
     a {
       border-bottom: 2px solid #e0e3e4;
       color: #c6cacc;
       display: inline-block;
-      padding: 18px 0 56px;
+      padding: 18px 23px 56px;
       text-decoration: none;
       font-size: 11px;
       text-transform: uppercase;
@@ -41,8 +42,8 @@
 
     &.active {
       a {
-        color: #293f4f;
-        border-image: linear-gradient(to right, #219d87, #34cc68) 100% 1;
+        color: $primary-text;
+        border-color: $primary-text;
         border-width: 0 0 2px 0;
       }
     }

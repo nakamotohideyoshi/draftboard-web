@@ -1,0 +1,42 @@
+#react-credit-card-animator {
+  /**
+   * styles connected with the credit card picture
+   * text over the picture
+   * field location on the picture etc.
+   * goes in here
+   **/
+}
+
+
+.form--credit_card_input {
+  margin-top: 25px;
+
+  .form-field {
+    text-align: left;
+  }
+
+  .form-field__label {
+    left: 0px;
+    position: static;
+    display: inline-block;
+    text-align: right;
+    padding-right: 20px;
+    min-width: 140px;
+  }
+
+  input[name=CCcvc] {
+    max-width: 75px;
+  }
+
+  input[name=CCexpiry] {
+    max-width: 125px;
+  }
+
+  input[name=CCname] {
+    max-width: 300px;
+  }
+
+  input[name=CCnumber] {
+    max-width: 300px;
+  }
+}

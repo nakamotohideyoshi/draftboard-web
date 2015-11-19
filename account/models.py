@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Information(models.Model):
     """
     Stores profile information about the user, like their mailing address, etc
@@ -17,6 +18,7 @@ class Information(models.Model):
     state           = models.CharField(choices=US_STATES, max_length=2,  default='')
     zipcode         = models.CharField(max_length=5, null=False, default='')
     dob             = models.DateField( default=None,  null=True)
+
 
 class EmailNotification(models.Model):
     """
