@@ -1,66 +1,79 @@
-"use strict";
+'use strict';
 
-var React = require('react');
-var Reflux = require('reflux');
-var renderComponent = require('../../lib/render-component');
+import React from 'react';
+const ReactRedux = require('react-redux')
+const store = require('../../store')
+const renderComponent = require('../../lib/render-component')
 
-var AccountActions = require('../../actions/account-actions');
-var AccountStore = require('../../stores/account-store');
+import {
+  fetchPayments,
+  addPaymentMethod,
+  setPaymentMethodDefault,
+  removePaymentMethod,
+  deposit
+} from '../../actions/payments'
 
-var DepositsAddPaymentMethod = require('./subcomponents/deposits-add-payment-method.jsx');
-var DepositsPayments = require('./subcomponents/deposits-payments.jsx');
+import { updateUserAddress } from '../../actions/user'
 
-var SettingsAddress = require('./subcomponents/settings-address.jsx');
+const DepositsAddPaymentMethod = require('./subcomponents/deposits-add-payment-method.jsx');
+const DepositsPayments = require('./subcomponents/deposits-payments.jsx');
+
+const SettingsAddress = require('./subcomponents/settings-address.jsx');
 
 
-/**
- * Renders the DepositsSection in the account section.
- */
-var Deposits = React.createClass({
+const Deposits = React.createClass({
 
-  mixins: [
-    Reflux.connect(AccountStore)
-  ],
+  propTypes: {
+    user: React.PropTypes.object.isRequired,
+    addressFormErrors: React.PropTypes.object.isRequired,
+    updateUserAddress: React.PropTypes.func.isRequired,
 
-  getInitialState: function() {
-    AccountActions.getPaymentMethods();
-    return {
-      'paymentMethods': AccountStore.data.paymentMethods,
-      'errors': AccountStore.data.depositFormErrors
-    };
+    payments: React.PropTypes.array.isRequired,
+    fetchPayments: React.PropTypes.func.isRequired,
+
+    addPaymentMethod: React.PropTypes.func.isRequired,
+    setPaymentMethodDefault: React.PropTypes.func.isRequired,
+    removePaymentMethod: React.PropTypes.func.isRequired,
+    deposit: React.PropTypes.func.isRequired
+
+  },
+
+  componentWillMount() {
+    this.props.fetchPayments()
   },
 
   /**
    * When input quickDeposit is click, populate the input field with its value
    * @param  {Object} event
    */
-  syncDepositValues: function(event) {
-    var depositInput = document.getElementById('deposit');
-    depositInput.value = event.target.value;
+  syncDepositValues(event) {
+    var depositInput = document.getElementById('deposit')
+    depositInput.value = event.target.value
   },
 
   /**
    * Uncheck quickDeposits options if any is selected (when input field is modified directly)
    * @return null (DOM modifications)
    */
-  uncheckQuickDeposits: function() {
-    var quickDeposits = document.querySelectorAll("input[type][name='quickDeposit']");
+  uncheckQuickDeposits() {
+    var quickDeposits = document.querySelectorAll("input[type][name='quickDeposit']")
     for (var i = 0; i < quickDeposits.length; i++) {
-      quickDeposits[i].checked = false;
+      quickDeposits[i].checked = false
     }
   },
 
-  submitDeposit: function(event) {
-    event.preventDefault();
-    AccountActions.deposit();
+  submitDeposit(event) {
+    event.preventDefault()
+    // gather post data
+    this.props.deposit({})
   },
 
-  render: function() {
+  render() {
 
-    var depositOptions = ['25', '50', '100', '250', '500'];
+    const depositOptions = ['25', '50', '100', '250', '500'];
 
-    var quckDeposits = depositOptions.map(function(amount) {
-      var dolarPrepended = '$'.concat(amount);
+    const quckDeposits = depositOptions.map((amount) => {
+      const dolarPrepended = '$'.concat(amount);
       return (
         <li>
           <input
@@ -72,15 +85,11 @@ var Deposits = React.createClass({
           <label htmlFor={dolarPrepended}>{dolarPrepended}</label>
         </li>
       );
-    }.bind(this));
-
-    var csrftokken = document.cookie.match(/csrftoken=(.*?)(?:$|;)/)[1];
+    });
 
     return (
       <div>
         <form className="form" method="post" onSubmit={this.submitDeposit}>
-          <input type="hidden" name="csrfmiddlewaretoken" value={csrftokken} />
-
           <fieldset className="form__fieldset">
 
           <div className="form-field">
@@ -105,14 +114,23 @@ var Deposits = React.createClass({
             </span>
           </div>
 
-          <DepositsPayments methods={this.state.paymentMethods} />
-          <DepositsAddPaymentMethod />
+          <DepositsPayments
+            payments={this.props.payments}
+            onSetDefault={this.props.setPaymentMethodDefault}
+            onRemovePaymentMethod={this.props.removePaymentMethod} />
+
+          <DepositsAddPaymentMethod onAddPaymentMethod={this.props.addPaymentMethod} />
+
           <input type="submit" className="button--medium" value="Deposit" />
 
           </fieldset>
         </form>
 
-        <SettingsAddress />
+        <SettingsAddress
+          user={this.props.user}
+          errors={this.props.addressFormErrors}
+          onHandleSubmit={this.props.updateUserAddress}
+        />
 
       </div>
     );
@@ -121,7 +139,39 @@ var Deposits = React.createClass({
 });
 
 
-renderComponent(<Deposits />, '#account-deposits');
+let {Provider, connect} = ReactRedux;
+
+function mapStateToProps(state) {
+  return {
+    user: state.user.user,
+    addressFormErrors: state.user.addressFormErrors,
+    payments: state.payments.payments
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    updateUserAddress: (postData) => dispatch(updateUserAddress(postData)),
+    fetchPayments: () => dispatch(fetchPayments()),
+    addPaymentMethod: (postData) => dispatch(addPaymentMethod(postData)),
+    setPaymentMethodDefault: (id) => dispatch(setPaymentMethodDefault(id)),
+    removePaymentMethod: (id) => dispatch(removePaymentMethod(id)),
+    deposit: (postData) => dispatch(deposit(postData))
+  };
+}
 
 
-module.exports = Deposits;
+var DepositsConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Deposits);
+
+
+renderComponent(
+  <Provider store={store}>
+    <DepositsConnected />
+  </Provider>, '#account-deposits'
+);
+
+
+export default DepositsConnected;

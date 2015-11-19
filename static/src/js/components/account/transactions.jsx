@@ -1,65 +1,76 @@
-"use strict";
+'use strict';
 
-var React = require('react');
-var Reflux = require('reflux');
-var renderComponent = require('../../lib/render-component');
+import React from 'react'
+const ReactRedux = require('react-redux')
+const store = require('../../store')
+const renderComponent = require('../../lib/render-component')
+import {fetchTransactions, filterTransactions } from '../../actions/transactions'
 
-var TransactionsActions = require('../../actions/transactions-actions');
-var TransactionsStore = require('../../stores/transactions-store');
-
-var TransactionsForm = require('./subcomponents/transactions-form.jsx');
-var TransactionsTable = require('./subcomponents/transactions-table.jsx');
+const TransactionsForm = require('./subcomponents/transactions-form.jsx');
+const TransactionsTable = require('./subcomponents/transactions-table.jsx');
 
 
-/**
- * The transactions section from the account/settings page
- *
- * TODO:
- * - not to refresh page
- */
-var Transactions = React.createClass({
+const Transactions = React.createClass({
 
-  mixins: [
-    Reflux.connect(TransactionsStore)
-  ],
-
-  getInitialState: function() {
-    // get transactions based on document.url (for get params)
-    TransactionsActions.getTransactions();
-    return {
-      'transactions': TransactionsStore.data.transactions
-    };
+  propTypes: {
+    transactions: React.PropTypes.array.isRequired,
+    filters: React.PropTypes.object.isRequired,
+    fetchTransactions: React.PropTypes.func.isRequired,
+    filterTransactions: React.PropTypes.func.isRequired
   },
 
-  /**
-   * Call the action that will reupdate the store
-   * @param  {moment Object} startDate [description]
-   * @param  {moment Object} endDate   [description]
-   */
-  getTransactions: function(startDate, endDate) {
-    if (startDate !== null && endDate !== null) {
-      // populate the get params withouth invoking page refresh
-      var startDateString = startDate.format('MM-DD-YYYY');
-      var endDateString = endDate.format('MM-DD-YYYY');
-      var newUrl = window.location.pathname + "?from=" + startDateString + '&to=' + endDateString;
-      window.history.pushState("dummy", "javascript..", newUrl);
-
-      TransactionsActions.getTransactions(startDate, endDate);
-    }
+  componentWillMount() {
+    this.props.fetchTransactions()
   },
 
-  render: function() {
+  handleFilterChange(startDate, endDate) {
+    // var startDateString = startDate.format('MM-DD-YYYY');
+    // var endDateString = endDate.format('MM-DD-YYYY');
+    // var newUrl = window.location.pathname + "?from=" + startDateString + '&to=' + endDateString;
+    // window.history.pushState("dummy", "javascript..", newUrl);
+    this.props.filterTransactions(startDate, endDate)
+  },
+
+  render() {
     return (
       <div>
-        <TransactionsForm onPeriodSelected={this.getTransactions}/>
-        <TransactionsTable transactions={this.state.transactions} />
+        <TransactionsForm onPeriodSelected={this.handleFilterChange}/>
+        <TransactionsTable transactions={this.props.transactions} />
       </div>
     );
   }
 });
 
 
-renderComponent(<Transactions />, '#account-transactions');
+let {Provider, connect} = ReactRedux;
+
+function mapStateToProps(state) {
+  return {
+    transactions: state.transactions.filteredTransactions,
+    filters: state.transactions.filters
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    fetchTransactions: () => dispatch(fetchTransactions()),
+    filterTransactions: (startDate, endDate) => dispatch(filterTransactions(startDate, endDate))
+  };
+}
 
 
-module.exports = Transactions;
+var TransactionsConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Transactions);
+
+
+renderComponent(
+  <Provider store={store}>
+    <TransactionsConnected />
+  </Provider>,
+  '#account-transactions'
+);
+
+
+export default TransactionsConnected;

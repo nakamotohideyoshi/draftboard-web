@@ -1,33 +1,28 @@
 'use strict';
 
-var React = require('react');
-var Modal = require('../../modal/modal.jsx');
+import React from 'react';
+const Modal = require('../../modal/modal.jsx');
 
-/**
- * Modal window (confirm window), that is to be used as a protection step from
- * iccidental removings of user's payment method
- */
-var ModalRemovePaymentMethod = React.createClass({
+
+const ModalRemovePaymentMethod = React.createClass({
 
   propTypes: {
     onConfirm: React.PropTypes.func.isRequired
   },
 
-  getInitialState: function() {
+  getInitialState() {
     return {isOpen: false};
   },
 
-  // open modal
-  open: function() {
+  open() {
     this.setState({isOpen: true});
   },
 
-  // close modal
-  close: function() {
+  close() {
     this.setState({isOpen: false});
   },
 
-  render: function() {
+  render() {
     return (
       <Modal
         isOpen={this.state.isOpen}
@@ -51,4 +46,4 @@ var ModalRemovePaymentMethod = React.createClass({
 });
 
 
-module.exports = ModalRemovePaymentMethod;
+export default ModalRemovePaymentMethod;

@@ -1,31 +1,25 @@
 'use strict';
 
-var React = require('react');
-var renderComponent = require('../../../lib/render-component');
-// var AppAction = require('../../../actions/app-actions');
+import React from 'react';
+const renderComponent = require('../../../lib/render-component');
 import * as AppActions from '../../../stores/app-state-store.js'
-var TransactionsDetails = require('./transactions-details.jsx');
 
-/**
- * Component representing a single row from the table with transactions
- */
-var TransactionsTableRow = React.createClass({
+const TransactionsDetails = require('./transactions-details.jsx');
+
+
+const TransactionsTableRow = React.createClass({
 
   propTypes: {
     transaction: React.PropTypes.object.isRequired
   },
 
-  /**
-   * Prevent the default href acction and invoke openning of the side pane
-   * Render the TransactionsDetails component inside the .pane__content
-   */
-  showDetails: function() {
-    // render the transactionDetail component inside THAT PANE.
-    renderComponent(<TransactionsDetails transaction={this.props.transaction} />, '.pane__content');
-    AppActions.openPane();
+  handleShowDetails(event) {
+    event.preventDefault()
+    renderComponent(<TransactionsDetails transaction={this.props.transaction} />, '.pane__content')
+    AppActions.openPane()
   },
 
-  render: function() {
+  render() {
     return (
       <tr>
         <td>{this.props.transaction.date_date} <sub className="table__sub">{this.props.transaction.date_time}</sub></td>
@@ -33,7 +27,7 @@ var TransactionsTableRow = React.createClass({
         <td>{this.props.transaction.balance}</td>
         <td>{this.props.transaction.type}</td>
         <td>{this.props.transaction.description}</td>
-        <td><a classNameName="transaction-info" onClick={this.showDetails} href="#">{this.props.transaction.pk}</a></td>
+        <td><a classNameName="transaction-info" onClick={this.handleShowDetails} href="#">{this.props.transaction.pk}</a></td>
       </tr>
     );
   }
@@ -41,4 +35,4 @@ var TransactionsTableRow = React.createClass({
 });
 
 
-module.exports = TransactionsTableRow;
+export default TransactionsTableRow;

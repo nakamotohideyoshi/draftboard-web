@@ -1,20 +1,16 @@
 'use strict';
 
-var React = require('react');
+import React from 'react';
 
 
-var SettingsEmailNotifications = React.createClass({
+const SettingsEmailNotifications = React.createClass({
 
   propTypes: {
     user: React.PropTypes.object.isRequired,
     editMode: React.PropTypes.bool.isRequired
   },
 
-  /**
-   * Show the info regarding the email notifications user has
-   * TODO: make it by design. (not used as of now)
-   */
-  renderInfo: function() {
+  renderInfo() {
     return (
       <fieldset className="form__fieldset">
       <div className="form-field form-field--with-help">
@@ -38,10 +34,7 @@ var SettingsEmailNotifications = React.createClass({
     );
   },
 
-  /**
-   * If editMode is true, show form from which email notifications options can be modified
-   */
-  renderForm: function() {
+  renderForm() {
     return (
       <div className="form-field form-field--with-help">
         <label className="form-field__label" htmlFor="notifications">Email Notifications</label>
@@ -127,16 +120,11 @@ var SettingsEmailNotifications = React.createClass({
     );
   },
 
-  render: function() {
+  render() {
     return (
       <div>
-        { this.props.editMode &&
-          this.renderForm()
-        }
-
-        { !this.props.editMode &&
-          this.renderInfo()
-        }
+        { this.props.editMode && this.renderForm() }
+        { !this.props.editMode && this.renderInfo() }
       </div>
     );
   }
@@ -144,4 +132,4 @@ var SettingsEmailNotifications = React.createClass({
 });
 
 
-module.exports = SettingsEmailNotifications;
+export default SettingsEmailNotifications;

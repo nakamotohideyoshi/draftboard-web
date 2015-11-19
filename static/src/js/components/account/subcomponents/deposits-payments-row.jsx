@@ -1,54 +1,47 @@
-"use strict";
-var React = require('react');
+'use strict';
 
-var ModalRemovePaymentMethod = require('./modal-remove-payment-method.jsx');
-var AccountActions = require('../../../actions/account-actions');
+import React from 'react';
+
+const ModalRemovePaymentMethod = require('./modal-remove-payment-method.jsx');
 
 
-/**
- * Renders a single PaymentMethod with actions connected to it (set as default / remove)
- */
-var DepositsPaymentsRow = React.createClass({
+const DepositsPaymentsRow = React.createClass({
 
   propTypes: {
-    method: React.PropTypes.object.isRequired
+    method: React.PropTypes.object.isRequired,
+    onSetDefault: React.PropTypes.func.isRequired,
+    onRemovePaymentMethod: React.PropTypes.func.isRequired
   },
 
-  openModal: function(event) {
+  openModal(event) {
     event.preventDefault();
     this.refs.removePaymentMethodModal.open();
   },
 
-  /**
-   * Change user's default payment method to this one
-   */
-  setAsDefault: function(event) {
+  handleSetDefault(event) {
     event.preventDefault();
-    AccountActions.setDefaultPaymentMethod(this.props.method.id);
+    this.props.onSetDefault(this.props.method.id);
   },
 
-  /**
-   * Remove this payment method from user's available payment methods
-   */
-  removePaymentMethod: function(event) {
+  handleRemovePaymentMethod(event) {
     event.preventDefault();
-    AccountActions.removePaymentMethod(this.props.method.id);
+    this.props.onRemovePaymentMethod(this.props.method.id);
   },
 
-  render: function() {
+  render() {
     // select the proper icon for this payment method (visa / mastercard / american express etc.)
-    var iconClass = "creditcard-icon__"  + this.props.method.type;
+    const iconClass = "creditcard-icon__"  + this.props.method.type;
 
     return (
         <li>
           <span className={iconClass}></span>
           <p className="details">Ending in {this.props.method.ending} expire {this.props.method.expires}</p>
           <p className="is-default">
-          { this.props.method.default &&
+          { this.props.method.isDefault &&
             '(default)'
           }
-          { !this.props.method.default &&
-            <a href="#" onClick={this.setAsDefault} className='setdefault__creditcard'>Set as Default</a>
+          { !this.props.method.isDefault &&
+            <a href="#" onClick={this.handleSetDefault} className='setdefault__creditcard'>Set as Default</a>
           }
           </p>
 
@@ -56,7 +49,7 @@ var DepositsPaymentsRow = React.createClass({
             <a href="#" className="remove__creditcard" onClick={this.openModal}></a>
             <ModalRemovePaymentMethod
               ref="removePaymentMethodModal"
-              onConfirm={this.removePaymentMethod} />
+              onConfirm={this.handleRemovePaymentMethod} />
           </span>
         </li>
     );
@@ -64,4 +57,4 @@ var DepositsPaymentsRow = React.createClass({
 });
 
 
-module.exports = DepositsPaymentsRow;
+export default DepositsPaymentsRow;
