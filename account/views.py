@@ -233,12 +233,19 @@ class UserBasicAPI(APIView):
             'email': 'example@dfs.com',
             'balance': '23130.00',
             'bonus': '3130.00',
-            'mailNotifications': {
+            'emailNotifications': {
                 'contests_starting': True,
                 'contests_victories': True,
                 'contests_upcoming': True,
                 'newsletters': False
-            }
+            },
+            'name': 'Lookma Noname',
+            'address1': 'Some address or should it',
+            'address2': 'Be connected with specific payment method',
+            'city': 'Denver',
+            'state': 'Colorado',
+            'stateShort': 'CO',
+            'zipcode': '4000'
         })
 
     def post(self, request, *args, **kwargs):
@@ -330,28 +337,28 @@ class PaymentsAPI(APIView):
                 'type': 'visa',
                 'ending': 2785,
                 'expires': '11/2016',
-                'default': False,
+                'isDefault': False,
                 'id': 1,
             },
             {
                 'type': 'amex',
                 'ending': 2785,
                 'expires': '11/2016',
-                'default': True,
+                'isDefault': True,
                 'id': 2,
             },
             {
                 'type': 'discover',
                 'ending': 2785,
                 'expires': '11/2016',
-                'default': False,
+                'isDefault': False,
                 'id': 3,
             },
             {
                 'type': 'mastercard',
                 'ending': 2785,
                 'expires': '11/2016',
-                'default': False,
+                'isDefault': False,
                 'id': 10,
             }
         ])
@@ -366,7 +373,7 @@ class AddPaymentMethodAPI(APIView):
             'type': 'mastercard',
             'ending': 6612,
             'expires': '11/2316',
-            'default': False,
+            'isDefault': False,
             'id': 14,
         })
 

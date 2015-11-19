@@ -1,68 +1,89 @@
-"use strict";
+'use strict';
 
-var React = require('react');
-var Reflux = require('reflux');
-var renderComponent = require('../../lib/render-component');
+import React from 'react';
+const ReactRedux = require('react-redux')
+const store = require('../../store')
+const renderComponent = require('../../lib/render-component');
 
-var AccountActions = require('../../actions/account-actions');
-var AccountStore = require('../../stores/account-store');
+import {fetchUser} from '../../actions/user'
 
 
+const Sidebar = React.createClass({
 
-var AccountSidebar = React.createClass({
-
-  mixins: [
-    Reflux.connect(AccountStore)
-  ],
-
-  componentWillMount: function() {
-    // userBaseInfo takes argument force
-    AccountActions.userBaseInfo(false);
+  propTypes: {
+    user: React.PropTypes.object.isRequired,
+    fetchUser: React.PropTypes.func.isRequired
   },
 
-  render: function() {
-    if (this.state.user !== undefined) {
-      return (
-        <div>
-          <header className="settings-sidebar-actions">
-            <h1>My Account</h1>
-            <a className="sign-out" href="#">Sign Out</a>
-          </header>
+  componentWillMount() {
+    this.props.fetchUser()
+  },
 
-          <section className="balance-summary">
-            <h2>
-              <sup>Current Balance</sup>
-              <span className="currency">$</span>{this.state.user.balance}
-            </h2>
+  render() {
+    return (
+      <div>
+        <header className="settings-sidebar-actions">
+          <h1>My Account</h1>
+          <a className="sign-out" href="#">Sign Out</a>
+        </header>
 
-          <hr/>
-            <h2>
-              <sup>Pending Bonus</sup>
-              <span className="currency">$</span>{this.state.user.bonus}
-            </h2>
+        <section className="balance-summary">
+          <h2>
+            <sup>Current Balance</sup>
+            <span className="currency">$</span>{this.props.user.balance}
+          </h2>
 
-            <a
-              href="/account/settings/deposit/"
-              className="balance-summary--action button--large button--gradient-outline"
-            >Deposit</a>
-            <a
-              href="/account/settings/withdrawals/"
-              className="balance-summary--action button--gradient--background button--large button--gradient-outline"
-            >Withdraw</a>
-          </section>
-        </div>
-      );
-    } else {
-      return (
-        <div> Loading...</div>
-      );
-    }
+        <hr/>
+          <h2>
+            <sup>Pending Bonus</sup>
+            <span className="currency">$</span>{this.props.user.bonus}
+          </h2>
+
+          <a
+            href="/account/settings/deposit/"
+            className="balance-summary--action button--large button--gradient-outline"
+          >Deposit</a>
+          <a
+            href="/account/settings/withdrawals/"
+            className="balance-summary--action button--gradient--background button--large button--gradient-outline"
+          >Withdraw</a>
+        </section>
+      </div>
+    );
   }
 
 });
 
 
-renderComponent(<AccountSidebar />, '#account-sidebar');
+let {Provider, connect} = ReactRedux;
 
 
-module.exports = AccountSidebar;
+function mapStateToProps(state) {
+  return {
+    user: state.user.user
+  };
+}
+
+
+function mapDispatchToProps(dispatch) {
+  return {
+    fetchUser: () => dispatch(fetchUser())
+  }
+}
+
+
+var SidebarConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Sidebar);
+
+
+renderComponent(
+  <Provider store={store}>
+    <SidebarConnected />
+  </Provider>,
+  '#account-sidebar'
+);
+
+
+export default SidebarConnected;
