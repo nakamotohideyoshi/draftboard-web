@@ -11,25 +11,25 @@
   overflow-x: hidden;
   overflow-y: auto;
   position: fixed;
-  right: -480px;
+  right: -$pane-width;
   top: 0;
   transition: right 230ms cubic-bezier(.8,.16,.18,.85);
   -webkit-animation-delay: 100ms; /* Chrome, Safari, Opera */
   animation-delay: 100ms;
-  width: 480px;
+  width: $pane-width;
   z-index: $zindex-modal + 1;
 
   &__close {
-    background: url('../img/blocks/pane/btn-close.png');
-    background-size: 36px auto;
+    background: url('../img/blocks/pane/btn-close-arrow.png') no-repeat;
+    background-size: 45px auto;
     cursor: pointer;
     display: block;
     height: 36px;
+    width: 45px;
     position: absolute;
-    right: 30px;
-    top: 30px;
-    width: 36px;
-    z-index: 30;
+    right: $pane-width - 60px;
+    top: 50px;
+    // z-index: $zindex-modal + 2;
 
     &:hover {
       opacity: .75;

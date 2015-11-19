@@ -1,0 +1,50 @@
+<form id="withdrawals" class="form" method="post" action=".">
+  {% csrf_token %}
+
+  <fieldset class="form__fieldset">
+
+  <div class="form-field">
+    <label class="form-field__label" for="email">Withdraw Amount</label>
+    <span class="input-symbol-dollar"><input class="form-field__text-input" type="text" id="email" name="{{ form.amount.name }}" {% if form.amount.value %}value="{{ form.amount.value }}"{% endif %} placeholder="700" onblur="this.className+=' attempted'" required></span>
+  </div>
+
+  <div class="form-field">
+    <label class="form-field__label form-field__label--twoline" for="ssn">
+      SSN for Taxes<br>(1099 Misc.)
+    </label>
+    <div class="form-field__input-wrapper form-field__ssn-input-wrapper"></div>
+
+    {% if errors.ssn %}
+    <div class="form-field-message form-field-message--error form-field-message--settings">
+      <h6 class="form-field-message__title">{{ errors.ssn.0.title }}</h6>
+      <p class="form-field-message__description">{{ errors.ssn.0.message }}</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="form-field form-field--with-help">
+    <label class="form-field__label" for="notifications">Withdraw Method</label>
+    <div class="form-field__content">
+      <p class="form-field__info">
+        You may receive your withdraw thru PayPal or a mailed check. Mailed checks may take between 7-12 business
+        days to arrive.
+      </p>
+
+      <ul class="radio-button-list radio-button-list--withdraw-method">
+        <li>
+          <div class="radio-button-list__button-container pull-left">
+            <input class="radio-button-list__input" type="radio" name="radio-withdraw-method" id="withdraw-method-1" value="0" checked="checked">
+            <label class="radio-button-list__label" for="withdraw-method-1">Off</label>
+          </div>
+          <div class="radio-button-list__title">
+            PayPal
+          </div>
+          <input class="form-field__text-input" type="email" id="paypal-email" name="paypal-email" placeholder="Paypal associated email address..." onblur="this.className+=' attempted'">
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <input type="submit" class="button--medium" value="Withdraw">
+  </fieldset>
+</form>

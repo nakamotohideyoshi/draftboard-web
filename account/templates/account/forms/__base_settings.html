@@ -1,0 +1,117 @@
+<form id="base-settings" class="form" method="post" action=".">
+  {% csrf_token %}
+
+  <fieldset class="form__fieldset">
+
+    <input type="hidden" name="username" value={{ user.username }} />
+
+    <div class="form-field">
+      <label class="form-field__label" for="username">Username</label>
+      <div class="username-display">{{ user.username }}</div>
+    </div>
+
+    <div class="form-field {% if error.email %}form-field--error{% endif %}">
+    <label class="form-field__label" for="email">Email</label>
+    <input class="form-field__text-input" type="email" id="email" name="email" value={{ user.email }} placeholder="i.e. joe@hotmail.com" onblur="this.className+=' attempted'" required>
+
+    {% if errors.email %}
+    <div class="form-field-message form-field-message--error form-field-message--settings">
+      <h6 class="form-field-message__title">{{ errors.email.0.title }}</h6>
+      <p class="form-field-message__description">{{ errors.email.0.message }}</p>
+    </div>
+    {% endif %}
+    </div>
+
+    <div class="form-field {% if errors.password %}form-field--error{% endif %}">
+      <label class="form-field__label" for="password">Password</label>
+      <input class="form-field__password-input" type="password" id="password" name="password" placeholder="********">
+      {% if errors.password %}
+      <div class="form-field-message form-field-message--error form-field-message--settings">
+        <h6 class="form-field-message__title">{{ errors.password.0.title }}</h6>
+        <p class="form-field-message__description">{{ errors.password.0.message }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="form-field {% if errors.password %}form-field--error{% endif %}">
+      <label class="form-field__label" for="password--confirm">Confirm Password</label>
+      <input class="form-field__password-input" type="password" id="password--confirm" name="confirm_password" placeholder="********">
+    </div>
+
+    <div class="form-field form-field--with-help  {% if field.email.errors %}form-field--error{% endif %}">
+      <label class="form-field__label" for="notifications">Email Notifications</label>
+      <div class="form-field__content">
+        <p class="form-field__info">
+        Master cleanse Thundercats forage small batch Williamsburg. YOLO migas farm-to-table Vice, heirloom trust
+        fund lo-fi.
+        </p>
+
+        <ul class="radio-button-list">
+          <li>
+            <div class="radio-button-list__header-label">Off</div>
+            <div class="radio-button-list__header-label">On</div>
+          </li>
+          <li>
+            <div class="radio-button-list__title">
+              Contests are starting
+            </div>
+
+            <div class="radio-button-list__button-container pull-right">
+              <input class="radio-button-list__input" type="radio" id="contests--starting2" name="email_notification_contests_starting"  value="off" checked="checked">
+              <label class="radio-button-list__label" for="contests--starting2">Off</label>
+            </div>
+            <div class="radio-button-list__button-container pull-right">
+              <input class="radio-button-list__input" type="radio" id="contests--starting1" name="email_notification_contests_starting" value="on">
+              <label class="radio-button-list__label" for="contests--starting1">On</label>
+            </div>
+          </li>
+          <li>
+            <div class="radio-button-list__title">
+              Contests victories
+            </div>
+
+            <div class="radio-button-list__button-container pull-right">
+              <input class="radio-button-list__input" type="radio" id="contests--starting4" name="email_notification_contest_victories" value="off" checked="checked">
+              <label class="radio-button-list__label" for="contests--starting4">Off</label>
+            </div>
+            <div class="radio-button-list__button-container pull-right">
+              <input class="radio-button-list__input" type="radio" id="contests--starting3" name="email_notification_contest_victories" value="on">
+              <label class="radio-button-list__label" for="contests--starting3">On</label>
+            </div>
+          </li>
+          <li>
+            <div class="radio-button-list__title">
+              Newsletter
+            </div>
+
+            <div class="radio-button-list__button-container pull-right">
+              <input class="radio-button-list__input" type="radio" id="contests--starting6" name="email_notification_newsletter" value="off" checked="checked">
+              <label class="radio-button-list__label" for="contests--starting6">Off</label>
+            </div>
+            <div class="radio-button-list__button-container pull-right">
+              <input class="radio-button-list__input" type="radio" id="contests--starting5" name="email_notification_newsletter" value="on">
+              <label class="radio-button-list__label" for="contests--starting5">On</label>
+            </div>
+          </li>
+          <li>
+            <div class="radio-button-list__title">
+              Upcoming Contests
+            </div>
+
+            <div class="radio-button-list__button-container pull-right">
+              <input class="radio-button-list__input" type="radio" id="contests--starting8" name="email_notification_upcoming_contests" value="off" checked="checked">
+              <label class="radio-button-list__label" for="contests--starting8">Off</label>
+            </div>
+            <div class="radio-button-list__button-container pull-right">
+              <input class="radio-button-list__input" type="radio" id="contests--starting7" name="email_notification_upcoming_contests" value="on">
+              <label class="radio-button-list__label" for="contests--starting7">On</label>
+            </div>
+          </li>
+        </ul>
+
+        </div>
+      </div>
+
+      <input type="submit" class="button--medium" value="Save">
+    </fieldset>
+</form>

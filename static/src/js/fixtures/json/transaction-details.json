@@ -1,0 +1,42 @@
+{
+    "pk": 1,
+    "status": "completed",
+    "number": "009293432",
+    "type": "Contest Result",
+    "description": "Payout From Contest With ID: 2340134j0",
+    "contest_type": "GPP",
+    "contest_sport": "NBA",
+    "contest_info": "$150K NBA",
+    "contest_description": "Championship",
+    "contest_fee": 25,
+    "contest_prize-pool": 150.000,
+    "contest_date": "03/06/16",
+    "standings": [
+        {
+            "pos": 1,
+            "user": "zzach",
+            "pts": 231
+        },
+        {
+            "pos": 1,
+            "user": "zzach",
+            "pts": 231
+        }
+    ],
+    "teams": [
+        {
+            "pos": 1,
+            "name": "farters",
+            "pts": 1231
+        },
+        {
+            "pos": 1,
+            "name": "farters",
+            "pts": 1231
+        }
+    ],
+    "prizes": [
+    ],
+    "scoring": [
+    ]
+}

@@ -1,0 +1,193 @@
+@import "../variables.scss";
+
+
+.pane {
+
+  &__title {
+    color: $primary-white;
+    font-size: 20px;
+    font-style: $font-open-sans;
+    font-weight: lighter;
+  }
+
+  &__header {
+    background: url('../img/blocks/pane/pane-header-background.png') no-repeat;
+    background-size: $pane-width $pane-header-height;
+    height: $pane-header-height;
+
+    // pane__header__content
+    &__content {
+      width: 80%;
+      margin: 0 auto;
+      text-align: center;
+      padding-top: 35px;
+    }
+
+    // pane__info
+    &__info {
+      position: relative;
+      margin: 0 auto;
+      margin-top: 30px;
+      display: table;
+      padding: 10px 0px 10px 0px;
+
+      div {
+        text-transform: capitalize;
+        font-style: $font-georgia;
+        font-size: 11px;
+
+        div {
+          color: $secondary-grey;
+          display: inline-block;
+        }
+
+        span {
+          margin-right: 5px;
+          color: #ffffff;
+        }
+      }
+    }
+
+    // the following are added because the "top" and "bottom" border of the info section
+    &__info:before, &__info:after {
+      content:'';
+      position: absolute;
+      top: 0;
+      left: 65%;
+      width: 15%;
+      height: 1px;
+      background: $primary-charcoal;
+      margin-left: -20%;
+    }
+
+    &__info:after {
+      top: inherit;
+      bottom: 0;
+    }
+
+    // pane__header__extra-info
+    &__extra-info {
+      max-height: 80px;
+      margin-bottom: 20px;
+
+      // pane__header__extra-info__championship
+      &__championship {
+        margin-top: 14px;
+        line-height: 20px;
+
+        // pane__header__extra-info__championship__type
+        &__type {
+          font-size: 11px;
+          color: #ffffff;
+          font-weight: bold;
+          text-transform: uppercase;
+        }
+
+        // pane__header__extra-info__championship__prize
+        &__prize {
+          font-size: 24px;
+          color: $link-green;
+          font-weight: normal;
+        }
+
+        // pane__header__extra-info__championship__championship
+        &__championship {
+          font-size: 14px;
+          color: $link-green;
+          font-weight: lighter;
+          text-shadow: 4px 4px 4px #000;
+        }
+      }
+    }
+
+    // pane__header__fee-prizes-pool
+    &__fee-prizes-pool {
+      display: inline-block;
+
+      div {
+        text-transform: uppercase;
+        max-width: $pane-width / 3;
+        display: inline-block;
+        font-style: $font-georgia;
+        line-height: 15px;
+
+        span {
+          width: 100%;
+          font-size: 11px;
+          color: $secondary-grey;
+        }
+
+        div {
+          width: 100%;
+          font-size: 18px;
+          color: #ffffff;
+          position: relative;
+        }
+      }
+    }
+  }
+
+  // pane__content
+  &__content {
+    // pane__content__tabs
+    &__tabs {
+      width: 80%;
+      margin: 0 auto;
+      margin-top: 20px;
+      text-align: center;
+
+      ul {
+        display: inline-block;
+        list-style-type: none;
+      }
+
+      li {
+        float: left;
+        margin-right: 30px;
+
+        a {
+          font-size: 12px;
+          font-style: $font-georgia;
+          text-transform: uppercase;
+          color: $secondary-grey;
+          font-weight: 600;
+          text-decoration: none;
+        }
+
+        a:hover {
+          opacity: .75;
+        }
+        a.active {
+          color: $link-green;
+          text-decoration: underline;
+        }
+
+      }
+    }
+
+    // pane__content__tab_content
+    &__tab_content {
+      width: 80%;
+      margin: 0 auto;
+      text-align: center;
+    }
+  }
+
+  // pane__transaction_status
+  &__transaction_status {
+    font-style: $font-georgia;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 11px;
+    margin: 0 auto;
+
+    // transaction_status__completed
+    &__completed {
+      @extend .pane__transaction_status;
+      background: #fff;
+      color: #000000;
+      width: 80px;
+      text-shadow: 0.5px 0px #000;
+    }
+  }
+}

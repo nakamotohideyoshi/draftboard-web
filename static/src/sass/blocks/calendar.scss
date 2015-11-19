@@ -1,0 +1,35 @@
+.past-week-icon,
+.past-month-icon {
+  height: 25px;
+  line-height: 25px;  // so text to be centered compared to the image
+  display: inline-block;
+  margin-right: 20px;
+
+  font-size: 11px;
+  color: $secondary-grey;
+
+  background: url(../img/blocks/form/past-not-selected.png) no-repeat scroll left center / 25px 25px;
+  padding-left: 35px;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+
+.select-dates {
+  height: 25px;
+  line-height: 25px;
+  display: inline-block;
+  margin-right: 20px;
+
+  font-size: 11px;
+  color: $secondary-grey;
+
+  background: url(../img/blocks/form/calendar-not-selected.png) no-repeat scroll left center / 25px 25px;
+  padding-left: 35px;
+
+  &:hover {
+    cursor: pointer;
+  }
+}

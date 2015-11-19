@@ -1,0 +1,190 @@
+{% load pipeline %}
+{% load staticfiles %}
+{% spaceless %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>{% block title %}DFS{% endblock %}</title>
+
+  {% comment %} default meta tags for UTF8 and mobile device width {% endcomment %}
+  <meta http-equiv="content-type" content="text/html" charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  {% comment %} standards mode for IE set to latest {% endcomment %}
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  {% block css %}
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {% endblock css %}
+</head>
+
+<body class="appstate--pane--open">
+    {% block body %}
+
+      <section class="pane">
+        <div class="pane__close"></div>
+
+        <div class="pane__content">
+
+          <div class="pane__header">
+            <div class="pane__header__content">
+              <div class="transaction_status__completed">completed</div>
+
+              <div class="pane__title">Transaction 009293432</div>
+              <div class="pane__header__info">
+                <div><span>transaction type</span><div>contest result</div></div>
+                <div><span>description</span><div>payout from contest with ID: 2340134j0</div></div>
+                <div><span>contest type</span><div>GPP</div></div>
+              </div>
+
+              <div class="pane__header__extra-info">
+                <!-- on some places this is simply a timer -->
+                <!-- on other is championship basic info panel (type and prize) -->
+                <div class="championship">
+                  <div class="championship__type">NBA</div>
+                  <div class="championship__prize">$150K NBA</div>
+                  <div class="championship__championship">Championship</div>
+                </div>
+              </div>
+
+              <div class="pane__header__fee-prizes-pool">
+                <div><span>fee</span><div>$25</div></div>
+                <div><span>prize pool</span><div>$150,000</div></div>
+                <div><span>date</span><div>03/06/16</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pane__content__tabs">
+            <ul>
+              <li><a href="#" class="active">Standings</a></li>
+              <li><a href="#">Teams</a></li>
+              <li><a href="#">Prizes</a></li>
+              <li><a href="#">Scoring</a></li>
+            </ul>
+          </div>
+
+          <div class="pane__content__tab_content">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>pos</th>
+                    <th>user</th>
+                    <th>pts</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                  <tr>
+                    <td>1</td>
+                    <td>Zzzzach</td>
+                    <td>231</td>
+                  </tr>
+                </tbody>
+              </table>
+          </div>
+
+        </div>
+      </section>
+    {% endblock body %}
+
+  <div class="pane__bg-cover"></div>
+  <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
+</body>
+</html>
+{% endspaceless %}
