@@ -16,7 +16,7 @@ const ContestNavSlider = React.createClass({
 
   /**
    * Returns the left position of the slider content holder.
-   * @return {Number} options key-value pairs
+   * @return {Number}
    */
   getContentLeft() {
     let content = this.refs.content;
