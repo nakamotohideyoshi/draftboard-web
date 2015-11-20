@@ -46,26 +46,27 @@ function receiveEntries(response) {
 
   return {
     type: RECEIVE_ENTRIES,
-    items: entries,
+    items: entries || [],
     receivedAt: Date.now()
   }
 }
 
 
-function fetchEntries() {
+export function fetchEntries() {
   log.debug('actionsEntries.fetchEntries')
 
   return dispatch => {
     dispatch(requestEntries())
 
-    request
-      .get('/contest/current-entries/')
+    return request
+      .get('/api/contest/current-entries/')
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .end(function(err, res) {
         if(err) {
+          console.error(err)
           // TODO
         } else {
-          dispatch(receiveEntries(res.body))
+          return dispatch(receiveEntries(res.body))
         }
     })
   }
@@ -79,7 +80,8 @@ function shouldFetchEntries(state) {
   if (entries.isFetching) {
     return false
   }
-  if ('items' in entries === false) {
+
+  if (entries.items.length === 0) {
     return true
   }
   return false
@@ -187,5 +189,3 @@ export function generateLineups() {
     ])
   }
 }
-
-

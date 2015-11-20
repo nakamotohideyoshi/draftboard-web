@@ -1,6 +1,8 @@
 import * as types from '../action-types.js'
 import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
+import Cookies from 'js-cookie'
+
 
 const contestSchema = new Schema('contests', {
   idAttribute: 'id'
@@ -29,21 +31,15 @@ function fetchUpcomingContestsFail(ex) {
  * Set the focused contest based on the provided contest ID.
  * @param {number} contestId the ID of the contest to set as active.
  */
-// setFocusedContest: function(contestId) {
-//   if(typeof contestId === 'number') {
-//     this.data.focusedContestId = contestId;
-//     this.trigger(this.data);
-//   }
-// },
+export function setFocusedContest(contestId) {
+    return (dispatch) => {
+      dispatch({
+        type: types.SET_FOCUSED_CONTEST,
+        contestId
+      });
+    };
 
-// export function setFocusedPlayer(playerId) {
-//   return (dispatch) => {
-//     dispatch({
-//       type: types.SET_FOCUSED_PLAYER,
-//       playerId
-//     });
-//   };
-// }
+}
 
 
 export function fetchUpcomingContests() {
@@ -72,6 +68,13 @@ export function fetchUpcomingContests() {
 }
 
 
+/**
+ * When one of the contest list filters gets updated, change the state keys for that filter.
+ * @param  {[type]} filterName     [description]
+ * @param  {[type]} filterProperty [description]
+ * @param  {[type]} match          [description]
+ * @return {[type]}                [description]
+ */
 export function updateFilter(filterName, filterProperty, match) {
   return {
     type: types.UPCOMING_CONTESTS_FILTER_CHANGED,
@@ -80,5 +83,38 @@ export function updateFilter(filterName, filterProperty, match) {
       filterProperty,
       match
     }
+  }
+}
+
+
+/**
+ * Enter a lineup into an upcoming contest.
+ * @param  {int} contestId The contest to be entered.
+ * @param  {int} lineupId  The lineup's id.
+ */
+export function enterContest(contestId, lineupId) {
+  let postData = {
+    contest: contestId,
+    lineup: lineupId
+  }
+
+  return (dispatch) => {
+    return request
+      .post('/api/contest/enter-lineup/')
+      .set({
+        'X-REQUESTED-WITH':  'XMLHttpRequest',
+        'X-CSRFToken': Cookies.get('csrftoken'),
+        'Accept': 'application/json'
+      })
+      .send(postData)
+      .end(function(err, res) {
+        if(err) {
+          console.error(res.body)
+        } else {
+          console.log(res)
+          // Upon save success, send user to the lobby.
+          // document.location.href = '/frontend/lobby/?lineup-saved=true';
+        }
+    });
   }
 }

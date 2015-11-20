@@ -235,13 +235,13 @@ Note: Buttons are inline-block by default. HR's added for spacing.
 }
 
 
-// .button--green-outline {
-//   border-color: #2dba74;
-//   color: #32c565;
-//
-//   &:hover {
-//     border-color: #2dba74;
-//     color: #32c565;
-//
-//   }
-// }
+.button--green-outline {
+  border-color: #2dba74;
+  color: #32c565;
+
+  &:hover {
+    border-color: #2dba74;
+    color: #32c565;
+
+  }
+}

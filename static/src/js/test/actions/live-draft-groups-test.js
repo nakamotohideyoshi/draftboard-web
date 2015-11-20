@@ -10,7 +10,6 @@ import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/live-draft-groups-config'
 import { fetchDraftGroupIfNeeded } from '../../actions/live-draft-groups'
 import { mockStore } from '../mock-store'
-// import store from '../../store'
 
 
 describe('actionsLiveDraftGroups', () => {

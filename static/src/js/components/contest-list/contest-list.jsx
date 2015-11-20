@@ -11,7 +11,9 @@ const ContestList = React.createClass({
 
   propTypes: {
     contests: React.PropTypes.array,
-    focusedContestId: React.PropTypes.number
+    focusedContestId: React.PropTypes.number,
+    enterContest: React.PropTypes.func,
+    setFocusedContest: React.PropTypes.func
   },
 
 
@@ -68,6 +70,8 @@ const ContestList = React.createClass({
             key={row.id}
             row={row}
             focusedContestId={this.props.focusedContestId}
+            enterContest={this.props.enterContest}
+            setFocusedContest={this.props.setFocusedContest}
         />
       )
     }, this);
