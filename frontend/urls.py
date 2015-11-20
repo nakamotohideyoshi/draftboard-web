@@ -10,6 +10,7 @@ urlpatterns = patterns(
     (r'^frontend/live/$', views.FrontendLiveTemplateView.as_view()),
     (r'^frontend/styleguide/$', views.FrontendStyleGuideTemplateView.as_view()),
     (r'^lobby/$', views.FrontendLobbyTemplateView.as_view()),
+    (r'^frontend/results/$', views.FrontendResultsTemplateView.as_view()),
     (r'^frontend/settings/$', views.FrontendSettingsTemplateView.as_view()),
     (r'^frontend/settings/transactions/$', views.FrontendSettingsTransactionHistoryTemplateView.as_view()),
     (r'^frontend/settings/deposits/$', views.FrontendSettingsDepositsTemplateView.as_view()),

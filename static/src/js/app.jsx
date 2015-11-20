@@ -30,3 +30,6 @@ require("components/draft/draft-player-list.jsx");
 
 // Top level components for the live section
 require("components/live/live");
+
+// Results
+require("components/results/results");
