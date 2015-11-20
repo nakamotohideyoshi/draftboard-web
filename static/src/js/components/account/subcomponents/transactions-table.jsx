@@ -1,38 +1,29 @@
 'use strict';
 
-var React = require('react');
-var TransactionsTableRow = require('./transactions-table-row.jsx');
+import React from 'react';
+import TransactionsTableRow from './transactions-table-row.jsx';
 
 
-/**
- * Transactions table
- * By given array of transactions object renders them into table
- * and calculates summary informations as:
- *   - winnings
- *   - contesnts
- *   - cashes
- *   - transactions count
- * that is calculated with javascript
- */
-var TransactionsTable = React.createClass({
+const TransactionsTable = React.createClass({
 
   propTypes: {
     transactions: React.PropTypes.array.isRequired
   },
 
-  render: function() {
-    var transactionsWinnings = '$3,234.50';
-    var transactionsContests = '425';
-    var transactionsCashed = '123';
-    var transactionsCount = '1,231';
+  render() {
+    // TODO: to be calculated in runtime
+    const transactionsWinnings = '$3,234.50';
+    const transactionsContests = '425';
+    const transactionsCashed = '123';
+    const transactionsCount = '1,231';
 
-    var transactionsRows = this.props.transactions.map(function(transaction) {
+    const transactionsRows = this.props.transactions.map((transaction) => {
       return (
         <TransactionsTableRow
           key={transaction.pk}
           transaction={transaction} />
       );
-    }.bind(this));
+    });
 
     return (
       <div id="transactions-listed-table">
@@ -76,4 +67,4 @@ var TransactionsTable = React.createClass({
 });
 
 
-module.exports = TransactionsTable;
+export default TransactionsTable;

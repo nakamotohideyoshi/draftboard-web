@@ -1,41 +1,30 @@
-"use strict";
+'use strict';
 
-var React = require('react');
-var renderComponent = require('../../lib/render-component');
-var AccountActions = require('../../actions/account-actions');
-var AccountStore = require('../../stores/account-store');
+import React from 'react';
+const ReactRedux = require('react-redux')
+const store = require('../../store')
+const renderComponent = require('../../lib/render-component');
+import { withdraw } from '../../actions/payments'
+const SSNMaskedInput = require('../form-field/ssn.jsx');
 
-var SSNMaskedInput = require('../form-field/ssn.jsx');
 
+const Withdrawals = React.createClass({
 
-var Withdrawals = React.createClass({
-
-  getInitialState: function() {
-
-    return {
-      'errors': AccountStore.data.withdrawFormErrors
-    };
+  propTypes: {
+    errors: React.PropTypes.object.isRequired,
+    onWithdraw: React.PropTypes.func.isRequired
   },
 
-  /**
-   * Withdraw the submitted amount.
-   * If errors from backend come, populate the form accordingly
-   */
-  withdrawAmount: function(event) {
+  handleWithdraw(event) {
     event.preventDefault();
-    AccountActions.withdraw();
+    // gather data
+    this.props.onWithdraw({});
   },
 
-  render: function() {
-
-    var csrftokken = document.cookie.match(/csrftoken=(.*?)(?:$|;)/)[1];
-
+  render() {
     return (
       <div>
-        <form className="form" method="post" onSubmit={this.withdrawAmount}>
-
-        <input type="hidden" name="csrfmiddlewaretoken" value={csrftokken} />
-
+        <form className="form" method="post" onSubmit={this.handleWithdraw}>
         <fieldset className="form__fieldset">
           <div className="form-field">
             <label className="form-field__label" htmlFor="amount">
@@ -83,7 +72,36 @@ var Withdrawals = React.createClass({
 });
 
 
-renderComponent(<Withdrawals />, '#account-withdrawals');
+
+let {Provider, connect} = ReactRedux;
+
+function mapStateToProps(state) {
+  return {
+    errors: state.payments.withdrawalFormErrors
+  }
+}
 
 
-module.exports = Withdrawals;
+function mapDispatchToProps(dispatch) {
+  return {
+    onWithdraw: (postData) => dispatch(withdraw(postData))
+  }
+}
+
+
+let WithdrawalsConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Withdrawals)
+
+
+
+renderComponent(
+  <Provider store={store}>
+    <WithdrawalsConnected />
+  </Provider>,
+  '#account-withdrawals'
+);
+
+
+export default WithdrawalsConnected;
