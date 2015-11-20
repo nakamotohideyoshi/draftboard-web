@@ -3,20 +3,18 @@ const ReactRedux = require('react-redux')
 const store = require('../../store')
 const renderComponent = require('../../lib/render-component')
 import {updateFilter} from '../../actions/upcoming-contests-actions.js'
-var CollectionMatchFilter = require('../filters/collection-match-filter.jsx');
-var CollectionSearchFilter = require('../filters/collection-search-filter.jsx');
-var ContestRangeSliderFilter = require('../contest-list/contest-range-slider-filter.jsx');
-var ContestList = require('../contest-list/contest-list.jsx');
-import { upcomingContestSelector } from '../../selectors/upcoming-contest-selector.js'
-import {fetchUpcomingContests} from '../../actions/upcoming-contests-actions.js'
+var CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
+var CollectionSearchFilter = require('../filters/collection-search-filter.jsx')
+var ContestRangeSliderFilter = require('../contest-list/contest-range-slider-filter.jsx')
+var ContestList = require('../contest-list/contest-list.jsx')
+import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js'
+import {fetchUpcomingContests, enterContest, setFocusedContest} from '../../actions/upcoming-contests-actions.js'
 import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-info-actions.js'
-
+import {fetchEntries} from '../../actions/entries.js'
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
 require('../contest-list/contest-list-detail.jsx');
-// import '../contest-list/contest-list-detail.jsx'
-// require('../contest-list/contest-list-sport-filter.jsx');
 
 
 /**
@@ -28,16 +26,18 @@ var LobbyContests = React.createClass({
     allContests: React.PropTypes.object,
     filteredContests: React.PropTypes.array,
     focusedContestId: React.PropTypes.number,
+    focusedLineupId: React.PropTypes.number,
     updateFilter: React.PropTypes.func,
     fetchUpcomingContests: React.PropTypes.func,
-    fetchUpcomingDraftGroupsInfo: React.PropTypes.func
+    fetchUpcomingDraftGroupsInfo: React.PropTypes.func,
+    fetchEntries: React.PropTypes.func,
+    enterContest: React.PropTypes.func,
+    setFocusedContest: React.PropTypes.func
   },
 
 
   getInitialState: function() {
     return ({
-      // filteredContests: [],
-      // Contest type filter data.
       contestTypeFilters: [
         {title: 'All', column: 'contestType', match: ''},
         {title: 'Guaranteed', column: 'contestType', match: 'gpp'},
@@ -49,13 +49,22 @@ var LobbyContests = React.createClass({
 
 
   componentWillMount: function() {
+    // Fetch all of the necessary data for the lobby.
     this.props.fetchUpcomingContests()
     this.props.fetchUpcomingDraftGroupsInfo()
+    this.props.fetchEntries()
   },
 
 
+  // When one of the contest filters change.
   handleFilterChange: function(filterName, filterProperty, match) {
     this.props.updateFilter(filterName, filterProperty, match)
+  },
+
+
+  // Enter the currently focused lineup into a contest.
+  handleEnterContest: function(contestId) {
+    this.props.enterContest(contestId, this.props.focusedLineupId)
   },
 
 
@@ -92,6 +101,8 @@ var LobbyContests = React.createClass({
         <ContestList
           contests={this.props.filteredContests}
           focusedContestId={this.props.focusedContestId}
+          setFocusedContest={this.props.setFocusedContest}
+          enterContest={this.handleEnterContest}
         />
       </div>
     );
@@ -109,6 +120,7 @@ function mapStateToProps(state) {
   return {
     allContests: state.upcomingContests.allContests,
     focusedContestId: state.upcomingContests.allPlayers,
+    focusedLineupId: state.upcomingLineups.focusedLineupId,
     filteredContests: upcomingContestSelector(state)
   };
 }
@@ -119,7 +131,10 @@ function mapDispatchToProps(dispatch) {
     // focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
     updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
     fetchUpcomingContests: () => dispatch(fetchUpcomingContests()),
-    fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo())
+    fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
+    fetchEntries: () => dispatch(fetchEntries()),
+    enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
+    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId))
   };
 }
 

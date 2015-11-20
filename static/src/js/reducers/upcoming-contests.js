@@ -24,6 +24,7 @@ module.exports = function(state = initialState, action) {
         filteredContests: action.body.contests
       });
 
+
       case ActionTypes.UPCOMING_CONTESTS_FILTER_CHANGED:
         let newFilter = {};
 
@@ -34,6 +35,12 @@ module.exports = function(state = initialState, action) {
 
         return Object.assign({}, state, {
           filters: Object.assign({}, state.filters, newFilter)
+        });
+
+
+      case ActionTypes.SET_FOCUSED_CONTEST:
+        return Object.assign({}, state, {
+          focusedContestId: action.contestId
         });
 
 

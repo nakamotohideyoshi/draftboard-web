@@ -1,9 +1,6 @@
-'use strict';
-
-var React = require('react');
-// var ContestActions = require('../../actions/contest-actions');
-var MultiEntryButton = require('./multi-entry-button.jsx');
-var moment = require('moment');
+const React = require('react')
+const moment = require('moment')
+import * as AppActions from '../../stores/app-state-store.js'
 
 
 /**
@@ -21,8 +18,11 @@ var ContestListRow = React.createClass({
   propTypes: {
     row: React.PropTypes.object.isRequired,
     columns: React.PropTypes.array,
-    focusedContestId: React.PropTypes.any
+    focusedContestId: React.PropTypes.any,
+    enterContest: React.PropTypes.func,
+    setFocusedContest: React.PropTypes.func
   },
+
 
   getInitialState: function() {
     return {
@@ -33,6 +33,12 @@ var ContestListRow = React.createClass({
         seconds: ''
       }
     };
+  },
+
+
+  handleRowClick: function(contestId) {
+    AppActions.openPane();
+    this.props.setFocusedContest(contestId);
   },
 
 
@@ -112,7 +118,7 @@ var ContestListRow = React.createClass({
 
     return (
       <tr
-        onClick={this.setContestFocus.bind(this, this.props.row.id)}
+        onClick={this.handleRowClick.bind(this, this.props.row.id)}
         key={this.props.row.id}
         className={classes}
       >
@@ -126,7 +132,7 @@ var ContestListRow = React.createClass({
         <td key="start" className="start">{timeRemaining}</td>
 
         <td className="cmp-contest-list__cell">
-          <MultiEntryButton />
+          <span className="button--mini--outline button--green-outline" onClick={this.props.enterContest.bind(null, this.props.row.id)}>Enter</span>
         </td>
       </tr>
     );
