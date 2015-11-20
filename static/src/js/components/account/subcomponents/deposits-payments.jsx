@@ -1,21 +1,25 @@
-"use strict";
+'use strict';
 
-var React = require('react');
-var DepositsPaymentsRow = require('./deposits-payments-row.jsx');
+import React from 'react';
+import DepositsPaymentsRow from './deposits-payments-row.jsx';
 
-/**
- * Renders list of payment methods that this user has available
- */
-var DepositsPayments = React.createClass({
+
+const DepositsPayments = React.createClass({
 
   propTypes: {
-    methods: React.PropTypes.array.isRequired
+    payments: React.PropTypes.array.isRequired,
+    onSetDefault: React.PropTypes.func.isRequired,
+    onRemovePaymentMethod: React.PropTypes.func.isRequired
   },
 
-  render: function() {
-    var paymentMethods = this.props.methods.map(function(method) {
+  render() {
+    const paymentMethods = this.props.payments.map((method) => {
       return (
-        <DepositsPaymentsRow key={method.id} method={method} />
+        <DepositsPaymentsRow
+          key={method.id}
+          method={method}
+          onSetDefault={this.props.onSetDefault}
+          onRemovePaymentMethod={this.props.onRemovePaymentMethod} />
       );
     });
 
@@ -36,4 +40,4 @@ var DepositsPayments = React.createClass({
 });
 
 
-module.exports = DepositsPayments;
+export default DepositsPayments;

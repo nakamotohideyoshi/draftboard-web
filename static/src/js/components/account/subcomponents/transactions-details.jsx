@@ -1,51 +1,27 @@
 'use strict';
 
-var React = require('react');
-var Reflux = require('reflux');
-
-var TransactionsActions = require('../../../actions/transactions-actions');
-var TransactionsStore = require('../../../stores/transactions-store');
+import React from 'react';
 
 
-/**
- * When transaction details is clicked, open side pane.
- * This component is rendered in that side pane
- */
-var TransactionsDetails = React.createClass({
-
-  mixins: [
-    Reflux.connect(TransactionsStore)
-  ],
+const TransactionsDetails = React.createClass({
 
   propTypes: {
     transaction: React.PropTypes.object.isRequired
   },
 
-  /**
-   * Populate transactionDetails in the store on component load.
-   * use that transactionDetails from the store afterwards
-   */
-  getInitialState: function() {
-    TransactionsActions.transactionDetails(this.props.transaction.pk);
-
-    return {
-      'section': 'standings',
-      'transactionDetails': TransactionsStore.data.transactionDetails
-    };
+  getInitialState() {
+    return {section: 'standings'}
   },
 
   /**
    * Change through tabs (basically change the section type)
    */
-  paneTabClicked: function(event) {
+  handleTabChange(event) {
     event.preventDefault();
     this.setState({'section': event.target.attributes.href.value});
   },
 
-  /**
-   * renderPaneHeader, this is same across different sections (standings/teams/prizes/etc.)
-   */
-  renderPaneHeader: function() {
+  renderPaneHeader() {
     return (
       <div className="pane__header">
         <div className="pane__header__content">
@@ -80,30 +56,30 @@ var TransactionsDetails = React.createClass({
    * Tabs options available for every transaction. When clicked on some of the
    * li items here, change state.section to the one clicked and add class `active`
    */
-  renderPaneTabsOption: function() {
-    var currentSection = this.state.section;
+  renderPaneTabsOption() {
+    const currentSection = this.state.section;
 
     return (
       <div className="pane__content__tabs">
         <ul>
           <li>
             <a href="standings"
-               onClick={this.paneTabClicked}
+               onClick={this.handleTabChange}
                className={(currentSection === 'standings')? "active":"" }
             >Standings</a></li>
           <li>
             <a href="teams"
-               onClick={this.paneTabClicked}
+               onClick={this.handleTabChange}
                className={(currentSection === 'teams')? "active":"" }
             >Teams</a></li>
           <li>
             <a href="prizes"
-               onClick={this.paneTabClicked}
+               onClick={this.handleTabChange}
                className={(currentSection === 'prizes')? "active":"" }
             >Prizes</a></li>
           <li>
             <a href="scoring"
-               onClick={this.paneTabClicked}
+               onClick={this.handleTabChange}
                className={(currentSection === 'scoring')? "active":"" }
             >Scoring</a></li>
         </ul>
@@ -111,10 +87,7 @@ var TransactionsDetails = React.createClass({
     );
   },
 
-  /**
-   * This renders prizes tab content that is to be rendered if this.section === 'prizes'
-   */
-  renderTransactionPrizes: function() {
+  renderTransactionPrizes() {
     return (
       <div className="pane__content__tab_content">
         <table className="table">
@@ -152,10 +125,7 @@ var TransactionsDetails = React.createClass({
     );
   },
 
-  /**
-   * This renders scoring tab content that is to be rendered if this.section === 'scoring'
-   */
-  renderTransactionScoring: function() {
+  renderTransactionScoring() {
     return (
       <div className="pane__content__tab_content">
         <table className="table">
@@ -208,10 +178,7 @@ var TransactionsDetails = React.createClass({
     );
   },
 
-  /**
-   * This renders standings tab content that is to be rendered if this.section === 'standings'
-   */
-  renderTransactionStandings: function() {
+  renderTransactionStandings() {
     return (
       <div className="pane__content__tab_content">
         <table className="table">
@@ -329,10 +296,7 @@ var TransactionsDetails = React.createClass({
     );
   },
 
-  /**
-   * This renders teams tab content that is to be rendered if this.section === 'teams'
-   */
-  renderTransactionTeams: function() {
+  renderTransactionTeams() {
     return (
       <div className="pane__content__tab_content">
         <table className="table">
@@ -360,11 +324,8 @@ var TransactionsDetails = React.createClass({
     );
   },
 
-  /**
-   * Render the correct tab content, depending on this.state.section type
-   */
-  renderPaneTabContent: function() {
-    var currentSection = this.state.section;
+  renderPaneTabContent() {
+    const currentSection = this.state.section;
     if (currentSection === 'standings') {
       return this.renderTransactionStandings();
     } else if (currentSection == 'teams') {
@@ -376,20 +337,11 @@ var TransactionsDetails = React.createClass({
     }
   },
 
-  /**
-   * Renders the content that is to be loaded inside the pane
-   * NOTE:
-   * we add <div class='pane__content'> inside the pane__content DOM.
-   * every pane__content is consisted of 3 parts
-   * - header
-   * - tabs options to be clicked on
-   * - tab content
-   */
-  render: function() {
+  render() {
 
-    var header = this.renderPaneHeader();
-    var tabs = this.renderPaneTabsOption();
-    var tabContent = this.renderPaneTabContent();
+    const header = this.renderPaneHeader();
+    const tabs = this.renderPaneTabsOption();
+    const tabContent = this.renderPaneTabContent();
 
     return (
       <div className="pane__content">
@@ -402,4 +354,4 @@ var TransactionsDetails = React.createClass({
 });
 
 
-module.exports = TransactionsDetails;
+export default TransactionsDetails;

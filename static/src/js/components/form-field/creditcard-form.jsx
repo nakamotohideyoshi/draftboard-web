@@ -1,20 +1,15 @@
 'use strict';
 
-var React = require('react');
-var AccountActions = require('../../actions/account-actions');
-var ReactCardFormContainer = require('card-react');
+import React from 'react';
+import ReactCardFormContainer from 'card-react';
 
 
-/**
- * CreditcardForm rendering the fancy dynamic, animated creditcard form
- */
-var CreditcardForm = React.createClass({
-  newPaymentMethod: function(event) {
+const CreditcardForm = React.createClass({
+  newPaymentMethod(event) {
     event.preventDefault();
-    AccountActions.addPaymentMethod();
   },
 
-  render: function() {
+  render() {
     return (
       <ReactCardFormContainer
 
@@ -63,4 +58,4 @@ var CreditcardForm = React.createClass({
 });
 
 
-module.exports = CreditcardForm;
+export default CreditcardForm;

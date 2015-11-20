@@ -1,26 +1,47 @@
-"use strict";
+'use strict';
 
-var React = require('react');
-var renderComponent = require('../../lib/render-component');
+import React from 'react';
+const ReactRedux = require('react-redux')
+const store = require('../../store')
+const renderComponent = require('../../lib/render-component');
 
-var SettingsBase = require('./subcomponents/settings-base.jsx');
-var SettingsAddress = require('./subcomponents/settings-address.jsx');
+import {
+  fetchUser,
+  updateUserInfo,
+  updateUserAddress
+} from '../../actions/user'
 
 
-/**
- *
- * The component that is rendered in the base settings section at the account configurations
- * NOTE that this component is combination of 2 others, and the inner components are "smart"
- *
- */
-var Settings = React.createClass({
+const SettingsBase = require('./subcomponents/settings-base.jsx');
+const SettingsAddress = require('./subcomponents/settings-address.jsx');
+
+
+const Settings = React.createClass({
+
+  propTypes: {
+    user: React.PropTypes.object.isRequired,
+    infoFormErrors: React.PropTypes.object.isRequired,
+    addressFormErrors: React.PropTypes.object.isRequired,
+
+    updateUserInfo: React.PropTypes.func.isRequired,
+    updateUserAddress: React.PropTypes.func.isRequired
+  },
 
   render: function() {
     return (
       <div>
-        <SettingsBase />
+        <SettingsBase
+          user={this.props.user}
+          errors={this.props.infoFormErrors}
+          onHandleSubmit={this.props.updateUserInfo} />
+
         <legend className="form__legend">User Profile</legend>
-        <SettingsAddress />
+
+        <SettingsAddress
+          user={this.props.user}
+          errors={this.props.addressFormErrors}
+          onHandleSubmit={this.props.updateUserAddress} />
+
       </div>
     );
   }
@@ -28,7 +49,38 @@ var Settings = React.createClass({
 });
 
 
-renderComponent(<Settings />, '#account-settings');
+let { Provider, connect } = ReactRedux;
 
 
-module.exports = Settings;
+function mapStateToProps(state) {
+  return {
+    user: state.user.user,
+    infoFormErrors: state.user.infoFormErrors,
+    addressFormErrors: state.user.addressFormErrors
+  };
+}
+
+
+function mapDispatchToProps(dispatch) {
+  return {
+    updateUserInfo: (postData) => dispatch(updateUserInfo(postData)),
+    updateUserAddress: (postData) => dispatch(updateUserAddress(postData))
+  };
+}
+
+
+const SettingsConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(Settings);
+
+
+renderComponent(
+  <Provider store={store}>
+    <SettingsConnected />
+  </Provider>,
+  '#account-settings'
+);
+
+
+export default SettingsConnected;
