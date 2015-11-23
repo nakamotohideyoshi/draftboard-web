@@ -1,0 +1,242 @@
+$results-fg-text-color: #43455C;
+$results-bg-text-color: #BDC0C2;
+$results-selected-text-color: #50C48F;
+
+.results-page {
+  background: transparent url(../img/blocks/live-nba/bg.jpg) no-repeat left top;
+  background-size: 100% auto;
+  height: 100%;
+  margin: 0 auto;
+  min-width: 1024px;
+  position: relative;
+  width: 100%;
+
+  &--header {
+    height: 130px;
+    padding: 0 100px;
+    position: relative;
+    background-color: #ffffff;
+    text-transform: uppercase;
+
+    .title {
+      display: inline-block;
+      padding-top: 40px;
+
+      .text {
+        color: $results-bg-text-color;
+        font-size: 12px;
+      }
+
+      .date {
+        color: $results-fg-text-color;
+        font-size: 24px;
+        font-weight: bold;
+        transform: scaleY(1.5);
+      }
+    }
+
+    .results-days-slider {
+      display: inline-block;
+      position: relative;
+      top: -8px;
+      margin-left: 30px;
+
+      .arrow-left, .arrow-right {
+        display: inline-block;
+        width: 30px;
+        text-align: center;
+        font-size: 25px;
+        transform: scaleX(0.50) translateY(9px);
+        cursor: pointer;
+      }
+      .arrow-left {
+        margin-right: 10px;
+      }
+
+      .arrow-right {
+        margin-left: 10px;
+      }
+
+      .content-holder {
+        width: 413px;
+        height: 62px;
+        white-space: nowrap;
+        overflow: hidden;
+        position: relative;
+        display: inline-block;
+        vertical-align: middle;
+      }
+
+      .content {
+        position: absolute;
+        width: 413px;
+        transition: left 1s;
+      }
+
+      .item {
+        display: inline-block;
+        color: $results-bg-text-color;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: 14px;
+        cursor: pointer;
+
+        .value {
+          display: block;
+          font-size: 16px;
+          font-weight: normal;
+          color: $results-fg-text-color;
+        }
+
+        &.selected {
+          color: $results-selected-text-color;
+
+          .value {
+            color: $results-selected-text-color;
+          }
+        }
+      }
+
+      .separator {
+        color: $results-bg-text-color;
+        display: inline-block;
+        padding: 0 10px;
+        font-size: 46px;
+        font-weight: 100;
+      }
+    }
+
+    .results-date-picker {
+      display: inline-block;
+      white-space: nowrap;
+
+      .toggle {
+        display: inline-block;
+      }
+    }
+
+    .search {
+      display: inline-block;
+      position: absolute;
+      right: 255px;
+      top: 62px;
+      border-right: 1px solid $results-bg-text-color;
+      width: 50px;
+      height: 30px;
+      text-align: center;
+    }
+
+    .draft-a-team {
+      display: inline-block;
+      position: absolute;
+      right: 100px;
+      top: 63px;
+      color: $results-fg-text-color;
+      font-size: 11px;
+      font-weight: 600;
+      border: solid 1px $results-selected-text-color;
+      padding: 6px 22px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  }
+
+  &--stats {
+    height: 50px;
+    padding-left: 100px;
+    line-height: 50px;
+    background-color: #292E42;
+
+    .item {
+      display: inline-block;
+      color: #9EA2A9;
+      font-size: 10px;
+      vertical-align: middle;
+      text-transform: uppercase;
+
+      .title {
+        display: inline-block;
+        position: relative;
+        top: -2px;
+      }
+
+      .value {
+        color: white;
+        display: inline-block;
+        margin-left: 10px;
+        margin-right: 40px;
+        font-size: 20px;
+        font-weight: bold;
+      }
+    }
+  }
+
+  &--lineups {
+    padding: 40px 0 0 100px;
+
+    .lineup {
+      width: 280px;
+      background-color: white;
+      display: inline-block;
+      margin-right: 40px;
+
+      .header {
+        padding-left: 20px;
+        line-height: 65px;
+        border-bottom: 1px solid $results-bg-text-color;
+      }
+
+      .list {
+        .player {
+          position: relative;
+          padding: 0 10px;
+          line-height: 35px;
+          border-bottom: 1px solid $results-bg-text-color;
+
+          .position {
+            color: $results-fg-text-color;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+          .image {
+            display: inline-block;
+            margin: 0 5px;
+          }
+          .name {
+            color: $results-fg-text-color;
+          }
+          .score {
+            color: $results-fg-text-color;
+            font-weight: bold;
+            position: absolute;
+            right: 15px;
+          }
+        }
+      }
+
+      .footer {
+        text-align: center;
+        padding: 20px 0;
+
+        .item {
+          display: inline-block;
+          padding: 0 10px;
+
+          .title {
+            color: $results-bg-text-color;
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+          }
+
+          .value {
+            color: $results-fg-text-color;
+            font-size: 20px;
+            font-weight: bold;
+          }
+        }
+      }
+    }
+  }
+}

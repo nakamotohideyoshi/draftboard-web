@@ -33,6 +33,9 @@ class FrontendSettingsTemplateView(TemplateView):
     """
     template_name = 'frontend/settings.html'
 
+class FrontendResultsTemplateView(TemplateView):
+    template_name = 'frontend/results.html'
+
 
 class FrontendSettingsDepositsTemplateView(TemplateView):
     template_name = 'frontend/settings/deposits.html'
