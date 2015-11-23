@@ -1,0 +1,72 @@
+.live-overall-stats {
+  display: inline-block;
+  text-align: center;
+  position: relative;
+
+  // because the pmr circle needs to be absolute
+  min-height: 260px;
+
+  &__pmr-background {
+    position: absolute;
+    left: -10px;
+    top: -10px;
+    z-index: 4000;
+  }
+
+  // BREAKING BEM
+  .pmr {
+    position: relative;
+    z-index: 4010;
+  }
+
+  &__contests,
+  &__points,
+  &__entries {
+    display: inline-block;
+    padding: 0 26px;
+    vertical-align: middle;
+    width: 120px;
+  }
+
+  &__help {
+    color: #6d718a;
+    font-size: 9.5px;
+    font-family: $font-open-sans;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  &__quantity {
+    color: #fff;
+    font-family: $font-oswald;
+    font-weight: 400;
+    margin: 0;
+  }
+
+  &__contests,
+  &__entries {
+    .live-overview__quantity {
+      font-size: 25px;
+    }
+  }
+
+  &__points {
+    .live-overview__quantity {
+      font-size: 35px;
+      padding-bottom: 1.3em;
+    }
+  }
+
+  &__temp-points {
+    // TEMP live placeholder image
+    background: transparent url(../img/temp/lineup-pmr-points.png) no-repeat left top;
+    background-size: 100% auto;
+    height: 124.5px;
+    margin: 0 auto;
+    position: absolute;
+    top: 60px;
+    left: 94px;
+    width: 72px;
+  }
+
+}

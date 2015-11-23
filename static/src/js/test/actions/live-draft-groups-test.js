@@ -7,7 +7,7 @@ import { expect } from 'chai'
 import { size as _size } from 'lodash'
 
 import reducers from '../../reducers/index'
-import urlConfig from '../../fixtures/live-draft-groups-config'
+import urlConfig from '../../fixtures/live-config'
 import { fetchDraftGroupIfNeeded } from '../../actions/live-draft-groups'
 import { mockStore } from '../mock-store'
 // import store from '../../store'

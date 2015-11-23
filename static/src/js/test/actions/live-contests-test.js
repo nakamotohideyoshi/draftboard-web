@@ -6,7 +6,7 @@ import { expect } from 'chai'
 import { size as _size } from 'lodash'
 
 import reducers from '../../reducers/index'
-import urlConfig from '../../fixtures/live-contests-config'
+import urlConfig from '../../fixtures/live-config'
 import { fetchContestIfNeeded, fetchRelatedContestInfo, generateContestStats } from '../../actions/live-contests'
 import { mockStore } from '../mock-store'
 
@@ -51,6 +51,7 @@ describe('actionsLiveContests', () => {
       },
 
       // the end is from fetchRelatedContestInfo, tested in live draft groups
+      null,
       null,
       null,
       null,
@@ -105,6 +106,7 @@ describe('actionsLiveContests', () => {
         expect(action.type).to.equal('RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
       },
 
+      null,
       null,
       null
 

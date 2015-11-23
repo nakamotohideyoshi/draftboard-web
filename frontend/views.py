@@ -6,7 +6,7 @@ class FrontendHomepageTemplateView(TemplateView):
 
 
 class FrontendLiveTemplateView(TemplateView):
-    template_name = 'frontend/live/court.html'
+    template_name = 'frontend/live.html'
 
 
 class FrontendLayoutTemplateView(TemplateView):

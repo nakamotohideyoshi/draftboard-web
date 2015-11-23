@@ -29,4 +29,4 @@ require("components/draft/draft-lineup-card-list.jsx");
 require("components/draft/draft-player-list.jsx");
 
 // Top level components for the live section
-require("components/live-nba/live-nba");
+require("components/live/live");
