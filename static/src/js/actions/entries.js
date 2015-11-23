@@ -61,7 +61,9 @@ function fetchEntries() {
     request
       .get('/contest/current-entries/')
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
+      .set('Accept', 'application/json')
       .end(function(err, res) {
+        console.log('hiiii', res)
         if(err) {
           // TODO
         } else {

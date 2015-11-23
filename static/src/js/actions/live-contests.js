@@ -232,7 +232,6 @@ function confirmRelatedContestInfo(id) {
     type: CONFIRM_RELATED_LIVE_CONTEST_INFO,
     id: id,
     stats: {
-      rankedLineups: rankedLineups,
       updatedAt: Date.now()
     }
   }
