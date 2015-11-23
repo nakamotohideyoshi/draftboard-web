@@ -143,7 +143,7 @@ function fetchDraftGroupInfo(id) {
           // TODO
         } else {
           Promise.all([
-            dispatch(receiveDraftGroupInfo(id, res.body)),
+            dispatch(receiveDraftGroupInfo(id, res.body))
           ])
         }
     })
@@ -192,7 +192,7 @@ function fetchDraftGroupBoxScores(id) {
           // TODO
         } else {
           Promise.all([
-            dispatch(receiveDraftGroupBoxScores(id, res.body)),
+            dispatch(receiveDraftGroupBoxScores(id, res.body))
           ])
         }
     })

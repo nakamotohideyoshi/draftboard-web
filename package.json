@@ -29,6 +29,7 @@
     "istanbul": "^0.3.22",
     "js-cookie": "^2.0.4",
     "jsdom": "^6.5.1",
+    "json-loader": "^0.5.3",
     "lockr": "^0.8.2",
     "lodash": "^3.10.1",
     "loglevel": "^1.4.0",

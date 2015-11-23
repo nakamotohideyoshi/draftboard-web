@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block body_class %}one-col one-col--live-nba{% endblock %}
+
+{% block content_container %}
+  {% include 'frontend/partials/contest-nav.html' %}
+
+  <section class="cmp-live live--with-opponent"></section>
+{% endblock content_container %}
