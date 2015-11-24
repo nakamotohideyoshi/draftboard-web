@@ -2,7 +2,8 @@ import React from 'react'
 import * as ReactRedux from 'react-redux'
 import renderComponent from '../../lib/render-component'
 
-import * as AppActions from '../../stores/app-state-store.js'
+import * as AppActions from '../../stores/app-state-store'
+import errorHandler from '../../actions/live-error-handler'
 import LiveContestsPaneConnected from '../live/live-contests-pane'
 import LiveLineup from './live-lineup'
 import LiveNBACourt from './live-nba-court'
@@ -27,17 +28,22 @@ import urlConfig from '../../fixtures/live-config'
 var Live = React.createClass({
 
   propTypes: {
-    mode: React.PropTypes.object
+    liveContests: React.PropTypes.object.isRequired,
+    currentLineups: React.PropTypes.object.isRequired,
+    mode: React.PropTypes.object,
+    prizes: React.PropTypes.object,
+    entries: React.PropTypes.object
   },
 
 
   componentWillMount: function() {
-    // Mock all API responses with fixture data.
-    require('superagent-mock')(request, urlConfig)
-
-    store.dispatch(fetchEntriesIfNeeded()).then(() => {
+    store.dispatch(
+      fetchEntriesIfNeeded()
+    ).then(() =>
       store.dispatch(generateLineups())
-    })
+    ).catch(
+      errorHandler
+    )
   },
 
 
@@ -61,6 +67,12 @@ var Live = React.createClass({
   render: function() {
     var moneyLine
     var bottomNavForRightPanes
+
+    if (this.props.entries.hasRelatedInfo === false) {
+      return (
+        <div>LOADING</div>
+      )
+    }
 
     switch (this.props.mode.type) {
       case 'lineup':
@@ -106,7 +118,11 @@ var Live = React.createClass({
         <LiveLineup whichSide="opponent" />
 
         <section className="panes">
-          <LiveContestsPaneConnected lineupInfo={ this.props.mode } />
+          <LiveContestsPaneConnected
+            lineupInfo={ this.props.mode }
+            liveContests={ this.props.liveContests }
+            currentLineups={ this.props.currentLineups }
+            prizes={ this.props.prizes } />
           <LivePlayerPaneConnected />
           <LiveStandingsPaneConnected lineupInfo={ this.props.mode } />
         </section>
@@ -123,6 +139,10 @@ let {Provider, connect} = ReactRedux
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
+    liveContests: state.liveContests,
+    currentLineups: state.currentLineups,
+    entries: state.entries,
+    prizes: state.prizes,
     mode: state.live.mode
   }
 }

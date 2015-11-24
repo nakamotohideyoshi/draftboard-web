@@ -4,15 +4,9 @@ import 'babel-core/polyfill'; // so I can use Promises
 import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
+import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
 
-
-export const REQUEST_LIVE_DRAFT_GROUP_INFO = 'REQUEST_LIVE_DRAFT_GROUP_INFO'
-export const RECEIVE_LIVE_DRAFT_GROUP_INFO = 'RECEIVE_LIVE_DRAFT_GROUP_INFO'
-export const REQUEST_LIVE_DRAFT_GROUP_FP = 'REQUEST_LIVE_DRAFT_GROUP_FP'
-export const RECEIVE_LIVE_DRAFT_GROUP_FP = 'RECEIVE_LIVE_DRAFT_GROUP_FP'
-export const REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES = 'REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES'
-export const RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES = 'RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES'
 
 const playerSchema = new Schema('players', {
   idAttribute: 'player_id'
@@ -27,7 +21,7 @@ function requestDraftGroupFP(id) {
 
   return {
     id: id,
-    type: REQUEST_LIVE_DRAFT_GROUP_FP
+    type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP
   }
 }
 
@@ -62,7 +56,7 @@ function receiveDraftGroupFP(id, response) {
   )
 
   return {
-    type: RECEIVE_LIVE_DRAFT_GROUP_FP,
+    type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
     id: id,
     players: normalizedPlayers.entities.players,
     updatedAt: Date.now()
@@ -106,7 +100,7 @@ function requestDraftGroupInfo(id) {
 
   return {
     id: id,
-    type: REQUEST_LIVE_DRAFT_GROUP_INFO
+    type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_INFO
   }
 }
 
@@ -120,7 +114,7 @@ function receiveDraftGroupInfo(id, response) {
   )
 
   return {
-    type: RECEIVE_LIVE_DRAFT_GROUP_INFO,
+    type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_INFO,
     id: id,
     players: normalizedPlayers.entities.players,
     expiresAt: Date.now() + 86400000
@@ -142,9 +136,7 @@ function fetchDraftGroupInfo(id) {
         if(err) {
           // TODO
         } else {
-          Promise.all([
-            dispatch(receiveDraftGroupInfo(id, res.body))
-          ])
+          dispatch(receiveDraftGroupInfo(id, res.body))
         }
     })
   }
@@ -160,7 +152,7 @@ function requestDraftGroupBoxScores(id) {
 
   return {
     id: id,
-    type: REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES
+    type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES
   }
 }
 
@@ -169,7 +161,7 @@ function receiveDraftGroupBoxScores(id, response) {
   log.debug('actionsLiveDraftGroup.receiveDraftGroupBoxScores')
 
   return {
-    type: RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES,
+    type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES,
     id: id,
     boxScores: response,
     updatedAt: Date.now() + 86400000
@@ -191,9 +183,7 @@ function fetchDraftGroupBoxScores(id) {
         if(err) {
           // TODO
         } else {
-          Promise.all([
-            dispatch(receiveDraftGroupBoxScores(id, res.body))
-          ])
+          dispatch(receiveDraftGroupBoxScores(id, res.body))
         }
     })
   }
@@ -212,12 +202,13 @@ export function fetchDraftGroupIfNeeded(id) {
   log.debug('actionsLiveDraftGroup.fetchDraftGroupIfNeeded')
 
   return (dispatch, getState) => {
-    if (shouldFetchDraftGroup(getState(), id)) {
-      return Promise.all([
-        dispatch(fetchDraftGroupInfo(id)),
-        dispatch(fetchDraftGroupFP(id)),
-        dispatch(fetchDraftGroupBoxScores(id))
-      ])
+    if (shouldFetchDraftGroup(getState(), id) === false) {
+      return Promise.reject('Draft group exists')
     }
+    return Promise.all([
+      dispatch(fetchDraftGroupInfo(id)),
+      dispatch(fetchDraftGroupFP(id)),
+      dispatch(fetchDraftGroupBoxScores(id))
+    ])
   }
 }

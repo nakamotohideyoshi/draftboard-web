@@ -1,33 +1,30 @@
 @import "../variables.scss";
-// requires layouts.scss";
 
 
 // right or left hand pane that slides out on trigger. also includes a back button to close out.
 .live-pane {
+  -webkit-animation-delay: 100ms; /* Chrome, Safari, Opera */
+  animation-delay: 100ms;
   height: 100%;
-  overflow-x: hidden;
-  overflow-y: auto;
   position: fixed;
   top: 0;
   transition: right 230ms cubic-bezier(.8,.16,.18,.85);
-  -webkit-animation-delay: 100ms; /* Chrome, Safari, Opera */
-  animation-delay: 100ms;
-  width: $pane-width;
+  width: $live-pane-width;
   z-index: $zindex-modal + 1;
 
   &--right {
-    right: -$pane-width;
+    right: -$live-pane-width;
 
     .live-pane__close {
-      right: $pane-width - 80px;
+      left: 40px;
     }
   }
 
   &--left {
-    left: -$pane-width;
+    left: -$live-pane-width;
 
     .live-pane__close {
-      left: $pane-width - 80px;
+      right: 40px;
       transform: rotate(180deg);
     }
   }
@@ -37,13 +34,11 @@
     background-size: 100% auto;
     cursor: pointer;
     display: block;
-    position: absolute;
     height: 20px;
-    width: 35px;
     position: absolute;
     top: 106px;
-
-    // z-index: $zindex-modal + 2;
+    width: 35px;
+    z-index: $zindex-modal + 2;
 
     &:hover {
       opacity: .75;
@@ -51,7 +46,22 @@
   }
 
   &__content {
+    background-color: rgb(28, 31, 43);
     height: 100%;
-    width: 100%;
+    margin-left: 56px;
+    overflow: hidden;
+    position: relative;
+    width: $live-pane-width - 56;
+    // so the left shadow is below
+    z-index: 2;
+  }
+
+  &__left-shadow {
+    box-shadow: 0px 0px 114px 0px rgba(0, 0, 0, 0.4);
+    height: 100%;
+    left: 56px;
+    position: absolute;
+    top: 0;
+    width: 121px;
   }
 }
