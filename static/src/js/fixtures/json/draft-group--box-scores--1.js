@@ -1,4 +1,4 @@
-[
+module.exports = [
   {
     "pk": 55,
     "model": "nba.gameboxscore",

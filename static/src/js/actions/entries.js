@@ -17,6 +17,14 @@ export const CONFIRM_RELATED_ENTRIES_INFO = 'CONFIRM_RELATED_ENTRIES_INFO'
 export const REQUEST_ENTRIES = 'REQUEST_ENTRIES'
 export const RECEIVE_ENTRIES = 'RECEIVE_ENTRIES'
 
+import urlConfig from '../fixtures/live-config'
+require('superagent-mock')(request, urlConfig)
+
+
+export function errorHandler(reason) {
+  console.error('uh oh', reason)
+}
+
 
 function requestEntries() {
   log.debug('actionsEntries.requestEntries')
@@ -80,7 +88,8 @@ function shouldFetchEntries(state) {
   if (entries.isFetching) {
     return false
   }
-  if ('items' in entries === false) {
+
+  if ('items' in entries === false || entries.items.length === 0) {
     return true
   }
   return false
@@ -104,10 +113,12 @@ export function fetchEntriesIfNeeded() {
       return Promise.all([
         Promise.all([
           dispatch(fetchEntries())
-        ]).then(() => {
+        ]).catch(errorHandler).then(() => {
           dispatch(fetchRelatedEntriesInfo())
         })
-      ])
+      ]).catch(errorHandler)
+    } else {
+      return Promise.reject('Entries already fetched')
     }
   }
 }
@@ -123,15 +134,12 @@ export function fetchRelatedEntriesInfo() {
       calls.push(dispatch(fetchContestIfNeeded(entry.contest)))
     })
 
-    return Promise.all([
-      dispatch(
-        Promise.all(calls).then(() => {
-          Promise.all([
-            dispatch(confirmRelatedEntriesInfo())
-          ])
-        })
-      )
-    ])
+    return Promise.all(calls).catch(errorHandler).then(() => {
+      Promise.all([
+        dispatch(confirmRelatedEntriesInfo())
+      ]).catch(errorHandler)
+    })
+
   }
 }
 
@@ -163,7 +171,7 @@ export function addEntriesPlayers() {
 
     return Promise.all([
       dispatch(storeEntriesPlayers(entriesPlayers))
-    ])
+    ]).catch(errorHandler)
   }
 }
 
@@ -185,7 +193,7 @@ export function generateLineups() {
 
     return Promise.all([
       dispatch(setCurrentLineups(lineups))
-    ])
+    ]).catch(errorHandler)
   }
 }
 

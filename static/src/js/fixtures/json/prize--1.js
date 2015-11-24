@@ -1,4 +1,4 @@
-{
+module.exports = {
     "pk": 1,
     "name": "new prize structure",
     "prize_pool": 9.0,

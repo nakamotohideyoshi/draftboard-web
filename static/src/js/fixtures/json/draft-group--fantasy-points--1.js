@@ -1,4 +1,4 @@
-{
+module.exports = {
   "players": {
     "1": {
       "fp": 3.5,

@@ -4,7 +4,7 @@
   position: relative;
 
   // because the pmr circle needs to be absolute
-  min-height: 260px;
+  min-height: 120px;
 
   &__pmr-background {
     position: absolute;
@@ -64,9 +64,9 @@
     height: 124.5px;
     margin: 0 auto;
     position: absolute;
-    top: 60px;
-    left: 94px;
-    width: 72px;
+    top: 37px;
+    left: 64px;
+    width: 60px;
   }
 
 }

@@ -1,4 +1,4 @@
-{
+module.exports = {
   "pk": 1,
   "players": [
     {
