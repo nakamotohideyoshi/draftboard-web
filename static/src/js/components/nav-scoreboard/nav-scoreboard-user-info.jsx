@@ -1,13 +1,13 @@
 'use strict';
 
-const React = require('react');
-const PureRenderMixin = require('react-addons-pure-render-mixin');
+import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 
 /**
- * Responsible for rendering the contest navigation user info section.
+ * Responsible for rendering the scoreboard navigation user info section.
  */
-const ContestNavUserInfo = React.createClass({
+const NavScoreboardUserInfo = React.createClass({
 
   mixins: [PureRenderMixin],
 
@@ -20,7 +20,7 @@ const ContestNavUserInfo = React.createClass({
     const {name, balance} = this.props;
 
     return (
-      <div className="cmp-contest-nav--user-info">
+      <div className="cmp-nav-scoreboard--user-info">
         <div className="name">{name}</div>
         <div className="balance">
           {balance}
@@ -33,4 +33,4 @@ const ContestNavUserInfo = React.createClass({
 });
 
 
-module.exports = ContestNavUserInfo;
+export default NavScoreboardUserInfo;

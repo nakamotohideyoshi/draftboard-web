@@ -1,15 +1,15 @@
 @import "../variables";
 
-$contest-nav-height: 60px;
-$contest-nav-background-color: #272A3B;;
-$contest-nav-secondary-font-color: #9EA2A9;
-$contest-nav-separator-color: #3e4453;
-$contest-nav-foreground-color: #25A758;
+$nav-scoreboard-height: 60px;
+$nav-scoreboard-background-color: #272A3B;;
+$nav-scoreboard-secondary-font-color: #9EA2A9;
+$nav-scoreboard-separator-color: #3e4453;
+$nav-scoreboard-foreground-color: #25A758;
 
-.cmp-contest-nav {
-  background: $contest-nav-background-color;
+.cmp-nav-scoreboard {
+  background: $nav-scoreboard-background-color;
   color: #fff;
-  height: $contest-nav-height;
+  height: $nav-scoreboard-height;
   left: 0;
   position: fixed;
   top: 0;
@@ -24,9 +24,9 @@ $contest-nav-foreground-color: #25A758;
   }
 
   &--separator {
-    border-left: solid 1px $contest-nav-separator-color;
+    border-left: solid 1px $nav-scoreboard-separator-color;
     display: inline-block;
-    height: $contest-nav-height;
+    height: $nav-scoreboard-height;
     transform: scale(1) skewX(-15deg);
     margin: 0 15px 0 10px;
 
@@ -37,7 +37,7 @@ $contest-nav-foreground-color: #25A758;
 
   &--shadow {
     transform: scale(1) skewX(-15deg);
-    height: $contest-nav-height;
+    height: $nav-scoreboard-height;
     display: inline-block;
     position: absolute;
     left: 38px;
@@ -107,14 +107,14 @@ $contest-nav-foreground-color: #25A758;
     display: inline-block;
     font-size: 12px;
     z-index: 120;
-    height: $contest-nav-height;
+    height: $nav-scoreboard-height;
     padding: 0px 15px 0 10px;
-    line-height: $contest-nav-height;
+    line-height: $nav-scoreboard-height;
     min-width: 210px;
     max-width: 210px;
 
     .name {
-      color: $contest-nav-secondary-font-color;
+      color: $nav-scoreboard-secondary-font-color;
       display: inline-block;
       margin-right: 30px;
     }
@@ -129,7 +129,7 @@ $contest-nav-foreground-color: #25A758;
       .add-funds {
         display: none;
         cursor: pointer;
-        color: $contest-nav-foreground-color;
+        color: $nav-scoreboard-foreground-color;
         font-size: 10px;
         text-transform: uppercase;
       }
@@ -154,7 +154,7 @@ $contest-nav-foreground-color: #25A758;
     max-width: 130px;
 
     .select-list {
-      height: $contest-nav-height;
+      height: $nav-scoreboard-height;
       padding: 0 30px;
 
       &--selected {
@@ -173,13 +173,13 @@ $contest-nav-foreground-color: #25A758;
 
     position: relative;
     display: inline-block;
-    height: $contest-nav-height;
+    height: $nav-scoreboard-height;
     white-space: nowrap;
     overflow: hidden;
 
     .slider-content {
       display: inline-block;
-      height: $contest-nav-height;
+      height: $nav-scoreboard-height;
       overflow: hidden;
       min-width: 300px;
       max-width: calc(100% - 100px);
@@ -205,7 +205,7 @@ $contest-nav-foreground-color: #25A758;
         display: inline-block;
 
         cursor: pointer;
-        background: url('../img/blocks/contest-nav/contest-nav-slider-arrow.png') no-repeat center center;
+        background: url('../img/blocks/nav-scoreboard/nav-scoreboard-slider-arrow.png') no-repeat center center;
         background-size: 7px 11px;
         width: 24px;
         height: 60px;
@@ -229,7 +229,7 @@ $contest-nav-foreground-color: #25A758;
       font-size: 12px;
       font-weight: bold;
       padding: 14px 5px;
-      height: $contest-nav-height;
+      height: $nav-scoreboard-height;
       overflow: hidden;
 
       .left {
@@ -240,7 +240,7 @@ $contest-nav-foreground-color: #25A758;
       .right {
         font-size: 11px;
         display: inline-block;
-        color: $contest-nav-secondary-font-color;
+        color: $nav-scoreboard-secondary-font-color;
       }
     }
   }
@@ -253,7 +253,7 @@ $contest-nav-foreground-color: #25A758;
       font-size: 12px;
       font-weight: bold;
       padding: 14px 5px;
-      height: $contest-nav-height;
+      height: $nav-scoreboard-height;
       overflow: hidden;
 
       .left {
@@ -264,7 +264,7 @@ $contest-nav-foreground-color: #25A758;
         .header {
           font-size: 11px;
           display: inline-block;
-          color: $contest-nav-secondary-font-color;
+          color: $nav-scoreboard-secondary-font-color;
         }
       }
 
@@ -274,11 +274,11 @@ $contest-nav-foreground-color: #25A758;
         top: -10px;
 
         .unit {
-          color: $contest-nav-secondary-font-color;
+          color: $nav-scoreboard-secondary-font-color;
         }
 
         .balance {
-          color: $contest-nav-foreground-color;
+          color: $nav-scoreboard-foreground-color;
         }
       }
     }
@@ -289,16 +289,16 @@ $contest-nav-foreground-color: #25A758;
     max-width: 150px;
     display: inline-block;
 
-    color: $contest-nav-secondary-font-color;
+    color: $nav-scoreboard-secondary-font-color;
     font-size: 11px;
     font-weight: bold;
     letter-spacing: 2px;
     text-transform: uppercase;
-    line-height: $contest-nav-height;
+    line-height: $nav-scoreboard-height;
 
     .logo {
       display: inline-block;
-      background: url('../img/blocks/contest-nav/contest-nav-logo.png');
+      background: url('../img/blocks/nav-scoreboard/nav-scoreboard-logo.png');
       background-size: 25px auto;
       width: 25px;
       height: 23px;
@@ -319,7 +319,7 @@ $contest-nav-foreground-color: #25A758;
 
   &--options {
     /* background: #1E1D28; */
-    background: $contest-nav-background-color;
+    background: $nav-scoreboard-background-color;
     display: none;
     top: 60px;
     left: -26px;
@@ -337,8 +337,8 @@ $contest-nav-foreground-color: #25A758;
     li {
       padding: 20px;
       cursor: pointer;
-      border-bottom: solid 1px $contest-nav-separator-color;
-      color: $contest-nav-secondary-font-color;
+      border-bottom: solid 1px $nav-scoreboard-separator-color;
+      color: $nav-scoreboard-secondary-font-color;
       font-size: 11px;
       font-weight: bold;
 
@@ -362,7 +362,7 @@ $contest-nav-foreground-color: #25A758;
       height: 0;
       border-left: 8px solid transparent;
       border-right: 8px solid transparent;
-      border-bottom: 8px solid $contest-nav-background-color;
+      border-bottom: 8px solid $nav-scoreboard-background-color;
       position: absolute;
       top: -8px;
       left: 8%;

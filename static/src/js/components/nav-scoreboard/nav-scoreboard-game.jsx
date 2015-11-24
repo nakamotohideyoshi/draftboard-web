@@ -1,11 +1,14 @@
 'use strict';
 
-const React = require('react');
+import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 /**
  * Responsible for rendering a singe contest game item.
  */
-const ContestNavGame = React.createClass({
+const NavScoreboardGame = React.createClass({
+
+  mixins: [PureRenderMixin],
 
   propTypes: {
     // Example game:
@@ -38,4 +41,4 @@ const ContestNavGame = React.createClass({
 });
 
 
-module.exports = ContestNavGame;
+export default NavScoreboardGame;

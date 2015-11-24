@@ -1,30 +1,34 @@
 'use strict';
 
-// TODO:
-//
-// - [ ] remove old contest nav code
-//
+import React from 'react';
+import {Provider, connect} from 'react-redux';
 
-const React = require('react');
+import store from '../../store';
+import {fetchUser} from '../../actions/user';
+import {fetchEntriesIfNeeded} from '../../actions/entries';
+import errorHandler from '../../actions/live-error-handler'
+import renderComponent from '../../lib/render-component';
 
-const renderComponent = require('../../lib/render-component');
+import NavScoreboardLogo from './nav-scoreboard-logo.jsx';
+import NavScoreboardMenu from './nav-scoreboard-menu.jsx';
+import NavScoreboardSlider from './nav-scoreboard-slider.jsx';
+import NavScoreboardFilters from './nav-scoreboard-filters.jsx';
+import NavScoreboardUserInfo from './nav-scoreboard-user-info.jsx';
+import NavScoreboardSeparator from './nav-scoreboard-separator.jsx';
+import NavScoreboardGamesList from './nav-scoreboard-games-list.jsx';
+import NavScoreboardLineupsList from './nav-scoreboard-lineups-list.jsx';
 
-const ContestNavLogo = require('./contest-nav-logo.jsx');
-const ContestNavMenu = require('./contest-nav-menu.jsx');
-const ContestNavSlider = require('./contest-nav-slider.jsx');
-const ContestNavFilters = require('./contest-nav-filters.jsx');
-const ContestNavUserInfo = require('./contest-nav-user-info.jsx');
-const ContestNavSeparator = require('./contest-nav-separator.jsx');
-const ContestNavGamesList = require('./contest-nav-games-list.jsx');
-const ContestNavLineupsList = require('./contest-nav-lineups-list.jsx');
+import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
 
+import {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} from './nav-scoreboard-const.jsx';
 
-const {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} = require('./contest-nav-const.jsx');
+import request from 'superagent'
+import urlConfig from '../../fixtures/live-config'
 
-
-const ContestNav = React.createClass({
+const NavScoreboard = React.createClass({
 
   propTypes: {
+    dispatch: React.PropTypes.func.isRequired,
     user: React.PropTypes.object.isRequired,
     games: React.PropTypes.object.isRequired,
     lineups: React.PropTypes.array.isRequired
@@ -135,8 +139,19 @@ const ContestNav = React.createClass({
     };
   },
 
+  componentWillMount() {
+    require('superagent-mock')(request, urlConfig)
+
+    this.props.dispatch(fetchUser());
+    this.props.dispatch(
+      fetchEntriesIfNeeded()
+    ).catch(
+      errorHandler
+    )
+  },
+
   /**
-   * Handle `ContestNavFilters` select menu change.
+   * Handle `NavScoreboardFilters` select menu change.
    * @param {String} selectedOption Name of the selected option
    * @param {String} selectedType Type of the selected item
    * @param {String} selectedKey Key of the selected item type
@@ -151,7 +166,7 @@ const ContestNav = React.createClass({
   },
 
   /**
-   * Get the options for `ContestNavFilters` select menu.
+   * Get the options for `NavScoreboardFilters` select menu.
    * @return {Array} options key-value pairs
    */
   getSelectOptions() {
@@ -181,10 +196,10 @@ const ContestNav = React.createClass({
    */
   renderSliderContent() {
     if (this.state.selectedType === TYPE_SELECT_LINEUPS) {
-      return <ContestNavLineupsList lineups={this.props.lineups} />;
+      return <NavScoreboardLineupsList lineups={this.props.lineups} />;
     } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
       let games = this.props.games[this.state.selectedKey];
-      return <ContestNavGamesList games={games} />;
+      return <NavScoreboardGamesList games={games} />;
     } else {
       return null;
     }
@@ -195,27 +210,35 @@ const ContestNav = React.createClass({
 
     return (
       <div className="inner">
-        <ContestNavMenu />
-        <ContestNavSeparator half />
-        <ContestNavUserInfo name={name} balance={balance} />
-        <ContestNavSeparator />
-        <ContestNavFilters
+        <NavScoreboardMenu />
+        <NavScoreboardSeparator half />
+        <NavScoreboardUserInfo name={name} balance={balance} />
+        <NavScoreboardSeparator />
+        <NavScoreboardFilters
           selected={this.state.selectedOption}
           options={this.getSelectOptions()}
           onChangeSelection={this.handleChangeSelection}
         />
-        <ContestNavSlider type={this.state.selectedOption}>
+        <NavScoreboardSlider type={this.state.selectedOption}>
           {this.renderSliderContent()}
-        </ContestNavSlider>
-        <ContestNavLogo />
+        </NavScoreboardSlider>
+        <NavScoreboardLogo />
       </div>
     );
   }
 });
 
 
-renderComponent(<ContestNav />, '.cmp-contest-nav');
+const NavScoreboardConnected = connect(
+  navScoreboardSelector
+)(NavScoreboard);
 
-module.exports = ContestNav;
-module.exports.TYPE_SELECT_GAMES = TYPE_SELECT_GAMES;
-module.exports.TYPE_SELECT_LINEUPS = TYPE_SELECT_LINEUPS;
+renderComponent(
+  <Provider store={store}>
+    <NavScoreboardConnected />
+  </Provider>,
+  '.cmp-nav-scoreboard'
+)
+
+
+export default NavScoreboard;
