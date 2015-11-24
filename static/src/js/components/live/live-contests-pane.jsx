@@ -13,6 +13,7 @@ import store from '../../store'
 var LiveContestsPane = React.createClass({
 
   propTypes: {
+    currentLineups: React.PropTypes.object,
     lineupInfo: React.PropTypes.object.isRequired,
     updateLiveMode: React.PropTypes.func
   },
@@ -45,7 +46,9 @@ let {Provider, connect} = ReactRedux
 
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
-  return {}
+  return {
+    currentLineups: state.currentLineups
+  }
 }
 
 // Which action creators does it want to receive by props?

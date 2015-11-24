@@ -119,7 +119,7 @@ var LiveOverallStats = React.createClass({
     return (
       <div className="live-overall-stats live-overall-stats--me">
 
-        <svg className="pmr" viewBox="0 0 280 280" width="250">
+        <svg className="pmr" viewBox="0 0 280 280" width="180">
           <defs>
             <linearGradient id="cl1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
              <stop stopColor={progressArc.hexEnd} />

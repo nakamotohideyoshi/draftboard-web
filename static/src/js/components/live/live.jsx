@@ -10,11 +10,12 @@ import LiveOverallStats from './live-overall-stats'
 import LivePlayerPaneConnected from '../live/live-player-pane'
 import LiveStandingsPaneConnected from '../live/live-standings-pane'
 import store from '../../store'
-import { fetchEntriesIfNeeded } from '../../actions/entries'
+import { fetchEntriesIfNeeded, generateLineups } from '../../actions/entries'
 
 // set up API calls to mock for now
 import request from 'superagent'
 import urlConfig from '../../fixtures/live-config'
+require('superagent-mock')(request, urlConfig)
 
 
 /**
@@ -31,9 +32,9 @@ var Live = React.createClass({
 
 
   componentWillMount: function() {
-    fetchEntriesIfNeeded()
-
-    this.superagentMock = require('superagent-mock')(request, urlConfig)
+    store.dispatch(fetchEntriesIfNeeded()).then(() => {
+      store.dispatch(generateLineups())
+    })
   },
 
 
@@ -101,12 +102,9 @@ var Live = React.createClass({
 
         <LiveLineup whichSide="opponent" />
 
-        <section className="live__left-pane">
-          <LivePlayerPaneConnected />
-        </section>
-
-        <section className="live__right-pane">
+        <section className="panes">
           <LiveContestsPaneConnected lineupInfo={ this.props.mode } />
+          <LivePlayerPaneConnected />
           <LiveStandingsPaneConnected lineupInfo={ this.props.mode } />
         </section>
       </div>
