@@ -1,13 +1,13 @@
 'use strict';
 
-const React = require('react');
-const PureRenderMixin = require('react-addons-pure-render-mixin');
+import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 
 /**
  * Responsible for rendering a singe lineup item.
  */
-const ContestNavLineup = React.createClass({
+const NavScoreboardLineup = React.createClass({
 
   mixins: [PureRenderMixin],
 
@@ -50,4 +50,4 @@ const ContestNavLineup = React.createClass({
 });
 
 
-module.exports = ContestNavLineup;
+export default NavScoreboardLineup;
