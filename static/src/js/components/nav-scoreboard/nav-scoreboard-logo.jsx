@@ -1,12 +1,12 @@
 'use strict';
 
-const React = require('react');
+import React from 'react';
 
 
 /**
- * Responsible for rendering the contest-nav logo.
+ * Responsible for rendering the nav-scoreboard logo.
  */
-const ContestNavLogo = React.createClass({
+const NavScoreboardLogo = React.createClass({
 
   shouldComponentUpdate() {
     return false;
@@ -14,7 +14,7 @@ const ContestNavLogo = React.createClass({
 
   render() {
     return (
-      <a href="/" className="cmp-contest-nav--logo">
+      <a href="/" className="cmp-nav-scoreboard--logo">
         <span className="logo"></span>
         <span className="text">Draftboard</span>
       </a>
@@ -24,4 +24,4 @@ const ContestNavLogo = React.createClass({
 });
 
 
-module.exports = ContestNavLogo;
+export default NavScoreboardLogo;

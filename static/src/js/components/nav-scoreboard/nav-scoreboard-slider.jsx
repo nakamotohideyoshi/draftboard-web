@@ -1,5 +1,6 @@
-const React = require('react');
-const ContestNavSeparator = require('./contest-nav-separator.jsx');
+import React from 'react';
+
+import NavScoreboardSeparator from './nav-scoreboard-separator.jsx';
 
 /**
  *   Responsible for rendering the horizontal slider.
@@ -7,7 +8,7 @@ const ContestNavSeparator = require('./contest-nav-separator.jsx');
  * Expects for its children to have a list of elements with class
  * `.scroll-item` and scrolls between them.
  */
-const ContestNavSlider = React.createClass({
+const NavScoreboardSlider = React.createClass({
 
   propTypes: {
     children: React.PropTypes.element,
@@ -107,13 +108,13 @@ const ContestNavSlider = React.createClass({
 
   render() {
     return (
-      <div className="cmp-contest-nav--slider">
+      <div className="cmp-nav-scoreboard--slider">
         <div className="arrow">
-          <ContestNavSeparator />
+          <NavScoreboardSeparator />
           <div className="left-arrow-icon"
                onClick={this.handleScrollLeft}></div>
-          <ContestNavSeparator />
-          <div className="cmp-contest-nav--shadow"></div>
+          <NavScoreboardSeparator />
+          <div className="cmp-nav-scoreboard--shadow"></div>
         </div>
         <div className="slider-content">
           <div className="slider-content--holder" ref="content">
@@ -121,11 +122,11 @@ const ContestNavSlider = React.createClass({
           </div>
         </div>
         <div className="arrow right">
-          <ContestNavSeparator />
+          <NavScoreboardSeparator />
           <div className="right-arrow-icon"
                onClick={this.handleScrollRight}></div>
-          <ContestNavSeparator />
-          <div className="cmp-contest-nav--shadow right"></div>
+          <NavScoreboardSeparator />
+          <div className="cmp-nav-scoreboard--shadow right"></div>
         </div>
       </div>
     );
@@ -134,4 +135,4 @@ const ContestNavSlider = React.createClass({
 });
 
 
-module.exports = ContestNavSlider;
+export default NavScoreboardSlider;
