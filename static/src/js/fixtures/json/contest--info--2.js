@@ -1,4 +1,4 @@
-{
+module.exports = {
     "id": 2,
     "name": "NBA $5 Head-to-Head",
     "sport": "nba",
