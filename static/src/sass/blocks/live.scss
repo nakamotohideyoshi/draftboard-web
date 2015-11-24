@@ -1,15 +1,18 @@
 $live-lineup-width: 200px;
 
-.cmp-live {
+body.one-col--live-nba {
   background: transparent url(../img/blocks/live/bg.jpg) no-repeat left top;
   background-size: 100% 100%;
+}
+
+.cmp-live {
   margin: 0 auto;
   min-width: 1024px;
   position: relative;
   width: 100%;
 
   // for the top menu
-  margin-top: 60px;
+  padding-top: 60px;
 
   & > * {
     position: relative;

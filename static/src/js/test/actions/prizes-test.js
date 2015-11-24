@@ -5,8 +5,8 @@ import sinon from 'sinon'
 import { expect } from 'chai'
 import { size as _size } from 'lodash'
 
-import reducersLivePrizes from '../../reducers/prizes'
-import urlConfig from '../../fixtures/prizes-config'
+import reducers from '../../reducers/index'
+import urlConfig from '../../fixtures/live-config'
 import { fetchPrizeIfNeeded } from '../../actions/prizes'
 import { mockStore } from '../mock-store'
 
@@ -41,7 +41,7 @@ describe('actionsLivePrizes', () => {
 
     ]
 
-    const store = mockStore(reducersLivePrizes, {}, expectedActions, done)
+    const store = mockStore(reducers, {}, expectedActions, done)
     store.dispatch(fetchPrizeIfNeeded(1))
   })
 
@@ -53,9 +53,11 @@ describe('actionsLivePrizes', () => {
     ]
 
     const store = mockStore(
-      reducersLivePrizes,
+      reducers,
       {
-        1: {}
+        prizes: {
+          1: {}
+        }
       },
       expectedActions,
       done
