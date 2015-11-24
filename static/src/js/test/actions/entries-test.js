@@ -109,12 +109,15 @@ describe('actionsEntries', () => {
 
 
   it('should properly addEntriesPlayers', (done) => {
-    const store = mockStore(reducers, { entries: {} })
-    store.dispatch(fetchEntriesIfNeeded()).then(() => {
-      store.dispatch(addEntriesPlayers()).then(() => {
-        expect(store.getState().entries.items[1].roster.length).to.equal(8)
-        done()
-      })
+    const store = mockStore(reducers, {})
+
+    store.dispatch(
+      fetchEntriesIfNeeded()
+    ).then(() =>
+      store.dispatch(addEntriesPlayers())
+    ).then(() => {
+      expect(store.getState().entries.items[1].roster.length).to.equal(8)
+      done()
     })
   })
 })

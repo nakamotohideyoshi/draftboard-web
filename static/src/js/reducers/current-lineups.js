@@ -6,7 +6,7 @@ const ActionTypes = require('../action-types');
 
 module.exports = function(state = {
   isFetching: false,
-  items: []
+  items: {}
 }, action) {
   switch (action.type) {
     case ActionTypes.SET_CURRENT_LINEUPS:

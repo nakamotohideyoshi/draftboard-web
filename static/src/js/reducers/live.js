@@ -10,7 +10,7 @@ module.exports = function(state = {
   mode: {
     // TODO live - make this dynamic based on lineup/contest
     type: 'lineup',
-    id: 2,
+    id: 1,
     name: 'The Dream Team'
   }
 }, action) {

@@ -32,7 +32,7 @@ module.exports = function(state = {}, action) {
 
   switch (action.type) {
     case ActionTypes.REQUEST_LIVE_CONTEST_INFO:
-      log.debug('reducersLiveDraftGroup.REQUEST_LIVE_CONTEST_INFO')
+      log.debug('reducersLiveContests.REQUEST_LIVE_CONTEST_INFO')
 
       newProps = {
         id: action.id,
@@ -44,7 +44,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.RECEIVE_LIVE_CONTEST_INFO:
-      log.debug('reducersLiveDraftGroup.RECEIVE_LIVE_CONTEST_INFO')
+      log.debug('reducersLiveContests.RECEIVE_LIVE_CONTEST_INFO')
 
       return update(state, {
         [action.id]: {
@@ -58,7 +58,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.REQUEST_LIVE_CONTEST_LINEUPS:
-      log.debug('reducersLiveDraftGroup.REQUEST_LIVE_CONTEST_LINEUPS')
+      log.debug('reducersLiveContests.REQUEST_LIVE_CONTEST_LINEUPS')
 
       newProps = {
         id: action.id,
@@ -70,7 +70,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS:
-      log.debug('reducersLiveDraftGroup.RECEIVE_LIVE_CONTEST_LINEUPS')
+      log.debug('reducersLiveContests.RECEIVE_LIVE_CONTEST_LINEUPS')
 
       return update(state, {
         [action.id]: {
@@ -84,7 +84,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.UPDATE_LIVE_CONTEST_STATS:
-      log.debug('reducersLiveDraftGroup.UPDATE_LIVE_CONTEST_STATS')
+      log.debug('reducersLiveContests.UPDATE_LIVE_CONTEST_STATS')
 
       return update(state, {
         [action.id]: {
@@ -96,7 +96,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.CONFIRM_RELATED_LIVE_CONTEST_INFO:
-      log.debug('reducersLiveDraftGroup.CONFIRM_RELATED_LIVE_CONTEST_INFO')
+      log.debug('reducersLiveContests.CONFIRM_RELATED_LIVE_CONTEST_INFO')
 
       return update(state, {
         [action.id]: {
