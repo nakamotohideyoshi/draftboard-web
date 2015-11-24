@@ -1,14 +1,11 @@
 'use strict';
 
-var React = require('react');
+import React from 'react';
 
-var moment = require('moment');
+import DatePicker from '../site/date-picker';
 
 
-/**
- * Input field that when clicked, opens calendar beneath
- */
-var InputDayPicker = React.createClass({
+const InputDayPicker = React.createClass({
 
   /**
    * Prop types needed for the InputDayPicker element
@@ -18,75 +15,69 @@ var InputDayPicker = React.createClass({
    */
   propTypes: {
     onDaySelected: React.PropTypes.func.isRequired,
-    placeholder: React.PropTypes.string.isRequired
+    placeholder:   React.PropTypes.string.isRequired
   },
 
-  getInitialState: function() {
-    var today = new Date();
+  getInitialState() {
     return {
-      value: '',
-      month: today,
+      date:         new Date,
       showCalendar: false
     };
   },
 
   /**
-  * Overwrite the input field change event use this in case
-  * when you want to let user select date directly from the input
-  */
-  handleInputChange: function(e) {
+   * Overwrite the input field change event use this in case when you
+   * want to let user select date directly from the input.
+   */
+  handleInputChange(e) {
     e.preventDefault();
   },
 
-  showCalendar: function() {
+  handleShowCalendar() {
     this.setState({showCalendar: true});
   },
 
-  hideCalendar: function() {
-    this.setState({showCalendar: false});
-  },
-
   /**
-   * when date is selected, process it and delegate upwards to the onDaySelected prop func
+   * When date is selected, process it and delegate upwards to the
+   * `onDaySelected` prop function.
    */
-  handleDayClick: function(e, day) {
+  handleSelectDate(year, month, day) {
+    const selectedDate = new Date(year, month, day);
+
     this.setState({
-      value: moment(day).format("L"),
+      date:         selectedDate,
       showCalendar: false
-    }, this.props.onDaySelected(moment(day)));
+    });
+
+    this.props.onDaySelected(selectedDate);
   },
 
-  /**
-   * position the calendar right below the input field
-   */
-  updateCalendarStyles: function () {
-    var calendarStyles = {};
+  renderSelectedDate() {
+    const today    = this.state.date;
+    const year     = today.getFullYear();
+    const month    = today.getMonth() + 1; // Months are zero-counted.
+    const day      = today.getDate();
 
-    if (this.state.showCalendar) {
-      calendarStyles = {'display': 'block'};
-    } else {
-      calendarStyles = {'display': 'none'};
-    }
-
-    if ('input' in this.refs) {
-      calendarStyles['position'] = 'absolute'
-      calendarStyles['height'] = '250px';
-      calendarStyles['width'] = '250px';
-      calendarStyles['border'] = '1px solid black';
-      calendarStyles['top'] = '40px';
-      calendarStyles['z-index'] = '500px';
-      calendarStyles['background'] = '#fff';
-      // this.refs.input.offsetLeft only gets tricky and is browser incompatible
-      calendarStyles['left'] = this.refs.input.offsetParent.offsetLeft - 75 + 'px';
-    }
-
-    return calendarStyles;
+    return month + '/' + day + '/' + year;
   },
 
-  render: function() {
+  renderCalendar() {
+    if (!this.state.showCalendar) return null;
 
-    var calendarStyles = this.updateCalendarStyles();
+    const today    = this.state.date;
+    const year     = today.getFullYear();
+    const month    = today.getMonth();
+    const day      = today.getDate();
 
+    return (
+      <DatePicker year={year}
+                  month={month}
+                  day={day}
+                  onSelectDate={this.handleSelectDate} />
+    );
+  },
+
+  render() {
     return (
       <span className="input-day-picker">
 
@@ -95,24 +86,17 @@ var InputDayPicker = React.createClass({
             className='date-picker'
             ref='input'
             type='text'
-            value={this.state.value}
+            value={this.renderSelectedDate()}
             placeholder={this.props.placeholder}
             onChange={this.handleInputChange}
-            onFocus={this.showCalendar} />
-            { this.state.showCalendar &&
-              <label className="calendar-input-label">{this.props.placeholder}</label>
-            }
+            onFocus={this.handleShowCalendar} />
         </span>
 
-        <span style={calendarStyles}></span>
-
-          { this.state.showCalendar &&
-            <div id="daypicker-backdrop" onClick={this.hideCalendar}></div>
-          }
+        {this.renderCalendar()}
       </span>
     );
   }
 });
 
 
-module.exports = InputDayPicker;
+export default InputDayPicker;
