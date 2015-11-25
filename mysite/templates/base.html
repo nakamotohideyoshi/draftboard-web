@@ -83,6 +83,19 @@
     {% endblock body %}
 
   <div class="pane__bg-cover"></div>
+
+
+  <script>
+  window.dfs = {
+    user: {
+      id: "{{ user.id }}",
+      isAuthenticated: {{ user.is_authenticated|lower }},
+      username: "{{ user.username }}",
+      is_staff: {{ user.is_staff|lower }},
+    }
+  };
+  </script>
+
   <script type="text/javascript" src="{% static 'js/app.js' %}"></script>
 </body>
 </html>

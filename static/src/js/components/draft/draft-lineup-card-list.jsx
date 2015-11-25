@@ -9,6 +9,7 @@ import {importLineup, saveLineup, removePlayer, fetchUpcomingLineups, createLine
 var log = require("../../lib/logging");
 
 
+
 /**
  * Renders a list of lineup cards on the draft screen. Feed it lineup data and it will render
  * a collapsed LineupCard component for each lineup.

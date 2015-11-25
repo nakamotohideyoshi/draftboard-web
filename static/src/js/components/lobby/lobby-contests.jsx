@@ -7,6 +7,7 @@ var CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
 var CollectionSearchFilter = require('../filters/collection-search-filter.jsx')
 var ContestRangeSliderFilter = require('../contest-list/contest-range-slider-filter.jsx')
 var ContestList = require('../contest-list/contest-list.jsx')
+import {fetchPrizeIfNeeded} from '../../actions/prizes.js'
 import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js'
 import {fetchUpcomingContests, enterContest, setFocusedContest} from '../../actions/upcoming-contests-actions.js'
 import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-info-actions.js'
@@ -32,7 +33,8 @@ var LobbyContests = React.createClass({
     fetchUpcomingDraftGroupsInfo: React.PropTypes.func,
     fetchEntries: React.PropTypes.func,
     enterContest: React.PropTypes.func,
-    setFocusedContest: React.PropTypes.func
+    setFocusedContest: React.PropTypes.func,
+    fetchPrizeIfNeeded: React.PropTypes.func
   },
 
 
@@ -52,7 +54,10 @@ var LobbyContests = React.createClass({
     // Fetch all of the necessary data for the lobby.
     this.props.fetchUpcomingContests()
     this.props.fetchUpcomingDraftGroupsInfo()
-    this.props.fetchEntries()
+
+    if (window.dfs.user.isAuthenticated === true) {
+      this.props.fetchEntries()
+    }
   },
 
 
@@ -65,6 +70,12 @@ var LobbyContests = React.createClass({
   // Enter the currently focused lineup into a contest.
   handleEnterContest: function(contestId) {
     this.props.enterContest(contestId, this.props.focusedLineupId)
+  },
+
+
+  handleFocusContest: function(contest) {
+    this.props.fetchPrizeIfNeeded(contest.prize_structure)
+    this.props.setFocusedContest(contest.id)
   },
 
 
@@ -101,7 +112,7 @@ var LobbyContests = React.createClass({
         <ContestList
           contests={this.props.filteredContests}
           focusedContestId={this.props.focusedContestId}
-          setFocusedContest={this.props.setFocusedContest}
+          setFocusedContest={this.handleFocusContest}
           enterContest={this.handleEnterContest}
         />
       </div>
@@ -134,7 +145,8 @@ function mapDispatchToProps(dispatch) {
     fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
     fetchEntries: () => dispatch(fetchEntries()),
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
-    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId))
+    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
+    fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId))
   };
 }
 

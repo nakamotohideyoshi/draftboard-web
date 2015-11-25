@@ -47,14 +47,18 @@ export const stringSearchFilter = function (collection, filterProperty, searchSt
  */
 export const matchFilter = function(collection, filterProperty, match) {
   return _filter(collection, function(item) {
+    // If there's nothing to match against, show the item.
+    if (!match) {
+        return true
+    }
+
     if(!item.hasOwnProperty(filterProperty)) {
         console.warn('CollectionMatchFilter.filter() Row does not contain property',
-          filterProperty);
+        filterProperty);
         return true;
     } else {
       // Check if the row's property matches this filter's match value.
-      if (match === '' ||
-          item[filterProperty].toLowerCase() === match.toLowerCase()) {
+      if (match === '' || item[filterProperty].toLowerCase() === match.toLowerCase()) {
         return true;
       }
 

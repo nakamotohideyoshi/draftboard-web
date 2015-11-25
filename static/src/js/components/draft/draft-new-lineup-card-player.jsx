@@ -28,7 +28,7 @@ var DraftNewLineupCardPlayer = React.createClass({
             {names[0][0]}. {names[names.length - 1]}
             <span className="cmp-lineup-card__team">- {this.props.player.player.team_alias}</span>
           </span>
-          <span className="cmp-lineup-card__average">???</span>
+          <span className="cmp-lineup-card__average">{this.props.player.player.fppg.toFixed(1)}</span>
           <span
             className="cmp-lineup-card__delete"
             onClick={this.props.removePlayer.bind(null, this.props.player.player.player_id)}

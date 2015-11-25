@@ -178,7 +178,7 @@ function fetchContestInfo(id) {
     dispatch(requestContestInfo(id))
 
     request
-      .get('/contest/info/' + id)
+      .get('/api/contest/info/' + id + '/')
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .set('Accept', 'application/json')
       .end(function(err, res) {

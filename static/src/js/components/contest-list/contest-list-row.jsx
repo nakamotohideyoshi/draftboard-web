@@ -1,6 +1,7 @@
 const React = require('react')
 const moment = require('moment')
 import * as AppActions from '../../stores/app-state-store.js'
+import {timeRemaining} from '../../lib/utils.js'
 
 
 /**
@@ -36,9 +37,9 @@ var ContestListRow = React.createClass({
   },
 
 
-  handleRowClick: function(contestId) {
+  handleRowClick: function(contest) {
     AppActions.openPane();
-    this.props.setFocusedContest(contestId);
+    this.props.setFocusedContest(contest);
   },
 
 
@@ -53,42 +54,10 @@ var ContestListRow = React.createClass({
   },
 
 
-  getDefaultProps: function() {
-    return {
-      focusedContestId: ''
-    };
-  },
-
-
-  /**
-   * When a row is clicked (or something else) we want to make that contest the 'focused' one.
-   * @param {integer} id the ID of the contest to be focused.
-   * @param {Object} e  Click event - Supplied by the click handler.
-   */
-  setContestFocus: function(id) {
-    if (typeof id === 'number') {
-      // ContestActions.contestFocused(id);
-    }
-  },
-
-
-  addLeadingZero: function(number) {
-    return (Math.abs(number) < 10) ? "0" + Math.abs(number) : Math.abs(number);
-  },
-
-
   setTimeRemaining: function() {
-    // difference between when the contest starts and now (in ms).
-    var diffTime = moment.utc(this.props.row.start) - moment();
-    // convert to a moment 'duration' so we can parse it out.
-    var duration = moment.duration(diffTime);
-
+    // difference between when the contest starts and now.
     this.setState({
-        timeRemaining: {
-          hours: Math.floor(duration.asHours()),
-          minutes: this.addLeadingZero(duration.minutes()),
-          seconds: this.addLeadingZero(duration.seconds())
-        }
+      timeRemaining: timeRemaining(this.props.row.start)
     });
   },
 
@@ -118,7 +87,7 @@ var ContestListRow = React.createClass({
 
     return (
       <tr
-        onClick={this.handleRowClick.bind(this, this.props.row.id)}
+        onClick={this.handleRowClick.bind(this, this.props.row)}
         key={this.props.row.id}
         className={classes}
       >

@@ -23,5 +23,5 @@ urlpatterns = patterns(
     (r'^flat/$', FlatCashPrizeStructureCreatorView.as_view()),
 
     #
-    (r'^(?P<pk>[0-9]+)$', PrizeStructureAPIView.as_view()),
+    (r'^(?P<id>[0-9]+)/$', PrizeStructureAPIView.as_view()),
 )
