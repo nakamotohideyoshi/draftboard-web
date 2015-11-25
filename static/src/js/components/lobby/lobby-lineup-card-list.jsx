@@ -8,8 +8,8 @@ const smoothScrollTo = require('../../lib/smooth-scroll-to.js')
 const LobbyDraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx')
 import {fetchUpcomingLineups, lineupFocused} from '../../actions/lineup-actions.js'
 import {draftGroupInfoSelector} from '../../selectors/draft-group-info-selector.js'
+import {LineupsBySportSelector} from '../../selectors/upcoming-lineups-by-sport.jsx'
 import '../contest-list/contest-list-sport-filter.jsx'
-
 
 /**
  * Renders a list of lineup cards. Feed it lineup data and it will render LineupCard components for
@@ -50,7 +50,9 @@ var LineupCardList = React.createClass({
 
 
   componentWillMount: function() {
-    this.props.fetchUpcomingLineups()
+    if (window.dfs.user.isAuthenticated === true) {
+      this.props.fetchUpcomingLineups()
+    }
   },
 
 
@@ -144,7 +146,8 @@ let {Provider, connect} = ReactRedux;
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    lineups: state.upcomingLineups.lineups,
+    lineups: LineupsBySportSelector(state),
+    // lineups: state.upcomingLineups.lineups,
     focusedLineupId: state.upcomingLineups.focusedLineupId,
     draftGroupInfo: draftGroupInfoSelector(state)
   };

@@ -18,9 +18,7 @@ from django.core.cache import caches
 
 class PrizeStructureAPIView(generics.GenericAPIView):
 
-    authentication_classes  = (SessionAuthentication, BasicAuthentication)
     serializer_class        = PrizeStructureSerializer
-    permission_classes      = (IsAuthenticated,)
 
     def get_object(self, id):
         try:
@@ -28,7 +26,7 @@ class PrizeStructureAPIView(generics.GenericAPIView):
         except PrizeStructure.DoesNotExist:
             raise NotFound()
 
-    def get(self, request, pk, format=None):
+    def get(self, request, id, format=None):
         """
         given the GET param 'id', get the draft_group
         """
@@ -36,7 +34,7 @@ class PrizeStructureAPIView(generics.GenericAPIView):
         #c = caches['default']
         #serialized_data = c.get(self.__class__.__name__ + str(pk), None)
         if serialized_data is None:
-            serialized_data = PrizeStructureSerializer( self.get_object(pk), many=False ).data
+            serialized_data = PrizeStructureSerializer(self.get_object(id), many=False).data
         #     c.add( self.__class__.__name__ + str(pk), serialized_data, 1 ) # 300 seconds
         return Response(serialized_data)
 

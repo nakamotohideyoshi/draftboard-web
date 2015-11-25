@@ -11,7 +11,8 @@ describe("ContestListRow Component", function() {
 
   beforeEach(function(done) {
     var props = {
-      row: {'id': 8}
+      row: {'id': 8},
+      enterContest: (row) => true
     };
 
     var self = this;
@@ -20,7 +21,7 @@ describe("ContestListRow Component", function() {
     this.targetElement = document.body.appendChild(document.createElement('table'));
     // Render the component into our fake jsdom element.
     this.component = React.render(
-      <Component row={props.row}/>,
+      <Component row={props.row} enterContest={props.enterContest}/>,
       this.targetElement,
       function() {
         // Once it has been rendered...
@@ -45,14 +46,5 @@ describe("ContestListRow Component", function() {
     assert.equal(this.domElement.tagName, "TR");
   });
 
-
-  it("addLeadingZero() should add leading zeroes", function() {
-    // Cast them as strings since eslint goes bonkers about an octal 0.
-    expect(
-      (this.component.addLeadingZero(2)).toString()
-    ).to.equal(
-      ('02').toString()
-    );
-  });
 
 });

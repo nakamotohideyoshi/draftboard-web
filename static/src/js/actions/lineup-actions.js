@@ -21,6 +21,12 @@ function fetchUpcomingLineupsFail(ex) {
 
 
 export function fetchUpcomingLineups() {
+  if (window.dfs.user.isAuthenticated !== true) {
+    return {
+      type: types.USER_NOT_AUTHENTICATED
+    }
+  }
+
   return (dispatch) => {
     return request
       .get("/api/lineup/upcoming/")

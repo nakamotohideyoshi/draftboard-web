@@ -31,7 +31,6 @@ const contestsWithMatchingTitles = createSelector(
 const sportSelectorProperty = (state) => state.upcomingContests.filters.sportFilter.filterProperty
 const sportSelectorMatch = (state) => state.upcomingContests.filters.sportFilter.match
 
-// cosnsole.log()
 // filter the contests by sport.
 const contestsWithMatchingSport = createSelector(
   [contestsWithMatchingTitles, sportSelectorProperty, sportSelectorMatch],
@@ -47,7 +46,6 @@ const contestsWithMatchingSport = createSelector(
 const feeSelectorProperty = (state) => state.upcomingContests.filters.contestFeeFilter.filterProperty
 const feeSelectorMatch = (state) => state.upcomingContests.filters.contestFeeFilter.match
 
-// cosnsole.log()
 // filter the contests by sport.
 const contestsWithMatchingFee = createSelector(
   [contestsWithMatchingSport, feeSelectorProperty, feeSelectorMatch],

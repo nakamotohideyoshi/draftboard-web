@@ -39,7 +39,7 @@ function fetchPrize(id) {
     dispatch(requestPrize(id))
 
     request
-      .get('/prize/' + id)
+      .get('/api/prize/' + id + '/')
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .set('Accept', 'application/json')
       .end(function(err, res) {

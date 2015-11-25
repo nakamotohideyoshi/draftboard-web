@@ -14,7 +14,8 @@ describe("DraftPlayerListRow Component", function() {
   var props = {
     row: {
       'player_id': 7,
-      'salary': 234987
+      'salary': 234987,
+      'fppg': 23.888
     }
   };
 

@@ -53,7 +53,6 @@ class SingleContestAPIView(generics.GenericAPIView):
     """
 
     serializer_class        = ContestSerializer
-    permission_classes      = (IsAuthenticated,)
 
     def get_object(self, pk):
         try:

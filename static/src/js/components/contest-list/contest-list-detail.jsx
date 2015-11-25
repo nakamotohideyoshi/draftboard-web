@@ -2,63 +2,123 @@ import React from 'react'
 import {Provider, connect} from 'react-redux';
 import store from '../../store'
 import renderComponent from '../../lib/render-component';
+import PrizeStructure from './prize-structure.jsx'
+import {enterContest} from '../../actions/upcoming-contests-actions.js'
+import {timeRemaining} from '../../lib/utils.js'
 
 
 /**
- * Renders a <tr> containing the payout structure details of the selected contest.
+ * Renders a slideout pane with details of the selected contest.
  */
 var ContestListDetail = React.createClass({
 
   propTypes: {
-    contest: React.PropTypes.object
+    contest: React.PropTypes.object,
+    prizeStructure: React.PropTypes.object,
+    enterContest: React.PropTypes.func,
+    focusedLineupId: React.PropTypes.number
   },
+
+
+  getInitialState: function() {
+    return {
+      activeTab: 'prizes'
+    }
+  },
+
+
+  // Enter the currently focused lineup into a contest.
+  handleEnterContest: function(contestId) {
+    this.props.enterContest(contestId, this.props.focusedLineupId)
+  },
+
+
+  // Get the content of the selected tab.
+  getActiveTab: function() {
+    switch (this.state.activeTab) {
+      case 'prizes':
+        return (<PrizeStructure structure={this.props.prizeStructure} />)
+
+      case 'scoring':
+        return 'scoring tab'
+
+      case 'games':
+        return 'games tab'
+
+      case 'entries':
+        return 'entries tab'
+
+      default:
+        return ('Select a tab')
+    }
+  },
+
+
+  // When a tab is clicked, tell the state to show it'scontent.
+  handleTabClick: function(tabName) {
+    this.setState({'activeTab': tabName})
+  },
+
+
+  // I know making these their own components would be more 'react', but I don't want to deal with
+  // the hassle right now.
+  getTabNav: function() {
+    const tabs = [
+      {title: 'Payout', tab: 'prizes'},
+      {title: 'Scoring', tab: 'scoring'},
+      {title: 'Games', tab: 'games'},
+      {title: 'Entries', tab: 'entries'}
+    ]
+
+    return tabs.map(function(tab) {
+      let classes = ''
+
+      if (this.state.activeTab === tab.tab) {
+        classes = 'active'
+      }
+
+      return (
+        <li key={tab.tab} className={classes} onClick={this.handleTabClick.bind(this, tab.tab)}>{tab.title}</li>
+      )
+    }.bind(this))
+  },
+
 
   getContest: function() {
     if(this.props.contest) {
+      let tabNav = this.getTabNav()
+      let liveIn = timeRemaining(this.props.contest.start)
+
       return (
         <div>
           <div className="cmp-contest-list__detail-inner">
-            <h2 className="cmp-contest-list__detail__name">
-              {this.props.contest.name}
-            </h2>
+            <div className="cmp-contest-list__detail-upper">
+              <h2 className="cmp-contest-list__detail__name">
+                {this.props.contest.name}
+              </h2>
 
-            <h6>Live In</h6>
-            <h3>{this.props.contest.start}</h3>
-            <span>Prize Pool: ${this.props.contest.prize_pool}</span>
-            <span>Fee: ${this.props.contest.buyin}</span>
-            <span>Entrants: {this.props.contest.current_entries} / {this.props.contest.entries}</span>
+              <h6>Live In</h6>
+
+              <h3>{liveIn.hours}:{liveIn.minutes}:{liveIn.seconds}</h3>
+
+              <div className="contest-info">
+                <span>Prize Pool: ${this.props.contest.prize_pool}</span>
+                <span>Fee: ${this.props.contest.buyin}</span>
+                <span>Entrants: {this.props.contest.current_entries} / {this.props.contest.entries}</span>
+              </div>
+
+              <div
+                className="button button--gradient button--medium"
+                onClick={this.handleEnterContest.bind(null, this.props.focusedLineupId)}
+              >
+                Enter Contest
+              </div>
+            </div>
           </div>
 
-          <div colSpan="9" className="cmp-contest-list__cell" key="details">
-            <div className="col col-1">
-              <h4 className="cmp-contest-list__detail-header">Payout Structure</h4>
-              <ul>
-                <li>1st - $100</li>
-                <li>2st - $60</li>
-                <li>3st - $40</li>
-                <li>4st - $30</li>
-                <li>5st - $10</li>
-                <li>2st - $60</li>
-                <li>3st - $40</li>
-                <li>4st - $30</li>
-                <li>5st - $10</li>
-              </ul>
-            </div>
-
-            <div className="col col-2">
-              <h4 className="cmp-contest-list__detail-header">NBA Scoring</h4>
-              <ul>
-                <li>1st - $100</li>
-                <li>2st - $60</li>
-                <li>3st - $40</li>
-                <li>4st - $30</li>
-                <li>5st - $10</li>
-                <li>2st - $60</li>
-                <li>3st - $40</li>
-                <li>4st - $30</li>
-                <li>5st - $10</li>
-              </ul>
-            </div>
+          <div colSpan="9" className="cmp-contest-list__detail-lower">
+            <ul className="tab-nav">{tabNav}</ul>
+            <div className="tab-content">{this.getActiveTab()}</div>
           </div>
         </div>
       )
@@ -84,18 +144,25 @@ var ContestListDetail = React.createClass({
 
 
 
-
-// Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
+  let contest = state.upcomingContests.allContests[state.upcomingContests.focusedContestId]
+  let prizeStructure = null
+
+  if (contest && contest.hasOwnProperty('prize_structure')) {
+    prizeStructure = state.prizes[contest.prize_structure]
+  }
+
   return {
-    contest: state.upcomingContests.allContests[state.upcomingContests.focusedContestId]
+    contest,
+    prizeStructure,
+    focusedLineupId: state.upcomingLineups.focusedLineupId
   };
 }
 
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    // focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
+    enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId))
   };
 }
 
@@ -113,4 +180,4 @@ renderComponent(
 );
 
 
-module.exports = ContestListDetailConnected;
+module.exports = ContestListDetailConnected

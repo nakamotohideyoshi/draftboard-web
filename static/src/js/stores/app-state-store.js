@@ -99,13 +99,6 @@ var AppActions = {
   closePane: function() {
     console.log(this);
     this.removeClass('appstate--pane--open');
-    // removing pane__content content (because we have rendered React component on open)
-    setTimeout(function() {
-      var pane = document.querySelector('.pane__content');
-      if (pane !== null) {
-        pane.innerHTML = '';
-      }
-    }, 1000);
   },
 
   contestTypeFiltered: function() {

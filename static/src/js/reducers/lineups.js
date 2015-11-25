@@ -17,7 +17,7 @@ module.exports = function(state = initialState, action) {
 
 
     case ActionTypes.FETCH_UPCOMING_LINEUPS_FAIL:
-      return [...state];
+      return state;
 
 
     default:
