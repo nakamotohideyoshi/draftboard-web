@@ -35,7 +35,6 @@ export function setFocusedPlayer(playerId) {
 
 
 export function fetchDraftGroup(draftGroupId) {
-  console.log('HERE', draftGroupId)
   return (dispatch) => {
     return request
       .get("/api/draft-group/" + draftGroupId + '/')
@@ -45,10 +44,8 @@ export function fetchDraftGroup(draftGroupId) {
       })
       .end(function(err, res) {
         if(err) {
-          console.log('err', err)
           return dispatch(fetchDraftgroupFail(err));
         } else {
-          console.log('res', res)
           // Normalize player list by ID.
           const normalizedPlayers = normalize(
             res.body.players,
