@@ -1,0 +1,42 @@
+.live-standings-pane {
+  width: 100%;
+  height: 100%;
+
+  &--standings {
+    // TEMP live - walkthrough image
+    background: transparent url(../img/temp/standings-pane.png) no-repeat left top;
+    background-size: 100% auto;
+  }
+
+  &--ownership {
+    // TEMP live - walkthrough image
+    background: transparent url(../img/temp/ownership-pane.png) no-repeat left top;
+    background-size: 100% auto;
+  }
+
+  // TEMP live - action to trigger contest
+  &__view-standings,
+  &__view-ownership {
+    cursor: pointer;
+    height: 28px;
+    position: absolute;
+    top: 106px;
+  }
+
+  &__view-standings {
+    left: 92px;
+    width: 86px;
+  }
+
+  &__view-ownership {
+    left: 192px;
+    width: 86px;
+  }
+
+}
+
+.appstate--live-standings-pane--open {
+  .live-standings-pane {
+    right: 0;
+  }
+}

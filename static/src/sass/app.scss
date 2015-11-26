@@ -39,17 +39,20 @@ Hello WOrld!
 @import "./blocks/form.scss";
 @import "./blocks/form-field.scss";
 @import "./blocks/form-field-message.scss";
-@import "./blocks/live-nba.scss";
-@import "./blocks/live-lineup.scss";
-@import "./blocks/live-history.scss";
-@import "./blocks/live-history-event.scss";
+@import "./blocks/live-contests-pane.scss";
+@import "./blocks/live-player-pane.scss";
+@import "./blocks/live-standings-pane.scss";
+@import "./blocks/live-right-pane-nav.scss";
 @import "./blocks/live-lineup-player.scss";
+@import "./blocks/live-lineup.scss";
 @import "./blocks/live-nba-court.scss";
-@import "./blocks/live-nba-overall-stats.scss";
+@import "./blocks/live-overall-stats.scss";
 @import "./blocks/live-overview.scss";
+@import "./blocks/live-pane.scss";
 @import "./blocks/live-scoreboard.scss";
 @import "./blocks/live-stack-choice.scss";
 @import "./blocks/live-winning-graph.scss";
+@import "./blocks/live.scss";
 @import "./blocks/nav-main.scss";
 @import "./blocks/pane.scss";
 @import "./blocks/pane-transactions.scss";
@@ -61,7 +64,8 @@ Hello WOrld!
 @import "./blocks/tooltip.scss";
 @import "./blocks/modal.scss";
 @import "./blocks/featured-contests.scss";
-
+@import "./blocks/results.scss";
+@import "./blocks/date-picker.scss";
 
 /* Components */
 @import "./blocks/cmp-range-slider.scss";

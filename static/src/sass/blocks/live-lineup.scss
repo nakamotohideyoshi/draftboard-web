@@ -1,12 +1,31 @@
+@import "../variables.scss";
+
 .live-lineup {
   align-items: center;
   display: flex;
   justify-content: center;
-  padding-top: 42px;
-  min-height: 558px;
+  // padding-top: 42px;
+  // min-height: 558px;
 
   &--me {
+    // TEMP for walkthrough
+    background: transparent url(../img/temp/players--lineup-mode--mine.png) no-repeat left top;
+    background-size: 100% auto;
+    height: 497px;
+    width: 327px;
+    margin-top: 90px;
+    margin-left: 10px;
+    z-index: $zindex-modal - 1;
     left: 0;
+
+    .view-player-detail {
+      position: absolute;
+      left: 22px;
+      top: 447px;
+      width: 52px;
+      height: 52px;
+      cursor: pointer;
+    }
   }
 
   &--opponent {

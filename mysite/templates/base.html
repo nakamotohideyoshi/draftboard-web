@@ -49,6 +49,7 @@
         </div>
       </nav>
 
+      {% block content_container %}
       <div class="content-container">
         {% include 'frontend/partials/contest-nav.html' %}
 
@@ -71,6 +72,7 @@
           </div>
         </section>
       </div>
+      {% endblock content_container %}
 
       <section class="pane">
         <div class="pane__close"></div>

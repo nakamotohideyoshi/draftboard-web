@@ -133,7 +133,7 @@ function fetchContestLineups(id) {
     dispatch(requestContestLineups(id))
 
     request
-      .get('/contest/all-lineups/' + id)
+      .get('/api/contest/all-lineups/' + id + '/')
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .end(function(err, res) {
         if(err) {
@@ -232,7 +232,6 @@ function confirmRelatedContestInfo(id) {
     type: CONFIRM_RELATED_LIVE_CONTEST_INFO,
     id: id,
     stats: {
-      // rankedLineups: rankedLineups,
       updatedAt: Date.now()
     }
   }

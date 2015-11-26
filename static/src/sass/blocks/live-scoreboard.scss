@@ -1,5 +1,5 @@
 .live-scoreboard {
-  padding-top: 80px;
+  padding: 60px 0 0;
   text-align: center;
 
   &__contest-name {
@@ -7,6 +7,5 @@
     font-weight: 200;
     font-size: 25px;
     line-height: 1;
-    margin: 0 0 32px;
   }
 }

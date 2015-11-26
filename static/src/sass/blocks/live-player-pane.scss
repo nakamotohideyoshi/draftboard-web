@@ -1,0 +1,14 @@
+.live-player-pane {
+  // TEMP live - walkthrough image
+  width: 100%;
+  height: 100%;
+
+  background: transparent url(../img/temp/player-details-pane.png) no-repeat left top;
+  background-size: 100% auto;
+}
+
+.appstate--live-player-pane--open {
+  .live-player-pane {
+    left: 0;
+  }
+}

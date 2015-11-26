@@ -56,7 +56,7 @@ function fetchPrize(id) {
 function shouldFetchPrize(state, id) {
   log.debug('actionsLivePrize.shouldFetchPrize')
 
-  return id in state === false
+  return id in state.prizes === false
 }
 
 
@@ -66,6 +66,8 @@ export function fetchPrizeIfNeeded(id) {
   return (dispatch, getState) => {
     if (shouldFetchPrize(getState(), id)) {
       return dispatch(fetchPrize(id))
+    } else {
+      return Promise.reject('Prize already exists')
     }
   }
 }
