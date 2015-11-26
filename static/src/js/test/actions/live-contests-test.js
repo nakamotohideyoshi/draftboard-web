@@ -6,7 +6,7 @@ import { expect } from 'chai'
 import { size as _size } from 'lodash'
 
 import reducers from '../../reducers/index'
-import urlConfig from '../../fixtures/live-contests-config'
+import urlConfig from '../../fixtures/live-config'
 import { fetchContestIfNeeded, fetchRelatedContestInfo, generateContestStats } from '../../actions/live-contests'
 import { mockStore } from '../mock-store'
 
@@ -57,6 +57,7 @@ describe('actionsLiveContests', () => {
       null,
       null,
       null,
+      null,
 
       // pull in prize information
       null,
@@ -93,18 +94,16 @@ describe('actionsLiveContests', () => {
     const expectedActions = [
       // { type: '@@redux/INIT' }
       null,
-
       null,
       null,
       null,
       null,
       null,
-
       // receiveLiveDraftGroupFP
       function(action) {
         expect(action.type).to.equal('RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
       },
-
+      null,
       null,
       null
 
@@ -124,6 +123,7 @@ describe('actionsLiveContests', () => {
       expectedActions,
       done
     )
+
     store.dispatch(fetchRelatedContestInfo(2))
   })
 

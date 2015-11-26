@@ -1,0 +1,25 @@
+.live-right-pane-nav {
+  &--lineup {
+    // TEMP live placeholder image
+    background: transparent url(../img/temp/right-pane-nav--lineup.png) no-repeat left top;
+    background-size: 100% auto;
+    cursor: pointer;
+    height: 79px;
+    margin: 0 auto;
+    position: relative;
+    top: -30px;
+    width: 112.5px;
+  }
+
+  &--contest {
+    // TEMP live placeholder image
+    background: transparent url(../img/temp/right-pane-nav--contest.png) no-repeat left top;
+    background-size: 100% auto;
+    cursor: pointer;
+    height: 79px;
+    position: relative;
+    top: 0;
+    width: 286.5px;
+    margin: 0 auto;
+  }
+}

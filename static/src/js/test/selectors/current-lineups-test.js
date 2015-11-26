@@ -6,7 +6,7 @@ import { expect } from 'chai'
 import { size as _size } from 'lodash'
 
 import reducers from '../../reducers/index'
-import urlConfig from '../../fixtures/entries-config'
+import urlConfig from '../../fixtures/live-config'
 import { fetchEntriesIfNeeded, addEntriesPlayers } from '../../actions/entries'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
 import { mockStore } from '../mock-store'

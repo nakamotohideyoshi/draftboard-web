@@ -1,0 +1,106 @@
+$date-picker-text-bg-color: #BDC0C2;
+$date-picker-text-fg-color: #43455C;
+$date-picker-text-selected-color: #50C48F;
+
+.date-picker {
+  width: 250px;
+  display: inline-block;
+  background: white;
+  text-transform: uppercase;
+  position: absolute;
+  white-space: normal;
+  box-shadow: 0px 0px 50px -7px #000;
+  z-index: 999;
+
+  .header {
+    width: inherit;
+    display: inline-block;
+    padding: 12px 0;
+    border-bottom: 1px solid $date-picker-text-bg-color;
+    position: relative;
+    text-align: center;
+
+    .arrow-left, .arrow-right {
+      color: $date-picker-text-selected-color;
+      font-size: 40px;
+      position: absolute;
+      top: 7px;
+      transform: scaleX(0.5);
+      cursor: pointer;
+    }
+
+    .arrow-left {
+      left: 10px;
+    }
+
+    .arrow-right {
+      right: 10px;
+    }
+
+    .year {
+      font-size: 10px;
+      color: $date-picker-text-bg-color;
+    }
+
+    .month {
+      color: $date-picker-text-fg-color;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  }
+
+  .body {
+    width: inherit;
+    display: inline-block;
+    font-size: 13px;
+    padding-top: 12px;
+    text-align: right;
+
+    table {
+      margin: 0 auto;
+
+      thead td {
+        color: $date-picker-text-bg-color;
+        font-weight: bold;
+        font-size: 10px;
+      }
+
+      tbody td {
+        cursor: pointer;
+
+        span {
+          display: inline-block;
+          width: 25px;
+          height: 25px;
+          text-align: center;
+          line-height: 25px;;
+          margin: 0 1px;
+          border-radius: 20px;
+          border: solid 1px rgba(0,0,0,0);
+        }
+
+        &.inactive {
+          color: $date-picker-text-bg-color;
+          cursor: auto;
+        }
+
+        &.selected {
+          color: $date-picker-text-selected-color;
+          cursor: auto;
+
+          span {
+            border-color: $date-picker-text-selected-color;
+          }
+        }
+
+        &:hover {
+          color: $date-picker-text-bg-color;
+
+          span {
+            border-color: $date-picker-text-bg-color;
+          }
+        }
+      }
+    }
+  }
+}

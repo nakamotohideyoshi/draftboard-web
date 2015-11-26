@@ -9,8 +9,8 @@ from contest.views import LobbyAPIView, AllLineupsView, \
                           RegisteredUsersAPIView, EnterLineupAPIView
 from contest.views import ContestCreate, ContestUpdate
 
-urlpatterns = patterns( '',
-
+urlpatterns = patterns(
+    '',
     url(r'^add/$', ContestCreate.as_view(), name='contest_add'),
     url(r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest-detail'),
     # (r'^add/$', ContestCreate.as_view(), name='contest_add'),
@@ -48,15 +48,14 @@ urlpatterns = patterns( '',
     # get a single lineup with stats - the lineup can
     # be viewed by any user, and will mask out
     # players who are not yet starting.
-    (r'^single-lineup/(?P<contest_id>[0-9]+)/(?P<lineup_id>[0-9]+)$', SingleLineupView.as_view()),
+    (r'^single-lineup/(?P<contest_id>[0-9]+)/(?P<lineup_id>[0-9]+)/$', SingleLineupView.as_view()),
 
     #
     # get the complete set of specially packed lineups for a contest
-    (r'^all-lineups/(?P<contest_id>[0-9]+)$', AllLineupsView.as_view()),
+    (r'^all-lineups/(?P<contest_id>[0-9]+)/$', AllLineupsView.as_view()),
 
     #
     # get the complete set of specially packed lineups for a contest
-    (r'^registered-users/(?P<contest_id>[0-9]+)$', RegisteredUsersAPIView.as_view()),
+    (r'^registered-users/(?P<contest_id>[0-9]+)/$', RegisteredUsersAPIView.as_view()),
 
 )
-

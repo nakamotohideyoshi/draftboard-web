@@ -6,7 +6,7 @@ class FrontendHomepageTemplateView(TemplateView):
 
 
 class FrontendLiveTemplateView(TemplateView):
-    template_name = 'frontend/live/court.html'
+    template_name = 'frontend/live.html'
 
 
 class FrontendLayoutTemplateView(TemplateView):
@@ -32,6 +32,9 @@ class FrontendSettingsTemplateView(TemplateView):
     Build out of settings page. Coderden should take this and incorporate into their backend.
     """
     template_name = 'frontend/settings.html'
+
+class FrontendResultsTemplateView(TemplateView):
+    template_name = 'frontend/results.html'
 
 
 class FrontendSettingsDepositsTemplateView(TemplateView):

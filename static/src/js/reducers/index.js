@@ -7,20 +7,21 @@ const { combineReducers } = require('redux');
 
 
 const contests = require('./contests')
-const createLineup = require('./create-lineup.js')
+const createLineup = require('./create-lineup')
 const currentLineups = require('./current-lineups');
 const draftDraftGroup = require('./draft-group')
 const entries = require('./entries')
+const live = require('./live')
 const liveContests = require('./live-contests');
 const liveDraftGroups = require('./live-draft-groups');
-const payments = require('./payments')
 const prizes = require('./prizes')
+const payments = require('./payments')
 const transactions = require('./transactions')
 const upcomingContests = require('./upcoming-contests.js')
 const upcomingDraftGroups = require('./upcoming-draft-groups.js')
 const upcomingLineups = require('./lineups')
 const user = require('./user')
-
+const results = require('./results')
 
 module.exports = combineReducers({
   contests,
@@ -28,6 +29,8 @@ module.exports = combineReducers({
   currentLineups,
   draftDraftGroup,
   entries,
+  live,
+  results,
   liveContests,
   liveDraftGroups,
   payments,

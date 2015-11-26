@@ -16,16 +16,16 @@ urlpatterns = patterns(
 
     #
     # get recent play by play for this draftgroup
-    (r'^pbp/(?P<draft_group_id>[0-9]+)$', DraftGroupPbpDescriptionView.as_view()),
+    (r'^pbp/(?P<draft_group_id>[0-9]+)/$', DraftGroupPbpDescriptionView.as_view()),
 
     #
     # get the boxscores for this draft group
-    (r'^boxscores/(?P<draft_group_id>[0-9]+)$', DraftGroupGameBoxscoresView.as_view()),
+    (r'^boxscores/(?P<draft_group_id>[0-9]+)/$', DraftGroupGameBoxscoresView.as_view()),
 
     #
     # get the draftgroup players (including the fantasy points for each player currently).
     # use this api to get the fantasy_points for each player in a draftgroup.
-    (r'^fantasy-points/(?P<draft_group_id>[0-9]+)$', DraftGroupFantasyPointsView.as_view()),
+    (r'^fantasy-points/(?P<draft_group_id>[0-9]+)/$', DraftGroupFantasyPointsView.as_view()),
 
     #
     # Get the draftgroup players for a draftgroup id.

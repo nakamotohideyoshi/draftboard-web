@@ -1,4 +1,5 @@
 var log = require('../lib/logging.js');
+import { forEach as _forEach } from 'lodash'
 
 
 /*
@@ -12,7 +13,7 @@ var AppStateClass = (function() {
   var exports = {
     // Sync up classes in the AppStateStore to the <body> tag.
     updateBodyClasses: function(classes) {
-      log.debug("AppStateClass.updateBodyClasses()", classes);
+      log.debug("AppStateClass.updateBodyClasses()", classes, bodyEl.className);
       // Remove any existing appstate classes
       bodyEl.className = bodyEl.className.replace(/appstate-\S*(?!\S)/g, "");
       // Add the current set.
@@ -97,12 +98,29 @@ var AppActions = {
 
   // Close the slideover pane.
   closePane: function() {
-    console.log(this);
     this.removeClass('appstate--pane--open');
   },
 
   contestTypeFiltered: function() {
     this.addClass('appstate--contest-filters-open');
+  },
+
+  // Toggle the included class. If opening, then close all other live panes
+  toggleLiveRightPane: function(className) {
+    let possiblePanes = [
+      'appstate--live-contests-pane--open',
+      'appstate--live-standings-pane--open'
+    ]
+
+    if (this.classes.indexOf(className) > -1) {
+      this.removeClass(className)
+    } else {
+      _forEach(possiblePanes, (pane) => {
+        this.removeClass(pane)
+      })
+
+      this.addClass(className)
+    }
   }
 
 };
