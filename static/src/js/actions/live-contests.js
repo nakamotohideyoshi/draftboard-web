@@ -5,17 +5,10 @@ import request from 'superagent'
 import { Buffer } from 'buffer/'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
+import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
 import { fetchDraftGroupIfNeeded } from './live-draft-groups'
 import { fetchPrizeIfNeeded } from './prizes'
-
-
-export const CONFIRM_RELATED_LIVE_CONTEST_INFO = 'CONFIRM_RELATED_LIVE_CONTEST_INFO'
-export const UPDATE_LIVE_CONTEST_STATS = 'UPDATE_LIVE_CONTEST_STATS'
-export const REQUEST_LIVE_CONTEST_INFO = 'REQUEST_LIVE_CONTEST_INFO'
-export const RECEIVE_LIVE_CONTEST_INFO = 'RECEIVE_LIVE_CONTEST_INFO'
-export const REQUEST_LIVE_CONTEST_LINEUPS = 'REQUEST_LIVE_CONTEST_LINEUPS'
-export const RECEIVE_LIVE_CONTEST_LINEUPS = 'RECEIVE_LIVE_CONTEST_LINEUPS'
 
 
 // INTERNAL HELPER METHODS ----------------------------------------------
@@ -30,7 +23,7 @@ export const RECEIVE_LIVE_CONTEST_LINEUPS = 'RECEIVE_LIVE_CONTEST_LINEUPS'
  * @return {Object} The parsed lineup object
  */
 function _convertLineup(numberOfPlayers, byteArray, firstBytePosition) {
-  log.debug('_convertLineup')
+  // log.debug('_convertLineup')
 
   let lineup = {
     'id': _convertToInt(32, byteArray, firstBytePosition, 4),
@@ -82,7 +75,7 @@ function _convertToInt(byteSize, byteArray, byteOffset, byteLength) {
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
 function parseContestLineups(apiContestLineupsBytes, draftGroup) {
-  log.debug('_rankContestLineups')
+  // log.debug('_rankContestLineups')
 
   // add up who's in what place
   let responseByteArray = new Buffer(apiContestLineupsBytes, 'hex')
@@ -108,7 +101,7 @@ function requestContestLineups(id) {
 
   return {
     id: id,
-    type: REQUEST_LIVE_CONTEST_LINEUPS
+    type: ActionTypes.REQUEST_LIVE_CONTEST_LINEUPS
   }
 }
 
@@ -117,7 +110,7 @@ function receiveContestLineups(id, response) {
   log.debug('actionsLiveContest.receiveContestLineups')
 
   return {
-    type: RECEIVE_LIVE_CONTEST_LINEUPS,
+    type: ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS,
     id: id,
     lineupBytes: response,
     lineups: parseContestLineups(response),
@@ -154,7 +147,7 @@ function requestContestInfo(id) {
 
   return {
     id: id,
-    type: REQUEST_LIVE_CONTEST_INFO
+    type: ActionTypes.REQUEST_LIVE_CONTEST_INFO
   }
 }
 
@@ -163,7 +156,7 @@ function receiveContestInfo(id, response) {
   log.debug('actionsLiveContest.receiveContestInfo')
 
   return {
-    type: RECEIVE_LIVE_CONTEST_INFO,
+    type: ActionTypes.RECEIVE_LIVE_CONTEST_INFO,
     id: id,
     info: response,
     expiresAt: Date.now() + 86400000
@@ -203,21 +196,22 @@ export function fetchContestIfNeeded(id) {
   log.debug('actionsLiveContest.fetchContestIfNeeded')
 
   return (dispatch, getState) => {
-    if (shouldFetchContest(getState(), id)) {
-      return Promise.all([
-        dispatch(fetchContestInfo(id)),
-        dispatch(fetchContestLineups(id))
-      ]).then(() => {
-        dispatch(fetchRelatedContestInfo(id))
-      })
+    if (shouldFetchContest(getState(), id) === false) {
+      return Promise.reject('Contest already exists')
     }
+    return Promise.all([
+      dispatch(fetchContestInfo(id)),
+      dispatch(fetchContestLineups(id))
+    ]).then(() =>
+      dispatch(fetchRelatedContestInfo(id))
+    )
   }
 }
 
 
 function updateContestStats(id, rankedLineups) {
   return {
-    type: UPDATE_LIVE_CONTEST_STATS,
+    type: ActionTypes.UPDATE_LIVE_CONTEST_STATS,
     id: id,
     stats: {
       rankedLineups: rankedLineups,
@@ -229,7 +223,7 @@ function updateContestStats(id, rankedLineups) {
 
 function confirmRelatedContestInfo(id) {
   return {
-    type: CONFIRM_RELATED_LIVE_CONTEST_INFO,
+    type: ActionTypes.CONFIRM_RELATED_LIVE_CONTEST_INFO,
     id: id,
     stats: {
       updatedAt: Date.now()
@@ -249,8 +243,8 @@ export function fetchRelatedContestInfo(id) {
     return Promise.all([
       dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
       dispatch(fetchPrizeIfNeeded(prizeId))
-    ]).then(() => {
+    ]).then(() =>
       dispatch(confirmRelatedContestInfo(id))
-    })
+    )
   }
 }

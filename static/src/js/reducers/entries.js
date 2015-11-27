@@ -14,7 +14,7 @@ module.exports = function(state = {
     case ActionTypes.REQUEST_ENTRIES:
       log.debug('reducersEntries.REQUEST_ENTRIES')
 
-      return update(state, { $set: {
+      return update(state, { $merge: {
         isFetching: true
       }})
 
@@ -23,6 +23,7 @@ module.exports = function(state = {
 
       return update(state, { $set: {
         isFetching: false,
+        hasRelatedInfo: false,
         items: action.items,
         updatedAt: action.receivedAt
       }})
