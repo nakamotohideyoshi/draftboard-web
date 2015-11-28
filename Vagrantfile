@@ -1,6 +1,8 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# NOTE: if on Yosemite and up, you may need to fix http://gielberkers.com/fixing-vagrant-port-forwarding-osx-yosemite/
+
 Vagrant.configure(2) do |config|
 
   #

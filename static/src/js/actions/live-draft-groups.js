@@ -2,6 +2,7 @@
 
 import 'babel-core/polyfill'; // so I can use Promises
 import request from 'superagent'
+import { forEach as _forEach } from 'lodash'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
 import * as ActionTypes from '../action-types'
@@ -11,6 +12,18 @@ import log from '../lib/logging'
 const playerSchema = new Schema('players', {
   idAttribute: 'player_id'
 })
+
+
+// TODO make this sport dependent
+function _calculateTimeRemaining(boxScore) {
+  log.debug('actionsLiveDraftGroup._calculateTimeRemaining')
+
+  const clockMinSec = boxScore.fields.clock.split(':')
+  const remainingMinutes = (4 - parseInt(boxScore.fields.quarter)) * 12
+
+  // round up to the nearest minute
+  return remainingMinutes + parseInt(clockMinSec[0]) + 1
+}
 
 
 // DRAFT GROUP FANTASY POINTS
@@ -33,7 +46,7 @@ function fetchDraftGroupFP(id) {
     dispatch(requestDraftGroupFP(id))
 
     request
-      .get("/draft-group/fantasy-points/" + id)
+      .get("/api/draft-group/fantasy-points/" + id)
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .set('Accept', 'application/json')
       .end(function(err, res) {
@@ -129,7 +142,7 @@ function fetchDraftGroupInfo(id) {
     dispatch(requestDraftGroupInfo(id))
 
     request
-      .get("/draft-group/" + id + '/')
+      .get("/api/draft-group/" + id + '/')
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .set('Accept', 'application/json')
       .end(function(err, res) {
@@ -160,6 +173,10 @@ function requestDraftGroupBoxScores(id) {
 function receiveDraftGroupBoxScores(id, response) {
   log.debug('actionsLiveDraftGroup.receiveDraftGroupBoxScores')
 
+  _forEach(response, (boxScore) => {
+    boxScore.timeRemaining = _calculateTimeRemaining(boxScore)
+  })
+
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES,
     id: id,
@@ -176,7 +193,7 @@ function fetchDraftGroupBoxScores(id) {
     dispatch(requestDraftGroupBoxScores(id))
 
     request
-      .get("/draft-group/box-scores/" + id)
+      .get("/api/draft-group/box-scores/" + id)
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
       .set('Accept', 'application/json')
       .end(function(err, res) {

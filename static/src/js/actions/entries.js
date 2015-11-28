@@ -15,6 +15,7 @@ import { setCurrentLineups } from './current-lineups'
 
 // NOTE Mock URLs for now rather than hit the Django API
 import urlConfig from '../fixtures/live-config'
+require('superagent-mock')(request, urlConfig)
 
 
 function requestEntries() {
@@ -63,7 +64,6 @@ export function fetchEntries() {
       .set('Accept', 'application/json')
       .end(function(err, res) {
         if(err) {
-          console.error(err)
           // TODO
         } else {
           return dispatch(receiveEntries(res.body))
@@ -127,6 +127,10 @@ export function fetchRelatedEntriesInfo() {
     return Promise.all(
       calls
     ).then(() =>
+      dispatch(addEntriesPlayers())
+    ).then(() =>
+      dispatch(generateLineups())
+    ).then(() =>
       dispatch(confirmRelatedEntriesInfo())
     )
   }
@@ -170,16 +174,19 @@ export function generateLineups() {
   log.debug('actionsEntries.generateLineups')
 
   return (dispatch, getState) => {
+    const state = getState()
     let lineups = {}
 
     _forEach(getState().entries.items, function(entry) {
       let id = entry.lineup
+      // let contest = state.liveContests[entry.contest]
 
       if (id in lineups) {
         lineups[id].contests.push(entry.contest)
       } else {
         lineups[id] = {
           id: entry.lineup,
+          draft_group: entry.draft_group,
           name: entry.lineup_name,
           start: entry.start,
           roster: entry.roster,

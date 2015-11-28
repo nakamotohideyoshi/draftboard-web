@@ -7,5 +7,23 @@
     font-weight: 200;
     font-size: 25px;
     line-height: 1;
+    position: relative;
+  }
+
+  &__close {
+    cursor: pointer;
+    background: url('../img/temp/remove.png');
+    background-size: 100% auto;
+    cursor: pointer;
+    display: inline-block;
+    height: 33px;
+    width: 33px;
+    position: absolute;
+    top: -2px;
+    margin-left: 10px;
+
+    &:hover {
+      opacity: .75;
+    }
   }
 }
