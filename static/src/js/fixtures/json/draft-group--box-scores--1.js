@@ -1,5 +1,5 @@
-module.exports = [
-  {
+module.exports = {
+  "cf9a5e4d-9487-4daf-bebc-5897f86d9199": {
     "pk": 55,
     "model": "nba.gameboxscore",
     "fields": {
@@ -26,7 +26,7 @@ module.exports = [
       "lead_changes": 0
     }
   },
-  {
+  "a0ec60bc-052f-4795-a45d-b6fd076f77f8": {
     "pk": 54,
     "model": "nba.gameboxscore",
     "fields": {
@@ -53,4 +53,4 @@ module.exports = [
       "lead_changes": 0
     }
   }
-]
+}

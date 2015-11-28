@@ -18,11 +18,11 @@ module.exports = [
         case '/api/contest/info/2/':
           return require('./json/contest--info--2')
 
-        case '/draft-group/1/':
+        case '/api/draft-group/1/':
           return require('./json/draft-group--1')
-        case '/draft-group/box-scores/1':
+        case '/api/draft-group/box-scores/1':
           return require('./json/draft-group--box-scores--1');
-        case '/draft-group/fantasy-points/1':
+        case '/api/draft-group/fantasy-points/1':
           return require('./json/draft-group--fantasy-points--1')
 
         case '/api/prize/1/':
@@ -35,7 +35,7 @@ module.exports = [
           throw new Error(404)
 
         // used to test that fantasy points do not exist
-        case '/draft-group/114128/':
+        case '/api/draft-group/114128/':
           return require('./json/draft-group--1')
       }
     },

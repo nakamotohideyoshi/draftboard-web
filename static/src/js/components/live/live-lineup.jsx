@@ -1,7 +1,5 @@
 import React from 'react'
-import renderComponent from '../../lib/render-component'
 
-import * as AppActions from '../../stores/app-state-store'
 import LiveLineupPlayer from './live-lineup-player'
 
 
@@ -10,55 +8,39 @@ import LiveLineupPlayer from './live-lineup-player'
  */
 var LiveLineup = React.createClass({
   propTypes: {
-    whichSide: React.PropTypes.string.isRequired
+    whichSide: React.PropTypes.string.isRequired,
+    mode: React.PropTypes.object.isRequired,
+    lineup: React.PropTypes.object.isRequired,
+    draftGroup: React.PropTypes.object.isRequired
   },
 
-  getDefaultProps: function() {
-    return {
-      whichSide: ''
-    }
-  },
+  render() {
+    const self = this
 
-  viewPlayerDetails: function() {
-    AppActions.toggleLiveRightPane('appstate--live-player-pane--open')
-  },
+    const currentPlayers = self.props.lineup.roster.map(function(playerId) {
+      const player = {
+        info: self.props.draftGroup.playersInfo[playerId],
+        stats: self.props.draftGroup.playersStats[playerId]
+      }
 
-  render: function() {
-    var lineupData
+      return (
+        <LiveLineupPlayer key={playerId} player={ player } />
+      )
+    })
 
-    // if (this.props.whichSide === 'me') {
-    //   lineupData = LiveStore.data.myLineupPlayers
-    // } else {
-    //   lineupData = LiveStore.data.opponentLineupPlayers
-    // }
+    const className = 'cmp-live__lineup live-lineup live-lineup--' + self.props.whichSide
 
-    // var currentPlayers = lineupData.order.map(function(playerId) {
-    //   // need a better check here
-    //   if (lineupData.players[playerId] === undefined) {
-    //     return null
-    //   }
-
-    //   return (
-    //     <LiveLineupPlayer key={playerId} player={lineupData.players[playerId]} />
-    //   )
-    // })
-
-    var className = 'cmp-live__lineup live-lineup live-lineup--' + this.props.whichSide
-
-    // {currentPlayers}
     return (
       <div className={ className }>
         <ul className="live-lineup__players">
+          {currentPlayers}
         </ul>
 
-        <div className="view-player-detail" onClick={this.viewPlayerDetails} />
+        <div className="view-player-detail"  />
       </div>
     )
   }
 })
 
-
-// Render the component.
-renderComponent(<LiveLineup />, '.live-lineup')
 
 module.exports = LiveLineup

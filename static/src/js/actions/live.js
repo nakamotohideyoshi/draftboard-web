@@ -1,12 +1,9 @@
 import * as ActionTypes from '../action-types'
 
 
-export function updateLiveMode(type, id) {
+export function updateLiveMode(newMode) {
   return {
     type: ActionTypes.LIVE_MODE_CHANGED,
-    mode: {
-      type,
-      id
-    }
+    mode: newMode
   }
 }
