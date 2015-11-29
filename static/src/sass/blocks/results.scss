@@ -14,6 +14,7 @@ $results-selected-text-color: #50C48F;
   &--header {
     height: 130px;
     padding: 0 100px;
+    margin-top: 60px;
     position: relative;
     background-color: #ffffff;
     text-transform: uppercase;
@@ -112,6 +113,13 @@ $results-selected-text-color: #50C48F;
 
       .toggle {
         display: inline-block;
+        background: url('../img/blocks/results/calendar.png') no-repeat center center;
+        background-size: 20px 20px;
+        width: 20px;
+        height: 20px;
+        position: relative;
+        top: 1px;
+        cursor: pointer;
       }
     }
 
@@ -145,7 +153,7 @@ $results-selected-text-color: #50C48F;
     height: 50px;
     padding-left: 100px;
     line-height: 50px;
-    background-color: #292E42;
+    background-color: #EDEEF1;
 
     .item {
       display: inline-block;
@@ -161,7 +169,7 @@ $results-selected-text-color: #50C48F;
       }
 
       .value {
-        color: white;
+        color: $results-fg-text-color;
         display: inline-block;
         margin-left: 10px;
         margin-right: 40px;
@@ -175,15 +183,41 @@ $results-selected-text-color: #50C48F;
     padding: 40px 0 0 100px;
 
     .lineup {
-      width: 280px;
+      width: 380px;
       background-color: white;
       display: inline-block;
       margin-right: 40px;
 
       .header {
-        padding-left: 20px;
+        position: relative;
+        padding-left: 35px;
         line-height: 65px;
         border-bottom: 1px solid $results-bg-text-color;
+        background: url('../img/blocks/results/basketball.png') no-repeat 15px center;
+        background-size: 15px 11px;
+
+        .to-contests {
+          display: inline-block;
+          position: absolute;
+          right: 20px;
+          text-transform: uppercase;
+          font-size: 11px;
+          color: $results-bg-text-color;
+
+          span {
+            cursor: pointer;
+          }
+
+          .arrow-right {
+            display: inline-block;
+            width: 12px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            transform: scaleX(0.5) translateY(1px);
+            color: $results-fg-text-color;
+          }
+        }
       }
 
       .list {
@@ -202,6 +236,13 @@ $results-selected-text-color: #50C48F;
           .image {
             display: inline-block;
             margin: 0 5px;
+            background: $results-bg-text-color url('../img/blocks/results/avatar.png') no-repeat center center;
+            background-size: 31px 25px;
+            width: 25px;
+            height: 25px;
+            border-radius: 20px;
+            position: relative;
+            top: 7px;
           }
           .name {
             color: $results-fg-text-color;
@@ -237,6 +278,126 @@ $results-selected-text-color: #50C48F;
           }
         }
       }
+    }
+
+    .contests {
+      width: 380px;
+      display: inline-block;
+      margin-right: 40px;
+      background-color: #353849;
+
+      .header {
+        color: white;
+        position: relative;
+        padding-left: 35px;
+        line-height: 65px;
+        border-bottom: 1px solid #3e4453;
+        background-color: #3A3F52;
+
+        .to-lineup {
+          display: inline-block;
+          position: absolute;
+          right: 20px;
+          text-transform: uppercase;
+          font-size: 11px;
+
+          span {
+            cursor: pointer;
+          }
+
+          .arrow-right {
+            display: inline-block;
+            width: 12px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            transform: scaleX(0.5) translateY(1px);
+          }
+        }
+      }
+
+      .list {
+        .contest {
+          position: relative;
+          padding: 0 10px;
+          line-height: 35px;
+          border-bottom: 1px solid #3e4453;
+          vertical-align: middle;
+
+          .factor {
+            display: inline-block;
+            color: #666B80;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+
+          .title {
+            display: inline-block;
+            color: white;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            width: 190px;
+            vertical-align: middle;
+            margin: 0 10px;
+          }
+
+          .place {
+            display: inline-block;
+            color: #666B80;
+            /* font-size: 11px; */
+            font-weight: bold;
+            margin-right: 10px;
+          }
+
+          .prize {
+            display: inline-block;
+            color: white;
+            /* font-size: 11px; */
+            font-weight: bold;
+            text-transform: uppercase;
+          }
+        }
+      }
+    }
+
+    /* SEE: https://davidwalsh.name/css-flip */
+    flip-container {
+      perspective: 1000;
+    }
+
+    .flip-container.hover .flipper {
+      transform: rotateY(180deg);
+    }
+
+    .flip-container, .lineup, .contests {
+      width: 320px;
+      min-height: 480px;
+    }
+
+    .flipper {
+      transition: 0.6s;
+      transform-style: preserve-3d;
+
+      position: relative;
+    }
+
+    .lineup, .contests {
+      backface-visibility: hidden;
+
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .lineup {
+      z-index: 2;
+      transform: rotateY(0deg);
+    }
+
+    .contests {
+      transform: rotateY(180deg);
     }
   }
 }
