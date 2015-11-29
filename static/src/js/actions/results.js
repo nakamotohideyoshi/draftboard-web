@@ -66,15 +66,31 @@ export function fetchLineups(id, date) {
               id: 1,
               name: "name.1",
               score: 70,
-              image: "image.1",
+              image: "../img/blocks/results/avatar.png",
               position: "pg"
             },
             {
               id: 2,
               name: "name.1",
               score: 70,
-              image: "image.1",
+              image: "../img/blocks/results/avatar.png",
               position: "pg"
+            }
+          ],
+          contests: [
+            {
+              id: 1,
+              factor: 2,
+              title: "$25 - Anonymous Head-to-Head",
+              place: 16,
+              prize: "$20"
+            },
+            {
+              id: 2,
+              factor: 1,
+              title: "$10,000 - Guaranteed Tier Anonymous Head-to-Head",
+              place: 1,
+              prize: "$500"
             }
           ],
           stats: {
