@@ -1,0 +1,15 @@
+.transactions-form {
+  min-height: 80px;
+}
+
+.transactions-date-pickers {
+  display: inline-block;
+
+  > span {
+    display: inline-block;
+  }
+
+  > span:nth-child(2n) {
+    margin-left: 10px;
+  }
+}

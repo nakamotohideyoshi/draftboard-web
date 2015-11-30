@@ -74,6 +74,12 @@ const SettingsBase = React.createClass({
   },
 
   renderForm() {
+    let emailClasses = 'email' in this.props.errors ? 'form-field--error ' : ''
+    emailClasses += 'form-field'
+
+    let passwordClasses = 'password' in this.props.errors ? 'form-field--error' : ''
+    passwordClasses += 'form-field'
+
     return (
       <form id="base-settings" className="form" method="post" onSubmit={this.handleSubmit}>
         <fieldset className="form__fieldset">
@@ -84,7 +90,7 @@ const SettingsBase = React.createClass({
           <div className="username-display">{ this.props.user.username }</div>
         </div>
 
-        <div className="form-field">
+        <div className={emailClasses}>
           <label className="form-field__label" htmlFor="email">Email</label>
           <input className="form-field__text-input" type="email" id="email" name="email" defaultValue={ this.props.user.email } placeholder="i.e. joe@hotmail.com" />
 
@@ -96,7 +102,7 @@ const SettingsBase = React.createClass({
           }
         </div>
 
-        <div className="form-field">
+        <div className={passwordClasses}>
           <label className="form-field__label" htmlFor="password">Password</label>
           <input className="form-field__password-input" type="password" id="password" name="password" placeholder="********" />
 

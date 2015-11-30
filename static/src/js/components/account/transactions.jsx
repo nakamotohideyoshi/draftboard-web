@@ -9,6 +9,8 @@ import {fetchTransactions, filterTransactions } from '../../actions/transactions
 const TransactionsForm = require('./subcomponents/transactions-form.jsx');
 const TransactionsTable = require('./subcomponents/transactions-table.jsx');
 
+import { stringifyDate } from '../../lib/time.js';
+
 
 const Transactions = React.createClass({
 
@@ -23,18 +25,25 @@ const Transactions = React.createClass({
     this.props.fetchTransactions()
   },
 
-  handleFilterChange(startDate, endDate) {
-    // var startDateString = startDate.format('MM-DD-YYYY');
-    // var endDateString = endDate.format('MM-DD-YYYY');
-    // var newUrl = window.location.pathname + "?from=" + startDateString + '&to=' + endDateString;
-    // window.history.pushState("dummy", "javascript..", newUrl);
-    this.props.filterTransactions(startDate, endDate)
+  handlePeriodSelected({isPeriod = false, days=0, startDate=new Date(), endDate=new Date()}) {
+    // if period is selected calling /?start_ts=[timestamp]&end_ts=[timestamp]/
+    if (isPeriod) {
+      const startDateString = stringifyDate(startDate, '-')
+      const endDateString = stringifyDate(endDate, '-')
+      const newUrl = window.location.pathname + "?from=" + startDateString + '&to=' + endDateString;
+      window.history.pushState("change the", "url", newUrl)
+    // if it is not period we are calling /?days=X api endpoint
+    } else {
+      const newUrl = window.location.pathname + "?since=" + days + "days"
+      window.history.pushState("change the", "url", newUrl)
+    }
+    this.props.filterTransactions(isPeriod, days, startDate.getTime(), endDate.getTime())
   },
 
   render() {
     return (
       <div>
-        <TransactionsForm onPeriodSelected={this.handleFilterChange}/>
+        <TransactionsForm onPeriodSelected={this.handlePeriodSelected}/>
         <TransactionsTable transactions={this.props.transactions} />
       </div>
     );
@@ -54,7 +63,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     fetchTransactions: () => dispatch(fetchTransactions()),
-    filterTransactions: (startDate, endDate) => dispatch(filterTransactions(startDate, endDate))
+    filterTransactions: (isPeriod, days, startDate, endDate) => dispatch(filterTransactions(isPeriod, days, startDate, endDate))
   };
 }
 
