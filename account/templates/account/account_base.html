@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+
+{% block title %}{% endblock %}
+
+<!-- will be overwritten later to include only needed css -->
+{% block css %}
+{{ block.super }}
+{% endblock css %}
+
+
+
+{% block body_class %}account{% endblock body_class %}
+
+{% block body %}
+  <div class="account__left">
+    <div class="account__left__content">
+      {% block content_header %}
+      <div class="account__left__content__header">
+        <div class="account__left__content__header__logo"></div><h1>draftboard</h1>
+      </div>
+      {% endblock %}
+
+      {% block content_form %}{% endblock %}
+    </div>
+
+    <div class="account__left__footer">
+      <div class="account__left__footer__content">
+        {% block footer_no_hover %}Don't have an account?{% endblock %}
+      </div>
+      <div class="account__left__footer__content-onhover">
+        {% block footer_on_hover %}
+          <div class="account__left__footer__create-account">
+            <a href="{% url 'register' %}">Create an account<span class="arrow"></span></a>
+          </div>
+        {% endblock %}
+      </div>
+    </div>
+
+  </div>
+
+  {% block right_content %}
+  <div class="account__right">
+    <div class="account__right__inner">
+      <div class="account__right__inner__content">
+        <div class="account__right__inner__content__title">It's anyone's game.</div>
+        <div class="account__right__inner__content__separator"></div>
+        <div class="account__right__inner__content__text">sign up &amp; get up to $200 matched bonus</div>
+      </div>
+    </div>
+  </div>
+  {% endblock right_content %}
+
+
+{% endblock body %}
+
+
+{% block javascript %}{% endblock javascript %}

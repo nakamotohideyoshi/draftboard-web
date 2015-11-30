@@ -23,8 +23,18 @@ from account.views import (
     RemovePaymentMethodAPI,
     SetDefaultPaymentMethodAPI,
     TransactionsAPI,
-    TransactionHistoryAPI
+    TransactionHistoryAPI,
+
+
+    LoginView,
+    RegisterView,
+    ResetPassword,
+    EmailSent,
+    ChangePassword
 )
+
+
+URLS_BASE = 'account/'
 
 
 urlpatterns = [
@@ -52,6 +62,12 @@ urlpatterns = [
     url(r'^api/account/payments/remove/1/$', RemovePaymentMethodAPI.as_view()),
 
     url(r'^api/transactions/$', TransactionsAPI.as_view()),
-    url(r'^api/transactions/history/$', TransactionHistoryAPI.as_view())
+    url(r'^api/transactions/history/$', TransactionHistoryAPI.as_view()),
+
+    url(r'^login/', LoginView.as_view(), name='login'),
+    url(r'^registerr/', RegisterView.as_view(), name='register'),
+    url(r'^reset-password/', ResetPassword.as_view(), name='reset-password'),
+    url(r'^email-sent/', EmailSent.as_view(), name='email-sent'),
+    url(r'^change-password/', ChangePassword.as_view(), name='change-password')
 
 ]
