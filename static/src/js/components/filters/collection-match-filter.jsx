@@ -35,7 +35,9 @@ var CollectionMatchFilter = React.createClass({
       // Initial match value.
       'match': this.props.match,
       // Used to update the rendered HTML with an active class.
-      'activeFilter': ''
+      'activeFilter': {
+        title: 'All'
+      }
     };
   },
 
@@ -165,7 +167,9 @@ var CollectionMatchFilter = React.createClass({
 
     if (this.props.elementType == 'select') {
       return (
-        <select onChange={this.selectFilter}>{options}</select>
+        <div className="select-wrap">
+          <select onChange={this.selectFilter}>{options}</select>
+        </div>
       );
     } else {
       options = this.getSpans();

@@ -1,3 +1,6 @@
+@import "../variables.scss";
+
+
 /**
  * Radio-like selection links to enable filters on the contest list.
  */
@@ -36,5 +39,34 @@
       }
     }
   }
+
+  .select-wrap {
+    select::-ms-expand { /* for IE 11 */
+      display: none;
+    }
+
+    select {
+      // unstyle stuff
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+
+      background: transparent;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      font-family: $font-oswald;
+      font-size: 16px;
+      font-weight: 400;
+      text-transform: uppercase;
+      // Firefox needs a width.
+      width: 70px;
+    }
+
+    option {
+      font-size: 14px;
+    }
+  }
+
 
 }
