@@ -1,0 +1,508 @@
+$white: #fff;
+$red: #d83036;
+$green: #34cc68;
+$grey-light: #dcdde7;
+$grey-dark: #5d6072;
+
+$open-sans: "Open Sans", "Arial", "Helvetica", sans-serif;
+$width-left: 490px;
+$footer-height: 150px;
+
+
+.account {
+  height: 100%;
+  min-height: 860px;
+  margin: 0;
+  background: $white;
+
+  &__left {
+    background: $white;
+    height: 100%;
+    left: 0;
+    min-height: 860px;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: $width-left;
+    z-index: 1;
+
+    // every display: inline-block inner elem will be centered
+    text-align: center;
+
+    &__content {
+      // position it in the center at the left side
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+
+      // this section is in the __content but above the v-middle on the screen
+      &__header {
+        position: relative;
+        top: -100px;
+        width: 80%;
+        margin: 0 auto;
+
+        text-align: center;
+        min-height: 50px;
+
+        &__logo {
+          // align logo with the h1
+          display: inline-block;
+          vertical-align: middle;
+          width: 45px;
+          height: 38px;
+          background-image: url(../img/account/logo.png);
+          background-repeat: no-repeat;
+          background-size: cover;
+        }
+
+        h1 {
+          display: inline-block;
+          margin-left: 10px;
+          color: $grey-dark;
+          font-size: 12px;
+          font-family: $open-sans;
+          font-weight: 600;
+          letter-spacing: 5px;
+        }
+      }
+
+      &__checkmark-success {
+        width: 250px;
+        height: 250px;
+        margin: 0 auto;
+        background-image: url(../img/account/email_sent.jpg);
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+      }
+
+      &__text {
+        color: #5d6072;
+        font-size: 14px;
+        font-family: $open-sans;
+        letter-spacing: 1.5px;
+      }
+
+      &__form {
+        width: 70%;
+        max-width: 400px;
+        margin: 0 auto;
+        // this sizes makes sure the biggest form (registration) is kept intact
+        min-height: 350px;
+
+        &__input-layout {
+          margin-top: 15px;
+
+          p {
+            float: left;
+            font-size: 12px;
+            font-family: $open-sans;
+            text-align: left;
+          }
+
+          label {
+            position: relative;
+            top: -40px;
+            float: left;
+            color: $grey-dark;
+            font-size: 13px;
+            font-family: $open-sans;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+          }
+
+          label:hover {
+            cursor: pointer;
+          }
+
+          input[type=text],
+          input[type=email],
+          input[type=password] {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            height: 50px;
+            width: 100%;
+            min-width: 250px;
+
+            color: $grey-dark;
+            font-size: 18px;
+            font-family: $open-sans;
+            font-weight: 400;
+            letter-spacing: 1px;
+
+            box-shadow: none;
+            transition: none 0s ease 0s;
+            border-width: 0px 0px 1px;
+            border-style: none none solid;
+            border-color: -moz-use-text-color -moz-use-text-color $grey-light;
+            -moz-border-top-colors: none;
+            -moz-border-right-colors: none;
+            -moz-border-bottom-colors: none;
+            -moz-border-left-colors: none;
+            border-image: none;
+
+            &:focus {
+              border-color: $green;
+              transition: none;
+              outline-width: 0;
+
+              & + label {
+                color: $grey-light;
+                top: -55px;
+              }
+            }
+
+            &:valid + label {
+              color: $grey-light;
+              top: -55px;
+            }
+          }
+
+          input[type=submit] {
+            display: inline-block;
+            width: 100%;
+            padding: 12px 0;
+            margin-top: 20px;
+            vertical-align: middle;
+
+            color: $white;
+            font-size: 11px;
+            font-family: $open-sans;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-align: center;
+            text-decoration: none;
+            white-space: nowrap;
+
+            border: none;
+            border-radius: 2px;
+            background: #219d87; /* Old browsers */
+            background: -moz-linear-gradient(left, rgb(33,157,135) 0%, rgb(52,204,104) 100%); /* FF3.6+ */
+            background: -webkit-gradient(linear, left top, right top, color-stop(0%,rgb(33,157,135)), color-stop(100%,rgb(52,204,104))); /* Chrome,Safari4+ */
+            background: -webkit-linear-gradient(left, rgb(33,157,135) 0%,rgb(52,204,104) 100%); /* Chrome10+,Safari5.1+ */
+            background: -o-linear-gradient(left, rgb(33,157,135) 0%,rgb(52,204,104) 100%); /* Opera 11.10+ */
+            background: -ms-linear-gradient(left, rgb(33,157,135) 0%,rgb(52,204,104) 100%); /* IE10+ */
+            background: linear-gradient(to right, rgb(33,157,135) 0%,rgb(52,204,104) 100%); /* W3C */
+            box-shadow: 12px 20.785px 57px 0px rgba(21, 89, 65, 0.149);
+
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+
+            &:hover,
+            &:focus {
+              transition: none;
+              outline-width: 0;
+            }
+          }
+
+          input[type=checkbox] {
+            width: 20px;
+            height: 20px;
+            clear: left;
+            float: left;
+          }
+
+          // show arrow on the right side of the button
+          .arrow {
+            display: inline-block;
+            position: relative;
+            top: -25px;
+            right: 12px;
+            width: 19px;
+            height: 11px;
+            float: right;
+            background: url(../img/account/arrow.png);
+            background-repeat: no-repeat;
+            background-size: cover;
+          }
+
+          .forgot-password-link > a {
+            clear: left;
+            float: left;
+            color: $green;
+            font-size: 10px;
+            font-family: $open-sans;
+            font-weight: 500;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+          }
+
+        }
+
+        // if the input is errored change some (make red colors) styles
+        &__input-layout.errored {
+          label {
+            color: $red;
+          }
+
+          input[type=text],
+          input[type=email],
+          input[type=password] {
+            border-color: $red;
+
+            &:focus {
+              border-color: $red;
+
+              & + label {
+                color: $red;
+                top: -55px;
+              }
+            }
+
+            &:valid + label {
+              color: $red;
+              top: -55px;
+            }
+          }
+        }
+
+        // div displaying the error message
+        .error-info {
+          width: 100%;
+          color: $white;
+          background-color: $red;
+          font-size: 13px;
+          font-family: $open-sans;
+          font-weight: 200;
+          padding: 8px;
+        }
+      }
+    }
+
+    // keep at bottom
+    &__footer {
+      position: absolute;
+      bottom: 0;
+      height: $footer-height;
+      width: $width-left;
+
+      &__content {
+        // take up the whole parent element
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+
+        z-index: 8;
+
+        background: $white;
+        color: #5d6072;
+        font-size: 16px;
+        font-family: $open-sans;
+        font-weight: 400;
+        border-top: 1px solid $grey-light;
+        vertical-align: middle;
+        line-height: $footer-height;
+      }
+
+      // switch footer content with this one when footer is hovered
+      &__content-onhover {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+
+        // hide until footer is hovered
+        z-index: 7;
+
+        background: $white;
+        font-size: 16px;
+        font-family: $open-sans;
+        font-weight: 400;
+        border-top: 1px solid $grey-light;
+        border: none;
+
+        vertical-align: middle;
+      }
+
+      // on hover, lower the z-index so to show &__hovered element
+      &__content:hover {
+        z-index: 6;
+      }
+
+      // once onhover is ontop, increase its z-index so to stay there while hovered
+      &__content-onhover:hover {
+        z-index: 9;
+        display: visible;
+      }
+
+      // style specific for elements INSIDE the footer
+      &__create-account {
+        height: 100%;
+        background-image: url(../img/account/create_account_footer.jpg);
+        background-repeat: no-repeat;
+        background-size: cover;
+        background-position: center;
+
+        a {
+          color: $white;
+          display: block;
+          font-family: $open-sans;
+          font-size: 11px;
+          font-weight: 500;
+          height: 100%;
+          letter-spacing: 3px;
+          line-height: 150px;
+          text-align: center;
+          text-decoration: none;
+          text-transform: uppercase;
+          // weird bg issue
+          width: 101%;
+        }
+
+        a:hover {
+          color: $grey-light;
+        }
+
+        .arrow {
+          background: url(../img/account/arrow.png) no-repeat;
+          background-size: 100% auto;
+          display: inline-block;
+          height: 11px;
+          margin-left: 5px;
+          position: relative;
+          top: 1px;
+          width: 19px;
+        }
+      }
+
+      &__login {
+        height: 100%;
+
+        &__content {
+          position: relative;
+          top: 50%;
+          transform: translateY(-50%);
+          display: inline-block;
+          margin: 0 auto;
+
+          a {
+            color: $grey-dark;
+            font-size: 11px;
+            font-family: $open-sans;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-align: center;
+            text-decoration: none;
+          }
+
+          a:hover {
+            color: #000;
+          }
+        }
+      }
+    }
+  }
+
+  &__right {
+    background: url(../img/account/background.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: right;
+    display: inline-block;
+    height: 100%;
+    overflow: hidden;
+    padding-left: 490px;
+    width: 100%;
+
+    // every display: inline-block inner elem will be centered (like margin 0 auto)
+    text-align: center;
+
+    &__inner {
+      // the following center vertically on parent with position: absolute
+      position: relative;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-block;
+
+      width: 90%;
+      // so to display the circle from the background properly
+      max-width: 624px;
+      min-height: 550px;
+      background: url(../img/account/circle.png);
+      background-repeat: no-repeat;
+      background-size: 100% auto;
+      background-position: right;
+
+      &__content {
+        // I have no idea why this centers it.
+        position: relative;
+        top: 125%;
+        transform: translateY(125%);
+        display: inline-block;
+
+        > div {
+          margin-bottom: 30px;
+        }
+
+        &__title {
+          color: $white;
+          font-size: 40px;
+          font-family: $open-sans;
+          font-weight: 300;
+        }
+
+        // separator is simple grey line between the title and the text
+        &__separator {
+          margin: 0 auto;
+          min-height: 1px;
+          max-width: 50px;
+          background-color: $grey-dark;
+        }
+
+        &__text {
+          text-transform: uppercase;
+          color: $grey-dark;
+          font-size: 15px;
+          font-family: $open-sans;
+          font-weight: 400;
+        }
+      }
+    }
+  }
+
+}
+
+
+@media (max-width: 1024px) {
+  .account {
+    &__right__inner__content__title {
+      font-size: 32px;
+    }
+
+    &__right__inner__content__text {
+      margin: 0 auto;
+      width: 180px;
+    }
+  }
+}
+
+
+
+@media (max-width: 959px) {
+  .account {
+
+    &__left {
+      width: 100%;
+
+      // @!@@@!@!@!@! this is because I can't seem to understand
+      // how to make footer with no position: absolute
+      &__footer {
+        width: 100%;
+      }
+    }
+
+    &__right {
+      display: none;
+    }
+  }
+}
