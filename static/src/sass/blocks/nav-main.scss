@@ -10,14 +10,6 @@ body.appstate--nav-main--open .nav-main {
   top: 18px;
   z-index: $zindex-nav-main - 1;
 
-  &__logo {
-    display: inline-block;
-    width: 34px;
-    height: 18px;
-    background: transparent url(../img/blocks/nav-main/logo.png) no-repeat center top;
-    background-size: auto 100%;
-  }
-
   &__menu {
     display: inline-block;
     width: 23px;
@@ -28,9 +20,8 @@ body.appstate--nav-main--open .nav-main {
 }
 
 .nav-main {
-  background: #0f161e;
-  border-left: 20px solid #0f161e;
-  border-right: 20px solid #0f161e;
+  background: #081222;
+  box-shadow: 0px 8px 84.28px 13.72px rgba(0, 0, 1, 0.46);
   font-family: $font-open-sans;
   height: calc(100% - 60px);
   position: fixed;
@@ -44,42 +35,64 @@ body.appstate--nav-main--open .nav-main {
     text-decoration: none;
   }
 
-  ul {
+  &__primary {
     list-style: none;
-    padding-top: 10px;
-  }
+    padding-top: 40px;
 
-  li {
-    display: block;
-    padding: 14px 15px;
-
-    a {
-      color: #777A84;
+    li {
       display: block;
-      font-weight: 300;
-      font-size: 18px;
 
-      .underline {
-        display: none;
-        width: 40px;
-        margin-top: 10px;
-        border-bottom: 1px green solid;
-      }
-    }
-
-    &.active a {
-      color: #fff;
-
-      .underline {
+      a {
+        color: #80828c;
         display: block;
+        font-family: $font-oswald;
+        font-weight: 300;
+        font-size: 18px;
+        text-transform: uppercase;
+        padding: 10px 0 10px 46px;
+        position: relative;
+      }
+
+      &.active a {
+        &:after {
+          background-image: linear-gradient(0deg, rgb(33,157,135) 0%, rgb(52,204,104) 100%);
+          content: '';
+          position: absolute;
+          left: 0px;
+          top: 0;
+          width: 3px;
+          height: 100%;
+          z-index: 1065;
+        }
+
+        color: #fff;
       }
     }
   }
 
-  a.sign-out {
-    color: #777A84;
+  &__secondary {
+    list-style: none;
+    padding-top: 28px;
+
+    li {
+      display: block;
+      padding: 8px 0 8px 46px;
+
+      a {
+        color: #80828c;
+        display: block;
+        font-size: 13px;
+      }
+    }
+  }
+
+  &__sponsors {
+    background: transparent url(../img/temp/sponsors.jpg) no-repeat left top;
+    background-size: 100% auto;
+    width: 231px;
+    height: 28px;
     position: absolute;
-    left: 15px;
-    bottom: 60px;
+    bottom: 15px;
+    left: 24px;
   }
 }

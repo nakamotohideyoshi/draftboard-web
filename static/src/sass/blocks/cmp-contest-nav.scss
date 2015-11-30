@@ -62,6 +62,7 @@ $contest-nav-foreground-color: #25A758;
 
       > svg {
         cursor: pointer;
+        margin: 6px 0 0 6px;
       }
 
       .line-top {
@@ -80,7 +81,7 @@ $contest-nav-foreground-color: #25A758;
 
       &.closed {
         .icon {
-          margin-top: 3px;
+          margin-top: 6px;
         }
 
         .line-top {

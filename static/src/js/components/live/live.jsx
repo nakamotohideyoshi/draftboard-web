@@ -19,7 +19,7 @@ import { updateLiveMode } from '../../actions/live'
 // set up API calls to mock for now
 import request from 'superagent'
 import urlConfig from '../../fixtures/live-config'
-
+require('superagent-mock')(request, urlConfig)
 
 
 /**

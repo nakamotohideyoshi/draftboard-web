@@ -13,11 +13,6 @@ import { fetchContestIfNeeded } from './live-contests'
 import { setCurrentLineups } from './current-lineups'
 
 
-// NOTE Mock URLs for now rather than hit the Django API
-import urlConfig from '../fixtures/live-config'
-require('superagent-mock')(request, urlConfig)
-
-
 function requestEntries() {
   log.debug('actionsEntries.requestEntries')
 
