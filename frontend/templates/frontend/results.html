@@ -1,7 +1,10 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 
-{% block body %}
+{% block body_class %}one-col one-col--live-nba{% endblock %}
+
+{% block content_container %}
   {% include 'frontend/partials/contest-nav.html' %}
-  <section class="results-page">
-  </section>
-{% endblock %}
+
+  <section class="results-page"></section>
+{% endblock content_container %}
