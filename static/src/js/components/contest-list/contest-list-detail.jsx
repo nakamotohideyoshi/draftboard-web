@@ -102,8 +102,8 @@ var ContestListDetail = React.createClass({
               <h3>{liveIn.hours}:{liveIn.minutes}:{liveIn.seconds}</h3>
 
               <div className="contest-info">
-                <span>Prize Pool: ${this.props.contest.prize_pool}</span>
-                <span>Fee: ${this.props.contest.buyin}</span>
+                <span>Prize Pool: ${this.props.contest.prize_pool.toFixed(2)}</span>
+                <span>Fee: ${this.props.contest.buyin.toFixed(2)}</span>
                 <span>Entrants: {this.props.contest.current_entries} / {this.props.contest.entries}</span>
               </div>
 

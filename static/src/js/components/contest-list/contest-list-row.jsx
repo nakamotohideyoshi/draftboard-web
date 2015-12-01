@@ -122,8 +122,8 @@ var ContestListRow = React.createClass({
         </td>
         <td key="name" className="name">{this.props.row.name} {guaranteedIcon}</td>
         <td key="entries" className="entries">{multiEntryIcon} {this.props.row.current_entries}/{this.props.row.entries}</td>
-        <td key="fee" className="fee">${this.props.row.buyin}</td>
-        <td key="prizes" className="prizes">${this.props.row.buyin}</td>
+        <td key="fee" className="fee">${this.props.row.buyin.toFixed(2)}</td>
+        <td key="prizes" className="prizes">${this.props.row.prize_pool.toFixed(2)}</td>
         <td key="start" className="start">{timeRemaining}</td>
 
         <td className="enter">
