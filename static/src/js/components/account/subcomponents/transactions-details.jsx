@@ -21,6 +21,14 @@ const TransactionsDetails = React.createClass({
     this.setState({'section': event.target.attributes.href.value});
   },
 
+  componentWillMount() {
+    document.body.classList.add('pane-transactions')
+  },
+
+  componentWillUnmount() {
+    document.body.classList.remove('pane-transactions')
+  },
+
   renderPaneHeader() {
     return (
       <div className="pane__header">
