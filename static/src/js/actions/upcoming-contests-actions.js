@@ -54,7 +54,7 @@ export function fetchUpcomingContests() {
         } else {
           // Normalize contest list by ID.
           const normalizedContests = normalize(
-            res.body.results,
+            res.body,
             arrayOf(contestSchema)
           )
 
@@ -113,7 +113,7 @@ export function enterContest(contestId, lineupId) {
     return request
       .post('/api/contest/enter-lineup/')
       .set({
-        'X-REQUESTED-WITH':  'XMLHttpRequest',
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
         'X-CSRFToken': Cookies.get('csrftoken'),
         'Accept': 'application/json'
       })
