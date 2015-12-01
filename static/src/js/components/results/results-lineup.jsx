@@ -2,6 +2,7 @@
 
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
+import ResultsPane from './results-pane.jsx';
 
 const ResultsLineup = React.createClass({
 
@@ -36,7 +37,10 @@ const ResultsLineup = React.createClass({
   },
 
   getInitialState() {
-    return {renderLineup: true};
+    return {
+      renderLineup: true,
+      renderContestPane: false
+    };
   },
 
   handleSwitchToLineup() {
@@ -45,6 +49,25 @@ const ResultsLineup = React.createClass({
 
   handleSwitchToContests() {
     this.setState({renderLineup: false});
+  },
+
+  handleShowContestPane() {
+    this.setState({renderContestPane: true});
+  },
+
+  handleHideContestPane() {
+    this.setState({renderContestPane: false});
+  },
+
+  numToPlace(n) {
+    switch(n) {
+      case 1: n += 'st'; break;
+      case 2: n += 'nd'; break;
+      case 3: n += 'rd'; break;
+      default: n += 'th';
+    }
+
+    return n;
   },
 
   renderLineup() {
@@ -105,7 +128,9 @@ const ResultsLineup = React.createClass({
   renderContests() {
     const contests = this.props.contests.map ((c) => {
       return (
-        <div key={c.id} className="contest">
+        <div key={c.id}
+             className="contest"
+             onClick={this.handleShowContestPane}>
           <div className="factor">{c.factor + 'X'}</div>
           <div className="title">{c.title}</div>
           <div className="place">{this.numToPlace(c.place)}</div>
@@ -130,20 +155,10 @@ const ResultsLineup = React.createClass({
     );
   },
 
-  numToPlace(n) {
-    switch(n) {
-      case 1: n += 'st'; break;
-      case 2: n += 'nd'; break;
-      case 3: n += 'rd'; break;
-      default: n += 'th';
-    }
-
-    return n;
-  },
-
   render() {
     let className = 'flip-container';
     if (!this.state.renderLineup) className += ' hover';
+    if (this.state.renderContestPane) className += ' shown-contest-pane';
 
     return (
       <div className={className}>
@@ -151,6 +166,7 @@ const ResultsLineup = React.createClass({
           {this.renderLineup()}
           {this.renderContests()}
         </div>
+        <ResultsPane onHide={this.handleHideContestPane} />
       </div>
     );
   }
