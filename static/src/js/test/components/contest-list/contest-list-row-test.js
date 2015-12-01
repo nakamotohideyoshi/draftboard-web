@@ -12,7 +12,9 @@ describe("ContestListRow Component", function() {
   beforeEach(function(done) {
     var props = {
       row: {'id': 8},
-      enterContest: (row) => true
+      enterContest: (row) => true,
+      focusedContest: {id: 3},
+      draftGroupsWithLineups: []
     };
 
     var self = this;
@@ -21,7 +23,12 @@ describe("ContestListRow Component", function() {
     this.targetElement = document.body.appendChild(document.createElement('table'));
     // Render the component into our fake jsdom element.
     this.component = React.render(
-      <Component row={props.row} enterContest={props.enterContest}/>,
+      <Component
+        row={props.row}
+        enterContest={props.enterContest}
+        focusedContest={props.focusedContest}
+        draftGroupsWithLineups={props.draftGroupsWithLineups}
+      />,
       this.targetElement,
       function() {
         // Once it has been rendered...

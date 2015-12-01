@@ -9,7 +9,9 @@ var ContestRangeSliderFilter = require('../contest-list/contest-range-slider-fil
 var ContestList = require('../contest-list/contest-list.jsx')
 import {fetchPrizeIfNeeded} from '../../actions/prizes.js'
 import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js'
-import {fetchUpcomingContests, enterContest, setFocusedContest} from '../../actions/upcoming-contests-actions.js'
+import {
+  fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter
+} from '../../actions/upcoming-contests-actions.js'
 import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-info-actions.js'
 import {fetchEntries} from '../../actions/entries.js'
 
@@ -26,15 +28,19 @@ var LobbyContests = React.createClass({
   propTypes: {
     allContests: React.PropTypes.object,
     filteredContests: React.PropTypes.array,
-    focusedContestId: React.PropTypes.number,
-    focusedLineupId: React.PropTypes.number,
+    focusedContest: React.PropTypes.object,
+    focusedLineup: React.PropTypes.object,
     updateFilter: React.PropTypes.func,
     fetchUpcomingContests: React.PropTypes.func,
     fetchUpcomingDraftGroupsInfo: React.PropTypes.func,
     fetchEntries: React.PropTypes.func,
     enterContest: React.PropTypes.func,
     setFocusedContest: React.PropTypes.func,
-    fetchPrizeIfNeeded: React.PropTypes.func
+    fetchPrizeIfNeeded: React.PropTypes.func,
+    updateOrderByFilter: React.PropTypes.func,
+    orderByProperty: React.PropTypes.string,
+    orderByDirection: React.PropTypes.string,
+    draftGroupsWithLineups: React.PropTypes.array
   },
 
 
@@ -68,14 +74,28 @@ var LobbyContests = React.createClass({
 
 
   // Enter the currently focused lineup into a contest.
-  handleEnterContest: function(contestId) {
-    this.props.enterContest(contestId, this.props.focusedLineupId)
+  handleEnterContest: function(contestId, e) {
+    e.stopPropagation()
+    this.props.enterContest(contestId, this.props.focusedLineup.id)
   },
 
 
   handleFocusContest: function(contest) {
     this.props.fetchPrizeIfNeeded(contest.prize_structure)
     this.props.setFocusedContest(contest.id)
+  },
+
+
+  handleSetOrderBy: function(propertyColumn) {
+    // Determine sort direction based on current sort settings.
+    let direction = 'desc'
+
+    // If we are sorting by the already-'desc'-sorted column, flip the sort direction.
+    if (propertyColumn === this.props.orderByProperty  && 'desc' === this.props.orderByDirection) {
+      direction = 'asc'
+    }
+    // Dispatch the filter update.
+    this.props.updateOrderByFilter(propertyColumn, direction)
   },
 
 
@@ -111,9 +131,12 @@ var LobbyContests = React.createClass({
 
         <ContestList
           contests={this.props.filteredContests}
-          focusedContestId={this.props.focusedContestId}
+          focusedContest={this.props.focusedContest}
+          focusedLineup={this.props.focusedLineup}
           setFocusedContest={this.handleFocusContest}
           enterContest={this.handleEnterContest}
+          setOrderBy={this.handleSetOrderBy}
+          draftGroupsWithLineups={this.props.draftGroupsWithLineups}
         />
       </div>
     );
@@ -128,11 +151,28 @@ let {Provider, connect} = ReactRedux;
 
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
+  // TODO: Put this in a selector - where derived data *should* be.
+  // get focused contest
+  let focusedContest = {id: null}
+  if (state.upcomingContests.allContests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
+    focusedContest = state.upcomingContests.allContests[state.upcomingContests.focusedContestId]
+  }
+
+  // get focused lineup
+  let focusedLineup = {id: null}
+  if (state.upcomingLineups.lineups.hasOwnProperty(state.upcomingLineups.focusedLineupId)) {
+    focusedLineup = state.upcomingLineups.lineups[state.upcomingLineups.focusedLineupId]
+  }
+
+
   return {
     allContests: state.upcomingContests.allContests,
-    focusedContestId: state.upcomingContests.allPlayers,
-    focusedLineupId: state.upcomingLineups.focusedLineupId,
-    filteredContests: upcomingContestSelector(state)
+    focusedContest,
+    focusedLineup,
+    filteredContests: upcomingContestSelector(state),
+    orderByProperty: state.upcomingContests.filters.orderBy.property,
+    orderByDirection: state.upcomingContests.filters.orderBy.direction,
+    draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups
   };
 }
 
@@ -146,7 +186,8 @@ function mapDispatchToProps(dispatch) {
     fetchEntries: () => dispatch(fetchEntries()),
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
-    fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId))
+    fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId)),
+    updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction))
   };
 }
 

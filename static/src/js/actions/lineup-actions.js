@@ -1,18 +1,27 @@
 import * as types from '../action-types.js'
 import request from 'superagent'
 import Cookies from 'js-cookie'
-import {forEach as _forEach} from 'lodash'
+import { normalize, Schema, arrayOf } from 'normalizr'
+import {forEach, uniq} from 'lodash'
 
 
-function fetchUpcomingLineupsSuccess(body) {
+// Normalization scheme for lineups.
+const lineupSchema = new Schema('lineups', {
+  idAttribute: 'id'
+})
+
+
+function fetchUpcomingLineupsSuccess(res) {
   return {
     type: types.FETCH_UPCOMING_LINEUPS_SUCCESS,
-    body
+    lineups: res.lineups,
+    draftGroupsWithLineups: res.draftGroupsWithLineups
   }
 }
 
 
 function fetchUpcomingLineupsFail(ex) {
+  window.alert(ex)
   return {
     type: types.FETCH_UPCOMING_LINEUPS_FAIL,
     ex
@@ -36,7 +45,24 @@ export function fetchUpcomingLineups() {
         if(err) {
           dispatch(fetchUpcomingLineupsFail(err))
         } else {
-          dispatch(fetchUpcomingLineupsSuccess(res.body))
+          // Normalize lineups list by ID.
+          let normalizedLineups = normalize(
+            res.body.results,
+            arrayOf(lineupSchema)
+          )
+
+          // Find unique draft groups that we have a lineup for.
+          let draftGroups = uniq(
+            res.body.results.map((lineup) => {return lineup.draft_group}),
+            function(group) {
+              return group
+            }
+          )
+
+          dispatch(fetchUpcomingLineupsSuccess({
+            draftGroupsWithLineups: draftGroups,
+            lineups: normalizedLineups.entities.lineups
+          }))
         }
     })
   }
@@ -140,7 +166,7 @@ export function saveLineup(lineup, title, draftGroupId) {
             dispatch(saveLineupFail(res.body))
           } else {
             // Upon save success, send user to the lobby.
-            document.location.href = '/frontend/lobby/?lineup-saved=true';
+            document.location.href = '/lobby/?lineup-saved=true';
           }
       });
     }
@@ -155,7 +181,7 @@ export function importLineup(lineup, getState) {
 
     // Since the lineup API endpoint 'player' doesn't have the same info as the DraftGruoup
     // 'player', we need to grab the corresponding DraftGroup player object and use that.
-    _forEach(lineup.players, function(player) {
+    forEach(lineup.players, function(player) {
       // Get the DraftGroup player
       let DraftGroupPlayer = state.draftDraftGroup.allPlayers[player.player_id];
       //  Copy and append the idx to the player.

@@ -7,7 +7,7 @@ var renderComponent = require('../../lib/render-component');
 import {importLineup, saveLineup, removePlayer, fetchUpcomingLineups, createLineupInit
   } from '../../actions/lineup-actions.js';
 var log = require("../../lib/logging");
-
+import {map as _map} from 'lodash'
 
 
 /**
@@ -18,7 +18,7 @@ var DraftLineupCardList = React.createClass({
 
   propTypes: {
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
-    lineups: React.PropTypes.array.isRequired,
+    lineups: React.PropTypes.object.isRequired,
     newLineup: React.PropTypes.object.isRequired,
     createLineupInit: React.PropTypes.func.isRequired,
     removePlayer: React.PropTypes.func.isRequired,
@@ -72,7 +72,7 @@ var DraftLineupCardList = React.createClass({
 
 
   render: function() {
-    var lineups = this.props.lineups.map(function(lineup) {
+    var lineups = _map(this.props.lineups, function(lineup) {
       var refName = 'lineup-' + lineup.id;
       return (
         <LineupCard

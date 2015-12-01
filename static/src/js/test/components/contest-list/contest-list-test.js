@@ -11,12 +11,15 @@ describe("ContestList Component", function() {
 
   beforeEach(function(done) {
     var self = this;
+    let props = {
+      setOrderBy: function() {return true}
+    }
     document.body.innerHTML = '';
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
     this.contestListComponent = React.render(
-      <ContestListComponent />,
+      <ContestListComponent setOrderBy={props.setOrderBy} />,
       this.targetElement,
       function() {
         // Once it has been rendered...

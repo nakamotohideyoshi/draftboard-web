@@ -60,11 +60,11 @@ export function fetchUpcomingContests() {
 
           return dispatch(fetchUpcomingContestsSuccess({
             contests: normalizedContests.entities.contests
-          }));
+          }))
         }
       }
-    );
-  };
+    )
+  }
 }
 
 
@@ -82,6 +82,17 @@ export function updateFilter(filterName, filterProperty, match) {
       filterName,
       filterProperty,
       match
+    }
+  }
+}
+
+
+export function updateOrderByFilter(property, direction='desc') {
+  return {
+    type: types.UPCOMING_CONTESTS_ORDER_CHANGED,
+    orderBy: {
+      property,
+      direction
     }
   }
 }
@@ -109,6 +120,7 @@ export function enterContest(contestId, lineupId) {
       .send(postData)
       .end(function(err, res) {
         if(err) {
+          window.alert(res.body)
           console.error(res.body)
         } else {
           console.log(res)
