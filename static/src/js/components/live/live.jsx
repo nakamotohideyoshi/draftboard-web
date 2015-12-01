@@ -1,6 +1,11 @@
 import React from 'react'
 import * as ReactRedux from 'react-redux'
 import renderComponent from '../../lib/render-component'
+import { Router, Route } from 'react-router'
+import createBrowserHistory from 'history/lib/createBrowserHistory'
+import { syncReduxAndRouter } from 'redux-simple-router'
+import { updatePath } from 'redux-simple-router'
+import { vsprintf } from 'sprintf-js'
 
 import * as AppActions from '../../stores/app-state-store'
 import errorHandler from '../../actions/live-error-handler'
@@ -21,6 +26,10 @@ import request from 'superagent'
 import urlConfig from '../../fixtures/live-config'
 
 
+const history = createBrowserHistory()
+syncReduxAndRouter(history, store)
+
+
 /**
  * The overarching component for the live  section.
  *
@@ -36,14 +45,29 @@ var Live = React.createClass({
     currentLineupsStats: React.PropTypes.object.isRequired,
     liveDraftGroups: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object,
+    params: React.PropTypes.object,
     prizes: React.PropTypes.object,
     entries: React.PropTypes.object,
-    updateLiveMode: React.PropTypes.func
+    updateLiveMode: React.PropTypes.func,
+    updatePath: React.PropTypes.func
   },
 
 
   componentWillMount: function() {
     require('superagent-mock')(request, urlConfig)
+
+    const urlParams = this.props.params
+    let newMode = {
+      type: 'lineup',
+      lineupId: urlParams.lineupId
+    }
+    if ('contestId' in urlParams) {
+      newMode.type = 'contest'
+      newMode.contestId = urlParams.contestId
+    }
+
+    this.props.updateLiveMode(newMode)
+
     store.dispatch(
       fetchEntriesIfNeeded()
     ).catch(
@@ -70,12 +94,11 @@ var Live = React.createClass({
 
 
   returnToLineup: function() {
-    console.log('hi')
+    this.props.updatePath(vsprintf('/live/lineups/%d/', [this.props.mode.lineupId]))
+
     const newMode = Object.assign({}, this.props.mode, {
       type: 'lineup'
     })
-
-    console.log(newMode)
 
     this.props.updateLiveMode(newMode)
   },
@@ -203,7 +226,8 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id))
+    updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),
+    updatePath: (path) => dispatch(updatePath(path))
   }
 }
 
@@ -215,7 +239,10 @@ var LiveConnected = connect(
 
 renderComponent(
   <Provider store={store}>
-    <LiveConnected />
+    <Router history={history}>
+      <Route path="/live/lineups/:lineupId" component={LiveConnected} />
+      <Route path="/live/lineups/:lineupId/contests/:contestId/" component={LiveConnected} />
+    </Router>
   </Provider>,
   '.cmp-live'
 )
