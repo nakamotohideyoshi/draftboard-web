@@ -17,15 +17,22 @@
 
   &-divider,
   &-type {
-    color: #46495e;
-    font-size: 16px;
+    color: #babdc9;
+    font-family: $font-open-sans;
+    font-size: 13px;
+    font-weight: 500;
   }
 
   &-type {
-    background: url(../img/blocks/button-multi-entry/select_arrow.png) no-repeat 100% 50%;
+    background: url(../img/common/select-arrow.png) no-repeat 100% 50%;
     background-size: 7px auto;
     padding-right: 12px;
+    color: #46495e;
     cursor: pointer;
+    font-family: $font-open-sans;
+    font-size: 13px;
+    font-weight: 500;
+    text-transform: none;
 
     &:hover {
       color: #26c661;

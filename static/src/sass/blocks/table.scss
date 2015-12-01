@@ -118,7 +118,7 @@ category: Tables
   width: 100%;
 
   thead {
-    background: #dee0e8;
+    background: #d0d3db;
   }
 
   tbody {
@@ -163,12 +163,13 @@ category: Tables
   }
 
   th {
-    color: #6d718a;
+    color: #fff;
     cursor: pointer;
     font-size: 10px;
-    font-weight: 500;
-    padding: 3px 5px;
+    font-weight: 600;
+    padding: 5px 10px;
     text-transform: uppercase;
+    text-align: left;
 
     &.active {
       color: #fff;

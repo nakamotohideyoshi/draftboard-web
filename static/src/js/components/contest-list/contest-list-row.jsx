@@ -19,9 +19,11 @@ var ContestListRow = React.createClass({
   propTypes: {
     row: React.PropTypes.object.isRequired,
     columns: React.PropTypes.array,
-    focusedContestId: React.PropTypes.any,
+    focusedLineup: React.PropTypes.object,
+    focusedContest: React.PropTypes.object,
     enterContest: React.PropTypes.func,
-    setFocusedContest: React.PropTypes.func
+    setFocusedContest: React.PropTypes.func,
+    draftGroupsWithLineups: React.PropTypes.array
   },
 
 
@@ -62,9 +64,31 @@ var ContestListRow = React.createClass({
   },
 
 
+  getEnterButton: function() {
+    if (this.props.draftGroupsWithLineups.indexOf(this.props.row.draft_group) !== -1) {
+      return (
+        <span
+          className="button button--mini--outline button--green-outline"
+          onClick={this.props.enterContest.bind(null, this.props.row.id)}>
+          Enter
+        </span>
+      )
+    } else {
+      return (
+        <span
+          className="button button--mini--outline button--green-outline"
+          onClick={this.props.enterContest.bind(null, this.props.row.id)}>
+          Draft
+        </span>
+      )
+    }
+
+  },
+
+
   render: function() {
     // If it's the currently focused contest, add a class to it.
-    var classes = this.props.focusedContestId === this.props.row.id ? 'active ' : '';
+    var classes = this.props.focusedContest.id === this.props.row.id ? 'active ' : '';
     classes += 'cmp-contest-list__row';
 
     // Icons
@@ -85,6 +109,8 @@ var ContestListRow = React.createClass({
       </span>
     );
 
+    let enterButton = this.getEnterButton()
+
     return (
       <tr
         onClick={this.handleRowClick.bind(this, this.props.row)}
@@ -92,16 +118,16 @@ var ContestListRow = React.createClass({
         className={classes}
       >
         <td key="sport" className="sport">
-          <span className={"icon icon-" + this.props.row.sport}>{this.props.row.sport}</span>
+          <span className={"icon icon-" + this.props.row.sport}></span>
         </td>
-        <td key="name" className="name">{this.props.row.name}</td>
+        <td key="name" className="name">{this.props.row.name} {guaranteedIcon}</td>
         <td key="entries" className="entries">{multiEntryIcon} {this.props.row.current_entries}/{this.props.row.entries}</td>
-        <td key="fee" className="fee">{this.props.row.buyin}</td>
-        <td key="prizes" className="prizes">{guaranteedIcon} {this.props.row.buyin}</td>
+        <td key="fee" className="fee">${this.props.row.buyin}</td>
+        <td key="prizes" className="prizes">${this.props.row.buyin}</td>
         <td key="start" className="start">{timeRemaining}</td>
 
-        <td className="cmp-contest-list__cell">
-          <span className="button--mini--outline button--green-outline" onClick={this.props.enterContest.bind(null, this.props.row.id)}>Enter</span>
+        <td className="enter">
+          {enterButton}
         </td>
       </tr>
     );
