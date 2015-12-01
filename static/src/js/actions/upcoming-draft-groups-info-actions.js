@@ -36,7 +36,7 @@ export function fetchUpcomingDraftGroupsInfo() {
           return dispatch(fetchFail(err));
         } else {
           return dispatch(fetchSuccess({
-            draftGroups: res.body.results
+            draftGroups: res.body
           }))
         }
     })

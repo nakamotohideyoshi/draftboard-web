@@ -66,9 +66,6 @@ export function mockStore(reducer, initialState, checks = [], done) {
       // This is added in order to check the value of actions after being dispatched
       // We shift off the latest check and if it's a function we run it
       const check = checks.shift()
-      // console.log('-------')
-      // console.log(action.type)
-      // console.log(check)
       try {
         if (typeof check === 'function') {
           check(action, getState())

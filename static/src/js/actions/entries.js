@@ -29,7 +29,7 @@ function receiveEntries(response) {
     idAttribute: 'id'
   })
   const normalizedEntries = normalize(
-    response.results,
+    response,
     arrayOf(entriesSchema)
   )
 
