@@ -285,6 +285,7 @@ $results-selected-text-color: #50C48F;
       display: inline-block;
       margin-right: 40px;
       background-color: #353849;
+      cursor: pointer;
 
       .header {
         color: white;
@@ -369,6 +370,10 @@ $results-selected-text-color: #50C48F;
 
     .flip-container.hover .flipper {
       transform: rotateY(180deg);
+    }
+
+    .flip-container.shown-contest-pane .pane {
+      right: 0px;
     }
 
     .flip-container, .lineup, .contests {
