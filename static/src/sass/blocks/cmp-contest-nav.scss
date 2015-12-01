@@ -67,7 +67,7 @@ $contest-nav-foreground-color: #25A758;
 
       .line-top {
         transition: all 0.2s ease-in-out;
-        transform-origin: 77% 0%;
+        transform-origin: 77% 77%;
       }
 
       .line-middle {
@@ -76,7 +76,7 @@ $contest-nav-foreground-color: #25A758;
 
       .line-bottom {
         transition: all 0.2s ease-in-out;
-        transform-origin: 77% 0%;
+        transform-origin: 77% 77%;
       }
 
       &.closed {
@@ -87,7 +87,7 @@ $contest-nav-foreground-color: #25A758;
         .line-top {
           transition: all 0.2s ease-in-out;
           transform: rotate(-45deg);
-          transform-origin: 77% 0%;
+          transform-origin: 77% 77%;
         }
 
         .line-middle {
@@ -97,7 +97,7 @@ $contest-nav-foreground-color: #25A758;
         .line-bottom {
           transition: all 0.2s ease-in-out;
           transform: rotate(45deg);
-          transform-origin: 77% 0%;
+          transform-origin: 77% 77%;
         }
       }
     }
