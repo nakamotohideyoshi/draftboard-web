@@ -14,6 +14,10 @@ var PrizeStructure = React.createClass({
     let place = 0
     let rankList = []
 
+    if (typeof this.props.structure.info == 'undefined') {
+      return ''
+    }
+
      _forEach(this.props.structure.info.ranks, function(item) {
       place = place + 1
       rankList.push(

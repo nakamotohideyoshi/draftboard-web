@@ -113,7 +113,7 @@ export function enterContest(contestId, lineupId) {
     return request
       .post('/api/contest/enter-lineup/')
       .set({
-        'X-REQUESTED-WITH':  'XMLHttpRequest',
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
         'X-CSRFToken': Cookies.get('csrftoken'),
         'Accept': 'application/json'
       })
