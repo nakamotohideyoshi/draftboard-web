@@ -3,11 +3,8 @@
 import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
+import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
-
-
-export const REQUEST_PRIZE = 'REQUEST_PRIZE'
-export const RECEIVE_PRIZE = 'RECEIVE_PRIZE'
 
 
 function requestPrize(id) {
@@ -15,7 +12,7 @@ function requestPrize(id) {
 
   return {
     id: id,
-    type: REQUEST_PRIZE
+    type: ActionTypes.REQUEST_PRIZE
   }
 }
 
@@ -24,7 +21,7 @@ function receivePrize(id, response) {
   log.debug('actionsLivePrize.receivePrize')
 
   return {
-    type: RECEIVE_PRIZE,
+    type: ActionTypes.RECEIVE_PRIZE,
     id: id,
     info: response,
     expiresAt: Date.now() + 86400000

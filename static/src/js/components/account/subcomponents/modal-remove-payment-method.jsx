@@ -27,9 +27,10 @@ const ModalRemovePaymentMethod = React.createClass({
       <Modal
         isOpen={this.state.isOpen}
         onClose={this.close}
+        className='cmp-modal-payment-action'
       >
         <div>
-          <header className="cmp-modal__header">Are you sure you want to delete this credit card</header>
+          <header className="cmp-modal__header">Are you sure you want to delete this credit card?</header>
 
           <div className="cmp-modal__content">
             <form onSubmit={this.props.onConfirm} >

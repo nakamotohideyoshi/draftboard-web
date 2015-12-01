@@ -39,6 +39,7 @@ var ModalAddPaymentMethod = React.createClass({
       <Modal
         isOpen={this.state.isOpen}
         onClose={this.close}
+        className='cmp-modal-payment-action'
       >
         <div>
           <div className="cmp-modal__content">

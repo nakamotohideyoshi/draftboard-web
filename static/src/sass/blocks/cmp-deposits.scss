@@ -1,0 +1,6 @@
+// Modal windows in the deposits section -> green close icon
+.cmp_modal, .cmp-modal-payment-action {
+  .cmp-modal__close {
+    background: url('../img/components/modal/close_green.png');
+  }
+}

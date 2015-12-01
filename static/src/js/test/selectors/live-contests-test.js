@@ -28,15 +28,12 @@ describe('selectorsLiveContests', () => {
     const store = mockStore(reducers, { entries: {} })
 
     store.dispatch(fetchEntriesIfNeeded()).then(() => {
-      store.dispatch(addEntriesPlayers()).then(() => {
-        var state = store.getState()
+      var state = store.getState()
+      var data = liveContestsStatsSelector(state)
 
-        var data = liveContestsStatsSelector(state)
+      expect(data[2].entriesStats[1].points).to.equal(71)
 
-        expect(data[0].stats[1].points).to.equal(71)
-
-        done()
-      })
+      done()
     })
   })
 

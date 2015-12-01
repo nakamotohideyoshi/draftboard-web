@@ -3,6 +3,7 @@ import { createSelector } from 'reselect'
 import { filter as _filter } from 'lodash'
 import { map as _map } from 'lodash'
 import { reduce as _reduce } from 'lodash'
+import { forEach as _forEach } from 'lodash'
 
 import log from '../lib/logging'
 
@@ -21,7 +22,7 @@ export const currentLineupsStatsSelector = createSelector(
   state => state.currentLineups.items,
   state => state.entries.hasRelatedInfo,
 
-  (contestStats, boxScores, entries, lineups, hasRelatedInfo) => {
+  (contestStats, liveDraftGroups, entries, lineups, hasRelatedInfo) => {
     log.debug('selectors.currentLineupsStatsSelector')
 
     if (hasRelatedInfo === false) {
@@ -32,29 +33,43 @@ export const currentLineupsStatsSelector = createSelector(
       return lineup.start < Date.now()
     })
 
-    return _map(liveLineups, (lineup) => {
-      let boxScores = liveDraftGroups[lineup.draft_group].boxScores
+    let liveLineupsStats = {}
+    _forEach(liveLineups, (lineup) => {
+      const liveDraftGroup = liveDraftGroups[lineup.draft_group]
 
-      let info = {
+      let stats = {
         id: lineup.id,
         name: lineup.name,
         start: lineup.start,
-        totalMinutes: lineup.totalMinutes
+        totalMinutes: lineup.roster.length * 48
       }
 
       if (lineup.start >= Date.now()) {
-        return info
+        liveLineupsStats[lineup.id] = stats
+        return
       }
 
-      info.minutesRemaining = _reduce(players, (player) => {
-        return boxScores[player.match].timeRemaining
-      })
+      stats.minutesRemaining = _reduce(lineup.roster, (timeRemaining, playerId) => {
+        const player = liveDraftGroup.playersInfo[playerId]
+        const game = liveDraftGroup.boxScores[player.game_srid]
 
-      info.potentialEarnings = _reduce(entries, (total, id) => {
-        return total + contestStats[id].potentialEarnings
-      })
+        // if the game hasn't started, then give full minutes remaining
+        if (game === undefined) {
+          return timeRemaining + 48
+        }
 
-      return info
+        return timeRemaining + game.timeRemaining
+      }, 0)
+
+      let potentialEarnings = 0
+      _forEach(entries, (entry) => {
+        potentialEarnings += contestStats[entry.contest].entriesStats[entry.lineup].potentialEarnings
+      })
+      stats.potentialEarnings = potentialEarnings
+
+      liveLineupsStats[lineup.id] = stats
     })
+
+    return liveLineupsStats
   }
 )

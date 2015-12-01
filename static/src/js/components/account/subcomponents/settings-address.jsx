@@ -40,7 +40,7 @@ const SettingsAddress = React.createClass({
 
   renderInfo() {
     return (
-      <div className="form-field">
+      <div className="settings__address form-field">
         <label className="form-field__label">Billing Address</label>
         <div className="form-field__content">
           <p className="form-field__static-content">
@@ -54,9 +54,12 @@ const SettingsAddress = React.createClass({
   },
 
   renderForm() {
+    let nameClasses = 'name' in this.props.errors ? 'form-field--error ' : ''
+    nameClasses += 'form-field'
+
     return (
       <form className="form" onSubmit={this.handleSubmit}>
-        <div className={'name' in this.props.errors ? 'form-field form-field--error' : 'form-field'}>
+        <div className={nameClasses}>
           <label className="form-field__label" htmlFor="name">Name</label>
           <input className="form-field__text-input" type="text" id="name" name="fullname.name" placeholder="John Doe" />
           { 'name' in this.props.errors &&

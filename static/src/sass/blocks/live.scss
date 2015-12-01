@@ -25,11 +25,6 @@ body.one-col--live-nba {
     width: 100%;
   }
 
-  &__lineup {
-    position: absolute;
-    top: 0;
-  }
-
   &--with-opponent {
     &:after {
       content: " ";
@@ -40,12 +35,5 @@ body.one-col--live-nba {
       top: 0;
       z-index: 1;
     }
-  }
-}
-
-.pmr {
-  &--complete {
-    opacity: 0.9;
-    stroke: #46495e;
   }
 }

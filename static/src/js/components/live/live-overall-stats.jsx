@@ -8,7 +8,8 @@ import { vsprintf } from 'sprintf-js'
  */
 var LiveOverallStats = React.createClass({
   propTypes: {
-    whichSide: React.PropTypes.string.isRequired
+    whichSide: React.PropTypes.string.isRequired,
+    myLineup: React.PropTypes.object.isRequired
   },
 
 
@@ -119,7 +120,7 @@ var LiveOverallStats = React.createClass({
     return (
       <div className="live-overall-stats live-overall-stats--me">
 
-        <svg className="pmr" viewBox="0 0 280 280" width="180">
+        <svg className="pmr-circle" viewBox="0 0 280 280" width="220">
           <defs>
             <linearGradient id="cl1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
              <stop stopColor={progressArc.hexEnd} />
@@ -159,41 +160,18 @@ var LiveOverallStats = React.createClass({
           </g>
         </svg>
 
-        <div className="live-overall-stats__temp-points"></div>
-
         <section className="live-overview live-overview--lineup">
-          <div className="live-overview__contests">
-            <div className="live-overview__help">
-              Contests
-            </div>
-            <h4 className="live-overview__quantity">8</h4>
-          </div>
-
           <div className="live-overview__points">
             <div className="live-overview__help">
               Points
             </div>
             <h4 className="live-overview__quantity">123</h4>
           </div>
-
-          <div className="live-overview__entries">
-            <div className="live-overview__help">
-              Entries
-            </div>
-            <h4 className="live-overview__quantity">63</h4>
+          <div className="live-overview__potential-earnings">$80</div>
+          <div className="live-overview__pmr">
+            <div className="live-overview__pmr__quantity">243</div>
+            <div className="live-overview__pmr__title">PMR</div>
           </div>
-
-          <section className="live-stack-choice live-stack-choice--me">
-            <div className="live-stack-choice__title">
-              <span>◆</span> Warriors Stack
-            </div>
-          </section>
-
-          <section className="live-stack-choice live-stack-choice--opponent">
-            <div className="live-stack-choice__title">
-              <span>◆</span> Ppgogo
-            </div>
-          </section>
         </section>
       </div>
     );

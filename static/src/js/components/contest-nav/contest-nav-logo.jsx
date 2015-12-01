@@ -14,10 +14,10 @@ const ContestNavLogo = React.createClass({
 
   render() {
     return (
-      <div className="cmp-contest-nav--logo">
-        <div className="logo"></div>
-        <div className="text">Draftboard</div>
-      </div>
+      <a href="/" className="cmp-contest-nav--logo">
+        <span className="logo"></span>
+        <span className="text">Draftboard</span>
+      </a>
     );
   }
 

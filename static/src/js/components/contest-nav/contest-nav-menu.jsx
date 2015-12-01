@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
-const React = require('react');
+const React = require('react')
 
-import {AppActions} from '../../stores/app-state-store.js'
+import * as AppActions from '../../stores/app-state-store.js'
 
 
 /**
@@ -11,16 +11,42 @@ import {AppActions} from '../../stores/app-state-store.js'
 const ContestNavMenu = React.createClass({
 
   getInitialState() {
-    return {shown: false};
+    return {shown: false}
+  },
+
+  componentWillMount() {
+    this.setState({shown: false})
+    window.addEventListener('click', this.handleWindowClick)
+  },
+
+  handleWindowClick(e) {
+    // if the nav isn't showing then return
+    if (this.state.shown === false) {
+      return true
+    }
+
+    const navMain = document.querySelectorAll(".nav-main")[0]
+    const navTrigger = document.querySelectorAll(".cmp-contest-nav--menu")[0]
+
+    const targetInNav = navMain.contains(e.target) === true || navMain === e.target
+    const targetInNavTrigger = navTrigger.contains(e.target) === true || navTrigger === e.target
+
+    // if we are clicking in the nav or its trigger, then don't close
+    if (targetInNav || targetInNavTrigger) {
+      return true
+    }
+
+    this.handleToggleHamburgerMenu()
+    return false
   },
 
   handleToggleHamburgerMenu() {
     if (this.state.shown) {
-      this.setState({shown: false});
-      AppActions.closeNavMain();
+      this.setState({shown: false})
+      AppActions.closeNavMain()
     } else {
-      this.setState({shown: true});
-      AppActions.openNavMain();
+      this.setState({shown: true})
+      AppActions.openNavMain()
     }
   },
 
@@ -30,7 +56,7 @@ const ContestNavMenu = React.createClass({
         <div className={"mobile-forum-hamburger" + (this.state.shown ? ' closed' : '')}
              onClick={this.handleToggleHamburgerMenu}>
           <svg viewBox="0 0 42 42"
-               height="30" width="30" className="icon icon-hamburger">
+               height="16" width="16" className="icon icon-hamburger">
             <g>
               <path className="line-top" d="M3,13h36" fill="none"
                     stroke="white" strokeLinejoin="bevel" strokeWidth="3"></path>
@@ -42,10 +68,10 @@ const ContestNavMenu = React.createClass({
           </svg>
         </div>
       </div>
-    );
+    )
   }
 
-});
+})
 
 
-module.exports = ContestNavMenu;
+module.exports = ContestNavMenu
