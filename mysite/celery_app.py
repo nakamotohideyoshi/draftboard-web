@@ -134,6 +134,7 @@ app.conf.update(
 
     },
 
+    CELERY_ENABLE_UTC = True,
     CELERY_TIMEZONE = 'UTC',
     CELERY_TRACK_STARTED = True,
 
