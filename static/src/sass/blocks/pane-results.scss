@@ -1,7 +1,6 @@
 @import "../variables.scss";
 
-
-.pane-transactions {
+.results-pane {
   .pane {
     &__title {
       color: $primary-white;
@@ -30,39 +29,23 @@
         margin-top: 30px;
         display: table;
         padding: 10px 0px 10px 0px;
+        font-style: $font-georgia;
 
         div {
-          text-transform: capitalize;
-          font-style: $font-georgia;
+          display: inline-block;
+          color: $secondary-grey;
           font-size: 11px;
-
-          div {
-            color: $secondary-grey;
-            display: inline-block;
-          }
-
-          span {
-            margin-right: 5px;
-            color: #ffffff;
-          }
+          text-transform: capitalize;
         }
-      }
 
-      // the following are added because the "top" and "bottom" border of the info section
-      &__info:before, &__info:after {
-        content:'';
-        position: absolute;
-        top: 0;
-        left: 65%;
-        width: 15%;
-        height: 1px;
-        background: $primary-charcoal;
-        margin-left: -20%;
-      }
-
-      &__info:after {
-        top: inherit;
-        bottom: 0;
+        span {
+          color: #ffffff;
+          display: block;
+          font-size: 31px;
+          margin-right: 5px;
+          font-weight: bold;
+          transform: scaleY(1.7) translateY(-7px);
+        }
       }
 
       // pane__header__extra-info
@@ -70,33 +53,25 @@
         max-height: 80px;
         margin-bottom: 20px;
 
-        // pane__header__extra-info__championship
-        &__championship {
-          margin-top: 14px;
-          line-height: 20px;
+        div {
+          display: inline-block;
+          border-radius: 2px;
+          margin: 2px;
+          padding: 1px;
+          font-size: 8px;
+          width: 15px;
+          height: 15px;
+          font-weight: bold;
+        }
 
-          // pane__header__extra-info__championship__type
-          &__type {
-            font-size: 11px;
-            color: #ffffff;
-            font-weight: bold;
-            text-transform: uppercase;
-          }
+        .m {
+          color: $primary-white;
+          border: solid 1px $primary-white;
+        }
 
-          // pane__header__extra-info__championship__prize
-          &__prize {
-            font-size: 24px;
-            color: $link-green;
-            font-weight: normal;
-          }
-
-          // pane__header__extra-info__championship__championship
-          &__championship {
-            font-size: 14px;
-            color: $link-green;
-            font-weight: lighter;
-            text-shadow: 4px 4px 4px #000;
-          }
+        .g {
+          color: #50C48F;
+          border: solid 1px #50C48F;
         }
       }
 
@@ -118,10 +93,12 @@
           }
 
           div {
+            padding-top: 5px;
+            position: relative;
             width: 100%;
             font-size: 18px;
+            font-weight: bold;
             color: #ffffff;
-            position: relative;
           }
         }
       }
@@ -146,20 +123,22 @@
           margin-right: 30px;
 
           a {
+            display: inline-block;
             font-size: 12px;
             font-style: $font-georgia;
             text-transform: uppercase;
             color: $secondary-grey;
             font-weight: 600;
             text-decoration: none;
+            padding-bottom: 5px;
           }
 
           a:hover {
             opacity: .75;
           }
           a.active {
-            color: $link-green;
-            text-decoration: underline;
+            color: #43455C;
+            border-bottom: solid 1px $secondary-grey;
           }
 
         }
@@ -170,24 +149,10 @@
         width: 80%;
         margin: 0 auto;
         text-align: center;
-      }
-    }
 
-    // pane__transaction_status
-    &__transaction_status {
-      font-style: $font-georgia;
-      font-weight: bold;
-      text-transform: uppercase;
-      font-size: 11px;
-      margin: 0 auto;
-
-      // transaction_status__completed
-      &__completed {
-        @extend .pane__transaction_status;
-        background: #fff;
-        color: #000000;
-        width: 80px;
-        text-shadow: 0.5px 0px #000;
+        thead tr th {
+          color: white;
+        }
       }
     }
   }
