@@ -2,7 +2,9 @@
  * Featured contest row in the contest list of the lobby.
  */
 .featured-contests {
-  text-align: center !important;
+  &:hover {
+    background: #fff !important;
+  }
 
   &--contest {
     display: inline-block;
@@ -19,5 +21,10 @@
       width: 100%;
       height: auto;
     }
+  }
+
+  div {
+    text-align: center !important;
+
   }
 }

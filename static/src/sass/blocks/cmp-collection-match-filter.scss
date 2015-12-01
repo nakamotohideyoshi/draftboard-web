@@ -46,12 +46,17 @@
     }
 
     select {
+      &:focus {
+        outline-width: 0;
+      }
+
       // unstyle stuff
       -webkit-appearance: none;
       -moz-appearance: none;
       appearance: none;
 
-      background: transparent;
+      background: url(../img/common/select-arrow.png) no-repeat 100% 50%;
+      background-size: 7px auto;
       border: none;
       color: #fff;
       cursor: pointer;
@@ -60,7 +65,7 @@
       font-weight: 400;
       text-transform: uppercase;
       // Firefox needs a width.
-      width: 70px;
+      width: 40px;
     }
 
     option {

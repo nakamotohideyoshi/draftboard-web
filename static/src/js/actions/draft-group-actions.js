@@ -17,6 +17,7 @@ function fetchDraftgroupSuccess(body) {
 
 
 function fetchDraftgroupFail(ex) {
+  window.alert(ex)
   return {
     type: types.FETCH_DRAFTGROUP_FAIL,
     ex

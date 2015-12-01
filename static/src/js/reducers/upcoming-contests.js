@@ -5,6 +5,10 @@ const initialState = {
   filteredContests: {},
   focusedContestId: null,
   filters: {
+    orderBy: {
+      property: 'start',
+      direction: 'desc'
+    },
     contestTypeFilter: {},
     contestFeeFilter: {
       match: {minVal: 0, maxVal: null}
@@ -42,6 +46,12 @@ module.exports = function(state = initialState, action) {
         return Object.assign({}, state, {
           focusedContestId: action.contestId
         });
+
+
+      case ActionTypes.UPCOMING_CONTESTS_ORDER_CHANGED:
+        let newState = Object.assign({}, state)
+        newState.filters.orderBy = action.orderBy
+        return newState
 
 
     default:

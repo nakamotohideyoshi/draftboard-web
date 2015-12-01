@@ -1,5 +1,7 @@
-import { stringSearchFilter, matchFilter, rangeFilter } from './filters'
-import { createSelector } from 'reselect'
+import {stringSearchFilter, matchFilter, rangeFilter} from './filters'
+import {orderBy} from './order-by.js'
+import {createSelector} from 'reselect'
+
 
 /**
  * This selector will return all upcoming contests that match the user-selected filter properties
@@ -56,14 +58,28 @@ const contestsWithMatchingFee = createSelector(
 
 
 /**
- * Finally, filter them by the contest type [GPP, H2H, etc..].
+ * filter them by the contest type [GPP, H2H, etc..].
  */
 const typeFilterPropertySelector = (state) => state.upcomingContests.filters.contestTypeFilter.filterProperty
 const typeFilterMatchSelector = (state) => state.upcomingContests.filters.contestTypeFilter.match
 
-export const upcomingContestSelector = createSelector(
+export const contestsWithMatchingType = createSelector(
   [contestsWithMatchingFee, typeFilterPropertySelector, typeFilterMatchSelector],
   (collection, filterProperty, searchString) => {
     return matchFilter(collection, filterProperty, searchString)
+  }
+)
+
+
+/**
+ * Sort the contests.
+ */
+const sortDirection = (state) => state.upcomingContests.filters.orderBy.direction
+const sortProperty = (state) => state.upcomingContests.filters.orderBy.property
+
+export const upcomingContestSelector = createSelector(
+  [contestsWithMatchingType, sortProperty, sortDirection],
+  (collection, sortProperty, sortDirection) => {
+    return orderBy(collection, sortProperty, sortDirection)
   }
 )
