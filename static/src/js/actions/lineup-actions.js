@@ -47,13 +47,13 @@ export function fetchUpcomingLineups() {
         } else {
           // Normalize lineups list by ID.
           let normalizedLineups = normalize(
-            res.body.results,
+            res.body,
             arrayOf(lineupSchema)
           )
 
           // Find unique draft groups that we have a lineup for.
           let draftGroups = uniq(
-            res.body.results.map((lineup) => {return lineup.draft_group}),
+            res.body.map((lineup) => {return lineup.draft_group}),
             function(group) {
               return group
             }

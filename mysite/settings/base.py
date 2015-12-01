@@ -192,24 +192,17 @@ OPTIMAL_ACCOUNT_NUMBER          = '1000031963'
 
 # REST currently defaulting to session authentication
 REST_FRAMEWORK = {
-    # 'DEFAULT_RENDERER_CLASSES': (
-    #     'rest_framework.renderers.JSONRenderer',
-    #     'rest_framework.renderers.BrowsableAPIRenderer',
-    # ),
-
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
 
-    # 'DEFAULT_RENDERER_CLASSES': (
-    #     'rest_framework.renderers.JSONRenderer',
-    #     # 'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
-    # ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+        # 'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
+    ),
 
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE' : 50,
-
+    'DEFAULT_PAGINATION_CLASS': None
 }
 
 # Django installs
