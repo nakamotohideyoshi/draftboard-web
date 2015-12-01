@@ -35,9 +35,16 @@ function rankContestLineups(lineups, draftGroup) {
     lineupsStats[id] = stats
   })
 
+  rankedLineups = _sortBy(rankedLineups, 'points').reverse()
+
+  // set standings for use in contests pane
+  _forEach(rankedLineups, (lineup, index) => {
+    lineupsStats[lineup.id].currentStanding = parseInt(index) + 1
+  })
+
   return {
-    rankedLineups: _sortBy(rankedLineups, 'points').reverse(),
-    stats: lineupsStats
+    rankedLineups: rankedLineups,
+    entriesStats: lineupsStats
   }
 }
 
@@ -70,27 +77,35 @@ function updateFantasyPointsForLineup (lineup, draftGroup) {
 export const liveContestsStatsSelector = createSelector(
   state => state.liveContests,
   state => state.liveDraftGroups,
+  state => state.entries.hasRelatedInfo,
 
-  (contests, draftGroups) => {
+  (contests, draftGroups, hasRelatedInfo) => {
     log.debug('selectors.liveContestsStatsSelector')
 
-    var foo = _map(contests, (contest, id) => {
+    if (hasRelatedInfo === false) {
+      return {}
+    }
+
+    let contestsStats = {}
+
+    _forEach(contests, (contest, id) => {
       let stats = {
         id: contest.id,
         start: contest.info.start
       }
 
       if (contest.start >= Date.now()) {
-        return stats
+        contestsStats[id] = stats
+        return
       }
 
       stats = Object.assign({}, stats,
         rankContestLineups(contest.lineups, draftGroups[contest.info.draft_group])
       )
 
-      return stats
+      contestsStats[id] = stats
     })
 
-    return foo
+    return contestsStats
   }
 )

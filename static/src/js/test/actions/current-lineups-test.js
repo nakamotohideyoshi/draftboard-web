@@ -50,12 +50,13 @@ describe('actionsCurrentLineups', () => {
 
   it('should properly setCurrentLineups based on data from entries', (done) => {
     const store = mockStore(reducers, { entries: {} })
-    store.dispatch(fetchEntriesIfNeeded()).then(() => {
-      store.dispatch(generateLineups()).then(() => {
-        expect(store.getState().currentLineups.items[0].id).to.equal(1)
-        done()
-      })
-
+    store.dispatch(
+      fetchEntriesIfNeeded()
+    ).then(() =>
+      store.dispatch(generateLineups())
+    ).then(() => {
+      expect(store.getState().currentLineups.items[1].id).to.equal(1)
+      done()
     })
   })
 

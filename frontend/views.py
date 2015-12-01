@@ -42,7 +42,7 @@ class FrontendSettingsDepositsTemplateView(TemplateView):
 
 
 class FrontendSettingsTransactionHistoryTemplateView(TemplateView):
-    template_name = 'frontend/settings_transactions.html'
+    template_name = 'frontend/settings/transactions.html'
 
 
 class FrontendSettingsWithdrawsTemplateView(TemplateView):

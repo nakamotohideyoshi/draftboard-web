@@ -53,7 +53,7 @@ const ResultsDatePicker = React.createClass({
 
     return (
       <div className="results-date-picker">
-        <div className="toggle" onClick={this.handleToggle}>[SHOW]</div>
+        <div className="toggle" onClick={this.handleToggle}></div>
         {datePicker}
       </div>
     );

@@ -7,29 +7,17 @@ import { normalize, Schema, arrayOf } from 'normalizr'
 import { forEach as _forEach } from 'lodash'
 import { filter as _filter } from 'lodash'
 
+import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
 import { fetchContestIfNeeded } from './live-contests'
 import { setCurrentLineups } from './current-lineups'
-
-
-export const ADD_ENTRIES_PLAYERS = 'ADD_ENTRIES_PLAYERS'
-export const CONFIRM_RELATED_ENTRIES_INFO = 'CONFIRM_RELATED_ENTRIES_INFO'
-export const REQUEST_ENTRIES = 'REQUEST_ENTRIES'
-export const RECEIVE_ENTRIES = 'RECEIVE_ENTRIES'
-
-import urlConfig from '../fixtures/live-config'
-
-
-export function errorHandler(reason) {
-  console.error('uh oh', reason)
-}
 
 
 function requestEntries() {
   log.debug('actionsEntries.requestEntries')
 
   return {
-    type: REQUEST_ENTRIES
+    type: ActionTypes.REQUEST_ENTRIES
   }
 }
 
@@ -52,7 +40,7 @@ function receiveEntries(response) {
   })
 
   return {
-    type: RECEIVE_ENTRIES,
+    type: ActionTypes.RECEIVE_ENTRIES,
     items: entries || [],
     receivedAt: Date.now()
   }
@@ -71,7 +59,6 @@ export function fetchEntries() {
       .set('Accept', 'application/json')
       .end(function(err, res) {
         if(err) {
-          console.error(err)
           // TODO
         } else {
           return dispatch(receiveEntries(res.body))
@@ -100,7 +87,7 @@ function confirmRelatedEntriesInfo() {
   log.debug('actionsEntries.confirmRelatedEntriesInfo')
 
   return {
-    type: CONFIRM_RELATED_ENTRIES_INFO
+    type: ActionTypes.CONFIRM_RELATED_ENTRIES_INFO
   }
 }
 
@@ -109,17 +96,15 @@ export function fetchEntriesIfNeeded() {
   log.debug('actionsEntries.fetchEntriesIfNeeded')
 
   return (dispatch, getState) => {
-    if (shouldFetchEntries(getState())) {
-      return Promise.all([
-        Promise.all([
-          dispatch(fetchEntries())
-        ]).catch(errorHandler).then(() => {
-          dispatch(fetchRelatedEntriesInfo())
-        })
-      ]).catch(errorHandler)
-    } else {
+    if (shouldFetchEntries(getState()) === false) {
       return Promise.reject('Entries already fetched')
     }
+
+    return Promise.all([
+      dispatch(fetchEntries())
+    ]).then(() =>
+      dispatch(fetchRelatedEntriesInfo())
+    )
   }
 }
 
@@ -134,12 +119,15 @@ export function fetchRelatedEntriesInfo() {
       calls.push(dispatch(fetchContestIfNeeded(entry.contest)))
     })
 
-    return Promise.all(calls).catch(errorHandler).then(() => {
-      Promise.all([
-        dispatch(confirmRelatedEntriesInfo())
-      ]).catch(errorHandler)
-    })
-
+    return Promise.all(
+      calls
+    ).then(() =>
+      dispatch(addEntriesPlayers())
+    ).then(() =>
+      dispatch(generateLineups())
+    ).then(() =>
+      dispatch(confirmRelatedEntriesInfo())
+    )
   }
 }
 
@@ -148,7 +136,7 @@ function storeEntriesPlayers(entriesPlayers) {
   log.debug('actionsEntries.storeEntriesPlayers')
 
   return {
-    type: ADD_ENTRIES_PLAYERS,
+    type: ActionTypes.ADD_ENTRIES_PLAYERS,
     entriesPlayers: entriesPlayers
   }
 }
@@ -169,9 +157,10 @@ export function addEntriesPlayers() {
       entriesPlayers[entry.id] = state.liveContests[entry.contest].lineups[entry.lineup].roster
     })
 
+    // returning a promise such that we can chain this method
     return Promise.all([
       dispatch(storeEntriesPlayers(entriesPlayers))
-    ]).catch(errorHandler)
+    ])
   }
 }
 
@@ -180,19 +169,30 @@ export function generateLineups() {
   log.debug('actionsEntries.generateLineups')
 
   return (dispatch, getState) => {
-    let lineups = []
+    const state = getState()
+    let lineups = {}
 
     _forEach(getState().entries.items, function(entry) {
-      lineups.push({
-        id: entry.lineup,
-        name: entry.lineup_name,
-        start: entry.start,
-        roster: entry.roster
-      })
+      let id = entry.lineup
+      // let contest = state.liveContests[entry.contest]
+
+      if (id in lineups) {
+        lineups[id].contests.push(entry.contest)
+      } else {
+        lineups[id] = {
+          id: entry.lineup,
+          draft_group: entry.draft_group,
+          name: entry.lineup_name,
+          start: entry.start,
+          roster: entry.roster,
+          contests: [entry.contest]
+        }
+      }
     })
 
+    // returning a promise such that we can chain this method
     return Promise.all([
       dispatch(setCurrentLineups(lineups))
-    ]).catch(errorHandler)
+    ])
   }
 }

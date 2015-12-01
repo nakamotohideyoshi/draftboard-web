@@ -2,7 +2,8 @@ import React from 'react'
 import * as ReactRedux from 'react-redux'
 import renderComponent from '../../lib/render-component'
 
-import * as AppActions from '../../stores/app-state-store.js'
+import * as AppActions from '../../stores/app-state-store'
+import errorHandler from '../../actions/live-error-handler'
 import LiveContestsPaneConnected from '../live/live-contests-pane'
 import LiveLineup from './live-lineup'
 import LiveNBACourt from './live-nba-court'
@@ -11,11 +12,14 @@ import LivePlayerPaneConnected from '../live/live-player-pane'
 import LiveStandingsPaneConnected from '../live/live-standings-pane'
 import store from '../../store'
 import { fetchEntriesIfNeeded, generateLineups } from '../../actions/entries'
+import { liveContestsStatsSelector } from '../../selectors/live-contests'
+import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
+import { updateLiveMode } from '../../actions/live'
 
 // set up API calls to mock for now
 import request from 'superagent'
 import urlConfig from '../../fixtures/live-config'
-
+require('superagent-mock')(request, urlConfig)
 
 
 /**
@@ -27,17 +31,24 @@ import urlConfig from '../../fixtures/live-config'
 var Live = React.createClass({
 
   propTypes: {
-    mode: React.PropTypes.object
+    liveContests: React.PropTypes.object.isRequired,
+    liveContestsStats: React.PropTypes.object.isRequired,
+    currentLineups: React.PropTypes.object.isRequired,
+    currentLineupsStats: React.PropTypes.object.isRequired,
+    liveDraftGroups: React.PropTypes.object.isRequired,
+    mode: React.PropTypes.object,
+    prizes: React.PropTypes.object,
+    entries: React.PropTypes.object,
+    updateLiveMode: React.PropTypes.func
   },
 
 
   componentWillMount: function() {
-    // Mock all API responses with fixture data.
-    require('superagent-mock')(request, urlConfig)
-
-    store.dispatch(fetchEntriesIfNeeded()).then(() => {
-      store.dispatch(generateLineups())
-    })
+    store.dispatch(
+      fetchEntriesIfNeeded()
+    ).catch(
+      errorHandler
+    )
   },
 
 
@@ -58,43 +69,95 @@ var Live = React.createClass({
   },
 
 
-  render: function() {
-    var moneyLine
-    var bottomNavForRightPanes
+  returnToLineup: function() {
+    console.log('hi')
+    const newMode = Object.assign({}, this.props.mode, {
+      type: 'lineup'
+    })
 
-    switch (this.props.mode.type) {
+    console.log(newMode)
+
+    this.props.updateLiveMode(newMode)
+  },
+
+
+  render: function() {
+    const self = this
+
+    let moneyLine,
+      bottomNavForRightPanes,
+      myLineup,
+      myDraftGroup,
+      overallStats
+
+    if (self.props.entries.hasRelatedInfo === false) {
+      return (
+        <div>LOADING</div>
+      )
+    }
+
+    myLineup = self.props.currentLineups.items[self.props.mode.lineupId]
+    myDraftGroup = self.props.liveDraftGroups[myLineup.draft_group]
+
+    switch (self.props.mode.type) {
       case 'lineup':
         bottomNavForRightPanes = (
-          <div className="live-right-pane-nav live-right-pane-nav--lineup" onClick={this.toggleContests}></div>
+          <div className="live-right-pane-nav live-right-pane-nav--lineup" onClick={self.toggleContests}></div>
         )
+        overallStats = (
+          <header className="cmp-live__scoreboard live-scoreboard">
+            <h1 className="live-scoreboard__contest-name">
+              { myLineup.name }
+            </h1>
+            <LiveOverallStats
+              myLineup={ myLineup }
+              whichSide="me" />
+          </header>
+        )
+
         break
       case 'contest':
         bottomNavForRightPanes = (
-          <div className="live-right-pane-nav live-right-pane-nav--contest" onClick={this.toggleStandings}></div>
+          <div className="live-right-pane-nav live-right-pane-nav--contest" onClick={self.toggleStandings}></div>
         )
 
-        moneyLine = (<section className="live-winning-graph">
-          <div className="live-winning-graph__pmr-line">
-            <span style={{ width: '79%'}}></span>
-          </div>
+        const myContest = self.props.liveContests[self.props.mode.contestId]
 
-          <h3 className="live-winning-graph__limits live-winning-graph__min">$0</h3>
-          <h2 className="live-winning-graph__earnings">$8,221</h2>
-          <h3 className="live-winning-graph__limits live-winning-graph__max">$10,000</h3>
-        </section>)
+        overallStats = (
+          <header className="cmp-live__scoreboard live-scoreboard">
+            <h1 className="live-scoreboard__contest-name">
+              { myContest.info.name }
+              <span className="live-scoreboard__close" onClick={ self.returnToLineup }></span>
+            </h1>
+            <LiveOverallStats
+              myLineup={ myLineup }
+              liveContestsStats={ self.props.liveContestsStats }
+              currentLineupsStats={ self.props.currentLineupsStats }
+              whichSide="me" />
+          </header>
+        )
+
+        moneyLine = (
+          <section className="live-winning-graph live-winning-graph--contest-overall">
+            <div className="live-winning-graph__pmr-line">
+              <div className="live-winning-graph__winners" style={{ width: '50%' }}></div>
+              <div className="live-winning-graph__current-position" style={{ left: 0 }}></div>
+            </div>
+          </section>
+        )
     }
 
     return (
       <div>
 
-        <LiveLineup whichSide="me" />
+        <LiveLineup
+          whichSide="me"
+          mode={ self.props.mode }
+          lineup={ myLineup }
+          draftGroup={ myDraftGroup } />
 
         <section className="cmp-live__court-scoreboard">
-          <header className="cmp-live__scoreboard live-scoreboard">
-            <h1 className="live-scoreboard__contest-name">{ this.props.mode.name }</h1>
-            <LiveOverallStats whichSide="me" />
-
-          </header>
+          { overallStats }
 
           <LiveNBACourt />
 
@@ -103,12 +166,15 @@ var Live = React.createClass({
 
         </section>
 
-        <LiveLineup whichSide="opponent" />
-
         <section className="panes">
-          <LiveContestsPaneConnected lineupInfo={ this.props.mode } />
+          <LiveContestsPaneConnected
+            mode={ self.props.mode }
+            liveContests={ self.props.liveContests }
+            currentLineups={ self.props.currentLineups }
+            liveContestsStats={ self.props.liveContestsStats }
+            prizes={ self.props.prizes } />
           <LivePlayerPaneConnected />
-          <LiveStandingsPaneConnected lineupInfo={ this.props.mode } />
+          <LiveStandingsPaneConnected />
         </section>
       </div>
     )
@@ -123,13 +189,22 @@ let {Provider, connect} = ReactRedux
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    mode: state.live.mode
+    liveContests: state.liveContests,
+    currentLineups: state.currentLineups,
+    liveDraftGroups: state.liveDraftGroups,
+    entries: state.entries,
+    prizes: state.prizes,
+    mode: state.live.mode,
+    liveContestsStats: liveContestsStatsSelector(state),
+    currentLineupsStats: currentLineupsStatsSelector(state)
   }
 }
 
 // Which action creators does it want to receive by props?
-function mapDispatchToProps() {
-  return {}
+function mapDispatchToProps(dispatch) {
+  return {
+    updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id))
+  }
 }
 
 // Wrap the component to inject dispatch and selected state into it.

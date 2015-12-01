@@ -4,7 +4,15 @@
   @extend %clearfix;
   margin: 0 auto;
   position: relative;
-  width: 354px;
+  width: 100%;
+
+  &--is-losing {
+    opacity: 0.2;
+  }
+
+  &--contest-overall {
+    width: 550px;
+  }
 
   &__pmr-line {
     background: #303446;
@@ -12,12 +20,22 @@
     border-radius: 1px;
     height: 2px;
     overflow: hidden;
+  }
 
-    > span {
-      background: linear-gradient(to right, #219d87 0, #34cc68 100%);
-      display: block;
-      height: 100%;
-    }
+  &__winners {
+    background: linear-gradient(to right, #219d87 0, #34cc68 100%);
+    display: block;
+    height: 100%;
+  }
+
+  &__current-position {
+    background: #fff;
+    display: block;
+    position: absolute;
+    top: -2px;
+    height: 6px;
+    width: 6px;
+    border-radius: 50%;
   }
 
   &__limits {

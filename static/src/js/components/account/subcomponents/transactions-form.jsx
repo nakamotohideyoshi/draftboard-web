@@ -12,7 +12,11 @@ const TransactionsForm = React.createClass({
   },
 
   getInitialState() {
-    return {showCalendarInputs: false}
+    return {
+      showCalendarInputs: false,
+      startDate: null,
+      endDate: null
+    }
   },
 
   /**
@@ -20,32 +24,60 @@ const TransactionsForm = React.createClass({
    * and trigger getTransaction action with that dates
    */
   handlePastWeekFetch() {
-    // var today = moment();
-    // var weekBack = moment().add(-7, 'days');
-    // this.props.onPeriodSelected(weekBack, today);
+    this.hideCalendarInputs()
+    this.props.onPeriodSelected({isPeriod: false, days: 7, startDate: null, endDate: null})
   },
 
   handlePastMonthFetch() {
-    // var today = moment();
-    // var monthBack = moment().add(-1, 'months');
-    // this.props.onPeriodSelected(monthBack, today);
+    this.hideCalendarInputs()
+
+    let today = new Date()
+    // calculates the days in a month
+    const daysCount = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
+    this.props.onPeriodSelected({isPeriod: false, days: daysCount, startDate: null, endDate: null})
   },
 
   handleSelectDate() {
-    const toggler = !this.state.showCalendarInputs;
-    this.setState({showCalendarInputs: toggler});
+    const toggler = !this.state.showCalendarInputs
+    this.setState({showCalendarInputs: toggler})
   },
 
-  handleStartDateSelected() {
+  handleStartDateSelected(date) {
+    this.setState({ startDate: date })
+
+    if (this.endDate !== null) {
+      this.props.onPeriodSelected({
+        isPeriod: true,
+        startDate: date,
+        endDate: this.state.endDate
+      })
+    }
   },
 
-  handleEndDateSelected() {
+  handleEndDateSelected(date) {
+    this.setState({ endDate: date })
+
+    if (this.startDate !== null) {
+      this.props.onPeriodSelected({
+        isPeriod: true,
+        startDate: this.state.startDate,
+        endDate: date
+      })
+    }
+  },
+
+  hideCalendarInputs() {
+    this.setState({
+      showCalendarInputs: false,
+      startDate: null,
+      endDate: null
+    })
   },
 
   render() {
     return (
       <form
-        className="form"
+        className="form transactions-form"
         method="post"
         action="."
       >
@@ -56,18 +88,36 @@ const TransactionsForm = React.createClass({
             <span className="select-dates" onClick={this.handleSelectDate}>Select Dates</span>
 
             { this.state.showCalendarInputs &&
-              <span>
+              <div className="transactions-date-pickers">
                 <InputDayPicker
                   onDaySelected={this.handleStartDateSelected}
                   placeholder='Start Day'
                   ref='start-day-input' />
-                  -
+                <span>-</span>
                 <InputDayPicker
                   onDaySelected={this.handleEndDateSelected}
                   placeholder='End Day'
                   ref='end-day-input' />
-              </span>
+              </div>
             }
+
+            { false &&
+              <div className="transactions-date-pickers">
+                <span>
+                  <span className='input-symbol-number'>
+                    <input type='text' />
+                  </span>
+                </span>
+                <span>-</span>
+                <span>
+                  <span className='input-symbol-number'>
+                    <input type='text' />
+                  </span>
+                </span>
+              </div>
+
+            }
+
           </div>
 
           <input

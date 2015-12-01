@@ -10,8 +10,9 @@ module.exports = function(state = {
   mode: {
     // TODO live - make this dynamic based on lineup/contest
     type: 'lineup',
-    id: 2,
-    name: 'The Dream Team'
+    draftGroupId: 1,
+    lineupId: 1,
+    contestId: null
   }
 }, action) {
   switch (action.type) {
@@ -19,11 +20,7 @@ module.exports = function(state = {
       log.debug('reducersLive.LIVE_MODE_CHANGED')
 
       return update(state, { mode: {
-        $set: {
-          type: action.mode.type,
-          id: action.mode.id,
-          name: '$150k NBA Championship'
-        }
+        $set: action.mode
       }})
 
     default:

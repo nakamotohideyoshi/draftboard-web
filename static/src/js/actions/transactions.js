@@ -35,10 +35,12 @@ export function fetchTransactions() {
 }
 
 
-export function filterTransactions(startDate=null, endDate=null) {
+export function filterTransactions(isPeriod, days, startDate=null, endDate=null) {
   return {
     type: types.FILTER_TRANSACTIONS,
     filters: {
+      isPeriod,
+      days,
       startDate,
       endDate
     }

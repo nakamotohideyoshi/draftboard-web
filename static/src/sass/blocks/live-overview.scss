@@ -1,46 +1,62 @@
 .live-overview {
-  display: none;
   // temp figure until we put in the PMR circle
-  padding: 20px 0;
+  left: 52px;
+  position: absolute;
   text-align: center;
-  position: relative;
+  top: 58px;
+  z-index: 4020;
 
-  &__contests,
-  &__points,
-  &__entries {
-    display: inline-block;
-    padding: 0 26px;
-    vertical-align: middle;
+  &__points {
     width: 120px;
   }
 
   &__help {
-    color: #6d718a;
-    font-size: 9.5px;
+    font-size: 9px;
     font-family: $font-open-sans;
-    font-weight: 600;
+    font-weight: 500;
+    color: #9c9faf;
+    padding-bottom: 8px;
     text-transform: uppercase;
   }
 
   &__quantity {
     color: #fff;
+    font-size: 58px;
     font-family: $font-oswald;
     font-weight: 400;
-    margin: 0;
+    line-height: 1;
+    padding: 0;
   }
 
-  &__contests,
-  &__entries {
-    .live-overview__quantity {
-      font-size: 25px;
+  &__potential-earnings {
+    color: #26cc65;
+    font-family: $font-oswald;
+    font-weight: 300;
+    font-size: 12px;
+    padding-top: 10px;
+    text-align: center;
+  }
+
+  &__pmr {
+    background: #1b2537;
+    border-radius: 50%;
+    height: 44px;
+    text-align: center;
+    width: 44px;
+    margin: 18px auto 0;
+    border: 1px solid #1b2537;
+
+    &__quantity {
+      color: #fff;
+      font-family: $font-oswald;
+      font-size: 11.5px;
+      padding-top: 9px;
+    }
+
+    &__title {
+      font-size: 8px;
+      color: #9c9faf;
+      font-weight: 600;
     }
   }
-
-  &__points {
-    .live-overview__quantity {
-      font-size: 35px;
-      padding-bottom: 1.3em;
-    }
-  }
-
 }

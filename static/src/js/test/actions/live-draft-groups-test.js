@@ -38,7 +38,7 @@ describe('actionsLiveDraftGroups', () => {
       // receiveLiveDraftGroup
       function(action) {
         expect(action.type).to.equal('RECEIVE_LIVE_DRAFT_GROUP_INFO')
-        expect(_size(action.players)).to.equal(79)
+        expect(_size(action.players)).to.equal(74)
       },
 
       // requestLiveDraftGroupFP
@@ -58,7 +58,7 @@ describe('actionsLiveDraftGroups', () => {
 
       function(action) {
         expect(action.type).to.equal('RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
-        expect(action.boxScores[0].pk).to.equal(55)
+        expect(action.boxScores['cf9a5e4d-9487-4daf-bebc-5897f86d9199'].pk).to.equal(55)
       }
     ]
 

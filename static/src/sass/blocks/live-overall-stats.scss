@@ -6,7 +6,7 @@
   // because the pmr circle needs to be absolute
   min-height: 120px;
 
-  &__pmr-background {
+  &__pmr-circle__background {
     position: absolute;
     left: -10px;
     top: -10px;
@@ -14,7 +14,7 @@
   }
 
   // BREAKING BEM
-  .pmr {
+  .pmr-circle {
     position: relative;
     z-index: 4010;
   }
@@ -56,17 +56,4 @@
       padding-bottom: 1.3em;
     }
   }
-
-  &__temp-points {
-    // TEMP live placeholder image
-    background: transparent url(../img/temp/lineup-pmr-points.png) no-repeat left top;
-    background-size: 100% auto;
-    height: 124.5px;
-    margin: 0 auto;
-    position: absolute;
-    top: 37px;
-    left: 64px;
-    width: 60px;
-  }
-
 }

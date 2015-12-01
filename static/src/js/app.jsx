@@ -16,7 +16,6 @@ require("components/account/withdrawals.jsx");
 
 
 require("components/form-field/ssn");
-require("components/site/hamburger-menu");
 require("components/site/pane.js");
 
 // Lobby

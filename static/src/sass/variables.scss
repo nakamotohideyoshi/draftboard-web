@@ -6,13 +6,14 @@ $break-max:     1640px;
 
 
 // Layout block sizes
-$nav-main-width: 280px;
-$nav-main-min-width: 92px;
+$nav-main-width: 288px;
 $pane-width: 480px;
 $pane-header-height: 350px;
 $sidebar-width: 378px;
 $contest-nav-height: 60px;
 $transaction-detail-width: 360px;
+
+$live-pane-width: 440px;
 
 
 // Reusable z-index levels
@@ -44,3 +45,4 @@ $link-green: #2ab378;
 $font-open-sans: "Open Sans", "Arial", "Helvetica", sans-serif;
 $font-oswald: "Oswald", "Arial", "Helvetica", sans-serif;
 $font-georgia: "Georgia", "Times", "Times New Roman", serif;
+$font-courier-monospace: "Courier New", "Courier", monospace;

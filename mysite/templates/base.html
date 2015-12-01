@@ -20,72 +20,86 @@
 </head>
 
 <body class="{% block body_class %}{% endblock %}">
-    {% block body %}
+  {% block body %}
 
-      <div class="nav-main-trigger">
-        <span class="nav-main-trigger__menu"></span>
-        <div class="nav-main-trigger__logo"></div>
+    <nav class="nav-main">
+      <div class="inner">
+        <ul class="nav-main__primary">
+          <li class="lobby {% if request.path|slice:'1:5' == 'lobb' %}active{% endif %}">
+            <a href="/lobby/">Contests</a>
+          </li>
+          <li class="live {% if request.path|slice:'1:5' == 'live' %}active{% endif %}">
+            <a href="/live/">Live</a>
+          </li>
+          <li class="results {% if request.path|slice:'1:5' == 'resu' %}active{% endif %}">
+            <a href="/results/">Results</a>
+          </li>
+          <li class="my-account {% if request.path|slice:'1:5' == 'acco' %}active{% endif %}">
+            <a href="/account/settings/base/">My Account</a>
+          </li>
+          <li class="logout">
+            <a href="#">Sign Out</a>
+          </li>
+        </ul>
+
+        <ul class="nav-main__secondary">
+          <li>
+            <a href="#/">About Draftboard</a>
+          </li>
+          <li>
+            <a href="#">Press &amp; Media</a>
+          </li>
+          <li>
+            <a href="#">Help</a>
+          </li>
+          <li>
+            <a href="#">Terms of Use</a>
+          </li>
+          <li>
+            <a href="#">Privacy Policy</a>
+          </li>
+        </ul>
+
+        <div class="nav-main__sponsors"></div>
       </div>
+    </nav>
 
-      <nav class="nav-main">
-        <div class="nav-main__logo">Draftboard</div>
-        <div class="inner">
-          <ul>
-            <li class="lobby active">
-              <a href="/lobby/">Contests</a>
-            </li>
-            <li class="live">
-              <a href="/frontend/live/">Live</a>
-            </li>
-            <li class="results">
-              <a href="#">Results</a>
-            </li>
-            <li class="help">
-              <a href="#">Help</a>
-            </li>
-          </ul>
+    {% block content_container %}
+    <div class="content-container">
+      {% include 'frontend/partials/contest-nav.html' %}
 
-          <a href="#" class="my-account"><span>My Account</span></a>
+      <aside class="sidebar">
+        {% block sidebar-header %}{% endblock %}
+        <div class="sidebar-inner">
+          <div class="sidebar-content">
+            {% block sidebar %}{% endblock %}
+          </div>
         </div>
-      </nav>
+      </aside>
 
-      {% block content_container %}
-      <div class="content-container">
-        {% include 'frontend/partials/contest-nav.html' %}
+      <section class="page-content">
+        {% block page-content-header %}{% endblock %}
 
-        <aside class="sidebar">
-          {% block sidebar-header %}{% endblock %}
-          <div class="sidebar-inner">
-            <div class="sidebar-content">
-              {% block sidebar %}{% endblock %}
-            </div>
-          </div>
-        </aside>
-
-        <section class="page-content">
-          {% block page-content-header %}{% endblock %}
-
-          <div class="page-content__content">
-            {% block page_content %}
-              .page-content
-            {% endblock %}
-          </div>
-        </section>
-      </div>
-      {% endblock content_container %}
-
-      <section class="pane">
-        <div class="pane__close"></div>
-        <div class="pane__content">
-        {% block slideover-pane %}
-          .pane
-        {% endblock %}
+        <div class="page-content__content">
+          {% block page_content %}
+            .page-content
+          {% endblock %}
         </div>
       </section>
-    {% endblock body %}
+    </div>
+    {% endblock content_container %}
+
+    <section class="pane">
+      <div class="pane__close"></div>
+      <div class="pane__content">
+      {% block slideover-pane %}
+        .pane
+      {% endblock %}
+      </div>
+    </section>
+  {% endblock body %}
 
   <div class="pane__bg-cover"></div>
-
 
   <script>
   window.dfs = {

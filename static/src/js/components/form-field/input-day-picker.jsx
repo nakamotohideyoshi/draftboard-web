@@ -1,14 +1,13 @@
 'use strict';
 
-var React = require('react');
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-var moment = require('moment');
+import DatePicker from '../site/date-picker';
+import { stringifyDate } from '../../lib/time.js';
 
 
-/**
- * Input field that when clicked, opens calendar beneath
- */
-var InputDayPicker = React.createClass({
+const InputDayPicker = React.createClass({
 
   /**
    * Prop types needed for the InputDayPicker element
@@ -18,101 +17,109 @@ var InputDayPicker = React.createClass({
    */
   propTypes: {
     onDaySelected: React.PropTypes.func.isRequired,
-    placeholder: React.PropTypes.string.isRequired
+    placeholder:   React.PropTypes.string.isRequired
   },
 
-  getInitialState: function() {
-    var today = new Date();
+  getInitialState() {
     return {
-      value: '',
-      month: today,
+      date:         null,
       showCalendar: false
     };
   },
 
   /**
-  * Overwrite the input field change event use this in case
-  * when you want to let user select date directly from the input
-  */
-  handleInputChange: function(e) {
+   * Overwrite the input field change event use this in case when you
+   * want to let user select date directly from the input.
+   */
+  handleInputChange(e) {
     e.preventDefault();
   },
 
-  showCalendar: function() {
+  handleShowCalendar() {
     this.setState({showCalendar: true});
   },
 
-  hideCalendar: function() {
+  handleHide(e) {
+    if (ReactDOM.findDOMNode(this).contains(e.target)) return;
+
     this.setState({showCalendar: false});
   },
 
+  componentWillMount() {
+    document.body.addEventListener('click', this.handleHide, false);
+  },
+
+  componentWillUnmount() {
+    document.body.removeEventListener('click', this.handleHide);
+  },
+
   /**
-   * when date is selected, process it and delegate upwards to the onDaySelected prop func
+   * When date is selected, process it and delegate upwards to the
+   * `onDaySelected` prop function.
    */
-  handleDayClick: function(e, day) {
+  handleSelectDate(year, month, day) {
+    const selectedDate = new Date(year, month, day);
+
     this.setState({
-      value: moment(day).format("L"),
+      date:         selectedDate,
       showCalendar: false
-    }, this.props.onDaySelected(moment(day)));
+    });
+
+    this.props.onDaySelected(selectedDate);
   },
 
-  /**
-   * position the calendar right below the input field
-   */
-  updateCalendarStyles: function () {
-    var calendarStyles = {};
-
-    if (this.state.showCalendar) {
-      calendarStyles = {'display': 'block'};
+  renderSelectedDate() {
+    if (this.state.date) {
+      const today    = this.state.date;
+      return stringifyDate(today, '/')
     } else {
-      calendarStyles = {'display': 'none'};
+      return '';
     }
-
-    if ('input' in this.refs) {
-      calendarStyles['position'] = 'absolute'
-      calendarStyles['height'] = '250px';
-      calendarStyles['width'] = '250px';
-      calendarStyles['border'] = '1px solid black';
-      calendarStyles['top'] = '40px';
-      calendarStyles['z-index'] = '500px';
-      calendarStyles['background'] = '#fff';
-      // this.refs.input.offsetLeft only gets tricky and is browser incompatible
-      calendarStyles['left'] = this.refs.input.offsetParent.offsetLeft - 75 + 'px';
-    }
-
-    return calendarStyles;
   },
 
-  render: function() {
+  renderCalendar() {
+    if (!this.state.showCalendar) return null;
 
-    var calendarStyles = this.updateCalendarStyles();
+    const today    = this.state.date || new Date;
+    const year     = today.getFullYear();
+    const month    = today.getMonth();
+    const day      = today.getDate();
 
     return (
-      <span className="input-day-picker">
+      <DatePicker year={year}
+                  month={month}
+                  day={day}
+                  onSelectDate={this.handleSelectDate} />
+    );
+  },
 
-        <span className="input-symbol-number">
-          <input
-            className='date-picker'
-            ref='input'
-            type='text'
-            value={this.state.value}
-            placeholder={this.props.placeholder}
-            onChange={this.handleInputChange}
-            onFocus={this.showCalendar} />
-            { this.state.showCalendar &&
-              <label className="calendar-input-label">{this.props.placeholder}</label>
-            }
+  renderLabel() {
+    if (!this.state.showCalendar) return null;
+
+    return (
+      <label className="calendar-input-label">{this.props.placeholder}</label>
+    )
+  },
+
+  render() {
+    return (
+      <span className='cmp-input-date-picker'>
+        <span className='input-symbol-number'>
+        <input
+          className="date-picker-input"
+          ref='input'
+          type='text'
+          value={this.renderSelectedDate()}
+          placeholder={this.props.placeholder}
+          onChange={this.handleInputChange}
+          onFocus={this.handleShowCalendar} />
         </span>
-
-        <span style={calendarStyles}></span>
-
-          { this.state.showCalendar &&
-            <div id="daypicker-backdrop" onClick={this.hideCalendar}></div>
-          }
+        {this.renderLabel()}
+        {this.renderCalendar()}
       </span>
     );
   }
 });
 
 
-module.exports = InputDayPicker;
+export default InputDayPicker;
