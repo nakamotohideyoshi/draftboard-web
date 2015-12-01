@@ -22,6 +22,8 @@ const upcomingDraftGroups = require('./upcoming-draft-groups.js')
 const upcomingLineups = require('./lineups')
 const user = require('./user')
 const results = require('./results')
+import { routeReducer as routing } from 'redux-simple-router'
+
 
 module.exports = combineReducers({
   contests,
@@ -35,6 +37,7 @@ module.exports = combineReducers({
   liveDraftGroups,
   payments,
   prizes,
+  routing,
   transactions,
   upcomingContests,
   upcomingDraftGroups,

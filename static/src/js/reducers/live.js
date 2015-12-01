@@ -7,13 +7,7 @@ import log from '../lib/logging'
 
 // Reducer for the live section, stores what mode the app is in
 module.exports = function(state = {
-  mode: {
-    // TODO live - make this dynamic based on lineup/contest
-    type: 'lineup',
-    draftGroupId: 1,
-    lineupId: 1,
-    contestId: null
-  }
+  mode: {}
 }, action) {
   switch (action.type) {
     case ActionTypes.LIVE_MODE_CHANGED:

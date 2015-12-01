@@ -2,6 +2,7 @@ import React from 'react'
 import * as ReactRedux from 'react-redux'
 import renderComponent from '../../lib/render-component'
 import { map as _map } from 'lodash'
+import { updatePath } from 'redux-simple-router'
 import { vsprintf } from 'sprintf-js'
 
 import * as AppActions from '../../stores/app-state-store'
@@ -20,13 +21,15 @@ var LiveContestsPane = React.createClass({
     liveContestsStats: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object.isRequired,
     prizes: React.PropTypes.object.isRequired,
-    updateLiveMode: React.PropTypes.func
+    updateLiveMode: React.PropTypes.func,
+    updatePath: React.PropTypes.func
   },
 
 
   viewContest: function(contestId) {
     const mode = this.props.mode
 
+    this.props.updatePath(vsprintf('/live/lineups/%d/contests/%d/', [mode.lineupId, contestId]))
     this.props.updateLiveMode({
       type: 'contest',
       draftGroupId: mode.draftGroupId,
@@ -119,7 +122,8 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id))
+    updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),
+    updatePath: (path) => dispatch(updatePath(path))
   }
 }
 
