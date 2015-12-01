@@ -13,8 +13,12 @@
         display: inline-block;
       }
 
+      &--header-inner {
+        position: relative;
+      }
+
       .cmp-contest-list-sport-filter {
-        display: inline-block;
+        float: right;
       }
 
       // Arrow tab thing.

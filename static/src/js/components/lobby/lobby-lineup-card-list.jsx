@@ -69,11 +69,9 @@ var LineupCardList = React.createClass({
 
   /**
    * Click handler for a lineupCard
-   * @param  {int} id The cards ID TODO: this can be removed once we have legit data.
    */
-  onCardClick: function(id) {
-    lineupFocused
-    this.setActiveLineup(id);
+  onCardClick: function(lineup) {
+    this.setActiveLineup(lineup.id);
   },
 
 

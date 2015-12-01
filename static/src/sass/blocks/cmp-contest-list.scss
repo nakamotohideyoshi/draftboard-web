@@ -1,3 +1,4 @@
+@import "../variables.scss";
 $table-row-hover-bg: #f9fafb;
 
 
@@ -31,6 +32,10 @@ $table-row-hover-bg: #f9fafb;
     }
   }
 
+  .sport {
+    width: 40px;
+  }
+
   .icon-mlb,
   .icon-nfl,
   .icon-nba {
@@ -42,6 +47,18 @@ $table-row-hover-bg: #f9fafb;
     color: transparent;
     font-size: 0px;
   }
+
+  .prizes {
+    color: $primary-green;
+  }
+
+  .enter {
+    cursor: default;
+    .button {
+      text-transform: uppercase;
+    }
+  }
+
 }
 
 // Timestamp for time remaining till contest is live.
@@ -52,7 +69,6 @@ $table-row-hover-bg: #f9fafb;
   &-seconds {
     color: #46495e;
   }
-
 }
 
 
@@ -69,7 +85,6 @@ $table-row-hover-bg: #f9fafb;
 // Contest Sport
 .contest-list-filter--sport {
   display: block;
-  padding: 0px 40px 0 !important;
   width: 100%;
   z-index: 100;
 

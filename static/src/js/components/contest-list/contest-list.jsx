@@ -11,9 +11,12 @@ const ContestList = React.createClass({
 
   propTypes: {
     contests: React.PropTypes.array,
-    focusedContestId: React.PropTypes.number,
+    focusedContest: React.PropTypes.object,
+    focusedLineup: React.PropTypes.object,
     enterContest: React.PropTypes.func,
-    setFocusedContest: React.PropTypes.func
+    setFocusedContest: React.PropTypes.func,
+    setOrderBy: React.PropTypes.func,
+    draftGroupsWithLineups: React.PropTypes.array
   },
 
 
@@ -35,15 +38,10 @@ const ContestList = React.createClass({
   },
 
 
-  sortList: function(property) {
-    // ContestActions.setSortProperty(property);
-  },
-
-
   getFeaturedContests: function() {
     return (
-      <tr>
-        <td colSpan="7" className="featured-contests">
+      <tr className="featured-contests">
+        <td colSpan="7">
           <div className="featured-contests--contest">
             <img src="/static/src/img/temp/featured-contest.png" />
           </div>
@@ -69,35 +67,37 @@ const ContestList = React.createClass({
         <ContestListRow
             key={row.id}
             row={row}
-            focusedContestId={this.props.focusedContestId}
+            focusedContest={this.props.focusedContest}
+            focusedLineup={this.props.focusedLineup}
             enterContest={this.props.enterContest}
             setFocusedContest={this.props.setFocusedContest}
+            draftGroupsWithLineups={this.props.draftGroupsWithLineups}
         />
       )
     }, this);
 
     return (
-      <table className="cmp-contest-list__table table">
+      <table className="cmp-contest-list cmp-contest-list__table table">
         <thead>
           <tr className="cmp-contest-list__header-row">
             <th
               className="table__sortable"
-              onClick={this.sortList.bind(this, 'sport')}></th>
+              onClick={this.props.setOrderBy.bind(null, 'sport')}></th>
             <th
               className="table__sortable"
-              onClick={this.sortList.bind(this, 'name')}>Contest</th>
+              onClick={this.props.setOrderBy.bind(null, 'name')}>Contest</th>
             <th
               className="table__sortable"
-              onClick={this.sortList.bind(this, 'entries')}>Entries / Size</th>
+              onClick={this.props.setOrderBy.bind(null, 'entries')}>Entries / Size</th>
             <th
               className="table__sortable"
-              onClick={this.sortList.bind(this, 'buyin')}>Fee</th>
+              onClick={this.props.setOrderBy.bind(null, 'buyin')}>Fee</th>
             <th
               className="table__sortable"
-              onClick={this.sortList.bind(this, 'prize_pool')}>Prizes</th>
+              onClick={this.props.setOrderBy.bind(null, 'prize_pool')}>Prizes</th>
             <th
               className="table__sortable"
-              onClick={this.sortList.bind(this, 'start')}>Live In</th>
+              onClick={this.props.setOrderBy.bind(null, 'start')}>Live In</th>
             <th></th>
           </tr>
         </thead>
