@@ -90,7 +90,7 @@ MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string
 MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
 MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
 
-# DATADEN_ASYNC_UPDATES   = False  # for dev, we wont always have celery running
+DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 
 #
 ##########################################################################
