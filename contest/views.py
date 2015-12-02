@@ -23,6 +23,8 @@ from contest.exceptions import ContestLineupMismatchedDraftGroupsException, \
                                 ContestIsFullException, ContestCouldNotEnterException, \
                                 ContestMaxEntriesReachedException, \
                                 ContestIsNotAcceptingLineupsException
+
+from cash.exceptions import OverdraftException
 from lineup.models import Lineup
 from dataden.util.simpletimer import SimpleTimer
 from django.http import HttpResponse
@@ -290,6 +292,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
             return Response( 'Contest is not accepting entries', status=status.HTTP_403_FORBIDDEN )
         except (ContestMaxEntriesReachedException, ContestIsFullException) as e:
             return Response( 'Contest is full', status=status.HTTP_403_FORBIDDEN )
-
+        except (OverdraftException) as e:
+            return Response('You have insufficient funds to enter this contest.', status=status.HTTP_403_FORBIDDEN )
         #
         return Response('Lineup was successfully entered into the Contest!')

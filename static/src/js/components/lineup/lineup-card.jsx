@@ -1,8 +1,7 @@
-'use strict';
-
 var React = require('react');
 var LineupCardPlayer = require('./lineup-card-player.jsx');
 var Tooltip = require('../site/tooltip.jsx');
+import CountdownClock from '../site/countdown-clock.jsx'
 
 
 var LineupCard = React.createClass({
@@ -11,24 +10,22 @@ var LineupCard = React.createClass({
     isActive: React.PropTypes.bool,
     onCardClick: React.PropTypes.func.isRequired,
     lineup: React.PropTypes.object.isRequired,
-    hoverText: React.PropTypes.string
+    hoverText: React.PropTypes.string,
+    draftGroupInfo: React.PropTypes.object.isRequired
   },
 
 
   getDefaultProps: function() {
     return ({
-      hoverText: "Select This Lineup"
+      hoverText: "Select This Lineup",
+      draftGroupInfo: {}
     });
-  },
-
-  getInitialState: function() {
-    return {};
   },
 
 
   // Toggle the visibility of the tooltip.
   showControls: function() {
-    this.refs.lineupCardTip.toggle();
+    this.refs.lineupCardTip.toggle()
   },
 
 
@@ -36,6 +33,7 @@ var LineupCard = React.createClass({
     var lineup = '';
 
     if(this.props.isActive) {
+
 
       var players = this.props.lineup.players.map(function(player) {
         return (
@@ -54,11 +52,8 @@ var LineupCard = React.createClass({
               isVisible={false}
               ref="lineupCardTip"
             >
-              <span>
-                Edit and stuff in here
-              </span>
+              <span>Edit and stuff in here</span>
             </Tooltip>
-
           </header>
 
           <ul>
@@ -70,10 +65,12 @@ var LineupCard = React.createClass({
               <span className="cmp-lineup-card__footer-title">Fees</span>
               120
             </div>
+
             <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
               <span className="cmp-lineup-card__footer-title">Live In</span>
-              00:38:48
+              <CountdownClock time={this.props.draftGroupInfo.start}/>
             </div>
+
             <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
               <span className="cmp-lineup-card__footer-title">Entries</span>
               22

@@ -1,5 +1,6 @@
 import * as types from '../action-types.js'
 import request from 'superagent'
+import { normalize, Schema, arrayOf } from 'normalizr'
 
 
 /**
@@ -7,6 +8,11 @@ import request from 'superagent'
  * it's just a bunch of info about the upcoming draft groups, it's used to create
  * the draft group selection modal in the lobby.
  */
+
+
+ const draftGroupInfoSchema = new Schema('draftGroups', {
+   idAttribute: 'pk'
+ })
 
 
 function fetchSuccess(body) {
@@ -35,8 +41,14 @@ export function fetchUpcomingDraftGroupsInfo() {
         if(err) {
           return dispatch(fetchFail(err));
         } else {
+          // Normalize player list by ID.
+          const normalizedDraftGroupInfo = normalize(
+            res.body,
+            arrayOf(draftGroupInfoSchema)
+          )
+
           return dispatch(fetchSuccess({
-            draftGroups: res.body
+            draftGroups: normalizedDraftGroupInfo.entities.draftGroups
           }))
         }
     })
