@@ -55,9 +55,6 @@ class DataDenParser(object):
         ('nba','game','boxscores'),
         ('nba','team','boxscores'),
         ('nba','player','stats'),
-        # ... pbp quarter + event parsing: --- we dont really want to do this for setup purposes
-        # ('nba','quarter','pbp'),        # parent of the following
-        # ('nba','event','pbp'),          # contains the play data, including players
 
         # nhl
         ('nhl','team','hierarchy'),     # 1
@@ -75,6 +72,38 @@ class DataDenParser(object):
         ('nfl','team','stats'),
         ('nfl','team','boxscores'),
         ('nfl','player','stats')
+    ]
+
+    #
+    # the pbp objects are not something we want to enable by default,
+    # but we will want them to be enabled on the production /test/local
+    # machines at some point. They are specified in here,
+    #
+    # Enable the pbp triggers example:
+    #
+    #   >>> p = DataDenParser()
+    #   >>> p.setup_triggers( pbp=True )
+    #       ... or for just a particular sport...
+    #   >>> p.setup_triggers( sport='nfl', pbp=True )
+    #
+    PBP_TRIGGERS = [
+        #
+        # MLB
+        # TODO
+
+        #
+        # NBA    ... pbp quarter + event parsing:
+        ('nba','quarter','pbp'),        # parent of the following
+        ('nba','event','pbp'),          # contains the play data, including players
+
+        #
+        # NHL
+        # TODO
+
+        #
+        # NFL
+        # TODO
+
     ]
 
     def __init__(self):
@@ -110,7 +139,7 @@ class DataDenParser(object):
         parser = self.__get_parser( self.sport )
         parser.parse( obj ) # the sub parser will infer what type of object it is
 
-    def setup_triggers(self, sport=None, enable=True):
+    def setup_triggers(self, sport=None, enable=True, pbp=False):
         """
         Installs the triggers specified by DEFAULT_TRIGGERS to the database.
         Existing triggers will not be modified, so it can be called frequently.
@@ -123,11 +152,15 @@ class DataDenParser(object):
         Does NOT start the process which actual runs the watcher
         which starts sending signals when new objects are parsed!
 
+        By default, do not setup PBP triggers.
+        To setup the pbp triggers, call this method with pbp=True.
+
         :return:
         """
         if sport:
             self.__valid_sport(sport) # exception if it is not valid
 
+        # create all the default triggers
         for t in self.DEFAULT_TRIGGERS:
             if sport and sport != t[0]:
                 continue # skip all that dont match, if sport is specified
@@ -136,6 +169,15 @@ class DataDenParser(object):
             parent_api  = t[2]
             trg = Trigger.create( db, coll, parent_api, enable=enable )
         print('created triggers')
+
+        # create all the pbp triggers (or for the specified sport!
+        for t in self.PBP_TRIGGERS:
+            if sport and sport != t[0]:
+                continue # skip all that dont match, if sport is specified
+            db          = t[0]
+            coll        = t[1]
+            parent_api  = t[2]
+            trg = Trigger.create( db, coll, parent_api, enable=enable )
 
     def setup(self, sport, async=False):
         """
