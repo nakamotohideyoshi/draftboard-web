@@ -138,15 +138,21 @@ app.conf.update(
         # admin-defined templates on a preset schedule.
         'schedule_contests_for_tomorrow' : {
             'task'      : 'contest.schedule.tasks.create_scheduled_contests',
-            #
-            # this crontab is overkill, but it is an example
-            # of how we can run the ScheduleManager task many
-            # times on the same day.
 
             #
-            # run every 30 minutes, but only from 12 to 1, and between 5pm and 11pm
-            'schedule'  : crontab(minute='*/30', hour='12,17-23'),
-            'args'      : (1,),    # the first integer value is the offset in days for teh scheduler
+            # run every 30 minutes, but only during 12, 15, and 18 o'clock. Yeah, 18 o'clock.
+            'schedule'  : crontab(minute='*/30', hour='12,15,18'),
+
+            #
+            # alternatively, run every X seconds, instead of at specific times:
+            #'schedule': timedelta(seconds=20),
+
+            #
+            # the first integer in the tuple represents how many days
+            # in advance we want to create scheduled contests.
+            #  ... in this instance, everytime this task is fired
+            #      it ensures games for 1 day in advance are scheduled.
+            'args'      : (1,),
         },
 
     },
