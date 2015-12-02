@@ -23,7 +23,7 @@ class Schedule( models.Model ):
         unique_together = ('site_sport', 'category')
 
     def __str__(self):
-        return '%s -- category:%s enable:%s' % (self.site_sport.name, self.category.name, self.enable)
+        return '%s - %s' % (self.site_sport.name, self.category.name)
 
 class TemplateContest( contest.models.AbstractContest ):
 #class TemplateContest( contest.models.Contest ):
@@ -37,6 +37,9 @@ class TemplateContest( contest.models.AbstractContest ):
 
     # since we are not adding any properties, this makes sure
     # the model's table gets created properly
+
+    def __str__(self):
+        return self.name
 
     class Meta:
         abstract = False
@@ -64,7 +67,6 @@ class Interval(models.Model):
         days_str = '*%s* ' % str(len(days))
         return days_str +  '|'.join(days)
 
-
 class ScheduledTemplateContest( models.Model ):
     """
     this is the contest we will try to schedule when the time comes
@@ -83,26 +85,33 @@ class ScheduledTemplateContest( models.Model ):
                             help_text='so we can calculate the end time. end_time = (start_time + timedelta(minutes=duration_minutes)).')
 
     interval            = models.ForeignKey(Interval, null=False)
+
+    multiplier          = models.IntegerField(default=1, null=False,
+                            help_text='the number of copies of this contest to create (ie: you might want ten 1v1 contests of the same type active at the same time)')
     class Meta:
         unique_together = ('schedule','template_contest','start_time','duration_minutes')
 
+    def __str__(self):
+        return '%s    days:%s    Contest >>>>> %s    schedule id:%s' % (self.start_time,
+                                            self.interval, self.template_contest, self.pk)
 #
 # UNCOMMENT THIS AND MAKE THIS BE THE HISTORY ROW FOR EACH TIME WE CREATE A NEW CONTEST BEAUSE OF THE SCHEDULE
 #
-# class CreatedContest( models.Model ):
-#     """
-#     This model should be created atomically with whatever actual Contest is being created!
-#
-#     a record of a contest that was created because of the scheduler.
-#     has references to the template, and the contest that was created.
-#     """
-#
-#     created             = models.DateTimeField(auto_now_add=True)
-#
-#     day                 = models.DateField(null=False)
-#     scheduled_contest   = models.ForeignKey(TemplateContest, null=False, related_name='scheduled_contest_history_item')
-#     contest             = models.ForeignKey('contest.Contest', null=False, related_name='scheduled_contest_contest')
-#
-#     class Meta:
-#         # constraint: ensure we can never create the same contest for the same day and template
-#         unique_together = ('day','scheduled_contest')
+class CreatedContest( models.Model ):
+    """
+    This model should be created atomically with whatever actual Contest is being created!
+
+    a record of a contest that was created because of the scheduler.
+    has references to the template, and the contest that was created.
+    """
+
+    created             = models.DateTimeField(auto_now_add=True)
+
+    day                 = models.DateField(null=False)
+    scheduled_template_contest   = models.ForeignKey(ScheduledTemplateContest, null=False, related_name='scheduled_contest_history_item')
+    contest             = models.ForeignKey('contest.Contest', null=False, related_name='scheduled_contest_contest')
+
+    def __str__(self):
+        return '%s %s    %s    schedule id:%s' % (self.day, self.contest.start,
+                                                self.contest.name,
+                                                self.scheduled_template_contest.pk)

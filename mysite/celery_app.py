@@ -17,6 +17,7 @@ from __future__ import absolute_import
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 from datetime import timedelta
 import time
 
@@ -132,8 +133,31 @@ app.conf.update(
             'schedule': timedelta(minutes=4*60),
         },
 
+        #
+        # The ScheduleManager that creates Contests from
+        # admin-defined templates on a preset schedule.
+        'schedule_contests_for_tomorrow' : {
+            'task'      : 'contest.schedule.tasks.create_scheduled_contests',
+
+            #
+            # run every 30 minutes, but only during 12, 15, and 18 o'clock. Yeah, 18 o'clock.
+            'schedule'  : crontab(minute='*/30', hour='12,15,18'),
+
+            #
+            # alternatively, run every X seconds, instead of at specific times:
+            #'schedule': timedelta(seconds=20),
+
+            #
+            # the first integer in the tuple represents how many days
+            # in advance we want to create scheduled contests.
+            #  ... in this instance, everytime this task is fired
+            #      it ensures games for 1 day in advance are scheduled.
+            'args'      : (1,),
+        },
+
     },
 
+    CELERY_ENABLE_UTC = True,
     CELERY_TIMEZONE = 'UTC',
     CELERY_TRACK_STARTED = True,
 

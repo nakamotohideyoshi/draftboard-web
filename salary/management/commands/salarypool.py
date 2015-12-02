@@ -56,7 +56,7 @@ class Command(BaseCommand):
                     #
                     #
                     p = DataDenParser()
-                    p.setup('nba')
+                    p.setup(sport_name)
 
                 stats = player_stats_model.objects.filter( fantasy_points__gt=0 )
                 if len(stats) <= 0:
