@@ -17,6 +17,7 @@ from __future__ import absolute_import
 import os
 
 from celery import Celery
+from celery.schedules import crontab
 from datetime import timedelta
 import time
 
@@ -130,6 +131,22 @@ app.conf.update(
         'mlb_injuries' : {
             'task': 'sports.mlb.tasks.update_injuries',
             'schedule': timedelta(minutes=4*60),
+        },
+
+        #
+        # The ScheduleManager that creates Contests from
+        # admin-defined templates on a preset schedule.
+        'schedule_contests_for_tomorrow' : {
+            'task'      : 'contest.schedule.tasks.create_scheduled_contests',
+            #
+            # this crontab is overkill, but it is an example
+            # of how we can run the ScheduleManager task many
+            # times on the same day.
+
+            #
+            # run every 30 minutes, but only from 12 to 1, and between 5pm and 11pm
+            'schedule'  : crontab(minute='*/30', hour='12,17-23'),
+            'args'      : (1,),    # the first integer value is the offset in days for teh scheduler
         },
 
     },

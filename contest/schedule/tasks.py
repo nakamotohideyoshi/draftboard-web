@@ -12,7 +12,7 @@ LOCK_EXPIRE = 30 # Lock expires in 30 seconds
 SHARED_LOCK_NAME = "create_scheduled_contests"
 
 @app.task
-def create_scheduled_contests( hours_in_future=None ):
+def create_scheduled_contests( days_in_future=None ):
     """
     uses the ScheduleManager to create scheduled contests by calling
     ScheduleManager.run( td = td ).
@@ -29,6 +29,6 @@ def create_scheduled_contests( hours_in_future=None ):
     if acquire_lock():
         try:
             sm = ScheduleManager()
-            sm.run( time_delta=timedelta(hours=hours_in_future) )
+            sm.run( time_delta=timedelta(days=days_in_future) )
         finally:
             release_lock()

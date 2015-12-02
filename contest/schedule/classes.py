@@ -7,6 +7,7 @@ from django.db.transaction import atomic
 from django.db.models import Q
 import contest.models
 from draftgroup.classes import DraftGroupManager
+from .exceptions import ScheduleException, ScheduleOutOfRangeException
 from .models import Schedule, TemplateContest, ScheduledTemplateContest, CreatedContest
 from util.midnight import midnight
 
@@ -169,7 +170,12 @@ class ScheduleManager(object):
 
             # get or create the draft group
             dgm = DraftGroupManager()
-            draft_group = dgm.get_for_site_sport( c.site_sport, c.start, c.end )
+            draft_group = None
+            try:
+                draft_group = dgm.get_for_site_sport( c.site_sport, c.start, c.end )
+            except:
+                raise ScheduleException('DraftGroup couldnt be created -- are there games for this day?')
+
             c.draft_group = draft_group
 
             c.save()
@@ -204,6 +210,9 @@ class ScheduleManager(object):
 
         :return:
         """
+        # if time_delta is passed, ensure its in valid range or raise exception
+        if time_delta and (time_delta < timedelta(days=0) or time_delta > timedelta(days=6)):
+            raise ScheduleOutOfRangeException()
 
         #
         # if a time_delta is specified, add it to the current time and
@@ -215,5 +224,13 @@ class ScheduleManager(object):
             dt = timezone.now() + time_delta
 
         for sched in self.schedules:
-            sc = self.Schedule( sched, dt=dt )
-            sc.update() # run this schedule
+            try:
+                sc = self.Schedule( sched, dt=dt )
+                sc.update() # run this schedule
+            except ScheduleException as se:
+                # print there was an error, but keep going so
+                # we dont prevent subsequent schedules from running
+                print( se )
+
+
+
