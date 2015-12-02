@@ -4,12 +4,33 @@
 from django.core.management.base import NoArgsCommand
 from django.core.cache import cache
 from contest.schedule.classes import ScheduleManager
+import time
 
 class Command(NoArgsCommand):
 
-    help = "listen for dataden mongo updates for currently active triggers"
+    help = "created scheduled contests in the near future"
 
     cache_key_lock = 'contest.schedule.classes.ScheduleManager'
+
+    # def add_arguments(self, parser):
+    #     # Positional arguments
+    #     parser.add_argument('minutes', type=int)
+    #     parser.add_argument('sport', nargs='+', type=str)
+    #
+    # def handle(self, *args, **options):
+    #     """
+    #     generate a salary pool with a default config
+    #
+    #     :param args:
+    #     :param options:
+    #     :return:
+    #     """
+    #     print( 'making sure scheduled contests are created...')
+    #
+    #     options_minutes = options['minutes']
+    #     options_sports  = options['sport']
+    #     print( str(options_minutes) )
+    #     print( str(options_sports) )
 
     def handle_noargs(self, **options):
         """
