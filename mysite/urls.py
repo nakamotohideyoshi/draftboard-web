@@ -15,6 +15,7 @@ import sports.urls
 import push.urls
 import optimal_payments.urls
 
+
 from django.conf.urls import url, include
 from django.contrib.auth.models import User
 from rest_framework import routers, serializers, viewsets
@@ -42,6 +43,8 @@ router.register(r'users', UserViewSet)
 # admin.site.index = index.__get__(admin.site, admin.site.__class__)
 
 urlpatterns = [
+    # experimental
+    url(r'^admin/', include('smuggler.urls')),  # before admin url patterns!
 
     url(r'^admin/',         include(admin.site.urls)),
 
