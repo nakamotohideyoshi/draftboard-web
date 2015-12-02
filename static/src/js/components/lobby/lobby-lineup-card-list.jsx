@@ -25,6 +25,12 @@ var LineupCardList = React.createClass({
     draftGroupInfo: React.PropTypes.object
   },
 
+  getDefaultProps: function() {
+    return {
+      lineups: []
+    }
+  },
+
 
   /**
    * Smoothly scroll to a lineup card.
@@ -80,16 +86,22 @@ var LineupCardList = React.createClass({
   },
 
 
-  render: function() {
-    var lineups = this.props.lineups.map(function(lineup) {
+  getLineupCards: function() {
+    return this.props.lineups.map(function(lineup) {
       // We'll need a reference to the card in order to get it's DOM element and scroll to it when
       // it gets focused.
       var refName = 'lineup-' + lineup.id;
+      let draftGroupInfo = {}
+
+      if (this.props.draftGroupInfo.draftGroups.hasOwnProperty(lineup.draft_group)) {
+        draftGroupInfo = this.props.draftGroupInfo.draftGroups[lineup.draft_group]
+      }
 
       return (
         <LineupCard
           key={lineup.id}
           lineup={lineup}
+          draftGroupInfo={draftGroupInfo}
           isActive={this.props.focusedLineupId === lineup.id}
           ref={refName}
           onCardClick={this.onCardClick}
@@ -97,10 +109,12 @@ var LineupCardList = React.createClass({
       );
     }, this);
 
-    return (
-      <div>
-        {lineups}
+  },
 
+
+  getCreateLineupAd: function() {
+    if (this.props.lineups.length > 0) {
+      return (
         <div
           className="cmp-lineup-card cmp-lineup-card--collapsed cmp-lineup-card--create-collapsed"
           onClick={this.handleDraftButtonClick}
@@ -111,7 +125,10 @@ var LineupCardList = React.createClass({
             </h3>
           </header>
         </div>
-
+      )
+    }
+    else {
+      return (
         <div className="cmp-lineup-card cmp-lineup-card--create cmp-lineup-card--create__nba">
           <header className="cmp-lineup-card__header">
             <h3 className="cmp-lineup-card__title">
@@ -127,6 +144,18 @@ var LineupCardList = React.createClass({
             Draft a Team
           </div>
         </div>
+      )
+    }
+  },
+
+
+  render: function() {
+
+    return (
+      <div>
+        {this.getLineupCards()}
+
+        {this.getCreateLineupAd()}
 
         <LobbyDraftGroupSelectionModal
           ref="draftModal"
@@ -145,9 +174,9 @@ let {Provider, connect} = ReactRedux;
 function mapStateToProps(state) {
   return {
     lineups: LineupsBySportSelector(state),
-    // lineups: state.upcomingLineups.lineups,
     focusedLineupId: state.upcomingLineups.focusedLineupId,
-    draftGroupInfo: draftGroupInfoSelector(state)
+    draftGroupInfo: draftGroupInfoSelector(state),
+    entries: state.entries.items
   };
 }
 

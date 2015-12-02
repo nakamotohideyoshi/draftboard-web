@@ -61,16 +61,6 @@ $table-row-hover-bg: #f9fafb;
 
 }
 
-// Timestamp for time remaining till contest is live.
-.contest-list__live-in {
-  color: #9c9faf;
-
-  &-minutes,
-  &-seconds {
-    color: #46495e;
-  }
-}
-
 
 /**
  * Contest list filters.

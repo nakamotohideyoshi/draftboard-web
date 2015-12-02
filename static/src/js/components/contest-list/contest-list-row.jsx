@@ -1,7 +1,7 @@
 const React = require('react')
 const moment = require('moment')
 import * as AppActions from '../../stores/app-state-store.js'
-import {timeRemaining} from '../../lib/utils.js'
+import CountdownClock from '../site/countdown-clock.jsx'
 
 
 /**
@@ -27,40 +27,9 @@ var ContestListRow = React.createClass({
   },
 
 
-  getInitialState: function() {
-    return {
-      timeRemaining: {
-        days: '',
-        hours: '',
-        minutes: '',
-        seconds: ''
-      }
-    };
-  },
-
-
   handleRowClick: function(contest) {
     AppActions.openPane();
     this.props.setFocusedContest(contest);
-  },
-
-
-  componentDidMount: function() {
-    this.setTimeRemaining();
-    this.updateTimeRemainingLoop = window.setInterval(this.setTimeRemaining, 1000);
-  },
-
-
-  componentWillUnmount: function() {
-    window.clearInterval(this.updateTimeRemainingLoop);
-  },
-
-
-  setTimeRemaining: function() {
-    // difference between when the contest starts and now.
-    this.setState({
-      timeRemaining: timeRemaining(this.props.row.start)
-    });
   },
 
 
@@ -101,14 +70,6 @@ var ContestListRow = React.createClass({
       multiEntryIcon = <span className="contest-icon contest-icon__multi-entry">M</span>;
     }
 
-    var timeRemaining = (
-      <span className="contest-list__live-in">
-        <span className="contest-list__live-in-hours">{this.state.timeRemaining.hours}:</span>
-        <span className="contest-list__live-in-minutes">{this.state.timeRemaining.minutes}:</span>
-        <span className="contest-list__live-in-seconds">{this.state.timeRemaining.seconds}</span>
-      </span>
-    );
-
     let enterButton = this.getEnterButton()
 
     return (
@@ -124,7 +85,7 @@ var ContestListRow = React.createClass({
         <td key="entries" className="entries">{multiEntryIcon} {this.props.row.current_entries}/{this.props.row.entries}</td>
         <td key="fee" className="fee">${this.props.row.buyin}</td>
         <td key="prizes" className="prizes">${this.props.row.prize_pool}</td>
-        <td key="start" className="start">{timeRemaining}</td>
+        <td key="start" className="start"><CountdownClock time={this.props.row.start} /></td>
 
         <td className="enter">
           {enterButton}
