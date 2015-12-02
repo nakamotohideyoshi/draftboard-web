@@ -279,7 +279,11 @@ INSTALLED_APPS = (
     'replayer',
 
     'optimal_payments',
+
+    'smuggler',
 )
+
+SMUGGLER_FIXTURE_DIR = join(BASE_DIR, 'smugglin')
 
 MIDDLEWARE_CLASSES = (
     # CSRF token masking
