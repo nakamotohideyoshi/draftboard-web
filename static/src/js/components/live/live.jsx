@@ -113,7 +113,10 @@ var Live = React.createClass({
       myDraftGroup,
       overallStats
 
-    if (self.props.entries.hasRelatedInfo === false) {
+    const lineupNonexistant = 'lineupId' in self.props.mode === false
+    const noRelatedInfo = self.props.entries.hasRelatedInfo === false
+
+    if (lineupNonexistant || noRelatedInfo) {
       return (
         <div>LOADING</div>
       )
