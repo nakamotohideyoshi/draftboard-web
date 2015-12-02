@@ -97,7 +97,7 @@ export function fetchEntriesIfNeeded() {
 
   return (dispatch, getState) => {
     if (shouldFetchEntries(getState()) === false) {
-      return Promise.reject('Entries already fetched')
+      return Promise.resolve('Entries already fetched')
     }
 
     return Promise.all([
