@@ -9,4 +9,18 @@
 const reducers = require('./reducers');
 const middleware = require('./middleware');
 
-module.exports = middleware.createStoreWithMiddleware(reducers);
+// Store with localStorage, commented out until we have Pusher installed and working on optimizations
+// import {compose, createStore} from 'redux';
+// import persistState from 'redux-localstorage'
+// const createPersistentStore = compose(
+//   persistState([
+//     'currentLineups',
+//     'entries',
+//     'liveContests',
+//     'liveDraftGroups',
+//     'prizes'
+//   ])
+// )(middleware.createStoreWithMiddleware)
+// module.exports = createPersistentStore(reducers)
+
+module.exports = middleware.createStoreWithMiddleware(reducers)
