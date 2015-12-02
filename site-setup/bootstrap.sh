@@ -67,6 +67,8 @@ apt-get install -y python3-pip 				# installs 'pip3' utility
 
 # this global package will be required before you can use pip3 to install psycopg2
 apt-get build-dep -y psycopg2
+# that previous line installing psycopg2 may not have worked, so try the next line also
+#pip3 install psycopg2
 
 # install virtualenv (should always do this for python projects)
 pip3 install virtualenv

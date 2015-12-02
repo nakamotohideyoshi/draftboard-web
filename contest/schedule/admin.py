@@ -63,7 +63,7 @@ class TemplateContestAdmin(admin.ModelAdmin):
     # use the fields which we are explicity stating in the Meta class
     fieldsets = (
         #
-        ('Scheduled Contest Template', {
+        ('Contest Template', {
             'fields': (
                 'site_sport',
                 'name',
@@ -99,6 +99,7 @@ class ScheduledTemplateContestAdmin(admin.ModelAdmin):
         'template_contest',
         'start_time',
         'duration_minutes',
+        'multiplier',
     ]
 
 @admin.register(contest.schedule.models.Interval)
