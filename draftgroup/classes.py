@@ -317,9 +317,12 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         game_model      = ssm.get_game_class(site_sport)
 
         # get all games equal to or greater than start, and less than end.
-        games = game_model.objects.filter( start__gte=start, start__lt=end )
+        # print( 'game_model', str(game_model) )
+        # print( 'game_model.objects.all().count():', game_model.objects.all().count() )
+        games = game_model.objects.filter( start__gte=start, start__lte=end )
+        # games = game_model.objects.filter( start__in=range(start, end) )
         if len(games) == 0:
-            raise mysite.exceptions.NoGamesInRangeException('there are ZERO games in [%s until %s' % (start, end))
+            raise mysite.exceptions.NoGamesInRangeException('there are ZERO games in [%s until %s]' % (start, end))
 
         # method returns a Salary object from which we can
         #   - get_pool()  - get the salary.models.Pool

@@ -170,7 +170,7 @@ class ReplayManager(object):
         print('resetting the current system time to the actual time...')
         self.reset_system_time()
 
-    def play(self, replay_name='', start_from=None, fast_forward=1.0, no_delay=False, pk=None, tick=6.0, offset_minutes=0):
+    def play(self, replay_name='', start_from=None, fast_forward=1.0, no_delay=False, pk=None, tick=6.0, offset_minutes=0, async=False):
         """
         Run the stat object thru sports.parser.DataDenParser.parse_obj(db, collection, obj)
 
@@ -243,7 +243,7 @@ class ReplayManager(object):
                 db          = ns_parts[0]
                 collection  = ns_parts[1]
                 # send it thru parser! Triggers do NOT need to be running for this to work!
-                parser.parse_obj( db, collection, ast.literal_eval( update.o ) )
+                parser.parse_obj( db, collection, ast.literal_eval( update.o ), async=async )
 
             last = now # update last, now that we've parsed up until now
 
