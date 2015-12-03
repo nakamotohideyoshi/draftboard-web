@@ -7,9 +7,12 @@ const renderComponent = require('../../lib/render-component')
 const smoothScrollTo = require('../../lib/smooth-scroll-to.js')
 const LobbyDraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx')
 import {fetchUpcomingLineups, lineupFocused} from '../../actions/lineup-actions.js'
+import {fetchEntriesIfNeeded} from '../../actions/entries'
 import {draftGroupInfoSelector} from '../../selectors/draft-group-info-selector.js'
-import {LineupsBySportSelector} from '../../selectors/upcoming-lineups-by-sport.jsx'
+import {LineupsBySportSelector} from '../../selectors/upcoming-lineups-by-sport.js'
+import {UpcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'
 import '../contest-list/contest-list-sport-filter.jsx'
+
 
 /**
  * Renders a list of lineup cards. Feed it lineup data and it will render LineupCard components for
@@ -20,7 +23,9 @@ var LineupCardList = React.createClass({
   propTypes: {
     lineupFocused: React.PropTypes.func,
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
+    fetchEntriesIfNeeded: React.PropTypes.func.isRequired,
     lineups: React.PropTypes.array.isRequired,
+    lineupsInfo: React.PropTypes.object,
     focusedLineupId: React.PropTypes.number,
     draftGroupInfo: React.PropTypes.object
   },
@@ -57,6 +62,7 @@ var LineupCardList = React.createClass({
 
   componentWillMount: function() {
     if (window.dfs.user.isAuthenticated === true) {
+      this.props.fetchEntriesIfNeeded()
       this.props.fetchUpcomingLineups()
     }
   },
@@ -97,6 +103,14 @@ var LineupCardList = React.createClass({
         draftGroupInfo = this.props.draftGroupInfo.draftGroups[lineup.draft_group]
       }
 
+      let entries
+      let fees
+
+      if (this.props.lineupsInfo.hasOwnProperty(lineup.id)) {
+        fees = this.props.lineupsInfo[lineup.id].fees
+        entries = this.props.lineupsInfo[lineup.id].entries
+      }
+
       return (
         <LineupCard
           key={lineup.id}
@@ -105,6 +119,8 @@ var LineupCardList = React.createClass({
           isActive={this.props.focusedLineupId === lineup.id}
           ref={refName}
           onCardClick={this.onCardClick}
+          fees={fees}
+          entries={entries}
         />
       );
     }, this);
@@ -174,6 +190,7 @@ let {Provider, connect} = ReactRedux;
 function mapStateToProps(state) {
   return {
     lineups: LineupsBySportSelector(state),
+    lineupsInfo: UpcomingLineupsInfo(state),
     focusedLineupId: state.upcomingLineups.focusedLineupId,
     draftGroupInfo: draftGroupInfoSelector(state),
     entries: state.entries.items
@@ -184,7 +201,8 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     fetchUpcomingLineups: () => dispatch(fetchUpcomingLineups()),
-    lineupFocused: (lineupId) => dispatch(lineupFocused(lineupId))
+    lineupFocused: (lineupId) => dispatch(lineupFocused(lineupId)),
+    fetchEntriesIfNeeded: () => dispatch(fetchEntriesIfNeeded())
   };
 }
 

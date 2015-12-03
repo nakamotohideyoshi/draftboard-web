@@ -7,7 +7,7 @@ import {timeRemaining} from '../../lib/utils.js'
  */
 let CountdownClock = React.createClass({
 
-  updateInterval: 1000,
+  updateInterval: 500,
 
 
   propTypes: {
@@ -45,6 +45,12 @@ let CountdownClock = React.createClass({
 
 
   render: function() {
+    if (!this.state.timeRemaining.seconds) {
+      return (
+        <span className="cmp-countdown-clock">&nbsp;</span>
+      )
+    }
+
     return (
       <span className="cmp-countdown-clock">
         <span className="hours">{this.state.timeRemaining.hours}:</span>
