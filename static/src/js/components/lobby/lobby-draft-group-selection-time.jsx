@@ -2,6 +2,7 @@
 
 var React = require('react');
 var moment = require('moment');
+import {map as _map} from 'lodash'
 
 
 /**
@@ -11,14 +12,14 @@ var moment = require('moment');
 var LobbyDraftGroupSelectionTime = React.createClass({
 
   propTypes: {
-    'draftGroups': React.PropTypes.array.isRequired,
+    'draftGroups': React.PropTypes.object.isRequired,
     'selectedSport': React.PropTypes.string.isRequired
   },
 
 
   getDefaultProps: function() {
     return {
-      draftGroups: []
+      draftGroups: {}
     };
   },
 
@@ -29,7 +30,7 @@ var LobbyDraftGroupSelectionTime = React.createClass({
 
 
   render: function() {
-    var groups = this.props.draftGroups.map(function(group) {
+    var groups = _map(this.props.draftGroups, function(group) {
       if (group.sport === this.props.selectedSport) {
         var url = this.getDraftGroupUrl(group.pk);
 
