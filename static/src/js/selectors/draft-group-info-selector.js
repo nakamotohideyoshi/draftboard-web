@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect'
-import { countBy as _countBy } from 'lodash'
+import { countBy as _countBy, forEach as _forEach } from 'lodash'
 import {filter as _filter} from 'lodash'
 
 // Input Selectors
@@ -33,9 +33,9 @@ export const draftGroupInfoSelector = createSelector(
       return contest.sport
     })
     // For each draft group, figure out how many contests are available to enter.
-    for (let group of draftGroups) {
+    _forEach(draftGroups, function(group) {
       group.contestCount = _filter(contests, 'draft_group', group.pk).length
-    }
+    })
 
     return {
       sportContestCounts,
