@@ -28,6 +28,7 @@ from dataden.signals import Update
 from django.core.cache import caches
 import sports.parser
 import time
+import util.actual_datetime as actual_datetime
 
 class ReplayManager(object):
     """
@@ -72,9 +73,10 @@ class ReplayManager(object):
     CACHE_KEY_RECORDING_IN_PROGRESS = 'recording_in_progress'
     db_name                         = settings.DATABASES['default']['NAME']
 
-    def __init__(self):
-        self.replay = None
-        self.original_time = timezone.now()
+    def __init__(self, timemachine=None):
+        self.replay         = None
+        self.original_time  = timezone.now()
+        self.timemachine    = timemachine
 
     @staticmethod
     def recording_in_progress():
@@ -170,7 +172,9 @@ class ReplayManager(object):
         print('resetting the current system time to the actual time...')
         self.reset_system_time()
 
-    def play(self, replay_name='', start_from=None, fast_forward=1.0, no_delay=False, pk=None, tick=6.0, offset_minutes=0, async=False):
+    def play(self, replay_name='', start_from=None, fast_forward=1.0,
+             no_delay=False, pk=None, tick=6.0, offset_minutes=0, async=False,
+             load_db=True):
         """
         Run the stat object thru sports.parser.DataDenParser.parse_obj(db, collection, obj)
 
@@ -198,33 +202,30 @@ class ReplayManager(object):
         :return:
         """
 
-        self.clear()
-        self.db_load_replay(self.db_name, replay_name )
+        if load_db:
+            self.clear()
+            self.db_load_replay(self.db_name, replay_name )
+            self.replay = Replay.objects.get( name = replay_name )
 
-        self.replay = Replay.objects.get( name = replay_name )
+            if self.replay is None:
+                raise Exception('instance of ReplayManager has no Replay object set')
 
-        if self.replay is None:
-            raise Exception('instance of ReplayManager has no Replay object set')
+            #
+            # get the specified time range to run on
+            start   = self.replay.start
+            if start_from is not None: start = start_from   # start from here, if specified
+            start   = start + timedelta(minutes=offset_minutes)
+            end     = self.replay.end
 
-        #
-        # about to start playing, let the programmer know which Replay!
-
-
-        # TODO - reload the specific restore point for this Replay
-
-        # TODO - reset the system time to the start of this Replay
-
-        # TODO - reload the replayer_update table for this Replay
-
-        # TODO - get all the updates for this Replay
-
-        # TODO - determine the start and end times of the Replay
-
-        start   = self.replay.start
-        if start_from is not None: start = start_from   # start from here, if specified
-        start   = start + timedelta(minutes=offset_minutes)
-        end     = self.replay.end
-        last    = start # trailing time since which we have no parsed Updates
+        else:
+            # since we simply replaying Update objects, we need to determine the time
+            start   = start_from
+            updates = replayer.models.Update.objects.all()
+            if updates.count() <= 1:
+                raise Exception('there are no Update objects to play thru')
+            if start is None:
+                start = updates[0].ts
+            end     = start + timedelta(days=1) # never going to replay more than this
 
         # update the system time to the start time of the replay
         print('set system time to:')
@@ -232,9 +233,9 @@ class ReplayManager(object):
         print( '' )
 
         parser = sports.parser.DataDenParser()
-
-        while last <= end: # break out of while once our 'last' update time is past the end
-            time.sleep( tick ) # every 'tick' seconds, get all the updates since the last update
+        last    = start         # trailing time since which we have no parsed Updates
+        while last <= end:      # break out of while once our 'last' update time is past the end
+            time.sleep( tick )  # every 'tick' seconds, get all the updates since the last update
             now = timezone.now()
             updates = replayer.models.Update.objects.filter( ts__range=( last, now ) )
             print( '%s | %s updates this tick' % (str(now), str(len(updates))))
@@ -246,6 +247,13 @@ class ReplayManager(object):
                 parser.parse_obj( db, collection, ast.literal_eval( update.o ), async=async )
 
             last = now # update last, now that we've parsed up until now
+            if self.timemachine:
+                self.timemachine.current = last
+                self.timemachine.save()
+
+            anymore = replayer.models.Update.objects.filter( ts__gte=last )
+            if anymore.count() <= 0:
+                return # because there are literally no more updates
 
     def __flag_cache(self, enable):
         if enable:
@@ -257,15 +265,28 @@ class ReplayManager(object):
         """
         set the system time to the datetime obj
         """
-        dt2  = datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, tzinfo=dt.tzinfo )
-        #proc    = subprocess.call(['sudo','hwclock','--set','--date',str(dt2)])
-        proc   = subprocess.call(['sudo','date','-s',str(dt2)])
+        #
+        # old code that works
+        # dt2  = datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, tzinfo=dt.tzinfo )
+        # #proc    = subprocess.call(['sudo','hwclock','--set','--date',str(dt2)])
+        # proc   = subprocess.call(['sudo','date','-s',str(dt2)])
+
+        #
+        # new actual_datetime object does the same thing, but keeps the code in one place
+        actual_datetime.set_system_time( dt )
 
     def reset_system_time(self):
         """
         sets the system time back to whatever the hardware clock time is
         """
-        proc = subprocess.call(['sudo','hwclock','-s'])
+
+        #
+        # old code that works
+        # proc = subprocess.call(['sudo','hwclock','-s'])
+
+        #
+        # new code that does the same thing, but keeps the code in one place:
+        actual_datetime.reset_system_time()
 
     def db_dump(self, db_name, dump_name, replay=False):
         # basically, to save the current state of the db, do this:

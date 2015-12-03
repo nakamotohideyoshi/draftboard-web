@@ -115,22 +115,22 @@ app.conf.update(
 
         'nba_injuries' : {
             'task': 'sports.nba.tasks.update_injuries',
-            'schedule': timedelta(minutes=4*60),
+            'schedule': timedelta(minutes=30),
         },
 
         'nhl_injuries' : {
             'task': 'sports.nhl.tasks.update_injuries',
-            'schedule': timedelta(minutes=4*60),
+            'schedule': timedelta(minutes=30),
         },
 
         'nfl_injuries' : {
             'task': 'sports.nfl.tasks.update_injuries',
-            'schedule': timedelta(minutes=4*60),
+            'schedule': timedelta(minutes=30),
         },
 
         'mlb_injuries' : {
             'task': 'sports.mlb.tasks.update_injuries',
-            'schedule': timedelta(minutes=4*60),
+            'schedule': timedelta(minutes=30),
         },
 
         #
