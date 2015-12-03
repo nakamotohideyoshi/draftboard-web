@@ -11,7 +11,9 @@ var LineupCard = React.createClass({
     onCardClick: React.PropTypes.func.isRequired,
     lineup: React.PropTypes.object.isRequired,
     hoverText: React.PropTypes.string,
-    draftGroupInfo: React.PropTypes.object.isRequired
+    draftGroupInfo: React.PropTypes.object.isRequired,
+    fees: React.PropTypes.number,
+    entries: React.PropTypes.number
   },
 
 
@@ -34,7 +36,6 @@ var LineupCard = React.createClass({
 
     if(this.props.isActive) {
 
-
       var players = this.props.lineup.players.map(function(player) {
         return (
           <LineupCardPlayer player={player} key={player.player_id} />
@@ -44,7 +45,9 @@ var LineupCard = React.createClass({
       lineup = (
         <div className="cmp-lineup-card">
           <header className="cmp-lineup-card__header" onClick={this.showControls}>
-            <h3 className="cmp-lineup-card__title">{this.props.lineup.name} - id: {this.props.lineup.id}</h3>
+            <h3 className="cmp-lineup-card__title">
+              {this.props.lineup.name || 'Untitled Lineup #' + this.props.lineup.id}
+            </h3>
 
             <Tooltip
               additionalClassName="testClass"
@@ -63,7 +66,7 @@ var LineupCard = React.createClass({
           <footer className="cmp-lineup-card__footer">
             <div className="cmp-lineup-card__fees cmp-lineup-card__footer-section">
               <span className="cmp-lineup-card__footer-title">Fees</span>
-              120
+              ${this.props.fees}
             </div>
 
             <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
@@ -73,7 +76,7 @@ var LineupCard = React.createClass({
 
             <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
               <span className="cmp-lineup-card__footer-title">Entries</span>
-              22
+              {this.props.entries}
             </div>
           </footer>
         </div>
@@ -85,7 +88,7 @@ var LineupCard = React.createClass({
           onClick={this.props.onCardClick.bind(null, this.props.lineup)}
         >
           <header className="cmp-lineup-card__header">
-            <h3 className="cmp-lineup-card__title">{this.props.lineup.name} - id: {this.props.lineup.id}</h3>
+            <h3 className="cmp-lineup-card__title">{this.props.lineup.name || 'Untitled Lineup #' + this.props.lineup.id}</h3>
           </header>
           <div className="cmp-lineup-card__select">
             <h4>{this.props.hoverText}</h4>
