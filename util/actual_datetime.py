@@ -2,7 +2,7 @@
 # util/actual_datetime.py
 
 import subprocess
-from redis import Redis
+from django.core.cache import caches
 from django.utils import timezone
 from datetime import datetime, timedelta
 
@@ -46,10 +46,10 @@ def reset_system_time():
 class ActualDatetime:
 
     DATETIME_DELTA_SECONDS = 'DATETIME_DELTA_SECONDS'
-    # DATETIME_DELTA_EXPIRES = 4*60 # in seconds
+    DATETIME_DELTA_EXPIRES = 365*24*60*60 # a year, in seconds
 
     def __init__(self):
-        self.redis          = Redis()
+        self.cache          = caches['default']   # see settings.CACHES for more information
 
     def set_time(self, datetime):
         """
@@ -93,7 +93,7 @@ class ActualDatetime:
         proc = subprocess.call(['sudo','hwclock','-s'])
 
     def get_delta(self):
-        sec = self.redis.get(self.DATETIME_DELTA_SECONDS)
+        sec = self.cache.get(self.DATETIME_DELTA_SECONDS)
         #print( type(sec), int(sec), str(sec) )
         if sec is None:
             return 0
@@ -101,7 +101,7 @@ class ActualDatetime:
 
     def set_delta(self, seconds):
         #self.redis.setex(self.DATETIME_DELTA_SECONDS, seconds, self.DATETIME_DELTA_EXPIRES) # expire in 4 hours
-        self.redis.set(self.DATETIME_DELTA_SECONDS, seconds)
+        self.cache.set(self.DATETIME_DELTA_SECONDS, seconds, self.DATETIME_DELTA_EXPIRES)
 
     def actual_now(self):
         return timezone.now() + timedelta(seconds=self.get_delta())
