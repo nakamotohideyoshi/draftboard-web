@@ -253,6 +253,11 @@ p {
 
 a {
   color: $link-green;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 hr {
