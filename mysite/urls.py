@@ -53,6 +53,7 @@ urlpatterns = [
     url(r'^api/cash/',          include(cash.urls)),
     url(r'^api/contest/',       include(contest.urls)),
     url(r'^api/draft-group/',   include(draftgroup.urls)),
+    url(r'^api/lobby/',         include('lobby.urls')),
     url(r'^api/lineup/',        include(lineup.urls)),
     url(r'^api/ticket/',        include(ticket.urls)),
     url(r'^api/prize/',         include(prize.urls)),

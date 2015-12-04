@@ -273,6 +273,7 @@ INSTALLED_APPS = (
     'optimal_payments',
 
     'smuggler',
+    'lobby',
 )
 
 SMUGGLER_FIXTURE_DIR = join(BASE_DIR, 'smugglin')
