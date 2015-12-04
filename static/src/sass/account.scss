@@ -7,19 +7,52 @@ $grey-dark: #5d6072;
 $open-sans: "Open Sans", "Arial", "Helvetica", sans-serif;
 $width-left: 490px;
 $footer-height: 150px;
+$account-height: 800px;
 
 
 .account {
   height: 100%;
-  min-height: 860px;
+  min-height: $account-height;
   margin: 0;
   background: $white;
+
+  // this section is in the __content but above the v-middle on the screen
+  &__header {
+    position: absolute;
+    top: 100px;
+    width: 100%;
+    margin: 0 auto;
+
+    text-align: center;
+    min-height: 50px;
+
+    &__logo {
+      // align logo with the h1
+      display: inline-block;
+      vertical-align: middle;
+      width: 45px;
+      height: 38px;
+      background-image: url(../img/account/logo.png);
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    h1 {
+      display: inline-block;
+      margin-left: 10px;
+      color: $grey-dark;
+      font-size: 12px;
+      font-family: $open-sans;
+      font-weight: 600;
+      letter-spacing: 5px;
+    }
+  }
 
   &__left {
     background: $white;
     height: 100%;
     left: 0;
-    min-height: 860px;
+    min-height: $account-height;
     position: absolute;
     text-align: center;
     top: 0;
@@ -35,37 +68,6 @@ $footer-height: 150px;
       top: 50%;
       transform: translateY(-50%);
 
-      // this section is in the __content but above the v-middle on the screen
-      &__header {
-        position: relative;
-        top: -100px;
-        width: 80%;
-        margin: 0 auto;
-
-        text-align: center;
-        min-height: 50px;
-
-        &__logo {
-          // align logo with the h1
-          display: inline-block;
-          vertical-align: middle;
-          width: 45px;
-          height: 38px;
-          background-image: url(../img/account/logo.png);
-          background-repeat: no-repeat;
-          background-size: cover;
-        }
-
-        h1 {
-          display: inline-block;
-          margin-left: 10px;
-          color: $grey-dark;
-          font-size: 12px;
-          font-family: $open-sans;
-          font-weight: 600;
-          letter-spacing: 5px;
-        }
-      }
 
       &__checkmark-success {
         width: 250px;
