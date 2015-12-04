@@ -14,13 +14,13 @@
 
 {% block body %}
   <div class="account__left">
-    <div class="account__left__content">
-      {% block content_header %}
-      <div class="account__left__content__header">
-        <div class="account__left__content__header__logo"></div><h1>draftboard</h1>
-      </div>
-      {% endblock %}
+    {% block content_header %}
+    <div class="account__header">
+      <div class="account__header__logo"></div><h1>draftboard</h1>
+    </div>
+    {% endblock %}
 
+    <div class="account__left__content">
       {% block content_form %}{% endblock %}
     </div>
 
