@@ -99,7 +99,7 @@ var DraftNewLineupCard = React.createClass({
           <span className="cmp-lineup-card__list-header-average">avg</span>
         </div>
 
-        <ul>
+        <ul className="players">
           {players}
         </ul>
 
