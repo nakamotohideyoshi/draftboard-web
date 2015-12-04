@@ -28,7 +28,8 @@ from dataden.signals import Update
 from django.core.cache import caches
 import sports.parser
 import time
-import util.actual_datetime as actual_datetime
+#import util.actual_datetime as actual_datetime # wont work on heroku -- you dont have 'sudo' permission to system from Dyno
+import util.timeshift as timeshift
 
 class ReplayManager(object):
     """
@@ -265,28 +266,15 @@ class ReplayManager(object):
         """
         set the system time to the datetime obj
         """
-        #
-        # old code that works
-        # dt2  = datetime(dt.year, dt.month, dt.day, dt.hour, dt.minute, tzinfo=dt.tzinfo )
-        # #proc    = subprocess.call(['sudo','hwclock','--set','--date',str(dt2)])
-        # proc   = subprocess.call(['sudo','date','-s',str(dt2)])
 
-        #
-        # new actual_datetime object does the same thing, but keeps the code in one place
-        actual_datetime.set_system_time( dt )
+        timeshift.set_system_time( dt )
 
     def reset_system_time(self):
         """
-        sets the system time back to whatever the hardware clock time is
+        sets the system time back to the actual time
         """
 
-        #
-        # old code that works
-        # proc = subprocess.call(['sudo','hwclock','-s'])
-
-        #
-        # new code that does the same thing, but keeps the code in one place:
-        actual_datetime.reset_system_time()
+        timeshift.reset_system_time()
 
     def db_dump(self, db_name, dump_name, replay=False):
         # basically, to save the current state of the db, do this:

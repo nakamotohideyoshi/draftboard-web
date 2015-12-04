@@ -1,6 +1,17 @@
 #
 # util/actual_datetime.py
 
+#
+###################################################################
+# Set/Reset the system time using python's subprocess module,
+#  and knowledge of some operating system calls:
+#
+#   >>> import subprocess
+#   >>> subprocess.call(['sudo','date','-s',str( DATETIME_OBJECT )])
+#   >>> subprocess.call(['sudo','hwclock','-s'])
+#
+###################################################################
+
 import subprocess
 from django.core.cache import caches
 from django.utils import timezone

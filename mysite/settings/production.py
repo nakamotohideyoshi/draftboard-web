@@ -91,3 +91,5 @@ MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mo
 # dataden_mongo_uri = urlparse(environ.get('DATADEN_MONGO_URI'))
 # if dataden_mongo_uri:
 #     MONGO_HOST = dataden_mongo_uri
+
+DATETIME_DELTA_ENABLE = True   # dont do this once production environemnt is actual live!
