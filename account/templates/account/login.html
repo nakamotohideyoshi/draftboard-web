@@ -1,0 +1,26 @@
+{% extends 'account/account_base.html' %}
+
+
+{% block content_form %}
+
+<form class="account__left__content__form">
+  {% comment %}<div class="error-info">Oops! Your username or pasword are incorrect.</div>{% endcomment %}
+  <div class="account__left__content__form__input-layout">{% comment %}errored{% endcomment %}
+    <input id="username" type="text" name="username" required />
+    <label for="username">username</label>
+  </div>
+
+  <div class="account__left__content__form__input-layout">{% comment %}errored{% endcomment %}
+    <input id="password" type="password" name="password" required />
+    <label for="password">password</label>
+
+    <div class="forgot-password-link"><a href="{% url 'reset-password' %}">forgot password?</a></div>
+  </div>
+
+  <div class="account__left__content__form__input-layout">
+    <input type="submit" value="Login" />
+    <span class="arrow"></span>
+  </div>
+</form>
+
+{% endblock %}

@@ -467,3 +467,28 @@ class TransactionHistoryAPI(APIView):
             'teams': [
             ]
         })
+
+
+class LoginView(TemplateView):
+
+    template_name = 'account/login.html'
+
+
+class RegisterView(TemplateView):
+
+    template_name = 'account/register.html'
+
+
+class ResetPassword(TemplateView):
+
+    template_name = 'account/reset_password.html'
+
+
+class EmailSent(TemplateView):
+
+    template_name = 'account/email_sent.html'
+
+
+class ChangePassword(TemplateView):
+
+    template_name = 'account/change_password.html'

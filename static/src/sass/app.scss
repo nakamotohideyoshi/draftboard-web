@@ -22,6 +22,9 @@ Hello WOrld!
 @import "./mixins/_media-queries.scss";
 
 
+// This is to be handled separately from the whole app afterwards
+@import "./account.scss";
+
 // In here we can @import anything that doesn't belong to a specific component
 // For css that does belong to a component, just require() it in the component's jsx file.
 @import "./base.scss";
