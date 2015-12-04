@@ -1,6 +1,6 @@
-import { createSelector } from 'reselect'
-import { countBy as _countBy, forEach as _forEach } from 'lodash'
-import {filter as _filter} from 'lodash'
+import {createSelector} from 'reselect'
+import {countBy as _countBy, forEach as _forEach, filter as _filter} from 'lodash'
+
 
 // Input Selectors
 const draftGroupsFilterSelector = (state) => state.upcomingDraftGroups.draftGroups
