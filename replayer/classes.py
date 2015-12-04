@@ -175,7 +175,7 @@ class ReplayManager(object):
 
     def play(self, replay_name='', start_from=None, fast_forward=1.0,
              no_delay=False, pk=None, tick=6.0, offset_minutes=0, async=False,
-             load_db=True):
+             load_db=True, play_until=None):
         """
         Run the stat object thru sports.parser.DataDenParser.parse_obj(db, collection, obj)
 
@@ -199,6 +199,8 @@ class ReplayManager(object):
         'tick' is the interval in seconds we delay before processing more objects
 
         'offset_minutes' are added to the start time (whether default or from start_time param)
+
+        'play_until' datetime object will cause the replay to stop at the datetime (if in range)
 
         :return:
         """
@@ -227,6 +229,12 @@ class ReplayManager(object):
             if start is None:
                 start = updates[0].ts
             end     = start + timedelta(days=1) # never going to replay more than this
+
+            #
+            # if play_until is not None, check it to make
+            # sure its valid, and set end = play_until
+            if play_until and start < play_until:
+                end = play_until
 
         # update the system time to the start time of the replay
         print('set system time to:')

@@ -33,9 +33,12 @@ class TimeMachine(models.Model):
     #     ('todo-status','TODO-PLAYBACK-STATUS')
     # ]
 
+    PLAYBACK_MODE_PLAY_ALL          = 'play-all'
+    PLAYBACK_MODE_PLAY_TO_TARGET    = 'play-to-target'
+
     PLAYBACK_MODES = [
-        ('play-until-end', 'Play Until End'),
-        ('paused', 'Paused'),
+        (PLAYBACK_MODE_PLAY_ALL,        'Play All'),
+        (PLAYBACK_MODE_PLAY_TO_TARGET,  'Play to Target'),
     ]
 
     # the id of the celery task that will load the replay into the Update table (takes 0-30 seconds usually)
@@ -55,8 +58,9 @@ class TimeMachine(models.Model):
     start           = models.DateTimeField(null=False,
                         help_text='the time you want to start at in the replay. must be within the start and end of the recorded stats')
     current         = models.DateTimeField(null=True, blank=True,
-                        help_text='the time you want to start at in the replay. must be within the start and end of the recorded stats')
+                        help_text='where the replay is currently')
+    target          = models.DateTimeField(null=True, blank=True,
+                        help_text='SET THE STOP TARGET FOR PLAY-TO-TARGET mode. the time you want to start at in the replay. must be within the start and end of the recorded stats')
     playback_mode   = models.CharField(max_length=64, null=False, choices=PLAYBACK_MODES )
-
 
 
