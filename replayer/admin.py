@@ -5,6 +5,9 @@ from django.utils.html import format_html
 from django.contrib import admin
 import replayer.models
 from .tasks import load_replay
+# change the datetime to show seconds for replayer/admin.py
+from django.conf.locale.en import formats as en_formats
+en_formats.DATETIME_FORMAT = "d b Y H:i:s"
 
 @admin.register(replayer.models.Replay)
 class ReplayAdmin(admin.ModelAdmin):
@@ -26,7 +29,7 @@ class TimeMachineAdmin(admin.ModelAdmin):
 
     #
     #  playback_mode is like "play-until-end" or "paused"
-    list_display = ['replay', 'status', 'playback_mode', 'start', 'current' ]
+    list_display = ['replay', 'status', 'playback_mode', 'start', 'current', 'target' ]
     exclude = ('loader_task_id','playback_task_id')
 
     # use the fields which we are explicity stating in the Meta class
@@ -37,6 +40,7 @@ class TimeMachineAdmin(admin.ModelAdmin):
                 'replay',
                 'playback_mode',
                 'start',
+                'target',
             )
         }),
 
@@ -65,13 +69,15 @@ class TimeMachineAdmin(admin.ModelAdmin):
 
         load_task_status = 'unknown'
         if obj.loader_task_id is None:
-            load_task_status = 'Unknown'
+            load_task_status = 'ready for playback'
         else:
             result = load_replay.AsyncResult(obj.loader_task_id)
             if 'SUCCESS' in result.status:
-                load_task_status = 'FINISHED'
+                load_task_status = 'STOPPED'
             elif 'PENDING' in result.status:
                 load_task_status = 'RUNNING'
+            elif 'ABORTED' in result.status:
+                load_task_status = 'STOPPED'
             else:
                 load_task_status = result.status
 
@@ -84,13 +90,29 @@ class TimeMachineAdmin(admin.ModelAdmin):
 
     def start_replayer(self, request, queryset):
         if len(queryset) > 1:
-            self.message_user(request, 'You may only select one Replay at a time.')
+            self.message_user(request, 'You may only perform this action on one Replay at a time.')
         else:
             for obj in queryset:
-                task = load_replay.delay( obj )     # the filename - i forget if path is prefixed!
-                obj.loader_task_id = task.id
+                result = load_replay.delay( obj )     # the filename - i forget if path is prefixed!
+                obj.loader_task_id = result.id
                 print('loader_task_id: %s' % obj.loader_task_id)
+                obj.current = None # zero out current on start (it will be set once it starts running
                 obj.save()
 
-    actions = [start_replayer, ]
+    def stop_replayer(self, request, queryset):
+        if len(queryset) > 1:
+            self.message_user(request, 'You may only perform this action on one Replay at a time.')
+            return
+
+        # there should be <= 1 obj's in here, but loop anyways
+        for obj in queryset:
+            #
+            # get the task
+            if obj.loader_task_id is None:
+                return
+            else:
+                result = load_replay.AsyncResult(obj.loader_task_id)
+                result.abort()
+
+    actions = [start_replayer, stop_replayer]
 
