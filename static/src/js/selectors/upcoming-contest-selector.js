@@ -1,4 +1,4 @@
-import {stringSearchFilter, matchFilter, rangeFilter} from './filters'
+import {stringSearchFilter, matchFilter, rangeFilter, gameTypeFilter} from './filters'
 import {orderBy} from './order-by.js'
 import {createSelector} from 'reselect'
 
@@ -43,7 +43,7 @@ const contestsWithMatchingSport = createSelector(
 
 
 /**
- * Then filter that list by the sport selection dropdown...
+ * Then filter that list by the FEE selection dropdown...
  */
 const feeSelectorProperty = (state) => state.upcomingContests.filters.contestFeeFilter.filterProperty
 const feeSelectorMatch = (state) => state.upcomingContests.filters.contestFeeFilter.match
@@ -60,13 +60,12 @@ const contestsWithMatchingFee = createSelector(
 /**
  * filter them by the contest type [GPP, H2H, etc..].
  */
-const typeFilterPropertySelector = (state) => state.upcomingContests.filters.contestTypeFilter.filterProperty
 const typeFilterMatchSelector = (state) => state.upcomingContests.filters.contestTypeFilter.match
 
 export const contestsWithMatchingType = createSelector(
-  [contestsWithMatchingFee, typeFilterPropertySelector, typeFilterMatchSelector],
-  (collection, filterProperty, searchString) => {
-    return matchFilter(collection, filterProperty, searchString)
+  [contestsWithMatchingFee, typeFilterMatchSelector],
+  (collection, contestType) => {
+    return gameTypeFilter(collection, contestType)
   }
 )
 

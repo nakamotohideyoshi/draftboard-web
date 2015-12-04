@@ -44,22 +44,39 @@ var LineupCard = React.createClass({
 
       lineup = (
         <div className="cmp-lineup-card">
-          <header className="cmp-lineup-card__header" onClick={this.showControls}>
+          <header className="cmp-lineup-card__header">
             <h3 className="cmp-lineup-card__title">
               {this.props.lineup.name || 'Untitled Lineup #' + this.props.lineup.id}
             </h3>
 
-            <Tooltip
-              additionalClassName="testClass"
-              position="top"
-              isVisible={false}
-              ref="lineupCardTip"
+            <div
+              className="actions-menu-container"
+              onClick={this.showControls}
             >
-              <span>Edit and stuff in here</span>
-            </Tooltip>
+              <Tooltip
+                additionalClassName="actions-menu"
+                position="top"
+                isVisible={false}
+                ref="lineupCardTip"
+              >
+                <ul className="actions">
+                  <li><a
+                    href={'/draft/' + this.props.lineup.draft_group + '/?lineup=' + this.props.lineup.id + '&action=edit-lineup'}
+                    className="action">
+                    Edit Lineup
+                  </a></li>
+                  <li><a
+                    href={'/draft/' + this.props.lineup.draft_group + '/?lineup=' + this.props.lineup.id + '&action=copy-lineup'}
+                    className="action">
+                    New Lineup via Copy
+                  </a></li>
+                </ul>
+              </Tooltip>
+            </div>
+
           </header>
 
-          <ul>
+          <ul className="players">
             {players}
           </ul>
 
