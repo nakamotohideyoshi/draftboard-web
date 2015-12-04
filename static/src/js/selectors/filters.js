@@ -8,9 +8,6 @@ import { filter as _filter } from 'lodash'
  * @return {array}                A filtered list of items.
  */
 export const stringSearchFilter = function (collection, filterProperty, searchString) {
-  // console.log(collection)
-  // console.log(filterProperty)
-  // console.log(searchString)
   return _filter(collection, function(item) {
 
     // Show the row if there is no search query.
@@ -82,5 +79,27 @@ export const rangeFilter = function(collection, filterProperty, minVal, maxVal) 
     }
 
     return true;
+  })
+}
+
+
+/**
+ * This filter will determine if a contest is one of [GPP, H2H, or double-up]
+ */
+export const gameTypeFilter = function(collection, gameType) {
+  return _filter(collection, function(item) {
+    switch (gameType) {
+      case 'gpp':
+        return item.gpp
+
+      case 'double-up':
+        return item.doubleup
+
+      case 'h2h':
+        return (item.entries === 2)
+
+      default:
+        return true;
+    }
   })
 }
