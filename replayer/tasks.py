@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 #
 # replayer/tasks.py
+from django.utils import timezone
 from util.loaddata import LoadData
 from mysite.celery_app import app
 from replayer.classes import ReplayManager

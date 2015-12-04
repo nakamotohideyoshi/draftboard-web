@@ -4,7 +4,6 @@ from unipath import Path
 
 from django.core.exceptions import ImproperlyConfigured
 
-
 def get_env_variable(var_name):
     """ Get the environment variable or return exception """
     try:
@@ -401,3 +400,8 @@ BONUS_CASH_RAKE_PERCENTAGE = .4
 # DataDen license key for account: devs@draftboard.com
 DATADEN_LICENSE_KEY     = '20491e2a4feda595b7347708915b200b'
 DATADEN_ASYNC_UPDATES   = True  # uses celery for signaling stat updates from triggers
+
+#
+# DATETIME_DELTA_SECONDS_KEY is the key in the cache for the delta seconds timeshift on timezone.now()
+DATETIME_DELTA_ENABLE       = False    # dont change in base.py,   change to True in local.py, etc...
+DATETIME_DELTA_SECONDS_KEY  = 'DATETIME_DELTA_SECONDS_KEY'

@@ -11,7 +11,8 @@ from pusher.http import Request, make_query_string, GET, POST, request_method
 from pusher.signature import sign
 from pusher.util import ensure_text, validate_channel, validate_socket_id, app_id_re, pusher_url_re, channel_name_re
 
-import util.actual_datetime as actual_datetime
+#import util.actual_datetime as actual_datetime    # will not work on heroku! use util.timeshift !
+import util.timeshift as timeshift
 from django.conf import settings
 from .tasks import pusher_send_task
 from .exceptions import ChannelNotSetException, EventNotSetException
@@ -33,7 +34,6 @@ class RealGoodRequest(Request):
         super().__init__(*args, **kwargs)
 
     def _generate_auth(self):
-        print( 'actual_datetime.now().strftime(%s)', actual_datetime.now().strftime('%s'))
         self.body_md5 = hashlib.md5(self.body).hexdigest()
         self.query_params.update({
             'auth_key': self.config.key,
@@ -43,7 +43,7 @@ class RealGoodRequest(Request):
             # this is what we want to override: the time.
             #'auth_timestamp': '%.0f' % time.time() # we want to make sure this is always valid, thus the next line:
 
-            'auth_timestamp': '%.0f' % actual_datetime.now().timestamp()  # '%s' formats to unix timestamp =)
+            'auth_timestamp': '%.0f' % timeshift.actual_now().timestamp()  # '%s' formats to unix timestamp =)
         })
 
         auth_string = '\n'.join([
@@ -123,7 +123,7 @@ class AbstractPush(object):
                'settings.PUSHER_KEY', settings.PUSHER_KEY,
                'settings.PUSHER_SECRET', settings.PUSHER_SECRET )
         #self.pusher = Pusher( app_id=settings.PUSHER_APP_ID,
-        self.pusher = RealGoodPusher( app_id=settings.PUSHER_APP_ID,
+        self.pusher = RealGoodPusher( app_id=settings.PUSHER_APP_ID,    #
                                 key=settings.PUSHER_KEY,
                                 secret=settings.PUSHER_SECRET,
                                 ssl=True,

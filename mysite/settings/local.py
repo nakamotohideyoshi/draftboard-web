@@ -10,7 +10,11 @@ def get_db_name():
 
 db_name = get_db_name()
 
-DEBUG = True
+DEBUG               = True
+
+#
+# overrides timezone.now() so that
+DATETIME_DELTA_ENABLE  = True
 
 #
 # try to create the database, if it already exists, this will have no effect
@@ -99,3 +103,10 @@ DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 PUSHER_APP_ID   = '144196'
 PUSHER_KEY      = 'f23775e0c1d0da57bb4b'
 PUSHER_SECRET   = 'fc815c85237d726b9d8e'
+
+#
+# override datetime objects now() method to use the delta_seconds in cache
+import util.timeshift as timeshift
+from django.utils import timezone
+if DATETIME_DELTA_ENABLE:
+    timezone.now = timeshift.delta_now
