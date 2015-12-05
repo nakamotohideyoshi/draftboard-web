@@ -10,20 +10,20 @@ var expect = require('chai').expect;
 // need to repeat the component with different data, so sadly can't use a beforeEach method
 describe('LiveOverallStats Component', function() {
 
-  // it('should render an endpoint circle', function() {
-  //   var self = this;
+  it('should render an endpoint circle', function() {
+    var self = this;
 
-  //   // Render the component into our fake jsdom element.
-  //   this.sectionComponent = ReactDOM.render(
-  //     <LiveOverallStats whichSide="me" />,
-  //     document.body.appendChild(document.createElement('div')),
-  //     function() {
-  //       // Once it has been rendered, grab it from the DOM.
-  //       var pmrElement = ReactDOM.findDOMNode(this);
-  //       expect(pmrElement.querySelectorAll('.progress-endpoint').length).to.be.above(0);
-  //     }
-  //   );
-  // });
+    // Render the component into our fake jsdom element.
+    this.sectionComponent = ReactDOM.render(
+      <LiveOverallStats whichSide="me" />,
+      document.body.appendChild(document.createElement('div')),
+      function() {
+        // Once it has been rendered, grab it from the DOM.
+        var pmrElement = ReactDOM.findDOMNode(this);
+        expect(pmrElement.querySelectorAll('.progress-endpoint').length).to.be.above(0);
+      }
+    );
+  });
 
 
   // TODO pass in real data for the overall stats percentage
