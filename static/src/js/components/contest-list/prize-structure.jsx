@@ -34,7 +34,7 @@ var PrizeStructure = React.createClass({
 
   render: function() {
 
-    if (this.props.structure.isFetching === true) {
+    if (!this.props.structure || this.props.structure.isFetching === true) {
       return (
         <div>Loading...</div>
       )
