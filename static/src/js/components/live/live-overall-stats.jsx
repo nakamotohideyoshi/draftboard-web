@@ -9,69 +9,81 @@ import { vsprintf } from 'sprintf-js'
 var LiveOverallStats = React.createClass({
   propTypes: {
     whichSide: React.PropTypes.string.isRequired,
-    myLineup: React.PropTypes.object.isRequired
+    lineup: React.PropTypes.object.isRequired
   },
 
 
   // helper method to find a halfway hex, since we have two semi circles to make an angular gradient on the circle stroke
   _percentageHexColor: function(start, end, percentage) {
     var hex = function(x) {
-        x = x.toString(16);
-        return (x.length == 1) ? '0' + x : x;
-    };
+        x = x.toString(16)
+        return (x.length == 1) ? '0' + x : x
+    }
 
-    var r = Math.ceil(parseInt(start.substring(0,2), 16) * percentage + parseInt(end.substring(0,2), 16) * (1-percentage));
-    var g = Math.ceil(parseInt(start.substring(2,4), 16) * percentage + parseInt(end.substring(2,4), 16) * (1-percentage));
-    var b = Math.ceil(parseInt(start.substring(4,6), 16) * percentage + parseInt(end.substring(4,6), 16) * (1-percentage));
+    var r = Math.ceil(parseInt(start.substring(0,2), 16) * percentage + parseInt(end.substring(0,2), 16) * (1-percentage))
+    var g = Math.ceil(parseInt(start.substring(2,4), 16) * percentage + parseInt(end.substring(2,4), 16) * (1-percentage))
+    var b = Math.ceil(parseInt(start.substring(4,6), 16) * percentage + parseInt(end.substring(4,6), 16) * (1-percentage))
 
-    return hex(r) + hex(g) + hex(b);
+    return hex(r) + hex(g) + hex(b)
   },
 
 
   // http://goo.gl/yJFZMs
   _polarToCartesian: function(centerX, centerY, radius, angleInDegrees) {
-    var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+    var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0
 
     return {
       x: centerX + (radius * Math.cos(angleInRadians)),
       y: centerY + (radius * Math.sin(angleInRadians))
-    };
+    }
   },
 
 
   // http://goo.gl/yJFZMs
   _describeArc: function(x, y, radius, startAngle, endAngle) {
-      var start = this._polarToCartesian(x, y, radius, endAngle);
-      var end = this._polarToCartesian(x, y, radius, startAngle);
+      var start = this._polarToCartesian(x, y, radius, endAngle)
+      var end = this._polarToCartesian(x, y, radius, startAngle)
 
-      var arcSweep = endAngle - startAngle <= 180 ? "0" : "1";
+      var arcSweep = endAngle - startAngle <= 180 ? "0" : "1"
 
       var d = [
           "M", start.x, start.y,
           "A", radius, radius, 0, arcSweep, 0, end.x, end.y
-      ].join(" ");
+      ].join(" ")
 
-      return d;
+      return d
   },
 
 
   render: function() {
-    // TODO props
-    var strokeWidth = 2;
-    var decimalRemaining = 0.3;
-    var backgroundHex = '#0c0e16';
-    var hexStart = '34B4CC';
-    var hexEnd = '2871AC';
-    var svgWidth = 280;
+    let hexStart, hexEnd
+    const lineup = this.props.lineup
 
-    var svgMidpoint = svgWidth / 2;
-    var radius = (svgWidth - 40) / 2;
+    switch (this.props.whichSide) {
+      case 'mine':
+        hexStart = '34B4CC'
+        hexEnd = '2871AC'
+        break
+      case 'opponent':
+        hexStart = 'e33c3c'
+        hexEnd = '871c5a'
+        break
+    }
+
+    // TODO props
+    var strokeWidth = 2
+    var decimalRemaining = lineup.minutesRemaining / lineup.totalMinutes
+    var backgroundHex = '#0c0e16'
+    var svgWidth = 280
+
+    var svgMidpoint = svgWidth / 2
+    var radius = (svgWidth - 40) / 2
 
     var backgroundCircle = {
       r: radius - (strokeWidth / 2),
       stroke: backgroundHex,
       strokeWidth: strokeWidth + 26
-    };
+    }
 
     var progressArc = {
       hexStart: '#' + hexStart,
@@ -79,12 +91,12 @@ var LiveOverallStats = React.createClass({
       hexEnd: '#' + hexEnd,
       d: this._describeArc(0, 0, radius, decimalRemaining * 360, 360),
       strokeWidth: strokeWidth
-    };
+    }
 
     var dottedRemainingArc = {
       strokeWidth: strokeWidth + 3,
       d: this._describeArc(0, 0, radius, 0, decimalRemaining * 360)
-    };
+    }
 
     // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
     // https://github.com/facebook/react/issues/1657#issuecomment-146905709
@@ -98,9 +110,9 @@ var LiveOverallStats = React.createClass({
         svgWidth,
         svgMidpoint
       ])
-    };
+    }
 
-    var endpointCoord = this._polarToCartesian(0, 0, radius, decimalRemaining * 360);
+    var endpointCoord = this._polarToCartesian(0, 0, radius, decimalRemaining * 360)
     var endOuter = {
       r: strokeWidth + 6,
       stroke: '#' + this._percentageHexColor(hexEnd, hexStart, 1 - decimalRemaining),
@@ -108,13 +120,13 @@ var LiveOverallStats = React.createClass({
       fill: backgroundHex,
       cx: endpointCoord.x,
       cy: endpointCoord.y
-    };
+    }
 
     var endInner = {
       r: strokeWidth,
       cx: endpointCoord.x,
       cy: endpointCoord.y
-    };
+    }
 
 
     return (
@@ -165,17 +177,17 @@ var LiveOverallStats = React.createClass({
             <div className="live-overview__help">
               Points
             </div>
-            <h4 className="live-overview__quantity">123</h4>
+            <h4 className="live-overview__quantity">{ lineup.points }</h4>
           </div>
-          <div className="live-overview__potential-earnings">$80</div>
+          <div className="live-overview__potential-earnings">${ lineup.potentialEarnings }</div>
           <div className="live-overview__pmr">
-            <div className="live-overview__pmr__quantity">243</div>
+            <div className="live-overview__pmr__quantity">{ lineup.minutesRemaining }</div>
             <div className="live-overview__pmr__title">PMR</div>
           </div>
         </section>
       </div>
-    );
+    )
   }
-});
+})
 
-module.exports = LiveOverallStats;
+module.exports = LiveOverallStats

@@ -19,6 +19,7 @@ import store from '../../store'
 import { fetchEntriesIfNeeded, generateLineups } from '../../actions/entries'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
+import { liveSelector } from '../../selectors/live'
 import { updateLiveMode } from '../../actions/live'
 
 // set up API calls to mock for now
@@ -43,6 +44,7 @@ var Live = React.createClass({
     liveContestsStats: React.PropTypes.object.isRequired,
     currentLineups: React.PropTypes.object.isRequired,
     currentLineupsStats: React.PropTypes.object.isRequired,
+    liveSelector: React.PropTypes.object.isRequired,
     liveDraftGroups: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object,
     params: React.PropTypes.object,
@@ -59,11 +61,15 @@ var Live = React.createClass({
     const urlParams = this.props.params
     let newMode = {
       type: 'lineup',
-      lineupId: urlParams.lineupId
+      myLineupId: urlParams.myLineupId
     }
     if ('contestId' in urlParams) {
       newMode.type = 'contest'
       newMode.contestId = urlParams.contestId
+
+      if ('opponentLineupId' in urlParams) {
+        newMode.opponentLineupId = urlParams.opponentLineupId
+      }
     }
 
     this.props.updateLiveMode(newMode)
@@ -94,10 +100,12 @@ var Live = React.createClass({
 
 
   returnToLineup: function() {
-    this.props.updatePath(vsprintf('/live/lineups/%d/', [this.props.mode.lineupId]))
+    this.props.updatePath(vsprintf('/live/lineups/%d/', [this.props.mode.myLineupId]))
 
     const newMode = Object.assign({}, this.props.mode, {
-      type: 'lineup'
+      type: 'lineup',
+      opponentLineupId: undefined,
+      contestId: undefined
     })
 
     this.props.updateLiveMode(newMode)
@@ -107,83 +115,127 @@ var Live = React.createClass({
   render: function() {
     const self = this
 
-    let moneyLine,
+    // component pieces
+    let
+      lineups,
+      liveTitle,
+      moneyLine,
       bottomNavForRightPanes,
-      myLineup,
-      myDraftGroup,
       overallStats
 
-    const lineupNonexistant = 'lineupId' in self.props.mode === false
+    const lineupNonexistant = 'myLineupId' in self.props.mode === false
     const noRelatedInfo = self.props.entries.hasRelatedInfo === false
 
+    // if data has not loaded yet
     if (lineupNonexistant || noRelatedInfo) {
       return (
         <div>LOADING</div>
       )
     }
 
-    myLineup = self.props.currentLineups.items[self.props.mode.lineupId]
-    myDraftGroup = self.props.liveDraftGroups[myLineup.draft_group]
+    if (self.props.mode.myLineupId) {
+      var myLineup = self.props.liveSelector.lineups.mine
 
-    switch (self.props.mode.type) {
-      case 'lineup':
-        bottomNavForRightPanes = (
-          <div className="live-right-pane-nav live-right-pane-nav--lineup" onClick={self.toggleContests}></div>
+      bottomNavForRightPanes = (
+        <div className="live-right-pane-nav live-right-pane-nav--lineup" onClick={self.toggleContests}></div>
+      )
+
+      liveTitle = (
+        <h1 className="live-scoreboard__contest-name">
+          { myLineup.name }
+        </h1>
+      )
+
+      overallStats = (
+        <LiveOverallStats
+          lineup={ myLineup }
+          whichSide="mine" />
+      )
+
+      lineups = (
+        <LiveLineup
+          whichSide="mine"
+          mode={ self.props.mode }
+          lineup={ myLineup } />
+      )
+    }
+
+    if (self.props.mode.contestId) {
+      const myContest = self.props.liveSelector.contest
+
+      bottomNavForRightPanes = (
+        <div className="live-right-pane-nav live-right-pane-nav--contest" onClick={self.toggleStandings}></div>
+      )
+
+      liveTitle = (
+        <h1 className="live-scoreboard__contest-name">
+          { myContest.name }
+          <span className="live-scoreboard__close" onClick={ self.returnToLineup }></span>
+        </h1>
+      )
+
+      overallStats = (
+        <LiveOverallStats
+          lineup={ myLineup }
+          whichSide="mine" />
+      )
+
+      moneyLine = (
+        <section className="live-winning-graph live-winning-graph--contest-overall">
+          <div className="live-winning-graph__pmr-line">
+            <div className="live-winning-graph__winners" style={{ width: myContest.percentageCanWin + '%' }}></div>
+            <div className="live-winning-graph__current-position" style={{ left: myContest.currentPercentagePosition + '%' }}></div>
+          </div>
+        </section>
+      )
+
+      if (self.props.mode.opponentLineupId) {
+        const opponentLineup = self.props.liveSelector.lineups.opponent
+
+        lineups = (
+          <div>
+            { lineups }
+            <LiveLineup
+              whichSide="opponent"
+              lineup={ opponentLineup } />
+          </div>
         )
+
         overallStats = (
-          <header className="cmp-live__scoreboard live-scoreboard">
-            <h1 className="live-scoreboard__contest-name">
-              { myLineup.name }
-            </h1>
+          <div>
+            { overallStats }
+
+            <div className="live-overall-stats__vs">vs</div>
+
             <LiveOverallStats
-              myLineup={ myLineup }
-              whichSide="me" />
-          </header>
-        )
-
-        break
-      case 'contest':
-        bottomNavForRightPanes = (
-          <div className="live-right-pane-nav live-right-pane-nav--contest" onClick={self.toggleStandings}></div>
-        )
-
-        const myContest = self.props.liveContests[self.props.mode.contestId]
-
-        overallStats = (
-          <header className="cmp-live__scoreboard live-scoreboard">
-            <h1 className="live-scoreboard__contest-name">
-              { myContest.info.name }
-              <span className="live-scoreboard__close" onClick={ self.returnToLineup }></span>
-            </h1>
-            <LiveOverallStats
-              myLineup={ myLineup }
-              liveContestsStats={ self.props.liveContestsStats }
-              currentLineupsStats={ self.props.currentLineupsStats }
-              whichSide="me" />
-          </header>
+              lineup={ opponentLineup }
+              whichSide="opponent" />
+          </div>
         )
 
         moneyLine = (
           <section className="live-winning-graph live-winning-graph--contest-overall">
             <div className="live-winning-graph__pmr-line">
-              <div className="live-winning-graph__winners" style={{ width: '50%' }}></div>
-              <div className="live-winning-graph__current-position" style={{ left: 0 }}></div>
+              <div className="live-winning-graph__winners" style={{ width: myContest.percentageCanWin + '%' }}></div>
+              <div className="live-winning-graph__current-position" style={{ left: myContest.currentPercentagePosition + '%' }}></div>
+              <div className="live-winning-graph__current-position live-winning-graph__opponent" style={{ left: '100%' }}></div>
             </div>
           </section>
         )
+      }
     }
 
     return (
       <div>
 
-        <LiveLineup
-          whichSide="me"
-          mode={ self.props.mode }
-          lineup={ myLineup }
-          draftGroup={ myDraftGroup } />
+        { lineups }
 
         <section className="cmp-live__court-scoreboard">
-          { overallStats }
+          <header className="cmp-live__scoreboard live-scoreboard">
+            { liveTitle }
+
+            { overallStats }
+          </header>
 
           <LiveNBACourt />
 
@@ -194,13 +246,11 @@ var Live = React.createClass({
 
         <section className="panes">
           <LiveContestsPaneConnected
-            mode={ self.props.mode }
-            liveContests={ self.props.liveContests }
-            currentLineups={ self.props.currentLineups }
-            liveContestsStats={ self.props.liveContestsStats }
-            prizes={ self.props.prizes } />
+            lineup={ myLineup }
+            mode={ this.props.mode } />
           <LivePlayerPaneConnected />
-          <LiveStandingsPaneConnected />
+          <LiveStandingsPaneConnected
+            mode={ self.props.mode } />
         </section>
       </div>
     )
@@ -215,14 +265,18 @@ let {Provider, connect} = ReactRedux
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    liveContests: state.liveContests,
+    // state elements
     currentLineups: state.currentLineups,
-    liveDraftGroups: state.liveDraftGroups,
     entries: state.entries,
-    prizes: state.prizes,
+    liveContests: state.liveContests,
+    liveDraftGroups: state.liveDraftGroups,
     mode: state.live.mode,
+    prizes: state.prizes,
+
+    // selectors
+    currentLineupsStats: currentLineupsStatsSelector(state),
     liveContestsStats: liveContestsStatsSelector(state),
-    currentLineupsStats: currentLineupsStatsSelector(state)
+    liveSelector: liveSelector(state)
   }
 }
 
@@ -243,8 +297,9 @@ var LiveConnected = connect(
 renderComponent(
   <Provider store={store}>
     <Router history={history}>
-      <Route path="/live/lineups/:lineupId" component={LiveConnected} />
-      <Route path="/live/lineups/:lineupId/contests/:contestId/" component={LiveConnected} />
+      <Route path="/live/lineups/:myLineupId" component={LiveConnected} />
+      <Route path="/live/lineups/:myLineupId/contests/:contestId/" component={LiveConnected} />
+      <Route path="/live/lineups/:myLineupId/contests/:contestId/opponents/:opponentLineupId" component={LiveConnected} />
     </Router>
   </Provider>,
   '.cmp-live'
