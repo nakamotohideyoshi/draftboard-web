@@ -33,6 +33,14 @@
     width: 86px;
   }
 
+  &__view-opponent-lineup {
+    cursor: pointer;
+    height: 40px;
+    left: 85px;
+    position: absolute;
+    top: 211px;
+    width: 322px;
+  }
 }
 
 .appstate--live-standings-pane--open {

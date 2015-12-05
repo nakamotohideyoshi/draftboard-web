@@ -72,6 +72,12 @@
 
 
 // NON BEM not sure how else to though...
-.live-lineup--opponent .live-lineup-player__play-status {
-  left: -10px;
+.live-lineup--opponent {
+  .live-lineup-player__play-status {
+    left: -10px;
+  }
+
+  .live-lineup-player.state--is-playing .live-lineup-player__status {
+    background-color: #bf313e;
+  }
 }

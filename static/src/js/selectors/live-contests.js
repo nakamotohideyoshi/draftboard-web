@@ -19,7 +19,7 @@ import log from '../lib/logging'
  *
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
-function rankContestLineups(lineups, draftGroup) {
+function rankContestLineups(lineups, draftGroup, prizeStructure) {
   log.debug('rankContestLineups')
   let rankedLineups = []
   let lineupsStats = {}
@@ -28,7 +28,7 @@ function rankContestLineups(lineups, draftGroup) {
     let stats = {
       id: id,
       points: updateFantasyPointsForLineup(lineup, draftGroup),
-      potentialEarnings: '5.0'
+      potentialEarnings: 0
     }
 
     rankedLineups.push(stats)
@@ -39,7 +39,13 @@ function rankContestLineups(lineups, draftGroup) {
 
   // set standings for use in contests pane
   _forEach(rankedLineups, (lineup, index) => {
-    lineupsStats[lineup.id].currentStanding = parseInt(index) + 1
+    const lineupStats = lineupsStats[lineup.id]
+
+    lineupStats.rank = parseInt(index) + 1
+
+    if (parseInt(index) in prizeStructure.ranks) {
+      lineupStats.potentialEarnings = prizeStructure.ranks[index].value
+    }
   })
 
   return {
@@ -57,7 +63,7 @@ function rankContestLineups(lineups, draftGroup) {
  *
  * @return {Integer} Return the total points
  */
-function updateFantasyPointsForLineup (lineup, draftGroup) {
+export function updateFantasyPointsForLineup (lineup, draftGroup) {
   log.debug('_updateFantasyPointsForLineup')
   let total = 0
 
@@ -77,9 +83,10 @@ function updateFantasyPointsForLineup (lineup, draftGroup) {
 export const liveContestsStatsSelector = createSelector(
   state => state.liveContests,
   state => state.liveDraftGroups,
+  state => state.prizes,
   state => state.entries.hasRelatedInfo,
 
-  (contests, draftGroups, hasRelatedInfo) => {
+  (contests, draftGroups, prizes, hasRelatedInfo) => {
     log.debug('selectors.liveContestsStatsSelector')
 
     if (hasRelatedInfo === false) {
@@ -89,9 +96,16 @@ export const liveContestsStatsSelector = createSelector(
     let contestsStats = {}
 
     _forEach(contests, (contest, id) => {
+      const draftGroup = draftGroups[contest.info.draft_group]
+      const prizeStructure = prizes[contest.info.prize_structure].info
+
       let stats = {
         id: contest.id,
-        start: contest.info.start
+        name: contest.info.name,
+        start: contest.info.start,
+        percentageCanWin: prizeStructure.payout_spots / contest.info.entries * 100,
+        entriesCount: contest.info.entries,
+        buyin: contest.info.buyin
       }
 
       if (contest.start >= Date.now()) {
@@ -99,8 +113,9 @@ export const liveContestsStatsSelector = createSelector(
         return
       }
 
+
       stats = Object.assign({}, stats,
-        rankContestLineups(contest.lineups, draftGroups[contest.info.draft_group])
+        rankContestLineups(contest.lineups, draftGroup, prizeStructure)
       )
 
       contestsStats[id] = stats

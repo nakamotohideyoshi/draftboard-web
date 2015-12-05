@@ -11,6 +11,7 @@ urlpatterns = patterns(
         login_required(views.FrontendDraftTemplateView.as_view())
     ),
     # need these simply to open the react app to then use redux-simple-router
+    (r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/opponents/(?P<opponent_lineup_id>\d+)/$', views.FrontendLiveTemplateView.as_view()),
     (r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/$', views.FrontendLiveTemplateView.as_view()),
     (r'^live/lineups/(?P<lineup_id>\d+)/$', views.FrontendLiveTemplateView.as_view()),
 

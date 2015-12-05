@@ -66,4 +66,22 @@
     line-height: 1.5;
     top: 5px;
   }
+
+  // bottom of contest mode
+  &--contest-overall {
+    .live-winning-graph__current-position:after {
+      border-radius: 50%;
+      border: 1px solid #34B4CC;
+      content: '';
+      left: -4px;
+      top: -4px;
+      width: 14px;
+      height: 14px;
+      position: absolute;
+    }
+
+    .live-winning-graph__opponent:after {
+      border: 1px solid #e33c3c;
+    }
+  }
 }

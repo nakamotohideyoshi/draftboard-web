@@ -6,6 +6,18 @@
   // because the pmr circle needs to be absolute
   min-height: 120px;
 
+  &__vs {
+    color: #313545;
+    display: inline-block;
+    font-family: $font-oswald;
+    font-size: 34px;
+    font-weight: 700;
+    margin: 0 60px;
+    position: relative;
+    text-transform: uppercase;
+    top: -90px;
+  }
+
   &__pmr-circle__background {
     position: absolute;
     left: -10px;
