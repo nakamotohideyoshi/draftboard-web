@@ -16,11 +16,8 @@ import store from '../../store'
 var LiveContestsPane = React.createClass({
 
   propTypes: {
-    liveContests: React.PropTypes.object.isRequired,
-    currentLineups: React.PropTypes.object.isRequired,
-    liveContestsStats: React.PropTypes.object.isRequired,
+    lineup: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object.isRequired,
-    prizes: React.PropTypes.object.isRequired,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func
   },
@@ -29,11 +26,11 @@ var LiveContestsPane = React.createClass({
   viewContest: function(contestId) {
     const mode = this.props.mode
 
-    this.props.updatePath(vsprintf('/live/lineups/%d/contests/%d/', [mode.lineupId, contestId]))
+    this.props.updatePath(vsprintf('/live/lineups/%d/contests/%d/', [mode.myLineupId, contestId]))
     this.props.updateLiveMode({
       type: 'contest',
       draftGroupId: mode.draftGroupId,
-      lineupId: mode.lineupId,
+      myLineupId: mode.myLineupId,
       contestId: contestId
     })
   },
@@ -47,37 +44,25 @@ var LiveContestsPane = React.createClass({
   render: function() {
     let self = this;
 
-    if (self.props.mode.lineupId in self.props.currentLineups.items === false) {
-      return (<div className="live-contests-pane live-pane live-pane--right" />)
-    }
-
-    const lineup = self.props.currentLineups.items[self.props.mode.lineupId]
-    const lineupContests = _map(lineup.contests, function(key) {
-      const contest = self.props.liveContests[key]
-      const contestStats = self.props.liveContestsStats[key]
-      const lineupStats = contestStats.entriesStats[self.props.mode.lineupId]
-      const totalEntries = contestStats.rankedLineups.length
-      const prizeStructure = self.props.prizes[contest.info.prize_structure].info
-      const percentageCanWin = prizeStructure.payout_spots / contest.info.entries * 100
-      const currentPercentagePosition = (lineupStats.currentStanding - 1) / contest.info.entries * 100
-
+    const lineup = self.props.lineup
+    const lineupContests = _map(lineup.contestsStats, function(contest, id) {
       let moneyLineClass = 'live-winning-graph'
-      if (percentageCanWin <= currentPercentagePosition) {
+      if (contest.percentageCanWin <= contest.currentPercentagePosition) {
         moneyLineClass += ' live-winning-graph--is-losing'
       }
 
       return (
         <li className="live-contests-pane__contest" key={ contest.id }>
-          <div className="live-contests-pane__name">{ contest.info.name }</div>
+          <div className="live-contests-pane__name">{ contest.name }</div>
           <div className="live-contests-pane__place">
-            <span className="live-contests-pane__place--mine">{ lineupStats.currentStanding }</span> of { totalEntries }
+            <span className="live-contests-pane__place--mine">{ contest.rank }</span> of { contest.entriesCount }
           </div>
-          <div className="live-contests-pane__potential-earnings">${ contest.info.buyin }/${ parseInt(lineupStats.potentialEarnings) }</div>
+          <div className="live-contests-pane__potential-earnings">${ contest.buyin }/${ lineup.potentialEarnings }</div>
 
           <section className={ moneyLineClass }>
             <div className="live-winning-graph__pmr-line">
-              <div className="live-winning-graph__winners" style={{ width: percentageCanWin + '%' }}></div>
-              <div className="live-winning-graph__current-position" style={{ left: currentPercentagePosition + '%' }}></div>
+              <div className="live-winning-graph__winners" style={{ width: contest.percentageCanWin + '%' }}></div>
+              <div className="live-winning-graph__current-position" style={{ left: contest.currentPercentagePosition + '%' }}></div>
             </div>
           </section>
 
@@ -122,7 +107,7 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),
+    updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
     updatePath: (path) => dispatch(updatePath(path))
   }
 }

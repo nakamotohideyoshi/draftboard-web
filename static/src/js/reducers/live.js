@@ -14,7 +14,7 @@ module.exports = function(state = {
       log.debug('reducersLive.LIVE_MODE_CHANGED')
 
       return update(state, { mode: {
-        $set: action.mode
+        $merge: action.mode
       }})
 
     default:
