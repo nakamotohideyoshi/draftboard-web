@@ -9,22 +9,20 @@ import LiveLineupPlayer from './live-lineup-player'
 var LiveLineup = React.createClass({
   propTypes: {
     whichSide: React.PropTypes.string.isRequired,
-    mode: React.PropTypes.object.isRequired,
-    lineup: React.PropTypes.object.isRequired,
-    draftGroup: React.PropTypes.object.isRequired
+    lineup: React.PropTypes.object.isRequired
   },
 
   render() {
     const self = this
-
+    const draftGroup = self.props.lineup.draftGroup
     const currentPlayers = self.props.lineup.roster.map(function(playerId) {
       const player = {
-        info: self.props.draftGroup.playersInfo[playerId],
-        stats: self.props.draftGroup.playersStats[playerId]
+        info: draftGroup.playersInfo[playerId],
+        stats: draftGroup.playersStats[playerId]
       }
 
       return (
-        <LiveLineupPlayer key={playerId} player={ player } />
+        <LiveLineupPlayer key={playerId} player={ player } whichSide = { self.props.whichSide } />
       )
     })
 
