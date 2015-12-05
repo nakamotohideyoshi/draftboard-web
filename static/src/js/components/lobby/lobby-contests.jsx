@@ -1,19 +1,21 @@
 import React from 'react'
-const ReactRedux = require('react-redux')
-const store = require('../../store')
-const renderComponent = require('../../lib/render-component')
+import * as ReactRedux from 'react-redux'
+import store from '../../store'
+import {updatePath} from 'redux-simple-router'
+
+import renderComponent from '../../lib/render-component'
+import CollectionMatchFilter from '../filters/collection-match-filter.jsx'
+import CollectionSearchFilter from '../filters/collection-search-filter.jsx'
+import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filter.jsx'
+import ContestList from '../contest-list/contest-list.jsx'
 import {updateFilter} from '../../actions/upcoming-contests-actions.js'
-var CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
-var CollectionSearchFilter = require('../filters/collection-search-filter.jsx')
-var ContestRangeSliderFilter = require('../contest-list/contest-range-slider-filter.jsx')
-var ContestList = require('../contest-list/contest-list.jsx')
 import {fetchPrizeIfNeeded} from '../../actions/prizes.js'
-import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js'
-import {
-  fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter
-} from '../../actions/upcoming-contests-actions.js'
+import {fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter}
+  from '../../actions/upcoming-contests-actions.js'
 import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-info-actions.js'
 import {fetchEntries} from '../../actions/entries.js'
+import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js'
+import * as AppActions from '../../stores/app-state-store.js'
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
@@ -40,7 +42,8 @@ var LobbyContests = React.createClass({
     updateOrderByFilter: React.PropTypes.func,
     orderByProperty: React.PropTypes.string,
     orderByDirection: React.PropTypes.string,
-    draftGroupsWithLineups: React.PropTypes.array
+    draftGroupsWithLineups: React.PropTypes.array,
+    updatePath: React.PropTypes.func
   },
 
 
@@ -81,8 +84,10 @@ var LobbyContests = React.createClass({
 
 
   handleFocusContest: function(contest) {
-    this.props.fetchPrizeIfNeeded(contest.prize_structure)
+    this.props.updatePath(`/lobby/${contest.id}/`)
     this.props.setFocusedContest(contest.id)
+    this.props.fetchPrizeIfNeeded(contest.prize_structure)
+    AppActions.openPane();
   },
 
 
@@ -187,7 +192,8 @@ function mapDispatchToProps(dispatch) {
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId)),
-    updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction))
+    updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
+    updatePath: (path) => dispatch(updatePath(path))
   };
 }
 
