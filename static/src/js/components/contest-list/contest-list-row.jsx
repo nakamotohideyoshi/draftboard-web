@@ -1,6 +1,5 @@
 const React = require('react')
 const moment = require('moment')
-import * as AppActions from '../../stores/app-state-store.js'
 import CountdownClock from '../site/countdown-clock.jsx'
 
 
@@ -28,7 +27,6 @@ var ContestListRow = React.createClass({
 
 
   handleRowClick: function(contest) {
-    AppActions.openPane();
     this.props.setFocusedContest(contest);
   },
 
@@ -51,7 +49,6 @@ var ContestListRow = React.createClass({
         </span>
       )
     }
-
   },
 
 
