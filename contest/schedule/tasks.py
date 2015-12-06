@@ -32,3 +32,7 @@ def create_scheduled_contests( days_in_future=None ):
             sm.run( time_delta=timedelta(days=days_in_future) )
         finally:
             release_lock()
+
+@app.task
+def create_scheduled_contests_now():
+    create_scheduled_contests( days_in_future=0 )
