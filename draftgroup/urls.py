@@ -5,10 +5,14 @@ from django.conf.urls import patterns
 from django.conf.urls import url
 from draftgroup.views import DraftGroupAPIView, \
     DraftGroupFantasyPointsView, DraftGroupGameBoxscoresView, \
-    DraftGroupPbpDescriptionView, UpcomingDraftGroupAPIView
+    DraftGroupPbpDescriptionView, UpcomingDraftGroupAPIView, CurrentDraftGroupAPIView
 
 urlpatterns = patterns(
     '',
+
+    #
+    # get the current draft groups (live, and upcoming)
+    (r'current/$', CurrentDraftGroupAPIView.as_view()),
 
     #
     # get the upcoming draft groups

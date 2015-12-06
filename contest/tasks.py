@@ -6,7 +6,8 @@ from __future__ import absolute_import
 from mysite.celery_app import app
 from datetime import timedelta
 from django.utils import timezone
-from contest.models import LiveContest
+from contest.models import LiveContest, Contest
+from draftgroup.models import DraftGroup, UpcomingDraftGroup
 
 #
 # very important/required notify email list
@@ -76,27 +77,58 @@ def validate_daily_contests_started():
     #print( 'validate_daily_contests_started' )
     pass # TODO
 
-#
-# if it 'hours' past the start time of the latest
-# game in the draft_group, notifiy admins to check
-# to make sure things are running as intended.
-#
-# this situation may arise from a postponed/delayed
-# game or stat provider issue.
 @app.task(bind=True)
-def validate_daily_contests_paid(self, *args, **kwargs):
-    #print( 'validate_daily_contests_paid' )
-    # print( str(args) )
-    #
-    # print( str(args) )
-    # for k,v in kwargs.items():
-    #     print( str(k), ':', str(v) )
+def notify_admin_draft_groups_not_completed(self, hours, *args, **kwargs):
+    """
+    We know when a DraftGroup's last game starts, but we dont know
+    when it will end.
 
-    # if we check on the live contests, in any early AM timezone,
-    # we should be cautious about any that are still live because
-    # typically contests finish by now.
-    red_flag_contests = LiveContest.objects.all()
-    print( len(red_flag_contests), 'contests still live!')
+    We should notify an admin if its been 5 hours since the last
+    game started, but the DraftGroup is still not closed,
+    because most games never take that long.
+
+    *** This task looks at DraftGroup(s) in the last 15 days.
+
+    :param hours:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    days_back           = 15
+    now                 = timezone.now()
+    start_lookup_range  = now - timedelta(days=days_back)
+    end_lookup_range    = now - timedelta(hours=hours)
+
+    #
+    # Get the DraftGroup(s) that havent been closed yet
+    draft_groups    = DraftGroup.objects.filter(end__gte=start_lookup_range,
+                                                end__lte=end_lookup_range,
+                                                closed__isnull=True)
+
+    #
+    # TODO -  PRINT THEM UNTIL WE HAVE AN EMAILER
+    contests = Contest.objects.filter( draft_group__in=draft_groups )
+    print( '*** %s *** contests are live >>> %s <<< hours after the last game(s) started.' % (contests.count(), hours))
+
+@app.task(bind=True)
+def notify_admin_contests_not_paid(self, *args, **kwargs):
+    """
+    If a Contest is in the 'completed' state, it needs to be paid out!
+
+    This task notifies an admin of ANY Contests in the 'completed' state.
+
+    This task can be run on a ~15 minute interval
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    payable_contests = Contest.objects.filter(status=Contest.COMPLETED)
+    num_contests = payable_contests.count()
+    if num_contests > 0:
+        print( '*** %s *** need to be paid out!' % (num_contests))
+
+    # TODO email an admin
 
 #
 #########################################################################

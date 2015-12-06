@@ -71,7 +71,11 @@ class AbstractContest(models.Model):
         (
             'Live', (
                 (INPROGRESS,    'In Progress'),     # game is locked, no new entries
-                (COMPLETED,     'Completed'),       # the live games are completed (but potentially not finalized)
+
+                # the contest is ready to be paid out.
+                # do not confuse this with the 'completed' status of sportradar games.
+                # in the context of a Contest, 'completed' means the live games are 'closed' !!!
+                (COMPLETED,     'Completed'),
             )
         ),
         (

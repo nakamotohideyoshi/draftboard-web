@@ -185,5 +185,11 @@ class FantasyPointsPush( AbstractPush ):
         self.channel    = sport
         self.event      = 'fp'
 
-
-
+class ContestUpdatePush( AbstractPush ):
+    """
+    Changes to contests (or new ones)
+    """
+    def __init__(self):
+        super().__init__() # init pusher object
+        self.channel    = 'contest'
+        self.event      = 'update'

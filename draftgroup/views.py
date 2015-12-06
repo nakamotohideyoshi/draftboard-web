@@ -8,7 +8,7 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.pagination import LimitOffsetPagination
-from draftgroup.models import DraftGroup, UpcomingDraftGroup
+from draftgroup.models import DraftGroup, UpcomingDraftGroup, CurrentDraftGroup
 from draftgroup.classes import DraftGroupManager
 from draftgroup.serializers import DraftGroupSerializer, UpcomingDraftGroupSerializer
 from django.core.cache import caches
@@ -57,6 +57,19 @@ class UpcomingDraftGroupAPIView(generics.ListAPIView):
         """
         return UpcomingDraftGroup.objects.all()
 
+class CurrentDraftGroupAPIView(generics.ListAPIView):
+    """
+    return the draft group players for the given draftgroup id
+    """
+
+    # Current and Upcoming use the same serializer
+    serializer_class        = UpcomingDraftGroupSerializer
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the UpcomingDraftGroup model (DraftGroup objects).
+        """
+        return CurrentDraftGroup.objects.all()
 
 class DraftGroupFantasyPointsView(View):
     """

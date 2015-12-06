@@ -36,6 +36,9 @@ class DraftGroup( models.Model ):
 
     category    = models.CharField(max_length=32, null=True)
 
+    closed      = models.DateTimeField(blank=True, null=True,
+                        help_text='the time at which all live games in the draft group were closed out and stats were finalized by the provider')
+
     def get_games(self):
         """
         return the underlying sport.<sport>.Game objects this draft group was created with
@@ -61,15 +64,34 @@ class UpcomingDraftGroup(DraftGroup):
 
     """
     class UpcomingDraftGroupManager(models.Manager):
-
+        #
         def get_queryset(self):
-            # get the distinct DraftGroup(s) associated with contest currently in the lobby
-            distinct_contest_draft_groups = contest.models.LobbyContest.objects.filter().distinct('draft_group')
+            # get the distinct DraftGroup(s) only upcoming contests
+            distinct_contest_draft_groups = contest.models.UpcomingContest.objects.filter().distinct('draft_group')
             # build a list of the (distinct) draft_group.pk's
             draft_group_ids = [c.draft_group.pk for c in distinct_contest_draft_groups ]
             return super().get_queryset().filter(pk__in=draft_group_ids)
 
     objects = UpcomingDraftGroupManager()
+
+    class Meta:
+        proxy = True
+
+class CurrentDraftGroup(DraftGroup):
+    """
+    PROXY model for Upcoming & Live DraftGroups ... and rest API use.
+
+    """
+    class CurrentDraftGroupManager(models.Manager):
+        # just get the draftgroups from the LobbyContests which has Live and Upcoming contests
+        def get_queryset(self):
+            # get the distinct DraftGroup(s) associated with contest currently in the lobby
+            distinct_contest_draft_groups = contest.models.CurrentContest.objects.filter().distinct('draft_group')
+            # build a list of the (distinct) draft_group.pk's
+            draft_group_ids = [c.draft_group.pk for c in distinct_contest_draft_groups ]
+            return super().get_queryset().filter(pk__in=draft_group_ids)
+
+    objects = CurrentDraftGroupManager()
 
     class Meta:
         proxy = True

@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 from mysite.celery_app import app
 from django.core.cache import cache
+from django.utils import timezone
 import contest.models
 
 LOCK_EXPIRE = 60 # Lock expires in 5 minutes
@@ -62,6 +63,11 @@ def __on_game_closed( draft_group ):
 
     # b will be True when all the games are closed!
     if b:
+        #
+        # set the datetime to the draft group so we know when all games closed
+        draft_group.closed = timezone.now()
+        draft_group.save()
+
         #
         # update all Contest's with this draft_group, to be completed
         Contest = contest.models.Contest
