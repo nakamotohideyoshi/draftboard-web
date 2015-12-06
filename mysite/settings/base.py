@@ -385,11 +385,11 @@ SUIT_CONFIG = {
         # If MENU_OPEN_FIRST_CHILD=True and children exists, you can leave parent link blank
 
         # Example:
-        (('Prize Structure Creator', '/prize/generator/', 'icon-cog', ('auth.add_group',)),
+        (('Prize Structure Creator', '/api/prize/generator/', 'icon-cog', ('auth.add_group',)),
             (
-                ('Cash',     '/prize/generator/',    'auth.add_user'),
-                ('Ticket',   '/prize/ticket/',       'auth.add_user'),
-                ('Flat',     '/prize/flat/',         'auth.add_user'),
+                ('Cash',     '/api/prize/generator/',    'auth.add_user'),
+                ('Ticket',   '/api/prize/ticket/',       'auth.add_user'),
+                ('Flat',     '/api/prize/flat/',         'auth.add_user'),
             )
         )
     ) # end MENU_ORDER
