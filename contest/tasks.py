@@ -78,7 +78,7 @@ def validate_daily_contests_started():
     pass # TODO
 
 @app.task(bind=True)
-def notify_admin_draft_groups_not_completed(self, hours, *args, **kwargs):
+def notify_admin_draft_groups_not_completed(self, hours=5, *args, **kwargs):
     """
     We know when a DraftGroup's last game starts, but we dont know
     when it will end.
