@@ -106,8 +106,10 @@ PUSHER_SECRET   = 'fc815c85237d726b9d8e'
 
 #
 # override datetime objects now() method to use the delta_seconds in cache
-import util.timeshift as timeshift
+
 from django.utils import timezone
-is_running_on_codeship = environ.get('CI', False)
-if DATETIME_DELTA_ENABLE and not is_running_on_codeship:
+import os
+running_on_codeship = os.environ.get('CI', None)
+if DATETIME_DELTA_ENABLE and not running_on_codeship:
+    import util.timeshift as timeshift
     timezone.now = timeshift.delta_now
