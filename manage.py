@@ -18,6 +18,9 @@ if __name__ == "__main__":
     current_settigns_module = os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings.base")
     print('current_settings_module:', current_settigns_module)
 
+    running_on_codeship = os.environ.get('CI', None)
+    print('running_on_codehip: %s' % str(running_on_codeship))
+
     from django.core.management import execute_from_command_line
 
     execute_from_command_line(sys.argv)
