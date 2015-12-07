@@ -32,6 +32,9 @@ ENVS = {
     'testing': {
         'heroku_repo': 'draftboard-testing',
     },
+    'ios_sandbox': {
+        'heroku_repo': 'draftboard-ios-sandbox',
+    },
 }
 
 django.settings_module('mysite.settings.local')
@@ -191,6 +194,16 @@ def local():
     """fab local [command]"""
 
     env.environment = 'local'
+    _get_local_git_db()
+
+
+def ios_sandbox():
+    """fab local [command]"""
+
+    testing = ENVS['ios_sandbox']
+
+    env.environment = 'ios-sandbox'
+    env.heroku_repo = testing['heroku_repo']
     _get_local_git_db()
 
 
