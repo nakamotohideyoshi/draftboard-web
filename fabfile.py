@@ -29,6 +29,9 @@ ENVS = {
         'local_git_branch': 'master',
         'heroku_repo': 'rio-dfs',
     },
+    'testing': {
+        'heroku_repo': 'draftboard-testing',
+    },
 }
 
 django.settings_module('mysite.settings.local')
@@ -188,6 +191,16 @@ def local():
     """fab local [command]"""
 
     env.environment = 'local'
+    _get_local_git_db()
+
+
+def testing():
+    """fab local [command]"""
+
+    testing = ENVS['testing']
+
+    env.environment = 'testing'
+    env.heroku_repo = testing['heroku_repo']
     _get_local_git_db()
 
 
