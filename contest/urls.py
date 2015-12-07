@@ -55,7 +55,7 @@ urlpatterns = patterns(
     (r'^all-lineups/(?P<contest_id>[0-9]+)/$', AllLineupsView.as_view()),
 
     #
-    # get the complete set of specially packed lineups for a contest
+    # get the usernames for all users who have lineups in the contest
     (r'^registered-users/(?P<contest_id>[0-9]+)/$', RegisteredUsersAPIView.as_view()),
 
 )
