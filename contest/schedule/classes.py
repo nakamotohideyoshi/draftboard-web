@@ -1,6 +1,8 @@
 #
 # contest/schedule/classes.py
 
+from django.conf import settings
+from pytz import timezone as pytz_timezone
 from datetime import timedelta, datetime
 from django.utils import timezone
 from django.db.transaction import atomic
@@ -157,6 +159,7 @@ class ScheduleManager(object):
             d                   = utc_dt.date()
             t                   = scheduled_template_contest.start_time
             utc_start           = utc_dt.replace( d.year, d.month, d.day, t.hour, t.minute, 0, 0 )
+            utc_start           = utc_start + timedelta(hours=self.get_dst_offset_hours())
 
             c.start             = utc_start
             c.end               = utc_start + timedelta(minutes=scheduled_template_contest.duration_minutes)
@@ -180,6 +183,21 @@ class ScheduleManager(object):
 
             c.save()
             return c
+
+        def get_dst_offset_hours(self):
+            # get the local time in 'America/New_York' timezone,
+            # as well as local time in UTC, and return the difference in hours
+            # it should be 4 or 5 !
+            tz = pytz_timezone( settings.TIME_ZONE )    # settings.TIME_ZONE is like 'America/New_York'
+            local_datetime = datetime.now(tz=tz)
+            utc_datetime = timezone.now()               # get django.utils.timezone.now()
+            if utc_datetime.hour <= 6:
+                td = timedelta(hours=6)
+                utc_datetime = utc_datetime + td
+                local_datetime = local_datetime + td
+            #
+            # the offset should alwasy be 4 or 5
+            return utc_datetime.hour - local_datetime.hour
 
     def __init__(self):
         self.schedules = Schedule.objects.all()

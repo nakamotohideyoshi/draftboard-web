@@ -51,6 +51,9 @@ def deploy():
         env.local_git_branch,
     ))
 
+    #
+    # TODO
+    # after git push, we should do a $> heroku run python manage.py migrate
 
 def exportdb():
     """fab [environment] exportdb (exports the environment database to `/tmp/dfs_exported.dump`)"""
