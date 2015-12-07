@@ -8,11 +8,11 @@ from sports.views import PlayerCsvView, LeagueInjuryAPIView, LivePbpView, Fantas
 urlpatterns = patterns(
     '',
 
-    (r'^injuries/(?P<sport>[a-z]+)$', LeagueInjuryAPIView.as_view()),
+    (r'^injuries/(?P<sport>[a-z]+)/$', LeagueInjuryAPIView.as_view()),
 
     #
     # get recent play by play for this draftgroup
-    (r'^live-pbp/(?P<sport>[a-z]+)$', LivePbpView.as_view()),
+    (r'^live-pbp/(?P<sport>[a-z]+)/$', LivePbpView.as_view()),
 
     #
     # dump the players in a csv format
@@ -20,6 +20,6 @@ urlpatterns = patterns(
 
     #
     # get the fantasy points history for all players
-    (r'^fp-history/(?P<sport>[a-z]+)$', FantasyPointsHistoryAPIView.as_view())
+    (r'^fp-history/(?P<sport>[a-z]+)/$', FantasyPointsHistoryAPIView.as_view())
 
 )
