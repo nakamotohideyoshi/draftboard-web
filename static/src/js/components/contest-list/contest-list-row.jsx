@@ -20,9 +20,11 @@ var ContestListRow = React.createClass({
     columns: React.PropTypes.array,
     focusedLineup: React.PropTypes.object,
     focusedContest: React.PropTypes.object,
+    highlighted: React.PropTypes.bool,
     enterContest: React.PropTypes.func,
     setFocusedContest: React.PropTypes.func,
-    draftGroupsWithLineups: React.PropTypes.array
+    draftGroupsWithLineups: React.PropTypes.array,
+    isEntered: React.PropTypes.bool
   },
 
 
@@ -31,7 +33,22 @@ var ContestListRow = React.createClass({
   },
 
 
+  ignoreClick: function(e) {
+    e.stopPropagation();
+  },
+
+
   getEnterButton: function() {
+    if (this.props.isEntered) {
+      return (
+        <span
+          className="button button--mini button--green"
+          onClick={this.ignoreClick}
+        >
+          Entered
+        </span>
+      )
+    }
     if (this.props.draftGroupsWithLineups.indexOf(this.props.row.draft_group) !== -1) {
       return (
         <span
@@ -42,11 +59,13 @@ var ContestListRow = React.createClass({
       )
     } else {
       return (
-        <span
+        <a
           className="button button--mini--outline button--green-outline"
-          onClick={this.props.enterContest.bind(null, this.props.row.id)}>
+          title="Draft a lineup for this contest."
+          href={'/draft/' + this.props.row.draft_group + '/'}
+        >
           Draft
-        </span>
+        </a>
       )
     }
   },
@@ -56,6 +75,13 @@ var ContestListRow = React.createClass({
     // If it's the currently focused contest, add a class to it.
     var classes = this.props.focusedContest.id === this.props.row.id ? 'active ' : '';
     classes += 'cmp-contest-list__row';
+    if (this.props.isEntered) {
+      classes += ' entered'
+    }
+
+    if (this.props.highlighted) {
+      classes += ' highlight'
+    }
 
     // Icons
     var guaranteedIcon;
