@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 #
 # replayer/tasks.py
+from os.path import join
 from django.utils import timezone
 from util.loaddata import LoadData
 from mysite.celery_app import app
@@ -9,6 +10,15 @@ from replayer.classes import ReplayManager
 from celery.contrib.abortable import AbortableTask
 from replayer.models import TimeMachine
 from django.core import management
+from django.conf import settings
+
+from django.core.management.color import no_style
+from django.core.management.commands.dumpdata import Command as DumpData
+from django.core.management.commands.loaddata import Command as LoadData
+from django.db.utils import DEFAULT_DB_ALIAS
+from django.http import HttpResponse
+from django.utils.six import StringIO
+from smuggler import settings as smugger_settings
 
 @app.task(bind=True)
 def reset_db_for_replay(self):
@@ -29,17 +39,12 @@ def reset_db_for_replay(self):
 @app.task(bind=True)
 def snapshot_db_for_replay(self):
     """
-    Wipes out db using
-        >>> from django.core import management
-        >>> management.call_command('dumpdata', '--output', 'dumped.json' verbosity=0)
-
+    saves a snapshot of the current database with internal use of manage.py dumpdata
     :return:
     """
-    print('calling >>> management.call_command("dumpdata", verbosity=1, interactive=False)')
-    from django.conf import settings
-    filename = settings.SMUGGLER_FIXTURE_DIR + '/live_db_dump.json'
-    management.call_command('dumpdata', '--output', filename, verbosity=1, interactive=False)
-    print('done with dumpdata command')
+    print('save snapshot default')
+    save_snapshot_simple()
+    print('saved snapshot default')
 
 @app.task(bind=True, base=AbortableTask)
 def load_replay(self, timemachine):
@@ -75,5 +80,33 @@ def load_replay(self, timemachine):
 
         rp.play(load_db=False, play_until=timemachine.target)
 
+def save_snapshot_simple():
+    stream = serialize_to_response()
+    save_stream_to_file(stream)  # saves with default name
 
+def save_stream_to_file(stream, filename='replayer_snapshot.json'):
+    fullpath = join( settings.SMUGGLER_FIXTURE_DIR, filename)
+    with open(fullpath, 'wb') as fd:
+        fd.write( stream.getvalue().encode('utf-8') )
 
+def serialize_to_response(app_labels=None, exclude=None, response=None,
+                          format=smugger_settings.SMUGGLER_FORMAT,
+                          indent=smugger_settings.SMUGGLER_INDENT):
+    app_labels = app_labels or []
+    exclude = exclude or []
+    stream = StringIO()
+    error_stream = StringIO()
+    dumpdata = DumpData()
+    dumpdata.style = no_style()
+    dumpdata.execute(*app_labels, **{
+        'stdout': stream,
+        'stderr': error_stream,
+        'exclude': exclude,
+        'format': format,
+        'indent': indent,
+        'use_natural_foreign_keys': True,
+        'use_natural_primary_keys': True
+    })
+    # response.write(stream.getvalue())
+    # return response
+    return stream
