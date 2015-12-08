@@ -4,7 +4,7 @@
 from django.utils.html import format_html
 from django.contrib import admin
 import replayer.models
-from .tasks import load_replay, reset_db_for_replay
+from .tasks import load_replay, reset_db_for_replay, snapshot_db_for_replay
 # change the datetime to show seconds for replayer/admin.py
 from django.conf.locale.en import formats as en_formats
 en_formats.DATETIME_FORMAT = "d b Y H:i:s"
@@ -114,8 +114,11 @@ class TimeMachineAdmin(admin.ModelAdmin):
                 result = load_replay.AsyncResult(obj.loader_task_id)
                 result.abort()
 
-    def save_snapshot(self, request, queryset):
+    def reset_db(self, request, queryset):
         task_result = reset_db_for_replay.delay()
 
-    actions = [start_replayer, stop_replayer, save_snapshot]
+    def save_snapshot(self, request, queryset):
+        task_result = snapshot_db_for_replay.delay()
+
+    actions = [start_replayer, stop_replayer, reset_db, save_snapshot]
 
