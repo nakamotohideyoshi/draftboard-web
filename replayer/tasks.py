@@ -13,8 +13,8 @@ from django.core import management
 from django.conf import settings
 
 from django.core.management.color import no_style
-from django.core.management.commands.dumpdata import Command as DumpData
-from django.core.management.commands.loaddata import Command as LoadData
+#from django.core.management.commands.dumpdata import Command as DumpData
+# from django.core.management.commands.loaddata import Command as LoadData
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.http import HttpResponse
 from django.utils.six import StringIO
