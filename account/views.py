@@ -21,6 +21,9 @@ from account.serializers import (
 )
 from braces.views import LoginRequiredMixin
 
+from rest_framework import permissions
+#from rest_framework.generics import CreateAPIView
+#from django.contrib.auth import get_user_model # If used custom user model
 
 class RegisterAccountAPIView(generics.CreateAPIView):
     """

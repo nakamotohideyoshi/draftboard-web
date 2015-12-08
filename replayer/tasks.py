@@ -8,6 +8,38 @@ from mysite.celery_app import app
 from replayer.classes import ReplayManager
 from celery.contrib.abortable import AbortableTask
 from replayer.models import TimeMachine
+from django.core import management
+
+@app.task(bind=True)
+def reset_db_for_replay(self):
+    """
+    Wipes out db using
+        >>> from django.core import management
+        >>> management.call_command('flush', verbosity=0, interactive=False)
+            ... and it can be reloaded by something like ...
+        >>> management.call_command('loaddata', 'test_data', verbosity=0)
+
+    :return:
+    """
+    print('calling >>> management.call_command("flush", verbosity=1, interactive=False)')
+    #management.call_command('flush', verbosity=1, interactive=False)
+    management.call_command('flush', verbosity=1, interactive=False)
+    print('done with flush command')
+
+@app.task(bind=True)
+def snapshot_db_for_replay(self):
+    """
+    Wipes out db using
+        >>> from django.core import management
+        >>> management.call_command('dumpdata', '--output', 'dumped.json' verbosity=0)
+
+    :return:
+    """
+    print('calling >>> management.call_command("dumpdata", verbosity=1, interactive=False)')
+    from django.conf import settings
+    filename = settings.SMUGGLER_FIXTURE_DIR + '/live_db_dump.json'
+    management.call_command('dumpdata', '--output', filename, verbosity=1, interactive=False)
+    print('done with dumpdata command')
 
 @app.task(bind=True, base=AbortableTask)
 def load_replay(self, timemachine):

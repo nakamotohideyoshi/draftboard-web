@@ -44,6 +44,8 @@ from rest_framework import routers, serializers, viewsets
 
 urlpatterns = [
     # experimental
+    url('^', include('django.contrib.auth.urls')),
+
     url(r'^admin/', include('smuggler.urls')),  # before admin url patterns!
 
     url(r'^admin/',         include(admin.site.urls)),
