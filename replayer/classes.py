@@ -242,6 +242,7 @@ class ReplayManager(object):
         print( '' )
 
         parser = sports.parser.DataDenParser()
+
         last    = start         # trailing time since which we have no parsed Updates
         while last <= end:      # break out of while once our 'last' update time is past the end
             time.sleep( tick )  # every 'tick' seconds, get all the updates since the last update
@@ -339,7 +340,11 @@ class ReplayManager(object):
         self.clear()
 
         replay_filename     = self.get_replay_filename( replay_dump_name )
-        restore_cmd_format  = 'sudo -u postgres pg_restore --no-acl --no-owner -d %s -t replayer_replay -t replayer_update %s'
+
+        # subprocess call with sudo
+        #restore_cmd_format  = 'sudo -u postgres pg_restore --no-acl --no-owner -d %s -t replayer_replay -t replayer_update %s'
+        restore_cmd_format  = 'pg_restore --no-acl --no-owner -d %s -t replayer_replay -t replayer_update %s'
+
         restore_cmd         = restore_cmd_format % (db_name, replay_filename)
         subprocess.call( restore_cmd, shell=True)
 
