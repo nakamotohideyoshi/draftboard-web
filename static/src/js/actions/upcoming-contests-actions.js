@@ -3,6 +3,7 @@ import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
 import Cookies from 'js-cookie'
 import {fetchPrizeIfNeeded} from './prizes.js'
+import {insertEntry} from './entries.js'
 
 const contestSchema = new Schema('contests', {
   idAttribute: 'id'
@@ -143,7 +144,8 @@ export function enterContest(contestId, lineupId) {
           window.alert(res.body)
           console.error(res.body)
         } else {
-          console.log(res)
+          // Insert our newly saved entry into the store.
+          dispatch(insertEntry(res.body))
           // Upon save success, send user to the lobby.
           // document.location.href = '/frontend/lobby/?lineup-saved=true';
         }

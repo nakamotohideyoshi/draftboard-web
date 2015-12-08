@@ -294,5 +294,8 @@ class EnterLineupAPIView(generics.CreateAPIView):
             return Response( 'Contest is full', status=status.HTTP_403_FORBIDDEN )
         except (OverdraftException) as e:
             return Response('You have insufficient funds to enter this contest.', status=status.HTTP_403_FORBIDDEN )
-        #
-        return Response('Lineup was successfully entered into the Contest!')
+
+        # If Entry creation was successful, return the created Entry object.
+        entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
+        serializer = CurrentEntrySerializer(entry, many=False)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

@@ -3,7 +3,8 @@ const ActionTypes = require('../action-types');
 const initialState = {
   lineups: {},
   draftGroupsWithLineups: [],
-  focusedLineupId: null
+  focusedLineupId: null,
+  hoveredLineupId: null
 }
 
 module.exports = function(state = initialState, action) {
@@ -23,6 +24,12 @@ module.exports = function(state = initialState, action) {
     case ActionTypes.LINEUP_FOCUSED:
       return Object.assign({}, state, {
         focusedLineupId: action.lineupId
+      })
+
+
+    case ActionTypes.LINEUP_HOVERED:
+      return Object.assign({}, state, {
+        hoveredLineupId: action.lineupId
       })
 
 

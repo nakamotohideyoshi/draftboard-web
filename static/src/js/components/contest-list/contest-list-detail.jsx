@@ -35,7 +35,7 @@ var ContestListDetail = React.createClass({
    * if it isn't, set what's in the URL as the focused contest and open the side panel to view it.
    */
   componentWillReceiveProps: function(nextProps) {
-    if (this.props.focusedContestId !== nextProps.params.contestId) {
+    if (nextProps.params.contestId && this.props.focusedContestId !== nextProps.params.contestId) {
       this.props.setFocusedContest(nextProps.params.contestId)
       AppActions.openPane();
     }
@@ -166,6 +166,7 @@ var ContestListDetail = React.createClass({
 
 
 function mapStateToProps(state) {
+  // TODO: put this in a reusable selector.
   let contest = state.upcomingContests.allContests[state.upcomingContests.focusedContestId]
   let prizeStructure = null
 
@@ -198,6 +199,7 @@ var ContestListDetailConnected = connect(
 renderComponent(
   <Provider store={store}>
     <Router history={history}>
+      <Route path="/lobby/" component={ContestListDetailConnected} />
       <Route path="/lobby/:contestId/" component={ContestListDetailConnected} />
     </Router>
   </Provider>,

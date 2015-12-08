@@ -15,6 +15,7 @@ import {fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFil
 import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-info-actions.js'
 import {fetchEntries} from '../../actions/entries.js'
 import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js'
+import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'
 import * as AppActions from '../../stores/app-state-store.js'
 
 // These components are needed in the lobby, but will take care of rendering themselves.
@@ -31,6 +32,7 @@ var LobbyContests = React.createClass({
     allContests: React.PropTypes.object,
     filteredContests: React.PropTypes.array,
     focusedContest: React.PropTypes.object,
+    hoveredLineupId: React.PropTypes.number,
     focusedLineup: React.PropTypes.object,
     updateFilter: React.PropTypes.func,
     fetchUpcomingContests: React.PropTypes.func,
@@ -43,7 +45,8 @@ var LobbyContests = React.createClass({
     orderByProperty: React.PropTypes.string,
     orderByDirection: React.PropTypes.string,
     draftGroupsWithLineups: React.PropTypes.array,
-    updatePath: React.PropTypes.func
+    updatePath: React.PropTypes.func,
+    lineupsInfo: React.PropTypes.object
   },
 
 
@@ -142,6 +145,8 @@ var LobbyContests = React.createClass({
           enterContest={this.handleEnterContest}
           setOrderBy={this.handleSetOrderBy}
           draftGroupsWithLineups={this.props.draftGroupsWithLineups}
+          lineupsInfo={this.props.lineupsInfo}
+          hoveredLineupId={this.props.hoveredLineupId}
         />
       </div>
     );
@@ -177,7 +182,9 @@ function mapStateToProps(state) {
     filteredContests: upcomingContestSelector(state),
     orderByProperty: state.upcomingContests.filters.orderBy.property,
     orderByDirection: state.upcomingContests.filters.orderBy.direction,
-    draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups
+    draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
+    lineupsInfo: upcomingLineupsInfo(state),
+    hoveredLineupId: state.upcomingLineups.hoveredLineupId
   };
 }
 
@@ -188,8 +195,8 @@ function mapDispatchToProps(dispatch) {
     updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
     fetchUpcomingContests: () => dispatch(fetchUpcomingContests()),
     fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
-    fetchEntries: () => dispatch(fetchEntries()),
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
+    fetchEntries: () => dispatch(fetchEntries()),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId)),
     updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
