@@ -1,3 +1,4 @@
+from braces.views import LoginRequiredMixin
 from django.views.generic.base import TemplateView
 
 
@@ -5,58 +6,38 @@ class FrontendHomepageTemplateView(TemplateView):
     template_name = 'frontend/homepage.html'
 
 
-class FrontendLiveTemplateView(TemplateView):
+class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/live.html'
-
-
-class FrontendLayoutTemplateView(TemplateView):
-    """
-    Shows the fluid layout we will be using
-    """
-    template_name = 'frontend/layout.html'
-
-
-class FrontendStyleGuideTemplateView(TemplateView):
-    """
-    Shows reusable styles for the site
-    """
-    template_name = 'frontend/styleguide.html'
 
 
 class FrontendLobbyTemplateView(TemplateView):
     template_name = 'frontend/lobby.html'
 
 
-class FrontendSettingsTemplateView(TemplateView):
+class FrontendSettingsTemplateView(LoginRequiredMixin, TemplateView):
     """
     Build out of settings page. Coderden should take this and incorporate into their backend.
     """
     template_name = 'frontend/settings.html'
 
-class FrontendResultsTemplateView(TemplateView):
+
+class FrontendResultsTemplateView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/results.html'
 
 
-class FrontendSettingsDepositsTemplateView(TemplateView):
+class FrontendSettingsDepositsTemplateView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/settings/deposits.html'
 
 
-class FrontendSettingsTransactionHistoryTemplateView(TemplateView):
+class FrontendSettingsTransactionHistoryTemplateView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/settings/transactions.html'
 
 
-class FrontendSettingsWithdrawsTemplateView(TemplateView):
+class FrontendSettingsWithdrawsTemplateView(LoginRequiredMixin, TemplateView):
     """
     Build out of settings page. Coderden should take this and incorporate into their backend.
     """
     template_name = 'frontend/settings/withdraws.html'
-
-
-class FrontendTooltipTemplateView(TemplateView):
-    """
-    Shows the fluid layout we will be using
-    """
-    template_name = 'frontend/tooltip.html'
 
 
 class FrontendDraftTemplateView(TemplateView):
