@@ -78,7 +78,7 @@ urlpatterns = [
     # JWT support.
     url(r'^api-token-auth/', 'rest_framework_jwt.views.obtain_jwt_token'),
 
-    url(r'^account/', include(account.urls)),
+    url(r'^', include('account.urls_non_api')),
 ]
 
 if settings.DEBUG:
