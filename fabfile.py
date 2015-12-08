@@ -229,3 +229,12 @@ def production():
     env.local_git_branch = production['local_git_branch']
     env.heroku_repo = production['heroku_repo']
     _confirm_env()
+
+def pg_info():
+    """
+    fab production pg_info
+    """
+    #_puts('heroku pg:info')
+    #operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
+    operations.local('heroku pg:info') # <<< "cbanister@coderden.com\ncalebriodfs\n"')
+
