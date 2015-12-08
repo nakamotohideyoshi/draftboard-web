@@ -348,6 +348,9 @@ class ReplayManager(object):
         restore_cmd         = restore_cmd_format % (db_name, replay_filename)
         subprocess.call( restore_cmd, shell=True)
 
+    def sub_call(self, cmd):
+        subprocess.call( cmd, shell=True )
+
     def clear(self):
         """
         deletes all objects in the Replay, and Update table to make
