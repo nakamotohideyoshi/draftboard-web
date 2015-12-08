@@ -265,7 +265,11 @@ $account-height: 800px;
         }
 
         // div displaying the error message
-        .error-info {
+        .errorlist {
+          list-style: none;
+        }
+        .error-info,
+        .errorlist li {
           width: 100%;
           color: $white;
           background-color: $red;

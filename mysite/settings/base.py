@@ -28,8 +28,9 @@ SITE_ROOT   = os.path.dirname(os.path.realpath(__file__))
 
 from os.path import join
 
-LOGIN_URL = '/admin/login/'
-LOGOUT_URL = '/admin/logout/'
+LOGIN_URL = '/login/'
+LOGOUT_URL = '/logout/'
+LOGIN_REDIRECT_URL = '/lobby/'
 
 #
 # Django 1.8 removed TEMPLATE_DIRS. It is now TEMPLATES = {}
