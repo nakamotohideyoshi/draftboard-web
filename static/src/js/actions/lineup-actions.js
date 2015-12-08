@@ -79,6 +79,16 @@ export function lineupFocused(lineupId) {
 }
 
 
+export function lineupHovered(lineupId) {
+  return (dispatch) => {
+    dispatch({
+      type: types.LINEUP_HOVERED,
+      lineupId
+    })
+  }
+}
+
+
 // Initialize a blank lineup card based on the sport of the current draftgroup.
 export function createLineupInit(sport) {
   return (dispatch) => {
