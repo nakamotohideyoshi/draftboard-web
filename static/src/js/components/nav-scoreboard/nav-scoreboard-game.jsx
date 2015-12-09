@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
-import React from 'react';
-import PureRenderMixin from 'react-addons-pure-render-mixin';
+import React from 'react'
+import PureRenderMixin from 'react-addons-pure-render-mixin'
 
 /**
  * Responsible for rendering a singe contest game item.
@@ -21,24 +21,24 @@ const NavScoreboardGame = React.createClass({
   },
 
   render() {
-    const {players, time} = this.props.game;
+    const {home_abbr, away_abbr} = this.props.game.fields
 
     return (
       <div className="game scroll-item">
         <div className="left">
-          {players[0]}
+          {home_abbr}
           <br />
-          {players[1]}
+          {away_abbr}
         </div>
 
         <div className="right">
-          {time} <br /> <br />
+          7:10PM <br /> <br />
         </div>
       </div>
-    );
+    )
   }
 
-});
+})
 
 
-export default NavScoreboardGame;
+export default NavScoreboardGame

@@ -1,26 +1,31 @@
-'use strict';
+'use strict'
 
-import React from 'react';
-import {Provider, connect} from 'react-redux';
+import React from 'react'
+import {Provider, connect} from 'react-redux'
+import { forEach as _forEach } from 'lodash'
+import io from 'socket.io-client'
+import _ from 'lodash'
 
-import store from '../../store';
-import {fetchUser} from '../../actions/user';
-import {fetchEntriesIfNeeded} from '../../actions/entries';
+import store from '../../store'
+import log from '../../lib/logging'
+import {fetchUser} from '../../actions/user'
+import {fetchEntriesIfNeeded} from '../../actions/entries'
 import errorHandler from '../../actions/live-error-handler'
-import renderComponent from '../../lib/render-component';
+import renderComponent from '../../lib/render-component'
 
-import NavScoreboardLogo from './nav-scoreboard-logo.jsx';
-import NavScoreboardMenu from './nav-scoreboard-menu.jsx';
-import NavScoreboardSlider from './nav-scoreboard-slider.jsx';
-import NavScoreboardFilters from './nav-scoreboard-filters.jsx';
-import NavScoreboardUserInfo from './nav-scoreboard-user-info.jsx';
-import NavScoreboardSeparator from './nav-scoreboard-separator.jsx';
-import NavScoreboardGamesList from './nav-scoreboard-games-list.jsx';
-import NavScoreboardLineupsList from './nav-scoreboard-lineups-list.jsx';
+import NavScoreboardLogo from './nav-scoreboard-logo.jsx'
+import NavScoreboardMenu from './nav-scoreboard-menu.jsx'
+import NavScoreboardSlider from './nav-scoreboard-slider.jsx'
+import NavScoreboardFilters from './nav-scoreboard-filters.jsx'
+import NavScoreboardUserInfo from './nav-scoreboard-user-info.jsx'
+import NavScoreboardSeparator from './nav-scoreboard-separator.jsx'
+import NavScoreboardGamesList from './nav-scoreboard-games-list.jsx'
+import NavScoreboardLineupsList from './nav-scoreboard-lineups-list.jsx'
 
 import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
+import { updateBoxScore } from '../../actions/current-box-scores'
 
-import {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} from './nav-scoreboard-const.jsx';
+import {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} from './nav-scoreboard-const.jsx'
 
 import request from 'superagent'
 import urlConfig from '../../fixtures/live-config'
@@ -28,101 +33,64 @@ import urlConfig from '../../fixtures/live-config'
 const NavScoreboard = React.createClass({
 
   propTypes: {
-    dispatch: React.PropTypes.func.isRequired,
-    user: React.PropTypes.object.isRequired,
-    games: React.PropTypes.object.isRequired,
-    lineups: React.PropTypes.array.isRequired
+    boxScores: React.PropTypes.object.isRequired,
+    navScoreboardStats: React.PropTypes.object.isRequired,
+    updateBoxScore: React.PropTypes.func
   },
 
-  getDefaultProps() {
-    // Fake contest data.
-    return {
-      user: {
-        name: 'Marshallwild',
-        balance: '$542.50'
-      },
-      games: {
-        "MLB": [
-          {
-            'id': 0,
-            'players': ['ATLL', 'BAL'],
-            'time': '7:10PM'
-          },
-          {
-            'id': 1,
-            'players': ['ATLL', 'BAL'],
-            'time': '7:10PM'
-          },
-          {
-            'id': 2,
-            'players': ['ATLL', 'BAL'],
-            'time': '7:10PM'
-          },
-          {
-            'id': 3,
-            'players': ['ATLL', 'BAL'],
-            'time': '7:10PM'
-          },
-          {
-            'id': 4,
-            'players': ['ATLL', 'BAL'],
-            'time': '7:10PM'
-          },
-          {
-            'id': 5,
-            'players': ['ATLL', 'BAL'],
-            'time': '7:10PM'
-          },
-          {
-            'id': 6,
-            'players': ['ATLL', 'BAL'],
-            'time': '7:10PM'
-          },
-          {
-            'id': 7,
-            'players': ['ATLL', 'BAL'],
-            'time': '7:10PM'
-          },
-          {
-            'id': 8,
-            'players': ['ATLL', 'BAL'],
-            'time': '7:10PM'
-          },
-          {
-            'id': 9,
-            'players': ['ATLL', 'BAL'],
-            'time': '7:10PM'
-          }
-        ],
-        "NBA": [
-          {
-            'id': 8,
-            'players': ['ATL', 'BAL'],
-            'time': '7:10PM'
-          }
-        ]
-      },
-      lineups: [
-        {
-          'id': 1,
-          'name': 'Currys Chicken',
-          'contest': 'NBA',
-          'time': '7:10PM',
-          'pmr': 42,
-          'points': 89,
-          'balance': '20$'
-        },
-        {
-          'id': 2,
-          'name': 'Currys Chicken',
-          'contest': 'NBA',
-          'time': '7:10PM',
-          'pmr': 42,
-          'points': 89,
-          'balance': '20$'
+  listenToSockets() {
+    log.debug('_initEventsSocket()')
+
+    var self = this
+    var socket = io('http://localhost:5838')
+
+    // implement reconnect when available to avoid tons of errors in chrome
+    // https://github.com/socketio/socket.io-client/issues/326
+
+    socket.on('connect', () => {
+      log.debug('listenToSockets() - Socket connected')
+
+      // use event stream as well as player stream
+      if (window.location.pathname.substring(0, 6) === '/live/') {
+        socket.on('event', (eventData) => {
+          self.onEventSocketReceived(eventData)
+        })
+
+        // TODO change this to player stream when we can
+        // socket.on('fp', (eventData) => {
+        //   self.onPlayerSocketReceived(eventData)
+        // })
+      } else {
+        // TODO change this to player stream when we can
+        socket.on('event', (eventData) => {
+          self.onEventSocketReceived(eventData)
+        })
+      }
+    })
+
+    // directly pull in events rather than running separate cmd
+    // var history = require('../fixtures/live-nba-history')[0].fixtures()
+    // _forEach(history, self.onEventReceived)
+  },
+
+  onEventSocketReceived(eventCall) {
+    log.debug('onEventReceived', eventCall.id)
+    var self = this
+
+    // if this is a statistical based call
+    if ('statistics__list' in eventCall === false) {
+      return false
+    }
+
+    if (eventCall.game__id in self.props.boxScores) {
+      const events = eventCall.statistics__list
+      // Determine if game is one we need to update in box scores. If so, then update score using points and made params
+      _.forEach(events, function(event) {
+        if ('made' in event && event.made === 'true') {
+          self.props.updateBoxScore(eventCall.game__id, event)
         }
-      ]
-    };
+      })
+    }
   },
 
   getInitialState() {
@@ -136,17 +104,19 @@ const NavScoreboard = React.createClass({
       // Selected option key. Subtype from the main type.
       // Competition from games and null for lineups.
       selectedKey: null
-    };
+    }
   },
 
   componentWillMount() {
     require('superagent-mock')(request, urlConfig)
+    let self = this
 
-    this.props.dispatch(fetchUser());
-    this.props.dispatch(
+    store.dispatch(
       fetchEntriesIfNeeded()
     ).catch(
       errorHandler
+    ).then(
+      // this.listenToSockets()
     )
   },
 
@@ -158,11 +128,11 @@ const NavScoreboard = React.createClass({
    * @return {Object} options key-value pairs
    */
   handleChangeSelection(selectedOption, selectedType, selectedKey) {
-    console.assert(typeof selectedOption === 'string');
-    console.assert(typeof selectedType === 'string');
-    console.assert(typeof selectedKey === 'string' || selectedKey === null);
+    console.assert(typeof selectedOption === 'string')
+    console.assert(typeof selectedType === 'string')
+    console.assert(typeof selectedKey === 'string' || selectedKey === null)
 
-    this.setState({selectedOption, selectedType, selectedKey});
+    this.setState({selectedOption, selectedType, selectedKey})
   },
 
   /**
@@ -170,25 +140,25 @@ const NavScoreboard = React.createClass({
    * @return {Array} options key-value pairs
    */
   getSelectOptions() {
-    let options = [];
+    let options = []
 
-    Object.keys(this.props.games).forEach((key) => {
+    _.forEach(this.props.navScoreboardStats.gamesByDraftGroup, (draftGroup, key) => {
       options.push({
-        option: key + " GAMES",
+        option: draftGroup.sport + " GAMES",
         type: TYPE_SELECT_GAMES,
-        key: key,
-        count: this.props.games[key].length
-      });
-    });
+        key: key
+        // count: this.props.navScoreboardStats.gamesByDraftGroup[key].boxScores.length
+      })
+    })
 
     options.push({
       option: 'MY LINEUPS',
       type: TYPE_SELECT_LINEUPS,
       key: null,
-      count: this.props.lineups.length
-    });
+      count: this.props.navScoreboardStats.lineups.length
+    })
 
-    return options;
+    return options
   },
 
   /**
@@ -196,42 +166,57 @@ const NavScoreboard = React.createClass({
    */
   renderSliderContent() {
     if (this.state.selectedType === TYPE_SELECT_LINEUPS) {
-      return <NavScoreboardLineupsList lineups={this.props.lineups} />;
+      return <NavScoreboardLineupsList lineups={this.props.navScoreboardStats.lineups} />
     } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
-      let games = this.props.games[this.state.selectedKey];
-      return <NavScoreboardGamesList games={games} />;
+      let draftGroup = this.props.navScoreboardStats.gamesByDraftGroup[this.state.selectedKey]
+      return <NavScoreboardGamesList draftGroup={draftGroup} />
     } else {
-      return null;
+      return null
     }
   },
 
   render() {
-    const {name, balance} = this.props.user;
+    const { username, cash_balance } = window.dfs.user
 
     return (
       <div className="inner">
         <NavScoreboardMenu />
         <NavScoreboardSeparator half />
-        <NavScoreboardUserInfo name={name} balance={balance} />
+        <NavScoreboardUserInfo name={username} balance={cash_balance} />
         <NavScoreboardSeparator />
         <NavScoreboardFilters
           selected={this.state.selectedOption}
           options={this.getSelectOptions()}
-          onChangeSelection={this.handleChangeSelection}
-        />
+          onChangeSelection={this.handleChangeSelection} />
         <NavScoreboardSlider type={this.state.selectedOption}>
           {this.renderSliderContent()}
         </NavScoreboardSlider>
         <NavScoreboardLogo />
       </div>
-    );
+    )
   }
-});
+})
 
+
+// Which part of the Redux global state does our component want to receive as props?
+function mapStateToProps(state) {
+  return {
+    boxScores: state.currentBoxScores,
+    navScoreboardStats: navScoreboardSelector(state)
+  }
+}
+
+// Which action creators does it want to receive by props?
+function mapDispatchToProps(dispatch) {
+  return {
+    updateBoxScore: (id, event) => dispatch(updateBoxScore(id, event))
+  }
+}
 
 const NavScoreboardConnected = connect(
-  navScoreboardSelector
-)(NavScoreboard);
+  mapStateToProps,
+  mapDispatchToProps
+)(NavScoreboard)
 
 renderComponent(
   <Provider store={store}>
@@ -241,4 +226,4 @@ renderComponent(
 )
 
 
-export default NavScoreboard;
+export default NavScoreboard
