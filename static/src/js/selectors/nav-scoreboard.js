@@ -1,7 +1,7 @@
-import _ from 'lodash';
+import _ from 'lodash'
 import { createSelector } from 'reselect'
 
-import { currentLineupsStatsSelector } from './current-lineups';
+import { currentLineupsStatsSelector } from './current-lineups'
 
 /**
  * Returns hours for provided timestamp with format like: 7pm
@@ -9,11 +9,11 @@ import { currentLineupsStatsSelector } from './current-lineups';
  * @return {String}
  */
 function getFormattedTime(timestamp) {
-  let hours = new Date(timestamp).getHours();
+  let hours = new Date(timestamp).getHours()
   let time = (hours % 12 || 12) + (hours > 12 ? 'pm' : 'am')
-  if(time == '12pm') time = '0am';
+  if(time == '12pm') time = '0am'
 
-  return time;
+  return time
 }
 
 /**
@@ -23,9 +23,10 @@ function getFormattedTime(timestamp) {
 export const navScoreboardSelector = createSelector(
   currentLineupsStatsSelector,
   state => state.liveDraftGroups,
+  state => state.currentBoxScores,
   state => state.user,
 
-  (lineups, draftGroups, user) => {
+  (lineups, draftGroups, boxScores, user) => {
     const resultLineups = _.map(lineups, (lineup) => {
       return {
         id: lineup.id,
@@ -35,16 +36,25 @@ export const navScoreboardSelector = createSelector(
         points:  89,    // TODO:
         pmr:     lineup.totalMinutes,
         balance: "$" + lineup.potentialEarnings
-      };
-    });
-
-    const resultDraftGroups = _.map(draftGroups, (dg) => {
-      return {
-        id:      dg.id,
-        time:    getFormattedTime(dg.expiresAt),     // TODO:
-        players: _.map(dg.boxScores, bs => bs.model) // TODO:
       }
-    });
+    })
+
+    const loadedDraftGroups = _.filter(draftGroups, (dg) => {
+      return dg.hasAllInfo === true
+    })
+
+    const resultDraftGroups = _.mapValues(loadedDraftGroups, (dg) => {
+      return {
+        id: dg.id,
+        time: dg.start,  // TODO replace with start
+        sport: dg.sport,
+        start: dg.start,
+        end: dg.end,
+        boxScores: _.mapValues(dg.boxScores, (boxScore, id) => {
+          return boxScores[id]
+        })
+      }
+    })
 
     return {
       // TODO: No user data.
@@ -52,10 +62,8 @@ export const navScoreboardSelector = createSelector(
         name: user.name       || '-',
         balance: user.balance || '-'
       },
-      games: {
-        "NBA": resultDraftGroups // TODO:
-      },
+      gamesByDraftGroup: resultDraftGroups, // TODO:
       lineups: resultLineups
-    };
+    }
   }
 )

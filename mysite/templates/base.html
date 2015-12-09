@@ -44,7 +44,7 @@
 
         <ul class="nav-main__secondary">
           <li>
-            <a href="#/">About Draftboard</a>
+            <a href="#">About Draftboard</a>
           </li>
           <li>
             <a href="#">Press &amp; Media</a>
@@ -108,6 +108,7 @@
       isAuthenticated: {{ user.is_authenticated|lower }},
       username: "{{ user.username }}",
       is_staff: {{ user.is_staff|lower }},
+      cash_balance: {% if user.cash_balance %}{{ user.cashbalance }}{% else %}0{% endif %}
     }
   };
   </script>

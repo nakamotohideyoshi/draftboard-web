@@ -129,6 +129,7 @@ $nav-scoreboard-foreground-color: #25A758;
       .add-funds {
         display: none;
         cursor: pointer;
+        text-decoration: none;
         color: $nav-scoreboard-foreground-color;
         font-size: 10px;
         text-transform: uppercase;
@@ -159,6 +160,7 @@ $nav-scoreboard-foreground-color: #25A758;
 
       &--selected {
         padding: 20px 0 0;
+        text-transform: uppercase;
       }
     }
   }
@@ -341,6 +343,7 @@ $nav-scoreboard-foreground-color: #25A758;
       color: $nav-scoreboard-secondary-font-color;
       font-size: 11px;
       font-weight: bold;
+      text-transform: uppercase;
 
       &:last-child {
         border-bottom: none;
