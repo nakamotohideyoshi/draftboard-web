@@ -5,6 +5,10 @@ from fabric import utils
 from distutils.util import strtobool
 from boto.s3.connection import S3Connection
 
+AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
+AWS_SECRET_ACCESS_KEY = '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'
+AWS_STORAGE_BUCKET_NAME = 'draftboard-db-dumps'
+
 def _confirm(prompt='Continue?\n', failure_prompt='User cancelled task'):
     '''
     Prompt the user to continue. Repeat on unknown response. Raise
@@ -295,3 +299,38 @@ def restore_db():
 
     # example:heroku pg:backups restore 'https://draftboard-db-dumps.s3.amazonaws.com/dfs_master.dump?Signature=Ft3MxTcq%2BySJ9Y7lkBp1Vig5sTY%3D&Expires=1449611209&AWSAccessKeyId=AKIAIJC5GEI5Y3BEMETQ&response-content-type=application/octet-stream' DATABASE_URL --app rio-dfs --confirm rio-dfs
     operations.local("heroku pg:backups restore '%s' DATABASE_URL --app rio-dfs --confirm rio-dfs" % url)
+
+def db2s3():
+    """
+    Upload a postgres dump to s3
+
+        $> sudo pip3 install awscli
+        $> sudo pip3 install --upgrade awscli
+        $> aws configure
+        AWS Access Key ID [None]: AKIAIJC5GEI5Y3BEMETQ
+        AWS Secret Access Key [None]: AjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1
+        Default region name [None]: us-east-1
+        Default output format [None]:
+        $> aws s3 cp dfs_master_example.dump s3://draftboard-db-dumps/dfs_master_example.dump    # <--- db2s3 does this cmd
+        upload: ./dfs_master_example.dump to s3://draftboard-db-dumps/dfs_master_example.dump
+        $>
+
+    :param: --set s3file=thefilenameons3
+    :return:
+    """
+
+    # filename on s3
+    db_dump_name = env.s3file #
+
+    cmd = 'aws s3 cp %s s3://draftboard-db-dumps/%s' % (db_dump_name, db_dump_name)
+    _puts('%s' % cmd)
+    operations.local(cmd)
+
+def s3ls():
+    """
+    list the dumps in s3://draftboard-db-dumps/
+    """
+    cmd = 'aws s3 ls s3://draftboard-db-dumps/'
+    _puts('%s' % cmd)
+    operations.local(cmd)
+
