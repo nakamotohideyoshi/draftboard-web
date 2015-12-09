@@ -12,11 +12,13 @@ const ContestList = React.createClass({
   propTypes: {
     contests: React.PropTypes.array,
     focusedContest: React.PropTypes.object,
-    focusedLineup: React.PropTypes.object,
+    focusedLineup: React.PropTypes.object.isRequired,
+    hoveredLineupId: React.PropTypes.number,
     enterContest: React.PropTypes.func,
     setFocusedContest: React.PropTypes.func,
     setOrderBy: React.PropTypes.func,
-    draftGroupsWithLineups: React.PropTypes.array
+    draftGroupsWithLineups: React.PropTypes.array,
+    lineupsInfo: React.PropTypes.object
   },
 
 
@@ -63,10 +65,26 @@ const ContestList = React.createClass({
 
     // Build up a list of rows to be displayed.
     _forEach(this.props.contests, function(row) {
+      let isEntered = false
+      let isHoveredEntered = false
+      let info = {}
+
+      if (this.props.lineupsInfo.hasOwnProperty(this.props.focusedLineup.id)) {
+        info = this.props.lineupsInfo[this.props.focusedLineup.id]
+        isEntered = (info.contests.indexOf(row.id) != -1)
+      }
+
+      if(this.props.lineupsInfo.hasOwnProperty(this.props.hoveredLineupId)) {
+        info = this.props.lineupsInfo[this.props.hoveredLineupId]
+        isHoveredEntered = (info.contests.indexOf(row.id) != -1)
+      }
+
       visibleRows.push(
         <ContestListRow
             key={row.id}
             row={row}
+            isEntered={isEntered}
+            highlighted={isHoveredEntered}
             focusedContest={this.props.focusedContest}
             focusedLineup={this.props.focusedLineup}
             enterContest={this.props.enterContest}
