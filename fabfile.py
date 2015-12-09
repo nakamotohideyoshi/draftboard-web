@@ -292,4 +292,6 @@ def restore_db():
         })
 
     _puts('s3 url -> %s' % url)
-    operations.local("heroku pg:backups restore '%s' DATABASE_URL" % url)
+
+    # example:heroku pg:backups restore 'https://draftboard-db-dumps.s3.amazonaws.com/dfs_master.dump?Signature=Ft3MxTcq%2BySJ9Y7lkBp1Vig5sTY%3D&Expires=1449611209&AWSAccessKeyId=AKIAIJC5GEI5Y3BEMETQ&response-content-type=application/octet-stream' DATABASE_URL --app rio-dfs --confirm rio-dfs
+    operations.local("heroku pg:backups restore '%s' DATABASE_URL --app rio-dfs --confirm rio-dfs" % url)
