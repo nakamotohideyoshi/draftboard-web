@@ -34,7 +34,9 @@ def reset_db_for_replay(self, s3file):
     # rp.sub_call('ssh -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "heroku pg:info --app rio-dfs"')
     cmd = 'ssh -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "fab restore_db --set s3file=%s"' % s3file
     print( cmd )
-    subprocess.call( cmd )
+    rp = ReplayManager()
+    # subprocess.call( cmd )
+    rp.sub_call( cmd )
 
 @app.task(bind=True)
 def snapshot_db_for_replay(self):
