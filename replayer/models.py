@@ -68,5 +68,5 @@ class TimeMachine(models.Model):
                         help_text='SET THE STOP TARGET FOR PLAY-TO-TARGET mode. the time you want to start at in the replay. must be within the start and end of the recorded stats')
     playback_mode   = models.CharField(max_length=64, null=False, choices=PLAYBACK_MODES )
 
-    snapshot_datetime = models.DateTimeField(null=False,
+    snapshot_datetime = models.DateTimeField(null=True, blank=True,
                                              help_text='internal field for settings the time to rewind the server to when the replay dump is re-loaded.')
