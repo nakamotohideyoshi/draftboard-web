@@ -3,8 +3,15 @@ import {Provider, connect} from 'react-redux';
 import store from '../../store'
 import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx'
-import {enterContest} from '../../actions/upcoming-contests-actions.js'
+import {enterContest, setFocusedContest} from '../../actions/upcoming-contests-actions.js'
 import {timeRemaining} from '../../lib/utils.js'
+import * as AppActions from '../../stores/app-state-store.js'
+import { Router, Route } from 'react-router'
+import {updatePath, syncReduxAndRouter} from 'redux-simple-router'
+import createBrowserHistory from 'history/lib/createBrowserHistory'
+
+const history = createBrowserHistory()
+syncReduxAndRouter(history, store)
 
 
 /**
@@ -16,7 +23,22 @@ var ContestListDetail = React.createClass({
     contest: React.PropTypes.object,
     prizeStructure: React.PropTypes.object,
     enterContest: React.PropTypes.func,
-    focusedLineupId: React.PropTypes.number
+    focusedLineupId: React.PropTypes.number,
+    focusedContestId: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
+    params: React.PropTypes.object,
+    setFocusedContest: React.PropTypes.func
+  },
+
+
+  /**
+   * When we get new props, check to see if the focusedContestId is the same as the id in the URL.
+   * if it isn't, set what's in the URL as the focused contest and open the side panel to view it.
+   */
+  componentWillReceiveProps: function(nextProps) {
+    if (nextProps.params.contestId && this.props.focusedContestId !== nextProps.params.contestId) {
+      this.props.setFocusedContest(nextProps.params.contestId)
+      AppActions.openPane();
+    }
   },
 
 
@@ -25,7 +47,6 @@ var ContestListDetail = React.createClass({
       activeTab: 'prizes'
     }
   },
-
 
   // Enter the currently focused lineup into a contest.
   handleEnterContest: function(contestId) {
@@ -145,6 +166,7 @@ var ContestListDetail = React.createClass({
 
 
 function mapStateToProps(state) {
+  // TODO: put this in a reusable selector.
   let contest = state.upcomingContests.allContests[state.upcomingContests.focusedContestId]
   let prizeStructure = null
 
@@ -154,6 +176,7 @@ function mapStateToProps(state) {
 
   return {
     contest,
+    focusedContestId: state.upcomingContests.focusedContestId,
     prizeStructure,
     focusedLineupId: state.upcomingLineups.focusedLineupId
   };
@@ -162,8 +185,9 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId))
-  };
+    enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
+    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId))
+  }
 }
 
 // Wrap the component to inject dispatch and selected state into it.
@@ -174,7 +198,10 @@ var ContestListDetailConnected = connect(
 
 renderComponent(
   <Provider store={store}>
-    <ContestListDetailConnected />
+    <Router history={history}>
+      <Route path="/lobby/" component={ContestListDetailConnected} />
+      <Route path="/lobby/:contestId/" component={ContestListDetailConnected} />
+    </Router>
   </Provider>,
   '.cmp-contest-list-detail'
 );

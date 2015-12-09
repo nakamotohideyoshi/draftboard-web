@@ -2,12 +2,12 @@ import * as types from '../action-types.js'
 import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
 import Cookies from 'js-cookie'
-
+import {fetchPrizeIfNeeded} from './prizes.js'
+import {insertEntry} from './entries.js'
 
 const contestSchema = new Schema('contests', {
   idAttribute: 'id'
 })
-
 
 
 
@@ -27,23 +27,35 @@ function fetchUpcomingContestsFail(ex) {
 }
 
 
+function fetchFocusedContestInfo(dispatch, contest) {
+  dispatch(fetchPrizeIfNeeded(contest.prize_structure))
+  fetchPrizeIfNeeded(contest.prize_structure)
+}
+
+
 /**
  * Set the focused contest based on the provided contest ID.
  * @param {number} contestId the ID of the contest to set as active.
  */
 export function setFocusedContest(contestId) {
-    return (dispatch) => {
-      dispatch({
-        type: types.SET_FOCUSED_CONTEST,
-        contestId
-      });
-    };
+  return (dispatch, getState) => {
+    let state = getState()
 
+    if (state.hasOwnProperty('allContests')) {
+      fetchFocusedContestInfo(state.allContests[contestId])
+    }
+
+    dispatch({
+      type: types.SET_FOCUSED_CONTEST,
+      contestId
+    });
+  };
 }
 
 
+
 export function fetchUpcomingContests() {
-  return (dispatch) => {
+  return (dispatch, getState) => {
     return request
       .get("/api/contest/lobby/")
       .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
@@ -58,6 +70,19 @@ export function fetchUpcomingContests() {
             arrayOf(contestSchema)
           )
 
+          // Now that we have contests, check if a contest is already set to be focused (probably
+          // via URL param). if set, fetch the necessary info for the contest detail pane.
+          let state = getState()
+
+          if (state.upcomingContests.focusedContestId) {
+            if (normalizedContests.entities.contests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
+              let contest = normalizedContests.entities.contests[state.upcomingContests.focusedContestId]
+              fetchFocusedContestInfo(dispatch, contest)
+            } else {
+              window.alert("404! that contest isn't in the lobby!")
+            }
+          }
+
           return dispatch(fetchUpcomingContestsSuccess({
             contests: normalizedContests.entities.contests
           }))
@@ -70,10 +95,6 @@ export function fetchUpcomingContests() {
 
 /**
  * When one of the contest list filters gets updated, change the state keys for that filter.
- * @param  {[type]} filterName     [description]
- * @param  {[type]} filterProperty [description]
- * @param  {[type]} match          [description]
- * @return {[type]}                [description]
  */
 export function updateFilter(filterName, filterProperty, match) {
   return {
@@ -123,7 +144,8 @@ export function enterContest(contestId, lineupId) {
           window.alert(res.body)
           console.error(res.body)
         } else {
-          console.log(res)
+          // Insert our newly saved entry into the store.
+          dispatch(insertEntry(res.body))
           // Upon save success, send user to the lobby.
           // document.location.href = '/frontend/lobby/?lineup-saved=true';
         }

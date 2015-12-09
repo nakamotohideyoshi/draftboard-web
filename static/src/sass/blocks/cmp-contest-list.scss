@@ -14,6 +14,11 @@ $table-row-hover-bg: #f9fafb;
   }
 
   &__row {
+
+    &.highlight {
+        background: #f3faf4;
+    }
+
     &:hover {
       background: $table-row-hover-bg !important;
       cursor: pointer;
