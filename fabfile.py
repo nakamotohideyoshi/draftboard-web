@@ -3,7 +3,7 @@ from fabric.contrib import django
 from fabric import operations
 from fabric import utils
 from distutils.util import strtobool
-
+from boto.s3.connection import S3Connection
 
 def _confirm(prompt='Continue?\n', failure_prompt='User cancelled task'):
     '''
@@ -232,9 +232,64 @@ def production():
 
 def pg_info():
     """
-    fab production pg_info
+    fab pg_info
     """
     #_puts('heroku pg:info')
     #operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
     operations.local('heroku pg:info') # <<< "cbanister@coderden.com\ncalebriodfs\n"')
 
+def heroku_restore_db():
+    """
+
+    """
+    #operations.local("sudo apt-get update -y")
+    operations.local("sudo pip3 install awscli")
+    operations.local("sudo pip3 install --upgrade awscli")
+    operations.local("aws configure <<< 'AKIAIJC5GEI5Y3BEMETQ\nAjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1\nus-east-1\n\n'")
+
+# def tester():
+#     """
+#     --set arg1=someval
+#     """
+#     _puts('arg1: %s' % env.arg1)
+
+def restore_db():
+    """
+    To restore a postgres dump, you must have previously uploaded it with something like:
+
+        $> sudo pip3 install awscli
+        $> sudo pip3 install --upgrade awscli
+        $> aws configure
+        AWS Access Key ID [None]: AKIAIJC5GEI5Y3BEMETQ
+        AWS Secret Access Key [None]: AjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1
+        Default region name [None]: us-east-1
+        Default output format [None]:
+        $> aws s3 cp dfs_master_example.dump s3://draftboard-db-dumps/dfs_master_example.dump
+        upload: ./dfs_master_example.dump to s3://draftboard-db-dumps/dfs_master_example.dump
+        $>
+
+    :param: --set s3file=thefilenameons3
+    :return:
+    """
+
+    # filename on s3
+    S3_FILE = env.s3file #'dfs_master_example.dump'
+
+    AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
+    AWS_SECRET_ACCESS_KEY = 'AjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1'
+    AWS_STORAGE_BUCKET_NAME = 'draftboard-db-dumps'
+
+    connection = S3Connection(
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+    url = connection.generate_url(
+        60,
+        'GET',
+        AWS_STORAGE_BUCKET_NAME,
+        S3_FILE,
+        response_headers={
+            'response-content-type': 'application/octet-stream'
+        })
+
+    _puts('s3 url -> %s' % url)
+    operations.local("heroku pg:backups restore '%s' DATABASE_URL" % url)
