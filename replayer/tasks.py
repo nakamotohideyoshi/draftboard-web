@@ -11,6 +11,7 @@ from celery.contrib.abortable import AbortableTask
 from replayer.models import TimeMachine
 from django.core import management
 from django.conf import settings
+import subprocess
 
 from django.core.management.color import no_style
 #from django.core.management.commands.dumpdata import Command as DumpData
@@ -21,20 +22,19 @@ from django.utils.six import StringIO
 from smuggler import settings as smugger_settings
 
 @app.task(bind=True)
-def reset_db_for_replay(self):
+def reset_db_for_replay(self, s3file):
     """
-    Wipes out db using
-        >>> from django.core import management
-        >>> management.call_command('flush', verbosity=0, interactive=False)
-            ... and it can be reloaded by something like ...
-        >>> management.call_command('loaddata', 'test_data', verbosity=0)
+    ssh into the remote aws replay helper server,
+    and use heroku to restore a database dump
 
     :return:
     """
-    print('calling >>> management.call_command("flush", verbosity=1, interactive=False)')
-    #management.call_command('flush', verbosity=1, interactive=False)
-    management.call_command('flush', verbosity=1, interactive=False)
-    print('done with flush command')
+
+    #
+    # rp.sub_call('ssh -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "heroku pg:info --app rio-dfs"')
+    cmd = 'ssh -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "fab restore_db --set s3file=%s"' % s3file
+    print( cmd )
+    subprocess.call( cmd )
 
 @app.task(bind=True)
 def snapshot_db_for_replay(self):
