@@ -10,26 +10,33 @@
 #   >>>> https://gist.github.com/X0nic/4724674
 ##################################################
 
+from django.db.transaction import atomic
+import subprocess
 from django.conf import settings
 import ast
 import sys
-from os import listdir
-from os.path import isfile, join
 import os.path
 import json
-import subprocess
+from django.contrib.auth.models import User
+from datetime import timedelta
 from django.utils import timezone
-from datetime import datetime, timedelta
-from django.utils import timezone
+from cash.classes import CashTransaction
+from ticket.classes import TicketManager
+import prize.helpers
+from contest.models import UpcomingContest
 from replayer.models import Replay
 import replayer.models
-from django.dispatch import receiver
-from dataden.signals import Update
 from django.core.cache import caches
 import sports.parser
 import time
-#import util.actual_datetime as actual_datetime # wont work on heroku -- you dont have 'sudo' permission to system from Dyno
 import util.timeshift as timeshift
+from draftgroup.models import Player
+from contest.buyin.classes import BuyinManager
+from lineup.classes import LineupManager
+from contest.models import Contest
+from sports.classes import SiteSportManager
+from roster.classes import RosterManager
+from random import Random
 
 class ReplayManager(object):
     """
@@ -78,6 +85,10 @@ class ReplayManager(object):
         self.replay         = None
         self.original_time  = timezone.now()
         self.timemachine    = timemachine
+
+        #
+        self.user_list      = None
+        self.curr_user_idx  = 0
 
     @staticmethod
     def recording_in_progress():
@@ -225,7 +236,11 @@ class ReplayManager(object):
             start   = start_from
             updates = replayer.models.Update.objects.all()
             if updates.count() <= 1:
+                if self.timemachine:
+                    self.timemachine.playback_status = 'ERR - NOTHING TO PLAY!'
+                    self.timemachine.save()
                 raise Exception('there are no Update objects to play thru')
+
             if start is None:
                 start = updates[0].ts
             end     = start + timedelta(days=1) # never going to replay more than this
@@ -236,9 +251,14 @@ class ReplayManager(object):
             if play_until and start < play_until:
                 end = play_until
 
+        # if timemachine exists, update the playback_status to started
+        if self.timemachine:
+            self.timemachine.playback_status = 'RUNNING'
+            self.timemachine.save()
+
         # update the system time to the start time of the replay
-        print('set system time to:')
         self.set_system_time( start )
+        print('set system time to:', str(timezone.now()))
         print( '' )
 
         parser = sports.parser.DataDenParser()
@@ -263,6 +283,10 @@ class ReplayManager(object):
 
             anymore = replayer.models.Update.objects.filter( ts__gte=last )
             if anymore.count() <= 0:
+                # if timemachine exists, update the playback_status to finished
+                if self.timemachine:
+                    self.timemachine.playback_status = 'FINISHED'
+                    self.timemachine.save()
                 return # because there are literally no more updates
 
     def __flag_cache(self, enable):
@@ -373,7 +397,194 @@ class ReplayManager(object):
         # print('restore points:')
         # restore_points = [ print('    ', str(f)) for f in listdir(ReplayManager.RESTORE_DIR) if isfile(join(ReplayManager.RESTORE_DIR,f)) ]
 
-        print('replays:')
-        replay_files   = [ print('    ', str(f)) for f in listdir(ReplayManager.REPLAY_DIR) if isfile(join(ReplayManager.REPLAY_DIR,f)) ]
+        # print('replays:')
+        # replay_files   = [ print('    ', str(f)) for f in listdir(ReplayManager.REPLAY_DIR) if isfile(join(ReplayManager.REPLAY_DIR,f)) ]
+        #
+        # print( '' )
+        print('replays are not stored here anymore')
 
-        print( '' )
+    def build_world(self, num_users=200):
+        """
+        The replayer tasks which wipes & installs a snapshot
+        calls this method when its done to ensure all
+        fundamental database things are setup.
+        """
+
+        # make sure Ticket amounts exist
+        TicketManager.create_default_ticket_amounts()
+
+        # ensure default headsup PrizeStructures exist
+        prize.helpers.create_initial_data()
+
+    def generate_users(self, num_users=200):
+        """
+        This method also creates 'num_users' users,
+        and adds $10,000 to their cash accounts.
+        """
+        if num_users < 2:
+            raise Exception('num_users should be more than 2')
+
+        self.user_list = []         # initialize the self.user_list
+        for x in range(num_users):
+            user, created = User.objects.get_or_create( username='user%s'%str(x))
+            self.user_list.append( user )
+            user.set_password('test')
+            # add 10000 to their cash account
+            ct = CashTransaction( user )
+            ct.deposit(10000.00) # add funds
+
+        return self.user_list # return it
+
+    def __get_user(self, idx=None):
+        """
+        gets the next user from the self.user_list like a circular array.
+
+        if idx is specified (and is a valid index) the user at that idx is returned.
+        :return:
+        """
+        if idx is not None:
+            return self.user_list[idx]
+
+        size = len(self.user_list)
+        user = self.user_list[ self.curr_user_idx % size ]
+        self.curr_user_idx += 1 # post increment
+        return user
+
+    def fill_contests(self):
+        """
+        Fills all remaining entry spots in registering contests
+        using the list of users created by setup_world().
+
+        This method uses the list of users circularly until
+        all contest spots have been filled (or a user runs out of money).
+        """
+
+        # get the list of generated users if self.user_list is None
+        if self.user_list is None:
+            try:
+                user0 = User.objects.get(username='user0')
+                # get the users whose pk is >= user0.pk
+                self.user_list = list(User.objects.filter(pk__gte=user0.pk))
+            except User.DoesNotExist:
+                self.user_list = self.generate_users()
+
+        # get all upcoming contests
+        contests = UpcomingContest.objects.all()
+        print('[%s] upcoming contests to ...')
+
+        for c in contests:
+
+            # for each unfilled spot in the contest...
+            for remaining_entry in range(c.entries - c.current_entries):
+
+                user = self.__get_user()
+                rlc = RandomLineupCreator( c.site_sport.name,
+                                                        user.username )
+                rlc.create( c.pk )
+
+class RandomLineupCreator(object):
+    """
+    for testing purposes, this class is used to create dummy
+    lineups in a contest with randomly chosen players.
+
+    the underlying transactions are not created for the buyins, etc...
+
+    all teams are created with the admin user (pk: 1)
+    """
+
+    def __init__(self, sport, username):
+        print( 'WARNING - This class can & will submit teams that EXCEED SALARY REQUIREMENTS')
+        self.user, created               = User.objects.get_or_create(username=username)
+        self.user.set_password('test')
+        self.user.save()
+
+        ct = CashTransaction( self.user )
+        ct.deposit( 1000 )
+
+        self.site_sport_manager = SiteSportManager()
+        self.site_sport         = self.site_sport_manager.get_site_sport( sport )
+        self.roster_manager     = RosterManager( self.site_sport )
+
+        self.r = Random()
+
+        self.position_lists     = None
+        self.lineup_player_ids  = None
+
+    @atomic
+    def create(self, contest_id):
+        """
+        creates a loosly validated lineup (may be over max salary)
+        and associates it (creates a contest.models.Entry) with the contest.
+
+        the players for each roster spot are chosen at random
+
+        :param contest_id:
+        :return:
+        """
+        self.lineup_player_ids = [] # initialize the player ids list
+
+        # from the contest, use the draft group to build positional player lists
+        # from which we can select players for each roster spot
+        contest             = Contest.objects.get( pk=contest_id )
+        self.build_positional_lists( contest.draft_group )
+
+        # select a random player for each roster spot,
+        # making sure not to reuse players we have already chosen
+        roster_size = self.roster_manager.get_roster_spots_count()
+        for roster_idx in range(0, roster_size):
+            player_id = self.get_random_player( roster_idx )
+            self.lineup_player_ids.append( player_id )
+
+        #
+        #
+        #  ** this hacks the total salary  for the contest ***
+        #
+        #
+        salary_config = contest.draft_group.salary_pool.salary_config
+        original_max_team_salary = salary_config.max_team_salary
+        salary_config.max_team_salary = 999999
+        salary_config.save()
+
+        # create the lineup
+        lm = LineupManager( self.user )
+        # this lineup will very likely exceed the total, salary, so
+        # lets hack it to make sure it gets created
+        lineup = lm.create_lineup( self.lineup_player_ids, contest.draft_group )
+
+        # give the admin just enough cash to buy this team into the contest
+        admin = User.objects.get(username='admin')
+        ct = CashTransaction( admin )
+        ct.deposit( contest.buyin )
+
+        # attempt to buy the team into the contest
+        bm = BuyinManager( self.user )
+        bm.buyin( contest, lineup )
+
+        # set the salary back to its original value
+        salary_config.max_team_salary = original_max_team_salary
+        salary_config.save()
+
+    def get_random_player(self, position_list_idx):
+        players = self.position_lists[position_list_idx]
+        while True: # keep trying
+            random_number = self.r.randint(0, len(players) - 1)
+            player_id = players[ random_number ].salary_player.player_id
+            if player_id not in self.lineup_player_ids:
+                return player_id
+        # if we made it thru without finding one, raise exception -- not enough players
+        raise Exception('get_random_player() couldnt find a player -- maybe the pool is too small?')
+
+    def build_positional_lists(self, draft_group):
+        self.position_lists = []
+        roster_size = self.roster_manager.get_roster_spots_count()
+        for roster_idx in range(0, roster_size):
+            self.position_lists.append( [] ) # initialize with the # of lists as are roster spots
+
+        # put each player in each list he could be drafted from
+        draft_group_players = Player.objects.filter( draft_group=draft_group )
+        for player in draft_group_players:
+            for roster_idx in range(0, roster_size):
+                sport_player = player.salary_player.player  # the sports.<sport>.models.Player
+                if self.roster_manager.player_matches_spot( sport_player, roster_idx ):
+                    # add the draft group player
+                    self.position_lists[ roster_idx ].append( player )

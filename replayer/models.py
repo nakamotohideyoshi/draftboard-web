@@ -42,12 +42,17 @@ class TimeMachine(models.Model):
     ]
 
     # the id of the celery task that will load the replay into the Update table (takes 0-30 seconds usually)
-    loader_task_id  = models.CharField(max_length=255, default=None, null=True)
-    playback_task_id  = models.CharField(max_length=255, default=None, null=True)
+    loader_task_id          = models.CharField(max_length=255, default=None, null=True)
+    fill_contests_task_id   = models.CharField(max_length=255, default=None, null=True)
+    playback_task_id        = models.CharField(max_length=255, default=None, null=True)
 
-    # replay          = models.CharField(max_length=255, null=False, default='',
-    #                     help_text='the filename of the replay fixture')
-    replay          = models.FilePathField(path=settings.SMUGGLER_FIXTURE_DIR)
+    load_status             = models.CharField(max_length=64, default=None, null=True)
+    fill_contest_status     = models.CharField(max_length=64, default=None, null=True)
+    playback_status         = models.CharField(max_length=64, default=None, null=True)
+
+    replay          = models.CharField(max_length=255, null=False, default='',
+                                    help_text='the name of the replay (a postgres dump) on s3')
+    #replay          = models.FilePathField(path=settings.SMUGGLER_FIXTURE_DIR)
 
     # loading_status  = models.CharField(max_length=255, null=False, default='',
     #                     choices=LOADING_STATUSES,
