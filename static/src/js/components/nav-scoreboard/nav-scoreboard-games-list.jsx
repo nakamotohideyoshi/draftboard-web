@@ -1,9 +1,10 @@
-'use strict';
+'use strict'
 
-import React from 'react';
+import React from 'react'
+import _ from 'lodash'
 
-import NavScoreboardGame from './nav-scoreboard-game.jsx';
-import NavScoreboardSeparator from './nav-scoreboard-separator.jsx';
+import NavScoreboardGame from './nav-scoreboard-game.jsx'
+import NavScoreboardSeparator from './nav-scoreboard-separator.jsx'
 
 
 /**
@@ -12,24 +13,26 @@ import NavScoreboardSeparator from './nav-scoreboard-separator.jsx';
 const NavScoreboardGamesList = React.createClass({
 
   propTypes: {
-    games: React.PropTypes.array.isRequired
+    draftGroup: React.PropTypes.object.isRequired
   },
 
   render() {
-    const list = this.props.games.map((game) => {
-      return [<NavScoreboardGame key={game.id} game={game} />,
-              <NavScoreboardSeparator key={game.id + 's'} half />];
+    const boxScores = _.values(this.props.draftGroup.boxScores)
+
+    const list = boxScores.map((game) => {
+      return [<NavScoreboardGame key={game.pk} game={game} />,
+              <NavScoreboardSeparator key={game.pk + 's'} half />]
     }).reduce((accum, l) => {
       // Just flatten the array on a single level. Not using lodash here,
       // because this may result in unexpected behavior depending on the
       // rendered React component internal representation.
-      return accum.concat.apply(accum, l);
-    }, []);
+      return accum.concat.apply(accum, l)
+    }, [])
 
-    return <div className="cmp-nav-scoreboard--games-list">{list}</div>;
+    return <div className="cmp-nav-scoreboard--games-list">{list}</div>
   }
 
-});
+})
 
 
-export default NavScoreboardGamesList;
+export default NavScoreboardGamesList

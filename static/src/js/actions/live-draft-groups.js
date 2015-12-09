@@ -1,12 +1,14 @@
 "use strict"
 
 import 'babel-core/polyfill'; // so I can use Promises
+var moment = require('moment')
 import request from 'superagent'
 import { forEach as _forEach } from 'lodash'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
 import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
+import { mergeBoxScores } from './current-box-scores'
 
 
 const playerSchema = new Schema('players', {
@@ -130,6 +132,9 @@ function receiveDraftGroupInfo(id, response) {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_INFO,
     id: id,
     players: normalizedPlayers.entities.players,
+    sport: response.sport,
+    start: moment(response.start).valueOf(),
+    end: moment(response.end).valueOf(),
     expiresAt: Date.now() + 86400000
   }
 }
@@ -201,11 +206,21 @@ function fetchDraftGroupBoxScores(id) {
           // TODO
         } else {
           dispatch(receiveDraftGroupBoxScores(id, res.body))
+          dispatch(mergeBoxScores(res.body))
         }
     })
   }
 }
 
+
+function confirmDraftGroupStored(id) {
+  log.debug('actionsEntries.confirmRelatedEntriesInfo')
+
+  return {
+    type: ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED,
+    id: id
+  }
+}
 
 
 function shouldFetchDraftGroup(state, id) {
@@ -226,6 +241,8 @@ export function fetchDraftGroupIfNeeded(id) {
       dispatch(fetchDraftGroupInfo(id)),
       dispatch(fetchDraftGroupFP(id)),
       dispatch(fetchDraftGroupBoxScores(id))
-    ])
+    ]).then(() =>
+      dispatch(confirmDraftGroupStored(id))
+    )
   }
 }

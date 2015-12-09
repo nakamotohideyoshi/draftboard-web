@@ -14,7 +14,7 @@ const NavScoreboardLogo = React.createClass({
 
   render() {
     return (
-      <a href="/" className="cmp-nav-scoreboard--logo">
+      <a href="/lobby/" className="cmp-nav-scoreboard--logo">
         <span className="logo"></span>
         <span className="text">Draftboard</span>
       </a>
