@@ -17,6 +17,8 @@ urlpatterns = patterns(
 
     (r'^live/$', views.FrontendLiveTemplateView.as_view()),
     (r'^lobby/$', views.FrontendLobbyTemplateView.as_view()),
+    # Contest detail view in lobby.
+    (r'^lobby/(?P<contest_id>\d+)/$', views.FrontendLobbyTemplateView.as_view()),
     (r'^results/$', views.FrontendResultsTemplateView.as_view()),
     (r'^settings/$', views.FrontendSettingsTemplateView.as_view()),
     (r'^settings/transactions/$', views.FrontendSettingsTransactionHistoryTemplateView.as_view()),

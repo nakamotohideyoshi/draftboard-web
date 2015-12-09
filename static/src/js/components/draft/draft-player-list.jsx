@@ -5,11 +5,12 @@ const renderComponent = require('../../lib/render-component')
 const CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
 const CollectionSearchFilter = require('../filters/collection-search-filter.jsx')
 const PlayerListRow = require('./draft-player-list-row.jsx')
-import { fetchDraftGroup, setFocusedPlayer, updateFilter } from '../../actions/draft-group-actions.js'
-import { createLineupAddPlayer } from '../../actions/lineup-actions.js'
-import { forEach as _forEach, find as _find, matchesProperty as _matchesProperty } from 'lodash'
-import { draftGroupPlayerSelector } from '../../selectors/draft-group-players-selector.js'
+import {forEach as _forEach, find as _find, matchesProperty as _matchesProperty} from 'lodash'
 import * as moment from 'moment'
+import {fetchDraftGroup, setFocusedPlayer, updateFilter} from '../../actions/draft-group-actions.js'
+import {fetchSportInjuries} from '../../actions/injury-actions.js'
+import {createLineupAddPlayer} from '../../actions/lineup-actions.js'
+import {draftGroupPlayerSelector} from '../../selectors/draft-group-players-selector.js'
 
 // Other components that will take care of themselves on the draft page.
 import './draft-player-detail.jsx'
@@ -192,7 +193,8 @@ function mapStateToProps(state) {
     draftGroupTime: state.draftDraftGroup.start,
     sport: state.draftDraftGroup.sport,
     newLineup: state.createLineup.lineup,
-    availablePositions: state.createLineup.availablePositions
+    availablePositions: state.createLineup.availablePositions,
+    injuries: state.injuries
   };
 }
 
