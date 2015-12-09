@@ -17,8 +17,9 @@ class MySiteConfig(AppConfig):
 
         from django.conf import settings
         from django.utils import timezone
-        # import os
+
         # running_on_codeship = os.environ.get('CI', None)
+        # print('settings.DATETIME_DELTA_ENABLE: %s' % str(settings.DATETIME_DELTA_ENABLE))
         if settings.DATETIME_DELTA_ENABLE: # and not running_on_codeship:
             import util.timeshift as timeshift
             timezone.now = timeshift.delta_now
