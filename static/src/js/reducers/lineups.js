@@ -11,13 +11,17 @@ module.exports = function(state = initialState, action) {
   switch (action.type) {
 
     case ActionTypes.FETCH_UPCOMING_LINEUPS_SUCCESS:
+      // Grab the first lineup in our object and set it as focused.
+      let focusedLineupId
+      if (action.lineups && action.lineups.length > 0) {
+        focusedLineupId = action.lineups[Object.keys(action.lineups)[0]].id
+      }
 
       // Return a copy of the previous state with our new things added to it.
       return Object.assign({}, state, {
-        lineups: action.lineups,
+        lineups: action.lineups || {},
         draftGroupsWithLineups: action.draftGroupsWithLineups,
-        // Grab the first lineup in our object and set it as focused.
-        focusedLineupId: action.lineups[Object.keys(action.lineups)[0]].id
+        focusedLineupId
       });
 
 
