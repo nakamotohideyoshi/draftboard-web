@@ -1,6 +1,8 @@
 import * as types from '../action-types.js'
 import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
+import {fetchSportInjuries} from './injury-actions.js'
+
 
 const playerSchema = new Schema('players', {
   idAttribute: 'player_id'
@@ -47,6 +49,9 @@ export function fetchDraftGroup(draftGroupId) {
         if(err) {
           return dispatch(fetchDraftgroupFail(err));
         } else {
+          // Now that we know which sport we're dealing with, fetch the injuries for these players.
+          dispatch(fetchSportInjuries(res.body.sport))
+
           // Normalize player list by ID.
           const normalizedPlayers = normalize(
             res.body.players,
