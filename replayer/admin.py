@@ -32,7 +32,9 @@ class TimeMachineAdmin(admin.ModelAdmin):
 
     #
     #  playback_mode is like "play-until-end" or "paused"
-    list_display = ['replay', 'load_status', 'fill_contest_status', 'playback_status', 'playback_mode', 'start', 'current', 'target', 'snapshot_datetime' ]
+    list_display = ['replay', 'load_status', 'fill_contest_status',
+                    'playback_status', 'playback_mode', 'start',
+                    'current', 'target', 'snapshot_datetime', 'playback_info' ]
     exclude = ('loader_task_id','fill_contests_task_id','playback_task_id')
 
     # use the fields which we are explicity stating in the Meta class
@@ -61,36 +63,37 @@ class TimeMachineAdmin(admin.ModelAdmin):
         }),
     )
 
-    # def status(self, obj):
-    #     """
-    #     Add a button into the admin views so its
-    #     more intuitive to start the replay,
-    #     (as opposed to having to save the object).
-    #
-    #     :param obj:   the model instance for each row
-    #     :return:
-    #     """
-    #
-    #     load_task_status = 'unknown'
-    #     if obj.loader_task_id is None:
-    #         load_task_status = 'ready for playback'
-    #     else:
-    #         result = load_replay.AsyncResult(obj.loader_task_id)
-    #         if 'SUCCESS' in result.status:
-    #             load_task_status = 'STOPPED'
-    #         elif 'PENDING' in result.status:
-    #             load_task_status = 'RUNNING'
-    #         elif 'ABORTED' in result.status:
-    #             load_task_status = 'STOPPED'
-    #         else:
-    #             load_task_status = result.status
-    #
-    #     # the {} in the first argument are like %s for python strings,
-    #     # and the subsequent arguments fill the {}
-    #     return format_html('<a href="{}={}" class="btn btn-success">{}</a>',
-    #                         "/admin/replayer/timemachine/",
-    #                          obj.pk,
-    #                          load_task_status)
+    def playback_info(self, obj):
+        """
+        Add a button into the admin views so its
+        more intuitive to start the replay,
+        (as opposed to having to save the object).
+
+        :param obj:   the model instance for each row
+        :return:
+        """
+
+        playback_task_status = 'n/a'
+        failed = False
+        if obj.playback_task_id is None:
+            pass
+        else:
+            playback_task_result = replayer.tasks.play_replay.AsyncResult(obj.playback_task_id)
+            # playback_task_status = playback_task_result.status
+            if playback_task_result.status == 'FAILURE':
+                playback_task_status = "playback error - try it again"
+                failed = True
+
+        # the {} in the first argument are like %s for python strings,
+        # and the subsequent arguments fill the {}
+        btn_type = 'btn btn-success'
+        if failed:
+            btn_type = 'btn btn-warning'
+
+        return format_html('<a href="{}" class="{}">{}</a>',
+                            "/admin/replayer/timemachine/",
+                            btn_type,
+                             playback_task_status)
 
     def load_initial_database(self, request, queryset):
         """
