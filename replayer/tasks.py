@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 #
 # replayer/tasks.py
+from django.core.cache import cache
 from os.path import join
 from django.utils import timezone
 from util.loaddata import LoadData
@@ -22,6 +23,9 @@ from django.http import HttpResponse
 from django.utils.six import StringIO
 from smuggler import settings as smugger_settings
 
+
+LOCK_EXPIRE = 60
+
 @app.task(bind=True)
 def reset_db_for_replay(self, s3file):
     """
@@ -31,21 +35,56 @@ def reset_db_for_replay(self, s3file):
     :return:
     """
 
-    #
-    # rp.sub_call('ssh -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "heroku pg:info --app rio-dfs"')
-    cmd = 'ssh -o "StrictHostKeyChecking no" -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "fab restore_db --set s3file=%s"' % s3file
-    print( cmd )
-    rp = replayer.classes.ReplayManager()
-    # subprocess.call( cmd )
-    rp.sub_call( cmd )
+    lock_id = 'task-LOCK-%s' % 'reset_db_for_replay'
+    acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
+    release_lock = lambda: cache.delete(lock_id)
+
+    if acquire_lock():
+        try:
+
+            #
+            # locked code runs in here
+
+            #
+            # rp.sub_call('ssh -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "heroku pg:info --app rio-dfs"')
+            cmd = 'ssh -o "StrictHostKeyChecking no" -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "fab restore_db --set s3file=%s"' % s3file
+            print( cmd )
+            rp = replayer.classes.ReplayManager()
+            # subprocess.call( cmd )
+            rp.sub_call( cmd )
+
+        finally:
+            release_lock()
 
 @app.task(bind=True)
 def fill_contests(self, timemachine=None):
-    rp = replayer.classes.ReplayManager()
-    rp.fill_contests()
+    """
 
-    timemachine.fill_contest_status = 'DONE'
-    timemachine.save()
+    :param timemachine:
+    :return:
+    """
+
+    lock_id = 'task-LOCK-%s' % 'fill_contests'
+    acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
+    release_lock = lambda: cache.delete(lock_id)
+
+    if acquire_lock():
+        try:
+
+            #
+            # locked code runs in here
+
+            timemachine.fill_contest_status = 'WORKING...'
+            timemachine.save()
+
+            rp = replayer.classes.ReplayManager()
+            rp.fill_contests()
+
+            timemachine.fill_contest_status = 'DONE'
+            timemachine.save()
+
+        finally:
+            release_lock()
 
 @app.task(bind=True, base=AbortableTask)
 def play_replay(self, timemachine):
@@ -61,22 +100,32 @@ def play_replay(self, timemachine):
     :return:
     """
 
-    # filename = timemachine.replay
-    #
-    # loader = LoadData(filename)  # validates filename
-    # loader.load()
+    lock_id = 'task-LOCK-%s' % 'play_replay'
+    acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
+    release_lock = lambda: cache.delete(lock_id)
 
-    rp = replayer.classes.ReplayManager(timemachine=timemachine)
+    if acquire_lock():
+        try:
 
-    # load_db=False runs whats already in the replayer.models.Update table
-    mode = timemachine.playback_mode
-    if mode == TimeMachine.PLAYBACK_MODE_PLAY_ALL:
-        #
-        rp.play(load_db=False)
+            # filename = timemachine.replay
+            #
+            # loader = LoadData(filename)  # validates filename
+            # loader.load()
 
-    elif mode == TimeMachine.PLAYBACK_MODE_PLAY_TO_TARGET:
-        #
-        rp.play(load_db=False, play_until=timemachine.target)
+            rp = replayer.classes.ReplayManager(timemachine=timemachine)
+
+            # load_db=False runs whats already in the replayer.models.Update table
+            mode = timemachine.playback_mode
+            if mode == TimeMachine.PLAYBACK_MODE_PLAY_ALL:
+                #
+                rp.play(load_db=False)
+
+            elif mode == TimeMachine.PLAYBACK_MODE_PLAY_TO_TARGET:
+                #
+                rp.play(load_db=False, play_until=timemachine.target)
+
+        finally:
+            release_lock()
 
 def save_snapshot_simple():
     stream = serialize_to_response()

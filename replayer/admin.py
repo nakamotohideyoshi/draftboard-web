@@ -5,7 +5,8 @@ from django.utils.html import format_html
 from django.contrib import admin
 import replayer.models
 import replayer.tasks
-
+from datetime import timedelta
+from util.timeshift import set_system_time, reset_system_time
 # change the datetime to show seconds for replayer/admin.py
 from django.conf.locale.en import formats as en_formats
 en_formats.DATETIME_FORMAT = "d b Y H:i:s"
@@ -92,6 +93,8 @@ class TimeMachineAdmin(admin.ModelAdmin):
 
     def load_initial_database(self, request, queryset):
         """
+        resets util.timeshift delta before loading snapshot db
+
         pull down the snapshot db for the stats replayer BEFORE the stats started being recorded
         so the database is back in time, and the admin can modify things on the site
         before starting the stats.
@@ -104,11 +107,15 @@ class TimeMachineAdmin(admin.ModelAdmin):
             self.message_user(request, 'You may only perform this action on one Replay at a time.')
             return
 
-        # TODO the queryset should have 1 object in it, and that object has the name of the snapshot to load from s3
         for timemachine in queryset:
-            print('TODO - load_initial_database load bad replay file right now')
+            print('resetting timeshift with util.timeshift.reset_system_time()')
+            reset_system_time()
+
             task_result = replayer.tasks.reset_db_for_replay.delay(timemachine.replay)
 
+            timemachine.load_status  = 'LOADING...'
+            timemachine.fill_contest_status = 'PLEASE REFRESH BROWSER & LOG BACK IN'
+            timemachine.playback_status = ''
             timemachine.loader_task_id=task_result.id
             timemachine.save()
 
@@ -162,5 +169,30 @@ class TimeMachineAdmin(admin.ModelAdmin):
                 result = replayer.tasks.play_replay.AsyncResult(obj.loader_task_id)
                 result.abort()
 
-    actions = [load_initial_database, fill_existing_contests, start_replayer, stop_replayer]
+    # def shift_server_time_to_replay_time(self, request, queryset):
+    #     if len(queryset) > 1:
+    #         self.message_user(request, 'You may only perform this action on one Replay at a time.')
+    #         return
+    #     for timemachine in queryset:
+    #         #
+    #         initial_datetime = timemachine.snapshot_datetime
+    #         print('using timeshift.set_system_time( %s )' % str(initial_datetime))
+    #         set_system_time( initial_datetime )
+
+    def set_time_one_hour_before_replay_start(self, request, queryset):
+        if len(queryset) > 1:
+            self.message_user(request, 'You may only perform this action on one Replay at a time.')
+            return
+
+        updates = replayer.models.Update.objects.filter().order_by('ts') # ascending
+        if updates.count() <= 0:
+            self.message_user(request, 'There are no replayer.models.Update objects!')
+            return
+
+        first_update = updates[0] # first one is earlier, because we sorted
+        dt_set_time = first_update.ts - timedelta(hours=1)
+        set_system_time( dt_set_time )
+        print( 'set_system_time( %s )' % str(dt_set_time) )
+
+    actions = [load_initial_database, set_time_one_hour_before_replay_start, fill_existing_contests, start_replayer, stop_replayer]
 
