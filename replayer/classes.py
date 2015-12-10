@@ -403,7 +403,7 @@ class ReplayManager(object):
         # print( '' )
         print('replays are not stored here anymore')
 
-    def build_world(self, num_users=200):
+    def build_world(self):
         """
         The replayer tasks which wipes & installs a snapshot
         calls this method when its done to ensure all
@@ -470,7 +470,7 @@ class ReplayManager(object):
 
         # get all upcoming contests
         contests = UpcomingContest.objects.all()
-        print('[%s] upcoming contests to ...')
+        print('[%s] upcoming contests to fill...' % str(contests.count()))
 
         for c in contests:
 
