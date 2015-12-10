@@ -154,9 +154,12 @@ class TimeMachineAdmin(admin.ModelAdmin):
             # start the replay task
             result = replayer.tasks.play_replay.delay( timemachine )     # the filename - i forget if path is prefixed!
 
+            timemachine.refresh_from_db()
             timemachine.playback_task_id = result.id
-            print('loader_task_id: %s' % timemachine.playback_task_id)
+            print('playback_task_id: %s' % timemachine.playback_task_id)
             timemachine.save()
+
+            print('playback_task status: %s' % result.status)
 
     def stop_replayer(self, request, queryset):
         if len(queryset) > 1:
@@ -170,11 +173,11 @@ class TimeMachineAdmin(admin.ModelAdmin):
                 print('there was no playback_task_id set, couldnt stop it if its running!')
             else:
                 print('STOPPING replayer playback task forcibly!')
-                app.control.revoke( kill_task_id.id, terminate=True, signal='SIGKILL' )
+                app.control.revoke( kill_task_id, terminate=True, signal='SIGKILL' )
 
                 timemachine.playback_status = 'KILLED'
                 timemachine.save()
-                
+
     # def shift_server_time_to_replay_time(self, request, queryset):
     #     if len(queryset) > 1:
     #         self.message_user(request, 'You may only perform this action on one Replay at a time.')
