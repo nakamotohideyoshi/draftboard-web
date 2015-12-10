@@ -1,6 +1,7 @@
 #
 # replayer/admin.py
 
+from celery.task.control import revoke
 from django.utils.html import format_html
 from django.contrib import admin
 import replayer.models
@@ -150,9 +151,12 @@ class TimeMachineAdmin(admin.ModelAdmin):
             timemachine.save()
             timemachine.refresh_from_db()
 
+            # start the replay task
             result = replayer.tasks.play_replay.delay( timemachine )     # the filename - i forget if path is prefixed!
+
             timemachine.loader_task_id = result.id
             print('loader_task_id: %s' % timemachine.loader_task_id)
+            timemachine.save()
 
     def stop_replayer(self, request, queryset):
         if len(queryset) > 1:
@@ -160,14 +164,13 @@ class TimeMachineAdmin(admin.ModelAdmin):
             return
 
         # there should be <= 1 obj's in here, but loop anyways
-        for obj in queryset:
-            #
-            # get the task
-            if obj.loader_task_id is None:
-                return
+        for timemachine in queryset:
+            kill_task_id = timemachine.playback_task_id
+            if kill_task_id is None:
+                print('there was no playback_task_id set, couldnt stop it if its running!')
             else:
-                result = replayer.tasks.play_replay.AsyncResult(obj.loader_task_id)
-                result.abort()
+                print('STOPPING replayer playback task forcibly!')
+                revoke( kill_task_id, True ) # r
 
     # def shift_server_time_to_replay_time(self, request, queryset):
     #     if len(queryset) > 1:
