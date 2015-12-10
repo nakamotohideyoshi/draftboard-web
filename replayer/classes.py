@@ -234,7 +234,7 @@ class ReplayManager(object):
         else:
             # since we simply replaying Update objects, we need to determine the time
             start   = start_from
-            updates = replayer.models.Update.objects.all()
+            updates = replayer.models.Update.objects.filter().order_by('ts') # ascending
             if updates.count() <= 1:
                 if self.timemachine:
                     self.timemachine.playback_status = 'ERR - NOTHING TO PLAY!'
