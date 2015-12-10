@@ -122,7 +122,7 @@ def play_replay(self, timemachine):
 
             elif mode == TimeMachine.PLAYBACK_MODE_PLAY_TO_TARGET:
                 #
-                rp.play(load_db=False, play_until=timemachine.target)
+                rp.play(load_db=False, start_from=timemachine.start, play_until=timemachine.target)
 
         finally:
             release_lock()

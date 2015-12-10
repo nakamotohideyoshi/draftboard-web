@@ -6,6 +6,7 @@ from django.utils.html import format_html
 from django.contrib import admin
 import replayer.models
 import replayer.tasks
+import replayer.classes
 from datetime import timedelta
 from util.timeshift import set_system_time, reset_system_time
 # change the datetime to show seconds for replayer/admin.py
@@ -192,6 +193,20 @@ class TimeMachineAdmin(admin.ModelAdmin):
     #         set_system_time( initial_datetime )
 
     def set_time_one_hour_before_replay_start(self, request, queryset):
+        """
+        sets the system time to 1 hour before the first Update object (a stat of the replayer).
+
+        also creates the default TicketAmount's and headsup PrizeStructures !
+
+        :param request:
+        :param queryset:
+        :return:
+        """
+
+        print('ensure default TicketAmount(s) and headsup PrizeStructures exist...')
+        rp = replayer.classes.ReplayManager()
+        rp.build_world()   # put initialization like making default tickets, and prize structures in this method!
+
         if len(queryset) > 1:
             self.message_user(request, 'You may only perform this action on one Replay at a time.')
             return
