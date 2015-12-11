@@ -4,6 +4,8 @@
 from django.db import models
 import sports.models
 import scoring.classes
+import push.classes
+from django.conf import settings
 
 # Any classes that still have the abtract = True, just havent been migrated/implemented yet!
 
@@ -104,6 +106,11 @@ class PlayerStats( sports.models.PlayerStats ):
         # perform score update
         scorer = scoring.classes.NhlSalaryScoreSystem()
         self.fantasy_points = scorer.score_player( self )
+
+        #
+        # pusher the fantasy points w/ stats
+        push.classes.DataDenPush( push.classes.PUSHER_NHL_STATS).send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
+
         super().save(*args, **kwargs)
 
 class PlayerStatsSeason( sports.models.PlayerStatsSeason ):

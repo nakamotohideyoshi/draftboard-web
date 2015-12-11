@@ -44,7 +44,7 @@ class ContestForm(ModelForm):
             'end',
             'draft_group',           # not displayed by modeladmin however!
             'max_entries',
-            'entries',
+            #'entries',
             'gpp',
             'respawn',
             'doubleup'
@@ -135,7 +135,7 @@ class ContestFormAdd(ContestForm):
             'end',
             'draft_group',
             'max_entries',
-            'entries',
+            # 'entries',
             'gpp',
             'respawn',
             'doubleup'
@@ -165,7 +165,7 @@ class ContestFormAdd(ContestForm):
             raise ValidationError( 'Dude, you have to at least NAME the Contest.' )
 
         prize_structure = cleaned_data.get("prize_structure")
-        # chekc it? if they picked it, i guess they want it
+
 
         start           = cleaned_data.get('start')
         if not start:

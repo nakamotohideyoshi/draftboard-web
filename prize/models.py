@@ -45,8 +45,11 @@ class PrizeStructure( models.Model ):
     def payout_spots(self):
         return self.generator.payout_spots
 
+    def get_entries(self):
+        return int(self.prize_pool / (self.buyin * 0.9))
+
     def __str__(self):
-        return '(%s) %s' % (timesince(self.created), self.name)
+        return '[%s]entries %s' % (self.get_entries(), self.name)
 
 class Rank( models.Model ):
     """

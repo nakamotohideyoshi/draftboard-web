@@ -1,5 +1,7 @@
 #
 # sports/nba/models.py
+
+from django.db.utils import IntegrityError
 import sports.nba.models
 from sports.nba.models import Team, Game, Player, PlayerStats, \
                                 GameBoxscore, Pbp, PbpDescription, GamePortion
@@ -14,6 +16,7 @@ from dataden.classes import DataDen
 import json
 from push.classes import DataDenPush
 from django.conf import settings
+import push.classes
 
 class TeamBoxscores(DataDenTeamBoxscores):
 
@@ -231,7 +234,15 @@ class QuarterPbp(DataDenPbpDescription):
             ### previous line should probably be the following line:
             #pbp_desc    = self.get_pbp_description_by_srid( srid_event )
             pbp_desc.srid = srid_event # the 'event' is the PbpDescription
-            pbp_desc.save()
+            try:
+                pbp_desc.save()
+            #
+            # django.db.utils.IntegrityError
+            except IntegrityError:
+                #
+                # its possible the pbp_desc was already created because we deferred saving it in this spot
+                pass # TODO
+
             idx += 1
 
             # EventPbp will take care of saving the 'description' field
@@ -331,22 +342,26 @@ class DataDenNba(AbstractDataDenParser):
         #
         # nba.game
         if self.target == ('nba.game','schedule'): GameSchedule().parse( obj )
-        elif self.target == ('nba.game','boxscores'): GameBoxscores().parse( obj )
+        elif self.target == ('nba.game','boxscores'):
+            GameBoxscores().parse( obj )
+            DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nba.team
         elif self.target == ('nba.team','hierarchy'): TeamHierarchy().parse( obj )
-        elif self.target == ('nba.team','boxscores'): TeamBoxscores().parse( obj )
+        elif self.target == ('nba.team','boxscores'):
+            TeamBoxscores().parse( obj )
+            DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nba.period
         elif self.target == ('nba.quarter','pbp'):
             QuarterPbp().parse( obj )
-            DataDenPush( self.sport ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
+            DataDenPush( push.classes.PUSHER_NBA_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
             self.add_pbp( obj )
         #
         # nba.event
         elif self.target == ('nba.event','pbp'):
             EventPbp().parse( obj )
-            DataDenPush( self.sport ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
+            DataDenPush( push.classes.PUSHER_NBA_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
             self.add_pbp( obj )
         #
         # nba.player

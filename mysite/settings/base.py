@@ -281,6 +281,20 @@ INSTALLED_APPS = (
     'lobby',
 )
 
+#
+# Mandrill settings
+# MANDRILL_API_KEY    = 'W5fUepyUtAf7U4l1-K4Y7g'
+# EMAIL_BACKEND       = 'djrill.mail.backends.djrill.DjrillBackend'
+# DEFAULT_FROM_EMAIL  = 'support@draftboard.com'
+
+EMAIL_USE_TLS       = True
+EMAIL_HOST          = 'smtp.mandrillapp.com'
+EMAIL_HOST_USER     = 'devs@draftboard.com'
+EMAIL_HOST_PASSWORD = 'bfNdCw7LpBD4UUrYG91YVw'
+EMAIL_PORT          = 587
+DEFAULT_FROM_EMAIL  = 'support@draftboard.com'
+SERVER_EMAIL        = DEFAULT_FROM_EMAIL
+
 SMUGGLER_FIXTURE_DIR = join(BASE_DIR, 'smugglin')
 
 MIDDLEWARE_CLASSES = (

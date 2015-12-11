@@ -10,7 +10,7 @@ class ReplayUpdateReceiver(object):
 
     @receiver(signal=Update.signal)
     def update(sender, **kwargs):
-        print('replayer: got signal')
+        #print('replayer: got signal')
 
 
         #
