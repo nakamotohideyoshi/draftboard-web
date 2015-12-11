@@ -282,23 +282,23 @@ class DataDenNhl(AbstractDataDenParser):
         if self.target == ('nhl.game','schedule'): GameSchedule().parse( obj )
         elif self.target == ('nhl.game','boxscores'):
             GameBoxscores().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nhl.period
         elif self.target == ('nhl.period','pbp'):
             PeriodPbp().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_NHL_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            push.classes.DataDenPush( push.classes.PUSHER_NHL_PBP, 'period' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nhl.event
         elif self.target == ('nhl.event','pbp'):
             EventPbp().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_NHL_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            push.classes.DataDenPush( push.classes.PUSHER_NHL_PBP, 'event' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nhl.team
         elif self.target == ('nhl.team','hierarchy'): TeamHierarchy().parse( obj )
         elif self.target == ('nhl.team','boxscores'):
             TeamBoxscores().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'team' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nhl.player
         elif self.target == ('nhl.player','rosters'): PlayerRosters().parse( obj )

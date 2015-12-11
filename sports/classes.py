@@ -1,10 +1,16 @@
 from .models import SiteSport, PlayerStats, Player, Game, Team, GameBoxscore, PbpDescription, Injury
 from django.contrib.contenttypes.models import ContentType
-from .exceptions import SportNameException, GameBoxscoreClassNotFoundException, \
-    SiteSportWithNameDoesNotExistException, GameClassNotFoundException, \
-    TeamClassNotFoundException, PbpDescriptionClassNotFoundException, \
-    InjuryClassNotFoundException, InjurySerializerClassNotFoundException
-from .serializers import InjurySerializer
+from .exceptions import (
+    GameBoxscoreClassNotFoundException,
+    SiteSportWithNameDoesNotExistException,
+    GameClassNotFoundException,
+    TeamClassNotFoundException,
+    PbpDescriptionClassNotFoundException,
+    InjuryClassNotFoundException,
+    InjurySerializerClassNotFoundException,
+    TeamSerializerClassNotFoundException,
+    PlayerSerializerClassNotFoundException
+)
 from mysite.exceptions import IncorrectVariableTypeException
 import dataden.classes
 
@@ -303,6 +309,38 @@ class SiteSportManager(object):
 
         # by default raise an exception if we couldnt return a game class
         raise InjuryClassNotFoundException(type(self).__name__, sport)
+
+    def get_team_serializer_class(self, sport):
+        """
+        get the sport specific serializer for the sports.<sport>.Team model
+
+        :param sport:
+        :return:
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.TeamSerializer' % sport.name)
+        except:
+            # by default raise an exception if we couldnt return a game class
+            raise TeamSerializerClassNotFoundException(type(self).__name__, sport)
+
+    def get_player_serializer_class(self, sport):
+        """
+        get the sport specific serializer for the sports.<sport>.Team model
+
+        :param sport:
+        :return:
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.PlayerSerializer' % sport.name)
+        except:
+            # by default raise an exception if we couldnt return a game class
+            raise PlayerSerializerClassNotFoundException(type(self).__name__, sport)
 
     def get_injury_serializer_class(self, sport):
         """

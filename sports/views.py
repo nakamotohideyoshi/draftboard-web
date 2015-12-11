@@ -16,6 +16,32 @@ from dataden.cache.caches import PlayByPlayCache
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
 
+class LeagueTeamAPIView(generics.ListAPIView):
+    """
+    Get the teams for the league teams for a sport.
+    """
+
+    permission_classes = (IsAuthenticated, )
+
+    #serializer class will be dynamic
+
+    def get_serializer_class(self):
+        """
+        use site sport manager to get the site_sport from the sport param
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        team_serializer_class = site_sport_manager.get_team_serializer_class( sport )
+        return team_serializer_class
+
+    def get_queryset(self):
+        """
+        Return a QuerySet of the sports.<sport>.models.Team objects
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        team_model_class = site_sport_manager.get_team_class( sport )
+        return team_model_class.objects.all()
 
 class LeagueInjuryAPIView(generics.ListAPIView):
     """

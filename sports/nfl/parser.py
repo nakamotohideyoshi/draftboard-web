@@ -658,17 +658,17 @@ class DataDenNfl(AbstractDataDenParser):
         if self.target == ('nfl.game','schedule'): GameSchedule().parse( obj )
         elif self.target == ('nfl.game','boxscores'):
             GameBoxscores().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
 
         elif self.target == ('nfl.game','pbp'):
             GamePbp().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_NFL_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            push.classes.DataDenPush( push.classes.PUSHER_NFL_PBP, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
 
         #
         # nfl.play (events are parsed in the nfl.game | pbp feed, but the PLAYS are parsed here:
         elif self.target == ('nfl.play','pbp'):
             PlayPbp().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_NFL_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            push.classes.DataDenPush( push.classes.PUSHER_NFL_PBP, 'play' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
 
         #
         # nfl.team
@@ -676,7 +676,7 @@ class DataDenNfl(AbstractDataDenParser):
         elif self.target == ('nfl.team','stats'): DstStats().parse( obj )
         elif self.target == ('nfl.team','boxscores'):
             TeamBoxscores().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'team' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
 
         #
         # nfl.player

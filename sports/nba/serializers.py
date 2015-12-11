@@ -3,7 +3,7 @@
 
 from rest_framework import serializers
 from sports.serializers import InjurySerializer, FantasyPointsSerializer
-from .models import Injury, PlayerStats
+from .models import Injury, PlayerStats, Team
 
 class InjurySerializer(InjurySerializer):
 
@@ -11,6 +11,13 @@ class InjurySerializer(InjurySerializer):
 
         model = Injury
         fields = ('iid', 'status','description','srid', 'comment', 'player_id')
+
+class TeamSerializer(InjurySerializer):
+
+    class Meta:
+
+        model = Team
+        fields = ('pk', 'srid', 'name', 'alias')
 
 class FantasyPointsSerializer(FantasyPointsSerializer):
 
