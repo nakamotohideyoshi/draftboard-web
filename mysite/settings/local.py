@@ -81,18 +81,18 @@ CACHES = {
 # Asset locations
 STATIC_URL = '/static/'
 
-# (Dev) Mongo Connection settings
+# # (Dev) Mongo Connection settings
 MONGO_PASSWORD  = ''
 MONGO_HOST      = 'localhost'
 MONGO_PORT      = 27017         # default port may be the actual port
 
-# dataden mongo database connection
+# # dataden mongo database connection
 # MONGO_AUTH_DB   = 'admin'
 # MONGO_USER      = 'admin'
 # MONGO_PASSWORD  = 'dataden1'
 # MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
 # MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
-MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
+# MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
 
 DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 
@@ -106,10 +106,9 @@ PUSHER_SECRET   = 'fc815c85237d726b9d8e'
 
 #
 # override datetime objects now() method to use the delta_seconds in cache
-
-from django.utils import timezone
-import os
-running_on_codeship = os.environ.get('CI', None)
-if DATETIME_DELTA_ENABLE and not running_on_codeship:
-    import util.timeshift as timeshift
-    timezone.now = timeshift.delta_now
+# from django.utils import timezone
+# import os
+# running_on_codeship = os.environ.get('CI', None)
+# if DATETIME_DELTA_ENABLE and not running_on_codeship:
+#     import util.timeshift as timeshift
+#     timezone.now = timeshift.delta_now

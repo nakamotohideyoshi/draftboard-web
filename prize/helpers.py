@@ -71,7 +71,7 @@ def create_initial_data():
             generator_settings = GeneratorSettings.objects.get( buyin=amount )
         except GeneratorSettings.DoesNotExist:
             #
-            first_place = (amount*2) - (amount * 0.1)  # take out rake: 10%
+            first_place = (amount*2) - (amount*2 * 0.1)  # take out rake: 10%
             generator_settings = GeneratorSettings()
             generator_settings.buyin            = amount
             generator_settings.first_place      = first_place

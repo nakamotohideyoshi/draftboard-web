@@ -13,14 +13,102 @@ from django.views.generic.base import TemplateView
 from account.models import Information, EmailNotification, UserEmailNotification
 from account.permissions import IsNotAuthenticated
 from account.serializers import (
+    LoginSerializer,
+    ForgotPasswordSerializer,
+    PasswordResetSerializer,
     RegisterUserSerializer,
     UserSerializer,
     InformationSerializer,
     UserEmailNotificationSerializer,
     EmailNotificationSerializer,
 )
+import account.tasks
 from braces.views import LoginRequiredMixin
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives, EmailMessage
+from django.template import loader
+from rest_framework import response, status
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 
+from rest_framework import permissions
+#from rest_framework.generics import CreateAPIView
+#from django.contrib.auth import get_user_model # If used custom user model
+# /password/reset/confirm/{uid}/{token}
+from django.contrib.auth import authenticate, login, logout
+
+class AuthAPIView(APIView):
+
+    authentication_classes  = (BasicAuthentication,)
+    serializer_class        = LoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        args = request.data
+        user = authenticate(username=args.get('username'),
+                            password=args.get('password'))
+        if user is not None:
+            login(request, user)
+            #
+            # return a 201
+            return Response({}, status=status.HTTP_200_OK)
+
+        #
+        # the case they dont login properly
+        return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
+    def delete(self, request, *args, **kwargs):
+        logout(request)
+        return Response({}, status=status.HTTP_200_OK)
+
+class ForgotPasswordAPIView(APIView):
+    """
+    This api always return http 200.
+
+    If the specified email is actually associated with a user,
+    issue an email, and generate a temp password hash for them.
+    """
+
+    authentication_classes  = (BasicAuthentication,)
+    serializer_class        = ForgotPasswordSerializer
+
+    def post(self, request, *args, **kwargs):
+        #
+        # validate this email is associated with a user in the db,
+        # and if it is, send a password reset email to that account.
+        args = request.data
+        email = args.get('email')
+        if email:
+
+            try:
+                user = User.objects.get(email=email)
+            except User.DoesNotExist:
+                user = None # no user found... moving on.
+
+            if user:
+                #
+                # fire the task that sends a password reset email to this user
+                account.tasks.send_password_reset_email.delay( user )
+
+                #
+                #
+        #
+        # return success no matter what
+        return Response({}, status=status.HTTP_200_OK)
+
+class PasswordResetAPIView(APIView):
+    # handles https://www.draftboard.com/api/account/password-reset-confirm/MjA0/47k-95ee193717cb75448cf0/
+    authentication_classes  = (BasicAuthentication,)
+    serializer_class        = PasswordResetSerializer
+
+    def post(self, request, *args, **kwargs):
+        args = request.data
+        uid = args.get('uid')
+        token = args.get('token')
+
+        print( uid, token )
+        if uid and token:
+            return Response({}, status=status.HTTP_200_OK)
+        return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
 class RegisterAccountAPIView(generics.CreateAPIView):
     """
@@ -469,26 +557,6 @@ class TransactionHistoryAPI(APIView):
         })
 
 
-class LoginView(TemplateView):
-
-    template_name = 'account/login.html'
-
-
 class RegisterView(TemplateView):
 
-    template_name = 'account/register.html'
-
-
-class ResetPassword(TemplateView):
-
-    template_name = 'account/reset_password.html'
-
-
-class EmailSent(TemplateView):
-
-    template_name = 'account/email_sent.html'
-
-
-class ChangePassword(TemplateView):
-
-    template_name = 'account/change_password.html'
+    template_name = 'registration/register.html'

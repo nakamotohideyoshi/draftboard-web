@@ -10,6 +10,8 @@ from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParse
 import json
 from django.contrib.contenttypes.models import ContentType
 from dataden.classes import DataDen
+import push.classes
+from django.conf import settings
 
 class HomeAwaySummary(DataDenTeamBoxscores):
 
@@ -1074,9 +1076,13 @@ class DataDenMlb(AbstractDataDenParser):
         # specal case: 'pbp' where we also send the object to Pusher !
         elif self.target == ('mlb.game','pbp'):
             GamePbp().parse( obj )
+            push.classes.DataDenPush( push.classes.PUSHER_MLB_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
 
         #
-        elif self.target == ('mlb.game','boxscores'): GameBoxscores().parse( obj )  # top level boxscore info
+        elif self.target == ('mlb.game','boxscores'):
+            GameBoxscores().parse( obj )  # top level boxscore info
+            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+
         elif self.target == ('mlb.home','summary'): HomeAwaySummary().parse( obj )  # home team of boxscore
         elif self.target == ('mlb.away','summary'): HomeAwaySummary().parse( obj )  # away team of boxscore
         #

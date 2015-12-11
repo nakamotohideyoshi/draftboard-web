@@ -44,6 +44,8 @@ from rest_framework import routers, serializers, viewsets
 
 urlpatterns = [
     # experimental
+    #url('^', include('django.contrib.auth.urls')),
+
     url(r'^admin/', include('smuggler.urls')),  # before admin url patterns!
 
     url(r'^admin/',         include(admin.site.urls)),
@@ -76,7 +78,7 @@ urlpatterns = [
     # JWT support.
     url(r'^api-token-auth/', 'rest_framework_jwt.views.obtain_jwt_token'),
 
-    url(r'^account/', include(account.urls)),
+    url(r'^', include('account.urls_non_api')),
 ]
 
 if settings.DEBUG:

@@ -61,7 +61,7 @@ var DraftPlayerListRow = React.createClass({
         <td>{this.props.row.position}</td>
         <td>👤</td>
         <td>{this.props.row.name} / {this.props.row.team_alias}</td>
-        <td>{this.props.row.status}</td>
+        <td className="status">{this.props.row.status}</td>
         <td></td>
         <td>{this.props.row.fppg.toFixed(1)}</td>
         <td>${this.props.row.salary.toLocaleString('en')}</td>

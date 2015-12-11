@@ -34,6 +34,12 @@ class DataDenParser(object):
         'nfl' : sports.nfl.parser.DataDenNfl,
     }
 
+    REPLAY_MINIMAL_TRIGGERS = [ # TEST
+        ('nba','team','hierarchy'),     # 1
+        ('nba','game','schedule'),      # 2
+        ('nba','player','rosters'),     # 3
+    ]
+
     #
     # list of default triggers for the basic needs of the four major sports
     DEFAULT_TRIGGERS = [
@@ -179,7 +185,7 @@ class DataDenParser(object):
             parent_api  = t[2]
             trg = Trigger.create( db, coll, parent_api, enable=enable )
 
-    def setup(self, sport, async=False):
+    def setup(self, sport, async=False, replay=False):
         """
         NOTE: This method should ONLY BE CALLED after dataden.jar has run
         and populated its own database for whatever sport you
@@ -207,12 +213,15 @@ class DataDenParser(object):
         self.setup_triggers(sport)
         dataden = DataDen()
 
+        triggers = self.DEFAULT_TRIGGERS
+        if replay:
+            triggers = self.REPLAY_MINIMAL_TRIGGERS
         #
         # the DEFAULT_TRIGGERS has each sport ordered to initialize it.
         #   parse the teams
         #   parse the schedule for the games
         #   parse the rosters for the players
-        for t in self.DEFAULT_TRIGGERS:
+        for t in triggers:
             if t[0] != sport:
                 continue # skip sports we didnt specify
             #

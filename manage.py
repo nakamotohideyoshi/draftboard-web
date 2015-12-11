@@ -15,8 +15,8 @@ if __name__ == "__main__":
     #
     # DJANGO_SETTINGS_MODULE is set in ubuntu in the
     #    /etc/profile
-    current_settigns_module = os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings.base")
-    print('current_settings_module:', current_settigns_module)
+    current_settings_module = os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings.base")
+    print('current_settings_module:', current_settings_module)
 
     #
     # *** if you want manage.py to print out whether or not its running on CodeShip:

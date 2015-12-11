@@ -12,6 +12,9 @@ def get_env_variable(var_name):
         error_msg = "Set the %s env variable" % var_name
         raise ImproperlyConfigured(error_msg)
 
+#
+#
+SITE = 'www.draftboard.com'
 
 # Application constants
 # ----------------------------------------------------------
@@ -28,8 +31,9 @@ SITE_ROOT   = os.path.dirname(os.path.realpath(__file__))
 
 from os.path import join
 
-LOGIN_URL = '/admin/login/'
-LOGOUT_URL = '/admin/logout/'
+LOGIN_URL = '/login/'
+LOGOUT_URL = '/logout/'
+LOGIN_REDIRECT_URL = '/lobby/'
 
 #
 # Django 1.8 removed TEMPLATE_DIRS. It is now TEMPLATES = {}
@@ -201,10 +205,11 @@ REST_FRAMEWORK = {
 
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-        # 'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
+        'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
     ),
 
-    'DEFAULT_PAGINATION_CLASS': None
+    #'DEFAULT_PAGINATION_CLASS': None
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
 }
 
 # Django installs
@@ -278,6 +283,20 @@ INSTALLED_APPS = (
     'smuggler',
     'lobby',
 )
+
+#
+# Mandrill settings
+# MANDRILL_API_KEY    = 'W5fUepyUtAf7U4l1-K4Y7g'
+# EMAIL_BACKEND       = 'djrill.mail.backends.djrill.DjrillBackend'
+# DEFAULT_FROM_EMAIL  = 'support@draftboard.com'
+
+EMAIL_USE_TLS       = True
+EMAIL_HOST          = 'smtp.mandrillapp.com'
+EMAIL_HOST_USER     = 'devs@draftboard.com'
+EMAIL_HOST_PASSWORD = 'bfNdCw7LpBD4UUrYG91YVw'
+EMAIL_PORT          = 587
+DEFAULT_FROM_EMAIL  = 'support@draftboard.com'
+SERVER_EMAIL        = DEFAULT_FROM_EMAIL
 
 SMUGGLER_FIXTURE_DIR = join(BASE_DIR, 'smugglin')
 

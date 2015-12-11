@@ -196,3 +196,13 @@ export function generateLineups() {
     ])
   }
 }
+
+
+// Once an entry is created, the server returns it to us in Entry object form. We then need to
+// stuff it into our entries store via receiveEntries().
+export function insertEntry(entry) {
+  log.debug('actionsEntries.insertEntry')
+  return(dispatch) => {
+    dispatch(receiveEntries([entry]))
+  }
+}
