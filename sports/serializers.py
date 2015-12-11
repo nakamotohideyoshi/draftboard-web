@@ -35,12 +35,12 @@ class PlayerStatsSerializer(serializers.ModelSerializer):
         model = PlayerStats
         fields = ('game_id', 'player_id','fantasy_points')
 
-class InjurySerializer(serializers.ModelSerializer): pass
+class InjurySerializer(serializers.ModelSerializer): pass       # extended by specific sport
 
-    #class Meta:
+class FantasyPointsSerializer(serializers.Serializer): pass     # extended by specific sport
 
-        #model = Injury
-        #fields = ('iid', 'status','description')
-
-#class FantasyPointsSerializer(serializers.ModelSerializer): pass
-class FantasyPointsSerializer(serializers.Serializer): pass
+class TeamSerializer(serializers.ModelSerializer):
+    """
+    extended by specific sport
+    """
+    PARENT_FIELDS = ('id','srid','name','alias')
