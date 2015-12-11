@@ -1,9 +1,9 @@
 "use strict"
 
 import 'babel-core/polyfill'; // so I can use Promises
-import request from 'superagent'
 import { Buffer } from 'buffer/'
 import { normalize, Schema, arrayOf } from 'normalizr'
+const request = require('superagent-promise')(require('superagent'), Promise)
 
 import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
@@ -125,15 +125,12 @@ function fetchContestLineups(id) {
   return dispatch => {
     dispatch(requestContestLineups(id))
 
-    request
-      .get('/api/contest/all-lineups/' + id + '/')
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .end(function(err, res) {
-        if(err) {
-          // TODO
-        } else {
-          dispatch(receiveContestLineups(id, res.text))
-        }
+    return request.get(
+      '/api/contest/all-lineups/' + id + '/'
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest'
+    }).then(function(res) {
+      return dispatch(receiveContestLineups(id, res.text))
     })
   }
 }
@@ -170,16 +167,13 @@ function fetchContestInfo(id) {
   return dispatch => {
     dispatch(requestContestInfo(id))
 
-    request
-      .get('/api/contest/info/' + id + '/')
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          // TODO
-        } else {
-          dispatch(receiveContestInfo(id, res.body))
-        }
+    return request.get(
+      '/api/contest/info/' + id + '/'
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    }).then(function(res) {
+      return dispatch(receiveContestInfo(id, res.body))
     })
   }
 }
@@ -199,6 +193,7 @@ export function fetchContestIfNeeded(id) {
     if (shouldFetchContest(getState(), id) === false) {
       return Promise.reject('Contest already exists')
     }
+
     return Promise.all([
       dispatch(fetchContestInfo(id)),
       dispatch(fetchContestLineups(id))
