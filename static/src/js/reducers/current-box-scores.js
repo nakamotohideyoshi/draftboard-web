@@ -18,7 +18,7 @@ module.exports = function(state = {
         [action.id]: {
           teams: {
             [action.team]: {
-              $merge: {
+              $set: {
                 score: action.score
               }
             }
