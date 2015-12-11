@@ -9,7 +9,7 @@ import {forEach as _forEach, find as _find, matchesProperty as _matchesProperty}
 import * as moment from 'moment'
 import {fetchDraftGroup, setFocusedPlayer, updateFilter} from '../../actions/draft-group-actions.js'
 import {fetchSportInjuries} from '../../actions/injury-actions.js'
-import {createLineupAddPlayer} from '../../actions/lineup-actions.js'
+import {createLineupAddPlayer, removePlayer} from '../../actions/lineup-actions.js'
 import {draftGroupPlayerSelector} from '../../selectors/draft-group-players-selector.js'
 
 // Other components that will take care of themselves on the draft page.
@@ -27,6 +27,7 @@ const DraftPlayerList = React.createClass({
     filteredPlayers: React.PropTypes.array,
     focusPlayer: React.PropTypes.func,
     draftPlayer: React.PropTypes.func,
+    unDraftPlayer: React.PropTypes.func,
     newLineup: React.PropTypes.array,
     updateFilter: React.PropTypes.func,
     availablePositions: React.PropTypes.array,
@@ -99,7 +100,8 @@ const DraftPlayerList = React.createClass({
 
     // Build up a list of rows to be displayed.
     _forEach(this.props.filteredPlayers, function(row) {
-      var draftable = true
+      let draftable = true
+      let drafted = false
       // Is there a slot available?
       if (this.props.availablePositions.indexOf(row.position) === -1) {
         draftable = false
@@ -108,6 +110,7 @@ const DraftPlayerList = React.createClass({
       // Is the player already drafted?
       if (undefined !== _find(this.props.newLineup, _matchesProperty('player', row))) {
         draftable = false
+        drafted = true
       }
 
       visibleRows.push(
@@ -115,8 +118,10 @@ const DraftPlayerList = React.createClass({
           key={row.player_id}
           row={row}
           draftable={draftable}
+          drafted={drafted}
           focusPlayer={this.props.focusPlayer}
           draftPlayer={this.props.draftPlayer}
+          unDraftPlayer={this.props.unDraftPlayer}
         />
       )
     }.bind(this))
@@ -205,6 +210,7 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchDraftGroup: (draftGroupId) => dispatch(fetchDraftGroup(draftGroupId)),
     draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
+    unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
     focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
     updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match))
   };
