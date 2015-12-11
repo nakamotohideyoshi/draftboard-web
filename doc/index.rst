@@ -10,9 +10,49 @@ Table of Contents:
     :maxdepth: 1
 
     account
-    dfslog
-    transaction
     cash
+    tax
+    withdraw
+    contest
+    buyin
+    payout
+    refund
+    schedule
+    dataden
+    util
+    dfslog
+    draftgroup
+    finance
+    fpp
+    keyprefix
+    lineup
+    lobby
+    mysite
+    forms
+    smugglin
+    optimal_payments
+    optimal_source
+    pp
+    prize
+    promocode
+    bonuscash
+    push
+    rakepaid
+    replayer
+    replay
+    restore
+    roster
+    salary
+    scoring
+    sports
+    mlb
+    nba
+    nfl
+    nhl
+    sport
+    ticket
+    transaction
+    util
 
 Indices and tables
 ==================
