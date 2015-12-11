@@ -3,12 +3,24 @@
 
 from django.conf.urls import patterns
 
-from sports.views import PlayerCsvView, LeagueInjuryAPIView, LivePbpView, FantasyPointsHistoryAPIView
+from sports.views import (
+    PlayerCsvView,
+    LeagueInjuryAPIView,
+    LeagueTeamAPIView,
+    LivePbpView,
+    FantasyPointsHistoryAPIView
+)
 
 urlpatterns = patterns(
     '',
 
+    #
+    # get the injruies for a sport
     (r'^injuries/(?P<sport>[a-z]+)/$', LeagueInjuryAPIView.as_view()),
+
+    #
+    # get the teams for a sport
+    (r'^teams/(?P<sport>[a-z]+)/$', LeagueTeamAPIView.as_view()),
 
     #
     # get recent play by play for this draftgroup

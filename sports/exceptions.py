@@ -16,7 +16,7 @@ class GameClassNotFoundException(Exception):
 
 class TeamClassNotFoundException(Exception):
     def __init__(self, class_name, sport_name):
-        super().__init__( "team class for %s not found" % sport_name )
+        super().__init__( "Team class for %s not found" % sport_name )
 
 class GameBoxscoreClassNotFoundException(Exception):
     def __init__(self, class_name, sport_name):
@@ -26,10 +26,22 @@ class PbpDescriptionClassNotFoundException(Exception):
     def __init__(self, class_name, sport_name):
         super().__init__( "PbpDescription class for %s not found" % sport_name )
 
+class TeamSerializerClassNotFoundException(Exception):
+    def __init__(self, class_name, sport_name):
+        super().__init__( "Team Serializer class for %s not found" % sport_name )
+
 class InjuryClassNotFoundException(Exception):
     def __init__(self, class_name, sport_name):
         super().__init__( "Injury class for %s not found" % sport_name )
 
 class InjurySerializerClassNotFoundException(Exception):
     def __init__(self, class_name, sport_name):
-        super().__init__( "InjurySerializer class for %s not found" % sport_name )
+        super().__init__( "Injury Serializer class for %s not found" % sport_name )
+
+class PlayerClassNotFoundException(Exception):
+    def __init__(self, class_name, sport_name):
+        super().__init__( "Player class for %s not found" % sport_name )
+
+class PlayerSerializerClassNotFoundException(Exception):
+    def __init__(self, class_name, sport_name):
+        super().__init__( "Player Serializer class for %s not found" % sport_name )

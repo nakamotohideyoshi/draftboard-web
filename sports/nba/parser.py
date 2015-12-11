@@ -344,24 +344,24 @@ class DataDenNba(AbstractDataDenParser):
         if self.target == ('nba.game','schedule'): GameSchedule().parse( obj )
         elif self.target == ('nba.game','boxscores'):
             GameBoxscores().parse( obj )
-            DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nba.team
         elif self.target == ('nba.team','hierarchy'): TeamHierarchy().parse( obj )
         elif self.target == ('nba.team','boxscores'):
             TeamBoxscores().parse( obj )
-            DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            DataDenPush( push.classes.PUSHER_BOXSCORES, 'team' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nba.period
         elif self.target == ('nba.quarter','pbp'):
             QuarterPbp().parse( obj )
-            DataDenPush( push.classes.PUSHER_NBA_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
+            DataDenPush( push.classes.PUSHER_NBA_PBP, 'quarter' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
             self.add_pbp( obj )
         #
         # nba.event
         elif self.target == ('nba.event','pbp'):
             EventPbp().parse( obj )
-            DataDenPush( push.classes.PUSHER_NBA_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
+            DataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
             self.add_pbp( obj )
         #
         # nba.player

@@ -181,10 +181,14 @@ class DataDenPush( AbstractPush ):
     This class handles play by play, and boxscore objects currently.
     """
 
-    def __init__(self, channel):
+    def __init__(self, channel, event):
+        """
+        channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
+        event: the string name of the general type of the object, ie: 'player', or 'team'
+        """
         super().__init__() # init pusher object
         self.channel    = channel
-        self.event      = ''
+        self.event      = event
 
 # class FantasyPointsPush( AbstractPush ):
 #     """

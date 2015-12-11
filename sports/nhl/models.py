@@ -109,7 +109,7 @@ class PlayerStats( sports.models.PlayerStats ):
 
         #
         # pusher the fantasy points w/ stats
-        push.classes.DataDenPush( push.classes.PUSHER_NHL_STATS).send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
+        push.classes.DataDenPush( push.classes.PUSHER_NHL_STATS, 'player').send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
 
         super().save(*args, **kwargs)
 
