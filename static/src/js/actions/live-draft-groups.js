@@ -9,6 +9,7 @@ import { normalize, Schema, arrayOf } from 'normalizr'
 import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
 import { mergeBoxScores } from './current-box-scores'
+import { fetchTeamsIfNeeded } from './sports'
 
 
 const playerSchema = new Schema('players', {
@@ -144,7 +145,10 @@ function fetchDraftGroupInfo(id) {
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'Accept': 'application/json'
     }).then(function(res) {
-      dispatch(receiveDraftGroupInfo(id, res.body))
+      return Promise.all([
+        dispatch(receiveDraftGroupInfo(id, res.body)),
+        dispatch(fetchTeamsIfNeeded(res.body.sport))
+      ])
     })
   }
 }
@@ -192,10 +196,12 @@ function fetchDraftGroupBoxScores(id) {
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'Accept': 'application/json'
     }).then(function(res) {
-      return Promise.all([
-        dispatch(receiveDraftGroupBoxScores(id, res.body)),
-        dispatch(mergeBoxScores(res.body))
-      ])
+      dispatch(receiveDraftGroupBoxScores(id, res.body)),
+      dispatch(mergeBoxScores(res.body))
+
+      return dispatch(
+        fetchTeamsIfNeeded('nba')
+      )
     })
   }
 }
@@ -229,7 +235,8 @@ export function fetchDraftGroupIfNeeded(id) {
       dispatch(fetchDraftGroupInfo(id)),
       dispatch(fetchDraftGroupFP(id)),
       dispatch(fetchDraftGroupBoxScores(id))
-    ]).then(() =>
+    ])
+    .then(() =>
       dispatch(confirmDraftGroupStored(id))
     )
   }

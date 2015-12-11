@@ -26,7 +26,12 @@ const NavScoreboardLineup = React.createClass({
   },
 
   render() {
-    const {name, contest, time, pmr, points, balance} = this.props.lineup;
+    const {contest, time, pmr, points, balance} = this.props.lineup;
+    let { name } = this.props.lineup
+
+    if (name === '') {
+      name = 'Currys Chicken'
+    }
 
     return (
       <div className="lineup">

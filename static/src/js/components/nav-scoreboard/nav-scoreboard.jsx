@@ -5,7 +5,7 @@ import {Provider, connect} from 'react-redux'
 import { forEach as _forEach } from 'lodash'
 import io from 'socket.io-client'
 import _ from 'lodash'
-// import Pusher from 'pusher-js'
+import Pusher from 'pusher-js'
 
 import store from '../../store'
 import log from '../../lib/logging'
@@ -22,6 +22,7 @@ import NavScoreboardUserInfo from './nav-scoreboard-user-info.jsx'
 import NavScoreboardSeparator from './nav-scoreboard-separator.jsx'
 import NavScoreboardGamesList from './nav-scoreboard-games-list.jsx'
 import NavScoreboardLineupsList from './nav-scoreboard-lineups-list.jsx'
+import NavScoreboardLoggedOutInfo from './nav-scoreboard-logged-out-info.jsx'
 
 import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
 import { updateBoxScore } from '../../actions/current-box-scores'
@@ -37,38 +38,37 @@ const NavScoreboard = React.createClass({
     updateBoxScore: React.PropTypes.func
   },
 
-  // listenToSockets() {
-  //   log.debug('listenToSockets()')
-  //   var self = this
+  listenToSockets() {
+    log.debug('listenToSockets()')
+    var self = this
 
-  //   let pusher = new Pusher('f23775e0c1d0da57bb4b', {
-  //     encrypted: true
-  //   })
+    Pusher.log = function(message) {
+      if (window.console && window.console.log) {
+        window.console.log(message);
+      }
+    };
 
-  //   let channel = pusher.subscribe('nba')
+    let pusher = new Pusher(window.dfs.user.pusher_key, {
+      encrypted: true
+    })
 
-  //   channel.bind('dd', (eventData) => {
-  //     self.onEventSocketReceived(eventData)
-  //   })
-  // },
+    let channel = pusher.subscribe('boxscores')
+
+    channel.bind('team', (eventData) => {
+      self.onEventSocketReceived(eventData)
+    })
+  },
 
   onEventSocketReceived(eventCall) {
     log.debug('onEventReceived', eventCall.id)
     var self = this
 
-    // if this is a statistical based call
-    if ('statistics__list' in eventCall === false) {
-      return false
-    }
-
-    if (eventCall.game__id in self.props.boxScores) {
-      const events = eventCall.statistics__list
-      // Determine if game is one we need to update in box scores. If so, then update score using points and made params
-      _.forEach(events, function(event) {
-        if ('made' in event && event.made === 'true') {
-          self.props.updateBoxScore(eventCall.game__id, event)
-        }
-      })
+    if (eventCall.game__id in self.props.boxScores && 'points' in eventCall) {
+      self.props.updateBoxScore(
+        eventCall.game__id,
+        eventCall.id,
+        eventCall.points
+      )
     }
   },
 
@@ -82,21 +82,24 @@ const NavScoreboard = React.createClass({
 
       // Selected option key. Subtype from the main type.
       // Competition from games and null for lineups.
-      selectedKey: null
+      selectedKey: null,
+
+      user: window.dfs.user
     }
   },
 
   componentWillMount() {
     let self = this
 
-    store.dispatch(
-      fetchEntriesIfNeeded()
-    ).catch(
-      errorHandler
-    )
-    // ).then(
-    //   this.listenToSockets()
-    // )
+    if (this.state.user.username !== '') {
+      store.dispatch(
+        fetchEntriesIfNeeded()
+      ).catch(
+        errorHandler
+      ).then(
+        this.listenToSockets()
+      )
+    }
   },
 
   /**
@@ -130,12 +133,14 @@ const NavScoreboard = React.createClass({
       })
     })
 
-    options.push({
-      option: 'MY LINEUPS',
-      type: TYPE_SELECT_LINEUPS,
-      key: null,
-      count: this.props.navScoreboardStats.lineups.length
-    })
+    if (this.state.user.username !== '') {
+      options.push({
+        option: 'MY LINEUPS',
+        type: TYPE_SELECT_LINEUPS,
+        key: null,
+        count: this.props.navScoreboardStats.lineups.length
+      })
+    }
 
     return options
   },
@@ -156,20 +161,38 @@ const NavScoreboard = React.createClass({
 
   render() {
     const { username, cash_balance } = window.dfs.user
+    let userInfo, filters, slider
+
+    if (this.state.user.username !== '') {
+      userInfo = (
+        <NavScoreboardUserInfo name={username} balance={cash_balance} />
+      )
+
+      filters = (
+        <NavScoreboardFilters
+          selected={this.state.selectedOption}
+          options={this.getSelectOptions()}
+          onChangeSelection={this.handleChangeSelection} />
+      )
+      slider = (
+        <NavScoreboardSlider type={this.state.selectedOption}>
+          {this.renderSliderContent()}
+        </NavScoreboardSlider>
+      )
+    } else {
+      userInfo = (
+        <NavScoreboardLoggedOutInfo />
+      )
+    }
 
     return (
       <div className="inner">
         <NavScoreboardMenu />
         <NavScoreboardSeparator half />
-        <NavScoreboardUserInfo name={username} balance={cash_balance} />
+        { userInfo }
         <NavScoreboardSeparator />
-        <NavScoreboardFilters
-          selected={this.state.selectedOption}
-          options={this.getSelectOptions()}
-          onChangeSelection={this.handleChangeSelection} />
-        <NavScoreboardSlider type={this.state.selectedOption}>
-          {this.renderSliderContent()}
-        </NavScoreboardSlider>
+        { filters }
+        { slider }
         <NavScoreboardLogo />
       </div>
     )
@@ -188,7 +211,7 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    updateBoxScore: (id, event) => dispatch(updateBoxScore(id, event))
+    updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points))
   }
 }
 
