@@ -49,3 +49,17 @@ class UserEmailNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserEmailNotification
         fields = ("email_notification", "enabled")
+
+class LoginSerializer(serializers.Serializer):
+
+    username = serializers.CharField()
+    password = serializers.CharField(style={'input_type': 'password'})
+
+class ForgotPasswordSerializer(serializers.Serializer):
+
+    email = serializers.EmailField()
+
+class PasswordResetSerializer(serializers.Serializer):
+
+    uid = serializers.CharField()
+    token = serializers.CharField()
