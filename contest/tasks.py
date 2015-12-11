@@ -6,14 +6,23 @@ from __future__ import absolute_import
 from mysite.celery_app import app
 from datetime import timedelta
 from django.utils import timezone
-from contest.models import LiveContest, Contest
+from contest.models import LiveContest, Contest, UpcomingContest
 from draftgroup.models import DraftGroup, UpcomingDraftGroup
+from django.core.mail import send_mail
+from rakepaid.classes import LoyaltyStatusManager
+
+#
+#
+HIGH_PRIORITY_FROM_EMAIL = 'admin@draftboard.com'
+LOW_PRIORITY_FROM_EMAIL = 'admin@draftboard.com'
+
 
 #
 # very important/required notify email list
 HIGH_PRIORITY_EMAILS = [
     'cbanister@coderden.com',
-    'manager@draftboard.com'
+    'manager@draftboard.com',
+    'pedro@draftboard.com',
 ]
 
 #
@@ -32,25 +41,15 @@ LOW_PRIORITY_EMAILS = [
 # have been paid out, we need to recalculate every users
 # loyalty status. we must do this for all users
 # because everyone is on a 30 day rolling window.
+@app.task(bind=True)
 def recalculate_user_loyalty():
-    pass # TODO
+    loyalty_status_manager = LoyaltyStatusManager()
+    loyalty_status_manager.update()
 
 #
 #########################################################################
 # admin
 #########################################################################
-
-#
-# check if there are user withdraw requests which need to be processed,
-# and email the appropriate list of people if there are.
-def check_pending_withdraws():
-    pass # TODO
-
-# #
-# # example: send an email report including the name and
-# #           information of all the signups from a time period
-# def email_daily_user_signups_EXAMPLE():
-#     pass # TODO
 
 #
 #########################################################################
@@ -65,7 +64,15 @@ def check_pending_withdraws():
 # notifiy someone to remind them to create the draft group asap!
 @app.task
 def notifiy_admin_contests_require_draft_group():
-    pass # TODO
+    td = timedelta(days=7)
+    target = timezone.now() + td
+    contests = UpcomingContest.objects.filter( draft_group__isnull=True, start__lte=target)
+    contests_str = str([ str(c.name) for c in contests])
+
+    send_mail("Alert! Upcoming Contests need a Draft-Group!",
+                contests_str,
+                HIGH_PRIORITY_FROM_EMAIL,
+                HIGH_PRIORITY_EMAILS)
 
 #
 # based on the time it is, make sure there are no Contests
@@ -106,9 +113,15 @@ def notify_admin_draft_groups_not_completed(self, hours=5, *args, **kwargs):
                                                 closed__isnull=True)
 
     #
-    # TODO -  PRINT THEM UNTIL WE HAVE AN EMAILER
     contests = Contest.objects.filter( draft_group__in=draft_groups )
-    print( '*** %s *** contests are live >>> %s <<< hours after the last game(s) started.' % (contests.count(), hours))
+
+    msg_str = '*** %s *** contests are live >>> %s <<< hours after the last game(s) started.' % (contests.count(), hours)
+    print(msg_str )
+    send_mail("Alert! Draft Groups (Live Games) Running late (!?)",
+                msg_str,
+                HIGH_PRIORITY_FROM_EMAIL,
+                HIGH_PRIORITY_EMAILS)
+
 
 @app.task(bind=True)
 def notify_admin_contests_not_paid(self, *args, **kwargs):
@@ -126,48 +139,10 @@ def notify_admin_contests_not_paid(self, *args, **kwargs):
     payable_contests = Contest.objects.filter(status=Contest.COMPLETED)
     num_contests = payable_contests.count()
     if num_contests > 0:
-        print( '*** %s *** need to be paid out!' % (num_contests))
+        msg_str = '*** %s *** need to be paid out!' % (num_contests)
+        print( msg_str )
 
-    # TODO email an admin
-
-#
-#########################################################################
-# NFL
-#########################################################################
-
-#
-#
-def nfl_task():
-    pass # TODO
-
-#
-#########################################################################
-# NBA
-#########################################################################
-
-#
-#
-def nba_task():
-    pass # TODO
-
-#
-#########################################################################
-# NHL
-#########################################################################
-
-#
-#
-def nhl_task():
-    pass # TODO
-
-#
-#########################################################################
-# MLB
-#########################################################################
-
-#
-#
-def mlb_task():
-    pass # TODO
-
-
+        send_mail("Alert! Contest Payout time!",
+                    msg_str,
+                    HIGH_PRIORITY_FROM_EMAIL,
+                    HIGH_PRIORITY_EMAILS)

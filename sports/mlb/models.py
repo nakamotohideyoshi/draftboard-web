@@ -4,6 +4,8 @@
 from django.db import models
 import sports.models
 import scoring.classes
+import push.classes
+from django.conf import settings
 
 class Season( sports.models.Season ):
     class Meta:
@@ -133,6 +135,11 @@ class PlayerStats( sports.models.PlayerStats ):
         # perform score update
         scorer = scoring.classes.MlbSalaryScoreSystem()
         self.fantasy_points = scorer.score_player( self )
+
+        #
+        # send the pusher obj for fantasy points with scoring
+        push.classes.DataDenPush( push.classes.PUSHER_MLB_STATS).send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
+
         super().save(*args, **kwargs)
 
 class PlayerStatsHitter(PlayerStats):

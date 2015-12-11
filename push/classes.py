@@ -26,6 +26,17 @@ import json
 #     def __init__(self):
 #         pass
 
+PUSHER_BOXSCORES    = 'boxscores'
+
+PUSHER_MLB_PBP      = 'mlb_pbp'
+PUSHER_MLB_STATS    = 'mlb_stats'
+PUSHER_NBA_PBP      = 'nba_pbp'
+PUSHER_NBA_STATS    = 'nba_stats'
+PUSHER_NFL_PBP      = 'nfl_pbp'
+PUSHER_NFL_STATS    = 'nfl_stats'
+PUSHER_NHL_PBP      = 'nhl_pbp'
+PUSHER_NHL_STATS    = 'nhl_stats'
+
 class RealGoodRequest(Request):
     """
     Overides the pusher.http.Request in order that we might specify the auth_timestamp that we want
@@ -119,9 +130,9 @@ class AbstractPush(object):
 
     def __init__(self):
 
-        print( 'settings.PUSHER_APP_ID', settings.PUSHER_APP_ID,
-               'settings.PUSHER_KEY', settings.PUSHER_KEY,
-               'settings.PUSHER_SECRET', settings.PUSHER_SECRET )
+        # print( 'settings.PUSHER_APP_ID', settings.PUSHER_APP_ID,
+        #        'settings.PUSHER_KEY', settings.PUSHER_KEY,
+        #        'settings.PUSHER_SECRET', settings.PUSHER_SECRET )
         #self.pusher = Pusher( app_id=settings.PUSHER_APP_ID,
         self.pusher = RealGoodPusher( app_id=settings.PUSHER_APP_ID,    #
                                 key=settings.PUSHER_KEY,
@@ -170,26 +181,26 @@ class DataDenPush( AbstractPush ):
     This class handles play by play, and boxscore objects currently.
     """
 
-    def __init__(self, sport):
+    def __init__(self, channel):
         super().__init__() # init pusher object
-        self.channel    = sport
-        self.event      = 'dd'
+        self.channel    = channel
+        self.event      = ''
 
-class FantasyPointsPush( AbstractPush ):
-    """
-    Any changes in fantasy player scoring should be pushed with this class.
-    """
-
-    def __init__(self, sport):
-        super().__init__() # init pusher object
-        self.channel    = sport
-        self.event      = 'fp'
-
-class ContestUpdatePush( AbstractPush ):
-    """
-    Changes to contests (or new ones)
-    """
-    def __init__(self):
-        super().__init__() # init pusher object
-        self.channel    = 'contest'
-        self.event      = 'update'
+# class FantasyPointsPush( AbstractPush ):
+#     """
+#     Any changes in fantasy player scoring should be pushed with this class.
+#     """
+#
+#     def __init__(self, sport):
+#         super().__init__() # init pusher object
+#         self.channel    = sport
+#         self.event      = 'fp'
+#
+# class ContestUpdatePush( AbstractPush ):
+#     """
+#     Changes to contests (or new ones)
+#     """
+#     def __init__(self):
+#         super().__init__() # init pusher object
+#         self.channel    = 'contest'
+#         self.event      = 'update'

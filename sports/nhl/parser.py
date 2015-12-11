@@ -11,6 +11,8 @@ from sports.sport.base_parser import AbstractDataDenParser, \
                         DataDenPbpDescription, DataDenInjury
 
 from dataden.classes import DataDen
+import push.classes
+from django.conf import settings
 
 class TeamHierarchy(DataDenTeamHierarchy):
     """
@@ -278,17 +280,25 @@ class DataDenNhl(AbstractDataDenParser):
         #
         # nhl.game
         if self.target == ('nhl.game','schedule'): GameSchedule().parse( obj )
-        elif self.target == ('nhl.game','boxscores'): GameBoxscores().parse( obj )
+        elif self.target == ('nhl.game','boxscores'):
+            GameBoxscores().parse( obj )
+            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nhl.period
-        elif self.target == ('nhl.period','pbp'): PeriodPbp().parse( obj )
+        elif self.target == ('nhl.period','pbp'):
+            PeriodPbp().parse( obj )
+            push.classes.DataDenPush( push.classes.PUSHER_NHL_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nhl.event
-        elif self.target == ('nhl.event','pbp'): EventPbp().parse( obj )
+        elif self.target == ('nhl.event','pbp'):
+            EventPbp().parse( obj )
+            push.classes.DataDenPush( push.classes.PUSHER_NHL_PBP ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nhl.team
         elif self.target == ('nhl.team','hierarchy'): TeamHierarchy().parse( obj )
-        elif self.target == ('nhl.team','boxscores'): TeamBoxscores().parse( obj )
+        elif self.target == ('nhl.team','boxscores'):
+            TeamBoxscores().parse( obj )
+            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #
         # nhl.player
         elif self.target == ('nhl.player','rosters'): PlayerRosters().parse( obj )
