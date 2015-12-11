@@ -17,7 +17,9 @@ var DraftPlayerListRow = React.createClass({
     row: React.PropTypes.object.isRequired,
     focusPlayer: React.PropTypes.func,
     draftable: React.PropTypes.bool,
-    draftPlayer: React.PropTypes.func
+    drafted: React.PropTypes.bool,
+    draftPlayer: React.PropTypes.func,
+    unDraftPlayer: React.PropTypes.func
   },
 
 
@@ -45,6 +47,31 @@ var DraftPlayerListRow = React.createClass({
   },
 
 
+  onUnDraftClick: function(player, e) {
+    e.stopPropagation()
+    this.props.unDraftPlayer(player.player_id)
+  },
+
+
+  getDraftButton: function() {
+    if (this.props.drafted) {
+      return (
+        <div
+          className="draft-button remove"
+          onClick={this.onUnDraftClick.bind(this, this.props.row)}
+          >Remove</div>
+      )
+    } else {
+      return (
+        <div
+          className="draft-button"
+          onClick={this.onDraftClick.bind(this, this.props.row)}
+          >Draft</div>
+      )
+    }
+  },
+
+
   render: function() {
     var classes = 'cmp-player-list__row';
 
@@ -58,11 +85,8 @@ var DraftPlayerListRow = React.createClass({
         className={classes}
         onClick={this.onRowClick.bind(this, this.props.row.player_id)}
       >
-        <td>
-          <div
-            className="button--mini button--gradient"
-            onClick={this.onDraftClick.bind(this, this.props.row)}
-            >Draft</div>
+        <td className="draft">
+          {this.getDraftButton()}
         </td>
         <td className="position">{this.props.row.position}</td>
         <td className="photo">👤</td>

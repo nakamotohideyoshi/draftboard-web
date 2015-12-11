@@ -7,6 +7,10 @@
     color: #46495e;
     cursor: pointer;
 
+    .draft {
+      width: 58px;
+    }
+
     .position {
       font-size: 9px;
       font-weight: 700;
@@ -59,6 +63,19 @@
     .cmp-sparkline {
       width: 45px;
       display: block;
+    }
+  }
+
+  .draft-button {
+    width: 28px;
+    height: 28px;
+    background: url('../img/blocks/draft-list/btn-add-remove.png') no-repeat;
+    background-size: auto 28px;
+    text-indent: -9999px;
+    overflow: hidden;
+
+    &.remove {
+      background-position: top right;
     }
   }
 }
