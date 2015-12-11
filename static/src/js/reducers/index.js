@@ -22,6 +22,7 @@ const liveDraftGroups = require('./live-draft-groups')
 const payments = require('./payments')
 const prizes = require('./prizes')
 const results = require('./results')
+const sports = require('./sports')
 const transactions = require('./transactions')
 const upcomingContests = require('./upcoming-contests.js')
 const upcomingDraftGroups = require('./upcoming-draft-groups.js')
@@ -46,6 +47,7 @@ module.exports = combineReducers({
   prizes,
   results,
   routing,
+  sports,
   transactions,
   upcomingContests,
   upcomingDraftGroups,
