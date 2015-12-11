@@ -125,8 +125,6 @@ var Live = React.createClass({
     if ('mine' in self.props.liveSelector.lineups) {
       var myLineup = self.props.liveSelector.lineups.mine
 
-      console.log(self.props, 'mylineupppp')
-
       bottomNavForRightPanes = (
         <div className="live-right-pane-nav live-right-pane-nav--lineup" onClick={self.toggleContests}></div>
       )

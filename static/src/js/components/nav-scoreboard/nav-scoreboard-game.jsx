@@ -26,9 +26,9 @@ const NavScoreboardGame = React.createClass({
     return (
       <div className="game scroll-item">
         <div className="left">
-          {home_abbr}
+          {this.props.game.homeTeamInfo.alias}
           <br />
-          {away_abbr}
+          {this.props.game.awayTeamInfo.alias}
         </div>
 
         <div className="right">

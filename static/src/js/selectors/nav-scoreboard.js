@@ -24,9 +24,10 @@ export const navScoreboardSelector = createSelector(
   currentLineupsStatsSelector,
   state => state.liveDraftGroups,
   state => state.currentBoxScores,
+  state => state.sports,
   state => state.user,
 
-  (lineups, draftGroups, boxScores, user) => {
+  (lineups, draftGroups, boxScores, sports, user) => {
     const resultLineups = _.map(lineups, (lineup) => {
       return {
         id: lineup.id,
@@ -51,7 +52,13 @@ export const navScoreboardSelector = createSelector(
         start: dg.start,
         end: dg.end,
         boxScores: _.mapValues(dg.boxScores, (boxScore, id) => {
-          return boxScores[id]
+          let newBoxScore = boxScores[boxScore.fields.srid_game]
+          const teams = sports[dg.sport].teams
+
+          newBoxScore.homeTeamInfo = teams[boxScore.fields.home_id]
+          newBoxScore.awayTeamInfo = teams[boxScore.fields.away_id]
+
+          return newBoxScore
         })
       }
     })
