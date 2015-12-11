@@ -68,8 +68,9 @@ export function updateFantasyPointsForLineup (lineup, draftGroup) {
   let total = 0
 
   _forEach(lineup.roster, function(playerId) {
+    // if they have not started playing yet
     if (playerId in draftGroup.playersStats === false) {
-      log.error(vsprintf('_updateFantasyPointsForLineup() - player does not exist: %d', [playerId]))
+      // log.error(vsprintf('_updateFantasyPointsForLineup() - player does not exist: %d', [playerId]))
       return 0
     }
 

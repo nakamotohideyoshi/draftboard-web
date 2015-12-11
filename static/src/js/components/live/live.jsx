@@ -16,15 +16,10 @@ import LiveOverallStats from './live-overall-stats'
 import LivePlayerPaneConnected from '../live/live-player-pane'
 import LiveStandingsPaneConnected from '../live/live-standings-pane'
 import store from '../../store'
-import { fetchEntriesIfNeeded, generateLineups } from '../../actions/entries'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
 import { liveSelector } from '../../selectors/live'
 import { updateLiveMode } from '../../actions/live'
-
-// set up API calls to mock for now
-import request from 'superagent'
-import urlConfig from '../../fixtures/live-config'
 
 
 const history = createBrowserHistory()
@@ -56,8 +51,6 @@ var Live = React.createClass({
 
 
   componentWillMount: function() {
-    require('superagent-mock')(request, urlConfig)
-
     const urlParams = this.props.params
     let newMode = {
       type: 'lineup',
@@ -74,11 +67,7 @@ var Live = React.createClass({
 
     this.props.updateLiveMode(newMode)
 
-    store.dispatch(
-      fetchEntriesIfNeeded()
-    ).catch(
-      errorHandler
-    )
+    // fetchEntriesIfNeeded is called in NavScoreboard component
   },
 
 
@@ -133,8 +122,10 @@ var Live = React.createClass({
       )
     }
 
-    if (self.props.mode.myLineupId) {
+    if ('mine' in self.props.liveSelector.lineups) {
       var myLineup = self.props.liveSelector.lineups.mine
+
+      console.log(self.props, 'mylineupppp')
 
       bottomNavForRightPanes = (
         <div className="live-right-pane-nav live-right-pane-nav--lineup" onClick={self.toggleContests}></div>

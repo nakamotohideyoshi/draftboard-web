@@ -1,6 +1,5 @@
 "use strict"
 
-import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
 import log from '../lib/logging'
