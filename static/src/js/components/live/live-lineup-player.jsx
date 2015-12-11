@@ -14,7 +14,8 @@ var LiveLineupPlayer = React.createClass({
   },
 
   viewPlayerDetails() {
-    AppActions.toggleLiveRightPane('appstate--live-player-pane--open')
+    // TODO: update store playerLeft / playerRight accordingly too
+    this.props.whichSide === 'opponent' ? AppActions.openPlayerPane('right') : AppActions.openPlayerPane('left')
   },
 
   render: function() {

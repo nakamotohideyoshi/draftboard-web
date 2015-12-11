@@ -14,7 +14,7 @@ import LiveLineup from './live-lineup'
 import LiveLineupSelectModal from './live-lineup-select-modal'
 import LiveNBACourt from './live-nba-court'
 import LiveOverallStats from './live-overall-stats'
-import LivePlayerPaneConnected from '../live/live-player-pane'
+import LivePlayerPanesConnected from '../live/live-player-panes-connected'
 import LiveStandingsPaneConnected from '../live/live-standings-pane'
 import store from '../../store'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
@@ -259,7 +259,9 @@ var Live = React.createClass({
           <LiveContestsPaneConnected
             lineup={ myLineup }
             mode={ this.props.mode } />
-          <LivePlayerPaneConnected />
+
+          <LivePlayerPanesConnected />
+
           <LiveStandingsPaneConnected
             mode={ self.props.mode } />
         </section>

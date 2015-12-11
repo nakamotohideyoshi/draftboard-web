@@ -101,6 +101,14 @@ var AppActions = {
     this.removeClass('appstate--pane--open');
   },
 
+  openPlayerPane: function(side) {
+    this.addClass('appstate--pane--player--' + side + '--open')
+  },
+
+  closePlayerPane: function(side) {
+    this.removeClass('appstate--pane--player--' + side + '--open')
+  },
+
   contestTypeFiltered: function() {
     this.addClass('appstate--contest-filters-open');
   },

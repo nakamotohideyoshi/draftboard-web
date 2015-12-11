@@ -28,5 +28,5 @@ urlpatterns = patterns(
     (r'^settings/$', views.FrontendSettingsTemplateView.as_view()),
     (r'^settings/transactions/$', views.FrontendSettingsTransactionHistoryTemplateView.as_view()),
     (r'^settings/deposits/$', views.FrontendSettingsDepositsTemplateView.as_view()),
-    (r'^settings/withdraws/$', views.FrontendSettingsWithdrawsTemplateView.as_view()),
+    (r'^settings/withdraws/$', views.FrontendSettingsWithdrawsTemplateView.as_view())
 )
