@@ -5,6 +5,7 @@ import {Provider, connect} from 'react-redux'
 import { forEach as _forEach } from 'lodash'
 import io from 'socket.io-client'
 import _ from 'lodash'
+// import Pusher from 'pusher-js'
 
 import store from '../../store'
 import log from '../../lib/logging'
@@ -27,8 +28,6 @@ import { updateBoxScore } from '../../actions/current-box-scores'
 
 import {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} from './nav-scoreboard-const.jsx'
 
-import request from 'superagent'
-import urlConfig from '../../fixtures/live-config'
 
 const NavScoreboard = React.createClass({
 
@@ -38,40 +37,20 @@ const NavScoreboard = React.createClass({
     updateBoxScore: React.PropTypes.func
   },
 
-  listenToSockets() {
-    log.debug('_initEventsSocket()')
+  // listenToSockets() {
+  //   log.debug('listenToSockets()')
+  //   var self = this
 
-    var self = this
-    var socket = io('http://localhost:5838')
+  //   let pusher = new Pusher('f23775e0c1d0da57bb4b', {
+  //     encrypted: true
+  //   })
 
-    // implement reconnect when available to avoid tons of errors in chrome
-    // https://github.com/socketio/socket.io-client/issues/326
+  //   let channel = pusher.subscribe('nba')
 
-    socket.on('connect', () => {
-      log.debug('listenToSockets() - Socket connected')
-
-      // use event stream as well as player stream
-      if (window.location.pathname.substring(0, 6) === '/live/') {
-        socket.on('event', (eventData) => {
-          self.onEventSocketReceived(eventData)
-        })
-
-        // TODO change this to player stream when we can
-        // socket.on('fp', (eventData) => {
-        //   self.onPlayerSocketReceived(eventData)
-        // })
-      } else {
-        // TODO change this to player stream when we can
-        socket.on('event', (eventData) => {
-          self.onEventSocketReceived(eventData)
-        })
-      }
-    })
-
-    // directly pull in events rather than running separate cmd
-    // var history = require('../fixtures/live-nba-history')[0].fixtures()
-    // _forEach(history, self.onEventReceived)
-  },
+  //   channel.bind('dd', (eventData) => {
+  //     self.onEventSocketReceived(eventData)
+  //   })
+  // },
 
   onEventSocketReceived(eventCall) {
     log.debug('onEventReceived', eventCall.id)
@@ -108,16 +87,16 @@ const NavScoreboard = React.createClass({
   },
 
   componentWillMount() {
-    require('superagent-mock')(request, urlConfig)
     let self = this
 
     store.dispatch(
       fetchEntriesIfNeeded()
     ).catch(
       errorHandler
-    ).then(
-      // this.listenToSockets()
     )
+    // ).then(
+    //   this.listenToSockets()
+    // )
   },
 
   /**
