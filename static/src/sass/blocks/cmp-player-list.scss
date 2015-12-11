@@ -2,13 +2,63 @@
 
 
 .cmp-player-list {
+
   &__row {
+    color: #46495e;
     cursor: pointer;
+
+    .position {
+      font-size: 9px;
+      font-weight: 700;
+      width: 10px;
+      padding-left: 5px;
+      padding-right: 5px;
+    }
+
+    .photo {
+      padding-left: 5px;
+      padding-right: 5px;
+      width: 35px;
+    }
+
+    .name {
+      padding-left: 5px;
+
+      .player {
+        font-size: 14px;
+      }
+
+      .team {
+        color: #babdc9;
+        font-size: 12px;
+      }
+    }
 
     .status {
       color: #e42e2f;
       font-weight: 700;
       font-size: 11px;
+    }
+
+    .game {
+      font-size: 11px;
+
+      .player-team {
+        font-weight: 700;
+      }
+    }
+
+    .status {
+      min-width: 100px;
+    }
+
+    .history {
+      width: 65px;
+    }
+
+    .cmp-sparkline {
+      width: 45px;
+      display: block;
     }
   }
 }
