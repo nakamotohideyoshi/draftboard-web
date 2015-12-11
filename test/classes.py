@@ -5,15 +5,11 @@ import django.test
 from django.contrib.auth.models import User
 import threading
 from django.db import connections
-from django.db.transaction import atomic
 
-import traceback
-from sports.classes import SiteSport
 from prize.classes import CashPrizeStructureCreator
 
 from test.models import PlayerChild, PlayerStatsChild, GameChild
 from django.utils import timezone
-from datetime import timedelta
 from random import randint
 from sports.models import SiteSport, Position
 from roster.models import RosterSpot, RosterSpotPosition
@@ -22,216 +18,103 @@ from dataden.util.timestamp import DfsDateTimeUtil
 from draftgroup.models import DraftGroup, Player, GameTeam
 from draftgroup.classes import DraftGroupManager
 from datetime import timedelta, time, datetime
-from salary.classes import SalaryGenerator
-from django.test import TestCase                            # for testing celery
+from salary.classes import SalaryGenerator                 # for testing celery
 from django.test.utils import override_settings             # for testing celery
-from mysite.celery_app import pause, pause_then_raise       # for testing celery
 from contest.classes import ContestCreator
-from contest.buyin.classes import BuyinManager
 from contest.models import Contest
 from sports.classes import SiteSportManager
-from roster.classes import RosterManager
-from random import Random
-from lineup.classes import LineupManager
-from lineup.exceptions import InvalidLineupSalaryException
-from cash.classes import CashTransaction
 from ticket.classes import TicketManager
-from replayer.classes import ReplayManager
+from util.timeshift import set_system_time, reset_system_time
 from random import Random
 
-class RandomLineupCreator(object):
-    """
-    for testing purposes, this class is used to create dummy
-    lineups in a contest with randomly chosen players.
-
-    the underlying transactions are not created for the buyins, etc...
-
-    all teams are created with the admin user (pk: 1)
-    """
-
-    def __init__(self, sport, username):
-        print( 'WARNING - This class can & will submit teams that EXCEED SALARY REQUIREMENTS')
-        self.user, created               = User.objects.get_or_create(username=username)
-        self.user.set_password('test')
-        self.user.save()
-
-        ct = CashTransaction( self.user )
-        ct.deposit( 1000 )
-
-        self.site_sport_manager = SiteSportManager()
-        self.site_sport         = self.site_sport_manager.get_site_sport( sport )
-        self.roster_manager     = RosterManager( self.site_sport )
-
-        self.r = Random()
-
-        self.position_lists     = None
-        self.lineup_player_ids  = None
-
-    @atomic
-    def create(self, contest_id):
-        """
-        creates a loosly validated lineup (may be over max salary)
-        and associates it (creates a contest.models.Entry) with the contest.
-
-        the players for each roster spot are chosen at random
-
-        :param contest_id:
-        :return:
-        """
-        self.lineup_player_ids = [] # initialize the player ids list
-
-        # from the contest, use the draft group to build positional player lists
-        # from which we can select players for each roster spot
-        contest             = Contest.objects.get( pk=contest_id )
-        self.build_positional_lists( contest.draft_group )
-
-        # select a random player for each roster spot,
-        # making sure not to reuse players we have already chosen
-        roster_size = self.roster_manager.get_roster_spots_count()
-        for roster_idx in range(0, roster_size):
-            player_id = self.get_random_player( roster_idx )
-            self.lineup_player_ids.append( player_id )
-
-        #
-        #
-        #  ** this hacks the total salary  for the contest ***
-        #
-        #
-        salary_config = contest.draft_group.salary_pool.salary_config
-        original_max_team_salary = salary_config.max_team_salary
-        salary_config.max_team_salary = 999999
-        salary_config.save()
-
-        # create the lineup
-        lm = LineupManager( self.user )
-        # this lineup will very likely exceed the total, salary, so
-        # lets hack it to make sure it gets created
-        lineup = lm.create_lineup( self.lineup_player_ids, contest.draft_group )
-
-        # give the admin just enough cash to buy this team into the contest
-        admin = User.objects.get(username='admin')
-        ct = CashTransaction( admin )
-        ct.deposit( contest.buyin )
-
-        # attempt to buy the team into the contest
-        bm = BuyinManager( self.user )
-        bm.buyin( contest, lineup )
-
-        # set the salary back to its original value
-        salary_config.max_team_salary = original_max_team_salary
-        salary_config.save()
-
-    def get_random_player(self, position_list_idx):
-        players = self.position_lists[position_list_idx]
-        while True: # keep trying
-            random_number = self.r.randint(0, len(players) - 1)
-            player_id = players[ random_number ].salary_player.player_id
-            if player_id not in self.lineup_player_ids:
-                return player_id
-        # if we made it thru without finding one, raise exception -- not enough players
-        raise Exception('get_random_player() couldnt find a player -- maybe the pool is too small?')
-
-    def build_positional_lists(self, draft_group):
-        self.position_lists = []
-        roster_size = self.roster_manager.get_roster_spots_count()
-        for roster_idx in range(0, roster_size):
-            self.position_lists.append( [] ) # initialize with the # of lists as are roster spots
-
-        # put each player in each list he could be drafted from
-        draft_group_players = Player.objects.filter( draft_group=draft_group )
-        for player in draft_group_players:
-            for roster_idx in range(0, roster_size):
-                sport_player = player.salary_player.player  # the sports.<sport>.models.Player
-                if self.roster_manager.player_matches_spot( sport_player, roster_idx ):
-                    # add the draft group player
-                    self.position_lists[ roster_idx ].append( player )
-
-class ReplayNbaTest(object):
-
-    def __init__(self, headsup_contests=10):
-        # the name of the primary user
-        self.hero_username = 'Hero'
-
-        self.r = Random() # we will use a random number generator for a few things
-        # create default ticket amounts
-        TicketManager.create_default_ticket_amounts()
-
-        # number headsups, and GPPs
-        self.max_headsups = headsup_contests
-
-        # the site sport for NBA
-        site_sport_manager = SiteSportManager()
-        self.site_sport = site_sport_manager.get_site_sport( 'nba' )
-        # set the start and end time for contests associated with this replay test (7pm EST)
-        self.start  = timezone.now().replace(year=2015, month=10, day=15, hour=23, minute=0, second=0, microsecond=0)
-        self.end    = self.start + timedelta(hours = 8) # 8 hours ahead of start.
-        # create prize structures to associate with contests
-        self.prize_structure_headsup = self.build_prize_structure_headsup()
-        # create (or get) draft group
-        self.draft_group = self.build_draft_group( self.start, self.end )
-        # create contests
-        self.contest_headsup    = self.build_contest_headsup()
-        self.contest_headsup_id = self.contest_headsup.pk
-
-        #
-        # use replay manager to rewind to before this the time of the contest/draft_group !
-        self.replay_manager = ReplayManager()
-        self.replay_manager.set_system_time( self.start - timedelta(minutes=5) ) # 3 min previous to start
-
-        #
-        # now that we have rewound time to before the  contest,
-        # use the random lineup create to add lineups, but all validation appplies except for salary!
-        for x in range(0,self.max_headsups):
-            self.clone_and_fill_contest( self.contest_headsup_id )
-
-    def clone_and_fill_contest(self, contest_id):
-        contest = Contest.objects.get( pk = contest_id )
-        contest.spawn() # creates a new copy of the original contest
-        rlc = RandomLineupCreator( self.site_sport.name, self.hero_username ) # always the name of our hero
-        rlc.create( contest.pk )
-        rlc = RandomLineupCreator( self.site_sport.name, self.__get_villain_name() )
-        rlc.create( contest.pk )
-
-    def __get_villain_name(self):
-        """
-        :return: random villain name from: Villain0 thru Villain99
-        """
-        return 'Villain' + str(self.r.randint(0, 100))
-
-    def build_prize_structure_headsup(self):
-        creator = CashPrizeStructureCreator()
-        creator.set_buyin( 5.00 )
-        creator.add( 1, 9.00 )
-        creator.save()
-        return creator.prize_structure
-
-    def build_draft_group(self, start, end):
-        dgm = DraftGroupManager()
-        return dgm.get_for_site_sport( self.site_sport, start, end )
-
-    def build_contest_headsup(self):
-        contest = Contest()
-        contest.site_sport      = self.site_sport
-        contest.start           = self.start
-        contest.end             = self.end
-        contest.draft_group     = self.draft_group
-        contest.name            = 'NBA $5 Head-to-Head'
-        contest.max_entries     = 1
-        contest.entries         = 2
-        contest.respawn         = True
-        contest.prize_structure = self.prize_structure_headsup
-        contest.save()
-
-        return contest
-
-    def play(self, replay_name='nba-thursday-oct-15-2015', offset_minutes=12):
-        """
-
-        :param replay_name:     the name of the replay
-        :param offset_minutes:  the number of minutes to add to the start time, if we want to start in the middle
-        :return:
-        """
-        self.replay_manager.play( replay_name=replay_name, offset_minutes=offset_minutes)
+# class ReplayNbaTest(object):
+#
+#     def __init__(self, headsup_contests=10):
+#         # the name of the primary user
+#         self.hero_username = 'Hero'
+#
+#         self.r = Random() # we will use a random number generator for a few things
+#         # create default ticket amounts
+#         TicketManager.create_default_ticket_amounts()
+#
+#         # number headsups, and GPPs
+#         self.max_headsups = headsup_contests
+#
+#         # the site sport for NBA
+#         site_sport_manager = SiteSportManager()
+#         self.site_sport = site_sport_manager.get_site_sport( 'nba' )
+#         # set the start and end time for contests associated with this replay test (7pm EST)
+#         self.start  = timezone.now().replace(year=2015, month=10, day=15, hour=23, minute=0, second=0, microsecond=0)
+#         self.end    = self.start + timedelta(hours = 8) # 8 hours ahead of start.
+#         # create prize structures to associate with contests
+#         self.prize_structure_headsup = self.build_prize_structure_headsup()
+#         # create (or get) draft group
+#         self.draft_group = self.build_draft_group( self.start, self.end )
+#         # create contests
+#         self.contest_headsup    = self.build_contest_headsup()
+#         self.contest_headsup_id = self.contest_headsup.pk
+#
+#         #
+#         # use replay manager to rewind to before this the time of the contest/draft_group !
+#         set_system_time( self.start - timedelta(minutes=5) ) # 3 min previous to start
+#
+#         #
+#         # now that we have rewound time to before the  contest,
+#         # use the random lineup create to add lineups, but all validation appplies except for salary!
+#         for x in range(0,self.max_headsups):
+#             self.clone_and_fill_contest( self.contest_headsup_id )
+#
+#     def clone_and_fill_contest(self, contest_id):
+#         contest = Contest.objects.get( pk = contest_id )
+#         contest.spawn() # creates a new copy of the original contest
+#         rlc = RandomLineupCreator( self.site_sport.name, self.hero_username ) # always the name of our hero
+#         rlc.create( contest.pk )
+#         rlc = RandomLineupCreator( self.site_sport.name, self.__get_villain_name() )
+#         rlc.create( contest.pk )
+#
+#     def __get_villain_name(self):
+#         """
+#         :return: random villain name from: Villain0 thru Villain99
+#         """
+#         return 'Villain' + str(self.r.randint(0, 100))
+#
+#     def build_prize_structure_headsup(self):
+#         creator = CashPrizeStructureCreator()
+#         creator.set_buyin( 5.00 )
+#         creator.add( 1, 9.00 )
+#         creator.save()
+#         return creator.prize_structure
+#
+#     def build_draft_group(self, start, end):
+#         dgm = DraftGroupManager()
+#         return dgm.get_for_site_sport( self.site_sport, start, end )
+#
+#     def build_contest_headsup(self):
+#         contest = Contest()
+#         contest.site_sport      = self.site_sport
+#         contest.start           = self.start
+#         contest.end             = self.end
+#         contest.draft_group     = self.draft_group
+#         contest.name            = 'NBA $5 Head-to-Head'
+#         contest.max_entries     = 1
+#         contest.entries         = 2
+#         contest.respawn         = True
+#         contest.prize_structure = self.prize_structure_headsup
+#         contest.save()
+#
+#         return contest
+#
+#     def play(self, replay_name='nba-thursday-oct-15-2015', offset_minutes=12):
+#         """
+#
+#         :param replay_name:     the name of the replay
+#         :param offset_minutes:  the number of minutes to add to the start time, if we want to start in the middle
+#         :return:
+#         """
+#         self.replay_manager.play( replay_name=replay_name, offset_minutes=offset_minutes)
+#
+#         # print('play() - TODO - replaymanager causes circular import')
+#         # pass
 
 class MasterAbstractTest():
     CELERY_TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'

@@ -13,14 +13,16 @@ var LineupCard = React.createClass({
     hoverText: React.PropTypes.string,
     draftGroupInfo: React.PropTypes.object.isRequired,
     fees: React.PropTypes.number,
-    entries: React.PropTypes.number
+    entries: React.PropTypes.number,
+    onHover: React.PropTypes.func
   },
 
 
   getDefaultProps: function() {
     return ({
       hoverText: "Select This Lineup",
-      draftGroupInfo: {}
+      draftGroupInfo: {},
+      onHover: () => {}
     });
   },
 
@@ -103,6 +105,8 @@ var LineupCard = React.createClass({
         <div
           className="cmp-lineup-card cmp-lineup-card--collapsed"
           onClick={this.props.onCardClick.bind(null, this.props.lineup)}
+          onMouseOver={this.props.onHover.bind(null, this.props.lineup.id)}
+          onMouseOut={this.props.onHover.bind(null, null)}
         >
           <header className="cmp-lineup-card__header">
             <h3 className="cmp-lineup-card__title">{this.props.lineup.name || 'Untitled Lineup #' + this.props.lineup.id}</h3>

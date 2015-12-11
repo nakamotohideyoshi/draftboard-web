@@ -194,9 +194,15 @@ class AbstractContest(models.Model):
         return dgm.get_games( self.draft_group )
 
     def save(self, *args, **kwargs):
-        # if self.pk is None and not self.cid:
-        #     self.cid = get_random_string(length=self.DEFAULT_CID_LENGTH)
-        # super().save(*args, **kwargs)
+        """
+        override the model's save() method to keep up with some bookeepping
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
+
+        self.entries = self.prize_structure.get_entries()
 
         if self.pk is None and not self.cid:
             while True: # we'll break when we've found a non-existing id

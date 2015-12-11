@@ -11,6 +11,7 @@ const createLineup = require('./create-lineup')
 const currentLineups = require('./current-lineups');
 const draftDraftGroup = require('./draft-group')
 const entries = require('./entries')
+const injuries = require('./injuries.js')
 const live = require('./live')
 const liveContests = require('./live-contests');
 const liveDraftGroups = require('./live-draft-groups');
@@ -31,6 +32,7 @@ module.exports = combineReducers({
   currentLineups,
   draftDraftGroup,
   entries,
+  injuries,
   live,
   results,
   liveContests,

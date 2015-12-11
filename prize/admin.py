@@ -10,6 +10,11 @@ class PrizeStructureAdmin(admin.ModelAdmin):
     list_display = ['name']
     list_filter = ['name']
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj: # editing an existing object
+            return self.readonly_fields + ('generator', )
+        return self.readonly_fields
+
 @admin.register(prize.models.Rank)
 class RankAdmin(admin.ModelAdmin):
     list_display = ['prize_structure','rank','amount']

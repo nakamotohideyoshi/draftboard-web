@@ -6,6 +6,8 @@ import sports.models
 from django.db.models.signals import post_save
 from ..models import GameStatusChangedSignal
 import scoring.classes
+import push.classes
+from django.conf import settings
 
 DST_PLAYER_LAST_NAME    = 'DST' # dst Player objects last_name
 DST_POSITION            = 'DST' # dont change this
@@ -166,6 +168,11 @@ class PlayerStats( sports.models.PlayerStats ):
         # perform score update
         scorer = scoring.classes.NflSalaryScoreSystem()
         self.fantasy_points = scorer.score_player( self )
+
+        #
+        # pusher the fantasy points with stats
+        push.classes.DataDenPush( push.classes.PUSHER_NFL_STATS ).send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
+
         super().save(*args, **kwargs)
 
 class PlayerStatsSeason( sports.models.PlayerStatsSeason ):
@@ -191,7 +198,7 @@ class Venue( sports.models.Venue ):
 
 class GamePortion(sports.models.GamePortion):
     #
-    # TODO - REMOVE -- we dont need srid in nfl GamePortions - they dont have one
+    # technically, we dont need srid in nfl GamePortions - they dont have one
     # this is the srid of the quarter
     srid = models.CharField(max_length=64, null=False, default='')
 

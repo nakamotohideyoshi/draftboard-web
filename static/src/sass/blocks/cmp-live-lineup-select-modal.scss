@@ -1,0 +1,90 @@
+@import "../variables.scss";
+
+
+// The modal
+.cmp-modal-live-lineup-select {
+  .cmp-modal {
+    &__header {
+      padding-bottom: 15px;
+
+      &:after {
+        content: none;
+        border: none;
+      }
+    }
+
+    &__dialog {
+      background: #262a3b;
+      color: #fff;
+      width: 370px;
+    }
+  }
+}
+
+
+// Modal content.
+.cmp-live-lineup-select {
+
+  ul {
+    margin: 0;
+    padding: 0;
+  }
+
+  // Sport + DraftGroup selection
+  &__sport,
+  &__lineup {
+    background: #fff url(../img/blocks/draft-group-select/arrows.png) no-repeat;
+    background-size: 15px auto;
+    background-position: 90% 38px;
+    border-bottom: 1px solid #d8dadf;
+    cursor: pointer;
+    display: block;
+    list-style: none;
+    margin: 0 5px;
+    padding: 15px 25px;
+    text-align: left;
+    transition: margin .25s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &__title {
+      color: #9c9faf;
+      font-family: $font-oswald;
+      font-size: 20px;
+      margin: 0;
+      padding: 0;
+      text-transform: uppercase;
+    }
+
+    &__sub {
+      color: #9c9faf;
+      font-size: 12px;
+      margin: 0;
+      padding: 0;
+    }
+
+    &:hover {
+      background-position: 90% -73px;
+      margin: 0;
+
+      .cmp-live-lineup-select__sport,
+      .cmp-live-lineup-select__lineup {
+
+        &__title {
+          color: #46495e;
+        }
+
+        &__sub {
+          color: #46495e;
+        }
+      }
+    }
+  }
+
+  a {
+    display: block;
+    text-decoration: none;
+  }
+}

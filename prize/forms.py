@@ -75,7 +75,7 @@ class PrizeGeneratorForm( FlatCashPrizeCreatorForm ):
     round_payouts   = forms.IntegerField(label='Round Payouts',
                            help_text='... must be >= buyin, and be a multiple of the buyin') # label='each ranks prize must be a multiple of this integer value')
     prize_pool      = forms.IntegerField(label='Prize Pool',
-                           help_text='must be a multiple of the prize pool contribution portion of the buyin.')    # total prize pool
+                           help_text='This number MUST HAVE RAKE TAKEN OUT. ie: if the buyin * entries = 1000, then you should set prize_pool to 900 !')    # total prize pool
 
 class TicketPrizeCreatorForm( PrizeCreatorForm ):
     """

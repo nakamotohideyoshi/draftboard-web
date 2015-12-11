@@ -112,7 +112,7 @@
 
     <div style="float: left; width: 1500px;">
         <h3>Prize Structure Generator</h3>
-        <form action="/prize/generator/" method="post">
+        <form action="/api/prize/generator/" method="post">
         {% csrf_token %}
         {{ form.as_ul }}
         <input type="submit" value="Submit" />

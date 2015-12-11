@@ -4,6 +4,12 @@
 .cmp-player-list {
   &__row {
     cursor: pointer;
+
+    .status {
+      color: #e42e2f;
+      font-weight: 700;
+      font-size: 11px;
+    }
   }
 }
 

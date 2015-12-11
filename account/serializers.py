@@ -1,7 +1,24 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from account.models import Information, EmailNotification, UserEmailNotification
+#from django.contrib.auth import get_user_model # If used custom user model
 
+class UserSerializer(serializers.ModelSerializer):
+
+    password = serializers.CharField(write_only=True)
+
+    def create(self, validated_data):
+
+        user = User.objects.create(
+            username=validated_data['username']
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+
+        return user
+
+    class Meta:
+        model = User
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,3 +49,17 @@ class UserEmailNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserEmailNotification
         fields = ("email_notification", "enabled")
+
+class LoginSerializer(serializers.Serializer):
+
+    username = serializers.CharField()
+    password = serializers.CharField(style={'input_type': 'password'})
+
+class ForgotPasswordSerializer(serializers.Serializer):
+
+    email = serializers.EmailField()
+
+class PasswordResetSerializer(serializers.Serializer):
+
+    uid = serializers.CharField()
+    token = serializers.CharField()

@@ -65,6 +65,17 @@ def set_delta(seconds, expire_seconds=8*24*60*60):
     c = caches['default']
     c.set(settings.DATETIME_DELTA_SECONDS_KEY, seconds, expire_seconds)
 
+def get_delta():
+    """
+    get the current delta value (seconds of timeshift)
+    :return: integer
+    """
+    c = caches['default']
+    delta_seconds = c.get(settings.DATETIME_DELTA_SECONDS_KEY)
+    if delta_seconds is None:
+        delta_seconds = 0
+    return delta_seconds
+
 def actual_now():
     """
     Get the server time, with no shift -- this gets the hardware time.
