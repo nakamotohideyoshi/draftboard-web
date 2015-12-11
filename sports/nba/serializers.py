@@ -17,7 +17,7 @@ class TeamSerializer(InjurySerializer):
     class Meta:
 
         model = Team
-        fields = ('pk', 'srid', 'name', 'alias')
+        fields = ('id', 'srid', 'name', 'alias')
 
 class FantasyPointsSerializer(FantasyPointsSerializer):
 
