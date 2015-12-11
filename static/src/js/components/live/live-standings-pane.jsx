@@ -40,7 +40,7 @@ var LiveStandingsPane = React.createClass({
 
   viewOpponentLineup: function() {
     // change this to be a param passed in to the method. see LiveContestsPane.viewContest() as an example
-    const opponentLineupId = 1
+    const opponentLineupId = this.props.mode.myLineupId
 
     const mode = this.props.mode
 

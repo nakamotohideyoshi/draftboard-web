@@ -2,7 +2,7 @@
 
 import 'babel-core/polyfill'; // so I can use Promises
 var moment = require('moment')
-import request from 'superagent'
+const request = require('superagent-promise')(require('superagent'), Promise)
 import { forEach as _forEach } from 'lodash'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
@@ -47,16 +47,13 @@ function fetchDraftGroupFP(id) {
   return dispatch => {
     dispatch(requestDraftGroupFP(id))
 
-    request
-      .get("/api/draft-group/fantasy-points/" + id)
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          // TODO
-        } else {
-          dispatch(receiveDraftGroupFP(id, res.body))
-        }
+    return request.get(
+      '/api/draft-group/fantasy-points/' + id + '/'
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    }).then(function(res) {
+      return dispatch(receiveDraftGroupFP(id, res.body))
     })
   }
 }
@@ -65,15 +62,10 @@ function fetchDraftGroupFP(id) {
 function receiveDraftGroupFP(id, response) {
   log.debug('actionsLiveDraftGroup.receiveDraftGroupFP')
 
-  const normalizedPlayers = normalize(
-    response.players,
-    arrayOf(playerSchema)
-  )
-
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
     id: id,
-    players: normalizedPlayers.entities.players,
+    players: response.players,
     updatedAt: Date.now()
   }
 }
@@ -146,16 +138,13 @@ function fetchDraftGroupInfo(id) {
   return dispatch => {
     dispatch(requestDraftGroupInfo(id))
 
-    request
-      .get("/api/draft-group/" + id + '/')
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          // TODO
-        } else {
-          dispatch(receiveDraftGroupInfo(id, res.body))
-        }
+    return request.get(
+      '/api/draft-group/' + id + '/'
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    }).then(function(res) {
+      dispatch(receiveDraftGroupInfo(id, res.body))
     })
   }
 }
@@ -197,17 +186,16 @@ function fetchDraftGroupBoxScores(id) {
   return dispatch => {
     dispatch(requestDraftGroupBoxScores(id))
 
-    request
-      .get("/api/draft-group/box-scores/" + id)
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          // TODO
-        } else {
-          dispatch(receiveDraftGroupBoxScores(id, res.body))
-          dispatch(mergeBoxScores(res.body))
-        }
+    return request.get(
+      '/api/draft-group/boxscores/' + id + '/'
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    }).then(function(res) {
+      return Promise.all([
+        dispatch(receiveDraftGroupBoxScores(id, res.body)),
+        dispatch(mergeBoxScores(res.body))
+      ])
     })
   }
 }
