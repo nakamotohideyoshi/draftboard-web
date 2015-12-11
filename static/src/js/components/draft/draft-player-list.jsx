@@ -159,6 +159,7 @@ const DraftPlayerList = React.createClass({
         <table className="cmp-player-list__table table">
           <thead>
             <tr className="cmp-player-list__header-row">
+              <th></th>
               <th>POS</th>
               <th></th>
               <th
@@ -166,11 +167,11 @@ const DraftPlayerList = React.createClass({
                 onClick={this.sortList.bind(this, 'name')}>Player</th>
               <th>Status</th>
               <th>OPP</th>
-              <th>FPPG</th>
+              <th>AVG</th>
+              <th>History</th>
               <th
                 className="table__sortable"
                 onClick={this.sortList.bind(this, 'salary')}>Salary</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>{visibleRows}</tbody>
@@ -194,7 +195,8 @@ function mapStateToProps(state) {
     sport: state.draftDraftGroup.sport,
     newLineup: state.createLineup.lineup,
     availablePositions: state.createLineup.availablePositions,
-    injuries: state.injuries
+    injuries: state.injuries,
+    fantasyHistory: state.fantasyHistory
   };
 }
 

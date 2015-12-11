@@ -2,12 +2,12 @@ import * as types from '../action-types.js'
 import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
 import {fetchSportInjuries} from './injury-actions.js'
+import {fetchFantasyHistory} from './fantasy-history-actions.js'
 
 
 const playerSchema = new Schema('players', {
   idAttribute: 'player_id'
 })
-
 
 
 function fetchDraftgroupSuccess(body) {
@@ -49,7 +49,9 @@ export function fetchDraftGroup(draftGroupId) {
         if(err) {
           return dispatch(fetchDraftgroupFail(err));
         } else {
-          // Now that we know which sport we're dealing with, fetch the injuries for these players.
+          // Now that we know which sport we're dealing with, fetch the injuries + fp history for
+          // these players.
+          dispatch(fetchFantasyHistory(res.body.sport))
           dispatch(fetchSportInjuries(res.body.sport))
 
           // Normalize player list by ID.
