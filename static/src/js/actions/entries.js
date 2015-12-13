@@ -1,7 +1,6 @@
 "use strict"
 
 var moment = require('moment')
-import 'babel-core/polyfill'  // so I can use Promises
 import { normalize, Schema, arrayOf } from 'normalizr'
 import { forEach as _forEach } from 'lodash'
 import { filter as _filter } from 'lodash'
