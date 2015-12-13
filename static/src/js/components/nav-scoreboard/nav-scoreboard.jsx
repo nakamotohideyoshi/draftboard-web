@@ -10,6 +10,7 @@ import Pusher from 'pusher-js'
 import store from '../../store'
 import log from '../../lib/logging'
 import {fetchUser} from '../../actions/user'
+import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
 import {fetchEntriesIfNeeded} from '../../actions/entries'
 import errorHandler from '../../actions/live-error-handler'
 import renderComponent from '../../lib/render-component'
@@ -84,7 +85,9 @@ const NavScoreboard = React.createClass({
       // Competition from games and null for lineups.
       selectedKey: null,
 
-      user: window.dfs.user
+      user: window.dfs.user,
+
+      isLoaded: false
     }
   },
 
@@ -96,9 +99,19 @@ const NavScoreboard = React.createClass({
         fetchEntriesIfNeeded()
       ).catch(
         errorHandler
-      ).then(
-        this.listenToSockets()
-      )
+      ).then(() => {
+        self.setState({isLoaded: true})
+        self.listenToSockets()
+      })
+    } else {
+      store.dispatch(
+        fetchCurrentDraftGroupsIfNeeded()
+      ).catch(
+        errorHandler
+      ).then(() => {
+        self.setState({isLoaded: true})
+        self.listenToSockets()
+      })
     }
   },
 
@@ -163,11 +176,7 @@ const NavScoreboard = React.createClass({
     const { username, cash_balance } = window.dfs.user
     let userInfo, filters, slider
 
-    if (this.state.user.username !== '') {
-      userInfo = (
-        <NavScoreboardUserInfo name={username} balance={cash_balance} />
-      )
-
+    if (this.state.isLoaded === true ) {
       filters = (
         <NavScoreboardFilters
           selected={this.state.selectedOption}
@@ -178,6 +187,12 @@ const NavScoreboard = React.createClass({
         <NavScoreboardSlider type={this.state.selectedOption}>
           {this.renderSliderContent()}
         </NavScoreboardSlider>
+      )
+    }
+
+    if (this.state.user.username !== '') {
+      userInfo = (
+        <NavScoreboardUserInfo name={username} balance={cash_balance} />
       )
     } else {
       userInfo = (
