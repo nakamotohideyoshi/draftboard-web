@@ -9,19 +9,24 @@
 
     .draft {
       width: 58px;
+      cursor: default;
     }
 
     .position {
       font-size: 9px;
       font-weight: 700;
-      width: 10px;
       padding-left: 5px;
       padding-right: 5px;
+      width: 10px;
     }
 
     .photo {
+      font-size: 50px;
+      line-height: 0;
+      padding-bottom: 0;
       padding-left: 5px;
       padding-right: 5px;
+      padding-top: 10px;
       width: 35px;
     }
 
@@ -67,6 +72,7 @@
   }
 
   .draft-button {
+    cursor: pointer;
     width: 28px;
     height: 28px;
     background: url('../img/blocks/draft-list/btn-add-remove.png') no-repeat;

@@ -1,4 +1,6 @@
 import * as types from '../action-types.js'
+import 'babel-core/polyfill';
+// so we can use superagent with Promises
 import request from 'superagent'
 import Cookies from 'js-cookie'
 import { normalize, Schema, arrayOf } from 'normalizr'
@@ -29,41 +31,61 @@ function fetchUpcomingLineupsFail(ex) {
 }
 
 
-export function fetchUpcomingLineups() {
+export function filterLineupsByDraftGroupId(draftGroupId) {
+  return {
+    type: types.FILTER_UPCOMING_LINEUPS_BY_DRAFTGROUP_ID,
+    draftGroupId
+  }
+}
+
+
+export function fetchUpcomingLineups(draftGroupId=null) {
   if (window.dfs.user.isAuthenticated !== true) {
     return {
       type: types.USER_NOT_AUTHENTICATED
     }
   }
 
-  return (dispatch) => {
-    return request
-      .get("/api/lineup/upcoming/")
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          dispatch(fetchUpcomingLineupsFail(err))
-        } else {
-          // Normalize lineups list by ID.
-          let normalizedLineups = normalize(
-            res.body,
-            arrayOf(lineupSchema)
-          )
+  return (dispatch, getState) => {
+    return new Promise((resolve, reject) => {
+      return request
+        .get("/api/lineup/upcoming/")
+        .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
+        .set('Accept', 'application/json')
+        .end(function(err, res) {
+          if(err) {
+            dispatch(fetchUpcomingLineupsFail(err))
+            reject(err)
+          } else {
 
-          // Find unique draft groups that we have a lineup for.
-          let draftGroups = uniq(
-            res.body.map((lineup) => {return lineup.draft_group}),
-            function(group) {
-              return group
+            // If a specific draft group was requested, update the filter property which will
+            // filter them out with a selector.
+            if (draftGroupId) {
+              dispatch(filterLineupsByDraftGroupId(draftGroupId))
             }
-          )
 
-          dispatch(fetchUpcomingLineupsSuccess({
-            draftGroupsWithLineups: draftGroups,
-            lineups: normalizedLineups.entities.lineups
-          }))
-        }
+            // Normalize lineups list by ID.
+            let normalizedLineups = normalize(
+              res.body,
+              arrayOf(lineupSchema)
+            )
+
+            // Find unique draft groups that we have a lineup for.
+            let draftGroups = uniq(
+              res.body.map((lineup) => {return lineup.draft_group}),
+              function(group) {
+                return group
+              }
+            )
+
+            dispatch(fetchUpcomingLineupsSuccess({
+              draftGroupsWithLineups: draftGroups,
+              lineups: normalizedLineups.entities.lineups
+            }))
+
+            resolve(res)
+          }
+      })
     })
   }
 }
@@ -85,6 +107,28 @@ export function lineupHovered(lineupId) {
       type: types.LINEUP_HOVERED,
       lineupId
     })
+  }
+}
+
+
+/**
+ * When a user wants to create a new lineup via copying another one of their lineups, this takes
+ * the first lineup's id, and imports it.
+ * @param  {Int} lineupId Which lineup should be copied.
+ */
+export function createLineupViaCopy(lineupId, getState) {
+  return(dispatch, getState) => {
+    const state = getState()
+    // When copying a lineup is requested, import a lineup by id (via url), check if we have the
+    // necessary data, if so then import it.
+    if (lineupId && state.draftDraftGroup.id) {
+      // Does this lineup exist in our lineups list?
+      if (state.upcomingLineups.lineups.hasOwnProperty(lineupId)) {
+        dispatch(importLineup(state.upcomingLineups.lineups[lineupId], getState))
+      } else {
+        console.error(`Lineup #${lineupId} is not in upcoming lineups.`)
+      }
+    }
   }
 }
 
@@ -184,10 +228,64 @@ export function saveLineup(lineup, title, draftGroupId) {
 }
 
 
-export function importLineup(lineup, getState) {
+/**
+ * Once a lineup is edited, save it.
+ * @param  {[type]} lineup   [description]
+ * @param  {[type]} title    [description]
+ * @param  {[type]} lineupId [description]
+ * @param  {[type]} getState [description]
+ * @return {[type]}          [description]
+ */
+export function saveLineupEdit(lineup, title, lineupId) {
+  return (dispatch, getState) => {
+    console.log('saveLineupEdit', lineup, title, lineupId)
+  }
+}
+
+
+
+/**
+ * When an edit is requested, we need to import the lineup and remove the lineup from our list of
+ * lineups.
+ * @param  {[type]} lineupId [description]
+ * @return {[type]}          [description]
+ */
+export function editLineupInit(lineupId) {
+  return (dispatch, getState) => {
+    let state = getState()
+
+    if (state.upcomingLineups.lineups.hasOwnProperty(lineupId)) {
+      dispatch({
+        type: types.EDIT_LINEUP_INIT,
+        lineupId
+      })
+    } else {
+      console.error(`Lineup #${lineupId} does not exist in upcoming lineups.`)
+      dispatch({
+        type: types.EDIT_LINEUP_INIT,
+        lineupId
+      })
+
+    }
+  }
+}
+
+
+/**
+ * When drafting a lineup, this takes an already-created lineup and copies all players into the
+ * lineup card that is currently being drafted.
+ *
+ * @param  {Object} lineup   A valid lineup (most likely from state.upcomingLineups.lineups)
+ */
+export function importLineup(lineup, importTitle=false) {
   return (dispatch, getState) => {
     let state = getState()
     let players = [];
+    let title = ''
+
+    if (importTitle) {
+      title = lineup.name
+    }
 
     // Since the lineup API endpoint 'player' doesn't have the same info as the DraftGruoup
     // 'player', we need to grab the corresponding DraftGroup player object and use that.
@@ -202,7 +300,8 @@ export function importLineup(lineup, getState) {
 
     dispatch({
       type: types.CREATE_LINEUP_IMPORT,
-      players: players
+      players: players,
+      title
     })
   }
 }

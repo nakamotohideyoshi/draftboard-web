@@ -4,10 +4,17 @@ const store = require('../../store');
 var LineupCard = require('../lineup/lineup-card.jsx');
 var DraftNewLineupCard = require('./draft-new-lineup-card.jsx');
 var renderComponent = require('../../lib/render-component');
-import {importLineup, saveLineup, removePlayer, fetchUpcomingLineups, createLineupInit
-  } from '../../actions/lineup-actions.js';
+import {LineupsByDraftGroupSelector} from '../../selectors/upcoming-lineups-by-draftgroup.js'
+import {importLineup, saveLineup, saveLineupEdit, removePlayer, fetchUpcomingLineups,
+  createLineupInit, createLineupViaCopy} from '../../actions/lineup-actions.js';
 var log = require("../../lib/logging");
 import {map as _map} from 'lodash'
+import { Router, Route } from 'react-router'
+import {updatePath, syncReduxAndRouter} from 'redux-simple-router'
+import createBrowserHistory from 'history/lib/createBrowserHistory'
+
+const history = createBrowserHistory()
+syncReduxAndRouter(history, store)
 
 
 /**
@@ -17,21 +24,23 @@ import {map as _map} from 'lodash'
 var DraftLineupCardList = React.createClass({
 
   propTypes: {
-    fetchUpcomingLineups: React.PropTypes.func.isRequired,
-    lineups: React.PropTypes.object.isRequired,
+    lineups: React.PropTypes.oneOfType([
+      React.PropTypes.array,
+      React.PropTypes.object
+    ]),
     newLineup: React.PropTypes.object.isRequired,
     createLineupInit: React.PropTypes.func.isRequired,
     removePlayer: React.PropTypes.func.isRequired,
     sport: React.PropTypes.string,
     draftGroupId: React.PropTypes.number,
     saveLineup: React.PropTypes.func,
-    importLineup: React.PropTypes.func
+    saveLineupEdit: React.PropTypes.func,
+    importLineup: React.PropTypes.func,
+    params: React.PropTypes.object
   },
 
 
   componentWillMount: function() {
-    this.props.fetchUpcomingLineups();
-
     if (this.props.sport) {
       this.props.createLineupInit(this.props.sport);
     }
@@ -67,7 +76,12 @@ var DraftLineupCardList = React.createClass({
 
 
   handleSaveLineup: function(title) {
-    this.props.saveLineup(this.props.newLineup.lineup, title, this.props.draftGroupId)
+    if (this.props.params.action === 'edit') {
+      this.props.saveLineupEdit(this.props.newLineup.lineup, title, this.props.params.lineupId)
+    } else {
+      this.props.saveLineup(this.props.newLineup.lineup, title, this.props.draftGroupId)
+    }
+
   },
 
 
@@ -90,6 +104,7 @@ var DraftLineupCardList = React.createClass({
       <div>
         <DraftNewLineupCard
           lineup={this.props.newLineup.lineup}
+          lineupTitle={this.props.newLineup.lineupTitle}
           isActive={false}
           ref="lineupCardNew"
           remainingSalary={this.props.newLineup.remainingSalary}
@@ -112,7 +127,8 @@ let {Provider, connect} = ReactRedux;
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    lineups: state.upcomingLineups.lineups,
+    // allLineups: state.upcomingLineups.lineups,
+    lineups: LineupsByDraftGroupSelector(state),
     newLineup: state.createLineup,
     sport: state.draftDraftGroup.sport,
     draftGroupId: state.draftDraftGroup.id
@@ -122,10 +138,10 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    fetchUpcomingLineups: () => dispatch(fetchUpcomingLineups()),
     createLineupInit: (sport) => dispatch(createLineupInit(sport)),
     removePlayer: (playerId) => dispatch(removePlayer(playerId)),
     saveLineup: (lineup, title, draftGroupId) => dispatch(saveLineup(lineup, title, draftGroupId)),
+    saveLineupEdit: (lineup, title, lineupId) => dispatch(saveLineupEdit(lineup, title, lineupId)),
     importLineup: (lineup) => dispatch(importLineup(lineup))
   };
 }
@@ -139,7 +155,10 @@ var DraftLineupCardListConnected = connect(
 // Render the component.
 renderComponent(
   <Provider store={store}>
-    <DraftLineupCardListConnected />
+      <Router history={history}>
+        <Route path="/draft/:draftgroupId/" component={DraftLineupCardListConnected} />
+        <Route path="/draft/:draftgroupId/lineup/:lineupId/:lineupAction" component={DraftLineupCardListConnected} />
+      </Router>
   </Provider>,
   '.cmp-draft-lineup-card-list'
 );

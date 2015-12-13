@@ -1,14 +1,19 @@
 from django.conf.urls import patterns
-from django.contrib.auth.decorators import login_required
 from frontend import views
 
 
 urlpatterns = patterns(
     '',
     (r'^$', views.FrontendHomepageTemplateView.as_view()),
+    # Draft Page
     (
-        r'^draft/(?P<draft_group_id>[0-9]+)/$',
-        login_required(views.FrontendDraftTemplateView.as_view())
+        r'^draft/(?P<draft_group_id>\d+)/$',
+        views.FrontendDraftTemplateView.as_view()
+    ),
+    # Copy/edit actions on draft page.
+    (
+        r'^draft/(?P<draft_group_id>\d+)/lineup/(?P<lineup_id>\d+)/(?P<action>edit|copy)/$',
+        views.FrontendDraftTemplateView.as_view()
     ),
     # need these simply to open the react app to then use redux-simple-router
     (r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/opponents/(?P<opponent_lineup_id>\d+)/$', views.FrontendLiveTemplateView.as_view()),

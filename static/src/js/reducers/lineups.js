@@ -2,12 +2,16 @@ const ActionTypes = require('../action-types');
 
 const initialState = {
   lineups: {},
+  draftGroupIdFilter: null,
   draftGroupsWithLineups: [],
+  lineupBeingEdited: null,
   focusedLineupId: null,
   hoveredLineupId: null
 }
 
 module.exports = function(state = initialState, action) {
+  let newState = {}
+
   switch (action.type) {
 
     case ActionTypes.FETCH_UPCOMING_LINEUPS_SUCCESS:
@@ -40,6 +44,17 @@ module.exports = function(state = initialState, action) {
     case ActionTypes.FETCH_UPCOMING_LINEUPS_FAIL:
       return state;
 
+
+    case ActionTypes.EDIT_LINEUP_INIT:
+      return Object.assign({}, state, {
+        lineupBeingEdited: action.lineupId
+      })
+
+
+    case ActionTypes.FILTER_UPCOMING_LINEUPS_BY_DRAFTGROUP_ID:
+      return Object.assign({}, state, {
+        draftGroupIdFilter: action.draftGroupId
+      })
 
     default:
       return state;

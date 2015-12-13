@@ -13,6 +13,7 @@ var DraftNewLineupCard = React.createClass({
   propTypes: {
     isActive: React.PropTypes.bool,
     lineup: React.PropTypes.array.isRequired,
+    lineupTitle: React.PropTypes.string,
     removePlayer: React.PropTypes.func.isRequired,
     remainingSalary: React.PropTypes.number,
     avgPlayerSalary: React.PropTypes.number,
@@ -37,6 +38,12 @@ var DraftNewLineupCard = React.createClass({
     };
   },
 
+
+  componentWillReceiveProps: function(nextProps) {
+    if (nextProps.lineupTitle) {
+      this.setState({lineupTitle: nextProps.lineupTitle})
+    }
+  },
 
   saveLineup: function() {
     var title = this.state.lineupTitle

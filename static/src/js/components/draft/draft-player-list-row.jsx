@@ -59,14 +59,14 @@ var DraftPlayerListRow = React.createClass({
         <div
           className="draft-button remove"
           onClick={this.onUnDraftClick.bind(this, this.props.row)}
-          >Remove</div>
+        >Remove</div>
       )
     } else {
       return (
         <div
           className="draft-button"
           onClick={this.onDraftClick.bind(this, this.props.row)}
-          >Draft</div>
+        >Draft</div>
       )
     }
   },
