@@ -196,11 +196,10 @@ function fetchDraftGroupBoxScores(id) {
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'Accept': 'application/json'
     }).then(function(res) {
-      dispatch(receiveDraftGroupBoxScores(id, res.body)),
-      dispatch(mergeBoxScores(res.body))
+      dispatch(receiveDraftGroupBoxScores(id, res.body))
 
       return dispatch(
-        fetchTeamsIfNeeded('nba')
+        mergeBoxScores(res.body)
       )
     })
   }
