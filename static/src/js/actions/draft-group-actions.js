@@ -83,38 +83,38 @@ function fetchDraftGroup(draftGroupId) {
 
     return new Promise((resolve, reject) => {
        request
-        .get("/api/draft-group/" + draftGroupId + '/')
-        .set({
-          'X-REQUESTED-WITH': 'XMLHttpRequest',
-          'Accept': 'application/json'
-        })
-        .end(function(err, res) {
-          if(err) {
-            dispatch(fetchDraftgroupFail(err));
-            reject(err)
-          } else {
-            // Now that we know which sport we're dealing with, fetch the injuries + fp history for
-            // these players.
-            dispatch(fetchFantasyHistory(res.body.sport))
-            dispatch(fetchSportInjuries(res.body.sport))
+      .get("/api/draft-group/" + draftGroupId + '/')
+      .set({
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      })
+      .end(function(err, res) {
+        if(err) {
+          dispatch(fetchDraftgroupFail(err));
+          reject(err)
+        } else {
+          // Now that we know which sport we're dealing with, fetch the injuries + fp history for
+          // these players.
+          dispatch(fetchFantasyHistory(res.body.sport))
+          dispatch(fetchSportInjuries(res.body.sport))
 
-            // Normalize player list by ID.
-            const normalizedPlayers = normalize(
-              res.body.players,
-              arrayOf(playerSchema)
-            )
+          // Normalize player list by ID.
+          const normalizedPlayers = normalize(
+            res.body.players,
+            arrayOf(playerSchema)
+          )
 
-            dispatch(fetchDraftgroupSuccess({
-              players: normalizedPlayers.entities.players,
-              start: res.body.start,
-              end: res.body.end,
-              sport: res.body.sport,
-              id: res.body.pk
-            }));
+          dispatch(fetchDraftgroupSuccess({
+            players: normalizedPlayers.entities.players,
+            start: res.body.start,
+            end: res.body.end,
+            sport: res.body.sport,
+            id: res.body.pk
+          }));
 
-            resolve(res)
-          }
-        });
+          resolve(res)
+        }
+      });
     });
   }
 }
