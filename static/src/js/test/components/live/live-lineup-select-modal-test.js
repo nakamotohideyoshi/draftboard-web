@@ -2,99 +2,116 @@
 
 require('../../test-dom')()
 import React from 'react'
-import LiveLineupSelectModal from '../../../components/live/live-lineup-select-modal.jsx'
+import LiveLineupSelectModalConnected from '../../../components/live/live-lineup-select-modal'
 import { expect } from 'chai'
 import sd from 'skin-deep';
+
+import reducers from '../../../reducers/index'
+import { mockStore } from '../../mock-store'
 
 const TestUtils = React.addons.TestUtils;
 
 
 const lineupsSameSportProps = {
-  lineups: [
-  {
-    "id": 1,
-    "contest": 2,
-    "lineup": 1,
-    "title": "Curry's Chicken",
-    "draft_group": 1,
-    "start": "2015-10-15T23:00:00Z",
-    "sport": "nba",
-    "pts": 85,
-    "pmr": 42
-  },
-  {
-    "id": 2,
-    "contest": 2,
-    "lineup": 2,
-    "title": "Worriers worry",
-    "draft_group": 2,
-    "start": "2015-10-15T23:00:00Z",
-    "sport": "nba",
-    "pts": 85,
-    "pmr": 42
-  },
-  {
-    "id": 3,
-    "contest": 3,
-    "lineup": 3,
-    "title": "Kickass your jackass",
-    "draft_group": 3,
-    "start": "2015-10-15T23:00:00Z",
-    "sport": "nba",
-    "pts": 102,
-    "pmr": 67
+  lineups: {
+    1: {
+      "id": 1,
+      "draftGroup": {
+        "id": 1
+      },
+      "contest": 2,
+      "lineup": 1,
+      "name": "Curry's Chicken",
+      "start": "2015-10-15T23:00:00Z",
+      "sport": "nba",
+      "points": 85,
+      "minutesRemaining": 42
+    },
+    2: {
+      "id": 2,
+      "contest": 2,
+      "lineup": 2,
+      "name": "Worriers worry",
+      "draftGroup": {
+        "id": 2
+      },
+      "start": "2015-10-15T23:00:00Z",
+      "sport": "nba",
+      "points": 85,
+      "minutesRemaining": 42
+    },
+    3: {
+      "id": 3,
+      "contest": 3,
+      "lineup": 3,
+      "name": "Kickass your jackass",
+      "draftGroup": {
+        "id": 3
+      },
+      "start": "2015-10-15T23:00:00Z",
+      "sport": "nba",
+      "points": 102,
+      "minutesRemaining": 67
+    }
   }
-  ]
 }
 
 
 const lineupsDifferentSportProps = {
-  lineups: [
-  {
-    "id": 1,
-    "contest": 2,
-    "lineup": 1,
-    "title": "Curry's Chicken",
-    "draft_group": 1,
-    "start": "2015-10-15T23:00:00Z",
-    "sport": "nba",
-    "pts": 85,
-    "pmr": 42
-  },
-  {
-    "id": 2,
-    "contest": 2,
-    "lineup": 2,
-    "title": "Worriers worry",
-    "draft_group": 2,
-    "start": "2015-10-15T23:00:00Z",
-    "sport": "nfl",
-    "pts": 85,
-    "pmr": 42
-  },
-  {
-    "id": 3,
-    "contest": 3,
-    "lineup": 3,
-    "title": "Kickass your jackass",
-    "draft_group": 3,
-    "start": "2015-10-15T23:00:00Z",
-    "sport": "nba",
-    "pts": 102,
-    "pmr": 67
+  lineups: {
+    1: {
+      "id": 1,
+      "draftGroup": {
+        "id": 1
+      },
+      "contest": 2,
+      "lineup": 1,
+      "name": "Curry's Chicken",
+      "start": "2015-10-15T23:00:00Z",
+      "sport": "nba",
+      "points": 85,
+      "minutesRemaining": 42
+    },
+    2: {
+      "id": 2,
+      "contest": 2,
+      "lineup": 2,
+      "name": "Worriers worry",
+      "draftGroup": {
+        "id": 2
+      },
+      "start": "2015-10-15T23:00:00Z",
+      "sport": "mlb",
+      "points": 85,
+      "minutesRemaining": 42
+    },
+    3: {
+      "id": 3,
+      "contest": 3,
+      "lineup": 3,
+      "name": "Kickass your jackass",
+      "draftGroup": {
+        "id": 3
+      },
+      "start": "2015-10-15T23:00:00Z",
+      "sport": "nfl",
+      "points": 102,
+      "minutesRemaining": 67
+    }
   }
-  ]
 }
 
 
 
-describe('LiveLineupSelectModal Component', function() {
+describe('LiveLineupSelectModalConnected Component', function() {
 
   describe('LiveLineupsSelectModal Component when all lineups with same sport', function () {
     let vdom, instance;
 
     beforeEach(function() {
-      const tree = sd.shallowRender(React.createElement(LiveLineupSelectModal, lineupsSameSportProps))
+      const store = mockStore(reducers, {})
+      const props = Object.assign({}, lineupsSameSportProps, {'store': store})
+      const tree = sd.shallowRender(React.createElement(LiveLineupSelectModalConnected, props))
 
       instance = tree.getMountedInstance()
       vdom = tree.getRenderOutput()
@@ -117,11 +134,13 @@ describe('LiveLineupSelectModal Component', function() {
     })
   })
 
-  describe('LiveLineupSelectModal Component when lineups are from different sports', function() {
+  describe('LiveLineupSelectModalConnected Component when lineups are from different sports', function() {
     let vdom, instance;
 
     beforeEach(function() {
-      const tree = sd.shallowRender(React.createElement(LiveLineupSelectModal, lineupsDifferentSportProps))
+      const store = mockStore(reducers, {})
+      const props = Object.assign({}, lineupsDifferentSportProps, {'store': store})
+      const tree = sd.shallowRender(React.createElement(LiveLineupSelectModalConnected, props))
 
       instance = tree.getMountedInstance()
       vdom = tree.getRenderOutput()
