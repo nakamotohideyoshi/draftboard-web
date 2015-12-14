@@ -5,6 +5,7 @@ const ActionTypes = require('../action-types');
 const initialState = {
   sport: null,
   id: null,
+  isFetching: false,
   allPlayers: {},
   filters: {
     playerSearchFilter: {},
@@ -17,6 +18,12 @@ const initialState = {
 module.exports = function(state = initialState, action) {
   switch (action.type) {
 
+    case ActionTypes.FETCHING_DRAFT_GROUPS:
+      return Object.assign({}, state, {
+        isFetching: true
+      })
+
+
     case ActionTypes.FETCH_DRAFTGROUP_SUCCESS:
       // Return a copy of the previous state with our new things added to it.
       return Object.assign({}, state, {
@@ -24,7 +31,8 @@ module.exports = function(state = initialState, action) {
         allPlayers: action.body.players,
         id: action.body.id,
         start: action.body.start,
-        end: action.body.end
+        end: action.body.end,
+        isFetching: false
       });
 
 

@@ -63,12 +63,12 @@ var LineupCard = React.createClass({
               >
                 <ul className="actions">
                   <li><a
-                    href={'/draft/' + this.props.lineup.draft_group + '/?lineup=' + this.props.lineup.id + '&action=edit-lineup'}
+                    href={'/draft/' + this.props.lineup.draft_group + '/lineup/' + this.props.lineup.id + '/edit/'}
                     className="action">
                     Edit Lineup
                   </a></li>
                   <li><a
-                    href={'/draft/' + this.props.lineup.draft_group + '/?lineup=' + this.props.lineup.id + '&action=copy-lineup'}
+                    href={'/draft/' + this.props.lineup.draft_group + '/lineup/' + this.props.lineup.id + '/copy/'}
                     className="action">
                     New Lineup via Copy
                   </a></li>
