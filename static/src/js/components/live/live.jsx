@@ -11,6 +11,7 @@ import * as AppActions from '../../stores/app-state-store'
 import errorHandler from '../../actions/live-error-handler'
 import LiveContestsPaneConnected from '../live/live-contests-pane'
 import LiveLineup from './live-lineup'
+import LiveLineupSelectModal from './live-lineup-select-modal'
 import LiveNBACourt from './live-nba-court'
 import LiveOverallStats from './live-overall-stats'
 import LivePlayerPaneConnected from '../live/live-player-pane'
@@ -52,20 +53,24 @@ var Live = React.createClass({
 
   componentWillMount: function() {
     const urlParams = this.props.params
-    let newMode = {
-      type: 'lineup',
-      myLineupId: urlParams.myLineupId
-    }
-    if ('contestId' in urlParams) {
-      newMode.type = 'contest'
-      newMode.contestId = urlParams.contestId
 
-      if ('opponentLineupId' in urlParams) {
-        newMode.opponentLineupId = urlParams.opponentLineupId
+    if ('myLineupId' in urlParams) {
+      let newMode = {
+        type: 'lineup',
+        myLineupId: urlParams.myLineupId
       }
-    }
 
-    this.props.updateLiveMode(newMode)
+      if ('contestId' in urlParams) {
+        newMode.type = 'contest'
+        newMode.contestId = urlParams.contestId
+
+        if ('opponentLineupId' in urlParams) {
+          newMode.opponentLineupId = urlParams.opponentLineupId
+        }
+      }
+
+      this.props.updateLiveMode(newMode)
+    }
 
     // fetchEntriesIfNeeded is called in NavScoreboard component
   },
@@ -117,8 +122,25 @@ var Live = React.createClass({
 
     // if data has not loaded yet
     if (lineupNonexistant || noRelatedInfo) {
+      let chooseLineup
+
+      if (lineupNonexistant && self.props.entries.hasRelatedInfo === true) {
+        chooseLineup = (
+          <LiveLineupSelectModal lineups={self.props.currentLineupsStats} />
+        )
+      }
+
       return (
-        <div>LOADING</div>
+        <section className="cmp-live__court-scoreboard">
+          <header className="cmp-live__scoreboard live-scoreboard">
+            <h1 className="live-scoreboard__contest-name" />
+            <div className="live-overall-stats live-overall-stats--me" />
+          </header>
+
+          <LiveNBACourt />
+
+          { chooseLineup }
+        </section>
       )
     }
 
@@ -286,6 +308,7 @@ var LiveConnected = connect(
 renderComponent(
   <Provider store={store}>
     <Router history={history}>
+      <Route path="/live/" component={LiveConnected} />
       <Route path="/live/lineups/:myLineupId" component={LiveConnected} />
       <Route path="/live/lineups/:myLineupId/contests/:contestId/" component={LiveConnected} />
       <Route path="/live/lineups/:myLineupId/contests/:contestId/opponents/:opponentLineupId" component={LiveConnected} />

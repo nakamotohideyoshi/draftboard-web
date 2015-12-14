@@ -1,5 +1,12 @@
 import React from 'react'
+import * as ReactRedux from 'react-redux'
 import Modal from '../modal/modal.jsx'
+import _ from 'lodash'
+import { vsprintf } from 'sprintf-js'
+import { updatePath } from 'redux-simple-router'
+
+import { updateLiveMode } from '../../actions/live'
+
 
 
 /**
@@ -9,7 +16,10 @@ import Modal from '../modal/modal.jsx'
 const LiveLineupSelectModal = React.createClass({
 
   propTypes: {
-    lineups: React.PropTypes.array.isRequired
+    lineups: React.PropTypes.object.isRequired,
+    mode: React.PropTypes.object.isRequired,
+    updateLiveMode: React.PropTypes.func,
+    updatePath: React.PropTypes.func
   },
 
   getInitialState: function() {
@@ -18,56 +28,8 @@ const LiveLineupSelectModal = React.createClass({
     const selectedSport = (Object.keys(sports).length == 1) ? Object.keys(sports)[0] : null
 
     return {
-      isOpen: false,
+      isOpen: true,
       selectedSport: selectedSport
-    }
-  },
-
-  /**
-   * array of lineups
-   * every lineup should have:
-   * - title
-   * - sport
-   * - pts
-   * - pmr
-   */
-  getDefaultProps: function() {
-    return {
-      lineups: [
-        {
-          "id": 1,
-          "contest": 2,
-          "lineup": 1,
-          "title": "Curry's Chicken",
-          "draft_group": 1,
-          "start": "2015-10-15T23:00:00Z",
-          "sport": "nba",
-          "pts": 85,
-          "pmr": 42
-        },
-        {
-          "id": 2,
-          "contest": 2,
-          "lineup": 2,
-          "title": "Worriers worry",
-          "draft_group": 2,
-          "start": "2015-10-15T23:00:00Z",
-          "sport": "mlb",
-          "pts": 85,
-          "pmr": 42
-        },
-        {
-          "id": 3,
-          "contest": 3,
-          "lineup": 3,
-          "title": "Kickass your jackass",
-          "draft_group": 3,
-          "start": "2015-10-15T23:00:00Z",
-          "sport": "nba",
-          "pts": 102,
-          "pmr": 67
-        }
-      ]
     }
   },
 
@@ -81,11 +43,15 @@ const LiveLineupSelectModal = React.createClass({
   sportLineups: function() {
     let sportLineups = {}
 
-    this.props.lineups.map((lineup) => {
-      if (lineup.sport in sportLineups) {
-        sportLineups[lineup.sport] += 1
+    console.log(this.props.lineups, 'asdfasdf')
+
+    _.forEach(this.props.lineups, (lineup) => {
+      const sport = lineup.draftGroup.sport
+
+      if (sport in sportLineups) {
+        sportLineups[sport] += 1
       } else {
-        sportLineups[lineup.sport] = 1
+        sportLineups[sport] = 1
       }
     })
     return sportLineups
@@ -109,8 +75,14 @@ const LiveLineupSelectModal = React.createClass({
   },
 
   selectLineup: function(lineup) {
-    this.close()
-    window.location.assign("/live/lineups/" + lineup.id + "/")
+    const mode = this.props.mode
+
+    this.props.updatePath(vsprintf('/live/lineups/%d/', [lineup.id]))
+    this.props.updateLiveMode({
+      type: 'lineup',
+      draftGroupId: this.props.lineups[lineup.id].draftGroup.id,
+      myLineupId: lineup.id
+    })
   },
 
   getModalContent: function() {
@@ -140,19 +112,29 @@ const LiveLineupSelectModal = React.createClass({
   },
 
   renderLineups: function() {
-    const sportLineups = this.props.lineups.filter((lineup) => {
-      return lineup.sport === this.state.selectedSport
+    const sportLineups = _.filter(this.props.lineups, (lineup, id) => {
+      return lineup.draftGroup.sport === this.state.selectedSport
     })
+
+    console.log('sportLineups', sportLineups, this.state)
+
     const lineups = sportLineups.map((lineup) => {
-      const {title, pts, pmr} = lineup
+      const {points, minutesRemaining} = lineup
+      let {name} = lineup
+
+      // TODO have server pass in default names
+      if (name === '') {
+        name = 'Currys Chicken'
+      }
+
       return (
         <li
           key={lineup.id}
           className="cmp-live-lineup-select__lineup"
           onClick={this.selectLineup.bind(this, lineup)}
         >
-          <h4 className="cmp-live-lineup-select__lineup__title">{title}</h4>
-          <div className="cmp-live-lineup-select__lineup__sub">{pts} Pts / {pmr} PMR</div>
+          <h4 className="cmp-live-lineup-select__lineup__title">{name}</h4>
+          <div className="cmp-live-lineup-select__lineup__sub">{points} Pts / {minutesRemaining} PMR</div>
         </li>
       )
     });
@@ -185,4 +167,27 @@ const LiveLineupSelectModal = React.createClass({
 });
 
 
-export default LiveLineupSelectModal;
+// Redux integration
+let {Provider, connect} = ReactRedux
+
+// Which part of the Redux global state does our component want to receive as props?
+function mapStateToProps(state) {
+  return {}
+}
+
+// Which action creators does it want to receive by props?
+function mapDispatchToProps(dispatch) {
+  return {
+    updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
+    updatePath: (path) => dispatch(updatePath(path))
+  }
+}
+
+// Wrap the component to inject dispatch and selected state into it.
+var LiveLineupSelectModalConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(LiveLineupSelectModal)
+
+
+module.exports = LiveLineupSelectModalConnected
