@@ -81,7 +81,6 @@ var DraftLineupCardList = React.createClass({
     } else {
       this.props.saveLineup(this.props.newLineup.lineup, title, this.props.draftGroupId)
     }
-
   },
 
 
