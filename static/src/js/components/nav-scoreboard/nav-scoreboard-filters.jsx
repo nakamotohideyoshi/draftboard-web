@@ -46,6 +46,10 @@ const NavScoreboardFilters = React.createClass({
    * Selects first available option.
   */
   selectFirstOption() {
+    if (this.props.options.length === 0) {
+      return
+    }
+
     const {option, type, key} = this.props.options[0];
 
     this.props.onChangeSelection(option, type, key);
