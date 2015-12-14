@@ -40,13 +40,16 @@ class FrontendSettingsWithdrawsTemplateView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/settings/withdraws.html'
 
 
-class FrontendDraftTemplateView(TemplateView):
+class FrontendDraftTemplateView(LoginRequiredMixin, TemplateView):
     """
     Draft a team page.
     """
     # TODO: Check if the draft_group_id GET param is for a valid draft group. 404 otherwise.
     template_name = 'frontend/draft.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(FrontendDraftTemplateView, self).get_context_data(**kwargs)
+        return context
 
 class FrontendPaneTemplateView(TemplateView):
     """

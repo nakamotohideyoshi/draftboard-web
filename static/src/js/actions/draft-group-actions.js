@@ -1,13 +1,23 @@
 import * as types from '../action-types.js'
 import request from 'superagent'
-import { normalize, Schema, arrayOf } from 'normalizr'
+// so we can use Promises
+import 'babel-core/polyfill';
+import {normalize, Schema, arrayOf} from 'normalizr'
 import {fetchSportInjuries} from './injury-actions.js'
+import {fetchFantasyHistory} from './fantasy-history-actions.js'
+import {importLineup} from './lineup-actions.js'
 
 
 const playerSchema = new Schema('players', {
   idAttribute: 'player_id'
 })
 
+
+function fetchingDraftgroup() {
+  return {
+    type: types.FETCHING_DRAFT_GROUPS
+  };
+}
 
 
 function fetchDraftgroupSuccess(body) {
@@ -37,37 +47,76 @@ export function setFocusedPlayer(playerId) {
 }
 
 
-export function fetchDraftGroup(draftGroupId) {
-  return (dispatch) => {
-    return request
-      .get("/api/draft-group/" + draftGroupId + '/')
-      .set({
-        'X-REQUESTED-WITH': 'XMLHttpRequest',
-        'Accept': 'application/json'
-      })
-      .end(function(err, res) {
-        if(err) {
-          return dispatch(fetchDraftgroupFail(err));
-        } else {
-          // Now that we know which sport we're dealing with, fetch the injuries for these players.
-          dispatch(fetchSportInjuries(res.body.sport))
+// Do we need to fetch the specified draft group?
+function shouldFetchDraftGroup(state, draftGroupId) {
+  const draftGroup = state.draftDraftGroup
 
-          // Normalize player list by ID.
-          const normalizedPlayers = normalize(
-            res.body.players,
-            arrayOf(playerSchema)
-          )
+  if (!draftGroup.id || draftGroupId !== draftGroup.id) {
+    // do we have a draftgroup AND the right draftgroup in the store?
+    return true
+  } else if (draftGroup.isFetching) {
+    // are we currently fetching it?
+    return false
+  } else {
+    // Default to true.
+    return true
+  }
+}
 
-          return dispatch(fetchDraftgroupSuccess({
-            players: normalizedPlayers.entities.players,
-            start: res.body.start,
-            end: res.body.end,
-            sport: res.body.sport,
-            id: res.body.pk
-          }));
-        }
-      });
+
+export function fetchDraftGroupIfNeeded(draftGroupId) {
+  return (dispatch, getState) => {
+    if(shouldFetchDraftGroup(getState(), draftGroupId)) {
+      return dispatch(fetchDraftGroup(draftGroupId))
+    } else {
+      return Promise.resolve()
+    }
   };
+}
+
+
+
+function fetchDraftGroup(draftGroupId) {
+  return dispatch => {
+    // update the fetching state.
+    dispatch(fetchingDraftgroup())
+
+    return new Promise((resolve, reject) => {
+       request
+        .get("/api/draft-group/" + draftGroupId + '/')
+        .set({
+          'X-REQUESTED-WITH': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        })
+        .end(function(err, res) {
+          if(err) {
+            dispatch(fetchDraftgroupFail(err));
+            reject(err)
+          } else {
+            // Now that we know which sport we're dealing with, fetch the injuries + fp history for
+            // these players.
+            dispatch(fetchFantasyHistory(res.body.sport))
+            dispatch(fetchSportInjuries(res.body.sport))
+
+            // Normalize player list by ID.
+            const normalizedPlayers = normalize(
+              res.body.players,
+              arrayOf(playerSchema)
+            )
+
+            dispatch(fetchDraftgroupSuccess({
+              players: normalizedPlayers.entities.players,
+              start: res.body.start,
+              end: res.body.end,
+              sport: res.body.sport,
+              id: res.body.pk
+            }));
+
+            resolve(res)
+          }
+        });
+    });
+  }
 }
 
 

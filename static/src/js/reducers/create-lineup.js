@@ -326,8 +326,9 @@ module.exports = function(state = initialState, action) {
         slot.player =  _find(action.players, 'idx', slot.idx)
       });
 
+      // Update the title (optional)
+      newState.lineupTitle = action.title
       return newState
-
 
 
     default:
