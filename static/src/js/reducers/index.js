@@ -29,8 +29,8 @@ const transactions = require('./transactions')
 const upcomingContests = require('./upcoming-contests.js')
 const upcomingDraftGroups = require('./upcoming-draft-groups.js')
 const upcomingLineups = require('./lineups')
+const lineupUsernames = require('./lineup-usernames')
 const user = require('./user')
-
 
 module.exports = combineReducers({
   contests,
@@ -56,5 +56,6 @@ module.exports = combineReducers({
   upcomingContests,
   upcomingDraftGroups,
   upcomingLineups,
+  lineupUsernames,
   user
 })
