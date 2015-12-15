@@ -400,8 +400,7 @@ class Action(models.Model):
                                     null=False,)
     contest = models.ForeignKey(Contest,
                                 null=False)
-    entry = models.OneToOneField(Entry,
-                                 null=False)
+
 
     class Meta:
         abstract = True
