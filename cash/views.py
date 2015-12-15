@@ -27,7 +27,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
 
         .. note::
 
-            A get parameter of **?days=X** can be used. This argument
+            A get parameter of **?start_ts=X&end_ts=Y** can be used. This argument
             describes how many days of history from today to get. If
             it is not set, by default it will return the max which is 30.
             If anything greater than 30 is set, it will return the 30 days.
@@ -46,6 +46,28 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         # if the start_ts & end_ts params exist:
         start_ts = self.request.QUERY_PARAMS.get('start_ts', None)
         end_ts = self.request.QUERY_PARAMS.get('end_ts', None)
+        if start_ts == None:
+            return Response(
+                status=409,
+                data={
+                    'errors': {
+                        'name': {
+                            'title': 'start_ts required',
+                            'description': 'You must provide unix time stamp variable start_ts in your get parameters.'
+                        }
+                    }
+                })
+        if end_ts == None:
+            return Response(
+                status=409,
+                data={
+                    'errors': {
+                        'name': {
+                            'title': 'end_ts required',
+                            'description': 'You must provide unix time stamp variable end_ts in your get parameters.'
+                        }
+                    }
+                })
         return self.filter_on_range( user, int(start_ts), int(end_ts) )
 
 

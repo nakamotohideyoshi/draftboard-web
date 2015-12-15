@@ -61,7 +61,7 @@ class Transaction( models.Model ):
         array = []
         for model_tmp, instance_tmp in collector.instances_with_model():
             print("HERE "+str(instance_tmp))
-            if hasattr(instance_tmp, "to_json") and instance_tmp != self:
+            if hasattr(instance_tmp, "to_json") and instance_tmp != self and instance_tmp.user == self.user:
                 array.append(instance_tmp.to_json())
 
         return {"created":str(self.created), "details":array, "id":self.pk}
