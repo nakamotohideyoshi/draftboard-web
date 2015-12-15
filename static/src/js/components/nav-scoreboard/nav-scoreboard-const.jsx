@@ -1,0 +1,4 @@
+"use strict";
+
+export const TYPE_SELECT_GAMES = 'TYPE_SELECT_GAMES';
+export const TYPE_SELECT_LINEUPS = 'TYPE_SELECT_LINEUPS';

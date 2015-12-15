@@ -3,7 +3,7 @@
 require('../../test-dom')();
 const React = require('react');
 const ReactDOM = require('react-dom');
-const ContestNavFilters = require('../../../components/contest-nav/contest-nav-filters.jsx');
+const NavScoreboardFilters = require('../../../components/nav-scoreboard/nav-scoreboard-filters.jsx');
 const expect = require('chai').expect;
 
 const defaultProps = {
@@ -26,7 +26,7 @@ const defaultProps = {
 function render(props, callback) {
     const targetElement = document.body.appendChild(document.createElement('div'));
     const component = ReactDOM.render(
-      React.createElement(ContestNavFilters, props),
+      React.createElement(NavScoreboardFilters, props),
       targetElement, function() {
         setTimeout(() => {
           callback(component, ReactDOM.findDOMNode(this));
@@ -34,7 +34,7 @@ function render(props, callback) {
     });
 }
 
-describe("ContestNavFilters Component", function() {
+describe("NavScoreboardFilters Component", function() {
 
   afterEach(function() {
     document.body.innerHTML = '';

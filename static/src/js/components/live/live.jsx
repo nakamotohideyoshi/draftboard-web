@@ -11,20 +11,16 @@ import * as AppActions from '../../stores/app-state-store'
 import errorHandler from '../../actions/live-error-handler'
 import LiveContestsPaneConnected from '../live/live-contests-pane'
 import LiveLineup from './live-lineup'
+import LiveLineupSelectModal from './live-lineup-select-modal'
 import LiveNBACourt from './live-nba-court'
 import LiveOverallStats from './live-overall-stats'
 import LivePlayerPaneConnected from '../live/live-player-pane'
 import LiveStandingsPaneConnected from '../live/live-standings-pane'
 import store from '../../store'
-import { fetchEntriesIfNeeded, generateLineups } from '../../actions/entries'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
 import { liveSelector } from '../../selectors/live'
 import { updateLiveMode } from '../../actions/live'
-
-// set up API calls to mock for now
-import request from 'superagent'
-import urlConfig from '../../fixtures/live-config'
 
 
 const history = createBrowserHistory()
@@ -56,29 +52,27 @@ var Live = React.createClass({
 
 
   componentWillMount: function() {
-    require('superagent-mock')(request, urlConfig)
-
     const urlParams = this.props.params
-    let newMode = {
-      type: 'lineup',
-      myLineupId: urlParams.myLineupId
-    }
-    if ('contestId' in urlParams) {
-      newMode.type = 'contest'
-      newMode.contestId = urlParams.contestId
 
-      if ('opponentLineupId' in urlParams) {
-        newMode.opponentLineupId = urlParams.opponentLineupId
+    if ('myLineupId' in urlParams) {
+      let newMode = {
+        type: 'lineup',
+        myLineupId: urlParams.myLineupId
       }
+
+      if ('contestId' in urlParams) {
+        newMode.type = 'contest'
+        newMode.contestId = urlParams.contestId
+
+        if ('opponentLineupId' in urlParams) {
+          newMode.opponentLineupId = urlParams.opponentLineupId
+        }
+      }
+
+      this.props.updateLiveMode(newMode)
     }
 
-    this.props.updateLiveMode(newMode)
-
-    store.dispatch(
-      fetchEntriesIfNeeded()
-    ).catch(
-      errorHandler
-    )
+    // fetchEntriesIfNeeded is called in NavScoreboard component
   },
 
 
@@ -128,12 +122,29 @@ var Live = React.createClass({
 
     // if data has not loaded yet
     if (lineupNonexistant || noRelatedInfo) {
+      let chooseLineup
+
+      if (lineupNonexistant && self.props.entries.hasRelatedInfo === true) {
+        chooseLineup = (
+          <LiveLineupSelectModal lineups={self.props.currentLineupsStats} />
+        )
+      }
+
       return (
-        <div>LOADING</div>
+        <section className="cmp-live__court-scoreboard">
+          <header className="cmp-live__scoreboard live-scoreboard">
+            <h1 className="live-scoreboard__contest-name" />
+            <div className="live-overall-stats live-overall-stats--me" />
+          </header>
+
+          <LiveNBACourt />
+
+          { chooseLineup }
+        </section>
       )
     }
 
-    if (self.props.mode.myLineupId) {
+    if ('mine' in self.props.liveSelector.lineups) {
       var myLineup = self.props.liveSelector.lineups.mine
 
       bottomNavForRightPanes = (
@@ -297,6 +308,7 @@ var LiveConnected = connect(
 renderComponent(
   <Provider store={store}>
     <Router history={history}>
+      <Route path="/live/" component={LiveConnected} />
       <Route path="/live/lineups/:myLineupId" component={LiveConnected} />
       <Route path="/live/lineups/:myLineupId/contests/:contestId/" component={LiveConnected} />
       <Route path="/live/lineups/:myLineupId/contests/:contestId/opponents/:opponentLineupId" component={LiveConnected} />

@@ -1,13 +1,13 @@
 'use strict';
 
-const React = require('react');
+import React from 'react';
 
 
 /*
- *   Responsible for rendering the contest navigation filters
+ *   Responsible for rendering the scoreboard navigation filters
  * select menu.
 */
-const ContestNavFilters = React.createClass({
+const NavScoreboardFilters = React.createClass({
 
   propTypes: {
     // Selected option text.
@@ -91,8 +91,8 @@ const ContestNavFilters = React.createClass({
     });
 
     return (
-      <div className="cmp-contest-nav--filters">
-        <div className="cmp-contest-nav--sport-nav select-list"
+      <div className="cmp-nav-scoreboard--filters">
+        <div className="cmp-nav-scoreboard--sport-nav select-list"
              onMouseEnter={this.handleMenuShow}
              onMouseLeave={this.handleMenuLeave}>
           <div className="select-list--selected">{this.props.selected}</div>
@@ -109,4 +109,4 @@ const ContestNavFilters = React.createClass({
 });
 
 
-module.exports = ContestNavFilters;
+export default NavScoreboardFilters;

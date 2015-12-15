@@ -19,7 +19,7 @@ require("components/form-field/ssn");
 require("components/site/pane.js");
 
 // Lobby
-require("components/contest-nav/contest-nav.jsx");
+require("components/nav-scoreboard/nav-scoreboard.jsx");
 require("components/lobby/lobby-contests.jsx");
 require("components/lobby/lobby-lineup-card-list.jsx");
 

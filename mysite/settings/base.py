@@ -61,6 +61,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 'django.template.context_processors.request',
                 'cash.withdraw.context_processors.model_badges',
+                'mysite.context_processors.pusher_key',
             )
         }
     },
@@ -326,6 +327,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.static',
     'django.core.context_processors.request',
     'django.contrib.auth.context_processors.auth',
+
 
     # CSRF token masking
     'debreach.context_processors.csrf',

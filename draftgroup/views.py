@@ -24,7 +24,6 @@ class DraftGroupAPIView(generics.GenericAPIView):
     """
 
     serializer_class = DraftGroupSerializer
-    permission_classes = (IsAuthenticated,)
 
     def get_object(self, id):
         try:
