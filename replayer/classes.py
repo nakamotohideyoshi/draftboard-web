@@ -498,9 +498,6 @@ class RandomLineupCreator(object):
         self.user.set_password('test')
         self.user.save()
 
-        ct = CashTransaction( self.user )
-        ct.deposit( 1000 )
-
         self.site_sport_manager = SiteSportManager()
         self.site_sport         = self.site_sport_manager.get_site_sport( sport )
         self.roster_manager     = RosterManager( self.site_sport )

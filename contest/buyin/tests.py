@@ -126,8 +126,7 @@ class BuyinTest(AbstractTest):
                   lambda: bm.buyin(self.contest, lineup))
 
     def test_contest_full(self):
-        self.contest.entries = 3
-        self.contest.current_entries = 3
+        self.contest.current_entries = 19
         self.contest.save()
         bm = BuyinManager(self.user)
         self.assertRaises(exceptions.ContestIsFullException,

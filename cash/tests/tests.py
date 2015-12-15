@@ -189,20 +189,7 @@ class BraintreeDeposit(AbstractTest):
 
         self.assertEquals(count_btree_trans_before + 1, count_btree_trans_after)
 
-    def test_braintree_deposit_zero(self):
-        AMOUNT = 0.0
-        self.assertRaises(
-            AmountZeroException,
-            lambda: self.__braintree_transaction_deposit( AMOUNT )
-        )
 
-
-    def test_braintree_deposit_negative_zero(self):
-        AMOUNT = -0.0
-        self.assertRaises(
-            AmountZeroException,
-            lambda: self.__braintree_transaction_deposit( AMOUNT )
-        )
 
 class BalanceAPIViewTest(AbstractTest):
     """
