@@ -41,7 +41,7 @@ class PayoutManager(AbstractManagerClass):
         if contests is not None:
             #
             # validate that contests is an array
-            if not issubclass(contests, list):
+            if not isinstance(contests, list):
                 raise mysite.exceptions.IncorrectVariableTypeException(
                     type(self).__name__,
                     'contests')
@@ -61,13 +61,6 @@ class PayoutManager(AbstractManagerClass):
             #
             # gets all the contests that are not set to closed
             contests = Contest.objects.filter(~Q(status=Contest.CLOSED))
-
-            #
-            # update the status for all of the contests
-            for contest in contests:
-                # TODO - update_status() method has 1 line of code: "pass"
-                contest.update_status()
-
 
             #
             # gets all the contests that are completed
@@ -128,7 +121,7 @@ class PayoutManager(AbstractManagerClass):
             #
             # For each tie add the user to the list to chop the payment
             # and add the next payout to be split with the ties.
-            while score == entries[i+1].lineup.fantasy_points:
+            while i+1 < len(entries) and score == entries[i+1].lineup.fantasy_points:
                 i += 1
                 entries_to_pay.append(entries[i])
                 if len(ranks) > i:
@@ -173,6 +166,9 @@ class PayoutManager(AbstractManagerClass):
         rake.transaction = rake_transaction
         rake.save()
 
+        contest.status = Contest.CLOSED
+        contest.save()
+
     def __payout_spot(self, ranks_to_pay, entries_to_pay, contest):
         #
         # if there are the same number of ranks and entries to pay
@@ -191,10 +187,10 @@ class PayoutManager(AbstractManagerClass):
             cash_to_chop = decimal.Decimal(0.0)
             print(str(ranks_to_pay))
             for rank in ranks_to_pay:
-                cash_to_chop += rank.amount.get_cash_value()
-
-
-            share_split = round(((cash_to_chop/ len(entries_to_pay)) - decimal.Decimal(.005)), 2)
+                cash_to_chop += decimal.Decimal(rank.amount.get_cash_value())
+            share_split_pre_rounded = ((cash_to_chop/ decimal.Decimal(len(entries_to_pay))) - decimal.Decimal(.005))
+            share_split_pre_rounded = round(share_split_pre_rounded, 3)
+            share_split = round(share_split_pre_rounded, 2)
 
             #
             # The extra free pennies that could not be divided

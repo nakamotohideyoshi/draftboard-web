@@ -5,7 +5,7 @@ from django.db import transaction
 from django.contrib import admin
 import contest.models
 import contest.forms
-
+from .payout.tasks import payout_task
 CONTEST_LIST_DISPLAY = ['created','status','name','start','end']
 
 @admin.register(contest.models.Contest)
@@ -79,13 +79,34 @@ class ContestAdmin(admin.ModelAdmin):
 class UpcomingContestAdmin(admin.ModelAdmin):
     list_display = CONTEST_LIST_DISPLAY
 
+
+@admin.register(contest.models.CompletedContest)
+class CompletedContestAdmin(admin.ModelAdmin):
+    list_display = CONTEST_LIST_DISPLAY
+
+    def payout_contests(self, request, queryset):
+        arr = []
+        for obj in queryset:
+            arr.append(obj)
+        if arr == []:
+            arr = None
+        payout_task.delay(contests=arr)
+        self.message_user(request, 'Contest Payout started. ')
+
+    #
+    # add these actions this modeladmin's view
+    actions = [ payout_contests ]
+
+
 @admin.register(contest.models.LiveContest)
 class LiveContestAdmin(admin.ModelAdmin):
     list_display = CONTEST_LIST_DISPLAY
 
+
 @admin.register(contest.models.HistoryContest)
 class HistoryContestAdmin(admin.ModelAdmin):
     list_display = CONTEST_LIST_DISPLAY
+
 
 @admin.register(contest.models.Entry)
 class EntryAdmin(admin.ModelAdmin):

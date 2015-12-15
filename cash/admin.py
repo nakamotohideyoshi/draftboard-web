@@ -8,7 +8,7 @@ from cash.forms import AdminCashDepositForm, AdminCashWithdrawalForm
 @admin.register(CashTransactionDetail)
 class CashTransactionDetailAdmin(admin.ModelAdmin):
 
-    list_display = ['user','amount','transaction']
+    list_display = ['user','amount','transaction', 'created']
 
 
 @admin.register(CashBalance)

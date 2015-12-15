@@ -66,12 +66,13 @@ def create_initial_data():
     #
     # create HEADS-UP  (1v1) prize structures for the list of amounts
     for amount in amounts:
+        first_place = (amount*2) - (amount*2 * 0.1)  # take out rake: 10%
+
         try:
             # check if we already made the generator for this amount
             generator_settings = GeneratorSettings.objects.get( buyin=amount )
         except GeneratorSettings.DoesNotExist:
             #
-            first_place = (amount*2) - (amount*2 * 0.1)  # take out rake: 10%
             generator_settings = GeneratorSettings()
             generator_settings.buyin            = amount
             generator_settings.first_place      = first_place
@@ -91,7 +92,7 @@ def create_initial_data():
             prize_structure.save()
 
         # the CashAmounts should exist, as they are a dependency of this migration
-        cash_amount, created = CashAmount.objects.get_or_create(amount=amount)
+        cash_amount, created = CashAmount.objects.get_or_create(amount=first_place)
 
         try:
             #

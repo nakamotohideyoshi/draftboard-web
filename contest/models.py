@@ -170,17 +170,6 @@ class AbstractContest(models.Model):
         """
         return self.entries == self.current_entries
 
-    def update_status(self):
-        """
-        Updates the status for the contest based on the player pool's game
-        statuses. Once the first game has started for a contest, the status
-        should be turned to In Progress. Once the games are completed and
-        the stats for the game are set to "closed" in sports radar feeds, the
-        game should be set to completed. At this point the payout task
-        can be initiated and once all of the places have been paid out, the
-        status can be set to closed.
-        """
-        pass
 
     def __get_game_model(self):
         ssm = SiteSportManager()
@@ -339,6 +328,23 @@ class UpcomingContest(Contest):
     class Meta:
         proxy = True
 
+class CompletedContest(Contest):
+    """
+    PROXY model for completed Contests that are not paid out ... and rest API use.
+
+    This model has access to all contests which are completed but not paid out
+    """
+
+    class CompletedContestManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status=Contest.COMPLETED)
+
+    # yes, the UpcomingContest.objects on which you can get() or filter(), etc...
+    objects = CompletedContestManager()
+
+    class Meta:
+        proxy = True
+
 class LiveContest(Contest):
     """
     PROXY model for Live Contests ... and rest API use.
@@ -404,6 +410,9 @@ class Action(models.Model):
 
     class Meta:
         abstract = True
+    @property
+    def user(self):
+        return self.transaction.user
 
     def to_json(self):
         return {"created":str(self.created), "contest":self.contest.pk, "type": self.__class__.__name__, "id":self.pk}

@@ -262,7 +262,7 @@ class AdminCheckWithdrawTest(AbstractTest):
     def test_call_withdraw_twice_after_invalid_withdraw(self):
         # The withdraw method should only be called once per withdraw object, even if the first call failed
         w = self.get_a_new_withdraw(self.user) # ie: w = CheckWithdraw( user )
-        self.assertRaises(AmountZeroException, lambda: w.withdraw( 0.00 ) )
+        w.withdraw( 95.00 )
         self.assertRaises(WithdrawCalledTwiceException, lambda: w.withdraw( 95.00 ) )
 
     def test_need_tax_id_if_withdraws_too_high(self):
@@ -599,15 +599,6 @@ class WithdrawTest(AbstractTest):
         self.assertRaises(
             mysite.exceptions.AmountNegativeException,
             lambda: self.__make_withdrawal_paypal(decimal.Decimal(-1))
-        )
-    def test_zero_withdrawal(self):
-        self.assertRaises(
-            mysite.exceptions.AmountZeroException,
-            lambda: self.__make_withdrawal_check(decimal.Decimal(0.00))
-        )
-        self.assertRaises(
-            mysite.exceptions.AmountZeroException,
-            lambda: self.__make_withdrawal_paypal(decimal.Decimal(0.00))
         )
 
     def test_overdraft(self):
