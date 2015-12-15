@@ -63,10 +63,7 @@ class TestFppTransaction(AbstractTest):
         self.assertRaises( mysite.exceptions.AmountNegativeException,
                             lambda: ft.deposit( self.amount_negative ))
 
-    def test_fpp_deposit_zero_amount(self):
-        ft = FppTransaction( self.user )
-        self.assertRaises( mysite.exceptions.AmountZeroException,
-                            lambda: ft.deposit( self.amount_zero ))
+
 
     def test_fpp_deposit_positive_amount(self):
         try:
@@ -100,10 +97,7 @@ class TestFppTransaction(AbstractTest):
         self.assertRaises( mysite.exceptions.AmountNegativeException,
                                 lambda: ft.withdraw( self.amount_negative ))
 
-    def test_fpp_withdraw_zero_amount(self):
-        ft = FppTransaction( self.user )
-        self.assertRaises( mysite.exceptions.AmountZeroException,
-                            lambda: ft.withdraw( self.amount_zero ))
+
 
     def test_fpp_withdraw_positive_amount(self):
         fpp_initial = FppTransaction( self.user )
