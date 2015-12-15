@@ -172,8 +172,7 @@ class AbstractWithdraw( AbstractSiteUserClass ):
 
         if amount < Decimal( 0.0 ):
             raise AmountNegativeException(type(self).__name__, 'amount: ' + str(amount))
-        elif amount == Decimal( 0.0 ):
-            raise AmountZeroException(type(self).__name__, 'amount: ' + str(amount))
+
 
         #
         # make sure they dont have more than the max outstanding withdraw requests

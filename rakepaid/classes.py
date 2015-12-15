@@ -12,7 +12,7 @@ from django.db.models import Sum
 from dfslog.classes import Logger, ErrorCodes
 
 class LoyaltyStatusManager(object):
-
+    BASE_LOYALTY_MULTIPLIER = 10.0 # RAKE MULTIPLIER TO FPP
     #
     # used by a migration to install the initial loyalty statuses
     DEFAULT_STATUSES = [
@@ -26,19 +26,13 @@ class LoyaltyStatusManager(object):
             'name'              : 'Silver',
             'rank'              : 2,
             'thirty_day_avg'    : 10.0,
-            'multiplier'        : 1.1
+            'multiplier'        : 2.0
         },
         {
             'name'              : 'Gold',
-            'rank'              : 2,
-            'thirty_day_avg'    : 100.0,
-            'multiplier'        : 1.2
-        },
-        {
-            'name'              : 'Platinum',
             'rank'              : 3,
-            'thirty_day_avg'    : 1000.0,
-            'multiplier'        : 1.3
+            'thirty_day_avg'    : 100.0,
+            'multiplier'        : 3.0
         }
     ]
 
