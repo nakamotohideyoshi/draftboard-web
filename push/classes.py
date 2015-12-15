@@ -26,6 +26,10 @@ import json
 #     def __init__(self):
 #         pass
 
+#
+# on production this will be an empty string,
+# but you should change it for your local/testing purposes.
+PUSHER_CHANNEL_PREFIX = settings.PUSHER_CHANNEL_PREFIX
 
 PUSHER_BOXSCORES    = 'boxscores'
 
@@ -188,7 +192,7 @@ class DataDenPush( AbstractPush ):
         event: the string name of the general type of the object, ie: 'player', or 'team'
         """
         super().__init__() # init pusher object
-        self.channel    = channel
+        self.channel    = PUSHER_CHANNEL_PREFIX + channel
         self.event      = event
 
 # class FantasyPointsPush( AbstractPush ):

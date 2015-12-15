@@ -168,6 +168,11 @@ DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO      = 750.00
 PUSHER_APP_ID   = '144195'
 PUSHER_KEY      = '9754d03a7816e43abb64'
 PUSHER_SECRET   = 'fcbe16f4bf9e8c0b2b51'
+#
+# our own prefix to globally apply to pusher channels.
+# this should be an empty string for production,
+# but locally you may wish to override it for testing.
+PUSHER_CHANNEL_PREFIX = ''     #   *** MUST REMAIN EMPTY IN PRODUCTION ***
 
 #
 ##########################################################################

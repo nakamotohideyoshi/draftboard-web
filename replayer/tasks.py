@@ -57,8 +57,9 @@ def reset_db_for_replay(self, s3file):
             release_lock()
 
 @app.task(bind=True)
-def fill_contests(self, timemachine=None):
+def fill_contests(self, timemachine):
     """
+    Fills all registering contests it can find with random users.
 
     :param timemachine:
     :return:
@@ -68,11 +69,14 @@ def fill_contests(self, timemachine=None):
     acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
     release_lock = lambda: cache.delete(lock_id)
 
+    # make sure only 1 task can run this code at a time!
     if acquire_lock():
         try:
 
             #
-            # locked code runs in here
+            # store this tasks id in the timemachine for future use
+            timemachine.fill_contests_task_id = self.request.id
+            timemachine.save()
 
             timemachine.fill_contest_status = 'WORKING...'
             timemachine.save()
@@ -104,13 +108,13 @@ def play_replay(self, timemachine):
     acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
     release_lock = lambda: cache.delete(lock_id)
 
+    # make sure only 1 task can run this code at a time
     if acquire_lock():
         try:
-
-            # filename = timemachine.replay
             #
-            # loader = LoadData(filename)  # validates filename
-            # loader.load()
+            # store this tasks id in the timemachine for future use
+            timemachine.playback_task_id = self.request.id
+            timemachine.save()
 
             rp = replayer.classes.ReplayManager(timemachine=timemachine)
 
