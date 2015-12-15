@@ -6,7 +6,13 @@
 {% block sidebar-header %}
   <div class="sidebar--header">
     <div class="sidebar--header-inner">
-      <h2 class="sidebar--header-title">New Lineup</h2>
+      <h2 class="sidebar--header-title">
+        {% if action == 'edit' %}
+          Edit Lineup
+        {% else %}
+          New Lineup
+        {% endif %}
+      </h2>
     </div>
   </div>
 {% endblock sidebar-header %}

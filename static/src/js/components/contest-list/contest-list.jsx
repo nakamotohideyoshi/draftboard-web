@@ -1,4 +1,5 @@
 import React from 'react'
+import FeaturedContests from './featured-contests.jsx'
 var ContestListRow = require('./contest-list-row.jsx')
 var KeypressActions = require('../../actions/keypress-actions')
 import { forEach as _forEach } from 'lodash'
@@ -11,14 +12,15 @@ const ContestList = React.createClass({
 
   propTypes: {
     contests: React.PropTypes.array,
+    draftGroupsWithLineups: React.PropTypes.array,
+    enterContest: React.PropTypes.func,
+    featuredContests: React.PropTypes.array.isRequired,
     focusedContest: React.PropTypes.object,
     focusedLineup: React.PropTypes.object.isRequired,
     hoveredLineupId: React.PropTypes.number,
-    enterContest: React.PropTypes.func,
+    lineupsInfo: React.PropTypes.object,
     setFocusedContest: React.PropTypes.func,
-    setOrderBy: React.PropTypes.func,
-    draftGroupsWithLineups: React.PropTypes.array,
-    lineupsInfo: React.PropTypes.object
+    setOrderBy: React.PropTypes.func
   },
 
 
@@ -26,17 +28,6 @@ const ContestList = React.createClass({
     // Listen to j/k keypress actions to focus contests.
     // KeypressActions.keypressJ.listen(this.focusNextRow);
     // KeypressActions.keypressK.listen(this.focusPreviousRow);
-  },
-
-
-  /**
-   * When a row is clicked (or something else) we want to make that contest the 'focused' one.
-   * @param {integer} id the ID of the contest to be focused.
-   */
-  setContestFocus: function(id) {
-    if (id !== 'undefined') {
-      // ContestActions.contestFocused(id);
-    }
   },
 
 
@@ -60,7 +51,6 @@ const ContestList = React.createClass({
 
 
   render: function() {
-    let featuredContests = this.getFeaturedContests()
     var visibleRows = [];
 
     // Build up a list of rows to be displayed.
@@ -81,15 +71,15 @@ const ContestList = React.createClass({
 
       visibleRows.push(
         <ContestListRow
-            key={row.id}
-            row={row}
-            isEntered={isEntered}
-            highlighted={isHoveredEntered}
+            draftGroupsWithLineups={this.props.draftGroupsWithLineups}
+            enterContest={this.props.enterContest}
             focusedContest={this.props.focusedContest}
             focusedLineup={this.props.focusedLineup}
-            enterContest={this.props.enterContest}
+            highlighted={isHoveredEntered}
+            isEntered={isEntered}
+            key={row.id}
+            row={row}
             setFocusedContest={this.props.setFocusedContest}
-            draftGroupsWithLineups={this.props.draftGroupsWithLineups}
         />
       )
     }, this);
@@ -120,7 +110,11 @@ const ContestList = React.createClass({
           </tr>
         </thead>
         <tbody>
-          {featuredContests}
+          <tr className="featured-contests">
+            <td colSpan="7">
+              <FeaturedContests featuredContests={this.props.featuredContests} />
+            </td>
+          </tr>
           {visibleRows}
         </tbody>
       </table>

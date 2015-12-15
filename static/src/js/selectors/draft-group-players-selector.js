@@ -2,8 +2,8 @@ import { createSelector } from 'reselect'
 import { stringSearchFilter, matchFilter } from './filters'
 import {forEach as _forEach} from 'lodash'
 
-// All the players in the state.
 
+// All the players in the state.
 const allPlayersSelector = (state) => state.draftDraftGroup.allPlayers
 
 
@@ -23,17 +23,35 @@ const playersWithInjuryInfo = createSelector(
 )
 
 
+// Add fantasy history information to each player.
+const histories = (state) => state.fantasyHistory
+
+const playersWithHistory = createSelector(
+  [playersWithInjuryInfo, histories],
+  (players, histories) => {
+    // Loop through each player and attach their FP histories.
+    return _forEach(players, function(player) {
+      if (histories.hasOwnProperty(player.player_id)) {
+        player.history = histories[player.player_id].fantasy_points
+      }
+    })
+  }
+)
+
+
+// Filter players based on the search filter
 const filterPropertySelector = (state) => state.draftDraftGroup.filters.playerSearchFilter.filterProperty
 const filterMatchSelector = (state) => state.draftDraftGroup.filters.playerSearchFilter.match
 
 const playerNameSelector = createSelector(
-  [playersWithInjuryInfo, filterPropertySelector, filterMatchSelector],
+  [playersWithHistory, filterPropertySelector, filterMatchSelector],
   (collection, filterProperty, searchString) => {
     return  stringSearchFilter(collection, filterProperty, searchString)
   }
 )
 
 
+// Filter players based on the position filter
 const positionFilterPropertySelector = (state) => state.draftDraftGroup.filters.positionFilter.filterProperty
 const positionFilterMatchSelector = (state) => state.draftDraftGroup.filters.positionFilter.match
 

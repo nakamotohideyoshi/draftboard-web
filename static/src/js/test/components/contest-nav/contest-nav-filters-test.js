@@ -82,7 +82,7 @@ describe("ContestNavFilters Component", function() {
       expect(elm.length).to.equal(1);
       setTimeout(() => {
         expect(elm[0].innerHTML).to.equal(props.options[0].option);
-      }, 100);
+      }, 200);
     });
   });
 
