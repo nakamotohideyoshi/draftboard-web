@@ -1,13 +1,13 @@
 'use strict';
 
-const React = require('react');
-const PureRenderMixin = require('react-addons-pure-render-mixin');
+import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 
 /**
  * Responsible for rendering a singe lineup item.
  */
-const ContestNavLineup = React.createClass({
+const NavScoreboardLineup = React.createClass({
 
   mixins: [PureRenderMixin],
 
@@ -26,7 +26,12 @@ const ContestNavLineup = React.createClass({
   },
 
   render() {
-    const {name, contest, time, pmr, points, balance} = this.props.lineup;
+    const {contest, time, pmr, points, balance} = this.props.lineup;
+    let { name } = this.props.lineup
+
+    if (name === '') {
+      name = 'Currys Chicken'
+    }
 
     return (
       <div className="lineup">
@@ -50,4 +55,4 @@ const ContestNavLineup = React.createClass({
 });
 
 
-module.exports = ContestNavLineup;
+export default NavScoreboardLineup;

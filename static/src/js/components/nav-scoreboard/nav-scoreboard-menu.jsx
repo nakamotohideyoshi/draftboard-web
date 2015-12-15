@@ -1,14 +1,14 @@
 'use strict'
 
-const React = require('react')
+import React from 'react'
 
 import * as AppActions from '../../stores/app-state-store.js'
 
 
 /**
- * Responsible for rendering the contest-nav top-left hamburger menu.
+ * Responsible for rendering the nav-scoreboard top-left hamburger menu.
  */
-const ContestNavMenu = React.createClass({
+const NavScoreboardMenu = React.createClass({
 
   getInitialState() {
     return {shown: false}
@@ -26,7 +26,7 @@ const ContestNavMenu = React.createClass({
     }
 
     const navMain = document.querySelectorAll(".nav-main")[0]
-    const navTrigger = document.querySelectorAll(".cmp-contest-nav--menu")[0]
+    const navTrigger = document.querySelectorAll(".cmp-nav-scoreboard--menu")[0]
 
     const targetInNav = navMain.contains(e.target) === true || navMain === e.target
     const targetInNavTrigger = navTrigger.contains(e.target) === true || navTrigger === e.target
@@ -52,7 +52,7 @@ const ContestNavMenu = React.createClass({
 
   render() {
     return (
-      <div className="cmp-contest-nav--menu">
+      <div className="cmp-nav-scoreboard--menu">
         <div className={"mobile-forum-hamburger" + (this.state.shown ? ' closed' : '')}
              onClick={this.handleToggleHamburgerMenu}>
           <svg viewBox="0 0 42 42"
@@ -74,4 +74,4 @@ const ContestNavMenu = React.createClass({
 })
 
 
-module.exports = ContestNavMenu
+export default NavScoreboardMenu

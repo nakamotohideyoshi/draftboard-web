@@ -21,8 +21,6 @@ class LeagueTeamAPIView(generics.ListAPIView):
     Get the teams for the league teams for a sport.
     """
 
-    permission_classes = (IsAuthenticated, )
-
     #serializer class will be dynamic
 
     def get_serializer_class(self):

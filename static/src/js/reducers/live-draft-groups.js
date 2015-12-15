@@ -41,7 +41,8 @@ module.exports = (state = {}, action) => {
 
       newProps = {
         id: action.id,
-        isFetchingInfo: true
+        isFetchingInfo: true,
+        hasAllInfo: false
       }
 
       return setOrMerge(state, action, newProps)
@@ -55,7 +56,10 @@ module.exports = (state = {}, action) => {
           $merge: {
             isFetchingInfo: false,
             expiresAt: action.expiresAt,
-            playersInfo: action.players
+            playersInfo: action.players,
+            start: action.start,
+            end: action.end,
+            sport: action.sport
           }
         }
       })
@@ -106,6 +110,18 @@ module.exports = (state = {}, action) => {
             isFetchingBoxScores: true,
             boxScoresUpdatedAt: action.updatedAt,
             boxScores: action.boxScores
+          }
+        }
+      })
+
+
+    case ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED:
+      log.debug('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
+
+      return update(state, {
+        [action.id]: {
+          $merge: {
+            hasAllInfo: true
           }
         }
       })

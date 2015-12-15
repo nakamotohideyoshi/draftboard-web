@@ -1,12 +1,15 @@
 "use strict"
 
 import 'babel-core/polyfill'; // so I can use Promises
-import request from 'superagent'
+var moment = require('moment')
+const request = require('superagent-promise')(require('superagent'), Promise)
 import { forEach as _forEach } from 'lodash'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
 import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
+import { mergeBoxScores } from './current-box-scores'
+import { fetchTeamsIfNeeded } from './sports'
 
 
 const playerSchema = new Schema('players', {
@@ -45,16 +48,13 @@ function fetchDraftGroupFP(id) {
   return dispatch => {
     dispatch(requestDraftGroupFP(id))
 
-    request
-      .get("/api/draft-group/fantasy-points/" + id)
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          // TODO
-        } else {
-          dispatch(receiveDraftGroupFP(id, res.body))
-        }
+    return request.get(
+      '/api/draft-group/fantasy-points/' + id + '/'
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    }).then(function(res) {
+      return dispatch(receiveDraftGroupFP(id, res.body))
     })
   }
 }
@@ -63,15 +63,10 @@ function fetchDraftGroupFP(id) {
 function receiveDraftGroupFP(id, response) {
   log.debug('actionsLiveDraftGroup.receiveDraftGroupFP')
 
-  const normalizedPlayers = normalize(
-    response.players,
-    arrayOf(playerSchema)
-  )
-
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
     id: id,
-    players: normalizedPlayers.entities.players,
+    players: response.players,
     updatedAt: Date.now()
   }
 }
@@ -130,6 +125,9 @@ function receiveDraftGroupInfo(id, response) {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_INFO,
     id: id,
     players: normalizedPlayers.entities.players,
+    sport: response.sport,
+    start: moment(response.start).valueOf(),
+    end: moment(response.end).valueOf(),
     expiresAt: Date.now() + 86400000
   }
 }
@@ -141,16 +139,16 @@ function fetchDraftGroupInfo(id) {
   return dispatch => {
     dispatch(requestDraftGroupInfo(id))
 
-    request
-      .get("/api/draft-group/" + id + '/')
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          // TODO
-        } else {
-          dispatch(receiveDraftGroupInfo(id, res.body))
-        }
+    return request.get(
+      '/api/draft-group/' + id + '/'
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    }).then(function(res) {
+      return Promise.all([
+        dispatch(receiveDraftGroupInfo(id, res.body)),
+        dispatch(fetchTeamsIfNeeded(res.body.sport))
+      ])
     })
   }
 }
@@ -192,20 +190,30 @@ function fetchDraftGroupBoxScores(id) {
   return dispatch => {
     dispatch(requestDraftGroupBoxScores(id))
 
-    request
-      .get("/api/draft-group/box-scores/" + id)
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          // TODO
-        } else {
-          dispatch(receiveDraftGroupBoxScores(id, res.body))
-        }
+    return request.get(
+      '/api/draft-group/boxscores/' + id + '/'
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    }).then(function(res) {
+      dispatch(receiveDraftGroupBoxScores(id, res.body))
+
+      return dispatch(
+        mergeBoxScores(res.body)
+      )
     })
   }
 }
 
+
+function confirmDraftGroupStored(id) {
+  log.debug('actionsEntries.confirmRelatedEntriesInfo')
+
+  return {
+    type: ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED,
+    id: id
+  }
+}
 
 
 function shouldFetchDraftGroup(state, id) {
@@ -227,5 +235,8 @@ export function fetchDraftGroupIfNeeded(id) {
       dispatch(fetchDraftGroupFP(id)),
       dispatch(fetchDraftGroupBoxScores(id))
     ])
+    .then(() =>
+      dispatch(confirmDraftGroupStored(id))
+    )
   }
 }

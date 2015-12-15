@@ -3,7 +3,7 @@
 require('../../test-dom')();
 const React = require('react');
 const ReactDOM = require('react-dom');
-const ContestNavUserInfo = require('../../../components/contest-nav/contest-nav-user-info.jsx');
+const NavScoreboardUserInfo = require('../../../components/nav-scoreboard/nav-scoreboard-user-info.jsx');
 const expect = require('chai').expect;
 
 const defaultProps = {
@@ -11,7 +11,7 @@ const defaultProps = {
   balance: "100$"
 };
 
-describe("ContestNavUserInfo Component", function() {
+describe("NavScoreboardUserInfo Component", function() {
 
   beforeEach(function(done) {
     var self = this;
@@ -19,8 +19,8 @@ describe("ContestNavUserInfo Component", function() {
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.contestNavComponent = ReactDOM.render(
-      <ContestNavUserInfo
+    this.component = ReactDOM.render(
+      <NavScoreboardUserInfo
         name={defaultProps.name}
         balance={defaultProps.balance}
         />,
@@ -28,7 +28,7 @@ describe("ContestNavUserInfo Component", function() {
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.contestNavElement = ReactDOM.findDOMNode(this);
+        self.element = ReactDOM.findDOMNode(this);
         done();
       }
     );
@@ -39,18 +39,18 @@ describe("ContestNavUserInfo Component", function() {
   });
 
   it('should render a div tag, name and balance', function() {
-    expect(this.contestNavElement.tagName).to.equal('DIV');
+    expect(this.element.tagName).to.equal('DIV');
     expect(
-      this.contestNavElement.querySelectorAll('.name').length
+      this.element.querySelectorAll('.name').length
     ).to.equal(1);
     expect(
-      this.contestNavElement.querySelector('.name').textContent
+      this.element.querySelector('.name').textContent
     ).to.equal(defaultProps.name);
     expect(
-      this.contestNavElement.querySelectorAll('.balance').length
+      this.element.querySelectorAll('.balance').length
     ).to.equal(1);
     expect(
-      this.contestNavElement.querySelector('.balance').firstChild.textContent
+      this.element.querySelector('.balance').firstChild.textContent
     ).to.equal(defaultProps.balance);
   });
 

@@ -1,11 +1,10 @@
 "use strict"
 
-import 'babel-core/polyfill'; // so I can use Promises
 var moment = require('moment')
-import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
 import { forEach as _forEach } from 'lodash'
 import { filter as _filter } from 'lodash'
+const request = require('superagent-promise')(require('superagent'), Promise)
 
 import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
@@ -53,16 +52,13 @@ export function fetchEntries() {
   return dispatch => {
     dispatch(requestEntries())
 
-    return request
-      .get('/api/contest/current-entries/')
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          // TODO
-        } else {
-          return dispatch(receiveEntries(res.body))
-        }
+    return request.get(
+      '/api/contest/current-entries/'
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    }).then(function(res) {
+      return dispatch(receiveEntries(res.body))
     })
   }
 }
@@ -100,9 +96,9 @@ export function fetchEntriesIfNeeded() {
       return Promise.resolve('Entries already fetched')
     }
 
-    return Promise.all([
-      dispatch(fetchEntries())
-    ]).then(() =>
+    return dispatch(
+      fetchEntries()
+    ).then(() =>
       dispatch(fetchRelatedEntriesInfo())
     )
   }
