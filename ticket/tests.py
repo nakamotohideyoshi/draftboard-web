@@ -39,12 +39,6 @@ class TicketManagerTest(AbstractTest):
             mysite.exceptions.AmountNegativeException,
             lambda:tm.deposit(-1.10)
         )
-    def test_zero_deposit(self):
-        tm = TicketManager(self.user)
-        self.assertRaises(
-            mysite.exceptions.AmountZeroException,
-            lambda:tm.deposit(0)
-        )
 
     def test_bad_transaction_deposit(self):
         tm = TicketManager(self.user)

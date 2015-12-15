@@ -66,10 +66,7 @@ class TestBonusCashTransaction(AbstractTest):
         self.assertRaises( mysite.exceptions.AmountNegativeException,
                            lambda: bct.deposit( self.negative_amount ))
 
-    def test_bonuscash_deposit_zero_amount(self):
-        bct = BonusCashTransaction( self.user )
-        self.assertRaises( mysite.exceptions.AmountZeroException,
-                           lambda: bct.deposit( self.zero_amount ))
+
 
     def test_bonuscash_deposit_positive_amount(self):
         try:
@@ -97,10 +94,7 @@ class TestBonusCashTransaction(AbstractTest):
         self.assertRaises( mysite.exceptions.AmountNegativeException,
             lambda: bct.withdraw( self.negative_amount, self.__get_trigger_transaction() ))
 
-    def test_bonuscash_withdraw_zero_amount(self):
-        bct = BonusCashTransaction( self.user )
-        self.assertRaises( mysite.exceptions.AmountZeroException,
-            lambda: bct.withdraw( self.zero_amount, self.__get_trigger_transaction() ))
+
 
     def test_bonuscash_withdraw_positive_amount(self):
         # give them some bonus cash to be withdrawn
