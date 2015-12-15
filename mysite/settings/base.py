@@ -367,9 +367,9 @@ SUIT_CONFIG = {
 
         ('account',),
         ('cash',),
-        ('contest'),
+        ('contest',),
         ('dataden',),
-        ('draftgroup'),
+        #('draftgroup',),
         ('finance',),
         ('fpp',),
         ('pp',),

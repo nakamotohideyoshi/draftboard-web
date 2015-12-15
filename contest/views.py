@@ -280,6 +280,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
         #
         # call the buyin task
         bm = BuyinManager( request.user )
+        # TODO must use task not the regular way
         try:
             bm.buyin( contest, lineup )
         except ContestLineupMismatchedDraftGroupsException:

@@ -16,7 +16,7 @@ import decimal
 from fpp.classes import FppTransaction
 from mysite.classes import  AbstractManagerClass
 from promocode.bonuscash.classes import BonusCashTransaction
-
+from cash.models import CashTransactionDetail
 class PayoutTest(AbstractTest):
 
     def setUp(self):
@@ -80,6 +80,26 @@ class PayoutTest(AbstractTest):
 
             lineup = Lineup()
             lineup.fantasy_points = max - i
+            lineup.user = self.get_user(username=str(i))
+            lineup.draft_group = self.draftgroup
+            lineup.save()
+
+            bm = BuyinManager(lineup.user)
+            bm.buyin(self.contest, lineup)
+
+        self.contest.status = Contest.COMPLETED
+        self.contest.save()
+
+    def create_simple_teams_all_tie(self, max=6):
+        #
+        # create Lineups
+        for i in range(1,max+1):
+            user = self.get_user(username=str(i))
+
+            self.fund_user_account(user)
+
+            lineup = Lineup()
+            lineup.fantasy_points =1
             lineup.user = self.get_user(username=str(i))
             lineup.draft_group = self.draftgroup
             lineup.save()
@@ -221,6 +241,41 @@ class PayoutTest(AbstractTest):
         self.assertEqual(rake.amount, decimal.Decimal(-4.0))
         self.validate_escrow_is_zero()
         self.validate_fpp()
+
+    def test_h2h_tie(self):
+        self.first = 1.8
+
+        #
+        # create a simple Rank and Prize Structure
+        cps = CashPrizeStructureCreator(name='test1')
+        cps.add(1, self.first)
+
+        cps.set_buyin( 1.0 )
+        cps.save()
+        self.prize_structure = cps.prize_structure
+        self.prize_structure.generator.prize_pool = 1.8 # minus rake
+        self.prize_structure.save()
+        self.ranks = cps.ranks
+
+
+
+
+        self.contest.status = Contest.SCHEDULED
+        self.contest.prize_structure = self.prize_structure
+        self.contest.draft_group = self.draftgroup
+        self.contest.entries = 2
+        self.contest.save()
+
+
+        self.create_simple_teams_all_tie(2)
+        pm = PayoutManager()
+        pm.payout()
+        payouts = Payout.objects.order_by('contest', '-rank')
+        for payout in payouts:
+            self.assertEqual(payout.rank, 1)
+            trans = CashTransactionDetail.objects.get(transaction=payout.transaction, user=payout.user)
+            self.assertAlmostEqual(trans.amount, decimal.Decimal(.90))
+
 
 
     def validate_escrow_is_zero(self):
