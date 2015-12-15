@@ -26,12 +26,14 @@ class AbstractManagerClass( object ):
                 raise IncorrectVariableTypeException(
                     type(self).__name__,
                     'contest')
-
-    def get_escrow_user(self):
+    @staticmethod
+    def get_escrow_user():
         return User.objects.get(username=settings.USERNAME_ESCROW)
 
-    def get_draftboard_user(self):
+    @staticmethod
+    def get_draftboard_user():
         return User.objects.get(username=settings.USERNAME_DRAFTBOARD)
+
 
 
 class AbstractSiteUserClass( AbstractManagerClass ):

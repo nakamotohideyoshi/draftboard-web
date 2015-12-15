@@ -47,8 +47,6 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         :raise :class:`ticket.models.TicketAmount.DoesNotExist`:
 
         """
-        if(amount == 0):
-            raise AmountZeroException(type(self).__name__, 'amount')
 
         if(amount < 0 ):
             raise AmountNegativeException(type(self).__name__, 'amount')

@@ -16,10 +16,10 @@ from cash.forms import DepositAmountForm
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from cash.classes import CashTransaction
-
+from transaction.models import Transaction
 from optimal_payments.classes import CardPurchase
 
-class TransactionHistoryAPIView(generics.ListAPIView):
+class TransactionHistoryAPIView(generics.GenericAPIView):
     """
     Allows the logged in user to get their transaction history
 
@@ -35,10 +35,8 @@ class TransactionHistoryAPIView(generics.ListAPIView):
     """
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
-    serializer_class = CashTransactionDetailSerializer
-    pagination_class = LimitOffsetPagination
 
-    def get_queryset(self):
+    def get(self, request, format=None):
         """
         Gets the filtered Cash Transaction Details for the logged in user.
         """
@@ -48,33 +46,24 @@ class TransactionHistoryAPIView(generics.ListAPIView):
         # if the start_ts & end_ts params exist:
         start_ts = self.request.QUERY_PARAMS.get('start_ts', None)
         end_ts = self.request.QUERY_PARAMS.get('end_ts', None)
-        if start_ts and end_ts:
-            return self.filter_on_range( user, int(start_ts), int(end_ts) )
+        return self.filter_on_range( user, int(start_ts), int(end_ts) )
 
-        #
-        # default to looking for 'days' param
-        days = self.request.QUERY_PARAMS.get('days', None)
-        return self.filter_on_days( user, days )
+
 
     def filter_on_range(self, user, start_ts, end_ts):
         start   = datetime.utcfromtimestamp( start_ts )
         end     = datetime.utcfromtimestamp( end_ts )
 
-        return CashTransactionDetail.objects.filter( user=user,
+        transactions = Transaction.objects.filter( user=user,
                        created__range=(start, end) ).order_by('-created')
 
-    def filter_on_days(self, user, days):
-        d = 30
-        if days:
-            d = int(days)
-        if d > 30:
-            d = 30
+        return_json = []
+        for transaction in transactions:
+            return_json.append(transaction.to_json())
 
-        now = datetime.now()
-        days_ago = now - timedelta(days=d)
+        return Response(return_json)
 
-        return CashTransactionDetail.objects.filter( user=user,
-                   created__range=(days_ago, now) ).order_by('-created')
+
 
 class BalanceAPIView(generics.GenericAPIView):
     """

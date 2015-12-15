@@ -159,8 +159,6 @@ class AbstractTransaction (AbstractSiteUserClass):
         """
         if(amount < 0.00):
             raise AmountNegativeException(type(self).__name__, amount)
-        if(amount == 0.00):
-            raise AmountZeroException(type(self).__name__, amount)
 
 class CanDeposit(object):
     pass
