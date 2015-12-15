@@ -250,4 +250,4 @@ class PayoutTest(AbstractTest):
         self.assertEqual(rake.amount, decimal.Decimal(6.0))
         self.validate_escrow_is_zero()
         self.validate_fpp()
-        self.test_bonus_cash_conversion()
+

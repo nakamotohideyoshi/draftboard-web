@@ -404,3 +404,6 @@ class Action(models.Model):
 
     class Meta:
         abstract = True
+
+    def to_json(self):
+        return {"created":str(self.created), "contest":self.contest.pk, "type": self.__class__.__name__, "id":self.pk}

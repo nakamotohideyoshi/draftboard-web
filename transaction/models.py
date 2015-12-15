@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.db.models.deletion import Collector
 
 TRANSACTION_CATEGORY = (
 	('contest-buyin', 		'Contest Buyin'),
@@ -54,6 +55,17 @@ class Transaction( models.Model ):
     def __str__(self):
         return '%s  %s  %s' % (self.created.date(), self.user, self.category)
 
+    def to_json(self):
+        collector = Collector(using='default') # or specific database
+        collector.collect([self])
+        array = []
+        for model_tmp, instance_tmp in collector.instances_with_model():
+            print("HERE "+str(instance_tmp))
+            if hasattr(instance_tmp, "to_json") and instance_tmp != self:
+                array.append(instance_tmp.to_json())
+
+        return {"created":str(self.created), "details":array, "id":self.pk}
+
 class TransactionDetail( models.Model ):
     """
     The base model for the classes to keep track of
@@ -67,6 +79,10 @@ class TransactionDetail( models.Model ):
     class Meta:
         abstract = True
         unique_together = ('user', 'transaction')
+
+
+    def to_json(self):
+        return {"created":str(self.created), "amount":self.amount, "type": self.__class__.__name__ , "id":self.pk}
 
 class Balance( models.Model ):
 
