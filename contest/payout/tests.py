@@ -11,6 +11,11 @@ from test.classes import BuildWorldForTesting
 from contest.buyin.classes import BuyinManager
 from cash.classes import CashTransaction
 from ticket.classes import TicketManager
+from contest.payout.models import Rake, FPP
+import decimal
+from fpp.classes import FppTransaction
+from mysite.classes import  AbstractManagerClass
+from promocode.bonuscash.classes import BonusCashTransaction
 
 class PayoutTest(AbstractTest):
 
@@ -18,7 +23,7 @@ class PayoutTest(AbstractTest):
         # creates very standard ticket amounts like 1,2,5, 10, 20, 50
         TicketManager.create_default_ticket_amounts(verbose=False)
 
-        self.first = 10.0
+        self.first = 34.0
         self.second = 10.0
         self.third = 10.0
         #
@@ -30,6 +35,8 @@ class PayoutTest(AbstractTest):
         cps.set_buyin( 10 )
         cps.save()
         self.prize_structure = cps.prize_structure
+        self.prize_structure.generator.prize_pool = 54.0 # minus rake
+        self.prize_structure.save()
         self.ranks = cps.ranks
 
 
@@ -63,11 +70,10 @@ class PayoutTest(AbstractTest):
         ct = CashTransaction(user)
         ct.deposit(100)
 
-    def create_simple_teams(self):
+    def create_simple_teams(self, max=6):
         #
         # create Lineups
-        max = 5
-        for i in range(1,max):
+        for i in range(1,max+1):
             user = self.get_user(username=str(i))
 
             self.fund_user_account(user)
@@ -89,7 +95,7 @@ class PayoutTest(AbstractTest):
         #
         # create Lineups
         max = 6
-        for i in range(1,max):
+        for i in range(1,max+1):
             user = self.get_user(username=str(i))
             self.fund_user_account(user)
 
@@ -110,6 +116,30 @@ class PayoutTest(AbstractTest):
         self.contest.status = Contest.COMPLETED
         self.contest.save()
 
+    def create_last_place_tie_teams_three_way(self):
+        #
+        # create Lineups
+        max = 6
+        for i in range(1,max+1):
+            user = self.get_user(username=str(i))
+            self.fund_user_account(user)
+
+            lineup = Lineup()
+            if  i ==2 or i ==3 or i == 4:
+                lineup.fantasy_points = max -2
+            else:
+                lineup.fantasy_points = max -i
+
+            lineup.user = user
+            lineup.draft_group = self.draftgroup
+            lineup.save()
+
+            bm = BuyinManager(lineup.user)
+            bm.buyin(self.contest, lineup)
+
+        self.contest.status = Contest.COMPLETED
+        self.contest.save()
+
 
     def test_simple_payout(self):
         self.create_simple_teams()
@@ -118,6 +148,7 @@ class PayoutTest(AbstractTest):
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
             self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+        self.validate_side_effects_of_transaction()
 
 
     def test_simple_tie_payout(self):
@@ -130,6 +161,7 @@ class PayoutTest(AbstractTest):
                 self.assertEqual(payout.rank, 3)
             else:
                 self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+        self.validate_side_effects_of_transaction()
 
 
     def test_simple_ticket_payout(self):
@@ -140,6 +172,7 @@ class PayoutTest(AbstractTest):
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
             self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+        self.validate_side_effects_of_transaction()
 
 
     def test_simple_ticket_payout_tie(self):
@@ -153,11 +186,68 @@ class PayoutTest(AbstractTest):
                 self.assertEqual(payout.rank, 3)
             else:
                 self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+        self.validate_side_effects_of_transaction()
 
+    def test_complex_tie_payout(self):
+        self.create_last_place_tie_teams_three_way()
+        pm = PayoutManager()
+        pm.payout()
+        payouts = Payout.objects.order_by('contest', '-rank')
+        for payout in payouts:
+            if payout.entry.lineup.user.username in ["2", "3", "4"]:
+                self.assertEqual(payout.rank, 2)
+            else:
+                self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+        self.validate_side_effects_of_transaction()
+
+
+    def test_complex_tie_payout(self):
+        self.create_last_place_tie_teams_three_way()
+        pm = PayoutManager()
+        pm.payout()
+        payouts = Payout.objects.order_by('contest', '-rank')
+        for payout in payouts:
+            if payout.entry.lineup.user.username in ["2", "3", "4"]:
+                self.assertEqual(payout.rank, 2)
+            else:
+                self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+        self.validate_side_effects_of_transaction()
+
+    def test_overlay(self):
+        self.create_simple_teams(5)
+        pm = PayoutManager()
+        pm.payout()
+        rake = Rake.objects.get(contest=self.contest)
+        self.assertEqual(rake.amount, decimal.Decimal(-4.0))
+        self.validate_escrow_is_zero()
+        self.validate_fpp()
+
+
+    def validate_escrow_is_zero(self):
+        ct = CashTransaction(AbstractManagerClass.get_escrow_user())
+        ct.get_balance_amount()
+        self.assertEqual(ct.get_balance_amount(), decimal.Decimal(0.0))
+
+    def validate_fpp(self):
+        payouts = Payout.objects.order_by('contest', '-rank')
+        for payout in payouts:
+            fpp = FPP.objects.get(transaction=payout.transaction, contest=self.contest)
+            fppt= FppTransaction(payout.transaction.user)
+            self.assertEqual(fppt.get_balance_amount(), decimal.Decimal(10.0))
+
+    def test_bonus_cash_conversion(self):
+        self.create_simple_teams(5)
+        user = self.get_user(username="1")
+        bct = BonusCashTransaction(user)
+        bct.deposit(50.0)
+        pm = PayoutManager()
+        pm.payout()
+        bct = BonusCashTransaction(user)
+        self.assertAlmostEqual(decimal.Decimal(49.60), bct.get_balance_amount())
 
     def validate_side_effects_of_transaction(self):
-        #TODO test rake paid shows up
+        rake = Rake.objects.get(contest=self.contest)
+        self.assertEqual(rake.amount, decimal.Decimal(6.0))
+        self.validate_escrow_is_zero()
+        self.validate_fpp()
 
-        #TODO test Bonus cash conversion on accounts that have bonus cash
-        #   and ones that dont
-        pass

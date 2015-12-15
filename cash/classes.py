@@ -30,6 +30,12 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         :return: True if the user has enough funds
         """
         cash_balance = self.get_balance_amount()
+        #
+        # allow the site to overdraft itself to allow it to keep running.
+        if self.user == self.get_escrow_user() or self.user == self.get_draftboard_user():
+            #TODO send email to notify of overdraft
+            return True
+
         if(cash_balance < amount):
             return False
         return True
