@@ -100,15 +100,7 @@ DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 ##########################################################################
 #        pusher - DEVELOPMENT ids
 ##########################################################################
-PUSHER_APP_ID   = '144196'
-PUSHER_KEY      = 'f23775e0c1d0da57bb4b'
-PUSHER_SECRET   = 'fc815c85237d726b9d8e'
-
-#
-# override datetime objects now() method to use the delta_seconds in cache
-# from django.utils import timezone
-# import os
-# running_on_codeship = os.environ.get('CI', None)
-# if DATETIME_DELTA_ENABLE and not running_on_codeship:
-#     import util.timeshift as timeshift
-#     timezone.now = timeshift.delta_now
+PUSHER_APP_ID           = '144196'
+PUSHER_KEY              = 'f23775e0c1d0da57bb4b'
+PUSHER_SECRET           = 'fc815c85237d726b9d8e'
+PUSHER_CHANNEL_PREFIX   = 'local_'

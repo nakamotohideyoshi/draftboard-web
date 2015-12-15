@@ -121,7 +121,7 @@ class TimeMachineAdmin(admin.ModelAdmin):
             timemachine.load_status  = 'LOADING...'
             timemachine.fill_contest_status = 'PLEASE REFRESH BROWSER & LOG BACK IN'
             timemachine.playback_status = ''
-            timemachine.loader_task_id=task_result.id
+            timemachine.loader_task_id  = task_result.id
             timemachine.save()
 
     def fill_existing_contests(self, request, queryset):
@@ -158,13 +158,6 @@ class TimeMachineAdmin(admin.ModelAdmin):
             # start the replay task
             result = replayer.tasks.play_replay.delay( timemachine )     # the filename - i forget if path is prefixed!
 
-            timemachine.refresh_from_db()
-            timemachine.playback_task_id = result.id
-            print('playback_task_id: %s' % timemachine.playback_task_id)
-            timemachine.save()
-
-            print('playback_task status: %s' % result.status)
-
     def stop_replayer(self, request, queryset):
         if len(queryset) > 1:
             self.message_user(request, 'You may only perform this action on one Replay at a time.')
@@ -181,16 +174,6 @@ class TimeMachineAdmin(admin.ModelAdmin):
 
                 timemachine.playback_status = 'KILLED'
                 timemachine.save()
-
-    # def shift_server_time_to_replay_time(self, request, queryset):
-    #     if len(queryset) > 1:
-    #         self.message_user(request, 'You may only perform this action on one Replay at a time.')
-    #         return
-    #     for timemachine in queryset:
-    #         #
-    #         initial_datetime = timemachine.snapshot_datetime
-    #         print('using timeshift.set_system_time( %s )' % str(initial_datetime))
-    #         set_system_time( initial_datetime )
 
     def set_time_one_hour_before_replay_start(self, request, queryset):
         """
