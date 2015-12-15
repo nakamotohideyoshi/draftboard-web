@@ -1,3 +1,4 @@
+import 'babel-core/polyfill';
 import React from 'react'
 const ReactRedux = require('react-redux')
 const store = require('../../store')
@@ -7,13 +8,21 @@ const CollectionSearchFilter = require('../filters/collection-search-filter.jsx'
 const PlayerListRow = require('./draft-player-list-row.jsx')
 import {forEach as _forEach, find as _find, matchesProperty as _matchesProperty} from 'lodash'
 import * as moment from 'moment'
-import {fetchDraftGroup, setFocusedPlayer, updateFilter} from '../../actions/draft-group-actions.js'
+import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter
+  } from '../../actions/draft-group-actions.js'
 import {fetchSportInjuries} from '../../actions/injury-actions.js'
-import {createLineupAddPlayer} from '../../actions/lineup-actions.js'
+import {createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
+  editLineupInit, importLineup } from '../../actions/lineup-actions.js'
 import {draftGroupPlayerSelector} from '../../selectors/draft-group-players-selector.js'
-
 // Other components that will take care of themselves on the draft page.
 import './draft-player-detail.jsx'
+// Router stuff
+import { Router, Route } from 'react-router'
+import {updatePath, syncReduxAndRouter} from 'redux-simple-router'
+import createBrowserHistory from 'history/lib/createBrowserHistory'
+const history = createBrowserHistory()
+syncReduxAndRouter(history, store)
+
 
 
 /**
@@ -22,15 +31,22 @@ import './draft-player-detail.jsx'
 const DraftPlayerList = React.createClass({
 
   propTypes: {
-    fetchDraftGroup: React.PropTypes.func.isRequired,
+    fetchDraftGroupIfNeeded: React.PropTypes.func.isRequired,
+    fetchUpcomingLineups: React.PropTypes.func.isRequired,
+    createLineupViaCopy: React.PropTypes.func.isRequired,
+    editLineupInit: React.PropTypes.func,
+    importLineup: React.PropTypes.func,
     allPlayers: React.PropTypes.object,
+    lineups: React.PropTypes.object,
     filteredPlayers: React.PropTypes.array,
     focusPlayer: React.PropTypes.func,
     draftPlayer: React.PropTypes.func,
+    unDraftPlayer: React.PropTypes.func,
     newLineup: React.PropTypes.array,
     updateFilter: React.PropTypes.func,
     availablePositions: React.PropTypes.array,
-    draftGroupTime: React.PropTypes.string
+    draftGroupTime: React.PropTypes.string,
+    params: React.PropTypes.object
   },
 
 
@@ -46,10 +62,22 @@ const DraftPlayerList = React.createClass({
 
 
   loadData: function() {
-    // TODO: this sucks fix this.
-    let draftgroupId = window.location.pathname.split('/')[2];
-
-    this.props.fetchDraftGroup(draftgroupId);
+    // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
+    Promise.all([
+      this.props.fetchDraftGroupIfNeeded(this.props.params.draftgroupId),
+      this.props.fetchUpcomingLineups(this.props.params.draftgroupId)
+    ]).then( () => {
+      // If the url has told us that the user wants to copy (import) a lineup, do that.
+      if (this.props.params.lineupAction === 'copy' && this.props.params.lineupId) {
+        this.props.createLineupViaCopy(this.props.params.lineupId)
+      }
+      // if we're editing...
+      else if (this.props.params.lineupAction === 'edit' && this.props.params.lineupId) {
+        let lineup = this.props.lineups[this.props.params.lineupId]
+        this.props.importLineup(lineup, true)
+        this.props.editLineupInit(this.props.params.lineupId)
+      }
+    })
   },
 
 
@@ -99,7 +127,8 @@ const DraftPlayerList = React.createClass({
 
     // Build up a list of rows to be displayed.
     _forEach(this.props.filteredPlayers, function(row) {
-      var draftable = true
+      let draftable = true
+      let drafted = false
       // Is there a slot available?
       if (this.props.availablePositions.indexOf(row.position) === -1) {
         draftable = false
@@ -108,6 +137,7 @@ const DraftPlayerList = React.createClass({
       // Is the player already drafted?
       if (undefined !== _find(this.props.newLineup, _matchesProperty('player', row))) {
         draftable = false
+        drafted = true
       }
 
       visibleRows.push(
@@ -115,8 +145,10 @@ const DraftPlayerList = React.createClass({
           key={row.player_id}
           row={row}
           draftable={draftable}
+          drafted={drafted}
           focusPlayer={this.props.focusPlayer}
           draftPlayer={this.props.draftPlayer}
+          unDraftPlayer={this.props.unDraftPlayer}
         />
       )
     }.bind(this))
@@ -159,6 +191,7 @@ const DraftPlayerList = React.createClass({
         <table className="cmp-player-list__table table">
           <thead>
             <tr className="cmp-player-list__header-row">
+              <th></th>
               <th>POS</th>
               <th></th>
               <th
@@ -166,11 +199,11 @@ const DraftPlayerList = React.createClass({
                 onClick={this.sortList.bind(this, 'name')}>Player</th>
               <th>Status</th>
               <th>OPP</th>
-              <th>FPPG</th>
+              <th>AVG</th>
+              <th>History</th>
               <th
                 className="table__sortable"
                 onClick={this.sortList.bind(this, 'salary')}>Salary</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>{visibleRows}</tbody>
@@ -192,19 +225,26 @@ function mapStateToProps(state) {
     filteredPlayers: draftGroupPlayerSelector(state),
     draftGroupTime: state.draftDraftGroup.start,
     sport: state.draftDraftGroup.sport,
+    lineups: state.upcomingLineups.lineups,
     newLineup: state.createLineup.lineup,
     availablePositions: state.createLineup.availablePositions,
-    injuries: state.injuries
+    injuries: state.injuries,
+    fantasyHistory: state.fantasyHistory
   };
 }
 
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    fetchDraftGroup: (draftGroupId) => dispatch(fetchDraftGroup(draftGroupId)),
+    fetchDraftGroupIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
     draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
+    unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
     focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
-    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match))
+    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
+    fetchUpcomingLineups: (draftGroupId) => dispatch(fetchUpcomingLineups(draftGroupId)),
+    createLineupViaCopy: (lineupId) => dispatch(createLineupViaCopy(lineupId)),
+    editLineupInit: (lineupId) => dispatch(editLineupInit(lineupId)),
+    importLineup: (lineup, importTitle) => dispatch(importLineup(lineup, importTitle))
   };
 }
 
@@ -216,7 +256,10 @@ var DraftPlayerListConnected = connect(
 
 renderComponent(
   <Provider store={store}>
-    <DraftPlayerListConnected />
+    <Router history={history}>
+      <Route path="/draft/:draftgroupId/" component={DraftPlayerListConnected} />
+      <Route path="/draft/:draftgroupId/lineup/:lineupId/:lineupAction" component={DraftPlayerListConnected} />
+    </Router>
   </Provider>,
   '.cmp-player-list'
 );

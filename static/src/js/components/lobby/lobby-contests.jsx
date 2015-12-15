@@ -3,20 +3,21 @@ import * as ReactRedux from 'react-redux'
 import store from '../../store'
 import {updatePath} from 'redux-simple-router'
 
-import renderComponent from '../../lib/render-component'
-import CollectionMatchFilter from '../filters/collection-match-filter.jsx'
-import CollectionSearchFilter from '../filters/collection-search-filter.jsx'
-import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filter.jsx'
-import ContestList from '../contest-list/contest-list.jsx'
-import {updateFilter} from '../../actions/upcoming-contests-actions.js'
+import {fetchEntries} from '../../actions/entries.js'
+import {fetchFeaturedContestsIfNeeded} from '../../actions/featured-contest-actions.js'
 import {fetchPrizeIfNeeded} from '../../actions/prizes.js'
 import {fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter}
   from '../../actions/upcoming-contests-actions.js'
 import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-info-actions.js'
-import {fetchEntries} from '../../actions/entries.js'
 import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js'
 import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'
+import {updateFilter} from '../../actions/upcoming-contests-actions.js'
 import * as AppActions from '../../stores/app-state-store.js'
+import CollectionMatchFilter from '../filters/collection-match-filter.jsx'
+import CollectionSearchFilter from '../filters/collection-search-filter.jsx'
+import ContestList from '../contest-list/contest-list.jsx'
+import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filter.jsx'
+import renderComponent from '../../lib/render-component'
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
@@ -30,23 +31,25 @@ var LobbyContests = React.createClass({
 
   propTypes: {
     allContests: React.PropTypes.object,
-    filteredContests: React.PropTypes.array,
-    focusedContest: React.PropTypes.object,
-    hoveredLineupId: React.PropTypes.number,
-    focusedLineup: React.PropTypes.object,
-    updateFilter: React.PropTypes.func,
+    draftGroupsWithLineups: React.PropTypes.array,
+    enterContest: React.PropTypes.func,
+    featuredContests: React.PropTypes.array,
+    fetchEntries: React.PropTypes.func,
+    fetchFeaturedContestsIfNeeded: React.PropTypes.func,
+    fetchPrizeIfNeeded: React.PropTypes.func,
     fetchUpcomingContests: React.PropTypes.func,
     fetchUpcomingDraftGroupsInfo: React.PropTypes.func,
-    fetchEntries: React.PropTypes.func,
-    enterContest: React.PropTypes.func,
-    setFocusedContest: React.PropTypes.func,
-    fetchPrizeIfNeeded: React.PropTypes.func,
-    updateOrderByFilter: React.PropTypes.func,
-    orderByProperty: React.PropTypes.string,
+    filteredContests: React.PropTypes.array,
+    focusedContest: React.PropTypes.object,
+    focusedLineup: React.PropTypes.object,
+    hoveredLineupId: React.PropTypes.number,
+    lineupsInfo: React.PropTypes.object,
     orderByDirection: React.PropTypes.string,
-    draftGroupsWithLineups: React.PropTypes.array,
-    updatePath: React.PropTypes.func,
-    lineupsInfo: React.PropTypes.object
+    orderByProperty: React.PropTypes.string,
+    setFocusedContest: React.PropTypes.func,
+    updateFilter: React.PropTypes.func,
+    updateOrderByFilter: React.PropTypes.func,
+    updatePath: React.PropTypes.func
   },
 
 
@@ -66,6 +69,7 @@ var LobbyContests = React.createClass({
     // Fetch all of the necessary data for the lobby.
     this.props.fetchUpcomingContests()
     this.props.fetchUpcomingDraftGroupsInfo()
+    this.props.fetchFeaturedContestsIfNeeded()
 
     if (window.dfs.user.isAuthenticated === true) {
       this.props.fetchEntries()
@@ -139,14 +143,15 @@ var LobbyContests = React.createClass({
 
         <ContestList
           contests={this.props.filteredContests}
+          draftGroupsWithLineups={this.props.draftGroupsWithLineups}
+          enterContest={this.handleEnterContest}
+          featuredContests={this.props.featuredContests}
           focusedContest={this.props.focusedContest}
           focusedLineup={this.props.focusedLineup}
-          setFocusedContest={this.handleFocusContest}
-          enterContest={this.handleEnterContest}
-          setOrderBy={this.handleSetOrderBy}
-          draftGroupsWithLineups={this.props.draftGroupsWithLineups}
-          lineupsInfo={this.props.lineupsInfo}
           hoveredLineupId={this.props.hoveredLineupId}
+          lineupsInfo={this.props.lineupsInfo}
+          setFocusedContest={this.handleFocusContest}
+          setOrderBy={this.handleSetOrderBy}
         />
       </div>
     );
@@ -177,28 +182,29 @@ function mapStateToProps(state) {
 
   return {
     allContests: state.upcomingContests.allContests,
+    draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
+    featuredContests: state.featuredContests.banners,
+    filteredContests: upcomingContestSelector(state),
     focusedContest,
     focusedLineup,
-    filteredContests: upcomingContestSelector(state),
-    orderByProperty: state.upcomingContests.filters.orderBy.property,
-    orderByDirection: state.upcomingContests.filters.orderBy.direction,
-    draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
+    hoveredLineupId: state.upcomingLineups.hoveredLineupId,
     lineupsInfo: upcomingLineupsInfo(state),
-    hoveredLineupId: state.upcomingLineups.hoveredLineupId
+    orderByDirection: state.upcomingContests.filters.orderBy.direction,
+    orderByProperty: state.upcomingContests.filters.orderBy.property
   };
 }
 
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    // focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
-    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
-    fetchUpcomingContests: () => dispatch(fetchUpcomingContests()),
-    fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
     fetchEntries: () => dispatch(fetchEntries()),
-    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
+    fetchFeaturedContestsIfNeeded: () => dispatch(fetchFeaturedContestsIfNeeded()),
     fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId)),
+    fetchUpcomingContests: () => dispatch(fetchUpcomingContests()),
+    fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
+    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
+    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
     updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
     updatePath: (path) => dispatch(updatePath(path))
   };

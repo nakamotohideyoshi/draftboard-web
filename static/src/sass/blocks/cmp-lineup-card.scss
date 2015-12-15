@@ -410,6 +410,11 @@ category: Lineup
 .cmp-lineup-card--new {
 
   .cmp-lineup-card {
+
+    &__header {
+      padding-bottom: 0;
+    }
+
     // Editable title input field.
     &__title {
 
@@ -431,6 +436,7 @@ category: Lineup
       cursor: pointer;
       border: 0px solid transparent;
       max-width: 170px;
+      padding: 10px 15px
 
       &::placeholder {
         transition: color .25s;
