@@ -45,3 +45,13 @@ class PlayerClassNotFoundException(Exception):
 class PlayerSerializerClassNotFoundException(Exception):
     def __init__(self, class_name, sport_name):
         super().__init__( "Player Serializer class for %s not found" % sport_name )
+
+class TsxModelClassNotFoundException(Exception):
+    """
+    Intended usage:
+
+        >>> msg = 'No sports.%s.models modelclass found named [%s] with parent [%s]' % (sport, model_name, parent_model_class)
+        >>> raise TsxModelClassNotFoundException(msg)
+
+    """
+    pass

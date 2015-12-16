@@ -1,5 +1,28 @@
-from .models import SiteSport, PlayerStats, Player, Game, Team, GameBoxscore, PbpDescription, Injury
+#
+# sports/classes.py
+
 from django.contrib.contenttypes.models import ContentType
+
+from .models import (
+    SiteSport,
+    PlayerStats,
+    Player,
+    Game,
+    Team,
+    GameBoxscore,
+    PbpDescription,
+    Injury,
+
+    # tsx content related
+    TsxNews,
+    TsxInjury,
+    TsxTransaction,
+
+    # tsx objects which reference the content objects
+    TsxTeam,
+    TsxPlayer,
+)
+
 from .exceptions import (
     GameBoxscoreClassNotFoundException,
     SiteSportWithNameDoesNotExistException,
@@ -9,8 +32,10 @@ from .exceptions import (
     InjuryClassNotFoundException,
     InjurySerializerClassNotFoundException,
     TeamSerializerClassNotFoundException,
-    PlayerSerializerClassNotFoundException
+    PlayerSerializerClassNotFoundException,
+    TsxModelClassNotFoundException
 )
+
 from mysite.exceptions import IncorrectVariableTypeException
 import dataden.classes
 
@@ -371,6 +396,69 @@ class SiteSportManager(object):
         except:
             # by default raise an exception if we couldnt return a game class
             raise InjurySerializerClassNotFoundException(type(self).__name__, sport)
+
+    def __get_tsx_model_class(self, sport, model_name, model_parent_class):
+        """
+        helper function to combine a bunch of common functionality
+        for getting & validating the site_sport, as well as
+        returning the model class for the specified model_name who
+        is a child of model_parent_class.
+
+        :param sport: examples: 'nba', 'nfl'
+        :param model_name: example: 'tsxcontent'
+        :param model_parent_class: ex: sports.sport.TsxContent
+        :return:
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+        arr = self.__get_array_of_classes(sport, model_name, model_parent_class)
+        if len(arr) >= 1:
+            return arr[0]
+
+        # couldnt find one? raise a relevant exception
+        msg_fmt = 'No sports.%s.models modelclass found named [%s] with parent [%s]'
+        msg = msg_fmt % (sport, model_name, str(model_parent_class))
+        raise TsxModelClassNotFoundException(msg)
+
+    def get_tsxnews_class(self, sport):
+        """
+
+        :param sport: the string name of the sport, examples: 'nba', 'nfl'
+        :return: the TsxNews model class for this sport
+        """
+        return self.__get_tsx_model_class(sport, 'tsxnews', TsxNews)
+
+    def get_tsxinjury_class(self, sport):
+        """
+
+        :param sport: the string name of the sport, examples: 'nba', 'nfl'
+        :return: the TsxInjury model class for this sport
+        """
+        return self.__get_tsx_model_class(sport, 'tsxinjury', TsxInjury)
+
+    def get_tsxtransaction_class(self, sport):
+        """
+
+        :param sport: the string name of the sport, examples: 'nba', 'nfl'
+        :return: the TsxTransaction model class for this sport
+        """
+        return self.__get_tsx_model_class(sport, 'tsxtransaction', TsxTransaction)
+
+    def get_tsxteam_class(self, sport):
+        """
+
+        :param sport: the string name of the sport, examples: 'nba', 'nfl'
+        :return: the TsxTeam model class for this sport
+        """
+        return self.__get_tsx_model_class(sport, 'tsxteam', TsxTeam)
+
+    def get_tsxplayer_class(self, sport):
+        """
+
+        :param sport: the string name of the sport, examples: 'nba', 'nfl'
+        :return: the TsxPlayer model class for this sport
+        """
+        return self.__get_tsx_model_class(sport, 'tsxplayer', TsxPlayer)
 
 class PlayerNamesCsv(object):
 
