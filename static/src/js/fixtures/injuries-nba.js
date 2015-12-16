@@ -9,7 +9,7 @@ module.exports = [
     fixtures: function () {
       return {
         "count": 67,
-        "next": "http://rio-dfs.herokuapp.com/sports/injuries/nba?format=json&offset=50",
+        "next": "http://draftboard-staging.herokuapp.com/sports/injuries/nba?format=json&offset=50",
         "previous": null,
         "results": [
           {

@@ -46,7 +46,7 @@ def reset_db_for_replay(self, s3file):
             # locked code runs in here
 
             #
-            # rp.sub_call('ssh -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "heroku pg:info --app rio-dfs"')
+            # rp.sub_call('ssh -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "heroku pg:info --app draftboard-staging"')
             cmd = 'ssh -o "StrictHostKeyChecking no" -i coderden.pem ubuntu@ec2-52-11-96-189.us-west-2.compute.amazonaws.com "fab restore_db --set s3file=%s"' % s3file
             print( cmd )
             rp = replayer.classes.ReplayManager()

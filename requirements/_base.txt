@@ -42,8 +42,6 @@ static==1.1.1
 static3==0.5.1
 testfixtures==4.1.2
 
-Unipath==1.1
-
 # amazons s3 stuff
 awscli==1.9.12
 
