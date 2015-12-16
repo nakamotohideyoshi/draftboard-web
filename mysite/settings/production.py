@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 from .base import *
 
 # Constant for determining environment
-DOMAIN = 'rio-dfs.herokuapp.com'
+DOMAIN = 'draftboard-staging.herokuapp.com'
 
 # Connect Heroku database
 # Based on https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-of-active-connections
