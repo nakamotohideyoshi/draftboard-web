@@ -25,6 +25,10 @@ const NavScoreboardLineup = React.createClass({
     lineup: React.PropTypes.object.isRequired
   },
 
+  openLineup() {
+    window.location.pathname = '/live/lineups/' + this.props.lineup.id.toString()
+  },
+
   render() {
     const {contest, time, pmr, points, balance} = this.props.lineup;
     let { name } = this.props.lineup
@@ -34,7 +38,7 @@ const NavScoreboardLineup = React.createClass({
     }
 
     return (
-      <div className="lineup">
+      <div className="lineup" onClick={ this.openLineup }>
         <div className="left">
           <span className="header">
             {contest} - {time}
