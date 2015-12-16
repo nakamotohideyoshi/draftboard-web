@@ -252,3 +252,43 @@ def create_dst_player(sender, **kwargs):
 #
 # listen for Team object save() and create its DST if it does not exist
 post_save.connect(create_dst_player, sender=Team)
+
+class TsxNews(sports.models.TsxNews):
+    """
+    inherits from sports.models.TsxXXX of the same name
+    """
+
+    class Meta:
+        abstract = False
+
+class TsxInjury(sports.models.TsxInjury):
+    """
+    inherits from sports.models.TsxXXX of the same name
+    """
+
+    class Meta:
+        abstract = False
+
+class TsxTransaction(sports.models.TsxTransaction):
+    """
+    inherits from sports.models.TsxXXX of the same name
+    """
+
+    class Meta:
+        abstract = False
+
+class TsxTeam(sports.models.TsxTeam):
+    """
+    inherits from sports.models.TsxXXX of the same name
+    """
+
+    class Meta:
+        abstract = False
+
+class TsxPlayer(sports.models.TsxPlayer):
+    """
+    inherits from sports.models.TsxXXX of the same name
+    """
+
+    class Meta:
+        abstract = False

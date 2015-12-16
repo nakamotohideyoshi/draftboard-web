@@ -456,3 +456,129 @@ class Pbp(models.Model):
                                           object_id_field='pbp_id' )
     class Meta:
         abstract = True
+
+class TsxContent(models.Model):
+
+    created         = models.DateTimeField(auto_now_add=True)
+    modified        = models.DateTimeField(auto_now=True)
+
+    srid            = models.CharField(max_length=256, null=False,
+                        help_text='use the right part url for the actual feed after splitting on "tsx". heres an example srid: "/news/2015/12/15/all.xml"')
+    sport           = models.CharField(max_length=32, null=False)
+
+    class Meta:
+        unique_together = ('srid','sport')
+
+# class Content(models.Model):
+#   - global id             # id of this item from sportradar
+#   - provider content id   # id of this item from the provider
+#   - created
+#   - updated
+#   - published         # not necessarily the 'created' time
+#
+#   - title             # string
+#   - byline            # string
+#   - dateline          # string
+#   - credit            # string
+#   - content           # long string
+#
+# class News(Content)
+# class Injury(Content)
+# class Transaction(Content)
+#
+# ---------
+#
+# class Ref(models.Model):
+#   - sportsdata_id           # for NFL, might be "CIN", or a global id
+#   - sportradar_id           # looks to alwasy be global id
+#   - name                    # 'Cincinnati Bengal' or 'Pierce, Paul' (if player)
+#   # - type                    # 'organization' | 'profile' determines if Team or Player
+#   - GFK to [News|Injury|Transaction]Content
+#
+# class Team(Ref)
+# class Player(Ref)
+class AbstractTsxItem(models.Model):
+
+    created         = models.DateTimeField(auto_now_add=True)
+    modified        = models.DateTimeField(auto_now=True)
+
+    srid            = models.CharField(max_length=64, null=False,
+                            help_text='the sportradar global id for the item')
+    pcid            = models.CharField(max_length=64, null=False,
+                            help_text='the providers content id for this item')
+
+    tsxcontent      = models.ForeignKey(TsxContent, null=False,
+                            related_name='%(app_label)s_%(class)s_tsxcontent')
+
+    content_created     = models.DateTimeField(null=False)
+    content_modified    = models.DateTimeField(null=False)
+    content_published   = models.DateTimeField(null=False)
+
+    title       = models.CharField(max_length=256, null=False)
+    byline      = models.CharField(max_length=256, null=False)
+    dateline    = models.CharField(max_length=32, null=False)
+    credit      = models.CharField(max_length=128, null=False)
+    content     = models.CharField(max_length=1024*8, null=False)
+
+    class Meta:
+        abstract = True
+
+class TsxNews(AbstractTsxItem):
+
+    # TODO - needs to get the fields of Content, and also be abstract
+
+    class Meta:
+        abstract = True
+
+class TsxInjury(AbstractTsxItem):
+
+    # TODO - needs to get the fields of Content, and also be abstract
+
+    class Meta:
+        abstract = True
+
+class TsxTransaction(AbstractTsxItem):
+
+    # TODO - needs to get the fields of Content, and also be abstract
+
+    class Meta:
+        abstract = True
+
+# class Ref(models.Model):
+#   - sportsdata_id           # for NFL, might be "CIN", or a global id
+#   - sportradar_id           # looks to alwasy be global id
+#   - name                    # 'Cincinnati Bengal' or 'Pierce, Paul' (if player)
+#   # - type                    # 'organization' | 'profile' determines if Team or Player
+#   - GFK to [News|Injury|Transaction]Content
+#
+# class Team(Ref)
+# class Player(Ref)
+
+class AbstractTsxItemReference(models.Model):
+
+    sportsdataid = models.CharField(max_length=64, null=False)
+    sportradarid = models.CharField(max_length=64, null=False)
+
+    name         = models.CharField(max_length=128, null=False)
+
+    # GenericForeignKey to be inherited by the child which should point to the Content
+    tsxitem_type     = models.ForeignKey(ContentType, related_name='%(app_label)s_%(class)s_tsxitem_tsxitemref')
+    tsxitem_id       = models.PositiveIntegerField()
+    tsxitem          = GenericForeignKey('tsxitem_type', 'tsxitem_id')
+
+    class Meta:
+        abstract = True
+
+class TsxTeam(AbstractTsxItemReference):
+
+    # TODO - make sure it get the TsxRef fields from inheriting
+
+    class Meta:
+        abstract = True
+
+class TsxPlayer(AbstractTsxItemReference):
+
+    # TODO - make sure it get the TsxRef fields from inheriting
+
+    class Meta:
+        abstract = True

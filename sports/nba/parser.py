@@ -3,13 +3,29 @@
 
 from django.db.utils import IntegrityError
 import sports.nba.models
-from sports.nba.models import Team, Game, Player, PlayerStats, \
-                                GameBoxscore, Pbp, PbpDescription, GamePortion
+from sports.nba.models import (
+    Team,
+    Game,
+    Player,
+    PlayerStats,
+    GameBoxscore,
+    Pbp,
+    PbpDescription,
+    GamePortion
+)
 
-from sports.sport.base_parser import AbstractDataDenParser, \
-                        DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
-                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
-                        DataDenPbpDescription, DataDenInjury
+from sports.sport.base_parser import (
+    AbstractDataDenParser,
+    DataDenTeamHierarchy,
+    DataDenGameSchedule,
+    DataDenPlayerRosters,
+    DataDenPlayerStats,
+    DataDenGameBoxscores,
+    DataDenTeamBoxscores,
+    DataDenPbpDescription,
+    DataDenInjury
+)
+
 from dataden.cache.caches import PlayByPlayCache
 from pymongo import DESCENDING
 from dataden.classes import DataDen
@@ -17,6 +33,7 @@ import json
 from push.classes import DataDenPush
 from django.conf import settings
 import push.classes
+from sports.sport.base_parser import TsxContentParser
 
 class TeamBoxscores(DataDenTeamBoxscores):
 
@@ -370,6 +387,14 @@ class DataDenNba(AbstractDataDenParser):
         #
         # nba.injury
         elif self.target == ('nba.injury','injuries'): Injury().parse( obj )
+
+        #
+        # nba.content - the master object with list of ids to the content items
+        elif self.target == ('nba.content', 'content'):
+            #
+            # get an instance of TsxContentParser('nba') to parse
+            # the Sports Xchange content
+            TsxContentParser(self.sport).parse( obj )
         #
         # default case, print this message for now
         else: self.unimplemented( self.target[0], self.target[1] )

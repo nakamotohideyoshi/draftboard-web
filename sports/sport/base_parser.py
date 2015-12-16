@@ -7,6 +7,7 @@ import json
 from django.contrib.contenttypes.models import ContentType
 from sports.models import SiteSport, Position
 from dataden.classes import DataDen
+import sports.classes
 
 class AbstractDataDenParser(object):
     """
@@ -775,6 +776,100 @@ class DataDenInjury(AbstractDataDenParseable):
 
         # subclass will need to perform the save() to create/update !
 
+class TsxContentParser(AbstractDataDenParseable):
+    """
+    Parses The Sports Xchange news, injuries, and transactions
+    from dataden objects into site models.
+
+    This is the base class for The Sports Xchange content
+    parsed from DataDen, ie: SportRadar.us
+
+    Details:
+
+        objects are content news items from tsx from 3 categories:
+              a) news
+              b) injury
+              c) transaction
+
+        here are the 2 properties that, in combination,
+        categorize the news items into one of the
+        three categories (news, injury, or transaction):
+              A) 'injury'
+              B) 'transaction'
+
+        the values determine the type of content object
+        we create in our own database:
+              1) 'injury' == True                             --> indicates injury content
+              2) 'transaction' == True                        --> indicates transaction content (like a trade)
+              3) 'injury' == False && 'transaction' == False  --> indicates general news content
+
+    """
+
+    def __init__(self, sport):
+        self.sport                  = sport
+        self.site_sport_manager     = sports.classes.SiteSportManager()
+
+        # content model classes
+        self.news_model_class       = self.site_sport_manager.get_tsxnews_class(self.sport)
+        self.injury_model_class     = self.site_sport_manager.get_tsxinjury_class(self.sport)
+        self.transaction_model_class = self.site_sport_manager.get_tsxtransaction_class(self.sport)
+
+        # content reference model classes (things that point to content)
+        self.team_model_class       = self.site_sport_manager.get_tsxteam_class(self.sport)
+        self.player_model_class     = self.site_sport_manager.get_tsxplayer_class(self.sport)
+
+    def parse(self, obj, target=None):
+        """
+
+        :param obj: the content object
+        :param target: a tuple in the form ( 'sport.collection', 'parent_api')
+        :return:
+        """
+        super().parse( obj, target )
+
+        pass # TODO implement
+        print('TsxContentParser!') # TODO remove this
+
+    def parse_item(self, item):
+        """
+        Parse a tsx item from dataden into its respective TsxContent parts
+
+        Example content item:
+
+            {'injury': 'false',
+             'transaction': 'true',
+             'refs__list': {
+                'ref__list': {
+                    'type': 'organization',
+                    'sportsdata_id': '583ec928-fb46-11e1-82cb-f4ce4684ea4c',
+                    'name': 'Detroit Pistons'
+                }
+             },
+             'dd_updated__id': 1450237938758,
+             'type': 'news',
+             'byline': 'The Sports Xchange',
+             'dateline': '12/14/2015',
+             'updated': '2015-12-15T01:19:43+00:00',
+             'content__id': 'http://api.sportsdatallc.org/content-nba-t3/tsx/news/2015/12/15/all.xml',
+             'parent_api__id': 'content',
+             'id': 'a3fd181c-5a98-48c7-9d02-061c7ec672f6',
+             'credit': 'The Sports Xchange',
+             'title': 'NBA Note - Detroit Pistons Dinwiddie, Spencer',
+             'content__list': {
+                'long': "G Spencer Dinwiddie was recalled from the Grand Rapids Drive of the NBA Development League. Dinwiddie has played in nine games for Detroit this season, averaging 4.4 points, 1.0 rebounds and 1.4 assists in 12.3 minutes per game. Dinwiddie had seven points with three rebounds and two assists in Sunday's game for Grand Rapids."
+             },
+             'provider__list': {
+                'provider_content_id': '001426155',
+                'original_publish': '2015-12-14T17:02:09+00:00',
+                'name': 'tsx'
+             },
+             'created': '2015-12-15T01:19:42+00:00'
+            }
+
+        :param item:
+        :return:
+        """
+        pass # TODO
 
 
 
