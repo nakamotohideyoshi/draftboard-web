@@ -203,7 +203,7 @@ class DataDenParser(object):
             parent_api  = t[2]
             trg = Trigger.create( db, coll, parent_api, enable=enable )
 
-    def setup(self, sport, async=False, replay=False):
+    def setup(self, sport, async=False, replay=False, force_triggers=None):
         """
         NOTE: This method should ONLY BE CALLED after dataden.jar has run
         and populated its own database for whatever sport you
@@ -224,6 +224,15 @@ class DataDenParser(object):
         be able to add whatever dataden triggers you would like.
 
         :param sport:
+        :param async:   False   - runs inline.
+                        True    - requires celery workers running to handle each object's parsing
+
+        :param replay:  False   - default.
+                        True    - if the replay is doing the setup.
+
+        :param force_triggers: set a list of 3-tuples of the triggers to use to setup stats.
+                                this effectively updates postgres with objects from dataden/mongo
+                                only for the specified triggers, ie: ('nba','game','boxscore')
         :return:
         """
 
@@ -234,6 +243,12 @@ class DataDenParser(object):
         triggers = self.DEFAULT_TRIGGERS
         if replay:
             triggers = self.REPLAY_MINIMAL_TRIGGERS
+
+        #
+        # if force_triggers is set, it overrides
+        if force_triggers is not None:
+            triggers = force_triggers
+
         #
         # the DEFAULT_TRIGGERS has each sport ordered to initialize it.
         #   parse the teams

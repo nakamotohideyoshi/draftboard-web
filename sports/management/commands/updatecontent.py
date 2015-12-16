@@ -4,6 +4,8 @@
 from django.utils import timezone
 from django.core.management.base import BaseCommand, CommandError
 from dataden.classes import DataDen
+from sports.parser import DataDenParser
+from sports.sport.base_parser import TsxContentParser
 
 class Command(BaseCommand):
     """
@@ -40,23 +42,24 @@ class Command(BaseCommand):
         site_sport  = None
         for sport in options['sport']:
 
-            # print the # of content items for this sport total to test
-            items = dd.find( sport, 'item', 'content' )
-            self.stdout.write('')
-            self.stdout.write('')
-            self.stdout.write('-------------------------- items -------------------------')
-            self.stdout.write('%+6s ... %+6s items'% (sport, str(items.count())))
-            # debug print the items
-            self.print_objects( items )
+            # # print the # of content items for this sport total to test
+            # items = dd.find( sport, 'item', 'content' )
+            # self.stdout.write('')
+            # self.stdout.write('')
+            # self.stdout.write('-------------------------- items -------------------------')
+            # self.stdout.write('%+6s ... %+6s items'% (sport, str(items.count())))
+            # # debug print the items
+            # self.print_objects( items )
 
             # the objects in the 'content' collection are the master objects with a list of all the item ids for a day
-            content = dd.find( sport, 'content', 'content' )
-            self.stdout.write('')
-            self.stdout.write('')
-            self.stdout.write('-------------------------- content -------------------------')
-            self.stdout.write('%+6s ... %+6s content master lists'% (sport, str(content.count())))
-            # debug print the items
-            self.print_objects( content )
+            # all_content = dd.find( sport, 'content', 'content' )
+            # self.stdout.write('')
+            # self.stdout.write('')
+            # self.stdout.write('-------------------------- content -------------------------')
+            # self.stdout.write('%+6s ... %+6s content master lists'% (sport, str(all_content.count())))
+            # # debug print the items
+            # self.print_objects( all_content )
+
 
             #
             # TODO - make the models
@@ -65,9 +68,21 @@ class Command(BaseCommand):
             #
             # TODO - parse the objects into their distinct things
             #       --> in progress
+            # content_parser = TsxContentParser( sport )
+            # for content_obj in all_content:
+            #     msg = content_parser.parse( content_obj )
+            #     self.stdout.write('')
+            #     self.stdout.write( msg )
+            #     self.stdout.write('')
 
             #
             # TODO - figure out the best way and/or place to hook up content text to sports.<sport>.models.Team / Player objects
+            #  ----> api call     (leave existing injury parsing doing what its doing)
+
+            #
+            # this is simply a test that parses ALL the content in DataDen/mongo for the sport
+            p = DataDenParser()
+            p.setup( sport, force_triggers=DataDenParser.CONTENT_TRIGGERS )
 
     def print_objects(self, items):
         pass
