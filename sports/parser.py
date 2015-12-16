@@ -34,10 +34,53 @@ class DataDenParser(object):
         'nfl' : sports.nfl.parser.DataDenNfl,
     }
 
-    REPLAY_MINIMAL_TRIGGERS = [ # TEST
+    REPLAY_MINIMAL_TRIGGERS = [
         ('nba','team','hierarchy'),     # 1
         ('nba','game','schedule'),      # 2
         ('nba','player','rosters'),     # 3
+    ]
+
+    #
+    # for all sports, the collection is
+    # called 'content' and so is the parent api!
+    # we need to handle this top level object
+    # being parsed so we can take care of the rest...
+    CONTENT_TRIGGERS = [
+        ('mlb','content','content'),
+        ('nba','content','content'),
+        ('nhl','content','content'),
+        ('nfl','content','content'),
+    ]
+
+    #
+    # the pbp objects are not something we want to enable by default,
+    # but we will want them to be enabled on the production /test/local
+    # machines at some point. They are specified in here,
+    #
+    # Enable the pbp triggers example:
+    #
+    #   >>> p = DataDenParser()
+    #   >>> p.setup_triggers( pbp=True )
+    #       ... or for just a particular sport...
+    #   >>> p.setup_triggers( sport='nfl', pbp=True )
+    #
+    PBP_TRIGGERS = [
+        #
+        # MLB
+        # TODO
+
+        #
+        # NBA    ... pbp quarter + event parsing:
+        ('nba','quarter','pbp'),        # parent of the following
+        ('nba','event','pbp'),          # contains the play data, including players
+
+        #
+        # NHL
+        # TODO
+
+        #
+        # NFL
+        # TODO
     ]
 
     #
@@ -77,39 +120,14 @@ class DataDenParser(object):
         ('nfl','game','boxscores'),
         ('nfl','team','stats'),
         ('nfl','team','boxscores'),
-        ('nfl','player','stats')
-    ]
-
-    #
-    # the pbp objects are not something we want to enable by default,
-    # but we will want them to be enabled on the production /test/local
-    # machines at some point. They are specified in here,
-    #
-    # Enable the pbp triggers example:
-    #
-    #   >>> p = DataDenParser()
-    #   >>> p.setup_triggers( pbp=True )
-    #       ... or for just a particular sport...
-    #   >>> p.setup_triggers( sport='nfl', pbp=True )
-    #
-    PBP_TRIGGERS = [
-        #
-        # MLB
-        # TODO
+        ('nfl','player','stats'),
 
         #
-        # NBA    ... pbp quarter + event parsing:
-        ('nba','quarter','pbp'),        # parent of the following
-        ('nba','event','pbp'),          # contains the play data, including players
-
-        #
-        # NHL
-        # TODO
-
-        #
-        # NFL
-        # TODO
-
+        # CONTENT TRIGGERS for The Sports Xchange news, injuries, transactions
+        ('mlb','content','content'),
+        ('nba','content','content'),
+        ('nhl','content','content'),
+        ('nfl','content','content'),
     ]
 
     def __init__(self):
@@ -439,3 +457,4 @@ class BoxscorePushStatPrinter(ObjectPrinter):
             self.print( boxscore.to_json(), 'example %s' % (str(n+1)) )
 
 #boxscore_printer = BoxscorePushStatPrinter()
+
