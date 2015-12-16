@@ -153,3 +153,43 @@ class PbpDescription(sports.models.PbpDescription):
 class Pbp(sports.models.Pbp):
     class Meta:
         abstract = False
+
+class TsxNews(sports.models.TsxNews):
+    """
+    inherits from sports.models.TsxXXX of the same name
+    """
+
+    class Meta:
+        abstract = False
+
+class TsxInjury(sports.models.TsxInjury):
+    """
+    inherits from sports.models.TsxXXX of the same name
+    """
+
+    class Meta:
+        abstract = False
+
+class TsxTransaction(sports.models.TsxTransaction):
+    """
+    inherits from sports.models.TsxXXX of the same name
+    """
+
+    class Meta:
+        abstract = False
+
+class TsxTeam(sports.models.TsxTeam):
+    """
+    inherits from sports.models.TsxXXX of the same name
+    """
+
+    class Meta:
+        abstract = False
+
+class TsxPlayer(sports.models.TsxPlayer):
+    """
+    inherits from sports.models.TsxXXX of the same name
+    """
+
+    class Meta:
+        abstract = False

@@ -3,10 +3,12 @@
 
 from dataden.util.timestamp import Parse as DataDenDatetime
 from dataden.cache.caches import PlayByPlayCache
+from django.db.transaction import atomic
 import json
 from django.contrib.contenttypes.models import ContentType
 from sports.models import SiteSport, Position
 from dataden.classes import DataDen
+import sports.classes
 
 class AbstractDataDenParser(object):
     """
@@ -774,7 +776,194 @@ class DataDenInjury(AbstractDataDenParseable):
         self.injury.player  = self.player
 
         # subclass will need to perform the save() to create/update !
+#
+# class ContentItemDb:
+#     """
+#     helper class to keep track of the model instances we have created
+#
+#     """
+#
+#     class Item
+#
+#     def __init__(self, tsxcontent):
+#         self.tsxcontent     = tsxcontent
+#         self.tsxitem_list   = []
+#
+#     def add_item(self, tsxitem):
+#         # initialize the item list if necessary
+#         if self.tsxitem_list is None:
+#             self.tsxitem_list = []
+#
+#         # save the reference to the tsxcontent instance
+#         tsxitem.tsxcontent = self.tsxcontent
+#
+#         # hold on to it
+#         self.tsxitem_list.append( tsxitem )
 
+class TsxContentParser(AbstractDataDenParseable):
+    """
+    Parses The Sports Xchange news, injuries, and transactions
+    from dataden objects into site models.
+
+    This is the base class for The Sports Xchange content
+    parsed from DataDen, ie: SportRadar.us
+
+    Details:
+
+        objects are content news items from tsx from 3 categories:
+              a) news
+              b) injury
+              c) transaction
+
+        here are the 2 properties that, in combination,
+        categorize the news items into one of the
+        three categories (news, injury, or transaction):
+              A) 'injury'
+              B) 'transaction'
+
+        the values determine the type of content object
+        we create in our own database:
+              1) 'injury' == True                             --> indicates injury content
+              2) 'transaction' == True                        --> indicates transaction content (like a trade)
+              3) 'injury' == False && 'transaction' == False  --> indicates general news content
+
+    """
+
+    class ContentObjectSportDoesNotMatchException(Exception): pass
+
+    def __init__(self, sport):
+        super().__init__()  # super().__init__(wrapped=True) # wrapped defaults to True
+
+        # we will need to be able to query DataDen/mongo
+        self.dd                     = DataDen()
+
+        # set the sport internally, and get the SiteSportManager
+        self.sport                  = sport
+        self.site_sport_manager     = sports.classes.SiteSportManager()
+
+        # the sports.sport.models.TsxContent model does not get inherited
+        self.content_model_class    = sports.models.TsxContent
+
+        # content model classes
+        self.news_model_class       = self.site_sport_manager.get_tsxnews_class(self.sport)
+        self.injury_model_class     = self.site_sport_manager.get_tsxinjury_class(self.sport)
+        self.transaction_model_class = self.site_sport_manager.get_tsxtransaction_class(self.sport)
+
+        # content reference model classes (things that point to content)
+        self.team_model_class       = self.site_sport_manager.get_tsxteam_class(self.sport)
+        self.player_model_class     = self.site_sport_manager.get_tsxplayer_class(self.sport)
+
+    def parse(self, content_obj, target=None):
+        """
+
+        :param obj: the content object
+        :param target: defaults to None. Can be a tuple in the form:
+                        ('sport.collection', 'parent_api')
+        :return: a 3-tuple in the form:    ( tsxcontent, tsxitems, tsxrefs )
+                    'tsxcontest' the the model instance for the content
+                    'tsxitems' is a list of every TsxItem (... ie TsxNews, TsxInjury, or TsxTransaction objects)
+                    'tsxrefs' is a list of every TsxTeam or TsxPlayer for each TsxItem
+        """
+        super().parse( content_obj, target )
+
+        # now self.o is the data we want
+
+        #
+        # validity check to make sure were using
+        # the right sport model classes for the content object
+        if self.sport != self.o.get('sport'):
+            err_msg = 'self.sport: %s  !=  self.o.get("sport"): %s' % (self.sport, str(self.o.get('sport')))
+            raise self.ContentObjectSportDoesNotMatchException(err_msg)
+
+        #
+        # save the TsxContent object in the db (uses self.o for the data)
+        tsxcontent  = self.get_or_create_tsxcontent()       # subsequent methods require the TsxContent be built first
+        tsxitems    = self.update_tsxitems( tsxcontent )    # update its items
+        tsxrefs     = self.update_tsxrefs( tsxitems )       # update the item references
+
+        #
+        # return the created and/or update models in a 3-tuple!
+        return (tsxcontent, tsxitems, tsxrefs)
+
+    def get_or_create_tsxcontent(self):
+        #
+        # get or create the TsxContent model instance
+        srid = self.o.get('id')
+        content_model, c = self.content_model_class.objects.get_or_create(sport=self.sport, srid=srid)
+        return content_model, c
+
+    def update_tsxitems(self, tsxcontent):
+        #
+        # get all the content items associated with this content object
+        content_items = self.dd.find(self.sport, 'item', 'content', {'content__id':tsxcontent.srid})
+
+        # parse all the content items for the tsxcontent
+        tsxitem_list = []
+        for item_obj in content_items:
+            tsxitem = self.parse_item( item_obj )
+            tsxitem_list.append( tsxitem )
+        return tsxitem_list
+
+    def update_tsxrefs(self, tsxitems):
+        pass # TODO
+
+    def parse_item(self, item_obj):
+        """
+        Parse a tsx item from dataden into its respective TsxContent parts
+
+        Example item_obj:
+
+            {'injury': 'false',
+             'transaction': 'true',
+             'refs__list': {
+                'ref__list': {
+                    'type': 'organization',
+                    'sportsdata_id': '583ec928-fb46-11e1-82cb-f4ce4684ea4c',
+                    'name': 'Detroit Pistons'
+                }
+             },
+             'dd_updated__id': 1450237938758,
+             'type': 'news',
+             'byline': 'The Sports Xchange',
+             'dateline': '12/14/2015',
+             'updated': '2015-12-15T01:19:43+00:00',
+             'content__id': 'http://api.sportsdatallc.org/content-nba-t3/tsx/news/2015/12/15/all.xml',
+             'parent_api__id': 'content',
+             'id': 'a3fd181c-5a98-48c7-9d02-061c7ec672f6',
+             'credit': 'The Sports Xchange',
+             'title': 'NBA Note - Detroit Pistons Dinwiddie, Spencer',
+             'content__list': {
+                'long': "G Spencer Dinwiddie was recalled from the Grand Rapids Drive of the NBA Development League. Dinwiddie has played in nine games for Detroit this season, averaging 4.4 points, 1.0 rebounds and 1.4 assists in 12.3 minutes per game. Dinwiddie had seven points with three rebounds and two assists in Sunday's game for Grand Rapids."
+             },
+             'provider__list': {
+                'provider_content_id': '001426155',
+                'original_publish': '2015-12-14T17:02:09+00:00',
+                'name': 'tsx'
+             },
+             'created': '2015-12-15T01:19:42+00:00'
+            }
+
+        :param item_obj:
+        :return: a new/updated TsxItem instance
+        """
+
+        pass # TODO
+
+
+    def parse_item_news(self, news):
+        pass # TODO
+
+    def parse_item_injury(self, injury):
+        pass # TODO
+
+    def parse_item_transaction(self, transaction):
+        pass # TODO
+
+    def parse_team(self, team):
+        pass # TODO
+
+    def parse_player(self, player):
+        pass # TODO
 
 
 
