@@ -45,7 +45,7 @@ class AbstractContest(models.Model):
     # combination of UPCOMING & LIVE for the main contest lobby
     STATUS_LOBBY_CONTESTS = []
     STATUS_LOBBY_CONTESTS += STATUS_UPCOMING
-    STATUS_LOBBY_CONTESTS += STATUS_LIVE
+    #STATUS_LOBBY_CONTESTS += STATUS_LIVE
 
     # this status, which contains LIVE and UPCOMING contests, will be used
     # primarily for deciding which Lineups/ Entries we care about in api endpoints.
