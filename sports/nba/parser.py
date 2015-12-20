@@ -240,7 +240,7 @@ class QuarterPbp(DataDenPbpDescription):
 
         events = self.o.get('events__list', [])
 
-        print('events__list count: %s' % str(len(events)))
+        #print('events__list count: %s' % str(len(events)))
 
         idx = 0
         for event_json in events:
@@ -285,22 +285,24 @@ class EventPbp(DataDenPbpDescription):
             # DataDenNba.parse() | nba.event pbp {'updated': '2015-06-17T03:58:49+00:00', 'parent_list__id': 'events__list', 'possession': '583ec825-fb46-11e1-82cb-f4ce4684ea4c', 'dd_updated__id': 1441316758302, 'parent_api__id': 'pbp', 'clock': '00:00', 'description': 'End of 4th Quarter.', 'event_type': 'endperiod', 'quarter__id': '37d8a2b0-eb65-431d-827f-1c25396a3f1f', 'game__id': '63aa3abe-c1c2-4d69-8d0f-5e3e2f263470', 'id': '3688ff8b-f056-412f-9189-7f123073217f', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDYzYWEzYWJlLWMxYzItNGQ2OS04ZDBmLTVlM2UyZjI2MzQ3MHF1YXJ0ZXJfX2lkMzdkOGEyYjAtZWI2NS00MzFkLTgyN2YtMWMyNTM5NmEzZjFmcGFyZW50X2xpc3RfX2lkZXZlbnRzX19saXN0aWQzNjg4ZmY4Yi1mMDU2LTQxMmYtOTE4OS03ZjEyMzA3MzIxN2Y='}
             # pbp_description_model: <class 'sports.nba.models.PbpDescription'> srid: 3688ff8b-f056-412f-9189-7f123073217f
             # ... got it: PbpDescription object pk: 461
-            print( '>>>>>>', str(self.o) )
+            #print( '>>>>>>', str(self.o) )
             description = self.o.get('description', None)
-            print( 'description:', str(description))
+            #print( 'description:', str(description))
             if pbp_desc.description != description:
                 # only save it if its changed
-                print( '...... saving it because it doesnt match the description we currently have (must have changed)')
+                #print( '...... saving it because it doesnt match the description we currently have (must have changed)')
                 pbp_desc.description = description
                 pbp_desc.save()
-                print( 'before:', str(pbp_desc.description))
+                #print( 'before:', str(pbp_desc.description))
                 pbp_desc.refresh_from_db()
-                print( 'after:', str(pbp_desc.description))
+                #print( 'after:', str(pbp_desc.description))
 
             else:
-                print( '...... not saving description because it matches what we currently have.')
+                #print( '...... not saving description because it matches what we currently have.')
+                pass
         else:
-            print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
+            #print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
+            pass
 
 class Injury(DataDenInjury):
 
