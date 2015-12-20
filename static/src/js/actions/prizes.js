@@ -1,6 +1,6 @@
-"use strict"
-
-import request from 'superagent'
+// so we can use Promises
+import 'babel-core/polyfill'
+const request = require('superagent-promise')(require('superagent'), Promise)
 import { normalize, Schema, arrayOf } from 'normalizr'
 
 import * as ActionTypes from '../action-types'
@@ -35,16 +35,13 @@ function fetchPrize(id) {
   return dispatch => {
     dispatch(requestPrize(id))
 
-    request
-      .get('/api/prize/' + id + '/')
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          // TODO
-        } else {
-          dispatch(receivePrize(id, res.body))
-        }
+    return request.get(
+      '/api/prize/' + id + '/'
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'Accept': 'application/json'
+    }).then(function(res) {
+      return dispatch(receivePrize(id, res.body))
     })
   }
 }
@@ -64,7 +61,7 @@ export function fetchPrizeIfNeeded(id) {
     if (shouldFetchPrize(getState(), id)) {
       return dispatch(fetchPrize(id))
     } else {
-      return Promise.reject('Prize already exists')
+      return Promise.resolve('Prize already exists')
     }
   }
 }

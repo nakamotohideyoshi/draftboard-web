@@ -109,7 +109,8 @@
       username: "{{ user.username }}",
       is_staff: {{ user.is_staff|lower }},
       cash_balance: {% if user.cash_balance %}{{ user.cashbalance }}{% else %}0{% endif %},
-      pusher_key: "{{ PUSHER_KEY }}"
+      pusher_key: "{{ PUSHER_KEY }}",
+      pusher_channel_prefix: "{{ PUSHER_CHANNEL_PREFIX }}"
     }
   };
   </script>

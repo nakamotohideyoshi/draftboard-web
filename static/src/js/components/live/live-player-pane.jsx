@@ -15,50 +15,58 @@ import store from '../../store'
 const LivePlayerPane = React.createClass({
 
   propTypes: {
-    player: React.PropTypes.object,
-    side: React.PropTypes.string
+    player: React.PropTypes.object.isRequired,
+    whichSide: React.PropTypes.string.isRequired,
+    boxScore: React.PropTypes.object
   },
 
   closePane: function() {
-    AppActions.closePlayerPane(this.props.side)
+    console.log('LivePlayerPane.closePane()')
+    this.props.whichSide === 'opponent' ? AppActions.closePlayerPane('right') : AppActions.closePlayerPane('left')
   },
 
   renderStatsAverage: function() {
-    const { stats } = this.props.player
-    let statsHTML = stats.map((stats) => {
-      const { name, score } = stats
-      return (
-        <li>
-          <div className='stat-name'>{ name }</div>
-          <div className='stat-score'>{ score }</div>
-        </li>
-      )
-    })
+    const player = this.props.player
+    let fp = 0
+
+    if (player.stats !== undefined) {
+      fp = player.stats.fp
+    }
 
     return (
       <div className='live-player-pane__player-stats'>
-        <ul>{ statsHTML }</ul>
+        <ul>
+          <li>
+            <div className='stat-name'>{ player.info.name }</div>
+            <div className='stat-score'>{ fp }</div>
+          </li>
+        </ul>
       </div>
     )
   },
 
   renderCurrentGame: function() {
-    const { game } = this.props.player
+    const player = this.props.player
+    const boxScore = this.props.boxScore
+
+    if (boxScore === undefined) {
+      return (<div className='live-player-pane__current-game' />)
+    }
 
     return (
       <div className='live-player-pane__current-game'>
         <div>
           <div className='live-player-pane__current-game__team1'>
-            <div className='live-player-pane__current-game__team1__points'>{ game.teamA.points }</div>
-            <div><img src={ game.teamA.logo } className='live-player-pane__current-game__team-logo' /></div>
+            <div className='live-player-pane__current-game__team1__points'>{ boxScore.fields.home_score }</div>
+            <div><img src="" className='live-player-pane__current-game__team-logo' /></div>
           </div>
           <div className='live-player-pane__current-game__time'>
-            <div className='live-player-pane__current-game__time__timer'>{ game.time }</div>
-            <div className='live-player-pane__current-game__time__period'>{ game.part }</div>
+            <div className='live-player-pane__current-game__time__timer'>{ boxScore.fields.clock }</div>
+            <div className='live-player-pane__current-game__time__period'>{ boxScore.fields.quarter } quarter</div>
           </div>
           <div className='live-player-pane__current-game__team2'>
-            <div className='live-player-pane__current-game__team1__points'>{ game.teamB.points }</div>
-            <img src={ game.teamB.logo } className='live-player-pane__current-game__team-logo' />
+            <div className='live-player-pane__current-game__team1__points'>{ boxScore.fields.away_score }</div>
+            <img src="" className='live-player-pane__current-game__team-logo' />
           </div>
         </div>
       </div>
@@ -66,11 +74,75 @@ const LivePlayerPane = React.createClass({
   },
 
   renderActivities: function() {
-    const { activities } = this.props.player
+    const activities = [
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      },
+      {
+        'description': "Lebron James assists Russel Westbrook's 3-pointer",
+        'points': '+2',
+        'time': '4:13 - 4th'
+      }
+    ]
+
+    let index = 0
     let activitiesHTML = activities.map((activity) => {
+      index += 1
       const { points, description, time } = activity
       return (
-        <li className='activity'>
+        <li className='activity' key={index}>
           <div className='points-gained'>{points}</div>
           <div className='activity-info'>
             {description}
@@ -89,11 +161,25 @@ const LivePlayerPane = React.createClass({
   },
 
   renderHeader: function() {
-    const { name, position, pts, owned, img } = this.props.player
+    const player = this.props.player
+    const boxScore = this.props.boxScore
+    let percentageTimeRemaining = 1
+    let fp = 0
+
+    // if the game has not started
+    if (boxScore !== undefined) {
+      percentageTimeRemaining = boxScore.fields.timeRemaining / 48
+    }
+
+    if (player.stats !== undefined) {
+      fp = player.stats.fp
+    }
+
+
     return (
       <div className='live-player-pane__header'>
-        <div className='live-player-pane__header__team-role'>{ position }</div>
-        <div className='live-player-pane__header__name'>{ name }</div>
+        <div className='live-player-pane__header__team-role'>{ player.info.position }</div>
+        <div className='live-player-pane__header__name'>{ player.info.name }</div>
 
         <div className='live-player-pane__header__pts-stats'>
             <div className="live-player-pane__header__pts-stats__info">
@@ -107,23 +193,24 @@ const LivePlayerPane = React.createClass({
 
               <div className="live-player-pane__header__pts-stats__info__insvg">
                 <p>pts</p>
-                <p>{ pts }</p>
+                <p>{ fp }</p>
               </div>
             </div>
 
             <div className="live-player-pane__header__pts-stats__info">
               <p>% owned</p>
-              <p>{ owned }</p>
+              <p>18</p>
             </div>
 
-            <img className="live-player-pane__header__player-image" src={ img } />
+            <img className="live-player-pane__header__player-image" src="" />
         </div>
       </div>
     )
   },
 
   render: function() {
-    let classNames = 'live-pane live-pane--' + this.props.side + ' live-pane-player--' + this.props.side
+    const side = this.props.whichSide === 'opponent' ? 'right' : 'left'
+    let classNames = 'live-pane live-pane--' + side + ' live-pane-player--' + side
 
     return (
       <div className={classNames}>

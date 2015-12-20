@@ -88,9 +88,8 @@ export const liveContestsStatsSelector = createSelector(
   state => state.entries.hasRelatedInfo,
 
   (contests, draftGroups, prizes, hasRelatedInfo) => {
-    log.debug('selectors.liveContestsStatsSelector')
-
     if (hasRelatedInfo === false) {
+      // log.debug('selectors.liveContestsStatsSelector() - not ready')
       return {}
     }
 
@@ -121,6 +120,8 @@ export const liveContestsStatsSelector = createSelector(
 
       contestsStats[id] = stats
     })
+
+    log.debug('selectors.liveContestsStatsSelector() - updated')
 
     return contestsStats
   }

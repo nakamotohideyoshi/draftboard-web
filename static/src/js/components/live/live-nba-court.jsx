@@ -7,18 +7,24 @@ import LiveNBACourtShooter from'./live-nba-court-shooter'
  * The court in the middle of the page
  */
 var LiveNBACourt = React.createClass({
-  render: function() {
-    // var currentEvents = Object.keys(LiveNBAStore.data.courtEvents).map(function(key) {
-    // var event = LiveNBAStore.data.courtEvents[key];
+  propTypes: {
+    courtEvents: React.PropTypes.object.isRequired
+  },
 
-    //   return (
-    //     <LiveNBACourtShooter key={ event.id } x={ event.location.coord_x } y={ event.location.coord_y } />
-    //   );
-    // });
+  render() {
+    const self = this
+    const currentEvents = Object.keys(self.props.courtEvents).map(function(key) {
+      const event = self.props.courtEvents[key];
 
-    // { currentEvents }
+      return (
+        <LiveNBACourtShooter key={ event.id } x={ event.location.coord_x } y={ event.location.coord_y } />
+      );
+    });
+
+    { currentEvents }
     return (
       <section className="cmp-live__court live-nba-court">
+        { currentEvents }
       </section>
     );
   }
