@@ -10,7 +10,7 @@
   top: $nav-scoreboard-height;
   transition: right 230ms cubic-bezier(.8,.16,.18,.85);
   width: $live-pane-width;
-  z-index: $zindex-modal + 1;
+  z-index: $zindex-modal + 4001;
 
   &--right {
     right: -$live-pane-width;

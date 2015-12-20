@@ -17,7 +17,6 @@ const LiveLineupSelectModal = React.createClass({
 
   propTypes: {
     lineups: React.PropTypes.object.isRequired,
-    mode: React.PropTypes.object.isRequired,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func
   },
@@ -75,8 +74,6 @@ const LiveLineupSelectModal = React.createClass({
   },
 
   selectLineup: function(lineup) {
-    const mode = this.props.mode
-
     this.props.updatePath(vsprintf('/live/lineups/%d/', [lineup.id]))
     this.props.updateLiveMode({
       type: 'lineup',

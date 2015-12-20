@@ -15,11 +15,15 @@ class PlayerSerializer(serializers.ModelSerializer):
     def get_team_srid(self, draft_group_player):
         return draft_group_player.game_team.team_srid
 
+    player_srid = serializers.SerializerMethodField()
+    def get_player_srid(self, draft_group_player):
+        return draft_group_player.player.srid
+
     class Meta:
         model = Player
         fields = ('player_id', 'name', 'salary',
                   'start', 'position', 'fppg',
-                  'team_alias', 'game_srid', 'team_srid')
+                  'team_alias', 'game_srid', 'team_srid', 'player_srid')
 
 class AbstractDraftGroupSerializer(serializers.ModelSerializer):
     """
