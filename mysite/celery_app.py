@@ -185,6 +185,14 @@ app.conf.update(
             'task'      : 'contest.tasks.notifiy_admin_contests_require_draft_group',
             'schedule': timedelta(hours=12),
         },
+
+        #
+        # add the refund&canceller for newly "live" games that should be cancelled.
+        'refund_and_cancel_live_contests_task' : {
+            'task'      : 'contest.refund.tasks.refund_and_cancel_live_contests_task',
+            'schedule': timedelta(minutes=5),
+        },
+
     },
 
     CELERY_ENABLE_UTC = True,

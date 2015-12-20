@@ -28,6 +28,8 @@ def refund_task(self, contest):
 @app.task(bind=True)
 def refund_and_cancel_live_contests_task(self):
     """
+    This task will only cancel contests where: current entries < total entries
+
     This task will only refund and cancel entries in LiveContest which are NON-Gpp Contests
     and which did not fill reach the maximum entries.
 
@@ -36,7 +38,8 @@ def refund_and_cancel_live_contests_task(self):
 
     contests = LiveContest.objects.all()
     for contest in contests:
-        refund_task.delay( contest )
+        if contest.current_entries < contest.entries:
+            refund_task.delay( contest )
 
 
 

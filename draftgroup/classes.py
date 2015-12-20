@@ -3,7 +3,7 @@
 
 from django.dispatch import receiver
 import mysite.exceptions
-from .exceptions import EmptySalaryPoolException
+from .exceptions import EmptySalaryPoolException, NotEnoughGamesException, NoGamesAtStartTimeException
 from django.db.transaction import atomic
 from .models import DraftGroup, Player, GameTeam
 from sports.models import Game, SiteSport, GameStatusChangedSignal
@@ -323,6 +323,13 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         # games = game_model.objects.filter( start__in=range(start, end) )
         if len(games) == 0:
             raise mysite.exceptions.NoGamesInRangeException('there are ZERO games in [%s until %s]' % (start, end))
+        elif len(games) < 2:
+            raise NotEnoughGamesException()
+
+        #
+        # throw an exception if the specified start time does not coincide with any games
+        if game_model.objects.filter( start=start ).count() == 0:
+            raise NoGamesAtStartTimeException()
 
         # method returns a Salary object from which we can
         #   - get_pool()  - get the salary.models.Pool
