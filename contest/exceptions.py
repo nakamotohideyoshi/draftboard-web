@@ -27,3 +27,8 @@ class ContestIsNotAcceptingLineupsException(Exception):
     def __init__(self):
         super().__init__(
            "The contest is not accepting lineups. Please try again later." )
+
+class ContestCanNotBeRefunded(Exception):
+    def __init__(self):
+        super().__init__(
+           "The contest is either a GPP, or in a state that prevents it from being cancelled and refunded!" )

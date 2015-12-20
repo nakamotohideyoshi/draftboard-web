@@ -1,11 +1,14 @@
+#
+# contest/refund/classes.py
+
 from mysite.classes import AbstractManagerClass
-from ..models import Entry, Contest
+from ..models import Entry, Contest, LiveContest
 from contest.buyin.classes import BuyinManager
 from ticket.classes import TicketManager
 from cash.classes import CashTransaction
 from .models import Refund
 from django.db.transaction import atomic
-from ..exceptions import ContestIsInProgressOrClosedException
+from ..exceptions import ContestCanNotBeRefunded
 
 class RefundManager(AbstractManagerClass):
     """
@@ -29,7 +32,7 @@ class RefundManager(AbstractManagerClass):
 
 
     @atomic
-    def refund(self, contest):
+    def refund(self, contest, force=False):
         """
         Task that refunds all contest entries and sets the contest to Cancelled.
 
@@ -44,10 +47,9 @@ class RefundManager(AbstractManagerClass):
         """
         self.validate_arguments(contest)
 
-        # verify the contest is the correct status
-        if contest.status not in Contest.STATUS_UPCOMING:
-            raise ContestIsInProgressOrClosedException()
-
+        # the contest
+        if contest not in LiveContest.objects.all():
+            raise ContestCanNotBeRefunded()
 
         #
         # get all entries for a contest
