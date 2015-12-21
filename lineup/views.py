@@ -139,10 +139,11 @@ class EditLineupAPIView(generics.CreateAPIView):
         #print( request.data )
         lineup_id   = request.data.get('lineup')
         players     = request.data.get('players', [])
+        name        = request.data.get('name','')
 
         #
         # call task
-        task_result = edit_lineup.delay()
+        task_result = edit_lineup.delay(request.user, players, lineup_id)
 
         return Response('lineup created')
 

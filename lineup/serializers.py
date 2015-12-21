@@ -114,3 +114,5 @@ class EditLineupSerializer(serializers.Serializer):
     players = serializers.ListField(
         child=serializers.IntegerField(min_value=0, max_value=9999999)
     )
+
+    name = serializers.CharField()
