@@ -14,11 +14,14 @@ const middleware = require('./middleware');
 // import persistState from 'redux-localstorage'
 // const createPersistentStore = compose(
 //   persistState([
+//     'currentBoxScores',
+//     'currentDraftGroups',
 //     'currentLineups',
 //     'entries',
 //     'liveContests',
 //     'liveDraftGroups',
-//     'prizes'
+//     'prizes',
+//     'sports'
 //   ])
 // )(middleware.createStoreWithMiddleware)
 // module.exports = createPersistentStore(reducers)

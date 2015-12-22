@@ -1,4 +1,6 @@
 import _ from 'lodash'
+// so we can use Promises
+import 'babel-core/polyfill'
 const request = require('superagent-promise')(require('superagent'), Promise)
 
 import * as ActionTypes from '../action-types'

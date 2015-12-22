@@ -4,6 +4,7 @@ import { filter as _filter } from 'lodash'
 import { map as _map } from 'lodash'
 import { reduce as _reduce } from 'lodash'
 import { forEach as _forEach } from 'lodash'
+import { union as _union } from 'lodash'
 
 import log from '../lib/logging'
 
@@ -11,6 +12,20 @@ import log from '../lib/logging'
 // Input Selectors
 import { liveContestsStatsSelector } from './live-contests'
 import { currentLineupsStatsSelector } from './current-lineups'
+
+
+function addPlayersDetails(lineup) {
+  const currentPlayers = {}
+  _forEach(lineup.roster, (playerId) => {
+    currentPlayers[playerId] = {
+      id: playerId,
+      info: lineup.draftGroup.playersInfo[playerId],
+      stats: lineup.draftGroup.playersStats[playerId]
+    }
+  })
+
+  return currentPlayers
+}
 
 
 // returns:
@@ -51,28 +66,48 @@ export const liveSelector = createSelector(
   state => state.entries.hasRelatedInfo,
 
   (contestStats, currentLineupsStats, mode, hasRelatedInfo) => {
-    log.debug('selectors.liveStatsSelector')
-
-    let stats = {
-      lineups: {}
+    if (hasRelatedInfo === false) {
+      // log.debug('selectors.liveStatsSelector() - not ready')
+      return {}
     }
 
-    // return if the data hasn't loaded yet
-    if (hasRelatedInfo === false) {
-      return {}
+    let stats = {
+      lineups: {},
+      relevantGames: [],
+      relevantPlayers: []
     }
 
     if (mode.myLineupId) {
       stats.lineups.mine = currentLineupsStats[mode.myLineupId]
+      stats.lineups.mine.rosterDetails = addPlayersDetails(stats.lineups.mine)
+
+      stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.mine.rosterDetails, (player) => {
+        return player.info.game_srid
+      }))
+
+      stats.relevantPlayers = _union(stats.relevantPlayers, _map(stats.lineups.mine.rosterDetails, (player) => {
+        return player.info.player_srid
+      }))
     }
 
     if (mode.opponentLineupId) {
       stats.lineups.opponent = currentLineupsStats[mode.opponentLineupId]
+      stats.lineups.opponent.rosterDetails = addPlayersDetails(stats.lineups.opponent)
+
+      stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.opponent.rosterDetails, (player) => {
+        return player.info.game_srid
+      }))
+
+      stats.relevantPlayers = _union(stats.relevantPlayers, _map(stats.lineups.opponent.rosterDetails, (player) => {
+        return player.info.player_srid
+      }))
     }
 
     if (mode.contestId) {
       stats.contest = contestStats[mode.contestId]
     }
+
+    log.debug('selectors.liveStatsSelector() - updated')
 
     return stats
   }

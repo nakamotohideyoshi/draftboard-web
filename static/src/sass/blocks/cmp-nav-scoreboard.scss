@@ -248,11 +248,24 @@ $nav-scoreboard-foreground-color: #25A758;
         display: inline-block;
         margin-right: 30px;
       }
+      &--is-live {
+        .left {
+          margin-right: 10px;
+        }
+      }
+
+      .scores {
+        display: inline-block;
+        margin-right: 10px;
+      }
 
       .right {
         font-size: 11px;
         display: inline-block;
         color: $nav-scoreboard-secondary-font-color;
+        position: relative;
+        line-height: 16px;
+        top: -1px;
       }
     }
   }

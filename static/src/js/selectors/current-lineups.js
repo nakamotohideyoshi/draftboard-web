@@ -25,9 +25,9 @@ export const currentLineupsStatsSelector = createSelector(
   state => state.entries.hasRelatedInfo,
 
   (contestsStats, liveContests, liveDraftGroups, entries, lineups, hasRelatedInfo) => {
-    log.debug('selectors.currentLineupsStatsSelector')
 
     if (hasRelatedInfo === false) {
+      // log.debug('selectors.currentLineupsStatsSelector() - not ready')
       return {}
     }
 
@@ -87,6 +87,8 @@ export const currentLineupsStatsSelector = createSelector(
 
       liveLineupsStats[lineup.id] = stats
     })
+
+    log.debug('selectors.currentLineupsStatsSelector() - updated')
 
     return liveLineupsStats
   }

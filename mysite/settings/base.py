@@ -62,6 +62,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'cash.withdraw.context_processors.model_badges',
                 'mysite.context_processors.pusher_key',
+                'mysite.context_processors.pusher_channel_prefix',
             )
         }
     },

@@ -6,6 +6,8 @@ import createBrowserHistory from 'history/lib/createBrowserHistory'
 import { syncReduxAndRouter } from 'redux-simple-router'
 import { updatePath } from 'redux-simple-router'
 import { vsprintf } from 'sprintf-js'
+import Pusher from 'pusher-js'
+import _ from 'lodash'
 
 import * as AppActions from '../../stores/app-state-store'
 import errorHandler from '../../actions/live-error-handler'
@@ -14,13 +16,15 @@ import LiveLineup from './live-lineup'
 import LiveLineupSelectModal from './live-lineup-select-modal'
 import LiveNBACourt from './live-nba-court'
 import LiveOverallStats from './live-overall-stats'
-import LivePlayerPaneConnected from '../live/live-player-pane'
 import LiveStandingsPaneConnected from '../live/live-standings-pane'
+import log from '../../lib/logging'
 import store from '../../store'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
 import { liveSelector } from '../../selectors/live'
+import { updatePlayerFP } from '../../actions/live-draft-groups'
 import { updateLiveMode } from '../../actions/live'
+import { updateBoxScore } from '../../actions/current-box-scores'
 
 
 const history = createBrowserHistory()
@@ -36,6 +40,7 @@ syncReduxAndRouter(history, store)
 var Live = React.createClass({
 
   propTypes: {
+    currentBoxScores: React.PropTypes.object.isRequired,
     liveContests: React.PropTypes.object.isRequired,
     liveContestsStats: React.PropTypes.object.isRequired,
     currentLineups: React.PropTypes.object.isRequired,
@@ -46,13 +51,25 @@ var Live = React.createClass({
     params: React.PropTypes.object,
     prizes: React.PropTypes.object,
     entries: React.PropTypes.object,
+    updateBoxScore: React.PropTypes.func,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func
   },
 
 
+  getInitialState() {
+    return {
+      // Selected option string. SEE: `getSelectOptions`
+      playersPlaying: [],
+      gameQueues: {},
+      courtEvents: {}
+    }
+  },
+
+
   componentWillMount: function() {
-    const urlParams = this.props.params
+    const self = this
+    const urlParams = self.props.params
 
     if ('myLineupId' in urlParams) {
       let newMode = {
@@ -69,10 +86,306 @@ var Live = React.createClass({
         }
       }
 
-      this.props.updateLiveMode(newMode)
+      self.props.updateLiveMode(newMode)
     }
 
-    // fetchEntriesIfNeeded is called in NavScoreboard component
+    self.listenToSockets()
+  },
+
+
+  listenToSockets() {
+    log.debug('listenToSockets()')
+    const self = this
+
+    // NOTE: this really bogs down your console
+    // Pusher.log = function(message) {
+    //   if (window.console && window.console.log) {
+    //     window.console.log(message);
+    //   }
+    // };
+
+    const pusher = new Pusher(window.dfs.user.pusher_key, {
+      encrypted: true
+    })
+
+    const channelPrefix = window.dfs.user.pusher_channel_prefix.toString()
+    const nbaPBPChannel = pusher.subscribe(channelPrefix + 'nba_pbp')
+    nbaPBPChannel.bind('event', (eventData) => {
+      self.onPBPReceived(eventData)
+    })
+
+    const nbaStatsChannel = pusher.subscribe(channelPrefix + 'nba_stats')
+    nbaStatsChannel.bind('player', (eventData) => {
+      self.onStatsReceived(eventData)
+    })
+
+    const boxscoresChannel = pusher.subscribe(channelPrefix + 'boxscores')
+    boxscoresChannel.bind('team', (eventData) => {
+      self.onBoxscoreReceived(eventData)
+    })
+  },
+
+
+  onStatsReceived(eventCall) {
+    log.debug('onBoxscoreReceived()')
+    const self = this
+    const gameId = eventCall.srid_game
+
+    // for now, only use calls once data is loaded
+    if (self.props.entries.hasRelatedInfo === false) {
+      return
+    }
+
+    // if relevant game, then add to game queue
+    if (self.props.liveSelector.relevantGames.indexOf(gameId) === -1) {
+      // copy to keep immutable
+      let gameQueues = Object.assign({}, self.state.gameQueues)
+      // get game queue related to event
+      let gameQueue = {
+        isRunning: false,
+        queue: []
+      }
+      if (gameId in gameQueues) {
+        gameQueue = gameQueues[gameId]
+      }
+
+      // add in new event to the end of the queue
+      gameQueue.queue.push({
+        type: 'stats',
+        event: eventCall
+      })
+      gameQueues[gameId] = gameQueue
+      self.setState({gameQueues: gameQueues})
+
+      // if the queue isn't already running, start it up
+      if (gameQueue.isRunning === false) {
+        self.popOldestGameEvent(gameId)
+      }
+
+      return
+    }
+
+    // otherwise just update the player's FP
+    self.props.updatePlayerFP(
+      self.props.liveSelector.lineups.mine.draftGroup.id,
+      eventCall.fields.player_id,
+      eventCall.fields.points
+    )
+  },
+
+
+  onBoxscoreReceived(eventCall) {
+    log.debug('onBoxscoreReceived()')
+    const self = this
+
+    // for now, only use calls once data is loaded
+    if (self.props.entries.hasRelatedInfo === false) {
+      return
+    }
+
+    // check that it's a boxscore we care about
+    if (eventCall.game__id in self.props.currentBoxScores === false || 'points' in eventCall === false) {
+      log.debug('onBoxscoreReceived() - not a relevant event', eventCall)
+      return false
+    }
+
+    // copy to keep immutable
+    let gameQueues = Object.assign({}, self.state.gameQueues)
+    const gameId = eventCall.game__id
+
+    // get game queue related to event
+    let gameQueue = {
+      isRunning: false,
+      queue: []
+    }
+    if (gameId in gameQueues) {
+      gameQueue = gameQueues[gameId]
+    }
+
+    // add in new event to the end of the queue
+    gameQueue.queue.push({
+      type: 'boxscore',
+      event: eventCall
+    })
+    gameQueues[gameId] = gameQueue
+    self.setState({gameQueues: gameQueues})
+
+    // if the queue isn't already running, start it up
+    if (gameQueue.isRunning === false) {
+      self.popOldestGameEvent(gameId)
+    }
+  },
+
+
+  onPBPReceived(eventCall) {
+    log.debug('onPBPReceived()')
+    const self = this
+
+    // for now, only use calls once data is loaded
+    if (self.props.entries.hasRelatedInfo === false) {
+      return
+    }
+
+    // if this is not a statistical based call, ignore
+    if ('statistics__list' in eventCall === false) {
+      log.debug('onPBPReceived() - had no statistics__list')
+      return false
+    }
+
+    const events = eventCall.statistics__list
+    const gameId = eventCall.game__id
+
+    // get game queue related to event
+    let gameQueue = {
+      isRunning: false,
+      queue: []
+    }
+    if (gameId in self.state.gameQueues) {
+      gameQueue = self.state.gameQueues[gameId]
+    }
+
+    // loop through players to see if they match one of the players in the lineups
+    _.forEach(events, function(event) {
+      if (self.props.liveSelector.relevantPlayers.indexOf(event.player) !== -1) {
+        log.debug('onPBPReceived() player found', event.player)
+
+        // copy to keep immutable
+        let gameQueues = Object.assign({}, self.state.gameQueues)
+
+        // add in new event to the end of the queue
+        gameQueue.queue.push({
+          type: 'pbp',
+          event: eventCall
+        })
+        gameQueues[gameId] = gameQueue
+        self.setState({gameQueues: gameQueues})
+
+        // if the queue isn't already running, start it up
+        if (gameQueue.isRunning === false) {
+          self.popOldestGameEvent(gameId)
+        }
+      }
+    })
+  },
+
+  popOldestGameEvent(gameId) {
+    log.debug('popOldestGameEvent')
+    const self = this
+
+    // copy to keep immutable
+    let gameQueues = Object.assign({}, self.state.gameQueues)
+
+    let gameQueue = gameQueues[gameId]
+    gameQueue.isRunning = true
+    log.debug('gameQueue length', gameQueue.queue.length)
+
+    // if there are no more events, then stop running
+    if (gameQueue.queue.length === 0) {
+      gameQueue.isRunning = false
+
+      self.setState({gameQueues: gameQueues})
+      return false
+    }
+
+    // pop oldest event
+    const oldestEvent = gameQueue.queue.shift()
+    const eventCall = oldestEvent.event
+    log.debug('oldestEvent', oldestEvent)
+
+    // depending on what type of data, either show animation on screen or update stats
+    switch (oldestEvent.type) {
+      // if this is a court animation, then start er up
+      case 'pbp':
+        self.showGameEvent(eventCall)
+        break
+
+      // if boxscore, then update the boxscore data
+      case 'boxscore':
+        self.props.updateBoxScore(
+          eventCall.game__id,
+          eventCall.id,
+          eventCall.points
+        )
+        break
+
+      case 'stats':
+        self.props.updatePlayerFP(
+          self.props.liveSelector.lineups.mine.draftGroup.id,
+          eventCall.fields.player_id,
+          eventCall.fields.points
+        )
+    }
+
+    // update state with updated queue
+    self.setState({gameQueues: gameQueues})
+  },
+
+
+  showGameEvent(eventCall) {
+    log.debug('showGameEvent()')
+
+    const self = this
+    const relevantPlayers = self.props.liveSelector.relevantPlayers
+
+    let players = []
+    let playersPlaying = self.state.playersPlaying.slice(0)
+
+    // relevant information for court animation
+    let courtInformation = {
+      'id': eventCall.id,
+      'location': eventCall.location__list,
+      'events': {}
+    }
+
+    // for now limit to one event per statistical event
+    _.forEach(eventCall.statistics__list, function(event, key) {
+      event.whichSide = null
+
+      // if the player applies to our lineups
+      if (relevantPlayers.indexOf(event.player) === -1) {
+        players.push(event.player)
+        playersPlaying.push(event.player)
+        self.setState({playersPlaying: playersPlaying})
+
+        // TODO figure out how to find out whichSide
+        event.whichSide = 'mine'
+      }
+
+      courtInformation.events[key.slice(0, -6)] = event
+    })
+
+    // trigger the animation on the court first
+    setTimeout(function() {
+      log.debug('setTimeout - animate on court')
+
+      let courtEvents = Object.assign({}, self.state.courtEvents)
+      courtEvents[courtInformation.id] = courtInformation
+      self.setState({courtEvents: courtEvents})
+
+      // show the results
+      setTimeout(function() {
+        log.debug('setTimeout - show the results')
+
+        // remove players from playersPlaying
+        let playersPlaying = self.state.playersPlaying.slice[0]
+        playersPlaying = _.remove(playersPlaying, (value) => {
+          return players.indexOf(value) === -1
+        })
+        self.setState({playersPlaying: playersPlaying})
+
+      }.bind(this), 2000)
+
+      // remove the player from the court
+      setTimeout(function() {
+        log.debug('setTimeout - remove the player from the court')
+
+        self.popOldestGameEvent(eventCall.game__id)
+
+        delete courtEvents[courtInformation.id]
+        self.setState({courtEvents: courtEvents})
+      }.bind(this), 4000)
+
+    }.bind(this), 1000)
   },
 
 
@@ -137,12 +450,14 @@ var Live = React.createClass({
             <div className="live-overall-stats live-overall-stats--me" />
           </header>
 
-          <LiveNBACourt />
+          <LiveNBACourt courtEvents={self.state.courtEvents} />
 
           { chooseLineup }
         </section>
       )
     }
+
+    log.debug('Live component render() props', this.props)
 
     if ('mine' in self.props.liveSelector.lineups) {
       var myLineup = self.props.liveSelector.lineups.mine
@@ -167,6 +482,7 @@ var Live = React.createClass({
         <LiveLineup
           whichSide="mine"
           mode={ self.props.mode }
+          currentBoxScores={ self.props.currentBoxScores }
           lineup={ myLineup } />
       )
     }
@@ -208,6 +524,7 @@ var Live = React.createClass({
             { lineups }
             <LiveLineup
               whichSide="opponent"
+              currentBoxScores={ self.props.currentBoxScores }
               lineup={ opponentLineup } />
           </div>
         )
@@ -248,7 +565,7 @@ var Live = React.createClass({
             { overallStats }
           </header>
 
-          <LiveNBACourt />
+          <LiveNBACourt courtEvents={self.state.courtEvents} />
 
           { moneyLine }
           { bottomNavForRightPanes }
@@ -259,7 +576,7 @@ var Live = React.createClass({
           <LiveContestsPaneConnected
             lineup={ myLineup }
             mode={ this.props.mode } />
-          <LivePlayerPaneConnected />
+
           <LiveStandingsPaneConnected
             mode={ self.props.mode } />
         </section>
@@ -277,6 +594,7 @@ let {Provider, connect} = ReactRedux
 function mapStateToProps(state) {
   return {
     // state elements
+    currentBoxScores: state.currentBoxScores,
     currentLineups: state.currentLineups,
     entries: state.entries,
     liveContests: state.liveContests,
@@ -294,6 +612,8 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
+    updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
+    updatePlayerFP: (draftGroupId, playerId, fp) => dispatch(updatePlayerFP(draftGroupId, playerId, fp)),
     updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),
     updatePath: (path) => dispatch(updatePath(path))
   }
