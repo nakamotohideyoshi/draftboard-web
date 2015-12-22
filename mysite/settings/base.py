@@ -382,7 +382,7 @@ SUIT_CONFIG = {
         ('pp',),
         ('prize',),
         ('promocode',),
-        ('roster',),
+        #('roster',),
         ('salary',),
         ('scoring',),
 

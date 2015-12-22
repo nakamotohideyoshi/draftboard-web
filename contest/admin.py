@@ -21,33 +21,43 @@ class ContestAdmin(admin.ModelAdmin):
     #list_display = CONTEST_LIST_DISPLAY
     form = contest.forms.ContestForm
 
-    # create some "sections" of the form"
-    # fieldsets = (
-    #     # ('Create Contest from Existing', {
-    #     #     'classes': ('collapse',),
-    #     #     'fields': ('clone_from', 'name')
-    #     # }),
-    #
-    #
-    #
-    #     ('Create Contest', {
-    #         #'classes': ('collapse',),
-    #         'fields': (
-    #             'site_sport',
-    #             'name',
-    #             'prize_structure',
-    #             'start',
-    #             #'ends_tonight'
-    #         )
-    #     }),
-    #
-    #     ('Custom End Time', {
-    #         'classes': ('collapse',),
-    #         'fields': (
-    #             'end',
-    #         )
-    #     }),
-    # )
+    #create some "sections" of the form"
+    fieldsets = (
+        # ('Create Contest from Existing', {
+        #     'classes': ('collapse',),
+        #     'fields': ('clone_from', 'name')
+        # }),
+
+
+
+        ('Create Contest', {
+            #'classes': ('collapse',),
+            'fields': (
+                'site_sport',
+                'name',
+                'prize_structure',
+                'start',
+                #'ends_tonight'
+            )
+        }),
+
+        ('Advanced Options', {
+            'classes': ('collapse',),
+            'fields': (
+                'ends_tonight',
+
+                'end',
+                'draft_group',
+                'max_entries',
+                # 'entries',
+                'gpp',
+                'respawn',
+                'doubleup',
+
+                'early_registration',
+            )
+        }),
+    )
 
     # def get_form(self, request, obj=None, **kwargs):
     #     if obj is None:
