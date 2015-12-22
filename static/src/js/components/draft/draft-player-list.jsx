@@ -6,9 +6,10 @@ const renderComponent = require('../../lib/render-component')
 const CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
 const CollectionSearchFilter = require('../filters/collection-search-filter.jsx')
 const PlayerListRow = require('./draft-player-list-row.jsx')
+import DraftTeamFilter from './draft-team-filter.jsx'
 import {forEach as _forEach, find as _find, matchesProperty as _matchesProperty} from 'lodash'
 import * as moment from 'moment'
-import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter
+import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, fetchDraftGroupBoxScores
   } from '../../actions/draft-group-actions.js'
 import {fetchSportInjuries} from '../../actions/injury-actions.js'
 import {createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
@@ -31,9 +32,12 @@ syncReduxAndRouter(history, store)
 const DraftPlayerList = React.createClass({
 
   propTypes: {
+    fetchDraftGroupBoxScores: React.PropTypes.func.isRequired,
     fetchDraftGroupIfNeeded: React.PropTypes.func.isRequired,
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
+    filters: React.PropTypes.object.isRequired,
     createLineupViaCopy: React.PropTypes.func.isRequired,
+    draftGroupBoxScores: React.PropTypes.array.isRequired,
     editLineupInit: React.PropTypes.func,
     importLineup: React.PropTypes.func,
     allPlayers: React.PropTypes.object,
@@ -62,6 +66,7 @@ const DraftPlayerList = React.createClass({
 
 
   loadData: function() {
+    this.props.fetchDraftGroupBoxScores(this.props.params.draftgroupId)
     // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
     Promise.all([
       this.props.fetchDraftGroupIfNeeded(this.props.params.draftgroupId),
@@ -188,6 +193,15 @@ const DraftPlayerList = React.createClass({
           />
         </div>
 
+        <div>
+          <DraftTeamFilter
+            games={this.props.draftGroupBoxScores}
+            isVisible={false}
+            onFilterChange={this.handleFilterChange}
+            selectedTeams={this.props.filters.teamFilter.match}
+            />
+        </div>
+
         <table className="cmp-player-list__table table">
           <thead>
             <tr className="cmp-player-list__header-row">
@@ -223,7 +237,9 @@ function mapStateToProps(state) {
   return {
     allPlayers: state.draftDraftGroup.allPlayers || {},
     filteredPlayers: draftGroupPlayerSelector(state),
+    filters: state.draftDraftGroup.filters,
     draftGroupTime: state.draftDraftGroup.start,
+    draftGroupBoxScores: state.draftDraftGroup.boxScores,
     sport: state.draftDraftGroup.sport,
     lineups: state.upcomingLineups.lineups,
     newLineup: state.createLineup.lineup,
@@ -236,6 +252,7 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
+    fetchDraftGroupBoxScores: (draftGroupId) => dispatch(fetchDraftGroupBoxScores(draftGroupId)),
     fetchDraftGroupIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
     draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
     unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
