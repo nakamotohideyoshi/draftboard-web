@@ -31,7 +31,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
     serializer_class        = CreateLineupSerializer
 
     def post(self, request, format=None):
-        #print( request.data )
+        print( request.data )
         draft_group_id  = request.data.get('draft_group')
         players         = request.data.get('players', [])
         name = request.data.get('name', '')
