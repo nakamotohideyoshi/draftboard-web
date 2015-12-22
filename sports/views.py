@@ -41,6 +41,31 @@ class LeagueTeamAPIView(generics.ListAPIView):
         team_model_class = site_sport_manager.get_team_class( sport )
         return team_model_class.objects.all()
 
+class LeaguePlayerAPIView(generics.ListAPIView):
+    """
+    Get the players in the league, with more detailed information
+    """
+
+    #serializer class will be dynamic
+
+    def get_serializer_class(self):
+        """
+        use site sport manager to get the site_sport from the sport param
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        return site_sport_manager.get_player_serializer_class(sport)
+
+    def get_queryset(self):
+        """
+        Return a QuerySet of the sports.<sport>.models.Team objects
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport(sport)
+        player_model_class = site_sport_manager.get_player_class( site_sport )
+        return player_model_class.objects.all()
+
 class LeagueInjuryAPIView(generics.ListAPIView):
     """
     Retrieve the contests which are relevant to the home page lobby.
