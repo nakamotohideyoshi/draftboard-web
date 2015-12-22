@@ -31,6 +31,8 @@ import json
 # but you should change it for your local/testing purposes.
 PUSHER_CHANNEL_PREFIX = settings.PUSHER_CHANNEL_PREFIX
 
+PUSHER_CONTEST      = 'contest'
+
 PUSHER_BOXSCORES    = 'boxscores'
 
 PUSHER_MLB_PBP      = 'mlb_pbp'
@@ -133,7 +135,7 @@ class AbstractPush(object):
     This class handles delegating to the proper channels when realtime sports data is received.
     """
 
-    def __init__(self):
+    def __init__(self, channel):
 
         # print( 'settings.PUSHER_APP_ID', settings.PUSHER_APP_ID,
         #        'settings.PUSHER_KEY', settings.PUSHER_KEY,
@@ -144,7 +146,7 @@ class AbstractPush(object):
                                 secret=settings.PUSHER_SECRET,
                                 ssl=True,
                                 port=443 )
-        self.channel    = None
+        self.channel    = PUSHER_CHANNEL_PREFIX + channel
         self.event      = None
 
     def send(self, data, async=False ):
@@ -191,25 +193,23 @@ class DataDenPush( AbstractPush ):
         channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
         event: the string name of the general type of the object, ie: 'player', or 'team'
         """
-        super().__init__() # init pusher object
-        self.channel    = PUSHER_CHANNEL_PREFIX + channel
+        super().__init__(channel) # init pusher object
+
         self.event      = event
 
-# class FantasyPointsPush( AbstractPush ):
-#     """
-#     Any changes in fantasy player scoring should be pushed with this class.
-#     """
-#
-#     def __init__(self, sport):
-#         super().__init__() # init pusher object
-#         self.channel    = sport
-#         self.event      = 'fp'
-#
-# class ContestUpdatePush( AbstractPush ):
-#     """
-#     Changes to contests (or new ones)
-#     """
-#     def __init__(self):
-#         super().__init__() # init pusher object
-#         self.channel    = 'contest'
-#         self.event      = 'update'
+class ContestPush( AbstractPush ):
+    """
+    Anything that is sent from a Contest update
+    """
+
+    DEFAULT_EVENT = 'update'
+
+    def __init__(self, event=DEFAULT_EVENT):
+        """
+        channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
+        event: the string name of the general type of the object, ie: 'player', or 'team'
+        """
+        super().__init__( PUSHER_CONTEST ) # init pusher object
+
+        self.event      = event
+

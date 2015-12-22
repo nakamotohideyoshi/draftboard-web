@@ -35,14 +35,15 @@ class AbstractDataDenParser(object):
         print('')
         print('UNIMPLEMENTED <<< %s | %s >>> ... generally this means DataDen<Sport> .parse() just needs an addition to the switch statement.' % (ns,parent_api))
 
-    def parse(self, obj):
+    def parse(self, obj, verbose=False):
         self.ns         = obj.get_ns()
         self.parent_api = obj.get_parent_api()
         self.target     = (self.ns, self.parent_api)
         self.o          = obj.get_o()
 
-        print ('%s.parse() | %s %s %s' % ( self.name(),
-               self.ns, self.parent_api, str(obj.get_o()) ) )
+        if verbose:
+            print ('%s.parse() | %s %s %s' % ( self.name(),
+                   self.ns, self.parent_api, str(obj.get_o()) ) )
 
         # child parse() will execute here -- they must call super().parse( obj )
         # then this class will have setup self.ns and self.parent_api for them

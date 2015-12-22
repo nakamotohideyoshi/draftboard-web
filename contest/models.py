@@ -271,8 +271,24 @@ class AbstractContest(models.Model):
         abstract = True
 
 class Contest(AbstractContest):
+
     class Meta:
         abstract = False
+
+    # def save(self, *args, **kwargs):
+    #     #
+    #     # if the contest entries have changed...
+    #     # send pusher task to update contest entries
+    #     try:
+    #         contest_data = {
+    #             'id'                : self.pk,
+    #             'current_entries'   : self.current_entries
+    #         }
+    #         contest.tasks.update_contest_entries.delay( contest_data )
+    #     except:
+    #         pass
+    #
+    #     super().save(*args, **kwargs)
 
 class LobbyContest(Contest):
     """
