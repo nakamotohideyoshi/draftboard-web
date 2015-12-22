@@ -385,7 +385,7 @@ SUIT_CONFIG = {
         ('promocode',),
         #('roster',),
         ('salary',),
-        ('scoring',),
+        #('scoring',),
 
         # schedule
         ('schedule',),
