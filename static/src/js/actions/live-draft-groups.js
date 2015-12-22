@@ -1,7 +1,6 @@
-"use strict"
-
-import 'babel-core/polyfill'; // so I can use Promises
 var moment = require('moment')
+// so we can use Promises
+import 'babel-core/polyfill'
 const request = require('superagent-promise')(require('superagent'), Promise)
 import { forEach as _forEach } from 'lodash'
 import { normalize, Schema, arrayOf } from 'normalizr'
@@ -26,6 +25,17 @@ function _calculateTimeRemaining(boxScore) {
 
   // round up to the nearest minute
   return remainingMinutes + parseInt(clockMinSec[0]) + 1
+}
+
+
+// Used to update a player's FP when a Pusher call sends us new info
+export function updatePlayerFP(id, playerId, fp) {
+  return {
+    id: id,
+    type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
+    playerId: playerId,
+    fp: fp
+  }
 }
 
 
@@ -228,7 +238,8 @@ export function fetchDraftGroupIfNeeded(id) {
 
   return (dispatch, getState) => {
     if (shouldFetchDraftGroup(getState(), id) === false) {
-      return Promise.reject('Draft group exists')
+      log.debug('actionsLiveDraftGroup.fetchDraftGroupIfNeeded() - Draft group exists')
+      return Promise.resolve('Draft group exists')
     }
     return Promise.all([
       dispatch(fetchDraftGroupInfo(id)),

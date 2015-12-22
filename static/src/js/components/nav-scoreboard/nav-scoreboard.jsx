@@ -25,6 +25,7 @@ import NavScoreboardGamesList from './nav-scoreboard-games-list.jsx'
 import NavScoreboardLineupsList from './nav-scoreboard-lineups-list.jsx'
 import NavScoreboardLoggedOutInfo from './nav-scoreboard-logged-out-info.jsx'
 
+import { addEvent } from '../../actions/live-game-queues'
 import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
 import { updateBoxScore } from '../../actions/current-box-scores'
 
@@ -36,41 +37,41 @@ const NavScoreboard = React.createClass({
   propTypes: {
     boxScores: React.PropTypes.object.isRequired,
     navScoreboardStats: React.PropTypes.object.isRequired,
-    updateBoxScore: React.PropTypes.func
+    updateBoxScore: React.PropTypes.func,
+    addEvent: React.PropTypes.func
   },
 
   listenToSockets() {
     log.debug('listenToSockets()')
     var self = this
 
-    Pusher.log = function(message) {
-      if (window.console && window.console.log) {
-        window.console.log(message);
-      }
-    };
+    // let the live page do game score calls
+    if (self.state.isLivePage === true) {
+      return
+    }
 
-    let pusher = new Pusher(window.dfs.user.pusher_key, {
+    // NOTE: this really bogs down your console
+    // Pusher.log = function(message) {
+    //   if (window.console && window.console.log) {
+    //     window.console.log(message);
+    //   }
+    // };
+
+    const pusher = new Pusher(window.dfs.user.pusher_key, {
       encrypted: true
     })
 
-    let channel = pusher.subscribe('boxscores')
-
-    channel.bind('team', (eventData) => {
-      self.onEventSocketReceived(eventData)
+    const channelPrefix = window.dfs.user.pusher_channel_prefix.toString()
+    const boxscoresChannel = pusher.subscribe(channelPrefix + 'boxscores')
+    boxscoresChannel.bind('team', (eventData) => {
+      if (eventData.game__id in self.props.boxScores && 'points' in eventData) {
+        self.props.updateBoxScore(
+          eventData.game__id,
+          eventData.id,
+          eventData.points
+        )
+      }
     })
-  },
-
-  onEventSocketReceived(eventCall) {
-    log.debug('onEventReceived', eventCall.id)
-    var self = this
-
-    if (eventCall.game__id in self.props.boxScores && 'points' in eventCall) {
-      self.props.updateBoxScore(
-        eventCall.game__id,
-        eventCall.id,
-        eventCall.points
-      )
-    }
   },
 
   getInitialState() {
@@ -87,7 +88,9 @@ const NavScoreboard = React.createClass({
 
       user: window.dfs.user,
 
-      isLoaded: false
+      isLoaded: false,
+
+      isLivePage: window.location.pathname.substring(0,6) === '/live/'
     }
   },
 
@@ -96,12 +99,18 @@ const NavScoreboard = React.createClass({
 
     if (this.state.user.username !== '') {
       store.dispatch(
-        fetchEntriesIfNeeded()
+        fetchCurrentDraftGroupsIfNeeded()
       ).catch(
         errorHandler
       ).then(() => {
-        self.setState({isLoaded: true})
-        self.listenToSockets()
+        store.dispatch(
+          fetchEntriesIfNeeded()
+        ).then(() => {
+          self.setState({isLoaded: true})
+          self.listenToSockets()
+        }).catch(
+          errorHandler
+        )
       })
     } else {
       store.dispatch(
@@ -226,6 +235,7 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
+    addEvent: (gameId, event) => dispatch(addEvent(gameId, event)),
     updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points))
   }
 }

@@ -51,6 +51,7 @@ class FrontendDraftTemplateView(LoginRequiredMixin, TemplateView):
         context = super(FrontendDraftTemplateView, self).get_context_data(**kwargs)
         return context
 
+
 class FrontendPaneTemplateView(TemplateView):
     """
     Right side pane styling and display

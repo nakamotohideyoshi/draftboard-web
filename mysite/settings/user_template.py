@@ -15,3 +15,6 @@ from .local import *
 # Should static files be served from webpack's devserver? If so, this is the
 # host of the machine running the devserver.
 STATIC_URL = 'http://zachbookpro.local:8080/static/'
+
+# This should be the name of your settings file and a _ after
+PUSHER_CHANNEL_PREFIX = 'user_template_'

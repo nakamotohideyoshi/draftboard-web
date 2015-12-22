@@ -1,6 +1,8 @@
 import React from 'react'
-
 import { vsprintf } from 'sprintf-js'
+import _ from 'lodash'
+
+import log from '../../lib/logging'
 
 
 /**
@@ -72,7 +74,7 @@ var LiveOverallStats = React.createClass({
 
     // TODO props
     var strokeWidth = 2
-    var decimalRemaining = lineup.minutesRemaining / lineup.totalMinutes
+    var decimalRemaining = 1 - lineup.minutesRemaining / lineup.totalMinutes
     var backgroundHex = '#0c0e16'
     var svgWidth = 280
 
@@ -83,6 +85,14 @@ var LiveOverallStats = React.createClass({
       r: radius - (strokeWidth / 2),
       stroke: backgroundHex,
       strokeWidth: strokeWidth + 26
+    }
+
+    // trickery to prevent arc issues, TODO clean this up math-wise
+    if (decimalRemaining === 1) {
+      decimalRemaining = 0.99
+    }
+    if (decimalRemaining === 0) {
+      decimalRemaining = 0.01
     }
 
     var progressArc = {
@@ -127,6 +137,8 @@ var LiveOverallStats = React.createClass({
       cx: endpointCoord.x,
       cy: endpointCoord.y
     }
+
+    log.debug('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
 
 
     return (
@@ -177,7 +189,7 @@ var LiveOverallStats = React.createClass({
             <div className="live-overview__help">
               Points
             </div>
-            <h4 className="live-overview__quantity">{ lineup.points }</h4>
+            <h4 className="live-overview__quantity">{ _.round(lineup.points, 0) }</h4>
           </div>
           <div className="live-overview__potential-earnings">${ lineup.potentialEarnings }</div>
           <div className="live-overview__pmr">

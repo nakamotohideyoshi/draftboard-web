@@ -36,6 +36,22 @@ module.exports = (state = {}, action) => {
   let newProps = {};
 
   switch (action.type) {
+    case ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP:
+      log.debug('reducersLiveDraftGroup.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP')
+
+      return update(state, {
+        [action.id]: {
+          playersStats: {
+            [action.playerId]: {
+              $set: {
+                fp: action.fp
+              }
+            }
+          }
+        }
+      })
+
+
     case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_INFO:
       log.debug('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_INFO')
 

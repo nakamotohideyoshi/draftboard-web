@@ -10,16 +10,14 @@ import LivePMRProgressBar from './live-pmr-progress-bar'
 var LiveLineupPlayer = React.createClass({
   propTypes: {
     whichSide: React.PropTypes.string.isRequired,
-    player: React.PropTypes.object.isRequired
-  },
-
-  viewPlayerDetails() {
-    AppActions.toggleLiveRightPane('appstate--live-player-pane--open')
+    player: React.PropTypes.object.isRequired,
+    onClick: React.PropTypes.func.isRequired
   },
 
   render: function() {
     const playStatusClass = 'live-lineup-player__play-status play-status--' + this.props.player.playStatus
     let stats = this.props.player.stats
+    let playerPane
 
     if (stats === undefined) {
       stats = {pos: "", fp: 0}
@@ -28,7 +26,7 @@ var LiveLineupPlayer = React.createClass({
     // for now flip the order of DOM elements, find a better fix in the future
     if (this.props.whichSide === 'opponent') {
       return (
-        <li className="live-lineup-player state--is-playing" onClick={ this.viewPlayerDetails }>
+        <li className="live-lineup-player state--is-playing" onClick={this.props.onClick}>
           <div className={ playStatusClass }></div>
           <div className="live-lineup-player__points">{stats.fp}</div>
           <div className="live-lineup-player__status"></div>
@@ -41,7 +39,7 @@ var LiveLineupPlayer = React.createClass({
     }
 
     return (
-      <li className="live-lineup-player state--is-playing" onClick={ this.viewPlayerDetails }>
+      <li className="live-lineup-player state--is-playing" onClick={this.props.onClick}>
         <div className="live-lineup-player__position">{this.props.player.info.position}</div>
         <div className="live-lineup-player__photo">
           <LivePMRProgressBar decimalRemaining="0.3" strokeWidth="2" backgroundHex="46495e" hexStart="34B4CC" hexEnd="2871AC" svgWidth="50" />
