@@ -3,6 +3,7 @@ from __future__ import absolute_import
 #
 # mysite/tasks.py
 
+from django.conf import settings
 from mysite.celery_app import app
 from datetime import timedelta
 from django.utils import timezone
@@ -10,6 +11,7 @@ from contest.models import LiveContest, Contest, UpcomingContest
 from draftgroup.models import DraftGroup, UpcomingDraftGroup
 from django.core.mail import send_mail
 from rakepaid.classes import LoyaltyStatusManager
+from push.classes import ContestPush
 
 #
 #
@@ -55,6 +57,9 @@ def recalculate_user_loyalty():
 #########################################################################
 # contests
 #########################################################################
+@app.task
+def update_contest_entries(contest_data):
+    ContestPush().send(contest_data, async=settings.DATADEN_ASYNC_UPDATES)
 
 #
 # check if we are getting within a few days of any contests
