@@ -16,27 +16,27 @@ class CashBalanceAdmin(admin.ModelAdmin):
 
     list_display = ['user','amount']
 
-@admin.register(AdminCashDeposit)
-class AdminCashDepositFormAdmin(admin.ModelAdmin):
-    """
-    this admin model is used for depositing cash
-    """
-    form = AdminCashDepositForm
+# @admin.register(AdminCashDeposit)
+# class AdminCashDepositFormAdmin(admin.ModelAdmin):
+#     """
+#     this admin model is used for depositing cash
+#     """
+#     form = AdminCashDepositForm
+#
+#     #list_display = ['created','user','amount','reason']
+#     list_display = ['user','amount','reason']
 
-    #list_display = ['created','user','amount','reason']
-    list_display = ['user','amount','reason']
+# @admin.register(AdminCashWithdrawal)
+# class AdminCashWithdrawalFormAdmin(admin.ModelAdmin):
+#     """
+#     this admin model is used for withdrawing cash
+#     """
+#     form = AdminCashWithdrawalForm
+#
+#     #list_display = ['created','user','amount','reason']
+#     list_display = ['user','amount','reason']
 
-@admin.register(AdminCashWithdrawal)
-class AdminCashWithdrawalFormAdmin(admin.ModelAdmin):
-    """
-    this admin model is used for withdrawing cash
-    """
-    form = AdminCashWithdrawalForm
-
-    #list_display = ['created','user','amount','reason']
-    list_display = ['user','amount','reason']
-
-@admin.register(BraintreeTransaction)
-class BraintreeTransactionAdmin(admin.ModelAdmin):
-
-    list_display = ['created','transaction','braintree_transaction']
+# @admin.register(BraintreeTransaction)
+# class BraintreeTransactionAdmin(admin.ModelAdmin):
+#
+#     list_display = ['created','transaction','braintree_transaction']

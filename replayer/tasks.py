@@ -5,7 +5,6 @@ from __future__ import absolute_import
 from django.core.cache import cache
 from os.path import join
 from django.utils import timezone
-from util.loaddata import LoadData
 from mysite.celery_app import app
 # from replayer.classes import ReplayManager
 import replayer.classes
