@@ -3,10 +3,9 @@
 
 from rest_framework import serializers
 import sports.serializers
-from sports.serializers import InjurySerializer
-from .models import Injury, Team
+from .models import Injury, Team, Player
 
-class InjurySerializer(InjurySerializer):
+class InjurySerializer(sports.serializers.InjurySerializer):
 
     class Meta:
 
@@ -23,10 +22,32 @@ class TeamSerializer(sports.serializers.TeamSerializer):
 
         model = Team
         fields = sports.serializers.TeamSerializer.PARENT_FIELDS + ('city',)
-        # fields = (
-        #     # you shouldnt change id, srid, name, alias
-        #     'id', 'srid', 'name', 'alias',
-        #
-        #     # sport market/city just called city in this serializer
-        #     'city'
-        # )
+
+class FantasyPointsSerializer(sports.serializers.FantasyPointsSerializer):
+
+    # class Meta:
+    #     model   = PlayerStats
+    #     fields  = ('created','player_id','fantasy_points')
+
+    player_id = serializers.IntegerField()
+
+    fantasy_points = serializers.ListField(
+        source='array_agg',
+        child=serializers.FloatField() # min_value=-9999, max_value=9999)
+    )
+
+class PlayerSerializer(sports.serializers.PlayerSerializer):
+    """
+    serializer for this sports player, with more details such as jersey number
+    """
+
+    class Meta:
+
+        # sports.<sport>.models.Player
+        model = Player
+
+        # fields from the model: sports.<sport>.models.Player
+        fields = sports.serializers.PlayerSerializer.PARENT_FIELDS  + ('birth_place',
+                                                                       'birthdate',
+                                                                       'college',
+                                                                       'jersey_number')

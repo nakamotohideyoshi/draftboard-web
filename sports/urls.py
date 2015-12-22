@@ -7,6 +7,7 @@ from sports.views import (
     PlayerCsvView,
     LeagueInjuryAPIView,
     LeagueTeamAPIView,
+    LeaguePlayerAPIView,
     LivePbpView,
     FantasyPointsHistoryAPIView
 )
@@ -21,6 +22,10 @@ urlpatterns = patterns(
     #
     # get the teams for a sport
     (r'^teams/(?P<sport>[a-z]+)/$', LeagueTeamAPIView.as_view()),
+
+    #
+    # get the teams for a sport
+    (r'^players/(?P<sport>[a-z]+)/$', LeaguePlayerAPIView.as_view()),
 
     #
     # get recent play by play for this draftgroup

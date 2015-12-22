@@ -4,12 +4,12 @@
 from .models import Player, PlayerStats, PbpDescription, GameBoxscore, Injury
 from rest_framework import serializers
 
-class PlayerSerializer(serializers.ModelSerializer):
-
-    class Meta:
-
-        model = Player
-        fields = ('first_name','last_name')
+# class PlayerSerializer(serializers.ModelSerializer):
+#
+#     class Meta:
+#
+#         model = Player
+#         fields = ('first_name','last_name')
 
 class GameBoxscoreSerializer(serializers.ModelSerializer):
 
@@ -41,6 +41,16 @@ class FantasyPointsSerializer(serializers.Serializer): pass     # extended by sp
 
 class TeamSerializer(serializers.ModelSerializer):
     """
-    extended by specific sport
+    parent TeamSerializer fields that are in every sports.models.Team object
     """
     PARENT_FIELDS = ('id','srid','name','alias')
+
+class PlayerSerializer(serializers.ModelSerializer):
+    """
+    This is our way of abstracting a model serializer, basically by just setting fields
+    we know are in every sports.models.Player...
+
+    child classes can inherit this class in their specific sport.
+    ie: sports.nba.serializers.Player, sports.nhl.serializers.Player, etc...
+    """
+    PARENT_FIELDS = ('id','srid','first_name','last_name')
