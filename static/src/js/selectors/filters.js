@@ -103,3 +103,19 @@ export const gameTypeFilter = function(collection, gameType) {
     }
   })
 }
+
+
+// Given an array of matches (matchList), look at each collection item's [filterProperty] for
+// matches. This is used on the game filter in the drafting section for filtering players based
+// on a list of team IDs... basically, is this player's team in the list of team IDs?
+export const inArrayFilter = function(collection, filterProperty, matchList) {
+  if (!matchList || !filterProperty || !matchList.length) {
+    return collection
+  }
+
+  var matches =  _filter(collection, function(item) {
+    return matchList.indexOf(item[filterProperty]) !== -1
+  })
+
+  return matches
+}

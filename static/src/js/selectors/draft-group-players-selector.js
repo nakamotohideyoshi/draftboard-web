@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect'
-import { stringSearchFilter, matchFilter } from './filters'
+import { stringSearchFilter, matchFilter, inArrayFilter } from './filters'
 import {forEach as _forEach} from 'lodash'
 
 
@@ -51,12 +51,25 @@ const playerNameSelector = createSelector(
 )
 
 
+// Filter players based on the team filter
+const teamFilterPropertySelector = (state) => state.draftDraftGroup.filters.teamFilter.filterProperty
+const teamFilterMatchSelector = (state) => state.draftDraftGroup.filters.teamFilter.match
+
+const teamSelector = createSelector(
+  [playerNameSelector, teamFilterPropertySelector, teamFilterMatchSelector],
+  (collection, filterProperty, teamArray) => {
+
+    return  inArrayFilter(collection, filterProperty, teamArray)
+  }
+)
+
+
 // Filter players based on the position filter
 const positionFilterPropertySelector = (state) => state.draftDraftGroup.filters.positionFilter.filterProperty
 const positionFilterMatchSelector = (state) => state.draftDraftGroup.filters.positionFilter.match
 
 export const draftGroupPlayerSelector = createSelector(
-  [playerNameSelector, positionFilterPropertySelector, positionFilterMatchSelector],
+  [teamSelector, positionFilterPropertySelector, positionFilterMatchSelector],
   (collection, filterProperty, searchString) => {
     return matchFilter(collection, filterProperty, searchString)
   }

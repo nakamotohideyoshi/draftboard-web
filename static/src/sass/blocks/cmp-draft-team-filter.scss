@@ -1,0 +1,158 @@
+@import "../variables";
+
+$contest-nav-height: 60px;
+$contest-nav-background-color: #f7f8f9;
+$contest-nav-secondary-font-color: #8c8fa2;
+$contest-nav-separator-color: #dee1e8;
+$contest-nav-foreground-color: #25A758;
+
+.cmp-draft-team-filter {
+  background: $contest-nav-background-color;
+  color: #46495e;
+  height: $contest-nav-height;
+  width: 100%;
+  margin-bottom: 16px;
+
+  // We need a single top-level element that react renders to (aaaannoying).
+  .inner {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+  }
+
+  .separator {
+    border-left: solid 1px $contest-nav-separator-color;
+    display: inline-block;
+    height: $contest-nav-height;
+    transform: scale(1) skewX(-15deg);
+    margin: 0 15px 0 10px;
+
+    &.half {
+      transform: scale(0.5) skewX(-15deg);
+    }
+  }
+
+  .shadow {
+    transform: scale(1) skewX(-15deg);
+    height: $contest-nav-height;
+    display: inline-block;
+    position: absolute;
+    left: 38px;
+    width: 60px;
+    z-index: -1;
+    background: linear-gradient(to right, rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.4) 38%,rgba(0,0,0,0) 100%);
+
+    &.right {
+      left: -51px;
+      background: linear-gradient(to left, rgba(0,0,0,0.65) 0%,rgba(0,0,0,0.4) 38%,rgba(0,0,0,0) 100%);
+    }
+  }
+
+
+  .slider {
+    width: calc(100% - 130px - 210px - 65px - 150px);
+
+    position: relative;
+    display: inline-block;
+    height: $contest-nav-height;
+    white-space: nowrap;
+    overflow: hidden;
+
+    .slider-content {
+      display: inline-block;
+      height: $contest-nav-height;
+      overflow: hidden;
+      min-width: 300px;
+      max-width: calc(100% - 100px);
+      padding-right: 52px;
+
+      &--holder {
+        position: relative;
+        left: 0px;
+        transition: left 1s;
+      }
+    }
+
+    .arrow {
+      position: relative;
+      display: inline-block;
+      z-index: 2;
+
+      &.left {
+        width: 42px;
+      }
+
+      .left-arrow-icon, .right-arrow-icon {
+        display: inline-block;
+
+        cursor: pointer;
+        background: url('../img/blocks/nav-scoreboard/nav-scoreboard-slider-arrow.png') no-repeat center center;
+        background-size: 7px 11px;
+        width: 24px;
+        height: 60px;
+        position: absolute;
+        top: 0;
+        left: 12px;
+        z-index: 2000;
+      }
+
+      .right-arrow-icon {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  .games-list {
+    display: inline-block;
+
+    .game {
+      cursor:  pointer;
+      display: inline-block;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 14px 5px;
+      min-width: 105px;
+      height: $contest-nav-height;
+      overflow: hidden;
+      position: relative;
+
+      .left {
+        display: inline-block;
+        margin-right: 30px;
+      }
+
+      .right {
+        position: absolute;
+        top: 14px;
+        right: 0;
+        font-size: 11px;
+        display: inline-block;
+        color: $contest-nav-secondary-font-color;
+      }
+    }
+
+    // Checkboxes
+    label {
+      padding-left: 15px;
+    }
+
+    input[type='checkbox'] {
+      display: none;
+    }
+
+    input[type='checkbox'] + label {
+      background: url(../img/blocks/form/radio-button-alt.png) no-repeat 0px -33px;
+      background-size: 10px auto;
+    }
+
+    input[type='checkbox'] + label:hover {
+      background-position: 0px -69px;
+    }
+
+    input[type='checkbox']:checked + label {
+      background-position: 0px 4px;
+    }
+
+  }
+
+}
