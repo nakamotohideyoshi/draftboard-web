@@ -8,10 +8,10 @@ from rest_framework import status
 from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
-
+from rest_framework.views import APIView
 from lineup.serializers import LineupSerializer, PlayerSerializer, \
                                 CreateLineupSerializer, EditLineupSerializer, \
-                                LineupIdSerializer
+                                LineupIdSerializer, LineupUsernamesSerializer
 from lineup.models import Lineup, Player
 from lineup.classes import LineupManager
 from lineup.tasks import edit_lineup, edit_entry
@@ -69,7 +69,65 @@ class CreateLineupAPIView(generics.CreateAPIView):
         return Response('Lineup created.', status=status.HTTP_201_CREATED)
 
 
-class LineupUserAPIView(generics.ListAPIView):
+# class LineupUserAPIView(generics.ListAPIView):
+#     """
+#     Get the usernames for lineups by providing a list of lineup ids.
+#         OR
+#     Get the lineups for a given contest by providing a valid contest_id and search string
+#
+#     The 'lineup_ids' parameter overrides the lookup by name. (ie: if all parameters
+#         are specified, we will return data for the specified lineup_ids list)
+#
+#     POST params:
+#
+#         (Required)
+#         contest_id      :  the contest id to search for lineups in
+#
+#         (Use lineup_ids OR search_str)
+#         lineup_ids      : list of lineup ids, ie: [123, 432, 5234]
+#             ... OR ...
+#         search_str      : the search string for the lineup name (lineup names are based on username)
+#
+#     """
+#     permission_classes      = (IsAuthenticated,)
+#     serializer_class        = LineupIdSerializer
+#
+#     # def post(self, request, format=None):
+#     #     lineup_ids  = request.data.get('lineup_ids', [])
+#     #     return
+#     def get_queryset(self):
+#         """
+#         get the Lineup objects
+#         """
+#
+#         # get the contest_id post param - it is required
+#         contest_id      = self.request.data.get('contest_id', None)
+#
+#         # get the lineup_ids or the search_str
+#         lineup_ids      = self.request.data.get('lineup_ids', [])
+#         search_str      = self.request.data.get('search_str', None)
+#
+#         if contest_id is None:
+#             msg = 'The POST param "contest_id" is required along with either: "lineup_ids", "search_str"'
+#             raise ValidationError(msg)
+#
+#         lm = LineupManager( self.request.user )
+#
+#         if lineup_ids:
+#             #
+#             # return the lineup usernames for the lineups with the ids, in the particular contest
+#             return lm.get_for_contest_by_ids( contest_id, lineup_ids)
+#
+#         elif search_str:
+#             #
+#             # get the distinct lineups in this contest where the lineup_id matches
+#             return lm.get_for_contest_by_search_str(contest_id, search_str)
+#
+#         else:
+#             msg = 'You must supply one of the following POST params: "lineup_ids", "search_str"'
+#             raise ValidationError(msg)
+
+class LineupUserAPIView(APIView):
     """
     Get the usernames for lineups by providing a list of lineup ids.
         OR
@@ -90,22 +148,27 @@ class LineupUserAPIView(generics.ListAPIView):
 
     """
     permission_classes      = (IsAuthenticated,)
-    serializer_class        = LineupIdSerializer
+    serializer_class        = LineupUsernamesSerializer
 
-    # def post(self, request, format=None):
-    #     lineup_ids  = request.data.get('lineup_ids', [])
-    #     return
-    def get_queryset(self):
+    def post(self, request, *args, **kwargs):
         """
         get the Lineup objects
         """
+        args    = request.data
 
         # get the contest_id post param - it is required
-        contest_id      = self.request.data.get('contest_id', None)
+        contest_id      = args.get('contest_id', None)
 
         # get the lineup_ids or the search_str
-        lineup_ids      = self.request.data.get('lineup_ids', [])
-        search_str      = self.request.data.get('search_str', None)
+        lineup_ids      = args.get('lineup_ids', [])
+        search_str      = args.get('search_str', None)
+
+
+        # return Response({}, status=status.HTTP_200_OK)
+        # return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+
 
         if contest_id is None:
             msg = 'The POST param "contest_id" is required along with either: "lineup_ids", "search_str"'
@@ -116,13 +179,14 @@ class LineupUserAPIView(generics.ListAPIView):
         if lineup_ids:
             #
             # return the lineup usernames for the lineups with the ids, in the particular contest
-            return lm.get_for_contest_by_ids( contest_id, lineup_ids)
+            #return lm.get_for_contest_by_ids( contest_id, lineup_ids)
+            return Response(lm.get_for_contest_by_ids( contest_id, lineup_ids), status=status.HTTP_200_OK)
 
         elif search_str:
             #
             # get the distinct lineups in this contest where the lineup_id matches
-            return lm.get_for_contest_by_search_str(contest_id, search_str)
-
+            #return lm.get_for_contest_by_search_str(contest_id, search_str)
+            return Response(lm.get_for_contest_by_search_str(contest_id, search_str), status=status.HTTP_200_OK)
         else:
             msg = 'You must supply one of the following POST params: "lineup_ids", "search_str"'
             raise ValidationError(msg)

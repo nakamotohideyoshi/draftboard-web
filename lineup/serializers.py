@@ -47,6 +47,17 @@ class LineupUsernameSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username')
 
+class LineupUsernamesSerializer(serializers.Serializer):
+    # contest_id      = args.get('contest_id', None)
+    # # get the lineup_ids or the search_str
+    # lineup_ids      = args.get('lineup_ids', [])
+    # search_str      = args.get('search_str', None)
+    contest_id = serializers.IntegerField()
+    lineup_ids  = serializers.ListField(
+        required=False,
+        child=serializers.IntegerField(min_value=0, max_value=9999999)
+    )
+    search_str  = serializers.CharField(required=False)
 
 class LineupIdSerializer(serializers.ModelSerializer):
     user = LineupUsernameSerializer()
