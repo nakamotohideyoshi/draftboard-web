@@ -153,7 +153,7 @@ class LineupUserAPIView(APIView):
     def get_serialized_lineups(self, lineups=[]):
         data = []
         for l in lineups:
-            data.append( LineupSerializer(l).data )
+            data.append( LineupIdSerializer(l).data )
         return data
 
     def post(self, request, *args, **kwargs):
