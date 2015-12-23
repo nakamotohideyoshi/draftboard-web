@@ -482,6 +482,22 @@ class ReplayManager(object):
                                                         user.username )
                 rlc.create( c.pk )
 
+    def play_single_update(self, update_id, async=False):
+        """
+        :param update_id: is the pk of the /admin/replayer/update/ to play back
+        :param async: defaults to False. Set to True if you are running celery workers.
+        """
+
+        parser = sports.parser.DataDenParser()
+        update = replayer.models.Update.objects.get(pk=update_id)
+        print( 'playing single stat...')
+
+        ns_parts    = update.ns.split('.') # split namespace on dot for db and coll
+        db          = ns_parts[0]
+        collection  = ns_parts[1]
+        # send it thru parser! Triggers do NOT need to be running for this to work!
+        parser.parse_obj( db, collection, ast.literal_eval( update.o ), async=async )
+
 class RandomLineupCreator(object):
     """
     for testing purposes, this class is used to create dummy
@@ -585,3 +601,4 @@ class RandomLineupCreator(object):
                 if self.roster_manager.player_matches_spot( sport_player, roster_idx ):
                     # add the draft group player
                     self.position_lists[ roster_idx ].append( player )
+
