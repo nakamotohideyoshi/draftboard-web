@@ -150,6 +150,12 @@ class LineupUserAPIView(APIView):
     permission_classes      = (IsAuthenticated,)
     serializer_class        = LineupUsernamesSerializer
 
+    def get_serialized_lineups(self, lineups=[]):
+        data = []
+        for l in lineups:
+            data.append( LineupSerializer(l).data )
+        return data
+
     def post(self, request, *args, **kwargs):
         """
         get the Lineup objects
@@ -180,13 +186,17 @@ class LineupUserAPIView(APIView):
             #
             # return the lineup usernames for the lineups with the ids, in the particular contest
             #return lm.get_for_contest_by_ids( contest_id, lineup_ids)
-            return Response(lm.get_for_contest_by_ids( contest_id, lineup_ids), status=status.HTTP_200_OK)
+            lineups = lm.get_for_contest_by_ids( contest_id, lineup_ids)
+            serialized_lineup_data = self.get_serialized_lineups(lineups)
+            return Response( serialized_lineup_data, status=status.HTTP_200_OK)
 
         elif search_str:
             #
             # get the distinct lineups in this contest where the lineup_id matches
             #return lm.get_for_contest_by_search_str(contest_id, search_str)
-            return Response(lm.get_for_contest_by_search_str(contest_id, search_str), status=status.HTTP_200_OK)
+            lineups = lm.get_for_contest_by_search_str(contest_id, search_str)
+            serialized_lineup_data = self.get_serialized_lineups(lineups)
+            return Response(serialized_lineup_data, status=status.HTTP_200_OK)
         else:
             msg = 'You must supply one of the following POST params: "lineup_ids", "search_str"'
             raise ValidationError(msg)
