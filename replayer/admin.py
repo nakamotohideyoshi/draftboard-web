@@ -20,6 +20,7 @@ class ReplayAdmin(admin.ModelAdmin):
 @admin.register(replayer.models.Update)
 class UpdateAdmin(admin.ModelAdmin):
     list_display = ['ts','ns','o']
+    list_filter = ['ns']
 
 @admin.register(replayer.models.TimeMachine)
 class TimeMachineAdmin(admin.ModelAdmin):
