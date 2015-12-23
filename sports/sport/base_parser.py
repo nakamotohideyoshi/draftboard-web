@@ -540,10 +540,12 @@ class DataDenTeamBoxscores(AbstractDataDenParseable):
         if self.boxscore.srid_home == srid_team:
             self.boxscore.home_score        = o.get('points', 0)
             self.boxscore.home_scoring_json = json.loads( json.dumps(o.get('scoring__list', [])))
+            self.boxscore.save()
 
         elif self.boxscore.srid_away == srid_team:
             self.boxscore.away_score        = o.get('points', 0)
             self.boxscore.away_scoring_json = json.loads( json.dumps(o.get('scoring__list', [])))
+            self.boxscore.save()
 
         else:
             # this team differs from the teams on this boxscore !
