@@ -67,6 +67,7 @@ const DraftPlayerList = React.createClass({
       {title: 'C', column: 'position', match: 'c'}
     ],
     'nfl': [
+      {title: 'All', column: 'position', match: ''},
       {title: 'QB', column: 'position', match: 'qb'},
       {title: 'RB', column: 'position', match: 'rb'},
       {title: 'WR', column: 'position', match: 'wr'},
@@ -74,12 +75,14 @@ const DraftPlayerList = React.createClass({
       {title: 'DST', column: 'position', match: 'dst'}
     ],
     'nhl': [
+      {title: 'All', column: 'position', match: ''},
       {title: 'G', column: 'position', match: 'g'},
       {title: 'C', column: 'position', match: 'c'},
       {title: 'F', column: 'position', match: 'f'},
       {title: 'D', column: 'position', match: 'd'}
     ],
     'mlb': [
+      {title: 'All', column: 'position', match: ''},
       {title: 'SP', column: 'position', match: 'sp'},
       {title: 'C', column: 'position', match: 'c'},
       {title: '1B', column: 'position', match: '1b'},
