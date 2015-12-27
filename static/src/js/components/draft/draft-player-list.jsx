@@ -48,8 +48,10 @@ const DraftPlayerList = React.createClass({
     unDraftPlayer: React.PropTypes.func,
     newLineup: React.PropTypes.array,
     updateFilter: React.PropTypes.func,
+    sport: React.PropTypes.string,
     availablePositions: React.PropTypes.array,
     draftGroupTime: React.PropTypes.string,
+    teams: React.PropTypes.object.isRequired,
     params: React.PropTypes.object
   },
 
@@ -199,6 +201,8 @@ const DraftPlayerList = React.createClass({
             isVisible={false}
             onFilterChange={this.handleFilterChange}
             selectedTeams={this.props.filters.teamFilter.match}
+            teams={this.props.teams}
+            sport={this.props.sport}
             />
         </div>
 
@@ -241,6 +245,7 @@ function mapStateToProps(state) {
     draftGroupTime: state.draftDraftGroup.start,
     draftGroupBoxScores: state.draftDraftGroup.boxScores,
     sport: state.draftDraftGroup.sport,
+    teams: state.sports,
     lineups: state.upcomingLineups.lineups,
     newLineup: state.createLineup.lineup,
     availablePositions: state.createLineup.availablePositions,
