@@ -2,7 +2,7 @@ import React from 'react'
 // import ReactDom  from 'react-dom'
 import moment from 'moment'
 import {forEach as _forEach} from 'lodash'
-
+import classNames from 'classnames'
 
 
 /**
@@ -16,7 +16,9 @@ const DraftTeamFilter = React.createClass({
     games: React.PropTypes.array.isRequired,
     isVisible: React.PropTypes.bool.isRequired,
     onFilterChange: React.PropTypes.func.isRequired,
-    selectedTeams: React.PropTypes.array.isRequired
+    selectedTeams: React.PropTypes.array.isRequired,
+    teams: React.PropTypes.object.isRequired,
+    sport: React.PropTypes.string
   },
 
 
@@ -27,78 +29,123 @@ const DraftTeamFilter = React.createClass({
   },
 
 
-  collectSelectedTeams: function() {
-    let checkedBoxes = this.refs['games-list'].querySelectorAll('input[type="checkbox"]:checked')
-    let games = []
-    _forEach(checkedBoxes, function(input) {
-      games.push(input.value)
-    })
-    return games
+  /**
+   * Scrolls slider left.
+   */
+  handleScrollLeft() {
+    const content = this.refs.content;
+    let left = parseInt(content.style.left) | 0
+    this.refs.content.style.left = (left + 400) + 'px';
   },
 
 
-  checkAllTeams: function(checkboxes) {
-    _forEach(checkboxes, function(input) {
-      input.checked=true
-    })
+  /**
+   * Scrolls slider right.
+   */
+  handleScrollRight() {
+    const content = this.refs.content;
+    let left = parseInt(content.style.left, 10) | 0
+    content.style.left = (left - 400) + 'px';
   },
 
 
-  unCheckAllTeams: function(checkboxes) {
-    _forEach(checkboxes, function(input) {
-      input.checked=false
+  getAllTeams: function() {
+    let allTeams = []
+
+    _forEach(this.props.games, function(game) {
+      allTeams.push(game.fields.srid_home)
+      allTeams.push(game.fields.srid_away)
     })
+
+    return allTeams
+  },
+
+
+  selectAllTeams: function(checkboxes) {
+    this.handleTeamsChange(this.getAllTeams())
+  },
+
+
+  unselectAllTeams: function(checkboxes) {
+    this.handleTeamsChange([])
+  },
+
+
+  isTeamSelected: function(selectedTeams, teamId) {
+    return selectedTeams.indexOf(teamId) !== -1
+  },
+
+
+  removeTeamFromList(list, team) {
+    if (list.indexOf(team) !== -1) {
+      list.splice(list.indexOf(team), 1)
+    }
   },
 
 
   handleGameClick: function(game, e) {
-    // stopPropagation() doesn't work so we need to manually ignore team clicks.
-    if (e.target.tagName === 'LABEL' || e.target.tagName === 'INPUT') {
-      return
-    }
+    let newTeams = this.props.selectedTeams.slice()
 
-    let gameNode = this.refs['game-' + game.pk]
-    let checkboxes = gameNode.querySelectorAll('input[type="checkbox"]')
-    let allChecked = true
-
-    _forEach(checkboxes, function(input) {
-      if (!input.checked) {
-        allChecked = false;
-        return
-      }
-    })
-
-    if (allChecked) {
-      this.unCheckAllTeams(checkboxes)
+    if (this.isTeamSelected(newTeams, game.fields.srid_home) && this.isTeamSelected(newTeams, game.fields.srid_away)) {
+      this.removeTeamFromList(newTeams, game.fields.srid_home)
+      this.removeTeamFromList(newTeams, game.fields.srid_away)
     } else {
-      this.checkAllTeams(checkboxes)
+      this.removeTeamFromList(newTeams, game.fields.srid_home)
+      this.removeTeamFromList(newTeams, game.fields.srid_away)
+      newTeams.push(game.fields.srid_home)
+      newTeams.push(game.fields.srid_away)
     }
 
-    this.handleTeamOnChange()
+    this.handleTeamsChange(newTeams)
   },
 
 
-  handleTeamOnChange: function(e) {
-    this.props.onFilterChange(this.filterTitle, 'team_srid', this.collectSelectedTeams())
+  handleTeamsChange: function(selectedTeams) {
+    this.props.onFilterChange(this.filterTitle, 'team_srid', selectedTeams)
   },
 
 
-  handleTeamClick: function(team, e) {
-    // Like noted above, this doesn't work in react.
-    // https://github.com/facebook/react/issues/1691
+  handleAllClick: function() {
+    if (this.getAllTeams().length > this.props.selectedTeams.length) {
+      this.selectAllTeams()
+    } else {
+      this.unselectAllTeams()
+    }
+  },
+
+
+  handleTeamClick: function(teamId, e) {
     e.stopPropagation()
+    let newTeams = this.props.selectedTeams.slice()
 
-    this.handleTeamOnChange()
+    if (this.isTeamSelected(newTeams, teamId)) {
+      this.removeTeamFromList(newTeams, teamId)
+    } else {
+      newTeams.push(teamId)
+    }
+    this.handleTeamsChange(newTeams)
   },
 
 
-  isTeamSelected: function(teamId) {
-    return this.props.selectedTeams.indexOf(teamId) !== -1
+  // Safely get the team alias. Oh lord don't hate me.
+  getTeamAlias: function(teamId) {
+    if (this.props.teams.hasOwnProperty(this.props.sport)) {
+      if (this.props.teams[this.props.sport].hasOwnProperty('teams')) {
+        if (this.props.teams[this.props.sport].teams.hasOwnProperty(teamId)) {
+          return this.props.teams[this.props.sport].teams[teamId].alias
+        }
+      }
+    }
+
+    return ''
   },
 
 
   getGames: function() {
     return this.props.games.map(function(game) {
+      let homeClasses = classNames('team home', { 'selected': this.isTeamSelected(this.props.selectedTeams, game.fields.srid_home) })
+      let awayClasses = classNames('team away', { 'selected': this.isTeamSelected(this.props.selectedTeams, game.fields.srid_away) })
+
       return ([
         <div
           className="game scroll-item"
@@ -107,30 +154,16 @@ const DraftTeamFilter = React.createClass({
           ref={'game-' + game.pk}
         >
           <div className="left">
-            <div className="team away">
-              <input
-                type="checkbox"
-                id={game.pk + "-" + game.fields.away_id}
-                value={game.fields.srid_away}
-                onChange={this.handleTeamClick.bind(this, game.fields.srid_away)}
-                />
-              <label
-                htmlFor={game.pk + "-" + game.fields.away_id}
-
-              >{game.fields.away_id}</label>
+            <div className={awayClasses} onClick={this.handleTeamClick.bind(this, game.fields.srid_away)}>
+              <span
+                className="teamName"
+              >{this.getTeamAlias(game.fields.away_id)}</span>
             </div>
 
-            <div className="team home">
-              <input
-                type="checkbox"
-                id={game.pk + "-" + game.fields.home_id}
-                value={game.fields.srid_home}
-                onChange={this.handleTeamClick.bind(this, game.fields.srid_home)}
-                />
-              <label
-                htmlFor={game.pk + "-" + game.fields.home_id}
-
-              >{game.fields.home_id}</label>
+            <div className={homeClasses} onClick={this.handleTeamClick.bind(this, game.fields.srid_home)}>
+              <span
+                className="teamName"
+              >{this.getTeamAlias(game.fields.home_id)}</span>
             </div>
           </div>
 
@@ -149,17 +182,33 @@ const DraftTeamFilter = React.createClass({
   render: function() {
     return (
       <div className="cmp-draft-team-filter">
-        <div className="slider-content">
-          <div className="slider-content-holder">
-            <div className="games-list" ref="games-list">
-              <div
-                className="game scroll-item"
-              >
-                All Games
+        <div className="slider">
+
+          <div className="arrow">
+            <div className="left-arrow-icon" onClick={this.handleScrollLeft}></div>
+          </div>
+
+          <div className="slider-content">
+            <div className="slider-content-holder" ref="content">
+              <div className="games-list" ref="games-list">
+                <div
+                  className="game scroll-item allTeams"
+                  onClick={this.handleAllClick}
+                  >
+                  <span
+                    className="teamName"
+                    >All Games</span>
+                </div>
+                <div className="separator half"></div>
+                {this.getGames()}
               </div>
-              {this.getGames()}
             </div>
           </div>
+
+          <div className="arrow right">
+            <div className="right-arrow-icon" onClick={this.handleScrollRight}></div>
+          </div>
+
         </div>
       </div>
     )
