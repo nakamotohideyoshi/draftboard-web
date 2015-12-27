@@ -57,14 +57,38 @@ const DraftPlayerList = React.createClass({
 
 
   // Contest type filter data.
-  playerPositionFilters: [
-    {title: 'All', column: 'position', match: ''},
-    {title: 'PG', column: 'position', match: 'pg'},
-    {title: 'SG', column: 'position', match: 'sg'},
-    {title: 'SF', column: 'position', match: 'sf'},
-    {title: 'PF', column: 'position', match: 'pf'},
-    {title: 'C', column: 'position', match: 'c'}
-  ],
+  playerPositionFilters: {
+    'nba': [
+      {title: 'All', column: 'position', match: ''},
+      {title: 'PG', column: 'position', match: 'pg'},
+      {title: 'SG', column: 'position', match: 'sg'},
+      {title: 'SF', column: 'position', match: 'sf'},
+      {title: 'PF', column: 'position', match: 'pf'},
+      {title: 'C', column: 'position', match: 'c'}
+    ],
+    'nfl': [
+      {title: 'QB', column: 'position', match: 'qb'},
+      {title: 'RB', column: 'position', match: 'rb'},
+      {title: 'WR', column: 'position', match: 'wr'},
+      {title: 'TE', column: 'position', match: 'te'},
+      {title: 'DST', column: 'position', match: 'dst'}
+    ],
+    'nhl': [
+      {title: 'G', column: 'position', match: 'g'},
+      {title: 'C', column: 'position', match: 'c'},
+      {title: 'F', column: 'position', match: 'f'},
+      {title: 'D', column: 'position', match: 'd'}
+    ],
+    'mlb': [
+      {title: 'SP', column: 'position', match: 'sp'},
+      {title: 'C', column: 'position', match: 'c'},
+      {title: '1B', column: 'position', match: '1b'},
+      {title: '2B', column: 'position', match: '2b'},
+      {title: '3B', column: 'position', match: '3b'},
+      {title: 'SS', column: 'position', match: 'ss'},
+      {title: 'OF', column: 'position', match: 'of'}
+    ]
+  },
 
 
   loadData: function() {
@@ -167,6 +191,11 @@ const DraftPlayerList = React.createClass({
       visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>
     }
 
+    let positions = []
+    if (this.props.sport && this.playerPositionFilters.hasOwnProperty(this.props.sport)) {
+      positions = this.playerPositionFilters[this.props.sport]
+    }
+
     return (
       <div>
         <h2 className="player-list__header">
@@ -187,7 +216,7 @@ const DraftPlayerList = React.createClass({
 
           <CollectionMatchFilter
             className="collection-filter--player-type"
-            filters={this.playerPositionFilters}
+            filters={positions}
             filterName="positionFilter"
             filterProperty='position'
             match=''
