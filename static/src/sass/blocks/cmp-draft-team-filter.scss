@@ -11,7 +11,7 @@ $contest-nav-foreground-color: #25A758;
   color: #46495e;
   height: $contest-nav-height;
   width: 100%;
-  margin-bottom: 16px;
+  margin: 25px 0 16px;
 
   // We need a single top-level element that react renders to (aaaannoying).
   .inner {

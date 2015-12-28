@@ -180,6 +180,11 @@ const DraftTeamFilter = React.createClass({
 
 
   render: function() {
+
+    if (!this.props.isVisible) {
+      return <div></div>
+    }
+
     return (
       <div className="cmp-draft-team-filter">
         <div className="slider">
