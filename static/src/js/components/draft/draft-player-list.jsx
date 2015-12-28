@@ -117,6 +117,7 @@ const DraftPlayerList = React.createClass({
 
   getInitialState: function() {
     return ({
+      showTeamFilter: false,
       filteredPlayers: [],
       newLineup: {
         availablePositions: []
@@ -151,10 +152,15 @@ const DraftPlayerList = React.createClass({
   },
 
 
+  handleGameCountClick: function() {
+    this.setState({showTeamFilter: true})
+  },
+
+
   render: function() {
-    let formattedDraftTime = ''
+    let gameCount = ''
     if (this.props.draftGroupTime) {
-      formattedDraftTime = moment.utc(this.props.draftGroupTime).format('MMM Do YYYY, h:mma')
+      gameCount = this.props.draftGroupBoxScores.length + ' Games'
     }
 
     let visibleRows = [];
@@ -204,8 +210,10 @@ const DraftPlayerList = React.createClass({
         <h2 className="player-list__header">
           <span className="player-list__header-title">Draft a Team</span>
           <span className="player-list__header-divider">/</span>
-
-          <span className="player-list__header-group">{formattedDraftTime}</span>
+          <span
+            className="player-list__header-games"
+            onClick={this.handleGameCountClick}
+            >{gameCount}</span>
         </h2>
 
         <div className="player-list-filter-set">
@@ -230,7 +238,7 @@ const DraftPlayerList = React.createClass({
         <div>
           <DraftTeamFilter
             games={this.props.draftGroupBoxScores}
-            isVisible={false}
+            isVisible={this.state.showTeamFilter}
             onFilterChange={this.handleFilterChange}
             selectedTeams={this.props.filters.teamFilter.match}
             teams={this.props.teams}

@@ -3,6 +3,10 @@
 
 .cmp-player-list {
 
+  &__table {
+    margin-top: 25px;
+  }
+
   &__row {
     color: #46495e;
     cursor: pointer;
@@ -93,6 +97,7 @@
   font-family: $font-open-sans;
   font-size: 13px;
   font-weight: 400;
+  text-transform: none;
 
   &-title {
     font-family: $font-oswald;
@@ -105,6 +110,14 @@
     padding: 0 10px;
     display: inline-block;
     color: #babdc9
+  }
+
+  &-games {
+    background: url(../img/common/select-arrow.png) no-repeat 100% 50%;
+    background-size: 7px auto;
+    padding-right: 12px;
+    color: #46495e;
+    cursor: pointer;
   }
 }
 
@@ -129,6 +142,7 @@
   .collection-filter--player-type {
     float: none;
     display: inline-block;
+    padding-bottom: 0;
   }
 
 }
