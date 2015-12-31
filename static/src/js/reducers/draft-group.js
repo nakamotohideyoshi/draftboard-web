@@ -7,9 +7,14 @@ const initialState = {
   id: null,
   isFetching: false,
   allPlayers: {},
+  boxScores: [],
   filters: {
     playerSearchFilter: {},
-    positionFilter: {}
+    positionFilter: {},
+    teamFilter: {
+      match: [],
+      count: 0
+    }
   }
 }
 
@@ -44,16 +49,23 @@ module.exports = function(state = initialState, action) {
 
 
     case ActionTypes.DRAFTGROUP_FILTER_CHANGED:
-      let newFilter = {};
-
-      newFilter[action.filter.filterName] = {
+      // Override any previous filters with what has been passed.
+      let filters = Object.assign({}, state.filters)
+      filters[action.filter.filterName] = {
         filterProperty: action.filter.filterProperty,
-        match: action.filter.match
+        match: action.filter.match,
+        count: action.filter.match.length
       }
 
       return Object.assign({}, state, {
-        filters: Object.assign({}, state.filters, newFilter)
+        filters
       });
+
+
+    case ActionTypes.FETCH_DRAFTGROUP_BOXSCORES_SUCCESS:
+      return Object.assign({}, state, {
+        boxScores: action.boxScores
+      })
 
     default:
       return state;
