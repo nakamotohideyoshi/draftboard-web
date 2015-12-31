@@ -57,38 +57,37 @@ export function setFocusedContest(contestId) {
 export function fetchUpcomingContests() {
   return (dispatch, getState) => {
     return request
-      .get("/api/contest/lobby/")
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
-          return dispatch(fetchUpcomingContestsFail(err));
-        } else {
-          // Normalize contest list by ID.
-          const normalizedContests = normalize(
-            res.body,
-            arrayOf(contestSchema)
-          )
+    .get("/api/contest/lobby/")
+    .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
+    .set('Accept', 'application/json')
+    .end(function(err, res) {
+      if(err) {
+        return dispatch(fetchUpcomingContestsFail(err));
+      } else {
+        // Normalize contest list by ID.
+        const normalizedContests = normalize(
+          res.body,
+          arrayOf(contestSchema)
+        )
 
-          // Now that we have contests, check if a contest is already set to be focused (probably
-          // via URL param). if set, fetch the necessary info for the contest detail pane.
-          let state = getState()
+        // Now that we have contests, check if a contest is already set to be focused (probably
+        // via URL param). if set, fetch the necessary info for the contest detail pane.
+        let state = getState()
 
-          if (state.upcomingContests.focusedContestId) {
-            if (normalizedContests.entities.contests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
-              let contest = normalizedContests.entities.contests[state.upcomingContests.focusedContestId]
-              fetchFocusedContestInfo(dispatch, contest)
-            } else {
-              window.alert("404! that contest isn't in the lobby!")
-            }
+        if (state.upcomingContests.focusedContestId) {
+          if (normalizedContests.entities.contests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
+            let contest = normalizedContests.entities.contests[state.upcomingContests.focusedContestId]
+            fetchFocusedContestInfo(dispatch, contest)
+          } else {
+            window.alert("404! that contest isn't in the lobby!")
           }
-
-          return dispatch(fetchUpcomingContestsSuccess({
-            contests: normalizedContests.entities.contests
-          }))
         }
+
+        return dispatch(fetchUpcomingContestsSuccess({
+          contests: normalizedContests.entities.contests
+        }));
       }
-    )
+    });
   }
 }
 
@@ -132,23 +131,23 @@ export function enterContest(contestId, lineupId) {
 
   return (dispatch) => {
     return request
-      .post('/api/contest/enter-lineup/')
-      .set({
-        'X-REQUESTED-WITH': 'XMLHttpRequest',
-        'X-CSRFToken': Cookies.get('csrftoken'),
-        'Accept': 'application/json'
-      })
-      .send(postData)
-      .end(function(err, res) {
-        if(err) {
-          window.alert(res.body)
-          console.error(res.body)
-        } else {
-          // Insert our newly saved entry into the store.
-          dispatch(insertEntry(res.body))
-          // Upon save success, send user to the lobby.
-          // document.location.href = '/frontend/lobby/?lineup-saved=true';
-        }
+    .post('/api/contest/enter-lineup/')
+    .set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'X-CSRFToken': Cookies.get('csrftoken'),
+      'Accept': 'application/json'
+    })
+    .send(postData)
+    .end(function(err, res) {
+      if(err) {
+        window.alert(res.body)
+        console.error(res.body)
+      } else {
+        // Insert our newly saved entry into the store.
+        dispatch(insertEntry(res.body))
+        // Upon save success, send user to the lobby.
+        // document.location.href = '/frontend/lobby/?lineup-saved=true';
+      }
     });
   }
 }
