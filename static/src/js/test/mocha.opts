@@ -1,3 +1,8 @@
 --compilers js:babel/register
+--require mock-local-storage
 --reporter spec
 --recursive
+--verbose
+--colors
+--trace
+--check-leaks

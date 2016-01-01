@@ -15,6 +15,8 @@ module.exports = function(markup) {
   global.navigator = {
     userAgent: "node.js"
   };
-
+  global.window.dfs = {
+    user: {}
+  }
   // ... add whatever browser globals your tests might need ...
 };
