@@ -6,7 +6,7 @@ var renderComponent = require('../../lib/render-component');
 var expect = require('chai').expect;
 
 
-describe('RenderComponent', function() {
+describe('RenderComponent Component', function() {
 
   beforeEach(function() {
     document.body.innerHTML = '';
