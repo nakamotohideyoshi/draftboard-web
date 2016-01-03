@@ -23,7 +23,7 @@ function fetchUpcomingLineupsSuccess(res) {
 
 
 function fetchUpcomingLineupsFail(ex) {
-  window.alert(ex)
+  console.error(ex)
   return {
     type: types.FETCH_UPCOMING_LINEUPS_FAIL,
     ex

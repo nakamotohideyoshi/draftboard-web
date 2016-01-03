@@ -26,6 +26,17 @@ export function updateFilter(filterName, filterProperty, match) {
 }
 
 
+export function updateOrderByFilter(property, direction='desc') {
+  return {
+    type: types.DRAFTGROUP_ORDER_CHANGED,
+    orderBy: {
+      property,
+      direction
+    }
+  }
+}
+
+
 export function setFocusedPlayer(playerId) {
   return (dispatch) => {
     dispatch({

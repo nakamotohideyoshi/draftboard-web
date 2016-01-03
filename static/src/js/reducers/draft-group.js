@@ -9,6 +9,10 @@ const initialState = {
   allPlayers: {},
   boxScores: [],
   filters: {
+    orderBy: {
+      property: 'salary',
+      direction: 'desc'
+    },
     playerSearchFilter: {},
     positionFilter: {},
     teamFilter: {
@@ -66,6 +70,13 @@ module.exports = function(state = initialState, action) {
       return Object.assign({}, state, {
         boxScores: action.boxScores
       })
+
+
+    case ActionTypes.DRAFTGROUP_ORDER_CHANGED:
+      let newState = Object.assign({}, state)
+      newState.filters.orderBy = action.orderBy
+      return newState
+
 
     default:
       return state;
