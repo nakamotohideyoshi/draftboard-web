@@ -63,6 +63,7 @@ TEMPLATES = [
                 'cash.withdraw.context_processors.model_badges',
                 'mysite.context_processors.pusher_key',
                 'mysite.context_processors.pusher_channel_prefix',
+                'mysite.context_processors.delta_now_prefix',
             )
         }
     },
