@@ -44,7 +44,7 @@ class ContestAdmin(admin.ModelAdmin):
         ('Advanced Options', {
             'classes': ('collapse',),
             'fields': (
-                'ends_tonight',
+                # 'ends_tonight',
 
                 'end',
                 'draft_group',
@@ -54,7 +54,7 @@ class ContestAdmin(admin.ModelAdmin):
                 'respawn',
                 'doubleup',
 
-                'early_registration',
+                # 'early_registration',
             )
         }),
     )
