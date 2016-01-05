@@ -1,5 +1,6 @@
 import React from 'react'
 import * as ReactRedux from 'react-redux'
+import Cookies from 'js-cookie'
 import store from '../../store'
 import {updatePath} from 'redux-simple-router'
 
@@ -18,6 +19,7 @@ import CollectionSearchFilter from '../filters/collection-search-filter.jsx'
 import ContestList from '../contest-list/contest-list.jsx'
 import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filter.jsx'
 import renderComponent from '../../lib/render-component'
+import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx'
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
@@ -55,6 +57,8 @@ var LobbyContests = React.createClass({
 
   getInitialState: function() {
     return ({
+      showConfirmModal: false,
+      contestToEnter: null,
       contestTypeFilters: [
         {title: 'All', column: 'contestType', match: ''},
         {title: 'Guaranteed', column: 'contestType', match: 'gpp'},
@@ -84,8 +88,31 @@ var LobbyContests = React.createClass({
 
 
   // Enter the currently focused lineup into a contest.
-  handleEnterContest: function(contestId, e) {
+  handleEnterContest: function(contest, e) {
     e.stopPropagation()
+    // If the user has chosen not to confirm entries, enter the contest.
+    console.log(Cookies.get('shouldConfirmEntry'))
+    if (Cookies.get('shouldConfirmEntry') === 'false') {
+      this.enterContest(contest.id)
+    }
+    // Otherwise, show the confirmation modal.
+    else {
+      this.setState({
+        showConfirmModal: true,
+        contestToEnter: contest
+      })
+    }
+  },
+
+
+  handleCancelEntry: function() {
+    this.setState({
+      showConfirmModal: false,
+      contestToEnter: null
+    })
+  },
+
+  enterContest: function(contestId) {
     this.props.enterContest(contestId, this.props.focusedLineup.id)
   },
 
@@ -153,6 +180,13 @@ var LobbyContests = React.createClass({
           setFocusedContest={this.handleFocusContest}
           setOrderBy={this.handleSetOrderBy}
         />
+
+      <ContestListConfirmModal
+        confirmEntry={this.enterContest}
+        cancelEntry={this.handleCancelEntry}
+        contest={this.state.contestToEnter}
+        isOpen={this.state.showConfirmModal}
+      />
       </div>
     );
   }
