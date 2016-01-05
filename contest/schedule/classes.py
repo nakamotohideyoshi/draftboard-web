@@ -9,8 +9,23 @@ from django.db.transaction import atomic
 from django.db.models import Q
 import contest.models
 from draftgroup.classes import DraftGroupManager
-from .exceptions import ScheduleException, ScheduleOutOfRangeException
-from .models import Schedule, TemplateContest, ScheduledTemplateContest, CreatedContest
+from mysite.exceptions import (
+    NoGamesInRangeException,
+)
+from draftgroup.exceptions import (
+    NotEnoughGamesException,
+)
+from .exceptions import (
+    ScheduleException,
+    ScheduleOutOfRangeException,
+    SchedulerNumberOfGamesException,
+)
+from .models import (
+    Schedule,
+    TemplateContest,
+    ScheduledTemplateContest,
+    CreatedContest,
+)
 from util.midnight import midnight
 
 class ScheduleManager(object):
@@ -31,6 +46,8 @@ class ScheduleManager(object):
     #       or more than 1 week from the current datetime.
 
     NOW_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+    MAX_SKIP_DAYS = 6
 
     class Schedule(object):
 
@@ -176,6 +193,11 @@ class ScheduleManager(object):
             draft_group = None
             try:
                 draft_group = dgm.get_for_site_sport( c.site_sport, c.start, c.end )
+            except (NoGamesInRangeException, NotEnoughGamesException):
+                # these exceptions basically indicate there was break
+                # in schedule... we should try to create games for the following
+                # day (or 6) before giving up.
+                raise SchedulerNumberOfGamesException()
             except:
                 raise ScheduleException('DraftGroup couldnt be created -- are there games for this day?')
 
@@ -220,11 +242,16 @@ class ScheduleManager(object):
                 on_or_off = ' On  '
             print( '     [%s]   ' % on_or_off, sched )
 
-    def run(self, time_delta=None):
+    def run(self, time_delta=None, allow_day_skipping=True):
         """
         Create Contests which need to be scheduled, and have not yet been created.
 
         This method can be run as often as necessary.
+
+        :param allow_day_skipping: if this argument is True, this method
+                                    will keep attempting to schedule contests
+                                    on successive until it succeeds
+                                    (for a limited number of days into the future)
 
         :return:
         """
@@ -245,10 +272,35 @@ class ScheduleManager(object):
             try:
                 sc = self.Schedule( sched, dt=dt )
                 sc.update() # run this schedule
+            except SchedulerNumberOfGamesException:
+                #
+                # if day skipping is disabled, and we fail
+                # to create the schedule for the given day,
+                # then try no more... continue
+                if not allow_day_skipping:
+                    continue
+
+                #
+                # allow_day_skipping is True at this point.
+                # Try scheduling for the following days
+                # until we find a day that works.
+                print('allow_day_skipping == ', str(allow_day_skipping))
+                for extra_days in range(1,self.MAX_SKIP_DAYS+1):  # ie: [1,2,3,4,5,6]
+                    #
+                    try:
+                        sc = self.Schedule( sched, dt = dt + timedelta(days=extra_days) )
+                        sc.update() # run this schedule
+                    except (SchedulerNumberOfGamesException, ScheduleException):
+                        # essentially for any exception that happens now
+                        # just try the next day
+                        continue
+                    #
+                    # at this point, the scheduler successfully made games for a day
+                    # so happily continue thru the original/outter loop
+                    pass
+
             except ScheduleException as se:
                 # print there was an error, but keep going so
                 # we dont prevent subsequent schedules from running
                 print( se )
-
-
 
