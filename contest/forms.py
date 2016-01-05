@@ -50,6 +50,7 @@ class ContestForm(ModelForm):
             'doubleup'
         ]
 
+        # exclude = ('ends_tonight',)
         #
         # add widgets, using the same field name from 'fields' list
         # widgets = {
