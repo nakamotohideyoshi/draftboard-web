@@ -1,5 +1,7 @@
 #
 # contest/buyin/tests.py
+
+from rest_framework.test import APITestCase
 from test.classes import AbstractTest, AbstractTestTransaction
 from salary.dummy import Dummy
 from prize.classes import CashPrizeStructureCreator

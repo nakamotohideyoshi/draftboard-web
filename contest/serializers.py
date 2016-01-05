@@ -77,3 +77,7 @@ class EnterLineupSerializer(serializers.Serializer):
 
     contest = serializers.IntegerField()
     lineup = serializers.IntegerField()
+
+class EnterLineupStatusSerializer(serializers.Serializer):
+
+    task = serializers.CharField()

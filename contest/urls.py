@@ -3,22 +3,38 @@
 
 from django.conf.urls import patterns
 from django.conf.urls import url
-from contest.views import LobbyAPIView, AllLineupsView, \
-                          UserUpcomingAPIView, UserLiveAPIView, UserHistoryAPIView, \
-                          SingleLineupView, CurrentEntryAPIView, SingleContestAPIView, \
-                          RegisteredUsersAPIView, EnterLineupAPIView
+from contest.views import (
+    LobbyAPIView,
+    AllLineupsView,
+    UserUpcomingAPIView,
+    UserLiveAPIView,
+    UserHistoryAPIView,
+    SingleLineupView,
+    CurrentEntryAPIView,
+    SingleContestAPIView,
+    RegisteredUsersAPIView,
+    EnterLineupAPIView,
+    EnterLineupStatusAPIView,
+)
 from contest.views import ContestCreate, ContestUpdate
 
-urlpatterns = patterns(
-    '',
+urlpatterns = patterns( '',
+
     url(r'^add/$', ContestCreate.as_view(), name='contest_add'),
+
     url(r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest-detail'),
     # (r'^add/$', ContestCreate.as_view(), name='contest_add'),
     # (r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest_update'),
 
     #
-    #
+    # "buyin" api - ie: enter a lineup into a contest.
+    # This endpoint returns a task id which should
+    # be used subsequently to check if the buy was successful.
     (r'^enter-lineup/$', EnterLineupAPIView.as_view()),
+
+    #
+    # check if the "buyin" -- that is /api/contest/enter-lineup/ -- was successful
+    (r'^enter-lineup-status/$', EnterLineupStatusAPIView.as_view()),
 
     #
     # get the info for a single Contest by its id
