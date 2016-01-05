@@ -118,3 +118,7 @@ mongodump-*
 # ctags files
 .tags*
 .tags_swap
+
+
+# Replayer dumps
+mysite/smugglin/
