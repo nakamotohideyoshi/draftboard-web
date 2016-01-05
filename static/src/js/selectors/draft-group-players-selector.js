@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect'
 import { stringSearchFilter, matchFilter, inArrayFilter } from './filters'
+import {orderBy} from './order-by.js'
 import {forEach as _forEach} from 'lodash'
 
 
@@ -68,9 +69,23 @@ const teamSelector = createSelector(
 const positionFilterPropertySelector = (state) => state.draftDraftGroup.filters.positionFilter.filterProperty
 const positionFilterMatchSelector = (state) => state.draftDraftGroup.filters.positionFilter.match
 
-export const draftGroupPlayerSelector = createSelector(
+const positionSelector = createSelector(
   [teamSelector, positionFilterPropertySelector, positionFilterMatchSelector],
   (collection, filterProperty, searchString) => {
     return matchFilter(collection, filterProperty, searchString)
+  }
+)
+
+
+/**
+ * Sort the contests.
+ */
+const sortDirection = (state) => state.draftDraftGroup.filters.orderBy.direction
+const sortProperty = (state) => state.draftDraftGroup.filters.orderBy.property
+
+export const draftGroupPlayerSelector = createSelector(
+  [positionSelector, sortProperty, sortDirection],
+  (collection, sortProperty, sortDirection) => {
+    return orderBy(collection, sortProperty, sortDirection)
   }
 )

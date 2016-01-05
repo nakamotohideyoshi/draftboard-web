@@ -11,15 +11,15 @@ from rest_framework.pagination import LimitOffsetPagination
 from lobby.serializers import ContestBannerSerializer
 from lobby.models import ContestBanner
 
+
 class ContestBannerAPIView(generics.ListAPIView):
     """
     Get a list of the ContestBanner objects
     """
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = ContestBannerSerializer
+    serializer_class = ContestBannerSerializer
 
     def get_queryset(self):
         """
         return the QuerySet of the ContestBanner objects to return
         """
-        return ContestBanner.objects.all() # TODO - for now return all, we'll want more stuff
+        return ContestBanner.objects.all()  # TODO - for now return all, we'll want more stuff

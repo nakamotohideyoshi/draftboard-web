@@ -42,18 +42,19 @@ var ContestListRow = React.createClass({
     if (this.props.isEntered) {
       return (
         <span
-          className="button button--mini button--green"
+          className="button button--mini button--green disabled"
           onClick={this.ignoreClick}
         >
           Entered
         </span>
       )
     }
-    if (this.props.draftGroupsWithLineups.indexOf(this.props.row.draft_group) !== -1) {
+    // Is the currently focused lineup able to enter this contest?
+    if (this.props.focusedLineup && this.props.focusedLineup.draft_group === this.props.row.draft_group) {
       return (
         <span
           className="button button--mini--outline button--green-outline"
-          onClick={this.props.enterContest.bind(null, this.props.row.id)}>
+          onClick={this.props.enterContest.bind(null, this.props.row)}>
           Enter
         </span>
       )
