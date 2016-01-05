@@ -2,6 +2,7 @@
 # contest/views.py
 
 import json
+import celery
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -12,28 +13,42 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import ValidationError, NotFound
-from contest.serializers import ContestSerializer, CurrentEntrySerializer, \
-                                RegisteredUserSerializer, EnterLineupSerializer
+from contest.serializers import (
+    ContestSerializer,
+    CurrentEntrySerializer,
+    RegisteredUserSerializer,
+    EnterLineupSerializer,
+    EnterLineupStatusSerializer,
+)
 from contest.classes import ContestLineupManager
-from contest.models import Contest, Entry, LobbyContest, \
-                            UpcomingContest, LiveContest, HistoryContest, CurrentContest
+from contest.models import (
+    Contest,
+    Entry,
+    LobbyContest,
+    UpcomingContest,
+    LiveContest,
+    HistoryContest,
+    CurrentContest,
+)
 from contest.buyin.classes import BuyinManager
-from contest.exceptions import ContestLineupMismatchedDraftGroupsException, \
-                                ContestIsInProgressOrClosedException, \
-                                ContestIsFullException, ContestCouldNotEnterException, \
-                                ContestMaxEntriesReachedException, \
-                                ContestIsNotAcceptingLineupsException
+from contest.buyin.tasks import buyin_task
+from contest.exceptions import (
+    ContestLineupMismatchedDraftGroupsException,
+    ContestIsInProgressOrClosedException,
+    ContestIsFullException,
+    ContestCouldNotEnterException,
+    ContestMaxEntriesReachedException,
+    ContestIsNotAcceptingLineupsException,
+)
 
 from cash.exceptions import OverdraftException
 from lineup.models import Lineup
-from dataden.util.simpletimer import SimpleTimer
 from django.http import HttpResponse
 from django.views.generic import View
 from django.views.generic.edit import CreateView, UpdateView
 from contest.forms import ContestForm, ContestFormAdd
 
 from django.db.models import Count
-from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer
 
 # test the generic add view
 class ContestCreate(CreateView):
@@ -300,3 +315,48 @@ class EnterLineupAPIView(generics.CreateAPIView):
         entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
         serializer = CurrentEntrySerializer(entry, many=False)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class EnterLineupStatusAPIView(generics.RetrieveAPIView):
+    """
+    check the status of enter-lineup, having previously attempted to
+    buy a lineup into a contest...
+    """
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = EnterLineupStatusSerializer
+
+    def get(self, request, *args, **kwargs):
+        """
+        Get the task id of a previous call to the enter-lineup endpoint
+        from the GET parameter 'task', and check whether an Entry was created
+        for this task id.
+
+        :param request:
+        :param format:
+        :return:
+        """
+        enter_lineup_status = False
+        task_id = request.GET.get('task')    #
+        if task_id is None:
+            # make sure to return error if the task id is not given in the request
+            return Response({'error':'you must supply the "task" argument'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+
+        task_result = self.get_enter_lineup_task_result(task_id)
+        if task_result:
+            # set the enter_lineup_status to True if the task was successful, else false
+            enter_lineup_status = task_result.status == celery.states.SUCCESS
+
+        data = {
+            'status' : enter_lineup_status
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+    def get_enter_lineup_task_result(self, task_id):
+        """
+        Return the status of the task matching the task_id,
+        or None, if the task cannot be found.
+
+        :param task_id:
+        :return:
+        """
+        return buyin_task.AsyncResult(task_id)
