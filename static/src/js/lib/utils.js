@@ -22,7 +22,7 @@ export function timeRemaining(timestamp) {
   let duration = moment.duration(diffTime)
 
   return {
-    hours: Math.floor(duration.asHours()),
+    hours: toTwoDigit(Math.floor(duration.asHours())),
     minutes: toTwoDigit(duration.minutes()),
     seconds: toTwoDigit(duration.seconds())
   }
