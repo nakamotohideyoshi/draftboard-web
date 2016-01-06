@@ -17,7 +17,10 @@ var LiveLineupPlayer = React.createClass({
   render: function() {
     const playStatusClass = 'live-lineup-player__play-status play-status--' + this.props.player.playStatus
     let stats = this.props.player.stats
-    let playerPane
+
+
+    // TEMP
+    let playerInitials = this.props.player.info.name.match(/\b(\w)/g).join('')
 
     if (stats === undefined) {
       stats = {pos: "", fp: 0}
@@ -31,7 +34,8 @@ var LiveLineupPlayer = React.createClass({
           <div className="live-lineup-player__points">{stats.fp}</div>
           <div className="live-lineup-player__status"></div>
           <div className="live-lineup-player__photo">
-            <LivePMRProgressBar decimalRemaining="0.3" strokeWidth="2" backgroundHex="46495e" hexStart="e33c3c" hexEnd="871c5a" svgWidth="50" />
+            <LivePMRProgressBar decimalRemaining={stats.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="e33c3c" hexEnd="871c5a" svgWidth="50" />
+            <div className="live-lineup-player__initials">{playerInitials}</div>
           </div>
           <div className="live-lineup-player__position">{this.props.player.info.position}</div>
         </li>
@@ -42,7 +46,8 @@ var LiveLineupPlayer = React.createClass({
       <li className="live-lineup-player state--is-playing" onClick={this.props.onClick}>
         <div className="live-lineup-player__position">{this.props.player.info.position}</div>
         <div className="live-lineup-player__photo">
-          <LivePMRProgressBar decimalRemaining="0.3" strokeWidth="2" backgroundHex="46495e" hexStart="34B4CC" hexEnd="2871AC" svgWidth="50" />
+          <LivePMRProgressBar decimalRemaining={stats.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="34B4CC" hexEnd="2871AC" svgWidth="50" />
+          <div className="live-lineup-player__initials">{playerInitials}</div>
         </div>
         <div className="live-lineup-player__status"></div>
         <div className="live-lineup-player__points">{stats.fp}</div>

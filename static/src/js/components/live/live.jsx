@@ -169,7 +169,7 @@ var Live = React.createClass({
     self.props.updatePlayerFP(
       self.props.liveSelector.lineups.mine.draftGroup.id,
       eventCall.fields.player_id,
-      eventCall.fields.points
+      eventCall.fields.fantasy_points
     )
   },
 
@@ -312,7 +312,7 @@ var Live = React.createClass({
         self.props.updatePlayerFP(
           self.props.liveSelector.lineups.mine.draftGroup.id,
           eventCall.fields.player_id,
-          eventCall.fields.points
+          eventCall.fields.fantasy_points
         )
     }
 
@@ -368,10 +368,27 @@ var Live = React.createClass({
 
         // remove players from playersPlaying
         let playersPlaying = self.state.playersPlaying.slice[0]
+
         playersPlaying = _.remove(playersPlaying, (value) => {
           return players.indexOf(value) === -1
         })
         self.setState({playersPlaying: playersPlaying})
+
+        // update player fp
+        _.forEach(eventCall.statistics__list, function(event, key) {
+          if ('points' in event && 'made' in event && event.made === 'true') {
+            const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
+            const draftGroup = self.props.liveDraftGroups[draftGroupId]
+            const playerId = draftGroup.playersBySRID[event.player]
+            const playerStats = draftGroup.playersStats[playerId]
+
+            self.props.updatePlayerFP(
+              draftGroupId,
+              playerId,
+              playerStats.fp + event.points
+            )
+          }
+        })
 
       }.bind(this), 2000)
 

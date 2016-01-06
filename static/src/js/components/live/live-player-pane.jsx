@@ -2,6 +2,7 @@ import React from 'react'
 
 import * as AppActions from '../../stores/app-state-store'
 import LivePMRProgressBar from './live-pmr-progress-bar'
+import log from '../../lib/logging'
 
 import * as ReactRedux from 'react-redux'
 import renderComponent from '../../lib/render-component'
@@ -21,7 +22,7 @@ const LivePlayerPane = React.createClass({
   },
 
   closePane: function() {
-    console.log('LivePlayerPane.closePane()')
+    log.debug('LivePlayerPane.closePane()')
     this.props.whichSide === 'opponent' ? AppActions.closePlayerPane('right') : AppActions.closePlayerPane('left')
   },
 
@@ -46,10 +47,12 @@ const LivePlayerPane = React.createClass({
   },
 
   renderCurrentGame: function() {
+    log.debug('LivePlayerPane.renderCurrentGame')
     const player = this.props.player
     const boxScore = this.props.boxScore
 
     if (boxScore === undefined) {
+      log.debug('renderCurrentGame() - boxScore undefined')
       return (<div className='live-player-pane__current-game' />)
     }
 
@@ -152,10 +155,11 @@ const LivePlayerPane = React.createClass({
       )
     })
 
+    // <ul>{ activitiesHTML }</ul>
     return (
       <div className='live-player-pane__recent-activity'>
         <div className='live-player-pane__recent-activity__title'>Recent activity</div>
-        <ul>{ activitiesHTML }</ul>
+        <ul />
       </div>
     )
   },

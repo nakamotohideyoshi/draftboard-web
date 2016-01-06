@@ -74,7 +74,7 @@ var LiveOverallStats = React.createClass({
 
     // TODO props
     var strokeWidth = 2
-    var decimalRemaining = 1 - lineup.minutesRemaining / lineup.totalMinutes
+    var decimalRemaining = lineup.decimalRemaining
     var backgroundHex = '#0c0e16'
     var svgWidth = 280
 
@@ -85,14 +85,6 @@ var LiveOverallStats = React.createClass({
       r: radius - (strokeWidth / 2),
       stroke: backgroundHex,
       strokeWidth: strokeWidth + 26
-    }
-
-    // trickery to prevent arc issues, TODO clean this up math-wise
-    if (decimalRemaining === 1) {
-      decimalRemaining = 0.99
-    }
-    if (decimalRemaining === 0) {
-      decimalRemaining = 0.01
     }
 
     var progressArc = {
@@ -125,7 +117,7 @@ var LiveOverallStats = React.createClass({
     var endpointCoord = this._polarToCartesian(0, 0, radius, decimalRemaining * 360)
     var endOuter = {
       r: strokeWidth + 6,
-      stroke: '#' + this._percentageHexColor(hexEnd, hexStart, 1 - decimalRemaining),
+      stroke: '#' + this._percentageHexColor(hexEnd, hexStart, decimalRemaining),
       strokeWidth: strokeWidth,
       fill: backgroundHex,
       cx: endpointCoord.x,
@@ -138,7 +130,7 @@ var LiveOverallStats = React.createClass({
       cy: endpointCoord.y
     }
 
-    log.debug('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
+    // log.debug('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
 
 
     return (

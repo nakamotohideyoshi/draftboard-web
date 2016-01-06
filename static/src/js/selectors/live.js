@@ -79,7 +79,6 @@ export const liveSelector = createSelector(
 
     if (mode.myLineupId) {
       stats.lineups.mine = currentLineupsStats[mode.myLineupId]
-      stats.lineups.mine.rosterDetails = addPlayersDetails(stats.lineups.mine)
 
       stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.mine.rosterDetails, (player) => {
         return player.info.game_srid
@@ -92,7 +91,6 @@ export const liveSelector = createSelector(
 
     if (mode.opponentLineupId) {
       stats.lineups.opponent = currentLineupsStats[mode.opponentLineupId]
-      stats.lineups.opponent.rosterDetails = addPlayersDetails(stats.lineups.opponent)
 
       stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.opponent.rosterDetails, (player) => {
         return player.info.game_srid

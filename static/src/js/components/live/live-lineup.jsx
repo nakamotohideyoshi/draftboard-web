@@ -56,7 +56,7 @@ var LiveLineup = React.createClass({
       const boxScore = self.props.currentBoxScores[player.info.game_srid]
 
       playerPane = (
-        <LivePlayerPane whichSide={self.props.whichSide} player={player} boxscore={boxScore} />
+        <LivePlayerPane whichSide={self.props.whichSide} player={player} boxScore={boxScore} />
       )
     }
 

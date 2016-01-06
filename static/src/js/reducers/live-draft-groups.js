@@ -73,6 +73,7 @@ module.exports = (state = {}, action) => {
             isFetchingInfo: false,
             expiresAt: action.expiresAt,
             playersInfo: action.players,
+            playersBySRID: action.playersBySRID,
             start: action.start,
             end: action.end,
             sport: action.sport

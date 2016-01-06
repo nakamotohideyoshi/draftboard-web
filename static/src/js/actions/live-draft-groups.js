@@ -30,6 +30,7 @@ function _calculateTimeRemaining(boxScore) {
 
 // Used to update a player's FP when a Pusher call sends us new info
 export function updatePlayerFP(id, playerId, fp) {
+  log.debug('actionsLiveDraftGroup.updatePlayerFP')
   return {
     id: id,
     type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
@@ -131,10 +132,18 @@ function receiveDraftGroupInfo(id, response) {
     arrayOf(playerSchema)
   )
 
+  let players = normalizedPlayers.entities.players
+  let playersBySRID = {}
+
+  _forEach(players, (player) => {
+    playersBySRID[player.player_srid] = player.player_id
+  })
+
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_INFO,
     id: id,
-    players: normalizedPlayers.entities.players,
+    players: players,
+    playersBySRID: playersBySRID,
     sport: response.sport,
     start: moment(response.start).valueOf(),
     end: moment(response.end).valueOf(),
