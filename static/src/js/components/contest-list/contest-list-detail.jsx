@@ -4,11 +4,11 @@ import store from '../../store'
 import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx'
 import {enterContest, setFocusedContest} from '../../actions/upcoming-contests-actions.js'
-import {timeRemaining} from '../../lib/utils.js'
 import * as AppActions from '../../stores/app-state-store.js'
 import { Router, Route } from 'react-router'
 import {updatePath, syncReduxAndRouter} from 'redux-simple-router'
 import createBrowserHistory from 'history/lib/createBrowserHistory'
+import CountdownClock from '../site/countdown-clock.jsx'
 
 const history = createBrowserHistory()
 syncReduxAndRouter(history, store)
@@ -108,39 +108,49 @@ var ContestListDetail = React.createClass({
   getContest: function() {
     if(this.props.contest) {
       let tabNav = this.getTabNav()
-      let liveIn = timeRemaining(this.props.contest.start)
 
       return (
-        <div>
-          <div className="cmp-contest-list__detail-inner">
-            <div className="cmp-contest-list__detail-upper">
-              <h2 className="cmp-contest-list__detail__name">
-                {this.props.contest.name}
-              </h2>
+        <div className="pane--contest-detail">
+          <div className="pane-upper">
+            <div className="header">
+              <div className="header__content">
+                <div className="title">{this.props.contest.name}</div>
+                <div className="header__info">
+                  <div>
+                    <div className="info-title">Live In</div>
+                    <span><CountdownClock time={this.props.contest.start} /></span>
+                  </div>
+                </div>
 
-              <h6>Live In</h6>
+                <div className="header__extra-info">
+                  <div className="m badge">M</div>
+                  <div className="g badge">G</div>
+                </div>
 
-              <h3>{liveIn.hours}:{liveIn.minutes}:{liveIn.seconds}</h3>
+                <div className="header__fee-prizes-pool">
+                  <div><span className="info-title">Prize</span><div>${this.props.contest.prize_pool.toFixed(2)}</div></div>
+                  <div><span className="info-title">Fee</span><div>${this.props.contest.buyin.toFixed(2)}</div></div>
+                  <div>
+                    <span className="info-title">Entrants</span>
+                    <div>{this.props.contest.current_entries} / {this.props.contest.entries}</div>
+                  </div>
+                </div>
 
-              <div className="contest-info">
-                <span>Prize Pool: ${this.props.contest.prize_pool.toFixed(2)}</span>
-                <span>Fee: ${this.props.contest.buyin.toFixed(2)}</span>
-                <span>Entrants: {this.props.contest.current_entries} / {this.props.contest.entries}</span>
-              </div>
-
-              <div
-                className="button button--gradient button--medium"
-                onClick={this.handleEnterContest.bind(null, this.props.focusedLineupId)}
-              >
-                Enter Contest
+                <div
+                  className="button button--gradient button--medium btn-enter-contest"
+                  onClick={this.handleEnterContest.bind(null, this.props.focusedLineupId)}
+                >
+                  Enter Contest
+                </div>
               </div>
             </div>
           </div>
 
-          <div colSpan="9" className="cmp-contest-list__detail-lower">
+          <div colSpan="9" className="pane-lower">
             <ul className="tab-nav">{tabNav}</ul>
             <div className="tab-content">{this.getActiveTab()}</div>
           </div>
+
         </div>
       )
     }
