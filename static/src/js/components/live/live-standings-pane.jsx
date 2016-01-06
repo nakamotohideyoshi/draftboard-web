@@ -3,6 +3,9 @@ import * as ReactRedux from 'react-redux'
 import renderComponent from '../../lib/render-component'
 import { updatePath } from 'redux-simple-router'
 import { vsprintf } from 'sprintf-js'
+import { debounce } from 'lodash'
+import request from 'superagent'
+import Cookies from 'js-cookie'
 
 import LiveStandingsPaneCircle from './live-standings-pane-circle'
 import * as AppActions from '../../stores/app-state-store'
@@ -12,7 +15,6 @@ import { fetchContestIfNeeded } from '../../actions/live-contests'
 import { liveSelector } from '../../selectors/live'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import store from '../../store'
-
 
 /**
  * When `View Contests` element is clicked, open side pane to show
@@ -43,6 +45,7 @@ export const LiveStandingsPane = React.createClass({
 
   componentDidMount() {
     this.props.fetchLineupUsernames(this.props.contestId)
+    this.handleSearchByUsername = debounce(this.handleSearchByUsername, 150)
   },
 
   /**
@@ -64,8 +67,12 @@ export const LiveStandingsPane = React.createClass({
     }
 
     if (this.state.searchValue !== '') {
-      const s = this.state.searchValue
-      data = data.filter(p => p.name.toLowerCase().indexOf(s.toLowerCase()) !== -1)
+      if (this.state.currentTab === 'standings') {
+        data = data.filter(p => this.state.searchResults.indexOf(p.id) !== -1)
+      } else {
+        const s = this.state.searchValue
+        data = data.filter(p => p.name.toLowerCase().indexOf(s.toLowerCase()) !== -1)
+      }
     }
 
     return data
@@ -84,13 +91,20 @@ export const LiveStandingsPane = React.createClass({
       page: 1,
       search: false,
       searchValue: '',
+      searchResults: [],
       currentTab: 'ownership',
       currentPositionFilter: 'all'
     })
   },
 
   handleViewStandings() {
-    this.setState({ currentTab: 'standings', page: 1 })
+    this.setState({
+      page: 1,
+      search: false,
+      searchValue: '',
+      searchResults: [],
+      currentTab: 'standings'
+    })
   },
 
   handleViewNextPage() {
@@ -139,6 +153,39 @@ export const LiveStandingsPane = React.createClass({
 
   handleSearchTermChanged() {
     this.setState({searchValue: this.refs.search.value})
+
+    if (this.state.currentTab === 'standings') {
+      this.handleSearchByUsername();
+    }
+  },
+
+  handleSearchByUsername() {
+    const params = {
+      contest_id: 1, // this.props.contestId,
+      search_str: this.state.searchValue
+    }
+
+    // TODO: report errors
+    return request
+      .post('/api/lineup/usernames/')
+      .send(params)
+      .set({'X-CSRFToken': Cookies.get('csrftoken')})
+      .set({'X-REQUESTED-WITH': 'XMLHttpRequest'})
+      .set('Accept', 'application/json')
+      .end((err, res) => {
+        if (!err) {
+          let data;
+          try {
+            data = JSON.parse(res.text);
+          } catch(e) {
+            data = [];
+          }
+
+          this.setState({searchResults: data.map((l) => l.id)});
+        } else {
+          this.setState({searchResults: []});
+        }
+      })
   },
 
   handleSearchInputBlur() {
