@@ -11,7 +11,8 @@ import store from '../../store'
 
 
 /**
- * When `View Contests` element is clicked, open side pane to show a user's current contests for that lineup.
+ * When `View Contests` element is clicked, open side pane to show
+ * a user's current contests for that lineup.
  */
 var LiveContestsPane = React.createClass({
 
