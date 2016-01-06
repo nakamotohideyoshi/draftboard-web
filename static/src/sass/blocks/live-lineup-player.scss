@@ -34,6 +34,18 @@
     width: 48px;
   }
 
+  // TEMP until real photos exist
+  &__initials {
+    color: #fff;
+    font-size: 15px;
+    font-family: $font-oswald;
+    text-transform: uppercase;
+    font-weight: 400;
+    opacity: 0.5;
+    text-align: center;
+    padding-top: 13px;
+  }
+
   &__status {
     border-radius: 50%;
     width: 6px;

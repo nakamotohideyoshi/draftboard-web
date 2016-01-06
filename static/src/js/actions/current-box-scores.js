@@ -16,13 +16,11 @@ export function mergeBoxScores(boxScores) {
     boxScore.teams = {}
 
     boxScore.teams[fields.srid_home] = {
-      score: fields.home_score,
-      name: fields.home_abbr
+      score: fields.home_score
     }
 
     boxScore.teams[fields.srid_away] = {
-      score: fields.away_score,
-      name: fields.away_abbr
+      score: fields.away_score
     }
 
     scoresBySRID[fields.srid_game] = boxScore

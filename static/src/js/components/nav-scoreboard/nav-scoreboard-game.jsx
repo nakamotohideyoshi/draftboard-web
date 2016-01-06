@@ -50,9 +50,9 @@ const NavScoreboardGame = React.createClass({
         </div>
 
         <div className="scores">
-          {game.fields.home_score}
+          {game.teams[game.fields.srid_home].score}
           <br />
-          {game.fields.away_score}
+          {game.teams[game.fields.srid_away].score}
         </div>
 
         <div className="right">
