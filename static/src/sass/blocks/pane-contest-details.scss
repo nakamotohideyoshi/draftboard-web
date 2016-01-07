@@ -158,8 +158,9 @@
 
 
 /**
- * Prize Structure Tab Content
+ * Prize Structure + game list Tab Content
  */
+.cmp-games-list,
 .cmp-prize-structure {
   .header {
     background: #d0d3db;
@@ -207,11 +208,13 @@
       padding: 10px;
       border-bottom: 1px solid #ebedf2;
 
+      &.teams,
       &.place {
         font-weight: 600;
         text-align: left;
       }
 
+      &.time,
       &.prize {
         text-align: right;
       }

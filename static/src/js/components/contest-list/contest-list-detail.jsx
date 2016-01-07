@@ -3,12 +3,14 @@ import {Provider, connect} from 'react-redux';
 import store from '../../store'
 import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx'
+import GamesList from './games-list.jsx'
 import {enterContest, setFocusedContest} from '../../actions/upcoming-contests-actions.js'
 import * as AppActions from '../../stores/app-state-store.js'
 import { Router, Route } from 'react-router'
 import {updatePath, syncReduxAndRouter} from 'redux-simple-router'
 import createBrowserHistory from 'history/lib/createBrowserHistory'
 import CountdownClock from '../site/countdown-clock.jsx'
+import {fetchDraftGroupBoxScoresIfNeeded} from '../../actions/draft-group-actions.js'
 
 const history = createBrowserHistory()
 syncReduxAndRouter(history, store)
@@ -21,12 +23,15 @@ var ContestListDetail = React.createClass({
 
   propTypes: {
     contest: React.PropTypes.object,
+    teams: React.PropTypes.object,
     prizeStructure: React.PropTypes.object,
     enterContest: React.PropTypes.func,
     focusedLineupId: React.PropTypes.number,
     focusedContestId: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
     params: React.PropTypes.object,
-    setFocusedContest: React.PropTypes.func
+    setFocusedContest: React.PropTypes.func,
+    fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
+    boxScores: React.PropTypes.object
   },
 
 
@@ -35,8 +40,10 @@ var ContestListDetail = React.createClass({
    * if it isn't, set what's in the URL as the focused contest and open the side panel to view it.
    */
   componentWillReceiveProps: function(nextProps) {
+    // A new contest has been focused.
     if (nextProps.params.contestId && this.props.focusedContestId !== nextProps.params.contestId) {
       this.props.setFocusedContest(nextProps.params.contestId)
+      this.props.fetchDraftGroupBoxScoresIfNeeded(nextProps.params.contestId)
       AppActions.openPane();
     }
   },
@@ -64,7 +71,16 @@ var ContestListDetail = React.createClass({
         return 'scoring tab'
 
       case 'games':
-        return 'games tab'
+        if (this.props.boxScores.hasOwnProperty(this.props.contest.id)) {
+          return (
+            <GamesList
+              boxScores={this.props.boxScores[this.props.contest.id]}
+              teams={this.props.teams[this.props.contest.sport]}
+            />
+            )
+        }
+
+        return 'no boxscore info'
 
       case 'entries':
         return 'entries tab'
@@ -188,7 +204,9 @@ function mapStateToProps(state) {
     contest,
     focusedContestId: state.upcomingContests.focusedContestId,
     prizeStructure,
-    focusedLineupId: state.upcomingLineups.focusedLineupId
+    focusedLineupId: state.upcomingLineups.focusedLineupId,
+    boxScores: state.upcomingDraftGroups.boxScores,
+    teams: state.sports
   };
 }
 
@@ -196,7 +214,8 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
-    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId))
+    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
+    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId))
   }
 }
 
