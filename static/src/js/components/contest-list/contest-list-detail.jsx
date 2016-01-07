@@ -4,13 +4,16 @@ import store from '../../store'
 import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx'
 import GamesList from './games-list.jsx'
-import {enterContest, setFocusedContest} from '../../actions/upcoming-contests-actions.js'
+import EntrantList from './entrant-list.jsx'
+import {enterContest, setFocusedContest, fetchContestEntrantsIfNeeded}
+  from '../../actions/upcoming-contests-actions.js'
 import * as AppActions from '../../stores/app-state-store.js'
 import { Router, Route } from 'react-router'
 import {updatePath, syncReduxAndRouter} from 'redux-simple-router'
 import createBrowserHistory from 'history/lib/createBrowserHistory'
 import CountdownClock from '../site/countdown-clock.jsx'
 import {fetchDraftGroupBoxScoresIfNeeded} from '../../actions/draft-group-actions.js'
+import {fetchTeamsIfNeeded} from '../../actions/sports.js'
 
 const history = createBrowserHistory()
 syncReduxAndRouter(history, store)
@@ -26,8 +29,11 @@ var ContestListDetail = React.createClass({
     teams: React.PropTypes.object,
     prizeStructure: React.PropTypes.object,
     enterContest: React.PropTypes.func,
+    entrants: React.PropTypes.array,
     focusedLineupId: React.PropTypes.number,
     focusedContestId: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
+    fetchContestEntrantsIfNeeded: React.PropTypes.func,
+    fetchTeamsIfNeeded: React.PropTypes.func,
     params: React.PropTypes.object,
     setFocusedContest: React.PropTypes.func,
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
@@ -44,7 +50,12 @@ var ContestListDetail = React.createClass({
     if (nextProps.params.contestId && this.props.focusedContestId !== nextProps.params.contestId) {
       this.props.setFocusedContest(nextProps.params.contestId)
       this.props.fetchDraftGroupBoxScoresIfNeeded(nextProps.params.contestId)
+      this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId)
       AppActions.openPane();
+    }
+
+    if (nextProps.params.contest && nextProps.params.contest.sport) {
+      this.props.fetchTeamsIfNeeded(nextProps.params.contest.sport)
     }
   },
 
@@ -83,7 +94,9 @@ var ContestListDetail = React.createClass({
         return 'no boxscore info'
 
       case 'entries':
-        return 'entries tab'
+        return (
+          <EntrantList entrants={this.props.entrants} />
+        )
 
       default:
         return ('Select a tab')
@@ -195,9 +208,14 @@ function mapStateToProps(state) {
   // TODO: put this in a reusable selector.
   let contest = state.upcomingContests.allContests[state.upcomingContests.focusedContestId]
   let prizeStructure = null
+  let entrants = []
 
   if (contest && contest.hasOwnProperty('prize_structure')) {
     prizeStructure = state.prizes[contest.prize_structure]
+  }
+
+  if (contest && state.upcomingContests.entrants.hasOwnProperty(contest.id)) {
+    entrants = state.upcomingContests.entrants[contest.id]
   }
 
   return {
@@ -206,7 +224,8 @@ function mapStateToProps(state) {
     prizeStructure,
     focusedLineupId: state.upcomingLineups.focusedLineupId,
     boxScores: state.upcomingDraftGroups.boxScores,
-    teams: state.sports
+    teams: state.sports,
+    entrants
   };
 }
 
@@ -215,7 +234,8 @@ function mapDispatchToProps(dispatch) {
   return {
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
-    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId))
+    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
+    fetchContestEntrantsIfNeeded: (contestId) => dispatch(fetchContestEntrantsIfNeeded(contestId))
   }
 }
 

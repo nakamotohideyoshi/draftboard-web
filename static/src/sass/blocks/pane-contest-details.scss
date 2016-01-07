@@ -160,6 +160,7 @@
 /**
  * Prize Structure + game list Tab Content
  */
+.cmp-entrant-list,
 .cmp-games-list,
 .cmp-prize-structure {
   .header {
@@ -193,6 +194,7 @@
     list-style: none;
     margin: 0;
     padding: 0;
+    width: 100%;
   }
 
   li {
@@ -219,5 +221,12 @@
         text-align: right;
       }
     }
+  }
+}
+
+
+.cmp-entrant-list {
+  ul {
+    column-count: 1;
   }
 }
