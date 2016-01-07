@@ -132,6 +132,8 @@ class LineupUserAPIView(APIView):
     Get the usernames for lineups by providing a list of lineup ids.
         OR
     Get the lineups for a given contest by providing a valid contest_id and search string
+        OR
+    Get the lineups for a given contest by providing a valid contest_id
 
     The 'lineup_ids' parameter overrides the lookup by name. (ie: if all parameters
         are specified, we will return data for the specified lineup_ids list)
@@ -145,6 +147,8 @@ class LineupUserAPIView(APIView):
         lineup_ids      : list of lineup ids, ie: [123, 432, 5234]
             ... OR ...
         search_str      : the search string for the lineup name (lineup names are based on username)
+            ... OR ...
+        nothing and it will default ot using just the contest_id
 
     """
     permission_classes      = (IsAuthenticated,)
@@ -198,8 +202,9 @@ class LineupUserAPIView(APIView):
             serialized_lineup_data = self.get_serialized_lineups(lineups)
             return Response(serialized_lineup_data, status=status.HTTP_200_OK)
         else:
-            msg = 'You must supply one of the following POST params: "lineup_ids", "search_str"'
-            raise ValidationError(msg)
+            lineups = lm.get_for_contest(contest_id)
+            serialized_lineup_data = self.get_serialized_lineups(lineups)
+            return Response(serialized_lineup_data, status=status.HTTP_200_OK)
 
 
 class EditLineupAPIView(generics.CreateAPIView):
