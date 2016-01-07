@@ -15,15 +15,18 @@ var GamesList = React.createClass({
     let gameList = []
 
     _forEach(games, function(game) {
-      gameList.push(
-        <li key={game.pk}>
-          <span className="teams">
-            {this.props.teams.teams[game.fields.away_id].alias}&nbsp;vs&nbsp;
-            {this.props.teams.teams[game.fields.home_id].alias}
-          </span>
-          <span className="time">{moment(game.fields.created, moment.ISO_8601).format('h:mma')}</span>
-        </li>
-      )
+      // do we have teams?
+      if (this.props.teams.hasOwnProperty('teams')) {
+        gameList.push(
+          <li key={game.pk}>
+            <span className="teams">
+              {this.props.teams.teams[game.fields.away_id].alias}&nbsp;vs&nbsp;
+              {this.props.teams.teams[game.fields.home_id].alias}
+            </span>
+            <span className="time">{moment(game.fields.created, moment.ISO_8601).format('h:mma')}</span>
+          </li>
+        )
+      }
     }.bind(this))
 
     return gameList

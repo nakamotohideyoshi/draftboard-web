@@ -151,3 +151,85 @@ export function enterContest(contestId, lineupId) {
     });
   }
 }
+
+
+
+/**
+ *
+ * Fetch the usernames of users who have entered into a specific contest.
+ *
+ */
+
+function fetchingContestEntrants() {
+  return {
+    type: types.FETCHING_CONTEST_ENTRANTS
+  };
+}
+
+function fetchContestEntrantsSuccess(body, contestId) {
+
+  return {
+    type: types.FETCH_CONTEST_ENTRANTS_SUCCESS,
+    entrants: body,
+    contestId
+  };
+}
+
+function fetchContestEntrantsFail(ex) {
+  console.error(ex)
+  return {
+    type: types.FETCH_CONTEST_ENTRANTS_FAIL,
+    ex
+  };
+}
+
+// Do we need to fetch the specified contest entrants?
+function shouldFetchContestEntrants(state, contestId) {
+  const entrants = state.upcomingContests.entrants
+
+  if (!entrants.hasOwnProperty(contestId)) {
+    // does the state already have entrants for this contest?
+    return true
+  } else if (state.upcomingContests.isFetchingEntrants) {
+    // are we currently fetching it?
+    return false
+  } else {
+    // Default to true.
+    return true
+  }
+}
+
+function fetchContestEntrants(contestId) {
+  return dispatch => {
+    // update the fetching state.
+    dispatch(fetchingContestEntrants())
+
+    return new Promise((resolve, reject) => {
+       request
+      .get("/api/contest/registered-users/" + contestId + '/')
+      .set({
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      })
+      .end(function(err, res) {
+        if(err) {
+          dispatch(fetchContestEntrantsFail(err));
+          reject(err)
+        } else {
+          dispatch(fetchContestEntrantsSuccess(res.body, contestId));
+          resolve(res)
+        }
+      });
+    });
+  }
+}
+
+export function fetchContestEntrantsIfNeeded(contestId) {
+  return (dispatch, getState) => {
+    if(shouldFetchContestEntrants(getState(), contestId)) {
+      return dispatch(fetchContestEntrants(contestId))
+    } else {
+      return Promise.resolve()
+    }
+  }
+}
