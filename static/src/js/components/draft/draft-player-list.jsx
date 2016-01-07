@@ -9,7 +9,7 @@ const PlayerListRow = require('./draft-player-list-row.jsx')
 import DraftTeamFilter from './draft-team-filter.jsx'
 import {forEach as _forEach, find as _find, matchesProperty as _matchesProperty} from 'lodash'
 import * as moment from 'moment'
-import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, fetchDraftGroupBoxScores,
+import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, fetchDraftGroupBoxScoresIfNeeded,
   updateOrderByFilter} from '../../actions/draft-group-actions.js'
 import {fetchSportInjuries} from '../../actions/injury-actions.js'
 import {createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
@@ -32,7 +32,7 @@ syncReduxAndRouter(history, store)
 const DraftPlayerList = React.createClass({
 
   propTypes: {
-    fetchDraftGroupBoxScores: React.PropTypes.func.isRequired,
+    fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func.isRequired,
     fetchDraftGroupIfNeeded: React.PropTypes.func.isRequired,
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
     filters: React.PropTypes.object.isRequired,
@@ -98,7 +98,7 @@ const DraftPlayerList = React.createClass({
 
 
   loadData: function() {
-    this.props.fetchDraftGroupBoxScores(this.props.params.draftgroupId)
+    this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.params.draftgroupId)
     // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
     Promise.all([
       this.props.fetchDraftGroupIfNeeded(this.props.params.draftgroupId),
@@ -311,7 +311,7 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    fetchDraftGroupBoxScores: (draftGroupId) => dispatch(fetchDraftGroupBoxScores(draftGroupId)),
+    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
     fetchDraftGroupIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
     draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
     unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
