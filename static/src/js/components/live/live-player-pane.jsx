@@ -26,20 +26,62 @@ const LivePlayerPane = React.createClass({
     this.props.whichSide === 'opponent' ? AppActions.closePlayerPane('right') : AppActions.closePlayerPane('left')
   },
 
+  // get proper stats
+  componentWillMount: function() {
+    const teamSRID = this.props.player.info.team_srid
+    const boxScore = this.props.boxScore
+
+    // TODO remove this when all boxscores are returned
+    if (boxScore === undefined) {
+      this.setState({
+        playerTeamInfo: {
+          name: '',
+          city: ''
+        }
+      })
+    } else {
+      if (teamSRID === boxScore.homeTeamInfo.srid) {
+        this.setState({
+          playerTeamInfo: boxScore.homeTeamInfo
+        })
+      } else {
+        this.setState({
+          playerTeamInfo: boxScore.awayTeamInfo
+        })
+      }
+    }
+
+  },
+
   renderStatsAverage: function() {
     const player = this.props.player
-    let fp = 0
-
-    if (player.stats !== undefined) {
-      fp = player.stats.fp
-    }
 
     return (
       <div className='live-player-pane__player-stats'>
         <ul>
           <li>
-            <div className='stat-name'>{ player.info.name }</div>
-            <div className='stat-score'>{ fp }</div>
+            <div className='stat-name'>AVG</div>
+            <div className='stat-score'>42.5</div>
+          </li>
+          <li>
+            <div className='stat-name'>PPG</div>
+            <div className='stat-score'>27.5</div>
+          </li>
+          <li>
+            <div className='stat-name'>RPG</div>
+            <div className='stat-score'>7.2</div>
+          </li>
+          <li>
+            <div className='stat-name'>APG</div>
+            <div className='stat-score'>8.6</div>
+          </li>
+          <li>
+            <div className='stat-name'>STLPG</div>
+            <div className='stat-score'>2.1</div>
+          </li>
+          <li>
+            <div className='stat-name'>FPPG</div>
+            <div className='stat-score'>53.8</div>
           </li>
         </ul>
       </div>
@@ -166,7 +208,9 @@ const LivePlayerPane = React.createClass({
 
   renderHeader: function() {
     const player = this.props.player
+    const playerTeamInfo = this.state.playerTeamInfo
     const boxScore = this.props.boxScore
+
     let percentageTimeRemaining = 1
     let fp = 0
 
@@ -182,17 +226,19 @@ const LivePlayerPane = React.createClass({
 
     return (
       <div className='live-player-pane__header'>
-        <div className='live-player-pane__header__team-role'>{ player.info.position }</div>
+        <div className='live-player-pane__header__team-role'>
+          { playerTeamInfo.city } { playerTeamInfo.name } - { player.info.position }
+        </div>
         <div className='live-player-pane__header__name'>{ player.info.name }</div>
 
         <div className='live-player-pane__header__pts-stats'>
             <div className="live-player-pane__header__pts-stats__info">
             <LivePMRProgressBar
-              decimalRemaining="0.3"
-              strokeWidth="2"
+              decimalRemaining={ player.stats.decimalRemaining }
+              strokeWidth="1"
               backgroundHex="46495e"
-              hexStart="e33c3c"
-              hexEnd="871c5a"
+              hexStart="34B4CC"
+              hexEnd="2871AC"
               svgWidth="50" />
 
               <div className="live-player-pane__header__pts-stats__info__insvg">
@@ -206,7 +252,7 @@ const LivePlayerPane = React.createClass({
               <p>18</p>
             </div>
 
-            <img className="live-player-pane__header__player-image" src="" />
+            <div className="live-player-pane__header__player-image" />
         </div>
       </div>
     )

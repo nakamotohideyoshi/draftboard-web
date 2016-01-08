@@ -8,7 +8,7 @@
   height: 100%;
   position: fixed;
   top: $nav-scoreboard-height;
-  transition: right 230ms cubic-bezier(.8,.16,.18,.85);
+  transition: all 230ms cubic-bezier(.8,.16,.18,.85);
   width: $live-pane-width;
   z-index: $zindex-modal + 4001;
 
@@ -35,8 +35,9 @@
     cursor: pointer;
     display: block;
     height: 20px;
+    visibility: hidden;
     position: absolute;
-    top: 106px;
+    top: 60px;
     width: 35px;
     z-index: $zindex-modal + 2;
 
@@ -67,9 +68,16 @@
 }
 
 
+// TODO Craig clean this up!
+
+
 .appstate--pane--left--open {
   .live-pane--left {
     left: 0;
+
+    .live-pane__close {
+      visibility: visible;
+    }
   }
 }
 
@@ -77,6 +85,32 @@
 .appstate--pane--right--open {
   .live-pane--right {
     right: 0;
+
+    .live-pane__close {
+      visibility: visible;
+    }
+  }
+}
+
+
+.appstate--live-contests-pane--open {
+  .live-contests-pane {
+    right: 0;
+
+    .live-pane__close {
+      visibility: visible;
+    }
+  }
+}
+
+
+.appstate--live-standings-pane--open {
+  .live-standings-pane {
+    right: 0;
+
+    .live-pane__close {
+      visibility: visible;
+    }
   }
 }
 
@@ -84,6 +118,11 @@
 .appstate--pane--player--left--open {
   .live-pane-player--left {
     left: 0;
+
+    .live-pane__close {
+      visibility: visible;
+      right: -14px;
+    }
   }
 }
 
@@ -91,5 +130,10 @@
 .appstate--pane--player--right--open {
   .live-pane-player--right {
     right: 0;
+
+    .live-pane__close {
+      left: -14px;
+      visibility: visible;
+    }
   }
 }

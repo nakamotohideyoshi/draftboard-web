@@ -3,10 +3,14 @@
   height: 100%;
 
   .inner {
-    margin-left: 59px;
-    padding: 101px 25px 0;
+    margin-left: 60px;
+    padding: 30px 25px 0;
     background-color: #1C202B;
     height: 100%;
+  }
+
+  .live-pane__close {
+    top: 36px
   }
 
   &--standings {
@@ -61,42 +65,15 @@
         color: #9EA2A9;
       }
 
-      .score-circle {
-        width: 30px;
-        position: relative;
+      .live-pmr {
         display: inline-block;
-
-        .circle-left, .circle-right {
-          width: 11px;
-          height: 18px;
-          position: absolute;
-          top: -13px;
-          left: 2px;
-          overflow: hidden;
-
-          .line {
-            width: 18px;
-            height: 18px;
-            position: absolute;
-            top: 0px;
-            left: 0px;
-            clip: rect(0px, 9px, 18px, 0px);
-            border: 1px solid;
-            border-radius: 100%;
-          }
-        }
-
-        .circle-right {
-          left: 9px;
-          width: 11px;
-
-          .line {
-            left: -7px;
-            clip: rect(0px, 18px, 18px, 9px);
-          }
-        }
+        width: 17px;
+        position: relative;
+        top: 5px;
       }
+
       &--score-name {
+        margin-left: 15px;
         width: 140px;
         display: inline-block;
         text-align: left;
@@ -295,6 +272,7 @@
 
     .title {
       line-height: 35px;
+      font-weight: 300;
       display: inline-block;
       position: relative;
       margin-right: 20px;

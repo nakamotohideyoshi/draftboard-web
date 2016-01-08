@@ -26,10 +26,18 @@ var LiveLineupPlayer = React.createClass({
       stats = {pos: "", fp: 0}
     }
 
+    let className = 'live-lineup-player'
+
+    if (stats.decimalRemaining === 0.01) {
+      className += ' state--not-playing'
+    } else {
+      className += ' state--is-playing'
+    }
+
     // for now flip the order of DOM elements, find a better fix in the future
     if (this.props.whichSide === 'opponent') {
       return (
-        <li className="live-lineup-player state--is-playing" onClick={this.props.onClick}>
+        <li className={className} onClick={this.props.onClick}>
           <div className={ playStatusClass }></div>
           <div className="live-lineup-player__points">{stats.fp}</div>
           <div className="live-lineup-player__status"></div>
@@ -43,7 +51,7 @@ var LiveLineupPlayer = React.createClass({
     }
 
     return (
-      <li className="live-lineup-player state--is-playing" onClick={this.props.onClick}>
+      <li className={className} onClick={this.props.onClick}>
         <div className="live-lineup-player__position">{this.props.player.info.position}</div>
         <div className="live-lineup-player__photo">
           <LivePMRProgressBar decimalRemaining={stats.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="34B4CC" hexEnd="2871AC" svgWidth="50" />
