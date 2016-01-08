@@ -69,7 +69,6 @@ module.exports = function(state = initialState, action) {
 
 
     case ActionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS:
-    console.log('action', action)
       let newEntrants = Object.assign({}, state.entrants)
       newEntrants[action.contestId] = action.entrants
 
