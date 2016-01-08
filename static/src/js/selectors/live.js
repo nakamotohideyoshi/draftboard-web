@@ -89,21 +89,30 @@ export const liveSelector = createSelector(
       }))
     }
 
-    if (mode.opponentLineupId) {
-      stats.lineups.opponent = currentLineupsStats[mode.opponentLineupId]
-
-      stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.opponent.rosterDetails, (player) => {
-        return player.info.game_srid
-      }))
-
-      stats.relevantPlayers = _union(stats.relevantPlayers, _map(stats.lineups.opponent.rosterDetails, (player) => {
-        return player.info.player_srid
-      }))
-    }
-
     if (mode.contestId) {
       stats.contest = contestStats[mode.contestId]
+
+      // pull in rank
+      stats.lineups.mine = Object.assign(
+        {},
+        stats.lineups.mine,
+        stats.contest.lineups[mode.myLineupId]
+      )
+
+      if (mode.opponentLineupId) {
+        stats.lineups.opponent = stats.contest.lineups[mode.opponentLineupId]
+
+        stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.opponent.rosterDetails, (player) => {
+          return player.info.game_srid
+        }))
+
+        stats.relevantPlayers = _union(stats.relevantPlayers, _map(stats.lineups.opponent.rosterDetails, (player) => {
+          return player.info.player_srid
+        }))
+      }
     }
+
+
 
     log.debug('selectors.liveStatsSelector() - updated')
 

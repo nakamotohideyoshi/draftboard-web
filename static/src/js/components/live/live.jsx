@@ -19,6 +19,7 @@ import LiveOverallStats from './live-overall-stats'
 import LiveStandingsPaneConnected from '../live/live-standings-pane'
 import log from '../../lib/logging'
 import store from '../../store'
+import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
 import { liveSelector } from '../../selectors/live'
@@ -51,6 +52,7 @@ var Live = React.createClass({
     params: React.PropTypes.object,
     prizes: React.PropTypes.object,
     entries: React.PropTypes.object,
+    fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
     updateBoxScore: React.PropTypes.func,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func
@@ -80,6 +82,9 @@ var Live = React.createClass({
       if ('contestId' in urlParams) {
         newMode.type = 'contest'
         newMode.contestId = urlParams.contestId
+
+        // make sure to get the usernames as well
+        this.props.fetchContestLineupsUsernamesIfNeeded(newMode.contestId)
 
         if ('opponentLineupId' in urlParams) {
           newMode.opponentLineupId = urlParams.opponentLineupId
@@ -443,6 +448,7 @@ var Live = React.createClass({
     let
       lineups,
       liveTitle,
+      liveStandingsPane,
       moneyLine,
       bottomNavForRightPanes,
       overallStats
@@ -524,13 +530,23 @@ var Live = React.createClass({
           whichSide="mine" />
       )
 
+      const myWinPercent = myLineup.rank / myContest.entriesCount * 100
+
       moneyLine = (
         <section className="live-winning-graph live-winning-graph--contest-overall">
           <div className="live-winning-graph__pmr-line">
             <div className="live-winning-graph__winners" style={{ width: myContest.percentageCanWin + '%' }}></div>
-            <div className="live-winning-graph__current-position" style={{ left: myContest.currentPercentagePosition + '%' }}></div>
+            <div className="live-winning-graph__current-position" style={{ left: myWinPercent + '%' }}></div>
           </div>
         </section>
+      )
+
+      liveStandingsPane = (
+        <LiveStandingsPaneConnected
+          myContest={ myContest }
+          lineups={ myContest.lineups }
+          rankedLineups={ myContest.rankedLineups }
+          mode={ self.props.mode } />
       )
 
       if (self.props.mode.opponentLineupId) {
@@ -558,12 +574,14 @@ var Live = React.createClass({
           </div>
         )
 
+        const opponentWinPercent = opponentLineup.rank / myContest.entriesCount * 100
+
         moneyLine = (
           <section className="live-winning-graph live-winning-graph--contest-overall">
             <div className="live-winning-graph__pmr-line">
               <div className="live-winning-graph__winners" style={{ width: myContest.percentageCanWin + '%' }}></div>
-              <div className="live-winning-graph__current-position" style={{ left: myContest.currentPercentagePosition + '%' }}></div>
-              <div className="live-winning-graph__current-position live-winning-graph__opponent" style={{ left: '100%' }}></div>
+              <div className="live-winning-graph__current-position" style={{ left: myWinPercent + '%' }}></div>
+              <div className="live-winning-graph__current-position live-winning-graph__opponent" style={{ left: opponentWinPercent + '%' }}></div>
             </div>
           </section>
         )
@@ -594,8 +612,7 @@ var Live = React.createClass({
             lineup={ myLineup }
             mode={ this.props.mode } />
 
-          <LiveStandingsPaneConnected
-            mode={ self.props.mode } />
+          { liveStandingsPane }
         </section>
       </div>
     )
@@ -629,6 +646,7 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
+    fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
     updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
     updatePlayerFP: (draftGroupId, playerId, fp) => dispatch(updatePlayerFP(draftGroupId, playerId, fp)),
     updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),

@@ -13,7 +13,7 @@ import log from '../lib/logging'
 import { liveContestsStatsSelector } from './live-contests'
 
 
-export function decimalRemaining(minutesRemaining, totalMinutes) {
+function decimalRemaining(minutesRemaining, totalMinutes) {
   let decimalRemaining = 1 - minutesRemaining / totalMinutes
 
   // trickery to prevent arc issues, TODO clean this up math-wise
@@ -28,18 +28,20 @@ export function decimalRemaining(minutesRemaining, totalMinutes) {
 }
 
 
-function addPlayersDetails(lineup, boxScores) {
+function addPlayersDetails(lineup, draftGroup, boxScores) {
   const currentPlayers = {}
 
   _forEach(lineup.roster, (playerId) => {
     let player = {
       id: playerId,
-      info: lineup.draftGroup.playersInfo[playerId],
-      stats: lineup.draftGroup.playersStats[playerId]
+      info: draftGroup.playersInfo[playerId],
+      stats: draftGroup.playersStats[playerId]
     }
 
     if (player.stats === undefined) {
-      player.stats = {}
+      player.stats = {
+        fp: 0
+      }
     }
 
     const game = boxScores[player.info.game_srid]
@@ -54,6 +56,39 @@ function addPlayersDetails(lineup, boxScores) {
   })
 
   return currentPlayers
+}
+
+
+export function generateLineupStats(lineup, draftGroup, boxScores) {
+  let stats = {
+    id: lineup.id,
+    name: lineup.name,
+    roster: lineup.roster,
+    start: lineup.start,
+    totalMinutes: lineup.roster.length * 48
+  }
+
+  if (lineup.start >= Date.now()) {
+    return stats
+  }
+
+  stats.rosterDetails = addPlayersDetails(stats, draftGroup, boxScores)
+
+  stats.points = _reduce(stats.rosterDetails, (fp, player) => {
+    // only add if they have fantasy points in the first place
+    if (isNaN(player.stats.fp)) {
+      return fp
+    }
+
+    return fp + player.stats.fp
+  }, 0)
+
+  stats.minutesRemaining = _reduce(stats.rosterDetails, (timeRemaining, player) => {
+    return timeRemaining + player.stats.minutesRemaining
+  }, 0)
+  stats.decimalRemaining = decimalRemaining(stats.minutesRemaining, stats.totalMinutes)
+
+  return stats
 }
 
 
@@ -82,48 +117,26 @@ export const currentLineupsStatsSelector = createSelector(
 
     let liveLineupsStats = {}
     _forEach(liveLineups, (lineup) => {
-      const liveDraftGroup = liveDraftGroups[lineup.draft_group]
-
-      let stats = {
-        id: lineup.id,
-        name: lineup.name,
-        roster: lineup.roster,
-        start: lineup.start,
-        totalMinutes: lineup.roster.length * 48,
-        draftGroup: liveDraftGroup,
-        contestsStats: {}
-      }
-
-      if (lineup.start >= Date.now()) {
-        liveLineupsStats[lineup.id] = stats
-        return
-      }
-
-      stats.points = updateFantasyPointsForLineup(lineup, liveDraftGroup)
+      const draftGroup = liveDraftGroups[lineup.draft_group]
+      let stats = generateLineupStats(lineup, draftGroup, currentBoxScores)
 
       let potentialEarnings = 0
       _forEach(entries, (entry) => {
-        potentialEarnings += contestsStats[entry.contest].entriesStats[entry.lineup].potentialEarnings
+        potentialEarnings += contestsStats[entry.contest].lineups[entry.lineup].potentialEarnings
       })
       stats.potentialEarnings = potentialEarnings
+      stats.contestsStats = {}
 
       _forEach(lineup.contests, (contestId) => {
         const contest = liveContests[contestId]
         const contestStats = contestsStats[contestId]
-        const entryStats = contestStats.entriesStats[lineup.id]
+        const entryStats = contestStats.lineups[lineup.id]
 
         stats.contestsStats[contestId] = Object.assign({}, contestStats, {
           currentPercentagePosition: (entryStats.rank - 1) / contest.info.entries * 100,
           rank: entryStats.rank
         })
       })
-
-      stats.rosterDetails = addPlayersDetails(stats, currentBoxScores)
-
-      stats.minutesRemaining = _reduce(stats.rosterDetails, (timeRemaining, player) => {
-        return timeRemaining + player.stats.minutesRemaining
-      }, 0)
-      stats.decimalRemaining = decimalRemaining(stats.minutesRemaining, stats.totalMinutes)
 
       liveLineupsStats[lineup.id] = stats
     })

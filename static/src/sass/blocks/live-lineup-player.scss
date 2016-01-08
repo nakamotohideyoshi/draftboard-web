@@ -79,6 +79,17 @@
       background-color: #ff0000;
     }
   }
+
+  &.state--not-playing {
+    .live-pmr {
+      visibility: hidden;
+    }
+
+    .live-lineup-player__points {
+      color: #6d718a;
+    }
+  }
+
 }
 
 

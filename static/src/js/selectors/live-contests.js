@@ -7,6 +7,7 @@ import { map as _map } from 'lodash'
 import { sortBy as _sortBy } from 'lodash'
 import { vsprintf } from 'sprintf-js'
 
+import { generateLineupStats } from './current-lineups'
 import log from '../lib/logging'
 
 
@@ -19,29 +20,41 @@ import log from '../lib/logging'
  *
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
-function rankContestLineups(lineups, draftGroup, prizeStructure) {
+function rankContestLineups(contest, draftGroup, boxScores, prizeStructure) {
   log.debug('rankContestLineups')
+  const lineups = contest.lineups
+
+  let lineupsUsernames = {}
+  if ('lineupsUsernames' in contest) {
+    lineupsUsernames = contest.lineupsUsernames
+  }
+
   let rankedLineups = []
   let lineupsStats = {}
 
   _forEach(lineups, (lineup, id) => {
-    let stats = {
-      id: id,
-      points: updateFantasyPointsForLineup(lineup, draftGroup),
-      potentialEarnings: 0
+    let stats = generateLineupStats(lineup, draftGroup, boxScores)
+
+    if (id in lineupsUsernames) {
+      stats['user'] = lineupsUsernames[id].user
     }
 
     rankedLineups.push(stats)
     lineupsStats[id] = stats
   })
 
+  // sort then make just ID
   rankedLineups = _sortBy(rankedLineups, 'points').reverse()
+  rankedLineups = _map(rankedLineups, (lineup) => {
+    return lineup.id
+  })
 
   // set standings for use in contests pane
-  _forEach(rankedLineups, (lineup, index) => {
-    const lineupStats = lineupsStats[lineup.id]
+  _forEach(rankedLineups, (lineupId, index) => {
+    const lineupStats = lineupsStats[lineupId]
 
     lineupStats.rank = parseInt(index) + 1
+    lineupStats.potentialEarnings = 0
 
     if (parseInt(index) in prizeStructure.ranks) {
       lineupStats.potentialEarnings = prizeStructure.ranks[index].value
@@ -50,44 +63,20 @@ function rankContestLineups(lineups, draftGroup, prizeStructure) {
 
   return {
     rankedLineups: rankedLineups,
-    entriesStats: lineupsStats
+    lineups: lineupsStats,
+    hasLineupsUsernames: 'lineupsUsernames' in contest
   }
-}
-
-
-/**
- * Takes the lineup object, loops through the roster, and totals the fantasy points using the latest fantasy stats
- *
- * @param {Object} (required) The lineup object, containing id, roster and points
- * @param {Object} (required) Fantasy points object from API, has player array
- *
- * @return {Integer} Return the total points
- */
-export function updateFantasyPointsForLineup (lineup, draftGroup) {
-  log.debug('_updateFantasyPointsForLineup')
-  let total = 0
-
-  _forEach(lineup.roster, function(playerId) {
-    // if they have not started playing yet
-    if (playerId in draftGroup.playersStats === false) {
-      // log.error(vsprintf('_updateFantasyPointsForLineup() - player does not exist: %d', [playerId]))
-      return 0
-    }
-
-    total += draftGroup.playersStats[playerId].fp
-  })
-
-  return total
 }
 
 
 export const liveContestsStatsSelector = createSelector(
   state => state.liveContests,
   state => state.liveDraftGroups,
+  state => state.currentBoxScores,
   state => state.prizes,
   state => state.entries.hasRelatedInfo,
 
-  (contests, draftGroups, prizes, hasRelatedInfo) => {
+  (contests, draftGroups, boxScores, prizes, hasRelatedInfo) => {
     if (hasRelatedInfo === false) {
       // log.debug('selectors.liveContestsStatsSelector() - not ready')
       return {}
@@ -113,15 +102,16 @@ export const liveContestsStatsSelector = createSelector(
         return
       }
 
-
-      stats = Object.assign({}, stats,
-        rankContestLineups(contest.lineups, draftGroup, prizeStructure)
+      stats = Object.assign(
+        {},
+        stats,
+        rankContestLineups(contest, draftGroup, boxScores, prizeStructure)
       )
 
       contestsStats[id] = stats
     })
 
-    log.debug('selectors.liveContestsStatsSelector() - updated')
+    log.debug('selectors.liveContestsStatsSelector() - updated', contestsStats)
 
     return contestsStats
   }

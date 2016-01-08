@@ -19,7 +19,7 @@ var LiveLineup = React.createClass({
   getInitialState() {
     return {
       // When true, render and show the detail pane
-      viewPlayerDetails: undefined
+      viewPlayerDetails: this.props.lineup.roster[0]
     }
   },
 

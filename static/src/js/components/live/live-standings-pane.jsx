@@ -6,9 +6,11 @@ import { vsprintf } from 'sprintf-js'
 import { debounce } from 'lodash'
 import request from 'superagent'
 import Cookies from 'js-cookie'
+import _ from 'lodash'
 
-import LiveStandingsPaneCircle from './live-standings-pane-circle'
+import LivePMRProgressBar from './live-pmr-progress-bar'
 import * as AppActions from '../../stores/app-state-store'
+import log from '../../lib/logging'
 import { updateLiveMode } from '../../actions/live'
 import { fetchLineupUsernames } from '../../actions/lineup-usernames'
 import { fetchContestIfNeeded } from '../../actions/live-contests'
@@ -23,9 +25,10 @@ import store from '../../store'
 export const LiveStandingsPane = React.createClass({
 
   propTypes: {
-    contestId: React.PropTypes.number.isRequired,
     owned: React.PropTypes.array.isRequired,
-    lineups: React.PropTypes.array.isRequired,
+    lineups: React.PropTypes.object.isRequired,
+    myContest: React.PropTypes.object.isRequired,
+    rankedLineups: React.PropTypes.array.isRequired,
     mode: React.PropTypes.object.isRequired,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func,
@@ -44,7 +47,7 @@ export const LiveStandingsPane = React.createClass({
   },
 
   componentDidMount() {
-    this.props.fetchLineupUsernames(this.props.contestId)
+    this.props.fetchLineupUsernames(this.props.mode.contestId)
     this.handleSearchByUsername = debounce(this.handleSearchByUsername, 150)
   },
 
@@ -56,7 +59,11 @@ export const LiveStandingsPane = React.createClass({
     let data
 
     if (this.state.currentTab === 'standings') {
-      data =  this.props.lineups
+      const lineups = this.props.lineups
+      const rankedLineups = this.props.rankedLineups
+      data = _.map(rankedLineups, (lineupId) => {
+        return lineups[lineupId]
+      })
     } else {
       data = this.props.owned
       let filter = this.state.currentPositionFilter
@@ -161,7 +168,7 @@ export const LiveStandingsPane = React.createClass({
 
   handleSearchByUsername() {
     const params = {
-      contest_id: 1, // this.props.contestId,
+      contest_id: this.props.mode.contestId,
       search_str: this.state.searchValue
     }
 
@@ -258,10 +265,10 @@ export const LiveStandingsPane = React.createClass({
       return (
         <div key={lineup.id} className="lineup">
           <div className="lineup--place">{lineup.rank}</div>
-          <LiveStandingsPaneCircle progress={lineup.pmr} />
-          <div className="lineup--score-name">{lineup.name}</div>
+          <LivePMRProgressBar decimalRemaining={lineup.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="ffffff" hexEnd="ffffff" svgWidth="50" />
+          <div className="lineup--score-name">{lineup.user.username}</div>
           <div className="lineup--score-points"><b>{lineup.points}</b><span>Pts</span></div>
-          <div className="lineup--score-earnings">{lineup.earnings}</div>
+          <div className="lineup--score-earnings">${lineup.potentialEarnings}</div>
           <div className="overlay"
                onClick={this.handleViewOpponentLineup.bind(this, lineup)}>
             Compare Lineup
@@ -289,7 +296,7 @@ export const LiveStandingsPane = React.createClass({
       return (
         <div key={player.id} className="player">
           <div className="player--position">{player.position}</div>
-          <LiveStandingsPaneCircle progress={player.progress} />
+          <LivePMRProgressBar decimalRemaining={player.progress} strokeWidth="2" backgroundHex="46495e" hexStart="ffffff" hexEnd="ffffff" svgWidth="50" />
           <div className="avatar"
                style={{
                  // TODO:
@@ -314,6 +321,9 @@ export const LiveStandingsPane = React.createClass({
 
   renderStandingsTab() {
     if (this.state.currentTab !== 'standings') return null
+
+    // wait for usernames
+    if (this.props.myContest.hasLineupsUsernames === false) return null
 
     return (
       <div className="inner">
@@ -372,22 +382,8 @@ let {Provider, connect} = ReactRedux
 
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
-  const contestId = 2
-  const contestStats = liveContestsStatsSelector(state)
-  const lineupUsernames  = (state.lineupUsernames[contestId] || {}).lineups || {}
-
-  let lineups = (contestStats[contestId] || {}).rankedLineups || []
-  lineups = lineups.map((l) => {
-    return Object.assign({
-      name: lineupUsernames[l.id] || '-',
-      pmr: 10, // TODO:
-      earnings: '$' + l.potentialEarnings
-    }, l)
-  })
-
   // TODO:
   return {
-    contestId,
     owned: [
       {
         id: 1,
@@ -396,7 +392,7 @@ function mapStateToProps(state) {
         points: 72,
         position: 'pg',
         iamge: '',
-        progress: 100
+        progress: 0.99
       },
       {
         id: 2,
@@ -405,10 +401,9 @@ function mapStateToProps(state) {
         points: 12,
         position: 'c',
         iamge: '',
-        progress: 30
+        progress: 0.3
       }
-    ],
-    lineups
+    ]
   }
 }
 
