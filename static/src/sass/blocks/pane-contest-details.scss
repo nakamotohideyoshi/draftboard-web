@@ -158,8 +158,10 @@
 
 
 /**
- * Prize Structure Tab Content
+ * Prize Structure + game list Tab Content
  */
+.cmp-entrant-list,
+.cmp-games-list,
 .cmp-prize-structure {
   .header {
     background: #d0d3db;
@@ -192,6 +194,7 @@
     list-style: none;
     margin: 0;
     padding: 0;
+    width: 100%;
   }
 
   li {
@@ -207,14 +210,23 @@
       padding: 10px;
       border-bottom: 1px solid #ebedf2;
 
+      &.teams,
       &.place {
         font-weight: 600;
         text-align: left;
       }
 
+      &.time,
       &.prize {
         text-align: right;
       }
     }
+  }
+}
+
+
+.cmp-entrant-list {
+  ul {
+    column-count: 1;
   }
 }

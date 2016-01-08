@@ -7,7 +7,8 @@ const thunkMiddleware = require('redux-thunk')
 
 // only show redux actions logs in development mode
 const loggerMiddleware = createLogger({
-  predicate: () => logLevel === 'debug'
+  predicate: () => logLevel === 'debug',
+  collapsed: true
 });
 
 
