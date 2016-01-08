@@ -25,19 +25,19 @@ syncReduxAndRouter(history, store)
 var ContestListDetail = React.createClass({
 
   propTypes: {
+    boxScores: React.PropTypes.object,
     contest: React.PropTypes.object,
-    teams: React.PropTypes.object,
-    prizeStructure: React.PropTypes.object,
     enterContest: React.PropTypes.func,
     entrants: React.PropTypes.array,
-    focusedLineupId: React.PropTypes.number,
-    focusedContestId: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
     fetchContestEntrantsIfNeeded: React.PropTypes.func,
-    fetchTeamsIfNeeded: React.PropTypes.func,
-    params: React.PropTypes.object,
-    setFocusedContest: React.PropTypes.func,
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
-    boxScores: React.PropTypes.object
+    fetchTeamsIfNeeded: React.PropTypes.func,
+    focusedContestId: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
+    focusedLineupId: React.PropTypes.number,
+    params: React.PropTypes.object,
+    prizeStructure: React.PropTypes.object,
+    setFocusedContest: React.PropTypes.func,
+    teams: React.PropTypes.object
   },
 
 
@@ -46,15 +46,17 @@ var ContestListDetail = React.createClass({
    * if it isn't, set what's in the URL as the focused contest and open the side panel to view it.
    */
   componentWillReceiveProps: function(nextProps) {
-    // A new contest has been focused.
-    if (nextProps.params.contestId && this.props.focusedContestId !== nextProps.params.contestId) {
+    // A new contest has been focused. Fetch all of it's required data.
+    if (nextProps.params.contestId && this.props.focusedContestId != nextProps.params.contestId) {
+      AppActions.openPane();
+      // This is what "monitors" for URL changes.
       this.props.setFocusedContest(nextProps.params.contestId)
       this.props.fetchDraftGroupBoxScoresIfNeeded(nextProps.params.contestId)
       this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId)
-      AppActions.openPane();
     }
 
-    if (nextProps.params.contest && nextProps.params.contest.sport) {
+    // If we don't have team names (we problably do), fetch them.
+    if (nextProps.params.contest && nextProps.params.contest.hasOwnProperty('sport')) {
       this.props.fetchTeamsIfNeeded(nextProps.params.contest.sport)
     }
   },
