@@ -55,6 +55,52 @@ class FantasyPointsSerializer(sports.serializers.FantasyPointsSerializer):
         child=serializers.FloatField() # min_value=-9999, max_value=9999)
     )
 
+class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
+    """
+    use the fields, especially from the PlayerStats get_scoring_fields()
+    """
+    player_id = serializers.IntegerField()
+
+    #
+    #################################################################
+    # the fields below are from the models SCORING_FIELDS
+    #################################################################
+    avg_points  = serializers.FloatField()
+    points      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    # from nba PlayerStats.SCORING_FIELDS
+    avg_three_points_made   = serializers.FloatField()
+    three_points_made       = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_rebounds  = serializers.FloatField()
+    rebounds      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_assists  = serializers.FloatField()
+    assists      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_steals  = serializers.FloatField()
+    steals      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_blocks  = serializers.FloatField()
+    blocks      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_turnovers  = serializers.FloatField()
+    turnovers      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
 class PlayerSerializer(sports.serializers.PlayerSerializer):
     """
     serializer for this sports player, with more details such as jersey number

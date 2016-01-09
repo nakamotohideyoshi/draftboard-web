@@ -55,6 +55,69 @@ class FantasyPointsSerializer(sports.serializers.FantasyPointsSerializer):
         child=serializers.FloatField() # min_value=-9999, max_value=9999)
     )
 
+class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
+    """
+    use the fields, especially from the PlayerStats get_scoring_fields()
+    """
+    player_id = serializers.IntegerField()
+
+    #
+    #################################################################
+    # the fields below are from the models SCORING_FIELDS
+    #################################################################
+    avg_goal  = serializers.FloatField()
+    goal      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_assist  = serializers.FloatField()
+    assist      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_sog  = serializers.FloatField()
+    sog      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_blk  = serializers.FloatField()
+    blk      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_sh_goal  = serializers.FloatField()
+    sh_goal      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_so_goal  = serializers.FloatField()
+    so_goal      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    #
+    # goalie stats below
+
+    avg_w  = serializers.FloatField()
+    w      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_saves  = serializers.FloatField()
+    saves      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_ga  = serializers.FloatField()
+    ga      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
+    avg_shutout  = serializers.FloatField()
+    shutout      = serializers.ListField(
+        child=serializers.FloatField()
+    )
+
 class PlayerSerializer(sports.serializers.PlayerSerializer):
     """
     serializer for this sports player, with more details such as jersey number

@@ -79,6 +79,23 @@ class Player( sports.models.Player ):
 
 class PlayerStats( sports.models.PlayerStats ):
 
+    # must override parent SCORING_FIELDS
+    SCORING_FIELDS = [
+        # skater stats
+        'goal',
+        'assist',
+        'sog',
+        'blk',
+        'sh_goal',
+        'so_goal',
+
+        # goalie stats
+        'w',
+        'saves',
+        'ga',
+        'shutout',
+    ]
+
     # player  = models.ForeignKey(Player, null=False)
     # game    = models.ForeignKey(Game, null=False)
 

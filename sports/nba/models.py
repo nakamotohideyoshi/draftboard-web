@@ -102,58 +102,20 @@ class Player( sports.models.Player ):
         abstract = False
 
 class PlayerStats( sports.models.PlayerStats ):
-    # {'statistics__list':
-    #   { 'defensive_rebounds': 1.0,
-    #         'two_points_pct': 0.6,
-    #         'assists': 0.0,
-    #         'free_throws_att': 2.0,
-    #         'flagrant_fouls': 0.0,
-    #         'offensive_rebounds': 1.0,
-    #         'personal_fouls': 0.0,
-    #         'field_goals_att': 5.0,
-    #         'three_points_att': 0.0,
-    #         'field_goals_pct': 60.0,
-    #         'turnovers': 0.0,
-    #         'points': 8.0,
-    #         'rebounds': 2.0,
-    #         'two_points_att': 5.0,
-    #         'field_goals_made': 3.0,
-    #         'blocked_att': 0.0,
-    #         'free_throws_made': 2.0,
-    #         'blocks': 0.0,
-    #         'assists_turnover_ratio': 0.0,
-    #         'tech_fouls': 0.0,
-    #         'three_points_made': 0.0,
-    #         'steals': 0.0,
-    #         'two_points_made': 3.0,
-    #         'free_throws_pct': 100.0,
-    #         'three_points_pct': 0.0
-    #   },
-    #
-    # 'played': 'true',
-    # 'team__id': '583ec5fd-fb46-11e1-82cb-f4ce4684ea4c',
-    # 'id': '9c8dc8ee-6207-48d5-81ee-f362f5e17f9b',
-    # 'full_name': 'Taj Gibson',
-    # 'first_name': 'Taj',
-    # 'primary_position': 'PF',
-    # 'jersey_number': 22.0,
-    # 'parent_list__id': 'players__list',
-    # 'last_name': 'Gibson',
-    # 'position': 'F-C',
-    # 'game__id': '681e76e1-7e63-4503-89d1-86480b6dcc3b',
-    # 'injuries__list': {'injury': '66cb60c8-0936-47fe-9b8c-91719acfc56b'},
-    # 'parent_api__id': 'stats',
-    # '_id': 'cGFyZW50X2FwaV9faWRzdGF0c2dhbWVfX2lkNjgxZTc2ZTEtN2U2My00NTAzLTg5ZDEtODY0ODBiNmRjYzNidGVhbV9faWQ1ODNlYzVmZC1mYjQ2LTExZTEtODJjYi1mNGNlNDY4NGVhNGNwYXJlbnRfbGlzdF9faWRwbGF5ZXJzX19saXN0aWQ5YzhkYzhlZS02MjA3LTQ4ZDUtODFlZS1mMzYyZjVlMTdmOWI=',
-    # 'active': 'true',
-    # 'starter': 'true'
-    # }
+    """
+    Model for all of a players statistics in a unique game.
+    """
 
-    # player  = models.ForeignKey(Player, null=False)
-    # game    = models.ForeignKey(Game, null=False)
-
-
-    #content_type    = models.ForeignKey(ContentType, related_name='nba_playerstats')
-
+    # must override parent SCORING_FIELDS
+    SCORING_FIELDS = [
+        'points',
+        'three_points_made',
+        'rebounds',
+        'assists',
+        'steals',
+        'blocks',
+        'turnovers',
+    ]
 
     #   { 'defensive_rebounds': 1.0,
     defensive_rebounds = models.FloatField(null=False, default=0.0)
