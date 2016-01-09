@@ -8,7 +8,7 @@ import { currentLineupsStatsSelector } from './current-lineups'
  * @param {Number} timestamp
  * @return {String}
  */
-function getFormattedTime(timestamp) {
+export function getFormattedTime(timestamp) {
   let hours = new Date(timestamp).getHours()
   let time = (hours % 12 || 12) + (hours > 12 ? 'pm' : 'am')
   if(time == '12pm') time = '0am'

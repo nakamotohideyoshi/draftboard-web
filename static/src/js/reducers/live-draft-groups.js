@@ -9,7 +9,7 @@ import log from '../lib/logging'
 function setOrMerge(state, action, props) {
   // if does not exist, then $set to create
   if (action.id in state === false) {
-    props = Object.assign(
+    let newProps = Object.assign(
       {},
       {
         playersInfo: {},
@@ -21,7 +21,7 @@ function setOrMerge(state, action, props) {
 
     return update(state, {
       [action.id]: {
-        $set: props
+        $set: newProps
       }
     })
   }
