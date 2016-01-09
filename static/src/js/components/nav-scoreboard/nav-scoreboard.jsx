@@ -132,6 +132,8 @@ const NavScoreboard = React.createClass({
    * @return {Object} options key-value pairs
    */
   handleChangeSelection(selectedOption, selectedType, selectedKey) {
+    log.debug('handleChangeSelection()', selectedOption, selectedType, selectedKey)
+
     console.assert(typeof selectedOption === 'string')
     console.assert(typeof selectedType === 'string')
     console.assert(typeof selectedKey === 'string' || selectedKey === null)
@@ -159,7 +161,7 @@ const NavScoreboard = React.createClass({
       options.push({
         option: 'MY LINEUPS',
         type: TYPE_SELECT_LINEUPS,
-        key: null,
+        key: 'LINEUPS',
         count: this.props.navScoreboardStats.lineups.length
       })
     }
@@ -208,8 +210,6 @@ const NavScoreboard = React.createClass({
         <NavScoreboardLoggedOutInfo />
       )
     }
-
-    log.debug('NAV', this.props.navScoreboardStats)
 
     return (
       <div className="inner">
