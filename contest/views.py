@@ -1,9 +1,11 @@
 #
 # contest/views.py
 
+from django.contrib.auth.models import User
+from django.utils import timezone
 import json
 import celery
-
+from datetime import datetime
 from rest_framework import status
 from rest_framework.response import Response
 from debreach.decorators import random_comment_exempt
@@ -19,6 +21,7 @@ from contest.serializers import (
     RegisteredUserSerializer,
     EnterLineupSerializer,
     EnterLineupStatusSerializer,
+    PayoutSerializer,
 )
 from contest.classes import ContestLineupManager
 from contest.models import (
@@ -29,6 +32,10 @@ from contest.models import (
     LiveContest,
     HistoryContest,
     CurrentContest,
+    HistoryEntry,
+)
+from contest.payout.models import (
+    Payout,
 )
 from contest.buyin.classes import BuyinManager
 from contest.buyin.tasks import buyin_task
@@ -189,18 +196,93 @@ class UserLiveAPIView(UserEntryAPIView):
     """
     contest_model = LiveContest
 
-
-class UserHistoryAPIView(UserEntryAPIView):
+class UserHistoryAPIView(generics.GenericAPIView):
     """
-    A User's historical contests.
+    Allows the logged in user to get their historical entries/contests
 
-    "next", "prev":  holds the link to paged data.
-    "next", "prev":  may return null, which indicates no more paged data in that direction
+        * |api-text| :dfs:`contest/history/`
+
+        .. note::
+
+            A get parameter of **?start_ts=X&end_ts=Y** can be used. This argument
+            describes how many days of history from today to get. If
+            it is not set, by default it will return the max which is 30.
+            If anything greater than 30 is set, it will return the 30 days.
+
     """
 
-    contest_model   = HistoryContest
-    pagination_class = LimitOffsetPagination
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = CurrentEntrySerializer
 
+    def get_user_for_id(self, user_id=None):
+        """
+        if a user can be found via the 'user_id' return it,
+        else return None.
+        """
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
+
+    def get(self, request, format=None):
+        """
+        get the entries
+        """
+        user = self.request.user
+
+        admin_specified_user_id = self.request.QUERY_PARAMS.get('user_id', None)
+        admin_specified_user = self.get_user_for_id( admin_specified_user_id )
+        if user.is_superuser and admin_specified_user is not None:
+            # override the user whos transactions we will look at
+            user = admin_specified_user
+
+        #
+        # if the start_ts & end_ts params exist:
+        start_ts = self.request.QUERY_PARAMS.get('start_ts', None)
+        end_ts = self.request.QUERY_PARAMS.get('end_ts', None)
+        if start_ts is None and end_ts is None:
+            #
+            # get the last 100 entries
+            entries = HistoryEntry.objects.filter().order_by('-created')[:100]
+            return self.get_entries_response( entries )
+
+        else:
+            if start_ts == None:
+                return Response(
+                    status=409,
+                    data={
+                        'errors': {
+                            'name': {
+                                'title': 'start_ts required',
+                                'description': 'You must provide unix time stamp variable start_ts in your get parameters.'
+                            }
+                        }
+                    })
+            if end_ts == None:
+                return Response(
+                    status=409,
+                    data={
+                        'errors': {
+                            'name': {
+                                'title': 'end_ts required',
+                                'description': 'You must provide unix time stamp variable end_ts in your get parameters.'
+                            }
+                        }
+                    })
+            entries = self.get_entries_in_range( user, int(start_ts), int(end_ts) )
+            return self.get_entries_response( entries )
+
+    def get_entries_in_range(self, user, start_ts, end_ts):
+        start   = datetime.utcfromtimestamp( start_ts )
+        end     = datetime.utcfromtimestamp( end_ts )
+        entries = Entry.objects.filter(contest__start__range=(start, end))
+        return entries
+        # serialized_entries = self.serializer_class( entries, many=True )
+        # return Response(serialized_entries.data, status=status.HTTP_200_OK)
+
+    def get_entries_response(self, entries):
+        serialized_entries = self.serializer_class( entries, many=True )
+        return Response(serialized_entries.data, status=status.HTTP_200_OK)
 
 class AllLineupsView(View):
     """
@@ -395,3 +477,19 @@ class EnterLineupStatusAPIView(generics.RetrieveAPIView):
         :return:
         """
         return buyin_task.AsyncResult(task_id)
+
+class PayoutsAPIView(generics.ListAPIView):
+    """
+    get a list of the payouts with ranks, for the paid users in the contest
+
+    may return an empty array if no payouts have happened
+    """
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = PayoutSerializer
+
+    def get_queryset(self):
+        """
+        get the Payout objects for the contest
+        """
+        contest_id = self.kwargs['contest_id']
+        return Payout.objects.filter(entry__contest__pk=contest_id).order_by('rank')

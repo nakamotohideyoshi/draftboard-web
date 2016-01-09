@@ -15,6 +15,7 @@ from contest.views import (
     RegisteredUsersAPIView,
     EnterLineupAPIView,
     EnterLineupStatusAPIView,
+    PayoutsAPIView,
 )
 from contest.views import ContestCreate, ContestUpdate
 
@@ -74,4 +75,7 @@ urlpatterns = patterns( '',
     # get the usernames for all users who have lineups in the contest
     (r'^registered-users/(?P<contest_id>[0-9]+)/$', RegisteredUsersAPIView.as_view()),
 
+    #
+    # get payouts for a contest
+    (r'^payouts/(?P<contest_id>[0-9]+)/$', PayoutsAPIView.as_view()),
 )
