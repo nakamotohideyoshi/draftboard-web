@@ -39,9 +39,7 @@ module.exports = function(options) {
       colors: true,
       host: '0.0.0.0',
       port: 8090,
-      stats: {
-        cached: true
-      }
+      stats: 'errors-only'
     },
 
     module: {
