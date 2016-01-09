@@ -3,6 +3,7 @@
 
 from rest_framework import serializers
 from contest.models import Contest, Entry
+import contest.payout.models
 from prize.models import PrizeStructure, Rank
 
 class RankSerializer(serializers.ModelSerializer):
@@ -81,3 +82,18 @@ class EnterLineupSerializer(serializers.Serializer):
 class EnterLineupStatusSerializer(serializers.Serializer):
 
     task = serializers.CharField()
+
+class PayoutSerializer(serializers.ModelSerializer):
+
+    user = serializers.SerializerMethodField()
+    def get_user(self, payout):
+        return payout.transaction.user
+
+    contest = serializers.SerializerMethodField()
+    def get_contest(self, payout):
+        return payout.entry.contest
+
+    class Meta:
+        model = contest.payout.models.Payout
+
+        fields = ('contest','rank','payout','user')

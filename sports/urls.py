@@ -13,8 +13,7 @@ from sports.views import (
     PlayerHistoryAPIView,
 )
 
-urlpatterns = patterns(
-    '',
+urlpatterns = patterns( '',
 
     #
     # get the injruies for a sport

@@ -416,6 +416,20 @@ class Entry(models.Model):
     def __str__(self):
         return '%s %s' % (self.contest.name, str(self.lineup))
 
+class HistoryEntry(Entry):
+    """
+    PROXY model for viewing only the Historical entries .. and rest API use.
+    """
+
+    class HistoryEntryManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(contest__in=HistoryContest.objects.all())
+
+    objects = HistoryEntryManager()
+
+    class Meta:
+        proxy = True
+
 class Action(models.Model):
     created = models.DateTimeField( auto_now_add=True)
     transaction = models.OneToOneField("transaction.Transaction",
