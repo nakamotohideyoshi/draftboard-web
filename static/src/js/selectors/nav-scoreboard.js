@@ -29,15 +29,14 @@ export const navScoreboardSelector = createSelector(
 
   (lineups, draftGroups, boxScores, sports, user) => {
     const resultLineups = _.map(lineups, (lineup) => {
-      return {
-        id: lineup.id,
-        name: lineup.name,
-        time: getFormattedTime(lineup.start),
-        contest: 'NBA', // TODO:
-        points:  89,    // TODO:
-        pmr:     lineup.totalMinutes,
-        balance: "$" + lineup.potentialEarnings
-      }
+      return Object.assign(
+        {},
+        lineup,
+        {
+          time: getFormattedTime(lineup.start),
+          contest: 'NBA' // TODO:
+        }
+      )
     })
 
     const loadedDraftGroups = _.filter(draftGroups, (dg) => {

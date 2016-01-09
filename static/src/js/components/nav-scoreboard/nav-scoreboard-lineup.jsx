@@ -30,27 +30,26 @@ const NavScoreboardLineup = React.createClass({
   },
 
   render() {
-    const {contest, time, pmr, points, balance} = this.props.lineup;
-    let { name } = this.props.lineup
+    let {contest, name, time, minutesRemaining, points, potentialEarnings} = this.props.lineup;
 
     if (name === '') {
-      name = 'Currys Chicken'
+      name = 'Lineup for ' + window.dfs.username
     }
 
     return (
       <div className="lineup" onClick={ this.openLineup }>
         <div className="left">
           <span className="header">
-            {contest} - {time}
+            { contest } - { time }
           </span>
           <br />
-          {name}
+          { name }
         </div>
 
         <div className="right">
-          {points} <span className="unit">PTS / </span>
-          {pmr} <span className="unit">PMR / </span>
-          <span className="balance">{balance}</span>
+          { points } <span className="unit">PTS / </span>
+          { minutesRemaining } <span className="unit">PMR / </span>
+          <span className="balance">${ potentialEarnings }</span>
         </div>
       </div>
     );

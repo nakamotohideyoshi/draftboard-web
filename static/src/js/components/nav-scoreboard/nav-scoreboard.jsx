@@ -209,6 +209,8 @@ const NavScoreboard = React.createClass({
       )
     }
 
+    log.debug('NAV', this.props.navScoreboardStats)
+
     return (
       <div className="inner">
         <NavScoreboardMenu />
