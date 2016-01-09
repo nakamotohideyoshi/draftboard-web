@@ -44,6 +44,7 @@ function addPlayersDetails(lineup, draftGroup, boxScores) {
       }
     }
 
+
     const game = boxScores[player.info.game_srid]
 
     // if the game hasn't started, then give full minutes remaining
@@ -111,14 +112,28 @@ export const currentLineupsStatsSelector = createSelector(
       return {}
     }
 
-    const liveLineups = _filter(lineups, function(lineup) {
-      return lineup.start < Date.now()
-    })
+    // const liveLineups = _filter(lineups, function(lineup) {
+    //   return lineup.start < Date.now()
+    // })
 
     let liveLineupsStats = {}
-    _forEach(liveLineups, (lineup) => {
+    _forEach(lineups, (lineup) => {
       const draftGroup = liveDraftGroups[lineup.draft_group]
+
+      if (lineup.start >= Date.parse(new Date())) {
+        liveLineupsStats[lineup.id] = {
+          id: lineup.id,
+          name: lineup.name,
+          roster: lineup.roster,
+          start: lineup.start,
+          draftGroup: draftGroup
+        }
+
+        return
+      }
+
       let stats = generateLineupStats(lineup, draftGroup, currentBoxScores)
+      stats.draftGroup = draftGroup
 
       let potentialEarnings = 0
       _forEach(entries, (entry) => {

@@ -12,8 +12,8 @@ function setOrMerge(state, action, newProps) {
   // if contest does not exist, then $set to create
   if (action.id in state === false) {
     return update(state, {
-      $set: {
-        [action.id]: newProps
+      [action.id]: {
+        $set: newProps
       }
     })
   }

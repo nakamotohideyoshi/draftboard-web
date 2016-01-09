@@ -3,6 +3,7 @@ var moment = require('moment')
 import 'babel-core/polyfill'
 const request = require('superagent-promise')(require('superagent'), Promise)
 import { forEach as _forEach } from 'lodash'
+import _ from 'lodash'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
 import * as ActionTypes from '../action-types'
@@ -19,6 +20,11 @@ const playerSchema = new Schema('players', {
 // TODO make this sport dependent
 function _calculateTimeRemaining(boxScore) {
   log.debug('actionsLiveDraftGroup._calculateTimeRemaining')
+
+  // if the game hasn't started, return full time
+  if (boxScore.fields.quarter === '') {
+    return 48
+  }
 
   const clockMinSec = boxScore.fields.clock.split(':')
   const remainingMinutes = (4 - parseInt(boxScore.fields.quarter)) * 12
@@ -65,6 +71,11 @@ function fetchDraftGroupFP(id) {
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'Accept': 'application/json'
     }).then(function(res) {
+      if (_.size(res.body.players) === 0) {
+        log.debug('shouldFetchDraftGroupFP() - FP not available yet', id)
+        return Promise.resolve('Fantasy points not available yet')
+      }
+
       return dispatch(receiveDraftGroupFP(id, res.body))
     })
   }
@@ -215,6 +226,10 @@ function fetchDraftGroupBoxScores(id) {
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'Accept': 'application/json'
     }).then(function(res) {
+      if (res.body.length === 0) {
+        log.debug('shouldFetchDraftGroupFP() - Box scores not available yet', id)
+        return Promise.resolve('Box scores not available yet')
+      }
       dispatch(receiveDraftGroupBoxScores(id, res.body))
 
       return dispatch(

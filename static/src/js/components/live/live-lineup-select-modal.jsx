@@ -42,8 +42,6 @@ const LiveLineupSelectModal = React.createClass({
   sportLineups: function() {
     let sportLineups = {}
 
-    console.log(this.props.lineups, 'asdfasdf')
-
     _.forEach(this.props.lineups, (lineup) => {
       const sport = lineup.draftGroup.sport
 
