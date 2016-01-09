@@ -19,8 +19,13 @@ class AbstractBanner(models.Model):
     links_to    = models.URLField(null=True,
                     help_text='if you want the banner to be clickable, then you should add a link here')
 
+    priority    = models.IntegerField(default=1, null=False,
+                    help_text='1 = highest priority, 1 > 2 > 3... etc...')
     class Meta:
+
         abstract = True
+
+        ordering = ['priority']
 
 class PromotionBanner( AbstractBanner ):
 
@@ -29,4 +34,4 @@ class PromotionBanner( AbstractBanner ):
 
 class ContestBanner( AbstractBanner ):
 
-    contest = models.ForeignKey('contest.Contest', null=False)
+    contest = models.ForeignKey('contest.Contest', null=True, blank=True)

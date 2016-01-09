@@ -90,8 +90,15 @@ class LeagueInjuryAPIView(generics.ListAPIView):
         sport = self.kwargs['sport']
         site_sport_manager = sports.classes.SiteSportManager()
         injury_model_class = site_sport_manager.get_injury_class( sport )
-        return injury_model_class.objects.all()
+        # fetch the highest ddtimestamp, and then return all the
+        # objects with that timestamp
+        most_recent_injuries = injury_model_class.objects.filter().order_by('-ddtimestamp')[:1]
+        if most_recent_injuries.count() == 0:
+            return []
 
+        last_updated_ts = most_recent_injuries[0].ddtimestamp
+        #return injury_model_class.objects.all() # we dont want to return multiple injuries for same player
+        return injury_model_class.objects.filter(ddtimestamp=last_updated_ts) # only return the most recent for each player
 
 class PlayerCsvView(View):
     template_name   = 'player_csv.html'
@@ -161,6 +168,54 @@ class LivePbpView(View):
 class FantasyPointsHistoryAPIView(generics.ListAPIView):
     """
 
+    """
+    permission_classes      = (IsAuthenticated,)
+
+    def dictfetchall(self, cursor):
+        """Return all rows from a cursor as a dict"""
+        columns = [col[0] for col in cursor.description]
+        return [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        return site_sport_manager.get_fantasypoints_serializer_class( sport )
+
+    def get_queryset(self):
+        """
+        from django.db import connections
+        cursor = connections['my_db_alias'].cursor()
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport( sport )
+        player_stats_class_list = site_sport_manager.get_player_stats_class( site_sport )
+        player_stats = []
+        for player_stats_class in player_stats_class_list:
+            ct = ContentType.objects.get_for_model( player_stats_class )
+            database_table_name = ct.app_label + '_' + ct.model    # ie: 'nba_playerstats'
+            # player_stats_list = player_stats_class.objects.raw(
+            #     #
+            #     # example:
+            #     # "select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10;"
+            #     "select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10;" % (database_table_name, database_table_name)
+            # )
+
+            with connection.cursor() as c:
+                c.execute("select player_id, array_agg(fantasy_points) from (select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10) as agg group by player_id" % (database_table_name, database_table_name))
+                player_stats += self.dictfetchall( c )
+
+        return player_stats
+
+class PlayerGameHistoryAPIView(generics.ListAPIView):
+    """
+    averages for the primary scoring categories
     """
     permission_classes      = (IsAuthenticated,)
 

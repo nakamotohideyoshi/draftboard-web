@@ -7,6 +7,7 @@ from rest_framework.test import APITestCase
 from test.classes import AbstractTest
 from .classes import AccountInformation
 from .exceptions import AccountInformationException
+
 class RegisterAccountTest( APITestCase ):
 
     def test_api(self):

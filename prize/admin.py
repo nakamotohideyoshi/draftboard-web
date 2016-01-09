@@ -15,10 +15,16 @@ class PrizeStructureAdmin(admin.ModelAdmin):
             return self.readonly_fields + ('generator', )
         return self.readonly_fields
 
+    def has_add_permission(self, request): # removes Add button
+        return False
+
 @admin.register(prize.models.Rank)
 class RankAdmin(admin.ModelAdmin):
     list_display = ['prize_structure','rank','amount']
     list_filter = ['prize_structure']
+
+    def has_add_permission(self, request): # removes Add button
+        return False
 
 @admin.register(prize.models.CreateTicketPrizeStructure)
 class CreateTicketPrizeStructureAdmin(admin.ModelAdmin):

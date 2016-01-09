@@ -769,6 +769,8 @@ class DataDenInjury(AbstractDataDenParseable):
         self.player_ctype = ContentType.objects.get_for_model(self.player)
 
         iid = self.o.get(self.key_iid, None)
+        ddtimestamp = self.o.get('dd_updated__id')
+        print( str(ddtimestamp) )
         try:
             self.injury = self.injury_model.objects.get(iid=iid) #,
                                 # player_type__pk=self.player_ctype.id,
@@ -776,7 +778,9 @@ class DataDenInjury(AbstractDataDenParseable):
         except self.injury_model.DoesNotExist:
             self.injury = self.injury_model()
             self.injury.iid     = iid
-        self.injury.player  = self.player
+            self.injury.ddtimestamp = ddtimestamp
+
+        self.injury.player      = self.player
 
         # subclass will need to perform the save() to create/update !
 #

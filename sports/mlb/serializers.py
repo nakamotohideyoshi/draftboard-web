@@ -3,7 +3,31 @@
 
 from rest_framework import serializers
 import sports.serializers
-from .models import Injury, Team, Player
+from .models import Game, GameBoxscore, Injury, Team, Player
+
+class BoxscoreSerializer(sports.serializers.BoxscoreSerializer):
+
+    class Meta:
+
+        model = GameBoxscore
+
+        fields = sports.serializers.BoxscoreSerializer.PARENT_FIELDS + \
+                 ('day_night','game_number','inning','inning_half',
+                  'srid_home_pp','srid_home_sp',
+                  'srid_away_pp','srid_away_sp',
+                  'srid_win','srid_loss',
+                  'home_errors', 'home_hits',
+                  'away_errors', 'away_hits',)
+
+
+class GameSerializer(sports.serializers.GameSerializer):
+
+    class Meta:
+
+        model = Game
+
+        fields = sports.serializers.GameSerializer.PARENT_FIELDS + \
+                 ('srid_home','srid_away','title','day_night','game_number')
 
 class InjurySerializer(sports.serializers.InjurySerializer):
 

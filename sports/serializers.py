@@ -11,6 +11,21 @@ from rest_framework import serializers
 #         model = Player
 #         fields = ('first_name','last_name')
 
+class GameSerializer(serializers.ModelSerializer):
+    """
+    parent Game object serializer with common fields
+    """
+    PARENT_FIELDS = ('srid','start')
+
+class BoxscoreSerializer(serializers.ModelSerializer):
+    """
+    parent GameBoxscore object serializer with common fields
+    """
+    PARENT_FIELDS = ('srid_home','srid_away',
+                     'status',
+                     'attendance','coverage',
+                     'home_scoring_json','away_scoring_json')
+
 class GameBoxscoreSerializer(serializers.ModelSerializer):
 
     class Meta:

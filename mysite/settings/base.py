@@ -381,6 +381,7 @@ SUIT_CONFIG = {
         #('draftgroup',),
         ('finance',),
         ('fpp',),
+        ('lobby',),
         ('pp',),
         ('prize',),
         ('promocode',),

@@ -203,7 +203,7 @@ class ContestLineupManager(object):
         return (self.SIZE_LINEUP_ID + self.players_per_lineup * self.SIZE_PLAYER) * self.contest.entries
 
     def get_size_in_bytes(self):
-        print( '__header_size() = %s' %str(self.__header_size()), '__payload_size() = %s' % str(self.__payload_size()))
+        #print( '__header_size() = %s' %str(self.__header_size()), '__payload_size() = %s' % str(self.__payload_size()))
         return self.__header_size() + self.__payload_size()
 
     def pack_into_h(self, fmt, bytes, offset, val):
