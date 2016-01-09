@@ -35,6 +35,7 @@ from .exceptions import (
     PlayerSerializerClassNotFoundException,
     GameSerializerClassNotFoundException,
     BoxscoreSerializerClassNotFoundException,
+    PlayerHistorySerializerClassNotFoundException,
     TsxModelClassNotFoundException,
 )
 
@@ -429,6 +430,18 @@ class SiteSportManager(object):
         except:
             # by default raise an exception if we couldnt return a game class
             raise InjurySerializerClassNotFoundException(type(self).__name__, sport)
+
+    def get_playerhistory_serializer_class(self, sport):
+        """
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.PlayerHistorySerializer' % sport.name)
+        except:
+            #
+            raise PlayerHistorySerializerClassNotFoundException(type(self).__name__, sport)
 
     def __get_tsx_model_class(self, sport, model_name, model_parent_class):
         """

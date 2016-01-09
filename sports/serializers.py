@@ -50,9 +50,37 @@ class PlayerStatsSerializer(serializers.ModelSerializer):
         model = PlayerStats
         fields = ('game_id', 'player_id','fantasy_points')
 
-class InjurySerializer(serializers.ModelSerializer): pass       # extended by specific sport
+class InjurySerializer(serializers.ModelSerializer):
+    """
+    extended by the specific sport
+    """
+    pass
 
-class FantasyPointsSerializer(serializers.Serializer): pass     # extended by specific sport
+class FantasyPointsSerializer(serializers.Serializer):
+    """
+    extended by the specific sport
+    """
+    pass
+
+class PlayerHistorySerializer(serializers.Serializer):
+    """
+    extended by the specific sport
+    """
+    # we will get an array of games
+    games = serializers.ListField(
+        #source='fp',
+        child=serializers.CharField()
+    )
+
+    #
+    # the Fantasy Points have to get a different name in this
+    # serializer because there is already a column called fantasy_points which
+    # on the PlayerStats models
+    avg_fp = serializers.FloatField()
+    fp = serializers.ListField(
+        #source='fp',
+        child=serializers.FloatField()
+    )
 
 class TeamSerializer(serializers.ModelSerializer):
     """

@@ -213,7 +213,7 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
 
         return player_stats
 
-class PlayerGameHistoryAPIView(generics.ListAPIView):
+class PlayerHistoryAPIView(generics.ListAPIView):
     """
     averages for the primary scoring categories
     """
@@ -233,14 +233,16 @@ class PlayerGameHistoryAPIView(generics.ListAPIView):
         """
         sport = self.kwargs['sport']
         site_sport_manager = sports.classes.SiteSportManager()
-        return site_sport_manager.get_fantasypoints_serializer_class( sport )
+        return site_sport_manager.get_playerhistory_serializer_class( sport )
 
     def get_queryset(self):
         """
         from django.db import connections
         cursor = connections['my_db_alias'].cursor()
         """
-        sport = self.kwargs['sport']
+        sport           = self.kwargs['sport']
+        n_games_history = self.kwargs['n_games_history']
+        #print( str(n_games_history), 'games for', sport )
         site_sport_manager = sports.classes.SiteSportManager()
         site_sport = site_sport_manager.get_site_sport( sport )
         player_stats_class_list = site_sport_manager.get_player_stats_class( site_sport )
@@ -248,15 +250,35 @@ class PlayerGameHistoryAPIView(generics.ListAPIView):
         for player_stats_class in player_stats_class_list:
             ct = ContentType.objects.get_for_model( player_stats_class )
             database_table_name = ct.app_label + '_' + ct.model    # ie: 'nba_playerstats'
-            # player_stats_list = player_stats_class.objects.raw(
-            #     #
-            #     # example:
-            #     # "select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10;"
-            #     "select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10;" % (database_table_name, database_table_name)
-            # )
+
+            # these are the fields we want to aggregate and average for the serializer.
+            # we use a raw query for efficiency purposes.
+            scoring_fields = player_stats_class.SCORING_FIELDS
+            #print('player_stats_class', str(player_stats_class), 'SCORING_FIEDS', str(scoring_fields))
+
+            # from the scoring_fields we can generate a large part
+            # of the raw query in a loop
+            select_columns_str = 'player_id'
+            select_columns_str += ', array_agg(srid_game) as games'
+            select_columns_str += ', array_agg(fantasy_points) as fp'
+            select_columns_str += ', avg(fantasy_points) as avg_fp'
+
+            for scoring_field in scoring_fields:
+                # slap the scoring_field into every {0}
+                select_columns_str += ', array_agg({0}) as {0}, avg({0}) as avg_{0}'.format(scoring_field)
+
+            # the final query string
+            query_str = "select {0} from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {1}) as {1} where rn <={2}) as agg group by player_id".format(select_columns_str, database_table_name, str(n_games_history))
+            # query_str = """select player_id, array_agg(points) as points, avg(points) as avg_points, array_agg(three_points_made) as three_points_made, avg(three_points_made) as avg_three_points_made from (select * from (select *, row_number() over (partition by player_id order by created) as rn from nba_playerstats) as nba_playerstats where rn <=10) as agg group by player_id"""
+
+            # print('')
+            # print('query_str')
+            # print(query_str)
+            # print('')
+            # print('')
 
             with connection.cursor() as c:
-                c.execute("select player_id, array_agg(fantasy_points) from (select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10) as agg group by player_id" % (database_table_name, database_table_name))
+                c.execute(query_str)
                 player_stats += self.dictfetchall( c )
 
         return player_stats

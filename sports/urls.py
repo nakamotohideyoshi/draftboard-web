@@ -9,7 +9,8 @@ from sports.views import (
     LeagueTeamAPIView,
     LeaguePlayerAPIView,
     LivePbpView,
-    FantasyPointsHistoryAPIView
+    FantasyPointsHistoryAPIView,
+    PlayerHistoryAPIView,
 )
 
 urlpatterns = patterns(
@@ -37,6 +38,10 @@ urlpatterns = patterns(
 
     #
     # get the fantasy points history for all players
-    (r'^fp-history/(?P<sport>[a-z]+)/$', FantasyPointsHistoryAPIView.as_view())
+    (r'^fp-history/(?P<sport>[a-z]+)/$', FantasyPointsHistoryAPIView.as_view()),
+
+    #
+    # get the player season averages, as well as a 5-game log
+    (r'^player-history/(?P<sport>[a-z]+)/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view())
 
 )

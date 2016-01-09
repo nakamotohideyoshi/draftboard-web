@@ -56,6 +56,10 @@ class BoxscoreSerializerClassNotFoundException(Exception):
     def __init__(self, class_name, sport_name):
         super().__init__( "Boxscore Serializer class for %s not found" % sport_name )
 
+class PlayerHistorySerializerClassNotFoundException(Exception):
+    def __init__(self, class_name, sport_name):
+        super().__init__( "PlayerHistory Serializer class for %s not found" % sport_name )
+
 class TsxModelClassNotFoundException(Exception):
     """
     Intended usage:
