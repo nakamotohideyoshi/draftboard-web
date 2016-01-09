@@ -53,10 +53,13 @@ export const navScoreboardSelector = createSelector(
         end: dg.end,
         boxScores: _.mapValues(dg.boxScores, (boxScore, id) => {
           let newBoxScore = boxScores[boxScore.fields.srid_game]
-          const teams = sports[dg.sport].teams
 
-          newBoxScore.homeTeamInfo = teams[boxScore.fields.home_id]
-          newBoxScore.awayTeamInfo = teams[boxScore.fields.away_id]
+          if (dg.sport in sports) {
+            const teams = sports[dg.sport].teams
+
+            newBoxScore.homeTeamInfo = teams[boxScore.fields.home_id]
+            newBoxScore.awayTeamInfo = teams[boxScore.fields.away_id]
+          }
 
           return newBoxScore
         })

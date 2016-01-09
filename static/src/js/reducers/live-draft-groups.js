@@ -9,15 +9,19 @@ import log from '../lib/logging'
 function setOrMerge(state, action, props) {
   // if does not exist, then $set to create
   if (action.id in state === false) {
-    var proprops = Object.assign({}, proprops, {
-      playersInfo: {},
-      playersStats: {},
-      boxScores: {}
-    })
+    props = Object.assign(
+      {},
+      {
+        playersInfo: {},
+        playersStats: {},
+        boxScores: {}
+      },
+      props
+    )
 
     return update(state, {
-      $set: {
-        [action.id]: proprops
+      [action.id]: {
+        $set: props
       }
     })
   }
