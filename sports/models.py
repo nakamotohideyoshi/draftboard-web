@@ -230,6 +230,10 @@ class Injury(models.Model):
     status      = models.CharField(max_length=32, default='')
     description = models.CharField(max_length=1024, default='')
 
+    ddtimestamp = models.BigIntegerField(default=0, null=False,
+                    help_text='the time this injury update was parsed by dataden.' +
+                               'this will be the same value for all objects that were in the feed on the last parse.')
+
     def get_serializer_class(self):
         """
         """

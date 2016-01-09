@@ -12,6 +12,9 @@ from django.test.utils import override_settings
 from contest.models import Contest, LobbyContest, UpcomingContest, LiveContest, HistoryContest
 from contest.classes import ContestCreator
 from sports.classes import SiteSportManager
+from contest.views import (
+    EnterLineupAPIView,
+)
 
 class ContestManagerTest(AbstractTestTransaction):
     """

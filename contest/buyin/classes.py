@@ -151,7 +151,7 @@ class BuyinManager(AbstractSiteUserClass):
             raise ContestLineupMismatchedDraftGroupsException()
 
         #
-        # Make sure the contest status is active
+        # Make sure the contest status is not past the time when you could buyin
         if contest.is_started():
             raise ContestIsInProgressOrClosedException()
 

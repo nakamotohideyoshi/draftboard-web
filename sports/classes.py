@@ -33,7 +33,9 @@ from .exceptions import (
     InjurySerializerClassNotFoundException,
     TeamSerializerClassNotFoundException,
     PlayerSerializerClassNotFoundException,
-    TsxModelClassNotFoundException
+    GameSerializerClassNotFoundException,
+    BoxscoreSerializerClassNotFoundException,
+    TsxModelClassNotFoundException,
 )
 
 from mysite.exceptions import IncorrectVariableTypeException
@@ -334,6 +336,37 @@ class SiteSportManager(object):
 
         # by default raise an exception if we couldnt return a game class
         raise InjuryClassNotFoundException(type(self).__name__, sport)
+
+    def get_game_serializer_class(self, sport):
+        """
+        get the sport specific serializer for the 'sport' param
+
+        :param sport:
+        :return:
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+        try:
+            return eval( 'sports.%s.serializers.GameSerializer' % sport.name)
+        except:
+            #
+            raise GameSerializerClassNotFoundException(type(self).__name__, sport)
+
+    def get_boxscore_serializer_class(self, sport):
+        """
+        get the sport specific serializers for the 'sport' param
+
+        :param sport:
+        :return:
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.BoxscoreSerializer' % sport.name)
+        except:
+            # by default raise an exception if we couldnt return a game class
+            raise BoxscoreSerializerClassNotFoundException(type(self).__name__, sport)
 
     def get_team_serializer_class(self, sport):
         """

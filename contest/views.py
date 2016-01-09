@@ -211,7 +211,7 @@ class AllLineupsView(View):
     def get(self, request, contest_id):
         clm = ContestLineupManager( contest_id = contest_id )
         if 'json' in request.GET:
-            print ('json please!' )
+            #print ('json please!' )
             return HttpResponse( json.dumps( clm.dev_get_all_lineups( contest_id ) ) )
         else:
             #clm = ContestLineupManager( contest_id = contest_id )
@@ -267,6 +267,55 @@ class RegisteredUsersAPIView(generics.GenericAPIView):
         serialized_data = RegisteredUserSerializer( self.get_object(contest_id), many=True ).data
         return Response(serialized_data)
 
+# class EnterLineupAPIView(generics.CreateAPIView):
+#     """
+#     enter a lineup into the contest. (exceptions may occur based on user balance, etc...)
+#     """
+#     permission_classes      = (IsAuthenticated,)
+#     serializer_class        = EnterLineupSerializer
+#     # renderer_classes        = (JSONRenderer, BrowsableAPIRenderer)
+#
+#     def post(self, request, format=None):
+#         #print( request.data )
+#         lineup_id       = request.data.get('lineup')
+#         contest_id      = request.data.get('contest')
+#
+#         # ensure the contest is valid
+#         try:
+#             contest = Contest.objects.get( pk=contest_id )
+#         except Contest.DoesNotExist:
+#             return Response( 'Contest does not exist', status=status.HTTP_403_FORBIDDEN )
+#
+#         # ensure the lineup is valid for this user
+#         try:
+#             lineup = Lineup.objects.get( pk=lineup_id, user=request.user )
+#         except Lineup.DoesNotExist:
+#             return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
+#
+#         #
+#         # call the buyin task
+#         bm = BuyinManager( request.user )
+#         # TODO must use task not the regular way
+#         try:
+#             bm.buyin( contest, lineup )
+#         except ContestLineupMismatchedDraftGroupsException:
+#             return Response( 'This lineup was not drafted from the same group as this contest.', status=status.HTTP_403_FORBIDDEN )
+#         except ContestIsInProgressOrClosedException:
+#             return Response( 'You may no longer enter this contest', status=status.HTTP_403_FORBIDDEN )
+#         except ContestCouldNotEnterException:
+#             return Response( 'ContestCouldNotEnterException', status=status.HTTP_403_FORBIDDEN )
+#         except ContestIsNotAcceptingLineupsException:
+#             return Response( 'Contest is not accepting entries', status=status.HTTP_403_FORBIDDEN )
+#         except (ContestMaxEntriesReachedException, ContestIsFullException) as e:
+#             return Response( 'Contest is full', status=status.HTTP_403_FORBIDDEN )
+#         except (OverdraftException) as e:
+#             return Response('You have insufficient funds to enter this contest.', status=status.HTTP_403_FORBIDDEN )
+#
+#         # If Entry creation was successful, return the created Entry object.
+#         entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
+#         serializer = CurrentEntrySerializer(entry, many=False)
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 class EnterLineupAPIView(generics.CreateAPIView):
     """
     enter a lineup into the contest. (exceptions may occur based on user balance, etc...)
@@ -276,7 +325,6 @@ class EnterLineupAPIView(generics.CreateAPIView):
     # renderer_classes        = (JSONRenderer, BrowsableAPIRenderer)
 
     def post(self, request, format=None):
-        #print( request.data )
         lineup_id       = request.data.get('lineup')
         contest_id      = request.data.get('contest')
 
@@ -294,27 +342,16 @@ class EnterLineupAPIView(generics.CreateAPIView):
 
         #
         # call the buyin task
-        bm = BuyinManager( request.user )
-        # TODO must use task not the regular way
-        try:
-            bm.buyin( contest, lineup )
-        except ContestLineupMismatchedDraftGroupsException:
-            return Response( 'This lineup was not drafted from the same group as this contest.', status=status.HTTP_403_FORBIDDEN )
-        except ContestIsInProgressOrClosedException:
-            return Response( 'You may no longer enter this contest', status=status.HTTP_403_FORBIDDEN )
-        except ContestCouldNotEnterException:
-            return Response( 'ContestCouldNotEnterException', status=status.HTTP_403_FORBIDDEN )
-        except ContestIsNotAcceptingLineupsException:
-            return Response( 'Contest is not accepting entries', status=status.HTTP_403_FORBIDDEN )
-        except (ContestMaxEntriesReachedException, ContestIsFullException) as e:
-            return Response( 'Contest is full', status=status.HTTP_403_FORBIDDEN )
-        except (OverdraftException) as e:
-            return Response('You have insufficient funds to enter this contest.', status=status.HTTP_403_FORBIDDEN )
+        task_result = buyin_task.delay( request.user, contest, lineup=lineup )
+
+        #
+        # return task id
+        return Response({'buyin_task_id':task_result.id}, status=status.HTTP_201_CREATED)
 
         # If Entry creation was successful, return the created Entry object.
-        entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
-        serializer = CurrentEntrySerializer(entry, many=False)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
+        # serializer = CurrentEntrySerializer(entry, many=False)
+        # return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class EnterLineupStatusAPIView(generics.RetrieveAPIView):
     """
@@ -324,21 +361,19 @@ class EnterLineupStatusAPIView(generics.RetrieveAPIView):
     permission_classes      = (IsAuthenticated,)
     serializer_class        = EnterLineupStatusSerializer
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, format=None):
         """
-        Get the task id of a previous call to the enter-lineup endpoint
-        from the GET parameter 'task', and check whether an Entry was created
-        for this task id.
+        Given the 'task' parameter, return the status of the task (ie: the buyin)
 
         :param request:
         :param format:
         :return:
         """
         enter_lineup_status = False
-        task_id = request.GET.get('task')    #
+        task_id = request.data.get('task')
         if task_id is None:
             # make sure to return error if the task id is not given in the request
-            return Response({'error':'you must supply the "task" argument'},
+            return Response({'error':'you must supply the "task" parameter'},
                                         status=status.HTTP_400_BAD_REQUEST )
 
         task_result = self.get_enter_lineup_task_result(task_id)
