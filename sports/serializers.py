@@ -97,3 +97,16 @@ class PlayerSerializer(serializers.ModelSerializer):
     ie: sports.nba.serializers.Player, sports.nhl.serializers.Player, etc...
     """
     PARENT_FIELDS = ('id','srid','first_name','last_name')
+
+class TsxItemSerializer(serializers.ModelSerializer):
+
+    PARENT_FIELDS = ('srid','pcid','content_published','title',
+                     'byline','dateline','credit','content')
+
+class TsxNewsSerializer(serializers.ModelSerializer):
+
+    PARENT_FIELDS = ('title','dateline')
+
+class TsxPlayerSerializer(serializers.ModelSerializer):
+
+    PARENT_FIELDS = ('name','sportsdataid','sportradarid')

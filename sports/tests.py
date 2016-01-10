@@ -84,3 +84,15 @@ class SiteSportManagerGetGameClassTest(AbstractTest):
         invalid_argument = 123
         self.assertRaises( IncorrectVariableTypeException,
                     lambda: SiteSportManager().get_game_class( invalid_argument ))
+
+# class TsxContentParserNBATest(AbstractTest):
+#     """
+#     for NBA
+#     """
+#     def setUp(self):
+#         self.data = {} # TODO create some
+#
+#         # then run the data thru the DataDenParser
+#         # p = DataDenParser()
+#         # # TODO wrap a fake object with the MongoObjWrapper and send thru parse_obj
+#         # p.parse_obj( 'nba', 'content', mongo_obj, async=async )

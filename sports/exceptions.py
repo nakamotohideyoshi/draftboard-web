@@ -69,3 +69,5 @@ class TsxModelClassNotFoundException(Exception):
 
     """
     pass
+
+class TsxSerializerClassNotFoundException(Exception): pass

@@ -1,9 +1,22 @@
 #
 # sports.nba.serializers.py
-
+import json
 from rest_framework import serializers
 import sports.serializers
-from .models import Game, GameBoxscore, Injury, Team, Player
+from .models import (
+    Game,
+    GameBoxscore,
+    Injury,
+    Team,
+    Player,
+
+    TsxNews,        # parent: TsxItem
+    TsxInjury,      # parent: TsxItem
+    TsxTransaction, # parent: TsxItem
+
+    TsxPlayer,      # references TsxItem children
+    TsxTeam,        # references TsxItem children
+)
 
 class BoxscoreSerializer(sports.serializers.BoxscoreSerializer):
 
@@ -116,3 +129,70 @@ class PlayerSerializer(sports.serializers.PlayerSerializer):
                                                                        'birthdate',
                                                                        'college',
                                                                        'jersey_number')
+
+class TsxItemRelatedField(serializers.RelatedField):
+    """
+    A custom field to use for the `tsxitem' generic relationship.
+
+    A tsxitem maybe a TsxNews, TsxInjury, TsxTransaction, andy child of TsxItem
+    """
+
+    def to_representation(self, value):
+        """
+        serialize the relations
+        """
+
+        if isinstance(value, TsxNews):
+            return TsxNewsSerializer(value).data
+        elif isinstance(value, TsxInjury):
+            return TsxInjurySerializer(value).data
+        elif isinstance(value, TsxTransaction):
+            return TsxTransactionSerializer(value).data
+
+        #return
+        # this works
+        # return json.dumps({
+        #     'title'     : value.title,
+        #     'byline'    : value.byline,
+        # })
+
+        #
+        # this stuff below was for testing --- should remove it!
+        # if isinstance(value, TsxNews) or isinstance(value, TsxInjury) or isinstance(value, TsxTransaction):
+        #     # return 'TsxNews: ' + value.title
+        #     return TsxNewsSerializer(value)
+        # elif isinstance(value, Note):
+        #     return 'Note: ' + value.text
+        raise Exception('nba.serializers.TsxItemRelatedField Unexpected type of TsxItem object: ' + str(type(value)))
+
+# class TsxNewsSerializer(sports.serializers.TsxNewsSerializer):
+#
+#     class Meta:
+#         model = TsxNews
+#         fields = sports.serializers.TsxNewsSerializer.PARENT_FIELDS # there are no more fields
+
+class TsxNewsSerializer(sports.serializers.TsxItemSerializer):
+
+    class Meta:
+        model = TsxNews
+        fields = sports.serializers.TsxItemSerializer.PARENT_FIELDS # there are no more fields
+
+class TsxInjurySerializer(sports.serializers.TsxItemSerializer):
+
+    class Meta:
+        model = TsxInjury
+        fields = sports.serializers.TsxItemSerializer.PARENT_FIELDS # there are no more fields
+
+class TsxTransactionSerializer(sports.serializers.TsxItemSerializer):
+
+    class Meta:
+        model = TsxTransaction
+        fields = sports.serializers.TsxItemSerializer.PARENT_FIELDS # there are no more fields
+
+class TsxPlayerSerializer(sports.serializers.TsxNewsSerializer):
+
+    tsxitem = TsxItemRelatedField(read_only=True)
+
+    class Meta:
+        model = TsxPlayer
+        fields = sports.serializers.TsxPlayerSerializer.PARENT_FIELDS + ('tsxitem',)# there are no more fields

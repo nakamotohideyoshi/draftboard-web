@@ -37,6 +37,7 @@ from .exceptions import (
     BoxscoreSerializerClassNotFoundException,
     PlayerHistorySerializerClassNotFoundException,
     TsxModelClassNotFoundException,
+    TsxSerializerClassNotFoundException,
 )
 
 from mysite.exceptions import IncorrectVariableTypeException
@@ -473,6 +474,26 @@ class SiteSportManager(object):
         :return: the TsxNews model class for this sport
         """
         return self.__get_tsx_model_class(sport, 'tsxnews', TsxNews)
+
+    def get_tsxnews_serializer_class(self, sport):
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.TsxNewsSerializer' % sport.name)
+        except:
+            # raise generic TsxSerializer exception
+            raise TsxSerializerClassNotFoundException(type(self).__name__, sport)
+
+    def get_tsxplayer_serializer_class(self, sport):
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.TsxPlayerSerializer' % sport.name)
+        except:
+            # raise generic TsxSerializer exception
+            raise TsxSerializerClassNotFoundException(type(self).__name__, sport)
 
     def get_tsxinjury_class(self, sport):
         """
