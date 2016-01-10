@@ -33,9 +33,27 @@
       color: white;
       background-color: #25293A;
       font-size: 12px;
-      padding: 10px 0;
       margin-bottom: 3px;
       position: relative;
+      padding: 10px 0;
+
+      &--mine {
+        border-left: 2px solid #214e9d;
+        border-right: 2px solid #34b4cc;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        background-position: 0 0, 0 100% ;
+        background-repeat: no-repeat;
+        -webkit-background-size: 100% 2px;
+        -moz-background-size: 100% 2px;
+        background-size: 100% 2px;
+        background-image: linear-gradient(to right, #214e9d 0%, #34b4cc 100%), linear-gradient(to right, #214e9d 0%, #34b4cc 100%);
+
+        .lineup--score-earnings {
+          color: #25c462;
+        }
+      }
 
       .overlay {
         display: none;
@@ -44,8 +62,8 @@
         position: absolute;
         top: 0px;
         left: 0px;
-        background-color: rgba(57,61,78,0.7);
-        line-height: 37px;
+        background-color: rgba(57,61,78,0.96);
+        line-height: 46px;
         font-size: 11px;
         font-weight: bold;
         text-transform: uppercase;

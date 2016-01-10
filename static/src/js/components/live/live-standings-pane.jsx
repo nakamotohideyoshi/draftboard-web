@@ -260,19 +260,35 @@ export const LiveStandingsPane = React.createClass({
       (page - 1) * perPage,
       Math.min(page * perPage, data.length)
     )
+    const mode = this.props.mode
 
     const standings = data.map((lineup, i) => {
+      let className = 'lineup'
+      let pmr = (
+        <LivePMRProgressBar decimalRemaining={lineup.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="ffffff" hexEnd="ffffff" svgWidth="50" />
+      )
+      let overlay = (
+        <div className="overlay"
+             onClick={this.handleViewOpponentLineup.bind(this, lineup)}>
+          Compare Lineup
+        </div>
+      )
+      log.debug(mode, lineup.id)
+      if (mode.myLineupId === lineup.id) {
+        overlay = ''
+        className += ' lineup--mine'
+        pmr = (
+          <LivePMRProgressBar decimalRemaining={lineup.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="34B4CC" hexEnd="2871AC" svgWidth="50" />
+        )
+      }
       return (
-        <div key={lineup.id} className="lineup">
+        <div key={lineup.id} className={ className }>
           <div className="lineup--place">{lineup.rank}</div>
-          <LivePMRProgressBar decimalRemaining={lineup.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="ffffff" hexEnd="ffffff" svgWidth="50" />
+          { pmr }
           <div className="lineup--score-name">{lineup.user.username}</div>
           <div className="lineup--score-points"><b>{lineup.points}</b><span>Pts</span></div>
           <div className="lineup--score-earnings">${lineup.potentialEarnings}</div>
-          <div className="overlay"
-               onClick={this.handleViewOpponentLineup.bind(this, lineup)}>
-            Compare Lineup
-          </div>
+          { overlay }
         </div>
       )
     })
