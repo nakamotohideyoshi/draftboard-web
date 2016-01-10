@@ -852,6 +852,8 @@ class TsxContentParser(AbstractDataDenParseable):
         # set the sport internally, and get the SiteSportManager
         self.sport                  = sport
         self.site_sport_manager     = sports.classes.SiteSportManager()
+        self.site_sport             = self.site_sport_manager.get_site_sport(self.sport)
+        self.sport_player_class     = self.site_sport_manager.get_player_class(self.site_sport)
 
         # the sports.sport.models.TsxContent model does not get inherited
         self.content_model_class    = sports.models.TsxContent
@@ -1090,11 +1092,19 @@ class TsxContentParser(AbstractDataDenParseable):
         :param tsx_ref_model_class:
         :return:
         """
+
         sportsdataid = ref_obj.get('sportsdata_id')
         sportradarid = ref_obj.get('sportradar_id')
         if sportradarid is None:
             # if sportradar property doesnt exist, use the sportsdataid
             sportradarid = sportsdataid
+
+        #
+        # try to get the sports.<sport>.models.Player
+        player = self.get_sport_player(sportradarid)
+        if player is None:
+            print('couldnt find player for ref_obj: %s' % (str(ref_obj)))
+            return None
 
         #
         # get or create it... we'll need to get the ContentType of the tsxitem first
@@ -1103,12 +1113,18 @@ class TsxContentParser(AbstractDataDenParseable):
         print(str(ref_obj))
         tsxref, c = tsx_ref_model_class.objects.get_or_create(sportsdataid=sportsdataid,
                                                               sportradarid=sportradarid,
+                                                              player=player,
                                                               name=ref_obj.get('name'),
                                                               tsxitem_type=tsxitem_type,
                                                               tsxitem_id=tsxitem.pk)
+
         return tsxref
 
-
+    def get_sport_player(self, sportradarid):
+        try:
+            return self.sport_player_class.objects.get(srid=sportradarid)
+        except self.sport_player_class.DoesNotExist:
+            return None
 
 
 

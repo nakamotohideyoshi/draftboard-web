@@ -8,7 +8,7 @@ from django.views.generic import TemplateView, View
 from sports.forms import PlayerCsvForm
 import sports.classes
 from sports.serializers import FantasyPointsSerializer
-from sports.nba.serializers import InjurySerializer
+from sports.nba.serializers import InjurySerializer, PlayerNewsSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 import json
@@ -373,5 +373,55 @@ class TsxPlayerNewsAPIView(generics.ListAPIView):
 
         # TODO return them all for now as a test
         return tsxplayer_model_class.objects.all()
+
+class TsxPlayerItemsAPIView(generics.ListAPIView):
+    """
+    gets the news for the sport
+    """
+
+    permission_classes      = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        injury_serializer_class = site_sport_manager.get_tsxplayer_serializer_class( sport )
+        return injury_serializer_class
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the LobbyContest model.
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        tsxplayer_model_class = site_sport_manager.get_tsxplayer_class(sport)
+
+        # TODO return them all for now as a test
+        return tsxplayer_model_class.objects.all()
+
+class PlayerNewsAPIView(generics.ListAPIView):
+    """
+    gets the news for the sport
+    """
+
+    permission_classes      = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        return PlayerNewsSerializer
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the LobbyContest model.
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport(sport)
+        sport_player_class = site_sport_manager.get_player_class( site_sport )
+        return sport_player_class.objects.all()
 
 

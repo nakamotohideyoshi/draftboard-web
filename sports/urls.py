@@ -12,6 +12,8 @@ from sports.views import (
     FantasyPointsHistoryAPIView,
     PlayerHistoryAPIView,
     TsxPlayerNewsAPIView,
+    TsxPlayerItemsAPIView,
+    PlayerNewsAPIView,
 )
 
 urlpatterns = patterns( '',
@@ -47,4 +49,12 @@ urlpatterns = patterns( '',
     #
     # get news content for the sport, for all the players
     (r'^player-news/(?P<sport>[a-z]+)/$', TsxPlayerNewsAPIView.as_view()),
+
+    #
+    # get the player-news/{sport}/ however do so for a limited range per player
+    # TsxPlayerItemsAPIView
+    (r'^player-items/(?P<sport>[a-z]+)/$', TsxPlayerItemsAPIView.as_view()),
+
+    # PlayerNewsAPIView test
+    (r'^playernews/(?P<sport>[a-z]+)/$', PlayerNewsAPIView.as_view()),
 )
