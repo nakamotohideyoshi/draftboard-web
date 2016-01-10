@@ -486,7 +486,9 @@ var Live = React.createClass({
       var myLineup = self.props.liveSelector.lineups.mine
 
       bottomNavForRightPanes = (
-        <div className="live-right-pane-nav live-right-pane-nav--lineup" onClick={self.toggleContests}></div>
+        <div className="live-right-pane-nav live-right-pane-nav--lineup">
+          <div className="live-right-pane-nav__view-contests" onClick={self.toggleContests}><span>View Contests</span></div>
+        </div>
       )
 
       liveTitle = (
@@ -519,7 +521,10 @@ var Live = React.createClass({
       const myContest = self.props.liveSelector.contest
 
       bottomNavForRightPanes = (
-        <div className="live-right-pane-nav live-right-pane-nav--contest" onClick={self.toggleStandings}></div>
+        <div className="live-right-pane-nav live-right-pane-nav--contest">
+          <div className="live-right-pane-nav__view-contests" onClick={self.toggleContests}><span>View Contests</span></div>
+          <div className="live-right-pane-nav__view-standings" onClick={self.toggleStandings}><span>View Standings &amp; Ownership</span></div>
+        </div>
       )
 
       liveTitle = (
