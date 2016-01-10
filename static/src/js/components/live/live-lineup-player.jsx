@@ -26,8 +26,38 @@ var LiveLineupPlayer = React.createClass({
       stats = {pos: "", fp: 0}
     }
 
-    let className = 'live-lineup-player'
+    let hoverStats = (
+      <div className="live-lineup-player__hover-stats">
+        <ul>
+          <li>
+            <div className="hover-stats__amount">{ stats.fp }</div>
+            <div className="hover-stats__name">PTS</div>
+          </li>
+          <li>
+            <div className="hover-stats__amount">2</div>
+            <div className="hover-stats__name">RB</div>
+          </li>
+          <li>
+            <div className="hover-stats__amount">0</div>
+            <div className="hover-stats__name">ST</div>
+          </li>
+          <li>
+            <div className="hover-stats__amount">6</div>
+            <div className="hover-stats__name">ASST</div>
+          </li>
+          <li>
+            <div className="hover-stats__amount">2</div>
+            <div className="hover-stats__name">BLK</div>
+          </li>
+          <li>
+            <div className="hover-stats__amount">2</div>
+            <div className="hover-stats__name">TO</div>
+          </li>
+        </ul>
+      </div>
+    )
 
+    let className = 'live-lineup-player'
     if (stats.decimalRemaining === 0.01) {
       className += ' state--not-playing'
     } else {
@@ -38,6 +68,7 @@ var LiveLineupPlayer = React.createClass({
     if (this.props.whichSide === 'opponent') {
       return (
         <li className={className} onClick={this.props.onClick}>
+          { hoverStats }
           <div className={ playStatusClass }></div>
           <div className="live-lineup-player__points">{stats.fp}</div>
           <div className="live-lineup-player__status"></div>
@@ -60,6 +91,7 @@ var LiveLineupPlayer = React.createClass({
         <div className="live-lineup-player__status"></div>
         <div className="live-lineup-player__points">{stats.fp}</div>
         <div className={ playStatusClass }></div>
+        { hoverStats }
       </li>
     )
 

@@ -15,6 +15,8 @@
     display: inline-block;
     vertical-align: middle;
     margin: 0 4px;
+    z-index: 2001;
+    position: relative;
   }
 
   &__position {
@@ -32,6 +34,48 @@
     height: 48px;
     position: relative;
     width: 48px;
+  }
+
+  &:hover .live-lineup-player__hover-stats {
+    padding: 0 18px 0 120px;
+    width: 330px;
+  }
+
+  &__hover-stats {
+    background: #1e2130 url(../img/blocks/live-lineup-player/hover-stats-divider.jpg) no-repeat 100px center;
+    border-radius: 50px;
+    background-size: auto 64%;
+    height: 50px;
+    left: 27px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    top: 7px;
+    transition: all 316ms cubic-bezier(.8,.16,.18,.85) 400ms;
+    width: 48px;
+    z-index: 2000;
+
+    ul {
+      list-style: none;
+      padding-top: 9px;
+      width: 290px;
+    }
+
+    li {
+      display: inline-block;
+      text-align: center;
+      width: 32px;
+    }
+
+    .hover-stats__amount {
+      font-family: $font-oswald;
+      font-size: 14px;
+      color: #9ea1b1;
+    }
+    .hover-stats__name {
+      font-size: 9px;
+      color: #9ea1b1;
+    }
   }
 
   // TEMP until real photos exist
@@ -96,11 +140,24 @@
 
 // NON BEM not sure how else to though...
 .live-lineup--opponent {
+  .live-lineup-player .live-lineup-player__hover-stats {
+    text-align: left;
+    background-position: 210px center;
+  }
+  .live-lineup-player:hover .live-lineup-player__hover-stats {
+    padding: 0 120px 0 18px;
+  }
+
   .live-lineup-player__play-status {
     left: -10px;
   }
 
   .live-lineup-player.state--is-playing .live-lineup-player__status {
     background-color: #bf313e;
+  }
+
+  .live-lineup-player__hover-stats {
+    right: 27px;
+    left: auto;
   }
 }
