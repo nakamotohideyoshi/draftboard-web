@@ -109,6 +109,33 @@ var AppActions = {
     this.removeClass('appstate--pane--player--' + side + '--open')
   },
 
+  // Toggle the included class. If opening, then close all other live panes
+  togglePlayerPane: function(side) {
+    log.debug('AppStateStore.togglePlayerPane()')
+
+    const className = 'appstate--pane--player--' + side + '--open'
+
+    let possiblePanes = [
+      'appstate--pane--player--left--open',
+      'appstate--pane--player--right--open'
+    ]
+
+    // if already open, then just close that one
+    if (this.classes.indexOf(className) > -1) {
+      log.debug('Already open, closing', className)
+      this.removeClass(className)
+
+    // otherwise close all of the panes and then open that one
+    } else {
+      log.debug('Opening', className)
+      _forEach(possiblePanes, (pane) => {
+        this.removeClass(pane)
+      })
+
+      this.addClass(className)
+    }
+  },
+
   contestTypeFiltered: function() {
     this.addClass('appstate--contest-filters-open');
   },

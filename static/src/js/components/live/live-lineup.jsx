@@ -33,17 +33,10 @@ var LiveLineup = React.createClass({
   },
 
 
-  togglePlayerDetail(playerId) {
-    log.debug('togglePlayerDetail()', playerId)
-    if (this.state.viewPlayerDetails === playerId) {
-      log.debug('togglePlayerDetail() - close')
-      this.setState({viewPlayerDetails: undefined})
-      this.props.whichSide === 'opponent' ? AppActions.closePlayerPane('right') : AppActions.closePlayerPane('left')
-    } else {
-      log.debug('togglePlayerDetail() - open')
-      this.setState({viewPlayerDetails: playerId})
-      this.props.whichSide === 'opponent' ? AppActions.openPlayerPane('right') : AppActions.openPlayerPane('left')
-    }
+  openPlayerDetail(playerId) {
+    log.debug('openPlayerDetail() - open', playerId)
+    this.setState({viewPlayerDetails: playerId})
+    this.props.whichSide === 'opponent' ? AppActions.togglePlayerPane('right') : AppActions.togglePlayerPane('left')
   },
 
 
@@ -66,7 +59,7 @@ var LiveLineup = React.createClass({
       const boxScore = self.props.currentBoxScores[player.info.game_srid]
 
       return (
-        <LiveLineupPlayer key={playerId} player={player} whichSide={self.props.whichSide} onClick={self.togglePlayerDetail.bind(self, playerId)} />
+        <LiveLineupPlayer key={playerId} player={player} whichSide={self.props.whichSide} onClick={self.openPlayerDetail.bind(self, playerId)} />
       )
     })
 

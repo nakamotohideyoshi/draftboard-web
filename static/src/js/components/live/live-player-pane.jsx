@@ -23,7 +23,8 @@ const LivePlayerPane = React.createClass({
 
   closePane: function() {
     log.debug('LivePlayerPane.closePane()')
-    this.props.whichSide === 'opponent' ? AppActions.closePlayerPane('right') : AppActions.closePlayerPane('left')
+
+    this.props.whichSide === 'opponent' ? AppActions.togglePlayerPane('right') : AppActions.togglePlayerPane('left')
   },
 
   // get proper stats
