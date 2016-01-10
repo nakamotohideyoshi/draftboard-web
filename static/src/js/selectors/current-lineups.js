@@ -63,7 +63,7 @@ function addPlayersDetails(lineup, draftGroup, boxScores) {
 export function generateLineupStats(lineup, draftGroup, boxScores) {
   let stats = {
     id: lineup.id,
-    name: lineup.name,
+    name: lineup.name || 'Example Lineup Name',
     roster: lineup.roster,
     start: lineup.start,
     totalMinutes: lineup.roster.length * 48
@@ -123,7 +123,7 @@ export const currentLineupsStatsSelector = createSelector(
       if (lineup.start >= Date.parse(new Date())) {
         liveLineupsStats[lineup.id] = {
           id: lineup.id,
-          name: lineup.name,
+          name: lineup.name || 'Example Lineup Name',
           roster: lineup.roster,
           start: lineup.start,
           draftGroup: draftGroup
@@ -137,7 +137,13 @@ export const currentLineupsStatsSelector = createSelector(
 
       let potentialEarnings = 0
       _forEach(entries, (entry) => {
-        potentialEarnings += contestsStats[entry.contest].lineups[entry.lineup].potentialEarnings
+        const contestLineups = contestsStats[entry.contest].lineups
+
+        if (entry.lineup in contestLineups === true) {
+          potentialEarnings += contestsStats[entry.contest].lineups[entry.lineup].potentialEarnings
+        }
+
+        // otherwise this means that the contest is complete, TODO fix this with API calls!
       })
       stats.potentialEarnings = potentialEarnings
       stats.contestsStats = {}

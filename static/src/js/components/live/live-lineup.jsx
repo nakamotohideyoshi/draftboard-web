@@ -1,9 +1,15 @@
 import React from 'react'
+import * as ReactRedux from 'react-redux'
+import renderComponent from '../../lib/render-component'
+import { updatePath } from 'redux-simple-router'
+import { vsprintf } from 'sprintf-js'
 
+import { updateLiveMode } from '../../actions/live'
 import * as AppActions from '../../stores/app-state-store'
 import LiveLineupPlayer from './live-lineup-player'
 import LivePlayerPane from './live-player-pane'
 import log from '../../lib/logging'
+import store from '../../store'
 
 
 /**
@@ -13,7 +19,10 @@ var LiveLineup = React.createClass({
   propTypes: {
     whichSide: React.PropTypes.string.isRequired,
     lineup: React.PropTypes.object.isRequired,
-    currentBoxScores: React.PropTypes.object.isRequired
+    mode: React.PropTypes.object.isRequired,
+    currentBoxScores: React.PropTypes.object.isRequired,
+    updateLiveMode: React.PropTypes.func,
+    updatePath: React.PropTypes.func
   },
 
   getInitialState() {
@@ -35,6 +44,17 @@ var LiveLineup = React.createClass({
       this.setState({viewPlayerDetails: playerId})
       this.props.whichSide === 'opponent' ? AppActions.openPlayerPane('right') : AppActions.openPlayerPane('left')
     }
+  },
+
+
+  closeLineup() {
+    this.props.updatePath(vsprintf('/live/lineups/%d/contests/%d/', [this.props.mode.myLineupId, this.props.mode.contestId]))
+
+    const newMode = Object.assign({}, this.props.mode, {
+      opponentLineupId: undefined
+    })
+
+    this.props.updateLiveMode(newMode)
   },
 
 
@@ -60,11 +80,19 @@ var LiveLineup = React.createClass({
       )
     }
 
+    let closeLineup
+    if (self.props.whichSide === 'opponent') {
+      closeLineup = (
+        <span className="live-lineup__close" onClick={ self.closeLineup }></span>
+      )
+    }
+
 
     const className = 'cmp-live__lineup live-lineup live-lineup--' + self.props.whichSide
 
     return (
       <div className={ className }>
+        { closeLineup }
         <ul className="live-lineup__players">
           {currentPlayers}
         </ul>
@@ -75,6 +103,40 @@ var LiveLineup = React.createClass({
     )
   }
 })
+
+
+// Redux integration
+let {Provider, connect} = ReactRedux
+
+// Which part of the Redux global state does our component want to receive as props?
+function mapStateToProps(state) {
+  return {}
+}
+
+// Which action creators does it want to receive by props?
+function mapDispatchToProps(dispatch) {
+  return {
+    updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
+    updatePath: (path) => dispatch(updatePath(path))
+  }
+}
+
+// Wrap the component to inject dispatch and selected state into it.
+var LiveLineupConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(LiveLineup)
+
+// Render the component.
+renderComponent(
+  <Provider store={store}>
+    <LiveLineupConnected />
+  </Provider>,
+  '.live-lineup'
+)
+
+export default LiveLineupConnected
+
 
 
 module.exports = LiveLineup

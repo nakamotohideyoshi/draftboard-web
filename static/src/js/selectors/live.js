@@ -92,13 +92,6 @@ export const liveSelector = createSelector(
     if (mode.contestId) {
       stats.contest = contestStats[mode.contestId]
 
-      // pull in rank
-      stats.lineups.mine = Object.assign(
-        {},
-        stats.lineups.mine,
-        stats.contest.lineups[mode.myLineupId]
-      )
-
       if (mode.opponentLineupId) {
         stats.lineups.opponent = stats.contest.lineups[mode.opponentLineupId]
 
