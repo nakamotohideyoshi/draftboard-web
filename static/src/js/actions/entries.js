@@ -72,10 +72,7 @@ function shouldFetchEntries(state) {
     return false
   }
 
-  if ('items' in entries === false || entries.items.length === 0) {
-    return true
-  }
-  return false
+  return true
 }
 
 
