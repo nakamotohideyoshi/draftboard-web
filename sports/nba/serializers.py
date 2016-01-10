@@ -1,6 +1,9 @@
 #
 # sports.nba.serializers.py
+
+from django.contrib.contenttypes.models import ContentType
 import json
+from itertools import chain
 from rest_framework import serializers
 import sports.serializers
 from .models import (
@@ -142,12 +145,25 @@ class TsxItemRelatedField(serializers.RelatedField):
         serialize the relations
         """
 
+        print(str(type(value)))
+        # print(str(type(value)))
+        # print(str(type(value)))
+
+        # ctype = ContentType.objects.get_for_model(value)
+        # print('')
+        # print(str(ref_obj))
+        # tsxref, c = tsx_ref_model_class.objects.get_or_create( tsxitem_type=ctype,
+        #                                                       tsxitem_id=ctype.pk)
+
         if isinstance(value, TsxNews):
-            return TsxNewsSerializer(value).data
+            #return TsxNewsSerializer(value).data
+            return TsxNewsSerializer(value).data #TsxNews.objects.all(), many=True).data
         elif isinstance(value, TsxInjury):
-            return TsxInjurySerializer(value).data
+            #return TsxInjurySerializer(value).data
+            return TsxInjurySerializer(value).data #TsxInjury.objects.all(), many=True).data
         elif isinstance(value, TsxTransaction):
-            return TsxTransactionSerializer(value).data
+            #return TsxTransactionSerializer(value).data
+            return TsxTransactionSerializer(value).data #TsxTransaction.objects.all(), many=True).data
 
         #return
         # this works
@@ -171,28 +187,38 @@ class TsxItemRelatedField(serializers.RelatedField):
 #         model = TsxNews
 #         fields = sports.serializers.TsxNewsSerializer.PARENT_FIELDS # there are no more fields
 
-class TsxNewsSerializer(sports.serializers.TsxItemSerializer):
+class TsxNewsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TsxNews
         fields = sports.serializers.TsxItemSerializer.PARENT_FIELDS # there are no more fields
 
-class TsxInjurySerializer(sports.serializers.TsxItemSerializer):
+class TsxInjurySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TsxInjury
         fields = sports.serializers.TsxItemSerializer.PARENT_FIELDS # there are no more fields
 
-class TsxTransactionSerializer(sports.serializers.TsxItemSerializer):
+class TsxTransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TsxTransaction
         fields = sports.serializers.TsxItemSerializer.PARENT_FIELDS # there are no more fields
 
-class TsxPlayerSerializer(sports.serializers.TsxNewsSerializer):
+class TsxPlayerSerializer(serializers.ModelSerializer):
 
     tsxitem = TsxItemRelatedField(read_only=True)
 
     class Meta:
         model = TsxPlayer
         fields = sports.serializers.TsxPlayerSerializer.PARENT_FIELDS + ('tsxitem',)# there are no more fields
+
+class PlayerNewsSerializer(serializers.ModelSerializer):
+
+    tsxplayerlist = serializers.SerializerMethodField()
+    def get_tsxplayerlist(self, player):
+        return TsxPlayerSerializer( TsxPlayer.objects.filter(player=player).select_related('player'), many=True ).data
+
+    class Meta:
+        model = Player
+        fields = ('id','tsxplayerlist')

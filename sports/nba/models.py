@@ -6,6 +6,7 @@ import sports.models
 import scoring.classes
 import push.classes
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 
 class Season( sports.models.Season ):
     class Meta:
@@ -228,6 +229,8 @@ class TsxNews(sports.models.TsxNews):
     inherits from sports.models.TsxXXX of the same name
     """
 
+    tsxplayers = GenericRelation('nba.TsxPlayer')
+
     class Meta:
         abstract = False
 
@@ -236,6 +239,8 @@ class TsxInjury(sports.models.TsxInjury):
     inherits from sports.models.TsxXXX of the same name
     """
 
+    tsxplayers = GenericRelation('nba.TsxPlayer')
+
     class Meta:
         abstract = False
 
@@ -243,6 +248,8 @@ class TsxTransaction(sports.models.TsxTransaction):
     """
     inherits from sports.models.TsxXXX of the same name
     """
+
+    tsxplayers = GenericRelation('nba.TsxPlayer')
 
     class Meta:
         abstract = False
@@ -259,6 +266,8 @@ class TsxPlayer(sports.models.TsxPlayer):
     """
     inherits from sports.models.TsxXXX of the same name
     """
+
+    player = models.ForeignKey('nba.Player', null=False)
 
     class Meta:
         abstract = False
