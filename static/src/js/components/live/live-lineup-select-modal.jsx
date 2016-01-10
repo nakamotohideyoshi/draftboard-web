@@ -117,11 +117,6 @@ const LiveLineupSelectModal = React.createClass({
       const {points, minutesRemaining} = lineup
       let {name} = lineup
 
-      // TODO have server pass in default names
-      if (name === '') {
-        name = 'Currys Chicken'
-      }
-
       return (
         <li
           key={lineup.id}

@@ -490,9 +490,14 @@ var Live = React.createClass({
       )
 
       liveTitle = (
-        <h1 className="live-scoreboard__contest-name">
-          { myLineup.name }
-        </h1>
+        <div>
+          <h2 className="live-scoreboard__lineup-name">
+            &nbsp;
+          </h2>
+          <h1 className="live-scoreboard__contest-name">
+            { myLineup.name }
+          </h1>
+        </div>
       )
 
       overallStats = (
@@ -518,10 +523,15 @@ var Live = React.createClass({
       )
 
       liveTitle = (
-        <h1 className="live-scoreboard__contest-name">
-          { myContest.name }
-          <span className="live-scoreboard__close" onClick={ self.returnToLineup }></span>
-        </h1>
+        <div>
+          <h2 className="live-scoreboard__lineup-name">
+            { myLineup.name }
+          </h2>
+          <h1 className="live-scoreboard__contest-name">
+            { myContest.name }
+            <span className="live-scoreboard__close" onClick={ self.returnToLineup }></span>
+          </h1>
+        </div>
       )
 
       overallStats = (
@@ -557,8 +567,21 @@ var Live = React.createClass({
             { lineups }
             <LiveLineup
               whichSide="opponent"
+              mode={ self.props.mode }
               currentBoxScores={ self.props.currentBoxScores }
               lineup={ opponentLineup } />
+          </div>
+        )
+
+        liveTitle = (
+          <div>
+            <h2 className="live-scoreboard__lineup-name">
+              { myLineup.name } <span className="vs">vs</span> { opponentLineup.user.username }
+            </h2>
+            <h1 className="live-scoreboard__contest-name">
+              { myContest.name }
+              <span className="live-scoreboard__close" onClick={ self.returnToLineup }></span>
+            </h1>
           </div>
         )
 

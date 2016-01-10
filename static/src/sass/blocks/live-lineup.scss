@@ -17,6 +17,19 @@
     text-align: right;
   }
 
+  &__close {
+    cursor: pointer;
+    background: url(/static/img/remove-1KqBM3z.png);
+    background-size: 100% auto;
+    cursor: pointer;
+    display: inline-block;
+    height: 33px;
+    width: 33px;
+    position: absolute;
+    top: 28px;
+    margin-left: 56px;
+  }
+
   // vertical centering achieved with flexbox centering
   // tut available at https://goo.gl/pMVBPE
   &__players {
