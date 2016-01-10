@@ -76,18 +76,18 @@ var Live = React.createClass({
     if ('myLineupId' in urlParams) {
       let newMode = {
         type: 'lineup',
-        myLineupId: urlParams.myLineupId
+        myLineupId: parseInt(urlParams.myLineupId)
       }
 
       if ('contestId' in urlParams) {
         newMode.type = 'contest'
-        newMode.contestId = urlParams.contestId
+        newMode.contestId = parseInt(urlParams.contestId)
 
         // make sure to get the usernames as well
         this.props.fetchContestLineupsUsernamesIfNeeded(newMode.contestId)
 
         if ('opponentLineupId' in urlParams) {
-          newMode.opponentLineupId = urlParams.opponentLineupId
+          newMode.opponentLineupId = parseInt(urlParams.opponentLineupId)
         }
       }
 
