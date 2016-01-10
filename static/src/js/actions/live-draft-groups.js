@@ -122,6 +122,23 @@ export function fetchDraftGroupFPIfNeeded(id) {
 
 
 
+// UPDATE DRAFT GROUP STATS
+// -----------------------------------------------------------------------
+
+export function fetchDraftGroupStats(id) {
+  log.debug('actionsLiveDraftGroup.fetchDraftGroupStats')
+  return (dispatch, getState) => {
+    if (shouldFetchDraftGroupFP(getState(), id)) {
+      return Promise.all([
+        dispatch(fetchDraftGroupFP(id)),
+        dispatch(fetchDraftGroupBoxScores(id))
+      ])
+    }
+  }
+}
+
+
+
 // DRAFT GROUP INFO
 // -----------------------------------------------------------------------
 

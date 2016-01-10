@@ -2,6 +2,7 @@ import _ from 'lodash'
 // so we can use Promises
 import 'babel-core/polyfill'
 const request = require('superagent-promise')(require('superagent'), Promise)
+var moment = require('moment')
 
 import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
@@ -63,6 +64,12 @@ function fetchCurrentDraftGroups() {
 
 function shouldFetchCurrentDraftGroups(state) {
   log.debug('actionsCurrentDraftGroups.shouldFetchCurrentDraftGroups')
+
+  // if expired, then get
+  let expiration = moment(state.currentDraftGroups.updatedAt).add(1, 'minutes')
+  if (moment().isAfter(expiration)) {
+    return true
+  }
 
   return state.currentDraftGroups.items.length === 0
 }
