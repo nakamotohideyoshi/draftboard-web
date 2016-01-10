@@ -485,6 +485,9 @@ class TsxContent(models.Model):
                         help_text='use the right part url for the actual feed after splitting on "tsx". heres an example srid: "/news/2015/12/15/all.xml"')
     sport           = models.CharField(max_length=32, null=False)
 
+    def __str__(self):
+        return '%s - %s - created:%s' % (self.sport, self.srid, str(self.created))
+
     class Meta:
         unique_together = ('srid','sport')
 
@@ -517,6 +520,11 @@ class TsxContent(models.Model):
 # class Team(Ref)
 # class Player(Ref)
 class AbstractTsxItem(models.Model):
+
+    NEWS_FIELDS = [
+        'title',
+        'dateline',
+    ]
 
     created         = models.DateTimeField(auto_now_add=True)
     modified        = models.DateTimeField(auto_now=True)

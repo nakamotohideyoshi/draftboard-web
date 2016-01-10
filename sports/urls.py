@@ -11,6 +11,7 @@ from sports.views import (
     LivePbpView,
     FantasyPointsHistoryAPIView,
     PlayerHistoryAPIView,
+    TsxPlayerNewsAPIView,
 )
 
 urlpatterns = patterns( '',
@@ -41,6 +42,9 @@ urlpatterns = patterns( '',
 
     #
     # get the player season averages, as well as a 5-game log
-    (r'^player-history/(?P<sport>[a-z]+)/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view())
+    (r'^player-history/(?P<sport>[a-z]+)/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view()),
 
+    #
+    # get news content for the sport, for all the players
+    (r'^player-news/(?P<sport>[a-z]+)/$', TsxPlayerNewsAPIView.as_view()),
 )
