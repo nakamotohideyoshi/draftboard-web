@@ -9,6 +9,7 @@ from contest.views import (
     UserUpcomingAPIView,
     UserLiveAPIView,
     UserHistoryAPIView,
+    SingleContestLineupView,
     SingleLineupView,
     CurrentEntryAPIView,
     SingleContestAPIView,
@@ -65,7 +66,8 @@ urlpatterns = patterns( '',
     # get a single lineup with stats - the lineup can
     # be viewed by any user, and will mask out
     # players who are not yet starting.
-    (r'^single-lineup/(?P<contest_id>[0-9]+)/(?P<lineup_id>[0-9]+)/$', SingleLineupView.as_view()),
+    (r'^lineup/(?P<contest_id>[0-9]+)/(?P<lineup_id>[0-9]+)/$', SingleLineupView.as_view()),
+    (r'^lineup/(?P<lineup_id>[0-9]+)/$', SingleContestLineupView.as_view()),
 
     #
     # get the complete set of specially packed lineups for a contest
