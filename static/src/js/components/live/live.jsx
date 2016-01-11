@@ -1,4 +1,5 @@
 import React from 'react'
+import moment from 'moment'
 import * as ReactRedux from 'react-redux'
 import renderComponent from '../../lib/render-component'
 import { Router, Route } from 'react-router'
@@ -10,6 +11,7 @@ import Pusher from 'pusher-js'
 import _ from 'lodash'
 
 import * as AppActions from '../../stores/app-state-store'
+import LiveCountdown from './live-countdown'
 import errorHandler from '../../actions/live-error-handler'
 import LiveContestsPaneConnected from '../live/live-contests-pane'
 import LiveLineup from './live-lineup'
@@ -480,7 +482,6 @@ var Live = React.createClass({
     this.props.updateLiveMode(newMode)
   },
 
-
   render: function() {
     const self = this
 
@@ -491,7 +492,8 @@ var Live = React.createClass({
       liveStandingsPane,
       moneyLine,
       bottomNavForRightPanes,
-      overallStats
+      overallStats,
+      countdown
 
     const lineupNonexistant = 'myLineupId' in self.props.mode === false
     const noRelatedInfo = self.props.entries.hasRelatedInfo === false
@@ -524,7 +526,15 @@ var Live = React.createClass({
     }
 
     if ('mine' in self.props.liveSelector.lineups) {
+
       var myLineup = self.props.liveSelector.lineups.mine
+
+      if (moment(window.dfs.user.replayer_datetime).isBefore(myLineup.start)) {
+        countdown = (
+          <LiveCountdown
+            lineup={ myLineup } />
+        )
+      }
 
       bottomNavForRightPanes = (
         <div className="live-right-pane-nav live-right-pane-nav--lineup">
@@ -678,6 +688,7 @@ var Live = React.createClass({
             liveSelector={self.props.liveSelector}
             courtEvents={self.state.courtEvents} />
 
+          { countdown }
           { moneyLine }
           { bottomNavForRightPanes }
 
@@ -747,5 +758,6 @@ renderComponent(
   </Provider>,
   '.cmp-live'
 )
+
 
 module.exports = Live
