@@ -54,7 +54,7 @@ class InjurySerializer(serializers.ModelSerializer):
     """
     extended by the specific sport
     """
-    pass
+    PARENT_FIELDS = ('iid','player_id','status','description','created')
 
 class FantasyPointsSerializer(serializers.Serializer):
     """
