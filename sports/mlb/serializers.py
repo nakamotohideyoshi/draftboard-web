@@ -73,7 +73,7 @@ class FantasyPointsSerializer(sports.serializers.FantasyPointsSerializer):
     # the fields below are from the models SCORING_FIELDS
     #################################################################
 
-    raise Exception('UNIMPLEMENTED - mlb.serializers.FantasyPointsSerializer')
+    # raise Exception('UNIMPLEMENTED - mlb.serializers.FantasyPointsSerializer')
 
 class PlayerSerializer(sports.serializers.PlayerSerializer):
     """
