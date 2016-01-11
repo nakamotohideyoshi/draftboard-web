@@ -8,7 +8,7 @@ import { vsprintf } from 'sprintf-js'
  */
 var LivePMRProgressBar = React.createClass({
   propTypes: {
-    decimalRemaining: React.PropTypes.string.isRequired,
+    decimalRemaining: React.PropTypes.number.isRequired,
     strokeWidth: React.PropTypes.string.isRequired,
     backgroundHex: React.PropTypes.string.isRequired,
     hexStart: React.PropTypes.string.isRequired,

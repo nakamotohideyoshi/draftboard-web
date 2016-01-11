@@ -24,6 +24,7 @@ const NavScoreboardGame = React.createClass({
   render() {
     const game = this.props.game
     const {home_abbr, away_abbr} = this.props.game.fields
+    let clock
 
     if (game.timeRemaining === null) {
       return (
@@ -41,6 +42,22 @@ const NavScoreboardGame = React.createClass({
       )
     }
 
+    if (game.fields.clock === '00:00' && game.fields.quarter === '4.0') {
+      clock = (
+        <div className="right">
+          Final
+        </div>
+      )
+    } else {
+      clock = (
+        <div className="right">
+          { game.fields.clock }
+          <br />
+          {_.round(game.fields.quarter, 0)}
+        </div>
+      )
+    }
+
     return (
       <div className="game scroll-item game--is-live">
         <div className="left">
@@ -50,16 +67,12 @@ const NavScoreboardGame = React.createClass({
         </div>
 
         <div className="scores">
-          {game.fields.home_score}
+          {game.teams[game.fields.srid_home].score}
           <br />
-          {game.fields.away_score}
+          {game.teams[game.fields.srid_away].score}
         </div>
 
-        <div className="right">
-          {game.fields.clock}
-          <br />
-          {_.round(game.fields.quarter, 0)}
-        </div>
+        { clock }
       </div>
     )
 

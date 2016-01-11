@@ -9,9 +9,29 @@ class FrontendHomepageTemplateView(TemplateView):
 class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/live.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(FrontendLiveTemplateView, self).get_context_data(**kwargs)
+        if 'loglevel' in self.request.GET:
+            log_level = self.request.GET['loglevel']
+
+            if log_level in ['debug', 'warn', 'error']:
+                context['loglevel'] = log_level
+
+        return context
+
 
 class FrontendLobbyTemplateView(TemplateView):
     template_name = 'frontend/lobby.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(FrontendLobbyTemplateView, self).get_context_data(**kwargs)
+        if 'loglevel' in self.request.GET:
+            log_level = self.request.GET['loglevel']
+
+            if log_level in ['debug', 'warn', 'error']:
+                context['loglevel'] = log_level
+
+        return context
 
 
 class FrontendSettingsTemplateView(LoginRequiredMixin, TemplateView):

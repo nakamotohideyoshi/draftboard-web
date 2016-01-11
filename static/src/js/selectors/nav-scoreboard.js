@@ -8,7 +8,7 @@ import { currentLineupsStatsSelector } from './current-lineups'
  * @param {Number} timestamp
  * @return {String}
  */
-function getFormattedTime(timestamp) {
+export function getFormattedTime(timestamp) {
   let hours = new Date(timestamp).getHours()
   let time = (hours % 12 || 12) + (hours > 12 ? 'pm' : 'am')
   if(time == '12pm') time = '0am'
@@ -29,15 +29,14 @@ export const navScoreboardSelector = createSelector(
 
   (lineups, draftGroups, boxScores, sports, user) => {
     const resultLineups = _.map(lineups, (lineup) => {
-      return {
-        id: lineup.id,
-        name: lineup.name,
-        time: getFormattedTime(lineup.start),
-        contest: 'NBA', // TODO:
-        points:  89,    // TODO:
-        pmr:     lineup.totalMinutes,
-        balance: "$" + lineup.potentialEarnings
-      }
+      return Object.assign(
+        {},
+        lineup,
+        {
+          time: getFormattedTime(lineup.start),
+          contest: 'NBA' // TODO:
+        }
+      )
     })
 
     const loadedDraftGroups = _.filter(draftGroups, (dg) => {
@@ -53,10 +52,13 @@ export const navScoreboardSelector = createSelector(
         end: dg.end,
         boxScores: _.mapValues(dg.boxScores, (boxScore, id) => {
           let newBoxScore = boxScores[boxScore.fields.srid_game]
-          const teams = sports[dg.sport].teams
 
-          newBoxScore.homeTeamInfo = teams[boxScore.fields.home_id]
-          newBoxScore.awayTeamInfo = teams[boxScore.fields.away_id]
+          if (dg.sport in sports) {
+            const teams = sports[dg.sport].teams
+
+            newBoxScore.homeTeamInfo = teams[boxScore.fields.home_id]
+            newBoxScore.awayTeamInfo = teams[boxScore.fields.away_id]
+          }
 
           return newBoxScore
         })

@@ -7,13 +7,18 @@ import io from 'socket.io-client'
 import _ from 'lodash'
 import Pusher from 'pusher-js'
 
-import store from '../../store'
-import log from '../../lib/logging'
-import {fetchUser} from '../../actions/user'
-import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
-import {fetchEntriesIfNeeded} from '../../actions/entries'
 import errorHandler from '../../actions/live-error-handler'
+import log from '../../lib/logging'
 import renderComponent from '../../lib/render-component'
+import store from '../../store'
+import { addEvent } from '../../actions/live-game-queues'
+import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
+import { fetchDraftGroupStats } from '../../actions/live-draft-groups'
+import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
+import { updateBoxScore } from '../../actions/current-box-scores'
+import {fetchEntriesIfNeeded} from '../../actions/entries'
+import {fetchEntries} from '../../actions/entries'
+import {fetchUser} from '../../actions/user'
 
 import NavScoreboardLogo from './nav-scoreboard-logo.jsx'
 import NavScoreboardMenu from './nav-scoreboard-menu.jsx'
@@ -25,10 +30,6 @@ import NavScoreboardGamesList from './nav-scoreboard-games-list.jsx'
 import NavScoreboardLineupsList from './nav-scoreboard-lineups-list.jsx'
 import NavScoreboardLoggedOutInfo from './nav-scoreboard-logged-out-info.jsx'
 
-import { addEvent } from '../../actions/live-game-queues'
-import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
-import { updateBoxScore } from '../../actions/current-box-scores'
-
 import {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} from './nav-scoreboard-const.jsx'
 
 
@@ -37,6 +38,10 @@ const NavScoreboard = React.createClass({
   propTypes: {
     boxScores: React.PropTypes.object.isRequired,
     navScoreboardStats: React.PropTypes.object.isRequired,
+    fetchDraftGroupStats: React.PropTypes.func,
+    fetchEntriesIfNeeded: React.PropTypes.func,
+    fetchEntries: React.PropTypes.func,
+    liveDraftGroups: React.PropTypes.object.isRequired,
     updateBoxScore: React.PropTypes.func,
     addEvent: React.PropTypes.func
   },
@@ -94,6 +99,31 @@ const NavScoreboard = React.createClass({
     }
   },
 
+  startParityChecks() {
+    log.debug('NavScoreboard.startParityChecks()')
+    const self = this
+
+    // loop through draft groups and get latest box scores, fp
+    const boxScoresParityChecks = function() {
+      _forEach(self.props.liveDraftGroups, (draftGroup, id) => {
+        self.props.fetchDraftGroupStats(id)
+      })
+    }
+
+    let parityChecks = {
+      boxScores: window.setInterval(boxScoresParityChecks, 30000), // thirty seconds
+      entries: window.setInterval(self.props.fetchEntriesIfNeeded, 60000),  // one minute
+      draftGroups: window.setInterval(self.props.fetchCurrentDraftGroupsIfNeeded, 600000)  // ten minutes
+    }
+
+    // start them immediately
+    boxScoresParityChecks()
+    self.props.fetchEntriesIfNeeded()
+
+    // add to the state in case we need to clearInterval in the future
+    self.setState({ 'boxScoresIntervalFunc': parityChecks })
+  },
+
   componentWillMount() {
     let self = this
 
@@ -107,7 +137,9 @@ const NavScoreboard = React.createClass({
           fetchEntriesIfNeeded()
         ).then(() => {
           self.setState({isLoaded: true})
+
           self.listenToSockets()
+          self.startParityChecks()
         }).catch(
           errorHandler
         )
@@ -119,7 +151,9 @@ const NavScoreboard = React.createClass({
         errorHandler
       ).then(() => {
         self.setState({isLoaded: true})
+
         self.listenToSockets()
+        self.startParityChecks()
       })
     }
   },
@@ -132,6 +166,8 @@ const NavScoreboard = React.createClass({
    * @return {Object} options key-value pairs
    */
   handleChangeSelection(selectedOption, selectedType, selectedKey) {
+    log.debug('handleChangeSelection()', selectedOption, selectedType, selectedKey)
+
     console.assert(typeof selectedOption === 'string')
     console.assert(typeof selectedType === 'string')
     console.assert(typeof selectedKey === 'string' || selectedKey === null)
@@ -159,7 +195,7 @@ const NavScoreboard = React.createClass({
       options.push({
         option: 'MY LINEUPS',
         type: TYPE_SELECT_LINEUPS,
-        key: null,
+        key: 'LINEUPS',
         count: this.props.navScoreboardStats.lineups.length
       })
     }
@@ -228,7 +264,8 @@ const NavScoreboard = React.createClass({
 function mapStateToProps(state) {
   return {
     boxScores: state.currentBoxScores,
-    navScoreboardStats: navScoreboardSelector(state)
+    navScoreboardStats: navScoreboardSelector(state),
+    liveDraftGroups: state.liveDraftGroups
   }
 }
 
@@ -236,7 +273,10 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     addEvent: (gameId, event) => dispatch(addEvent(gameId, event)),
-    updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points))
+    updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
+    fetchDraftGroupStats: (draftGroupId) => dispatch(fetchDraftGroupStats(draftGroupId)),
+    fetchEntriesIfNeeded: () => dispatch(fetchEntriesIfNeeded()),
+    fetchEntries: () => dispatch(fetchEntries())
   }
 }
 

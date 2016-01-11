@@ -3,6 +3,7 @@ var moment = require('moment')
 import 'babel-core/polyfill'
 const request = require('superagent-promise')(require('superagent'), Promise)
 import { forEach as _forEach } from 'lodash'
+import _ from 'lodash'
 import { normalize, Schema, arrayOf } from 'normalizr'
 
 import * as ActionTypes from '../action-types'
@@ -20,6 +21,11 @@ const playerSchema = new Schema('players', {
 function _calculateTimeRemaining(boxScore) {
   log.debug('actionsLiveDraftGroup._calculateTimeRemaining')
 
+  // if the game hasn't started, return full time
+  if (boxScore.fields.quarter === '') {
+    return 48
+  }
+
   const clockMinSec = boxScore.fields.clock.split(':')
   const remainingMinutes = (4 - parseInt(boxScore.fields.quarter)) * 12
 
@@ -30,6 +36,7 @@ function _calculateTimeRemaining(boxScore) {
 
 // Used to update a player's FP when a Pusher call sends us new info
 export function updatePlayerFP(id, playerId, fp) {
+  log.debug('actionsLiveDraftGroup.updatePlayerFP')
   return {
     id: id,
     type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
@@ -64,6 +71,11 @@ function fetchDraftGroupFP(id) {
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'Accept': 'application/json'
     }).then(function(res) {
+      if (_.size(res.body.players) === 0) {
+        log.debug('shouldFetchDraftGroupFP() - FP not available yet', id)
+        return Promise.resolve('Fantasy points not available yet')
+      }
+
       return dispatch(receiveDraftGroupFP(id, res.body))
     })
   }
@@ -110,6 +122,23 @@ export function fetchDraftGroupFPIfNeeded(id) {
 
 
 
+// UPDATE DRAFT GROUP STATS
+// -----------------------------------------------------------------------
+
+export function fetchDraftGroupStats(id) {
+  log.debug('actionsLiveDraftGroup.fetchDraftGroupStats')
+  return (dispatch, getState) => {
+    if (shouldFetchDraftGroupFP(getState(), id)) {
+      return Promise.all([
+        dispatch(fetchDraftGroupFP(id)),
+        dispatch(fetchDraftGroupBoxScores(id))
+      ])
+    }
+  }
+}
+
+
+
 // DRAFT GROUP INFO
 // -----------------------------------------------------------------------
 
@@ -131,10 +160,18 @@ function receiveDraftGroupInfo(id, response) {
     arrayOf(playerSchema)
   )
 
+  let players = normalizedPlayers.entities.players
+  let playersBySRID = {}
+
+  _forEach(players, (player) => {
+    playersBySRID[player.player_srid] = player.player_id
+  })
+
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_INFO,
     id: id,
-    players: normalizedPlayers.entities.players,
+    players: players,
+    playersBySRID: playersBySRID,
     sport: response.sport,
     start: moment(response.start).valueOf(),
     end: moment(response.end).valueOf(),
@@ -206,6 +243,10 @@ function fetchDraftGroupBoxScores(id) {
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'Accept': 'application/json'
     }).then(function(res) {
+      if (res.body.length === 0) {
+        log.debug('shouldFetchDraftGroupFP() - Box scores not available yet', id)
+        return Promise.resolve('Box scores not available yet')
+      }
       dispatch(receiveDraftGroupBoxScores(id, res.body))
 
       return dispatch(

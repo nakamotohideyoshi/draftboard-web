@@ -42,8 +42,6 @@ const LiveLineupSelectModal = React.createClass({
   sportLineups: function() {
     let sportLineups = {}
 
-    console.log(this.props.lineups, 'asdfasdf')
-
     _.forEach(this.props.lineups, (lineup) => {
       const sport = lineup.draftGroup.sport
 
@@ -113,16 +111,9 @@ const LiveLineupSelectModal = React.createClass({
       return lineup.draftGroup.sport === this.state.selectedSport
     })
 
-    console.log('sportLineups', sportLineups, this.state)
-
     const lineups = sportLineups.map((lineup) => {
       const {points, minutesRemaining} = lineup
       let {name} = lineup
-
-      // TODO have server pass in default names
-      if (name === '') {
-        name = 'Currys Chicken'
-      }
 
       return (
         <li

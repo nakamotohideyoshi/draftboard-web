@@ -1,11 +1,11 @@
-@import "./variables.scss";
+@import "../variables.scss";
 
 
 .live-player-pane {
   // height: 100%;
   width: $pane-width;
   min-width: $pane-width;
-  background: #273441;
+  background: #1a1e30;
   margin: 0 auto;
   text-align: center;
   // position: absolute;
@@ -17,9 +17,9 @@
     min-height: 245px;
 
     // this is to be put from the js
-    background-image: url(../img/blocks/live/live-player-pane-header.png);
+    background-image: url(../img/blocks/live-player-pane/header.jpg);
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: 100% auto;
     padding-top: 60px;
 
     &__team-role {
@@ -39,7 +39,19 @@
       font-weight: 100;
       font-size: 28px;
       margin-left: 10%;
+      padding-bottom: 15px;
+      position: relative;
       text-align: left;
+
+      &:after {
+        background: #fff;
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 30px;
+        height: 1px;
+      }
     }
 
     &__pts-stats {
@@ -58,21 +70,22 @@
         position: relative;
 
         p:first-child {
-          margin-top: 20px;
+          font-family: $font-open-sans;
+          margin-top: 19px;
           text-decoration: uppercase;
           color: #9194a9;
           letter-spacing: 1.5px;
           text-transform: uppercase;
-          font-size: 12px;
+          font-size: 9px;
           text-align: center;
         }
 
         p {
           color: $primary-white;
-          font-family: %font-oswald;
-          font-size: 14px;
+          font-family: $font-oswald;
+          font-size: 23px;
           padding: 0;
-          margin-top: -5px;
+          margin-top: -7px;
         }
 
         &__insvg {
@@ -87,11 +100,15 @@
     }
 
     &__player-image {
-      height: 190px;
-      width: 190px;
+      // TEMP background
+      background: url(../img/temp/live-player-pane--lebron.png) no-repeat left top;
+
+      background-size: 100% auto;
+      height: 232px;
+      width: 232px;
       position: relative;
-      top: -75px;
-      left: 30px;
+      top: -105px;
+      left: 193px;
     }
   }
 
@@ -112,20 +129,20 @@
 
       > li {
         display: inline-block;
-        margin-left: 40px;
+        margin: 0 20px;
 
         .stat-name {
           color: #9194a9;
           letter-spacing: 1.5px;
           text-transform: uppercase;
-          font-size: 7px;
+          font-size: 9px;
           text-align: center;
         }
 
         .stat-score {
           color: $primary-white;
           font-family: $font-oswald;
-          font-size: 13px;
+          font-size: 16px;
         }
       }
 

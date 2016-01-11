@@ -7,7 +7,8 @@ import React from 'react'
 var LiveNBACourtShooter = React.createClass({
   propTypes: {
     x: React.PropTypes.number.isRequired,
-    y: React.PropTypes.number.isRequired
+    y: React.PropTypes.number.isRequired,
+    whichSide: React.PropTypes.string.isRequired
   },
 
   getInitialState: function() {
@@ -72,9 +73,10 @@ var LiveNBACourtShooter = React.createClass({
       left: this.state.finalLeft + '%',
       top: this.state.finalTop + '%'
     }
+    const className = 'shooter-position shooter-position--' + this.props.whichSide
 
     return (
-      <div className='shooter-position' style={shooterPositionStyle}>
+      <div className={ className } style={shooterPositionStyle}>
         <div className='shooter-centered'></div>
       </div>
     )

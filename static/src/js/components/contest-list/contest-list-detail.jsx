@@ -3,12 +3,17 @@ import {Provider, connect} from 'react-redux';
 import store from '../../store'
 import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx'
-import {enterContest, setFocusedContest} from '../../actions/upcoming-contests-actions.js'
-import {timeRemaining} from '../../lib/utils.js'
+import GamesList from './games-list.jsx'
+import EntrantList from './entrant-list.jsx'
+import {enterContest, setFocusedContest, fetchContestEntrantsIfNeeded}
+  from '../../actions/upcoming-contests-actions.js'
 import * as AppActions from '../../stores/app-state-store.js'
 import { Router, Route } from 'react-router'
 import {updatePath, syncReduxAndRouter} from 'redux-simple-router'
 import createBrowserHistory from 'history/lib/createBrowserHistory'
+import CountdownClock from '../site/countdown-clock.jsx'
+import {fetchDraftGroupBoxScoresIfNeeded} from '../../actions/draft-group-actions.js'
+import {fetchTeamsIfNeeded} from '../../actions/sports.js'
 
 const history = createBrowserHistory()
 syncReduxAndRouter(history, store)
@@ -20,13 +25,19 @@ syncReduxAndRouter(history, store)
 var ContestListDetail = React.createClass({
 
   propTypes: {
+    boxScores: React.PropTypes.object,
     contest: React.PropTypes.object,
-    prizeStructure: React.PropTypes.object,
     enterContest: React.PropTypes.func,
-    focusedLineupId: React.PropTypes.number,
+    entrants: React.PropTypes.array,
+    fetchContestEntrantsIfNeeded: React.PropTypes.func,
+    fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
+    fetchTeamsIfNeeded: React.PropTypes.func,
     focusedContestId: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
+    focusedLineupId: React.PropTypes.number,
     params: React.PropTypes.object,
-    setFocusedContest: React.PropTypes.func
+    prizeStructure: React.PropTypes.object,
+    setFocusedContest: React.PropTypes.func,
+    teams: React.PropTypes.object
   },
 
 
@@ -35,9 +46,18 @@ var ContestListDetail = React.createClass({
    * if it isn't, set what's in the URL as the focused contest and open the side panel to view it.
    */
   componentWillReceiveProps: function(nextProps) {
-    if (nextProps.params.contestId && this.props.focusedContestId !== nextProps.params.contestId) {
-      this.props.setFocusedContest(nextProps.params.contestId)
+    // A new contest has been focused. Fetch all of it's required data.
+    if (nextProps.params.contestId && this.props.focusedContestId != nextProps.params.contestId) {
       AppActions.openPane();
+      // This is what "monitors" for URL changes.
+      this.props.setFocusedContest(nextProps.params.contestId)
+      this.props.fetchDraftGroupBoxScoresIfNeeded(nextProps.params.contestId)
+      this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId)
+    }
+
+    // If we don't have team names (we problably do), fetch them.
+    if (nextProps.params.contest && nextProps.params.contest.hasOwnProperty('sport')) {
+      this.props.fetchTeamsIfNeeded(nextProps.params.contest.sport)
     }
   },
 
@@ -64,10 +84,21 @@ var ContestListDetail = React.createClass({
         return 'scoring tab'
 
       case 'games':
-        return 'games tab'
+        if (this.props.boxScores.hasOwnProperty(this.props.contest.id)) {
+          return (
+            <GamesList
+              boxScores={this.props.boxScores[this.props.contest.id]}
+              teams={this.props.teams[this.props.contest.sport]}
+            />
+            )
+        }
+
+        return 'no boxscore info'
 
       case 'entries':
-        return 'entries tab'
+        return (
+          <EntrantList entrants={this.props.entrants} />
+        )
 
       default:
         return ('Select a tab')
@@ -108,39 +139,49 @@ var ContestListDetail = React.createClass({
   getContest: function() {
     if(this.props.contest) {
       let tabNav = this.getTabNav()
-      let liveIn = timeRemaining(this.props.contest.start)
 
       return (
-        <div>
-          <div className="cmp-contest-list__detail-inner">
-            <div className="cmp-contest-list__detail-upper">
-              <h2 className="cmp-contest-list__detail__name">
-                {this.props.contest.name}
-              </h2>
+        <div className="pane--contest-detail">
+          <div className="pane-upper">
+            <div className="header">
+              <div className="header__content">
+                <div className="title">{this.props.contest.name}</div>
+                <div className="header__info">
+                  <div>
+                    <div className="info-title">Live In</div>
+                    <span><CountdownClock time={this.props.contest.start} /></span>
+                  </div>
+                </div>
 
-              <h6>Live In</h6>
+                <div className="header__extra-info">
+                  <div className="m badge">M</div>
+                  <div className="g badge">G</div>
+                </div>
 
-              <h3>{liveIn.hours}:{liveIn.minutes}:{liveIn.seconds}</h3>
+                <div className="header__fee-prizes-pool">
+                  <div><span className="info-title">Prize</span><div>${this.props.contest.prize_pool.toFixed(2)}</div></div>
+                  <div><span className="info-title">Fee</span><div>${this.props.contest.buyin.toFixed(2)}</div></div>
+                  <div>
+                    <span className="info-title">Entrants</span>
+                    <div>{this.props.contest.current_entries} / {this.props.contest.entries}</div>
+                  </div>
+                </div>
 
-              <div className="contest-info">
-                <span>Prize Pool: ${this.props.contest.prize_pool.toFixed(2)}</span>
-                <span>Fee: ${this.props.contest.buyin.toFixed(2)}</span>
-                <span>Entrants: {this.props.contest.current_entries} / {this.props.contest.entries}</span>
-              </div>
-
-              <div
-                className="button button--gradient button--medium"
-                onClick={this.handleEnterContest.bind(null, this.props.focusedLineupId)}
-              >
-                Enter Contest
+                <div
+                  className="button button--gradient button--medium btn-enter-contest"
+                  onClick={this.handleEnterContest.bind(null, this.props.focusedLineupId)}
+                >
+                  Enter Contest
+                </div>
               </div>
             </div>
           </div>
 
-          <div colSpan="9" className="cmp-contest-list__detail-lower">
+          <div colSpan="9" className="pane-lower">
             <ul className="tab-nav">{tabNav}</ul>
             <div className="tab-content">{this.getActiveTab()}</div>
           </div>
+
         </div>
       )
     }
@@ -169,16 +210,24 @@ function mapStateToProps(state) {
   // TODO: put this in a reusable selector.
   let contest = state.upcomingContests.allContests[state.upcomingContests.focusedContestId]
   let prizeStructure = null
+  let entrants = []
 
   if (contest && contest.hasOwnProperty('prize_structure')) {
     prizeStructure = state.prizes[contest.prize_structure]
+  }
+
+  if (contest && state.upcomingContests.entrants.hasOwnProperty(contest.id)) {
+    entrants = state.upcomingContests.entrants[contest.id]
   }
 
   return {
     contest,
     focusedContestId: state.upcomingContests.focusedContestId,
     prizeStructure,
-    focusedLineupId: state.upcomingLineups.focusedLineupId
+    focusedLineupId: state.upcomingLineups.focusedLineupId,
+    boxScores: state.upcomingDraftGroups.boxScores,
+    teams: state.sports,
+    entrants
   };
 }
 
@@ -186,7 +235,9 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
-    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId))
+    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
+    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
+    fetchContestEntrantsIfNeeded: (contestId) => dispatch(fetchContestEntrantsIfNeeded(contestId))
   }
 }
 

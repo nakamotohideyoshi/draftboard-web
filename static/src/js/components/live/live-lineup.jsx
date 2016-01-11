@@ -1,9 +1,15 @@
 import React from 'react'
+import * as ReactRedux from 'react-redux'
+import renderComponent from '../../lib/render-component'
+import { updatePath } from 'redux-simple-router'
+import { vsprintf } from 'sprintf-js'
 
+import { updateLiveMode } from '../../actions/live'
 import * as AppActions from '../../stores/app-state-store'
 import LiveLineupPlayer from './live-lineup-player'
 import LivePlayerPane from './live-player-pane'
 import log from '../../lib/logging'
+import store from '../../store'
 
 
 /**
@@ -13,50 +19,84 @@ var LiveLineup = React.createClass({
   propTypes: {
     whichSide: React.PropTypes.string.isRequired,
     lineup: React.PropTypes.object.isRequired,
-    currentBoxScores: React.PropTypes.object.isRequired
+    mode: React.PropTypes.object.isRequired,
+    currentBoxScores: React.PropTypes.object.isRequired,
+    eventDescriptions: React.PropTypes.object.isRequired,
+    playersPlaying: React.PropTypes.array.isRequired,
+    updateLiveMode: React.PropTypes.func,
+    updatePath: React.PropTypes.func
   },
 
   getInitialState() {
     return {
       // When true, render and show the detail pane
-      viewPlayerDetails: undefined
+      viewPlayerDetails: this.props.lineup.roster[0]
     }
   },
 
 
-  togglePlayerDetail(playerId) {
-    log.debug('togglePlayerDetail()', playerId)
-    if (this.state.viewPlayerDetails === playerId) {
-      log.debug('togglePlayerDetail() - close')
-      this.setState({viewPlayerDetails: undefined})
-      this.props.whichSide === 'opponent' ? AppActions.closePlayerPane('right') : AppActions.closePlayerPane('left')
-    } else {
-      log.debug('togglePlayerDetail() - open')
-      this.setState({viewPlayerDetails: playerId})
-      this.props.whichSide === 'opponent' ? AppActions.openPlayerPane('right') : AppActions.openPlayerPane('left')
-    }
+  openPlayerDetail(playerId) {
+    log.debug('openPlayerDetail() - open', playerId)
+    this.setState({viewPlayerDetails: playerId})
+    this.props.whichSide === 'opponent' ? AppActions.togglePlayerPane('right') : AppActions.togglePlayerPane('left')
+  },
+
+
+  closeLineup() {
+    this.props.updatePath(vsprintf('/live/lineups/%d/contests/%d/', [this.props.mode.myLineupId, this.props.mode.contestId]))
+
+    const newMode = Object.assign({}, this.props.mode, {
+      opponentLineupId: undefined
+    })
+
+    this.props.updateLiveMode(newMode)
   },
 
 
   render() {
     const self = this
     const draftGroup = self.props.lineup.draftGroup
+
     const currentPlayers = self.props.lineup.roster.map(function(playerId) {
       const player = self.props.lineup.rosterDetails[playerId]
       const boxScore = self.props.currentBoxScores[player.info.game_srid]
 
       return (
-        <LiveLineupPlayer key={playerId} player={player} whichSide={self.props.whichSide} onClick={self.togglePlayerDetail.bind(self, playerId)} />
+        <LiveLineupPlayer
+          key={playerId}
+          player={player}
+          playersPlaying={ self.props.playersPlaying }
+          eventDescriptions={ self.props.eventDescriptions }
+          whichSide={self.props.whichSide}
+          onClick={self.openPlayerDetail.bind(self, playerId)} />
       )
     })
 
     let playerPane
     if (self.state.viewPlayerDetails) {
-      const player = self.props.lineup.rosterDetails[self.state.viewPlayerDetails]
+      let playerId = self.state.viewPlayerDetails
+
+      // if the lineup changed, update the default player details pane
+      if (self.props.lineup.roster.indexOf(self.state.viewPlayerDetails) === -1) {
+        playerId = self.props.lineup.roster[0]
+        self.setState({viewPlayerDetails: self.props.lineup.roster[0] })
+      }
+
+      const player = self.props.lineup.rosterDetails[playerId]
       const boxScore = self.props.currentBoxScores[player.info.game_srid]
 
       playerPane = (
-        <LivePlayerPane whichSide={self.props.whichSide} player={player} boxscore={boxScore} />
+        <LivePlayerPane
+          whichSide={self.props.whichSide}
+          player={player}
+          boxScore={boxScore} />
+      )
+    }
+
+    let closeLineup
+    if (self.props.whichSide === 'opponent') {
+      closeLineup = (
+        <span className="live-lineup__close" onClick={ self.closeLineup }></span>
       )
     }
 
@@ -65,6 +105,7 @@ var LiveLineup = React.createClass({
 
     return (
       <div className={ className }>
+        { closeLineup }
         <ul className="live-lineup__players">
           {currentPlayers}
         </ul>
@@ -75,6 +116,40 @@ var LiveLineup = React.createClass({
     )
   }
 })
+
+
+// Redux integration
+let {Provider, connect} = ReactRedux
+
+// Which part of the Redux global state does our component want to receive as props?
+function mapStateToProps(state) {
+  return {}
+}
+
+// Which action creators does it want to receive by props?
+function mapDispatchToProps(dispatch) {
+  return {
+    updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
+    updatePath: (path) => dispatch(updatePath(path))
+  }
+}
+
+// Wrap the component to inject dispatch and selected state into it.
+var LiveLineupConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(LiveLineup)
+
+// Render the component.
+renderComponent(
+  <Provider store={store}>
+    <LiveLineupConnected />
+  </Provider>,
+  '.live-lineup'
+)
+
+export default LiveLineupConnected
+
 
 
 module.exports = LiveLineup

@@ -2,44 +2,366 @@
   width: 100%;
   height: 100%;
 
+  .inner {
+    margin-left: 60px;
+    padding: 30px 25px 0;
+    background-color: #1C202B;
+    height: 100%;
+  }
+
+  .live-pane__close {
+    top: 36px
+  }
+
   &--standings {
-    // TEMP live - walkthrough image
-    background: transparent url(../img/temp/standings-pane.png) no-repeat left top;
-    background-size: 100% auto;
+    .ownership-list {
+      display: none;
+    }
   }
 
   &--ownership {
-    // TEMP live - walkthrough image
-    background: transparent url(../img/temp/ownership-pane.png) no-repeat left top;
-    background-size: 100% auto;
+    .standings-list {
+      display: none;
+    }
   }
 
-  // TEMP live - action to trigger contest
-  &__view-standings,
-  &__view-ownership {
+  .standings-list {
+    text-align: center;
+    margin: 40px 0 20px 0;
+
+    .lineup {
+      color: white;
+      background-color: #25293A;
+      font-size: 12px;
+      margin-bottom: 3px;
+      position: relative;
+      padding: 10px 0;
+
+      &--mine {
+        border-left: 2px solid #214e9d;
+        border-right: 2px solid #34b4cc;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        background-position: 0 0, 0 100% ;
+        background-repeat: no-repeat;
+        -webkit-background-size: 100% 2px;
+        -moz-background-size: 100% 2px;
+        background-size: 100% 2px;
+        background-image: linear-gradient(to right, #214e9d 0%, #34b4cc 100%), linear-gradient(to right, #214e9d 0%, #34b4cc 100%);
+
+        .lineup--score-earnings {
+          color: #25c462;
+        }
+      }
+
+      .overlay {
+        display: none;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        background-color: rgba(57,61,78,0.96);
+        line-height: 46px;
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: white;
+        cursor: pointer;
+      }
+
+      &:hover {
+        .overlay {
+          display: block;
+        }
+      }
+
+      &--place {
+        width: 30px;
+        display: inline-block;
+        color: #9EA2A9;
+      }
+
+      .live-pmr {
+        display: inline-block;
+        width: 17px;
+        position: relative;
+        top: 5px;
+      }
+
+      &--score-name {
+        margin-left: 15px;
+        width: 140px;
+        display: inline-block;
+        text-align: left;
+      }
+      &--score-points {
+        width: 70px;
+        display: inline-block;
+
+        span {
+          color: #737A8A;
+        }
+      }
+
+      &--score-earnings {
+        width: 50px;
+        display: inline-block;
+        color: #737A8A;
+        /* color: #25A758; -> active*/
+      }
+    }
+  }
+
+  .ownership-list {
+    text-align: center;
+    margin: 20px 0;
+
+    .player {
+      color: #9EA2A9;
+      background-color: #25293A;
+      font-size: 12px;
+      padding: 10px 0;
+      margin-bottom: 3px;
+      position: relative;
+
+      &--position {
+        width: 20px;
+        display: inline-block;
+        color: #9EA2A9;
+      }
+
+      .avatar {
+        background: transparent url('../img/blocks/results/avatar.png') no-repeat center center;
+        background-size: 25px 25px;
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        position: absolute;
+        border-radius: 20px;
+        margin-left: -29px;
+        margin-top: 0px;
+      }
+
+      .score-circle {
+        width: 40px;
+        position: relative;
+        display: inline-block;
+
+        .circle-left, .circle-right {
+          width: 11px;
+          height: 22px;
+          position: absolute;
+          top: -15px;
+          left: 8px;
+          overflow: hidden;
+
+          .line {
+            width: 22px;
+            height: 22px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            clip: rect(0px, 9px, 22px, 0px);
+            border: 1px solid;
+            border-radius: 100%;
+          }
+        }
+
+        .circle-right {
+          left: 15px;
+          width: 15px;
+
+          .line {
+            left: -7px;
+            clip: rect(0px, 22px, 22px, 9px);
+          }
+        }
+      }
+      &--name {
+        width: 140px;
+        display: inline-block;
+        text-align: left;
+        color: white;
+
+        .team {
+          display: inline-block;
+          color: #9EA2A9;
+          text-transform: uppercase;
+        }
+      }
+      &--points {
+        width: 70px;
+        display: inline-block;
+      }
+      &--progress {
+        width: 50px;
+        display: inline-block;
+      }
+    }
+  }
+
+  .position-filter {
+    display: block;
+    padding: 15px 0;
+
+    & > div {
+      display: inline-block;
+      margin-right: 15px;
+      text-transform: uppercase;
+      color: #737A8A;
+      font-size: 14px;
+      cursor: pointer;
+
+      &.active {
+        color: white;
+        cursor: auto;
+      }
+    }
+  }
+
+  .watch-live {
+    display: block;
+    text-transform: uppercase;
+    color: #737A8A;
+    text-align: center;
+    border: solid 1px #737A8A;
+    padding: 10px 0;
+    font-size: 11px;
+    font-weight: bold;
     cursor: pointer;
-    height: 28px;
-    position: absolute;
-    top: 106px;
   }
 
-  &__view-standings {
-    left: 92px;
-    width: 86px;
+  &__pages {
+    position: relative;
+    text-align: center;
+    text-indent: -33px;
+    margin-top: 80px;
+
+    .page {
+      display: inline-block;
+      margin: 0 2px;
+      border-radius: 20px;
+      width: 3px;
+      height: 3px;
+      border: solid 1px #9EA2A9;
+      transition: all 0.1s ease-in;
+
+      &.selected {
+        width: 8px;
+        height: 8px;
+        top: 2px;
+        position: relative;
+      }
+    }
+
+    .arrow-left, .arrow-right {
+      text-indent: 0px;
+      position: absolute;
+      display: inline-block;
+      line-height: 30px;
+      text-align: center;
+      width: 30px;
+      height: 30px;
+      color: #9EA2A9;
+      border: solid 1px #9EA2A9;
+      border-radius: 20px;
+      cursor: pointer;
+
+      span {
+        transform: scaleX(0.8);
+        display: block;
+        font-size: 18px;
+      }
+    }
+
+    .arrow-left {
+      left: 0;
+    }
+
+    .arrow-right {
+      right: 33px;
+    }
   }
 
-  &__view-ownership {
-    left: 192px;
-    width: 86px;
-  }
+  &__header {
+    height: 35px;
 
-  &__view-opponent-lineup {
-    cursor: pointer;
-    height: 40px;
-    left: 85px;
-    position: absolute;
-    top: 211px;
-    width: 322px;
+    .title {
+      line-height: 35px;
+      font-weight: 300;
+      display: inline-block;
+      position: relative;
+      margin-right: 20px;
+      color: #737A8A;
+      cursor: pointer;
+
+      .border {
+        display: none;
+        position: absolute;
+        width: 50%;
+        bottom: 0px;
+        border-bottom: solid #737A8A 2px;
+      }
+
+      &.active {
+        color: white;
+        cursor: auto;
+
+        .border {
+          display: block;
+        }
+      }
+    }
+    .search {
+      display: inline-block;
+      position: absolute;
+      right: 20px;
+      margin-top: 10px;
+      line-height: 25px;
+      vertical-align: middle;
+
+      .icon {
+        background: transparent url('../img/blocks/live-standings-pane/search.png') no-repeat center left;
+        background-size: 20px 20px;
+        cursor: pointer;
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+        position: relative;
+        top: -2px;
+        left: -2px;
+      }
+
+      input {
+        height: 25px;
+        width: 120px;
+        transition: all 0.4s ease-out;
+        border: none;
+        position: relative;
+        top: -8px;
+        background-color: rgba(115, 122, 138, 0.4);
+        text-indent: 5px;
+        color: white;
+      }
+
+      &.active {
+        right: 25px;
+
+        input {
+          width: 120px;
+        }
+      }
+
+      &:not(.active) {
+        input {
+          width: 0px;
+          margin: 0;
+          padding: 0;
+        }
+      }
+    }
   }
 }
 
