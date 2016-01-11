@@ -144,6 +144,19 @@ class PlayerStats( sports.models.PlayerStats ):
 
 class PlayerStatsHitter(PlayerStats):
 
+    SCORING_FIELDS = [
+        's',
+        'd',
+        't',
+        'hr',
+        'rbi',
+        'r',
+        'bb',
+        'hbp',
+        'sb',
+        'cs',
+    ]
+
     bb  = models.IntegerField(default=0, null=False) # walks
     s   = models.IntegerField(default=0, null=False) # singles
     d   = models.IntegerField(default=0, null=False) # doubles
@@ -163,6 +176,18 @@ class PlayerStatsHitter(PlayerStats):
     xbh = models.IntegerField(default=0, null=False) # extra base hits
 
 class PlayerStatsPitcher(PlayerStats):
+
+    SCORING_FIELDS = [
+        'ip_1',
+        'ktotal',
+        'win',
+        'er',
+        'h',
+        'bb',
+        'cg',
+        'cgso',
+        'nono',
+    ]
 
     ip_1    = models.FloatField(default=0.0, null=False) # outs, basically
     ip_2    = models.FloatField(default=0.0, null=False) # 1 == one inning pitched

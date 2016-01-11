@@ -68,10 +68,12 @@ class FantasyPointsSerializer(sports.serializers.FantasyPointsSerializer):
 
     player_id = serializers.IntegerField()
 
-    fantasy_points = serializers.ListField(
-        source='array_agg',
-        child=serializers.FloatField() # min_value=-9999, max_value=9999)
-    )
+    #
+    #################################################################
+    # the fields below are from the models SCORING_FIELDS
+    #################################################################
+
+    raise Exception('UNIMPLEMENTED - mlb.serializers.FantasyPointsSerializer')
 
 class PlayerSerializer(sports.serializers.PlayerSerializer):
     """
