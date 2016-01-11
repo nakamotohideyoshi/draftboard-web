@@ -314,6 +314,23 @@ class SingleLineupView(View):
 
         return HttpResponse( json.dumps(lineup_data), content_type="application/json" )
 
+class SingleContestLineupView(View):
+    """
+    get a single lineup for any contest, lineup_id combination.
+
+    this api will mask out players who should not yet be seen
+    """
+
+    def get(self, request, lineup_id):
+        entries = Entry.objects.filter(lineup__pk=lineup_id)
+        if entries.count() == 0:
+            no_return_data = []
+            return HttpResponse( json.dumps(no_return_data), content_type="application/json" )
+        else:
+            contest = entries[0].contest
+            clm = ContestLineupManager( contest_id=contest.pk )
+            lineup_data = clm.get_lineup_data( user= request.user, lineup_id=lineup_id )
+            return HttpResponse( json.dumps(lineup_data), content_type="application/json" )
 
 class RegisteredUsersAPIView(generics.GenericAPIView):
     """
