@@ -108,6 +108,44 @@ class Player( sports.models.Player ):
 
 class PlayerStats( sports.models.PlayerStats ):
 
+    # must override parent SCORING_FIELDS
+    SCORING_FIELDS = [
+        'pass_td',
+        'pass_yds',
+        'pass_int',
+
+        'rush_td',
+        'rush_yds',
+
+        'rec_td',
+        'rec_yds',
+        'rec_rec',
+
+        'off_fum_lost',
+        'two_pt_conv',
+        'off_fum_rec_td',
+
+        #
+        # dst scoring below are valid,
+        # but you may wish to split
+        # off the DST historical scoring into
+        # something separate...
+
+        'sack',
+        'ints',
+        'fum_rec',
+        'sfty',
+        'blk_kick',
+
+        'ret_kick_td',
+        'ret_punt_td',
+        'ret_int_td',
+        'ret_fum_td',
+        'ret_blk_punt_td',
+        'ret_fg_td',
+        'ret_blk_fg_td',
+    ]
+
     # player  = models.ForeignKey(Player, null=False)
     # game    = models.ForeignKey(Game, null=False)
 
@@ -282,6 +320,8 @@ class TsxTeam(sports.models.TsxTeam):
     inherits from sports.models.TsxXXX of the same name
     """
 
+    team = models.ForeignKey(Team, null=False)
+
     class Meta:
         abstract = False
 
@@ -289,6 +329,8 @@ class TsxPlayer(sports.models.TsxPlayer):
     """
     inherits from sports.models.TsxXXX of the same name
     """
+
+    player = models.ForeignKey(Player, null=False)
 
     class Meta:
         abstract = False

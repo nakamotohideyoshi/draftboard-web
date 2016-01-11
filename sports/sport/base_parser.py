@@ -9,6 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from sports.models import SiteSport, Position
 from dataden.classes import DataDen
 import sports.classes
+import dateutil.parser
 
 class AbstractDataDenParser(object):
     """
@@ -67,7 +68,7 @@ class AbstractDataDenParseable(object):
         will strip the oplog wrapper from the obj, and set
         the mongo object to self.o.
         """
-        print( self.name, str(obj)[:100], 'target='+str(target) )
+        #print( self.name, str(obj)[:100], 'target='+str(target) )
         if self.wrapped:
             self.o  = obj.get_o()
         else:
@@ -196,15 +197,15 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         try:
             h = self.team_model.objects.get(srid=srid_home)
         except self.team_model.DoesNotExist:
-            print( str(o) )
-            print( 'Team (home) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
+            #print( str(o) )
+            #print( 'Team (home) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
             return
 
         try:
             a = self.team_model.objects.get(srid=srid_away)
         except self.team_model.DoesNotExist:
-            print( str(o) )
-            print( 'Team (away) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
+            #print( str(o) )
+            #print( 'Team (away) for Game DoesNotExist! Have you parsed the "hierarchy" feed recently?')
             return
 
         try:
@@ -276,8 +277,8 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
         try:
             t = self.team_model.objects.get(srid=srid_team)
         except self.team_model.DoesNotExist:
-            print( str(o) )
-            print( 'Team for Player DoesNotExist!')
+            #print( str(o) )
+            #print( 'Team for Player DoesNotExist!')
             return
 
         #
@@ -357,15 +358,15 @@ class DataDenPlayerStats(AbstractDataDenParseable):
             # first_name  = o.get('first_name', None)
             # last_name   = o.get('last_name', None)
             # full_name   = '%s %s' % (str(first_name), str(last_name))
-            print( str(o) )
-            print('Player object for PlayerStats DoesNotExist')
+            #print( str(o) )
+            #print('Player object for PlayerStats DoesNotExist')
             return # dont create the playerstats then
 
         try:
             self.g = self.game_model.objects.get(srid=srid_game)
         except self.game_model.DoesNotExist:
-            print( str(o) )
-            print('Game object for PlayerStats DoesNotExist')
+            #print( str(o) )
+            #print('Game object for PlayerStats DoesNotExist')
             return # dont create the playerstats then
 
         try:
@@ -450,15 +451,15 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         try:
             h = self.team_model.objects.get( srid=srid_home )
         except self.team_model.DoesNotExist:
-            print( str(o) )
-            print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
+            #print( str(o) )
+            #print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
             return
 
         try:
             a = self.team_model.objects.get( srid=srid_away )
         except self.team_model.DoesNotExist:
-            print( str(o) )
-            print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
+            #print( str(o) )
+            #print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
             return
 
         try:
@@ -550,8 +551,8 @@ class DataDenTeamBoxscores(AbstractDataDenParseable):
         else:
             # this team differs from the teams on this boxscore !
             self.boxscore = None
-            print( str(o) )
-            print( 'The team[%s] doesnt match home or away team!')
+            #print( str(o) )
+            #print( 'The team[%s] doesnt match home or away team!')
             return
 
 class DataDenPbpDescription(AbstractDataDenParseable):
@@ -647,7 +648,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             desc.idx         = idx
 
         if desc.description != description:
-            print( '>>>>> setting description to:"%s"' % description)
+            #print( '>>>>> setting description to:"%s"' % description)
             desc.description = description
             if save:
                 desc.save()
@@ -655,11 +656,11 @@ class DataDenPbpDescription(AbstractDataDenParseable):
 
     def get_pbp_description_by_srid(self, srid):
         try:
-            print( 'pbp_description_model:', str(self.pbp_description_model), 'srid:', srid )
+            #print( 'pbp_description_model:', str(self.pbp_description_model), 'srid:', srid )
             pbp_desc = self.pbp_description_model.objects.get(srid=srid)
-            print( '... got it:', str(pbp_desc), 'pk:', str(pbp_desc.pk))
+            #print( '... got it:', str(pbp_desc), 'pk:', str(pbp_desc.pk))
         except self.pbp_description_model.DoesNotExist:
-            print( '... does not exist!')
+            #print( '... does not exist!')
             pbp_desc = None
         return pbp_desc
 
@@ -683,8 +684,8 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         try:
             self.game = self.game_model.objects.get(srid=srid_game)
         except self.game_model.DoesNotExist:
-            print( str(self.o) )
-            print( 'Game for pbp does not exist' )
+            #print( str(self.o) )
+            #print( 'Game for pbp does not exist' )
             return
         self.game_ctype = self.__get_content_type(self.game)
 
@@ -762,13 +763,15 @@ class DataDenInjury(AbstractDataDenParseable):
         try:
             self.player = self.player_model.objects.get(srid=srid_player)
         except self.player_model.DoesNotExist:
-            print( str(self.o) )
-            print( 'Player (%s) for injury does not exist'%srid_player)
+            #print( str(self.o) )
+            #print( 'Player (%s) for injury does not exist'%srid_player)
             return
 
         self.player_ctype = ContentType.objects.get_for_model(self.player)
 
         iid = self.o.get(self.key_iid, None)
+        ddtimestamp = self.o.get('dd_updated__id')
+        #print( str(ddtimestamp) )
         try:
             self.injury = self.injury_model.objects.get(iid=iid) #,
                                 # player_type__pk=self.player_ctype.id,
@@ -776,7 +779,9 @@ class DataDenInjury(AbstractDataDenParseable):
         except self.injury_model.DoesNotExist:
             self.injury = self.injury_model()
             self.injury.iid     = iid
-        self.injury.player  = self.player
+            self.injury.ddtimestamp = ddtimestamp
+
+        self.injury.player      = self.player
 
         # subclass will need to perform the save() to create/update !
 #
@@ -834,6 +839,10 @@ class TsxContentParser(AbstractDataDenParseable):
 
     class ContentObjectSportDoesNotMatchException(Exception): pass
 
+    # node property value
+    TRUE_VALUES     = ['true']
+    FALSE_VALUES    = ['false']
+
     def __init__(self, sport):
         super().__init__()  # super().__init__(wrapped=True) # wrapped defaults to True
 
@@ -843,6 +852,8 @@ class TsxContentParser(AbstractDataDenParseable):
         # set the sport internally, and get the SiteSportManager
         self.sport                  = sport
         self.site_sport_manager     = sports.classes.SiteSportManager()
+        self.site_sport             = self.site_sport_manager.get_site_sport(self.sport)
+        self.sport_player_class     = self.site_sport_manager.get_player_class(self.site_sport)
 
         # the sports.sport.models.TsxContent model does not get inherited
         self.content_model_class    = sports.models.TsxContent
@@ -856,7 +867,7 @@ class TsxContentParser(AbstractDataDenParseable):
         self.team_model_class       = self.site_sport_manager.get_tsxteam_class(self.sport)
         self.player_model_class     = self.site_sport_manager.get_tsxplayer_class(self.sport)
 
-    def parse(self, content_obj, target=None):
+    def parse(self, content_obj, target=None, verbose=False):
         """
 
         :param obj: the content object
@@ -867,9 +878,10 @@ class TsxContentParser(AbstractDataDenParseable):
                     'tsxitems' is a list of every TsxItem (... ie TsxNews, TsxInjury, or TsxTransaction objects)
                     'tsxrefs' is a list of every TsxTeam or TsxPlayer for each TsxItem
         """
-        super().parse( content_obj, target )
 
-        # now self.o is the data we want
+        #
+        # sets self.o internally
+        super().parse( content_obj, target )
 
         #
         # validity check to make sure were using
@@ -880,17 +892,18 @@ class TsxContentParser(AbstractDataDenParseable):
 
         #
         # save the TsxContent object in the db (uses self.o for the data)
-        tsxcontent  = self.get_or_create_tsxcontent()       # subsequent methods require the TsxContent be built first
-        tsxitems    = self.update_tsxitems( tsxcontent )    # update its items
-        tsxrefs     = self.update_tsxrefs( tsxitems )       # update the item references
+        tsxcontent, c  = self.get_or_create_tsxcontent()        # subsequent methods require the TsxContent be built first
+        if verbose: print(str(tsxcontent))
+        tsxitems    = self.update_tsxitems( tsxcontent )        # update its items
 
         #
         # return the created and/or update models in a 3-tuple!
-        return (tsxcontent, tsxitems, tsxrefs)
+        return (tsxcontent, tsxitems)
 
     def get_or_create_tsxcontent(self):
         #
         # get or create the TsxContent model instance
+        #print(str(self.o))
         srid = self.o.get('id')
         content_model, c = self.content_model_class.objects.get_or_create(sport=self.sport, srid=srid)
         return content_model, c
@@ -903,14 +916,11 @@ class TsxContentParser(AbstractDataDenParseable):
         # parse all the content items for the tsxcontent
         tsxitem_list = []
         for item_obj in content_items:
-            tsxitem = self.parse_item( item_obj )
+            tsxitem = self.parse_item( tsxcontent, item_obj )
             tsxitem_list.append( tsxitem )
         return tsxitem_list
 
-    def update_tsxrefs(self, tsxitems):
-        pass # TODO
-
-    def parse_item(self, item_obj):
+    def parse_item(self, tsxcontent, item_obj):
         """
         Parse a tsx item from dataden into its respective TsxContent parts
 
@@ -949,26 +959,172 @@ class TsxContentParser(AbstractDataDenParseable):
         :param item_obj:
         :return: a new/updated TsxItem instance
         """
+        #
+        # either going to be news, injury, or transaction
+        is_injury      = item_obj.get('injury') in self.TRUE_VALUES
+        is_transaction = item_obj.get('transaction') in self.TRUE_VALUES
 
-        pass # TODO
+        if is_injury:
+            #
+            # highest precedence.
+            # anything flagged injury, we strictly consider injury related
+            # even if it has any other flags
+            self.__parse_item_for_class(tsxcontent, item_obj, self.injury_model_class)
 
+        elif is_transaction:
+            #
+            # anything flagged as a transaction
+            self.__parse_item_for_class(tsxcontent, item_obj, self.transaction_model_class)
 
-    def parse_item_news(self, news):
-        pass # TODO
+        else:
+            #
+            # the most common item type, news is anything thats
+            # not flagged as something more specific
+            self.__parse_item_for_class(tsxcontent, item_obj, self.news_model_class)
 
-    def parse_item_injury(self, injury):
-        pass # TODO
+    def __parse_datetime(self, datetime_str):
+        """
+        use pythons dateutil module to parse a string and return the datetime object
 
-    def parse_item_transaction(self, transaction):
-        pass # TODO
+        :param datetime_str:
+        :return:
+        """
+        return dateutil.parser.parse(datetime_str)
 
-    def parse_team(self, team):
-        pass # TODO
+    @atomic
+    def __parse_item_for_class(self, tsxcontent, item_obj, tsx_item_model_class):
+        """
+        parse an item object for the given TsxContent object using the item class.
 
-    def parse_player(self, player):
-        pass # TODO
+        :param tsxcontent:
+        :param item_obj:
+        :param tsx_item_model_class:
+        :return:
+        """
+        try:
+            tsxitem = tsx_item_model_class.objects.get( srid=item_obj.get('id') )
+        except tsx_item_model_class.DoesNotExist:
+            tsxitem = tsx_item_model_class()
+        #
+        # get the sub-dicts first
+        content_obj    = item_obj.get('content__list',{})
+        provider_obj   = item_obj.get('provider__list',{})
 
+        # set the tsxcontent reference
+        tsxitem.tsxcontent          = tsxcontent
 
+        tsxitem.srid                = item_obj.get('id')
+        tsxitem.pcid                = provider_obj.get('provider_content_id')
+        tsxitem.content_created     = self.__parse_datetime(item_obj.get('created',''))
+        tsxitem.content_modified    = self.__parse_datetime(item_obj.get('updated',''))
+        tsxitem.content_published   = self.__parse_datetime(provider_obj.get('original_publish',''))
+        tsxitem.title               = item_obj.get('title')         # ie: 'NBA Note - Team, Player'
+        tsxitem.byline              = item_obj.get('byline')        # ie: 'The Sports Xchange'
+        tsxitem.dateline            = item_obj.get('dateline','')   # ie: '12/14/2015'
+        tsxitem.credit              = item_obj.get('credit')
+        tsxitem.content             = content_obj.get('long')
+        # print('')
+        # print(str(item_obj))
+        tsxitem.save()
+
+        #
+        # now parse each TsxRef (teams or players)
+        # which reference the tsxitem.
+        ref_list = self.__get_ref_list(item_obj)
+        # print('***')
+        # print('ref_list', str(ref_list))
+        # print('***')
+        for ref_obj in ref_list:
+            ref_instance = None
+            if ref_obj.get('type') == 'profile':
+                ref_instance = self.__parse_ref_for_class( tsxitem, ref_obj, self.player_model_class)
+            elif ref_obj.get('type') == 'organization':
+                ref_instance = self.__parse_ref_for_class( tsxitem, ref_obj, self.team_model_class)
+            else:
+                print('__parse_item_for_class() - invalid ref type: %s, not in ["profile","organization"]' % str(ref_obj.get('type')))
+                pass
+
+        return tsxitem
+
+    def __get_ref_list(self, item_obj):
+        """
+        get the 'refs__list' out of the item object
+
+        refs__list will be a dict (a single object)
+          OR
+        refs__list will be a list (with may objects!
+
+        example single:
+            'refs__list': {
+                'ref__list': {
+                    'type': 'organization',
+                    'sportsdata_id': '583ec928-fb46-11e1-82cb-f4ce4684ea4c',
+                    'name': 'Detroit Pistons'
+                }
+            },
+
+        example list:
+
+            "refs__list" : [
+                { "ref" : { "name" : "Sessions, Ramon", "sportsdata_id" : "91ac13f8-e8d3-4902-b451-83ff32d2cf28", "type" : "profile" } },
+                { "ref" : { "name" : "Washington Wizards", "sportsdata_id" : "583ec8d4-fb46-11e1-82cb-f4ce4684ea4c", "type" : "organization" } }
+            ]
+
+        :param ref_data:
+        :return:
+        """
+        refs = []
+        refs_data = item_obj.get('refs__list')
+        if isinstance(refs_data, dict) and len(refs_data.items()) > 0:
+            refs.append(refs_data.get('ref__list')) # get the actual ref object (type, sportsdata_id, name)
+        elif isinstance(refs_data, list):
+            for ref in refs_data:
+                refs.append(ref.get('ref'))         # get the actual ref object (type, sportsdata_id, name)
+        return refs
+
+    def __parse_ref_for_class(self, tsxitem, ref_obj, tsx_ref_model_class):
+        """
+        extra the values of ref_obj to create a TsxRef (team or player) using
+        the tsx_ref_model_class, and associate it with the TsxItem passed in.
+
+        :param tsxitem:
+        :param tsx_ref_model_class:
+        :return:
+        """
+
+        sportsdataid = ref_obj.get('sportsdata_id')
+        sportradarid = ref_obj.get('sportradar_id')
+        if sportradarid is None:
+            # if sportradar property doesnt exist, use the sportsdataid
+            sportradarid = sportsdataid
+
+        #
+        # try to get the sports.<sport>.models.Player
+        player = self.get_sport_player(sportradarid)
+        if player is None:
+            #print('couldnt find player for ref_obj: %s' % (str(ref_obj)))
+            return None
+
+        #
+        # get or create it... we'll need to get the ContentType of the tsxitem first
+        tsxitem_type = ContentType.objects.get_for_model(tsxitem)
+        #print('')
+        #print(str(ref_obj))
+        tsxref, c = tsx_ref_model_class.objects.get_or_create(sportsdataid=sportsdataid,
+                                                              sportradarid=sportradarid,
+                                                              player=player,
+                                                              name=ref_obj.get('name'),
+                                                              tsxitem_type=tsxitem_type,
+                                                              tsxitem_id=tsxitem.pk,
+                                                              content_published=tsxitem.content_published)
+
+        return tsxref
+
+    def get_sport_player(self, sportradarid):
+        try:
+            return self.sport_player_class.objects.get(srid=sportradarid)
+        except self.sport_player_class.DoesNotExist:
+            return None
 
 
 

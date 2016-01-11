@@ -5,7 +5,9 @@ from django.db import transaction
 from django.contrib import admin
 import contest.models
 import contest.forms
+from contest.refund.tasks import refund_task
 from .payout.tasks import payout_task
+
 CONTEST_LIST_DISPLAY = ['created','status','name','start','end']
 
 @admin.register(contest.models.Contest)
@@ -37,7 +39,7 @@ class ContestAdmin(admin.ModelAdmin):
                 'name',
                 'prize_structure',
                 'start',
-                #'ends_tonight'
+                'ends_tonight',
             )
         }),
 
@@ -89,6 +91,12 @@ class ContestAdmin(admin.ModelAdmin):
 class UpcomingContestAdmin(admin.ModelAdmin):
     list_display = CONTEST_LIST_DISPLAY
 
+    def cancel_and_refund_upcoming_contests(self, request, queryset):
+        if queryset.count() > 0:
+            for contest in queryset:
+                refund_task.delay( contest, force=True )
+
+    actions = [ cancel_and_refund_upcoming_contests ]
 
 @admin.register(contest.models.CompletedContest)
 class CompletedContestAdmin(admin.ModelAdmin):
@@ -112,6 +120,12 @@ class CompletedContestAdmin(admin.ModelAdmin):
 class LiveContestAdmin(admin.ModelAdmin):
     list_display = CONTEST_LIST_DISPLAY
 
+    def cancel_and_refund_live_contests(self, request, queryset):
+        if queryset.count() > 0:
+            for contest in queryset:
+                refund_task.delay( contest, force=True )
+
+    actions = [ cancel_and_refund_live_contests ]
 
 @admin.register(contest.models.HistoryContest)
 class HistoryContestAdmin(admin.ModelAdmin):

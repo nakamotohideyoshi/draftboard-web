@@ -2,7 +2,7 @@
 # draftgroup/views.py
 
 from dataden.classes import DataDen
-
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -10,9 +10,12 @@ from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.pagination import LimitOffsetPagination
 from draftgroup.models import DraftGroup, UpcomingDraftGroup, CurrentDraftGroup
 from draftgroup.classes import DraftGroupManager
-from draftgroup.serializers import DraftGroupSerializer, UpcomingDraftGroupSerializer
+from draftgroup.serializers import (
+    DraftGroupSerializer,
+    UpcomingDraftGroupSerializer,
+)
 from django.core.cache import caches
-
+from sports.classes import SiteSportManager
 import json
 from django.http import HttpResponse
 from django.views.generic import View
@@ -96,13 +99,26 @@ class DraftGroupGameBoxscoresView(View):
     def get(self, request, draft_group_id):
 
         dgm = DraftGroupManager()
-        draft_group = dgm.get_draft_group( draft_group_id )
-        boxscores = dgm.get_game_boxscores( draft_group )
+        try:
+            draft_group = dgm.get_draft_group( draft_group_id )
+        except DraftGroup.DoesNotExist:
+            return HttpResponse( {}, content_type='application/json', status=status.HTTP_404_NOT_FOUND)
 
-        data = []
-        for b in boxscores:
-            data.append( b.to_json() )
+        site_sport  = draft_group.salary_pool.site_sport
+        ssm         = SiteSportManager()
+        games       = dgm.get_games( draft_group )
+        game_serializer_class = ssm.get_game_serializer_class(site_sport)
 
+        boxscores   = dgm.get_game_boxscores( draft_group )
+        boxscore_serializer_class = ssm.get_boxscore_serializer_class(site_sport)
+
+        # data = []
+        # for b in boxscores:
+        #     data.append( b.to_json() )
+        data = {
+            'games'     : game_serializer_class( games, many=True ).data,
+            'boxscores' : boxscore_serializer_class( boxscores, many=True ).data,
+        }
         return HttpResponse( json.dumps(data), content_type='application/json' )
 
 

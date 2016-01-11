@@ -8,4 +8,4 @@ class ContestBannerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ContestBanner
-        fields = ('start_time','end_time','image_url','links_to')
+        fields = ('priority','start_time','end_time','image_url','links_to')

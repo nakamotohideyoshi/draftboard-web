@@ -79,6 +79,23 @@ class Player( sports.models.Player ):
 
 class PlayerStats( sports.models.PlayerStats ):
 
+    # must override parent SCORING_FIELDS
+    SCORING_FIELDS = [
+        # skater stats
+        'goal',
+        'assist',
+        'sog',
+        'blk',
+        'sh_goal',
+        'so_goal',
+
+        # goalie stats
+        'w',
+        'saves',
+        'ga',
+        'shutout',
+    ]
+
     # player  = models.ForeignKey(Player, null=False)
     # game    = models.ForeignKey(Game, null=False)
 
@@ -183,6 +200,8 @@ class TsxTeam(sports.models.TsxTeam):
     inherits from sports.models.TsxXXX of the same name
     """
 
+    team = models.ForeignKey(Team, null=False)
+
     class Meta:
         abstract = False
 
@@ -190,6 +209,8 @@ class TsxPlayer(sports.models.TsxPlayer):
     """
     inherits from sports.models.TsxXXX of the same name
     """
+
+    player = models.ForeignKey(Player, null=False)
 
     class Meta:
         abstract = False

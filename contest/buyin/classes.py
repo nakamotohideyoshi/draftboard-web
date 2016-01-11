@@ -1,3 +1,6 @@
+#
+# contest/buyin/classes.py
+
 from mysite.classes import AbstractSiteUserClass
 from lineup.models import Lineup
 from ..exceptions import ContestLineupMismatchedDraftGroupsException, ContestIsInProgressOrClosedException, ContestIsFullException, ContestCouldNotEnterException, ContestMaxEntriesReachedException, ContestIsNotAcceptingLineupsException
@@ -113,7 +116,6 @@ class BuyinManager(AbstractSiteUserClass):
                       +str(contest.pk)+" with entry #"+str(entry.pk)
         Logger.log(ErrorCodes.INFO, "Contest Buyin", msg )
 
-
     def lineup_contest(self, contest, lineup=None):
         """
         Verifies the lineup and contest can be submitted
@@ -149,7 +151,7 @@ class BuyinManager(AbstractSiteUserClass):
             raise ContestLineupMismatchedDraftGroupsException()
 
         #
-        # Make sure the contest status is active
+        # Make sure the contest status is not past the time when you could buyin
         if contest.is_started():
             raise ContestIsInProgressOrClosedException()
 

@@ -3,22 +3,40 @@
 
 from django.conf.urls import patterns
 from django.conf.urls import url
-from contest.views import LobbyAPIView, AllLineupsView, \
-                          UserUpcomingAPIView, UserLiveAPIView, UserHistoryAPIView, \
-                          SingleLineupView, CurrentEntryAPIView, SingleContestAPIView, \
-                          RegisteredUsersAPIView, EnterLineupAPIView
+from contest.views import (
+    LobbyAPIView,
+    AllLineupsView,
+    UserUpcomingAPIView,
+    UserLiveAPIView,
+    UserHistoryAPIView,
+    SingleContestLineupView,
+    SingleLineupView,
+    CurrentEntryAPIView,
+    SingleContestAPIView,
+    RegisteredUsersAPIView,
+    EnterLineupAPIView,
+    EnterLineupStatusAPIView,
+    PayoutsAPIView,
+)
 from contest.views import ContestCreate, ContestUpdate
 
-urlpatterns = patterns(
-    '',
+urlpatterns = patterns( '',
+
     url(r'^add/$', ContestCreate.as_view(), name='contest_add'),
+
     url(r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest-detail'),
     # (r'^add/$', ContestCreate.as_view(), name='contest_add'),
     # (r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest_update'),
 
     #
-    #
+    # "buyin" api - ie: enter a lineup into a contest.
+    # This endpoint returns a task id which should
+    # be used subsequently to check if the buy was successful.
     (r'^enter-lineup/$', EnterLineupAPIView.as_view()),
+
+    #
+    # check if the "buyin" -- that is /api/contest/enter-lineup/ -- was successful
+    (r'^enter-lineup-status/$', EnterLineupStatusAPIView.as_view()),
 
     #
     # get the info for a single Contest by its id
@@ -48,7 +66,8 @@ urlpatterns = patterns(
     # get a single lineup with stats - the lineup can
     # be viewed by any user, and will mask out
     # players who are not yet starting.
-    (r'^single-lineup/(?P<contest_id>[0-9]+)/(?P<lineup_id>[0-9]+)/$', SingleLineupView.as_view()),
+    (r'^lineup/(?P<contest_id>[0-9]+)/(?P<lineup_id>[0-9]+)/$', SingleLineupView.as_view()),
+    (r'^lineup/(?P<lineup_id>[0-9]+)/$', SingleContestLineupView.as_view()),
 
     #
     # get the complete set of specially packed lineups for a contest
@@ -58,4 +77,7 @@ urlpatterns = patterns(
     # get the usernames for all users who have lineups in the contest
     (r'^registered-users/(?P<contest_id>[0-9]+)/$', RegisteredUsersAPIView.as_view()),
 
+    #
+    # get payouts for a contest
+    (r'^payouts/(?P<contest_id>[0-9]+)/$', PayoutsAPIView.as_view()),
 )

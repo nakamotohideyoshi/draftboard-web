@@ -20,6 +20,7 @@ from .tasks import refund_task
 class RefundBaseTest(AbstractTest):
 
     def setUp(self):
+        TicketManager.create_default_ticket_amounts()
         self.build_world()
 
     def build_world(self):
@@ -41,9 +42,7 @@ class RefundBaseTest(AbstractTest):
         self.user2_ct.deposit(50)
 
 
-        ta = TicketAmount()
-        ta.amount = 10
-        ta.save()
+        ta = TicketAmount.objects.get(amount=10.00)
         self.user3_tm = TicketManager(self.user3)
         self.user3_tm.deposit(10)
 

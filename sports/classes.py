@@ -33,7 +33,11 @@ from .exceptions import (
     InjurySerializerClassNotFoundException,
     TeamSerializerClassNotFoundException,
     PlayerSerializerClassNotFoundException,
-    TsxModelClassNotFoundException
+    GameSerializerClassNotFoundException,
+    BoxscoreSerializerClassNotFoundException,
+    PlayerHistorySerializerClassNotFoundException,
+    TsxModelClassNotFoundException,
+    TsxSerializerClassNotFoundException,
 )
 
 from mysite.exceptions import IncorrectVariableTypeException
@@ -335,6 +339,37 @@ class SiteSportManager(object):
         # by default raise an exception if we couldnt return a game class
         raise InjuryClassNotFoundException(type(self).__name__, sport)
 
+    def get_game_serializer_class(self, sport):
+        """
+        get the sport specific serializer for the 'sport' param
+
+        :param sport:
+        :return:
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+        try:
+            return eval( 'sports.%s.serializers.GameSerializer' % sport.name)
+        except:
+            #
+            raise GameSerializerClassNotFoundException(type(self).__name__, sport)
+
+    def get_boxscore_serializer_class(self, sport):
+        """
+        get the sport specific serializers for the 'sport' param
+
+        :param sport:
+        :return:
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.BoxscoreSerializer' % sport.name)
+        except:
+            # by default raise an exception if we couldnt return a game class
+            raise BoxscoreSerializerClassNotFoundException(type(self).__name__, sport)
+
     def get_team_serializer_class(self, sport):
         """
         get the sport specific serializer for the sports.<sport>.Team model
@@ -397,6 +432,18 @@ class SiteSportManager(object):
             # by default raise an exception if we couldnt return a game class
             raise InjurySerializerClassNotFoundException(type(self).__name__, sport)
 
+    def get_playerhistory_serializer_class(self, sport):
+        """
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.PlayerHistorySerializer' % sport.name)
+        except:
+            #
+            raise PlayerHistorySerializerClassNotFoundException(type(self).__name__, sport)
+
     def __get_tsx_model_class(self, sport, model_name, model_parent_class):
         """
         helper function to combine a bunch of common functionality
@@ -427,6 +474,26 @@ class SiteSportManager(object):
         :return: the TsxNews model class for this sport
         """
         return self.__get_tsx_model_class(sport, 'tsxnews', TsxNews)
+
+    def get_tsxnews_serializer_class(self, sport):
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.TsxNewsSerializer' % sport.name)
+        except:
+            # raise generic TsxSerializer exception
+            raise TsxSerializerClassNotFoundException(type(self).__name__, sport)
+
+    def get_tsxplayer_serializer_class(self, sport):
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            return eval( 'sports.%s.serializers.TsxPlayerSerializer' % sport.name)
+        except:
+            # raise generic TsxSerializer exception
+            raise TsxSerializerClassNotFoundException(type(self).__name__, sport)
 
     def get_tsxinjury_class(self, sport):
         """

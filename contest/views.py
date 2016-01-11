@@ -1,8 +1,11 @@
 #
 # contest/views.py
 
+from django.contrib.auth.models import User
+from django.utils import timezone
 import json
-
+import celery
+from datetime import datetime
 from rest_framework import status
 from rest_framework.response import Response
 from debreach.decorators import random_comment_exempt
@@ -12,28 +15,47 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import ValidationError, NotFound
-from contest.serializers import ContestSerializer, CurrentEntrySerializer, \
-                                RegisteredUserSerializer, EnterLineupSerializer
+from contest.serializers import (
+    ContestSerializer,
+    CurrentEntrySerializer,
+    RegisteredUserSerializer,
+    EnterLineupSerializer,
+    EnterLineupStatusSerializer,
+    PayoutSerializer,
+)
 from contest.classes import ContestLineupManager
-from contest.models import Contest, Entry, LobbyContest, \
-                            UpcomingContest, LiveContest, HistoryContest, CurrentContest
+from contest.models import (
+    Contest,
+    Entry,
+    LobbyContest,
+    UpcomingContest,
+    LiveContest,
+    HistoryContest,
+    CurrentContest,
+    HistoryEntry,
+)
+from contest.payout.models import (
+    Payout,
+)
 from contest.buyin.classes import BuyinManager
-from contest.exceptions import ContestLineupMismatchedDraftGroupsException, \
-                                ContestIsInProgressOrClosedException, \
-                                ContestIsFullException, ContestCouldNotEnterException, \
-                                ContestMaxEntriesReachedException, \
-                                ContestIsNotAcceptingLineupsException
+from contest.buyin.tasks import buyin_task
+from contest.exceptions import (
+    ContestLineupMismatchedDraftGroupsException,
+    ContestIsInProgressOrClosedException,
+    ContestIsFullException,
+    ContestCouldNotEnterException,
+    ContestMaxEntriesReachedException,
+    ContestIsNotAcceptingLineupsException,
+)
 
 from cash.exceptions import OverdraftException
 from lineup.models import Lineup
-from dataden.util.simpletimer import SimpleTimer
 from django.http import HttpResponse
 from django.views.generic import View
 from django.views.generic.edit import CreateView, UpdateView
 from contest.forms import ContestForm, ContestFormAdd
 
 from django.db.models import Count
-from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer, TemplateHTMLRenderer
 
 # test the generic add view
 class ContestCreate(CreateView):
@@ -174,18 +196,93 @@ class UserLiveAPIView(UserEntryAPIView):
     """
     contest_model = LiveContest
 
-
-class UserHistoryAPIView(UserEntryAPIView):
+class UserHistoryAPIView(generics.GenericAPIView):
     """
-    A User's historical contests.
+    Allows the logged in user to get their historical entries/contests
 
-    "next", "prev":  holds the link to paged data.
-    "next", "prev":  may return null, which indicates no more paged data in that direction
+        * |api-text| :dfs:`contest/history/`
+
+        .. note::
+
+            A get parameter of **?start_ts=X&end_ts=Y** can be used. This argument
+            describes how many days of history from today to get. If
+            it is not set, by default it will return the max which is 30.
+            If anything greater than 30 is set, it will return the 30 days.
+
     """
 
-    contest_model   = HistoryContest
-    pagination_class = LimitOffsetPagination
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = CurrentEntrySerializer
 
+    def get_user_for_id(self, user_id=None):
+        """
+        if a user can be found via the 'user_id' return it,
+        else return None.
+        """
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
+
+    def get(self, request, format=None):
+        """
+        get the entries
+        """
+        user = self.request.user
+
+        admin_specified_user_id = self.request.QUERY_PARAMS.get('user_id', None)
+        admin_specified_user = self.get_user_for_id( admin_specified_user_id )
+        if user.is_superuser and admin_specified_user is not None:
+            # override the user whos transactions we will look at
+            user = admin_specified_user
+
+        #
+        # if the start_ts & end_ts params exist:
+        start_ts = self.request.QUERY_PARAMS.get('start_ts', None)
+        end_ts = self.request.QUERY_PARAMS.get('end_ts', None)
+        if start_ts is None and end_ts is None:
+            #
+            # get the last 100 entries
+            entries = HistoryEntry.objects.filter().order_by('-created')[:100]
+            return self.get_entries_response( entries )
+
+        else:
+            if start_ts == None:
+                return Response(
+                    status=409,
+                    data={
+                        'errors': {
+                            'name': {
+                                'title': 'start_ts required',
+                                'description': 'You must provide unix time stamp variable start_ts in your get parameters.'
+                            }
+                        }
+                    })
+            if end_ts == None:
+                return Response(
+                    status=409,
+                    data={
+                        'errors': {
+                            'name': {
+                                'title': 'end_ts required',
+                                'description': 'You must provide unix time stamp variable end_ts in your get parameters.'
+                            }
+                        }
+                    })
+            entries = self.get_entries_in_range( user, int(start_ts), int(end_ts) )
+            return self.get_entries_response( entries )
+
+    def get_entries_in_range(self, user, start_ts, end_ts):
+        start   = datetime.utcfromtimestamp( start_ts )
+        end     = datetime.utcfromtimestamp( end_ts )
+        entries = Entry.objects.filter(contest__start__range=(start, end))
+        return entries
+        # serialized_entries = self.serializer_class( entries, many=True )
+        # return Response(serialized_entries.data, status=status.HTTP_200_OK)
+
+    def get_entries_response(self, entries):
+        serialized_entries = self.serializer_class( entries, many=True )
+        return Response(serialized_entries.data, status=status.HTTP_200_OK)
 
 class AllLineupsView(View):
     """
@@ -196,7 +293,7 @@ class AllLineupsView(View):
     def get(self, request, contest_id):
         clm = ContestLineupManager( contest_id = contest_id )
         if 'json' in request.GET:
-            print ('json please!' )
+            #print ('json please!' )
             return HttpResponse( json.dumps( clm.dev_get_all_lineups( contest_id ) ) )
         else:
             #clm = ContestLineupManager( contest_id = contest_id )
@@ -217,6 +314,23 @@ class SingleLineupView(View):
 
         return HttpResponse( json.dumps(lineup_data), content_type="application/json" )
 
+class SingleContestLineupView(View):
+    """
+    get a single lineup for any contest, lineup_id combination.
+
+    this api will mask out players who should not yet be seen
+    """
+
+    def get(self, request, lineup_id):
+        entries = Entry.objects.filter(lineup__pk=lineup_id)
+        if entries.count() == 0:
+            no_return_data = []
+            return HttpResponse( json.dumps(no_return_data), content_type="application/json" )
+        else:
+            contest = entries[0].contest
+            clm = ContestLineupManager( contest_id=contest.pk )
+            lineup_data = clm.get_lineup_data( user= request.user, lineup_id=lineup_id )
+            return HttpResponse( json.dumps(lineup_data), content_type="application/json" )
 
 class RegisteredUsersAPIView(generics.GenericAPIView):
     """
@@ -252,6 +366,55 @@ class RegisteredUsersAPIView(generics.GenericAPIView):
         serialized_data = RegisteredUserSerializer( self.get_object(contest_id), many=True ).data
         return Response(serialized_data)
 
+# class EnterLineupAPIView(generics.CreateAPIView):
+#     """
+#     enter a lineup into the contest. (exceptions may occur based on user balance, etc...)
+#     """
+#     permission_classes      = (IsAuthenticated,)
+#     serializer_class        = EnterLineupSerializer
+#     # renderer_classes        = (JSONRenderer, BrowsableAPIRenderer)
+#
+#     def post(self, request, format=None):
+#         #print( request.data )
+#         lineup_id       = request.data.get('lineup')
+#         contest_id      = request.data.get('contest')
+#
+#         # ensure the contest is valid
+#         try:
+#             contest = Contest.objects.get( pk=contest_id )
+#         except Contest.DoesNotExist:
+#             return Response( 'Contest does not exist', status=status.HTTP_403_FORBIDDEN )
+#
+#         # ensure the lineup is valid for this user
+#         try:
+#             lineup = Lineup.objects.get( pk=lineup_id, user=request.user )
+#         except Lineup.DoesNotExist:
+#             return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
+#
+#         #
+#         # call the buyin task
+#         bm = BuyinManager( request.user )
+#         # TODO must use task not the regular way
+#         try:
+#             bm.buyin( contest, lineup )
+#         except ContestLineupMismatchedDraftGroupsException:
+#             return Response( 'This lineup was not drafted from the same group as this contest.', status=status.HTTP_403_FORBIDDEN )
+#         except ContestIsInProgressOrClosedException:
+#             return Response( 'You may no longer enter this contest', status=status.HTTP_403_FORBIDDEN )
+#         except ContestCouldNotEnterException:
+#             return Response( 'ContestCouldNotEnterException', status=status.HTTP_403_FORBIDDEN )
+#         except ContestIsNotAcceptingLineupsException:
+#             return Response( 'Contest is not accepting entries', status=status.HTTP_403_FORBIDDEN )
+#         except (ContestMaxEntriesReachedException, ContestIsFullException) as e:
+#             return Response( 'Contest is full', status=status.HTTP_403_FORBIDDEN )
+#         except (OverdraftException) as e:
+#             return Response('You have insufficient funds to enter this contest.', status=status.HTTP_403_FORBIDDEN )
+#
+#         # If Entry creation was successful, return the created Entry object.
+#         entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
+#         serializer = CurrentEntrySerializer(entry, many=False)
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 class EnterLineupAPIView(generics.CreateAPIView):
     """
     enter a lineup into the contest. (exceptions may occur based on user balance, etc...)
@@ -261,7 +424,6 @@ class EnterLineupAPIView(generics.CreateAPIView):
     # renderer_classes        = (JSONRenderer, BrowsableAPIRenderer)
 
     def post(self, request, format=None):
-        #print( request.data )
         lineup_id       = request.data.get('lineup')
         contest_id      = request.data.get('contest')
 
@@ -279,24 +441,72 @@ class EnterLineupAPIView(generics.CreateAPIView):
 
         #
         # call the buyin task
-        bm = BuyinManager( request.user )
-        # TODO must use task not the regular way
-        try:
-            bm.buyin( contest, lineup )
-        except ContestLineupMismatchedDraftGroupsException:
-            return Response( 'This lineup was not drafted from the same group as this contest.', status=status.HTTP_403_FORBIDDEN )
-        except ContestIsInProgressOrClosedException:
-            return Response( 'You may no longer enter this contest', status=status.HTTP_403_FORBIDDEN )
-        except ContestCouldNotEnterException:
-            return Response( 'ContestCouldNotEnterException', status=status.HTTP_403_FORBIDDEN )
-        except ContestIsNotAcceptingLineupsException:
-            return Response( 'Contest is not accepting entries', status=status.HTTP_403_FORBIDDEN )
-        except (ContestMaxEntriesReachedException, ContestIsFullException) as e:
-            return Response( 'Contest is full', status=status.HTTP_403_FORBIDDEN )
-        except (OverdraftException) as e:
-            return Response('You have insufficient funds to enter this contest.', status=status.HTTP_403_FORBIDDEN )
+        task_result = buyin_task.delay( request.user, contest, lineup=lineup )
+
+        #
+        # return task id
+        return Response({'buyin_task_id':task_result.id}, status=status.HTTP_201_CREATED)
 
         # If Entry creation was successful, return the created Entry object.
-        entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
-        serializer = CurrentEntrySerializer(entry, many=False)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
+        # serializer = CurrentEntrySerializer(entry, many=False)
+        # return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+class EnterLineupStatusAPIView(generics.RetrieveAPIView):
+    """
+    check the status of enter-lineup, having previously attempted to
+    buy a lineup into a contest...
+    """
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = EnterLineupStatusSerializer
+
+    def post(self, request, format=None):
+        """
+        Given the 'task' parameter, return the status of the task (ie: the buyin)
+
+        :param request:
+        :param format:
+        :return:
+        """
+        enter_lineup_status = False
+        task_id = request.data.get('task')
+        if task_id is None:
+            # make sure to return error if the task id is not given in the request
+            return Response({'error':'you must supply the "task" parameter'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+
+        task_result = self.get_enter_lineup_task_result(task_id)
+        if task_result:
+            # set the enter_lineup_status to True if the task was successful, else false
+            enter_lineup_status = task_result.status == celery.states.SUCCESS
+
+        data = {
+            'status' : enter_lineup_status
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+    def get_enter_lineup_task_result(self, task_id):
+        """
+        Return the status of the task matching the task_id,
+        or None, if the task cannot be found.
+
+        :param task_id:
+        :return:
+        """
+        return buyin_task.AsyncResult(task_id)
+
+class PayoutsAPIView(generics.ListAPIView):
+    """
+    get a list of the payouts with ranks, for the paid users in the contest
+
+    may return an empty array if no payouts have happened
+    """
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = PayoutSerializer
+
+    def get_queryset(self):
+        """
+        get the Payout objects for the contest
+        """
+        contest_id = self.kwargs['contest_id']
+        return Payout.objects.filter(entry__contest__pk=contest_id).order_by('rank')

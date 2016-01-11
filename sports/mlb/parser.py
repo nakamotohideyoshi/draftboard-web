@@ -1,5 +1,6 @@
 #
-#
+# sports/mlb/parser.py
+
 import sports.mlb.models
 from sports.mlb.models import Team, Game, Player, PlayerStats, \
                                 GameBoxscore, Pbp, PbpDescription, GamePortion
@@ -12,6 +13,7 @@ from django.contrib.contenttypes.models import ContentType
 from dataden.classes import DataDen
 import push.classes
 from django.conf import settings
+from sports.sport.base_parser import TsxContentParser
 
 class HomeAwaySummary(DataDenTeamBoxscores):
 
@@ -1063,6 +1065,7 @@ class DataDenMlb(AbstractDataDenParser):
 
     def __init__(self):
         self.game_model = sports.mlb.models.Game
+        self.sport = 'mlb'
 
     def parse(self, obj):
         super().parse( obj ) # setup self.ns, self.parent_api
@@ -1094,6 +1097,15 @@ class DataDenMlb(AbstractDataDenParser):
         elif self.target == ('mlb.player','summary'): PlayerStats().parse( obj ) # stats from games
         #
         # default case, print this message for now
+
+        #
+        # mlb.content - the master object with list of ids to the content items
+        elif self.target == ('mlb.content', 'content'):
+            #
+            # get an instance of TsxContentParser( sport ) to parse
+            # the Sports Xchange content
+            TsxContentParser(self.sport).parse( obj )
+
         else: self.unimplemented( self.target[0], self.target[1] )
 
     def cleanup_injuries(self):
