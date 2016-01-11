@@ -84,9 +84,17 @@ class PlayerSerializer(serializers.ModelSerializer):
     player_meta = GenericSportPlayerSerializer(read_only=True, source='player')
     roster_spot = serializers.StringRelatedField()
 
+    fppg = serializers.SerializerMethodField()
+    def get_fppg(self, lineup_player):
+        return lineup_player.draft_group_player.fppg
+
+    salary = serializers.SerializerMethodField()
+    def get_salary(self, lineup_player):
+        return lineup_player.draft_group_player.salary
+
     class Meta:
         model = Player
-        fields = ('player_id', 'full_name', 'roster_spot', 'idx', 'player_meta')
+        fields = ('player_id', 'full_name', 'roster_spot', 'idx', 'player_meta','fppg','salary')
 
 
 class LineupSerializer(serializers.ModelSerializer):

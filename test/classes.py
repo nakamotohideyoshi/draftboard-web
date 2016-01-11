@@ -81,11 +81,11 @@ class BuildWorldMixin( object ):
 
 class ForceAuthenticateAndRequestMixin( object ):
 
-    def force_authenticate_and_GET(self, user, view_class, url, data):
-        return self.force_authenticate_and_request(user, view_class, url, data, 'get')
+    def force_authenticate_and_GET(self, user, view_class, url, data=None):
+        return self.force_authenticate_and_request(user, view_class, url, data, request_type='get')
 
     def force_authenticate_and_POST(self, user, view_class, url, data):
-        return self.force_authenticate_and_request(user, view_class, url, data, 'post')
+        return self.force_authenticate_and_request(user, view_class, url, data=None, request_type='post')
 
     def force_authenticate_and_request(self, user, view_class, url, data, request_type):
         """
