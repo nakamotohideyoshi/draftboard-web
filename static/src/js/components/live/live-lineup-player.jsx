@@ -11,17 +11,24 @@ var LiveLineupPlayer = React.createClass({
   propTypes: {
     whichSide: React.PropTypes.string.isRequired,
     player: React.PropTypes.object.isRequired,
+    playersPlaying: React.PropTypes.array.isRequired,
     onClick: React.PropTypes.func.isRequired
   },
 
   render: function() {
-    const playStatusClass = 'live-lineup-player__play-status play-status--' + this.props.player.playStatus
-    let stats = this.props.player.stats
+    let playStatusClass = 'live-lineup-player__play-status'
+
+    // if player is on the court, show
+    if (this.props.playersPlaying.indexOf(this.props.player.info.player_srid) !== -1) {
+      playStatusClass += ' play-status--playing'
+    }
+
 
 
     // TEMP
     let playerInitials = this.props.player.info.name.match(/\b(\w)/g).join('')
 
+    let stats = this.props.player.stats
     if (stats === undefined) {
       stats = {pos: "", fp: 0}
     }

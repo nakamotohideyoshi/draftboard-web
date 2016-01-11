@@ -135,6 +135,11 @@ export const currentLineupsStatsSelector = createSelector(
       let stats = generateLineupStats(lineup, draftGroup, currentBoxScores)
       stats.draftGroup = draftGroup
 
+      // used for animations to determine which side
+      stats.rosterBySRID = _map(stats.rosterDetails, (player) => {
+        return player.info.player_srid
+      })
+
       let potentialEarnings = 0
       _forEach(entries, (entry) => {
         const contestLineups = contestsStats[entry.contest].lineups

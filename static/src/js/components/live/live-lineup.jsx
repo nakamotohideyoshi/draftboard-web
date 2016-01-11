@@ -21,6 +21,7 @@ var LiveLineup = React.createClass({
     lineup: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object.isRequired,
     currentBoxScores: React.PropTypes.object.isRequired,
+    playersPlaying: React.PropTypes.array.isRequired,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func
   },
@@ -54,22 +55,39 @@ var LiveLineup = React.createClass({
   render() {
     const self = this
     const draftGroup = self.props.lineup.draftGroup
+
     const currentPlayers = self.props.lineup.roster.map(function(playerId) {
       const player = self.props.lineup.rosterDetails[playerId]
       const boxScore = self.props.currentBoxScores[player.info.game_srid]
 
       return (
-        <LiveLineupPlayer key={playerId} player={player} whichSide={self.props.whichSide} onClick={self.openPlayerDetail.bind(self, playerId)} />
+        <LiveLineupPlayer
+          key={playerId}
+          player={player}
+          playersPlaying={ self.props.playersPlaying }
+          whichSide={self.props.whichSide}
+          onClick={self.openPlayerDetail.bind(self, playerId)} />
       )
     })
 
     let playerPane
     if (self.state.viewPlayerDetails) {
-      const player = self.props.lineup.rosterDetails[self.state.viewPlayerDetails]
+      let playerId = self.state.viewPlayerDetails
+
+      // if the lineup changed, update the default player details pane
+      if (self.props.lineup.roster.indexOf(self.state.viewPlayerDetails) === -1) {
+        playerId = self.props.lineup.roster[0]
+        self.setState({viewPlayerDetails: self.props.lineup.roster[0] })
+      }
+
+      const player = self.props.lineup.rosterDetails[playerId]
       const boxScore = self.props.currentBoxScores[player.info.game_srid]
 
       playerPane = (
-        <LivePlayerPane whichSide={self.props.whichSide} player={player} boxScore={boxScore} />
+        <LivePlayerPane
+          whichSide={self.props.whichSide}
+          player={player}
+          boxScore={boxScore} />
       )
     }
 

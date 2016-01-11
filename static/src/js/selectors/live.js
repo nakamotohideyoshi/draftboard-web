@@ -5,6 +5,7 @@ import { map as _map } from 'lodash'
 import { reduce as _reduce } from 'lodash'
 import { forEach as _forEach } from 'lodash'
 import { union as _union } from 'lodash'
+import _ from 'lodash'
 
 import log from '../lib/logging'
 
@@ -95,6 +96,11 @@ export const liveSelector = createSelector(
       if (mode.opponentLineupId) {
         stats.lineups.opponent = stats.contest.lineups[mode.opponentLineupId]
 
+        // used for animations to determine which side
+        stats.lineups.opponent.rosterBySRID = _map(stats.lineups.opponent.rosterDetails, (player) => {
+          return player.info.player_srid
+        })
+
         stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.opponent.rosterDetails, (player) => {
           return player.info.game_srid
         }))
@@ -102,6 +108,8 @@ export const liveSelector = createSelector(
         stats.relevantPlayers = _union(stats.relevantPlayers, _map(stats.lineups.opponent.rosterDetails, (player) => {
           return player.info.player_srid
         }))
+
+        stats.playersInBothLineups = _.intersection(stats.lineups.mine.rosterBySRID, stats.lineups.opponent.rosterBySRID)
       }
     }
 
