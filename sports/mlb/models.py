@@ -236,6 +236,8 @@ class TsxTeam(sports.models.TsxTeam):
     inherits from sports.models.TsxXXX of the same name
     """
 
+    team = models.ForeignKey(Team, null=False)
+
     class Meta:
         abstract = False
 
@@ -243,6 +245,8 @@ class TsxPlayer(sports.models.TsxPlayer):
     """
     inherits from sports.models.TsxXXX of the same name
     """
+
+    player = models.ForeignKey(Player, null=False)
 
     class Meta:
         abstract = False

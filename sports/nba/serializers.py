@@ -1,6 +1,8 @@
 #
 # sports.nba.serializers.py
 
+from django.utils import timezone
+from datetime import datetime, timedelta
 from django.contrib.contenttypes.models import ContentType
 import json
 from itertools import chain
@@ -145,7 +147,7 @@ class TsxItemRelatedField(serializers.RelatedField):
         serialize the relations
         """
 
-        print(str(type(value)))
+        # print(str(type(value)))
         # print(str(type(value)))
         # print(str(type(value)))
 
@@ -181,12 +183,6 @@ class TsxItemRelatedField(serializers.RelatedField):
         #     return 'Note: ' + value.text
         raise Exception('nba.serializers.TsxItemRelatedField Unexpected type of TsxItem object: ' + str(type(value)))
 
-# class TsxNewsSerializer(sports.serializers.TsxNewsSerializer):
-#
-#     class Meta:
-#         model = TsxNews
-#         fields = sports.serializers.TsxNewsSerializer.PARENT_FIELDS # there are no more fields
-
 class TsxNewsSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -213,12 +209,12 @@ class TsxPlayerSerializer(serializers.ModelSerializer):
         model = TsxPlayer
         fields = sports.serializers.TsxPlayerSerializer.PARENT_FIELDS + ('tsxitem',)# there are no more fields
 
-class PlayerNewsSerializer(serializers.ModelSerializer):
+class PlayerNewsSerializer(sports.serializers.PlayerNewsSerializer):
 
-    tsxplayerlist = serializers.SerializerMethodField()
-    def get_tsxplayerlist(self, player):
-        return TsxPlayerSerializer( TsxPlayer.objects.filter(player=player).select_related('player'), many=True ).data
+    # it is required we set the TsxPlayer class and the TsxPlayerSerializer class
+    tsxplayer_class         = TsxPlayer
+    tsxplayer_serializer    = TsxPlayerSerializer
 
     class Meta:
         model = Player
-        fields = ('id','tsxplayerlist')
+        fields = sports.serializers.PlayerNewsSerializer.PARENT_FIELDS

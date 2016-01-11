@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='injury',
             name='ddtimestamp',
-            field=models.IntegerField(default=0, help_text='the time this injury update was parsed by dataden.this will be the same value for all objects that were in the feed on the last parse.'),
+            field=models.BigIntegerField(default=0, help_text='the time this injury update was parsed by dataden.this will be the same value for all objects that were in the feed on the last parse.'),
         ),
     ]

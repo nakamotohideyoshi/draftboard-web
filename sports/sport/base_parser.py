@@ -1116,7 +1116,8 @@ class TsxContentParser(AbstractDataDenParseable):
                                                               player=player,
                                                               name=ref_obj.get('name'),
                                                               tsxitem_type=tsxitem_type,
-                                                              tsxitem_id=tsxitem.pk)
+                                                              tsxitem_id=tsxitem.pk,
+                                                              content_published=tsxitem.content_published)
 
         return tsxref
 

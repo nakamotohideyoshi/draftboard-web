@@ -419,9 +419,18 @@ class PlayerNewsAPIView(generics.ListAPIView):
         Return a QuerySet from the LobbyContest model.
         """
         sport = self.kwargs['sport']
+        player_id = self.kwargs.get('player')
+        print('player_id', str(player_id))
         site_sport_manager = sports.classes.SiteSportManager()
         site_sport = site_sport_manager.get_site_sport(sport)
         sport_player_class = site_sport_manager.get_player_class( site_sport )
-        return sport_player_class.objects.all()
+        if player_id is None:
+            # get all of them
+            return sport_player_class.objects.all()
+        else:
+            # # return 1 of them
+            # player_model = sport_player_class.objects.get(pk=player_id)
+            # player_ctype = ContentType.objects.get_for_model(player_model)
+            return sport_player_class.objects.filter(pk=player_id)
 
 
