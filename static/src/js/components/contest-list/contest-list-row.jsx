@@ -64,6 +64,7 @@ var ContestListRow = React.createClass({
           className="button button--mini--outline button--green-outline"
           title="Draft a lineup for this contest."
           href={'/draft/' + this.props.row.draft_group + '/'}
+          onClick={this.ignoreClick}
         >
           Draft
         </a>
