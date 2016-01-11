@@ -97,12 +97,17 @@
   }
 
   &__play-status {
-    border-radius: 50%;
-    width: 6px;
-    height: 6px;
+    background: transparent url(../img/blocks/live-lineup-player/happening.png) no-repeat left top;
+    background-size: 100% auto;
+    width: 22px;
+    height: 4px;
     position: absolute;
-    top: 46%;
-    right: -10px;
+    top: 47%;
+    visibility: hidden;
+
+    &.play-status--playing {
+      visibility: visible;
+    }
   }
 
   &__points {
@@ -116,7 +121,7 @@
   // when playing show the green status indicator as well as make the PMR circle around the photo
   &.state--is-playing {
     .live-lineup-player__status {
-      background-color: #26cc65;
+      background-color: #2c8fb1;
     }
 
     .play-status--eventInProgress {
@@ -140,6 +145,12 @@
 
 // NON BEM not sure how else to though...
 .live-lineup--opponent {
+  .live-lineup-player.state--is-playing {
+    .live-lineup-player__status {
+      background-color: #2c8fb1;
+    }
+  }
+
   .live-lineup-player .live-lineup-player__hover-stats {
     text-align: left;
     background-position: 210px center;
@@ -157,7 +168,7 @@
   }
 
   .live-lineup-player__hover-stats {
-    right: 27px;
+    right: 29px;
     left: auto;
   }
 }

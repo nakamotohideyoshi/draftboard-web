@@ -251,6 +251,7 @@ var Live = React.createClass({
 
     // loop through players to see if they match one of the players in the lineups
     _.forEach(events, function(event) {
+      log.debug(event)
       if (self.props.liveSelector.relevantPlayers.indexOf(event.player) !== -1) {
         log.debug('onPBPReceived() player found', event.player)
 
@@ -344,20 +345,29 @@ var Live = React.createClass({
 
     // for now limit to one event per statistical event
     _.forEach(eventCall.statistics__list, function(event, key) {
-      event.whichSide = null
-
       // if the player applies to our lineups
-      if (relevantPlayers.indexOf(event.player) === -1) {
+      if (relevantPlayers.indexOf(event.player) !== -1) {
         players.push(event.player)
         playersPlaying.push(event.player)
-        self.setState({playersPlaying: playersPlaying})
 
-        // TODO figure out how to find out whichSide
-        event.whichSide = 'mine'
+        // set which side to show this event set on
+        courtInformation.whichSide = 'mine'
+
+        if (self.props.mode.opponentLineupId) {
+          if (self.props.liveSelector.playersInBothLineups.indexOf(event.player) > -1) {
+            courtInformation.whichSide = 'both'
+          }
+
+          if (self.props.liveSelector.lineups.opponent.rosterBySRID.indexOf(event.player) > -1) {
+            courtInformation.whichSide = 'opponent'
+          }
+        }
       }
 
       courtInformation.events[key.slice(0, -6)] = event
     })
+    log.debug('potential playersPlaying', playersPlaying)
+    self.setState({playersPlaying: playersPlaying})
 
     // trigger the animation on the court first
     setTimeout(function() {
@@ -385,7 +395,15 @@ var Live = React.createClass({
             const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
             const draftGroup = self.props.liveDraftGroups[draftGroupId]
             const playerId = draftGroup.playersBySRID[event.player]
-            const playerStats = draftGroup.playersStats[playerId]
+            let playerStats = draftGroup.playersStats[playerId]
+
+            // if game hasn't started
+            // TODO API call fix this
+            if (playerStats === undefined) {
+              playerStats = {
+                fp: 0
+              }
+            }
 
             self.props.updatePlayerFP(
               draftGroupId,
@@ -395,7 +413,7 @@ var Live = React.createClass({
           }
         })
 
-      }.bind(this), 2000)
+      }.bind(this), 4000)
 
       // remove the player from the court
       setTimeout(function() {
@@ -405,7 +423,7 @@ var Live = React.createClass({
 
         delete courtEvents[courtInformation.id]
         self.setState({courtEvents: courtEvents})
-      }.bind(this), 4000)
+      }.bind(this), 5000)
 
     }.bind(this), 1000)
   },
@@ -473,14 +491,15 @@ var Live = React.createClass({
             <div className="live-overall-stats live-overall-stats--me" />
           </header>
 
-          <LiveNBACourt courtEvents={self.state.courtEvents} />
+          <LiveNBACourt
+            mode={self.props.mode}
+            liveSelector={self.props.liveSelector}
+            courtEvents={self.state.courtEvents} />
 
           { chooseLineup }
         </section>
       )
     }
-
-    log.debug('Live component render() props', this.props)
 
     if ('mine' in self.props.liveSelector.lineups) {
       var myLineup = self.props.liveSelector.lineups.mine
@@ -513,7 +532,8 @@ var Live = React.createClass({
           whichSide="mine"
           mode={ self.props.mode }
           currentBoxScores={ self.props.currentBoxScores }
-          lineup={ myLineup } />
+          lineup={ myLineup }
+          playersPlaying={ self.state.playersPlaying } />
       )
     }
 
@@ -574,7 +594,8 @@ var Live = React.createClass({
               whichSide="opponent"
               mode={ self.props.mode }
               currentBoxScores={ self.props.currentBoxScores }
-              lineup={ opponentLineup } />
+              lineup={ opponentLineup }
+              playersPlaying={ self.state.playersPlaying } />
           </div>
         )
 
@@ -628,7 +649,10 @@ var Live = React.createClass({
             { overallStats }
           </header>
 
-          <LiveNBACourt courtEvents={self.state.courtEvents} />
+          <LiveNBACourt
+            mode={self.props.mode}
+            liveSelector={self.props.liveSelector}
+            courtEvents={self.state.courtEvents} />
 
           { moneyLine }
           { bottomNavForRightPanes }

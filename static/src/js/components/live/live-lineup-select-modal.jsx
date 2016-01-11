@@ -111,8 +111,6 @@ const LiveLineupSelectModal = React.createClass({
       return lineup.draftGroup.sport === this.state.selectedSport
     })
 
-    console.log('sportLineups', sportLineups, this.state)
-
     const lineups = sportLineups.map((lineup) => {
       const {points, minutesRemaining} = lineup
       let {name} = lineup

@@ -273,7 +273,7 @@ export const LiveStandingsPane = React.createClass({
           Compare Lineup
         </div>
       )
-      log.debug(mode, lineup.id)
+
       if (mode.myLineupId === lineup.id) {
         overlay = ''
         className += ' lineup--mine'

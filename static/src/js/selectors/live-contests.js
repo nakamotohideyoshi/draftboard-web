@@ -111,7 +111,7 @@ export const liveContestsStatsSelector = createSelector(
       contestsStats[id] = stats
     })
 
-    log.debug('selectors.liveContestsStatsSelector() - updated', contestsStats)
+    log.debug('selectors.liveContestsStatsSelector() - updated')
 
     return contestsStats
   }
