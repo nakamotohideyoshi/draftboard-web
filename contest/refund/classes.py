@@ -47,9 +47,10 @@ class RefundManager(AbstractManagerClass):
         """
         self.validate_arguments(contest)
 
-        # the contest
-        if contest not in LiveContest.objects.all():
-            raise ContestCanNotBeRefunded()
+        # if we are not forcing the refund, then check if the contest is live first
+        if not force:
+            if contest not in LiveContest.objects.all():
+                raise ContestCanNotBeRefunded()
 
         #
         # get all entries for a contest
@@ -62,23 +63,26 @@ class RefundManager(AbstractManagerClass):
         for entry in entries:
             bm = BuyinManager(entry.user)
 
-            #
-            # Create refund transaction from escrow
-            escrow_ct = CashTransaction(self.get_escrow_user())
-            escrow_ct.withdraw(buyin)
-            transaction = escrow_ct.transaction
 
+            transaction = None
             #
             # Create a cash or ticket deposit based on what the user
             # used to get into the contest
             if bm.entry_did_use_ticket(entry):
                 tm = TicketManager(entry.user)
-                tm.deposit(buyin, transaction_obj=transaction)
+                tm.deposit(buyin)
+                transaction = tm.transaction
                 self.__create_refund(transaction, entry)
             else:
                 ct = CashTransaction(entry.user)
-                ct.deposit(buyin, trans=transaction)
+                ct.deposit(buyin)
+                transaction = ct.transaction
                 self.__create_refund(transaction, entry)
+
+            #
+            # Create refund transaction from escrow
+            escrow_ct = CashTransaction(self.get_escrow_user())
+            escrow_ct.withdraw(buyin, trans=transaction)
 
         #
         # set the contest to cancelled

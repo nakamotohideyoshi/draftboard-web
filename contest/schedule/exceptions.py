@@ -15,3 +15,5 @@ class ScheduleOutOfRangeException(Exception):
     """
     def __init__(self):
         super().__init__('timedelta object is invalid. a valid range is between 0 and 6 days inclusive...')
+
+class SchedulerNumberOfGamesException(Exception): pass

@@ -11,6 +11,21 @@ from rest_framework import serializers
 #         model = Player
 #         fields = ('first_name','last_name')
 
+class GameSerializer(serializers.ModelSerializer):
+    """
+    parent Game object serializer with common fields
+    """
+    PARENT_FIELDS = ('srid','start')
+
+class BoxscoreSerializer(serializers.ModelSerializer):
+    """
+    parent GameBoxscore object serializer with common fields
+    """
+    PARENT_FIELDS = ('srid_home','srid_away',
+                     'status',
+                     'attendance','coverage',
+                     'home_scoring_json','away_scoring_json')
+
 class GameBoxscoreSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -35,9 +50,37 @@ class PlayerStatsSerializer(serializers.ModelSerializer):
         model = PlayerStats
         fields = ('game_id', 'player_id','fantasy_points')
 
-class InjurySerializer(serializers.ModelSerializer): pass       # extended by specific sport
+class InjurySerializer(serializers.ModelSerializer):
+    """
+    extended by the specific sport
+    """
+    pass
 
-class FantasyPointsSerializer(serializers.Serializer): pass     # extended by specific sport
+class FantasyPointsSerializer(serializers.Serializer):
+    """
+    extended by the specific sport
+    """
+    pass
+
+class PlayerHistorySerializer(serializers.Serializer):
+    """
+    extended by the specific sport
+    """
+    # we will get an array of games
+    games = serializers.ListField(
+        #source='fp',
+        child=serializers.CharField()
+    )
+
+    #
+    # the Fantasy Points have to get a different name in this
+    # serializer because there is already a column called fantasy_points which
+    # on the PlayerStats models
+    avg_fp = serializers.FloatField()
+    fp = serializers.ListField(
+        #source='fp',
+        child=serializers.FloatField()
+    )
 
 class TeamSerializer(serializers.ModelSerializer):
     """
@@ -54,3 +97,38 @@ class PlayerSerializer(serializers.ModelSerializer):
     ie: sports.nba.serializers.Player, sports.nhl.serializers.Player, etc...
     """
     PARENT_FIELDS = ('id','srid','first_name','last_name')
+
+class TsxItemSerializer(serializers.ModelSerializer):
+
+    PARENT_FIELDS = ('srid','pcid','content_published','title',
+                     'byline','dateline','credit','content')
+
+class TsxNewsSerializer(serializers.ModelSerializer):
+
+    PARENT_FIELDS = ('title','dateline')
+
+class TsxPlayerSerializer(serializers.ModelSerializer):
+
+    PARENT_FIELDS = ('name','sportsdataid','sportradarid')
+
+class PlayerNewsSerializer(serializers.ModelSerializer):
+
+    PARENT_FIELDS = ('id','news')
+
+    # maximum trailing news items to return
+    limit_news_items = 5
+
+    # child classes must override these to the sport's
+    # own TsxPlayer model
+    tsxplayer_class         = None
+    tsxplayer_serializer    = None
+
+    news = serializers.SerializerMethodField()
+    def get_news(self, player):
+        # dt_from = timezone.now() - timedelta(days=30) # start from 30 days ago
+        # query_set = TsxPlayer.objects.filter(player=player,
+        #                 content_published__gte=dt_from).select_related('player')
+
+        query_set = self.tsxplayer_class.objects.filter(player=player) \
+                            .select_related('player')[:self.limit_news_items]
+        return self.tsxplayer_serializer( query_set, many=True ).data

@@ -289,6 +289,12 @@ class ReplayManager(object):
                     self.timemachine.save()
                 return # because there are literally no more updates
 
+    def flag_cache(self, enable):
+        """
+        wrapper for __flag_cache
+        """
+        self.__flag_cache(enable)
+
     def __flag_cache(self, enable):
         if enable:
             caches[ ReplayManager.DEFAULT_CACHE ].set(self.CACHE_KEY_RECORDING_IN_PROGRESS, True, 86400)

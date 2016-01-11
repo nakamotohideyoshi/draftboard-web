@@ -1,3 +1,7 @@
+#
+# cash/views.py
+
+from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
@@ -36,11 +40,30 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
 
+    def get_user_for_id(self, user_id=None):
+        """
+        if a user can be found via the 'user_id' return it,
+        else return None.
+        """
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
+
     def get(self, request, format=None):
         """
         Gets the filtered Cash Transaction Details for the logged in user.
+
+        If the admin calls this api and ALSO specifies a 'user_id' get PARAM
+        then the transactions for that user is displayed.
         """
         user = self.request.user
+
+        admin_specified_user_id = self.request.QUERY_PARAMS.get('user_id', None)
+        admin_specified_user = self.get_user_for_id( admin_specified_user_id )
+        if user.is_superuser and admin_specified_user is not None:
+            # override the user whos transactions we will look at
+            user = admin_specified_user
 
         #
         # if the start_ts & end_ts params exist:

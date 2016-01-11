@@ -10,7 +10,7 @@ LOCK_EXPIRE = 60  # seconds
 SHARED_LOCK_NAME = "refund_task"
 
 @app.task(bind=True)
-def refund_task(self, contest):
+def refund_task(self, contest, force=False):
     lock_id = '%s-LOCK-contest[%s]'%(SHARED_LOCK_NAME, contest.pk)
 
     acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
@@ -19,7 +19,7 @@ def refund_task(self, contest):
     if acquire_lock():
         try:
             rm = RefundManager()
-            rm.refund(contest)
+            rm.refund(contest, force=force)
         finally:
             release_lock()
     else:
@@ -39,7 +39,8 @@ def refund_and_cancel_live_contests_task(self):
     contests = LiveContest.objects.all()
     for contest in contests:
         if contest.current_entries < contest.entries:
-            refund_task.delay( contest )
+            refund_task.delay( contest, force=True )
+
 
 
 

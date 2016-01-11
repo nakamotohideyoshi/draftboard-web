@@ -8,6 +8,6 @@ urlpatterns = patterns( '',
 
     #
     # get all the contest banners
-    (r'^feature/contests/$', ContestBannerAPIView.as_view()),
+    (r'^featured-content/$', ContestBannerAPIView.as_view()),
 
 )

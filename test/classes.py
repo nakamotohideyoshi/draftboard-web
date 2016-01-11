@@ -7,7 +7,7 @@ import threading
 from django.db import connections
 
 from prize.classes import CashPrizeStructureCreator
-
+from cash.classes import CashTransaction
 from test.models import PlayerChild, PlayerStatsChild, GameChild
 from django.utils import timezone
 from random import randint
@@ -26,6 +26,89 @@ from sports.classes import SiteSportManager
 from ticket.classes import TicketManager
 from util.timeshift import set_system_time, reset_system_time
 from random import Random
+from rest_framework.test import APITestCase
+from rest_framework import status
+from rest_framework.test import force_authenticate
+from rest_framework.test import APIRequestFactory
+from django.contrib.contenttypes.models import ContentType
+from lineup.classes import LineupManager
+
+class BuildWorldMixin( object ):
+    """
+    this class is intended to be inherited by test classes that require
+    fundamental things required for submitting lineups (ie: contests)
+    """
+
+    DEFAULT_USER_PASSWORD = 'test'
+
+    def build_world(self):
+        self.world = BuildWorldForTesting()
+        self.world.build_world()
+
+    def create_valid_lineup(self, user):
+        self.one = PlayerChild.objects.filter(position =self.world.position1)[0]
+        self.two = PlayerChild.objects.filter(position=self.world.position2)[0]
+        self.three = PlayerChild.objects.filter(position=self.world.position1)[1]
+        self.four = PlayerChild.objects.filter(position=self.world.position2)[1]
+
+        team = [self.one, self.two, self.three]
+        for player in team:
+            c_type = ContentType.objects.get_for_model(player)
+            draftgroup_player = Player.objects.get(salary_player__player_type=c_type,
+                                               salary_player__player_id=player.pk,
+                                               draft_group=self.world.draftgroup)
+            draftgroup_player.salary = 10000
+            draftgroup_player.save()
+
+        self.lm = LineupManager(user)
+        self.team = [self.one.pk, self.two.pk, self.three.pk]
+        self.lineup = self.lm.create_lineup(self.team, self.world.draftgroup)
+        return self.lineup
+
+    def create_user(self, username):
+        """
+        creates a user and gives them $10,000
+        :param username:
+        :return:
+        """
+        user = User.objects.create(username=username)
+        user.set_password(self.DEFAULT_USER_PASSWORD)
+        user.save()
+
+        ct = CashTransaction(user)
+        ct.deposit(10000.00)
+        return user
+
+class ForceAuthenticateAndRequestMixin( object ):
+
+    def force_authenticate_and_GET(self, user, view_class, url, data):
+        return self.force_authenticate_and_request(user, view_class, url, data, 'get')
+
+    def force_authenticate_and_POST(self, user, view_class, url, data):
+        return self.force_authenticate_and_request(user, view_class, url, data, 'post')
+
+    def force_authenticate_and_request(self, user, view_class, url, data, request_type):
+        """
+        major helper method for testing rest_framework APIs
+        so that we dont have to perform prerequisite calls to login
+        or use multiple lines of boiler-plate code.
+
+        read this link for more info:
+            http://www.django-rest-framework.org/api-guide/testing/
+        """
+        request = None
+        factory = APIRequestFactory()
+        view = view_class.as_view()
+        # Make an authenticated request to the view...
+        if request_type == 'get':
+            request = factory.get( url )
+        elif request_type == 'post':
+            request = factory.post( url, data )
+        else:
+            raise Exception('invalid request_type: %s' % request_type)
+        force_authenticate(request, user=user)
+        response = view(request)
+        return response
 
 # class ReplayNbaTest(object):
 #
@@ -224,11 +307,12 @@ class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTes
 class BuildWorldForTesting(object):
 
     def build_world(self):
+        TicketManager.create_default_ticket_amounts()
         self.create_sport_and_rosters()
         self.create_simple_player_stats_list()
         self.create_pool_and_draftgroup()
         self.create_contest()
-        pass
+
     #-------------------------------------------------------------------
     #-------------------------------------------------------------------
     # Shared setup methods for the test cases
@@ -433,3 +517,15 @@ class BuildWorldForTesting(object):
         trailing_game_weight.through                = through
         trailing_game_weight.weight                 = weight
         trailing_game_weight.save()
+
+    def get_scheduled_contest(self):
+        original_contest_id = self.contest.pk
+        self.contest.spawn()
+        new_contest = self.contest
+        self.contest = Contest.objects.get(pk=original_contest_id)
+
+        new_contest.draft_group = self.draftgroup
+        new_contest.start += timedelta(hours=1)
+        new_contest.status = Contest.SCHEDULED
+        new_contest.save()
+        return new_contest

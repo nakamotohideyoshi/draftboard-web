@@ -2,7 +2,7 @@
 # sports/models.py
 
 from django.db import models
-
+from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 import re
@@ -14,6 +14,7 @@ import django.core.exceptions
 
 import json
 from django.core import serializers # we will serialize select models, mainly for api use
+from dateutil.parser import parse
 
 class SignalNotSetupProperlyException(Exception):
     def __init__(self, class_name, variable_name):
@@ -230,6 +231,10 @@ class Injury(models.Model):
     status      = models.CharField(max_length=32, default='')
     description = models.CharField(max_length=1024, default='')
 
+    ddtimestamp = models.BigIntegerField(default=0, null=False,
+                    help_text='the time this injury update was parsed by dataden.' +
+                               'this will be the same value for all objects that were in the feed on the last parse.')
+
     def get_serializer_class(self):
         """
         """
@@ -314,6 +319,8 @@ class PlayerStats(models.Model):
 
     FANTASY_POINTS_OVERRIDE = 'fantasy_points_override'
 
+    SCORING_FIELDS = None # override as a list in child classes, ie: ['rebounds','assists']
+
     created = models.DateTimeField(auto_now_add=True)
 
     srid_game   = models.CharField(max_length=64, null=False,
@@ -341,6 +348,19 @@ class PlayerStats(models.Model):
 
     #position            = models.CharField(max_length=16, null=False, default='')
     # primary_position    = models.CharField(max_length=16, null=False, default='')
+
+    def get_scoring_fields(self):
+        """
+        get the fields relevant to scoring which we want
+        to display in the gamelog/history/averages
+        for the player.
+
+        inheriting models of this class must set
+        a list of fields they want to SCORING_FIELDS
+        """
+        if self.SCORING_FIELDS is None:
+            raise Exception('sports.PlayerStats.get_scoring_fields() must be overridden in child class!')
+        return self.SCORING_FIELDS
 
     def to_json(self):
         return json.loads( serializers.serialize('json', [self]))[0] # always only 1
@@ -466,6 +486,9 @@ class TsxContent(models.Model):
                         help_text='use the right part url for the actual feed after splitting on "tsx". heres an example srid: "/news/2015/12/15/all.xml"')
     sport           = models.CharField(max_length=32, null=False)
 
+    def __str__(self):
+        return '%s - %s - created:%s' % (self.sport, self.srid, str(self.created))
+
     class Meta:
         unique_together = ('srid','sport')
 
@@ -499,6 +522,11 @@ class TsxContent(models.Model):
 # class Player(Ref)
 class AbstractTsxItem(models.Model):
 
+    NEWS_FIELDS = [
+        'title',
+        'dateline',
+    ]
+
     created         = models.DateTimeField(auto_now_add=True)
     modified        = models.DateTimeField(auto_now=True)
 
@@ -518,7 +546,7 @@ class AbstractTsxItem(models.Model):
     byline      = models.CharField(max_length=256, null=False)
     dateline    = models.CharField(max_length=32, null=False)
     credit      = models.CharField(max_length=128, null=False)
-    content     = models.CharField(max_length=1024*8, null=False)
+    content     = models.CharField(max_length=1024*16, null=False)
 
     class Meta:
         abstract = True
@@ -556,6 +584,8 @@ class TsxTransaction(AbstractTsxItem):
 
 class AbstractTsxItemReference(models.Model):
 
+    DEFAULT_DATETIME = parse("1999-01-01T12:00:00+00:00") # one of the migrations needs this
+
     sportsdataid = models.CharField(max_length=64, null=False)
     sportradarid = models.CharField(max_length=64, null=False)
 
@@ -566,8 +596,12 @@ class AbstractTsxItemReference(models.Model):
     tsxitem_id       = models.PositiveIntegerField()
     tsxitem          = GenericForeignKey('tsxitem_type', 'tsxitem_id')
 
+    content_published = models.DateTimeField(null=False, default=DEFAULT_DATETIME,
+                                help_text='the item ref is a GFK so also store the publish date here for ordering purposes.')
+
     class Meta:
         abstract = True
+        ordering = ['-content_published'] # most recently published first
 
 class TsxTeam(AbstractTsxItemReference):
 

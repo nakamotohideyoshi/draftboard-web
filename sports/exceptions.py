@@ -46,6 +46,20 @@ class PlayerSerializerClassNotFoundException(Exception):
     def __init__(self, class_name, sport_name):
         super().__init__( "Player Serializer class for %s not found" % sport_name )
 
+# GameSerializerClassNotFoundException
+class GameSerializerClassNotFoundException(Exception):
+    def __init__(self, class_name, sport_name):
+        super().__init__( "Game Serializer class for %s not found" % sport_name )
+
+# BoxscoreSerializerClassNotFoundException
+class BoxscoreSerializerClassNotFoundException(Exception):
+    def __init__(self, class_name, sport_name):
+        super().__init__( "Boxscore Serializer class for %s not found" % sport_name )
+
+class PlayerHistorySerializerClassNotFoundException(Exception):
+    def __init__(self, class_name, sport_name):
+        super().__init__( "PlayerHistory Serializer class for %s not found" % sport_name )
+
 class TsxModelClassNotFoundException(Exception):
     """
     Intended usage:
@@ -55,3 +69,5 @@ class TsxModelClassNotFoundException(Exception):
 
     """
     pass
+
+class TsxSerializerClassNotFoundException(Exception): pass

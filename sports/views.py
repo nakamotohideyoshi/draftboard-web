@@ -8,7 +8,7 @@ from django.views.generic import TemplateView, View
 from sports.forms import PlayerCsvForm
 import sports.classes
 from sports.serializers import FantasyPointsSerializer
-from sports.nba.serializers import InjurySerializer
+from sports.nba.serializers import InjurySerializer, PlayerNewsSerializer
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 import json
@@ -90,8 +90,15 @@ class LeagueInjuryAPIView(generics.ListAPIView):
         sport = self.kwargs['sport']
         site_sport_manager = sports.classes.SiteSportManager()
         injury_model_class = site_sport_manager.get_injury_class( sport )
-        return injury_model_class.objects.all()
+        # fetch the highest ddtimestamp, and then return all the
+        # objects with that timestamp
+        most_recent_injuries = injury_model_class.objects.filter().order_by('-ddtimestamp')[:1]
+        if most_recent_injuries.count() == 0:
+            return []
 
+        last_updated_ts = most_recent_injuries[0].ddtimestamp
+        #return injury_model_class.objects.all() # we dont want to return multiple injuries for same player
+        return injury_model_class.objects.filter(ddtimestamp=last_updated_ts) # only return the most recent for each player
 
 class PlayerCsvView(View):
     template_name   = 'player_csv.html'
@@ -205,3 +212,225 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
                 player_stats += self.dictfetchall( c )
 
         return player_stats
+
+class PlayerHistoryAPIView(generics.ListAPIView):
+    """
+    averages for the primary scoring categories
+    """
+    permission_classes      = (IsAuthenticated,)
+
+    def dictfetchall(self, cursor):
+        """Return all rows from a cursor as a dict"""
+        columns = [col[0] for col in cursor.description]
+        return [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        return site_sport_manager.get_playerhistory_serializer_class( sport )
+
+    def get_queryset(self):
+        """
+        from django.db import connections
+        cursor = connections['my_db_alias'].cursor()
+        """
+        sport           = self.kwargs['sport']
+        n_games_history = self.kwargs['n_games_history']
+        #print( str(n_games_history), 'games for', sport )
+        site_sport_manager = sports.classes.SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport( sport )
+        player_stats_class_list = site_sport_manager.get_player_stats_class( site_sport )
+        player_stats = []
+        for player_stats_class in player_stats_class_list:
+            ct = ContentType.objects.get_for_model( player_stats_class )
+            database_table_name = ct.app_label + '_' + ct.model    # ie: 'nba_playerstats'
+
+            # these are the fields we want to aggregate and average for the serializer.
+            # we use a raw query for efficiency purposes.
+            scoring_fields = player_stats_class.SCORING_FIELDS
+            #print('player_stats_class', str(player_stats_class), 'SCORING_FIEDS', str(scoring_fields))
+
+            # from the scoring_fields we can generate a large part
+            # of the raw query in a loop
+            select_columns_str = 'player_id'
+            select_columns_str += ', array_agg(srid_game) as games'
+            select_columns_str += ', array_agg(fantasy_points) as fp'
+            select_columns_str += ', avg(fantasy_points) as avg_fp'
+
+            for scoring_field in scoring_fields:
+                # slap the scoring_field into every {0}
+                select_columns_str += ', array_agg({0}) as {0}, avg({0}) as avg_{0}'.format(scoring_field)
+
+            # the final query string
+            query_str = "select {0} from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {1}) as {1} where rn <={2}) as agg group by player_id".format(select_columns_str, database_table_name, str(n_games_history))
+            # query_str = """select player_id, array_agg(points) as points, avg(points) as avg_points, array_agg(three_points_made) as three_points_made, avg(three_points_made) as avg_three_points_made from (select * from (select *, row_number() over (partition by player_id order by created) as rn from nba_playerstats) as nba_playerstats where rn <=10) as agg group by player_id"""
+
+            # print('')
+            # print('query_str')
+            # print(query_str)
+            # print('')
+            # print('')
+
+            with connection.cursor() as c:
+                c.execute(query_str)
+                player_stats += self.dictfetchall( c )
+
+        return player_stats
+
+# class TsxNewsAPIView(generics.ListAPIView):
+#     """
+#     gets the news for the sport
+#     """
+#
+#     permission_classes      = (IsAuthenticated,)
+#
+#     def dictfetchall(self, cursor):
+#         """Return all rows from a cursor as a dict"""
+#         columns = [col[0] for col in cursor.description]
+#         return [
+#             dict(zip(columns, row))
+#             for row in cursor.fetchall()
+#         ]
+#
+#     def get_serializer_class(self):
+#         """
+#         override for having to set the self.serializer_class
+#         """
+#         sport = self.kwargs['sport']
+#         site_sport_manager = sports.classes.SiteSportManager()
+#         return site_sport_manager.get_tsxnews_serializer_class( sport )
+#
+#     def get_queryset(self):
+#         """
+#         from django.db import connections
+#         cursor = connections['my_db_alias'].cursor()
+#         """
+#         sport           = self.kwargs['sport']
+#         n_games_history = self.kwargs['n_games_history']
+#         #print( str(n_games_history), 'games for', sport )
+#         site_sport_manager = sports.classes.SiteSportManager()
+#         tsxnews_model_class = site_sport_manager.get_tsxnews_class(sport)
+#         tsxnews_items = []
+#
+#         ct = ContentType.objects.get_for_model( tsxnews_model_class )
+#         database_table_name = ct.app_label + '_' + ct.model    # ie: 'nba_tsxnews'
+#
+#         news_fields = tsxnews_model_class.NEWS_FIELDS
+#
+#         select_columns_str = 'player_id' # TODO we need to get player in here somehow (maybe during parse?)
+#         select_columns_str += ', array_agg(srid_game) as games'
+#         select_columns_str += ', array_agg(fantasy_points) as fp'
+#         select_columns_str += ', avg(fantasy_points) as avg_fp'
+#
+#         for news_field in news_fields:
+#             select_columns_str += ', array_agg({0}) as {0}, avg({0}) as avg_{0}'.format(news_field)
+#
+#         # the final query string
+#         query_str = "select {0} from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {1}) as {1} where rn <={2}) as agg group by player_id".format(select_columns_str, database_table_name, str(n_games_history))
+#         # query_str = """select player_id, array_agg(points) as points, avg(points) as avg_points, array_agg(three_points_made) as three_points_made, avg(three_points_made) as avg_three_points_made from (select * from (select *, row_number() over (partition by player_id order by created) as rn from nba_playerstats) as nba_playerstats where rn <=10) as agg group by player_id"""
+#
+#         # print('')
+#         # print('query_str')
+#         # print(query_str)
+#         # print('')
+#         # print('')
+#
+#         with connection.cursor() as c:
+#             c.execute(query_str)
+#             tsxnews_items += self.dictfetchall( c )
+#
+#         return tsxnews_items
+
+class TsxPlayerNewsAPIView(generics.ListAPIView):
+    """
+    gets the news for the sport
+    """
+
+    permission_classes      = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        injury_serializer_class = site_sport_manager.get_tsxplayer_serializer_class( sport )
+        return injury_serializer_class
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the LobbyContest model.
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        tsxplayer_model_class = site_sport_manager.get_tsxplayer_class(sport)
+
+        # TODO return them all for now as a test
+        return tsxplayer_model_class.objects.all()
+
+class TsxPlayerItemsAPIView(generics.ListAPIView):
+    """
+    gets the news for the sport
+    """
+
+    permission_classes      = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        injury_serializer_class = site_sport_manager.get_tsxplayer_serializer_class( sport )
+        return injury_serializer_class
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the LobbyContest model.
+        """
+        sport = self.kwargs['sport']
+        site_sport_manager = sports.classes.SiteSportManager()
+        tsxplayer_model_class = site_sport_manager.get_tsxplayer_class(sport)
+
+        # TODO return them all for now as a test
+        return tsxplayer_model_class.objects.all()
+
+class PlayerNewsAPIView(generics.ListAPIView):
+    """
+    gets the news for the sport
+    """
+
+    permission_classes      = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        return PlayerNewsSerializer
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the LobbyContest model.
+        """
+        sport = self.kwargs['sport']
+        player_id = self.kwargs.get('player')
+        print('player_id', str(player_id))
+        site_sport_manager = sports.classes.SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport(sport)
+        sport_player_class = site_sport_manager.get_player_class( site_sport )
+        if player_id is None:
+            # get all of them
+            return sport_player_class.objects.all()
+        else:
+            # # return 1 of them
+            # player_model = sport_player_class.objects.get(pk=player_id)
+            # player_ctype = ContentType.objects.get_for_model(player_model)
+            return sport_player_class.objects.filter(pk=player_id)
+
+

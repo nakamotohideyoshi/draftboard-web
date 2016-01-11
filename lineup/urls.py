@@ -2,10 +2,15 @@
 # lineup/urls.py
 
 from django.conf.urls import patterns
-from lineup.views import UserUpcomingAPIView, UserLiveAPIView, \
-                            UserHistoryAPIView, PlayersAPIView, \
-                            CreateLineupAPIView, EditLineupAPIView, \
-                            LineupUserAPIView
+from lineup.views import (
+    UserUpcomingAPIView,
+    UserLiveAPIView,
+    UserHistoryAPIView,
+    PlayersAPIView,
+    CreateLineupAPIView,
+    EditLineupAPIView,
+    LineupUserAPIView,
+)
 
 urlpatterns = patterns( '',
 

@@ -1,5 +1,6 @@
 #
 # sports/nhl/parser.py
+
 import sports.nhl.models
 from scoring.classes import NhlSalaryScoreSystem
 from sports.nhl.models import Team, Game, Player, PlayerStats, \
@@ -13,6 +14,7 @@ from sports.sport.base_parser import AbstractDataDenParser, \
 from dataden.classes import DataDen
 import push.classes
 from django.conf import settings
+from sports.sport.base_parser import TsxContentParser
 
 class TeamHierarchy(DataDenTeamHierarchy):
     """
@@ -265,6 +267,7 @@ class DataDenNhl(AbstractDataDenParser):
 
     def __init__(self):
         self.game_model = Game # current unused
+        self.sport = 'nhl'
 
     def parse(self, obj):
         """
@@ -308,6 +311,15 @@ class DataDenNhl(AbstractDataDenParser):
         #
         #
         elif self.target == ('nhl.injury','injuries'): Injury().parse( obj )
+
+        #
+        # nhl.content - the master object with list of ids to the content items
+        elif self.target == ('nhl.content', 'content'):
+            #
+            # get an instance of TsxContentParser( sport ) to parse
+            # the Sports Xchange content
+            TsxContentParser(self.sport).parse( obj )
+
         #
         # default case, print this message for now
         else: self.unimplemented( self.target[0], self.target[1] )

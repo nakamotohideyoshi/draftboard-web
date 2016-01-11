@@ -1,5 +1,7 @@
 #
 # contest/buyin/tests.py
+
+from rest_framework.test import APITestCase
 from test.classes import AbstractTest, AbstractTestTransaction
 from salary.dummy import Dummy
 from prize.classes import CashPrizeStructureCreator
@@ -11,6 +13,10 @@ from dataden.util.timestamp import DfsDateTimeUtil
 from ..classes import ContestCreator
 from ..models import Contest
 from .classes import BuyinManager
+from contest.views import (
+    EnterLineupAPIView,
+    EnterLineupStatusAPIView,
+)
 from cash.classes import CashTransaction
 from contest import exceptions
 import mysite.exceptions
@@ -20,6 +26,9 @@ from draftgroup.models import DraftGroup
 from lineup.exceptions import LineupDoesNotMatchUser
 from .tasks import buyin_task
 from django.test.utils import override_settings
+from test.classes import BuildWorldMixin, ForceAuthenticateAndRequestMixin
+from rest_framework import status
+from rest_framework.response import Response
 
 class BuyinTest(AbstractTest):
     """
@@ -248,3 +257,95 @@ class BuyinTest(AbstractTest):
 #         ct = CashTransaction(self.user)
 #
 #         self.assertEqual(70, ct.get_balance_amount())
+
+class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMixin):
+    """
+    creates the world (a contest with a draft_group)
+    along with a contest which we can enter a lineup into.
+
+    tests to make sure the 2 primary api calls involved in
+    this task are working properly.
+
+    those two api calls are:
+
+        1. /api/contest/enter-lineup/               # try to do it non-blocking
+        2. /api/contest/enter-lineup-status/        # check if it worked, need to poll this.
+
+
+    """
+
+    def setUp(self):
+        """
+        1. builds the world
+
+        2. logs in a newly created user
+
+        :return:
+        """
+        # build world, and create a user with username='user'
+        self.build_world()
+
+        # get a scheduled, draftable contest from the world.
+        # the default self.world.contest doesnt have a draftgroup,
+        # so make sure to use get_scheduled_contest()
+        self.contest = self.world.get_scheduled_contest()
+
+        # creates a user and also adds cash funds to their account
+        # so they can buyin to contests
+        self.user = self.create_user('user')
+
+        # the endpoint to test
+        self.url = '/api/contest/enter-lineup/'
+
+        # create a valid lineup
+        self.lineup = self.create_valid_lineup(self.user)
+
+    # @override_settings(TEST_RUNNER=BuyinTest.CELERY_TEST_RUNNER,
+    #                    CELERY_ALWAYS_EAGER=True,
+    #                    CELERYD_CONCURRENCY=1)
+    def test_enter_valid_lineup_returns_buyin_task_id(self):
+
+        data = {
+            'lineup'    : self.lineup.pk,
+            'contest'   : self.contest.pk,
+        }
+        response = self.force_authenticate_and_POST(self.user,
+                                                    EnterLineupAPIView,
+                                                    self.url,
+                                                    data )
+        print(str(response))
+        print(str(response.data))
+        print(str(response.status_code))
+        # status.is_success() indicates a http response for 2xx
+        #
+        # ContestIsNotAcceptingLineupsException indicates
+        #   lineup is None or contest draft_group was none
+        self.assertTrue( status.is_success( response.status_code ) )
+        # make sure the  buyin task id field exists
+        self.assertTrue( 'buyin_task_id' in response.data.keys() )
+        # and make sure its not None
+        buyin_task_id = response.data.get('buyin_task_id')
+        self.assertIsNotNone( buyin_task_id )
+
+        #
+        # lookup the task by its id
+        enter_lineup_status_url = '/api/contest/enter-lineup-status/'
+        enter_lineup_status_data = {
+            'task' : buyin_task_id
+        }
+        enter_lineup_status_response = self.force_authenticate_and_POST(self.user,
+                                                    EnterLineupStatusAPIView,
+                                                    enter_lineup_status_url,
+                                                    enter_lineup_status_data )
+        print('enter_lineup_status_response.status_code:',
+              str(enter_lineup_status_response.status_code) )
+        #
+        # celery is probably not running, so dont assume the success of this api
+        #self.assertTrue( status.is_success(enter_lineup_status_response.status_code) )
+        print( 'enter-lineup-status response.data:', str(enter_lineup_status_response.data))
+        # make sure the status field exists
+        self.assertTrue( 'status' in enter_lineup_status_response.data.keys() )
+        buyin_status = enter_lineup_status_response.data.get('status')
+        self.assertIsNotNone( buyin_status )
+
+
