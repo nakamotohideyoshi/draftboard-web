@@ -546,7 +546,7 @@ class AbstractTsxItem(models.Model):
     byline      = models.CharField(max_length=256, null=False)
     dateline    = models.CharField(max_length=32, null=False)
     credit      = models.CharField(max_length=128, null=False)
-    content     = models.CharField(max_length=1024*8, null=False)
+    content     = models.CharField(max_length=1024*16, null=False)
 
     class Meta:
         abstract = True
