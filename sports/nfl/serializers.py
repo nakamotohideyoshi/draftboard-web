@@ -42,7 +42,8 @@ class InjurySerializer(sports.serializers.InjurySerializer):
     class Meta:
 
         model = Injury
-        fields = ('iid', 'status','description','srid', 'practice_status', 'player_id')
+        fields = sports.serializers.InjurySerializer.PARENT_FIELDS + \
+                                                ('srid', 'practice_status')
 
 class TeamSerializer(sports.serializers.TeamSerializer):
 

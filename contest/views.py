@@ -204,10 +204,10 @@ class UserHistoryAPIView(generics.GenericAPIView):
 
         .. note::
 
-            A get parameter of **?start_ts=X&end_ts=Y** can be used. This argument
-            describes how many days of history from today to get. If
-            it is not set, by default it will return the max which is 30.
-            If anything greater than 30 is set, it will return the 30 days.
+            By default it will return the last 100 historical entries.
+
+            Get parameters of **?start_ts=UNIX_TIMESTAMP&end_ts=UNIX_TIMESTAMP** can be used to
+            set a date range to get entries between.
 
     """
 

@@ -44,22 +44,22 @@ urlpatterns = patterns( '',
 
     #
     # get the player season averages, as well as a 5-game log
-    (r'^player-history/(?P<sport>[a-z]+)/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view()),
+    (r'^player/history/(?P<sport>[a-z]+)/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view()),
 
-    #
-    # get news content for the sport, for all the players
-    (r'^player-news/(?P<sport>[a-z]+)/$', TsxPlayerNewsAPIView.as_view()),
+    # #
+    # # get news content for the sport, for all the players
+    # (r'^player-news/(?P<sport>[a-z]+)/$', TsxPlayerNewsAPIView.as_view()),
 
-    #
-    # get the player-news/{sport}/ however do so for a limited range per player
-    # TsxPlayerItemsAPIView
-    (r'^player-items/(?P<sport>[a-z]+)/$', TsxPlayerItemsAPIView.as_view()),
+    # #
+    # # get the player-news/{sport}/ however do so for a limited range per player
+    # # TsxPlayerItemsAPIView
+    # (r'^player-items/(?P<sport>[a-z]+)/$', TsxPlayerItemsAPIView.as_view()),
 
     #
     # both urls below return the same data.
     #   1. the first returns only 1 players news
     #   2. the second takes a bit longer but returns all player news
-    (r'^playernews/(?P<sport>[a-z]+)/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view()),
-    (r'^playernews/(?P<sport>[a-z]+)/$', PlayerNewsAPIView.as_view()),
+    (r'^player/news/(?P<sport>[a-z]+)/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view()),
+    (r'^player/news/(?P<sport>[a-z]+)/$', PlayerNewsAPIView.as_view()),
 
 )
