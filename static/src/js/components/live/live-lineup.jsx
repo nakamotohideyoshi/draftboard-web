@@ -21,6 +21,7 @@ var LiveLineup = React.createClass({
     lineup: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object.isRequired,
     currentBoxScores: React.PropTypes.object.isRequired,
+    eventDescriptions: React.PropTypes.object.isRequired,
     playersPlaying: React.PropTypes.array.isRequired,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func
@@ -65,6 +66,7 @@ var LiveLineup = React.createClass({
           key={playerId}
           player={player}
           playersPlaying={ self.props.playersPlaying }
+          eventDescriptions={ self.props.eventDescriptions }
           whichSide={self.props.whichSide}
           onClick={self.openPlayerDetail.bind(self, playerId)} />
       )

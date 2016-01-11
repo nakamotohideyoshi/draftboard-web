@@ -11,11 +11,15 @@
   }
 
   // shortcut for each child, if it's too slow we can define all the children manually
-  > * {
+  &__position,
+  &__photo,
+  &__status,
+  &__points,
+  &__play-status {
     display: inline-block;
     vertical-align: middle;
     margin: 0 4px;
-    z-index: 2001;
+    z-index: 5020;
     position: relative;
   }
 
@@ -41,19 +45,74 @@
     width: 330px;
   }
 
+  &__event-description {
+    transition: all 500ms cubic-bezier(.8,.16,.18,.85) 400ms;
+    background: #1f2231;
+    border-radius: 32px;
+    height: 32px;
+    padding: 4px 14px;
+    z-index: 5000;
+    position: absolute;
+    left: 118px;
+    top: 16px;
+    white-space: nowrap;
+
+    > * {
+      display: inline-block;
+    }
+  }
+
+  .event-description-enter {
+    opacity: 0.01;
+    top: 36px;
+  }
+
+  .event-description-enter.event-description-enter-active {
+    opacity: 1;
+    top: 16px;
+  }
+
+  .event-description-leave {
+    opacity: 1;
+    top: 16px;
+  }
+
+  .event-description-leave.event-description-leave-active {
+    opacity: 0.01;
+    top: -4px;
+  }
+
+  .event-description__points {
+    color: #3db8e3;
+    font-family: $font-oswald;
+    font-size: 11px;
+    margin-right: 12px;
+  }
+
+  .event-description__info {
+    color: #fff;
+    font-size: 12px;
+    margin-right: 4px;
+  }
+
+  .event-description__when {
+    color: #878b9c;
+    font-size: 12px;
+  }
+
   &__hover-stats {
     background: #1e2130 url(../img/blocks/live-lineup-player/hover-stats-divider.jpg) no-repeat 100px center;
     border-radius: 50px;
     background-size: auto 64%;
     height: 50px;
-    left: 27px;
+    left: 31px;
     overflow: hidden;
     padding: 0;
     position: absolute;
     top: 7px;
     transition: all 316ms cubic-bezier(.8,.16,.18,.85) 400ms;
     width: 48px;
-    z-index: 2000;
+    z-index: 5010;
 
     ul {
       list-style: none;
@@ -151,6 +210,11 @@
     }
   }
 
+  .live-lineup-player .live-lineup-player__event-description {
+    right: 118px;
+    left: auto;
+  }
+
   .live-lineup-player .live-lineup-player__hover-stats {
     text-align: left;
     background-position: 210px center;
@@ -168,7 +232,7 @@
   }
 
   .live-lineup-player__hover-stats {
-    right: 29px;
+    right: 33px;
     left: auto;
   }
 }

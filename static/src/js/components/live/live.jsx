@@ -63,6 +63,7 @@ var Live = React.createClass({
     return {
       // Selected option string. SEE: `getSelectOptions`
       playersPlaying: [],
+      eventDescriptions: {},
       gameQueues: {},
       courtEvents: {}
     }
@@ -405,6 +406,27 @@ var Live = React.createClass({
               }
             }
 
+            // show event description
+            let eventDescriptions = Object.assign(
+              {},
+              self.state.eventDescriptions,
+              {
+                [event.player]: {
+                  points: playerStats.fp,
+                  info: eventCall.description,
+                  when: eventCall.clock
+                }
+              }
+            )
+            self.setState({ eventDescriptions: eventDescriptions })
+
+            setTimeout(function() {
+              log.debug('setTimeout - remove event description')
+              let eventDescriptions = Object.assign({}, eventDescriptions)
+              delete(eventDescriptions[event.player])
+              self.setState({ eventDescriptions: eventDescriptions })
+            } , 6000)
+
             self.props.updatePlayerFP(
               draftGroupId,
               playerId,
@@ -533,7 +555,8 @@ var Live = React.createClass({
           mode={ self.props.mode }
           currentBoxScores={ self.props.currentBoxScores }
           lineup={ myLineup }
-          playersPlaying={ self.state.playersPlaying } />
+          playersPlaying={ self.state.playersPlaying }
+          eventDescriptions={ self.state.eventDescriptions } />
       )
     }
 
@@ -595,7 +618,8 @@ var Live = React.createClass({
               mode={ self.props.mode }
               currentBoxScores={ self.props.currentBoxScores }
               lineup={ opponentLineup }
-              playersPlaying={ self.state.playersPlaying } />
+              playersPlaying={ self.state.playersPlaying }
+              eventDescriptions={ self.state.eventDescriptions } />
           </div>
         )
 
