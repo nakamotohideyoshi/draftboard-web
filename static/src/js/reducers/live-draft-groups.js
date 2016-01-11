@@ -128,7 +128,7 @@ module.exports = (state = {}, action) => {
       return update(state, {
         [action.id]: {
           $merge: {
-            isFetchingBoxScores: true,
+            isFetchingBoxScores: false,
             boxScoresUpdatedAt: action.updatedAt,
             boxScores: action.boxScores
           }

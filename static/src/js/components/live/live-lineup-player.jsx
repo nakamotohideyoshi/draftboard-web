@@ -2,7 +2,7 @@ import React from 'react'
 
 import * as AppActions from '../../stores/app-state-store'
 import LivePMRProgressBar from './live-pmr-progress-bar'
-
+var ReactCSSTransitionGroup = require('react-addons-css-transition-group');
 
 /**
  * One entry within the live history ticker
@@ -12,18 +12,30 @@ var LiveLineupPlayer = React.createClass({
     whichSide: React.PropTypes.string.isRequired,
     player: React.PropTypes.object.isRequired,
     playersPlaying: React.PropTypes.array.isRequired,
+    eventDescriptions: React.PropTypes.object.isRequired,
     onClick: React.PropTypes.func.isRequired
   },
 
   render: function() {
     let playStatusClass = 'live-lineup-player__play-status'
+    const playerSRID = this.props.player.info.player_srid
 
     // if player is on the court, show
-    if (this.props.playersPlaying.indexOf(this.props.player.info.player_srid) !== -1) {
+    if (this.props.playersPlaying.indexOf(playerSRID) !== -1) {
       playStatusClass += ' play-status--playing'
     }
 
-
+    // if player makes fp, show why
+    let eventDescription
+    if (playerSRID in this.props.eventDescriptions) {
+      eventDescription = (
+        <div className="live-lineup-player__event-description event-description showing">
+          <div className="event-description__points">+2</div>
+          <div className="event-description__info">Norman Powell Dudley makes two point jump shot (John Wall assists)</div>
+          <div className="event-description__when">11:04</div>
+        </div>
+      )
+    }
 
     // TEMP
     let playerInitials = this.props.player.info.name.match(/\b(\w)/g).join('')
@@ -76,6 +88,7 @@ var LiveLineupPlayer = React.createClass({
       return (
         <li className={className} onClick={this.props.onClick}>
           { hoverStats }
+          { eventDescription }
           <div className={ playStatusClass }></div>
           <div className="live-lineup-player__points">{stats.fp}</div>
           <div className="live-lineup-player__status"></div>
@@ -98,6 +111,9 @@ var LiveLineupPlayer = React.createClass({
         <div className="live-lineup-player__status"></div>
         <div className="live-lineup-player__points">{stats.fp}</div>
         <div className={ playStatusClass }></div>
+        <ReactCSSTransitionGroup transitionName="event-description" transitionEnterTimeout={0} transitionLeaveTimeout={0}>
+          { eventDescription }
+        </ReactCSSTransitionGroup>
         { hoverStats }
       </li>
     )
