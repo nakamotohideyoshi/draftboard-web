@@ -84,10 +84,10 @@ const NavScoreboardFilters = React.createClass({
 
   render() {
     const items = this.props.options.map((opt) => {
-      let {option, count} = opt;
+      let {option, count, key} = opt;
 
       return (
-        <li key={option} onClick={this.handleChangeSelection.bind(this, option)}>
+        <li key={key} onClick={this.handleChangeSelection.bind(this, option)}>
           {option}
           <span className="counter"> {count}</span>
         </li>

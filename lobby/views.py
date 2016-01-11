@@ -11,12 +11,12 @@ from lobby.serializers import ContestBannerSerializer
 from lobby.models import ContestBanner
 from django.utils import timezone
 
+
 class ContestBannerAPIView(generics.ListAPIView):
     """
     Get a list of the ContestBanner objects
     """
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = ContestBannerSerializer
+    serializer_class = ContestBannerSerializer
 
     def get_queryset(self):
         """

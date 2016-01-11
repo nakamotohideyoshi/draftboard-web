@@ -4,6 +4,8 @@ const initialState = {
   allContests: {},
   filteredContests: {},
   focusedContestId: null,
+  isFetchingEntrants: false,
+  entrants: {},
   filters: {
     orderBy: {
       property: 'start',
@@ -29,29 +31,51 @@ module.exports = function(state = initialState, action) {
       });
 
 
-      case ActionTypes.UPCOMING_CONTESTS_FILTER_CHANGED:
-        let newFilter = {};
+    case ActionTypes.UPCOMING_CONTESTS_FILTER_CHANGED:
+      let newFilter = {};
 
-        newFilter[action.filter.filterName] = {
-          filterProperty: action.filter.filterProperty,
-          match: action.filter.match
-        }
+      newFilter[action.filter.filterName] = {
+        filterProperty: action.filter.filterProperty,
+        match: action.filter.match
+      }
 
-        return Object.assign({}, state, {
-          filters: Object.assign({}, state.filters, newFilter)
-        });
-
-
-      case ActionTypes.SET_FOCUSED_CONTEST:
-        return Object.assign({}, state, {
-          focusedContestId: action.contestId
-        });
+      return Object.assign({}, state, {
+        filters: Object.assign({}, state.filters, newFilter)
+      });
 
 
-      case ActionTypes.UPCOMING_CONTESTS_ORDER_CHANGED:
-        let newState = Object.assign({}, state)
-        newState.filters.orderBy = action.orderBy
-        return newState
+    case ActionTypes.SET_FOCUSED_CONTEST:
+      return Object.assign({}, state, {
+        focusedContestId: action.contestId
+      });
+
+
+    case ActionTypes.UPCOMING_CONTESTS_ORDER_CHANGED:
+      let newState = Object.assign({}, state)
+      newState.filters.orderBy = action.orderBy
+      return newState
+
+
+    case ActionTypes.FETCHING_CONTEST_ENTRANTS:
+      return Object.assign({}, state, {
+        isFetchingEntrants: true
+      })
+
+
+    case ActionTypes.FETCH_CONTEST_ENTRANTS_FAIL:
+      return Object.assign({}, state, {
+        isFetchingEntrants: false
+      })
+
+
+    case ActionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS:
+      let newEntrants = Object.assign({}, state.entrants)
+      newEntrants[action.contestId] = action.entrants
+
+      return Object.assign({}, state, {
+        isFetchingEntrants: false,
+        entrants: newEntrants
+      })
 
 
     default:

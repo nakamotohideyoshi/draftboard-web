@@ -22,5 +22,13 @@
       height: 100%;
       width: 100%;
     }
+
+    &--mine .shooter-centered {
+      background-image: url(../img/blocks/live-nba-court/temp-shooter-mine.png);
+    }
+
+    &--opponent .shooter-centered {
+      background-image: url(../img/blocks/live-nba-court/temp-shooter-opponent.png);
+    }
   }
 }

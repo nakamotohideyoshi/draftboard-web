@@ -1,0 +1,96 @@
+@import "../variables.scss";
+
+// Modal to prompt a user to confirm their contest entry.
+.cmp-modal--contest-list-confirm {
+  .cmp-modal {
+    &__header {
+      padding-bottom: 25px;
+
+      &:after {
+        content: none;
+        border: none;
+      }
+    }
+
+    &__dialog {
+      background: #262a3b;
+      color: #fff;
+      width: 305px;
+    }
+  }
+}
+
+
+// Inner modal content.
+.cmp-contest-list-confirm-modal {
+
+  .content {
+    .footer-section {
+        display: inline-block;
+        font-family: $font-oswald;
+        font-size: 20px;
+        text-align: center;
+        width: 50%;
+    }
+
+    .footer-title {
+      color: #b4b7c4;
+      display: block;
+      font-family: $font-open-sans;
+      font-size: 9px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+  }
+
+  .content-inner {
+    background: #fff;
+    color: #46495e;
+    font-size: 15px;
+    padding: 30px;
+  }
+
+  .title {
+    font-family: $font-oswald;
+    font-weight: 400;
+    padding-bottom: 25px;
+    text-transform: uppercase;
+
+    &:after {
+      background: #c7c9d3;
+      content: " ";
+      display: block;
+      height: 1px;
+      margin: 25px auto 0;
+      width: 60px;
+    }
+  }
+
+  .remember {
+    font-size: 13px;
+    padding: 20px 0;
+
+    &__inner {
+      cursor: pointer;
+      display: inline-block;
+      margin: 0 auto;
+      background: url(../img/blocks/form/radio-button-alt.png) no-repeat 0px -33px;
+      background-size: 10px auto;
+      padding-left: 20px;
+
+      &:hover {
+        background-position: 0px -69px;
+      }
+
+      &.selected {
+        background-position: 0px 4px !important;
+      }
+    }
+  }
+
+  .button {
+    text-transform: uppercase;
+    font-size: 10px;
+  }
+
+}

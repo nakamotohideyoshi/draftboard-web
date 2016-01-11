@@ -11,7 +11,6 @@ var PrizeStructure = React.createClass({
 
 
   getRanks: function() {
-    let place = 0
     let rankList = []
 
     if (typeof this.props.structure.info == 'undefined') {
@@ -19,11 +18,10 @@ var PrizeStructure = React.createClass({
     }
 
      _forEach(this.props.structure.info.ranks, function(item) {
-      place = place + 1
       rankList.push(
-        <li key={place}>
-          <span className="place">{ordinal(place)}</span>
-          <span className="prize">${item.rank}</span>
+        <li key={item.rank}>
+          <span className="place">{ordinal(item.rank)}</span>
+          <span className="prize">${item.value}</span>
         </li>
       )
     })

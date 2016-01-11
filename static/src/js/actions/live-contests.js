@@ -3,6 +3,8 @@
 import 'babel-core/polyfill'; // so I can use Promises
 import { Buffer } from 'buffer/'
 import { normalize, Schema, arrayOf } from 'normalizr'
+import Cookies from 'js-cookie'
+import _ from 'lodash'
 const request = require('superagent-promise')(require('superagent'), Promise)
 
 import * as ActionTypes from '../action-types'
@@ -91,6 +93,87 @@ function parseContestLineups(apiContestLineupsBytes, draftGroup) {
   return lineups
 }
 
+
+// CONTEST LINEUPS USERNAMES
+// -----------------------------------------------------------------------
+
+function requestContestLineupsUsernames(id) {
+  log.debug('actionsLiveContest.requestContestLineupsUsernames')
+
+  return {
+    id: id,
+    type: ActionTypes.REQUEST_LIVE_CONTEST_LINEUPS_USERNAMES
+  }
+}
+
+
+function receiveContestLineupsUsernames(id, response) {
+  log.debug('actionsLiveContest.receiveContestLineupsUsernames')
+
+  let lineupsUsernames = {}
+  _.forEach(response, (lineup) => {
+    lineupsUsernames[lineup.id] = {
+      'id': lineup.id,
+      'user': lineup.user
+    }
+  })
+
+  return {
+    type: ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS_USERNAMES,
+    id: id,
+    lineupsUsernames: lineupsUsernames,
+    expiresAt: Date.now() + 86400000
+  }
+}
+
+
+function fetchContestLineupsUsernames(contestId) {
+  log.debug('actionsLiveContest.fetchContestLineupsUsernames')
+
+  return dispatch => {
+    dispatch(requestContestLineupsUsernames(contestId))
+
+    const params = {
+      contest_id: contestId
+    }
+
+    return request.post(
+      '/api/lineup/usernames/'
+    ).send(
+      params
+    ).set({
+      'X-REQUESTED-WITH': 'XMLHttpRequest',
+      'X-CSRFToken': Cookies.get('csrftoken'),
+      'Accept': 'application/json'
+    }).then(function(res) {
+      return dispatch(receiveContestLineupsUsernames(contestId, res.body))
+    })
+  }
+}
+
+
+function shouldFetchContestLineupsUsernames(state, id) {
+  log.debug('actionsLiveContest.shouldFetchContestLineupsUsernames')
+
+  if (id in state.liveContests === false) {
+    return true
+  }
+
+  return 'lineupsUsernames' in state.liveContests[id] === false
+}
+
+
+export function fetchContestLineupsUsernamesIfNeeded(id) {
+  log.debug('actionsLiveContest.fetchContestIfNeeded')
+
+  return (dispatch, getState) => {
+    if (shouldFetchContestLineupsUsernames(getState(), id) === false) {
+      return Promise.resolve('Contest usernames already exists')
+    }
+
+    return dispatch(fetchContestLineupsUsernames(id))
+  }
+}
 
 
 // CONTEST LINEUPS
@@ -182,7 +265,15 @@ function fetchContestInfo(id) {
 function shouldFetchContest(state, id) {
   log.debug('actionsLiveContest.shouldFetchContest')
 
-  return id in state.liveContests === false
+  if (id in state.liveContests === false) {
+    return true
+  }
+
+  if ('lineupBytes' in state.liveContests[id] === false) {
+    return true
+  }
+
+  return false
 }
 
 
@@ -191,7 +282,7 @@ export function fetchContestIfNeeded(id) {
 
   return (dispatch, getState) => {
     if (shouldFetchContest(getState(), id) === false) {
-      return Promise.reject('Contest already exists')
+      return Promise.resolve('Contest already exists')
     }
 
     return Promise.all([

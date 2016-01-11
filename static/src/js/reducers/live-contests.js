@@ -12,8 +12,8 @@ function setOrMerge(state, action, newProps) {
   // if contest does not exist, then $set to create
   if (action.id in state === false) {
     return update(state, {
-      $set: {
-        [action.id]: newProps
+      [action.id]: {
+        $set: newProps
       }
     })
   }
@@ -81,6 +81,29 @@ module.exports = function(state = {}, action) {
           }
         }
       })
+
+
+    case ActionTypes.REQUEST_LIVE_CONTEST_LINEUPS_USERNAMES:
+      log.debug('reducersLiveContests.REQUEST_LIVE_CONTEST_LINEUPS_USERNAMES')
+
+      newProps = {
+        id: action.id,
+        isFetchingLineupsUsernames: true
+      }
+
+      return setOrMerge(state, action, newProps)
+
+
+    case ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS_USERNAMES:
+      log.debug('reducersLiveContests.RECEIVE_LIVE_CONTEST_LINEUPS_USERNAMES')
+
+      newProps = {
+        id: action.id,
+        isFetchingLineupsUsernames: false,
+        lineupsUsernames: action.lineupsUsernames
+      }
+
+      return setOrMerge(state, action, newProps)
 
 
     case ActionTypes.UPDATE_LIVE_CONTEST_STATS:

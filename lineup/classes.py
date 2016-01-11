@@ -82,6 +82,17 @@ class LineupManager(AbstractSiteUserClass):
         lineups = [ entry.lineup for entry in distinct_lineup_entries ]
         return lineups
 
+    def get_for_contest(self, contest_id):
+        """
+
+        :param contest_id:
+        :return: list of lineup.models.Lineup objects in the contest
+        """
+        contests = Contest.objects.filter( pk__in=[contest_id] )
+        distinct_lineup_entries = Entry.objects.filter( contest__in=contests ).select_related('lineup')
+        lineups = [ entry.lineup for entry in distinct_lineup_entries ]
+        return lineups
+
     def get_for_contest_by_search_str(self, contest_id, search_str):
         """
 

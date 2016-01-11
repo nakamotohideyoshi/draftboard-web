@@ -9,8 +9,8 @@ const PlayerListRow = require('./draft-player-list-row.jsx')
 import DraftTeamFilter from './draft-team-filter.jsx'
 import {forEach as _forEach, find as _find, matchesProperty as _matchesProperty} from 'lodash'
 import * as moment from 'moment'
-import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, fetchDraftGroupBoxScores
-  } from '../../actions/draft-group-actions.js'
+import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, fetchDraftGroupBoxScoresIfNeeded,
+  updateOrderByFilter} from '../../actions/draft-group-actions.js'
 import {fetchSportInjuries} from '../../actions/injury-actions.js'
 import {createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
   editLineupInit, importLineup } from '../../actions/lineup-actions.js'
@@ -32,7 +32,7 @@ syncReduxAndRouter(history, store)
 const DraftPlayerList = React.createClass({
 
   propTypes: {
-    fetchDraftGroupBoxScores: React.PropTypes.func.isRequired,
+    fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func.isRequired,
     fetchDraftGroupIfNeeded: React.PropTypes.func.isRequired,
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
     filters: React.PropTypes.object.isRequired,
@@ -52,7 +52,10 @@ const DraftPlayerList = React.createClass({
     availablePositions: React.PropTypes.array,
     draftGroupTime: React.PropTypes.string,
     teams: React.PropTypes.object.isRequired,
-    params: React.PropTypes.object
+    params: React.PropTypes.object,
+    orderByDirection: React.PropTypes.string,
+    orderByProperty: React.PropTypes.string,
+    updateOrderByFilter: React.PropTypes.func
   },
 
 
@@ -95,7 +98,7 @@ const DraftPlayerList = React.createClass({
 
 
   loadData: function() {
-    this.props.fetchDraftGroupBoxScores(this.props.params.draftgroupId)
+    this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.params.draftgroupId)
     // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
     Promise.all([
       this.props.fetchDraftGroupIfNeeded(this.props.params.draftgroupId),
@@ -141,11 +144,6 @@ const DraftPlayerList = React.createClass({
     this.loadData();
   },
 
-  sortList: function(property) {
-    console.log("sortList()", property);
-    // DraftActions.setSortProperty(property);
-  },
-
 
   handleFilterChange: function(filterName, filterProperty, match) {
     this.props.updateFilter(filterName, filterProperty, match)
@@ -154,6 +152,19 @@ const DraftPlayerList = React.createClass({
 
   handleGameCountClick: function() {
     this.setState({showTeamFilter: true})
+  },
+
+
+  handleSetOrderBy: function(propertyColumn) {
+    // Determine sort direction based on current sort settings.
+    let direction = 'desc'
+
+    // If we are sorting by the already-'desc'-sorted column, flip the sort direction.
+    if (propertyColumn === this.props.orderByProperty  && 'desc' === this.props.orderByDirection) {
+      direction = 'asc'
+    }
+    // Dispatch the filter update.
+    this.props.updateOrderByFilter(propertyColumn, direction)
   },
 
 
@@ -250,18 +261,19 @@ const DraftPlayerList = React.createClass({
           <thead>
             <tr className="cmp-player-list__header-row">
               <th></th>
-              <th>POS</th>
+              <th onClick={this.handleSetOrderBy.bind(null, 'position')}>POS</th>
               <th></th>
               <th
                 className="table__sortable"
-                onClick={this.sortList.bind(this, 'name')}>Player</th>
+                onClick={this.handleSetOrderBy.bind(null, 'name')}>Player</th>
               <th>Status</th>
-              <th>OPP</th>
-              <th>AVG</th>
+              <th onClick={this.handleSetOrderBy.bind(null, 'team_alias')}>OPP</th>
+              <th onClick={this.handleSetOrderBy.bind(null, 'fppg')}>AVG</th>
               <th>History</th>
               <th
+                onClick={this.handleSetOrderBy.bind(null, 'salary')}
                 className="table__sortable"
-                onClick={this.sortList.bind(this, 'salary')}>Salary</th>
+                >Salary</th>
             </tr>
           </thead>
           <tbody>{visibleRows}</tbody>
@@ -290,14 +302,16 @@ function mapStateToProps(state) {
     newLineup: state.createLineup.lineup,
     availablePositions: state.createLineup.availablePositions,
     injuries: state.injuries,
-    fantasyHistory: state.fantasyHistory
+    fantasyHistory: state.fantasyHistory,
+    orderByDirection: state.draftDraftGroup.filters.orderBy.direction,
+    orderByProperty: state.draftDraftGroup.filters.orderBy.property
   };
 }
 
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    fetchDraftGroupBoxScores: (draftGroupId) => dispatch(fetchDraftGroupBoxScores(draftGroupId)),
+    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
     fetchDraftGroupIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
     draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
     unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
@@ -306,7 +320,10 @@ function mapDispatchToProps(dispatch) {
     fetchUpcomingLineups: (draftGroupId) => dispatch(fetchUpcomingLineups(draftGroupId)),
     createLineupViaCopy: (lineupId) => dispatch(createLineupViaCopy(lineupId)),
     editLineupInit: (lineupId) => dispatch(editLineupInit(lineupId)),
-    importLineup: (lineup, importTitle) => dispatch(importLineup(lineup, importTitle))
+    importLineup: (lineup, importTitle) => dispatch(importLineup(lineup, importTitle)),
+    updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
+    updatePath: (path) => dispatch(updatePath(path))
+
   };
 }
 

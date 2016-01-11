@@ -6,18 +6,21 @@ import { updatePath } from 'redux-simple-router'
 import { vsprintf } from 'sprintf-js'
 
 import * as AppActions from '../../stores/app-state-store'
+import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
 import { updateLiveMode } from '../../actions/live'
 import store from '../../store'
 
 
 /**
- * When `View Contests` element is clicked, open side pane to show a user's current contests for that lineup.
+ * When `View Contests` element is clicked, open side pane to show
+ * a user's current contests for that lineup.
  */
 var LiveContestsPane = React.createClass({
 
   propTypes: {
     lineup: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object.isRequired,
+    fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func
   },
@@ -33,6 +36,7 @@ var LiveContestsPane = React.createClass({
       myLineupId: mode.myLineupId,
       contestId: contestId
     })
+    this.props.fetchContestLineupsUsernamesIfNeeded(contestId)
   },
 
 
@@ -107,6 +111,7 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
+    fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
     updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
     updatePath: (path) => dispatch(updatePath(path))
   }

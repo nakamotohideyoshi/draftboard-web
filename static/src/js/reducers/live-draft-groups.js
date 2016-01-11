@@ -9,15 +9,19 @@ import log from '../lib/logging'
 function setOrMerge(state, action, props) {
   // if does not exist, then $set to create
   if (action.id in state === false) {
-    var proprops = Object.assign({}, proprops, {
-      playersInfo: {},
-      playersStats: {},
-      boxScores: {}
-    })
+    let newProps = Object.assign(
+      {},
+      {
+        playersInfo: {},
+        playersStats: {},
+        boxScores: {}
+      },
+      props
+    )
 
     return update(state, {
-      $set: {
-        [action.id]: proprops
+      [action.id]: {
+        $set: newProps
       }
     })
   }
@@ -73,6 +77,7 @@ module.exports = (state = {}, action) => {
             isFetchingInfo: false,
             expiresAt: action.expiresAt,
             playersInfo: action.players,
+            playersBySRID: action.playersBySRID,
             start: action.start,
             end: action.end,
             sport: action.sport
@@ -123,7 +128,7 @@ module.exports = (state = {}, action) => {
       return update(state, {
         [action.id]: {
           $merge: {
-            isFetchingBoxScores: true,
+            isFetchingBoxScores: false,
             boxScoresUpdatedAt: action.updatedAt,
             boxScores: action.boxScores
           }
