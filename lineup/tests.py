@@ -18,12 +18,14 @@ from rest_framework.test import force_authenticate
 from rest_framework.test import APIRequestFactory
 from lineup.views import (
     CreateLineupAPIView,
+    UserUpcomingAPIView,
     # UserLiveAPIView,
     # UserHistoryAPIView,
     # PlayersAPIView,
     # CreateLineupAPIView,
     # EditLineupAPIView,
     # LineupUserAPIView,
+
 )
 import test.classes
 
