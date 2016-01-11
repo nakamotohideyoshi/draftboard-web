@@ -55,6 +55,11 @@ urlpatterns = patterns( '',
     # TsxPlayerItemsAPIView
     (r'^player-items/(?P<sport>[a-z]+)/$', TsxPlayerItemsAPIView.as_view()),
 
-    # PlayerNewsAPIView test
+    #
+    # both urls below return the same data.
+    #   1. the first returns only 1 players news
+    #   2. the second takes a bit longer but returns all player news
+    (r'^playernews/(?P<sport>[a-z]+)/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view()),
     (r'^playernews/(?P<sport>[a-z]+)/$', PlayerNewsAPIView.as_view()),
+
 )

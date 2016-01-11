@@ -110,3 +110,25 @@ class TsxNewsSerializer(serializers.ModelSerializer):
 class TsxPlayerSerializer(serializers.ModelSerializer):
 
     PARENT_FIELDS = ('name','sportsdataid','sportradarid')
+
+class PlayerNewsSerializer(serializers.ModelSerializer):
+
+    PARENT_FIELDS = ('id','news')
+
+    # maximum trailing news items to return
+    limit_news_items = 5
+
+    # child classes must override these to the sport's
+    # own TsxPlayer model
+    tsxplayer_class         = None
+    tsxplayer_serializer    = None
+
+    news = serializers.SerializerMethodField()
+    def get_news(self, player):
+        # dt_from = timezone.now() - timedelta(days=30) # start from 30 days ago
+        # query_set = TsxPlayer.objects.filter(player=player,
+        #                 content_published__gte=dt_from).select_related('player')
+
+        query_set = self.tsxplayer_class.objects.filter(player=player) \
+                            .select_related('player')[:self.limit_news_items]
+        return self.tsxplayer_serializer( query_set, many=True ).data

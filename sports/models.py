@@ -2,7 +2,7 @@
 # sports/models.py
 
 from django.db import models
-
+from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 import re
@@ -14,6 +14,7 @@ import django.core.exceptions
 
 import json
 from django.core import serializers # we will serialize select models, mainly for api use
+from dateutil.parser import parse
 
 class SignalNotSetupProperlyException(Exception):
     def __init__(self, class_name, variable_name):
@@ -583,6 +584,8 @@ class TsxTransaction(AbstractTsxItem):
 
 class AbstractTsxItemReference(models.Model):
 
+    DEFAULT_DATETIME = parse("1999-01-01T12:00:00+00:00") # one of the migrations needs this
+
     sportsdataid = models.CharField(max_length=64, null=False)
     sportradarid = models.CharField(max_length=64, null=False)
 
@@ -593,8 +596,12 @@ class AbstractTsxItemReference(models.Model):
     tsxitem_id       = models.PositiveIntegerField()
     tsxitem          = GenericForeignKey('tsxitem_type', 'tsxitem_id')
 
+    content_published = models.DateTimeField(null=False, default=DEFAULT_DATETIME,
+                                help_text='the item ref is a GFK so also store the publish date here for ordering purposes.')
+
     class Meta:
         abstract = True
+        ordering = ['-content_published'] # most recently published first
 
 class TsxTeam(AbstractTsxItemReference):
 
