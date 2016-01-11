@@ -126,7 +126,10 @@ export const currentLineupsStatsSelector = createSelector(
           name: lineup.name || 'Example Lineup Name',
           roster: lineup.roster,
           start: lineup.start,
-          draftGroup: draftGroup
+          draftGroup: draftGroup,
+          decimalRemaining: 0.01,
+          minutesRemaining: 384,
+          points: 0
         }
 
         return
