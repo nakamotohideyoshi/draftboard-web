@@ -17,7 +17,7 @@ module.exports = function(state = initialState, action) {
     case ActionTypes.FETCH_UPCOMING_LINEUPS_SUCCESS:
       // Grab the first lineup in our object and set it as focused.
       let focusedLineupId
-      if (Object.keys(action.lineups).length > 0) {
+      if (action.lineups && Object.keys(action.lineups).length > 0) {
         focusedLineupId = action.lineups[Object.keys(action.lineups)[0]].id
       }
 

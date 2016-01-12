@@ -64,7 +64,7 @@ export function fetchFeaturedContests() {
 
     return new Promise((resolve, reject) => {
       request
-      .get("/api/lobby/feature/contests/")
+      .get("/api/lobby/featured-content/")
       .set({
         'X-REQUESTED-WITH': 'XMLHttpRequest',
         'Accept': 'application/json'
