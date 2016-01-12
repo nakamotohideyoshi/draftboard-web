@@ -218,14 +218,21 @@ function requestDraftGroupBoxScores(id) {
 function receiveDraftGroupBoxScores(id, response) {
   log.debug('actionsLiveDraftGroup.receiveDraftGroupBoxScores')
 
+  let boxScores = {}
+  _forEach(response.games, (game) => {
+    game.fields = {}
+    boxScores[game.srid] = game
+  })
+
   _forEach(response, (boxScore) => {
     boxScore.timeRemaining = _calculateTimeRemaining(boxScore)
+    boxScores[boxScore.srid_game] = boxScore
   })
 
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES,
     id: id,
-    boxScores: response,
+    boxScores: boxScores,
     updatedAt: Date.now() + 86400000
   }
 }
