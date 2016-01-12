@@ -187,9 +187,9 @@ function fetchContestEntrantsFail(ex) {
 function shouldFetchContestEntrants(state, contestId) {
   const entrants = state.upcomingContests.entrants
 
-  if (!entrants.hasOwnProperty(contestId)) {
+  if (entrants.hasOwnProperty(contestId)) {
     // does the state already have entrants for this contest?
-    return true
+    return false
   } else if (state.upcomingContests.isFetchingEntrants) {
     // are we currently fetching it?
     return false

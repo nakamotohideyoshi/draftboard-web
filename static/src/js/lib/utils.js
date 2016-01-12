@@ -34,3 +34,10 @@ export function timeRemaining(timestamp) {
     seconds: Math.abs(toTwoDigit(duration.seconds()))
   }
 }
+
+
+// Has this timestamp passed?
+export function isTimeInFuture(timestamp) {
+  console.log(moment.utc(timestamp) > moment.utc())
+  return moment.utc(timestamp) > moment.utc()
+}
