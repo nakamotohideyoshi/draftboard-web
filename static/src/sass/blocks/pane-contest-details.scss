@@ -150,8 +150,10 @@
 
 
   // Lobby-specific pane stuff.
-  .btn-enter-contest {
+  .btn-enter-contest .button {
     width: 225px;
+    font-size: 10px;
+    padding: 15px;
   }
 }
 
