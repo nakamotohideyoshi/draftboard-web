@@ -21,7 +21,8 @@ class BoxscoreSerializer(serializers.ModelSerializer):
     """
     parent GameBoxscore object serializer with common fields
     """
-    PARENT_FIELDS = ('srid_home','srid_away',
+    PARENT_FIELDS = ('srid_game',
+                     'srid_home','srid_away',
                      'status',
                      'attendance','coverage',
                      'home_scoring_json','away_scoring_json')
