@@ -11,30 +11,31 @@ var LobbyDraftGroupSelectionTime = require('./lobby-draft-group-selection-time.j
 var LobbyDraftGroupSelectionModal = React.createClass({
 
   propTypes: {
-    draftGroupInfo: React.PropTypes.object
+    draftGroupInfo: React.PropTypes.object,
+    isOpen: React.PropTypes.bool,
+    onClose: React.PropTypes.func
   },
 
 
   getInitialState: function() {
     return {
-      isOpen: false,
       selectedSport: null
     };
   },
 
 
   // Open the modal.
-  open: function() {
-    this.setState({isOpen: true});
-  },
+  // open: function() {
+  //   this.setState({isOpen: true});
+  // },
 
 
   // This gets called when the user requests to close the modal.
   close: function() {
+    // Run the props-passed onClose function that hides the modal.
+    this.props.onClose()
     // Go back to the first step.
     this.resetSport();
-    // close the modal.
-    this.setState({isOpen: false});
   },
 
 
@@ -83,7 +84,7 @@ var LobbyDraftGroupSelectionModal = React.createClass({
 
     return (
       <Modal
-        isOpen={this.state.isOpen}
+        isOpen={this.props.isOpen}
         onClose={this.close}
         className="cmp-modal--draft-group-select"
       >

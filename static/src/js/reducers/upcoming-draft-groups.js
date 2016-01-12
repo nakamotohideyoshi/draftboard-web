@@ -2,6 +2,7 @@ const ActionTypes = require('../action-types')
 
 
 const initialState = {
+  draftGroupSelectionModalIsOpen: false,
   sportContestCounts: {},
   draftGroups: [],
   boxScores: {
@@ -35,6 +36,18 @@ module.exports = function(state = initialState, action) {
             boxScores: Object.assign({}, state.boxscores, {
               isFetching: true
             })
+          })
+
+
+        case ActionTypes.CLOSE_DRAFT_GROUP_SELECTION_MODAL:
+          return Object.assign({}, state, {
+            draftGroupSelectionModalIsOpen: false
+          })
+
+
+        case ActionTypes.OPEN_DRAFT_GROUP_SELECTION_MODAL:
+          return Object.assign({}, state, {
+            draftGroupSelectionModalIsOpen: true
           })
 
 

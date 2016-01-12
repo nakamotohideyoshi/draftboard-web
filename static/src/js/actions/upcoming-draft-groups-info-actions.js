@@ -54,3 +54,17 @@ export function fetchUpcomingDraftGroupsInfo() {
     })
   }
 }
+
+// Open the draft group selection modal in the lobby.
+export function openDraftGroupSelectionModal() {
+  return {
+    type: types.OPEN_DRAFT_GROUP_SELECTION_MODAL
+  }
+}
+
+// Close the draft group selection modal in the lobby.
+export function closeDraftGroupSelectionModal() {
+  return {
+    type: types.CLOSE_DRAFT_GROUP_SELECTION_MODAL
+  }
+}
