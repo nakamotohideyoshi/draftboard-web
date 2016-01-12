@@ -7,6 +7,8 @@ const renderComponent = require('../../lib/render-component')
 const smoothScrollTo = require('../../lib/smooth-scroll-to.js')
 const LobbyDraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx')
 import {fetchUpcomingLineups, lineupFocused, lineupHovered} from '../../actions/lineup-actions.js'
+import {openDraftGroupSelectionModal, closeDraftGroupSelectionModal} from
+  '../../actions/upcoming-draft-groups-info-actions.js'
 import {draftGroupInfoSelector} from '../../selectors/draft-group-info-selector.js'
 import {LineupsBySportSelector} from '../../selectors/upcoming-lineups-by-sport.js'
 import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'
@@ -26,7 +28,10 @@ var LineupCardList = React.createClass({
     lineups: React.PropTypes.array.isRequired,
     lineupsInfo: React.PropTypes.object,
     focusedLineupId: React.PropTypes.number,
-    draftGroupInfo: React.PropTypes.object
+    draftGroupInfo: React.PropTypes.object,
+    openDraftGroupSelectionModal: React.PropTypes.func,
+    closeDraftGroupSelectionModal: React.PropTypes.func,
+    draftGroupSelectionModalIsOpen: React.PropTypes.bool
   },
 
   getDefaultProps: function() {
@@ -87,7 +92,7 @@ var LineupCardList = React.createClass({
 
 
   handleDraftButtonClick: function() {
-    this.refs.draftModal.open();
+    this.props.openDraftGroupSelectionModal()
   },
 
 
@@ -153,8 +158,7 @@ var LineupCardList = React.createClass({
         <div className="cmp-lineup-card cmp-lineup-card--create cmp-lineup-card--create__nba">
           <header className="cmp-lineup-card__header">
             <h3 className="cmp-lineup-card__title">
-              <span className="sub">Get in the Action</span>
-              <span>Create a Lineup</span>
+              <span>It’s <br />Anyone’s<br /> Game.</span>
             </h3>
           </header>
 
@@ -162,7 +166,7 @@ var LineupCardList = React.createClass({
             className="button button--medium button--gradient-outline"
             onClick={this.handleDraftButtonClick}
           >
-            Draft a Team
+            Start Drafting <span className="right">→</span>
           </div>
         </div>
       )
@@ -181,6 +185,8 @@ var LineupCardList = React.createClass({
         <LobbyDraftGroupSelectionModal
           ref="draftModal"
           draftGroupInfo={this.props.draftGroupInfo}
+          onClose={this.props.closeDraftGroupSelectionModal}
+          isOpen={this.props.draftGroupSelectionModalIsOpen}
         />
       </div>
     );
@@ -198,6 +204,7 @@ function mapStateToProps(state) {
     lineupsInfo: upcomingLineupsInfo(state),
     focusedLineupId: state.upcomingLineups.focusedLineupId,
     draftGroupInfo: draftGroupInfoSelector(state),
+    draftGroupSelectionModalIsOpen: state.upcomingDraftGroups.draftGroupSelectionModalIsOpen,
     entries: state.entries.items
   };
 }
@@ -207,7 +214,9 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchUpcomingLineups: () => dispatch(fetchUpcomingLineups()),
     lineupFocused: (lineupId) => dispatch(lineupFocused(lineupId)),
-    lineupHovered: (lineupId) => dispatch(lineupHovered(lineupId))
+    lineupHovered: (lineupId) => dispatch(lineupHovered(lineupId)),
+    openDraftGroupSelectionModal: () => dispatch(openDraftGroupSelectionModal()),
+    closeDraftGroupSelectionModal: () => dispatch(closeDraftGroupSelectionModal())
   };
 }
 

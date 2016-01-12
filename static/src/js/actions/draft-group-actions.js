@@ -177,9 +177,9 @@ function fetchDraftGroupBoxScores(draftGroupId) {
 function shouldFetchDraftGroupBoxScores(state, draftGroupId) {
   const boxScores = state.upcomingDraftGroups.boxScores
 
-  if (!boxScores.hasOwnProperty(draftGroupId)) {
-    // do we have the boxscores?
-    return true
+  if (boxScores.hasOwnProperty(draftGroupId)) {
+    // If we have the boxscores, don't re-fetch
+    return false
   } else if (boxScores.isFetching) {
     // are we currently fetching it?
     return false

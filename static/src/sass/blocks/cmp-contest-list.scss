@@ -85,12 +85,11 @@ $table-row-hover-bg: #f9fafb;
 
 // Contest Sport
 .contest-list-filter--sport {
-  display: block;
-  width: 100%;
+  display: inline-block;
   z-index: 100;
 
   .contest-sport-filter {
-    padding: 0;
+    padding: 0 5px 0 0;
   }
 
   &__title {
