@@ -409,12 +409,13 @@ var Live = React.createClass({
             }
 
             // show event description
+            // TODO modify this once pbp has player stats built in
             let eventDescriptions = Object.assign(
               {},
               self.state.eventDescriptions,
               {
                 [event.player]: {
-                  points: playerStats.fp,
+                  points: '?',
                   info: eventCall.description,
                   when: eventCall.clock
                 }
@@ -429,11 +430,12 @@ var Live = React.createClass({
               self.setState({ eventDescriptions: eventDescriptions })
             } , 6000)
 
-            self.props.updatePlayerFP(
-              draftGroupId,
-              playerId,
-              playerStats.fp + event.points
-            )
+            // TODO modify this once pbp has player stats built in
+            // self.props.updatePlayerFP(
+            //   draftGroupId,
+            //   playerId,
+            //   playerStats.fp + event.points
+            // )
           }
         })
 

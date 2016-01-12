@@ -3,6 +3,7 @@
 import React from 'react'
 import PureRenderMixin from 'react-addons-pure-render-mixin'
 import _ from 'lodash'
+import moment from 'moment'
 
 /**
  * Responsible for rendering a singe contest game item.
@@ -36,7 +37,7 @@ const NavScoreboardGame = React.createClass({
           </div>
 
           <div className="right">
-            7:10PM <br /> <br />
+            {moment(game.fields.start, moment.ISO_8601).format('h:mma')} <br /> <br />
           </div>
         </div>
       )

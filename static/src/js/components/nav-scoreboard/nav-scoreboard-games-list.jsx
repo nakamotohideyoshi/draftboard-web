@@ -20,8 +20,8 @@ const NavScoreboardGamesList = React.createClass({
     const boxScores = _.values(this.props.draftGroup.boxScores)
 
     const list = boxScores.map((game) => {
-      return [<NavScoreboardGame key={game.pk} game={game} />,
-              <NavScoreboardSeparator key={game.pk + 's'} half />]
+      return [<NavScoreboardGame key={game.fields.srid_game} game={game} />,
+              <NavScoreboardSeparator key={game.fields.srid_game + 's'} half />]
     }).reduce((accum, l) => {
       // Just flatten the array on a single level. Not using lodash here,
       // because this may result in unexpected behavior depending on the
