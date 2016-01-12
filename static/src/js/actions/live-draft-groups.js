@@ -36,7 +36,7 @@ function _calculateTimeRemaining(boxScore) {
 
 // Used to update a player's FP when a Pusher call sends us new info
 export function updatePlayerFP(id, playerId, fp) {
-  log.debug('actionsLiveDraftGroup.updatePlayerFP')
+  log.warn('actionsLiveDraftGroup.updatePlayerFP', id, playerId, fp)
   return {
     id: id,
     type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
@@ -215,19 +215,8 @@ function requestDraftGroupBoxScores(id) {
 }
 
 
-function receiveDraftGroupBoxScores(id, response) {
+function receiveDraftGroupBoxScores(id, boxScores) {
   log.debug('actionsLiveDraftGroup.receiveDraftGroupBoxScores')
-
-  let boxScores = {}
-  _forEach(response.games, (game) => {
-    game.fields = {}
-    boxScores[game.srid] = game
-  })
-
-  _forEach(response, (boxScore) => {
-    boxScore.timeRemaining = _calculateTimeRemaining(boxScore)
-    boxScores[boxScore.srid_game] = boxScore
-  })
 
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES,
@@ -235,6 +224,31 @@ function receiveDraftGroupBoxScores(id, response) {
     boxScores: boxScores,
     updatedAt: Date.now() + 86400000
   }
+}
+
+
+function organizeBoxScores(response) {
+  let boxScores = {}
+
+  // SO HACKY
+  _forEach(response.games, (game) => {
+    boxScores[game.srid] = {
+      timeRemaining: null,
+      fields: {
+        srid_game: game.srid,
+        srid_away: game.srid_away,
+        srid_home: game.srid_home,
+        start: game.start
+      }
+    }
+  })
+
+  _forEach(response.boxscores, (boxScore) => {
+    boxScore.timeRemaining = _calculateTimeRemaining(boxScore)
+    boxScores[boxScore.srid_game] = boxScore
+  })
+
+  return boxScores
 }
 
 
@@ -254,10 +268,13 @@ function fetchDraftGroupBoxScores(id) {
         log.debug('shouldFetchDraftGroupFP() - Box scores not available yet', id)
         return Promise.resolve('Box scores not available yet')
       }
-      dispatch(receiveDraftGroupBoxScores(id, res.body))
+
+      const boxScores = organizeBoxScores(res.body)
+
+      dispatch(receiveDraftGroupBoxScores(id, boxScores))
 
       return dispatch(
-        mergeBoxScores(res.body)
+        mergeBoxScores(boxScores)
       )
     })
   }
