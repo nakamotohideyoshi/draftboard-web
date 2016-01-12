@@ -11,11 +11,13 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(FrontendLiveTemplateView, self).get_context_data(**kwargs)
-        if 'loglevel' in self.request.GET:
-            log_level = self.request.GET['loglevel']
 
-            if log_level in ['debug', 'warn', 'error']:
-                context['loglevel'] = log_level
+        log_level = self.request.GET.get('loglevel', None)
+        if log_level in ['debug', 'warn', 'error']:
+            context['loglevel'] = log_level
+
+        if self.request.GET.get('wipe_redux', 0) is '1':
+            context['wipe_redux'] = 1
 
         return context
 

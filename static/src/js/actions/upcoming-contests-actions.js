@@ -140,7 +140,6 @@ export function enterContest(contestId, lineupId) {
     .send(postData)
     .end(function(err, res) {
       if(err) {
-        window.alert(res.body)
         console.error(res.body)
       } else {
         // Insert our newly saved entry into the store.
@@ -187,9 +186,9 @@ function fetchContestEntrantsFail(ex) {
 function shouldFetchContestEntrants(state, contestId) {
   const entrants = state.upcomingContests.entrants
 
-  if (!entrants.hasOwnProperty(contestId)) {
+  if (entrants.hasOwnProperty(contestId)) {
     // does the state already have entrants for this contest?
-    return true
+    return false
   } else if (state.upcomingContests.isFetchingEntrants) {
     // are we currently fetching it?
     return false
