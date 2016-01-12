@@ -10,6 +10,7 @@ import {fetchPrizeIfNeeded} from '../../actions/prizes.js'
 import {fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter}
   from '../../actions/upcoming-contests-actions.js'
 import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-info-actions.js'
+import {focusedContestInfoSelector} from '../../selectors/lobby-selectors.js'
 import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js'
 import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'
 import {updateFilter} from '../../actions/upcoming-contests-actions.js'
@@ -200,13 +201,6 @@ let {Provider, connect} = ReactRedux;
 
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
-  // TODO: Put this in a selector - where derived data *should* be.
-  // get focused contest
-  let focusedContest = {id: null}
-  if (state.upcomingContests.allContests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
-    focusedContest = state.upcomingContests.allContests[state.upcomingContests.focusedContestId]
-  }
-
   // get focused lineup
   let focusedLineup = {id: null}
   if (state.upcomingLineups.lineups.hasOwnProperty(state.upcomingLineups.focusedLineupId)) {
@@ -219,7 +213,7 @@ function mapStateToProps(state) {
     draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
     featuredContests: state.featuredContests.banners,
     filteredContests: upcomingContestSelector(state),
-    focusedContest,
+    focusedContest: focusedContestInfoSelector(state),
     focusedLineup,
     hoveredLineupId: state.upcomingLineups.hoveredLineupId,
     lineupsInfo: upcomingLineupsInfo(state),
