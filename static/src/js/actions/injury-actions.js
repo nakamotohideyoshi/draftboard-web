@@ -32,7 +32,7 @@ export function fetchSportInjuries(sport) {
     })
     .end(function(err, res) {
       if(err) {
-        window.alert(res.body)
+        console.error(res.body)
       } else {
         // Normalize injuries
         const normalizedInjuries = normalize(
