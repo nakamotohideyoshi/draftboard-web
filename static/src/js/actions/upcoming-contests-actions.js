@@ -140,7 +140,6 @@ export function enterContest(contestId, lineupId) {
     .send(postData)
     .end(function(err, res) {
       if(err) {
-        window.alert(res.body)
         console.error(res.body)
       } else {
         // Insert our newly saved entry into the store.

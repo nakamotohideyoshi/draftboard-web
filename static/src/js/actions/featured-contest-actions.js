@@ -20,7 +20,7 @@ function fetchFeaturedContestsSuccess(body) {
 
 
 function fetchFeaturedContestsFail(ex) {
-  window.alert(ex)
+  console.error(ex)
   return {
     type: types.FETCH_FEATURED_CONTESTS_FAIL,
     ex
