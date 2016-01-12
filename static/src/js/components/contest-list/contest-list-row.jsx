@@ -1,7 +1,7 @@
 const React = require('react')
 const moment = require('moment')
 import CountdownClock from '../site/countdown-clock.jsx'
-
+import EnterContestButton from './enter-contest-button.jsx'
 
 /**
  * Render a single ContestList 'row'.
@@ -33,45 +33,6 @@ var ContestListRow = React.createClass({
   },
 
 
-  ignoreClick: function(e) {
-    e.stopPropagation();
-  },
-
-
-  getEnterButton: function() {
-    if (this.props.isEntered) {
-      return (
-        <span
-          className="button button--mini button--green disabled"
-          onClick={this.ignoreClick}
-        >
-          Entered
-        </span>
-      )
-    }
-    // Is the currently focused lineup able to enter this contest?
-    if (this.props.focusedLineup && this.props.focusedLineup.draft_group === this.props.row.draft_group) {
-      return (
-        <span
-          className="button button--mini--outline button--green-outline"
-          onClick={this.props.enterContest.bind(null, this.props.row)}>
-          Enter
-        </span>
-      )
-    } else {
-      return (
-        <a
-          className="button button--mini--outline button--green-outline"
-          title="Draft a lineup for this contest."
-          href={'/draft/' + this.props.row.draft_group + '/'}
-        >
-          Draft
-        </a>
-      )
-    }
-  },
-
-
   render: function() {
     // If it's the currently focused contest, add a class to it.
     var classes = this.props.focusedContest.id === this.props.row.id ? 'active ' : '';
@@ -94,7 +55,6 @@ var ContestListRow = React.createClass({
       multiEntryIcon = <span className="contest-icon contest-icon__multi-entry">M</span>;
     }
 
-    let enterButton = this.getEnterButton()
 
     return (
       <tr
@@ -112,7 +72,13 @@ var ContestListRow = React.createClass({
         <td key="start" className="start"><CountdownClock time={this.props.row.start} /></td>
 
         <td className="enter">
-          {enterButton}
+          <EnterContestButton
+            startTime={this.props.row.start}
+            isEntered={this.props.isEntered}
+            focusedLineup={this.props.focusedLineup}
+            contest={this.props.row}
+            enterContest={this.props.enterContest}
+          />
         </td>
       </tr>
     );

@@ -8,6 +8,21 @@
 
 const reducers = require('./reducers');
 const middleware = require('./middleware');
+import log from './lib/logging'
+import Cookies from 'js-cookie'
+
+// before we load the store, wipe redux if asked
+if (window.dfs.wipeRedux === "1") {
+    log.debug('store.js - Wiping localStorage due to query param')
+    window.localStorage.clear()
+}
+
+if (Cookies.get('username') !== window.dfs.user.username) {
+    log.debug('store.js - Wiping localStorage due to new username existing')
+    Cookies.set('username', window.dfs.user.username)
+    window.localStorage.clear()
+}
+
 
 // Store with localStorage, commented out until we have Pusher installed and working on optimizations
 import {compose, createStore} from 'redux';

@@ -5,6 +5,7 @@ import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx'
 import GamesList from './games-list.jsx'
 import EntrantList from './entrant-list.jsx'
+import EnterContestButton from './enter-contest-button.jsx'
 import {enterContest, setFocusedContest, fetchContestEntrantsIfNeeded}
   from '../../actions/upcoming-contests-actions.js'
 import * as AppActions from '../../stores/app-state-store.js'
@@ -14,6 +15,8 @@ import createBrowserHistory from 'history/lib/createBrowserHistory'
 import CountdownClock from '../site/countdown-clock.jsx'
 import {fetchDraftGroupBoxScoresIfNeeded} from '../../actions/draft-group-actions.js'
 import {fetchTeamsIfNeeded} from '../../actions/sports.js'
+import {focusedContestInfoSelector, focusedLineupSelector} from '../../selectors/lobby-selectors.js'
+import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'
 
 const history = createBrowserHistory()
 syncReduxAndRouter(history, store)
@@ -26,18 +29,16 @@ var ContestListDetail = React.createClass({
 
   propTypes: {
     boxScores: React.PropTypes.object,
-    contest: React.PropTypes.object,
+    contestInfo: React.PropTypes.object,
     enterContest: React.PropTypes.func,
-    entrants: React.PropTypes.array,
     fetchContestEntrantsIfNeeded: React.PropTypes.func,
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
     fetchTeamsIfNeeded: React.PropTypes.func,
-    focusedContestId: React.PropTypes.oneOfType([React.PropTypes.number, React.PropTypes.string]),
-    focusedLineupId: React.PropTypes.number,
+    focusedLineup: React.PropTypes.object,
     params: React.PropTypes.object,
-    prizeStructure: React.PropTypes.object,
     setFocusedContest: React.PropTypes.func,
-    teams: React.PropTypes.object
+    teams: React.PropTypes.object,
+    lineupsInfo: React.PropTypes.object
   },
 
 
@@ -47,9 +48,9 @@ var ContestListDetail = React.createClass({
    */
   componentWillReceiveProps: function(nextProps) {
     // A new contest has been focused. Fetch all of it's required data.
-    if (nextProps.params.contestId && this.props.focusedContestId != nextProps.params.contestId) {
+    if (nextProps.params.contestId && this.props.contestInfo.contest.id != nextProps.params.contestId) {
       AppActions.openPane();
-      // This is what "monitors" for URL changes.
+      // // This is what "monitors" for URL changes.
       this.props.setFocusedContest(nextProps.params.contestId)
       this.props.fetchDraftGroupBoxScoresIfNeeded(nextProps.params.contestId)
       this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId)
@@ -70,7 +71,7 @@ var ContestListDetail = React.createClass({
 
   // Enter the currently focused lineup into a contest.
   handleEnterContest: function(contestId) {
-    this.props.enterContest(contestId, this.props.focusedLineupId)
+    this.props.enterContest(contestId, this.props.focusedLineup.id)
   },
 
 
@@ -78,17 +79,17 @@ var ContestListDetail = React.createClass({
   getActiveTab: function() {
     switch (this.state.activeTab) {
       case 'prizes':
-        return (<PrizeStructure structure={this.props.prizeStructure} />)
+        return (<PrizeStructure structure={this.props.contestInfo.prizeStructure} />)
 
       case 'scoring':
         return 'scoring tab'
 
       case 'games':
-        if (this.props.boxScores.hasOwnProperty(this.props.contest.id)) {
+        if (this.props.boxScores.hasOwnProperty(this.props.contestInfo.contest.id)) {
           return (
             <GamesList
-              boxScores={this.props.boxScores[this.props.contest.id]}
-              teams={this.props.teams[this.props.contest.sport]}
+              boxScores={this.props.boxScores[this.props.contestInfo.contest.id]}
+              teams={this.props.teams[this.props.contestInfo.contest.sport]}
             />
             )
         }
@@ -97,7 +98,7 @@ var ContestListDetail = React.createClass({
 
       case 'entries':
         return (
-          <EntrantList entrants={this.props.entrants} />
+          <EntrantList entrants={this.props.contestInfo.entrants} />
         )
 
       default:
@@ -137,7 +138,7 @@ var ContestListDetail = React.createClass({
 
 
   getContest: function() {
-    if(this.props.contest) {
+    if(this.props.contestInfo.contest.id) {
       let tabNav = this.getTabNav()
 
       return (
@@ -145,11 +146,11 @@ var ContestListDetail = React.createClass({
           <div className="pane-upper">
             <div className="header">
               <div className="header__content">
-                <div className="title">{this.props.contest.name}</div>
+                <div className="title">{this.props.contestInfo.contest.name}</div>
                 <div className="header__info">
                   <div>
                     <div className="info-title">Live In</div>
-                    <span><CountdownClock time={this.props.contest.start} /></span>
+                    <span><CountdownClock time={this.props.contestInfo.contest.start} /></span>
                   </div>
                 </div>
 
@@ -159,20 +160,32 @@ var ContestListDetail = React.createClass({
                 </div>
 
                 <div className="header__fee-prizes-pool">
-                  <div><span className="info-title">Prize</span><div>${this.props.contest.prize_pool.toFixed(2)}</div></div>
-                  <div><span className="info-title">Fee</span><div>${this.props.contest.buyin.toFixed(2)}</div></div>
+                  <div><span className="info-title">Prize</span><div>${this.props.contestInfo.contest.prize_pool.toFixed(2)}</div></div>
+                  <div><span className="info-title">Fee</span><div>${this.props.contestInfo.contest.buyin.toFixed(2)}</div></div>
                   <div>
                     <span className="info-title">Entrants</span>
-                    <div>{this.props.contest.current_entries} / {this.props.contest.entries}</div>
+                    <div>{this.props.contestInfo.contest.current_entries} / {this.props.contestInfo.contest.entries}</div>
                   </div>
                 </div>
 
-                <div
-                  className="button button--gradient button--medium btn-enter-contest"
-                  onClick={this.handleEnterContest.bind(null, this.props.focusedLineupId)}
-                >
-                  Enter Contest
+                <div className="btn-enter-contest">
+                  <EnterContestButton
+                    classNames="button--medium"
+                    startTime={this.props.contestInfo.contest.start}
+                    isEntered={this.props.contestInfo.isEntered}
+                    focusedLineup={this.props.focusedLineup}
+                    contest={this.props.contestInfo.contest}
+                    enterContest={this.props.enterContest}
+                    buttonLabels= {{
+                      draft: 'Draft a Team',
+                      enter: 'Enter Contest',
+                      entered: 'Entered',
+                      started: 'Contest Has Started'
+                    }}
+
+                  />
                 </div>
+
               </div>
             </div>
           </div>
@@ -207,28 +220,13 @@ var ContestListDetail = React.createClass({
 
 
 function mapStateToProps(state) {
-  // TODO: put this in a reusable selector.
-  let contest = state.upcomingContests.allContests[state.upcomingContests.focusedContestId]
-  let prizeStructure = null
-  let entrants = []
-
-  if (contest && contest.hasOwnProperty('prize_structure')) {
-    prizeStructure = state.prizes[contest.prize_structure]
-  }
-
-  if (contest && state.upcomingContests.entrants.hasOwnProperty(contest.id)) {
-    entrants = state.upcomingContests.entrants[contest.id]
-  }
-
   return {
-    contest,
-    focusedContestId: state.upcomingContests.focusedContestId,
-    prizeStructure,
-    focusedLineupId: state.upcomingLineups.focusedLineupId,
+    contestInfo: focusedContestInfoSelector(state),
+    focusedLineup: focusedLineupSelector(state),
     boxScores: state.upcomingDraftGroups.boxScores,
     teams: state.sports,
-    entrants
-  };
+    lineupsInfo: upcomingLineupsInfo(state)
+  }
 }
 
 // Which action creators does it want to receive by props?

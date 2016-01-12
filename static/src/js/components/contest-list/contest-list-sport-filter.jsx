@@ -4,7 +4,7 @@ const store = require('../../store')
 const renderComponent = require('../../lib/render-component')
 var CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
 import {updateFilter} from '../../actions/upcoming-contests-actions.js'
-
+import {openDraftGroupSelectionModal} from '../../actions/upcoming-draft-groups-info-actions.js'
 
 /**
  * A league filter for a ContestList DataTable - This sits above the lineup cards in the sidebar.
@@ -12,7 +12,8 @@ import {updateFilter} from '../../actions/upcoming-contests-actions.js'
 var ContestListSportFilter = React.createClass({
 
   propTypes: {
-    updateFilter: React.PropTypes.func
+    updateFilter: React.PropTypes.func,
+    openDraftGroupSelectionModal: React.PropTypes.func
   },
 
 
@@ -36,15 +37,23 @@ var ContestListSportFilter = React.createClass({
 
   render: function() {
     return (
-      <CollectionMatchFilter
-        className="contest-list-filter--sport"
-        filters={this.state.leagueFilters}
-        filterProperty='sport'
-        match=''
-        filterName='sportFilter'
-        onUpdate={this.handleFilterChange}
-        elementType='select'
-      />
+      <div>
+        <CollectionMatchFilter
+          className="contest-list-filter--sport"
+          filters={this.state.leagueFilters}
+          filterProperty='sport'
+          match=''
+          filterName='sportFilter'
+          onUpdate={this.handleFilterChange}
+          elementType='select'
+        />
+      <div
+        className="add-lineup"
+        onClick={this.props.openDraftGroupSelectionModal}
+      >
+          +
+        </div>
+      </div>
     );
   }
 
@@ -62,7 +71,10 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match))
+    updateFilter: (filterName, filterProperty, match) => dispatch(
+      updateFilter(filterName, filterProperty, match)
+    ),
+    openDraftGroupSelectionModal: () => dispatch(openDraftGroupSelectionModal())
   }
 }
 

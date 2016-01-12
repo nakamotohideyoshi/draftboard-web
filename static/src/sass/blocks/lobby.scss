@@ -21,6 +21,17 @@
         position: relative;
         top: -5px;
         float: right;
+
+        .add-lineup {
+          cursor: pointer;
+          display: inline-block;
+          font-size: 20px;
+          padding: 0 0 0 15px;
+
+          &:hover {
+            color: $link-green;
+          }
+        }
       }
 
       // Arrow tab thing.
