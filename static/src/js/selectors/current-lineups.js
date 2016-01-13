@@ -7,6 +7,7 @@ import { forEach as _forEach } from 'lodash'
 import { updateFantasyPointsForLineup } from './live-contests'
 
 import log from '../lib/logging'
+import GAME_DURATIONS from '../actions/current-box-scores'
 
 
 // Input Selectors
@@ -38,23 +39,21 @@ function addPlayersDetails(lineup, draftGroup, boxScores) {
       stats: draftGroup.playersStats[playerId]
     }
 
+    // default to not having started
     if (player.stats === undefined) {
       player.stats = {
-        fp: 0
+        fp: 0,
+        minutesRemaining: GAME_DURATIONS.nba.gameMinutes,
+        decimalRemaining: 0.01
       }
     }
 
-
+    // otherwise pull in accurate data from related game
     const game = boxScores[player.info.game_srid]
-
-    // if the game hasn't started, then give full minutes remaining
-    if (game.timeRemaining === null) {
-      game.timeRemaining = 48
+    if (game.hasOwnProperty('boxscore')) {
+      player.stats.minutesRemaining = game.boxscore.timeRemaining
+      player.stats.decimalRemaining = decimalRemaining(player.stats.minutesRemaining, 48)
     }
-    let minutesRemaining = (game === undefined) ? 48 : game.timeRemaining
-
-    player.stats.minutesRemaining = minutesRemaining
-    player.stats.decimalRemaining = decimalRemaining(minutesRemaining, 48)
 
     currentPlayers[playerId] = player
   })

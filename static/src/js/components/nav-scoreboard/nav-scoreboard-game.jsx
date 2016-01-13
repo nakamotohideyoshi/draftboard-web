@@ -13,61 +13,55 @@ const NavScoreboardGame = React.createClass({
   mixins: [PureRenderMixin],
 
   propTypes: {
-    // Example game:
-    //
-    // id':      '0'
-    // time':    '7:10PM'
-    // players': ['ATL', 'BAL']
-    //
     game: React.PropTypes.object.isRequired
   },
 
   render() {
     const game = this.props.game
-    const {home_abbr, away_abbr} = this.props.game.fields
-    let clock
+    let clockElement, scoresElement
 
-    let start = moment(game.fields.start)
-
-    if (game.timeRemaining === null || moment().isBefore(start)) {
-      return (
-        <div className="game scroll-item">
-          <div className="left">
-            {this.props.game.homeTeamInfo.alias}
-            <br />
-            {this.props.game.awayTeamInfo.alias}
-          </div>
-
-          <div className="right">
-            {moment(game.fields.start).format('h:mma')} <br /> <br />
-          </div>
-        </div>
-      )
-    }
-
-    if (game.fields.status === 'closed') {
-      clock = (
+    // if the game hasn't started
+    if (!game.hasOwnProperty('boxscore')) {
+      clockElement = (
         <div className="right">
-          Final
+          { moment(game.start).format('h:mma') } <br /> <br />
         </div>
       )
     } else {
-      let quarter = _.round(game.fields.quarter, 0)
-      if (quarter > 4 ) {
-        quarter = (quarter % 4).toString() + 'OT'
+      const boxScore = game.boxscore
 
-        if (quarter === '1OT') {
-          quarter = 'OT'
-        }
-      }
-
-      clock = (
-        <div className="right">
-          { game.fields.clock }
+      scoresElement = (
+        <div className="scores">
+          { boxScore.teamScores[game.srid_home] }
           <br />
-          { quarter }
+          { boxScore.teamScores[game.srid_away] }
         </div>
       )
+
+
+      // if the game has ended
+      if (boxScore.status === 'closed') {
+        clockElement = (
+          <div className="right">
+            Final
+          </div>
+        )
+
+      // otherwise the game is live
+      } else {
+        let clock = boxScore.clock
+        if (clock === '00:00') {
+          clock = 'END OF'
+        }
+
+        clockElement = (
+          <div className="right">
+            { clock }
+            <br />
+            { boxScore.quarterDisplay }
+          </div>
+        )
+      }
     }
 
     return (
@@ -78,16 +72,10 @@ const NavScoreboardGame = React.createClass({
           {game.awayTeamInfo.alias}
         </div>
 
-        <div className="scores">
-          {game.teams[game.fields.srid_home].score}
-          <br />
-          {game.teams[game.fields.srid_away].score}
-        </div>
-
-        { clock }
+        { scoresElement }
+        { clockElement }
       </div>
     )
-
   }
 
 })
