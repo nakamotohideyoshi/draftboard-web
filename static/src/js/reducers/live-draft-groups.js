@@ -69,7 +69,7 @@ module.exports = (state = {}, action) => {
 
 
     case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_INFO:
-      log.debug('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_INFO')
+      log.trace('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_INFO')
 
       return update(state, {
         [action.id]: {
@@ -87,7 +87,7 @@ module.exports = (state = {}, action) => {
 
 
     case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP:
-      log.debug('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_FP')
+      log.trace('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_FP')
 
       newProps = {
         id: action.id,
@@ -98,7 +98,7 @@ module.exports = (state = {}, action) => {
 
 
     case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP:
-      log.debug('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_FP')
+      log.trace('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_FP')
 
       return update(state, {
         [action.id]: {
@@ -112,7 +112,7 @@ module.exports = (state = {}, action) => {
 
 
     case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES:
-      log.debug('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES')
+      log.trace('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES')
 
       newProps = {
         id: action.id,
@@ -123,7 +123,7 @@ module.exports = (state = {}, action) => {
 
 
     case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES:
-      log.debug('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
+      log.trace('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
 
       return update(state, {
         [action.id]: {
@@ -137,7 +137,7 @@ module.exports = (state = {}, action) => {
 
 
     case ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED:
-      log.debug('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
+      log.trace('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
 
       return update(state, {
         [action.id]: {

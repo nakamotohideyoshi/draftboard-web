@@ -6,7 +6,7 @@ import _ from 'lodash'
 
 
 export function mergeBoxScores(boxScores) {
-  log.debug('actionsCurrentBoxScores.mergeBoxScores')
+  log.trace('actionsCurrentBoxScores.mergeBoxScores')
 
   let scoresBySRID = {}
 
@@ -34,7 +34,7 @@ export function mergeBoxScores(boxScores) {
 
 
 export function updateBoxScore(gameId, teamId, points) {
-  log.debug('actionsCurrentBoxScores.updateBoxScore')
+  log.trace('actionsCurrentBoxScores.updateBoxScore')
 
   return {
     type: ActionTypes.UPDATE_CURRENT_BOX_SCORE,

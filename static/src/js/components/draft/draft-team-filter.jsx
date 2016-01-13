@@ -13,8 +13,7 @@ const DraftTeamFilter = React.createClass({
   filterTitle: 'teamFilter',
 
   propTypes: {
-    boxScores: React.PropTypes.array.isRequired,
-    games: React.PropTypes.array.isRequired,
+    boxScores: React.PropTypes.object,
     isVisible: React.PropTypes.bool.isRequired,
     onFilterChange: React.PropTypes.func.isRequired,
     selectedTeams: React.PropTypes.array.isRequired,
@@ -53,7 +52,7 @@ const DraftTeamFilter = React.createClass({
   getAllTeams: function() {
     let allTeams = []
 
-    _forEach(this.props.games, function(game) {
+    _forEach(this.props.boxScores, function(game) {
       allTeams.push(game.srid_home)
       allTeams.push(game.srid_away)
     })
@@ -143,28 +142,30 @@ const DraftTeamFilter = React.createClass({
 
 
   getGames: function() {
-    return this.props.games.map(function(game) {
+    let games = []
+
+    _forEach(this.props.boxScores, function(game) {
       let homeClasses = classNames('team home', { 'selected': this.isTeamSelected(this.props.selectedTeams, game.srid_home) })
       let awayClasses = classNames('team away', { 'selected': this.isTeamSelected(this.props.selectedTeams, game.srid_away) })
 
-      return ([
+      games.push([
         <div
           className="game scroll-item"
           key={game.pk}
           onClick={this.handleGameClick.bind(this, game)}
           ref={'game-' + game.pk}
-        >
+          >
           <div className="left">
             <div className={awayClasses} onClick={this.handleTeamClick.bind(this, game.srid_away)}>
               <span
                 className="teamName"
-              >{this.getTeamAlias(game.srid_away)}</span>
+                >{this.getTeamAlias(game.srid_away)}</span>
             </div>
 
             <div className={homeClasses} onClick={this.handleTeamClick.bind(this, game.srid_home)}>
               <span
                 className="teamName"
-              >{this.getTeamAlias(game.srid_home)}</span>
+                >{this.getTeamAlias(game.srid_home)}</span>
             </div>
           </div>
 
@@ -176,7 +177,10 @@ const DraftTeamFilter = React.createClass({
         </div>,
         <div className="separator half"></div>
       ])
+
     }.bind(this))
+
+    return games
   },
 
 

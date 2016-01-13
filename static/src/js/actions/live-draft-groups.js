@@ -53,7 +53,7 @@ export function updatePlayerFP(eventCall, id, playerId, fp) {
 // -----------------------------------------------------------------------
 
 function requestDraftGroupFP(id) {
-  log.debug('actionsLiveDraftGroup.requestDraftGroupFP')
+  log.trace('actionsLiveDraftGroup.requestDraftGroupFP')
 
   return {
     id: id,
@@ -63,7 +63,7 @@ function requestDraftGroupFP(id) {
 
 
 function fetchDraftGroupFP(id) {
-  log.debug('actionsLiveDraftGroup.fetchDraftGroupFP')
+  log.trace('actionsLiveDraftGroup.fetchDraftGroupFP')
 
   return dispatch => {
     dispatch(requestDraftGroupFP(id))
@@ -86,7 +86,7 @@ function fetchDraftGroupFP(id) {
 
 
 function receiveDraftGroupFP(id, response) {
-  log.debug('actionsLiveDraftGroup.receiveDraftGroupFP')
+  log.trace('actionsLiveDraftGroup.receiveDraftGroupFP')
 
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
@@ -98,7 +98,7 @@ function receiveDraftGroupFP(id, response) {
 
 
 function shouldFetchDraftGroupFP(state, id) {
-  log.debug('actionsLiveDraftGroup.shouldFetchDraftGroupFP')
+  log.trace('actionsLiveDraftGroup.shouldFetchDraftGroupFP')
 
   var liveDraftGroups = state.liveDraftGroups;
 
@@ -114,7 +114,7 @@ function shouldFetchDraftGroupFP(state, id) {
 
 
 export function fetchDraftGroupFPIfNeeded(id) {
-  log.debug('actionsLiveDraftGroup.fetchDraftGroupFPIfNeeded')
+  log.trace('actionsLiveDraftGroup.fetchDraftGroupFPIfNeeded')
 
   return (dispatch, getState) => {
     if (shouldFetchDraftGroupFP(getState(), id)) {
@@ -219,7 +219,7 @@ function requestDraftGroupBoxScores(id) {
 
 
 function receiveDraftGroupBoxScores(id, boxScores) {
-  log.debug('actionsLiveDraftGroup.receiveDraftGroupBoxScores')
+  log.trace('actionsLiveDraftGroup.receiveDraftGroupBoxScores')
 
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES,

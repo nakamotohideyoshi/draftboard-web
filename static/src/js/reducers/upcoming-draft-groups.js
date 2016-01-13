@@ -6,10 +6,10 @@ const initialState = {
   draftGroupSelectionModalIsOpen: false,
   sportContestCounts: {},
   draftGroups: [],
+  // BoxScores + game info, indexed by draftGroupId.
   boxScores: {
     isFetching: false
-  },
-  boxScoreGames: {}
+  }
 }
 
 
@@ -26,15 +26,11 @@ module.exports = function(state = initialState, action) {
       // Insert boxscores + games into store, indexed by the draftGroupId
       case ActionTypes.FETCH_DRAFTGROUP_BOXSCORES_SUCCESS:
         let boxScore = {}
-        boxScore[action.draftGroupId] = action.body.boxscores
+        boxScore[action.draftGroupId] = action.body
         boxScore.isFetching = false
 
-        let games = {}
-        games[action.draftGroupId] = action.body.games
-
         return Object.assign({}, state, {
-          boxScores: Object.assign({}, state.boxScores, boxScore),
-          boxScoreGames: Object.assign({}, state.boxScoreGames, games)
+          boxScores: Object.assign({}, state.boxScores, boxScore)
         })
 
 
