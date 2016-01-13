@@ -172,7 +172,7 @@ export const currentLineupsStatsSelector = createSelector(
       liveLineupsStats[lineup.id] = stats
     })
 
-    log.debug('selectors.currentLineupsStatsSelector() - updated')
+    log.trace('selectors.currentLineupsStatsSelector() - updated')
 
 
 

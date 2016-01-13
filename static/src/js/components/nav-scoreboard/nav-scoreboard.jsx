@@ -100,7 +100,7 @@ const NavScoreboard = React.createClass({
   },
 
   startParityChecks() {
-    log.debug('NavScoreboard.startParityChecks()')
+    log.trace('NavScoreboard.startParityChecks()')
     const self = this
 
     // loop through draft groups and get latest box scores, fp
@@ -171,7 +171,7 @@ const NavScoreboard = React.createClass({
    * @return {Object} options key-value pairs
    */
   handleChangeSelection(selectedOption, selectedType, selectedKey) {
-    log.debug('handleChangeSelection()', selectedOption, selectedType, selectedKey)
+    log.trace('handleChangeSelection()', selectedOption, selectedType, selectedKey)
 
     console.assert(typeof selectedOption === 'string')
     console.assert(typeof selectedType === 'string')

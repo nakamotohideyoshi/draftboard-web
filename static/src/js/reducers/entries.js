@@ -12,15 +12,11 @@ module.exports = function(state = {
 }, action) {
   switch (action.type) {
     case ActionTypes.REQUEST_ENTRIES:
-      log.debug('reducersEntries.REQUEST_ENTRIES')
-
       return update(state, { $merge: {
         isFetching: true
       }})
 
     case ActionTypes.RECEIVE_ENTRIES:
-      log.debug('reducersEntries.RECEIVE_ENTRIES')
-
       return update(state, { $set: {
         isFetching: false,
         hasRelatedInfo: false,
@@ -29,15 +25,11 @@ module.exports = function(state = {
       }})
 
     case ActionTypes.CONFIRM_RELATED_ENTRIES_INFO:
-      log.debug('reducersEntries.CONFIRM_RELATED_ENTRIES_INFO')
-
       return update(state, { $merge: {
         hasRelatedInfo: true
       }})
 
     case ActionTypes.ADD_ENTRIES_PLAYERS:
-      log.debug('reducersEntries.ADD_ENTRIES_PLAYERS')
-
       let newState = Object.assign({}, state)
 
       _forEach(action.entriesPlayers, (roster, entryId) => {

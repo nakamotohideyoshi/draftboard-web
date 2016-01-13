@@ -83,10 +83,15 @@ export const liveContestsStatsSelector = createSelector(
     }
 
     let contestsStats = {}
+    let prizeStructure = {}
 
     _forEach(contests, (contest, id) => {
       const draftGroup = draftGroups[contest.info.draft_group]
-      const prizeStructure = prizes[contest.info.prize_structure].info
+
+      // Make sure we have the prize structure before adding it.
+      if (prizes.hasOwnProperty(contest.info.prize_structure)) {
+        prizeStructure = prizes[contest.info.prize_structure].info
+      }
 
       let stats = {
         id: contest.id,

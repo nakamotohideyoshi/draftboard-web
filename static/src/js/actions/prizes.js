@@ -8,7 +8,7 @@ import log from '../lib/logging'
 
 
 function requestPrize(id) {
-  log.debug('actionsLivePrize.requestPrize')
+  log.trace('actionsLivePrize.requestPrize')
 
   return {
     id: id,
@@ -18,7 +18,7 @@ function requestPrize(id) {
 
 
 function receivePrize(id, response) {
-  log.debug('actionsLivePrize.receivePrize')
+  log.trace('actionsLivePrize.receivePrize')
 
   return {
     type: ActionTypes.RECEIVE_PRIZE,
@@ -30,7 +30,7 @@ function receivePrize(id, response) {
 
 
 function fetchPrize(id) {
-  log.debug('actionsLivePrize.fetchPrize')
+  log.trace('actionsLivePrize.fetchPrize')
 
   return dispatch => {
     dispatch(requestPrize(id))
@@ -48,14 +48,14 @@ function fetchPrize(id) {
 
 
 function shouldFetchPrize(state, id) {
-  log.debug('actionsLivePrize.shouldFetchPrize')
+  log.trace('actionsLivePrize.shouldFetchPrize')
 
   return id in state.prizes === false
 }
 
 
 export function fetchPrizeIfNeeded(id) {
-  log.debug('actionsLivePrize.fetchPrizeIfNeeded')
+  log.trace('actionsLivePrize.fetchPrizeIfNeeded')
 
   return (dispatch, getState) => {
     if (shouldFetchPrize(getState(), id)) {

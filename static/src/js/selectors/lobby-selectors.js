@@ -9,13 +9,14 @@ import {upcomingLineupsInfo} from './upcoming-lineups-info.js'
 let upcomingContests = (state) => state.upcomingContests.allContests
 let focusedContestId = (state) => state.upcomingContests.focusedContestId
 let focusedLineupId = (state) => state.upcomingLineups.focusedLineupId
+let boxScores = (state) => state.upcomingDraftGroups.boxScores
 let prizes = (state) => state.prizes
 let entrants = (state) => state.upcomingContests.entrants
 let lineupsInfo = (state) => upcomingLineupsInfo(state)
 
 export const focusedContestInfoSelector = createSelector(
-  [upcomingContests, focusedContestId, focusedLineupId, prizes, entrants, lineupsInfo],
-  (upcomingContests, focusedContestId, focusedLineupId, prizes, entrants, lineupsInfo) => {
+  [upcomingContests, focusedContestId, focusedLineupId, boxScores, prizes, entrants, lineupsInfo],
+  (upcomingContests, focusedContestId, focusedLineupId, boxScores, prizes, entrants, lineupsInfo) => {
     // Default return data.
     let contestInfo = {
       contest: {
@@ -29,6 +30,11 @@ export const focusedContestInfoSelector = createSelector(
     // Add additional info if available.
     if (upcomingContests.hasOwnProperty(focusedContestId)) {
       contestInfo.contest = upcomingContests[focusedContestId]
+
+      // Add the boxscore if it's available.
+      if (boxScores.hasOwnProperty(contestInfo.contest.draft_group)) {
+        contestInfo.boxScores = boxScores[contestInfo.contest.draft_group]
+      }
 
       // Add the usernames of anyone who has entered the contest
       if (entrants.hasOwnProperty(focusedContestId)) {

@@ -11,7 +11,7 @@ export const SET_CURRENT_LINEUPS = 'SET_CURRENT_LINEUPS'
 
 
 export function setCurrentLineups(lineups) {
-  log.debug('actionsCurrentLineups.setCurrentLineups')
+  log.trace('actionsCurrentLineups.setCurrentLineups')
 
   return {
     type: SET_CURRENT_LINEUPS,

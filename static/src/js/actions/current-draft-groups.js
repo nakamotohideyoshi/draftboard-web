@@ -10,7 +10,7 @@ import { fetchDraftGroupIfNeeded } from './live-draft-groups'
 
 
 export function fetchRelatedDraftGroupsInfo() {
-  log.debug('actionsCurrentDraftGroups.fetchRelatedDraftGroupsInfo')
+  log.trace('actionsCurrentDraftGroups.fetchRelatedDraftGroupsInfo')
 
   return (dispatch, getState) => {
     let calls = []
@@ -25,7 +25,7 @@ export function fetchRelatedDraftGroupsInfo() {
 
 
 function requestCurrentDraftGroups() {
-  log.debug('actionsCurrentDraftGroups.requestCurrentDraftGroups')
+  log.trace('actionsCurrentDraftGroups.requestCurrentDraftGroups')
 
   return {
     type: ActionTypes.REQUEST_CURRENT_DRAFT_GROUPS
@@ -34,7 +34,7 @@ function requestCurrentDraftGroups() {
 
 
 function receiveCurrentDraftGroups(response) {
-  log.debug('actionsCurrentDraftGroups.receiveCurrentDraftGroups')
+  log.trace('actionsCurrentDraftGroups.receiveCurrentDraftGroups')
 
   return {
     type: ActionTypes.RECEIVE_CURRENT_DRAFT_GROUPS,
@@ -45,7 +45,7 @@ function receiveCurrentDraftGroups(response) {
 
 
 function fetchCurrentDraftGroups() {
-  log.debug('actionsCurrentDraftGroups.fetchCurrentDraftGroups')
+  log.trace('actionsCurrentDraftGroups.fetchCurrentDraftGroups')
 
   return dispatch => {
     dispatch(requestCurrentDraftGroups())
@@ -63,7 +63,7 @@ function fetchCurrentDraftGroups() {
 
 
 function shouldFetchCurrentDraftGroups(state) {
-  log.debug('actionsCurrentDraftGroups.shouldFetchCurrentDraftGroups')
+  log.trace('actionsCurrentDraftGroups.shouldFetchCurrentDraftGroups')
 
   // if expired, then get
   let expiration = moment(state.currentDraftGroups.updatedAt).add(1, 'minutes')
@@ -80,7 +80,7 @@ function shouldFetchCurrentDraftGroups(state) {
 
 
 export function fetchCurrentDraftGroupsIfNeeded(id) {
-  log.debug('actionsCurrentDraftGroups.fetchCurrentDraftGroupsIfNeeded')
+  log.trace('actionsCurrentDraftGroups.fetchCurrentDraftGroupsIfNeeded')
 
   return (dispatch, getState) => {
     if (shouldFetchCurrentDraftGroups(getState()) === false) {
