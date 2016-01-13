@@ -137,6 +137,7 @@ class DraftGroupGameBoxscoresView(View):
                 boxscore = boxscores.get(srid_game=game.srid) # may not exist
             except:
                 pass
+            b = {}
             if boxscore is not None:
                 b = {
                     'boxscore' : boxscore_serializer_class( boxscore ).data
