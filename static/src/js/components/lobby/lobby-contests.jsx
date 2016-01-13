@@ -9,7 +9,7 @@ import {fetchFeaturedContestsIfNeeded} from '../../actions/featured-contest-acti
 import {fetchPrizeIfNeeded} from '../../actions/prizes.js'
 import {fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter}
   from '../../actions/upcoming-contests-actions.js'
-import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-info-actions.js'
+import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-actions.js'
 import {focusedContestInfoSelector} from '../../selectors/lobby-selectors.js'
 import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js'
 import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'

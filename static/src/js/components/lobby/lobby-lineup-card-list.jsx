@@ -8,7 +8,7 @@ const smoothScrollTo = require('../../lib/smooth-scroll-to.js')
 const LobbyDraftGroupSelectionModal = require('./lobby-draft-group-selection-modal.jsx')
 import {fetchUpcomingLineups, lineupFocused, lineupHovered} from '../../actions/lineup-actions.js'
 import {openDraftGroupSelectionModal, closeDraftGroupSelectionModal} from
-  '../../actions/upcoming-draft-groups-info-actions.js'
+  '../../actions/upcoming-draft-groups-actions.js'
 import {draftGroupInfoSelector} from '../../selectors/draft-group-info-selector.js'
 import {LineupsBySportSelector} from '../../selectors/upcoming-lineups-by-sport.js'
 import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'

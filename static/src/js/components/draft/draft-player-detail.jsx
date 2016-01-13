@@ -71,7 +71,7 @@ let {Provider, connect} = ReactRedux
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    activePlayer: state.draftDraftGroup.focusedPlayer
+    activePlayer: state.draftGroupPlayers.focusedPlayer
   }
 }
 

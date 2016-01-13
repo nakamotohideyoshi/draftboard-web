@@ -121,7 +121,7 @@ export function createLineupViaCopy(lineupId, getState) {
     const state = getState()
     // When copying a lineup is requested, import a lineup by id (via url), check if we have the
     // necessary data, if so then import it.
-    if (lineupId && state.draftDraftGroup.id) {
+    if (lineupId && state.draftGroupPlayers.id) {
       // Does this lineup exist in our lineups list?
       if (state.upcomingLineups.lineups.hasOwnProperty(lineupId)) {
         dispatch(importLineup(state.upcomingLineups.lineups[lineupId], getState))
@@ -291,7 +291,7 @@ export function importLineup(lineup, importTitle=false) {
     // 'player', we need to grab the corresponding DraftGroup player object and use that.
     forEach(lineup.players, function(player) {
       // Get the DraftGroup player
-      let DraftGroupPlayer = state.draftDraftGroup.allPlayers[player.player_id];
+      let DraftGroupPlayer = state.draftGroupPlayers.allPlayers[player.player_id];
       //  Copy and append the idx to the player.
       DraftGroupPlayer = Object.assign({}, DraftGroupPlayer, {'idx': player.idx})
       // push them into a list of players.

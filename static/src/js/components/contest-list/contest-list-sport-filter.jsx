@@ -4,7 +4,7 @@ const store = require('../../store')
 const renderComponent = require('../../lib/render-component')
 var CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
 import {updateFilter} from '../../actions/upcoming-contests-actions.js'
-import {openDraftGroupSelectionModal} from '../../actions/upcoming-draft-groups-info-actions.js'
+import {openDraftGroupSelectionModal} from '../../actions/upcoming-draft-groups-actions.js'
 
 /**
  * A league filter for a ContestList DataTable - This sits above the lineup cards in the sidebar.

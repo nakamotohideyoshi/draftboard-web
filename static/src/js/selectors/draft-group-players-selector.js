@@ -5,7 +5,7 @@ import {forEach as _forEach} from 'lodash'
 
 
 // All the players in the state.
-const allPlayersSelector = (state) => state.draftDraftGroup.allPlayers
+const allPlayersSelector = (state) => state.draftGroupPlayers.allPlayers
 
 
 // Add injury information to each player.
@@ -41,8 +41,8 @@ const playersWithHistory = createSelector(
 
 
 // Filter players based on the search filter
-const filterPropertySelector = (state) => state.draftDraftGroup.filters.playerSearchFilter.filterProperty
-const filterMatchSelector = (state) => state.draftDraftGroup.filters.playerSearchFilter.match
+const filterPropertySelector = (state) => state.draftGroupPlayers.filters.playerSearchFilter.filterProperty
+const filterMatchSelector = (state) => state.draftGroupPlayers.filters.playerSearchFilter.match
 
 const playerNameSelector = createSelector(
   [playersWithHistory, filterPropertySelector, filterMatchSelector],
@@ -53,8 +53,8 @@ const playerNameSelector = createSelector(
 
 
 // Filter players based on the team filter
-const teamFilterPropertySelector = (state) => state.draftDraftGroup.filters.teamFilter.filterProperty
-const teamFilterMatchSelector = (state) => state.draftDraftGroup.filters.teamFilter.match
+const teamFilterPropertySelector = (state) => state.draftGroupPlayers.filters.teamFilter.filterProperty
+const teamFilterMatchSelector = (state) => state.draftGroupPlayers.filters.teamFilter.match
 
 const teamSelector = createSelector(
   [playerNameSelector, teamFilterPropertySelector, teamFilterMatchSelector],
@@ -66,8 +66,8 @@ const teamSelector = createSelector(
 
 
 // Filter players based on the position filter
-const positionFilterPropertySelector = (state) => state.draftDraftGroup.filters.positionFilter.filterProperty
-const positionFilterMatchSelector = (state) => state.draftDraftGroup.filters.positionFilter.match
+const positionFilterPropertySelector = (state) => state.draftGroupPlayers.filters.positionFilter.filterProperty
+const positionFilterMatchSelector = (state) => state.draftGroupPlayers.filters.positionFilter.match
 
 const positionSelector = createSelector(
   [teamSelector, positionFilterPropertySelector, positionFilterMatchSelector],
@@ -80,8 +80,8 @@ const positionSelector = createSelector(
 /**
  * Sort the contests.
  */
-const sortDirection = (state) => state.draftDraftGroup.filters.orderBy.direction
-const sortProperty = (state) => state.draftDraftGroup.filters.orderBy.property
+const sortDirection = (state) => state.draftGroupPlayers.filters.orderBy.direction
+const sortProperty = (state) => state.draftGroupPlayers.filters.orderBy.property
 
 export const draftGroupPlayerSelector = createSelector(
   [positionSelector, sortProperty, sortDirection],
