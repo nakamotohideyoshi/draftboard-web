@@ -45,18 +45,27 @@ const NavScoreboardGame = React.createClass({
       )
     }
 
-    if (game.fields.clock === '00:00' && game.fields.quarter === '4.0') {
+    if (game.fields.status === 'closed') {
       clock = (
         <div className="right">
           Final
         </div>
       )
     } else {
+      let quarter = _.round(game.fields.quarter, 0)
+      if (quarter > 4 ) {
+        quarter = (quarter % 4).toString() + 'OT'
+
+        if (quarter === '1OT') {
+          quarter = 'OT'
+        }
+      }
+
       clock = (
         <div className="right">
           { game.fields.clock }
           <br />
-          {_.round(game.fields.quarter, 0)}
+          { quarter }
         </div>
       )
     }

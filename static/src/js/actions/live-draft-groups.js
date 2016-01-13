@@ -26,8 +26,10 @@ function _calculateTimeRemaining(boxScore) {
     return 48
   }
 
+  const quarter = boxScore.fields.quarter
+  const remainingQuarters = (quarter > 4) ? 0 : 4 - quarter
   const clockMinSec = boxScore.fields.clock.split(':')
-  const remainingMinutes = (4 - parseInt(boxScore.fields.quarter)) * 12
+  const remainingMinutes = remainingQuarters * 12
 
   // round up to the nearest minute
   return remainingMinutes + parseInt(clockMinSec[0]) + 1
@@ -36,7 +38,7 @@ function _calculateTimeRemaining(boxScore) {
 
 // Used to update a player's FP when a Pusher call sends us new info
 export function updatePlayerFP(eventCall, id, playerId, fp) {
-  log.info('actionsLiveDraftGroup.updatePlayerFP()', eventCall)
+  log.debug('actionsLiveDraftGroup.updatePlayerFP')
 
   return {
     id: id,
