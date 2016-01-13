@@ -28,11 +28,13 @@ var LiveLineupPlayer = React.createClass({
     // if player makes fp, show why
     let eventDescription
     if (playerSRID in this.props.eventDescriptions) {
+      const eventInfo = this.props.eventDescriptions[playerSRID]
+
       eventDescription = (
         <div className="live-lineup-player__event-description event-description showing">
-          <div className="event-description__points">+2</div>
-          <div className="event-description__info">Norman Powell Dudley makes two point jump shot (John Wall assists)</div>
-          <div className="event-description__when">11:04</div>
+          <div className="event-description__points">{ eventInfo.points }</div>
+          <div className="event-description__info">{ eventInfo.info }</div>
+          <div className="event-description__when">{ eventInfo.when }</div>
         </div>
       )
     }

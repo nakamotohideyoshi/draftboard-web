@@ -71,6 +71,10 @@ function shouldFetchCurrentDraftGroups(state) {
     return true
   }
 
+  if ('items' in state.currentDraftGroups === false) {
+    return true
+  }
+
   return state.currentDraftGroups.items.length === 0
 }
 
