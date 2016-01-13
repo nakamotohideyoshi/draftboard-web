@@ -7,7 +7,7 @@ const initialState = {
   id: null,
   isFetching: false,
   allPlayers: {},
-  boxScores: [],
+  // boxScores: [],
   filters: {
     orderBy: {
       property: 'salary',
@@ -22,8 +22,9 @@ const initialState = {
   }
 }
 
-
-// Reducer for a single draft group - used in the draft section.
+/**
+ * Reducer for a single draft group - used in the draft section.
+ */
 module.exports = function(state = initialState, action) {
   switch (action.type) {
 
@@ -66,10 +67,10 @@ module.exports = function(state = initialState, action) {
       });
 
 
-    case ActionTypes.FETCH_DRAFTGROUP_BOXSCORES_SUCCESS:
-      return Object.assign({}, state, {
-        boxScores: action.boxScores
-      })
+    // case ActionTypes.FETCH_DRAFTGROUP_BOXSCORES_SUCCESS:
+    //   return Object.assign({}, state, {
+    //     boxScores: action.boxScores
+    //   })
 
 
     case ActionTypes.DRAFTGROUP_ORDER_CHANGED:

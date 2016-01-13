@@ -129,7 +129,7 @@ export function fetchDraftGroupFPIfNeeded(id) {
 // -----------------------------------------------------------------------
 
 export function fetchDraftGroupStats(id) {
-  log.debug('actionsLiveDraftGroup.fetchDraftGroupStats')
+  log.trace('actionsLiveDraftGroup.fetchDraftGroupStats')
   return (dispatch, getState) => {
     if (shouldFetchDraftGroupFP(getState(), id)) {
       return Promise.all([

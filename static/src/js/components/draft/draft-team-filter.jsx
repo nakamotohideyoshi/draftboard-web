@@ -13,6 +13,7 @@ const DraftTeamFilter = React.createClass({
   filterTitle: 'teamFilter',
 
   propTypes: {
+    boxScores: React.PropTypes.array.isRequired,
     games: React.PropTypes.array.isRequired,
     isVisible: React.PropTypes.bool.isRequired,
     onFilterChange: React.PropTypes.func.isRequired,
@@ -53,8 +54,8 @@ const DraftTeamFilter = React.createClass({
     let allTeams = []
 
     _forEach(this.props.games, function(game) {
-      allTeams.push(game.fields.srid_home)
-      allTeams.push(game.fields.srid_away)
+      allTeams.push(game.srid_home)
+      allTeams.push(game.srid_away)
     })
 
     return allTeams
@@ -86,14 +87,14 @@ const DraftTeamFilter = React.createClass({
   handleGameClick: function(game, e) {
     let newTeams = this.props.selectedTeams.slice()
 
-    if (this.isTeamSelected(newTeams, game.fields.srid_home) && this.isTeamSelected(newTeams, game.fields.srid_away)) {
-      this.removeTeamFromList(newTeams, game.fields.srid_home)
-      this.removeTeamFromList(newTeams, game.fields.srid_away)
+    if (this.isTeamSelected(newTeams, game.srid_home) && this.isTeamSelected(newTeams, game.srid_away)) {
+      this.removeTeamFromList(newTeams, game.srid_home)
+      this.removeTeamFromList(newTeams, game.srid_away)
     } else {
-      this.removeTeamFromList(newTeams, game.fields.srid_home)
-      this.removeTeamFromList(newTeams, game.fields.srid_away)
-      newTeams.push(game.fields.srid_home)
-      newTeams.push(game.fields.srid_away)
+      this.removeTeamFromList(newTeams, game.srid_home)
+      this.removeTeamFromList(newTeams, game.srid_away)
+      newTeams.push(game.srid_home)
+      newTeams.push(game.srid_away)
     }
 
     this.handleTeamsChange(newTeams)
@@ -143,8 +144,8 @@ const DraftTeamFilter = React.createClass({
 
   getGames: function() {
     return this.props.games.map(function(game) {
-      let homeClasses = classNames('team home', { 'selected': this.isTeamSelected(this.props.selectedTeams, game.fields.srid_home) })
-      let awayClasses = classNames('team away', { 'selected': this.isTeamSelected(this.props.selectedTeams, game.fields.srid_away) })
+      let homeClasses = classNames('team home', { 'selected': this.isTeamSelected(this.props.selectedTeams, game.srid_home) })
+      let awayClasses = classNames('team away', { 'selected': this.isTeamSelected(this.props.selectedTeams, game.srid_away) })
 
       return ([
         <div
@@ -154,22 +155,22 @@ const DraftTeamFilter = React.createClass({
           ref={'game-' + game.pk}
         >
           <div className="left">
-            <div className={awayClasses} onClick={this.handleTeamClick.bind(this, game.fields.srid_away)}>
+            <div className={awayClasses} onClick={this.handleTeamClick.bind(this, game.srid_away)}>
               <span
                 className="teamName"
-              >{this.getTeamAlias(game.fields.away_id)}</span>
+              >{this.getTeamAlias(game.srid_away) + game.srid_away}</span>
             </div>
 
-            <div className={homeClasses} onClick={this.handleTeamClick.bind(this, game.fields.srid_home)}>
+            <div className={homeClasses} onClick={this.handleTeamClick.bind(this, game.srid_home)}>
               <span
                 className="teamName"
-              >{this.getTeamAlias(game.fields.home_id)}</span>
+              >{this.getTeamAlias(game.srid_home) + game.srid_home}</span>
             </div>
           </div>
 
           <div className="right">
             <div className="start_time">
-              {moment(game.fields.created, moment.ISO_8601).format('h:mma')}
+              {moment(game.start, moment.ISO_8601).format('h:mma')}
             </div>
           </div>
         </div>,
@@ -180,7 +181,6 @@ const DraftTeamFilter = React.createClass({
 
 
   render: function() {
-
     if (!this.props.isVisible) {
       return <div></div>
     }

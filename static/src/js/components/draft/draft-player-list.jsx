@@ -9,12 +9,15 @@ const PlayerListRow = require('./draft-player-list-row.jsx')
 import DraftTeamFilter from './draft-team-filter.jsx'
 import {forEach as _forEach, find as _find, matchesProperty as _matchesProperty} from 'lodash'
 import * as moment from 'moment'
-import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, fetchDraftGroupBoxScoresIfNeeded,
-  updateOrderByFilter} from '../../actions/draft-group-actions.js'
+import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter}
+  from '../../actions/draft-group-players-actions.js'
+import {fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId}
+  from '../../actions/upcoming-draft-groups-actions.js'
 import {fetchSportInjuries} from '../../actions/injury-actions.js'
 import {createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
   editLineupInit, importLineup } from '../../actions/lineup-actions.js'
 import {draftGroupPlayerSelector} from '../../selectors/draft-group-players-selector.js'
+import {activeDraftGroupBoxScoresSelector} from '../../selectors/draft-group-info-selector.js'
 // Other components that will take care of themselves on the draft page.
 import './draft-player-detail.jsx'
 // Router stuff
@@ -37,7 +40,6 @@ const DraftPlayerList = React.createClass({
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
     filters: React.PropTypes.object.isRequired,
     createLineupViaCopy: React.PropTypes.func.isRequired,
-    draftGroupBoxScores: React.PropTypes.array.isRequired,
     editLineupInit: React.PropTypes.func,
     importLineup: React.PropTypes.func,
     allPlayers: React.PropTypes.object,
@@ -55,7 +57,9 @@ const DraftPlayerList = React.createClass({
     params: React.PropTypes.object,
     orderByDirection: React.PropTypes.string,
     orderByProperty: React.PropTypes.string,
-    updateOrderByFilter: React.PropTypes.func
+    updateOrderByFilter: React.PropTypes.func,
+    setActiveDraftGroupId: React.PropTypes.func.isRequired,
+    activeDraftGroupBoxScores: React.PropTypes.object
   },
 
 
@@ -98,6 +102,7 @@ const DraftPlayerList = React.createClass({
 
 
   loadData: function() {
+    this.props.setActiveDraftGroupId(this.props.params.draftgroupId)
     this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.params.draftgroupId)
     // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
     Promise.all([
@@ -171,7 +176,7 @@ const DraftPlayerList = React.createClass({
   render: function() {
     let gameCount = ''
     if (this.props.draftGroupTime) {
-      gameCount = this.props.draftGroupBoxScores.length + ' Games'
+      gameCount = this.props.activeDraftGroupBoxScores.games.length + ' Games'
     }
 
     let visibleRows = [];
@@ -248,7 +253,8 @@ const DraftPlayerList = React.createClass({
 
         <div>
           <DraftTeamFilter
-            games={this.props.draftGroupBoxScores}
+            boxScores={this.props.activeDraftGroupBoxScores.boxScores}
+            games={this.props.activeDraftGroupBoxScores.games}
             isVisible={this.state.showTeamFilter}
             onFilterChange={this.handleFilterChange}
             selectedTeams={this.props.filters.teamFilter.match}
@@ -291,20 +297,20 @@ let {Provider, connect} = ReactRedux;
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    allPlayers: state.draftDraftGroup.allPlayers || {},
+    allPlayers: state.draftGroupPlayers.allPlayers || {},
     filteredPlayers: draftGroupPlayerSelector(state),
-    filters: state.draftDraftGroup.filters,
-    draftGroupTime: state.draftDraftGroup.start,
-    draftGroupBoxScores: state.draftDraftGroup.boxScores,
-    sport: state.draftDraftGroup.sport,
+    activeDraftGroupBoxScores: activeDraftGroupBoxScoresSelector(state),
+    filters: state.draftGroupPlayers.filters,
+    draftGroupTime: state.draftGroupPlayers.start,
+    sport: state.draftGroupPlayers.sport,
     teams: state.sports,
     lineups: state.upcomingLineups.lineups,
     newLineup: state.createLineup.lineup,
     availablePositions: state.createLineup.availablePositions,
     injuries: state.injuries,
     fantasyHistory: state.fantasyHistory,
-    orderByDirection: state.draftDraftGroup.filters.orderBy.direction,
-    orderByProperty: state.draftDraftGroup.filters.orderBy.property
+    orderByDirection: state.draftGroupPlayers.filters.orderBy.direction,
+    orderByProperty: state.draftGroupPlayers.filters.orderBy.property
   };
 }
 
@@ -322,8 +328,8 @@ function mapDispatchToProps(dispatch) {
     editLineupInit: (lineupId) => dispatch(editLineupInit(lineupId)),
     importLineup: (lineup, importTitle) => dispatch(importLineup(lineup, importTitle)),
     updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
-    updatePath: (path) => dispatch(updatePath(path))
-
+    updatePath: (path) => dispatch(updatePath(path)),
+    setActiveDraftGroupId: (draftGroupId) => dispatch(setActiveDraftGroupId(draftGroupId))
   };
 }
 

@@ -129,8 +129,8 @@ function mapStateToProps(state) {
     // allLineups: state.upcomingLineups.lineups,
     lineups: LineupsByDraftGroupSelector(state),
     newLineup: state.createLineup,
-    sport: state.draftDraftGroup.sport,
-    draftGroupId: state.draftDraftGroup.id
+    sport: state.draftGroupPlayers.sport,
+    draftGroupId: state.draftGroupPlayers.id
   };
 }
 

@@ -43,3 +43,36 @@ export const draftGroupInfoSelector = createSelector(
     }
   }
 )
+
+
+
+
+/**
+ * Build up a bunch of data related to the currently active draft group. This is used in the draft
+ * section.
+ */
+const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId
+const boxScoresSelector = (state) => state.upcomingDraftGroups.boxScores
+const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScoreGames
+
+export const activeDraftGroupBoxScoresSelector = createSelector(
+  [activeDraftGroupIdSelector, draftGroupsFilterSelector, boxScoresSelector, boxScoreGamesSelector],
+  (activeDraftGroupId, draftGroups, boxScores, games) => {
+    let response = {
+      boxScores: [],
+      games: []
+    }
+
+    if (activeDraftGroupId) {
+      if (boxScores.hasOwnProperty(activeDraftGroupId)) {
+        response.boxScores = boxScores[activeDraftGroupId]
+      }
+
+      if (games.hasOwnProperty(activeDraftGroupId)) {
+        response.games = games[activeDraftGroupId]
+      }
+    }
+
+    return response
+  }
+)

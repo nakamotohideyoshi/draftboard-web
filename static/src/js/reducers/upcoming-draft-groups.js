@@ -2,12 +2,14 @@ const ActionTypes = require('../action-types')
 
 
 const initialState = {
+  activeDraftGroupId: null,
   draftGroupSelectionModalIsOpen: false,
   sportContestCounts: {},
   draftGroups: [],
   boxScores: {
     isFetching: false
-  }
+  },
+  boxScoreGames: {}
 }
 
 
@@ -21,13 +23,18 @@ module.exports = function(state = initialState, action) {
       });
 
 
+      // Insert boxscores + games into store, indexed by the draftGroupId
       case ActionTypes.FETCH_DRAFTGROUP_BOXSCORES_SUCCESS:
         let boxScore = {}
-        boxScore[action.draftGroupId] = action.boxScores
+        boxScore[action.draftGroupId] = action.body.boxscores
         boxScore.isFetching = false
 
+        let games = {}
+        games[action.draftGroupId] = action.body.games
+
         return Object.assign({}, state, {
-          boxScores: Object.assign({}, state.boxScores, boxScore)
+          boxScores: Object.assign({}, state.boxScores, boxScore),
+          boxScoreGames: Object.assign({}, state.boxScoreGames, games)
         })
 
 
@@ -35,6 +42,14 @@ module.exports = function(state = initialState, action) {
           return Object.assign({}, state, {
             boxScores: Object.assign({}, state.boxscores, {
               isFetching: true
+            })
+          })
+
+
+        case ActionTypes.FETCH_DRAFTGROUP_BOXSCORES_FAIL:
+          return Object.assign({}, state, {
+            boxScores: Object.assign({}, state.boxscores, {
+              isFetching: false
             })
           })
 
@@ -48,6 +63,12 @@ module.exports = function(state = initialState, action) {
         case ActionTypes.OPEN_DRAFT_GROUP_SELECTION_MODAL:
           return Object.assign({}, state, {
             draftGroupSelectionModalIsOpen: true
+          })
+
+
+        case ActionTypes.SET_ACTIVE_DRAFT_GROUP_ID:
+          return Object.assign({}, state, {
+            activeDraftGroupId: action.draftGroupId
           })
 
 
