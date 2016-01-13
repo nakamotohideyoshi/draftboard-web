@@ -176,14 +176,28 @@
 
       &__points {
         font-family: $font-oswald;
-        color: #000;
+        color: #45505b;
         font-size: 22px;
       }
     }
 
-    &__team-logo {
+    &__team-name {
+      color: #2b2b2b;
       width: 75px;
       height: 30px;
+      text-align: center;
+
+      .city {
+        font-size: 9px;
+        line-height: 1;
+      }
+
+      .name {
+        font-family: $font-oswald;
+        font-size: 15px;
+        line-height: 1.2;
+        text-transform: uppercase;
+      }
     }
 
     &__time {
@@ -216,7 +230,7 @@
       vertical-align: middle;
 
       &__points {
-        color: #000;
+        color: #45505b;
         font-family: $font-oswald;
         font-size: 22px;
       }

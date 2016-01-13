@@ -71,6 +71,10 @@ function shouldFetchCurrentDraftGroups(state) {
     return true
   }
 
+  if ('items' in state.currentDraftGroups === false) {
+    return true
+  }
+
   return state.currentDraftGroups.items.length === 0
 }
 
@@ -82,6 +86,8 @@ export function fetchCurrentDraftGroupsIfNeeded(id) {
     if (shouldFetchCurrentDraftGroups(getState()) === false) {
       return Promise.resolve('Draft group exists')
     }
+
+    log.info('actions.currentDraftGroups.fetchCurrentDraftGroupsIfNeeded() - Updating draft groups')
 
     return dispatch(
       fetchCurrentDraftGroups()

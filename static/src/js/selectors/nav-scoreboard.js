@@ -56,8 +56,8 @@ export const navScoreboardSelector = createSelector(
           if (dg.sport in sports) {
             const teams = sports[dg.sport].teams
 
-            newBoxScore.homeTeamInfo = teams[boxScore.fields.home_id]
-            newBoxScore.awayTeamInfo = teams[boxScore.fields.away_id]
+            newBoxScore.homeTeamInfo = teams[boxScore.fields.srid_home]
+            newBoxScore.awayTeamInfo = teams[boxScore.fields.srid_away]
           }
 
           return newBoxScore

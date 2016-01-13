@@ -175,6 +175,7 @@ var Live = React.createClass({
 
     // otherwise just update the player's FP
     self.props.updatePlayerFP(
+      eventCall,
       self.props.liveSelector.lineups.mine.draftGroup.id,
       eventCall.fields.player_id,
       eventCall.fields.fantasy_points
@@ -254,7 +255,6 @@ var Live = React.createClass({
 
     // loop through players to see if they match one of the players in the lineups
     _.forEach(events, function(event) {
-      log.debug(event)
       if (self.props.liveSelector.relevantPlayers.indexOf(event.player) !== -1) {
         log.debug('onPBPReceived() player found', event.player)
 
@@ -318,7 +318,12 @@ var Live = React.createClass({
         break
 
       case 'stats':
+        const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
+        const name = self.props.liveDraftGroups[draftGroupId].playersInfo[eventCall.fields.player_id].name
+        log.info('Live.popOldestGameEvent().updatePlayerFP()', name, eventCall)
+
         self.props.updatePlayerFP(
+          eventCall,
           self.props.liveSelector.lineups.mine.draftGroup.id,
           eventCall.fields.player_id,
           eventCall.fields.fantasy_points
@@ -331,7 +336,7 @@ var Live = React.createClass({
 
 
   showGameEvent(eventCall) {
-    log.debug('showGameEvent()')
+    log.info('showGameEvent()', eventCall)
 
     const self = this
     const relevantPlayers = self.props.liveSelector.relevantPlayers
@@ -394,47 +399,48 @@ var Live = React.createClass({
 
         // update player fp
         _.forEach(eventCall.statistics__list, function(event, key) {
-          if ('points' in event && 'made' in event && event.made === 'true') {
-            const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
-            const draftGroup = self.props.liveDraftGroups[draftGroupId]
-            const playerId = draftGroup.playersBySRID[event.player]
-            let playerStats = draftGroup.playersStats[playerId]
+          const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
+          const draftGroup = self.props.liveDraftGroups[draftGroupId]
+          const playerId = draftGroup.playersBySRID[event.player]
+          let playerStats = draftGroup.playersStats[playerId]
 
-            // if game hasn't started
-            // TODO API call fix this
-            if (playerStats === undefined) {
-              playerStats = {
-                fp: 0
+          // if game hasn't started
+          // TODO API call fix this
+          if (playerStats === undefined) {
+            playerStats = {
+              fp: 0
+            }
+          }
+
+          // show event description
+          // TODO modify this once pbp has player stats built in
+          let eventDescriptions = Object.assign(
+            {},
+            self.state.eventDescriptions,
+            {
+              [event.player]: {
+                points: '?',
+                info: eventCall.description,
+                when: eventCall.clock
               }
             }
+          )
+          self.setState({ eventDescriptions: eventDescriptions })
 
-            // show event description
-            let eventDescriptions = Object.assign(
-              {},
-              self.state.eventDescriptions,
-              {
-                [event.player]: {
-                  points: playerStats.fp,
-                  info: eventCall.description,
-                  when: eventCall.clock
-                }
-              }
-            )
+          setTimeout(function() {
+            log.debug('setTimeout - remove event description')
+            let eventDescriptions = Object.assign({}, eventDescriptions)
+            delete(eventDescriptions[event.player])
             self.setState({ eventDescriptions: eventDescriptions })
+          } , 6000)
 
-            setTimeout(function() {
-              log.debug('setTimeout - remove event description')
-              let eventDescriptions = Object.assign({}, eventDescriptions)
-              delete(eventDescriptions[event.player])
-              self.setState({ eventDescriptions: eventDescriptions })
-            } , 6000)
-
-            self.props.updatePlayerFP(
-              draftGroupId,
-              playerId,
-              playerStats.fp + event.points
-            )
-          }
+          // TODO modify this once pbp has player stats built in
+          // self.props.updatePlayerFP(
+          //   eventCall,
+          //   draftGroupId,
+          //   playerId,
+          //   playerStats.fp + event.points
+          // )
         })
 
       }.bind(this), 4000)
@@ -447,7 +453,7 @@ var Live = React.createClass({
 
         delete courtEvents[courtInformation.id]
         self.setState({courtEvents: courtEvents})
-      }.bind(this), 5000)
+      }.bind(this), 9000)
 
     }.bind(this), 1000)
   },
@@ -735,7 +741,7 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
     updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
-    updatePlayerFP: (draftGroupId, playerId, fp) => dispatch(updatePlayerFP(draftGroupId, playerId, fp)),
+    updatePlayerFP: (eventCall, draftGroupId, playerId, fp) => dispatch(updatePlayerFP(eventCall, draftGroupId, playerId, fp)),
     updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),
     updatePath: (path) => dispatch(updatePath(path))
   }
