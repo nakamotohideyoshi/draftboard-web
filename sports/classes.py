@@ -2,7 +2,7 @@
 # sports/classes.py
 
 from django.contrib.contenttypes.models import ContentType
-
+import dataden.classes
 from .models import (
     SiteSport,
     PlayerStats,
@@ -647,3 +647,11 @@ class MlbPlayerNamesCsv(PlayerNamesCsv):
         self.key_fullname   = 'full_name'
         self.key_position   = 'primary_position'
 
+class Fppg(object):
+
+    def __init__(self):
+        pass
+
+class NbaFppg(dataden.classes.NbaSeasonGames):
+
+    pass
