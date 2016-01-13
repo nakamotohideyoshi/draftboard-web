@@ -13,7 +13,7 @@ import { setCurrentLineups } from './current-lineups'
 
 
 function requestEntries() {
-  log.debug('actionsEntries.requestEntries')
+  log.trace('actionsEntries.requestEntries')
 
   return {
     type: ActionTypes.REQUEST_ENTRIES
@@ -22,7 +22,7 @@ function requestEntries() {
 
 
 function receiveEntries(response) {
-  log.debug('actionsEntries.receiveEntries')
+  log.trace('actionsEntries.receiveEntries')
 
   const entriesSchema = new Schema('entries', {
     idAttribute: 'id'
@@ -47,7 +47,7 @@ function receiveEntries(response) {
 
 
 export function fetchEntries() {
-  log.debug('actionsEntries.fetchEntries')
+  log.trace('actionsEntries.fetchEntries')
 
   return dispatch => {
     dispatch(requestEntries())
@@ -65,7 +65,7 @@ export function fetchEntries() {
 
 
 function shouldFetchEntries(state) {
-  log.debug('actionsEntries.shouldFetchEntries')
+  log.trace('actionsEntries.shouldFetchEntries')
 
   const entries = state.entries
   if (entries.isFetching) {
@@ -77,7 +77,7 @@ function shouldFetchEntries(state) {
 
 
 function confirmRelatedEntriesInfo() {
-  log.debug('actionsEntries.confirmRelatedEntriesInfo')
+  log.trace('actionsEntries.confirmRelatedEntriesInfo')
 
   return {
     type: ActionTypes.CONFIRM_RELATED_ENTRIES_INFO
@@ -86,7 +86,7 @@ function confirmRelatedEntriesInfo() {
 
 
 export function fetchEntriesIfNeeded() {
-  log.debug('actionsEntries.fetchEntriesIfNeeded')
+  log.trace('actionsEntries.fetchEntriesIfNeeded')
 
   return (dispatch, getState) => {
     if (shouldFetchEntries(getState()) === false) {
@@ -105,7 +105,7 @@ export function fetchEntriesIfNeeded() {
 
 
 export function fetchRelatedEntriesInfo() {
-  log.debug('actionsEntries.fetchRelatedEntriesInfo')
+  log.trace('actionsEntries.fetchRelatedEntriesInfo')
 
   return (dispatch, getState) => {
     let calls = []
@@ -128,7 +128,7 @@ export function fetchRelatedEntriesInfo() {
 
 
 function storeEntriesPlayers(entriesPlayers) {
-  log.debug('actionsEntries.storeEntriesPlayers')
+  log.trace('actionsEntries.storeEntriesPlayers')
 
   return {
     type: ActionTypes.ADD_ENTRIES_PLAYERS,
@@ -138,7 +138,7 @@ function storeEntriesPlayers(entriesPlayers) {
 
 
 export function addEntriesPlayers() {
-  log.debug('actionsEntries.addEntriesPlayers')
+  log.trace('actionsEntries.addEntriesPlayers')
 
   return (dispatch, getState) => {
     const state = getState()
@@ -161,7 +161,7 @@ export function addEntriesPlayers() {
 
 
 export function generateLineups() {
-  log.debug('actionsEntries.generateLineups')
+  log.trace('actionsEntries.generateLineups')
 
   return (dispatch, getState) => {
     const state = getState()
@@ -196,7 +196,7 @@ export function generateLineups() {
 // Once an entry is created, the server returns it to us in Entry object form. We then need to
 // stuff it into our entries store via receiveEntries().
 export function insertEntry(entry) {
-  log.debug('actionsEntries.insertEntry')
+  log.trace('actionsEntries.insertEntry')
   return(dispatch) => {
     dispatch(receiveEntries([entry]))
   }

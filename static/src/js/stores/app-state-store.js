@@ -40,7 +40,7 @@ var AppActions = {
    * @param {string} className The class to be added.
    */
   addClass: function(className) {
-    log.debug("AppStateStore.addClass()", className);
+    log.trace("AppStateStore.addClass()", className);
     // If the class isn't already in our list, add it.
     if (this.classes.indexOf(className) === -1) {
       this.classes.push(className);

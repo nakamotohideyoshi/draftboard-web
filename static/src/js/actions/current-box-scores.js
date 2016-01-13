@@ -14,7 +14,7 @@ export const GAME_DURATIONS = {
 
 // TODO make this sport dependent
 function calculateTimeRemaining(sport, game) {
-  log.debug('actionsCurrentBoxScores.calculateTimeRemaining')
+  log.trace('actionsCurrentBoxScores.calculateTimeRemaining')
   const sportDurations = GAME_DURATIONS[sport]
 
   // if the game hasn't started, return full time
@@ -36,7 +36,7 @@ function calculateTimeRemaining(sport, game) {
 
 
 export function mergeBoxScores(games) {
-  log.debug('actionsCurrentBoxScores.mergeBoxScores')
+  log.trace('actionsCurrentBoxScores.mergeBoxScores')
 
   _.forEach(games, (game) => {
     if (game.hasOwnProperty('boxscore')) {

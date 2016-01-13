@@ -52,8 +52,12 @@ var ContestListDetail = React.createClass({
       AppActions.openPane();
       // // This is what "monitors" for URL changes.
       this.props.setFocusedContest(nextProps.params.contestId)
-      this.props.fetchDraftGroupBoxScoresIfNeeded(nextProps.params.contestId)
       this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId)
+
+      // If we've got the selected contest, use it's draft_group id to get the boxscores.
+      if (this.props.contestInfo.contest.hasOwnProperty('draft_group')) {
+        this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.contestInfo.contest.draft_group)
+      }
     }
 
     // If we don't have team names (we problably do), fetch them.
