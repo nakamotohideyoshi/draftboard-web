@@ -737,7 +737,7 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
     updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
-    updatePlayerFP: (eventCall, draftGroupId, playerId, fp) => dispatch(eventCall, updatePlayerFP(draftGroupId, playerId, fp)),
+    updatePlayerFP: (eventCall, draftGroupId, playerId, fp) => dispatch(updatePlayerFP(eventCall, draftGroupId, playerId, fp)),
     updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),
     updatePath: (path) => dispatch(updatePath(path))
   }

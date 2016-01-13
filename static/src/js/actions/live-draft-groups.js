@@ -35,8 +35,8 @@ function _calculateTimeRemaining(boxScore) {
 
 
 // Used to update a player's FP when a Pusher call sends us new info
-export function updatePlayerFP(id, playerId, fp) {
-  log.info('actionsLiveDraftGroup.updatePlayerFP', id, playerId, fp)
+export function updatePlayerFP(eventCall, id, playerId, fp) {
+  log.info('actionsLiveDraftGroup.updatePlayerFP()', eventCall)
 
   return {
     id: id,
