@@ -96,6 +96,11 @@ class DraftGroupGameBoxscoresView(View):
     of the draftgroup)
     """
 
+    def __add_to_dict(self, target, extras):
+        for k,v in extras.items():
+            target[ k ] = v
+        return target
+
     def get(self, request, draft_group_id):
 
         dgm = DraftGroupManager()
@@ -115,10 +120,30 @@ class DraftGroupGameBoxscoresView(View):
         # data = []
         # for b in boxscores:
         #     data.append( b.to_json() )
-        data = {
-            'games'     : game_serializer_class( games, many=True ).data,
-            'boxscores' : boxscore_serializer_class( boxscores, many=True ).data,
-        }
+        data = {}
+        for game in games:
+            # initial inner_data
+            inner_data = {}
+
+            # add the game data
+            g = game_serializer_class( game ).data
+            self.__add_to_dict( inner_data, g )
+
+            # add the boxscore data
+            boxscore = None
+            try:
+                boxscore = boxscores.get(srid_game=game.srid) # may not exist
+            except:
+                pass
+            if boxscore is not None:
+                b = {
+                    'boxscore' : boxscore_serializer_class( boxscore ).data
+                }
+            self.__add_to_dict( inner_data, b )
+
+            # finish it by adding the game data to the return data dict
+            data[ game.srid ] = inner_data
+
         return HttpResponse( json.dumps(data), content_type='application/json' )
 
 

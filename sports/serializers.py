@@ -3,6 +3,7 @@
 
 from .models import Player, PlayerStats, PbpDescription, GameBoxscore, Injury
 from rest_framework import serializers
+from ast import literal_eval
 
 # class PlayerSerializer(serializers.ModelSerializer):
 #
@@ -21,11 +22,39 @@ class BoxscoreSerializer(serializers.ModelSerializer):
     """
     parent GameBoxscore object serializer with common fields
     """
+
+    # def to_representation(self, boxscore):
+    #     return {
+    #         boxscore.srid_game : {
+    #             'srid_game' : boxscore.srid_game,
+    #             'srid_home' : boxscore.srid_home,
+    #             'srid_away' : boxscore.srid_away,
+    #             'status'    : boxscore.status,
+    #             'attendance': boxscore.attendance,
+    #             ''
+    #         }
+    #     }
+
+    def __get_dict(self, json_str):
+        if json_str is None or json_str == '':
+            return None
+        else:
+            return literal_eval( json_str )
+
+    home_scoring_data = serializers.SerializerMethodField()
+    def get_home_scoring_data(self, boxscore):
+        return self.__get_dict( boxscore.home_scoring_json )
+
+    away_scoring_data = serializers.SerializerMethodField()
+    def get_away_scoring_data(self, boxscore):
+        return self.__get_dict( boxscore.away_scoring_json )
+
     PARENT_FIELDS = ('srid_game',
                      'srid_home','srid_away',
                      'status',
                      'attendance','coverage',
-                     'home_scoring_json','away_scoring_json')
+                     'home_score','away_score',
+                     'home_scoring_data','away_scoring_data')
 
 class GameBoxscoreSerializer(serializers.ModelSerializer):
 
