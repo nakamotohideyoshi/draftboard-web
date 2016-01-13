@@ -19,6 +19,7 @@ import LiveLineupSelectModal from './live-lineup-select-modal'
 import LiveNBACourt from './live-nba-court'
 import LiveOverallStats from './live-overall-stats'
 import LiveStandingsPaneConnected from '../live/live-standings-pane'
+import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
 import log from '../../lib/logging'
 import store from '../../store'
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
@@ -46,10 +47,12 @@ var Live = React.createClass({
     currentBoxScores: React.PropTypes.object.isRequired,
     liveContests: React.PropTypes.object.isRequired,
     liveContestsStats: React.PropTypes.object.isRequired,
+    navScoreboardStats: React.PropTypes.object.isRequired,
     currentLineups: React.PropTypes.object.isRequired,
     currentLineupsStats: React.PropTypes.object.isRequired,
     liveSelector: React.PropTypes.object.isRequired,
     liveDraftGroups: React.PropTypes.object.isRequired,
+
     mode: React.PropTypes.object,
     params: React.PropTypes.object,
     prizes: React.PropTypes.object,
@@ -569,7 +572,7 @@ var Live = React.createClass({
         <LiveLineup
           whichSide="mine"
           mode={ self.props.mode }
-          currentBoxScores={ self.props.currentBoxScores }
+          currentBoxScores={ self.props.navScoreboardStats.gamesByDraftGroup['nba'].boxScores }
           lineup={ myLineup }
           playersPlaying={ self.state.playersPlaying }
           eventDescriptions={ self.state.eventDescriptions } />
@@ -632,7 +635,7 @@ var Live = React.createClass({
             <LiveLineup
               whichSide="opponent"
               mode={ self.props.mode }
-              currentBoxScores={ self.props.currentBoxScores }
+              currentBoxScores={ self.props.navScoreboardStats.gamesByDraftGroup['nba'].boxScores }
               lineup={ opponentLineup }
               playersPlaying={ self.state.playersPlaying }
               eventDescriptions={ self.state.eventDescriptions } />
@@ -732,7 +735,8 @@ function mapStateToProps(state) {
     // selectors
     currentLineupsStats: currentLineupsStatsSelector(state),
     liveContestsStats: liveContestsStatsSelector(state),
-    liveSelector: liveSelector(state)
+    liveSelector: liveSelector(state),
+    navScoreboardStats: navScoreboardSelector(state)
   }
 }
 

@@ -63,18 +63,21 @@ const LivePlayerPane = React.createClass({
     )
   },
 
-  renderCurrentGame: function(playerTeamInfo) {
+  renderCurrentGame: function() {
     log.debug('LivePlayerPane.renderCurrentGame')
     const player = this.props.player
-    const boxScore = this.props.boxScore
+    const game = this.props.boxScore
 
-    if (boxScore === undefined) {
+    // if the game isn't loaded yet or something
+    if (!game.hasOwnProperty('boxscore')) {
       log.debug('renderCurrentGame() - boxScore undefined')
       return (<div className='live-player-pane__current-game' />)
     }
 
+    const boxScore = game.boxscore
+
     let clock
-    if (boxScore.fields.status === 'closed') {
+    if (boxScore.status === 'closed') {
       clock = (
         <div className='live-player-pane__current-game__time'>
           <div className='live-player-pane__current-game__time__timer' />
@@ -82,21 +85,10 @@ const LivePlayerPane = React.createClass({
         </div>
       )
     } else {
-      let quarter = _.round(boxScore.fields.quarter, 0)
-      if (quarter > 4 ) {
-        quarter = (quarter % 4).toString() + 'OT'
-
-        if (quarter === '1OT') {
-          quarter = 'OT'
-        }
-      } else {
-        quarter += ' quarter'
-      }
-
       clock = (
         <div className='live-player-pane__current-game__time'>
-          <div className='live-player-pane__current-game__time__timer'>{ boxScore.fields.clock }</div>
-          <div className='live-player-pane__current-game__time__period'>{ quarter }</div>
+          <div className='live-player-pane__current-game__time__timer'>{ boxScore.clock }</div>
+          <div className='live-player-pane__current-game__time__period'>{ boxScore.quarterDisplay }</div>
         </div>
       )
     }
@@ -106,18 +98,18 @@ const LivePlayerPane = React.createClass({
       <div className='live-player-pane__current-game'>
         <div>
           <div className='live-player-pane__current-game__team1'>
-            <div className='live-player-pane__current-game__team1__points'>{ boxScore.fields.home_score }</div>
+            <div className='live-player-pane__current-game__team1__points'>{ boxScore.home_score }</div>
             <div className='live-player-pane__current-game__team-name'>
-              <div className='city'>{ playerTeamInfo.city }</div>
-              <div className='name'>{ playerTeamInfo.name }</div>
+              <div className='city'>{ game.homeTeamInfo.city }</div>
+              <div className='name'>{ game.homeTeamInfo.name }</div>
             </div>
           </div>
           { clock }
           <div className='live-player-pane__current-game__team2'>
-            <div className='live-player-pane__current-game__team1__points'>{ boxScore.fields.away_score }</div>
+            <div className='live-player-pane__current-game__team1__points'>{ boxScore.away_score }</div>
             <div className='live-player-pane__current-game__team-name'>
-              <div className='city'>{ playerTeamInfo.otherTeam.city }</div>
-              <div className='name'>{ playerTeamInfo.otherTeam.name }</div>
+              <div className='city'>{ game.awayTeamInfo.city }</div>
+              <div className='name'>{ game.awayTeamInfo.name }</div>
             </div>
           </div>
         </div>
@@ -221,7 +213,7 @@ const LivePlayerPane = React.createClass({
 
     // if the game has not started
     if (boxScore !== undefined) {
-      percentageTimeRemaining = boxScore.fields.timeRemaining / 48
+      percentageTimeRemaining = boxScore.timeRemaining / 48
     }
 
     if (player.stats !== undefined) {
@@ -271,24 +263,12 @@ const LivePlayerPane = React.createClass({
     const boxScore = this.props.boxScore
 
     let playerTeamInfo
-    // TODO remove this when all boxscores are returned
-    if (boxScore === undefined) {
-      playerTeamInfo = {
-        name: '',
-        city: '',
-        otherTeam: {
-          name: '',
-          city: ''
-        }
-      }
+    if (teamSRID === boxScore.homeTeamInfo.srid) {
+      playerTeamInfo = boxScore.homeTeamInfo
+      playerTeamInfo.otherTeam = boxScore.awayTeamInfo
     } else {
-      if (teamSRID === boxScore.homeTeamInfo.srid) {
-        playerTeamInfo = boxScore.homeTeamInfo
-        playerTeamInfo.otherTeam = boxScore.awayTeamInfo
-      } else {
-        playerTeamInfo = boxScore.awayTeamInfo
-        playerTeamInfo.otherTeam = boxScore.homeTeamInfo
-      }
+      playerTeamInfo = boxScore.awayTeamInfo
+      playerTeamInfo.otherTeam = boxScore.homeTeamInfo
     }
 
     return (
@@ -297,7 +277,7 @@ const LivePlayerPane = React.createClass({
         <div className="live-player-pane">
         { this.renderHeader(playerTeamInfo) }
         { this.renderStatsAverage() }
-        { this.renderCurrentGame(playerTeamInfo) }
+        { this.renderCurrentGame() }
         { this.renderActivities() }
         </div>
       </div>
