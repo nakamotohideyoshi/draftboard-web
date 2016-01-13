@@ -3,6 +3,7 @@
 import React from 'react'
 import PureRenderMixin from 'react-addons-pure-render-mixin'
 import _ from 'lodash'
+import moment from 'moment'
 
 /**
  * Responsible for rendering a singe contest game item.
@@ -26,7 +27,9 @@ const NavScoreboardGame = React.createClass({
     const {home_abbr, away_abbr} = this.props.game.fields
     let clock
 
-    if (game.timeRemaining === null) {
+    let start = moment(game.fields.start)
+
+    if (game.timeRemaining === null || moment().isBefore(start)) {
       return (
         <div className="game scroll-item">
           <div className="left">
@@ -36,24 +39,33 @@ const NavScoreboardGame = React.createClass({
           </div>
 
           <div className="right">
-            7:10PM <br /> <br />
+            {moment(game.fields.start).format('h:mma')} <br /> <br />
           </div>
         </div>
       )
     }
 
-    if (game.fields.clock === '00:00' && game.fields.quarter === '4.0') {
+    if (game.fields.status === 'closed') {
       clock = (
         <div className="right">
           Final
         </div>
       )
     } else {
+      let quarter = _.round(game.fields.quarter, 0)
+      if (quarter > 4 ) {
+        quarter = (quarter % 4).toString() + 'OT'
+
+        if (quarter === '1OT') {
+          quarter = 'OT'
+        }
+      }
+
       clock = (
         <div className="right">
           { game.fields.clock }
           <br />
-          {_.round(game.fields.quarter, 0)}
+          { quarter }
         </div>
       )
     }

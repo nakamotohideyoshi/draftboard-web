@@ -24,7 +24,7 @@ function receiveTeams(sport, response) {
   let newTeams = {}
 
   _.forEach(response, (team) => {
-    newTeams[team.id] = team
+    newTeams[team.srid] = team
   })
 
   return {

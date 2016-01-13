@@ -105,6 +105,8 @@ const NavScoreboard = React.createClass({
 
     // loop through draft groups and get latest box scores, fp
     const boxScoresParityChecks = function() {
+      log.info('NavScoreboard.boxScoresParityChecks()')
+
       _forEach(self.props.liveDraftGroups, (draftGroup, id) => {
         self.props.fetchDraftGroupStats(id)
       })

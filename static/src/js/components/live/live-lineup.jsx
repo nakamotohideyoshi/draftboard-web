@@ -62,7 +62,8 @@ var LiveLineup = React.createClass({
         playerPane,
         closeLineup
 
-    if (this.props.lineup.length > 0) {
+    if (this.props.lineup.roster.length > 0) {
+
       currentPlayers = self.props.lineup.roster.map(function(playerId) {
         const player = self.props.lineup.rosterDetails[playerId]
         const boxScore = self.props.currentBoxScores[player.info.game_srid]
