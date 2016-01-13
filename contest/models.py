@@ -300,7 +300,8 @@ class LobbyContest(Contest):
     """
     class LobbyContestManager(models.Manager):
         def get_queryset(self):
-            return super().get_queryset().filter(status__in=Contest.STATUS_LOBBY_CONTESTS)
+            return super().get_queryset().filter(status__in=Contest.STATUS_LOBBY_CONTESTS,
+                                                                    start__gte=timezone.now())
 
     objects = LobbyContestManager()
 
