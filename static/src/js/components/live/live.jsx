@@ -426,6 +426,8 @@ var Live = React.createClass({
             let eventDescriptions = Object.assign({}, eventDescriptions)
             delete(eventDescriptions[event.player])
             self.setState({ eventDescriptions: eventDescriptions })
+
+            self.popOldestGameEvent(eventCall.game__id)
           } , 6000)
 
           // TODO modify this once pbp has player stats built in
@@ -441,8 +443,6 @@ var Live = React.createClass({
       // remove the player from the court
       setTimeout(function() {
         log.debug('setTimeout - remove the player from the court')
-
-        self.popOldestGameEvent(eventCall.game__id)
 
         delete courtEvents[courtInformation.id]
         self.setState({courtEvents: courtEvents})
