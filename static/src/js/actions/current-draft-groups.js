@@ -87,6 +87,8 @@ export function fetchCurrentDraftGroupsIfNeeded(id) {
       return Promise.resolve('Draft group exists')
     }
 
+    log.info('actions.currentDraftGroups.fetchCurrentDraftGroupsIfNeeded() - Updating draft groups')
+
     return dispatch(
       fetchCurrentDraftGroups()
     ).then(() =>
