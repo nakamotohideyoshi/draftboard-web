@@ -84,7 +84,7 @@ export function fetchUpcomingContests() {
         }
 
         return dispatch(fetchUpcomingContestsSuccess({
-          contests: normalizedContests.entities.contests
+          contests: normalizedContests.entities.contests || {}
         }));
       }
     });

@@ -21,7 +21,7 @@ import log from '../lib/logging'
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
 function rankContestLineups(contest, draftGroup, boxScores, prizeStructure) {
-  log.debug('rankContestLineups')
+  log.trace('rankContestLineups')
   const lineups = contest.lineups
 
   let lineupsUsernames = {}
@@ -111,7 +111,7 @@ export const liveContestsStatsSelector = createSelector(
       contestsStats[id] = stats
     })
 
-    log.debug('selectors.liveContestsStatsSelector() - updated')
+    log.trace('selectors.liveContestsStatsSelector() - updated')
 
     return contestsStats
   }

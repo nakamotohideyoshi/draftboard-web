@@ -176,7 +176,7 @@ const DraftPlayerList = React.createClass({
   render: function() {
     let gameCount = ''
     if (this.props.draftGroupTime) {
-      gameCount = this.props.activeDraftGroupBoxScores.games.length + ' Games'
+      gameCount = Object.keys(this.props.activeDraftGroupBoxScores).length + ' Games'
     }
 
     let visibleRows = [];
@@ -253,8 +253,7 @@ const DraftPlayerList = React.createClass({
 
         <div>
           <DraftTeamFilter
-            boxScores={this.props.activeDraftGroupBoxScores.boxScores}
-            games={this.props.activeDraftGroupBoxScores.games}
+            boxScores={this.props.activeDraftGroupBoxScores}
             isVisible={this.state.showTeamFilter}
             onFilterChange={this.handleFilterChange}
             selectedTeams={this.props.filters.teamFilter.match}

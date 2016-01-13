@@ -67,12 +67,6 @@ module.exports = function(state = initialState, action) {
       });
 
 
-    // case ActionTypes.FETCH_DRAFTGROUP_BOXSCORES_SUCCESS:
-    //   return Object.assign({}, state, {
-    //     boxScores: action.boxScores
-    //   })
-
-
     case ActionTypes.DRAFTGROUP_ORDER_CHANGED:
       let newState = Object.assign({}, state)
       newState.filters.orderBy = action.orderBy
