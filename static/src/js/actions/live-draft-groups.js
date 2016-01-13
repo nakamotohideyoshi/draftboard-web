@@ -17,25 +17,6 @@ const playerSchema = new Schema('players', {
 })
 
 
-// TODO make this sport dependent
-function _calculateTimeRemaining(boxScore) {
-  log.debug('actionsLiveDraftGroup._calculateTimeRemaining', boxScore)
-
-  // if the game hasn't started, return full time
-  if (boxScore.fields.quarter === '') {
-    return 48
-  }
-
-  const quarter = boxScore.fields.quarter
-  const remainingQuarters = (quarter > 4) ? 0 : 4 - quarter
-  const clockMinSec = boxScore.fields.clock.split(':')
-  const remainingMinutes = remainingQuarters * 12
-
-  // round up to the nearest minute
-  return remainingMinutes + parseInt(clockMinSec[0]) + 1
-}
-
-
 // Used to update a player's FP when a Pusher call sends us new info
 export function updatePlayerFP(eventCall, id, playerId, fp) {
   log.debug('actionsLiveDraftGroup.updatePlayerFP')
@@ -230,38 +211,6 @@ function receiveDraftGroupBoxScores(id, boxScores) {
 }
 
 
-function organizeBoxScores(response) {
-  let boxScores = {}
-
-  // SO HACKY
-  _forEach(response.games, (game) => {
-    boxScores[game.srid] = {
-      timeRemaining: null,
-      fields: {
-        srid_game: game.srid,
-        srid_away: game.srid_away,
-        srid_home: game.srid_home,
-        start: game.start
-      }
-    }
-  })
-
-  _forEach(response.boxscores, (boxScore) => {
-    boxScores[boxScore.srid_game]
-
-    let game = {
-      fields: boxScore
-    }
-
-    game.timeRemaining = _calculateTimeRemaining(game)
-
-    boxScores[boxScore.srid_game] = game
-  })
-
-  return boxScores
-}
-
-
 function fetchDraftGroupBoxScores(id) {
   log.debug('actionsLiveDraftGroup.fetchDraftGroupBoxScores')
 
@@ -279,12 +228,10 @@ function fetchDraftGroupBoxScores(id) {
         return Promise.resolve('Box scores not available yet')
       }
 
-      const boxScores = organizeBoxScores(res.body)
-
-      dispatch(receiveDraftGroupBoxScores(id, boxScores))
+      dispatch(receiveDraftGroupBoxScores(id, res.body))
 
       return dispatch(
-        mergeBoxScores(boxScores)
+        mergeBoxScores(res.body)
       )
     })
   }

@@ -4,31 +4,55 @@ import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
 import _ from 'lodash'
 
+export const GAME_DURATIONS = {
+  nba: {
+    periods: 4,
+    periodMinutes: 12,
+    gameMinutes: 48
+  }
+}
 
-export function mergeBoxScores(boxScores) {
-  log.trace('actionsCurrentBoxScores.mergeBoxScores')
+// TODO make this sport dependent
+function calculateTimeRemaining(sport, game) {
+  log.debug('actionsCurrentBoxScores.calculateTimeRemaining')
+  const sportDurations = GAME_DURATIONS[sport]
 
-  let scoresBySRID = {}
+  // if the game hasn't started, return full time
+  if (!game.hasOwnProperty('boxscore')) {
+    return sportDurations.gameMinutes
+  }
+  const boxScore = game.boxscore
 
-  _.forEach(boxScores, (boxScore) => {
-    const fields = boxScore.fields
+  const currentQuarter = boxScore.quarter
+  const clockMinSec = boxScore.clock.split(':')
 
-    boxScore.teams = {}
+  // determine remaining minutes based on quarters
+  const remainingQuarters = (currentQuarter > sportDurations.periods) ? 0 : sportDurations.periods - currentQuarter
+  const remainingMinutes = remainingQuarters * 12
 
-    boxScore.teams[fields.srid_home] = {
-      score: fields.home_score
+  // round up to the nearest minute
+  return remainingMinutes + parseInt(clockMinSec[0]) + 1
+}
+
+
+export function mergeBoxScores(games) {
+  log.debug('actionsCurrentBoxScores.mergeBoxScores')
+
+  _.forEach(games, (game) => {
+    if (game.hasOwnProperty('boxscore')) {
+      let boxScore = game.boxscore
+      boxScore.teamScores = {
+        [boxScore.srid_home]: boxScore.home_score,
+        [boxScore.srid_away]: boxScore.away_score
+      }
+
+      boxScore.timeRemaining = calculateTimeRemaining('nba', game)
     }
-
-    boxScore.teams[fields.srid_away] = {
-      score: fields.away_score
-    }
-
-    scoresBySRID[fields.srid_game] = boxScore
   })
 
   return {
     type: ActionTypes.MERGE_CURRENT_BOX_SCORES,
-    boxScores: scoresBySRID
+    boxScores: games
   }
 }
 

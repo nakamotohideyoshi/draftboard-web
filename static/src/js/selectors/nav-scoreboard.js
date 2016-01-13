@@ -39,31 +39,43 @@ export const navScoreboardSelector = createSelector(
       )
     })
 
-    const loadedDraftGroups = _.filter(draftGroups, (dg) => {
-      return dg.hasAllInfo === true
-    })
+    let resultDraftGroups = {}
 
-    const resultDraftGroups = _.mapValues(loadedDraftGroups, (dg) => {
-      return {
-        id: dg.id,
-        time: dg.start,  // TODO replace with start
-        sport: dg.sport,
-        start: dg.start,
-        end: dg.end,
-        boxScores: _.mapValues(dg.boxScores, (boxScore, id) => {
-          let newBoxScore = boxScores[boxScore.fields.srid_game]
+    // if the sport data has loaded
+    if (sports.hasOwnProperty('nba') && sports.nba.isFetching === false) {
+      const teams = sports.nba.teams
 
-          if (dg.sport in sports) {
-            const teams = sports[dg.sport].teams
+      // TODO make this dynamic based on schedule API response
+      resultDraftGroups = {
+        'nba': {
+          sport: 'nba',
+          boxScores: _.mapValues(boxScores, (game, id) => {
+            let newGame = Object.assign({}, game)
 
-            newBoxScore.homeTeamInfo = teams[boxScore.fields.srid_home]
-            newBoxScore.awayTeamInfo = teams[boxScore.fields.srid_away]
-          }
+            // get team information
+            newGame.homeTeamInfo = teams[game.srid_home]
+            newGame.awayTeamInfo = teams[game.srid_away]
 
-          return newBoxScore
-        })
+            // update quarter to display properly
+            if (game.hasOwnProperty('boxscore')) {
+              let quarter = _.round(game.boxscore.quarter, 0)
+
+              if (quarter > 4 ) {
+                quarter = (quarter % 4).toString() + 'OT'
+
+                if (quarter === '1OT') {
+                  quarter = 'OT'
+                }
+              }
+
+              newGame.boxscore.quarterDisplay = quarter
+            }
+
+            return newGame
+          })
+        }
       }
-    })
+    }
 
     return {
       // TODO: No user data.
