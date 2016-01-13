@@ -114,13 +114,16 @@ const NavScoreboard = React.createClass({
 
     let parityChecks = {
       boxScores: window.setInterval(boxScoresParityChecks, 30000), // thirty seconds
-      entries: window.setInterval(self.props.fetchEntriesIfNeeded, 60000),  // one minute
       draftGroups: window.setInterval(self.props.fetchCurrentDraftGroupsIfNeeded, 600000)  // ten minutes
     }
-
-    // start them immediately
     boxScoresParityChecks()
-    self.props.fetchEntriesIfNeeded()
+
+    // if logged in, look for entries
+    if (window.dfs.user.username !== '') {
+      parityChecks.entries = window.setInterval(self.props.fetchEntriesIfNeeded, 60000)  // one minute
+      self.props.fetchEntriesIfNeeded()
+    }
+
 
     // add to the state in case we need to clearInterval in the future
     self.setState({ 'boxScoresIntervalFunc': parityChecks })
