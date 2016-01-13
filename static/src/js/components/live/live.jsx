@@ -254,7 +254,6 @@ var Live = React.createClass({
 
     // loop through players to see if they match one of the players in the lineups
     _.forEach(events, function(event) {
-      log.debug(event)
       if (self.props.liveSelector.relevantPlayers.indexOf(event.player) !== -1) {
         log.debug('onPBPReceived() player found', event.player)
 
@@ -394,49 +393,47 @@ var Live = React.createClass({
 
         // update player fp
         _.forEach(eventCall.statistics__list, function(event, key) {
-          if ('points' in event && 'made' in event && event.made === 'true') {
-            const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
-            const draftGroup = self.props.liveDraftGroups[draftGroupId]
-            const playerId = draftGroup.playersBySRID[event.player]
-            let playerStats = draftGroup.playersStats[playerId]
+          const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
+          const draftGroup = self.props.liveDraftGroups[draftGroupId]
+          const playerId = draftGroup.playersBySRID[event.player]
+          let playerStats = draftGroup.playersStats[playerId]
 
-            // if game hasn't started
-            // TODO API call fix this
-            if (playerStats === undefined) {
-              playerStats = {
-                fp: 0
+          // if game hasn't started
+          // TODO API call fix this
+          if (playerStats === undefined) {
+            playerStats = {
+              fp: 0
+            }
+          }
+
+          // show event description
+          // TODO modify this once pbp has player stats built in
+          let eventDescriptions = Object.assign(
+            {},
+            self.state.eventDescriptions,
+            {
+              [event.player]: {
+                points: '?',
+                info: eventCall.description,
+                when: eventCall.clock
               }
             }
+          )
+          self.setState({ eventDescriptions: eventDescriptions })
 
-            // show event description
-            // TODO modify this once pbp has player stats built in
-            let eventDescriptions = Object.assign(
-              {},
-              self.state.eventDescriptions,
-              {
-                [event.player]: {
-                  points: '?',
-                  info: eventCall.description,
-                  when: eventCall.clock
-                }
-              }
-            )
+          setTimeout(function() {
+            log.debug('setTimeout - remove event description')
+            let eventDescriptions = Object.assign({}, eventDescriptions)
+            delete(eventDescriptions[event.player])
             self.setState({ eventDescriptions: eventDescriptions })
+          } , 6000)
 
-            setTimeout(function() {
-              log.debug('setTimeout - remove event description')
-              let eventDescriptions = Object.assign({}, eventDescriptions)
-              delete(eventDescriptions[event.player])
-              self.setState({ eventDescriptions: eventDescriptions })
-            } , 6000)
-
-            // TODO modify this once pbp has player stats built in
-            // self.props.updatePlayerFP(
-            //   draftGroupId,
-            //   playerId,
-            //   playerStats.fp + event.points
-            // )
-          }
+          // TODO modify this once pbp has player stats built in
+          // self.props.updatePlayerFP(
+          //   draftGroupId,
+          //   playerId,
+          //   playerStats.fp + event.points
+          // )
         })
 
       }.bind(this), 4000)

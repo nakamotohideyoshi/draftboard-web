@@ -27,7 +27,9 @@ const NavScoreboardGame = React.createClass({
     const {home_abbr, away_abbr} = this.props.game.fields
     let clock
 
-    if (game.timeRemaining === null) {
+    let start = moment(game.fields.start)
+
+    if (game.timeRemaining === null || moment().isBefore(start)) {
       return (
         <div className="game scroll-item">
           <div className="left">
@@ -37,7 +39,7 @@ const NavScoreboardGame = React.createClass({
           </div>
 
           <div className="right">
-            {moment(game.fields.start, moment.ISO_8601).format('h:mma')} <br /> <br />
+            {moment(game.fields.start).format('h:mma')} <br /> <br />
           </div>
         </div>
       )

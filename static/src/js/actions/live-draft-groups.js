@@ -19,7 +19,7 @@ const playerSchema = new Schema('players', {
 
 // TODO make this sport dependent
 function _calculateTimeRemaining(boxScore) {
-  log.debug('actionsLiveDraftGroup._calculateTimeRemaining')
+  log.debug('actionsLiveDraftGroup._calculateTimeRemaining', boxScore)
 
   // if the game hasn't started, return full time
   if (boxScore.fields.quarter === '') {
@@ -244,8 +244,15 @@ function organizeBoxScores(response) {
   })
 
   _forEach(response.boxscores, (boxScore) => {
-    boxScore.timeRemaining = _calculateTimeRemaining(boxScore)
-    boxScores[boxScore.srid_game] = boxScore
+    boxScores[boxScore.srid_game]
+
+    let game = {
+      fields: boxScore
+    }
+
+    game.timeRemaining = _calculateTimeRemaining(game)
+
+    boxScores[boxScore.srid_game] = game
   })
 
   return boxScores

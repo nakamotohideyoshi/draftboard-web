@@ -27,33 +27,6 @@ const LivePlayerPane = React.createClass({
     this.props.whichSide === 'opponent' ? AppActions.togglePlayerPane('right') : AppActions.togglePlayerPane('left')
   },
 
-  // get proper stats
-  componentWillMount: function() {
-    const teamSRID = this.props.player.info.team_srid
-    const boxScore = this.props.boxScore
-
-    // TODO remove this when all boxscores are returned
-    if (boxScore === undefined) {
-      this.setState({
-        playerTeamInfo: {
-          name: '',
-          city: ''
-        }
-      })
-    } else {
-      if (teamSRID === boxScore.homeTeamInfo.srid) {
-        this.setState({
-          playerTeamInfo: boxScore.homeTeamInfo
-        })
-      } else {
-        this.setState({
-          playerTeamInfo: boxScore.awayTeamInfo
-        })
-      }
-    }
-
-  },
-
   renderStatsAverage: function() {
     const player = this.props.player
 
@@ -207,9 +180,8 @@ const LivePlayerPane = React.createClass({
     )
   },
 
-  renderHeader: function() {
+  renderHeader: function(playerTeamInfo) {
     const player = this.props.player
-    const playerTeamInfo = this.state.playerTeamInfo
     const boxScore = this.props.boxScore
 
     let percentageTimeRemaining = 1
@@ -263,11 +235,29 @@ const LivePlayerPane = React.createClass({
     const side = this.props.whichSide === 'opponent' ? 'right' : 'left'
     let classNames = 'live-pane live-pane--' + side + ' live-pane-player--' + side
 
+    const teamSRID = this.props.player.info.team_srid
+    const boxScore = this.props.boxScore
+
+    let playerTeamInfo
+    // TODO remove this when all boxscores are returned
+    if (boxScore === undefined) {
+      playerTeamInfo = {
+        name: '',
+        city: ''
+      }
+    } else {
+      if (teamSRID === boxScore.homeTeamInfo.srid) {
+        playerTeamInfo = boxScore.homeTeamInfo
+      } else {
+        playerTeamInfo = boxScore.awayTeamInfo
+      }
+    }
+
     return (
       <div className={classNames}>
         <div className="live-pane__close" onClick={this.closePane}></div>
         <div className="live-player-pane">
-        { this.renderHeader() }
+        { this.renderHeader(playerTeamInfo) }
         { this.renderStatsAverage() }
         { this.renderCurrentGame() }
         { this.renderActivities() }

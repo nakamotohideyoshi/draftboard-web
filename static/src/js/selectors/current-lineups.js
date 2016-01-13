@@ -48,6 +48,9 @@ function addPlayersDetails(lineup, draftGroup, boxScores) {
     const game = boxScores[player.info.game_srid]
 
     // if the game hasn't started, then give full minutes remaining
+    if (game.timeRemaining === null) {
+      game.timeRemaining = 48
+    }
     let minutesRemaining = (game === undefined) ? 48 : game.timeRemaining
 
     player.stats.minutesRemaining = minutesRemaining
