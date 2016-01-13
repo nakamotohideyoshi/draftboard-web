@@ -1,4 +1,5 @@
 import React from 'react'
+import _ from 'lodash'
 
 import * as AppActions from '../../stores/app-state-store'
 import LivePMRProgressBar from './live-pmr-progress-bar'
@@ -62,7 +63,7 @@ const LivePlayerPane = React.createClass({
     )
   },
 
-  renderCurrentGame: function() {
+  renderCurrentGame: function(playerTeamInfo) {
     log.debug('LivePlayerPane.renderCurrentGame')
     const player = this.props.player
     const boxScore = this.props.boxScore
@@ -72,20 +73,52 @@ const LivePlayerPane = React.createClass({
       return (<div className='live-player-pane__current-game' />)
     }
 
+    let clock
+    if (boxScore.fields.status === 'closed') {
+      clock = (
+        <div className='live-player-pane__current-game__time'>
+          <div className='live-player-pane__current-game__time__timer' />
+          <div className='live-player-pane__current-game__time__period'>Final</div>
+        </div>
+      )
+    } else {
+      let quarter = _.round(boxScore.fields.quarter, 0)
+      if (quarter > 4 ) {
+        quarter = (quarter % 4).toString() + 'OT'
+
+        if (quarter === '1OT') {
+          quarter = 'OT'
+        }
+      } else {
+        quarter += ' quarter'
+      }
+
+      clock = (
+        <div className='live-player-pane__current-game__time'>
+          <div className='live-player-pane__current-game__time__timer'>{ boxScore.fields.clock }</div>
+          <div className='live-player-pane__current-game__time__period'>{ quarter }</div>
+        </div>
+      )
+    }
+
+
     return (
       <div className='live-player-pane__current-game'>
         <div>
           <div className='live-player-pane__current-game__team1'>
             <div className='live-player-pane__current-game__team1__points'>{ boxScore.fields.home_score }</div>
-            <div><img src="" className='live-player-pane__current-game__team-logo' /></div>
+            <div className='live-player-pane__current-game__team-name'>
+              <div className='city'>{ playerTeamInfo.city }</div>
+              <div className='name'>{ playerTeamInfo.name }</div>
+            </div>
           </div>
-          <div className='live-player-pane__current-game__time'>
-            <div className='live-player-pane__current-game__time__timer'>{ boxScore.fields.clock }</div>
-            <div className='live-player-pane__current-game__time__period'>{ boxScore.fields.quarter } quarter</div>
-          </div>
+          { clock }
           <div className='live-player-pane__current-game__team2'>
             <div className='live-player-pane__current-game__team1__points'>{ boxScore.fields.away_score }</div>
-            <img src="" className='live-player-pane__current-game__team-logo' />
+            <div className='live-player-pane__current-game__team-name'>
+              <div className='city'>{ playerTeamInfo.otherTeam.city }</div>
+              <div className='name'>{ playerTeamInfo.otherTeam.name }</div>
+            </div>
           </div>
         </div>
       </div>
@@ -171,11 +204,10 @@ const LivePlayerPane = React.createClass({
       )
     })
 
-    // <ul>{ activitiesHTML }</ul>
     return (
       <div className='live-player-pane__recent-activity'>
         <div className='live-player-pane__recent-activity__title'>Recent activity</div>
-        <ul />
+        <ul>{ activitiesHTML }</ul>
       </div>
     )
   },
@@ -243,13 +275,19 @@ const LivePlayerPane = React.createClass({
     if (boxScore === undefined) {
       playerTeamInfo = {
         name: '',
-        city: ''
+        city: '',
+        otherTeam: {
+          name: '',
+          city: ''
+        }
       }
     } else {
       if (teamSRID === boxScore.homeTeamInfo.srid) {
         playerTeamInfo = boxScore.homeTeamInfo
+        playerTeamInfo.otherTeam = boxScore.awayTeamInfo
       } else {
         playerTeamInfo = boxScore.awayTeamInfo
+        playerTeamInfo.otherTeam = boxScore.homeTeamInfo
       }
     }
 
@@ -259,7 +297,7 @@ const LivePlayerPane = React.createClass({
         <div className="live-player-pane">
         { this.renderHeader(playerTeamInfo) }
         { this.renderStatsAverage() }
-        { this.renderCurrentGame() }
+        { this.renderCurrentGame(playerTeamInfo) }
         { this.renderActivities() }
         </div>
       </div>

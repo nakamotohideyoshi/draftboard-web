@@ -318,6 +318,10 @@ var Live = React.createClass({
         break
 
       case 'stats':
+        const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
+        const name = self.props.liveDraftGroups[draftGroupId].playersInfo[eventCall.fields.player_id].name
+        log.info('Live.popOldestGameEvent().updatePlayerFP()', name, eventCall)
+
         self.props.updatePlayerFP(
           eventCall,
           self.props.liveSelector.lineups.mine.draftGroup.id,
