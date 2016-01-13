@@ -129,11 +129,11 @@ const DraftTeamFilter = React.createClass({
 
 
   // Safely get the team alias. Oh lord don't hate me.
-  getTeamAlias: function(teamId) {
+  getTeamAlias: function(teamSrid) {
     if (this.props.teams.hasOwnProperty(this.props.sport)) {
       if (this.props.teams[this.props.sport].hasOwnProperty('teams')) {
-        if (this.props.teams[this.props.sport].teams.hasOwnProperty(teamId)) {
-          return this.props.teams[this.props.sport].teams[teamId].alias
+        if (this.props.teams[this.props.sport].teams.hasOwnProperty(teamSrid)) {
+          return this.props.teams[this.props.sport].teams[teamSrid].alias
         }
       }
     }
@@ -158,13 +158,13 @@ const DraftTeamFilter = React.createClass({
             <div className={awayClasses} onClick={this.handleTeamClick.bind(this, game.srid_away)}>
               <span
                 className="teamName"
-              >{this.getTeamAlias(game.srid_away) + game.srid_away}</span>
+              >{this.getTeamAlias(game.srid_away)}</span>
             </div>
 
             <div className={homeClasses} onClick={this.handleTeamClick.bind(this, game.srid_home)}>
               <span
                 className="teamName"
-              >{this.getTeamAlias(game.srid_home) + game.srid_home}</span>
+              >{this.getTeamAlias(game.srid_home)}</span>
             </div>
           </div>
 

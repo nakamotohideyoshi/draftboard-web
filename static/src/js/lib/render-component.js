@@ -13,7 +13,7 @@ module.exports = function(component, selector) {
 
   // Render the component on each existing DOM element.
   for (var i = 0; i < elements.length; i++) {
-    log.debug('Rendering component on:', selector)
+    log.trace('Rendering component on:', selector)
     ReactDOM.render(component, elements[i])
   }
 
