@@ -504,6 +504,18 @@ class ReplayManager(object):
         # send it thru parser! Triggers do NOT need to be running for this to work!
         parser.parse_obj( db, collection, ast.literal_eval( update.o ), async=async )
 
+    def play_all(self, async=False):
+        parser = sports.parser.DataDenParser()
+        updates = replayer.models.Update.objects.all()
+        print( 'playing all...')
+
+        for update in updates:
+            ns_parts    = update.ns.split('.') # split namespace on dot for db and coll
+            db          = ns_parts[0]
+            collection  = ns_parts[1]
+            # send it thru parser! Triggers do NOT need to be running for this to work!
+            parser.parse_obj( db, collection, ast.literal_eval( update.o ), async=async )
+
 class RandomLineupCreator(object):
     """
     for testing purposes, this class is used to create dummy
