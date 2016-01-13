@@ -175,6 +175,7 @@ var Live = React.createClass({
 
     // otherwise just update the player's FP
     self.props.updatePlayerFP(
+      eventCall,
       self.props.liveSelector.lineups.mine.draftGroup.id,
       eventCall.fields.player_id,
       eventCall.fields.fantasy_points
@@ -318,6 +319,7 @@ var Live = React.createClass({
 
       case 'stats':
         self.props.updatePlayerFP(
+          eventCall,
           self.props.liveSelector.lineups.mine.draftGroup.id,
           eventCall.fields.player_id,
           eventCall.fields.fantasy_points
@@ -330,7 +332,7 @@ var Live = React.createClass({
 
 
   showGameEvent(eventCall) {
-    log.debug('showGameEvent()')
+    log.info('showGameEvent()', eventCall)
 
     const self = this
     const relevantPlayers = self.props.liveSelector.relevantPlayers
@@ -430,6 +432,7 @@ var Live = React.createClass({
 
           // TODO modify this once pbp has player stats built in
           // self.props.updatePlayerFP(
+          //   eventCall,
           //   draftGroupId,
           //   playerId,
           //   playerStats.fp + event.points
@@ -734,7 +737,7 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
     updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
-    updatePlayerFP: (draftGroupId, playerId, fp) => dispatch(updatePlayerFP(draftGroupId, playerId, fp)),
+    updatePlayerFP: (eventCall, draftGroupId, playerId, fp) => dispatch(eventCall, updatePlayerFP(draftGroupId, playerId, fp)),
     updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),
     updatePath: (path) => dispatch(updatePath(path))
   }

@@ -93,6 +93,8 @@ export function fetchEntriesIfNeeded() {
       return Promise.resolve('Entries already fetched')
     }
 
+    log.info('actions.entries.fetchEntriesIfNeeded() - Updating entries')
+
     return dispatch(
       fetchEntries()
     ).then(() =>
