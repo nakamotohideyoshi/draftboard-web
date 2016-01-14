@@ -10,18 +10,6 @@
   &__player-inner {
     padding: 45px 45px 0;
     min-height: 225px;
-
-    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#ffffff+11,e0e2e4+100 */
-    background: #ffffff; /* Old browsers */
-    background: -moz-linear-gradient(top,  #ffffff 11%, #e0e2e4 100%); /* FF3.6+ */
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(11%,#ffffff), color-stop(100%,#e0e2e4)); /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient(top,  #ffffff 11%,#e0e2e4 100%); /* Chrome10+,Safari5.1+ */
-    background: -o-linear-gradient(top,  #ffffff 11%,#e0e2e4 100%); /* Opera 11.10+ */
-    background: -ms-linear-gradient(top,  #ffffff 11%,#e0e2e4 100%); /* IE10+ */
-    background: linear-gradient(to bottom,  #ffffff 11%,#e0e2e4 100%); /* W3C */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e0e2e4',GradientType=0 ); /* IE6-9 */
-
-
     overflow: hidden;
 
     &:after {
