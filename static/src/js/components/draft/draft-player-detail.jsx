@@ -21,7 +21,7 @@ var DraftPlayerDetail = React.createClass({
 
     if (this.props.activePlayer) {
       return (
-        <div className="cmp-draft-player-detail__player">
+        <div className="cmp-draft-player-detail__player player-detail-pane">
           <div className="cmp-draft-player-detail__player-inner">
             <h6 className="cmp-draft-player-detail__team">
               {this.props.activePlayer.team_alias} - {this.props.activePlayer.position}

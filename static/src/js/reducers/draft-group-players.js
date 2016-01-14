@@ -7,7 +7,6 @@ const initialState = {
   id: null,
   isFetching: false,
   allPlayers: {},
-  // boxScores: [],
   filters: {
     orderBy: {
       property: 'salary',
@@ -23,7 +22,7 @@ const initialState = {
 }
 
 /**
- * Reducer for a single draft group - used in the draft section.
+ * Reducer for the players of a single draft group - used in the draft section.
  */
 module.exports = function(state = initialState, action) {
   switch (action.type) {
