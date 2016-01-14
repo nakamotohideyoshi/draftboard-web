@@ -23,6 +23,11 @@ function calculateTimeRemaining(sport, game) {
   }
   const boxScore = game.boxscore
 
+  // if the game hasn't started but we have boxscore, return with full minutes
+  if (boxScore.quarter === '') {
+    return sportDurations.gameMinutes
+  }
+
   const currentQuarter = boxScore.quarter
   const clockMinSec = boxScore.clock.split(':')
 

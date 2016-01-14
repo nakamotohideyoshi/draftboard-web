@@ -21,7 +21,7 @@ const NavScoreboardGame = React.createClass({
     let clockElement, scoresElement
 
     // if the game hasn't started
-    if (!game.hasOwnProperty('boxscore')) {
+    if (!game.hasOwnProperty('boxscore') || game.boxscore.quarter === '') {
       clockElement = (
         <div className="right">
           { moment(game.start).format('h:mma') } <br /> <br />
