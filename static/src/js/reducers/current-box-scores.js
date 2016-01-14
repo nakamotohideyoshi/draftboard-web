@@ -16,10 +16,10 @@ module.exports = function(state = {
       log.debug('reducersCurrentBoxScores.UPDATE_CURRENT_BOX_SCORE')
       return update(state, {
         [action.id]: {
-          teams: {
-            [action.team]: {
-              $set: {
-                score: action.score
+          boxscore: {
+            teamScores: {
+              $merge: {
+                [action.team]: action.score
               }
             }
           }

@@ -138,7 +138,7 @@ var Live = React.createClass({
 
 
   onStatsReceived(eventCall) {
-    log.debug('onBoxscoreReceived()')
+    log.debug('onStatsReceived()')
     const self = this
     const gameId = eventCall.srid_game
 
@@ -198,6 +198,11 @@ var Live = React.createClass({
     // check that it's a boxscore we care about
     if (eventCall.game__id in self.props.currentBoxScores === false || 'points' in eventCall === false) {
       log.debug('onBoxscoreReceived() - not a relevant event', eventCall)
+      return false
+    }
+
+    if ('boxscore' in self.props.currentBoxScores[eventCall.game__id] === false) {
+      log.debug('onBoxscoreReceived() - game not started')
       return false
     }
 
