@@ -56,7 +56,7 @@ function rankContestLineups(contest, draftGroup, boxScores, prizeStructure) {
     lineupStats.rank = parseInt(index) + 1
     lineupStats.potentialEarnings = 0
 
-    if (parseInt(index) in prizeStructure.ranks) {
+    if ('ranks' in prizeStructure && parseInt(index) in prizeStructure.ranks) {
       lineupStats.potentialEarnings = prizeStructure.ranks[index].value
     }
   })

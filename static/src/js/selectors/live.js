@@ -15,20 +15,6 @@ import { liveContestsStatsSelector } from './live-contests'
 import { currentLineupsStatsSelector } from './current-lineups'
 
 
-function addPlayersDetails(lineup) {
-  const currentPlayers = {}
-  _forEach(lineup.roster, (playerId) => {
-    currentPlayers[playerId] = {
-      id: playerId,
-      info: lineup.draftGroup.playersInfo[playerId],
-      stats: lineup.draftGroup.playersStats[playerId]
-    }
-  })
-
-  return currentPlayers
-}
-
-
 // returns:
 // - If lineup mode:
 //   - myLineup

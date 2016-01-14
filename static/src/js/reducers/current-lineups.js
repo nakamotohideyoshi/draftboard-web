@@ -10,7 +10,6 @@ module.exports = function(state = {
 }, action) {
   switch (action.type) {
     case ActionTypes.SET_CURRENT_LINEUPS:
-      console.info('SET_CURRENT_LINEUPS', action)
       return update(state, { $set: {
         updatedAt: action.updatedAt,
         items: action.lineups

@@ -7,7 +7,7 @@ import { forEach as _forEach } from 'lodash'
 import { updateFantasyPointsForLineup } from './live-contests'
 
 import log from '../lib/logging'
-import GAME_DURATIONS from '../actions/current-box-scores'
+import { GAME_DURATIONS } from '../actions/current-box-scores'
 
 
 // Input Selectors
@@ -35,24 +35,26 @@ function addPlayersDetails(lineup, draftGroup, boxScores) {
   _forEach(lineup.roster, (playerId) => {
     let player = {
       id: playerId,
-      info: draftGroup.playersInfo[playerId],
-      stats: draftGroup.playersStats[playerId]
+      info: draftGroup.playersInfo[playerId]
     }
 
-    // default to not having started
-    if (player.stats === undefined) {
-      player.stats = {
-        fp: 0,
-        minutesRemaining: GAME_DURATIONS.nba.gameMinutes,
-        decimalRemaining: 0.01
-      }
+    const defaultStats = {
+      fp: 0,
+      minutesRemaining: GAME_DURATIONS.nba.gameMinutes,
+      decimalRemaining: 0.01
     }
+
+    player.stats = Object.assign(
+      {},
+      defaultStats,
+      draftGroup.playersStats[playerId] || {}
+    )
 
     // otherwise pull in accurate data from related game
     const game = boxScores[player.info.game_srid]
     if (game.hasOwnProperty('boxscore')) {
-      player.stats.minutesRemaining = game.boxscore.timeRemaining
-      player.stats.decimalRemaining = decimalRemaining(player.stats.minutesRemaining, 48)
+      player.stats.minutesRemaining = game.boxscore.timeRemaining || 1
+      player.stats.decimalRemaining = decimalRemaining(player.stats.minutesRemaining, GAME_DURATIONS.nba.gameMinutes)
     }
 
     currentPlayers[playerId] = player
@@ -87,7 +89,8 @@ export function generateLineupStats(lineup, draftGroup, boxScores) {
   }, 0)
 
   stats.minutesRemaining = _reduce(stats.rosterDetails, (timeRemaining, player) => {
-    return timeRemaining + player.stats.minutesRemaining
+    let minutesRemaining = player.stats.minutesRemaining || 1
+    return timeRemaining + minutesRemaining
   }, 0)
   stats.decimalRemaining = decimalRemaining(stats.minutesRemaining, stats.totalMinutes)
 
@@ -172,7 +175,7 @@ export const currentLineupsStatsSelector = createSelector(
       liveLineupsStats[lineup.id] = stats
     })
 
-    log.trace('selectors.currentLineupsStatsSelector() - updated')
+    log.debug('selectors.currentLineupsStatsSelector() - updated')
 
 
 
