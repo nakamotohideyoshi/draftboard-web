@@ -22,7 +22,7 @@ module.exports = function(state = {}, action) {
     case ActionTypes.RECEIVE_PRIZE:
       return update(state, {
         [action.id]: {
-          $merge: {
+          $set: {
             info: action.info,
             isFetching: false
           }
