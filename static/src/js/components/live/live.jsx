@@ -337,7 +337,12 @@ var Live = React.createClass({
 
       case 'stats':
         const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
-        const name = self.props.liveDraftGroups[draftGroupId].playersInfo[eventCall.fields.player_id].name
+        const players = self.props.liveDraftGroups[draftGroupId].playersInfo
+
+        let name = 'Unknown'
+        if (eventCall.fields.player_id in players) {
+          name = players[eventCall.fields.player_id].name
+        }
         log.info('Live.popOldestGameEvent().updatePlayerFP()', name, eventCall)
 
         self.props.updatePlayerFP(
@@ -581,6 +586,7 @@ var Live = React.createClass({
       overallStats = (
         <LiveOverallStats
           lineup={ myLineup }
+          mode={ self.props.mode }
           whichSide="mine" />
       )
 
@@ -620,6 +626,7 @@ var Live = React.createClass({
       overallStats = (
         <LiveOverallStats
           lineup={ myLineup }
+          mode={ self.props.mode }
           whichSide="mine" />
       )
 
@@ -678,6 +685,7 @@ var Live = React.createClass({
 
             <LiveOverallStats
               lineup={ opponentLineup }
+              mode={ self.props.mode }
               whichSide="opponent" />
           </div>
         )
