@@ -20,6 +20,7 @@ const injuries = require('./injuries.js')
 const live = require('./live')
 const liveContests = require('./live-contests')
 const liveDraftGroups = require('./live-draft-groups')
+const livePlayers = require('./live-players')
 const liveGameQueues = require('./live-game-queues')
 const payments = require('./payments')
 const prizes = require('./prizes')
@@ -47,6 +48,7 @@ module.exports = combineReducers({
   liveContests,
   liveDraftGroups,
   liveGameQueues,
+  livePlayers,
   payments,
   prizes,
   results,

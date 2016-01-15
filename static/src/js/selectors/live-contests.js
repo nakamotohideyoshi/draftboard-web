@@ -20,7 +20,7 @@ import log from '../lib/logging'
  *
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
-function rankContestLineups(contest, draftGroup, boxScores, prizeStructure) {
+function rankContestLineups(contest, draftGroup, boxScores, prizeStructure, livePlayers) {
   log.trace('rankContestLineups')
   const lineups = contest.lineups
 
@@ -33,7 +33,7 @@ function rankContestLineups(contest, draftGroup, boxScores, prizeStructure) {
   let lineupsStats = {}
 
   _forEach(lineups, (lineup, id) => {
-    let stats = generateLineupStats(lineup, draftGroup, boxScores)
+    let stats = generateLineupStats(lineup, draftGroup, boxScores, livePlayers)
 
     if (id in lineupsUsernames) {
       stats['user'] = lineupsUsernames[id].user
@@ -75,8 +75,9 @@ export const liveContestsStatsSelector = createSelector(
   state => state.currentBoxScores,
   state => state.prizes,
   state => state.entries.hasRelatedInfo,
+  state => state.livePlayers,
 
-  (contests, draftGroups, boxScores, prizes, hasRelatedInfo) => {
+  (contests, draftGroups, boxScores, prizes, hasRelatedInfo, livePlayers) => {
     if (hasRelatedInfo === false) {
       // log.debug('selectors.liveContestsStatsSelector() - not ready')
       return {}
@@ -110,7 +111,7 @@ export const liveContestsStatsSelector = createSelector(
       stats = Object.assign(
         {},
         stats,
-        rankContestLineups(contest, draftGroup, boxScores, prizeStructure)
+        rankContestLineups(contest, draftGroup, boxScores, prizeStructure, livePlayers)
       )
 
       contestsStats[id] = stats
