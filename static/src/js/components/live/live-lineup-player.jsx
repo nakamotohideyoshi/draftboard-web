@@ -90,7 +90,9 @@ var LiveLineupPlayer = React.createClass({
       return (
         <li className={className} onClick={this.props.onClick}>
           { hoverStats }
-          { eventDescription }
+          <ReactCSSTransitionGroup transitionName="event-description" transitionEnterTimeout={0} transitionLeaveTimeout={0}>
+            { eventDescription }
+          </ReactCSSTransitionGroup>
           <div className={ playStatusClass }></div>
           <div className="live-lineup-player__points">{stats.fp}</div>
           <div className="live-lineup-player__status"></div>
