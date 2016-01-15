@@ -11,6 +11,7 @@ import log from '../../lib/logging'
 var LiveOverallStats = React.createClass({
   propTypes: {
     whichSide: React.PropTypes.string.isRequired,
+    mode: React.PropTypes.object.isRequired,
     lineup: React.PropTypes.object.isRequired
   },
 
@@ -132,6 +133,17 @@ var LiveOverallStats = React.createClass({
 
     // log.debug('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
 
+    let potentialEarnings = 0
+    if (this.props.mode.contestId === undefined) {
+      potentialEarnings = lineup.totalPotentialEarnings
+    } else {
+      potentialEarnings = lineup.potentialEarnings
+    }
+
+    if (potentialEarnings !== 0) {
+      potentialEarnings = potentialEarnings.toFixed(2)
+    }
+
 
     return (
       <div className="live-overall-stats live-overall-stats--me">
@@ -183,7 +195,7 @@ var LiveOverallStats = React.createClass({
             </div>
             <h4 className="live-overview__quantity">{ _.round(lineup.points, 0) }</h4>
           </div>
-          <div className="live-overview__potential-earnings">${ lineup.potentialEarnings }</div>
+          <div className="live-overview__potential-earnings">${ potentialEarnings }</div>
           <div className="live-overview__pmr">
             <div className="live-overview__pmr__quantity">{ lineup.minutesRemaining }</div>
             <div className="live-overview__pmr__title">PMR</div>

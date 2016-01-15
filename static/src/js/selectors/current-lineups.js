@@ -148,17 +148,17 @@ export const currentLineupsStatsSelector = createSelector(
         return player.info.player_srid
       })
 
-      let potentialEarnings = 0
+      let totalPotentialEarnings = 0
       _forEach(entries, (entry) => {
         const contestLineups = contestsStats[entry.contest].lineups
 
         if (entry.lineup in contestLineups === true) {
-          potentialEarnings += contestsStats[entry.contest].lineups[entry.lineup].potentialEarnings
+          totalPotentialEarnings += contestsStats[entry.contest].lineups[entry.lineup].potentialEarnings
         }
 
         // otherwise this means that the contest is complete, TODO fix this with API calls!
       })
-      stats.potentialEarnings = potentialEarnings
+      stats.totalPotentialEarnings = totalPotentialEarnings
       stats.contestsStats = {}
 
       _forEach(lineup.contests, (contestId) => {

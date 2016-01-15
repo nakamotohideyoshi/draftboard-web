@@ -97,6 +97,9 @@ export const liveSelector = createSelector(
 
         stats.playersInBothLineups = _.intersection(stats.lineups.mine.rosterBySRID, stats.lineups.opponent.rosterBySRID)
       }
+
+      // update potential earnings of normal lineup
+      stats.lineups.mine.potentialEarnings = stats.contest.lineups[mode.myLineupId].potentialEarnings
     }
 
 
