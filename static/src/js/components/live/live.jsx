@@ -386,12 +386,12 @@ var Live = React.createClass({
         courtInformation.whichSide = 'mine'
 
         if (self.props.mode.opponentLineupId) {
-          if (self.props.liveSelector.playersInBothLineups.indexOf(event.player) > -1) {
-            courtInformation.whichSide = 'both'
-          }
-
           if (self.props.liveSelector.lineups.opponent.rosterBySRID.indexOf(event.player) > -1) {
             courtInformation.whichSide = 'opponent'
+          }
+
+          if (self.props.liveSelector.playersInBothLineups.indexOf(event.player) > -1) {
+            courtInformation.whichSide = 'both'
           }
         }
       }
@@ -401,85 +401,84 @@ var Live = React.createClass({
     log.debug('potential playersPlaying', playersPlaying)
     self.setState({playersPlaying: playersPlaying})
 
-    // trigger the animation on the court first
+    log.debug('setTimeout - animate on court')
+
+    let courtEvents = Object.assign({}, self.state.courtEvents)
+    courtEvents[courtInformation.id] = courtInformation
+    self.setState({courtEvents: courtEvents})
+
+    // show the results
     setTimeout(function() {
-      log.debug('setTimeout - animate on court')
+      log.debug('setTimeout - show the results')
 
-      let courtEvents = Object.assign({}, self.state.courtEvents)
-      courtEvents[courtInformation.id] = courtInformation
-      self.setState({courtEvents: courtEvents})
+      // remove players from playersPlaying
+      let playersPlaying = self.state.playersPlaying.slice[0]
 
-      // show the results
-      setTimeout(function() {
-        log.debug('setTimeout - show the results')
+      playersPlaying = _.remove(playersPlaying, (value) => {
+        return players.indexOf(value) === -1
+      })
+      self.setState({playersPlaying: playersPlaying})
 
-        // remove players from playersPlaying
-        let playersPlaying = self.state.playersPlaying.slice[0]
+      // update player fp
+      _.forEach(eventCall.statistics__list, function(event, key) {
+        const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
+        const draftGroup = self.props.liveDraftGroups[draftGroupId]
+        const playerId = draftGroup.playersBySRID[event.player]
+        let playerStats = draftGroup.playersStats[playerId]
 
-        playersPlaying = _.remove(playersPlaying, (value) => {
-          return players.indexOf(value) === -1
-        })
-        self.setState({playersPlaying: playersPlaying})
+        // if game hasn't started
+        // TODO API call fix this
+        if (playerStats === undefined) {
+          playerStats = {
+            fp: 0
+          }
+        }
 
-        // update player fp
-        _.forEach(eventCall.statistics__list, function(event, key) {
-          const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
-          const draftGroup = self.props.liveDraftGroups[draftGroupId]
-          const playerId = draftGroup.playersBySRID[event.player]
-          let playerStats = draftGroup.playersStats[playerId]
-
-          // if game hasn't started
-          // TODO API call fix this
-          if (playerStats === undefined) {
-            playerStats = {
-              fp: 0
+        // show event description
+        // TODO modify this once pbp has player stats built in
+        let eventDescriptions = Object.assign(
+          {},
+          self.state.eventDescriptions,
+          {
+            [event.player]: {
+              points: '?',
+              info: eventCall.description,
+              when: eventCall.clock
             }
           }
+        )
+        self.setState({ eventDescriptions: eventDescriptions })
 
-          // show event description
-          // TODO modify this once pbp has player stats built in
-          let eventDescriptions = Object.assign(
-            {},
-            self.state.eventDescriptions,
-            {
-              [event.player]: {
-                points: '?',
-                info: eventCall.description,
-                when: eventCall.clock
-              }
-            }
-          )
+        // TODO modify this once pbp has player stats built in
+        // self.props.updatePlayerFP(
+        //   eventCall,
+        //   draftGroupId,
+        //   playerId,
+        //   playerStats.fp + event.points
+        // )
+
+        setTimeout(function() {
+          log.debug('setTimeout - remove event description')
+          let eventDescriptions = Object.assign({}, self.state.eventDescriptions)
+          delete(eventDescriptions[event.player])
           self.setState({ eventDescriptions: eventDescriptions })
+        }, 4000)
+      })
 
-          setTimeout(function() {
-            log.debug('setTimeout - remove event description')
-            let eventDescriptions = Object.assign({}, eventDescriptions)
-            delete(eventDescriptions[event.player])
-            self.setState({ eventDescriptions: eventDescriptions })
-          } , 6000)
+    }.bind(this), 3000)
 
-          // TODO modify this once pbp has player stats built in
-          // self.props.updatePlayerFP(
-          //   eventCall,
-          //   draftGroupId,
-          //   playerId,
-          //   playerStats.fp + event.points
-          // )
-        })
+    // remove the player from the court
+    setTimeout(function() {
+      log.debug('setTimeout - remove the player from the court')
+      let courtEvents = Object.assign({}, self.state.courtEvents)
+      delete courtEvents[courtInformation.id]
+      self.setState({courtEvents: courtEvents})
+    }.bind(this) , 7000)
 
-      }.bind(this), 4000)
-
-      // remove the player from the court
-      setTimeout(function() {
-        log.debug('setTimeout - remove the player from the court')
-
-        self.popOldestGameEvent(eventCall.game__id)
-
-        delete courtEvents[courtInformation.id]
-        self.setState({courtEvents: courtEvents})
-      }.bind(this), 9000)
-
-    }.bind(this), 1000)
+    // enter the next item in the queue
+    setTimeout(function() {
+      self.popOldestGameEvent(eventCall.game__id)
+    }.bind(this), 9000)
   },
 
 
