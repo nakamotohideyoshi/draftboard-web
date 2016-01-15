@@ -245,12 +245,17 @@ var Live = React.createClass({
 
     // if this is not a statistical based call, ignore
     if ('statistics__list' in eventCall === false) {
-      log.debug('onPBPReceived() - had no statistics__list')
+      log.debug('onPBPReceived() - had no statistics__list', eventCall)
       return false
     }
 
     const events = eventCall.statistics__list
     const gameId = eventCall.game__id
+
+    if (gameId === undefined) {
+      log.warn('gameId did not exist for this PBP, yet had a relevantPlayer', eventCall)
+      return false
+    }
 
     // get game queue related to event
     let gameQueue = {
@@ -307,7 +312,9 @@ var Live = React.createClass({
     // pop oldest event
     const oldestEvent = gameQueue.queue.shift()
     const eventCall = oldestEvent.event
-    log.debug('oldestEvent', oldestEvent)
+
+    // update state with updated queue
+    self.setState({gameQueues: gameQueues})
 
     // depending on what type of data, either show animation on screen or update stats
     switch (oldestEvent.type) {
@@ -323,6 +330,9 @@ var Live = React.createClass({
           eventCall.id,
           eventCall.points
         )
+
+        // then move on to the next
+        self.popOldestGameEvent(gameId)
         break
 
       case 'stats':
@@ -336,10 +346,11 @@ var Live = React.createClass({
           eventCall.fields.player_id,
           eventCall.fields.fantasy_points
         )
+
+        // then move on to the next
+        self.popOldestGameEvent(gameId)
     }
 
-    // update state with updated queue
-    self.setState({gameQueues: gameQueues})
   },
 
 

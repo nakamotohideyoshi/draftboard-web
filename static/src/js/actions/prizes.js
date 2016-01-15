@@ -33,7 +33,7 @@ function fetchPrize(id) {
   log.trace('actionsLivePrize.fetchPrize')
 
   return dispatch => {
-    dispatch(requestPrize(id))
+    // dispatch(requestPrize(id))
 
     return request.get(
       '/api/prize/' + id + '/'
