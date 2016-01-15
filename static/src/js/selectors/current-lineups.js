@@ -29,7 +29,7 @@ function decimalRemaining(minutesRemaining, totalMinutes) {
 }
 
 
-function addPlayersDetails(lineup, draftGroup, boxScores) {
+function addPlayersDetails(lineup, draftGroup, boxScores, livePlayers) {
   const currentPlayers = {}
 
   _forEach(lineup.roster, (playerId) => {
@@ -50,6 +50,9 @@ function addPlayersDetails(lineup, draftGroup, boxScores) {
       draftGroup.playersStats[playerId] || {}
     )
 
+    // add in live stats
+    player.liveStats = livePlayers.relevantPlayers[player.info.player_srid]
+
     // otherwise pull in accurate data from related game
     const game = boxScores[player.info.game_srid]
     if (game.hasOwnProperty('boxscore')) {
@@ -64,7 +67,7 @@ function addPlayersDetails(lineup, draftGroup, boxScores) {
 }
 
 
-export function generateLineupStats(lineup, draftGroup, boxScores) {
+export function generateLineupStats(lineup, draftGroup, boxScores, livePlayers) {
   let stats = {
     id: lineup.id,
     name: lineup.name || 'Example Lineup Name',
@@ -77,7 +80,7 @@ export function generateLineupStats(lineup, draftGroup, boxScores) {
     return stats
   }
 
-  stats.rosterDetails = addPlayersDetails(stats, draftGroup, boxScores)
+  stats.rosterDetails = addPlayersDetails(stats, draftGroup, boxScores, livePlayers)
 
   stats.points = _reduce(stats.rosterDetails, (fp, player) => {
     // only add if they have fantasy points in the first place
@@ -109,17 +112,14 @@ export const currentLineupsStatsSelector = createSelector(
   state => state.entries.items,
   state => state.currentLineups.items,
   state => state.entries.hasRelatedInfo,
+  state => state.livePlayers,
 
-  (contestsStats, liveContests, liveDraftGroups, currentBoxScores, entries, lineups, hasRelatedInfo) => {
+  (contestsStats, liveContests, liveDraftGroups, currentBoxScores, entries, lineups, hasRelatedInfo, livePlayers) => {
 
     if (hasRelatedInfo === false) {
       // log.debug('selectors.currentLineupsStatsSelector() - not ready')
       return {}
     }
-
-    // const liveLineups = _filter(lineups, function(lineup) {
-    //   return lineup.start < Date.now()
-    // })
 
     let liveLineupsStats = {}
     _forEach(lineups, (lineup) => {
@@ -140,7 +140,7 @@ export const currentLineupsStatsSelector = createSelector(
         return
       }
 
-      let stats = generateLineupStats(lineup, draftGroup, currentBoxScores)
+      let stats = generateLineupStats(lineup, draftGroup, currentBoxScores, livePlayers)
       stats.draftGroup = draftGroup
 
       // used for animations to determine which side

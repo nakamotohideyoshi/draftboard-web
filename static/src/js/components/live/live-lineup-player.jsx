@@ -47,36 +47,41 @@ var LiveLineupPlayer = React.createClass({
       stats = {pos: "", fp: 0}
     }
 
-    let hoverStats = (
-      <div className="live-lineup-player__hover-stats">
-        <ul>
-          <li>
-            <div className="hover-stats__amount">{ stats.fp }</div>
-            <div className="hover-stats__name">PTS</div>
-          </li>
-          <li>
-            <div className="hover-stats__amount">2</div>
-            <div className="hover-stats__name">RB</div>
-          </li>
-          <li>
-            <div className="hover-stats__amount">0</div>
-            <div className="hover-stats__name">ST</div>
-          </li>
-          <li>
-            <div className="hover-stats__amount">6</div>
-            <div className="hover-stats__name">ASST</div>
-          </li>
-          <li>
-            <div className="hover-stats__amount">2</div>
-            <div className="hover-stats__name">BLK</div>
-          </li>
-          <li>
-            <div className="hover-stats__amount">2</div>
-            <div className="hover-stats__name">TO</div>
-          </li>
-        </ul>
-      </div>
-    )
+    let hoverStats
+    if (this.props.player.liveStats !== undefined) {
+      const liveStats = this.props.player.liveStats
+
+      hoverStats = (
+        <div className="live-lineup-player__hover-stats">
+          <ul>
+            <li>
+              <div className="hover-stats__amount">{ liveStats.fantasy_points }</div>
+              <div className="hover-stats__name">PTS</div>
+            </li>
+            <li>
+              <div className="hover-stats__amount">{ liveStats.rebounds }</div>
+              <div className="hover-stats__name">RB</div>
+            </li>
+            <li>
+              <div className="hover-stats__amount">{ liveStats.steals }</div>
+              <div className="hover-stats__name">ST</div>
+            </li>
+            <li>
+              <div className="hover-stats__amount">{ liveStats.assists }</div>
+              <div className="hover-stats__name">ASST</div>
+            </li>
+            <li>
+              <div className="hover-stats__amount">{ liveStats.blocks }</div>
+              <div className="hover-stats__name">BLK</div>
+            </li>
+            <li>
+              <div className="hover-stats__amount">{ liveStats.turnovers }</div>
+              <div className="hover-stats__name">TO</div>
+            </li>
+          </ul>
+        </div>
+      )
+    }
 
     let className = 'live-lineup-player'
     if (stats.decimalRemaining === 0.01) {
