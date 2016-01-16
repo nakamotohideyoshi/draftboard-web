@@ -26,7 +26,7 @@ import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contest
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
 import { liveSelector } from '../../selectors/live'
-import { updatePlayerFP } from '../../actions/live-draft-groups'
+import { updatePlayerStats } from '../../actions/live-draft-groups'
 import { updateLiveMode } from '../../actions/live'
 import { updateBoxScore } from '../../actions/current-box-scores'
 
@@ -177,11 +177,10 @@ var Live = React.createClass({
     }
 
     // otherwise just update the player's FP
-    self.props.updatePlayerFP(
-      eventCall,
-      self.props.liveSelector.lineups.mine.draftGroup.id,
+    self.props.updatePlayerStats(
       eventCall.fields.player_id,
-      eventCall.fields.fantasy_points
+      eventCall,
+      self.props.liveSelector.lineups.mine.draftGroup.id
     )
   },
 
@@ -343,13 +342,12 @@ var Live = React.createClass({
         if (eventCall.fields.player_id in players) {
           name = players[eventCall.fields.player_id].name
         }
-        log.info('Live.popOldestGameEvent().updatePlayerFP()', name, eventCall)
+        log.info('Live.popOldestGameEvent().updatePlayerStats()', name, eventCall)
 
-        self.props.updatePlayerFP(
-          eventCall,
-          self.props.liveSelector.lineups.mine.draftGroup.id,
+        self.props.updatePlayerStats(
           eventCall.fields.player_id,
-          eventCall.fields.fantasy_points
+          eventCall,
+          self.props.liveSelector.lineups.mine.draftGroup.id
         )
 
         // then move on to the next
@@ -448,14 +446,6 @@ var Live = React.createClass({
           }
         )
         self.setState({ eventDescriptions: eventDescriptions })
-
-        // TODO modify this once pbp has player stats built in
-        // self.props.updatePlayerFP(
-        //   eventCall,
-        //   draftGroupId,
-        //   playerId,
-        //   playerStats.fp + event.points
-        // )
 
         setTimeout(function() {
           log.debug('setTimeout - remove event description')
@@ -769,7 +759,7 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
     updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
-    updatePlayerFP: (eventCall, draftGroupId, playerId, fp) => dispatch(updatePlayerFP(eventCall, draftGroupId, playerId, fp)),
+    updatePlayerStats: (eventCall, draftGroupId, playerId, fp) => dispatch(updatePlayerStats(eventCall, draftGroupId, playerId, fp)),
     updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),
     updatePath: (path) => dispatch(updatePath(path))
   }

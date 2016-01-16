@@ -55,7 +55,7 @@ var LiveLineupPlayer = React.createClass({
         <div className="live-lineup-player__hover-stats">
           <ul>
             <li>
-              <div className="hover-stats__amount">{ liveStats.fantasy_points }</div>
+              <div className="hover-stats__amount">{ liveStats.points }</div>
               <div className="hover-stats__name">PTS</div>
             </li>
             <li>

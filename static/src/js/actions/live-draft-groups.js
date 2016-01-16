@@ -10,6 +10,7 @@ import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
 import { mergeBoxScores } from './current-box-scores'
 import { fetchTeamsIfNeeded } from './sports'
+import { updateLivePlayersStats } from './live-players'
 
 
 const playerSchema = new Schema('players', {
@@ -17,15 +18,28 @@ const playerSchema = new Schema('players', {
 })
 
 
-// Used to update a player's FP when a Pusher call sends us new info
-export function updatePlayerFP(eventCall, id, playerId, fp) {
-  log.trace('actionsLiveDraftGroup.updatePlayerFP')
+// Used to update a player's stats when a Pusher call sends us new info
+export function updatePlayerStats(playerId, eventCall, draftGroupId) {
+  log.trace('actionsLiveDraftGroup.updatePlayerStats')
 
-  return {
-    id: id,
-    type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
-    playerId: playerId,
-    fp: fp
+  return (dispatch, getState) => {
+    const state = getState()
+
+    // if this is a relevant player, update their stats
+    if (state.livePlayers.relevantPlayers.hasOwnProperty(eventCall.fields.srid_player)) {
+      log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', eventCall.fields.srid_player)
+      dispatch(updateLivePlayersStats(
+        eventCall.fields.srid_player,
+        eventCall.fields
+      ))
+    }
+
+    return dispatch( {
+      id: draftGroupId,
+      type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
+      playerId: playerId,
+      fp: eventCall.fields.fantasy_points
+    })
   }
 }
 
