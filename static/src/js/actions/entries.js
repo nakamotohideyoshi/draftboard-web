@@ -149,7 +149,10 @@ export function addEntriesPlayers() {
     })
 
     _forEach(liveEntries, (entry) => {
-      entriesPlayers[entry.id] = state.liveContests[entry.contest].lineups[entry.lineup].roster
+      const lineup = state.liveContests[entry.contest].lineups[entry.lineup]
+      if (lineup !== undefined && lineup.hasOwnProperty('roster')) {
+        entriesPlayers[entry.id] = lineup.roster
+      }
     })
 
     // returning a promise such that we can chain this method

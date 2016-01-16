@@ -73,12 +73,16 @@ export function generateLineupStats(lineup, draftGroup, boxScores, livePlayers) 
     name: lineup.name || 'Example Lineup Name',
     roster: lineup.roster,
     start: lineup.start,
-    totalMinutes: lineup.roster.length * 48
+    totalMinutes: GAME_DURATIONS.nba.gameMinutes * GAME_DURATIONS.nba.players
   }
 
-  if (lineup.start >= Date.now()) {
+  // if the lineup hasn't started yet
+  if (lineup.roster === undefined) {
     return stats
   }
+
+
+  lineup.totalMinutes = lineup.roster.length * GAME_DURATIONS.nba.gameMinutes
 
   stats.rosterDetails = addPlayersDetails(stats, draftGroup, boxScores, livePlayers)
 

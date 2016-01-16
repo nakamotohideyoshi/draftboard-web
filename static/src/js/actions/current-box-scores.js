@@ -8,7 +8,8 @@ export const GAME_DURATIONS = {
   nba: {
     periods: 4,
     periodMinutes: 12,
-    gameMinutes: 48
+    gameMinutes: 48,
+    players: 8
   }
 }
 
