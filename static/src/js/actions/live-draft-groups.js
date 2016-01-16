@@ -19,7 +19,7 @@ const playerSchema = new Schema('players', {
 
 // Used to update a player's FP when a Pusher call sends us new info
 export function updatePlayerFP(eventCall, id, playerId, fp) {
-  log.debug('actionsLiveDraftGroup.updatePlayerFP')
+  log.trace('actionsLiveDraftGroup.updatePlayerFP')
 
   return {
     id: id,
@@ -56,7 +56,7 @@ function fetchDraftGroupFP(id) {
       'Accept': 'application/json'
     }).then(function(res) {
       if (_.size(res.body.players) === 0) {
-        log.debug('shouldFetchDraftGroupFP() - FP not available yet', id)
+        log.trace('shouldFetchDraftGroupFP() - FP not available yet', id)
         return Promise.resolve('Fantasy points not available yet')
       }
 
@@ -127,7 +127,7 @@ export function fetchDraftGroupStats(id) {
 // -----------------------------------------------------------------------
 
 function requestDraftGroupInfo(id) {
-  log.debug('actionsLiveDraftGroup.requestDraftGroupInfo')
+  log.trace('actionsLiveDraftGroup.requestDraftGroupInfo')
 
   return {
     id: id,
@@ -137,7 +137,7 @@ function requestDraftGroupInfo(id) {
 
 
 function receiveDraftGroupInfo(id, response) {
-  log.debug('actionsLiveDraftGroup.receiveDraftGroupInfo')
+  log.trace('actionsLiveDraftGroup.receiveDraftGroupInfo')
 
   const normalizedPlayers = normalize(
     response.players,
@@ -165,7 +165,7 @@ function receiveDraftGroupInfo(id, response) {
 
 
 function fetchDraftGroupInfo(id) {
-  log.debug('actionsLiveDraftGroup.fetchDraftGroupInfo')
+  log.trace('actionsLiveDraftGroup.fetchDraftGroupInfo')
 
   return dispatch => {
     dispatch(requestDraftGroupInfo(id))
@@ -190,7 +190,7 @@ function fetchDraftGroupInfo(id) {
 // -----------------------------------------------------------------------
 
 function requestDraftGroupBoxScores(id) {
-  log.debug('actionsLiveDraftGroup.requestDraftGroupBoxScores')
+  log.trace('actionsLiveDraftGroup.requestDraftGroupBoxScores')
 
   return {
     id: id,
@@ -212,7 +212,7 @@ function receiveDraftGroupBoxScores(id, boxScores) {
 
 
 function fetchDraftGroupBoxScores(id) {
-  log.debug('actionsLiveDraftGroup.fetchDraftGroupBoxScores')
+  log.trace('actionsLiveDraftGroup.fetchDraftGroupBoxScores')
 
   return dispatch => {
     dispatch(requestDraftGroupBoxScores(id))
@@ -224,7 +224,7 @@ function fetchDraftGroupBoxScores(id) {
       'Accept': 'application/json'
     }).then(function(res) {
       if (res.body.length === 0) {
-        log.debug('shouldFetchDraftGroupFP() - Box scores not available yet', id)
+        log.trace('shouldFetchDraftGroupFP() - Box scores not available yet', id)
         return Promise.resolve('Box scores not available yet')
       }
 
@@ -239,7 +239,7 @@ function fetchDraftGroupBoxScores(id) {
 
 
 function confirmDraftGroupStored(id) {
-  log.debug('actionsEntries.confirmRelatedEntriesInfo')
+  log.trace('actionsEntries.confirmRelatedEntriesInfo')
 
   return {
     type: ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED,
@@ -249,18 +249,18 @@ function confirmDraftGroupStored(id) {
 
 
 function shouldFetchDraftGroup(state, id) {
-  log.debug('actionsLiveDraftGroup.shouldFetchDraftGroup')
+  log.trace('actionsLiveDraftGroup.shouldFetchDraftGroup')
 
   return id in state.liveDraftGroups === false
 }
 
 
 export function fetchDraftGroupIfNeeded(id) {
-  log.debug('actionsLiveDraftGroup.fetchDraftGroupIfNeeded')
+  log.trace('actionsLiveDraftGroup.fetchDraftGroupIfNeeded')
 
   return (dispatch, getState) => {
     if (shouldFetchDraftGroup(getState(), id) === false) {
-      log.debug('actionsLiveDraftGroup.fetchDraftGroupIfNeeded() - Draft group exists')
+      log.trace('actionsLiveDraftGroup.fetchDraftGroupIfNeeded() - Draft group exists')
       return Promise.resolve('Draft group exists')
     }
     return Promise.all([

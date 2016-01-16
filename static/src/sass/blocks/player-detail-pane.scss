@@ -1,0 +1,128 @@
+@import "../variables.scss";
+
+
+/**
+ * These are default player detail pane styles.
+ *
+ * Both the Draft player detail pane and Live player detail pane use these.
+ * If you want to edit one of those, but not both, do it in thier respective stylesheets.
+ *
+ * (cmp-draft-player-detail.scss or live-player-pane.scss)
+ */
+
+.player-detail-pane {
+  // height: 100%;
+  width: $pane-width;
+  min-width: $pane-width;
+  margin: 0 auto;
+  text-align: center;
+
+  .pane-upper {
+    background: #1a1e30;
+  }
+
+  .pane-lower {
+    background: #fff;
+  }
+
+  // header is with set height, as it will have
+  // background image with that specific height too
+  .header-section {
+    height: 245px;
+    min-height: 245px;
+    position: relative;
+
+    // this is to be put from the js
+    background-image: url(../img/blocks/live-player-pane/header.jpg);
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    padding-top: 60px;
+
+
+    .header__team-role {
+      color: #9194a9;
+      font-size: 8px;
+      font-family: $font-open-sans;
+      font-weight: 400;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-left: 10%;
+      text-align: left;
+    }
+
+    .header__name {
+      color: $primary-white;
+      font-family: $font-open-sans;
+      font-weight: 100;
+      font-size: 28px;
+      margin-left: 10%;
+      padding-bottom: 15px;
+      position: relative;
+      text-align: left;
+
+      &:after {
+        background: #fff;
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 30px;
+        height: 1px;
+      }
+    }
+
+
+    .header__player-image {
+      // TEMP background
+      background: url(../img/temp/live-player-pane--lebron.png) no-repeat bottom right;
+      background-size: auto 190px;
+      height: 190px;
+      width: 232px;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+  }
+
+  .player-stats {
+    background: #273441;
+    height: 85px;
+    min-height: 85px;
+    position: relative;
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      margin-right: -50%;
+      transform: translate(-50%, -50%);
+
+      > li {
+        display: inline-block;
+        margin: 0 20px;
+
+        .stat-name {
+          color: #9194a9;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          font-size: 9px;
+          text-align: center;
+        }
+
+        .stat-score {
+          color: $primary-white;
+          font-family: $font-oswald;
+          font-size: 16px;
+        }
+      }
+
+      > li:first-child {
+        margin-left: 0px;
+      }
+    }
+  }
+
+}
