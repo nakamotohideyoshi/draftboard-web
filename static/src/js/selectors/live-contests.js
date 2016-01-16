@@ -86,6 +86,14 @@ export const liveContestsStatsSelector = createSelector(
     let prizeStructure = {}
 
     _forEach(contests, (contest, id) => {
+      // This seems to be a recurring issue. I believe it has something to do with the logged-in
+      // user not having any lineups.
+      // For now we'll skip things if we don't have any contest.info.
+      if (!contest.info) {
+        log.warn('liveContestsStatsSelector - contest has no info', contest)
+        return
+      }
+
       const draftGroup = draftGroups[contest.info.draft_group]
 
       // Make sure we have the prize structure before adding it.

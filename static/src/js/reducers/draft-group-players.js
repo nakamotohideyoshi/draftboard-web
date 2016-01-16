@@ -7,10 +7,11 @@ const initialState = {
   id: null,
   isFetching: false,
   allPlayers: {},
+  focusedPlayer: null,
   filters: {
     orderBy: {
       property: 'salary',
-      direction: 'desc'
+      direction: 'asc'
     },
     playerSearchFilter: {},
     positionFilter: {},
