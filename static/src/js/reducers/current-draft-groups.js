@@ -11,7 +11,7 @@ module.exports = (state = {
 }, action) => {
   switch (action.type) {
     case ActionTypes.REQUEST_CURRENT_DRAFT_GROUPS:
-      log.debug('reducersCurrentDraftGroup.REQUEST_CURRENT_DRAFT_GROUPS')
+      log.trace('reducersCurrentDraftGroup.REQUEST_CURRENT_DRAFT_GROUPS')
 
       return update(state, {
         $set: {
@@ -21,7 +21,7 @@ module.exports = (state = {
 
 
     case ActionTypes.RECEIVE_CURRENT_DRAFT_GROUPS:
-      log.debug('reducersCurrentDraftGroup.RECEIVE_CURRENT_LIVE_DRAFT_GROUPS')
+      log.trace('reducersCurrentDraftGroup.RECEIVE_CURRENT_LIVE_DRAFT_GROUPS')
 
       return update(state, {
         $set: {

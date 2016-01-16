@@ -32,7 +32,7 @@ const LivePlayerPane = React.createClass({
     const player = this.props.player
 
     return (
-      <div className='live-player-pane__player-stats'>
+      <div className='player-stats'>
         <ul>
           <li>
             <div className='stat-name'>AVG</div>
@@ -71,7 +71,7 @@ const LivePlayerPane = React.createClass({
     // if the game isn't loaded yet or something
     if (!game.hasOwnProperty('boxscore')) {
       log.debug('renderCurrentGame() - boxScore undefined')
-      return (<div className='live-player-pane__current-game' />)
+      return (<div className='current-game' />)
     }
 
     const boxScore = game.boxscore
@@ -79,35 +79,35 @@ const LivePlayerPane = React.createClass({
     let clock
     if (boxScore.status === 'closed') {
       clock = (
-        <div className='live-player-pane__current-game__time'>
-          <div className='live-player-pane__current-game__time__timer' />
-          <div className='live-player-pane__current-game__time__period'>Final</div>
+        <div className='current-game__time'>
+          <div className='current-game__time__timer' />
+          <div className='current-game__time__period'>Final</div>
         </div>
       )
     } else {
       clock = (
-        <div className='live-player-pane__current-game__time'>
-          <div className='live-player-pane__current-game__time__timer'>{ boxScore.clock }</div>
-          <div className='live-player-pane__current-game__time__period'>{ boxScore.quarterDisplay }</div>
+        <div className='current-game__time'>
+          <div className='current-game__time__timer'>{ boxScore.clock }</div>
+          <div className='current-game__time__period'>{ boxScore.quarterDisplay }</div>
         </div>
       )
     }
 
 
     return (
-      <div className='live-player-pane__current-game'>
+      <div className='current-game'>
         <div>
-          <div className='live-player-pane__current-game__team1'>
-            <div className='live-player-pane__current-game__team1__points'>{ boxScore.home_score }</div>
-            <div className='live-player-pane__current-game__team-name'>
+          <div className='current-game__team1'>
+            <div className='current-game__team1__points'>{ boxScore.home_score }</div>
+            <div className='current-game__team-name'>
               <div className='city'>{ game.homeTeamInfo.city }</div>
               <div className='name'>{ game.homeTeamInfo.name }</div>
             </div>
           </div>
           { clock }
-          <div className='live-player-pane__current-game__team2'>
-            <div className='live-player-pane__current-game__team1__points'>{ boxScore.away_score }</div>
-            <div className='live-player-pane__current-game__team-name'>
+          <div className='current-game__team2'>
+            <div className='current-game__team1__points'>{ boxScore.away_score }</div>
+            <div className='current-game__team-name'>
               <div className='city'>{ game.awayTeamInfo.city }</div>
               <div className='name'>{ game.awayTeamInfo.name }</div>
             </div>
@@ -197,8 +197,8 @@ const LivePlayerPane = React.createClass({
     })
 
     return (
-      <div className='live-player-pane__recent-activity'>
-        <div className='live-player-pane__recent-activity__title'>Recent activity</div>
+      <div className='recent-activity'>
+        <div className='recent-activity__title'>Recent activity</div>
         <ul>{ activitiesHTML }</ul>
       </div>
     )
@@ -222,42 +222,44 @@ const LivePlayerPane = React.createClass({
 
 
     return (
-      <div className='live-player-pane__header'>
-        <div className='live-player-pane__header__team-role'>
+      <section className='header-section'>
+        <div className="header__player-image" />
+
+        <div className='header__team-role'>
           { playerTeamInfo.city } { playerTeamInfo.name } - { player.info.position }
         </div>
-        <div className='live-player-pane__header__name'>{ player.info.name }</div>
+        <div className='header__name'>{ player.info.name }</div>
 
-        <div className='live-player-pane__header__pts-stats'>
-            <div className="live-player-pane__header__pts-stats__info">
+        <div className='header__pts-stats'>
+          <div className="header__pts-stats__info">
             <LivePMRProgressBar
               decimalRemaining={ player.stats.decimalRemaining }
               strokeWidth="1"
               backgroundHex="46495e"
               hexStart="34B4CC"
               hexEnd="2871AC"
-              svgWidth="50" />
+              svgWidth="50"
+            />
 
-              <div className="live-player-pane__header__pts-stats__info__insvg">
-                <p>pts</p>
-                <p>{ fp }</p>
-              </div>
+            <div className="header__pts-stats__info__insvg">
+              <p>pts</p>
+              <p>{ fp }</p>
             </div>
+          </div>
 
-            <div className="live-player-pane__header__pts-stats__info">
-              <p>% owned</p>
-              <p>18</p>
-            </div>
+          <div className="header__pts-stats__info">
+            <p>% owned</p>
+            <p>18</p>
+          </div>
 
-            <div className="live-player-pane__header__player-image" />
         </div>
-      </div>
+      </section>
     )
   },
 
   render: function() {
     const side = this.props.whichSide === 'opponent' ? 'right' : 'left'
-    let classNames = 'live-pane live-pane--' + side + ' live-pane-player--' + side
+    let classNames = 'player-detail-pane live-player-pane live-pane live-pane--' + side + ' live-pane-player--' + side
 
     const teamSRID = this.props.player.info.team_srid
     const boxScore = this.props.boxScore
@@ -274,11 +276,15 @@ const LivePlayerPane = React.createClass({
     return (
       <div className={classNames}>
         <div className="live-pane__close" onClick={this.closePane}></div>
-        <div className="live-player-pane">
-        { this.renderHeader(playerTeamInfo) }
-        { this.renderStatsAverage() }
-        { this.renderCurrentGame() }
-        { this.renderActivities() }
+
+        <div className="pane-upper">
+          { this.renderHeader(playerTeamInfo) }
+          { this.renderStatsAverage() }
+          { this.renderCurrentGame() }
+        </div>
+
+        <div className="pane-lower">
+          { this.renderActivities() }
         </div>
       </div>
     )

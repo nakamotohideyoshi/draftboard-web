@@ -1,3 +1,4 @@
+import log from '../lib/logging'
 import * as types from '../action-types.js'
 import request from 'superagent'
 // so we can use Promises
@@ -7,6 +8,8 @@ import {fetchSportInjuries} from './injury-actions.js'
 import {fetchFantasyHistory} from './fantasy-history-actions.js'
 import {importLineup} from './lineup-actions.js'
 import {fetchTeamsIfNeeded} from './sports.js'
+import {fetchPlayerNewsIfNeeded} from './player-news-actions.js'
+import {fetchPlayerBoxScoreHistoryIfNeeded} from './player-box-score-history-actions.js'
 
 const playerSchema = new Schema('players', {
   idAttribute: 'player_id'
@@ -14,6 +17,9 @@ const playerSchema = new Schema('players', {
 
 
 
+// Player filter actions.
+//
+// These control the filter + sorting of the player list in the draft section.
 export function updateFilter(filterName, filterProperty, match) {
   return {
     type: types.DRAFTGROUP_FILTER_CHANGED,
@@ -25,7 +31,6 @@ export function updateFilter(filterName, filterProperty, match) {
   }
 }
 
-
 export function updateOrderByFilter(property, direction='desc') {
   return {
     type: types.DRAFTGROUP_ORDER_CHANGED,
@@ -35,7 +40,6 @@ export function updateOrderByFilter(property, direction='desc') {
     }
   }
 }
-
 
 export function setFocusedPlayer(playerId) {
   return (dispatch) => {
@@ -65,7 +69,7 @@ function fetchDraftgroupSuccess(body) {
 }
 
 function fetchDraftgroupFail(ex) {
-  console.error(ex)
+  log.error(ex)
   return {
     type: types.FETCH_DRAFTGROUP_FAIL,
     ex
@@ -104,7 +108,7 @@ function fetchDraftGroup(draftGroupId) {
     dispatch(fetchingDraftgroup())
 
     return new Promise((resolve, reject) => {
-       request
+      request
       .get("/api/draft-group/" + draftGroupId + '/')
       .set({
         'X-REQUESTED-WITH': 'XMLHttpRequest',
@@ -120,6 +124,8 @@ function fetchDraftGroup(draftGroupId) {
           dispatch(fetchFantasyHistory(res.body.sport))
           dispatch(fetchSportInjuries(res.body.sport))
           dispatch(fetchTeamsIfNeeded(res.body.sport))
+          dispatch(fetchPlayerNewsIfNeeded(res.body.sport))
+          dispatch(fetchPlayerBoxScoreHistoryIfNeeded(res.body.sport))
 
           // Normalize player list by ID.
           const normalizedPlayers = normalize(
