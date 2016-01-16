@@ -22,6 +22,8 @@ const liveContests = require('./live-contests')
 const liveDraftGroups = require('./live-draft-groups')
 const liveGameQueues = require('./live-game-queues')
 const payments = require('./payments')
+const playerNews = require('./player-news.js')
+const playerBoxScoreHistory = require('./player-box-score-history.js')
 const prizes = require('./prizes')
 const results = require('./results')
 const sports = require('./sports')
@@ -48,6 +50,8 @@ module.exports = combineReducers({
   liveDraftGroups,
   liveGameQueues,
   payments,
+  playerNews,
+  playerBoxScoreHistory,
   prizes,
   results,
   routing,
