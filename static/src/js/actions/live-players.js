@@ -19,6 +19,17 @@ function requestPlayersStats(lineupId) {
 }
 
 
+export function updateLivePlayersStats(playerSRID, fields) {
+  log.trace('actionsLivePlayers.requestPlayersStats')
+
+  return {
+    playerSRID: playerSRID,
+    fields: fields,
+    type: ActionTypes.UPDATE_LIVE_PLAYER_STATS
+  }
+}
+
+
 function receivePlayersStats(lineupId, response) {
   log.trace('actionsLivePlayers.receivePlayersStats')
 

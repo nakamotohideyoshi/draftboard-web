@@ -33,6 +33,16 @@ module.exports = function(state = {
 
       return newState
 
+
+    case ActionTypes.UPDATE_LIVE_PLAYER_STATS:
+      return update(state, {
+        relevantPlayers: {
+          $merge: {
+            [action.playerSRID]: action.fields
+          }
+        }
+      })
+
     default:
       return state
   }
