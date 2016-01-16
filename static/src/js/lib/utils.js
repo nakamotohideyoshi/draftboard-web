@@ -38,6 +38,14 @@ export function timeRemaining(timestamp) {
 
 // Has this timestamp passed?
 export function isTimeInFuture(timestamp) {
-  console.log(moment.utc(timestamp) > moment.utc())
   return moment.utc(timestamp) > moment.utc()
+}
+
+
+
+/**
+ * Round a provided number to X decimal places
+ */
+export function roundUpToDecimalPlace(number, places) {
+  return (Math.round(number * 10) / 10).toFixed(places)
 }

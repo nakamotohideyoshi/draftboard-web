@@ -25,7 +25,7 @@ import { fetchPrizeIfNeeded } from './prizes'
  * @return {Object} The parsed lineup object
  */
 function _convertLineup(numberOfPlayers, byteArray, firstBytePosition) {
-  // log.debug('_convertLineup')
+  // log.trace('_convertLineup')
 
   let lineup = {
     'id': _convertToInt(32, byteArray, firstBytePosition, 4),
@@ -77,7 +77,7 @@ function _convertToInt(byteSize, byteArray, byteOffset, byteLength) {
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
 function parseContestLineups(apiContestLineupsBytes, draftGroup) {
-  // log.debug('_rankContestLineups')
+  // log.trace('_rankContestLineups')
 
   // add up who's in what place
   let responseByteArray = new Buffer(apiContestLineupsBytes, 'hex')
@@ -98,7 +98,7 @@ function parseContestLineups(apiContestLineupsBytes, draftGroup) {
 // -----------------------------------------------------------------------
 
 function requestContestLineupsUsernames(id) {
-  log.debug('actionsLiveContest.requestContestLineupsUsernames')
+  log.trace('actionsLiveContest.requestContestLineupsUsernames')
 
   return {
     id: id,
@@ -108,7 +108,7 @@ function requestContestLineupsUsernames(id) {
 
 
 function receiveContestLineupsUsernames(id, response) {
-  log.debug('actionsLiveContest.receiveContestLineupsUsernames')
+  log.trace('actionsLiveContest.receiveContestLineupsUsernames')
 
   let lineupsUsernames = {}
   _.forEach(response, (lineup) => {
@@ -128,7 +128,7 @@ function receiveContestLineupsUsernames(id, response) {
 
 
 function fetchContestLineupsUsernames(contestId) {
-  log.debug('actionsLiveContest.fetchContestLineupsUsernames')
+  log.trace('actionsLiveContest.fetchContestLineupsUsernames')
 
   return dispatch => {
     dispatch(requestContestLineupsUsernames(contestId))
@@ -153,7 +153,7 @@ function fetchContestLineupsUsernames(contestId) {
 
 
 function shouldFetchContestLineupsUsernames(state, id) {
-  log.debug('actionsLiveContest.shouldFetchContestLineupsUsernames')
+  log.trace('actionsLiveContest.shouldFetchContestLineupsUsernames')
 
   if (id in state.liveContests === false) {
     return true
@@ -164,7 +164,7 @@ function shouldFetchContestLineupsUsernames(state, id) {
 
 
 export function fetchContestLineupsUsernamesIfNeeded(id) {
-  log.debug('actionsLiveContest.fetchContestIfNeeded')
+  log.trace('actionsLiveContest.fetchContestIfNeeded')
 
   return (dispatch, getState) => {
     if (shouldFetchContestLineupsUsernames(getState(), id) === false) {
@@ -180,7 +180,7 @@ export function fetchContestLineupsUsernamesIfNeeded(id) {
 // -----------------------------------------------------------------------
 
 function requestContestLineups(id) {
-  log.debug('actionsLiveContest.requestContestLineups')
+  log.trace('actionsLiveContest.requestContestLineups')
 
   return {
     id: id,
@@ -190,7 +190,7 @@ function requestContestLineups(id) {
 
 
 function receiveContestLineups(id, response) {
-  log.debug('actionsLiveContest.receiveContestLineups')
+  log.trace('actionsLiveContest.receiveContestLineups')
 
   return {
     type: ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS,
@@ -203,7 +203,7 @@ function receiveContestLineups(id, response) {
 
 
 function fetchContestLineups(id) {
-  log.debug('actionsLiveContest.fetchContestLineups')
+  log.trace('actionsLiveContest.fetchContestLineups')
 
   return dispatch => {
     dispatch(requestContestLineups(id))
@@ -223,7 +223,7 @@ function fetchContestLineups(id) {
 // -----------------------------------------------------------------------
 
 function requestContestInfo(id) {
-  log.debug('actionsLiveContest.requestContestInfo')
+  log.trace('actionsLiveContest.requestContestInfo')
 
   return {
     id: id,
@@ -233,7 +233,7 @@ function requestContestInfo(id) {
 
 
 function receiveContestInfo(id, response) {
-  log.debug('actionsLiveContest.receiveContestInfo')
+  log.trace('actionsLiveContest.receiveContestInfo')
 
   return {
     type: ActionTypes.RECEIVE_LIVE_CONTEST_INFO,
@@ -245,7 +245,7 @@ function receiveContestInfo(id, response) {
 
 
 function fetchContestInfo(id) {
-  log.debug('actionsLiveContest.fetchContestInfo')
+  log.trace('actionsLiveContest.fetchContestInfo')
 
   return dispatch => {
     dispatch(requestContestInfo(id))
@@ -263,7 +263,7 @@ function fetchContestInfo(id) {
 
 
 function shouldFetchContest(state, id) {
-  log.debug('actionsLiveContest.shouldFetchContest')
+  log.trace('actionsLiveContest.shouldFetchContest')
 
   if (id in state.liveContests === false) {
     return true
@@ -278,7 +278,7 @@ function shouldFetchContest(state, id) {
 
 
 export function fetchContestIfNeeded(id) {
-  log.debug('actionsLiveContest.fetchContestIfNeeded')
+  log.trace('actionsLiveContest.fetchContestIfNeeded')
 
   return (dispatch, getState) => {
     if (shouldFetchContest(getState(), id) === false) {
@@ -319,7 +319,7 @@ function confirmRelatedContestInfo(id) {
 
 
 export function fetchRelatedContestInfo(id) {
-  log.debug('actionsLiveContest.fetchRelatedContestInfo')
+  log.trace('actionsLiveContest.fetchRelatedContestInfo')
 
   return (dispatch, getState) => {
     const contestInfo = getState().liveContests[id].info

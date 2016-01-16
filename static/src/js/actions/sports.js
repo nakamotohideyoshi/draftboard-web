@@ -9,7 +9,7 @@ import log from '../lib/logging'
 
 
 function requestTeams(sport) {
-  log.debug('actionsLiveTeams.requestTeams')
+  log.trace('actionsLiveTeams.requestTeams')
 
   return {
     sport: sport,
@@ -19,7 +19,7 @@ function requestTeams(sport) {
 
 
 function receiveTeams(sport, response) {
-  log.debug('actionsLiveTeams.receiveTeams')
+  log.trace('actionsLiveTeams.receiveTeams')
 
   let newTeams = {}
 
@@ -37,7 +37,7 @@ function receiveTeams(sport, response) {
 
 
 function fetchTeams(sport) {
-  log.debug('actionsLiveTeams.fetchTeams')
+  log.trace('actionsLiveTeams.fetchTeams')
 
   return dispatch => {
     dispatch(requestTeams(sport))
@@ -55,14 +55,14 @@ function fetchTeams(sport) {
 
 
 function shouldFetchTeams(state, sport) {
-  log.debug('actionsLiveTeams.shouldFetchTeams')
+  log.trace('actionsLiveTeams.shouldFetchTeams')
 
   return sport in state.sports === false
 }
 
 
 export function fetchTeamsIfNeeded(sport) {
-  log.debug('actionsLiveTeams.fetchTeamsIfNeeded')
+  log.trace('actionsLiveTeams.fetchTeamsIfNeeded')
 
   return (dispatch, getState) => {
     if (shouldFetchTeams(getState(), sport) === false) {
