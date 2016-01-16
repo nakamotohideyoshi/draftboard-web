@@ -557,11 +557,28 @@ var Live = React.createClass({
     if ('mine' in self.props.liveSelector.lineups) {
 
       var myLineup = self.props.liveSelector.lineups.mine
+      const lineupStarted = myLineup.roster !== undefined
 
-      if (moment(window.dfs.user.replayer_datetime).isBefore(myLineup.start)) {
+      if (lineupStarted === false) {
         countdown = (
           <LiveCountdown
             lineup={ myLineup } />
+        )
+      } else {
+        lineups = (
+          <LiveLineup
+            whichSide="mine"
+            mode={ self.props.mode }
+            currentBoxScores={ self.props.navScoreboardStats.gamesByDraftGroup['nba'].boxScores }
+            lineup={ myLineup }
+            playersPlaying={ self.state.playersPlaying }
+            eventDescriptions={ self.state.eventDescriptions } />
+        )
+        overallStats = (
+          <LiveOverallStats
+            lineup={ myLineup }
+            mode={ self.props.mode }
+            whichSide="mine" />
         )
       }
 
@@ -582,22 +599,6 @@ var Live = React.createClass({
         </div>
       )
 
-      overallStats = (
-        <LiveOverallStats
-          lineup={ myLineup }
-          mode={ self.props.mode }
-          whichSide="mine" />
-      )
-
-      lineups = (
-        <LiveLineup
-          whichSide="mine"
-          mode={ self.props.mode }
-          currentBoxScores={ self.props.navScoreboardStats.gamesByDraftGroup['nba'].boxScores }
-          lineup={ myLineup }
-          playersPlaying={ self.state.playersPlaying }
-          eventDescriptions={ self.state.eventDescriptions } />
-      )
     }
 
     if (self.props.mode.contestId) {
