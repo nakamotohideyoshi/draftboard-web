@@ -135,26 +135,28 @@ const NavScoreboard = React.createClass({
     if (this.state.user.username !== '') {
       store.dispatch(
         fetchCurrentDraftGroupsIfNeeded()
-      ).catch(
-        errorHandler
-      ).then(() => {
+      ).catch(reason => {
+        console.error(reason)
+        errorHandler(reason)
+      }).then(() => {
         store.dispatch(
           fetchEntriesIfNeeded()
         ).then(() => {
           self.setState({isLoaded: true})
-
           self.listenToSockets()
           self.startParityChecks()
-        }).catch(
-          errorHandler
-        )
+        }).catch(reason => {
+          console.error(reason)
+          errorHandler(reason)
+        })
       })
     } else {
       store.dispatch(
         fetchCurrentDraftGroupsIfNeeded()
-      ).catch(
-        errorHandler
-      ).then(() => {
+      ).catch(reason => {
+        console.error(reason)
+        errorHandler(reason)
+      }).then(() => {
         self.setState({isLoaded: true})
 
         self.listenToSockets()
