@@ -113,7 +113,7 @@ const NavScoreboard = React.createClass({
     }
 
     let parityChecks = {
-      boxScores: window.setInterval(boxScoresParityChecks, 30000), // thirty seconds
+      boxScores: window.setInterval(boxScoresParityChecks, 60000), // one minute
       draftGroups: window.setInterval(self.props.fetchCurrentDraftGroupsIfNeeded, 600000)  // ten minutes
     }
     boxScoresParityChecks()

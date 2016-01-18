@@ -70,24 +70,25 @@ function fetchDraftGroupFP(id) {
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'Accept': 'application/json'
     }).then(function(res) {
-      if (_.size(res.body.players) === 0) {
+      let players = res.body.players
+      if (_.size(players) === 0) {
+        players = {}
         log.trace('shouldFetchDraftGroupFP() - FP not available yet', id)
-        return Promise.resolve('Fantasy points not available yet')
       }
 
-      return dispatch(receiveDraftGroupFP(id, res.body))
+      return dispatch(receiveDraftGroupFP(id, players))
     })
   }
 }
 
 
-function receiveDraftGroupFP(id, response) {
+function receiveDraftGroupFP(id, players) {
   log.trace('actionsLiveDraftGroup.receiveDraftGroupFP')
 
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
     id: id,
-    players: response.players,
+    players: players,
     updatedAt: Date.now()
   }
 }
