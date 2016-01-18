@@ -17,6 +17,7 @@ import store from '../../store'
 const LivePlayerPane = React.createClass({
 
   propTypes: {
+    eventHistory: React.PropTypes.array.isRequired,
     player: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
     boxScore: React.PropTypes.object
@@ -128,79 +129,18 @@ const LivePlayerPane = React.createClass({
   },
 
   renderActivities: function() {
-    const activities = [
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      }
-    ]
-
     let index = 0
-    let activitiesHTML = activities.map((activity) => {
+    const eventHistory = this.props.eventHistory.reverse()
+
+    let activitiesHTML = eventHistory.map((activity) => {
       index += 1
-      const { points, description, time } = activity
+      const { points, info, when } = activity
       return (
         <li className='activity' key={index}>
           <div className='points-gained'>{points}</div>
           <div className='activity-info'>
-            {description}
-            <p className='time'>{time}</p>
+            {info}
+            <p className='time'>{when}</p>
           </div>
         </li>
       )

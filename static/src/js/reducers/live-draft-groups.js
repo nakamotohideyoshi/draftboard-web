@@ -87,7 +87,7 @@ module.exports = (state = {}, action) => {
 
 
     case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP:
-      log.trace('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_FP')
+      log.trace('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_FP', action.id)
 
       newProps = {
         id: action.id,
@@ -98,7 +98,7 @@ module.exports = (state = {}, action) => {
 
 
     case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP:
-      log.trace('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_FP')
+      log.trace('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_FP', action.id)
 
       return update(state, {
         [action.id]: {
