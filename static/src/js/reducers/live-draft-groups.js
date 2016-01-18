@@ -41,7 +41,7 @@ module.exports = (state = {}, action) => {
 
   switch (action.type) {
     case ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP:
-      log.debug('reducersLiveDraftGroup.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP')
+      log.trace('reducersLiveDraftGroup.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP')
 
       return update(state, {
         [action.id]: {
@@ -57,7 +57,7 @@ module.exports = (state = {}, action) => {
 
 
     case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_INFO:
-      log.debug('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_INFO')
+      log.trace('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_INFO')
 
       newProps = {
         id: action.id,

@@ -11,6 +11,7 @@ import log from '../lib/logging'
 import { mergeBoxScores } from './current-box-scores'
 import { fetchTeamsIfNeeded } from './sports'
 import { updateLivePlayersStats } from './live-players'
+import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions.js'
 
 
 const playerSchema = new Schema('players', {
@@ -280,7 +281,8 @@ export function fetchDraftGroupIfNeeded(id) {
     return Promise.all([
       dispatch(fetchDraftGroupInfo(id)),
       dispatch(fetchDraftGroupFP(id)),
-      dispatch(fetchDraftGroupBoxScores(id))
+      dispatch(fetchDraftGroupBoxScores(id)),
+      dispatch(fetchPlayerBoxScoreHistoryIfNeeded('nba'))
     ])
     .then(() =>
       dispatch(confirmDraftGroupStored(id))

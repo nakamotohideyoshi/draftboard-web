@@ -24,9 +24,19 @@ module.exports = function(state = initialState, action) {
       })
 
 
+    case ActionTypes.REMOVE_PLAYER_BOX_SCORE_HISTORY:
+      let newState = Object.assign({}, state)
+
+      delete newState.updatedAt
+      delete newState[action.sport]
+
+      return newState
+
+
     case ActionTypes.FETCH_PLAYER_BOX_SCORE_HISTORY_SUCCESS:
-      let newState = Object.assign({}, state, {
-        isFetching: false
+      newState = Object.assign({}, state, {
+        isFetching: false,
+        updatedAt: action.updatedAt
       })
       // Update the sport entry with the newly fetched data.
       newState[action.sport] = action.playerHistory

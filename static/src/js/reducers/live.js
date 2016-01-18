@@ -11,7 +11,7 @@ module.exports = function(state = {
 }, action) {
   switch (action.type) {
     case ActionTypes.LIVE_MODE_CHANGED:
-      log.debug('reducersLive.LIVE_MODE_CHANGED')
+      log.trace('reducersLive.LIVE_MODE_CHANGED')
 
       return update(state, { mode: {
         $merge: action.mode
