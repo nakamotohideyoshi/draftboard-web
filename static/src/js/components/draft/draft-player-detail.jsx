@@ -161,6 +161,10 @@ var DraftPlayerDetail = React.createClass({
           </div>
 
           { this.renderStatsAverage() }
+          <div className="next-game">
+            <h4 className={'nba-' + this.props.player.team_alias.toLowerCase() + '-1-text' }>{this.props.player.team_alias}</h4>
+            <h4 className={'nba-' + this.props.player.team_alias.toLowerCase() + '-2-text' }>{this.props.player.team_alias}</h4>
+          </div>
         </div>
 
         <div className="pane-lower">
