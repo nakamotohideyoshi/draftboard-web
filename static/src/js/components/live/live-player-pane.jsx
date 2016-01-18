@@ -31,32 +31,42 @@ const LivePlayerPane = React.createClass({
   renderStatsAverage: function() {
     const player = this.props.player
 
+    if (player.hasOwnProperty('seasonalStats') === false) {
+      return (
+        <div className='player-stats'>
+          <ul />
+        </div>
+      )
+    }
+
+    const stats = player.seasonalStats
+
     return (
       <div className='player-stats'>
         <ul>
           <li>
-            <div className='stat-name'>AVG</div>
-            <div className='stat-score'>42.5</div>
+            <div className='stat-name'>FPPG</div>
+            <div className='stat-score'>{ stats.avg_fp.toFixed(1) }</div>
           </li>
           <li>
             <div className='stat-name'>PPG</div>
-            <div className='stat-score'>27.5</div>
+            <div className='stat-score'>{ stats.avg_points.toFixed(1) }</div>
           </li>
           <li>
             <div className='stat-name'>RPG</div>
-            <div className='stat-score'>7.2</div>
+            <div className='stat-score'>{ stats.avg_rebounds.toFixed(1) }</div>
           </li>
           <li>
             <div className='stat-name'>APG</div>
-            <div className='stat-score'>8.6</div>
+            <div className='stat-score'>{ stats.avg_assists.toFixed(1) }</div>
           </li>
           <li>
             <div className='stat-name'>STLPG</div>
-            <div className='stat-score'>2.1</div>
+            <div className='stat-score'>{ stats.avg_steals.toFixed(1) }</div>
           </li>
           <li>
-            <div className='stat-name'>FPPG</div>
-            <div className='stat-score'>53.8</div>
+            <div className='stat-name'>TOPG</div>
+            <div className='stat-score'>{ stats.avg_turnovers.toFixed(1) }</div>
           </li>
         </ul>
       </div>

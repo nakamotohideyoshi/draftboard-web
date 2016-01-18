@@ -320,6 +320,7 @@ var Live = React.createClass({
       // if this is a court animation, then start er up
       case 'pbp':
         self.showGameEvent(eventCall)
+        log.info('showGameEvent(), queue of ', gameQueue.queue.length, eventCall)
         break
 
       // if boxscore, then update the boxscore data
@@ -358,7 +359,7 @@ var Live = React.createClass({
 
 
   showGameEvent(eventCall) {
-    log.info('showGameEvent()', eventCall)
+    log.debug('showGameEvent()', eventCall)
 
     const self = this
     const relevantPlayers = self.props.liveSelector.relevantPlayers

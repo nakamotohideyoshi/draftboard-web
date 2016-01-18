@@ -36,6 +36,7 @@ const createPersistentStore = compose(
     'liveContests',
     'liveDraftGroups',
     'livePlayers',
+    'playerBoxScoreHistory',
     'prizes',
     'sports'
   ])

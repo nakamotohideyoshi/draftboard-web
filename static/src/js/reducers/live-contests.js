@@ -32,7 +32,7 @@ module.exports = function(state = {}, action) {
 
   switch (action.type) {
     case ActionTypes.REQUEST_LIVE_CONTEST_INFO:
-      log.debug('reducersLiveContests.REQUEST_LIVE_CONTEST_INFO')
+      log.trace('reducersLiveContests.REQUEST_LIVE_CONTEST_INFO')
 
       newProps = {
         id: action.id,
@@ -44,7 +44,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.RECEIVE_LIVE_CONTEST_INFO:
-      log.debug('reducersLiveContests.RECEIVE_LIVE_CONTEST_INFO')
+      log.trace('reducersLiveContests.RECEIVE_LIVE_CONTEST_INFO')
 
       return update(state, {
         [action.id]: {
@@ -58,7 +58,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.REQUEST_LIVE_CONTEST_LINEUPS:
-      log.debug('reducersLiveContests.REQUEST_LIVE_CONTEST_LINEUPS')
+      log.trace('reducersLiveContests.REQUEST_LIVE_CONTEST_LINEUPS')
 
       newProps = {
         id: action.id,
@@ -70,7 +70,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS:
-      log.debug('reducersLiveContests.RECEIVE_LIVE_CONTEST_LINEUPS')
+      log.trace('reducersLiveContests.RECEIVE_LIVE_CONTEST_LINEUPS')
 
       return update(state, {
         [action.id]: {
@@ -84,7 +84,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.REQUEST_LIVE_CONTEST_LINEUPS_USERNAMES:
-      log.debug('reducersLiveContests.REQUEST_LIVE_CONTEST_LINEUPS_USERNAMES')
+      log.trace('reducersLiveContests.REQUEST_LIVE_CONTEST_LINEUPS_USERNAMES')
 
       newProps = {
         id: action.id,
@@ -95,7 +95,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS_USERNAMES:
-      log.debug('reducersLiveContests.RECEIVE_LIVE_CONTEST_LINEUPS_USERNAMES')
+      log.trace('reducersLiveContests.RECEIVE_LIVE_CONTEST_LINEUPS_USERNAMES')
 
       newProps = {
         id: action.id,
@@ -107,7 +107,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.UPDATE_LIVE_CONTEST_STATS:
-      log.debug('reducersLiveContests.UPDATE_LIVE_CONTEST_STATS')
+      log.trace('reducersLiveContests.UPDATE_LIVE_CONTEST_STATS')
 
       return update(state, {
         [action.id]: {
@@ -119,7 +119,7 @@ module.exports = function(state = {}, action) {
 
 
     case ActionTypes.CONFIRM_RELATED_LIVE_CONTEST_INFO:
-      log.debug('reducersLiveContests.CONFIRM_RELATED_LIVE_CONTEST_INFO')
+      log.trace('reducersLiveContests.CONFIRM_RELATED_LIVE_CONTEST_INFO')
 
       return update(state, {
         [action.id]: {

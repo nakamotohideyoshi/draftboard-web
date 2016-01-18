@@ -1,6 +1,7 @@
 import log from '../lib/logging'
 import * as types from '../action-types.js'
 import request from 'superagent'
+var moment = require('moment')
 // so we can use Promises
 import 'babel-core/polyfill';
 import {normalize, Schema, arrayOf} from 'normalizr'
@@ -32,7 +33,8 @@ function fetchPlayerBoxScoreHistorySuccess(body) {
   return {
     type: types.FETCH_PLAYER_BOX_SCORE_HISTORY_SUCCESS,
     sport: body.sport,
-    playerHistory: body.playerHistory
+    playerHistory: body.playerHistory,
+    updatedAt: Date.now()
   };
 }
 
@@ -62,8 +64,37 @@ function shouldFetchPlayerBoxScoreHistory(state, sport) {
 }
 
 
+function removeExpiredHistory(body) {
+  return {
+    type: types.REMOVE_PLAYER_BOX_SCORE_HISTORY,
+    sport: body.sport
+  };
+}
+
+
+function shouldRemoveExpiredHistory(state, sport) {
+  const history = state.playerBoxScoreHistory
+
+  // don't remove if doesn't exist
+  if (history.hasOwnProperty('updatedAt') === false || history.hasOwnProperty(sport) === false) {
+    return false
+  }
+
+  const expiration = moment(history.updatedAt).add(1, 'day')
+  if (moment().isAfter(expiration)) {
+    return true
+  }
+
+  return false
+}
+
+
 export function fetchPlayerBoxScoreHistoryIfNeeded(sport) {
   return (dispatch, getState) => {
+    if (shouldRemoveExpiredHistory(getState(), sport)) {
+      dispatch(removeExpiredHistory(sport))
+    }
+
     if (shouldFetchPlayerBoxScoreHistory(getState(), sport)) {
       return dispatch(fetchPlayerBoxScoreHistory(sport))
     } else {
