@@ -33,6 +33,7 @@ Hello WOrld!
 @import "./team-colors.scss";
 
 // Per the BEM methodology, these are where the blocks are imported
+@import "./blocks/pane-tabbed-content.scss";
 @import "./blocks/lobby.scss";
 @import "./blocks/balance-summary.scss";
 @import "./blocks/button.scss";
