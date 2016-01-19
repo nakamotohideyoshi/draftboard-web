@@ -51,8 +51,9 @@ export const liveSelector = createSelector(
   currentLineupsStatsSelector,
   state => state.live.mode,
   state => state.entries.hasRelatedInfo,
+  state => state.playerBoxScoreHistory,
 
-  (contestStats, currentLineupsStats, mode, hasRelatedInfo) => {
+  (contestStats, currentLineupsStats, mode, hasRelatedInfo, playerBoxScoreHistory) => {
     if (hasRelatedInfo === false) {
       // log.debug('selectors.liveStatsSelector() - not ready')
       return {}
@@ -66,6 +67,13 @@ export const liveSelector = createSelector(
 
     if (mode.myLineupId) {
       stats.lineups.mine = currentLineupsStats[mode.myLineupId]
+
+      // TODO move this into current lineups selector based on mode object
+      _forEach(stats.lineups.mine.rosterDetails, (player, playerId) => {
+        if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
+          player.seasonalStats = playerBoxScoreHistory.nba[playerId]
+        }
+      })
 
       stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.mine.rosterDetails, (player) => {
         return player.info.game_srid
@@ -81,6 +89,13 @@ export const liveSelector = createSelector(
 
       if (mode.opponentLineupId) {
         stats.lineups.opponent = stats.contest.lineups[mode.opponentLineupId]
+
+        // TODO move this into current lineups selector based on mode object
+        _forEach(stats.lineups.opponent.rosterDetails, (player, playerId) => {
+          if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
+            player.seasonalStats = playerBoxScoreHistory.nba[playerId]
+          }
+        })
 
         // used for animations to determine which side
         stats.lineups.opponent.rosterBySRID = _map(stats.lineups.opponent.rosterDetails, (player) => {

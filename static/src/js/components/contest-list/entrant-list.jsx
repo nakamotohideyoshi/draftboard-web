@@ -14,9 +14,9 @@ var EntrantList = React.createClass({
 
     _forEach(entrants, function(entrant) {
       entrantList.push(
-        <li key={entrant.username}>
-          <span className="username">{entrant.username}</span>
-        </li>
+        <tr key={entrant.username}>
+          <td className="username">{entrant.username}</td>
+        </tr>
       )
     }.bind(this))
 
@@ -33,13 +33,17 @@ var EntrantList = React.createClass({
 
     return (
       <div className="cmp-entrant-list">
-        <h6 className="header">
-          <span className="prize">Entries</span>
-        </h6>
 
-        <ul>
-          {this.getEntrantList(this.props.entrants)}
-        </ul>
+        <table className="table">
+          <thead>
+            <tr>
+              <th className="place">Entries</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.getEntrantList(this.props.entrants)}
+          </tbody>
+        </table>
       </div>
     )
   }

@@ -17,6 +17,7 @@ import store from '../../store'
 const LivePlayerPane = React.createClass({
 
   propTypes: {
+    eventHistory: React.PropTypes.array.isRequired,
     player: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
     boxScore: React.PropTypes.object
@@ -31,32 +32,42 @@ const LivePlayerPane = React.createClass({
   renderStatsAverage: function() {
     const player = this.props.player
 
+    if (player.hasOwnProperty('seasonalStats') === false) {
+      return (
+        <div className='player-stats'>
+          <ul />
+        </div>
+      )
+    }
+
+    const stats = player.seasonalStats
+
     return (
       <div className='player-stats'>
         <ul>
           <li>
-            <div className='stat-name'>AVG</div>
-            <div className='stat-score'>42.5</div>
+            <div className='stat-name'>FPPG</div>
+            <div className='stat-score'>{ stats.avg_fp.toFixed(1) }</div>
           </li>
           <li>
             <div className='stat-name'>PPG</div>
-            <div className='stat-score'>27.5</div>
+            <div className='stat-score'>{ stats.avg_points.toFixed(1) }</div>
           </li>
           <li>
             <div className='stat-name'>RPG</div>
-            <div className='stat-score'>7.2</div>
+            <div className='stat-score'>{ stats.avg_rebounds.toFixed(1) }</div>
           </li>
           <li>
             <div className='stat-name'>APG</div>
-            <div className='stat-score'>8.6</div>
+            <div className='stat-score'>{ stats.avg_assists.toFixed(1) }</div>
           </li>
           <li>
             <div className='stat-name'>STLPG</div>
-            <div className='stat-score'>2.1</div>
+            <div className='stat-score'>{ stats.avg_steals.toFixed(1) }</div>
           </li>
           <li>
-            <div className='stat-name'>FPPG</div>
-            <div className='stat-score'>53.8</div>
+            <div className='stat-name'>TOPG</div>
+            <div className='stat-score'>{ stats.avg_turnovers.toFixed(1) }</div>
           </li>
         </ul>
       </div>
@@ -118,79 +129,18 @@ const LivePlayerPane = React.createClass({
   },
 
   renderActivities: function() {
-    const activities = [
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      },
-      {
-        'description': "Lebron James assists Russel Westbrook's 3-pointer",
-        'points': '+2',
-        'time': '4:13 - 4th'
-      }
-    ]
-
     let index = 0
-    let activitiesHTML = activities.map((activity) => {
+    const eventHistory = this.props.eventHistory.reverse()
+
+    let activitiesHTML = eventHistory.map((activity) => {
       index += 1
-      const { points, description, time } = activity
+      const { points, info, when } = activity
       return (
         <li className='activity' key={index}>
           <div className='points-gained'>{points}</div>
           <div className='activity-info'>
-            {description}
-            <p className='time'>{time}</p>
+            {info}
+            <p className='time'>{when}</p>
           </div>
         </li>
       )

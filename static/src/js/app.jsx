@@ -5,6 +5,12 @@ require("app.scss");
 var log = require("lib/logging");
 log.debug('Bootstrapping app via app.jsx');
 
+// before we execute anything else, wipe the redux entry in localStorage if asked.
+if (window.dfs.wipeRedux === "1") {
+    log.debug('store.js - Wiping localStorage due to query param')
+    window.localStorage.clear()
+}
+
 require('actions/keypress-actions');
 
 // Add top-level react components to the app, any dependencies of those components will be loaded also.

@@ -9,6 +9,7 @@ import { updatePath } from 'redux-simple-router'
 import { vsprintf } from 'sprintf-js'
 import Pusher from 'pusher-js'
 import _ from 'lodash'
+import update from 'react-addons-update'
 
 import * as AppActions from '../../stores/app-state-store'
 import LiveCountdown from './live-countdown'
@@ -69,6 +70,7 @@ var Live = React.createClass({
       // Selected option string. SEE: `getSelectOptions`
       playersPlaying: [],
       eventDescriptions: {},
+      relevantPlayerHistory: {},
       gameQueues: {},
       courtEvents: {}
     }
@@ -320,6 +322,7 @@ var Live = React.createClass({
       // if this is a court animation, then start er up
       case 'pbp':
         self.showGameEvent(eventCall)
+        log.info('showGameEvent(), queue of ', gameQueue.queue.length, eventCall)
         break
 
       // if boxscore, then update the boxscore data
@@ -358,7 +361,7 @@ var Live = React.createClass({
 
 
   showGameEvent(eventCall) {
-    log.info('showGameEvent()', eventCall)
+    log.debug('showGameEvent()', eventCall)
 
     const self = this
     const relevantPlayers = self.props.liveSelector.relevantPlayers
@@ -433,23 +436,39 @@ var Live = React.createClass({
         }
 
         // show event description
+
+        const eventDescription = {
+          points: '?',
+          info: eventCall.description,
+          when: eventCall.clock
+        }
+
         // TODO modify this once pbp has player stats built in
         let eventDescriptions = Object.assign(
           {},
           self.state.eventDescriptions,
           {
-            [event.player]: {
-              points: '?',
-              info: eventCall.description,
-              when: eventCall.clock
-            }
+            [event.player]: eventDescription
           }
         )
         self.setState({ eventDescriptions: eventDescriptions })
 
+        // update history to have relevant player
+        let relevantPlayerHistory = Object.assign({}, self.state.relevantPlayerHistory)
+
+        if (self.state.relevantPlayerHistory.hasOwnProperty(event.player) === false) {
+          relevantPlayerHistory[event.player] = []
+        }
+
+        // add event to player's history
+        relevantPlayerHistory[event.player].push(eventDescription)
+        self.setState({ relevantPlayerHistory: relevantPlayerHistory })
+
         setTimeout(function() {
           log.debug('setTimeout - remove event description')
           let eventDescriptions = Object.assign({}, self.state.eventDescriptions)
+
+
           delete(eventDescriptions[event.player])
           self.setState({ eventDescriptions: eventDescriptions })
         }, 4000)
@@ -562,6 +581,7 @@ var Live = React.createClass({
             currentBoxScores={ self.props.navScoreboardStats.gamesByDraftGroup['nba'].boxScores }
             lineup={ myLineup }
             playersPlaying={ self.state.playersPlaying }
+            relevantPlayerHistory={ self.state.relevantPlayerHistory }
             eventDescriptions={ self.state.eventDescriptions } />
         )
         overallStats = (
@@ -651,6 +671,7 @@ var Live = React.createClass({
               currentBoxScores={ self.props.navScoreboardStats.gamesByDraftGroup['nba'].boxScores }
               lineup={ opponentLineup }
               playersPlaying={ self.state.playersPlaying }
+              relevantPlayerHistory={ self.state.relevantPlayerHistory }
               eventDescriptions={ self.state.eventDescriptions } />
           </div>
         )
