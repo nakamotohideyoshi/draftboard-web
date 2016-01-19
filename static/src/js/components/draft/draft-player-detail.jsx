@@ -5,6 +5,9 @@ const renderComponent = require('../../lib/render-component')
 import {forEach as _forEach} from 'lodash'
 import {focusedPlayerSelector} from '../../selectors/draft-selectors.js'
 import {roundUpToDecimalPlace} from '../../lib/utils.js'
+import moment from 'moment'
+import ClassNames from 'classnames'
+
 
 /**
  * The player detail slideout panel on the draft page. This will display the player info for
@@ -14,6 +17,13 @@ var DraftPlayerDetail = React.createClass({
 
   propTypes: {
     player: React.PropTypes.object
+  },
+
+
+  getInitialState: function() {
+    return {
+      activeTab: 'reports'
+    }
   },
 
 
@@ -104,7 +114,7 @@ var DraftPlayerDetail = React.createClass({
 
     if (!Object.keys(this.props.player.news).length) {
       news = (
-        <div>No recent news updates.</div>
+        <div><h5>No recent news updates.</h5></div>
       )
     }
 
@@ -130,6 +140,134 @@ var DraftPlayerDetail = React.createClass({
   },
 
 
+  renderPlayerSplits: function() {
+    let content = []
+
+    if (!Object.keys(this.props.player.boxScoreHistory).length) {
+      content.push(
+        <li colSpan="10">Loading...</li>
+      )
+    }
+
+    this.props.player.splitsHistory.map(function(game, index){
+      content.push(
+        <tr key={index}>
+          <td>{game.opp}</td>
+          <td>{game.date}</td>
+          <td>{game.points}</td>
+          <td>{game.rebounds}</td>
+          <td>{game.assists}</td>
+          <td>{game.blocks}</td>
+          <td>{game.steals}</td>
+          <td>{game.three_pointers}</td>
+          <td>{game.turnovers}</td>
+          <td>{game.fp}</td>
+        </tr>
+      )
+    })
+
+
+    return (
+      <div className="player-splits">
+        <table className="table">
+          <thead className="header">
+            <tr>
+              <th>opp</th>
+              <th>date</th>
+              <th>pts</th>
+              <th>reb</th>
+              <th>ast</th>
+              <th>blk</th>
+              <th>stl</th>
+              <th>3pt</th>
+              <th>to</th>
+              <th>fp</th>
+            </tr>
+          </thead>
+          <tbody>
+            {content}
+          </tbody>
+        </table>
+      </div>
+    )
+  },
+
+
+  renderNextGameInfo: function() {
+    if (!Object.keys(this.props.player.nextGame).length) {
+      return (
+        <div className="next-game">Loading...</div>
+      )
+    }
+
+    return (
+      <div className="next-game">
+        <h4 className="team away-team">
+          <span className={'city ' + 'nba-' + this.props.player.nextGame.awayTeam.alias.toLowerCase() + '-2-text' }>
+            {this.props.player.nextGame.awayTeam.city}
+          </span>
+          <span className={'name ' + 'nba-' + this.props.player.nextGame.awayTeam.alias.toLowerCase() + '-1-text' }>
+            {this.props.player.nextGame.awayTeam.name}
+          </span>
+        </h4>
+
+        <div className="game-time"><span className="time">
+          {moment(this.props.player.nextGame.start).format('h:mma')}
+        </span></div>
+
+        <h4 className="team home-team">
+          <span className={'city ' + 'nba-' + this.props.player.nextGame.homeTeam.alias.toLowerCase() + '-2-text' }>
+            {this.props.player.nextGame.homeTeam.city}
+          </span>
+          <span className={'name ' + 'nba-' + this.props.player.nextGame.homeTeam.alias.toLowerCase() + '-1-text' }>
+            {this.props.player.nextGame.homeTeam.name}
+          </span>
+        </h4>
+      </div>
+    )
+  },
+
+
+  getActiveTabContent: function() {
+    switch (this.state.activeTab) {
+      case 'reports':
+        return this.renderPlayerNews()
+      case 'splits':
+        return this.renderPlayerSplits()
+      default:
+        return this.renderPlayerNews()
+    }
+  },
+
+
+  // When a tab is clicked, tell the state to show it'scontent.
+  handleTabClick: function(tabName) {
+    this.setState({'activeTab': tabName})
+  },
+
+
+  // I know making these their own components would be more 'react', but I don't want to deal with
+  // the hassle right now.
+  getTabNav: function() {
+    const tabs = [
+      {title: 'Reports', tab: 'reports'},
+      {title: 'Splits', tab: 'splits'}
+    ]
+
+    return tabs.map(function(tab) {
+      let classes = ''
+
+      if (this.state.activeTab === tab.tab) {
+        classes = 'active'
+      }
+
+      return (
+        <li key={tab.tab} className={classes} onClick={this.handleTabClick.bind(this, tab.tab)}>{tab.title}</li>
+      )
+    }.bind(this))
+  },
+
+
   render: function() {
     // No player has been selected.
     if (!this.props.player) {
@@ -142,6 +280,7 @@ var DraftPlayerDetail = React.createClass({
 
     let player = this.props.player
     var playerDetail = this.getPlayerDetail();
+    let tabNav = this.getTabNav()
 
     return (
       <div className="draft-player-detail player-detail-pane">
@@ -151,31 +290,32 @@ var DraftPlayerDetail = React.createClass({
             <div className="header__player-image" />
 
             <div className='header__team-role'>
-              {player.team_alias} - {player.position}
+              {player.teamCity} {player.teamName} - {player.position}
             </div>
             <div className='header__name'>{ player.name }</div>
 
-            <div className="cmp-draft-player-detail__salary">
-              <h3>${this.props.player.salary.toLocaleString('en')}</h3>
+            <div className="draft-salary">
+              <div className="draft-status">
+                <div className="draft-button">Draft</div>
+              </div>
+              <h3 className="salary">${this.props.player.salary.toLocaleString('en')}</h3>
             </div>
           </div>
 
           { this.renderStatsAverage() }
-          <div className="next-game">
-            <h4 className={'nba-' + this.props.player.team_alias.toLowerCase() + '-1-text' }>{this.props.player.team_alias}</h4>
-            <h4 className={'nba-' + this.props.player.team_alias.toLowerCase() + '-2-text' }>{this.props.player.team_alias}</h4>
-          </div>
         </div>
 
         <div className="pane-lower">
-          <ul className="tab-nav">
-            <li>Reports</li>
-            <li>Splits</li>
-          </ul>
 
-          <div className="tab-content">
-            {this.renderPlayerNews()}
-          </div>
+          {this.renderNextGameInfo()}
+
+          <section className="tabs">
+            <ul className="tab-nav">{tabNav}</ul>
+
+            <div className="tab-content">
+              {this.getActiveTabContent()}
+            </div>
+          </section>
         </div>
 
       </div>
