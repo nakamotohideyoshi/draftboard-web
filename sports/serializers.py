@@ -104,6 +104,18 @@ class PlayerHistorySerializer(serializers.Serializer):
     )
 
     #
+    # home_id, away_id, start
+    home_id = serializers.ListField(
+        child=serializers.IntegerField()
+    )
+    away_id = serializers.ListField(
+        child=serializers.IntegerField()
+    )
+    start = serializers.ListField(
+        child=serializers.DateTimeField()
+    )
+
+    #
     # the Fantasy Points have to get a different name in this
     # serializer because there is already a column called fantasy_points which
     # on the PlayerStats models

@@ -81,6 +81,7 @@ class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
     """
     player_id = serializers.IntegerField()
 
+    #games       = serializers.Char
     #
     #################################################################
     # the fields below are from the models SCORING_FIELDS
