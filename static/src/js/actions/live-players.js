@@ -79,7 +79,7 @@ export function fetchPlayersStats(lineupId) {
 
 
 function shouldFetchPlayersStats(state, lineupId) {
-  log.debug('actionsLivePlayers.shouldFetchPlayersStats')
+  log.trace('actionsLivePlayers.shouldFetchPlayersStats')
 
   // return true if does not exist
   return state.livePlayers.isFetching.indexOf(lineupId) === -1
@@ -87,7 +87,7 @@ function shouldFetchPlayersStats(state, lineupId) {
 
 
 export function fetchPlayersStatsIfNeeded(lineupId) {
-  log.debug('actionsLivePlayers.fetchPlayersStatsIfNeeded')
+  log.trace('actionsLivePlayers.fetchPlayersStatsIfNeeded')
 
   return (dispatch, getState) => {
     if (shouldFetchPlayersStats(getState(), lineupId) === false) {

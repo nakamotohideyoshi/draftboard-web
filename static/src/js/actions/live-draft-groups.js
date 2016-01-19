@@ -11,6 +11,7 @@ import log from '../lib/logging'
 import { mergeBoxScores } from './current-box-scores'
 import { fetchTeamsIfNeeded } from './sports'
 import { updateLivePlayersStats } from './live-players'
+import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions.js'
 
 
 const playerSchema = new Schema('players', {
@@ -69,24 +70,25 @@ function fetchDraftGroupFP(id) {
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'Accept': 'application/json'
     }).then(function(res) {
-      if (_.size(res.body.players) === 0) {
+      let players = res.body.players
+      if (_.size(players) === 0) {
+        players = {}
         log.trace('shouldFetchDraftGroupFP() - FP not available yet', id)
-        return Promise.resolve('Fantasy points not available yet')
       }
 
-      return dispatch(receiveDraftGroupFP(id, res.body))
+      return dispatch(receiveDraftGroupFP(id, players))
     })
   }
 }
 
 
-function receiveDraftGroupFP(id, response) {
+function receiveDraftGroupFP(id, players) {
   log.trace('actionsLiveDraftGroup.receiveDraftGroupFP')
 
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
     id: id,
-    players: response.players,
+    players: players,
     updatedAt: Date.now()
   }
 }
@@ -280,7 +282,8 @@ export function fetchDraftGroupIfNeeded(id) {
     return Promise.all([
       dispatch(fetchDraftGroupInfo(id)),
       dispatch(fetchDraftGroupFP(id)),
-      dispatch(fetchDraftGroupBoxScores(id))
+      dispatch(fetchDraftGroupBoxScores(id)),
+      dispatch(fetchPlayerBoxScoreHistoryIfNeeded('nba'))
     ])
     .then(() =>
       dispatch(confirmDraftGroupStored(id))

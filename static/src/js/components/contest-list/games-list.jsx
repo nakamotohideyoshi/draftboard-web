@@ -18,13 +18,13 @@ var GamesList = React.createClass({
       // do we have teams?
       if (this.props.teams.hasOwnProperty('teams')) {
         gameList.push(
-          <li key={game.pk}>
-            <span className="teams">
+          <tr key={game.pk}>
+            <td className="teams">
               {this.props.teams.teams[game.fields.away_id].alias}&nbsp;vs&nbsp;
               {this.props.teams.teams[game.fields.home_id].alias}
-            </span>
-            <span className="time">{moment(game.fields.created, moment.ISO_8601).format('h:mma')}</span>
-          </li>
+            </td>
+            <td className="time">{moment(game.fields.created, moment.ISO_8601).format('h:mma')}</td>
+          </tr>
         )
       }
     }.bind(this))
@@ -44,14 +44,17 @@ var GamesList = React.createClass({
     return (
       <div className="cmp-games-list">
 
-        <h6 className="header">
-          <span className="place">Teams</span>
-          <span className="prize">Time</span>
-        </h6>
-
-        <ul>
-          {this.getGameList(this.props.boxScores)}
-        </ul>
+        <table className="table">
+          <thead>
+            <tr>
+              <th className="place">Teams</th>
+              <th className="prize">Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            {this.getGameList(this.props.boxScores)}
+          </tbody>
+        </table>
       </div>
     )
   }
