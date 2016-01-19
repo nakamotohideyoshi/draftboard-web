@@ -134,6 +134,29 @@ app.conf.update(
         },
 
         #
+        # update the season_fppg for each sport
+        'nba_season_fppg' : {
+            'task'      : 'salary.tasks.generate_season_fppgs',
+            'schedule'  : crontab(hour='9'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'args'      : ('nba',),
+        },
+        'nhl_season_fppg' : {
+            'task'      : 'salary.tasks.generate_season_fppgs',
+            'schedule'  : crontab(hour='9'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'args'      : ('nhl',),
+        },
+        'nfl_season_fppg' : {
+            'task'      : 'salary.tasks.generate_season_fppgs',
+            'schedule'  : crontab(hour='9'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'args'      : ('nfl',),
+        },
+        'mlb_season_fppg' : {
+            'task'      : 'salary.tasks.generate_season_fppgs',
+            'schedule'  : crontab(hour='9'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'args'      : ('mlb',),
+        },
+
+        #
         # The ScheduleManager that creates Contests from
         # admin-defined templates on a preset schedule.
         'schedule_contests_for_tomorrow' : {

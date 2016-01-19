@@ -53,6 +53,19 @@ class Initial(object):
     rosters for the sport exist.
     """
 
+    # new rosters as of Jan 19th - 2016
+    # NBA
+    # G G F F C Fx Fx Fx
+    #
+    # MLB
+    # P, C, 1B, 2B, 3B, SS, OF, OF, OF
+    #
+    # NHL
+    # F F F D D Fx Fx G
+    #
+    # NFL
+    # QB RB RB WR WR TE Fx Fx
+
     DEFAULT_ROSTER_MAP_NFL = {
         ('QB',1,0,True)     :['QB'],
         ('RB',2,1,True)     :['RB','FB'],

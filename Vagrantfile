@@ -15,6 +15,7 @@ Vagrant.configure(2) do |config|
     #
     # forward http traffic to port 8080 on the vm
     web.vm.network "forwarded_port", host: 8080, guest: 80
+    web.vm.network "forwarded_port", host: 5555, guest: 5555
 
     #
     # lets use 'bootstrap.sh' for provisioning

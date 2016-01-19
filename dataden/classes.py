@@ -1,3 +1,4 @@
+from __future__ import generators
 #
 # dataden/classes.py
 
@@ -75,6 +76,8 @@ class DataDen(object):
     caleb: im intending on this being the thru-point for rest_api calls
     """
 
+    class InvalidTypeException(Exception): pass
+
     DB_CONFIG = 'config'
 
     COLL_SCHEDULE = 'schedule'
@@ -109,6 +112,10 @@ class DataDen(object):
             raise Exception('error connecting to mongo!')
 
     def db(self, db_name):
+        # ensure the db_name is a string
+        if not isinstance(db_name, str):
+            raise self.InvalidTypeException(type(self).__name__, type(db_name).__name__)
+
         self.connect()
         return self.client.get_database( db_name )
 
@@ -221,195 +228,374 @@ class DataDen(object):
     #     "xmlns" : "http://feed.elasticstats.com/schema/nfl/schedule-v1.0.xsd",
     #     "parent_api__id" : "schedule",
     #
-    def find_games(self, sport='nfl', year=None, season_ids=[], week=None, verbose=True):
+#     def find_games(self, sport='nfl', year=None, season_ids=[], week=None, verbose=True):
+#         """
+#         Get the game objects from the schedule feed for the specified 'season' (ie: year)
+#
+#         Do this by getting:
+#             1. the season objects for the given 'year'
+#             2. all the games with match season__id
+#
+#         If 'year' is None, retrievs all the games in database.
+#         If 'season_ids' is not specified, gets all for the year.
+#         """
+#         if verbose: print('searching games...')
+#         if year:
+#             if verbose: print('    ','year:', year)
+#
+#             if season_ids:
+#                 if verbose: print('    ','season_ids specified:')
+#             else:
+#                 seasons = self.find(sport,'season','schedule',{'season':year})
+#                 for s in seasons:
+#                     if s not in season_ids:
+#                         season_ids.append( s.get('id') )
+#
+#             # print them for clarity
+#             if verbose:
+#                 for sid in season_ids:
+#                     print('    ','    ... ', sid)
+#
+#             # only return games from the specified week, if the param is not None
+#             target = {'season__id':{'$in':season_ids}}
+#
+#             if week:
+#                 if verbose: print('    ','week:', week)
+#                 # print('    ','')
+#                 # get the season(s) objects for this week
+#                 week_game_ids = []
+#                 seasons = self.find(sport,'season', 'schedule',{'id':{'$in':season_ids}})
+#
+#                 # this looks complicated but its just very
+#                 # specifically extracting a nested list
+#                 # of gameid(s) -- as specified by the year, season, week --
+#                 # and it puts those gameids into 'week_game_ids'
+#                 for season in seasons:
+#                     weeks_list = season.get('weeks', [])
+#                     for week_json in weeks_list:
+#                         game_list = week_json.get('week', {})
+#                         if game_list.get('week',-1) != week:
+#                             continue
+#                         inner_games = game_list.get('games',[])
+#                         if inner_games == []:
+#                             # its possible its a single game
+#                             week_game_ids.append( game_list.get('game') )
+#                         else:
+#                             for obj in inner_games:
+#                                 gameid = obj.get('game', None)
+#                                 if gameid not in week_game_ids:
+#                                     week_game_ids.append( gameid )
+#
+#                 #print( 'target game ids:', str(week_game_ids))
+#                 target = {'id':{'$in':week_game_ids}}
+#
+#             # get the games with the specified target query
+#             if verbose: print( str(target) )
+#             games = self.find(sport,'game','schedule',target)
+#
+#         else:
+#             games = self.find(sport,'game','schedule') # gets all games in db
+#
+#         #
+#         # build a msg to explain how many, and where we found games, its vvvvery (4 V's) useful most times
+#         games_found_msg = '%s %s' % (str(games.count()), 'game(s) found by DataDen for:')
+#         if year:
+#             games_found_msg += '\n    year: %s'      % str(year)
+#             if season_ids:
+#                 games_found_msg += '\n    season_ids:'
+#                 for season_id in season_ids:
+#                     games_found_msg += '\n        - %s' % season_id
+#             if week:
+#                 games_found_msg += '\n    week: %s' % str(week)
+#         else:
+#             games_found_msg += ' all-time!'
+#
+#         print( games_found_msg )
+#         return games
+#
+# class AbstractSeasonGames(DataDen):
+#
+#     def __init__(self, sport, year, schedule_collection, parent_api):
+#         super().__init__()
+#         self.sport                  = sport
+#         self.year                   = year
+#         self.schedule_collection    = schedule_collection
+#         self.parent_api             = parent_api
+#
+#     def get_game_ids_regular_seaons(self):
+#         raise Exception( 'child class must override get_game_ids_regular_season() to get the games for its sport' )
+#
+#     def get_game_ids(self, season_type=None):
+#         """
+#         get the games for this season
+#
+#         get the regular season games for the year if the season_type is not specified
+#         :return:
+#         """
+#         raise Exception('child class must override get_game_ids() to get the games for its sport')
+#
+#     def get_seasons(self, target={}):
+#         return self.find(self.sport, self.schedule_collection, self.parent_api, target=target )
+#
+# class NbaSeasonGames(AbstractSeasonGames):
+#
+#     SEASON_PRE = 'PRE'
+#     SEASON_REG = 'REG'
+#     SEASON_PST = 'PST'
+#
+#     def __init__(self, year):
+#         super().__init__('nba', year, 'season_schedule', 'schedule')
+#
+#     def get_game_ids_regular_season(self):
+#         return self.get_game_ids(season_type=self.SEASON_REG)
+#
+#     def get_game_ids(self, season_type):
+#         # N2QyZGYyNWNpZDUyOWJlZDM0LTVhOGQtNDZkNC05ZWVmLTExNGJkMTM0MDg2Nw==",
+#         # "id" : "529bed34-5a8d-46d4-9eef-114bd1340867",
+#         # "type" : "PST",
+#         # "year" : 2015,
+#         # "parent_api__id" : "schedule",
+#
+#         target = {
+#             'type' : season_type,
+#             'year' : int(self.year),
+#         }
+#         seasons = self.get_seasons(target=target)
+#         if seasons.count() != 1:
+#             raise Exception('found more than 1 season object for %s/%s/%s!'%(self.sport,
+#                                                             str(self.year), season_type))
+#
+#         game_ids = []
+#         for s in seasons:
+#             games_list = s.get('games__list')
+#             for g in games_list:
+#                 game_ids.append( g.get('game') )
+#             break
+#
+#         print('%s game_ids' % (len(game_ids)))
+#         return game_ids
+#
+# class NflSeasonGames(AbstractSeasonGames):
+#
+#     SEASON_PRE = 'PRE'
+#     SEASON_REG = 'REG'
+#     SEASON_PST = 'PST'
+#
+#     def __init__(self, year):
+#         super().__init__('nfl', year, 'season', 'schedule')
+#
+#     def get_game_ids_regular_season(self):
+#         return self.get_game_ids(season_type=self.SEASON_REG)
+#
+#     def get_game_ids(self, season_type):
+#         # N2QyZGYyNWNpZDUyOWJlZDM0LTVhOGQtNDZkNC05ZWVmLTExNGJkMTM0MDg2Nw==",
+#         # "id" : "529bed34-5a8d-46d4-9eef-114bd1340867",
+#         # "type" : "PST",
+#         # "year" : 2015,
+#         # "parent_api__id" : "schedule",
+#
+#         target = {
+#             'season' : int(self.year),
+#             'type' : season_type,
+#         }
+#         seasons = self.get_seasons(target=target)
+#         if seasons.count() != 1:
+#             raise Exception('found more than 1 season object for %s/%s/%s!'%(self.sport,
+#                                                             str(self.year), season_type))
+#
+#         game_ids = []
+#         for s in seasons:
+#             weeks = s.get('weeks')
+#             for week_obj in weeks:
+#                 inner_week = week_obj.get('week')
+#                 week_number = inner_week.get('week')
+#                 print( 'week_number:', str(week_number) )
+#                 games = inner_week.get('games')
+#                 for game in games:
+#                     game_ids.append( game.get('game') )
+#             break
+#
+#         print('%s game_ids' % (len(game_ids)))
+#         return game_ids
+
+class Season(DataDen):
+    """
+    Capable of getting the srids for the regular season games from dataden.
+
+    Use the static factory(sport) method to get an instance of a season.
+
+    usage:
+
+        >>> season = Season.factory('nba')
+        >>> reg_season_game_srids = season.get_game_ids_regular_season( 2015 )
+
+    """
+
+    # raised if a regular season not found for specified year
+    class SeasonNotFoundException(Exception): pass
+
+    # raised if multiple regular season objects for the specified year
+    class MultipleSeasonObjectsReturnedException(Exception): pass
+
+    # subclasses must override:
+    sport = None
+
+    # subclasses may override:
+    schedule_collection = 'season_schedule'     #
+    parent_api          = 'schedule'            #
+    season_type_reg     = 'REG'                 #
+    season_type_field   = 'type'                #
+    season_year_field   = 'year'                #
+
+    # Create based on class name:
+    def factory(type):
+        if type == "nba": return NbaSeason()
+        if type == "nfl": return NflSeason()
+        if type == "nhl": return NhlSeason()
+        if type == "mlb": return MlbSeason()
+        assert 0, "invalid Season: " + type
+    factory = staticmethod(factory)
+
+    def get_game_ids_regular_season(self, season):
         """
-        Get the game objects from the schedule feed for the specified 'season' (ie: year)
+        the main reason to subclass Season is if you want
+        a new sport and its regular season games are
+        retrieved different than NBA/NHL (from DataDen)
 
-        Do this by getting:
-            1. the season objects for the given 'year'
-            2. all the games with match season__id
-
-        If 'year' is None, retrievs all the games in database.
-        If 'season_ids' is not specified, gets all for the year.
-        """
-        if verbose: print('searching games...')
-        if year:
-            if verbose: print('    ','year:', year)
-
-            if season_ids:
-                if verbose: print('    ','season_ids specified:')
-            else:
-                seasons = self.find(sport,'season','schedule',{'season':year})
-                for s in seasons:
-                    if s not in season_ids:
-                        season_ids.append( s.get('id') )
-
-            # print them for clarity
-            if verbose:
-                for sid in season_ids:
-                    print('    ','    ... ', sid)
-
-            # only return games from the specified week, if the param is not None
-            target = {'season__id':{'$in':season_ids}}
-
-            if week:
-                if verbose: print('    ','week:', week)
-                # print('    ','')
-                # get the season(s) objects for this week
-                week_game_ids = []
-                seasons = self.find(sport,'season', 'schedule',{'id':{'$in':season_ids}})
-
-                # this looks complicated but its just very
-                # specifically extracting a nested list
-                # of gameid(s) -- as specified by the year, season, week --
-                # and it puts those gameids into 'week_game_ids'
-                for season in seasons:
-                    weeks_list = season.get('weeks', [])
-                    for week_json in weeks_list:
-                        game_list = week_json.get('week', {})
-                        if game_list.get('week',-1) != week:
-                            continue
-                        inner_games = game_list.get('games',[])
-                        if inner_games == []:
-                            # its possible its a single game
-                            week_game_ids.append( game_list.get('game') )
-                        else:
-                            for obj in inner_games:
-                                gameid = obj.get('game', None)
-                                if gameid not in week_game_ids:
-                                    week_game_ids.append( gameid )
-
-                #print( 'target game ids:', str(week_game_ids))
-                target = {'id':{'$in':week_game_ids}}
-
-            # get the games with the specified target query
-            if verbose: print( str(target) )
-            games = self.find(sport,'game','schedule',target)
-
-        else:
-            games = self.find(sport,'game','schedule') # gets all games in db
-
-        #
-        # build a msg to explain how many, and where we found games, its vvvvery (4 V's) useful most times
-        games_found_msg = '%s %s' % (str(games.count()), 'game(s) found by DataDen for:')
-        if year:
-            games_found_msg += '\n    year: %s'      % str(year)
-            if season_ids:
-                games_found_msg += '\n    season_ids:'
-                for season_id in season_ids:
-                    games_found_msg += '\n        - %s' % season_id
-            if week:
-                games_found_msg += '\n    week: %s' % str(week)
-        else:
-            games_found_msg += ' all-time!'
-
-        print( games_found_msg )
-        return games
-
-class AbstractSeasonGames(DataDen):
-
-    def __init__(self, sport, year, schedule_collection, parent_api):
-        super().__init__()
-        self.sport                  = sport
-        self.year                   = year
-        self.schedule_collection    = schedule_collection
-        self.parent_api             = parent_api
-
-    def get_game_ids_regular_seaons(self):
-        raise Exception( 'child class must override get_game_ids_regular_season() to get the games for its sport' )
-
-    def get_game_ids(self, season_type=None):
-        """
-        get the games for this season
-
-        get the regular season games for the year if the season_type is not specified
+        :param season: the season-year of the sport (ie: the year the season started in)
         :return:
         """
-        raise Exception('child class must override get_game_ids() to get the games for its sport')
 
-    def get_seasons(self, target={}):
-        return self.find(self.sport, self.schedule_collection, self.parent_api, target=target )
-
-class NbaSeasonGames(AbstractSeasonGames):
-
-    SEASON_PRE = 'PRE'
-    SEASON_REG = 'REG'
-    SEASON_PST = 'PST'
-
-    def __init__(self, year):
-        super().__init__('nba', year, 'season_schedule', 'schedule')
-
-    def get_game_ids_regular_season(self):
-        return self.get_game_ids(season_type=self.SEASON_REG)
-
-    def get_game_ids(self, season_type):
-        # N2QyZGYyNWNpZDUyOWJlZDM0LTVhOGQtNDZkNC05ZWVmLTExNGJkMTM0MDg2Nw==",
-        # "id" : "529bed34-5a8d-46d4-9eef-114bd1340867",
-        # "type" : "PST",
-        # "year" : 2015,
-        # "parent_api__id" : "schedule",
-
-        target = {
-            'type' : season_type,
-            'year' : int(self.year),
-        }
-        seasons = self.get_seasons(target=target)
-        if seasons.count() != 1:
-            raise Exception('found more than 1 season object for %s/%s/%s!'%(self.sport,
-                                                            str(self.year), season_type))
+        seasons = self.get_seasons(season)
+        self.validate_season(season, seasons) # make sure there is exactly 1 or raise exception
+        # if num_season_objects == 0:
+        #     raise self.SeasonNotFoundException('no seasons for %s' % title )
+        #
+        # if num_season_objects > 1:
+        #     raise self.MultipleSeasonObjectsReturnedException('more than 1 season for %s' % title)
 
         game_ids = []
-        for s in seasons:
-            games_list = s.get('games__list')
-            for g in games_list:
-                game_ids.append( g.get('game') )
-            break
+        games_list = seasons[0].get('games__list')
+        for g in games_list:
+            game_ids.append( g.get('game') )
 
-        print('%s game_ids' % (len(game_ids)))
+        #print('... %s game_ids from the regular season' % (len(game_ids)))
         return game_ids
 
-class NflSeasonGames(AbstractSeasonGames):
+    def validate_season(self, year, seasons_found):
+        """
+        pass the response of the dataden find() to this after retrieving the seasons
+        to make sure we have exactly 1 object -- if there are 0, or 2+ then raise exception.
 
-    SEASON_PRE = 'PRE'
-    SEASON_REG = 'REG'
-    SEASON_PST = 'PST'
+        :param result:
+        :return:
+        """
 
-    def __init__(self, year):
-        super().__init__('nfl', year, 'season', 'schedule')
+        title = '%s/%s/%s' % (self.sport, str(year), self.season_type_reg)
+        if seasons_found.count() == 0:
+            raise self.SeasonNotFoundException('no seasons for %s' % title )
 
-    def get_game_ids_regular_season(self):
-        return self.get_game_ids(season_type=self.SEASON_REG)
+        if seasons_found.count() >= 2:
+            raise self.MultipleSeasonObjectsReturnedException('more than 1 season for %s' % title)
 
-    def get_game_ids(self, season_type):
-        # N2QyZGYyNWNpZDUyOWJlZDM0LTVhOGQtNDZkNC05ZWVmLTExNGJkMTM0MDg2Nw==",
-        # "id" : "529bed34-5a8d-46d4-9eef-114bd1340867",
-        # "type" : "PST",
-        # "year" : 2015,
-        # "parent_api__id" : "schedule",
+    def get_seasons(self, season):
+        """
+        get the season objects that match the params.
 
+        :param season: year that the season started in for the sport
+        :param season_type: a value in ['PRE','REG','PST']
+        :param target: override the target query to find the seasons more manually (specify year in here too)
+        :return:
+        """
+        # default to this target query
         target = {
-            'season' : int(self.year),
-            'type' : season_type,
+            self.season_type_field : self.season_type_reg,
+            self.season_year_field : int(season),
         }
-        seasons = self.get_seasons(target=target)
-        if seasons.count() != 1:
-            raise Exception('found more than 1 season object for %s/%s/%s!'%(self.sport,
-                                                            str(self.year), season_type))
+
+        return self.find(self.sport, self.schedule_collection, self.parent_api, target=target)
+
+class NbaSeason(Season):
+
+    sport = 'nba'
+
+class NhlSeason(NbaSeason):
+
+    sport = 'nhl'
+
+class MlbSeason(Season):
+
+    sport = 'mlb'
+
+    parent_api          = 'schedule_reg'        # for mlb its part of the parent_api
+    schedule_collection = 'season_schedule'
+    season_type_field   = 'type'                # in the 'season_schedule' collection
+    season_year_field   = 'year'                # in the 'season_schedule' collection
+
+    def __get_game_srids(self, season_schedule_obj):
+        """
+        extract and return the game srids from this object
+
+            "games__list": [
+                {
+                    "game": "0417b544-cb8b-4836-a035-5ed6d292bfe0"
+                },
+                ...
+
+        :param season_schedule_obj:
+        :return:
+        """
+        games_list = season_schedule_obj.get('games__list', [])
+        return [ g.get('game') for g in games_list if 'game' in g.keys() ]
+
+    def get_game_ids_regular_season(self, season):
+        """
+        overrides default behaviour to get the srids of the regular season games
+
+        :param season:
+        :return:
+        """
+        target = {
+            self.season_type_field : self.season_type_reg,
+            self.season_year_field : int(season),
+        }
+        seasons = self.find(self.sport, self.schedule_collection, self.parent_api)
+        # a little error checking to ensure we have the object we want (and only 1 of them)
+        self.validate_season(season, seasons)
+
+        # build and return a list of game srids from the season object
+        return self.__get_game_srids(seasons[0])
+
+class NflSeason(Season):
+
+    sport = 'nfl'
+
+    schedule_collection = 'season'
+    season_type_field   = 'type'                #
+    season_year_field   = 'season'              #
+
+    def get_game_ids_regular_season(self, season):
+        """
+        overrides default behavior to get regular season games
+
+        :param season:
+        :return:
+        """
+
+        seasons = self.get_seasons(season)
+        # raises exception if its not exactly 1 object in a list
+        self.validate_season(season, seasons)
 
         game_ids = []
-        for s in seasons:
-            weeks = s.get('weeks')
-            for week_obj in weeks:
-                inner_week = week_obj.get('week')
-                week_number = inner_week.get('week')
-                print( 'week_number:', str(week_number) )
-                games = inner_week.get('games')
-                for game in games:
-                    game_ids.append( game.get('game') )
-            break
+        weeks = seasons[0].get('weeks')
+        for week_obj in weeks:
+            inner_week = week_obj.get('week')
+            week_number = inner_week.get('week')
+            #print( 'week_number:', str(week_number) )
+            games = inner_week.get('games')
+            for game in games:
+                game_ids.append( game.get('game') )
 
-        print('%s game_ids' % (len(game_ids)))
+        #print('%s game_ids' % (len(game_ids)))
         return game_ids
-
-
 

@@ -3,6 +3,18 @@
 
 from mysite.celery_app import app
 from sports.mlb.parser import DataDenMlb
+from dataden.classes import MlbSeason
+
+@app.task(bind=True)
+def update_season_fppg(self, season):
+    """
+
+    :param season: the "season
+    :return:
+    """
+    season = MlbSeason()
+    game_ids = season.get_game_ids_regular_season( season )
+    # TODO
 
 @app.task(bind=True)
 def update_injuries(self):

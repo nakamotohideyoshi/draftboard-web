@@ -433,4 +433,59 @@ class PlayerNewsAPIView(generics.ListAPIView):
             # player_ctype = ContentType.objects.get_for_model(player_model)
             return sport_player_class.objects.filter(pk=player_id)
 
+# class DraftGroupGameBoxscoresView(View):
+class ScheduleGameBoxscoresView(View):
+    """
+    return all the boxscores for the given draft group (basically, all
+    the live games (ie: Home @ Away with scores) from the context
+    of the draftgroup)
 
+    for /api/sports/nba/scoreboard-games/
+    """
+
+    # def __add_to_dict(self, target, extras):
+    #     for k,v in extras.items():
+    #         target[ k ] = v
+    #     return target
+
+    def get(self, request, sport):
+
+        # return HttpResponse( {}, content_type='application/json', status=status.HTTP_404_NOT_FOUND)
+
+        ssm     = sports.classes.SiteSportManager()
+        data    = ssm.get_serialized_scoreboard_data(sport)
+        #
+        # # notes:
+        # # boxscores   = dgm.get_game_boxscores( draft_group )
+        # # get_game_serializer_class(sport)
+        # # get_boxscore_serializer_class(sport)
+        #
+        # # data = []
+        # # for b in boxscores:
+        # #     data.append( b.to_json() )
+        # data = {}
+        # for game in games:
+        #     # initial inner_data
+        #     inner_data = {}
+        #
+        #     # add the game data
+        #     g = game_serializer_class( game ).data
+        #     self.__add_to_dict( inner_data, g )
+        #
+        #     # add the boxscore data
+        #     boxscore = None
+        #     try:
+        #         boxscore = boxscores.get(srid_game=game.srid) # may not exist
+        #     except:
+        #         pass
+        #     b = {}
+        #     if boxscore is not None:
+        #         b = {
+        #             'boxscore' : boxscore_serializer_class( boxscore ).data
+        #         }
+        #     self.__add_to_dict( inner_data, b )
+        #
+        #     # finish it by adding the game data to the return data dict
+        #     data[ game.srid ] = inner_data
+
+        return HttpResponse( json.dumps(data), content_type='application/json' )

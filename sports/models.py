@@ -59,8 +59,17 @@ class GameStatusChangedSignal(AbstractSportSignal):
 
 # an object for a sport which anything can reference to identify its sport
 class SiteSport(models.Model):
-    created             = models.DateTimeField(auto_now_add=True, null=False)
-    name                = models.CharField(max_length=128, null=False, unique=True)
+    """
+    there can only be 1 instance of this model for each sport.
+
+    the current season needs to be manually set.
+    """
+    created         = models.DateTimeField(auto_now_add=True, null=False)
+    name            = models.CharField(max_length=128, null=False, unique=True)
+
+    current_season  = models.IntegerField(null=False,
+                        help_text='year this sports current season began in. example: '
+                                  'for the nba 2015-16 season, current_season should be set to: 2015')
 
     def __str__(self):
         return '%s' % (self.name )
@@ -93,8 +102,6 @@ class Sport( models.Model ):
     content_type    = models.ForeignKey(ContentType)
     object_id       = models.PositiveIntegerField()
     content_object  = GenericForeignKey()   # 'content_object', 'object_id'  are only necessary if custom
-
-
 
     class Meta:
         abstract = True
@@ -262,6 +269,8 @@ class Player(models.Model):
     # team_type         = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_player_team')
     # team_id           = models.PositiveIntegerField()
     # team              = GenericForeignKey('team_type', 'team_id')
+
+    season_fppg     = models.FloatField(null=False, default=0.0)
 
     def remove_injury(self):
         """

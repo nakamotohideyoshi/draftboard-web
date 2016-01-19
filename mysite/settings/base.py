@@ -392,8 +392,9 @@ SUIT_CONFIG = {
         # schedule
         ('schedule',),
 
-        #('sports.nfl',),
-        ('nfl',),
+
+        ('sports',),        # for a few non-abstract things
+        ('nfl',),           # ie: not ('sports.nfl',)
         ('nba',),
         ('nhl',),
         ('mlb',),
