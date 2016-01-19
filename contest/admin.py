@@ -46,7 +46,7 @@ class ContestAdmin(admin.ModelAdmin):
         ('Advanced Options', {
             'classes': ('collapse',),
             'fields': (
-                'ends_tonight',
+                #'ends_tonight',
 
                 'end',
                 'draft_group',

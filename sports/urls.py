@@ -14,6 +14,7 @@ from sports.views import (
     TsxPlayerNewsAPIView,
     TsxPlayerItemsAPIView,
     PlayerNewsAPIView,
+    ScheduleGameBoxscoresView,
 )
 
 urlpatterns = patterns( '',
@@ -61,5 +62,11 @@ urlpatterns = patterns( '',
     #   2. the second takes a bit longer but returns all player news
     (r'^player/news/(?P<sport>[a-z]+)/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view()),
     (r'^player/news/(?P<sport>[a-z]+)/$', PlayerNewsAPIView.as_view()),
+
+    #
+    # for the day (or for nfl - weekly) games.
+    # the data should be formatted similar to the draft-group/boxscores/ for ease of use
+    # /api/sports/scoreboard-games/nba/
+    (r'^scoreboard-games/(?P<sport>[a-z]+)/$', ScheduleGameBoxscoresView.as_view()),
 
 )

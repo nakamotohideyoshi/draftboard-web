@@ -32,6 +32,3 @@ dataden: java -jar dataden/dataden-rio.jar -k 20491e2a4feda595b7347708915b200b -
 # non-celery way of running dataden triggers on the mongo database
 dataden_trigger: python manage.py dataden_trigger
 
-#
-# flower on port 5555
-flower: celery flower -A mysite —broker=$REDISCLOUD_URL

@@ -1,8 +1,13 @@
 #
 # salary/classes.py
 
-from .exceptions import NoPlayersAtRosterSpotException
+from django.db.models import Q
+from .exceptions import (
+    NoPlayersAtRosterSpotException,
+    NoPlayerStatsClassesFoundException,
+)
 from sports.models import PlayerStats, Player, Game, SiteSport, Position
+from sports.mlb.models import PlayerStatsHitter, PlayerStatsPitcher
 from roster.models import RosterSpot, RosterSpotPosition
 from mysite.exceptions import IncorrectVariableTypeException, NullModelValuesException
 from django.contrib.contenttypes.models import ContentType
@@ -10,6 +15,8 @@ from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
 from django.utils import timezone
 from math import ceil
 from django.db.transaction import atomic
+from sports.classes import SiteSportManager
+from dataden.classes import DataDen, Season
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
@@ -130,7 +137,93 @@ class SalaryRosterSpotObject(object):
                +" percentage_of_sum:"+str(self.percentage_of_sum)
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
-class SalaryGenerator(object):
+class FppgGenerator(object):
+
+    def __init__(self, player_stats_classes):
+        #
+        # Makes sure the player_stats_object is an instance
+        # of the subclass PlayerStats
+        for player_stats_class in player_stats_classes:
+            if not issubclass(player_stats_class, PlayerStats):
+                raise IncorrectVariableTypeException(type(self).__name__,
+                                                     type(player_stats_class).__name__)
+
+        self.player_stats_classes = player_stats_classes
+
+    def get_salary_player_stats_objects(self, player_stats):
+        """
+        build a list where each index is a SalaryPlayerStatsObject object
+        from which we can get a list of all their games found in 'player_stats'
+
+        :param player_stats: all the PlayerStats instances to refactor by player
+        :return:
+        """
+        salary_player_stats = []
+        for player_stat in player_stats:
+            #
+            # Creates an object for the PlayerStat
+            player_stats_object = SalaryPlayerStatsObject(player_stat)
+
+            #
+            # checks to see if the player exists in the player_list,
+            # if not, create a index for the player and add to the
+            # list
+            arr = [ x for x in salary_player_stats if x.player_id == player_stats_object.player_id ]
+            player = None
+            if len(arr) > 0:
+                player = arr[0]
+            else:
+                player              = SalaryPlayerObject()
+                player.player_id    = player_stats_object.player_id
+                player.player       = player_stats_object.player
+                salary_player_stats.append(player)
+
+            player.player_stats_list.append(player_stats_object)
+
+        # return the list weve built
+        return salary_player_stats
+
+    def helper_get_player_stats(self):
+        """
+        For each player in the PlayerStats table, get the games
+        that are relevant.
+
+        :param player_stats_objects: default: None. overrides the PlayerStats objects used
+        :return a list of SalaryPlayerObjects
+
+        """
+        #
+        #
+        players = []
+        for player_stats_class in self.player_stats_classes:
+            #
+            # iterate through all player_stats ever
+            all_player_stats = player_stats_class.objects.all()
+
+            # for player_stat in all_player_stats:
+            #     #
+            #     # Creates an object for the PlayerStat
+            #     player_stats_object = SalaryPlayerStatsObject(player_stat)
+            #
+            #     #
+            #     # checks to see if the player exists in the player_list,
+            #     # if not, create a index for the player and add to the
+            #     # list
+            #     arr =[x for x in players if x.player_id == player_stats_object.player_id]
+            #     player = None
+            #     if(len(arr) >0 ):
+            #         player= arr[0]
+            #     else:
+            #         player = SalaryPlayerObject()
+            #         player.player_id = player_stats_object.player_id
+            #         player.player =player_stats_object.player
+            #         players.append(player)
+            #     player.player_stats_list.append(player_stats_object)
+            players.extend(self.get_salary_player_stats_objects(all_player_stats))
+
+        return players
+
+class SalaryGenerator(FppgGenerator):
     """
     This class is responsible for generating the salaries for a given sport.
     """
@@ -140,13 +233,7 @@ class SalaryGenerator(object):
 
         :return:
         """
-        #
-        # Makes sure the player_stats_object is an instance
-        # of the subclass PlayerStats
-        for player_stats_class in player_stats_classes:
-            if not issubclass(player_stats_class, PlayerStats):
-                raise IncorrectVariableTypeException(type(self).__name__,
-                                                     type(player_stats_class).__name__)
+        super().__init__(player_stats_classes)
 
         #
         # Makes sure the pool is an instance
@@ -158,7 +245,7 @@ class SalaryGenerator(object):
 
         #
         # sets the variables after being validated
-        self.player_stats_classes = player_stats_classes
+        #self.player_stats_classes = player_stats_classes ### in parent class
         self.pool = pool
         self.salary_conf = pool.salary_config
         self.site_sport = pool.site_sport
@@ -193,45 +280,6 @@ class SalaryGenerator(object):
         # Calculate the salaries for each player based on
         # the mean of weighted score of their position
         self.helper_update_salaries(players, position_average_list,sum_average_points)
-
-    def helper_get_player_stats(self):
-        """
-        For each player in the PlayerStats table, get the games
-        that are relevant.
-        :retun a list of SalaryPlayerObjects
-
-        """
-        #
-        #
-        players = []
-
-        for player_stats_class in self.player_stats_classes:
-            #
-            # iterate through all player_stats ever
-            all_player_stats = player_stats_class.objects.all()
-
-            for player_stat in all_player_stats:
-                #
-                # Creates an object for the PlayerStat
-                player_stats_object = SalaryPlayerStatsObject(player_stat)
-
-                #
-                # checks to see if the player exists in the player_list,
-                # if not, create a index for the player and add to the
-                # list
-                arr =[x for x in players if x.player_id == player_stats_object.player_id]
-                player = None
-                if(len(arr) >0 ):
-                    player= arr[0]
-                else:
-                    player = SalaryPlayerObject()
-                    player.player_id = player_stats_object.player_id
-                    player.player =player_stats_object.player
-                    players.append(player)
-                player.player_stats_list.append(player_stats_object)
-
-        return players
-
 
     def helper_get_average_score_per_position(self, players):
 
@@ -467,6 +515,125 @@ class SalaryGenerator(object):
 
     def __round_salary(self, val):
         return (int) (ceil((val/100.0)) *100.0)
+
+class PlayerFppgGenerator(FppgGenerator):
+    """
+    Generates regular seasona "fantasy points per game" for players for a sport.
+
+    Utilizes the SalaryGenerator class for its methods which are capable
+    of calculating averages on the PlayerStats.fantasy_points field,
+    because it does pretty much the same thing.
+
+    While the SalaryGenerator class uses a queryset of PlayerStats objects
+    based on the settings of a specific salary pool, this SeasonFppgGenerator's
+    primary job is to get the regular season games for the curent season
+    and then get those related PlayerStats and pass them off to the methods
+    of SalaryGenerator which calculate the average.
+
+    NBA Season Start Month-Day: ~27 October 	    (10th month)
+    NHL Season Start Month-Day: ~7 October  	    (10th month)
+    MLB Season Start Month-Day: ~3 April 		    (4th month)
+    NFL Season Start Month-Day: ~4 September 	    (9th month)
+    """
+
+    def __init__(self):
+        self.site_sport_manager = SiteSportManager()
+
+    def update(self):
+        for sport in self.site_sport_manager.SPORTS:
+            #
+            # todo, task this off, so if it crashes, it wont other sports
+            self.update_sport( sport )
+
+    def update_sport(self, sport):
+        """
+        update the player fppgs for the sports current season found in SiteSport
+
+        :param sport:
+        :return:
+        """
+        site_sport = self.site_sport_manager.get_site_sport(sport)
+        # get the regular season game srids
+        season = Season.factory( sport ) # makes a connection to mongolab directly
+        game_srids = season.get_game_ids_regular_season(site_sport.current_season)
+
+        # get all the players for the sport
+        player_class = self.site_sport_manager.get_player_class(site_sport)
+        player_objects = player_class.objects.all()
+        # get playerstats classes (there may be multiple)
+        player_stats_classes = self.site_sport_manager.get_player_stats_class(site_sport)
+
+        #
+        # sports with multiple PlayerStats classes require us to handle
+        # the fppg calcs differently, ie: break up pitchers and hitters
+        print('updating season_fppg - sport:', sport)
+        print('... %s player_stats_classses -> %s' % (str(len(player_stats_classes)), str(player_stats_classes)))
+        if len(player_stats_classes) == 1:
+            #
+            # sports like nfl, nhl, nba only have a single PlayerStats model
+            self.get_fppg(player_objects, player_stats_classes[0], game_srids)
+
+        #
+        # mlb, for example, has 2 stats models, PlayerStatsPitcher, PlayerStatsHitter
+        elif len(player_stats_classes) >= 2 and sport == 'mlb':
+            #
+            # get players that are SP, P, or RP, and the PlayerStatsPitcher class
+            q_pitcher_positions = Q(position__name__in=['P','SP','RP'])
+            pitcher_players = player_objects.filter(q_pitcher_positions)
+            self.get_fppg(pitcher_players, PlayerStatsPitcher, game_srids)
+
+            #
+            # get all other players, and the PlayerStatsHitter class.
+            # all non-pitchers are hitters, so simply negate the Q expression
+            hitter_players = player_objects.filter(~q_pitcher_positions)
+            self.get_fppg(hitter_players, PlayerStatsHitter, game_srids)
+
+        # elif len(player_stats_classes) >= 2 and sport == 'xxx': pass
+
+        else:
+            raise NoPlayerStatsClassesFoundException('PlayerFppgGenerator: %s' % sport)
+
+    def get_fppg(self, player_objects, player_stats_class, game_srids):
+        """
+        :param player_objects: list of sport.<sport>.models.Player objects
+        :param player_stats_class: the PlayerStats class we want to calc
+                                FPPGs with for each player in player_objects
+        :return:
+        """
+        if not issubclass(player_stats_class, PlayerStats):
+            raise IncorrectVariableTypeException(type(self).__name__,
+                                                 type(player_stats_class).__name__)
+        #
+        # get the PlayerStats objects for the the players
+        # in the 'player_objects' param where the PlayerStats
+        # have been filtered to include only PlayerStats from games
+        # whose srid is in the param 'game_srids'.
+
+        #
+        # we know we have Player objects and PlayerStats objects
+        # from the same sport, so we can use the 'player_id' (of
+        # the GenericForeignKey) to search for our players...
+        player_ids = [ p.id for p in player_objects ]
+        player_stats_objects = player_stats_class.objects.filter(player_id__in=player_ids,
+                                                                 srid_game__in=game_srids )
+        # utilizing the SalaryPlayerStatsObject to amass the fppg
+        # from each sublist of individual PlayerStats objects
+        salary_player_objects = self.get_salary_player_stats_objects(player_stats_objects)
+        # print('... %s players season_fppg calculated' % (str(len(salary_player_objects))))
+        # print('printing out a couple of get_fppgs() objects for debug:')
+        # for x in salary_player_objects[:3]:
+        #     print( str(x) )
+
+        # the get_fantasy_points() should now return the season_fppg.
+        # save it into the main player object (which we can get from salary_player_object)
+        for salary_player_object in salary_player_objects:
+            player = salary_player_object.player
+            season_fppg = salary_player_object.get_fantasy_average()
+
+            player.season_fppg = season_fppg
+            player.save()
+
+
 
 
 

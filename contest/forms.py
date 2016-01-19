@@ -8,6 +8,8 @@ from contest.models import Contest
 from util.midnight import midnight
 from datetime import datetime
 import draftgroup.classes
+import draftgroup.exceptions
+import mysite.exceptions
 
 class ContestForm(ModelForm):
     """
@@ -108,7 +110,7 @@ class ContestFormAdd(ContestForm):
     # clone_from = ModelChoiceField( Contest.objects.all(),
     #                   help_text="optional")
 
-    ends_tonight = forms.BooleanField( initial=True,
+    ends_tonight = forms.BooleanField( initial=True, required=False,
         help_text='to set a custom time for the contest to end, you must set it below')
 
     early_registration = forms.BooleanField( initial=False, required=False,
@@ -206,7 +208,26 @@ class ContestFormAdd(ContestForm):
             #
             # get the active draftgroup for this contest
             dgm = draftgroup.classes.DraftGroupManager()
-            draft_group = dgm.get_for_site_sport( site_sport, start, end )
+            try:
+                draft_group = dgm.get_for_site_sport( site_sport, start, end )
+
+            except draftgroup.exceptions.NotEnoughGamesException:
+                raise ValidationError('There are not enough upcoming games for the '
+                                      'sport in the range you specified.')
+            except draftgroup.exceptions.NoGamesAtStartTimeException:
+                raise ValidationError('There is no upcoming game for this sport'
+                                      ' which matches the start time you chose. Please '
+                                      'make sure the contest starts when a game starts.')
+            except draftgroup.exceptions.EmptySalaryPoolException:
+                raise ValidationError('A salary pool does not exist - so we can not '
+                                      'create the draft group players. '
+                                      'This error indicates that either: 1) base stats '
+                                      'for the sport have not been set up yet or 2) '
+                                      'a salary pool for the sport has not yet been created.')
+            except mysite.exceptions.NoGamesInRangeException:
+                raise ValidationError('Could not create Contest because there were '
+                                      'no upcoming games in the date range specified.')
+
             self.cleaned_data['draft_group'] = draft_group
 
 # class TemplateContestForm(ContestForm):

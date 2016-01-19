@@ -1,6 +1,8 @@
 #
 # sports/classes.py
 
+from django.utils import timezone
+from util.dfsdate import DfsDate
 from django.contrib.contenttypes.models import ContentType
 import dataden.classes
 from .models import (
@@ -296,6 +298,64 @@ class SiteSportManager(object):
 
         # by default raise an exception if we couldnt return a game class
         raise PbpDescriptionClassNotFoundException(type(self).__name__, sport)
+
+    def get_scoreboard_games(self, sport):
+        """
+        get the current daily games (or current/upcoming weekly games for nfl)
+
+        :param sport:
+        :return:
+        """
+        site_sport = self.__get_site_sport_from_str(sport)
+        game_class = self.get_game_class(site_sport)
+        # get the date_range tuple so we can filter the games !
+        if sport == 'nfl':
+            dt_range = DfsDate.get_current_nfl_date_range()
+        else:
+            dt_range = DfsDate.get_current_dfs_date_range()
+        games = game_class.objects.filter( start__range=dt_range )
+        return games
+
+    def __add_to_dict(self, target, extras):
+        for k,v in extras.items():
+            target[ k ] = v
+        return target
+
+    def get_serialized_scoreboard_data(self, sport):
+        site_sport = self.__get_site_sport_from_str(sport)
+        boxscore_class = self.get_game_boxscore_class(site_sport)
+        boxscore_serializer_class = self.get_boxscore_serializer_class(sport)
+        game_serializer_class = self.get_game_serializer_class(sport)
+        games = self.get_scoreboard_games(sport)
+        game_srids = [ g.srid for g in games ]
+        boxscores = boxscore_class.objects.filter(srid_game__in=game_srids)
+
+        data = {}
+        for game in games:
+            # initial inner_data
+            inner_data = {}
+
+            # add the game data
+            g = game_serializer_class( game ).data
+            self.__add_to_dict( inner_data, g )
+
+            # add the boxscore data
+            boxscore = None
+            try:
+                boxscore = boxscores.get(srid_game=game.srid) # may not exist
+            except:
+                pass
+            b = {}
+            if boxscore is not None:
+                b = {
+                    'boxscore' : boxscore_serializer_class( boxscore ).data
+                }
+            self.__add_to_dict( inner_data, b )
+
+            # finish it by adding the game data to the return data dict
+            data[ game.srid ] = inner_data
+        #
+        return data
 
     def get_game_boxscore_class(self, sport):
         """
@@ -647,11 +707,60 @@ class MlbPlayerNamesCsv(PlayerNamesCsv):
         self.key_fullname   = 'full_name'
         self.key_position   = 'primary_position'
 
-class Fppg(object):
+# class Fppg(object):
+#
+#     def __init__(self):
+#         pass
+#
+#     def get_player_stats(self):
+#         raise Exception('Fppg.get_player_stats() - must be overridden in inheriting class')
+#
+# class NbaFppg(dataden.classes.NbaSeasonGames):
+#
+#     def get_player_stats(self):
+#         ssm = SiteSportManager()
+#         site_sport = ssm.get_site_sport(self.sport) # self.sport is from inherited class
+#         game_class = ssm.get_game_class(site_sport)
+#         player_stats_class_list = ssm.get_player_stats_class(site_sport)
+#         now = timezone.now()
+#         game_ids = self.get_game_ids_regular_season()
+#
+#         games = game_class.objects.filter(srid__in=game_ids, start__lt=timezone.now())
+#         history_game_ids = [ g.srid for g in games ]
+#
+#         for player_stats_class in player_stats_class_list:
+#             player_stats = player_stats_class.objects.filter( srid_game__in=history_game_ids )
+#             # these player stats objects should have scoreable data we can calculate FPPGs on
+#
+#             # get the unique players
+#             distinct_players = player_stats.distinct('player_id')
+#
+#             # TODO - sum and average their fppgs
+#             players_with_stats = 0
+#             for player in distinct_players:
+#                 #print('player id', str(player.pk))
+#                 single_player_stats = player_stats.filter(player_id=player.pk)
+#                 if single_player_stats.count() > 0:
+#                     players_with_stats += 1
+#                     print('player id', str(player.pk))
+#                     print('    %s playerStats objects' % str(single_player_stats.count()))
+#
+#             print('')
+#             print('%s players without PlayerStats' % (str(distinct_players.count() - players_with_stats)))
+#
 
-    def __init__(self):
-        pass
 
-class NbaFppg(dataden.classes.NbaSeasonGames):
+# just need a method to get the sports games, and PlayerStats.objects.filter( start__lte=timezone.now() ).order_by('-start')
+#
+# then sub filter that list on datadens sport Season classes method
+# which gets all the regular season ids.
+#
+# Voila: we have all the PlayerStats from the current season.
+#
+# we copuld do another sort on that subfilter .order_by('start')   # ascending!
+# and get the first game.
+#
+# this way we could make a method to parse fppgs( start_dt, end_dt ) which is more
+# generic and useful   OR MAY BE EXISTING IN THE SALARY STUFF RYAN WROTE BTW
 
-    pass
+
