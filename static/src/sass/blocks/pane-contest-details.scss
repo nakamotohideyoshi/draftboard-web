@@ -109,43 +109,6 @@
   // pane__content
   .pane-lower {
     padding: 20px 45px;
-
-    .tab-nav {
-      text-align: center;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: #b0b2c1;
-      padding-bottom: 40px;
-
-      ul {
-        padding: 0;
-        margin: 0;
-      }
-
-      li {
-        margin: 5px 20px;
-        display: inline-block;
-        cursor: pointer;
-
-        &:hover {
-          color: #262a3b;
-        }
-
-        &.active {
-          color: #262a3b;
-          border-bottom: 1px solid #e0e3eb;
-        }
-      }
-    }
-
-
-    // pane__content__tab_content
-    .tab-content {
-      thead tr th {
-        color: white;
-      }
-    }
   }
 
 
@@ -157,74 +120,6 @@
   }
 }
 
-
-
-/**
- * Prize Structure + game list Tab Content
- */
-.cmp-entrant-list,
-.cmp-games-list,
-.cmp-prize-structure {
-  .header {
-    background: #d0d3db;
-    color: #fff;
-    font-size: 9px;
-    font-weight: 600;
-    text-transform: uppercase;
-    width: 100%;
-    padding: 7px 10px;
-
-    > span {
-      display: table-cell;
-      width: 100%;
-      letter-spacing: .1em;
-    }
-
-    .place {
-      font-weight: 600;
-      text-align: left;
-    }
-
-    .prize {
-      text-align: right;
-    }
-  }
-
-  ul {
-    display: table;
-    column-count: 2;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-  }
-
-  li {
-    display: table-row;
-    font-size: 12px;
-    line-height: 2em;
-    width: 100%;
-
-    > span {
-      font-size: 11px;
-      width: 100%;
-      display: table-cell;
-      padding: 10px;
-      border-bottom: 1px solid #ebedf2;
-
-      &.teams,
-      &.place {
-        font-weight: 600;
-        text-align: left;
-      }
-
-      &.time,
-      &.prize {
-        text-align: right;
-      }
-    }
-  }
-}
 
 
 .cmp-entrant-list {
