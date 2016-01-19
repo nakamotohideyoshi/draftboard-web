@@ -7,7 +7,7 @@ from mysite.celery_app import app
 
 @app.task(bind=True)
 def pusher_send_task(self, pushable, data):
-    pushable.send( data )
+    pushable.trigger( data )
 
 
 
