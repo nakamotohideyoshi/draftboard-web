@@ -246,39 +246,72 @@ class PlayerHistoryAPIView(generics.ListAPIView):
         site_sport_manager = sports.classes.SiteSportManager()
         site_sport = site_sport_manager.get_site_sport( sport )
         player_stats_class_list = site_sport_manager.get_player_stats_class( site_sport )
+        game_class = site_sport_manager.get_game_class( site_sport )
         player_stats = []
         for player_stats_class in player_stats_class_list:
             ct = ContentType.objects.get_for_model( player_stats_class )
-            database_table_name = ct.app_label + '_' + ct.model    # ie: 'nba_playerstats'
+            playerstats_table_name = ct.app_label + '_' + ct.model              # ie: 'nba_playerstats'
+
+            game_ctype = ContentType.objects.get_for_model( game_class )
+            game_table_name = game_ctype.app_label + '_' + game_ctype.model     # ie: 'nba_game'
 
             # these are the fields we want to aggregate and average for the serializer.
             # we use a raw query for efficiency purposes.
-            scoring_fields = player_stats_class.SCORING_FIELDS
-            #print('player_stats_class', str(player_stats_class), 'SCORING_FIEDS', str(scoring_fields))
 
-            # from the scoring_fields we can generate a large part
-            # of the raw query in a loop
-            select_columns_str = 'player_id'
-            select_columns_str += ', array_agg(srid_game) as games'
-            select_columns_str += ', array_agg(fantasy_points) as fp'
-            select_columns_str += ', avg(fantasy_points) as avg_fp'
+            # excluding player_id, srid_game, fantasy_points (these existed before re-write)
+            # add the fields to game_fields to array_agg(),
+            # add the fields to scoring_fields to array_agg() AND to avg()
+            game_fields     = ['start','home_id','away_id']
+            scoring_fields  = player_stats_class.SCORING_FIELDS
 
-            for scoring_field in scoring_fields:
-                # slap the scoring_field into every {0}
-                select_columns_str += ', array_agg({0}) as {0}, avg({0}) as avg_{0}'.format(scoring_field)
+            #
+            # build the statement:
+            # select player_id,
+            #   array_agg(srid_game) as games,
+            #   array_agg(home_id) as home_ids,
+            #   array_agg(away_id) as away_ids,
+            #   array_agg(start) as starts,
+            #   array_agg(fantasy_points) as fp,
+            #   avg(fantasy_points) as avg_fp,
+            #   array_agg(points) as points,
+            #   avg(points) as avg_points,
+            #   array_agg(three_points_made) as three_points_made,
+            #   avg(three_points_made) as avg_three_points_made,
+            #   array_agg(rebounds) as rebounds,
+            #   avg(rebounds) as avg_rebounds,
+            #   array_agg(assists) as assists,
+            #   avg(assists) as avg_assists,
+            #   array_agg(steals) as steals,
+            #   avg(steals) as avg_steals,
+            #   array_agg(blocks) as blocks,
+            #   avg(blocks) as avg_blocks,
+            #   array_agg(turnovers) as turnovers,
+            #   avg(turnovers) as avg_turnovers
+            #  from
+
+            # outter select
+            select_str = 'select player_id, array_agg(srid_game) as games, array_agg(fantasy_points) as fp, avg(fantasy_points) as avg_fp'
+            for field in game_fields:
+                select_str += ', array_agg({0}) as {0}'.format(field)
+            for field in scoring_fields:
+                select_str += ', array_agg({0}) as {0}, avg({0}) as avg_{0}'.format(field)
+
+            # inner select
+            # (select all_player_stats.*, nba_game.home_id, nba_game.away_id, nba_game.start from (select * from (select *, row_number() over (partition by player_id order by created) as rn from nba_playerstats) as nba_playerstats where rn <=5) as all_player_stats join nba_game on nba_game.srid = all_player_stats.srid_game) as player_stats group by player_id
+            final_select_str = "{0} from (select all_player_stats.*, {1}.home_id, {1}.away_id, {1}.start from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {2}) as {2} where rn <=5) as all_player_stats join {1} on {1}.srid = all_player_stats.srid_game) as player_stats group by player_id".format(select_str, game_table_name, playerstats_table_name)
 
             # the final query string
-            query_str = "select {0} from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {1}) as {1} where rn <={2}) as agg group by player_id".format(select_columns_str, database_table_name, str(n_games_history))
+            #query_str = "{4} (select {0} from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {1}) as {1} where rn <={2}) as agg group by player_id) as player_stats on {3}.srid = ANY(player_stats.games)".format(select_columns_str, database_table_name, str(n_games_history), game_table_name, outter_select_str)
             # query_str = """select player_id, array_agg(points) as points, avg(points) as avg_points, array_agg(three_points_made) as three_points_made, avg(three_points_made) as avg_three_points_made from (select * from (select *, row_number() over (partition by player_id order by created) as rn from nba_playerstats) as nba_playerstats where rn <=10) as agg group by player_id"""
 
-            # print('')
-            # print('query_str')
-            # print(query_str)
-            # print('')
-            # print('')
+            print('')
+            print('final_select_str')
+            print(final_select_str)
+            print('')
+            print('')
 
             with connection.cursor() as c:
-                c.execute(query_str)
+                c.execute(final_select_str)
                 player_stats += self.dictfetchall( c )
 
         return player_stats
