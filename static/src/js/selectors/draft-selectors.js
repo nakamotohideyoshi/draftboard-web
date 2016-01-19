@@ -22,12 +22,11 @@ export let focusedPlayerSelector = createSelector(
     }
 
     let player = Object.assign({}, focusedPlayer, {
+      sport,
       news: {},
-      nextGame: {
-        awayTeam: {},
-        homeTeam: {}
-      },
-      boxScoreHistory: {}
+      nextGame: {},
+      boxScoreHistory: {},
+      splitsHistory: []
     })
 
     // Attach any news stories to the player object.
@@ -41,9 +40,35 @@ export let focusedPlayerSelector = createSelector(
     if (playerBoxScoreHistory.hasOwnProperty(sport)) {
       if (playerBoxScoreHistory[sport].hasOwnProperty(focusedPlayer.player_id)) {
         player.boxScoreHistory = playerBoxScoreHistory[sport][focusedPlayer.player_id]
+
+        // If we have boxscore info, attach splits history.
+        if (activeDraftGroupId && boxScoreGames.hasOwnProperty(activeDraftGroupId)) {
+          player.splitsHistory = player.boxScoreHistory.games.map(function(game, i, arr) {
+            // TODO: Add date and opponent info into focusedPlayerSelector - this needs to be
+            // done server-side since we don't have ALL historical boxScores to pull from.
+            return {
+              assists: player.boxScoreHistory.assists[i],
+              blocks: player.boxScoreHistory.blocks[i],
+              date: 'date',
+              fp: player.boxScoreHistory.fp[i],
+              opp: 'opp',
+              points: player.boxScoreHistory.points[i],
+              rebounds: player.boxScoreHistory.rebounds[i],
+              steals: player.boxScoreHistory.steals[i],
+              three_pointers: player.boxScoreHistory.three_points_made[i],
+              turnovers: player.boxScoreHistory.turnovers[i]
+            }
+          })
+        }
+
       }
     }
 
+    // Attach the player's team info.
+    if(sportInfo.hasOwnProperty(sport) && sportInfo[sport].teams[player.team_srid]) {
+      player.teamCity = sportInfo[sport].teams[player.team_srid].city
+      player.teamName = sportInfo[sport].teams[player.team_srid].name
+    }
 
     // attach next game info.
     if (activeDraftGroupId && boxScoreGames.hasOwnProperty(activeDraftGroupId)) {

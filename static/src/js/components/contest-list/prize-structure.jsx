@@ -19,10 +19,10 @@ var PrizeStructure = React.createClass({
 
      _forEach(this.props.structure.info.ranks, function(item) {
       rankList.push(
-        <li key={item.rank}>
-          <span className="place">{ordinal(item.rank)}</span>
-          <span className="prize">${item.value}</span>
-        </li>
+        <tr key={item.rank}>
+          <td className="place">{ordinal(item.rank)}</td>
+          <td className="prize">${item.value}</td>
+        </tr>
       )
     })
 
@@ -42,15 +42,17 @@ var PrizeStructure = React.createClass({
 
     return (
       <div className="cmp-prize-structure">
-
-        <h6 className="header">
-          <span className="place">Position</span>
-          <span className="prize">Prize</span>
-        </h6>
-
-        <ul>
-          {rankList}
-        </ul>
+        <table className="table">
+          <thead>
+            <tr>
+              <th className="place">Position</th>
+              <th className="prize">Prize</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rankList}
+          </tbody>
+        </table>
       </div>
     )
   }

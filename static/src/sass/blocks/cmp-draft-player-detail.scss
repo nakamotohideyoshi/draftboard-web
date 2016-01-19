@@ -3,76 +3,166 @@
 
 .draft-player-detail {
 
-
-  &__tabs {
-    font-size: 12px;
-    padding: 25px 45px;
-    position: relative;
-    background: #fff;
-    z-index: 20;
-  }
-
-  .player-reports {
+  // Draft button + Salary section
+  .draft-salary {
     text-align: left;
 
-    .header {
-
+    .draft-status {
+      margin-left: 10%;
+      display: inline-block;
+      padding-top: 35px;
     }
 
-    .byline {
+    .draft-button {
+      cursor: pointer;
+      width: 50px;
+      height: 50px;
+      background: url('../img/blocks/draft-list/btn-add-large.png') no-repeat;
+      background-size: auto 50px;
+      text-indent: -9999px;
+      overflow: hidden;
+      border-radius: 25px;
+      box-shadow: 0px 0px 20px 1px rgba(27, 140, 67, 0.5);
+      &:hover {
+        opacity: .85;
+      }
 
+      &.remove {
+        background-position: top right;
+      }
     }
 
-    .title {
-
+    .salary {
+      color: #fff;
+      display: inline-block;
+      font-family: $font-oswald;
+      font-size: 25px;
+      font-weight: 100;
+      padding-left: 15px;
+      vertical-align: middle;
     }
-
-    .content {
-
-    }
-
   }
+
 
 
   .pane-lower {
-    padding: 20px 45px;
-
-    .tab-nav {
-      text-align: center;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: #b0b2c1;
-      padding-bottom: 40px;
-
-      ul {
-        padding: 0;
-        margin: 0;
-      }
-
-      li {
-        margin: 5px 20px;
-        display: inline-block;
-        cursor: pointer;
-
-        &:hover {
-          color: #262a3b;
-        }
-
-        &.active {
-          color: #262a3b;
-          border-bottom: 1px solid #e0e3eb;
-        }
-      }
+    .tabs {
+      padding: 40px 10%;
     }
 
-
-    // pane__content__tab_content
-    .tab-content {
-      thead tr th {
-        color: white;
+    .table {
+      td {
+        padding: 10px 2px;
       }
     }
   }
+
+
+  // The section tha shows the player's next game and which teams are playing.
+  .next-game {
+    padding: 25px 5px;
+    border-bottom: 1px solid #e1e2ea;
+    position: relative;
+
+    &:after {
+      background: #45505b;
+      color: #a9b0b6;
+      content: "Next Game";
+      display: inline-block;
+      font-size: 9px;
+      left: 50%;
+      margin-left: -40px;
+      padding: 3px 12px;
+      position: absolute;
+      text-transform: uppercase;
+      top: -10px;
+      letter-spacing: .1em;
+    }
+
+    .team {
+      // Default team name color. - These get overridden in team-names.scss
+      color: $primary-text;
+      display: inline-block;
+      min-width: 160px;
+      text-align: center;
+      text-transform: uppercase;
+      font-family: $font-oswald;
+      line-height: 1em;
+      padding: 0;
+      margin: 0;
+
+      .city {
+        display: block;
+        font-size: 9px;
+        font-weight: 100;
+        letter-spacing: .1em;
+      }
+
+      .name {
+        display: block;
+        font-size: 20px;
+        font-weight: 100;
+      }
+    }
+
+    .game-time {
+      display: inline-block;
+      min-width: 60px;
+      position: relative;
+      top: 10px;
+      vertical-align: top;
+
+      .time {
+        font-family: $font-open-sans;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: .1em;
+        position: relative;
+        text-transform: uppercase;
+        z-index: 2;
+      }
+
+      &:before {
+        color: #e4e7eb;
+        content: "@";
+        font-size: 60px;
+        font-weight: 100;
+        left: 0;
+        position: absolute;
+        top: -0.55em;
+        width: 100%;
+        z-index: 1;
+      }
+    }
+  }
+
+  // Player news report tab.
+  .player-reports {
+    text-align: left;
+
+    .byline {
+      color: #b0b2c1;
+      font-size: 11px;
+      font-style: normal;
+      padding-bottom: 5px;
+    }
+
+    .title {
+      color: #46495e;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 0px;
+    }
+
+    .content {
+      color: #6d718a;
+      font-size: 13px;
+    }
+
+    p {
+      color: #6d718a;
+    }
+  }
+
 
 }

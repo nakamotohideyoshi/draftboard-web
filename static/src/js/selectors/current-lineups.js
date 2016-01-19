@@ -38,6 +38,11 @@ function addPlayersDetails(lineup, draftGroup, boxScores, livePlayers) {
       info: draftGroup.playersInfo[playerId]
     }
 
+    // Exit if we don't have any player info.
+    if (!player.info) {
+      return
+    }
+
     const defaultStats = {
       fp: 0,
       minutesRemaining: GAME_DURATIONS.nba.gameMinutes,
