@@ -1,6 +1,7 @@
 #
 # contest/buyin/classes.py
 
+from django.conf import settings
 from mysite.classes import AbstractSiteUserClass
 from lineup.models import Lineup
 from ..exceptions import ContestLineupMismatchedDraftGroupsException, ContestIsInProgressOrClosedException, ContestIsFullException, ContestCouldNotEnterException, ContestMaxEntriesReachedException, ContestIsNotAcceptingLineupsException
@@ -17,6 +18,8 @@ import ticket.models
 import traceback
 import sys
 from django.db.models import F
+from contest.serializers import ContestSerializer
+from push.classes import ContestPush
 
 class BuyinManager(AbstractSiteUserClass):
     """
@@ -115,6 +118,10 @@ class BuyinManager(AbstractSiteUserClass):
         msg = "User["+self.user.username+"] bought into the contest #"\
                       +str(contest.pk)+" with entry #"+str(entry.pk)
         Logger.log(ErrorCodes.INFO, "Contest Buyin", msg )
+
+        #
+        # pusher contest updates because entries were changed
+        ContestPush(ContestSerializer(contest).data).send()
 
     def lineup_contest(self, contest, lineup=None):
         """

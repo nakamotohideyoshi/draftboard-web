@@ -149,6 +149,10 @@ class AbstractPush(object):
         self.channel    = PUSHER_CHANNEL_PREFIX + channel
         self.event      = None
 
+        # async indicates whether to use celery (if async == True)
+        # or block on the current thread to do the send.
+        self.async      = settings.DATADEN_ASYNC_UPDATES
+
     def send(self, data, async=False ):
         """
         uses the internal channel ( likely the sport name) and pushes the data out
@@ -173,13 +177,17 @@ class AbstractPush(object):
         if not isinstance( data, dict ):
             data = data.get_o()
         if async:
-            pusher_send_task.apply_async( (self, data), serializer='pickle' )
+            task_result = pusher_send_task.apply_async( (self, data), serializer='pickle' )
         else:
             # json.loads(json.dumps(data)) --> dumps json in a serialized form, so it can be re-loaded as a real json object
             # print( 'data:', str(data))
             # json_data = ast.literal_eval(data)
             # print( 'json_data:', json_data )
-            self.pusher.trigger( self.channel, self.event, data )
+            #self.pusher.trigger( self.channel, self.event, data )
+            self.trigger( data )
+
+    def trigger(self, data):
+        self.pusher.trigger( self.channel, self.event, data )
 
 class DataDenPush( AbstractPush ):
     """
@@ -204,12 +212,13 @@ class ContestPush( AbstractPush ):
 
     DEFAULT_EVENT = 'update'
 
-    def __init__(self, event=DEFAULT_EVENT):
+    def __init__(self, data):
         """
-        channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
-        event: the string name of the general type of the object, ie: 'player', or 'team'
+        :param data: serialized contest data (likely from ContestSerializer(contest).data
         """
-        super().__init__( PUSHER_CONTEST ) # init pusher object
+        super().__init__( PUSHER_CONTEST )
+        self.event = self.DEFAULT_EVENT
+        self.data = data
 
-        self.event      = event
-
+    def send(self):
+        super().send(self.data, async=self.async)

@@ -57,9 +57,6 @@ def recalculate_user_loyalty():
 #########################################################################
 # contests
 #########################################################################
-@app.task
-def update_contest_entries(contest_data):
-    ContestPush().send(contest_data, async=settings.DATADEN_ASYNC_UPDATES)
 
 #
 # check if we are getting within a few days of any contests
