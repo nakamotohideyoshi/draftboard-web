@@ -397,6 +397,7 @@ class SalaryGenerator(FppgGenerator):
         :param position_average_list:
         :return:
         """
+        print("postion_average_list keys:"+str(position_average_list.keys()))
         #
         # get all the roster spots for the sport and sum up the average
         # fantasy points for each spot * spot.amount
@@ -420,6 +421,8 @@ class SalaryGenerator(FppgGenerator):
             try:
                 sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
             except ZeroDivisionError:
+                print('repeated NoPlayersAtRosterSpotExceptions could indicate you '
+                      'have set the "Min FPPG Allowed for Avg Calc too high !!!!')
                 raise NoPlayersAtRosterSpotException()
 
         return sum_average_points
