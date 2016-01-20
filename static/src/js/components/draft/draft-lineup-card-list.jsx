@@ -1,10 +1,12 @@
 const React = require('react');
 const ReactRedux = require('react-redux');
 const store = require('../../store');
+import * as AppActions from '../../stores/app-state-store.js'
 var LineupCard = require('../lineup/lineup-card.jsx');
 var DraftNewLineupCard = require('./draft-new-lineup-card.jsx');
 var renderComponent = require('../../lib/render-component');
 import {LineupsByDraftGroupSelector} from '../../selectors/upcoming-lineups-by-draftgroup.js'
+import {setFocusedPlayer} from '../../actions/draft-group-players-actions.js'
 import {importLineup, saveLineup, saveLineupEdit, removePlayer, fetchUpcomingLineups,
   createLineupInit, createLineupViaCopy} from '../../actions/lineup-actions.js';
 var log = require("../../lib/logging");
@@ -36,7 +38,8 @@ var DraftLineupCardList = React.createClass({
     saveLineup: React.PropTypes.func,
     saveLineupEdit: React.PropTypes.func,
     importLineup: React.PropTypes.func,
-    params: React.PropTypes.object
+    params: React.PropTypes.object,
+    setFocusedPlayer: React.PropTypes.func
   },
 
 
@@ -65,6 +68,11 @@ var DraftLineupCardList = React.createClass({
     };
   },
 
+
+  handlePlayerClick: function(playerId) {
+    this.props.setFocusedPlayer(playerId)
+    AppActions.openPane();
+  },
 
 
   /**
@@ -111,6 +119,7 @@ var DraftLineupCardList = React.createClass({
           errorMessage={this.props.newLineup.errorMessage}
           removePlayer={this.props.removePlayer}
           saveLineup={this.handleSaveLineup}
+          handlePlayerClick={this.handlePlayerClick}
         />
 
         {lineups}
@@ -141,7 +150,8 @@ function mapDispatchToProps(dispatch) {
     removePlayer: (playerId) => dispatch(removePlayer(playerId)),
     saveLineup: (lineup, title, draftGroupId) => dispatch(saveLineup(lineup, title, draftGroupId)),
     saveLineupEdit: (lineup, title, lineupId) => dispatch(saveLineupEdit(lineup, title, lineupId)),
-    importLineup: (lineup) => dispatch(importLineup(lineup))
+    importLineup: (lineup) => dispatch(importLineup(lineup)),
+    setFocusedPlayer: (playerId) => dispatch(setFocusedPlayer(playerId))
   };
 }
 
