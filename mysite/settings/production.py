@@ -41,17 +41,6 @@ CACHES = {
     },
 }
 
-# Set django-lockdown to run on heroku for now
-USE_LOCKDOWN = os.environ.get('USE_LOCKDOWN', 'False') == 'True'
-if USE_LOCKDOWN:
-    INSTALLED_APPS += ('lockdown',)
-    MIDDLEWARE_CLASSES += ('lockdown.middleware.LockdownMiddleware',)
-    LOCKDOWN_PASSWORDS = (os.environ.get('LOCKDOWN_PASSWORD', 'False'),)
-    LOCKDOWN_URL_EXCEPTIONS = (
-        r'^/api/',
-        r'^/api-token-auth/',
-    )
-
 # Static assets, served via django-whitenoise
 STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
 
