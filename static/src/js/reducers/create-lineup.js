@@ -22,28 +22,27 @@ const rosterTemplates = {
     {idx: 4, name: 'WR', positions: ['WR'], player: null},
     {idx: 5, name: 'TE', positions: ['TE'], player: null},
     {idx: 6, name: 'FLEX', positions: ['RB','FB','WR','TE'], player: null},
-    {idx: 7, name: 'FLEX', positions: ['RB','FB','WR','TE'], player: null},
-    {idx: 8, name: 'DST', positions: ['DST'], player: null}
+    {idx: 7, name: 'FLEX', positions: ['RB','FB','WR','TE'], player: null}
   ],
   'nba': [
-    {idx: 0, name: 'PG', positions: ['PG'], player: null},
-    {idx: 1, name: 'SG', positions: ['SG'], player: null},
-    {idx: 2, name: 'SF', positions: ['SF'], player: null},
-    {idx: 3, name: 'PF', positions: ['PF'], player: null},
+    {idx: 0, name: 'G', positions: ['PG', 'SG'], player: null},
+    {idx: 1, name: 'G', positions: ['PG', 'SG'], player: null},
+    {idx: 2, name: 'F', positions: ['SF', 'PF'], player: null},
+    {idx: 3, name: 'F', positions: ['SF', 'PF'], player: null},
     {idx: 4, name: 'C', positions: ['C'], player: null},
     {idx: 5, name: 'FLEX', positions: ['PG','SG','SF','PF','C'], player: null},
     {idx: 6, name: 'FLEX', positions: ['PG','SG','SF','PF','C'], player: null},
     {idx: 7, name: 'FLEX', positions: ['PG','SG','SF','PF','C'], player: null}
   ],
   'nhl': [
-    {idx: 0, name: 'G', positions: ['G'], player: null},
-    {idx: 1, name: 'C', positions: ['C'], player: null},
-    {idx: 2, name: 'F', positions: ['LW', 'RW'], player: null},
-    {idx: 3, name: 'F', positions: ['LW', 'RW'], player: null},
+    {idx: 0, name: 'F', positions: ['C', 'LW', 'RW'], player: null},
+    {idx: 1, name: 'F', positions: ['C', 'LW', 'RW'], player: null},
+    {idx: 2, name: 'F', positions: ['C', 'LW', 'RW'], player: null},
+    {idx: 3, name: 'D', positions: ['D'], player: null},
     {idx: 4, name: 'D', positions: ['D'], player: null},
-    {idx: 5, name: 'D', positions: ['D'], player: null},
-    {idx: 6, name: 'FLEX', positions: ['PG','SG','SF','PF','C'], player: null},
-    {idx: 7, name: 'FLEX', positions: ['PG','SG','SF','PF','C'], player: null}
+    {idx: 5, name: 'FLEX', positions: ['C','D','LW','RW'], player: null},
+    {idx: 6, name: 'FLEX', positions: ['C','D','LW','RW'], player: null},
+    {idx: 7, name: 'G', positions: ['G'], player: null}
   ],
   'mlb': [
     {idx: 0, name: 'SP', positions: ['SP'], player: null},
