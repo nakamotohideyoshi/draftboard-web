@@ -126,6 +126,7 @@ class Game( DirtyFieldsMixin, models.Model ):
     STATUS_INPROGRESS = 'inprogress'
 
     created = models.DateTimeField(auto_now_add=True)
+    updated     = models.DateTimeField(auto_now=True)
 
     srid = models.CharField(max_length=64, unique=True, null=False,
                                 help_text='the sportsradar global id')
@@ -184,6 +185,7 @@ class Game( DirtyFieldsMixin, models.Model ):
 
 class GameBoxscore(models.Model):
     created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     srid_game   = models.CharField(max_length=64, null=False, unique=True, default=None,
                             help_text='the sportsradar global id for the game')
 
@@ -331,6 +333,7 @@ class PlayerStats(models.Model):
     SCORING_FIELDS = None # override as a list in child classes, ie: ['rebounds','assists']
 
     created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     srid_game   = models.CharField(max_length=64, null=False,
                             help_text='the sportsradar global id for the game')

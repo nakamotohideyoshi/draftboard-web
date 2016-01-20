@@ -30,7 +30,7 @@ class BoxscoreSerializer(sports.serializers.BoxscoreSerializer):
         model = GameBoxscore
 
         fields = sports.serializers.BoxscoreSerializer.PARENT_FIELDS + \
-                 ('clock','duration','lead_changes','quarter','times_tied')
+                 ('clock','duration','lead_changes','quarter','times_tied','updated')
 
 
 class GameSerializer(sports.serializers.GameSerializer):
@@ -40,7 +40,7 @@ class GameSerializer(sports.serializers.GameSerializer):
         model = Game
 
         fields = sports.serializers.GameSerializer.PARENT_FIELDS + \
-                 ('srid_home','srid_away','title')
+                 ('srid_home','srid_away','title','updated')
 
 class InjurySerializer(sports.serializers.InjurySerializer):
 
