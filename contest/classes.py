@@ -149,7 +149,7 @@ class ContestLineupManager(object):
         :param draft_group_players:
         :return:
         """
-        print( 'TODO - dont forget to cache the starter_map -- it cant be too fast!!')
+        #print( 'TODO - dont forget to cache the starter_map -- it cant be too fast!!')
         self.starter_map = {}
         now = timezone.now()
         for p in self.draft_group_players:
