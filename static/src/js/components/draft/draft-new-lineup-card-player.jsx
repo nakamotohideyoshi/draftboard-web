@@ -28,7 +28,7 @@ var DraftNewLineupCardPlayer = React.createClass({
             {names[0][0]}. {names[names.length - 1]}
             <span className="cmp-lineup-card__team">- {this.props.player.player.team_alias}</span>
           </span>
-          <span className="cmp-lineup-card__average">{this.props.player.player.fppg.toFixed(1)}</span>
+          <span className="cmp-lineup-card__average">${this.props.player.player.salary.toLocaleString('en')}</span>
           <span
             className="cmp-lineup-card__delete"
             onClick={this.props.removePlayer.bind(null, this.props.player.player.player_id)}
@@ -41,9 +41,9 @@ var DraftNewLineupCardPlayer = React.createClass({
       return (
         <li className="cmp-lineup-card__player vacant" key={this.props.player.idx}>
           <span className="cmp-lineup-card__position">{this.props.player.name}</span>
-          <span className="cmp-lineup-card__photo">👤</span>
-          <span className="cmp-lineup-card__name"></span>
-          <span className="cmp-lineup-card__average"></span>
+          <span className="cmp-lineup-card__photo-empty"><span className="photo"></span></span>
+          <span className="cmp-lineup-card__name">&nbsp;</span>
+          <span className="cmp-lineup-card__average">&nbsp;</span>
         </li>
       );
     }

@@ -1,3 +1,11 @@
+// Sentry error reporting.
+import Raven from 'raven-js';
+Raven.config('https://698f3f69f1e446cea667c680c4e1931b@app.getsentry.com/40103', {
+  // Whitelist all of our heroku instances.
+  whitelistUrls: [/draftboard-.*\.herokuapp\.com/]
+}).install();
+
+
 // Pull in the main scss file.
 require("app.scss");
 
@@ -13,7 +21,8 @@ if (window.dfs.wipeRedux === "1") {
 
 require('actions/keypress-actions');
 
-// Add top-level react components to the app, any dependencies of those components will be loaded also.
+// Add top-level react components to the app, any dependencies of those components will be loaded
+// also.
 require("components/account/deposits.jsx");
 require("components/account/settings.jsx");
 require("components/account/sidebar.jsx");

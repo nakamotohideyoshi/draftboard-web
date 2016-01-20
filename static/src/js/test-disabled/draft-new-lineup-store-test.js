@@ -121,25 +121,25 @@ describe("DraftNewLineupStore", function() {
   });
 
 
-  it('getAvgPlayerSalary() should return 0 if lineup is empty', function() {
-    expect(this.DraftNewLineupStore.getAvgPlayerSalary()).to.equal(0);
+  it('getAvgRemainingPlayerSalary() should return 0 if lineup is empty', function() {
+    expect(this.DraftNewLineupStore.getAvgRemainingPlayerSalary()).to.equal(0);
   });
 
 
-  it('getAvgPlayerSalary() should return the mean of player salaries.', function() {
+  it('getAvgRemainingPlayerSalary() should return the mean of player salaries.', function() {
     var player1Salary = this.DraftGroupStore.allPlayers[1].salary;
     var player2Salary = this.DraftGroupStore.allPlayers[2].salary;
 
     // are we starting at 0?
-    expect(this.DraftNewLineupStore.getAvgPlayerSalary()).to.equal(0);
+    expect(this.DraftNewLineupStore.getAvgRemainingPlayerSalary()).to.equal(0);
 
     // add a player + calculate.
     this.DraftNewLineupStore.addPlayer(this.DraftGroupStore.allPlayers[1].player_id);
-    expect(this.DraftNewLineupStore.getAvgPlayerSalary()).to.equal(player1Salary);
+    expect(this.DraftNewLineupStore.getAvgRemainingPlayerSalary()).to.equal(player1Salary);
 
     // add player2 + calculate.
     this.DraftNewLineupStore.addPlayer(this.DraftGroupStore.allPlayers[2].player_id);
-    expect(this.DraftNewLineupStore.getAvgPlayerSalary()).to.equal(
+    expect(this.DraftNewLineupStore.getAvgRemainingPlayerSalary()).to.equal(
       (player1Salary + player2Salary) / 2
     );
   });

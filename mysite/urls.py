@@ -77,6 +77,8 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     # JWT support.
     url(r'^api-token-auth/', 'rest_framework_jwt.views.obtain_jwt_token'),
+    url(r'^api-token-refresh/', 'rest_framework_jwt.views.refresh_jwt_token'),
+    url(r'^api-token-verify/', 'rest_framework_jwt.views.verify_jwt_token'),
 
     url(r'^', include('account.urls_non_api')),
 ]
