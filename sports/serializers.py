@@ -79,7 +79,7 @@ class PlayerStatsSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = PlayerStats
-        fields = ('game_id', 'player_id','fantasy_points')
+        fields = ('game_id', 'player_id','fantasy_points','updated')
 
 class InjurySerializer(serializers.ModelSerializer):
     """

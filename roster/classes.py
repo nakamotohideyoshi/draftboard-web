@@ -53,9 +53,19 @@ class Initial(object):
     rosters for the sport exist.
     """
 
+
     # new rosters as of Jan 19th - 2016
-    # NBA
+    # NBA:
     # G G F F C Fx Fx Fx
+    # NEW_ROSTER_MAP_NBA = {
+    #     ('G',2,0,True)      :['PG','SG'],
+    #     ('SG',1,1,True)     :['SG'],
+    #     ('SF',1,2,True)     :['SF'],
+    #     ('PF',1,3,True)     :['PF'],
+    #     ('C',1,4,True)      :['C'],                             #    center
+    #     ('FX',3,5,False)    :['PG','SG','SF','PF','C'],         # x3 flex
+    # }
+
     #
     # MLB
     # P, C, 1B, 2B, 3B, SS, OF, OF, OF
