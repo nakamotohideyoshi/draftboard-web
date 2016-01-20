@@ -1,6 +1,9 @@
 // Sentry error reporting.
 import Raven from 'raven-js';
-Raven.config('https://698f3f69f1e446cea667c680c4e1931b@app.getsentry.com/40103').install();
+Raven.config('https://698f3f69f1e446cea667c680c4e1931b@app.getsentry.com/40103', {
+  // Whitelist all of our heroku instances.
+  whitelistUrls: [/draftboard-.*\.herokuapp\.com/]
+}).install();
 
 
 // Pull in the main scss file.
