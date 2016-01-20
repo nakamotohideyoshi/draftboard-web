@@ -18,7 +18,8 @@ var DraftNewLineupCard = React.createClass({
     remainingSalary: React.PropTypes.number,
     avgRemainingPlayerSalary: React.PropTypes.number,
     errorMessage: React.PropTypes.string,
-    saveLineup: React.PropTypes.func
+    saveLineup: React.PropTypes.func,
+    handlePlayerClick: React.PropTypes.func
   },
 
 
@@ -75,6 +76,7 @@ var DraftNewLineupCard = React.createClass({
           player={player}
           key={player.idx}
           removePlayer={this.props.removePlayer}
+          onPlayerClick={this.props.handlePlayerClick}
         />
       );
     }.bind(this));
@@ -103,7 +105,7 @@ var DraftNewLineupCard = React.createClass({
         </header>
 
         <div className="cmp-lineup-card__list-header">
-          <span className="cmp-lineup-card__list-header-average">Salary</span>
+          <span className="cmp-lineup-card__list-header-average">Avg</span>
         </div>
 
         <ul className="players">
