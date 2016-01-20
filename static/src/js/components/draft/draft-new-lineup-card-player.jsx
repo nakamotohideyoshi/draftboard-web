@@ -1,6 +1,7 @@
 'use strict';
 
 var React = require('react');
+import {roundUpToDecimalPlace} from '../../lib/utils.js'
 
 
 /**
@@ -12,7 +13,8 @@ var DraftNewLineupCardPlayer = React.createClass({
     // A player row object.
     player: React.PropTypes.object.isRequired,
     // What happens when the delete button is clicked.
-    removePlayer: React.PropTypes.func.isRequired
+    removePlayer: React.PropTypes.func.isRequired,
+    onPlayerClick: React.PropTypes.func
   },
 
 
@@ -24,11 +26,22 @@ var DraftNewLineupCardPlayer = React.createClass({
         <li className="cmp-lineup-card__player occupied" key={this.props.player.idx}>
           <span className="cmp-lineup-card__position">{this.props.player.name}</span>
           <span className="cmp-lineup-card__photo">😀</span>
-          <span className="cmp-lineup-card__name">
-            {names[0][0]}. {names[names.length - 1]}
-            <span className="cmp-lineup-card__team">- {this.props.player.player.team_alias}</span>
+
+          <span
+            className="cmp-lineup-card__name-salary"
+            onClick={this.props.onPlayerClick.bind(null, this.props.player.player.player_id)}
+          >
+            <span className="name">
+              {names[0][0]}. {names[names.length - 1]}
+              <span className="cmp-lineup-card__team">- {this.props.player.player.team_alias}</span>
+            </span>
+            <span className="salary">${this.props.player.player.salary.toLocaleString('en')}</span>
           </span>
-          <span className="cmp-lineup-card__average">${this.props.player.player.salary.toLocaleString('en')}</span>
+
+          <span className="cmp-lineup-card__average">
+            {roundUpToDecimalPlace(this.props.player.player.fppg, 1)}
+          </span>
+
           <span
             className="cmp-lineup-card__delete"
             onClick={this.props.removePlayer.bind(null, this.props.player.player.player_id)}

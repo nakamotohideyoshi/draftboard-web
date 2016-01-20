@@ -228,6 +228,7 @@ category: Lineup
   }
 
   &__position {
+    text-align: center;
     font-size: 9px;
     font-weight: 600;
   }
@@ -240,6 +241,8 @@ category: Lineup
   &__photo-empty {
     padding: 0 5px !important;
     vertical-align: bottom;
+    position: relative;
+    top: 5px;
 
     .photo {
       display: block;
@@ -257,6 +260,7 @@ category: Lineup
 
   &__average {
     font-family: $font-oswald;
+    line-height: 1em;
   }
 
   &__delete {
@@ -271,7 +275,7 @@ category: Lineup
 
     .icon {
       position: relative;
-      top: 5px;
+      top: 0px;
       background: url(../img/blocks/lineup-card/icon-delete.png) no-repeat;
       background-size: 23px auto;
       height: 23px;
@@ -279,16 +283,22 @@ category: Lineup
     }
   }
 
+
+  // Footer section.
   &__footer {
     padding: 15px;
   }
 
   &__footer-section {
       display: inline-block;
-      width: 33%;
+      width: 50%;
       text-align: center;
       font-size: 18px;
       font-family: $font-oswald;
+
+      &:first-child {
+        border-right: 1px solid #ebedf2;
+      }
   }
 
   &__footer-title {
@@ -424,6 +434,14 @@ category: Lineup
     background-size: 100% auto;
     min-height: 450px;
   }
+
+  &__footer {
+    padding: 0 15px;
+
+    &-section {
+      padding: 15px;
+    }
+  }
 }
 
 
@@ -433,6 +451,11 @@ category: Lineup
 .cmp-lineup-card--new {
 
   .cmp-lineup-card {
+
+    &__player > span {
+      padding: 5px;
+      vertical-align: middle;
+    }
 
     &__header {
       padding-bottom: 0;
@@ -493,7 +516,6 @@ category: Lineup
       }
     }
 
-
     // Player row
     &__player {
       // With a player.
@@ -513,12 +535,34 @@ category: Lineup
         }
       }
 
-
       // an empty player row.
       &.vacant {
 
       }
     }
+
+
+    &__name-salary {
+      padding: 5px;
+      vertical-align: top;
+      font-size: 12px;
+
+      .name:hover {
+        cursor: pointer;
+        text-decoration: underline;
+      }
+
+      .salary {
+        color: #9c9faf;
+        display: block;
+        font-size: 9px;
+      }
+    }
+
+    &__team {
+      color: #9c9faf;
+    }
+
   }
 }
 
