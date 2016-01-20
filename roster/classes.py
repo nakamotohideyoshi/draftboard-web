@@ -57,34 +57,34 @@ class Initial(object):
     # new rosters as of Jan 19th - 2016
     # NBA:
     # G G F F C Fx Fx Fx
-    # NEW_ROSTER_MAP_NBA = {
-    #     ('G',2,0,True)      :['PG','SG'],
-    #     ('SG',1,1,True)     :['SG'],
-    #     ('SF',1,2,True)     :['SF'],
-    #     ('PF',1,3,True)     :['PF'],
-    #     ('C',1,4,True)      :['C'],                             #    center
-    #     ('FX',3,5,False)    :['PG','SG','SF','PF','C'],         # x3 flex
-    # }
+    # sportradar types:
+    # {'SG', 'C', 'PF', 'SF', 'PG'}
+    DEFAULT_ROSTER_MAP_NBA = {
+        ('G',2,0,True)      :['PG','SG'],
+        ('F',2,2,True)      :['PF','SF'],
+        ('C',1,4,True)      :['C'],
+        ('FX',3,5,False)    :['PG','SG','PF','SF','C'],         # x3 flex
+    }
 
-    #
-    # MLB
-    # P, C, 1B, 2B, 3B, SS, OF, OF, OF
-    #
-    # NHL
-    # F F F D D Fx Fx G
-    #
     # NFL
     # QB RB RB WR WR TE Fx Fx
-
+    # sportradar types: nfl
+    # {'DST', 'OLB', 'OG', 'SAF', 'NT', 'G', 'OT', 'OL', 'P', 'MLB',
+    # 'K', 'LB', 'C', 'CB', 'DE', 'SS', 'DB', 'FS', 'T', 'WR', 'QB',
+    # 'FB', 'DT', 'LS', 'TE', 'RB'}
     DEFAULT_ROSTER_MAP_NFL = {
         ('QB',1,0,True)     :['QB'],
         ('RB',2,1,True)     :['RB','FB'],
         ('WR',2,3,True)     :['WR'],
         ('TE',1,5,True)     :['TE'],
-        ('FLEX',2,6,False)  :['RB','FB','WR','TE'],
-        ('DST',1,8,True)    :['DST']
+        ('FX',2,6,False)    :['RB','FB','WR','TE'],
+        #('DST',1,8,True)    :['DST'] # dst was removed from the initial rosters
     }
 
+    #
+    # MLB
+    # P, C, 1B, 2B, 3B, SS, OF, OF, OF
+    # sportradar types: 'RP', 'DH', 'C', 'RF', '2B', '1B', 'LF', 'CF', '3B', 'SP', 'SS'
     DEFAULT_ROSTER_MAP_MLB = {
         ('SP',2,0,True)     :['SP'],                    # x2 starting pitchers
         ('C',1,2,True)      :['C'],
@@ -95,22 +95,34 @@ class Initial(object):
         ('OF',3,7,True)     :['LF','CF','RF'],          # x3 outfield
     }
 
+    #
+    # NHL
+    # F F F D D Fx Fx G
     DEFAULT_ROSTER_MAP_NHL = {
-        ('G',1,0,True)      :['G'],                 #    goalie
-        ('C',1,1,True)      :['C'],                 #    center
-        ('F',2,2,True)      :['LW','RW'],           # x2 forwards
-        ('D',2,4,True)      :['D'],                 # x2 defense
-        ('FX',2,6,False)    :['C','D','LW','RW'],   # x2 flex
+        ('F',3,0,True)      :['C','LW','RW'],       # x3 forwards
+        ('D',2,3,True)      :['D'],                 # x2 defense
+        ('FX',2,5,False)    :['C','D','LW','RW'],   # x2 flex
+        ('G',1,7,True)      :['G'],                 # x1 goalie
     }
 
-    DEFAULT_ROSTER_MAP_NBA = {
-        ('PG',1,0,True)     :['PG'],
-        ('SG',1,1,True)     :['SG'],
-        ('SF',1,2,True)     :['SF'],
-        ('PF',1,3,True)     :['PF'],
-        ('C',1,4,True)      :['C'],                             #    center
-        ('FX',3,5,False)    :['PG','SG','SF','PF','C'],         # x3 flex
-    }
+    # deprecated: this was the original nhl roster
+    # DEFAULT_ROSTER_MAP_NHL = {
+    #     ('G',1,0,True)      :['G'],                 #    goalie
+    #     ('C',1,1,True)      :['C'],                 #    center
+    #     ('F',2,2,True)      :['LW','RW'],           # x2 forwards
+    #     ('D',2,4,True)      :['D'],                 # x2 defense
+    #     ('FX',2,6,False)    :['C','D','LW','RW'],   # x2 flex
+    # }
+
+    # deprecated: this was the original we were going to use
+    # DEFAULT_ROSTER_MAP_NBA = {
+    #     ('PG',1,0,True)     :['PG'],
+    #     ('SG',1,1,True)     :['SG'],
+    #     ('SF',1,2,True)     :['SF'],
+    #     ('PF',1,3,True)     :['PF'],
+    #     ('C',1,4,True)      :['C'],                             #    center
+    #     ('FX',3,5,False)    :['PG','SG','SF','PF','C'],         # x3 flex
+    # }
 
     ROSTERS = {
         'nfl' : DEFAULT_ROSTER_MAP_NFL,
