@@ -1,6 +1,7 @@
 from os import environ
 from sys import stdout
 from unipath import Path
+import datetime
 
 from django.core.exceptions import ImproperlyConfigured
 
@@ -218,6 +219,14 @@ REST_FRAMEWORK = {
 
     'DEFAULT_PAGINATION_CLASS': None
     #'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
+}
+
+# JWT Settings
+JWT_AUTH = {
+    'JWT_VERIFY_EXPIRATION': True,
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=30),
+    'JWT_ALLOW_REFRESH': True,
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=30)
 }
 
 # Django installs
@@ -438,3 +447,16 @@ DATADEN_ASYNC_UPDATES   = True  # uses celery for signaling stat updates from tr
 # DATETIME_DELTA_SECONDS_KEY is the key in the cache for the delta seconds timeshift on timezone.now()
 DATETIME_DELTA_ENABLE       = False    # dont change in base.py,   change to True in local.py, etc...
 DATETIME_DELTA_SECONDS_KEY  = 'DATETIME_DELTA_SECONDS_KEY'
+
+
+# Set django-lockdown to run on heroku for now
+USE_LOCKDOWN = os.environ.get('USE_LOCKDOWN', 'False') == 'True'
+if USE_LOCKDOWN:
+    INSTALLED_APPS += ('lockdown',)
+    MIDDLEWARE_CLASSES += ('lockdown.middleware.LockdownMiddleware',)
+    LOCKDOWN_PASSWORDS = (os.environ.get('LOCKDOWN_PASSWORD', 'False'),)
+    LOCKDOWN_URL_EXCEPTIONS = (
+        r'^/api/',
+        r'^/api-token-auth/',
+        r'^/api-token-refresh/',
+    )
