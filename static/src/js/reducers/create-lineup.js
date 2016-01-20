@@ -7,7 +7,7 @@ const initialState = {
   lineupTitle: null,
   lineup: [],
   remainingSalary: 0,
-  avgPlayerSalary: 0,
+  avgRemainingPlayerSalary: 0,
   contestSalaryLimit: 0,
   availablePositions: []
 }
@@ -134,14 +134,13 @@ const getRemainingSalary = function(state) {
 
 
 /**
- * Find the average player salary.
+ * Find the average remaining salary per available slots.
  * @return {Inteter} The average player salary, rounded down to the nearest Int.
  */
-const getAvgPlayerSalary = function(state) {
-  var playerCount = getPlayerCount(state);
-
-  if (playerCount > 0) {
-    return Math.floor(getTotalSalary(state) / playerCount);
+const getAvgRemainingPlayerSalary = function(state) {
+  var EmptySlotCount = getAvailableLineupSlots(state).length;
+    if (EmptySlotCount > 0) {
+    return Math.floor(getRemainingSalary(state) / EmptySlotCount);
   }
 
   return 0;
@@ -269,11 +268,11 @@ module.exports = function(state = initialState, action) {
       let newState = _merge({}, state, {
         lineup: rosterTemplates[action.sport],
         remainingSalary: salaryCaps[action.sport],
-        contestSalaryLimit: salaryCaps[action.sport],
-        avgPlayerSalary: 0
+        contestSalaryLimit: salaryCaps[action.sport]
       })
       // After the state has a roster, find it's open positions.
       newState.availablePositions = findAvailablePositions(newState)
+      newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState)
       return newState
 
 
@@ -290,7 +289,7 @@ module.exports = function(state = initialState, action) {
         else {
           _merge({}, state, {lineup: updatedLineup, errorMessage: null})
           let newState = _merge({}, state, {
-            avgPlayerSalary:  getAvgPlayerSalary(state),
+            avgRemainingPlayerSalary:  getAvgRemainingPlayerSalary(state),
             remainingSalary: getRemainingSalary(state),
             errorMessage: null
           })
@@ -306,7 +305,7 @@ module.exports = function(state = initialState, action) {
         errorMessage: null
       });
       removePlayer(action.playerId, newState)
-      newState.avgPlayerSalary = getAvgPlayerSalary(newState)
+      newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState)
       newState.remainingSalary = getRemainingSalary(newState)
       newState.availablePositions = findAvailablePositions(newState)
       return newState;
