@@ -16,7 +16,7 @@ var DraftNewLineupCard = React.createClass({
     lineupTitle: React.PropTypes.string,
     removePlayer: React.PropTypes.func.isRequired,
     remainingSalary: React.PropTypes.number,
-    avgPlayerSalary: React.PropTypes.number,
+    avgRemainingPlayerSalary: React.PropTypes.number,
     errorMessage: React.PropTypes.string,
     saveLineup: React.PropTypes.func
   },
@@ -26,7 +26,7 @@ var DraftNewLineupCard = React.createClass({
     return {
         lineup: [],
         remainingSalary: 0,
-        avgPlayerSalary: 0,
+        avgRemainingPlayerSalary: 0,
         errorMessage: ''
     };
   },
@@ -103,7 +103,7 @@ var DraftNewLineupCard = React.createClass({
         </header>
 
         <div className="cmp-lineup-card__list-header">
-          <span className="cmp-lineup-card__list-header-average">avg</span>
+          <span className="cmp-lineup-card__list-header-average">Salary</span>
         </div>
 
         <ul className="players">
@@ -117,7 +117,7 @@ var DraftNewLineupCard = React.createClass({
           </div>
           <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
             <span className="cmp-lineup-card__footer-title">Avg / Player</span>
-            ${this.props.avgPlayerSalary.toLocaleString('en')}
+            ${this.props.avgRemainingPlayerSalary.toLocaleString('en')}
           </div>
         </footer>
       </div>
