@@ -224,7 +224,7 @@ class ContestLineupManager(object):
         """
 
         size = struct.calcsize( fmt )
-        print('<size so far>', str(size), 'raw:', str(bytes))
+        #print('<size so far>', str(size), 'raw:', str(bytes))
         struct.pack_into( fmt, bytes, offset, val )
         new_offset = offset + size
         return (new_offset, bytes)
