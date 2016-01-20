@@ -7,9 +7,9 @@ from django.utils.html import format_html
 import contest.schedule.models
 import contest.schedule.forms
 
-# @admin.register(contest.schedule.models.Category)
-# class CategoryAdmin(admin.ModelAdmin):
-#     list_display = ['created','name']
+@admin.register(contest.schedule.models.Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['created','name']
 
 @admin.register(contest.schedule.models.Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
@@ -102,9 +102,9 @@ class ScheduledTemplateContestAdmin(admin.ModelAdmin):
         'multiplier',
     ]
 
-# @admin.register(contest.schedule.models.Interval)
-# class IntervalAdmin(admin.ModelAdmin):
-#
-#     list_display = [
-#         'monday','tuesday','wednesday','thursday','friday','saturday','sunday'
-#     ]
+@admin.register(contest.schedule.models.Interval)
+class IntervalAdmin(admin.ModelAdmin):
+
+    list_display = [
+        'monday','tuesday','wednesday','thursday','friday','saturday','sunday'
+    ]
