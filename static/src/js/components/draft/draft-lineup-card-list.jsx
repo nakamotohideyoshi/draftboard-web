@@ -84,7 +84,7 @@ var DraftLineupCardList = React.createClass({
 
 
   handleSaveLineup: function(title) {
-    if (this.props.params.action === 'edit') {
+    if (this.props.params.lineupAction === 'edit') {
       this.props.saveLineupEdit(this.props.newLineup.lineup, title, this.props.params.lineupId)
     } else {
       this.props.saveLineup(this.props.newLineup.lineup, title, this.props.draftGroupId)
@@ -93,6 +93,7 @@ var DraftLineupCardList = React.createClass({
 
 
   render: function() {
+    console.info(this.props.params)
     var lineups = _map(this.props.lineups, function(lineup) {
       var refName = 'lineup-' + lineup.id;
       return (

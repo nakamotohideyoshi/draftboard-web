@@ -261,6 +261,7 @@ category: Lineup
   &__average {
     font-family: $font-oswald;
     line-height: 1em;
+    min-width: 33px;
   }
 
   &__delete {
@@ -291,14 +292,10 @@ category: Lineup
 
   &__footer-section {
       display: inline-block;
-      width: 50%;
+      width: 33%;
       text-align: center;
       font-size: 18px;
       font-family: $font-oswald;
-
-      &:first-child {
-        border-right: 1px solid #ebedf2;
-      }
   }
 
   &__footer-title {
@@ -563,6 +560,31 @@ category: Lineup
       color: #9c9faf;
     }
 
+  }
+
+  // Footer section - create card.
+  .cmp-lineup-card__footer {
+    padding: 0;
+  }
+
+  .cmp-lineup-card__footer-section {
+      display: inline-block;
+      width: 50%;
+      text-align: center;
+      font-size: 18px;
+      font-family: $font-oswald;
+
+      &:first-child {
+        border-right: 1px solid #ebedf2;
+      }
+  }
+
+  .cmp-lineup-card__footer-title {
+    font-family: $font-open-sans;
+    color: #b4b7c4;
+    text-transform: uppercase;
+    font-size: 9px;
+    display: block;
   }
 }
 
