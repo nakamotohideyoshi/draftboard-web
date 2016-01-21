@@ -112,7 +112,7 @@
 
     <div style="float: left; width: 1500px;">
         <h3>Flat Cash Prize Structure Generator</h3>
-        <form action="/prize/flat/" method="post">
+        <form action="/api/prize/flat/" method="post">
         {% csrf_token %}
         {{ form.as_ul }}
         <input type="submit" value="Submit" />
