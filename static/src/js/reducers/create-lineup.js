@@ -206,11 +206,11 @@ const canAddPlayer = function(player, state) {
   }
 
   // Check if there is room in the salary cap.
-  if (getTotalSalary(state) + player.salary > state.contestSalaryLimit) {
-    console.error('Player exceeds maximum salary.')
-    state.errorMessage = 'Player exceeds maximum salary'
-    return false
-  }
+  // if (getTotalSalary(state) + player.salary > state.contestSalaryLimit) {
+  //   console.error('Player exceeds maximum salary.')
+  //   state.errorMessage = 'Player exceeds maximum salary'
+  //   return false
+  // }
 
   // Check if there is a valid slot for the player.
   if (!isSlotAvailableForPlayer(player, state)) {

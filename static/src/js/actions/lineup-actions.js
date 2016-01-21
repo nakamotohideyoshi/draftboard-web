@@ -204,7 +204,6 @@ export function saveLineup(lineup, title, draftGroupId) {
       var postData = {
         name: title || '',
         players: playerIds,
-        // Grab the current draftGroupId from the DraftGroupStore.
         draft_group: draftGroupId
       };
 
@@ -228,17 +227,46 @@ export function saveLineup(lineup, title, draftGroupId) {
 }
 
 
+
 /**
- * Once a lineup is edited, save it.
- * @param  {[type]} lineup   [description]
- * @param  {[type]} title    [description]
- * @param  {[type]} lineupId [description]
- * @param  {[type]} getState [description]
- * @return {[type]}          [description]
+ * Save an already existing lineup.
+ * @param  {[type]} lineup       [description]
+ * @param  {[type]} title        [description]
+ * @return {[type]}              [description]
  */
 export function saveLineupEdit(lineup, title, lineupId) {
-  return (dispatch, getState) => {
-    console.log('saveLineupEdit', lineup, title, lineupId)
+  console.log('saveLineupEdit', lineup, title, lineupId)
+  return (dispatch) => {
+    if (!isValidLineup(lineup)) {
+      return dispatch(saveLineupFail('lineup is not valid'))
+    }
+    else {
+      // Build an array of player_ids.
+      var playerIds = lineup.map(function(slot) {
+        return slot.player.player_id;
+      });
+
+      var postData = {
+        name: title || '',
+        players: playerIds
+      };
+
+      request.post('/api/lineup/edit/')
+        .set({
+          'X-REQUESTED-WITH':  'XMLHttpRequest',
+          'X-CSRFToken': Cookies.get('csrftoken'),
+          'Accept': 'application/json'
+        })
+        .send(postData)
+        .end(function(err, res) {
+          if(err) {
+            dispatch(saveLineupFail(res.body))
+          } else {
+            // Upon save success, send user to the lobby.
+            document.location.href = '/lobby/?lineup-saved=true';
+          }
+      });
+    }
   }
 }
 

@@ -85,9 +85,6 @@ var ContestListDetail = React.createClass({
       case 'prizes':
         return (<PrizeStructure structure={this.props.contestInfo.prizeStructure} />)
 
-      case 'scoring':
-        return 'scoring tab'
-
       case 'games':
         if (this.props.boxScores.hasOwnProperty(this.props.contestInfo.contest.id)) {
           return (
@@ -122,7 +119,6 @@ var ContestListDetail = React.createClass({
   getTabNav: function() {
     const tabs = [
       {title: 'Payout', tab: 'prizes'},
-      {title: 'Scoring', tab: 'scoring'},
       {title: 'Games', tab: 'games'},
       {title: 'Entries', tab: 'entries'}
     ]
