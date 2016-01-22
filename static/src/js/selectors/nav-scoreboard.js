@@ -42,14 +42,17 @@ export const navScoreboardSelector = createSelector(
     let resultDraftGroups = {}
 
     // if the sport data has loaded
-    if (sports.hasOwnProperty('nba') && sports.nba.isFetching === false) {
+    if (sports.nba.isFetchingTeams === false &&
+        sports.nba.isFetchingGames === false) {
+
       const teams = sports.nba.teams
+      const games = sports.nba.games
 
       // TODO make this dynamic based on schedule API response
       resultDraftGroups = {
         'nba': {
           sport: 'nba',
-          boxScores: _.mapValues(boxScores, (game, id) => {
+          boxScores: _.mapValues(games, (game, id) => {
             let newGame = Object.assign({}, game)
 
             // get team information

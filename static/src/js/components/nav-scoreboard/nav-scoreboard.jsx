@@ -15,7 +15,7 @@ import { addEvent } from '../../actions/live-game-queues'
 import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
 import { fetchDraftGroupStats } from '../../actions/live-draft-groups'
 import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
-import { updateBoxScore } from '../../actions/current-box-scores'
+import { updateGame } from '../../actions/sports'
 import {fetchEntriesIfNeeded} from '../../actions/entries'
 import {fetchEntries} from '../../actions/entries'
 import {fetchUser} from '../../actions/user'
@@ -36,13 +36,12 @@ import {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} from './nav-scoreboard-const.jsx
 const NavScoreboard = React.createClass({
 
   propTypes: {
-    boxScores: React.PropTypes.object.isRequired,
     navScoreboardStats: React.PropTypes.object.isRequired,
     fetchDraftGroupStats: React.PropTypes.func,
     fetchEntriesIfNeeded: React.PropTypes.func,
     fetchEntries: React.PropTypes.func,
     liveDraftGroups: React.PropTypes.object.isRequired,
-    updateBoxScore: React.PropTypes.func,
+    updateGame: React.PropTypes.func,
     addEvent: React.PropTypes.func
   },
 
@@ -69,8 +68,9 @@ const NavScoreboard = React.createClass({
     const channelPrefix = window.dfs.user.pusher_channel_prefix.toString()
     const boxscoresChannel = pusher.subscribe(channelPrefix + 'boxscores')
     boxscoresChannel.bind('team', (eventData) => {
-      if (eventData.game__id in self.props.boxScores && 'points' in eventData) {
-        self.props.updateBoxScore(
+      if (eventData.game__id in self.props.navScoreboardStats.gamesByDraftGroup.nba && 'points' in eventData) {
+        self.props.updateGame(
+          'nba',
           eventData.game__id,
           eventData.id,
           eventData.points
@@ -270,7 +270,6 @@ const NavScoreboard = React.createClass({
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    boxScores: state.currentBoxScores,
     navScoreboardStats: navScoreboardSelector(state),
     liveDraftGroups: state.liveDraftGroups
   }
@@ -280,7 +279,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     addEvent: (gameId, event) => dispatch(addEvent(gameId, event)),
-    updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
+    updateGame: (sport, gameId, teamId, points) => dispatch(updateGame(sport, gameId, teamId, points)),
     fetchDraftGroupStats: (draftGroupId) => dispatch(fetchDraftGroupStats(draftGroupId)),
     fetchEntriesIfNeeded: () => dispatch(fetchEntriesIfNeeded()),
     fetchEntries: () => dispatch(fetchEntries())

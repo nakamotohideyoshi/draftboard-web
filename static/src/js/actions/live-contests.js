@@ -11,6 +11,7 @@ import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
 import { fetchDraftGroupIfNeeded } from './live-draft-groups'
 import { fetchPrizeIfNeeded } from './prizes'
+import { fetchGamesIfNeeded } from './sports'
 
 
 // INTERNAL HELPER METHODS ----------------------------------------------
@@ -325,9 +326,11 @@ export function fetchRelatedContestInfo(id) {
     const contestInfo = getState().liveContests[id].info
     const draftGroupId = contestInfo.draft_group
     const prizeId = contestInfo.prize_structure
+    const sport = contestInfo.sport
 
     return Promise.all([
       dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
+      dispatch(fetchGamesIfNeeded(sport)),
       dispatch(fetchPrizeIfNeeded(prizeId))
     ]).then(() =>
       dispatch(confirmRelatedContestInfo(id))
