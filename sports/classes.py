@@ -55,6 +55,7 @@ import sports.nhl.models
 import sports.nba.models
 import sports.mlb.models
 
+
 class AbstractGameManager(object):
     """
     Parent class with common behavior of GameManager classes.
@@ -118,6 +119,18 @@ class SiteSportManager(object):
         super().__init__()
         self.sports = []
 
+    @staticmethod
+    def buildSpecialAliasMetaClass(class_string, class_name, prefix):
+        '''
+        Builds a Dynamic Class for Aliasing any Class to work with Swagger
+        :param class_string:
+        :param class_name:
+        :param prefix:
+        :return:
+        '''
+        newClassName = "{0}{1}".format(prefix.upper(), class_name)
+        my_class = eval(class_string)
+        return type(newClassName, (my_class,), {})
     @staticmethod
     def get_site_sport(sport):
         """
@@ -355,6 +368,8 @@ class SiteSportManager(object):
             # finish it by adding the game data to the return data dict
             data[ game.srid ] = inner_data
         #
+
+
         return data
 
     def get_game_boxscore_class(self, sport):
@@ -409,7 +424,8 @@ class SiteSportManager(object):
         sport = self.__get_site_sport_from_str(sport)
         self.__check_sport(sport)
         try:
-            return eval( 'sports.%s.serializers.GameSerializer' % sport.name)
+            class_string = 'sports.%s.serializers.GameSerializer' % sport.name
+            return SiteSportManager.buildSpecialAliasMetaClass(class_string, "GameSerializer", sport.name)
         except:
             #
             raise GameSerializerClassNotFoundException(type(self).__name__, sport)
@@ -425,7 +441,8 @@ class SiteSportManager(object):
         self.__check_sport(sport)
 
         try:
-            return eval( 'sports.%s.serializers.BoxscoreSerializer' % sport.name)
+            class_string = 'sports.%s.serializers.BoxscoreSerializer' % sport.name
+            return SiteSportManager.buildSpecialAliasMetaClass(class_string, "BoxscoreSerializer", sport.name)
         except:
             # by default raise an exception if we couldnt return a game class
             raise BoxscoreSerializerClassNotFoundException(type(self).__name__, sport)
@@ -441,7 +458,8 @@ class SiteSportManager(object):
         self.__check_sport(sport)
 
         try:
-            return eval( 'sports.%s.serializers.TeamSerializer' % sport.name)
+            class_string = 'sports.%s.serializers.TeamSerializer' % sport.name
+            return SiteSportManager.buildSpecialAliasMetaClass(class_string, "TeamSerializer", sport.name)
         except:
             # by default raise an exception if we couldnt return a game class
             raise TeamSerializerClassNotFoundException(type(self).__name__, sport)
@@ -457,7 +475,8 @@ class SiteSportManager(object):
         self.__check_sport(sport)
 
         try:
-            return eval( 'sports.%s.serializers.PlayerSerializer' % sport.name)
+            class_string = 'sports.%s.serializers.PlayerSerializer' % sport.name
+            return SiteSportManager.buildSpecialAliasMetaClass(class_string, "PlayerSerializer", sport.name)
         except:
             # by default raise an exception if we couldnt return a game class
             raise PlayerSerializerClassNotFoundException(type(self).__name__, sport)
@@ -472,8 +491,8 @@ class SiteSportManager(object):
         self.__check_sport(sport)
 
         try:
-            return eval( 'sports.%s.serializers.InjurySerializer' % sport.name)
-
+            class_string = 'sports.%s.serializers.InjurySerializer' % sport.name
+            return SiteSportManager.buildSpecialAliasMetaClass(class_string, "InjurySerializer", sport.name)
         except:
 
 
@@ -487,7 +506,8 @@ class SiteSportManager(object):
         self.__check_sport(sport)
 
         try:
-            return eval( 'sports.%s.serializers.FantasyPointsSerializer' % sport.name)
+            class_string = 'sports.%s.serializers.FantasyPointsSerializer' % sport.name
+            return SiteSportManager.buildSpecialAliasMetaClass(class_string, "FantasyPointsSerializer", sport.name)
         except:
             # by default raise an exception if we couldnt return a game class
             raise InjurySerializerClassNotFoundException(type(self).__name__, sport)
@@ -499,7 +519,8 @@ class SiteSportManager(object):
         self.__check_sport(sport)
 
         try:
-            return eval( 'sports.%s.serializers.PlayerHistorySerializer' % sport.name)
+            class_string = 'sports.%s.serializers.PlayerHistorySerializer' % sport.name
+            return SiteSportManager.buildSpecialAliasMetaClass(class_string, "PlayerHistorySerializer", sport.name)
         except:
             #
             raise PlayerHistorySerializerClassNotFoundException(type(self).__name__, sport)
@@ -540,7 +561,8 @@ class SiteSportManager(object):
         self.__check_sport(sport)
 
         try:
-            return eval( 'sports.%s.serializers.TsxNewsSerializer' % sport.name)
+            class_string = 'sports.%s.serializers.TsxNewsSerializer' % sport.name
+            return SiteSportManager.buildSpecialAliasMetaClass(class_string, "TsxNewsSerializer", sport.name)
         except:
             # raise generic TsxSerializer exception
             raise TsxSerializerClassNotFoundException(type(self).__name__, sport)
@@ -550,7 +572,8 @@ class SiteSportManager(object):
         self.__check_sport(sport)
 
         try:
-            return eval( 'sports.%s.serializers.TsxPlayerSerializer' % sport.name)
+            class_string = 'sports.%s.serializers.TsxPlayerSerializer' % sport.name
+            return SiteSportManager.buildSpecialAliasMetaClass(class_string, "TsxPlayerSerializer", sport.name)
         except:
             # raise generic TsxSerializer exception
             raise TsxSerializerClassNotFoundException(type(self).__name__, sport)
@@ -706,6 +729,9 @@ class MlbPlayerNamesCsv(PlayerNamesCsv):
         self.parent_api     = 'rostersfull'
         self.key_fullname   = 'full_name'
         self.key_position   = 'primary_position'
+
+
+
 
 # class Fppg(object):
 #

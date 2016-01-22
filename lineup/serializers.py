@@ -55,7 +55,8 @@ class LineupUsernamesSerializer(serializers.Serializer):
     contest_id = serializers.IntegerField()
     lineup_ids  = serializers.ListField(
         required=False,
-        child=serializers.IntegerField(min_value=0, max_value=9999999)
+        child=serializers.IntegerField(min_value=0, max_value=9999999),
+        help_text="This is an ARRAY of Integer Primary Keys to Lineups"
     )
     search_str  = serializers.CharField(required=False)
 
@@ -109,7 +110,8 @@ class CreateLineupSerializer(serializers.Serializer):
     draft_group = serializers.IntegerField()
 
     players = serializers.ListField(
-        child=serializers.IntegerField(min_value=0, max_value=9999999)
+        child=serializers.IntegerField(min_value=0, max_value=9999999),
+        help_text="This is an ARRAY of INTEGER primary keys to players in a DraftGroup"
     )
 
     def validate(self, data):
@@ -131,7 +133,9 @@ class EditLineupSerializer(serializers.Serializer):
     lineup = serializers.IntegerField()
 
     players = serializers.ListField(
-        child=serializers.IntegerField(min_value=0, max_value=9999999)
+        child=serializers.IntegerField(min_value=0, max_value=9999999),
+        help_text="This is an ARRAY of INTEGER primary keys to players in a DraftGroup"
+
     )
 
     name = serializers.CharField()

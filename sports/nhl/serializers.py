@@ -67,7 +67,8 @@ class FantasyPointsSerializer(sports.serializers.FantasyPointsSerializer):
 
     fantasy_points = serializers.ListField(
         source='array_agg',
-        child=serializers.FloatField() # min_value=-9999, max_value=9999)
+        child=serializers.FloatField(), # min_value=-9999, max_value=9999)
+        help_text="This is an ARRAY of FLOAT trailing fantasy points"
     )
 
 class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
@@ -82,32 +83,32 @@ class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
     #################################################################
     avg_goal  = serializers.FloatField()
     goal      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_assist  = serializers.FloatField()
     assist      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_sog  = serializers.FloatField()
     sog      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_blk  = serializers.FloatField()
     blk      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_sh_goal  = serializers.FloatField()
     sh_goal      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_so_goal  = serializers.FloatField()
     so_goal      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     #
@@ -115,22 +116,22 @@ class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
 
     avg_w  = serializers.FloatField()
     w      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_saves  = serializers.FloatField()
     saves      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_ga  = serializers.FloatField()
     ga      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_shutout  = serializers.FloatField()
     shutout      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
 class PlayerSerializer(sports.serializers.PlayerSerializer):

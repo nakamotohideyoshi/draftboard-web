@@ -100,19 +100,23 @@ class PlayerHistorySerializer(serializers.Serializer):
     # we will get an array of games
     games = serializers.ListField(
         #source='fp',
-        child=serializers.CharField()
+        child=serializers.CharField(),
+        help_text="This is an ARRAY of STRING game srid(s)"
     )
 
     #
     # home_id, away_id, start
     home_id = serializers.ListField(
-        child=serializers.IntegerField()
+        child=serializers.IntegerField(),
+        help_text="This is an ARRAY of INTEGER primary keys to home teams referenced by the srid in games at the same index"
     )
     away_id = serializers.ListField(
-        child=serializers.IntegerField()
+        child=serializers.IntegerField(),
+        help_text="This is an ARRAY of INTEGER primary keys to away teams referenced by the srid in games at the same index"
     )
     start = serializers.ListField(
-        child=serializers.DateTimeField()
+        child=serializers.DateTimeField(),
+        help_text="This is an ARRAY of DATETIMES to the start of each game referenced by the srid in games at the same index"
     )
 
     #
@@ -122,7 +126,8 @@ class PlayerHistorySerializer(serializers.Serializer):
     avg_fp = serializers.FloatField()
     fp = serializers.ListField(
         #source='fp',
-        child=serializers.FloatField()
+        child=serializers.FloatField(),
+        help_text="This is an ARRAY of FLOAT fantasy points  of each game referenced by the srid in games at the same index"
     )
 
 class TeamSerializer(serializers.ModelSerializer):

@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from rest_framework.pagination import LimitOffsetPagination
 from cash.models import CashTransactionDetail
-from cash.serializers import CashTransactionDetailSerializer
+from cash.serializers import TransactionHistorySerializer, BalanceSerializer
 from datetime import datetime, timedelta
 from cash.classes import CashTransaction
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -39,7 +39,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
     """
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
-
+    serializer_class = TransactionHistorySerializer
     def get_user_for_id(self, user_id=None):
         """
         if a user can be found via the 'user_id' return it,
@@ -50,7 +50,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         except User.DoesNotExist:
             return None
 
-    def get(self, request, format=None):
+    def get(self, request, start_ts, end_ts, user_id=None, format=None):
         """
         Gets the filtered Cash Transaction Details for the logged in user.
 
@@ -59,7 +59,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         """
         user = self.request.user
 
-        admin_specified_user_id = self.request.QUERY_PARAMS.get('user_id', None)
+        admin_specified_user_id = user_id
         admin_specified_user = self.get_user_for_id( admin_specified_user_id )
         if user.is_superuser and admin_specified_user is not None:
             # override the user whos transactions we will look at
@@ -67,8 +67,6 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
 
         #
         # if the start_ts & end_ts params exist:
-        start_ts = self.request.QUERY_PARAMS.get('start_ts', None)
-        end_ts = self.request.QUERY_PARAMS.get('end_ts', None)
         if start_ts == None:
             return Response(
                 status=409,
@@ -120,6 +118,7 @@ class BalanceAPIView(generics.GenericAPIView):
     """
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated, )
+    serializer_class = BalanceSerializer
 
     def get(self, request, format=None):
         user = self.request.user

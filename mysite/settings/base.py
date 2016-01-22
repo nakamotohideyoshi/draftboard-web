@@ -214,11 +214,11 @@ REST_FRAMEWORK = {
 
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-        #'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
+        'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
     ),
 
-    'DEFAULT_PAGINATION_CLASS': None
-    #'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
+    #'DEFAULT_PAGINATION_CLASS': None
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
 }
 
 # JWT Settings
@@ -299,6 +299,7 @@ INSTALLED_APPS = (
 
     'smuggler',
     'lobby',
+    'rest_framework_swagger',
 )
 
 #
