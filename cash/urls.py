@@ -5,8 +5,8 @@ from cash.withdraw.views import CheckWithdrawAPIView
 
 urlpatterns = patterns('',
 
-    (r'^transactions/$', TransactionHistoryAPIView.as_view()),
-
+    (r'^transactions/(?P<start_ts>[0-9]+)/(?P<end_ts>[0-9]+)/(?P<user_id>[0-9]+)/$', TransactionHistoryAPIView.as_view()),
+    (r'^transactions/(?P<start_ts>[0-9]+)/(?P<end_ts>[0-9]+)/$', TransactionHistoryAPIView.as_view()),
     (r'^balance/$', BalanceAPIView.as_view()),
 
     # this was the paypal deposit url
