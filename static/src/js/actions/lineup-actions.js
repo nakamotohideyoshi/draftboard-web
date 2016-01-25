@@ -248,7 +248,8 @@ export function saveLineupEdit(lineup, title, lineupId) {
 
       var postData = {
         name: title || '',
-        players: playerIds
+        players: playerIds,
+        lineup: parseInt(lineupId)
       };
 
       request.post('/api/lineup/edit/')
@@ -262,8 +263,10 @@ export function saveLineupEdit(lineup, title, lineupId) {
           if(err) {
             dispatch(saveLineupFail(res.body))
           } else {
+            // TODO: once editing API is fixed, redirect to lobby upon successful edit.
+            console.error("We're temporariy NOT redirecting back to lobby in order to debug this feature.")
             // Upon save success, send user to the lobby.
-            document.location.href = '/lobby/?lineup-saved=true';
+            // document.location.href = '/lobby/?lineup-saved=true';
           }
       });
     }

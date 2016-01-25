@@ -52,7 +52,8 @@ var LobbyContests = React.createClass({
     setFocusedContest: React.PropTypes.func,
     updateFilter: React.PropTypes.func,
     updateOrderByFilter: React.PropTypes.func,
-    updatePath: React.PropTypes.func
+    updatePath: React.PropTypes.func,
+    entryRequests: React.PropTypes.object
   },
 
 
@@ -92,7 +93,6 @@ var LobbyContests = React.createClass({
   handleEnterContest: function(contest, e) {
     e.stopPropagation()
     // If the user has chosen not to confirm entries, enter the contest.
-    console.log(Cookies.get('shouldConfirmEntry'))
     if (Cookies.get('shouldConfirmEntry') === 'false') {
       this.enterContest(contest.id)
     }
@@ -186,7 +186,9 @@ var LobbyContests = React.createClass({
         confirmEntry={this.enterContest}
         cancelEntry={this.handleCancelEntry}
         contest={this.state.contestToEnter}
+        lineupId={this.props.focusedLineup.id}
         isOpen={this.state.showConfirmModal}
+        entryRequests={this.props.entryRequests}
       />
       </div>
     );
@@ -218,7 +220,8 @@ function mapStateToProps(state) {
     hoveredLineupId: state.upcomingLineups.hoveredLineupId,
     lineupsInfo: upcomingLineupsInfo(state),
     orderByDirection: state.upcomingContests.filters.orderBy.direction,
-    orderByProperty: state.upcomingContests.filters.orderBy.property
+    orderByProperty: state.upcomingContests.filters.orderBy.property,
+    entryRequests: state.entryRequests
   };
 }
 

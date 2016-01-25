@@ -14,6 +14,7 @@ const currentDraftGroups = require('./current-draft-groups')
 const currentLineups = require('./current-lineups')
 const draftGroupPlayers = require('./draft-group-players')
 const entries = require('./entries')
+const entryRequests = require('./entry-request.js')
 const featuredContests = require('./featured-contests.js')
 const fantasyHistory = require('./fantasy-history.js')
 const injuries = require('./injuries.js')
@@ -31,7 +32,7 @@ const sports = require('./sports')
 const transactions = require('./transactions')
 const upcomingContests = require('./upcoming-contests.js')
 const upcomingDraftGroups = require('./upcoming-draft-groups.js')
-const upcomingLineups = require('./lineups')
+const upcomingLineups = require('./upcoming-lineups')
 const lineupUsernames = require('./lineup-usernames')
 const user = require('./user')
 
@@ -43,6 +44,7 @@ module.exports = combineReducers({
   currentLineups,
   draftGroupPlayers,
   entries,
+  entryRequests,
   fantasyHistory,
   featuredContests,
   injuries,
