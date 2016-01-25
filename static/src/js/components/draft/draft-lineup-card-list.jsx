@@ -93,7 +93,6 @@ var DraftLineupCardList = React.createClass({
 
 
   render: function() {
-    console.info(this.props.params)
     var lineups = _map(this.props.lineups, function(lineup) {
       var refName = 'lineup-' + lineup.id;
       return (
