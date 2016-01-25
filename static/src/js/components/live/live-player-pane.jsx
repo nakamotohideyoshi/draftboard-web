@@ -20,7 +20,7 @@ const LivePlayerPane = React.createClass({
     eventHistory: React.PropTypes.array.isRequired,
     player: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
-    boxScore: React.PropTypes.object
+    game: React.PropTypes.object
   },
 
   closePane: function() {
@@ -77,7 +77,7 @@ const LivePlayerPane = React.createClass({
   renderCurrentGame: function() {
     log.debug('LivePlayerPane.renderCurrentGame')
     const player = this.props.player
-    const game = this.props.boxScore
+    const game = this.props.game
 
     // if the game isn't loaded yet or something
     if (!game.hasOwnProperty('boxscore')) {
@@ -154,16 +154,17 @@ const LivePlayerPane = React.createClass({
     )
   },
 
-  renderHeader: function(playerTeamInfo) {
+  renderHeader: function() {
     const player = this.props.player
-    const boxScore = this.props.boxScore
+    const game = this.props.game
+    const teamInfo = player.teamInfo
 
     let percentageTimeRemaining = 1
     let fp = 0
 
     // if the game has not started
-    if (boxScore !== undefined) {
-      percentageTimeRemaining = boxScore.timeRemaining / 48
+    if (game !== undefined) {
+      percentageTimeRemaining = game.timeRemaining / 48
     }
 
     if (player.stats !== undefined) {
@@ -176,7 +177,7 @@ const LivePlayerPane = React.createClass({
         <div className="header__player-image" />
 
         <div className='header__team-role'>
-          { playerTeamInfo.city } { playerTeamInfo.name } - { player.info.position }
+          { teamInfo.city } { teamInfo.name } - { player.info.position }
         </div>
         <div className='header__name'>{ player.info.name }</div>
 
@@ -212,23 +213,14 @@ const LivePlayerPane = React.createClass({
     let classNames = 'player-detail-pane live-player-pane live-pane live-pane--' + side + ' live-pane-player--' + side
 
     const teamSRID = this.props.player.info.team_srid
-    const boxScore = this.props.boxScore
-
-    let playerTeamInfo
-    if (teamSRID === boxScore.homeTeamInfo.srid) {
-      playerTeamInfo = boxScore.homeTeamInfo
-      playerTeamInfo.otherTeam = boxScore.awayTeamInfo
-    } else {
-      playerTeamInfo = boxScore.awayTeamInfo
-      playerTeamInfo.otherTeam = boxScore.homeTeamInfo
-    }
+    const game = this.props.game
 
     return (
       <div className={classNames}>
         <div className="live-pane__close" onClick={this.closePane}></div>
 
         <div className="pane-upper">
-          { this.renderHeader(playerTeamInfo) }
+          { this.renderHeader() }
           { this.renderStatsAverage() }
           { this.renderCurrentGame() }
         </div>

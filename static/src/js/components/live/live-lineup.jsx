@@ -20,7 +20,7 @@ var LiveLineup = React.createClass({
     whichSide: React.PropTypes.string.isRequired,
     lineup: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object.isRequired,
-    currentBoxScores: React.PropTypes.object.isRequired,
+    games: React.PropTypes.object.isRequired,
     eventDescriptions: React.PropTypes.object.isRequired,
     relevantPlayerHistory: React.PropTypes.object.isRequired,
     playersPlaying: React.PropTypes.array.isRequired,
@@ -67,7 +67,7 @@ var LiveLineup = React.createClass({
 
       currentPlayers = self.props.lineup.roster.map(function(playerId) {
         const player = self.props.lineup.rosterDetails[playerId]
-        const boxScore = self.props.currentBoxScores[player.info.game_srid]
+        const boxScore = self.props.games[player.info.game_srid]
 
         return (
           <LiveLineupPlayer
@@ -90,7 +90,7 @@ var LiveLineup = React.createClass({
         }
 
         const player = self.props.lineup.rosterDetails[playerId]
-        const boxScore = self.props.currentBoxScores[player.info.game_srid]
+        const game = self.props.games[player.info.game_srid] || {}
         const history = self.props.relevantPlayerHistory[player.info.player_srid] || []
 
         playerPane = (
@@ -98,7 +98,7 @@ var LiveLineup = React.createClass({
             whichSide={self.props.whichSide}
             player={player}
             eventHistory={ history }
-            boxScore={boxScore} />
+            game={game} />
         )
       }
 

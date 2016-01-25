@@ -52,8 +52,9 @@ export const liveSelector = createSelector(
   state => state.live.mode,
   state => state.entries.hasRelatedInfo,
   state => state.playerBoxScoreHistory,
+  state => state.sports,
 
-  (contestStats, currentLineupsStats, mode, hasRelatedInfo, playerBoxScoreHistory) => {
+  (contestStats, currentLineupsStats, mode, hasRelatedInfo, playerBoxScoreHistory, sports) => {
     if (hasRelatedInfo === false) {
       // log.debug('selectors.liveStatsSelector() - not ready')
       return {}
@@ -67,12 +68,15 @@ export const liveSelector = createSelector(
 
     if (mode.myLineupId) {
       stats.lineups.mine = currentLineupsStats[mode.myLineupId]
+      const sport = stats.lineups.mine.draftGroup.sport
 
       // TODO move this into current lineups selector based on mode object
       _forEach(stats.lineups.mine.rosterDetails, (player, playerId) => {
         if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
           player.seasonalStats = playerBoxScoreHistory.nba[playerId]
         }
+
+        player.teamInfo = sports[sport].teams[player.info.team_srid]
       })
 
       stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.mine.rosterDetails, (player) => {
@@ -82,40 +86,44 @@ export const liveSelector = createSelector(
       stats.relevantPlayers = _union(stats.relevantPlayers, _map(stats.lineups.mine.rosterDetails, (player) => {
         return player.info.player_srid
       }))
-    }
 
-    if (mode.contestId) {
-      stats.contest = contestStats[mode.contestId]
 
-      if (mode.opponentLineupId) {
-        stats.lineups.opponent = stats.contest.lineups[mode.opponentLineupId]
+      if (mode.contestId) {
+        stats.contest = contestStats[mode.contestId]
 
-        // TODO move this into current lineups selector based on mode object
-        _forEach(stats.lineups.opponent.rosterDetails, (player, playerId) => {
-          if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
-            player.seasonalStats = playerBoxScoreHistory.nba[playerId]
-          }
-        })
+        if (mode.opponentLineupId) {
+          stats.lineups.opponent = stats.contest.lineups[mode.opponentLineupId]
 
-        // used for animations to determine which side
-        stats.lineups.opponent.rosterBySRID = _map(stats.lineups.opponent.rosterDetails, (player) => {
-          return player.info.player_srid
-        })
+          // TODO move this into current lineups selector based on mode object
+          _forEach(stats.lineups.opponent.rosterDetails, (player, playerId) => {
+            if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
+              player.seasonalStats = playerBoxScoreHistory.nba[playerId]
+            }
 
-        stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.opponent.rosterDetails, (player) => {
-          return player.info.game_srid
-        }))
+            player.teamInfo = sports[sport].teams[player.info.team_srid]
+          })
 
-        stats.relevantPlayers = _union(stats.relevantPlayers, _map(stats.lineups.opponent.rosterDetails, (player) => {
-          return player.info.player_srid
-        }))
+          // used for animations to determine which side
+          stats.lineups.opponent.rosterBySRID = _map(stats.lineups.opponent.rosterDetails, (player) => {
+            return player.info.player_srid
+          })
 
-        stats.playersInBothLineups = _.intersection(stats.lineups.mine.rosterBySRID, stats.lineups.opponent.rosterBySRID)
+          stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.opponent.rosterDetails, (player) => {
+            return player.info.game_srid
+          }))
+
+          stats.relevantPlayers = _union(stats.relevantPlayers, _map(stats.lineups.opponent.rosterDetails, (player) => {
+            return player.info.player_srid
+          }))
+
+          stats.playersInBothLineups = _.intersection(stats.lineups.mine.rosterBySRID, stats.lineups.opponent.rosterBySRID)
+        }
+
+        // update potential earnings of normal lineup
+        stats.lineups.mine.potentialEarnings = stats.contest.lineups[mode.myLineupId].potentialEarnings
       }
-
-      // update potential earnings of normal lineup
-      stats.lineups.mine.potentialEarnings = stats.contest.lineups[mode.myLineupId].potentialEarnings
     }
+
 
 
 

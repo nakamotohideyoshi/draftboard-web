@@ -23,12 +23,11 @@ export function getFormattedTime(timestamp) {
 export const navScoreboardSelector = createSelector(
   currentLineupsStatsSelector,
   state => state.liveDraftGroups,
-  state => state.currentBoxScores,
   state => state.sports,
   state => state.user,
 
-  (lineups, draftGroups, boxScores, sports, user) => {
-    const resultLineups = _.map(lineups, (lineup) => {
+  (storeLineups, draftGroups, storeSports, user) => {
+    const lineups = _.map(storeLineups, (lineup) => {
       return Object.assign(
         {},
         lineup,
@@ -39,55 +38,41 @@ export const navScoreboardSelector = createSelector(
       )
     })
 
-    let resultDraftGroups = {}
+    // copy sports to add relevant data
+    let sports = Object.assign({}, storeSports)
 
-    // if the sport data has loaded
-    if (sports.nba.isFetchingTeams === false &&
-        sports.nba.isFetchingGames === false) {
+    // add in game data
+    _.forEach(sports.games, (game, id) => {
+      const sport = game.sport
+      const teams = sports[sport].teams
 
-      const teams = sports.nba.teams
-      const games = sports.nba.games
+      // add team information
+      game.homeTeamInfo = teams[game.srid_home]
+      game.awayTeamInfo = teams[game.srid_away]
 
-      // TODO make this dynamic based on schedule API response
-      resultDraftGroups = {
-        'nba': {
-          sport: 'nba',
-          boxScores: _.mapValues(games, (game, id) => {
-            let newGame = Object.assign({}, game)
+      // update quarter to display properly
+      if (game.hasOwnProperty('boxscore')) {
+        let quarter = _.round(game.boxscore.quarter, 0)
 
-            // get team information
-            newGame.homeTeamInfo = teams[game.srid_home]
-            newGame.awayTeamInfo = teams[game.srid_away]
+        if (quarter > 4 ) {
+          quarter = (quarter % 4).toString() + 'OT'
 
-            // update quarter to display properly
-            if (game.hasOwnProperty('boxscore')) {
-              let quarter = _.round(game.boxscore.quarter, 0)
-
-              if (quarter > 4 ) {
-                quarter = (quarter % 4).toString() + 'OT'
-
-                if (quarter === '1OT') {
-                  quarter = 'OT'
-                }
-              }
-
-              newGame.boxscore.quarterDisplay = quarter
-            }
-
-            return newGame
-          })
+          if (quarter === '1OT') {
+            quarter = 'OT'
+          }
         }
+
+        game.boxscore.quarterDisplay = quarter
       }
-    }
+    })
 
     return {
-      // TODO: No user data.
       user: {
         name: user.name       || '-',
         balance: user.balance || '-'
       },
-      gamesByDraftGroup: resultDraftGroups, // TODO:
-      lineups: resultLineups
+      sports: sports,
+      lineups: lineups
     }
   }
 )
