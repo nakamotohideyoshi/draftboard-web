@@ -78,18 +78,23 @@ export function fetchTeamsIfNeeded(sport) {
 // --------------------------------------------------------
 
 
-export function updateGame(sport, gameId, teamId, points) {
+export function updateGame(gameId, teamId, points) {
   log.trace('actionsCurrentBoxScores.updateBoxScore')
 
   return (dispatch, getState) => {
     const state = getState()
-    const game = state.sports[sport][gameId]
+    const game = state.games[gameId]
     let updatedGameFields = {}
+
+    // if game does not exist yet, we don't know what sport so just cancel the update and wait for polling call
+    if (state.sports.games.hasOwnProperty(gameId) === false) {
+      return false
+    }
 
     // if the boxscore doesn't exist yet, that means we need to update games
     if (game.hasOwnProperty('boxscore') === false &&
-        state.sports[sport].isFetchingGames === false) {
-      return dispatch(fetchGames(sport))
+        state.sports[game.sport].isFetchingGames === false) {
+      return dispatch(fetchGames(game.sport))
     }
 
     const boxscore = game.boxscore
@@ -103,7 +108,6 @@ export function updateGame(sport, gameId, teamId, points) {
     return dispatch({
       type: ActionTypes.UPDATE_GAME,
       gameId: gameId,
-      sport: sport,
       updatedGameFields: updatedGameFields
     })
   }
@@ -123,10 +127,16 @@ function requestGames(sport) {
 function receiveGames(sport, response) {
   log.trace('actionsSports.receiveGames')
 
+  // add in the sport so we know how to differentiate it
+  let games = Object.assign({}, response)
+  _.forEach(games, (game, id) => {
+    game.sport = sport
+  })
+
   return {
     type: ActionTypes.RECEIVE_GAMES,
     sport: sport,
-    games: response,
+    games: games,
     gamesUpdatedAt: Date.now()
   }
 }

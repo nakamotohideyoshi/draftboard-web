@@ -68,9 +68,8 @@ const NavScoreboard = React.createClass({
     const channelPrefix = window.dfs.user.pusher_channel_prefix.toString()
     const boxscoresChannel = pusher.subscribe(channelPrefix + 'boxscores')
     boxscoresChannel.bind('team', (eventData) => {
-      if (eventData.game__id in self.props.navScoreboardStats.gamesByDraftGroup.nba && 'points' in eventData) {
+      if (eventData.game__id in self.props.navScoreboardStats.sports.games && 'points' in eventData) {
         self.props.updateGame(
-          'nba',
           eventData.game__id,
           eventData.id,
           eventData.points
@@ -189,12 +188,11 @@ const NavScoreboard = React.createClass({
   getSelectOptions() {
     let options = []
 
-    _.forEach(this.props.navScoreboardStats.gamesByDraftGroup, (draftGroup, key) => {
+    _.forEach(this.props.navScoreboardStats.sports.types, (sport) => {
       options.push({
-        option: draftGroup.sport + " GAMES",
+        option: sport + " games",
         type: TYPE_SELECT_GAMES,
-        key: key
-        // count: this.props.navScoreboardStats.gamesByDraftGroup[key].boxScores.length
+        key: sport
       })
     })
 
@@ -217,8 +215,9 @@ const NavScoreboard = React.createClass({
     if (this.state.selectedType === TYPE_SELECT_LINEUPS) {
       return <NavScoreboardLineupsList lineups={this.props.navScoreboardStats.lineups} />
     } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
-      let draftGroup = this.props.navScoreboardStats.gamesByDraftGroup[this.state.selectedKey]
-      return <NavScoreboardGamesList draftGroup={draftGroup} />
+      const sport = this.props.navScoreboardStats.sports[this.state.selectedKey]
+      const games = this.props.navScoreboardStats.sports.games
+      return <NavScoreboardGamesList sport={sport} games={games} />
     } else {
       return null
     }

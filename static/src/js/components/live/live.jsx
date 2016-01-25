@@ -45,7 +45,6 @@ syncReduxAndRouter(history, store)
 var Live = React.createClass({
 
   propTypes: {
-    currentBoxScores: React.PropTypes.object.isRequired,
     liveContests: React.PropTypes.object.isRequired,
     liveContestsStats: React.PropTypes.object.isRequired,
     navScoreboardStats: React.PropTypes.object.isRequired,
@@ -136,6 +135,7 @@ var Live = React.createClass({
     boxscoresChannel.bind('team', (eventData) => {
       self.onBoxscoreReceived(eventData)
     })
+
   },
 
 
@@ -197,12 +197,12 @@ var Live = React.createClass({
     }
 
     // check that it's a boxscore we care about
-    if (eventCall.game__id in self.props.currentBoxScores === false || 'points' in eventCall === false) {
+    if (eventCall.game__id in self.props.navScoreboardStats.sports.games === false || 'points' in eventCall === false) {
       log.debug('onBoxscoreReceived() - not a relevant event', eventCall)
       return false
     }
 
-    if ('boxscore' in self.props.currentBoxScores[eventCall.game__id] === false) {
+    if ('boxscore' in self.props.navScoreboardStats.sports[eventCall.game__id] === false) {
       log.debug('onBoxscoreReceived() - game not started')
       return false
     }
@@ -578,7 +578,7 @@ var Live = React.createClass({
           <LiveLineup
             whichSide="mine"
             mode={ self.props.mode }
-            currentBoxScores={ self.props.navScoreboardStats.gamesByDraftGroup['nba'].boxScores }
+            games={ self.props.navScoreboardStats.sports.games }
             lineup={ myLineup }
             playersPlaying={ self.state.playersPlaying }
             relevantPlayerHistory={ self.state.relevantPlayerHistory }
@@ -668,7 +668,7 @@ var Live = React.createClass({
             <LiveLineup
               whichSide="opponent"
               mode={ self.props.mode }
-              currentBoxScores={ self.props.navScoreboardStats.gamesByDraftGroup['nba'].boxScores }
+              games={ self.props.navScoreboardStats.sports.games }
               lineup={ opponentLineup }
               playersPlaying={ self.state.playersPlaying }
               relevantPlayerHistory={ self.state.relevantPlayerHistory }
@@ -759,7 +759,6 @@ let {Provider, connect} = ReactRedux
 function mapStateToProps(state) {
   return {
     // state elements
-    currentBoxScores: state.currentBoxScores,
     currentLineups: state.currentLineups,
     entries: state.entries,
     liveContests: state.liveContests,

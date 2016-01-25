@@ -3,10 +3,14 @@
 import update from 'react-addons-update'
 import { map as _map, forEach as _forEach } from 'lodash'
 const ActionTypes = require('../action-types')
+import _ from 'lodash'
 
 // TODO remove this hardcode of nba
 module.exports = function(state = {
+  games: {},
+  types: ['nba'],
   'nba': {
+    gameIds: [],
     isFetchingTeams: false,
     isFetchingGames: false
   }
@@ -42,9 +46,12 @@ module.exports = function(state = {
 
     case ActionTypes.RECEIVE_GAMES:
       return update(state, {
+        games: {
+          $merge: action.games
+        },
         [action.sport]: {
           $merge: {
-            games: action.games,
+            gameIds: _.keys(action.games),
             isFetchingGames: false,
             gamesUpdatedAt: action.gamesUpdatedAt
           }
@@ -53,12 +60,10 @@ module.exports = function(state = {
 
     case ActionTypes.UPDATE_GAME:
       return update(state, {
-        [action.sport]: {
-          games: {
-            [action.gameId]: {
-              boxscore: {
-                $merge: action.updatedGameFields
-              }
+        games: {
+          [action.gameId]: {
+            boxscore: {
+              $merge: action.updatedGameFields
             }
           }
         }
