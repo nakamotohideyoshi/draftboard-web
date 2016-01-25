@@ -11,7 +11,7 @@ import log from '../../lib/logging'
 var LiveOverallStats = React.createClass({
   propTypes: {
     whichSide: React.PropTypes.string.isRequired,
-    mode: React.PropTypes.object.isRequired,
+    hasContest: React.PropTypes.bool.isRequired,
     lineup: React.PropTypes.object.isRequired
   },
 
@@ -134,7 +134,7 @@ var LiveOverallStats = React.createClass({
     // log.debug('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
 
     let potentialEarnings = 0
-    if (this.props.mode.contestId === undefined) {
+    if (this.props.hasContest === false) {
       potentialEarnings = lineup.totalPotentialEarnings
     } else {
       potentialEarnings = lineup.potentialEarnings

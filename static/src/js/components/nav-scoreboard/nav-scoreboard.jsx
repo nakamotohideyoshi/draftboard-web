@@ -1,34 +1,32 @@
-'use strict'
-
-import React from 'react'
-import {Provider, connect} from 'react-redux'
-import { forEach as _forEach } from 'lodash'
-import io from 'socket.io-client'
 import _ from 'lodash'
+import io from 'socket.io-client'
 import Pusher from 'pusher-js'
+import React from 'react'
+import { Provider, connect } from 'react-redux'
 
 import errorHandler from '../../actions/live-error-handler'
 import log from '../../lib/logging'
 import renderComponent from '../../lib/render-component'
 import store from '../../store'
+
 import { addEvent } from '../../actions/live-game-queues'
 import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
-import { fetchDraftGroupStats } from '../../actions/live-draft-groups'
+import { fetchEntriesIfNeeded } from '../../actions/entries'
+import { fetchEntries } from '../../actions/entries'
+import { fetchSportsIfNeeded } from '../../actions/sports'
+import { fetchUser } from '../../actions/user'
 import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
 import { updateGame } from '../../actions/sports'
-import {fetchEntriesIfNeeded} from '../../actions/entries'
-import {fetchEntries} from '../../actions/entries'
-import {fetchUser} from '../../actions/user'
 
-import NavScoreboardLogo from './nav-scoreboard-logo.jsx'
-import NavScoreboardMenu from './nav-scoreboard-menu.jsx'
-import NavScoreboardSlider from './nav-scoreboard-slider.jsx'
 import NavScoreboardFilters from './nav-scoreboard-filters.jsx'
-import NavScoreboardUserInfo from './nav-scoreboard-user-info.jsx'
-import NavScoreboardSeparator from './nav-scoreboard-separator.jsx'
 import NavScoreboardGamesList from './nav-scoreboard-games-list.jsx'
 import NavScoreboardLineupsList from './nav-scoreboard-lineups-list.jsx'
 import NavScoreboardLoggedOutInfo from './nav-scoreboard-logged-out-info.jsx'
+import NavScoreboardLogo from './nav-scoreboard-logo.jsx'
+import NavScoreboardMenu from './nav-scoreboard-menu.jsx'
+import NavScoreboardSeparator from './nav-scoreboard-separator.jsx'
+import NavScoreboardSlider from './nav-scoreboard-slider.jsx'
+import NavScoreboardUserInfo from './nav-scoreboard-user-info.jsx'
 
 import {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} from './nav-scoreboard-const.jsx'
 
@@ -37,12 +35,12 @@ const NavScoreboard = React.createClass({
 
   propTypes: {
     navScoreboardStats: React.PropTypes.object.isRequired,
-    fetchDraftGroupStats: React.PropTypes.func,
-    fetchEntriesIfNeeded: React.PropTypes.func,
+
+    addEvent: React.PropTypes.func,
     fetchEntries: React.PropTypes.func,
-    liveDraftGroups: React.PropTypes.object.isRequired,
-    updateGame: React.PropTypes.func,
-    addEvent: React.PropTypes.func
+    fetchEntriesIfNeeded: React.PropTypes.func,
+    fetchSportsIfNeeded: React.PropTypes.func,
+    updateGame: React.PropTypes.func
   },
 
   listenToSockets() {
@@ -102,20 +100,11 @@ const NavScoreboard = React.createClass({
     log.trace('NavScoreboard.startParityChecks()')
     const self = this
 
-    // loop through draft groups and get latest box scores, fp
-    const boxScoresParityChecks = function() {
-      log.info('NavScoreboard.boxScoresParityChecks()')
-
-      _forEach(self.props.liveDraftGroups, (draftGroup, id) => {
-        self.props.fetchDraftGroupStats(id)
-      })
-    }
-
     let parityChecks = {
-      boxScores: window.setInterval(boxScoresParityChecks, 60000), // one minute
+      boxScores: window.setInterval(self.props.fetchSportsIfNeeded, 60000), // one minute
       draftGroups: window.setInterval(self.props.fetchCurrentDraftGroupsIfNeeded, 600000)  // ten minutes
     }
-    boxScoresParityChecks()
+    self.props.fetchSportsIfNeeded()
 
     // if logged in, look for entries
     if (window.dfs.user.username !== '') {
@@ -269,8 +258,7 @@ const NavScoreboard = React.createClass({
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    navScoreboardStats: navScoreboardSelector(state),
-    liveDraftGroups: state.liveDraftGroups
+    navScoreboardStats: navScoreboardSelector(state)
   }
 }
 
@@ -278,10 +266,11 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     addEvent: (gameId, event) => dispatch(addEvent(gameId, event)),
-    updateGame: (sport, gameId, teamId, points) => dispatch(updateGame(sport, gameId, teamId, points)),
-    fetchDraftGroupStats: (draftGroupId) => dispatch(fetchDraftGroupStats(draftGroupId)),
+    fetchCurrentDraftGroupsIfNeeded: () => dispatch(fetchCurrentDraftGroupsIfNeeded()),
+    fetchEntries: () => dispatch(fetchEntries()),
     fetchEntriesIfNeeded: () => dispatch(fetchEntriesIfNeeded()),
-    fetchEntries: () => dispatch(fetchEntries())
+    fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
+    updateGame: (sport, gameId, teamId, points) => dispatch(updateGame(sport, gameId, teamId, points))
   }
 }
 

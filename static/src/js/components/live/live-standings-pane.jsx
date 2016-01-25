@@ -27,7 +27,7 @@ export const LiveStandingsPane = React.createClass({
   propTypes: {
     owned: React.PropTypes.array.isRequired,
     lineups: React.PropTypes.object.isRequired,
-    myContest: React.PropTypes.object.isRequired,
+    contest: React.PropTypes.object.isRequired,
     rankedLineups: React.PropTypes.array.isRequired,
     mode: React.PropTypes.object.isRequired,
     updateLiveMode: React.PropTypes.func,
@@ -339,7 +339,7 @@ export const LiveStandingsPane = React.createClass({
     if (this.state.currentTab !== 'standings') return null
 
     // wait for usernames
-    if (this.props.myContest.hasLineupsUsernames === false) return null
+    if (this.props.contest.hasLineupsUsernames === false) return null
 
     return (
       <div className="inner">

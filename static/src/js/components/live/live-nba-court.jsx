@@ -10,8 +10,7 @@ import log from '../../lib/logging'
 var LiveNBACourt = React.createClass({
   propTypes: {
     courtEvents: React.PropTypes.object.isRequired,
-    liveSelector: React.PropTypes.object.isRequired,
-    mode: React.PropTypes.object.isRequired
+    liveSelector: React.PropTypes.object.isRequired
   },
 
   render() {

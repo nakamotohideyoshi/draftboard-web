@@ -192,3 +192,18 @@ export function fetchGamesIfNeeded(sport) {
     return dispatch(fetchGames(sport))
   }
 }
+
+
+export function fetchSportsIfNeeded() {
+  log.info('actionsSports.fetchSportsIfNeeded()')
+
+  return (dispatch, getState) => {
+    const state = getState()
+
+    _.forEach(state.sports.types, (sport) => {
+      dispatch(fetchGamesIfNeeded(sport))
+    })
+  }
+}
+
+

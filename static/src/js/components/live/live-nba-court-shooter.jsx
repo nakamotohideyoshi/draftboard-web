@@ -2,61 +2,62 @@ import React from 'react'
 
 
 /**
- * The score ticker on the top of the page.
+ * The shooter that appears and disappears. This will be changing to an animation
  */
 var LiveNBACourtShooter = React.createClass({
+
   propTypes: {
     x: React.PropTypes.number.isRequired,
     y: React.PropTypes.number.isRequired,
     whichSide: React.PropTypes.string.isRequired
   },
 
-  getInitialState: function() {
+  getInitialState() {
     // example coordinates from the API
-    var xCoord = this.props.x
-    var yCoord = this.props.y
+    const xCoord = this.props.x
+    const yCoord = this.props.y
 
     // width and height of image
-    var imgWidth = 2003
-    var imgHeight = 495
+    const imgWidth = 2003
+    const imgHeight = 495
 
     // left backcourt x coordinates
-    var xTopLeft = 378
+    const xTopLeft = 378
 
     // right backcourt x coordinates
-    var xTopRight = 1633
+    const xTopRight = 1633
 
     // sidecourts y coordinates
-    var yTop = 44
-    var yBottom = 340
+    const yTop = 44
+    const yBottom = 340
 
     // distance between the two sidecourts
-    var yHeight = yBottom - yTop
+    const yHeight = yBottom - yTop
 
     // API max distances, goes from 0 to max
-    var xAPIMax = 1128
-    var yAPIMax = 600
+    const xAPIMax = 1128
+    const yAPIMax = 600
 
     // first we convert these into percentages (as decimals)
-    var xPercent = (xCoord * (100 / xAPIMax)) / 100
-    var yPercent = (yCoord * (100 / yAPIMax)) / 100
+    const xPercent = (xCoord * (100 / xAPIMax)) / 100
+    const yPercent = (yCoord * (100 / yAPIMax)) / 100
 
     // then we figure out where it is height wise on the trapezoid
     // since the top and bottom are parallel we can always figure out the height
 
-    var transposedY = yPercent * yHeight
+    const transposedY = yPercent * yHeight
     // and from this we can derive the final position from the top
-    var finalTop = (transposedY + yTop) / imgHeight
+    let finalTop = (transposedY + yTop) / imgHeight
 
     // since this is a 45 deg trapezoid, we can deduce that the distance to the left will be the same as top
 
     // now that we know the transposedY, we can figure out what the x left and x right are and find the transposedXLength
-    var transposedXLeft = xTopLeft - transposedY
-    var transposedXRight = xTopRight + transposedY
-    var transposedXLength = transposedXRight - transposedXLeft
+    const transposedXLeft = xTopLeft - transposedY
+    const transposedXRight = xTopRight + transposedY
+    const transposedXLength = transposedXRight - transposedXLeft
 
     // and now that we have the length we can find the final left position of the shooter
-    var finalLeft = (transposedXLeft + (xPercent * transposedXLength)) / imgWidth
+    let finalLeft = (transposedXLeft + (xPercent * transposedXLength)) / imgWidth
 
     // convert from decimal to CSS percentage, and round to nearest hundredth
     finalTop = Math.ceil(finalTop * 10000) / 100
@@ -68,15 +69,19 @@ var LiveNBACourtShooter = React.createClass({
     }
   },
 
-  render: function() {
-    var shooterPositionStyle = {
+  shouldComponentUpdate() {
+    return false;
+  },
+
+  render() {
+    const shooterPositionStyle = {
       left: this.state.finalLeft + '%',
       top: this.state.finalTop + '%'
     }
     const className = 'shooter-position shooter-position--' + this.props.whichSide
 
     return (
-      <div className={ className } style={shooterPositionStyle}>
+      <div className={className} style={shooterPositionStyle}>
         <div className='shooter-centered'></div>
       </div>
     )

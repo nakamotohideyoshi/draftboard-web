@@ -1,14 +1,14 @@
-import React from 'react'
 import * as ReactRedux from 'react-redux'
+import React from 'react'
 import renderComponent from '../../lib/render-component'
 import { map as _map } from 'lodash'
 import { updatePath } from 'redux-simple-router'
 import { vsprintf } from 'sprintf-js'
 
 import * as AppActions from '../../stores/app-state-store'
+import store from '../../store'
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
 import { updateLiveMode } from '../../actions/live'
-import store from '../../store'
 
 
 /**
@@ -20,6 +20,7 @@ var LiveContestsPane = React.createClass({
   propTypes: {
     lineup: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object.isRequired,
+
     fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func

@@ -1,29 +1,30 @@
-import React from 'react'
-import moment from 'moment'
 import * as ReactRedux from 'react-redux'
-import renderComponent from '../../lib/render-component'
-import { Router, Route } from 'react-router'
+import _ from 'lodash'
 import createBrowserHistory from 'history/lib/createBrowserHistory'
+import moment from 'moment'
+import Pusher from 'pusher-js'
+import React from 'react'
+import renderComponent from '../../lib/render-component'
+import update from 'react-addons-update'
+import { Router, Route } from 'react-router'
 import { syncReduxAndRouter } from 'redux-simple-router'
 import { updatePath } from 'redux-simple-router'
 import { vsprintf } from 'sprintf-js'
-import Pusher from 'pusher-js'
-import _ from 'lodash'
-import update from 'react-addons-update'
 
-import * as AppActions from '../../stores/app-state-store'
+import LiveBottomNav from './live-bottom-nav'
+import LiveContestsPaneConnected from './live-contests-pane'
 import LiveCountdown from './live-countdown'
-import errorHandler from '../../actions/live-error-handler'
-import LiveContestsPaneConnected from '../live/live-contests-pane'
+import LiveHeader from './live-header'
 import LiveLineup from './live-lineup'
 import LiveLineupSelectModal from './live-lineup-select-modal'
+import LiveMoneyline from './live-moneyline'
 import LiveNBACourt from './live-nba-court'
-import LiveOverallStats from './live-overall-stats'
-import LiveStandingsPaneConnected from '../live/live-standings-pane'
+import LiveStandingsPaneConnected from './live-standings-pane'
+
+import errorHandler from '../../actions/live-error-handler'
 import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
 import log from '../../lib/logging'
 import store from '../../store'
-import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
 import { liveSelector } from '../../selectors/live'
@@ -45,65 +46,45 @@ syncReduxAndRouter(history, store)
 var Live = React.createClass({
 
   propTypes: {
-    liveContests: React.PropTypes.object.isRequired,
-    liveContestsStats: React.PropTypes.object.isRequired,
-    navScoreboardStats: React.PropTypes.object.isRequired,
-    currentLineups: React.PropTypes.object.isRequired,
+    // redux selectors
     currentLineupsStats: React.PropTypes.object.isRequired,
+    liveContestsStats: React.PropTypes.object.isRequired,
     liveSelector: React.PropTypes.object.isRequired,
-    liveDraftGroups: React.PropTypes.object.isRequired,
+    navScoreboardStats: React.PropTypes.object.isRequired,
 
-    mode: React.PropTypes.object,
+    // react router URL params
     params: React.PropTypes.object,
-    prizes: React.PropTypes.object,
-    entries: React.PropTypes.object,
+
+    // imported functions
     fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
     updateBoxScore: React.PropTypes.func,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func
   },
 
-
   getInitialState() {
     return {
-      // Selected option string. SEE: `getSelectOptions`
-      playersPlaying: [],
+      courtEvents: {},
       eventDescriptions: {},
-      relevantPlayerHistory: {},
       gameQueues: {},
-      courtEvents: {}
+      playersPlaying: [],
+      relevantPlayerHistory: {}
     }
   },
 
+  componentWillMount() {
+    const urlParams = this.props.params
 
-  componentWillMount: function() {
-    const self = this
-    const urlParams = self.props.params
-
-    if ('myLineupId' in urlParams) {
-      let newMode = {
-        type: 'lineup',
-        myLineupId: parseInt(urlParams.myLineupId)
-      }
-
-      if ('contestId' in urlParams) {
-        newMode.type = 'contest'
-        newMode.contestId = parseInt(urlParams.contestId)
-
-        // make sure to get the usernames as well
-        this.props.fetchContestLineupsUsernamesIfNeeded(newMode.contestId)
-
-        if ('opponentLineupId' in urlParams) {
-          newMode.opponentLineupId = parseInt(urlParams.opponentLineupId)
-        }
-      }
-
-      self.props.updateLiveMode(newMode)
+    if (urlParams.hasOwnProperty('myLineupId')) {
+      this.props.updateLiveMode({
+        myLineupId: urlParams.myLineupId,
+        contestId: urlParams.contestId || undefined,
+        opponentLineupId: urlParams.opponentLineupId || undefined
+      })
     }
 
-    self.listenToSockets()
+    this.listenToSockets()
   },
-
 
   listenToSockets() {
     log.debug('listenToSockets()')
@@ -135,9 +116,7 @@ var Live = React.createClass({
     boxscoresChannel.bind('team', (eventData) => {
       self.onBoxscoreReceived(eventData)
     })
-
   },
-
 
   onStatsReceived(eventCall) {
     log.debug('onStatsReceived()')
@@ -145,7 +124,7 @@ var Live = React.createClass({
     const gameId = eventCall.srid_game
 
     // for now, only use calls once data is loaded
-    if (self.props.entries.hasRelatedInfo === false) {
+    if (self.props.liveSelector.hasRelatedInfo === false) {
       return
     }
 
@@ -186,13 +165,12 @@ var Live = React.createClass({
     )
   },
 
-
   onBoxscoreReceived(eventCall) {
     log.debug('onBoxscoreReceived()')
     const self = this
 
     // for now, only use calls once data is loaded
-    if (self.props.entries.hasRelatedInfo === false) {
+    if (self.props.liveSelector.hasRelatedInfo === false) {
       return
     }
 
@@ -234,13 +212,12 @@ var Live = React.createClass({
     }
   },
 
-
   onPBPReceived(eventCall) {
     log.debug('onPBPReceived()')
     const self = this
 
     // for now, only use calls once data is loaded
-    if (self.props.entries.hasRelatedInfo === false) {
+    if (self.props.liveSelector.hasRelatedInfo === false) {
       return
     }
 
@@ -338,8 +315,7 @@ var Live = React.createClass({
         break
 
       case 'stats':
-        const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
-        const players = self.props.liveDraftGroups[draftGroupId].playersInfo
+        const players = self.props.liveSelector.draftGroup.playersInfo
 
         let name = 'Unknown'
         if (eventCall.fields.player_id in players) {
@@ -356,9 +332,7 @@ var Live = React.createClass({
         // then move on to the next
         self.popOldestGameEvent(gameId)
     }
-
   },
-
 
   showGameEvent(eventCall) {
     log.debug('showGameEvent()', eventCall)
@@ -386,7 +360,7 @@ var Live = React.createClass({
         // set which side to show this event set on
         courtInformation.whichSide = 'mine'
 
-        if (self.props.mode.opponentLineupId) {
+        if (self.props.liveSelector.mode.opponentLineupId) {
           if (self.props.liveSelector.lineups.opponent.rosterBySRID.indexOf(event.player) > -1) {
             courtInformation.whichSide = 'opponent'
           }
@@ -422,21 +396,7 @@ var Live = React.createClass({
 
       // update player fp
       _.forEach(eventCall.statistics__list, function(event, key) {
-        const draftGroupId = self.props.liveSelector.lineups.mine.draftGroup.id
-        const draftGroup = self.props.liveDraftGroups[draftGroupId]
-        const playerId = draftGroup.playersBySRID[event.player]
-        let playerStats = draftGroup.playersStats[playerId]
-
-        // if game hasn't started
-        // TODO API call fix this
-        if (playerStats === undefined) {
-          playerStats = {
-            fp: 0
-          }
-        }
-
         // show event description
-
         const eventDescription = {
           points: '?',
           info: eventCall.description,
@@ -490,263 +450,118 @@ var Live = React.createClass({
     }.bind(this), 9000)
   },
 
+  render() {
+    const liveSelector = this.props.liveSelector
+    const mode = liveSelector.mode
 
-  toggleStandings: function() {
-    AppActions.toggleLiveRightPane('appstate--live-standings-pane--open')
-  },
-
-
-  toggleContests: function() {
-    AppActions.toggleLiveRightPane('appstate--live-contests-pane--open')
-  },
-
-
-  getLiveClassNames: function() {
-    return this.state.classNames.reduce(function(prev, curr, i, className) {
-      return prev + ' ' + className
-    }, 0)
-  },
-
-
-  returnToLineup: function() {
-    this.props.updatePath(vsprintf('/live/lineups/%d/', [this.props.mode.myLineupId]))
-
-    const newMode = Object.assign({}, this.props.mode, {
-      type: 'lineup',
-      opponentLineupId: undefined,
-      contestId: undefined
-    })
-
-    this.props.updateLiveMode(newMode)
-  },
-
-  render: function() {
-    const self = this
-
-    // component pieces
+    // defining optional component pieces
     let
-      lineups,
-      liveTitle,
       liveStandingsPane,
       moneyLine,
-      bottomNavForRightPanes,
-      overallStats,
-      countdown
+      opponentLineupComponent
 
-    const lineupNonexistant = 'myLineupId' in self.props.mode === false
-    const noRelatedInfo = self.props.entries.hasRelatedInfo === false
+    // wait for data to load before showing anything
+    if (liveSelector.hasRelatedInfo === false) {
+      return (<div />)
+    }
 
-    // if data has not loaded yet
-    if (lineupNonexistant || noRelatedInfo) {
-      let chooseLineup
+    // if a lineup has not been chosen yet
+    if (mode.hasOwnProperty('myLineupId') === false) {
+      return (
+        <LiveLineupSelectModal lineups={this.props.currentLineupsStats} />
+      )
+    }
 
-      if (lineupNonexistant && self.props.entries.hasRelatedInfo === true) {
-        chooseLineup = (
-          <LiveLineupSelectModal lineups={self.props.currentLineupsStats} />
+    // wait until the lineup data has loaded before rendering
+    if (liveSelector.lineups.hasOwnProperty('mine')) {
+      const myLineup = liveSelector.lineups.mine
+
+      // show the countdown until it goes live
+      if (myLineup.roster === undefined) {
+        return (
+          <LiveCountdown lineup={myLineup} />
+        )
+      }
+
+      // if viewing a contest, then add standings pane and moneyline
+      if (mode.contestId) {
+        const contest = liveSelector.contest
+        let opponentWinPercent
+
+        liveStandingsPane = (
+          <LiveStandingsPaneConnected
+            contest={contest}
+            lineups={contest.lineups}
+            rankedLineups={contest.rankedLineups}
+            mode={mode} />
+        )
+
+        // if viewing an opponent, add in lineup and update moneyline
+        if (mode.opponentLineupId) {
+          const opponentLineup = liveSelector.lineups.opponent
+          opponentWinPercent = opponentLineup.opponentWinPercent
+
+          opponentLineupComponent = (
+            <LiveLineup
+              eventDescriptions={this.state.eventDescriptions}
+              games={this.props.navScoreboardStats.sports.games}
+              lineup={opponentLineup}
+              mode={mode}
+              playersPlaying={this.state.playersPlaying}
+              relevantPlayerHistory={this.state.relevantPlayerHistory}
+              whichSide="opponent" />
+          )
+        }
+
+        moneyLine = (
+          <section className="live-winning-graph live-winning-graph--contest-overall">
+            <LiveMoneyline
+              percentageCanWin={contest.percentageCanWin}
+              myWinPercent={myLineup.myWinPercent}
+              opponentWinPercent={opponentWinPercent} />
+          </section>
         )
       }
 
       return (
-        <section className="cmp-live__court-scoreboard">
-          <header className="cmp-live__scoreboard live-scoreboard">
-            <h1 className="live-scoreboard__contest-name" />
-            <div className="live-overall-stats live-overall-stats--me" />
-          </header>
-
-          <LiveNBACourt
-            mode={self.props.mode}
-            liveSelector={self.props.liveSelector}
-            courtEvents={self.state.courtEvents} />
-
-          { chooseLineup }
-        </section>
-      )
-    }
-
-    if ('mine' in self.props.liveSelector.lineups) {
-
-      var myLineup = self.props.liveSelector.lineups.mine
-      const lineupStarted = myLineup.roster !== undefined
-
-      if (lineupStarted === false) {
-        countdown = (
-          <LiveCountdown
-            lineup={ myLineup } />
-        )
-      } else {
-        lineups = (
+        <div>
           <LiveLineup
-            whichSide="mine"
-            mode={ self.props.mode }
-            games={ self.props.navScoreboardStats.sports.games }
-            lineup={ myLineup }
-            playersPlaying={ self.state.playersPlaying }
-            relevantPlayerHistory={ self.state.relevantPlayerHistory }
-            eventDescriptions={ self.state.eventDescriptions } />
-        )
-        overallStats = (
-          <LiveOverallStats
-            lineup={ myLineup }
-            mode={ self.props.mode }
+            eventDescriptions={this.state.eventDescriptions}
+            games={this.props.navScoreboardStats.sports.games}
+            lineup={myLineup}
+            mode={mode}
+            playersPlaying={this.state.playersPlaying}
+            relevantPlayerHistory={this.state.relevantPlayerHistory}
             whichSide="mine" />
-        )
-      }
 
-      bottomNavForRightPanes = (
-        <div className="live-right-pane-nav live-right-pane-nav--lineup">
-          <div className="live-right-pane-nav__view-contests" onClick={self.toggleContests}><span>View Contests</span></div>
-        </div>
-      )
+          {opponentLineupComponent}
 
-      liveTitle = (
-        <div>
-          <h2 className="live-scoreboard__lineup-name">
-            &nbsp;
-          </h2>
-          <h1 className="live-scoreboard__contest-name">
-            { myLineup.name }
-          </h1>
-        </div>
-      )
+          <section className="cmp-live__court-scoreboard">
+            <LiveHeader
+              liveSelector={liveSelector} />
 
-    }
+            <LiveNBACourt
+              liveSelector={liveSelector}
+              courtEvents={this.state.courtEvents} />
 
-    if (self.props.mode.contestId) {
-      const myContest = self.props.liveSelector.contest
+            { moneyLine }
 
-      bottomNavForRightPanes = (
-        <div className="live-right-pane-nav live-right-pane-nav--contest">
-          <div className="live-right-pane-nav__view-contests" onClick={self.toggleContests}><span>View Contests</span></div>
-          <div className="live-right-pane-nav__view-standings" onClick={self.toggleStandings}><span>View Standings &amp; Ownership</span></div>
-        </div>
-      )
+            <LiveBottomNav
+              hasContest={mode.contestId !== undefined} />
 
-      liveTitle = (
-        <div>
-          <h2 className="live-scoreboard__lineup-name">
-            { myLineup.name }
-          </h2>
-          <h1 className="live-scoreboard__contest-name">
-            { myContest.name }
-            <span className="live-scoreboard__close" onClick={ self.returnToLineup }></span>
-          </h1>
-        </div>
-      )
-
-      overallStats = (
-        <LiveOverallStats
-          lineup={ myLineup }
-          mode={ self.props.mode }
-          whichSide="mine" />
-      )
-
-      const myWinPercent = myLineup.rank / myContest.entriesCount * 100
-
-      moneyLine = (
-        <section className="live-winning-graph live-winning-graph--contest-overall">
-          <div className="live-winning-graph__pmr-line">
-            <div className="live-winning-graph__winners" style={{ width: myContest.percentageCanWin + '%' }}></div>
-            <div className="live-winning-graph__current-position" style={{ left: myWinPercent + '%' }}></div>
-          </div>
-        </section>
-      )
-
-      liveStandingsPane = (
-        <LiveStandingsPaneConnected
-          myContest={ myContest }
-          lineups={ myContest.lineups }
-          rankedLineups={ myContest.rankedLineups }
-          mode={ self.props.mode } />
-      )
-
-      if (self.props.mode.opponentLineupId) {
-        const opponentLineup = self.props.liveSelector.lineups.opponent
-
-        lineups = (
-          <div>
-            { lineups }
-            <LiveLineup
-              whichSide="opponent"
-              mode={ self.props.mode }
-              games={ self.props.navScoreboardStats.sports.games }
-              lineup={ opponentLineup }
-              playersPlaying={ self.state.playersPlaying }
-              relevantPlayerHistory={ self.state.relevantPlayerHistory }
-              eventDescriptions={ self.state.eventDescriptions } />
-          </div>
-        )
-
-        liveTitle = (
-          <div>
-            <h2 className="live-scoreboard__lineup-name">
-              { myLineup.name } <span className="vs">vs</span> { opponentLineup.user.username }
-            </h2>
-            <h1 className="live-scoreboard__contest-name">
-              { myContest.name }
-              <span className="live-scoreboard__close" onClick={ self.returnToLineup }></span>
-            </h1>
-          </div>
-        )
-
-        overallStats = (
-          <div>
-            { overallStats }
-
-            <div className="live-overall-stats__vs">vs</div>
-
-            <LiveOverallStats
-              lineup={ opponentLineup }
-              mode={ self.props.mode }
-              whichSide="opponent" />
-          </div>
-        )
-
-        const opponentWinPercent = opponentLineup.rank / myContest.entriesCount * 100
-
-        moneyLine = (
-          <section className="live-winning-graph live-winning-graph--contest-overall">
-            <div className="live-winning-graph__pmr-line">
-              <div className="live-winning-graph__winners" style={{ width: myContest.percentageCanWin + '%' }}></div>
-              <div className="live-winning-graph__current-position" style={{ left: myWinPercent + '%' }}></div>
-              <div className="live-winning-graph__current-position live-winning-graph__opponent" style={{ left: opponentWinPercent + '%' }}></div>
-            </div>
           </section>
-        )
-      }
-    }
 
-    return (
-      <div>
-
-        { lineups }
-
-        <section className="cmp-live__court-scoreboard">
-          <header className="cmp-live__scoreboard live-scoreboard">
-            { liveTitle }
-
-            { overallStats }
-          </header>
-
-          <LiveNBACourt
-            mode={self.props.mode}
-            liveSelector={self.props.liveSelector}
-            courtEvents={self.state.courtEvents} />
-
-          { countdown }
-          { moneyLine }
-          { bottomNavForRightPanes }
-
-        </section>
-
-        <section className="panes">
           <LiveContestsPaneConnected
-            lineup={ myLineup }
-            mode={ this.props.mode } />
+            lineup={myLineup}
+            mode={mode} />
 
           { liveStandingsPane }
-        </section>
-      </div>
-    )
+        </div>
+      )
+    }
+
+    // TODO Live - make a loading screen if it takes longer than a second to load
+    return (<div />)
   }
 
 })
@@ -758,14 +573,6 @@ let {Provider, connect} = ReactRedux
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
   return {
-    // state elements
-    currentLineups: state.currentLineups,
-    entries: state.entries,
-    liveContests: state.liveContests,
-    liveDraftGroups: state.liveDraftGroups,
-    mode: state.live.mode,
-    prizes: state.prizes,
-
     // selectors
     currentLineupsStats: currentLineupsStatsSelector(state),
     liveContestsStats: liveContestsStatsSelector(state),
@@ -777,7 +584,6 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
     updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
     updatePlayerStats: (eventCall, draftGroupId, playerId, fp) => dispatch(updatePlayerStats(eventCall, draftGroupId, playerId, fp)),
     updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),
