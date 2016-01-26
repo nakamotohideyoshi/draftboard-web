@@ -54,8 +54,8 @@ from django.http import HttpResponse
 from django.views.generic import View
 from django.views.generic.edit import CreateView, UpdateView
 from contest.forms import ContestForm, ContestFormAdd
-
 from django.db.models import Count
+from mysite.celery_app import TaskHelper
 
 # test the generic add view
 class ContestCreate(CreateView):
@@ -440,7 +440,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
             return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
 
         #
-        # call the buyin task
+        # call the buyin task - it has a time_limit of ~20 seconds before it will timeout
         task_result = buyin_task.delay( request.user, contest, lineup=lineup )
 
         #
@@ -456,7 +456,45 @@ class EnterLineupStatusAPIView(generics.RetrieveAPIView):
     """
     check the status of enter-lineup, having previously attempted to
     buy a lineup into a contest...
+
+    TODO - add more description here about returned data
+
+    TODO - clean this up:
+    In [4]: t1
+    Out[4]: <AsyncResult: a0a793e6-195c-45c4-afbe-8447e3507278>
+
+    In [5]: t2
+    Out[5]: <AsyncResult: de582118-c33a-43b0-930d-b94aa95f2526>
+
+    In [6]: t1.status
+    Out[6]: 'FAILURE'
+
+    In [7]: t2.status
+    Out[7]: 'SUCCESS'
+
+    In [8]: th1 = TaskHelper( pause_then_raise, t1.id )
+
+    In [9]: th1.get_data()
+    Out[9]:
+    {'result': None,
+     'exception': {'msg': 'this was throw on purpose to test',
+      'name': 'Exception'},
+     'status': 'FAILURE',
+     'task': {'status': 'FAILURE', 'description': 'Task failed'},
+     'note': "status will be in ['SUCCESS', 'PENDING', 'FAILURE']. if status is in ['PENDING'], you may poll this api."}
+
+    In [10]: th2 = TaskHelper( heartbeat, t2.id )
+
+    In [11]: th2.get_data()
+    Out[11]:
+    {'result': {'value': None},
+     'exception': None,
+     'status': 'SUCCESS',
+     'task': {'status': 'SUCCESS', 'description': 'Task succeeded'},
+     'note': "status will be in ['SUCCESS', 'PENDING', 'FAILURE']. if status is in ['PENDING'], you may poll this api."}
+
     """
+
     permission_classes      = (IsAuthenticated,)
     serializer_class        = EnterLineupStatusSerializer
 
@@ -475,25 +513,12 @@ class EnterLineupStatusAPIView(generics.RetrieveAPIView):
             return Response({'error':'you must supply the "task" parameter'},
                                         status=status.HTTP_400_BAD_REQUEST )
 
-        task_result = self.get_enter_lineup_task_result(task_id)
-        if task_result:
-            # set the enter_lineup_status to True if the task was successful, else false
-            enter_lineup_status = task_result.status == celery.states.SUCCESS
-
-        data = {
-            'status' : enter_lineup_status
-        }
-        return Response(data, status=status.HTTP_200_OK)
-
-    def get_enter_lineup_task_result(self, task_id):
-        """
-        Return the status of the task matching the task_id,
-        or None, if the task cannot be found.
-
-        :param task_id:
-        :return:
-        """
-        return buyin_task.AsyncResult(task_id)
+        #
+        # the TaskHelper class helps us retrieve useful information
+        # about the status, and any exceptions that may have happened,
+        # and that data is retrieved with the get_result_data() method.
+        task_helper = TaskHelper(buyin_task, task_id)
+        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
 
 class PayoutsAPIView(generics.ListAPIView):
     """

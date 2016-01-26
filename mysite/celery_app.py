@@ -18,6 +18,7 @@ import os
 
 from celery import Celery
 from celery.schedules import crontab
+import celery.states
 from datetime import timedelta
 import time
 
@@ -163,8 +164,8 @@ app.conf.update(
             'task'      : 'contest.schedule.tasks.create_scheduled_contests',
 
             #
-            # run every 30 minutes, but only during 12, 15, and 18 o'clock. Yeah, 18 o'clock.
-            'schedule'  : crontab(minute='*/30', hour='12,15,18'),
+            # run every 30 minutes, but only during (EST) 5pm, 8pm, and 9pm.
+            'schedule'  : crontab(minute='*/30', hour='17,20,21'),
 
             #
             # alternatively, run every X seconds, instead of at specific times:
@@ -224,6 +225,150 @@ app.conf.update(
 
 )
 
+class TaskHelper(object):
+    """
+    primarily responsible for retrieving the result of a task,
+    which is typically None if successful, but may also
+    return the exception which caused the task to fail
+    """
+
+    # these are our own statuses, not the task.status values
+    SUCCESS = 'SUCCESS'
+    PENDING = 'PENDING'
+    FAILURE = 'FAILURE'
+    statuses = [
+        SUCCESS,
+        PENDING,
+        FAILURE
+    ]
+    final_statuses = [
+        SUCCESS,
+        FAILURE
+    ]
+    pending_statuses = [
+        PENDING
+    ]
+
+    def __init__(self, t, task_id):
+        self.t          = t
+        self.task_id    = task_id
+        self.task       = t.AsyncResult( task_id )
+
+    def get_task_data(self):
+        """
+        get the task's status and a note about what its status means
+        :return:
+        """
+
+        status = self.task.status
+        return {
+            'status' : status,
+            'description' : self.get_status_description(status)
+        }
+
+    def get_status_description(self, status):
+        """
+        return a string description of what the task status indicates.
+
+        Assumes the status will be in, otherwise returns an Unkonwn celery state description.
+            {'FAILURE',
+               'PENDING',
+               'RECEIVED',
+               'RETRY',
+               'REVOKED',
+               'STARTED',
+               'SUCCESS'})
+
+        :param status:
+        :return:
+        """
+
+        if status not in celery.states.ALL_STATES:
+            return '%s - Unknown celery state!' % status
+
+        if status == 'PENDING':
+            return 'Task state is unknown (assumed pending since you know the id).'
+        elif status == 'RECEIVED':
+            return 'Task was received by a worker.'
+        elif status == 'STARTED':
+            return 'Task was started by a worker (CELERY_TRACK_STARTED).'
+        elif status == 'SUCCESS':
+            return 'Task succeeded'
+        elif status == 'FAILURE':
+            return 'Task failed'
+        elif status == 'REVOKED':
+            return 'Task was revoked.'
+        elif status == 'RETRY':
+            return 'Task is waiting for retry'
+
+    def get_note(self):
+        """
+        :return: string note about the data returned.
+        """
+        fmt_str = 'status will be in %s. if status is in %s, you may poll this api.'
+        s = fmt_str% (str(self.statuses), str(self.pending_statuses))
+        return s
+
+    def get_overall_status(self):
+        """
+        for any task status other than SUCCESS or FAILURE, return PENDING
+        :return:
+        """
+        if self.task.status in self.final_statuses:
+            return self.task.status
+        else:
+            return self.PENDING
+
+    def get_data(self):
+        """
+        return information about the task result,
+        specifically return the task state, along with the exception class name,
+        and message if there was an exception.
+
+        :return: {'task_status': <task-status>, 'exception': None}
+                    ... or ...
+                 {'task_status': <task-status>,
+                    'exception': {
+                        'name': 'Exception',
+                        'msg' : 'the exceptions string message',
+                     }
+                 }
+        """
+
+        # defaults
+        exception   = None
+        result      = None
+        r           = self.task.result
+
+        if r is not None and issubclass(type(r), Exception):
+            #
+            # return exception information here, including class name, and msg
+            exception = {
+                'name' : type(r).__name__,   # ie: 'Exception'
+                'msg'   : str(r)
+            }
+
+        else:
+            #
+            # if you want to return valid data returned by the task, do it here
+            result = {
+                'value' : r, # a sucessful task may return None, or possibly an object
+            }
+
+        # the top-level 'status' is not the task status, it
+        # is a more general indication of the success/pending/failure
+        data = {
+            'status'        : self.get_overall_status(),
+            'note'          : self.get_note(),
+            'task'          : self.get_task_data(),
+
+            # 'exception' OR 'result' will be set upon SUCCESS/FAILURE.
+            # it is possible that the 'result' will have a null value
+            # in it if the task is successful but simply had no return value!
+            'exception'     : exception,
+            'result'        : result,
+        }
+        return data
 
 #
 # BROKER_URL = 'amqp://guest:guest@localhost//'
