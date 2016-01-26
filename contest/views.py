@@ -155,6 +155,9 @@ class UserEntryAPIView(generics.ListAPIView):
 
 
 class CurrentEntryAPIView(generics.ListAPIView):
+    """
+    Get the User's current entries (the Entries they own in live/upcoming contests)
+    """
 
     permission_classes      = (IsAuthenticated,)
     serializer_class        = CurrentEntrySerializer

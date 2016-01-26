@@ -16,7 +16,9 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(sports.nfl.models.Player)
 class PlayerAdmin(sports.admin.PlayerAdmin):
-    pass
+
+    list_filter     = sports.admin.PlayerAdmin.list_filter   # + ('',)
+    search_fields   = sports.admin.PlayerAdmin.search_fields # + ('more','specific','fields...',)
 
 @admin.register(sports.nfl.models.PlayerStats)
 class PlayerStatsAdmin(admin.ModelAdmin):

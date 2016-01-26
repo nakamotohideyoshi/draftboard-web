@@ -38,6 +38,9 @@ from rest_framework import permissions
 from django.contrib.auth import authenticate, login, logout
 
 class AuthAPIView(APIView):
+    """
+    Login endpoint. POST to login. DELETE to logout.
+    """
 
     authentication_classes  = (BasicAuthentication,)
     serializer_class        = LoginSerializer

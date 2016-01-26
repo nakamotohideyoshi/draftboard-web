@@ -179,7 +179,7 @@ class LivePbpView(View):
 
 class FantasyPointsHistoryAPIView(generics.ListAPIView):
     """
-
+    Get all Player's trailing history of Fantasy Points
     """
     permission_classes      = (IsAuthenticated,)
 
