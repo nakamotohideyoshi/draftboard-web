@@ -3,6 +3,7 @@ import Modal from '../modal/modal.jsx'
 import CountdownClock from '../site/countdown-clock.jsx'
 import Cookies from 'js-cookie'
 import ClassNames from 'classnames'
+import {find as _find} from 'lodash'
 
 
 /**
@@ -11,10 +12,12 @@ import ClassNames from 'classnames'
 var ContestListConfirmModal = React.createClass({
 
   propTypes: {
+    lineupId: React.PropTypes.number,
     contest: React.PropTypes.object,
     confirmEntry: React.PropTypes.func.isRequired,
     cancelEntry: React.PropTypes.func.isRequired,
-    isOpen: React.PropTypes.bool
+    isOpen: React.PropTypes.bool,
+    entryRequests: React.PropTypes.object
   },
 
 
@@ -55,7 +58,29 @@ var ContestListConfirmModal = React.createClass({
     }
     // confirm entry via the provided function.
     this.props.confirmEntry(this.props.contest.id)
-    this.setState({isOpen: false});
+    // this.setState({isOpen: false});
+  },
+
+
+  renderCurrentEntryRequestStatus: function() {
+    console.log(this.props.entryRequests)
+    let currentEntryStatus = _find(this.props.entryRequests, {
+      lineupId: this.props.lineupId, contestId: this.props.contest.id
+    })
+    console.info(currentEntryStatus)
+
+    if (currentEntryStatus) {
+      return (
+        <div>
+          {currentEntryStatus.status}
+        </div>
+      )
+    } else {
+      return (
+        <div>no status</div>
+      )
+    }
+
   },
 
 
@@ -113,6 +138,7 @@ var ContestListConfirmModal = React.createClass({
                 >
                   Enter Contest
                 </div>
+                {this.renderCurrentEntryRequestStatus()}
               </div>
             </div>
           </div>

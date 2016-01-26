@@ -21,6 +21,7 @@ import ContestList from '../contest-list/contest-list.jsx'
 import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filter.jsx'
 import renderComponent from '../../lib/render-component'
 import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx'
+import {addMessage} from '../../actions/message-actions.js'
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
@@ -52,7 +53,9 @@ var LobbyContests = React.createClass({
     setFocusedContest: React.PropTypes.func,
     updateFilter: React.PropTypes.func,
     updateOrderByFilter: React.PropTypes.func,
-    updatePath: React.PropTypes.func
+    updatePath: React.PropTypes.func,
+    entryRequests: React.PropTypes.object,
+    addMessage: React.PropTypes.func
   },
 
 
@@ -76,6 +79,16 @@ var LobbyContests = React.createClass({
     this.props.fetchUpcomingDraftGroupsInfo()
     this.props.fetchFeaturedContestsIfNeeded()
 
+    // If the url indicates that a lineup was just saved, show a success message.
+    if (window.location.search.indexOf("lineup-saved=true") !== -1) {
+      this.props.addMessage({
+        header: "Lineup Saved!",
+        content: "now do something wiht it.",
+        level: 'success',
+        ttl: 5000
+      })
+    }
+
     if (window.dfs.user.isAuthenticated === true) {
       this.props.fetchEntries()
     }
@@ -92,7 +105,6 @@ var LobbyContests = React.createClass({
   handleEnterContest: function(contest, e) {
     e.stopPropagation()
     // If the user has chosen not to confirm entries, enter the contest.
-    console.log(Cookies.get('shouldConfirmEntry'))
     if (Cookies.get('shouldConfirmEntry') === 'false') {
       this.enterContest(contest.id)
     }
@@ -186,7 +198,9 @@ var LobbyContests = React.createClass({
         confirmEntry={this.enterContest}
         cancelEntry={this.handleCancelEntry}
         contest={this.state.contestToEnter}
+        lineupId={this.props.focusedLineup.id}
         isOpen={this.state.showConfirmModal}
+        entryRequests={this.props.entryRequests}
       />
       </div>
     );
@@ -218,7 +232,8 @@ function mapStateToProps(state) {
     hoveredLineupId: state.upcomingLineups.hoveredLineupId,
     lineupsInfo: upcomingLineupsInfo(state),
     orderByDirection: state.upcomingContests.filters.orderBy.direction,
-    orderByProperty: state.upcomingContests.filters.orderBy.property
+    orderByProperty: state.upcomingContests.filters.orderBy.property,
+    entryRequests: state.entryRequests
   };
 }
 
@@ -234,7 +249,8 @@ function mapDispatchToProps(dispatch) {
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
     updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
-    updatePath: (path) => dispatch(updatePath(path))
+    updatePath: (path) => dispatch(updatePath(path)),
+    addMessage: (options) => dispatch(addMessage(options))
   };
 }
 

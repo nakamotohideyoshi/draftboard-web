@@ -32,6 +32,7 @@ require("components/account/withdrawals.jsx");
 
 require("components/form-field/ssn");
 require("components/site/pane.js");
+require("components/site/message-display.jsx");
 
 // Lobby
 require("components/nav-scoreboard/nav-scoreboard.jsx");
