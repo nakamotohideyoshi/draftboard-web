@@ -38,7 +38,8 @@ class CashTransactionDetail(TransactionDetail):
     """
     Implements the :class:`transaction.models.TransactionDetail` model.
     """
-    pass
+    class Meta:
+        verbose_name = 'Cash Transaction'
 
 class BraintreeTransaction(models.Model):
     """

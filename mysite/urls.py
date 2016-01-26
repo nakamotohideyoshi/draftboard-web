@@ -81,6 +81,7 @@ urlpatterns = [
     url(r'^api-token-verify/', 'rest_framework_jwt.views.verify_jwt_token'),
 
     url(r'^', include('account.urls_non_api')),
+    url(r'^docs/', include('rest_framework_swagger.urls')),
 ]
 
 if settings.DEBUG:
