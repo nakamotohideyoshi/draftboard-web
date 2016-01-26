@@ -21,6 +21,7 @@ import ContestList from '../contest-list/contest-list.jsx'
 import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filter.jsx'
 import renderComponent from '../../lib/render-component'
 import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx'
+import {addMessage} from '../../actions/message-actions.js'
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
@@ -53,7 +54,8 @@ var LobbyContests = React.createClass({
     updateFilter: React.PropTypes.func,
     updateOrderByFilter: React.PropTypes.func,
     updatePath: React.PropTypes.func,
-    entryRequests: React.PropTypes.object
+    entryRequests: React.PropTypes.object,
+    addMessage: React.PropTypes.func
   },
 
 
@@ -76,6 +78,11 @@ var LobbyContests = React.createClass({
     this.props.fetchUpcomingContests()
     this.props.fetchUpcomingDraftGroupsInfo()
     this.props.fetchFeaturedContestsIfNeeded()
+
+    // If the url indicates that a lineup was just saved, show a success message.
+    if (window.location.search.indexOf("lineup-saved=true") !== -1) {
+      this.props.addMessage("Lineup Saved!", 'success')
+    }
 
     if (window.dfs.user.isAuthenticated === true) {
       this.props.fetchEntries()
@@ -237,7 +244,8 @@ function mapDispatchToProps(dispatch) {
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
     updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
-    updatePath: (path) => dispatch(updatePath(path))
+    updatePath: (path) => dispatch(updatePath(path)),
+    addMessage: (content, type) => dispatch(addMessage(content, type))
   };
 }
 

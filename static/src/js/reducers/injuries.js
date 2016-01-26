@@ -1,4 +1,4 @@
-import ActionTypes from'../action-types.js'
+import ActionTypes from '../action-types.js'
 
 const initialState = {}
 
