@@ -1,0 +1,84 @@
+@import '../variables.scss';
+
+.cmp-message-display {
+  display: block;
+  top: $nav-scoreboard-height;
+  text-align: center;
+  left: 0px;
+  position: fixed;
+  width: 100%;
+  z-index: $zindex-message-display;
+
+  .btn-close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+  }
+
+  .message-content {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  // Default message style.
+  .message {
+    background: #d0d3db;
+    color: #293f4f;
+    font-size: 16px;
+    position: relative;
+  }
+
+  /**
+   * Message Level Styles.
+   */
+  .warning {
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#bc1616+0,7a052d+100&0.95+0,0.95+100 */
+    background: -moz-linear-gradient(left, rgba(188,22,22,0.95) 0%, rgba(122,5,45,0.95) 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(left, rgba(188,22,22,0.95) 0%,rgba(122,5,45,0.95) 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to right, rgba(188,22,22,0.95) 0%,rgba(122,5,45,0.95) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f2bc1616', endColorstr='#f27a052d',GradientType=1 ); /* IE6-9 */
+    color: #fff;
+  }
+
+  .success {
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#219d87+0,34cc68+100&0.95+0,0.95+100 */
+    background: -moz-linear-gradient(left, rgba(33,157,135,0.95) 0%, rgba(52,204,104,0.95) 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(left, rgba(33,157,135,0.95) 0%,rgba(52,204,104,0.95) 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to right, rgba(33,157,135,0.95) 0%,rgba(52,204,104,0.95) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f2219d87', endColorstr='#f234cc68',GradientType=1 ); /* IE6-9 */
+    color: #fff;
+  }
+
+  .info {
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#5a5d6b+0,3f4355+100&0.95+0,0.95+100 */
+    background: -moz-linear-gradient(left, rgba(90,93,107,0.95) 0%, rgba(63,67,85,0.95) 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(left, rgba(90,93,107,0.95) 0%,rgba(63,67,85,0.95) 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to right, rgba(90,93,107,0.95) 0%,rgba(63,67,85,0.95) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f25a5d6b', endColorstr='#f23f4355',GradientType=1 ); /* IE6-9 */
+    color: #fff;
+  }
+}
+
+
+/**
+ * React transitions
+ */
+.message-transition-enter {
+  opacity: 0.01;
+}
+
+.message-transition-enter.message-transition-enter-active {
+  opacity: 1;
+  transition: opacity 500ms ease-in;
+}
+
+.message-transition-leave {
+  opacity: 1;
+}
+
+.message-transition-leave.message-transition-leave-active {
+  opacity: 0.01;
+  transition: opacity 300ms ease-in;
+}

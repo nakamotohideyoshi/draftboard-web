@@ -4,6 +4,7 @@ import { normalize, Schema, arrayOf } from 'normalizr'
 import Cookies from 'js-cookie'
 import {fetchPrizeIfNeeded} from './prizes.js'
 import {insertEntry} from './entries.js'
+import {monitorEntryRequest} from './entry-request-actions.js'
 
 const contestSchema = new Schema('contests', {
   idAttribute: 'id'
@@ -142,8 +143,9 @@ export function enterContest(contestId, lineupId) {
       if(err) {
         console.error(res.body)
       } else {
+        dispatch(monitorEntryRequest(res.body.buyin_task_id, contestId, lineupId))
         // Insert our newly saved entry into the store.
-        dispatch(insertEntry(res.body))
+        // dispatch(insertEntry(res.body))
         // Upon save success, send user to the lobby.
         // document.location.href = '/frontend/lobby/?lineup-saved=true';
       }

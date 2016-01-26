@@ -501,7 +501,7 @@ class EnterLineupStatusAPIView(generics.RetrieveAPIView):
     permission_classes      = (IsAuthenticated,)
     serializer_class        = EnterLineupStatusSerializer
 
-    def post(self, request, format=None):
+    def get(self, request, task_id, format=None):
         """
         Given the 'task' parameter, return the status of the task (ie: the buyin)
 
@@ -510,7 +510,6 @@ class EnterLineupStatusAPIView(generics.RetrieveAPIView):
         :return:
         """
         enter_lineup_status = False
-        task_id = request.data.get('task')
         if task_id is None:
             # make sure to return error if the task id is not given in the request
             return Response({'error':'you must supply the "task" parameter'},

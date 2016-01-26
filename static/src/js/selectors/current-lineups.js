@@ -174,11 +174,12 @@ export const currentLineupsStatsSelector = createSelector(
         const contest = liveContests[contestId]
         const contestStats = contestsStats[contestId]
         const entryStats = contestStats.lineups[lineup.id]
-
-        stats.contestsStats[contestId] = Object.assign({}, contestStats, {
-          currentPercentagePosition: (entryStats.rank - 1) / contest.info.entries * 100,
-          rank: entryStats.rank
-        })
+        if (entryStats && contestStats && contest) {
+          stats.contestsStats[contestId] = Object.assign({}, contestStats, {
+            currentPercentagePosition: (entryStats.rank - 1) / contest.info.entries * 100,
+            rank: entryStats.rank
+          })
+        }
       })
 
       liveLineupsStats[lineup.id] = stats
