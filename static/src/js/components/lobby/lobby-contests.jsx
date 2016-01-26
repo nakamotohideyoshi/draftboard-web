@@ -81,7 +81,12 @@ var LobbyContests = React.createClass({
 
     // If the url indicates that a lineup was just saved, show a success message.
     if (window.location.search.indexOf("lineup-saved=true") !== -1) {
-      this.props.addMessage("Lineup Saved!", 'success')
+      this.props.addMessage({
+        header: "Lineup Saved!",
+        content: "now do something wiht it.",
+        level: 'success',
+        ttl: 5000
+      })
     }
 
     if (window.dfs.user.isAuthenticated === true) {
@@ -245,7 +250,7 @@ function mapDispatchToProps(dispatch) {
     updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
     updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
     updatePath: (path) => dispatch(updatePath(path)),
-    addMessage: (content, type) => dispatch(addMessage(content, type))
+    addMessage: (options) => dispatch(addMessage(options))
   };
 }
 
