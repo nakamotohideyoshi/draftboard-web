@@ -178,6 +178,9 @@ class EditLineupAPIView(generics.CreateAPIView):
         name        = request.data.get('name','')
 
         #
+        # validate the parameters passed in here.
+
+        #
         # call task
         task_result = edit_lineup.delay(request.user, players, lineup_id)
 
