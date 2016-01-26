@@ -1,0 +1,50 @@
+@import '../variables.scss';
+
+.cmp-message-display {
+  display: block;
+  top: $nav-scoreboard-height;
+  text-align: center;
+  left: 0px;
+  position: fixed;
+  width: 100%;
+  opacity: .95;
+
+  .btn-close {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    cursor: pointer;
+  }
+
+  .message-content {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  // Default message style.
+  .message {
+    background: #d0d3db;
+    color: #293f4f;
+    font-size: 16px;
+    position: relative;
+  }
+
+  /**
+   * Message Level Styles.
+   */
+  .warning {
+    background: red;
+    color: #fff;
+  }
+
+  .success {
+    background: green;
+    color: #fff;
+  }
+
+  .info {
+    background: yellow;
+    color: black;
+  }
+}
