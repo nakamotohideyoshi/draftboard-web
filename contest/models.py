@@ -8,6 +8,7 @@ from django.utils.crypto import get_random_string
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.html import format_html
 
 class AbstractContest(models.Model):
 #class Contest(models.Model):
@@ -274,6 +275,10 @@ class Contest(AbstractContest):
 
     class Meta:
         abstract = False
+        verbose_name = 'All Contests'
+        verbose_name_plural = 'All Contests'
+
+
 
     # def save(self, *args, **kwargs):
     #     #
@@ -344,6 +349,9 @@ class UpcomingContest(Contest):
 
     class Meta:
         proxy = True
+        verbose_name = 'Upcoming'
+        verbose_name_plural = 'Upcoming'
+
 
 class CompletedContest(Contest):
     """
@@ -361,6 +369,8 @@ class CompletedContest(Contest):
 
     class Meta:
         proxy = True
+        verbose_name = 'Completed'
+        verbose_name_plural = 'Completed'
 
 class LiveContest(Contest):
     """
@@ -383,6 +393,8 @@ class LiveContest(Contest):
 
     class Meta:
         proxy = True
+        verbose_name = 'Live'
+        verbose_name_plural = 'Live'
 
 class HistoryContest(Contest):
     """
@@ -400,6 +412,8 @@ class HistoryContest(Contest):
 
     class Meta:
         proxy = True
+        verbose_name = 'History'
+        verbose_name_plural = 'History'
 
 class Entry(models.Model):
     """
@@ -416,6 +430,10 @@ class Entry(models.Model):
 
     def __str__(self):
         return '%s %s' % (self.contest.name, str(self.lineup))
+
+    class Meta:
+        verbose_name = 'Entry'
+        verbose_name_plural = 'Entries'
 
 class HistoryEntry(Entry):
     """

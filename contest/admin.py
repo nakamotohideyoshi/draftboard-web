@@ -7,11 +7,47 @@ import contest.models
 import contest.forms
 from contest.refund.tasks import refund_task
 from .payout.tasks import payout_task
+from django.utils.html import format_html
 
-CONTEST_LIST_DISPLAY = ['created','status','name','start','end']
+CONTEST_LIST_DISPLAY = ['name', 'created','status','start','end']
 
 @admin.register(contest.models.Contest)
 class ContestAdmin(admin.ModelAdmin):
+    search_fields = ['name',]
+    list_display = CONTEST_LIST_DISPLAY
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            arr = [f.name for f in self.model._meta.fields]
+            return arr
+        return []
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(contest.models.UpcomingContest)
+class UpcomingContestAdmin(admin.ModelAdmin):
+    readonly_fields = ['entries']
+    form =contest.forms.ContestFormAdd
+    list_display = CONTEST_LIST_DISPLAY
+
+    def cancel_and_refund_upcoming_contests(self, request, queryset):
+        if queryset.count() > 0:
+            for contest in queryset:
+                refund_task.delay( contest, force=True )
+
+    actions = [ cancel_and_refund_upcoming_contests ]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            arr = [f.name for f in self.model._meta.fields]
+            return arr
+        return []
+
     """
     Note to programmer:
         - the clean()'ing (ie: field validation) is done in contest.forms.ContestForm
@@ -19,9 +55,8 @@ class ContestAdmin(admin.ModelAdmin):
 
     Administratively create a contest.
     """
-
+    exclude = ('contest',)
     #list_display = CONTEST_LIST_DISPLAY
-    form = contest.forms.ContestForm
 
     #create some "sections" of the form"
     fieldsets = (
@@ -39,17 +74,16 @@ class ContestAdmin(admin.ModelAdmin):
                 'name',
                 'prize_structure',
                 'start',
-                'ends_tonight',
+                #'ends_tonight',
             )
         }),
 
         ('Advanced Options', {
             'classes': ('collapse',),
             'fields': (
-                #'ends_tonight',
+                'ends_tonight',
 
                 'end',
-                'draft_group',
                 'max_entries',
                 # 'entries',
                 'gpp',
@@ -86,17 +120,9 @@ class ContestAdmin(admin.ModelAdmin):
         """
         obj.save()
 
+    def has_delete_permission(self, request, obj=None):
+        return False
 
-@admin.register(contest.models.UpcomingContest)
-class UpcomingContestAdmin(admin.ModelAdmin):
-    list_display = CONTEST_LIST_DISPLAY
-
-    def cancel_and_refund_upcoming_contests(self, request, queryset):
-        if queryset.count() > 0:
-            for contest in queryset:
-                refund_task.delay( contest, force=True )
-
-    actions = [ cancel_and_refund_upcoming_contests ]
 
 @admin.register(contest.models.CompletedContest)
 class CompletedContestAdmin(admin.ModelAdmin):
@@ -115,11 +141,20 @@ class CompletedContestAdmin(admin.ModelAdmin):
     # add these actions this modeladmin's view
     actions = [ payout_contests ]
 
+    def get_readonly_fields(self, request, obj=None):
+        return [f.name for f in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 @admin.register(contest.models.LiveContest)
 class LiveContestAdmin(admin.ModelAdmin):
-    list_display = CONTEST_LIST_DISPLAY
 
+    list_display = CONTEST_LIST_DISPLAY
     def cancel_and_refund_live_contests(self, request, queryset):
         if queryset.count() > 0:
             for contest in queryset:
@@ -127,11 +162,57 @@ class LiveContestAdmin(admin.ModelAdmin):
 
     actions = [ cancel_and_refund_live_contests ]
 
+    def get_readonly_fields(self, request, obj=None):
+        return [f.name for f in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(contest.models.HistoryContest)
 class HistoryContestAdmin(admin.ModelAdmin):
+
     list_display = CONTEST_LIST_DISPLAY
+
+    def get_readonly_fields(self, request, obj=None):
+        return [f.name for f in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(contest.models.Entry)
 class EntryAdmin(admin.ModelAdmin):
-    list_display = ['created','updated','contest','lineup']
+    list_display = ['user','created','updated','contest_link','lineup']
+    search_fields = ['user__username']
+    list_filter = ['created','updated']
+
+    def get_readonly_fields(self, request, obj=None):
+        return [f.name for f in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def contest_link(self, obj):
+        """
+        Add a button into the admin views so its easy to add a TemplateSchedule to an existing schedule
+
+        :param obj:   the model instance for each row
+        :return:
+        """
+
+        # the {} in the first argument are like %s for python strings,
+        # and the subsequent arguments fill the {}
+        return format_html('<a href="{}{}/" class="btn btn-success">{}</a>',
+                            "/admin/contest/contest/",
+                             obj.pk,
+                             str(obj.contest))

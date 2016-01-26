@@ -377,61 +377,52 @@ LOGGING = {
 }
 
 SUIT_CONFIG = {
-    'MENU_ORDER': (
+    'MENU': (
 
         # # To reorder existing apps use following definition
-        ('sites',),
-        ('auth',),
-        #('auth', ('user', 'group')),
+        {'app':'sites', 'label': 'Sites'},
+        {'app':'auth', 'label': 'Accounts'},
 
-        ('account',),
-        ('cash',),
-        ('contest',),
-        ('dataden',),
-        #('draftgroup',),
-        ('finance',),
-        ('fpp',),
-        ('lobby',),
-        ('pp',),
-        ('prize',),
-        ('promocode',),
-        #('roster',),
-        ('salary',),
-        #('scoring',),
+        {'app':'account', 'label': 'Notifications'},
+        {'app':'cash', 'label': 'Bank'},
+        {'app':'contest', 'label': 'Contest'},
+        {'app':'finance', 'label': 'Test'},
+        {'app':'fpp', 'label': 'FPP'},
+        {'app':'lobby', 'label': 'Lobby Banners'},
+        {'app':'prize', 'label': 'Prize'},
+        {'app':'salary', 'label': 'Salary'},
 
-        # schedule
-        ('schedule',),
+        {'app':'schedule', 'label': 'Schedule'},
 
 
-        ('sports',),        # for a few non-abstract things
-        ('nfl',),           # ie: not ('sports.nfl',)
-        ('nba',),
-        ('nhl',),
-        ('mlb',),
-        ('ticket',),
-        ('transaction',),
-        ('rakepaid',),
+        {'app':'sports', 'label': 'Sports'},
+        {'app':'nfl', 'label': 'NFL'},
+        {'app':'nba', 'label': 'NBA'},
+        {'app':'nhl', 'label': 'NHL'},
+        {'app':'mlb', 'label': 'MLB'},
+        {'app':'ticket', 'label': 'Ticket'},
+        {'app':'rakepaid', 'label': 'Loyalty Program'},
 
+        # #
+        # # # If you want to link app models from different app use full name:
+        # # ('sites', ('auth.user', 'auth.group')),
         #
-        # # If you want to link app models from different app use full name:
-        # ('sites', ('auth.user', 'auth.group')),
-
-        # To add custom item, define it as tuple or list:
-        # For parent: (Name, Link, Icon, Permission) - Last two are optional
-        # For child: (Name, Link, Permission) - Last one is optional
-        # You can also mix custom and native apps and models
-        # Link can be absolute url or url name
-        # Permission can be string or tuple/list for multiple
-        # If MENU_OPEN_FIRST_CHILD=True and children exists, you can leave parent link blank
-
-        # Example:
-        (('Prize Structure Creator', '/api/prize/generator/', 'icon-cog', ('auth.add_group',)),
-            (
-                ('Cash',     '/api/prize/generator/',    'auth.add_user'),
-                ('Ticket',   '/api/prize/ticket/',       'auth.add_user'),
-                ('Flat',     '/api/prize/flat/',         'auth.add_user'),
-            )
-        )
+        # # To add custom item, define it as tuple or list:
+        # # For parent: (Name, Link, Icon, Permission) - Last two are optional
+        # # For child: (Name, Link, Permission) - Last one is optional
+        # # You can also mix custom and native apps and models
+        # # Link can be absolute url or url name
+        # # Permission can be string or tuple/list for multiple
+        # # If MENU_OPEN_FIRST_CHILD=True and children exists, you can leave parent link blank
+        #
+        # # Example:
+        # (('Prize Structure Creator', '/api/prize/generator/', 'icon-cog', ('auth.add_group',)),
+        #     (
+        #         ('Cash',     '/api/prize/generator/',    'auth.add_user'),
+        #         ('Ticket',   '/api/prize/ticket/',       'auth.add_user'),
+        #         ('Flat',     '/api/prize/flat/',         'auth.add_user'),
+        #     )
+        # )
     ) # end MENU_ORDER
 } # end SUIT_CONFIG
 
