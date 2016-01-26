@@ -406,55 +406,161 @@ class CashPrizeStructureCreator(AbstractPrizeStructureCreator):
             s += '\n    %s' % str(self.prize_structure.generator_settings)
         return s # strip off leading & trailing whitespace/newlines
 
-class TicketPrizeStructureCreator(AbstractPrizeStructureCreator):
-    # TODO should set the buyin
+class AbstractFlatPrizeStructureCreator(AbstractPrizeStructureCreator):
     """
-    Used to create a prize structure based on tickets
+    Create a prize structure whos payouts are of the type 'amount_model_class'
+    which would be like a CashAmount, or a TicketAmount.
+
+    The prize pool created will be for any prize structure where all payout
+    spots receive the same payout value (ie: 50/50, Triple-Up, 4x, etc...
+
+    after successfully creating an instance of this class (in an inheriting child class),
+    you must call save() to actually create the prize structure in the database!
+
     """
 
-    def __init__(self, ticket_value, number_of_prizes, name=''):
+    #class InvalidFlatPrizeStructureException(Exception): pass
+
+    def __init__(self, buyin, amount_model_class, payout_value, number_of_prizes, name=''):
+        super().__init__(amount_model_class, name=name)
+
+        # set values
+        self.set_buyin(buyin)
+        self.number_of_prizes   = number_of_prizes
+        self.payout_value       = payout_value                      # the value of each payout spot
+        self.prize_pool         = number_of_prizes * payout_value
+
+        # validate these settings will work
+        self.validate_params()
+
+    def validate_params(self):
         """
-        Create a ticketed PrizeStructure given a ticket_value and the
-        number of prizes to be paid.
+        inheriting classes should override this method to provide specific validation.
 
-        :param ticket_value:
-        :param name:
+        ideally want to do exactly 10% rake, whch may be tricky for small TicketAmount structures
+
+        :param buyin:
+        :param payout_value:
+        :param number_of_prizes:
         :return:
         """
-        super().__init__( TicketAmount, name )
-        self.ticket_amount = self.get_ticket_amount( ticket_value )
+        pass
 
-        if number_of_prizes <= 0:
-            raise VariableNotSetException(type(self).__name__, 'number_of_prizes')
-        self.number_of_prizes = number_of_prizes
-
-        # since we know the ticket value and the number of prizes,
-        # we can add all the ranks right here. Dont forget to call save() though.
-        for rnk in range(1, self.number_of_prizes + 1 ):
-            self.add( rnk, ticket_value )
-
-    def get_ticket_amount(self, ticket_value):
-        try:
-            return TicketAmount.objects.get( amount=ticket_value )
-        except TicketAmount.DoesNotExist:
-            raise InvalidTicketAmountException( type(self).__name__, ticket_value )
-
-    def get_amount_instance(self, amount):
+    @atomic
+    def save(self):
         """
-        Overrides AbstractPrizeStructureCreator.get_amount_instance()
+        override parent save()
 
-        Ignores the amount parameter, and simply returns the self.ticket_amount instance
-
-        :param amount:
         :return:
         """
-        return self.ticket_amount
 
-class FlatCashPrizeStructureCreator( AbstractPrizeStructureCreator ):
+        # since it a flat structure, just add all the ranks
+        for i in range(self.number_of_prizes):
+            self.add( i+1, self.payout_value )
+
+        # create the PrizeStructure
+        self.prize_structure            = self.prize_structure_model()
+        self.prize_structure.name       = self.name
+        self.prize_structure.generator  = self.create_flat_structure_generator_settings()
+        self.prize_structure.save()
+
+        # create the ranks
+        if self.ranks is None:
+            self.ranks = []
+        for rank_number, prize_value in self.added_ranks:
+            # use the internal amount_model to get the right type of amount
+            r                   = self.rank_model()
+            r.prize_structure   = self.prize_structure
+            r.rank              = rank_number
+            r.amount            = self.get_amount_instance( prize_value )
+            r.save()
+            # if that worked, add it to the list of rank instances
+            self.ranks.append( r )
+
+        return self.prize_structure
+
+    def create_flat_structure_generator_settings(self):
+        """
+        return a new instance of GeneratorSettings, created
+        with flat payout structure in mind.
+
+        the generator class itself isnt actually used for the algorithm
+        which creates a curved prize structure!
+
+        however, we still need the GeneratorSettings to hold
+        some of the values for this Flat prize structure
+        """
+        gs = GeneratorSettings()
+        gs.buyin            = self.buyin
+        gs.first_place      = self.payout_value
+        gs.round_payouts    = self.buyin                    # just use the buyin
+        gs.payout_spots     = self.number_of_prizes
+        gs.prize_pool       = self.payout_value * self.number_of_prizes
+        gs.save()
+        return gs
+
+class TicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
     """
-    Used to create a cash prize strucutre with flat payouts.
-    Flat payouts are like 50/50s or Triple ups
+    Used to create a prize structure based on TicketAmount's
+    where all payout spots receive the same payout value!
     """
 
-    def __init__(self):
-        pass # TODO finish this
+    def __init__(self, buyin, ticket_value, number_of_prizes, name=''):
+        super().__init__(buyin, TicketAmount, ticket_value, number_of_prizes, name=name)
+
+class FlatCashPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
+    """
+    Used to create a prize structure based on CashAmount's where
+    all paid spots receive the same payout value!
+    """
+
+    def __init__(self, buyin, ticket_value, number_of_prizes, name=''):
+        super().__init__(buyin, CashAmount, ticket_value, number_of_prizes, name=name)
+
+
+#         """
+#         Create a ticketed PrizeStructure given a ticket_value and the
+#         number of prizes to be paid.
+#
+#         :param ticket_value:
+#         :param name:
+#         :return:
+#         """
+#         super().__init__( TicketAmount, name )
+#         self.set_buyin(buyin)
+#         self.ticket_amount = self.get_ticket_amount( ticket_value )
+#
+#         if number_of_prizes <= 0:
+#             raise VariableNotSetException(type(self).__name__, 'number_of_prizes')
+#         self.number_of_prizes = number_of_prizes
+#
+#         # since we know the ticket value and the number of prizes,
+#         # we can add all the ranks right here. Dont forget to call save() though.
+#         for rnk in range(1, self.number_of_prizes + 1 ):
+#             self.add( rnk, ticket_value )
+#
+#     def get_ticket_amount(self, ticket_value):
+#         try:
+#             return TicketAmount.objects.get( amount=ticket_value )
+#         except TicketAmount.DoesNotExist:
+#             raise InvalidTicketAmountException( type(self).__name__, ticket_value )
+#
+#     def get_amount_instance(self, amount):
+#         """
+#         Overrides AbstractPrizeStructureCreator.get_amount_instance()
+#
+#         Ignores the amount parameter, and simply returns the self.ticket_amount instance
+#
+#         :param amount:
+#         :return:
+#         """
+#         return self.ticket_amount
+#
+# class FlatCashPrizeStructureCreator( AbstractPrizeStructureCreator ):
+#     """
+#     Used to create a cash prize strucutre with flat payouts.
+#     Flat payouts are like 50/50s or Triple ups
+#     """
+#
+#     def __init__(self, buyin, cash_amount):
+#         self.set_buyin(buyin)
