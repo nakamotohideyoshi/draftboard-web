@@ -1,6 +1,7 @@
 #
 # salary/classes.py
 
+import csv
 from django.db.models import Q
 from .exceptions import (
     NoPlayersAtRosterSpotException,
@@ -636,7 +637,39 @@ class PlayerFppgGenerator(FppgGenerator):
             player.season_fppg = season_fppg
             player.save()
 
+class SalaryPool2Csv(object):
 
+    def __init__(self, salary_pool_id):
+        self.pool = Pool.objects.get(pk=salary_pool_id)
+        self.salaries = Salary.objects.filter(pool=self.pool).order_by('-amount')
+        self.csvfile = None
+
+    def __writerow(self, writer, salary):
+        writer.writerow({
+            'id'                : salary.player.pk,
+            'last_name'         : salary.player.last_name,
+            'first_name'        : salary.player.first_name,
+            'price_draftboard'  : salary.amount
+        })
+
+    def generate(self):
+        """
+        generate the csv file
+        :return:
+        """
+        filename = 'salary-pool-%s.csv' % str(self.pool.pk)
+
+        with open(filename, 'w') as self.csvfile:
+            fieldnames = ['id','last_name','first_name','price_draftboard']
+            writer = csv.DictWriter(self.csvfile, fieldnames=fieldnames)
+
+            writer.writeheader()
+            for salary in self.salaries:
+                self.__writerow( writer, salary )
+
+                # writer.writerow({'first_name': 'Baked', 'last_name': 'Beans'})
+                # writer.writerow({'first_name': 'Lovely', 'last_name': 'Spam'})
+                # writer.writerow({'first_name': 'Wonderful', 'last_name': 'Spam'})
 
 
 
