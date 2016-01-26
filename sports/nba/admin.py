@@ -2,6 +2,7 @@
 # sports/nba/admin.py
 
 from django.contrib import admin
+import sports.admin
 import sports.nba.models
 
 @admin.register(sports.nba.models.Team)
@@ -16,6 +17,9 @@ class GameAdmin(admin.ModelAdmin):
 @admin.register(sports.nba.models.Player)
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ['srid','position','first_name','last_name']
+
+    list_filter     = sports.admin.PlayerAdmin.list_filter   # + ('',)
+    search_fields   = sports.admin.PlayerAdmin.search_fields # + ('more','specific','fields...',)
 
 @admin.register(sports.nba.models.PlayerStats)
 class PlayerStatsAdmin(admin.ModelAdmin):
