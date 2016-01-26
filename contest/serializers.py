@@ -96,4 +96,4 @@ class PayoutSerializer(serializers.ModelSerializer):
     class Meta:
         model = contest.payout.models.Payout
 
-        fields = ('contest','rank','payout','user')
+        fields = ('contest','rank','amount','user')

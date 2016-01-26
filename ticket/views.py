@@ -15,7 +15,7 @@ class TicketAvailableListAPIView(generics.GenericAPIView):
     """
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated, )
-
+    serializer_class = TicketSerializer
     def get(self, request, format=None):
 
         user = self.request.user

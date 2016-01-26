@@ -66,7 +66,8 @@ class FantasyPointsSerializer(sports.serializers.FantasyPointsSerializer):
 
     fantasy_points = serializers.ListField(
         source='array_agg',
-        child=serializers.FloatField() # min_value=-9999, max_value=9999)
+        child=serializers.FloatField(), # min_value=-9999, max_value=9999)
+        help_text="This is an ARRAY of FLOAT fantasy points"
     )
 
 class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
@@ -81,119 +82,119 @@ class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
     #################################################################
     avg_pass_td  = serializers.FloatField()
     pass_td      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_pass_yds  = serializers.FloatField()
     pass_yds      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_pass_int  = serializers.FloatField()
     pass_int      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_rush_td  = serializers.FloatField()
     rush_td      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_rush_yds  = serializers.FloatField()
     rush_yds      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_rec_td  = serializers.FloatField()
     rec_td     = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_rec_yds  = serializers.FloatField()
     rec_yds      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_rec_rec  = serializers.FloatField()
     rec_rec      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_off_fum_lost  = serializers.FloatField()
     off_fum_lost      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_two_pt_conv  = serializers.FloatField()
     two_pt_conv      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_off_fum_rec_td  = serializers.FloatField()
     off_fum_rec_td      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_sack  = serializers.FloatField()
     sack      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_ints  = serializers.FloatField()
     ints      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_fum_rec  = serializers.FloatField()
     fum_rec      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_sfty  = serializers.FloatField()
     sfty      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_blk_kick  = serializers.FloatField()
     blk_kick      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     #
     # dst stats below
     avg_ret_kick_td  = serializers.FloatField()
     ret_kick_td      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_ret_punt_td  = serializers.FloatField()
     ret_punt_td      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_ret_int_td  = serializers.FloatField()
     ret_int_td      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_ret_fum_td  = serializers.FloatField()
     ret_fum_td      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_ret_blk_punt_td  = serializers.FloatField()
     ret_blk_punt_td      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_ret_fg_td  = serializers.FloatField()
     ret_fg_td      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
     avg_ret_blk_fg_td  = serializers.FloatField()
     ret_blk_fg_td      = serializers.ListField(
-        child=serializers.FloatField()
+        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
 class PlayerSerializer(sports.serializers.PlayerSerializer):

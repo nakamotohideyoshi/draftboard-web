@@ -89,7 +89,6 @@ class PlayerSerializer(sports.serializers.PlayerSerializer):
         # fields from the model: sports.<sport>.models.Player
         fields = sports.serializers.PlayerSerializer.PARENT_FIELDS  + ('birthcity', 'birthcountry',
                                                                        'birthdate',
-                                                                       'college',
                                                                        'jersey_number')
 
 class TsxItemRelatedField(serializers.RelatedField):
