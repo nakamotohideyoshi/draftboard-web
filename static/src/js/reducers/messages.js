@@ -16,7 +16,9 @@ module.exports = function(state=initialState, action) {
     case ActionTypes.ADD_MESSAGE:
       nextState[action.id] = {
         level: action.level,
-        content: action.content
+        header: action.header,
+        content: action.content,
+        ttl: action.ttl
       }
       return nextState
 

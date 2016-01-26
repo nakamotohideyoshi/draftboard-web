@@ -4,7 +4,9 @@ import * as ReactRedux from 'react-redux'
 import renderComponent from '../../lib/render-component'
 import {addMessage, removeMessage, clearMessages} from '../../actions/message-actions.js'
 import {forEach as _forEach} from 'lodash'
+import MessageDisplayMessage from './message-display-message.jsx'
 const {Provider, connect} = ReactRedux
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 
 
@@ -21,28 +23,18 @@ let MessageDisplay = React.createClass({
     clearMessages: React.PropTypes.func
   },
 
-  // See: https://facebook.github.io/react/tips/dangerously-set-inner-html.html
-  createMarkupFromContent: function (content) {
-    return {__html: content};
-  },
-
 
   renderMessages: function() {
     let messages = []
 
     _forEach(this.props.messages, function(message, messageId) {
       messages.push(
-        <div className={'message ' + message.level} key={messageId}>
-          <div className="message-content">
-            <div dangerouslySetInnerHTML={this.createMarkupFromContent(message.content)}></div>
-            <div
-              className="btn-close"
-              onClick={this.props.removeMessage.bind(null, messageId)}
-            >
-              [X] close
-            </div>
-          </div>
-        </div>
+        <MessageDisplayMessage
+          message={message}
+          messageId={messageId}
+          removeMessage={this.props.removeMessage}
+          key={messageId}
+        />
       )
     }.bind(this))
 
@@ -53,11 +45,12 @@ let MessageDisplay = React.createClass({
   render: function() {
     return (
       <div className="message-list">
-        {this.renderMessages()}
+        <ReactCSSTransitionGroup transitionName="message-transition" transitionEnterTimeout={500} transitionLeaveTimeout={300}>
+          {this.renderMessages()}
+        </ReactCSSTransitionGroup>
       </div>
     )
   }
-
 })
 
 
@@ -89,4 +82,4 @@ renderComponent(
 
 
 
-module.export = MessageDisplay
+module.exports = MessageDisplay
