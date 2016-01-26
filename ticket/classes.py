@@ -21,7 +21,7 @@ class TicketManager(CanDeposit, AbstractSiteUserClass):
         self.ticket = None
 
     @staticmethod
-    def create_default_ticket_amounts(verbose=True):
+    def create_default_ticket_amounts(verbose=False):
         """
         Create the default TicketAmounts if they do not alrady exist
         """

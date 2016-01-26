@@ -31,6 +31,7 @@ def load_initial_data(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('sports', '0001_squashed_0008_auto_20160119_2124'),
         ('roster', '0002_auto_20150529_0216'),
     ]
 

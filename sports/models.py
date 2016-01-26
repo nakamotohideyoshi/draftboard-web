@@ -67,7 +67,7 @@ class SiteSport(models.Model):
     created         = models.DateTimeField(auto_now_add=True, null=False)
     name            = models.CharField(max_length=128, null=False, unique=True)
 
-    current_season  = models.IntegerField(null=False,
+    current_season  = models.IntegerField(null=True,
                         help_text='year this sports current season began in. example: '
                                   'for the nba 2015-16 season, current_season should be set to: 2015')
 
