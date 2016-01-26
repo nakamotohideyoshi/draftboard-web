@@ -18,12 +18,20 @@ class ContestForm(ModelForm):
     This form is designed to hide some of the behind the scenes stuff,
     and help create a new contest as quickly and simply as possible.
     """
-
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            for field in self.fields:
+                self.fields[field].widget.attrs['readonly'] = True
     # clone_from = ModelChoiceField( Contest.objects.all(),
     #                   help_text="optional")
 
-    # ends_tonight = forms.BooleanField( initial=True,
-    #     help_text='to set a custom time for the contest to end, you must set it below')
+    ends_tonight = forms.BooleanField( initial=True, required=False,
+        help_text='to set a custom time for the contest to end, you must set it below')
+
+    early_registration = forms.BooleanField( initial=False, required=False,
+        help_text='do not let users draft teams for this contest yet, but allow them to buy in to reserve a spot.')
 
     class Meta:
 
@@ -44,15 +52,17 @@ class ContestForm(ModelForm):
             'start',
             #'ends_tonight',         # make visible in modeladmin !
             'end',
-            'draft_group',           # not displayed by modeladmin however!
             'max_entries',
             #'entries',
             'gpp',
             'respawn',
-            'doubleup'
+            'doubleup',
+            'ends_tonight',
+            'early_registration',
         ]
 
-        # exclude = ('ends_tonight',)
+        exclude = ('ends_tonight','early_registration',)
+
         #
         # add widgets, using the same field name from 'fields' list
         # widgets = {

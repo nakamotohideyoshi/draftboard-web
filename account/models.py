@@ -18,6 +18,8 @@ class Information(models.Model):
     state           = models.CharField(choices=US_STATES, max_length=2,  default='')
     zipcode         = models.CharField(max_length=5, null=False, default='')
     dob             = models.DateField( default=None,  null=True)
+    class Meta:
+        verbose_name = 'Information'
 
 
 class EmailNotification(models.Model):
@@ -36,7 +38,7 @@ class EmailNotification(models.Model):
 
     class Meta:
         unique_together = ("category", "name")
-
+        verbose_name = 'Email Notification'
 class UserEmailNotification(models.Model):
     """
     Options for enabling various email / notifications

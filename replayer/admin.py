@@ -11,7 +11,7 @@ from datetime import timedelta
 from util.timeshift import set_system_time, reset_system_time
 # change the datetime to show seconds for replayer/admin.py
 from django.conf.locale.en import formats as en_formats
-en_formats.DATETIME_FORMAT = "d b Y H:i:s"
+en_formats.DATETIME_FORMAT = "m/d/Y h:i:s P"
 
 @admin.register(replayer.models.Replay)
 class ReplayAdmin(admin.ModelAdmin):
