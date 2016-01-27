@@ -3,7 +3,7 @@
 
 from django.utils import timezone
 from django.core.management.base import BaseCommand, CommandError
-from prize.classes import TicketPrizeStructureCreator
+from prize.classes import FlatCashPrizeStructureCreator
 
 class Command(BaseCommand):
     """
@@ -18,7 +18,7 @@ class Command(BaseCommand):
     """
 
     # help is a Command inner variable
-    help = 'usage: ./manage.py ticketprizes <buyin> <ticketAmount> <numPayouts> <entries> <optionalName>'
+    help = 'usage: ./manage.py ticketprizes <buyin> <cashPayoutAmountPerSpot> <numPayouts> <optionalName>'
 
     def add_arguments(self, parser):
         # Positional arguments
@@ -40,13 +40,12 @@ class Command(BaseCommand):
         buyin           = float(values[0])
         ticket_amount   = float(values[1])
         num_payouts     = int(values[2])
-        entries         = int(values[3])
         try:
-            name = ' '.join( values[4:] )
+            name = ' '.join( values[3:] )
         except:
             name = ''
 
         self.stdout.write('%s %s %s name[%s]' % (str(buyin),
                                 str(ticket_amount), str(num_payouts), str(name)))
-        creator = TicketPrizeStructureCreator(buyin, ticket_amount, num_payouts, entries, name=name)
+        creator = FlatCashPrizeStructureCreator(buyin, ticket_amount, num_payouts, name=name)
         creator.save()

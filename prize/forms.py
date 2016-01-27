@@ -45,8 +45,8 @@ class FlatCashPrizeCreatorForm( PrizeCreatorForm ):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    first_place     = forms.IntegerField(label='First Place')   # label='value ($) of first place as integer')
-    payout_spots    = forms.IntegerField(label='Payout Spots')  # total # of prizes
+    first_place     = forms.FloatField(label='Every Payout')   # label='value ($) of first place as integer')
+    payout_spots    = forms.IntegerField(label='Number of Payouts')  # total # of prizes
 
 class PrizeGeneratorForm( FlatCashPrizeCreatorForm ):
     """
