@@ -12,7 +12,8 @@ import store from '../../store'
 
 
 /**
- * When `View Contests` element is clicked, open side pane to show a user's current contests for that lineup.
+ * When a lineup player is clicked, this pane will show seasonal data, player information, team information and
+ * game history.
  */
 const LivePlayerPane = React.createClass({
 
@@ -21,120 +22,117 @@ const LivePlayerPane = React.createClass({
     player: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
     game: React.PropTypes.object
-  },
+ },
 
+  /**
+   * Close the player pane using AppActions
+   */
   closePane: function() {
     log.debug('LivePlayerPane.closePane()')
 
     this.props.whichSide === 'opponent' ? AppActions.togglePlayerPane('right') : AppActions.togglePlayerPane('left')
-  },
+ },
 
+  /**
+   * Render out the seasonal stats
+   *
+   * @return {JSXElement}
+   */
   renderStatsAverage: function() {
     const player = this.props.player
 
-    if (player.hasOwnProperty('seasonalStats') === false) {
-      return (
-        <div className='player-stats'>
-          <ul />
-        </div>
-      )
-    }
+    let renderedStats
+    if (player.hasOwnProperty('seasonalStats') === true) {
+      // ordered stats
+      const statTypes = ['fp', 'points', 'rebounds', 'assists', 'steals', 'turnovers']
+      const statNames = ['FPPG', 'PPG', 'RPG', 'APG', 'stlpg', 'TOPG']
 
-    const stats = player.seasonalStats
+      renderedStats = statTypes.map((statType, index) => {
+        const value = player.seasonalStats[`avg_${statType}`].toFixed(1)
+
+        return (
+          <li key={statType}>
+            <div className="stat-name">{statNames[index]}</div>
+            <div className="stat-score">{value}</div>
+          </li>
+        )
+     })
+   }
 
     return (
       <div className='player-stats'>
         <ul>
-          <li>
-            <div className='stat-name'>FPPG</div>
-            <div className='stat-score'>{ stats.avg_fp.toFixed(1) }</div>
-          </li>
-          <li>
-            <div className='stat-name'>PPG</div>
-            <div className='stat-score'>{ stats.avg_points.toFixed(1) }</div>
-          </li>
-          <li>
-            <div className='stat-name'>RPG</div>
-            <div className='stat-score'>{ stats.avg_rebounds.toFixed(1) }</div>
-          </li>
-          <li>
-            <div className='stat-name'>APG</div>
-            <div className='stat-score'>{ stats.avg_assists.toFixed(1) }</div>
-          </li>
-          <li>
-            <div className='stat-name'>STLPG</div>
-            <div className='stat-score'>{ stats.avg_steals.toFixed(1) }</div>
-          </li>
-          <li>
-            <div className='stat-name'>TOPG</div>
-            <div className='stat-score'>{ stats.avg_turnovers.toFixed(1) }</div>
-          </li>
+          {renderedStats}
         </ul>
       </div>
     )
-  },
+ },
 
-  renderCurrentGame: function() {
-    log.debug('LivePlayerPane.renderCurrentGame')
-    const player = this.props.player
+  /**
+   * Render out information about the player's current game
+   *
+   * @return {JSXElement}
+   */
+  renderCurrentGame() {
     const game = this.props.game
 
-    // if the game isn't loaded yet or something
+    // if the game isn't loaded yet or something then return
     if (!game.hasOwnProperty('boxscore')) {
-      log.debug('renderCurrentGame() - boxScore undefined')
+      log.debug('LivePlayerPane.renderCurrentGame() - boxScore undefined')
       return (<div className='current-game' />)
-    }
+   }
 
     const boxScore = game.boxscore
 
-    let clock
+    // TODO Live - make sure clock and quarter display are set in liveSelector so we don't do logic in the component
+    let gameTimeInfo
     if (boxScore.status === 'closed') {
-      clock = (
-        <div className='current-game__time'>
-          <div className='current-game__time__timer' />
-          <div className='current-game__time__period'>Final</div>
-        </div>
-      )
-    } else {
-      clock = (
-        <div className='current-game__time'>
-          <div className='current-game__time__timer'>{ boxScore.clock }</div>
-          <div className='current-game__time__period'>{ boxScore.quarterDisplay }</div>
-        </div>
-      )
-    }
-
+      gameTimeInfo = ['', 'Final']
+   } else {
+      gameTimeInfo = [
+        boxScore.clock,
+        boxScore.quarterDisplay
+      ]
+   }
 
     return (
       <div className='current-game'>
         <div>
           <div className='current-game__team1'>
-            <div className='current-game__team1__points'>{ boxScore.home_score }</div>
+            <div className='current-game__team1__points'>{boxScore.home_score}</div>
             <div className='current-game__team-name'>
-              <div className='city'>{ game.homeTeamInfo.city }</div>
-              <div className='name'>{ game.homeTeamInfo.name }</div>
+              <div className='city'>{game.homeTeamInfo.city}</div>
+              <div className='name'>{game.homeTeamInfo.name}</div>
             </div>
           </div>
-          { clock }
+          <div className='current-game__time'>
+            <div className='current-game__time__timer'>{gameTimeInfo[0]}</div>
+            <div className='current-game__time__period'>{gameTimeInfo[1]}</div>
+          </div>
           <div className='current-game__team2'>
-            <div className='current-game__team1__points'>{ boxScore.away_score }</div>
+            <div className='current-game__team1__points'>{boxScore.away_score}</div>
             <div className='current-game__team-name'>
-              <div className='city'>{ game.awayTeamInfo.city }</div>
-              <div className='name'>{ game.awayTeamInfo.name }</div>
+              <div className='city'>{game.awayTeamInfo.city}</div>
+              <div className='name'>{game.awayTeamInfo.name}</div>
             </div>
           </div>
         </div>
       </div>
     )
-  },
+ },
 
-  renderActivities: function() {
-    let index = 0
+  /**
+   * Render out the recent activities, aka props.eventHistory that's available
+   * This history erases on refresh, is not cached and lives in the Live component state.
+   *
+   * @return {JSXElement}
+   */
+  renderActivities() {
+    // reverse to show most recent event first
     const eventHistory = this.props.eventHistory.reverse()
 
-    let activitiesHTML = eventHistory.map((activity) => {
-      index += 1
-      const { points, info, when } = activity
+    const activitiesHTML = eventHistory.map((activity, index) => {
+      const {points, info, when} = activity
       return (
         <li className='activity' key={index}>
           <div className='points-gained'>{points}</div>
@@ -144,17 +142,22 @@ const LivePlayerPane = React.createClass({
           </div>
         </li>
       )
-    })
+   })
 
     return (
       <div className='recent-activity'>
         <div className='recent-activity__title'>Recent activity</div>
-        <ul>{ activitiesHTML }</ul>
+        <ul>{activitiesHTML}</ul>
       </div>
     )
-  },
+ },
 
-  renderHeader: function() {
+  /**
+   * Render out the header of the pane, which includes team information and pertinent player information
+   *
+   * @return {JSXElement}
+   */
+  renderHeader() {
     const player = this.props.player
     const game = this.props.game
     const teamInfo = player.teamInfo
@@ -162,39 +165,39 @@ const LivePlayerPane = React.createClass({
     let percentageTimeRemaining = 1
     let fp = 0
 
+    // TODO Live - make sure this stat is in the liveSelector and remove logic from component
     // if the game has not started
     if (game !== undefined) {
       percentageTimeRemaining = game.timeRemaining / 48
-    }
+   }
 
+    // TODO Live - make sure this stat is in the liveSelector and remove logic from component
     if (player.stats !== undefined) {
       fp = player.stats.fp
-    }
-
+   }
 
     return (
       <section className='header-section'>
         <div className="header__player-image" />
 
         <div className='header__team-role'>
-          { teamInfo.city } { teamInfo.name } - { player.info.position }
+          {teamInfo.city} {teamInfo.name} - {player.info.position}
         </div>
-        <div className='header__name'>{ player.info.name }</div>
+        <div className='header__name'>{player.info.name}</div>
 
         <div className='header__pts-stats'>
           <div className="header__pts-stats__info">
             <LivePMRProgressBar
-              decimalRemaining={ player.stats.decimalRemaining }
-              strokeWidth="1"
+              decimalRemaining={player.stats.decimalRemaining}
+              strokeWidth={1}
               backgroundHex="46495e"
               hexStart="34B4CC"
               hexEnd="2871AC"
-              svgWidth="50"
-            />
+              svgWidth={50} />
 
             <div className="header__pts-stats__info__insvg">
               <p>pts</p>
-              <p>{ fp }</p>
+              <p>{fp}</p>
             </div>
           </div>
 
@@ -206,31 +209,28 @@ const LivePlayerPane = React.createClass({
         </div>
       </section>
     )
-  },
+ },
 
   render: function() {
     const side = this.props.whichSide === 'opponent' ? 'right' : 'left'
-    let classNames = 'player-detail-pane live-player-pane live-pane live-pane--' + side + ' live-pane-player--' + side
-
-    const teamSRID = this.props.player.info.team_srid
-    const game = this.props.game
+    const className = `player-detail-pane live-player-pane live-pane live-pane--${side} live-pane-player--${side}`
 
     return (
-      <div className={classNames}>
+      <div className={className}>
         <div className="live-pane__close" onClick={this.closePane}></div>
 
         <div className="pane-upper">
-          { this.renderHeader() }
-          { this.renderStatsAverage() }
-          { this.renderCurrentGame() }
+          {this.renderHeader()}
+          {this.renderStatsAverage()}
+          {this.renderCurrentGame()}
         </div>
 
         <div className="pane-lower">
-          { this.renderActivities() }
+          {this.renderActivities()}
         </div>
       </div>
     )
-  }
+ }
 })
 
 

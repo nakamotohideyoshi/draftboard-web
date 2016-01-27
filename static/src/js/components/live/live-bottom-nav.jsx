@@ -1,5 +1,4 @@
 import React from 'react'
-import { vsprintf } from 'sprintf-js'
 import _ from 'lodash'
 
 import log from '../../lib/logging'
@@ -9,7 +8,7 @@ import * as AppActions from '../../stores/app-state-store'
 /**
  * Bottom nav for the live section, changes based on contest vs lineup mode
  */
-var LiveBottomNav = React.createClass({
+const LiveBottomNav = React.createClass({
   propTypes: {
     hasContest: React.PropTypes.bool.isRequired
   },
@@ -50,4 +49,4 @@ var LiveBottomNav = React.createClass({
   }
 })
 
-module.exports = LiveBottomNav
+export default LiveBottomNav

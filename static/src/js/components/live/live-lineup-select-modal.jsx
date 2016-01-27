@@ -1,12 +1,6 @@
-import React from 'react'
-import * as ReactRedux from 'react-redux'
-import Modal from '../modal/modal.jsx'
 import _ from 'lodash'
-import { vsprintf } from 'sprintf-js'
-import { updatePath } from 'redux-simple-router'
-
-import { updateLiveMode } from '../../actions/live'
-
+import Modal from '../modal/modal.jsx'
+import React from 'react'
 
 
 /**
@@ -16,12 +10,11 @@ import { updateLiveMode } from '../../actions/live'
 const LiveLineupSelectModal = React.createClass({
 
   propTypes: {
-    lineups: React.PropTypes.object.isRequired,
-    updateLiveMode: React.PropTypes.func,
-    updatePath: React.PropTypes.func
+    changePathAndMode: React.PropTypes.func.isRequired,
+    lineups: React.PropTypes.object.isRequired
   },
 
-  getInitialState: function() {
+  getInitialState() {
     const sports = this.sportLineups()
     // if all lineups are in same sport, do not show sport selection options
     const selectedSport = (Object.keys(sports).length == 1) ? Object.keys(sports)[0] : null
@@ -39,7 +32,7 @@ const LiveLineupSelectModal = React.createClass({
    *   'nfl': 5
    * }
    */
-  sportLineups: function() {
+  sportLineups() {
     let sportLineups = {}
 
     _.forEach(this.props.lineups, (lineup) => {
@@ -54,37 +47,38 @@ const LiveLineupSelectModal = React.createClass({
     return sportLineups
   },
 
-  open: function() {
+  open() {
     this.setState({isOpen: true})
   },
 
-  close: function() {
+  close() {
     this.resetSport();
     this.setState({isOpen: false})
   },
 
-  resetSport: function() {
+  resetSport() {
     this.setState({selectedSport: null})
   },
 
-  selectSport: function(sport) {
+  selectSport(sport) {
     this.setState({selectedSport: sport})
   },
 
-  selectLineup: function(lineup) {
-    this.props.updatePath(vsprintf('/live/lineups/%d/', [lineup.id]))
-    this.props.updateLiveMode({
-      type: 'lineup',
+  selectLineup(lineup) {
+    const path = `/live/lineups/${lineup.id}/`
+    const changedFields = {
       draftGroupId: this.props.lineups[lineup.id].draftGroup.id,
       myLineupId: lineup.id
-    })
+    }
+
+    this.props.changePathAndMode(path, changedFields)
   },
 
-  getModalContent: function() {
+  getModalContent() {
     return (this.state.selectedSport === null)? this.renderSports() : this.renderLineups()
   },
 
-  renderSports: function() {
+  renderSports() {
     const sportLineups = this.sportLineups()
     const sportsSorted = Object.keys(sportLineups).sort(function(x, y) { return x > y });
 
@@ -106,7 +100,7 @@ const LiveLineupSelectModal = React.createClass({
     )
   },
 
-  renderLineups: function() {
+  renderLineups() {
     const sportLineups = _.filter(this.props.lineups, (lineup, id) => {
       return lineup.draftGroup.sport === this.state.selectedSport
     })
@@ -132,7 +126,7 @@ const LiveLineupSelectModal = React.createClass({
     )
   },
 
-  render: function() {
+  render() {
     const modalContent = this.getModalContent()
     const title = (this.state.selectedSport) ? "Choose a lineup" : "Choose a sport"
 
@@ -154,28 +148,4 @@ const LiveLineupSelectModal = React.createClass({
 
 });
 
-
-// Redux integration
-let {Provider, connect} = ReactRedux
-
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
-  return {}
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
-    updatePath: (path) => dispatch(updatePath(path))
-  }
-}
-
-// Wrap the component to inject dispatch and selected state into it.
-var LiveLineupSelectModalConnected = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(LiveLineupSelectModal)
-
-
-module.exports = LiveLineupSelectModalConnected
+export default LiveLineupSelectModal
