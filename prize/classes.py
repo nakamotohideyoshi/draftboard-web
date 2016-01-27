@@ -1,5 +1,13 @@
+#
+# prize/classes.py
+
 import math
-from .exceptions import PrizeGenerationException, InvalidBuyinAndPrizePoolException
+from .exceptions import (
+    PrizeGenerationException,
+    InvalidBuyinAndPrizePoolException,
+    RakeIsNot10PercentException,
+    NoMatchingTicketException,
+)
 from collections import OrderedDict
 from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException
 from ticket.exceptions import InvalidTicketAmountException
@@ -505,8 +513,34 @@ class TicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
     where all payout spots receive the same payout value!
     """
 
-    def __init__(self, buyin, ticket_value, number_of_prizes, name=''):
+    def __init__(self, buyin, ticket_value, number_of_prizes, entries, name=''):
         super().__init__(buyin, TicketAmount, ticket_value, number_of_prizes, name=name)
+
+        self.entries = entries
+
+        self.validate_payout_ticket_amount()
+
+        # raise an exception if the total rake for this prize structure is not 10 percent
+        self.validate_rake_amount()
+
+    def validate_payout_ticket_amount(self):
+        try:
+            ta = TicketAmount.objects.get( amount=self.payout_value )
+        except TicketAmount.DoesNotExist:
+            raise NoMatchingTicketException(str(self.payout_value))
+
+    def validate_rake_amount(self):
+        """
+        raise RakeIsNot10PercentException if the rake taken out of the prize pool is not 10 percent
+        """
+        portion_towards_prize_pool = (self.buyin * 0.9) * self.entries
+        total_rake = self.buyin * 0.1 * self.entries
+        rake_percentage = float(float(total_rake) / float(self.prize_pool))
+
+        if portion_towards_prize_pool != self.prize_pool:
+            err_msg = 'BUYINS != PRIZEPOOL. rake: %.3fpct ... (buyin_portion_to_prize_pool: %.2f, $total rake: %s, $prize pool: %s' % (rake_percentage*100.0,
+                                                           portion_towards_prize_pool, str(total_rake), str(self.prize_pool))
+            raise RakeIsNot10PercentException(err_msg)
 
 class FlatCashPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
     """

@@ -8,13 +8,15 @@ class FppBalance(Balance):
     """
     Implements the :class:`transaction.models.Balance` model.
     """
-    pass
+    class Meta:
+        verbose_name = 'FPP Balance'
 
 class FppTransactionDetail(TransactionDetail):
     """
     Implements the :class:`transaction.models.TransactionDetail` model.
     """
-    pass
+    class Meta:
+        verbose_name = 'FPP Transaction'
 
 class AdminFpp(models.Model):
     """
@@ -54,6 +56,9 @@ class AdminFppDeposit(AdminFpp):
             t.deposit( self.amount )
         super(AdminFppDeposit, self).save(*args, **kwargs)
 
+    class Meta:
+        verbose_name = 'Admin Gift'
+
 class AdminFppWithdraw(AdminFpp):
 
     user    = models.ForeignKey( User, related_name='adminfppwithdraw_user' )
@@ -67,3 +72,7 @@ class AdminFppWithdraw(AdminFpp):
             t = fpp.classes.FppTransaction( self.user )
             t.deposit( self.amount )
         super(AdminFppWithdraw, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = 'Admin Removal'
+

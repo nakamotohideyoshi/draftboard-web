@@ -86,6 +86,10 @@ class AdminCashDeposit( models.Model ):
 
         super(AdminCashDeposit, self).save(*args, **kwargs)
 
+    class Meta:
+        verbose_name= "Admin Gift"
+
+
 class AdminCashWithdrawal( models.Model ):
     """
     keep track of times the admin has withdrawn cash
@@ -112,3 +116,5 @@ class AdminCashWithdrawal( models.Model ):
 
         super(AdminCashWithdrawal, self).save(*args, **kwargs)
 
+    class Meta:
+        verbose_name= "Admin Removal"

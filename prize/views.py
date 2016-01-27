@@ -401,9 +401,9 @@ class FlatCashPrizeStructureCreatorView(View):
     template_name   = 'flat_cash_prize_creator.html'
     form_class      = FlatCashPrizeCreatorForm
     initial         = {
-        'buyin'         : 10,
-        'first_place'   : 20,
-        'payout_spots'  : 50,
+        'buyin'         : 1.00,
+        'first_place'   : 1.80,
+        'payout_spots'  : 5,
         'create'        : False
     }
 
@@ -422,6 +422,9 @@ class FlatCashPrizeStructureCreatorView(View):
 
             print('buyin', buyin, 'first_place:', first_place,
                   'payout_spots:', payout_spots, 'create:', create)
+            # need to be able to create this:
+            # >>> creator = FlatCashPrizeStructureCreator(buyin, ticket_amount, num_payouts, name=name)
+            # >>> creator.save()
 
             max_entries = (float(first_place) * payout_spots) / buyin
 
@@ -474,7 +477,8 @@ class FlatCashPrizeStructureCreatorView(View):
             # at this point, if 'create' is True, we should
             # actually save & commit a new prize structure
             if create:
-                creator = FlatCashPrizeStructureCreator( first_place, payout_spots, 'flat-gui' )
+                creator = FlatCashPrizeStructureCreator( buyin, first_place, payout_spots,
+                                                         'flat-cash-prize-structure' )
                 creator.save()
 
             context['created']   = create # we should ACTUALLY create it though.

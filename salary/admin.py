@@ -13,6 +13,7 @@ class TrailingGameWeightInline(admin.TabularInline):
 class PlayerInline(admin.TabularInline):
     model = Player
 
+
 class SalaryInline(admin.TabularInline):
     model = Salary
     extra = 0
@@ -29,7 +30,7 @@ class SalaryInline(admin.TabularInline):
 
 @admin.register(SalaryConfig)
 class SalaryConfigAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'created']
+    list_display = ['name', 'created']
     inlines = [
         TrailingGameWeightInline,
     ]

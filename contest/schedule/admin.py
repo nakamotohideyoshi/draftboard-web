@@ -7,13 +7,16 @@ from django.utils.html import format_html
 import contest.schedule.models
 import contest.schedule.forms
 
+
 @admin.register(contest.schedule.models.Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['created','name']
+    list_display = ['name']
+
 
 @admin.register(contest.schedule.models.Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ['created','modified','site_sport','category','enable']
+    list_display = ['site_sport','category','enable']
+
 
 @admin.register(contest.schedule.models.TemplateContest)
 class TemplateContestAdmin(admin.ModelAdmin):
@@ -23,6 +26,7 @@ class TemplateContestAdmin(admin.ModelAdmin):
         'name',
         'scheduler',
     ]
+
 
     def scheduler(self, obj):
         """
@@ -70,7 +74,6 @@ class TemplateContestAdmin(admin.ModelAdmin):
 
                 'prize_structure',
                 'max_entries',
-                'entries',
 
                 'gpp',
                 'respawn',
@@ -100,10 +103,20 @@ class ScheduledTemplateContestAdmin(admin.ModelAdmin):
         'start_time',
         'duration_minutes',
         'multiplier',
+        'buyin'
     ]
+
+    def buyin(self, obj):
+        return obj.template_contest.prize_structure.generator.buyin
+
 
 @admin.register(contest.schedule.models.Interval)
 class IntervalAdmin(admin.ModelAdmin):
+    def get_model_perms(self, request):
+       """
+       Return empty perms dict thus hiding the model from admin index.
+       """
+       return {}
 
     list_display = [
         'monday','tuesday','wednesday','thursday','friday','saturday','sunday'
