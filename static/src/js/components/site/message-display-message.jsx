@@ -41,9 +41,7 @@ let MessageDisplayMessage = React.createClass({
       <div
         className="btn-close"
         onClick={this.props.removeMessage.bind(null, this.props.messageId)}
-        >
-        [X] close
-      </div>
+        ></div>
     )
   },
 
