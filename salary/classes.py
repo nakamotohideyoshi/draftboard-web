@@ -401,13 +401,13 @@ class SalaryGenerator(FppgGenerator):
         :param position_average_list:
         :return:
         """
-        print("position_average_list keys:"+str(position_average_list.keys()))
-        print('position_average_list:', str(position_average_list))
+        #print("position_average_list keys:"+str(position_average_list.keys()))
+        #print('position_average_list:', str(position_average_list))
         #
         # get all the roster spots for the sport and sum up the average
         # fantasy points for each spot * spot.amount
         roster_spots = RosterSpot.objects.filter(site_sport = self.site_sport)
-        print('site_sport', str(self.site_sport), self.site_sport.name)
+        #print('site_sport', str(self.site_sport), self.site_sport.name)
         sum_average_points = 0.0
         for roster_spot in roster_spots:
             #
@@ -416,14 +416,14 @@ class SalaryGenerator(FppgGenerator):
             roster_maps = RosterSpotPosition.objects.filter(roster_spot = roster_spot)
             count = 0
             sum   = 0.0
-            print('roster_maps:', len(roster_maps), 'for %s' % str(roster_spot))
+            #print('roster_maps:', len(roster_maps), 'for %s' % str(roster_spot))
             for roster_map in roster_maps:
                 position = roster_map.position
                 if position in position_average_list:
                     sum     += position_average_list[position].average
                     count   += 1
                 # debug print:
-                print( '    roster_map', str(count), str(roster_map) )
+                #print( '    roster_map', str(count), str(roster_map) )
             try:
                 sum_average_points += ((sum / ((float)(count))) * ((float)(roster_spot.amount)))
             except ZeroDivisionError:
@@ -575,8 +575,8 @@ class PlayerFppgGenerator(FppgGenerator):
         #
         # sports with multiple PlayerStats classes require us to handle
         # the fppg calcs differently, ie: break up pitchers and hitters
-        print('updating season_fppg - sport:', sport)
-        print('... %s player_stats_classses -> %s' % (str(len(player_stats_classes)), str(player_stats_classes)))
+        #print('updating season_fppg - sport:', sport)
+        #print('... %s player_stats_classses -> %s' % (str(len(player_stats_classes)), str(player_stats_classes)))
         if len(player_stats_classes) == 1:
             #
             # sports like nfl, nhl, nba only have a single PlayerStats model

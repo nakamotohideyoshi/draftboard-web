@@ -17,6 +17,7 @@ from contest.views import (
     EnterLineupAPIView,
     EnterLineupStatusAPIView,
 )
+from sports.classes import SiteSportManager
 from cash.classes import CashTransaction
 from contest import exceptions
 import mysite.exceptions
@@ -30,27 +31,53 @@ from test.classes import BuildWorldMixin, ForceAuthenticateAndRequestMixin
 from rest_framework import status
 from rest_framework.response import Response
 
+#class BuyinTest(AbstractTest):
 class BuyinTest(AbstractTest):
     """
     create a basic contest, and use the BuyinManager to buy into it.
     """
 
     def setUp(self):
-
+        # ensure the default ticket
         TicketManager.create_default_ticket_amounts(verbose=False)
-
+        # add funds to user
         self.user = self.get_basic_user()
         ct = CashTransaction(self.user)
         ct.deposit(100)
 
-        salary_generator = Dummy.generate_salaries()
-        self.salary_pool = salary_generator.pool
+        # salary_generator = Dummy.generate_salaries()
+        # self.salary_pool = salary_generator.pool
+        ####### start
+        #
+        #
+        self.verbose = True  # set to False to disable print statements
+
+        #
+        # The sport we are going to build fake stats for.
+        # Lets use nfl, but it doesnt matter what sport we use
+        self.sport = 'nfl'
+
+        #
+        # Ensure there are Games by using the Dummy to generate fake stats.
+        # The ScheduleManager requires that Game objects exist
+        # because when it creates scheduled Contest objects
+        # it is required to create a draft group.
+        self.dummy = Dummy(sport=self.sport)
+        self.generator = self.dummy.generate()
+        self.salary_pool = self.generator.pool
+        self.site_sport = self.dummy.site_sport # stash the site_sport for easy use
+
+        self.site_sport_manager  = SiteSportManager()
+        self.game_model          = self.site_sport_manager.get_game_class(self.site_sport)  #ie: sports.nfl.models.Game
+        self.games               = self.game_model.objects.all() # there should be handful now, for today
+        if self.games.count() <= 0:
+            raise Exception('buyin.tests.BuyinTest - we meant to create games.... but none were created!')
+        ####### end
+
+        # create a simple prize pool
         self.first = 100.0
         self.second = 50.0
         self.third = 25.0
-
-        #
-        # create a simple Rank and Prize Structure
         self.buyin =10
         cps = CashPrizeStructureCreator(name='test')
         cps.add(1, self.first)
@@ -65,10 +92,12 @@ class BuyinTest(AbstractTest):
 
         #
         # create the Contest
-        now = timezone.now()
-        start = DfsDateTimeUtil.create(now.date(), time(23,0))
-        end = DfsDateTimeUtil.create(now.date() + timedelta(days=1), time(0,0))
-        cc= ContestCreator("test_contest", "nfl", self.prize_structure, start, end)
+        # now = timezone.now()
+        # start = DfsDateTimeUtil.create(now.date(), time(23,0))
+        # end = DfsDateTimeUtil.create(now.date() + timedelta(days=1), time(0,0))
+        start   = self.games[0].start + timedelta(minutes=5)
+        end     = self.games[ self.games.count() - 1 ].start # set 'end' to start of last game
+        cc      = ContestCreator("test_contest", self.sport, self.prize_structure, start, end)
         self.contest = cc.create()
         self.contest.status = Contest.RESERVABLE
         self.contest.save()
