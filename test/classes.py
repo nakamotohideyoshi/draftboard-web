@@ -81,13 +81,13 @@ class BuildWorldMixin( object ):
 
 class ForceAuthenticateAndRequestMixin( object ):
 
-    def force_authenticate_and_GET(self, user, view_class, url):
-        return self.force_authenticate_and_request(user, view_class, url, data=None, request_type='get')
+    def force_authenticate_and_GET(self, user, view_class, url, data=None, **kwargs):
+        return self.force_authenticate_and_request(user, view_class, url, data=data, request_type='get', **kwargs)
 
     def force_authenticate_and_POST(self, user, view_class, url, data=None):
         return self.force_authenticate_and_request(user, view_class, url, data=data, request_type='post')
 
-    def force_authenticate_and_request(self, user, view_class, url, data=None, request_type=None):
+    def force_authenticate_and_request(self, user, view_class, url, data=None, request_type=None, **kwargs):
         """
         major helper method for testing rest_framework APIs
         so that we dont have to perform prerequisite calls to login
@@ -101,13 +101,13 @@ class ForceAuthenticateAndRequestMixin( object ):
         view = view_class.as_view()
         # Make an authenticated request to the view...
         if request_type == 'get':
-            request = factory.get( url )
+            request = factory.get( url, data )
         elif request_type == 'post':
             request = factory.post( url, data )
         else:
             raise Exception('invalid request_type: %s' % request_type)
         force_authenticate(request, user=user)
-        response = view(request)
+        response = view(request, **kwargs)   # response = view(request, param1='val1') will pass GET args between slashes
         return response
 
 # class ReplayNbaTest(object):
