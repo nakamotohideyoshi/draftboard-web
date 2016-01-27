@@ -84,8 +84,9 @@ var LobbyContests = React.createClass({
       this.props.addMessage({
         header: "Lineup Saved!",
         content: "now do something wiht it.",
-        level: 'success',
-        ttl: 5000
+        level: 'success'
+        // ,
+        // ttl: 5000
       })
     }
 
