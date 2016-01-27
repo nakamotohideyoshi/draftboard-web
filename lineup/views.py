@@ -186,6 +186,14 @@ class EditLineupAPIView(generics.CreateAPIView):
 
         return Response('lineup created')
 
+class EditLineupStatusAPIView(APIView):
+    pass # TODO
+
+class EditEntryLineupAPIView(APIView):
+    pass # TODO
+
+class EditEntryLineupStatusAPIView(APIView):
+    pass # TODO
 
 class PlayersAPIView(generics.GenericAPIView):
     """

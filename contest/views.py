@@ -430,6 +430,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
         lineup_id       = request.data.get('lineup')
         contest_id      = request.data.get('contest')
 
+        #print('contest_id', str(contest_id), 'str:', isinstance(contest_id, str))
         # ensure the contest is valid
         try:
             contest = Contest.objects.get( pk=contest_id )
