@@ -51,8 +51,10 @@ export const upcomingLineupsInfo = createSelector(
 
       // for each entry, look up the contest it's entered into, then add up the fees.
       _forEach(lineupEntries, function(lineupEntry) {
-        lineupFeeTotal = lineupFeeTotal + contests[lineupEntry.contest].buyin
-        lineupContests.push(contests[lineupEntry.contest].id)
+        if (contests.hasOwnProperty(lineupEntry.contest)) {
+          lineupFeeTotal = lineupFeeTotal + contests[lineupEntry.contest].buyin
+          lineupContests.push(contests[lineupEntry.contest].id)
+        }
       })
       // Add it to our feeMap + contesetMap
       feeMap[lineup.id] = lineupFeeTotal
