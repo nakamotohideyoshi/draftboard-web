@@ -36,7 +36,7 @@ urlpatterns = patterns( '',
 
     #
     # check if the "buyin" -- that is /api/contest/enter-lineup/ -- was successful
-    (r'^enter-lineup-status/(?P<task_id>[a-z0-9-]+)/$', EnterLineupStatusAPIView.as_view()),
+    (r'^enter-lineup-status/$', EnterLineupStatusAPIView.as_view()),
 
     #
     # get the info for a single Contest by its id

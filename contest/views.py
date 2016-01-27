@@ -22,6 +22,8 @@ from contest.serializers import (
     EnterLineupSerializer,
     EnterLineupStatusSerializer,
     PayoutSerializer,
+    EditEntryLineupSerializer,
+    EditEntryLineupStatusSerializer,
 )
 from contest.classes import ContestLineupManager
 from contest.models import (
@@ -50,6 +52,7 @@ from contest.exceptions import (
 
 from cash.exceptions import OverdraftException
 from lineup.models import Lineup
+from lineup.tasks import edit_entry
 from django.http import HttpResponse
 from django.views.generic import View
 from django.views.generic.edit import CreateView, UpdateView
@@ -538,3 +541,65 @@ class PayoutsAPIView(generics.ListAPIView):
         """
         contest_id = self.kwargs['contest_id']
         return Payout.objects.filter(entry__contest__pk=contest_id).order_by('rank')
+
+class EditEntryLineupAPIView(APIView):
+    """
+    edit an existing lineup in a contest
+    """
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = EditEntryLineupSerializer
+
+    def post(self, request, format=None):
+        entry_id    = request.data.get('entry')
+        players     = request.data.get('players', [])
+        name        = request.data.get('name','')
+
+        #
+        # validate the parameters passed in here.
+        if players is None:
+            return Response({'error':'you must supply the "players" parameter -- the list of player ids'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+        if entry_id is None:
+            return Response({'error':'you must supply the "entry" parameter -- the Entry id'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+        try:
+            entry = Entry.objects.get(pk=entry_id, user=request.user)
+        except Entry.DoesNotExist:
+            return Response({'error':'invalid "entry" parameter -- does not exist'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+
+        #
+        # call task
+        task_result = edit_entry.delay(request.user, players, entry)
+
+        return Response('lineup created')
+
+class EditEntryLineupStatusAPIView(generics.GenericAPIView):
+    """
+    check the status of a previous call to edit-entry, using the task id
+    returned from edit-entry call
+    """
+
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = EditEntryLineupStatusSerializer # TODO create a serializer for response for swagger
+
+    def post(self, request, format=None):
+        """
+        Given the 'task_id' parameter, return the status of the task (ie: the edit-lineup call)
+
+        :param request:
+        :param format:
+        :return:
+        """
+        task_id = request.data.get('task_id')
+        if task_id is None:
+            # make sure to return error if the task id is not given in the request
+            return Response({'error':'you must supply the "task_id" parameter'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+
+        #
+        # the TaskHelper class helps us retrieve useful information
+        # about the status, and any exceptions that may have happened,
+        # and that data is retrieved with the get_result_data() method.
+        task_helper = TaskHelper(edit_entry, task_id)
+        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
