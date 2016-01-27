@@ -9,9 +9,16 @@ from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.views import APIView
-from lineup.serializers import LineupSerializer, PlayerSerializer, \
-                                CreateLineupSerializer, EditLineupSerializer, \
-                                LineupIdSerializer, LineupUsernamesSerializer
+from lineup.serializers import (
+    LineupSerializer,
+    PlayerSerializer,
+    CreateLineupSerializer,
+    EditLineupSerializer,
+    LineupIdSerializer,
+    LineupUsernamesSerializer,
+    EditLineupStatusSerializer,
+)
+
 from lineup.models import Lineup, Player
 from lineup.classes import LineupManager
 from lineup.tasks import edit_lineup, edit_entry
@@ -21,6 +28,7 @@ from draftgroup.models import DraftGroup
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Q
+from mysite.celery_app import TaskHelper
 
 class CreateLineupAPIView(generics.CreateAPIView):
     """
@@ -179,6 +187,17 @@ class EditLineupAPIView(generics.CreateAPIView):
 
         #
         # validate the parameters passed in here.
+        if players is None:
+            return Response({'error':'you must supply the "players" parameter -- the list of player ids'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+        if lineup_id is None:
+            return Response({'error':'you must supply the "lineup_id" parameter -- the Lineup id'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+        try:
+            lineup = Lineup.objects.get(pk=lineup_id, user=request.user)
+        except Lineup.DoesNotExist:
+            return Response({'error':'invalid "lineup" parameter -- does not existt'},
+                                        status=status.HTTP_400_BAD_REQUEST )
 
         #
         # call task
@@ -186,17 +205,65 @@ class EditLineupAPIView(generics.CreateAPIView):
 
         return Response('lineup created')
 
-class EditLineupStatusAPIView(generics.GenericAPIView):
+class EditLineupStatusAPIView(APIView):
     """
-    get the task status of the EditLineup api
+    check the status of a previous call to edit-lineup, using the task id
+    returned from edit-lineeup
     """
-    pass # TODO
 
-class EditEntryLineupAPIView(APIView):
-    pass # TODO
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = EditLineupStatusSerializer # TODO create a serializer for response for swagger
 
-class EditEntryLineupStatusAPIView(generics.GenericAPIView):
-    pass # TODO
+    def post(self, request, format=None):
+        """
+        Given the 'task_id' parameter, return the status of the task (ie: the edit-lineup call)
+
+        :param request:
+        :param format:
+        :return:
+        """
+        task_id = request.data.get('task_id')
+        if task_id is None:
+            # make sure to return error if the task id is not given in the request
+            return Response({'error':'you must supply the "task_id" parameter'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+
+        #
+        # the TaskHelper class helps us retrieve useful information
+        # about the status, and any exceptions that may have happened,
+        # and that data is retrieved with the get_result_data() method.
+        task_helper = TaskHelper(edit_lineup, task_id)
+        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
+
+class EditLineupStatusAPIView(APIView):
+    """
+    check the status of a previous call to edit-lineup, using the task id
+    returned from edit-lineeup
+    """
+
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = EditLineupStatusSerializer # TODO create a serializer for response for swagger
+
+    def post(self, request, format=None):
+        """
+        Given the 'task_id' parameter, return the status of the task (ie: the edit-lineup call)
+
+        :param request:
+        :param format:
+        :return:
+        """
+        task_id = request.data.get('task_id')
+        if task_id is None:
+            # make sure to return error if the task id is not given in the request
+            return Response({'error':'you must supply the "task_id" parameter'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+
+        #
+        # the TaskHelper class helps us retrieve useful information
+        # about the status, and any exceptions that may have happened,
+        # and that data is retrieved with the get_result_data() method.
+        task_helper = TaskHelper(edit_lineup, task_id)
+        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
 
 class PlayersAPIView(generics.GenericAPIView):
     """

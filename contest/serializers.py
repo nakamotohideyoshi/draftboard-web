@@ -97,3 +97,9 @@ class PayoutSerializer(serializers.ModelSerializer):
         model = contest.payout.models.Payout
 
         fields = ('contest','rank','amount','user')
+
+class EditEntryLineupSerializer(serializers.Serializer):
+    pass # TODO
+
+class EditEntryLineupStatusSerializer(serializers.Serializer):
+    pass # TODO

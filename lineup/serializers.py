@@ -139,3 +139,6 @@ class EditLineupSerializer(serializers.Serializer):
     )
 
     name = serializers.CharField()
+
+class EditLineupStatusSerializer(serializers.Serializer):
+    pass # TODO
