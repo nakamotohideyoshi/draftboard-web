@@ -12,54 +12,6 @@
 {% block content %}
 <div id="content-main">
 
-{% if app_list %}
-    {% for app in app_list %}
-        <div class="app-{{ app.app_label }} module">
-        <table>
-        <caption>
-            <a href="{{ app.app_url }}" class="section" title="{% blocktrans with name=app.name %}Models in the {{ name }} application{% endblocktrans %}">{{ app.name }}</a>
-        </caption>
-
-        <!-- this loop lays down each model in an app -->
-        {% for model in app.models %}
-        {% with lc_model_name=model.object_name|lower %}
-            <tr class="model-{{ lc_model_name }}">
-            {% if model.admin_url %}
-                {% if lc_model_name in withdraw_model_badges.keys %}
-                    {% for key, val in withdraw_model_badges.items %}
-                        {% if key == lc_model_name %}
-                            <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }} ({{ val }})</a></th>
-                        {% else %}
-                        {% endif %}
-                    {% endfor %}
-                {% else %}
-                    <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
-                {% endif %}
-            {% else %}
-                <th scope="row">{{ model.name }}</th>
-            {% endif %}
-
-            {% if model.add_url %}
-                <td><a href="{{ model.add_url }}" class="addlink">{% trans 'Add' %}</a></td>
-            {% else %}
-                <td>&nbsp;</td>
-            {% endif %}
-
-            {% if model.admin_url %}
-                <td><a href="{{ model.admin_url }}" class="changelink">{% trans 'Change' %}</a></td>
-            {% else %}
-                <td>&nbsp;</td>
-            {% endif %}
-            </tr>
-        {% endwith %}
-        {% endfor %}
-
-        </table>
-        </div>
-    {% endfor %}
-{% else %}
-    <p>{% trans "You don't have permission to edit anything." %}</p>
-{% endif %}
 </div>
 {% endblock %}
 

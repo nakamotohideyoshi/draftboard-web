@@ -412,7 +412,11 @@ SUIT_CONFIG = {
         {'app':'nba', 'label': 'NBA'},
         {'app':'nhl', 'label': 'NHL'},
         {'app':'mlb', 'label': 'MLB'},
-        {'app':'ticket', 'label': 'Ticket'},
+        {'app':'ticket', 'label': 'Ticket',
+            'models':[
+                 {'label': 'Prize', 'url':'/admin/ticket/ticketamount/'},
+            ],
+         },
         {'app':'rakepaid', 'label': 'Loyalty Program'},
 
         # #

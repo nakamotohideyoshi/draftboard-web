@@ -113,11 +113,11 @@ class AbstractContest(models.Model):
     # in between which live sporting events will be included
     # and players from them can be drafted
     start       = models.DateTimeField(null=False,
-                    verbose_name='The time this contest will start!',
+                    verbose_name='Start Time',
                     help_text='the start should coincide with the start of a real-life game.')
     #today_only  = models.BooleanField(default=True, null=False)
     end         = models.DateTimeField(null=False, blank=True,
-                    verbose_name='the time, after which real-life games will not be included in this contest',
+                    verbose_name='Cutoff Time',
                     help_text='forces the end time of the contest (will override "Ends tonight" checkbox!!')
 
     # set the pool of players this contest can draft from
