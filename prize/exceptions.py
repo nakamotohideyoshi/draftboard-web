@@ -10,4 +10,8 @@ class InvalidBuyinAndPrizePoolException(Exception):
 
 class RakeIsNot10PercentException(Exception): pass
 
+class NumberPrizesNotDivisibleBy9Exception(Exception): pass
+
 class NoMatchingTicketException(Exception): pass
+
+class BuyinNotLessThanEachTicketException(Exception): pass

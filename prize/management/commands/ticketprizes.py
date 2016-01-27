@@ -4,21 +4,23 @@
 from django.utils import timezone
 from django.core.management.base import BaseCommand, CommandError
 from prize.classes import TicketPrizeStructureCreator
+from ticket.classes import TicketManager
+from ticket.models import TicketAmount
 
 class Command(BaseCommand):
     """
     This adds the django manage.py command called "ticketprizes"
 
-    This command creates a ticket prize structure using the params from the commd line
+    This command dumps out possible FlatTicketPrizeStructures
 
     Usage:
 
-        $> ./manage.py ticketprizes <buyin> <ticketAmount> <numPayouts> <optionalName>
+        $> ./manage.py ticketprizes <max_entries>
 
     """
 
     # help is a Command inner variable
-    help = 'usage: ./manage.py ticketprizes <buyin> <ticketAmount> <numPayouts> <entries> <optionalName>'
+    help = 'usage: ./manage.py ticketprizes <max_entries>'
 
     def add_arguments(self, parser):
         # Positional arguments
@@ -37,16 +39,23 @@ class Command(BaseCommand):
         for x in options['values']:
             values.append( x )
 
-        buyin           = float(values[0])
-        ticket_amount   = float(values[1])
-        num_payouts     = int(values[2])
-        entries         = int(values[3])
-        try:
-            name = ' '.join( values[4:] )
-        except:
-            name = ''
+        max_entries           = float(values[0])
+        # ticket_amount   = float(values[1])
+        # num_payouts     = int(values[2])
+        # entries         = int(values[3])
+        # try:
+        #     name = ' '.join( values[4:] )
+        # except:
+        #     name = ''
+        #
+        # self.stdout.write('%s %s %s name[%s]' % (str(buyin),
+        #                         str(ticket_amount), str(num_payouts), str(name)))
 
-        self.stdout.write('%s %s %s name[%s]' % (str(buyin),
-                                str(ticket_amount), str(num_payouts), str(name)))
-        creator = TicketPrizeStructureCreator(buyin, ticket_amount, num_payouts, entries, name=name)
-        creator.save()
+        # creator = TicketPrizeStructureCreator(buyin, ticket_amount, num_payouts, entries, name=name)
+        # creator.save()
+
+
+        #
+        # print out possible prize structures for Flat Ticket Prize structures
+        TicketManager.create_default_ticket_amounts()
+        TicketPrizeStructureCreator.print_all( max_entries )

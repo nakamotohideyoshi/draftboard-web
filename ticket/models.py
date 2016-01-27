@@ -24,6 +24,16 @@ DEFAULT_TICKET_VALUES = [
     # 1000.00
 ]
 
+#
+# generate a list of tuples in the form:
+# [
+#     (9, '9 spots paid'),
+#     (18, '18 spots paid'),
+#     ...
+# ]
+DEFAULT_FLAT_TICKET_PRIZE_OPTIONS = 50
+DEFAULT_FLAT_TICKET_NUM_PRIZES = [ (x*9, '%s spots paid'%(str(x*9))) for x in range(1, DEFAULT_FLAT_TICKET_PRIZE_OPTIONS) ]
+
 class TicketAmount(AbstractAmount):
     """
     A unique master/template ticket for defining a ticket value.

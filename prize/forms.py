@@ -3,7 +3,7 @@
 
 from django import forms
 from mysite.forms.util import OrderableFieldForm
-from ticket.models import TicketAmount, DEFAULT_TICKET_VALUES
+from ticket.models import TicketAmount, DEFAULT_TICKET_VALUES, DEFAULT_FLAT_TICKET_NUM_PRIZES
 
 class PrizeCreatorForm( OrderableFieldForm ):
     """
@@ -91,7 +91,14 @@ class TicketPrizeCreatorForm( PrizeCreatorForm ):
         'create'
     ]
 
+
+    buyin           = forms.ChoiceField(choices=DEFAULT_TICKET_VALUES,
+                                        label='Buyin')
+
     ticket_amount   = forms.ModelChoiceField(queryset=TicketAmount.objects.all(),
                                              label='the Ticket prize for each spot')
-    num_prizes      = forms.IntegerField(label='The number of prize spots paid')
+
+    #num_prizes      = forms.IntegerField(label='The number of prize spots paid')
+    num_prizes      = forms.ChoiceField(choices=DEFAULT_FLAT_TICKET_NUM_PRIZES,
+                                        label='Number of Prizes')
 
