@@ -26,7 +26,7 @@ def load_initial_data(apps, schema_editor):
     # create the new rosters for each sport
     for sport in SiteSportManager.SPORTS:
         initial = Initial()
-        initial.setup(sport)
+        initial.setup(sport, verbose=False)
 
 class Migration(migrations.Migration):
 

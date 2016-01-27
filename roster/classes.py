@@ -141,7 +141,7 @@ class Initial(object):
         for sport in self.sports:
             self.setup( sport )
 
-    def setup(self, sport):
+    def setup(self, sport, verbose=True):
         roster_map = self.ROSTERS.get(sport, None)
         if roster_map is None:
             raise Exception('the default roster map for [%s] does not exist. add it in roster.classes.Initial class!')
@@ -150,7 +150,8 @@ class Initial(object):
         ordered_roster = OrderedDict(sorted(roster_map.items(), key=lambda k: k[0][2]))
 
         site_sport, created = SiteSport.objects.get_or_create(name=sport)
-        print(site_sport)
+        if verbose:
+            print(site_sport)
 
         # create the roster spot mappings
         for rs_tuple, pos_names_list in ordered_roster.items():
@@ -175,6 +176,8 @@ class Initial(object):
                                                                            roster_spot=roster_spot,
                                                                            is_primary=primary)
                 #ret_roster_spot_position_list.append(roster_spot_position)
-                print('    ', roster_spot_position)
-        print('...created roster!')
+                if verbose:
+                    print('    ', roster_spot_position)
+        if verbose:
+            print('...created roster!')
         #return ret_roster_spot_position_list
