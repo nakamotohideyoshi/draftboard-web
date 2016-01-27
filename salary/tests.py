@@ -11,7 +11,7 @@ from roster.models import RosterSpot, RosterSpotPosition
 
 #
 # quick caleb test of dummy data class
-# from salary.dummy import Dummy
+from salary.dummy import Dummy
 # class SomeTest(AbstractTest):
 #     def setUp(self):
 #         #self.roster_spot_positions  = Dummy.create_roster()
