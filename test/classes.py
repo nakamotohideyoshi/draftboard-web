@@ -81,13 +81,13 @@ class BuildWorldMixin( object ):
 
 class ForceAuthenticateAndRequestMixin( object ):
 
-    def force_authenticate_and_GET(self, user, view_class, url, data=None):
-        return self.force_authenticate_and_request(user, view_class, url, data, request_type='get')
+    def force_authenticate_and_GET(self, user, view_class, url):
+        return self.force_authenticate_and_request(user, view_class, url, data=None, request_type='get')
 
-    def force_authenticate_and_POST(self, user, view_class, url, data):
-        return self.force_authenticate_and_request(user, view_class, url, data=None, request_type='post')
+    def force_authenticate_and_POST(self, user, view_class, url, data=None):
+        return self.force_authenticate_and_request(user, view_class, url, data=data, request_type='post')
 
-    def force_authenticate_and_request(self, user, view_class, url, data, request_type):
+    def force_authenticate_and_request(self, user, view_class, url, data=None, request_type=None):
         """
         major helper method for testing rest_framework APIs
         so that we dont have to perform prerequisite calls to login

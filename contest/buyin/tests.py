@@ -318,6 +318,7 @@ class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMix
         # the default self.world.contest doesnt have a draftgroup,
         # so make sure to use get_scheduled_contest()
         self.contest = self.world.get_scheduled_contest()
+        print('BuyinTaskTest self.contest:', str(self.contest))
 
         # creates a user and also adds cash funds to their account
         # so they can buyin to contests
@@ -333,6 +334,9 @@ class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMix
     #                    CELERY_ALWAYS_EAGER=True,
     #                    CELERYD_CONCURRENCY=1)
     def test_enter_valid_lineup_returns_buyin_task_id(self):
+        print("all contests:")
+        for c in Contest.objects.all():
+            print('    ', str(c))
 
         data = {
             'lineup'    : self.lineup.pk,
@@ -342,9 +346,8 @@ class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMix
                                                     EnterLineupAPIView,
                                                     self.url,
                                                     data )
-        print(str(response))
-        print(str(response.data))
-        print(str(response.status_code))
+        print('response', str(response.status_code), str(response.data))
+
         # status.is_success() indicates a http response for 2xx
         #
         # ContestIsNotAcceptingLineupsException indicates
