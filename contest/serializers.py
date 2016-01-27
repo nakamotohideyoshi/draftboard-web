@@ -99,7 +99,16 @@ class PayoutSerializer(serializers.ModelSerializer):
         fields = ('contest','rank','amount','user')
 
 class EditEntryLineupSerializer(serializers.Serializer):
-    pass # TODO
+
+    entry = serializers.IntegerField(
+        help_text='the pk of the Entry'
+    )
+
+    players = serializers.ListField(
+        child=serializers.IntegerField(min_value=0, max_value=9999999),
+        help_text="This is an ARRAY of INTEGER primary keys to players in a DraftGroup"
+    )
 
 class EditEntryLineupStatusSerializer(serializers.Serializer):
-    pass # TODO
+
+    task = serializers.CharField()
