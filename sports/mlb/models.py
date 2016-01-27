@@ -55,6 +55,7 @@ class Game( sports.models.Game ):
     class Meta:
         abstract = False
 
+
 class GameBoxscore( sports.models.GameBoxscore ):
 
     day_night       = models.CharField(max_length=8, null=False, default='')
@@ -91,6 +92,7 @@ class GameBoxscore( sports.models.GameBoxscore ):
     class Meta:
         abstract = False
 
+
 class Player( sports.models.Player ):
     """
     inherited: 'srid', 'first_name', 'last_name'
@@ -119,6 +121,8 @@ class Player( sports.models.Player ):
 
     class Meta:
         abstract = False
+
+
 
 class PlayerStats( sports.models.PlayerStats ):
 
