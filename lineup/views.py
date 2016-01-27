@@ -204,63 +204,19 @@ class EditLineupAPIView(generics.CreateAPIView):
         task_result = edit_lineup.delay(request.user, players, lineup)
         return Response({'task_id':task_result.id}, status=status.HTTP_201_CREATED)
 
-class EditLineupStatusAPIView(APIView):
-    """
-    check the status of a previous call to edit-lineup, using the task id
-    returned from edit-lineeup
-    """
+class EditLineupStatusAPIView(generics.GenericAPIView):
 
     permission_classes      = (IsAuthenticated,)
-    serializer_class        = EditLineupStatusSerializer # TODO create a serializer for response for swagger
+    serializer_class        = EditLineupStatusSerializer
 
-    def post(self, request, format=None):
+    def get(self, request, task_id, format=None):
         """
-        Given the 'task_id' parameter, return the status of the task (ie: the edit-lineup call)
+        Given the 'task' parameter, return the status of the task (ie: from performing the edit-entry)
 
         :param request:
         :param format:
         :return:
         """
-        task_id = request.data.get('task_id')
-        if task_id is None:
-            # make sure to return error if the task id is not given in the request
-            return Response({'error':'you must supply the "task_id" parameter'},
-                                        status=status.HTTP_400_BAD_REQUEST )
-
-        #
-        # the TaskHelper class helps us retrieve useful information
-        # about the status, and any exceptions that may have happened,
-        # and that data is retrieved with the get_result_data() method.
-        task_helper = TaskHelper(edit_lineup, task_id)
-        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
-
-class EditLineupStatusAPIView(APIView):
-    """
-    check the status of a previous call to edit-lineup, using the task id
-    returned from edit-lineeup
-    """
-
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = EditLineupStatusSerializer # TODO create a serializer for response for swagger
-
-    def post(self, request, format=None):
-        """
-        Given the 'task_id' parameter, return the status of the task (ie: the edit-lineup call)
-
-        :param request:
-        :param format:
-        :return:
-        """
-        task_id = request.data.get('task')
-        if task_id is None:
-            # make sure to return error if the task id is not given in the request
-            return Response({'error':'you must supply the "task" parameter'},
-                                        status=status.HTTP_400_BAD_REQUEST )
-
-        #
-        # the TaskHelper class helps us retrieve useful information
-        # about the status, and any exceptions that may have happened,
-        # and that data is retrieved with the get_result_data() method.
         task_helper = TaskHelper(edit_lineup, task_id)
         return Response(task_helper.get_data(), status=status.HTTP_200_OK)
 
