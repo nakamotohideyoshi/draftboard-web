@@ -11,8 +11,6 @@ from lineup.views import (
     EditLineupAPIView,
     LineupUserAPIView,
     EditLineupStatusAPIView,
-    EditEntryLineupAPIView,
-    EditEntryLineupStatusAPIView,
 )
 
 urlpatterns = patterns( '',
@@ -25,11 +23,6 @@ urlpatterns = patterns( '',
     # edit existing lineup
     (r'^edit/$', EditLineupAPIView.as_view()),
     (r'^edit-status/(?P<task_id>[a-z0-9-]+)/$', EditLineupStatusAPIView.as_view()),
-
-    #
-    # edit entry (ie: edit a lineup that is associated in a contest)
-    (r'^edit-entry/$', EditEntryLineupAPIView.as_view()),
-    (r'^edit-entry-status/(?P<task_id>[a-z0-9-]+)/$', EditEntryLineupStatusAPIView.as_view()),
 
     #
     # get the players for the lineup

@@ -17,6 +17,8 @@ from contest.views import (
     EnterLineupAPIView,
     EnterLineupStatusAPIView,
     PayoutsAPIView,
+    EditEntryLineupAPIView,
+    EditEntryLineupStatusAPIView
 )
 from contest.views import ContestCreate, ContestUpdate
 
@@ -37,6 +39,11 @@ urlpatterns = patterns( '',
     #
     # check if the "buyin" -- that is /api/contest/enter-lineup/ -- was successful
     (r'^enter-lineup-status/$', EnterLineupStatusAPIView.as_view()),
+
+    #
+    # edit entry (ie: edit a lineup that is associated in a contest)
+    (r'^edit-entry/$', EditEntryLineupAPIView.as_view()),
+    (r'^edit-entry-status/(?P<task_id>[a-z0-9-]+)/$', EditEntryLineupStatusAPIView.as_view()),
 
     #
     # get the info for a single Contest by its id
