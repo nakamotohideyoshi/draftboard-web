@@ -14,7 +14,10 @@ from contest.buyin.classes import BuyinManager
 from cash.classes import CashTransaction
 from ticket.classes import TicketManager
 from ticket.models import TicketAmount
-from ..exceptions import ContestIsInProgressOrClosedException
+from ..exceptions import (
+    ContestIsInProgressOrClosedException,
+    ContestCanNotBeRefunded,
+)
 from .tasks import refund_task
 
 class RefundBaseTest(AbstractTest):
@@ -73,34 +76,38 @@ class RefundTest(RefundBaseTest):
         self.assertEqual(self.user3_tm.get_available_tickets().count(), 0)
 
         refund_manager = RefundManager()
-        refund_manager.refund(self.contest)
+        refund_manager.refund(self.contest, force=True)
 
         self.assertEqual(self.user1_ct.get_balance_amount(), 100)
         self.assertEqual(self.user2_ct.get_balance_amount(), 50)
         self.assertEqual(self.escrow_ct.get_balance_amount(), 0)
         self.assertEqual(self.user3_tm.get_available_tickets().count(), 1)
 
-    def test_contest_is_in_progress(self):
-        self.contest.status = self.contest.INPROGRESS
-        self.contest.save()
-        self.should_raise_contest_is_in_progress_or_closed_exception()
+    # in progress should be refundable in cases
+    # where its not a GPP and it did not fill
+    # def test_contest_is_in_progress(self):
+    #     self.contest.status = self.contest.INPROGRESS
+    #     self.contest.save()
+    #     self.should_raise_contest_is_in_progress_or_closed_exception()
 
     def test_contest_is_cancelled(self):
         self.contest.status = self.contest.CANCELLED
         self.contest.save()
-        self.should_raise_contest_is_in_progress_or_closed_exception()
+        self.should_raise_contest_is_cancelled_or_closed()
 
     def test_contest_is_closed(self):
         self.contest.status = self.contest.CLOSED
         self.contest.save()
-        self.should_raise_contest_is_in_progress_or_closed_exception()
+        self.should_raise_contest_is_cancelled_or_closed()
 
-    def test_contest_is_completed(self):
-        self.contest.status = self.contest.COMPLETED
-        self.contest.save()
-        self.should_raise_contest_is_in_progress_or_closed_exception()
+    # completed is an "in progress" status, which has
+    # no more live inprogress games
+    # def test_contest_is_completed(self):
+    #     self.contest.status = self.contest.COMPLETED
+    #     self.contest.save()
+    #     self.should_raise_contest_is_in_progress_or_closed_exception()
 
-    def should_raise_contest_is_in_progress_or_closed_exception(self):
+    def should_raise_contest_is_cancelled_or_closed(self):
 
         self.assertEqual(self.user1_ct.get_balance_amount(), 90)
         self.assertEqual(self.user2_ct.get_balance_amount(), 40)
@@ -108,8 +115,8 @@ class RefundTest(RefundBaseTest):
         self.assertEqual(self.user3_tm.get_available_tickets().count(), 0)
 
         refund_manager = RefundManager()
-        self.assertRaises(ContestIsInProgressOrClosedException,
-            lambda: refund_manager.refund(self.contest))
+        self.assertRaises(ContestCanNotBeRefunded,
+            lambda: refund_manager.refund(self.contest, force=True))
 
         self.assertEqual(self.user1_ct.get_balance_amount(), 90)
         self.assertEqual(self.user2_ct.get_balance_amount(), 40)

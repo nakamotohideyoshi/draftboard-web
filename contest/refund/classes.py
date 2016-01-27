@@ -2,7 +2,12 @@
 # contest/refund/classes.py
 
 from mysite.classes import AbstractManagerClass
-from ..models import Entry, Contest, LiveContest
+from ..models import (
+    Entry,
+    Contest,
+    LiveContest,
+    HistoryContest,
+)
 from contest.buyin.classes import BuyinManager
 from ticket.classes import TicketManager
 from cash.classes import CashTransaction
@@ -46,6 +51,10 @@ class RefundManager(AbstractManagerClass):
             be cancelled.
         """
         self.validate_arguments(contest)
+
+        # if its already been cancelled, we cant do it again
+        if contest in HistoryContest.objects.all():
+            raise ContestCanNotBeRefunded()
 
         # if we are not forcing the refund, then check if the contest is live first
         if not force:
