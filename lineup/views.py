@@ -251,10 +251,10 @@ class EditLineupStatusAPIView(APIView):
         :param format:
         :return:
         """
-        task_id = request.data.get('task_id')
+        task_id = request.data.get('task')
         if task_id is None:
             # make sure to return error if the task id is not given in the request
-            return Response({'error':'you must supply the "task_id" parameter'},
+            return Response({'error':'you must supply the "task" parameter'},
                                         status=status.HTTP_400_BAD_REQUEST )
 
         #
