@@ -34,7 +34,8 @@ class DraftGroup( models.Model ):
     num_games   = models.IntegerField(null=False, default=0,
                         help_text="the number of live games this draft group spans")
 
-    category    = models.CharField(max_length=32, null=True)
+    category    = models.CharField(max_length=32, null=True,
+                        help_text='currently unused - originally intended as a grouping like "Early", "Late", or "Turbo"')
 
     closed      = models.DateTimeField(blank=True, null=True,
                         help_text='the time at which all live games in the draft group were closed out and stats were finalized by the provider')
