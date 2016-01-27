@@ -21,8 +21,8 @@ const rosterTemplates = {
     {idx: 3, name: 'WR', positions: ['WR'], player: null},
     {idx: 4, name: 'WR', positions: ['WR'], player: null},
     {idx: 5, name: 'TE', positions: ['TE'], player: null},
-    {idx: 6, name: 'FLEX', positions: ['RB','FB','WR','TE'], player: null},
-    {idx: 7, name: 'FLEX', positions: ['RB','FB','WR','TE'], player: null}
+    {idx: 6, name: 'FX', positions: ['RB','FB','WR','TE'], player: null},
+    {idx: 7, name: 'FX', positions: ['RB','FB','WR','TE'], player: null}
   ],
   'nba': [
     {idx: 0, name: 'G', positions: ['PG', 'SG'], player: null},
@@ -30,9 +30,9 @@ const rosterTemplates = {
     {idx: 2, name: 'F', positions: ['SF', 'PF'], player: null},
     {idx: 3, name: 'F', positions: ['SF', 'PF'], player: null},
     {idx: 4, name: 'C', positions: ['C'], player: null},
-    {idx: 5, name: 'FLEX', positions: ['PG','SG','SF','PF','C'], player: null},
-    {idx: 6, name: 'FLEX', positions: ['PG','SG','SF','PF','C'], player: null},
-    {idx: 7, name: 'FLEX', positions: ['PG','SG','SF','PF','C'], player: null}
+    {idx: 5, name: 'FX', positions: ['PG','SG','SF','PF','C'], player: null},
+    {idx: 6, name: 'FX', positions: ['PG','SG','SF','PF','C'], player: null},
+    {idx: 7, name: 'FX', positions: ['PG','SG','SF','PF','C'], player: null}
   ],
   'nhl': [
     {idx: 0, name: 'F', positions: ['C', 'LW', 'RW'], player: null},
@@ -40,8 +40,8 @@ const rosterTemplates = {
     {idx: 2, name: 'F', positions: ['C', 'LW', 'RW'], player: null},
     {idx: 3, name: 'D', positions: ['D'], player: null},
     {idx: 4, name: 'D', positions: ['D'], player: null},
-    {idx: 5, name: 'FLEX', positions: ['C','D','LW','RW'], player: null},
-    {idx: 6, name: 'FLEX', positions: ['C','D','LW','RW'], player: null},
+    {idx: 5, name: 'FX', positions: ['C','D','LW','RW'], player: null},
+    {idx: 6, name: 'FX', positions: ['C','D','LW','RW'], player: null},
     {idx: 7, name: 'G', positions: ['G'], player: null}
   ],
   'mlb': [

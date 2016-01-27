@@ -78,6 +78,10 @@ var LineupCard = React.createClass({
 
           </header>
 
+          <div className="cmp-lineup-card__list-header">
+            <span className="cmp-lineup-card__list-header-average">Avg</span>
+          </div>
+
           <ul className="players">
             {players}
           </ul>

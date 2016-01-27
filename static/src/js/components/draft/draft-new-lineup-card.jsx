@@ -118,7 +118,7 @@ var DraftNewLineupCard = React.createClass({
             ${this.props.remainingSalary.toLocaleString('en')}
           </div>
           <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
-            <span className="cmp-lineup-card__footer-title">Avg / Player</span>
+            <span className="cmp-lineup-card__footer-title">Avg. Salary Rem.</span>
             ${this.props.avgRemainingPlayerSalary.toLocaleString('en')}
           </div>
         </footer>
