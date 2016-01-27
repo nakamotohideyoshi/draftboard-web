@@ -365,7 +365,7 @@ class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMix
         data = { 'task_id' : buyin_task_id }
         enter_lineup_status_response = self.force_authenticate_and_GET(self.user,
                                                     EnterLineupStatusAPIView,
-                                                    enter_lineup_status_url ) #, data )
+                                                    enter_lineup_status_url , data, task_id=buyin_task_id )
         print('enter_lineup_status_response.status_code:',
               str(enter_lineup_status_response.status_code) )
         #

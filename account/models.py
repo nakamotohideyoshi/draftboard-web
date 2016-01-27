@@ -16,7 +16,7 @@ class Information(models.Model):
     address2        = models.CharField(max_length=255, null=False, default='', blank=True)
     city            = models.CharField(max_length=64, null=False, default='')
     state           = models.CharField(choices=US_STATES, max_length=2,  default='')
-    zipcode         = models.CharField(max_length=5, null=False, default='')
+    zipcode         = models.CharField(max_length=6, null=False, default='')
     dob             = models.DateField( default=None,  null=True)
     class Meta:
         verbose_name = 'Information'
