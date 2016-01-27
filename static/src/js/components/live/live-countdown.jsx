@@ -1,6 +1,6 @@
 import React from 'react'
+
 import CountdownClock from '../site/countdown-clock'
-import { vsprintf } from 'sprintf-js'
 
 
 const LiveCountdown = React.createClass({
@@ -19,7 +19,7 @@ const LiveCountdown = React.createClass({
 
   render: function() {
     const { name, start } = this.props.lineup
-    const editLineup = vsprintf('/draft/%d/lineup/%d/edit/', [this.props.lineup.draftGroup.id, this.props.lineup.id])
+    const editLineup = `/draft/${this.props.lineup.draftGroup.id}/lineup/${this.props.lineup.id}/edit/`
 
     // if timer is out close the countdown
     if (!this.state.showMe) { return null }
@@ -33,7 +33,7 @@ const LiveCountdown = React.createClass({
               <div>Starts in</div>
               <CountdownClock
                 time={start}
-                onCountdownOver={ this.closeCountdown } />
+                onCountdownOver={this.closeCountdown} />
             </div>
             <div className='live-countdown__inner__actions'>
               <a href={ editLineup } className="button--medium--outline">Edit Lineup</a>
@@ -46,5 +46,4 @@ const LiveCountdown = React.createClass({
   }
 })
 
-
-export default LiveCountdown;
+export default LiveCountdown

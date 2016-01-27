@@ -1,55 +1,36 @@
-import * as ReactRedux from 'react-redux'
 import React from 'react'
-import {updatePath} from 'redux-simple-router'
-import {vsprintf} from 'sprintf-js'
 
-import log from '../../lib/logging'
-import * as AppActions from '../../stores/app-state-store'
-import {updateLiveMode} from '../../actions/live'
 import LiveOverallStats from './live-overall-stats'
 
 
-// Redux integration
-let {Provider, connect} = ReactRedux
+/**
+ * Return the header section of the live page, including the lineup/contest title and overall stats
+ */
+const LiveHeader = React.createClass({
 
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
-  return {}
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
-    updatePath: (path) => dispatch(updatePath(path))
- }
-}
-
-
-// Wrap the component to inject dispatch and selected state into it.
-var LiveHeader = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(React.createClass({
   propTypes: {
-    liveSelector: React.PropTypes.object.isRequired,
-    updateLiveMode: React.PropTypes.func,
-    updatePath: React.PropTypes.func
- },
+    changePathAndMode: React.PropTypes.func.isRequired,
+    liveSelector: React.PropTypes.object.isRequired
+  },
 
+  /**
+   * Used to close the current contest. Sets up parameters to then call props.changePathAndMode()
+   */
   returnToLineup() {
     const mode = this.props.liveSelector.mode
-
-    this.props.updatePath(vsprintf('/live/lineups/%d/', [mode.myLineupId]))
-
-    const newMode = Object.assign({}, mode, {
+    const path = `/live/lineups/${mode.myLineupId}/`
+    const changedFields = {
       opponentLineupId: undefined,
       contestId: undefined
-   })
+    }
 
-    this.props.updateLiveMode(newMode)
- },
+    this.props.changePathAndMode(path, changedFields)
+  },
 
+  /**
+   * Typical react render method. What's interesting here is that we default to when there's just a lineup, then
+   * modify the DOM elements if we're viewing a contest and/or an opponent.
+   */
   render() {
     const liveSelector = this.props.liveSelector
     const myLineup = liveSelector.lineups.mine
@@ -95,8 +76,8 @@ var LiveHeader = connect(
             lineup={opponentLineup}
             whichSide="opponent" />
         )
-     }
-   }
+      }
+    }
 
     return (
       <header className="cmp-live__scoreboard live-scoreboard">
@@ -117,7 +98,7 @@ var LiveHeader = connect(
         {opponentStats}
       </header>
     )
- }
-}))
+  }
+})
 
-module.exports = LiveHeader
+export default LiveHeader

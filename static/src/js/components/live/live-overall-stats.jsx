@@ -1,64 +1,22 @@
 import React from 'react'
-import { vsprintf } from 'sprintf-js'
 import _ from 'lodash'
 
+import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-progress-bar'
 import log from '../../lib/logging'
 
 
 /**
  * Reusable PMR progress bar using SVG
  */
-var LiveOverallStats = React.createClass({
+const LiveOverallStats = React.createClass({
+
   propTypes: {
     whichSide: React.PropTypes.string.isRequired,
     hasContest: React.PropTypes.bool.isRequired,
     lineup: React.PropTypes.object.isRequired
   },
 
-
-  // helper method to find a halfway hex, since we have two semi circles to make an angular gradient on the circle stroke
-  _percentageHexColor: function(start, end, percentage) {
-    var hex = function(x) {
-        x = x.toString(16)
-        return (x.length == 1) ? '0' + x : x
-    }
-
-    var r = Math.ceil(parseInt(start.substring(0,2), 16) * percentage + parseInt(end.substring(0,2), 16) * (1-percentage))
-    var g = Math.ceil(parseInt(start.substring(2,4), 16) * percentage + parseInt(end.substring(2,4), 16) * (1-percentage))
-    var b = Math.ceil(parseInt(start.substring(4,6), 16) * percentage + parseInt(end.substring(4,6), 16) * (1-percentage))
-
-    return hex(r) + hex(g) + hex(b)
-  },
-
-
-  // http://goo.gl/yJFZMs
-  _polarToCartesian: function(centerX, centerY, radius, angleInDegrees) {
-    var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0
-
-    return {
-      x: centerX + (radius * Math.cos(angleInRadians)),
-      y: centerY + (radius * Math.sin(angleInRadians))
-    }
-  },
-
-
-  // http://goo.gl/yJFZMs
-  _describeArc: function(x, y, radius, startAngle, endAngle) {
-      var start = this._polarToCartesian(x, y, radius, endAngle)
-      var end = this._polarToCartesian(x, y, radius, startAngle)
-
-      var arcSweep = endAngle - startAngle <= 180 ? "0" : "1"
-
-      var d = [
-          "M", start.x, start.y,
-          "A", radius, radius, 0, arcSweep, 0, end.x, end.y
-      ].join(" ")
-
-      return d
-  },
-
-
-  render: function() {
+  render() {
     let hexStart, hexEnd
     const lineup = this.props.lineup
 
@@ -73,65 +31,58 @@ var LiveOverallStats = React.createClass({
         break
     }
 
-    // TODO props
-    var strokeWidth = 2
-    var decimalRemaining = lineup.decimalRemaining
-    var backgroundHex = '#0c0e16'
-    var svgWidth = 280
+    const strokeWidth = 2
+    const decimalRemaining = lineup.decimalRemaining
+    const backgroundHex = '#0c0e16'
+    const svgWidth = 280
 
-    var svgMidpoint = svgWidth / 2
-    var radius = (svgWidth - 40) / 2
+    const svgMidpoint = svgWidth / 2
+    const radius = (svgWidth - 40) / 2
 
-    var backgroundCircle = {
+    const backgroundCircle = {
       r: radius - (strokeWidth / 2),
       stroke: backgroundHex,
       strokeWidth: strokeWidth + 26
     }
 
-    var progressArc = {
+    const progressArc = {
       hexStart: '#' + hexStart,
-      hexHalfway: '#' + this._percentageHexColor(hexStart, hexEnd, 0.5),
+      hexHalfway: '#' + percentageHexColor(hexStart, hexEnd, 0.5),
       hexEnd: '#' + hexEnd,
-      d: this._describeArc(0, 0, radius, decimalRemaining * 360, 360),
+      d: describeArc(0, 0, radius, decimalRemaining * 360, 360),
       strokeWidth: strokeWidth
     }
 
-    var dottedRemainingArc = {
+    const dottedRemainingArc = {
       strokeWidth: strokeWidth + 3,
-      d: this._describeArc(0, 0, radius, 0, decimalRemaining * 360)
+      d: describeArc(0, 0, radius, 0, decimalRemaining * 360)
     }
 
     // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
     // https://github.com/facebook/react/issues/1657#issuecomment-146905709
-    var svgMaskMarkup = {
-      __html: vsprintf('<g mask="url(#gradientMask)"><rect x="-%d" y="-%d" width="%d" height="%d" fill="url(#cl2)" /><rect x="0" y="-%d" height="%d" width="%d" fill="url(#cl1)" /></g>',[
-        svgMidpoint,
-        svgMidpoint,
-        svgMidpoint,
-        svgWidth,
-        svgMidpoint,
-        svgWidth,
-        svgMidpoint
-      ])
+    const svgMaskMarkup = {
+      __html: `<g mask="url(#gradientMask)"> \
+        <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${svgWidth}" fill="url(#cl2)" /> \
+        <rect x="0" y="-${svgMidpoint}" height="${svgWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`
     }
 
-    var endpointCoord = this._polarToCartesian(0, 0, radius, decimalRemaining * 360)
-    var endOuter = {
+    const endpointCoord = polarToCartesian(0, 0, radius, decimalRemaining * 360)
+    const endOuter = {
       r: strokeWidth + 6,
-      stroke: '#' + this._percentageHexColor(hexEnd, hexStart, decimalRemaining),
+      stroke: '#' + percentageHexColor(hexEnd, hexStart, decimalRemaining),
       strokeWidth: strokeWidth,
       fill: backgroundHex,
       cx: endpointCoord.x,
       cy: endpointCoord.y
     }
 
-    var endInner = {
+    const endInner = {
       r: strokeWidth,
       cx: endpointCoord.x,
       cy: endpointCoord.y
     }
 
-    // log.debug('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
+    // log.trace('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
 
     let potentialEarnings = 0
     if (this.props.hasContest === false) {
@@ -206,4 +157,4 @@ var LiveOverallStats = React.createClass({
   }
 })
 
-module.exports = LiveOverallStats
+export default LiveOverallStats

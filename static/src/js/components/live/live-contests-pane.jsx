@@ -2,13 +2,8 @@ import * as ReactRedux from 'react-redux'
 import React from 'react'
 import renderComponent from '../../lib/render-component'
 import { map as _map } from 'lodash'
-import { updatePath } from 'redux-simple-router'
-import { vsprintf } from 'sprintf-js'
 
 import * as AppActions from '../../stores/app-state-store'
-import store from '../../store'
-import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
-import { updateLiveMode } from '../../actions/live'
 
 
 /**
@@ -18,40 +13,34 @@ import { updateLiveMode } from '../../actions/live'
 var LiveContestsPane = React.createClass({
 
   propTypes: {
+    changePathAndMode: React.PropTypes.func.isRequired,
     lineup: React.PropTypes.object.isRequired,
-    mode: React.PropTypes.object.isRequired,
-
-    fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
-    updateLiveMode: React.PropTypes.func,
-    updatePath: React.PropTypes.func
+    mode: React.PropTypes.object.isRequired
   },
 
-
-  viewContest: function(contestId) {
+  viewContest(contestId) {
     const mode = this.props.mode
-
-    this.props.updatePath(vsprintf('/live/lineups/%d/contests/%d/', [mode.myLineupId, contestId]))
-    this.props.updateLiveMode({
-      type: 'contest',
+    const path = `/live/lineups/${mode.myLineupId}/contests/${contestId}`
+    const changedFields = {
       draftGroupId: mode.draftGroupId,
       myLineupId: mode.myLineupId,
       contestId: contestId
-    })
-    this.props.fetchContestLineupsUsernamesIfNeeded(contestId)
+    }
+
+    this.props.changePathAndMode(path, changedFields)
   },
 
-
-  closePane: function() {
+  closePane() {
     AppActions.removeClass('appstate--live-contests-pane--open')
   },
 
+  renderContests() {
+    const self = this
+    const lineup = this.props.lineup
 
-  render: function() {
-    let self = this;
-
-    const lineup = self.props.lineup
-    const lineupContests = _map(lineup.contestsStats, function(contest, id) {
+    return _map(lineup.contestsStats, function(contest, id) {
       let moneyLineClass = 'live-winning-graph'
+
       if (contest.percentageCanWin <= contest.currentPercentagePosition) {
         moneyLineClass += ' live-winning-graph--is-losing'
       }
@@ -75,11 +64,12 @@ var LiveContestsPane = React.createClass({
         </li>
       )
     })
+  },
 
-
+  render() {
     return (
       <div className="live-contests-pane live-pane live-pane--right">
-        <div className="live-pane__close" onClick={self.closePane} />
+        <div className="live-pane__close" onClick={this.closePane} />
 
         <div className="live-pane__content">
           <h2>
@@ -88,49 +78,16 @@ var LiveContestsPane = React.createClass({
 
           <div className="live-contests-pane__list">
             <ul className="live-contests-pane__list__inner">
-              { lineupContests }
+              {this.renderContests()}
             </ul>
           </div>
         </div>
         <div className="live-pane__left-shadow" />
 
-        <div className="live-contests-pane__view-contest" onClick={self.viewContest} />
+        <div className="live-contests-pane__view-contest" onClick={this.viewContest} />
       </div>
     )
   }
 })
 
-
-// Redux integration
-let {Provider, connect} = ReactRedux
-
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
-  return {}
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
-    updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
-    updatePath: (path) => dispatch(updatePath(path))
-  }
-}
-
-// Wrap the component to inject dispatch and selected state into it.
-var LiveContestsPaneConnected = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(LiveContestsPane)
-
-// Render the component.
-renderComponent(
-  <Provider store={store}>
-    <LiveContestsPaneConnected />
-  </Provider>,
-  '.live-contests-pane'
-)
-
-
-module.exports = LiveContestsPaneConnected
+export default LiveContestsPane

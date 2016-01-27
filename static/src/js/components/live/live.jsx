@@ -1,18 +1,15 @@
 import * as ReactRedux from 'react-redux'
 import _ from 'lodash'
 import createBrowserHistory from 'history/lib/createBrowserHistory'
-import moment from 'moment'
 import Pusher from 'pusher-js'
 import React from 'react'
 import renderComponent from '../../lib/render-component'
-import update from 'react-addons-update'
 import { Router, Route } from 'react-router'
 import { syncReduxAndRouter } from 'redux-simple-router'
 import { updatePath } from 'redux-simple-router'
-import { vsprintf } from 'sprintf-js'
 
 import LiveBottomNav from './live-bottom-nav'
-import LiveContestsPaneConnected from './live-contests-pane'
+import LiveContestsPane from './live-contests-pane'
 import LiveCountdown from './live-countdown'
 import LiveHeader from './live-header'
 import LiveLineup from './live-lineup'
@@ -21,7 +18,6 @@ import LiveMoneyline from './live-moneyline'
 import LiveNBACourt from './live-nba-court'
 import LiveStandingsPaneConnected from './live-standings-pane'
 
-import errorHandler from '../../actions/live-error-handler'
 import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
 import log from '../../lib/logging'
 import store from '../../store'
@@ -33,17 +29,17 @@ import { updateLiveMode } from '../../actions/live'
 import { updateBoxScore } from '../../actions/current-box-scores'
 
 
+// Set up to make sure that push states are synced with redux substore
 const history = createBrowserHistory()
 syncReduxAndRouter(history, store)
 
-
 /**
- * The overarching component for the live  section.
+ * The overarching component for the live section.
  *
  * Connects with the LiveStore for data.
  * This will be where the state changes and then properties are cascaded down to the other child components.
  */
-var Live = React.createClass({
+const Live = React.createClass({
 
   propTypes: {
     // redux selectors
@@ -60,6 +56,21 @@ var Live = React.createClass({
     updateBoxScore: React.PropTypes.func,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func
+  },
+
+  changePathAndMode(path, changedFields) {
+    log.debug('Live.changePathAndMode()', path)
+
+    // update the URL path
+    this.props.updatePath(path)
+
+    // update redux store mode
+    this.props.updateLiveMode(changedFields)
+
+    // if the contest has changed, then get the appropriate usernames for the standings pane
+    if (changedFields.hasOwnProperty('contestId')) {
+      this.props.fetchContestLineupsUsernamesIfNeeded(changedFields.contestId)
+    }
   },
 
   getInitialState() {
@@ -450,6 +461,10 @@ var Live = React.createClass({
     }.bind(this), 9000)
   },
 
+  renderLoadingScreen() {
+    return (<div />)
+  },
+
   render() {
     const liveSelector = this.props.liveSelector
     const mode = liveSelector.mode
@@ -462,13 +477,15 @@ var Live = React.createClass({
 
     // wait for data to load before showing anything
     if (liveSelector.hasRelatedInfo === false) {
-      return (<div />)
+      return this.renderLoadingScreen()
     }
 
     // if a lineup has not been chosen yet
     if (mode.hasOwnProperty('myLineupId') === false) {
       return (
-        <LiveLineupSelectModal lineups={this.props.currentLineupsStats} />
+        <LiveLineupSelectModal
+          changePathAndMode={this.changePathAndMode}
+          lineups={this.props.currentLineupsStats} />
       )
     }
 
@@ -490,6 +507,7 @@ var Live = React.createClass({
 
         liveStandingsPane = (
           <LiveStandingsPaneConnected
+            changePathAndMode={this.changePathAndMode}
             contest={contest}
             lineups={contest.lineups}
             rankedLineups={contest.rankedLineups}
@@ -503,6 +521,7 @@ var Live = React.createClass({
 
           opponentLineupComponent = (
             <LiveLineup
+              changePathAndMode={this.changePathAndMode}
               eventDescriptions={this.state.eventDescriptions}
               games={this.props.navScoreboardStats.sports.games}
               lineup={opponentLineup}
@@ -526,6 +545,7 @@ var Live = React.createClass({
       return (
         <div>
           <LiveLineup
+            changePathAndMode={this.changePathAndMode}
             eventDescriptions={this.state.eventDescriptions}
             games={this.props.navScoreboardStats.sports.games}
             lineup={myLineup}
@@ -538,6 +558,7 @@ var Live = React.createClass({
 
           <section className="cmp-live__court-scoreboard">
             <LiveHeader
+              changePathAndMode={this.changePathAndMode}
               liveSelector={liveSelector} />
 
             <LiveNBACourt
@@ -551,7 +572,8 @@ var Live = React.createClass({
 
           </section>
 
-          <LiveContestsPaneConnected
+          <LiveContestsPane
+            changePathAndMode={this.changePathAndMode}
             lineup={myLineup}
             mode={mode} />
 
@@ -561,7 +583,7 @@ var Live = React.createClass({
     }
 
     // TODO Live - make a loading screen if it takes longer than a second to load
-    return (<div />)
+    return this.renderLoadingScreen()
   }
 
 })
@@ -592,7 +614,7 @@ function mapDispatchToProps(dispatch) {
 }
 
 // Wrap the component to inject dispatch and selected state into it.
-var LiveConnected = connect(
+const LiveConnected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(Live)
@@ -608,6 +630,3 @@ renderComponent(
   </Provider>,
   '.cmp-live'
 )
-
-
-module.exports = Live

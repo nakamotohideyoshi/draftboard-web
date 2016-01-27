@@ -1,8 +1,6 @@
 import React from 'react'
 import * as ReactRedux from 'react-redux'
 import renderComponent from '../../lib/render-component'
-import { updatePath } from 'redux-simple-router'
-import { vsprintf } from 'sprintf-js'
 import { debounce } from 'lodash'
 import request from 'superagent'
 import Cookies from 'js-cookie'
@@ -11,9 +9,7 @@ import _ from 'lodash'
 import LivePMRProgressBar from './live-pmr-progress-bar'
 import * as AppActions from '../../stores/app-state-store'
 import log from '../../lib/logging'
-import { updateLiveMode } from '../../actions/live'
 import { fetchLineupUsernames } from '../../actions/lineup-usernames'
-import { fetchContestIfNeeded } from '../../actions/live-contests'
 import { liveSelector } from '../../selectors/live'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import store from '../../store'
@@ -22,16 +18,15 @@ import store from '../../store'
  * When `View Contests` element is clicked, open side pane to show
  * a user's current contests for that lineup.
  */
-export const LiveStandingsPane = React.createClass({
+const LiveStandingsPane = React.createClass({
 
   propTypes: {
+    changePathAndMode: React.PropTypes.func.isRequired,
     owned: React.PropTypes.array.isRequired,
     lineups: React.PropTypes.object.isRequired,
     contest: React.PropTypes.object.isRequired,
     rankedLineups: React.PropTypes.array.isRequired,
     mode: React.PropTypes.object.isRequired,
-    updateLiveMode: React.PropTypes.func,
-    updatePath: React.PropTypes.func,
     fetchLineupUsernames: React.PropTypes.func
   },
 
@@ -125,18 +120,17 @@ export const LiveStandingsPane = React.createClass({
     this.setState({ page })
   },
 
-  handleViewOpponentLineup(lineup) {
+  /**
+   * Used to view an opponent lineup. Sets up parameters to then call props.changePathAndMode()
+   */
+  handleViewOpponentLineup(opponentLineupId) {
     const mode = this.props.mode
-    const opponentLineupId = lineup.id
-
-    this.props.updatePath(vsprintf('/live/lineups/%d/contests/%d/opponents/%d/', [
-      mode.myLineupId,
-      mode.contestId,
-      opponentLineupId
-    ]))
-    this.props.updateLiveMode({
+    const path = `/live/lineups/${mode.myLineupId}/contests/${mode.contestId}/opponents/${opponentLineupId}`
+    const changedFields = {
       opponentLineupId: opponentLineupId
-    })
+    }
+
+    this.props.changePathAndMode(path, changedFields)
   },
 
   handleSetPositionFilter(currentPositionFilter) {
@@ -265,11 +259,17 @@ export const LiveStandingsPane = React.createClass({
     const standings = data.map((lineup, i) => {
       let className = 'lineup'
       let pmr = (
-        <LivePMRProgressBar decimalRemaining={lineup.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="ffffff" hexEnd="ffffff" svgWidth="50" />
+        <LivePMRProgressBar
+          decimalRemaining={lineup.decimalRemaining}
+          strokeWidth={2}
+          backgroundHex="46495e"
+          hexStart="ffffff"
+          hexEnd="ffffff"
+          svgWidth={50} />
       )
       let overlay = (
         <div className="overlay"
-             onClick={this.handleViewOpponentLineup.bind(this, lineup)}>
+             onClick={this.handleViewOpponentLineup.bind(this, lineup.id)}>
           Compare Lineup
         </div>
       )
@@ -278,7 +278,13 @@ export const LiveStandingsPane = React.createClass({
         overlay = ''
         className += ' lineup--mine'
         pmr = (
-          <LivePMRProgressBar decimalRemaining={lineup.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="34B4CC" hexEnd="2871AC" svgWidth="50" />
+          <LivePMRProgressBar
+            decimalRemaining={lineup.decimalRemaining}
+            strokeWidth={2}
+            backgroundHex="46495e"
+            hexStart="34B4CC"
+            hexEnd="2871AC"
+            svgWidth={50} />
         )
       }
       return (
@@ -312,7 +318,13 @@ export const LiveStandingsPane = React.createClass({
       return (
         <div key={player.id} className="player">
           <div className="player--position">{player.position}</div>
-          <LivePMRProgressBar decimalRemaining={player.progress} strokeWidth="2" backgroundHex="46495e" hexStart="ffffff" hexEnd="ffffff" svgWidth="50" />
+          <LivePMRProgressBar
+            decimalRemaining={player.progress}
+            strokeWidth={2}
+            backgroundHex="46495e"
+            hexStart="ffffff"
+            hexEnd="ffffff"
+            svgWidth={50} />
           <div className="avatar"
                style={{
                  // TODO:
@@ -426,25 +438,12 @@ function mapStateToProps(state) {
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
-    updatePath: (path) => dispatch(updatePath(path)),
-    fetchContestIfNeeded: (id) => dispatch(fetchContestIfNeeded(id)),
     fetchLineupUsernames: (id) => dispatch(fetchLineupUsernames(id))
   }
 }
 
 // Wrap the component to inject dispatch and selected state into it.
-var LiveStandingsPaneConnected = connect(
+export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(LiveStandingsPane)
-
-// Render the component.
-renderComponent(
-  <Provider store={store}>
-    <LiveStandingsPaneConnected />
-  </Provider>,
-  '.live-standings-pane'
-)
-
-export default LiveStandingsPaneConnected
