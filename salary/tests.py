@@ -11,17 +11,17 @@ from roster.models import RosterSpot, RosterSpotPosition
 
 #
 # quick caleb test of dummy data class
-from salary.dummy import Dummy
-class SomeTest(AbstractTest):
-    def setUp(self):
-        #self.roster_spot_positions  = Dummy.create_roster()
-        #self.player_stats_list      = Dummy.create_player_stats_list()
-
-        # generate_salaries()
-        Dummy.generate_salaries()
-
-    def test_it(self):
-        pass
+# from salary.dummy import Dummy
+# class SomeTest(AbstractTest):
+#     def setUp(self):
+#         #self.roster_spot_positions  = Dummy.create_roster()
+#         #self.player_stats_list      = Dummy.create_player_stats_list()
+#
+#         # generate_salaries()
+#         Dummy.generate_salaries()
+#
+#     def test_it(self):
+#         pass
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------

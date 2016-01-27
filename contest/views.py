@@ -464,25 +464,9 @@ class EnterLineupStatusAPIView(APIView):
     check the status of enter-lineup, having previously attempted to
     buy a lineup into a contest...
 
-    TODO - add more description here about returned data
+    Below are some example responses.
 
-    TODO - clean this up:
-    In [4]: t1
-    Out[4]: <AsyncResult: a0a793e6-195c-45c4-afbe-8447e3507278>
-
-    In [5]: t2
-    Out[5]: <AsyncResult: de582118-c33a-43b0-930d-b94aa95f2526>
-
-    In [6]: t1.status
-    Out[6]: 'FAILURE'
-
-    In [7]: t2.status
-    Out[7]: 'SUCCESS'
-
-    In [8]: th1 = TaskHelper( pause_then_raise, t1.id )
-
-    In [9]: th1.get_data()
-    Out[9]:
+    EXAMPLE:
     {'result': None,
      'exception': {'msg': 'this was throw on purpose to test',
       'name': 'Exception'},
@@ -490,10 +474,7 @@ class EnterLineupStatusAPIView(APIView):
      'task': {'status': 'FAILURE', 'description': 'Task failed'},
      'note': "status will be in ['SUCCESS', 'PENDING', 'FAILURE']. if status is in ['PENDING'], you may poll this api."}
 
-    In [10]: th2 = TaskHelper( heartbeat, t2.id )
-
-    In [11]: th2.get_data()
-    Out[11]:
+    EXAMPLE:
     {'result': {'value': None},
      'exception': None,
      'status': 'SUCCESS',
@@ -513,7 +494,7 @@ class EnterLineupStatusAPIView(APIView):
         :param format:
         :return:
         """
-        task_id = request.data.get('task_id')
+        task_id = request.data.get('task')
         if task_id is None:
             # make sure to return error if the task id is not given in the request
             return Response({'error':'you must supply the "task" parameter'},
@@ -591,7 +572,7 @@ class EditEntryLineupStatusAPIView(generics.GenericAPIView):
         :param format:
         :return:
         """
-        task_id = request.data.get('task_id')
+        task_id = request.data.get('task')
         if task_id is None:
             # make sure to return error if the task id is not given in the request
             return Response({'error':'you must supply the "task_id" parameter'},

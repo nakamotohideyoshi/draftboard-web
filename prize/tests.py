@@ -64,31 +64,35 @@ class GeneratorTest(AbstractTest):
         ranks = Rank.objects.filter( prize_structure=ps )
         self.assertEquals( total_ranks, len(ranks) )
 
-    def test_create_ticket_prize_structure_raises_invalid_ticket_amount_exception(self):
-        self.assertRaises( ticket.exceptions.InvalidTicketAmountException,
-                           lambda: TicketPrizeStructureCreator( 1.77, 10, name='no tickets exist actually' ) )
+    #
+    # Ticket structure on hold for further discussion
+    # def test_create_ticket_prize_structure_raises_invalid_ticket_amount_exception(self):
+    #     self.assertRaises( ticket.exceptions.InvalidTicketAmountException,
+    #                        lambda: TicketPrizeStructureCreator( 1.77, 10, name='no tickets exist actually' ) )
 
-    def test_create_ticket_prize_structure(self):
-        # make sure the standard ticket amount "templates" exist!
-        TicketManager.create_default_ticket_amounts()
-
-        name = 'custom_name'
-        ticket_value = 5.00
-        total_prizes = 10
-        creator = TicketPrizeStructureCreator( ticket_value, total_prizes, name=name )
-        creator.set_buyin( 1 )
-        creator.save()
-        # print( str(creator) )
-
-        try:
-            ps = PrizeStructure.objects.get(name__istartswith=name)
-        except PrizeStructure.DoesNotExist:
-            ps = None
-
-        self.assertIsNotNone( ps )
-
-        ranks = Rank.objects.filter( prize_structure=ps )
-        self.assertEquals( total_prizes, len(ranks) )
-
-        for r in ranks:
-            self.assertEquals( ticket_value, r.value )
+    #
+    # ticket structure on hold until further discussion
+    # def test_create_ticket_prize_structure(self):
+    #     # make sure the standard ticket amount "templates" exist!
+    #     TicketManager.create_default_ticket_amounts()
+    #
+    #     name = 'custom_name'
+    #     ticket_value = 5.00
+    #     total_prizes = 10
+    #     creator = TicketPrizeStructureCreator( ticket_value, total_prizes, name=name )
+    #     creator.set_buyin( 1 )
+    #     creator.save()
+    #     # print( str(creator) )
+    #
+    #     try:
+    #         ps = PrizeStructure.objects.get(name__istartswith=name)
+    #     except PrizeStructure.DoesNotExist:
+    #         ps = None
+    #
+    #     self.assertIsNotNone( ps )
+    #
+    #     ranks = Rank.objects.filter( prize_structure=ps )
+    #     self.assertEquals( total_prizes, len(ranks) )
+    #
+    #     for r in ranks:
+    #         self.assertEquals( ticket_value, r.value )
