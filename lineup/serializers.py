@@ -130,7 +130,10 @@ class CreateLineupSerializer(serializers.Serializer):
 
 
 class EditLineupSerializer(serializers.Serializer):
-    lineup = serializers.IntegerField()
+
+    lineup = serializers.IntegerField(
+        help_text='the pk of the Lineup'
+    )
 
     players = serializers.ListField(
         child=serializers.IntegerField(min_value=0, max_value=9999999),
@@ -141,4 +144,7 @@ class EditLineupSerializer(serializers.Serializer):
     name = serializers.CharField()
 
 class EditLineupStatusSerializer(serializers.Serializer):
-    pass # TODO
+
+    task = serializers.CharField(
+        help_text='the task id from a /api/lineup/edit/ api call'
+    )

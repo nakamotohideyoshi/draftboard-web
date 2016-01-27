@@ -22,7 +22,7 @@ urlpatterns = patterns( '',
     #
     # edit existing lineup
     (r'^edit/$', EditLineupAPIView.as_view()),
-    (r'^edit-status/(?P<task_id>[a-z0-9-]+)/$', EditLineupStatusAPIView.as_view()),
+    (r'^edit-status/$', EditLineupStatusAPIView.as_view()),
 
     #
     # get the players for the lineup
