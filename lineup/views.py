@@ -186,13 +186,16 @@ class EditLineupAPIView(generics.CreateAPIView):
 
         return Response('lineup created')
 
-class EditLineupStatusAPIView(APIView):
+class EditLineupStatusAPIView(generics.GenericAPIView):
+    """
+    get the task status of the EditLineup api
+    """
     pass # TODO
 
 class EditEntryLineupAPIView(APIView):
     pass # TODO
 
-class EditEntryLineupStatusAPIView(APIView):
+class EditEntryLineupStatusAPIView(generics.GenericAPIView):
     pass # TODO
 
 class PlayersAPIView(generics.GenericAPIView):
