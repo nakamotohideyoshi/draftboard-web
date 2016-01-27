@@ -392,7 +392,7 @@ SUIT_CONFIG = {
         {'app':'prize', 'label': 'Prize'},
         {'app':'salary', 'label': 'Salary'},
 
-        {'app':'schedule', 'label': 'Schedule'},
+        {'app':'schedule', 'label': 'Contest Scheduler'},
 
 
         {'app':'sports', 'label': 'Sports'},

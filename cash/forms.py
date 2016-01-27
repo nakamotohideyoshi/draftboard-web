@@ -4,6 +4,14 @@ from django import forms
 import cash.models
 
 class AdminCashDepositForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            for field in self.fields:
+                self.fields[field].widget.attrs['readonly'] = True
+                self.fields[field].widget.attrs['disabled'] = True
+
 
     class Meta:
         model = cash.models.AdminCashDeposit
@@ -14,6 +22,14 @@ class DepositAmountForm(forms.Form):
 
 
 class AdminCashWithdrawalForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance = getattr(self, 'instance', None)
+        if instance and instance.pk:
+            for field in self.fields:
+                self.fields[field].widget.attrs['readonly'] = True
+                self.fields[field].widget.attrs['disabled'] = True
+
 
     class Meta:
         model = cash.models.AdminCashWithdrawal
