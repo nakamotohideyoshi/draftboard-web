@@ -1,9 +1,8 @@
-'use strict';
+import React from 'react'
+import {roundUpToDecimalPlace} from '../../lib/utils.js'
 
-var React = require('react');
 
-
-var LineupCardPlayer = React.createClass({
+let LineupCardPlayer = React.createClass({
 
   propTypes: {
     player: React.PropTypes.object.isRequired
@@ -21,7 +20,7 @@ var LineupCardPlayer = React.createClass({
             - {this.props.player.player_meta.team.alias}
           </span>
         </span>
-        <span className="cmp-lineup-card__average">XX</span>
+        <span className="cmp-lineup-card__average">{roundUpToDecimalPlace(this.props.player.fppg, 1)}</span>
       </li>
     );
   }
@@ -29,4 +28,4 @@ var LineupCardPlayer = React.createClass({
 });
 
 
-module.exports = LineupCardPlayer;
+module.exports = LineupCardPlayer

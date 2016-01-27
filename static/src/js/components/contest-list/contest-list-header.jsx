@@ -44,7 +44,7 @@ var ContestListHeader = React.createClass({
     var currentContestType;
 
     if (this.props.filters.sportFilter.hasOwnProperty('match')) {
-      currentContestType = this.props.filters.sportFilter.match;
+      currentContestType = this.props.filters.sportFilter.match.toUpperCase()
     }
 
     if (!currentContestType || currentContestType === 'All') {
