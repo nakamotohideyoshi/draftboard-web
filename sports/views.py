@@ -226,14 +226,13 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
             # )
 
             with connection.cursor() as c:
-                c.execute("select player_id, array_agg(fantasy_points) from (select * from (select *, row_number() over (partition by player_id order by created) as rn from %s) as %s where rn <=10) as agg group by player_id" % (database_table_name, database_table_name))
+                #q_str = "select player_id, array_agg(fantasy_points) from (select * from (select *, row_number() over (partition by player_id order by created DESC) as rn from nba_playerstats) as nba_playerstats where rn <=10) as agg group by player_id"
+                q_str = "select player_id, array_agg(fantasy_points) from (select * from (select *, row_number() over (partition by player_id order by created DESC) as rn from %s) as %s where rn <=10) as agg group by player_id" % (database_table_name, database_table_name)
+                #print(q_str)
+                c.execute(q_str)
                 player_stats += self.dictfetchall( c )
 
         return player_stats
-
-
-
-
 
 class PlayerHistoryAPIView(generics.ListAPIView):
     """

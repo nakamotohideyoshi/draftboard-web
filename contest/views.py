@@ -459,34 +459,12 @@ class EnterLineupAPIView(generics.CreateAPIView):
         # serializer = CurrentEntrySerializer(entry, many=False)
         # return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class EnterLineupStatusAPIView(APIView):
-    """
-    check the status of enter-lineup, having previously attempted to
-    buy a lineup into a contest...
-
-    Below are some example responses.
-
-    EXAMPLE:
-    {'result': None,
-     'exception': {'msg': 'this was throw on purpose to test',
-      'name': 'Exception'},
-     'status': 'FAILURE',
-     'task': {'status': 'FAILURE', 'description': 'Task failed'},
-     'note': "status will be in ['SUCCESS', 'PENDING', 'FAILURE']. if status is in ['PENDING'], you may poll this api."}
-
-    EXAMPLE:
-    {'result': {'value': None},
-     'exception': None,
-     'status': 'SUCCESS',
-     'task': {'status': 'SUCCESS', 'description': 'Task succeeded'},
-     'note': "status will be in ['SUCCESS', 'PENDING', 'FAILURE']. if status is in ['PENDING'], you may poll this api."}
-
-    """
+class EnterLineupStatusAPIView(generics.GenericAPIView):
 
     permission_classes      = (IsAuthenticated,)
-    serializer_class        = EnterLineupStatusSerializer # TODO create a serializer for response for swagger
+    serializer_class        = EnterLineupStatusSerializer
 
-    def post(self, request, format=None):
+    def get(self, request, task_id, format=None):
         """
         Given the 'task' parameter, return the status of the task (ie: the buyin)
 
@@ -494,16 +472,6 @@ class EnterLineupStatusAPIView(APIView):
         :param format:
         :return:
         """
-        task_id = request.data.get('task')
-        if task_id is None:
-            # make sure to return error if the task id is not given in the request
-            return Response({'error':'you must supply the "task" parameter'},
-                                        status=status.HTTP_400_BAD_REQUEST )
-
-        #
-        # the TaskHelper class helps us retrieve useful information
-        # about the status, and any exceptions that may have happened,
-        # and that data is retrieved with the get_result_data() method.
         task_helper = TaskHelper(buyin_task, task_id)
         return Response(task_helper.get_data(), status=status.HTTP_200_OK)
 
@@ -548,39 +516,23 @@ class EditEntryLineupAPIView(APIView):
         except Entry.DoesNotExist:
             return Response({'error':'invalid "entry" parameter -- does not exist'},
                                         status=status.HTTP_400_BAD_REQUEST )
-
         #
         # call task
         task_result = edit_entry.delay(request.user, players, entry)
         return Response({'task_id':task_result.id}, status=status.HTTP_201_CREATED)
 
-
 class EditEntryLineupStatusAPIView(generics.GenericAPIView):
-    """
-    check the status of a previous call to edit-entry, using the task id
-    returned from edit-entry call
-    """
 
     permission_classes      = (IsAuthenticated,)
-    serializer_class        = EditEntryLineupStatusSerializer # TODO create a serializer for response for swagger
+    serializer_class        = EditEntryLineupStatusSerializer
 
-    def post(self, request, format=None):
+    def get(self, request, task_id, format=None):
         """
-        Given the 'task_id' parameter, return the status of the task (ie: the edit-lineup call)
+        Given the 'task' parameter, return the status of the task (ie: from performing the edit-entry)
 
         :param request:
         :param format:
         :return:
         """
-        task_id = request.data.get('task')
-        if task_id is None:
-            # make sure to return error if the task id is not given in the request
-            return Response({'error':'you must supply the "task_id" parameter'},
-                                        status=status.HTTP_400_BAD_REQUEST )
-
-        #
-        # the TaskHelper class helps us retrieve useful information
-        # about the status, and any exceptions that may have happened,
-        # and that data is retrieved with the get_result_data() method.
         task_helper = TaskHelper(edit_entry, task_id)
         return Response(task_helper.get_data(), status=status.HTTP_200_OK)
