@@ -45,7 +45,7 @@ class SalaryConfig(models.Model):
         return '%s: %s' % (str(self.id), self.name)
 
     class Meta:
-        verbose_name = 'Algorithm Configuration'
+        verbose_name = 'Algorithm'
 
 
 
