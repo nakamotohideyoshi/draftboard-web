@@ -51,6 +51,11 @@ class PrizeStructure( models.Model ):
     def __str__(self):
         return '[%s]entries %s' % (self.get_entries(), self.name)
 
+    class Meta:
+        verbose_name = 'Prize Structure'
+        verbose_name_plural = 'Prize Structure'
+
+
 class Rank( models.Model ):
     """
     A rank is associated with a specific PrizeStructure and has a
@@ -80,6 +85,11 @@ class Rank( models.Model ):
 
     def __str__(self):
         return '<%s | %s>' % (self.__class__.__name__, self.value)
+
+    class Meta:
+        verbose_name = 'Payout Structure'
+        verbose_name_plural = 'Payout Structure'
+
 
 class CreateTicketPrizeStructure(models.Model):
 

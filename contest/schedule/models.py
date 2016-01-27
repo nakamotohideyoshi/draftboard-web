@@ -4,12 +4,17 @@
 from django.db import models
 import contest.models
 
+
 class Category( models.Model ):
     created     = models.DateTimeField(auto_now_add=True)
     name        = models.CharField(max_length=128, null=False)
 
     def __str__(self):
         return '%s' % self.name
+
+    class Meta:
+        verbose_name = 'Time Slot'
+
 
 class Schedule( models.Model ):
     created     = models.DateTimeField(auto_now_add=True)
@@ -43,6 +48,8 @@ class TemplateContest( contest.models.AbstractContest ):
 
     class Meta:
         abstract = False
+        verbose_name = 'Contest Template'
+
 
 class Interval(models.Model):
 
@@ -90,6 +97,7 @@ class ScheduledTemplateContest( models.Model ):
                             help_text='the number of copies of this contest to create (ie: you might want ten 1v1 contests of the same type active at the same time)')
     class Meta:
         unique_together = ('schedule','template_contest','start_time','duration_minutes')
+        verbose_name= 'Master Schedule'
 
     def __str__(self):
         return '%s    days:%s    Contest >>>>> %s    schedule id:%s' % (self.start_time,
