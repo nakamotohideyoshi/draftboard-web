@@ -9,7 +9,7 @@ from datetime import datetime
 from rest_framework import status
 from rest_framework.response import Response
 from debreach.decorators import random_comment_exempt
-
+from rest_framework.views import APIView
 from rest_framework import renderers
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -456,7 +456,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
         # serializer = CurrentEntrySerializer(entry, many=False)
         # return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-class EnterLineupStatusAPIView(generics.RetrieveAPIView):
+class EnterLineupStatusAPIView(APIView):
     """
     check the status of enter-lineup, having previously attempted to
     buy a lineup into a contest...
@@ -500,9 +500,9 @@ class EnterLineupStatusAPIView(generics.RetrieveAPIView):
     """
 
     permission_classes      = (IsAuthenticated,)
-    serializer_class        = EnterLineupStatusSerializer
+    serializer_class        = EnterLineupStatusSerializer # TODO create a serializer for response for swagger
 
-    def get(self, request, task_id, format=None):
+    def post(self, request, format=None):
         """
         Given the 'task' parameter, return the status of the task (ie: the buyin)
 
@@ -510,7 +510,7 @@ class EnterLineupStatusAPIView(generics.RetrieveAPIView):
         :param format:
         :return:
         """
-        enter_lineup_status = False
+        task_id = request.data.get('task_id')
         if task_id is None:
             # make sure to return error if the task id is not given in the request
             return Response({'error':'you must supply the "task" parameter'},
