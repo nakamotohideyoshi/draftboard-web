@@ -201,9 +201,8 @@ class EditLineupAPIView(generics.CreateAPIView):
 
         #
         # call task
-        task_result = edit_lineup.delay(request.user, players, lineup_id)
-
-        return Response('lineup created')
+        task_result = edit_lineup.delay(request.user, players, lineup)
+        return Response({'task_id':task_result.id}, status=status.HTTP_201_CREATED)
 
 class EditLineupStatusAPIView(APIView):
     """
