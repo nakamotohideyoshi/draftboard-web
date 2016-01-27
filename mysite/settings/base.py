@@ -389,7 +389,19 @@ SUIT_CONFIG = {
         {'app':'finance', 'label': 'Test'},
         {'app':'fpp', 'label': 'FPP'},
         {'app':'lobby', 'label': 'Lobby Banners'},
-        {'app':'prize', 'label': 'Prize'},
+
+        {'app':'prize', 'label': 'Prize',
+            'models':[
+                {'label': 'Prize Structures', 'url':'/admin/prize/prizestructure/'},
+                {'label': 'Cash Prize Structure Creator', 'url':'/api/prize/generator/'},
+                {'label': 'Cash Prize Structure Creator (Flat)', 'url':'/api/prize/flat/'},
+                {'label': 'Ticket Prize Structure Creator', 'url':'/api/prize/ticket/'},
+            ]
+         },
+        # /api/prize/flat/
+        # /api/prize/ticket/
+        # /api/prize/generator/
+
         {'app':'salary', 'label': 'Salary'},
 
         {'app':'schedule', 'label': 'Contest Scheduler'},
