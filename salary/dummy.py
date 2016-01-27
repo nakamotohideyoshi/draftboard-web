@@ -75,9 +75,11 @@ class Dummy(object):
         Use to this to make more realistic instances in the database
         of players/games/playerstats/salaries/etc...
         """
+        # clear out any existing rosters with the same sport, because theyll be recreated
+        Dummy.remove_existing_rosters_for_sport(site_sport=self.site_sport)
         # prerequisite calls to create_roster(), create_player_stats_list()
         Dummy.create_roster(sport=self.site_sport.name)
-        Dummy.create_player_stats_list(site_sport=self.site_sport)
+        Dummy.create_player_stats_list(site_sport=self.site_sport, round_start_times=True)
         #players = Dummy.create_players(n=players, site_sport=site_sport)   #  -done
         #games   = Dummy.create_games(n=games, site_sport=site_sport)       #  -done
         #create_player_stats_model( players,games)                          #  -done
@@ -103,6 +105,23 @@ class Dummy(object):
         generator.generate_salaries()                               # -done
         return generator                                            # -done
 
+    @staticmethod
+    def remove_existing_rosters_for_sport(site_sport):
+        """
+        call this at the beginning of create_rosters() to ensure
+        that if the rosters already exist when a Dummy instance
+        gets used in a test, we break down, and recreate the proper rosters.
+        without adding more (which it doesnt/shouldnt handle nicely)
+        :return:
+        """
+        if site_sport == None:
+            raise Exception('Dummy.remove_existing_rosters_for_sport() - site_sport not set yet')
+
+        rsps = RosterSpotPosition.objects.filter(roster_spot__site_sport=site_sport)
+        rsps.delete()
+        rps  = RosterSpot.objects.filter(site_sport=site_sport)
+        rps.delete()
+
     # Shared setup methods for the test cases
     @staticmethod
     def create_roster(sport=DEFAULT_SPORT, roster=DEFAULT_ROSTER_MAP):
@@ -112,7 +131,7 @@ class Dummy(object):
             >>> roster = {
             ...     ('QB',1,0,True)     :['QB'],
             ...     ('WR',1,1,True)     :['WR'],
-            ...     ('FX',1,1,False)  :['RB','WR','TE']
+            ...     ('FX',1,1,False)    :['RB','WR','TE']
             ... }
             >>> site_sport = Dummy.create_roster(sport='mysport', roster=roster ) #example!
 
@@ -207,7 +226,7 @@ class Dummy(object):
         return t
 
     @staticmethod
-    def create_game(srid=None, status='scheduled', away=None, home=None, site_sport=None):
+    def create_game(srid=None, status='scheduled', away=None, home=None, site_sport=None, round_start_times=False):
         #site_sport, created = SiteSport.objects.get_or_create(name=sport)
 
         if away is None:
@@ -216,6 +235,10 @@ class Dummy(object):
             home    = Dummy.create_team('home', 'HOME', site_sport)
 
         dt_now = timezone.now()
+        if round_start_times:
+            # zero out the seconds and microseconds!
+            dt_now = dt_now.replace( dt_now.year, dt_now.month, dt_now.day, dt_now.hour, dt_now.minute, 0, 0 )
+
         if site_sport is None:
             game                    = GameChild()
         else:
@@ -275,13 +298,17 @@ class Dummy(object):
         return player_stats
 
     @staticmethod
-    def create_games(n=20, site_sport=None):
+    def create_games(n=20, site_sport=None, round_start_times=False):
         #site_sport, created = SiteSport.objects.get_or_create(name=sport)
         dt_now  = timezone.now()
         unix_ts = int(dt_now.strftime('%s')) # unix timestamp as srid ... not bad
         games = []
         for x in range(0, n):
-            games.append( Dummy.create_game(srid='%s' % (unix_ts+x), site_sport=site_sport ) )
+            game = Dummy.create_game(srid='%s' % (unix_ts+x), site_sport=site_sport, round_start_times=round_start_times )
+            game.start = game.start + timedelta(minutes=x) # stagger each game by 1 minute
+            game.save()
+            games.append( game )
+
         return games
 
     @staticmethod
@@ -313,7 +340,7 @@ class Dummy(object):
         return players
 
     @staticmethod
-    def create_player_stats_list(players=20, games=20, site_sport=None):
+    def create_player_stats_list(players=20, games=20, site_sport=None, round_start_times=False):
         """
         calls Dummy.create_roster() as a preqrequisite
 
@@ -327,7 +354,7 @@ class Dummy(object):
 
         player_stats_list = []
         players = Dummy.create_players(n=players, site_sport=site_sport)    # n=20 is the default argument which creates 20 players
-        games   = Dummy.create_games(n=games, site_sport=site_sport)      # n=20 is default for game as well
+        games   = Dummy.create_games(n=games, site_sport=site_sport, round_start_times=round_start_times)      # n=20 is default for game as well
         for game in games:
             for player in players:
                 player_stats_list.append( Dummy.create_player_stats_model( game, player, site_sport ) )

@@ -14,6 +14,8 @@ from mysite.exceptions import (
 )
 from draftgroup.exceptions import (
     NotEnoughGamesException,
+    EmptySalaryPoolException,
+    NoGamesAtStartTimeException,
 )
 from .exceptions import (
     ScheduleException,
@@ -176,8 +178,9 @@ class ScheduleManager(object):
             d                   = utc_dt.date()
             t                   = scheduled_template_contest.start_time
             utc_start           = utc_dt.replace( d.year, d.month, d.day, t.hour, t.minute, 0, 0 )
-            utc_start           = utc_start + timedelta(hours=self.get_dst_offset_hours())
-
+            print('utc_start:', str(utc_start), 'self.dst_offset_hours():', self.get_dst_offset_hours() )
+            # utc_start           = utc_start + timedelta(hours=self.get_dst_offset_hours())
+            # print('utc_start(after + dst):', str(utc_start))
             c.start             = utc_start
             c.end               = utc_start + timedelta(minutes=scheduled_template_contest.duration_minutes)
 
@@ -198,8 +201,18 @@ class ScheduleManager(object):
                 # in schedule... we should try to create games for the following
                 # day (or 6) before giving up.
                 raise SchedulerNumberOfGamesException()
+            except NoGamesAtStartTimeException:
+                msg = 'Contest(s) not created -- \n'
+                msg += 'there are no games matching the start time [%s]\n' % c.start
+                raise ScheduleException(msg)
+
+            except EmptySalaryPoolException:
+                msg = 'Contest(s) not created -- you need to generate a salary pool first.'
+                raise ScheduleException(msg)
+
             except:
-                raise ScheduleException('DraftGroup couldnt be created -- are there games for this day?')
+                msg = 'Contest(s) not created -- are there games for this day?'
+                raise ScheduleException(msg)
 
             c.draft_group = draft_group
 
