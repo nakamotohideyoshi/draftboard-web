@@ -193,6 +193,9 @@ class FppgGenerator(object):
         :return a list of SalaryPlayerObjects
 
         """
+
+        print( 'self.player_stats_classes', str(self.player_stats_classes))
+
         #
         #
         players = []
@@ -398,11 +401,13 @@ class SalaryGenerator(FppgGenerator):
         :param position_average_list:
         :return:
         """
-        print("postion_average_list keys:"+str(position_average_list.keys()))
+        print("position_average_list keys:"+str(position_average_list.keys()))
+        print('position_average_list:', str(position_average_list))
         #
         # get all the roster spots for the sport and sum up the average
         # fantasy points for each spot * spot.amount
         roster_spots = RosterSpot.objects.filter(site_sport = self.site_sport)
+        print('site_sport', str(self.site_sport), self.site_sport.name)
         sum_average_points = 0.0
         for roster_spot in roster_spots:
             #

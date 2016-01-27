@@ -11,9 +11,14 @@ from salary.dummy import Dummy # only to be used for testing
 from contest.models import Contest
 from contest.schedule.classes import ScheduleManager
 from contest.schedule.exceptions import ScheduleException, ScheduleOutOfRangeException
-from contest.schedule.models import Category, Schedule, TemplateContest, \
-                                    ScheduledTemplateContest, CreatedContest, \
-                                    Interval
+from contest.schedule.models import (
+    Category,
+    Schedule,
+    TemplateContest,
+    ScheduledTemplateContest,
+    CreatedContest,
+    Interval,
+)
 
 class ScheduleManagerTest(AbstractTestTransaction):
     """
@@ -21,6 +26,7 @@ class ScheduleManagerTest(AbstractTestTransaction):
     """
 
     def setUp(self):
+
         #
         #
         self.verbose = True  # set to False to disable print statements
@@ -268,7 +274,19 @@ class ScheduleManagerTest(AbstractTestTransaction):
         # get a ScheduledTemplateContest (hooks up a TemplateContest with an Interval)
         # since the Dummy object will create games for current time,
         # set the start time to 12:00 AM and set the duration for 24*60 minutes (one whole day in minutes)
-        start_time          = time(0, 1)
+
+        # *** update ***
+        # the contest start time MUST exactly match a Game's 'start' datetime !
+        plus_5_min = timezone.now()+timedelta(minutes=5)
+        games = self.game_model.objects.filter(start__gt=plus_5_min).order_by('start') # ascending
+        if games.count() <= 0:
+            msg = 'ScheduleManagerTest.test_single_scheduled_template_contest_today: '
+            msg += 'there were no upcoming games to target'
+            #print(msg)
+            raise Exception(msg)
+
+        start_time          = games[0].start.time()
+        print('game start for scheduled_template_contest:', str(start_time))
         duration_minutes    = 24 * 60
         multiplier          = 1
         scheduled_template_contest = self.__create_scheduled_template_contest(self.schedule,
@@ -277,6 +295,9 @@ class ScheduleManagerTest(AbstractTestTransaction):
                                                                               duration_minutes,
                                                                               self.interval,
                                                                               multiplier=multiplier)
+
+        st_time_str = str(scheduled_template_contest.start_time)
+        print('after creating, scheduled_template_contest.start_time:', str(st_time_str))
         # before we run - none of these models should have any results
         self.assertEquals( CreatedContest.objects.all().count(), 0 )
         self.assertEquals( Contest.objects.all().count(), 0 )
@@ -316,6 +337,7 @@ class ScheduleManagerTest(AbstractTestTransaction):
         new_start_time = time( start_time.hour, start_time.minute + 1 )
         stc_same_day_different_time = self.__create_scheduled_template_contest(self.schedule,
                  self.template_contest, new_start_time, duration_minutes, self.interval, multiplier=3)
+
         # should be a second ScheduledTemplateContest now !
         self.assertEquals( ScheduledTemplateContest.objects.all().count(), 2 )
 
