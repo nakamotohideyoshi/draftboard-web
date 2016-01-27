@@ -203,16 +203,7 @@ class EntryAdmin(admin.ModelAdmin):
         return False
 
     def contest_link(self, obj):
-        """
-        Add a button into the admin views so its easy to add a TemplateSchedule to an existing schedule
-
-        :param obj:   the model instance for each row
-        :return:
-        """
-
-        # the {} in the first argument are like %s for python strings,
-        # and the subsequent arguments fill the {}
         return format_html('<a href="{}{}/" class="btn btn-success">{}</a>',
                             "/admin/contest/contest/",
-                             obj.pk,
+                             obj.contest.pk,
                              str(obj.contest))

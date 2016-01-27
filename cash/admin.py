@@ -82,25 +82,33 @@ class CashBalanceAdminInline(admin.StackedInline):
        return False
 
 
-# @admin.register(AdminCashDeposit)
-# class AdminCashDepositFormAdmin(admin.ModelAdmin):
-#     """
-#     this admin model is used for depositing cash
-#     """
-#     form = AdminCashDepositForm
-#
-#     #list_display = ['created','user','amount','reason']
-#     list_display = ['user','amount','reason']
+@admin.register(AdminCashDeposit)
+class AdminCashDepositFormAdmin(admin.ModelAdmin):
+    """
+    this admin model is used for depositing cash
+    """
+    form = AdminCashDepositForm
 
-# @admin.register(AdminCashWithdrawal)
-# class AdminCashWithdrawalFormAdmin(admin.ModelAdmin):
-#     """
-#     this admin model is used for withdrawing cash
-#     """
-#     form = AdminCashWithdrawalForm
-#
-#     #list_display = ['created','user','amount','reason']
-#     list_display = ['user','amount','reason']
+    #list_display = ['created','user','amount','reason']
+    list_display = ['user','amount','reason']
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(AdminCashWithdrawal)
+class AdminCashWithdrawalFormAdmin(admin.ModelAdmin):
+    """
+    this admin model is used for withdrawing cash
+    """
+    form = AdminCashWithdrawalForm
+
+    #list_display = ['created','user','amount','reason']
+    list_display = ['user','amount','reason']
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 # @admin.register(BraintreeTransaction)
 # class BraintreeTransactionAdmin(admin.ModelAdmin):
