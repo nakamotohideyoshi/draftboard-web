@@ -7,6 +7,8 @@ from .exceptions import (
     InvalidBuyinAndPrizePoolException,
     RakeIsNot10PercentException,
     NoMatchingTicketException,
+    NumberPrizesNotDivisibleBy9Exception,
+    BuyinNotLessThanEachTicketException,
 )
 from collections import OrderedDict
 from mysite.exceptions import VariableNotSetException, IncorrectVariableTypeException
@@ -508,39 +510,13 @@ class AbstractFlatPrizeStructureCreator(AbstractPrizeStructureCreator):
         return gs
 
 class TicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
-    """
-    Used to create a prize structure based on TicketAmount's
-    where all payout spots receive the same payout value!
-    """
+     """
+     Used to create a prize structure based on TicketAmount's
+     where all payout spots receive the same payout value!
+     """
 
-    def __init__(self, buyin, ticket_value, number_of_prizes, entries, name=''):
-        super().__init__(buyin, TicketAmount, ticket_value, number_of_prizes, name=name)
-
-        self.entries = entries
-
-        self.validate_payout_ticket_amount()
-
-        # raise an exception if the total rake for this prize structure is not 10 percent
-        self.validate_rake_amount()
-
-    def validate_payout_ticket_amount(self):
-        try:
-            ta = TicketAmount.objects.get( amount=self.payout_value )
-        except TicketAmount.DoesNotExist:
-            raise NoMatchingTicketException(str(self.payout_value))
-
-    def validate_rake_amount(self):
-        """
-        raise RakeIsNot10PercentException if the rake taken out of the prize pool is not 10 percent
-        """
-        portion_towards_prize_pool = (self.buyin * 0.9) * self.entries
-        total_rake = self.buyin * 0.1 * self.entries
-        rake_percentage = float(float(total_rake) / float(self.prize_pool))
-
-        if portion_towards_prize_pool != self.prize_pool:
-            err_msg = 'BUYINS != PRIZEPOOL. rake: %.3fpct ... (buyin_portion_to_prize_pool: %.2f, $total rake: %s, $prize pool: %s' % (rake_percentage*100.0,
-                                                           portion_towards_prize_pool, str(total_rake), str(self.prize_pool))
-            raise RakeIsNot10PercentException(err_msg)
+     def __init__(self, buyin, ticket_value, number_of_prizes, name=''):
+         super().__init__(buyin, TicketAmount, ticket_value, number_of_prizes, name=name)
 
 class FlatCashPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
     """
@@ -551,50 +527,94 @@ class FlatCashPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
     def __init__(self, buyin, ticket_value, number_of_prizes, name=''):
         super().__init__(buyin, CashAmount, ticket_value, number_of_prizes, name=name)
 
+class FlatTicketPrizeStructureCreator(AbstractFlatPrizeStructureCreator):
+    """
+    Used to create a prize structure based on TicketAmount's
+    where all payout spots receive the same payout value!
+    """
 
-#         """
-#         Create a ticketed PrizeStructure given a ticket_value and the
-#         number of prizes to be paid.
-#
-#         :param ticket_value:
-#         :param name:
-#         :return:
-#         """
-#         super().__init__( TicketAmount, name )
-#         self.set_buyin(buyin)
-#         self.ticket_amount = self.get_ticket_amount( ticket_value )
-#
-#         if number_of_prizes <= 0:
-#             raise VariableNotSetException(type(self).__name__, 'number_of_prizes')
-#         self.number_of_prizes = number_of_prizes
-#
-#         # since we know the ticket value and the number of prizes,
-#         # we can add all the ranks right here. Dont forget to call save() though.
-#         for rnk in range(1, self.number_of_prizes + 1 ):
-#             self.add( rnk, ticket_value )
-#
-#     def get_ticket_amount(self, ticket_value):
-#         try:
-#             return TicketAmount.objects.get( amount=ticket_value )
-#         except TicketAmount.DoesNotExist:
-#             raise InvalidTicketAmountException( type(self).__name__, ticket_value )
-#
-#     def get_amount_instance(self, amount):
-#         """
-#         Overrides AbstractPrizeStructureCreator.get_amount_instance()
-#
-#         Ignores the amount parameter, and simply returns the self.ticket_amount instance
-#
-#         :param amount:
-#         :return:
-#         """
-#         return self.ticket_amount
-#
-# class FlatCashPrizeStructureCreator( AbstractPrizeStructureCreator ):
-#     """
-#     Used to create a cash prize strucutre with flat payouts.
-#     Flat payouts are like 50/50s or Triple ups
-#     """
-#
-#     def __init__(self, buyin, cash_amount):
-#         self.set_buyin(buyin)
+    def __init__(self, buyin, ticket_value, number_of_prizes, entries=None, name=''):
+        super().__init__(buyin, TicketAmount, ticket_value, number_of_prizes, name=name)
+
+        # we can infer the # of entries for FLAT ticket structures!
+        self.entries = (self.payout_value * number_of_prizes) / 0.9
+        if entries is not None:
+            self.entries = entries # not positive why we would want to force it
+
+        # given a flat 10% rake across the board,
+        # the number of prizes actually MUST be
+        # a multiple of 9 !
+        self.validate_number_prizes()
+
+        # ensure the payout ticket value is valid
+        self.validate_payout_ticket_amount()
+
+        # raise an exception if the total rake for this prize structure is not 10 percent
+        self.validate_rake_amount()
+
+    def validate_number_prizes(self):
+        """
+        :raises NumberPrizesNotDivisibleBy9Exception:
+        """
+        if self.number_of_prizes % 9 != 0:
+            raise NumberPrizesNotDivisibleBy9Exception(str(self.number_of_prizes))
+
+    def validate_payout_ticket_amount(self):
+        """
+        :raises BuyinNotLessThanEachTicketException:
+        :raises NoMatchingTicketException:
+        """
+        if self.buyin >= self.payout_value:
+            err_msg = '%s buyin, %s each prize' % (str(self.buyin), str(self.payout_value))
+            raise BuyinNotLessThanEachTicketException(err_msg)
+
+        try:
+            ta = TicketAmount.objects.get( amount=self.payout_value )
+        except TicketAmount.DoesNotExist:
+            raise NoMatchingTicketException(str(self.payout_value))
+
+    def validate_rake_amount(self):
+        """
+        :raises RakeIsNot10PercentException: if the total rake is not an even 10 percent.
+        """
+
+        # prizepool is # entries * buyin * (1.0 - rake)
+        prize_pool = float(self.entries) * float(self.buyin) * 0.9
+        # tickets may have a remainder, but it is the number
+        # of tickets we can pay out for the given number of entries and the buyin
+        tickets = float(prize_pool) / float(self.payout_value)
+        # get the decimal remainder of 'tickets'
+        fraction = tickets % 1
+        if fraction >= 0.0001:
+            # a significant decimal remainder means we dont
+            # have settings that result in 10% rake overall
+            err_msg = 'invalid settings: $%s buyin, $%s tickets, %s prizes, %s entries' % \
+                      (self.buyin, self.payout_value, self.number_of_prizes, self.entries)
+            raise RakeIsNot10PercentException(err_msg)
+
+    @staticmethod
+    def print_all(max_entries):
+        """
+        print all possible FlatTicketPrizeStructures where the
+        total number of entries in each structure is <= 'max_entries'
+        """
+        ticket_amounts = [ float(ta.amount) for ta in TicketAmount.objects.all() ]
+        buyin_amounts = list(ticket_amounts)
+        print( 'ticket_amounts %s' % str(ticket_amounts) )
+
+        for buyin in buyin_amounts:
+            print('$%s buyin' % str(buyin))
+            for ticket in ticket_amounts:
+                if ticket <= buyin:
+                    continue
+                print('    $%s ticket' % str(ticket))
+                entries = 5
+                while entries <= max_entries:
+                    prize_pool = entries * buyin * 0.9 # prizepool is # entries * buyin * (1.0 - rake)
+                    tickets = float(prize_pool) / float(ticket)
+                    fraction = tickets % 1
+                    if fraction < 0.0001:
+                        # this could be a good structure! print the values
+                        print('        %s payouts, %s entries' % (str(int(tickets)), str(int(entries))))
+                    entries += 1
+        print('... showing all the possible FlatTicketPrizeStructures (entries <= %s)' % str(max_entries))

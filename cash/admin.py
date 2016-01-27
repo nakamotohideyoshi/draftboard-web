@@ -92,6 +92,8 @@ class AdminCashDepositFormAdmin(admin.ModelAdmin):
     #list_display = ['created','user','amount','reason']
     list_display = ['user','amount','reason']
 
+    raw_id_fields = ('user',)
+
     def has_delete_permission(self, request, obj=None):
         return False
 

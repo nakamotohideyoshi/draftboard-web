@@ -7,8 +7,12 @@ from rest_framework.response import Response
 from django.views.generic import TemplateView, View
 from rest_framework import generics
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from prize.classes import Generator, CashPrizeStructureCreator, \
-                            TicketPrizeStructureCreator, FlatCashPrizeStructureCreator
+from prize.classes import (
+    Generator,
+    CashPrizeStructureCreator,
+    FlatCashPrizeStructureCreator,
+    FlatTicketPrizeStructureCreator,
+)
 from prize.forms import PrizeGeneratorForm, TicketPrizeCreatorForm, FlatCashPrizeCreatorForm
 from prize.serializers import PrizeStructureSerializer
 from prize.models import PrizeStructure
@@ -307,10 +311,15 @@ class CreatePrizeStructureView(TemplateView):
         return context
 
 class TicketPrizeStructureCreatorView(View):
+    """
+    This view uses FlatTicketPrizeStructureCreator to help create
+    a prize structure with an even 10% total rake.
+    """
 
     template_name   = 'ticket_prize_creator.html'
-    form_class      = TicketPrizeCreatorForm
+    form_class      = TicketPrizeCreatorForm # this is for FLAT structures
     initial         = {
+        'buyin'         : 1,
         'ticket_amount' : 2,
         'num_prizes'    : 25,
         'create'        : False
@@ -323,16 +332,22 @@ class TicketPrizeStructureCreatorView(View):
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
         if form.is_valid():
-            # <process form cleaned data>
+            #
+            # get the values from the from fields
+            buyin           = form.cleaned_data['buyin']
             ticket_amount   = form.cleaned_data['ticket_amount']
             num_prizes      = form.cleaned_data['num_prizes']
-            buyin           = form.cleaned_data['buyin']
             create          = form.cleaned_data['create']
+            print('buyin', buyin, 'ticket_amount:', ticket_amount, 'num_prizes:', num_prizes, 'create:', create)
+            #
 
-            print('ticket_amount:', ticket_amount, 'num_prizes:', num_prizes, 'create:', create)
-
-            ticket_value = float(ticket_amount.amount) # TODO - get TicketAmount and calculate
-            max_entries = (float(ticket_value) * num_prizes) / buyin
+            buyin           = float(buyin)
+            num_prizes      = int(num_prizes)
+            ticket_value    = float(ticket_amount.amount)
+            # max_entries     = (float(ticket_value) * num_prizes) / buyin
+            # have FlatTicketPrizeStructureCreator calculate the entries for us
+            creator = FlatTicketPrizeStructureCreator( buyin, ticket_value, num_prizes, name='flat-ticket-gui' )
+            max_entries = creator.entries
 
             context = { 'form' : form }
 
@@ -383,7 +398,7 @@ class TicketPrizeStructureCreatorView(View):
             # at this point, if 'create' is True, we should
             # actually save & commit a new prize structure
             if create:
-                creator = TicketPrizeStructureCreator( ticket_value, num_prizes, 'ticket-gui' )
+                # creator = FlatTicketPrizeStructureCreator( buyin, ticket_value, num_prizes, 'ticket-gui' )
                 creator.save()
 
             context['created']   = create # we should ACTUALLY create it though.
