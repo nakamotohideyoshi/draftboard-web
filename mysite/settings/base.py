@@ -407,7 +407,7 @@ SUIT_CONFIG = {
         {'app':'schedule', 'label': 'Contest Scheduler'},
 
 
-        {'app':'sports', 'label': 'Sports'},
+        #{'app':'sports', 'label': 'Sports'},
         {'app':'nfl', 'label': 'NFL'},
         {'app':'nba', 'label': 'NBA'},
         {'app':'nhl', 'label': 'NHL'},
