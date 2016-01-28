@@ -11,9 +11,8 @@ export function toTwoDigit(number) {
     return number
   }
 
-  return (number < 10) ? "0" + number : number
+  return (number < 10) ? `0${number}` : number
 }
-
 
 /**
  * From a UTC timestamp, determine the time remaining, parsed out into hours, minutes, and seconds.
@@ -22,26 +21,23 @@ export function toTwoDigit(number) {
  */
 export function timeRemaining(timestamp) {
   // difference between when the contest starts and now (in ms).
-  let diffTime = moment.utc(timestamp) - moment.utc()
+  const diffTime = moment.utc(timestamp) - moment.utc()
   // convert to a moment 'duration' so we can parse it out.
-  let duration = moment.duration(diffTime)
+  const duration = moment.duration(diffTime)
 
   // The hours have no Math.abs because should be displayed as negative. (-32:05:57)
   // A negative number means that the thing we're counting down to has past.
   return {
     hours: toTwoDigit(Math.floor(duration.asHours())),
-    minutes: Math.abs(toTwoDigit(duration.minutes())),
-    seconds: Math.abs(toTwoDigit(duration.seconds()))
+    minutes: toTwoDigit(Math.abs(duration.minutes())),
+    seconds: toTwoDigit(Math.abs(duration.seconds())),
   }
 }
-
 
 // Has this timestamp passed?
 export function isTimeInFuture(timestamp) {
   return moment.utc(timestamp) > moment.utc()
 }
-
-
 
 /**
  * Round a provided number to X decimal places
