@@ -39,6 +39,13 @@ var ContestListConfirmModal = React.createClass({
   // The parent can also call this components 'close()' method directly.
   componentWillReceiveProps: function(nextProps) {
     this.setState({isOpen: nextProps.isOpen})
+    // If we recieve a 'success' status for the entry request, close the modal.
+    let currentEntryStatus = this.getCurrentEntryStatus(nextProps)
+    if (currentEntryStatus) {
+      if ('SUCCESS' === currentEntryStatus.status) {
+        this.close()
+      }
+    }
   },
 
 
@@ -62,10 +69,19 @@ var ContestListConfirmModal = React.createClass({
   },
 
 
+  getCurrentEntryStatus: function(theProps) {
+    if (theProps.lineupId && theProps.contest && theProps.entryRequests) {
+      return _find(theProps.entryRequests, {
+        lineupId: theProps.lineupId, contestId: theProps.contest.id
+      })
+    } else {
+      return null
+    }
+  },
+
+
   renderCurrentEntryRequestStatus: function() {
-    let currentEntryStatus = _find(this.props.entryRequests, {
-      lineupId: this.props.lineupId, contestId: this.props.contest.id
-    })
+    let currentEntryStatus = this.getCurrentEntryStatus(this.props)
 
     if (currentEntryStatus) {
       return (
