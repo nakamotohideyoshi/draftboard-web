@@ -7,6 +7,8 @@ import mysite.mixins.generic_search
 import django.db.utils
 from .tasks import generate_salary
 import celery.states
+from django.utils.html import format_html
+
 class TrailingGameWeightInline(admin.TabularInline):
     model = TrailingGameWeight
 
@@ -40,10 +42,14 @@ class SalaryConfigAdmin(admin.ModelAdmin):
 
 @admin.register(Pool)
 class PoolAdmin(admin.ModelAdmin):
-    list_display = ['site_sport', 'generating_salary', 'active', 'salary_config', 'created']
+    list_display = ['site_sport', 'generating_salary', 'active', 'salary_config', 'download_csv', 'created']
     model = Pool
     exclude = ('generate_salary_task_id',)
     inlines = [SalaryInline,]
+
+    def download_csv(self, obj):
+        return format_html('<a href="{}" class="btn btn-success">{}</a>',
+                            "/api/salary/export-pool-csv/%s/" % str(obj.pk), "Download .csv" )
 
     def generate_salaries(self, request, queryset):
         if len(queryset) > 1:
