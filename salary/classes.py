@@ -645,38 +645,53 @@ class PlayerFppgGenerator(FppgGenerator):
 
 class SalaryPool2Csv(object):
 
-    def __init__(self, salary_pool_id):
+    # class Echo(object):
+    #     """
+    #     An object that implements just the write method of the file-like interface.
+    #     """
+    #     def write(self, value):
+    #         """
+    #         Write the value by returning it, instead of storing in a buffer.
+    #         """
+    #         return value
+
+    columns = ['id','last_name','first_name','price_draftboard']
+
+    def __init__(self, salary_pool_id, httpresponse=None):
+        self.httpresponse = httpresponse # set streaming to True when returning this csv in an http response
         self.pool = Pool.objects.get(pk=salary_pool_id)
         self.salaries = Salary.objects.filter(pool=self.pool).order_by('-amount')
         self.csvfile = None
 
     def __writerow(self, writer, salary):
-        writer.writerow({
-            'id'                : salary.player.pk,
-            'last_name'         : salary.player.last_name,
-            'first_name'        : salary.player.first_name,
-            'price_draftboard'  : salary.amount
-        })
+        writer.writerow([
+            salary.player.pk,           # 'id'
+            salary.player.last_name,    # 'last_name'
+            salary.player.first_name,   # 'first_name'
+            salary.amount,              # 'price_draftboard'
+        ])
 
     def generate(self):
         """
         generate the csv file
         :return:
         """
-        filename = 'salary-pool-%s.csv' % str(self.pool.pk)
+        f = None
+        writer = None
+        if self.httpresponse is None:
+            filename = 'salary-pool-%s.csv' % str(self.pool.pk)
+            f = open(filename, 'w', newline='')
+            writer = csv.writer( f )
+        else:
+            writer = csv.writer( self.httpresponse )
 
-        with open(filename, 'w') as self.csvfile:
-            fieldnames = ['id','last_name','first_name','price_draftboard']
-            writer = csv.DictWriter(self.csvfile, fieldnames=fieldnames)
+        writer.writerow( self.columns )
+        for salary in self.salaries:
+            self.__writerow( writer, salary )
 
-            writer.writeheader()
-            for salary in self.salaries:
-                self.__writerow( writer, salary )
-
-                # writer.writerow({'first_name': 'Baked', 'last_name': 'Beans'})
-                # writer.writerow({'first_name': 'Lovely', 'last_name': 'Spam'})
-                # writer.writerow({'first_name': 'Wonderful', 'last_name': 'Spam'})
-
+        if f is not None:
+            # close the file if we used an actual file
+            f.close()
 
 
 
