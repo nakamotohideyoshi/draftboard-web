@@ -1,6 +1,7 @@
 #
 # contest/refund/classes.py
 
+from django.db.models import F
 from mysite.classes import AbstractManagerClass
 from ..models import (
     Entry,
@@ -14,6 +15,9 @@ from cash.classes import CashTransaction
 from .models import Refund
 from django.db.transaction import atomic
 from ..exceptions import ContestCanNotBeRefunded
+from .exceptions import (
+    EntryCanNotBeUnregisteredException,
+)
 
 class RefundManager(AbstractManagerClass):
     """
@@ -35,6 +39,74 @@ class RefundManager(AbstractManagerClass):
         # validation if the contest argument
         self.validate_variable(Contest, contest)
 
+    def __validate_entry_can_be_unregistered(self, entry):
+        """
+        :param entry:
+        :raises EntryCanNotBeUnregisteredException: raised if the Contest is full, or inprogress/closed
+        """
+        contest = entry.contest
+        if contest.is_started():
+            raise EntryCanNotBeUnregisteredException('contest is running')
+        if contest.is_filled():
+            raise EntryCanNotBeUnregisteredException('contest is full')
+
+    @atomic
+    def remove_and_refund_entry(self, entry):
+        """
+        refunds the buyin for the entry, and completely removes it from the contest.
+
+        :param entry:
+        :return:
+        """
+
+        #
+        # TODO - add more validation and constraints to this check:
+        # TODO      right now it only ensures the contest is not full.
+        self.__validate_entry_can_be_unregistered(entry)
+
+        # refund the buyin
+        self.__refund_entry(entry)
+
+        # remove the entry from the contest, and cleanup contest properties
+        contest = entry.contest
+        contest.current_entries += F('current_entries') - 1   # true atomic decrement
+        contest.save()
+
+        entry.delete()
+
+    @atomic
+    def __refund_entry(self, entry):
+        """
+        refund a single entry.
+
+        THIS DOES NOT remove the entry from a contest!
+
+        :param entry:
+        :return:
+        """
+
+        buyin           = entry.contest.prize_structure.buyin
+        bm              = BuyinManager(entry.user)
+        transaction     = None
+
+        #
+        # Create a cash or ticket deposit as a refund,
+        # based on what the user used to get into the contest
+        if bm.entry_did_use_ticket(entry):
+            tm = TicketManager(entry.user)
+            tm.deposit(buyin)
+            transaction = tm.transaction
+            self.__create_refund(transaction, entry)
+        else:
+            ct = CashTransaction(entry.user)
+            ct.deposit(buyin)
+            transaction = ct.transaction
+            self.__create_refund(transaction, entry)
+
+        #
+        # Create refund transaction from escrow
+        escrow_ct = CashTransaction(self.get_escrow_user())
+        escrow_ct.withdraw(buyin, trans=transaction)
 
     @atomic
     def refund(self, contest, force=False):
@@ -68,33 +140,11 @@ class RefundManager(AbstractManagerClass):
         #
         # For all entries create a refund transaction and deposit the
         # cash or ticket back into the user's account
-        buyin = contest.prize_structure.buyin
         for entry in entries:
-            bm = BuyinManager(entry.user)
-
-
-            transaction = None
-            #
-            # Create a cash or ticket deposit based on what the user
-            # used to get into the contest
-            if bm.entry_did_use_ticket(entry):
-                tm = TicketManager(entry.user)
-                tm.deposit(buyin)
-                transaction = tm.transaction
-                self.__create_refund(transaction, entry)
-            else:
-                ct = CashTransaction(entry.user)
-                ct.deposit(buyin)
-                transaction = ct.transaction
-                self.__create_refund(transaction, entry)
-
-            #
-            # Create refund transaction from escrow
-            escrow_ct = CashTransaction(self.get_escrow_user())
-            escrow_ct.withdraw(buyin, trans=transaction)
+            self.__refund_entry( entry )
 
         #
-        # set the contest to cancelled
+        # after all set the contest to cancelled
         contest.status = Contest.CANCELLED
         contest.save()
 
