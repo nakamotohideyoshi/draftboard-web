@@ -7,6 +7,7 @@ import {debounce as _debounce} from 'lodash'
 import {throttle as _throttle} from 'lodash'
 import log from '../lib/logging.js'
 import {addMessage} from './message-actions.js'
+import {fetchEntriesIfNeeded} from './entries.js'
 
 let entryMonitors = []
 
@@ -88,7 +89,7 @@ export function monitorEntryRequest(taskId, contestId, lineupId) {
     // Create a monitor loop that will contantly attempt to re-fetch the status of the entry.
     entryMonitors[taskId].loop = window.setInterval(
       () => dispatch(fetchIfNeeded(taskId)),
-       5000
+       500
     )
     log.info('monitoring entry request: ',  entryMonitors[taskId])
   }
@@ -184,27 +185,43 @@ function fetchEntryRequestStatus(taskId) {
       'Accept': 'application/json'
     })
     .end(function(err, res) {
+      /**
+       * Don't get confused - unless the server actually has an internal error, this will not
+       * be reported as 'err'. So expect a 'FAILURE' on the entery status to be a 200 response.
+       */
       if(err) {
         log.error('Contest entry request status error:', res.body)
         let content = 'Contest entry failed.'
-        if (res.body.exception) {
-          content = res.body.exception.msg
-        }
 
-        addMessage({
-          type: 'warning',
+        dispatch(addMessage({
+          level: 'warning',
           content
-        })
+        }))
 
-        return dispatch(entryRequestRecieved(taskId, res.body))
+        return dispatch(entryRequestRecieved(taskId, res.body.status))
       } else {
         log.info('Contest entry request status:', res.body)
-
+        // If it was a success.
         if ('SUCCESS' === res.body.status) {
           dispatch(addMessage({
-            type: 'success',
-            content: "Your lineup has been entered.",
+            level: 'success',
+            header: "Your lineup has been entered.",
             ttl: 2000
+          }))
+        }
+        // If it was a failure.
+        if ('FAILURE' === res.body.status) {
+          log.error('Contest entry request status error:', res.body)
+          let content = ''
+          // Add the response msg to the message we display to the user.
+          if (res.body.exception) {
+            content = res.body.exception.msg
+          }
+
+          dispatch(addMessage({
+            level: 'warning',
+            header: "Contest entry failed.",
+            content
           }))
         }
 
