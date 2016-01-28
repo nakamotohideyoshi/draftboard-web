@@ -9,25 +9,27 @@ const initialState = {}
  * server. We then ping the server
  */
 module.exports = function(state = initialState, action) {
-  let newState = Object.assign({}, state)
+
+  let newState = {}
 
   switch (action.type) {
 
     case ActionTypes.ADD_ENTRY_REQUEST_MONITOR:
       newState[action.taskId] = {
-        status: 'task pending',
+        status: 'PENDING',
         contestId: action.contestId,
         lineupId: action.lineupId
       }
-      return newState
+
+      return Object.assign({}, state, newState)
 
 
     case ActionTypes.FETCHING_ENTRY_REQUEST_STATUS:
       newState[action.taskId] = {
-        status: 'fetching'
+        status: 'FETCHING'
       }
 
-      return  _merge(state, newState)
+      return  _merge({}, state, newState)
 
 
     case ActionTypes.ENTRY_REQUEST_RECIEVED:
@@ -35,7 +37,7 @@ module.exports = function(state = initialState, action) {
         status: action.status
       }
 
-      return  _merge(state, newState)
+      return  _merge({}, state, newState)
 
 
     default:

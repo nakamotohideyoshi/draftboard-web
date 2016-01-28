@@ -63,11 +63,9 @@ var ContestListConfirmModal = React.createClass({
 
 
   renderCurrentEntryRequestStatus: function() {
-    console.log(this.props.entryRequests)
     let currentEntryStatus = _find(this.props.entryRequests, {
       lineupId: this.props.lineupId, contestId: this.props.contest.id
     })
-    console.info(currentEntryStatus)
 
     if (currentEntryStatus) {
       return (
