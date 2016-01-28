@@ -20,6 +20,7 @@ from contest.views import (
     EditEntryLineupAPIView,
     EditEntryLineupStatusAPIView,
     RemoveAndRefundEntryAPIView,
+    RemoveAndRefundEntryStatusAPIView,
 )
 from contest.views import ContestCreate, ContestUpdate
 
@@ -90,6 +91,8 @@ urlpatterns = patterns( '',
     (r'^payouts/(?P<contest_id>[0-9]+)/$', PayoutsAPIView.as_view()),
 
     #
-    #
+    # remove a contest Entry, and refund the user
     (r'^unregister-entry/(?P<entry_id>[0-9]+)/$', RemoveAndRefundEntryAPIView.as_view()),
+    (r'^unregister-entry-status/(?P<task_id>[a-z0-9-]+)/$', RemoveAndRefundEntryStatusAPIView.as_view()),
+
 )

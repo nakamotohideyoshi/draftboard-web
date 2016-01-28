@@ -115,4 +115,8 @@ class EditEntryLineupStatusSerializer(serializers.Serializer):
 
 class RemoveAndRefundEntrySerializer(serializers.Serializer):
 
-    entry = serializers.IntegerField()
+    entry = serializers.IntegerField(help_text='the id of the Entry to remove and refund')
+
+class RemoveAndRefundEntryStatusSerializer(serializers.Serializer):
+
+    task = serializers.CharField()

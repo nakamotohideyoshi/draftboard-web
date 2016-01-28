@@ -4,3 +4,5 @@ class ContestRefundInProgressException(Exception):
            "The contest["+ str(contest_id)+"] is currently being refunded. Check again later.")
 
 class EntryCanNotBeUnregisteredException(Exception): pass
+
+class ForbiddenUserException(Exception): pass
