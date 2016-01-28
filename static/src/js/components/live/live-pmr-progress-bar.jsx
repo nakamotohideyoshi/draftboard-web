@@ -11,8 +11,8 @@ import React from 'react'
  */
 export const percentageHexColor = (start, end, percentage) => {
   const hex = (x) => {
-      x = x.toString(16)
-      return (x.length == 1) ? '0' + x : x
+    const strX = x.toString(16)
+    return (strX.length == 1) ? '0' + strX : strX
   }
 
   const r = Math.ceil(parseInt(start.substring(0,2), 16) * percentage + parseInt(end.substring(0,2), 16) * (1-percentage))

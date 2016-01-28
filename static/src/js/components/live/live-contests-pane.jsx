@@ -1,21 +1,20 @@
-import * as ReactRedux from 'react-redux'
 import React from 'react'
-import renderComponent from '../../lib/render-component'
 import { map as _map } from 'lodash'
 
 import * as AppActions from '../../stores/app-state-store'
+import LiveContestsPaneItem from './live-contests-pane-item'
 
 
 /**
  * When `View Contests` element is clicked, open side pane to show
  * a user's current contests for that lineup.
  */
-var LiveContestsPane = React.createClass({
+const LiveContestsPane = React.createClass({
 
   propTypes: {
     changePathAndMode: React.PropTypes.func.isRequired,
     lineup: React.PropTypes.object.isRequired,
-    mode: React.PropTypes.object.isRequired
+    mode: React.PropTypes.object.isRequired,
   },
 
   viewContest(contestId) {
@@ -24,7 +23,7 @@ var LiveContestsPane = React.createClass({
     const changedFields = {
       draftGroupId: mode.draftGroupId,
       myLineupId: mode.myLineupId,
-      contestId: contestId
+      contestId,
     }
 
     this.props.changePathAndMode(path, changedFields)
@@ -35,35 +34,16 @@ var LiveContestsPane = React.createClass({
   },
 
   renderContests() {
-    const self = this
     const lineup = this.props.lineup
 
-    return _map(lineup.contestsStats, function(contest, id) {
-      let moneyLineClass = 'live-winning-graph'
-
-      if (contest.percentageCanWin <= contest.currentPercentagePosition) {
-        moneyLineClass += ' live-winning-graph--is-losing'
-      }
-
-      return (
-        <li className="live-contests-pane__contest" key={ contest.id }>
-          <div className="live-contests-pane__name">{ contest.name }</div>
-          <div className="live-contests-pane__place">
-            <span className="live-contests-pane__place--mine">{ contest.rank }</span> of { contest.entriesCount }
-          </div>
-          <div className="live-contests-pane__potential-earnings">${ contest.buyin }/${ lineup.potentialEarnings }</div>
-
-          <section className={ moneyLineClass }>
-            <div className="live-winning-graph__pmr-line">
-              <div className="live-winning-graph__winners" style={{ width: contest.percentageCanWin + '%' }}></div>
-              <div className="live-winning-graph__current-position" style={{ left: contest.currentPercentagePosition + '%' }}></div>
-            </div>
-          </section>
-
-          <div className="live-contest-cta" onClick={ self.viewContest.bind(self, contest.id) }>Watch Live</div>
-        </li>
-      )
-    })
+    return _map(lineup.contestsStats, (contest) => (
+      <LiveContestsPaneItem
+        contest={contest}
+        onItemClick={this.viewContest}
+        key={contest.id}
+        lineupPotentialEarnings={lineup.potentialEarnings || 0}
+      />
+    ))
   },
 
   render() {
@@ -87,7 +67,7 @@ var LiveContestsPane = React.createClass({
         <div className="live-contests-pane__view-contest" onClick={this.viewContest} />
       </div>
     )
-  }
+  },
 })
 
 export default LiveContestsPane

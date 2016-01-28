@@ -4,12 +4,12 @@ import React from 'react'
 /**
  * The shooter that appears and disappears. This will be changing to an animation
  */
-var LiveNBACourtShooter = React.createClass({
+const LiveNBACourtShooter = React.createClass({
 
   propTypes: {
     x: React.PropTypes.number.isRequired,
     y: React.PropTypes.number.isRequired,
-    whichSide: React.PropTypes.string.isRequired
+    whichSide: React.PropTypes.string.isRequired,
   },
 
   getInitialState() {
@@ -51,7 +51,8 @@ var LiveNBACourtShooter = React.createClass({
 
     // since this is a 45 deg trapezoid, we can deduce that the distance to the left will be the same as top
 
-    // now that we know the transposedY, we can figure out what the x left and x right are and find the transposedXLength
+    // now that we know the transposedY,
+    // we can figure out what the x left and x right are and find the transposedXLength
     const transposedXLeft = xTopLeft - transposedY
     const transposedXRight = xTopRight + transposedY
     const transposedXLength = transposedXRight - transposedXLeft
@@ -64,8 +65,8 @@ var LiveNBACourtShooter = React.createClass({
     finalLeft = Math.ceil(finalLeft * 10000) / 100
 
     return {
-      finalLeft: finalLeft,
-      finalTop: finalTop
+      finalLeft,
+      finalTop,
     }
   },
 
@@ -75,19 +76,18 @@ var LiveNBACourtShooter = React.createClass({
 
   render() {
     const shooterPositionStyle = {
-      left: this.state.finalLeft + '%',
-      top: this.state.finalTop + '%'
+      left: `${this.state.finalLeft}%`,
+      top: `${this.state.finalTop}%`,
     }
-    const className = 'shooter-position shooter-position--' + this.props.whichSide
+    const className = `shooter-position shooter-position--${this.props.whichSide}`
 
     return (
       <div className={className} style={shooterPositionStyle}>
-        <div className='shooter-centered'></div>
+        <div className="shooter-centered"></div>
       </div>
     )
-  }
-
+  },
 })
 
 
-module.exports = LiveNBACourtShooter
+export default LiveNBACourtShooter

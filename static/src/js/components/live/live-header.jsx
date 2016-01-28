@@ -10,7 +10,7 @@ const LiveHeader = React.createClass({
 
   propTypes: {
     changePathAndMode: React.PropTypes.func.isRequired,
-    liveSelector: React.PropTypes.object.isRequired
+    liveSelector: React.PropTypes.object.isRequired,
   },
 
   /**
@@ -21,7 +21,7 @@ const LiveHeader = React.createClass({
     const path = `/live/lineups/${mode.myLineupId}/`
     const changedFields = {
       opponentLineupId: undefined,
-      contestId: undefined
+      contestId: undefined,
     }
 
     this.props.changePathAndMode(path, changedFields)
@@ -37,13 +37,12 @@ const LiveHeader = React.createClass({
 
 
     // set all needed variables, and default them to lineup only
-    let closeContest,
-        opponentStats,
-        overallStats,
-        primary = myLineup.name,
-        secondary,
-        statsVs,
-        hasContest = false
+    let closeContest
+    let opponentStats
+    let primary = myLineup.name
+    let secondary
+    let statsVs
+    let hasContest = false
 
 
     // if watching a contest, then update the titles and ensure the overall stats are contest-based
@@ -74,7 +73,8 @@ const LiveHeader = React.createClass({
           <LiveOverallStats
             hasContest
             lineup={opponentLineup}
-            whichSide="opponent" />
+            whichSide="opponent"
+          />
         )
       }
     }
@@ -92,13 +92,14 @@ const LiveHeader = React.createClass({
         <LiveOverallStats
           lineup={myLineup}
           hasContest={hasContest}
-          whichSide="mine" />
+          whichSide="mine"
+        />
 
         {statsVs}
         {opponentStats}
       </header>
     )
-  }
+  },
 })
 
 export default LiveHeader

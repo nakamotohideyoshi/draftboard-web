@@ -1,7 +1,5 @@
 import React from 'react'
-import _ from 'lodash'
 
-import log from '../../lib/logging'
 import * as AppActions from '../../stores/app-state-store'
 
 
@@ -10,7 +8,7 @@ import * as AppActions from '../../stores/app-state-store'
  */
 const LiveBottomNav = React.createClass({
   propTypes: {
-    hasContest: React.PropTypes.bool.isRequired
+    hasContest: React.PropTypes.bool.isRequired,
   },
 
   toggleStandings() {
@@ -46,7 +44,7 @@ const LiveBottomNav = React.createClass({
         { toggleStandings }
       </div>
     )
-  }
+  },
 })
 
 export default LiveBottomNav
