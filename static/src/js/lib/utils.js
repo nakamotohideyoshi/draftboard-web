@@ -25,9 +25,20 @@ export function timeRemaining(timestamp) {
   // convert to a moment 'duration' so we can parse it out.
   const duration = moment.duration(diffTime)
 
+  // if the time has expired, then return all zeros
+  if (duration.seconds() <= 0) {
+    return {
+      expired: true,
+      hours: '00',
+      minutes: '00',
+      seconds: '00',
+    }
+  }
+
   // The hours have no Math.abs because should be displayed as negative. (-32:05:57)
   // A negative number means that the thing we're counting down to has past.
   return {
+    expired: false,
     hours: toTwoDigit(Math.floor(duration.asHours())),
     minutes: toTwoDigit(Math.abs(duration.minutes())),
     seconds: toTwoDigit(Math.abs(duration.seconds())),

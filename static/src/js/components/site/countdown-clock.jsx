@@ -1,66 +1,54 @@
 import React from 'react'
-import {timeRemaining} from '../../lib/utils.js'
+import { timeRemaining } from '../../lib/utils.js'
 
 
 /**
  * A countdown timer that updates itself.
  */
-let CountdownClock = React.createClass({
-
-  updateInterval: 500,
+const CountdownClock = React.createClass({
 
 
   propTypes: {
     time: React.PropTypes.any,
-    onCountdownOver: React.PropTypes.func
+    onCountdownOver: React.PropTypes.func,
   },
 
 
-  getInitialState: function() {
-    return {timeRemaining: {}}
+  getInitialState() {
+    return {
+      timeRemaining: {},
+    }
   },
 
 
-  componentWillMount: function() {
+  componentWillMount() {
     this.updateTimeRemainingLoop = window.setInterval(this.setTimeRemaining, this.updateInterval);
   },
 
 
-  componentWillUnmount: function() {
+  componentWillUnmount() {
     window.clearInterval(this.updateTimeRemainingLoop)
   },
 
 
-  setTimeRemaining: function() {
+  setTimeRemaining() {
     if (!this.props.time) {
       return
     }
 
+    const timeObj = timeRemaining(this.props.time)
+
+    if (timeObj.expired === true) {
+      this.props.onCountdownOver()
+    }
+
     // difference between when the contest starts and now.
-    this.setState({
-      timeRemaining: timeRemaining(this.props.time)
-    })
+    this.setState({ timeRemaining: timeObj })
   },
 
+  updateInterval: 500,
 
-  render: function() {
-
-    if (!this.state.timeRemaining.seconds) {
-      return (
-        <span className="cmp-countdown-clock">&nbsp;</span>
-      )
-    }
-
-    if (
-      typeof this.props.onCountdownOver !== 'undefined' &&
-      !this.state.timeRemaining.seconds &&
-      !this.state.timeRemaining.minutes &&
-      !this.state.timeRemaining.hours
-    ) {
-      this.props.onCountdownOver()
-      return null
-    }
-
+  render() {
     return (
       <span className="cmp-countdown-clock">
         <span className="hours">{this.state.timeRemaining.hours}:</span>
@@ -68,8 +56,8 @@ let CountdownClock = React.createClass({
         <span className="seconds">{this.state.timeRemaining.seconds}</span>
       </span>
     )
-  }
+  },
 })
 
 
-module.exports = CountdownClock
+export default CountdownClock

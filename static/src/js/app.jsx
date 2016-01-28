@@ -14,7 +14,7 @@ Raven.config('https://698f3f69f1e446cea667c680c4e1931b@app.getsentry.com/40103',
 require('app.scss');
 
 // before we execute anything else, wipe the redux entry in localStorage if asked.
-if (window.dfs.wipeRedux === '1') {
+if (window.dfs.wipeLocalStorage === '1') {
   log.info('store.js - Wiping localStorage due to query param');
   window.localStorage.clear();
 }
