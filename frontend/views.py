@@ -16,8 +16,8 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
         if log_level in ['trace', 'debug', 'info', 'warn', 'error']:
             context['loglevel'] = log_level
 
-        if self.request.GET.get('wipe_redux', 0) is '1':
-            context['wipe_redux'] = 1
+        if self.request.GET.get('wipe_localstorage', 0) is '1':
+            context['wipe_localstorage'] = 1
 
         return context
 

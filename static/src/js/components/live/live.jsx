@@ -21,6 +21,7 @@ import LiveStandingsPaneConnected from './live-standings-pane'
 import log from '../../lib/logging'
 import store from '../../store'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
+import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
 import { fetchSportsIfNeeded } from '../../actions/sports'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { liveSelector } from '../../selectors/live'
@@ -49,6 +50,7 @@ const mapStateToProps = (state) => ({
  * @return {object}            All of the methods to map to the component
  */
 const mapDispatchToProps = (dispatch) => ({
+  fetchCurrentDraftGroupsIfNeeded: () => dispatch(fetchCurrentDraftGroupsIfNeeded()),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
   updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
   updatePlayerStats: (eventCall, draftGroupId, playerId, fp) => dispatch(
@@ -68,6 +70,7 @@ const Live = React.createClass({
 
   propTypes: {
     currentLineupsStats: React.PropTypes.object.isRequired,
+    fetchCurrentDraftGroupsIfNeeded: React.PropTypes.func,
     fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
     fetchSportsIfNeeded: React.PropTypes.func,
     liveContestsStats: React.PropTypes.object.isRequired,
@@ -249,6 +252,13 @@ const Live = React.createClass({
     if (changedFields.hasOwnProperty('contestId')) {
       this.props.fetchContestLineupsUsernamesIfNeeded(changedFields.contestId)
     }
+  },
+
+  /**
+   * Force a refresh fo draft groups. Called by the countdown when time is up
+   */
+  forceDraftGroupRefresh() {
+    this.props.fetchCurrentDraftGroupsIfNeeded()
   },
 
   /*
@@ -526,7 +536,10 @@ const Live = React.createClass({
       // show the countdown until it goes live
       if (myLineup.roster === undefined) {
         return (
-          <LiveCountdown lineup={myLineup} />
+          <LiveCountdown
+            onCountdownComplete={this.forceDraftGroupRefresh}
+            lineup={myLineup}
+          />
         )
       }
 
