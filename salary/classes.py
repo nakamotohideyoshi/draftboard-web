@@ -202,7 +202,7 @@ class FppgGenerator(object):
         for player_stats_class in self.player_stats_classes:
             #
             # iterate through all player_stats ever
-            all_player_stats = player_stats_class.objects.all()
+            all_player_stats = player_stats_class.objects.filter(fantasy_points__gt=0)
 
             # for player_stat in all_player_stats:
             #     #
@@ -624,7 +624,8 @@ class PlayerFppgGenerator(FppgGenerator):
         # the GenericForeignKey) to search for our players...
         player_ids = [ p.id for p in player_objects ]
         player_stats_objects = player_stats_class.objects.filter(player_id__in=player_ids,
-                                                                 srid_game__in=game_srids )
+                                                                 srid_game__in=game_srids,
+                                                                 fantasy_points__gt=0)
         # utilizing the SalaryPlayerStatsObject to amass the fppg
         # from each sublist of individual PlayerStats objects
         salary_player_objects = self.get_salary_player_stats_objects(player_stats_objects)

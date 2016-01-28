@@ -112,3 +112,7 @@ class EditEntryLineupSerializer(serializers.Serializer):
 class EditEntryLineupStatusSerializer(serializers.Serializer):
 
     task = serializers.CharField()
+
+class RemoveAndRefundEntrySerializer(serializers.Serializer):
+
+    entry = serializers.IntegerField()

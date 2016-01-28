@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 import json
 import celery
+
 from datetime import datetime
 from rest_framework import status
 from rest_framework.response import Response
@@ -24,6 +25,7 @@ from contest.serializers import (
     PayoutSerializer,
     EditEntryLineupSerializer,
     EditEntryLineupStatusSerializer,
+    RemoveAndRefundEntrySerializer,
 )
 from contest.classes import ContestLineupManager
 from contest.models import (
@@ -49,7 +51,7 @@ from contest.exceptions import (
     ContestMaxEntriesReachedException,
     ContestIsNotAcceptingLineupsException,
 )
-
+from contest.refund.classes import RefundManager
 from cash.exceptions import OverdraftException
 from lineup.models import Lineup
 from lineup.tasks import edit_entry
@@ -522,7 +524,9 @@ class EditEntryLineupAPIView(APIView):
         return Response({'task_id':task_result.id}, status=status.HTTP_201_CREATED)
 
 class EditEntryLineupStatusAPIView(generics.GenericAPIView):
-
+    """
+    get status information for the task which performed work for the "edit entry" api
+    """
     permission_classes      = (IsAuthenticated,)
     serializer_class        = EditEntryLineupStatusSerializer
 
@@ -536,3 +540,36 @@ class EditEntryLineupStatusAPIView(generics.GenericAPIView):
         """
         task_helper = TaskHelper(edit_entry, task_id)
         return Response(task_helper.get_data(), status=status.HTTP_200_OK)
+
+class RemoveAndRefundEntryAPIView(APIView):
+    """
+    removes a contest Entry and refund the user.
+    """
+
+    permission_classes  = (IsAuthenticated, )
+    serializer_class    = RemoveAndRefundEntrySerializer
+
+    def post(self, request, format=None):
+        entry_id = request.data.get('entry')
+
+        # validate the parameters passed in here.
+        if entry_id is None:
+            return Response({'error':'you must supply the "entry" parameter -- the Entry id'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+        try:
+            entry = Entry.objects.get(pk=entry_id, user=request.user)
+        except Entry.DoesNotExist:
+            return Response({'error':'invalid "entry" parameter -- does not exist'},
+                                        status=status.HTTP_400_BAD_REQUEST )
+
+        #
+        # remove and refund the entry
+        rm = RefundManager()
+        try:
+            rm.remove_and_refund_entry( entry )
+
+        #except EntryCanNotBeUnregisteredException:
+        except Exception as e:
+            return Response({'error':str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({}, status=status.HTTP_200_OK)
