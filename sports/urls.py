@@ -99,7 +99,7 @@ urlpatterns = patterns( '',
     # for the day (or for nfl - weekly) games.
     # the data should be formatted similar to the draft-group/boxscores/ for ease of use
     # /api/sports/scoreboard-games/nba/
-    (r'^scoreboard-games/nba/$', ScheduleGameBoxscoresView.as_view(), {"sport": "mlb"}),
+    (r'^scoreboard-games/nba/$', ScheduleGameBoxscoresView.as_view(), {"sport": "nba"}),
     (r'^scoreboard-games/nfl/$', ScheduleGameBoxscoresView.as_view(), {"sport": "nfl"}),
     (r'^scoreboard-games/nhl/$', ScheduleGameBoxscoresView.as_view(), {"sport": "nhl"}),
     (r'^scoreboard-games/mlb/$', ScheduleGameBoxscoresView.as_view(), {"sport": "mlb"}),
