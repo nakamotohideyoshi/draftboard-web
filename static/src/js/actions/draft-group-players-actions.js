@@ -1,7 +1,7 @@
 import log from '../lib/logging'
 import * as types from '../action-types.js'
 import request from 'superagent'
-// so we can use Promises
+// so we can use Promise
 import 'babel-core/polyfill';
 import {normalize, Schema, arrayOf} from 'normalizr'
 import {fetchSportInjuries} from './injury-actions.js'

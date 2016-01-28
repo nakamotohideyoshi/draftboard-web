@@ -60,7 +60,7 @@ function addPlayersDetails(lineup, draftGroup, boxScores, livePlayers) {
 
     // otherwise pull in accurate data from related game
     const game = boxScores[player.info.game_srid]
-    if (game.hasOwnProperty('boxscore')) {
+    if (game && game.hasOwnProperty('boxscore')) {
       player.stats.minutesRemaining = game.boxscore.timeRemaining || 1
       player.stats.decimalRemaining = decimalRemaining(player.stats.minutesRemaining, GAME_DURATIONS.nba.gameMinutes)
     }
