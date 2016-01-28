@@ -20,6 +20,9 @@ class SalaryConfigSerializer(serializers.ModelSerializer):
         model = SalaryConfig
         fields = ("pk","trailing_games", "days_since_last_game_flag", "min_games_flag", "min_player_salary", "max_team_salary", "min_avg_fppg_allowed_for_avg_calc", "trailing_game_weights")
 
+class SalaryPlayer2CsvSerializer(serializers.Serializer):
+
+    salary_pool = serializers.IntegerField(help_text='the id of the salary pool')
 
 
 
