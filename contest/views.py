@@ -26,6 +26,7 @@ from contest.serializers import (
     EditEntryLineupSerializer,
     EditEntryLineupStatusSerializer,
     RemoveAndRefundEntrySerializer,
+    RemoveAndRefundEntryStatusSerializer,
 )
 from contest.classes import ContestLineupManager
 from contest.models import (
@@ -51,7 +52,7 @@ from contest.exceptions import (
     ContestMaxEntriesReachedException,
     ContestIsNotAcceptingLineupsException,
 )
-from contest.refund.classes import RefundManager
+from contest.refund.tasks import unregister_entry_task
 from cash.exceptions import OverdraftException
 from lineup.models import Lineup
 from lineup.tasks import edit_entry
@@ -543,14 +544,14 @@ class EditEntryLineupStatusAPIView(generics.GenericAPIView):
 
 class RemoveAndRefundEntryAPIView(APIView):
     """
-    removes a contest Entry and refund the user.
+    removes a contest Entry and refunds the user.
     """
 
     permission_classes  = (IsAuthenticated, )
     serializer_class    = RemoveAndRefundEntrySerializer
 
-    def post(self, request, format=None):
-        entry_id = request.data.get('entry')
+    def post(self, request, entry_id, format=None):
+        # entry_id = request.data.get('entry')
 
         # validate the parameters passed in here.
         if entry_id is None:
@@ -563,13 +564,32 @@ class RemoveAndRefundEntryAPIView(APIView):
                                         status=status.HTTP_400_BAD_REQUEST )
 
         #
-        # remove and refund the entry
-        rm = RefundManager()
-        try:
-            rm.remove_and_refund_entry( entry )
+        # except for the admin, only the user who created the Entry can unregister it
+        user = self.request.user
+        #print( user, user.is_superuser, entry.user, 'user == entry.user -> %s' % str(user==entry.user))
+        if not (user.is_superuser or user == entry.user):
+            return Response({'error':'only an admin or the creating user can unregister this entry'},
+                                            status=status.HTTP_403_FORBIDDEN )
 
-        #except EntryCanNotBeUnregisteredException:
-        except Exception as e:
-            return Response({'error':str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # execute the unregister task (non-blocking) and return the task_id
+        task = unregister_entry_task.delay( entry )
+        return Response({'task_id':task.id}, status=status.HTTP_201_CREATED)
 
-        return Response({}, status=status.HTTP_200_OK)
+class RemoveAndRefundEntryStatusAPIView(generics.GenericAPIView):
+    """
+    get status information for the task which performed the "unregister entry" action
+    """
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = RemoveAndRefundEntryStatusSerializer
+
+    def get(self, request, task_id, format=None):
+        """
+        Given the 'task' parameter, return the status of the task (ie: from performing the edit-entry)
+
+        :param request:
+        :param format:
+        :return:
+        """
+        task_helper = TaskHelper(unregister_entry_task, task_id)
+        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
