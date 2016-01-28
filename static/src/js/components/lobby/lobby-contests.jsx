@@ -83,10 +83,8 @@ var LobbyContests = React.createClass({
     if (window.location.search.indexOf("lineup-saved=true") !== -1) {
       this.props.addMessage({
         header: "Lineup Saved!",
-        content: "now do something wiht it.",
-        level: 'success'
-        // ,
-        // ttl: 5000
+        level: 'success',
+        ttl: 5000
       })
     }
 
@@ -153,6 +151,7 @@ var LobbyContests = React.createClass({
 
 
   render: function() {
+
     return (
       <div>
         <div className="contest-list-filter-set">
