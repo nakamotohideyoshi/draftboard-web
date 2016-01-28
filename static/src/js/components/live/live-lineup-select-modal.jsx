@@ -11,18 +11,49 @@ const LiveLineupSelectModal = React.createClass({
 
   propTypes: {
     changePathAndMode: React.PropTypes.func.isRequired,
-    lineups: React.PropTypes.object.isRequired
+    lineups: React.PropTypes.object.isRequired,
   },
 
   getInitialState() {
     const sports = this.sportLineups()
     // if all lineups are in same sport, do not show sport selection options
-    const selectedSport = (Object.keys(sports).length == 1) ? Object.keys(sports)[0] : null
+    const selectedSport = (Object.keys(sports).length === 1) ? Object.keys(sports)[0] : null
 
     return {
       isOpen: true,
-      selectedSport: selectedSport
+      selectedSport,
     }
+  },
+
+  getModalContent() {
+    return (this.state.selectedSport === null) ? this.renderSports() : this.renderLineups()
+  },
+
+  open() {
+    this.setState({ isOpen: true })
+  },
+
+  close() {
+    this.resetSport();
+    this.setState({ isOpen: false })
+  },
+
+  resetSport() {
+    this.setState({ selectedSport: null })
+  },
+
+  selectSport(sport) {
+    this.setState({ selectedSport: sport })
+  },
+
+  selectLineup(lineup) {
+    const path = `/live/lineups/${lineup.id}/`
+    const changedFields = {
+      draftGroupId: this.props.lineups[lineup.id].draftGroup.id,
+      myLineupId: lineup.id,
+    }
+
+    this.props.changePathAndMode(path, changedFields)
   },
 
   /*
@@ -33,7 +64,7 @@ const LiveLineupSelectModal = React.createClass({
    * }
    */
   sportLineups() {
-    let sportLineups = {}
+    const sportLineups = {}
 
     _.forEach(this.props.lineups, (lineup) => {
       const sport = lineup.draftGroup.sport
@@ -47,53 +78,20 @@ const LiveLineupSelectModal = React.createClass({
     return sportLineups
   },
 
-  open() {
-    this.setState({isOpen: true})
-  },
-
-  close() {
-    this.resetSport();
-    this.setState({isOpen: false})
-  },
-
-  resetSport() {
-    this.setState({selectedSport: null})
-  },
-
-  selectSport(sport) {
-    this.setState({selectedSport: sport})
-  },
-
-  selectLineup(lineup) {
-    const path = `/live/lineups/${lineup.id}/`
-    const changedFields = {
-      draftGroupId: this.props.lineups[lineup.id].draftGroup.id,
-      myLineupId: lineup.id
-    }
-
-    this.props.changePathAndMode(path, changedFields)
-  },
-
-  getModalContent() {
-    return (this.state.selectedSport === null)? this.renderSports() : this.renderLineups()
-  },
-
   renderSports() {
     const sportLineups = this.sportLineups()
-    const sportsSorted = Object.keys(sportLineups).sort(function(x, y) { return x > y });
+    const sportsSorted = Object.keys(sportLineups).sort((x, y) => x > y);
 
-    const sports = sportsSorted.map((sport) => {
-      return (
-        <li
-          key={sport}
-          className="cmp-live-lineup-select__sport"
-          onClick={this.selectSport.bind(this, sport)}
-        >
-          <h4 className="cmp-live-lineup-select__sport__title">{sport}</h4>
-          <div className="cmp-live-lineup-select__sport__sub">{sportLineups[sport]} lineups</div>
-        </li>
-      )
-    })
+    const sports = sportsSorted.map((sport) => (
+      <li
+        key={sport}
+        className="cmp-live-lineup-select__sport"
+        onClick={this.selectSport.bind(this, sport)}
+      >
+        <h4 className="cmp-live-lineup-select__sport__title">{sport}</h4>
+        <div className="cmp-live-lineup-select__sport__sub">{sportLineups[sport]} lineups</div>
+      </li>
+    ))
 
     return (
       <ul>{sports}</ul>
@@ -101,13 +99,11 @@ const LiveLineupSelectModal = React.createClass({
   },
 
   renderLineups() {
-    const sportLineups = _.filter(this.props.lineups, (lineup, id) => {
-      return lineup.draftGroup.sport === this.state.selectedSport
-    })
+    const sportLineups = _.filter(this.props.lineups, (lineup) => lineup.draftGroup.sport === this.state.selectedSport)
 
     const lineups = sportLineups.map((lineup) => {
-      const {points, minutesRemaining} = lineup
-      let {name} = lineup
+      const { points, minutesRemaining } = lineup
+      const { name } = lineup
 
       return (
         <li
@@ -128,7 +124,7 @@ const LiveLineupSelectModal = React.createClass({
 
   render() {
     const modalContent = this.getModalContent()
-    const title = (this.state.selectedSport) ? "Choose a lineup" : "Choose a sport"
+    const title = (this.state.selectedSport) ? 'Choose a lineup' : 'Choose a sport'
 
     return (
       <Modal
@@ -144,8 +140,7 @@ const LiveLineupSelectModal = React.createClass({
 
       </Modal>
     );
-  }
-
-});
+  },
+})
 
 export default LiveLineupSelectModal

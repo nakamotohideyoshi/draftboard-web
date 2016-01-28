@@ -1,13 +1,40 @@
-"use strict";
-/*
-* A Wrapper for the loglevel module that sets the logging level based on our config file.
-*/
-
-var log = require("loglevel");
-var config = require("../config");
+import log from 'loglevel';
+import createLogger from 'redux-logger';
 
 
-log.setLevel(config.logLevel);
+/**
+ * Return the appropriate log level
+ * @return {string} The log level
+ */
+const getLevel = () => {
+  // Default to errors only and prouction
+  let logLevel = 'error';
 
+  if (process.env.NODE_ENV === 'debug') {
+    logLevel = 'debug';
+  }
 
-module.exports = log;
+  if (process.env.NODE_ENV === 'test') {
+    logLevel = 'warn';
+  }
+
+  // override with URL query param
+  if (window.dfs.logLevel !== '') {
+    logLevel = window.dfs.logLevel;
+  }
+
+  return logLevel;
+}
+
+// get and set the appropriate logging level
+export const logLevel = getLevel();
+log.setLevel(logLevel);
+
+// by default, export the log object to work with
+export default log
+
+// configure redux-logging, is added in to middleware
+export const logger = createLogger({
+  predicate: () => logLevel === 'debug',
+  collapsed: true,
+});

@@ -1,27 +1,15 @@
-"use strict";
-
 /**
- *   Responsible for creating the system's store with all the desired
+ * Responsible for creating the system's store with all the desired
  * reducers and middlewares. The store is a singleton used all across
  * the system.
  */
 
-const reducers = require('./reducers');
-const middleware = require('./middleware');
-import log from './lib/logging'
-import Cookies from 'js-cookie'
+import persistState from 'redux-localstorage';
+import { compose } from 'redux';
 
+import createStoreWithMiddleware from './middleware/index';
+import reducers from './reducers/index';
 
-if (Cookies.get('username') !== window.dfs.user.username) {
-    log.debug('store.js - Wiping localStorage due to new username existing')
-    Cookies.set('username', window.dfs.user.username)
-    window.localStorage.clear()
-}
-
-
-// Store with localStorage, commented out until we have Pusher installed and working on optimizations
-import {compose, createStore} from 'redux';
-import persistState from 'redux-localstorage'
 const createPersistentStore = compose(
   persistState([
     'currentBoxScores',
@@ -33,9 +21,12 @@ const createPersistentStore = compose(
     'livePlayers',
     'playerBoxScoreHistory',
     'prizes',
-    'sports'
+    'sports',
   ])
-)(middleware.createStoreWithMiddleware)
-module.exports = createPersistentStore(reducers)
+)(createStoreWithMiddleware);
 
-// module.exports = middleware.createStoreWithMiddleware(reducers)
+// Store WITH localStorage, is default
+export default createPersistentStore(reducers);
+
+// Store WITHOUT localStorage, turn on if you need to debug
+// export default middleware.createStoreWithMiddleware(reducers)

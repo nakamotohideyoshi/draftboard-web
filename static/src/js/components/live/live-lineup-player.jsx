@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 
-import * as AppActions from '../../stores/app-state-store'
 import LivePMRProgressBar from './live-pmr-progress-bar'
 
 
@@ -12,7 +11,7 @@ const LiveLineupPlayer = React.createClass({
     isPlaying: React.PropTypes.bool.isRequired,
     openPlayerPane: React.PropTypes.func.isRequired,
     player: React.PropTypes.object.isRequired,
-    whichSide: React.PropTypes.string.isRequired
+    whichSide: React.PropTypes.string.isRequired,
   },
 
   /**
@@ -23,13 +22,18 @@ const LiveLineupPlayer = React.createClass({
   renderEventDescription() {
     // only show when there's an event
     if (!this.props.eventDescription) {
-      return
+      return (<div key="5" />)
     }
 
     const { points, info, when } = this.props.eventDescription
 
     return (
-      <ReactCSSTransitionGroup key="5" transitionName="event-description" transitionEnterTimeout={0} transitionLeaveTimeout={0}>
+      <ReactCSSTransitionGroup
+        key="5"
+        transitionName="event-description"
+        transitionEnterTimeout={0}
+        transitionLeaveTimeout={0}
+      >
         <div className="live-lineup-player__event-description event-description showing">
           <div className="event-description__points">{points}</div>
           <div className="event-description__info">{info}</div>
@@ -49,21 +53,19 @@ const LiveLineupPlayer = React.createClass({
 
     // no stats no show
     if (values === undefined) {
-      return
+      return (<div key="6" />)
     }
 
     // ordered stats
     const statTypes = ['points', 'rebounds', 'steals', 'assists', 'blocks', 'turnovers']
     const statNames = ['PTS', 'RB', 'ST', 'ASST', 'BLK', 'TO']
 
-    const renderedStats = statTypes.map((statType, index) => {
-      return (
-        <li key={statType}>
-          <div className="hover-stats__amount">{values[statType]}</div>
-          <div className="hover-stats__name">{statNames[index]}</div>
-        </li>
-      )
-    })
+    const renderedStats = statTypes.map((statType, index) => (
+      <li key={statType}>
+        <div className="hover-stats__amount">{values[statType]}</div>
+        <div className="hover-stats__name">{statNames[index]}</div>
+      </li>
+    ))
 
     return (
       <div key="6" className="live-lineup-player__hover-stats">
@@ -86,43 +88,36 @@ const LiveLineupPlayer = React.createClass({
     const playStatusClass = `live-lineup-player__play-status ${isPlayingClass}`
 
     // TODO Live - remove when we have player images
-    let playerInitials = this.props.player.info.name.match(/\b(\w)/g).join('')
+    const playerInitials = this.props.player.info.name.match(/\b(\w)/g).join('')
 
     // in an effort to have DRY code, i render this list and reverse it for the opponent side
     // note that the key is required by React when rendering multiple children
     let playerElements = [
       (
-        <div key="0" className="live-lineup-player__position">
-          {this.props.player.info.position}
+      <div key="0" className="live-lineup-player__position">
+        {this.props.player.info.position}
+      </div>
+      ),
+      (
+      <div key="1" className="live-lineup-player__photo">
+        <LivePMRProgressBar
+          decimalRemaining={stats.decimalRemaining}
+          strokeWidth={2}
+          backgroundHex="46495e"
+          hexStart="34B4CC"
+          hexEnd="2871AC"
+          svgWidth={50}
+        />
+        <div className="live-lineup-player__initials">
+          {playerInitials}
         </div>
+      </div>
       ),
-      (
-        <div key="1" className="live-lineup-player__photo">
-          <LivePMRProgressBar
-            decimalRemaining={stats.decimalRemaining}
-            strokeWidth={2}
-            backgroundHex="46495e"
-            hexStart="34B4CC"
-            hexEnd="2871AC"
-            svgWidth={50} />
-          <div className="live-lineup-player__initials">
-            {playerInitials}
-          </div>
-        </div>
-      ),
-      (
-        <div key="2" className="live-lineup-player__status"></div>
-      ),
-      (
-        <div key="3" className="live-lineup-player__points">
-          {stats.fp}
-        </div>
-      ),
-      (
-        <div key="4" className={ playStatusClass } />
-      ),
+      (<div key="2" className="live-lineup-player__status"></div>),
+      (<div key="3" className="live-lineup-player__points">{stats.fp}</div>),
+      (<div key="4" className={ playStatusClass } />),
       this.renderEventDescription(),
-      this.renderGameStats()
+      this.renderGameStats(),
     ]
 
     // flip the order of elements for opponent
@@ -135,7 +130,7 @@ const LiveLineupPlayer = React.createClass({
         {playerElements}
       </li>
     )
-  }
+  },
 })
 
 export default LiveLineupPlayer

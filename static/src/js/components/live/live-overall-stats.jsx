@@ -2,7 +2,6 @@ import React from 'react'
 import _ from 'lodash'
 
 import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-progress-bar'
-import log from '../../lib/logging'
 
 
 /**
@@ -13,21 +12,22 @@ const LiveOverallStats = React.createClass({
   propTypes: {
     whichSide: React.PropTypes.string.isRequired,
     hasContest: React.PropTypes.bool.isRequired,
-    lineup: React.PropTypes.object.isRequired
+    lineup: React.PropTypes.object.isRequired,
   },
 
   render() {
-    let hexStart, hexEnd
+    let hexStart
+    let hexEnd
     const lineup = this.props.lineup
 
     switch (this.props.whichSide) {
-      case 'mine':
-        hexStart = '34B4CC'
-        hexEnd = '2871AC'
-        break
       case 'opponent':
         hexStart = 'e33c3c'
         hexEnd = '871c5a'
+        break
+      default:
+        hexStart = '34B4CC'
+        hexEnd = '2871AC'
         break
     }
 
@@ -42,20 +42,20 @@ const LiveOverallStats = React.createClass({
     const backgroundCircle = {
       r: radius - (strokeWidth / 2),
       stroke: backgroundHex,
-      strokeWidth: strokeWidth + 26
+      strokeWidth: strokeWidth + 26,
     }
 
     const progressArc = {
-      hexStart: '#' + hexStart,
-      hexHalfway: '#' + percentageHexColor(hexStart, hexEnd, 0.5),
-      hexEnd: '#' + hexEnd,
+      hexStart: `#${hexStart}`,
+      hexHalfway: `#${percentageHexColor(hexStart, hexEnd, 0.5)}`,
+      hexEnd: `#${hexEnd}`,
       d: describeArc(0, 0, radius, decimalRemaining * 360, 360),
-      strokeWidth: strokeWidth
+      strokeWidth,
     }
 
     const dottedRemainingArc = {
       strokeWidth: strokeWidth + 3,
-      d: describeArc(0, 0, radius, 0, decimalRemaining * 360)
+      d: describeArc(0, 0, radius, 0, decimalRemaining * 360),
     }
 
     // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
@@ -63,23 +63,23 @@ const LiveOverallStats = React.createClass({
     const svgMaskMarkup = {
       __html: `<g mask="url(#gradientMask)"> \
         <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${svgWidth}" fill="url(#cl2)" /> \
-        <rect x="0" y="-${svgMidpoint}" height="${svgWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`
+        <rect x="0" y="-${svgMidpoint}" height="${svgWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`,
     }
 
     const endpointCoord = polarToCartesian(0, 0, radius, decimalRemaining * 360)
     const endOuter = {
       r: strokeWidth + 6,
-      stroke: '#' + percentageHexColor(hexEnd, hexStart, decimalRemaining),
-      strokeWidth: strokeWidth,
+      stroke: `#${percentageHexColor(hexEnd, hexStart, decimalRemaining)}`,
+      strokeWidth,
       fill: backgroundHex,
       cx: endpointCoord.x,
-      cy: endpointCoord.y
+      cy: endpointCoord.y,
     }
 
     const endInner = {
       r: strokeWidth,
       cx: endpointCoord.x,
-      cy: endpointCoord.y
+      cy: endpointCoord.y,
     }
 
     // log.trace('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
@@ -112,14 +112,31 @@ const LiveOverallStats = React.createClass({
           </defs>
 
           <g transform="translate(140, 140)">
-            <circle r={backgroundCircle.r} stroke={backgroundCircle.stroke} strokeWidth={backgroundCircle.strokeWidth} fill="none"></circle>
+            <circle
+              r={backgroundCircle.r}
+              stroke={backgroundCircle.stroke}
+              strokeWidth={backgroundCircle.strokeWidth}
+              fill="none"
+            />
 
             <mask id="gradientMask">
-              <path fill="none" stroke="#fff" strokeWidth={progressArc.strokeWidth} d={progressArc.d}></path>
+              <path
+                fill="none"
+                stroke="#fff"
+                strokeWidth={progressArc.strokeWidth}
+                d={progressArc.d}
+              />
             </mask>
             <g dangerouslySetInnerHTML={svgMaskMarkup} />
 
-            <path fill="none" stroke="#3f4255" strokeWidth={dottedRemainingArc.strokeWidth} strokeLinecap="round" strokeDasharray="0.01, 16" d={dottedRemainingArc.d}></path>
+            <path
+              fill="none"
+              stroke="#3f4255"
+              strokeWidth={dottedRemainingArc.strokeWidth}
+              strokeLinecap="round"
+              strokeDasharray="0.01, 16"
+              d={dottedRemainingArc.d}
+            />
 
             <g className="progress-endpoint">
               <circle
@@ -128,13 +145,15 @@ const LiveOverallStats = React.createClass({
                 fill={endOuter.fill}
                 r={endOuter.r}
                 cx={endOuter.cx}
-                cy={endOuter.cy} />
+                cy={endOuter.cy}
+              />
               <circle
                 stroke="none"
                 fill="#fff"
                 r={endInner.r}
                 cx={endInner.cx}
-                cy={endInner.cy} />
+                cy={endInner.cy}
+              />
             </g>
           </g>
         </svg>
@@ -154,7 +173,7 @@ const LiveOverallStats = React.createClass({
         </section>
       </div>
     )
-  }
+  },
 })
 
 export default LiveOverallStats
