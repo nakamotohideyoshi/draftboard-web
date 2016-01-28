@@ -91,7 +91,12 @@ class CurrentDraftGroup(DraftGroup):
             distinct_contest_draft_groups = contest.models.CurrentContest.objects.filter(
                                                 draft_group__isnull=False).distinct('draft_group')
             # build a list of the (distinct) draft_group.pk's
-            draft_group_ids = [c.draft_group.pk for c in distinct_contest_draft_groups ]
+            draft_group_ids = []
+            for c in distinct_contest_draft_groups:
+                draft_group = c.draft_group
+                if draft_group is not None:
+                    draft_group_ids.append(draft_group.pk)
+
             return super().get_queryset().filter(pk__in=draft_group_ids)
 
     objects = CurrentDraftGroupManager()
