@@ -5,13 +5,15 @@ import request from 'superagent'
 import Cookies from 'js-cookie'
 import {debounce as _debounce} from 'lodash'
 import {throttle as _throttle} from 'lodash'
+import log from '../lib/logging.js'
+import {addMessage} from './message-actions.js'
 
 let entryMonitors = []
 
 
 
 /**
- * Create an entry monitor in the state.
+ * Create an entryRequest in the state.
  * @param {[type]} taskId    [description]
  * @param {[type]} contestId [description]
  * @param {[type]} lineupId  [description]
@@ -60,8 +62,8 @@ function fetchingEntryRequestStatus(taskId) {
  * @return {[type]}        [description]
  */
 function clearMonitor(taskId) {
-  entryMonitors[taskId].loop.clearInterval()
-  entryMonitors[taskId].fetch.cancel
+  log.debug("Clearing monitor for task #" + taskId)
+  window.clearInterval(entryMonitors[taskId].loop)
 }
 
 
@@ -81,13 +83,14 @@ export function monitorEntryRequest(taskId, contestId, lineupId) {
       lineupId
     }
 
+    // immediately try to fetch.
+    dispatch(fetchIfNeeded(taskId))
     // Create a monitor loop that will contantly attempt to re-fetch the status of the entry.
     entryMonitors[taskId].loop = window.setInterval(
-      () => dispatch(shouldFetchLoop(taskId)),
+      () => dispatch(fetchIfNeeded(taskId)),
        5000
     )
-
-    console.info('monitoring entry request: ',  entryMonitors[taskId])
+    log.info('monitoring entry request: ',  entryMonitors[taskId])
   }
 }
 
@@ -97,9 +100,9 @@ export function monitorEntryRequest(taskId, contestId, lineupId) {
  * @param  {[type]} taskId [description]
  * @return {[type]}        [description]
  */
-function shouldFetchLoop(taskId) {
+function fetchIfNeeded(taskId) {
   return (dispatch, getState) => {
-    console.trace('shouldFetchLoop', taskId)
+    log.trace('shouldFetchLoop', taskId)
     let shouldFetch = shouldFetchEntryRequestStatus(taskId, getState())
 
     //  We should fetch the status, dispatch that event.
@@ -109,7 +112,7 @@ function shouldFetchLoop(taskId) {
       // There is an outstanding XHR, or the previous request failed, so don't attempt to fetch.
       // If the entry failed, the monitor has been cleared and another attempt will not be made.
       dispatch({
-        type: 'DONT_FETCH_ENTRY_REQUEST'
+        type: 'IGNORING_FETCH_ENTRY_REQUEST'
       })
     }
   }
@@ -126,36 +129,36 @@ function shouldFetchLoop(taskId) {
  * @return {bool}        [description]
  */
 function shouldFetchEntryRequestStatus(taskId, state) {
-  console.log(state.entryRequests)
   // Is this entryRequest have a key in the state?
   if (state.entryRequests.hasOwnProperty(taskId)) {
+
     switch (state.entryRequests[taskId].status) {
-      case 'fetching':
+      case 'FETCHING':
         // We have a pending XHR to fetch the status, don't send another.
         return false
 
-      case 'failed':
+      case 'FAILURE':
         // Entry attempt has failed. Cancel the failed entry monitor.
         clearMonitor(taskId)
         return false
 
-      case 'success':
+      case 'SUCCESS':
         // Entry attempt was successfull. We should not fetch again, so cancel the entry monitor.
         clearMonitor(taskId)
         return false
 
-      case 'task pending':
+      case 'PENDING':
         // The API says the task is still pending and we should fetch again.
         return true
 
       default:
         // We don't have a way to deal with the status returned.
-        console.error('Encountered unexpected entryRequest.status', state.entryRequests[taskId].status)
+        log.error('Encountered unexpected entryRequest.status', state.entryRequests[taskId].status)
         return false
     }
   } else {
     // No entry request exists, do nothing.
-    console.error('EntryRequest ' + taskId + 'does not exist.')
+    log.error('EntryRequest ' + taskId + 'does not exist.')
     return false
   }
 }
@@ -170,7 +173,9 @@ function shouldFetchEntryRequestStatus(taskId, state) {
 function fetchEntryRequestStatus(taskId) {
 
   return (dispatch, getState) => {
+    // Set the state to show that we are currently fetching the entryRequestStatus.
     dispatch(fetchingEntryRequestStatus(taskId))
+
     return request
     .get('/api/contest/enter-lineup-status/' + taskId + '/')
     .set({
@@ -180,16 +185,30 @@ function fetchEntryRequestStatus(taskId) {
     })
     .end(function(err, res) {
       if(err) {
-        console.error('Contest entry request status error:', res.body)
+        log.error('Contest entry request status error:', res.body)
+        let content = 'Contest entry failed.'
+        if (res.body.exception) {
+          content = res.body.exception.msg
+        }
+
+        addMessage({
+          type: 'warning',
+          content
+        })
+
         return dispatch(entryRequestRecieved(taskId, res.body))
       } else {
-        console.info('Contest entry request status:', res.body)
-        let status = res.body.status.toString()
-        // TODO: swap this out based on API changes.
-        if (false == res.body.status) {
-          status = 'task pending'
+        log.info('Contest entry request status:', res.body)
+
+        if ('SUCCESS' === res.body.status) {
+          dispatch(addMessage({
+            type: 'success',
+            content: "Your lineup has been entered.",
+            ttl: 2000
+          }))
         }
-        return dispatch(entryRequestRecieved(taskId, status))
+
+        return dispatch(entryRequestRecieved(taskId, res.body.status))
       }
     });
   }
