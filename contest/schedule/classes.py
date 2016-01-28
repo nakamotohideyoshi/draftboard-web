@@ -178,9 +178,9 @@ class ScheduleManager(object):
             d                   = utc_dt.date()
             t                   = scheduled_template_contest.start_time
             utc_start           = utc_dt.replace( d.year, d.month, d.day, t.hour, t.minute, 0, 0 )
-            print('utc_start:', str(utc_start), 'self.dst_offset_hours():', self.get_dst_offset_hours() )
-            # utc_start           = utc_start + timedelta(hours=self.get_dst_offset_hours())
-            # print('utc_start(after + dst):', str(utc_start))
+            #print('utc_start:', str(utc_start), 'self.dst_offset_hours():', self.get_dst_offset_hours() )
+            utc_start           = utc_start + timedelta(hours=self.get_dst_offset_hours())
+            #print('utc_start(after + dst):', str(utc_start))
             c.start             = utc_start
             c.end               = utc_start + timedelta(minutes=scheduled_template_contest.duration_minutes)
 

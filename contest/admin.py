@@ -32,7 +32,7 @@ class ContestAdmin(admin.ModelAdmin):
 @admin.register(contest.models.UpcomingContest)
 class UpcomingContestAdmin(admin.ModelAdmin):
     readonly_fields = ['entries']
-    form =contest.forms.ContestFormAdd
+    form = contest.forms.ContestFormAdd
     list_display = CONTEST_LIST_DISPLAY
 
     def cancel_and_refund_upcoming_contests(self, request, queryset):
@@ -118,6 +118,9 @@ class UpcomingContestAdmin(admin.ModelAdmin):
         :param change:
         :return:
         """
+        #print(str(obj))
+        #print('dg?', str(form.cleaned_data['draft_group']))
+        obj.draft_group = form.cleaned_data['draft_group']
         obj.save()
 
     def has_delete_permission(self, request, obj=None):
