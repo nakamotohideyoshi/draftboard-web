@@ -83,21 +83,71 @@ class WebhookContestScheduler(Webhook):
         self.username   = '%s-scheduler' % self.sport
         self.icon       = self.icons.get(sport)
 
-    def send(self, text, existing, created, total, warn=False):
-        attachments = [
-            {
-                "color"  : "#333333",   # very dark
-                'fields' : [
+    def send(self, text, existing, created, total, warn=False, err_msg=None):
+
+        if err_msg is not None:
+            attachments = [
+                {
+                    "color"  : "#ff3333",   # red
+                    'fields' : [
+                        {
+                            "title": "Issue",
+                            "value": '%s' % err_msg,
+                            "short": False
+                        }
+                    ]
+                }
+            ]
+        elif total == 0:
+            attachments = None
+        else:
+            attachments = [
+                {
+                    "color"  : "#333333",   # very dark
+                    'fields' : [
+                        {
+                            "title": "Contests",
+                            "value": "%s of %s" % (str(existing+created), str(total)),
+                            "short": True
+                        }
+                    ]
+                }
+            ]
+
+            if created > 0:
+                attachments.append(
                     {
-                        "title": "Contests",
-                        "value": "%s of %s" % (str(existing+created), str(total)),
-                        "short": True
+                        "color"  : "#33ff33",   # green
+                        'fields' : [
+                            {
+                                "title": "Newly Created",
+                                "value": "%s" % (str(created)),
+                                "short": True
+                            }
+                        ]
                     }
-                ]
-            }
-        ]
+                )
+
+        if warn:
+            if attachments is None:
+                attachments = []
+            attachments.append(
+                {
+                        "color"  : "#ffff33",   # yellow
+                        'fields' : [
+                            {
+                                "title": "Investigate",
+                                "value": 'There are not enough games for this schedule to '
+                                         'run on the planned day. It might have scheduled '
+                                         'games for the following day, or failed. Please check.',
+                                "short": False
+                            }
+                        ]
+                    }
+            )
+
         # call super
-        super().send( text, attachments )
+        super().send( text, attachments=attachments )
 
 
 

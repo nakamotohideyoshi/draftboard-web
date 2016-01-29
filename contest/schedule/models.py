@@ -28,7 +28,11 @@ class Schedule( models.Model ):
         unique_together = ('site_sport', 'category')
 
     def __str__(self):
-        return '%s - %s' % (self.site_sport.name, self.category.name)
+        if self.enable:
+            enabled = '*Active*'
+        else:
+            enabled = 'Disabled'
+        return '[ %s ] %s - %s' % (enabled, self.site_sport.name, self.category.name)
 
 class TemplateContest( contest.models.AbstractContest ):
 #class TemplateContest( contest.models.Contest ):
