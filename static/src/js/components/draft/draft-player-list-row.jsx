@@ -1,6 +1,6 @@
 var React = require('react')
 import * as AppActions from '../../stores/app-state-store.js'
-var log = require('../../lib/logging.js')
+import log from '../../lib/logging'
 import Sparkline from './sparkline.jsx'
 
 
