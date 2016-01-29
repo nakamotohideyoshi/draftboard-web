@@ -12,7 +12,6 @@ import reducers from './reducers/index';
 
 const createPersistentStore = compose(
   persistState([
-    'currentBoxScores',
     'currentDraftGroups',
     'currentLineups',
     'entries',

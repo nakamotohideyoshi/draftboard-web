@@ -1,5 +1,4 @@
 import update from 'react-addons-update'
-import { map as _map, forEach as _forEach } from 'lodash'
 
 import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
@@ -7,7 +6,7 @@ import log from '../lib/logging'
 
 // update initialState to be a function to get from localStorage if it exists
 module.exports = (state = {
-  items: []
+  items: [],
 }, action) => {
   switch (action.type) {
     case ActionTypes.REQUEST_CURRENT_DRAFT_GROUPS:
@@ -15,8 +14,8 @@ module.exports = (state = {
 
       return update(state, {
         $set: {
-          isFetching: true
-        }
+          isFetching: true,
+        },
       })
 
 
@@ -27,8 +26,8 @@ module.exports = (state = {
         $set: {
           isFetching: false,
           items: action.draftGroups,
-          updatedAt: action.updatedAt
-        }
+          updatedAt: action.updatedAt,
+        },
       })
 
 

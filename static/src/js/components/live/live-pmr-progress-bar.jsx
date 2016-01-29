@@ -83,6 +83,11 @@ const LivePMRProgressBar = React.createClass({
 
   render() {
     const { decimalRemaining, strokeWidth, svgWidth } = this.props
+    const decimalDone = 1 - decimalRemaining
+
+    if (decimalRemaining === 0) {
+      return <div />
+    }
 
     const totalWidth = svgWidth + (2 * strokeWidth)
     const svgMidpoint = totalWidth / 2
@@ -103,7 +108,7 @@ const LivePMRProgressBar = React.createClass({
       hexStart: '#' + this.props.hexStart,
       hexHalfway: '#' + percentageHexColor(this.props.hexStart, this.props.hexEnd, 0.5),
       hexEnd: '#' + this.props.hexEnd,
-      d: describeArc(0, 0, radius, decimalRemaining * 360, 360),
+      d: describeArc(0, 0, radius, decimalDone * 360, 360),
       strokeWidth: strokeWidth
     }
 
