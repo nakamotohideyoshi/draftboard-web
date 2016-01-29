@@ -22,7 +22,7 @@ import log from '../../lib/logging'
 import store from '../../store'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
-import { fetchDraftGroupInfo } from '../../actions/current-draft-groups'
+import { fetchDraftGroupInfo } from '../../actions/live-draft-groups'
 import { fetchSportsIfNeeded } from '../../actions/sports'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { liveSelector } from '../../selectors/live'
@@ -51,7 +51,7 @@ const mapStateToProps = (state) => ({
  */
 const mapDispatchToProps = (dispatch) => ({
   fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
-  fetchDraftGroupInfo: () => dispatch(fetchDraftGroupInfo()),
+  fetchDraftGroupInfo: (id) => dispatch(fetchDraftGroupInfo(id)),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
   updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
   updatePlayerStats: (eventCall, draftGroupId, playerId, fp) => dispatch(
@@ -250,6 +250,7 @@ const Live = React.createClass({
    * Force a refresh fo draft groups. Called by the countdown when time is up
    */
   forceDraftGroupRefresh() {
+    log.info('Live.forceDraftGroupRefresh()')
     this.props.fetchDraftGroupInfo(this.props.liveSelector.lineups.mine.draftGroup.id)
   },
 
