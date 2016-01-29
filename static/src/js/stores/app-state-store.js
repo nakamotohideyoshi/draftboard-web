@@ -1,4 +1,4 @@
-var log = require('../lib/logging.js');
+import log from '../lib/logging'
 import { forEach as _forEach } from 'lodash'
 
 

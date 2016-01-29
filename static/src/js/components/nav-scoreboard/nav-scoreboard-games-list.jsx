@@ -1,7 +1,4 @@
-'use strict'
-
 import React from 'react'
-import _ from 'lodash'
 
 import NavScoreboardGame from './nav-scoreboard-game.jsx'
 import NavScoreboardSeparator from './nav-scoreboard-separator.jsx'
@@ -13,24 +10,25 @@ import NavScoreboardSeparator from './nav-scoreboard-separator.jsx'
 const NavScoreboardGamesList = React.createClass({
 
   propTypes: {
-    draftGroup: React.PropTypes.object.isRequired
+    sport: React.PropTypes.object.isRequired,
+    games: React.PropTypes.object.isRequired,
   },
 
-  render() {
-    const boxScores = _.values(this.props.draftGroup.boxScores)
+  // immutable = fast
+  defaultList: [],
 
-    const list = boxScores.map((game) => {
-      return [<NavScoreboardGame key={game.srid} game={game} />,
-              <NavScoreboardSeparator key={game.srid + 's'} half />]
-    }).reduce((accum, l) => {
-      // Just flatten the array on a single level. Not using lodash here,
-      // because this may result in unexpected behavior depending on the
-      // rendered React component internal representation.
-      return accum.concat.apply(accum, l)
-    }, [])
+  render() {
+    const list = this.props.sport.gameIds.map((gameId) => [
+      <NavScoreboardGame key={gameId} game={this.props.games[gameId]} />,
+      <NavScoreboardSeparator key={`${gameId}--separator'`} half />,
+
+    // Just flatten the array on a single level. Not using lodash here,
+    // because this may result in unexpected behavior depending on the
+    // rendered React component internal representation.
+    ]).reduce((accum, l) => accum.concat.apply(accum, l), this.defaultList)
 
     return <div className="cmp-nav-scoreboard--games-list">{list}</div>
-  }
+  },
 
 })
 

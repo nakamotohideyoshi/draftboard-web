@@ -52,70 +52,95 @@ export const liveSelector = createSelector(
   state => state.live.mode,
   state => state.entries.hasRelatedInfo,
   state => state.playerBoxScoreHistory,
+  state => state.liveDraftGroups,
+  state => state.sports,
 
-  (contestStats, currentLineupsStats, mode, hasRelatedInfo, playerBoxScoreHistory) => {
-    if (hasRelatedInfo === false) {
-      // log.debug('selectors.liveStatsSelector() - not ready')
-      return {}
-    }
-
+  (contestStats, currentLineupsStats, mode, hasRelatedInfo, playerBoxScoreHistory, liveDraftGroups, sports) => {
     let stats = {
+      hasRelatedInfo: false,
       lineups: {},
+      mode: mode,
       relevantGames: [],
       relevantPlayers: []
     }
 
+    if (hasRelatedInfo === false) {
+      log.trace('selectors.liveStatsSelector() - not ready')
+      return stats
+    }
+    stats.hasRelatedInfo = true
+
     if (mode.myLineupId) {
-      stats.lineups.mine = currentLineupsStats[mode.myLineupId]
+      let myLineup = currentLineupsStats[mode.myLineupId]
+      const sport = myLineup.draftGroup.sport
 
       // TODO move this into current lineups selector based on mode object
-      _forEach(stats.lineups.mine.rosterDetails, (player, playerId) => {
+      _forEach(myLineup.rosterDetails, (player, playerId) => {
         if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
           player.seasonalStats = playerBoxScoreHistory.nba[playerId]
         }
+
+        player.teamInfo = sports[sport].teams[player.info.team_srid]
       })
 
-      stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.mine.rosterDetails, (player) => {
+      stats.relevantGames = _union(stats.relevantGames, _map(myLineup.rosterDetails, (player) => {
         return player.info.game_srid
       }))
 
-      stats.relevantPlayers = _union(stats.relevantPlayers, _map(stats.lineups.mine.rosterDetails, (player) => {
+      stats.relevantPlayers = _union(stats.relevantPlayers, _map(myLineup.rosterDetails, (player) => {
         return player.info.player_srid
       }))
-    }
 
-    if (mode.contestId) {
-      stats.contest = contestStats[mode.contestId]
 
-      if (mode.opponentLineupId) {
-        stats.lineups.opponent = stats.contest.lineups[mode.opponentLineupId]
+      // add in draft group to update player stats with pusher
+      stats.draftGroup = liveDraftGroups[myLineup.draftGroup.id]
 
-        // TODO move this into current lineups selector based on mode object
-        _forEach(stats.lineups.opponent.rosterDetails, (player, playerId) => {
-          if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
-            player.seasonalStats = playerBoxScoreHistory.nba[playerId]
-          }
-        })
 
-        // used for animations to determine which side
-        stats.lineups.opponent.rosterBySRID = _map(stats.lineups.opponent.rosterDetails, (player) => {
-          return player.info.player_srid
-        })
+      if (mode.contestId) {
+        let contest = contestStats[mode.contestId]
+        myLineup.myWinPercent = myLineup.rank / contest.entriesCount * 100
 
-        stats.relevantGames = _union(stats.relevantGames, _map(stats.lineups.opponent.rosterDetails, (player) => {
-          return player.info.game_srid
-        }))
+        if (mode.opponentLineupId) {
+          let opponentLineup = contest.lineups[mode.opponentLineupId]
 
-        stats.relevantPlayers = _union(stats.relevantPlayers, _map(stats.lineups.opponent.rosterDetails, (player) => {
-          return player.info.player_srid
-        }))
+          // TODO move this into current lineups selector based on mode object
+          _forEach(opponentLineup.rosterDetails, (player, playerId) => {
+            if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
+              player.seasonalStats = playerBoxScoreHistory.nba[playerId]
+            }
 
-        stats.playersInBothLineups = _.intersection(stats.lineups.mine.rosterBySRID, stats.lineups.opponent.rosterBySRID)
+            player.teamInfo = sports[sport].teams[player.info.team_srid]
+          })
+
+          opponentLineup.opponentWinPercent = opponentLineup.rank / contest.entriesCount * 100
+
+          // used for animations to determine which side
+          opponentLineup.rosterBySRID = _map(opponentLineup.rosterDetails, (player) => {
+            return player.info.player_srid
+          })
+
+          stats.relevantGames = _union(stats.relevantGames, _map(opponentLineup.rosterDetails, (player) => {
+            return player.info.game_srid
+          }))
+
+          stats.relevantPlayers = _union(stats.relevantPlayers, _map(opponentLineup.rosterDetails, (player) => {
+            return player.info.player_srid
+          }))
+
+          stats.playersInBothLineups = _.intersection(myLineup.rosterBySRID, opponentLineup.rosterBySRID)
+
+          stats.lineups.opponent = opponentLineup
+        }
+
+        // update potential earnings of normal lineup
+        myLineup.potentialEarnings = contest.lineups[mode.myLineupId].potentialEarnings
+
+        stats.contest = contest
       }
 
-      // update potential earnings of normal lineup
-      stats.lineups.mine.potentialEarnings = stats.contest.lineups[mode.myLineupId].potentialEarnings
+      stats.lineups.mine = myLineup
     }
+
 
 
 

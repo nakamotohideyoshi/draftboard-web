@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
@@ -9,15 +7,15 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
  */
 const NavScoreboardUserInfo = React.createClass({
 
-  mixins: [PureRenderMixin],
-
   propTypes: {
     name: React.PropTypes.string.isRequired,
-    balance: React.PropTypes.number.isRequired
+    balance: React.PropTypes.string.isRequired,
   },
 
+  mixins: [PureRenderMixin],
+
   render() {
-    const {name, balance} = this.props
+    const { name, balance } = this.props
 
     return (
       <div className="cmp-nav-scoreboard--user-info">
@@ -28,7 +26,7 @@ const NavScoreboardUserInfo = React.createClass({
         </div>
       </div>
     );
-  }
+  },
 
 });
 
