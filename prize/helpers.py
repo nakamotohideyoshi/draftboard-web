@@ -45,13 +45,15 @@ def create(buyin, entries, payouts):
         print('buyin', str(buyin), 'payout_spots', str(total_payout_spots), 'first_place actual value', str(first_place))
         generator_settings = GeneratorSettings.objects.get( buyin=buyin,
                                                             payout_spots=total_payout_spots,
-                                                            first_place=first_place)
+                                                            first_place=first_place,
+                                                            round_payouts=1,
+                                                            prize_pool=total_multiple*buyin)
     except GeneratorSettings.DoesNotExist:
         #
         generator_settings = GeneratorSettings()
         generator_settings.buyin            = buyin
         generator_settings.first_place      = payouts[0][1] * buyin      # second part of the first tuple
-        generator_settings.round_payouts    = 0
+        generator_settings.round_payouts    = 1
         generator_settings.payout_spots     = total_payout_spots
         generator_settings.prize_pool       = total_multiple * buyin
         generator_settings.save()
@@ -155,6 +157,7 @@ def create_initial_data():
         try:
             # check if we already made the generator for this amount
             generator_settings = GeneratorSettings.objects.get( buyin=amount )
+
         except GeneratorSettings.DoesNotExist:
             #
             generator_settings = GeneratorSettings()
@@ -190,6 +193,6 @@ def create_initial_data():
             rank.amount             = cash_amount
             rank.save()
 
-    #
-    # also create the "dan" structures
-    create_templates()
+    # #
+    # # also create the "dan" structures
+    # create_templates()
