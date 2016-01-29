@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 
 
@@ -10,7 +8,7 @@ const NavScoreboardSeparator = React.createClass({
 
   propTypes: {
     // Half or full sized slash?
-    half: React.PropTypes.bool
+    half: React.PropTypes.bool,
   },
 
   shouldComponentUpdate() {
@@ -20,10 +18,10 @@ const NavScoreboardSeparator = React.createClass({
   render() {
     if (this.props.half) {
       return <div className="cmp-nav-scoreboard--separator half"></div>;
-    } else {
-      return <div className="cmp-nav-scoreboard--separator"></div>;
     }
-  }
+
+    return <div className="cmp-nav-scoreboard--separator"></div>;
+  },
 
 });
 

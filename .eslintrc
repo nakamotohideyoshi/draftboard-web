@@ -1,55 +1,8 @@
 {
-  "extends": "eslint:recommended",
-  "env": {
-    "browser": true,
-    "node": true,
-    "mocha": true,
-    "es6": true
-  },
-
-  "plugins": [
-    "react"
-  ],
-
-  "ecmaFeatures": {
-    "jsx": true,
-    "modules": true,
-    "spread": true,
-    "blockBindings": true,
-    "destructuring": true,
-    "defaultParams": true,
-    "arrowFunctions": true,
-    "templateStrings": true,
-    "objectLiteralShorthandMethods": true,
-    "objectLiteralShorthandProperties": true,
-    "objectLiteralComputedProperties": true
-  },
-
-  "globals": {
-  },
-
+  "extends": "airbnb",
   "rules": {
-    "quotes": [0, "double"],
-    "strict": [0, "global"],
-    "no-unused-vars": 0,
-    "no-underscore-dangle": 0,
-    "sort-vars": 0,
-    "no-console": 0,
-    "no-trailing-spaces": 1,
-    "semi": 0,
-    "jsx-quotes": 0,
-    "react/display-name": 0,
-    "react/jsx-boolean-value": 1,
-    "react/jsx-no-undef": 1,
-    "react/jsx-uses-react": 1,
-    "react/jsx-uses-vars": 1,
-    "react/no-did-mount-set-state": 1,
-    "react/no-did-update-set-state": 1,
-    "react/no-multi-comp": 1,
-    "react/no-unknown-property": 1,
-    "react/prop-types": 1,
-    "react/react-in-jsx-scope": 1,
-    "react/self-closing-comp": 1,
-    "react/wrap-multilines": 1
+    "semi": 0, // disallow use of semis
+    "max-len": [2, 120, 2], // specify the maximum length of a line in your program (off by default)
+    "react/prefer-es6-class": [0, "never"] // sadly using react es6 class requires es7 autobinding of class properties http://goo.gl/6pjYcU
   }
 }

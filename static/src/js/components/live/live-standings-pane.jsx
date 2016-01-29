@@ -1,8 +1,5 @@
 import React from 'react'
 import * as ReactRedux from 'react-redux'
-import renderComponent from '../../lib/render-component'
-import { updatePath } from 'redux-simple-router'
-import { vsprintf } from 'sprintf-js'
 import { debounce } from 'lodash'
 import request from 'superagent'
 import Cookies from 'js-cookie'
@@ -10,39 +7,32 @@ import _ from 'lodash'
 
 import LivePMRProgressBar from './live-pmr-progress-bar'
 import * as AppActions from '../../stores/app-state-store'
-import log from '../../lib/logging'
-import { updateLiveMode } from '../../actions/live'
 import { fetchLineupUsernames } from '../../actions/lineup-usernames'
-import { fetchContestIfNeeded } from '../../actions/live-contests'
-import { liveSelector } from '../../selectors/live'
-import { liveContestsStatsSelector } from '../../selectors/live-contests'
-import store from '../../store'
 
 /**
  * When `View Contests` element is clicked, open side pane to show
  * a user's current contests for that lineup.
  */
-export const LiveStandingsPane = React.createClass({
+const LiveStandingsPane = React.createClass({
 
   propTypes: {
+    changePathAndMode: React.PropTypes.func.isRequired,
     owned: React.PropTypes.array.isRequired,
     lineups: React.PropTypes.object.isRequired,
-    myContest: React.PropTypes.object.isRequired,
+    contest: React.PropTypes.object.isRequired,
     rankedLineups: React.PropTypes.array.isRequired,
     mode: React.PropTypes.object.isRequired,
-    updateLiveMode: React.PropTypes.func,
-    updatePath: React.PropTypes.func,
-    fetchLineupUsernames: React.PropTypes.func
+    fetchLineupUsernames: React.PropTypes.func,
   },
 
   getInitialState() {
     return {
-      page: 1,                     // Current page number starting from 1.
-      perPage: 10,                 // Items per page.
-      search: false,               // Whether or not search form is shown.
-      searchValue: '',             // Search input value.
-      currentTab: 'standings',     // Currently shown tab.
-      currentPositionFilter: 'all' // Current players filter in ownership tab.
+      page: 1,                      // Current page number starting from 1.
+      perPage: 10,                  // Items per page.
+      search: false,                // Whether or not search form is shown.
+      searchValue: '',              // Search input value.
+      currentTab: 'standings',      // Currently shown tab.
+      currentPositionFilter: 'all', // Current players filter in ownership tab.
     }
   },
 
@@ -61,12 +51,10 @@ export const LiveStandingsPane = React.createClass({
     if (this.state.currentTab === 'standings') {
       const lineups = this.props.lineups
       const rankedLineups = this.props.rankedLineups
-      data = _.map(rankedLineups, (lineupId) => {
-        return lineups[lineupId]
-      })
+      data = _.map(rankedLineups, (lineupId) => lineups[lineupId])
     } else {
       data = this.props.owned
-      let filter = this.state.currentPositionFilter
+      const filter = this.state.currentPositionFilter
 
       if (filter !== 'all') {
         data = data.filter(p => p.position === filter)
@@ -100,7 +88,7 @@ export const LiveStandingsPane = React.createClass({
       searchValue: '',
       searchResults: [],
       currentTab: 'ownership',
-      currentPositionFilter: 'all'
+      currentPositionFilter: 'all',
     })
   },
 
@@ -110,7 +98,7 @@ export const LiveStandingsPane = React.createClass({
       search: false,
       searchValue: '',
       searchResults: [],
-      currentTab: 'standings'
+      currentTab: 'standings',
     })
   },
 
@@ -125,22 +113,21 @@ export const LiveStandingsPane = React.createClass({
     this.setState({ page })
   },
 
-  handleViewOpponentLineup(lineup) {
+  /**
+   * Used to view an opponent lineup. Sets up parameters to then call props.changePathAndMode()
+   */
+  handleViewOpponentLineup(opponentLineupId) {
     const mode = this.props.mode
-    const opponentLineupId = lineup.id
+    const path = `/live/lineups/${mode.myLineupId}/contests/${mode.contestId}/opponents/${opponentLineupId}`
+    const changedFields = {
+      opponentLineupId,
+    }
 
-    this.props.updatePath(vsprintf('/live/lineups/%d/contests/%d/opponents/%d/', [
-      mode.myLineupId,
-      mode.contestId,
-      opponentLineupId
-    ]))
-    this.props.updateLiveMode({
-      opponentLineupId: opponentLineupId
-    })
+    this.props.changePathAndMode(path, changedFields)
   },
 
   handleSetPositionFilter(currentPositionFilter) {
-    this.setState({currentPositionFilter, page: 1})
+    this.setState({ currentPositionFilter, page: 1 })
   },
 
   handleWatchTopOwnedPlayers() {
@@ -150,7 +137,7 @@ export const LiveStandingsPane = React.createClass({
   handleToggleSearch() {
     this.setState({
       search: !this.state.search,
-      searchValue: ''
+      searchValue: '',
     })
 
     if (this.refs.search) {
@@ -159,7 +146,7 @@ export const LiveStandingsPane = React.createClass({
   },
 
   handleSearchTermChanged() {
-    this.setState({searchValue: this.refs.search.value})
+    this.setState({ searchValue: this.refs.search.value })
 
     if (this.state.currentTab === 'standings') {
       this.handleSearchByUsername();
@@ -169,35 +156,35 @@ export const LiveStandingsPane = React.createClass({
   handleSearchByUsername() {
     const params = {
       contest_id: this.props.mode.contestId,
-      search_str: this.state.searchValue
+      search_str: this.state.searchValue,
     }
 
     // TODO: report errors
     return request
       .post('/api/lineup/usernames/')
       .send(params)
-      .set({'X-CSRFToken': Cookies.get('csrftoken')})
-      .set({'X-REQUESTED-WITH': 'XMLHttpRequest'})
+      .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
+      .set({ 'X-REQUESTED-WITH': 'XMLHttpRequest' })
       .set('Accept', 'application/json')
       .end((err, res) => {
         if (!err) {
           let data;
           try {
             data = JSON.parse(res.text);
-          } catch(e) {
+          } catch (e) {
             data = [];
           }
 
-          this.setState({searchResults: data.map((l) => l.id)});
+          this.setState({ searchResults: data.map((l) => l.id) });
         } else {
-          this.setState({searchResults: []});
+          this.setState({ searchResults: [] });
         }
       })
   },
 
   handleSearchInputBlur() {
     if (this.refs.search.value === '') {
-      this.setState({search: false})
+      this.setState({ search: false })
     }
   },
 
@@ -208,45 +195,54 @@ export const LiveStandingsPane = React.createClass({
   renderHeader() {
     return (
       <div className="live-standings-pane__header">
-        <div className={'title' + (this.state.currentTab === 'standings' ? ' active' : '')}
-             onClick={this.handleViewStandings}>
+        <div
+          className={`title${(this.state.currentTab === 'standings' ? ' active' : '')}`}
+          onClick={this.handleViewStandings}
+        >
           Standings
           <div className="border"></div>
         </div>
-        <div className={'title' + (this.state.currentTab === 'ownership' ? ' active' : '')}
-             onClick={this.handleViewOwnership}>
+        <div
+          className={`title${(this.state.currentTab === 'ownership' ? ' active' : '')}`}
+          onClick={this.handleViewOwnership}
+        >
           % Owned
           <div className="border"></div>
         </div>
-        <div className={'search' + (this.state.search ? ' active' : '')}>
+        <div className={`search${(this.state.search ? ' active' : '')}`}>
           <div className="icon" onClick={this.handleToggleSearch}></div>
           <input type="text"
-                 ref="search"
-                 value={this.state.searchValue}
-                 onBlur={this.handleSearchInputBlur}
-                 onChange={this.handleSearchTermChanged} />
+            ref="search"
+            value={this.state.searchValue}
+            onBlur={this.handleSearchInputBlur}
+            onChange={this.handleSearchTermChanged}
+          />
         </div>
       </div>
     )
   },
 
   renderPages() {
-    const {page} = this.state
+    const { page } = this.state
     const maxPage = this.getMaxPage()
 
-    const pages = (new Array(maxPage)).join(',').split(',').map((_, i) => {
-      return <div key={i} className={'page' + ((page - 1) === i ? ' selected' : '')}></div>
-    })
+    const pages = (new Array(maxPage)).join(',').split(',').map((a, i) =>
+      <div key={i} className={`page${((page - 1) === i ? ' selected' : '')}`}></div>
+    )
 
     return (
       <div className="live-standings-pane__pages">
-        <div className="arrow-left"
-             onClick={this.handleViewPrevPage}>
+        <div
+          className="arrow-left"
+          onClick={this.handleViewPrevPage}
+        >
           <span>&lt;</span>
         </div>
         {pages}
-        <div className="arrow-right"
-             onClick={this.handleViewNextPage}>
+        <div
+          className="arrow-right"
+          onClick={this.handleViewNextPage}
+        >
           <span>&gt;</span>
         </div>
       </div>
@@ -254,7 +250,7 @@ export const LiveStandingsPane = React.createClass({
   },
 
   renderStandings() {
-    const {page, perPage} = this.state
+    const { page, perPage } = this.state
     let data = this.getListData()
     data = data.slice(
       (page - 1) * perPage,
@@ -262,14 +258,23 @@ export const LiveStandingsPane = React.createClass({
     )
     const mode = this.props.mode
 
-    const standings = data.map((lineup, i) => {
+    const standings = data.map((lineup) => {
       let className = 'lineup'
       let pmr = (
-        <LivePMRProgressBar decimalRemaining={lineup.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="ffffff" hexEnd="ffffff" svgWidth="50" />
+        <LivePMRProgressBar
+          decimalRemaining={lineup.decimalRemaining}
+          strokeWidth={2}
+          backgroundHex="46495e"
+          hexStart="ffffff"
+          hexEnd="ffffff"
+          svgWidth={50}
+        />
       )
       let overlay = (
-        <div className="overlay"
-             onClick={this.handleViewOpponentLineup.bind(this, lineup)}>
+        <div
+          className="overlay"
+          onClick={this.handleViewOpponentLineup.bind(this, lineup.id)}
+        >
           Compare Lineup
         </div>
       )
@@ -278,7 +283,14 @@ export const LiveStandingsPane = React.createClass({
         overlay = ''
         className += ' lineup--mine'
         pmr = (
-          <LivePMRProgressBar decimalRemaining={lineup.decimalRemaining} strokeWidth="2" backgroundHex="46495e" hexStart="34B4CC" hexEnd="2871AC" svgWidth="50" />
+          <LivePMRProgressBar
+            decimalRemaining={lineup.decimalRemaining}
+            strokeWidth={2}
+            backgroundHex="46495e"
+            hexStart="34B4CC"
+            hexEnd="2871AC"
+            svgWidth={50}
+          />
         )
       }
       return (
@@ -301,32 +313,32 @@ export const LiveStandingsPane = React.createClass({
   },
 
   renderPlayers() {
-    const {page, perPage} = this.state
+    const { page, perPage } = this.state
     let data = this.getListData()
     data = data.slice(
       (page - 1) * perPage,
       Math.min(page * perPage, data.length)
     )
 
-    const players = data.map((player, i) => {
-      return (
-        <div key={player.id} className="player">
-          <div className="player--position">{player.position}</div>
-          <LivePMRProgressBar decimalRemaining={player.progress} strokeWidth="2" backgroundHex="46495e" hexStart="ffffff" hexEnd="ffffff" svgWidth="50" />
-          <div className="avatar"
-               style={{
-                 // TODO:
-                 // backgroundImage: "url('" + player.image + "')"
-               }}>
-          </div>
-          <div className="player--name">
-            {player.name} <div className="team">{player.team}</div>
-          </div>
-          <div className="player--points"><b>{player.points}</b><span>Pts</span></div>
-          <div className="player--progress">{player.progress}</div>
+    const players = data.map((player) => (
+      <div key={player.id} className="player">
+        <div className="player--position">{player.position}</div>
+        <LivePMRProgressBar
+          decimalRemaining={player.progress}
+          strokeWidth={2}
+          backgroundHex="46495e"
+          hexStart="ffffff"
+          hexEnd="ffffff"
+          svgWidth={50}
+        />
+        <div className="avatar" />
+        <div className="player--name">
+          {player.name} <div className="team">{player.team}</div>
         </div>
-      )
-    })
+        <div className="player--points"><b>{player.points}</b><span>Pts</span></div>
+        <div className="player--progress">{player.progress}</div>
+      </div>
+    ))
 
     return (
       <div className="ownership-list">
@@ -339,7 +351,7 @@ export const LiveStandingsPane = React.createClass({
     if (this.state.currentTab !== 'standings') return null
 
     // wait for usernames
-    if (this.props.myContest.hasLineupsUsernames === false) return null
+    if (this.props.contest.hasLineupsUsernames === false) return null
 
     return (
       <div className="inner">
@@ -359,8 +371,9 @@ export const LiveStandingsPane = React.createClass({
 
       return (
           <div key={f}
-               className={className}
-               onClick={this.handleSetPositionFilter.bind(this, f)}>
+            className={className}
+            onClick={this.handleSetPositionFilter.bind(this, f)}
+          >
           {f}
         </div>
       )
@@ -380,7 +393,7 @@ export const LiveStandingsPane = React.createClass({
   },
 
   render() {
-    let classNames = 'live-pane live-pane--right live-standings-pane live-standings-pane--' + this.state.currentTab
+    const classNames = `live-pane live-pane--right live-standings-pane live-standings-pane--${this.state.currentTab}`
 
     return (
       <div className={classNames}>
@@ -389,15 +402,15 @@ export const LiveStandingsPane = React.createClass({
         {this.renderOwnershipTab()}
       </div>
     )
-  }
+  },
 })
 
 
 // Redux integration
-let {Provider, connect} = ReactRedux
+const { connect } = ReactRedux
 
 // Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
+function mapStateToProps() {
   // TODO:
   return {
     owned: [
@@ -408,7 +421,7 @@ function mapStateToProps(state) {
         points: 72,
         position: 'pg',
         iamge: '',
-        progress: 0.99
+        progress: 0.99,
       },
       {
         id: 2,
@@ -417,34 +430,21 @@ function mapStateToProps(state) {
         points: 12,
         position: 'c',
         iamge: '',
-        progress: 0.3
-      }
-    ]
+        progress: 0.3,
+      },
+    ],
   }
 }
 
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
-    updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
-    updatePath: (path) => dispatch(updatePath(path)),
-    fetchContestIfNeeded: (id) => dispatch(fetchContestIfNeeded(id)),
-    fetchLineupUsernames: (id) => dispatch(fetchLineupUsernames(id))
+    fetchLineupUsernames: (id) => dispatch(fetchLineupUsernames(id)),
   }
 }
 
 // Wrap the component to inject dispatch and selected state into it.
-var LiveStandingsPaneConnected = connect(
+export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(LiveStandingsPane)
-
-// Render the component.
-renderComponent(
-  <Provider store={store}>
-    <LiveStandingsPaneConnected />
-  </Provider>,
-  '.live-standings-pane'
-)
-
-export default LiveStandingsPaneConnected

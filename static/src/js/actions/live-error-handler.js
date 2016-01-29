@@ -1,5 +1,12 @@
-// TODO have this update the redux state to reflect the error
-// TODO have error handler send error to us
-export default function errorHandler(reason) {
-  console.error('uh oh', reason)
+import Raven from 'raven-js'
+import { addMessage } from './message-actions.js'
+
+
+export default (exception, content) => (dispatch) => {
+  Raven.captureException(exception)
+
+  dispatch(addMessage({
+    level: 'warning',
+    content,
+  }))
 }

@@ -1,164 +1,154 @@
 import React from 'react'
-import * as ReactRedux from 'react-redux'
-import renderComponent from '../../lib/render-component'
-import { updatePath } from 'redux-simple-router'
-import { vsprintf } from 'sprintf-js'
 
-import { updateLiveMode } from '../../actions/live'
 import * as AppActions from '../../stores/app-state-store'
 import LiveLineupPlayer from './live-lineup-player'
 import LivePlayerPane from './live-player-pane'
 import log from '../../lib/logging'
-import store from '../../store'
 
 
 /**
- * The history ticker at the bottom of the live page
+ * Renders the lineup of players on the left/right hand side of the live section.
  */
-var LiveLineup = React.createClass({
+const LiveLineup = React.createClass({
+
   propTypes: {
-    whichSide: React.PropTypes.string.isRequired,
+    changePathAndMode: React.PropTypes.func.isRequired,
+    eventDescriptions: React.PropTypes.object.isRequired,
+    games: React.PropTypes.object.isRequired,
     lineup: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object.isRequired,
-    currentBoxScores: React.PropTypes.object.isRequired,
-    eventDescriptions: React.PropTypes.object.isRequired,
-    relevantPlayerHistory: React.PropTypes.object.isRequired,
     playersPlaying: React.PropTypes.array.isRequired,
-    updateLiveMode: React.PropTypes.func,
-    updatePath: React.PropTypes.func
+    relevantPlayerHistory: React.PropTypes.object.isRequired,
+    whichSide: React.PropTypes.string.isRequired,
   },
 
   getInitialState() {
-    const viewPlayerDetails = this.props.lineup.length > 0 ? this.props.lineup.roster[0] : undefined
     return {
-      // When true, render and show the detail pane
-      viewPlayerDetails: viewPlayerDetails
+      // (optional) parameter assigned a player ID when we want to show their LivePlayerPane
+      viewPlayerDetails: this.props.lineup.length > 0 ? this.props.lineup.roster[0] : undefined,
     }
   },
 
-
-  openPlayerDetail(playerId) {
-    log.debug('openPlayerDetail() - open', playerId)
-    this.setState({viewPlayerDetails: playerId})
-    this.props.whichSide === 'opponent' ? AppActions.togglePlayerPane('right') : AppActions.togglePlayerPane('left')
-  },
-
-
+  /**
+   * Used to close the current opponent lineup. Sets up parameters to then call props.changePathAndMode()
+   */
   closeLineup() {
-    this.props.updatePath(vsprintf('/live/lineups/%d/contests/%d/', [this.props.mode.myLineupId, this.props.mode.contestId]))
-
-    const newMode = Object.assign({}, this.props.mode, {
-      opponentLineupId: undefined
-    })
-
-    this.props.updateLiveMode(newMode)
-  },
-
-
-  render() {
-    const self = this
-    const draftGroup = self.props.lineup.draftGroup
-
-    let currentPlayers,
-        playerPane,
-        closeLineup
-
-    if (this.props.lineup.roster.length > 0) {
-
-      currentPlayers = self.props.lineup.roster.map(function(playerId) {
-        const player = self.props.lineup.rosterDetails[playerId]
-        const boxScore = self.props.currentBoxScores[player.info.game_srid]
-
-        return (
-          <LiveLineupPlayer
-            key={playerId}
-            player={player}
-            playersPlaying={ self.props.playersPlaying }
-            eventDescriptions={ self.props.eventDescriptions }
-            whichSide={self.props.whichSide}
-            onClick={self.openPlayerDetail.bind(self, playerId)} />
-        )
-      })
-
-      if (self.state.viewPlayerDetails) {
-        let playerId = self.state.viewPlayerDetails
-
-        // if the lineup changed, update the default player details pane
-        if (self.props.lineup.roster.indexOf(self.state.viewPlayerDetails) === -1) {
-          playerId = self.props.lineup.roster[0]
-          self.setState({viewPlayerDetails: self.props.lineup.roster[0] })
-        }
-
-        const player = self.props.lineup.rosterDetails[playerId]
-        const boxScore = self.props.currentBoxScores[player.info.game_srid]
-        const history = self.props.relevantPlayerHistory[player.info.player_srid] || []
-
-        playerPane = (
-          <LivePlayerPane
-            whichSide={self.props.whichSide}
-            player={player}
-            eventHistory={ history }
-            boxScore={boxScore} />
-        )
-      }
-
-      if (self.props.whichSide === 'opponent') {
-        closeLineup = (
-          <span className="live-lineup__close" onClick={ self.closeLineup }></span>
-        )
-      }
+    const mode = this.props.mode
+    const path = `/live/lineups/${mode.myLineupId}/contests/${mode.contestId}`
+    const changedFields = {
+      opponentLineupId: undefined,
     }
 
+    this.props.changePathAndMode(path, changedFields)
+  },
 
-    const className = 'cmp-live__lineup live-lineup live-lineup--' + self.props.whichSide
+  /**
+   * Action to open the player pane based on the state.viewPlayerDetails ID
+   * Called when user clicks on a LiveLineupPlayer
+   *
+   * @param  {integer} Player ID to show the LivePlayerPane for
+   */
+  openPlayerPane(playerId) {
+    log.debug('openPlayerPane() - open', playerId)
+
+    this.setState({ viewPlayerDetails: playerId })
+    if (this.props.whichSide === 'opponent') {
+      AppActions.togglePlayerPane('right')
+    } else {
+      AppActions.togglePlayerPane('left')
+    }
+  },
+
+  /**
+   * Render the close lineup element
+   *
+   * @return {JSXElement}
+   */
+  renderCloseLineup() {
+    // you cannot close your own lineup
+    if (this.props.whichSide === 'mine') {
+      return (<span />)
+    }
 
     return (
-      <div className={ className }>
-        { closeLineup }
-        <ul className="live-lineup__players">
-          {currentPlayers}
-        </ul>
+      <span className="live-lineup__close" onClick={this.closeLineup}></span>
+    )
+  },
 
-        { playerPane }
-        <div className="view-player-detail"  />
+  /**
+   * Renders the list of players
+   *
+   * @return {JSXElement}
+   */
+  renderPlayers() {
+    const renderedPlayers = this.props.lineup.roster.map((playerId) => {
+      const player = this.props.lineup.rosterDetails[playerId]
+      const playerSRID = player.info.player_srid
+      const isPlaying = this.props.playersPlaying.indexOf(playerSRID) !== -1
+      const eventDescription = this.props.eventDescriptions[playerSRID] || undefined
+
+      return (
+        <LiveLineupPlayer
+          eventDescription={eventDescription}
+          key={playerId}
+          isPlaying={isPlaying}
+          openPlayerPane={this.openPlayerPane.bind(this, playerId)}
+          player={player}
+          whichSide={this.props.whichSide}
+        />
+      )
+    }, this)
+
+    return (
+      <ul className="live-lineup__players">
+        {renderedPlayers}
+      </ul>
+    )
+  },
+
+  /**
+   * Renders the LivePlayerPane for the user based on state.viewPlayerDetails
+   *
+   * @return {JSXElement}
+   */
+  renderPlayerPane() {
+    const playerId = this.state.viewPlayerDetails
+
+    // don't show if there's no player or the player is not in the roster
+    if (!playerId || this.props.lineup.roster.indexOf(playerId) === -1) {
+      return ('')
+    }
+
+    const player = this.props.lineup.rosterDetails[playerId]
+    const game = this.props.games[player.info.game_srid] || {}
+    const history = this.props.relevantPlayerHistory[player.info.player_srid] || []
+
+    return (
+      <LivePlayerPane
+        whichSide={this.props.whichSide}
+        player={player}
+        eventHistory={history}
+        game={game}
+      />
+    )
+  },
+
+  render() {
+    // don't show until there's a roster
+    if (this.props.lineup.roster.length === 0) {
+      return (<div />)
+    }
+
+    const className = `cmp-live__lineup live-lineup live-lineup--${this.props.whichSide}`
+
+    return (
+      <div className={className}>
+        {this.renderCloseLineup()}
+        {this.renderPlayers()}
+        {this.renderPlayerPane()}
       </div>
     )
-  }
+  },
 })
 
-
-// Redux integration
-let {Provider, connect} = ReactRedux
-
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
-  return {}
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    updateLiveMode: (newMode) => dispatch(updateLiveMode(newMode)),
-    updatePath: (path) => dispatch(updatePath(path))
-  }
-}
-
-// Wrap the component to inject dispatch and selected state into it.
-var LiveLineupConnected = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(LiveLineup)
-
-// Render the component.
-renderComponent(
-  <Provider store={store}>
-    <LiveLineupConnected />
-  </Provider>,
-  '.live-lineup'
-)
-
-export default LiveLineupConnected
-
-
-
-module.exports = LiveLineup
+export default LiveLineup

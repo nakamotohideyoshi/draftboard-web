@@ -1,20 +1,18 @@
-var ReactDOM = require('react-dom')
-var log = require("./logging")
+import ReactDOM from 'react-dom';
+import log from './logging';
+
 
 /**
  * Render a React Component to all instances of the given DOM selector.
  * @param  {string} selector  A css-style dom selector.
  * @param  {Object} component A React comopnent instance.
  */
-module.exports = function(component, selector) {
-
+export default (component, selector) => {
   // Query all matching DOM elements.
-  var elements = document.querySelectorAll(selector)
+  const elements = document.querySelectorAll(selector);
 
-  // Render the component on each existing DOM element.
-  for (var i = 0; i < elements.length; i++) {
-    log.trace('Rendering component on:', selector)
-    ReactDOM.render(component, elements[i])
-  }
-
+  Array.from(elements).forEach((element) => {
+    log.trace('Rendering component on:', selector);
+    ReactDOM.render(component, element);
+  });
 };

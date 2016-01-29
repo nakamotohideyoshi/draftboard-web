@@ -1,8 +1,5 @@
-'use strict'
-
 import React from 'react'
 import PureRenderMixin from 'react-addons-pure-render-mixin'
-import _ from 'lodash'
 import moment from 'moment'
 
 /**
@@ -10,59 +7,71 @@ import moment from 'moment'
  */
 const NavScoreboardGame = React.createClass({
 
-  mixins: [PureRenderMixin],
-
   propTypes: {
-    game: React.PropTypes.object.isRequired
+    game: React.PropTypes.object.isRequired,
   },
 
-  render() {
+  mixins: [PureRenderMixin],
+
+  renderClock() {
     const game = this.props.game
-    let clockElement, scoresElement
 
     // if the game hasn't started
-    if (!game.hasOwnProperty('boxscore') || game.boxscore.quarter === '') {
-      clockElement = (
-        <div className="right">
-          { moment(game.start).format('h:mma') } <br /> <br />
-        </div>
-      )
-    } else {
+    if (game.hasOwnProperty('boxscore') && game.boxscore.quarter !== '') {
       const boxScore = game.boxscore
-
-      scoresElement = (
-        <div className="scores">
-          { boxScore.teamScores[game.srid_home] }
-          <br />
-          { boxScore.teamScores[game.srid_away] }
-        </div>
-      )
-
 
       // if the game has ended
       if (boxScore.status === 'closed') {
-        clockElement = (
+        return (
           <div className="right">
             Final
           </div>
         )
+      }
 
       // otherwise the game is live
-      } else {
-        let clock = boxScore.clock
-        if (clock === '00:00') {
-          clock = 'END OF'
-        }
-
-        clockElement = (
-          <div className="right">
-            { clock }
-            <br />
-            { boxScore.quarterDisplay }
-          </div>
-        )
+      let clock = boxScore.clock
+      if (clock === '00:00') {
+        clock = 'END OF'
       }
+
+      return (
+        <div className="right">
+          { clock }
+          <br />
+          { boxScore.quarterDisplay }
+        </div>
+      )
     }
+
+    return (
+      <div className="right">
+        { moment(game.start).format('h:mma') } <br /> <br />
+      </div>
+    )
+  },
+
+  renderScores() {
+    const game = this.props.game
+
+    // if the game hasn't started
+    if (game.hasOwnProperty('boxscore') && game.boxscore.quarter !== '') {
+      const boxScore = game.boxscore
+
+      return (
+        <div className="scores">
+          { boxScore.home_score }
+          <br />
+          { boxScore.away_score }
+        </div>
+      )
+    }
+
+    return null
+  },
+
+  render() {
+    const game = this.props.game
 
     return (
       <div className="game scroll-item game--is-live">
@@ -72,12 +81,11 @@ const NavScoreboardGame = React.createClass({
           {game.awayTeamInfo.alias}
         </div>
 
-        { scoresElement }
-        { clockElement }
+        { this.renderScores() }
+        { this.renderClock() }
       </div>
     )
-  }
-
+  },
 })
 
 
