@@ -1,7 +1,4 @@
-'use strict'
-
 import React from 'react'
-
 import * as AppActions from '../../stores/app-state-store.js'
 
 
@@ -11,11 +8,11 @@ import * as AppActions from '../../stores/app-state-store.js'
 const NavScoreboardMenu = React.createClass({
 
   getInitialState() {
-    return {shown: false}
+    return { shown: false }
   },
 
   componentWillMount() {
-    this.setState({shown: false})
+    this.setState({ shown: false })
     window.addEventListener('click', this.handleWindowClick)
   },
 
@@ -25,8 +22,8 @@ const NavScoreboardMenu = React.createClass({
       return true
     }
 
-    const navMain = document.querySelectorAll(".nav-main")[0]
-    const navTrigger = document.querySelectorAll(".cmp-nav-scoreboard--menu")[0]
+    const navMain = document.querySelectorAll('.nav-main')[0]
+    const navTrigger = document.querySelectorAll('.cmp-nav-scoreboard--menu')[0]
 
     const targetInNav = navMain.contains(e.target) === true || navMain === e.target
     const targetInNavTrigger = navTrigger.contains(e.target) === true || navTrigger === e.target
@@ -42,10 +39,10 @@ const NavScoreboardMenu = React.createClass({
 
   handleToggleHamburgerMenu() {
     if (this.state.shown) {
-      this.setState({shown: false})
+      this.setState({ shown: false })
       AppActions.closeNavMain()
     } else {
-      this.setState({shown: true})
+      this.setState({ shown: true })
       AppActions.openNavMain()
     }
   },
@@ -53,23 +50,32 @@ const NavScoreboardMenu = React.createClass({
   render() {
     return (
       <div className="cmp-nav-scoreboard--menu">
-        <div className={"mobile-forum-hamburger" + (this.state.shown ? ' closed' : '')}
-             onClick={this.handleToggleHamburgerMenu}>
-          <svg viewBox="0 0 42 42"
-               height="16" width="16" className="icon icon-hamburger">
+        <div
+          className={`mobile-forum-hamburger${(this.state.shown ? ' closed' : '')}`}
+          onClick={this.handleToggleHamburgerMenu}
+        >
+          <svg
+            viewBox="0 0 42 42"
+            height="16"
+            width="16"
+            className="icon icon-hamburger"
+          >
             <g>
               <path className="line-top" d="M3,13h36" fill="none"
-                    stroke="white" strokeLinejoin="bevel" strokeWidth="3"></path>
+                stroke="white" strokeLinejoin="bevel" strokeWidth="3"
+              />
               <path className="line-middle" d="M3,21h36" fill="none"
-                    stroke="white" strokeLinejoin="bevel" strokeWidth="3"></path>
+                stroke="white" strokeLinejoin="bevel" strokeWidth="3"
+              />
               <path className="line-bottom" d="M3,28h36" fill="none"
-                    stroke="white" strokeLinejoin="bevel" strokeWidth="3"></path>
+                stroke="white" strokeLinejoin="bevel" strokeWidth="3"
+              />
             </g>
           </svg>
         </div>
       </div>
     )
-  }
+  },
 
 })
 

@@ -38,7 +38,7 @@ const CountdownClock = React.createClass({
 
     const timeObj = timeRemaining(this.props.time)
 
-    if (timeObj.expired === true) {
+    if (timeObj.expired === true && typeof this.props.onCountdownOver === 'function') {
       this.props.onCountdownOver()
     }
 

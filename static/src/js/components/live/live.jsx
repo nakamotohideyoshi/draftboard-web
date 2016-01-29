@@ -27,7 +27,7 @@ import { fetchSportsIfNeeded } from '../../actions/sports'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { liveSelector } from '../../selectors/live'
 import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
-import { updateBoxScore } from '../../actions/current-box-scores'
+import { updateGame } from '../../actions/sports'
 import { updateLiveMode } from '../../actions/live'
 import { updatePlayerStats } from '../../actions/live-draft-groups'
 
@@ -38,7 +38,6 @@ import { updatePlayerStats } from '../../actions/live-draft-groups'
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  // selectors
   currentLineupsStats: currentLineupsStatsSelector(state),
   liveContestsStats: liveContestsStatsSelector(state),
   liveSelector: liveSelector(state),
@@ -54,7 +53,7 @@ const mapDispatchToProps = (dispatch) => ({
   fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
   fetchDraftGroupInfo: () => dispatch(fetchDraftGroupInfo()),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
-  updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
+  updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
   updatePlayerStats: (eventCall, draftGroupId, playerId, fp) => dispatch(
     updatePlayerStats(eventCall, draftGroupId, playerId, fp)
   ),
@@ -64,9 +63,6 @@ const mapDispatchToProps = (dispatch) => ({
 
 /*
  * The overarching component for the live section.
- *
- * Connects with the LiveStore for data.
- * This will be where the state changes and then properties are cascaded down to the other child components.
  */
 const Live = React.createClass({
 
@@ -79,7 +75,7 @@ const Live = React.createClass({
     liveSelector: React.PropTypes.object.isRequired,
     navScoreboardStats: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
-    updateBoxScore: React.PropTypes.func,
+    updateGame: React.PropTypes.func,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func,
     updatePlayerStats: React.PropTypes.func,
@@ -355,7 +351,7 @@ const Live = React.createClass({
 
       // if boxscore, then update the boxscore data
       case 'boxscore':
-        this.props.updateBoxScore(
+        this.props.updateGame(
           eventCall.game__id,
           eventCall.id,
           eventCall.points
@@ -646,7 +642,7 @@ const LiveConnected = connect(
 const history = createBrowserHistory()
 syncReduxAndRouter(history, store)
 
-// Uses the Provider and Routes in order to have URL routing via redux-simple-router
+// Uses the Provider and Routes in order to have URL routing via redux-simple-router and redux state
 renderComponent(
   <Provider store={store}>
     <Router history={history}>

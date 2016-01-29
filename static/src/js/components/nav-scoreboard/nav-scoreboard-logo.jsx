@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 
 
@@ -19,7 +17,7 @@ const NavScoreboardLogo = React.createClass({
         <span className="text">Draftboard</span>
       </a>
     );
-  }
+  },
 
 });
 

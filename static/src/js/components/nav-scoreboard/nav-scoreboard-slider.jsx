@@ -1,6 +1,6 @@
 import React from 'react';
-
 import NavScoreboardSeparator from './nav-scoreboard-separator.jsx';
+
 
 /**
  *   Responsible for rendering the horizontal slider.
@@ -12,7 +12,20 @@ const NavScoreboardSlider = React.createClass({
 
   propTypes: {
     children: React.PropTypes.element,
-    type: React.PropTypes.string
+    type: React.PropTypes.string,
+  },
+
+  componentDidMount() {
+    this.handleResetScroll();
+  },
+
+  componentDidUpdate(prevProps) {
+    const oldType = prevProps.type;
+    const newType = this.props.type;
+
+    if (oldType !== newType) {
+      this.handleResetScroll();
+    }
   },
 
   /**
@@ -20,7 +33,7 @@ const NavScoreboardSlider = React.createClass({
    * @return {Number}
    */
   getContentLeft() {
-    let content = this.refs.content;
+    const content = this.refs.content;
     let left = content.style.left;
 
     if (left) {
@@ -39,11 +52,9 @@ const NavScoreboardSlider = React.createClass({
    * @return {Number} calculated scroll position
    */
   getNextScrollPosition(direction) {
-    console.assert(direction === 1 || direction === -1);
-
     const scrollItems = this.refs.content.getElementsByClassName('scroll-item');
 
-    if (this.scrollItem == null) {
+    if (this.scrollItem === null) {
       this.scrollItem = 0;
     }
 
@@ -64,8 +75,7 @@ const NavScoreboardSlider = React.createClass({
    * Scrolls slider left.
    */
   handleScrollLeft() {
-    let left = this.getNextScrollPosition(-1);
-    this.refs.content.style.left = left + 'px';
+    this.refs.content.style.left = `${this.getNextScrollPosition(-1)}px`;
   },
 
   /**
@@ -82,7 +92,7 @@ const NavScoreboardSlider = React.createClass({
       this.getNextScrollPosition(-1);
     }
 
-    content.style.left = left + 'px';
+    content.style.left = `${left}px`;
   },
 
   /**
@@ -93,26 +103,14 @@ const NavScoreboardSlider = React.createClass({
     this.refs.content.style.left = '0px';
   },
 
-  componentDidMount() {
-    this.handleResetScroll();
-  },
-
-  componentDidUpdate(prevProps) {
-    const oldType = prevProps.type;
-    const newType = this.props.type;
-
-    if (oldType !== newType) {
-      this.handleResetScroll();
-    }
-  },
-
   render() {
     return (
       <div className="cmp-nav-scoreboard--slider">
         <div className="arrow">
           <NavScoreboardSeparator />
           <div className="left-arrow-icon"
-               onClick={this.handleScrollLeft}></div>
+            onClick={this.handleScrollLeft}
+          />
           <NavScoreboardSeparator />
           <div className="cmp-nav-scoreboard--shadow"></div>
         </div>
@@ -124,13 +122,14 @@ const NavScoreboardSlider = React.createClass({
         <div className="arrow right">
           <NavScoreboardSeparator />
           <div className="right-arrow-icon"
-               onClick={this.handleScrollRight}></div>
+            onClick={this.handleScrollRight}
+          />
           <NavScoreboardSeparator />
           <div className="cmp-nav-scoreboard--shadow right"></div>
         </div>
       </div>
     );
-  }
+  },
 
 });
 

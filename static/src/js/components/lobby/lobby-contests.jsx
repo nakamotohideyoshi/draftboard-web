@@ -4,7 +4,7 @@ import Cookies from 'js-cookie'
 import store from '../../store'
 import {updatePath} from 'redux-simple-router'
 
-import {fetchEntries} from '../../actions/entries.js'
+import {fetchEntriesIfNeeded} from '../../actions/entries.js'
 import {fetchFeaturedContestsIfNeeded} from '../../actions/featured-contest-actions.js'
 import {fetchPrizeIfNeeded} from '../../actions/prizes.js'
 import {fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter}
@@ -38,7 +38,7 @@ var LobbyContests = React.createClass({
     draftGroupsWithLineups: React.PropTypes.array,
     enterContest: React.PropTypes.func,
     featuredContests: React.PropTypes.array,
-    fetchEntries: React.PropTypes.func,
+    fetchEntriesIfNeeded: React.PropTypes.func,
     fetchFeaturedContestsIfNeeded: React.PropTypes.func,
     fetchPrizeIfNeeded: React.PropTypes.func,
     fetchUpcomingContests: React.PropTypes.func,
@@ -89,7 +89,7 @@ var LobbyContests = React.createClass({
     }
 
     if (window.dfs.user.isAuthenticated === true) {
-      this.props.fetchEntries()
+      this.props.fetchEntriesIfNeeded()
     }
   },
 
@@ -241,7 +241,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
-    fetchEntries: () => dispatch(fetchEntries()),
+    fetchEntriesIfNeeded: () => dispatch(fetchEntriesIfNeeded()),
     fetchFeaturedContestsIfNeeded: () => dispatch(fetchFeaturedContestsIfNeeded()),
     fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId)),
     fetchUpcomingContests: () => dispatch(fetchUpcomingContests()),

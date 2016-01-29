@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 
 
@@ -19,7 +17,7 @@ const NavScoreboardLoggedOutInfo = React.createClass({
         <a href="/register">Sign Up</a>
       </div>
     )
-  }
+  },
 
 });
 

@@ -1,6 +1,5 @@
-'use strict';
-
 import React from 'react';
+import NavScoreboardFilterItem from './nav-scoreboard-filter-item'
 
 
 /*
@@ -29,11 +28,11 @@ const NavScoreboardFilters = React.createClass({
     // @param {String} selectedType Type of the selected item
     // @param {String} selectedKey Key of the selected item type
     //
-    onChangeSelection: React.PropTypes.func.isRequired
+    onChangeSelection: React.PropTypes.func.isRequired,
   },
 
   getInitialState() {
-    return {expanded: false};
+    return { expanded: false };
   },
 
   componentDidMount() {
@@ -50,7 +49,7 @@ const NavScoreboardFilters = React.createClass({
       return
     }
 
-    const {option, type, key} = this.props.options[0];
+    const { option, type, key } = this.props.options[0];
 
     this.props.onChangeSelection(option, type, key);
   },
@@ -59,24 +58,22 @@ const NavScoreboardFilters = React.createClass({
    * Show select menu options.
   */
   handleMenuShow() {
-    this.setState({expanded: true});
+    this.setState({ expanded: true });
   },
 
   /**
    * Hide select menu options.
   */
-  handleMenuLeave () {
-    this.setState({expanded: false});
+  handleMenuLeave() {
+    this.setState({ expanded: false });
   },
 
   /**
    * Change selected menu item.
   */
   handleChangeSelection(option) {
-    const results = this.props.options.filter((opt) => {
-      return opt.option === option;
-    });
-    const {type, key} = results[0];
+    const results = this.props.options.filter((opt) => opt.option === option);
+    const { type, key } = results[0];
 
     this.props.onChangeSelection(option, type, key);
     this.handleMenuLeave();
@@ -84,32 +81,33 @@ const NavScoreboardFilters = React.createClass({
 
   render() {
     const items = this.props.options.map((opt) => {
-      let {option, count, key} = opt;
+      const { option, count, key } = opt;
 
       return (
-        <li key={key} onClick={this.handleChangeSelection.bind(this, option)}>
-          {option}
-          <span className="counter"> {count}</span>
-        </li>
+        <NavScoreboardFilterItem
+          key={key}
+          handleChangeSelection={this.handleChangeSelection}
+          option={option}
+          count={count}
+        />
       );
     });
 
     return (
       <div className="cmp-nav-scoreboard--filters">
         <div className="cmp-nav-scoreboard--sport-nav select-list"
-             onMouseEnter={this.handleMenuShow}
-             onMouseLeave={this.handleMenuLeave}>
+          onMouseEnter={this.handleMenuShow}
+          onMouseLeave={this.handleMenuLeave}
+        >
           <div className="select-list--selected">{this.props.selected}</div>
-          <ul className={"select-list--options" +
-                         (this.state.expanded ? " visible" : "")}>
+          <ul className={`select-list--options${(this.state.expanded ? ' visible' : '')}`}>
             <div className="arrow-up"></div>
             {items}
           </ul>
         </div>
       </div>
     );
-  }
-
+  },
 });
 
 

@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
@@ -9,31 +7,29 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
  */
 const NavScoreboardLineup = React.createClass({
 
-  mixins: [PureRenderMixin],
-
   propTypes: {
-    // Example:
-    //
-    // id      -> 1
-    // name    -> 'Currys Chicken'
-    // contest -> 'NBA'
-    // time    -> '7:10PM'
-    // pmr     -> 42
-    // points  -> 89
-    // balance -> '20$'
-    //
-    lineup: React.PropTypes.object.isRequired
+    lineup: React.PropTypes.object.isRequired,
   },
 
+  mixins: [PureRenderMixin],
+
   openLineup() {
-    window.location.pathname = '/live/lineups/' + this.props.lineup.id.toString()
+    window.location.pathname = `/live/lineups/${this.props.lineup.id.toString()}`
   },
 
   render() {
-    let {contest, name, time, minutesRemaining, points, potentialEarnings} = this.props.lineup;
+    const {
+      contest,
+      time,
+      minutesRemaining,
+      points,
+      potentialEarnings,
+    } = this.props.lineup;
+
+    let { name } = this.props.lineup;
 
     if (name === '') {
-      name = 'Lineup for ' + window.dfs.username
+      name = `Lineup for ${window.dfs.username}`
     }
 
     return (
@@ -53,8 +49,7 @@ const NavScoreboardLineup = React.createClass({
         </div>
       </div>
     );
-  }
-
+  },
 });
 
 
