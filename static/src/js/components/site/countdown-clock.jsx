@@ -46,7 +46,7 @@ const CountdownClock = React.createClass({
     this.setState({ timeRemaining: timeObj })
   },
 
-  updateInterval: 500,
+  updateInterval: 1000,
 
   render() {
     if (this.state.timeRemaining.expired === true) {

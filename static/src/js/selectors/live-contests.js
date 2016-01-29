@@ -1,13 +1,7 @@
-import { Buffer } from 'buffer/'
-import { countBy as _countBy } from 'lodash'
 import { createSelector } from 'reselect'
-import { filter as _filter } from 'lodash'
-import { forEach as _forEach } from 'lodash'
-import { map as _map } from 'lodash'
-import { sortBy as _sortBy } from 'lodash'
-import { vsprintf } from 'sprintf-js'
+import _ from 'lodash'
 
-import { generateLineupStats } from './current-lineups'
+import { compileLineupStats } from './current-lineups'
 import log from '../lib/logging'
 
 
@@ -20,23 +14,18 @@ import log from '../lib/logging'
  *
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
-function rankContestLineups(contest, draftGroup, boxScores, prizeStructure, livePlayers) {
-  log.trace('rankContestLineups')
+function rankContestLineups(contest, draftGroup, games, prizeStructure, relevantPlayers) {
   const lineups = contest.lineups
+  const lineupsUsernames = contest.lineupsUsernames || {}
 
-  let lineupsUsernames = {}
-  if ('lineupsUsernames' in contest) {
-    lineupsUsernames = contest.lineupsUsernames
-  }
-
+  const lineupsStats = {}
   let rankedLineups = []
-  let lineupsStats = {}
 
-  _forEach(lineups, (lineup, id) => {
-    let stats = generateLineupStats(lineup, draftGroup, boxScores, livePlayers)
+  _.forEach(lineups, (lineup, id) => {
+    const stats = compileLineupStats(lineup, draftGroup, games, relevantPlayers)
 
     if (id in lineupsUsernames) {
-      stats['user'] = lineupsUsernames[id].user
+      stats.user = lineupsUsernames[id].user
     }
 
     rankedLineups.push(stats)
@@ -44,13 +33,11 @@ function rankContestLineups(contest, draftGroup, boxScores, prizeStructure, live
   })
 
   // sort then make just ID
-  rankedLineups = _sortBy(rankedLineups, 'points').reverse()
-  rankedLineups = _map(rankedLineups, (lineup) => {
-    return lineup.id
-  })
+  rankedLineups = _.sortBy(rankedLineups, 'points').reverse()
+  rankedLineups = _.map(rankedLineups, (lineup) => lineup.id)
 
   // set standings for use in contests pane
-  _forEach(rankedLineups, (lineupId, index) => {
+  _.forEach(rankedLineups, (lineupId, index) => {
     const lineupStats = lineupsStats[lineupId]
 
     lineupStats.rank = parseInt(index) + 1
@@ -62,34 +49,35 @@ function rankContestLineups(contest, draftGroup, boxScores, prizeStructure, live
   })
 
   return {
-    rankedLineups: rankedLineups,
+    rankedLineups,
     lineups: lineupsStats,
-    hasLineupsUsernames: 'lineupsUsernames' in contest
+    hasLineupsUsernames: 'lineupsUsernames' in contest,
   }
 }
 
-
+/**
+ * Redux reselect selector to compile all relevant information for contests
+ */
 export const liveContestsStatsSelector = createSelector(
   state => state.liveContests,
   state => state.liveDraftGroups,
-  state => state.currentBoxScores,
+  state => state.sports.games,
   state => state.prizes,
   state => state.entries.hasRelatedInfo,
-  state => state.livePlayers,
+  state => state.livePlayers.relevantPlayers,
 
-  (contests, draftGroups, boxScores, prizes, hasRelatedInfo, livePlayers) => {
+  (contests, draftGroups, games, prizes, hasRelatedInfo, relevantPlayers) => {
+    // do not show if we don't have data yet
     if (hasRelatedInfo === false) {
-      // log.debug('selectors.liveContestsStatsSelector() - not ready')
       return {}
     }
 
-    let contestsStats = {}
+    const contestsStats = {}
     let prizeStructure = {}
 
-    _forEach(contests, (contest, id) => {
+    _.forEach(contests, (contest, id) => {
       // This seems to be a recurring issue. I believe it has something to do with the logged-in
-      // user not having any lineups.
-      // For now we'll skip things if we don't have any contest.info.
+      // user not having any lineups. For now we'll skip things if we don't have any contest.info.
       if (!contest.info) {
         log.warn('liveContestsStatsSelector - contest has no info', contest)
         return
@@ -102,30 +90,25 @@ export const liveContestsStatsSelector = createSelector(
         prizeStructure = prizes[contest.info.prize_structure].info
       }
 
-      let stats = {
+      const stats = {
+        buyin: contest.info.buyin,
+        entriesCount: contest.info.entries,
         id: contest.id,
         name: contest.info.name,
-        start: contest.info.start,
         percentageCanWin: prizeStructure.payout_spots / contest.info.entries * 100,
-        entriesCount: contest.info.entries,
-        buyin: contest.info.buyin
+        start: contest.info.start,
       }
 
-      if (contest.start >= Date.now()) {
+      if (contest.start < Date.now()) {
         contestsStats[id] = stats
         return
       }
 
-      stats = Object.assign(
-        {},
+      contestsStats[id] = Object.assign(
         stats,
-        rankContestLineups(contest, draftGroup, boxScores, prizeStructure, livePlayers)
+        rankContestLineups(contest, draftGroup, games, prizeStructure, relevantPlayers)
       )
-
-      contestsStats[id] = stats
     })
-
-    log.trace('selectors.liveContestsStatsSelector() - updated')
 
     return contestsStats
   }

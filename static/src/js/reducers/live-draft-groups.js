@@ -111,31 +111,6 @@ module.exports = (state = {}, action) => {
       })
 
 
-    case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES:
-      log.trace('reducersLiveDraftGroup.REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES')
-
-      newProps = {
-        id: action.id,
-        isFetchingBoxScores: true
-      }
-
-      return setOrMerge(state, action, newProps)
-
-
-    case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES:
-      log.trace('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
-
-      return update(state, {
-        [action.id]: {
-          $merge: {
-            isFetchingBoxScores: false,
-            boxScoresUpdatedAt: action.updatedAt,
-            boxScores: action.boxScores
-          }
-        }
-      })
-
-
     case ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED:
       log.trace('reducersLiveDraftGroup.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES')
 
