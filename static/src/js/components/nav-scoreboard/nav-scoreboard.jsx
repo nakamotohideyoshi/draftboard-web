@@ -8,10 +8,8 @@ import log from '../../lib/logging'
 import renderComponent from '../../lib/render-component'
 import store from '../../store'
 
-import { addEvent } from '../../actions/live-game-queues'
 import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
 import { fetchEntriesIfNeeded } from '../../actions/entries'
-import { fetchEntries } from '../../actions/entries'
 import { fetchSportsIfNeeded } from '../../actions/sports'
 import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
 import { updateGame } from '../../actions/sports'
@@ -29,16 +27,42 @@ import NavScoreboardUserInfo from './nav-scoreboard-user-info'
 import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const'
 
 
+/*
+ * Map selectors to the React component
+ * @param  {object} state The current Redux state that we need to pass into the selectors
+ * @return {object}       All of the methods we want to map to the component
+ */
+const mapStateToProps = (state) => ({
+  navScoreboardStats: navScoreboardSelector(state),
+})
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component
+ */
+const mapDispatchToProps = (dispatch) => ({
+  errorHandler: (exception) => dispatch(errorHandler(exception)),
+  fetchCurrentDraftGroupsIfNeeded: () => dispatch(fetchCurrentDraftGroupsIfNeeded()),
+  fetchEntriesIfNeeded: () => dispatch(fetchEntriesIfNeeded()),
+  fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
+  updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
+})
+
+/*
+ * The overarching component for the scoreboard spanning the top of the site.
+ *
+ * Most important thing to glean from this comment is that this component is the one that loads all data for the live
+ * and scoreboard redux substores!
+ */
 const NavScoreboard = React.createClass({
 
   propTypes: {
-    navScoreboardStats: React.PropTypes.object.isRequired,
-
-    addEvent: React.PropTypes.func,
     errorHandler: React.PropTypes.func.isRequired,
-    fetchEntries: React.PropTypes.func,
+    fetchCurrentDraftGroupsIfNeeded: React.PropTypes.func,
     fetchEntriesIfNeeded: React.PropTypes.func,
     fetchSportsIfNeeded: React.PropTypes.func,
+    navScoreboardStats: React.PropTypes.object.isRequired,
     updateGame: React.PropTypes.func,
   },
 
@@ -54,46 +78,45 @@ const NavScoreboard = React.createClass({
       // Competition from games and null for lineups.
       selectedKey: null,
 
+      // whether the user is logged in or not, useful for parity checks
       user: window.dfs.user,
 
+      // boolean to make it easy to know when to show the scoreboard
       isLoaded: false,
 
+      // whether or not we are on the live page (determines what data to load)
       isLivePage: window.location.pathname.substring(0, 6) === '/live/',
     }
   },
 
+  /**
+   * Uses promises in order to pull in all relevant data into redux, and then starts to listen for Pusher calls
+   * Here's the documentation on the order in which all the data comes in https://goo.gl/uSCH0K
+   */
   componentWillMount() {
-    if (this.state.user.username !== '') {
-      store.dispatch(
-        fetchCurrentDraftGroupsIfNeeded()
-      ).catch(reason => {
-        errorHandler(reason)
-      }).then(() => {
+    const defaultMessage = 'Our support team has been alerted of this error and will fix immediately.'
+
+    store.dispatch(
+      fetchCurrentDraftGroupsIfNeeded()
+    ).catch(
+      e => errorHandler(e, `#AJSDFJWI ${defaultMessage}`)
+    ).then(() => {
+      // if the user is logged in
+      if (this.state.user.username !== '') {
+        // fetch entries and all its related data
         store.dispatch(
           fetchEntriesIfNeeded()
-        ).then(() => {
-          this.setState({ isLoaded: true })
-          this.listenToSockets()
-          this.startParityChecks()
-        }).catch(reason => {
-          errorHandler(
-            reason,
-            'Live data load failed. Our server team has been alerted and will be diagnosing this ASAP.'
-          )
-        })
-      })
-    } else {
-      store.dispatch(
-        fetchCurrentDraftGroupsIfNeeded()
-      ).catch(reason => {
-        errorHandler(reason)
-      }).then(() => {
-        this.setState({ isLoaded: true })
+        ).catch(
+          e => errorHandler(e, `#CAISJFIE ${defaultMessage}`)
+        ).then(
+          this.startListening()
+        )
 
-        this.listenToSockets()
-        this.startParityChecks()
-      })
-    }
+      // otherwise just start listening
+      } else {
+        this.startListening()
+      }
+    })
   },
 
   /**
@@ -111,6 +134,7 @@ const NavScoreboard = React.createClass({
       })
     })
 
+    // add in lineups if user is logged in
     if (this.state.user.username !== '') {
       options.push({
         option: 'MY LINEUPS',
@@ -121,59 +145,6 @@ const NavScoreboard = React.createClass({
     }
 
     return options
-  },
-
-  listenToSockets() {
-    log.debug('listenToSockets()')
-
-    // let the live page do game score calls
-    if (this.state.isLivePage === true) {
-      return
-    }
-
-    // NOTE: this really bogs down your console
-    // Pusher.log = function(message) {
-    //   if (window.console && window.console.log) {
-    //     window.console.log(message);
-    //   }
-    // };
-
-    const pusher = new Pusher(window.dfs.user.pusher_key, {
-      encrypted: true,
-    })
-
-    const channelPrefix = window.dfs.user.pusher_channel_prefix.toString()
-    const boxscoresChannel = pusher.subscribe(`${channelPrefix}boxscores`)
-    boxscoresChannel.bind('team', (eventData) => {
-      if (eventData.game__id in this.props.navScoreboardStats.sports.games && 'points' in eventData) {
-        this.props.updateGame(
-          eventData.game__id,
-          eventData.id,
-          eventData.points
-        )
-      }
-    })
-  },
-
-  startParityChecks() {
-    log.trace('NavScoreboard.startParityChecks()')
-    const self = this
-
-    const parityChecks = {
-      boxScores: window.setInterval(self.props.fetchSportsIfNeeded, 60000), // one minute
-      draftGroups: window.setInterval(self.props.fetchCurrentDraftGroupsIfNeeded, 600000),  // ten minutes
-    }
-    self.props.fetchSportsIfNeeded()
-
-    // if logged in, look for entries
-    if (window.dfs.user.username !== '') {
-      parityChecks.entries = window.setInterval(self.props.fetchEntriesIfNeeded, 60000)  // one minute
-      self.props.fetchEntriesIfNeeded()
-    }
-
-
-    // add to the state in case we need to clearInterval in the future
-    self.setState({ boxScoresIntervalFunc: parityChecks })
   },
 
   /**
@@ -189,6 +160,78 @@ const NavScoreboard = React.createClass({
     this.setState({ selectedOption, selectedType, selectedKey })
   },
 
+  /*
+   * Start up Pusher listeners to the necessary channels and events
+   */
+  listenToSockets() {
+    // let the live page do game score calls
+    if (this.state.isLivePage === true) {
+      return
+    }
+
+    log.info('NavScoreboard.listenToSockets()')
+
+    // NOTE: this really bogs down your console
+    // Pusher.log = function(message) {
+    //   if (window.console && window.console.log) {
+    //     window.console.log(message);
+    //   }
+    // };
+
+    const pusher = new Pusher(window.dfs.user.pusher_key, {
+      encrypted: true,
+    })
+
+    // used to separate developers into different channels, based on their django settings filename
+    const channelPrefix = window.dfs.user.pusher_channel_prefix.toString()
+
+    const boxscoresChannel = pusher.subscribe(`${channelPrefix}boxscores`)
+    boxscoresChannel.bind('team', (eventData) => {
+      if (this.props.navScoreboardStats.sports.games.hasOwnProperty(eventData.game__id) &&
+          eventData.hasOwnProperty('points')
+      ) {
+        this.props.updateGame(
+          eventData.game__id,
+          eventData.id,
+          eventData.points
+        )
+      }
+    })
+  },
+
+  /**
+   * Internal method to start listening to pusher and poll for updates
+   */
+  startListening() {
+    this.setState({ isLoaded: true })
+    this.listenToSockets()
+    this.startParityChecks()
+  },
+
+  /**
+   * Periodically override the redux state with server data, to ensure that we have up to date data in case we missed
+   * a Pusher call here or there. In time the intervals will increase, as we gain confidence in the system.
+   */
+  startParityChecks() {
+    // whether we are logged in or not, we always need to update sports and draftgroups
+    const parityChecks = {
+      sports: window.setInterval(this.props.fetchSportsIfNeeded, 60000), // one minute
+      currentDraftGroups: window.setInterval(this.props.fetchCurrentDraftGroupsIfNeeded, 600000),  // ten minutes
+    }
+
+    // by default, always check whether we need to load sports
+    this.props.fetchSportsIfNeeded()
+
+    // if logged in, look for entries
+    if (window.dfs.user.username !== '') {
+      parityChecks.entries = window.setInterval(this.props.fetchEntriesIfNeeded, 60000)  // one minute
+      this.props.fetchEntriesIfNeeded()
+    }
+
+    // add the checsk to the state in case we need to clearInterval in the future
+    this.setState({ boxScoresIntervalFunc: parityChecks })
+  },
+
   /**
    * Render slider contents based on selected filter.
    */
@@ -198,6 +241,7 @@ const NavScoreboard = React.createClass({
     } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
       const sport = this.props.navScoreboardStats.sports[this.state.selectedKey]
       const games = this.props.navScoreboardStats.sports.games
+
       return <NavScoreboardGamesList sport={sport} games={games} />
     }
 
@@ -205,7 +249,7 @@ const NavScoreboard = React.createClass({
   },
 
   render() {
-    const { username, cash_balance } = window.dfs.user
+    const { username, cashBalance } = window.dfs.user
     let userInfo
     let filters
     let slider
@@ -227,7 +271,7 @@ const NavScoreboard = React.createClass({
 
     if (this.state.user.username !== '') {
       userInfo = (
-        <NavScoreboardUserInfo name={username} balance={cash_balance} />
+        <NavScoreboardUserInfo name={username} balance={cashBalance.toFixed(2)} />
       )
     } else {
       userInfo = (
@@ -249,38 +293,16 @@ const NavScoreboard = React.createClass({
   },
 })
 
-
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
-  return {
-    navScoreboardStats: navScoreboardSelector(state),
-  }
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    addEvent: (gameId, event) => dispatch(addEvent(gameId, event)),
-    errorHandler: (exception) => dispatch(errorHandler(exception)),
-    fetchCurrentDraftGroupsIfNeeded: () => dispatch(fetchCurrentDraftGroupsIfNeeded()),
-    fetchEntries: () => dispatch(fetchEntries()),
-    fetchEntriesIfNeeded: () => dispatch(fetchEntriesIfNeeded()),
-    fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
-    updateGame: (sport, gameId, teamId, points) => dispatch(updateGame(sport, gameId, teamId, points)),
-  }
-}
-
+// Wrap the component to inject dispatch and selected state into it.
 const NavScoreboardConnected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(NavScoreboard)
 
+// Uses the Provider to have redux state
 renderComponent(
   <Provider store={store}>
     <NavScoreboardConnected />
   </Provider>,
   '.cmp-nav-scoreboard'
 )
-
-
-export default NavScoreboard
