@@ -9,6 +9,7 @@ from django.db.transaction import atomic
 from django.db.models import Q
 import contest.models
 from draftgroup.classes import DraftGroupManager
+from util.slack import WebhookContestScheduler
 from mysite.exceptions import (
     NoGamesInRangeException,
 )
@@ -112,14 +113,20 @@ class ScheduleManager(object):
             if self.schedule_model.enable:
                 on_or_off = ' *Active* '
 
+            number_of_scheduled_contests = len(self.scheduled_contests)
+
             print('')
             print('-----------------------------------------------------------------')
             print('%s  --  %s        %s [%s contests]' % (on_or_off,
                        str(self.schedule_model), str(self.now.date()), str(len(self.scheduled_contests))))
             print('-----------------------------------------------------------------')
-            if not self.schedule_model.enable:
-                return # dont bother trying or printing anything, get out of here!
 
+            if not self.schedule_model.enable:
+                # dont bother trying or printing anything, get out of here!
+                return # str(self.schedule_model)
+
+            existing    = 0
+            created     = 0
             for stc in self.scheduled_contests:
                 # get all created_contests, and make sure the multiplier
                 # matches the count of everything returned by the filter
@@ -128,12 +135,27 @@ class ScheduleManager(object):
                 n = created_contests.count()
                 if  n>0 and n == stc.multiplier:
                     print('    existing (%s):'%(str(n)), str(created_contests[0]))
+                    existing += 1   # not 'n' because multipliers wont be used often, and will confuse
 
                 else:
                     # create all remaining contests to be created
                     for x in range(stc.multiplier - n):
                         self.create_scheduled_contest(stc)
                         print( '    created:', str(stc))
+                        created += 1
+
+            #
+            # scheduler webhook summary:
+            # msg = ''
+            #            msg += '%s [%s contests]' % (str(self.schedule_model), str(len(self.scheduled_contests)))
+
+            # msg = '%s  [ %s of %s contests created ]' % (str(self.schedule_model),
+            #                 str(existing + created), str(number_of_scheduled_contests))
+
+            msg = '%s' % str(self.schedule_model)
+            #sport_webhook = WebhookContestScheduler.get_for_sport(self.schedule_model.site_sport.name)
+            #sport_webhook.send(msg, existing, created, number_of_scheduled_contests)
+            # return msg # return the string message, so we can pack it into a big one
 
         @atomic
         def create_scheduled_contest(self, scheduled_template_contest):
@@ -282,9 +304,11 @@ class ScheduleManager(object):
             dt = timezone.now() + time_delta
 
         for sched in self.schedules:
+
             try:
                 sc = self.Schedule( sched, dt=dt )
                 sc.update() # run this schedule
+
             except SchedulerNumberOfGamesException:
                 #
                 # if day skipping is disabled, and we fail
@@ -303,6 +327,7 @@ class ScheduleManager(object):
                     try:
                         sc = self.Schedule( sched, dt = dt + timedelta(days=extra_days) )
                         sc.update() # run this schedule
+
                     except (SchedulerNumberOfGamesException, ScheduleException):
                         # essentially for any exception that happens now
                         # just try the next day

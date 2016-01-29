@@ -501,7 +501,7 @@ class SalaryGenerator(FppgGenerator):
                         salary.pool     = self.pool
                         salary.player   = player.player
                         salary.primary_roster = roster_spot
-                        salary.fppg     = player.get_fantasy_average()
+                        salary.fppg     = player.fantasy_weighted_average
                         salary.save()
 
     def get_salary_for_player(self, player):
