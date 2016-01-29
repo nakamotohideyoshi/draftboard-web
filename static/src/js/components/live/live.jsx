@@ -21,7 +21,8 @@ import LiveStandingsPaneConnected from './live-standings-pane'
 import log from '../../lib/logging'
 import store from '../../store'
 import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
-import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
+import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
+import { fetchDraftGroupInfo } from '../../actions/current-draft-groups'
 import { fetchSportsIfNeeded } from '../../actions/sports'
 import { liveContestsStatsSelector } from '../../selectors/live-contests'
 import { liveSelector } from '../../selectors/live'
@@ -50,7 +51,8 @@ const mapStateToProps = (state) => ({
  * @return {object}            All of the methods to map to the component
  */
 const mapDispatchToProps = (dispatch) => ({
-  fetchCurrentDraftGroupsIfNeeded: () => dispatch(fetchCurrentDraftGroupsIfNeeded()),
+  fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
+  fetchDraftGroupInfo: () => dispatch(fetchDraftGroupInfo()),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
   updateBoxScore: (gameId, teamId, points) => dispatch(updateBoxScore(gameId, teamId, points)),
   updatePlayerStats: (eventCall, draftGroupId, playerId, fp) => dispatch(
@@ -70,7 +72,7 @@ const Live = React.createClass({
 
   propTypes: {
     currentLineupsStats: React.PropTypes.object.isRequired,
-    fetchCurrentDraftGroupsIfNeeded: React.PropTypes.func,
+    fetchDraftGroupInfo: React.PropTypes.func,
     fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
     fetchSportsIfNeeded: React.PropTypes.func,
     liveContestsStats: React.PropTypes.object.isRequired,
@@ -87,7 +89,6 @@ const Live = React.createClass({
     return {
       courtEvents: {},
       eventDescriptions: {},
-      gameQueues: {},
       playersPlaying: [],
       relevantPlayerHistory: {},
     };
@@ -189,13 +190,15 @@ const Live = React.createClass({
   },
 
   /*
-   * Helper method to add a new Pusher event to the appropriate state.gameQueues queue and then start the queue up
+   * Helper method to add a new Pusher event to the appropriate state.[gameId] queue and then start the queue up
    *
    * @param {integer} gameId Game SRID to determine game queue
    * @param {object} event The json object received from Pusher
    * @param {string} type The type of call, options are 'stats', 'php', 'boxscore'
    */
   addEventAndStartQueue(gameId, event, type) {
+    log.debug('Live.addEventAndStartQueue', gameId, event, type)
+
     // set up game queue event
     const gameQueueEvent = {
       type,
@@ -203,32 +206,25 @@ const Live = React.createClass({
     }
 
     // get game queue related to event, otherwise make a new one
-    const gameQueues = this.state.gameQueues
-    let updatedGameQueues
-    if (gameQueues.hasOwnProperty(gameId)) {
-      updatedGameQueues = update(gameQueues, {
-        [gameId]: {
+    // then start up queue if it isn't running
+    if (this.state.hasOwnProperty(gameId)) {
+      this.setState({
+        [gameId]: update(this.state[gameId], {
           queue: {
             $push: [gameQueueEvent],
           },
-        },
+        }),
       })
+
+      if (this.state[gameId].isRunning === false) this.shiftOldestGameEvent(gameId)
     } else {
-      updatedGameQueues = update(gameQueues, {
-        $set: {
-          [gameId]: {
-            isRunning: false,
-            queue: [gameQueueEvent],
-          },
+      this.setState({
+        [gameId]: {
+          isRunning: false,
+          queue: [gameQueueEvent],
         },
       })
-    }
 
-    // then update the state with the updated queue
-    this.setState({ gameQueues: updatedGameQueues })
-
-    // if the queue isn't already running, start it up
-    if (updatedGameQueues[gameId].isRunning === false) {
       this.shiftOldestGameEvent(gameId)
     }
   },
@@ -258,7 +254,7 @@ const Live = React.createClass({
    * Force a refresh fo draft groups. Called by the countdown when time is up
    */
   forceDraftGroupRefresh() {
-    this.props.fetchCurrentDraftGroupsIfNeeded()
+    this.props.fetchDraftGroupInfo(this.props.liveSelector.lineups.mine.draftGroup.id)
   },
 
   /*
@@ -300,6 +296,7 @@ const Live = React.createClass({
   isPusherEventRelevant(eventCall, gameId) {
     // for now, only use calls once data is loaded
     if (this.props.liveSelector.hasRelatedInfo === false) {
+      log.trace('Live.isPusherEventRelevant() - hasRelatedInfo === false', eventCall)
       return false
     }
 
@@ -328,16 +325,13 @@ const Live = React.createClass({
    * @param  {string} gameId The game queue SRID to pop the oldest event
    */
   shiftOldestGameEvent(gameId) {
-    log.debug('Live.shiftOldestGameEvent()')
-
-    const gameQueues = Object.assign({}, this.state.gameQueues)
-    const gameQueue = gameQueues[gameId]
+    const gameQueue = Object.assign({}, this.state[gameId])
 
     // if there are no more events, then stop running
     if (gameQueue.queue.length === 0) {
       gameQueue.isRunning = false
 
-      this.setState({ gameQueues })
+      this.setState({ [gameId]: gameQueue })
       return
     }
 
@@ -345,9 +339,11 @@ const Live = React.createClass({
     const oldestEvent = gameQueue.queue.shift()
     const eventCall = oldestEvent.event
 
+    log.info(`Live.shiftOldestGameEvent(), game ${gameId}, queue of ${gameQueue.queue.length}`, eventCall)
+
     // update state with updated queue
     gameQueue.isRunning = true
-    this.setState({ gameQueues })
+    this.setState({ [gameId]: gameQueue })
 
     // depending on what type of data, either show animation on screen or update stats
     switch (oldestEvent.type) {
@@ -355,7 +351,6 @@ const Live = React.createClass({
       // if this is a court animation, then start er up
       case 'pbp':
         this.showGameEvent(eventCall)
-        log.info('showGameEvent(), queue of ', gameQueue.queue.length, eventCall)
         break
 
       // if boxscore, then update the boxscore data
@@ -437,7 +432,7 @@ const Live = React.createClass({
       log.debug('setTimeout - show the results')
 
       // remove relevant event players from players playing
-      this.setState({ playersPlaying: _.without(this.state.playersPlaying, relevantPlayersInEvent) })
+      this.setState({ playersPlaying: _.difference(this.state.playersPlaying, relevantPlayersInEvent) })
 
       // show event beside player and in their history
       _.forEach(relevantPlayersInEvent, (playerId) => {
@@ -475,7 +470,7 @@ const Live = React.createClass({
         setTimeout(() => {
           log.debug('setTimeout - remove event description')
           const eventDescriptions = Object.assign({}, this.state.eventDescriptions)
-          delete(eventDescriptions[event.player])
+          delete(eventDescriptions[playerId])
           this.setState({ eventDescriptions })
         }, 4000)
       })

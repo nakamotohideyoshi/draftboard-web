@@ -1,5 +1,5 @@
 var React = require('react');
-var log = require('../../lib/logging.js');
+import log from '../../lib/logging';
 var _find = require('lodash/collection/find');
 
 

@@ -28,18 +28,11 @@ const LiveLineupPlayer = React.createClass({
     const { points, info, when } = this.props.eventDescription
 
     return (
-      <ReactCSSTransitionGroup
-        key="5"
-        transitionName="event-description"
-        transitionEnterTimeout={0}
-        transitionLeaveTimeout={0}
-      >
-        <div className="live-lineup-player__event-description event-description showing">
-          <div className="event-description__points">{points}</div>
-          <div className="event-description__info">{info}</div>
-          <div className="event-description__when">{when}</div>
-        </div>
-      </ReactCSSTransitionGroup>
+      <div className="live-lineup-player__event-description event-description showing">
+        <div className="event-description__points">{points}</div>
+        <div className="event-description__info">{info}</div>
+        <div className="event-description__when">{when}</div>
+      </div>
     )
   },
 
@@ -116,7 +109,14 @@ const LiveLineupPlayer = React.createClass({
       (<div key="2" className="live-lineup-player__status"></div>),
       (<div key="3" className="live-lineup-player__points">{stats.fp}</div>),
       (<div key="4" className={ playStatusClass } />),
-      this.renderEventDescription(),
+      (<ReactCSSTransitionGroup
+        key="5"
+        transitionName="event-description"
+        transitionEnterTimeout={0}
+        transitionLeaveTimeout={0}
+      >
+        {this.renderEventDescription()}
+      </ReactCSSTransitionGroup>),
       this.renderGameStats(),
     ]
 

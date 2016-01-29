@@ -1,14 +1,16 @@
-import Raven from 'raven-js'
+import Raven from 'raven-js';
 import Cookies from 'js-cookie';
 
 import log from 'lib/logging';
 
 
 // Sentry error reporting.
-Raven.config('https://698f3f69f1e446cea667c680c4e1931b@app.getsentry.com/40103', {
-  // Whitelist all of our heroku instances.
-  whitelistUrls: [/draftboard-.*\.herokuapp\.com/],
-}).install();
+if (process.env.NODE_ENV !== 'debug') {
+  Raven.config('https://698f3f69f1e446cea667c680c4e1931b@app.getsentry.com/40103', {
+    // Whitelist all of our heroku instances.
+    whitelistUrls: [/draftboard-.*\.herokuapp\.com/],
+  }).install();
+}
 
 // Pull in the main scss file.
 require('app.scss');

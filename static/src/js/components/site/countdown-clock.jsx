@@ -49,6 +49,14 @@ const CountdownClock = React.createClass({
   updateInterval: 500,
 
   render() {
+    if (this.state.timeRemaining.expired === true) {
+      return (
+        <span className="cmp-countdown-clock">
+          <span className="hours">Loading...</span>
+        </span>
+      )
+    }
+
     return (
       <span className="cmp-countdown-clock">
         <span className="hours">{this.state.timeRemaining.hours}:</span>
