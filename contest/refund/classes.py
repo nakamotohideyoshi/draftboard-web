@@ -124,6 +124,10 @@ class RefundManager(AbstractManagerClass):
         """
         self.validate_arguments(contest)
 
+        #
+        if contest.gpp == True:
+            return
+
         # if its already been cancelled, we cant do it again
         if contest in HistoryContest.objects.all():
             raise ContestCanNotBeRefunded()
