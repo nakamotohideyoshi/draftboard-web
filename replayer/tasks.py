@@ -20,8 +20,6 @@ from django.core.management.commands.dumpdata import Command as DumpData
 from django.db.utils import DEFAULT_DB_ALIAS
 from django.http import HttpResponse
 from django.utils.six import StringIO
-from smuggler import settings as smugger_settings
-
 
 LOCK_EXPIRE = 60
 
@@ -129,34 +127,3 @@ def play_replay(self, timemachine):
 
         finally:
             release_lock()
-
-def save_snapshot_simple():
-    stream = serialize_to_response()
-    save_stream_to_file(stream)  # saves with default name
-
-def save_stream_to_file(stream, filename='replayer_snapshot.json'):
-    fullpath = join( settings.SMUGGLER_FIXTURE_DIR, filename)
-    with open(fullpath, 'wb') as fd:
-        fd.write( stream.getvalue().encode('utf-8') )
-
-def serialize_to_response(app_labels=None, exclude=None, response=None,
-                          format=smugger_settings.SMUGGLER_FORMAT,
-                          indent=smugger_settings.SMUGGLER_INDENT):
-    app_labels = app_labels or []
-    exclude = exclude or []
-    stream = StringIO()
-    error_stream = StringIO()
-    dumpdata = DumpData()
-    dumpdata.style = no_style()
-    dumpdata.execute(*app_labels, **{
-        'stdout': stream,
-        'stderr': error_stream,
-        'exclude': exclude,
-        'format': format,
-        'indent': indent,
-        'use_natural_foreign_keys': True,
-        'use_natural_primary_keys': True
-    })
-    # response.write(stream.getvalue())
-    # return response
-    return stream

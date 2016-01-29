@@ -46,8 +46,6 @@ urlpatterns = [
     # experimental
     #url('^', include('django.contrib.auth.urls')),
 
-    url(r'^admin/', include('smuggler.urls')),  # before admin url patterns!
-
     url(r'^admin/',         include(admin.site.urls)),
 
     url(r'^api/payments/',      include(optimal_payments.urls)),
