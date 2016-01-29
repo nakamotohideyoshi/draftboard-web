@@ -26,7 +26,7 @@ export function timeRemaining(timestamp) {
   const duration = moment.duration(diffTime)
 
   // if the time has expired, then return all zeros
-  if (duration.seconds() <= 0) {
+  if (diffTime < 0) {
     return {
       expired: true,
       hours: '00',

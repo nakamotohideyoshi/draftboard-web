@@ -73,7 +73,7 @@ const LiveLineupPlayer = React.createClass({
     const stats = this.props.player.stats
 
     // classname for the whole player
-    const gameCompleted = (stats.decimalRemaining === 0.01) ? 'not' : 'is'
+    const gameCompleted = (stats.decimalRemaining === 0) ? 'not' : 'is'
     const className = `live-lineup-player state--${gameCompleted}-playing`
 
     // classname to determine whether the player is live or not

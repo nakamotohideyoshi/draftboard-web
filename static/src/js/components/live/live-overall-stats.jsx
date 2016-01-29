@@ -15,7 +15,7 @@ const LiveOverallStats = React.createClass({
     lineup: React.PropTypes.object.isRequired,
   },
 
-  render() {
+  renderOverallPMR() {
     let hexStart
     let hexEnd
     const lineup = this.props.lineup
@@ -32,7 +32,7 @@ const LiveOverallStats = React.createClass({
     }
 
     const strokeWidth = 2
-    const decimalRemaining = lineup.decimalRemaining
+    const decimalDone = 1 - lineup.decimalRemaining
     const backgroundHex = '#0c0e16'
     const svgWidth = 280
 
@@ -49,40 +49,116 @@ const LiveOverallStats = React.createClass({
       hexStart: `#${hexStart}`,
       hexHalfway: `#${percentageHexColor(hexStart, hexEnd, 0.5)}`,
       hexEnd: `#${hexEnd}`,
-      d: describeArc(0, 0, radius, decimalRemaining * 360, 360),
+      d: describeArc(0, 0, radius, decimalDone * 360, 360),
       strokeWidth,
     }
 
-    const dottedRemainingArc = {
-      strokeWidth: strokeWidth + 3,
-      d: describeArc(0, 0, radius, 0, decimalRemaining * 360),
-    }
+    let renderPMRCircle
 
-    // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
-    // https://github.com/facebook/react/issues/1657#issuecomment-146905709
-    const svgMaskMarkup = {
-      __html: `<g mask="url(#gradientMask)"> \
-        <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${svgWidth}" fill="url(#cl2)" /> \
-        <rect x="0" y="-${svgMidpoint}" height="${svgWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`,
-    }
+    // as long as the lineup is still active
+    if (decimalDone !== 1) {
+      const dottedRemainingArc = {
+        strokeWidth: strokeWidth + 3,
+        d: describeArc(0, 0, radius, 0, decimalDone * 360),
+      }
 
-    const endpointCoord = polarToCartesian(0, 0, radius, decimalRemaining * 360)
-    const endOuter = {
-      r: strokeWidth + 6,
-      stroke: `#${percentageHexColor(hexEnd, hexStart, decimalRemaining)}`,
-      strokeWidth,
-      fill: backgroundHex,
-      cx: endpointCoord.x,
-      cy: endpointCoord.y,
-    }
+      // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
+      // https://github.com/facebook/react/issues/1657#issuecomment-146905709
+      const svgMaskMarkup = {
+        __html: `<g mask="url(#gradientMask)"> \
+          <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${svgWidth}" fill="url(#cl2)" /> \
+          <rect x="0" y="-${svgMidpoint}" height="${svgWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`,
+      }
 
-    const endInner = {
-      r: strokeWidth,
-      cx: endpointCoord.x,
-      cy: endpointCoord.y,
+      const endpointCoord = polarToCartesian(0, 0, radius, decimalDone * 360)
+      const endOuter = {
+        r: strokeWidth + 6,
+        stroke: `#${percentageHexColor(hexEnd, hexStart, decimalDone)}`,
+        strokeWidth,
+        fill: backgroundHex,
+        cx: endpointCoord.x,
+        cy: endpointCoord.y,
+      }
+
+      const endInner = {
+        r: strokeWidth,
+        cx: endpointCoord.x,
+        cy: endpointCoord.y,
+      }
+
+      renderPMRCircle = (
+        <g>
+          <mask id="gradientMask">
+            <path
+              fill="none"
+              stroke="#fff"
+              strokeWidth={progressArc.strokeWidth}
+              d={progressArc.d}
+            />
+          </mask>
+          <g dangerouslySetInnerHTML={svgMaskMarkup} />
+
+          <path
+            fill="none"
+            stroke="#3f4255"
+            strokeWidth={dottedRemainingArc.strokeWidth}
+            strokeLinecap="round"
+            strokeDasharray="0.01, 16"
+            d={dottedRemainingArc.d}
+          />
+
+          <g className="progress-endpoint">
+            <circle
+              stroke={endOuter.stroke}
+              strokeWidth={endOuter.strokeWidth}
+              fill={endOuter.fill}
+              r={endOuter.r}
+              cx={endOuter.cx}
+              cy={endOuter.cy}
+            />
+            <circle
+              stroke="none"
+              fill="#fff"
+              r={endInner.r}
+              cx={endInner.cx}
+              cy={endInner.cy}
+            />
+          </g>
+        </g>
+      )
     }
 
     // log.trace('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
+
+    return (
+      <svg className="pmr-circle" viewBox="0 0 280 280" width="220">
+        <defs>
+          <linearGradient id="cl1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
+           <stop stopColor={progressArc.hexEnd} />
+           <stop offset="100%" stopColor={progressArc.hexHalfway} />
+          </linearGradient>
+          <linearGradient id="cl2" gradientUnits="objectBoundingBox" x1="0" y1="1" x2="0" y2="0">
+           <stop stopColor={progressArc.hexHalfway} />
+           <stop offset="100%" stopColor={progressArc.hexStart} />
+          </linearGradient>
+        </defs>
+
+        <g transform="translate(140, 140)">
+          <circle
+            r={backgroundCircle.r}
+            stroke={backgroundCircle.stroke}
+            strokeWidth={backgroundCircle.strokeWidth}
+            fill="none"
+          />
+
+          { renderPMRCircle }
+        </g>
+      </svg>
+    )
+  },
+
+  render() {
+    const lineup = this.props.lineup
 
     let potentialEarnings = 0
     if (this.props.hasContest === false) {
@@ -95,68 +171,10 @@ const LiveOverallStats = React.createClass({
       potentialEarnings = potentialEarnings.toFixed(2)
     }
 
-
     return (
       <div className="live-overall-stats live-overall-stats--me">
 
-        <svg className="pmr-circle" viewBox="0 0 280 280" width="220">
-          <defs>
-            <linearGradient id="cl1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
-             <stop stopColor={progressArc.hexEnd} />
-             <stop offset="100%" stopColor={progressArc.hexHalfway} />
-            </linearGradient>
-            <linearGradient id="cl2" gradientUnits="objectBoundingBox" x1="0" y1="1" x2="0" y2="0">
-             <stop stopColor={progressArc.hexHalfway} />
-             <stop offset="100%" stopColor={progressArc.hexStart} />
-            </linearGradient>
-          </defs>
-
-          <g transform="translate(140, 140)">
-            <circle
-              r={backgroundCircle.r}
-              stroke={backgroundCircle.stroke}
-              strokeWidth={backgroundCircle.strokeWidth}
-              fill="none"
-            />
-
-            <mask id="gradientMask">
-              <path
-                fill="none"
-                stroke="#fff"
-                strokeWidth={progressArc.strokeWidth}
-                d={progressArc.d}
-              />
-            </mask>
-            <g dangerouslySetInnerHTML={svgMaskMarkup} />
-
-            <path
-              fill="none"
-              stroke="#3f4255"
-              strokeWidth={dottedRemainingArc.strokeWidth}
-              strokeLinecap="round"
-              strokeDasharray="0.01, 16"
-              d={dottedRemainingArc.d}
-            />
-
-            <g className="progress-endpoint">
-              <circle
-                stroke={endOuter.stroke}
-                strokeWidth={endOuter.strokeWidth}
-                fill={endOuter.fill}
-                r={endOuter.r}
-                cx={endOuter.cx}
-                cy={endOuter.cy}
-              />
-              <circle
-                stroke="none"
-                fill="#fff"
-                r={endInner.r}
-                cx={endInner.cx}
-                cy={endInner.cy}
-              />
-            </g>
-          </g>
-        </svg>
+        {this.renderOverallPMR()}
 
         <section className="live-overview live-overview--lineup">
           <div className="live-overview__points">

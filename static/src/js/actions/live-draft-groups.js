@@ -8,7 +8,6 @@ import { normalize, Schema, arrayOf } from 'normalizr'
 
 import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
-import { mergeBoxScores } from './current-box-scores'
 import { fetchTeamsIfNeeded } from './sports'
 import { updateLivePlayersStats } from './live-players'
 import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions.js'
@@ -180,7 +179,7 @@ function receiveDraftGroupInfo(id, response) {
 }
 
 
-function fetchDraftGroupInfo(id) {
+export function fetchDraftGroupInfo(id) {
   log.trace('actionsLiveDraftGroup.fetchDraftGroupInfo')
 
   return dispatch => {
@@ -196,59 +195,6 @@ function fetchDraftGroupInfo(id) {
         dispatch(receiveDraftGroupInfo(id, res.body)),
         dispatch(fetchTeamsIfNeeded(res.body.sport))
       ])
-    })
-  }
-}
-
-
-
-// DRAFT GROUP INFO
-// -----------------------------------------------------------------------
-
-function requestDraftGroupBoxScores(id) {
-  log.trace('actionsLiveDraftGroup.requestDraftGroupBoxScores')
-
-  return {
-    id: id,
-    type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_BOX_SCORES
-  }
-}
-
-
-function receiveDraftGroupBoxScores(id, boxScores) {
-  log.trace('actionsLiveDraftGroup.receiveDraftGroupBoxScores')
-
-  return {
-    type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_BOX_SCORES,
-    id: id,
-    boxScores: boxScores,
-    updatedAt: Date.now() + 86400000
-  }
-}
-
-
-function fetchDraftGroupBoxScores(id) {
-  log.trace('actionsLiveDraftGroup.fetchDraftGroupBoxScores')
-
-  return dispatch => {
-    dispatch(requestDraftGroupBoxScores(id))
-
-    return request.get(
-      '/api/draft-group/boxscores/' + id + '/'
-    ).set({
-      'X-REQUESTED-WITH': 'XMLHttpRequest',
-      'Accept': 'application/json'
-    }).then(function(res) {
-      if (res.body.length === 0) {
-        log.trace('shouldFetchDraftGroupFP() - Box scores not available yet', id)
-        return Promise.resolve('Box scores not available yet')
-      }
-
-      dispatch(receiveDraftGroupBoxScores(id, res.body))
-
-      return dispatch(
-        mergeBoxScores(res.body)
-      )
     })
   }
 }
@@ -282,7 +228,6 @@ export function fetchDraftGroupIfNeeded(id) {
     return Promise.all([
       dispatch(fetchDraftGroupInfo(id)),
       dispatch(fetchDraftGroupFP(id)),
-      dispatch(fetchDraftGroupBoxScores(id)),
       dispatch(fetchPlayerBoxScoreHistoryIfNeeded('nba'))
     ])
     .then(() =>

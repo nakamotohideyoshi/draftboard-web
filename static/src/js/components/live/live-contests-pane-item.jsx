@@ -23,7 +23,7 @@ const LiveContestsPaneItem = React.createClass({
     const contest = this.props.contest
     let moneyLineClass = 'live-winning-graph'
 
-    if (contest.percentageCanWin <= contest.currentPercentagePosition) {
+    if (contest.percentageCanWin <= contest.myPercentagePosition) {
       moneyLineClass += ' live-winning-graph--is-losing'
     }
 
@@ -31,7 +31,7 @@ const LiveContestsPaneItem = React.createClass({
       <li className="live-contests-pane__contest" key={ contest.id }>
         <div className="live-contests-pane__name">{ contest.name }</div>
         <div className="live-contests-pane__place">
-          <span className="live-contests-pane__place--mine">{ contest.rank }</span> of { contest.entriesCount }
+          <span className="live-contests-pane__place--mine">{ contest.myEntryRank }</span> of { contest.entriesCount }
         </div>
         <div className="live-contests-pane__potential-earnings">
           ${ contest.buyin }/${ this.props.lineupPotentialEarnings }
@@ -42,7 +42,7 @@ const LiveContestsPaneItem = React.createClass({
             <div className="live-winning-graph__winners" style={{ width: `${contest.percentageCanWin}%` }}></div>
             <div
               className="live-winning-graph__current-position"
-              style={{ left: `${contest.currentPercentagePosition}%` }}
+              style={{ left: `${contest.myPercentagePosition}%` }}
             ></div>
           </div>
         </section>
