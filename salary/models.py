@@ -111,7 +111,8 @@ class Salary(models.Model):
     amount          = models.PositiveIntegerField(null=False)
     flagged         = models.BooleanField(default=False, null=False)
     primary_roster  = models.ForeignKey(RosterSpot, null = False)
-    fppg            = models.FloatField(default=0.0)
+    fppg            = models.FloatField(default=0.0,
+                                        verbose_name='Weighted FPPG')
 
 
     # the GFK to the Player

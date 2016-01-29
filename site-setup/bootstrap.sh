@@ -87,12 +87,6 @@ chown -R vagrant:vagrant /home/vagrant/venv
 source venv/bin/activate
 
 #
-# install django and everything in requirements/local.txt
-cd /vagrant
-pip3 install optimal_source/src/
-pip3 install -r /vagrant/requirements/local.txt
-
-#
 # we will need this for ssl stuff (and potentially python paypal sdk)
 apt-get install -y libssl-dev libffi-dev
 
@@ -108,16 +102,19 @@ service nginx restart
 cd /vagrant
 
 #
-# we will need a webserver of course, and drop in our nginx server conf file & restart
-apt-get install -y nginx
+# install django and everything in requirements/local.txt
+cd /vagrant
 
-# copy over a simple config that will enable us to hit django's runserver on localhost:8888
-cp /vagrant/site-setup/nginx-default /etc/nginx/sites-available/default
-service nginx restart
 
-#
-# manage.py migrate to install db tables and schema
+pip3 install -r /vagrant/requirements/local.txt
+##pip3 install optimal_source/src/
+
+##
+## manage.py migrate to install db tables and schema
 ./site-setup/migrate.sh
+
+# install heroku toolbelt
+wget -O- https://toolbelt.heroku.com/install-ubuntu.sh | sh
 
 #
 # Add an environment variable to tell django to always use the local settings by default

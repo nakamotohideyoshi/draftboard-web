@@ -297,7 +297,6 @@ INSTALLED_APPS = (
 
     'optimal_payments',
 
-    'smuggler',
     'lobby',
     'rest_framework_swagger',
 )
@@ -315,8 +314,6 @@ EMAIL_HOST_PASSWORD = 'bfNdCw7LpBD4UUrYG91YVw'
 EMAIL_PORT          = 587
 DEFAULT_FROM_EMAIL  = 'support@draftboard.com'
 SERVER_EMAIL        = DEFAULT_FROM_EMAIL
-
-SMUGGLER_FIXTURE_DIR = join(BASE_DIR, 'smugglin')
 
 MIDDLEWARE_CLASSES = (
     # CSRF token masking
