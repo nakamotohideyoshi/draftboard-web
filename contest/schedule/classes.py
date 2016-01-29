@@ -109,6 +109,8 @@ class ScheduleManager(object):
                         and also create the actual Contest
             """
 
+            sport_webhook = WebhookContestScheduler.get_for_sport(self.schedule_model.site_sport.name)
+
             on_or_off = ' Disabled '
             if self.schedule_model.enable:
                 on_or_off = ' *Active* '
@@ -122,8 +124,8 @@ class ScheduleManager(object):
             print('-----------------------------------------------------------------')
 
             if not self.schedule_model.enable:
-                # dont bother trying or printing anything, get out of here!
-                return # str(self.schedule_model)
+                sport_webhook.send(str(self.schedule_model), 0, 0, 0)
+                return
 
             existing    = 0
             created     = 0
@@ -145,17 +147,9 @@ class ScheduleManager(object):
                         created += 1
 
             #
-            # scheduler webhook summary:
-            # msg = ''
-            #            msg += '%s [%s contests]' % (str(self.schedule_model), str(len(self.scheduled_contests)))
-
-            # msg = '%s  [ %s of %s contests created ]' % (str(self.schedule_model),
-            #                 str(existing + created), str(number_of_scheduled_contests))
-
-            msg = '%s' % str(self.schedule_model)
-            #sport_webhook = WebhookContestScheduler.get_for_sport(self.schedule_model.site_sport.name)
-            #sport_webhook.send(msg, existing, created, number_of_scheduled_contests)
-            # return msg # return the string message, so we can pack it into a big one
+            # send webhook
+            schedule_text = '%s [%s contests]' % (str(self.schedule_model), str(len(self.scheduled_contests)))
+            sport_webhook.send(schedule_text, existing, created, number_of_scheduled_contests)
 
         @atomic
         def create_scheduled_contest(self, scheduled_template_contest):
@@ -315,7 +309,11 @@ class ScheduleManager(object):
                 # to create the schedule for the given day,
                 # then try no more... continue
                 if not allow_day_skipping:
-                    continue
+                    continue # ie dont pass on to the next part of code
+
+                msg = '%s >>> warning - we are potentially skipping days' % str(sched)
+                sport_webhook = WebhookContestScheduler.get_for_sport(sched.site_sport.name)
+                sport_webhook.send( msg, 0, 0, 0, warn=True)
 
                 #
                 # allow_day_skipping is True at this point.
@@ -325,7 +323,7 @@ class ScheduleManager(object):
                 for extra_days in range(1,self.MAX_SKIP_DAYS+1):  # ie: [1,2,3,4,5,6]
                     #
                     try:
-                        sc = self.Schedule( sched, dt = dt + timedelta(days=extra_days) )
+                        sc = self.Schedule( sched, dt = timezone.now() + timedelta(days=extra_days+1) )
                         sc.update() # run this schedule
 
                     except (SchedulerNumberOfGamesException, ScheduleException):
@@ -341,4 +339,7 @@ class ScheduleManager(object):
                 # print there was an error, but keep going so
                 # we dont prevent subsequent schedules from running
                 print( se )
+
+                sport_webhook = WebhookContestScheduler.get_for_sport(sched.site_sport.name)
+                sport_webhook.send( str(sched), 0, 0, 0, err_msg=str(se))
 
