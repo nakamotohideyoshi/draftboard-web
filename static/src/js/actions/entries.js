@@ -165,21 +165,21 @@ const fetchRelatedEntriesInfo = () => {
   }
 }
 
-export const fetchEntriesIfNeeded = () => {
+export const fetchEntriesIfNeeded = (force) => {
   log.trace('actionsEntries.fetchEntriesIfNeeded')
 
   return (dispatch, getState) => {
-    if (shouldFetchEntries(getState()) === false) {
-      return Promise.resolve('Entries already fetched')
+    if (shouldFetchEntries(getState()) === true || force === true) {
+      log.info('actions.entries.fetchEntriesIfNeeded() - Updating entries')
+
+      return dispatch(
+        fetchEntries()
+      ).then(() =>
+        dispatch(fetchRelatedEntriesInfo())
+      )
     }
 
-    log.info('actions.entries.fetchEntriesIfNeeded() - Updating entries')
-
-    return dispatch(
-      fetchEntries()
-    ).then(() =>
-      dispatch(fetchRelatedEntriesInfo())
-    )
+    return Promise.resolve('Entries already fetched')
   }
 }
 

@@ -8,7 +8,7 @@ import { size as _size } from 'lodash'
 import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/live-config'
 import { fetchEntriesIfNeeded, addEntriesPlayers } from '../../actions/entries'
-import { liveContestsStatsSelector } from '../../selectors/live-contests'
+import { liveContestsSelector } from '../../selectors/live-contests'
 import { mockStore } from '../mock-store'
 
 
@@ -24,12 +24,12 @@ describe('selectorsLiveContests', () => {
   })
 
 
-  it('should properly return data for liveContestsStatsSelector', (done) => {
+  it('should properly return data for liveContestsSelector', (done) => {
     const store = mockStore(reducers, { entries: {} })
 
     store.dispatch(fetchEntriesIfNeeded()).then(() => {
       var state = store.getState()
-      var data = liveContestsStatsSelector(state)
+      var data = liveContestsSelector(state)
 
       expect(data[2].entriesStats[1].points).to.equal(71)
 

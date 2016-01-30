@@ -11,7 +11,8 @@ import store from '../../store'
 import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
 import { fetchEntriesIfNeeded } from '../../actions/entries'
 import { fetchSportsIfNeeded } from '../../actions/sports'
-import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
+import { currentLineupsSelector } from '../../selectors/current-lineups'
+import { sportsSelector } from '../../selectors/sports'
 import { updateGame } from '../../actions/sports'
 
 import NavScoreboardFilters from './nav-scoreboard-filters'
@@ -33,7 +34,8 @@ import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const'
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  navScoreboardStats: navScoreboardSelector(state),
+  currentLineupsSelector: currentLineupsSelector(state),
+  sportsSelector: sportsSelector(state),
 })
 
 /*
@@ -44,7 +46,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   errorHandler: (exception) => dispatch(errorHandler(exception)),
   fetchCurrentDraftGroupsIfNeeded: () => dispatch(fetchCurrentDraftGroupsIfNeeded()),
-  fetchEntriesIfNeeded: () => dispatch(fetchEntriesIfNeeded()),
+  fetchEntriesIfNeeded: (force) => dispatch(fetchEntriesIfNeeded(force)),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
   updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
 })
@@ -58,11 +60,12 @@ const mapDispatchToProps = (dispatch) => ({
 const NavScoreboard = React.createClass({
 
   propTypes: {
-    errorHandler: React.PropTypes.func.isRequired,
+    currentLineupsSelector: React.PropTypes.object.isRequired,
+    errorHandler: React.PropTypes.func,
     fetchCurrentDraftGroupsIfNeeded: React.PropTypes.func,
     fetchEntriesIfNeeded: React.PropTypes.func,
     fetchSportsIfNeeded: React.PropTypes.func,
-    navScoreboardStats: React.PropTypes.object.isRequired,
+    sportsSelector: React.PropTypes.object.isRequired,
     updateGame: React.PropTypes.func,
   },
 
@@ -105,7 +108,7 @@ const NavScoreboard = React.createClass({
       if (this.state.user.username !== '') {
         // fetch entries and all its related data
         store.dispatch(
-          fetchEntriesIfNeeded()
+          fetchEntriesIfNeeded(true)
         ).catch(
           e => errorHandler(e, `#CAISJFIE ${defaultMessage}`)
         ).then(
@@ -126,7 +129,7 @@ const NavScoreboard = React.createClass({
   getSelectOptions() {
     const options = []
 
-    _.forEach(this.props.navScoreboardStats.sports.types, (sport) => {
+    _.forEach(this.props.sportsSelector.types, (sport) => {
       options.push({
         option: `${sport} games`,
         type: TYPE_SELECT_GAMES,
@@ -140,7 +143,7 @@ const NavScoreboard = React.createClass({
         option: 'MY LINEUPS',
         type: TYPE_SELECT_LINEUPS,
         key: 'LINEUPS',
-        count: this.props.navScoreboardStats.lineups.length,
+        count: _.size(this.props.currentLineupsSelector),
       })
     }
 
@@ -187,7 +190,7 @@ const NavScoreboard = React.createClass({
 
     const boxscoresChannel = pusher.subscribe(`${channelPrefix}boxscores`)
     boxscoresChannel.bind('team', (eventData) => {
-      if (this.props.navScoreboardStats.sports.games.hasOwnProperty(eventData.game__id) &&
+      if (this.props.sportsSelector.games.hasOwnProperty(eventData.game__id) &&
           eventData.hasOwnProperty('points')
       ) {
         this.props.updateGame(
@@ -237,10 +240,10 @@ const NavScoreboard = React.createClass({
    */
   renderSliderContent() {
     if (this.state.selectedType === TYPE_SELECT_LINEUPS) {
-      return <NavScoreboardLineupsList lineups={this.props.navScoreboardStats.lineups} />
+      return <NavScoreboardLineupsList lineups={this.props.currentLineupsSelector} />
     } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
-      const sport = this.props.navScoreboardStats.sports[this.state.selectedKey]
-      const games = this.props.navScoreboardStats.sports.games
+      const sport = this.props.sportsSelector[this.state.selectedKey]
+      const games = this.props.sportsSelector.games
 
       return <NavScoreboardGamesList sport={sport} games={games} />
     }

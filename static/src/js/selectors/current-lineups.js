@@ -2,7 +2,7 @@ import _ from 'lodash'
 import { createSelector } from 'reselect'
 
 import { GAME_DURATIONS } from '../actions/sports'
-import { liveContestsStatsSelector } from './live-contests'
+import { liveContestsSelector } from './live-contests'
 
 
 /**
@@ -51,6 +51,19 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
   })
 
   return stats
+}
+
+/**
+ * Returns hours for provided timestamp with format like: 7pm
+ * @param {Number} timestamp
+ * @return {String}
+ */
+const calcFormattedTime = (timestamp) => {
+  const hours = new Date(timestamp).getHours()
+  let time = (hours % 12 || 12) + (hours > 12 ? 'pm' : 'am')
+  if (time === '12pm') time = '0am'
+
+  return time
 }
 
 /**
@@ -156,8 +169,8 @@ export const compileLineupStats = (lineup, draftGroup, games, relevantPlayers) =
 // Crazy selector that
 // - loops through the entries per lineup and calculates potential earnings
 // - loops through the players per lineup and calculates PMR
-export const currentLineupsStatsSelector = createSelector(
-  liveContestsStatsSelector,
+export const currentLineupsSelector = createSelector(
+  liveContestsSelector,
   state => state.liveContests,
   state => state.liveDraftGroups,
   state => state.sports,
@@ -186,6 +199,7 @@ export const currentLineupsStatsSelector = createSelector(
         stats[lineup.id] = {
           decimalRemaining: 0.99,
           draftGroup,
+          formattedStart: calcFormattedTime(lineup.start),
           id: lineup.id,
           minutesRemaining: 384,
           name: lineup.name || 'Example Lineup Name',
@@ -200,7 +214,7 @@ export const currentLineupsStatsSelector = createSelector(
       // combine the normal lineup stats (that are used in the contests selector), with additional stats that are only
       // used for the lineups you're watching
       stats[lineup.id] = Object.assign(
-        compileLineupStats(lineup, draftGroup, sports, relevantPlayers),
+        compileLineupStats(lineup, draftGroup, sports.games, relevantPlayers),
         {
           draftGroup,
           // used for animations to determine which side
