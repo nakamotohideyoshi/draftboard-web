@@ -20,13 +20,13 @@ import LiveNBACourt from './live-nba-court'
 import LiveStandingsPaneConnected from './live-standings-pane'
 import log from '../../lib/logging'
 import store from '../../store'
-import { currentLineupsStatsSelector } from '../../selectors/current-lineups'
+import { currentLineupsSelector } from '../../selectors/current-lineups'
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
-import { fetchDraftGroupInfo } from '../../actions/live-draft-groups'
+import { fetchEntriesIfNeeded } from '../../actions/entries'
 import { fetchSportsIfNeeded } from '../../actions/sports'
-import { liveContestsStatsSelector } from '../../selectors/live-contests'
+import { liveContestsSelector } from '../../selectors/live-contests'
 import { liveSelector } from '../../selectors/live'
-import { navScoreboardSelector } from '../../selectors/nav-scoreboard'
+import { sportsSelector } from '../../selectors/sports'
 import { updateGame } from '../../actions/sports'
 import { updateLiveMode } from '../../actions/live'
 import { updatePlayerStats } from '../../actions/live-draft-groups'
@@ -38,10 +38,10 @@ import { updatePlayerStats } from '../../actions/live-draft-groups'
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  currentLineupsStats: currentLineupsStatsSelector(state),
-  liveContestsStats: liveContestsStatsSelector(state),
+  currentLineupsSelector: currentLineupsSelector(state),
+  liveContestsSelector: liveContestsSelector(state),
   liveSelector: liveSelector(state),
-  navScoreboardStats: navScoreboardSelector(state),
+  sportsSelector: sportsSelector(state),
 })
 
 /*
@@ -51,7 +51,7 @@ const mapStateToProps = (state) => ({
  */
 const mapDispatchToProps = (dispatch) => ({
   fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
-  fetchDraftGroupInfo: (id) => dispatch(fetchDraftGroupInfo(id)),
+  fetchEntriesIfNeeded: (id) => dispatch(fetchEntriesIfNeeded(id)),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
   updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
   updatePlayerStats: (eventCall, draftGroupId, playerId, fp) => dispatch(
@@ -67,14 +67,14 @@ const mapDispatchToProps = (dispatch) => ({
 const Live = React.createClass({
 
   propTypes: {
-    currentLineupsStats: React.PropTypes.object.isRequired,
-    fetchDraftGroupInfo: React.PropTypes.func,
+    currentLineupsSelector: React.PropTypes.object.isRequired,
+    fetchEntriesIfNeeded: React.PropTypes.func,
     fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
     fetchSportsIfNeeded: React.PropTypes.func,
-    liveContestsStats: React.PropTypes.object.isRequired,
+    liveContestsSelector: React.PropTypes.object.isRequired,
     liveSelector: React.PropTypes.object.isRequired,
-    navScoreboardStats: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
+    sportsSelector: React.PropTypes.object.isRequired,
     updateGame: React.PropTypes.func,
     updateLiveMode: React.PropTypes.func,
     updatePath: React.PropTypes.func,
@@ -251,7 +251,7 @@ const Live = React.createClass({
    */
   forceDraftGroupRefresh() {
     log.info('Live.forceDraftGroupRefresh()')
-    this.props.fetchDraftGroupInfo(this.props.liveSelector.lineups.mine.draftGroup.id)
+    this.props.fetchEntriesIfNeeded(true)
   },
 
   /*
@@ -297,7 +297,7 @@ const Live = React.createClass({
       return false
     }
 
-    const games = this.props.navScoreboardStats.sports.games
+    const games = this.props.sportsSelector.games
 
     // check that the game is relevant
     if (games.hasOwnProperty(gameId) === false) {
@@ -417,7 +417,7 @@ const Live = React.createClass({
     // update state to reflect players playing and court events
     this.setState({
       courtEvents: update(this.state.courtEvents, {
-        $set: {
+        $merge: {
           [courtEvent.id]: courtEvent,
         },
       }),
@@ -516,7 +516,7 @@ const Live = React.createClass({
       return (
         <LiveLineupSelectModal
           changePathAndMode={this.changePathAndMode}
-          lineups={this.props.currentLineupsStats}
+          lineups={this.props.currentLineupsSelector}
         />
       )
     }
@@ -559,7 +559,7 @@ const Live = React.createClass({
             <LiveLineup
               changePathAndMode={this.changePathAndMode}
               eventDescriptions={this.state.eventDescriptions}
-              games={this.props.navScoreboardStats.sports.games}
+              games={this.props.sportsSelector.games}
               lineup={opponentLineup}
               mode={mode}
               playersPlaying={this.state.playersPlaying}
@@ -585,7 +585,7 @@ const Live = React.createClass({
           <LiveLineup
             changePathAndMode={this.changePathAndMode}
             eventDescriptions={this.state.eventDescriptions}
-            games={this.props.navScoreboardStats.sports.games}
+            games={this.props.sportsSelector.games}
             lineup={myLineup}
             mode={mode}
             playersPlaying={this.state.playersPlaying}

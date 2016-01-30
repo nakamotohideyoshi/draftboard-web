@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect'
 import _ from 'lodash'
 
-import { liveContestsStatsSelector } from './live-contests'
-import { currentLineupsStatsSelector } from './current-lineups'
+import { liveContestsSelector } from './live-contests'
+import { currentLineupsSelector } from './current-lineups'
 
 
 /**
@@ -15,8 +15,8 @@ import { currentLineupsStatsSelector } from './current-lineups'
  * contest
  */
 export const liveSelector = createSelector(
-  liveContestsStatsSelector,
-  currentLineupsStatsSelector,
+  liveContestsSelector,
+  currentLineupsSelector,
   state => state.live.mode,
   state => state.entries.hasRelatedInfo,
   state => state.playerBoxScoreHistory,

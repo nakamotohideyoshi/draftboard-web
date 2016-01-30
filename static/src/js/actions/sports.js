@@ -117,7 +117,7 @@ export function updateGame(gameId, teamId, points) {
 
   return (dispatch, getState) => {
     const state = getState()
-    const game = state.games[gameId]
+    const game = state.sports.games[gameId]
     let updatedGameFields = {}
 
     // if game does not exist yet, we don't know what sport so just cancel the update and wait for polling call
@@ -167,6 +167,10 @@ function receiveGames(sport, response) {
   let games = Object.assign({}, response)
   _.forEach(games, (game, id) => {
     game.sport = sport
+
+    if (game.hasOwnProperty('boxscore')) {
+      game.boxscore.timeRemaining = calculateTimeRemaining(sport, game)
+    }
   })
 
   return {

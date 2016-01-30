@@ -58,7 +58,7 @@ function rankContestLineups(contest, draftGroup, games, prizeStructure, relevant
 /**
  * Redux reselect selector to compile all relevant information for contests
  */
-export const liveContestsStatsSelector = createSelector(
+export const liveContestsSelector = createSelector(
   state => state.liveContests,
   state => state.liveDraftGroups,
   state => state.sports.games,
@@ -79,7 +79,7 @@ export const liveContestsStatsSelector = createSelector(
       // This seems to be a recurring issue. I believe it has something to do with the logged-in
       // user not having any lineups. For now we'll skip things if we don't have any contest.info.
       if (!contest.info) {
-        log.warn('liveContestsStatsSelector - contest has no info', contest)
+        log.warn('liveContestsSelector - contest has no info', contest)
         return
       }
 
