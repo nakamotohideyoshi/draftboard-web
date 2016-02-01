@@ -16,7 +16,6 @@ const LiveCountdown = React.createClass({
 
   render() {
     const { name, start } = this.props.lineup
-    console.warn(this.props.lineup)
     const editLineup = `/draft/${ this.props.lineup.draftGroup.id }/lineup/${ this.props.lineup.id }/edit/`
 
     return (
