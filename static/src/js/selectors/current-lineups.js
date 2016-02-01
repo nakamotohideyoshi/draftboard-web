@@ -12,7 +12,7 @@ import { liveContestsSelector } from './live-contests'
  * @return {number}                  Remaining time in decimal form
  */
 const calcDecimalRemaining = (minutesRemaining, totalMinutes) => {
-  const decimalRemaining = 1 - minutesRemaining / totalMinutes
+  const decimalRemaining = minutesRemaining / totalMinutes
 
   // we don't want 1 exactly, as that messes with the calculations, 0.99 looks full
   if (decimalRemaining === 1) return 0.9999

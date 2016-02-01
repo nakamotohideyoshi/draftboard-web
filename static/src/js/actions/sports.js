@@ -209,7 +209,7 @@ function shouldFetchGames(state, sport) {
   }
 
   if (state.sports[sport].hasOwnProperty('gamesUpdatedAt')) {
-    const expiration = moment(state.sports[sport].gamesUpdatedAt).add(6, 'hours')
+    const expiration = moment(state.sports[sport].gamesUpdatedAt).add(10, 'minutes')
 
     // if not yet expired
     if (moment().isBefore(expiration)) {

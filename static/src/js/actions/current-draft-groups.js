@@ -66,7 +66,7 @@ function shouldFetchCurrentDraftGroups(state) {
   log.trace('actionsCurrentDraftGroups.shouldFetchCurrentDraftGroups')
 
   // if expired, then get
-  let expiration = moment(state.currentDraftGroups.updatedAt).add(1, 'minutes')
+  let expiration = moment(state.currentDraftGroups.updatedAt).add(10, 'minutes')
   if (moment().isAfter(expiration)) {
     return true
   }

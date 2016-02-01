@@ -228,10 +228,11 @@ const NavScoreboard = React.createClass({
    * a Pusher call here or there. In time the intervals will increase, as we gain confidence in the system.
    */
   startParityChecks() {
-    // whether we are logged in or not, we always need to update sports and draftgroups
+    // whether we are logged in or not, we always need to check whether to update sports and draftgroups
+    // check every few seconds, and if expired (which happens after 10 minutes), then they will fetch
     const parityChecks = {
-      sports: window.setInterval(this.props.fetchSportsIfNeeded, 60000), // one minute
-      currentDraftGroups: window.setInterval(this.props.fetchCurrentDraftGroupsIfNeeded, 600000),  // ten minutes
+      sports: window.setInterval(this.props.fetchSportsIfNeeded, 5000),
+      currentDraftGroups: window.setInterval(this.props.fetchCurrentDraftGroupsIfNeeded, 5000),
     }
 
     // by default, always check whether we need to load sports
