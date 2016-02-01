@@ -5,21 +5,21 @@
 
   .live-pmr {
     position: absolute;
-    left: -2px;
-    top: -2px;
-    width: 52px;
+    left: -3px;
+    top: -3px;
+    width: 54px;
+    z-index: 5020;
   }
 
   // shortcut for each child, if it's too slow we can define all the children manually
   &__position,
-  &__photo,
+  &__circle,
   &__status,
   &__points,
   &__play-status {
     display: inline-block;
     vertical-align: middle;
     margin: 0 4px;
-    z-index: 5020;
     position: relative;
   }
 
@@ -31,18 +31,64 @@
     text-align: center;
   }
 
-  &__photo {
-    background: #3a3f52 url(../img/blocks/live-lineup-player/example-player-photo.png) no-repeat -4px 6px;
+  &__circle {
     background-size: 120% auto;
     border-radius: 50%;
     height: 48px;
     position: relative;
     width: 48px;
+
+    &:hover .live-lineup-player__hover-stats {
+      padding: 0 18px 0 120px;
+      width: 330px;
+    }
   }
 
-  &:hover .live-lineup-player__hover-stats {
-    padding: 0 18px 0 120px;
-    width: 330px;
+  &__photo {
+    background: #3a3f52 url(../img/blocks/live-lineup-player/example-player-photo.png) no-repeat -4px 6px;
+    background-size: 120% auto;
+    border-radius: 50%;
+    height: 48px;
+    position: absolute;
+    top: 0;
+    z-index: 5030;
+    width: 48px;
+  }
+
+  &__hover-stats {
+    background: #1e2130 url(../img/blocks/live-lineup-player/hover-stats-divider.jpg) no-repeat 100px center;
+    border-radius: 50px;
+    background-size: auto 64%;
+    height: 50px;
+    overflow: hidden;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    transition: all 316ms cubic-bezier(.8,.16,.18,.85) 400ms;
+    width: 48px;
+    z-index: 5010;
+
+    ul {
+      list-style: none;
+      padding-top: 9px;
+      width: 290px;
+    }
+
+    li {
+      display: inline-block;
+      text-align: center;
+      width: 32px;
+    }
+
+    .hover-stats__amount {
+      font-family: $font-oswald;
+      font-size: 14px;
+      color: #9ea1b1;
+    }
+    .hover-stats__name {
+      font-size: 9px;
+      color: #9ea1b1;
+    }
   }
 
   &__event-description {
@@ -100,43 +146,6 @@
     font-size: 12px;
   }
 
-  &__hover-stats {
-    background: #1e2130 url(../img/blocks/live-lineup-player/hover-stats-divider.jpg) no-repeat 100px center;
-    border-radius: 50px;
-    background-size: auto 64%;
-    height: 50px;
-    left: 31px;
-    overflow: hidden;
-    padding: 0;
-    position: absolute;
-    top: 7px;
-    transition: all 316ms cubic-bezier(.8,.16,.18,.85) 400ms;
-    width: 48px;
-    z-index: 5010;
-
-    ul {
-      list-style: none;
-      padding-top: 9px;
-      width: 290px;
-    }
-
-    li {
-      display: inline-block;
-      text-align: center;
-      width: 32px;
-    }
-
-    .hover-stats__amount {
-      font-family: $font-oswald;
-      font-size: 14px;
-      color: #9ea1b1;
-    }
-    .hover-stats__name {
-      font-size: 9px;
-      color: #9ea1b1;
-    }
-  }
-
   // TEMP until real photos exist
   &__initials {
     color: #fff;
@@ -176,6 +185,7 @@
     font-family: $font-oswald;
     text-transform: uppercase;
     font-weight: 400;
+    z-index: 5060;
   }
 
   // when playing show the green status indicator as well as make the PMR circle around the photo
@@ -190,10 +200,6 @@
   }
 
   &.state--not-playing {
-    .live-pmr {
-      visibility: hidden;
-    }
-
     .live-lineup-player__points {
       color: #6d718a;
     }
@@ -232,8 +238,9 @@
     background-color: #bf313e;
   }
 
-  .live-lineup-player__hover-stats {
-    right: 33px;
+  .live-lineup-player__hover-stats,
+  .love-lineup-player__photo {
+    right: 0;
     left: auto;
   }
 }
