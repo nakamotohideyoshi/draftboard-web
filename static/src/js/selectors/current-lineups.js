@@ -12,10 +12,10 @@ import { liveContestsSelector } from './live-contests'
  * @return {number}                  Remaining time in decimal form
  */
 const calcDecimalRemaining = (minutesRemaining, totalMinutes) => {
-  const decimalRemaining = minutesRemaining / totalMinutes
+  const decimalRemaining = 1 - minutesRemaining / totalMinutes
 
   // we don't want 1 exactly, as that messes with the calculations, 0.99 looks full
-  if (decimalRemaining === 1) return 0.99
+  if (decimalRemaining === 1) return 0.9999
 
   return decimalRemaining
 }
@@ -198,9 +198,9 @@ export const currentLineupsSelector = createSelector(
       const draftGroup = liveDraftGroups[lineup.draft_group]
 
       // if the draftgroup has ended, then you can no longer see the lineup
-      // if (draftGroup.end <= Date.parse(new Date())) {
-      //   return
-      // }
+      if (draftGroup.end <= Date.parse(new Date())) {
+        return
+      }
 
       // send back a default lineup if it has not started playing yet
       if (lineup.start >= Date.parse(new Date())) {
