@@ -231,6 +231,11 @@ const LiveStandingsPane = React.createClass({
       <div key={i} className={`page${((page - 1) === i ? ' selected' : '')}`}></div>
     )
 
+    // if only one page, then don't show paginator
+    if (maxPage === 1) {
+      return null
+    }
+
     return (
       <div className="live-standings-pane__pages">
         <div

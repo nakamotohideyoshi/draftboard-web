@@ -83,10 +83,10 @@ const LivePMRProgressBar = React.createClass({
 
   render() {
     const { decimalRemaining, strokeWidth, svgWidth } = this.props
-    const decimalDone = 1 - decimalRemaining
+    let decimalDone = 1 - decimalRemaining
 
     if (decimalRemaining === 0) {
-      return <div />
+      decimalDone = 0.9999
     }
 
     const totalWidth = svgWidth + (2 * strokeWidth)
