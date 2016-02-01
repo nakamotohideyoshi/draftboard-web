@@ -12,6 +12,7 @@ import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-gro
 import { fetchEntriesIfNeeded } from '../../actions/entries'
 import { fetchSportsIfNeeded } from '../../actions/sports'
 import { currentLineupsSelector } from '../../selectors/current-lineups'
+import { removeUnusedDraftGroups } from '../../actions/live-draft-groups'
 import { sportsSelector } from '../../selectors/sports'
 import { updateGame } from '../../actions/sports'
 
@@ -48,6 +49,7 @@ const mapDispatchToProps = (dispatch) => ({
   fetchCurrentDraftGroupsIfNeeded: () => dispatch(fetchCurrentDraftGroupsIfNeeded()),
   fetchEntriesIfNeeded: (force) => dispatch(fetchEntriesIfNeeded(force)),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
+  removeUnusedDraftGroups: () => dispatch(removeUnusedDraftGroups()),
   updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
 })
 
@@ -65,6 +67,7 @@ const NavScoreboard = React.createClass({
     fetchCurrentDraftGroupsIfNeeded: React.PropTypes.func,
     fetchEntriesIfNeeded: React.PropTypes.func,
     fetchSportsIfNeeded: React.PropTypes.func,
+    removeUnusedDraftGroups: React.PropTypes.func,
     sportsSelector: React.PropTypes.object.isRequired,
     updateGame: React.PropTypes.func,
   },
@@ -209,6 +212,15 @@ const NavScoreboard = React.createClass({
     this.setState({ isLoaded: true })
     this.listenToSockets()
     this.startParityChecks()
+    this.removeExpiredSubstoreObjects()
+  },
+
+  /**
+   * Helper method to aggregate all of the methods needed to remove expired objects within Redux.
+   * Is run once per page load.
+   */
+  removeExpiredSubstoreObjects() {
+    this.props.removeUnusedDraftGroups()
   },
 
   /**
