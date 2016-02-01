@@ -124,6 +124,7 @@ const LiveStandingsPane = React.createClass({
     }
 
     this.props.changePathAndMode(path, changedFields)
+    AppActions.toggleLiveRightPane('appstate--live-standings-pane--open')
   },
 
   handleSetPositionFilter(currentPositionFilter) {
