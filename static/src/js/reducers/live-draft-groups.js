@@ -123,6 +123,19 @@ module.exports = (state = {}, action) => {
       })
 
 
+    // in order to remove all the keys properly, we need to loop through and delete them
+    case ActionTypes.REMOVE_LIVE_DRAFT_GROUPS:
+      let newState = Object.assign({}, state)
+
+      _.forEach(state, (dg) => {
+        if (action.ids.indexOf(dg.id) > -1) {
+          delete newState[dg.id]
+        }
+      })
+
+      return newState
+
+
     default:
       return state
   }
