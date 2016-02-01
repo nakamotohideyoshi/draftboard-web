@@ -104,9 +104,10 @@ function compileRosterStats(roster, draftGroup, games, relevantPlayers) {
       info: draftGroup.playersInfo[playerId],
       stats: Object.assign(
         {
+          // default to no points and no minutes remaining
           fp: 0,
-          minutesRemaining: GAME_DURATIONS.nba.gameMinutes,
-          decimalRemaining: 0.99,
+          minutesRemaining: 0,
+          decimalRemaining: 0,
         },
         draftGroup.playersStats[playerId] || {}
       ),
@@ -115,12 +116,19 @@ function compileRosterStats(roster, draftGroup, games, relevantPlayers) {
 
     // pull in accurate data from related game
     const game = games[player.info.game_srid]
-    if (game && game.hasOwnProperty('boxscore')) {
-      player.stats.minutesRemaining = game.boxscore.timeRemaining || 0
-      player.stats.decimalRemaining = calcDecimalRemaining(
-        player.stats.minutesRemaining,
-        GAME_DURATIONS.nba.gameMinutes
-      )
+    if (game) {
+      // if playing then get the live amount remaining
+      if (game.hasOwnProperty('boxscore')) {
+        player.stats.minutesRemaining = game.boxscore.timeRemaining || 0
+        player.stats.decimalRemaining = calcDecimalRemaining(
+          player.stats.minutesRemaining,
+          GAME_DURATIONS.nba.gameMinutes
+        )
+      // otherwise this means the game is scheduled, so show as full
+      } else {
+        player.stats.minutesRemaining = GAME_DURATIONS.nba.gameMinutes
+        player.stats.decimalRemaining = 0.99
+      }
     }
 
     currentPlayers[playerId] = player
@@ -190,9 +198,9 @@ export const currentLineupsSelector = createSelector(
       const draftGroup = liveDraftGroups[lineup.draft_group]
 
       // if the draftgroup has ended, then you can no longer see the lineup
-      if (draftGroup.end <= Date.parse(new Date())) {
-        return
-      }
+      // if (draftGroup.end <= Date.parse(new Date())) {
+      //   return
+      // }
 
       // send back a default lineup if it has not started playing yet
       if (lineup.start >= Date.parse(new Date())) {
