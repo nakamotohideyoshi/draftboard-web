@@ -570,7 +570,7 @@ const Live = React.createClass({
         }
 
         moneyLine = (
-          <section className="live-winning-graph live-winning-graph--contest-overall">
+          <section className="live-moneyline live-moneyline--contest-overall">
             <LiveMoneyline
               percentageCanWin={contest.percentageCanWin}
               myWinPercent={myLineup.myWinPercent}

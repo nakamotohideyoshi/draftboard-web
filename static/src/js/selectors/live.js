@@ -67,7 +67,11 @@ export const liveSelector = createSelector(
 
       if (mode.contestId) {
         const contest = contestStats[mode.contestId]
-        myLineup.myWinPercent = myLineup.rank / contest.entriesCount * 100
+
+        myLineup.myWinPercent = 0
+        if (myLineup.rank && contest.entriesCount) {
+          myLineup.myWinPercent = myLineup.rank / contest.entriesCount * 100
+        }
 
         if (mode.opponentLineupId) {
           const opponentLineup = contest.lineups[mode.opponentLineupId]

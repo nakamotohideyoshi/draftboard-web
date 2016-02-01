@@ -17,21 +17,27 @@ const LiveMoneyline = React.createClass({
   },
 
   render() {
+    // flip so that everything is right aligned
+    const myWinPercent = 100 - this.props.myWinPercent
+
+    let opponentWinPercent
     let opponentWinPosition
     if (this.props.opponentWinPercent) {
+      opponentWinPercent = 100 - this.props.opponentWinPercent
+
       opponentWinPosition = (
         <div
-          className="live-winning-graph__current-position live-winning-graph__opponent"
-          style={{ left: `${this.props.opponentWinPercent}%` }}
+          className="live-moneyline__current-position live-moneyline__opponent"
+          style={{ left: `${opponentWinPercent}%` }}
         >
         </div>
       )
     }
 
     return (
-      <div className="live-winning-graph__pmr-line">
-        <div className="live-winning-graph__winners" style={{ width: `${this.props.percentageCanWin}%` }}></div>
-        <div className="live-winning-graph__current-position" style={{ left: `${this.props.myWinPercent}%` }}></div>
+      <div className="live-moneyline__pmr-line">
+        <div className="live-moneyline__winners" style={{ width: `${this.props.percentageCanWin}%` }}></div>
+        <div className="live-moneyline__current-position" style={{ left: `${myWinPercent}%` }}></div>
         { opponentWinPosition }
       </div>
     )
