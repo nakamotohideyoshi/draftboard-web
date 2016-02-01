@@ -141,8 +141,10 @@ const Live = React.createClass({
       return
     }
 
-    // if this is not a statistical based call, ignore
-    if ('statistics__list' in eventCall === false) {
+    // if this is not a statistical based call or has no location to animate, ignore
+    if (eventCall.hasOwnProperty('statistics__list') === false ||
+        eventCall.hasOwnProperty('location__list') === false
+      ) {
       log.debug('Live.onPBPReceived() - had no statistics__list', eventCall)
       return
     }

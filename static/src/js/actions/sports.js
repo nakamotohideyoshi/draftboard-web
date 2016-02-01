@@ -131,6 +131,12 @@ export function updateGame(gameId, teamId, points) {
       return dispatch(fetchGames(game.sport))
     }
 
+    // if we think the game hasn't started, also update the games
+    if (game.hasOwnProperty('boxscore') === true &&
+        game.boxscore.status === 'scheduled') {
+      return dispatch(fetchGames(game.sport))
+    }
+
     const boxscore = game.boxscore
 
     if (boxscore.srid_home === teamId) {
@@ -183,7 +189,7 @@ function receiveGames(sport, response) {
 
 
 function fetchGames(sport) {
-  log.trace('actionsSports.fetchGames')
+  log.info(`actionsSports.fetchGames for ${sport}`)
 
   return dispatch => {
     dispatch(requestGames(sport))
@@ -235,8 +241,6 @@ export function fetchGamesIfNeeded(sport) {
 
 
 export function fetchSportsIfNeeded() {
-  log.info('actionsSports.fetchSportsIfNeeded()')
-
   return (dispatch, getState) => {
     const state = getState()
 
