@@ -5,26 +5,17 @@ import collections
 import hashlib
 import six
 import time
-
 from pusher import Pusher
 from pusher.http import Request, make_query_string, GET, POST, request_method
 from pusher.signature import sign
 from pusher.util import ensure_text, validate_channel, validate_socket_id, app_id_re, pusher_url_re, channel_name_re
-
-#import util.actual_datetime as actual_datetime    # will not work on heroku! use util.timeshift !
 import util.timeshift as timeshift
 from django.conf import settings
 from .tasks import pusher_send_task
 from .exceptions import ChannelNotSetException, EventNotSetException
 import ast
 import json
-
-# class PushObjectQueue(object):
-#     """
-#     this queue holds information which can be
-#     """
-#     def __init__(self):
-#         pass
+from dataden.cache.caches import LiveStatsCache
 
 #
 # on production this will be an empty string,
@@ -193,7 +184,8 @@ class DataDenPush( AbstractPush ):
     """
     Anything that is sent from dataden should be pushed with this class.
 
-    This class handles play by play, and boxscore objects currently.
+    This class handles objects from dataden which can
+    always be pushered out.
     """
 
     def __init__(self, channel, event):
@@ -202,8 +194,32 @@ class DataDenPush( AbstractPush ):
         event: the string name of the general type of the object, ie: 'player', or 'team'
         """
         super().__init__(channel) # init pusher object
-
         self.event      = event
+
+class PbpDataDenPush( AbstractPush ):
+    """
+    Any Play by Play objects from dataden should be pushed with this class.
+
+    This class handles play by play, and ensures pbp objects are not pushered more than 1 time!
+    """
+
+    def __init__(self, channel, event):
+        """
+        channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
+        event: the string name of the general type of the object, ie: 'player', or 'team'
+        """
+        super().__init__(channel) # init pusher object
+        self.event = event
+
+    def send(self, pbp_data, *args, **kwargs):
+        """
+        override the default behavior of send(), such that we check
+        if the object has already been sent... if it has, then do not send it!
+        """
+        live_stats_cache = LiveStatsCache()
+        already_sent = live_stats_cache.update_pbp( pbp_data )
+        if not already_sent:
+            super().send( *args, **kwargs )
 
 class ContestPush( AbstractPush ):
     """

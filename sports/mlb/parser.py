@@ -1079,7 +1079,7 @@ class DataDenMlb(AbstractDataDenParser):
         # specal case: 'pbp' where we also send the object to Pusher !
         elif self.target == ('mlb.game','pbp'):
             GamePbp().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_MLB_PBP, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            push.classes.PbpDataDenPush( push.classes.PUSHER_MLB_PBP, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
 
         #
         elif self.target == ('mlb.game','boxscores'):
