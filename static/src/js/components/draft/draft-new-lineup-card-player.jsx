@@ -25,7 +25,7 @@ var DraftNewLineupCardPlayer = React.createClass({
       return (
         <li className="cmp-lineup-card__player occupied" key={this.props.player.idx}>
           <span className="cmp-lineup-card__position">{this.props.player.name}</span>
-          <span className="cmp-lineup-card__photo">😀</span>
+          <span className="cmp-lineup-card__photo"><img src='/static/src/img/temp/PAM_90212.png' width="auto" height="30px" /></span>
 
           <span
             className="cmp-lineup-card__name-salary"

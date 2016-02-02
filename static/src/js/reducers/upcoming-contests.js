@@ -9,7 +9,7 @@ const initialState = {
   filters: {
     orderBy: {
       property: 'start',
-      direction: 'desc'
+      direction: 'asc'
     },
     contestTypeFilter: {},
     contestFeeFilter: {

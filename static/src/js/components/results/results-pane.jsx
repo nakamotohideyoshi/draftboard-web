@@ -1,7 +1,6 @@
 'use strict';
 
 import React from 'react';
-import PrizeStructure from '../contest-list/prize-structure.jsx'
 
 
 const ResultsPane = React.createClass({

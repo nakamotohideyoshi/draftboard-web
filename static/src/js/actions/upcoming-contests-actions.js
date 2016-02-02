@@ -3,8 +3,9 @@ import request from 'superagent'
 import { normalize, Schema, arrayOf } from 'normalizr'
 import Cookies from 'js-cookie'
 import {fetchPrizeIfNeeded} from './prizes.js'
-import {insertEntry} from './entries.js'
 import {monitorEntryRequest} from './entry-request-actions.js'
+import {addMessage} from './message-actions.js'
+
 
 const contestSchema = new Schema('contests', {
   idAttribute: 'id'
@@ -75,7 +76,7 @@ export function fetchUpcomingContests() {
         // via URL param). if set, fetch the necessary info for the contest detail pane.
         let state = getState()
 
-        if (state.upcomingContests.focusedContestId) {
+        if (state.upcomingContests.focusedContestId && normalizedContests.entities.contests) {
           if (normalizedContests.entities.contests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
             let contest = normalizedContests.entities.contests[state.upcomingContests.focusedContestId]
             fetchFocusedContestInfo(dispatch, contest)
@@ -141,13 +142,13 @@ export function enterContest(contestId, lineupId) {
     .send(postData)
     .end(function(err, res) {
       if(err) {
-        console.error(res.body)
+        addMessage({
+          title: 'Unable to join contest.',
+          level: 'warning'
+        })
+        console.error(res)
       } else {
         dispatch(monitorEntryRequest(res.body.buyin_task_id, contestId, lineupId))
-        // Insert our newly saved entry into the store.
-        // dispatch(insertEntry(res.body))
-        // Upon save success, send user to the lobby.
-        // document.location.href = '/frontend/lobby/?lineup-saved=true';
       }
     });
   }

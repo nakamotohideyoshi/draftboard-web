@@ -6,7 +6,7 @@ import {forEach as _forEach} from 'lodash'
 import {focusedPlayerSelector} from '../../selectors/draft-selectors.js'
 import {roundUpToDecimalPlace} from '../../lib/utils.js'
 import moment from 'moment'
-import ClassNames from 'classnames'
+
 
 
 /**
@@ -279,7 +279,6 @@ var DraftPlayerDetail = React.createClass({
     }
 
     let player = this.props.player
-    var playerDetail = this.getPlayerDetail();
     let tabNav = this.getTabNav()
 
     return (
@@ -337,7 +336,7 @@ function mapStateToProps(state) {
 }
 
 // Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps() {
   return {}
 }
 
