@@ -46,7 +46,7 @@ export function fetchUpcomingLineups(draftGroupId=null) {
     }
   }
 
-  return (dispatch, getState) => {
+  return (dispatch) => {
     return new Promise((resolve, reject) => {
       return request
         .get("/api/lineup/upcoming/")
@@ -116,7 +116,7 @@ export function lineupHovered(lineupId) {
  * the first lineup's id, and imports it.
  * @param  {Int} lineupId Which lineup should be copied.
  */
-export function createLineupViaCopy(lineupId, getState) {
+export function createLineupViaCopy(lineupId) {
   return(dispatch, getState) => {
     const state = getState()
     // When copying a lineup is requested, import a lineup by id (via url), check if we have the

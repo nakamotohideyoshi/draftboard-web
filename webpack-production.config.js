@@ -8,6 +8,8 @@ var webpack = require('webpack');
 var config = Object.assign(
   baseConfig,
   {
+    // Enable sourcemaps
+    devtool: 'source-map',
     debug: false,
 
     // An 'entry' is a compiled & bundled file.

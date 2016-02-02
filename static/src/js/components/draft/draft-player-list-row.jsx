@@ -1,6 +1,5 @@
-var React = require('react')
+import React from 'react'
 import * as AppActions from '../../stores/app-state-store.js'
-var log = require('../../lib/logging.js')
 import Sparkline from './sparkline.jsx'
 
 
@@ -89,7 +88,7 @@ var DraftPlayerListRow = React.createClass({
           {this.getDraftButton()}
         </td>
         <td className="position">{this.props.row.position}</td>
-        <td className="photo">👤</td>
+        <td className="photo"><img src='/static/src/img/temp/PAM_90212.png' width="auto" height="30px" /></td>
         <td className="name">
           <span className="player">{this.props.row.name} </span>
           <span className="team">{this.props.row.team_alias}</span>

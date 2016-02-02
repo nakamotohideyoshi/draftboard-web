@@ -7,12 +7,11 @@ var DraftNewLineupCard = require('./draft-new-lineup-card.jsx');
 var renderComponent = require('../../lib/render-component');
 import {LineupsByDraftGroupSelector} from '../../selectors/upcoming-lineups-by-draftgroup.js'
 import {setFocusedPlayer} from '../../actions/draft-group-players-actions.js'
-import {importLineup, saveLineup, saveLineupEdit, removePlayer, fetchUpcomingLineups,
-  createLineupInit, createLineupViaCopy} from '../../actions/lineup-actions.js';
-var log = require("../../lib/logging");
+import {importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit}
+  from '../../actions/lineup-actions.js';
 import {map as _map} from 'lodash'
 import { Router, Route } from 'react-router'
-import {updatePath, syncReduxAndRouter} from 'redux-simple-router'
+import {syncReduxAndRouter} from 'redux-simple-router'
 import createBrowserHistory from 'history/lib/createBrowserHistory'
 
 const history = createBrowserHistory()
