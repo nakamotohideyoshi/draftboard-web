@@ -245,6 +245,12 @@ category: Lineup
   &__photo {
     width: 37px;
     height: 30px;
+    padding-bottom: 0px !important;
+    vertical-align: bottom !important;
+
+    img {
+      vertical-align: bottom;
+    }
   }
 
   &__photo-empty {
@@ -259,6 +265,7 @@ category: Lineup
       height: 30px;
       background: url(../img/blocks/draft-list/lineup-no-player.png);
       background-size: 37px auto;
+      vertical-align: bottom;
     }
   }
 

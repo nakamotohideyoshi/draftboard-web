@@ -270,7 +270,8 @@ function shouldFetchContest(state, id) {
     return true
   }
 
-  if ('lineupBytes' in state.liveContests[id] === false) {
+  if ('lineupBytes' in state.liveContests[id] === false ||
+      state.liveContests[id].lineupBytes === '') {
     return true
   }
 

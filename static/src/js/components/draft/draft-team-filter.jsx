@@ -61,12 +61,12 @@ const DraftTeamFilter = React.createClass({
   },
 
 
-  selectAllTeams: function(checkboxes) {
+  selectAllTeams: function() {
     this.handleTeamsChange(this.getAllTeams())
   },
 
 
-  unselectAllTeams: function(checkboxes) {
+  unselectAllTeams: function() {
     this.handleTeamsChange([])
   },
 
@@ -83,7 +83,7 @@ const DraftTeamFilter = React.createClass({
   },
 
 
-  handleGameClick: function(game, e) {
+  handleGameClick: function(game) {
     let newTeams = this.props.selectedTeams.slice()
 
     if (this.isTeamSelected(newTeams, game.srid_home) && this.isTeamSelected(newTeams, game.srid_away)) {

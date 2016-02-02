@@ -124,6 +124,7 @@ const LiveStandingsPane = React.createClass({
     }
 
     this.props.changePathAndMode(path, changedFields)
+    AppActions.toggleLiveRightPane('appstate--live-standings-pane--open')
   },
 
   handleSetPositionFilter(currentPositionFilter) {
@@ -229,6 +230,11 @@ const LiveStandingsPane = React.createClass({
     const pages = (new Array(maxPage)).join(',').split(',').map((a, i) =>
       <div key={i} className={`page${((page - 1) === i ? ' selected' : '')}`}></div>
     )
+
+    // if only one page, then don't show paginator
+    if (maxPage === 1) {
+      return null
+    }
 
     return (
       <div className="live-standings-pane__pages">

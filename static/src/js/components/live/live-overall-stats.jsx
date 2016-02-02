@@ -1,5 +1,4 @@
 import React from 'react'
-import _ from 'lodash'
 
 import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-progress-bar'
 
@@ -66,7 +65,7 @@ const LiveOverallStats = React.createClass({
       // https://github.com/facebook/react/issues/1657#issuecomment-146905709
       const svgMaskMarkup = {
         __html: `<g mask="url(#gradientMask)"> \
-          <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${svgWidth}" fill="url(#cl2)" /> \
+          <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${svgWidth}" fill="url(#cl2)" />\
           <rect x="0" y="-${svgMidpoint}" height="${svgWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`,
       }
 
@@ -181,7 +180,7 @@ const LiveOverallStats = React.createClass({
             <div className="live-overview__help">
               Points
             </div>
-            <h4 className="live-overview__quantity">{ _.round(lineup.points, 0) }</h4>
+            <h4 className="live-overview__quantity">{ lineup.points }</h4>
           </div>
           <div className="live-overview__potential-earnings">${ potentialEarnings }</div>
           <div className="live-overview__pmr">

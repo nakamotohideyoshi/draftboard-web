@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect'
 import _ from 'lodash'
 
-import { liveContestsStatsSelector } from './live-contests'
-import { currentLineupsStatsSelector } from './current-lineups'
+import { liveContestsSelector } from './live-contests'
+import { currentLineupsSelector } from './current-lineups'
 
 
 /**
@@ -15,8 +15,8 @@ import { currentLineupsStatsSelector } from './current-lineups'
  * contest
  */
 export const liveSelector = createSelector(
-  liveContestsStatsSelector,
-  currentLineupsStatsSelector,
+  liveContestsSelector,
+  currentLineupsSelector,
   state => state.live.mode,
   state => state.entries.hasRelatedInfo,
   state => state.playerBoxScoreHistory,
@@ -67,7 +67,11 @@ export const liveSelector = createSelector(
 
       if (mode.contestId) {
         const contest = contestStats[mode.contestId]
-        myLineup.myWinPercent = myLineup.rank / contest.entriesCount * 100
+
+        myLineup.myWinPercent = 0
+        if (myLineup.rank && contest.entriesCount) {
+          myLineup.myWinPercent = myLineup.rank / contest.entriesCount * 100
+        }
 
         if (mode.opponentLineupId) {
           const opponentLineup = contest.lineups[mode.opponentLineupId]
