@@ -219,7 +219,7 @@ class PbpDataDenPush( AbstractPush ):
         live_stats_cache = LiveStatsCache()
         just_added = live_stats_cache.update_pbp( pbp_data )
         if just_added:
-            super().send( *args, **kwargs )
+            super().send( pbp_data, *args, **kwargs )
 
 class ContestPush( AbstractPush ):
     """
