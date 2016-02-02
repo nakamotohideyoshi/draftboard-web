@@ -1,27 +1,27 @@
-import React from 'react'
-import * as ReactRedux from 'react-redux'
-import Cookies from 'js-cookie'
-import store from '../../store'
-import {updatePath} from 'redux-simple-router'
+import React from 'react';
+import * as ReactRedux from 'react-redux';
+import Cookies from 'js-cookie';
+import store from '../../store';
+import {updatePath} from 'redux-simple-router';
 
-import {fetchEntries} from '../../actions/entries.js'
-import {fetchFeaturedContestsIfNeeded} from '../../actions/featured-contest-actions.js'
-import {fetchPrizeIfNeeded} from '../../actions/prizes.js'
+import {fetchEntries} from '../../actions/entries.js';
+import {fetchFeaturedContestsIfNeeded} from '../../actions/featured-contest-actions.js';
+import {fetchPrizeIfNeeded} from '../../actions/prizes.js';
 import {fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter}
-  from '../../actions/upcoming-contests-actions.js'
-import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-actions.js'
-import {focusedContestInfoSelector} from '../../selectors/lobby-selectors.js'
-import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js'
-import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'
-import {updateFilter} from '../../actions/upcoming-contests-actions.js'
-import * as AppActions from '../../stores/app-state-store.js'
-import CollectionMatchFilter from '../filters/collection-match-filter.jsx'
-import CollectionSearchFilter from '../filters/collection-search-filter.jsx'
-import ContestList from '../contest-list/contest-list.jsx'
-import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filter.jsx'
-import renderComponent from '../../lib/render-component'
-import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx'
-import {addMessage} from '../../actions/message-actions.js'
+  from '../../actions/upcoming-contests-actions.js';
+import {fetchUpcomingDraftGroupsInfo} from '../../actions/upcoming-draft-groups-actions.js';
+import {focusedContestInfoSelector, focusedLineupSelector} from '../../selectors/lobby-selectors.js';
+import {upcomingContestSelector} from '../../selectors/upcoming-contest-selector.js';
+import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js';
+import {updateFilter} from '../../actions/upcoming-contests-actions.js';
+import * as AppActions from '../../stores/app-state-store.js';
+import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
+import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
+import ContestList from '../contest-list/contest-list.jsx';
+import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filter.jsx';
+import renderComponent from '../../lib/render-component';
+import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx';
+import {addMessage} from '../../actions/message-actions.js';
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
@@ -54,7 +54,6 @@ var LobbyContests = React.createClass({
     updateFilter: React.PropTypes.func,
     updateOrderByFilter: React.PropTypes.func,
     updatePath: React.PropTypes.func,
-    entryRequests: React.PropTypes.object,
     addMessage: React.PropTypes.func
   },
 
@@ -75,9 +74,9 @@ var LobbyContests = React.createClass({
 
   componentWillMount: function() {
     // Fetch all of the necessary data for the lobby.
-    this.props.fetchUpcomingContests()
-    this.props.fetchUpcomingDraftGroupsInfo()
-    this.props.fetchFeaturedContestsIfNeeded()
+    this.props.fetchUpcomingContests();
+    this.props.fetchUpcomingDraftGroupsInfo();
+    this.props.fetchFeaturedContestsIfNeeded();
 
     // If the url indicates that a lineup was just saved, show a success message.
     if (window.location.search.indexOf("lineup-saved=true") !== -1) {
@@ -85,34 +84,33 @@ var LobbyContests = React.createClass({
         header: "Lineup Saved!",
         level: 'success',
         ttl: 5000
-      })
+      });
     }
 
     if (window.dfs.user.isAuthenticated === true) {
-      this.props.fetchEntries()
+      this.props.fetchEntries();
     }
   },
 
 
   // When one of the contest filters change.
   handleFilterChange: function(filterName, filterProperty, match) {
-    this.props.updateFilter(filterName, filterProperty, match)
+    this.props.updateFilter(filterName, filterProperty, match);
   },
 
 
   // Enter the currently focused lineup into a contest.
-  handleEnterContest: function(contest, e) {
-    e.stopPropagation()
+  handleEnterContest: function(contest) {
     // If the user has chosen not to confirm entries, enter the contest.
     if (Cookies.get('shouldConfirmEntry') === 'false') {
-      this.enterContest(contest.id)
+      this.enterContest(contest.id);
     }
     // Otherwise, show the confirmation modal.
     else {
       this.setState({
         showConfirmModal: true,
         contestToEnter: contest
-      })
+      });
     }
   },
 
@@ -121,32 +119,32 @@ var LobbyContests = React.createClass({
     this.setState({
       showConfirmModal: false,
       contestToEnter: null
-    })
+    });
   },
 
   enterContest: function(contestId) {
-    this.props.enterContest(contestId, this.props.focusedLineup.id)
+    this.props.enterContest(contestId, this.props.focusedLineup.id);
   },
 
 
   handleFocusContest: function(contest) {
-    this.props.updatePath(`/lobby/${contest.id}/`)
-    this.props.setFocusedContest(contest.id)
-    this.props.fetchPrizeIfNeeded(contest.prize_structure)
+    this.props.updatePath(`/lobby/${contest.id}/`);
+    this.props.setFocusedContest(contest.id);
+    this.props.fetchPrizeIfNeeded(contest.prize_structure);
     AppActions.openPane();
   },
 
 
   handleSetOrderBy: function(propertyColumn) {
     // Determine sort direction based on current sort settings.
-    let direction = 'desc'
+    let direction = 'desc';
 
     // If we are sorting by the already-'desc'-sorted column, flip the sort direction.
     if (propertyColumn === this.props.orderByProperty  && 'desc' === this.props.orderByDirection) {
-      direction = 'asc'
+      direction = 'asc';
     }
     // Dispatch the filter update.
-    this.props.updateOrderByFilter(propertyColumn, direction)
+    this.props.updateOrderByFilter(propertyColumn, direction);
   },
 
 
@@ -198,9 +196,9 @@ var LobbyContests = React.createClass({
         confirmEntry={this.enterContest}
         cancelEntry={this.handleCancelEntry}
         contest={this.state.contestToEnter}
-        lineupId={this.props.focusedLineup.id}
+        lineup={this.props.focusedLineup}
         isOpen={this.state.showConfirmModal}
-        entryRequests={this.props.entryRequests}
+        lineupsInfo={this.props.lineupsInfo}
       />
       </div>
     );
@@ -215,25 +213,17 @@ let {Provider, connect} = ReactRedux;
 
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps(state) {
-  // get focused lineup
-  let focusedLineup = {id: null}
-  if (state.upcomingLineups.lineups.hasOwnProperty(state.upcomingLineups.focusedLineupId)) {
-    focusedLineup = state.upcomingLineups.lineups[state.upcomingLineups.focusedLineupId]
-  }
-
-
   return {
     allContests: state.upcomingContests.allContests,
     draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
     featuredContests: state.featuredContests.banners,
     filteredContests: upcomingContestSelector(state),
     focusedContest: focusedContestInfoSelector(state),
-    focusedLineup,
+    focusedLineup: focusedLineupSelector(state),
     hoveredLineupId: state.upcomingLineups.hoveredLineupId,
     lineupsInfo: upcomingLineupsInfo(state),
     orderByDirection: state.upcomingContests.filters.orderBy.direction,
-    orderByProperty: state.upcomingContests.filters.orderBy.property,
-    entryRequests: state.entryRequests
+    orderByProperty: state.upcomingContests.filters.orderBy.property
   };
 }
 

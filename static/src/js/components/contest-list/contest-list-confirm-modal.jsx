@@ -1,9 +1,10 @@
-import React from 'react'
-import Modal from '../modal/modal.jsx'
-import CountdownClock from '../site/countdown-clock.jsx'
-import Cookies from 'js-cookie'
-import ClassNames from 'classnames'
-import {find as _find} from 'lodash'
+import React from 'react';
+import Modal from '../modal/modal.jsx';
+import CountdownClock from '../site/countdown-clock.jsx';
+import Cookies from 'js-cookie';
+import ClassNames from 'classnames';
+import EnterContestButton from './enter-contest-button.jsx';
+
 
 
 /**
@@ -12,12 +13,13 @@ import {find as _find} from 'lodash'
 var ContestListConfirmModal = React.createClass({
 
   propTypes: {
-    lineupId: React.PropTypes.number,
+    lineup: React.PropTypes.object,
     contest: React.PropTypes.object,
     confirmEntry: React.PropTypes.func.isRequired,
     cancelEntry: React.PropTypes.func.isRequired,
     isOpen: React.PropTypes.bool,
-    entryRequests: React.PropTypes.object
+    entries: React.PropTypes.object,
+    lineupsInfo: React.PropTypes.object
   },
 
 
@@ -38,14 +40,7 @@ var ContestListConfirmModal = React.createClass({
   // If the parent component tells us the modal should be closed via prop change, close it.
   // The parent can also call this components 'close()' method directly.
   componentWillReceiveProps: function(nextProps) {
-    this.setState({isOpen: nextProps.isOpen})
-    // If we recieve a 'success' status for the entry request, close the modal.
-    let currentEntryStatus = this.getCurrentEntryStatus(nextProps)
-    if (currentEntryStatus) {
-      if ('SUCCESS' === currentEntryStatus.status) {
-        this.close()
-      }
-    }
+    this.setState({isOpen: nextProps.isOpen});
   },
 
 
@@ -53,7 +48,7 @@ var ContestListConfirmModal = React.createClass({
   close: function() {
     // close the modal.
     this.setState({isOpen: false});
-    this.props.cancelEntry()
+    this.props.cancelEntry();
   },
 
 
@@ -61,55 +56,25 @@ var ContestListConfirmModal = React.createClass({
   handleConfirmEntry: function() {
     // If they selected the 'don't ask again' button, set a cookie to remember.
     if (!this.state.shouldConfirmEntry) {
-      Cookies.set('shouldConfirmEntry', 'false')
+      Cookies.set('shouldConfirmEntry', 'false');
     }
     // confirm entry via the provided function.
-    this.props.confirmEntry(this.props.contest.id)
-    // this.setState({isOpen: false});
-  },
-
-
-  getCurrentEntryStatus: function(theProps) {
-    if (theProps.lineupId && theProps.contest && theProps.entryRequests) {
-      return _find(theProps.entryRequests, {
-        lineupId: theProps.lineupId, contestId: theProps.contest.id
-      })
-    } else {
-      return null
-    }
-  },
-
-
-  renderCurrentEntryRequestStatus: function() {
-    let currentEntryStatus = this.getCurrentEntryStatus(this.props)
-
-    if (currentEntryStatus) {
-      return (
-        <div>
-          {currentEntryStatus.status}
-        </div>
-      )
-    } else {
-      return (
-        <div>no status</div>
-      )
-    }
-
+    this.props.confirmEntry(this.props.contest.id);
   },
 
 
   // Toggle the "don't ask again" button
   handleConfirmToggle: function() {
-    this.setState({shouldConfirmEntry: !this.state.shouldConfirmEntry})
+    this.setState({shouldConfirmEntry: !this.state.shouldConfirmEntry});
   },
 
 
   render: function() {
     if (!this.props.contest) {
-      return (<div></div>)
+      return (<div></div>);
     }
 
-    let rememberClass = ClassNames('remember__inner', {'selected': !this.state.shouldConfirmEntry})
+    let rememberClass = ClassNames('remember__inner', {'selected': !this.state.shouldConfirmEntry});
 
     return (
       <Modal
@@ -145,14 +110,13 @@ var ContestListConfirmModal = React.createClass({
                 >
                   <div className={rememberClass}>Don't ask me again.</div>
                 </div>
-
-                <div
-                  className="button button--large button--gradient--background"
-                  onClick={this.handleConfirmEntry}
-                >
-                  Enter Contest
-                </div>
-                {this.renderCurrentEntryRequestStatus()}
+                <EnterContestButton
+                  lineup={this.props.lineup}
+                  contest={this.props.contest}
+                  lineupsInfo={this.props.lineupsInfo}
+                  onEnterClick={this.handleConfirmEntry}
+                  onEnterSuccess={this.close}
+                />
               </div>
             </div>
           </div>

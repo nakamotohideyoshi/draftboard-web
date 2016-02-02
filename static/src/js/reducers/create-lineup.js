@@ -98,14 +98,14 @@ const insertPlayerIntoLineup = function(player, state) {
  * How many players have been added to the lineup.
  * @return {Integer} The number of players in the lineup.
  */
-const getPlayerCount = function(state) {
-  return state.lineup.reduce(function(prev, curr, i, lineup) {
-      if (lineup[i].player) {
-        return prev + 1;
-      }
-      return prev;
-  }, 0);
-}
+// const getPlayerCount = function(state) {
+//   return state.lineup.reduce(function(prev, curr, i, lineup) {
+//       if (lineup[i].player) {
+//         return prev + 1;
+//       }
+//       return prev;
+//   }, 0);
+// }
 
 
 /**
@@ -257,7 +257,6 @@ const removePlayer = function(playerId, state) {
 
 
 module.exports = function(state = initialState, action) {
-  let newState = {}
 
   switch (action.type) {
 

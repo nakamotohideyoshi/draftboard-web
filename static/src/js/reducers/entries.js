@@ -1,8 +1,6 @@
 import update from 'react-addons-update'
-
 import * as ActionTypes from '../action-types'
 import { forEach as _forEach } from 'lodash'
-import log from '../lib/logging'
 
 
 module.exports = function(state = {

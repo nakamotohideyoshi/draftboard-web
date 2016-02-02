@@ -1,7 +1,8 @@
-const React = require('react')
-const moment = require('moment')
-import CountdownClock from '../site/countdown-clock.jsx'
-import EnterContestButton from './enter-contest-button.jsx'
+const React = require('react');
+import CountdownClock from '../site/countdown-clock.jsx';
+import EnterContestButton from './enter-contest-button.jsx';
+
+
 
 /**
  * Render a single ContestList 'row'.
@@ -24,7 +25,8 @@ var ContestListRow = React.createClass({
     enterContest: React.PropTypes.func,
     setFocusedContest: React.PropTypes.func,
     draftGroupsWithLineups: React.PropTypes.array,
-    isEntered: React.PropTypes.bool
+    isEntered: React.PropTypes.bool,
+    lineupsInfo: React.PropTypes.object
   },
 
 
@@ -38,11 +40,11 @@ var ContestListRow = React.createClass({
     var classes = this.props.focusedContest.id === this.props.row.id ? 'active ' : '';
     classes += 'cmp-contest-list__row';
     if (this.props.isEntered) {
-      classes += ' entered'
+      classes += ' entered';
     }
 
     if (this.props.highlighted) {
-      classes += ' highlight'
+      classes += ' highlight';
     }
 
     // Icons
@@ -73,11 +75,11 @@ var ContestListRow = React.createClass({
 
         <td className="enter">
           <EnterContestButton
-            startTime={this.props.row.start}
-            isEntered={this.props.isEntered}
-            focusedLineup={this.props.focusedLineup}
+            lineup={this.props.focusedLineup}
             contest={this.props.row}
-            enterContest={this.props.enterContest}
+            lineupsInfo={this.props.lineupsInfo}
+            onEnterClick={this.props.enterContest}
+            onEnterSuccess={this.close}
           />
         </td>
       </tr>

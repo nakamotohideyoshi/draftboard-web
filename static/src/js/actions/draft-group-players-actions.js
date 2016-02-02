@@ -6,7 +6,6 @@ import 'babel-core/polyfill';
 import {normalize, Schema, arrayOf} from 'normalizr'
 import {fetchSportInjuries} from './injury-actions.js'
 import {fetchFantasyHistory} from './fantasy-history-actions.js'
-import {importLineup} from './lineup-actions.js'
 import {fetchTeamsIfNeeded} from './sports.js'
 import {fetchPlayerNewsIfNeeded} from './player-news-actions.js'
 import {fetchPlayerBoxScoreHistoryIfNeeded} from './player-box-score-history-actions.js'

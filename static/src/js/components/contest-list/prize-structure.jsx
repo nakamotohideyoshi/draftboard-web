@@ -1,6 +1,6 @@
-import React from 'react'
-import {forEach as _forEach} from 'lodash'
-import {english as ordinal}  from  'ordinal'
+import React from 'react';
+import {forEach as _forEach} from 'lodash';
+import {english as ordinal}  from  'ordinal';
 
 
 var PrizeStructure = React.createClass({
@@ -11,10 +11,10 @@ var PrizeStructure = React.createClass({
 
 
   getRanks: function() {
-    let rankList = []
+    let rankList = [];
 
     if (typeof this.props.structure.info == 'undefined') {
-      return ''
+      return '';
     }
 
      _forEach(this.props.structure.info.ranks, function(item) {
@@ -23,10 +23,10 @@ var PrizeStructure = React.createClass({
           <td className="place">{ordinal(item.rank)}</td>
           <td className="prize">${item.value}</td>
         </tr>
-      )
-    })
+      );
+    });
 
-    return rankList
+    return rankList;
   },
 
 
@@ -35,10 +35,10 @@ var PrizeStructure = React.createClass({
     if (!this.props.structure || this.props.structure.isFetching === true) {
       return (
         <div>Loading...</div>
-      )
+      );
     }
 
-    let rankList = this.getRanks()
+    let rankList = this.getRanks();
 
     return (
       <div className="cmp-prize-structure">
@@ -54,10 +54,10 @@ var PrizeStructure = React.createClass({
           </tbody>
         </table>
       </div>
-    )
+    );
   }
 
-})
+});
 
 
-module.exports = PrizeStructure
+module.exports = PrizeStructure;

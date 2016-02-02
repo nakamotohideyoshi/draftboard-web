@@ -91,8 +91,10 @@ function fetchDraftGroupBoxScores(draftGroupId) {
       })
       .end(function(err, res) {
         if(err) {
+          reject(err)
           dispatch(fetchDraftGroupBoxScoresFail(draftGroupId, res.body))
         } else {
+          resolve(res.body)
           dispatch(fetchDraftGroupBoxScoresSuccess(draftGroupId, res.body))
         }
       })
@@ -139,7 +141,7 @@ export function fetchDraftGroupBoxScoresIfNeeded(draftGroupId) {
 
 function fetchDraftGroupBoxScoresSuccess(draftGroupId, body) {
   return {
-    type: types.FETCH_DRAFTGROUP_BOXSCORES_SUCCESS,
+    type: types.FETCH_DRAFTGROUP_BOX_SCORES_SUCCESS,
     body,
     draftGroupId
   };
@@ -148,7 +150,7 @@ function fetchDraftGroupBoxScoresSuccess(draftGroupId, body) {
 function fetchDraftGroupBoxScoresFail(draftGroupId, body) {
   console.error(body)
   return {
-    type: types.FETCH_DRAFTGROUP_BOXSCORES_FAIL
+    type: types.FETCH_DRAFTGROUP_BOX_SCORES_FAIL
   };
 }
 

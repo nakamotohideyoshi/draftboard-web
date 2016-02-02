@@ -31,7 +31,7 @@
   "rules": {
     "quotes": [0, "double"],
     "strict": [0, "global"],
-    "no-unused-vars": 0,
+    "no-unused-vars": 1,
     "no-underscore-dangle": 0,
     "sort-vars": 0,
     "no-console": 0,

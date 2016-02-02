@@ -20,7 +20,7 @@ if (Cookies.get('username') !== window.dfs.user.username) {
 
 
 // Store with localStorage, commented out until we have Pusher installed and working on optimizations
-import {compose, createStore} from 'redux';
+import {compose} from 'redux';
 import persistState from 'redux-localstorage'
 const createPersistentStore = compose(
   persistState([
