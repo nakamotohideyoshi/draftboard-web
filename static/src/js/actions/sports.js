@@ -117,7 +117,7 @@ export function updateGame(gameId, teamId, points) {
 
   return (dispatch, getState) => {
     const state = getState()
-    const game = state.games[gameId]
+    const game = state.sports.games[gameId]
     let updatedGameFields = {}
 
     // if game does not exist yet, we don't know what sport so just cancel the update and wait for polling call
@@ -128,6 +128,12 @@ export function updateGame(gameId, teamId, points) {
     // if the boxscore doesn't exist yet, that means we need to update games
     if (game.hasOwnProperty('boxscore') === false &&
         state.sports[game.sport].isFetchingGames === false) {
+      return dispatch(fetchGames(game.sport))
+    }
+
+    // if we think the game hasn't started, also update the games
+    if (game.hasOwnProperty('boxscore') === true &&
+        game.boxscore.status === 'scheduled') {
       return dispatch(fetchGames(game.sport))
     }
 
@@ -167,6 +173,10 @@ function receiveGames(sport, response) {
   let games = Object.assign({}, response)
   _.forEach(games, (game, id) => {
     game.sport = sport
+
+    if (game.hasOwnProperty('boxscore')) {
+      game.boxscore.timeRemaining = calculateTimeRemaining(sport, game)
+    }
   })
 
   return {
@@ -179,7 +189,7 @@ function receiveGames(sport, response) {
 
 
 function fetchGames(sport) {
-  log.trace('actionsSports.fetchGames')
+  log.info(`actionsSports.fetchGames for ${sport}`)
 
   return dispatch => {
     dispatch(requestGames(sport))
@@ -205,7 +215,7 @@ function shouldFetchGames(state, sport) {
   }
 
   if (state.sports[sport].hasOwnProperty('gamesUpdatedAt')) {
-    const expiration = moment(state.sports[sport].gamesUpdatedAt).add(6, 'hours')
+    const expiration = moment(state.sports[sport].gamesUpdatedAt).add(10, 'minutes')
 
     // if not yet expired
     if (moment().isBefore(expiration)) {
@@ -231,8 +241,6 @@ export function fetchGamesIfNeeded(sport) {
 
 
 export function fetchSportsIfNeeded() {
-  log.info('actionsSports.fetchSportsIfNeeded()')
-
   return (dispatch, getState) => {
     const state = getState()
 

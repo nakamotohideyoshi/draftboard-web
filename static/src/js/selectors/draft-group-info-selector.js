@@ -53,11 +53,11 @@ export const draftGroupInfoSelector = createSelector(
  */
 const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId
 const boxScoresSelector = (state) => state.upcomingDraftGroups.boxScores
-const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScoreGames
+// const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScoreGames
 
 export const activeDraftGroupBoxScoresSelector = createSelector(
-  [activeDraftGroupIdSelector, draftGroupsFilterSelector, boxScoresSelector, boxScoreGamesSelector],
-  (activeDraftGroupId, draftGroups, boxScores, games) => {
+  [activeDraftGroupIdSelector, draftGroupsFilterSelector, boxScoresSelector],
+  (activeDraftGroupId, draftGroups, boxScores) => {
     let response = {}
 
     if (activeDraftGroupId) {

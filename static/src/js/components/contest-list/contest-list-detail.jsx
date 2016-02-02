@@ -10,11 +10,10 @@ import {enterContest, setFocusedContest, fetchContestEntrantsIfNeeded}
   from '../../actions/upcoming-contests-actions.js'
 import * as AppActions from '../../stores/app-state-store.js'
 import { Router, Route } from 'react-router'
-import {updatePath, syncReduxAndRouter} from 'redux-simple-router'
+import {syncReduxAndRouter} from 'redux-simple-router'
 import createBrowserHistory from 'history/lib/createBrowserHistory'
 import CountdownClock from '../site/countdown-clock.jsx'
 import {fetchDraftGroupBoxScoresIfNeeded} from '../../actions/upcoming-draft-groups-actions.js'
-import {fetchTeamsIfNeeded} from '../../actions/sports.js'
 import {focusedContestInfoSelector, focusedLineupSelector} from '../../selectors/lobby-selectors.js'
 import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'
 
@@ -73,11 +72,6 @@ var ContestListDetail = React.createClass({
     }
   },
 
-  // Enter the currently focused lineup into a contest.
-  handleEnterContest: function(contestId) {
-    this.props.enterContest(contestId, this.props.focusedLineup.id)
-  },
-
 
   // Get the content of the selected tab.
   getActiveTab: function() {
@@ -111,6 +105,18 @@ var ContestListDetail = React.createClass({
   // When a tab is clicked, tell the state to show it'scontent.
   handleTabClick: function(tabName) {
     this.setState({'activeTab': tabName})
+  },
+
+
+  // Enter the currently focused lineup into a contest.
+  // TODO: this is copypasta from loby-contests.jsx. THis should really be a child copmponent of
+  // that but I kinda screwed up a long time ago. fix this someday.
+  handleEnterContest: function(contest) {
+    this.enterContest(contest.id);
+  },
+
+  enterContest: function(contestId) {
+    this.props.enterContest(contestId, this.props.focusedLineup.id);
   },
 
 
@@ -170,19 +176,18 @@ var ContestListDetail = React.createClass({
 
                 <div className="btn-enter-contest">
                   <EnterContestButton
-                    classNames="button--medium"
-                    startTime={this.props.contestInfo.contest.start}
-                    isEntered={this.props.contestInfo.isEntered}
-                    focusedLineup={this.props.focusedLineup}
+                    lineup={this.props.focusedLineup}
                     contest={this.props.contestInfo.contest}
-                    enterContest={this.props.enterContest}
-                    buttonLabels= {{
+                    lineupsInfo={this.props.lineupsInfo}
+                    onEnterClick={this.handleEnterContest}
+                    onEnterSuccess={this.close}
+                    buttonText= {{
                       draft: 'Draft a Team',
+                      started: 'Contest Has Started',
                       enter: 'Enter Contest',
-                      entered: 'Entered',
-                      started: 'Contest Has Started'
+                      entering: 'Entering...',
+                      entered: 'Entered'
                     }}
-
                   />
                 </div>
 

@@ -10,7 +10,6 @@ const initialState = {
 }
 
 module.exports = function(state = initialState, action) {
-  let newState = {}
 
   switch (action.type) {
 

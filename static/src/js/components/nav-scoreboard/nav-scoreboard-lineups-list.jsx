@@ -1,5 +1,5 @@
 import React from 'react';
-
+import _ from 'lodash';
 import NavScoreboardLineup from './nav-scoreboard-lineup.jsx';
 import NavScoreboardSeparator from './nav-scoreboard-separator.jsx';
 
@@ -16,7 +16,8 @@ const NavScoreboardLineupsList = React.createClass({
   defaultList: [],
 
   render() {
-    const list = this.props.lineups.map((lineup) => [
+    const lineupsList = _.map(this.props.lineups, (lineup) => lineup);
+    const list = lineupsList.map((lineup) => [
       <NavScoreboardLineup key={lineup.id} lineup={lineup} />,
       <NavScoreboardSeparator key={`${lineup.id}s`} half />,
 

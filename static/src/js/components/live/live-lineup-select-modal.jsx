@@ -123,8 +123,10 @@ const LiveLineupSelectModal = React.createClass({
   },
 
   render() {
-    const modalContent = this.getModalContent()
-    const title = (this.state.selectedSport) ? 'Choose a lineup' : 'Choose a sport'
+    let title = (this.state.selectedSport) ? 'Choose a lineup' : 'Choose a sport'
+    if (_.size(this.props.lineups) === 0) {
+      title = 'You have no entered lineups.'
+    }
 
     return (
       <Modal
@@ -135,7 +137,7 @@ const LiveLineupSelectModal = React.createClass({
 
         <div>
           <header className="cmp-modal__header">{title}</header>
-          <div className="cmp-live-lineup-select">{modalContent}</div>
+          <div className="cmp-live-lineup-select">{this.getModalContent()}</div>
         </div>
 
       </Modal>

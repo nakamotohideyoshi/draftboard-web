@@ -1,20 +1,19 @@
 // so we can use Promises
 import 'babel-core/polyfill'
 const request = require('superagent-promise')(require('superagent'), Promise)
-import { normalize, Schema, arrayOf } from 'normalizr'
-
 import * as ActionTypes from '../action-types'
 import log from '../lib/logging'
 
 
-function requestPrize(id) {
-  log.trace('actionsLivePrize.requestPrize')
 
-  return {
-    id: id,
-    type: ActionTypes.REQUEST_PRIZE
-  }
-}
+// function requestPrize(id) {
+//   log.trace('actionsLivePrize.requestPrize')
+//
+//   return {
+//     id: id,
+//     type: ActionTypes.REQUEST_PRIZE
+//   }
+// }
 
 
 function receivePrize(id, response) {

@@ -1,7 +1,6 @@
 "use strict"
 
 import update from 'react-addons-update'
-import { map as _map, forEach as _forEach } from 'lodash'
 const ActionTypes = require('../action-types')
 import _ from 'lodash'
 

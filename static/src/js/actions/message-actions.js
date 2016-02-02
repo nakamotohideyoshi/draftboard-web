@@ -1,5 +1,4 @@
 import * as types from '../action-types.js'
-import log from '../lib/logging'
 
 
 

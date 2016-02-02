@@ -21,11 +21,14 @@ const LiveContestsPaneItem = React.createClass({
 
   render() {
     const contest = this.props.contest
-    let moneyLineClass = 'live-winning-graph'
+    let moneyLineClass = 'live-moneyline'
 
     if (contest.percentageCanWin <= contest.myPercentagePosition) {
-      moneyLineClass += ' live-winning-graph--is-losing'
+      moneyLineClass += ' live-moneyline--is-losing'
     }
+
+    // flip to be to the right
+    const myPercentagePosition = 100 - contest.myPercentagePosition
 
     return (
       <li className="live-contests-pane__contest" key={ contest.id }>
@@ -38,11 +41,11 @@ const LiveContestsPaneItem = React.createClass({
         </div>
 
         <section className={ moneyLineClass }>
-          <div className="live-winning-graph__pmr-line">
-            <div className="live-winning-graph__winners" style={{ width: `${contest.percentageCanWin}%` }}></div>
+          <div className="live-moneyline__pmr-line">
+            <div className="live-moneyline__winners" style={{ width: `${contest.percentageCanWin}%` }}></div>
             <div
-              className="live-winning-graph__current-position"
-              style={{ left: `${contest.myPercentagePosition}%` }}
+              className="live-moneyline__current-position"
+              style={{ left: `${myPercentagePosition}%` }}
             ></div>
           </div>
         </section>
