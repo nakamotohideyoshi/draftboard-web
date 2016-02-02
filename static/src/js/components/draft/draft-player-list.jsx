@@ -8,12 +8,10 @@ const CollectionSearchFilter = require('../filters/collection-search-filter.jsx'
 const PlayerListRow = require('./draft-player-list-row.jsx')
 import DraftTeamFilter from './draft-team-filter.jsx'
 import {forEach as _forEach, find as _find, matchesProperty as _matchesProperty} from 'lodash'
-import * as moment from 'moment'
 import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter}
   from '../../actions/draft-group-players-actions.js'
 import {fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId}
   from '../../actions/upcoming-draft-groups-actions.js'
-import {fetchSportInjuries} from '../../actions/injury-actions.js'
 import {createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
   editLineupInit, importLineup } from '../../actions/lineup-actions.js'
 import {draftGroupPlayerSelector} from '../../selectors/draft-group-players-selector.js'
