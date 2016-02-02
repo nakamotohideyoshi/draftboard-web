@@ -45,6 +45,8 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
     This timeout modifier can be adjusted with the 'timeout_modifier' variable.
     """
 
+    sent_pbp_table_key = 'SentPbp_LiveStatsCache_table'
+
     class Config(object):
 
         def __init__(self):
@@ -112,8 +114,16 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
 
         self.r = Random()
 
-    def update_many(self, livestats):
-        pass # TODO ?
+    def __validate_livestat(self, livestat):
+        """
+        validates livestat parameter
+
+        :param livestat:
+        :raises IncorrectVariableTypeException: when 'livestat' param is not the expected type
+        :return:
+        """
+        if not issubclass(type(livestat), Hashable):
+            raise IncorrectVariableTypeException(type(self).__name__, 'livestat' )
 
     def update(self, livestat):
         """
@@ -130,14 +140,32 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
         :return:
         """
 
-        if not issubclass(type(livestat), Hashable):
-            raise IncorrectVariableTypeException(type(self).__name__, 'livestat' )
+        self.__validate_livestat(livestat)
 
         #
         # the return value, a boolean, is True if it was added, otherwise False
         was_added = self.c.add( self.get_key(livestat.hsh()), livestat.get_id(),
                               self.get_to(), version=self.key_version )
         return was_added
+
+    def update_pbp(self, livestat):
+        """
+        return boolean indicating whether a livestat object with an
+        '_id' field matching livestat.get_id() exists already.
+        """
+
+        self.__validate_livestat( livestat )
+
+        sent_pbp = self.c.get( self.sent_pbp_table_key, {} )
+        if sent_pbp.has_key(livestat.get_id()):
+            was_added = False
+        else:
+            sent_pbp[livestat.get_id()] = 'x' # set to anything
+            was_added = True
+            # add the dict back into the cache
+            self.c.add( self.sent_pbp_table_key, sent_pbp, self.to, version=self.key_version )
+
+        return was_added    # if was_added is True, that means we just added it
 
     def get_to(self):
         # int( float(797) * ( float(r.randint( -1 * 13, 13 )) / 100.0 ) )
@@ -212,6 +240,8 @@ class TriggerCache( UsesCacheKeyPrefix ):
 
 class PlayByPlayCache( UsesCacheKeyPrefix ):
     """
+    For the trailing history of pbp objects available.
+
     Stores a short, trailing history, of a particular sports play by play objects,
     so the front end can get a list of these objects to display. Does not contain
     all of the pbp objects for entire games or days by design -- this is meant only
@@ -279,35 +309,5 @@ class PlayByPlayCache( UsesCacheKeyPrefix ):
         :return:
         """
         return self.c.get( self.__key(), [] )
-
-# class PbpCacheNba( PlayByPlayCache ):
-#     """
-#     NBA pbp cache
-#     """
-#     def __init__(self):
-#         super().__init__('nba')
-#
-# class PbpCacheNhl( PlayByPlayCache ):
-#     """
-#     NHL pbp cache
-#     """
-#     def __init__(self):
-#         super().__init__('nhl')
-#
-# class PbpCacheNfl( PlayByPlayCache ):
-#     """
-#     NFL pbp cache
-#     """
-#     def __init__(self):
-#         super().__init__('nfl')
-#
-# class PbpCacheMlb( PlayByPlayCache ):
-#     """
-#     MLB pbp cache
-#     """
-#     def __init__(self):
-#         super().__init__('mlb')
-
-
 
 
