@@ -105,19 +105,6 @@ module.exports = function(state = {}, action) {
 
       return setOrMerge(state, action, newProps)
 
-
-    case ActionTypes.UPDATE_LIVE_CONTEST_STATS:
-      log.trace('reducersLiveContests.UPDATE_LIVE_CONTEST_STATS')
-
-      return update(state, {
-        [action.id]: {
-          $merge: {
-            stats: action.stats
-          }
-        }
-      })
-
-
     case ActionTypes.CONFIRM_RELATED_LIVE_CONTEST_INFO:
       log.trace('reducersLiveContests.CONFIRM_RELATED_LIVE_CONTEST_INFO')
 

@@ -1,21 +1,14 @@
-"use strict"
-
-import { normalize, Schema, arrayOf } from 'normalizr'
-
-import log from '../lib/logging'
-import { fetchEntriesIfNeeded } from './entries'
-import { fetchDraftGroupIfNeeded } from './live-draft-groups'
+import * as ActionTypes from '../action-types'
 
 
-export const SET_CURRENT_LINEUPS = 'SET_CURRENT_LINEUPS'
-
-
-export function setCurrentLineups(lineups) {
-  log.trace('actionsCurrentLineups.setCurrentLineups')
-
-  return {
-    type: SET_CURRENT_LINEUPS,
-    lineups: lineups,
-    updatedAt: Date.now()
-  }
-}
+/**
+ * Takes a object of lineup objects and adds them to the store. Method is run with dispatch() to tie to the reducer
+ * with according action type.
+ * @param  {object} lineups List of lineup objects
+ * @return {object}         Need data for the reducer
+ */
+export const setCurrentLineups = (lineups) => ({
+  type: ActionTypes.SET_CURRENT_LINEUPS,
+  lineups,
+  updatedAt: Date.now(),
+})
