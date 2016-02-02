@@ -376,7 +376,10 @@ class SalaryGenerator(FppgGenerator):
                                 player.fantasy_weighted_average += \
                                     player.player_stats_list[j].fantasy_points * (float)(tgw.weight)
 
-                    i = tgw.through -1
+                                #print('    ', str(player.player), float(player.player_stats_list[j].fantasy_points * (float)(tgw.weight)))
+                    i = tgw.through
+
+                #print('final',str(player),str(player.fantasy_weighted_average))
 
                 #
                 # If the configuration does not account trailing games use a 1x multiplier
@@ -389,7 +392,9 @@ class SalaryGenerator(FppgGenerator):
 
                 #
                 # takes the sum and divides by the total allowed games
+                #print('before player.fantasy_weighted_average', str(player.fantasy_weighted_average))
                 player.fantasy_weighted_average /= (float)(self.salary_conf.trailing_games)
+                #print('after player.fantasy_weighted_average', str(player.fantasy_weighted_average))
 
             else:
                 player.flagged= True
