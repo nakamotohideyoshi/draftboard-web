@@ -13,142 +13,70 @@ import { updateLivePlayersStats } from './live-players'
 import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions.js'
 
 
-const playerSchema = new Schema('players', {
-  idAttribute: 'player_id',
+// dispatch to reducer methods
+
+
+/**
+ * Dispatch information to reducer that we have completed getting all information related to the draft group
+ * Used to make the components aware tht we have finished pulling information.
+ * NOTE: this method must be wrapped with dispatch()
+ * @param  {number} id  Contest ID
+ * @return {object}     Changes for reducer
+ */
+const confirmDraftGroupStored = (id) => ({
+  type: ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED,
+  id,
 })
 
+/**
+ * Dispatch information to reducer that we are trying to get fantasy points for players in a draft group
+ * Used to prevent repeat calls while requesting.
+ * NOTE: this method must be wrapped with dispatch()
+ * @return {object}   Changes for reducer
+ */
+const requestDraftGroupFP = (id) => ({
+  id,
+  type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP,
+})
 
-// Used to update a player's stats when a Pusher call sends us new info
-export function updatePlayerStats(playerId, eventCall, draftGroupId) {
-  log.trace('actionsLiveDraftGroup.updatePlayerStats')
+/**
+ * Dispatch information to reducer that we are trying to get draft group information
+ * Used to prevent repeat calls while requesting.
+ * NOTE: this method must be wrapped with dispatch()
+ * @return {object}   Changes for reducer
+ */
+const requestDraftGroupInfo = (id) => ({
+  id,
+  type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_INFO,
+})
 
-  return (dispatch, getState) => {
-    const state = getState()
+/**
+ * Dispatch API response object of players with fantasy points in a draft group
+ * Also pass through an updated at so that we can expire and re-poll after a period of time.
+ * NOTE: this method must be wrapped with dispatch()
+ * @param  {number} id            Contest ID
+ * @param  {object} response      Response of players
+ * @return {object}               Changes for reducer
+ */
+const receiveDraftGroupFP = (id, players) => ({
+  type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
+  id,
+  players,
+  updatedAt: Date.now(),
+})
 
-    // if this is a relevant player, update their stats
-    if (state.livePlayers.relevantPlayers.hasOwnProperty(eventCall.fields.srid_player)) {
-      log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', eventCall.fields.srid_player)
-      dispatch(updateLivePlayersStats(
-        eventCall.fields.srid_player,
-        eventCall.fields
-      ))
-    }
-
-    return dispatch({
-      id: draftGroupId,
-      type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
-      playerId,
-      fp: eventCall.fields.fantasy_points,
-    })
-  }
-}
-
-
-// DRAFT GROUP FANTASY POINTS
-// -----------------------------------------------------------------------
-
-function requestDraftGroupFP(id) {
-  log.trace('actionsLiveDraftGroup.requestDraftGroupFP')
-
-  return {
-    id,
-    type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP,
-  }
-}
-
-function receiveDraftGroupFP(id, players) {
-  log.trace('actionsLiveDraftGroup.receiveDraftGroupFP')
-
-  return {
-    type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
-    id,
-    players,
-    updatedAt: Date.now(),
-  }
-}
-
-function fetchDraftGroupFP(id) {
-  log.trace('actionsLiveDraftGroup.fetchDraftGroupFP')
-
-  return dispatch => {
-    dispatch(requestDraftGroupFP(id))
-
-    return request.get(
-      `/api/draft-group/fantasy-points/${id}/`
-    ).set({
-      'X-REQUESTED-WITH': 'XMLHttpRequest',
-      Accept: 'application/json',
-    }).then((res) => {
-      let players = res.body.players
-      if (_.size(players) === 0) {
-        players = {}
-        log.trace('shouldFetchDraftGroupFP() - FP not available yet', id)
-      }
-
-      return dispatch(receiveDraftGroupFP(id, players))
-    })
-  }
-}
-
-
-function shouldFetchDraftGroupFP(state, id) {
-  log.trace('actionsLiveDraftGroup.shouldFetchDraftGroupFP')
-
-  const liveDraftGroups = state.liveDraftGroups;
-
-  if (id in liveDraftGroups === false) {
-    throw new Error('You cannot get fantasy points for a player that is not in the draft group')
-  }
-  if (liveDraftGroups[id].isFetchingInfo === true) {
-    return false
-  }
-  if (liveDraftGroups[id].isFetchingFP === true) {
-    return false
-  }
-
-  return true
-}
-
-
-export function fetchDraftGroupFPIfNeeded(id) {
-  log.trace('actionsLiveDraftGroup.fetchDraftGroupFPIfNeeded')
-
-  return (dispatch, getState) => {
-    if (shouldFetchDraftGroupFP(getState(), id)) {
-      return dispatch(fetchDraftGroupFP(id))
-    }
-  }
-}
-
-
-// UPDATE DRAFT GROUP STATS
-// -----------------------------------------------------------------------
-
-export function fetchDraftGroupStats(id) {
-  log.trace('actionsLiveDraftGroup.fetchDraftGroupStats')
-  return (dispatch, getState) => {
-    if (shouldFetchDraftGroupFP(getState(), id)) {
-      return dispatch(fetchDraftGroupFP(id))
-    }
-  }
-}
-
-
-// DRAFT GROUP INFO
-// -----------------------------------------------------------------------
-
-function requestDraftGroupInfo(id) {
-  log.trace('actionsLiveDraftGroup.requestDraftGroupInfo')
-
-  return {
-    id,
-    type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_INFO,
-  }
-}
-
-
-function receiveDraftGroupInfo(id, response) {
-  log.trace('actionsLiveDraftGroup.receiveDraftGroupInfo')
+/**
+ * Dispatch API response object of draft group information
+ * Also pass through an updated at so that we can expire and re-poll after a period of time.
+ * NOTE: this method must be wrapped with dispatch()
+ * @param  {number} id            Contest ID
+ * @param  {object} response      API response
+ * @return {object}               Changes for reducer
+ */
+const receiveDraftGroupInfo = (id, response) => {
+  const playerSchema = new Schema('players', {
+    idAttribute: 'player_id',
+  })
 
   const normalizedPlayers = normalize(
     response.players,
@@ -175,88 +103,171 @@ function receiveDraftGroupInfo(id, response) {
 }
 
 
-export function fetchDraftGroupInfo(id) {
-  log.trace('actionsLiveDraftGroup.fetchDraftGroupInfo')
-
-  return dispatch => {
-    dispatch(requestDraftGroupInfo(id))
-
-    return request.get(
-      `/api/draft-group/${id}/`
-    ).set({
-      'X-REQUESTED-WITH': 'XMLHttpRequest',
-      Accept: 'application/json',
-    }).then((res) => Promise.all([
-      dispatch(receiveDraftGroupInfo(id, res.body)),
-      dispatch(fetchTeamsIfNeeded(res.body.sport)),
-    ]))
-  }
-}
+// helper methods
 
 
-function confirmDraftGroupStored(id) {
-  log.trace('actionsEntries.confirmRelatedEntriesInfo')
+/**
+ * API GET to return fantasy points of players in a draft group
+ * @param {number} id  Draft group ID
+ * @return {promise}   Promise that resolves with API response body to reducer
+ */
+const fetchDraftGroupFP = (id) => (dispatch) => {
+  dispatch(requestDraftGroupFP(id))
 
-  return {
-    type: ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED,
-    id,
-  }
-}
-
-
-function shouldFetchDraftGroup(state, id) {
-  log.trace('actionsLiveDraftGroup.shouldFetchDraftGroup')
-
-  return id in state.liveDraftGroups === false
-}
-
-
-export function fetchDraftGroupIfNeeded(id) {
-  log.trace('actionsLiveDraftGroup.fetchDraftGroupIfNeeded')
-
-  return (dispatch, getState) => {
-    if (shouldFetchDraftGroup(getState(), id) === false) {
-      log.trace('actionsLiveDraftGroup.fetchDraftGroupIfNeeded() - Draft group exists')
-      return Promise.resolve('Draft group exists')
+  return request.get(
+    `/api/draft-group/fantasy-points/${id}/`
+  ).set({
+    'X-REQUESTED-WITH': 'XMLHttpRequest',
+    Accept: 'application/json',
+  }).then((res) => {
+    let players = res.body.players
+    if (_.size(players) === 0) {
+      players = {}
+      log.debug('shouldFetchDraftGroupFP() - FP not available yet', id)
     }
-    return Promise.all([
-      dispatch(fetchDraftGroupInfo(id)),
-      dispatch(fetchDraftGroupFP(id)),
-      dispatch(fetchPlayerBoxScoreHistoryIfNeeded('nba')),
-    ])
-    .then(() =>
-      dispatch(confirmDraftGroupStored(id))
-    )
-  }
+
+    return dispatch(receiveDraftGroupFP(id, players))
+  })
 }
 
+/**
+ * API GET to return draft group info
+ * @param {number} id  Draft group ID
+ * @return {promise}   Promise that resolves with API response body to reducer
+ */
+const fetchDraftGroupInfo = (id) => (dispatch) => {
+  dispatch(requestDraftGroupInfo(id))
+
+  return request.get(
+    `/api/draft-group/${id}/`
+  ).set({
+    'X-REQUESTED-WITH': 'XMLHttpRequest',
+    Accept: 'application/json',
+  }).then((res) => Promise.all([
+    dispatch(receiveDraftGroupInfo(id, res.body)),
+    dispatch(fetchTeamsIfNeeded(res.body.sport)),
+  ]))
+}
+
+/**
+ * Method to determine whether we need to fetch fantasy points for draft group players.
+ * @param  {object} state Current Redux state to test
+ * @return {boolean}      True if we should fetch, false if not
+ */
+const shouldFetchDraftGroupFP = (state, id) => {
+  const liveDraftGroups = state.liveDraftGroups;
+
+  // error if no draft group to associate players to
+  if (id in liveDraftGroups === false) {
+    throw new Error('You cannot get fantasy points for a player that is not in the draft group')
+  }
+  // do not fetch if fetching info
+  if (liveDraftGroups[id].isFetchingInfo === true) {
+    return false
+  }
+  // do not fetch if fetching fp
+  if (liveDraftGroups[id].isFetchingFP === true) {
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Method to determine whether we need to fetch draft group.
+ * Fetch if it currently does not exist at all yet.
+ * @param  {object} state Current Redux state to test
+ * @return {boolean}      True if we should fetch, false if not
+ */
+const shouldFetchDraftGroup = (state, id) => state.liveDraftGroups.hasOwnProperty(id) === false
+
+
+// primary methods (mainly exported, some needed in there to have proper init of const)
+
+
+/**
+ * Get fantasy points for players in a draft group if need be
+ * @param {number} id  Draft group ID
+ * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
+ *                     returned method or directly as a resolved promise
+ */
+export const fetchDraftGroupFPIfNeeded = (id) => (dispatch, getState) => {
+  if (shouldFetchDraftGroupFP(getState(), id)) {
+    return dispatch(fetchDraftGroupFP(id))
+  }
+
+  return Promise.resolve('Draft group FP not needed')
+}
+
+/**
+ * Get draft group if needed, which involves getting info, fantasy points of players, and seasonal stats for players
+ * @param {number} id  Draft group ID
+ * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
+ *                     returned method or directly as a resolved promise
+ */
+export const fetchDraftGroupIfNeeded = (id) => (dispatch, getState) => {
+  if (shouldFetchDraftGroup(getState(), id) === false) {
+    log.trace('actionsLiveDraftGroup.fetchDraftGroupIfNeeded() - Draft group exists')
+    return Promise.resolve('Draft group exists')
+  }
+  return Promise.all([
+    dispatch(fetchDraftGroupInfo(id)),
+    dispatch(fetchDraftGroupFP(id)),
+    dispatch(fetchPlayerBoxScoreHistoryIfNeeded('nba')),
+  ])
+  .then(() =>
+    dispatch(confirmDraftGroupStored(id))
+  )
+}
 
 /**
  * Remove all draft groups that have ended. While looping through, aggregate all related lineups and contests and remove
  * those as well.
  * @return {Promise} Return the promise of all of the calls being run simultaneously.
  */
-export const removeUnusedDraftGroups = () => {
-  log.trace('actionsLiveDraftGroup.removeEndedDraftGroups')
+export const removeUnusedDraftGroups = () => (dispatch, getState) => {
+  const draftGroupIds = []
+  const currentLineups = getState().currentLineups.items || {}
 
-  return (dispatch, getState) => {
-    const draftGroupIds = []
-    const currentLineups = getState().currentLineups.items || {}
+  _forEach(getState().liveDraftGroups, (draftGroup) => {
+    const id = draftGroup.id
+    const lineups = _.filter(currentLineups, (lineup) => lineup.draft_group === id)
 
-    _forEach(getState().liveDraftGroups, (draftGroup) => {
-      const id = draftGroup.id
-      const lineups = _.filter(currentLineups, (lineup) => lineup.draft_group === id)
+    // if there are no lineups the group is related to, then remove
+    if (lineups.length === 0) {
+      draftGroupIds.push(id)
+    }
+  })
 
-      // if there are no lineups the group is related to, then remove
-      if (lineups.length === 0) {
-        draftGroupIds.push(id)
-      }
-    })
+  return dispatch({
+    type: ActionTypes.REMOVE_LIVE_DRAFT_GROUPS,
+    ids: draftGroupIds,
+    removedAt: Date.now(),
+  })
+}
 
-    return dispatch({
-      type: ActionTypes.REMOVE_LIVE_DRAFT_GROUPS,
-      ids: draftGroupIds,
-      removedAt: Date.now(),
-    })
+/**
+ * Used to update a player's stats when a Pusher call sends us new info
+ * @param  {number} playerId      Player ID
+ * @param  {object} eventCall     Pusher event that came through
+ * @param  {number} draftGroupId) Draft group ID to find player in redux store
+ * @return {object}               Changes for reducer, wrapped in thunk
+ */
+export const updatePlayerStats = (playerId, eventCall, draftGroupId) => (dispatch, getState) => {
+  // if this is a relevant player, update their stats
+  if (getState().livePlayers.relevantPlayers.hasOwnProperty(eventCall.fields.srid_player)) {
+    log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', eventCall.fields.srid_player)
+
+    dispatch(updateLivePlayersStats(
+      eventCall.fields.srid_player,
+      eventCall.fields
+    ))
   }
+
+  return dispatch({
+    id: draftGroupId,
+    type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
+    playerId,
+    fp: eventCall.fields.fantasy_points,
+  })
 }
