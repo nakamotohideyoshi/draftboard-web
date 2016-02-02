@@ -5,17 +5,15 @@ from django.test import TestCase
 
 from testfixtures import Replacer,test_datetime
 from test.classes import AbstractTest
-from dataden.util.hsh import Hashable, InvalidArgumentException, \
-                             ObjectNotHashableException, InvalidCryptoException
-
+from dataden.util.hsh import (
+    Hashable,
+    InvalidArgumentException,
+    ObjectNotHashableException,
+    InvalidCryptoException,
+)
+from dataden.watcher import OpLogObjWrapper
 from dataden.util.simpletimer import SimpleTimer
 from dataden.cache.caches import LiveStatsCache
-from dataden.classes import DataDen
-
-import datetime
-import django
-import time
-import psycopg2 # for IntegrityError exception
 
 class TestHashable(TestCase):
     """
@@ -58,3 +56,20 @@ class TestStatsCache(TestCase):
 
     def test_instantiate(self):
         stats = LiveStatsCache()
+
+class TestLiveStatsCache(TestCase):
+
+    def setUp(self):
+        self.live_stats_cache = LiveStatsCache(clear=True) # totally wipe out the cache
+
+    def test_update_pbp_object(self):
+        pbp_dataden_obj_id          = 'thisisarandomlygenerateduniquevalue'
+        spoofed_dataden_pbp_object  = {'_id':pbp_dataden_obj_id, 'parent_api__id':'any_parent_api'}
+        oplog_obj = OpLogObjWrapper('any_db','any_coll', spoofed_dataden_pbp_object)
+
+        # the first time we call update_pbp() it shoudl return true,
+        # indicating we just added it
+        self.assertTrue( self.live_stats_cache.update_pbp( oplog_obj ) )
+        # the following time we call update_pbp() with the same object,
+        # it should return false, indicating it already exists in the cache
+        self.assertFalse( self.live_stats_cache.update_pbp( oplog_obj ) )

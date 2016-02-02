@@ -150,16 +150,18 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
 
     def update_pbp(self, livestat):
         """
-        return boolean indicating whether a livestat object with an
-        '_id' field matching livestat.get_id() exists already.
+        return a boolean indicating whether a livestat object with an
+        '_id' field matching livestat.get_id() was just added.
         """
 
         self.__validate_livestat( livestat )
 
         sent_pbp = self.c.get( self.sent_pbp_table_key, {} )
-        if sent_pbp.has_key(livestat.get_id()):
+        if sent_pbp.get(livestat.get_id(), None) is not None:
+            # it exists
             was_added = False
         else:
+            # it did not exist !
             sent_pbp[livestat.get_id()] = 'x' # set to anything
             was_added = True
             # add the dict back into the cache

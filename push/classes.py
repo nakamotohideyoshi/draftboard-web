@@ -217,8 +217,8 @@ class PbpDataDenPush( AbstractPush ):
         if the object has already been sent... if it has, then do not send it!
         """
         live_stats_cache = LiveStatsCache()
-        already_sent = live_stats_cache.update_pbp( pbp_data )
-        if not already_sent:
+        just_added = live_stats_cache.update_pbp( pbp_data )
+        if just_added:
             super().send( *args, **kwargs )
 
 class ContestPush( AbstractPush ):
