@@ -1,21 +1,21 @@
-"use strict";
-
-import update from 'react-addons-update'
-const ActionTypes = require('../action-types');
+import update from 'react-addons-update';
+import * as ActionTypes from '../action-types';
 
 
-module.exports = function(state = {
+module.exports = (state = {
   isFetching: false,
-  items: {}
-}, action) {
+  items: {},
+}, action) => {
   switch (action.type) {
     case ActionTypes.SET_CURRENT_LINEUPS:
-      return update(state, { $set: {
-        updatedAt: action.updatedAt,
-        items: action.lineups
-      }})
+      return update(state, {
+        $set: {
+          updatedAt: action.updatedAt,
+          items: action.lineups,
+        },
+      });
 
     default:
-      return state
+      return state;
   }
 };
