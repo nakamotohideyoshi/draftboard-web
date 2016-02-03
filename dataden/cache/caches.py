@@ -2,15 +2,17 @@
 # dataden/cache/caches.py
 
 from django.core.cache import caches
-
+from django.utils import timezone
+from queue import Queue, Full, Empty
 from mysite.exceptions import IncorrectVariableTypeException
-
 from keyprefix.classes import UsesCacheKeyPrefix
 from dataden.util.hsh import Hashable
-
 from random import Random
-
-from dataden.models import LiveStatsCacheConfig, Trigger
+from dataden.models import (
+    LiveStatsCacheConfig,
+    Trigger,
+)
+import random
 
 # >>> cache1 = caches['myalias']
 # >>> cache  = caches['default'] # ie: settings.CACHES = { 'default' : THIS }
@@ -312,4 +314,138 @@ class PlayByPlayCache( UsesCacheKeyPrefix ):
         """
         return self.c.get( self.__key(), [] )
 
+class NonBlockingQueue( Queue ):
+    """
+    queue that discards the oldest items instread of blocking on put() if its Full
+    """
 
+    def __init__(self, size=1000):
+        assert type(size) is int, "size must be an int"
+        super().__init__(size)
+
+    def put(self, obj):
+        """
+        Put an obj into the queue.
+        Discards the oldest item if the queue is full.
+
+        :param obj:
+        :return:
+        """
+        try:
+            super().put(obj, False)
+        except Full:
+            super().get(self, False)
+            super().put(self, obj, False)
+
+    def get(self):
+        """
+
+        :return: tuple of (<datetime object>, <obj>). if nothing in the queue, returns None
+        """
+        try:
+            return super().get(self, False)
+        except Empty:
+            return None
+
+class CommonId(object):
+
+    def __init__(self, common_id, obj):
+        self.common_id = common_id
+        self.obj = obj
+
+    def get_common_id(self):
+        return self.common_id
+
+    def get_obj(self):
+        return self.obj
+
+class RandomId(object):
+
+    def get_random_id(self):
+        """
+        returns random values using random.getrandbits(128)
+        kind of like in this code example:
+
+        >>> hash = random.getrandbits(128)
+        >>> '%032x' % hash
+        >>> 'ddc16ae5ad655f088d71fd30fe03497f'
+        """
+        return '%032x' % random.getrandbits(128)
+
+class QueueTable:
+    """
+    an object that has 0 or more named queues, named by strings
+    """
+
+    class QueueNotFoundException(Exception): pass
+
+    class QueueNamesNotSetException(Exception): pass
+
+    queue_size = 10
+
+    def __init__(self, names=[]):
+        if names == []:
+            err_msg = 'the argument "names" must be a non-empty list of unique names"'
+            raise self.QueueNamesNotSetException(err_msg)
+
+        self.queues = {}
+        for name in names:
+            self.queues[name] = NonBlockingQueue(self.queue_size)
+
+    def get_queue(self, name):
+        """
+        get a queue by name
+
+        :param name:
+        :return:
+        """
+        if name in self.queues.keys():
+            return self.queues[ name ]
+        # else raise exception with the name of the queue
+        raise self.QueueNotFoundException(name)
+
+    def get(self, name):
+        """
+        get the first thing in the named queue
+        """
+        return self.get_queue(name).get()
+
+    def remove(self, name, obj):
+        """
+        remove the object from the queue equal to 'obj' parameter
+        """
+        q = self.get_queue(name)
+        q.queue.remove( obj )
+
+    def add(self, name, obj):
+        """
+        """
+        # get the queue for this player named by 'name' param
+        # and add the object, by:
+        #   making a (<RandomId>, timezone.now(), obj) tuple, and adding it to the named queue
+
+        uid = RandomId().get_random_id()
+        now = timezone.now()
+        q   = self.get_queue(name)
+        tup = (uid, now, obj)
+        q.put( tup )
+
+class LinkedExpiringObjectQueueTable(QueueTable):
+    """
+    an object with access to multiple named queues.
+
+    objects placed into any of the queues will be able
+    to be retrieved from the queue until .
+
+    the identifier can be used to retrieve objects
+    from cache, but if they have expired will return None.
+    """
+
+    def __init__(self):
+        pass
+        # TODO set a timeout
+
+        # TODO      everytime something is added to the ExpiringObjectQueueTable
+        # TODO      fire a task with countdownSeconds to try to link objects!
+
+    def get_linked_object(self, original_queue, ):
