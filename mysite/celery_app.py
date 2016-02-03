@@ -225,6 +225,43 @@ app.conf.update(
 
 )
 
+class locking(object):
+    """
+    a DECORATOR for locking a task, utilizing the django cache
+
+    usage:
+
+        @app.task(bind=True)
+        @locking("lock_prefix", 30)       #
+        def some_task(a1, a2, a3, a4):
+            print('sayHello arguments:', a1, a2, a3, a4)
+
+    """
+
+    def __init__(self, lock_prefix, timeout):
+        """
+        If there are decorator arguments, the function
+        to be decorated is not passed to the constructor!
+        """
+        print("Inside __init__()")
+        self.lock_prefix    = lock_prefix
+        self.timeout        = timeout
+
+    def __call__(self, f):
+        """
+        If there are decorator arguments, __call__() is only called
+        once, as part of the decoration process! You can only give
+        it a single argument, which is the function object.
+        """
+        print("Inside __call__()")
+        def wrapped_f(*args):
+            print("Inside wrapped_f()")
+            print("Decorator arguments:", self.lock_prefix, self.timeout)
+            f(*args)
+            print("After f(*args)")
+        return wrapped_f
+
+
 class TaskHelper(object):
     """
     primarily responsible for retrieving the result of a task,
