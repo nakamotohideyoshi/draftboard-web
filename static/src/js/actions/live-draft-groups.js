@@ -241,6 +241,8 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
     }
   })
 
+  if (draftGroupIds.length === 0) return null
+
   return dispatch({
     type: ActionTypes.REMOVE_LIVE_DRAFT_GROUPS,
     ids: draftGroupIds,

@@ -9,6 +9,7 @@ import { Router, Route } from 'react-router'
 import { syncReduxAndRouter } from 'redux-simple-router'
 import { updatePath } from 'redux-simple-router'
 
+import errorHandler from '../../actions/live-error-handler'
 import LiveBottomNav from './live-bottom-nav'
 import LiveContestsPane from './live-contests-pane'
 import LiveCountdown from './live-countdown'
@@ -50,6 +51,7 @@ const mapStateToProps = (state) => ({
  * @return {object}            All of the methods to map to the component
  */
 const mapDispatchToProps = (dispatch) => ({
+  errorHandler: (exception) => dispatch(errorHandler(exception)),
   fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
   fetchEntriesIfNeeded: (id) => dispatch(fetchEntriesIfNeeded(id)),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
@@ -68,6 +70,7 @@ const Live = React.createClass({
 
   propTypes: {
     currentLineupsSelector: React.PropTypes.object.isRequired,
+    errorHandler: React.PropTypes.func,
     fetchEntriesIfNeeded: React.PropTypes.func,
     fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
     fetchSportsIfNeeded: React.PropTypes.func,
@@ -90,9 +93,13 @@ const Live = React.createClass({
     };
   },
 
+  /**
+   * Uses promises in order to pull in all relevant data into redux, and then starts to listen for Pusher calls
+   * Here's the documentation on the order in which all the data comes in https://goo.gl/uSCH0K
+   */
   componentWillMount() {
+    // update mode based on where we are in the live section
     const urlParams = this.props.params
-
     if (urlParams.hasOwnProperty('myLineupId')) {
       this.props.updateLiveMode({
         myLineupId: urlParams.myLineupId,
@@ -101,7 +108,7 @@ const Live = React.createClass({
       })
     }
 
-    this.listenToSockets()
+    this.startListening()
   },
 
   /*
@@ -260,8 +267,6 @@ const Live = React.createClass({
    * Start up Pusher listeners to the necessary channels and events
    */
   listenToSockets() {
-    log.info('Live.listenToSockets()')
-
     // NOTE: this really bogs down your console, only use locally when needed
     // uncomment this ONLY if you need to debug why Pusher isn't connecting
     // Pusher.log = function(message) {
@@ -489,6 +494,29 @@ const Live = React.createClass({
     }, 9000)
   },
 
+  /**
+   * Periodically override the redux state with server data, to ensure that we have up to date data in case we missed
+   * a Pusher call here or there. In time the intervals will increase, as we gain confidence in the system.
+   */
+  startParityChecks() {
+    // const draftGroupId = this.props.liveSelector.lineups.mine.draftGroup.id
+    // parityChecks.draftGroupFP = window.setInterval(() => this.props.fetchDraftGroupFP(draftGroupId), 600000)
+    // this.props.fetchDraftGroupFP(draftGroupId)
+
+    // add the checsk to the state in case we need to clearInterval in the future
+    // this.setState({ boxScoresIntervalFunc: parityChecks })
+  },
+
+  /**
+   * Internal method to start listening to pusher and poll for updates
+   */
+  startListening() {
+    log.info('Live.startListening()')
+
+    this.listenToSockets()
+    this.startParityChecks()
+  },
+
   /*
    * This loading screen shows in lieu of the live section when it takes longer than a second to do an initial load
    * TODO Live - get built out
@@ -514,11 +542,13 @@ const Live = React.createClass({
     }
 
     // if a lineup has not been chosen yet
-    if (mode.hasOwnProperty('myLineupId') === false) {
+    if (mode.hasOwnProperty('myLineupId') === false &&
+        liveData.hasOwnProperty('entries')
+    ) {
       return (
         <LiveLineupSelectModal
           changePathAndMode={this.changePathAndMode}
-          lineups={this.props.currentLineupsSelector}
+          entries={liveData.entries}
         />
       )
     }
