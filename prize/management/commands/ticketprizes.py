@@ -3,7 +3,7 @@
 
 from django.utils import timezone
 from django.core.management.base import BaseCommand, CommandError
-from prize.classes import TicketPrizeStructureCreator
+from prize.classes import FlatTicketPrizeStructureCreator
 from ticket.classes import TicketManager
 from ticket.models import TicketAmount
 
@@ -58,4 +58,4 @@ class Command(BaseCommand):
         #
         # print out possible prize structures for Flat Ticket Prize structures
         TicketManager.create_default_ticket_amounts()
-        TicketPrizeStructureCreator.print_all( max_entries )
+        FlatTicketPrizeStructureCreator.print_all( max_entries )

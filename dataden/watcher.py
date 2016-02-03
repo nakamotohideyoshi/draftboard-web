@@ -84,7 +84,7 @@ class OpLogObj( Hashable ):
         """
         get the dataden mongo _id base64 encoded hash of the keys
         """
-        return self.o.get('_id', None)  ######### IF EVERYTHING BREAK ITS BEAUSE THIS WAS LACKING THE 'return'
+        return self.o.get('_id', None)
 
     def get_ts(self):
         """
@@ -244,6 +244,10 @@ class Trigger(object):
                 hashable_object = OpLogObj(obj)
                 self.last_ts = hashable_object.get_ts()
 
+                #
+                # the live stats cache will filter out objects
+                # from being sent unless its the first time
+                # they've been seen, or if there have been changes
                 if self.live_stats_cache.update( hashable_object ):
                     #
                     # send the 'o' object (a stat update) out as a

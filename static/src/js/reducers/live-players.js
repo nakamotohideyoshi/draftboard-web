@@ -1,49 +1,47 @@
-"use strict";
-
-import update from 'react-addons-update'
-const ActionTypes = require('../action-types');
+import update from 'react-addons-update';
+import * as ActionTypes from '../action-types';
 
 
-module.exports = function(state = {
+module.exports = (state = {
   isFetching: [],
   relevantPlayers: {},
-  fetched: []
-}, action) {
+  fetched: [],
+}, action) => {
   switch (action.type) {
     case ActionTypes.REQUEST_LIVE_PLAYERS_STATS:
       return update(state, {
         isFetching: {
-          $push: [action.lineupId]
-        }
-      })
+          $push: [action.lineupId],
+        },
+      });
 
     case ActionTypes.RECEIVE_LIVE_PLAYERS_STATS:
-      let newState = update(state, {
+      const newState = update(state, {
         // add in players
         relevantPlayers: {
-          $merge: action.players
+          $merge: action.players,
         },
         // add to fetched list
         fetched: {
-          $push: [action.lineupId]
-        }
-      })
+          $push: [action.lineupId],
+        },
+      });
 
-      newState.isFetching = newState.isFetching.filter(item => item !== action.lineupId)
+      newState.isFetching = newState.isFetching.filter(item => item !== action.lineupId);
 
-      return newState
+      return newState;
 
 
     case ActionTypes.UPDATE_LIVE_PLAYER_STATS:
       return update(state, {
         relevantPlayers: {
           $merge: {
-            [action.playerSRID]: action.fields
-          }
-        }
-      })
+            [action.playerSRID]: action.fields,
+          },
+        },
+      });
 
     default:
-      return state
+      return state;
   }
 };

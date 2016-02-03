@@ -15,7 +15,6 @@ const live = require('./live');
 const liveContests = require('./live-contests');
 const liveDraftGroups = require('./live-draft-groups');
 const livePlayers = require('./live-players');
-const liveGameQueues = require('./live-game-queues');
 const messages = require('./messages.js');
 const payments = require('./payments');
 const playerNews = require('./player-news.js');
@@ -49,7 +48,6 @@ export default combineReducers({
   live,
   liveContests,
   liveDraftGroups,
-  liveGameQueues,
   livePlayers,
   messages,
   payments,
