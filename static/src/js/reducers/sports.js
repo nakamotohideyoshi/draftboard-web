@@ -1,6 +1,7 @@
 import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
-import _ from 'lodash';
+import moment from 'moment'
+
 
 // TODO remove this hardcode of nba
 module.exports = (state = {
@@ -10,6 +11,8 @@ module.exports = (state = {
     gameIds: [],
     isFetchingTeams: false,
     isFetchingGames: false,
+    gamesExpireAt: moment(),
+    teamsExpireAt: moment(),
   },
 }, action) => {
   switch (action.type) {
@@ -28,6 +31,7 @@ module.exports = (state = {
           $merge: {
             teams: action.teams,
             isFetchingTeams: false,
+            teamsExpireAt: action.expiresAt,
           },
         },
       });
@@ -48,9 +52,9 @@ module.exports = (state = {
         },
         [action.sport]: {
           $merge: {
-            gameIds: _.keys(action.games),
+            gameIds: action.gameIds,
             isFetchingGames: false,
-            gamesUpdatedAt: action.gamesUpdatedAt,
+            gamesExpireAt: action.expiresAt,
           },
         },
       });

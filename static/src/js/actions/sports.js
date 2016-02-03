@@ -56,13 +56,19 @@ const requestTeams = (sport) => ({
  * @return {object}        Changes for reducer
  */
 const receiveGames = (sport, games) => {
-  log.trace('actionsSports.receiveGames')
+  const gameIds = _.map(
+    _.sortBy(
+      games, (game) => game.start
+    ),
+    (game) => game.srid
+  )
 
   return {
     type: ActionTypes.RECEIVE_GAMES,
     sport,
     games,
-    gamesUpdatedAt: Date.now(),
+    gameIds,
+    expiresAt: moment(Date.now()).add(10, 'minutes'),
   }
 }
 
@@ -84,7 +90,7 @@ const receiveTeams = (sport, response) => {
     type: ActionTypes.RECEIVE_TEAMS,
     sport,
     teams: newTeams,
-    expiresAt: Date.now() + 86400000,
+    expiresAt: moment(Date.now()).add(6, 'hours'),
   }
 }
 
@@ -184,14 +190,9 @@ const shouldFetchGames = (state, sport) => {
     return false
   }
 
-  // if we have fetched before, check if expired
-  if (state.sports[sport].hasOwnProperty('gamesUpdatedAt')) {
-    const expiration = moment(state.sports[sport].gamesUpdatedAt).add(10, 'minutes')
-
-    // if not yet expired
-    if (moment().isBefore(expiration)) {
-      return false
-    }
+  // fetch if expired
+  if (moment().isBefore(state.sports[sport].gamesExpireAt)) {
+    return false
   }
 
   return true
@@ -204,7 +205,19 @@ const shouldFetchGames = (state, sport) => {
  * @param  {string} sport     Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
  * @return {boolean}      True if we should fetch, false if not
  */
-const shouldFetchTeams = (state, sport) => state.sports[sport].isFetchingTeams === false
+const shouldFetchTeams = (state, sport) => {
+  // if currently fetching, don't fetch again
+  if (state.sports[sport].isFetchingTeams === true) {
+    return false
+  }
+
+  // fetch if expired
+  if (moment().isBefore(state.sports[sport].teamsExpireAt)) {
+    return false
+  }
+
+  return true
+}
 
 
 // primary methods
@@ -224,19 +237,6 @@ export const fetchGamesIfNeeded = (sport) => (dispatch, getState) => {
 }
 
 /**
- * Fetch games for all relevant sports
- * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
- *                     returned method or directly as a resolved promise
- */
-export const fetchSportsIfNeeded = () => (dispatch, getState) => {
-  const state = getState()
-
-  _.forEach(state.sports.types, (sport) => {
-    dispatch(fetchGamesIfNeeded(sport))
-  })
-}
-
-/**
  * Fetch teams if we need to
  * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
  *                     returned method or directly as a resolved promise
@@ -247,6 +247,24 @@ export const fetchTeamsIfNeeded = (sport) => (dispatch, getState) => {
   }
 
   return dispatch(fetchTeams(sport))
+}
+
+export const fetchSportIfNeeded = (sport) => (dispatch) => {
+  dispatch(fetchTeamsIfNeeded(sport))
+  dispatch(fetchGamesIfNeeded(sport))
+}
+
+/**
+ * Fetch games and teams for all relevant sports
+ * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
+ *                     returned method or directly as a resolved promise
+ */
+export const fetchSportsIfNeeded = () => (dispatch, getState) => {
+  _.forEach(
+    getState().sports.types, (sport) => {
+      dispatch(fetchSportIfNeeded(sport))
+    }
+  )
 }
 
 /**

@@ -1,6 +1,5 @@
 import React from 'react'
 import * as ReactRedux from 'react-redux'
-import { debounce } from 'lodash'
 import request from 'superagent'
 import Cookies from 'js-cookie'
 import _ from 'lodash'
@@ -38,7 +37,7 @@ const LiveStandingsPane = React.createClass({
 
   componentDidMount() {
     this.props.fetchLineupUsernames(this.props.mode.contestId)
-    this.handleSearchByUsername = debounce(this.handleSearchByUsername, 150)
+    this.handleSearchByUsername = _.debounce(this.handleSearchByUsername, 150)
   },
 
   /**

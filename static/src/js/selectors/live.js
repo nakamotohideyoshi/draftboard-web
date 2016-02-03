@@ -18,13 +18,14 @@ export const liveSelector = createSelector(
   liveContestsSelector,
   currentLineupsSelector,
   state => state.live.mode,
-  state => state.entries.hasRelatedInfo,
+  state => state.entries,
   state => state.playerBoxScoreHistory,
   state => state.liveDraftGroups,
   state => state.sports,
 
-  (contestStats, currentLineupsStats, mode, hasRelatedInfo, playerBoxScoreHistory, liveDraftGroups, sports) => {
+  (contestStats, currentLineupsStats, mode, entries, playerBoxScoreHistory, liveDraftGroups, sports) => {
     const stats = {
+      entries: _.uniq(_.values(entries.items), 'lineup'),
       hasRelatedInfo: false,
       lineups: {},
       mode,
@@ -32,7 +33,7 @@ export const liveSelector = createSelector(
       relevantPlayers: [],
     }
 
-    if (hasRelatedInfo === false) {
+    if (entries.hasRelatedInfo === false) {
       return stats
     }
     stats.hasRelatedInfo = true
@@ -44,10 +45,10 @@ export const liveSelector = createSelector(
       // add in seasonal stats, teams for LivePlayerPane
       _.forEach(myLineup.rosterDetails, (player, playerId) => {
         if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
-          player.seasonalStats = playerBoxScoreHistory.nba[playerId]
+          myLineup.rosterDetails[playerId].seasonalStats = playerBoxScoreHistory.nba[playerId]
         }
 
-        player.teamInfo = sports[sport].teams[player.info.team_srid]
+        myLineup.rosterDetails[playerId].teamInfo = sports[sport].teams[player.info.team_srid]
       })
 
       // combine relevant players, games to target pusher calls for animations
@@ -78,10 +79,10 @@ export const liveSelector = createSelector(
 
           _.forEach(opponentLineup.rosterDetails, (player, playerId) => {
             if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
-              player.seasonalStats = playerBoxScoreHistory.nba[playerId]
+              opponentLineup.rosterDetails[playerId].seasonalStats = playerBoxScoreHistory.nba[playerId]
             }
 
-            player.teamInfo = sports[sport].teams[player.info.team_srid]
+            opponentLineup.rosterDetails[playerId].teamInfo = sports[sport].teams[player.info.team_srid]
           })
 
           opponentLineup.opponentWinPercent = opponentLineup.rank / contest.entriesCount * 100
