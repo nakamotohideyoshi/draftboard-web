@@ -22,7 +22,7 @@ const LiveLineupSelectModal = React.createClass({
 
     return {
       isOpen: true,
-      // selectedSport,
+      selectedSport: 'nba',
     }
   },
 
@@ -103,7 +103,6 @@ const LiveLineupSelectModal = React.createClass({
     // const sportLineups = _.filter(
     //  this.props.lineups, (lineup) => lineup.draftGroup.sport === this.state.selectedSport
     // )
-
     const lineups = this.props.entries.map((lineup) => {
       const name = (lineup.name === undefined) ? 'Example Lineup Name' : lineup.name
 

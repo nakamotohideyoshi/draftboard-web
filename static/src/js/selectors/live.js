@@ -24,13 +24,18 @@ export const liveSelector = createSelector(
   state => state.sports,
 
   (contestStats, currentLineupsStats, mode, entries, playerBoxScoreHistory, liveDraftGroups, sports) => {
+    const uniqueEntries = _.uniq(_.values(entries.items), 'lineup')
+
     const stats = {
-      entries: _.uniq(_.values(entries.items), 'lineup'),
       hasRelatedInfo: false,
       lineups: {},
       mode,
       relevantGames: [],
       relevantPlayers: [],
+    }
+
+    if (_.size(entries.items) > 0) {
+      stats.entries = uniqueEntries
     }
 
     if (entries.hasRelatedInfo === false) {

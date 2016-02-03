@@ -21,6 +21,7 @@ import LiveNBACourt from './live-nba-court'
 import LiveStandingsPaneConnected from './live-standings-pane'
 import log from '../../lib/logging'
 import store from '../../store'
+import { checkForUpdates } from '../../actions/live'
 import { currentLineupsSelector } from '../../selectors/current-lineups'
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
 import { fetchEntriesIfNeeded } from '../../actions/entries'
@@ -51,6 +52,7 @@ const mapStateToProps = (state) => ({
  * @return {object}            All of the methods to map to the component
  */
 const mapDispatchToProps = (dispatch) => ({
+  checkForUpdates: () => dispatch(checkForUpdates()),
   errorHandler: (exception) => dispatch(errorHandler(exception)),
   fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
   fetchEntriesIfNeeded: (id) => dispatch(fetchEntriesIfNeeded(id)),
@@ -69,6 +71,7 @@ const mapDispatchToProps = (dispatch) => ({
 const Live = React.createClass({
 
   propTypes: {
+    checkForUpdates: React.PropTypes.func,
     currentLineupsSelector: React.PropTypes.object.isRequired,
     errorHandler: React.PropTypes.func,
     fetchEntriesIfNeeded: React.PropTypes.func,
@@ -499,12 +502,12 @@ const Live = React.createClass({
    * a Pusher call here or there. In time the intervals will increase, as we gain confidence in the system.
    */
   startParityChecks() {
-    // const draftGroupId = this.props.liveSelector.lineups.mine.draftGroup.id
-    // parityChecks.draftGroupFP = window.setInterval(() => this.props.fetchDraftGroupFP(draftGroupId), 600000)
-    // this.props.fetchDraftGroupFP(draftGroupId)
+    const parityChecks = {
+      liveUpdate: window.setInterval(() => this.props.checkForUpdates(), 5000),
+    }
 
     // add the checsk to the state in case we need to clearInterval in the future
-    // this.setState({ boxScoresIntervalFunc: parityChecks })
+    this.setState({ boxScoresIntervalFunc: parityChecks })
   },
 
   /**
@@ -536,11 +539,6 @@ const Live = React.createClass({
     let moneyLine
     let opponentLineupComponent
 
-    // wait for data to load before showing anything
-    if (liveData.hasRelatedInfo === false) {
-      return this.renderLoadingScreen()
-    }
-
     // if a lineup has not been chosen yet
     if (mode.hasOwnProperty('myLineupId') === false &&
         liveData.hasOwnProperty('entries')
@@ -551,6 +549,11 @@ const Live = React.createClass({
           entries={liveData.entries}
         />
       )
+    }
+
+    // wait for data to load before showing anything
+    if (liveData.hasRelatedInfo === false) {
+      return this.renderLoadingScreen()
     }
 
     // wait until the lineup data has loaded before rendering
