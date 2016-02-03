@@ -13,7 +13,10 @@ from dataden.util.hsh import (
 )
 from dataden.watcher import OpLogObjWrapper
 from dataden.util.simpletimer import SimpleTimer
-from dataden.cache.caches import LiveStatsCache
+from dataden.cache.caches import (
+    LiveStatsCache,
+    NonBlockingQueue,
+)
 
 class TestHashable(TestCase):
     """
@@ -73,3 +76,15 @@ class TestLiveStatsCache(TestCase):
         # the following time we call update_pbp() with the same object,
         # it should return false, indicating it already exists in the cache
         self.assertFalse( self.live_stats_cache.update_pbp( oplog_obj ) )
+
+class TestNonBlockingQueue(TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_non_blocking_queue(self):
+        q = NonBlockingQueue( 1 )
+        self.assertIsNone( q.get() )
+        q.put( 'obj1' )
+        #q.
+
