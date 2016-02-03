@@ -1,31 +1,25 @@
-'use strict';
+// const KeypressActions = Reflux.createActions([
+//   'keypressJ',
+//   'keypressK',
+//   'keypressESC',
+// ]);
 
-var Reflux = require('reflux');
-
-
-var KeypressActions = Reflux.createActions([
-  'keypressJ',
-  'keypressK',
-  'keypressESC'
-]);
-
-var ignoredElements = [
+const ignoredElements = [
   'INPUT',
   'TEXTAREA',
-  'SELECT'
+  'SELECT',
 ];
 
-var keyCodeMap = {
+const keyCodeMap = {
   27: 'ESC',
   74: 'J',
-  75: 'K'
+  75: 'K',
 };
 
 
-document.onkeyup = function (e) {
-  e = e || window.event;
+document.onkeyup = (e = window.event) => {
   // If for whatever eason the browser doesn't give us an activeElement, assume body.
-  var activeElement = document.activeElement || document.body;
+  const activeElement = document.activeElement || document.body;
 
   // Check that the user isn't focused in an ignored element, and that the key pressed
   // is in our map.
@@ -33,9 +27,9 @@ document.onkeyup = function (e) {
       keyCodeMap[e.keyCode] !== undefined
     ) {
     // Fire the corresponding reflux action.
-    KeypressActions['keypress' + keyCodeMap[e.keyCode]].apply();
+    // KeypressActions[`keypress${keyCodeMap[e.keyCode]}`].apply();
   }
 };
 
 
-module.exports = KeypressActions;
+// module.exports = KeypressActions;

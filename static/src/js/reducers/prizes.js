@@ -1,9 +1,10 @@
 import update from 'react-addons-update';
-const ActionTypes = require('../action-types');
+import * as ActionTypes from '../action-types';
 
 
 module.exports = (state = {}, action) => {
   switch (action.type) {
+
     case ActionTypes.REQUEST_PRIZE:
       const newProps = {
         id: action.id,
@@ -16,6 +17,7 @@ module.exports = (state = {}, action) => {
         },
       });
 
+
     case ActionTypes.RECEIVE_PRIZE:
       return update(state, {
         [action.id]: {
@@ -25,6 +27,7 @@ module.exports = (state = {}, action) => {
           },
         },
       });
+
 
     default:
       return state;

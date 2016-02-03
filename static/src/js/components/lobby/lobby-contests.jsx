@@ -6,7 +6,7 @@ import { updatePath } from 'redux-simple-router';
 import { fetchEntriesIfNeeded } from '../../actions/entries.js';
 import { fetchFeaturedContestsIfNeeded } from '../../actions/featured-contest-actions.js';
 import { fetchPrizeIfNeeded } from '../../actions/prizes.js';
-import { fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter }
+import { fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter, }
   from '../../actions/upcoming-contests-actions.js';
 import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions.js';
 import { focusedContestInfoSelector, focusedLineupSelector } from '../../selectors/lobby-selectors.js';
@@ -25,12 +25,55 @@ import { addMessage } from '../../actions/message-actions.js';
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
 require('../contest-list/contest-list-detail.jsx');
+const { Provider, connect } = ReactRedux;
+
+
+/*
+ * Map selectors to the React component
+ * @param  {object} state The current Redux state that we need to pass into the selectors
+ * @return {object}       All of the methods we want to map to the component
+ */
+function mapStateToProps(state) {
+  return {
+    allContests: state.upcomingContests.allContests,
+    draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
+    featuredContests: state.featuredContests.banners,
+    filteredContests: upcomingContestSelector(state),
+    focusedContest: focusedContestInfoSelector(state),
+    focusedLineup: focusedLineupSelector(state),
+    hoveredLineupId: state.upcomingLineups.hoveredLineupId,
+    lineupsInfo: upcomingLineupsInfo(state),
+    orderByDirection: state.upcomingContests.filters.orderBy.direction,
+    orderByProperty: state.upcomingContests.filters.orderBy.property,
+  };
+}
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component
+ */
+function mapDispatchToProps(dispatch) {
+  return {
+    enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
+    fetchEntriesIfNeeded: () => dispatch(fetchEntriesIfNeeded()),
+    fetchFeaturedContestsIfNeeded: () => dispatch(fetchFeaturedContestsIfNeeded()),
+    fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId)),
+    fetchUpcomingContests: () => dispatch(fetchUpcomingContests()),
+    fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
+    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
+    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
+    updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
+    updatePath: (path) => dispatch(updatePath(path)),
+    addMessage: (options) => dispatch(addMessage(options)),
+  };
+}
 
 
 /**
  * The contest list section of the lobby.
  */
-let LobbyContests = React.createClass({
+const LobbyContests = React.createClass({
 
   propTypes: {
     allContests: React.PropTypes.object,
@@ -53,25 +96,25 @@ let LobbyContests = React.createClass({
     updateFilter: React.PropTypes.func,
     updateOrderByFilter: React.PropTypes.func,
     updatePath: React.PropTypes.func,
-    addMessage: React.PropTypes.func
+    addMessage: React.PropTypes.func,
   },
 
 
-  getInitialState: function () {
-    return ({
+  getInitialState() {
+    return {
       showConfirmModal: false,
       contestToEnter: null,
       contestTypeFilters: [
         { title: 'All', column: 'contestType', match: '' },
         { title: 'Guaranteed', column: 'contestType', match: 'gpp' },
         { title: 'Double-Up', column: 'contestType', match: 'double-up' },
-        { title: 'Heads-Up', column: 'contestType', match: 'h2h' }
-      ]
-    });
+        { title: 'Heads-Up', column: 'contestType', match: 'h2h' },
+      ],
+    };
   },
 
 
-  componentWillMount: function () {
+  componentWillMount() {
     // Fetch all of the necessary data for the lobby.
     this.props.fetchUpcomingContests();
     this.props.fetchUpcomingDraftGroupsInfo();
@@ -82,51 +125,51 @@ let LobbyContests = React.createClass({
       this.props.addMessage({
         header: 'Lineup Saved!',
         level: 'success',
-        ttl: 5000
+        ttl: 5000,
       });
     }
 
     if (window.dfs.user.isAuthenticated === true) {
-      this.props.fetchEntriesIfNeeded()
+      this.props.fetchEntriesIfNeeded();
     }
   },
 
 
   // When one of the contest filters change.
-  handleFilterChange: function (filterName, filterProperty, match) {
+  handleFilterChange(filterName, filterProperty, match) {
     this.props.updateFilter(filterName, filterProperty, match);
   },
 
 
   // Enter the currently focused lineup into a contest.
-  handleEnterContest: function (contest) {
+  handleEnterContest(contest) {
     // If the user has chosen not to confirm entries, enter the contest.
     if (Cookies.get('shouldConfirmEntry') === 'false') {
       this.enterContest(contest.id);
-    }
-    // Otherwise, show the confirmation modal.
-    else {
+    } else {
+          // Otherwise, show the confirmation modal.
       this.setState({
         showConfirmModal: true,
-        contestToEnter: contest
+        contestToEnter: contest,
       });
     }
   },
 
 
-  handleCancelEntry: function () {
+  handleCancelEntry() {
     this.setState({
       showConfirmModal: false,
-      contestToEnter: null
+      contestToEnter: null,
     });
   },
 
-  enterContest: function (contestId) {
+
+  enterContest(contestId) {
     this.props.enterContest(contestId, this.props.focusedLineup.id);
   },
 
 
-  handleFocusContest: function (contest) {
+  handleFocusContest(contest) {
     this.props.updatePath(`/lobby/${contest.id}/`);
     this.props.setFocusedContest(contest.id);
     this.props.fetchPrizeIfNeeded(contest.prize_structure);
@@ -134,12 +177,12 @@ let LobbyContests = React.createClass({
   },
 
 
-  handleSetOrderBy: function (propertyColumn) {
+  handleSetOrderBy(propertyColumn) {
     // Determine sort direction based on current sort settings.
     let direction = 'desc';
 
     // If we are sorting by the already-'desc'-sorted column, flip the sort direction.
-    if (propertyColumn === this.props.orderByProperty && 'desc' === this.props.orderByDirection) {
+    if (propertyColumn === this.props.orderByProperty && this.props.orderByDirection === 'desc') {
       direction = 'asc';
     }
     // Dispatch the filter update.
@@ -147,8 +190,7 @@ let LobbyContests = React.createClass({
   },
 
 
-  render: function () {
-
+  render() {
     return (
       <div>
         <div className="contest-list-filter-set">
@@ -156,8 +198,8 @@ let LobbyContests = React.createClass({
             className="contest-list-filter--contest-type"
             filters={this.state.contestTypeFilters}
             filterName="contestTypeFilter"
-            filterProperty='contestType'
-            match=''
+            filterProperty="contestType"
+            match=""
             onUpdate={this.handleFilterChange}
           />
 
@@ -165,14 +207,14 @@ let LobbyContests = React.createClass({
             <ContestRangeSliderFilter
               className="contest-list-filter--contest-fee"
               filterName="contestFeeFilter"
-              filterProperty='buyin'
+              filterProperty="buyin"
               onUpdate={this.handleFilterChange}
-             />
+            />
 
             <CollectionSearchFilter
               className="contest-list-filter--contest-name"
               filterName="contestSearchFilter"
-              filterProperty='name'
+              filterProperty="name"
               onUpdate={this.handleFilterChange}
             />
           </div>
@@ -191,60 +233,23 @@ let LobbyContests = React.createClass({
           setOrderBy={this.handleSetOrderBy}
         />
 
-      <ContestListConfirmModal
-        confirmEntry={this.enterContest}
-        cancelEntry={this.handleCancelEntry}
-        contest={this.state.contestToEnter}
-        lineup={this.props.focusedLineup}
-        isOpen={this.state.showConfirmModal}
-        lineupsInfo={this.props.lineupsInfo}
-      />
+        <ContestListConfirmModal
+          confirmEntry={this.enterContest}
+          cancelEntry={this.handleCancelEntry}
+          contest={this.state.contestToEnter}
+          lineup={this.props.focusedLineup}
+          isOpen={this.state.showConfirmModal}
+          lineupsInfo={this.props.lineupsInfo}
+        />
       </div>
-    );
-  }
+    )
+  },
 
 });
 
 
-
-// Redux integration
-let { Provider, connect } = ReactRedux;
-
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
-  return {
-    allContests: state.upcomingContests.allContests,
-    draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
-    featuredContests: state.featuredContests.banners,
-    filteredContests: upcomingContestSelector(state),
-    focusedContest: focusedContestInfoSelector(state),
-    focusedLineup: focusedLineupSelector(state),
-    hoveredLineupId: state.upcomingLineups.hoveredLineupId,
-    lineupsInfo: upcomingLineupsInfo(state),
-    orderByDirection: state.upcomingContests.filters.orderBy.direction,
-    orderByProperty: state.upcomingContests.filters.orderBy.property
-  };
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
-    fetchEntriesIfNeeded: () => dispatch(fetchEntriesIfNeeded()),
-    fetchFeaturedContestsIfNeeded: () => dispatch(fetchFeaturedContestsIfNeeded()),
-    fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId)),
-    fetchUpcomingContests: () => dispatch(fetchUpcomingContests()),
-    fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
-    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
-    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
-    updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
-    updatePath: (path) => dispatch(updatePath(path)),
-    addMessage: (options) => dispatch(addMessage(options))
-  };
-}
-
 // Wrap the component to inject dispatch and selected state into it.
-var LobbyContestsConnected = connect(
+const LobbyContestsConnected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(LobbyContests);

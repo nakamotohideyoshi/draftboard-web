@@ -1,5 +1,6 @@
-import ActionTypes from '../action-types'
-import {merge as _merge, find as _find, forEach as _forEach} from 'lodash'
+import ActionTypes from '../action-types';
+import { merge as _merge, find as _find, forEach as _forEach } from 'lodash';
+import log from '../lib/logging.js';
 
 
 const initialState = {
@@ -9,70 +10,68 @@ const initialState = {
   remainingSalary: 0,
   avgRemainingPlayerSalary: 0,
   contestSalaryLimit: 0,
-  availablePositions: []
-}
+  availablePositions: [],
+};
 
 // Roster templates for empty lineup cards.
 const rosterTemplates = {
-  'nfl': [
-    {idx: 0, name: 'QB', positions: ['QB'], player: null},
-    {idx: 1, name: 'RB', positions: ['RB', 'FB'], player: null},
-    {idx: 2, name: 'RB', positions: ['RB', 'FB'], player: null},
-    {idx: 3, name: 'WR', positions: ['WR'], player: null},
-    {idx: 4, name: 'WR', positions: ['WR'], player: null},
-    {idx: 5, name: 'TE', positions: ['TE'], player: null},
-    {idx: 6, name: 'FX', positions: ['RB','FB','WR','TE'], player: null},
-    {idx: 7, name: 'FX', positions: ['RB','FB','WR','TE'], player: null}
+  nfl: [
+    { idx: 0, name: 'QB', positions: ['QB'], player: null },
+    { idx: 1, name: 'RB', positions: ['RB', 'FB'], player: null },
+    { idx: 2, name: 'RB', positions: ['RB', 'FB'], player: null },
+    { idx: 3, name: 'WR', positions: ['WR'], player: null },
+    { idx: 4, name: 'WR', positions: ['WR'], player: null },
+    { idx: 5, name: 'TE', positions: ['TE'], player: null },
+    { idx: 6, name: 'FX', positions: ['RB', 'FB', 'WR', 'TE'], player: null },
+    { idx: 7, name: 'FX', positions: ['RB', 'FB', 'WR', 'TE'], player: null },
   ],
-  'nba': [
-    {idx: 0, name: 'G', positions: ['PG', 'SG'], player: null},
-    {idx: 1, name: 'G', positions: ['PG', 'SG'], player: null},
-    {idx: 2, name: 'F', positions: ['SF', 'PF'], player: null},
-    {idx: 3, name: 'F', positions: ['SF', 'PF'], player: null},
-    {idx: 4, name: 'C', positions: ['C'], player: null},
-    {idx: 5, name: 'FX', positions: ['PG','SG','SF','PF','C'], player: null},
-    {idx: 6, name: 'FX', positions: ['PG','SG','SF','PF','C'], player: null},
-    {idx: 7, name: 'FX', positions: ['PG','SG','SF','PF','C'], player: null}
+  nba: [
+    { idx: 0, name: 'G', positions: ['PG', 'SG'], player: null },
+    { idx: 1, name: 'G', positions: ['PG', 'SG'], player: null },
+    { idx: 2, name: 'F', positions: ['SF', 'PF'], player: null },
+    { idx: 3, name: 'F', positions: ['SF', 'PF'], player: null },
+    { idx: 4, name: 'C', positions: ['C'], player: null },
+    { idx: 5, name: 'FX', positions: ['PG', 'SG', 'SF', 'PF', 'C'], player: null },
+    { idx: 6, name: 'FX', positions: ['PG', 'SG', 'SF', 'PF', 'C'], player: null },
+    { idx: 7, name: 'FX', positions: ['PG', 'SG', 'SF', 'PF', 'C'], player: null },
   ],
-  'nhl': [
-    {idx: 0, name: 'F', positions: ['C', 'LW', 'RW'], player: null},
-    {idx: 1, name: 'F', positions: ['C', 'LW', 'RW'], player: null},
-    {idx: 2, name: 'F', positions: ['C', 'LW', 'RW'], player: null},
-    {idx: 3, name: 'D', positions: ['D'], player: null},
-    {idx: 4, name: 'D', positions: ['D'], player: null},
-    {idx: 5, name: 'FX', positions: ['C','D','LW','RW'], player: null},
-    {idx: 6, name: 'FX', positions: ['C','D','LW','RW'], player: null},
-    {idx: 7, name: 'G', positions: ['G'], player: null}
+  nhl: [
+    { idx: 0, name: 'F', positions: ['C', 'LW', 'RW'], player: null },
+    { idx: 1, name: 'F', positions: ['C', 'LW', 'RW'], player: null },
+    { idx: 2, name: 'F', positions: ['C', 'LW', 'RW'], player: null },
+    { idx: 3, name: 'D', positions: ['D'], player: null },
+    { idx: 4, name: 'D', positions: ['D'], player: null },
+    { idx: 5, name: 'FX', positions: ['C', 'D', 'LW', 'RW'], player: null },
+    { idx: 6, name: 'FX', positions: ['C', 'D', 'LW', 'RW'], player: null },
+    { idx: 7, name: 'G', positions: ['G'], player: null },
   ],
-  'mlb': [
-    {idx: 0, name: 'SP', positions: ['SP'], player: null},
-    {idx: 1, name: 'SP', positions: ['SP'], player: null},
-    {idx: 2, name: 'C', positions: ['C'], player: null},
-    {idx: 3, name: '1B', positions: ['1B'], player: null},
-    {idx: 4, name: '2B', positions: ['2B'], player: null},
-    {idx: 5, name: '3B', positions: ['3B'], player: null},
-    {idx: 6, name: 'SS', positions: ['SS'], player: null},
-    {idx: 7, name: 'OF', positions: ['LF','CF','RF'], player: null},
-    {idx: 8, name: 'OF', positions: ['LF','CF','RF'], player: null},
-    {idx: 9, name: 'OF', positions: ['LF','CF','RF'], player: null}
-  ]
-}
+  mlb: [
+    { idx: 0, name: 'SP', positions: ['SP'], player: null },
+    { idx: 1, name: 'SP', positions: ['SP'], player: null },
+    { idx: 2, name: 'C', positions: ['C'], player: null },
+    { idx: 3, name: '1B', positions: ['1B'], player: null },
+    { idx: 4, name: '2B', positions: ['2B'], player: null },
+    { idx: 5, name: '3B', positions: ['3B'], player: null },
+    { idx: 6, name: 'SS', positions: ['SS'], player: null },
+    { idx: 7, name: 'OF', positions: ['LF', 'CF', 'RF'], player: null },
+    { idx: 8, name: 'OF', positions: ['LF', 'CF', 'RF'], player: null },
+    { idx: 9, name: 'OF', positions: ['LF', 'CF', 'RF'], player: null },
+  ],
+};
 
 const salaryCaps = {
-  'nba': 50000,
-  'nfl': 50000,
-  'nhl': 50000,
-  'mlb': 50000
+  nba: 50000,
+  nfl: 50000,
+  nhl: 50000,
+  mlb: 50000,
 };
 
 
-const getAvailableLineupSlots = function(state) {
-  return state.lineup.filter(function(slot) {
-    if(!slot.player) {
-      return slot;
-    }
-  })
-}
+const getAvailableLineupSlots = (state) => state.lineup.filter((slot) => {
+  if (!slot.player) {
+    return slot;
+  }
+});
 
 
 /**
@@ -80,18 +79,18 @@ const getAvailableLineupSlots = function(state) {
  * slot that is valid for the player's position. NOTE: You should use addPlayer(), not this.
  * @param  {Object} player A row from the DraftGroupStore.
  */
-const insertPlayerIntoLineup = function(player, state) {
-  var openSlots = getAvailableLineupSlots(state)
+const insertPlayerIntoLineup = (player, state) => {
+  const openSlots = getAvailableLineupSlots(state);
 
-  for (var i=0; i < openSlots.length; i++) {
+  for (let i = 0; i < openSlots.length; i++) {
     if (openSlots[i].positions.indexOf(player.position) !== -1) {
-      openSlots[i].player = player
-      return state.lineup
+      openSlots[i].player = player;
+      return state.lineup;
     }
   }
 
-  return state.lineup
-}
+  return state.lineup;
+};
 
 
 /**
@@ -112,54 +111,50 @@ const insertPlayerIntoLineup = function(player, state) {
  * Get the sum of lineup players' salary.
  * @return {Integer} The total lineup salary.
  */
-const getTotalSalary = function(state) {
-  return state.lineup.reduce(function(previousValue, currentValue, index, lineup) {
-    if (lineup[index].player) {
-      return previousValue + lineup[index].player.salary;
-    }
-    // If there aren't any players in the lineup, return the default (0).
-    return previousValue;
-  }, 0);
-}
+const getTotalSalary = (state) => state.lineup.reduce((previousValue, currentValue, index, lineup) => {
+  if (lineup[index].player) {
+    return previousValue + lineup[index].player.salary;
+  }
+  // If there aren't any players in the lineup, return the default (0).
+  return previousValue;
+}, 0);
 
 
 /**
  * Find how much money is left to spend on players.
  * @return {Integer} Salary cap minus current lineup salary.
  */
-const getRemainingSalary = function(state) {
-  return state.contestSalaryLimit - getTotalSalary(state);
-}
+const getRemainingSalary = (state) => state.contestSalaryLimit - getTotalSalary(state);
 
 
 /**
  * Find the average remaining salary per available slots.
  * @return {Inteter} The average player salary, rounded down to the nearest Int.
  */
-const getAvgRemainingPlayerSalary = function(state) {
-  var EmptySlotCount = getAvailableLineupSlots(state).length;
-    if (EmptySlotCount > 0) {
+const getAvgRemainingPlayerSalary = (state) => {
+  const EmptySlotCount = getAvailableLineupSlots(state).length;
+  if (EmptySlotCount > 0) {
     return Math.floor(getRemainingSalary(state) / EmptySlotCount);
   }
 
   return 0;
-}
+};
 
 
 /**
  * Determine which position types are still available.
  * @return {array} The avaolaible positions ex: ['WR', 'QB', 'DST']
  */
-const findAvailablePositions = function(state) {
-  var openSlots = getAvailableLineupSlots(state);
-  var availablePositions = [];
+const findAvailablePositions = (state) => {
+  const openSlots = getAvailableLineupSlots(state);
+  let availablePositions = [];
 
-  openSlots.forEach(function(slot) {
+  openSlots.forEach((slot) => {
     availablePositions = availablePositions.concat(slot.positions);
   });
 
-  return availablePositions
-}
+  return availablePositions;
+};
 
 
 /**
@@ -167,9 +162,7 @@ const findAvailablePositions = function(state) {
  * @param  {Object} player A player.
  * @return {Boolean}
  */
-const isPlayerInLineup = function(player, state) {
-  return typeof _find(state.lineup, 'player', player) !== 'undefined';
-}
+const isPlayerInLineup = (player, state) => typeof _find(state.lineup, 'player', player) !== 'undefined';
 
 
 /**
@@ -178,18 +171,18 @@ const isPlayerInLineup = function(player, state) {
  *   just that there is one.
  * @return {Boolean}
  */
-const isSlotAvailableForPlayer = function(player, state) {
-  var openSlots = getAvailableLineupSlots(state);
+const isSlotAvailableForPlayer = (player, state) => {
+  const openSlots = getAvailableLineupSlots(state);
 
   // Once we find an open slot, return true;
-  for (var i=0; i < openSlots.length; i++) {
+  for (let i = 0; i < openSlots.length; i++) {
     if (openSlots[i].positions.indexOf(player.position) !== -1) {
       return true;
     }
   }
 
   return false;
-}
+};
 
 
 /**
@@ -197,12 +190,12 @@ const isSlotAvailableForPlayer = function(player, state) {
  * @param  {Object} player A player from the DraftGroupStore.
  * @return {bool}          Can the playe be added?
  */
-const canAddPlayer = function(player, state) {
+const canAddPlayer = (player, state) => {
   // Check if the player is already in the lineup.
   if (isPlayerInLineup(player, state)) {
-    console.error("Selected player is already in the lineup.")
-    state.errorMessage = 'Selected player is already in the lineup'
-    return false
+    log.error('Selected player is already in the lineup.');
+    state.errorMessage = 'Selected player is already in the lineup';
+    return false;
   }
 
   // Check if there is room in the salary cap.
@@ -214,36 +207,36 @@ const canAddPlayer = function(player, state) {
 
   // Check if there is a valid slot for the player.
   if (!isSlotAvailableForPlayer(player, state)) {
-    console.error("There is no slot available for this player.")
-    state.errorMessage = 'There is no slot available for this player'
-    return false
+    log.error('There is no slot available for this player.');
+    state.errorMessage = 'There is no slot available for this player';
+    return false;
   }
 
   // If all checks pass, the player can be added.
   return true;
-}
+};
 
 
-const addPlayer = function(player, state, callback) {
-  let canAdd = canAddPlayer(player, state);
+const addPlayer = (player, state, callback) => {
+  const canAdd = canAddPlayer(player, state);
 
   if (canAdd) {
-    let newLineup = insertPlayerIntoLineup(player, state)
-    return callback(false, newLineup)
-  } else {
-    return callback(state.errorMessage, null)
+    const newLineup = insertPlayerIntoLineup(player, state);
+    return callback(false, newLineup);
   }
-}
+
+  return callback(state.errorMessage, null);
+};
 
 
 /**
  * Remove a player from the lineup.
  * @param  {int} playerId the player.player_id to remove.
  */
-const removePlayer = function(playerId, state) {
+const removePlayer = (playerId, state) => {
   // Loop through each lineup slot looking for the specified player. once found, set the
   // player property to null.
-  for (let slot of state.lineup) {
+  for (const slot of state.lineup) {
     if (slot.player) {
       if (playerId === slot.player.player_id) {
         slot.player = null;
@@ -251,67 +244,64 @@ const removePlayer = function(playerId, state) {
       }
     }
   }
-}
+};
 
 
-
-
-module.exports = function(state = initialState, action) {
+module.exports = (state = initialState, action) => {
+  let newState = {};
 
   switch (action.type) {
 
     // Create an empty lineup card based on the roster of the sport of the current draftgroup.
     case ActionTypes.CREATE_LINEUP_INIT:
       // Return a copy of the previous state with our new things added to it.
-      let newState = _merge({}, state, {
+      newState = _merge({}, state, {
         lineup: rosterTemplates[action.sport],
         remainingSalary: salaryCaps[action.sport],
-        contestSalaryLimit: salaryCaps[action.sport]
-      })
+        contestSalaryLimit: salaryCaps[action.sport],
+      });
       // After the state has a roster, find it's open positions.
-      newState.availablePositions = findAvailablePositions(newState)
-      newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState)
-      return newState
+      newState.availablePositions = findAvailablePositions(newState);
+      newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState);
+      return newState;
 
 
     // Add provided player to the new lineup
     case ActionTypes.CREATE_LINEUP_ADD_PLAYER:
       // if there is an error adding the player, return the state with an error message
-      return addPlayer(action.player, state, function(err, updatedLineup) {
+      return addPlayer(action.player, state, (err, updatedLineup) => {
         if (err) {
           return Object.assign({}, state, {
-            errorMessage: err
+            errorMessage: err,
           });
         }
         // If we can add the player, add them and update the state.
-        else {
-          _merge({}, state, {lineup: updatedLineup, errorMessage: null})
-          let newState = _merge({}, state, {
-            avgRemainingPlayerSalary:  getAvgRemainingPlayerSalary(state),
-            remainingSalary: getRemainingSalary(state),
-            errorMessage: null
-          })
-          // After the state's roster has been updated, find it's open positions.
-          newState.availablePositions = findAvailablePositions(newState)
-          return newState
-        }
+        _merge({}, state, { lineup: updatedLineup, errorMessage: null });
+        newState = _merge({}, state, {
+          avgRemainingPlayerSalary: getAvgRemainingPlayerSalary(state),
+          remainingSalary: getRemainingSalary(state),
+          errorMessage: null,
+        });
+        // After the state's roster has been updated, find it's open positions.
+        newState.availablePositions = findAvailablePositions(newState);
+        return newState;
       });
 
 
     case ActionTypes.CREATE_LINEUP_REMOVE_PLAYER:
       newState = Object.assign({}, state, {
-        errorMessage: null
+        errorMessage: null,
       });
-      removePlayer(action.playerId, newState)
-      newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState)
-      newState.remainingSalary = getRemainingSalary(newState)
-      newState.availablePositions = findAvailablePositions(newState)
+      removePlayer(action.playerId, newState);
+      newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState);
+      newState.remainingSalary = getRemainingSalary(newState);
+      newState.availablePositions = findAvailablePositions(newState);
       return newState;
 
 
     case ActionTypes.CREATE_LINEUP_SAVE_FAIL:
       return Object.assign({}, state, {
-        errorMessage: action.err
+        errorMessage: action.err,
       });
 
 
@@ -319,17 +309,17 @@ module.exports = function(state = initialState, action) {
       newState = Object.assign({}, state);
       // We're passed a list of players. Make sure we're putting each one into the correct lineup
       // slot based on the idx property.
-      _forEach(state.lineup, function(slot) {
-        slot.player =  _find(action.players, 'idx', slot.idx)
+      _forEach(state.lineup, function (slot) {
+        slot.player = _find(action.players, 'idx', slot.idx);
       });
 
       // Update the title (optional)
-      newState.lineupTitle = action.title
-      return newState
+      newState.lineupTitle = action.title;
+      return newState;
 
 
     default:
-      return state
+      return state;
 
   }
-}
+};

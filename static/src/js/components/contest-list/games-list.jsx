@@ -1,20 +1,23 @@
-import React from 'react'
-import {forEach as _forEach} from 'lodash'
-import moment from 'moment'
+import React from 'react';
+import { forEach as _forEach } from 'lodash';
+import moment from 'moment';
 
 
-var GamesList = React.createClass({
+/**
+ * Renders a list of games that a contest contains.
+ */
+const GamesList = React.createClass({
 
   propTypes: {
     boxScores: React.PropTypes.array,
-    teams: React.PropTypes.object
+    teams: React.PropTypes.object,
   },
 
 
-  getGameList: function(games) {
-    let gameList = []
+  getGameList(games) {
+    const gameList = [];
 
-    _forEach(games, function(game) {
+    _forEach(games, (game) => {
       // do we have teams?
       if (this.props.teams.hasOwnProperty('teams')) {
         gameList.push(
@@ -25,20 +28,19 @@ var GamesList = React.createClass({
             </td>
             <td className="time">{moment(game.fields.created, moment.ISO_8601).format('h:mma')}</td>
           </tr>
-        )
+        );
       }
-    }.bind(this))
+    });
 
-    return gameList
+    return gameList;
   },
 
 
-  render: function() {
-
+  render() {
     if (!this.props.boxScores) {
       return (
         <div>Loading...</div>
-      )
+      );
     }
 
     return (
@@ -56,10 +58,10 @@ var GamesList = React.createClass({
           </tbody>
         </table>
       </div>
-    )
-  }
+    );
+  },
 
-})
+});
 
 
-module.exports = GamesList
+module.exports = GamesList;

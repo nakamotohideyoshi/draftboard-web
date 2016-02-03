@@ -32,6 +32,7 @@ module.exports = (state = {
         },
       });
 
+
     case ActionTypes.RECEIVE_ENTRIES:
       return update(state, {
         $set: {
@@ -41,6 +42,7 @@ module.exports = (state = {
           updatedAt: action.updatedAt,
         },
       });
+
 
     default:
       return state;

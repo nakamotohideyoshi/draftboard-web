@@ -1,51 +1,78 @@
-import React from 'react'
-const ReactRedux = require('react-redux')
-const store = require('../../store')
-const renderComponent = require('../../lib/render-component')
-var CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
-import {updateFilter} from '../../actions/upcoming-contests-actions.js'
-import {openDraftGroupSelectionModal} from '../../actions/upcoming-draft-groups-actions.js'
+import React from 'react';
+import ReactRedux from 'react-redux';
+import store from '../../store.js';
+import renderComponent from '../../lib/render-component';
+import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
+import { updateFilter } from '../../actions/upcoming-contests-actions.js';
+import { openDraftGroupSelectionModal } from '../../actions/upcoming-draft-groups-actions.js';
+
+const { Provider, connect } = ReactRedux;
+
+
+/*
+ * Map selectors to the React component
+ * @param  {object} state The current Redux state that we need to pass into the selectors
+ * @return {object}       All of the methods we want to map to the component
+ */
+function mapStateToProps() {
+  return {};
+}
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component
+ */
+function mapDispatchToProps(dispatch) {
+  return {
+    updateFilter: (filterName, filterProperty, match) => dispatch(
+      updateFilter(filterName, filterProperty, match)
+    ),
+    openDraftGroupSelectionModal: () => dispatch(openDraftGroupSelectionModal()),
+  };
+}
+
 
 /**
  * A league filter for a ContestList DataTable - This sits above the lineup cards in the sidebar.
  */
-var ContestListSportFilter = React.createClass({
+const ContestListSportFilter = React.createClass({
 
   propTypes: {
     updateFilter: React.PropTypes.func,
-    openDraftGroupSelectionModal: React.PropTypes.func
+    openDraftGroupSelectionModal: React.PropTypes.func,
   },
 
 
-  getInitialState: function() {
+  getInitialState() {
     return {
       // League filter data - these will likely be replaced by dynamically determined values.
       leagueFilters: [
-        {title: 'All', column: 'sport', match: ''},
-        {title: 'NBA', column: 'sport', match: 'nba'},
-        {title: 'NFL', column: 'sport', match: 'nfl'},
-        {title: 'MLB', column: 'sport', match: 'mlb'}
-      ]
+        { title: 'All', column: 'sport', match: '' },
+        { title: 'NBA', column: 'sport', match: 'nba' },
+        { title: 'NFL', column: 'sport', match: 'nfl' },
+        { title: 'MLB', column: 'sport', match: 'mlb' },
+      ],
     };
   },
 
 
-  handleFilterChange: function(filterName, filterProperty, match) {
-    this.props.updateFilter(filterName, filterProperty, match)
+  handleFilterChange(filterName, filterProperty, match) {
+    this.props.updateFilter(filterName, filterProperty, match);
   },
 
 
-  render: function() {
+  render() {
     return (
       <div>
         <CollectionMatchFilter
           className="contest-list-filter--sport"
           filters={this.state.leagueFilters}
-          filterProperty='sport'
-          match=''
-          filterName='sportFilter'
+          filterProperty="sport"
+          match=""
+          filterName="sportFilter"
           onUpdate={this.handleFilterChange}
-          elementType='select'
+          elementType="select"
         />
       <div
         className="add-lineup"
@@ -55,34 +82,16 @@ var ContestListSportFilter = React.createClass({
         </div>
       </div>
     );
-  }
+  },
 
-})
+});
 
-
-// Redux integration
-let {Provider, connect} = ReactRedux
-
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps() {
-  return {};
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    updateFilter: (filterName, filterProperty, match) => dispatch(
-      updateFilter(filterName, filterProperty, match)
-    ),
-    openDraftGroupSelectionModal: () => dispatch(openDraftGroupSelectionModal())
-  }
-}
 
 // Wrap the component to inject dispatch and selected state into it.
-var ContestListSportFilterConnected = connect(
+const ContestListSportFilterConnected = connect(
   mapStateToProps,
   mapDispatchToProps
-)(ContestListSportFilter)
+)(ContestListSportFilter);
 
 // Render the component.
 renderComponent(
@@ -93,4 +102,4 @@ renderComponent(
 );
 
 
-module.exports = ContestListSportFilter
+module.exports = ContestListSportFilter;

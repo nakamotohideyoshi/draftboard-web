@@ -1,4 +1,6 @@
-import { filter as _filter } from 'lodash'
+import { filter as _filter } from 'lodash';
+import log from '../lib/logging.js';
+
 
 /**
  * [function description]
@@ -7,9 +9,8 @@ import { filter as _filter } from 'lodash'
  * @param  {string} searchString  A String to match the property.
  * @return {array}                A filtered list of items.
  */
-export const stringSearchFilter = function (collection, filterProperty, searchString) {
-  return _filter(collection, function(item) {
-
+export const stringSearchFilter = (collection, filterProperty, searchString) =>
+  _filter(collection, (item) => {
     // Show the row if there is no search query.
     if (!searchString) {
       return true;
@@ -18,12 +19,12 @@ export const stringSearchFilter = function (collection, filterProperty, searchSt
     // We can account for nested resources here. so if we want to search for the row.player.name
     // property, just set 'row.player.name' as the search property, this will drill down into the
     // nested properties for it's search target.
-    var nestedProps = filterProperty.split('.');
-    var searchTarget = item;
+    const nestedProps = filterProperty.split('.');
+    let searchTarget = item;
 
-    nestedProps.forEach(function(filterProperty) {
-      if (item.hasOwnProperty(filterProperty)) {
-        searchTarget = item[filterProperty];
+    nestedProps.forEach((property) => {
+      if (item.hasOwnProperty(property)) {
+        searchTarget = item[property];
       }
     });
 
@@ -31,10 +32,10 @@ export const stringSearchFilter = function (collection, filterProperty, searchSt
     if (searchTarget.toLowerCase().indexOf(searchString.toLowerCase()) === -1) {
       return false;
     }
+
     // Default to show.
     return true;
-  })
-}
+  });
 
 
 /**
@@ -42,28 +43,25 @@ export const stringSearchFilter = function (collection, filterProperty, searchSt
  * @param  {Object} row The single collection row.
  * @return {boolean} Should the row be displayed in the filtered collection list?
  */
-export const matchFilter = function(collection, filterProperty, match) {
-  return _filter(collection, function(item) {
-    // If there's nothing to match against, show the item.
-    if (!match) {
-        return true
-    }
+export const matchFilter = (collection, filterProperty, match) => _filter(collection, (item) => {
+  // If there's nothing to match against, show the item.
+  if (!match) {
+    return true;
+  }
 
-    if(!item.hasOwnProperty(filterProperty)) {
-        console.warn('CollectionMatchFilter.filter() Row does not contain property',
-        filterProperty);
-        return true;
-    } else {
-      // Check if the row's property matches this filter's match value.
-      if (match === '' || item[filterProperty].toLowerCase() === match.toLowerCase()) {
-        return true;
-      }
+  if (!item.hasOwnProperty(filterProperty)) {
+    log.warn('CollectionMatchFilter.filter() Row does not contain property',
+      filterProperty);
+    return true;
+  }
 
-      return false;
-    }
-  })
-}
+  // Check if the row's property matches this filter's match value.
+  if (match === '' || item[filterProperty].toLowerCase() === match.toLowerCase()) {
+    return true;
+  }
 
+  return false;
+});
 
 
 /**
@@ -71,51 +69,45 @@ export const matchFilter = function(collection, filterProperty, match) {
  * @param  {Object} row The single collection row.
  * @return {boolean} Should the row be displayed in the filtered collection list?
  */
-export const rangeFilter = function(collection, filterProperty, minVal, maxVal) {
-  return _filter(collection, function(item) {
-    // Is the property value less than the minimum range value, or greater than the biggest?
-    if (item[filterProperty] < minVal || item[filterProperty] > maxVal) {
-      return false;
-    }
+export const rangeFilter = (collection, filterProperty, minVal, maxVal) => _filter(collection, (item) => {
+  // Is the property value less than the minimum range value, or greater than the biggest?
+  if (item[filterProperty] < minVal || item[filterProperty] > maxVal) {
+    return false;
+  }
 
-    return true;
-  })
-}
+  return true;
+});
 
 
 /**
  * This filter will determine if a contest is one of [GPP, H2H, or double-up]
  */
-export const gameTypeFilter = function(collection, gameType) {
-  return _filter(collection, function(item) {
-    switch (gameType) {
-      case 'gpp':
-        return item.gpp
+export const gameTypeFilter = (collection, gameType) => _filter(collection, (item) => {
+  switch (gameType) {
+    case 'gpp':
+      return item.gpp;
 
-      case 'double-up':
-        return item.doubleup
+    case 'double-up':
+      return item.doubleup;
 
-      case 'h2h':
-        return (item.entries === 2)
+    case 'h2h':
+      return (item.entries === 2);
 
-      default:
-        return true;
-    }
-  })
-}
+    default:
+      return true;
+  }
+});
 
 
 // Given an array of matches (matchList), look at each collection item's [filterProperty] for
 // matches. This is used on the game filter in the drafting section for filtering players based
 // on a list of team IDs... basically, is this player's team in the list of team IDs?
-export const inArrayFilter = function(collection, filterProperty, matchList) {
+export const inArrayFilter = (collection, filterProperty, matchList) => {
   if (!matchList || !filterProperty || !matchList.length) {
-    return collection
+    return collection;
   }
 
-  var matches =  _filter(collection, function(item) {
-    return matchList.indexOf(item[filterProperty]) !== -1
-  })
+  const matches = _filter(collection, (item) => matchList.indexOf(item[filterProperty]) !== -1);
 
-  return matches
-}
+  return matches;
+};

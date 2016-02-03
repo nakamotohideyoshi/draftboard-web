@@ -1,14 +1,14 @@
-import React from 'react'
-import {roundUpToDecimalPlace} from '../../lib/utils.js'
+import React from 'react';
+import { roundUpToDecimalPlace } from '../../lib/utils.js';
 
 
-let LineupCardPlayer = React.createClass({
+const LineupCardPlayer = React.createClass({
 
   propTypes: {
-    player: React.PropTypes.object.isRequired
+    player: React.PropTypes.object.isRequired,
   },
 
-  render: function() {
+  render() {
     return (
       <li className="cmp-lineup-card__player">
         <span className="cmp-lineup-card__position">{this.props.player.roster_spot}</span>
@@ -23,9 +23,9 @@ let LineupCardPlayer = React.createClass({
         <span className="cmp-lineup-card__average">{roundUpToDecimalPlace(this.props.player.fppg, 1)}</span>
       </li>
     );
-  }
+  },
 
 });
 
 
-module.exports = LineupCardPlayer
+module.exports = LineupCardPlayer;

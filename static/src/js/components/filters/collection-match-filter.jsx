@@ -1,20 +1,20 @@
-var React = require('react');
+import React from 'react';
 import log from '../../lib/logging';
-var _find = require('lodash/collection/find');
+import { find as _find } from 'lodash/collection/find';
 
 
 /**
  * Creates a radio-like selection list that filters the ContestStore.
  * Filtering actions are passed to the ContestStore via ContestActions.
  */
-var CollectionMatchFilter = React.createClass({
+const CollectionMatchFilter = React.createClass({
 
   propTypes: {
     filters: React.PropTypes.array,
     // A default match to look for.
     match: React.PropTypes.oneOfType([
       React.PropTypes.string,
-      React.PropTypes.array
+      React.PropTypes.array,
     ]),
     // The propety in the row that we are filtering against.
     filterProperty: React.PropTypes.string.isRequired,
@@ -26,43 +26,90 @@ var CollectionMatchFilter = React.createClass({
     // re-run all of it's filters.
     onUpdate: React.PropTypes.func.isRequired,
     // 'span' or 'select' - defaults to span.
-    elementType: React.PropTypes.string
+    elementType: React.PropTypes.string,
   },
 
 
-  getInitialState: function() {
+  getInitialState() {
     return {
       // Initial match value.
-      'match': this.props.match,
+      match: this.props.match,
       // Used to update the rendered HTML with an active class.
-      'activeFilter': {
-        title: 'All'
-      }
+      activeFilter: {
+        title: 'All',
+      },
     };
   },
 
 
-  /**
-   * When a user clicks on a filter, update this component and re-render the table.
-   *
-   * @param {Object} filter - The selected filter.
-   * @param {string} filter.match
-   */
-  selectFilter: function(filter) {
-    // We have to account for a select value being changed.
-    if (filter.hasOwnProperty('target')) {
-      // Find the filter with the title of the select value.
-      filter = _find(this.props.filters, 'title', filter.target.value);
+  getOptionsContainer() {
+    let options = this.getOptions();
+
+    if (this.props.elementType === 'select') {
+      return (
+        <div className="select-wrap">
+          <select onChange={this.selectFilter}>{options}</select>
+        </div>
+      );
     }
 
-    // Update the filter match value, then tell the parent DataTable that the
-    // filter has been updated - this will re-render() the DataTable.
-    this.setState({
-        'match': filter.match,
-        'activeFilter': filter
-      }, function() {
-        this.props.onUpdate(this.props.filterName, this.props.filterProperty, filter.match);
-      });
+    options = this.getSpans();
+    return (
+      <div>{options}</div>
+    );
+  },
+
+
+  getOptions() {
+    const self = this;
+    // Build up html for filter options.
+    return this.props.filters.map((filter) => {
+      let cssClass = 'cmp-collection-match-filter__option';
+
+      // Add active class if the filter is currently active.
+      if (
+        self.state.activeFilter === '' && filter.match === '' ||
+        self.state.activeFilter.match === filter.match
+      ) {
+        cssClass += ' cmp-collection-match-filter__option--active';
+      }
+
+      return (
+        <option
+          key={filter.match}
+          className={cssClass}
+        >
+          {filter.title}
+        </option>
+      );
+    });
+  },
+
+
+  getSpans() {
+    const self = this;
+    // Build up html for filter options.
+    return this.props.filters.map((filter) => {
+      let cssClass = 'cmp-collection-match-filter__option';
+
+      // Add active class if the filter is currently active.
+      if (
+        self.state.activeFilter === '' && filter.match === '' ||
+        self.state.activeFilter.match === filter.match
+      ) {
+        cssClass += ' cmp-collection-match-filter__option--active';
+      }
+
+      return (
+        <span
+          key={filter.match}
+          className={cssClass}
+          onClick={self.selectFilter.bind(self, filter)}
+        >
+          {filter.title}
+        </span>
+      );
+    });
   },
 
 
@@ -73,14 +120,13 @@ var CollectionMatchFilter = React.createClass({
    * @param {Object} row - A row in the table.
    * @return {boolean} Should the row be displayed?
    */
-  filter: function(row) {
-
+  filter(row) {
     // First check that the row even contains the property we're trying to match against.
-    if(!row.hasOwnProperty(this.props.filterProperty)) {
-        log.warn('CollectionMatchFilter.filter() Row does not contain property',
+    if (!row.hasOwnProperty(this.props.filterProperty)) {
+      log.warn('CollectionMatchFilter.filter() Row does not contain property',
           this.props.filterProperty
         );
-        return true;
+      return true;
     }
 
 
@@ -96,12 +142,14 @@ var CollectionMatchFilter = React.createClass({
 
       // But the match can also be an array. Like in MLB, 'OF' can be either 'lf','cf' or 'rf'.
       case 'object':
-        if (this.state.match === '' ||
-          -1 !== this.state.match.indexOf(row[this.props.filterProperty].toLowerCase())
+        if (this.state.match === '' || this.state.match.indexOf(row[this.props.filterProperty].toLowerCase() !== -1)
         ) {
           return true;
         }
         break;
+
+      default:
+        return false;
     }
 
     // if a match was not found, return false.
@@ -109,88 +157,42 @@ var CollectionMatchFilter = React.createClass({
   },
 
 
-  getSpans: function() {
-    // Build up html for filter options.
-    return this.props.filters.map(function(filter) {
-      var cssClass = 'cmp-collection-match-filter__option';
-
-      // Add active class if the filter is currently active.
-      if(
-        this.state.activeFilter === '' && filter.match === '' ||
-        this.state.activeFilter.match === filter.match
-      ) {
-        cssClass += ' cmp-collection-match-filter__option--active';
-      }
-
-      return (
-        <span
-          key={filter.match}
-          className={cssClass}
-          onClick={this.selectFilter.bind(this, filter)}
-        >
-          {filter.title}
-        </span>
-      );
-
-    }.bind(this));
-  },
-
-
-  getOptions: function() {
-    // Build up html for filter options.
-    return this.props.filters.map(function(filter) {
-      var cssClass = 'cmp-collection-match-filter__option';
-
-      // Add active class if the filter is currently active.
-      if(
-        this.state.activeFilter === '' && filter.match === '' ||
-        this.state.activeFilter.match === filter.match
-      ) {
-        cssClass += ' cmp-collection-match-filter__option--active';
-      }
-
-      return (
-        <option
-          key={filter.match}
-          className={cssClass}
-        >
-          {filter.title}
-        </option>
-      );
-
-    }.bind(this));
-  },
-
-
-  getOptionsContainer: function() {
-    var options = this.getOptions();
-
-    if (this.props.elementType == 'select') {
-      return (
-        <div className="select-wrap">
-          <select onChange={this.selectFilter}>{options}</select>
-        </div>
-      );
-    } else {
-      options = this.getSpans();
-      return (
-        <div>{options}</div>
-      );
+  /**
+   * When a user clicks on a filter, update this component and re-render the table.
+   *
+   * @param {Object} filter - The selected filter.
+   * @param {string} filter.match
+   */
+  selectFilter(filter) {
+    let activeFilter = filter;
+    // We have to account for a select value being changed.
+    if (filter.hasOwnProperty('target')) {
+      // Find the filter with the title of the select value.
+      activeFilter = _find(this.props.filters, 'title', filter.target.value);
     }
+
+    // Update the filter match value, then tell the parent DataTable that the
+    // filter has been updated - this will re-render() the DataTable.
+    this.setState({
+      match: filter.match,
+      activeFilter,
+    }, () => {
+      this.props.onUpdate(this.props.filterName, this.props.filterProperty, filter.match);
+    });
   },
 
 
   // Render filter options.
-  render: function() {
-    var filterClass = this.props.className + ' cmp-collection-match-filter';
-    var optionsContainer = this.getOptionsContainer();
+  render() {
+    const filterClass = `${this.props.className} cmp-collection-match-filter`;
+    const optionsContainer = this.getOptionsContainer();
 
     return (
       <div className={filterClass}>
         {optionsContainer}
       </div>
     );
-  }
+  },
 
 });
 

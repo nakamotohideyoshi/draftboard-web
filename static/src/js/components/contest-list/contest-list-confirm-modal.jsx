@@ -2,15 +2,14 @@ import React from 'react';
 import Modal from '../modal/modal.jsx';
 import CountdownClock from '../site/countdown-clock.jsx';
 import Cookies from 'js-cookie';
-import ClassNames from 'classnames';
+import classNames from 'classnames';
 import EnterContestButton from './enter-contest-button.jsx';
-
 
 
 /**
  * When a user attempts to enter a contest, prompt them to confirm.
  */
-var ContestListConfirmModal = React.createClass({
+const ContestListConfirmModal = React.createClass({
 
   propTypes: {
     lineup: React.PropTypes.object,
@@ -19,41 +18,41 @@ var ContestListConfirmModal = React.createClass({
     cancelEntry: React.PropTypes.func.isRequired,
     isOpen: React.PropTypes.bool,
     entries: React.PropTypes.object,
-    lineupsInfo: React.PropTypes.object
+    lineupsInfo: React.PropTypes.object,
   },
 
 
-  getInitialState: function() {
+  getInitialState() {
     return {
       isOpen: this.props.isOpen,
-      shouldConfirmEntry: true
+      shouldConfirmEntry: true,
     };
-  },
-
-
-  // Open the modal.
-  open: function() {
-    this.setState({isOpen: true});
   },
 
 
   // If the parent component tells us the modal should be closed via prop change, close it.
   // The parent can also call this components 'close()' method directly.
-  componentWillReceiveProps: function(nextProps) {
-    this.setState({isOpen: nextProps.isOpen});
+  componentWillReceiveProps(nextProps) {
+    this.setState({ isOpen: nextProps.isOpen });
+  },
+
+
+  // Open the modal.
+  open() {
+    this.setState({ isOpen: true });
   },
 
 
   // This gets called when the user requests to close the modal.
-  close: function() {
+  close() {
     // close the modal.
-    this.setState({isOpen: false});
+    this.setState({ isOpen: false });
     this.props.cancelEntry();
   },
 
 
   // When the user clicks the 'enter contest' button.
-  handleConfirmEntry: function() {
+  handleConfirmEntry() {
     // If they selected the 'don't ask again' button, set a cookie to remember.
     if (!this.state.shouldConfirmEntry) {
       Cookies.set('shouldConfirmEntry', 'false');
@@ -64,17 +63,17 @@ var ContestListConfirmModal = React.createClass({
 
 
   // Toggle the "don't ask again" button
-  handleConfirmToggle: function() {
-    this.setState({shouldConfirmEntry: !this.state.shouldConfirmEntry});
+  handleConfirmToggle() {
+    this.setState({ shouldConfirmEntry: !this.state.shouldConfirmEntry });
   },
 
 
-  render: function() {
+  render() {
     if (!this.props.contest) {
       return (<div></div>);
     }
 
-    let rememberClass = ClassNames('remember__inner', {'selected': !this.state.shouldConfirmEntry});
+    const rememberClass = classNames('remember__inner', { selected: !this.state.shouldConfirmEntry });
 
     return (
       <Modal
@@ -124,8 +123,9 @@ var ContestListConfirmModal = React.createClass({
         </div>
       </Modal>
     );
-  }
+  },
 
 });
+
 
 module.exports = ContestListConfirmModal;

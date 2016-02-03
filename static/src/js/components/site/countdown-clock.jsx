@@ -1,5 +1,5 @@
-import React from 'react'
-import { timeRemaining } from '../../lib/utils.js'
+import React from 'react';
+import { timeRemaining } from '../../lib/utils.js';
 
 
 /**
@@ -17,7 +17,7 @@ const CountdownClock = React.createClass({
   getInitialState() {
     return {
       timeRemaining: {},
-    }
+    };
   },
 
 
@@ -27,23 +27,23 @@ const CountdownClock = React.createClass({
 
 
   componentWillUnmount() {
-    window.clearInterval(this.updateTimeRemainingLoop)
+    window.clearInterval(this.updateTimeRemainingLoop);
   },
 
 
   setTimeRemaining() {
     if (!this.props.time) {
-      return
+      return;
     }
 
-    const timeObj = timeRemaining(this.props.time)
+    const timeObj = timeRemaining(this.props.time);
 
     if (timeObj.expired === true && typeof this.props.onCountdownOver === 'function') {
-      this.props.onCountdownOver()
+      this.props.onCountdownOver();
     }
 
     // difference between when the contest starts and now.
-    this.setState({ timeRemaining: timeObj })
+    this.setState({ timeRemaining: timeObj });
   },
 
   updateInterval: 1000,
@@ -54,7 +54,7 @@ const CountdownClock = React.createClass({
         <span className="cmp-countdown-clock">
           <span className="hours">Loading...</span>
         </span>
-      )
+      );
     }
 
     return (
@@ -63,9 +63,9 @@ const CountdownClock = React.createClass({
         <span className="minutes">{this.state.timeRemaining.minutes}:</span>
         <span className="seconds">{this.state.timeRemaining.seconds}</span>
       </span>
-    )
+    );
   },
-})
+});
 
 
-export default CountdownClock
+export default CountdownClock;

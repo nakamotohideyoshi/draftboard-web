@@ -1,6 +1,6 @@
-import React from 'react'
-import * as AppActions from '../../stores/app-state-store.js'
-import Sparkline from './sparkline.jsx'
+import React from 'react';
+import * as AppActions from '../../stores/app-state-store.js';
+import Sparkline from './sparkline.jsx';
 
 
 /**
@@ -10,7 +10,7 @@ import Sparkline from './sparkline.jsx'
  * @param {array} columns - The columns that should be displayed. This is directly passed down
  * through DataTable.
  */
-let DraftPlayerListRow = React.createClass({
+const DraftPlayerListRow = React.createClass({
 
   propTypes: {
     row: React.PropTypes.object.isRequired,
@@ -18,61 +18,61 @@ let DraftPlayerListRow = React.createClass({
     draftable: React.PropTypes.bool,
     drafted: React.PropTypes.bool,
     draftPlayer: React.PropTypes.func,
-    unDraftPlayer: React.PropTypes.func
+    unDraftPlayer: React.PropTypes.func,
   },
 
 
-  getInitialState: function() {
-    return {};
-  },
-
-
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
-      draftable: true
+      draftable: true,
     };
   },
 
 
-  onRowClick: function(playerId) {
+  getInitialState() {
+    return {};
+  },
+
+
+  onRowClick(playerId) {
     AppActions.openPane();
     this.props.focusPlayer(playerId);
   },
 
 
-  onDraftClick: function(player, e) {
+  onDraftClick(player, e) {
     e.stopPropagation();
     this.props.draftPlayer(player);
   },
 
 
-  onUnDraftClick: function(player, e) {
-    e.stopPropagation()
-    this.props.unDraftPlayer(player.player_id)
+  onUnDraftClick(player, e) {
+    e.stopPropagation();
+    this.props.unDraftPlayer(player.player_id);
   },
 
 
-  getDraftButton: function() {
+  getDraftButton() {
     if (this.props.drafted) {
       return (
         <div
           className="draft-button remove"
           onClick={this.onUnDraftClick.bind(this, this.props.row)}
         >Remove</div>
-      )
-    } else {
-      return (
-        <div
-          className="draft-button"
-          onClick={this.onDraftClick.bind(this, this.props.row)}
-        >Draft</div>
-      )
+      );
     }
+
+    return (
+      <div
+        className="draft-button"
+        onClick={this.onDraftClick.bind(this, this.props.row)}
+      >Draft</div>
+    );
   },
 
 
-  render: function() {
-    var classes = 'cmp-player-list__row';
+  render() {
+    let classes = 'cmp-player-list__row';
 
     if (this.props.draftable === false) {
       classes += ' fade';
@@ -88,7 +88,7 @@ let DraftPlayerListRow = React.createClass({
           {this.getDraftButton()}
         </td>
         <td className="position">{this.props.row.position}</td>
-        <td className="photo"><img src='/static/src/img/temp/PAM_90212.png' width="auto" height="30px" /></td>
+        <td className="photo"><img src="/static/src/img/temp/PAM_90212.png" width="auto" height="35px" /></td>
         <td className="name">
           <span className="player">{this.props.row.name} </span>
           <span className="team">{this.props.row.team_alias}</span>
@@ -100,9 +100,9 @@ let DraftPlayerListRow = React.createClass({
         <td className="salary">${this.props.row.salary.toLocaleString('en')}</td>
       </tr>
     );
-  }
+  },
 
-})
+});
 
 
-module.exports = DraftPlayerListRow
+module.exports = DraftPlayerListRow;
