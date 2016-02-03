@@ -1,30 +1,80 @@
 import 'babel-core/polyfill';
-import React from 'react'
-const ReactRedux = require('react-redux')
-const store = require('../../store')
-const renderComponent = require('../../lib/render-component')
-const CollectionMatchFilter = require('../filters/collection-match-filter.jsx')
-const CollectionSearchFilter = require('../filters/collection-search-filter.jsx')
-const PlayerListRow = require('./draft-player-list-row.jsx')
-import DraftTeamFilter from './draft-team-filter.jsx'
-import {forEach as _forEach, find as _find, matchesProperty as _matchesProperty} from 'lodash'
-import {fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter}
-  from '../../actions/draft-group-players-actions.js'
-import {fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId}
-  from '../../actions/upcoming-draft-groups-actions.js'
-import {createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
-  editLineupInit, importLineup } from '../../actions/lineup-actions.js'
-import {draftGroupPlayerSelector} from '../../selectors/draft-group-players-selector.js'
-import {activeDraftGroupBoxScoresSelector} from '../../selectors/draft-group-info-selector.js'
+import React from 'react';
+import ReactRedux from 'react-redux';
+import store from '../../store';
+import renderComponent from '../../lib/render-component';
+import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
+import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
+import PlayerListRow from './draft-player-list-row.jsx';
+import DraftTeamFilter from './draft-team-filter.jsx';
+import { forEach as _forEach, find as _find, matchesProperty as _matchesProperty } from 'lodash';
+import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter, }
+  from '../../actions/draft-group-players-actions.js';
+import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId, }
+  from '../../actions/upcoming-draft-groups-actions.js';
+import { createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
+  editLineupInit, importLineup } from '../../actions/lineup-actions.js';
+import { draftGroupPlayerSelector } from '../../selectors/draft-group-players-selector.js';
+import { activeDraftGroupBoxScoresSelector } from '../../selectors/draft-group-info-selector.js';
 // Other components that will take care of themselves on the draft page.
-import './draft-player-detail.jsx'
+import './draft-player-detail.jsx';
 // Router stuff
-import { Router, Route } from 'react-router'
-import {updatePath, syncReduxAndRouter} from 'redux-simple-router'
-import createBrowserHistory from 'history/lib/createBrowserHistory'
-const history = createBrowserHistory()
-syncReduxAndRouter(history, store)
+import { Router, Route } from 'react-router';
+import { updatePath, syncReduxAndRouter } from 'redux-simple-router';
+import createBrowserHistory from 'history/lib/createBrowserHistory';
 
+const history = createBrowserHistory();
+syncReduxAndRouter(history, store);
+const { Provider, connect } = ReactRedux;
+
+
+/*
+ * Map selectors to the React component
+ * @param  {object} state The current Redux state that we need to pass into the selectors
+ * @return {object}       All of the methods we want to map to the component
+ */
+function mapStateToProps(state) {
+  return {
+    allPlayers: state.draftGroupPlayers.allPlayers || {},
+    filteredPlayers: draftGroupPlayerSelector(state),
+    activeDraftGroupBoxScores: activeDraftGroupBoxScoresSelector(state),
+    filters: state.draftGroupPlayers.filters,
+    draftGroupTime: state.draftGroupPlayers.start,
+    sport: state.draftGroupPlayers.sport,
+    teams: state.sports,
+    lineups: state.upcomingLineups.lineups,
+    newLineup: state.createLineup.lineup,
+    newLineupExtra: state.createLineup,
+    availablePositions: state.createLineup.availablePositions,
+    injuries: state.injuries,
+    fantasyHistory: state.fantasyHistory,
+    orderByDirection: state.draftGroupPlayers.filters.orderBy.direction,
+    orderByProperty: state.draftGroupPlayers.filters.orderBy.property,
+  };
+}
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component
+ */
+function mapDispatchToProps(dispatch) {
+  return {
+    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
+    fetchDraftGroupIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
+    draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
+    unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
+    focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
+    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
+    fetchUpcomingLineups: (draftGroupId) => dispatch(fetchUpcomingLineups(draftGroupId)),
+    createLineupViaCopy: (lineupId) => dispatch(createLineupViaCopy(lineupId)),
+    editLineupInit: (lineupId) => dispatch(editLineupInit(lineupId)),
+    importLineup: (lineup, importTitle) => dispatch(importLineup(lineup, importTitle)),
+    updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
+    updatePath: (path) => dispatch(updatePath(path)),
+    setActiveDraftGroupId: (draftGroupId) => dispatch(setActiveDraftGroupId(draftGroupId)),
+  };
+}
 
 
 /**
@@ -58,90 +108,30 @@ const DraftPlayerList = React.createClass({
     orderByProperty: React.PropTypes.string,
     updateOrderByFilter: React.PropTypes.func,
     setActiveDraftGroupId: React.PropTypes.func.isRequired,
-    activeDraftGroupBoxScores: React.PropTypes.object
+    activeDraftGroupBoxScores: React.PropTypes.object,
   },
 
 
-  // Contest type filter data.
-  playerPositionFilters: {
-    'nba': [
-      {title: 'All', column: 'position', match: ''},
-      {title: 'PG', column: 'position', match: 'pg'},
-      {title: 'SG', column: 'position', match: 'sg'},
-      {title: 'SF', column: 'position', match: 'sf'},
-      {title: 'PF', column: 'position', match: 'pf'},
-      {title: 'C', column: 'position', match: 'c'}
-    ],
-    'nfl': [
-      {title: 'All', column: 'position', match: ''},
-      {title: 'QB', column: 'position', match: 'qb'},
-      {title: 'RB', column: 'position', match: 'rb'},
-      {title: 'WR', column: 'position', match: 'wr'},
-      {title: 'TE', column: 'position', match: 'te'},
-      {title: 'DST', column: 'position', match: 'dst'}
-    ],
-    'nhl': [
-      {title: 'All', column: 'position', match: ''},
-      {title: 'G', column: 'position', match: 'g'},
-      {title: 'C', column: 'position', match: 'c'},
-      {title: 'F', column: 'position', match: 'f'},
-      {title: 'D', column: 'position', match: 'd'}
-    ],
-    'mlb': [
-      {title: 'All', column: 'position', match: ''},
-      {title: 'SP', column: 'position', match: 'sp'},
-      {title: 'C', column: 'position', match: 'c'},
-      {title: '1B', column: 'position', match: '1b'},
-      {title: '2B', column: 'position', match: '2b'},
-      {title: '3B', column: 'position', match: '3b'},
-      {title: 'SS', column: 'position', match: 'ss'},
-      {title: 'OF', column: 'position', match: 'of'}
-    ]
-  },
-
-
-  loadData: function() {
-    this.props.setActiveDraftGroupId(this.props.params.draftgroupId)
-    this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.params.draftgroupId)
-    // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
-    Promise.all([
-      this.props.fetchDraftGroupIfNeeded(this.props.params.draftgroupId),
-      this.props.fetchUpcomingLineups(this.props.params.draftgroupId)
-    ]).then( () => {
-      // If the url has told us that the user wants to copy (import) a lineup, do that.
-      if (this.props.params.lineupAction === 'copy' && this.props.params.lineupId) {
-        this.props.createLineupViaCopy(this.props.params.lineupId)
-      }
-      // if we're editing...
-      else if (this.props.params.lineupAction === 'edit' && this.props.params.lineupId) {
-        let lineup = this.props.lineups[this.props.params.lineupId]
-        this.props.importLineup(lineup, true)
-        this.props.editLineupInit(this.props.params.lineupId)
-      }
-    })
-  },
-
-
-  getInitialState: function() {
-    return ({
-      showTeamFilter: false,
-      filteredPlayers: [],
-      newLineup: {
-        availablePositions: []
-      }
-    });
-  },
-
-
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
-      allPlayers: []
+      allPlayers: [],
     };
   },
 
 
-  //TODO: Make keyboard keys select players in the list.
-  componentWillMount: function() {
+  getInitialState() {
+    return ({
+      showTeamFilter: false,
+      filteredPlayers: [],
+      newLineup: {
+        availablePositions: [],
+      },
+    });
+  },
+
+
+  // TODO: Make keyboard keys select players in the list.
+  componentWillMount() {
     // Listen to j/k keypress actions to focus players.
     // KeypressActions.keypressJ.listen(this.focusNextRow);
     // KeypressActions.keypressK.listen(this.focusPreviousRow);
@@ -149,50 +139,110 @@ const DraftPlayerList = React.createClass({
   },
 
 
-  handleFilterChange: function(filterName, filterProperty, match) {
-    this.props.updateFilter(filterName, filterProperty, match)
+  // Contest type filter data.
+  playerPositionFilters: {
+    nba: [
+      { title: 'All', column: 'position', match: '' },
+      { title: 'PG', column: 'position', match: 'pg' },
+      { title: 'SG', column: 'position', match: 'sg' },
+      { title: 'SF', column: 'position', match: 'sf' },
+      { title: 'PF', column: 'position', match: 'pf' },
+      { title: 'C', column: 'position', match: 'c' },
+    ],
+    nfl: [
+      { title: 'All', column: 'position', match: '' },
+      { title: 'QB', column: 'position', match: 'qb' },
+      { title: 'RB', column: 'position', match: 'rb' },
+      { title: 'WR', column: 'position', match: 'wr' },
+      { title: 'TE', column: 'position', match: 'te' },
+      { title: 'DST', column: 'position', match: 'dst' },
+    ],
+    nhl: [
+      { title: 'All', column: 'position', match: '' },
+      { title: 'G', column: 'position', match: 'g' },
+      { title: 'C', column: 'position', match: 'c' },
+      { title: 'F', column: 'position', match: 'f' },
+      { title: 'D', column: 'position', match: 'd' },
+    ],
+    mlb: [
+      { title: 'All', column: 'position', match: '' },
+      { title: 'SP', column: 'position', match: 'sp' },
+      { title: 'C', column: 'position', match: 'c' },
+      { title: '1B', column: 'position', match: '1b' },
+      { title: '2B', column: 'position', match: '2b' },
+      { title: '3B', column: 'position', match: '3b' },
+      { title: 'SS', column: 'position', match: 'ss' },
+      { title: 'OF', column: 'position', match: 'of' },
+    ],
   },
 
 
-  handleGameCountClick: function() {
-    this.setState({showTeamFilter: true})
+  loadData() {
+    this.props.setActiveDraftGroupId(this.props.params.draftgroupId);
+    this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.params.draftgroupId);
+    // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
+    Promise.all([
+      this.props.fetchDraftGroupIfNeeded(this.props.params.draftgroupId),
+      this.props.fetchUpcomingLineups(this.props.params.draftgroupId),
+    ]).then(() => {
+      // If the url has told us that the user wants to copy (import) a lineup, do that.
+      if (this.props.params.lineupAction === 'copy' && this.props.params.lineupId) {
+        this.props.createLineupViaCopy(this.props.params.lineupId);
+      } else if (this.props.params.lineupAction === 'edit' && this.props.params.lineupId) {
+        // if we're editing...
+        const lineup = this.props.lineups[this.props.params.lineupId];
+        this.props.importLineup(lineup, true);
+        this.props.editLineupInit(this.props.params.lineupId);
+      }
+    });
   },
 
 
-  handleSetOrderBy: function(propertyColumn) {
+  handleFilterChange(filterName, filterProperty, match) {
+    this.props.updateFilter(filterName, filterProperty, match);
+  },
+
+
+  handleGameCountClick() {
+    this.setState({ showTeamFilter: true });
+  },
+
+
+  handleSetOrderBy(propertyColumn) {
     // Determine sort direction based on current sort settings.
-    let direction = 'desc'
+    let direction = 'desc';
 
     // If we are sorting by the already-'desc'-sorted column, flip the sort direction.
-    if (propertyColumn === this.props.orderByProperty  && 'desc' === this.props.orderByDirection) {
-      direction = 'asc'
+    if (propertyColumn === this.props.orderByProperty && this.props.orderByDirection === 'desc') {
+      direction = 'asc';
     }
     // Dispatch the filter update.
-    this.props.updateOrderByFilter(propertyColumn, direction)
+    this.props.updateOrderByFilter(propertyColumn, direction);
   },
 
 
-  render: function() {
-    let gameCount = ''
+  render() {
+    const self = this;
+    let gameCount = '';
     if (this.props.draftGroupTime) {
-      gameCount = Object.keys(this.props.activeDraftGroupBoxScores).length + ' Games'
+      gameCount = `${Object.keys(this.props.activeDraftGroupBoxScores).length} Games`;
     }
 
     let visibleRows = [];
 
     // Build up a list of rows to be displayed.
-    _forEach(this.props.filteredPlayers, function(row) {
-      let draftable = true
-      let drafted = false
+    _forEach(self.props.filteredPlayers, (row) => {
+      let draftable = true;
+      let drafted = false;
       // Is there a slot available?
-      if (this.props.availablePositions.indexOf(row.position) === -1) {
-        draftable = false
+      if (self.props.availablePositions.indexOf(row.position) === -1) {
+        draftable = false;
       }
 
       // Is the player already drafted?
-      if (undefined !== _find(this.props.newLineup, _matchesProperty('player', row))) {
-        draftable = false
-        drafted = true
+      if (undefined !== _find(self.props.newLineup, _matchesProperty('player', row))) {
+        draftable = false;
+        drafted = true;
       }
 
       visibleRows.push(
@@ -201,23 +251,22 @@ const DraftPlayerList = React.createClass({
           row={row}
           draftable={draftable}
           drafted={drafted}
-          focusPlayer={this.props.focusPlayer}
-          draftPlayer={this.props.draftPlayer}
-          unDraftPlayer={this.props.unDraftPlayer}
+          focusPlayer={self.props.focusPlayer}
+          draftPlayer={self.props.draftPlayer}
+          unDraftPlayer={self.props.unDraftPlayer}
         />
-      )
-    }.bind(this))
-
+      );
+    });
 
 
     // If the draftgroup hasn't been fetched yet, show a loading indicator.
-    if(this.props.allPlayers === {}) {
-      visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>
+    if (this.props.allPlayers === {}) {
+      visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>;
     }
 
-    let positions = []
+    let positions = [];
     if (this.props.sport && this.playerPositionFilters.hasOwnProperty(this.props.sport)) {
-      positions = this.playerPositionFilters[this.props.sport]
+      positions = this.playerPositionFilters[this.props.sport];
     }
 
     return (
@@ -228,15 +277,15 @@ const DraftPlayerList = React.createClass({
           <span
             className="player-list__header-games"
             onClick={this.handleGameCountClick}
-            >{gameCount}</span>
+          >{gameCount}</span>
         </h2>
 
         <div className="player-list-filter-set">
           <CollectionSearchFilter
             className="collection-filter--player-name"
             filterName="playerSearchFilter"
-            filterProperty='player.name'
-            match=''
+            filterProperty="player.name"
+            match=""
             onUpdate={this.handleFilterChange}
           />
 
@@ -244,8 +293,8 @@ const DraftPlayerList = React.createClass({
             className="collection-filter--player-type"
             filters={positions}
             filterName="positionFilter"
-            filterProperty='position'
-            match=''
+            filterProperty="position"
+            match=""
             onUpdate={this.handleFilterChange}
           />
         </div>
@@ -258,7 +307,7 @@ const DraftPlayerList = React.createClass({
             selectedTeams={this.props.filters.teamFilter.match}
             teams={this.props.teams}
             sport={this.props.sport}
-            />
+          />
         </div>
 
         <table className="cmp-player-list__table table">
@@ -269,7 +318,10 @@ const DraftPlayerList = React.createClass({
               <th></th>
               <th
                 className="table__sortable"
-                onClick={this.handleSetOrderBy.bind(null, 'name')}>Player</th>
+                onClick={this.handleSetOrderBy.bind(null, 'name')}
+              >
+                Player
+              </th>
               <th>Status</th>
               <th onClick={this.handleSetOrderBy.bind(null, 'team_alias')}>OPP</th>
               <th onClick={this.handleSetOrderBy.bind(null, 'fppg')}>AVG</th>
@@ -277,63 +329,20 @@ const DraftPlayerList = React.createClass({
               <th
                 onClick={this.handleSetOrderBy.bind(null, 'salary')}
                 className="table__sortable"
-                >Salary</th>
+              >Salary</th>
             </tr>
           </thead>
           <tbody>{visibleRows}</tbody>
         </table>
       </div>
     );
-  }
+  },
 
 });
 
 
-// Redux integration
-let {Provider, connect} = ReactRedux;
-
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
-  return {
-    allPlayers: state.draftGroupPlayers.allPlayers || {},
-    filteredPlayers: draftGroupPlayerSelector(state),
-    activeDraftGroupBoxScores: activeDraftGroupBoxScoresSelector(state),
-    filters: state.draftGroupPlayers.filters,
-    draftGroupTime: state.draftGroupPlayers.start,
-    sport: state.draftGroupPlayers.sport,
-    teams: state.sports,
-    lineups: state.upcomingLineups.lineups,
-    newLineup: state.createLineup.lineup,
-    newLineupExtra: state.createLineup,
-    availablePositions: state.createLineup.availablePositions,
-    injuries: state.injuries,
-    fantasyHistory: state.fantasyHistory,
-    orderByDirection: state.draftGroupPlayers.filters.orderBy.direction,
-    orderByProperty: state.draftGroupPlayers.filters.orderBy.property
-  };
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
-    fetchDraftGroupIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
-    draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
-    unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
-    focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
-    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
-    fetchUpcomingLineups: (draftGroupId) => dispatch(fetchUpcomingLineups(draftGroupId)),
-    createLineupViaCopy: (lineupId) => dispatch(createLineupViaCopy(lineupId)),
-    editLineupInit: (lineupId) => dispatch(editLineupInit(lineupId)),
-    importLineup: (lineup, importTitle) => dispatch(importLineup(lineup, importTitle)),
-    updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
-    updatePath: (path) => dispatch(updatePath(path)),
-    setActiveDraftGroupId: (draftGroupId) => dispatch(setActiveDraftGroupId(draftGroupId))
-  };
-}
-
 // Wrap the component to inject dispatch and selected state into it.
-var DraftPlayerListConnected = connect(
+const DraftPlayerListConnected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(DraftPlayerList);

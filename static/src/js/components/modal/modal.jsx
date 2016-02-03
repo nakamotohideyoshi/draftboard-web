@@ -1,16 +1,14 @@
-'use strict';
-
-var React = require('react');
-var ModalWrap = require('./modal-wrap.jsx');
-var classnames = require('classnames');
-var KeypressActions = require('../../actions/keypress-actions');
+import React from 'react';
+import ModalWrap from './modal-wrap.jsx';
+import classnames from 'classnames';
+// import KeypressActions from '../../actions/keypress-actions';
 
 
 /**
  * A component that creates a modal with a site-covering background element. Inspired by the Modal
  * component in Elemental UI (http://elemental-ui.com/modal).
  */
-var Modal = React.createClass({
+const Modal = React.createClass({
 
   propTypes: {
     // Should there be a button to close the modal?
@@ -24,32 +22,32 @@ var Modal = React.createClass({
     // This will be called when the user clicks the close button or the esc key or whatever else.
     // The function in the parent component needs to handle changing isOpen to false.
     onClose: React.PropTypes.func.isRequired,
-    className: React.PropTypes.string
+    className: React.PropTypes.string,
   },
 
 
-  componentDidMount: function() {
-    // Close the modal with the ESC key.
-    KeypressActions.keypressESC.listen(this.handleClose);
-  },
-
-
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
       isOpen: false,
-      showCloseBtn: true
+      showCloseBtn: true,
     };
   },
 
 
-  handleClose: function() {
+  componentDidMount() {
+    // Close the modal with the ESC key.
+    // KeypressActions.keypressESC.listen(this.handleClose);
+  },
+
+
+  handleClose() {
     this.props.onClose();
   },
 
 
-  render: function() {
-    var classNames = classnames(this.props.className, 'cmp-modal', {'cmp-modal--visible': this.props.isOpen});
-    var closeBtn = '';
+  render() {
+    const classNames = classnames(this.props.className, 'cmp-modal', { 'cmp-modal--visible': this.props.isOpen });
+    let closeBtn = '';
 
     if (this.props.showCloseBtn) {
       closeBtn = (
@@ -72,7 +70,7 @@ var Modal = React.createClass({
         </div>
       </ModalWrap>
     );
-  }
+  },
 
 });
 

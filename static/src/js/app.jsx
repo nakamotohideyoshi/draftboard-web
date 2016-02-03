@@ -1,6 +1,5 @@
 import Raven from 'raven-js';
 import Cookies from 'js-cookie';
-
 import log from 'lib/logging';
 
 
@@ -30,7 +29,7 @@ if (Cookies.get('username') !== window.dfs.user.username) {
 
 // Global
 require('actions/keypress-actions');
-require('components/site/pane');
+require('components/site/pane')();
 require('components/site/message-display');
 
 // Settings

@@ -1,30 +1,60 @@
-import React from 'react'
-import {Provider, connect} from 'react-redux';
-import store from '../../store'
+import React from 'react';
+import { Provider, connect } from 'react-redux';
+import store from '../../store';
 import renderComponent from '../../lib/render-component';
-import PrizeStructure from './prize-structure.jsx'
-import GamesList from './games-list.jsx'
-import EntrantList from './entrant-list.jsx'
-import EnterContestButton from './enter-contest-button.jsx'
-import {enterContest, setFocusedContest, fetchContestEntrantsIfNeeded}
-  from '../../actions/upcoming-contests-actions.js'
-import * as AppActions from '../../stores/app-state-store.js'
-import { Router, Route } from 'react-router'
-import {syncReduxAndRouter} from 'redux-simple-router'
-import createBrowserHistory from 'history/lib/createBrowserHistory'
-import CountdownClock from '../site/countdown-clock.jsx'
-import {fetchDraftGroupBoxScoresIfNeeded} from '../../actions/upcoming-draft-groups-actions.js'
-import {focusedContestInfoSelector, focusedLineupSelector} from '../../selectors/lobby-selectors.js'
-import {upcomingLineupsInfo} from '../../selectors/upcoming-lineups-info.js'
+import PrizeStructure from './prize-structure.jsx';
+import GamesList from './games-list.jsx';
+import EntrantList from './entrant-list.jsx';
+import EnterContestButton from './enter-contest-button.jsx';
+import { enterContest, setFocusedContest, fetchContestEntrantsIfNeeded, }
+  from '../../actions/upcoming-contests-actions.js';
+import * as AppActions from '../../stores/app-state-store.js';
+import { Router, Route } from 'react-router';
+import { syncReduxAndRouter } from 'redux-simple-router';
+import createBrowserHistory from 'history/lib/createBrowserHistory';
+import CountdownClock from '../site/countdown-clock.jsx';
+import { fetchDraftGroupBoxScoresIfNeeded } from '../../actions/upcoming-draft-groups-actions.js';
+import { focusedContestInfoSelector, focusedLineupSelector } from '../../selectors/lobby-selectors.js';
+import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
 
-const history = createBrowserHistory()
-syncReduxAndRouter(history, store)
+const history = createBrowserHistory();
+syncReduxAndRouter(history, store);
+
+
+/*
+ * Map selectors to the React component
+ * @param  {object} state The current Redux state that we need to pass into the selectors
+ * @return {object}       All of the methods we want to map to the component
+ */
+function mapStateToProps(state) {
+  return {
+    contestInfo: focusedContestInfoSelector(state),
+    focusedLineup: focusedLineupSelector(state),
+    boxScores: state.upcomingDraftGroups.boxScores,
+    teams: state.sports,
+    lineupsInfo: upcomingLineupsInfo(state),
+  };
+}
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component
+ */
+function mapDispatchToProps(dispatch) {
+  return {
+    enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
+    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
+    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
+    fetchContestEntrantsIfNeeded: (contestId) => dispatch(fetchContestEntrantsIfNeeded(contestId)),
+  };
+}
 
 
 /**
  * Renders a slideout pane with details of the selected contest.
  */
-var ContestListDetail = React.createClass({
+const ContestListDetail = React.createClass({
 
   propTypes: {
     boxScores: React.PropTypes.object,
@@ -37,7 +67,13 @@ var ContestListDetail = React.createClass({
     params: React.PropTypes.object,
     setFocusedContest: React.PropTypes.func,
     teams: React.PropTypes.object,
-    lineupsInfo: React.PropTypes.object
+    lineupsInfo: React.PropTypes.object,
+  },
+
+  getInitialState() {
+    return {
+      activeTab: 'prizes',
+    };
   },
 
 
@@ -45,39 +81,32 @@ var ContestListDetail = React.createClass({
    * When we get new props, check to see if the focusedContestId is the same as the id in the URL.
    * if it isn't, set what's in the URL as the focused contest and open the side panel to view it.
    */
-  componentWillReceiveProps: function(nextProps) {
+  componentWillReceiveProps(nextProps) {
     // A new contest has been focused. Fetch all of it's required data.
-    if (nextProps.params.contestId && this.props.contestInfo.contest.id != nextProps.params.contestId) {
+    if (nextProps.params.contestId && this.props.contestInfo.contest.id !== nextProps.params.contestId) {
       AppActions.openPane();
       // // This is what "monitors" for URL changes.
-      this.props.setFocusedContest(nextProps.params.contestId)
-      this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId)
+      this.props.setFocusedContest(nextProps.params.contestId);
+      this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId);
 
       // If we've got the selected contest, use it's draft_group id to get the boxscores.
       if (this.props.contestInfo.contest.hasOwnProperty('draft_group')) {
-        this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.contestInfo.contest.draft_group)
+        this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.contestInfo.contest.draft_group);
       }
     }
 
     // If we don't have team names (we problably do), fetch them.
     if (nextProps.params.contest && nextProps.params.contest.hasOwnProperty('sport')) {
-      this.props.fetchTeamsIfNeeded(nextProps.params.contest.sport)
-    }
-  },
-
-
-  getInitialState: function() {
-    return {
-      activeTab: 'prizes'
+      this.props.fetchTeamsIfNeeded(nextProps.params.contest.sport);
     }
   },
 
 
   // Get the content of the selected tab.
-  getActiveTab: function() {
+  getActiveTab() {
     switch (this.state.activeTab) {
       case 'prizes':
-        return (<PrizeStructure structure={this.props.contestInfo.prizeStructure} />)
+        return (<PrizeStructure structure={this.props.contestInfo.prizeStructure} />);
 
       case 'games':
         if (this.props.boxScores.hasOwnProperty(this.props.contestInfo.contest.id)) {
@@ -86,66 +115,54 @@ var ContestListDetail = React.createClass({
               boxScores={this.props.boxScores[this.props.contestInfo.contest.id]}
               teams={this.props.teams[this.props.contestInfo.contest.sport]}
             />
-            )
+            );
         }
 
-        return 'no boxscore info'
+        return 'no boxscore info';
 
       case 'entries':
         return (
           <EntrantList entrants={this.props.contestInfo.entrants} />
-        )
+        );
 
       default:
-        return ('Select a tab')
+        return ('Select a tab');
     }
-  },
-
-
-  // When a tab is clicked, tell the state to show it'scontent.
-  handleTabClick: function(tabName) {
-    this.setState({'activeTab': tabName})
-  },
-
-
-  // Enter the currently focused lineup into a contest.
-  // TODO: this is copypasta from loby-contests.jsx. THis should really be a child copmponent of
-  // that but I kinda screwed up a long time ago. fix this someday.
-  handleEnterContest: function(contest) {
-    this.enterContest(contest.id);
-  },
-
-  enterContest: function(contestId) {
-    this.props.enterContest(contestId, this.props.focusedLineup.id);
   },
 
 
   // I know making these their own components would be more 'react', but I don't want to deal with
   // the hassle right now.
-  getTabNav: function() {
+  getTabNav() {
     const tabs = [
-      {title: 'Payout', tab: 'prizes'},
-      {title: 'Games', tab: 'games'},
-      {title: 'Entries', tab: 'entries'}
-    ]
+      { title: 'Payout', tab: 'prizes' },
+      { title: 'Games', tab: 'games' },
+      { title: 'Entries', tab: 'entries' },
+    ];
 
-    return tabs.map(function(tab) {
-      let classes = ''
+    return tabs.map((tab) => {
+      let classes = '';
 
       if (this.state.activeTab === tab.tab) {
-        classes = 'active'
+        classes = 'active';
       }
 
       return (
-        <li key={tab.tab} className={classes} onClick={this.handleTabClick.bind(this, tab.tab)}>{tab.title}</li>
-      )
-    }.bind(this))
+        <li
+          key={tab.tab}
+          className={classes}
+          onClick={this.handleTabClick.bind(this, tab.tab)}
+        >
+          {tab.title}
+        </li>
+      );
+    });
   },
 
 
-  getContest: function() {
-    if(this.props.contestInfo.contest.id) {
-      let tabNav = this.getTabNav()
+  getContest() {
+    if (this.props.contestInfo.contest.id) {
+      const tabNav = this.getTabNav();
 
       return (
         <div className="pane--contest-detail">
@@ -166,11 +183,18 @@ var ContestListDetail = React.createClass({
                 </div>
 
                 <div className="header__fee-prizes-pool">
-                  <div><span className="info-title">Prize</span><div>${this.props.contestInfo.contest.prize_pool.toFixed(2)}</div></div>
-                  <div><span className="info-title">Fee</span><div>${this.props.contestInfo.contest.buyin.toFixed(2)}</div></div>
+                  <div>
+                    <span className="info-title">Prize</span>
+                    <div>${this.props.contestInfo.contest.prize_pool.toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <span className="info-title">Fee</span><div>${this.props.contestInfo.contest.buyin.toFixed(2)}</div>
+                  </div>
                   <div>
                     <span className="info-title">Entrants</span>
-                    <div>{this.props.contestInfo.contest.current_entries} / {this.props.contestInfo.contest.entries}</div>
+                    <div>
+                      {this.props.contestInfo.contest.current_entries} / {this.props.contestInfo.contest.entries}
+                    </div>
                   </div>
                 </div>
 
@@ -186,7 +210,7 @@ var ContestListDetail = React.createClass({
                       started: 'Contest Has Started',
                       enter: 'Enter Contest',
                       entering: 'Entering...',
-                      entered: 'Entered'
+                      entered: 'Entered',
                     }}
                   />
                 </div>
@@ -201,51 +225,49 @@ var ContestListDetail = React.createClass({
           </div>
 
         </div>
-      )
+      );
     }
-    else {
-      return (
-        <div>Select a Contest</div>
-      )
-    }
+
+    return (
+      <div>Select a Contest</div>
+    );
   },
 
-  render: function() {
-    let contestDetail = this.getContest();
+
+  enterContest(contestId) {
+    this.props.enterContest(contestId, this.props.focusedLineup.id);
+  },
+
+
+  // Enter the currently focused lineup into a contest.
+  // TODO: this is copypasta from loby-contests.jsx. THis should really be a child copmponent of
+  // that but I kinda screwed up a long time ago. fix this someday.
+  handleEnterContest(contest) {
+    this.enterContest(contest.id);
+  },
+
+
+  // When a tab is clicked, tell the state to show it'scontent.
+  handleTabClick(tabName) {
+    this.setState({ activeTab: tabName });
+  },
+
+
+  render() {
+    const contestDetail = this.getContest();
 
     return (
       <div className="cmp-contest-list__detail">
         {contestDetail}
       </div>
-    )
-  }
+    );
+  },
 
-})
+});
 
-
-
-function mapStateToProps(state) {
-  return {
-    contestInfo: focusedContestInfoSelector(state),
-    focusedLineup: focusedLineupSelector(state),
-    boxScores: state.upcomingDraftGroups.boxScores,
-    teams: state.sports,
-    lineupsInfo: upcomingLineupsInfo(state)
-  }
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
-    setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
-    fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
-    fetchContestEntrantsIfNeeded: (contestId) => dispatch(fetchContestEntrantsIfNeeded(contestId))
-  }
-}
 
 // Wrap the component to inject dispatch and selected state into it.
-var ContestListDetailConnected = connect(
+const ContestListDetailConnected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(ContestListDetail);
@@ -261,4 +283,4 @@ renderComponent(
 );
 
 
-module.exports = ContestListDetailConnected
+module.exports = ContestListDetailConnected;

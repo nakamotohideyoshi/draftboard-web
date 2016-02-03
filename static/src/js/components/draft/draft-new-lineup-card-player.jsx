@@ -1,31 +1,31 @@
-'use strict';
-
-var React = require('react');
-import {roundUpToDecimalPlace} from '../../lib/utils.js'
+import React from 'react';
+import { roundUpToDecimalPlace } from '../../lib/utils.js';
 
 
 /**
  * An individual player row in the new lineup card in the draft section sidebar
  */
-var DraftNewLineupCardPlayer = React.createClass({
+const DraftNewLineupCardPlayer = React.createClass({
 
   propTypes: {
     // A player row object.
     player: React.PropTypes.object.isRequired,
     // What happens when the delete button is clicked.
     removePlayer: React.PropTypes.func.isRequired,
-    onPlayerClick: React.PropTypes.func
+    onPlayerClick: React.PropTypes.func,
   },
 
 
-  render: function() {
+  render() {
     if (this.props.player.player) {
-      var names = this.props.player.player.name.split(' ');
+      const names = this.props.player.player.name.split(' ');
 
       return (
         <li className="cmp-lineup-card__player occupied" key={this.props.player.idx}>
           <span className="cmp-lineup-card__position">{this.props.player.name}</span>
-          <span className="cmp-lineup-card__photo"><img src='/static/src/img/temp/PAM_90212.png' width="auto" height="30px" /></span>
+          <span className="cmp-lineup-card__photo">
+            <img src="/static/src/img/temp/PAM_90212.png" width="auto" height="35px" />
+          </span>
 
           <span
             className="cmp-lineup-card__name-salary"
@@ -50,18 +50,17 @@ var DraftNewLineupCardPlayer = React.createClass({
           </span>
         </li>
       );
-    } else {
-      return (
-        <li className="cmp-lineup-card__player vacant" key={this.props.player.idx}>
-          <span className="cmp-lineup-card__position">{this.props.player.name}</span>
-          <span className="cmp-lineup-card__photo-empty"><span className="photo"></span></span>
-          <span className="cmp-lineup-card__name">&nbsp;</span>
-          <span className="cmp-lineup-card__average">&nbsp;</span>
-        </li>
-      );
     }
 
-  }
+    return (
+      <li className="cmp-lineup-card__player vacant" key={this.props.player.idx}>
+        <span className="cmp-lineup-card__position">{this.props.player.name}</span>
+        <span className="cmp-lineup-card__photo-empty"><span className="photo"></span></span>
+        <span className="cmp-lineup-card__name">&nbsp;</span>
+        <span className="cmp-lineup-card__average">&nbsp;</span>
+      </li>
+    );
+  },
 
 });
 

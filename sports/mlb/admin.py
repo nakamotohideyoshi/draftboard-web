@@ -22,12 +22,14 @@ class PlayerAdmin(admin.ModelAdmin):
     search_fields   = sports.admin.PlayerAdmin.search_fields # + ('more','specific','fields...',)
 
 @admin.register(sports.mlb.models.PlayerStatsHitter)
-class PlayerStatsHitterAdmin(admin.ModelAdmin):
+class PlayerStatsHitterAdmin(sports.admin.PlayerStatsAdmin):
     list_display = ['game','player','bb','s','d','t','hr','rbi','r','hbp','sb','cs','ktotal','ab','ap','lob','xbh']
+    search_fields   = sports.admin.PlayerStatsAdmin.search_fields # + ('more','specific','fields...',)
 
 @admin.register(sports.mlb.models.PlayerStatsPitcher)
-class PlayerStatsPitcherAdmin(admin.ModelAdmin):
+class PlayerStatsPitcherAdmin(sports.admin.PlayerStatsAdmin):
     list_display = ['game','player','ip_1','ip_2','win','loss','qstart','ktotal','er','h','bb','hbp','cg','cgso','nono']
+    search_fields   = sports.admin.PlayerStatsAdmin.search_fields # + ('more','specific','fields...',)
 
 @admin.register(sports.mlb.models.GameBoxscore)
 class GameBoxscoreAdmin(admin.ModelAdmin):

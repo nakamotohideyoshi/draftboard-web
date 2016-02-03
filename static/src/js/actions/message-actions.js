@@ -1,5 +1,4 @@
-import * as types from '../action-types.js'
-
+import * as types from '../action-types.js';
 
 
 /**
@@ -21,21 +20,21 @@ export function addMessage(options) {
     level: options.level || 'info',
     ttl: options.ttl,
     // Create a probably-unique-enough ID
-    id: options.id || Math.random().toString(36).substr(2, 9)
-  }
+    id: options.id || Math.random().toString(36).substr(2, 9),
+  };
 }
 
 
 export function removeMessage(messageId) {
   return {
     type: types.REMOVE_MESSAGE,
-    id: messageId
-  }
+    id: messageId,
+  };
 }
 
 
 export function clearMessages() {
   return {
-    type: types.CLEAR_MESSAGES
-  }
+    type: types.CLEAR_MESSAGES,
+  };
 }

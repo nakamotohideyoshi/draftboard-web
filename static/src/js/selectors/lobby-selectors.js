@@ -1,31 +1,28 @@
-import {createSelector} from 'reselect';
-import {upcomingLineupsInfo} from './upcoming-lineups-info.js';
-
+import { createSelector } from 'reselect';
+import { upcomingLineupsInfo } from './upcoming-lineups-info.js';
 
 
 /**
  * Get the currently focused contest object based on state.upcomingContests.focusedContestId
  * Add it's prize structure and entrant usernames.
  */
-let upcomingContests = (state) => state.upcomingContests.allContests;
-let focusedContestId = (state) => state.upcomingContests.focusedContestId;
-let focusedLineupId = (state) => state.upcomingLineups.focusedLineupId;
-let boxScores = (state) => state.upcomingDraftGroups.boxScores;
-let prizes = (state) => state.prizes;
-let entrants = (state) => state.upcomingContests.entrants;
-let lineupsInfo = (state) => upcomingLineupsInfo(state);
-
 export const focusedContestInfoSelector = createSelector(
-  [upcomingContests, focusedContestId, focusedLineupId, boxScores, prizes, entrants, lineupsInfo],
+  (state) => state.upcomingContests.allContests,
+  (state) => state.upcomingContests.focusedContestId,
+  (state) => state.upcomingLineups.focusedLineupId,
+  (state) => state.upcomingDraftGroups.boxScores,
+  (state) => state.prizes,
+  (state) => state.upcomingContests.entrants,
+  (state) => upcomingLineupsInfo(state),
   (upcomingContests, focusedContestId, focusedLineupId, boxScores, prizes, entrants, lineupsInfo) => {
     // Default return data.
-    let contestInfo = {
+    const contestInfo = {
       contest: {
-        id: null
+        id: null,
       },
       prizeStructure: {},
       entrants: [],
-      isEntered: false
+      isEntered: false,
     };
 
     // Add additional info if available.
@@ -44,7 +41,7 @@ export const focusedContestInfoSelector = createSelector(
 
       // Add 'isEntered' attribute if the focused lineup has been entered into this contest
       if (focusedLineupId && lineupsInfo.hasOwnProperty(focusedLineupId)) {
-        contestInfo.isEntered = (lineupsInfo[focusedLineupId].contests.indexOf(contestInfo.contest.id) != -1);
+        contestInfo.isEntered = (lineupsInfo[focusedLineupId].contests.indexOf(contestInfo.contest.id) !== -1);
       }
 
       // Add the prize payout structure.
@@ -61,15 +58,11 @@ export const focusedContestInfoSelector = createSelector(
 );
 
 
-
-
 /**
  * Return the upcomingLineupsInfo item for the currently focused lineup.
  */
 export const focusedLineupSelector = createSelector(
-  [lineupsInfo, focusedLineupId],
-  (lineupsInfo, focusedLineupId) => {
-    // To add fields to this, you'll probably want to do it in the upcomingLineupsInfo selector.
-    return lineupsInfo[focusedLineupId];
-  }
+  (state) => upcomingLineupsInfo(state),
+  (state) => state.upcomingLineups.focusedLineupId,
+  (lineupsInfo, focusedLineupId) => lineupsInfo[focusedLineupId]
 );
