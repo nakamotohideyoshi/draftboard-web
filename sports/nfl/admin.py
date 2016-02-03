@@ -21,7 +21,7 @@ class PlayerAdmin(sports.admin.PlayerAdmin):
     search_fields   = sports.admin.PlayerAdmin.search_fields # + ('more','specific','fields...',)
 
 @admin.register(sports.nfl.models.PlayerStats)
-class PlayerStatsAdmin(admin.ModelAdmin):
+class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):
     list_display = [
         'game','player',
 
@@ -41,6 +41,8 @@ class PlayerStatsAdmin(admin.ModelAdmin):
         'int_td_against','fum_td_against',
         'off_pass_sfty','off_rush_sfty','off_punt_sfty'
     ]
+
+    search_fields   = sports.admin.PlayerStatsAdmin.search_fields # + ('more','specific','fields...',)
 
 @admin.register(sports.nfl.models.GameBoxscore)
 class GameBoxscoreAdmin(admin.ModelAdmin):
