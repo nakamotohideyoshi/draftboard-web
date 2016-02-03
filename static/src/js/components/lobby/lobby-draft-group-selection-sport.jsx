@@ -1,44 +1,39 @@
-'use strict';
-
-var React = require('react');
+import React from 'react';
+import LobbyDraftGroupSelectionSportItem from './lobby-draft-group-selection-sport-item.jsx';
 
 
 /**
  * When choosing a draft group, the first step is to pick which sport you want, this renders
  * that list based off of sportContestCounts from the DraftGroupInfoStore.
  */
-var LobbyDraftGroupSelectionSport = React.createClass({
+const LobbyDraftGroupSelectionSport = React.createClass({
 
   propTypes: {
-    'sportContestCounts': React.PropTypes.object.isRequired,
+    sportContestCounts: React.PropTypes.object.isRequired,
     // When a sport is clicked, select the sport on the parent component.
-    'onSportClick': React.PropTypes.func.isRequired
+    onSportClick: React.PropTypes.func.isRequired,
   },
 
 
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
-      sportContestCounts: {}
+      sportContestCounts: {},
     };
   },
 
 
-  render: function() {
-    var sportList = [];
+  render() {
+    const sportList = [];
 
-    for (var sport in this.props.sportContestCounts) {
+    for (const sport in this.props.sportContestCounts) {
       if (this.props.sportContestCounts.hasOwnProperty(sport)) {
         sportList.push(
-          <li
+          <LobbyDraftGroupSelectionSportItem
             key={sport}
-            className="cmp-draft-group-select__sport"
-            onClick={this.props.onSportClick.bind(null, sport)}
-          >
-            <h4 className="cmp-draft-group-select__title">{sport}</h4>
-            <div className="cmp-draft-group-select__sub">
-              {this.props.sportContestCounts[sport]} contests
-            </div>
-          </li>
+            sportContestCounts={this.props.sportContestCounts}
+            sport={sport}
+            onItemClick={this.props.onSportClick}
+          />
         );
       }
     }
@@ -57,7 +52,8 @@ var LobbyDraftGroupSelectionSport = React.createClass({
         {sportList}
       </ul>
     );
-  }
+  },
+
 });
 
 

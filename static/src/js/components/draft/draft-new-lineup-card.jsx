@@ -1,14 +1,14 @@
-var React = require('react');
-var Tooltip = require('../site/tooltip.jsx');
-var DraftNewLineupCardTitle = require('./draft-new-lineup-card-title.jsx');
-var DraftNewLineupCardPlayer = require('./draft-new-lineup-card-player.jsx');
-var defaultLineupTitle = 'New Lineup'
+import React from 'react';
+import Tooltip from '../site/tooltip.jsx';
+import DraftNewLineupCardTitle from './draft-new-lineup-card-title.jsx';
+import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
+const defaultLineupTitle = 'New Lineup';
 
 
 /**
  * Lineup creation card on the sidebar of the draft page.
  */
-var DraftNewLineupCard = React.createClass({
+const DraftNewLineupCard = React.createClass({
 
   propTypes: {
     isActive: React.PropTypes.bool,
@@ -19,67 +19,68 @@ var DraftNewLineupCard = React.createClass({
     avgRemainingPlayerSalary: React.PropTypes.number,
     errorMessage: React.PropTypes.string,
     saveLineup: React.PropTypes.func,
-    handlePlayerClick: React.PropTypes.func
+    handlePlayerClick: React.PropTypes.func,
   },
 
 
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
-        lineup: [],
-        remainingSalary: 0,
-        avgRemainingPlayerSalary: 0,
-        errorMessage: ''
+      lineup: [],
+      remainingSalary: 0,
+      avgRemainingPlayerSalary: 0,
+      errorMessage: '',
     };
   },
 
 
-  getInitialState: function() {
+  getInitialState() {
     return {
-      lineupTitle: defaultLineupTitle
+      lineupTitle: defaultLineupTitle,
     };
   },
 
 
-  componentWillReceiveProps: function(nextProps) {
+  componentWillReceiveProps(nextProps) {
     if (nextProps.lineupTitle) {
-      this.setState({lineupTitle: nextProps.lineupTitle})
+      this.setState({ lineupTitle: nextProps.lineupTitle });
     }
   },
 
-  saveLineup: function() {
-    var title = this.state.lineupTitle
+
+  setTitle(title) {
+    this.state.lineupTitle = title;
+  },
+
+
+  saveLineup() {
+    let title = this.state.lineupTitle;
     if (title === defaultLineupTitle) {
-      title = ''
+      title = '';
     }
 
-    this.props.saveLineup(title)
-  },
-
-
-  setTitle: function(title) {
-    this.state.lineupTitle = title
+    this.props.saveLineup(title);
   },
 
 
   // Toggle the visibility of the tooltip.
-  showControls: function() {
+  showControls() {
     // this.refs.lineupCardTip.toggle();
   },
 
 
-  render: function() {
-    var showError = (!this.props.errorMessage)? false : true;
+  render() {
+    const showError = (!this.props.errorMessage) ? false : true;
+    const self = this;
 
-    var players = this.props.lineup.map(function(player) {
-      return (
+    const players = this.props.lineup.map((player) => (
         <DraftNewLineupCardPlayer
           player={player}
           key={player.idx}
-          removePlayer={this.props.removePlayer}
-          onPlayerClick={this.props.handlePlayerClick}
+          removePlayer={self.props.removePlayer}
+          onPlayerClick={self.props.handlePlayerClick}
         />
-      );
-    }.bind(this));
+      )
+    );
 
     return (
       <div className="cmp-lineup-card cmp-lineup-card--new">
@@ -91,14 +92,16 @@ var DraftNewLineupCard = React.createClass({
 
           <span
             className="cmp-lineup-card__save button--mini--outline button--gradient-outline"
-            onClick={this.saveLineup}>
+            onClick={this.saveLineup}
+          >
             Save
           </span>
 
           <Tooltip
             position="bottom"
             isVisible={showError}
-            ref="lineupCardTip">
+            ref="lineupCardTip"
+          >
             <span>{this.props.errorMessage}</span>
           </Tooltip>
 
@@ -124,7 +127,7 @@ var DraftNewLineupCard = React.createClass({
         </footer>
       </div>
     );
-  }
+  },
 
 });
 

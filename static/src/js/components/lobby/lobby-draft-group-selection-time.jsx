@@ -1,44 +1,44 @@
-'use strict';
-
-var React = require('react');
-var moment = require('moment');
-import {map as _map} from 'lodash'
+import React from 'react';
+import moment from 'moment';
+import { map as _map } from 'lodash';
 
 
 /**
  * When choosing a draft group, the second step is to pick which time/draft group you want, this
  * renders that list based off of draftGroups from the DraftGroupInfoStore.
  */
-var LobbyDraftGroupSelectionTime = React.createClass({
+const LobbyDraftGroupSelectionTime = React.createClass({
 
   propTypes: {
-    'draftGroups': React.PropTypes.object.isRequired,
-    'selectedSport': React.PropTypes.string.isRequired
+    draftGroups: React.PropTypes.object.isRequired,
+    selectedSport: React.PropTypes.string.isRequired,
   },
 
 
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
-      draftGroups: {}
+      draftGroups: {},
     };
   },
 
 
-  getDraftGroupUrl: function(draftGroupId) {
-    return '/draft/' + draftGroupId + '/';
+  getDraftGroupUrl(draftGroupId) {
+    return `/draft/${draftGroupId}/`;
   },
 
 
-  render: function() {
-    var groups = _map(this.props.draftGroups, function(group) {
-      if (group.sport === this.props.selectedSport) {
-        var url = this.getDraftGroupUrl(group.pk);
+  render() {
+    const self = this;
+
+    const groups = _map(self.props.draftGroups, (group) => {
+      if (group.sport === self.props.selectedSport) {
+        const url = self.getDraftGroupUrl(group.pk);
 
         return (
           <li className="cmp-draft-group-select__group" key={group.pk}>
             <a href={url} title="Draft a lineup">
               <h4 className="cmp-draft-group-select__title">
-                {moment(group.start).format("dddd, MMM Do - h:mmA")}
+                {moment(group.start).format('dddd, MMM Do - h:mmA')}
               </h4>
               <div className="cmp-draft-group-select__sub">
                 {group.contestCount} contests - {group.num_games} games
@@ -48,8 +48,8 @@ var LobbyDraftGroupSelectionTime = React.createClass({
         );
       }
 
-      return;
-    }.bind(this));
+      return '';
+    });
 
 
     return (
@@ -59,7 +59,7 @@ var LobbyDraftGroupSelectionTime = React.createClass({
         </ul>
       </div>
     );
-  }
+  },
 
 });
 

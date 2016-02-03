@@ -1,6 +1,7 @@
-import * as types from '../action-types.js'
-import request from 'superagent'
-import { normalize, Schema, arrayOf } from 'normalizr'
+import * as types from '../action-types.js';
+import request from 'superagent';
+import { normalize, Schema, arrayOf } from 'normalizr';
+import log from '../lib/logging.js';
 
 
 /**
@@ -10,152 +11,91 @@ import { normalize, Schema, arrayOf } from 'normalizr'
  */
 
 
- const draftGroupInfoSchema = new Schema('draftGroups', {
-   idAttribute: 'pk'
- })
+const draftGroupInfoSchema = new Schema('draftGroups', {
+  idAttribute: 'pk',
+});
 
 
 function fetchSuccess(body) {
   return {
     type: types.FETCH_UPCOMING_DRAFTGROUPS_INFO_SUCCESS,
-    body
-  }
+    body,
+  };
 }
 
 
 function fetchFail(ex) {
   return {
     type: types.FETCH_UPCOMING_DRAFTGROUPS_INFO_FAIL,
-    ex
-  }
+    ex,
+  };
 }
 
 
 export function fetchUpcomingDraftGroupsInfo() {
   return (dispatch) => {
-    return request
-      .get("/api/draft-group/upcoming/")
-      .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
+    request.get('/api/draft-group/upcoming/')
+      .set({ 'X-REQUESTED-WITH': 'XMLHttpRequest' })
       .set('Accept', 'application/json')
-      .end(function(err, res) {
-        if(err) {
+      .end((err, res) => {
+        if (err) {
           return dispatch(fetchFail(err));
-        } else {
-          // Normalize player list by ID.
-          const normalizedDraftGroupInfo = normalize(
-            res.body,
-            arrayOf(draftGroupInfoSchema)
-          )
-
-          return dispatch(fetchSuccess({
-            draftGroups: normalizedDraftGroupInfo.entities.draftGroups
-          }))
         }
-    })
-  }
+
+        // Normalize player list by ID.
+        const normalizedDraftGroupInfo = normalize(
+          res.body,
+          arrayOf(draftGroupInfoSchema)
+        );
+
+        return dispatch(fetchSuccess({
+          draftGroups: normalizedDraftGroupInfo.entities.draftGroups,
+        }));
+      }
+    );
+  };
 }
 
 // Open the draft group selection modal in the lobby.
 export function openDraftGroupSelectionModal() {
   return {
-    type: types.OPEN_DRAFT_GROUP_SELECTION_MODAL
-  }
+    type: types.OPEN_DRAFT_GROUP_SELECTION_MODAL,
+  };
 }
 
 // Close the draft group selection modal in the lobby.
 export function closeDraftGroupSelectionModal() {
   return {
-    type: types.CLOSE_DRAFT_GROUP_SELECTION_MODAL
-  }
+    type: types.CLOSE_DRAFT_GROUP_SELECTION_MODAL,
+  };
 }
-
-
-
-
 
 
 /**
  * Draft Group Box Score fetching Actions.
  * /api/draft-group/boxscores/${draftGroupId}/
  */
-function fetchDraftGroupBoxScores(draftGroupId) {
-  return dispatch => {
-    dispatch(fetchingDraftGroupBoxScores())
-
-    return new Promise((resolve, reject) => {
-      request
-      .get(`/api/draft-group/boxscores/${draftGroupId}/`)
-      .set({
-        'X-REQUESTED-WITH': 'XMLHttpRequest',
-        'Accept': 'application/json'
-      })
-      .end(function(err, res) {
-        if(err) {
-          reject(err)
-          dispatch(fetchDraftGroupBoxScoresFail(draftGroupId, res.body))
-        } else {
-          resolve(res.body)
-          dispatch(fetchDraftGroupBoxScoresSuccess(draftGroupId, res.body))
-        }
-      })
-    })
-
-  }
-}
-
-
-function shouldFetchDraftGroupBoxScores(state, draftGroupId) {
-  const boxScores = state.upcomingDraftGroups.boxScores
-
-  if (boxScores.hasOwnProperty(draftGroupId)) {
-    // If we have the boxscores, don't re-fetch
-    return false
-  } else if (boxScores.isFetching) {
-    // are we currently fetching it?
-    return false
-  } else {
-    // Default to true.
-    return true
-  }
-}
-
 
 function fetchingDraftGroupBoxScores() {
   return {
-    type: types.FETCHING_DRAFTGROUP_BOX_SCORES
+    type: types.FETCHING_DRAFTGROUP_BOX_SCORES,
   };
 }
-
-
-export function fetchDraftGroupBoxScoresIfNeeded(draftGroupId) {
-  return (dispatch, getState) => {
-    if(shouldFetchDraftGroupBoxScores(getState(), draftGroupId)) {
-      return dispatch(fetchDraftGroupBoxScores(draftGroupId))
-    } else {
-      return Promise.resolve()
-    }
-  };
-
-}
-
 
 function fetchDraftGroupBoxScoresSuccess(draftGroupId, body) {
   return {
     type: types.FETCH_DRAFTGROUP_BOX_SCORES_SUCCESS,
     body,
-    draftGroupId
+    draftGroupId,
   };
 }
 
 function fetchDraftGroupBoxScoresFail(draftGroupId, body) {
-  console.error(body)
+  log.error(body);
   return {
-    type: types.FETCH_DRAFTGROUP_BOX_SCORES_FAIL
+    type: types.FETCH_DRAFTGROUP_BOX_SCORES_FAIL,
   };
 }
-
-
-
 
 
 /**
@@ -164,6 +104,58 @@ function fetchDraftGroupBoxScoresFail(draftGroupId, body) {
 export function setActiveDraftGroupId(draftGroupId) {
   return {
     type: types.SET_ACTIVE_DRAFT_GROUP_ID,
-    draftGroupId
+    draftGroupId,
+  };
+}
+
+
+function fetchDraftGroupBoxScores(draftGroupId) {
+  return dispatch => {
+    dispatch(fetchingDraftGroupBoxScores());
+
+    return new Promise((resolve, reject) => {
+      request
+      .get(`/api/draft-group/boxscores/${draftGroupId}/`)
+      .set({
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        Accept: 'application/json',
+      })
+      .end((err, res) => {
+        if (err) {
+          reject(err);
+          dispatch(fetchDraftGroupBoxScoresFail(draftGroupId, res.body));
+        } else {
+          resolve(res.body);
+          dispatch(fetchDraftGroupBoxScoresSuccess(draftGroupId, res.body));
+        }
+      });
+    });
+  };
+}
+
+
+function shouldFetchDraftGroupBoxScores(state, draftGroupId) {
+  const boxScores = state.upcomingDraftGroups.boxScores;
+
+  if (boxScores.hasOwnProperty(draftGroupId)) {
+    // If we have the boxscores, don't re-fetch
+    return false;
+  } else if (boxScores.isFetching) {
+    // are we currently fetching it?
+    return false;
   }
+
+  // Default to true.
+  return true;
+}
+
+
+export function fetchDraftGroupBoxScoresIfNeeded(draftGroupId) {
+  return (dispatch, getState) => {
+    if (shouldFetchDraftGroupBoxScores(getState(), draftGroupId)) {
+      return dispatch(fetchDraftGroupBoxScores(draftGroupId));
+    }
+
+    return Promise.resolve();
+  };
 }

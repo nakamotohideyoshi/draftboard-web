@@ -1,10 +1,8 @@
-'use strict';
-
-var React = require('react');
-var RangeSlider = require('../form-field/range-slider.jsx');
+import React from 'react';
+import RangeSlider from '../form-field/range-slider.jsx';
 
 
-var CollectionRangeSliderFilter = React.createClass({
+const CollectionRangeSliderFilter = React.createClass({
 
   propTypes: {
     className: React.PropTypes.string,
@@ -15,38 +13,38 @@ var CollectionRangeSliderFilter = React.createClass({
     filterName: React.PropTypes.string.isRequired,
     // When the filter values have changed, let the store it's registered with know so it can
     // re-run all of it's filters.
-    onUpdate: React.PropTypes.func.isRequired
+    onUpdate: React.PropTypes.func.isRequired,
   },
 
 
-  getInitialState: function() {
+  getInitialState() {
     return {
-      'match': {}
+      match: {},
     };
   },
 
 
-  handleChange: function(sliderState) {
-    var match = {
+  handleChange(sliderState) {
+    const match = {
       minVal: sliderState.minVal,
-      maxVal: sliderState.maxVal
+      maxVal: sliderState.maxVal,
     };
 
-    this.setState({'match': match}, function() {
+    this.setState({ match }, () => {
       this.props.onUpdate(
         this.props.filterName,
         this.props.filterProperty,
-        {minVal: sliderState.minVal, maxVal: sliderState.maxVal}
+        { minVal: sliderState.minVal, maxVal: sliderState.maxVal }
       );
     });
   },
 
 
-  render: function() {
+  render() {
     return (
       <RangeSlider minValLimit={0} maxValLimit={100} onChange={this.handleChange} />
     );
-  }
+  },
 
 });
 

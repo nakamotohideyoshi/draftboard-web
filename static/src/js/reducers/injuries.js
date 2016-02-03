@@ -1,15 +1,16 @@
-import ActionTypes from '../action-types.js'
+import ActionTypes from '../action-types.js';
 
-const initialState = {}
+const initialState = {};
 
 
-module.exports = function(state=initialState, action) {
+module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     case ActionTypes.FETCH_INJURIES_SUCCESS:
-      return Object.assign({}, state, action.body.injuries)
+      return Object.assign({}, state, action.body.injuries);
+
 
     default:
-      return state
+      return state;
   }
-}
+};

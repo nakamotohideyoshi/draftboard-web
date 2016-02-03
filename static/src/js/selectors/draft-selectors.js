@@ -1,33 +1,38 @@
-import {createSelector} from 'reselect';
+import { createSelector } from 'reselect';
 
-
-let focusedPlayer = (state) => state.draftGroupPlayers.focusedPlayer;
-let sport = (state) => state.draftGroupPlayers.sport;
-let playerNews = (state) => state.playerNews;
-let playerBoxScoreHistory = (state) => state.playerBoxScoreHistory;
-let boxScoreGames = (state) => state.upcomingDraftGroups.boxScores;
-let activeDraftGroupId = (state) => state.upcomingDraftGroups.activeDraftGroupId;
-let sportInfo = (state) => state.sports;
+const focusedPlayerIdSelector = (state) => state.draftGroupPlayers.focusedPlayer;
+const sportSelector = (state) => state.draftGroupPlayers.sport;
+const playerNewsSelector = (state) => state.playerNews;
+const playerBoxScoreHistorySelector = (state) => state.playerBoxScoreHistory;
+const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScores;
+const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId;
+const sportInfoSelector = (state) => state.sports;
 
 
 /**
  * In the draft section, when you click on a player they become 'focused'. This selector gathers
  * up all the info needed to render the player detail pane.
  */
-export let focusedPlayerSelector = createSelector(
-  [focusedPlayer, playerNews, playerBoxScoreHistory, boxScoreGames, sport, activeDraftGroupId, sportInfo],
+export const focusedPlayerSelector = createSelector(
+  focusedPlayerIdSelector,
+  playerNewsSelector,
+  playerBoxScoreHistorySelector,
+  boxScoreGamesSelector,
+  sportSelector,
+  activeDraftGroupIdSelector,
+  sportInfoSelector,
   (focusedPlayer, playerNews, playerBoxScoreHistory, boxScoreGames, sport, activeDraftGroupId, sportInfo) => {
     // if no player is focused, return nothing.
     if (!focusedPlayer) {
       return null;
     }
 
-    let player = Object.assign({}, focusedPlayer, {
+    const player = Object.assign({}, focusedPlayer, {
       sport,
       news: {},
       nextGame: {},
       boxScoreHistory: {},
-      splitsHistory: []
+      splitsHistory: [],
     });
 
     // Attach any news stories to the player object.
@@ -44,29 +49,26 @@ export let focusedPlayerSelector = createSelector(
 
         // If we have boxscore info, attach splits history.
         if (activeDraftGroupId && boxScoreGames.hasOwnProperty(activeDraftGroupId)) {
-          player.splitsHistory = player.boxScoreHistory.games.map(function(game, i) {
+          player.splitsHistory = player.boxScoreHistory.games.map((game, i) => ({
             // TODO: Add date and opponent info into focusedPlayerSelector - this needs to be
             // done server-side since we don't have ALL historical boxScores to pull from.
-            return {
-              assists: player.boxScoreHistory.assists[i],
-              blocks: player.boxScoreHistory.blocks[i],
-              date: 'date',
-              fp: player.boxScoreHistory.fp[i],
-              opp: 'opp',
-              points: player.boxScoreHistory.points[i],
-              rebounds: player.boxScoreHistory.rebounds[i],
-              steals: player.boxScoreHistory.steals[i],
-              three_pointers: player.boxScoreHistory.three_points_made[i],
-              turnovers: player.boxScoreHistory.turnovers[i]
-            };
-          });
+            assists: player.boxScoreHistory.assists[i],
+            blocks: player.boxScoreHistory.blocks[i],
+            date: 'date',
+            fp: player.boxScoreHistory.fp[i],
+            opp: 'opp',
+            points: player.boxScoreHistory.points[i],
+            rebounds: player.boxScoreHistory.rebounds[i],
+            steals: player.boxScoreHistory.steals[i],
+            three_pointers: player.boxScoreHistory.three_points_made[i],
+            turnovers: player.boxScoreHistory.turnovers[i],
+          }));
         }
-
       }
     }
 
     // Attach the player's team info.
-    if(sportInfo.hasOwnProperty(sport) && sportInfo[sport].teams[player.team_srid]) {
+    if (sportInfo.hasOwnProperty(sport) && sportInfo[sport].teams[player.team_srid]) {
       player.teamCity = sportInfo[sport].teams[player.team_srid].city;
       player.teamName = sportInfo[sport].teams[player.team_srid].name;
     }

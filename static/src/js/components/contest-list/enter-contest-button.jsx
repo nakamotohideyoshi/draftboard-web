@@ -1,6 +1,5 @@
 import React from 'react';
-import {isTimeInFuture} from '../../lib/utils.js';
-
+import { isTimeInFuture } from '../../lib/utils.js';
 
 
 /**
@@ -11,7 +10,7 @@ import {isTimeInFuture} from '../../lib/utils.js';
  * It will change states based on the status of pending entry requests, current contest entries,
  * contest availabilty, and the enter-ability of a lineup into a contest.
  */
-var EnterContestButton = React.createClass({
+const EnterContestButton = React.createClass({
 
   propTypes: {
     contest: React.PropTypes.object.isRequired,
@@ -20,18 +19,45 @@ var EnterContestButton = React.createClass({
     onEnterClick: React.PropTypes.func,
     onEnterSuccess: React.PropTypes.func,
     onEnterFail: React.PropTypes.func,
-    buttonText: React.PropTypes.object
+    buttonText: React.PropTypes.object,
+  },
+
+
+  getDefaultProps() {
+    return {
+      // button text for various states.
+      buttonText: {
+        draft: 'Draft',
+        started: 'Contest Started',
+        enter: 'Enter',
+        entering: 'Entering...',
+        entered: 'Entered',
+      },
+    };
+  },
+
+
+  getInitialState() {
+    return {
+      hasContestStarted: false,
+    };
+  },
+
+
+  componentWillMount() {
+    // Start a loop that will keep checking if the contest has started yet.
+    this.checkStartStatusLoop = window.setInterval(self.checkStartStatus, 1000);
   },
 
 
   // If the parent component tells us the modal should be closed via prop change, close it.
   // The parent can also call this components 'close()' method directly.
-  componentWillReceiveProps: function(nextProps) {
+  componentWillReceiveProps(nextProps) {
     // If we recieve a 'success' status for the entry request, close the modal.
-    let currentEntryStatus = this.getCurrentEntryRequest(nextProps);
+    const currentEntryStatus = this.getCurrentEntryRequest(nextProps);
     if (currentEntryStatus) {
       // Do any callback functions we've been passed (to close a modal or whatever).
-      if ('SUCCESS' === currentEntryStatus.status) {
+      if (currentEntryStatus.status === 'SUCCESS') {
         if (this.props.onEnterSuccess) {
           this.props.onEnterSuccess();
         }
@@ -40,63 +66,38 @@ var EnterContestButton = React.createClass({
   },
 
 
-  getDefaultProps: function() {
-    return {
-      // button text for various states.
-      buttonText: {
-        draft: 'Draft',
-        started: 'Contest Started',
-        enter: 'Enter',
-        entering: 'Entering...',
-        entered: 'Entered'
-      }
-    }
-  },
-
-
-  getInitialState: function() {
-    return {
-      hasContestStarted: false
-    }
-  },
-
-
-  componentWillMount: function() {
-    // Start a loop that will keep checking if the contest has started yet.
-    this.checkStartStatusLoop = window.setInterval(self.checkStartStatus, 1000);
-  },
-
-
-  componentWillUnmount: function() {
+  componentWillUnmount() {
     window.clearInterval(this.checkStartStatusLoop);
   },
 
 
-  // This gets continuously looped to determine if the contest has started.
-  checkStartStatus: function() {
-    if (!this.props.contest) {
-      return;
+  // Based on the focused lineup + contest, get an EntryRequest (if any).
+  getCurrentEntryRequest(props) {
+    if (!props) {
+      return null;
     }
 
-    this.setState({
-      hasContestStarted: !isTimeInFuture(this.props.contest.start)
-    });
+    if (
+      props.lineup &&
+      props.contest &&
+      props.contest.hasOwnProperty('id')
+    ) {
+      if (props.lineupsInfo[props.lineup.id].entryRequests) {
+        return props.lineupsInfo[props.lineup.id].entryRequests[props.contest.id];
+      }
+    } else {
+      return null;
+    }
   },
 
 
-  handleButtonClick: function(contest, e) {
+  ignoreClick(e) {
     e.stopPropagation();
-    this.props.onEnterClick(contest);
   },
 
 
-  ignoreClick: function(e) {
-    e.stopPropagation();
-  },
-
-
-  isLineupEnteredIntoContest: function() {
-    let entryRequest = this.getCurrentEntryRequest();
+  isLineupEnteredIntoContest() {
+    const entryRequest = this.getCurrentEntryRequest();
     if (entryRequest && entryRequest.status === 'SUCCESS') {
       return true;
     }
@@ -111,27 +112,26 @@ var EnterContestButton = React.createClass({
   },
 
 
-  // Based on the focused lineup + contest, get an EntryRequest (if any).
-  getCurrentEntryRequest: function(props) {
-    if (!props) {
-      return null;
-    }
-
-    if (
-      props.lineup &&
-      props.contest &&
-      props.contest.hasOwnProperty('id')
-    ) {
-      if (props.lineupsInfo[props.lineup.id].entryRequests)
-      return props.lineupsInfo[props.lineup.id].entryRequests[props.contest.id];
-    } else {
-      return null;
-    }
+  handleButtonClick(contest, e) {
+    e.stopPropagation();
+    this.props.onEnterClick(contest);
   },
 
 
-  render: function() {
-    let currentEntryRequest = this.getCurrentEntryRequest(this.props);
+  // This gets continuously looped to determine if the contest has started.
+  checkStartStatus() {
+    if (!this.props.contest) {
+      return;
+    }
+
+    this.setState({
+      hasContestStarted: !isTimeInFuture(this.props.contest.start),
+    });
+  },
+
+
+  render() {
+    const currentEntryRequest = this.getCurrentEntryRequest(this.props);
 
     // If the window to enter the contest has passed, disable the button.
     if (this.state.hasContestStarted) {
@@ -154,7 +154,7 @@ var EnterContestButton = React.createClass({
           <div
             className="button disabled enter-contest-button entered"
             onClick={this.ignoreClick}
-            >
+          >
             {this.props.buttonText.entered}
           </div>
         );
@@ -169,7 +169,7 @@ var EnterContestButton = React.createClass({
           <div
             className="button button--gradient--background disabled enter-contest-button"
             onClick={this.ignoreClick}
-            >
+          >
             {this.props.buttonText.entering}
           </div>
         );
@@ -182,7 +182,7 @@ var EnterContestButton = React.createClass({
           <div
             className="button button--gradient--background enter-contest-button"
             onClick={this.handleButtonClick.bind(null, this.props.contest)}
-            >
+          >
             {this.props.buttonText.enter}
           </div>
         );
@@ -195,13 +195,12 @@ var EnterContestButton = React.createClass({
       <a
         className="button enter-contest-button"
         onClick={this.ignoreClick}
-        href={'/draft/' + this.props.contest.draft_group + '/'}
+        href={`/draft/${this.props.contest.draft_group}/`}
       >
         {this.props.buttonText.draft}
       </a>
     );
-
-  }
+  },
 
 });
 
