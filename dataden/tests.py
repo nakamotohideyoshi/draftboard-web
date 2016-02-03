@@ -2,7 +2,7 @@
 # dataden/tests.py
 
 from django.test import TestCase
-
+import random
 from testfixtures import Replacer,test_datetime
 from test.classes import AbstractTest
 from dataden.util.hsh import (
@@ -15,7 +15,10 @@ from dataden.watcher import OpLogObjWrapper
 from dataden.util.simpletimer import SimpleTimer
 from dataden.cache.caches import (
     LiveStatsCache,
+    RandomId,
+    QueueTable,
     NonBlockingQueue,
+    LinkedExpiringObjectQueueTable,
 )
 
 class TestHashable(TestCase):
@@ -77,14 +80,91 @@ class TestLiveStatsCache(TestCase):
         # it should return false, indicating it already exists in the cache
         self.assertFalse( self.live_stats_cache.update_pbp( oplog_obj ) )
 
-class TestNonBlockingQueue(TestCase):
+class TestLinkedExpiringObjectQueueTable(TestCase):
 
     def setUp(self):
-        pass
+        #
+        #
+        self.queue_names                = ['playbyplay123','stats123']
+        self.object_id_field            = '_id'
+        self.object_common_id_field     = 'common_id'
+        self.common_ids                 = ['a', 'b', 'c']
+        self.obj_idx                    = 0
+
+    def __get_random_common_id(self):
+        return self.common_ids[ random.randint(0, len(self.common_ids) - 1)]
+
+    def __next_obj_id(self):
+        self.obj_idx += 1
+        return str(self.obj_idx)
+
+    def __next_test_obj(self):
+        """
+        using an incrementing unique object id mapped to '_id'
+        and a random common linking id from self.common_ids,
+        get the next test object to add
+
+        :return:
+        """
+        obj = {
+            self.object_id_field        : self.__next_obj_id(),
+            self.object_common_id_field : self.__get_random_common_id(),
+
+            # different every run, easier to discern differences when obj debug printed
+            'data'                      : RandomId().get_random_id(),
+        }
+        return obj
 
     def test_non_blocking_queue(self):
-        q = NonBlockingQueue( 1 )
+        """
+        test the fundamental NonBlockingQueue
+        """
+        size = 3
+        q = NonBlockingQueue( size )
         self.assertIsNone( q.get() )
-        q.put( 'obj1' )
-        #q.
+        q.put( 'one' )
+        self.assertIsNotNone( q.get() )     # getting the only item returns non-None
+        self.assertIsNone( q.get() )        # it should be empty again, and return None
 
+        # fill it up with duplicates so we can add 1 different thing after,
+        # and make sure it ejects an existing thing
+        duplicate_obj = 'duplicate'
+        different_obj = 'different'
+        for x in range(size):
+            ejected_obj = q.put( duplicate_obj )
+            self.assertIsNone( ejected_obj )
+        # add a different object, which should eject the most recently added obj
+        for x in range(size):
+            # the return of the put() should match 'duplicate_obj' because it gets ejected
+            self.assertEquals( q.put( different_obj ), duplicate_obj )
+        # now we should be left with a queue full of the 'different_obj'
+        for x in range(size):
+            self.assertEquals( q.get(), different_obj )
+        # and now there should be nothing in queue, so get() should return None
+        self.assertIsNone( q.get() )
+
+    def test_queue_table(self):
+        """
+        test the QueueTable object for basic functionality
+        """
+        qt = QueueTable(self.queue_names)
+
+        # ensure all queues empty, and return None
+        for i in range(len(self.queue_names)):
+            self.assertIsNone( qt.get( self.queue_names[i] ) )
+            self.assertIsNone( qt.get( self.queue_names[i] ) )
+        # add something to each named queue
+        for i in range(len(self.queue_names)):
+            qt.add( self.queue_names[i], self.__next_test_obj() )
+            qt.add( self.queue_names[i], self.__next_test_obj() )
+        # simply make sure each queue returns something thats not None
+        for i in range(len(self.queue_names)):
+            self.assertIsNotNone( qt.get( self.queue_names[i] ) )
+            self.assertIsNotNone( qt.get( self.queue_names[i] ) )
+
+    def test_linked_expiring_object_queue_table(self):
+        """
+        TODO - what is this test for?
+        """
+        pass # TODO
+        #linked_queue = LinkedExpiringObjectQueueTable(self.queue_names)

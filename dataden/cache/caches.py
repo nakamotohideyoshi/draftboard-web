@@ -319,8 +319,7 @@ class NonBlockingQueue( Queue ):
     queue that discards the oldest items instread of blocking on put() if its Full
     """
 
-    def __init__(self, size=1000):
-        assert type(size) is int, "size must be an int"
+    def __init__(self, size=10):
         super().__init__(size)
 
     def put(self, obj):
@@ -331,11 +330,15 @@ class NonBlockingQueue( Queue ):
         :param obj:
         :return:
         """
+        ejected_obj = None
         try:
             super().put(obj, False)
         except Full:
-            super().get(self, False)
-            super().put(self, obj, False)
+            ejected_obj = super().get( False )
+            super().put(obj, False )
+
+        # return the item that is being ejected -- otherwise return None
+        return ejected_obj
 
     def get(self):
         """
@@ -343,7 +346,7 @@ class NonBlockingQueue( Queue ):
         :return: tuple of (<datetime object>, <obj>). if nothing in the queue, returns None
         """
         try:
-            return super().get(self, False)
+            return super().get(False)
         except Empty:
             return None
 
@@ -410,6 +413,12 @@ class QueueTable:
         """
         return self.get_queue(name).get()
 
+    def get_obj(self, queue_name, obj):
+        """
+        TODO - what does this do?
+        """
+        raise Exception('unimplemented')
+
     def remove(self, name, obj):
         """
         remove the object from the queue equal to 'obj' parameter
@@ -419,6 +428,7 @@ class QueueTable:
 
     def add(self, name, obj):
         """
+        TODO - what does this do?
         """
         # get the queue for this player named by 'name' param
         # and add the object, by:
