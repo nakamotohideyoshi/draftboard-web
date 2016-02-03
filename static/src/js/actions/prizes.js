@@ -1,7 +1,7 @@
 // so we can use Promises
-import 'babel-core/polyfill'
-const request = require('superagent-promise')(require('superagent'), Promise)
-import * as ActionTypes from '../action-types'
+import 'babel-core/polyfill';
+const request = require('superagent-promise')(require('superagent'), Promise);
+import * as ActionTypes from '../action-types';
 
 
 /**
@@ -16,7 +16,7 @@ const receivePrize = (id, response) => ({
   id,
   info: response,
   expiresAt: Date.now() + 86400000,
-})
+});
 
 /**
  * API GET to return information about a prize
@@ -31,14 +31,14 @@ const fetchPrize = (id) => (dispatch) =>
     Accept: 'application/json',
   }).then(
     (res) => dispatch(receivePrize(id, res.body))
-  )
+  );
 
 /**
  * Method to determine whether we need to fetch a prize, as they're cached indefinitely.
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch, false if not
  */
-const shouldFetchPrize = (state, id) => id in state.prizes === false
+const shouldFetchPrize = (state, id) => id in state.prizes === false;
 
 /**
  * Fetch a prize if we need to
@@ -48,8 +48,8 @@ const shouldFetchPrize = (state, id) => id in state.prizes === false
  */
 export const fetchPrizeIfNeeded = (id) => (dispatch, getState) => {
   if (shouldFetchPrize(getState(), id)) {
-    return dispatch(fetchPrize(id))
+    return dispatch(fetchPrize(id));
   }
 
-  return Promise.resolve('Prize already exists')
-}
+  return Promise.resolve('Prize already exists');
+};

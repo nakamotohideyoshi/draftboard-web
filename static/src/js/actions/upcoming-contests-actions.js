@@ -1,22 +1,22 @@
-import * as types from '../action-types.js'
-import request from 'superagent'
-import { normalize, Schema, arrayOf } from 'normalizr'
-import Cookies from 'js-cookie'
-import {fetchPrizeIfNeeded} from './prizes.js'
-import {monitorEntryRequest} from './entry-request-actions.js'
-import {addMessage} from './message-actions.js'
+import * as types from '../action-types.js';
+import request from 'superagent';
+import { normalize, Schema, arrayOf } from 'normalizr';
+import Cookies from 'js-cookie';
+import { fetchPrizeIfNeeded } from './prizes.js';
+import { monitorEntryRequest } from './entry-request-actions.js';
+import { addMessage } from './message-actions.js';
+import log from '../lib/logging.js';
 
 
 const contestSchema = new Schema('contests', {
-  idAttribute: 'id'
-})
-
+  idAttribute: 'id',
+});
 
 
 function fetchUpcomingContestsSuccess(body) {
   return {
     type: types.FETCH_UPCOMING_CONTESTS_SUCCESS,
-    body
+    body,
   };
 }
 
@@ -24,14 +24,14 @@ function fetchUpcomingContestsSuccess(body) {
 function fetchUpcomingContestsFail(ex) {
   return {
     type: types.FETCH_UPCOMING_CONTESTS_FAIL,
-    ex
+    ex,
   };
 }
 
 
 function fetchFocusedContestInfo(dispatch, contest) {
-  dispatch(fetchPrizeIfNeeded(contest.prize_structure))
-  fetchPrizeIfNeeded(contest.prize_structure)
+  dispatch(fetchPrizeIfNeeded(contest.prize_structure));
+  fetchPrizeIfNeeded(contest.prize_structure);
 }
 
 
@@ -41,56 +41,55 @@ function fetchFocusedContestInfo(dispatch, contest) {
  */
 export function setFocusedContest(contestId) {
   return (dispatch, getState) => {
-    let state = getState()
+    const state = getState();
 
     if (state.hasOwnProperty('allContests')) {
-      fetchFocusedContestInfo(state.allContests[contestId])
+      fetchFocusedContestInfo(state.allContests[contestId]);
     }
 
     dispatch({
       type: types.SET_FOCUSED_CONTEST,
-      contestId
+      contestId,
     });
   };
 }
 
 
-
 export function fetchUpcomingContests() {
   return (dispatch, getState) => {
-    return request
-    .get("/api/contest/lobby/")
-    .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
+    request
+    .get('/api/contest/lobby/')
+    .set({ 'X-REQUESTED-WITH': 'XMLHttpRequest' })
     .set('Accept', 'application/json')
-    .end(function(err, res) {
-      if(err) {
+    .end((err, res) => {
+      if (err) {
         return dispatch(fetchUpcomingContestsFail(err));
-      } else {
-        // Normalize contest list by ID.
-        const normalizedContests = normalize(
-          res.body,
-          arrayOf(contestSchema)
-        )
-
-        // Now that we have contests, check if a contest is already set to be focused (probably
-        // via URL param). if set, fetch the necessary info for the contest detail pane.
-        let state = getState()
-
-        if (state.upcomingContests.focusedContestId && normalizedContests.entities.contests) {
-          if (normalizedContests.entities.contests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
-            let contest = normalizedContests.entities.contests[state.upcomingContests.focusedContestId]
-            fetchFocusedContestInfo(dispatch, contest)
-          } else {
-            window.alert("404! that contest isn't in the lobby!")
-          }
-        }
-
-        return dispatch(fetchUpcomingContestsSuccess({
-          contests: normalizedContests.entities.contests || {}
-        }));
       }
+
+      // Normalize contest list by ID.
+      const normalizedContests = normalize(
+        res.body,
+        arrayOf(contestSchema)
+      );
+
+      // Now that we have contests, check if a contest is already set to be focused (probably
+      // via URL param). if set, fetch the necessary info for the contest detail pane.
+      const state = getState();
+
+      if (state.upcomingContests.focusedContestId && normalizedContests.entities.contests) {
+        if (normalizedContests.entities.contests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
+          const contest = normalizedContests.entities.contests[state.upcomingContests.focusedContestId];
+          fetchFocusedContestInfo(dispatch, contest);
+        } else {
+          window.alert("404! that contest isn't in the lobby!");
+        }
+      }
+
+      return dispatch(fetchUpcomingContestsSuccess({
+        contests: normalizedContests.entities.contests || {},
+      }));
     });
-  }
+  };
 }
 
 
@@ -103,20 +102,20 @@ export function updateFilter(filterName, filterProperty, match) {
     filter: {
       filterName,
       filterProperty,
-      match
-    }
-  }
+      match,
+    },
+  };
 }
 
 
-export function updateOrderByFilter(property, direction='desc') {
+export function updateOrderByFilter(property, direction = 'desc') {
   return {
     type: types.UPCOMING_CONTESTS_ORDER_CHANGED,
     orderBy: {
       property,
-      direction
-    }
-  }
+      direction,
+    },
+  };
 }
 
 
@@ -126,34 +125,33 @@ export function updateOrderByFilter(property, direction='desc') {
  * @param  {int} lineupId  The lineup's id.
  */
 export function enterContest(contestId, lineupId) {
-  let postData = {
+  const postData = {
     contest: contestId,
-    lineup: lineupId
-  }
+    lineup: lineupId,
+  };
 
   return (dispatch) => {
-    return request
+    request
     .post('/api/contest/enter-lineup/')
     .set({
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'X-CSRFToken': Cookies.get('csrftoken'),
-      'Accept': 'application/json'
+      Accept: 'application/json',
     })
     .send(postData)
-    .end(function(err, res) {
-      if(err) {
+    .end((err, res) => {
+      if (err) {
         addMessage({
           title: 'Unable to join contest.',
-          level: 'warning'
-        })
-        console.error(res)
+          level: 'warning',
+        });
+        log.error(res);
       } else {
-        dispatch(monitorEntryRequest(res.body.buyin_task_id, contestId, lineupId))
+        dispatch(monitorEntryRequest(res.body.buyin_task_id, contestId, lineupId));
       }
     });
-  }
+  };
 }
-
 
 
 /**
@@ -164,74 +162,73 @@ export function enterContest(contestId, lineupId) {
 
 function fetchingContestEntrants() {
   return {
-    type: types.FETCHING_CONTEST_ENTRANTS
+    type: types.FETCHING_CONTEST_ENTRANTS,
   };
 }
 
 function fetchContestEntrantsSuccess(body, contestId) {
-
   return {
     type: types.FETCH_CONTEST_ENTRANTS_SUCCESS,
     entrants: body,
-    contestId
+    contestId,
   };
 }
 
 function fetchContestEntrantsFail(ex) {
-  console.error(ex)
+  log.error(ex);
   return {
     type: types.FETCH_CONTEST_ENTRANTS_FAIL,
-    ex
+    ex,
   };
 }
 
 // Do we need to fetch the specified contest entrants?
 function shouldFetchContestEntrants(state, contestId) {
-  const entrants = state.upcomingContests.entrants
+  const entrants = state.upcomingContests.entrants;
 
   if (entrants.hasOwnProperty(contestId)) {
     // does the state already have entrants for this contest?
-    return false
+    return false;
   } else if (state.upcomingContests.isFetchingEntrants) {
     // are we currently fetching it?
-    return false
-  } else {
-    // Default to true.
-    return true
+    return false;
   }
+
+  // Default to true.
+  return true;
 }
 
 function fetchContestEntrants(contestId) {
   return dispatch => {
     // update the fetching state.
-    dispatch(fetchingContestEntrants())
+    dispatch(fetchingContestEntrants());
 
     return new Promise((resolve, reject) => {
-       request
-      .get("/api/contest/registered-users/" + contestId + '/')
+      request
+      .get(`/api/contest/registered-users/${contestId}/`)
       .set({
         'X-REQUESTED-WITH': 'XMLHttpRequest',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       })
-      .end(function(err, res) {
-        if(err) {
+      .end((err, res) => {
+        if (err) {
           dispatch(fetchContestEntrantsFail(err));
-          reject(err)
+          reject(err);
         } else {
           dispatch(fetchContestEntrantsSuccess(res.body, contestId));
-          resolve(res)
+          resolve(res);
         }
       });
     });
-  }
+  };
 }
 
 export function fetchContestEntrantsIfNeeded(contestId) {
   return (dispatch, getState) => {
-    if(shouldFetchContestEntrants(getState(), contestId)) {
-      return dispatch(fetchContestEntrants(contestId))
-    } else {
-      return Promise.resolve()
+    if (shouldFetchContestEntrants(getState(), contestId)) {
+      return dispatch(fetchContestEntrants(contestId));
     }
-  }
+
+    return Promise.resolve();
+  };
 }

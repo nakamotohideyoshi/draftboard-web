@@ -19,8 +19,8 @@ const DatePicker = React.createClass({
   },
 
   getInitialState() {
-    const {year, month, day} = this.props;
-    return {year, month, day};
+    const { year, month, day } = this.props;
+    return { year, month, day };
   },
 
   componentWillMount() {
@@ -37,42 +37,42 @@ const DatePicker = React.createClass({
    * actually selected date in props. This function is basically used
    * to copy date information from props to state.
    */
-  setDate({year, month, day}) {
-    console.assert(year  !== null);
+  setDate({ year, month, day }) {
+    console.assert(year !== null);
     console.assert(month !== null);
-    console.assert(day   !== null);
+    console.assert(day !== null);
 
-    this.setState({year, month, day});
+    this.setState({ year, month, day });
   },
 
   handleSelectDate(year, month, day) {
     this.props.onSelectDate(year, month, day);
   },
 
-  handleSelectPrevMonth(){
-    let {year, month} = this.state;
+  handleSelectPrevMonth() {
+    let { year, month } = this.state;
 
-    if(--month < 0) {
+    if (--month < 0) {
       month = 11;
       year--;
     }
 
-    this.setState({year, month, day: 1});
+    this.setState({ year, month, day: 1 });
   },
 
-  handleSelectNextMonth(){
-    let {year, month} = this.state;
+  handleSelectNextMonth() {
+    let { year, month } = this.state;
 
-    if(++month > 11) {
+    if (++month > 11) {
       month = 0;
       year++;
     }
 
-    this.setState({year, month, day: 1});
+    this.setState({ year, month, day: 1 });
   },
 
   getWeeklyMonthData() {
-    const {year, month} = this.state;
+    const { year, month } = this.state;
 
     const daysOfTheMonth = getDaysForMonth(year, month);
     const daysByWeeks = daysToWeekView(daysOfTheMonth);
@@ -85,15 +85,15 @@ const DatePicker = React.createClass({
     const rows = data.length;
     const cols = 7;
 
-    const tableCaption = [0,1,2,3,4,5,6].map((i) => {
+    const tableCaption = [0, 1, 2, 3, 4, 5, 6].map((i) => {
       return <td key={i}>{weekdayNumToName(i)}</td>;
     });
     const tableContent = data.map((week, weekNum) => {
       const days = week.map((day) => {
-        let className = "";
+        let className = '';
         if (day.getDate() === this.state.day &&
-            day.getMonth() === this.state.month) className += "selected ";
-        if (day.getMonth() !== this.state.month) className += "inactive ";
+            day.getMonth() === this.state.month) className += 'selected ';
+        if (day.getMonth() !== this.state.month) className += 'inactive ';
 
         let selectHandler = this.handleSelectDate.bind(
           this,
@@ -125,7 +125,7 @@ const DatePicker = React.createClass({
   },
 
   render() {
-    const {year, month, day} = this.state;
+    const { year, month, day } = this.state;
 
     return (
       <div className="date-picker">
