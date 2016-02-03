@@ -53,6 +53,7 @@ module.exports = (state = {}, action) => {
         id: action.id,
         isFetchingLineups: true,
         hasRelatedInfo: false,
+        attemptExpiresAt: action.attemptExpiresAt,
       };
 
       return setOrMerge(state, action, newProps);

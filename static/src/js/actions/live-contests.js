@@ -197,7 +197,7 @@ const parseContestLineups = (apiContestLineupsBytes) => {
  * @param {number} contestId  Contest ID
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-const fetchContestLineups = (id) => (dispatch) => {
+export const fetchContestLineups = (id) => (dispatch) => {
   dispatch(requestContestLineups(id))
 
   return request.get(

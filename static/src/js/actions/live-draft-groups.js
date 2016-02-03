@@ -1,7 +1,7 @@
-const moment = require('moment')
 // so we can use Promises
 import 'babel-core/polyfill'
 const request = require('superagent-promise')(require('superagent'), Promise)
+import moment from 'moment'
 import { forEach as _forEach } from 'lodash'
 import _ from 'lodash'
 import { normalize, Schema, arrayOf } from 'normalizr'
@@ -62,7 +62,7 @@ const receiveDraftGroupFP = (id, players) => ({
   type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
   id,
   players,
-  updatedAt: Date.now(),
+  expiresAt: moment(Date.now()).add(10, 'minutes'),
 })
 
 /**
@@ -98,7 +98,7 @@ const receiveDraftGroupInfo = (id, response) => {
     sport: response.sport,
     start: moment(response.start).valueOf(),
     end: moment(response.end).valueOf(),
-    expiresAt: Date.now() + 86400000,
+    expiresAt: moment(Date.now()).add(12, 'hours'),
   }
 }
 
@@ -146,6 +146,11 @@ const shouldFetchDraftGroupFP = (state, id) => {
     return false
   }
 
+  // fetch if expired
+  if (moment().isBefore(liveDraftGroups[id].fpExpiresAt)) {
+    return false
+  }
+
   return true
 }
 
@@ -155,7 +160,21 @@ const shouldFetchDraftGroupFP = (state, id) => {
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch, false if not
  */
-const shouldFetchDraftGroup = (state, id) => state.liveDraftGroups.hasOwnProperty(id) === false
+const shouldFetchDraftGroup = (state, id) => {
+  const liveDraftGroups = state.liveDraftGroups;
+
+  // fetch if draft group does not exist yet
+  if (liveDraftGroups.hasOwnProperty(id) === false) {
+    return true
+  }
+
+  // fetch if expired
+  if (moment().isBefore(liveDraftGroups[id].infoExpiresAt)) {
+    return false
+  }
+
+  return false
+}
 
 
 // primary methods (mainly exported, some needed in there to have proper init of const)
