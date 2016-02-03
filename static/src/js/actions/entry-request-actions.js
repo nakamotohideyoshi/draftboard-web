@@ -5,14 +5,13 @@ import 'babel-core/polyfill';
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
-import {addMessage} from './message-actions.js';
-import {fetchEntriesIfNeeded} from './entries.js';
-import {find as _find} from 'lodash';
-
+import { addMessage } from './message-actions.js';
+import { fetchEntriesIfNeeded } from './entries.js';
+import { find as _find } from 'lodash';
 
 
 // A place to store setInterval IDs. This should probably be put in the store instead.
-let entryMonitors = [];
+const entryMonitors = [];
 // When polling, how many milleseconds should we continue to poll for before giving up?
 const maxRetrytime = 10000; // 10 seconds
 // How often should we attemt to re-poll?
@@ -32,7 +31,7 @@ function addEntryRequestMonitor(taskId, contestId, lineupId) {
     contestId,
     lineupId,
     maxAttempts: maxRetrytime / minimumPollInterval,
-    attempt: 0
+    attempt: 0,
   };
 }
 
@@ -47,7 +46,7 @@ function entryRequestRecieved(taskId, status) {
   return {
     type: 'ENTRY_REQUEST_RECIEVED',
     taskId,
-    status
+    status,
   };
 }
 
@@ -60,7 +59,7 @@ function entryRequestRecieved(taskId, status) {
 function fetchingEntryRequestStatus(taskId) {
   return {
     type: 'FETCHING_ENTRY_REQUEST_STATUS',
-    taskId
+    taskId,
   };
 }
 
@@ -71,88 +70,8 @@ function fetchingEntryRequestStatus(taskId) {
  * @return {[type]}        [description]
  */
 function clearMonitor(taskId) {
-  log.debug("Clearing monitor for task #" + taskId);
+  log.debug(`Clearing monitor for task ${taskId}`);
   window.clearInterval(entryMonitors[taskId].loop);
-}
-
-
-/**
- * Periodically check the status of a contest entry task. Once we get a response that tells us the
- * task has been processed, stop checking and return the status.
- * @param  {[type]} taskId [description]
- * @return {[type]}        [description]
- */
-export function monitorEntryRequest(taskId, contestId, lineupId) {
-  return (dispatch, getState) => {
-    let state = getState();
-
-    let existingRequest = _find(state.entryRequests, {
-      'lineupId': lineupId,
-      'contestId': contestId
-    })
-
-    if (existingRequest) {
-      log.warn("entryRequests for this lineup & contest already exists", contestId, lineupId);
-      return {
-        type: 'ADD_ENTRY_REQUEST_MONITOR_EXISTS'
-      }
-    }
-
-    dispatch(addEntryRequestMonitor(taskId, contestId, lineupId));
-
-    // Create a monitor to repeatedly poll the entry status api.
-    entryMonitors[taskId] = {
-      contestId,
-      lineupId
-    };
-
-    // immediately try to fetch.
-    dispatch(fetchIfNeeded(taskId));
-    // Create a monitor loop that will contantly attempt to re-fetch the status of the entry.
-    entryMonitors[taskId].loop = window.setInterval(
-      () => dispatch(fetchIfNeeded(taskId)),
-       minimumPollInterval
-    );
-    log.info('monitoring entry request: ',  entryMonitors[taskId]);
-  };
-}
-
-
-/**
- * This gets repeatedly called to handle whether we make an XHR to fetch the status?
- * @param  {[type]} taskId [description]
- * @return {[type]}        [description]
- */
-function fetchIfNeeded(taskId) {
-  return (dispatch, getState) => {
-    log.trace('shouldFetchLoop', taskId);
-    let shouldFetch = shouldFetchEntryRequestStatus(taskId, getState());
-    let state = getState();
-
-    // If we have attempted to poll for long enough, don't poll again.
-    if (state.entryRequests[taskId].attempt > state.entryRequests[taskId].maxAttempts) {
-      // We don't have a way to deal with the status returned.
-      log.error('entryRequest polling has timed out.', state.entryRequests[taskId]);
-      clearMonitor(taskId);
-      dispatch(addMessage({
-        level: 'warning',
-        header: "Contest entry failed.",
-        content: 'Polling attempt timed out.'
-      }));
-      return dispatch(entryRequestRecieved(taskId, 'POLLING_TIMEOUT'));
-    }
-
-    //  We should fetch the status, dispatch that event.
-    if (shouldFetch === true) {
-      return dispatch(fetchEntryRequestStatus(taskId));
-    } else {
-      // There is an outstanding XHR, or the previous request failed, so don't attempt to fetch.
-      // If the entry failed, the monitor has been cleared and another attempt will not be made.
-      dispatch({
-        type: 'IGNORING_FETCH_ENTRY_REQUEST'
-      });
-    }
-  };
 }
 
 
@@ -168,7 +87,6 @@ function fetchIfNeeded(taskId) {
 function shouldFetchEntryRequestStatus(taskId, state) {
   // Is this entryRequest have a key in the state?
   if (state.entryRequests.hasOwnProperty(taskId)) {
-
     switch (state.entryRequests[taskId].status) {
       case 'FETCHING':
         // We have a pending XHR to fetch the status, don't send another.
@@ -195,7 +113,7 @@ function shouldFetchEntryRequestStatus(taskId, state) {
     }
   } else {
     // No entry request exists, do nothing.
-    log.error('EntryRequest ' + taskId + 'does not exist. Clearing Monitor');
+    log.error(`EntryRequest ${taskId} does not exist. Clearing Monitor'`);
     clearMonitor(taskId);
     return false;
   }
@@ -209,65 +127,142 @@ function shouldFetchEntryRequestStatus(taskId, state) {
  * @param  {[type]} taskId the ID returned by the enterContest action.
  */
 function fetchEntryRequestStatus(taskId) {
-
   return (dispatch) => {
     // Set the state to show that we are currently fetching the entryRequestStatus.
     dispatch(fetchingEntryRequestStatus(taskId));
 
     return request
-    .get('/api/contest/enter-lineup-status/' + taskId + '/')
+    .get(`/api/contest/enter-lineup-status/${taskId}/`)
     .set({
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'X-CSRFToken': Cookies.get('csrftoken'),
-      'Accept': 'application/json'
+      Accept: 'application/json',
     })
-    .end(function(err, res) {
+    .end((err, res) => {
       /**
        * Don't get confused - unless the server actually has an internal error, this will not
        * be reported as 'err'. So expect a 'FAILURE' on the entery status to be a 200 response.
        */
-      if(err) {
+      if (err) {
         log.error('Contest entry request status error:', res.body);
-        let content = 'Contest entry failed.';
+        const content = 'Contest entry failed.';
 
         dispatch(addMessage({
           level: 'warning',
-          content
+          content,
         }));
 
         return dispatch(entryRequestRecieved(taskId, res.body.status));
-      } else {
-        log.info('Contest entry request status:', res.body);
-        // If it was a success.
-        if ('SUCCESS' === res.body.status) {
-          // Fetch new entries.
-          dispatch(fetchEntriesIfNeeded());
-          // Display a success message to the user.
-          dispatch(addMessage({
-            level: 'success',
-            header: "Your lineup has been entered.",
-            ttl: 2000
-          }));
-        }
-        // If it was a failure.
-        if ('FAILURE' === res.body.status) {
-          log.error('Contest entry request status error:', res.body);
-          let content = '';
-          // Add the response msg to the message we display to the user.
-          if (res.body.exception) {
-            content = res.body.exception.msg;
-          }
-
-          dispatch(addMessage({
-            level: 'warning',
-            header: "Contest entry failed.",
-            content
-          }));
-        }
-
-        return dispatch(entryRequestRecieved(taskId, res.body.status));
       }
+
+      log.info('Contest entry request status:', res.body);
+      // If it was a success.
+      if (res.body.status === 'SUCCESS') {
+        // Fetch new entries.
+        dispatch(fetchEntriesIfNeeded());
+        // Display a success message to the user.
+        dispatch(addMessage({
+          level: 'success',
+          header: 'Your lineup has been entered.',
+          ttl: 2000,
+        }));
+      }
+      // If it was a failure.
+      if (res.body.status === 'FAILURE') {
+        log.error('Contest entry request status error:', res.body);
+        let content = '';
+        // Add the response msg to the message we display to the user.
+        if (res.body.exception) {
+          content = res.body.exception.msg;
+        }
+
+        dispatch(addMessage({
+          level: 'warning',
+          header: 'Contest entry failed.',
+          content,
+        }));
+      }
+
+      return dispatch(entryRequestRecieved(taskId, res.body.status));
     });
   };
+}
 
+
+/**
+ * This gets repeatedly called to handle whether we make an XHR to fetch the status?
+ * @param  {[type]} taskId [description]
+ * @return {[type]}        [description]
+ */
+function fetchIfNeeded(taskId) {
+  return (dispatch, getState) => {
+    log.trace('shouldFetchLoop', taskId);
+    const shouldFetch = shouldFetchEntryRequestStatus(taskId, getState());
+    const state = getState();
+
+    // If we have attempted to poll for long enough, don't poll again.
+    if (state.entryRequests[taskId].attempt > state.entryRequests[taskId].maxAttempts) {
+      // We don't have a way to deal with the status returned.
+      log.error('entryRequest polling has timed out.', state.entryRequests[taskId]);
+      clearMonitor(taskId);
+      dispatch(addMessage({
+        level: 'warning',
+        header: 'Contest entry failed.',
+        content: 'Polling attempt timed out.',
+      }));
+      return dispatch(entryRequestRecieved(taskId, 'POLLING_TIMEOUT'));
+    }
+
+    //  We should fetch the status, dispatch that event.
+    if (shouldFetch === true) {
+      return dispatch(fetchEntryRequestStatus(taskId));
+    }
+    // There is an outstanding XHR, or the previous request failed, so don't attempt to fetch.
+    // If the entry failed, the monitor has been cleared and another attempt will not be made.
+    dispatch({
+      type: 'IGNORING_FETCH_ENTRY_REQUEST',
+    });
+  };
+}
+
+
+/**
+ * Periodically check the status of a contest entry task. Once we get a response that tells us the
+ * task has been processed, stop checking and return the status.
+ * @param  {[type]} taskId [description]
+ * @return {[type]}        [description]
+ */
+export function monitorEntryRequest(taskId, contestId, lineupId) {
+  return (dispatch, getState) => {
+    const state = getState();
+
+    const existingRequest = _find(state.entryRequests, {
+      lineupId,
+      contestId,
+    });
+
+    if (existingRequest) {
+      log.warn('entryRequests for this lineup & contest already exists', contestId, lineupId);
+      return {
+        type: 'ADD_ENTRY_REQUEST_MONITOR_EXISTS',
+      };
+    }
+
+    dispatch(addEntryRequestMonitor(taskId, contestId, lineupId));
+
+    // Create a monitor to repeatedly poll the entry status api.
+    entryMonitors[taskId] = {
+      contestId,
+      lineupId,
+    };
+
+    // immediately try to fetch.
+    dispatch(fetchIfNeeded(taskId));
+    // Create a monitor loop that will contantly attempt to re-fetch the status of the entry.
+    entryMonitors[taskId].loop = window.setInterval(
+      () => dispatch(fetchIfNeeded(taskId)),
+       minimumPollInterval
+    );
+    log.info('monitoring entry request: ', entryMonitors[taskId]);
+  };
 }

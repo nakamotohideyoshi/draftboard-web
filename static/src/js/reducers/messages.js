@@ -1,5 +1,5 @@
-import ActionTypes from '../action-types.js'
-const initialState = {}
+import ActionTypes from '../action-types.js';
+const initialState = {};
 
 
 /**
@@ -8,8 +8,8 @@ const initialState = {}
  * There are 3 types of messages: warning, info, and success. These simply correspond with pre-set
  * CSS styles that will dictate the color of the message the user sees.
  */
-module.exports = function(state=initialState, action) {
-  let nextState = Object.assign({}, state)
+module.exports = (state = initialState, action) => {
+  const nextState = Object.assign({}, state);
 
   switch (action.type) {
 
@@ -18,21 +18,21 @@ module.exports = function(state=initialState, action) {
         level: action.level,
         header: action.header,
         content: action.content,
-        ttl: action.ttl
-      }
-      return nextState
+        ttl: action.ttl,
+      };
+      return nextState;
 
 
     case ActionTypes.REMOVE_MESSAGE:
-      delete nextState[action.id]
-      return nextState
+      delete nextState[action.id];
+      return nextState;
 
 
     case ActionTypes.CLEAR_MESSAGES:
-      return {}
+      return {};
 
 
     default:
-      return state
+      return state;
   }
-}
+};

@@ -1,10 +1,11 @@
-import {createSelector} from 'reselect'
-import {countBy as _countBy, forEach as _forEach, filter as _filter} from 'lodash'
+import { createSelector } from 'reselect';
+import { countBy as _countBy, forEach as _forEach, filter as _filter } from 'lodash';
+import { mapValues as _mapValues } from 'lodash';
 
 
 // Input Selectors
-const draftGroupsFilterSelector = (state) => state.upcomingDraftGroups.draftGroups
-const contestsFilterSelector = (state) => state.upcomingContests.allContests
+const draftGroupsFilterSelector = (state) => state.upcomingDraftGroups.draftGroups;
+const contestsFilterSelector = (state) => state.upcomingContests.allContests;
 
 
 /**
@@ -29,43 +30,41 @@ export const draftGroupInfoSelector = createSelector(
   [draftGroupsFilterSelector, contestsFilterSelector],
   (draftGroups, contests) => {
     //  Get a group listing of each sport with counts.
-    let sportContestCounts = _countBy(contests, function(contest) {
-      return contest.sport
-    })
+    const sportContestCounts = _countBy(contests, (contest) => contest.sport);
     // For each draft group, figure out how many contests are available to enter.
-    _forEach(draftGroups, function(group) {
-      group.contestCount = _filter(contests, 'draft_group', group.pk).length
-    })
+    const draftGrupsExtra = _mapValues(draftGroups, (group) => {
+      const groupExtra = Object.assign({}, group);
+      groupExtra.contestCount = _filter(contests, 'draft_group', group.pk).length;
+      return groupExtra;
+    });
 
     return {
       sportContestCounts,
-      draftGroups: draftGroups
-    }
+      draftGroups: draftGrupsExtra,
+    };
   }
-)
-
-
+);
 
 
 /**
  * Build up a bunch of data related to the currently active draft group. This is used in the draft
  * section for the team filter.
  */
-const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId
-const boxScoresSelector = (state) => state.upcomingDraftGroups.boxScores
+const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId;
+const boxScoresSelector = (state) => state.upcomingDraftGroups.boxScores;
 // const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScoreGames
 
 export const activeDraftGroupBoxScoresSelector = createSelector(
   [activeDraftGroupIdSelector, draftGroupsFilterSelector, boxScoresSelector],
   (activeDraftGroupId, draftGroups, boxScores) => {
-    let response = {}
+    let response = {};
 
     if (activeDraftGroupId) {
       if (boxScores.hasOwnProperty(activeDraftGroupId)) {
-        response = boxScores[activeDraftGroupId]
+        response = boxScores[activeDraftGroupId];
       }
     }
 
-    return response
+    return response;
   }
-)
+);

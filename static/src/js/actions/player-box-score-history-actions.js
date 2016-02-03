@@ -1,14 +1,13 @@
-import log from '../lib/logging'
-import * as types from '../action-types.js'
-import request from 'superagent'
-var moment = require('moment')
+import log from '../lib/logging';
+import * as types from '../action-types.js';
+import request from 'superagent';
+import moment from 'moment';
 // so we can use Promises
 import 'babel-core/polyfill';
-import {normalize, Schema, arrayOf} from 'normalizr'
+import { normalize, Schema, arrayOf } from 'normalizr';
 const playerHistorySchema = new Schema('playerHistory', {
-  idAttribute: 'player_id'
-})
-
+  idAttribute: 'player_id',
+});
 
 
 /**
@@ -25,7 +24,7 @@ const playerHistorySchema = new Schema('playerHistory', {
 
 function fetchingPlayerBoxScoreHistory() {
   return {
-    type: types.FETCHING_PLAYER_BOX_SCORE_HISTORY
+    type: types.FETCHING_PLAYER_BOX_SCORE_HISTORY,
   };
 }
 
@@ -34,106 +33,106 @@ function fetchPlayerBoxScoreHistorySuccess(body) {
     type: types.FETCH_PLAYER_BOX_SCORE_HISTORY_SUCCESS,
     sport: body.sport,
     playerHistory: body.playerHistory,
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
   };
 }
 
 function fetchPlayerBoxScoreHistoryFail(ex) {
-  log.error(ex)
+  log.error(ex);
   return {
     type: types.FETCH_PLAYER_BOX_SCORE_HISTORY_FAIL,
-    ex
+    ex,
   };
 }
 
 
 // Do we need to fetch the specified player history items?
 function shouldFetchPlayerBoxScoreHistory(state, sport) {
-  const history = state.playerBoxScoreHistory
+  const history = state.playerBoxScoreHistory;
 
   if (history[sport] && Object.keys(history[sport]).length > 0) {
     // do we have any PlayerHistory for the sport in the store, if so, is it empty?
-    return false
+    return false;
   } else if (history.isFetching) {
     // are we currently fetching it?
-    return false
-  } else {
-    // Default to true.
-    return true
+    return false;
   }
+
+  // Default to true.
+  return true;
 }
 
 
 function removeExpiredHistory(body) {
   return {
     type: types.REMOVE_PLAYER_BOX_SCORE_HISTORY,
-    sport: body.sport
+    sport: body.sport,
   };
 }
 
 
 function shouldRemoveExpiredHistory(state, sport) {
-  const history = state.playerBoxScoreHistory
+  const history = state.playerBoxScoreHistory;
 
   // don't remove if doesn't exist
   if (history.hasOwnProperty('updatedAt') === false || history.hasOwnProperty(sport) === false) {
-    return false
+    return false;
   }
 
-  const expiration = moment(history.updatedAt).add(1, 'day')
+  const expiration = moment(history.updatedAt).add(1, 'day');
   if (moment().isAfter(expiration)) {
-    return true
+    return true;
   }
 
-  return false
-}
-
-
-export function fetchPlayerBoxScoreHistoryIfNeeded(sport) {
-  return (dispatch, getState) => {
-    if (shouldRemoveExpiredHistory(getState(), sport)) {
-      dispatch(removeExpiredHistory(sport))
-    }
-
-    if (shouldFetchPlayerBoxScoreHistory(getState(), sport)) {
-      return dispatch(fetchPlayerBoxScoreHistory(sport))
-    } else {
-      return Promise.resolve()
-    }
-  }
+  return false;
 }
 
 
 function fetchPlayerBoxScoreHistory(sport) {
   return dispatch => {
     // update the fetching state.
-    dispatch(fetchingPlayerBoxScoreHistory())
+    dispatch(fetchingPlayerBoxScoreHistory());
 
     return new Promise((resolve, reject) => {
       request
-      .get('/api/sports/player/history/' + sport + '/20/')
+      .get(`/api/sports/player/history/${sport}/20/`)
       .set({
         'X-REQUESTED-WITH': 'XMLHttpRequest',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       })
-      .end(function(err, res) {
-        if(err) {
+      .end((err, res) => {
+        if (err) {
           dispatch(fetchPlayerBoxScoreHistoryFail(err));
-          reject(err)
+          reject(err);
         } else {
           const normalizedPlayerHistory = normalize(
             res.body,
             arrayOf(playerHistorySchema)
-          )
+          );
 
           dispatch(fetchPlayerBoxScoreHistorySuccess({
-            sport: sport,
-            playerHistory: normalizedPlayerHistory.entities.playerHistory
+            sport,
+            playerHistory: normalizedPlayerHistory.entities.playerHistory,
           }));
 
-          resolve(res)
+          resolve(res);
         }
       });
     });
-  }
+  };
+}
+
+
+export function fetchPlayerBoxScoreHistoryIfNeeded(sport) {
+  return (dispatch, getState) => {
+    if (shouldRemoveExpiredHistory(getState(), sport)) {
+      dispatch(removeExpiredHistory(sport));
+    }
+
+    if (shouldFetchPlayerBoxScoreHistory(getState(), sport)) {
+      return dispatch(fetchPlayerBoxScoreHistory(sport));
+    }
+
+    return Promise.resolve();
+  };
 }

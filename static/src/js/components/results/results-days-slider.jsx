@@ -3,7 +3,6 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
-import SmoothScrollTo from '../../lib/smooth-scroll-to.js';
 import {getDaysForMonth, weekdayNumToName} from '../../lib/time.js';
 
 const ResultsDaysSlider = React.createClass({

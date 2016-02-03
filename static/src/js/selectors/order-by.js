@@ -1,4 +1,4 @@
-import {sortByOrder} from 'lodash'
+import { sortByOrder } from 'lodash';
 
 
 /**
@@ -8,17 +8,17 @@ import {sortByOrder} from 'lodash'
  * @param  {string} direction         The sort direction ['asc' or 'desc']
  * @return {array}                    The sorted collection
  */
-export const orderBy = function(collection, sortProperty, direction='desc') {
-  let sorted = sortByOrder(collection, sortProperty)
+export const orderBy = (collection, sortProperty, direction = 'desc') => {
+  let sorted = sortByOrder(collection, sortProperty);
 
   if (direction === 'asc') {
-    sorted = sorted.reverse()
+    sorted = sorted.reverse();
   }
 
   // Due to how lodash sorts, these columns should be reverse-sorted.
   if (['buyin', 'start', 'prize_pool'].indexOf(sortProperty) > -1) {
-    sorted = sorted.reverse()
+    sorted = sorted.reverse();
   }
 
-  return sorted
-}
+  return sorted;
+};

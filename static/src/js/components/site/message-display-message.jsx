@@ -1,70 +1,73 @@
-import React from 'react'
+import React from 'react';
 
 
-
-let MessageDisplayMessage = React.createClass({
+/**
+ * A single message for the MessageDisplayMessage component.
+ */
+const MessageDisplayMessage = React.createClass({
 
   propTypes: {
     message: React.PropTypes.object,
     messageId: React.PropTypes.string,
-    removeMessage: React.PropTypes.func
+    removeMessage: React.PropTypes.func,
   },
 
 
-  componentDidMount: function() {
+  componentDidMount() {
     /**
      * If a ttl was provided, remove the message after the TTL has expired.
      */
     if (!this.props.message.ttl) {
-      return
+      return;
     }
 
     window.setTimeout(
       () => this.props.removeMessage(this.props.messageId),
       this.props.message.ttl
-    )
+    );
   },
 
 
   // See: https://facebook.github.io/react/tips/dangerously-set-inner-html.html
-  createMarkupFromContent: function (content) {
-    return {__html: content};
+  createMarkupFromContent(content) {
+    return { __html: content };
   },
 
 
-  renderCloseButton: function() {
+  renderCloseButton() {
     if (this.props.message.ttl) {
-      return ('')
+      return ('');
     }
 
     return (
       <div
         className="btn-close"
         onClick={this.props.removeMessage.bind(null, this.props.messageId)}
-        ></div>
-    )
+      ></div>
+    );
   },
 
 
-  render: function() {
+  render() {
     return (
-      <div className={'message ' + this.props.message.level}>
+      <div className={`message ${this.props.message.level}`}>
         <div className="message-content">
           <h3
             className="header"
             dangerouslySetInnerHTML={this.createMarkupFromContent(this.props.message.header)}
-            ></h3>
+          ></h3>
 
           <div
             className="content"
             dangerouslySetInnerHTML={this.createMarkupFromContent(this.props.message.content)}
-            ></div>
+          ></div>
           {this.renderCloseButton()}
         </div>
       </div>
-    )
-  }
+    );
+  },
 
-})
 
-module.exports = MessageDisplayMessage
+});
+
+module.exports = MessageDisplayMessage;

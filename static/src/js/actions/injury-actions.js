@@ -1,49 +1,49 @@
-import * as types from '../action-types.js'
-import request from 'superagent'
-import { normalize, Schema, arrayOf } from 'normalizr'
-import log from '../lib/logging'
+import * as types from '../action-types.js';
+import request from 'superagent';
+import { normalize, Schema, arrayOf } from 'normalizr';
+import log from '../lib/logging';
 
 
 const injurySchema = new Schema('injuries', {
-  idAttribute: 'player_id'
-})
+  idAttribute: 'player_id',
+});
 
 
 function fetchSportInjuriesSuccess(body) {
   return {
     type: types.FETCH_INJURIES_SUCCESS,
-    body
-  }
+    body,
+  };
 }
 
 
 export function fetchSportInjuries(sport) {
   if (!sport) {
-    log.error('<sport> must be supplied to fetch injuries.')
-    return
+    log.error('<sport> must be supplied to fetch injuries.');
   }
 
-  return (dispatch, getState) => {
-    return request
+  return (dispatch) => {
+    request
     .get(`/api/sports/injuries/${sport}/`)
     .set({
       'X-REQUESTED-WITH': 'XMLHttpRequest',
-      'Accept':'application/json'
+      Accept: 'application/json',
     })
-    .end(function(err, res) {
-      if(err) {
-        console.error(res.body)
-      } else {
-        // Normalize injuries
-        const normalizedInjuries = normalize(
-          res.body,
-          arrayOf(injurySchema)
-        )
-        return dispatch(fetchSportInjuriesSuccess({
-            injuries: normalizedInjuries.entities.injuries,
-            sport: sport
-        }))
+    .end((err, res) => {
+      if (err) {
+        log.error(res.body);
       }
-    })
-  }
+
+      // Normalize injuries
+      const normalizedInjuries = normalize(
+        res.body,
+        arrayOf(injurySchema)
+      );
+
+      return dispatch(fetchSportInjuriesSuccess({
+        injuries: normalizedInjuries.entities.injuries,
+        sport,
+      }));
+    });
+  };
 }

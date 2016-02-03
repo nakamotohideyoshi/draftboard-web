@@ -1,33 +1,66 @@
-const React = require('react');
-const ReactRedux = require('react-redux');
-const store = require('../../store');
-import * as AppActions from '../../stores/app-state-store.js'
-var LineupCard = require('../lineup/lineup-card.jsx');
-var DraftNewLineupCard = require('./draft-new-lineup-card.jsx');
-var renderComponent = require('../../lib/render-component');
-import {LineupsByDraftGroupSelector} from '../../selectors/upcoming-lineups-by-draftgroup.js'
-import {setFocusedPlayer} from '../../actions/draft-group-players-actions.js'
-import {importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit}
+import React from 'react';
+import ReactRedux from 'react-redux';
+import store from '../../store';
+import LineupCard from '../lineup/lineup-card.jsx';
+import DraftNewLineupCard from './draft-new-lineup-card.jsx';
+import renderComponent from '../../lib/render-component';
+import * as AppActions from '../../stores/app-state-store.js';
+import { lineupsByDraftGroupSelector } from '../../selectors/upcoming-lineups-by-draftgroup.js';
+import { setFocusedPlayer } from '../../actions/draft-group-players-actions.js';
+import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit, }
   from '../../actions/lineup-actions.js';
-import {map as _map} from 'lodash'
-import { Router, Route } from 'react-router'
-import {syncReduxAndRouter} from 'redux-simple-router'
-import createBrowserHistory from 'history/lib/createBrowserHistory'
+import { map as _map } from 'lodash';
+import { Router, Route } from 'react-router';
+import { syncReduxAndRouter } from 'redux-simple-router';
+import createBrowserHistory from 'history/lib/createBrowserHistory';
 
-const history = createBrowserHistory()
-syncReduxAndRouter(history, store)
+const history = createBrowserHistory();
+const { Provider, connect } = ReactRedux;
+syncReduxAndRouter(history, store);
+
+
+/*
+ * Map selectors to the React component
+ * @param  {object} state The current Redux state that we need to pass into the selectors
+ * @return {object}       All of the methods we want to map to the component
+ */
+function mapStateToProps(state) {
+  return {
+    // allLineups: state.upcomingLineups.lineups,
+    lineups: lineupsByDraftGroupSelector(state),
+    newLineup: state.createLineup,
+    sport: state.draftGroupPlayers.sport,
+    draftGroupId: state.draftGroupPlayers.id,
+  };
+}
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component
+ */
+function mapDispatchToProps(dispatch) {
+  return {
+    createLineupInit: (sport) => dispatch(createLineupInit(sport)),
+    removePlayer: (playerId) => dispatch(removePlayer(playerId)),
+    saveLineup: (lineup, title, draftGroupId) => dispatch(saveLineup(lineup, title, draftGroupId)),
+    saveLineupEdit: (lineup, title, lineupId) => dispatch(saveLineupEdit(lineup, title, lineupId)),
+    importLineup: (lineup) => dispatch(importLineup(lineup)),
+    setFocusedPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
+  };
+}
 
 
 /**
  * Renders a list of lineup cards on the draft screen. Feed it lineup data and it will render
  * a collapsed LineupCard component for each lineup.
  */
-var DraftLineupCardList = React.createClass({
+const DraftLineupCardList = React.createClass({
 
   propTypes: {
     lineups: React.PropTypes.oneOfType([
       React.PropTypes.array,
-      React.PropTypes.object
+      React.PropTypes.object,
     ]),
     newLineup: React.PropTypes.object.isRequired,
     createLineupInit: React.PropTypes.func.isRequired,
@@ -38,18 +71,28 @@ var DraftLineupCardList = React.createClass({
     saveLineupEdit: React.PropTypes.func,
     importLineup: React.PropTypes.func,
     params: React.PropTypes.object,
-    setFocusedPlayer: React.PropTypes.func
+    setFocusedPlayer: React.PropTypes.func,
   },
 
 
-  componentWillMount: function() {
+  getDefaultProps() {
+    return {
+      lineups: [],
+      newLineup: {
+        lineup: [],
+      },
+    };
+  },
+
+
+  componentWillMount() {
     if (this.props.sport) {
       this.props.createLineupInit(this.props.sport);
     }
   },
 
 
-  componentWillReceiveProps: function(nextProps) {
+  componentWillReceiveProps(nextProps) {
     // If we get new props, and a new sport is passed (meaning a new draftgroup has been loaded)
     // initializes a new lineup creation card.
     if (nextProps.sport !== this.props.sport) {
@@ -58,18 +101,8 @@ var DraftLineupCardList = React.createClass({
   },
 
 
-  getDefaultProps: function() {
-    return {
-      lineups: [],
-      newLineup: {
-        lineup: []
-      }
-    };
-  },
-
-
-  handlePlayerClick: function(playerId) {
-    this.props.setFocusedPlayer(playerId)
+  handlePlayerClick(playerId) {
+    this.props.setFocusedPlayer(playerId);
     AppActions.openPane();
   },
 
@@ -77,23 +110,23 @@ var DraftLineupCardList = React.createClass({
   /**
    * Click handler for a lineupCard - imports the clicked lineup onto the new one.
    */
-  handleCardClick: function(lineup) {
+  handleCardClick(lineup) {
     this.props.importLineup(lineup);
   },
 
 
-  handleSaveLineup: function(title) {
+  handleSaveLineup(title) {
     if (this.props.params.lineupAction === 'edit') {
-      this.props.saveLineupEdit(this.props.newLineup.lineup, title, this.props.params.lineupId)
+      this.props.saveLineupEdit(this.props.newLineup.lineup, title, this.props.params.lineupId);
     } else {
-      this.props.saveLineup(this.props.newLineup.lineup, title, this.props.draftGroupId)
+      this.props.saveLineup(this.props.newLineup.lineup, title, this.props.draftGroupId);
     }
   },
 
 
-  render: function() {
-    var lineups = _map(this.props.lineups, function(lineup) {
-      var refName = 'lineup-' + lineup.id;
+  render() {
+    const lineups = _map(this.props.lineups, (lineup) => {
+      const refName = `lineup-${lineup.id}`;
       return (
         <LineupCard
           key={lineup.id}
@@ -124,38 +157,12 @@ var DraftLineupCardList = React.createClass({
         {lineups}
       </div>
     );
-  }
+  },
 });
 
 
-// Redux integration
-let {Provider, connect} = ReactRedux;
-
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
-  return {
-    // allLineups: state.upcomingLineups.lineups,
-    lineups: LineupsByDraftGroupSelector(state),
-    newLineup: state.createLineup,
-    sport: state.draftGroupPlayers.sport,
-    draftGroupId: state.draftGroupPlayers.id
-  };
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    createLineupInit: (sport) => dispatch(createLineupInit(sport)),
-    removePlayer: (playerId) => dispatch(removePlayer(playerId)),
-    saveLineup: (lineup, title, draftGroupId) => dispatch(saveLineup(lineup, title, draftGroupId)),
-    saveLineupEdit: (lineup, title, lineupId) => dispatch(saveLineupEdit(lineup, title, lineupId)),
-    importLineup: (lineup) => dispatch(importLineup(lineup)),
-    setFocusedPlayer: (playerId) => dispatch(setFocusedPlayer(playerId))
-  };
-}
-
 // Wrap the component to inject dispatch and selected state into it.
-var DraftLineupCardListConnected = connect(
+const DraftLineupCardListConnected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(DraftLineupCardList);

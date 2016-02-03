@@ -1,34 +1,37 @@
-import React from 'react'
-import {forEach as _forEach} from 'lodash'
+import React from 'react';
+import { forEach as _forEach } from 'lodash';
 
 
-var EntrantList = React.createClass({
+/**
+ * Renders a list of users entered into a contest
+ */
+const EntrantList = React.createClass({
 
   propTypes: {
-    entrants: React.PropTypes.array
+    entrants: React.PropTypes.array,
   },
 
 
-  getEntrantList: function(entrants) {
-    let entrantList = []
+  getEntrantList(entrants) {
+    const entrantList = [];
 
-    _forEach(entrants, function(entrant) {
+    _forEach(entrants, (entrant) => {
       entrantList.push(
         <tr key={entrant.username}>
           <td className="username">{entrant.username}</td>
         </tr>
-      )
-    }.bind(this))
+      );
+    });
 
-    return entrantList
+    return entrantList;
   },
 
 
-  render: function() {
+  render() {
     if (!this.props.entrants) {
       return (
         <div>Loading...</div>
-      )
+      );
     }
 
     return (
@@ -45,10 +48,10 @@ var EntrantList = React.createClass({
           </tbody>
         </table>
       </div>
-    )
-  }
+    );
+  },
 
-})
+});
 
 
-module.exports = EntrantList
+module.exports = EntrantList;

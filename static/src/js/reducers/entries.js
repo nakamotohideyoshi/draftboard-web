@@ -1,43 +1,48 @@
-import update from 'react-addons-update'
-import * as ActionTypes from '../action-types'
-import { forEach as _forEach } from 'lodash'
+import update from 'react-addons-update';
+import * as ActionTypes from '../action-types';
+import { forEach as _forEach } from 'lodash';
 
-
-module.exports = function(state = {
+const initialState = {
   isFetching: false,
   hasRelatedInfo: false,
-  items: []
-}, action) {
+  items: [],
+};
+
+
+module.exports = (state = initialState, action) => {
   switch (action.type) {
     case ActionTypes.REQUEST_ENTRIES:
       return update(state, { $merge: {
-        isFetching: true
-      }})
+        isFetching: true,
+      } });
+
 
     case ActionTypes.RECEIVE_ENTRIES:
       return update(state, { $set: {
         isFetching: false,
         hasRelatedInfo: false,
         items: action.items,
-        updatedAt: action.receivedAt
-      }})
+        updatedAt: action.receivedAt,
+      } });
+
 
     case ActionTypes.CONFIRM_RELATED_ENTRIES_INFO:
       return update(state, { $merge: {
-        hasRelatedInfo: true
-      }})
+        hasRelatedInfo: true,
+      } });
+
 
     case ActionTypes.ADD_ENTRIES_PLAYERS:
-      let newState = Object.assign({}, state)
+      const newState = Object.assign({}, state);
 
       _forEach(action.entriesPlayers, (roster, entryId) => {
-        newState.items[entryId].roster = roster
-      })
+        newState.items[entryId].roster = roster;
+      });
 
-      return newState
+      return newState;
 
 
     default:
-      return state
+      return state;
   }
 };
