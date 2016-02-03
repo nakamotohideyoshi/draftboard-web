@@ -326,7 +326,7 @@ class PlayerHistoryAPIView(generics.ListAPIView):
 
             # inner select
             # (select all_player_stats.*, nba_game.home_id, nba_game.away_id, nba_game.start from (select * from (select *, row_number() over (partition by player_id order by created) as rn from nba_playerstats) as nba_playerstats where rn <=5) as all_player_stats join nba_game on nba_game.srid = all_player_stats.srid_game) as player_stats group by player_id
-            final_select_str = "{0} from (select all_player_stats.*, {1}.home_id, {1}.away_id, {1}.start from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {2}) as {2} where rn <=5) as all_player_stats join {1} on {1}.srid = all_player_stats.srid_game) as player_stats group by player_id".format(select_str, game_table_name, playerstats_table_name)
+            final_select_str = "{0} from (select all_player_stats.*, {1}.home_id, {1}.away_id, {1}.start from (select * from (select *, row_number() over (partition by player_id order by created DESC) as rn from {2}) as {2} where rn <= {3}) as all_player_stats join {1} on {1}.srid = all_player_stats.srid_game) as player_stats group by player_id".format(select_str, game_table_name, playerstats_table_name, str(n_games_history))
 
             # the final query string
             #query_str = "{4} (select {0} from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {1}) as {1} where rn <={2}) as agg group by player_id) as player_stats on {3}.srid = ANY(player_stats.games)".format(select_columns_str, database_table_name, str(n_games_history), game_table_name, outter_select_str)
