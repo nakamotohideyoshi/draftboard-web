@@ -107,30 +107,6 @@ const receiveDraftGroupInfo = (id, response) => {
 
 
 /**
- * API GET to return fantasy points of players in a draft group
- * @param {number} id  Draft group ID
- * @return {promise}   Promise that resolves with API response body to reducer
- */
-const fetchDraftGroupFP = (id) => (dispatch) => {
-  dispatch(requestDraftGroupFP(id))
-
-  return request.get(
-    `/api/draft-group/fantasy-points/${id}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    Accept: 'application/json',
-  }).then((res) => {
-    let players = res.body.players
-    if (_.size(players) === 0) {
-      players = {}
-      log.debug('shouldFetchDraftGroupFP() - FP not available yet', id)
-    }
-
-    return dispatch(receiveDraftGroupFP(id, players))
-  })
-}
-
-/**
  * API GET to return draft group info
  * @param {number} id  Draft group ID
  * @return {promise}   Promise that resolves with API response body to reducer
@@ -184,6 +160,32 @@ const shouldFetchDraftGroup = (state, id) => state.liveDraftGroups.hasOwnPropert
 
 // primary methods (mainly exported, some needed in there to have proper init of const)
 
+
+/**
+ * API GET to return fantasy points of players in a draft group
+ * @param {number} id  Draft group ID
+ * @return {promise}   Promise that resolves with API response body to reducer
+ */
+export const fetchDraftGroupFP = (id) => (dispatch) => {
+  dispatch(requestDraftGroupFP(id))
+
+  log.info('actions.fetchDraftGroupFP() - Updating player fantasy points')
+
+  return request.get(
+    `/api/draft-group/fantasy-points/${id}/`
+  ).set({
+    'X-REQUESTED-WITH': 'XMLHttpRequest',
+    Accept: 'application/json',
+  }).then((res) => {
+    let players = res.body.players
+    if (_.size(players) === 0) {
+      players = {}
+      log.debug('shouldFetchDraftGroupFP() - FP not available yet', id)
+    }
+
+    return dispatch(receiveDraftGroupFP(id, players))
+  })
+}
 
 /**
  * Get fantasy points for players in a draft group if need be

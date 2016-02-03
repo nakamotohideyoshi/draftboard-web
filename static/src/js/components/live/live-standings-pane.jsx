@@ -299,11 +299,15 @@ const LiveStandingsPane = React.createClass({
           />
         )
       }
+      let username = ''
+      if (lineup.hasOwnProperty('user') && lineup.user.hasOwnProperty('username')) {
+        username = lineup.user.username
+      }
       return (
         <div key={lineup.id} className={ className }>
           <div className="lineup--place">{lineup.rank}</div>
           { pmr }
-          <div className="lineup--score-name">{lineup.user.username}</div>
+          <div className="lineup--score-name">{username}</div>
           <div className="lineup--score-points"><b>{lineup.points}</b><span>Pts</span></div>
           <div className="lineup--score-earnings">${lineup.potentialEarnings}</div>
           { overlay }
