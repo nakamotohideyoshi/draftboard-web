@@ -1,8 +1,7 @@
-import React from 'react'
-// import ReactDom  from 'react-dom'
-import moment from 'moment'
-import {forEach as _forEach} from 'lodash'
-import classNames from 'classnames'
+import React from 'react';
+import moment from 'moment';
+import { forEach as _forEach } from 'lodash';
+import classNames from 'classnames';
 
 
 /**
@@ -10,162 +9,49 @@ import classNames from 'classnames'
  * list.
  */
 const DraftTeamFilter = React.createClass({
-  filterTitle: 'teamFilter',
-
   propTypes: {
     boxScores: React.PropTypes.object,
     isVisible: React.PropTypes.bool.isRequired,
     onFilterChange: React.PropTypes.func.isRequired,
     selectedTeams: React.PropTypes.array.isRequired,
     teams: React.PropTypes.object.isRequired,
-    sport: React.PropTypes.string
+    sport: React.PropTypes.string,
   },
 
 
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
-      isVisible: false
-    }
+      isVisible: false,
+    };
   },
 
 
-  /**
-   * Scrolls slider left.
-   */
-  handleScrollLeft() {
-    const content = this.refs.content;
-    let left = parseInt(content.style.left) | 0
-    this.refs.content.style.left = (left + 400) + 'px';
-  },
+  getGames() {
+    const self = this;
+    const games = [];
 
-
-  /**
-   * Scrolls slider right.
-   */
-  handleScrollRight() {
-    const content = this.refs.content;
-    let left = parseInt(content.style.left, 10) | 0
-    content.style.left = (left - 400) + 'px';
-  },
-
-
-  getAllTeams: function() {
-    let allTeams = []
-
-    _forEach(this.props.boxScores, function(game) {
-      allTeams.push(game.srid_home)
-      allTeams.push(game.srid_away)
-    })
-
-    return allTeams
-  },
-
-
-  selectAllTeams: function() {
-    this.handleTeamsChange(this.getAllTeams())
-  },
-
-
-  unselectAllTeams: function() {
-    this.handleTeamsChange([])
-  },
-
-
-  isTeamSelected: function(selectedTeams, teamId) {
-    return selectedTeams.indexOf(teamId) !== -1
-  },
-
-
-  removeTeamFromList(list, team) {
-    if (list.indexOf(team) !== -1) {
-      list.splice(list.indexOf(team), 1)
-    }
-  },
-
-
-  handleGameClick: function(game) {
-    let newTeams = this.props.selectedTeams.slice()
-
-    if (this.isTeamSelected(newTeams, game.srid_home) && this.isTeamSelected(newTeams, game.srid_away)) {
-      this.removeTeamFromList(newTeams, game.srid_home)
-      this.removeTeamFromList(newTeams, game.srid_away)
-    } else {
-      this.removeTeamFromList(newTeams, game.srid_home)
-      this.removeTeamFromList(newTeams, game.srid_away)
-      newTeams.push(game.srid_home)
-      newTeams.push(game.srid_away)
-    }
-
-    this.handleTeamsChange(newTeams)
-  },
-
-
-  handleTeamsChange: function(selectedTeams) {
-    this.props.onFilterChange(this.filterTitle, 'team_srid', selectedTeams)
-  },
-
-
-  handleAllClick: function() {
-    if (this.getAllTeams().length > this.props.selectedTeams.length) {
-      this.selectAllTeams()
-    } else {
-      this.unselectAllTeams()
-    }
-  },
-
-
-  handleTeamClick: function(teamId, e) {
-    e.stopPropagation()
-    let newTeams = this.props.selectedTeams.slice()
-
-    if (this.isTeamSelected(newTeams, teamId)) {
-      this.removeTeamFromList(newTeams, teamId)
-    } else {
-      newTeams.push(teamId)
-    }
-    this.handleTeamsChange(newTeams)
-  },
-
-
-  // Safely get the team alias. Oh lord don't hate me.
-  getTeamAlias: function(teamSrid) {
-    if (this.props.teams.hasOwnProperty(this.props.sport)) {
-      if (this.props.teams[this.props.sport].hasOwnProperty('teams')) {
-        if (this.props.teams[this.props.sport].teams.hasOwnProperty(teamSrid)) {
-          return this.props.teams[this.props.sport].teams[teamSrid].alias
-        }
-      }
-    }
-
-    return ''
-  },
-
-
-  getGames: function() {
-    let games = []
-
-    _forEach(this.props.boxScores, function(game) {
-      let homeClasses = classNames('team home', { 'selected': this.isTeamSelected(this.props.selectedTeams, game.srid_home) })
-      let awayClasses = classNames('team away', { 'selected': this.isTeamSelected(this.props.selectedTeams, game.srid_away) })
+    _forEach(this.props.boxScores, (game) => {
+      const homeClasses = classNames('team home', {
+        selected: self.isTeamSelected(self.props.selectedTeams, game.srid_home),
+      });
+      const awayClasses = classNames('team away', {
+        selected: self.isTeamSelected(self.props.selectedTeams, game.srid_away),
+      });
 
       games.push([
         <div
           className="game scroll-item"
           key={game.pk}
-          onClick={this.handleGameClick.bind(this, game)}
-          ref={'game-' + game.pk}
-          >
+          onClick={self.handleGameClick.bind(self, game)}
+          ref={`game-${game.pk}`}
+        >
           <div className="left">
-            <div className={awayClasses} onClick={this.handleTeamClick.bind(this, game.srid_away)}>
-              <span
-                className="teamName"
-                >{this.getTeamAlias(game.srid_away)}</span>
+            <div className={awayClasses} onClick={self.handleTeamClick.bind(self, game.srid_away)}>
+              <span className="teamName">{self.getTeamAlias(game.srid_away)}</span>
             </div>
 
-            <div className={homeClasses} onClick={this.handleTeamClick.bind(this, game.srid_home)}>
-              <span
-                className="teamName"
-                >{this.getTeamAlias(game.srid_home)}</span>
+            <div className={homeClasses} onClick={self.handleTeamClick.bind(self, game.srid_home)}>
+              <span className="teamName">{self.getTeamAlias(game.srid_home)}</span>
             </div>
           </div>
 
@@ -175,18 +61,132 @@ const DraftTeamFilter = React.createClass({
             </div>
           </div>
         </div>,
-        <div className="separator half"></div>
-      ])
+        <div className="separator half"></div>,
+      ]);
+    });
 
-    }.bind(this))
-
-    return games
+    return games;
   },
 
 
-  render: function() {
+  getAllTeams() {
+    const allTeams = [];
+
+    _forEach(this.props.boxScores, (game) => {
+      allTeams.push(game.srid_home);
+      allTeams.push(game.srid_away);
+    });
+
+    return allTeams;
+  },
+
+
+  // Safely get the team alias. Oh lord don't hate me.
+  getTeamAlias(teamSrid) {
+    if (this.props.teams.hasOwnProperty(this.props.sport)) {
+      if (this.props.teams[this.props.sport].hasOwnProperty('teams')) {
+        if (this.props.teams[this.props.sport].teams.hasOwnProperty(teamSrid)) {
+          return this.props.teams[this.props.sport].teams[teamSrid].alias;
+        }
+      }
+    }
+
+    return '';
+  },
+
+
+  handleTeamClick(teamId, e) {
+    e.stopPropagation();
+    const newTeams = this.props.selectedTeams.slice();
+
+    if (this.isTeamSelected(newTeams, teamId)) {
+      this.removeTeamFromList(newTeams, teamId);
+    } else {
+      newTeams.push(teamId);
+    }
+    this.handleTeamsChange(newTeams);
+  },
+
+
+  handleAllClick() {
+    if (this.getAllTeams().length > this.props.selectedTeams.length) {
+      this.selectAllTeams();
+    } else {
+      this.unselectAllTeams();
+    }
+  },
+
+
+  /**
+   * Scrolls slider left.
+   */
+  handleScrollLeft() {
+    const content = this.refs.content;
+    const left = parseInt(content.style.left, 10) | 0;
+    this.refs.content.style.left = `${(left + 400)}px`;
+  },
+
+
+  /**
+   * Scrolls slider right.
+   */
+  handleScrollRight() {
+    const content = this.refs.content;
+    const left = parseInt(content.style.left, 10) | 0;
+    content.style.left = `${(left - 400)}px`;
+  },
+
+
+  filterTitle: 'teamFilter',
+
+
+  selectAllTeams() {
+    this.handleTeamsChange(this.getAllTeams());
+  },
+
+
+  unselectAllTeams() {
+    this.handleTeamsChange([]);
+  },
+
+
+  isTeamSelected(selectedTeams, teamId) {
+    return selectedTeams.indexOf(teamId) !== -1;
+  },
+
+
+  removeTeamFromList(list, team) {
+    if (list.indexOf(team) !== -1) {
+      list.splice(list.indexOf(team), 1);
+    }
+  },
+
+
+  handleGameClick(game) {
+    const newTeams = this.props.selectedTeams.slice();
+
+    if (this.isTeamSelected(newTeams, game.srid_home) && this.isTeamSelected(newTeams, game.srid_away)) {
+      this.removeTeamFromList(newTeams, game.srid_home);
+      this.removeTeamFromList(newTeams, game.srid_away);
+    } else {
+      this.removeTeamFromList(newTeams, game.srid_home);
+      this.removeTeamFromList(newTeams, game.srid_away);
+      newTeams.push(game.srid_home);
+      newTeams.push(game.srid_away);
+    }
+
+    this.handleTeamsChange(newTeams);
+  },
+
+
+  handleTeamsChange(selectedTeams) {
+    this.props.onFilterChange(this.filterTitle, 'team_srid', selectedTeams);
+  },
+
+
+  render() {
     if (!this.props.isVisible) {
-      return <div></div>
+      return <div></div>;
     }
 
     return (
@@ -203,10 +203,8 @@ const DraftTeamFilter = React.createClass({
                 <div
                   className="game scroll-item allTeams"
                   onClick={this.handleAllClick}
-                  >
-                  <span
-                    className="teamName"
-                    >All Games</span>
+                >
+                  <span className="teamName">All Games</span>
                 </div>
                 <div className="separator half"></div>
                 {this.getGames()}
@@ -220,10 +218,10 @@ const DraftTeamFilter = React.createClass({
 
         </div>
       </div>
-    )
-  }
+    );
+  },
 
-})
+});
 
 
-module.exports = DraftTeamFilter
+module.exports = DraftTeamFilter;

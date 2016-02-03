@@ -1,43 +1,42 @@
 const ActionTypes = require('../action-types');
-
 const initialState = {
   lineups: {},
   draftGroupIdFilter: null,
   draftGroupsWithLineups: [],
   lineupBeingEdited: null,
   focusedLineupId: null,
-  hoveredLineupId: null
-}
+  hoveredLineupId: null,
+};
 
-module.exports = function(state = initialState, action) {
 
+module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     case ActionTypes.FETCH_UPCOMING_LINEUPS_SUCCESS:
       // Grab the first lineup in our object and set it as focused.
-      let focusedLineupId
+      let focusedLineupId;
       if (action.lineups && Object.keys(action.lineups).length > 0) {
-        focusedLineupId = action.lineups[Object.keys(action.lineups)[0]].id
+        focusedLineupId = action.lineups[Object.keys(action.lineups)[0]].id;
       }
 
       // Return a copy of the previous state with our new things added to it.
       return Object.assign({}, state, {
         lineups: action.lineups || {},
         draftGroupsWithLineups: action.draftGroupsWithLineups,
-        focusedLineupId
+        focusedLineupId,
       });
 
 
     case ActionTypes.LINEUP_FOCUSED:
       return Object.assign({}, state, {
-        focusedLineupId: action.lineupId
-      })
+        focusedLineupId: action.lineupId,
+      });
 
 
     case ActionTypes.LINEUP_HOVERED:
       return Object.assign({}, state, {
-        hoveredLineupId: action.lineupId
-      })
+        hoveredLineupId: action.lineupId,
+      });
 
 
     case ActionTypes.FETCH_UPCOMING_LINEUPS_FAIL:
@@ -46,14 +45,14 @@ module.exports = function(state = initialState, action) {
 
     case ActionTypes.EDIT_LINEUP_INIT:
       return Object.assign({}, state, {
-        lineupBeingEdited: action.lineupId
-      })
+        lineupBeingEdited: action.lineupId,
+      });
 
 
     case ActionTypes.FILTER_UPCOMING_LINEUPS_BY_DRAFTGROUP_ID:
       return Object.assign({}, state, {
-        draftGroupIdFilter: action.draftGroupId
-      })
+        draftGroupIdFilter: action.draftGroupId,
+      });
 
     default:
       return state;

@@ -1,40 +1,31 @@
-'use strict';
-
-var React = require('react');
+import React from 'react';
 
 
 /**
  * An input form field that handles editing the name of a lineup that's being created.
  */
-var DraftNewLineupCardTitle = React.createClass({
+const DraftNewLineupCardTitle = React.createClass({
 
   propTypes: {
     title: React.PropTypes.string,
-    setTitle: React.PropTypes.func
+    setTitle: React.PropTypes.func,
   },
 
-  getInitialState: function() {
+  getInitialState() {
     return {
-      title: ''
+      title: '',
     };
   },
 
 
-  handleChange: function(event) {
-    this.setState({title: event.target.value}, function() {
+  handleChange(event) {
+    this.setState({ title: event.target.value }, () => {
       this.props.setTitle(this.state.title);
     });
   },
 
 
-  render: function() {
-
-    // var renderVal = this.state.title;
-    //
-    // if (this.state.title === this.props.title) {
-    //   renderVal = '';
-    // }
-
+  render() {
     return (
       <div className="cmp-lineup-card__title">
 
@@ -47,7 +38,7 @@ var DraftNewLineupCardTitle = React.createClass({
 
       </div>
     );
-  }
+  },
 
 });
 

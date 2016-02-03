@@ -1,6 +1,5 @@
-import React from 'react'
-import ReactDom  from 'react-dom'
-
+import React from 'react';
+import ReactDom from 'react-dom';
 
 
 /**
@@ -8,7 +7,7 @@ import ReactDom  from 'react-dom'
  * reveals a text input field that runs a string matching filter on the specified store data row
  * property.
  */
-var CollectionSearchFilter = React.createClass({
+const CollectionSearchFilter = React.createClass({
 
   propTypes: {
     // The search value we are matching against - likely should be empty at first.
@@ -22,24 +21,24 @@ var CollectionSearchFilter = React.createClass({
     filterName: React.PropTypes.string.isRequired,
     // When the filter values have changed, let the store it's registered with know so it can
     // re-run all of it's filters.
-    onUpdate: React.PropTypes.func.isRequired
+    onUpdate: React.PropTypes.func.isRequired,
   },
 
 
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
       match: '',
-      className: ''
+      className: '',
     };
   },
 
 
-  getInitialState: function() {
+  getInitialState() {
     return {
       // Initial match value.
-      'match': this.props.match,
+      match: this.props.match,
       // Default to compact state.
-      'isExpanded': false
+      isExpanded: false,
     };
   },
 
@@ -49,29 +48,29 @@ var CollectionSearchFilter = React.createClass({
    * onUpdate function.
    * @param  {Object} e The dom event that triggered this.
    */
-  handleChange: function(e) {
-    this.setState({match: e.target.value}, function() {
+  handleChange(e) {
+    this.setState({ match: e.target.value }, () => {
       this.props.onUpdate(
         this.props.filterName,
         this.props.filterProperty,
         this.state.match
-      )
-    })
+      );
+    });
   },
 
 
   /**
    * Show the search field.
    */
-  showSearchField: function() {
-    this.setState({isExpanded: true});
+  showSearchField() {
+    this.setState({ isExpanded: true });
     ReactDom.findDOMNode(this.refs.searchField).focus();
   },
 
 
-  render: function() {
-    var cmpClass = 'cmp-collection-search-filter ' + this.props.className;
-    var openClass = this.state.isExpanded ? ' cmp-collection-search-filter--active ' : '';
+  render() {
+    const cmpClass = `cmp-collection-search-filter ${this.props.className}`;
+    const openClass = this.state.isExpanded ? ' cmp-collection-search-filter--active ' : '';
 
     return (
       <div
@@ -90,7 +89,7 @@ var CollectionSearchFilter = React.createClass({
         </div>
       </div>
     );
-  }
+  },
 
 });
 

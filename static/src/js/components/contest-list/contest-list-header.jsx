@@ -1,29 +1,52 @@
-var React = require('react')
-var renderComponent = require('../../lib/render-component')
-// var ContestActions = require('../../actions/contest-actions.js');
-const store = require('../../store')
-const ReactRedux = require('react-redux')
-import * as AppActions from '../../stores/app-state-store.js'
+import React from 'react';
+import renderComponent from '../../lib/render-component';
+import store from '../../store';
+import ReactRedux from 'react-redux';
+import * as AppActions from '../../stores/app-state-store.js';
+
+const { Provider, connect } = ReactRedux;
+
+
+/*
+ * Map selectors to the React component
+ * @param  {object} state The current Redux state that we need to pass into the selectors
+ * @return {object}       All of the methods we want to map to the component
+ */
+function mapStateToProps(state) {
+  return {
+    contests: state.upcomingContests.allContests,
+    filters: state.upcomingContests.filters,
+  };
+}
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component
+ */
+function mapDispatchToProps() {
+  return {};
+}
 
 
 /**
  * Render the header for a contest list - Displays currently active filters.
  */
-var ContestListHeader = React.createClass({
+const ContestListHeader = React.createClass({
 
   propTypes: {
     contests: React.PropTypes.object,
-    filters: React.PropTypes.object
+    filters: React.PropTypes.object,
   },
 
 
-  revealFilters: function() {
+  revealFilters() {
     AppActions.contestTypeFiltered();
   },
 
-  render: function() {
+  render() {
     // Determine the contest type filter title.
-    var currentLeague;
+    let currentLeague;
 
     if (this.props.filters.hasOwnProperty('sportFilter')) {
       currentLeague = (
@@ -41,10 +64,10 @@ var ContestListHeader = React.createClass({
     }
 
     // Determine the league filter title.
-    var currentContestType;
+    let currentContestType;
 
     if (this.props.filters.sportFilter.hasOwnProperty('match')) {
-      currentContestType = this.props.filters.sportFilter.match.toUpperCase()
+      currentContestType = this.props.filters.sportFilter.match.toUpperCase();
     }
 
     if (!currentContestType || currentContestType === 'All') {
@@ -59,29 +82,13 @@ var ContestListHeader = React.createClass({
         </h2>
       </div>
     );
-  }
+  },
 
 });
 
 
-// Redux integration
-let {Provider, connect} = ReactRedux;
-
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
-  return {
-    contests: state.upcomingContests.allContests,
-    filters: state.upcomingContests.filters
-  };
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps() {
-  return {};
-}
-
 // Wrap the component to inject dispatch and selected state into it.
-var ContestListHeaderConnected = connect(
+const ContestListHeaderConnected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(ContestListHeader);

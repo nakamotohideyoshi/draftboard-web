@@ -1,38 +1,41 @@
 import * as ActionTypes from '../action-types.js';
-import {merge as _merge} from 'lodash';
-import {forEach as _forEach} from 'lodash';
+import log from '../lib/logging.js';
+import { merge as _merge } from 'lodash';
+import { forEach as _forEach } from 'lodash';
+
 const initialState = {
-  history: {}
+  history: {},
 };
 
 
 // Find any inactive entries and move them into the history. DO NOT feed the state into this as it
 // will mutate it.
 function archiveEntries(newState) {
-  _forEach(newState, function(entry, taskId){
+  const archivedState = initialState;
+
+  _forEach(newState, (entry, taskId) => {
     // If the status is failure or timeout, move the task into the history.
     if (entry.hasOwnProperty('status')) {
       if (entry.status === 'FAILURE' || entry.status === 'POLLING_TIMEOUT') {
-        newState.history[taskId] = newState[taskId];
-        delete newState[taskId];
+        log.trace(`Moving task to history`, entry);
+        archivedState.history[taskId] = entry;
       }
+    } else {
+      archivedState[taskId] = entry;
     }
   });
 
-  return newState
+  return newState;
 }
-
-
 
 
 /**
  * When a user requests to enter their lineup into a contest, a background job is queued up on the
  * server. We then ping the server
  */
-module.exports = function(state = initialState, action) {
-
+module.exports = (state = initialState, action) => {
   let newState = initialState;
-  let stateCopy = Object.assign({}, state);
+  const stateCopy = Object.assign({}, state);
 
   switch (action.type) {
 
@@ -45,7 +48,7 @@ module.exports = function(state = initialState, action) {
       //
       // The best use-case for this is if a user tries to enter a contest but it fails, then they
       // try to enter again - we need to remove the first entry request.
-      _forEach(newState, function(entryRequest, key) {
+      _forEach(newState, (entryRequest, key) => {
         if (entryRequest.lineupId === action.lineupId && entryRequest.contestId === action.contestId) {
           delete newState[key];
         }
@@ -56,7 +59,7 @@ module.exports = function(state = initialState, action) {
         contestId: action.contestId,
         lineupId: action.lineupId,
         maxAttempts: action.maxAttempts,
-        attempt: action.attempt
+        attempt: action.attempt,
       };
 
       return archiveEntries(newState);
@@ -64,16 +67,16 @@ module.exports = function(state = initialState, action) {
 
     case ActionTypes.FETCHING_ENTRY_REQUEST_STATUS:
       // Add 1 to the attempt count
-      let attemptCount = parseInt(state[action.taskId].attempt) + 1;
+      let attemptCount = parseInt(state[action.taskId].attempt, 10) + 1;
 
       if (typeof attemptCount !== 'number') {
-        console.error(state[action.taskId].attempt + ' is not a number.');
+        log.error(`${state[action.taskId].attempt} is not a number.`);
         attemptCount = 1;
       }
 
       newState[action.taskId] = {
         status: 'FETCHING',
-        attempt: attemptCount
+        attempt: attemptCount,
       };
 
       return archiveEntries(_merge(stateCopy, newState));
@@ -82,10 +85,10 @@ module.exports = function(state = initialState, action) {
     case ActionTypes.ENTRY_REQUEST_RECIEVED:
       // Update the status and merge states.
       newState[action.taskId] = {
-        status: action.status
+        status: action.status,
       };
 
-      return archiveEntries(_merge(stateCopy, newState))
+      return archiveEntries(_merge(stateCopy, newState));
 
 
     default:

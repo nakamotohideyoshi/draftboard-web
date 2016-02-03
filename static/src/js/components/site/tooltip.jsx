@@ -1,6 +1,4 @@
-'use strict';
-
-var React = require('react');
+import React from 'react';
 
 
 /**
@@ -10,77 +8,73 @@ var React = require('react');
  * @param  {String}  additionalClassName: Pass in any additional classNames you need for styling
  *                   purposes.
  */
-var Tooltip = React.createClass({
+const Tooltip = React.createClass({
 
   propTypes: {
     // Default visiblity.
     isVisible: React.PropTypes.bool,
     position: React.PropTypes.string,
     additionalClassName: React.PropTypes.string,
-    children: React.PropTypes.element
+    children: React.PropTypes.element,
   },
 
 
-  getDefaultProps: function() {
+  getDefaultProps() {
     return {
       isVisible: true,
       position: 'bottom',
-      additionalClassName: ''
+      additionalClassName: '',
     };
   },
+
+
+  getInitialState() {
+    return {
+      isVisible: this.props.isVisible,
+    };
+  },
+
 
   // We pass isVisible via props to set the default visiblity state. but we also want to be able
   // to override what the internal state is from a parent component, so if the props change, sync
   // up the state.
-  componentWillReceiveProps: function(newProps) {
-      this.setState({isVisible: newProps.isVisible});
+  componentWillReceiveProps(newProps) {
+    this.setState({ isVisible: newProps.isVisible });
   },
-
-
-  getInitialState: function() {
-    return {
-      isVisible: this.props.isVisible
-    };
-  },
-
 
   // Show the tooltip.
-  show: function(callback) {
-    callback = callback || function(){};
-    this.setState({isVisible: true}, callback);
+  show(callback = () => ({})) {
+    this.setState({ isVisible: true }, callback);
   },
 
 
   // Hide the tooltip.
-  hide: function(callback) {
-    callback = callback || function(){};
-    this.setState({isVisible: false}, callback);
+  hide(callback = () => ({})) {
+    this.setState({ isVisible: false }, callback);
   },
 
 
   // Toggle the tooltip.
-  toggle: function(callback) {
-    callback = callback || function(){};
-    var newVisibility = this.state.isVisible ? false : true;
-    this.setState({isVisible: newVisibility}, callback);
+  toggle(callback = () => ({})) {
+    const newVisibility = this.state.isVisible ? false : true;
+    this.setState({ isVisible: newVisibility }, callback);
   },
 
 
   /**
    * I'm pretty sure we'll always want to ignore a tooltip click... I think.
    */
-  ignoreClick: function(e) {
+  ignoreClick(e) {
     e.stopPropagation();
   },
 
 
-  render: function() {
+  render() {
     // Add all the necessary css classes.
-    var tipClass = "tooltip tooltip--" + this.props.position + "-arrow " +
-        this.props.additionalClassName;
+    let tipClass = `tooltip tooltip--${this.props.position}-arrow ${this.props.additionalClassName}`;
 
-    if(!this.state.isVisible) {
-      tipClass += " tooltip--hidden";
+    if (!this.state.isVisible) {
+      tipClass += ' tooltip--hidden';
     }
 
     return (
@@ -88,7 +82,7 @@ var Tooltip = React.createClass({
         <div className="tooltip__content">{this.props.children}</div>
       </div>
     );
-  }
+  },
 
 });
 

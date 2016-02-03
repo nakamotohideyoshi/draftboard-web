@@ -1,7 +1,6 @@
-const React = require('react');
+import React from 'react';
 import CountdownClock from '../site/countdown-clock.jsx';
 import EnterContestButton from './enter-contest-button.jsx';
-
 
 
 /**
@@ -14,7 +13,7 @@ import EnterContestButton from './enter-contest-button.jsx';
  * @param {array} columns - The columns that should be displayed. This is directly passed down
  * through DataTable.
  */
-var ContestListRow = React.createClass({
+const ContestListRow = React.createClass({
 
   propTypes: {
     row: React.PropTypes.object.isRequired,
@@ -26,18 +25,18 @@ var ContestListRow = React.createClass({
     setFocusedContest: React.PropTypes.func,
     draftGroupsWithLineups: React.PropTypes.array,
     isEntered: React.PropTypes.bool,
-    lineupsInfo: React.PropTypes.object
+    lineupsInfo: React.PropTypes.object,
   },
 
 
-  handleRowClick: function(contest) {
-    this.props.setFocusedContest(contest);
+  handleRowClick() {
+    this.props.setFocusedContest(this.props.row);
   },
 
 
-  render: function() {
+  render() {
     // If it's the currently focused contest, add a class to it.
-    var classes = this.props.focusedContest.id === this.props.row.id ? 'active ' : '';
+    let classes = this.props.focusedContest.id === this.props.row.id ? 'active ' : '';
     classes += 'cmp-contest-list__row';
     if (this.props.isEntered) {
       classes += ' entered';
@@ -48,11 +47,11 @@ var ContestListRow = React.createClass({
     }
 
     // Icons
-    var guaranteedIcon;
+    let guaranteedIcon;
     if (this.props.row.gpp) {
       guaranteedIcon = <span className="contest-icon contest-icon__guaranteed">G</span>;
     }
-    var multiEntryIcon;
+    let multiEntryIcon;
     if (this.props.row.max_entries > 1) {
       multiEntryIcon = <span className="contest-icon contest-icon__multi-entry">M</span>;
     }
@@ -60,15 +59,17 @@ var ContestListRow = React.createClass({
 
     return (
       <tr
-        onClick={this.handleRowClick.bind(this, this.props.row)}
+        onClick={this.handleRowClick}
         key={this.props.row.id}
         className={classes}
       >
         <td key="sport" className="sport">
-          <span className={"icon icon-" + this.props.row.sport}></span>
+          <span className={`icon icon-${this.props.row.sport}`}></span>
         </td>
         <td key="name" className="name">{this.props.row.name} {guaranteedIcon}</td>
-        <td key="entries" className="entries">{multiEntryIcon} {this.props.row.current_entries}/{this.props.row.entries}</td>
+        <td key="entries" className="entries">
+          {multiEntryIcon} {this.props.row.current_entries}/{this.props.row.entries}
+        </td>
         <td key="fee" className="fee">${this.props.row.buyin}</td>
         <td key="prizes" className="prizes">${this.props.row.prize_pool}</td>
         <td key="start" className="start"><CountdownClock time={this.props.row.start} /></td>
@@ -84,7 +85,7 @@ var ContestListRow = React.createClass({
         </td>
       </tr>
     );
-  }
+  },
 
 });
 
