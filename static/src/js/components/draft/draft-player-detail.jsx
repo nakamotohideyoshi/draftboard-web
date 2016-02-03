@@ -203,7 +203,7 @@ const DraftPlayerDetail = React.createClass({
           <span className={`city nba-${this.props.player.nextGame.homeTeam.alias.toLowerCase()}-2-text`}>
             {this.props.player.nextGame.homeTeam.city}
           </span>
-          <span className={`name nba-${this.props.player.nextGame.homeTeam.alias.toLowerCase()}'-1-text`}>
+          <span className={`name nba-${this.props.player.nextGame.homeTeam.alias.toLowerCase()}-1-text`}>
             {this.props.player.nextGame.homeTeam.name}
           </span>
         </h4>
