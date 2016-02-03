@@ -9,9 +9,11 @@ import renderComponent from '../../lib/render-component'
 import store from '../../store'
 
 import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
+import { fetchDraftGroupFP } from '../../actions/live-draft-groups'
 import { fetchEntriesIfNeeded } from '../../actions/entries'
 import { fetchSportsIfNeeded } from '../../actions/sports'
 import { currentLineupsSelector } from '../../selectors/current-lineups'
+import { liveSelector } from '../../selectors/live'
 import { removeUnusedDraftGroups } from '../../actions/live-draft-groups'
 import { sportsSelector } from '../../selectors/sports'
 import { updateGame } from '../../actions/sports'
@@ -36,6 +38,7 @@ import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const'
  */
 const mapStateToProps = (state) => ({
   currentLineupsSelector: currentLineupsSelector(state),
+  liveSelector: liveSelector(state),
   sportsSelector: sportsSelector(state),
 })
 
@@ -47,6 +50,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   errorHandler: (exception) => dispatch(errorHandler(exception)),
   fetchCurrentDraftGroupsIfNeeded: () => dispatch(fetchCurrentDraftGroupsIfNeeded()),
+  fetchDraftGroupFP: (draftGroupId) => dispatch(fetchDraftGroupFP(draftGroupId)),
   fetchEntriesIfNeeded: (force) => dispatch(fetchEntriesIfNeeded(force)),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
   removeUnusedDraftGroups: () => dispatch(removeUnusedDraftGroups()),
@@ -65,8 +69,10 @@ const NavScoreboard = React.createClass({
     currentLineupsSelector: React.PropTypes.object.isRequired,
     errorHandler: React.PropTypes.func,
     fetchCurrentDraftGroupsIfNeeded: React.PropTypes.func,
+    fetchDraftGroupFP: React.PropTypes.func,
     fetchEntriesIfNeeded: React.PropTypes.func,
     fetchSportsIfNeeded: React.PropTypes.func,
+    liveSelector: React.PropTypes.object.isRequired,
     removeUnusedDraftGroups: React.PropTypes.func,
     sportsSelector: React.PropTypes.object.isRequired,
     updateGame: React.PropTypes.func,
@@ -242,6 +248,12 @@ const NavScoreboard = React.createClass({
     if (window.dfs.user.username !== '') {
       parityChecks.entries = window.setInterval(this.props.fetchEntriesIfNeeded, 60000)  // one minute
       this.props.fetchEntriesIfNeeded()
+    }
+
+    if (this.state.isLivePage === true) {
+      const draftGroupId = this.props.liveSelector.lineups.mine.draftGroup.id
+      parityChecks.draftGroupFP = window.setInterval(() => this.props.fetchDraftGroupFP(draftGroupId), 600000)
+      this.props.fetchDraftGroupFP(draftGroupId)
     }
 
     // add the checsk to the state in case we need to clearInterval in the future
