@@ -435,7 +435,7 @@ class LinkedExpiringObjectQueueTable(QueueTable):
     an object with access to multiple named queues.
 
     objects placed into any of the queues will be able
-    to be retrieved from the queue until .
+    to be retrieved from the queue until they expire.
 
     the identifier can be used to retrieve objects
     from cache, but if they have expired will return None.
@@ -448,4 +448,5 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         # TODO      everytime something is added to the ExpiringObjectQueueTable
         # TODO      fire a task with countdownSeconds to try to link objects!
 
-    def get_linked_object(self, original_queue, ):
+    def get_linked_object(self, original_queue, identifier):
+        pass # TODO
