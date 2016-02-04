@@ -183,14 +183,14 @@ const fetchTeams = (sport) => (dispatch) => {
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchGames = (state, sport, force) => {
-  // if currently fetching, don't fetch again
-  if (state.sports[sport].isFetchingGames === true) {
-    return false
-  }
-
   // ignore the expiration if forcing
   if (force === true) {
     return true
+  }
+
+  // if currently fetching, don't fetch again
+  if (state.sports[sport].isFetchingGames === true) {
+    return false
   }
 
   // don't fetch if not expired
@@ -300,6 +300,10 @@ export const updateGame = (gameId, teamId, points) => (dispatch, getState) => {
   }
 
   const boxscore = game.boxscore
+
+  if (boxscore === undefined) {
+    return false
+  }
 
   if (boxscore.srid_home === teamId) {
     updatedGameFields.home_score = points

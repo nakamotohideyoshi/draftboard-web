@@ -472,10 +472,10 @@ const Live = React.createClass({
         })
 
         // add event to player history
-        playerHistory.push(eventDescription)
+        playerHistory.unshift(eventDescription)
         this.setState({
-          relevantPlayerHistory: update(relevantPlayerHistory, {
-            $set: {
+          relevantPlayerHistory: update(this.state.relevantPlayerHistory, {
+            $merge: {
               [playerId]: playerHistory,
             },
           }),
