@@ -149,7 +149,7 @@ class TestLinkedExpiringObjectQueueTable(TestCase):
         """
         qt = QueueTable(self.queue_names)
 
-        # ensure all queues empty, and return None
+        # empty queues should return None when get() is called on them.
         for i in range(len(self.queue_names)):
             self.assertIsNone( qt.get( self.queue_names[i] ) )
             self.assertIsNone( qt.get( self.queue_names[i] ) )
@@ -161,10 +161,23 @@ class TestLinkedExpiringObjectQueueTable(TestCase):
         for i in range(len(self.queue_names)):
             self.assertIsNotNone( qt.get( self.queue_names[i] ) )
             self.assertIsNotNone( qt.get( self.queue_names[i] ) )
+        # and now both queues should return None again...
+        for i in range(len(self.queue_names)):
+            self.assertIsNone( qt.get( self.queue_names[i] ) )
+            self.assertIsNone( qt.get( self.queue_names[i] ) )
 
     def test_linked_expiring_object_queue_table(self):
         """
-        TODO - what is this test for?
+        test the LinkedExpiringObjectQueueTable implementation
         """
-        pass # TODO
-        #linked_queue = LinkedExpiringObjectQueueTable(self.queue_names)
+
+        # created with a list of names (a unique name per queue)
+        qt = LinkedExpiringObjectQueueTable(self.queue_names)
+
+        # add one object as a very simple test
+        qt.add( self.queue_names[0], {} )
+
+        # # intiially, all the queues should be empty
+        # for i in range(len(self.queue_names)):
+        #     self.assertIsNone( qt.get( self.queue_names[i] ) )
+        #     self.assertIsNone( qt.get( self.queue_names[i] ) )
