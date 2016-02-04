@@ -1,6 +1,6 @@
-const moment = require('moment')
 const request = require('superagent-promise')(require('superagent'), Promise)
 import 'babel-core/polyfill'
+import moment from 'moment'
 import _ from 'lodash'
 import { normalize, Schema, arrayOf } from 'normalizr'
 

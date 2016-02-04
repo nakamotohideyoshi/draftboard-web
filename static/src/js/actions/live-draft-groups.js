@@ -213,7 +213,7 @@ export const fetchDraftGroupFP = (id) => (dispatch) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchDraftGroupFPIfNeeded = (id) => (dispatch, getState) => {
-  if (shouldFetchDraftGroupFP(getState(), id)) {
+  if (shouldFetchDraftGroupFP(getState(), id) === true) {
     return dispatch(fetchDraftGroupFP(id))
   }
 
@@ -279,7 +279,7 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
 export const updatePlayerStats = (playerId, eventCall, draftGroupId) => (dispatch, getState) => {
   // if this is a relevant player, update their stats
   if (getState().livePlayers.relevantPlayers.hasOwnProperty(eventCall.fields.srid_player)) {
-    log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', eventCall.fields.srid_player)
+    log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', eventCall)
 
     dispatch(updateLivePlayersStats(
       eventCall.fields.srid_player,
