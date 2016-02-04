@@ -5,7 +5,6 @@ import _ from 'lodash'
 import moment from 'moment'
 
 import * as ActionTypes from '../action-types'
-import log from '../lib/logging'
 
 
 // global constants
@@ -68,7 +67,7 @@ const receiveGames = (sport, games) => {
     sport,
     games,
     gameIds,
-    expiresAt: moment(Date.now()).add(10, 'minutes'),
+    expiresAt: moment(Date.now()).add(2, 'minutes'),
   }
 }
 
@@ -105,7 +104,6 @@ const receiveTeams = (sport, response) => {
  * @return {number}       Minutes remaining in the game
  */
 const calculateTimeRemaining = (sport, game) => {
-  log.trace('actionsCurrentBoxScores.calculateTimeRemaining')
   const sportDurations = GAME_DURATIONS[sport]
 
   // if the game hasn't started, return full time
@@ -184,13 +182,18 @@ const fetchTeams = (sport) => (dispatch) => {
  * @param  {string} sport     Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
  * @return {boolean}      True if we should fetch, false if not
  */
-const shouldFetchGames = (state, sport) => {
+const shouldFetchGames = (state, sport, force) => {
   // if currently fetching, don't fetch again
   if (state.sports[sport].isFetchingGames === true) {
     return false
   }
 
-  // fetch if expired
+  // ignore the expiration if forcing
+  if (force === true) {
+    return true
+  }
+
+  // don't fetch if not expired
   if (moment().isBefore(state.sports[sport].gamesExpireAt)) {
     return false
   }
@@ -228,8 +231,8 @@ const shouldFetchTeams = (state, sport) => {
  * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
  *                     returned method or directly as a resolved promise
  */
-export const fetchGamesIfNeeded = (sport) => (dispatch, getState) => {
-  if (shouldFetchGames(getState(), sport) === false) {
+export const fetchGamesIfNeeded = (sport, force) => (dispatch, getState) => {
+  if (shouldFetchGames(getState(), sport, force) === false) {
     return Promise.resolve('Games already exists')
   }
 
@@ -249,9 +252,9 @@ export const fetchTeamsIfNeeded = (sport) => (dispatch, getState) => {
   return dispatch(fetchTeams(sport))
 }
 
-export const fetchSportIfNeeded = (sport) => (dispatch) => {
+export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
   dispatch(fetchTeamsIfNeeded(sport))
-  dispatch(fetchGamesIfNeeded(sport))
+  dispatch(fetchGamesIfNeeded(sport, force))
 }
 
 /**

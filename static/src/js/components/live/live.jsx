@@ -25,7 +25,7 @@ import { checkForUpdates } from '../../actions/live'
 import { currentLineupsSelector } from '../../selectors/current-lineups'
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
 import { fetchEntriesIfNeeded } from '../../actions/entries'
-import { fetchSportsIfNeeded } from '../../actions/sports'
+import { fetchSportIfNeeded } from '../../actions/sports'
 import { liveContestsSelector } from '../../selectors/live-contests'
 import { liveSelector } from '../../selectors/live'
 import { sportsSelector } from '../../selectors/sports'
@@ -56,7 +56,7 @@ const mapDispatchToProps = (dispatch) => ({
   errorHandler: (exception) => dispatch(errorHandler(exception)),
   fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
   fetchEntriesIfNeeded: (id) => dispatch(fetchEntriesIfNeeded(id)),
-  fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
+  fetchSportIfNeeded: (sport, force) => dispatch(fetchSportIfNeeded(sport, force)),
   updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
   updatePlayerStats: (eventCall, draftGroupId, playerId, fp) => dispatch(
     updatePlayerStats(eventCall, draftGroupId, playerId, fp)
@@ -76,7 +76,7 @@ const Live = React.createClass({
     errorHandler: React.PropTypes.func,
     fetchEntriesIfNeeded: React.PropTypes.func,
     fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
-    fetchSportsIfNeeded: React.PropTypes.func,
+    fetchSportIfNeeded: React.PropTypes.func,
     liveContestsSelector: React.PropTypes.object.isRequired,
     liveSelector: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
@@ -122,6 +122,12 @@ const Live = React.createClass({
   onBoxscoreReceived(eventCall) {
     log.debug('Live.onBoxscoreReceived()')
     const gameId = eventCall.game__id
+
+    // current bug where player stats are being passed through in boxscore feed
+    if (eventCall.model === 'nba.playerstats') {
+      this.onStatsReceived(eventCall)
+      return
+    }
 
     // return if basic checks fail
     if (this.isPusherEventRelevant(eventCall, gameId) === false) {
@@ -176,7 +182,7 @@ const Live = React.createClass({
    */
   onStatsReceived(eventCall) {
     log.debug('Live.onStatsReceived()')
-    const gameId = eventCall.srid_game
+    const gameId = eventCall.fields.srid_game
 
     // return if basic checks fail
     if (this.isPusherEventRelevant(eventCall, gameId) === false) {
@@ -318,7 +324,9 @@ const Live = React.createClass({
     // if we haven't received from the server that the game has started, then ask the server for an update!
     if (games[gameId].hasOwnProperty('boxscore') === false) {
       log.trace('Live.onBoxscoreReceived() - related game had no boxscore from server', eventCall)
-      this.props.fetchSportsIfNeeded()
+
+      // by passing in a sport, you force
+      this.props.fetchSportIfNeeded('nba', true)
       return false
     }
 

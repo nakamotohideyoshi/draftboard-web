@@ -36,7 +36,7 @@ const LiveStandingsPane = React.createClass({
   },
 
   componentDidMount() {
-    this.props.fetchLineupUsernames(this.props.mode.contestId)
+    // this.props.fetchLineupUsernames(this.props.mode.contestId)
     this.handleSearchByUsername = _.debounce(this.handleSearchByUsername, 150)
   },
 
