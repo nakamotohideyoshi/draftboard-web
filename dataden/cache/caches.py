@@ -316,7 +316,9 @@ class PlayByPlayCache( UsesCacheKeyPrefix ):
 
 class NonBlockingQueue( Queue ):
     """
-    queue that discards the oldest items instread of blocking on put() if its Full
+    queue that discards the oldest items.
+    instead of blocking on put() if its Full, put simply returns
+    the oldest item in the queue, and adds the obj
     """
 
     def __init__(self, size=10):
@@ -375,7 +377,29 @@ class RandomId(object):
         """
         return '%032x' % random.getrandbits(128)
 
-class QueueTable:
+class RandomIdMixin(RandomId):
+    """ classes wanting use of the method get_random_id() """
+    pass
+
+# class AbstractLinkableObject(object):
+#
+#     def __init__(self, obj):
+#         self.obj = obj
+#
+#     def get_linking_id(self):
+#         raise Exception('AbstractLinkableObject.get_linking_id() must be overridden!')
+#
+# class PbpLinkableObject(AbstractLinkableObject):
+#
+#     def get_linking_id(self):
+#         return self.obj.get('id')
+#
+# class StatsLinkableObject(AbstractLinkableObject):
+#
+#     def get_linking_id(self):
+#         return self.obj.get('id')
+
+class QueueTable(RandomIdMixin):
     """
     an object that has 0 or more named queues, named by strings
     """
@@ -384,16 +408,40 @@ class QueueTable:
 
     class QueueNamesNotSetException(Exception): pass
 
+    class UniqueQueueNameConstraintException(Exception): pass
+
+    class IllegalMethodException(Exception): pass
+
     queue_size = 10
 
     def __init__(self, names=[]):
+        """
+        initialize a QueueTable with an internal queue for every string in 'names' param
+
+        :param names: list of string names of queues
+        """
         if names == []:
             err_msg = 'the argument "names" must be a non-empty list of unique names"'
             raise self.QueueNamesNotSetException(err_msg)
 
+        #
+        # set( list ) returns the set of unique names, so if everything in 'names'
+        # is unique the size of the set should match size of the names list!
+        if len(set(names)) != len(names):
+            err_msg = 'names does not contain unique values: %s' % str(names)
+            raise self.UniqueQueueNameConstraintException(err_msg)
+
+        #
+        # build the internal queues
         self.queues = {}
         for name in names:
             self.queues[name] = NonBlockingQueue(self.queue_size)
+
+    def put(self):
+        """
+        :raises IllegalMethodException: you should be using add(name, obj) instead!
+        """
+        raise self.IllegalMethodException('do not use put(). use add(name, obj) instead!')
 
     def get_queue(self, name):
         """
@@ -416,6 +464,10 @@ class QueueTable:
     def get_obj(self, queue_name, obj):
         """
         TODO - what does this do?
+
+        i think it grabs a specific obj from the named queue, removes it, and returns it...
+
+        perhaps remove() should do that !
         """
         raise Exception('unimplemented')
 
@@ -425,16 +477,20 @@ class QueueTable:
         """
         q = self.get_queue(name)
         q.queue.remove( obj )
+        # TODO - perhaps going to need to loop to find the obj with identifier...
 
-    def add(self, name, obj):
+    def add(self, name, obj, identifier=None):
         """
-        TODO - what does this do?
-        """
-        # get the queue for this player named by 'name' param
-        # and add the object, by:
-        #   making a (<RandomId>, timezone.now(), obj) tuple, and adding it to the named queue
+        adds the object to the named queue as a tuple of the form:
+            (<identifier>, timezone.now(), obj)
 
-        uid = RandomId().get_random_id()
+        if the indentifier is not None, it is used instead of a random one.
+        """
+
+        if identifier:
+            uid = identifier
+        else:
+            uid = RandomId().get_random_id()
         now = timezone.now()
         q   = self.get_queue(name)
         tup = (uid, now, obj)
@@ -451,12 +507,66 @@ class LinkedExpiringObjectQueueTable(QueueTable):
     from cache, but if they have expired will return None.
     """
 
-    def __init__(self):
-        pass
-        # TODO set a timeout
+    default_timeout         = 5
+    default_django_cache    = 'default'
 
-        # TODO      everytime something is added to the ExpiringObjectQueueTable
-        # TODO      fire a task with countdownSeconds to try to link objects!
+    def __init__(self, names, timeout=None, cache=None):
+        """
+        create a new instance of LinkedExpiringObjectQueueTable
+
+        :param names: list of string names of the queues to create
+        :param timeout: integer seconds of countdown until queued objects expire from cache
+        :param cache: if None, uses caches["default"] django cache. if None, uses
+        """
+        super().__init__(names)
+
+        if timeout is None:
+            self.timeout = self.default_timeout
+        else:
+            self.timeout = timeout
+
+        if cache is None:
+            self.cache = caches[self.default_django_cache]
+        else:
+            self.cache = cache
+
+    def add(self, name, obj):
+        """
+        create a random id and puts it in the global cache with the timeout
+
+        super().add( name, obj ) is called after we add the identifier to the cache,
+        but _before_ we fire the countdown task that will try to do the future linking.
+
+        :param name:
+        :param obj:
+        :return:
+        """
+
+        #
+        # cache the identifier as both the key and the value as a
+        # way of flagging this object as being in its countdown!
+        # the identifier is automatically removed the cache when it expires.
+        identifier = self.get_random_id()
+        self.cache.add( identifier, identifier, self.timeout )
+
+        #
+        # TODO - for the item we are about to add, we should check
+        # TODO   if there is already a linkable object in the queue!
+        linked_object = self.remove( )
+
+        #
+        # call super().add() to add it to the queue, using our own identifier
+        super().add( name, obj, identifier=identifier )
+
+        # fire the task to do the linking in the near future, allowing some time
+        # for a linkable stat to come in the queue
+
 
     def get_linked_object(self, original_queue, identifier):
+        """
+        TODO - what does this do?
+        """
         pass # TODO
+
+    # TODO      everytime something is added to the LinkedExpiringObjectQueueTable
+    # TODO      fire a task with countdownSeconds to try to link objects!

@@ -8,6 +8,7 @@ from dataden.cache.caches import (
     NonBlockingQueue,
     RandomId,
     QueueTable,
+    LinkedExpiringObjectQueueTable,
 )
 
 class Command(BaseCommand):
@@ -63,12 +64,13 @@ class Command(BaseCommand):
             values.append( x )
 
         #
-        # create a MultiQueue instance using the names in the array
-        mq = QueueTable( values )
+        # create our custom queue instance using the names in the array
+        qt = LinkedExpiringObjectQueueTable( values )
 
         # add 1 random object to each queue in the QueueTable
-        for i in range(len(values)):
-            mq.add( values[i], self.next_test_obj() )
-            mq.add( values[i], self.next_test_obj() )
+        # for i in range(len(values)):
+        #     mq.add( values[i], self.next_test_obj() )
+        #     mq.add( values[i], self.next_test_obj() )
 
+        qt.add( values[0], self.next_test_obj() )
 
