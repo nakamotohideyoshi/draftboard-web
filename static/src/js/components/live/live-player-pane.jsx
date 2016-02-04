@@ -127,7 +127,7 @@ const LivePlayerPane = React.createClass({
    */
   renderActivities() {
     // reverse to show most recent event first
-    const eventHistory = this.props.eventHistory.reverse()
+    const eventHistory = this.props.eventHistory
 
     const activitiesHTML = eventHistory.map((activity, index) => {
       const { points, info, when } = activity

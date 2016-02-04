@@ -156,6 +156,8 @@
     opacity: 0.5;
     text-align: center;
     padding-top: 13px;
+    z-index: 5050;
+    position: relative;
   }
 
   &__status {
