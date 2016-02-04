@@ -381,23 +381,27 @@ class RandomIdMixin(RandomId):
     """ classes wanting use of the method get_random_id() """
     pass
 
-# class AbstractLinkableObject(object):
-#
-#     def __init__(self, obj):
-#         self.obj = obj
-#
-#     def get_linking_id(self):
-#         raise Exception('AbstractLinkableObject.get_linking_id() must be overridden!')
-#
-# class PbpLinkableObject(AbstractLinkableObject):
-#
-#     def get_linking_id(self):
-#         return self.obj.get('id')
-#
-# class StatsLinkableObject(AbstractLinkableObject):
-#
-#     def get_linking_id(self):
-#         return self.obj.get('id')
+class AbstractLinkableObject(object):
+
+    def __init__(self, obj):
+        self.obj = obj
+
+    def get_linking_id(self):
+        raise Exception('AbstractLinkableObject.get_linking_id() must be overridden!')
+
+class LinkableObject(AbstractLinkableObject):
+
+    default_linkable_id_field = 'id'
+
+    def __init__(self, obj, field=None):
+        super().__init__(obj)
+        if field is not None:
+            self.field = field
+        else:
+            self.field = self.default_linkable_id_field
+
+    def get_linking_id(self):
+        return self.obj.get(self.field)
 
 class QueueTable(RandomIdMixin):
     """
@@ -437,6 +441,12 @@ class QueueTable(RandomIdMixin):
         for name in names:
             self.queues[name] = NonBlockingQueue(self.queue_size)
 
+    def get_queue_names(self):
+        """
+        :return: a NEW MUTABLE list of the string names of the queues
+        """
+        return list(self.queues.keys())
+
     def put(self):
         """
         :raises IllegalMethodException: you should be using add(name, obj) instead!
@@ -448,7 +458,7 @@ class QueueTable(RandomIdMixin):
         get a queue by name
 
         :param name:
-        :return:
+        :return: NonBlockingQueue object
         """
         if name in self.queues.keys():
             return self.queues[ name ]
@@ -530,7 +540,7 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         else:
             self.cache = cache
 
-    def add(self, name, obj):
+    def add(self, name, linkable_object):
         """
         create a random id and puts it in the global cache with the timeout
 
@@ -542,6 +552,12 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         :return:
         """
 
+        if name not in self.get_queue_names():
+            raise self.QueueNotFoundException(name)
+
+        if not isinstance(linkable_object, LinkableObject):
+            raise IncorrectVariableTypeException(type(self).__name__, 'linkable_object')
+
         #
         # cache the identifier as both the key and the value as a
         # way of flagging this object as being in its countdown!
@@ -550,23 +566,99 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         self.cache.add( identifier, identifier, self.timeout )
 
         #
-        # TODO - for the item we are about to add, we should check
-        # TODO   if there is already a linkable object in the queue!
-        linked_object = self.remove( )
+        # look for object linked to this one, and send them if any are found.
+        # this method will have no effect if no linked object is found.
+        self.attempt_to_link_and_send(name, linkable_object)
 
         #
         # call super().add() to add it to the queue, using our own identifier
-        super().add( name, obj, identifier=identifier )
+        super().add( name, linkable_object, identifier=identifier )
 
+        #
         # fire the task to do the linking in the near future, allowing some time
         # for a linkable stat to come in the queue
+        self.postpone_link_or_send_task(identifier)
 
-
-    def get_linked_object(self, original_queue, identifier):
+    def postpone_link_or_send_task(self, identifier):
         """
-        TODO - what does this do?
+        TODO
         """
         pass # TODO
 
-    # TODO      everytime something is added to the LinkedExpiringObjectQueueTable
-    # TODO      fire a task with countdownSeconds to try to link objects!
+        # probably do this in a task:
+        # attempt_to_link_and_send(self, queue_name, linkable_object, force_send=True)
+
+    def send_linked_items(self, items):
+        """
+        TODO
+        :param items: list of tuples of the form: ( 'queue_name', <LinkableObject> )
+        """
+        pass # TODO
+        print('SEND %s' % (str(items)))
+
+    def attempt_to_link_and_send(self, queue_name, linkable_object, force_send=False):
+        """
+        search the other queue(s) for a matching object.
+        if one is found, link and send them both as 1,
+        else do nothing.
+
+        :param queue_name: the queue name we are adding the linkable object to
+        :param linkable_object: a LinkableObject instance
+        :param force_send: If set to True, this will send out the single
+                            linkable objects data regardless of whether it was linked
+        """
+
+        print('queue_name:', str(queue_name))
+
+        # TODO - there is an issue where we should probably check
+        # TODO - if a linkable_object with the same id exists in 'original_queue' !!
+        # TODO - im not yet sure what to do in that situation -- perhaps do nothing.
+
+        link_id = linkable_object.get_linking_id()
+
+        queue_names_to_search = self.get_queue_names()
+        print('queue_names_to_search:', str(queue_names_to_search))
+        queue_names_to_search.remove( queue_name )
+
+        # by default there are no objects to send, because we havent linked anything
+        linked_objects_to_send = []
+
+        # first pass to figure out if we can link an object from each queue.
+        linked_item_identifiers_found = []
+        for name in queue_names_to_search:
+            q = self.get_queue(name)
+            # iterate the queue looking for an object with a matching get_linking_id()
+            for identifier, dt, linkable_object in list( q.queue ):
+                if linkable_object.get_linking_id() == link_id:
+                    linked_item_identifiers_found.append( identifier )
+                    break # just the inner loop!
+
+        #
+        # if we didnt link an item from each queue, get out of here
+        if len(linked_item_identifiers_found) != len(queue_names_to_search):
+            if force_send:
+                #
+                # send this object out now even though we didnt find a linked object
+                self.send_linked_items( [ (queue_name, linkable_object.obj) ] )
+
+            else:
+                return
+
+        #
+        # second pass to actually remove them if we linked an item from each queue!
+        linked_objects_to_send.append( (queue_name, linkable_object.obj) ) # add initial object
+        for name in queue_names_to_search:
+            q = self.get_queue(name)
+            for queue_item in list( q.queue ):
+                identifier = queue_item[0] # its the first index of the tuple
+                if identifier in linked_item_identifiers_found:
+                    # remove this item from the queue,
+                    # and append queue name and raw data object
+                    q.queue.remove( queue_item )
+                    linked_objects_to_send.append( (name, queue_item[2].obj) )
+                    break # just the inner loop!
+
+        #
+        # now if we found a number items equal to the
+        # number of queues we searched we, we can send linked objects!
+        self.send_linked_items( linked_objects_to_send )

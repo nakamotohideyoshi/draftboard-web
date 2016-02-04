@@ -11,11 +11,16 @@ from pusher.signature import sign
 from pusher.util import ensure_text, validate_channel, validate_socket_id, app_id_re, pusher_url_re, channel_name_re
 import util.timeshift as timeshift
 from django.conf import settings
+from django.core.cache import caches
 from .tasks import pusher_send_task
 from .exceptions import ChannelNotSetException, EventNotSetException
 import ast
 import json
-from dataden.cache.caches import LiveStatsCache
+from dataden.cache.caches import (
+    LiveStatsCache,
+    LinkableObject,
+    LinkedExpiringObjectQueueTable,
+)
 
 #
 # on production this will be an empty string,
@@ -26,14 +31,21 @@ PUSHER_CONTEST      = 'contest'
 
 PUSHER_BOXSCORES    = 'boxscores'
 
-PUSHER_MLB_PBP      = 'mlb_pbp'
-PUSHER_MLB_STATS    = 'mlb_stats'
-PUSHER_NBA_PBP      = 'nba_pbp'
-PUSHER_NBA_STATS    = 'nba_stats'
-PUSHER_NFL_PBP      = 'nfl_pbp'
-PUSHER_NFL_STATS    = 'nfl_stats'
-PUSHER_NHL_PBP      = 'nhl_pbp'
-PUSHER_NHL_STATS    = 'nhl_stats'
+PUSHER_MLB_PBP                  = 'mlb_pbp'
+PUSHER_MLB_STATS                = 'mlb_stats'
+#PUSHER_MLB_LINKABLE_PBP_STATS   = ('mlb_queue_pbp_stats', [PUSHER_MLB_PBP, PUSHER_MLB_STATS])
+
+PUSHER_NBA_PBP                  = 'nba_pbp'
+PUSHER_NBA_STATS                = 'nba_stats'
+#PUSHER_NBA_LINKABLE_PBP_STATS   = ('nba_queue_pbp_stats', [PUSHER_NBA_PBP, PUSHER_NBA_STATS])
+
+PUSHER_NFL_PBP                  = 'nfl_pbp'
+PUSHER_NFL_STATS                = 'nfl_stats'
+#PUSHER_NFL_LINKABLE_PBP_STATS   = ('nfl_queue_pbp_stats', [PUSHER_NFL_PBP, PUSHER_NFL_STATS])
+
+PUSHER_NHL_PBP                  = 'nhl_pbp'
+PUSHER_NHL_STATS                = 'nhl_stats'
+#PUSHER_NHL_LINKABLE_PBP_STATS   = ('nhl_queue_pbp_stats', [PUSHER_NHL_PBP, PUSHER_NHL_STATS])
 
 class RealGoodRequest(Request):
     """
@@ -126,6 +138,38 @@ class AbstractPush(object):
     This class handles delegating to the proper channels when realtime sports data is received.
     """
 
+    class Linker(object):
+        """
+        gets or create the proper instance of LinkedExpiringObjectQueueTable
+        for this a pusher channel / event.
+        """
+
+        linker_queues = [
+            ('mlb_queue_pbp_stats', [PUSHER_MLB_PBP, PUSHER_MLB_STATS]),
+            ('nba_queue_pbp_stats', [PUSHER_NBA_PBP, PUSHER_NBA_STATS]),
+            ('nfl_queue_pbp_stats', [PUSHER_NFL_PBP, PUSHER_NFL_STATS]),
+            ('nhl_queue_pbp_stats', [PUSHER_NHL_PBP, PUSHER_NHL_STATS]),
+        ]
+
+        def __init__(self):
+            self.cache = caches['default']
+
+        def get_linked_expiring_queue(self, channel):
+            """
+            return the LinkedExpiringObjectQueueTable for the channel, otherwise returns None
+            """
+            for linker_queue_name, channel_list in self.linker_queues:
+                if channel in channel_list:
+                    linker_queue = self.cache.get(linker_queue_name)
+                    if linker_queue is not None:
+                        return linker_queue
+                    else:
+                        # create a linker queue using the channel_list for the queue names
+                        linker_queue = LinkedExpiringObjectQueueTable(channel_list)
+                        self.cache.add( linker_queue_name, linker_queue, 48*60*60 )
+                        return linker_queue
+            return None
+
     def __init__(self, channel):
 
         # print( 'settings.PUSHER_APP_ID', settings.PUSHER_APP_ID,
@@ -143,6 +187,9 @@ class AbstractPush(object):
         # async indicates whether to use celery (if async == True)
         # or block on the current thread to do the send.
         self.async      = settings.DATADEN_ASYNC_UPDATES
+
+        # use this to retrieve the linker queue
+        self.linker     = self.Linker()
 
     def send(self, data, async=False ):
         """
@@ -167,6 +214,18 @@ class AbstractPush(object):
         # send the data on the channel with the specified event name.
         if not isinstance( data, dict ):
             data = data.get_o()
+
+        #
+        # get the linkedExpiringObjectQueueTable (ie: pbp+stats combiner
+        # check if its the type of object we should throw in the pbp+stats linker queue
+        linker_queue = self.linker.get_linked_expiring_queue( self.channel )
+        if linker_queue is not None:
+            linker_queue.add( self.channel, LinkableObject( data ) )
+            return # dont push the normal way, get out of here
+        # TODO - we need a way to ignore this check when we eventually send objects so we dont go into an inf loop
+
+        #
+        # send it
         if async:
             task_result = pusher_send_task.apply_async( (self, data), serializer='pickle' )
         else:

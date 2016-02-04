@@ -3,6 +3,7 @@
 
 from django.test import TestCase
 import random
+import mysite.exceptions
 from testfixtures import Replacer,test_datetime
 from test.classes import AbstractTest
 from dataden.util.hsh import (
@@ -18,6 +19,7 @@ from dataden.cache.caches import (
     RandomId,
     QueueTable,
     NonBlockingQueue,
+    LinkableObject,
     LinkedExpiringObjectQueueTable,
 )
 
@@ -115,6 +117,13 @@ class TestLinkedExpiringObjectQueueTable(TestCase):
         }
         return obj
 
+    def __next_test_linkable_obj(self):
+        """
+        wrap the test objs with a LinkableObject for use
+        with the LinkedExpiringObjectQueueTable
+        """
+        return LinkableObject( self.__next_test_obj(), field=self.object_common_id_field )
+
     def test_non_blocking_queue(self):
         """
         test the fundamental NonBlockingQueue
@@ -149,6 +158,8 @@ class TestLinkedExpiringObjectQueueTable(TestCase):
         """
         qt = QueueTable(self.queue_names)
 
+        self.assertEquals( self.queue_names, qt.get_queue_names() )
+
         # empty queues should return None when get() is called on them.
         for i in range(len(self.queue_names)):
             self.assertIsNone( qt.get( self.queue_names[i] ) )
@@ -166,16 +177,54 @@ class TestLinkedExpiringObjectQueueTable(TestCase):
             self.assertIsNone( qt.get( self.queue_names[i] ) )
             self.assertIsNone( qt.get( self.queue_names[i] ) )
 
+    def test_linkable_object(self):
+        """
+        make sure LinkedObject extracts the right id
+        """
+        id = 'abc'
+        linkable_object = LinkableObject({'id':id})
+        self.assertEquals( linkable_object.get_linking_id(), id )
+
+        custom_id_field = 'custom_id'
+        id2             = 'the_custom_id'
+        linkable_object2 = LinkableObject({custom_id_field:id2}, field=custom_id_field)
+        self.assertEquals( linkable_object2.get_linking_id(), id2 )
+
     def test_linked_expiring_object_queue_table(self):
         """
         test the LinkedExpiringObjectQueueTable implementation
         """
 
+        # test instance exceptions when creating a new queue
+        self.assertRaises( LinkedExpiringObjectQueueTable.QueueNamesNotSetException,
+                           lambda: LinkedExpiringObjectQueueTable(names=[]) )
+        self.assertRaises( LinkedExpiringObjectQueueTable.UniqueQueueNameConstraintException,
+                           lambda: LinkedExpiringObjectQueueTable(names=['dupe','dupe']) )
+
+        class InvalidObject(object):
+            def __init__(self):
+                pass
+
         # created with a list of names (a unique name per queue)
+        test_qt = LinkedExpiringObjectQueueTable(self.queue_names)
+
+        # test exceptions
+        self.assertRaises( LinkedExpiringObjectQueueTable.QueueNotFoundException,
+                            lambda: test_qt.add( 'invalid queue', LinkableObject({'id':'test'}) ) )
+        self.assertRaises( LinkedExpiringObjectQueueTable.IllegalMethodException,
+                            lambda: test_qt.put() )
+        self.assertRaises( mysite.exceptions.IncorrectVariableTypeException,
+                            lambda: test_qt.add( self.queue_names[0], InvalidObject() ) )
+
+        #
         qt = LinkedExpiringObjectQueueTable(self.queue_names)
 
-        # add one object as a very simple test
-        qt.add( self.queue_names[0], {} )
+        # add the same object to each queue to see if it would link and send !
+        linkable_object = self.__next_test_linkable_obj()
+        for i in range(len(self.queue_names)):
+            qt.add( self.queue_names[i], linkable_object )
+
+        # qt.add( self.queue_names[0], self.__next_test_linkable_obj() )
 
         # # intiially, all the queues should be empty
         # for i in range(len(self.queue_names)):
