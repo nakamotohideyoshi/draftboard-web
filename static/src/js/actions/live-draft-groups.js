@@ -26,6 +26,7 @@ import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-a
 const confirmDraftGroupStored = (id) => ({
   type: ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED,
   id,
+  expiresAt: moment(Date.now()).add(1, 'minute'),
 })
 
 /**
@@ -37,6 +38,7 @@ const confirmDraftGroupStored = (id) => ({
 const requestDraftGroupFP = (id) => ({
   id,
   type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP,
+  expiresAt: moment(Date.now()).add(1, 'minute'),
 })
 
 /**
@@ -137,17 +139,18 @@ const shouldFetchDraftGroupFP = (state, id) => {
   if (id in liveDraftGroups === false) {
     throw new Error('You cannot get fantasy points for a player that is not in the draft group')
   }
+
+  // don't fetch until expired
+  if (moment().isBefore(liveDraftGroups[id].fpExpiresAt)) {
+    return false
+  }
+
   // do not fetch if fetching info
   if (liveDraftGroups[id].isFetchingInfo === true) {
     return false
   }
   // do not fetch if fetching fp
   if (liveDraftGroups[id].isFetchingFP === true) {
-    return false
-  }
-
-  // fetch if expired
-  if (moment().isBefore(liveDraftGroups[id].fpExpiresAt)) {
     return false
   }
 

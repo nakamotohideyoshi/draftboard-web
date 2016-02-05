@@ -57,6 +57,7 @@ module.exports = (state = {}, action) => {
         id: action.id,
         isFetchingInfo: true,
         hasAllInfo: false,
+        infoExpiresAt: action.expiresAt,
       };
 
       return setOrMerge(state, action, newProps);
@@ -82,6 +83,7 @@ module.exports = (state = {}, action) => {
       newProps = {
         id: action.id,
         isFetchingFP: true,
+        fpExpiresAt: action.expiresAt,
       };
 
       return setOrMerge(state, action, newProps);
