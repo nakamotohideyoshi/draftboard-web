@@ -3,6 +3,7 @@ const request = require('superagent-promise')(require('superagent'), Promise)
 import _ from 'lodash'
 import Cookies from 'js-cookie'
 import { Buffer } from 'buffer/'
+import moment from 'moment'
 
 import * as ActionTypes from '../action-types'
 import { fetchDraftGroupIfNeeded } from './live-draft-groups'
@@ -197,7 +198,7 @@ const parseContestLineups = (apiContestLineupsBytes) => {
  * @param {number} contestId  Contest ID
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-const fetchContestLineups = (id) => (dispatch) => {
+export const fetchContestLineups = (id) => (dispatch) => {
   dispatch(requestContestLineups(id))
 
   return request.get(
@@ -270,19 +271,26 @@ const shouldFetchContestLineupsUsernames = (state, id) => {
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch, false if not
  */
-const shouldFetchContest = (state, id) => {
+const shouldFetchContest = (liveContests, id) => {
   // if we have no data yet, fetch
-  if (id in state.liveContests === false) {
+  if (liveContests.hasOwnProperty(id) === false) {
     return true
+  }
+
+  const contest = liveContests[id]
+
+  // if it hasn't started yet, don't bother getting lineups yet
+  if (contest.hasOwnProperty('info') && moment().isAfter(contest.info.start)) {
+    return false
   }
 
   // if we don't yet have lineups (as in not live), then fetch
-  if ('lineupBytes' in state.liveContests[id] === false ||
-      state.liveContests[id].lineupBytes === '') {
-    return true
+  if (contest.hasOwnProperty('lineupBytes') === true &&
+      contest.lineupBytes !== '') {
+    return false
   }
 
-  return false
+  return true
 }
 
 
@@ -329,7 +337,7 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchContestIfNeeded = (id) => (dispatch, getState) => {
-  if (shouldFetchContest(getState(), id) === false) {
+  if (shouldFetchContest(getState().liveContests, id) === false) {
     return Promise.resolve('Contest already exists')
   }
 

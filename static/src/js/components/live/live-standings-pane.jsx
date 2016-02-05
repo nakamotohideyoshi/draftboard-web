@@ -1,6 +1,5 @@
 import React from 'react'
 import * as ReactRedux from 'react-redux'
-import { debounce } from 'lodash'
 import request from 'superagent'
 import Cookies from 'js-cookie'
 import _ from 'lodash'
@@ -37,8 +36,8 @@ const LiveStandingsPane = React.createClass({
   },
 
   componentDidMount() {
-    this.props.fetchLineupUsernames(this.props.mode.contestId)
-    this.handleSearchByUsername = debounce(this.handleSearchByUsername, 150)
+    // this.props.fetchLineupUsernames(this.props.mode.contestId)
+    this.handleSearchByUsername = _.debounce(this.handleSearchByUsername, 150)
   },
 
   /**
@@ -299,11 +298,15 @@ const LiveStandingsPane = React.createClass({
           />
         )
       }
+      let username = ''
+      if (lineup.hasOwnProperty('user') && lineup.user.hasOwnProperty('username')) {
+        username = lineup.user.username
+      }
       return (
         <div key={lineup.id} className={ className }>
           <div className="lineup--place">{lineup.rank}</div>
           { pmr }
-          <div className="lineup--score-name">{lineup.user.username}</div>
+          <div className="lineup--score-name">{username}</div>
           <div className="lineup--score-points"><b>{lineup.points}</b><span>Pts</span></div>
           <div className="lineup--score-earnings">${lineup.potentialEarnings}</div>
           { overlay }

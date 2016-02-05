@@ -67,7 +67,7 @@ module.exports = (state = {}, action) => {
         [action.id]: {
           $merge: {
             isFetchingInfo: false,
-            expiresAt: action.expiresAt,
+            infoExpiresAt: action.expiresAt,
             playersInfo: action.players,
             playersBySRID: action.playersBySRID,
             start: action.start,
@@ -92,7 +92,7 @@ module.exports = (state = {}, action) => {
         [action.id]: {
           $merge: {
             isFetchingFP: false,
-            fpUpdatedAt: action.updatedAt,
+            fpExpiresAt: action.expiresAt,
             playersStats: action.players,
           },
         },

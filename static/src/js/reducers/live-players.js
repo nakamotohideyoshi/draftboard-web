@@ -1,11 +1,13 @@
 import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
+import moment from 'moment'
 
 
 module.exports = (state = {
   isFetching: [],
   relevantPlayers: {},
   fetched: [],
+  expiresAt: moment(),
 }, action) => {
   switch (action.type) {
     case ActionTypes.REQUEST_LIVE_PLAYERS_STATS:
@@ -28,6 +30,7 @@ module.exports = (state = {
       });
 
       newState.isFetching = newState.isFetching.filter(item => item !== action.lineupId);
+      newState.expiresAt = action.expiresAt
 
       return newState;
 
