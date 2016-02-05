@@ -21,6 +21,7 @@ import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filte
 import renderComponent from '../../lib/render-component';
 import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx';
 import { addMessage } from '../../actions/message-actions.js';
+import { removeParamFromURL } from '../../lib/utils.js'
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
@@ -122,6 +123,9 @@ const LobbyContests = React.createClass({
 
     // If the url indicates that a lineup was just saved, show a success message.
     if (window.location.search.indexOf('lineup-saved=true') !== -1) {
+      // remove the param from the URL.
+      const strippedParams = removeParamFromURL(window.location.search, 'lineup-saved');
+      this.props.updatePath(`/lobby/${strippedParams}`);
       this.props.addMessage({
         header: 'Lineup Saved!',
         level: 'success',
