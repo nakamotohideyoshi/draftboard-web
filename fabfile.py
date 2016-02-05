@@ -178,15 +178,19 @@ def syncdb():
 
     # restore locally
     if (env.environment == 'local'):
+        local_db_name = env.db_name
+        if env.local_db_name is not None:
+            local_db_name = env.local_db_name
+
         with warn_only():
             _puts('Dropping local database')
-            operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
+            operations.local('sudo -u postgres dropdb -U postgres %s' % local_db_name)
 
             _puts('Creating local database')
-            operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % env.db_name)
+            operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % local_db_name)
             operations.local(
                 'sudo -u postgres pg_restore --no-acl --no-owner -d %s /tmp/latest.dump' %
-                env.db_name
+                local_db_name
             )
 
 

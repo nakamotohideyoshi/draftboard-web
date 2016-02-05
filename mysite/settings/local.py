@@ -103,4 +103,4 @@ DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 PUSHER_APP_ID           = '144196'
 PUSHER_KEY              = 'f23775e0c1d0da57bb4b'
 PUSHER_SECRET           = 'fc815c85237d726b9d8e'
-PUSHER_CHANNEL_PREFIX   = 'local_'
+PUSHER_CHANNEL_PREFIX   = ''
