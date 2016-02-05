@@ -41,6 +41,7 @@ module.exports = (state = {
         [action.sport]: {
           $merge: {
             isFetchingGames: true,
+            gamesExpireAt: action.expiresAt,
           },
         },
       });
@@ -52,9 +53,11 @@ module.exports = (state = {
         },
         [action.sport]: {
           $merge: {
-            gameIds: action.gameIds,
             isFetchingGames: false,
             gamesExpireAt: action.expiresAt,
+          },
+          gameIds: {
+            $merge: action.gameIds,
           },
         },
       });

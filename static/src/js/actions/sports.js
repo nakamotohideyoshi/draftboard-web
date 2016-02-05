@@ -27,12 +27,14 @@ export const GAME_DURATIONS = {
 /**
  * Dispatch information to reducer that we are trying to get games
  * Used to prevent repeat calls while requesting.
+ * NOTE: Set expires to 30 sec when retrieve, and then set again with receive, that way if gets stuck it unfreezes
  * NOTE: this method must be wrapped with dispatch()
  * @return {object}   Changes for reducer
  */
 const requestGames = (sport) => ({
   sport,
   type: ActionTypes.REQUEST_GAMES,
+  expiresAt: moment(Date.now()).add(1, 'minute'),
 })
 
 /**
@@ -67,7 +69,7 @@ const receiveGames = (sport, games) => {
     sport,
     games,
     gameIds,
-    expiresAt: moment(Date.now()).add(2, 'minutes'),
+    expiresAt: moment(Date.now()).add(10, 'minutes'),
   }
 }
 
@@ -188,13 +190,13 @@ const shouldFetchGames = (state, sport, force) => {
     return true
   }
 
-  // if currently fetching, don't fetch again
-  if (state.sports[sport].isFetchingGames === true) {
+  // don't fetch until expired
+  if (moment().isBefore(state.sports[sport].gamesExpireAt)) {
     return false
   }
 
-  // don't fetch if not expired
-  if (moment().isBefore(state.sports[sport].gamesExpireAt)) {
+  // fetch if not currently fetching
+  if (state.sports[sport].isFetchingGames === true) {
     return false
   }
 

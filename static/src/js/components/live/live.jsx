@@ -460,6 +460,8 @@ const Live = React.createClass({
           points: '?',
           info: eventCall.description,
           when: eventCall.clock,
+          courtEventId: courtEvent.id,
+          playerId,
         }
 
         // show event beside player
@@ -501,6 +503,19 @@ const Live = React.createClass({
 
     // enter the next item in the queue once everything is done
     setTimeout(() => {
+      // remove any rogue events first
+      // const eventDescriptions = Object.assign({}, this.state.eventDescriptions)
+      // const courtEventIds = Object.keys(this.state.courtEvents)
+      // const eventDescriptionCourtIds = _.map(eventDescriptions, (event) => event.courtEventId)
+      // const rogueEvents = _.difference(eventDescriptionCourtIds, courtEventIds)
+
+      // _.forEach(rogueEvents, (eventId) => {
+      //   const playerId = _.filter(eventDescriptions, (event) => event.courtEventId === eventId)[0].playerId
+      //   delete(eventDescriptions[playerId])
+      // })
+
+      // this.setState({ eventDescriptions })
+
       this.shiftOldestGameEvent(eventCall.game__id)
     }, 9000)
   },

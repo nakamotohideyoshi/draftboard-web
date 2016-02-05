@@ -3,6 +3,47 @@ import _ from 'lodash'
 
 import { liveContestsSelector } from './live-contests'
 import { currentLineupsSelector } from './current-lineups'
+import { GAME_DURATIONS } from '../actions/sports'
+
+
+/**
+ * Take the current contest and return two lists, one with all players by ownership, and the other the top 8 not owned
+ * by me.
+ * @param  {object} contest  Contest object
+ * @param  {string} sport    Which sport the contest is for, used to determine default roster length
+ * @param  {list}   myRoster Roster to filter out players with
+ * @return {object}          All players and top 8 players not in my lineup
+ */
+const calculatePlayerOwnership = (contest, sport, myRoster) => {
+  const numOfPlayers = GAME_DURATIONS[sport].players
+
+  const lineups = _.filter(contest.lineups, (lineup) => _.uniq(lineup.roster).length === numOfPlayers)
+  const allPlayers = _.flatten(_.map(lineups, (lineup) => lineup.roster))
+  const counts = _.countBy(allPlayers, (playerId) => playerId)
+
+  // all
+  const mappedPlayers = _.map(counts, (count, playerId) => ({
+    count,
+    playerId,
+  }))
+  const all = _.sortBy(mappedPlayers, (item) => item.count)
+
+  // filter to players not owned by me
+  const nonOwnedByMe = _.filter(mappedPlayers, (player) => myRoster.indexOf(player.playerId) === -1)
+  let top8 = _.sortBy(nonOwnedByMe, (item) => item.count).slice(0, 8)
+
+  // return top 8 not owned by me, if there are 8 to use, otherwise return all
+  if (top8.length > numOfPlayers) {
+    top8 = top8.slice(0, numOfPlayers)
+  } else {
+    top8 = all.slice(0, 8)
+  }
+
+  return {
+    all,
+    top8,
+  }
+}
 
 
 /**
@@ -73,6 +114,8 @@ export const liveSelector = createSelector(
 
       if (mode.contestId) {
         const contest = contestStats[mode.contestId]
+
+        contest.players_ownership = calculatePlayerOwnership(contest, sport, myLineup.roster)
 
         myLineup.myWinPercent = 0
         if (myLineup.rank && contest.entriesCount) {
