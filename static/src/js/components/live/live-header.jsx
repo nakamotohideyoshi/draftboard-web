@@ -61,9 +61,14 @@ const LiveHeader = React.createClass({
       if (liveSelector.lineups.hasOwnProperty('opponent')) {
         const opponentLineup = liveSelector.lineups.opponent
 
+        let username = ''
+        if (opponentLineup.hasOwnProperty('user')) {
+          username = opponentLineup.user.username
+        }
+
         secondary = (
           <div>
-            {myLineup.name} <span className="vs">vs</span> {opponentLineup.user.username}
+            {myLineup.name} <span className="vs">vs</span> {username}
           </div>
         )
         statsVs = (

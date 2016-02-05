@@ -10,7 +10,7 @@ import NavScoreboardSeparator from './nav-scoreboard-separator.jsx';
 const NavScoreboardLineupsList = React.createClass({
 
   propTypes: {
-    lineups: React.PropTypes.array.isRequired,
+    lineups: React.PropTypes.object.isRequired,
   },
 
   defaultList: [],

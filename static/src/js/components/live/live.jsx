@@ -9,6 +9,7 @@ import { Router, Route } from 'react-router'
 import { syncReduxAndRouter } from 'redux-simple-router'
 import { updatePath } from 'redux-simple-router'
 
+import errorHandler from '../../actions/live-error-handler'
 import LiveBottomNav from './live-bottom-nav'
 import LiveContestsPane from './live-contests-pane'
 import LiveCountdown from './live-countdown'
@@ -20,10 +21,11 @@ import LiveNBACourt from './live-nba-court'
 import LiveStandingsPaneConnected from './live-standings-pane'
 import log from '../../lib/logging'
 import store from '../../store'
+import { checkForUpdates } from '../../actions/live'
 import { currentLineupsSelector } from '../../selectors/current-lineups'
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests'
 import { fetchEntriesIfNeeded } from '../../actions/entries'
-import { fetchSportsIfNeeded } from '../../actions/sports'
+import { fetchSportIfNeeded } from '../../actions/sports'
 import { liveContestsSelector } from '../../selectors/live-contests'
 import { liveSelector } from '../../selectors/live'
 import { sportsSelector } from '../../selectors/sports'
@@ -50,9 +52,11 @@ const mapStateToProps = (state) => ({
  * @return {object}            All of the methods to map to the component
  */
 const mapDispatchToProps = (dispatch) => ({
+  checkForUpdates: () => dispatch(checkForUpdates()),
+  errorHandler: (exception) => dispatch(errorHandler(exception)),
   fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
   fetchEntriesIfNeeded: (id) => dispatch(fetchEntriesIfNeeded(id)),
-  fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
+  fetchSportIfNeeded: (sport, force) => dispatch(fetchSportIfNeeded(sport, force)),
   updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
   updatePlayerStats: (eventCall, draftGroupId, playerId, fp) => dispatch(
     updatePlayerStats(eventCall, draftGroupId, playerId, fp)
@@ -67,10 +71,12 @@ const mapDispatchToProps = (dispatch) => ({
 const Live = React.createClass({
 
   propTypes: {
+    checkForUpdates: React.PropTypes.func,
     currentLineupsSelector: React.PropTypes.object.isRequired,
+    errorHandler: React.PropTypes.func,
     fetchEntriesIfNeeded: React.PropTypes.func,
     fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
-    fetchSportsIfNeeded: React.PropTypes.func,
+    fetchSportIfNeeded: React.PropTypes.func,
     liveContestsSelector: React.PropTypes.object.isRequired,
     liveSelector: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
@@ -90,9 +96,13 @@ const Live = React.createClass({
     };
   },
 
+  /**
+   * Uses promises in order to pull in all relevant data into redux, and then starts to listen for Pusher calls
+   * Here's the documentation on the order in which all the data comes in https://goo.gl/uSCH0K
+   */
   componentWillMount() {
+    // update mode based on where we are in the live section
     const urlParams = this.props.params
-
     if (urlParams.hasOwnProperty('myLineupId')) {
       this.props.updateLiveMode({
         myLineupId: urlParams.myLineupId,
@@ -101,7 +111,7 @@ const Live = React.createClass({
       })
     }
 
-    this.listenToSockets()
+    this.startListening()
   },
 
   /*
@@ -112,6 +122,12 @@ const Live = React.createClass({
   onBoxscoreReceived(eventCall) {
     log.debug('Live.onBoxscoreReceived()')
     const gameId = eventCall.game__id
+
+    // current bug where player stats are being passed through in boxscore feed
+    if (eventCall.model === 'nba.playerstats') {
+      this.onStatsReceived(eventCall)
+      return
+    }
 
     // return if basic checks fail
     if (this.isPusherEventRelevant(eventCall, gameId) === false) {
@@ -166,7 +182,7 @@ const Live = React.createClass({
    */
   onStatsReceived(eventCall) {
     log.debug('Live.onStatsReceived()')
-    const gameId = eventCall.srid_game
+    const gameId = eventCall.fields.srid_game
 
     // return if basic checks fail
     if (this.isPusherEventRelevant(eventCall, gameId) === false) {
@@ -260,8 +276,6 @@ const Live = React.createClass({
    * Start up Pusher listeners to the necessary channels and events
    */
   listenToSockets() {
-    log.info('Live.listenToSockets()')
-
     // NOTE: this really bogs down your console, only use locally when needed
     // uncomment this ONLY if you need to debug why Pusher isn't connecting
     // Pusher.log = function(message) {
@@ -310,7 +324,9 @@ const Live = React.createClass({
     // if we haven't received from the server that the game has started, then ask the server for an update!
     if (games[gameId].hasOwnProperty('boxscore') === false) {
       log.trace('Live.onBoxscoreReceived() - related game had no boxscore from server', eventCall)
-      this.props.fetchSportsIfNeeded()
+
+      // by passing in a sport, you force
+      this.props.fetchSportIfNeeded('nba', true)
       return false
     }
 
@@ -456,10 +472,10 @@ const Live = React.createClass({
         })
 
         // add event to player history
-        playerHistory.push(eventDescription)
+        playerHistory.unshift(eventDescription)
         this.setState({
-          relevantPlayerHistory: update(relevantPlayerHistory, {
-            $set: {
+          relevantPlayerHistory: update(this.state.relevantPlayerHistory, {
+            $merge: {
               [playerId]: playerHistory,
             },
           }),
@@ -489,6 +505,29 @@ const Live = React.createClass({
     }, 9000)
   },
 
+  /**
+   * Periodically override the redux state with server data, to ensure that we have up to date data in case we missed
+   * a Pusher call here or there. In time the intervals will increase, as we gain confidence in the system.
+   */
+  startParityChecks() {
+    const parityChecks = {
+      liveUpdate: window.setInterval(() => this.props.checkForUpdates(), 5000),
+    }
+
+    // add the checsk to the state in case we need to clearInterval in the future
+    this.setState({ boxScoresIntervalFunc: parityChecks })
+  },
+
+  /**
+   * Internal method to start listening to pusher and poll for updates
+   */
+  startListening() {
+    log.info('Live.startListening()')
+
+    this.listenToSockets()
+    this.startParityChecks()
+  },
+
   /*
    * This loading screen shows in lieu of the live section when it takes longer than a second to do an initial load
    * TODO Live - get built out
@@ -508,19 +547,21 @@ const Live = React.createClass({
     let moneyLine
     let opponentLineupComponent
 
-    // wait for data to load before showing anything
-    if (liveData.hasRelatedInfo === false) {
-      return this.renderLoadingScreen()
-    }
-
     // if a lineup has not been chosen yet
-    if (mode.hasOwnProperty('myLineupId') === false) {
+    if (mode.hasOwnProperty('myLineupId') === false &&
+        liveData.hasOwnProperty('entries')
+    ) {
       return (
         <LiveLineupSelectModal
           changePathAndMode={this.changePathAndMode}
-          lineups={this.props.currentLineupsSelector}
+          entries={liveData.entries}
         />
       )
+    }
+
+    // wait for data to load before showing anything
+    if (liveData.hasRelatedInfo === false) {
+      return this.renderLoadingScreen()
     }
 
     // wait until the lineup data has loaded before rendering

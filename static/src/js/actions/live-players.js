@@ -1,6 +1,7 @@
 import 'babel-core/polyfill';  // so I can use Promises
 const request = require('superagent-promise')(require('superagent'), Promise)
 import _ from 'lodash'
+import moment from 'moment'
 
 import * as ActionTypes from '../action-types'
 
@@ -50,7 +51,7 @@ const receivePlayersStats = (lineupId, response) => {
     type: ActionTypes.RECEIVE_LIVE_PLAYERS_STATS,
     lineupId,
     players,
-    receivedAt: Date.now(),
+    expiresAt: moment(Date.now()).add(10, 'minutes'),
   }
 }
 
@@ -94,7 +95,24 @@ const fetchPlayersStats = (lineupId) => (dispatch) => {
  * @param {number} lineupId Lineup ID
  * @return {boolean}        True if we should fetch, false if not
  */
-const shouldFetchPlayersStats = (state, lineupId) => state.livePlayers.isFetching.indexOf(lineupId) === -1
+const shouldFetchPlayersStats = (state, lineupId) => {
+  const lineup = state.currentLineups.items[lineupId] || {}
+
+  // if it hasn't started yet, don't bother getting lineups yet
+  if (moment().isAfter(lineup.start)) {
+    return false
+  }
+
+  if (moment().isBefore(state.livePlayers.expiresAt)) {
+    return false
+  }
+
+  if (state.livePlayers.isFetching.indexOf(lineupId) !== -1) {
+    return false
+  }
+
+  return true
+}
 
 
 // primary methods

@@ -22,8 +22,11 @@ class PlayerAdmin(admin.ModelAdmin):
     search_fields   = sports.admin.PlayerAdmin.search_fields # + ('more','specific','fields...',)
 
 @admin.register(sports.nba.models.PlayerStats)
-class PlayerStatsAdmin(admin.ModelAdmin):
+class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):
     list_display = ['game','player','points','three_points_made','rebounds','assists','steals','blocks','turnovers']
+
+    # list_filter     = sports.admin.PlayerStatsAdmin.list_filter   # + ('',)
+    search_fields   = sports.admin.PlayerStatsAdmin.search_fields # + ('more','specific','fields...',)
 
 @admin.register(sports.nba.models.GameBoxscore)
 class GameBoxscoreAdmin(admin.ModelAdmin):

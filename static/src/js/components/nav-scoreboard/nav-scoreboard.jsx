@@ -9,9 +9,11 @@ import renderComponent from '../../lib/render-component'
 import store from '../../store'
 
 import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
+import { fetchDraftGroupFP } from '../../actions/live-draft-groups'
 import { fetchEntriesIfNeeded } from '../../actions/entries'
 import { fetchSportsIfNeeded } from '../../actions/sports'
 import { currentLineupsSelector } from '../../selectors/current-lineups'
+import { liveSelector } from '../../selectors/live'
 import { removeUnusedDraftGroups } from '../../actions/live-draft-groups'
 import { sportsSelector } from '../../selectors/sports'
 import { updateGame } from '../../actions/sports'
@@ -36,6 +38,7 @@ import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const'
  */
 const mapStateToProps = (state) => ({
   currentLineupsSelector: currentLineupsSelector(state),
+  liveSelector: liveSelector(state),
   sportsSelector: sportsSelector(state),
 })
 
@@ -47,6 +50,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
   errorHandler: (exception) => dispatch(errorHandler(exception)),
   fetchCurrentDraftGroupsIfNeeded: () => dispatch(fetchCurrentDraftGroupsIfNeeded()),
+  fetchDraftGroupFP: (draftGroupId) => dispatch(fetchDraftGroupFP(draftGroupId)),
   fetchEntriesIfNeeded: (force) => dispatch(fetchEntriesIfNeeded(force)),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
   removeUnusedDraftGroups: () => dispatch(removeUnusedDraftGroups()),
@@ -65,8 +69,10 @@ const NavScoreboard = React.createClass({
     currentLineupsSelector: React.PropTypes.object.isRequired,
     errorHandler: React.PropTypes.func,
     fetchCurrentDraftGroupsIfNeeded: React.PropTypes.func,
+    fetchDraftGroupFP: React.PropTypes.func,
     fetchEntriesIfNeeded: React.PropTypes.func,
     fetchSportsIfNeeded: React.PropTypes.func,
+    liveSelector: React.PropTypes.object.isRequired,
     removeUnusedDraftGroups: React.PropTypes.func,
     sportsSelector: React.PropTypes.object.isRequired,
     updateGame: React.PropTypes.func,
@@ -87,42 +93,34 @@ const NavScoreboard = React.createClass({
       // whether the user is logged in or not, useful for parity checks
       user: window.dfs.user,
 
-      // boolean to make it easy to know when to show the scoreboard
-      isLoaded: false,
-
       // whether or not we are on the live page (determines what data to load)
       isLivePage: window.location.pathname.substring(0, 6) === '/live/',
     }
   },
 
   /**
-   * Uses promises in order to pull in all relevant data into redux, and then starts to listen for Pusher calls
-   * Here's the documentation on the order in which all the data comes in https://goo.gl/uSCH0K
+   * Pull in relevant sports and relevant entries (entries getting lineup data)
+   * We separate into different try/catches so we can debug with the error message
    */
   componentWillMount() {
     const defaultMessage = 'Our support team has been alerted of this error and will fix immediately.'
 
-    store.dispatch(
-      fetchCurrentDraftGroupsIfNeeded()
-    ).catch(
-      e => errorHandler(e, `#AJSDFJWI ${defaultMessage}`)
-    ).then(() => {
-      // if the user is logged in
-      if (this.state.user.username !== '') {
-        // fetch entries and all its related data
-        store.dispatch(
-          fetchEntriesIfNeeded(true)
-        ).catch(
-          e => errorHandler(e, `#CAISJFIE ${defaultMessage}`)
-        ).then(
-          this.startListening()
-        )
+    try {
+      this.props.fetchSportsIfNeeded()
+    } catch (e) {
+      errorHandler(e, `#AJSDFJWI ${defaultMessage}`)
+    }
 
-      // otherwise just start listening
-      } else {
-        this.startListening()
+    // if the user is logged in
+    if (this.state.user.username !== '') {
+      try {
+        this.props.fetchEntriesIfNeeded()
+      } catch (e) {
+        errorHandler(e, `#JASDFJIE ${defaultMessage}`)
       }
-    })
+    }
+
+    this.startListening()
   },
 
   /**
@@ -209,7 +207,6 @@ const NavScoreboard = React.createClass({
    * Internal method to start listening to pusher and poll for updates
    */
   startListening() {
-    this.setState({ isLoaded: true })
     this.listenToSockets()
     this.startParityChecks()
     this.removeExpiredSubstoreObjects()
@@ -232,16 +229,6 @@ const NavScoreboard = React.createClass({
     // check every few seconds, and if expired (which happens after 10 minutes), then they will fetch
     const parityChecks = {
       sports: window.setInterval(this.props.fetchSportsIfNeeded, 5000),
-      currentDraftGroups: window.setInterval(this.props.fetchCurrentDraftGroupsIfNeeded, 5000),
-    }
-
-    // by default, always check whether we need to load sports
-    this.props.fetchSportsIfNeeded()
-
-    // if logged in, look for entries
-    if (window.dfs.user.username !== '') {
-      parityChecks.entries = window.setInterval(this.props.fetchEntriesIfNeeded, 60000)  // one minute
-      this.props.fetchEntriesIfNeeded()
     }
 
     // add the checsk to the state in case we need to clearInterval in the future
@@ -270,7 +257,7 @@ const NavScoreboard = React.createClass({
     let filters
     let slider
 
-    if (this.state.isLoaded === true) {
+    if (_.size(this.props.sportsSelector.games) > 0) {
       filters = (
         <NavScoreboardFilters
           selected={this.state.selectedOption}
