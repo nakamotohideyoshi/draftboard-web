@@ -12,7 +12,7 @@ from pusher.util import ensure_text, validate_channel, validate_socket_id, app_i
 import util.timeshift as timeshift
 from django.conf import settings
 from django.core.cache import caches
-from .tasks import pusher_send_task
+from .tasks import pusher_send_task, linker_pusher_send_task
 from .exceptions import ChannelNotSetException, EventNotSetException
 import ast
 import json
@@ -153,22 +153,36 @@ class AbstractPush(object):
 
         def __init__(self):
             self.cache = caches['default']
+            self.linker_queue_name = None
 
         def get_linked_expiring_queue(self, channel):
             """
             return the LinkedExpiringObjectQueueTable for the channel, otherwise returns None
             """
             for linker_queue_name, channel_list in self.linker_queues:
+                print('channel', str(channel), 'in channel_list:', channel in channel_list, 'channel_list:', str(channel_list))
                 if channel in channel_list:
+                    self.linker_queue_name = linker_queue_name
                     linker_queue = self.cache.get(linker_queue_name)
+                    print('linker_queue_name:', str(linker_queue_name))
                     if linker_queue is not None:
+                        print('   linker_queue is not None')
                         return linker_queue
                     else:
+                        print('   linker_queue should be created')
                         # create a linker queue using the channel_list for the queue names
                         linker_queue = LinkedExpiringObjectQueueTable(channel_list)
-                        self.cache.add( linker_queue_name, linker_queue, 48*60*60 )
+                        # self.cache.add( linker_queue_name, linker_queue, 48*60*60 )
+                        #self.linker_queue_name = linker_queue_name
+                        print('self.linker_queue_name:', str(self.linker_queue_name))
                         return linker_queue
             return None
+
+        def save(self, linked_expiring_object_queue_table_instance):
+            """
+            put it back in the cache
+            """
+            self.cache.set( self.linker_queue_name, linked_expiring_object_queue_table_instance, 48*60*60 )
 
     def __init__(self, channel):
 
@@ -188,10 +202,7 @@ class AbstractPush(object):
         # or block on the current thread to do the send.
         self.async      = settings.DATADEN_ASYNC_UPDATES
 
-        # use this to retrieve the linker queue
-        self.linker     = self.Linker()
-
-    def send(self, data, async=False ):
+    def send(self, data, async=False, force=True ):
         """
         uses the internal channel ( likely the sport name) and pushes the data out
         with teh event name specified by the child classes
@@ -215,15 +226,52 @@ class AbstractPush(object):
         if not isinstance( data, dict ):
             data = data.get_o()
 
+        print(data) # TODO remove
+
         #
         # get the linkedExpiringObjectQueueTable (ie: pbp+stats combiner
         # check if its the type of object we should throw in the pbp+stats linker queue
-        linker_queue = self.linker.get_linked_expiring_queue( self.channel )
-        if linker_queue is not None:
-            linker_queue.add( self.channel, LinkableObject( data ) )
-            return # dont push the normal way, get out of here
-        # TODO - we need a way to ignore this check when we eventually send objects so we dont go into an inf loop
+        if not force:
+            #
+            # run this object thru the stat linker to see if we can match it up
+            linker = self.Linker()
+            linker_queue = linker.get_linked_expiring_queue( self.channel )
+            print('linker_queue:', str(linker_queue)) # TODO remove
+            if linker_queue is not None:
+                #
+                # adding an object will result in us getting back the identifier
+                # for the object if it was added (or None if it was linked)
+                # and the linked object data which is in the form:
+                #   [
+                #       (channel_name, (identifier, datetime, pusherableJson)),
+                #       (channel_name, (identifier, datetime, pusherableJson)),
+                #       ...
+                #   ]
 
+                # TODO START LOCK HERE  - same as linker_pusher_send_task uses
+                identifier, new_linked_object_data = linker_queue.add( self.channel, LinkableObject( data ) )
+                linker.save(linker_queue)
+                # TODO END LOCK HERE - same as linker_pusher_send_task uses
+
+                #
+                # if identifier is valid, the object was just added
+                if identifier is not None:
+                    # add it to cache
+                    # TODO - add identifier to cache
+                    pass # TODO
+
+                elif new_linked_object_data is not None:
+                    # reshape the data a little bit, then pusher out the new linked data
+                    obj = {}
+                    for queue_name, json_data in new_linked_object_data:
+                        obj[ queue_name ] = json_data
+                    LinkedPbpStatsDataDenPush( self.channel ).send( obj, async=True )
+
+                else:
+                    # fire a pending task -- when it launches it should check if it still needs to send
+                    countdown_task_result = linker_pusher_send_task.apply_async( (self, data), countdown=5, serializer='pickle' )
+
+                return # dont push the normal way, get out of here
         #
         # send it
         if async:
@@ -279,6 +327,19 @@ class PbpDataDenPush( AbstractPush ):
         just_added = live_stats_cache.update_pbp( pbp_data )
         if just_added:
             super().send( pbp_data, *args, **kwargs )
+
+class LinkedPbpStatsDataDenPush( AbstractPush ):
+    """
+    linked object data sent with this class for PBP+STATS linked objects
+    """
+
+    def __init__(self, channel):
+        """
+        channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
+        event: 'linked' for this object always
+        """
+        super().__init__(channel) # init pusher object
+        self.event = 'linked'
 
 class ContestPush( AbstractPush ):
     """

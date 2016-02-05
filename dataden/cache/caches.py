@@ -314,6 +314,58 @@ class PlayByPlayCache( UsesCacheKeyPrefix ):
         """
         return self.c.get( self.__key(), [] )
 
+class QuteQueue(object):
+    """
+    a custom queue implementation using pythons 'list' class,
+    to mirror the functionality of pythons queue.Queue object
+    minus the threadsafe behavior -- but QuteQueue can be cached
+    which cant be said for queue.Queue
+    """
+    def __init__(self, size=10):
+        super().__init__()
+        self.queue          = list()
+        self.max_size       = size
+        self.current_size   = 0
+
+    def remove(self, obj):
+        """
+        TODO
+        :param obj:
+        :return:
+        """
+        self.queue.remove( obj )
+        self.current_size -= 1
+
+    def put(self, obj):
+        """
+        Put an obj into the queue.
+        Discards the oldest item if the queue is full.
+
+        :param obj:
+        :return:
+        """
+        ejected_obj = None
+        if self.current_size == self.max_size:
+            ejected_obj = self.queue.pop(0)
+            self.current_size -= 1
+        self.queue.append(obj)
+        self.current_size += 1
+        print( '   +++ current_size: %s, just added obj: %s' % (str(self.current_size), str(obj)))
+        # return the item that is being ejected -- otherwise return None
+        return ejected_obj
+
+    def get(self):
+        """
+        :return: the first thing on the queue, or None if its empty
+        """
+        if self.current_size > 0:
+            ret_obj = self.queue.pop(0)
+            self.current_size -= 1
+            return ret_obj
+
+        else:
+            return None
+
 class NonBlockingQueue( Queue ):
     """
     queue that discards the oldest items.
@@ -416,7 +468,7 @@ class QueueTable(RandomIdMixin):
 
     class IllegalMethodException(Exception): pass
 
-    queue_size = 10
+    queue_size = 15
 
     def __init__(self, names=[]):
         """
@@ -439,7 +491,7 @@ class QueueTable(RandomIdMixin):
         # build the internal queues
         self.queues = {}
         for name in names:
-            self.queues[name] = NonBlockingQueue(self.queue_size)
+            self.queues[name] = QuteQueue(self.queue_size)
 
     def get_queue_names(self):
         """
@@ -517,10 +569,9 @@ class LinkedExpiringObjectQueueTable(QueueTable):
     from cache, but if they have expired will return None.
     """
 
-    default_timeout         = 5
-    default_django_cache    = 'default'
+    default_timeout = 5
 
-    def __init__(self, names, timeout=None, cache=None):
+    def __init__(self, names, timeout=None):
         """
         create a new instance of LinkedExpiringObjectQueueTable
 
@@ -534,11 +585,6 @@ class LinkedExpiringObjectQueueTable(QueueTable):
             self.timeout = self.default_timeout
         else:
             self.timeout = timeout
-
-        if cache is None:
-            self.cache = caches[self.default_django_cache]
-        else:
-            self.cache = cache
 
     def add(self, name, linkable_object):
         """
@@ -559,44 +605,25 @@ class LinkedExpiringObjectQueueTable(QueueTable):
             raise IncorrectVariableTypeException(type(self).__name__, 'linkable_object')
 
         #
-        # cache the identifier as both the key and the value as a
-        # way of flagging this object as being in its countdown!
-        # the identifier is automatically removed the cache when it expires.
-        identifier = self.get_random_id()
-        self.cache.add( identifier, identifier, self.timeout )
+        # look for object linked to this one, and return linked objects if any are found.
+        new_linked_object_data = self.get_any_linked_objects(name, linkable_object)
+
+        identifier = None
+        if new_linked_object_data is None:
+            #
+            # since we did not immediately link this new object,
+            # get an identifier for it, and add it to the linked queue
+            identifier = self.get_random_id()
+
+            #
+            # call super().add() to add it to the queue, using our own identifier
+            super().add( name, linkable_object, identifier=identifier )
 
         #
-        # look for object linked to this one, and send them if any are found.
-        # this method will have no effect if no linked object is found.
-        self.attempt_to_link_and_send(name, linkable_object)
+        # return a tuple in the form ( <None or identifier>, <list of linked ( identifier, obj )> )
+        return (identifier, new_linked_object_data)
 
-        #
-        # call super().add() to add it to the queue, using our own identifier
-        super().add( name, linkable_object, identifier=identifier )
-
-        #
-        # fire the task to do the linking in the near future, allowing some time
-        # for a linkable stat to come in the queue
-        self.postpone_link_or_send_task(identifier)
-
-    def postpone_link_or_send_task(self, identifier):
-        """
-        TODO
-        """
-        pass # TODO
-
-        # probably do this in a task:
-        # attempt_to_link_and_send(self, queue_name, linkable_object, force_send=True)
-
-    def send_linked_items(self, items):
-        """
-        TODO
-        :param items: list of tuples of the form: ( 'queue_name', <LinkableObject> )
-        """
-        pass # TODO
-        print('SEND %s' % (str(items)))
-
-    def attempt_to_link_and_send(self, queue_name, linkable_object, force_send=False):
+    def get_any_linked_objects(self, queue_name, linkable_object):
         """
         search the other queue(s) for a matching object.
         if one is found, link and send them both as 1,
@@ -604,18 +631,22 @@ class LinkedExpiringObjectQueueTable(QueueTable):
 
         :param queue_name: the queue name we are adding the linkable object to
         :param linkable_object: a LinkableObject instance
-        :param force_send: If set to True, this will send out the single
-                            linkable objects data regardless of whether it was linked
         """
 
         print('queue_name:', str(queue_name))
 
-        # TODO - there is an issue where we should probably check
-        # TODO - if a linkable_object with the same id exists in 'original_queue' !!
-        # TODO - im not yet sure what to do in that situation -- perhaps do nothing.
-
+        #
+        # determine if a linkable_object with the same link_id exists in 'original_queue' already
         link_id = linkable_object.get_linking_id()
+        # iterate the queue we are potentially adding the linkable_object to first,
+        # if we find another with the same link_id, return None
+        # because the one thats already in there is first priority to get linked.
+        for identifier, dt, lnk_obj in list( self.get_queue(queue_name).queue ):
+            if lnk_obj.get_linking_id() == link_id:
+                return None
 
+        #
+        # get the names of the other queues
         queue_names_to_search = self.get_queue_names()
         print('queue_names_to_search:', str(queue_names_to_search))
         queue_names_to_search.remove( queue_name )
@@ -628,21 +659,15 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         for name in queue_names_to_search:
             q = self.get_queue(name)
             # iterate the queue looking for an object with a matching get_linking_id()
-            for identifier, dt, linkable_object in list( q.queue ):
-                if linkable_object.get_linking_id() == link_id:
+            for identifier, dt, lnk_obj in list( q.queue ):
+                if lnk_obj.get_linking_id() == link_id:
                     linked_item_identifiers_found.append( identifier )
                     break # just the inner loop!
 
         #
         # if we didnt link an item from each queue, get out of here
         if len(linked_item_identifiers_found) != len(queue_names_to_search):
-            if force_send:
-                #
-                # send this object out now even though we didnt find a linked object
-                self.send_linked_items( [ (queue_name, linkable_object.obj) ] )
-
-            else:
-                return
+            return None
 
         #
         # second pass to actually remove them if we linked an item from each queue!
@@ -661,4 +686,4 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         #
         # now if we found a number items equal to the
         # number of queues we searched we, we can send linked objects!
-        self.send_linked_items( linked_objects_to_send )
+        return linked_objects_to_send
