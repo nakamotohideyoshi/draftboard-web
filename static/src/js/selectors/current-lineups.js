@@ -92,7 +92,7 @@ const calcLineupPotentialEarnings = (entries, contestsStats) =>
  * @param  {list} relevantPlayers List of relevant player IDs
  * @return {object}               List of the players and all of their pertinent information
  */
-function compileRosterStats(roster, draftGroup, games, relevantPlayers) {
+export const compileRosterStats = (roster, draftGroup, games, relevantPlayers) => {
   const currentPlayers = {}
 
   _.forEach(roster, (playerId) => {
@@ -173,6 +173,43 @@ export const compileLineupStats = (lineup, draftGroup, games, relevantPlayers) =
 
   return stats
 }
+
+/**
+ * When you choose to watch the top players, we need to make a fake lineup based on that roster
+ * @param  {list} roster     Fake roster of top owned player IDs
+ * @param  {object} draftGroup Draft group associated to the contest the user is in
+ * @param  {string} sport      Sport to determine game related constants
+ * @param  {object} games      Games to calculate PMR for roster
+ * @return {object}            Lineup stats, similar to what comes out of compileLineupStats
+ */
+export const compileVillianLineup = (roster, draftGroup, sport, games) => {
+  const sportConst = GAME_DURATIONS[sport]
+
+  const stats = {
+    id: 1,
+    name: 'Top Owned',
+    roster,
+    start: draftGroup.start,
+    totalMinutes: sportConst.gameMinutes * sportConst.players,
+  }
+
+  stats.rosterDetails = compileRosterStats(roster, draftGroup, games, roster)
+
+  // determine total fantasy points for the lineup
+  // only add if they have fantasy points
+  stats.points = _.reduce(stats.rosterDetails, (fp, player) =>
+    (isNaN(player.stats.fp)) ? fp : fp + player.stats.fp,
+  0)
+
+  // calculate minutes
+  stats.minutesRemaining = _.reduce(stats.rosterDetails, (timeRemaining, player) =>
+    (player.stats.minutesRemaining) ? player.stats.minutesRemaining + timeRemaining : timeRemaining,
+  0)
+  stats.decimalRemaining = calcDecimalRemaining(stats.minutesRemaining, stats.totalMinutes)
+
+  return stats
+}
+
 
 // Crazy selector that
 // - loops through the entries per lineup and calculates potential earnings
