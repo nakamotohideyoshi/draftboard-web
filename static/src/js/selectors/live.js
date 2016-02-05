@@ -2,7 +2,7 @@ import { createSelector } from 'reselect'
 import _ from 'lodash'
 
 import { liveContestsSelector } from './live-contests'
-import { currentLineupsSelector } from './current-lineups'
+import { currentLineupsSelector, compileRosterStats, compileVillianLineup } from './current-lineups'
 import { GAME_DURATIONS } from '../actions/sports'
 
 
@@ -14,30 +14,41 @@ import { GAME_DURATIONS } from '../actions/sports'
  * @param  {list}   myRoster Roster to filter out players with
  * @return {object}          All players and top 8 players not in my lineup
  */
-const calculatePlayerOwnership = (contest, sport, myRoster) => {
+const calculatePlayerOwnership = (contest, draftGroup, sport, games, myRoster) => {
   const numOfPlayers = GAME_DURATIONS[sport].players
 
-  const lineups = _.filter(contest.lineups, (lineup) => _.uniq(lineup.roster).length === numOfPlayers)
+  const lineups = _.filter(contest.lineups, (lineup) => lineup.roster[0] !== 0)
   const allPlayers = _.flatten(_.map(lineups, (lineup) => lineup.roster))
   const counts = _.countBy(allPlayers, (playerId) => playerId)
 
   // all
-  const mappedPlayers = _.map(counts, (count, playerId) => ({
-    count,
+  const mappedPlayers = _.map(counts, (ownershipCount, playerId) => ({
+    ownershipCount,
     playerId,
+    ownershipPercent: parseInt(ownershipCount / allPlayers.length * 100, 10),
   }))
-  const all = _.sortBy(mappedPlayers, (item) => item.count)
+  const allPlayersByCounts = _.sortBy(mappedPlayers, (playerWithCount) => playerWithCount.ownershipCount).reverse()
 
   // filter to players not owned by me
-  const nonOwnedByMe = _.filter(mappedPlayers, (player) => myRoster.indexOf(player.playerId) === -1)
-  let top8 = _.sortBy(nonOwnedByMe, (item) => item.count).slice(0, 8)
+  const nonOwnedByMe = _.filter(allPlayersByCounts, (player) => myRoster.indexOf(player.playerId) === -1)
+  let top8 = _.sortBy(nonOwnedByMe, (playerWithCount) => playerWithCount.ownershipCount)
 
   // return top 8 not owned by me, if there are 8 to use, otherwise return all
   if (top8.length > numOfPlayers) {
     top8 = top8.slice(0, numOfPlayers)
   } else {
-    top8 = all.slice(0, 8)
+    top8 = allPlayersByCounts.slice(0, numOfPlayers)
   }
+  top8 = _.map(top8, (p) => p.playerId)
+
+  // return players with their stats
+  const allWithStats = compileRosterStats(allPlayers, draftGroup, games, [])
+
+  // combine counts with data
+  const all = _.map(allPlayersByCounts, (playerWithCount) => Object.assign(
+    playerWithCount,
+    allWithStats[playerWithCount.playerId]
+  ));
 
   return {
     all,
@@ -115,7 +126,13 @@ export const liveSelector = createSelector(
       if (mode.contestId) {
         const contest = contestStats[mode.contestId]
 
-        contest.players_ownership = calculatePlayerOwnership(contest, sport, myLineup.roster)
+        contest.playersOwnership = calculatePlayerOwnership(
+          contest,
+          stats.draftGroup,
+          sport,
+          sports.games,
+          myLineup.roster
+        )
 
         myLineup.myWinPercent = 0
         if (myLineup.rank && contest.entriesCount) {
@@ -123,6 +140,15 @@ export const liveSelector = createSelector(
         }
 
         if (mode.opponentLineupId) {
+          if (mode.opponentLineupId === 1) {
+            contest.lineups[1] = compileVillianLineup(
+              contest.playersOwnership.top8,
+              stats.draftGroup,
+              sport,
+              sports.games
+            )
+          }
+
           const opponentLineup = contest.lineups[mode.opponentLineupId]
 
           _.forEach(opponentLineup.rosterDetails, (player, playerId) => {

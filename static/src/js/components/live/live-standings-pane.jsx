@@ -52,11 +52,11 @@ const LiveStandingsPane = React.createClass({
       const rankedLineups = this.props.rankedLineups
       data = _.map(rankedLineups, (lineupId) => lineups[lineupId])
     } else {
-      data = this.props.owned
+      data = this.props.contest.playersOwnership.all.slice()
       const filter = this.state.currentPositionFilter
 
       if (filter !== 'all') {
-        data = data.filter(p => p.position === filter)
+        data = _.filter(data, p => p.info.position.toLowerCase() === filter)
       }
     }
 
@@ -117,7 +117,7 @@ const LiveStandingsPane = React.createClass({
    */
   handleViewOpponentLineup(opponentLineupId) {
     const mode = this.props.mode
-    const path = `/live/lineups/${mode.myLineupId}/contests/${mode.contestId}/opponents/${opponentLineupId}`
+    const path = `/live/lineups/${mode.myLineupId}/contests/${mode.contestId}/opponents/${opponentLineupId}/`
     const changedFields = {
       opponentLineupId,
     }
@@ -128,10 +128,6 @@ const LiveStandingsPane = React.createClass({
 
   handleSetPositionFilter(currentPositionFilter) {
     this.setState({ currentPositionFilter, page: 1 })
-  },
-
-  handleWatchTopOwnedPlayers() {
-    // TODO:
   },
 
   handleToggleSearch() {
@@ -331,21 +327,23 @@ const LiveStandingsPane = React.createClass({
 
     const players = data.map((player) => (
       <div key={player.id} className="player">
-        <div className="player--position">{player.position}</div>
-        <LivePMRProgressBar
-          decimalRemaining={player.progress}
-          strokeWidth={2}
-          backgroundHex="46495e"
-          hexStart="ffffff"
-          hexEnd="ffffff"
-          svgWidth={50}
-        />
-        <div className="avatar" />
-        <div className="player--name">
-          {player.name} <div className="team">{player.team}</div>
+        <div className="player--position">{player.info.position}</div>
+        <div className="player--pmr-photo">
+          <LivePMRProgressBar
+            decimalRemaining={player.stats.decimalRemaining}
+            strokeWidth={3}
+            backgroundHex="46495e"
+            hexStart="ffffff"
+            hexEnd="ffffff"
+            svgWidth={50}
+          />
+          <div className="avatar" />
         </div>
-        <div className="player--points"><b>{player.points}</b><span>Pts</span></div>
-        <div className="player--progress">{player.progress}</div>
+        <div className="player--name">
+          {player.info.name} <div className="team">{player.info.team_alias}</div>
+        </div>
+        <div className="player--points"><b>{player.stats.fp}</b><span>Pts</span></div>
+        <div className="player--progress">{player.ownershipPercent}%</div>
       </div>
     ))
 
@@ -388,11 +386,16 @@ const LiveStandingsPane = React.createClass({
       )
     })
 
+    let onClick = ''
+    if (this.props.mode.opponentLineupId !== 1) {
+      onClick = this.handleViewOpponentLineup.bind(this, 1)
+    }
+
     return (
       <div className="inner">
         {this.renderHeader()}
         <div className="position-filter">{filters}</div>
-        <div className="watch-live" onClick={this.handleWatchTopOwnedPlayers}>
+        <div className="watch-live" onClick={onClick}>
           Watch top 8 owned players live
         </div>
         {this.renderPlayers()}
