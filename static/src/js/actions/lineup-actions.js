@@ -5,8 +5,9 @@ import request from 'superagent';
 import Cookies from 'js-cookie';
 import { normalize, Schema, arrayOf } from 'normalizr';
 import { forEach, uniq } from 'lodash';
+import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
-
+import { monitorLineupEditRequest } from './lineup-edit-request.js'
 
 // Normalization scheme for lineups.
 const lineupSchema = new Schema('lineups', {
@@ -207,7 +208,7 @@ export function saveLineup(lineup, title, draftGroupId) {
  * @return {[type]}              [description]
  */
 export function saveLineupEdit(lineup, title, lineupId) {
-  log.log('saveLineupEdit', lineup, title, lineupId);
+  log.info('saveLineupEdit', lineup, title, lineupId);
   return (dispatch) => {
     if (!isValidLineup(lineup)) {
       return dispatch(saveLineupFail('lineup is not valid'));
@@ -231,12 +232,15 @@ export function saveLineupEdit(lineup, title, lineupId) {
       .send(postData)
       .end((err, res) => {
         if (err) {
+          addMessage({
+            title: 'Unable to edit contest.',
+            level: 'warning',
+          });
+          log.error(res);
           dispatch(saveLineupFail(res.body));
         } else {
-          // TODO: once editing API is fixed, redirect to lobby upon successful edit.
-          log.error("We're temporariy NOT redirecting back to lobby in order to debug this feature.");
-          // Upon save success, send user to the lobby.
-          // document.location.href = '/lobby/?lineup-saved=true';
+          log.info(res.body)
+          dispatch(monitorLineupEditRequest(res.body.task_id, lineupId));
         }
       });
   };
@@ -254,17 +258,18 @@ export function editLineupInit(lineupId) {
     const state = getState();
 
     if (state.upcomingLineups.lineups.hasOwnProperty(lineupId)) {
+      log.info(`Lineup #${lineupId} found, importing for editing.`);
+      dispatch({
+        type: types.EDIT_LINEUP_INIT,
+        lineupId,
+      });
+    } else {
+      log.warn(`Lineup #${lineupId} does not exist in upcoming lineups.`);
       dispatch({
         type: types.EDIT_LINEUP_INIT,
         lineupId,
       });
     }
-
-    log.error(`Lineup #${lineupId} does not exist in upcoming lineups.`);
-    dispatch({
-      type: types.EDIT_LINEUP_INIT,
-      lineupId,
-    });
   };
 }
 
@@ -325,3 +330,16 @@ export function createLineupViaCopy(lineupId) {
     }
   };
 }
+
+
+//
+// monitorLineupEditRequestStatus(taskId) {
+//   return new Promise((resolve, reject) => {
+//
+//   })
+// }
+//
+//
+// function checkLineupEditRequestStatus(taskId) {
+//
+// }
