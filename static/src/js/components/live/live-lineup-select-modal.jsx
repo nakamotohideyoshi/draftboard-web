@@ -114,7 +114,7 @@ const LiveLineupSelectModal = React.createClass({
         >
           <h4 className="cmp-live-lineup-select__lineup__title">{name}</h4>
           <div className="cmp-live-lineup-select__lineup__sub">
-            {moment(lineup.start).format('MMM Do, h:mma')} EST
+            {moment(lineup.start).format('MMM Do, h:mma')}
           </div>
         </li>
       )

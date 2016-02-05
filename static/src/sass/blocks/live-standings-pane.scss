@@ -13,13 +13,6 @@
     top: 36px
   }
 
-  .live-pmr {
-    display: inline-block;
-    width: 17px;
-    position: relative;
-    top: 5px;
-  }
-
   &--standings {
     .ownership-list {
       display: none;
@@ -35,6 +28,13 @@
   .standings-list {
     text-align: center;
     margin: 40px 0 20px 0;
+
+    .live-pmr {
+      display: inline-block;
+      width: 17px;
+      position: relative;
+      top: 5px;
+    }
 
     .lineup {
       color: white;
@@ -121,12 +121,13 @@
     .player {
       color: #747c8d;
       background-color: #262a3b;
-      font-size: 12px;
-      padding-bottom: 9px;
+      font-size: 11px;
+      padding-bottom: 10px;
       margin-bottom: 3px;
       position: relative;
 
       &--position {
+        font-size: 9px;
         width: 20px;
         display: inline-block;
         text-transform: uppercase;
@@ -176,10 +177,12 @@
         }
       }
       &--points {
+        font-family: $font-oswald;
         width: 70px;
         display: inline-block;
       }
       &--progress {
+        font-family: $font-oswald;
         width: 50px;
         display: inline-block;
       }
