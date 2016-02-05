@@ -303,7 +303,7 @@ const LiveStandingsPane = React.createClass({
           <div className="lineup--place">{lineup.rank}</div>
           { pmr }
           <div className="lineup--score-name">{username}</div>
-          <div className="lineup--score-points"><b>{lineup.points}</b><span>Pts</span></div>
+          <div className="lineup--score-points"><b>{lineup.points}</b> <span>Pts</span></div>
           <div className="lineup--score-earnings">${lineup.potentialEarnings}</div>
           { overlay }
         </div>

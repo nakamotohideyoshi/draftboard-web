@@ -550,7 +550,15 @@ const Live = React.createClass({
    * @return {JSXElement}
    */
   renderLoadingScreen() {
-    return (<div />)
+    return (
+      <div className="loading">
+        <div className="preload-court" />
+        <div className="spinner">
+          <div className="double-bounce1" />
+          <div className="double-bounce2" />
+        </div>
+      </div>
+    )
   },
 
   render() {
@@ -611,7 +619,11 @@ const Live = React.createClass({
         // if viewing an opponent, add in lineup and update moneyline
         if (mode.opponentLineupId) {
           const opponentLineup = liveData.lineups.opponent
-          opponentWinPercent = opponentLineup.opponentWinPercent
+
+          // if not villian watch, then show opponent
+          if (opponentLineup.id !== 1) {
+            opponentWinPercent = opponentLineup.opponentWinPercent
+          }
 
           opponentLineupComponent = (
             <LiveLineup
@@ -664,7 +676,7 @@ const Live = React.createClass({
               courtEvents={this.state.courtEvents}
             />
 
-            {moneyLine }
+            {moneyLine}
 
             <LiveBottomNav
               hasContest={mode.contestId !== undefined}

@@ -30,25 +30,27 @@ const confirmRelatedEntriesInfo = () => ({
  * @return {object}   Changes for reducer
  */
 const receiveEntries = (response) => {
+  const filteredResponse = _.filter(response, (entry) => moment(entry.start).isAfter(moment().subtract(1, 'days')))
+
   // normalize the API call into a list of entry objects
   const entriesSchema = new Schema('entries', {
     idAttribute: 'id',
   })
   const normalizedEntries = normalize(
-    response,
+    filteredResponse,
     arrayOf(entriesSchema)
   )
   const entries = normalizedEntries.entities.entries
 
   // update the start for easy comparisons
   _.forEach(entries, (entry, id) => {
-    entries[id].start = moment(entry.start).valueOf()
+    entries[id].start = moment(entry.start)
   })
 
   return {
     type: ActionTypes.RECEIVE_ENTRIES,
     items: entries || [],
-    updatedAt: Date.now(),
+    expiresAt: moment(Date.now()).add(5, 'minutes'),
   }
 }
 
@@ -60,6 +62,7 @@ const receiveEntries = (response) => {
  */
 const requestEntries = () => ({
   type: ActionTypes.REQUEST_ENTRIES,
+  expiresAt: moment(Date.now()).add(1, 'minute'),
 })
 
 /**
@@ -158,7 +161,15 @@ export const generateLineups = () => (dispatch, getState) => {
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch draft groups, false if not
  */
-const shouldFetchEntries = (state) => state.entries.isFetching === false
+const shouldFetchEntries = (state) => {
+  // fetch if expired
+  if (moment().isBefore(state.entries.expiresAt)) {
+    return false
+  }
+
+  // only fetch if not already fetching
+  return state.entries.isFetching === false
+}
 
 
 // primary methods (mainly exported, some needed in there to have proper init of const)
