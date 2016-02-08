@@ -84,10 +84,7 @@ export const liveSelector = createSelector(
       mode,
       relevantGames: [],
       relevantPlayers: [],
-    }
-
-    if (_.size(entries.items) > 0) {
-      stats.entries = uniqueEntries
+      entries: uniqueEntries,
     }
 
     if (entries.hasRelatedInfo === false) {

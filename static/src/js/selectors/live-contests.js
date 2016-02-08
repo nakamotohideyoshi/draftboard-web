@@ -40,10 +40,10 @@ function rankContestLineups(contest, draftGroup, games, prizeStructure, relevant
   _.forEach(rankedLineups, (lineupId, index) => {
     const lineupStats = lineupsStats[lineupId]
 
-    lineupStats.rank = parseInt(index) + 1
+    lineupStats.rank = parseInt(index, 10) + 1
     lineupStats.potentialEarnings = 0
 
-    if ('ranks' in prizeStructure && parseInt(index) in prizeStructure.ranks) {
+    if ('ranks' in prizeStructure && parseInt(index, 10) in prizeStructure.ranks) {
       lineupStats.potentialEarnings = prizeStructure.ranks[index].value
     }
   })
@@ -99,8 +99,14 @@ export const liveContestsSelector = createSelector(
         start: contest.info.start,
       }
 
+      // if we haven't started, then don't bother ranking
       if (contest.start < Date.now()) {
         contestsStats[id] = stats
+        return
+      }
+
+      // if undefined and we're still trying, then return. occurs when cached for days
+      if (draftGroup === undefined) {
         return
       }
 
