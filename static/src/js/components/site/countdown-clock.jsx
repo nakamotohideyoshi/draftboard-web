@@ -11,6 +11,14 @@ const CountdownClock = React.createClass({
   propTypes: {
     time: React.PropTypes.any,
     onCountdownOver: React.PropTypes.func,
+    timePassedDisplay: React.PropTypes.string,
+  },
+
+
+  getDefaultProps() {
+    return {
+      timePassedDisplay: 'Loading...',
+    };
   },
 
 
@@ -52,7 +60,7 @@ const CountdownClock = React.createClass({
     if (this.state.timeRemaining.expired === true) {
       return (
         <span className="cmp-countdown-clock">
-          <span className="hours">Loading...</span>
+          <span className="hours">{this.props.timePassedDisplay}</span>
         </span>
       );
     }

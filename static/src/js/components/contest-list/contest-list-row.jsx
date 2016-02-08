@@ -15,6 +15,7 @@ import EnterContestButton from './enter-contest-button.jsx';
  */
 const ContestListRow = React.createClass({
 
+
   propTypes: {
     row: React.PropTypes.object.isRequired,
     columns: React.PropTypes.array,
@@ -29,15 +30,29 @@ const ContestListRow = React.createClass({
   },
 
 
+  componentWillReceiveProps(nextProps) {
+    // Use this semi-janky method to run a css animation on an already-redered element.
+    // https://github.com/ordishs/react-animation-example
+    const newValue = nextProps.row.current_entries;
+
+    if (this.props.row.current_entries !== newValue) {
+      this.flash = this.flash === 'flash1' ? 'flash2' : 'flash1';
+    }
+  },
+
+
   handleRowClick() {
     this.props.setFocusedContest(this.props.row);
   },
 
 
+  flash: '',
+
+
   render() {
     // If it's the currently focused contest, add a class to it.
     let classes = this.props.focusedContest.id === this.props.row.id ? 'active ' : '';
-    classes += 'cmp-contest-list__row';
+    classes += `cmp-contest-list__row ${this.flash}`;
     if (this.props.isEntered) {
       classes += ' entered';
     }
@@ -72,7 +87,12 @@ const ContestListRow = React.createClass({
         </td>
         <td key="fee" className="fee">${this.props.row.buyin}</td>
         <td key="prizes" className="prizes">${this.props.row.prize_pool}</td>
-        <td key="start" className="start"><CountdownClock time={this.props.row.start} /></td>
+        <td key="start" className="start">
+          <CountdownClock
+            time={this.props.row.start}
+            timePassedDisplay="Live"
+          />
+        </td>
 
         <td className="enter">
           <EnterContestButton
