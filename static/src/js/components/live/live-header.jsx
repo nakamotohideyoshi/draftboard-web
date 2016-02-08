@@ -64,6 +64,9 @@ const LiveHeader = React.createClass({
         let username = ''
         if (opponentLineup.hasOwnProperty('user')) {
           username = opponentLineup.user.username
+        // if villian, use name
+        } else if (opponentLineup.id === 1) {
+          username = opponentLineup.name
         }
 
         secondary = (
