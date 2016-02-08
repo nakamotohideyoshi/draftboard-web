@@ -11,8 +11,9 @@ from pusher.signature import sign
 from pusher.util import ensure_text, validate_channel, validate_socket_id, app_id_re, pusher_url_re, channel_name_re
 import util.timeshift as timeshift
 from django.conf import settings
-from django.core.cache import caches
-from .tasks import pusher_send_task, linker_pusher_send_task
+from django.core.cache import caches, cache
+from mysite.celery_app import app, locking
+from .tasks import pusher_send_task
 from .exceptions import ChannelNotSetException, EventNotSetException
 import ast
 import json
@@ -21,6 +22,8 @@ from dataden.cache.caches import (
     LinkableObject,
     LinkedExpiringObjectQueueTable,
 )
+from push.tasks import linker_pusher_send_task, PUSH_TASKS_STATS_LINKER
+
 
 #
 # on production this will be an empty string,
@@ -248,17 +251,21 @@ class AbstractPush(object):
                 #       ...
                 #   ]
 
-                # TODO START LOCK HERE  - same as linker_pusher_send_task uses
-                identifier, new_linked_object_data = linker_queue.add( self.channel, LinkableObject( data ) )
-                linker.save(linker_queue)
-                # TODO END LOCK HERE - same as linker_pusher_send_task uses
+                # xxx START LOCK HERE  - same as linker_pusher_send_task uses
+                # identifier, new_linked_object_data = linker_queue.add( self.channel, LinkableObject( data ) )
+                # linker.save(linker_queue)
+                identifier, new_linked_object_data = self.edit_linker_queue( self.channel, LinkableObject( data ), linker, linker_queue )
+                # xxx END LOCK HERE - same as linker_pusher_send_task uses
 
                 #
                 # if identifier is valid, the object was just added
                 if identifier is not None:
                     # add it to cache
-                    # TODO - add identifier to cache
-                    pass # TODO
+                    cache.set( identifier, identifier, 30 )
+                    # fire a pending task -- when it launches it should check if it still needs to send.
+                    # this task must use the same blocking lock as the edit_linker_queue method (?)
+                    print('adding task with countdown: ', str(data))
+                    linker_pusher_send_task.apply_async( (self, data, identifier ), countdown=5, serializer='pickle' )
 
                 elif new_linked_object_data is not None:
                     # reshape the data a little bit, then pusher out the new linked data
@@ -267,11 +274,8 @@ class AbstractPush(object):
                         obj[ queue_name ] = json_data
                     LinkedPbpStatsDataDenPush( self.channel ).send( obj, async=True )
 
-                else:
-                    # fire a pending task -- when it launches it should check if it still needs to send
-                    countdown_task_result = linker_pusher_send_task.apply_async( (self, data), countdown=5, serializer='pickle' )
-
-                return # dont push the normal way, get out of here
+                # bypass the rest of the method, because we have taken care of clean with countdown task
+                return
         #
         # send it
         if async:
@@ -286,6 +290,15 @@ class AbstractPush(object):
 
     def trigger(self, data):
         self.pusher.trigger( self.channel, self.event, data )
+
+    @locking(unique_lock_name=PUSH_TASKS_STATS_LINKER, timeout=30)
+    def edit_linker_queue(self, channel, linkable_object, linker, linker_queue):
+        """
+        acquire a lock (blocking) to be able to edit the linker_queue
+        """
+        identifier, new_linked_object_data = linker_queue.add( channel, linkable_object )
+        linker.save(linker_queue)
+        return identifier, new_linked_object_data
 
 class DataDenPush( AbstractPush ):
     """

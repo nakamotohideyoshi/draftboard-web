@@ -15,12 +15,13 @@
 from __future__ import absolute_import
 
 import os
-
+import redis
 from celery import Celery
 from celery.schedules import crontab
 import celery.states
 from datetime import timedelta
 import time
+from django.core.cache import cache
 
 #
 # setdefault ONLY sets the default value if the key (ie: DJANGO_SETTINGS_MODULE)
@@ -238,14 +239,14 @@ class locking(object):
 
     """
 
-    def __init__(self, lock_prefix, timeout):
+    def __init__(self, unique_lock_name, timeout):
         """
         If there are decorator arguments, the function
         to be decorated is not passed to the constructor!
         """
-        print("Inside __init__()")
-        self.lock_prefix    = lock_prefix
-        self.timeout        = timeout
+        #print("Inside __init__()")
+        self.unique_lock_name       = unique_lock_name
+        self.timeout                = timeout
 
     def __call__(self, f):
         """
@@ -253,14 +254,16 @@ class locking(object):
         once, as part of the decoration process! You can only give
         it a single argument, which is the function object.
         """
-        print("Inside __call__()")
-        def wrapped_f(*args):
-            print("Inside wrapped_f()")
-            print("Decorator arguments:", self.lock_prefix, self.timeout)
-            f(*args)
-            print("After f(*args)")
-        return wrapped_f
 
+        def wrapped_f(*args):
+            #print("Decorator arguments:", self.unique_lock_name, self.timeout)
+
+            # the redis lock is blocking, and will auto-release
+            with redis.Redis().lock(self.unique_lock_name, timeout=self.timeout):
+                # call the function this decorator is decorating!
+                return f(*args)
+
+        return wrapped_f # return the return vlue of our wrapped method if there are any
 
 class TaskHelper(object):
     """
