@@ -235,9 +235,9 @@ export const currentLineupsSelector = createSelector(
       const draftGroup = liveDraftGroups[lineup.draft_group]
 
       // if the draftgroup has ended, then you can no longer see the lineup
-      // if (draftGroup.end <= Date.parse(new Date())) {
-      //   return
-      // }
+      if (draftGroup.end <= Date.parse(new Date())) {
+        return
+      }
 
       // send back a default lineup if it has not started playing yet
       if (lineup.start >= Date.parse(new Date())) {
