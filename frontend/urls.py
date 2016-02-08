@@ -1,4 +1,5 @@
 from django.conf.urls import patterns
+from django.conf.urls import url
 from frontend import views
 
 
@@ -16,11 +17,24 @@ urlpatterns = patterns(
         views.FrontendDraftTemplateView.as_view()
     ),
     # need these simply to open the react app to then use redux-simple-router
-    (r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/opponents/(?P<opponent_lineup_id>\d+)/$', views.FrontendLiveTemplateView.as_view()),
-    (r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/$', views.FrontendLiveTemplateView.as_view()),
-    (r'^live/lineups/(?P<lineup_id>\d+)/$', views.FrontendLiveTemplateView.as_view()),
-
-    (r'^live/$', views.FrontendLiveTemplateView.as_view()),
+    url(
+        r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/opponents/(?P<opponent_lineup_id>\d+)/$',
+        views.FrontendLiveTemplateView.as_view(),
+        name='live-opponent-mode'),
+    url(
+        r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/$',
+        views.FrontendLiveTemplateView.as_view(),
+        name='live-contest-mode'),
+    url(
+        r'^live/lineups/(?P<lineup_id>\d+)/$',
+        views.FrontendLiveTemplateView.as_view(),
+        name='live-lineup-mode'
+    ),
+    url(
+        r'^live/$',
+        views.FrontendLiveTemplateView.as_view(),
+        name='live'
+    ),
     (r'^lobby/$', views.FrontendLobbyTemplateView.as_view()),
     # Contest detail view in lobby.
     (r'^lobby/(?P<contest_id>\d+)/$', views.FrontendLobbyTemplateView.as_view()),
