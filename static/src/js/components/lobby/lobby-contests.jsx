@@ -1,4 +1,5 @@
 import React from 'react';
+import Pusher from 'pusher-js';
 import * as ReactRedux from 'react-redux';
 import Cookies from 'js-cookie';
 import store from '../../store';
@@ -12,7 +13,7 @@ import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-group
 import { focusedContestInfoSelector, focusedLineupSelector } from '../../selectors/lobby-selectors.js';
 import { upcomingContestSelector } from '../../selectors/upcoming-contest-selector.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
-import { updateFilter } from '../../actions/upcoming-contests-actions.js';
+import { updateFilter, upcomingContestUpdateReceived } from '../../actions/upcoming-contests-actions.js';
 import * as AppActions from '../../stores/app-state-store.js';
 import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
@@ -21,7 +22,8 @@ import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filte
 import renderComponent from '../../lib/render-component';
 import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx';
 import { addMessage } from '../../actions/message-actions.js';
-import { removeParamFromURL } from '../../lib/utils.js'
+import { removeParamFromURL } from '../../lib/utils.js';
+// import log from '../../lib/logging.js';
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
@@ -67,6 +69,7 @@ function mapDispatchToProps(dispatch) {
     updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
     updatePath: (path) => dispatch(updatePath(path)),
     addMessage: (options) => dispatch(addMessage(options)),
+    upcomingContestUpdateReceived: (contest) => dispatch(upcomingContestUpdateReceived(contest)),
   };
 }
 
@@ -98,6 +101,7 @@ const LobbyContests = React.createClass({
     updateOrderByFilter: React.PropTypes.func,
     updatePath: React.PropTypes.func,
     addMessage: React.PropTypes.func,
+    upcomingContestUpdateReceived: React.PropTypes.func,
   },
 
 
@@ -136,6 +140,34 @@ const LobbyContests = React.createClass({
     if (window.dfs.user.isAuthenticated === true) {
       this.props.fetchEntriesIfNeeded();
     }
+
+    this.listenToSockets();
+  },
+
+
+  onContestUpdateReceived(event) {
+    this.props.upcomingContestUpdateReceived(event)
+  },
+
+
+  listenToSockets() {
+    // NOTE: this really bogs down your console, only use locally when needed
+    // uncomment this ONLY if you need to debug why Pusher isn't connecting
+    // Pusher.log = (message) => {
+    //   if (window.console && window.console.log) {
+    //     window.console.log(message);
+    //   }
+    // };
+
+    const pusher = new Pusher(window.dfs.user.pusher_key, {
+      encrypted: true,
+    });
+
+    // used to separate developers into different channels, based on their django settings filename
+    const channelPrefix = window.dfs.user.pusher_channel_prefix.toString();
+
+    const contestChannel = pusher.subscribe(`${channelPrefix}contest`);
+    contestChannel.bind('update', this.onContestUpdateReceived);
   },
 
 
@@ -246,7 +278,7 @@ const LobbyContests = React.createClass({
           lineupsInfo={this.props.lineupsInfo}
         />
       </div>
-    )
+    );
   },
 
 });
