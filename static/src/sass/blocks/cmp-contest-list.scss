@@ -112,6 +112,39 @@ $table-row-hover-bg: #f9fafb;
   }
 
 
+  // Row update animations.
+  // https://github.com/ordishs/react-animation-example
+  @keyframes flash1 {
+      0% {
+          background-color: red;
+      }
+      100% {
+          background-color: white;
+      }
+  }
+
+  @keyframes flash2 {
+      0% {
+          background-color: red;
+      }
+      100% {
+          background-color: white;
+      }
+  }
+
+  .flash1, .flash2 {
+      animation-duration: 2s;
+      animation-timing-function: ease-out;
+  }
+
+  .flash1 {
+      animation-name: flash1;
+  }
+
+  .flash2 {
+      animation-name: flash2;
+  }
+
 }
 
 
