@@ -12,10 +12,6 @@ const LiveMoneyline = React.createClass({
     opponentWinPercent: React.PropTypes.number,
   },
 
-  shouldComponentUpdate() {
-    return false;
-  },
-
   render() {
     // flip so that everything is right aligned
     const myWinPercent = 100 - this.props.myWinPercent

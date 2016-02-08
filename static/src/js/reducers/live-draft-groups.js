@@ -1,5 +1,6 @@
 import update from 'react-addons-update';
 import _ from 'lodash';
+import moment from 'moment';
 import * as ActionTypes from '../action-types';
 
 
@@ -13,6 +14,8 @@ const setOrMerge = (state, action, props) => {
         playersInfo: {},
         playersStats: {},
         boxScores: {},
+        infoExpiresAt: moment(),
+        fpExpiresAt: moment(),
       },
       props
     );
@@ -57,6 +60,7 @@ module.exports = (state = {}, action) => {
         id: action.id,
         isFetchingInfo: true,
         hasAllInfo: false,
+        infoExpiresAt: action.expiresAt,
       };
 
       return setOrMerge(state, action, newProps);
@@ -82,6 +86,7 @@ module.exports = (state = {}, action) => {
       newProps = {
         id: action.id,
         isFetchingFP: true,
+        fpExpiresAt: action.expiresAt,
       };
 
       return setOrMerge(state, action, newProps);

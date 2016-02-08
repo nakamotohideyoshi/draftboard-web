@@ -29,6 +29,13 @@
     text-align: center;
     margin: 40px 0 20px 0;
 
+    .live-pmr {
+      display: inline-block;
+      width: 17px;
+      position: relative;
+      top: 5px;
+    }
+
     .lineup {
       color: white;
       background-color: #25293A;
@@ -83,13 +90,6 @@
         color: #9EA2A9;
       }
 
-      .live-pmr {
-        display: inline-block;
-        width: 17px;
-        position: relative;
-        top: 5px;
-      }
-
       &--score-name {
         margin-left: 15px;
         width: 140px;
@@ -119,66 +119,51 @@
     margin: 20px 0;
 
     .player {
-      color: #9EA2A9;
-      background-color: #25293A;
-      font-size: 12px;
-      padding: 10px 0;
+      color: #747c8d;
+      background-color: #262a3b;
+      font-size: 11px;
+      padding-bottom: 10px;
       margin-bottom: 3px;
       position: relative;
 
       &--position {
+        font-size: 9px;
         width: 20px;
         display: inline-block;
-        color: #9EA2A9;
+        text-transform: uppercase;
+      }
+
+      &--pmr-photo {
+        border-radius: 24px;
+        display: inline-block;
+        position: relative;
+        width: 24px;
+        height: 24px;
+        margin: 0 10px;
+        overflow: hidden;
+        top: 8px;
+      }
+
+      .live-pmr {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 2010;
+        width: 24px;
       }
 
       .avatar {
-        background: transparent url('../img/blocks/results/avatar.png') no-repeat center center;
-        background-size: 25px 25px;
-        display: inline-block;
+        background: #050814 url('../img/blocks/results/avatar.png') no-repeat center bottom;
+        background-size: auto 100%;
+        border-radius: 18px;
         width: 18px;
         height: 18px;
         position: absolute;
-        border-radius: 20px;
-        margin-left: -29px;
-        margin-top: 0px;
+        z-index: 2000;
+        left: 3px;
+        top: 3px;
       }
 
-      .score-circle {
-        width: 40px;
-        position: relative;
-        display: inline-block;
-
-        .circle-left, .circle-right {
-          width: 11px;
-          height: 22px;
-          position: absolute;
-          top: -15px;
-          left: 8px;
-          overflow: hidden;
-
-          .line {
-            width: 22px;
-            height: 22px;
-            position: absolute;
-            top: 0px;
-            left: 0px;
-            clip: rect(0px, 9px, 22px, 0px);
-            border: 1px solid;
-            border-radius: 100%;
-          }
-        }
-
-        .circle-right {
-          left: 15px;
-          width: 15px;
-
-          .line {
-            left: -7px;
-            clip: rect(0px, 22px, 22px, 9px);
-          }
-        }
-      }
       &--name {
         width: 140px;
         display: inline-block;
@@ -192,10 +177,12 @@
         }
       }
       &--points {
+        font-family: $font-oswald;
         width: 70px;
         display: inline-block;
       }
       &--progress {
+        font-family: $font-oswald;
         width: 50px;
         display: inline-block;
       }
@@ -231,24 +218,39 @@
     font-size: 11px;
     font-weight: bold;
     cursor: pointer;
+
+    &:hover {
+      background-color: rgba(57,61,78,0.96);
+      border-color: rgba(57,61,78,0.96);
+      color: white;
+      cursor: pointer;
+    }
   }
 
   &__pages {
-    position: relative;
     text-align: center;
     text-indent: -33px;
-    margin-top: 80px;
+    position: absolute;
+    right: 27px;
+    bottom: 100px;
+    z-index: 3000;
+    width: 76.5%;
+    height: 30px;
 
     .page {
+      border-radius: 50%;
       display: inline-block;
       margin: 0 2px;
-      border-radius: 20px;
+      padding-top: 2.5px;
       width: 3px;
       height: 3px;
-      border: solid 1px #9EA2A9;
+      background: #9295a5;
       transition: all 0.1s ease-in;
 
       &.selected {
+        background: none;
+        border: 1px solid #fff;
+        padding-top: 0;
         width: 8px;
         height: 8px;
         top: 2px;
@@ -264,8 +266,8 @@
       text-align: center;
       width: 30px;
       height: 30px;
-      color: #9EA2A9;
-      border: solid 1px #9EA2A9;
+      color: #9c9faf;
+      border: solid 1px #464a5e;
       border-radius: 20px;
       cursor: pointer;
 
@@ -273,15 +275,25 @@
         transform: scaleX(0.8);
         display: block;
         font-size: 18px;
+        position: relative;
+        top: -1px;
       }
     }
 
     .arrow-left {
       left: 0;
+
+      span {
+        left: -1px;
+      }
     }
 
     .arrow-right {
-      right: 33px;
+      right: 0;
+
+      span {
+        left: 1px;
+      }
     }
   }
 

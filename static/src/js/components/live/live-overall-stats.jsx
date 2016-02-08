@@ -161,13 +161,15 @@ const LiveOverallStats = React.createClass({
 
     let potentialEarnings = 0
     if (this.props.hasContest === false) {
-      potentialEarnings = lineup.totalPotentialEarnings
+      potentialEarnings = lineup.totalPotentialEarnings || 0
     } else {
-      potentialEarnings = lineup.potentialEarnings
+      potentialEarnings = lineup.potentialEarnings || 0
     }
 
     if (potentialEarnings !== 0) {
-      potentialEarnings = potentialEarnings.toFixed(2)
+      potentialEarnings = `$${potentialEarnings.toFixed(2)}`
+    } else {
+      potentialEarnings = 'N/A'
     }
 
     return (
@@ -182,7 +184,7 @@ const LiveOverallStats = React.createClass({
             </div>
             <h4 className="live-overview__quantity">{ lineup.points }</h4>
           </div>
-          <div className="live-overview__potential-earnings">${ potentialEarnings }</div>
+          <div className="live-overview__potential-earnings">{ potentialEarnings }</div>
           <div className="live-overview__pmr">
             <div className="live-overview__pmr__quantity">{ lineup.minutesRemaining }</div>
             <div className="live-overview__pmr__title">PMR</div>
