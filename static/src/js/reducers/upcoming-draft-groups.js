@@ -1,4 +1,5 @@
 const ActionTypes = require('../action-types');
+import { merge as _merge } from 'lodash';
 
 
 const initialState = {
@@ -22,15 +23,12 @@ module.exports = (state = initialState, action) => {
       });
 
 
-      // Insert boxscores + games into store, indexed by the draftGroupId
+    // Insert boxscores + games into store, indexed by the draftGroupId
     case ActionTypes.FETCH_DRAFTGROUP_BOX_SCORES_SUCCESS:
-      const boxScore = {};
-      boxScore[action.draftGroupId] = action.body;
-      boxScore.isFetching = false;
-
-      return Object.assign({}, state, {
-        boxScores: Object.assign({}, state.boxScores, boxScore),
-      });
+      const stateCopy = _merge({}, state);
+      stateCopy.isFetching = false;
+      stateCopy.boxScores[action.draftGroupId] = action.body;
+      return stateCopy;
 
 
     case ActionTypes.FETCHING_DRAFTGROUP_BOX_SCORES:

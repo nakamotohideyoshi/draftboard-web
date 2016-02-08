@@ -28,6 +28,7 @@ syncReduxAndRouter(history, store);
  */
 function mapStateToProps(state) {
   return {
+    allContests: state.upcomingContests.allContests,
     contestInfo: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
     boxScores: state.upcomingDraftGroups.boxScores,
@@ -57,6 +58,7 @@ function mapDispatchToProps(dispatch) {
 const ContestListDetail = React.createClass({
 
   propTypes: {
+    allContests: React.PropTypes.object,
     boxScores: React.PropTypes.object,
     contestInfo: React.PropTypes.object,
     enterContest: React.PropTypes.func,
@@ -83,16 +85,16 @@ const ContestListDetail = React.createClass({
    */
   componentWillReceiveProps(nextProps) {
     // A new contest has been focused. Fetch all of it's required data.
-    if (nextProps.params.contestId && this.props.contestInfo.contest.id !== nextProps.params.contestId) {
+    if (nextProps.params.contestId && nextProps.contestInfo.contest.id !== nextProps.params.contestId) {
       AppActions.openPane();
       // // This is what "monitors" for URL changes.
       this.props.setFocusedContest(nextProps.params.contestId);
       this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId);
+    }
 
-      // If we've got the selected contest, use it's draft_group id to get the boxscores.
-      if (this.props.contestInfo.contest.hasOwnProperty('draft_group')) {
-        this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.contestInfo.contest.draft_group);
-      }
+    // If we've got the selected contest, use it's draft_group id to get the boxscores.
+    if (nextProps.contestInfo.contest.draft_group) {
+      this.props.fetchDraftGroupBoxScoresIfNeeded(nextProps.contestInfo.contest.draft_group);
     }
 
     // If we don't have team names (we problably do), fetch them.
@@ -109,13 +111,13 @@ const ContestListDetail = React.createClass({
         return (<PrizeStructure structure={this.props.contestInfo.prizeStructure} />);
 
       case 'games':
-        if (this.props.boxScores.hasOwnProperty(this.props.contestInfo.contest.id)) {
+        if (this.props.contestInfo.boxScores) {
           return (
             <GamesList
-              boxScores={this.props.boxScores[this.props.contestInfo.contest.id]}
+              boxScores={this.props.contestInfo.boxScores}
               teams={this.props.teams[this.props.contestInfo.contest.sport]}
             />
-            );
+          );
         }
 
         return 'no boxscore info';
