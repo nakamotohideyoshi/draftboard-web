@@ -14,7 +14,7 @@ $nav-scoreboard-foreground-color: #25A758;
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 100;
+  z-index: 1010;
 
   // We need a single top-level element that react renders to (aaaannoying).
   .inner {

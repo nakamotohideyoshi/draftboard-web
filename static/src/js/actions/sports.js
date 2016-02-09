@@ -289,16 +289,19 @@ export const updateGame = (gameId, teamId, points) => (dispatch, getState) => {
     return false
   }
 
-  // if the boxscore doesn't exist yet, that means we need to update games
-  if (game.hasOwnProperty('boxscore') === false &&
-      state.sports[game.sport].isFetchingGames === false) {
-    return dispatch(fetchGames(game.sport))
-  }
+  if (state.sports[game.sport].isFetchingGames === false) {
+    // if the boxscore doesn't exist yet, that means we need to update games
+    if (game.hasOwnProperty('boxscore') === false &&
+        state.sports[game.sport].isFetchingGames === false) {
+      return dispatch(fetchGames(game.sport))
+    }
 
-  // if we think the game hasn't started, also update the games
-  if (game.hasOwnProperty('boxscore') === true &&
-      game.boxscore.status === 'scheduled') {
-    return dispatch(fetchGames(game.sport))
+    // if we think the game hasn't started, also update the games
+    const upcomingStates = ['scheduled', 'created']
+    if (game.hasOwnProperty('boxscore') === true &&
+        upcomingStates.indexOf(game.boxscore.status) > -1) {
+      return dispatch(fetchGames(game.sport))
+    }
   }
 
   const boxscore = game.boxscore

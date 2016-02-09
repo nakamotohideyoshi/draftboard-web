@@ -50,9 +50,15 @@ const calculatePlayerOwnership = (contest, draftGroup, sport, games, myRoster) =
     allWithStats[playerWithCount.playerId]
   ));
 
+  const allByPlayerId = {}
+  _.forEach(mappedPlayers, (playerWithCount) => {
+    allByPlayerId[playerWithCount.playerId] = playerWithCount.ownershipPercent
+  })
+
   return {
     all,
     top8,
+    allByPlayerId,
   }
 }
 
@@ -131,6 +137,11 @@ export const liveSelector = createSelector(
           myLineup.roster
         )
 
+        // add ownership % to lineup
+        _.forEach(myLineup.rosterDetails, (player, playerId) => {
+          myLineup.rosterDetails[playerId].ownershipPercent = contest.playersOwnership.allByPlayerId[playerId]
+        })
+
         myLineup.myWinPercent = 0
         if (myLineup.rank && contest.entriesCount) {
           myLineup.myWinPercent = myLineup.rank / contest.entriesCount * 100
@@ -154,6 +165,9 @@ export const liveSelector = createSelector(
             }
 
             opponentLineup.rosterDetails[playerId].teamInfo = sports[sport].teams[player.info.team_srid]
+
+            // add ownership % to lineup
+            opponentLineup.rosterDetails[playerId].ownershipPercent = contest.playersOwnership.allByPlayerId[playerId]
           })
 
           opponentLineup.opponentWinPercent = opponentLineup.rank / contest.entriesCount * 100
