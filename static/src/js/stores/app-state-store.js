@@ -1,24 +1,25 @@
 import log from '../lib/logging';
 import { forEach as _forEach } from 'lodash';
+import PubSub from 'pubsub-js';
 
 
 /*
 * This component listens to the AppStateStore store and keeps the <body> tag's classes in sync with whatever
 * the content of the store is.
 */
-var AppStateClass = (function () {
-  var bodyEl = document.querySelector('body');
+const AppStateClass = (() => {
+  const bodyEl = document.querySelector('body');
 
 
-  var exports = {
+  const exports = {
     // Sync up classes in the AppStateStore to the <body> tag.
-    updateBodyClasses: function (classes) {
+    updateBodyClasses: (classes) => {
       log.debug('AppStateClass.updateBodyClasses()', classes, bodyEl.className);
       // Remove any existing appstate classes
       bodyEl.className = bodyEl.className.replace(/appstate-\S*(?!\S)/g, '');
       // Add the current set.
-      bodyEl.className = bodyEl.className.trim() + ' ' + classes.join(' ');
-    }
+      bodyEl.className = `${bodyEl.className.trim()} ${classes.join(' ')}`;
+    },
   };
 
   return exports;
@@ -31,7 +32,7 @@ var AppStateClass = (function () {
 *
 * Actions must be declared in AppActions before they be listened to here.
 * */
-var AppActions = {
+const AppActions = {
   classes: [],
 
   /**
@@ -39,7 +40,7 @@ var AppActions = {
    *
    * @param {string} className The class to be added.
    */
-  addClass: function (className) {
+  addClass(className) {
     log.trace('AppStateStore.addClass()', className);
     // If the class isn't already in our list, add it.
     if (this.classes.indexOf(className) === -1) {
@@ -53,9 +54,9 @@ var AppActions = {
    * Remove a class from the list.
    * @param  {string} className Class to be removed
    */
-  removeClass: function (className) {
+  removeClass(className) {
     log.debug('AppStateStore.removeClass()', className);
-    var index = this.classes.indexOf(className);
+    const index = this.classes.indexOf(className);
     // If the class is in the list, delete it.
     if (index > -1) {
       this.classes.splice(index, 1);
@@ -68,7 +69,7 @@ var AppActions = {
    * Toggles a classname from the list
    * @param  {string} className Class to be toggled
    */
-  toggleClass: function (className) {
+  toggleClass(className) {
     if (this.classes.indexOf(className) === -1) {
       this.addClass(className);
     } else {
@@ -82,42 +83,44 @@ var AppActions = {
    */
 
   // When the hamburger icon gets opened.
-  openNavMain: function () {
+  openNavMain() {
     this.addClass('appstate--nav-main--open');
   },
 
   // When the hamburger icon gets closed.
-  closeNavMain: function () {
+  closeNavMain() {
     this.removeClass('appstate--nav-main--open');
   },
 
   // Open the slideover pane.
-  openPane: function () {
+  openPane() {
     this.addClass('appstate--pane--open');
+    PubSub.publish('pane.open');
   },
 
   // Close the slideover pane.
-  closePane: function () {
+  closePane() {
     this.removeClass('appstate--pane--open');
+    PubSub.publish('pane.close');
   },
 
-  openPlayerPane: function (side) {
-    this.addClass('appstate--pane--player--' + side + '--open');
+  openPlayerPane(side) {
+    this.addClass(`appstate--pane--player--${side}--open`);
   },
 
-  closePlayerPane: function (side) {
-    this.removeClass('appstate--pane--player--' + side + '--open');
+  closePlayerPane(side) {
+    this.removeClass(`appstate--pane--player--${side}--open`);
   },
 
   // Toggle the included class. If opening, then close all other live panes
-  togglePlayerPane: function (side) {
+  togglePlayerPane(side) {
     log.debug('AppStateStore.togglePlayerPane()');
 
-    const className = 'appstate--pane--player--' + side + '--open';
+    const className = `appstate--pane--player--${side}--open`;
 
-    let possiblePanes = [
+    const possiblePanes = [
       'appstate--pane--player--left--open',
-      'appstate--pane--player--right--open'
+      'appstate--pane--player--right--open',
     ];
 
     // if already open, then just close that one
@@ -136,15 +139,15 @@ var AppActions = {
     }
   },
 
-  contestTypeFiltered: function () {
+  contestTypeFiltered() {
     this.addClass('appstate--contest-filters-open');
   },
 
   // Toggle the included class. If opening, then close all other live panes
-  toggleLiveRightPane: function (className) {
-    let possiblePanes = [
+  toggleLiveRightPane(className) {
+    const possiblePanes = [
       'appstate--live-contests-pane--open',
-      'appstate--live-standings-pane--open'
+      'appstate--live-standings-pane--open',
     ];
 
     if (this.classes.indexOf(className) > -1) {
@@ -156,7 +159,7 @@ var AppActions = {
 
       this.addClass(className);
     }
-  }
+  },
 
 };
 

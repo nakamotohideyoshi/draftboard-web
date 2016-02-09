@@ -9,6 +9,7 @@ import EnterContestButton from './enter-contest-button.jsx';
 import { enterContest, setFocusedContest, fetchContestEntrantsIfNeeded, }
   from '../../actions/upcoming-contests-actions.js';
 import * as AppActions from '../../stores/app-state-store.js';
+import { updatePath } from 'redux-simple-router';
 import { Router, Route } from 'react-router';
 import { syncReduxAndRouter } from 'redux-simple-router';
 import createBrowserHistory from 'history/lib/createBrowserHistory';
@@ -16,6 +17,8 @@ import CountdownClock from '../site/countdown-clock.jsx';
 import { fetchDraftGroupBoxScoresIfNeeded } from '../../actions/upcoming-draft-groups-actions.js';
 import { focusedContestInfoSelector, focusedLineupSelector } from '../../selectors/lobby-selectors.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
+import PubSub from 'pubsub-js';
+
 
 const history = createBrowserHistory();
 syncReduxAndRouter(history, store);
@@ -48,6 +51,7 @@ function mapDispatchToProps(dispatch) {
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
     fetchContestEntrantsIfNeeded: (contestId) => dispatch(fetchContestEntrantsIfNeeded(contestId)),
+    updatePath: (path) => dispatch(updatePath(path)),
   };
 }
 
@@ -70,12 +74,18 @@ const ContestListDetail = React.createClass({
     setFocusedContest: React.PropTypes.func,
     teams: React.PropTypes.object,
     lineupsInfo: React.PropTypes.object,
+    updatePath: React.PropTypes.func,
   },
 
   getInitialState() {
     return {
       activeTab: 'prizes',
     };
+  },
+
+
+  componentWillMount() {
+    PubSub.subscribe('pane.close', this.stripContestFromUrl);
   },
 
 
@@ -168,6 +178,10 @@ const ContestListDetail = React.createClass({
 
       return (
         <div className="pane--contest-detail">
+          <div
+            onClick={this.closePane}
+            className="pane__close"
+          ></div>
           <div className="pane-upper">
             <div className="header">
               <div className="header__content">
@@ -175,7 +189,12 @@ const ContestListDetail = React.createClass({
                 <div className="header__info">
                   <div>
                     <div className="info-title">Live In</div>
-                    <span><CountdownClock time={this.props.contestInfo.contest.start} /></span>
+                    <span>
+                      <CountdownClock
+                        time={this.props.contestInfo.contest.start}
+                        timePassedDisplay="Live"
+                      />
+                    </span>
                   </div>
                 </div>
 
@@ -233,6 +252,16 @@ const ContestListDetail = React.createClass({
     return (
       <div>Select a Contest</div>
     );
+  },
+
+
+  stripContestFromUrl() {
+    this.props.updatePath('/lobby/');
+  },
+
+
+  closePane() {
+    AppActions.closePane();
   },
 
 
