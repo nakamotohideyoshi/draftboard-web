@@ -141,6 +141,8 @@ class AbstractPush(object):
     This class handles delegating to the proper channels when realtime sports data is received.
     """
 
+    class LinkableObjectNotSetException(Exception): pass
+
     class Linker(object):
         """
         gets or create the proper instance of LinkedExpiringObjectQueueTable
@@ -163,22 +165,19 @@ class AbstractPush(object):
             return the LinkedExpiringObjectQueueTable for the channel, otherwise returns None
             """
             for linker_queue_name, channel_list in self.linker_queues:
-                print('channel', str(channel), 'in channel_list:', channel in channel_list, 'channel_list:', str(channel_list))
+                #print('channel', str(channel), 'in channel_list:', channel in channel_list, 'channel_list:', str(channel_list))
                 if channel in channel_list:
                     self.linker_queue_name = linker_queue_name
                     linker_queue = self.cache.get(linker_queue_name)
-                    print('linker_queue_name:', str(linker_queue_name))
+                    #print('linker_queue_name:', str(linker_queue_name)) # TODO remove
                     if linker_queue is not None:
-                        print('   linker_queue is not None')
+                        print('   linker_queue is not None - and is being returned') # TODO remove
                         return linker_queue
                     else:
-                        print('   linker_queue should be created')
-                        # create a linker queue using the channel_list for the queue names
+                        print('   linker_queue should be created (and is being created right now)') # TODO remove
                         linker_queue = LinkedExpiringObjectQueueTable(channel_list)
-                        # self.cache.add( linker_queue_name, linker_queue, 48*60*60 )
-                        #self.linker_queue_name = linker_queue_name
-                        print('self.linker_queue_name:', str(self.linker_queue_name))
                         return linker_queue
+            #
             return None
 
         def save(self, linked_expiring_object_queue_table_instance):
@@ -205,7 +204,18 @@ class AbstractPush(object):
         # or block on the current thread to do the send.
         self.async      = settings.DATADEN_ASYNC_UPDATES
 
-    def send(self, data, async=False, force=True ):
+        # by default, this object is not linkable
+        self.linkable_object = None
+
+    def set_linkable_object(self, obj, link_id=None):
+        self.linkable_object = LinkableObject( obj, link_id=link_id )
+
+    def get_linkable_object(self):
+        if self.linkable_object is None:
+            raise self.LinkableObjectNotSetException('the linkable object was never set')
+        return self.linkable_object
+
+    def send(self, data, async=True, force=True ):
         """
         uses the internal channel ( likely the sport name) and pushes the data out
         with teh event name specified by the child classes
@@ -254,25 +264,16 @@ class AbstractPush(object):
                 # xxx START LOCK HERE  - same as linker_pusher_send_task uses
                 # identifier, new_linked_object_data = linker_queue.add( self.channel, LinkableObject( data ) )
                 # linker.save(linker_queue)
-                identifier, new_linked_object_data = self.edit_linker_queue( self.channel, LinkableObject( data ), linker, linker_queue )
-                # xxx END LOCK HERE - same as linker_pusher_send_task uses
 
-                #
-                # if identifier is valid, the object was just added
-                if identifier is not None:
-                    # add it to cache
-                    cache.set( identifier, identifier, 30 )
-                    # fire a pending task -- when it launches it should check if it still needs to send.
-                    # this task must use the same blocking lock as the edit_linker_queue method (?)
-                    print('adding task with countdown: ', str(data))
-                    linker_pusher_send_task.apply_async( (self, data, identifier ), countdown=5, serializer='pickle' )
+                # new_linked_object_data = self.edit_linker_queue( self.channel, LinkableObject( data ), linker, linker_queue )
+                new_linked_object_data = self.edit_linker_queue( self.channel,
+                                                self.get_linkable_object(), linker, linker_queue )
 
-                elif new_linked_object_data is not None:
+                if new_linked_object_data is not None:
                     # reshape the data a little bit, then pusher out the new linked data
-                    obj = {}
-                    for queue_name, json_data in new_linked_object_data:
-                        obj[ queue_name ] = json_data
-                    LinkedPbpStatsDataDenPush( self.channel ).send( obj, async=True )
+                    formatted_linked_data = self.format_linked_data( new_linked_object_data )
+                    print('SENDING FORMATTED_LINKED_DATA:', str(formatted_linked_data)) # TODO remove
+                    LinkedPbpStatsDataDenPush( self.channel ).send( formatted_linked_data )
 
                 # bypass the rest of the method, because we have taken care of clean with countdown task
                 return
@@ -281,12 +282,20 @@ class AbstractPush(object):
         if async:
             task_result = pusher_send_task.apply_async( (self, data), serializer='pickle' )
         else:
-            # json.loads(json.dumps(data)) --> dumps json in a serialized form, so it can be re-loaded as a real json object
-            # print( 'data:', str(data))
-            # json_data = ast.literal_eval(data)
-            # print( 'json_data:', json_data )
-            #self.pusher.trigger( self.channel, self.event, data )
             self.trigger( data )
+
+    def format_linked_data(self, unformatted_linked_data):
+        """
+        take the list of tuple data from the linker queue
+        and format it for pusher before it gets sent to clients.
+
+        returns data in a format expected by the client.
+        """
+        data = {}
+        print('unformatted_linked_data: %s' % str(unformatted_linked_data))
+        for queue_name, queue_item in unformatted_linked_data:
+            data[ queue_name ] = queue_item.get_linkable_object().get_obj()
+        return data
 
     def trigger(self, data):
         self.pusher.trigger( self.channel, self.event, data )
@@ -294,11 +303,44 @@ class AbstractPush(object):
     @locking(unique_lock_name=PUSH_TASKS_STATS_LINKER, timeout=30)
     def edit_linker_queue(self, channel, linkable_object, linker, linker_queue):
         """
-        acquire a lock (blocking) to be able to edit the linker_queue
+        acquire a lock (blocking) to be able to edit the linker_queue.
+
+        if the linker_queue returns objects to send, we must delete their tokens from the cache also!
         """
-        identifier, new_linked_object_data = linker_queue.add( channel, linkable_object )
+        identifier, linked_objects_to_send = linker_queue.add( channel, linkable_object )
+
+        #
+        # we have a new object we just need to add its identifier and countdown a task
+        if identifier is not None:
+            # add it to cache
+            cache.set( identifier, identifier, 30 )
+            # fire a pending task -- when it launches it should check if it still needs to send.
+            # this task must use the same blocking lock as the edit_linker_queue method (?)
+            print('adding (identifier: %s) and task with countdown: '%str(identifier),
+                                                str(linkable_object.get_obj())) # TODO remove
+
+            linker_pusher_send_task.apply_async( (self, linkable_object.get_obj(),
+                                                identifier), countdown=5, serializer='pickle' )
+
+        #
+        # we need to delete the token from the
+        elif linked_objects_to_send is not None:
+            for queue_name, queue_item in linked_objects_to_send:
+                print('LINKED_OBJECTS_TO_SEND: %s' % str(linked_objects_to_send))
+                item_identifier = queue_item.get_identifier()
+                # item_identifier may be None -- if this item is being immediately sent!
+                if item_identifier is not None:
+                    print('     >>>>>> DELETEING TOKEN: %s' % str(item_identifier)) # TODO remove
+                    cache.delete( queue_item.get_identifier() )
+
+        #
+        # add this linker obj back into the cache
         linker.save(linker_queue)
-        return identifier, new_linked_object_data
+
+        #
+        # return the objects to send, after having delete the tokens.
+        # when this method exists, the lock will unlock.
+        return linked_objects_to_send
 
 class DataDenPush( AbstractPush ):
     """
@@ -316,6 +358,30 @@ class DataDenPush( AbstractPush ):
         super().__init__(channel) # init pusher object
         self.event      = event
 
+class StatsDataDenPush( AbstractPush ):
+    """
+    Any stats objects, which may be linkable from dataden, should be pushed with this class.
+    """
+
+    def __init__(self, channel, event):
+        """
+        channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
+        event: the string name of the general type of the object, ie: 'player', or 'team'
+        """
+        super().__init__(channel) # init pusher object
+        self.event = event
+
+    def send(self, stats_data, async=True, force=False):
+        """
+        override the default behavior of send(), such that we check
+        if the object has already been sent... if it has, then do not send it!
+        """
+        print('stats_data: %s' % str(stats_data))
+        link_id = stats_data.get('fields').get('srid_player')
+        print('link_id: %s' % str(link_id))
+        self.set_linkable_object( stats_data, link_id=link_id)
+        super().send( stats_data, async=async, force=force)
+
 class PbpDataDenPush( AbstractPush ):
     """
     Any Play by Play objects from dataden should be pushed with this class.
@@ -331,19 +397,29 @@ class PbpDataDenPush( AbstractPush ):
         super().__init__(channel) # init pusher object
         self.event = event
 
-    def send(self, pbp_data, *args, **kwargs):
+    def send(self, pbp_data, async=True, force=False):
         """
         override the default behavior of send(), such that we check
         if the object has already been sent... if it has, then do not send it!
         """
+
+        self.set_linkable_object( pbp_data )
+
         live_stats_cache = LiveStatsCache()
         just_added = live_stats_cache.update_pbp( pbp_data )
         if just_added:
-            super().send( pbp_data, *args, **kwargs )
+            print(' === pbp data === SENDING:', str(pbp_data)) # TODO - remove debugging print
+            super().send( pbp_data, async=async, force=force)
+        else:
+            print(' === pbp data === DID NOT DOUBLE-SEND:', str(pbp_data)) # TODO - remove debugging print
 
 class LinkedPbpStatsDataDenPush( AbstractPush ):
     """
-    linked object data sent with this class for PBP+STATS linked objects
+    this object is for PUSHING linked stats objects.
+    (for example, linked object data sent with this class for PBP+STATS linked objects)
+
+    if you want to create a pusherable object that can be linked with something else,
+    see classes that inherit the mixin 'HasLinkableObjectMixin'
     """
 
     def __init__(self, channel):
@@ -353,6 +429,9 @@ class LinkedPbpStatsDataDenPush( AbstractPush ):
         """
         super().__init__(channel) # init pusher object
         self.event = 'linked'
+
+    def send(self, data):
+        super().send( data, async=True, force=True )
 
 class ContestPush( AbstractPush ):
     """

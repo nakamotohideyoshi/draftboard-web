@@ -159,6 +159,7 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
         self.__validate_livestat( livestat )
 
         sent_pbp = self.c.get( self.sent_pbp_table_key, {} )
+        print( 'sent_pbp dict:', str(sent_pbp ) )
         if sent_pbp.get(livestat.get_id(), None) is not None:
             # it exists
             was_added = False
@@ -167,7 +168,7 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
             sent_pbp[livestat.get_id()] = 'x' # set to anything
             was_added = True
             # add the dict back into the cache
-            self.c.add( self.sent_pbp_table_key, sent_pbp, self.to, version=self.key_version )
+            self.c.set( self.sent_pbp_table_key, sent_pbp, self.to, version=self.key_version )
 
         return was_added    # if was_added is True, that means we just added it
 
@@ -435,25 +436,72 @@ class RandomIdMixin(RandomId):
 
 class AbstractLinkableObject(object):
 
-    def __init__(self, obj):
-        self.obj = obj
-
-    def get_linking_id(self):
-        raise Exception('AbstractLinkableObject.get_linking_id() must be overridden!')
-
-class LinkableObject(AbstractLinkableObject):
+    class LinkingIdIsNoneException(Exception): pass
 
     default_linkable_id_field = 'id'
 
-    def __init__(self, obj, field=None):
-        super().__init__(obj)
+    def __init__(self, obj, field=None, link_id=None):
+        self.obj = obj
+
         if field is not None:
             self.field = field
         else:
             self.field = self.default_linkable_id_field
 
+        #
+        self.link_id = link_id
+
     def get_linking_id(self):
-        return self.obj.get(self.field)
+        raise Exception('AbstractLinkableObject.get_linking_id() must be overridden!')
+
+    def get_obj(self):
+        return self.obj
+
+class LinkableObject(AbstractLinkableObject):
+
+    def __init__(self, obj, field=None, link_id=None):
+        """
+
+        :param obj:
+        :param field: overrides the default field used to extract the link id
+        :param link_id: overrides extracting the link id by other means, and returns this id regardless
+        :return:
+        """
+        super().__init__(obj, field, link_id)
+
+    def get_linking_id(self):
+        #
+        # if the internal link_id is set, return it!
+        if self.link_id is not None:
+            return self.link_id
+        #
+        # otherwise try to extract it
+        linking_id = self.obj.get(self.field)
+        if linking_id is None:
+            raise self.LinkingIdIsNoneException('linking_id field (%s) value is None!' % self.field)
+        return linking_id
+
+class QueueItem(object):
+
+    def __init__(self, linkable_object, identifier=None, created=None ):
+        """
+        :param identifier: a unique string identifier
+        :param created: a python datetime object when this obj was added to the queue.
+                        (note: not what time this QueueItem was created)
+        :param obj: a dictionary-like object
+        """
+        self.linkable_object    = linkable_object
+        self.identifier         = identifier
+        self.created            = created
+
+    def get_identifier(self):
+        return self.identifier
+
+    def get_created(self):
+        return self.created
+
+    def get_linkable_object(self):
+        return self.linkable_object
 
 class QueueTable(RandomIdMixin):
     """
@@ -536,10 +584,14 @@ class QueueTable(RandomIdMixin):
     def remove(self, name, obj):
         """
         remove the object from the queue equal to 'obj' parameter
+
+        note: does not remove anything (like tokens) from the cache -- this is an important point
+        because anything that removes these objects, related to the pbp+stats linker,
+        will have to take care of that part of the cleanup. This code only
+        manages the data structure of the linker queue!
         """
         q = self.get_queue(name)
         q.queue.remove( obj )
-        # TODO - perhaps going to need to loop to find the obj with identifier...
 
     def add(self, name, obj, identifier=None):
         """
@@ -607,6 +659,7 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         #
         # look for object linked to this one, and return linked objects if any are found.
         new_linked_object_data = self.get_any_linked_objects(name, linkable_object)
+        print('++++++++++++NEW_LINKED_OBJECT_DATA: %s' % str(new_linked_object_data))
 
         identifier = None
         if new_linked_object_data is None:
@@ -631,25 +684,32 @@ class LinkedExpiringObjectQueueTable(QueueTable):
 
         :param queue_name: the queue name we are adding the linkable object to
         :param linkable_object: a LinkableObject instance
+
+        :return: list or tuples. ex: [ (queueName, QueueItem), ... , ]
         """
 
-        print('queue_name:', str(queue_name))
+        print('queue_name:', str(queue_name)) # TODO remove
 
         #
         # determine if a linkable_object with the same link_id exists in 'original_queue' already
         link_id = linkable_object.get_linking_id()
+        print('++++++++++++link_id: %s' % str(linkable_object.get_linking_id())) # TODO remove
+
         # iterate the queue we are potentially adding the linkable_object to first,
         # if we find another with the same link_id, return None
         # because the one thats already in there is first priority to get linked.
         for identifier, dt, lnk_obj in list( self.get_queue(queue_name).queue ):
             if lnk_obj.get_linking_id() == link_id:
+                print('++++++++++++lnk_obj.get_linking_id() [%s] == link_id: %s' % (str(lnk_obj.get_linking_id()),str(lnk_obj.get_linking_id() == link_id))) # TODO remove
                 return None
-
+            else:
+                print('++++++++++++lnk_obj.get_linking_id() [%s] == link_id: %s' % (str(lnk_obj.get_linking_id()),str(lnk_obj.get_linking_id() == link_id))) # TODO remove
+                pass # carry on thru function
         #
         # get the names of the other queues
         queue_names_to_search = self.get_queue_names()
-        print('queue_names_to_search:', str(queue_names_to_search))
         queue_names_to_search.remove( queue_name )
+        print('queue_names_to_search:', str(queue_names_to_search)) # TODO remove
 
         # by default there are no objects to send, because we havent linked anything
         linked_objects_to_send = []
@@ -659,9 +719,11 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         for name in queue_names_to_search:
             q = self.get_queue(name)
             # iterate the queue looking for an object with a matching get_linking_id()
+            print('++++++++++++ searching queue: %s' % (str(name)) ) # TODO remove
             for identifier, dt, lnk_obj in list( q.queue ):
                 if lnk_obj.get_linking_id() == link_id:
                     linked_item_identifiers_found.append( identifier )
+                    print('++++++++++++ linked_item_identifier found: %s' % (str(lnk_obj.get_linking_id())) ) # TODO remove
                     break # just the inner loop!
 
         #
@@ -671,16 +733,18 @@ class LinkedExpiringObjectQueueTable(QueueTable):
 
         #
         # second pass to actually remove them if we linked an item from each queue!
-        linked_objects_to_send.append( (queue_name, linkable_object.obj) ) # add initial object
+        linked_objects_to_send.append( (queue_name, QueueItem(linkable_object) ) ) # add initial object
         for name in queue_names_to_search:
             q = self.get_queue(name)
             for queue_item in list( q.queue ):
-                identifier = queue_item[0] # its the first index of the tuple
+                identifier          = queue_item[0] # its the first index of the tuple
+                created             = queue_item[1]
+                found_linked_object = queue_item[2]
                 if identifier in linked_item_identifiers_found:
                     # remove this item from the queue,
                     # and append queue name and raw data object
                     q.queue.remove( queue_item )
-                    linked_objects_to_send.append( (name, queue_item[2].obj) )
+                    linked_objects_to_send.append( (name, QueueItem(found_linked_object, identifier, created) ) )
                     break # just the inner loop!
 
         #

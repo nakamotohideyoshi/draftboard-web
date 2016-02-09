@@ -179,7 +179,7 @@ class PlayerStats( sports.models.PlayerStats ):
 
         #
         # send the pusher obj for fantasy points with scoring
-        push.classes.DataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
+        push.classes.StatsDataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( self.to_json() )
 
         super().save(*args, **kwargs)
 
