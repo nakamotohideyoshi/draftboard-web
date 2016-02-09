@@ -19,7 +19,7 @@ const NavScoreboardFilterItem = React.createClass({
   },
 
   _onClick() {
-    this.props.handleChangeSelection(this.props.option)
+    this.props.handleChangeSelection(this.props.option);
   },
 
   render() {

@@ -16,7 +16,7 @@ const NavScoreboardLoggedOutInfo = React.createClass({
         <a href="/login">Login</a>
         <a href="/register">Sign Up</a>
       </div>
-    )
+    );
   },
 
 });

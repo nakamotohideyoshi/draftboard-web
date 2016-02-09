@@ -1,34 +1,34 @@
-import _ from 'lodash'
-import Pusher from 'pusher-js'
-import React from 'react'
-import { Provider, connect } from 'react-redux'
+import _ from 'lodash';
+import Pusher from 'pusher-js';
+import React from 'react';
+import { Provider, connect } from 'react-redux';
 
-import errorHandler from '../../actions/live-error-handler'
-import log from '../../lib/logging'
-import renderComponent from '../../lib/render-component'
-import store from '../../store'
+import errorHandler from '../../actions/live-error-handler';
+import log from '../../lib/logging';
+import renderComponent from '../../lib/render-component';
+import store from '../../store';
 
-import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups'
-import { fetchDraftGroupFP } from '../../actions/live-draft-groups'
-import { fetchEntriesIfNeeded } from '../../actions/entries'
-import { fetchSportsIfNeeded } from '../../actions/sports'
-import { currentLineupsSelector } from '../../selectors/current-lineups'
-import { liveSelector } from '../../selectors/live'
-import { removeUnusedDraftGroups } from '../../actions/live-draft-groups'
-import { sportsSelector } from '../../selectors/sports'
-import { updateGame } from '../../actions/sports'
+import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups';
+import { fetchDraftGroupFP } from '../../actions/live-draft-groups';
+import { fetchEntriesIfNeeded } from '../../actions/entries';
+import { fetchSportsIfNeeded } from '../../actions/sports';
+import { currentLineupsSelector } from '../../selectors/current-lineups';
+import { liveSelector } from '../../selectors/live';
+import { removeUnusedDraftGroups } from '../../actions/live-draft-groups';
+import { sportsSelector } from '../../selectors/sports';
+import { updateGame } from '../../actions/sports';
 
-import NavScoreboardFilters from './nav-scoreboard-filters'
-import NavScoreboardGamesList from './nav-scoreboard-games-list'
-import NavScoreboardLineupsList from './nav-scoreboard-lineups-list'
-import NavScoreboardLoggedOutInfo from './nav-scoreboard-logged-out-info'
-import NavScoreboardLogo from './nav-scoreboard-logo'
-import NavScoreboardMenu from './nav-scoreboard-menu'
-import NavScoreboardSeparator from './nav-scoreboard-separator'
-import NavScoreboardSlider from './nav-scoreboard-slider'
-import NavScoreboardUserInfo from './nav-scoreboard-user-info'
+import NavScoreboardFilters from './nav-scoreboard-filters';
+import NavScoreboardGamesList from './nav-scoreboard-games-list';
+import NavScoreboardLineupsList from './nav-scoreboard-lineups-list';
+import NavScoreboardLoggedOutInfo from './nav-scoreboard-logged-out-info';
+import NavScoreboardLogo from './nav-scoreboard-logo';
+import NavScoreboardMenu from './nav-scoreboard-menu';
+import NavScoreboardSeparator from './nav-scoreboard-separator';
+import NavScoreboardSlider from './nav-scoreboard-slider';
+import NavScoreboardUserInfo from './nav-scoreboard-user-info';
 
-import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const'
+import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const';
 
 
 /*
@@ -40,7 +40,7 @@ const mapStateToProps = (state) => ({
   currentLineupsSelector: currentLineupsSelector(state),
   liveSelector: liveSelector(state),
   sportsSelector: sportsSelector(state),
-})
+});
 
 /*
  * Map Redux actions to React component properties
@@ -55,7 +55,7 @@ const mapDispatchToProps = (dispatch) => ({
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
   removeUnusedDraftGroups: () => dispatch(removeUnusedDraftGroups()),
   updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
-})
+});
 
 /*
  * The overarching component for the scoreboard spanning the top of the site.
@@ -95,7 +95,7 @@ const NavScoreboard = React.createClass({
 
       // whether or not we are on the live page (determines what data to load)
       isLivePage: window.location.pathname.substring(0, 6) === '/live/',
-    }
+    };
   },
 
   /**
@@ -103,24 +103,24 @@ const NavScoreboard = React.createClass({
    * We separate into different try/catches so we can debug with the error message
    */
   componentWillMount() {
-    const defaultMessage = 'Our support team has been alerted of this error and will fix immediately.'
+    const defaultMessage = 'Our support team has been alerted of this error and will fix immediately.';
 
     try {
-      this.props.fetchSportsIfNeeded()
+      this.props.fetchSportsIfNeeded();
     } catch (e) {
-      errorHandler(e, `#AJSDFJWI ${defaultMessage}`)
+      errorHandler(e, `#AJSDFJWI ${defaultMessage}`);
     }
 
     // if the user is logged in
     if (this.state.user.username !== '') {
       try {
-        this.props.fetchEntriesIfNeeded()
+        this.props.fetchEntriesIfNeeded();
       } catch (e) {
-        errorHandler(e, `#JASDFJIE ${defaultMessage}`)
+        errorHandler(e, `#JASDFJIE ${defaultMessage}`);
       }
     }
 
-    this.startListening()
+    this.startListening();
   },
 
   /**
@@ -128,15 +128,15 @@ const NavScoreboard = React.createClass({
    * @return {Array} options key-value pairs
    */
   getSelectOptions() {
-    const options = []
+    const options = [];
 
     _.forEach(this.props.sportsSelector.types, (sport) => {
       options.push({
         option: `${sport} games`,
         type: TYPE_SELECT_GAMES,
         key: sport,
-      })
-    })
+      });
+    });
 
     // add in lineups if user is logged in
     if (this.state.user.username !== '') {
@@ -145,10 +145,10 @@ const NavScoreboard = React.createClass({
         type: TYPE_SELECT_LINEUPS,
         key: 'LINEUPS',
         count: _.size(this.props.currentLineupsSelector),
-      })
+      });
     }
 
-    return options
+    return options;
   },
 
   /**
@@ -159,9 +159,9 @@ const NavScoreboard = React.createClass({
    * @return {Object} options key-value pairs
    */
   handleChangeSelection(selectedOption, selectedType, selectedKey) {
-    log.trace('handleChangeSelection()', selectedOption, selectedType, selectedKey)
+    log.trace('handleChangeSelection()', selectedOption, selectedType, selectedKey);
 
-    this.setState({ selectedOption, selectedType, selectedKey })
+    this.setState({ selectedOption, selectedType, selectedKey });
   },
 
   /*
@@ -170,10 +170,10 @@ const NavScoreboard = React.createClass({
   listenToSockets() {
     // let the live page do game score calls
     if (this.state.isLivePage === true) {
-      return
+      return;
     }
 
-    log.info('NavScoreboard.listenToSockets()')
+    log.info('NavScoreboard.listenToSockets()');
 
     // NOTE: this really bogs down your console
     // Pusher.log = function(message) {
@@ -184,12 +184,12 @@ const NavScoreboard = React.createClass({
 
     const pusher = new Pusher(window.dfs.user.pusher_key, {
       encrypted: true,
-    })
+    });
 
     // used to separate developers into different channels, based on their django settings filename
-    const channelPrefix = window.dfs.user.pusher_channel_prefix.toString()
+    const channelPrefix = window.dfs.user.pusher_channel_prefix.toString();
 
-    const boxscoresChannel = pusher.subscribe(`${channelPrefix}boxscores`)
+    const boxscoresChannel = pusher.subscribe(`${channelPrefix}boxscores`);
     boxscoresChannel.bind('team', (eventData) => {
       if (this.props.sportsSelector.games.hasOwnProperty(eventData.game__id) &&
           eventData.hasOwnProperty('points')
@@ -198,18 +198,18 @@ const NavScoreboard = React.createClass({
           eventData.game__id,
           eventData.id,
           eventData.points
-        )
+        );
       }
-    })
+    });
   },
 
   /**
    * Internal method to start listening to pusher and poll for updates
    */
   startListening() {
-    this.listenToSockets()
-    this.startParityChecks()
-    this.removeExpiredSubstoreObjects()
+    this.listenToSockets();
+    this.startParityChecks();
+    this.removeExpiredSubstoreObjects();
   },
 
   /**
@@ -217,7 +217,7 @@ const NavScoreboard = React.createClass({
    * Is run once per page load.
    */
   removeExpiredSubstoreObjects() {
-    this.props.removeUnusedDraftGroups()
+    this.props.removeUnusedDraftGroups();
   },
 
   /**
@@ -229,10 +229,10 @@ const NavScoreboard = React.createClass({
     // check every few seconds, and if expired (which happens after 10 minutes), then they will fetch
     const parityChecks = {
       sports: window.setInterval(this.props.fetchSportsIfNeeded, 5000),
-    }
+    };
 
     // add the checsk to the state in case we need to clearInterval in the future
-    this.setState({ boxScoresIntervalFunc: parityChecks })
+    this.setState({ boxScoresIntervalFunc: parityChecks });
   },
 
   /**
@@ -240,22 +240,22 @@ const NavScoreboard = React.createClass({
    */
   renderSliderContent() {
     if (this.state.selectedType === TYPE_SELECT_LINEUPS) {
-      return <NavScoreboardLineupsList lineups={this.props.currentLineupsSelector} />
+      return <NavScoreboardLineupsList lineups={this.props.currentLineupsSelector} />;
     } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
-      const sport = this.props.sportsSelector[this.state.selectedKey]
-      const games = this.props.sportsSelector.games
+      const sport = this.props.sportsSelector[this.state.selectedKey];
+      const games = this.props.sportsSelector.games;
 
-      return <NavScoreboardGamesList sport={sport} games={games} />
+      return <NavScoreboardGamesList sport={sport} games={games} />;
     }
 
-    return null
+    return null;
   },
 
   render() {
-    const { username, cashBalance } = window.dfs.user
-    let userInfo
-    let filters
-    let slider
+    const { username, cashBalance } = window.dfs.user;
+    let userInfo;
+    let filters;
+    let slider;
 
     if (_.size(this.props.sportsSelector.games) > 0) {
       filters = (
@@ -264,22 +264,22 @@ const NavScoreboard = React.createClass({
           options={this.getSelectOptions()}
           onChangeSelection={this.handleChangeSelection}
         />
-      )
+      );
       slider = (
         <NavScoreboardSlider type={this.state.selectedOption}>
           {this.renderSliderContent()}
         </NavScoreboardSlider>
-      )
+      );
     }
 
     if (this.state.user.username !== '') {
       userInfo = (
         <NavScoreboardUserInfo name={username} balance={cashBalance.toFixed(2)} />
-      )
+      );
     } else {
       userInfo = (
         <NavScoreboardLoggedOutInfo />
-      )
+      );
     }
 
     return (
@@ -292,15 +292,15 @@ const NavScoreboard = React.createClass({
         { slider }
         <NavScoreboardLogo />
       </div>
-    )
+    );
   },
-})
+});
 
 // Wrap the component to inject dispatch and selected state into it.
 const NavScoreboardConnected = connect(
   mapStateToProps,
   mapDispatchToProps
-)(NavScoreboard)
+)(NavScoreboard);
 
 // Uses the Provider to have redux state
 renderComponent(
@@ -308,4 +308,4 @@ renderComponent(
     <NavScoreboardConnected />
   </Provider>,
   '.cmp-nav-scoreboard'
-)
+);

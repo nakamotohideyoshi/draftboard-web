@@ -1,4 +1,4 @@
-import * as ActionTypes from '../action-types'
+import * as ActionTypes from '../action-types';
 
 
 /**
@@ -11,4 +11,4 @@ export const setCurrentLineups = (lineups) => ({
   type: ActionTypes.SET_CURRENT_LINEUPS,
   lineups,
   updatedAt: Date.now(),
-})
+});

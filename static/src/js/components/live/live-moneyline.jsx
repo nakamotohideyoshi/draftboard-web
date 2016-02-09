@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 
 /**
@@ -14,12 +14,12 @@ const LiveMoneyline = React.createClass({
 
   render() {
     // flip so that everything is right aligned
-    const myWinPercent = 100 - this.props.myWinPercent
+    const myWinPercent = 100 - this.props.myWinPercent;
 
-    let opponentWinPercent
-    let opponentWinPosition
+    let opponentWinPercent;
+    let opponentWinPosition;
     if (this.props.opponentWinPercent) {
-      opponentWinPercent = 100 - this.props.opponentWinPercent
+      opponentWinPercent = 100 - this.props.opponentWinPercent;
 
       opponentWinPosition = (
         <div
@@ -27,7 +27,7 @@ const LiveMoneyline = React.createClass({
           style={{ left: `${opponentWinPercent}%` }}
         >
         </div>
-      )
+      );
     }
 
     return (
@@ -36,9 +36,9 @@ const LiveMoneyline = React.createClass({
         <div className="live-moneyline__current-position" style={{ left: `${myWinPercent}%` }}></div>
         { opponentWinPosition }
       </div>
-    )
+    );
   },
-})
+});
 
 
-export default LiveMoneyline
+export default LiveMoneyline;

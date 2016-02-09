@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-import LiveOverallStats from './live-overall-stats'
+import LiveOverallStats from './live-overall-stats';
 
 
 /**
@@ -17,14 +17,14 @@ const LiveHeader = React.createClass({
    * Used to close the current contest. Sets up parameters to then call props.changePathAndMode()
    */
   returnToLineup() {
-    const mode = this.props.liveSelector.mode
-    const path = `/live/lineups/${mode.myLineupId}/`
+    const mode = this.props.liveSelector.mode;
+    const path = `/live/lineups/${mode.myLineupId}/`;
     const changedFields = {
       opponentLineupId: undefined,
       contestId: undefined,
-    }
+    };
 
-    this.props.changePathAndMode(path, changedFields)
+    this.props.changePathAndMode(path, changedFields);
   },
 
   /**
@@ -32,58 +32,58 @@ const LiveHeader = React.createClass({
    * modify the DOM elements if we're viewing a contest and/or an opponent.
    */
   render() {
-    const liveSelector = this.props.liveSelector
-    const myLineup = liveSelector.lineups.mine
+    const liveSelector = this.props.liveSelector;
+    const myLineup = liveSelector.lineups.mine;
 
 
     // set all needed variables, and default them to lineup only
-    let closeContest
-    let opponentStats
-    let primary = myLineup.name
-    let secondary
-    let statsVs
-    let hasContest = false
+    let closeContest;
+    let opponentStats;
+    let primary = myLineup.name;
+    let secondary;
+    let statsVs;
+    let hasContest = false;
 
 
     // if watching a contest, then update the titles and ensure the overall stats are contest-based
     if (liveSelector.hasOwnProperty('contest')) {
-      const contest = liveSelector.contest
+      const contest = liveSelector.contest;
 
-      hasContest = true
-      primary = contest.name
-      secondary = myLineup.name
+      hasContest = true;
+      primary = contest.name;
+      secondary = myLineup.name;
       closeContest = (
         <span className="live-scoreboard__close" onClick={this.returnToLineup}></span>
-      )
+      );
 
 
       // if watching an opponent, then add in second overall stats and update the titles
       if (liveSelector.lineups.hasOwnProperty('opponent')) {
-        const opponentLineup = liveSelector.lineups.opponent
+        const opponentLineup = liveSelector.lineups.opponent;
 
-        let username = ''
+        let username = '';
         if (opponentLineup.hasOwnProperty('user')) {
-          username = opponentLineup.user.username
+          username = opponentLineup.user.username;
         // if villian, use name
         } else if (opponentLineup.id === 1) {
-          username = opponentLineup.name
+          username = opponentLineup.name;
         }
 
         secondary = (
           <div>
             {myLineup.name} <span className="vs">vs</span> {username}
           </div>
-        )
+        );
         statsVs = (
           <div className="live-overall-stats__vs">vs</div>
-        )
+        );
         opponentStats = (
           <LiveOverallStats
             hasContest
             lineup={opponentLineup}
             whichSide="opponent"
           />
-        )
+        );
       }
     }
 
@@ -106,8 +106,8 @@ const LiveHeader = React.createClass({
         {statsVs}
         {opponentStats}
       </header>
-    )
+    );
   },
-})
+});
 
-export default LiveHeader
+export default LiveHeader;

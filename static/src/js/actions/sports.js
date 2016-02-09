@@ -1,10 +1,10 @@
 // so we can use Promises
-import 'babel-core/polyfill'
-const request = require('superagent-promise')(require('superagent'), Promise)
-import _ from 'lodash'
-import moment from 'moment'
+import 'babel-core/polyfill';
+const request = require('superagent-promise')(require('superagent'), Promise);
+import _ from 'lodash';
+import moment from 'moment';
 
-import * as ActionTypes from '../action-types'
+import * as ActionTypes from '../action-types';
 
 
 // global constants
@@ -18,7 +18,7 @@ export const GAME_DURATIONS = {
     gameMinutes: 48,
     players: 8,
   },
-}
+};
 
 
 // dispatch to reducer methods
@@ -35,7 +35,7 @@ const requestGames = (sport) => ({
   sport,
   type: ActionTypes.REQUEST_GAMES,
   expiresAt: moment(Date.now()).add(1, 'minute'),
-})
+});
 
 /**
  * Dispatch information to reducer that we are trying to get teams
@@ -46,7 +46,7 @@ const requestGames = (sport) => ({
 const requestTeams = (sport) => ({
   sport,
   type: ActionTypes.REQUEST_TEAMS,
-})
+});
 
 /**
  * Dispatch parsed API information related to relevant games
@@ -62,7 +62,7 @@ const receiveGames = (sport, games) => {
       games, (game) => game.start
     ),
     (game) => game.srid
-  )
+  );
 
   return {
     type: ActionTypes.RECEIVE_GAMES,
@@ -70,8 +70,8 @@ const receiveGames = (sport, games) => {
     games,
     gameIds,
     expiresAt: moment(Date.now()).add(10, 'minutes'),
-  }
-}
+  };
+};
 
 /**
  * Dispatch parsed API information related to relevant games
@@ -82,18 +82,18 @@ const receiveGames = (sport, games) => {
  * @return {object}           Changes for reducer
  */
 const receiveTeams = (sport, response) => {
-  const newTeams = {}
+  const newTeams = {};
   _.forEach(response, (team) => {
-    newTeams[team.srid] = team
-  })
+    newTeams[team.srid] = team;
+  });
 
   return {
     type: ActionTypes.RECEIVE_TEAMS,
     sport,
     teams: newTeams,
     expiresAt: moment(Date.now()).add(6, 'hours'),
-  }
-}
+  };
+};
 
 
 // helper methods
@@ -106,29 +106,29 @@ const receiveTeams = (sport, response) => {
  * @return {number}       Minutes remaining in the game
  */
 const calculateTimeRemaining = (sport, game) => {
-  const sportDurations = GAME_DURATIONS[sport]
+  const sportDurations = GAME_DURATIONS[sport];
 
   // if the game hasn't started, return full time
   if (!game.hasOwnProperty('boxscore')) {
-    return sportDurations.gameMinutes
+    return sportDurations.gameMinutes;
   }
-  const boxScore = game.boxscore
+  const boxScore = game.boxscore;
 
   // if the game hasn't started but we have boxscore, return with full minutes
   if (boxScore.quarter === '') {
-    return sportDurations.gameMinutes
+    return sportDurations.gameMinutes;
   }
 
-  const currentQuarter = boxScore.quarter
-  const clockMinSec = boxScore.clock.split(':')
+  const currentQuarter = boxScore.quarter;
+  const clockMinSec = boxScore.clock.split(':');
 
   // determine remaining minutes based on quarters
-  const remainingQuarters = (currentQuarter > sportDurations.periods) ? 0 : sportDurations.periods - currentQuarter
-  const remainingMinutes = remainingQuarters * 12
+  const remainingQuarters = (currentQuarter > sportDurations.periods) ? 0 : sportDurations.periods - currentQuarter;
+  const remainingMinutes = remainingQuarters * 12;
 
   // round up to the nearest minute
-  return remainingMinutes + parseInt(clockMinSec[0], 10) + 1
-}
+  return remainingMinutes + parseInt(clockMinSec[0], 10) + 1;
+};
 
 /**
  * API GET to return all the games for a given sport
@@ -137,7 +137,7 @@ const calculateTimeRemaining = (sport, game) => {
  * @return {promise}          Promise that resolves with API response body to reducer
  */
 const fetchGames = (sport) => (dispatch) => {
-  dispatch(requestGames(sport))
+  dispatch(requestGames(sport));
 
   return request.get(
     `/api/sports/scoreboard-games/${sport}/`
@@ -146,18 +146,18 @@ const fetchGames = (sport) => (dispatch) => {
     Accept: 'application/json',
   }).then((res) => {
     // add in the sport so we know how to differentiate it
-    const games = Object.assign({}, res.body)
+    const games = Object.assign({}, res.body);
     _.forEach(games, (game, id) => {
-      games[id].sport = sport
+      games[id].sport = sport;
 
       if (game.hasOwnProperty('boxscore')) {
-        games[id].boxscore.timeRemaining = calculateTimeRemaining(sport, game)
+        games[id].boxscore.timeRemaining = calculateTimeRemaining(sport, game);
       }
-    })
+    });
 
-    return dispatch(receiveGames(sport, games))
-  })
-}
+    return dispatch(receiveGames(sport, games));
+  });
+};
 
 /**
  * API GET to return all the teams for a given sport
@@ -166,7 +166,7 @@ const fetchGames = (sport) => (dispatch) => {
  * @return {promise}          Promise that resolves with API response body to reducer
  */
 const fetchTeams = (sport) => (dispatch) => {
-  dispatch(requestTeams(sport))
+  dispatch(requestTeams(sport));
 
   return request.get(
     `/api/sports/teams/${sport}/`
@@ -175,8 +175,8 @@ const fetchTeams = (sport) => (dispatch) => {
     Accept: 'application/json',
   }).then(
     (res) => dispatch(receiveTeams(sport, res.body))
-  )
-}
+  );
+};
 
 /**
  * Method to determine whether we need to fetch games for a sport
@@ -187,21 +187,21 @@ const fetchTeams = (sport) => (dispatch) => {
 const shouldFetchGames = (state, sport, force) => {
   // ignore the expiration if forcing
   if (force === true) {
-    return true
+    return true;
   }
 
   // don't fetch until expired
   if (moment().isBefore(state.sports[sport].gamesExpireAt)) {
-    return false
+    return false;
   }
 
   // fetch if not currently fetching
   if (state.sports[sport].isFetchingGames === true) {
-    return false
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 /**
  * Method to determine whether we need to fetch teams for a sport
@@ -213,16 +213,16 @@ const shouldFetchGames = (state, sport, force) => {
 const shouldFetchTeams = (state, sport) => {
   // if currently fetching, don't fetch again
   if (state.sports[sport].isFetchingTeams === true) {
-    return false
+    return false;
   }
 
   // fetch if expired
   if (moment().isBefore(state.sports[sport].teamsExpireAt)) {
-    return false
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 
 // primary methods
@@ -235,11 +235,11 @@ const shouldFetchTeams = (state, sport) => {
  */
 export const fetchGamesIfNeeded = (sport, force) => (dispatch, getState) => {
   if (shouldFetchGames(getState(), sport, force) === false) {
-    return Promise.resolve('Games already exists')
+    return Promise.resolve('Games already exists');
   }
 
-  return dispatch(fetchGames(sport))
-}
+  return dispatch(fetchGames(sport));
+};
 
 /**
  * Fetch teams if we need to
@@ -248,16 +248,16 @@ export const fetchGamesIfNeeded = (sport, force) => (dispatch, getState) => {
  */
 export const fetchTeamsIfNeeded = (sport) => (dispatch, getState) => {
   if (shouldFetchTeams(getState(), sport) === false) {
-    return Promise.resolve('Teams already exists')
+    return Promise.resolve('Teams already exists');
   }
 
-  return dispatch(fetchTeams(sport))
-}
+  return dispatch(fetchTeams(sport));
+};
 
 export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
-  dispatch(fetchTeamsIfNeeded(sport))
-  dispatch(fetchGamesIfNeeded(sport, force))
-}
+  dispatch(fetchTeamsIfNeeded(sport));
+  dispatch(fetchGamesIfNeeded(sport, force));
+};
 
 /**
  * Fetch games and teams for all relevant sports
@@ -267,10 +267,10 @@ export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
 export const fetchSportsIfNeeded = () => (dispatch, getState) => {
   _.forEach(
     getState().sports.types, (sport) => {
-      dispatch(fetchSportIfNeeded(sport))
+      dispatch(fetchSportIfNeeded(sport));
     }
-  )
-}
+  );
+};
 
 /**
  * Update game information based on pusher stream call
@@ -280,47 +280,47 @@ export const fetchSportsIfNeeded = () => (dispatch, getState) => {
  * @return {object}   Changes for reducer, wrapped in a thunk
  */
 export const updateGame = (gameId, teamId, points) => (dispatch, getState) => {
-  const state = getState()
-  const game = state.sports.games[gameId]
-  const updatedGameFields = {}
+  const state = getState();
+  const game = state.sports.games[gameId];
+  const updatedGameFields = {};
 
   // if game does not exist yet, we don't know what sport so just cancel the update and wait for polling call
   if (state.sports.games.hasOwnProperty(gameId) === false) {
-    return false
+    return false;
   }
 
   if (state.sports[game.sport].isFetchingGames === false) {
     // if the boxscore doesn't exist yet, that means we need to update games
     if (game.hasOwnProperty('boxscore') === false &&
         state.sports[game.sport].isFetchingGames === false) {
-      return dispatch(fetchGames(game.sport))
+      return dispatch(fetchGames(game.sport));
     }
 
     // if we think the game hasn't started, also update the games
-    const upcomingStates = ['scheduled', 'created']
+    const upcomingStates = ['scheduled', 'created'];
     if (game.hasOwnProperty('boxscore') === true &&
         upcomingStates.indexOf(game.boxscore.status) > -1) {
-      return dispatch(fetchGames(game.sport))
+      return dispatch(fetchGames(game.sport));
     }
   }
 
-  const boxscore = game.boxscore
+  const boxscore = game.boxscore;
 
   if (boxscore === undefined) {
-    return false
+    return false;
   }
 
   if (boxscore.srid_home === teamId) {
-    updatedGameFields.home_score = points
+    updatedGameFields.home_score = points;
   } else {
-    updatedGameFields.away_score = points
+    updatedGameFields.away_score = points;
   }
 
-  updatedGameFields.timeRemaining = calculateTimeRemaining(game.sport, game)
+  updatedGameFields.timeRemaining = calculateTimeRemaining(game.sport, game);
 
   return dispatch({
     type: ActionTypes.UPDATE_GAME,
     gameId,
     updatedGameFields,
-  })
-}
+  });
+};

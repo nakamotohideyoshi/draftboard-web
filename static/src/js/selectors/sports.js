@@ -1,5 +1,5 @@
-import _ from 'lodash'
-import { createSelector } from 'reselect'
+import _ from 'lodash';
+import { createSelector } from 'reselect';
 
 
 /**
@@ -10,33 +10,34 @@ export const sportsSelector = createSelector(
   state => state.sports,
   (storeSports) => {
     // copy sports to add relevant data
-    const sports = Object.assign({}, storeSports)
+    const sports = Object.assign({}, storeSports);
 
     // add in game data
-    _.forEach(sports.games, (game) => {
-      const sport = game.sport
-      const teams = sports[sport].teams
+    _.forEach(sports.games, (game, gameId) => {
+      const newGame = sports.games[gameId];
+      const sport = game.sport;
+      const teams = sports[sport].teams;
 
       // add team information
-      game.homeTeamInfo = teams[game.srid_home]
-      game.awayTeamInfo = teams[game.srid_away]
+      newGame.homeTeamInfo = teams[game.srid_home];
+      newGame.awayTeamInfo = teams[game.srid_away];
 
       // update quarter to display properly
-      if (game.hasOwnProperty('boxscore')) {
-        let quarter = _.round(game.boxscore.quarter, 0)
+      if (newGame.hasOwnProperty('boxscore')) {
+        let quarter = _.round(newGame.boxscore.quarter, 0);
 
         if (quarter > 4) {
-          quarter = `${(quarter % 4).toString()}OT`
+          quarter = `${(quarter % 4).toString()}OT`;
 
           if (quarter === '1OT') {
-            quarter = 'OT'
+            quarter = 'OT';
           }
         }
 
-        game.boxscore.quarterDisplay = quarter
+        newGame.boxscore.quarterDisplay = quarter;
       }
-    })
+    });
 
-    return sports
+    return sports;
   }
-)
+);

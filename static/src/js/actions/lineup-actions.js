@@ -7,7 +7,7 @@ import { normalize, Schema, arrayOf } from 'normalizr';
 import { forEach, uniq } from 'lodash';
 import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
-import { monitorLineupEditRequest } from './lineup-edit-request.js'
+import { monitorLineupEditRequest } from './lineup-edit-request.js';
 
 // Normalization scheme for lineups.
 const lineupSchema = new Schema('lineups', {
@@ -239,7 +239,7 @@ export function saveLineupEdit(lineup, title, lineupId) {
           log.error(res);
           dispatch(saveLineupFail(res.body));
         } else {
-          log.info(res.body)
+          log.info(res.body);
           dispatch(monitorLineupEditRequest(res.body.task_id, lineupId));
         }
       });

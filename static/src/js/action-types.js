@@ -1,7 +1,3 @@
-exports.ADD_CONTEST = 'ADD_CONTEST';
-exports.REMOVE_CONTEST = 'REMOVE_CONTEST';
-exports.UPDATE_CONTEST = 'UPDATE_CONTEST';
-
 exports.USER_NOT_AUTHENTICATED = 'USER_NOT_AUTHENTICATED';
 
 // reducers.draft-group-players

@@ -1,6 +1,6 @@
 import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
-import moment from 'moment'
+import moment from 'moment';
 
 
 // TODO remove this hardcode of nba

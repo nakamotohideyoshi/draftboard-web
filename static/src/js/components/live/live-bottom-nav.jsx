@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-import * as AppActions from '../../stores/app-state-store'
+import * as AppActions from '../../stores/app-state-store';
 
 
 /**
@@ -12,28 +12,28 @@ const LiveBottomNav = React.createClass({
   },
 
   toggleStandings() {
-    AppActions.toggleLiveRightPane('appstate--live-standings-pane--open')
+    AppActions.toggleLiveRightPane('appstate--live-standings-pane--open');
   },
 
   toggleContests() {
-    AppActions.toggleLiveRightPane('appstate--live-contests-pane--open')
+    AppActions.toggleLiveRightPane('appstate--live-contests-pane--open');
   },
 
   render() {
-    let classNames = 'live-right-pane-nav live-right-pane-nav--'
-    let toggleStandings
+    let classNames = 'live-right-pane-nav live-right-pane-nav--';
+    let toggleStandings;
 
     if (this.props.hasContest) {
-      classNames += 'contest'
+      classNames += 'contest';
       toggleStandings = (
         <div className="live-right-pane-nav__view-standings" onClick={this.toggleStandings}>
           <span>View Standings &amp; Ownership</span>
         </div>
-      )
+      );
 
     // otherwise lineup mode
     } else {
-      classNames += 'lineup'
+      classNames += 'lineup';
     }
 
     return (
@@ -43,8 +43,8 @@ const LiveBottomNav = React.createClass({
         </div>
         { toggleStandings }
       </div>
-    )
+    );
   },
-})
+});
 
-export default LiveBottomNav
+export default LiveBottomNav;

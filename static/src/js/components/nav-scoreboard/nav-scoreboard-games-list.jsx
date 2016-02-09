@@ -1,7 +1,7 @@
-import React from 'react'
+import React from 'react';
 
-import NavScoreboardGame from './nav-scoreboard-game.jsx'
-import NavScoreboardSeparator from './nav-scoreboard-separator.jsx'
+import NavScoreboardGame from './nav-scoreboard-game.jsx';
+import NavScoreboardSeparator from './nav-scoreboard-separator.jsx';
 
 
 /**
@@ -25,12 +25,12 @@ const NavScoreboardGamesList = React.createClass({
     // Just flatten the array on a single level. Not using lodash here,
     // because this may result in unexpected behavior depending on the
     // rendered React component internal representation.
-    ]).reduce((accum, l) => accum.concat.apply(accum, l), this.defaultList)
+    ]).reduce((accum, l) => accum.concat.apply(accum, l), this.defaultList);
 
-    return <div className="cmp-nav-scoreboard--games-list">{list}</div>
+    return <div className="cmp-nav-scoreboard--games-list">{list}</div>;
   },
 
-})
+});
 
 
-export default NavScoreboardGamesList
+export default NavScoreboardGamesList;

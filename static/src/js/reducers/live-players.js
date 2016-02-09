@@ -1,6 +1,6 @@
 import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
-import moment from 'moment'
+import moment from 'moment';
 
 
 module.exports = (state = {
@@ -30,7 +30,7 @@ module.exports = (state = {
       });
 
       newState.isFetching = newState.isFetching.filter(item => item !== action.lineupId);
-      newState.expiresAt = action.expiresAt
+      newState.expiresAt = action.expiresAt;
 
       return newState;
 

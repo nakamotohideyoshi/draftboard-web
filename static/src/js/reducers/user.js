@@ -1,45 +1,44 @@
-import ActionTypes from '../action-types'
+import ActionTypes from '../action-types';
 
 
 const initialState = {
   user: {},
   infoFormErrors: {},
-  addressFormErrors: {}
-}
+  addressFormErrors: {},
+};
 
 
-module.exports = function(state = initialState, action) {
-
-  switch(action.type) {
+module.exports = (state = initialState, action) => {
+  switch (action.type) {
 
     case ActionTypes.FETCH_USER_SUCCESS:
       return Object.assign({}, state, {
-        user: action.body
+        user: action.body,
       });
 
     case ActionTypes.UPDATE_USER_INFO_SUCCESS:
       // TODO: update user with the response
       return Object.assign({}, state, {
-        infoFormErrors: {}
+        infoFormErrors: {},
       });
 
     case ActionTypes.UPDATE_USER_ADDRESS_SUCCESS:
       // TODO: update user with the response
       return Object.assign({}, state, {
-        addressFormErrors: {}
+        addressFormErrors: {},
       });
 
     case ActionTypes.UPDATE_USER_INFO_FAIL:
       return Object.assign({}, state, {
-        infoFormErrors: action.ex.response.body.errors
+        infoFormErrors: action.ex.response.body.errors,
       });
 
     case ActionTypes.UPDATE_USER_ADDRESS_FAIL:
       return Object.assign({}, state, {
-        addressFormErrors: action.ex.response.body.errors
+        addressFormErrors: action.ex.response.body.errors,
       });
 
     default:
       return state;
   }
-}
+};

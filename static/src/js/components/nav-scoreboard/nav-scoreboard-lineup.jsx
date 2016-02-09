@@ -14,7 +14,7 @@ const NavScoreboardLineup = React.createClass({
   mixins: [PureRenderMixin],
 
   openLineup() {
-    window.location.pathname = `/live/lineups/${this.props.lineup.id.toString()}`
+    window.location.pathname = `/live/lineups/${this.props.lineup.id.toString()}`;
   },
 
   render() {
@@ -29,7 +29,7 @@ const NavScoreboardLineup = React.createClass({
     let { name } = this.props.lineup;
 
     if (name === '') {
-      name = `Lineup for ${window.dfs.username}`
+      name = `Lineup for ${window.dfs.username}`;
     }
 
     return (
