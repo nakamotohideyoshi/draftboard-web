@@ -1,32 +1,30 @@
-'use strict';
-
 import React from 'react';
 
 
 const TransactionsDetails = React.createClass({
 
   propTypes: {
-    transaction: React.PropTypes.object.isRequired
+    transaction: React.PropTypes.object.isRequired,
   },
 
   getInitialState() {
-    return {section: 'standings'}
-  },
-
-  /**
-   * Change through tabs (basically change the section type)
-   */
-  handleTabChange(event) {
-    event.preventDefault();
-    this.setState({'section': event.target.attributes.href.value});
+    return { section: 'standings' };
   },
 
   componentWillMount() {
-    document.body.classList.add('pane-transactions')
+    document.body.classList.add('pane-transactions');
   },
 
   componentWillUnmount() {
-    document.body.classList.remove('pane-transactions')
+    document.body.classList.remove('pane-transactions');
+  },
+
+  /**
+  * Change through tabs (basically change the section type)
+  */
+  handleTabChange(event) {
+    event.preventDefault();
+    this.setState({ section: event.target.attributes.href.value });
   },
 
   renderPaneHeader() {
@@ -72,23 +70,23 @@ const TransactionsDetails = React.createClass({
         <ul>
           <li>
             <a href="standings"
-               onClick={this.handleTabChange}
-               className={(currentSection === 'standings')? "active":"" }
+              onClick={this.handleTabChange}
+              className={(currentSection === 'standings') ? 'active' : '' }
             >Standings</a></li>
           <li>
             <a href="teams"
-               onClick={this.handleTabChange}
-               className={(currentSection === 'teams')? "active":"" }
+              onClick={this.handleTabChange}
+              className={(currentSection === 'teams') ? 'active' : '' }
             >Teams</a></li>
           <li>
             <a href="prizes"
-               onClick={this.handleTabChange}
-               className={(currentSection === 'prizes')? "active":"" }
+              onClick={this.handleTabChange}
+              className={(currentSection === 'prizes') ? 'active' : '' }
             >Prizes</a></li>
           <li>
             <a href="scoring"
-               onClick={this.handleTabChange}
-               className={(currentSection === 'scoring')? "active":"" }
+              onClick={this.handleTabChange}
+              className={(currentSection === 'scoring') ? 'active' : '' }
             >Scoring</a></li>
         </ul>
       </div>
@@ -336,17 +334,16 @@ const TransactionsDetails = React.createClass({
     const currentSection = this.state.section;
     if (currentSection === 'standings') {
       return this.renderTransactionStandings();
-    } else if (currentSection == 'teams') {
+    } else if (currentSection === 'teams') {
       return this.renderTransactionTeams();
-    } else if (currentSection == 'prizes') {
+    } else if (currentSection === 'prizes') {
       return this.renderTransactionPrizes();
-    } else {
-      return this.renderTransactionScoring();
     }
+
+    return this.renderTransactionScoring();
   },
 
   render() {
-
     const header = this.renderPaneHeader();
     const tabs = this.renderPaneTabsOption();
     const tabContent = this.renderPaneTabContent();
@@ -358,7 +355,7 @@ const TransactionsDetails = React.createClass({
         {tabContent}
       </div>
     );
-  }
+  },
 });
 
 

@@ -28,7 +28,7 @@ module.exports = (state = initialState, action) => {
 
     case ActionTypes.FETCH_UPCOMING_CONTESTS_SUCCESS:
       // Return a copy of the previous state with our new things added to it.
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         allContests: action.body.contests,
         filteredContests: action.body.contests,
       });
@@ -72,7 +72,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS:
-      const newEntrants = Object.assign({}, state.entrants);
+      const newEntrants = _merge({}, state.entrants);
       newEntrants[action.contestId] = action.entrants;
 
       return Object.assign({}, state, {

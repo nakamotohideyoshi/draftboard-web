@@ -44,6 +44,7 @@
     "normalizr": "^1.4.0",
     "nouislider": "git://github.com/leongersen/noUiSlider.git",
     "ordinal": "0.0.2",
+    "pubsub-js": "^1.5.3",
     "pusher-js": "^3.0.0",
     "raven-js": "^2.0.5",
     "react": "^0.14.3",
