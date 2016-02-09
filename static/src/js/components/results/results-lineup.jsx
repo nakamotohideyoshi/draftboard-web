@@ -1,12 +1,8 @@
-'use strict';
-
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import ResultsPane from './results-pane.jsx';
 
 const ResultsLineup = React.createClass({
-
-  mixins: [PureRenderMixin],
 
   propTypes: {
     id: React.PropTypes.number.isRequired,
@@ -17,7 +13,7 @@ const ResultsLineup = React.createClass({
         name: React.PropTypes.string.isRequired,
         score: React.PropTypes.number.isRequired,
         image: React.PropTypes.string.isRequired,
-        position: React.PropTypes.string.isRequired
+        position: React.PropTypes.string.isRequired,
       })
     ).isRequired,
     contests: React.PropTypes.arrayOf(
@@ -26,69 +22,72 @@ const ResultsLineup = React.createClass({
         factor: React.PropTypes.number.isRequired,
         title: React.PropTypes.string.isRequired,
         place: React.PropTypes.number.isRequired,
-        prize: React.PropTypes.string.isRequired
+        prize: React.PropTypes.string.isRequired,
       })
     ).isRequired,
     stats: React.PropTypes.shape({
       fees: React.PropTypes.string.isRequired,
       won: React.PropTypes.string.isRequired,
-      entries: React.PropTypes.number.isRequired
-    })
+      entries: React.PropTypes.number.isRequired,
+    }),
   },
+
+  mixins: [PureRenderMixin],
 
   getInitialState() {
     return {
       renderLineup: true,
-      renderContestPane: false
+      renderContestPane: false,
     };
   },
 
   handleSwitchToLineup() {
-    this.setState({renderLineup: true});
+    this.setState({ renderLineup: true });
   },
 
   handleSwitchToContests() {
-    this.setState({renderLineup: false});
+    this.setState({ renderLineup: false });
   },
 
   handleShowContestPane() {
-    this.setState({renderContestPane: true});
+    this.setState({ renderContestPane: true });
   },
 
   handleHideContestPane() {
-    this.setState({renderContestPane: false});
+    this.setState({ renderContestPane: false });
   },
 
-  numToPlace(n) {
-    switch(n) {
-      case 1: n += 'st'; break;
-      case 2: n += 'nd'; break;
-      case 3: n += 'rd'; break;
-      default: n += 'th';
+  numToPlace(number) {
+    let place = number;
+
+    switch (number) {
+      case 1: place += 'st'; break;
+      case 2: place += 'nd'; break;
+      case 3: place += 'rd'; break;
+      default: place += 'th';
     }
 
-    return n;
+    return place;
   },
 
   renderLineup() {
-    const players = this.props.players.map((player) => {
-      return (
-        <div key={player.id} className="player">
-          <span className="position">{player.position}</span>
-          <span className="image"
-                style={{
-                  // TODO:
-                  // backgroundImage: "url('" + player.image + "')"
-                }}>
-          </span>
-          <span className="name">{player.name}</span>
-          <span className="score">{player.score}</span>
-        </div>
-      );
-    });
+    const players = this.props.players.map((player) => (
+      <div key={player.id} className="player">
+        <span className="position">{player.position}</span>
+        <span className="image"
+          style={{
+            // TODO:
+            // backgroundImage: "url('" + player.image + "')"
+          }}
+        >
+        </span>
+        <span className="name">{player.name}</span>
+        <span className="score">{player.score}</span>
+      </div>
+    ));
 
     return (
-      <div key={this.props.id + '-lineup'} className="lineup">
+      <div key={`${this.props.id}-lineup`} className="lineup">
         <div className="header">
           {this.props.name}
 
@@ -126,18 +125,17 @@ const ResultsLineup = React.createClass({
   },
 
   renderContests() {
-    const contests = this.props.contests.map ((c) => {
-      return (
-        <div key={c.id}
-             className="contest"
-             onClick={this.handleShowContestPane}>
-          <div className="factor">{c.factor + 'X'}</div>
-          <div className="title">{c.title}</div>
-          <div className="place">{this.numToPlace(c.place)}</div>
-          <div className="prize">{c.prize}</div>
-        </div>
-      );
-    });
+    const contests = this.props.contests.map((c) => (
+      <div key={c.id}
+        className="contest"
+        onClick={this.handleShowContestPane}
+      >
+        <div className="factor">{`${c.factor}X`}</div>
+        <div className="title">{c.title}</div>
+        <div className="place">{this.numToPlace(c.place)}</div>
+        <div className="prize">{c.prize}</div>
+      </div>
+    ));
 
     return (
       <div key={this.props.id} className="contests">
@@ -169,7 +167,7 @@ const ResultsLineup = React.createClass({
         <ResultsPane onHide={this.handleHideContestPane} />
       </div>
     );
-  }
+  },
 });
 
 

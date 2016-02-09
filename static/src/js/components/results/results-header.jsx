@@ -1,13 +1,10 @@
-'use strict';
-
 import React from 'react';
-
-import {monthNumToName} from '../../lib/time.js';
+import { monthNumToName } from '../../lib/time.js';
 
 const ResultsHeader = React.createClass({
 
   propTypes: {
-    children: React.PropTypes.element
+    children: React.PropTypes.element,
   },
 
   getTitle() {
@@ -35,7 +32,7 @@ const ResultsHeader = React.createClass({
         </div>
       </div>
     );
-  }
+  },
 
 });
 

@@ -1,12 +1,8 @@
-'use strict';
-
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 
 const ResultsStats = React.createClass({
-
-  mixins: [PureRenderMixin],
 
   propTypes: {
     stats: React.PropTypes.shape({
@@ -14,9 +10,11 @@ const ResultsStats = React.createClass({
       possible: React.PropTypes.string.isRequired,
       fees: React.PropTypes.string.isRequired,
       entries: React.PropTypes.number.isRequired,
-      contests: React.PropTypes.number.isRequired
-    }).isRequired
+      contests: React.PropTypes.number.isRequired,
+    }).isRequired,
   },
+
+  mixins: [PureRenderMixin],
 
   render() {
     return (
@@ -53,7 +51,7 @@ const ResultsStats = React.createClass({
         </div>
       </div>
     );
-  }
+  },
 
 });
 
