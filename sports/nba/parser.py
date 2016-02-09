@@ -375,13 +375,13 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.quarter','pbp'):
             QuarterPbp().parse( obj )
             # force = False allows it to be delayed (attempt to link it to statss for a few seconds)
-            PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'quarter' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES, force=False ) # use Pusher to send this object after DB entry created
+            PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'quarter' ).send( obj ) # use Pusher to send this object after DB entry created
             self.add_pbp( obj ) # stashes the pbp object for the trailing history
         #
         # nba.event
         elif self.target == ('nba.event','pbp'):
             EventPbp().parse( obj )
-            PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES, force=False ) # use Pusher to send this object after DB entry created
+            PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( obj ) # use Pusher to send this object after DB entry created
             self.add_pbp( obj ) # stashes the pbp object for the trailing history
         #
         # nba.player

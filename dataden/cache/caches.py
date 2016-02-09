@@ -476,7 +476,11 @@ class LinkableObject(AbstractLinkableObject):
             return self.link_id
         #
         # otherwise try to extract it
-        linking_id = self.obj.get(self.field)
+        print('------------------------------------------------------------------')
+        print('get_linking_id() self.obj ==> %s' % str(self.obj))
+        print('get_linking_id() self.obj.get_o() ==> %s' % str(self.obj.get_o()))
+        print('------------------------------------------------------------------')
+        linking_id = self.obj.get_o().get(self.field)
         if linking_id is None:
             raise self.LinkingIdIsNoneException('linking_id field (%s) value is None!' % self.field)
         return linking_id
