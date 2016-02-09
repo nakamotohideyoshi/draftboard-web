@@ -1,7 +1,7 @@
-import 'babel-core/polyfill'
-const request = require('superagent-promise')(require('superagent'), Promise)
+import 'babel-core/polyfill';
+const request = require('superagent-promise')(require('superagent'), Promise);
 
-import * as ActionTypes from '../action-types'
+import * as ActionTypes from '../action-types';
 
 
 const requestLineupUsernames = (contestId) => ({
@@ -14,7 +14,7 @@ const receiveLineupUsernames = (contestId, response) => ({
   contestId,
   type: ActionTypes.RECEIVE_LINEUP_USERNAMES,
   lineups: response.lineups,
-})
+});
 
 
 export const fetchLineupUsernames = (contestId) => (dispatch) => {

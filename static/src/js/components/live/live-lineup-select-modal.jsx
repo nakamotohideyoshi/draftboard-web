@@ -1,7 +1,7 @@
-import _ from 'lodash'
-import Modal from '../modal/modal.jsx'
-import React from 'react'
-import moment from 'moment'
+import _ from 'lodash';
+import Modal from '../modal/modal.jsx';
+import React from 'react';
+import moment from 'moment';
 
 
 /**
@@ -23,38 +23,38 @@ const LiveLineupSelectModal = React.createClass({
     return {
       isOpen: true,
       selectedSport: 'nba',
-    }
+    };
   },
 
   getModalContent() {
-    return (this.state.selectedSport === null) ? this.renderSports() : this.renderLineups()
+    return (this.state.selectedSport === null) ? this.renderSports() : this.renderLineups();
   },
 
   open() {
-    this.setState({ isOpen: true })
+    this.setState({ isOpen: true });
   },
 
   close() {
     this.resetSport();
-    this.setState({ isOpen: false })
+    this.setState({ isOpen: false });
   },
 
   resetSport() {
-    this.setState({ selectedSport: null })
+    this.setState({ selectedSport: null });
   },
 
   selectSport(sport) {
-    this.setState({ selectedSport: sport })
+    this.setState({ selectedSport: sport });
   },
 
   selectLineup(entry) {
-    const path = `/live/lineups/${entry.lineup}/`
+    const path = `/live/lineups/${entry.lineup}/`;
     const changedFields = {
       draftGroupId: entry.draft_group,
       myLineupId: entry.lineup,
-    }
+    };
 
-    this.props.changePathAndMode(path, changedFields)
+    this.props.changePathAndMode(path, changedFields);
   },
 
   /*
@@ -65,22 +65,22 @@ const LiveLineupSelectModal = React.createClass({
    * }
    */
   sportLineups() {
-    const sportLineups = {}
+    const sportLineups = {};
 
     _.forEach(this.props.entries, (lineup) => {
-      const sport = lineup.draftGroup.sport
+      const sport = lineup.draftGroup.sport;
 
       if (sport in sportLineups) {
-        sportLineups[sport] += 1
+        sportLineups[sport] += 1;
       } else {
-        sportLineups[sport] = 1
+        sportLineups[sport] = 1;
       }
-    })
-    return sportLineups
+    });
+    return sportLineups;
   },
 
   renderSports() {
-    const sportLineups = this.sportLineups()
+    const sportLineups = this.sportLineups();
     const sportsSorted = Object.keys(sportLineups).sort((x, y) => x > y);
 
     const sports = sportsSorted.map((sport) => (
@@ -92,11 +92,11 @@ const LiveLineupSelectModal = React.createClass({
         <h4 className="cmp-live-lineup-select__sport__title">{sport}</h4>
         <div className="cmp-live-lineup-select__sport__sub">{sportLineups[sport]} lineups</div>
       </li>
-    ))
+    ));
 
     return (
       <ul>{sports}</ul>
-    )
+    );
   },
 
   renderLineups() {
@@ -104,7 +104,7 @@ const LiveLineupSelectModal = React.createClass({
     //  this.props.lineups, (lineup) => lineup.draftGroup.sport === this.state.selectedSport
     // )
     const lineups = this.props.entries.map((lineup) => {
-      const name = (lineup.name === undefined) ? 'Example Lineup Name' : lineup.name
+      const name = (lineup.name === undefined) ? 'Example Lineup Name' : lineup.name;
 
       return (
         <li
@@ -117,19 +117,19 @@ const LiveLineupSelectModal = React.createClass({
             {moment(lineup.start).format('MMM Do, h:mma')}
           </div>
         </li>
-      )
+      );
     });
 
     return (
       <ul>{lineups}</ul>
-    )
+    );
   },
 
   render() {
     // let title = (this.state.selectedSport) ? 'Choose a lineup' : 'Choose a sport'
-    let title = 'Choose a lineup'
+    let title = 'Choose a lineup';
     if (_.size(this.props.entries) === 0) {
-      title = 'You have no entered lineups.'
+      title = 'You have no entered lineups.';
     }
 
     return (
@@ -147,6 +147,6 @@ const LiveLineupSelectModal = React.createClass({
       </Modal>
     );
   },
-})
+});
 
-export default LiveLineupSelectModal
+export default LiveLineupSelectModal;

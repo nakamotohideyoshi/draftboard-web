@@ -1,12 +1,12 @@
-import Raven from 'raven-js'
-import { addMessage } from './message-actions.js'
+import Raven from 'raven-js';
+import { addMessage } from './message-actions.js';
 
 
 export default (exception, content) => (dispatch) => {
-  Raven.captureException(exception)
+  Raven.captureException(exception);
 
   dispatch(addMessage({
     level: 'warning',
     content,
-  }))
-}
+  }));
+};

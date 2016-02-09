@@ -1,11 +1,11 @@
-const moment = require('moment')
-const request = require('superagent-promise')(require('superagent'), Promise)
-import 'babel-core/polyfill'
-import _ from 'lodash'
+const moment = require('moment');
+const request = require('superagent-promise')(require('superagent'), Promise);
+import 'babel-core/polyfill';
+import _ from 'lodash';
 
-import * as ActionTypes from '../action-types'
-import log from '../lib/logging'
-import { fetchDraftGroupIfNeeded } from './live-draft-groups'
+import * as ActionTypes from '../action-types';
+import log from '../lib/logging';
+import { fetchDraftGroupIfNeeded } from './live-draft-groups';
 
 
 // dispatch to reducer methods
@@ -18,7 +18,7 @@ import { fetchDraftGroupIfNeeded } from './live-draft-groups'
  */
 const requestCurrentDraftGroups = () => ({
   type: ActionTypes.REQUEST_CURRENT_DRAFT_GROUPS,
-})
+});
 
 /**
  * Dispatch API response object of draft groups to the store
@@ -30,7 +30,7 @@ const receiveCurrentDraftGroups = (response) => ({
   type: ActionTypes.RECEIVE_CURRENT_DRAFT_GROUPS,
   draftGroups: response,
   updatedAt: Date.now(),
-})
+});
 
 
 // internal helpers
@@ -41,7 +41,7 @@ const receiveCurrentDraftGroups = (response) => ({
  * @return {promise}   Promise that resolves with API response body to reducer
  */
 const fetchCurrentDraftGroups = () => (dispatch) => {
-  dispatch(requestCurrentDraftGroups())
+  dispatch(requestCurrentDraftGroups());
 
   return request.get(
     '/api/draft-group/current/'
@@ -50,8 +50,8 @@ const fetchCurrentDraftGroups = () => (dispatch) => {
     Accept: 'application/json',
   }).then(
     (res) => dispatch(receiveCurrentDraftGroups(res.body))
-  )
-}
+  );
+};
 
 /**
  * Method to determine whether we need to fetch current draft groups.
@@ -61,19 +61,19 @@ const fetchCurrentDraftGroups = () => (dispatch) => {
  */
 const shouldFetchCurrentDraftGroups = (state) => {
   // if expired, then get
-  const expiration = moment(state.currentDraftGroups.updatedAt).add(10, 'minutes')
+  const expiration = moment(state.currentDraftGroups.updatedAt).add(10, 'minutes');
   if (moment().isAfter(expiration)) {
-    return true
+    return true;
   }
 
   // if we have never called, then fetch
   if ('items' in state.currentDraftGroups === false) {
-    return true
+    return true;
   }
 
   // if we have fetched but have no data, then try again
-  return state.currentDraftGroups.items.length === 0
-}
+  return state.currentDraftGroups.items.length === 0;
+};
 
 
 // exported methods
@@ -91,7 +91,7 @@ const shouldFetchCurrentDraftGroups = (state) => {
  */
 export const fetchRelatedDraftGroupsInfo = () => (dispatch, getState) => Promise.all(
   _.map(getState().currentDraftGroups.items, (draftGroup) => dispatch(fetchDraftGroupIfNeeded(draftGroup.pk)))
-)
+);
 
 /**
  * Outside facing method to go ahead and fetch draft groups after checking whether we should
@@ -100,14 +100,14 @@ export const fetchRelatedDraftGroupsInfo = () => (dispatch, getState) => Promise
  */
 export const fetchCurrentDraftGroupsIfNeeded = () => (dispatch, getState) => {
   if (shouldFetchCurrentDraftGroups(getState()) === false) {
-    return Promise.resolve('Draft group exists')
+    return Promise.resolve('Draft group exists');
   }
 
-  log.info('actions.currentDraftGroups.fetchCurrentDraftGroupsIfNeeded() - Updating draft groups')
+  log.info('actions.currentDraftGroups.fetchCurrentDraftGroupsIfNeeded() - Updating draft groups');
 
   return dispatch(
     fetchCurrentDraftGroups()
   ).then(() =>
     dispatch(fetchRelatedDraftGroupsInfo())
-  )
-}
+  );
+};

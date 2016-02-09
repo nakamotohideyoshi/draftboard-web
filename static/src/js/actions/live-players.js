@@ -1,9 +1,9 @@
 import 'babel-core/polyfill';  // so I can use Promises
-const request = require('superagent-promise')(require('superagent'), Promise)
-import _ from 'lodash'
-import moment from 'moment'
+const request = require('superagent-promise')(require('superagent'), Promise);
+import _ from 'lodash';
+import moment from 'moment';
 
-import * as ActionTypes from '../action-types'
+import * as ActionTypes from '../action-types';
 
 
 // dispatch to reducer methods
@@ -18,7 +18,7 @@ import * as ActionTypes from '../action-types'
 const requestPlayersStats = (lineupId) => ({
   lineupId,
   type: ActionTypes.REQUEST_LIVE_PLAYERS_STATS,
-})
+});
 
 /**
  * Dispatch API response object of contest lineups (in bytes and parsed json)
@@ -29,31 +29,31 @@ const requestPlayersStats = (lineupId) => ({
  * @return {object}               Changes for reducer
  */
 const receivePlayersStats = (lineupId, response) => {
-  const players = {}
+  const players = {};
   _.forEach(response, (player) => {
     // don't include if the player hasn't started
     if (player.started === false ||
         player.hasOwnProperty('data') === false ||
         player.data.length === 0 ||
         player.data[0].hasOwnProperty('fields') === false) {
-      return
+      return;
     }
 
-    const playerFields = player.data[0].fields
+    const playerFields = player.data[0].fields;
 
     players[playerFields.srid_player] = Object.assign(
       { lineup_id: lineupId },
       playerFields
-    )
-  })
+    );
+  });
 
   return {
     type: ActionTypes.RECEIVE_LIVE_PLAYERS_STATS,
     lineupId,
     players,
     expiresAt: moment(Date.now()).add(10, 'minutes'),
-  }
-}
+  };
+};
 
 /**
  * Dispatch information to reducer that we have new player stats from pusher call
@@ -64,7 +64,7 @@ export const updateLivePlayersStats = (playerSRID, fields) => ({
   playerSRID,
   fields,
   type: ActionTypes.UPDATE_LIVE_PLAYER_STATS,
-})
+});
 
 
 // helper methods
@@ -77,7 +77,7 @@ export const updateLivePlayersStats = (playerSRID, fields) => ({
  * @return {promise}           Promise that resolves with API response body to reducer
  */
 const fetchPlayersStats = (lineupId) => (dispatch) => {
-  dispatch(requestPlayersStats(lineupId))
+  dispatch(requestPlayersStats(lineupId));
 
   return request.get(
     `/api/contest/lineup/${lineupId}/`
@@ -86,8 +86,8 @@ const fetchPlayersStats = (lineupId) => (dispatch) => {
     Accept: 'application/json',
   }).then(
     (res) => dispatch(receivePlayersStats(lineupId, res.body))
-  )
-}
+  );
+};
 
 /**
  * Method to determine whether we need to fetch a contest.
@@ -96,23 +96,23 @@ const fetchPlayersStats = (lineupId) => (dispatch) => {
  * @return {boolean}        True if we should fetch, false if not
  */
 const shouldFetchPlayersStats = (state, lineupId) => {
-  const lineup = state.currentLineups.items[lineupId] || {}
+  const lineup = state.currentLineups.items[lineupId] || {};
 
   // if it hasn't started yet, don't bother getting lineups yet
   if (moment().isAfter(lineup.start)) {
-    return false
+    return false;
   }
 
   if (moment().isBefore(state.livePlayers.expiresAt)) {
-    return false
+    return false;
   }
 
   if (state.livePlayers.isFetching.indexOf(lineupId) !== -1) {
-    return false
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 
 // primary methods
@@ -120,10 +120,10 @@ const shouldFetchPlayersStats = (state, lineupId) => {
 
 export const fetchPlayersStatsIfNeeded = (lineupId) => (dispatch, getState) => {
   if (shouldFetchPlayersStats(getState(), lineupId) === false) {
-    return Promise.resolve('Lineup players stats currently being pulled for this lineup')
+    return Promise.resolve('Lineup players stats currently being pulled for this lineup');
   }
 
   return dispatch(
     fetchPlayersStats(lineupId)
-  )
-}
+  );
+};

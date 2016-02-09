@@ -1,66 +1,65 @@
-import ActionTypes from '../action-types'
+import ActionTypes from '../action-types';
 
 
 const initialState = {
   payments: [],
   depositFormErrors: {},
-  withdrawalFormErrors: {}
-}
+  withdrawalFormErrors: {},
+};
 
 
-module.exports = function(state = initialState, action) {
-
-  switch(action.type) {
+module.exports = (state = initialState, action) => {
+  switch (action.type) {
 
     case ActionTypes.FETCH_PAYMENTS_SUCCESS:
       return Object.assign({}, state, {
-        payments: action.body
+        payments: action.body,
       });
 
     case ActionTypes.ADD_PAYMENT_METHOD_SUCCESS:
       return Object.assign({}, state, {
-        payments: state.payments.append(action.body)
+        payments: state.payments.append(action.body),
       });
 
     case ActionTypes.SET_PAYMENT_METHOD_DEFAULT_SUCCESS:
       return Object.assign({}, state, {
         payments: state.payments.map((payment) => {
-          let toUpdate = payment;
+          const toUpdate = payment;
           if (payment.id === action.id) {
-            toUpdate.isDefault = true
+            toUpdate.isDefault = true;
           } else {
-            toUpdate.isDefault = false
+            toUpdate.isDefault = false;
           }
-          return toUpdate
-        })
+          return toUpdate;
+        }),
       });
 
     case ActionTypes.REMOVE_PAYMENT_METHOD_SUCCESS:
       return Object.assign({}, state, {
-        payments: state.payments.filter((payment) => {return payment.id !== action.id})
+        payments: state.payments.filter((payment) => payment.id !== action.id),
       });
 
     case ActionTypes.DEPOSIT_SUCCESS:
       return Object.assign({}, state, {
-        depositFormErrors: {}
+        depositFormErrors: {},
       });
 
     case ActionTypes.DEPOSIT_FAIL:
       return Object.assign({}, state, {
-        depositFormErrors: action.ex.response.body.errors
+        depositFormErrors: action.ex.response.body.errors,
       });
 
     case ActionTypes.WITHDRAW_SUCCESS:
       return Object.assign({}, state, {
-        withdrawalFormErrors: {}
+        withdrawalFormErrors: {},
       });
 
     case ActionTypes.WITHDRAW_FAIL:
       return Object.assign({}, state, {
-        withdrawalFormErrors: action.ex.response.body.errors
+        withdrawalFormErrors: action.ex.response.body.errors,
       });
 
     default:
       return state;
   }
-}
+};

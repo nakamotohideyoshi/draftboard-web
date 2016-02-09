@@ -7,7 +7,7 @@ import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
 import { addMessage } from './message-actions.js';
 import { find as _find } from 'lodash';
-import store from '../store.js'
+import store from '../store.js';
 
 
 // A place to store setInterval IDs. This should probably be put in the store instead.
@@ -75,7 +75,7 @@ function clearMonitor(taskId) {
   store.dispatch({
     type: types.DELETE_LINEUP_EDIT_REQUEST,
     taskId,
-  })
+  });
 }
 
 
@@ -208,7 +208,7 @@ function fetchIfNeeded(taskId) {
     const state = getState();
 
     if (!state.lineupEditRequests.hasOwnProperty(taskId)) {
-      log.warn('ignoring fetchIfNeeded request, task no longer exists.', taskId)
+      log.warn('ignoring fetchIfNeeded request, task no longer exists.', taskId);
       return dispatch({
         type: types.IGNORING_FETCH_LINEUP_EDIT_REQUEST,
       });

@@ -51,7 +51,7 @@ module.exports = (state = initialState, action) => {
       stateCopy[action.taskId].status = 'FETCHING';
       stateCopy[action.taskId].attempt = attemptCount;
 
-      return stateCopy
+      return stateCopy;
 
 
     case ActionTypes.LINEUP_EDIT_REQUEST_RECIEVED:

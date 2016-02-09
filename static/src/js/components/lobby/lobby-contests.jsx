@@ -146,7 +146,7 @@ const LobbyContests = React.createClass({
 
 
   onContestUpdateReceived(event) {
-    this.props.upcomingContestUpdateReceived(event)
+    this.props.upcomingContestUpdateReceived(event);
   },
 
 

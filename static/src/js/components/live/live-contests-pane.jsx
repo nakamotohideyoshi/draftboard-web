@@ -1,8 +1,8 @@
-import React from 'react'
-import { map as _map } from 'lodash'
+import React from 'react';
+import { map as _map } from 'lodash';
 
-import * as AppActions from '../../stores/app-state-store'
-import LiveContestsPaneItem from './live-contests-pane-item'
+import * as AppActions from '../../stores/app-state-store';
+import LiveContestsPaneItem from './live-contests-pane-item';
 
 
 /**
@@ -18,23 +18,23 @@ const LiveContestsPane = React.createClass({
   },
 
   viewContest(contestId) {
-    const mode = this.props.mode
-    const path = `/live/lineups/${mode.myLineupId}/contests/${contestId}/`
+    const mode = this.props.mode;
+    const path = `/live/lineups/${mode.myLineupId}/contests/${contestId}/`;
     const changedFields = {
       draftGroupId: mode.draftGroupId,
       myLineupId: mode.myLineupId,
       contestId,
-    }
+    };
 
-    this.props.changePathAndMode(path, changedFields)
+    this.props.changePathAndMode(path, changedFields);
   },
 
   closePane() {
-    AppActions.removeClass('appstate--live-contests-pane--open')
+    AppActions.removeClass('appstate--live-contests-pane--open');
   },
 
   renderContests() {
-    const lineup = this.props.lineup
+    const lineup = this.props.lineup;
 
     return _map(lineup.contestsStats, (contest) => (
       <LiveContestsPaneItem
@@ -43,7 +43,7 @@ const LiveContestsPane = React.createClass({
         key={contest.id}
         lineupPotentialEarnings={lineup.potentialEarnings || 0}
       />
-    ))
+    ));
   },
 
   render() {
@@ -66,8 +66,8 @@ const LiveContestsPane = React.createClass({
 
         <div className="live-contests-pane__view-contest" onClick={this.viewContest} />
       </div>
-    )
+    );
   },
-})
+});
 
-export default LiveContestsPane
+export default LiveContestsPane;

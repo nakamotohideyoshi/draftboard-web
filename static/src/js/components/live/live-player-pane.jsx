@@ -1,8 +1,8 @@
-import React from 'react'
+import React from 'react';
 
-import * as AppActions from '../../stores/app-state-store'
-import LivePMRProgressBar from './live-pmr-progress-bar'
-import log from '../../lib/logging'
+import * as AppActions from '../../stores/app-state-store';
+import LivePMRProgressBar from './live-pmr-progress-bar';
+import log from '../../lib/logging';
 
 
 /**
@@ -22,12 +22,12 @@ const LivePlayerPane = React.createClass({
    * Close the player pane using AppActions
    */
   closePane() {
-    log.debug('LivePlayerPane.closePane()')
+    log.debug('LivePlayerPane.closePane()');
 
     if (this.props.whichSide === 'opponent') {
-      AppActions.togglePlayerPane('right')
+      AppActions.togglePlayerPane('right');
     } else {
-      AppActions.togglePlayerPane('left')
+      AppActions.togglePlayerPane('left');
     }
   },
 
@@ -37,24 +37,24 @@ const LivePlayerPane = React.createClass({
    * @return {JSXElement}
    */
   renderStatsAverage() {
-    const player = this.props.player
+    const player = this.props.player;
 
-    let renderedStats
+    let renderedStats;
     if (player.hasOwnProperty('seasonalStats') === true) {
       // ordered stats
-      const statTypes = ['fp', 'points', 'rebounds', 'assists', 'steals', 'turnovers']
-      const statNames = ['FPPG', 'PPG', 'RPG', 'APG', 'stlpg', 'TOPG']
+      const statTypes = ['fp', 'points', 'rebounds', 'assists', 'steals', 'turnovers'];
+      const statNames = ['FPPG', 'PPG', 'RPG', 'APG', 'stlpg', 'TOPG'];
 
       renderedStats = statTypes.map((statType, index) => {
-        const value = player.seasonalStats[`avg_${statType}`].toFixed(1)
+        const value = player.seasonalStats[`avg_${statType}`].toFixed(1);
 
         return (
           <li key={statType}>
             <div className="stat-name">{statNames[index]}</div>
             <div className="stat-score">{value}</div>
           </li>
-        )
-      })
+        );
+      });
     }
 
     return (
@@ -63,7 +63,7 @@ const LivePlayerPane = React.createClass({
           {renderedStats}
         </ul>
       </div>
-    )
+    );
   },
 
   /**
@@ -72,25 +72,25 @@ const LivePlayerPane = React.createClass({
    * @return {JSXElement}
    */
   renderCurrentGame() {
-    const game = this.props.game
+    const game = this.props.game;
 
     // if the game isn't loaded yet or something then return
     if (!game.hasOwnProperty('boxscore')) {
-      log.debug('LivePlayerPane.renderCurrentGame() - boxScore undefined')
-      return (<div className="current-game" />)
+      log.debug('LivePlayerPane.renderCurrentGame() - boxScore undefined');
+      return (<div className="current-game" />);
     }
 
-    const boxScore = game.boxscore
+    const boxScore = game.boxscore;
 
     // TODO Live - make sure clock and quarter display are set in liveSelector so we don't do logic in the component
-    let gameTimeInfo
+    let gameTimeInfo;
     if (boxScore.status === 'closed') {
-      gameTimeInfo = ['', 'Final']
+      gameTimeInfo = ['', 'Final'];
     } else {
       gameTimeInfo = [
         boxScore.clock,
         boxScore.quarterDisplay,
-      ]
+      ];
     }
 
     return (
@@ -116,7 +116,7 @@ const LivePlayerPane = React.createClass({
           </div>
         </div>
       </div>
-    )
+    );
   },
 
   /**
@@ -127,10 +127,10 @@ const LivePlayerPane = React.createClass({
    */
   renderActivities() {
     // reverse to show most recent event first
-    const eventHistory = this.props.eventHistory
+    const eventHistory = this.props.eventHistory;
 
     const activitiesHTML = eventHistory.map((activity, index) => {
-      const { points, info, when } = activity
+      const { points, info, when } = activity;
       return (
         <li className="activity" key={index}>
           <div className="points-gained">{points}</div>
@@ -139,15 +139,15 @@ const LivePlayerPane = React.createClass({
             <p className="time">{when}</p>
           </div>
         </li>
-      )
-    })
+      );
+    });
 
     return (
       <div className="recent-activity">
         <div className="recent-activity__title">Recent activity</div>
         <ul>{activitiesHTML}</ul>
       </div>
-    )
+    );
   },
 
   /**
@@ -156,15 +156,15 @@ const LivePlayerPane = React.createClass({
    * @return {JSXElement}
    */
   renderHeader() {
-    const player = this.props.player
-    const teamInfo = player.teamInfo
+    const player = this.props.player;
+    const teamInfo = player.teamInfo;
 
-    let fp = 0
-    let percentOwned = ''
+    let fp = 0;
+    let percentOwned = '';
 
     // TODO Live - make sure this stat is in the liveSelector and remove logic from component
     if (player.stats !== undefined) {
-      fp = player.stats.fp
+      fp = player.stats.fp;
     }
 
     if (player.ownershipPercent !== undefined) {
@@ -173,7 +173,7 @@ const LivePlayerPane = React.createClass({
           <p>% owned</p>
           <p>{player.ownershipPercent}</p>
         </div>
-      )
+      );
     }
 
     return (
@@ -206,12 +206,12 @@ const LivePlayerPane = React.createClass({
 
         </div>
       </section>
-    )
+    );
   },
 
   render() {
-    const side = this.props.whichSide === 'opponent' ? 'right' : 'left'
-    const className = `player-detail-pane live-player-pane live-pane live-pane--${side} live-pane-player--${side}`
+    const side = this.props.whichSide === 'opponent' ? 'right' : 'left';
+    const className = `player-detail-pane live-player-pane live-pane live-pane--${side} live-pane-player--${side}`;
 
     return (
       <div className={className}>
@@ -227,9 +227,9 @@ const LivePlayerPane = React.createClass({
           {this.renderActivities()}
         </div>
       </div>
-    )
+    );
   },
-})
+});
 
 
-export default LivePlayerPane
+export default LivePlayerPane;

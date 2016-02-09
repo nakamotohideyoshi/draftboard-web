@@ -1,22 +1,20 @@
-'use strict';
-
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 
 import {
-  getDaysForMonth, weekdayNumToName, monthNumToName, daysToWeekView
+  getDaysForMonth, weekdayNumToName, monthNumToName, daysToWeekView,
 } from '../../lib/time.js';
 
 const DatePicker = React.createClass({
-
-  mixins: [PureRenderMixin],
 
   propTypes: {
     year: React.PropTypes.number.isRequired,
     month: React.PropTypes.number.isRequired,
     day: React.PropTypes.number.isRequired,
-    onSelectDate: React.PropTypes.func.isRequired
+    onSelectDate: React.PropTypes.func.isRequired,
   },
+
+  mixins: [PureRenderMixin],
 
   getInitialState() {
     const { year, month, day } = this.props;
@@ -31,6 +29,15 @@ const DatePicker = React.createClass({
     this.setDate(nextProps);
   },
 
+  getWeeklyMonthData() {
+    const { year, month } = this.state;
+
+    const daysOfTheMonth = getDaysForMonth(year, month);
+    const daysByWeeks = daysToWeekView(daysOfTheMonth);
+
+    return daysByWeeks;
+  },
+
   /**
    * Sets the date of the slider. We don't use the date from props
    * because the internal state of the calendar may differ from the
@@ -38,10 +45,6 @@ const DatePicker = React.createClass({
    * to copy date information from props to state.
    */
   setDate({ year, month, day }) {
-    console.assert(year !== null);
-    console.assert(month !== null);
-    console.assert(day !== null);
-
     this.setState({ year, month, day });
   },
 
@@ -71,31 +74,20 @@ const DatePicker = React.createClass({
     this.setState({ year, month, day: 1 });
   },
 
-  getWeeklyMonthData() {
-    const { year, month } = this.state;
-
-    const daysOfTheMonth = getDaysForMonth(year, month);
-    const daysByWeeks = daysToWeekView(daysOfTheMonth);
-
-    return daysByWeeks;
-  },
-
   genMonthTable() {
     const data = this.getWeeklyMonthData();
     const rows = data.length;
     const cols = 7;
 
-    const tableCaption = [0, 1, 2, 3, 4, 5, 6].map((i) => {
-      return <td key={i}>{weekdayNumToName(i)}</td>;
-    });
-    const tableContent = data.map((week, weekNum) => {
+    const tableCaption = [0, 1, 2, 3, 4, 5, 6].map((i) => <td key={i}>{weekdayNumToName(i)}</td>);
+    const tableContent = data.map((week) => {
       const days = week.map((day) => {
         let className = '';
         if (day.getDate() === this.state.day &&
             day.getMonth() === this.state.month) className += 'selected ';
         if (day.getMonth() !== this.state.month) className += 'inactive ';
 
-        let selectHandler = this.handleSelectDate.bind(
+        const selectHandler = this.handleSelectDate.bind(
           this,
           day.getFullYear(),
           day.getMonth(),
@@ -125,7 +117,7 @@ const DatePicker = React.createClass({
   },
 
   render() {
-    const { year, month, day } = this.state;
+    const { year, month } = this.state;
 
     return (
       <div className="date-picker">
@@ -140,7 +132,7 @@ const DatePicker = React.createClass({
         </div>
       </div>
     );
-  }
+  },
 });
 
 

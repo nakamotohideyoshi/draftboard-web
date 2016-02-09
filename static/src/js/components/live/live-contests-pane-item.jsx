@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 
 /**
@@ -16,19 +16,19 @@ const LiveContestsPaneItem = React.createClass({
    * Propogating up a click handler to choose this contest to view
    */
   _onClick() {
-    this.props.onItemClick(this.props.contest.id)
+    this.props.onItemClick(this.props.contest.id);
   },
 
   render() {
-    const contest = this.props.contest
-    let moneyLineClass = 'live-moneyline'
+    const contest = this.props.contest;
+    let moneyLineClass = 'live-moneyline';
 
     if (contest.percentageCanWin <= contest.myPercentagePosition) {
-      moneyLineClass += ' live-moneyline--is-losing'
+      moneyLineClass += ' live-moneyline--is-losing';
     }
 
     // flip to be to the right
-    const myPercentagePosition = 100 - contest.myPercentagePosition
+    const myPercentagePosition = 100 - contest.myPercentagePosition;
 
     return (
       <li className="live-contests-pane__contest" key={ contest.id }>
@@ -52,8 +52,8 @@ const LiveContestsPaneItem = React.createClass({
 
         <div className="live-contest-cta" onClick={this._onClick}>Watch Live</div>
       </li>
-    )
+    );
   },
-})
+});
 
-export default LiveContestsPaneItem
+export default LiveContestsPaneItem;

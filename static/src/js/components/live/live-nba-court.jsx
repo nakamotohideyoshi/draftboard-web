@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-import LiveNBACourtShooter from'./live-nba-court-shooter'
+import LiveNBACourtShooter from'./live-nba-court-shooter';
 
 
 /**
@@ -13,7 +13,7 @@ const LiveNBACourt = React.createClass({
   },
 
   render() {
-    const self = this
+    const self = this;
     const currentEvents = Object.keys(self.props.courtEvents).map((key) => {
       const event = self.props.courtEvents[key];
 
@@ -24,8 +24,8 @@ const LiveNBACourt = React.createClass({
           x={ event.location.coord_x }
           y={ event.location.coord_y }
         />
-      )
-    })
+      );
+    });
 
     return (
       <section className="cmp-live__court live-nba-court">
@@ -33,6 +33,6 @@ const LiveNBACourt = React.createClass({
       </section>
     );
   },
-})
+});
 
-export default LiveNBACourt
+export default LiveNBACourt;
