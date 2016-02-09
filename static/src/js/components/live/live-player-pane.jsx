@@ -160,10 +160,20 @@ const LivePlayerPane = React.createClass({
     const teamInfo = player.teamInfo
 
     let fp = 0
+    let percentOwned = ''
 
     // TODO Live - make sure this stat is in the liveSelector and remove logic from component
     if (player.stats !== undefined) {
       fp = player.stats.fp
+    }
+
+    if (player.ownershipPercent !== undefined) {
+      percentOwned = (
+        <div className="header__pts-stats__info">
+          <p>% owned</p>
+          <p>{player.ownershipPercent}</p>
+        </div>
+      )
     }
 
     return (
@@ -192,10 +202,7 @@ const LivePlayerPane = React.createClass({
             </div>
           </div>
 
-          <div className="header__pts-stats__info">
-            <p>% owned</p>
-            <p>18</p>
-          </div>
+          {percentOwned}
 
         </div>
       </section>

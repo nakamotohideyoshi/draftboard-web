@@ -1,6 +1,7 @@
 import * as ReactRedux from 'react-redux'
 import _ from 'lodash'
 import createBrowserHistory from 'history/lib/createBrowserHistory'
+import moment from 'moment'
 import Pusher from 'pusher-js'
 import React from 'react'
 import renderComponent from '../../lib/render-component'
@@ -111,6 +112,20 @@ const Live = React.createClass({
       })
     }
 
+    // for the record, this is a STUPID solution
+    // for some reason, removing the entry descriptions sometimes misses one, so this is an interval check to clean them
+    // const self = this
+    // window.setInterval(() => {
+    //   _.forEach(self.state.eventDescriptions, (playerEvents, playerId) => {
+    //     if (_.filter(playerEvents, event => moment().isAfter(event.expiresAt)).length > 0) {
+    //       const eventDescriptions = Object.assign({}, self.state.eventDescriptions)
+    //       delete(eventDescriptions[playerId])
+    //       self.setState({ eventDescriptions })
+    //     }
+    //   })
+    // }, 5000)
+
+    // start listening for pusher calls, and server updates
     this.startListening()
   },
 
@@ -370,6 +385,8 @@ const Live = React.createClass({
 
       // if boxscore, then update the boxscore data
       case 'boxscore':
+        log.info('Live.shiftOldestGameEvent().updateGame()', eventCall);
+
         this.props.updateGame(
           eventCall.game__id,
           eventCall.id,
@@ -413,6 +430,7 @@ const Live = React.createClass({
       location: eventCall.location__list,
       id: eventCall.id,
       whichSide: 'mine',
+      expiresAt: moment(Date.now()).add(10, 'seconds'),
     }
 
     const relevantPlayers = this.props.liveSelector.relevantPlayers
@@ -486,9 +504,13 @@ const Live = React.createClass({
         // remove the event beside the player when done
         setTimeout(() => {
           log.debug('setTimeout - remove event description')
-          const eventDescriptions = Object.assign({}, this.state.eventDescriptions)
-          delete(eventDescriptions[playerId])
-          this.setState({ eventDescriptions })
+          this.setState({
+            eventDescriptions: update(this.state.eventDescriptions, {
+              $set: {
+                [playerId]: null,
+              },
+            }),
+          })
         }, 4000)
       })
     }, 3000)
@@ -503,19 +525,6 @@ const Live = React.createClass({
 
     // enter the next item in the queue once everything is done
     setTimeout(() => {
-      // remove any rogue events first
-      // const eventDescriptions = Object.assign({}, this.state.eventDescriptions)
-      // const courtEventIds = Object.keys(this.state.courtEvents)
-      // const eventDescriptionCourtIds = _.map(eventDescriptions, (event) => event.courtEventId)
-      // const rogueEvents = _.difference(eventDescriptionCourtIds, courtEventIds)
-
-      // _.forEach(rogueEvents, (eventId) => {
-      //   const playerId = _.filter(eventDescriptions, (event) => event.courtEventId === eventId)[0].playerId
-      //   delete(eventDescriptions[playerId])
-      // })
-
-      // this.setState({ eventDescriptions })
-
       this.shiftOldestGameEvent(eventCall.game__id)
     }, 9000)
   },
