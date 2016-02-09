@@ -1,14 +1,17 @@
 #
 # testlink.py
 
+import time
 import random
 from django.core.management.base import BaseCommand, NoArgsCommand
+from dataden.watcher import OpLogObjWrapper
 from dataden.cache.caches import (
     RandomId,
 )
 import push.classes
 from push.classes import (
     DataDenPush,
+    StatsDataDenPush,
     PbpDataDenPush,
 )
 
@@ -20,7 +23,7 @@ class Command(BaseCommand):
     help = "test the multi queue object"
 
     object_id_field         = '_id'
-    object_common_id_field  = 'common_id'
+    object_common_id_field  = 'id'      # objects will be linked on this field
     common_ids              = ['a', 'b', 'c']
 
     def add_arguments(self, parser):
@@ -34,7 +37,7 @@ class Command(BaseCommand):
         self.obj_idx += 1
         return str(self.obj_idx)
 
-    def next_test_obj(self):
+    def next_test_obj(self, object_id=None, common_id=None):
         """
         using an incrementing unique object id mapped to '_id'
         and a random common linking id from self.common_ids,
@@ -42,14 +45,39 @@ class Command(BaseCommand):
 
         :return:
         """
+
+        oid = object_id
+        if oid is None:
+            oid = self.next_obj_id()
+
+        cid = common_id
+        if cid is None:
+            cid = self.get_random_common_id()
+
         obj = {
-            self.object_id_field        : self.next_obj_id(),
-            self.object_common_id_field : self.get_random_common_id(),
+            self.object_id_field        : oid,
+            self.object_common_id_field : cid,
 
             # different every run, easier to discern differences when obj debug printed
             'data'                      : RandomId().get_random_id(),
         }
-        return obj
+        livestats_obj = OpLogObjWrapper( 'test-sport', 'test-db', obj )
+        return livestats_obj
+
+    def __print_then_sleep(self, msg=None, sleep=None):
+
+        time_to_sleep = sleep
+        if time_to_sleep is None:
+            time_to_sleep = 1
+
+        message = msg
+        if message is None:
+            sleep_seconds_txt = '(%.1f sec sleep)' % float(sleep)
+            message = '--------------------%s-------------------' % (sleep_seconds_txt)
+        self.stdout.write( message )
+        self.stdout.write( '' )
+        self.stdout.write( '' )
+        time.sleep( sleep )
 
     def handle(self, *args, **options):
         """
@@ -64,16 +92,38 @@ class Command(BaseCommand):
         for x in options['values']:
             values.append( x )
 
-        #
-        # create a fake stats object and send it with pusher (potentially delaying linking)
+        default_sleep_seconds = 10
 
-        # # two of the same types of stats -- wont be linked, each sent out after delay expires
-        # DataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( self.next_test_obj(), async=True, force=False )
-        # DataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( self.next_test_obj(), async=True, force=False )
+        # two of the same types of stats -- wont be linked, each sent out after delay expires
+        obj1 = self.next_test_obj()
+        obj2 = self.next_test_obj()
+        StatsDataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( obj1 )
+        StatsDataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( obj2 )
+        self.__print_then_sleep(sleep=default_sleep_seconds)
 
         # two linked stats -- should be sent out immediately, as one thing! the delayed task wont send!
-        obj = self.next_test_obj()
-        DataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( obj, async=True, force=False )
-        PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( obj, async=True, force=False )
+        #
+        # IMPORTANT - we need to add the pbp objects to the "SENT" cache
+        #             even if they are sent in a LINKED chunk of data
+        obj3a   = self.next_test_obj(common_id=self.common_ids[0])
+        obj3b   = self.next_test_obj(common_id=self.common_ids[0])
+        PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( obj3a )
+        StatsDataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( obj3b )
+        self.__print_then_sleep(sleep=default_sleep_seconds)
+
+        # # two linked stats -- the nba_stats sent first, the pbp second
+        # #
+        # # IMPORTANT - we need to add the pbp objects to the "SENT" cache
+        # #             even if they are sent in a LINKED chunk of data
+        # obj4a = self.next_test_obj(common_id=self.common_ids[1])
+        # obj4b = self.next_test_obj(common_id=self.common_ids[1])
+        # StatsDataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( obj4a )
+        # PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( obj4b )
+        # self.__print_then_sleep(sleep=default_sleep_seconds)
+        #
+        # # try resending the pbp -- it shouldnt be sent again!
+        # # uses obj4b -- which was used previously
+        # PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( obj4b )
+        # # self.__print_then_sleep(sleep=6)
 
 

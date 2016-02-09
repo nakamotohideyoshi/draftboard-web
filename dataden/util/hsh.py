@@ -1,5 +1,5 @@
 #
-# dataden/hsh.py
+# dataden/util/hsh.py
 
 import json
 import hashlib
