@@ -9,6 +9,7 @@ import EnterContestButton from './enter-contest-button.jsx';
 import { enterContest, setFocusedContest, fetchContestEntrantsIfNeeded, }
   from '../../actions/upcoming-contests-actions.js';
 import * as AppActions from '../../stores/app-state-store.js';
+import { updatePath } from 'redux-simple-router';
 import { Router, Route } from 'react-router';
 import { syncReduxAndRouter } from 'redux-simple-router';
 import createBrowserHistory from 'history/lib/createBrowserHistory';
@@ -16,6 +17,8 @@ import CountdownClock from '../site/countdown-clock.jsx';
 import { fetchDraftGroupBoxScoresIfNeeded } from '../../actions/upcoming-draft-groups-actions.js';
 import { focusedContestInfoSelector, focusedLineupSelector } from '../../selectors/lobby-selectors.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
+import PubSub from 'pubsub-js';
+
 
 const history = createBrowserHistory();
 syncReduxAndRouter(history, store);
@@ -28,6 +31,7 @@ syncReduxAndRouter(history, store);
  */
 function mapStateToProps(state) {
   return {
+    allContests: state.upcomingContests.allContests,
     contestInfo: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
     boxScores: state.upcomingDraftGroups.boxScores,
@@ -47,6 +51,7 @@ function mapDispatchToProps(dispatch) {
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
     fetchContestEntrantsIfNeeded: (contestId) => dispatch(fetchContestEntrantsIfNeeded(contestId)),
+    updatePath: (path) => dispatch(updatePath(path)),
   };
 }
 
@@ -57,6 +62,7 @@ function mapDispatchToProps(dispatch) {
 const ContestListDetail = React.createClass({
 
   propTypes: {
+    allContests: React.PropTypes.object,
     boxScores: React.PropTypes.object,
     contestInfo: React.PropTypes.object,
     enterContest: React.PropTypes.func,
@@ -68,6 +74,7 @@ const ContestListDetail = React.createClass({
     setFocusedContest: React.PropTypes.func,
     teams: React.PropTypes.object,
     lineupsInfo: React.PropTypes.object,
+    updatePath: React.PropTypes.func,
   },
 
   getInitialState() {
@@ -77,22 +84,27 @@ const ContestListDetail = React.createClass({
   },
 
 
+  componentWillMount() {
+    PubSub.subscribe('pane.close', this.stripContestFromUrl);
+  },
+
+
   /**
    * When we get new props, check to see if the focusedContestId is the same as the id in the URL.
    * if it isn't, set what's in the URL as the focused contest and open the side panel to view it.
    */
   componentWillReceiveProps(nextProps) {
     // A new contest has been focused. Fetch all of it's required data.
-    if (nextProps.params.contestId && this.props.contestInfo.contest.id !== nextProps.params.contestId) {
+    if (nextProps.params.contestId && nextProps.contestInfo.contest.id !== nextProps.params.contestId) {
       AppActions.openPane();
       // // This is what "monitors" for URL changes.
       this.props.setFocusedContest(nextProps.params.contestId);
       this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId);
+    }
 
-      // If we've got the selected contest, use it's draft_group id to get the boxscores.
-      if (this.props.contestInfo.contest.hasOwnProperty('draft_group')) {
-        this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.contestInfo.contest.draft_group);
-      }
+    // If we've got the selected contest, use it's draft_group id to get the boxscores.
+    if (nextProps.contestInfo.contest.draft_group) {
+      this.props.fetchDraftGroupBoxScoresIfNeeded(nextProps.contestInfo.contest.draft_group);
     }
 
     // If we don't have team names (we problably do), fetch them.
@@ -109,13 +121,13 @@ const ContestListDetail = React.createClass({
         return (<PrizeStructure structure={this.props.contestInfo.prizeStructure} />);
 
       case 'games':
-        if (this.props.boxScores.hasOwnProperty(this.props.contestInfo.contest.id)) {
+        if (this.props.contestInfo.boxScores) {
           return (
             <GamesList
-              boxScores={this.props.boxScores[this.props.contestInfo.contest.id]}
+              boxScores={this.props.contestInfo.boxScores}
               teams={this.props.teams[this.props.contestInfo.contest.sport]}
             />
-            );
+          );
         }
 
         return 'no boxscore info';
@@ -166,6 +178,10 @@ const ContestListDetail = React.createClass({
 
       return (
         <div className="pane--contest-detail">
+          <div
+            onClick={this.closePane}
+            className="pane__close"
+          ></div>
           <div className="pane-upper">
             <div className="header">
               <div className="header__content">
@@ -173,7 +189,12 @@ const ContestListDetail = React.createClass({
                 <div className="header__info">
                   <div>
                     <div className="info-title">Live In</div>
-                    <span><CountdownClock time={this.props.contestInfo.contest.start} /></span>
+                    <span>
+                      <CountdownClock
+                        time={this.props.contestInfo.contest.start}
+                        timePassedDisplay="Live"
+                      />
+                    </span>
                   </div>
                 </div>
 
@@ -231,6 +252,16 @@ const ContestListDetail = React.createClass({
     return (
       <div>Select a Contest</div>
     );
+  },
+
+
+  stripContestFromUrl() {
+    this.props.updatePath('/lobby/');
+  },
+
+
+  closePane() {
+    AppActions.closePane();
   },
 
 

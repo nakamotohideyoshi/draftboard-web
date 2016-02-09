@@ -1,7 +1,7 @@
 {
   "extends": "airbnb",
   "rules": {
-    "semi": 0, // Throw a warning instead of an error on missing semicolons.
+    "semi": 1, // Throw a warning instead of an error on missing semicolons.
     "max-len": [2, 120, 2], // specify the maximum length of a line in your program (off by default)
     "react/prefer-es6-class": [0, "never"], // sadly using react es6 class requires es7 autobinding of class properties http://goo.gl/6pjYcU
     "no-unused-vars": 1,
