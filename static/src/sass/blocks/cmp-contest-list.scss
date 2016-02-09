@@ -116,19 +116,19 @@ $table-row-hover-bg: #f9fafb;
   // https://github.com/ordishs/react-animation-example
   @keyframes flash1 {
       0% {
-          background-color: red;
+          background-color: #f8fcf8;
       }
       100% {
-          background-color: white;
+          background-color: #fff;
       }
   }
 
   @keyframes flash2 {
       0% {
-          background-color: red;
+          background-color: #f8fcf8;
       }
       100% {
-          background-color: white;
+          background-color: #fff;
       }
   }
 
