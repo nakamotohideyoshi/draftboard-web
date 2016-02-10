@@ -463,6 +463,16 @@ category: Lineup
 
 
 
+// When a contest enter button is hovered - highlight the currently focused lineup card.
+body.appstate-enterContestButtonHover {
+  .cmp-lineup-card:first-child {
+    box-shadow: 0px 0px 10px 2px rgba(45, 186, 116, 0.9);
+    outline: 2px solid #2dba74;
+    // transition: outline .25s;
+  }
+}
+
+
 
 // When in the draft section, this is the new lineup card that you are creating.
 .cmp-lineup-card--new {
