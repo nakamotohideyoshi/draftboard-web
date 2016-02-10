@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-progress-bar'
+import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-progress-bar';
 
 
 /**
@@ -15,34 +15,34 @@ const LiveOverallStats = React.createClass({
   },
 
   renderOverallPMR() {
-    let hexStart
-    let hexEnd
-    const lineup = this.props.lineup
+    let hexStart;
+    let hexEnd;
+    const lineup = this.props.lineup;
 
     switch (this.props.whichSide) {
       case 'opponent':
-        hexStart = 'e33c3c'
-        hexEnd = '871c5a'
-        break
+        hexStart = 'e33c3c';
+        hexEnd = '871c5a';
+        break;
       default:
-        hexStart = '34B4CC'
-        hexEnd = '2871AC'
-        break
+        hexStart = '34B4CC';
+        hexEnd = '2871AC';
+        break;
     }
 
-    const strokeWidth = 2
-    const decimalDone = 1 - lineup.decimalRemaining
-    const backgroundHex = '#0c0e16'
-    const svgWidth = 280
+    const strokeWidth = 2;
+    const decimalDone = 1 - lineup.decimalRemaining;
+    const backgroundHex = '#0c0e16';
+    const svgWidth = 280;
 
-    const svgMidpoint = svgWidth / 2
-    const radius = (svgWidth - 40) / 2
+    const svgMidpoint = svgWidth / 2;
+    const radius = (svgWidth - 40) / 2;
 
     const backgroundCircle = {
       r: radius - (strokeWidth / 2),
       stroke: backgroundHex,
       strokeWidth: strokeWidth + 26,
-    }
+    };
 
     const progressArc = {
       hexStart: `#${hexStart}`,
@@ -50,16 +50,16 @@ const LiveOverallStats = React.createClass({
       hexEnd: `#${hexEnd}`,
       d: describeArc(0, 0, radius, decimalDone * 360, 360),
       strokeWidth,
-    }
+    };
 
-    let renderPMRCircle
+    let renderPMRCircle;
 
     // as long as the lineup is still active
     if (decimalDone !== 1) {
       const dottedRemainingArc = {
         strokeWidth: strokeWidth + 3,
         d: describeArc(0, 0, radius, 0, decimalDone * 360),
-      }
+      };
 
       // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
       // https://github.com/facebook/react/issues/1657#issuecomment-146905709
@@ -67,9 +67,9 @@ const LiveOverallStats = React.createClass({
         __html: `<g mask="url(#gradientMask)"> \
           <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${svgWidth}" fill="url(#cl2)" />\
           <rect x="0" y="-${svgMidpoint}" height="${svgWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`,
-      }
+      };
 
-      const endpointCoord = polarToCartesian(0, 0, radius, decimalDone * 360)
+      const endpointCoord = polarToCartesian(0, 0, radius, decimalDone * 360);
       const endOuter = {
         r: strokeWidth + 6,
         stroke: `#${percentageHexColor(hexEnd, hexStart, decimalDone)}`,
@@ -77,13 +77,13 @@ const LiveOverallStats = React.createClass({
         fill: backgroundHex,
         cx: endpointCoord.x,
         cy: endpointCoord.y,
-      }
+      };
 
       const endInner = {
         r: strokeWidth,
         cx: endpointCoord.x,
         cy: endpointCoord.y,
-      }
+      };
 
       renderPMRCircle = (
         <g>
@@ -124,7 +124,7 @@ const LiveOverallStats = React.createClass({
             />
           </g>
         </g>
-      )
+      );
     }
 
     // log.trace('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
@@ -153,21 +153,23 @@ const LiveOverallStats = React.createClass({
           { renderPMRCircle }
         </g>
       </svg>
-    )
+    );
   },
 
   render() {
-    const lineup = this.props.lineup
+    const lineup = this.props.lineup;
 
-    let potentialEarnings = 0
+    let potentialEarnings = 0;
     if (this.props.hasContest === false) {
-      potentialEarnings = lineup.totalPotentialEarnings
+      potentialEarnings = lineup.totalPotentialEarnings || 0;
     } else {
-      potentialEarnings = lineup.potentialEarnings
+      potentialEarnings = lineup.potentialEarnings || 0;
     }
 
     if (potentialEarnings !== 0) {
-      potentialEarnings = potentialEarnings.toFixed(2)
+      potentialEarnings = `$${potentialEarnings.toFixed(2)}`;
+    } else {
+      potentialEarnings = 'N/A';
     }
 
     return (
@@ -182,15 +184,15 @@ const LiveOverallStats = React.createClass({
             </div>
             <h4 className="live-overview__quantity">{ lineup.points }</h4>
           </div>
-          <div className="live-overview__potential-earnings">${ potentialEarnings }</div>
+          <div className="live-overview__potential-earnings">{ potentialEarnings }</div>
           <div className="live-overview__pmr">
             <div className="live-overview__pmr__quantity">{ lineup.minutesRemaining }</div>
             <div className="live-overview__pmr__title">PMR</div>
           </div>
         </section>
       </div>
-    )
+    );
   },
-})
+});
 
-export default LiveOverallStats
+export default LiveOverallStats;

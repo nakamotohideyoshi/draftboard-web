@@ -1,58 +1,31 @@
-"use strict";
+import 'babel-core/polyfill';
+const request = require('superagent-promise')(require('superagent'), Promise);
 
-import request from 'superagent';
-import { normalize, Schema, arrayOf } from 'normalizr';
-
-import ActionTypes from '../action-types';
-import log from '../lib/logging';
+import * as ActionTypes from '../action-types';
 
 
-function requestLineupUsernames(contestId) {
-  log.debug('actionsLineupUsernames.requestLineupUsernames');
-
-  return {
-    contestId,
-    type: ActionTypes.REQUEST_LINEUP_USERNAMES
-  };
-}
+const requestLineupUsernames = (contestId) => ({
+  contestId,
+  type: ActionTypes.REQUEST_LINEUP_USERNAMES,
+});
 
 
-function receiveLineupUsernames(contestId, response) {
-  log.debug('actionsLineupUsernames.receiveLineupUsernames');
-
-  return {
-    contestId,
-    type: ActionTypes.RECEIVE_LINEUP_USERNAMES,
-    lineups: response.lineups
-  };
-}
+const receiveLineupUsernames = (contestId, response) => ({
+  contestId,
+  type: ActionTypes.RECEIVE_LINEUP_USERNAMES,
+  lineups: response.lineups,
+});
 
 
-export function fetchLineupUsernames(contestId) {
-  log.debug('actionsLineupUsernames.fetchLineupUsernames');
+export const fetchLineupUsernames = (contestId) => (dispatch) => {
+  dispatch(requestLineupUsernames(contestId));
 
-  return (dispatch, getState) => {
-    dispatch(requestLineupUsernames(contestId));
-
-    // TODO:
-    //
-    // request
-    //   .get('/api/contest/lineup-usernames/' + contestId)
-    //   .set({'X-REQUESTED-WITH':  'XMLHttpRequest'})
-    //   .set('Accept', 'application/json')
-    //   .end((err, res) => {
-    //     if(err) {
-    //       // TODO
-    //     } else {
-    //       dispatch(receiveLineups(contestId, res.body));
-    //     }
-    // });
-
-    dispatch(receiveLineupUsernames(contestId, {
-      lineups: {
-        '1': 'usernamefoo',
-        '2': 'usernamebar'
-      }
-    }));
-  };
-}
+  return request.get(
+    `/api/contest/lineup-usernames/${contestId}/`
+  ).set({
+    'X-REQUESTED-WITH': 'XMLHttpRequest',
+    Accept: 'application/json',
+  }).then(
+    (res) => dispatch(receiveLineupUsernames(contestId, res.body))
+  );
+};

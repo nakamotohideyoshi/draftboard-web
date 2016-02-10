@@ -14,7 +14,7 @@ const NavScoreboardLineup = React.createClass({
   mixins: [PureRenderMixin],
 
   openLineup() {
-    window.location.pathname = `/live/lineups/${this.props.lineup.id.toString()}`
+    window.location.pathname = `/live/lineups/${this.props.lineup.id.toString()}`;
   },
 
   render() {
@@ -22,14 +22,14 @@ const NavScoreboardLineup = React.createClass({
       formattedStart,
       minutesRemaining,
       points,
-      potentialEarnings,
+      totalPotentialEarnings,
     } = this.props.lineup;
     const sport = this.props.lineup.draftGroup.sport;
 
     let { name } = this.props.lineup;
 
     if (name === '') {
-      name = `Lineup for ${window.dfs.username}`
+      name = `Lineup for ${window.dfs.username}`;
     }
 
     return (
@@ -45,7 +45,7 @@ const NavScoreboardLineup = React.createClass({
         <div className="right">
           { points } <span className="unit">PTS / </span>
           { minutesRemaining } <span className="unit">PMR / </span>
-          <span className="balance">${ potentialEarnings }</span>
+          <span className="balance">${ totalPotentialEarnings.toFixed(2) }</span>
         </div>
       </div>
     );

@@ -56,3 +56,30 @@ export function isTimeInFuture(timestamp) {
 export function roundUpToDecimalPlace(number, places) {
   return (Math.round(number * 10) / 10).toFixed(places)
 }
+
+
+/**
+ * Remove a specific parameter from the url .search
+ * @param  {[type]} sourceURL    [description]
+ * @param  {[type]} key [description]
+ * @return {[type]}               [description]
+ */
+export function removeParamFromURL(sourceURL, key) {
+  let rtn = sourceURL.split('?')[0];
+  let param;
+  let paramsArr = [];
+  const queryString = (sourceURL.indexOf('?') !== -1) ? sourceURL.split('?')[1] : '';
+
+  if (queryString !== '') {
+    paramsArr = queryString.split('&');
+    for (let i = paramsArr.length - 1; i >= 0; i -= 1) {
+      param = paramsArr[i].split('=')[0];
+      if (param === key) {
+        paramsArr.splice(i, 1);
+      }
+    }
+
+    rtn = `${rtn}?${paramsArr.join('&')}`;
+  }
+  return rtn;
+}

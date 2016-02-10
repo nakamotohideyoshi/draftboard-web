@@ -2,9 +2,22 @@
 # contest/serializers.py
 
 from rest_framework import serializers
-from contest.models import Contest, Entry
+from contest.models import (
+    Contest,
+    ClosedContest,
+
+    Entry,
+    ClosedEntry,
+)
+from lineup.models import (
+    Lineup,
+)
 import contest.payout.models
 from prize.models import PrizeStructure, Rank
+from lineup.serializers import (
+    LineupSerializer,
+    PlayerSerializer,
+)
 
 class RankSerializer(serializers.ModelSerializer):
 
@@ -120,3 +133,49 @@ class RemoveAndRefundEntrySerializer(serializers.Serializer):
 class RemoveAndRefundEntryStatusSerializer(serializers.Serializer):
 
     task = serializers.CharField()
+
+class SuccinctPayoutSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = contest.payout.models.Payout
+
+        fields = ('amount',)
+
+class SuccinctContestSerializer(serializers.ModelSerializer):
+    """
+    limited number of contest properties (basically just the name)
+    """
+    class Meta:
+
+        model   = ClosedContest
+        fields  = ('id','name','status')
+
+class EntrySerializer(serializers.ModelSerializer):
+    """
+    Entry object serializer for the UserLineupHistorySerializer primarily
+    """
+
+    contest = SuccinctContestSerializer()
+
+    payout = SuccinctPayoutSerializer()
+
+    class Meta:
+        model = ClosedEntry
+        fields = ('id','final_rank','contest','payout',)
+
+class UserLineupHistorySerializer(serializers.ModelSerializer):
+    """
+    primarily returns Entry data, containing information about the Contest, and payouts
+    """
+
+    # entries = serializers.SerializerMethodField()
+    # def get_entries(self, lineup):
+    #     return EntrySerializer(many=True, read_only=True)
+
+    entries = EntrySerializer(many=True, read_only=True)
+
+    players = PlayerSerializer(many=True, read_only=True)
+
+    class Meta:
+        model   = Lineup
+        fields  = ('id','players','entries')

@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-import CountdownClock from '../site/countdown-clock'
+import CountdownClock from '../site/countdown-clock';
 
 
 const LiveCountdown = React.createClass({
@@ -11,12 +11,12 @@ const LiveCountdown = React.createClass({
   },
 
   getInitialState() {
-    return { showMe: true }
+    return { showMe: true };
   },
 
   render() {
-    const { name, start } = this.props.lineup
-    const editLineup = `/draft/${ this.props.lineup.draftGroup.id }/lineup/${ this.props.lineup.id }/edit/`
+    const { name, start } = this.props.lineup;
+    const editLineup = `/draft/${ this.props.lineup.draftGroup.id }/lineup/${ this.props.lineup.id }/edit/`;
 
     return (
       <div className="live-countdown">
@@ -37,8 +37,8 @@ const LiveCountdown = React.createClass({
           </div>
         </div>
       </div>
-    )
+    );
   },
-})
+});
 
-export default LiveCountdown
+export default LiveCountdown;

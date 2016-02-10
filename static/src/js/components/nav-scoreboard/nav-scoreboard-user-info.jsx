@@ -15,7 +15,7 @@ const NavScoreboardUserInfo = React.createClass({
   mixins: [PureRenderMixin],
 
   render() {
-    const { name, balance } = this.props
+    const { name, balance } = this.props;
 
     return (
       <div className="cmp-nav-scoreboard--user-info">

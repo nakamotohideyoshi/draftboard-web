@@ -7,7 +7,13 @@ from django.conf import settings
 from mysite.celery_app import app
 from datetime import timedelta
 from django.utils import timezone
-from contest.models import LiveContest, Contest, UpcomingContest
+from contest.models import (
+    LiveContest,
+    Contest,
+    UpcomingContest,
+    CompletedContest, # can pay these out
+)
+from contest.payout.tasks import payout_task
 from draftgroup.models import DraftGroup, UpcomingDraftGroup
 from django.core.mail import send_mail
 from rakepaid.classes import LoyaltyStatusManager
@@ -145,6 +151,33 @@ def notify_admin_contests_not_paid(self, *args, **kwargs):
         print( msg_str )
 
         send_mail("Alert! Contest Payout time!",
+                    msg_str,
+                    HIGH_PRIORITY_FROM_EMAIL,
+                    HIGH_PRIORITY_EMAILS)
+
+@app.task(bind=True)
+def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
+    """
+    If a Contest is in the 'completed' state, it needs to be paid out!
+
+    This task will do that - and then email the admin.
+
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    contests_to_pay = CompletedContest.objects.all()
+    num_contests = contests_to_pay.count()
+
+    #
+    # use the payout_task to payout all completed contests
+    task = payout_task.delay( contests=list(contests_to_pay) )
+
+    if contests_to_pay.count() > 0:
+        msg_str = '*** %s *** automatically paid out!' % (num_contests)
+        print( msg_str )
+
+        send_mail("Contest Auto Payout Time!",
                     msg_str,
                     HIGH_PRIORITY_FROM_EMAIL,
                     HIGH_PRIORITY_EMAILS)

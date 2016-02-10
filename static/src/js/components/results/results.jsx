@@ -1,10 +1,8 @@
-'use strict';
-
 import React from 'react';
-import {Provider, connect} from 'react-redux';
+import { Provider, connect } from 'react-redux';
 
 import store from '../../store';
-import {fetchLineups} from '../../actions/results';
+import { fetchLineups } from '../../actions/results';
 import renderComponent from '../../lib/render-component';
 
 import ResultsStats from './results-stats.jsx';
@@ -18,27 +16,27 @@ const Results = React.createClass({
   propTypes: {
     stats: React.PropTypes.object.isRequired,
     lineups: React.PropTypes.array.isRequired,
-    dispatch: React.PropTypes.func.isRequired
+    dispatch: React.PropTypes.func.isRequired,
   },
 
   getInitialState() {
     const today = new Date();
 
     return {
-      year:  today.getFullYear(),
+      year: today.getFullYear(),
       month: today.getMonth(),
-      day:   today.getDate()
+      day: today.getDate(),
     };
   },
 
   componentWillMount() {
-    const {year, month, day} = this.state;
+    const { year, month, day } = this.state;
     // TODO: Add real data.
     this.props.dispatch(fetchLineups(10, new Date(year, month, day)));
   },
 
   handleSelectDate(year, month, day) {
-    this.setState({year, month, day});
+    this.setState({ year, month, day });
   },
 
   render() {
@@ -46,28 +44,28 @@ const Results = React.createClass({
       <div className="inner">
         <ResultsHeader>
           <ResultsDaysSlider year={this.state.year}
-                             month={this.state.month}
-                             day={this.state.day}
-                             onSelectDate={this.handleSelectDate} />
+            month={this.state.month}
+            day={this.state.day}
+            onSelectDate={this.handleSelectDate}
+          />
           <ResultsDatePicker year={this.state.year}
-                             month={this.state.month}
-                             day={this.state.day}
-                             onSelectDate={this.handleSelectDate} />
+            month={this.state.month}
+            day={this.state.day}
+            onSelectDate={this.handleSelectDate}
+          />
         </ResultsHeader>
         <ResultsStats stats={this.props.stats} />
         <ResultsLineups lineups={this.props.lineups} />
       </div>
     );
-  }
+  },
 });
 
 // Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps(state) {
-  return {
-    stats: state.results.stats,
-    lineups: state.results.lineups
-  };
-}
+const mapStateToProps = (state) => ({
+  stats: state.results.stats,
+  lineups: state.results.lineups,
+});
 
 // Wrap the component to inject dispatch and selected state into it.
 const ResultsConnected = connect(
@@ -80,7 +78,5 @@ renderComponent(
   </Provider>,
   '.results-page'
 );
-
-// renderComponent(<Results />, '.results-page');
 
 export default ResultsConnected;

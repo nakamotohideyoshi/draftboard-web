@@ -21,6 +21,7 @@ from contest.views import (
     EditEntryLineupStatusAPIView,
     RemoveAndRefundEntryAPIView,
     RemoveAndRefundEntryStatusAPIView,
+    UserPlayHistoryAPIView,
 )
 from contest.views import ContestCreate, ContestUpdate
 
@@ -81,6 +82,12 @@ urlpatterns = patterns( '',
     #
     # get the complete set of specially packed lineups for a contest
     (r'^all-lineups/(?P<contest_id>[0-9]+)/$', AllLineupsView.as_view()),
+
+    #
+    # get a users Entry history. For each lineup returned
+    # has some contest information, and final rank. plus overall stats for the day.
+    (r'^play-history/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)/$',
+                                                UserPlayHistoryAPIView.as_view()),
 
     #
     # get the usernames for all users who have lineups in the contest

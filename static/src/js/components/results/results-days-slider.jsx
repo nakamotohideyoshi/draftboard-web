@@ -1,34 +1,34 @@
-'use strict';
-
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
+import { getDaysForMonth, weekdayNumToName } from '../../lib/time.js';
 
-import {getDaysForMonth, weekdayNumToName} from '../../lib/time.js';
 
 const ResultsDaysSlider = React.createClass({
-
-  mixins: [PureRenderMixin],
 
   propTypes: {
     year: React.PropTypes.number.isRequired,
     month: React.PropTypes.number.isRequired,
     day: React.PropTypes.number.isRequired,
-    onSelectDate: React.PropTypes.func.isRequired
+    onSelectDate: React.PropTypes.func.isRequired,
+  },
+
+  mixins: [PureRenderMixin],
+
+  componentDidMount() {
+    this.handleScrollToSelected();
+  },
+
+  componentDidUpdate() {
+    this.handleScrollToSelected();
   },
 
   getItemsList() {
-    return getDaysForMonth(this.props.year, this.props.month).map(d => {
-      return {
-        id:       d.toString(),
-        daynum:   d.getDate(),
-        weekday:  weekdayNumToName(d.getDay()),
-        selected: d.getDate() === this.props.day
-      };
-    });
-  },
-
-  handleSelectDate(day) {
-    this.props.onSelectDate(this.props.year, this.props.month, day);
+    return getDaysForMonth(this.props.year, this.props.month).map(d => ({
+      id: d.toString(),
+      daynum: d.getDate(),
+      weekday: weekdayNumToName(d.getDay()),
+      selected: d.getDate() === this.props.day,
+    }));
   },
 
   /**
@@ -36,7 +36,7 @@ const ResultsDaysSlider = React.createClass({
    * @return {Number}
    */
   getCurrentScrollPosition() {
-    let content = this.refs.content;
+    const content = this.refs.content;
     let left = content.style.left;
 
     if (left) {
@@ -54,11 +54,9 @@ const ResultsDaysSlider = React.createClass({
    * @return {Number}
    */
   getNextScrollPosition(direction) {
-    console.assert(direction === 1 || direction === -1);
-
     const scrollItems = this.refs.content.getElementsByClassName('item');
 
-    if (this.scrollItem == null) {
+    if (this.scrollItem === null) {
       this.scrollItem = 0;
     }
 
@@ -75,6 +73,10 @@ const ResultsDaysSlider = React.createClass({
     return -1 * scrollItems[this.scrollItem].offsetLeft;
   },
 
+  handleSelectDate(day) {
+    this.props.onSelectDate(this.props.year, this.props.month, day);
+  },
+
   handleScrollNext() {
     let left = this.getNextScrollPosition(1);
 
@@ -86,12 +88,12 @@ const ResultsDaysSlider = React.createClass({
       this.getNextScrollPosition(-1);
     }
 
-    content.style.left = left + 'px';
+    content.style.left = `${left}px`;
   },
 
   handleScrollPrev() {
     const left = this.getNextScrollPosition(-1);
-    this.refs.content.style.left = left + 'px';
+    this.refs.content.style.left = `${left}px`;
   },
 
   /**
@@ -102,30 +104,22 @@ const ResultsDaysSlider = React.createClass({
     this.handleScrollNext();
   },
 
-  componentDidUpdate() {
-    this.handleScrollToSelected();
-  },
-
-  componentDidMount() {
-    this.handleScrollToSelected();
-  },
-
   render() {
-    const items = this.getItemsList().map(i => {
-      return [
-        <div key={i.id}
-             className={"item" + (i.selected ? " selected" : "")}
-             onClick={this.handleSelectDate.bind(this, i.daynum)}>
-          {i.weekday}
-          <span className="value">{i.daynum}</span>
-        </div>
-      , <div className="separator" key={i.id+"|s"}>/</div>];
-    }).reduce((accum, l) => {
+    const items = this.getItemsList().map(i => [
+      <div key={i.id}
+        className={`item${(i.selected ? ' selected' : '')}`}
+        onClick={this.handleSelectDate.bind(this, i.daynum)}
+      >
+        {i.weekday}
+        <span className="value">{i.daynum}</span>
+      </div>,
+      <div className="separator" key={`${i.id}|s`}>/</div>,
+    ]).reduce(
       // Just flatten the array on a single level. Not using lodash here,
       // because this may result in unexpected behavior depending on the
       // rendered React component internal representation.
-      return accum.concat.apply(accum, l);
-    }, []).slice(0, -1); // Remove last separator.
+      (accum, l) => accum.concat.apply(accum, l), []
+    ).slice(0, -1); // Remove last separator.
 
     return (
       <div className="results-days-slider">
@@ -136,7 +130,7 @@ const ResultsDaysSlider = React.createClass({
         <div className="arrow-right" onClick={this.handleScrollNext}>&gt;</div>
       </div>
     );
-  }
+  },
 
 });
 

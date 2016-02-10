@@ -1,8 +1,4 @@
-"use strict";
-
 import update from 'react-addons-update';
-import { map as _map, forEach as _forEach } from 'lodash';
-
 import ActionTypes from '../action-types';
 
 
@@ -12,18 +8,18 @@ const defaultState = {
     possible: '-',
     fees: '-',
     entries: 0,
-    contests: 0
+    contests: 0,
   },
-  lineups: []
+  lineups: [],
 };
 
-module.exports = function(state = defaultState, action) {
+module.exports = (state = defaultState, action) => {
   switch (action.type) {
     case ActionTypes.REQUEST_LINEUPS_RESULTS:
       return update(state, {
         $set: {
-          isFetching: true
-        }
+          isFetching: true,
+        },
       });
 
     case ActionTypes.RECEIVE_LINEUPS_RESULTS:
@@ -31,8 +27,8 @@ module.exports = function(state = defaultState, action) {
         $set: {
           stats: action.stats,
           lineups: action.lineups,
-          isFetching: false
-        }
+          isFetching: false,
+        },
       });
 
     default:

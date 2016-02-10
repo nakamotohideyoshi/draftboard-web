@@ -108,11 +108,14 @@ class PayoutManager(AbstractManagerClass):
                     'transaction_class')
 
 
+        print('------- entries [%s] contest [%s] -------' %(str(len(entries)), str(contest)))
         #
         # perform the payouts by going through each entry and finding
         # ties and ranks for the ties to chop.
+        print('======= ranks [%s] =======' % (str(ranks)))
         i = 0
         while i < len(ranks):
+            print('++++ i (rank): %s +++++' % str(i) )
             entries_to_pay = list()
             ranks_to_pay = list()
             entries_to_pay.append(entries[i])
@@ -130,6 +133,41 @@ class PayoutManager(AbstractManagerClass):
             self.__payout_spot(ranks_to_pay, entries_to_pay, contest)
             i += 1
 
+        #
+        ###############################################################
+        # rank all of the entries with the same payout algorithm.
+        ###############################################################
+        j = 0
+        entries_count = entries.count()
+        while j < entries_count:
+            entries_to_pay = list()
+            ranks_to_pay = list()
+            entries_to_pay.append( entries[ j ] )
+            ranks_to_pay.append( j )            # just add the current rank j
+            score = entries[ j ].lineup.fantasy_points
+            #
+            # For each tie add the user to the list to chop the payment
+            # and add the next payout to be split with the ties.
+            num_tied = 0
+            while j+1 < entries.count() and score == entries[j+1].lineup.fantasy_points:
+                num_tied += 1
+
+                if (j+num_tied) >= len(entries):
+                    break # it tied off the end -- break while, and rank em all whatever 'j' is
+                entries_to_pay.append(entries[j+num_tied])
+
+                if entries_count > (j+num_tied):
+                    ranks_to_pay.append(j+num_tied)
+
+            # self.__rank_spot(ranks_to_pay, entries_to_pay, contest)
+            # set the current 'j' to each entry in entries_to_pay
+            for e in entries:
+                print('>>>> setting entry[%s] to rank: %s' % (str(e),str(j)))
+                e.final_rank = j
+                e.save()
+
+            j += num_tied   # add the additional # entries at the same rank before incrementing
+            j += 1
 
         #
         # get the total number of dollars leftover for rake

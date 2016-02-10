@@ -1,5 +1,4 @@
 import update from 'react-addons-update';
-import _ from 'lodash';
 import * as ActionTypes from '../action-types';
 
 

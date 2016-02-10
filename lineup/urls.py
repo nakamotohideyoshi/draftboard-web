@@ -44,4 +44,5 @@ urlpatterns = patterns( '',
     # for the given lineup_ids, get the username of the owner
     # LineupUserAPIView
     (r'^usernames/$', LineupUserAPIView.as_view()),
+
 )

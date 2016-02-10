@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import moment from 'moment';
 import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
 
@@ -6,6 +7,7 @@ import * as ActionTypes from '../action-types';
 module.exports = (state = {
   isFetching: false,
   hasRelatedInfo: false,
+  expiresAt: moment(),
   items: [],
 }, action) => {
   switch (action.type) {
@@ -29,6 +31,7 @@ module.exports = (state = {
       return update(state, {
         $merge: {
           isFetching: true,
+          expiresAt: action.expiresAt,
         },
       });
 
@@ -39,7 +42,7 @@ module.exports = (state = {
           isFetching: false,
           hasRelatedInfo: false,
           items: action.items,
-          updatedAt: action.updatedAt,
+          expiresAt: action.expiresAt,
         },
       });
 

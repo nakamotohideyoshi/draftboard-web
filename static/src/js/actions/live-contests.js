@@ -1,13 +1,14 @@
-import 'babel-core/polyfill'
-const request = require('superagent-promise')(require('superagent'), Promise)
-import _ from 'lodash'
-import Cookies from 'js-cookie'
-import { Buffer } from 'buffer/'
+import 'babel-core/polyfill';
+const request = require('superagent-promise')(require('superagent'), Promise);
+import _ from 'lodash';
+import Cookies from 'js-cookie';
+import { Buffer } from 'buffer/';
+import moment from 'moment';
 
-import * as ActionTypes from '../action-types'
-import { fetchDraftGroupIfNeeded } from './live-draft-groups'
-import { fetchPrizeIfNeeded } from './prizes'
-import { fetchGamesIfNeeded } from './sports'
+import * as ActionTypes from '../action-types';
+import { fetchDraftGroupIfNeeded } from './live-draft-groups';
+import { fetchPrizeIfNeeded } from './prizes';
+import { fetchGamesIfNeeded } from './sports';
 
 
 // dispatch to reducer methods
@@ -24,7 +25,7 @@ const confirmRelatedContestInfo = (id) => ({
   stats: {
     updatedAt: Date.now(),
   },
-})
+});
 
 /**
  * Dispatch information to reducer that we are trying to get contest lineups
@@ -35,7 +36,7 @@ const confirmRelatedContestInfo = (id) => ({
 const requestContestLineups = (id) => ({
   id,
   type: ActionTypes.REQUEST_LIVE_CONTEST_LINEUPS,
-})
+});
 
 /**
  * Dispatch information to reducer that we are trying to get contest information
@@ -46,7 +47,7 @@ const requestContestLineups = (id) => ({
 const requestContestInfo = (id) => ({
   id,
   type: ActionTypes.REQUEST_LIVE_CONTEST_INFO,
-})
+});
 
 /**
  * Dispatch information to reducer that we are trying to get contest lineup usernames
@@ -57,7 +58,7 @@ const requestContestInfo = (id) => ({
 const requestContestLineupsUsernames = (id) => ({
   id,
   type: ActionTypes.REQUEST_LIVE_CONTEST_LINEUPS_USERNAMES,
-})
+});
 
 /**
  * Dispatch API response object of contest lineups (in bytes and parsed json)
@@ -74,7 +75,7 @@ const receiveContestLineups = (id, response, parsedLineups) => ({
   lineupBytes: response,
   lineups: parsedLineups,
   expiresAt: Date.now() + 86400000,
-})
+});
 
 /**
  * Dispatch API response object of contest information to the store
@@ -89,7 +90,7 @@ const receiveContestInfo = (id, response) => ({
   id,
   info: response,
   expiresAt: Date.now() + 86400000,
-})
+});
 
 /**
  * Dispatch API response object of contest lineups usernames to the store
@@ -99,21 +100,21 @@ const receiveContestInfo = (id, response) => ({
  * @return {object}          Changes for reducer
  */
 const receiveContestLineupsUsernames = (id, response) => {
-  const lineupsUsernames = {}
+  const lineupsUsernames = {};
   _.forEach(response, (lineup) => {
     lineupsUsernames[lineup.id] = {
       id: lineup.id,
       user: lineup.user,
-    }
-  })
+    };
+  });
 
   return {
     type: ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS_USERNAMES,
     id,
     lineupsUsernames,
     expiresAt: Date.now() + 86400000,
-  }
-}
+  };
+};
 
 
 // helper methods
@@ -131,13 +132,13 @@ const receiveContestLineupsUsernames = (id, response) => {
  */
 const convertToInt = (byteSize, byteArray, byteOffset, byteLength) => {
   if (byteSize === 32) {
-    return new DataView(byteArray.buffer, byteOffset, byteLength).getInt32(0, false)
+    return new DataView(byteArray.buffer, byteOffset, byteLength).getInt32(0, false);
   } else if (byteSize === 16) {
-    return new DataView(byteArray.buffer, byteOffset, byteLength).getInt16(0, false)
+    return new DataView(byteArray.buffer, byteOffset, byteLength).getInt16(0, false);
   }
 
-  throw new Error('You must pass in a byteSize of 16 or 32')
-}
+  throw new Error('You must pass in a byteSize of 16 or 32');
+};
 
 /**
  * Converts byte array into lineup object with id and roster
@@ -153,19 +154,19 @@ const convertLineup = (numberOfPlayers, byteArray, firstBytePosition) => {
     id: convertToInt(32, byteArray, firstBytePosition, 4),
     roster: [],
     total_points: '',
-  }
+  };
 
   // move from the ID to the start of the players
-  const shiftedBytePosition = firstBytePosition + 4
+  const shiftedBytePosition = firstBytePosition + 4;
 
   // loop through the players
   for (let i = shiftedBytePosition; i < shiftedBytePosition + numberOfPlayers * 2; i += 2) {
     // parse out 2 bytes for each player's value
-    lineup.roster.push(convertToInt(16, byteArray, i, 2))
+    lineup.roster.push(convertToInt(16, byteArray, i, 2));
   }
 
-  return lineup
-}
+  return lineup;
+};
 
 /*
  * Takes the contest lineups, converts each out of bytes, then adds up fantasy total
@@ -178,18 +179,18 @@ const convertLineup = (numberOfPlayers, byteArray, firstBytePosition) => {
  */
 const parseContestLineups = (apiContestLineupsBytes) => {
   // add up who's in what place
-  const responseByteArray = new Buffer(apiContestLineupsBytes, 'hex')
-  const lineups = {}
+  const responseByteArray = new Buffer(apiContestLineupsBytes, 'hex');
+  const lineups = {};
 
   // each lineup is 20 bytes long
   for (let i = 6; i < responseByteArray.length; i += 20) {
-    const lineup = convertLineup(8, responseByteArray, i)
+    const lineup = convertLineup(8, responseByteArray, i);
 
-    lineups[lineup.id] = lineup
+    lineups[lineup.id] = lineup;
   }
 
-  return lineups
-}
+  return lineups;
+};
 
 /**
  * API GET to return lineups about a contest
@@ -197,8 +198,8 @@ const parseContestLineups = (apiContestLineupsBytes) => {
  * @param {number} contestId  Contest ID
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-const fetchContestLineups = (id) => (dispatch) => {
-  dispatch(requestContestLineups(id))
+export const fetchContestLineups = (id) => (dispatch) => {
+  dispatch(requestContestLineups(id));
 
   return request.get(
     `/api/contest/all-lineups/${id}/`
@@ -207,8 +208,8 @@ const fetchContestLineups = (id) => (dispatch) => {
   }).then(
     // NOTE we use res.text instead of res.body because the response is in hex bytes!
     (res) => dispatch(receiveContestLineups(id, res.text, parseContestLineups(res.text)))
-  )
-}
+  );
+};
 
 /**
  * API GET to return information about a contest
@@ -216,7 +217,7 @@ const fetchContestLineups = (id) => (dispatch) => {
  * @return {promise}          Promise that resolves with API response body to reducer
  */
 const fetchContestInfo = (contestId) => (dispatch) => {
-  dispatch(requestContestInfo(contestId))
+  dispatch(requestContestInfo(contestId));
 
   return request.get(
     `/api/contest/info/${contestId}/`
@@ -225,8 +226,8 @@ const fetchContestInfo = (contestId) => (dispatch) => {
     Accept: 'application/json',
   }).then(
     (res) => dispatch(receiveContestInfo(contestId, res.body))
-  )
-}
+  );
+};
 
 /**
  * API GET to return all the usernames for all the lineups in a contest.
@@ -235,7 +236,7 @@ const fetchContestInfo = (contestId) => (dispatch) => {
  * @return {promise}           Promise that resolves with API response body to reducer
  */
 const fetchContestLineupsUsernames = (contestId) => (dispatch) => {
-  dispatch(requestContestLineupsUsernames(contestId))
+  dispatch(requestContestLineupsUsernames(contestId));
 
   return request.post(
     '/api/lineup/usernames/'
@@ -247,8 +248,8 @@ const fetchContestLineupsUsernames = (contestId) => (dispatch) => {
     Accept: 'application/json',
   }).then(
     (res) => dispatch(receiveContestLineupsUsernames(contestId, res.body))
-  )
-}
+  );
+};
 
 /**
  * Method to determine whether we need to fetch a contest's lineup usernames.
@@ -258,32 +259,39 @@ const fetchContestLineupsUsernames = (contestId) => (dispatch) => {
 const shouldFetchContestLineupsUsernames = (state, id) => {
   // fetch if we have no data yet
   if (id in state.liveContests === false) {
-    return true
+    return true;
   }
 
   // fetch if we have no usernames yet
-  return 'lineupsUsernames' in state.liveContests[id] === false
-}
+  return 'lineupsUsernames' in state.liveContests[id] === false;
+};
 
 /**
  * Method to determine whether we need to fetch a contest.
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch, false if not
  */
-const shouldFetchContest = (state, id) => {
+const shouldFetchContest = (liveContests, id) => {
   // if we have no data yet, fetch
-  if (id in state.liveContests === false) {
-    return true
+  if (liveContests.hasOwnProperty(id) === false) {
+    return true;
+  }
+
+  const contest = liveContests[id];
+
+  // if it hasn't started yet, don't bother getting lineups yet
+  if (contest.hasOwnProperty('info') && moment().isAfter(contest.info.start)) {
+    return false;
   }
 
   // if we don't yet have lineups (as in not live), then fetch
-  if ('lineupBytes' in state.liveContests[id] === false ||
-      state.liveContests[id].lineupBytes === '') {
-    return true
+  if (contest.hasOwnProperty('lineupBytes') === true &&
+      contest.lineupBytes !== '') {
+    return false;
   }
 
-  return false
-}
+  return true;
+};
 
 
 // primary methods (mainly exported, some needed in there to have proper init of const)
@@ -296,11 +304,11 @@ const shouldFetchContest = (state, id) => {
  */
 export const fetchContestLineupsUsernamesIfNeeded = (id) => (dispatch, getState) => {
   if (shouldFetchContestLineupsUsernames(getState(), id) === false) {
-    return Promise.resolve('Contest usernames already exists')
+    return Promise.resolve('Contest usernames already exists');
   }
 
-  return dispatch(fetchContestLineupsUsernames(id))
-}
+  return dispatch(fetchContestLineupsUsernames(id));
+};
 
 /**
  * Outside facing method to go ahead and fetch contest information after checking whether we should
@@ -308,10 +316,10 @@ export const fetchContestLineupsUsernamesIfNeeded = (id) => (dispatch, getState)
  *                     returned method or directly as a resolved promise
  */
 export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
-  const contestInfo = getState().liveContests[id].info
-  const draftGroupId = contestInfo.draft_group
-  const prizeId = contestInfo.prize_structure
-  const sport = contestInfo.sport
+  const contestInfo = getState().liveContests[id].info;
+  const draftGroupId = contestInfo.draft_group;
+  const prizeId = contestInfo.prize_structure;
+  const sport = contestInfo.sport;
 
   return Promise.all([
     dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
@@ -319,8 +327,8 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
     dispatch(fetchPrizeIfNeeded(prizeId)),
   ]).then(() =>
     dispatch(confirmRelatedContestInfo(id))
-  )
-}
+  );
+};
 
 /**
  * Outside facing method to go ahead and fetch a contest after checking whether we should
@@ -329,8 +337,8 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchContestIfNeeded = (id) => (dispatch, getState) => {
-  if (shouldFetchContest(getState(), id) === false) {
-    return Promise.resolve('Contest already exists')
+  if (shouldFetchContest(getState().liveContests, id) === false) {
+    return Promise.resolve('Contest already exists');
   }
 
   return Promise.all([
@@ -338,5 +346,5 @@ export const fetchContestIfNeeded = (id) => (dispatch, getState) => {
     dispatch(fetchContestLineups(id)),
   ]).then(() =>
     dispatch(fetchRelatedContestInfo(id))
-  )
-}
+  );
+};

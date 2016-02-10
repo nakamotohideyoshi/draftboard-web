@@ -1,12 +1,10 @@
-'use strict';
-
 import React from 'react';
 
 
 const ResultsPane = React.createClass({
 
   propTypes: {
-    onHide: React.PropTypes.func.isRequired
+    onHide: React.PropTypes.func.isRequired,
   },
 
   componentWillMount() {
@@ -35,7 +33,7 @@ const ResultsPane = React.createClass({
                 (2,000 to 1st)
               </div>
               <div className="header__info">
-                <div  className="header__place">
+                <div className="header__place">
                   <div className="info-title">place</div>
                   <span>29th</span>
                 </div>
@@ -102,7 +100,7 @@ const ResultsPane = React.createClass({
         </div>
       </section>
     );
-  }
+  },
 });
 
 export default ResultsPane;

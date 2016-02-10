@@ -1,16 +1,16 @@
-const moment = require('moment')
 // so we can use Promises
-import 'babel-core/polyfill'
-const request = require('superagent-promise')(require('superagent'), Promise)
-import { forEach as _forEach } from 'lodash'
-import _ from 'lodash'
-import { normalize, Schema, arrayOf } from 'normalizr'
+import 'babel-core/polyfill';
+const request = require('superagent-promise')(require('superagent'), Promise);
+import moment from 'moment';
+import { forEach as _forEach } from 'lodash';
+import _ from 'lodash';
+import { normalize, Schema, arrayOf } from 'normalizr';
 
-import * as ActionTypes from '../action-types'
-import log from '../lib/logging'
-import { fetchTeamsIfNeeded } from './sports'
-import { updateLivePlayersStats } from './live-players'
-import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions.js'
+import * as ActionTypes from '../action-types';
+import log from '../lib/logging';
+import { fetchTeamsIfNeeded } from './sports';
+import { updateLivePlayersStats } from './live-players';
+import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions.js';
 
 
 // dispatch to reducer methods
@@ -26,7 +26,8 @@ import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-a
 const confirmDraftGroupStored = (id) => ({
   type: ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED,
   id,
-})
+  expiresAt: moment(Date.now()).add(1, 'minute'),
+});
 
 /**
  * Dispatch information to reducer that we are trying to get fantasy points for players in a draft group
@@ -37,7 +38,8 @@ const confirmDraftGroupStored = (id) => ({
 const requestDraftGroupFP = (id) => ({
   id,
   type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP,
-})
+  expiresAt: moment(Date.now()).add(1, 'minute'),
+});
 
 /**
  * Dispatch information to reducer that we are trying to get draft group information
@@ -48,7 +50,7 @@ const requestDraftGroupFP = (id) => ({
 const requestDraftGroupInfo = (id) => ({
   id,
   type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_INFO,
-})
+});
 
 /**
  * Dispatch API response object of players with fantasy points in a draft group
@@ -62,8 +64,8 @@ const receiveDraftGroupFP = (id, players) => ({
   type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
   id,
   players,
-  updatedAt: Date.now(),
-})
+  expiresAt: moment(Date.now()).add(10, 'minutes'),
+});
 
 /**
  * Dispatch API response object of draft group information
@@ -76,19 +78,19 @@ const receiveDraftGroupFP = (id, players) => ({
 const receiveDraftGroupInfo = (id, response) => {
   const playerSchema = new Schema('players', {
     idAttribute: 'player_id',
-  })
+  });
 
   const normalizedPlayers = normalize(
     response.players,
     arrayOf(playerSchema)
-  )
+  );
 
-  const players = normalizedPlayers.entities.players
-  const playersBySRID = {}
+  const players = normalizedPlayers.entities.players;
+  const playersBySRID = {};
 
   _forEach(players, (player) => {
-    playersBySRID[player.player_srid] = player.player_id
-  })
+    playersBySRID[player.player_srid] = player.player_id;
+  });
 
   return {
     type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_INFO,
@@ -98,37 +100,13 @@ const receiveDraftGroupInfo = (id, response) => {
     sport: response.sport,
     start: moment(response.start).valueOf(),
     end: moment(response.end).valueOf(),
-    expiresAt: Date.now() + 86400000,
-  }
-}
+    expiresAt: moment(Date.now()).add(12, 'hours'),
+  };
+};
 
 
 // helper methods
 
-
-/**
- * API GET to return fantasy points of players in a draft group
- * @param {number} id  Draft group ID
- * @return {promise}   Promise that resolves with API response body to reducer
- */
-const fetchDraftGroupFP = (id) => (dispatch) => {
-  dispatch(requestDraftGroupFP(id))
-
-  return request.get(
-    `/api/draft-group/fantasy-points/${id}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    Accept: 'application/json',
-  }).then((res) => {
-    let players = res.body.players
-    if (_.size(players) === 0) {
-      players = {}
-      log.debug('shouldFetchDraftGroupFP() - FP not available yet', id)
-    }
-
-    return dispatch(receiveDraftGroupFP(id, players))
-  })
-}
 
 /**
  * API GET to return draft group info
@@ -136,7 +114,7 @@ const fetchDraftGroupFP = (id) => (dispatch) => {
  * @return {promise}   Promise that resolves with API response body to reducer
  */
 const fetchDraftGroupInfo = (id) => (dispatch) => {
-  dispatch(requestDraftGroupInfo(id))
+  dispatch(requestDraftGroupInfo(id));
 
   return request.get(
     `/api/draft-group/${id}/`
@@ -146,8 +124,8 @@ const fetchDraftGroupInfo = (id) => (dispatch) => {
   }).then((res) => Promise.all([
     dispatch(receiveDraftGroupInfo(id, res.body)),
     dispatch(fetchTeamsIfNeeded(res.body.sport)),
-  ]))
-}
+  ]));
+};
 
 /**
  * Method to determine whether we need to fetch fantasy points for draft group players.
@@ -159,19 +137,25 @@ const shouldFetchDraftGroupFP = (state, id) => {
 
   // error if no draft group to associate players to
   if (id in liveDraftGroups === false) {
-    throw new Error('You cannot get fantasy points for a player that is not in the draft group')
+    throw new Error('You cannot get fantasy points for a player that is not in the draft group');
   }
+
+  // don't fetch until expired
+  if (moment().isBefore(liveDraftGroups[id].fpExpiresAt)) {
+    return false;
+  }
+
   // do not fetch if fetching info
   if (liveDraftGroups[id].isFetchingInfo === true) {
-    return false
+    return false;
   }
   // do not fetch if fetching fp
   if (liveDraftGroups[id].isFetchingFP === true) {
-    return false
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 /**
  * Method to determine whether we need to fetch draft group.
@@ -179,11 +163,51 @@ const shouldFetchDraftGroupFP = (state, id) => {
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch, false if not
  */
-const shouldFetchDraftGroup = (state, id) => state.liveDraftGroups.hasOwnProperty(id) === false
+const shouldFetchDraftGroup = (state, id) => {
+  const liveDraftGroups = state.liveDraftGroups;
+
+  // fetch if draft group does not exist yet
+  if (liveDraftGroups.hasOwnProperty(id) === false) {
+    return true;
+  }
+
+  // fetch if expired
+  if (moment().isBefore(liveDraftGroups[id].infoExpiresAt)) {
+    return false;
+  }
+
+  return false;
+};
 
 
 // primary methods (mainly exported, some needed in there to have proper init of const)
 
+
+/**
+ * API GET to return fantasy points of players in a draft group
+ * @param {number} id  Draft group ID
+ * @return {promise}   Promise that resolves with API response body to reducer
+ */
+export const fetchDraftGroupFP = (id) => (dispatch) => {
+  dispatch(requestDraftGroupFP(id));
+
+  log.info('actions.fetchDraftGroupFP() - Updating player fantasy points');
+
+  return request.get(
+    `/api/draft-group/fantasy-points/${id}/`
+  ).set({
+    'X-REQUESTED-WITH': 'XMLHttpRequest',
+    Accept: 'application/json',
+  }).then((res) => {
+    let players = res.body.players;
+    if (_.size(players) === 0) {
+      players = {};
+      log.debug('shouldFetchDraftGroupFP() - FP not available yet', id);
+    }
+
+    return dispatch(receiveDraftGroupFP(id, players));
+  });
+};
 
 /**
  * Get fantasy points for players in a draft group if need be
@@ -192,12 +216,12 @@ const shouldFetchDraftGroup = (state, id) => state.liveDraftGroups.hasOwnPropert
  *                     returned method or directly as a resolved promise
  */
 export const fetchDraftGroupFPIfNeeded = (id) => (dispatch, getState) => {
-  if (shouldFetchDraftGroupFP(getState(), id)) {
-    return dispatch(fetchDraftGroupFP(id))
+  if (shouldFetchDraftGroupFP(getState(), id) === true) {
+    return dispatch(fetchDraftGroupFP(id));
   }
 
-  return Promise.resolve('Draft group FP not needed')
-}
+  return Promise.resolve('Draft group FP not needed');
+};
 
 /**
  * Get draft group if needed, which involves getting info, fantasy points of players, and seasonal stats for players
@@ -207,8 +231,8 @@ export const fetchDraftGroupFPIfNeeded = (id) => (dispatch, getState) => {
  */
 export const fetchDraftGroupIfNeeded = (id) => (dispatch, getState) => {
   if (shouldFetchDraftGroup(getState(), id) === false) {
-    log.trace('actionsLiveDraftGroup.fetchDraftGroupIfNeeded() - Draft group exists')
-    return Promise.resolve('Draft group exists')
+    log.trace('actionsLiveDraftGroup.fetchDraftGroupIfNeeded() - Draft group exists');
+    return Promise.resolve('Draft group exists');
   }
   return Promise.all([
     dispatch(fetchDraftGroupInfo(id)),
@@ -217,8 +241,8 @@ export const fetchDraftGroupIfNeeded = (id) => (dispatch, getState) => {
   ])
   .then(() =>
     dispatch(confirmDraftGroupStored(id))
-  )
-}
+  );
+};
 
 /**
  * Remove all draft groups that have ended. While looping through, aggregate all related lineups and contests and remove
@@ -226,25 +250,27 @@ export const fetchDraftGroupIfNeeded = (id) => (dispatch, getState) => {
  * @return {Promise} Return the promise of all of the calls being run simultaneously.
  */
 export const removeUnusedDraftGroups = () => (dispatch, getState) => {
-  const draftGroupIds = []
-  const currentLineups = getState().currentLineups.items || {}
+  const draftGroupIds = [];
+  const currentLineups = getState().currentLineups.items || {};
 
   _forEach(getState().liveDraftGroups, (draftGroup) => {
-    const id = draftGroup.id
-    const lineups = _.filter(currentLineups, (lineup) => lineup.draft_group === id)
+    const id = draftGroup.id;
+    const lineups = _.filter(currentLineups, (lineup) => lineup.draft_group === id);
 
     // if there are no lineups the group is related to, then remove
     if (lineups.length === 0) {
-      draftGroupIds.push(id)
+      draftGroupIds.push(id);
     }
-  })
+  });
+
+  if (draftGroupIds.length === 0) return null;
 
   return dispatch({
     type: ActionTypes.REMOVE_LIVE_DRAFT_GROUPS,
     ids: draftGroupIds,
     removedAt: Date.now(),
-  })
-}
+  });
+};
 
 /**
  * Used to update a player's stats when a Pusher call sends us new info
@@ -256,12 +282,12 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
 export const updatePlayerStats = (playerId, eventCall, draftGroupId) => (dispatch, getState) => {
   // if this is a relevant player, update their stats
   if (getState().livePlayers.relevantPlayers.hasOwnProperty(eventCall.fields.srid_player)) {
-    log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', eventCall.fields.srid_player)
+    log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', eventCall);
 
     dispatch(updateLivePlayersStats(
       eventCall.fields.srid_player,
       eventCall.fields
-    ))
+    ));
   }
 
   return dispatch({
@@ -269,5 +295,5 @@ export const updatePlayerStats = (playerId, eventCall, draftGroupId) => (dispatc
     type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
     playerId,
     fp: eventCall.fields.fantasy_points,
-  })
-}
+  });
+};

@@ -232,3 +232,11 @@ export function fetchContestEntrantsIfNeeded(contestId) {
     return Promise.resolve();
   };
 }
+
+
+export function upcomingContestUpdateReceived(contest) {
+  return ({
+    type: types.UPCOMING_CONTESTS_UPDATE_RECEIVED,
+    contest,
+  });
+}

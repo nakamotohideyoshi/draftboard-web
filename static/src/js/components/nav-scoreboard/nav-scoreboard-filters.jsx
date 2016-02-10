@@ -1,5 +1,5 @@
 import React from 'react';
-import NavScoreboardFilterItem from './nav-scoreboard-filter-item'
+import NavScoreboardFilterItem from './nav-scoreboard-filter-item';
 
 
 /*
@@ -46,7 +46,7 @@ const NavScoreboardFilters = React.createClass({
   */
   selectFirstOption() {
     if (this.props.options.length === 0) {
-      return
+      return;
     }
 
     const { option, type, key } = this.props.options[0];
