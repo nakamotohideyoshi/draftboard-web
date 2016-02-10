@@ -262,7 +262,7 @@ class ContestLineupManager(object):
             for pid in lm.get_player_ids( e.lineup ):
                 #print( '        pid:', str(pid ))
                 # offset, bytes = self.pack_into_h( '>h', bytes, offset, pid )
-                print( 'pid:', str( pid ) )
+                #print( 'pid:', str( pid ) )
 
                 offset, bytes = self.pack_into_h( '>H', bytes, offset, pid )
 
