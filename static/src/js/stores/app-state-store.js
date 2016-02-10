@@ -161,6 +161,14 @@ const AppActions = {
     }
   },
 
+  enterContestButtonMouseOver() {
+    this.addClass('appstate-enterContestButtonHover');
+  },
+
+  enterContestButtonMouseOut() {
+    this.removeClass('appstate-enterContestButtonHover');
+  },
+
 };
 
 
