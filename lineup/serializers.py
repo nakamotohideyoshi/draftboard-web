@@ -97,14 +97,13 @@ class PlayerSerializer(serializers.ModelSerializer):
         model = Player
         fields = ('player_id', 'full_name', 'roster_spot', 'idx', 'player_meta','fppg','salary')
 
-
 class LineupSerializer(serializers.ModelSerializer):
+
     players = PlayerSerializer(many=True, read_only=True)
 
     class Meta:
         model = Lineup
         fields = ('id', 'user', 'name', 'sport', 'fantasy_points', 'draft_group', 'players')
-
 
 class CreateLineupSerializer(serializers.Serializer):
     draft_group = serializers.IntegerField()

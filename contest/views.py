@@ -3,9 +3,9 @@
 
 from django.contrib.auth.models import User
 from django.utils import timezone
+from datetime import datetime, date, time, timedelta
 import json
 import celery
-
 from datetime import datetime
 from rest_framework import status
 from rest_framework.response import Response
@@ -27,6 +27,8 @@ from contest.serializers import (
     EditEntryLineupStatusSerializer,
     RemoveAndRefundEntrySerializer,
     RemoveAndRefundEntryStatusSerializer,
+    UserLineupHistorySerializer,
+    #PlayHistoryLineupSerializer,
 )
 from contest.classes import ContestLineupManager
 from contest.models import (
@@ -38,6 +40,7 @@ from contest.models import (
     HistoryContest,
     CurrentContest,
     HistoryEntry,
+    ClosedEntry,
 )
 from contest.payout.models import (
     Payout,
@@ -62,13 +65,13 @@ from django.views.generic.edit import CreateView, UpdateView
 from contest.forms import ContestForm, ContestFormAdd
 from django.db.models import Count
 from mysite.celery_app import TaskHelper
+from util.dfsdate import DfsDate
 
 # test the generic add view
 class ContestCreate(CreateView):
     model       = Contest
     form_class  = ContestFormAdd
     #fields      = ['name','ends_tonight','start']
-
 
 # testing the generic edit view
 class ContestUpdate(UpdateView):
@@ -213,7 +216,7 @@ class UserHistoryAPIView(generics.GenericAPIView):
 
         .. note::
 
-            By default it will return the last 100 historical entries.
+            .By default it will return the last 100 historical entries
 
             Get parameters of **?start_ts=UNIX_TIMESTAMP&end_ts=UNIX_TIMESTAMP** can be used to
             set a date range to get entries between.
@@ -593,3 +596,32 @@ class RemoveAndRefundEntryStatusAPIView(generics.GenericAPIView):
         """
         task_helper = TaskHelper(unregister_entry_task, task_id)
         return Response(task_helper.get_data(), status=status.HTTP_200_OK)
+
+class UserPlayHistoryAPIView(generics.ListAPIView):
+    """
+    get the entry history for a user lineups on a day
+    """
+
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = UserLineupHistorySerializer
+
+    def get_queryset(self):
+        """
+        retrieve the Lineup objects
+        """
+        rng     = DfsDate.get_current_dfs_date_range()
+        yyyy    = int(self.kwargs['year'])
+        mm      = int(self.kwargs['month'])
+        dd      = int(self.kwargs['day'])
+        start   = rng[0].replace( yyyy, mm, dd )
+        end     = start + timedelta(days=1)
+        print('range(%s, %s)' % (start, end))
+
+        # get a list of the lineups in historical entries for the day
+        history_entries = ClosedEntry.objects.filter( user=self.request.user,
+                                                       contest__start__range=(start, end) ) #,
+                                                       #contest__status=Contest.CLOSED )
+        for he in history_entries:
+            print( he, str(he.contest) )
+        historical_entry_lineups = [ e.lineup for e in history_entries ]
+        return historical_entry_lineups

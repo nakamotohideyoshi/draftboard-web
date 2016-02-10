@@ -8,10 +8,11 @@ from mysite.classes import AbstractManagerClass
 class Payout(Action):
 
     rank = models.PositiveIntegerField(default=0)
-    entry = models.OneToOneField(Entry,
-                                 null=False)
+    entry = models.OneToOneField(Entry, null=False, related_name='payout' )
+
     def __str__(self):
         return "Contest_Name:"+self.contest.name+" user_name:"+self.entry.lineup.user.username+"  rank:"+str(self.rank)
+
     @property
     def amount(self):
         ctd = CashTransactionDetail.objects.get(transaction=self.transaction,

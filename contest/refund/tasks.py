@@ -40,6 +40,13 @@ def refund_and_cancel_live_contests_task(self):
     :return:
     """
 
+    for contest in LiveContest.objects.all():
+        # TODO - for now, we have decided to simply
+        #        cancel any game that has less entries
+        #        than payout spots!
+        if contest.current_entries < contest.prize_structure.payout_spots:
+            refund_task.delay( contest, force=True )
+
     contests = LiveContest.objects.filter(gpp=False)
     for contest in contests:
         if contest.current_entries < contest.entries:

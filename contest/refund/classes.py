@@ -109,7 +109,7 @@ class RefundManager(AbstractManagerClass):
         escrow_ct.withdraw(buyin, trans=transaction)
 
     @atomic
-    def refund(self, contest, force=False):
+    def refund(self, contest, force=False, admin_force=False):
         """
         Task that refunds all contest entries and sets the contest to Cancelled.
 
@@ -124,13 +124,14 @@ class RefundManager(AbstractManagerClass):
         """
         self.validate_arguments(contest)
 
-        #
-        if contest.gpp == True:
-            return
+        if admin_force == False:
+            #
+            if contest.gpp == True:
+                return
 
-        # if its already been cancelled, we cant do it again
-        if contest in HistoryContest.objects.all():
-            raise ContestCanNotBeRefunded()
+            # if its already been cancelled, we cant do it again
+            if contest in HistoryContest.objects.all():
+                raise ContestCanNotBeRefunded()
 
         # if we are not forcing the refund, then check if the contest is live first
         if not force:
@@ -159,8 +160,12 @@ class RefundManager(AbstractManagerClass):
         :param transaction:
         :param entry:
         """
-        refund = Refund()
-        refund.contest = entry.contest
-        refund.entry = entry
-        refund.transaction = transaction
-        refund.save()
+        try:
+            r = Refund.objects.get(entry=entry)
+        except Refund.DoesNotExist:
+            # only create a refund if one doesnt exist
+            refund = Refund()
+            refund.contest = entry.contest
+            refund.entry = entry
+            refund.transaction = transaction
+            refund.save()
