@@ -1,3 +1,6 @@
+#
+# account/views.py
+
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework import status
@@ -20,7 +23,7 @@ from account.serializers import (
     UserSerializer,
     InformationSerializer,
     UserEmailNotificationSerializer,
-    EmailNotificationSerializer,
+    EmailNotificationSerializer
 )
 import account.tasks
 from braces.views import LoginRequiredMixin
@@ -30,7 +33,6 @@ from django.template import loader
 from rest_framework import response, status
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-
 from rest_framework import permissions
 #from rest_framework.generics import CreateAPIView
 #from django.contrib.auth import get_user_model # If used custom user model
@@ -563,3 +565,4 @@ class TransactionHistoryAPI(APIView):
 class RegisterView(TemplateView):
 
     template_name = 'registration/register.html'
+

@@ -1,6 +1,7 @@
+#
+# account/urls.py
+
 from django.conf.urls import url
-
-
 from account.views import (
     AuthAPIView,
     ForgotPasswordAPIView,
@@ -9,7 +10,7 @@ from account.views import (
     UserAPIView,
     InformationAPIView,
     UserEmailNotificationAPIView,
-    EmailNotificationAPIView
+    EmailNotificationAPIView,
 )
 
 
