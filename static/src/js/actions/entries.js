@@ -1,13 +1,13 @@
-const moment = require('moment')
-const request = require('superagent-promise')(require('superagent'), Promise)
-import 'babel-core/polyfill'
-import _ from 'lodash'
-import { normalize, Schema, arrayOf } from 'normalizr'
+const request = require('superagent-promise')(require('superagent'), Promise);
+import 'babel-core/polyfill';
+import moment from 'moment';
+import _ from 'lodash';
+import { normalize, Schema, arrayOf } from 'normalizr';
 
-import * as ActionTypes from '../action-types'
-import log from '../lib/logging'
-import { fetchContestIfNeeded } from './live-contests'
-import { setCurrentLineups } from './current-lineups'
+import * as ActionTypes from '../action-types';
+import log from '../lib/logging';
+import { fetchContestIfNeeded } from './live-contests';
+import { setCurrentLineups } from './current-lineups';
 
 
 // dispatch to reducer methods
@@ -21,7 +21,7 @@ import { setCurrentLineups } from './current-lineups'
  */
 const confirmRelatedEntriesInfo = () => ({
   type: ActionTypes.CONFIRM_RELATED_ENTRIES_INFO,
-})
+});
 
 /**
  * Dispatch API response object of current entries to the store
@@ -30,27 +30,29 @@ const confirmRelatedEntriesInfo = () => ({
  * @return {object}   Changes for reducer
  */
 const receiveEntries = (response) => {
+  const filteredResponse = _.filter(response, (entry) => moment(entry.start).isAfter(moment().subtract(1, 'days')));
+
   // normalize the API call into a list of entry objects
   const entriesSchema = new Schema('entries', {
     idAttribute: 'id',
-  })
+  });
   const normalizedEntries = normalize(
-    response,
+    filteredResponse,
     arrayOf(entriesSchema)
-  )
-  const entries = normalizedEntries.entities.entries
+  );
+  const entries = normalizedEntries.entities.entries;
 
   // update the start for easy comparisons
   _.forEach(entries, (entry, id) => {
-    entries[id].start = moment(entry.start).valueOf()
-  })
+    entries[id].start = moment(entry.start);
+  });
 
   return {
     type: ActionTypes.RECEIVE_ENTRIES,
     items: entries || [],
-    updatedAt: Date.now(),
-  }
-}
+    expiresAt: moment(Date.now()).add(5, 'minutes'),
+  };
+};
 
 /**
  * Dispatch information to reducer that we are trying to get current entries
@@ -60,7 +62,8 @@ const receiveEntries = (response) => {
  */
 const requestEntries = () => ({
   type: ActionTypes.REQUEST_ENTRIES,
-})
+  expiresAt: moment(Date.now()).add(1, 'minute'),
+});
 
 /**
  * Dispatch information to reducer that we have completed getting all information related to the entries
@@ -71,7 +74,7 @@ const requestEntries = () => ({
 const storeEntriesPlayers = (entriesPlayers) => ({
   type: ActionTypes.ADD_ENTRIES_PLAYERS,
   entriesPlayers,
-})
+});
 
 
 // helper methods
@@ -83,32 +86,32 @@ const storeEntriesPlayers = (entriesPlayers) => ({
  * @return {promise} Returns the object of rosters wrapped in dispatch wrapped in promise, so we can chain
  */
 const addEntriesPlayers = () => (dispatch, getState) => {
-  const state = getState()
-  const entriesPlayers = {}
+  const state = getState();
+  const entriesPlayers = {};
 
   // filter entries to only those that have started
-  const liveEntries = _.filter(state.entries.items, (entry) => entry.start < Date.now())
+  const liveEntries = _.filter(state.entries.items, (entry) => entry.start < Date.now());
 
   // only add players that have started playing, by checking if they are in the roster
   _.forEach(liveEntries, (entry) => {
-    const lineup = state.liveContests[entry.contest].lineups[entry.lineup]
+    const lineup = state.liveContests[entry.contest].lineups[entry.lineup];
     if (typeof lineup !== 'undefined' && lineup.hasOwnProperty('roster')) {
-      entriesPlayers[entry.id] = lineup.roster
+      entriesPlayers[entry.id] = lineup.roster;
     }
-  })
+  });
 
   // returning a promise such that we can chain this method
   return Promise.all([
     dispatch(storeEntriesPlayers(entriesPlayers)),
-  ])
-}
+  ]);
+};
 
 /**
  * API GET to return live and upcoming (current) entries.
  * @return {promise}   Promise that resolves with API response body to reducer
  */
 const fetchEntries = () => (dispatch) => {
-  dispatch(requestEntries())
+  dispatch(requestEntries());
 
   return request.get(
     '/api/contest/current-entries/'
@@ -117,8 +120,8 @@ const fetchEntries = () => (dispatch) => {
     Accept: 'application/json',
   }).then(
     (res) => dispatch(receiveEntries(res.body))
-  )
-}
+  );
+};
 
 /**
  * Generates object of objects of all the lineups related to the current entries, then returns a promise
@@ -127,13 +130,13 @@ const fetchEntries = () => (dispatch) => {
  * @return {promise}   Promise that resolves with lineup information to lineup action, then to reducer
  */
 export const generateLineups = () => (dispatch, getState) => {
-  const lineups = {}
+  const lineups = {};
 
   _.forEach(getState().entries.items, (entry) => {
-    const id = entry.lineup
+    const id = entry.lineup;
 
     if (id in lineups) {
-      lineups[id].contests.push(entry.contest)
+      lineups[id].contests.push(entry.contest);
     } else {
       lineups[id] = {
         id: entry.lineup,
@@ -142,15 +145,15 @@ export const generateLineups = () => (dispatch, getState) => {
         start: entry.start,
         roster: entry.roster,
         contests: [entry.contest],
-      }
+      };
     }
-  })
+  });
 
   // returning a promise such that we can chain this method
   return Promise.all([
     dispatch(setCurrentLineups(lineups)),
-  ])
-}
+  ]);
+};
 
 /**
  * Method to determine whether we need to fetch entries.
@@ -158,7 +161,15 @@ export const generateLineups = () => (dispatch, getState) => {
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch draft groups, false if not
  */
-const shouldFetchEntries = (state) => state.entries.isFetching === false
+const shouldFetchEntries = (state) => {
+  // fetch if expired
+  if (moment().isBefore(state.entries.expiresAt)) {
+    return false;
+  }
+
+  // only fetch if not already fetching
+  return state.entries.isFetching === false;
+};
 
 
 // primary methods (mainly exported, some needed in there to have proper init of const)
@@ -175,7 +186,7 @@ const shouldFetchEntries = (state) => state.entries.isFetching === false
 const fetchRelatedEntriesInfo = () => (dispatch, getState) => {
   const calls = _.map(
     getState().entries.items, (entry) => dispatch(fetchContestIfNeeded(entry.contest))
-  )
+  );
 
   // first fetch all contest information (which also gets draft groups, games, prizes)
   return Promise.all(
@@ -192,8 +203,8 @@ const fetchRelatedEntriesInfo = () => (dispatch, getState) => {
   // then let's everyone know we're done
   ).then(() =>
     dispatch(confirmRelatedEntriesInfo())
-  )
-}
+  );
+};
 
 /**
  * Outside facing method to go ahead and fetch entries after checking whether we should
@@ -202,21 +213,21 @@ const fetchRelatedEntriesInfo = () => (dispatch, getState) => {
  */
 export const fetchEntriesIfNeeded = (force) => (dispatch, getState) => {
   if (shouldFetchEntries(getState()) === true || force === true) {
-    log.info('actions.fetchEntriesIfNeeded() - Updating entries')
+    log.info('actions.fetchEntriesIfNeeded() - Updating entries');
 
     return dispatch(
       fetchEntries()
     ).then(() =>
       dispatch(fetchRelatedEntriesInfo())
-    )
+    );
   }
 
-  return Promise.resolve('Entries already fetched')
-}
+  return Promise.resolve('Entries already fetched');
+};
 
 /**
  * Once an entry is created, the server returns it to us in Entry object form. We then need to
  * stuff it into our entries store via receiveEntries().
  * @return {func}   Thunk wrapped data
  */
-export const insertEntry = (entry) => (dispatch) => dispatch(receiveEntries([entry]))
+export const insertEntry = (entry) => (dispatch) => dispatch(receiveEntries([entry]));

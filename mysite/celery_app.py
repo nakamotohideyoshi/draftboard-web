@@ -204,12 +204,12 @@ app.conf.update(
             'schedule': timedelta(minutes=15),
         },
 
-        #
-        # let the admins know we are approaching contests that need draft groups
-        'notifiy_admin_contests_require_draft_group' : {
-            'task'      : 'contest.tasks.notifiy_admin_contests_require_draft_group',
-            'schedule': timedelta(hours=12),
-        },
+        # #
+        # # let the admins know we are approaching contests that need draft groups
+        # 'notifiy_admin_contests_require_draft_group' : {
+        #     'task'      : 'contest.tasks.notifiy_admin_contests_require_draft_group',
+        #     'schedule': timedelta(hours=12),
+        # },
 
         #
         # add the refund&canceller for newly "live" games that should be cancelled.

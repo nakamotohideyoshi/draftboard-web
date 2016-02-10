@@ -1,5 +1,5 @@
-import React from 'react'
-import * as AppActions from '../../stores/app-state-store.js'
+import React from 'react';
+import * as AppActions from '../../stores/app-state-store.js';
 
 
 /**
@@ -8,42 +8,42 @@ import * as AppActions from '../../stores/app-state-store.js'
 const NavScoreboardMenu = React.createClass({
 
   getInitialState() {
-    return { shown: false }
+    return { shown: false };
   },
 
   componentWillMount() {
-    this.setState({ shown: false })
-    window.addEventListener('click', this.handleWindowClick)
+    this.setState({ shown: false });
+    window.addEventListener('click', this.handleWindowClick);
   },
 
   handleWindowClick(e) {
     // if the nav isn't showing then return
     if (this.state.shown === false) {
-      return true
+      return true;
     }
 
-    const navMain = document.querySelectorAll('.nav-main')[0]
-    const navTrigger = document.querySelectorAll('.cmp-nav-scoreboard--menu')[0]
+    const navMain = document.querySelectorAll('.nav-main')[0];
+    const navTrigger = document.querySelectorAll('.cmp-nav-scoreboard--menu')[0];
 
-    const targetInNav = navMain.contains(e.target) === true || navMain === e.target
-    const targetInNavTrigger = navTrigger.contains(e.target) === true || navTrigger === e.target
+    const targetInNav = navMain.contains(e.target) === true || navMain === e.target;
+    const targetInNavTrigger = navTrigger.contains(e.target) === true || navTrigger === e.target;
 
     // if we are clicking in the nav or its trigger, then don't close
     if (targetInNav || targetInNavTrigger) {
-      return true
+      return true;
     }
 
-    this.handleToggleHamburgerMenu()
-    return false
+    this.handleToggleHamburgerMenu();
+    return false;
   },
 
   handleToggleHamburgerMenu() {
     if (this.state.shown) {
-      this.setState({ shown: false })
-      AppActions.closeNavMain()
+      this.setState({ shown: false });
+      AppActions.closeNavMain();
     } else {
-      this.setState({ shown: true })
-      AppActions.openNavMain()
+      this.setState({ shown: true });
+      AppActions.openNavMain();
     }
   },
 
@@ -74,10 +74,10 @@ const NavScoreboardMenu = React.createClass({
           </svg>
         </div>
       </div>
-    )
+    );
   },
 
-})
+});
 
 
-export default NavScoreboardMenu
+export default NavScoreboardMenu;

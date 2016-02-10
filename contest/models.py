@@ -415,6 +415,22 @@ class HistoryContest(Contest):
         verbose_name = 'History'
         verbose_name_plural = 'History'
 
+class ClosedContest(Contest):
+    """
+    PROXY model for viewing only the Closed (paid) contests .. and rest API use.
+    """
+
+    class ClosedContestManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status=Contest.CLOSED)
+
+    objects = ClosedContestManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = 'Paid Out'
+        verbose_name_plural = 'Paid Out'
+
 class Entry(models.Model):
     """
     An instance of a Lineup in a Contest. One of these is created
@@ -424,9 +440,12 @@ class Entry(models.Model):
     created     = models.DateTimeField(auto_now_add=True)
     updated     = models.DateTimeField(auto_now=True)
 
-    contest     = models.ForeignKey(Contest, null=False)
-    lineup      = models.ForeignKey("lineup.Lineup", null=True)
+    contest     = models.ForeignKey(Contest, null=False, related_name='contests')
+    lineup      = models.ForeignKey("lineup.Lineup", null=True, related_name='entries')
     user        = models.ForeignKey(User, null=False)
+
+    final_rank  = models.IntegerField(default=-1, null=False,
+                                       help_text='the rank of the entry after the contest has been paid out')
 
     def __str__(self):
         return '%s %s' % (self.contest.name, str(self.lineup))
@@ -449,16 +468,29 @@ class HistoryEntry(Entry):
     class Meta:
         proxy = True
 
-class Action(models.Model):
-    created = models.DateTimeField( auto_now_add=True)
-    transaction = models.OneToOneField("transaction.Transaction",
-                                    null=False,)
-    contest = models.ForeignKey(Contest,
-                                null=False)
+class ClosedEntry(Entry):
+    """
+    PROXY model for viewing only the Closed (paid out) entries ... and rest API use.
+    """
 
+    class ClosedEntryManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(contest__in=ClosedContest.objects.all())
+
+    objects = ClosedEntryManager()
+
+    class Meta:
+        proxy = True
+
+class Action(models.Model):
+
+    created = models.DateTimeField( auto_now_add=True)
+    transaction = models.OneToOneField("transaction.Transaction", null=False,)
+    contest = models.ForeignKey(Contest, null=False)
 
     class Meta:
         abstract = True
+
     @property
     def user(self):
         return self.transaction.user

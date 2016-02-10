@@ -9,7 +9,7 @@ import moment from 'moment';
 const GamesList = React.createClass({
 
   propTypes: {
-    boxScores: React.PropTypes.array,
+    boxScores: React.PropTypes.object,
     teams: React.PropTypes.object,
   },
 
@@ -21,12 +21,12 @@ const GamesList = React.createClass({
       // do we have teams?
       if (this.props.teams.hasOwnProperty('teams')) {
         gameList.push(
-          <tr key={game.pk}>
+          <tr key={game.srid}>
             <td className="teams">
-              {this.props.teams.teams[game.fields.away_id].alias}&nbsp;vs&nbsp;
-              {this.props.teams.teams[game.fields.home_id].alias}
+              {this.props.teams.teams[game.srid_away].alias}&nbsp;vs&nbsp;
+              {this.props.teams.teams[game.srid_home].alias}
             </td>
-            <td className="time">{moment(game.fields.created, moment.ISO_8601).format('h:mma')}</td>
+            <td className="time">{moment(game.start, moment.ISO_8601).format('h:mma')}</td>
           </tr>
         );
       }

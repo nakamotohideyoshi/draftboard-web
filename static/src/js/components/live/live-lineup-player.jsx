@@ -1,7 +1,7 @@
-import React from 'react'
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import React from 'react';
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
-import LivePMRProgressBar from './live-pmr-progress-bar'
+import LivePMRProgressBar from './live-pmr-progress-bar';
 
 
 const LiveLineupPlayer = React.createClass({
@@ -22,10 +22,10 @@ const LiveLineupPlayer = React.createClass({
   renderEventDescription() {
     // only show when there's an event
     if (!this.props.eventDescription) {
-      return (<div key="5" />)
+      return (<div key="5" />);
     }
 
-    const { points, info, when } = this.props.eventDescription
+    const { points, info, when } = this.props.eventDescription;
 
     return (
       <div className="live-lineup-player__event-description event-description showing">
@@ -33,7 +33,7 @@ const LiveLineupPlayer = React.createClass({
         <div className="event-description__info">{info}</div>
         <div className="event-description__when">{when}</div>
       </div>
-    )
+    );
   },
 
   /**
@@ -42,18 +42,18 @@ const LiveLineupPlayer = React.createClass({
    * @return {JSXElement}
    */
   renderGameStats() {
-    const values = this.props.player.liveStats || {}
+    const values = this.props.player.liveStats || {};
 
     // ordered stats
-    const statTypes = ['points', 'rebounds', 'steals', 'assists', 'blocks', 'turnovers']
-    const statNames = ['PTS', 'RB', 'ST', 'ASST', 'BLK', 'TO']
+    const statTypes = ['points', 'rebounds', 'steals', 'assists', 'blocks', 'turnovers'];
+    const statNames = ['PTS', 'RB', 'ST', 'ASST', 'BLK', 'TO'];
 
     const renderedStats = statTypes.map((statType, index) => (
       <li key={statType}>
         <div className="hover-stats__amount">{values[statType] || 0}</div>
         <div className="hover-stats__name">{statNames[index]}</div>
       </li>
-    ))
+    ));
 
     return (
       <div key="6" className="live-lineup-player__hover-stats">
@@ -61,14 +61,14 @@ const LiveLineupPlayer = React.createClass({
           {renderedStats}
         </ul>
       </div>
-    )
+    );
   },
 
   renderPhotoAndHover() {
-    const decimalRemaining = this.props.player.stats.decimalRemaining
+    const decimalRemaining = this.props.player.stats.decimalRemaining;
 
     // TODO Live - remove when we have player images
-    const playerInitials = this.props.player.info.name.match(/\b(\w)/g).join('')
+    const playerInitials = this.props.player.info.name.match(/\b(\w)/g).join('');
 
     return (
       <div key="1" className="live-lineup-player__circle">
@@ -86,19 +86,19 @@ const LiveLineupPlayer = React.createClass({
         </div>
         {this.renderGameStats()}
       </div>
-    )
+    );
   },
 
   render() {
-    const stats = this.props.player.stats
+    const stats = this.props.player.stats;
 
     // classname for the whole player
-    const gameCompleted = (stats.decimalRemaining === 0) ? 'not' : 'is'
-    const className = `live-lineup-player state--${gameCompleted}-playing`
+    const gameCompleted = (stats.decimalRemaining === 0) ? 'not' : 'is';
+    const className = `live-lineup-player state--${gameCompleted}-playing`;
 
     // classname to determine whether the player is live or not
-    const isPlayingClass = this.props.isPlaying === true ? 'play-status--playing' : ''
-    const playStatusClass = `live-lineup-player__play-status ${isPlayingClass}`
+    const isPlayingClass = this.props.isPlaying === true ? 'play-status--playing' : '';
+    const playStatusClass = `live-lineup-player__play-status ${isPlayingClass}`;
 
     // in an effort to have DRY code, i render this list and reverse it for the opponent side
     // note that the key is required by React when rendering multiple children
@@ -118,19 +118,19 @@ const LiveLineupPlayer = React.createClass({
       >
         {this.renderEventDescription()}
       </ReactCSSTransitionGroup>),
-    ]
+    ];
 
     // flip the order of elements for opponent
     if (this.props.whichSide === 'opponent') {
-      playerElements = playerElements.reverse()
+      playerElements = playerElements.reverse();
     }
 
     return (
       <li className={className} onClick={this.props.openPlayerPane}>
         {playerElements}
       </li>
-    )
+    );
   },
-})
+});
 
-export default LiveLineupPlayer
+export default LiveLineupPlayer;

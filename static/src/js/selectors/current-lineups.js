@@ -1,8 +1,8 @@
-import _ from 'lodash'
-import { createSelector } from 'reselect'
+import _ from 'lodash';
+import { createSelector } from 'reselect';
 
-import { GAME_DURATIONS } from '../actions/sports'
-import { liveContestsSelector } from './live-contests'
+import { GAME_DURATIONS } from '../actions/sports';
+import { liveContestsSelector } from './live-contests';
 
 
 /**
@@ -12,13 +12,13 @@ import { liveContestsSelector } from './live-contests'
  * @return {number}                  Remaining time in decimal form
  */
 const calcDecimalRemaining = (minutesRemaining, totalMinutes) => {
-  const decimalRemaining = minutesRemaining / totalMinutes
+  const decimalRemaining = minutesRemaining / totalMinutes;
 
   // we don't want 1 exactly, as that messes with the calculations, 0.99 looks full
-  if (decimalRemaining === 1) return 0.9999
+  if (decimalRemaining === 1) return 0.9999;
 
-  return decimalRemaining
-}
+  return decimalRemaining;
+};
 
 /**
  * Loop through all contests a lineup is in and return pertinent information on them if they're live
@@ -29,13 +29,13 @@ const calcDecimalRemaining = (minutesRemaining, totalMinutes) => {
  * @return {object}                List of contests with new stats
  */
 const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveContests) => {
-  const stats = {}
+  const stats = {};
 
   // loop through each of the lineup's entered contests
   _.forEach(lineupContests, (contestId) => {
-    const liveContest = liveContests[contestId]
-    const contestStats = contestsStats[contestId]
-    const entryStats = contestStats.lineups[lineupId]
+    const liveContest = liveContests[contestId];
+    const contestStats = contestsStats[contestId];
+    const entryStats = contestStats.lineups[lineupId];
 
     // if stats exist (aka the lineup has started playing), then modify the given contest stats with some additional
     // information, such as our entry's rank and position, since we don't need to calculate for everyone yet
@@ -46,12 +46,12 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
           myPercentagePosition: (entryStats.rank - 1) / liveContest.info.entries * 100,
           myEntryRank: entryStats.rank,
         }
-      )
+      );
     }
-  })
+  });
 
-  return stats
-}
+  return stats;
+};
 
 /**
  * Returns hours for provided timestamp with format like: 7pm
@@ -59,12 +59,12 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
  * @return {String}
  */
 const calcFormattedTime = (timestamp) => {
-  const hours = new Date(timestamp).getHours()
-  let time = (hours % 12 || 12) + (hours > 12 ? 'pm' : 'am')
-  if (time === '12pm') time = '0am'
+  const hours = new Date(timestamp).getHours();
+  let time = (hours % 12 || 12) + (hours > 12 ? 'pm' : 'am');
+  if (time === '12pm') time = '0am';
 
-  return time
-}
+  return time;
+};
 
 /**
  * Shortcut method to loop through all lineup entries and their associated contests to sum potential earnings
@@ -74,15 +74,15 @@ const calcFormattedTime = (timestamp) => {
  */
 const calcLineupPotentialEarnings = (entries, contestsStats) =>
   _.reduce(entries, (sum, entry) => {
-    const contestLineups = contestsStats[entry.contest].lineups
+    const contestLineups = contestsStats[entry.contest].lineups;
 
     if (entry.lineup in contestLineups === true) {
-      return sum + contestsStats[entry.contest].lineups[entry.lineup].potentialEarnings
+      return sum + contestsStats[entry.contest].lineups[entry.lineup].potentialEarnings;
     }
 
-    return sum
+    return sum;
   },
-0)
+0);
 
 /**
  * Add relevant player information to each player in the roster
@@ -92,12 +92,12 @@ const calcLineupPotentialEarnings = (entries, contestsStats) =>
  * @param  {list} relevantPlayers List of relevant player IDs
  * @return {object}               List of the players and all of their pertinent information
  */
-function compileRosterStats(roster, draftGroup, games, relevantPlayers) {
-  const currentPlayers = {}
+export const compileRosterStats = (roster, draftGroup, games, relevantPlayers) => {
+  const currentPlayers = {};
 
   _.forEach(roster, (playerId) => {
     // exit if we don't have any player info.
-    if (draftGroup.playersInfo.hasOwnProperty(playerId) === false) return
+    if (draftGroup.playersInfo.hasOwnProperty(playerId) === false) return;
 
     const player = {
       id: playerId,
@@ -111,31 +111,31 @@ function compileRosterStats(roster, draftGroup, games, relevantPlayers) {
         },
         draftGroup.playersStats[playerId] || {}
       ),
-    }
-    player.liveStats = relevantPlayers[player.info.player_srid]
+    };
+    player.liveStats = relevantPlayers[player.info.player_srid];
 
     // pull in accurate data from related game
-    const game = games[player.info.game_srid]
+    const game = games[player.info.game_srid];
     if (game) {
       // if playing then get the live amount remaining
       if (game.hasOwnProperty('boxscore')) {
-        player.stats.minutesRemaining = game.boxscore.timeRemaining || 0
+        player.stats.minutesRemaining = game.boxscore.timeRemaining || 0;
         player.stats.decimalRemaining = calcDecimalRemaining(
           player.stats.minutesRemaining,
           GAME_DURATIONS.nba.gameMinutes
-        )
+        );
       // otherwise this means the game is scheduled, so show as full
       } else {
-        player.stats.minutesRemaining = GAME_DURATIONS.nba.gameMinutes
-        player.stats.decimalRemaining = 0.99
+        player.stats.minutesRemaining = GAME_DURATIONS.nba.gameMinutes;
+        player.stats.decimalRemaining = 0.99;
       }
     }
 
-    currentPlayers[playerId] = player
-  })
+    currentPlayers[playerId] = player;
+  });
 
-  return currentPlayers
-}
+  return currentPlayers;
+};
 
 /**
  * Compile all relevant stats for a lineup
@@ -152,27 +152,64 @@ export const compileLineupStats = (lineup, draftGroup, games, relevantPlayers) =
     roster: lineup.roster,
     start: lineup.start,
     totalMinutes: GAME_DURATIONS.nba.gameMinutes * GAME_DURATIONS.nba.players,
-  }
+  };
 
   // return if the lineup hasn't started yet
-  if (lineup.roster === undefined) return stats
+  if (lineup.roster === undefined) return stats;
 
-  stats.rosterDetails = compileRosterStats(lineup.roster, draftGroup, games, relevantPlayers)
+  stats.rosterDetails = compileRosterStats(lineup.roster, draftGroup, games, relevantPlayers);
 
   // determine total fantasy points for the lineup
   // only add if they have fantasy points
   stats.points = _.reduce(stats.rosterDetails, (fp, player) =>
     (isNaN(player.stats.fp)) ? fp : fp + player.stats.fp,
-  0)
+  0);
 
   // calculate minutes
   stats.minutesRemaining = _.reduce(stats.rosterDetails, (timeRemaining, player) =>
     (player.stats.minutesRemaining) ? player.stats.minutesRemaining + timeRemaining : timeRemaining,
-  0)
-  stats.decimalRemaining = calcDecimalRemaining(stats.minutesRemaining, stats.totalMinutes)
+  0);
+  stats.decimalRemaining = calcDecimalRemaining(stats.minutesRemaining, stats.totalMinutes);
 
-  return stats
-}
+  return stats;
+};
+
+/**
+ * When you choose to watch the top players, we need to make a fake lineup based on that roster
+ * @param  {list} roster     Fake roster of top owned player IDs
+ * @param  {object} draftGroup Draft group associated to the contest the user is in
+ * @param  {string} sport      Sport to determine game related constants
+ * @param  {object} games      Games to calculate PMR for roster
+ * @return {object}            Lineup stats, similar to what comes out of compileLineupStats
+ */
+export const compileVillianLineup = (roster, draftGroup, sport, games) => {
+  const sportConst = GAME_DURATIONS[sport];
+
+  const stats = {
+    id: 1,
+    name: 'Top Owned',
+    roster,
+    start: draftGroup.start,
+    totalMinutes: sportConst.gameMinutes * sportConst.players,
+  };
+
+  stats.rosterDetails = compileRosterStats(roster, draftGroup, games, roster);
+
+  // determine total fantasy points for the lineup
+  // only add if they have fantasy points
+  stats.points = _.reduce(stats.rosterDetails, (fp, player) =>
+    (isNaN(player.stats.fp)) ? fp : fp + player.stats.fp,
+  0);
+
+  // calculate minutes
+  stats.minutesRemaining = _.reduce(stats.rosterDetails, (timeRemaining, player) =>
+    (player.stats.minutesRemaining) ? player.stats.minutesRemaining + timeRemaining : timeRemaining,
+  0);
+  stats.decimalRemaining = calcDecimalRemaining(stats.minutesRemaining, stats.totalMinutes);
+
+  return stats;
+};
+
 
 // Crazy selector that
 // - loops through the entries per lineup and calculates potential earnings
@@ -190,16 +227,16 @@ export const currentLineupsSelector = createSelector(
   (contestsStats, liveContests, liveDraftGroups, sports, entries, lineups, hasRelatedInfo, relevantPlayers) => {
     // do not show if we don't have data yet
     if (hasRelatedInfo === false) {
-      return {}
+      return {};
     }
 
-    const stats = {}
+    const stats = {};
     _.forEach(lineups, (lineup) => {
-      const draftGroup = liveDraftGroups[lineup.draft_group]
+      const draftGroup = liveDraftGroups[lineup.draft_group];
 
       // if the draftgroup has ended, then you can no longer see the lineup
       if (draftGroup.end <= Date.parse(new Date())) {
-        return
+        return;
       }
 
       // send back a default lineup if it has not started playing yet
@@ -214,9 +251,9 @@ export const currentLineupsSelector = createSelector(
           points: 0,
           roster: lineup.roster,
           start: lineup.start,
-        }
+        };
 
-        return
+        return;
       }
 
       // combine the normal lineup stats (that are used in the contests selector), with additional stats that are only
@@ -232,9 +269,9 @@ export const currentLineupsSelector = createSelector(
           // used by LiveContestsPane to view contests for a lineup
           contestsStats: calcEntryContestStats(lineup.id, lineup.contests, contestsStats, liveContests),
         }
-      )
-    })
+      );
+    });
 
-    return stats
+    return stats;
   }
-)
+);

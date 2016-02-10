@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 
 /**
@@ -11,16 +11,22 @@ import React from 'react'
  */
 export const percentageHexColor = (start, end, percentage) => {
   const hex = (x) => {
-    const strX = x.toString(16)
-    return (strX.length == 1) ? '0' + strX : strX
-  }
+    const strX = x.toString(16);
+    return (strX.length === 1) ? `0${strX}` : strX;
+  };
 
-  const r = Math.ceil(parseInt(start.substring(0,2), 16) * percentage + parseInt(end.substring(0,2), 16) * (1-percentage))
-  const g = Math.ceil(parseInt(start.substring(2,4), 16) * percentage + parseInt(end.substring(2,4), 16) * (1-percentage))
-  const b = Math.ceil(parseInt(start.substring(4,6), 16) * percentage + parseInt(end.substring(4,6), 16) * (1-percentage))
+  const r = Math.ceil(
+    parseInt(start.substring(0, 2), 16) * percentage + parseInt(end.substring(0, 2), 16) * (1 - percentage)
+  );
+  const g = Math.ceil(
+    parseInt(start.substring(2, 4), 16) * percentage + parseInt(end.substring(2, 4), 16) * (1 - percentage)
+  );
+  const b = Math.ceil(
+    parseInt(start.substring(4, 6), 16) * percentage + parseInt(end.substring(4, 6), 16) * (1 - percentage)
+  );
 
-  return hex(r) + hex(g) + hex(b)
-}
+  return hex(r) + hex(g) + hex(b);
+};
 
 /**
  * Convert polar coordinates into cartesian
@@ -36,13 +42,13 @@ export const percentageHexColor = (start, end, percentage) => {
  * @return {object} Object with x and y distances to go from origin x,y coordinate
  */
 export const polarToCartesian = (originX, originY, radius, angleInDegrees) => {
-  const angleInRadians = (angleInDegrees-90) * Math.PI / 180.0
+  const angleInRadians = (angleInDegrees - 90) * Math.PI / 180.0;
 
   return {
     x: originX + (radius * Math.cos(angleInRadians)),
-    y: originY + (radius * Math.sin(angleInRadians))
-  }
-}
+    y: originY + (radius * Math.sin(angleInRadians)),
+  };
+};
 
 /**
  * Generate svg arc path, based on method from http://goo.gl/yJFZMs
@@ -54,18 +60,18 @@ export const polarToCartesian = (originX, originY, radius, angleInDegrees) => {
  * @return {string} Generated arc path used in an svg
  */
 export const describeArc = (x, y, radius, startAngle, endAngle) => {
-    // determine start and end cartesian paths
-    const start = polarToCartesian(x, y, radius, endAngle)
-    const end = polarToCartesian(x, y, radius, startAngle)
+  // determine start and end cartesian paths
+  const start = polarToCartesian(x, y, radius, endAngle);
+  const end = polarToCartesian(x, y, radius, startAngle);
 
-    // determine the semicircle on which the arc goes, 0 being left 1 being right
-    const arcSweep = endAngle - startAngle <= 180 ? "0" : "1"
+  // determine the semicircle on which the arc goes, 0 being left 1 being right
+  const arcSweep = endAngle - startAngle <= 180 ? '0' : '1';
 
-    return [
-      "M", start.x, start.y,
-      "A", radius, radius, 0, arcSweep, 0, end.x, end.y
-    ].join(" ")
-}
+  return [
+    'M', start.x, start.y,
+    'A', radius, radius, 0, arcSweep, 0, end.x, end.y,
+  ].join(' ');
+};
 
 /**
  * Reusable PMR progress bar using SVG
@@ -78,47 +84,47 @@ const LivePMRProgressBar = React.createClass({
     backgroundHex: React.PropTypes.string.isRequired,
     hexStart: React.PropTypes.string.isRequired,
     hexEnd: React.PropTypes.string.isRequired,
-    svgWidth: React.PropTypes.number.isRequired
+    svgWidth: React.PropTypes.number.isRequired,
   },
 
   render() {
-    const { decimalRemaining, strokeWidth, svgWidth } = this.props
-    let decimalDone = 1 - decimalRemaining
+    const { decimalRemaining, strokeWidth, svgWidth } = this.props;
+    let decimalDone = 1 - decimalRemaining;
 
     if (decimalRemaining === 0) {
-      decimalDone = 0.9999
+      decimalDone = 0.9999;
     }
 
-    const totalWidth = svgWidth + (2 * strokeWidth)
-    const svgMidpoint = totalWidth / 2
-    const radius = svgWidth / 2
+    const totalWidth = svgWidth + (2 * strokeWidth);
+    const svgMidpoint = totalWidth / 2;
+    const radius = svgWidth / 2;
 
     const svgProps = {
       viewBox: `0 0 ${totalWidth} ${totalWidth}`,
-      translate: `translate(${svgMidpoint}, ${svgMidpoint})`
-    }
+      translate: `translate(${svgMidpoint}, ${svgMidpoint})`,
+    };
 
     const backgroundCircleProps = {
       r: radius,
-      stroke: '#' + this.props.backgroundHex,
-      strokeWidth: strokeWidth
-    }
+      stroke: `#${this.props.backgroundHex}`,
+      strokeWidth,
+    };
 
     const progressArc = {
-      hexStart: '#' + this.props.hexStart,
-      hexHalfway: '#' + percentageHexColor(this.props.hexStart, this.props.hexEnd, 0.5),
-      hexEnd: '#' + this.props.hexEnd,
+      hexStart: `#${this.props.hexStart}`,
+      hexHalfway: `#${percentageHexColor(this.props.hexStart, this.props.hexEnd, 0.5)}`,
+      hexEnd: `#${this.props.hexEnd}`,
       d: describeArc(0, 0, radius, decimalDone * 360, 360),
-      strokeWidth: strokeWidth
-    }
+      strokeWidth,
+    };
 
     // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
     // https://github.com/facebook/react/issues/1657#issuecomment-146905709
     const svgMaskMarkup = {
       __html: `<g mask="url(#gradientMask)">\
         <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${totalWidth}" fill="url(#cl2)" />\
-        <rect x="0" y="-${svgMidpoint}" height="${totalWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`
-    }
+        <rect x="0" y="-${svgMidpoint}" height="${totalWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`,
+    };
 
     return (
       <div className="live-pmr">
@@ -140,7 +146,8 @@ const LivePMRProgressBar = React.createClass({
               r={backgroundCircleProps.r}
               stroke={backgroundCircleProps.stroke}
               strokeWidth={backgroundCircleProps.strokeWidth}
-              fill="none" />
+              fill="none"
+            />
 
             <mask id="gradientMask">
               <path fill="none" stroke="#fff" strokeWidth={progressArc.strokeWidth} d={progressArc.d}></path>
@@ -149,8 +156,8 @@ const LivePMRProgressBar = React.createClass({
           </g>
         </svg>
       </div>
-    )
-  }
-})
+    );
+  },
+});
 
-export default LivePMRProgressBar
+export default LivePMRProgressBar;

@@ -1,9 +1,9 @@
-import React from 'react'
+import React from 'react';
 
-import * as AppActions from '../../stores/app-state-store'
-import LiveLineupPlayer from './live-lineup-player'
-import LivePlayerPane from './live-player-pane'
-import log from '../../lib/logging'
+import * as AppActions from '../../stores/app-state-store';
+import LiveLineupPlayer from './live-lineup-player';
+import LivePlayerPane from './live-player-pane';
+import log from '../../lib/logging';
 
 
 /**
@@ -26,20 +26,20 @@ const LiveLineup = React.createClass({
     return {
       // (optional) parameter assigned a player ID when we want to show their LivePlayerPane
       viewPlayerDetails: this.props.lineup.length > 0 ? this.props.lineup.roster[0] : undefined,
-    }
+    };
   },
 
   /**
    * Used to close the current opponent lineup. Sets up parameters to then call props.changePathAndMode()
    */
   closeLineup() {
-    const mode = this.props.mode
-    const path = `/live/lineups/${mode.myLineupId}/contests/${mode.contestId}`
+    const mode = this.props.mode;
+    const path = `/live/lineups/${mode.myLineupId}/contests/${mode.contestId}`;
     const changedFields = {
       opponentLineupId: undefined,
-    }
+    };
 
-    this.props.changePathAndMode(path, changedFields)
+    this.props.changePathAndMode(path, changedFields);
   },
 
   /**
@@ -49,13 +49,13 @@ const LiveLineup = React.createClass({
    * @param  {integer} Player ID to show the LivePlayerPane for
    */
   openPlayerPane(playerId) {
-    log.debug('openPlayerPane() - open', playerId)
+    log.debug('openPlayerPane() - open', playerId);
 
-    this.setState({ viewPlayerDetails: playerId })
+    this.setState({ viewPlayerDetails: playerId });
     if (this.props.whichSide === 'opponent') {
-      AppActions.togglePlayerPane('right')
+      AppActions.togglePlayerPane('right');
     } else {
-      AppActions.togglePlayerPane('left')
+      AppActions.togglePlayerPane('left');
     }
   },
 
@@ -67,12 +67,12 @@ const LiveLineup = React.createClass({
   renderCloseLineup() {
     // you cannot close your own lineup
     if (this.props.whichSide === 'mine') {
-      return (<span />)
+      return (<span />);
     }
 
     return (
       <span className="live-lineup__close" onClick={this.closeLineup}></span>
-    )
+    );
   },
 
   /**
@@ -82,10 +82,10 @@ const LiveLineup = React.createClass({
    */
   renderPlayers() {
     const renderedPlayers = this.props.lineup.roster.map((playerId) => {
-      const player = this.props.lineup.rosterDetails[playerId]
-      const playerSRID = player.info.player_srid
-      const isPlaying = this.props.playersPlaying.indexOf(playerSRID) !== -1
-      const eventDescription = this.props.eventDescriptions[playerSRID] || undefined
+      const player = this.props.lineup.rosterDetails[playerId];
+      const playerSRID = player.info.player_srid;
+      const isPlaying = this.props.playersPlaying.indexOf(playerSRID) !== -1;
+      const eventDescription = this.props.eventDescriptions[playerSRID] || undefined;
 
       return (
         <LiveLineupPlayer
@@ -96,14 +96,14 @@ const LiveLineup = React.createClass({
           player={player}
           whichSide={this.props.whichSide}
         />
-      )
-    }, this)
+      );
+    }, this);
 
     return (
       <ul className="live-lineup__players">
         {renderedPlayers}
       </ul>
-    )
+    );
   },
 
   /**
@@ -112,16 +112,16 @@ const LiveLineup = React.createClass({
    * @return {JSXElement}
    */
   renderPlayerPane() {
-    const playerId = this.state.viewPlayerDetails
+    const playerId = this.state.viewPlayerDetails;
 
     // don't show if there's no player or the player is not in the roster
     if (!playerId || this.props.lineup.roster.indexOf(playerId) === -1) {
-      return ('')
+      return ('');
     }
 
-    const player = this.props.lineup.rosterDetails[playerId]
-    const game = this.props.games[player.info.game_srid] || {}
-    const history = this.props.relevantPlayerHistory[player.info.player_srid] || []
+    const player = this.props.lineup.rosterDetails[playerId];
+    const game = this.props.games[player.info.game_srid] || {};
+    const history = this.props.relevantPlayerHistory[player.info.player_srid] || [];
 
     return (
       <LivePlayerPane
@@ -130,16 +130,16 @@ const LiveLineup = React.createClass({
         eventHistory={history}
         game={game}
       />
-    )
+    );
   },
 
   render() {
     // don't show until there's a roster
     if (this.props.lineup.roster.length === 0) {
-      return (<div />)
+      return (<div />);
     }
 
-    const className = `cmp-live__lineup live-lineup live-lineup--${this.props.whichSide}`
+    const className = `cmp-live__lineup live-lineup live-lineup--${this.props.whichSide}`;
 
     return (
       <div className={className}>
@@ -147,8 +147,8 @@ const LiveLineup = React.createClass({
         {this.renderPlayers()}
         {this.renderPlayerPane()}
       </div>
-    )
+    );
   },
-})
+});
 
-export default LiveLineup
+export default LiveLineup;

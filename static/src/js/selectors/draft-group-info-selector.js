@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { countBy as _countBy, forEach as _forEach, filter as _filter } from 'lodash';
+import { countBy as _countBy, filter as _filter } from 'lodash';
 import { mapValues as _mapValues } from 'lodash';
 
 

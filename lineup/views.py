@@ -18,16 +18,18 @@ from lineup.serializers import (
     LineupUsernamesSerializer,
     EditLineupStatusSerializer,
 )
-
 from lineup.models import Lineup, Player
 from lineup.classes import LineupManager
 from lineup.tasks import edit_lineup, edit_entry
-from lineup.exceptions import CreateLineupExpiredDraftgroupException, InvalidLineupSizeException, \
-                                LineupInvalidRosterSpotException, PlayerDoesNotExistInDraftGroupException
+from lineup.exceptions import (
+    CreateLineupExpiredDraftgroupException,
+    InvalidLineupSizeException,
+    LineupInvalidRosterSpotException,
+    PlayerDoesNotExistInDraftGroupException,
+)
 from draftgroup.models import DraftGroup
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Q
 from mysite.celery_app import TaskHelper
 
 class CreateLineupAPIView(generics.CreateAPIView):
@@ -288,7 +290,6 @@ class UserLiveAPIView(AbstractLineupAPIView):
                                       draft_group__start__lte=now,
                                       draft_group__end__gt=dt )
 
-
 class UserHistoryAPIView(AbstractLineupAPIView):
     """
     Get a User's lineups that are within 12 hours of the draft group's end datetime
@@ -304,5 +305,4 @@ class UserHistoryAPIView(AbstractLineupAPIView):
         now = timezone.now()
         dt = now - timedelta(hours=offset_hours)
         #print(str(dt))
-        return Lineup.objects.filter( user=self.request.user,
-                                      draft_group__end__lte=dt )
+        return Lineup.objects.filter( user=self.request.user, draft_group__end__lte=dt )

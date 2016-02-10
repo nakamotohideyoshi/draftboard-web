@@ -1,13 +1,12 @@
-import React from 'react'
-import * as ReactRedux from 'react-redux'
-import { debounce } from 'lodash'
-import request from 'superagent'
-import Cookies from 'js-cookie'
-import _ from 'lodash'
+import React from 'react';
+import * as ReactRedux from 'react-redux';
+import request from 'superagent';
+import Cookies from 'js-cookie';
+import _ from 'lodash';
 
-import LivePMRProgressBar from './live-pmr-progress-bar'
-import * as AppActions from '../../stores/app-state-store'
-import { fetchLineupUsernames } from '../../actions/lineup-usernames'
+import LivePMRProgressBar from './live-pmr-progress-bar';
+import * as AppActions from '../../stores/app-state-store';
+import { fetchLineupUsernames } from '../../actions/lineup-usernames';
 
 /**
  * When `View Contests` element is clicked, open side pane to show
@@ -33,12 +32,12 @@ const LiveStandingsPane = React.createClass({
       searchValue: '',              // Search input value.
       currentTab: 'standings',      // Currently shown tab.
       currentPositionFilter: 'all', // Current players filter in ownership tab.
-    }
+    };
   },
 
   componentDidMount() {
-    this.props.fetchLineupUsernames(this.props.mode.contestId)
-    this.handleSearchByUsername = debounce(this.handleSearchByUsername, 150)
+    // this.props.fetchLineupUsernames(this.props.mode.contestId)
+    this.handleSearchByUsername = _.debounce(this.handleSearchByUsername, 150);
   },
 
   /**
@@ -46,31 +45,31 @@ const LiveStandingsPane = React.createClass({
    * @return {Array}
    */
   getListData() {
-    let data
+    let data;
 
     if (this.state.currentTab === 'standings') {
-      const lineups = this.props.lineups
-      const rankedLineups = this.props.rankedLineups
-      data = _.map(rankedLineups, (lineupId) => lineups[lineupId])
+      const lineups = this.props.lineups;
+      const rankedLineups = this.props.rankedLineups;
+      data = _.map(rankedLineups, (lineupId) => lineups[lineupId]);
     } else {
-      data = this.props.owned
-      const filter = this.state.currentPositionFilter
+      data = this.props.contest.playersOwnership.all.slice();
+      const filter = this.state.currentPositionFilter;
 
       if (filter !== 'all') {
-        data = data.filter(p => p.position === filter)
+        data = _.filter(data, p => p.info.position.toLowerCase() === filter);
       }
     }
 
     if (this.state.searchValue !== '') {
       if (this.state.currentTab === 'standings') {
-        data = data.filter(p => this.state.searchResults.indexOf(p.id) !== -1)
+        data = data.filter(p => this.state.searchResults.indexOf(p.id) !== -1);
       } else {
-        const s = this.state.searchValue
-        data = data.filter(p => p.name.toLowerCase().indexOf(s.toLowerCase()) !== -1)
+        const s = this.state.searchValue;
+        data = data.filter(p => p.name.toLowerCase().indexOf(s.toLowerCase()) !== -1);
       }
     }
 
-    return data
+    return data;
   },
 
   /**
@@ -78,7 +77,7 @@ const LiveStandingsPane = React.createClass({
    * @return {Number}
    */
   getMaxPage() {
-    return Math.ceil(this.getListData().length / this.state.perPage)
+    return Math.ceil(this.getListData().length / this.state.perPage);
   },
 
   handleViewOwnership() {
@@ -89,7 +88,7 @@ const LiveStandingsPane = React.createClass({
       searchResults: [],
       currentTab: 'ownership',
       currentPositionFilter: 'all',
-    })
+    });
   },
 
   handleViewStandings() {
@@ -99,55 +98,51 @@ const LiveStandingsPane = React.createClass({
       searchValue: '',
       searchResults: [],
       currentTab: 'standings',
-    })
+    });
   },
 
   handleViewNextPage() {
-    const maxPage = this.getMaxPage()
-    const page = Math.min(this.state.page + 1, maxPage)
-    this.setState({ page })
+    const maxPage = this.getMaxPage();
+    const page = Math.min(this.state.page + 1, maxPage);
+    this.setState({ page });
   },
 
   handleViewPrevPage() {
-    const page = Math.max(this.state.page - 1, 1)
-    this.setState({ page })
+    const page = Math.max(this.state.page - 1, 1);
+    this.setState({ page });
   },
 
   /**
    * Used to view an opponent lineup. Sets up parameters to then call props.changePathAndMode()
    */
   handleViewOpponentLineup(opponentLineupId) {
-    const mode = this.props.mode
-    const path = `/live/lineups/${mode.myLineupId}/contests/${mode.contestId}/opponents/${opponentLineupId}`
+    const mode = this.props.mode;
+    const path = `/live/lineups/${mode.myLineupId}/contests/${mode.contestId}/opponents/${opponentLineupId}/`;
     const changedFields = {
       opponentLineupId,
-    }
+    };
 
-    this.props.changePathAndMode(path, changedFields)
-    AppActions.toggleLiveRightPane('appstate--live-standings-pane--open')
+    this.props.changePathAndMode(path, changedFields);
+    AppActions.toggleLiveRightPane('appstate--live-standings-pane--open');
   },
 
   handleSetPositionFilter(currentPositionFilter) {
-    this.setState({ currentPositionFilter, page: 1 })
-  },
-
-  handleWatchTopOwnedPlayers() {
-    // TODO:
+    this.setState({ currentPositionFilter, page: 1 });
   },
 
   handleToggleSearch() {
     this.setState({
       search: !this.state.search,
       searchValue: '',
-    })
+    });
 
     if (this.refs.search) {
-      this.refs.search.focus()
+      this.refs.search.focus();
     }
   },
 
   handleSearchTermChanged() {
-    this.setState({ searchValue: this.refs.search.value })
+    this.setState({ searchValue: this.refs.search.value });
 
     if (this.state.currentTab === 'standings') {
       this.handleSearchByUsername();
@@ -158,7 +153,7 @@ const LiveStandingsPane = React.createClass({
     const params = {
       contest_id: this.props.mode.contestId,
       search_str: this.state.searchValue,
-    }
+    };
 
     // TODO: report errors
     return request
@@ -180,17 +175,17 @@ const LiveStandingsPane = React.createClass({
         } else {
           this.setState({ searchResults: [] });
         }
-      })
+      });
   },
 
   handleSearchInputBlur() {
     if (this.refs.search.value === '') {
-      this.setState({ search: false })
+      this.setState({ search: false });
     }
   },
 
   handleClosePane() {
-    AppActions.removeClass('appstate--live-standings-pane--open')
+    AppActions.removeClass('appstate--live-standings-pane--open');
   },
 
   renderHeader() {
@@ -220,20 +215,20 @@ const LiveStandingsPane = React.createClass({
           />
         </div>
       </div>
-    )
+    );
   },
 
   renderPages() {
-    const { page } = this.state
-    const maxPage = this.getMaxPage()
+    const { page } = this.state;
+    const maxPage = this.getMaxPage();
 
     const pages = (new Array(maxPage)).join(',').split(',').map((a, i) =>
       <div key={i} className={`page${((page - 1) === i ? ' selected' : '')}`}></div>
-    )
+    );
 
     // if only one page, then don't show paginator
     if (maxPage === 1) {
-      return null
+      return null;
     }
 
     return (
@@ -252,20 +247,20 @@ const LiveStandingsPane = React.createClass({
           <span>&gt;</span>
         </div>
       </div>
-    )
+    );
   },
 
   renderStandings() {
-    const { page, perPage } = this.state
-    let data = this.getListData()
+    const { page, perPage } = this.state;
+    let data = this.getListData();
     data = data.slice(
       (page - 1) * perPage,
       Math.min(page * perPage, data.length)
-    )
-    const mode = this.props.mode
+    );
+    const mode = this.props.mode;
 
     const standings = data.map((lineup) => {
-      let className = 'lineup'
+      let className = 'lineup';
       let pmr = (
         <LivePMRProgressBar
           decimalRemaining={lineup.decimalRemaining}
@@ -275,7 +270,7 @@ const LiveStandingsPane = React.createClass({
           hexEnd="ffffff"
           svgWidth={50}
         />
-      )
+      );
       let overlay = (
         <div
           className="overlay"
@@ -283,11 +278,11 @@ const LiveStandingsPane = React.createClass({
         >
           Compare Lineup
         </div>
-      )
+      );
 
       if (mode.myLineupId === lineup.id) {
-        overlay = ''
-        className += ' lineup--mine'
+        overlay = '';
+        className += ' lineup--mine';
         pmr = (
           <LivePMRProgressBar
             decimalRemaining={lineup.decimalRemaining}
@@ -297,67 +292,73 @@ const LiveStandingsPane = React.createClass({
             hexEnd="2871AC"
             svgWidth={50}
           />
-        )
+        );
+      }
+      let username = '';
+      if (lineup.hasOwnProperty('user') && lineup.user.hasOwnProperty('username')) {
+        username = lineup.user.username;
       }
       return (
         <div key={lineup.id} className={ className }>
           <div className="lineup--place">{lineup.rank}</div>
           { pmr }
-          <div className="lineup--score-name">{lineup.user.username}</div>
-          <div className="lineup--score-points"><b>{lineup.points}</b><span>Pts</span></div>
+          <div className="lineup--score-name">{username}</div>
+          <div className="lineup--score-points"><b>{lineup.points}</b> <span>Pts</span></div>
           <div className="lineup--score-earnings">${lineup.potentialEarnings}</div>
           { overlay }
         </div>
-      )
-    })
+      );
+    });
 
     return (
       <div className="standings-list">
         {standings}
       </div>
-    )
+    );
   },
 
   renderPlayers() {
-    const { page, perPage } = this.state
-    let data = this.getListData()
+    const { page, perPage } = this.state;
+    let data = this.getListData();
     data = data.slice(
       (page - 1) * perPage,
       Math.min(page * perPage, data.length)
-    )
+    );
 
     const players = data.map((player) => (
       <div key={player.id} className="player">
-        <div className="player--position">{player.position}</div>
-        <LivePMRProgressBar
-          decimalRemaining={player.progress}
-          strokeWidth={2}
-          backgroundHex="46495e"
-          hexStart="ffffff"
-          hexEnd="ffffff"
-          svgWidth={50}
-        />
-        <div className="avatar" />
-        <div className="player--name">
-          {player.name} <div className="team">{player.team}</div>
+        <div className="player--position">{player.info.position}</div>
+        <div className="player--pmr-photo">
+          <LivePMRProgressBar
+            decimalRemaining={player.stats.decimalRemaining}
+            strokeWidth={3}
+            backgroundHex="46495e"
+            hexStart="ffffff"
+            hexEnd="ffffff"
+            svgWidth={50}
+          />
+          <div className="avatar" />
         </div>
-        <div className="player--points"><b>{player.points}</b><span>Pts</span></div>
-        <div className="player--progress">{player.progress}</div>
+        <div className="player--name">
+          {player.info.name} <div className="team">{player.info.team_alias}</div>
+        </div>
+        <div className="player--points"><b>{player.stats.fp}</b><span>Pts</span></div>
+        <div className="player--progress">{player.ownershipPercent}%</div>
       </div>
-    ))
+    ));
 
     return (
       <div className="ownership-list">
         {players}
       </div>
-    )
+    );
   },
 
   renderStandingsTab() {
-    if (this.state.currentTab !== 'standings') return null
+    if (this.state.currentTab !== 'standings') return null;
 
     // wait for usernames
-    if (this.props.contest.hasLineupsUsernames === false) return null
+    if (this.props.contest.hasLineupsUsernames === false) return null;
 
     return (
       <div className="inner">
@@ -365,15 +366,15 @@ const LiveStandingsPane = React.createClass({
         {this.renderStandings()}
         {this.renderPages()}
       </div>
-    )
+    );
   },
 
   renderOwnershipTab() {
-    if (this.state.currentTab !== 'ownership') return null
+    if (this.state.currentTab !== 'ownership') return null;
 
     const filters = ['all', 'pg', 'sg', 'sf', 'pf', 'c'].map((f) => {
-      let className = `position-filter ${f}`
-      if (f === this.state.currentPositionFilter) className += ' active'
+      let className = `position-filter ${f}`;
+      if (f === this.state.currentPositionFilter) className += ' active';
 
       return (
           <div key={f}
@@ -382,24 +383,29 @@ const LiveStandingsPane = React.createClass({
           >
           {f}
         </div>
-      )
-    })
+      );
+    });
+
+    let onClick = '';
+    if (this.props.mode.opponentLineupId !== 1) {
+      onClick = this.handleViewOpponentLineup.bind(this, 1);
+    }
 
     return (
       <div className="inner">
         {this.renderHeader()}
         <div className="position-filter">{filters}</div>
-        <div className="watch-live" onClick={this.handleWatchTopOwnedPlayers}>
+        <div className="watch-live" onClick={onClick}>
           Watch top 8 owned players live
         </div>
         {this.renderPlayers()}
         {this.renderPages()}
       </div>
-    )
+    );
   },
 
   render() {
-    const classNames = `live-pane live-pane--right live-standings-pane live-standings-pane--${this.state.currentTab}`
+    const classNames = `live-pane live-pane--right live-standings-pane live-standings-pane--${this.state.currentTab}`;
 
     return (
       <div className={classNames}>
@@ -407,13 +413,13 @@ const LiveStandingsPane = React.createClass({
         {this.renderStandingsTab()}
         {this.renderOwnershipTab()}
       </div>
-    )
+    );
   },
-})
+});
 
 
 // Redux integration
-const { connect } = ReactRedux
+const { connect } = ReactRedux;
 
 // Which part of the Redux global state does our component want to receive as props?
 function mapStateToProps() {
@@ -439,18 +445,18 @@ function mapStateToProps() {
         progress: 0.3,
       },
     ],
-  }
+  };
 }
 
 // Which action creators does it want to receive by props?
 function mapDispatchToProps(dispatch) {
   return {
     fetchLineupUsernames: (id) => dispatch(fetchLineupUsernames(id)),
-  }
+  };
 }
 
 // Wrap the component to inject dispatch and selected state into it.
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(LiveStandingsPane)
+)(LiveStandingsPane);
