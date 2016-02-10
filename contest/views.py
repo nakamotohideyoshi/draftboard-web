@@ -597,7 +597,36 @@ class RemoveAndRefundEntryStatusAPIView(generics.GenericAPIView):
         task_helper = TaskHelper(unregister_entry_task, task_id)
         return Response(task_helper.get_data(), status=status.HTTP_200_OK)
 
-class UserPlayHistoryAPIView(generics.ListAPIView):
+# class UserPlayHistoryAPIView(generics.ListAPIView):
+#     """
+#     get the entry history for a user lineups on a day
+#     """
+#
+#     permission_classes      = (IsAuthenticated,)
+#     serializer_class        = UserLineupHistorySerializer
+#
+#     def get_queryset(self):
+#         """
+#         retrieve the Lineup objects
+#         """
+#         rng     = DfsDate.get_current_dfs_date_range()
+#         yyyy    = int(self.kwargs['year'])
+#         mm      = int(self.kwargs['month'])
+#         dd      = int(self.kwargs['day'])
+#         start   = rng[0].replace( yyyy, mm, dd )
+#         end     = start + timedelta(days=1)
+#         print('range(%s, %s)' % (start, end))
+#
+#         # get a list of the lineups in historical entries for the day
+#         history_entries = ClosedEntry.objects.filter( user=self.request.user,
+#                                                        contest__start__range=(start, end) ) #,
+#                                                        #contest__status=Contest.CLOSED )
+#         for he in history_entries:
+#             print( he, str(he.contest) )
+#         historical_entry_lineups = [ e.lineup for e in history_entries ]
+#         return historical_entry_lineups
+
+class UserPlayHistoryAPIView(APIView):
     """
     get the entry history for a user lineups on a day
     """
@@ -605,23 +634,56 @@ class UserPlayHistoryAPIView(generics.ListAPIView):
     permission_classes      = (IsAuthenticated,)
     serializer_class        = UserLineupHistorySerializer
 
-    def get_queryset(self):
+    def get(self, request, year, month, day, format=None):
         """
-        retrieve the Lineup objects
+        Given the 'task' parameter, return the status of the task (ie: the buyin)
+
+        :param request:
+        :param format:
+        :return:
         """
+        #print( year, month, day)
         rng     = DfsDate.get_current_dfs_date_range()
-        yyyy    = int(self.kwargs['year'])
-        mm      = int(self.kwargs['month'])
-        dd      = int(self.kwargs['day'])
-        start   = rng[0].replace( yyyy, mm, dd )
+        start   = rng[0].replace( int(year), int(month), int(day) )
         end     = start + timedelta(days=1)
-        print('range(%s, %s)' % (start, end))
+        #print('range(%s, %s)' % (start, end))
 
         # get a list of the lineups in historical entries for the day
         history_entries = ClosedEntry.objects.filter( user=self.request.user,
-                                                       contest__start__range=(start, end) ) #,
-                                                       #contest__status=Contest.CLOSED )
-        for he in history_entries:
-            print( he, str(he.contest) )
-        historical_entry_lineups = [ e.lineup for e in history_entries ]
-        return historical_entry_lineups
+                                                       contest__start__range=(start, end) )
+        payouts = Payout.objects.filter( entry__in=history_entries)
+        distinct_lineup_ids = [ e.lineup.pk for e in history_entries ]
+        lineup_map = {}
+        for entry in history_entries:
+            lineup_map[ entry.lineup.pk ] = entry.lineup
+
+        #
+        # sum the values for each lineup (and all its entries for paid contests)
+        total_buyins = 0
+        num_entries = 0
+        winnings = 0
+        possible = 0
+        contest_map = {}
+        for lineup in list(lineup_map.values()):     # for each distinct lineup
+            for history_entry in history_entries.filter(lineup=lineup):
+                total_buyins += history_entry.contest.buyin
+                num_entries += 1
+                winnings += payouts.get(entry=history_entry).amount
+                print( possible, 'plus', history_entry.contest.prize_structure.generator.first_place)
+                possible += history_entry.contest.prize_structure.generator.first_place
+                contest_map[ history_entry.contest.pk ] = history_entry.contest
+
+        overall = {
+            "buyins"    : '%.2f' % total_buyins,
+            "entries"   : num_entries,
+            "winnings"  : '%.2f' % winnings,
+            "possible"  : '%.2f' % possible,
+            "contests"  : len(contest_map.values()),
+        }
+
+        data = {
+            'lineups'   : self.serializer_class( list(lineup_map.values()), many=True).data,
+            'overall'   : overall,
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
