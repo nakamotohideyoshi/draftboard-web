@@ -59,7 +59,7 @@ const RangeSlider = React.createClass({
  * New Min + Max values to be passed upwards to the parent component. The callback is for
  * testing purposes since setState is async.
  */
-  handleValueChange: (min, max, callback = () => {''}) => {
+  handleValueChange(min, max, callback = () => '') {
     this.setState({
       minVal: min,
       maxVal: max,

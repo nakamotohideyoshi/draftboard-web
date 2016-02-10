@@ -139,8 +139,8 @@ const AppActions = {
     }
   },
 
-  contestTypeFiltered() {
-    this.addClass('appstate--contest-filters-open');
+  toggleContestFilters() {
+    this.toggleClass('appstate--contest-filters-open');
   },
 
   // Toggle the included class. If opening, then close all other live panes
