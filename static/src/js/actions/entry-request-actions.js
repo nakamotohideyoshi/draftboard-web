@@ -158,8 +158,8 @@ function fetchEntryRequestStatus(taskId) {
       log.info('Contest entry request status:', res.body);
       // If it was a success.
       if (res.body.status === 'SUCCESS') {
-        // Fetch new entries.
-        dispatch(fetchEntriesIfNeeded());
+        // Fetch new entries. (force this to fetch.)
+        dispatch(fetchEntriesIfNeeded(true));
         // Display a success message to the user.
         dispatch(addMessage({
           level: 'success',

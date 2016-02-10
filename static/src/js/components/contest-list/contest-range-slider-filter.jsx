@@ -14,6 +14,19 @@ const CollectionRangeSliderFilter = React.createClass({
     // When the filter values have changed, let the store it's registered with know so it can
     // re-run all of it's filters.
     onUpdate: React.PropTypes.func.isRequired,
+    minValLimit: React.PropTypes.oneOfType([
+      React.PropTypes.string,
+      React.PropTypes.number,
+    ]),
+    maxValLimit: React.PropTypes.any,
+  },
+
+
+  getDefaultProps() {
+    return {
+      minValLimit: 0,
+      maxValLimit: null,
+    };
   },
 
 
@@ -41,8 +54,18 @@ const CollectionRangeSliderFilter = React.createClass({
 
 
   render() {
+    if (!this.props.maxValLimit) {
+      return (
+        <div></div>
+      );
+    }
+
     return (
-      <RangeSlider minValLimit={0} maxValLimit={100} onChange={this.handleChange} />
+      <RangeSlider
+        minValLimit={this.props.minValLimit}
+        maxValLimit={this.props.maxValLimit}
+        onChange={this.handleChange}
+      />
     );
   },
 

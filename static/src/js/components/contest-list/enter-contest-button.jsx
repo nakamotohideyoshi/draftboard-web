@@ -1,6 +1,6 @@
 import React from 'react';
 import { isTimeInFuture } from '../../lib/utils.js';
-
+import AppStateStore from '../../stores/app-state-store.js';
 
 /**
  * This is a button that allows the user to enter a contest and shows the status of an entry.
@@ -112,6 +112,16 @@ const EnterContestButton = React.createClass({
   },
 
 
+  handleMouseOver() {
+    AppStateStore.enterContestButtonMouseOver();
+  },
+
+
+  handleMouseOut() {
+    AppStateStore.enterContestButtonMouseOut();
+  },
+
+
   handleButtonClick(contest, e) {
     e.stopPropagation();
     this.props.onEnterClick(contest);
@@ -182,6 +192,8 @@ const EnterContestButton = React.createClass({
           <div
             className="button button--gradient--background enter-contest-button"
             onClick={this.handleButtonClick.bind(null, this.props.contest)}
+            onMouseEnter={this.handleMouseOver}
+            onMouseLeave={this.handleMouseOut}
           >
             {this.props.buttonText.enter}
           </div>
