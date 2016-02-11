@@ -83,7 +83,7 @@ STATIC_URL = '/static/'
 
 # # (Dev) Mongo Connection settings
 MONGO_PASSWORD  = ''
-MONGO_HOST      = '192.168.1.29' #'localhost'
+MONGO_HOST      = 'localhost'
 MONGO_PORT      = 27017         # default port may be the actual port
 
 # # dataden mongo database connection
