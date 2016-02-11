@@ -23,6 +23,9 @@ class Update(models.Model):
     # the dictionary object dumped to a string, which contains the update data
     o   = models.CharField(max_length=8192, null=False)
 
+    def __str__(self):
+        return "{'ts': %s, 'ns': '%s', 'o': %s}" % (self.ts.strftime('%s'), self.ns, self.o)
+
 class TimeMachine(models.Model):
 
     # LOADING_STATUSES = [
