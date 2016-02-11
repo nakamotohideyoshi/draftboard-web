@@ -16,7 +16,7 @@ export const lineupsByDraftGroupSelector = createSelector(
         if (lineup.id === lineupBeingEdited) {
           return false;
         }
-        return lineup.draft_group === draftGroupId;
+        return String(lineup.draft_group) === String(draftGroupId);
       });
     }
 
