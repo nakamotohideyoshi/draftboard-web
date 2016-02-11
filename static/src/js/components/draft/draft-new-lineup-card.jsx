@@ -2,6 +2,8 @@ import React from 'react';
 import Tooltip from '../site/tooltip.jsx';
 import DraftNewLineupCardTitle from './draft-new-lineup-card-title.jsx';
 import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
+import { forEach as _forEach } from 'lodash';
+
 const defaultLineupTitle = 'New Lineup';
 
 
@@ -17,7 +19,7 @@ const DraftNewLineupCard = React.createClass({
     removePlayer: React.PropTypes.func.isRequired,
     remainingSalary: React.PropTypes.number,
     avgRemainingPlayerSalary: React.PropTypes.number,
-    errorMessage: React.PropTypes.string,
+    errorMessage: React.PropTypes.array,
     saveLineup: React.PropTypes.func,
     handlePlayerClick: React.PropTypes.func,
   },
@@ -68,6 +70,11 @@ const DraftNewLineupCard = React.createClass({
   },
 
 
+  renderErrors(errors) {
+    return _forEach(errors, (error) => <span>{error}</span>);
+  },
+
+
   render() {
     const showError = (!this.props.errorMessage) ? false : true;
     const self = this;
@@ -102,7 +109,7 @@ const DraftNewLineupCard = React.createClass({
             isVisible={showError}
             ref="lineupCardTip"
           >
-            <span>{this.props.errorMessage}</span>
+            <span>{this.renderErrors(this.props.errorMessage)}</span>
           </Tooltip>
 
         </header>

@@ -165,8 +165,21 @@ const AppActions = {
     this.addClass('appstate-enterContestButtonHover');
   },
 
+
   enterContestButtonMouseOut() {
     this.removeClass('appstate-enterContestButtonHover');
+  },
+
+
+  // When the user clicks the background overlay div of the modal this event will fire.
+  // If you want to take action when this happens, subscribe to it in your component and react
+  // accordingly. I didn't set this to close the modal by default because I'm not sure that is
+  // always what is desired.
+  //
+  // edit: I'm not even sure this belongs here, since it's essentially just a wrapper on the
+  // pubSub event. Though I kinda like that all global app-wide actions are in this file. Whatevs.
+  modalBgClick() {
+    PubSub.publish('modal.bgClick');
   },
 
 };

@@ -155,22 +155,27 @@ function saveLineupFail(err) {
 
 // TODO: some basic save lineup validation
 // Check for salary cap restrictions
-function isValidLineup(lineup) {
+function validateLineup(lineup) {
+  const errors = [];
   // Does each slot have a player in it?
   for (const slot of lineup) {
     if (!slot.player) {
-      return false;
+      errors.push('lineup is not completely filled.');
+      break;
     }
   }
 
-  return true;
+  return errors;
 }
 
 
 export function saveLineup(lineup, title, draftGroupId) {
   return (dispatch) => {
-    if (!isValidLineup(lineup)) {
-      return dispatch(saveLineupFail('lineup is not valid'));
+    const lineupErrors = validateLineup(lineup);
+
+    // If we have errors, dispatch a fail action with them.
+    if (lineupErrors.length > 0) {
+      return dispatch(saveLineupFail(lineupErrors));
     }
 
     // Build an array of player_ids.
@@ -210,8 +215,11 @@ export function saveLineup(lineup, title, draftGroupId) {
 export function saveLineupEdit(lineup, title, lineupId) {
   log.info('saveLineupEdit', lineup, title, lineupId);
   return (dispatch) => {
-    if (!isValidLineup(lineup)) {
-      return dispatch(saveLineupFail('lineup is not valid'));
+    const lineupErrors = validateLineup(lineup);
+
+    // If we have errors, dispatch a fail action with them.
+    if (lineupErrors.length > 0) {
+      return dispatch(saveLineupFail(lineupErrors));
     }
 
     // Build an array of player_ids.
