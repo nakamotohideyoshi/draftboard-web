@@ -40,8 +40,8 @@ const ContestListHeader = React.createClass({
   },
 
 
-  revealFilters() {
-    AppActions.contestTypeFiltered();
+  toggleFilters() {
+    AppActions.toggleContestFilters();
   },
 
   render() {
@@ -75,7 +75,7 @@ const ContestListHeader = React.createClass({
     }
 
     return (
-      <div className="cmp-contest-list__header" onClick={this.revealFilters}>
+      <div className="cmp-contest-list__header" onClick={this.toggleFilters}>
         <h2>
           {currentLeague}
           <span className="cmp-contest-list__header-type">{currentContestType}</span>

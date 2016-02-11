@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { upcomingLineupsInfo } from './upcoming-lineups-info.js';
+import { sortBy as _sortBy } from 'lodash';
 
 
 /**
@@ -65,4 +66,26 @@ export const focusedLineupSelector = createSelector(
   (state) => upcomingLineupsInfo(state),
   (state) => state.upcomingLineups.focusedLineupId,
   (lineupsInfo, focusedLineupId) => lineupsInfo[focusedLineupId]
+);
+
+
+/**
+ * Find the highest buyin for a contest - this is used for contest filters.
+ */
+export const highestContestBuyin = createSelector(
+  (state) => state.upcomingContests.allContests,
+  (contests) => {
+    const sortedContests = _sortBy(contests, ['buyin']);
+
+    if (sortedContests.length) {
+      return parseFloat(sortedContests[0].buyin);
+    }
+
+    // If we don't have any contests, don't return anything. This is important.
+    // if we set it to a default value, the RangeSlider will get rendered with
+    // that default, and when we get contests with actual values, it will force
+    // a re-render and because that is a jquery plugin, we only want to render
+    // it once.
+    return null;
+  }
 );
