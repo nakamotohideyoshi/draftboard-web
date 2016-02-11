@@ -19,6 +19,7 @@ const ModalWrap = React.createClass({
     const el = document.createElement('div');
     el.className = this.props.className;
     document.body.appendChild(el);
+    el.onclick = this.handleBgClick;
     this.modalElement = el;
     this.componentDidUpdate();
   },
@@ -26,13 +27,20 @@ const ModalWrap = React.createClass({
 
   componentDidUpdate() {
     this.modalElement.className = this.props.className;
-    this.modalElement.onclick = AppStateStore.modalBgClick;
     ReactDOM.render(<div className="cmp-modal__inner">{this.props.children}</div>, this.modalElement);
   },
 
 
   componentWillUnmount() {
     document.body.removeChild(this.modalElement);
+  },
+
+
+  handleBgClick(e) {
+    // Ignore a click event unless it was on the modal overlay itself.
+    if (e.target === this.modalElement) {
+      AppStateStore.modalBgClick();
+    }
   },
 
 

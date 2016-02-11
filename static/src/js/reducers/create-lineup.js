@@ -190,12 +190,13 @@ const isSlotAvailableForPlayer = (player, state) => {
  * @param  {Object} player A player from the DraftGroupStore.
  * @return {bool}          Can the playe be added?
  */
-const canAddPlayer = (player, state) => {
+const validatePlayer = (player, state) => {
+  const errors = [];
   // Check if the player is already in the lineup.
   if (isPlayerInLineup(player, state)) {
     log.error('Selected player is already in the lineup.');
-    state.errorMessage = 'Selected player is already in the lineup';
-    return false;
+    errors.push('Selected player is already in the lineup');
+    // return { errors: ['Selected player is already in the lineup'] };
   }
 
   // Check if there is room in the salary cap.
@@ -208,24 +209,22 @@ const canAddPlayer = (player, state) => {
   // Check if there is a valid slot for the player.
   if (!isSlotAvailableForPlayer(player, state)) {
     log.error('There is no slot available for this player.');
-    state.errorMessage = 'There is no slot available for this player';
-    return false;
+    errors.push('There is no slot available for this player');
   }
 
   // If all checks pass, the player can be added.
-  return true;
+  return { errors };
 };
 
 
 const addPlayer = (player, state, callback) => {
-  const canAdd = canAddPlayer(player, state);
-
-  if (canAdd) {
+  const playerErrors = validatePlayer(player, state);
+  if (!playerErrors.errors.length) {
     const newLineup = insertPlayerIntoLineup(player, state);
-    return callback(false, newLineup);
+    return callback(playerErrors.errors, newLineup);
   }
 
-  return callback(state.errorMessage, null);
+  return callback(playerErrors.errors, null);
 };
 
 
@@ -269,10 +268,10 @@ module.exports = (state = initialState, action) => {
     // Add provided player to the new lineup
     case ActionTypes.CREATE_LINEUP_ADD_PLAYER:
       // if there is an error adding the player, return the state with an error message
-      return addPlayer(action.player, state, (err, updatedLineup) => {
-        if (err) {
+      return addPlayer(action.player, state, (errors, updatedLineup) => {
+        if (errors.length > 0) {
           return Object.assign({}, state, {
-            errorMessage: err,
+            errorMessage: errors,
           });
         }
         // If we can add the player, add them and update the state.
