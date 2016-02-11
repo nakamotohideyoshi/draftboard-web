@@ -270,7 +270,7 @@ module.exports = (state = initialState, action) => {
       // if there is an error adding the player, return the state with an error message
       return addPlayer(action.player, state, (errors, updatedLineup) => {
         if (errors.length > 0) {
-          return Object.assign({}, state, {
+          return _merge({}, state, {
             errorMessage: errors,
           });
         }
@@ -288,7 +288,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.CREATE_LINEUP_REMOVE_PLAYER:
-      newState = Object.assign({}, state, {
+      newState = _merge({}, state, {
         errorMessage: null,
       });
       removePlayer(action.playerId, newState);
@@ -299,7 +299,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.CREATE_LINEUP_SAVE_FAIL:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         errorMessage: action.err,
       });
 
