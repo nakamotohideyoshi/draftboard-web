@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import AppStateStore from '../../stores/app-state-store.js';
 
 
 /**
@@ -25,6 +26,7 @@ const ModalWrap = React.createClass({
 
   componentDidUpdate() {
     this.modalElement.className = this.props.className;
+    this.modalElement.onclick = AppStateStore.modalBgClick;
     ReactDOM.render(<div className="cmp-modal__inner">{this.props.children}</div>, this.modalElement);
   },
 

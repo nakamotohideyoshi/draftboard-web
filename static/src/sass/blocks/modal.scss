@@ -27,6 +27,11 @@
     width: 500px;
   }
 
+  &__inner {
+    max-height: 85%;
+    overflow: auto;
+  }
+
   &__content {
     .button--confirm {
       color: #fff;
