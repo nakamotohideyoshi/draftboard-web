@@ -51,6 +51,8 @@ def linker_pusher_send_task(self, pushable, data, identifier):
         print('... need to send data:', str(data))
 
     # now we know we have to send the data, since we deleted something
+    if not isinstance( data, dict ):
+        data = data.get_o()
     pushable.trigger( data )
 
     # TODO - remove the object with the identifier from the linked queue in the cache too!
