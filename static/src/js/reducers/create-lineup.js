@@ -305,11 +305,11 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.CREATE_LINEUP_IMPORT:
-      newState = Object.assign({}, state);
+      newState = _merge({}, state);
       // We're passed a list of players. Make sure we're putting each one into the correct lineup
       // slot based on the idx property.
-      _forEach(state.lineup, (slot) => {
-        slot.player = _find(action.players, 'idx', slot.idx);
+      _forEach(newState.lineup, (slot, index) => {
+        newState.lineup[index].player = _find(action.players, 'idx', slot.idx);
       });
 
       // Update the title (optional)
