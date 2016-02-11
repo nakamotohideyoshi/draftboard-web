@@ -158,6 +158,10 @@ def create_initial_data():
             # check if we already made the generator for this amount
             generator_settings = GeneratorSettings.objects.get( buyin=amount )
 
+        except GeneratorSettings.MultipleObjectsReturned:
+            print('create_initial_data() - a prize structure for buyin [%s] exists... skipping!'%str(amount))
+            continue
+
         except GeneratorSettings.DoesNotExist:
             #
             generator_settings = GeneratorSettings()
