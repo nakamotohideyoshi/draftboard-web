@@ -30,6 +30,8 @@ $table-row-hover-bg: #f9fafb;
         display: inline-block;
         text-transform: uppercase;
         font-weight: 500;
+        min-width: 100px;
+        text-align: center;
 
         &.entered {
           color: #fff;
