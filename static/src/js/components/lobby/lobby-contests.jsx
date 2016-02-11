@@ -10,7 +10,8 @@ import { fetchPrizeIfNeeded } from '../../actions/prizes.js';
 import { fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter, }
   from '../../actions/upcoming-contests-actions.js';
 import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions.js';
-import { focusedContestInfoSelector, focusedLineupSelector } from '../../selectors/lobby-selectors.js';
+import { focusedContestInfoSelector, focusedLineupSelector, highestContestBuyin, }
+  from '../../selectors/lobby-selectors.js';
 import { upcomingContestSelector } from '../../selectors/upcoming-contest-selector.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
 import { updateFilter, upcomingContestUpdateReceived } from '../../actions/upcoming-contests-actions.js';
@@ -48,6 +49,7 @@ function mapStateToProps(state) {
     lineupsInfo: upcomingLineupsInfo(state),
     orderByDirection: state.upcomingContests.filters.orderBy.direction,
     orderByProperty: state.upcomingContests.filters.orderBy.property,
+    highestContestBuyin: highestContestBuyin(state),
   };
 }
 
@@ -102,6 +104,7 @@ const LobbyContests = React.createClass({
     updatePath: React.PropTypes.func,
     addMessage: React.PropTypes.func,
     upcomingContestUpdateReceived: React.PropTypes.func,
+    highestContestBuyin: React.PropTypes.number,
   },
 
 
@@ -245,6 +248,7 @@ const LobbyContests = React.createClass({
               filterName="contestFeeFilter"
               filterProperty="buyin"
               onUpdate={this.handleFilterChange}
+              maxValLimit={this.props.highestContestBuyin}
             />
 
             <CollectionSearchFilter

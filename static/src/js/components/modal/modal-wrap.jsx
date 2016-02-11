@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import AppStateStore from '../../stores/app-state-store.js';
 
 
 /**
@@ -18,6 +19,7 @@ const ModalWrap = React.createClass({
     const el = document.createElement('div');
     el.className = this.props.className;
     document.body.appendChild(el);
+    el.onclick = this.handleBgClick;
     this.modalElement = el;
     this.componentDidUpdate();
   },
@@ -31,6 +33,14 @@ const ModalWrap = React.createClass({
 
   componentWillUnmount() {
     document.body.removeChild(this.modalElement);
+  },
+
+
+  handleBgClick(e) {
+    // Ignore a click event unless it was on the modal overlay itself.
+    if (e.target === this.modalElement) {
+      AppStateStore.modalBgClick();
+    }
   },
 
 

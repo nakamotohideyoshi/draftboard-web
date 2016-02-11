@@ -2,6 +2,7 @@ import React from 'react';
 import Modal from '../modal/modal.jsx';
 import LobbyDraftGroupSelectionSport from './lobby-draft-group-selection-sport.jsx';
 import LobbyDraftGroupSelectionTime from './lobby-draft-group-selection-time.jsx';
+import PubSub from 'pubsub-js';
 
 
 /**
@@ -21,6 +22,11 @@ const LobbyDraftGroupSelectionModal = React.createClass({
     return {
       selectedSport: null,
     };
+  },
+
+
+  componentWillMount() {
+    PubSub.subscribe('modal.bgClick', this.close);
   },
 
 

@@ -81,7 +81,7 @@ export function fetchUpcomingContests() {
           const contest = normalizedContests.entities.contests[state.upcomingContests.focusedContestId];
           fetchFocusedContestInfo(dispatch, contest);
         } else {
-          window.alert("404! that contest isn't in the lobby!");
+          log.error("404! that contest isn't in the lobby!");
         }
       }
 
