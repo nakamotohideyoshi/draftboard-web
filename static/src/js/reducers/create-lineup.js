@@ -11,6 +11,7 @@ const initialState = {
   avgRemainingPlayerSalary: 0,
   contestSalaryLimit: 0,
   availablePositions: [],
+  lineupCanBeSaved: false,
 };
 
 // Roster templates for empty lineup cards.
@@ -262,6 +263,14 @@ module.exports = (state = initialState, action) => {
       // After the state has a roster, find it's open positions.
       newState.availablePositions = findAvailablePositions(newState);
       newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState);
+
+      // if the card is full, it can be saved.
+      if (newState.availablePositions.length === 0) {
+        newState.lineupCanBeSaved = true;
+      } else {
+        newState.lineupCanBeSaved = false;
+      }
+
       return newState;
 
 
@@ -283,6 +292,14 @@ module.exports = (state = initialState, action) => {
         });
         // After the state's roster has been updated, find it's open positions.
         newState.availablePositions = findAvailablePositions(newState);
+
+        // if the card is full, it can be saved.
+        if (newState.availablePositions.length === 0) {
+          newState.lineupCanBeSaved = true;
+        } else {
+          newState.lineupCanBeSaved = false;
+        }
+
         return newState;
       });
 
@@ -295,6 +312,14 @@ module.exports = (state = initialState, action) => {
       newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState);
       newState.remainingSalary = getRemainingSalary(newState);
       newState.availablePositions = findAvailablePositions(newState);
+
+      // if the card is full, it can be saved.
+      if (newState.availablePositions.length === 0) {
+        newState.lineupCanBeSaved = true;
+      } else {
+        newState.lineupCanBeSaved = false;
+      }
+
       return newState;
 
 
@@ -317,6 +342,14 @@ module.exports = (state = initialState, action) => {
       newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState);
       newState.remainingSalary = getRemainingSalary(newState);
       newState.availablePositions = findAvailablePositions(newState);
+
+      // if the card is full, it can be saved.
+      if (newState.availablePositions.length === 0) {
+        newState.lineupCanBeSaved = true;
+      } else {
+        newState.lineupCanBeSaved = false;
+      }
+
       return newState;
 
 

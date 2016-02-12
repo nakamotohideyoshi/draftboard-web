@@ -209,6 +209,16 @@ category: Lineup
   &__save {
     display: inline-block;
     text-align: right;
+
+    &.disabled {
+      cursor: default;
+      opacity: 0.3;
+
+      &:hover {
+        background: #fff;
+        color: #32c565;
+      }
+    }
   }
 
   &__player {
