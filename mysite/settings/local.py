@@ -81,12 +81,12 @@ CACHES = {
 # Asset locations
 STATIC_URL = '/static/'
 
-# # (Dev) Mongo Connection settings
+# (Dev) Mongo Connection settings
 MONGO_PASSWORD  = ''
 MONGO_HOST      = 'localhost'
 MONGO_PORT      = 27017         # default port may be the actual port
 
-# # dataden mongo database connection
+# # # dataden mongo database connection
 # MONGO_AUTH_DB   = 'admin'
 # MONGO_USER      = 'admin'
 # MONGO_PASSWORD  = 'dataden1'
@@ -100,7 +100,7 @@ DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 ##########################################################################
 #        pusher - DEVELOPMENT ids
 ##########################################################################
-PUSHER_APP_ID           = '144196'
-PUSHER_KEY              = 'f23775e0c1d0da57bb4b'
-PUSHER_SECRET           = 'fc815c85237d726b9d8e'
+PUSHER_APP_ID           = '179543'
+PUSHER_KEY              = '5a4601521c1e2a3778aa'
+PUSHER_SECRET           = '2c286ac8c239f8e73f00'
 PUSHER_CHANNEL_PREFIX   = ''

@@ -235,11 +235,11 @@ class AbstractPush(object):
         #
         # THIS NETWORK CALL SOMETIMES TAKES ~1second and MUST be tasked off asynchronously!
         #
-        # send the data on the channel with the specified event name.
+        # send the data on the channel with the specified event name
         if not isinstance( data, dict ):
             data = data.get_o()
 
-        print(data) # TODO remove
+        #print(data) # TODO remove
 
         #
         # get the linkedExpiringObjectQueueTable (ie: pbp+stats combiner
@@ -280,6 +280,13 @@ class AbstractPush(object):
         #
         # send it
         if async:
+            print('')
+            print('----------  pusher_send_task -----------')
+            print('| type: %s' % type(data))
+            print('| data: %s' % str(data))
+            print('----------------------------------------')
+            print('')
+            print('')
             task_result = pusher_send_task.apply_async( (self, data), serializer='pickle' )
         else:
             self.trigger( data )
@@ -408,10 +415,10 @@ class PbpDataDenPush( AbstractPush ):
         live_stats_cache = LiveStatsCache()
         just_added = live_stats_cache.update_pbp( pbp_data )
         if just_added:
-            print(' === pbp data === SENDING:', str(pbp_data)) # TODO - remove debugging print
+            print(' === PbpDataDenPush data === SENDING:', str(pbp_data)) # TODO - remove debugging print
             super().send( pbp_data, async=async, force=force)
         else:
-            print(' === pbp data === DID NOT DOUBLE-SEND:', str(pbp_data)) # TODO - remove debugging print
+            print(' === PbpDataDenPush data === DID NOT DOUBLE-SEND:', str(pbp_data)[:100]) # TODO - remove debugging print
 
 class LinkedPbpStatsDataDenPush( AbstractPush ):
     """

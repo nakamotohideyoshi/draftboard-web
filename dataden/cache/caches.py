@@ -159,7 +159,7 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
         self.__validate_livestat( livestat )
 
         sent_pbp = self.c.get( self.sent_pbp_table_key, {} )
-        print( 'sent_pbp dict:', str(sent_pbp ) )
+        #print( 'sent_pbp dict:', str(sent_pbp ) ) # TODO remove
         if sent_pbp.get(livestat.get_id(), None) is not None:
             # it exists
             was_added = False
@@ -207,7 +207,7 @@ class TriggerCache( UsesCacheKeyPrefix ):
         self.key_version    = key_version
         self.triggers       = self.get_triggers()
 
-        print('TriggerCache...')
+        #print('TriggerCache...')
         for t in self.triggers:
             print( '  ', t )
 
@@ -441,7 +441,20 @@ class AbstractLinkableObject(object):
     default_linkable_id_field = 'id'
 
     def __init__(self, obj, field=None, link_id=None):
-        self.obj = obj
+        """
+
+        :param obj: a dictionary, if its a dataden.watcher.OpLogObj it gets the extracts the dictionary
+        :param field:
+        :param link_id:
+        :return:
+        """
+        if not isinstance( obj, dict ):
+            print('AbstractLinkableObject __init__ - warning converting %s "obj" '
+                  'to its dictionary representation: %s >>>> %s' % (type(obj), str(obj), str(obj.get_o())))
+            self.obj = obj.get_o()
+        else:
+            print('AbstractLinkableObject __init__ - obj is a dict already: %s' %str(obj))
+            self.obj = obj
 
         if field is not None:
             self.field = field
@@ -455,7 +468,18 @@ class AbstractLinkableObject(object):
         raise Exception('AbstractLinkableObject.get_linking_id() must be overridden!')
 
     def get_obj(self):
+        """
+
+        :return:
+        """
         return self.obj
+
+    def is_linked_with(self, linking_id):
+        """
+        :param linking_id:
+        :return: True if the specified linking_id is found within this object, otherwise False
+        """
+        return linking_id in str( self.obj )
 
 class LinkableObject(AbstractLinkableObject):
 
@@ -474,16 +498,12 @@ class LinkableObject(AbstractLinkableObject):
         # if the internal link_id is set, return it!
         if self.link_id is not None:
             return self.link_id
-        #
-        # otherwise try to extract it
-        print('------------------------------------------------------------------')
-        print('get_linking_id() self.obj ==> %s' % str(self.obj))
-        print('get_linking_id() self.obj.get_o() ==> %s' % str(self.obj.get_o()))
-        print('------------------------------------------------------------------')
-        linking_id = self.obj.get_o().get(self.field)
+
+        linking_id = self.obj.get(self.field)
         if linking_id is None:
             raise self.LinkingIdIsNoneException('linking_id field (%s) value is None!' % self.field)
         return linking_id
+
 
 class QueueItem(object):
 
@@ -663,7 +683,7 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         #
         # look for object linked to this one, and return linked objects if any are found.
         new_linked_object_data = self.get_any_linked_objects(name, linkable_object)
-        print('++++++++++++NEW_LINKED_OBJECT_DATA: %s' % str(new_linked_object_data))
+        #print('++++++++++++NEW_LINKED_OBJECT_DATA: %s' % str(new_linked_object_data))
 
         identifier = None
         if new_linked_object_data is None:
@@ -692,28 +712,27 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         :return: list or tuples. ex: [ (queueName, QueueItem), ... , ]
         """
 
-        print('queue_name:', str(queue_name)) # TODO remove
+        #print('queue_name:', str(queue_name)) # TODO remove
 
         #
         # determine if a linkable_object with the same link_id exists in 'original_queue' already
         link_id = linkable_object.get_linking_id()
-        print('++++++++++++link_id: %s' % str(linkable_object.get_linking_id())) # TODO remove
 
         # iterate the queue we are potentially adding the linkable_object to first,
         # if we find another with the same link_id, return None
         # because the one thats already in there is first priority to get linked.
         for identifier, dt, lnk_obj in list( self.get_queue(queue_name).queue ):
             if lnk_obj.get_linking_id() == link_id:
-                print('++++++++++++lnk_obj.get_linking_id() [%s] == link_id: %s' % (str(lnk_obj.get_linking_id()),str(lnk_obj.get_linking_id() == link_id))) # TODO remove
+                #print('++++++++++++lnk_obj.get_linking_id() [%s] == link_id: %s' % (str(lnk_obj.get_linking_id()),str(lnk_obj.get_linking_id() == link_id))) # TODO remove
                 return None
-            else:
-                print('++++++++++++lnk_obj.get_linking_id() [%s] == link_id: %s' % (str(lnk_obj.get_linking_id()),str(lnk_obj.get_linking_id() == link_id))) # TODO remove
-                pass # carry on thru function
+
+        print('+ searching for object(s) linked by: %s' % str(link_id)) # TODO remove
+
         #
         # get the names of the other queues
         queue_names_to_search = self.get_queue_names()
         queue_names_to_search.remove( queue_name )
-        print('queue_names_to_search:', str(queue_names_to_search)) # TODO remove
+        #print('queue_names_to_search:', str(queue_names_to_search)) # TODO remove
 
         # by default there are no objects to send, because we havent linked anything
         linked_objects_to_send = []
@@ -723,12 +742,16 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         for name in queue_names_to_search:
             q = self.get_queue(name)
             # iterate the queue looking for an object with a matching get_linking_id()
-            print('++++++++++++ searching queue: %s' % (str(name)) ) # TODO remove
+            print('    .... searching queue: %s' % (str(name)) ) # TODO remove
             for identifier, dt, lnk_obj in list( q.queue ):
-                if lnk_obj.get_linking_id() == link_id:
+                #
+                # inspect the current object to see if we can find a matching link id within it!
+                if lnk_obj.is_linked_with( link_id ):
                     linked_item_identifiers_found.append( identifier )
-                    print('++++++++++++ linked_item_identifier found: %s' % (str(lnk_obj.get_linking_id())) ) # TODO remove
+                    print('      (!)   linkable found: %s' % str(lnk_obj.get_obj()) ) # TODO remove
                     break # just the inner loop!
+                else:
+                    print('      (x)   not a match: %s' % str(lnk_obj.get_obj())) # TODO remove
 
         #
         # if we didnt link an item from each queue, get out of here
