@@ -314,6 +314,9 @@ module.exports = (state = initialState, action) => {
 
       // Update the title (optional)
       newState.lineupTitle = action.title;
+      newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState);
+      newState.remainingSalary = getRemainingSalary(newState);
+      newState.availablePositions = findAvailablePositions(newState);
       return newState;
 
 
