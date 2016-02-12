@@ -20,11 +20,13 @@ urlpatterns = patterns(
     url(
         r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/opponents/(?P<opponent_lineup_id>\d+)/$',
         views.FrontendLiveTemplateView.as_view(),
-        name='live-opponent-mode'),
+        name='live-opponent-mode'
+    ),
     url(
         r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/$',
         views.FrontendLiveTemplateView.as_view(),
-        name='live-contest-mode'),
+        name='live-contest-mode'
+    ),
     url(
         r'^live/lineups/(?P<lineup_id>\d+)/$',
         views.FrontendLiveTemplateView.as_view(),
@@ -38,7 +40,16 @@ urlpatterns = patterns(
     (r'^lobby/$', views.FrontendLobbyTemplateView.as_view()),
     # Contest detail view in lobby.
     (r'^lobby/(?P<contest_id>\d+)/$', views.FrontendLobbyTemplateView.as_view()),
-    (r'^results/$', views.FrontendResultsTemplateView.as_view()),
+    url(
+        r'^results/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',
+        views.FrontendResultsTemplateView.as_view(),
+        name='live-results'
+    ),
+    url(
+        r'^results/$',
+        views.FrontendResultsTemplateView.as_view(),
+        name='live-results'
+    ),
     (r'^settings/$', views.FrontendSettingsTemplateView.as_view()),
     (r'^settings/transactions/$', views.FrontendSettingsTransactionHistoryTemplateView.as_view()),
     (r'^settings/deposits/$', views.FrontendSettingsDepositsTemplateView.as_view()),
