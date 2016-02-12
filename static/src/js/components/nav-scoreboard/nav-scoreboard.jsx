@@ -40,6 +40,7 @@ const mapStateToProps = (state) => ({
   currentLineupsSelector: currentLineupsSelector(state),
   liveSelector: liveSelector(state),
   sportsSelector: sportsSelector(state),
+  cashBalance: state.user.cashBalance.amount,
 });
 
 /*
@@ -76,7 +77,16 @@ const NavScoreboard = React.createClass({
     removeUnusedDraftGroups: React.PropTypes.func,
     sportsSelector: React.PropTypes.object.isRequired,
     updateGame: React.PropTypes.func,
+    cashBalance: React.PropTypes.string,
   },
+
+
+  getDefaultProps() {
+    return {
+      cashBalance: `$${window.dfs.user.cashBalance}`,
+    };
+  },
+
 
   getInitialState() {
     return {
@@ -252,7 +262,7 @@ const NavScoreboard = React.createClass({
   },
 
   render() {
-    const { username, cashBalance } = window.dfs.user;
+    const { username } = window.dfs.user;
     let userInfo;
     let filters;
     let slider;
@@ -274,7 +284,7 @@ const NavScoreboard = React.createClass({
 
     if (this.state.user.username !== '') {
       userInfo = (
-        <NavScoreboardUserInfo name={username} balance={cashBalance.toFixed(2)} />
+        <NavScoreboardUserInfo name={username} balance={this.props.cashBalance} />
       );
     } else {
       userInfo = (
