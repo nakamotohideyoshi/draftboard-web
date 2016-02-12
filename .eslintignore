@@ -6,6 +6,5 @@ static/src/js/lib/*.js
 # Ignore accounts until we get to it
 static/src/js/actions/payments.js
 static/src/js/actions/transactions.js
-static/src/js/actions/user.js
 static/src/js/components/account/**/*.jsx
 static/src/js/components/form-field/**/*.jsx
