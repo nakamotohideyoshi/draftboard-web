@@ -7,7 +7,8 @@ import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
 import PlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
-import { forEach as _forEach, find as _find, matchesProperty as _matchesProperty } from 'lodash';
+import { forEach as _forEach, filter as _filter, }
+  from 'lodash';
 import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter, }
   from '../../actions/draft-group-players-actions.js';
 import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId, }
@@ -221,6 +222,23 @@ const DraftPlayerList = React.createClass({
   },
 
 
+  // Determine whether a supplied player is in the lineup.
+  isPlayerInLineup(lineup, player) {
+    // Return a list of all matching players.
+    const matchingPlayers = _filter(lineup, (slot) => {
+      if (slot.player) {
+        if (slot.player.player_id === player.player_id) {
+          return true;
+        }
+      }
+      return false;
+    });
+
+    // If the list of matching players is empty, the player is not in the lineup.
+    return Object.keys(matchingPlayers).length > 0;
+  },
+
+
   render() {
     const self = this;
     let gameCount = '';
@@ -240,7 +258,7 @@ const DraftPlayerList = React.createClass({
       }
 
       // Is the player already drafted?
-      if (undefined !== _find(self.props.newLineup, _matchesProperty('player', row))) {
+      if (this.isPlayerInLineup(self.props.newLineup, row)) {
         draftable = false;
         drafted = true;
       }

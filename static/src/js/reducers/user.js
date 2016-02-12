@@ -1,10 +1,13 @@
 import ActionTypes from '../action-types';
-
+import { merge as _merge } from 'lodash';
 
 const initialState = {
   user: {},
   infoFormErrors: {},
   addressFormErrors: {},
+  cashBalance: {
+    isFetching: false,
+  },
 };
 
 
@@ -37,6 +40,35 @@ module.exports = (state = initialState, action) => {
       return Object.assign({}, state, {
         addressFormErrors: action.ex.response.body.errors,
       });
+
+
+    /**
+     * User account cash balance actions.
+     */
+    case ActionTypes.FETCHING_CASH_BALANCE:
+      return _merge({}, state, {
+        cashBalance: {
+          isFetching: true,
+        },
+      });
+
+
+    case ActionTypes.FETCH_CASH_BALANCE_SUCCESS:
+      return _merge({}, state, {
+        cashBalance: {
+          isFetching: false,
+          amount: action.body.cash_balance,
+        },
+      });
+
+
+    case ActionTypes.FETCH_CASH_BALANCE_FAIL:
+      return _merge({}, state, {
+        cashBalance: {
+          isFetching: false,
+        },
+      });
+
 
     default:
       return state;

@@ -1,5 +1,6 @@
 {% load pipeline %}
 {% load staticfiles %}
+{% load humanize %}
 {% spaceless %}
 
 <!DOCTYPE html>
@@ -113,7 +114,7 @@
       isAuthenticated: {{ user.is_authenticated|lower }},
       username: "{{ user.username }}",
       is_staff: {{ user.is_staff|lower }},
-      cashBalance: {% if user.cashbalance %}{{ user.cashbalance.amount }}{% else %}0{% endif %},
+      cashBalance: {% if user.cashbalance %}"{{ user.cashbalance.amount|floatformat:2|intcomma }}"{% else %}"0"{% endif %},
       pusher_key: "{{ PUSHER_KEY }}",
       pusher_channel_prefix: "{{ PUSHER_CHANNEL_PREFIX }}",
       replayer_datetime: "{{ DELTA_NOW }}"
