@@ -7,6 +7,7 @@ import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
 import { addMessage } from './message-actions.js';
 import { fetchEntriesIfNeeded } from './entries.js';
+import { fetchCashBalanceIfNeeded } from './user.js';
 import { find as _find } from 'lodash';
 
 
@@ -158,6 +159,7 @@ function fetchEntryRequestStatus(taskId) {
       log.info('Contest entry request status:', res.body);
       // If it was a success.
       if (res.body.status === 'SUCCESS') {
+        dispatch(fetchCashBalanceIfNeeded());
         // Fetch new entries. (force this to fetch.)
         dispatch(fetchEntriesIfNeeded(true));
         // Display a success message to the user.

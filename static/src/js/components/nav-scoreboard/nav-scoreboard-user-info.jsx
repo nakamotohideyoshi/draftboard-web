@@ -9,7 +9,7 @@ const NavScoreboardUserInfo = React.createClass({
 
   propTypes: {
     name: React.PropTypes.string.isRequired,
-    balance: React.PropTypes.string.isRequired,
+    balance: React.PropTypes.string,
   },
 
   mixins: [PureRenderMixin],
@@ -21,7 +21,7 @@ const NavScoreboardUserInfo = React.createClass({
       <div className="cmp-nav-scoreboard--user-info">
         <div className="name">{name}</div>
         <div className="balance">
-          ${balance}
+          {balance}
           <a href="/account/settings/deposits/" className="add-funds">Add funds</a>
         </div>
       </div>
