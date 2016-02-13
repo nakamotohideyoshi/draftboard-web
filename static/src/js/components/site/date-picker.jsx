@@ -124,7 +124,7 @@ const DatePicker = React.createClass({
         <div className="header">
           <div className="arrow-left" onClick={this.handleSelectPrevMonth}>&lt;</div>
           <div className="year">{year}</div>
-          <div className="month">{monthNumToName(month)}</div>
+          <div className="month">{monthNumToName(parseInt(month, 10) - 1)}</div>
           <div className="arrow-right" onClick={this.handleSelectNextMonth}>&gt;</div>
         </div>
         <div className="body">

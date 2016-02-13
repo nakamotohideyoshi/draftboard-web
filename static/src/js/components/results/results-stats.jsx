@@ -8,7 +8,7 @@ const ResultsStats = React.createClass({
     stats: React.PropTypes.shape({
       winnings: React.PropTypes.string.isRequired,
       possible: React.PropTypes.string.isRequired,
-      fees: React.PropTypes.string.isRequired,
+      buyins: React.PropTypes.string.isRequired,
       entries: React.PropTypes.number.isRequired,
       contests: React.PropTypes.number.isRequired,
     }).isRequired,
@@ -22,19 +22,19 @@ const ResultsStats = React.createClass({
         <div className="item winnings">
           <span className="title">Winnings</span>
           <span className="value">
-            {this.props.stats.winnings}
+            ${this.props.stats.winnings}
           </span>
         </div>
         <div className="item possible">
           <span className="title">Possible</span>
           <span className="value">
-            {this.props.stats.possible}
+            ${this.props.stats.possible}
           </span>
         </div>
-        <div className="item fees">
+        <div className="item buyins">
           <span className="title">Fees</span>
           <span className="value">
-            {this.props.stats.fees}
+            ${this.props.stats.buyins}
           </span>
         </div>
         <div className="item entries">

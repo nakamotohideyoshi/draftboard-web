@@ -6,28 +6,19 @@ const ResultsLineup = React.createClass({
 
   propTypes: {
     id: React.PropTypes.number.isRequired,
-    name: React.PropTypes.string.isRequired,
+    name: React.PropTypes.string,
     players: React.PropTypes.arrayOf(
       React.PropTypes.shape({
-        id: React.PropTypes.number.isRequired,
-        name: React.PropTypes.string.isRequired,
-        score: React.PropTypes.number.isRequired,
-        image: React.PropTypes.string.isRequired,
-        position: React.PropTypes.string.isRequired,
+        player_id: React.PropTypes.number.isRequired,
+        full_name: React.PropTypes.string.isRequired,
+        fppg: React.PropTypes.number.isRequired,
+        roster_spot: React.PropTypes.string.isRequired,
       })
     ).isRequired,
-    contests: React.PropTypes.arrayOf(
-      React.PropTypes.shape({
-        id: React.PropTypes.number.isRequired,
-        factor: React.PropTypes.number.isRequired,
-        title: React.PropTypes.string.isRequired,
-        place: React.PropTypes.number.isRequired,
-        prize: React.PropTypes.string.isRequired,
-      })
-    ).isRequired,
+    entries: React.PropTypes.array.isRequired,
     stats: React.PropTypes.shape({
-      fees: React.PropTypes.string.isRequired,
-      won: React.PropTypes.string.isRequired,
+      buyin: React.PropTypes.number.isRequired,
+      won: React.PropTypes.number.isRequired,
       entries: React.PropTypes.number.isRequired,
     }),
   },
@@ -73,7 +64,7 @@ const ResultsLineup = React.createClass({
   renderLineup() {
     const players = this.props.players.map((player) => (
       <div key={player.id} className="player">
-        <span className="position">{player.position}</span>
+        <span className="position">{player.roster_spot}</span>
         <span className="image"
           style={{
             // TODO:
@@ -81,15 +72,15 @@ const ResultsLineup = React.createClass({
           }}
         >
         </span>
-        <span className="name">{player.name}</span>
-        <span className="score">{player.score}</span>
+        <span className="name">{player.full_name}</span>
+        <span className="score">{player.fppg.toFixed(2)}</span>
       </div>
     ));
 
     return (
       <div key={`${this.props.id}-lineup`} className="lineup">
         <div className="header">
-          {this.props.name}
+          {this.props.name || 'Your Lineup'}
 
           <div className="to-contests" onClick={this.handleSwitchToContests}>
             <span>
@@ -104,13 +95,13 @@ const ResultsLineup = React.createClass({
           <div className="item">
             <span className="title">Fees</span>
             <span className="value">
-              {this.props.stats.fees}
+              {this.props.stats.buyin.toFixed(2)}
             </span>
           </div>
           <div className="item">
             <span className="title">Won</span>
             <span className="value">
-              {this.props.stats.won}
+              {this.props.stats.won.toFixed(2)}
             </span>
           </div>
           <div className="item">
@@ -125,29 +116,32 @@ const ResultsLineup = React.createClass({
   },
 
   renderContests() {
-    const contests = this.props.contests.map((c) => (
-      <div key={c.id}
-        className="contest"
-        onClick={this.handleShowContestPane}
-      >
-        <div className="factor">{`${c.factor}X`}</div>
-        <div className="title">{c.title}</div>
-        <div className="place">{this.numToPlace(c.place)}</div>
-        <div className="prize">{c.prize}</div>
-      </div>
-    ));
+    const entries = this.props.entries.map((entry) => {
+      const contest = entry.contest;
+
+      return (
+        <div key={contest.id}
+          className="contest"
+          onClick={this.handleShowContestPane}
+        >
+          <div className="title">{contest.name}</div>
+          <div className="prize">${entry.payout.amount.toFixed(2)}</div>
+          <div className="place">{this.numToPlace(entry.final_rank)}</div>
+        </div>
+      );
+    });
 
     return (
       <div key={this.props.id} className="contests">
         <div className="header">
-          {this.props.contests.length} Contests
+          {this.props.entries.length} Contests
 
           <div className="to-lineup" onClick={this.handleSwitchToLineup}>
             Lineup <div className="arrow-right">&gt;</div>
           </div>
         </div>
         <div className="list">
-          {contests}
+          {entries}
         </div>
       </div>
     );
