@@ -26,7 +26,7 @@ module.exports = (state = initialState, action) => {
     // Insert boxscores + games into store, indexed by the draftGroupId
     case ActionTypes.FETCH_DRAFTGROUP_BOX_SCORES_SUCCESS:
       const stateCopy = _merge({}, state);
-      stateCopy.isFetching = false;
+      stateCopy.boxScores.isFetching = false;
       stateCopy.boxScores[action.draftGroupId] = action.body;
       return stateCopy;
 

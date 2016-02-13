@@ -7,8 +7,7 @@ import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
 import PlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
-import { forEach as _forEach, filter as _filter, }
-  from 'lodash';
+import { forEach as _forEach, filter as _filter } from 'lodash';
 import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter, }
   from '../../actions/draft-group-players-actions.js';
 import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId, }
