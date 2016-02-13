@@ -178,7 +178,7 @@ const DraftPlayerDetail = React.createClass({
 
 
   renderNextGameInfo() {
-    if (!Object.keys(this.props.player.nextGame).length) {
+    if (!this.props.player.nextGame || !Object.keys(this.props.player.nextGame).length) {
       return (
         <div className="next-game">Loading...</div>
       );
