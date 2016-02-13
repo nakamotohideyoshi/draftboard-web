@@ -113,7 +113,7 @@ const ResultsDaysSlider = React.createClass({
         {i.weekday}
         <span className="value">{i.daynum}</span>
       </div>,
-      <div className="separator" key={`${i.id}|s`}>/</div>,
+      <div className="separator" key={`${i.id}|s`}><span /></div>,
     ]).reduce(
       // Just flatten the array on a single level. Not using lodash here,
       // because this may result in unexpected behavior depending on the

@@ -11,6 +11,7 @@ const initialState = {
   avgRemainingPlayerSalary: 0,
   contestSalaryLimit: 0,
   availablePositions: [],
+  lineupCanBeSaved: false,
 };
 
 // Roster templates for empty lineup cards.
@@ -262,6 +263,14 @@ module.exports = (state = initialState, action) => {
       // After the state has a roster, find it's open positions.
       newState.availablePositions = findAvailablePositions(newState);
       newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState);
+
+      // if the card is full, it can be saved.
+      if (newState.availablePositions.length === 0) {
+        newState.lineupCanBeSaved = true;
+      } else {
+        newState.lineupCanBeSaved = false;
+      }
+
       return newState;
 
 
@@ -270,7 +279,7 @@ module.exports = (state = initialState, action) => {
       // if there is an error adding the player, return the state with an error message
       return addPlayer(action.player, state, (errors, updatedLineup) => {
         if (errors.length > 0) {
-          return Object.assign({}, state, {
+          return _merge({}, state, {
             errorMessage: errors,
           });
         }
@@ -283,23 +292,39 @@ module.exports = (state = initialState, action) => {
         });
         // After the state's roster has been updated, find it's open positions.
         newState.availablePositions = findAvailablePositions(newState);
+
+        // if the card is full, it can be saved.
+        if (newState.availablePositions.length === 0) {
+          newState.lineupCanBeSaved = true;
+        } else {
+          newState.lineupCanBeSaved = false;
+        }
+
         return newState;
       });
 
 
     case ActionTypes.CREATE_LINEUP_REMOVE_PLAYER:
-      newState = Object.assign({}, state, {
+      newState = _merge({}, state, {
         errorMessage: null,
       });
       removePlayer(action.playerId, newState);
       newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState);
       newState.remainingSalary = getRemainingSalary(newState);
       newState.availablePositions = findAvailablePositions(newState);
+
+      // if the card is full, it can be saved.
+      if (newState.availablePositions.length === 0) {
+        newState.lineupCanBeSaved = true;
+      } else {
+        newState.lineupCanBeSaved = false;
+      }
+
       return newState;
 
 
     case ActionTypes.CREATE_LINEUP_SAVE_FAIL:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         errorMessage: action.err,
       });
 
@@ -314,6 +339,17 @@ module.exports = (state = initialState, action) => {
 
       // Update the title (optional)
       newState.lineupTitle = action.title;
+      newState.avgRemainingPlayerSalary = getAvgRemainingPlayerSalary(newState);
+      newState.remainingSalary = getRemainingSalary(newState);
+      newState.availablePositions = findAvailablePositions(newState);
+
+      // if the card is full, it can be saved.
+      if (newState.availablePositions.length === 0) {
+        newState.lineupCanBeSaved = true;
+      } else {
+        newState.lineupCanBeSaved = false;
+      }
+
       return newState;
 
 

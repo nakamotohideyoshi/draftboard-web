@@ -178,4 +178,4 @@ class UserLineupHistorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model   = Lineup
-        fields  = ('id','players','entries')
+        fields  = ('id','players','entries', 'name',)

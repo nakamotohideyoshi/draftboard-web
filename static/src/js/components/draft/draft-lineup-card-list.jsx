@@ -144,6 +144,7 @@ const DraftLineupCardList = React.createClass({
         <DraftNewLineupCard
           lineup={this.props.newLineup.lineup}
           lineupTitle={this.props.newLineup.lineupTitle}
+          lineupCanBeSaved={this.props.newLineup.lineupCanBeSaved}
           isActive={false}
           ref="lineupCardNew"
           remainingSalary={this.props.newLineup.remainingSalary}
