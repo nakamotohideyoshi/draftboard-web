@@ -1,5 +1,8 @@
+#
+# contest/payout/classes.py
+
 import mysite.exceptions
-from contest.models import Contest, Entry
+from contest.models import Contest, Entry, ClosedContest
 from prize.models import Rank
 from django.db.models import Q
 from transaction.models import  AbstractAmount
@@ -8,6 +11,10 @@ from transaction.classes import  CanDeposit
 from .models import Payout, Rake, FPP
 from cash.classes import CashTransaction
 import decimal
+from draftgroup.classes import DraftGroupManager
+from draftgroup.exceptions import (
+    FantasyPointsAlreadyFinalizedException,
+)
 from dfslog.classes import Logger, ErrorCodes
 from cash.classes import CashTransaction
 from django.db.transaction import atomic
@@ -17,6 +24,12 @@ from rakepaid.classes import RakepaidTransaction
 from mysite.classes import AbstractManagerClass
 from rakepaid.classes import LoyaltyStatusManager
 from fpp.classes import FppTransaction
+from lineup.classes import (
+    LineupManager,
+)
+from lineup.models import (
+    Lineup,
+)
 import math
 
 class PayoutManager(AbstractManagerClass):
@@ -55,22 +68,37 @@ class PayoutManager(AbstractManagerClass):
                         'contests')
 
         #
-        # find contests that have not been paid out yet that need
-        # to be paid out
+        # if payout() was called with no arguments,
+        # find contests that need to be paid out.
         else:
-            #
-            # gets all the contests that are not set to closed
-            contests = Contest.objects.filter(~Q(status=Contest.CLOSED))
-
             #
             # gets all the contests that are completed
             contests = Contest.objects.filter(status=Contest.COMPLETED)
 
         #
-        # If there are contests left to payout, pay them out.
+        # get the unique draft group ids within this queryset of contests.
+        # update the final scoring for the players in the distinct draft groups.
+        draft_group_ids = list(set([ c.draft_group.pk for c in contests if c.draft_group != None ]))
+        for draft_group_id in draft_group_ids:
+            draft_group_manager = DraftGroupManager()
+            try:
+                draft_group_manager.update_final_fantasy_points(draft_group_id)
+            except FantasyPointsAlreadyFinalizedException:
+                pass # its possible the contest we are trying to payout was already finalized
+
+        #
+        # update the fantasy_points for each unique Lineup.
+        # get the unique lineups from the contests' entries,
+        # so we're not doing extra processing...
+        lineups = Lineup.objects.filter(draft_group__pk__in=draft_group_ids)
+        for lineup in lineups:
+            lineup_manager = LineupManager()
+            lineup_manager.update_fantasy_points( lineup )
+
+        #
+        # finally, we can pay out the contests!
         for contest in contests:
             self.__payout_contest(contest)
-
 
     @atomic
     def __payout_contest(self, contest):
@@ -80,9 +108,16 @@ class PayoutManager(AbstractManagerClass):
         called from a separate method that does the individual error checking.
         """
 
+        try:
+            c = ClosedContest.objects.get( pk=contest.pk )
+            print('%s already closed & paid out.'%str(contest))
+            return # go no further
+        except:
+            pass
+
         #
         # get the prize pool ranks for the contest
-        ranks = Rank.objects.filter(prize_structure= contest.prize_structure)
+        ranks = Rank.objects.filter(prize_structure=contest.prize_structure)
 
         #
         # get the entries for the contest
@@ -163,7 +198,7 @@ class PayoutManager(AbstractManagerClass):
             # set the current 'j' to each entry in entries_to_pay
             for e in entries:
                 print('>>>> setting entry[%s] to rank: %s' % (str(e),str(j)))
-                e.final_rank = j
+                e.final_rank = j + 1   # +1 because the highest rank is 0, but this is for the front end
                 e.save()
 
             j += num_tied   # add the additional # entries at the same rank before incrementing
