@@ -40,6 +40,10 @@ class DraftGroup( models.Model ):
     closed      = models.DateTimeField(blank=True, null=True,
                         help_text='the time at which all live games in the draft group were closed out and stats were finalized by the provider')
 
+    fantasy_points_finalized = models.DateTimeField(blank=True, null=True,
+                        help_text='if set, this is the time the "final_fantasy_points" '
+                                  'for each draftgroup player was updated')
+
     def get_games(self):
         """
         return the underlying sport.<sport>.Game objects this draft group was created with
@@ -135,6 +139,10 @@ class Player( models.Model ):
     salary      = models.FloatField(default=0, null=False,
                     help_text='the amount of salary for the player at the this draft group was created')
     start = models.DateTimeField(null=False)
+
+    final_fantasy_points = models.FloatField(default=0, null=False,
+                                help_text='the payout-time fantasy points of this player')
+
 
     def __str__(self):
         return '%s $%.2f' % (str(self.player), self.salary)

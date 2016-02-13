@@ -3,13 +3,19 @@
 
 from django.dispatch import receiver
 import mysite.exceptions
-from .exceptions import EmptySalaryPoolException, NotEnoughGamesException, NoGamesAtStartTimeException
+from .exceptions import (
+    EmptySalaryPoolException,
+    NotEnoughGamesException,
+    NoGamesAtStartTimeException,
+    FantasyPointsAlreadyFinalizedException,
+)
 from django.db.transaction import atomic
 from .models import DraftGroup, Player, GameTeam
 from sports.models import Game, SiteSport, GameStatusChangedSignal
 from salary.models import Pool, Salary
 from sports.classes import SiteSportManager
 import datetime
+from django.utils import timezone
 from draftgroup.tasks import on_game_closed
 
 class AbstractDraftGroupManager(object):
@@ -96,8 +102,6 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
     """
 
-
-
     def __init__(self):
         super().__init__()
 
@@ -127,6 +131,59 @@ class DraftGroupManager( AbstractDraftGroupManager ):
                 # build list of tuples of (DraftGroup, task result) pairs
                 results.append( (draft_group, res))
             # check results... ?
+
+    @atomic
+    def update_final_fantasy_points(self, draft_group_id):
+        """
+        updates the final_fantasy_points for all players in the draft group
+
+        :param draft_group:
+        :return:
+        """
+
+        # get the draft group and then get its players
+        draft_group = self.get_draft_group(draft_group_id)
+
+        # check if the draft_group has already finalized fantasy_points...
+        if draft_group.fantasy_points_finalized is not None:
+            err_msg = 'draft_group id: %s'%str(draft_group_id)
+            raise FantasyPointsAlreadyFinalizedException(err_msg)
+
+        # get the site sport, and the draft group players
+        site_sport = draft_group.salary_pool.site_sport
+        players = self.get_players(draft_group)
+
+        # get all the PlayerStats objects for this draft group
+        ssm = SiteSportManager()
+        salary_score_system_class = ssm.get_score_system_class(site_sport)
+        score_system = salary_score_system_class()
+        game_srids = [ x.game_srid for x in self.get_game_teams(draft_group=draft_group) ]
+
+        # get the PlayerStats model(s) for the sport.
+        # and get an instance of the sports scoring.classes.<Sport>SalaryScoreSystem
+        # to determine which player stats models to use to retrieve the final fantasy_points from!
+        for draft_group_player in players:
+            # get the sports.<sport>.player  -- we'll need it later
+            sport_player = draft_group_player.salary_player.player
+            # determine the PlayerStats class to retrieve the fantasy_points from
+            player_stats_class = score_system.get_primary_player_stats_class_for_player(draft_group_player)
+
+            try:
+                player_stats = player_stats_class.objects.get( srid_game__in=game_srids,
+                                                           srid_player=sport_player.srid )
+            except player_stats_class.DoesNotExist:
+                player_stats = None
+                continue
+
+            # move the current fantasy_points from the player_stats into
+            # the draft_group_player and save it!
+            draft_group_player.final_fantasy_points = player_stats.fantasy_points
+            draft_group_player.save()
+
+        #
+        # set the datetime for when we finalized the draft_group players fantasy points
+        draft_group.fantasy_points_finalized = timezone.now()
+        draft_group.save()
 
     def get_for_site_sport(self, site_sport, start, end):
         """

@@ -3,16 +3,22 @@
 
 from scoring.models import ScoreSystem, StatPoint
 from scoring.cache import ScoreSystemCache
+import sports.nfl.models
+import sports.nba.models
+import sports.mlb.models
+import sports.nhl.models
 
 class AbstractScoreSystem(object):
+
+    class PrimaryPlayerStatsClassException(Exception): pass
 
     score_system        = None
     stat_values         = None
 
     def __init__(self, sport):
-
-        self.verbose = False
-        self.str_stats = None # string
+        self.sport      = sport
+        self.verbose    = False
+        self.str_stats  = None # string
 
         self.stat_values_cache = ScoreSystemCache(sport)
         self.stat_values = self.get_stat_values()
@@ -88,6 +94,33 @@ class AbstractScoreSystem(object):
         stat_value = self.stat_values.get(stat=stat_name)
         return stat_value.value
 
+    def get_primary_player_stats_class_for_player(self, player):
+        """
+        this method will get the primary PlayerStats model class
+        for which to score a players fantasy points for contests.
+
+        given a sports.<sport>.models.Player object, uses the
+        player's position to disambiguate which PlayerStats model
+        to return in the case there are more than one.
+
+        for most sports, this method always the same PlayerStats object
+        for all players, but for MLB, for example, this returns
+        the PlayerStats class based on players position. (ie: we
+        need to return PlayerStatsHitter for hitters, and PlayerStatsPitcher
+        for players whose main position is in the list of pitching positions.
+
+        by default this method returns the first class found
+        in the SiteSportManager.get_player_stats_class() return list.
+
+        note: inheriting classes of sports with more than one PlayerStats
+        model must consider overriding this method so player's fantasy points
+        are scored properly!
+        """
+
+        err_msg = 'object inheriting AbstractScoreSystem for sport [%s] must override method ' \
+                  'get_primary_player_stats_class_for_player()' % (self.sport)
+        raise self.PrimaryPlayerStatsClassException(err_msg)
+
 class NbaSalaryScoreSystem(AbstractScoreSystem):
     """
     defines the NBA Salary Draft scoring metrics
@@ -110,6 +143,12 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
         #
         # call super last - it will perform validation and ensure proper setup
         super().__init__(self.THE_SPORT)
+
+    def get_primary_player_stats_class_for_player(self, player):
+        """
+        override
+        """
+        return sports.nba.models.PlayerStats
 
     def score_player(self, player_stats, verbose=True):
         """
@@ -202,7 +241,10 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
     """
     defines the MLB Salary draft scoring metrics
     """
+
     THE_SPORT = 'mlb'
+
+    PITCHER_POSITIONS = ['P', 'SP', 'RP']
 
     SINGLE  = 'single'           # hitter - singles
     DOUBLE  = 'double'           # hitter - doubles
@@ -231,6 +273,17 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
         # call super last - ensures you have class variables setup
         super().__init__(self.THE_SPORT)
 
+    def get_primary_player_stats_class_for_player(self, player):
+        """
+        override
+        """
+        if player.position.get_matchname() in self.PITCHER_POSITIONS:
+            # pitching PlayerStats class
+            return sports.mlb.models.PlayerStatsPitcher
+        else:
+            # hitting PlayerStats class
+            return sports.mlb.models.PlayerStatsHitter
+
     def score_player(self, player_stats, verbose=True):
         """
         determines whether the player_stats object represents a hitter or a pitcher,
@@ -241,7 +294,7 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
         """
         self.set_verbose( verbose )
 
-        if player_stats.player.position.get_matchname() in ['P', 'SP', 'RP']:
+        if player_stats.player.position.get_matchname() in self.PITCHER_POSITIONS:
             return self.__score_pitcher( player_stats )
         else:
             return self.__score_hitter( player_stats )
@@ -367,6 +420,12 @@ class NhlSalaryScoreSystem(AbstractScoreSystem):
         # call super last - ensures you have class variables setup
         super().__init__(self.THE_SPORT)
 
+    def get_primary_player_stats_class_for_player(self, player):
+        """
+        override
+        """
+        return sports.nhl.models.PlayerStats
+
     def score_player(self, player_stats, verbose=True):
         """
         scores and returns a float for the amount of fantasy points for this PlayerStats instance
@@ -486,6 +545,12 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
 
         # call super last - ensures you have class variables setup
         super().__init__(self.THE_SPORT)
+
+    def get_primary_player_stats_class_for_player(self, player):
+        """
+        override
+        """
+        return sports.nfl.models.PlayerStats
 
     def score_player(self, player_stats, opp_score = 0, verbose=True):
         """
