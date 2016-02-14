@@ -380,13 +380,22 @@ class DataDenNba(AbstractDataDenParser):
         #
         # nba.event
         elif self.target == ('nba.event','pbp'):
+            #
+            # handle a play by play event from dataden.
+            # TODO - we need to a) only send if we havent sent it yet, b) send
             EventPbp().parse( obj )
             PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( obj ) # use Pusher to send this object after DB entry created
             self.add_pbp( obj ) # stashes the pbp object for the trailing history
         #
         # nba.player
-        elif self.target == ('nba.player','rosters'): PlayerRosters().parse( obj )
-        elif self.target == ('nba.player','stats'): PlayerStats().parse( obj )
+        elif self.target == ('nba.player','rosters'):
+            PlayerRosters().parse( obj )
+
+        elif self.target == ('nba.player','stats'):
+            #
+            # will save() the nba PlayerStats model corresponding to this player.
+            PlayerStats().parse( obj )
+            # TODO - add this to the sports PbpStatsLinker - and delay pushering stats for a few sec
         #
         # nba.injury
         elif self.target == ('nba.injury','injuries'): Injury().parse( obj )
