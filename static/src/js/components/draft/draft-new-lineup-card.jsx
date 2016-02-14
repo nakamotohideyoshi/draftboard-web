@@ -22,6 +22,7 @@ const DraftNewLineupCard = React.createClass({
     errorMessage: React.PropTypes.array,
     saveLineup: React.PropTypes.func,
     handlePlayerClick: React.PropTypes.func,
+    lineupCanBeSaved: React.PropTypes.bool,
   },
 
 
@@ -75,6 +76,29 @@ const DraftNewLineupCard = React.createClass({
   },
 
 
+  renderSaveButton() {
+    if (this.props.lineupCanBeSaved) {
+      return (
+        <span
+          className="cmp-lineup-card__save button--mini--outline button--gradient-outline"
+          onClick={this.saveLineup}
+        >
+          Save
+        </span>
+      );
+    }
+
+    return (
+      <span
+        className="cmp-lineup-card__save button--mini--outline button--gradient-outline disabled"
+        title="This lineup is incomplete."
+      >
+        Save
+      </span>
+    );
+  },
+
+
   render() {
     const showError = (!this.props.errorMessage) ? false : true;
     const self = this;
@@ -97,12 +121,7 @@ const DraftNewLineupCard = React.createClass({
             setTitle={this.setTitle}
           />
 
-          <span
-            className="cmp-lineup-card__save button--mini--outline button--gradient-outline"
-            onClick={this.saveLineup}
-          >
-            Save
-          </span>
+          {this.renderSaveButton()}
 
           <Tooltip
             position="bottom"

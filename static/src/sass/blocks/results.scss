@@ -1,6 +1,6 @@
-$results-fg-text-color: #43455C;
+$results-fg-text-color: #46495e;
 $results-bg-text-color: #BDC0C2;
-$results-selected-text-color: #50C48F;
+$results-selected-text-color: #2bb677;
 
 .results-page {
   background: transparent url(../img/blocks/live/bg.jpg) no-repeat left top;
@@ -13,7 +13,7 @@ $results-selected-text-color: #50C48F;
 
   &--header {
     height: 130px;
-    padding: 0 100px;
+    padding: 0 88px;
     margin-top: 60px;
     position: relative;
     background-color: #ffffff;
@@ -24,42 +24,45 @@ $results-selected-text-color: #50C48F;
       padding-top: 40px;
 
       .text {
-        color: $results-bg-text-color;
-        font-size: 12px;
+        color: #9c9fae;
+        font-size: 9.5px;
       }
 
       .date {
-        color: $results-fg-text-color;
-        font-size: 24px;
-        font-weight: bold;
-        transform: scaleY(1.5);
+        color: #47495e;
+        font-family: $font-oswald;
+        font-size: 20px;
       }
     }
 
     .results-days-slider {
       display: inline-block;
       position: relative;
-      top: -8px;
+      top: 4px;
       margin-left: 30px;
 
       .arrow-left, .arrow-right {
+        color: #878a9f;
         display: inline-block;
-        width: 30px;
+        width: 20px;
         text-align: center;
-        font-size: 25px;
+        font-size: 18px;
+        font-weight: bold;
         transform: scaleX(0.50) translateY(9px);
         cursor: pointer;
+        top: -12px;
+        position: relative;
       }
       .arrow-left {
-        margin-right: 10px;
+        margin-right: 6px;
       }
 
       .arrow-right {
-        margin-left: 10px;
+        margin-left: 6px;
       }
 
       .content-holder {
-        width: 413px;
+        width: 290px;
         height: 62px;
         white-space: nowrap;
         overflow: hidden;
@@ -76,17 +79,17 @@ $results-selected-text-color: #50C48F;
 
       .item {
         display: inline-block;
-        color: $results-bg-text-color;
+        color: #c6cacc;
         text-transform: uppercase;
         font-weight: bold;
-        font-size: 14px;
+        font-size: 9.5px;
         cursor: pointer;
 
         .value {
           display: block;
-          font-size: 16px;
+          font-size: 11px;
           font-weight: normal;
-          color: $results-fg-text-color;
+          color: #46495e;
         }
 
         &.selected {
@@ -99,11 +102,21 @@ $results-selected-text-color: #50C48F;
       }
 
       .separator {
-        color: $results-bg-text-color;
         display: inline-block;
-        padding: 0 10px;
-        font-size: 46px;
-        font-weight: 100;
+        position: relative;
+        height: 36px;
+        width: 25px;
+
+        span {
+          background: #dee1e8;
+          transform: rotate(20deg);
+          width: 1px;
+          height: 36px;
+          display: block;
+          position: relative;
+          left: 10px;
+          top: 8px;
+        }
       }
     }
 
@@ -118,13 +131,15 @@ $results-selected-text-color: #50C48F;
         width: 20px;
         height: 20px;
         position: relative;
-        top: 1px;
+        top: 4px;
         cursor: pointer;
+        margin-left: 25px;
       }
     }
 
     .search {
       display: inline-block;
+      display: none;
       position: absolute;
       right: 255px;
       top: 62px;
@@ -138,27 +153,27 @@ $results-selected-text-color: #50C48F;
       display: inline-block;
       position: absolute;
       right: 100px;
-      top: 63px;
-      color: $results-fg-text-color;
-      font-size: 11px;
-      font-weight: 600;
+      top: 58px;
+      color: #46485d;
+      font-size: 9.5px;
       border: solid 1px $results-selected-text-color;
       padding: 6px 22px;
       border-radius: 4px;
       cursor: pointer;
+      letter-spacing: 1.5px;
     }
   }
 
   &--stats {
     height: 50px;
-    padding-left: 100px;
+    padding-left: 88px;
     line-height: 50px;
     background-color: #EDEEF1;
 
     .item {
       display: inline-block;
-      color: #9EA2A9;
-      font-size: 10px;
+      color: #9c9fae;
+      font-size: 9.5px;
       vertical-align: middle;
       text-transform: uppercase;
 
@@ -169,18 +184,18 @@ $results-selected-text-color: #50C48F;
       }
 
       .value {
-        color: $results-fg-text-color;
+        color: #47495e;
         display: inline-block;
-        margin-left: 10px;
-        margin-right: 40px;
-        font-size: 20px;
-        font-weight: bold;
+        font-family: $font-oswald;
+        font-size: 15px;
+        margin-left: 6px;
+        margin-right: 36px;
       }
     }
   }
 
   &--lineups {
-    padding: 40px 0 0 100px;
+    padding: 40px 0 0 88px;
 
     .lineup {
       width: 380px;
@@ -189,20 +204,23 @@ $results-selected-text-color: #50C48F;
       margin-right: 40px;
 
       .header {
+        color: #46495e;
+        font-size: 16px;
         position: relative;
         padding-left: 35px;
         line-height: 65px;
         border-bottom: 1px solid $results-bg-text-color;
-        background: url('../img/blocks/results/basketball.png') no-repeat 15px center;
-        background-size: 15px 11px;
+        background: url('../img/blocks/results/basketball.jpg') no-repeat 15px center;
+        background-size: 12.5px auto;
 
         .to-contests {
           display: inline-block;
           position: absolute;
-          right: 20px;
+          right: 17px;
           text-transform: uppercase;
-          font-size: 11px;
-          color: $results-bg-text-color;
+          font-size: 9.5px;
+          font-size: 500;
+          color: #878a9f;
 
           span {
             cursor: pointer;
@@ -225,18 +243,17 @@ $results-selected-text-color: #50C48F;
           position: relative;
           padding: 0 10px;
           line-height: 35px;
-          border-bottom: 1px solid $results-bg-text-color;
+          border-bottom: 1px solid #ebedf2;
 
           .position {
             color: $results-fg-text-color;
-            font-size: 11px;
-            font-weight: bold;
+            font-size: 9px;
             text-transform: uppercase;
           }
           .image {
             display: inline-block;
-            margin: 0 5px;
-            background: $results-bg-text-color url('../img/blocks/results/avatar.png') no-repeat center center;
+            margin: 0 10px;
+            background: #dee0e8 url('../img/blocks/results/avatar.png') no-repeat center center;
             background-size: 31px 25px;
             width: 25px;
             height: 25px;
@@ -246,35 +263,37 @@ $results-selected-text-color: #50C48F;
           }
           .name {
             color: $results-fg-text-color;
+            font-size: 13px;
           }
           .score {
-            color: $results-fg-text-color;
-            font-weight: bold;
+            color: #46495e;
+            font-family: $font-oswald;
+            font-size: 13px;
             position: absolute;
-            right: 15px;
+            right: 20px;
           }
         }
       }
 
       .footer {
         text-align: center;
-        padding: 20px 0;
+        padding: 20px;
 
         .item {
           display: inline-block;
-          padding: 0 10px;
+          width: 33%;
 
           .title {
-            color: $results-bg-text-color;
+            color: #b4b7c4;
             display: block;
-            font-size: 10px;
+            font-size: 9px;
             text-transform: uppercase;
           }
 
           .value {
-            color: $results-fg-text-color;
-            font-size: 20px;
-            font-weight: bold;
+            color: #46495e;
+            font-family: $font-oswald;
+            font-size: 17px;
           }
         }
       }
@@ -284,23 +303,25 @@ $results-selected-text-color: #50C48F;
       width: 380px;
       display: inline-block;
       margin-right: 40px;
-      background-color: #353849;
+      background-color: #343849;
       cursor: pointer;
 
       .header {
         color: white;
+        font-size: 16px;
         position: relative;
-        padding-left: 35px;
+        padding-left: 20px;
         line-height: 65px;
-        border-bottom: 1px solid #3e4453;
-        background-color: #3A3F52;
+        border-bottom: 1px solid #535970;
+        background-color: #3a3f52;
 
         .to-lineup {
           display: inline-block;
+          font-size: 9.5px;
+          font-weight: 500;
           position: absolute;
           right: 20px;
           text-transform: uppercase;
-          font-size: 11px;
 
           span {
             cursor: pointer;
@@ -319,45 +340,40 @@ $results-selected-text-color: #50C48F;
 
       .list {
         .contest {
+          @extend %clearfix;
           position: relative;
-          padding: 0 10px;
+          padding: 0 20px;
           line-height: 35px;
-          border-bottom: 1px solid #3e4453;
+          border-bottom: 1px solid #3d4358;
           vertical-align: middle;
 
-          .factor {
+          .title {
+            color: white;
             display: inline-block;
-            color: #666B80;
+            margin: 0 10px 0 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+            white-space: nowrap;
+
             font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
           }
 
-          .title {
-            display: inline-block;
-            color: white;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            overflow: hidden;
-            width: 190px;
-            vertical-align: middle;
-            margin: 0 10px;
+          .place, .prize {
+            font-family: $font-oswald;
+            font-size: 13px;
+            float: right;
           }
 
           .place {
             display: inline-block;
-            color: #666B80;
-            /* font-size: 11px; */
-            font-weight: bold;
-            margin-right: 10px;
+            color: #6d718a;
+            margin-right: 6px;
           }
 
           .prize {
             display: inline-block;
             color: white;
-            /* font-size: 11px; */
-            font-weight: bold;
-            text-transform: uppercase;
           }
         }
       }
@@ -373,6 +389,7 @@ $results-selected-text-color: #50C48F;
     }
 
     .flip-container.shown-contest-pane .pane {
+      z-index: 5001;
       right: 0px;
     }
 
