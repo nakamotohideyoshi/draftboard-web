@@ -93,9 +93,13 @@ class PlayerSerializer(serializers.ModelSerializer):
     def get_salary(self, lineup_player):
         return lineup_player.draft_group_player.salary
 
+    fantasy_points = serializers.SerializerMethodField()
+    def get_fantasy_points(self, lineup_player):
+        return lineup_player.draft_group_player.final_fantasy_points
+
     class Meta:
         model = Player
-        fields = ('player_id', 'full_name', 'roster_spot', 'idx', 'player_meta','fppg','salary')
+        fields = ('player_id', 'full_name', 'roster_spot', 'idx', 'player_meta','fppg','salary', 'fantasy_points')
 
 class LineupSerializer(serializers.ModelSerializer):
 
