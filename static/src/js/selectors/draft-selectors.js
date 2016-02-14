@@ -54,7 +54,7 @@ export const focusedPlayerSelector = createSelector(
             // done server-side since we don't have ALL historical boxScores to pull from.
             assists: player.boxScoreHistory.assists[i],
             blocks: player.boxScoreHistory.blocks[i],
-            date: 'date',
+            date: player.boxScoreHistory.start[i],
             fp: player.boxScoreHistory.fp[i],
             opp: 'opp',
             points: player.boxScoreHistory.points[i],
@@ -77,9 +77,8 @@ export const focusedPlayerSelector = createSelector(
     if (activeDraftGroupId && boxScoreGames.hasOwnProperty(activeDraftGroupId)) {
       // Grab info about the player's next game.
       player.nextGame = boxScoreGames[activeDraftGroupId][player.game_srid];
-
       // If we have team info, attach the next teams in the next game.
-      if (sportInfo.hasOwnProperty(sport)) {
+      if (player.nextGame && sportInfo.hasOwnProperty(sport)) {
         // Add home team info
         if (sportInfo[sport].teams.hasOwnProperty(player.nextGame.srid_home)) {
           player.nextGame.homeTeam = sportInfo[sport].teams[player.nextGame.srid_home];
