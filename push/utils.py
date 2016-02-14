@@ -34,7 +34,9 @@ class LinkerManager(AbstractLinkerStats):
     def __init__(self, sport):
         super().__init__(sport)
 
-        self.player_srid_pattern = r"'player':\s'([^']*)'"
+        self.srid_pattern           = r"\s'([^']*)'"
+        self.game_srid_pattern      = r"'game':%s" % self.srid_pattern
+        self.player_srid_pattern    = r"'player':%s" % self.srid_pattern
         self.pbp_player_scoring_related_parent_list_names = [
             'fieldgoal__list',
             'rebound__list',
