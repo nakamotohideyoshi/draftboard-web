@@ -1,6 +1,7 @@
 #
 # sports/sport/base_parser.py
 
+import re
 from dataden.util.timestamp import Parse as DataDenDatetime
 from dataden.cache.caches import PlayByPlayCache
 from django.db.transaction import atomic
@@ -44,19 +45,68 @@ import dateutil.parser
 # --
 ####################################################################################
 
-class PbpStatsLinker(object):
+class PatternFinder(object):
 
-    def __init__(self, sport):
-        self.sport = sport
+    def __init__(self, s):
+        self.s = s
+
+    def findall(self, pattern):
+        return list(re.findall(pattern, self.s))
+
+class SridFinder(PatternFinder):
+    """
+    has methods to find global ids from a dictionary.
+    global ids are simply long strings of alpha-numeric
+    character values of dict fields.
+    """
+
+    class InvalidArgumentTypeException(Exception): pass
+
+    srid_pattern = r"'([^']*)'"    # will match anything between single quotes
+
+    def __init__(self, data):
+        if not isinstance(data, dict):
+            err_msg = '"data" param must be a dict. type was: %s' % type(data)
+            raise self.InvalidArgumentTypeException(err_msg)
+        super().__init__(str(data))
+
+    def get_for_field(self, fieldname):
+        """
+        return all the srids of fields (ie: dict keys) with this name.
+
+        returns a list of string srids found
+        """
+
+        pattern = r"'%s':\s%s" % (fieldname, self.srid_pattern)
+        return self.findall(pattern)
+
+# class PbpStatsLinker(PatternFinder):
+#     """
+#     this class is designed to extract the player-srid(s) and game-srid
+#     from a play-by-play object (dictionary), and it uses pusher to
+#     send a pbp object after it finds the corresponding PlayerStats to
+#     send along with it.
+#     """
+#
+#     def __init__(self, pbp):
+#         """
+#         construct this object with a play by play event object
+#         which contains the description, players, teams, etc.
+#         that are involved in a unique scoring play.
+#         """
+#         self.pbp = pbp
+#
+#     def get_data(self):
+#         pass # TODO - implement?
 
 class AbstractDataDenParser(object):
     """
     for parsing each individual sport, which will have some differences
     """
     def __init__(self):
-        self.ns         = None
-        self.parent_api = None
-        self.o          = None
+        self.ns                 = None
+        self.parent_api         = None
+        self.o                  = None
 
     def add_pbp(self, obj):
         pbp_cache = PlayByPlayCache( self.ns.split('.')[0] ) # the self.ns is "sport.collection"
@@ -95,10 +145,17 @@ class AbstractDataDenParseable(object):
     such as: nba.player stats.
     """
 
+    class DataDenParseableSendException(Exception): pass
+
     def __init__(self, wrapped=True):
-        self.name   = self.__class__.__name__
-        self.o      = None
-        self.wrapped = wrapped
+        self.name           = self.__class__.__name__
+        self.original_obj   = None
+        self.o              = None
+        self.wrapped        = wrapped
+        self.srid_finder    = None
+
+    def get_obj(self):
+        return self.original_obj
 
     def parse(self, obj, target=None):
         """
@@ -106,11 +163,17 @@ class AbstractDataDenParseable(object):
         will strip the oplog wrapper from the obj, and set
         the mongo object to self.o.
         """
+        self.original_obj = obj
         #print( self.name, str(obj)[:100], 'target='+str(target) )
         if self.wrapped:
             self.o  = obj.get_o()
         else:
             self.o  = obj
+
+        #
+        # constrcut an SridFinder with the dictionary data
+        print('self.o -- ', str(self.o))        # TODO remove print
+        self.srid_finder = SridFinder(self.o)
 
     def get_site_sport(self, obj):
         """
@@ -128,6 +191,27 @@ class AbstractDataDenParseable(object):
         # if this excepts, i dont want to catch the exception
         # because i want it to crash.
         return SiteSport.objects.get( name=sport_name )
+
+    def get_srids_for_field(self, fieldname):
+        """
+        returns a list of string "srids" (globally unique sportradar ids)
+
+        using regular expressions, get the srids for the named field.
+        for example: if fieldname is 'game__id', get every game srid found.
+        """
+        return self.srid_finder.get_for_field(fieldname)
+
+    def send(self):
+        """
+        inheriting classes should override this method to send/pusher/signal
+        the data after its been parsed.
+
+        child classes may call this method in their implementation to
+        validate that parse() has been called
+        """
+        if self.o is None:
+            err_msg = 'call parse() before calling send()'
+            raise self.DataDenParseableSendException(err_msg)
 
 class DataDenTeamHierarchy(AbstractDataDenParseable):
     """
