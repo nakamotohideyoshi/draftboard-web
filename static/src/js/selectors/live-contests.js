@@ -2,7 +2,6 @@ import { createSelector } from 'reselect';
 import _ from 'lodash';
 
 import { compileLineupStats } from './current-lineups';
-import log from '../lib/logging';
 
 
 /*
@@ -14,7 +13,7 @@ import log from '../lib/logging';
  *
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
-function rankContestLineups(contest, draftGroup, games, prizeStructure, relevantPlayers) {
+export const rankContestLineups = (contest, draftGroup, games, prizeStructure, relevantPlayers) => {
   const lineups = contest.lineups;
   const lineupsUsernames = contest.lineupsUsernames || {};
 
@@ -53,7 +52,7 @@ function rankContestLineups(contest, draftGroup, games, prizeStructure, relevant
     lineups: lineupsStats,
     hasLineupsUsernames: 'lineupsUsernames' in contest,
   };
-}
+};
 
 /**
  * Redux reselect selector to compile all relevant information for contests
@@ -79,7 +78,6 @@ export const liveContestsSelector = createSelector(
       // This seems to be a recurring issue. I believe it has something to do with the logged-in
       // user not having any lineups. For now we'll skip things if we don't have any contest.info.
       if (!contest.info) {
-        log.warn('liveContestsSelector - contest has no info', contest);
         return;
       }
 

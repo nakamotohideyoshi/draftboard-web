@@ -14,6 +14,7 @@ import { fetchEntriesIfNeeded } from '../../actions/entries';
 import { fetchSportsIfNeeded } from '../../actions/sports';
 import { currentLineupsSelector } from '../../selectors/current-lineups';
 import { liveSelector } from '../../selectors/live';
+import { removeUnusedContests } from '../../actions/live-contests';
 import { removeUnusedDraftGroups } from '../../actions/live-draft-groups';
 import { sportsSelector } from '../../selectors/sports';
 import { updateGame } from '../../actions/sports';
@@ -54,6 +55,7 @@ const mapDispatchToProps = (dispatch) => ({
   fetchDraftGroupFP: (draftGroupId) => dispatch(fetchDraftGroupFP(draftGroupId)),
   fetchEntriesIfNeeded: (force) => dispatch(fetchEntriesIfNeeded(force)),
   fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
+  removeUnusedContests: () => dispatch(removeUnusedContests()),
   removeUnusedDraftGroups: () => dispatch(removeUnusedDraftGroups()),
   updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
 });
@@ -74,6 +76,7 @@ const NavScoreboard = React.createClass({
     fetchEntriesIfNeeded: React.PropTypes.func,
     fetchSportsIfNeeded: React.PropTypes.func,
     liveSelector: React.PropTypes.object.isRequired,
+    removeUnusedContests: React.PropTypes.func,
     removeUnusedDraftGroups: React.PropTypes.func,
     sportsSelector: React.PropTypes.object.isRequired,
     updateGame: React.PropTypes.func,
@@ -227,6 +230,7 @@ const NavScoreboard = React.createClass({
    * Is run once per page load.
    */
   removeExpiredSubstoreObjects() {
+    this.props.removeUnusedContests();
     this.props.removeUnusedDraftGroups();
   },
 
