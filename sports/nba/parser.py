@@ -315,8 +315,6 @@ class EventPbp(DataDenPbpDescription):
         """
         super().send()
 
-        print( 'original obj:', type(self.get_obj()) )
-
         # adding the pbp obj to the cache will return if it previously existed.
         # if it was already in there, we dont need to re-send it.
         live_stats_cache = LiveStatsCache()
