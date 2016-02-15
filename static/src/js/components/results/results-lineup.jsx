@@ -11,7 +11,7 @@ const ResultsLineup = React.createClass({
       React.PropTypes.shape({
         player_id: React.PropTypes.number.isRequired,
         full_name: React.PropTypes.string.isRequired,
-        fppg: React.PropTypes.number.isRequired,
+        fantasy_points: React.PropTypes.number.isRequired,
         roster_spot: React.PropTypes.string.isRequired,
       })
     ).isRequired,
@@ -79,7 +79,7 @@ const ResultsLineup = React.createClass({
         >
         </span>
         <span className="name">{player.full_name}</span>
-        <span className="score">{player.fppg.toFixed(2)}</span>
+        <span className="score">{player.fantasy_points.toFixed(2)}</span>
       </div>
     ));
 
