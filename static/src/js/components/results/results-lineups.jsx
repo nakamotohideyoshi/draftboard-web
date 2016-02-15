@@ -10,6 +10,12 @@ const ResultsLineups = React.createClass({
   },
 
   render() {
+    if (this.props.lineups.length === 0) {
+      return (
+        <div>No contests entered on this date.</div>
+      );
+    }
+
     return (
       <div className="results-page--lineups">
         {this.props.lineups.map((lineup) => React.createElement(
