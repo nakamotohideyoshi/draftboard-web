@@ -1,14 +1,13 @@
+import GamesList from '../contest-list/games-list.jsx';
+import PrizeStructure from '../contest-list/prize-structure.jsx';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
-import PrizeStructure from '../contest-list/prize-structure.jsx';
-import GamesList from '../contest-list/games-list.jsx';
-// import EntrantList from '../contest-list/entrant-list.jsx';
 import { fetchContestIfNeeded } from '../../actions/live-contests';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
 import { fetchDraftGroupBoxscoresIfNeeded } from '../../actions/live-draft-groups.js';
-import { resultsContestsSelector } from '../../selectors/results-contests';
 import { Provider, connect } from 'react-redux';
+import { resultsContestsSelector } from '../../selectors/results-contests';
 
 
 const ResultsPane = React.createClass({
@@ -136,7 +135,27 @@ const ResultsPane = React.createClass({
         return 'No boxscore info available.';
 
       case 'scoring':
-        return 'No scoring info available.';
+        const scoringVals = [
+          ['Point', '+1'],
+          ['Rebound', '+1.25'],
+          ['Assist', '+1.25'],
+          ['Steal', '+2'],
+          ['Block', '+2'],
+          ['Turnover', '-0.5'],
+        ];
+
+        const scoring = scoringVals.map((scoreType) => (
+            <li key={scoreType[0]}>
+              <span className="scoring__type">{scoreType[0]}</span>
+              <span className="scoring__value">{scoreType[1]} PTS.</span>
+            </li>
+        ));
+
+        return (
+          <ul className="scoring">
+            {scoring}
+          </ul>
+        );
 
       case 'standings':
         return this.renderStandings(contest);

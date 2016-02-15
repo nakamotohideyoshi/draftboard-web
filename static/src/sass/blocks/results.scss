@@ -408,6 +408,32 @@ $results-selected-text-color: #2bb677;
         width: 100%;
       }
 
+      // scoring tab
+      .scoring {
+        color: #46495e;
+        font-size: 11px;
+        list-style: none;
+        width: 154px;
+
+        li {
+          @extend %clearfix;
+          display: block;
+          margin-bottom: 10px;
+        }
+
+        &__type {
+          float: left;
+          font-weight: 600;
+        }
+
+        &__value {
+          float: right;
+        }
+      }
+
+
+      // LOADER
+
       .loading {
         width: 100%;
         height: 100%;
