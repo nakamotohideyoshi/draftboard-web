@@ -336,8 +336,8 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
  * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
  *                     returned method or directly as a resolved promise
  */
-export const fetchContestIfNeeded = (id) => (dispatch, getState) => {
-  if (shouldFetchContest(getState().liveContests, id) === false) {
+export const fetchContestIfNeeded = (id, force) => (dispatch, getState) => {
+  if (shouldFetchContest(getState().liveContests, id) === false && force !== true) {
     return Promise.resolve('Contest already exists');
   }
 
@@ -347,4 +347,29 @@ export const fetchContestIfNeeded = (id) => (dispatch, getState) => {
   ]).then(() =>
     dispatch(fetchRelatedContestInfo(id))
   );
+};
+
+/**
+ * Remove all contests that have ended.
+ * @return {object}  Changes for reducer, wrapped in thunk
+ */
+export const removeUnusedContests = () => (dispatch, getState) => {
+  const contestIds = [];
+
+  _.forEach(getState().liveContests, (contest) => {
+    const id = contest.id;
+
+    // if there are no lineups the group is related to, then remove
+    if (moment().isBefore(contest.expiresAt)) {
+      contestIds.push(id);
+    }
+  });
+
+  if (contestIds.length === 0) return null;
+
+  return dispatch({
+    type: ActionTypes.REMOVE_LIVE_CONTESTS,
+    ids: contestIds,
+    removedAt: Date.now(),
+  });
 };
