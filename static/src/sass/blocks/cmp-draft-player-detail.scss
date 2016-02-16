@@ -2,7 +2,14 @@
 
 
 .draft-player-detail {
-  padding-top: $nav-scoreboard-height;
+
+  .pane__close {
+    z-index: 10;
+  }
+
+  .header-section {
+    padding-top: 55px;
+  }
 
   // Draft button + Salary section
   .draft-salary {

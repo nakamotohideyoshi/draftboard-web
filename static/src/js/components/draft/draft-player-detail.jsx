@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactRedux from 'react-redux';
 import store from '../../store';
+import * as AppActions from '../../stores/app-state-store.js';
 import renderComponent from '../../lib/render-component';
 import { forEach as _forEach } from 'lodash';
 import { focusedPlayerSelector } from '../../selectors/draft-selectors.js';
@@ -161,6 +162,11 @@ const DraftPlayerDetail = React.createClass({
         </li>
       );
     });
+  },
+
+
+  close() {
+    AppActions.closePane();
   },
 
 
@@ -356,7 +362,10 @@ const DraftPlayerDetail = React.createClass({
 
     return (
       <div className="draft-player-detail player-detail-pane">
-
+        <div
+          onClick={this.close}
+          className="pane__close"
+        ></div>
         <div className="pane-upper">
           <div className="header-section">
             <div className="header__player-image" />
