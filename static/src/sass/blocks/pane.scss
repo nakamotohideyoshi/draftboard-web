@@ -12,7 +12,7 @@
   overflow-y: auto;
   position: fixed;
   right: -$pane-width;
-  top: 0;
+  top: $nav-scoreboard-height;
   transition: right 230ms cubic-bezier(.8,.16,.18,.85);
   -webkit-animation-delay: 100ms; /* Chrome, Safari, Opera */
   animation-delay: 100ms;
@@ -21,13 +21,13 @@
 
   &__close {
     background: url('../img/blocks/pane/btn-close-arrow.png') no-repeat;
-    background-size: 45px auto;
+    background-size: 28px auto;
     cursor: pointer;
     display: block;
-    height: 36px;
-    width: 45px;
+    height: 20px;
+    width: 30px;
     position: absolute;
-    right: $pane-width - 60px;
+    left: 5px;
     top: 50px;
     // z-index: $zindex-modal + 2;
 
