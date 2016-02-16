@@ -179,29 +179,29 @@ app.conf.update(
             'args'      : (1,),
         },
 
+        # #
+        # # monitor for Contest(s) that need to be paid out
+        # 'notify_admin_draft_groups_not_completed' : {
+        #     'task'      : 'contest.tasks.notify_admin_draft_groups_not_completed',
         #
-        # monitor for Contest(s) that need to be paid out
-        'notify_admin_draft_groups_not_completed' : {
-            'task'      : 'contest.tasks.notify_admin_draft_groups_not_completed',
-
-            # run once an hour
-            'schedule': timedelta(minutes=60),
-
-            #
-            # the first integer in the tuple represents how many days
-            # in advance we want to create scheduled contests.
-            #  ... in this instance, everytime this task is fired
-            #      it ensures games for 1 day in advance are scheduled.
-            'args'      : (1,),
-        },
-
+        #     # run once an hour
+        #     'schedule': timedelta(minutes=60),
         #
-        # monitor for Contest(s) which need to be paid out.
-        # this task wont be necessary once payouts happen automatically.
-        'notify_admin_contests_not_paid' : {
-            'task'      : 'contest.tasks.notify_admin_contests_not_paid',
-            'schedule': timedelta(minutes=15),
-        },
+        #     #
+        #     # the first integer in the tuple represents how many days
+        #     # in advance we want to create scheduled contests.
+        #     #  ... in this instance, everytime this task is fired
+        #     #      it ensures games for 1 day in advance are scheduled.
+        #     'args'      : (1,),
+        # },
+        #
+        # #
+        # # monitor for Contest(s) which need to be paid out.
+        # # this task wont be necessary once payouts happen automatically.
+        # 'notify_admin_contests_not_paid' : {
+        #     'task'      : 'contest.tasks.notify_admin_contests_not_paid',
+        #     'schedule': timedelta(minutes=15),
+        # },
 
         # #
         # # let the admins know we are approaching contests that need draft groups
