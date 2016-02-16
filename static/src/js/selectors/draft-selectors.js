@@ -1,4 +1,6 @@
 import { createSelector } from 'reselect';
+import { isPlayerInLineup } from './draft-group-players-selector.js';
+
 
 const focusedPlayerIdSelector = (state) => state.draftGroupPlayers.focusedPlayer;
 const sportSelector = (state) => state.draftGroupPlayers.sport;
@@ -7,6 +9,8 @@ const playerBoxScoreHistorySelector = (state) => state.playerBoxScoreHistory;
 const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScores;
 const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId;
 const sportInfoSelector = (state) => state.sports;
+const availablePositionSelector = (state) => state.createLineup.availablePositions;
+const newLineupSelector = (state) => state.createLineup.lineup;
 
 
 /**
@@ -21,7 +25,11 @@ export const focusedPlayerSelector = createSelector(
   sportSelector,
   activeDraftGroupIdSelector,
   sportInfoSelector,
-  (focusedPlayer, playerNews, playerBoxScoreHistory, boxScoreGames, sport, activeDraftGroupId, sportInfo) => {
+  availablePositionSelector,
+  newLineupSelector,
+  (focusedPlayer, playerNews, playerBoxScoreHistory, boxScoreGames, sport, activeDraftGroupId,
+    sportInfo, availablePositions, newLineup
+  ) => {
     // if no player is focused, return nothing.
     if (!focusedPlayer) {
       return null;
@@ -89,6 +97,22 @@ export const focusedPlayerSelector = createSelector(
         }
       }
     }
+
+    // Add draft status.
+    let draftable = true;
+    let drafted = false;
+    // Is there a slot available?
+    if (availablePositions.indexOf(player.position) === -1) {
+      draftable = false;
+    }
+    // Is the player already drafted?
+    if (isPlayerInLineup(newLineup, player)) {
+      draftable = false;
+      drafted = true;
+    }
+    player.drafted = drafted;
+    player.draftable = draftable;
+
 
     return player;
   }

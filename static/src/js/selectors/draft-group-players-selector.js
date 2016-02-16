@@ -2,6 +2,24 @@ import { createSelector } from 'reselect';
 import { stringSearchFilter, matchFilter, inArrayFilter } from './filters';
 import { orderBy } from './order-by.js';
 import { mapValues as _mapValues } from 'lodash';
+import { filter as _filter } from 'lodash';
+
+
+// Determine whether a supplied player is in the lineup.
+export function isPlayerInLineup(lineup, player) {
+  // Return a list of all matching players.
+  const matchingPlayers = _filter(lineup, (slot) => {
+    if (slot.player) {
+      if (slot.player.player_id === player.player_id) {
+        return true;
+      }
+    }
+    return false;
+  });
+
+  // If the list of matching players is empty, the player is not in the lineup.
+  return Object.keys(matchingPlayers).length > 0;
+}
 
 
 // All the players in the state.
@@ -12,6 +30,8 @@ const sportInfoSelector = (state) => state.sports;
 const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScores;
 const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId;
 const sportSelector = (state) => state.draftGroupPlayers.sport;
+const availablePositionSelector = (state) => state.createLineup.availablePositions;
+const newLineupSelector = (state) => state.createLineup.lineup;
 
 
 // Add injury information to each player.
@@ -23,8 +43,10 @@ const playersWithInfo = createSelector(
   sportInfoSelector,
   activeDraftGroupIdSelector,
   boxScoreGamesSelector,
+  availablePositionSelector,
+  newLineupSelector,
   (players, injuries, histories, sport, sportInfo,
-    activeDraftGroupId, boxScoreGames
+    activeDraftGroupId, boxScoreGames, availablePositions, newLineup
   ) => _mapValues(players, (player) => {
     // Duplicate the player so we don't mutate the state.
     const playerWithInfo = Object.assign({}, player);
@@ -60,7 +82,23 @@ const playersWithInfo = createSelector(
           playerWithInfo.nextGame.awayTeam = sportInfo[sport].teams[playerWithInfo.nextGame.srid_away];
         }
       }
+
+      // Add draft status.
+      let draftable = true;
+      let drafted = false;
+      // Is there a slot available?
+      if (availablePositions.indexOf(player.position) === -1) {
+        draftable = false;
+      }
+      // Is the player already drafted?
+      if (isPlayerInLineup(newLineup, player)) {
+        draftable = false;
+        drafted = true;
+      }
+      playerWithInfo.drafted = drafted;
+      playerWithInfo.draftable = draftable;
     }
+
 
     return playerWithInfo;
   })
@@ -99,7 +137,7 @@ const positionSelector = createSelector(
 
 
 /**
- * Sort the contests.
+ * Sort the players.
  */
 const sortDirection = (state) => state.draftGroupPlayers.filters.orderBy.direction;
 const sortProperty = (state) => state.draftGroupPlayers.filters.orderBy.property;
