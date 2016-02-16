@@ -6,15 +6,26 @@ from scoring.classes import NhlSalaryScoreSystem
 from sports.nhl.models import Team, Game, Player, PlayerStats, \
                                 GameBoxscore, Pbp, PbpDescription, GamePortion
 
-from sports.sport.base_parser import AbstractDataDenParser, \
-                        DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
-                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
-                        DataDenPbpDescription, DataDenInjury
+from sports.sport.base_parser import (
+    AbstractDataDenParser,
+    DataDenTeamHierarchy,
+    DataDenGameSchedule,
+    DataDenPlayerRosters,
+    DataDenPlayerStats,
+    DataDenGameBoxscores,
+    DataDenTeamBoxscores,
+    DataDenPbpDescription,
+    DataDenInjury,
+    SridFinder,
+)
 
 from dataden.classes import DataDen
 import push.classes
 from django.conf import settings
 from sports.sport.base_parser import TsxContentParser
+from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
+from push.classes import DataDenPush, PbpDataDenPush
+import push.classes
 
 class TeamHierarchy(DataDenTeamHierarchy):
     """
@@ -192,6 +203,10 @@ class EventPbp(DataDenPbpDescription): # ADD TO PARSER SWITCH
     pbp_model               = Pbp
     portion_model           = GamePortion
     pbp_description_model   = PbpDescription
+    #
+    player_stats_model      = sports.nhl.models.PlayerStats
+    pusher_sport_pbp        = push.classes.PUSHER_NHL_PBP
+    pusher_sport_stats      = push.classes.PUSHER_NHL_STATS
 
     def __init__(self):
         super().__init__()
@@ -202,16 +217,9 @@ class EventPbp(DataDenPbpDescription): # ADD TO PARSER SWITCH
         # if it doesnt exist dont do anything, else set the description
         #super().parse( obj, target )
 
-        # # game, pbp, and GamePortion should all exist.
-        # # parse the PbpDescription !
-        # srid_period     = self.o.get('period__id', None)
-        # desc            = self.o.get('description', '')
-        # game_portion    = self.get_game_portion()
-        # if game_portion is None:
-        #     print( str(self.o) )
-        #     print('Currently, there is no existing GamePortion for period %s' % srid_period)
-        #     return
-        #
+        self.original_obj = obj # since we dont call super().parse() in this class
+        self.srid_finder = SridFinder(obj.get_o())
+
         # pbp_desc = self.get_pbp_description(game_portion, overall_idx, desc)
         self.o = obj.get_o() # we didnt call super so we should do this
         srid_pbp_desc = self.o.get('id', None)
@@ -294,8 +302,10 @@ class DataDenNhl(AbstractDataDenParser):
         #
         # nhl.event
         elif self.target == ('nhl.event','pbp'):
-            EventPbp().parse( obj )
-            push.classes.PbpDataDenPush( push.classes.PUSHER_NHL_PBP, 'event' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            event_pbp = EventPbp()
+            #push.classes.PbpDataDenPush( push.classes.PUSHER_NHL_PBP, 'event' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            event_pbp.parse( obj )
+            event_pbp.send()        # pusher the data, links playerstats
         #
         # nhl.team
         elif self.target == ('nhl.team','hierarchy'): TeamHierarchy().parse( obj )

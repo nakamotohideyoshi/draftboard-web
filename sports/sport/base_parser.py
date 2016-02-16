@@ -3,7 +3,7 @@
 
 import re
 from dataden.util.timestamp import Parse as DataDenDatetime
-from dataden.cache.caches import PlayByPlayCache
+from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
 from django.db.transaction import atomic
 import json
 from django.contrib.contenttypes.models import ContentType
@@ -11,6 +11,7 @@ from sports.models import SiteSport, Position
 from dataden.classes import DataDen
 import sports.classes
 import dateutil.parser
+import push.classes
 
 #
 ################################################################################
@@ -80,7 +81,7 @@ class SridFinder(PatternFinder):
         pattern = r"'%s':\s%s" % (fieldname, self.srid_pattern)
         return self.findall(pattern)
 
-# class PbpStatsLinker(PatternFinder):
+# class PbpStatsLinker(object):
 #     """
 #     this class is designed to extract the player-srid(s) and game-srid
 #     from a play-by-play object (dictionary), and it uses pusher to
@@ -686,6 +687,10 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     portion_model           = None #
     pbp_model               = None
     pbp_description_model   = None
+    #
+    player_stats_model      = None # ie: sports.<sport>.models.PlayerStats
+    pusher_sport_pbp        = None # ie: push.classes.PUSHER_NBA_PBP
+    pusher_sport_stats      = None # ie: push.classes.PUSHER_NBA_STATS
 
     def __init__(self):
         if self.game_model is None:
@@ -826,6 +831,73 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         # from here the child class may need to use:
         #   self.get_game_portion()
         #   self.get_pbp_description()
+
+    def send(self):
+        """
+        pusher the pbp + stats info as one piece of data.
+        :return:
+        """
+        super().send()
+
+        # adding the pbp obj to the cache will return if it previously existed.
+        # if it was already in there, we dont need to re-send it.
+        live_stats_cache = LiveStatsCache()
+        just_added = live_stats_cache.update_pbp( self.get_obj() )
+        if just_added:
+            print(' === DataDenPush === SENDING PBP FIRST TIME:', str(self.o)) # TODO remove print
+        else:
+            return # dont send it again! get out of here
+
+        #
+        # try to retrieve the player(s) and game srids to look up linked PlayerStats
+        # and add them to the player_stats list if found.
+        player_stats = self.find_player_stats()
+
+        #
+        # send normally, or as linked data depending on the found PlayerStats instances
+        if len(player_stats) == 0:
+            # solely push pbp object
+            push.classes.DataDenPush( self.pusher_sport_pbp, 'event' ).send( self.o )
+        else:
+            # push combined pbp+stats data
+            data = self.build_linked_pbp_stats_data( player_stats )
+            push.classes.DataDenPush( self.pusher_sport_pbp, 'linked' ).send( data )
+
+    def find_player_stats(self):
+        """
+        extract player and game srids and return a list
+        of any matching PlayerStats models found
+        :return:
+        """
+
+        player_srids = self.get_srids_for_field('player')
+        game_srids = list(set(self.get_srids_for_field('game__id')))
+        if len(game_srids) != 1:
+            # ambiguous, multiple unique game ids found - unexpected!
+            return []
+
+        game_srid = game_srids[0]
+        return self.player_stats_model.objects.filter(srid_game=game_srid,
+                                                    srid_player__in=player_srids)
+
+    def build_linked_pbp_stats_data(self, player_stats):
+        """
+        builds and returns a dictionary in the form:
+
+            {
+                "nba_pbp"   : { <typical nba_pbp pusher formatted data> },
+                "nba_stats" : [
+                    { <PlayerStats pusher formatted data> },
+                    { <PlayerStats pusher formatted data> },
+                ],
+            }
+
+        """
+        data = {
+            self.pusher_sport_pbp   : self.o,
+            self.pusher_sport_stats : [ ps.to_json() for ps in player_stats ]
+        }
+        return data
 
 class DataDenInjury(AbstractDataDenParseable):
     """
