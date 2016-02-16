@@ -271,7 +271,10 @@ class EventPbp(DataDenPbpDescription):
     pbp_model               = Pbp
     portion_model           = GamePortion
     pbp_description_model   = PbpDescription
+    #
     player_stats_model      = sports.nba.models.PlayerStats
+    pusher_sport_pbp        = push.classes.PUSHER_NBA_PBP
+    pusher_sport_stats      = push.classes.PUSHER_NBA_STATS
 
     def __init__(self):
         super().__init__()
@@ -308,72 +311,72 @@ class EventPbp(DataDenPbpDescription):
             #print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
             pass
 
-    def send(self):
-        """
-        pusher the pbp + stats info as one piece of data.
-        :return:
-        """
-        super().send()
-
-        # adding the pbp obj to the cache will return if it previously existed.
-        # if it was already in there, we dont need to re-send it.
-        live_stats_cache = LiveStatsCache()
-        just_added = live_stats_cache.update_pbp( self.get_obj() )
-        if just_added:
-            print(' === DataDenPush === SENDING PBP FIRST TIME:', str(self.o)) # TODO remove print
-        else:
-            return # dont send it again! get out of here
-
-        #
-        # try to retrieve the player(s) and game srids to look up linked PlayerStats
-        # and add them to the player_stats list if found.
-        player_stats = self.__find_player_stats()
-
-        #
-        # send normally, or as linked data depending on the found PlayerStats instances
-        if len(player_stats) == 0:
-            # solely push pbp object
-            DataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( self.o )
-        else:
-            # push combined pbp+stats data
-            data = self.__build_linked_pbp_stats_data( player_stats )
-            DataDenPush( push.classes.PUSHER_NBA_PBP, 'linked' ).send( data )
-
-    def __find_player_stats(self):
-        """
-        extract player and game srids and return a list
-        of any matching PlayerStats models found
-        :return:
-        """
-
-        player_srids = self.get_srids_for_field('player')
-        game_srids = list(set(self.get_srids_for_field('game__id')))
-        if len(game_srids) != 1:
-            # ambiguous, multiple unique game ids found - unexpected!
-            return []
-
-        game_srid = game_srids[0]
-        return sports.nba.models.PlayerStats.objects.filter(srid_game=game_srid,
-                                                    srid_player__in=player_srids)
-
-    def __build_linked_pbp_stats_data(self, player_stats):
-        """
-        builds and returns a dictionary in the form:
-
-            {
-                "nba_pbp"   : { <typical nba_pbp pusher formatted data> },
-                "nba_stats" : [
-                    { <PlayerStats pusher formatted data> },
-                    { <PlayerStats pusher formatted data> },
-                ],
-            }
-
-        """
-        data = {
-            push.classes.PUSHER_NBA_PBP : self.o,
-            push.classes.PUSHER_NBA_STATS : [ ps.to_json() for ps in player_stats ]
-        }
-        return data
+    # def send(self):
+    #     """
+    #     pusher the pbp + stats info as one piece of data.
+    #     :return:
+    #     """
+    #     super().send()
+    #
+    #     # adding the pbp obj to the cache will return if it previously existed.
+    #     # if it was already in there, we dont need to re-send it.
+    #     live_stats_cache = LiveStatsCache()
+    #     just_added = live_stats_cache.update_pbp( self.get_obj() )
+    #     if just_added:
+    #         print(' === DataDenPush === SENDING PBP FIRST TIME:', str(self.o)) # TODO remove print
+    #     else:
+    #         return # dont send it again! get out of here
+    #
+    #     #
+    #     # try to retrieve the player(s) and game srids to look up linked PlayerStats
+    #     # and add them to the player_stats list if found.
+    #     player_stats = self.__find_player_stats()
+    #
+    #     #
+    #     # send normally, or as linked data depending on the found PlayerStats instances
+    #     if len(player_stats) == 0:
+    #         # solely push pbp object
+    #         DataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( self.o )
+    #     else:
+    #         # push combined pbp+stats data
+    #         data = self.__build_linked_pbp_stats_data( player_stats )
+    #         DataDenPush( push.classes.PUSHER_NBA_PBP, 'linked' ).send( data )
+    #
+    # def __find_player_stats(self):
+    #     """
+    #     extract player and game srids and return a list
+    #     of any matching PlayerStats models found
+    #     :return:
+    #     """
+    #
+    #     player_srids = self.get_srids_for_field('player')
+    #     game_srids = list(set(self.get_srids_for_field('game__id')))
+    #     if len(game_srids) != 1:
+    #         # ambiguous, multiple unique game ids found - unexpected!
+    #         return []
+    #
+    #     game_srid = game_srids[0]
+    #     return sports.nba.models.PlayerStats.objects.filter(srid_game=game_srid,
+    #                                                 srid_player__in=player_srids)
+    #
+    # def __build_linked_pbp_stats_data(self, player_stats):
+    #     """
+    #     builds and returns a dictionary in the form:
+    #
+    #         {
+    #             "nba_pbp"   : { <typical nba_pbp pusher formatted data> },
+    #             "nba_stats" : [
+    #                 { <PlayerStats pusher formatted data> },
+    #                 { <PlayerStats pusher formatted data> },
+    #             ],
+    #         }
+    #
+    #     """
+    #     data = {
+    #         push.classes.PUSHER_NBA_PBP : self.o,
+    #         push.classes.PUSHER_NBA_STATS : [ ps.to_json() for ps in player_stats ]
+    #     }
+    #     return data
 
 class Injury(DataDenInjury):
 

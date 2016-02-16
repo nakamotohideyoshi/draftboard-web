@@ -76,7 +76,8 @@ class DataDenParser(object):
 
         #
         # NHL
-        # TODO
+        ('nhl','period','pbp'),        # parent of the following
+        ('nhl','event','pbp'),         # contains the play data, including players
 
         #
         # NFL
