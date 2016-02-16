@@ -1,10 +1,12 @@
 import React from 'react';
 import ReactRedux from 'react-redux';
 import store from '../../store';
+import * as AppActions from '../../stores/app-state-store.js';
 import renderComponent from '../../lib/render-component';
 import { forEach as _forEach } from 'lodash';
 import { focusedPlayerSelector } from '../../selectors/draft-selectors.js';
 import { roundUpToDecimalPlace } from '../../lib/utils.js';
+import { createLineupAddPlayer, removePlayer } from '../../actions/lineup-actions.js';
 import moment from 'moment';
 
 const { Provider, connect } = ReactRedux;
@@ -26,8 +28,11 @@ function mapStateToProps(state) {
  * @param  {function} dispatch The dispatch method to pass actions into
  * @return {object}            All of the methods to map to the component
  */
-function mapDispatchToProps() {
-  return {};
+function mapDispatchToProps(dispatch) {
+  return {
+    draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
+    unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
+  };
 }
 
 
@@ -39,6 +44,8 @@ const DraftPlayerDetail = React.createClass({
 
   propTypes: {
     player: React.PropTypes.object,
+    draftPlayer: React.PropTypes.func,
+    unDraftPlayer: React.PropTypes.func,
   },
 
 
@@ -46,6 +53,30 @@ const DraftPlayerDetail = React.createClass({
     return {
       activeTab: 'reports',
     };
+  },
+
+
+  onDraftClick(player, e) {
+    e.stopPropagation();
+    this.props.draftPlayer(player);
+  },
+
+
+  onUnDraftClick(player, e) {
+    e.stopPropagation();
+    this.props.unDraftPlayer(player.player_id);
+  },
+
+
+  getActiveTabContent() {
+    switch (this.state.activeTab) {
+      case 'reports':
+        return this.renderPlayerNews();
+      case 'splits':
+        return this.renderPlayerSplits();
+      default:
+        return this.renderPlayerNews();
+    }
   },
 
 
@@ -78,15 +109,31 @@ const DraftPlayerDetail = React.createClass({
   },
 
 
-  getActiveTabContent() {
-    switch (this.state.activeTab) {
-      case 'reports':
-        return this.renderPlayerNews();
-      case 'splits':
-        return this.renderPlayerSplits();
-      default:
-        return this.renderPlayerNews();
+  getDraftButton() {
+    // the player is drafted - show remove button.
+    if (this.props.player.drafted) {
+      return (
+        <div
+          className="draft-button remove"
+          onClick={this.onUnDraftClick.bind(this, this.props.player)}
+        >Remove</div>
+      );
     }
+
+    // the player is not eligible to draft - show disabled button.
+    if (!this.props.player.draftable) {
+      return (
+        <div className="draft-button disabled">Draft</div>
+      );
+    }
+
+    // the player is draftable - show draft button.
+    return (
+      <div
+        className="draft-button"
+        onClick={this.onDraftClick.bind(this, this.props.player)}
+      >Draft</div>
+    );
   },
 
 
@@ -115,6 +162,11 @@ const DraftPlayerDetail = React.createClass({
         </li>
       );
     });
+  },
+
+
+  close() {
+    AppActions.closePane();
   },
 
 
@@ -310,7 +362,10 @@ const DraftPlayerDetail = React.createClass({
 
     return (
       <div className="draft-player-detail player-detail-pane">
-
+        <div
+          onClick={this.close}
+          className="pane__close"
+        ></div>
         <div className="pane-upper">
           <div className="header-section">
             <div className="header__player-image" />
@@ -322,7 +377,7 @@ const DraftPlayerDetail = React.createClass({
 
             <div className="draft-salary">
               <div className="draft-status">
-                <div className="draft-button">Draft</div>
+                {this.getDraftButton()}
               </div>
               <h3 className="salary">${this.props.player.salary.toLocaleString('en')}</h3>
             </div>

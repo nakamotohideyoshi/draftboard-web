@@ -29,6 +29,8 @@ const ResultsLineup = React.createClass({
     return {
       renderLineup: true,
       renderContestPane: false,
+      contestPaneId: null,
+      currentEntry: {},
     };
   },
 
@@ -40,8 +42,12 @@ const ResultsLineup = React.createClass({
     this.setState({ renderLineup: false });
   },
 
-  handleShowContestPane() {
-    this.setState({ renderContestPane: true });
+  handleShowContestPane(contestId, entry) {
+    this.setState({
+      contestPaneId: contestId,
+      renderContestPane: true,
+      currentEntry: entry,
+    });
   },
 
   handleHideContestPane() {
@@ -122,7 +128,7 @@ const ResultsLineup = React.createClass({
       return (
         <div key={contest.id}
           className="contest"
-          onClick={this.handleShowContestPane}
+          onClick={this.handleShowContestPane.bind(this, contest.id, entry)}
         >
           <div className="title">{contest.name}</div>
           <div className="prize">${entry.payout.amount.toFixed(2)}</div>
@@ -149,8 +155,11 @@ const ResultsLineup = React.createClass({
 
   render() {
     let className = 'flip-container';
+
     if (!this.state.renderLineup) className += ' hover';
-    if (this.state.renderContestPane) className += ' shown-contest-pane';
+    if (this.state.renderContestPane) {
+      className += ' shown-contest-pane';
+    }
 
     return (
       <div className={className}>
@@ -158,7 +167,12 @@ const ResultsLineup = React.createClass({
           {this.renderLineup()}
           {this.renderContests()}
         </div>
-        <ResultsPane onHide={this.handleHideContestPane} />
+        <ResultsPane
+          contestId={this.state.contestPaneId}
+          entry={this.state.currentEntry}
+          onHide={this.handleHideContestPane}
+          numToPlace={this.numToPlace}
+        />
       </div>
     );
   },

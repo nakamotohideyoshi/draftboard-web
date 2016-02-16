@@ -1,3 +1,6 @@
+#
+# lineup/classes.py
+
 from mysite.classes import AbstractSiteUserClass
 from django.db.transaction import atomic
 from draftgroup.models import DraftGroup, Player
@@ -38,6 +41,29 @@ class LineupManager(AbstractSiteUserClass):
         :return:
         """
         return [ p.player_id for p in LineupPlayer.objects.filter( lineup=lineup ).order_by('idx') ]
+
+    def get_players(self, lineup):
+        """
+        return the LineupPlayer models for this Lineup
+
+        :param lineup:
+        :return:
+        """
+        return LineupPlayer.objects.filter( lineup=lineup )
+
+    def update_fantasy_points(self, lineup):
+        """
+        sum up the lineup players' draft_group_player.finalized_fantasy_points
+
+        :return:
+        """
+        total_fantasy_points = 0.0
+        for player in self.get_players(lineup):
+            total_fantasy_points += player.draft_group_player.finalized_fantasy_points
+        #
+        # and save the lineup
+        lineup.fantasy_points = total_fantasy_points
+        lineup.save()
 
     @atomic
     def create_lineup(self,  player_ids, draftgroup, name=''):
