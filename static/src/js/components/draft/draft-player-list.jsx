@@ -249,25 +249,10 @@ const DraftPlayerList = React.createClass({
 
     // Build up a list of rows to be displayed.
     _forEach(self.props.filteredPlayers, (row) => {
-      let draftable = true;
-      let drafted = false;
-      // Is there a slot available?
-      if (self.props.availablePositions.indexOf(row.position) === -1) {
-        draftable = false;
-      }
-
-      // Is the player already drafted?
-      if (this.isPlayerInLineup(self.props.newLineup, row)) {
-        draftable = false;
-        drafted = true;
-      }
-
       visibleRows.push(
         <PlayerListRow
           key={row.player_id}
           row={row}
-          draftable={draftable}
-          drafted={drafted}
           focusPlayer={self.props.focusPlayer}
           draftPlayer={self.props.draftPlayer}
           unDraftPlayer={self.props.unDraftPlayer}
