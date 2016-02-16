@@ -5,6 +5,7 @@ import request from 'superagent';
 import Cookies from 'js-cookie';
 import { normalize, Schema, arrayOf } from 'normalizr';
 import { forEach, uniq } from 'lodash';
+import { sortBy as _sortBy } from 'lodash';
 import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
 import { monitorLineupEditRequest } from './lineup-edit-request.js';
@@ -77,6 +78,13 @@ export function fetchUpcomingLineups(draftGroupId = null) {
             res.body.map((lineup) => lineup.draft_group),
             (group) => group
           );
+
+          // Sort playres by roster slot (idx)
+          forEach(normalizedLineups.entities.lineups, (lineup, key) => {
+            normalizedLineups.entities.lineups[key].players = _sortBy(
+              normalizedLineups.entities.lineups[key].players, 'idx'
+            );
+          });
 
           dispatch(fetchUpcomingLineupsSuccess({
             draftGroupsWithLineups: draftGroups,
@@ -338,16 +346,3 @@ export function createLineupViaCopy(lineupId) {
     }
   };
 }
-
-
-//
-// monitorLineupEditRequestStatus(taskId) {
-//   return new Promise((resolve, reject) => {
-//
-//   })
-// }
-//
-//
-// function checkLineupEditRequestStatus(taskId) {
-//
-// }
