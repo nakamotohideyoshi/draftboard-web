@@ -1,7 +1,7 @@
-import update from 'react-addons-update';
-import _ from 'lodash';
-import moment from 'moment';
 import * as ActionTypes from '../action-types';
+import _ from 'lodash';
+import update from 'react-addons-update';
+import { dateNow } from '../lib/utils';
 
 
 // shortcut method to $set new state if the key doesn't exist, otherwise $merges the properties in to existing
@@ -14,9 +14,9 @@ const setOrMerge = (state, action, props) => {
         playersInfo: {},
         playersStats: {},
         boxScores: {},
-        infoExpiresAt: moment(),
-        fpExpiresAt: moment(),
-        boxscoresExpiresAt: moment(),
+        infoExpiresAt: dateNow(),
+        fpExpiresAt: dateNow(),
+        boxscoresExpiresAt: dateNow(),
       },
       props
     );
