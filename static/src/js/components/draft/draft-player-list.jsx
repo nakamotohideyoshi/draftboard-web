@@ -143,10 +143,8 @@ const DraftPlayerList = React.createClass({
   playerPositionFilters: {
     nba: [
       { title: 'All', column: 'position', match: '' },
-      { title: 'PG', column: 'position', match: 'pg' },
-      { title: 'SG', column: 'position', match: 'sg' },
-      { title: 'SF', column: 'position', match: 'sf' },
-      { title: 'PF', column: 'position', match: 'pf' },
+      { title: 'G', column: 'position', match: ['pg', 'sg'] },
+      { title: 'F', column: 'position', match: ['sf', 'pf'] },
       { title: 'C', column: 'position', match: 'c' },
     ],
     nfl: [
