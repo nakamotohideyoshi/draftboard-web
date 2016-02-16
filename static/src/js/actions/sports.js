@@ -1,10 +1,9 @@
 // so we can use Promises
 import 'babel-core/polyfill';
 const request = require('superagent-promise')(require('superagent'), Promise);
-import _ from 'lodash';
-import moment from 'moment';
-
 import * as ActionTypes from '../action-types';
+import _ from 'lodash';
+import { dateNow } from '../lib/utils';
 
 
 // global constants
@@ -34,7 +33,7 @@ export const GAME_DURATIONS = {
 const requestGames = (sport) => ({
   sport,
   type: ActionTypes.REQUEST_GAMES,
-  expiresAt: moment(Date.now()).add(1, 'minute'),
+  expiresAt: dateNow() + 1000 * 60 * 5,  // 1 minute
 });
 
 /**
@@ -69,7 +68,7 @@ const receiveGames = (sport, games) => {
     sport,
     games,
     gameIds,
-    expiresAt: moment(Date.now()).add(10, 'minutes'),
+    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
   };
 };
 
@@ -91,7 +90,7 @@ const receiveTeams = (sport, response) => {
     type: ActionTypes.RECEIVE_TEAMS,
     sport,
     teams: newTeams,
-    expiresAt: moment(Date.now()).add(6, 'hours'),
+    expiresAt: dateNow() + 1000 * 60 * 60 * 6,  // 6 hours
   };
 };
 
@@ -191,7 +190,7 @@ const shouldFetchGames = (state, sport, force) => {
   }
 
   // don't fetch until expired
-  if (moment().isBefore(state.sports[sport].gamesExpireAt)) {
+  if (dateNow() < state.sports[sport].gamesExpireAt) {
     return false;
   }
 
@@ -217,7 +216,7 @@ const shouldFetchTeams = (state, sport) => {
   }
 
   // fetch if expired
-  if (moment().isBefore(state.sports[sport].teamsExpireAt)) {
+  if (dateNow() < state.sports[sport].teamsExpireAt) {
     return false;
   }
 

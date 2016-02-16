@@ -1,9 +1,9 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
 import 'babel-core/polyfill';
-import moment from 'moment';
 import _ from 'lodash';
 import { normalize, Schema, arrayOf } from 'normalizr';
 
+import { dateNow } from '../lib/utils';
 import * as ActionTypes from '../action-types';
 import log from '../lib/logging';
 import { fetchContestIfNeeded } from './live-contests';
@@ -30,7 +30,8 @@ const confirmRelatedEntriesInfo = () => ({
  * @return {object}   Changes for reducer
  */
 const receiveEntries = (response) => {
-  const filteredResponse = _.filter(response, (entry) => moment(entry.start).isAfter(moment().subtract(1, 'days')));
+  const yesterday = dateNow() - 1000 * 60 * 60 * 24;  // subtract 1 day
+  const filteredResponse = _.filter(response, (entry) => new Date(entry.start) > yesterday);
 
   // normalize the API call into a list of entry objects
   const entriesSchema = new Schema('entries', {
@@ -42,15 +43,10 @@ const receiveEntries = (response) => {
   );
   const entries = normalizedEntries.entities.entries;
 
-  // update the start for easy comparisons
-  _.forEach(entries, (entry, id) => {
-    entries[id].start = moment(entry.start);
-  });
-
   return {
     type: ActionTypes.RECEIVE_ENTRIES,
     items: entries || [],
-    expiresAt: moment(Date.now()).add(5, 'minutes'),
+    expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
   };
 };
 
@@ -62,7 +58,7 @@ const receiveEntries = (response) => {
  */
 const requestEntries = () => ({
   type: ActionTypes.REQUEST_ENTRIES,
-  expiresAt: moment(Date.now()).add(1, 'minute'),
+  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**
@@ -90,7 +86,7 @@ const addEntriesPlayers = () => (dispatch, getState) => {
   const entriesPlayers = {};
 
   // filter entries to only those that have started
-  const liveEntries = _.filter(state.entries.items, (entry) => entry.start < Date.now());
+  const liveEntries = _.filter(state.entries.items, (entry) => entry.start < dateNow());
 
   // only add players that have started playing, by checking if they are in the roster
   _.forEach(liveEntries, (entry) => {
@@ -163,7 +159,7 @@ export const generateLineups = () => (dispatch, getState) => {
  */
 const shouldFetchEntries = (state) => {
   // fetch if expired
-  if (moment().isBefore(state.entries.expiresAt)) {
+  if (dateNow() < state.entries.expiresAt) {
     return false;
   }
 

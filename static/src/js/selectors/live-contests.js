@@ -1,7 +1,7 @@
-import { createSelector } from 'reselect';
 import _ from 'lodash';
-
 import { compileLineupStats } from './current-lineups';
+import { createSelector } from 'reselect';
+import { dateNow } from '../lib/utils';
 
 
 /*
@@ -98,7 +98,7 @@ export const liveContestsSelector = createSelector(
       };
 
       // if we haven't started, then don't bother ranking
-      if (contest.start < Date.now()) {
+      if (new Date(contest.start) > dateNow()) {
         contestsStats[id] = stats;
         return;
       }

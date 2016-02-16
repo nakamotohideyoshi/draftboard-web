@@ -1,6 +1,7 @@
+import os
 from django.conf import settings
-from util.timeshift import delta_now
-from django.utils.dateformat import format
+from util.timeshift import get_delta
+
 
 # return the number of reviewable withdraw object
 
@@ -27,4 +28,8 @@ def pusher_channel_prefix(request):
 # allows delta_now() method to be in the template
 # this way we can pass through the replayer time for testing purposes into javascript
 def delta_now_prefix(request):
-    return {'DELTA_NOW': format(delta_now(), 'c') }
+    print(os.environ['DJANGO_SETTINGS_MODULE'])
+    if settings.DEBUG is True:
+      return {'DELTA_NOW': get_delta() }
+    else:
+      return {'DELTA_NOW': 0 }

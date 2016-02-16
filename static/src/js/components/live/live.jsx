@@ -1,7 +1,6 @@
 import * as ReactRedux from 'react-redux';
 import _ from 'lodash';
 import createBrowserHistory from 'history/lib/createBrowserHistory';
-import moment from 'moment';
 import Pusher from 'pusher-js';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
@@ -10,7 +9,6 @@ import { Router, Route } from 'react-router';
 import { syncReduxAndRouter } from 'redux-simple-router';
 import { updatePath } from 'redux-simple-router';
 
-import errorHandler from '../../actions/live-error-handler';
 import LiveBottomNav from './live-bottom-nav';
 import LiveContestsPane from './live-contests-pane';
 import LiveCountdown from './live-countdown';
@@ -48,44 +46,17 @@ const mapStateToProps = (state) => ({
 });
 
 /*
- * Map Redux actions to React component properties
- * @param  {function} dispatch The dispatch method to pass actions into
- * @return {object}            All of the methods to map to the component
- */
-const mapDispatchToProps = (dispatch) => ({
-  checkForUpdates: () => dispatch(checkForUpdates()),
-  errorHandler: (exception) => dispatch(errorHandler(exception)),
-  fetchContestLineupsUsernamesIfNeeded: (contestId) => dispatch(fetchContestLineupsUsernamesIfNeeded(contestId)),
-  fetchEntriesIfNeeded: (id) => dispatch(fetchEntriesIfNeeded(id)),
-  fetchSportIfNeeded: (sport, force) => dispatch(fetchSportIfNeeded(sport, force)),
-  updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
-  updatePlayerStats: (eventCall, draftGroupId, playerId, fp) => dispatch(
-    updatePlayerStats(eventCall, draftGroupId, playerId, fp)
-  ),
-  updateLiveMode: (type, id) => dispatch(updateLiveMode(type, id)),
-  updatePath: (path) => dispatch(updatePath(path)),
-});
-
-/*
  * The overarching component for the live section.
  */
 const Live = React.createClass({
 
   propTypes: {
-    checkForUpdates: React.PropTypes.func,
     currentLineupsSelector: React.PropTypes.object.isRequired,
-    errorHandler: React.PropTypes.func,
-    fetchEntriesIfNeeded: React.PropTypes.func,
-    fetchContestLineupsUsernamesIfNeeded: React.PropTypes.func,
-    fetchSportIfNeeded: React.PropTypes.func,
+    dispatch: React.PropTypes.func.isRequired,
     liveContestsSelector: React.PropTypes.object.isRequired,
     liveSelector: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
     sportsSelector: React.PropTypes.object.isRequired,
-    updateGame: React.PropTypes.func,
-    updateLiveMode: React.PropTypes.func,
-    updatePath: React.PropTypes.func,
-    updatePlayerStats: React.PropTypes.func,
   },
 
   getInitialState() {
@@ -105,25 +76,12 @@ const Live = React.createClass({
     // update mode based on where we are in the live section
     const urlParams = this.props.params;
     if (urlParams.hasOwnProperty('myLineupId')) {
-      this.props.updateLiveMode({
+      this.props.dispatch(updateLiveMode({
         myLineupId: urlParams.myLineupId,
         contestId: urlParams.contestId || undefined,
         opponentLineupId: urlParams.opponentLineupId || undefined,
-      });
+      }));
     }
-
-    // for the record, this is a STUPID solution
-    // for some reason, removing the entry descriptions sometimes misses one, so this is an interval check to clean them
-    // const self = this
-    // window.setInterval(() => {
-    //   _.forEach(self.state.eventDescriptions, (playerEvents, playerId) => {
-    //     if (_.filter(playerEvents, event => moment().isAfter(event.expiresAt)).length > 0) {
-    //       const eventDescriptions = Object.assign({}, self.state.eventDescriptions)
-    //       delete(eventDescriptions[playerId])
-    //       self.setState({ eventDescriptions })
-    //     }
-    //   })
-    // }, 5000)
 
     // start listening for pusher calls, and server updates
     this.startListening();
@@ -207,11 +165,11 @@ const Live = React.createClass({
     // if it's not a relevant game to the live section, then just update the player's FP to update the NavScoreboard
     if (this.props.liveSelector.relevantGames.indexOf(gameId) !== -1) {
       // otherwise just update the player's FP
-      this.props.updatePlayerStats(
+      this.props.dispatch(updatePlayerStats(
         eventCall.fields.player_id,
         eventCall,
         this.props.liveSelector.lineups.mine.draftGroup.id
-      );
+      ));
       return;
     }
 
@@ -268,14 +226,14 @@ const Live = React.createClass({
     log.debug('Live.changePathAndMode()', path);
 
     // update the URL path
-    this.props.updatePath(path);
+    this.props.dispatch(updatePath(path));
 
     // update redux store mode
-    this.props.updateLiveMode(changedFields);
+    this.props.dispatch(updateLiveMode(changedFields));
 
     // if the contest has changed, then get the appropriate usernames for the standings pane
     if (changedFields.hasOwnProperty('contestId')) {
-      this.props.fetchContestLineupsUsernamesIfNeeded(changedFields.contestId);
+      this.props.dispatch(fetchContestLineupsUsernamesIfNeeded(changedFields.contestId));
     }
   },
 
@@ -284,7 +242,7 @@ const Live = React.createClass({
    */
   forceDraftGroupRefresh() {
     log.info('Live.forceDraftGroupRefresh()');
-    this.props.fetchEntriesIfNeeded(true);
+    this.props.dispatch(fetchEntriesIfNeeded(true));
   },
 
   /*
@@ -341,7 +299,7 @@ const Live = React.createClass({
       log.trace('Live.onBoxscoreReceived() - related game had no boxscore from server', eventCall);
 
       // by passing in a sport, you force
-      this.props.fetchSportIfNeeded('nba', true);
+      this.props.dispatch(fetchSportIfNeeded('nba', true));
       return false;
     }
 
@@ -387,11 +345,11 @@ const Live = React.createClass({
       case 'boxscore':
         log.info('Live.shiftOldestGameEvent().updateGame()', eventCall);
 
-        this.props.updateGame(
+        this.props.dispatch(updateGame(
           eventCall.game__id,
           eventCall.id,
           eventCall.points
-        );
+        ));
 
         // then move on to the next
         this.shiftOldestGameEvent(gameId);
@@ -404,11 +362,11 @@ const Live = React.createClass({
 
         log.info('Live.shiftOldestGameEvent().updatePlayerStats()', player.name || 'Unknown', eventCall);
 
-        this.props.updatePlayerStats(
+        this.props.dispatch(updatePlayerStats(
           eventCall.fields.player_id,
           eventCall,
           this.props.liveSelector.lineups.mine.draftGroup.id
-        );
+        ));
 
         // then move on to the next
         this.shiftOldestGameEvent(gameId);
@@ -430,7 +388,6 @@ const Live = React.createClass({
       location: eventCall.location__list,
       id: eventCall.id,
       whichSide: 'mine',
-      expiresAt: moment(Date.now()).add(10, 'seconds'),
     };
 
     const relevantPlayers = this.props.liveSelector.relevantPlayers;
@@ -535,7 +492,7 @@ const Live = React.createClass({
    */
   startParityChecks() {
     const parityChecks = {
-      liveUpdate: window.setInterval(() => this.props.checkForUpdates(), 5000),
+      liveUpdate: window.setInterval(() => this.props.dispatch(checkForUpdates()), 5000),
     };
 
     // add the checsk to the state in case we need to clearInterval in the future
@@ -714,8 +671,7 @@ const { Provider, connect } = ReactRedux;
 
 // Wrap the component to inject dispatch and selected state into it.
 const LiveConnected = connect(
-  mapStateToProps,
-  mapDispatchToProps
+  mapStateToProps
 )(Live);
 
 // Set up to make sure that push states are synced with redux substore

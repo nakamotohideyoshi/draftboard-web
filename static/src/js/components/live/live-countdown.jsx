@@ -26,7 +26,7 @@ const LiveCountdown = React.createClass({
             <div className="live-countdown__inner__startsin">
               <div>Starts in</div>
               <CountdownClock
-                time={ start }
+                time={ new Date(start).getTime() }
                 onCountdownOver={ this.props.onCountdownComplete }
               />
             </div>
