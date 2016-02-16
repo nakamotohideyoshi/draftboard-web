@@ -42,6 +42,17 @@ const requestDraftGroupFP = (id) => ({
 });
 
 /**
+ * Dispatch information to reducer that we are trying to get draft group boxscores (only used for results)
+ * Used to prevent repeat calls while requesting.
+ * NOTE: this method must be wrapped with dispatch()
+ * @return {object}   Changes for reducer
+ */
+const requestDraftGroupBoxscores = (id) => ({
+  id,
+  type: ActionTypes.REQUEST_DRAFT_GROUP_BOXSCORES,
+});
+
+/**
  * Dispatch information to reducer that we are trying to get draft group information
  * Used to prevent repeat calls while requesting.
  * NOTE: this method must be wrapped with dispatch()
@@ -50,6 +61,20 @@ const requestDraftGroupFP = (id) => ({
 const requestDraftGroupInfo = (id) => ({
   id,
   type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_INFO,
+});
+
+/**
+ * Dispatch API response object of boxscores for a draft group (only used for results)
+ * NOTE: this method must be wrapped with dispatch()
+ * @param  {number} id            Contest ID
+ * @param  {object} response      Response of players
+ * @return {object}               Changes for reducer
+ */
+const receiveDraftGroupBoxscores = (id, boxscores) => ({
+  type: ActionTypes.RECEIVE_DRAFT_GROUP_BOXSCORES,
+  id,
+  boxscores,
+  expiresAt: moment(Date.now()).add(10, 'minutes'),
 });
 
 /**
@@ -128,6 +153,32 @@ const fetchDraftGroupInfo = (id) => (dispatch) => {
 };
 
 /**
+ * Method to determine whether we need to fetch boxscores for a draft group.
+ * @param  {object} state Current Redux state to test
+ * @return {boolean}      True if we should fetch, false if not
+ */
+const shouldFetchDraftGroupBoxscores = (state, id) => {
+  const liveDraftGroups = state.liveDraftGroups;
+
+  // error if no draft group to associate players to
+  if (id in liveDraftGroups === false) {
+    throw new Error('You cannot get fantasy points for a player that is not in the draft group');
+  }
+
+  // don't fetch until expired
+  if (moment().isBefore(liveDraftGroups[id].boxscoresExpiresAt)) {
+    return false;
+  }
+
+  // do not fetch if fetching info
+  if (liveDraftGroups[id].isFetchingBoxscores === true) {
+    return false;
+  }
+
+  return true;
+};
+
+/**
  * Method to determine whether we need to fetch fantasy points for draft group players.
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch, false if not
@@ -182,6 +233,23 @@ const shouldFetchDraftGroup = (state, id) => {
 
 // primary methods (mainly exported, some needed in there to have proper init of const)
 
+/**
+ * API GET to return boxscores for a draft group (used in results only)
+ * @param {number} id  Draft group ID
+ * @return {promise}   Promise that resolves with API response body to reducer
+ */
+export const fetchDraftGroupBoxscores = (id) => (dispatch) => {
+  dispatch(requestDraftGroupBoxscores(id));
+
+  return request.get(
+    `/api/draft-group/boxscores/${id}/`
+  ).set({
+    'X-REQUESTED-WITH': 'XMLHttpRequest',
+    Accept: 'application/json',
+  }).then(
+    (res) => dispatch(receiveDraftGroupBoxscores(id, res.body))
+  );
+};
 
 /**
  * API GET to return fantasy points of players in a draft group
@@ -207,6 +275,20 @@ export const fetchDraftGroupFP = (id) => (dispatch) => {
 
     return dispatch(receiveDraftGroupFP(id, players));
   });
+};
+
+/**
+ * Get fantasy points for players in a draft group if need be
+ * @param {number} id  Draft group ID
+ * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
+ *                     returned method or directly as a resolved promise
+ */
+export const fetchDraftGroupBoxscoresIfNeeded = (id) => (dispatch, getState) => {
+  if (shouldFetchDraftGroupBoxscores(getState(), id) === true) {
+    return dispatch(fetchDraftGroupBoxscores(id));
+  }
+
+  return Promise.resolve('Draft group boxscores not needed');
 };
 
 /**
@@ -245,9 +327,8 @@ export const fetchDraftGroupIfNeeded = (id) => (dispatch, getState) => {
 };
 
 /**
- * Remove all draft groups that have ended. While looping through, aggregate all related lineups and contests and remove
- * those as well.
- * @return {Promise} Return the promise of all of the calls being run simultaneously.
+ * Remove all draft groups that have ended.
+ * @return {object}  Changes for reducer, wrapped in thunk
  */
 export const removeUnusedDraftGroups = () => (dispatch, getState) => {
   const draftGroupIds = [];

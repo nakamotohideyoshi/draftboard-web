@@ -3,6 +3,14 @@
 
 .draft-player-detail {
 
+  .pane__close {
+    z-index: 10;
+  }
+
+  .header-section {
+    padding-top: 55px;
+  }
+
   // Draft button + Salary section
   .draft-salary {
     text-align: left;
@@ -27,8 +35,15 @@
         opacity: .85;
       }
 
+      &.disabled {
+        opacity: .4 !important;
+        cursor: default;
+      }
+
       &.remove {
+        background-image: url('../img/blocks/lineup-card/icon-delete.png');
         background-position: top right;
+        box-shadow: 0px 0px 20px 1px rgba(155, 31, 80, 0.5);
       }
     }
 

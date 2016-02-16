@@ -16,17 +16,8 @@ const DraftPlayerListRow = React.createClass({
   propTypes: {
     row: React.PropTypes.object.isRequired,
     focusPlayer: React.PropTypes.func,
-    draftable: React.PropTypes.bool,
-    drafted: React.PropTypes.bool,
     draftPlayer: React.PropTypes.func,
     unDraftPlayer: React.PropTypes.func,
-  },
-
-
-  getDefaultProps() {
-    return {
-      draftable: true,
-    };
   },
 
 
@@ -54,7 +45,7 @@ const DraftPlayerListRow = React.createClass({
 
 
   getDraftButton() {
-    if (this.props.drafted) {
+    if (this.props.row.drafted) {
       return (
         <div
           className="draft-button remove"
@@ -99,7 +90,7 @@ const DraftPlayerListRow = React.createClass({
   render() {
     let classes = 'cmp-player-list__row';
 
-    if (this.props.draftable === false) {
+    if (this.props.row.draftable === false) {
       classes += ' fade';
     }
 

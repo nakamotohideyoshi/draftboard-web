@@ -10,7 +10,7 @@ import { map as _map } from 'lodash';
 const LobbyDraftGroupSelectionTime = React.createClass({
 
   propTypes: {
-    draftGroups: React.PropTypes.object.isRequired,
+    draftGroups: React.PropTypes.array.isRequired,
     selectedSport: React.PropTypes.string.isRequired,
   },
 

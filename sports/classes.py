@@ -55,6 +55,7 @@ import sports.nhl.models
 import sports.nba.models
 import sports.mlb.models
 
+import scoring.classes
 
 class AbstractGameManager(object):
     """
@@ -108,11 +109,16 @@ class SiteSportManager(object):
 
     #
     # there should exist a single sports.models.SiteSport for these strings!
+    NFL = 'nfl'
+    MLB = 'mlb'
+    NBA = 'nba'
+    NHL = 'nhl'
+
     SPORTS = [
-        'nfl',
-        'mlb',
-        'nba',
-        'nhl'
+        NFL,
+        MLB,
+        NBA,
+        NHL,
     ]
 
     def __init__(self):
@@ -176,6 +182,25 @@ class SiteSportManager(object):
         if not isinstance(sport, SiteSport):
             raise IncorrectVariableTypeException(type(self).__name__,
                                                  type(sport).__name__)
+
+    def get_score_system_class(self, sport):
+        """
+        get the scoring.classes "score system" class for the sport (ie: the scoring metrics)
+
+        :param sport: can be the string name ('nfl', etc... ) or the SiteSport for the sport.
+        :return: scoring.classes.<Sport>SalaryScoreSystem class
+        """
+        site_sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(site_sport)
+
+        if site_sport.name == self.NFL:
+            return scoring.classes.NflSalaryScoreSystem
+        elif site_sport.name == self.NBA:
+            return scoring.classes.NbaSalaryScoreSystem
+        elif site_sport.name == self.MLB:
+            return scoring.classes.MlbSalaryScoreSystem
+        elif site_sport.name == self.NHL:
+            return scoring.classes.NhlSalaryScoreSystem
 
     def __get_array_of_classes(self, sport, filter_string, parent_class):
         content_types = ContentType.objects.filter(app_label=sport.name,

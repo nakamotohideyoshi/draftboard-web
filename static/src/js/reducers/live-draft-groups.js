@@ -16,6 +16,7 @@ const setOrMerge = (state, action, props) => {
         boxScores: {},
         infoExpiresAt: moment(),
         fpExpiresAt: moment(),
+        boxscoresExpiresAt: moment(),
       },
       props
     );
@@ -103,6 +104,25 @@ module.exports = (state = {}, action) => {
         },
       });
 
+    case ActionTypes.REQUEST_DRAFT_GROUP_BOXSCORES:
+      newProps = {
+        id: action.id,
+        isFetchingBoxscores: true,
+        boxscoresExpiresAt: action.expiresAt,
+      };
+
+      return setOrMerge(state, action, newProps);
+
+    case ActionTypes.RECEIVE_DRAFT_GROUP_BOXSCORES:
+      return update(state, {
+        [action.id]: {
+          $merge: {
+            isFetchingBoxscores: false,
+            boxscoresExpiresAt: action.expiresAt,
+            boxScores: action.boxscores,
+          },
+        },
+      });
 
     case ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED:
       return update(state, {
