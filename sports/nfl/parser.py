@@ -5,15 +5,24 @@ import sports.nfl.models
 from sports.nfl.models import Team, Game, Player, PlayerStats, \
                                 GameBoxscore, GamePortion, Pbp, PbpDescription
 
-from sports.sport.base_parser import AbstractDataDenParser, \
-                        DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
-                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
-                        DataDenPbpDescription, DataDenInjury
+from sports.sport.base_parser import (
+    AbstractDataDenParser,
+    DataDenTeamHierarchy,
+    DataDenGameSchedule,
+    DataDenPlayerRosters,
+    DataDenPlayerStats,
+    DataDenGameBoxscores,
+    DataDenTeamBoxscores,
+    DataDenPbpDescription,
+    DataDenInjury,
+    SridFinder,
+)
 import json
 from dataden.classes import DataDen
 import push.classes
 from django.conf import settings
 from sports.sport.base_parser import TsxContentParser
+from push.classes import DataDenPush, PbpDataDenPush
 
 class TeamHierarchy(DataDenTeamHierarchy):
     """
@@ -576,6 +585,10 @@ class PlayPbp(DataDenPbpDescription):
     pbp_model               = Pbp
     portion_model           = GamePortion
     pbp_description_model   = PbpDescription
+    #
+    player_stats_model      = sports.nfl.models.PlayerStats
+    pusher_sport_pbp        = push.classes.PUSHER_NFL_PBP
+    pusher_sport_stats      = push.classes.PUSHER_NFL_STATS
 
     def __init__(self):
         super().__init__()
@@ -585,6 +598,10 @@ class PlayPbp(DataDenPbpDescription):
         # dont need to call super for EventPbp - just get the event by srid.
         # if it doesnt exist dont do anything, else set the description
         #super().parse( obj, target )
+
+        self.original_obj = obj # since we dont call super().parse() in this class
+        self.srid_finder = SridFinder(obj.get_o())
+
         self.o = obj.get_o() # we didnt call super so we should do thisv
         srid_pbp_desc = self.o.get('id', None)
         pbp_desc = self.get_pbp_description_by_srid( srid_pbp_desc )
@@ -669,8 +686,12 @@ class DataDenNfl(AbstractDataDenParser):
         #
         # nfl.play (events are parsed in the nfl.game | pbp feed, but the PLAYS are parsed here:
         elif self.target == ('nfl.play','pbp'):
-            PlayPbp().parse( obj )
-            push.classes.PbpDataDenPush( push.classes.PUSHER_NFL_PBP, 'play' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            #
+            # this obj can be linked with PlayerStats.
+            play_pbp = PlayPbp()
+            play_pbp.parse( obj )
+            play_pbp.send()
+            #push.classes.PbpDataDenPush( push.classes.PUSHER_NFL_PBP, 'play' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
 
         #
         # nfl.team

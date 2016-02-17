@@ -1,3 +1,5 @@
+#
+# sports/tests.py
 
 from django.test import TestCase
 from mysite.exceptions import IncorrectVariableTypeException
@@ -6,9 +8,11 @@ from .classes import SiteSportManager
 from .exceptions import GameClassNotFoundException,\
                         SiteSportWithNameDoesNotExistException, \
                         SportNameException
-
 from test.classes import AbstractTest
 from sports.models import SiteSport
+from sports.sport.base_parser import AbstractDataDenParseable
+from ast import literal_eval
+from dataden.watcher import OpLogObj
 
 class SiteSportManagerGetPlayerClassTest(AbstractTest):
 
@@ -96,3 +100,6 @@ class SiteSportManagerGetGameClassTest(AbstractTest):
 #         # p = DataDenParser()
 #         # # TODO wrap a fake object with the MongoObjWrapper and send thru parse_obj
 #         # p.parse_obj( 'nba', 'content', mongo_obj, async=async )
+
+
+

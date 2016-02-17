@@ -2,6 +2,8 @@
 # sports/sport/base_parser.py
 
 import re
+from django.core.cache import cache
+from mysite.celery_app import locking
 from dataden.util.timestamp import Parse as DataDenDatetime
 from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
 from django.db.transaction import atomic
@@ -708,6 +710,8 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         self.pbp            = None
         self.pbp_ctype      = None # set if self.pbp is set
 
+        self.live_stats_cache = LiveStatsCache()
+
         super().__init__()
 
     def __get_content_type(self, model):
@@ -832,6 +836,14 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         #   self.get_game_portion()
         #   self.get_pbp_description()
 
+    def add_to_cache(self, obj):
+        """
+        adds the pbp obj to the cache.
+
+        :return: True if object was just added. else returns False
+        """
+        return self.live_stats_cache.update_pbp( self.get_obj() )
+
     def send(self):
         """
         pusher the pbp + stats info as one piece of data.
@@ -839,14 +851,8 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         """
         super().send()
 
-        # adding the pbp obj to the cache will return if it previously existed.
-        # if it was already in there, we dont need to re-send it.
-        live_stats_cache = LiveStatsCache()
-        just_added = live_stats_cache.update_pbp( self.get_obj() )
-        if just_added:
-            print(' === DataDenPush === SENDING PBP FIRST TIME:', str(self.o)) # TODO remove print
-        else:
-            return # dont send it again! get out of here
+        if not self.add_to_cache(self.get_obj()):
+            return  # return out of method - we dont need to send this obj again
 
         #
         # try to retrieve the player(s) and game srids to look up linked PlayerStats
@@ -860,8 +866,17 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             push.classes.DataDenPush( self.pusher_sport_pbp, 'event' ).send( self.o )
         else:
             # push combined pbp+stats data
+
+            # TODO - delete the cache_token (if they exist) for each player_stats pushered
+            #        so if there are any pending/countdown tasks which havent fired yet, they
+            #        will effectively be cancelled (ie: eliminate the double-send or late stats update).
+            self.delete_cache_tokens(player_stats)
             data = self.build_linked_pbp_stats_data( player_stats )
             push.classes.DataDenPush( self.pusher_sport_pbp, 'linked' ).send( data )
+
+    def delete_cache_tokens(self, player_stats_objects):
+        for player_stats in player_stats_objects:
+            cache.delete(player_stats.get_cache_token())
 
     def find_player_stats(self):
         """
