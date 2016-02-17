@@ -2,11 +2,13 @@
 # sports/nba/models.py
 
 from django.db import models
+from django.core.cache import cache
 import sports.models
 import scoring.classes
 import push.classes
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
+from sports.tasks import countdown_send_player_stats_data, COUNTDOWN
 
 class Season( sports.models.Season ):
     class Meta:
@@ -179,7 +181,10 @@ class PlayerStats( sports.models.PlayerStats ):
 
         #
         # send the pusher obj for fantasy points with scoring
-        push.classes.StatsDataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( self.to_json() )
+        #push.classes.StatsDataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( self.to_json() )
+        args = (self.get_cache_token(), push.classes.PUSHER_NBA_STATS, 'player', self.to_json())
+        cache.set(self.get_cache_token(), int(self.updated.strftime('%s')))
+        countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
 
         super().save(*args, **kwargs)
 

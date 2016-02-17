@@ -361,6 +361,12 @@ class PlayerStats(models.Model):
     #position            = models.CharField(max_length=16, null=False, default='')
     # primary_position    = models.CharField(max_length=16, null=False, default='')
 
+    def get_cache_token(self):
+        """
+        return a globally unique value for this object
+        """
+        return 'game_%s__player_%s' % (self.srid_game, self.srid_player)
+
     def get_scoring_fields(self):
         """
         get the fields relevant to scoring which we want

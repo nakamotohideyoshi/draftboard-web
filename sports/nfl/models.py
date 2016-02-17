@@ -8,6 +8,7 @@ from ..models import GameStatusChangedSignal
 import scoring.classes
 import push.classes
 from django.conf import settings
+from sports.tasks import countdown_send_player_stats_data, COUNTDOWN
 
 DST_PLAYER_LAST_NAME    = 'DST' # dst Player objects last_name
 DST_POSITION            = 'DST' # dont change this
@@ -209,7 +210,9 @@ class PlayerStats( sports.models.PlayerStats ):
 
         #
         # pusher the fantasy points with stats
-        push.classes.DataDenPush( push.classes.PUSHER_NFL_STATS, 'player' ).send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
+        #push.classes.DataDenPush( push.classes.PUSHER_NFL_STATS, 'player' ).send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
+        args = (push.classes.PUSHER_NFL_STATS, 'player', self.to_json())
+        countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
 
         super().save(*args, **kwargs)
 
