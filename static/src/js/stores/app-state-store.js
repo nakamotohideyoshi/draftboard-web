@@ -171,6 +171,10 @@ const AppActions = {
   },
 
 
+  clearPlayerSearchField() {
+    PubSub.publish('playerSearch.clear');
+  },
+
   // When the user clicks the background overlay div of the modal this event will fire.
   // If you want to take action when this happens, subscribe to it in your component and react
   // accordingly. I didn't set this to close the modal by default because I'm not sure that is

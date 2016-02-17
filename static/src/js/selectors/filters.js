@@ -55,12 +55,10 @@ export const matchFilter = (collection, filterProperty, match) => _filter(collec
     return true;
   }
 
-  // Check if the row's property matches this filter's match value.
-  if (match === '' || item[filterProperty].toLowerCase() === match.toLowerCase()) {
-    return true;
-  }
-
-  return false;
+  // Get an array of matches.
+  const matches = _filter(match, (matchItem) => matchItem.toLowerCase() === item[filterProperty].toLowerCase());
+  // If the array contains a match, return true.
+  return matches.length > 0;
 });
 
 
