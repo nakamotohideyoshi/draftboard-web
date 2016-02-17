@@ -35,12 +35,14 @@ const DraftPlayerListRow = React.createClass({
   onDraftClick(player, e) {
     e.stopPropagation();
     this.props.draftPlayer(player);
+    this.focusSearchField();
   },
 
 
   onUnDraftClick(player, e) {
     e.stopPropagation();
     this.props.unDraftPlayer(player.player_id);
+    this.focusSearchField();
   },
 
 
@@ -86,6 +88,19 @@ const DraftPlayerListRow = React.createClass({
       <span></span>
     );
   },
+
+
+  // Once a player is added or removed from the lineup, clear + focus the search field.
+  focusSearchField() {
+    const searchField = document.querySelectorAll('.cmp-collection-search-filter__input');
+    if (searchField.length) {
+      if (searchField[0].value !== '') {
+        searchField[0].focus();
+        AppActions.clearPlayerSearchField();
+      }
+    }
+  },
+
 
   render() {
     let classes = 'cmp-player-list__row';
