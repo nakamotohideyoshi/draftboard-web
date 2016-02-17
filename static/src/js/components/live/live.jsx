@@ -83,10 +83,11 @@ const Live = React.createClass({
         contestId: urlParams.contestId || undefined,
         opponentLineupId: urlParams.opponentLineupId || undefined,
       }));
+    } else {
+      // force entries to refresh
+      this.props.dispatch(fetchEntriesIfNeeded(true));
     }
 
-    // force entries to refresh
-    this.props.dispatch(fetchEntriesIfNeeded(true));
 
     // start listening for pusher calls, and server updates
     this.startListening();
