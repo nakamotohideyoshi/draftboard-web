@@ -12,7 +12,10 @@ const initialState = {
       property: 'salary',
       direction: 'asc',
     },
-    playerSearchFilter: {},
+    playerSearchFilter: {
+      property: 'player.name',
+      match: '',
+    },
     positionFilter: {},
     teamFilter: {
       match: [],
