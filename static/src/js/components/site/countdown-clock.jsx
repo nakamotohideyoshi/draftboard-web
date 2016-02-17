@@ -21,23 +21,20 @@ const CountdownClock = React.createClass({
     };
   },
 
-
   getInitialState() {
     return {
       timeRemaining: {},
+      countdownOver: false,
     };
   },
 
-
-  componentWillMount() {
-    this.updateTimeRemainingLoop = window.setInterval(this.setTimeRemaining, this.updateInterval);
+  componentDidMount() {
+    this.updateTimeRemainingLoop = window.setInterval(this.setTimeRemaining, 1000);
   },
-
 
   componentWillUnmount() {
     window.clearInterval(this.updateTimeRemainingLoop);
   },
-
 
   setTimeRemaining() {
     if (!this.props.time) {
@@ -46,25 +43,30 @@ const CountdownClock = React.createClass({
 
     const timeObj = timeRemaining(this.props.time);
 
-    if (timeObj.expired === true && typeof this.props.onCountdownOver === 'function') {
-      this.props.onCountdownOver();
+    if (timeObj.expired === true && this.updateTimeRemainingLoop !== null && this.updateTimeRemainingTimeout === null) {
+      window.clearInterval(this.updateTimeRemainingLoop);
+      this.updateTimeRemainingLoop = null;
+
+      if (typeof this.props.onCountdownOver === 'function') {
+        // randomize this method to helper server to not get overwhelmed
+        const random1To5 = (Math.floor(Math.random() * 2000) + 1);
+        setTimeout(this.props.onCountdownOver, random1To5);
+      }
+
+      this.setState({
+        timeRemaining: timeObj,
+      });
+
+      return;
     }
 
     // difference between when the contest starts and now.
     this.setState({ timeRemaining: timeObj });
   },
 
-  updateInterval: 500,
+  updateTimeRemainingTimeout: null,
 
   render() {
-    if (this.state.timeRemaining.expired === true) {
-      return (
-        <span className="cmp-countdown-clock">
-          <span className="hours">{this.props.timePassedDisplay}</span>
-        </span>
-      );
-    }
-
     return (
       <span className="cmp-countdown-clock">
         <span className="hours">{this.state.timeRemaining.hours}:</span>

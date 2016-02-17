@@ -22,7 +22,9 @@ import log from '../../lib/logging';
 import store from '../../store';
 import { checkForUpdates } from '../../actions/live';
 import { currentLineupsSelector } from '../../selectors/current-lineups';
+import { fetchContestLineups } from '../../actions/live-contests';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
+import { fetchRelatedEntriesInfo } from '../../actions/entries';
 import { fetchEntriesIfNeeded } from '../../actions/entries';
 import { fetchSportIfNeeded } from '../../actions/sports';
 import { liveContestsSelector } from '../../selectors/live-contests';
@@ -82,6 +84,9 @@ const Live = React.createClass({
         opponentLineupId: urlParams.opponentLineupId || undefined,
       }));
     }
+
+    // force entries to refresh
+    this.props.dispatch(fetchEntriesIfNeeded(true));
 
     // start listening for pusher calls, and server updates
     this.startListening();
@@ -240,9 +245,17 @@ const Live = React.createClass({
   /**
    * Force a refresh fo draft groups. Called by the countdown when time is up
    */
-  forceDraftGroupRefresh() {
-    log.info('Live.forceDraftGroupRefresh()');
-    this.props.dispatch(fetchEntriesIfNeeded(true));
+  forceContestLineupsRefresh() {
+    log.info('Live.forceContestLineupsRefresh()');
+    const contestEntry = _.filter(this.props.liveSelector.entries,
+      (entry) => entry.lineup === this.props.liveSelector.mode.myLineupId
+    )[0];
+
+    this.props.dispatch(
+      fetchContestLineups(contestEntry.contest)
+    ).then(() =>
+      this.props.dispatch(fetchRelatedEntriesInfo())
+    );
   },
 
   /*
@@ -561,7 +574,7 @@ const Live = React.createClass({
       if (myLineup.roster === undefined) {
         return (
           <LiveCountdown
-            onCountdownComplete={this.forceDraftGroupRefresh}
+            onCountdownComplete={this.forceContestLineupsRefresh}
             lineup={myLineup}
           />
         );
