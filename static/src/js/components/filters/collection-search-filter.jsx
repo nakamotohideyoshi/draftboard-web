@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDom from 'react-dom';
+import PubSub from 'pubsub-js';
 
 
 /**
@@ -40,6 +41,21 @@ const CollectionSearchFilter = React.createClass({
       // Default to compact state.
       isExpanded: false,
     };
+  },
+
+
+  componentWillMount() {
+    PubSub.subscribe('playerSearch.clear', () => {
+      this.setState({
+        match: '',
+      }, () => {
+        this.props.onUpdate(
+          this.props.filterName,
+          this.props.filterProperty,
+          this.state.match
+        );
+      });
+    });
   },
 
 
