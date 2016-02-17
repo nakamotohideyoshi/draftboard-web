@@ -86,7 +86,7 @@ const addEntriesPlayers = () => (dispatch, getState) => {
   const entriesPlayers = {};
 
   // filter entries to only those that have started
-  const liveEntries = _.filter(state.entries.items, (entry) => entry.start < dateNow());
+  const liveEntries = _.filter(state.entries.items, (entry) => new Date(entry.start) < dateNow());
 
   // only add players that have started playing, by checking if they are in the roster
   _.forEach(liveEntries, (entry) => {
@@ -179,7 +179,7 @@ const shouldFetchEntries = (state) => {
  *                     takes all that info and incorporates some of it back into entries. Ends with updating redux store
  *                     with store.entries.hasRelatedInfo = True so live/nav know to use the information.
  */
-const fetchRelatedEntriesInfo = () => (dispatch, getState) => {
+export const fetchRelatedEntriesInfo = () => (dispatch, getState) => {
   const calls = _.map(
     getState().entries.items, (entry) => dispatch(fetchContestIfNeeded(entry.contest))
   );

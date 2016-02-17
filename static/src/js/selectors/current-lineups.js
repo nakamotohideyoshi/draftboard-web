@@ -228,7 +228,7 @@ export const currentLineupsSelector = createSelector(
       }
 
       // send back a default lineup if it has not started playing yet
-      if (new Date(lineup.start) > dateNow()) {
+      if (new Date(lineup.start) > dateNow() || lineup.roster === undefined) {
         stats[lineup.id] = {
           decimalRemaining: 0.99,
           draftGroup,

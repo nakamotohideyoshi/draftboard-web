@@ -279,8 +279,12 @@ const shouldFetchContest = (liveContests, id) => {
 
   const contest = liveContests[id];
 
+  if (contest.hasOwnProperty('info') === false) {
+    return true;
+  }
+
   // if it hasn't started yet, don't bother getting lineups yet
-  if (contest.hasOwnProperty('info') && dateNow() > new Date(contest.info.start)) {
+  if (new Date(contest.info.start) < dateNow()) {
     return false;
   }
 
@@ -360,7 +364,7 @@ export const removeUnusedContests = () => (dispatch, getState) => {
     const id = contest.id;
 
     // if there are no lineups the group is related to, then remove
-    if (dateNow() < contest.expiresAt) {
+    if (contest.expiresAt < dateNow()) {
       contestIds.push(id);
     }
   });
@@ -370,6 +374,6 @@ export const removeUnusedContests = () => (dispatch, getState) => {
   return dispatch({
     type: ActionTypes.REMOVE_LIVE_CONTESTS,
     ids: contestIds,
-    removedAt: Date.now(),
+    removedAt: dateNow(),
   });
 };

@@ -349,7 +349,7 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
   return dispatch({
     type: ActionTypes.REMOVE_LIVE_DRAFT_GROUPS,
     ids: draftGroupIds,
-    removedAt: Date.now(),
+    removedAt: dateNow(),
   });
 };
 
