@@ -34,6 +34,11 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
 
   // loop through each of the lineup's entered contests
   _.forEach(lineupContests, (contestId) => {
+    // Make sure we have lineups.
+    if (!contestsStats.hasOwnProperty('lineups')) {
+      return;
+    }
+
     const liveContest = liveContests[contestId];
     const contestStats = contestsStats[contestId];
     const entryStats = contestStats.lineups[lineupId];
@@ -62,10 +67,13 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
  */
 const calcLineupPotentialEarnings = (entries, contestsStats) =>
   _.reduce(entries, (sum, entry) => {
-    const contestLineups = contestsStats[entry.contest].lineups;
+    // Make sure we have entries.
+    if (contestsStats.hasOwnProperty(entry.contest)) {
+      const contestLineups = contestsStats[entry.contest].lineups;
 
-    if (entry.lineup in contestLineups === true) {
-      return sum + contestsStats[entry.contest].lineups[entry.lineup].potentialEarnings;
+      if (entry.lineup in contestLineups === true) {
+        return sum + contestsStats[entry.contest].lineups[entry.lineup].potentialEarnings;
+      }
     }
 
     return sum;
@@ -250,6 +258,7 @@ export const currentLineupsSelector = createSelector(
         compileLineupStats(lineup, draftGroup, sports.games, relevantPlayers),
         {
           draftGroup,
+          formattedStart: moment(lineup.start).format('ha'),
           // used for animations to determine which side
           rosterBySRID: _.map(stats.rosterDetails, (player) => player.info.player_srid),
           // used by LiveOverallStats to show potential earnings

@@ -135,6 +135,7 @@ const LobbyContests = React.createClass({
       this.props.updatePath(`/lobby/${strippedParams}`);
       this.props.addMessage({
         header: 'Lineup Saved!',
+        content: 'Now enter it into some contests',
         level: 'success',
         ttl: 5000,
       });

@@ -1,6 +1,6 @@
 import React from 'react';
 import log from '../../lib/logging';
-import { find as _find } from 'lodash/collection/find';
+import { find as _find } from 'lodash';
 
 
 /**
@@ -171,13 +171,14 @@ const CollectionMatchFilter = React.createClass({
       activeFilter = _find(this.props.filters, 'title', filter.target.value);
     }
 
+
     // Update the filter match value, then tell the parent DataTable that the
     // filter has been updated - this will re-render() the DataTable.
     this.setState({
-      match: filter.match,
+      match: activeFilter.match,
       activeFilter,
     }, () => {
-      this.props.onUpdate(this.props.filterName, this.props.filterProperty, filter.match);
+      this.props.onUpdate(this.props.filterName, this.props.filterProperty, activeFilter.match);
     });
   },
 

@@ -12,7 +12,9 @@ const LineupCardPlayer = React.createClass({
     return (
       <li className="cmp-lineup-card__player">
         <span className="cmp-lineup-card__position">{this.props.player.roster_spot}</span>
-        <span className="cmp-lineup-card__photo">😀</span>
+        <span className="cmp-lineup-card__photo">
+          <img src="/static/src/img/temp/PAM_90212.png" width="auto" height="35px" />
+        </span>
         <span className="cmp-lineup-card__name">
           {this.props.player.player_meta.first_name[0]}.
           {this.props.player.player_meta.last_name}

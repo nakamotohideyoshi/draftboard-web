@@ -201,16 +201,8 @@ const EnterContestButton = React.createClass({
       }
     }
 
-
-    // If nothing else catches, show the draft button.
     return (
-      <a
-        className="button enter-contest-button"
-        onClick={this.ignoreClick}
-        href={`/draft/${this.props.contest.draft_group}/`}
-      >
-        {this.props.buttonText.draft}
-      </a>
+      <div className="enter-contest-button-none"></div>
     );
   },
 
