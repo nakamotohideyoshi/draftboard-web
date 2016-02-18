@@ -1,6 +1,7 @@
 import _ from 'lodash';
+import moment from 'moment';
 import { createSelector } from 'reselect';
-
+import { dateNow } from '../lib/utils';
 import { GAME_DURATIONS } from '../actions/sports';
 import { liveContestsSelector } from './live-contests';
 
@@ -51,19 +52,6 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
   });
 
   return stats;
-};
-
-/**
- * Returns hours for provided timestamp with format like: 7pm
- * @param {Number} timestamp
- * @return {String}
- */
-const calcFormattedTime = (timestamp) => {
-  const hours = new Date(timestamp).getHours();
-  let time = (hours % 12 || 12) + (hours > 12 ? 'pm' : 'am');
-  if (time === '12pm') time = '0am';
-
-  return time;
 };
 
 /**
@@ -235,16 +223,16 @@ export const currentLineupsSelector = createSelector(
       const draftGroup = liveDraftGroups[lineup.draft_group];
 
       // if the draftgroup has ended, then you can no longer see the lineup
-      if (draftGroup.end <= Date.parse(new Date())) {
+      if (new Date(draftGroup.end) < dateNow()) {
         return;
       }
 
       // send back a default lineup if it has not started playing yet
-      if (lineup.start >= Date.parse(new Date())) {
+      if (new Date(lineup.start) > dateNow() || lineup.roster === undefined) {
         stats[lineup.id] = {
           decimalRemaining: 0.99,
           draftGroup,
-          formattedStart: calcFormattedTime(lineup.start),
+          formattedStart: moment(lineup.start).format('ha'),
           id: lineup.id,
           minutesRemaining: 384,
           name: lineup.name || 'Example Lineup Name',

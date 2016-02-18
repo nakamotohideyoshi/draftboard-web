@@ -1,13 +1,13 @@
 // so we can use Promises
 import 'babel-core/polyfill';
 const request = require('superagent-promise')(require('superagent'), Promise);
-import moment from 'moment';
 import { forEach as _forEach } from 'lodash';
 import _ from 'lodash';
 import { normalize, Schema, arrayOf } from 'normalizr';
 
 import * as ActionTypes from '../action-types';
 import log from '../lib/logging';
+import { dateNow } from '../lib/utils';
 import { fetchTeamsIfNeeded } from './sports';
 import { updateLivePlayersStats } from './live-players';
 import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions.js';
@@ -26,7 +26,7 @@ import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-a
 const confirmDraftGroupStored = (id) => ({
   type: ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED,
   id,
-  expiresAt: moment(Date.now()).add(1, 'minute'),
+  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**
@@ -38,7 +38,7 @@ const confirmDraftGroupStored = (id) => ({
 const requestDraftGroupFP = (id) => ({
   id,
   type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP,
-  expiresAt: moment(Date.now()).add(1, 'minute'),
+  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**
@@ -74,7 +74,7 @@ const receiveDraftGroupBoxscores = (id, boxscores) => ({
   type: ActionTypes.RECEIVE_DRAFT_GROUP_BOXSCORES,
   id,
   boxscores,
-  expiresAt: moment(Date.now()).add(10, 'minutes'),
+  expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
 });
 
 /**
@@ -89,7 +89,7 @@ const receiveDraftGroupFP = (id, players) => ({
   type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
   id,
   players,
-  expiresAt: moment(Date.now()).add(10, 'minutes'),
+  expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
 });
 
 /**
@@ -123,9 +123,9 @@ const receiveDraftGroupInfo = (id, response) => {
     players,
     playersBySRID,
     sport: response.sport,
-    start: moment(response.start).valueOf(),
-    end: moment(response.end).valueOf(),
-    expiresAt: moment(Date.now()).add(12, 'hours'),
+    start: new Date(response.start).getTime(),
+    end: new Date(response.end).getTime(),
+    expiresAt: dateNow() + 1000 * 60 * 60 * 12,  // 12 hours
   };
 };
 
@@ -166,7 +166,7 @@ const shouldFetchDraftGroupBoxscores = (state, id) => {
   }
 
   // don't fetch until expired
-  if (moment().isBefore(liveDraftGroups[id].boxscoresExpiresAt)) {
+  if (dateNow() < liveDraftGroups[id].boxscoresExpiresAt) {
     return false;
   }
 
@@ -192,7 +192,7 @@ const shouldFetchDraftGroupFP = (state, id) => {
   }
 
   // don't fetch until expired
-  if (moment().isBefore(liveDraftGroups[id].fpExpiresAt)) {
+  if (dateNow() < liveDraftGroups[id].fpExpiresAt) {
     return false;
   }
 
@@ -223,7 +223,7 @@ const shouldFetchDraftGroup = (state, id) => {
   }
 
   // fetch if expired
-  if (moment().isBefore(liveDraftGroups[id].infoExpiresAt)) {
+  if (dateNow() < liveDraftGroups[id].infoExpiresAt) {
     return false;
   }
 
@@ -349,7 +349,7 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
   return dispatch({
     type: ActionTypes.REMOVE_LIVE_DRAFT_GROUPS,
     ids: draftGroupIds,
-    removedAt: Date.now(),
+    removedAt: dateNow(),
   });
 };
 

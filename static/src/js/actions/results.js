@@ -1,10 +1,10 @@
 // so we can use Promises
 import 'babel-core/polyfill';
 const request = require('superagent-promise')(require('superagent'), Promise);
-import ActionTypes from '../action-types';
-import moment from 'moment';
-import log from '../lib/logging';
 import _ from 'lodash';
+import ActionTypes from '../action-types';
+import log from '../lib/logging';
+import moment from 'moment';
 
 
 /**

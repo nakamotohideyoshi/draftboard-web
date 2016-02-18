@@ -1,7 +1,8 @@
-import { createSelector } from 'reselect';
 import _ from 'lodash';
-
 import { compileLineupStats } from './current-lineups';
+import { createSelector } from 'reselect';
+import { dateNow } from '../lib/utils';
+import log from '../lib/logging';
 
 
 /*
@@ -98,13 +99,15 @@ export const liveContestsSelector = createSelector(
       };
 
       // if we haven't started, then don't bother ranking
-      if (contest.start < Date.now()) {
+      if (new Date(contest.start) > dateNow()) {
+        log.trace('liveContestsSelector() - Contest has not started', id, new Date(contest.start), dateNow());
         contestsStats[id] = stats;
         return;
       }
 
       // if undefined and we're still trying, then return. occurs when cached for days
       if (draftGroup === undefined) {
+        log.trace('liveContestsSelector() - draftGroup is undefined for contest', id);
         return;
       }
 

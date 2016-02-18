@@ -2,6 +2,7 @@
 import 'babel-core/polyfill';
 const request = require('superagent-promise')(require('superagent'), Promise);
 import * as ActionTypes from '../action-types';
+import { dateNow } from '../lib/utils';
 
 
 /**
@@ -15,7 +16,7 @@ const receivePrize = (id, response) => ({
   type: ActionTypes.RECEIVE_PRIZE,
   id,
   info: response,
-  expiresAt: Date.now() + 86400000,
+  expiresAt: dateNow() + 1000 * 60 * 60 * 24,  // subtract 1 day
 });
 
 /**
