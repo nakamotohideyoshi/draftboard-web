@@ -267,8 +267,10 @@ class UserUpcomingAPIView(AbstractLineupAPIView):
         """
         get the Lineup objects
         """
-        return Lineup.objects.filter( user=self.request.user,
-                                      draft_group__start__gt=timezone.now() )
+        return Lineup.objects.filter(
+            user=self.request.user,
+            draft_group__start__gt=timezone.now()
+        ).order_by('-updated')
 
 
 class UserLiveAPIView(AbstractLineupAPIView):
