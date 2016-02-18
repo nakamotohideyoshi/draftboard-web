@@ -1,5 +1,6 @@
 import { matchFilter } from './filters';
 import { createSelector } from 'reselect';
+import { sortByOrder as _sortByOrder } from 'lodash';
 
 
 /**
@@ -17,6 +18,7 @@ export const lineupsBySportSelector = createSelector(
   sportSelectorProperty,
   sportSelectorMatch,
   (collection, filterProperty, searchString) => (
-    matchFilter(collection, filterProperty, searchString)
+    // Sort + filter them.
+    _sortByOrder(matchFilter(collection, filterProperty, searchString), 'id').reverse()
   )
 );
