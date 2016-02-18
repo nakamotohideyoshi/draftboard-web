@@ -250,6 +250,7 @@ export const currentLineupsSelector = createSelector(
         compileLineupStats(lineup, draftGroup, sports.games, relevantPlayers),
         {
           draftGroup,
+          formattedStart: moment(lineup.start).format('ha'),
           // used for animations to determine which side
           rosterBySRID: _.map(stats.rosterDetails, (player) => player.info.player_srid),
           // used by LiveOverallStats to show potential earnings
