@@ -1,9 +1,9 @@
 @import "../variables";
 
-$nav-scoreboard-height: 60px;
-$nav-scoreboard-background-color: #272A3B;;
-$nav-scoreboard-secondary-font-color: #9EA2A9;
-$nav-scoreboard-separator-color: #3e4453;
+$nav-scoreboard-height: 54px;
+$nav-scoreboard-background-color: #1a1e30;
+$nav-scoreboard-secondary-font-color: #a6aab3;
+$nav-scoreboard-separator-color: #292c39;
 $nav-scoreboard-foreground-color: #25A758;
 
 .cmp-nav-scoreboard {
@@ -67,47 +67,37 @@ $nav-scoreboard-foreground-color: #25A758;
 
     .mobile-forum-hamburger {
       position: relative;
-      top: 17px;
+      top: 16px;
       left: 23px;
 
       > svg {
         cursor: pointer;
-        margin: 6px 0 0 6px;
       }
 
-      .line-top {
+      .line-top,
+      .line-middle,
+      .line-bottom,
+      .x-bottom {
+        transform-origin: 9pt 6pt;
         transition: all 0.2s ease-in-out;
-        transform-origin: 77% 77%;
       }
 
-      .line-middle {
-        opacity: 1;
-      }
-
-      .line-bottom {
-        transition: all 0.2s ease-in-out;
-        transform-origin: 77% 77%;
+      .x-bottom {
+        opacity: 0;
       }
 
       &.closed {
-        .icon {
-          margin-top: 6px;
-        }
-
         .line-top {
-          transition: all 0.2s ease-in-out;
           transform: rotate(-45deg);
-          transform-origin: 77% 77%;
         }
-
-        .line-middle {
-          opacity: 0;
-        }
-
-        .line-bottom {
-          transition: all 0.2s ease-in-out;
+        .x-bottom {
+          opacity: 1;
           transform: rotate(45deg);
-          transform-origin: 77% 77%;
+        }
+
+        .line-middle,
+        .line-bottom {
+          opacity: 0;
         }
       }
     }
@@ -115,26 +105,26 @@ $nav-scoreboard-foreground-color: #25A758;
 
   &--user-info {
     display: inline-block;
-    font-size: 12px;
+    font-size: 11px;
     z-index: 120;
     height: $nav-scoreboard-height;
     padding: 0px 15px 0 10px;
     line-height: $nav-scoreboard-height;
-    min-width: 210px;
-    max-width: 210px;
 
     .name {
       color: $nav-scoreboard-secondary-font-color;
       display: inline-block;
-      margin-right: 30px;
+      margin-right: 36px;
     }
 
     .balance {
-      width: 80px;
+      font-family: $font-oswald;
+      font-size: 12px;
       display: inline-block;
-      font-weight: bold;
-      text-align: right;
+      text-align: center;
       line-height: 15px;
+      position: relative;
+      top: 2px;
 
       .add-funds {
         display: none;
@@ -159,18 +149,28 @@ $nav-scoreboard-foreground-color: #25A758;
   // Wrapper for dropdowns
   &--filters {
     display: inline-block;
-    font-size: 12px;
+    font-size: 9.5px;
+    letter-spacing: 1.2px;
     z-index: 120;
-    min-width: 130px;
-    max-width: 130px;
+    white-space: nowrap;
 
     .select-list {
       height: $nav-scoreboard-height;
-      padding: 0 30px;
+      padding: 0 12px;
 
       &--selected {
-        padding: 20px 0 0;
+        padding: 21px 0 0;
         text-transform: uppercase;
+
+        .down-arrow-icon {
+          display: inline-block;
+          margin-left: 26px;
+          transform: rotate(-90deg);
+
+          line {
+            stroke: #5b5f70;
+          }
+        }
       }
     }
   }
@@ -189,6 +189,10 @@ $nav-scoreboard-foreground-color: #25A758;
     white-space: nowrap;
     overflow: hidden;
 
+    .cmp-nav-scoreboard--separator {
+      border-left: solid 1px #3e4452;
+    }
+
     .slider-content {
       display: inline-block;
       height: $nav-scoreboard-height;
@@ -205,6 +209,7 @@ $nav-scoreboard-foreground-color: #25A758;
     }
 
     .arrow {
+      cursor: pointer;
       position: relative;
       display: inline-block;
       z-index: 2;
@@ -213,18 +218,24 @@ $nav-scoreboard-foreground-color: #25A758;
         width: 42px;
       }
 
+      &:hover .icon line {
+        stroke: #5b5f70;
+      }
+
       .left-arrow-icon, .right-arrow-icon {
         display: inline-block;
 
         cursor: pointer;
-        background: url('../img/blocks/nav-scoreboard/nav-scoreboard-slider-arrow.png') no-repeat center center;
-        background-size: 7px 11px;
-        width: 24px;
-        height: 60px;
+        width: 11px;
+        height: 11px;
         position: absolute;
-        top: 0;
-        left: 12px;
+        top: 22px;
+        left: 19px;
         z-index: 2000;
+
+        line {
+          stroke: #2a2e40;
+        }
       }
 
       .right-arrow-icon {
@@ -240,7 +251,7 @@ $nav-scoreboard-foreground-color: #25A758;
       display: inline-block;
       font-size: 12px;
       font-weight: bold;
-      padding: 14px 5px;
+      padding: 12px 5px;
       height: $nav-scoreboard-height;
       overflow: hidden;
 
@@ -250,7 +261,7 @@ $nav-scoreboard-foreground-color: #25A758;
       }
       &--is-live {
         .left {
-          margin-right: 10px;
+          margin-right: 20px;
         }
       }
 
@@ -260,11 +271,11 @@ $nav-scoreboard-foreground-color: #25A758;
       }
 
       .right {
-        font-size: 11px;
+        font-size: 9.5px;
         display: inline-block;
-        color: $nav-scoreboard-secondary-font-color;
+        color: #babdc9;
         position: relative;
-        line-height: 16px;
+        line-height: 18px;
         top: -1px;
       }
     }
@@ -276,9 +287,8 @@ $nav-scoreboard-foreground-color: #25A758;
     .lineup {
       cursor: pointer;
       display: inline-block;
-      font-size: 12px;
-      font-weight: bold;
-      padding: 14px 5px;
+      font-size: 11px;
+      padding: 12px 5px;
       height: $nav-scoreboard-height;
       overflow: hidden;
 
@@ -288,23 +298,31 @@ $nav-scoreboard-foreground-color: #25A758;
         text-transform: uppercase;
 
         .header {
-          font-size: 11px;
+          font-size: 9.5px;
           display: inline-block;
-          color: $nav-scoreboard-secondary-font-color;
+          color: #babdc9;
+          letter-spacing: 1px;
+        }
+
+        .name {
+          font-weight: bold;
+          color: #fff;
         }
       }
 
       .right {
+        font-size: 12px;
+        font-family: $font-oswald;
         display: inline-block;
         position: relative;
-        top: -10px;
+        top: -6px;
 
         .unit {
-          color: $nav-scoreboard-secondary-font-color;
+          color: #5b6374;
         }
 
         .balance {
-          color: $nav-scoreboard-foreground-color;
+          color: #26c661;
         }
       }
     }
@@ -344,16 +362,15 @@ $nav-scoreboard-foreground-color: #25A758;
   position: relative;
 
   &--options {
-    /* background: #1E1D28; */
-    background: $nav-scoreboard-background-color;
+    background: #272b3a;
     display: none;
-    top: 60px;
-    left: -26px;
+    top: 54px;
+    left: -24px;
     list-style: none;
     padding: 0;
     position: absolute;
     text-align: left;
-    width: 230px;
+    width: 202px;
     box-shadow: 0px 0px 50px -7px #000;
 
     &.visible {
@@ -361,12 +378,12 @@ $nav-scoreboard-foreground-color: #25A758;
     }
 
     li {
-      padding: 20px;
+      padding: 22px;
       cursor: pointer;
-      border-bottom: solid 1px $nav-scoreboard-separator-color;
-      color: $nav-scoreboard-secondary-font-color;
-      font-size: 11px;
-      font-weight: bold;
+      border-bottom: solid 1px #393f4d;
+      color: #a6aab3;
+      font-size: 9.5px;
+      letter-spacing: 1.2px;
       text-transform: uppercase;
 
       &:last-child {
@@ -389,7 +406,7 @@ $nav-scoreboard-foreground-color: #25A758;
       height: 0;
       border-left: 8px solid transparent;
       border-right: 8px solid transparent;
-      border-bottom: 8px solid $nav-scoreboard-background-color;
+      border-bottom: 8px solid #272b3a;
       position: absolute;
       top: -8px;
       left: 8%;

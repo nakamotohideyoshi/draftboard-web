@@ -55,20 +55,23 @@ const NavScoreboardMenu = React.createClass({
           onClick={this.handleToggleHamburgerMenu}
         >
           <svg
-            viewBox="0 0 42 42"
-            height="16"
-            width="16"
+            viewBox="0 0 16 16"
+            height="24"
+            width="24"
             className="icon icon-hamburger"
           >
             <g>
-              <path className="line-top" d="M3,13h36" fill="none"
-                stroke="white" strokeLinejoin="bevel" strokeWidth="3"
+              <path className="line-top" d="M1.1,4H15" fill="none"
+                stroke="white" strokeLinejoin="bevel" strokeWidth="0.8"
               />
-              <path className="line-middle" d="M3,21h36" fill="none"
-                stroke="white" strokeLinejoin="bevel" strokeWidth="3"
+              <path className="line-middle" d="M1.1,8.1h12.4" fill="none"
+                stroke="white" strokeLinejoin="bevel" strokeWidth="0.8"
               />
-              <path className="line-bottom" d="M3,28h36" fill="none"
-                stroke="white" strokeLinejoin="bevel" strokeWidth="3"
+              <path className="line-bottom" d="M1.1,12.2h10.7" fill="none"
+                stroke="white" strokeLinejoin="bevel" strokeWidth="0.8"
+              />
+              <path className="x-bottom" d="M1.1,12.2H15" fill="none"
+                stroke="white" strokeLinejoin="bevel" strokeWidth="0.8"
               />
             </g>
           </svg>

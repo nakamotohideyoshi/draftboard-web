@@ -2,6 +2,7 @@ import * as ActionTypes from '../action-types.js';
 
 const initialState = {
   isFetching: false,
+  nba: {},
 };
 
 /**

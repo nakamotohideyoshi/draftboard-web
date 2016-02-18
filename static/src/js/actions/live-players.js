@@ -1,9 +1,9 @@
 import 'babel-core/polyfill';  // so I can use Promises
 const request = require('superagent-promise')(require('superagent'), Promise);
 import _ from 'lodash';
-import moment from 'moment';
 
 import * as ActionTypes from '../action-types';
+import { dateNow } from '../lib/utils';
 
 
 // dispatch to reducer methods
@@ -51,7 +51,7 @@ const receivePlayersStats = (lineupId, response) => {
     type: ActionTypes.RECEIVE_LIVE_PLAYERS_STATS,
     lineupId,
     players,
-    expiresAt: moment(Date.now()).add(10, 'minutes'),
+    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
   };
 };
 
@@ -99,11 +99,11 @@ const shouldFetchPlayersStats = (state, lineupId) => {
   const lineup = state.currentLineups.items[lineupId] || {};
 
   // if it hasn't started yet, don't bother getting lineups yet
-  if (moment().isAfter(lineup.start)) {
+  if (dateNow() > lineup.start) {
     return false;
   }
 
-  if (moment().isBefore(state.livePlayers.expiresAt)) {
+  if (dateNow() < state.livePlayers.expiresAt) {
     return false;
   }
 
