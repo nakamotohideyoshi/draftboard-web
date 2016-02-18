@@ -137,7 +137,7 @@ const LobbyContests = React.createClass({
         header: 'Lineup Saved!',
         content: 'Now enter it into some contests',
         level: 'success',
-        // ttl: 5000,
+        ttl: 5000,
       });
     }
 

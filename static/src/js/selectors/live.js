@@ -100,6 +100,11 @@ export const liveSelector = createSelector(
 
     if (mode.myLineupId) {
       const myLineup = currentLineupsStats[mode.myLineupId];
+
+      if (myLineup === undefined) {
+        return stats;
+      }
+
       const sport = myLineup.draftGroup.sport;
 
       // add in seasonal stats, teams for LivePlayerPane

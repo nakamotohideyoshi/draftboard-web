@@ -1,12 +1,8 @@
 import * as ActionTypes from '../action-types';
 import _ from 'lodash';
-// import moment from 'moment'
-
 import { fetchContestLineupsUsernamesIfNeeded } from './live-contests';
-// import { fetchContestLineups } from './live-contests'
 import { fetchDraftGroupFPIfNeeded } from './live-draft-groups';
 import { fetchPlayersStatsIfNeeded } from './live-players';
-// import log from '../lib/logging'
 
 
 export const checkForUpdates = () => (dispatch, getState) => {
@@ -23,26 +19,10 @@ export const checkForUpdates = () => (dispatch, getState) => {
     }
   }
 
-  // if contest doesn't have lineup bytes yet and is live, then check for them
-  // if (mode.contestId && state.liveContests.hasOwnProperty(mode.contestId)) {
-  //   const contest = state.liveContests[mode.contestId]
-
-  //   // if the contest has started
-  //   if (moment.isAfter(moment(contest.info.start))) {
-  //     // if there's no lineup bytes yet
-  //     if ('lineupBytes' in state.liveContests[mode.contestId] === false ||
-  //         state.liveContests[mode.contestId].lineupBytes === '') {
-  //       log.info(`actions.checkForUpdates() - fetch lineup bytes for contest ${mode.contestId}`)
-  //       dispatch(fetchContestLineups(mode.contestId))
-  //     }
-  //   }
-  // }
-
   if (mode.opponentLineupId) {
     dispatch(fetchPlayersStatsIfNeeded(mode.opponentLineupId));
   }
 };
-
 
 export const updateLiveMode = (changedFields) => (dispatch, getState) => {
   const state = getState();
@@ -59,7 +39,6 @@ export const updateLiveMode = (changedFields) => (dispatch, getState) => {
   if (changedFields.contestId) {
     dispatch(fetchContestLineupsUsernamesIfNeeded(changedFields.contestId));
   }
-
 
   // make sure every defined field is an integer
   const newMode = {};

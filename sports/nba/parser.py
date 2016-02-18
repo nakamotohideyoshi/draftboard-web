@@ -222,6 +222,7 @@ class QuarterPbp(DataDenPbpDescription):
         self.KEY_GAME_ID = 'game__id'
 
     def parse(self, obj, target=None):
+        self.timer_start()
         super().parse( obj, target )
 
         if self.game is None:
@@ -263,6 +264,7 @@ class QuarterPbp(DataDenPbpDescription):
             idx += 1
 
             # EventPbp will take care of saving the 'description' field
+        self.timer_stop()
 
 class EventPbp(DataDenPbpDescription):
 
@@ -275,6 +277,7 @@ class EventPbp(DataDenPbpDescription):
         super().__init__()
 
     def parse(self, obj, target=None):
+        #self.timer_start()
         #
         # dont need to call super for EventPbp - just get the event by srid.
         # if it doesnt exist dont do anything, else set the description
@@ -303,6 +306,7 @@ class EventPbp(DataDenPbpDescription):
         else:
             #print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
             pass
+        #self.timer_stop()
 
 class Injury(DataDenInjury):
 
@@ -373,9 +377,10 @@ class DataDenNba(AbstractDataDenParser):
         #
         # nba.period
         elif self.target == ('nba.quarter','pbp'):
-            QuarterPbp().parse( obj )
-            PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'quarter' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
-            self.add_pbp( obj ) # stashes the pbp object for the trailing history
+            # QuarterPbp().parse( obj )
+            # PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'quarter' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
+            # self.add_pbp( obj ) # stashes the pbp object for the trailing history
+            pass # i dont think we need to parse this!
         #
         # nba.event
         elif self.target == ('nba.event','pbp'):

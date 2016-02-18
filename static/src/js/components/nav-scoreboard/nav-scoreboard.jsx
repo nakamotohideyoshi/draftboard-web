@@ -148,6 +148,7 @@ const NavScoreboard = React.createClass({
         option: `${sport} games`,
         type: TYPE_SELECT_GAMES,
         key: sport,
+        count: this.props.sportsSelector[sport].gameIds.length,
       });
     });
 

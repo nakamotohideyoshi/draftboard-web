@@ -1,7 +1,7 @@
 import log from '../lib/logging';
 import * as types from '../action-types.js';
 import request from 'superagent';
-import moment from 'moment';
+import { dateNow } from '../lib/utils';
 // so we can use Promises
 import 'babel-core/polyfill';
 import { normalize, Schema, arrayOf } from 'normalizr';
@@ -33,7 +33,7 @@ function fetchPlayerBoxScoreHistorySuccess(body) {
     type: types.FETCH_PLAYER_BOX_SCORE_HISTORY_SUCCESS,
     sport: body.sport,
     playerHistory: body.playerHistory,
-    updatedAt: Date.now(),
+    updatedAt: dateNow(),
   };
 }
 
@@ -79,8 +79,8 @@ function shouldRemoveExpiredHistory(state, sport) {
     return false;
   }
 
-  const expiration = moment(history.updatedAt).add(1, 'day');
-  if (moment().isAfter(expiration)) {
+  const expiration = dateNow() + 1000 * 60 * 60 * 24;  // add 1 day
+  if (expiration < dateNow()) {
     return true;
   }
 

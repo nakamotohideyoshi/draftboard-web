@@ -1,6 +1,6 @@
 import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
-import moment from 'moment';
+import { dateNow } from '../lib/utils';
 
 
 // TODO remove this hardcode of nba
@@ -11,8 +11,8 @@ module.exports = (state = {
     gameIds: [],
     isFetchingTeams: false,
     isFetchingGames: false,
-    gamesExpireAt: moment(),
-    teamsExpireAt: moment(),
+    gamesExpireAt: dateNow(),
+    teamsExpireAt: dateNow(),
   },
 }, action) => {
   switch (action.type) {

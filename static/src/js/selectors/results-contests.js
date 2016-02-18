@@ -1,6 +1,5 @@
-import { createSelector } from 'reselect';
 import _ from 'lodash';
-
+import { createSelector } from 'reselect';
 import { rankContestLineups } from './live-contests';
 
 
