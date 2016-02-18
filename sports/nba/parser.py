@@ -282,13 +282,9 @@ class EventPbp(DataDenPbpDescription):
         super().__init__()
 
     def parse(self, obj, target=None):
-<<<<<<< HEAD
         # since we dont call super().parse() in this class
         self.original_obj = obj
         self.srid_finder = SridFinder(obj.get_o())
-=======
-        #self.timer_start()
->>>>>>> bf0c3b0e8d464eb1c4297c13a292d35d231dc11b
         #
         # dont need to call super for EventPbp - just get the event by srid.
         # if it doesnt exist dont do anything, else set the description
