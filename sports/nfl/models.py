@@ -9,6 +9,7 @@ import scoring.classes
 import push.classes
 from django.conf import settings
 from sports.tasks import countdown_send_player_stats_data, COUNTDOWN
+from django.core.cache import cache
 
 DST_PLAYER_LAST_NAME    = 'DST' # dst Player objects last_name
 DST_POSITION            = 'DST' # dont change this
@@ -210,8 +211,8 @@ class PlayerStats( sports.models.PlayerStats ):
 
         #
         # pusher the fantasy points with stats
-        #push.classes.DataDenPush( push.classes.PUSHER_NFL_STATS, 'player' ).send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
-        args = (push.classes.PUSHER_NFL_STATS, 'player', self.to_json())
+        args = (self.get_cache_token(), push.classes.PUSHER_NFL_STATS, 'player', self.to_json())
+        cache.set(self.get_cache_token(), int(self.updated.strftime('%s')))
         countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
 
         super().save(*args, **kwargs)

@@ -4,10 +4,19 @@
 import sports.mlb.models
 from sports.mlb.models import Team, Game, Player, PlayerStats, \
                                 GameBoxscore, Pbp, PbpDescription, GamePortion
-from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
-                        DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
-                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
-                        DataDenPbpDescription, DataDenInjury
+from sports.sport.base_parser import (
+    AbstractDataDenParser,
+    AbstractDataDenParseable,
+    DataDenTeamHierarchy,
+    DataDenGameSchedule,
+    DataDenPlayerRosters,
+    DataDenPlayerStats,
+    DataDenGameBoxscores,
+    DataDenTeamBoxscores,
+    DataDenPbpDescription,
+    DataDenInjury,
+    SridFinder,
+)
 import json
 from django.contrib.contenttypes.models import ContentType
 from dataden.classes import DataDen
@@ -830,6 +839,78 @@ class PlayerStats(DataDenPlayerStats):
         self.ps.start = bool( game_info.get('start', 0) )
 
         self.ps.save() # commit changes
+
+class PitchPbp(DataDenPbpDescription):
+    """
+    given an object whose namespace, parent api is a target like:
+     ('mlb.pitch','pbp') this object is capable of emitting
+     the play by play information with send()
+    """
+
+    game_model              = Game
+    pbp_model               = Pbp
+    portion_model           = GamePortion
+    pbp_description_model   = PbpDescription
+    #
+    player_stats_model      = sports.mlb.models.PlayerStatsPitcher
+    player_stats_models     = [sports.mlb.models.PlayerStatsPitcher, sports.mlb.models.PlayerStatsHitter]
+    pusher_sport_pbp        = push.classes.PUSHER_MLB_PBP
+    pusher_sport_stats      = push.classes.PUSHER_MLB_STATS
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        """
+        the object must first be parsed before send() can be called
+
+        :param obj: a dataden.watcher.OpLogObj object
+        """
+        self.original_obj = obj
+        self.srid_finder = SridFinder(obj.get_o()) # get the data from the oplogobj
+        self.o = obj.get_o() # we didnt call super so we should do this
+
+        self.srid_game      = self.get_srid_game('game__id')
+        self.srid_players   = self.get_srids_for_field('pitcher')     # combine pitcher/hitter srids?
+        self.srid_players.extend( self.get_srids_for_field('runner') ) # combine ?
+
+    def get_at_bat(self):
+        """
+        using DataDen's aggregate wrapper to mongo, builds a pipeline
+        (list of commands, basically) and extract the deeply nested
+        'at_bat' element from a 'game' pbp object!
+
+        :param srid_game: supplying the srid for the game the pitch was in greatly speeds up query, but is optional.
+        """
+        dd = DataDen()
+
+        pipeline = [
+            {"$match": {"id": "0f36323c-ba26-4272-ab93-f1630def90a1"} },
+            {"$unwind": "$innings"},
+            {"$match": {"innings.inning.inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "70ad813e-98eb-4160-9c44-b860e64f21f4"} },
+            {"$project": {"inning_halfs":"$innings.inning.inning_halfs"}},
+            {"$unwind": "$inning_halfs"},
+            {"$match": {"inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "70ad813e-98eb-4160-9c44-b860e64f21f4"} },
+            {"$project": {"at_bats":"$inning_halfs.inning_half.at_bats"}},
+            {"$unwind": "$at_bats"},
+            {"$match": {"at_bats.at_bat.pitchs.pitch": "70ad813e-98eb-4160-9c44-b860e64f21f4"} },
+            {"$project": {"at_bat":"$at_bats.at_bat"}},
+        ]
+
+    def find_player_stats(self):
+        """
+        override parent method  -- return a list of the PlayerStats objects
+        for players related to the pitch object.
+        """
+
+        # TODO = we dont really want to return pitching stats for hitters, or vice versa though =(
+        game_srid = self.get_srid_game('game__id')
+        player_srids = self.get_srids_for_field('runner')
+        player_stats = []
+        for player_stats_class in self.player_stats_models:
+            stats = player_stats_class.objects.filter(srid_game=game_srid, srid_player__in=player_srids)
+            player_stats.extend( [ x.to_json() for x in stats ] )
+        return player_stats
 
 class GamePbp(DataDenPbpDescription):
 

@@ -167,6 +167,32 @@ class DataDen(object):
         # return empty cursor if no objects exist
         return all_objects
 
+    def aggregate(self, db, coll, pipeline):
+        """
+        regular queries not enough for you? no? you want to branch out
+         and do something that is unbelievably complex, huh? ... and
+         you want to do it one single operation!? look no further.
+
+        pipline example for getting the 'at_bat' out of the super-nested mlb inning structure:
+
+            pipeline = [
+                {"$match": {"id": "0f36323c-ba26-4272-ab93-f1630def90a1"} },
+                {"$unwind": "$innings"},
+                {"$match": {"innings.inning.inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "70ad813e-98eb-4160-9c44-b860e64f21f4"} },
+                {"$project": {"inning_halfs":"$innings.inning.inning_halfs"}},
+                {"$unwind": "$inning_halfs"},
+                {"$match": {"inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "70ad813e-98eb-4160-9c44-b860e64f21f4"} },
+                {"$project": {"at_bats":"$inning_halfs.inning_half.at_bats"}},
+                {"$unwind": "$at_bats"},
+                {"$match": {"at_bats.at_bat.pitchs.pitch": "70ad813e-98eb-4160-9c44-b860e64f21f4"} },
+                {"$project": {"at_bat":"$at_bats.at_bat"}},
+            ]
+
+        :param pipeline: list of commands to run in order, using mongos aggregation framework
+        :return: list of matched objs
+        """
+        return list(self.db(db).get_collection(coll).aggregate(pipeline))
+
     def enabled_sports(self):
         coll = self.db(self.DB_CONFIG).get_collection(self.COLL_SCHEDULE)
         return coll.distinct('sport')

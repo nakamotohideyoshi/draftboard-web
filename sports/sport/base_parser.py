@@ -685,6 +685,10 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     Parses the pbp text description objects.
     """
 
+    class SridGameNotFoundException(Exception): pass
+
+    class SridGameMultipleSridsFoundException(Exception): pass
+
     game_model              = None # fields: srid
     portion_model           = None #
     pbp_model               = None
@@ -867,9 +871,9 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         else:
             # push combined pbp+stats data
 
-            # TODO - delete the cache_token (if they exist) for each player_stats pushered
-            #        so if there are any pending/countdown tasks which havent fired yet, they
-            #        will effectively be cancelled (ie: eliminate the double-send or late stats update).
+            # delete the cache_token (if they exist) for each player_stats pushered
+            # so if there are any pending/countdown tasks which havent fired yet, they
+            # will effectively be cancelled (ie: eliminate the double-send or late stats update).
             self.delete_cache_tokens(player_stats)
             data = self.build_linked_pbp_stats_data( player_stats )
             push.classes.DataDenPush( self.pusher_sport_pbp, 'linked' ).send( data )
@@ -878,6 +882,18 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         for player_stats in player_stats_objects:
             cache.delete(player_stats.get_cache_token())
 
+    def get_srid_game(self, fieldname):
+        """
+        we should expect to find only 1 game srid
+        :return:
+        """
+        game_srids = list(set(self.get_srids_for_field(fieldname)))
+        if len(game_srids) < 1:
+            raise self.SridGameNotFoundException(str(self.o))
+        elif len(game_srids) > 1:
+            raise self.SridGameMultipleSridsFoundException(str(self.o))
+        return game_srids[0]
+
     def find_player_stats(self):
         """
         extract player and game srids and return a list
@@ -885,13 +901,11 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         :return:
         """
 
-        player_srids = self.get_srids_for_field('player')
-        game_srids = list(set(self.get_srids_for_field('game__id')))
-        if len(game_srids) != 1:
-            # ambiguous, multiple unique game ids found - unexpected!
-            return []
+        game_srid       = self.get_srid_game('game__id')
 
-        game_srid = game_srids[0]
+        # we may find any number of player srids - including 0
+        player_srids    = self.get_srids_for_field('player')
+
         return self.player_stats_model.objects.filter(srid_game=game_srid,
                                                     srid_player__in=player_srids)
 
