@@ -4,6 +4,7 @@
 import re
 from django.core.cache import cache
 from mysite.celery_app import locking
+from django.utils import timezone
 from dataden.util.timestamp import Parse as DataDenDatetime
 from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
 from django.db.transaction import atomic
@@ -160,6 +161,19 @@ class AbstractDataDenParseable(object):
     def get_obj(self):
         return self.original_obj
 
+        self.start = None
+        self.stop = None
+
+    def timer_start(self):
+        self.start = timezone.now()
+
+    def timer_stop(self):
+        if self.start is None:
+            return
+        self.stop = timezone.now()
+        print((self.stop - self.start).total_seconds(), 'sec to parse')
+
+
     def parse(self, obj, target=None):
         """
         Subclasses should call super().parse(obj,target) which
@@ -195,6 +209,7 @@ class AbstractDataDenParseable(object):
         # because i want it to crash.
         return SiteSport.objects.get( name=sport_name )
 
+<<<<<<< HEAD
     def get_srids_for_field(self, fieldname):
         """
         returns a list of string "srids" (globally unique sportradar ids)
@@ -215,6 +230,9 @@ class AbstractDataDenParseable(object):
         if self.o is None:
             err_msg = 'call parse() before calling send()'
             raise self.DataDenParseableSendException(err_msg)
+=======
+
+>>>>>>> bf0c3b0e8d464eb1c4297c13a292d35d231dc11b
 
 class DataDenTeamHierarchy(AbstractDataDenParseable):
     """

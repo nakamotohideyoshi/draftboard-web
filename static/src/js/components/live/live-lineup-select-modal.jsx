@@ -103,25 +103,25 @@ const LiveLineupSelectModal = React.createClass({
     // const sportLineups = _.filter(
     //  this.props.lineups, (lineup) => lineup.draftGroup.sport === this.state.selectedSport
     // )
-    const lineups = this.props.entries.map((lineup) => {
-      const name = (lineup.name === undefined) ? 'Example Lineup Name' : lineup.name;
+    const entries = this.props.entries.map((entry) => {
+      const name = (entry.lineup_name === undefined) ? 'Example Lineup Name' : entry.lineup_name;
 
       return (
         <li
-          key={lineup.id}
+          key={entry.id}
           className="cmp-live-lineup-select__lineup"
-          onClick={this.selectLineup.bind(this, lineup)}
+          onClick={this.selectLineup.bind(this, entry)}
         >
           <h4 className="cmp-live-lineup-select__lineup__title">{name}</h4>
           <div className="cmp-live-lineup-select__lineup__sub">
-            {moment(lineup.start).format('MMM Do, h:mma')}
+            {moment(entry.start).format('MMM Do, h:mma')}
           </div>
         </li>
       );
     });
 
     return (
-      <ul>{lineups}</ul>
+      <ul>{entries}</ul>
     );
   },
 

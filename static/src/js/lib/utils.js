@@ -1,4 +1,11 @@
-import * as moment from 'moment'
+import moment from 'moment';
+
+
+/**
+ * Adjust datetime by the delta provided by Django. On production the delta is 0.
+ * @return {object} Moment.js object
+ */
+export const dateNow = () => new Date().getTime() - (window.dfs.replayerTimeDelta * 1000);
 
 
 /**
@@ -20,10 +27,9 @@ export function toTwoDigit(number) {
  * @return {Object} Hours, Minutes and Seconds remaining until the timestamp.
  */
 export function timeRemaining(timestamp) {
-  // difference between when the contest starts and now (in ms).
-  const diffTime = moment.utc(timestamp) - moment.utc()
+  const diffTime = moment.utc(timestamp) - moment(dateNow()).utc();
   // convert to a moment 'duration' so we can parse it out.
-  const duration = moment.duration(diffTime)
+  const duration = moment.duration(diffTime);
 
   // if the time has expired, then return all zeros
   if (diffTime < 0) {

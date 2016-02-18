@@ -1,13 +1,13 @@
-import _ from 'lodash';
-import moment from 'moment';
-import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
+import _ from 'lodash';
+import update from 'react-addons-update';
+import { dateNow } from '../lib/utils';
 
 
 module.exports = (state = {
   isFetching: false,
   hasRelatedInfo: false,
-  expiresAt: moment(),
+  expiresAt: dateNow(),
   items: [],
 }, action) => {
   switch (action.type) {

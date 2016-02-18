@@ -3,12 +3,12 @@ const request = require('superagent-promise')(require('superagent'), Promise);
 import _ from 'lodash';
 import Cookies from 'js-cookie';
 import { Buffer } from 'buffer/';
-import moment from 'moment';
 
 import * as ActionTypes from '../action-types';
 import { fetchDraftGroupIfNeeded } from './live-draft-groups';
 import { fetchPrizeIfNeeded } from './prizes';
 import { fetchGamesIfNeeded } from './sports';
+import { dateNow } from '../lib/utils';
 
 
 // dispatch to reducer methods
@@ -23,7 +23,7 @@ const confirmRelatedContestInfo = (id) => ({
   type: ActionTypes.CONFIRM_RELATED_LIVE_CONTEST_INFO,
   id,
   stats: {
-    updatedAt: Date.now(),
+    updatedAt: dateNow(),
   },
 });
 
@@ -74,7 +74,7 @@ const receiveContestLineups = (id, response, parsedLineups) => ({
   id,
   lineupBytes: response,
   lineups: parsedLineups,
-  expiresAt: Date.now() + 86400000,
+  expiresAt: dateNow() + 1000 * 60 * 60 * 24, // 1 day
 });
 
 /**
@@ -89,7 +89,7 @@ const receiveContestInfo = (id, response) => ({
   type: ActionTypes.RECEIVE_LIVE_CONTEST_INFO,
   id,
   info: response,
-  expiresAt: Date.now() + 86400000,
+  expiresAt: dateNow() + 1000 * 60 * 60 * 24, // 1 day
 });
 
 /**
@@ -112,7 +112,7 @@ const receiveContestLineupsUsernames = (id, response) => {
     type: ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS_USERNAMES,
     id,
     lineupsUsernames,
-    expiresAt: Date.now() + 86400000,
+    expiresAt: dateNow() + 1000 * 60 * 60 * 24, // 1 day
   };
 };
 
@@ -279,8 +279,12 @@ const shouldFetchContest = (liveContests, id) => {
 
   const contest = liveContests[id];
 
+  if (contest.hasOwnProperty('info') === false) {
+    return true;
+  }
+
   // if it hasn't started yet, don't bother getting lineups yet
-  if (contest.hasOwnProperty('info') && moment().isAfter(contest.info.start)) {
+  if (new Date(contest.info.start) < dateNow()) {
     return false;
   }
 
@@ -360,7 +364,7 @@ export const removeUnusedContests = () => (dispatch, getState) => {
     const id = contest.id;
 
     // if there are no lineups the group is related to, then remove
-    if (moment().isBefore(contest.expiresAt)) {
+    if (contest.expiresAt < dateNow()) {
       contestIds.push(id);
     }
   });
@@ -370,6 +374,6 @@ export const removeUnusedContests = () => (dispatch, getState) => {
   return dispatch({
     type: ActionTypes.REMOVE_LIVE_CONTESTS,
     ids: contestIds,
-    removedAt: Date.now(),
+    removedAt: dateNow(),
   });
 };

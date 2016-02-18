@@ -223,6 +223,7 @@ class QuarterPbp(DataDenPbpDescription):
         self.KEY_GAME_ID = 'game__id'
 
     def parse(self, obj, target=None):
+        self.timer_start()
         super().parse( obj, target )
 
         if self.game is None:
@@ -264,6 +265,7 @@ class QuarterPbp(DataDenPbpDescription):
             idx += 1
 
             # EventPbp will take care of saving the 'description' field
+        self.timer_stop()
 
 class EventPbp(DataDenPbpDescription):
 
@@ -280,9 +282,13 @@ class EventPbp(DataDenPbpDescription):
         super().__init__()
 
     def parse(self, obj, target=None):
+<<<<<<< HEAD
         # since we dont call super().parse() in this class
         self.original_obj = obj
         self.srid_finder = SridFinder(obj.get_o())
+=======
+        #self.timer_start()
+>>>>>>> bf0c3b0e8d464eb1c4297c13a292d35d231dc11b
         #
         # dont need to call super for EventPbp - just get the event by srid.
         # if it doesnt exist dont do anything, else set the description
@@ -311,6 +317,7 @@ class EventPbp(DataDenPbpDescription):
         else:
             #print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
             pass
+        #self.timer_stop()
 
     # def send(self):
     #     """
@@ -448,10 +455,10 @@ class DataDenNba(AbstractDataDenParser):
         #
         # nba.period
         elif self.target == ('nba.quarter','pbp'):
-            QuarterPbp().parse( obj )
-            # force = False allows it to be delayed (attempt to link it to statss for a few seconds)
-            PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'quarter' ).send( obj ) # use Pusher to send this object after DB entry created
-            self.add_pbp( obj ) # stashes the pbp object for the trailing history
+            # QuarterPbp().parse( obj )
+            # PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'quarter' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
+            # self.add_pbp( obj ) # stashes the pbp object for the trailing history
+            pass # i dont think we need to parse this!
         #
         # nba.event
         elif self.target == ('nba.event','pbp'):
