@@ -216,6 +216,7 @@ class AbstractDataDenParseable(object):
         using regular expressions, get the srids for the named field.
         for example: if fieldname is 'game__id', get every game srid found.
         """
+        #print( fieldname, str(self.srid_finder.get_for_field(fieldname)))
         return self.srid_finder.get_for_field(fieldname)
 
     def send(self):
