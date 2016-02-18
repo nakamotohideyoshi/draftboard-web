@@ -51,4 +51,4 @@ class TestEventPbp(AbstractTest):
 
         # we are going to use the list of player srids for the PlayerStats filter()
         player_srids = event_pbp.get_srids_for_field(self.player_srid_field)
-        self.assertEquals( set(player_srids), set(self.target_player_srids) )
+        self.assertTrue( set(self.target_player_srids) <= set(player_srids) )
