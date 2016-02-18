@@ -55,8 +55,21 @@ export const matchFilter = (collection, filterProperty, match) => _filter(collec
     return true;
   }
 
-  // Get an array of matches.
-  const matches = _filter(match, (matchItem) => matchItem.toLowerCase() === item[filterProperty].toLowerCase());
+  // If we have a string, just check for equality.
+  // We will have a string as a match for sport matching in the lobby. ex: 'nba'
+  if (typeof match === 'string') {
+    return match.toLowerCase() === item[filterProperty].toLowerCase();
+  }
+
+  // If we have an array as a match, check each element for equality individually and return an
+  // array of matches.
+  //
+  // We will have an array as a match for position matching in the draft section ex: ['pg', 'sg']
+  const matches = _filter(
+    match,
+    (matchItem) => matchItem.toLowerCase() === item[filterProperty].toLowerCase()
+  );
+
   // If the array contains a match, return true.
   return matches.length > 0;
 });

@@ -52,10 +52,12 @@ const MessageDisplayMessage = React.createClass({
     return (
       <div className={`message ${this.props.message.level}`}>
         <div className="message-content">
-          <h3
-            className="header"
-            dangerouslySetInnerHTML={this.createMarkupFromContent(this.props.message.header)}
-          ></h3>
+          <h3 className="header">
+            <span
+              className="text"
+              dangerouslySetInnerHTML={this.createMarkupFromContent(this.props.message.header)}
+            ></span>
+          </h3>
 
           <div
             className="content"

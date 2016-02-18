@@ -118,6 +118,12 @@ const calculateTimeRemaining = (sport, game) => {
     return sportDurations.gameMinutes;
   }
 
+  // if the game is done, then set to 0
+  const endOfGameStatuses = ['completed', 'closed'];
+  if (endOfGameStatuses.indexOf(boxScore.status) > -1) {
+    return 0;
+  }
+
   const currentQuarter = boxScore.quarter;
   const clockMinSec = boxScore.clock.split(':');
 
