@@ -1,6 +1,7 @@
 #
 # sports/sport/base_parser.py
 
+from django.utils import timezone
 from dataden.util.timestamp import Parse as DataDenDatetime
 from dataden.cache.caches import PlayByPlayCache
 from django.db.transaction import atomic
@@ -62,6 +63,19 @@ class AbstractDataDenParseable(object):
         self.o      = None
         self.wrapped = wrapped
 
+        self.start = None
+        self.stop = None
+
+    def timer_start(self):
+        self.start = timezone.now()
+
+    def timer_stop(self):
+        if self.start is None:
+            return
+        self.stop = timezone.now()
+        print((self.stop - self.start).total_seconds(), 'sec to parse')
+
+
     def parse(self, obj, target=None):
         """
         Subclasses should call super().parse(obj,target) which
@@ -90,6 +104,8 @@ class AbstractDataDenParseable(object):
         # if this excepts, i dont want to catch the exception
         # because i want it to crash.
         return SiteSport.objects.get( name=sport_name )
+
+
 
 class DataDenTeamHierarchy(AbstractDataDenParseable):
     """

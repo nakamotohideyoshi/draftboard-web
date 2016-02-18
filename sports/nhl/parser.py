@@ -289,8 +289,9 @@ class DataDenNhl(AbstractDataDenParser):
         #
         # nhl.period
         elif self.target == ('nhl.period','pbp'):
-            PeriodPbp().parse( obj )
-            push.classes.PbpDataDenPush( push.classes.PUSHER_NHL_PBP, 'period' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            #PeriodPbp().parse( obj )
+            #push.classes.PbpDataDenPush( push.classes.PUSHER_NHL_PBP, 'period' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            pass # i dont think we need to parse this
         #
         # nhl.event
         elif self.target == ('nhl.event','pbp'):

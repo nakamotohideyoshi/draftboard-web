@@ -513,7 +513,7 @@ class ReplayManager(object):
         total_updates = updates.count()
         for update in updates:
             i += 1
-            print( '%s of %s -' % (str(i), str(total_updates)), update.o[:75], '...' )
+            print( '%s of %s -' % (str(i), str(total_updates)), update.o[:75], '...' ) #update.o[:75]
             ns_parts    = update.ns.split('.') # split namespace on dot for db and coll
             db          = ns_parts[0]
             collection  = ns_parts[1]
