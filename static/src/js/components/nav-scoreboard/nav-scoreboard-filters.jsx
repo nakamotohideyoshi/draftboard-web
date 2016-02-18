@@ -99,7 +99,21 @@ const NavScoreboardFilters = React.createClass({
           onMouseEnter={this.handleMenuShow}
           onMouseLeave={this.handleMenuLeave}
         >
-          <div className="select-list--selected">{this.props.selected}</div>
+          <div className="select-list--selected">
+            {this.props.selected}
+            <svg
+              className="icon icon-arrow down-arrow-icon"
+              height="7"
+              onClick={this.handleScrollRight}
+              viewBox="0 0 16 16"
+              width="7"
+            >
+              <g>
+                <line strokeWidth="2.5" x1="10.3" y1="2.3" x2="4.5" y2="8.1" />
+                <line strokeWidth="2.5" x1="3.6" y1="7.3" x2="10.1" y2="13.8" />
+              </g>
+            </svg>
+          </div>
           <ul className={`select-list--options${(this.state.expanded ? ' visible' : '')}`}>
             <div className="arrow-up"></div>
             {items}

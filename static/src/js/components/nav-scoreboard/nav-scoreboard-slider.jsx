@@ -106,11 +106,19 @@ const NavScoreboardSlider = React.createClass({
   render() {
     return (
       <div className="cmp-nav-scoreboard--slider">
-        <div className="arrow">
+        <div className="arrow" onClick={this.handleScrollLeft}>
           <NavScoreboardSeparator />
-          <div className="left-arrow-icon"
-            onClick={this.handleScrollLeft}
-          />
+          <svg
+            className="icon icon-arrow left-arrow-icon"
+            height="10"
+            viewBox="0 0 16 16"
+            width="10"
+          >
+            <g>
+              <line strokeWidth="2.5" x1="10.3" y1="2.3" x2="4.5" y2="8.1" />
+              <line strokeWidth="2.5" x1="3.6" y1="7.3" x2="10.1" y2="13.8" />
+            </g>
+          </svg>
           <NavScoreboardSeparator />
           <div className="cmp-nav-scoreboard--shadow"></div>
         </div>
@@ -119,11 +127,19 @@ const NavScoreboardSlider = React.createClass({
             {this.props.children}
           </div>
         </div>
-        <div className="arrow right">
+        <div className="arrow right" onClick={this.handleScrollRight}>
           <NavScoreboardSeparator />
-          <div className="right-arrow-icon"
-            onClick={this.handleScrollRight}
-          />
+          <svg
+            className="icon icon-arrow right-arrow-icon"
+            height="10"
+            viewBox="0 0 16 16"
+            width="10"
+          >
+            <g>
+              <line strokeWidth="2.5" x1="10.3" y1="2.3" x2="4.5" y2="8.1" />
+              <line strokeWidth="2.5" x1="3.6" y1="7.3" x2="10.1" y2="13.8" />
+            </g>
+          </svg>
           <NavScoreboardSeparator />
           <div className="cmp-nav-scoreboard--shadow right"></div>
         </div>
