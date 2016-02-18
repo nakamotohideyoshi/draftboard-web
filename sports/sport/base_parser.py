@@ -209,7 +209,6 @@ class AbstractDataDenParseable(object):
         # because i want it to crash.
         return SiteSport.objects.get( name=sport_name )
 
-<<<<<<< HEAD
     def get_srids_for_field(self, fieldname):
         """
         returns a list of string "srids" (globally unique sportradar ids)
@@ -230,9 +229,6 @@ class AbstractDataDenParseable(object):
         if self.o is None:
             err_msg = 'call parse() before calling send()'
             raise self.DataDenParseableSendException(err_msg)
-=======
-
->>>>>>> bf0c3b0e8d464eb1c4297c13a292d35d231dc11b
 
 class DataDenTeamHierarchy(AbstractDataDenParseable):
     """
