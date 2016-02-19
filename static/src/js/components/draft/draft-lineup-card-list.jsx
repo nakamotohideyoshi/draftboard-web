@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactRedux from 'react-redux';
+import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import LineupCard from '../lineup/lineup-card.jsx';
 import DraftNewLineupCard from './draft-new-lineup-card.jsx';
