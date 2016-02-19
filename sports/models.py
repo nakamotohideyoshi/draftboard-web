@@ -274,6 +274,9 @@ class Player(models.Model):
 
     season_fppg     = models.FloatField(null=False, default=0.0)
 
+    lineup_nickname = models.CharField(max_length=64, default='', editable=True, blank=True,
+                         help_text='sets the the automatically generated name for lineups using this player' )
+
     def remove_injury(self):
         """
         Remove the injury, if one exists.

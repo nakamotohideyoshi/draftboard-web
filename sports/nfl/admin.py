@@ -4,6 +4,7 @@
 from django.contrib import admin
 import sports.admin
 import sports.nfl.models
+from django import forms
 
 @admin.register(sports.nfl.models.Team)
 class TeamAdmin(admin.ModelAdmin):
@@ -19,6 +20,28 @@ class PlayerAdmin(sports.admin.PlayerAdmin):
 
     list_filter     = sports.admin.PlayerAdmin.list_filter   # + ('',)
     search_fields   = sports.admin.PlayerAdmin.search_fields # + ('more','specific','fields...',)
+
+@admin.register(sports.nfl.models.PlayerLineupName)
+class PlayerLineupNameAdmin(admin.ModelAdmin):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.list_display_links = (None, )
+
+    lineup_nickname = forms.CharField( widget=forms.Textarea )
+
+    list_display    = sports.admin.PlayerLineupName.list_display
+    list_filter     = sports.admin.PlayerLineupName.list_filter
+    search_fields   = sports.admin.PlayerLineupName.search_fields
+    list_editable   = sports.admin.PlayerLineupName.list_editable
+
+    list_per_page   = 15
+
+    def has_add_permission(self, request): # removes Add button
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 @admin.register(sports.nfl.models.PlayerStats)
 class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):

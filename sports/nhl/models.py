@@ -77,6 +77,11 @@ class Player( sports.models.Player ):
     class Meta:
         abstract = False
 
+class PlayerLineupName( Player ):
+
+    class Meta:
+        proxy = True
+
 class PlayerStats( sports.models.PlayerStats ):
 
     # must override parent SCORING_FIELDS

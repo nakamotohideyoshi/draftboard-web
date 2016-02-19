@@ -170,6 +170,7 @@ class LineupManager(AbstractSiteUserClass):
         lineup.save()
 
         i = 0
+        highest_salary_player = None
         for player in players:
             lineup_player = LineupPlayer()
             lineup_player.player                = player
@@ -179,6 +180,15 @@ class LineupManager(AbstractSiteUserClass):
             lineup_player.idx                   = i
             lineup_player.save()
             i += 1
+
+            if highest_salary_player is None:
+                highest_salary_player = lineup_player.draft_group_player
+            elif lineup_player.draft_group_player.salary > highest_salary_player.salary:
+                highest_salary_player = lineup_player.draft_group_player
+
+        if lineup.name == '' and highest_salary_player.salary_player.player.lineup_nickname != '':
+            lineup.name = highest_salary_player.salary_player.player.lineup_nickname
+            lineup.save()
 
         self.__merge_lineups(lineup)
         return lineup
