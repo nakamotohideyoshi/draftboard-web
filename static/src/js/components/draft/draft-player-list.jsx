@@ -2,6 +2,7 @@ import 'babel-core/polyfill';
 import React from 'react';
 import ReactRedux from 'react-redux';
 import store from '../../store';
+import log from '../../lib/logging.js';
 import renderComponent from '../../lib/render-component';
 import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
@@ -189,9 +190,16 @@ const DraftPlayerList = React.createClass({
       } else if (this.props.params.lineupAction === 'edit' && this.props.params.lineupId) {
         // if we're editing...
         const lineup = this.props.lineups[this.props.params.lineupId];
-        this.props.importLineup(lineup, true);
-        this.props.editLineupInit(this.props.params.lineupId);
+        // Make sure we have the requested lineup.
+        if (lineup) {
+          this.props.importLineup(lineup, true);
+          this.props.editLineupInit(this.props.params.lineupId);
+        } else {
+          log.error(`lineup #${this.props.params.lineupId} not found.`);
+        }
       }
+    }).catch((reason) => {
+      log.error(reason);
     });
   },
 
