@@ -153,6 +153,7 @@ const DraftLineupCardList = React.createClass({
           removePlayer={this.props.removePlayer}
           saveLineup={this.handleSaveLineup}
           handlePlayerClick={this.handlePlayerClick}
+          sport={this.props.sport}
         />
 
         {lineups}

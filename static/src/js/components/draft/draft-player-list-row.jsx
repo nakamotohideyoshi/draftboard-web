@@ -14,6 +14,7 @@ import { find as _find } from 'lodash';
 const DraftPlayerListRow = React.createClass({
 
   propTypes: {
+    playerImagesBaseUrl: React.PropTypes.string.isRequired,
     row: React.PropTypes.object.isRequired,
     focusPlayer: React.PropTypes.func,
     draftPlayer: React.PropTypes.func,
@@ -119,7 +120,13 @@ const DraftPlayerListRow = React.createClass({
           {this.getDraftButton()}
         </td>
         <td className="position">{this.props.row.position}</td>
-        <td className="photo"><img src="/static/src/img/temp/PAM_90212.png" width="auto" height="35px" /></td>
+        <td className="photo">
+          <img
+            src={`${this.props.playerImagesBaseUrl}/120/${this.props.row.player_srid}.png`}
+            width="auto"
+            height="35px"
+          />
+        </td>
         <td className="name">
           <span className="player">{this.props.row.name} </span>
           <span className="team">{this.props.row.team_alias}</span>

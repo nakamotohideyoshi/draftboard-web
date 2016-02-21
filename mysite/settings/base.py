@@ -65,6 +65,7 @@ TEMPLATES = [
                 'mysite.context_processors.pusher_key',
                 'mysite.context_processors.pusher_channel_prefix',
                 'mysite.context_processors.delta_now_prefix',
+                'mysite.context_processors.player_images_url',
             )
         }
     },
@@ -92,6 +93,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 # Static assets, served via django-whitenoise
 STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/build/'
+PLAYER_IMAGES_URL = 'http://djh3pixt0wof0.cloudfront.net'
 
 # Redirects to same URL with end slash if it can't find the page
 APPEND_SLASH = True

@@ -614,6 +614,7 @@ const Live = React.createClass({
               mode={mode}
               playersPlaying={this.state.playersPlaying}
               relevantPlayerHistory={this.state.relevantPlayerHistory}
+              sport={myLineup.draftGroup.sport}
               whichSide="opponent"
             />
           );
@@ -640,6 +641,7 @@ const Live = React.createClass({
             mode={mode}
             playersPlaying={this.state.playersPlaying}
             relevantPlayerHistory={this.state.relevantPlayerHistory}
+            sport={myLineup.draftGroup.sport}
             whichSide="mine"
           />
 

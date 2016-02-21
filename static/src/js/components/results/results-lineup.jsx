@@ -7,6 +7,7 @@ const ResultsLineup = React.createClass({
   propTypes: {
     id: React.PropTypes.number.isRequired,
     name: React.PropTypes.string,
+    sport: React.PropTypes.string.isRequired,
     players: React.PropTypes.arrayOf(
       React.PropTypes.shape({
         player_id: React.PropTypes.number.isRequired,
@@ -68,16 +69,15 @@ const ResultsLineup = React.createClass({
   },
 
   renderLineup() {
+    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}/120`;
+
     const players = this.props.players.map((player) => (
       <div key={player.id} className="player">
         <span className="position">{player.roster_spot}</span>
-        <span className="image"
-          style={{
-            // TODO:
-            // backgroundImage: "url('" + player.image + "')"
-          }}
-        >
-        </span>
+        <img
+          className="image"
+          src={`${playerImagesBaseUrl}/${player.player_meta.srid}.png`}
+        />
         <span className="name">{player.full_name}</span>
         <span className="score">{player.fantasy_points.toFixed(2)}</span>
       </div>

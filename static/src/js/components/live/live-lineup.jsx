@@ -19,6 +19,7 @@ const LiveLineup = React.createClass({
     mode: React.PropTypes.object.isRequired,
     playersPlaying: React.PropTypes.array.isRequired,
     relevantPlayerHistory: React.PropTypes.object.isRequired,
+    sport: React.PropTypes.string.isRequired,
     whichSide: React.PropTypes.string.isRequired,
   },
 
@@ -86,6 +87,7 @@ const LiveLineup = React.createClass({
       const playerSRID = player.info.player_srid;
       const isPlaying = this.props.playersPlaying.indexOf(playerSRID) !== -1;
       const eventDescription = this.props.eventDescriptions[playerSRID] || undefined;
+      const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}/380`;
 
       return (
         <LiveLineupPlayer
@@ -94,6 +96,7 @@ const LiveLineup = React.createClass({
           isPlaying={isPlaying}
           openPlayerPane={this.openPlayerPane.bind(this, playerId)}
           player={player}
+          playerImagesBaseUrl={playerImagesBaseUrl}
           whichSide={this.props.whichSide}
         />
       );
@@ -125,10 +128,11 @@ const LiveLineup = React.createClass({
 
     return (
       <LivePlayerPane
-        whichSide={this.props.whichSide}
-        player={player}
         eventHistory={history}
         game={game}
+        player={player}
+        playerImagesBaseUrl={`${window.dfs.playerImagesBaseUrl}/${this.props.sport}/380`}
+        whichSide={this.props.whichSide}
       />
     );
   },

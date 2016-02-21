@@ -359,6 +359,7 @@ const DraftPlayerDetail = React.createClass({
 
     const player = this.props.player;
     const tabNav = this.getTabNav();
+    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.player.sport}`;
 
     return (
       <div className="draft-player-detail player-detail-pane">
@@ -368,7 +369,12 @@ const DraftPlayerDetail = React.createClass({
         ></div>
         <div className="pane-upper">
           <div className="header-section">
-            <div className="header__player-image" />
+            <div className="header__player-image">
+              <img
+                height="190"
+                src={`${playerImagesBaseUrl}/380/${this.props.player.player_srid}.png`}
+              />
+            </div>
 
             <div className="header__team-role">
               {player.teamCity} {player.teamName} - {player.position}
