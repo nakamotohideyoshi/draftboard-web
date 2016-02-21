@@ -73,14 +73,17 @@
 
 
     .header__player-image {
-      // TEMP background
-      background: url(../img/temp/live-player-pane--lebron.png) no-repeat bottom right;
-      background-size: auto 190px;
       height: 190px;
       width: 232px;
       position: absolute;
       bottom: 0;
       right: 0;
+      overflow: hidden;
+
+      img {
+        display: block;
+        left: 48%;
+      }
     }
   }
 

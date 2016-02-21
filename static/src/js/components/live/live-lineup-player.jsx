@@ -11,6 +11,7 @@ const LiveLineupPlayer = React.createClass({
     isPlaying: React.PropTypes.bool.isRequired,
     openPlayerPane: React.PropTypes.func.isRequired,
     player: React.PropTypes.object.isRequired,
+    playerImagesBaseUrl: React.PropTypes.string.isRequired,
     whichSide: React.PropTypes.string.isRequired,
   },
 
@@ -66,13 +67,17 @@ const LiveLineupPlayer = React.createClass({
 
   renderPhotoAndHover() {
     const decimalRemaining = this.props.player.stats.decimalRemaining;
-
-    // TODO Live - remove when we have player images
-    const playerInitials = this.props.player.info.name.match(/\b(\w)/g).join('');
+    const playerImage = `${this.props.playerImagesBaseUrl}/${this.props.player.info.player_srid}.png`;
 
     return (
       <div key="1" className="live-lineup-player__circle">
-        <div className="live-lineup-player__photo" />
+        <div className="live-lineup-player__photo">
+          <img
+            width="62"
+            src={playerImage}
+          />
+        </div>
+
         <LivePMRProgressBar
           decimalRemaining={decimalRemaining}
           strokeWidth={2}
@@ -81,9 +86,6 @@ const LiveLineupPlayer = React.createClass({
           hexEnd="2871AC"
           svgWidth={50}
         />
-        <div className="live-lineup-player__initials">
-          {playerInitials}
-        </div>
         {this.renderGameStats()}
       </div>
     );

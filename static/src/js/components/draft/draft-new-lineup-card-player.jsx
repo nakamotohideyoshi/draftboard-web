@@ -10,6 +10,7 @@ const DraftNewLineupCardPlayer = React.createClass({
   propTypes: {
     // A player row object.
     player: React.PropTypes.object.isRequired,
+    playerImagesBaseUrl: React.PropTypes.string.isRequired,
     // What happens when the delete button is clicked.
     removePlayer: React.PropTypes.func.isRequired,
     onPlayerClick: React.PropTypes.func,
@@ -24,7 +25,11 @@ const DraftNewLineupCardPlayer = React.createClass({
         <li className="cmp-lineup-card__player occupied" key={this.props.player.idx}>
           <span className="cmp-lineup-card__position">{this.props.player.name}</span>
           <span className="cmp-lineup-card__photo">
-            <img src="/static/src/img/temp/PAM_90212.png" width="auto" height="35px" />
+            <img
+              src={`${this.props.playerImagesBaseUrl}/120/${this.props.player.player.player_srid}.png`}
+              width="auto"
+              height="35px"
+            />
           </span>
           <span
             className="cmp-lineup-card__name-salary"
