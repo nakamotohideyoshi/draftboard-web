@@ -104,6 +104,11 @@ class Player( sports.models.Player ):
     class Meta:
         abstract = False
 
+class PlayerLineupName( Player ):
+
+    class Meta:
+        proxy = True
+
 class PlayerStats( sports.models.PlayerStats ):
     """
     Model for all of a players statistics in a unique game.

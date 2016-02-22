@@ -14,7 +14,7 @@ import { find as _find } from 'lodash';
 // A place to store setInterval IDs. This should probably be put in the store instead.
 const entryMonitors = [];
 // When polling, how many milleseconds should we continue to poll for before giving up?
-const maxRetrytime = 10000; // 10 seconds
+const maxRetrytime = 5000; // 5 seconds
 // How often should we attemt to re-poll?
 const minimumPollInterval = 250;
 

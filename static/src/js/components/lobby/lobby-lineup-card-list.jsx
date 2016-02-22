@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDom from 'react-dom';
 import ReactRedux from 'react-redux';
+import { find as _find } from 'lodash';
 import store from '../../store';
 import LineupCard from '../lineup/lineup-card.jsx';
 import renderComponent from '../../lib/render-component';
@@ -115,18 +116,14 @@ const LineupCardList = React.createClass({
       // We'll need a reference to the card in order to get it's DOM element and scroll to it when
       // it gets focused.
       const refName = `lineup-${lineup.id}`;
-      let draftGroupInfo = {};
-
-      if (this.props.draftGroupInfo.draftGroups.hasOwnProperty(lineup.draft_group)) {
-        draftGroupInfo = this.props.draftGroupInfo.draftGroups[lineup.draft_group];
-      }
-
+      const lineupInfo = _find(this.props.lineupsInfo, { id: lineup.id });
+      const draftGroupInfo = _find(this.props.draftGroupInfo.draftGroups, { pk: lineup.draft_group });
       let entries;
       let fees;
 
-      if (this.props.lineupsInfo.hasOwnProperty(lineup.id)) {
-        fees = this.props.lineupsInfo[lineup.id].fees;
-        entries = this.props.lineupsInfo[lineup.id].entries;
+      if (lineupInfo) {
+        fees = lineupInfo.fees;
+        entries = lineupInfo.entries;
       }
 
       return (

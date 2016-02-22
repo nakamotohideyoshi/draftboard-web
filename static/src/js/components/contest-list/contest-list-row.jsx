@@ -41,6 +41,11 @@ const ContestListRow = React.createClass({
   },
 
 
+  ignoreClick(e) {
+    e.stopPropagation();
+  },
+
+
   handleRowClick() {
     this.props.setFocusedContest(this.props.row);
   },
@@ -102,6 +107,14 @@ const ContestListRow = React.createClass({
             onEnterClick={this.props.enterContest}
             onEnterSuccess={this.close}
           />
+
+          <a
+            className="button button--gradient--background draft-button"
+            href={`/draft/${this.props.row.draft_group}/`}
+            onClick={this.ignoreClick}
+          >
+            Draft
+          </a>
         </td>
       </tr>
     );

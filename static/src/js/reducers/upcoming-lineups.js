@@ -16,8 +16,9 @@ module.exports = (state = initialState, action) => {
       // Grab the first lineup in our object and set it as focused.
       let focusedLineupId;
       if (action.lineups && Object.keys(action.lineups).length > 0) {
-        focusedLineupId = action.lineups[Object.keys(action.lineups)[0]].id;
+        focusedLineupId = action.lineups[Object.keys(action.lineups)[Object.keys(action.lineups).length - 1]].id;
       }
+
 
       // Return a copy of the previous state with our new things added to it.
       return Object.assign({}, state, {

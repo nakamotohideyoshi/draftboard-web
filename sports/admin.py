@@ -15,10 +15,17 @@ class PlayerAdmin(admin.ModelAdmin):
     """
     inherited by sub module sports like nfl, nba, mlb, nhl
     """
-    list_display    = ['srid','team','position','first_name','last_name']
+    list_display    = ['first_name','last_name','position','team','srid']
 
     list_filter     = ['first_name','last_name','team','position']
     search_fields   = ['srid','first_name','last_name','position__name']
+
+class PlayerLineupName(admin.ModelAdmin):
+
+    list_display    = ['first_name','last_name','lineup_nickname']
+    list_filter     = ['first_name','last_name','lineup_nickname']
+    search_fields   = ['first_name','last_name','position__name','lineup_nickname']
+    list_editable   = ['lineup_nickname']
 
 # class PlayerStatsAdmin(admin.ModelAdmin):
 #     """

@@ -64,7 +64,7 @@ class CreateLineupAPIView(generics.CreateAPIView):
             )
 
         try:
-            lineup = lm.create_lineup( players, draft_group, name)
+            lineup = lm.create_lineup( players, draft_group, name )
         except CreateLineupExpiredDraftgroupException:
             return Response(
                 'You can no longer create lineups for this draft group',
@@ -200,6 +200,11 @@ class EditLineupAPIView(generics.CreateAPIView):
         except Lineup.DoesNotExist:
             return Response({'error':'invalid "lineup" parameter -- does not existt'},
                                         status=status.HTTP_400_BAD_REQUEST )
+        #
+        # change the lineups name if it differs from the existing name
+        if lineup.name != name:
+            lineup.name = name
+            lineup.save()
 
         #
         # call task
@@ -267,8 +272,10 @@ class UserUpcomingAPIView(AbstractLineupAPIView):
         """
         get the Lineup objects
         """
-        return Lineup.objects.filter( user=self.request.user,
-                                      draft_group__start__gt=timezone.now() )
+        return Lineup.objects.filter(
+            user=self.request.user,
+            draft_group__start__gt=timezone.now()
+        ).order_by('-updated')
 
 
 class UserLiveAPIView(AbstractLineupAPIView):

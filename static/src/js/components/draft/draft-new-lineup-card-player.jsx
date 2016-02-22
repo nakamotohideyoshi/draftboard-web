@@ -26,7 +26,6 @@ const DraftNewLineupCardPlayer = React.createClass({
           <span className="cmp-lineup-card__photo">
             <img src="/static/src/img/temp/PAM_90212.png" width="auto" height="35px" />
           </span>
-
           <span
             className="cmp-lineup-card__name-salary"
             onClick={this.props.onPlayerClick.bind(null, this.props.player.player.player_id)}
@@ -55,8 +54,17 @@ const DraftNewLineupCardPlayer = React.createClass({
     return (
       <li className="cmp-lineup-card__player vacant" key={this.props.player.idx}>
         <span className="cmp-lineup-card__position">{this.props.player.name}</span>
-        <span className="cmp-lineup-card__photo-empty"><span className="photo"></span></span>
-        <span className="cmp-lineup-card__name">&nbsp;</span>
+        <span className="cmp-lineup-card__photo">
+          <img src="/static/src/img/blocks/draft-list/lineup-no-player.png" width="auto" height="35px" />
+        </span>
+        <span className="cmp-lineup-card__name-salary">
+          <span className="name">
+            &nbsp;
+            <span className="cmp-lineup-card__team">&nbsp;</span>
+          </span>
+          <span className="salary">&nbsp;</span>
+        </span>
+
         <span className="cmp-lineup-card__average">&nbsp;</span>
       </li>
     );
