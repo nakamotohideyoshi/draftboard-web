@@ -166,10 +166,12 @@ const LiveOverallStats = React.createClass({
       potentialEarnings = lineup.potentialEarnings || 0;
     }
 
-    if (potentialEarnings !== 0) {
-      potentialEarnings = `$${potentialEarnings.toFixed(2)}`;
-    } else {
+    if (lineup.id === 1) {
       potentialEarnings = 'N/A';
+    } else if (potentialEarnings === 0) {
+      potentialEarnings = `$${potentialEarnings}`;
+    } else {
+      potentialEarnings = `$${potentialEarnings.toFixed(2)}`;
     }
 
     return (

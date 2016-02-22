@@ -246,6 +246,7 @@ const DraftPlayerList = React.createClass({
 
   render() {
     const self = this;
+    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${self.props.sport}`;
     let gameCount = '';
     if (this.props.draftGroupTime) {
       gameCount = `${Object.keys(this.props.activeDraftGroupBoxScores).length} Games`;
@@ -258,6 +259,7 @@ const DraftPlayerList = React.createClass({
       visibleRows.push(
         <PlayerListRow
           key={row.player_id}
+          playerImagesBaseUrl={playerImagesBaseUrl}
           row={row}
           focusPlayer={self.props.focusPlayer}
           draftPlayer={self.props.draftPlayer}

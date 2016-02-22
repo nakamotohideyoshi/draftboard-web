@@ -56,10 +56,6 @@
         -moz-background-size: 100% 2px;
         background-size: 100% 2px;
         background-image: linear-gradient(to right, #214e9d 0%, #34b4cc 100%), linear-gradient(to right, #214e9d 0%, #34b4cc 100%);
-
-        .lineup--score-earnings {
-          color: #25c462;
-        }
       }
 
       .overlay {
@@ -110,6 +106,10 @@
         display: inline-block;
         color: #737A8A;
         /* color: #25A758; -> active*/
+
+        &.in-the-money {
+          color: #25c462;
+        }
       }
     }
   }
