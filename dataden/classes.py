@@ -522,6 +522,9 @@ class Season(DataDen):
             raise self.SeasonNotFoundException('no seasons for %s' % title )
 
         if seasons_found.count() >= 2:
+            for season_found in seasons_found:
+                print('')
+                print(str(season_found))
             raise self.MultipleSeasonObjectsReturnedException('more than 1 season for %s' % title)
 
     def get_seasons(self, season):
@@ -585,7 +588,7 @@ class MlbSeason(Season):
             self.season_type_field : self.season_type_reg,
             self.season_year_field : int(season),
         }
-        seasons = self.find(self.sport, self.schedule_collection, self.parent_api)
+        seasons = self.find(self.sport, self.schedule_collection, self.parent_api, target=target)
         # a little error checking to ensure we have the object we want (and only 1 of them)
         self.validate_season(season, seasons)
 
