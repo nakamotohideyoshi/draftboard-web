@@ -6,6 +6,7 @@ const LineupCardPlayer = React.createClass({
 
   propTypes: {
     player: React.PropTypes.object.isRequired,
+    playerImagesBaseUrl: React.PropTypes.string.isRequired,
   },
 
   render() {
@@ -13,7 +14,11 @@ const LineupCardPlayer = React.createClass({
       <li className="cmp-lineup-card__player">
         <span className="cmp-lineup-card__position">{this.props.player.roster_spot}</span>
         <span className="cmp-lineup-card__photo">
-          <img src="/static/src/img/temp/PAM_90212.png" width="auto" height="35px" />
+          <img
+            src={`${this.props.playerImagesBaseUrl}/120/${this.props.player.player_meta.srid}.png`}
+            width="auto"
+            height="35px"
+          />
         </span>
         <span className="cmp-lineup-card__name">
           {this.props.player.player_meta.first_name[0]}.

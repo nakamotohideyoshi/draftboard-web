@@ -1,6 +1,5 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
-import log from '../../lib/logging.js';
 
 
 /**
@@ -23,11 +22,9 @@ const NavScoreboardLineup = React.createClass({
       formattedStart,
       minutesRemaining,
       points,
-      totalPotentialEarnings,
     } = this.props.lineup;
 
-    log.warn(this.props.lineup);
-
+    const totalPotentialEarnings = this.props.lineup.totalPotentialEarnings || 0;
     const sport = this.props.lineup.draftGroup.sport;
 
     let { name } = this.props.lineup;

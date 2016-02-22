@@ -46,6 +46,10 @@ export const rankContestLineups = (contest, draftGroup, games, prizeStructure, r
     if ('ranks' in prizeStructure && parseInt(index, 10) in prizeStructure.ranks) {
       lineupStats.potentialEarnings = prizeStructure.ranks[index].value;
     }
+
+    if (lineupStats.potentialEarnings !== 0) {
+      lineupStats.potentialEarnings = lineupStats.potentialEarnings;
+    }
   });
 
   return {
@@ -108,6 +112,7 @@ export const liveContestsSelector = createSelector(
       // if undefined and we're still trying, then return. occurs when cached for days
       if (draftGroup === undefined) {
         log.trace('liveContestsSelector() - draftGroup is undefined for contest', id);
+        contestsStats[id] = stats;
         return;
       }
 

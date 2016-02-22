@@ -249,12 +249,13 @@ $results-selected-text-color: #2bb677;
             color: $results-fg-text-color;
             font-size: 9px;
             text-transform: uppercase;
+            min-width: 10px;
+            display: inline-block;
           }
           .image {
             display: inline-block;
             margin: 0 10px;
-            background: #dee0e8 url('../img/blocks/results/avatar.png') no-repeat center center;
-            background-size: 31px 25px;
+            background: #dee0e8;
             width: 25px;
             height: 25px;
             border-radius: 20px;

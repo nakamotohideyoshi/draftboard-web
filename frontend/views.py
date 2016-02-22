@@ -44,7 +44,7 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
         opponent_lineup_id = kwargs['opponent_lineup_id'] if 'opponent_lineup_id' in kwargs else None
         if opponent_lineup_id:
             # if 1 then we know it's the villian watch
-            if opponent_lineup_id is not '1' and contest.entry_set.filter(lineup__pk=opponent_lineup_id).count() == 0:
+            if opponent_lineup_id is not '1' and Entry.objects.filter(contest__id=contest_id, lineup__pk=opponent_lineup_id).count() == 0:
                 return HttpResponseRedirect(reverse('frontend:live-contest-mode', kwargs={
                     'lineup_id': lineup_id,
                     'contest_id': contest_id

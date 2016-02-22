@@ -37,8 +37,13 @@ const LineupCard = React.createClass({
     let lineup = '';
 
     if (this.props.isActive) {
+      const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.lineup.sport}`;
       const players = this.props.lineup.players.map((player) => (
-        <LineupCardPlayer player={player} key={player.player_id} />
+        <LineupCardPlayer
+          player={player}
+          key={player.player_id}
+          playerImagesBaseUrl={playerImagesBaseUrl}
+        />
       ));
 
       lineup = (

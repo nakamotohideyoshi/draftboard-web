@@ -216,6 +216,12 @@ category: Lineup
     }
   }
 
+  &__name,
+  &__average,
+  &__position {
+    vertical-align: middle;
+  }
+
   &__name {
     font-size: 12px;
     width: 100%;
