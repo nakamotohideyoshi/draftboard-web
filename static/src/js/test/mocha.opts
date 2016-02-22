@@ -1,8 +1,7 @@
 --compilers js:babel/register
---require mock-local-storage
+--require static/src/js/test/bootstrap.js
 --reporter spec
 --recursive
 --verbose
 --colors
---trace
 --check-leaks

@@ -24,7 +24,7 @@ class NflPlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NflPlayer
-        fields = ('first_name', 'last_name', 'status', 'team')
+        fields = ('first_name', 'last_name', 'status', 'srid', 'team')
 
 
 # NBA specific
@@ -39,7 +39,7 @@ class NbaPlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NbaPlayer
-        fields = ('first_name', 'last_name', 'status', 'team')
+        fields = ('first_name', 'last_name', 'status', 'srid', 'team',)
 
 
 class LineupUsernameSerializer(serializers.ModelSerializer):

@@ -18,6 +18,7 @@ const DraftNewLineupCard = React.createClass({
     lineupTitle: React.PropTypes.string,
     removePlayer: React.PropTypes.func.isRequired,
     remainingSalary: React.PropTypes.number,
+    sport: React.PropTypes.string,
     avgRemainingPlayerSalary: React.PropTypes.number,
     errorMessage: React.PropTypes.oneOfType([React.PropTypes.array, React.PropTypes.string]),
     saveLineup: React.PropTypes.func,
@@ -101,6 +102,7 @@ const DraftNewLineupCard = React.createClass({
 
   render() {
     const showError = (!this.props.errorMessage) ? false : true;
+    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}`;
     const self = this;
 
     const players = this.props.lineup.map((player) => (
@@ -109,6 +111,7 @@ const DraftNewLineupCard = React.createClass({
           key={player.idx}
           removePlayer={self.props.removePlayer}
           onPlayerClick={self.props.handlePlayerClick}
+          playerImagesBaseUrl={playerImagesBaseUrl}
         />
       )
     );

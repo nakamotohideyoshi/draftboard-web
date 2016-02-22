@@ -1,8 +1,8 @@
 import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
-import ReactRedux from 'react-redux';
 import * as AppActions from '../../stores/app-state-store.js';
+import * as ReactRedux from 'react-redux';
 
 const { Provider, connect } = ReactRedux;
 
