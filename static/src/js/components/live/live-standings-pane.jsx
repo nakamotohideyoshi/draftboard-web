@@ -259,7 +259,7 @@ const LiveStandingsPane = React.createClass({
     );
     const mode = this.props.mode;
 
-    const standings = data.map((lineup) => {
+    const standings = data.filter((lineup) => lineup.id !== 1).map((lineup) => {
       let className = 'lineup';
       let pmr = (
         <LivePMRProgressBar
@@ -298,13 +298,17 @@ const LiveStandingsPane = React.createClass({
       if (lineup.hasOwnProperty('user') && lineup.user.hasOwnProperty('username')) {
         username = lineup.user.username;
       }
+      let earningsClass = 'lineup--score-earnings';
+      if (lineup.potentialEarnings !== 0) {
+        earningsClass += ' in-the-money';
+      }
       return (
         <div key={lineup.id} className={ className }>
           <div className="lineup--place">{lineup.rank}</div>
           { pmr }
           <div className="lineup--score-name">{username}</div>
           <div className="lineup--score-points"><b>{lineup.points}</b> <span>Pts</span></div>
-          <div className="lineup--score-earnings">${lineup.potentialEarnings}</div>
+          <div className={earningsClass}>${lineup.potentialEarnings}</div>
           { overlay }
         </div>
       );
