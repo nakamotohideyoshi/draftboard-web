@@ -42,7 +42,7 @@ const LineupCard = React.createClass({
       ));
 
       lineup = (
-        <div className="cmp-lineup-card">
+        <div className="cmp-lineup-card cmp-lineup-card--expanded">
           <header className="cmp-lineup-card__header">
             <h3 className="cmp-lineup-card__title">
               {this.props.lineup.name || `Untitled Lineup # ${this.props.lineup.id}`}

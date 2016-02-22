@@ -7,75 +7,7 @@ category: Lineup
 ```html_example
 
 <div class="cmp-lineup-card">
-  <header class="cmp-lineup-card__header">
-    <h3 class="cmp-lineup-card__title">Best Team Ever 3</h3>
-  </header>
 
-  <ul>
-    <li class="cmp-lineup-card__player">
-      <span class="cmp-lineup-card__position" title="Position">PG</span>
-      <span class="cmp-lineup-card__photo" title="Player Photo">😀</span>
-      <span class="cmp-lineup-card__name" title="Player Name">E. Mudiay</span>
-      <span class="cmp-lineup-card__average" title="Projected Fantasy Points">8</span>
-    </li>
-    <li class="cmp-lineup-card__player">
-      <span class="cmp-lineup-card__position">PG</span>
-      <span class="cmp-lineup-card__photo">😀</span>
-      <span  class="cmp-lineup-card__name">E. Mudiay</span>
-      <span  class="cmp-lineup-card__average">8</span>
-    </li>
-    <li class="cmp-lineup-card__player">
-      <span class="cmp-lineup-card__position">PG</span>
-      <span class="cmp-lineup-card__photo">😀</span>
-      <span  class="cmp-lineup-card__name">E. Mudiay</span>
-      <span  class="cmp-lineup-card__average">8</span>
-    </li>
-    <li class="cmp-lineup-card__player">
-      <span class="cmp-lineup-card__position">PG</span>
-      <span class="cmp-lineup-card__photo">😀</span>
-      <span  class="cmp-lineup-card__name">E. Mudiay</span>
-      <span  class="cmp-lineup-card__average">8</span>
-    </li>
-    <li class="cmp-lineup-card__player">
-      <span class="cmp-lineup-card__position">PG</span>
-      <span class="cmp-lineup-card__photo">😀</span>
-      <span  class="cmp-lineup-card__name">E. Mudiay</span>
-      <span  class="cmp-lineup-card__average">8</span>
-    </li>
-    <li class="cmp-lineup-card__player">
-      <span class="cmp-lineup-card__position">PG</span>
-      <span class="cmp-lineup-card__photo">😀</span>
-      <span  class="cmp-lineup-card__name">E. Mudiay</span>
-      <span  class="cmp-lineup-card__average">8</span>
-    </li>
-    <li class="cmp-lineup-card__player">
-      <span class="cmp-lineup-card__position">PG</span>
-      <span class="cmp-lineup-card__photo">😀</span>
-      <span  class="cmp-lineup-card__name">E. Mudiay</span>
-      <span  class="cmp-lineup-card__average">8</span>
-    </li>
-    <li class="cmp-lineup-card__player">
-      <span class="cmp-lineup-card__position">PG</span>
-      <span class="cmp-lineup-card__photo">😀</span>
-      <span  class="cmp-lineup-card__name">E. Mudiay</span>
-      <span  class="cmp-lineup-card__average">8</span>
-    </li>
-  </ul>
-
-  <footer class="cmp-lineup-card__footer">
-    <div class="cmp-lineup-card__fees cmp-lineup-card__footer-section">
-      <span class="cmp-lineup-card__footer-title">Fees</span>
-      120
-    </div>
-    <div class="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
-      <span class="cmp-lineup-card__footer-title">Live In</span>
-      00:38:48
-    </div>
-    <div class="cmp-lineup-card__entries cmp-lineup-card__footer-section">
-      <span class="cmp-lineup-card__footer-title">Entries</span>
-      22
-    </div>
-  </footer>
 </div>
 
 ```
@@ -111,15 +43,28 @@ category: Lineup
 
   &__header {
     position: relative;
-    padding: 15px 15px;
+    padding: 25px 15px 5px;
   }
 
   &__title {
     font-size: 16px;
     font-weight: 400;
     margin: 0;
-    padding: 0px;
+    padding: 0;
     display: inline-block;
+
+    // Sport ball icon.
+    &:before {
+      content: " ";
+      background: url(../img/common/nba.svg) no-repeat 0px 0px;
+      width: 16px;
+      height: 16px;
+      display: inline-block;
+      text-align: center;
+      position: relative;
+      top: 4px;
+      margin-right: 10px;
+    }
   }
 
 
@@ -131,7 +76,7 @@ category: Lineup
     height: 30px;
     position: absolute;
     right: 15px;
-    top: 20px;
+    top: 22px;
     width: 20px;
 
     &:hover {
@@ -247,6 +192,7 @@ category: Lineup
   }
 
   &__position {
+    color: #9c9faf;
     text-align: center;
     font-size: 9px;
     font-weight: 600;
@@ -254,28 +200,19 @@ category: Lineup
 
   &__photo {
     width: 37px;
-    height: 30px;
-    padding-bottom: 0px !important;
+    height: 41px;
+    overflow: hidden;
+    padding: 0 5px !important;
     vertical-align: bottom !important;
 
     img {
       vertical-align: bottom;
-    }
-  }
-
-  &__photo-empty {
-    padding: 0 5px !important;
-    vertical-align: bottom;
-    position: relative;
-    top: 5px;
-
-    .photo {
+      padding: 0;
+      margin: 0;
+      line-height: 0;
       display: block;
-      width: 37px;
-      height: 30px;
-      background: url(../img/blocks/draft-list/lineup-no-player.png);
-      background-size: 37px auto;
-      vertical-align: bottom;
+      height: 35px;
+      width: auto;
     }
   }
 
@@ -395,8 +332,15 @@ category: Lineup
 
     .cmp-lineup-card__title {
       background-size: 13px auto;
-      background: url(../img/common/nba.svg) no-repeat 5px 50%;
-      padding-left: 25px;
+      // background: url(../img/common/nba.svg) no-repeat 5px 50%;
+      // padding-left: 25px;
+
+      &:before {
+        content: '';
+        padding: 0;
+        margin: 0;
+        width: 0;
+      }
     }
 
     .cmp-lineup-card__plus {
@@ -446,11 +390,11 @@ category: Lineup
 
   &__list-header {
     color: #6d718a;
-    padding: 3px 20px;
+    padding: 0px 20px;
     text-align: right;
 
     &-average {
-      font-size: 9px;
+      font-size: 7px;
       text-transform: uppercase;
     }
   }
@@ -475,7 +419,7 @@ category: Lineup
 
 // When a contest enter button is hovered - highlight the currently focused lineup card.
 body.appstate-enterContestButtonHover {
-  .cmp-lineup-card:first-child {
+  .cmp-lineup-card--expanded {
     box-shadow: 0px 0px 10px 2px rgba(45, 186, 116, 0.9);
     outline: 2px solid #2dba74;
     // transition: outline .25s;
@@ -500,7 +444,7 @@ body.appstate-enterContestButtonHover {
     }
 
     &__header {
-      padding-bottom: 0;
+      padding: 15px 15px 0px;
     }
 
     // Editable title input field.
@@ -522,6 +466,7 @@ body.appstate-enterContestButtonHover {
       }
     }
 
+
     &__title-input {
       color: #46495e;
       display: inline-block;
@@ -529,7 +474,7 @@ body.appstate-enterContestButtonHover {
       font-size: 16px;
       border: 0px solid transparent;
       max-width: 170px;
-      padding: 10px 15px 0px;
+      padding: 10px 15px 0px 0px;
 
       &::placeholder {
         transition: color .25s;
@@ -588,6 +533,7 @@ body.appstate-enterContestButtonHover {
     }
 
     &__name-salary {
+      width: 100%;
       padding: 5px;
       vertical-align: top;
       font-size: 12px;
