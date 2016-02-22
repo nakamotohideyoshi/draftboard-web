@@ -26,6 +26,7 @@ from lineup.exceptions import (
     InvalidLineupSizeException,
     LineupInvalidRosterSpotException,
     PlayerDoesNotExistInDraftGroupException,
+    InvalidLineupSalaryException,
 )
 from draftgroup.models import DraftGroup
 from django.utils import timezone
@@ -65,6 +66,12 @@ class CreateLineupAPIView(generics.CreateAPIView):
 
         try:
             lineup = lm.create_lineup( players, draft_group, name )
+
+        except InvalidLineupSalaryException:
+            return Response(
+                'Lineup exceeds max salary.',
+                status=status.HTTP_403_FORBIDDEN
+            )
         except CreateLineupExpiredDraftgroupException:
             return Response(
                 'You can no longer create lineups for this draft group',
