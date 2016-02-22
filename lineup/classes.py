@@ -7,7 +7,16 @@ from draftgroup.models import DraftGroup, Player
 from .models import Lineup, Player as LineupPlayer
 from sports.classes import SiteSportManager
 from roster.classes import RosterManager
-from.exceptions import LineupInvalidRosterSpotException, InvalidLineupSizeException, PlayerDoesNotExistInDraftGroupException, InvalidLineupSalaryException, DuplicatePlayerException, PlayerSwapGameStartedException, LineupUnchangedException, CreateLineupExpiredDraftgroupException
+from .exceptions import (
+    LineupInvalidRosterSpotException,
+    InvalidLineupSizeException,
+    PlayerDoesNotExistInDraftGroupException,
+    InvalidLineupSalaryException,
+    DuplicatePlayerException,
+    PlayerSwapGameStartedException,
+    LineupUnchangedException,
+    CreateLineupExpiredDraftgroupException,
+)
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from contest.models import Contest, Entry
