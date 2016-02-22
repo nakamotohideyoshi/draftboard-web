@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 import LivePMRProgressBar from './live-pmr-progress-bar';
 
@@ -11,6 +10,7 @@ const LiveLineupPlayer = React.createClass({
     isPlaying: React.PropTypes.bool.isRequired,
     openPlayerPane: React.PropTypes.func.isRequired,
     player: React.PropTypes.object.isRequired,
+    playerImagesBaseUrl: React.PropTypes.string.isRequired,
     whichSide: React.PropTypes.string.isRequired,
   },
 
@@ -21,7 +21,7 @@ const LiveLineupPlayer = React.createClass({
    */
   renderEventDescription() {
     // only show when there's an event
-    if (!this.props.eventDescription) {
+    if (this.props.eventDescription === 'empty') {
       return (<div key="5" />);
     }
 
@@ -66,13 +66,17 @@ const LiveLineupPlayer = React.createClass({
 
   renderPhotoAndHover() {
     const decimalRemaining = this.props.player.stats.decimalRemaining;
-
-    // TODO Live - remove when we have player images
-    const playerInitials = this.props.player.info.name.match(/\b(\w)/g).join('');
+    const playerImage = `${this.props.playerImagesBaseUrl}/${this.props.player.info.player_srid}.png`;
 
     return (
       <div key="1" className="live-lineup-player__circle">
-        <div className="live-lineup-player__photo" />
+        <div className="live-lineup-player__photo">
+          <img
+            width="62"
+            src={playerImage}
+          />
+        </div>
+
         <LivePMRProgressBar
           decimalRemaining={decimalRemaining}
           strokeWidth={2}
@@ -81,9 +85,6 @@ const LiveLineupPlayer = React.createClass({
           hexEnd="2871AC"
           svgWidth={50}
         />
-        <div className="live-lineup-player__initials">
-          {playerInitials}
-        </div>
         {this.renderGameStats()}
       </div>
     );
@@ -110,14 +111,7 @@ const LiveLineupPlayer = React.createClass({
       (<div key="2" className="live-lineup-player__status"></div>),
       (<div key="3" className="live-lineup-player__points">{stats.fp}</div>),
       (<div key="4" className={ playStatusClass } />),
-      (<ReactCSSTransitionGroup
-        key="5"
-        transitionName="event-description"
-        transitionEnterTimeout={0}
-        transitionLeaveTimeout={0}
-      >
-        {this.renderEventDescription()}
-      </ReactCSSTransitionGroup>),
+      this.renderEventDescription(),
     ];
 
     // flip the order of elements for opponent

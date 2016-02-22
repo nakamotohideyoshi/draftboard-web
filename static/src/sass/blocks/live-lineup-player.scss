@@ -45,14 +45,20 @@
   }
 
   &__photo {
-    background: #3a3f52 url(../img/blocks/live-lineup-player/example-player-photo.png) no-repeat -4px 6px;
-    background-size: 120% auto;
+    background: #3a3f52;
     border-radius: 50%;
     height: 48px;
+    overflow: hidden;
     position: absolute;
     top: 0;
     z-index: 5030;
     width: 48px;
+
+    img {
+      left: -12%;
+      position: relative;
+      top: 5px;
+    }
   }
 
   &__hover-stats {

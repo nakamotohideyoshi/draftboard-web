@@ -35,7 +35,7 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
   // loop through each of the lineup's entered contests
   _.forEach(lineupContests, (contestId) => {
     // Make sure we have lineups.
-    if (!contestsStats.hasOwnProperty('lineups')) {
+    if (!contestsStats[contestId].hasOwnProperty('lineups')) {
       return;
     }
 

@@ -19,6 +19,7 @@ const LiveLineup = React.createClass({
     mode: React.PropTypes.object.isRequired,
     playersPlaying: React.PropTypes.array.isRequired,
     relevantPlayerHistory: React.PropTypes.object.isRequired,
+    sport: React.PropTypes.string.isRequired,
     whichSide: React.PropTypes.string.isRequired,
   },
 
@@ -85,7 +86,10 @@ const LiveLineup = React.createClass({
       const player = this.props.lineup.rosterDetails[playerId];
       const playerSRID = player.info.player_srid;
       const isPlaying = this.props.playersPlaying.indexOf(playerSRID) !== -1;
-      const eventDescription = this.props.eventDescriptions[playerSRID] || undefined;
+      // note that this is set to 'empty', and it's because of a weird bug where if undefined or null, then react
+      // sometimes does not re-render the player and the event description sticks
+      const eventDescription = this.props.eventDescriptions[playerSRID] || 'empty';
+      const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}/380`;
 
       return (
         <LiveLineupPlayer
@@ -94,6 +98,7 @@ const LiveLineup = React.createClass({
           isPlaying={isPlaying}
           openPlayerPane={this.openPlayerPane.bind(this, playerId)}
           player={player}
+          playerImagesBaseUrl={playerImagesBaseUrl}
           whichSide={this.props.whichSide}
         />
       );
@@ -125,10 +130,11 @@ const LiveLineup = React.createClass({
 
     return (
       <LivePlayerPane
-        whichSide={this.props.whichSide}
-        player={player}
         eventHistory={history}
         game={game}
+        player={player}
+        playerImagesBaseUrl={`${window.dfs.playerImagesBaseUrl}/${this.props.sport}/380`}
+        whichSide={this.props.whichSide}
       />
     );
   },

@@ -1,5 +1,6 @@
 import log from 'loglevel';
 import createLogger from 'redux-logger';
+// import testDom from '../test/test-dom.js';
 
 
 /**
@@ -10,7 +11,7 @@ const getLevel = () => {
   // Default to errors only and prouction
   let logLevel = 'error';
 
-  if (process.env.NODE_ENV === 'debug') {
+  if (process.env.NODE_ENV === 'debug' || process.env.NODE_ENV === 'development') {
     logLevel = 'debug';
   }
 

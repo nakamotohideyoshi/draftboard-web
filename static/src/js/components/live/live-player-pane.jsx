@@ -14,6 +14,7 @@ const LivePlayerPane = React.createClass({
   propTypes: {
     eventHistory: React.PropTypes.array.isRequired,
     player: React.PropTypes.object.isRequired,
+    playerImagesBaseUrl: React.PropTypes.string.isRequired,
     whichSide: React.PropTypes.string.isRequired,
     game: React.PropTypes.object,
   },
@@ -158,6 +159,8 @@ const LivePlayerPane = React.createClass({
   renderHeader() {
     const player = this.props.player;
     const teamInfo = player.teamInfo;
+    const playerImage = `${this.props.playerImagesBaseUrl}/${player.info.player_srid}.png`;
+
 
     let fp = 0;
     let percentOwned = '';
@@ -178,7 +181,12 @@ const LivePlayerPane = React.createClass({
 
     return (
       <section className="header-section">
-        <div className="header__player-image" />
+        <div className="header__player-image">
+          <img
+            height="190"
+            src={playerImage}
+          />
+        </div>
 
         <div className="header__team-role">
           {teamInfo.city} {teamInfo.name} - {player.info.position}

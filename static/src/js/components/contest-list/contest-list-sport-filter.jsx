@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactRedux from 'react-redux';
+import * as ReactRedux from 'react-redux';
 import store from '../../store.js';
 import renderComponent from '../../lib/render-component';
 import CollectionMatchFilter from '../filters/collection-match-filter.jsx';

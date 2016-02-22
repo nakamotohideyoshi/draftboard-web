@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDom from 'react-dom';
-import ReactRedux from 'react-redux';
+import * as ReactRedux from 'react-redux';
 import { find as _find } from 'lodash';
 import store from '../../store';
 import LineupCard from '../lineup/lineup-card.jsx';
