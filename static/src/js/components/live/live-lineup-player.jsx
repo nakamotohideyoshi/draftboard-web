@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
 
 import LivePMRProgressBar from './live-pmr-progress-bar';
 
@@ -22,7 +21,7 @@ const LiveLineupPlayer = React.createClass({
    */
   renderEventDescription() {
     // only show when there's an event
-    if (!this.props.eventDescription) {
+    if (this.props.eventDescription === 'empty') {
       return (<div key="5" />);
     }
 
@@ -112,14 +111,7 @@ const LiveLineupPlayer = React.createClass({
       (<div key="2" className="live-lineup-player__status"></div>),
       (<div key="3" className="live-lineup-player__points">{stats.fp}</div>),
       (<div key="4" className={ playStatusClass } />),
-      (<ReactCSSTransitionGroup
-        key="5"
-        transitionName="event-description"
-        transitionEnterTimeout={0}
-        transitionLeaveTimeout={0}
-      >
-        {this.renderEventDescription()}
-      </ReactCSSTransitionGroup>),
+      this.renderEventDescription(),
     ];
 
     // flip the order of elements for opponent

@@ -320,6 +320,21 @@ const Live = React.createClass({
     return true;
   },
 
+  /**
+   * Remove old event descriptions
+   * @param  {object} eventDescriptionsToRemove Keys of player IDs, values are null
+   */
+  removeEventDescriptions(eventDescriptionsToRemove) {
+    const eventDescriptions = Object.assign({}, this.state.eventDescriptions);
+    _.forEach(eventDescriptionsToRemove, (playerId) => delete eventDescriptions[playerId]);
+
+    log.warn('Live.removeEventDescriptions()', eventDescriptionsToRemove, eventDescriptions);
+
+    this.setState({
+      eventDescriptions,
+    });
+  },
+
   /*
    * This takes the oldest event in a given game queue, from state.gameQueues, and then uses the data, whether it is to
    * animate if a pbp, or update redux stats.
@@ -438,6 +453,12 @@ const Live = React.createClass({
       // remove relevant event players from players playing
       this.setState({ playersPlaying: _.difference(this.state.playersPlaying, relevantPlayersInEvent) });
 
+      const updatesToState = {
+        relevantPlayerHistory: {},
+        eventDescriptions: {},
+      };
+      const eventDescriptionsToRemove = [];
+
       // show event beside player and in their history
       _.forEach(relevantPlayersInEvent, (playerId) => {
         // update history to have relevant player
@@ -453,37 +474,26 @@ const Live = React.createClass({
           playerId,
         };
 
-        // show event beside player
-        this.setState({
-          eventDescriptions: update(this.state.eventDescriptions, {
-            $set: {
-              [playerId]: eventDescription,
-            },
-          }),
-        });
-
-        // add event to player history
+        // add to player's history
         playerHistory.unshift(eventDescription);
-        this.setState({
-          relevantPlayerHistory: update(this.state.relevantPlayerHistory, {
-            $merge: {
-              [playerId]: playerHistory,
-            },
-          }),
-        });
+        updatesToState.relevantPlayerHistory[playerId] = playerHistory;
 
-        // remove the event beside the player when done
-        setTimeout(() => {
-          log.debug('setTimeout - remove event description');
-          this.setState({
-            eventDescriptions: update(this.state.eventDescriptions, {
-              $set: {
-                [playerId]: null,
-              },
-            }),
-          });
-        }, 4000);
+        // add then remove from animation
+        updatesToState.eventDescriptions[playerId] = eventDescription;
+        eventDescriptionsToRemove.push(playerId);
       });
+
+      this.setState({
+        eventDescriptions: update(this.state.eventDescriptions, {
+          $merge: updatesToState.eventDescriptions,
+        }),
+        relevantPlayerHistory: update(this.state.relevantPlayerHistory, {
+          $merge: updatesToState.relevantPlayerHistory,
+        }),
+      });
+
+      // remove the event beside the player when done
+      setTimeout(() => this.removeEventDescriptions(eventDescriptionsToRemove), 4000);
     }, 3000);
 
     // remove the animation
