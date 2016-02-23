@@ -1,6 +1,7 @@
 import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
-import _ from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { merge as _merge } from 'lodash';
 
 
 // shortcut method to $set new state if the key doesn't exist, otherwise $merges the properties in to existing
@@ -101,9 +102,9 @@ module.exports = (state = {}, action) => {
 
     // in order to remove all the keys properly, we need to loop through and delete them
     case ActionTypes.REMOVE_LIVE_CONTESTS:
-      const newState = Object.assign({}, state);
+      const newState = _merge({}, state);
 
-      _.forEach(state, (dg) => {
+      _forEach(state, (dg) => {
         if (action.ids.indexOf(dg.id) > -1) {
           delete newState[dg.id];
         }

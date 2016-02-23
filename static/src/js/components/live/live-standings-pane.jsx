@@ -2,7 +2,9 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import request from 'superagent';
 import Cookies from 'js-cookie';
-import _ from 'lodash';
+import { debounce as _debounce } from 'lodash';
+import { filter as _filter } from 'lodash';
+import { map as _map } from 'lodash';
 
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import * as AppActions from '../../stores/app-state-store';
@@ -37,7 +39,7 @@ const LiveStandingsPane = React.createClass({
 
   componentDidMount() {
     // this.props.fetchLineupUsernames(this.props.mode.contestId)
-    this.handleSearchByUsername = _.debounce(this.handleSearchByUsername, 150);
+    this.handleSearchByUsername = _debounce(this.handleSearchByUsername, 150);
   },
 
   /**
@@ -50,13 +52,13 @@ const LiveStandingsPane = React.createClass({
     if (this.state.currentTab === 'standings') {
       const lineups = this.props.lineups;
       const rankedLineups = this.props.rankedLineups;
-      data = _.map(rankedLineups, (lineupId) => lineups[lineupId]);
+      data = _map(rankedLineups, (lineupId) => lineups[lineupId]);
     } else {
       data = this.props.contest.playersOwnership.all.slice();
       const filter = this.state.currentPositionFilter;
 
       if (filter !== 'all') {
-        data = _.filter(data, p => p.info.position.toLowerCase() === filter);
+        data = _filter(data, p => p.info.position.toLowerCase() === filter);
       }
     }
 

@@ -1,8 +1,9 @@
 import { createSelector } from 'reselect';
-import { stringSearchFilter, matchFilter, inArrayFilter } from './filters';
-import { orderBy } from './order-by.js';
-import { mapValues as _mapValues } from 'lodash';
 import { filter as _filter } from 'lodash';
+import { mapValues as _mapValues } from 'lodash';
+import { merge as _merge } from 'lodash';
+import { orderBy } from './order-by.js';
+import { stringSearchFilter, matchFilter, inArrayFilter } from './filters';
 
 
 // Determine whether a supplied player is in the lineup.
@@ -49,7 +50,7 @@ const playersWithInfo = createSelector(
     activeDraftGroupId, boxScoreGames, availablePositions, newLineup
   ) => _mapValues(players, (player) => {
     // Duplicate the player so we don't mutate the state.
-    const playerWithInfo = Object.assign({}, player);
+    const playerWithInfo = _merge({}, player);
     // Add injury status if we have it.
     if (injuries.hasOwnProperty(player.player_id)) {
       playerWithInfo.status = injuries[player.player_id].status;

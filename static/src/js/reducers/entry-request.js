@@ -1,6 +1,7 @@
 import * as ActionTypes from '../action-types.js';
 import log from '../lib/logging.js';
 import { forEach as _forEach } from 'lodash';
+import { merge as _merge } from 'lodash';
 
 const initialState = {
   history: {},
@@ -10,19 +11,19 @@ const initialState = {
 // Find any inactive entries and move them into the history. DO NOT feed the state into this as it
 // will mutate it.
 function archiveEntries(newState) {
-  const archivedState = Object.assign({}, initialState);
+  const archivedState = _merge({}, initialState);
 
   _forEach(newState, (entry, taskId) => {
     // If the status is failure or timeout, move the task into the history.
     if (entry.hasOwnProperty('status')) {
       if (entry.status === 'FAILURE' || entry.status === 'POLLING_TIMEOUT') {
         log.debug(`Moving task to history`, entry);
-        archivedState.history[taskId] = Object.assign({}, entry);
+        archivedState.history[taskId] = _merge({}, entry);
       } else {
-        archivedState[taskId] = Object.assign({}, entry);
+        archivedState[taskId] = _merge({}, entry);
       }
     } else {
-      archivedState[taskId] = Object.assign({}, entry);
+      archivedState[taskId] = _merge({}, entry);
     }
   });
 
@@ -35,7 +36,7 @@ function archiveEntries(newState) {
  * server. We then ping the server
  */
 module.exports = (state = initialState, action) => {
-  const stateCopy = Object.assign({}, state);
+  const stateCopy = _merge({}, state);
 
   switch (action.type) {
 

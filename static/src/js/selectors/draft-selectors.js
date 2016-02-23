@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect';
 import { isPlayerInLineup } from './draft-group-players-selector.js';
+import { merge as _merge } from 'lodash';
 
 
 const focusedPlayerIdSelector = (state) => state.draftGroupPlayers.focusedPlayer;
@@ -35,7 +36,7 @@ export const focusedPlayerSelector = createSelector(
       return null;
     }
 
-    const player = Object.assign({}, focusedPlayer, {
+    const player = _merge({}, focusedPlayer, {
       sport,
       news: {},
       nextGame: {},

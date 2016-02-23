@@ -1,4 +1,5 @@
 import ActionTypes from '../action-types';
+import { merge as _merge } from 'lodash';
 
 
 const initialState = {
@@ -12,17 +13,17 @@ module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     case ActionTypes.FETCH_PAYMENTS_SUCCESS:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         payments: action.body,
       });
 
     case ActionTypes.ADD_PAYMENT_METHOD_SUCCESS:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         payments: state.payments.append(action.body),
       });
 
     case ActionTypes.SET_PAYMENT_METHOD_DEFAULT_SUCCESS:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         payments: state.payments.map((payment) => {
           const toUpdate = payment;
           if (payment.id === action.id) {
@@ -35,27 +36,27 @@ module.exports = (state = initialState, action) => {
       });
 
     case ActionTypes.REMOVE_PAYMENT_METHOD_SUCCESS:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         payments: state.payments.filter((payment) => payment.id !== action.id),
       });
 
     case ActionTypes.DEPOSIT_SUCCESS:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         depositFormErrors: {},
       });
 
     case ActionTypes.DEPOSIT_FAIL:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         depositFormErrors: action.ex.response.body.errors,
       });
 
     case ActionTypes.WITHDRAW_SUCCESS:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         withdrawalFormErrors: {},
       });
 
     case ActionTypes.WITHDRAW_FAIL:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         withdrawalFormErrors: action.ex.response.body.errors,
       });
 

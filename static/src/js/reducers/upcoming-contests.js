@@ -1,5 +1,6 @@
 import { merge as _merge } from 'lodash';
 const ActionTypes = require('../action-types');
+
 const initialState = {
   allContests: {},
   filteredContests: {},
@@ -42,31 +43,31 @@ module.exports = (state = initialState, action) => {
         match: action.filter.match,
       };
 
-      return Object.assign({}, state, {
-        filters: Object.assign({}, state.filters, newFilter),
+      return _merge({}, state, {
+        filters: _merge({}, state.filters, newFilter),
       });
 
 
     case ActionTypes.SET_FOCUSED_CONTEST:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         focusedContestId: action.contestId,
       });
 
 
     case ActionTypes.UPCOMING_CONTESTS_ORDER_CHANGED:
-      newState = Object.assign({}, state);
+      newState = _merge({}, state);
       newState.filters.orderBy = action.orderBy;
       return newState;
 
 
     case ActionTypes.FETCHING_CONTEST_ENTRANTS:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         isFetchingEntrants: true,
       });
 
 
     case ActionTypes.FETCH_CONTEST_ENTRANTS_FAIL:
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         isFetchingEntrants: false,
       });
 
@@ -75,7 +76,7 @@ module.exports = (state = initialState, action) => {
       const newEntrants = _merge({}, state.entrants);
       newEntrants[action.contestId] = action.entrants;
 
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         isFetchingEntrants: false,
         entrants: newEntrants,
       });

@@ -1,7 +1,10 @@
 // so we can use Promises
 import 'babel-core/polyfill';
 const request = require('superagent-promise')(require('superagent'), Promise);
-import _ from 'lodash';
+import { filter as _filter } from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { merge as _merge } from 'lodash';
+import { reduce as _reduce } from 'lodash';
 import ActionTypes from '../action-types';
 import log from '../lib/logging';
 import moment from 'moment';
@@ -15,17 +18,17 @@ import moment from 'moment';
  * @return {object}               Changes for reducer
  */
 const receiveResults = (when, response) => {
-  const filteredResponse = Object.assign({}, response);
+  const filteredResponse = _merge({}, response);
 
   // TODO receiveResults() - remove this when coderden fixes API call to not return bad entries
-  _.forEach(filteredResponse.lineups, (lineup, index) => {
-    const entries = _.filter(lineup.entries, (entry) => entry.final_rank !== -1);
+  _forEach(filteredResponse.lineups, (lineup, index) => {
+    const entries = _filter(lineup.entries, (entry) => entry.final_rank !== -1);
 
     filteredResponse.lineups[index].entries = entries;
     filteredResponse.lineups[index].stats = {
       buyin: 100,
       entries: entries.length,
-      won: _.reduce(entries, (sum, entry) => sum + entry.payout.amount, 0),
+      won: _reduce(entries, (sum, entry) => sum + entry.payout.amount, 0),
     };
   });
 

@@ -1,7 +1,8 @@
-import _ from 'lodash';
 import Modal from '../modal/modal.jsx';
-import React from 'react';
 import moment from 'moment';
+import React from 'react';
+import { forEach as _forEach } from 'lodash';
+import { size as _size } from 'lodash';
 
 
 /**
@@ -67,7 +68,7 @@ const LiveLineupSelectModal = React.createClass({
   sportLineups() {
     const sportLineups = {};
 
-    _.forEach(this.props.entries, (lineup) => {
+    _forEach(this.props.entries, (lineup) => {
       const sport = lineup.draftGroup.sport;
 
       if (sport in sportLineups) {
@@ -100,9 +101,6 @@ const LiveLineupSelectModal = React.createClass({
   },
 
   renderLineups() {
-    // const sportLineups = _.filter(
-    //  this.props.lineups, (lineup) => lineup.draftGroup.sport === this.state.selectedSport
-    // )
     const entries = this.props.entries.map((entry) => {
       const name = (entry.lineup_name === undefined) ? 'Example Lineup Name' : entry.lineup_name;
 
@@ -128,7 +126,7 @@ const LiveLineupSelectModal = React.createClass({
   render() {
     // let title = (this.state.selectedSport) ? 'Choose a lineup' : 'Choose a sport'
     let title = 'Choose a lineup';
-    if (_.size(this.props.entries) === 0) {
+    if (_size(this.props.entries) === 0) {
       title = 'You have no entered lineups.';
     }
 

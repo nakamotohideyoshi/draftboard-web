@@ -1,7 +1,8 @@
-import _ from 'lodash';
 import Pusher from 'pusher-js';
 import React from 'react';
+import { forEach as _forEach } from 'lodash';
 import { Provider, connect } from 'react-redux';
+import { size as _size } from 'lodash';
 
 import errorHandler from '../../actions/live-error-handler';
 import log from '../../lib/logging';
@@ -143,7 +144,7 @@ const NavScoreboard = React.createClass({
   getSelectOptions() {
     const options = [];
 
-    _.forEach(this.props.sportsSelector.types, (sport) => {
+    _forEach(this.props.sportsSelector.types, (sport) => {
       options.push({
         option: `${sport} games`,
         type: TYPE_SELECT_GAMES,
@@ -158,7 +159,7 @@ const NavScoreboard = React.createClass({
         option: 'MY LINEUPS',
         type: TYPE_SELECT_LINEUPS,
         key: 'LINEUPS',
-        count: _.size(this.props.currentLineupsSelector),
+        count: _size(this.props.currentLineupsSelector),
       });
     }
 
@@ -272,7 +273,7 @@ const NavScoreboard = React.createClass({
     let filters;
     let slider;
 
-    if (_.size(this.props.sportsSelector.games) > 0) {
+    if (_size(this.props.sportsSelector.games) > 0) {
       filters = (
         <NavScoreboardFilters
           selected={this.state.selectedOption}

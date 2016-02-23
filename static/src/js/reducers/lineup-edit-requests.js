@@ -1,6 +1,8 @@
 import * as ActionTypes from '../action-types.js';
 import log from '../lib/logging.js';
 import { forEach as _forEach } from 'lodash';
+import { merge as _merge } from 'lodash';
+
 
 const initialState = {};
 
@@ -10,7 +12,7 @@ const initialState = {};
  * server. We then ping the server
  */
 module.exports = (state = initialState, action) => {
-  const stateCopy = Object.assign({}, state);
+  const stateCopy = _merge({}, state);
 
   switch (action.type) {
 
