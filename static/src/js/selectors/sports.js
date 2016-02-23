@@ -1,4 +1,6 @@
-import _ from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { merge as _merge } from 'lodash';
+import { round as _round } from 'lodash';
 import { createSelector } from 'reselect';
 
 
@@ -10,10 +12,10 @@ export const sportsSelector = createSelector(
   state => state.sports,
   (storeSports) => {
     // copy sports to add relevant data
-    const sports = Object.assign({}, storeSports);
+    const sports = _merge({}, storeSports);
 
     // add in game data
-    _.forEach(sports.games, (game, gameId) => {
+    _forEach(sports.games, (game, gameId) => {
       const newGame = sports.games[gameId];
       const sport = game.sport;
       const teams = sports[sport].teams;
@@ -24,7 +26,7 @@ export const sportsSelector = createSelector(
 
       // update quarter to display properly
       if (newGame.hasOwnProperty('boxscore')) {
-        let quarter = _.round(newGame.boxscore.quarter, 0);
+        let quarter = _round(newGame.boxscore.quarter, 0);
 
         if (quarter > 4) {
           quarter = `${(quarter % 4).toString()}OT`;

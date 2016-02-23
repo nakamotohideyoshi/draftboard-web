@@ -1,4 +1,5 @@
-import _ from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { merge as _merge } from 'lodash';
 import { createSelector } from 'reselect';
 import { rankContestLineups } from './live-contests';
 
@@ -15,7 +16,7 @@ export const resultsContestsSelector = createSelector(
   (contests, draftGroups, prizes, sports) => {
     const contestsStats = {};
 
-    _.forEach(contests, (contest, id) => {
+    _forEach(contests, (contest, id) => {
       // if we don't have contest information yet, then return
       if (!contest.info || contest.hasRelatedInfo === false) {
         return;
@@ -42,7 +43,7 @@ export const resultsContestsSelector = createSelector(
       };
 
 
-      contestsStats[id] = Object.assign(
+      contestsStats[id] = _merge(
         stats,
         rankContestLineups(contest, draftGroup, {}, prizeStructure.info, [])
       );

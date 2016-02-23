@@ -2,6 +2,7 @@ import React from 'react';
 import sinon from 'sinon';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
+import { merge as _merge } from 'lodash';
 import ContestListRow from '../../../components/contest-list/contest-list-row.jsx';
 
 const defaultTestProps = {
@@ -44,7 +45,7 @@ describe('ContestListRow Component', () => {
 
   it('should run props.setFocusedContest(props.row) when clicked.', () => {
     // Update the default props with a spy function.
-    const props = Object.assign(
+    const props = _merge(
       {}, defaultTestProps, { setFocusedContest: sinon.spy() }
     );
     wrapper = renderComponent(props);

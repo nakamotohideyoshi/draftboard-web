@@ -1,12 +1,18 @@
 import * as ReactRedux from 'react-redux';
-import _ from 'lodash';
 import createBrowserHistory from 'history/lib/createBrowserHistory';
 import Pusher from 'pusher-js';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
 import update from 'react-addons-update';
+import { difference as _difference } from 'lodash';
+import { filter as _filter } from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { intersection as _intersection } from 'lodash';
+import { map as _map } from 'lodash';
+import { merge as _merge } from 'lodash';
 import { Router, Route } from 'react-router';
 import { syncReduxAndRouter } from 'redux-simple-router';
+import { union as _union } from 'lodash';
 import { updatePath } from 'redux-simple-router';
 
 import LiveBottomNav from './live-bottom-nav';
@@ -145,10 +151,10 @@ const Live = React.createClass({
     }
 
     const relevantPlayers = this.props.liveSelector.relevantPlayers;
-    const eventPlayers = _.map(eventCall.statistics__list, event => event.player);
+    const eventPlayers = _map(eventCall.statistics__list, event => event.player);
 
     // only add to the queue if we care about the player(s)
-    if (_.intersection(relevantPlayers, eventPlayers).length > 0) {
+    if (_intersection(relevantPlayers, eventPlayers).length > 0) {
       this.addEventAndStartQueue(gameId, eventCall, 'pbp');
     }
   },
@@ -248,7 +254,7 @@ const Live = React.createClass({
    */
   forceContestLineupsRefresh() {
     log.info('Live.forceContestLineupsRefresh()');
-    const contestEntry = _.filter(this.props.liveSelector.entries,
+    const contestEntry = _filter(this.props.liveSelector.entries,
       (entry) => entry.lineup === this.props.liveSelector.mode.myLineupId
     )[0];
 
@@ -325,8 +331,8 @@ const Live = React.createClass({
    * @param  {object} eventDescriptionsToRemove Keys of player IDs, values are null
    */
   removeEventDescriptions(eventDescriptionsToRemove) {
-    const eventDescriptions = Object.assign({}, this.state.eventDescriptions);
-    _.forEach(eventDescriptionsToRemove, (playerId) => delete eventDescriptions[playerId]);
+    const eventDescriptions = _merge({}, this.state.eventDescriptions);
+    _forEach(eventDescriptionsToRemove, (playerId) => delete eventDescriptions[playerId]);
 
     log.warn('Live.removeEventDescriptions()', eventDescriptionsToRemove, eventDescriptions);
 
@@ -342,7 +348,7 @@ const Live = React.createClass({
    * @param  {string} gameId The game queue SRID to pop the oldest event
    */
   shiftOldestGameEvent(gameId) {
-    const gameQueue = Object.assign({}, this.state[gameId]);
+    const gameQueue = _merge({}, this.state[gameId]);
 
     // if there are no more events, then stop running
     if (gameQueue.queue.length === 0) {
@@ -420,18 +426,18 @@ const Live = React.createClass({
     };
 
     const relevantPlayers = this.props.liveSelector.relevantPlayers;
-    const eventPlayers = _.map(eventCall.statistics__list, event => event.player);
-    const relevantPlayersInEvent = _.intersection(relevantPlayers, eventPlayers);
+    const eventPlayers = _map(eventCall.statistics__list, event => event.player);
+    const relevantPlayersInEvent = _intersection(relevantPlayers, eventPlayers);
 
     // determine what color the animation should be, based on which lineup(s) the player(s) are in
     if (this.props.liveSelector.mode.opponentLineupId) {
       const rosterBySRID = this.props.liveSelector.lineups.opponent.rosterBySRID;
       const playersInBothLineups = this.props.liveSelector.playersInBothLineups;
 
-      if (_.intersection(rosterBySRID, relevantPlayersInEvent).length > 0) {
+      if (_intersection(rosterBySRID, relevantPlayersInEvent).length > 0) {
         courtEvent.whichSide = 'opponent';
       }
-      if (_.intersection(playersInBothLineups, relevantPlayersInEvent).length > 0) {
+      if (_intersection(playersInBothLineups, relevantPlayersInEvent).length > 0) {
         courtEvent.whichSide = 'both';
       }
     }
@@ -443,7 +449,7 @@ const Live = React.createClass({
           [courtEvent.id]: courtEvent,
         },
       }),
-      playersPlaying: _.union(this.state.playersPlaying, relevantPlayersInEvent),
+      playersPlaying: _union(this.state.playersPlaying, relevantPlayersInEvent),
     });
 
     // show the results
@@ -451,7 +457,7 @@ const Live = React.createClass({
       log.debug('setTimeout - show the results');
 
       // remove relevant event players from players playing
-      this.setState({ playersPlaying: _.difference(this.state.playersPlaying, relevantPlayersInEvent) });
+      this.setState({ playersPlaying: _difference(this.state.playersPlaying, relevantPlayersInEvent) });
 
       const updatesToState = {
         relevantPlayerHistory: {},
@@ -460,9 +466,9 @@ const Live = React.createClass({
       const eventDescriptionsToRemove = [];
 
       // show event beside player and in their history
-      _.forEach(relevantPlayersInEvent, (playerId) => {
+      _forEach(relevantPlayersInEvent, (playerId) => {
         // update history to have relevant player
-        const relevantPlayerHistory = Object.assign({}, this.state.relevantPlayerHistory);
+        const relevantPlayerHistory = _merge({}, this.state.relevantPlayerHistory);
         const playerHistory = relevantPlayerHistory[playerId] || [];
 
         // set up event description
@@ -499,7 +505,7 @@ const Live = React.createClass({
     // remove the animation
     setTimeout(() => {
       log.debug('setTimeout - remove the player from the court');
-      const courtEvents = Object.assign({}, this.state.courtEvents);
+      const courtEvents = _merge({}, this.state.courtEvents);
       delete courtEvents[courtEvent.id];
       this.setState({ courtEvents });
     }, 7000);

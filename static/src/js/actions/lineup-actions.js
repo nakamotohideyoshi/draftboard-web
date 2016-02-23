@@ -4,8 +4,10 @@ import 'babel-core/polyfill';
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import { normalize, Schema, arrayOf } from 'normalizr';
-import { forEach, uniq } from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { merge as _merge } from 'lodash';
 import { sortBy as _sortBy } from 'lodash';
+import { uniq as _uniq } from 'lodash';
 import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
 import { monitorLineupEditRequest } from './lineup-edit-request.js';
@@ -74,13 +76,13 @@ export function fetchUpcomingLineups(draftGroupId = null) {
           );
 
           // Find unique draft groups that we have a lineup for.
-          const draftGroups = uniq(
+          const draftGroups = _uniq(
             res.body.map((lineup) => lineup.draft_group),
             (group) => group
           );
 
           // Sort playres by roster slot (idx)
-          forEach(normalizedLineups.entities.lineups, (lineup, key) => {
+          _forEach(normalizedLineups.entities.lineups, (lineup, key) => {
             normalizedLineups.entities.lineups[key].players = _sortBy(
               normalizedLineups.entities.lineups[key].players, 'idx'
             );
@@ -308,11 +310,11 @@ export function importLineup(lineup, importTitle = false) {
 
     // Since the lineup API endpoint 'player' doesn't have the same info as the DraftGruoup
     // 'player', we need to grab the corresponding DraftGroup player object and use that.
-    forEach(lineup.players, (player) => {
+    _forEach(lineup.players, (player) => {
       // Get the DraftGroup player
       let DraftGroupPlayer = state.draftGroupPlayers.allPlayers[player.player_id];
       //  Copy and append the idx to the player.
-      DraftGroupPlayer = Object.assign({}, DraftGroupPlayer, { idx: player.idx });
+      DraftGroupPlayer = _merge({}, DraftGroupPlayer, { idx: player.idx });
       // push them into a list of players.
       players.push(DraftGroupPlayer);
     });

@@ -1,5 +1,15 @@
 import { createSelector } from 'reselect';
-import _ from 'lodash';
+import { countBy as _countBy } from 'lodash';
+import { filter as _filter } from 'lodash';
+import { flatten as _flatten } from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { intersection as _intersection } from 'lodash';
+import { map as _map } from 'lodash';
+import { merge as _merge } from 'lodash';
+import { sortBy as _sortBy } from 'lodash';
+import { uniq as _uniq } from 'lodash';
+import { union as _union } from 'lodash';
+import { values as _values } from 'lodash';
 
 import { liveContestsSelector } from './live-contests';
 import { currentLineupsSelector, compileRosterStats, compileVillianLineup } from './current-lineups';
@@ -17,21 +27,21 @@ import { GAME_DURATIONS } from '../actions/sports';
 const calculatePlayerOwnership = (contest, draftGroup, sport, games, myRoster) => {
   const numOfPlayers = GAME_DURATIONS[sport].players;
 
-  const lineups = _.filter(contest.lineups, (lineup) => lineup.roster[0] !== 0);
-  const allPlayers = _.flatten(_.map(lineups, (lineup) => lineup.roster));
-  const counts = _.countBy(allPlayers, (playerId) => playerId);
+  const lineups = _filter(contest.lineups, (lineup) => lineup.roster[0] !== 0);
+  const allPlayers = _flatten(_map(lineups, (lineup) => lineup.roster));
+  const counts = _countBy(allPlayers, (playerId) => playerId);
 
   // all
-  const mappedPlayers = _.map(counts, (ownershipCount, playerId) => ({
+  const mappedPlayers = _map(counts, (ownershipCount, playerId) => ({
     ownershipCount,
     playerId,
     ownershipPercent: parseInt(ownershipCount / allPlayers.length * 100, 10),
   }));
-  const allPlayersByCounts = _.sortBy(mappedPlayers, (playerWithCount) => playerWithCount.ownershipCount).reverse();
+  const allPlayersByCounts = _sortBy(mappedPlayers, (playerWithCount) => playerWithCount.ownershipCount).reverse();
 
   // filter to players not owned by me
-  const nonOwnedByMe = _.filter(allPlayersByCounts, (player) => myRoster.indexOf(player.playerId) === -1);
-  let top8 = _.sortBy(nonOwnedByMe, (playerWithCount) => playerWithCount.ownershipCount);
+  const nonOwnedByMe = _filter(allPlayersByCounts, (player) => myRoster.indexOf(player.playerId) === -1);
+  let top8 = _sortBy(nonOwnedByMe, (playerWithCount) => playerWithCount.ownershipCount);
 
   // return top 8 not owned by me, if there are 8 to use, otherwise return all
   if (top8.length > numOfPlayers) {
@@ -39,19 +49,21 @@ const calculatePlayerOwnership = (contest, draftGroup, sport, games, myRoster) =
   } else {
     top8 = allPlayersByCounts.slice(0, numOfPlayers);
   }
-  top8 = _.map(top8, (p) => p.playerId);
+  top8 = _map(top8, (p) => p.playerId);
 
   // return players with their stats
   const allWithStats = compileRosterStats(allPlayers, draftGroup, games, []);
 
   // combine counts with data
-  const all = _.map(allPlayersByCounts, (playerWithCount) => Object.assign(
-    playerWithCount,
-    allWithStats[playerWithCount.playerId]
-  ));
+  const all = _map(allPlayersByCounts,
+    (playerWithCount) => _merge(
+      playerWithCount,
+      allWithStats[playerWithCount.playerId]
+    )
+  );
 
   const allByPlayerId = {};
-  _.forEach(mappedPlayers, (playerWithCount) => {
+  _forEach(mappedPlayers, (playerWithCount) => {
     allByPlayerId[playerWithCount.playerId] = playerWithCount.ownershipPercent;
   });
 
@@ -82,7 +94,7 @@ export const liveSelector = createSelector(
   state => state.sports,
 
   (contestStats, currentLineupsStats, mode, entries, playerBoxScoreHistory, liveDraftGroups, sports) => {
-    const uniqueEntries = _.uniq(_.values(entries.items), 'lineup');
+    const uniqueEntries = _uniq(_values(entries.items), 'lineup');
 
     const stats = {
       hasRelatedInfo: false,
@@ -108,7 +120,7 @@ export const liveSelector = createSelector(
       const sport = myLineup.draftGroup.sport;
 
       // add in seasonal stats, teams for LivePlayerPane
-      _.forEach(myLineup.rosterDetails, (player, playerId) => {
+      _forEach(myLineup.rosterDetails, (player, playerId) => {
         if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
           myLineup.rosterDetails[playerId].seasonalStats = playerBoxScoreHistory.nba[playerId];
         }
@@ -117,13 +129,13 @@ export const liveSelector = createSelector(
       });
 
       // combine relevant players, games to target pusher calls for animations
-      stats.relevantGames = _.union(
+      stats.relevantGames = _union(
         stats.relevantGames,
-        _.map(myLineup.rosterDetails, (player) => player.info.game_srid)
+        _map(myLineup.rosterDetails, (player) => player.info.game_srid)
       );
-      stats.relevantPlayers = _.union(
+      stats.relevantPlayers = _union(
         stats.relevantPlayers,
-        _.map(myLineup.rosterDetails, (player) => player.info.player_srid)
+        _map(myLineup.rosterDetails, (player) => player.info.player_srid)
       );
 
 
@@ -143,7 +155,7 @@ export const liveSelector = createSelector(
         );
 
         // add ownership % to lineup
-        _.forEach(myLineup.rosterDetails, (player, playerId) => {
+        _forEach(myLineup.rosterDetails, (player, playerId) => {
           myLineup.rosterDetails[playerId].ownershipPercent = contest.playersOwnership.allByPlayerId[playerId];
         });
 
@@ -164,7 +176,7 @@ export const liveSelector = createSelector(
 
           const opponentLineup = contest.lineups[mode.opponentLineupId];
 
-          _.forEach(opponentLineup.rosterDetails, (player, playerId) => {
+          _forEach(opponentLineup.rosterDetails, (player, playerId) => {
             if (playerBoxScoreHistory.nba.hasOwnProperty(playerId) === true) {
               opponentLineup.rosterDetails[playerId].seasonalStats = playerBoxScoreHistory.nba[playerId];
             }
@@ -178,17 +190,17 @@ export const liveSelector = createSelector(
           opponentLineup.opponentWinPercent = opponentLineup.rank / contest.entriesCount * 100;
 
           // used for animations to determine which side
-          opponentLineup.rosterBySRID = _.map(opponentLineup.rosterDetails, (player) => player.info.player_srid);
+          opponentLineup.rosterBySRID = _map(opponentLineup.rosterDetails, (player) => player.info.player_srid);
 
-          stats.relevantGames = _.union(
+          stats.relevantGames = _union(
             stats.relevantGames,
-            _.map(opponentLineup.rosterDetails, (player) => player.info.game_srid)
+            _map(opponentLineup.rosterDetails, (player) => player.info.game_srid)
           );
-          stats.relevantPlayers = _.union(
+          stats.relevantPlayers = _union(
             stats.relevantPlayers,
-            _.map(opponentLineup.rosterDetails, (player) => player.info.player_srid)
+            _map(opponentLineup.rosterDetails, (player) => player.info.player_srid)
           );
-          stats.playersInBothLineups = _.intersection(myLineup.rosterBySRID, opponentLineup.rosterBySRID);
+          stats.playersInBothLineups = _intersection(myLineup.rosterBySRID, opponentLineup.rosterBySRID);
           stats.lineups.opponent = opponentLineup;
         }
 

@@ -1,7 +1,7 @@
 const moment = require('moment');
 const request = require('superagent-promise')(require('superagent'), Promise);
 import 'babel-core/polyfill';
-import _ from 'lodash';
+import { map as _map } from 'lodash';
 
 import * as ActionTypes from '../action-types';
 import log from '../lib/logging';
@@ -90,7 +90,7 @@ const shouldFetchCurrentDraftGroups = (state) => {
  * @return {promise}   Promise of all fetch methods for all draft groups within the substore, each wrapped with dispatch
  */
 export const fetchRelatedDraftGroupsInfo = () => (dispatch, getState) => Promise.all(
-  _.map(getState().currentDraftGroups.items, (draftGroup) => dispatch(fetchDraftGroupIfNeeded(draftGroup.pk)))
+  _map(getState().currentDraftGroups.items, (draftGroup) => dispatch(fetchDraftGroupIfNeeded(draftGroup.pk)))
 );
 
 /**

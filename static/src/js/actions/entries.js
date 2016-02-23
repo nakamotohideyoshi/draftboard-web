@@ -1,6 +1,8 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
 import 'babel-core/polyfill';
-import _ from 'lodash';
+import { filter as _filter } from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { map as _map } from 'lodash';
 import { normalize, Schema, arrayOf } from 'normalizr';
 
 import { dateNow } from '../lib/utils';
@@ -31,7 +33,7 @@ const confirmRelatedEntriesInfo = () => ({
  */
 const receiveEntries = (response) => {
   const yesterday = dateNow() - 1000 * 60 * 60 * 24;  // subtract 1 day
-  const filteredResponse = _.filter(response, (entry) => new Date(entry.start) > yesterday);
+  const filteredResponse = _filter(response, (entry) => new Date(entry.start) > yesterday);
 
   // normalize the API call into a list of entry objects
   const entriesSchema = new Schema('entries', {
@@ -86,10 +88,10 @@ const addEntriesPlayers = () => (dispatch, getState) => {
   const entriesPlayers = {};
 
   // filter entries to only those that have started
-  const liveEntries = _.filter(state.entries.items, (entry) => new Date(entry.start) < dateNow());
+  const liveEntries = _filter(state.entries.items, (entry) => new Date(entry.start) < dateNow());
 
   // only add players that have started playing, by checking if they are in the roster
-  _.forEach(liveEntries, (entry) => {
+  _forEach(liveEntries, (entry) => {
     const lineup = state.liveContests[entry.contest].lineups[entry.lineup];
     if (typeof lineup !== 'undefined' && lineup.hasOwnProperty('roster')) {
       entriesPlayers[entry.id] = lineup.roster;
@@ -128,7 +130,7 @@ const fetchEntries = () => (dispatch) => {
 export const generateLineups = () => (dispatch, getState) => {
   const lineups = {};
 
-  _.forEach(getState().entries.items, (entry) => {
+  _forEach(getState().entries.items, (entry) => {
     const id = entry.lineup;
 
     if (id in lineups) {
@@ -180,7 +182,7 @@ const shouldFetchEntries = (state) => {
  *                     with store.entries.hasRelatedInfo = True so live/nav know to use the information.
  */
 export const fetchRelatedEntriesInfo = () => (dispatch, getState) => {
-  const calls = _.map(
+  const calls = _map(
     getState().entries.items, (entry) => dispatch(fetchContestIfNeeded(entry.contest))
   );
 

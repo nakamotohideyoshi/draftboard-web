@@ -1,7 +1,8 @@
 import * as ActionTypes from '../action-types';
-import _ from 'lodash';
 import update from 'react-addons-update';
 import { dateNow } from '../lib/utils';
+import { forEach as _forEach } from 'lodash';
+import { merge as _merge } from 'lodash';
 
 
 module.exports = (state = {
@@ -12,9 +13,9 @@ module.exports = (state = {
 }, action) => {
   switch (action.type) {
     case ActionTypes.ADD_ENTRIES_PLAYERS:
-      const newState = Object.assign({}, state);
+      const newState = _merge({}, state);
 
-      _.forEach(action.entriesPlayers, (roster, entryId) => {
+      _forEach(action.entriesPlayers, (roster, entryId) => {
         newState.items[entryId].roster = roster;
       });
 
