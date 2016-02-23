@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 import re
-
+from django.core.cache import cache
 from django.dispatch import Signal, receiver
 from django.db.models.signals import pre_save
 from dirtyfields import DirtyFieldsMixin
@@ -369,6 +369,9 @@ class PlayerStats(models.Model):
         return a globally unique value for this object
         """
         return 'game_%s__player_%s' % (self.srid_game, self.srid_player)
+
+    def set_cache_token(self):
+        cache.set(self.get_cache_token(), 'exists')
 
     def get_scoring_fields(self):
         """

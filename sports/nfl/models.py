@@ -217,7 +217,7 @@ class PlayerStats( sports.models.PlayerStats ):
         #
         # pusher the fantasy points with stats
         args = (self.get_cache_token(), push.classes.PUSHER_NFL_STATS, 'player', self.to_json())
-        cache.set(self.get_cache_token(), int(self.updated.strftime('%s')))
+        self.set_cache_token()
         countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
 
         super().save(*args, **kwargs)
