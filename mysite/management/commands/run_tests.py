@@ -29,7 +29,7 @@ class Command(NoArgsCommand):
         #
         #     call_command('test', '%s.tests' % app)
         db_name = 'dfs_pbpstats'
-        db_name = 'dfs_pbpstats'
+        #db_name = 'dfs_pbpstats'
         dbdump_filename = 'bkup-db.dump'
         with open(dbdump_filename, 'w') as dumpfile:
             #subprocess.call("sudo -u postgres pg_dump -Fc --no-acl --no-owner %s" % db_name, stdout=dumpfile, shell=True)
