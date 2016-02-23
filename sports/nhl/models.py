@@ -133,7 +133,7 @@ class PlayerStats( sports.models.PlayerStats ):
         # pusher the fantasy points w/ stats
         # push.classes.DataDenPush( push.classes.PUSHER_NHL_STATS, 'player').send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
         args = (self.get_cache_token(), push.classes.PUSHER_NHL_STATS, 'player', self.to_json())
-        cache.set(self.get_cache_token(), int(self.updated.strftime('%s')))
+        self.set_cache_token()
         countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
 
         super().save(*args, **kwargs)

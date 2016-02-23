@@ -145,6 +145,7 @@ class PlayerStats( sports.models.PlayerStats ):
 
         #
         # send the pusher obj for fantasy points with scoring
+        self.set_cache_token()
         push.classes.DataDenPush( push.classes.PUSHER_MLB_STATS, 'player').send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
 
         super().save(*args, **kwargs)
