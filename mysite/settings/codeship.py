@@ -12,6 +12,8 @@ DATABASES = {
   }
 }
 
+print('codeship PG_USER >>> %s' % os.environ.get('PG_USER'))
+
 #
 # we dont want to run ./manage.py test because
 # we've found that some of the INSTALLED_APPS
