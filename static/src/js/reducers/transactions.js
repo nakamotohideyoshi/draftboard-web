@@ -1,9 +1,11 @@
 import ActionTypes from '../action-types';
+import { merge as _merge } from 'lodash';
 
 
 const initialState = {
   allTransactions: [],
   filteredTransactions: [],
+  focusedTransactionId: {},
   filters: {
     startDate: null,
     endDate: null,
@@ -32,6 +34,14 @@ module.exports = (state = initialState, action) => {
           endDate: action.filters.endDate,
         },
       });
+
+
+    case ActionTypes.TRANSACTION_FOCUSED:
+      // Update the currently focused transactionId.
+      return _merge(
+        {}, state, { focusedTransactionId: action.transactionId }
+      );
+
 
     default:
       return state;

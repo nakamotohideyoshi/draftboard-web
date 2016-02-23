@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import TransactionsTableRow from './transactions-table-row.jsx';
 
@@ -7,7 +5,8 @@ import TransactionsTableRow from './transactions-table-row.jsx';
 const TransactionsTable = React.createClass({
 
   propTypes: {
-    transactions: React.PropTypes.array.isRequired
+    transactions: React.PropTypes.array.isRequired,
+    focusTransaction: React.PropTypes.func.isRequired,
   },
 
   render() {
@@ -17,13 +16,13 @@ const TransactionsTable = React.createClass({
     const transactionsCashed = '123';
     const transactionsCount = '1,231';
 
-    const transactionsRows = this.props.transactions.map((transaction) => {
-      return (
-        <TransactionsTableRow
-          key={transaction.pk}
-          transaction={transaction} />
-      );
-    });
+    const transactionsRows = this.props.transactions.map((transaction) =>
+      <TransactionsTableRow
+        key={transaction.pk}
+        transaction={transaction}
+        focusTransaction={this.props.focusTransaction}
+      />
+    );
 
     return (
       <div id="transactions-listed-table">
@@ -63,7 +62,7 @@ const TransactionsTable = React.createClass({
         </table>
       </div>
     );
-  }
+  },
 });
 
 
