@@ -1,10 +1,27 @@
 import React from 'react';
+import { Provider, connect } from 'react-redux';
+import renderComponent from '../../../lib/render-component.js';
+import store from '../../../store.js';
+import { focusedTransactionSelector } from '../../../selectors/focused-transaction-selector.js';
+
+
+function mapStateToProps(state) {
+  return {
+    transaction: focusedTransactionSelector(state),
+  };
+}
+
+function mapDispatchToProps() {
+  return {
+
+  };
+}
 
 
 const TransactionsDetails = React.createClass({
 
   propTypes: {
-    transaction: React.PropTypes.object.isRequired,
+    transaction: React.PropTypes.object,
   },
 
   getInitialState() {
@@ -33,18 +50,21 @@ const TransactionsDetails = React.createClass({
         <div className="pane__header__content">
           <div className="pane__transaction_status__completed">completed</div>
 
-          <div className="pane__title">Transaction 009293432</div>
+          <div className="pane__title">Transaction #{this.props.transaction.pk}</div>
+
           <div className="pane__header__info">
-            <div><span>transaction type</span><div>contest result</div></div>
-            <div><span>description</span><div>payout from contest with ID: 2340134j0</div></div>
-            <div><span>contest type</span><div>GPP</div></div>
+            <div><span>transaction type</span> <div>contest result</div></div>
+            <div><span>description</span> <div>{this.props.transaction.description}</div></div>
+            <div><span>contest type</span> <div>{this.props.transaction.type}</div></div>
           </div>
 
           <div className="pane__header__extra-info">
             <div className="pane__header__extra-info__championship">
-              <div className="pane__header__extra-info__championship__type">NBA</div>
-              <div className="pane__header__extra-info__championship__prize">$150K NBA</div>
-              <div className="pane__header__extra-info__championship__championship">Championship</div>
+              <div className="pane__header__extra-info__championship__type">FPO NBA</div>
+              <div className="pane__header__extra-info__championship__prize">
+              <div>FPO contest title</div>
+              <div className="pane__header__extra-info__championship__championship">FPO Championship</div>
+            </div>
             </div>
           </div>
 
@@ -344,6 +364,12 @@ const TransactionsDetails = React.createClass({
   },
 
   render() {
+    if (!this.props.transaction) {
+      return (
+        <div><h3>Please select a Transaction.</h3></div>
+      );
+    }
+
     const header = this.renderPaneHeader();
     const tabs = this.renderPaneTabsOption();
     const tabContent = this.renderPaneTabContent();
@@ -359,4 +385,17 @@ const TransactionsDetails = React.createClass({
 });
 
 
-export default TransactionsDetails;
+const TransactionsDetailsConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(TransactionsDetails);
+
+renderComponent(
+  <Provider store={store}>
+    <TransactionsDetailsConnected />
+  </Provider>,
+  '.pane__content'
+);
+
+
+module.exports = TransactionsDetails;
