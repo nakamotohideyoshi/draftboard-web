@@ -183,7 +183,7 @@ class PeriodPbp(DataDenPbpDescription): # ADD TO PARSER SWITCH
 
         events = self.o.get('events__list', [])
 
-        print('events__list count: %s' % str(len(events)))
+        #print('events__list count: %s' % str(len(events)))
 
         idx = 0
         for event_json in events:
@@ -230,8 +230,8 @@ class EventPbp(DataDenPbpDescription): # ADD TO PARSER SWITCH
                 # only save it if its changed
                 pbp_desc.description = description
                 pbp_desc.save()
-        else:
-            print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
+        # else:
+        #     print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
 
 class Injury(DataDenInjury):
 

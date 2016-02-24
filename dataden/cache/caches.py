@@ -351,7 +351,7 @@ class QuteQueue(object):
             self.current_size -= 1
         self.queue.append(obj)
         self.current_size += 1
-        print( '   +++ current_size: %s, just added obj: %s' % (str(self.current_size), str(obj)))
+        # print( '   +++ current_size: %s, just added obj: %s' % (str(self.current_size), str(obj)))
         # return the item that is being ejected -- otherwise return None
         return ejected_obj
 
@@ -726,7 +726,7 @@ class LinkedExpiringObjectQueueTable(QueueTable):
                 #print('++++++++++++lnk_obj.get_linking_id() [%s] == link_id: %s' % (str(lnk_obj.get_linking_id()),str(lnk_obj.get_linking_id() == link_id))) # TODO remove
                 return None
 
-        print('+ searching for object(s) linked by: %s' % str(link_id)) # TODO remove
+        #print('+ searching for object(s) linked by: %s' % str(link_id)) # TODO remove
 
         #
         # get the names of the other queues
@@ -742,16 +742,16 @@ class LinkedExpiringObjectQueueTable(QueueTable):
         for name in queue_names_to_search:
             q = self.get_queue(name)
             # iterate the queue looking for an object with a matching get_linking_id()
-            print('    .... searching queue: %s' % (str(name)) ) # TODO remove
+            #print('    .... searching queue: %s' % (str(name)) ) # TODO remove
             for identifier, dt, lnk_obj in list( q.queue ):
                 #
                 # inspect the current object to see if we can find a matching link id within it!
                 if lnk_obj.is_linked_with( link_id ):
                     linked_item_identifiers_found.append( identifier )
-                    print('      (!)   linkable found: %s' % str(lnk_obj.get_obj()) ) # TODO remove
+                    #print('      (!)   linkable found: %s' % str(lnk_obj.get_obj()) ) # TODO remove
                     break # just the inner loop!
-                else:
-                    print('      (x)   not a match: %s' % str(lnk_obj.get_obj())) # TODO remove
+                # else:
+                #     print('      (x)   not a match: %s' % str(lnk_obj.get_obj())) # TODO remove
 
         #
         # if we didnt link an item from each queue, get out of here

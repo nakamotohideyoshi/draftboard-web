@@ -541,7 +541,7 @@ class GamePbp(DataDenPbpDescription):
 		# 						},
 		# 						{ play }, ..., { play },
 
-        print('srid game', self.o.get('id'))
+        #print('srid game', self.o.get('id'))
         quarters = self.o.get('quarters', {})
 
         for quarter_json in quarters:
@@ -611,8 +611,8 @@ class PlayPbp(DataDenPbpDescription):
                 # only save it if its changed
                 pbp_desc.description = description
                 pbp_desc.save()
-        else:
-            print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
+        # else:
+        #     print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
 
 class Injury(DataDenInjury):
 

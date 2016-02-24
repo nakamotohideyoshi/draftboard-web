@@ -189,7 +189,7 @@ class AbstractDataDenParseable(object):
 
         #
         # constrcut an SridFinder with the dictionary data
-        print('self.o -- ', str(self.o))        # TODO remove print
+        #print('self.o -- ', str(self.o))        # TODO remove print
         self.srid_finder = SridFinder(self.o)
 
     def get_site_sport(self, obj):

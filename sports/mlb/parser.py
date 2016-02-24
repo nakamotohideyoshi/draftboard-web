@@ -256,7 +256,7 @@ class HomeAwaySummary(DataDenTeamBoxscores):
 
         if self.boxscore.srid_home == srid_team:
             # home
-            print( 'home_score / runs:', str(runs) )
+            #print( 'home_score / runs:', str(runs) )
             self.boxscore.home_score        = runs
             self.boxscore.srid_home_pp      = probable_pitcher
             self.boxscore.srid_home_sp      = starting_pitcher
@@ -265,7 +265,7 @@ class HomeAwaySummary(DataDenTeamBoxscores):
 
         elif self.boxscore.srid_away == srid_team:
             # away
-            print( 'away_score / runs:', str(runs) )
+            #print( 'away_score / runs:', str(runs) )
             self.boxscore.away_score        = runs
             self.boxscore.srid_away_pp      = probable_pitcher
             self.boxscore.srid_away_sp      = starting_pitcher
@@ -277,7 +277,7 @@ class HomeAwaySummary(DataDenTeamBoxscores):
             print( 'HomeAwaySummary team[%s] does not match home or away!' % srid_team)
             return
 
-        print( 'boxscore results | home_score %s | away_score %s' % (str(self.boxscore.home_score),str(self.boxscore.away_score)))
+        #print( 'boxscore results | home_score %s | away_score %s' % (str(self.boxscore.home_score),str(self.boxscore.away_score)))
         self.boxscore.save()
 
 class GameBoxscores(DataDenGameBoxscores):
@@ -772,11 +772,11 @@ class PlayerStats(DataDenPlayerStats):
 
             # collect pitching stats
             statistics = o.get('statistics__list', {}) # default will useful if it doenst exist
-            print('')
-            print( statistics )
+            #print('')
+            #print( statistics )
             pitching = statistics.get('pitching__list', {})
-            print('')
-            print( pitching )
+            #print('')
+            #print( pitching )
             games   = pitching.get('games__list', {})
             onbase  = pitching.get('onbase__list', {})
             runs    = pitching.get('runs__list', {})
@@ -806,11 +806,11 @@ class PlayerStats(DataDenPlayerStats):
                 return # if super().parse() doesnt create this, get out of here
 
             statistics = o.get('statistics__list', {})
-            print('')
-            print( statistics )
+            #print('')
+            #print( statistics )
             hitting = statistics.get('hitting__list', {}) # default will useful if it doenst exist
-            print('')
-            print( hitting )
+            #print('')
+            #print( hitting )
             onbase  = hitting.get('onbase__list', {})
             runs    = hitting.get('runs__list', {})
             steals  = hitting.get('steal__list', {})
@@ -1053,7 +1053,7 @@ class GamePbp(DataDenPbpDescription):
 
         # self.game & self.pbp are setup by super().parse()
 
-        print('srid game', self.o.get('id'))
+        #print('srid game', self.o.get('id'))
         innings = self.o.get('innings', {})
         overall_idx = 0
         inning_half_idx = 0
