@@ -53,7 +53,7 @@ export function timeRemaining(timestamp) {
 
 // Has this timestamp passed?
 export function isTimeInFuture(timestamp) {
-  return moment.utc(timestamp) > moment.utc()
+  return moment.utc(timestamp) > moment(dateNow()).utc()
 }
 
 /**
