@@ -68,6 +68,7 @@ class LineupManager(AbstractSiteUserClass):
         """
         total_fantasy_points = 0.0
         for player in self.get_players(lineup):
+            # player is a lineup.models.Player object
             total_fantasy_points += player.draft_group_player.finalized_fantasy_points
         #
         # and save the lineup
