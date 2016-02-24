@@ -110,7 +110,7 @@ class PayoutManager(AbstractManagerClass):
 
         try:
             c = ClosedContest.objects.get( pk=contest.pk )
-            print('%s already closed & paid out.'%str(contest))
+            #print('%s already closed & paid out.'%str(contest))
             return # go no further
         except:
             pass
@@ -131,7 +131,7 @@ class PayoutManager(AbstractManagerClass):
             # verify the abstract amount is correct type
             if not isinstance(rank.amount, AbstractAmount):
                 raise mysite.exceptions.IncorrectVariableTypeException(
-                    type(self).__name,
+                    type(self).__name__,
                     'rank')
 
             #
@@ -139,18 +139,18 @@ class PayoutManager(AbstractManagerClass):
             transaction_class = rank.amount.get_transaction_class()
             if not issubclass(transaction_class, CanDeposit):
                 raise mysite.exceptions.IncorrectVariableTypeException(
-                    type(self).__name,
+                    type(self).__name__,
                     'transaction_class')
 
 
-        print('------- entries [%s] contest [%s] -------' %(str(len(entries)), str(contest)))
+        #print('------- entries [%s] contest [%s] -------' %(str(len(entries)), str(contest)))
         #
         # perform the payouts by going through each entry and finding
         # ties and ranks for the ties to chop.
-        print('======= ranks [%s] =======' % (str(ranks)))
+        #print('======= ranks [%s] =======' % (str(ranks)))
         i = 0
         while i < len(ranks):
-            print('++++ i (rank): %s +++++' % str(i) )
+            #print('++++ i (rank): %s +++++' % str(i) )
             entries_to_pay = list()
             ranks_to_pay = list()
             entries_to_pay.append(entries[i])
@@ -197,7 +197,7 @@ class PayoutManager(AbstractManagerClass):
             # self.__rank_spot(ranks_to_pay, entries_to_pay, contest)
             # set the current 'j' to each entry in entries_to_pay
             for e in entries:
-                print('>>>> setting entry[%s] to rank: %s' % (str(e),str(j)))
+                #print('>>>> setting entry[%s] to rank: %s' % (str(e),str(j)))
                 e.final_rank = j + 1   # +1 because the highest rank is 0, but this is for the front end
                 e.save()
 

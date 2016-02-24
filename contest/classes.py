@@ -149,7 +149,6 @@ class ContestLineupManager(object):
         :param draft_group_players:
         :return:
         """
-        #print( 'TODO - dont forget to cache the starter_map -- it cant be too fast!!')
         self.starter_map = {}
         now = timezone.now()
         for p in self.draft_group_players:
@@ -308,23 +307,3 @@ class ContestLineupManager(object):
 
     def get_http_payload(self):
         return ''.join('{:02x}'.format(x) for x in self.get_raw_bytes() )
-
-# # params: draft_group, games (ids), players (ids)
-# class AbstractPlayerStatsManager(object):
-#     """
-#     this class will typically be held in cache, and can quickly
-#     get, or update those player stats based on real-time data.
-#     """
-#
-#     def __init__(self):
-#         pass # TODO get from cache, else: initialize here
-#
-#         self.load_games( )   # TODO
-#         self.load_players( ) # TODO
-#
-#     def get_players(self, player_ids):
-#         pass # TODO
-#
-#
-#     # def update_players(self, player_stats):
-#     #     pass # TODO
