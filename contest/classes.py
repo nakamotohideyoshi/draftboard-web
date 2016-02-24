@@ -199,7 +199,7 @@ class ContestLineupManager(object):
 
         :return:
         """
-        return (self.SIZE_LINEUP_ID + self.players_per_lineup * self.SIZE_PLAYER) * self.contest.entries
+        return (self.SIZE_LINEUP_ID + self.players_per_lineup * self.SIZE_PLAYER) * self.entries.count()
 
     def get_size_in_bytes(self):
         #print( '__header_size() = %s' %str(self.__header_size()), '__payload_size() = %s' % str(self.__payload_size()))
