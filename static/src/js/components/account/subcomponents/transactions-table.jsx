@@ -18,7 +18,7 @@ const TransactionsTable = React.createClass({
 
     const transactionsRows = this.props.transactions.map((transaction) =>
       <TransactionsTableRow
-        key={transaction.pk}
+        key={transaction.id}
         transaction={transaction}
         focusTransaction={this.props.focusTransaction}
       />

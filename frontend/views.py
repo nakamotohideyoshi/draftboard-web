@@ -90,19 +90,26 @@ class FrontendResultsTemplateView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/results.html'
 
 
+class FrontendSettingsTemplateView(LoginRequiredMixin, TemplateView):
+    template_name = 'frontend/account/partials/settings.html'
+
+
 class FrontendSettingsDepositsTemplateView(LoginRequiredMixin, TemplateView):
-    template_name = 'frontend/settings/deposits.html'
+    template_name = 'frontend/account/partials/deposits.html'
 
 
 class FrontendSettingsTransactionHistoryTemplateView(LoginRequiredMixin, TemplateView):
-    template_name = 'frontend/settings/transactions.html'
+    template_name = 'frontend/account/partials/transactions.html'
 
 
-class FrontendSettingsWithdrawsTemplateView(LoginRequiredMixin, TemplateView):
+class FrontendSettingsWithdrawTemplateView(LoginRequiredMixin, TemplateView):
     """
     Build out of settings page. Coderden should take this and incorporate into their backend.
     """
-    template_name = 'frontend/settings/withdraws.html'
+    template_name = 'frontend/account/partials/withdraw.html'
+
+
+
 
 
 class FrontendDraftTemplateView(LoginRequiredMixin, TemplateView):
