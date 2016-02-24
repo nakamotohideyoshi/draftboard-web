@@ -128,13 +128,13 @@ class RefundManager(AbstractManagerClass):
             #
             if contest.gpp == True:
                 return
-
             # if its already been cancelled, we cant do it again
             if contest in HistoryContest.objects.all():
                 raise ContestCanNotBeRefunded()
 
         # if we are not forcing the refund, then check if the contest is live first
         if not force:
+
             if contest not in LiveContest.objects.all():
                 raise ContestCanNotBeRefunded()
 
