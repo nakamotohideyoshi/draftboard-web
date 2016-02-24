@@ -92,7 +92,7 @@ class PayoutManager(AbstractManagerClass):
         # so we're not doing extra processing...
         lineups = Lineup.objects.filter(draft_group__pk__in=draft_group_ids)
         for lineup in lineups:
-            lineup_manager = LineupManager()
+            lineup_manager = LineupManager( lineup.user )
             lineup_manager.update_fantasy_points( lineup )
 
         #
