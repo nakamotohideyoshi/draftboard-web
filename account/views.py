@@ -34,10 +34,11 @@ from rest_framework import response, status
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from rest_framework import permissions
-#from rest_framework.generics import CreateAPIView
-#from django.contrib.auth import get_user_model # If used custom user model
+# from rest_framework.generics import CreateAPIView
+# from django.contrib.auth import get_user_model # If used custom user model
 # /password/reset/confirm/{uid}/{token}
 from django.contrib.auth import authenticate, login, logout
+
 
 class AuthAPIView(APIView):
     """
@@ -64,6 +65,7 @@ class AuthAPIView(APIView):
     def delete(self, request, *args, **kwargs):
         logout(request)
         return Response({}, status=status.HTTP_200_OK)
+
 
 class ForgotPasswordAPIView(APIView):
     """
@@ -296,26 +298,6 @@ class UserEmailNotificationAPIView (generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class AccountSettingsView(LoginRequiredMixin, TemplateView):
-
-    template_name = 'account/settings.html'
-
-
-class DepositView(LoginRequiredMixin, TemplateView):
-
-    template_name = 'account/deposits.html'
-
-
-class WithdrawalView(LoginRequiredMixin, TemplateView):
-
-    template_name = 'account/withdrawals.html'
-
-
-class TransactionsView(LoginRequiredMixin, TemplateView):
-
-    template_name = 'account/transactions.html'
-
-
 class UserBasicAPI(APIView):
 
     renderer_classes = (JSONRenderer, )
@@ -487,82 +469,7 @@ class SetDefaultPaymentMethodAPI(APIView):
         return Response(status=201)
 
 
-class TransactionsAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def get(self, request, *args, **kwargs):
-        return Response([
-            {
-                'date_date': '04/24/2015',
-                'date_time': '7:15:32 PM',
-                'amount': '$1,300.32',
-                'balance': '$2,249.32',
-                'type': 'GPP',
-                'description': 'Contest with multiple entries.',
-                'pk': 1
-            },
-            {
-              'date_date': '11/32/2015',
-              'date_time': '7:15:32 PM',
-              'amount': '$1,300.32',
-              'balance': '$2,249.32',
-              'type': 'GPP',
-              'description': 'Contest with multiple entries.',
-              'pk': 2
-            },
-            {
-              'date_date': '04/24/20',
-              'date_time': '7:15:32 PM',
-              'amount': '$1,300.32',
-              'balance': '$2,249.32',
-              'type': 'GPP',
-              'description': 'Contest with multiple entries.',
-              'pk': 3
-            },
-            {
-              'date_date': '04/24/20',
-              'date_time': '7:15:32 PM',
-              'amount': '$1,300.32',
-              'balance': '$2,249.32',
-              'type': 'GPP',
-              'description': 'Contest with multiple entries.',
-              'pk': 4
-            }
-        ])
-
-
-class TransactionHistoryAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def get(self, request, *args, **kwargs):
-        return Response({
-            'pk': 2,
-            'number': '00823432',
-            'status': 'completed',
-            'transaction_type': 'Contest Result',
-            'transaction_description': 'Payout from contest with ID 23401230',
-            'fee': '$25',
-            'prize-pool': '$150,000',
-            'date_date': '11/32/15',
-            'date_time': '7:15:32 PM',
-            'amount': '$1,300.32',
-            'balance': '$2,249.32',
-            'type': 'GPP',
-            'description': 'Contest with multiple entries.',
-            'standings': [
-            ],
-            'scorings': [
-            ],
-            'prizes': [
-            ],
-            'teams': [
-            ]
-        })
-
 
 class RegisterView(TemplateView):
 
     template_name = 'registration/register.html'
-

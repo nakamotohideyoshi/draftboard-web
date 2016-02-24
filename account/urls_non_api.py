@@ -5,11 +5,6 @@ from django.conf.urls import include
 
 from account.views import (
 
-    AccountSettingsView,
-    DepositView,
-    WithdrawalView,
-    TransactionsView,
-
     RegisterView,
 
     # Dummy API endpoints TO BE REMOVED
@@ -21,8 +16,6 @@ from account.views import (
     AddPaymentMethodAPI,
     RemovePaymentMethodAPI,
     SetDefaultPaymentMethodAPI,
-    TransactionsAPI,
-    TransactionHistoryAPI,
 )
 
 
@@ -35,11 +28,6 @@ urlpatterns = [
 
     url(r'^register/', RegisterView.as_view(), name='register'),
 
-    url(r'^account/settings/base/$', AccountSettingsView.as_view(), name='account-settings-base'),
-    url(r'^account/settings/deposits/$', DepositView.as_view(), name='account-settings-deposits'),
-    url(r'^account/settings/withdrawals/$', WithdrawalView.as_view(), name='account-settings-withdrawals'),
-    url(r'^account/settings/transactions/$', TransactionsView.as_view(), name='account-settings-transactions'),
-
     # THE FOLLOWING ARE TO BE REMOVED
     url(r'^account/api/account/user/$', UserBasicAPI.as_view()),
     url(r'^account/api/account/information/$', UserInformationAPI.as_view()),
@@ -49,8 +37,4 @@ urlpatterns = [
     url(r'^account/api/account/payments/withdraw/$', WithdrawAPI.as_view()),
     url(r'^account/api/account/payments/setdefault/$', SetDefaultPaymentMethodAPI.as_view()),
     url(r'^account/api/account/payments/remove/1/$', RemovePaymentMethodAPI.as_view()),
-
-    url(r'^account/api/transactions/$', TransactionsAPI.as_view()),
-    url(r'^account/api/transactions/history/$', TransactionHistoryAPI.as_view()),
-
 ]

@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 
 const InputDayPicker = require('../../form-field/input-day-picker.jsx');
@@ -8,15 +6,15 @@ const InputDayPicker = require('../../form-field/input-day-picker.jsx');
 const TransactionsForm = React.createClass({
 
   propTypes: {
-    onPeriodSelected: React.PropTypes.func.isRequired
+    onPeriodSelected: React.PropTypes.func.isRequired,
   },
 
   getInitialState() {
     return {
       showCalendarInputs: false,
       startDate: null,
-      endDate: null
-    }
+      endDate: null,
+    };
   },
 
   /**
@@ -24,45 +22,45 @@ const TransactionsForm = React.createClass({
    * and trigger getTransaction action with that dates
    */
   handlePastWeekFetch() {
-    this.hideCalendarInputs()
-    this.props.onPeriodSelected({isPeriod: false, days: 7, startDate: null, endDate: null})
+    this.hideCalendarInputs();
+    this.props.onPeriodSelected({ isPeriod: false, days: 7 });
   },
 
   handlePastMonthFetch() {
-    this.hideCalendarInputs()
-
-    let today = new Date()
-    // calculates the days in a month
-    const daysCount = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
-    this.props.onPeriodSelected({isPeriod: false, days: daysCount, startDate: null, endDate: null})
+    this.hideCalendarInputs();
+    // Get a 1 month start + end date.
+    const today = new Date();
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(today.getMonth() - 1);
+    this.props.onPeriodSelected({ isPeriod: true, startDate: oneMonthAgo, endDate: today });
   },
 
   handleSelectDate() {
-    const toggler = !this.state.showCalendarInputs
-    this.setState({showCalendarInputs: toggler})
+    const toggler = !this.state.showCalendarInputs;
+    this.setState({ showCalendarInputs: toggler });
   },
 
   handleStartDateSelected(date) {
-    this.setState({ startDate: date })
+    this.setState({ startDate: date });
 
-    if (this.endDate !== null) {
+    if (this.state.endDate) {
       this.props.onPeriodSelected({
         isPeriod: true,
         startDate: date,
-        endDate: this.state.endDate
-      })
+        endDate: this.state.endDate,
+      });
     }
   },
 
   handleEndDateSelected(date) {
-    this.setState({ endDate: date })
+    this.setState({ endDate: date });
 
-    if (this.startDate !== null) {
+    if (this.state.startDate !== null) {
       this.props.onPeriodSelected({
         isPeriod: true,
         startDate: this.state.startDate,
-        endDate: date
-      })
+        endDate: date,
+      });
     }
   },
 
@@ -70,8 +68,8 @@ const TransactionsForm = React.createClass({
     this.setState({
       showCalendarInputs: false,
       startDate: null,
-      endDate: null
-    })
+      endDate: null,
+    });
   },
 
   render() {
@@ -91,27 +89,29 @@ const TransactionsForm = React.createClass({
               <div className="transactions-date-pickers">
                 <InputDayPicker
                   onDaySelected={this.handleStartDateSelected}
-                  placeholder='Start Day'
-                  ref='start-day-input' />
+                  placeholder="Start Day"
+                  ref="start-day-input"
+                />
                 <span>-</span>
                 <InputDayPicker
                   onDaySelected={this.handleEndDateSelected}
-                  placeholder='End Day'
-                  ref='end-day-input' />
+                  placeholder="End Day"
+                  ref="end-day-input"
+                />
               </div>
             }
 
             { false &&
               <div className="transactions-date-pickers">
                 <span>
-                  <span className='input-symbol-number'>
-                    <input type='text' />
+                  <span className="input-symbol-number">
+                    <input type="text" />
                   </span>
                 </span>
                 <span>-</span>
                 <span>
-                  <span className='input-symbol-number'>
-                    <input type='text' />
+                  <span className="input-symbol-number">
+                    <input type="text" />
                   </span>
                 </span>
               </div>
@@ -123,11 +123,12 @@ const TransactionsForm = React.createClass({
           <input
             type="submit"
             className="button--medium pull-right"
-            value="Export" />
+            value="Export"
+          />
         </fieldset>
       </form>
     );
-  }
+  },
 });
 
 
