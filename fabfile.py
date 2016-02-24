@@ -208,12 +208,12 @@ def local():
     _get_local_git_db()
 
 
-def ios_sandbox():
+def dev():
     """fab local [command]"""
 
-    testing = ENVS['ios_sandbox']
+    testing = ENVS['dev']
 
-    env.environment = 'ios-sandbox'
+    env.environment = 'dev'
     env.heroku_repo = testing['heroku_repo']
     _get_local_git_db()
 
