@@ -171,10 +171,10 @@ class AbstractPush(object):
                     linker_queue = self.cache.get(linker_queue_name)
                     #print('linker_queue_name:', str(linker_queue_name)) # TODO remove
                     if linker_queue is not None:
-                        print('   linker_queue is not None - and is being returned') # TODO remove
+                        #print('   linker_queue is not None - and is being returned') # TODO remove
                         return linker_queue
                     else:
-                        print('   linker_queue should be created (and is being created right now)') # TODO remove
+                        #print('   linker_queue should be created (and is being created right now)') # TODO remove
                         linker_queue = LinkedExpiringObjectQueueTable(channel_list)
                         return linker_queue
             #
@@ -249,7 +249,7 @@ class AbstractPush(object):
             # run this object thru the stat linker to see if we can match it up
             linker = self.Linker()
             linker_queue = linker.get_linked_expiring_queue( self.channel )
-            print('linker_queue:', str(linker_queue)) # TODO remove
+            #print('linker_queue:', str(linker_queue)) # TODO remove
             if linker_queue is not None:
                 #
                 # adding an object will result in us getting back the identifier
@@ -272,7 +272,7 @@ class AbstractPush(object):
                 if new_linked_object_data is not None:
                     # reshape the data a little bit, then pusher out the new linked data
                     formatted_linked_data = self.format_linked_data( new_linked_object_data )
-                    print('SENDING FORMATTED_LINKED_DATA:', str(formatted_linked_data)) # TODO remove
+                    #print('SENDING FORMATTED_LINKED_DATA:', str(formatted_linked_data)) # TODO remove
                     LinkedPbpStatsDataDenPush( self.channel ).send( formatted_linked_data )
 
                 # bypass the rest of the method, because we have taken care of clean with countdown task
@@ -280,13 +280,13 @@ class AbstractPush(object):
         #
         # send it
         if async:
-            print('')
-            print('----------  pusher_send_task -----------')
-            print('| type: %s' % type(data))
-            print('| data: %s' % str(data))
-            print('----------------------------------------')
-            print('')
-            print('')
+            # print('')
+            # print('----------  pusher_send_task -----------')
+            # print('| type: %s' % type(data))
+            # print('| data: %s' % str(data))
+            # print('----------------------------------------')
+            # print('')
+            # print('')
             task_result = pusher_send_task.apply_async( (self, data), serializer='pickle' )
         else:
             self.trigger( data )
@@ -299,7 +299,7 @@ class AbstractPush(object):
         returns data in a format expected by the client.
         """
         data = {}
-        print('unformatted_linked_data: %s' % str(unformatted_linked_data))
+        #print('unformatted_linked_data: %s' % str(unformatted_linked_data))
         for queue_name, queue_item in unformatted_linked_data:
             data[ queue_name ] = queue_item.get_linkable_object().get_obj()
         return data
@@ -323,8 +323,8 @@ class AbstractPush(object):
             cache.set( identifier, identifier, 30 )
             # fire a pending task -- when it launches it should check if it still needs to send.
             # this task must use the same blocking lock as the edit_linker_queue method (?)
-            print('adding (identifier: %s) and task with countdown: '%str(identifier),
-                                                str(linkable_object.get_obj())) # TODO remove
+            # print('adding (identifier: %s) and task with countdown: '%str(identifier),
+            #                                     str(linkable_object.get_obj())) # TODO remove
 
             linker_pusher_send_task.apply_async( (self, linkable_object.get_obj(),
                                                 identifier), countdown=5, serializer='pickle' )
@@ -333,11 +333,11 @@ class AbstractPush(object):
         # we need to delete the token from the
         elif linked_objects_to_send is not None:
             for queue_name, queue_item in linked_objects_to_send:
-                print('LINKED_OBJECTS_TO_SEND: %s' % str(linked_objects_to_send))
+                #print('LINKED_OBJECTS_TO_SEND: %s' % str(linked_objects_to_send))
                 item_identifier = queue_item.get_identifier()
                 # item_identifier may be None -- if this item is being immediately sent!
                 if item_identifier is not None:
-                    print('     >>>>>> DELETEING TOKEN: %s' % str(item_identifier)) # TODO remove
+                    #print('     >>>>>> DELETEING TOKEN: %s' % str(item_identifier)) # TODO remove
                     cache.delete( queue_item.get_identifier() )
 
         #
@@ -383,9 +383,9 @@ class StatsDataDenPush( AbstractPush ):
         override the default behavior of send(), such that we check
         if the object has already been sent... if it has, then do not send it!
         """
-        print('stats_data: %s' % str(stats_data))
+        #print('stats_data: %s' % str(stats_data))
         link_id = stats_data.get('fields').get('srid_player')
-        print('link_id: %s' % str(link_id))
+        #print('link_id: %s' % str(link_id))
         self.set_linkable_object( stats_data, link_id=link_id)
         super().send( stats_data, async=async, force=force)
 
@@ -415,10 +415,10 @@ class PbpDataDenPush( AbstractPush ):
         live_stats_cache = LiveStatsCache()
         just_added = live_stats_cache.update_pbp( pbp_data )
         if just_added:
-            print(' === PbpDataDenPush data === SENDING:', str(pbp_data)) # TODO - remove debugging print
+            #print(' === PbpDataDenPush data === SENDING:', str(pbp_data)) # TODO - remove debugging print
             super().send( pbp_data, async=async, force=force)
-        else:
-            print(' === PbpDataDenPush data === DID NOT DOUBLE-SEND:', str(pbp_data)[:100]) # TODO - remove debugging print
+        # else:
+        #     print(' === PbpDataDenPush data === DID NOT DOUBLE-SEND:', str(pbp_data)[:100]) # TODO - remove debugging print
 
 class LinkedPbpStatsDataDenPush( AbstractPush ):
     """
