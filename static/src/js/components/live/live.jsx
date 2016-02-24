@@ -26,12 +26,13 @@ import LiveNBACourt from './live-nba-court';
 import LiveStandingsPaneConnected from './live-standings-pane';
 import log from '../../lib/logging';
 import store from '../../store';
+import { addMessage, clearMessages } from '../../actions/message-actions';
 import { checkForUpdates } from '../../actions/live';
 import { currentLineupsSelector } from '../../selectors/current-lineups';
 import { fetchContestLineups } from '../../actions/live-contests';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
-import { fetchRelatedEntriesInfo } from '../../actions/entries';
 import { fetchEntriesIfNeeded } from '../../actions/entries';
+import { fetchRelatedEntriesInfo } from '../../actions/entries';
 import { fetchSportIfNeeded } from '../../actions/sports';
 import { liveContestsSelector } from '../../selectors/live-contests';
 import { liveSelector } from '../../selectors/live';
@@ -89,6 +90,9 @@ const Live = React.createClass({
         contestId: urlParams.contestId || undefined,
         opponentLineupId: urlParams.opponentLineupId || undefined,
       }));
+
+      // double check all related information is up to date
+      this.props.dispatch(fetchRelatedEntriesInfo());
     } else {
       // force entries to refresh
       this.props.dispatch(fetchEntriesIfNeeded(true));
@@ -97,6 +101,17 @@ const Live = React.createClass({
 
     // start listening for pusher calls, and server updates
     this.startListening();
+  },
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.liveSelector.draftGroupEnded === false && nextProps.liveSelector.draftGroupEnded === true) {
+      store.dispatch(clearMessages());
+      store.dispatch(addMessage({
+        header: 'Contests have finished!',
+        content: '<div>See your results <a href="/results/">here</a></div>',
+        level: 'success',
+      }));
+    }
   },
 
   /*

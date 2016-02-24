@@ -9,8 +9,6 @@ import log from '../../lib/logging';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
 
-import { fetchCurrentDraftGroupsIfNeeded } from '../../actions/current-draft-groups';
-import { fetchDraftGroupFP } from '../../actions/live-draft-groups';
 import { fetchEntriesIfNeeded } from '../../actions/entries';
 import { fetchSportsIfNeeded } from '../../actions/sports';
 import { currentLineupsSelector } from '../../selectors/current-lineups';
@@ -39,26 +37,10 @@ import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const';
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
+  cashBalance: state.user.cashBalance.amount,
   currentLineupsSelector: currentLineupsSelector(state),
   liveSelector: liveSelector(state),
   sportsSelector: sportsSelector(state),
-  cashBalance: state.user.cashBalance.amount,
-});
-
-/*
- * Map Redux actions to React component properties
- * @param  {function} dispatch The dispatch method to pass actions into
- * @return {object}            All of the methods to map to the component
- */
-const mapDispatchToProps = (dispatch) => ({
-  errorHandler: (exception) => dispatch(errorHandler(exception)),
-  fetchCurrentDraftGroupsIfNeeded: () => dispatch(fetchCurrentDraftGroupsIfNeeded()),
-  fetchDraftGroupFP: (draftGroupId) => dispatch(fetchDraftGroupFP(draftGroupId)),
-  fetchEntriesIfNeeded: (force) => dispatch(fetchEntriesIfNeeded(force)),
-  fetchSportsIfNeeded: () => dispatch(fetchSportsIfNeeded()),
-  removeUnusedContests: () => dispatch(removeUnusedContests()),
-  removeUnusedDraftGroups: () => dispatch(removeUnusedDraftGroups()),
-  updateGame: (gameId, teamId, points) => dispatch(updateGame(gameId, teamId, points)),
 });
 
 /*
@@ -70,18 +52,11 @@ const mapDispatchToProps = (dispatch) => ({
 const NavScoreboard = React.createClass({
 
   propTypes: {
-    currentLineupsSelector: React.PropTypes.object.isRequired,
-    errorHandler: React.PropTypes.func,
-    fetchCurrentDraftGroupsIfNeeded: React.PropTypes.func,
-    fetchDraftGroupFP: React.PropTypes.func,
-    fetchEntriesIfNeeded: React.PropTypes.func,
-    fetchSportsIfNeeded: React.PropTypes.func,
-    liveSelector: React.PropTypes.object.isRequired,
-    removeUnusedContests: React.PropTypes.func,
-    removeUnusedDraftGroups: React.PropTypes.func,
-    sportsSelector: React.PropTypes.object.isRequired,
-    updateGame: React.PropTypes.func,
     cashBalance: React.PropTypes.string,
+    currentLineupsSelector: React.PropTypes.object.isRequired,
+    dispatch: React.PropTypes.func.isRequired,
+    liveSelector: React.PropTypes.object.isRequired,
+    sportsSelector: React.PropTypes.object.isRequired,
   },
 
 
@@ -120,17 +95,17 @@ const NavScoreboard = React.createClass({
     const defaultMessage = 'Our support team has been alerted of this error and will fix immediately.';
 
     try {
-      this.props.fetchSportsIfNeeded();
+      this.props.dispatch(fetchSportsIfNeeded());
     } catch (e) {
-      errorHandler(e, `#AJSDFJWI ${defaultMessage}`);
+      this.props.dispatch(errorHandler(e, `#AJSDFJWI ${defaultMessage}`));
     }
 
     // if the user is logged in
-    if (this.state.user.username !== '') {
+    if (this.state.user.username !== '' && window.location.pathname !== '/live/') {
       try {
-        this.props.fetchEntriesIfNeeded();
+        this.props.dispatch(fetchEntriesIfNeeded());
       } catch (e) {
-        errorHandler(e, `#JASDFJIE ${defaultMessage}`);
+        this.props.dispatch(errorHandler(e, `#JASDFJIE ${defaultMessage}`));
       }
     }
 
@@ -209,11 +184,11 @@ const NavScoreboard = React.createClass({
       if (this.props.sportsSelector.games.hasOwnProperty(eventData.game__id) &&
           eventData.hasOwnProperty('points')
       ) {
-        this.props.updateGame(
+        this.props.dispatch(updateGame(
           eventData.game__id,
           eventData.id,
           eventData.points
-        );
+        ));
       }
     });
   },
@@ -232,8 +207,8 @@ const NavScoreboard = React.createClass({
    * Is run once per page load.
    */
   removeExpiredSubstoreObjects() {
-    this.props.removeUnusedContests();
-    this.props.removeUnusedDraftGroups();
+    this.props.dispatch(removeUnusedContests());
+    this.props.dispatch(removeUnusedDraftGroups());
   },
 
   /**
@@ -244,7 +219,7 @@ const NavScoreboard = React.createClass({
     // whether we are logged in or not, we always need to check whether to update sports and draftgroups
     // check every few seconds, and if expired (which happens after 10 minutes), then they will fetch
     const parityChecks = {
-      sports: window.setInterval(this.props.fetchSportsIfNeeded, 5000),
+      sports: window.setInterval(this.props.dispatch(fetchSportsIfNeeded()), 5000),
     };
 
     // add the checsk to the state in case we need to clearInterval in the future
@@ -313,10 +288,7 @@ const NavScoreboard = React.createClass({
 });
 
 // Wrap the component to inject dispatch and selected state into it.
-const NavScoreboardConnected = connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(NavScoreboard);
+const NavScoreboardConnected = connect(mapStateToProps)(NavScoreboard);
 
 // Uses the Provider to have redux state
 renderComponent(
