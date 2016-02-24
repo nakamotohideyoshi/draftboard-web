@@ -218,6 +218,13 @@ app.conf.update(
             'schedule': timedelta(minutes=5),
         },
 
+        #
+        # payout task
+        'notify_admin_contests_automatically_paid_out' : {
+            'task'      : 'contest.payout.tasks.notify_admin_contests_automatically_paid_out',
+            'schedule'  : timedelta(minutes=5),
+        }
+
     },
 
     CELERY_ENABLE_UTC = True,
