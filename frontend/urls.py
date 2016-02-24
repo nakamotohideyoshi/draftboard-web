@@ -50,8 +50,25 @@ urlpatterns = patterns(
         views.FrontendResultsTemplateView.as_view(),
         name='live-results'
     ),
-    (r'^settings/$', views.FrontendSettingsTemplateView.as_view()),
-    (r'^settings/transactions/$', views.FrontendSettingsTransactionHistoryTemplateView.as_view()),
-    (r'^settings/deposits/$', views.FrontendSettingsDepositsTemplateView.as_view()),
-    (r'^settings/withdraws/$', views.FrontendSettingsWithdrawsTemplateView.as_view())
+    url(
+        r'^account/settings/$',
+        views.FrontendSettingsTemplateView.as_view(),
+        name='account-settings'
+    ),
+
+    url(
+        r'^account/transactions/$',
+        views.FrontendSettingsTransactionHistoryTemplateView.as_view(),
+        name='account-transactions'
+    ),
+    url(
+        r'^account/deposits/$',
+        views.FrontendSettingsDepositsTemplateView.as_view(),
+        name='account-deposits'
+    ),
+    url(
+        r'^account/withdraw/$',
+        views.FrontendSettingsWithdrawTemplateView.as_view(),
+        name='account-withdraw'
+    )
 )

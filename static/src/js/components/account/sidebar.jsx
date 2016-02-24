@@ -1,22 +1,20 @@
-'use strict';
-
 import React from 'react';
-const ReactRedux = require('react-redux')
-const store = require('../../store')
+const ReactRedux = require('react-redux');
+const store = require('../../store');
 const renderComponent = require('../../lib/render-component');
 
-import {fetchUser} from '../../actions/user'
+import { fetchUser } from '../../actions/user';
 
 
 const Sidebar = React.createClass({
 
   propTypes: {
     user: React.PropTypes.object.isRequired,
-    fetchUser: React.PropTypes.func.isRequired
+    fetchUser: React.PropTypes.func.isRequired,
   },
 
   componentWillMount() {
-    this.props.fetchUser()
+    this.props.fetchUser();
   },
 
   render() {
@@ -24,7 +22,7 @@ const Sidebar = React.createClass({
       <div>
         <header className="settings-sidebar-actions">
           <h1>My Account</h1>
-          <a className="sign-out" href="#">Sign Out</a>
+          <a className="sign-out" href="/logout/">Sign Out</a>
         </header>
 
         <section className="balance-summary">
@@ -50,29 +48,29 @@ const Sidebar = React.createClass({
         </section>
       </div>
     );
-  }
+  },
 
 });
 
 
-let {Provider, connect} = ReactRedux;
+const { Provider, connect } = ReactRedux;
 
 
 function mapStateToProps(state) {
   return {
-    user: state.user.user
+    user: state.user.user,
   };
 }
 
 
 function mapDispatchToProps(dispatch) {
   return {
-    fetchUser: () => dispatch(fetchUser())
-  }
+    fetchUser: () => dispatch(fetchUser()),
+  };
 }
 
 
-var SidebarConnected = connect(
+const SidebarConnected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(Sidebar);

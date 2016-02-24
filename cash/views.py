@@ -1,6 +1,7 @@
 #
 # cash/views.py
 
+from time import time
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -23,6 +24,7 @@ from cash.classes import CashTransaction
 from transaction.models import Transaction
 from optimal_payments.classes import CardPurchase
 
+
 class TransactionHistoryAPIView(generics.GenericAPIView):
     """
     Allows the logged in user to get their transaction history
@@ -35,11 +37,11 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
             describes how many days of history from today to get. If
             it is not set, by default it will return the max which is 30.
             If anything greater than 30 is set, it will return the 30 days.
-
     """
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
     serializer_class = TransactionHistorySerializer
+
     def get_user_for_id(self, user_id=None):
         """
         if a user can be found via the 'user_id' return it,
@@ -50,47 +52,39 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
         except User.DoesNotExist:
             return None
 
-    def get(self, request, start_ts, end_ts, user_id=None, format=None):
+    def get(self, request, user_id=None, format=None):
         """
         Gets the filtered Cash Transaction Details for the logged in user.
 
         If the admin calls this api and ALSO specifies a 'user_id' get PARAM
         then the transactions for that user is displayed.
         """
+        # If no start was provided, use 30 days ago as default.
+        start_ts = self.request.query_params.get('start_ts', int(time()) - 60 * 60 * 24 * 30)
+        # If no end was provided, use the current time.
+        end_ts = self.request.query_params.get('end_ts', int(time()))
         user = self.request.user
 
         admin_specified_user_id = user_id
-        admin_specified_user = self.get_user_for_id( admin_specified_user_id )
+        admin_specified_user = self.get_user_for_id(admin_specified_user_id)
         if user.is_superuser and admin_specified_user is not None:
             # override the user whos transactions we will look at
             user = admin_specified_user
 
         #
         # if the start_ts & end_ts params exist:
-        if start_ts == None:
+        if start_ts > end_ts:
             return Response(
                 status=409,
                 data={
                     'errors': {
                         'name': {
-                            'title': 'start_ts required',
-                            'description': 'You must provide unix time stamp variable start_ts in your get parameters.'
+                            'title': 'start_ts is a later time that end_ts'
                         }
                     }
                 })
-        if end_ts == None:
-            return Response(
-                status=409,
-                data={
-                    'errors': {
-                        'name': {
-                            'title': 'end_ts required',
-                            'description': 'You must provide unix time stamp variable end_ts in your get parameters.'
-                        }
-                    }
-                })
-        return self.filter_on_range( user, int(start_ts), int(end_ts) )
 
+        return self.filter_on_range(user, int(start_ts), int(end_ts))
 
 
     def filter_on_range(self, user, start_ts, end_ts):
