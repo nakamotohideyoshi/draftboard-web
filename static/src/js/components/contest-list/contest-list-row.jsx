@@ -17,16 +17,15 @@ const ContestListRow = React.createClass({
 
 
   propTypes: {
-    row: React.PropTypes.object.isRequired,
-    columns: React.PropTypes.array,
-    focusedLineup: React.PropTypes.object,
-    focusedContest: React.PropTypes.object,
-    highlighted: React.PropTypes.bool,
-    enterContest: React.PropTypes.func,
-    setFocusedContest: React.PropTypes.func,
     draftGroupsWithLineups: React.PropTypes.array,
+    enterContest: React.PropTypes.func,
+    focusedContest: React.PropTypes.object,
+    focusedLineup: React.PropTypes.object,
+    highlighted: React.PropTypes.bool,
     isEntered: React.PropTypes.bool,
     lineupsInfo: React.PropTypes.object,
+    row: React.PropTypes.object.isRequired,
+    setFocusedContest: React.PropTypes.func,
   },
 
 

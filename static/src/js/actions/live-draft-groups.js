@@ -2,7 +2,8 @@
 import 'babel-core/polyfill';
 const request = require('superagent-promise')(require('superagent'), Promise);
 import { forEach as _forEach } from 'lodash';
-import _ from 'lodash';
+import { filter as _filter } from 'lodash';
+import { size as _size } from 'lodash';
 import { normalize, Schema, arrayOf } from 'normalizr';
 
 import * as ActionTypes from '../action-types';
@@ -268,7 +269,7 @@ export const fetchDraftGroupFP = (id) => (dispatch) => {
     Accept: 'application/json',
   }).then((res) => {
     let players = res.body.players;
-    if (_.size(players) === 0) {
+    if (_size(players) === 0) {
       players = {};
       log.debug('shouldFetchDraftGroupFP() - FP not available yet', id);
     }
@@ -336,7 +337,7 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
 
   _forEach(getState().liveDraftGroups, (draftGroup) => {
     const id = draftGroup.id;
-    const lineups = _.filter(currentLineups, (lineup) => lineup.draft_group === id);
+    const lineups = _filter(currentLineups, (lineup) => lineup.draft_group === id);
 
     // if there are no lineups the group is related to, then remove
     if (lineups.length === 0) {

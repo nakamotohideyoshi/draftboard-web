@@ -5,6 +5,7 @@ import React from 'react'
 import LiveLineupSelectModalConnected from '../../../components/live/live-lineup-select-modal'
 import { expect } from 'chai'
 import sd from 'skin-deep';
+import { merge as _merge } from 'lodash';
 
 import reducers from '../../../reducers/index'
 import { mockStore } from '../../mock-store'
@@ -110,7 +111,7 @@ describe('LiveLineupSelectModalConnected Component', function() {
 
     beforeEach(function() {
       const store = mockStore(reducers, {})
-      const props = Object.assign({}, lineupsSameSportProps, {'store': store})
+      const props = _merge({}, lineupsSameSportProps, {'store': store})
       const tree = sd.shallowRender(React.createElement(LiveLineupSelectModalConnected, props))
 
       instance = tree.getMountedInstance()
@@ -139,7 +140,7 @@ describe('LiveLineupSelectModalConnected Component', function() {
 
     beforeEach(function() {
       const store = mockStore(reducers, {})
-      const props = Object.assign({}, lineupsDifferentSportProps, {'store': store})
+      const props = _merge({}, lineupsDifferentSportProps, {'store': store})
       const tree = sd.shallowRender(React.createElement(LiveLineupSelectModalConnected, props))
 
       instance = tree.getMountedInstance()

@@ -14,7 +14,7 @@ LOCK_EXPIRE = 60  # seconds
 SHARED_LOCK_NAME = "refund_task"
 
 @app.task(bind=True)
-def refund_task(self, contest, force=False):
+def refund_task(self, contest, force=False, admin_force=False):
     lock_id = '%s-LOCK-contest[%s]'%(SHARED_LOCK_NAME, contest.pk)
 
     acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
@@ -23,14 +23,14 @@ def refund_task(self, contest, force=False):
     if acquire_lock():
         try:
             rm = RefundManager()
-            rm.refund(contest, force=force)
+            rm.refund(contest, force=force, admin_force=admin_force)
         finally:
             release_lock()
     else:
         raise ContestRefundInProgressException()
 
 @app.task(bind=True)
-def refund_and_cancel_live_contests_task(self):
+def refund_and_cancel_live_contests_task(self, debug=False):
     """
     This task will only cancel contests where: current entries < total entries
 
@@ -40,17 +40,23 @@ def refund_and_cancel_live_contests_task(self):
     :return:
     """
 
+    contests_to_cancel = {}
     for contest in LiveContest.objects.all():
         # TODO - for now, we have decided to simply
         #        cancel any game that has less entries
         #        than payout spots!
         if contest.current_entries < contest.prize_structure.payout_spots:
-            refund_task.delay( contest, force=True )
+            contests_to_cancel[ contest.pk ] = True
+            refund_task.delay( contest, force=True, admin_force=True )  # admin_force=True is not a typical situation!
 
     contests = LiveContest.objects.filter(gpp=False)
     for contest in contests:
         if contest.current_entries < contest.entries:
+            contests_to_cancel[ contest.pk ] = True
             refund_task.delay( contest, force=True )
+    if debug:
+        contests_to_cancel_list = [ int(x) for x in contests_to_cancel.keys() ]
+        print( str(contests_to_cancel_list) )
 
 @app.task(bind=True, time_limit=20, soft_time_limit=10)
 def unregister_entry_task(self, entry):

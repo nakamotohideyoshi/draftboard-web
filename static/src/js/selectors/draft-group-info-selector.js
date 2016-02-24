@@ -1,6 +1,8 @@
+import { countBy as _countBy } from 'lodash';
 import { createSelector } from 'reselect';
-import { countBy as _countBy, filter as _filter } from 'lodash';
+import { filter as _filter } from 'lodash';
 import { mapValues as _mapValues } from 'lodash';
+import { merge as _merge } from 'lodash';
 import { sortBy as _sortBy } from 'lodash';
 
 
@@ -34,7 +36,7 @@ export const draftGroupInfoSelector = createSelector(
     const sportContestCounts = _countBy(contests, (contest) => contest.sport);
     // For each draft group, figure out how many contests are available to enter.
     let draftGrupsExtra = _mapValues(draftGroups, (group) => {
-      const groupExtra = Object.assign({}, group);
+      const groupExtra = _merge({}, group);
       groupExtra.contestCount = _filter(contests, 'draft_group', group.pk).length;
       return groupExtra;
     });

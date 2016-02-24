@@ -1,4 +1,7 @@
-import _ from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { map as _map } from 'lodash';
+import { merge as _merge } from 'lodash';
+import { reduce as _reduce } from 'lodash';
 import moment from 'moment';
 import { createSelector } from 'reselect';
 import { dateNow } from '../lib/utils';
@@ -33,7 +36,7 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
   const stats = {};
 
   // loop through each of the lineup's entered contests
-  _.forEach(lineupContests, (contestId) => {
+  _forEach(lineupContests, (contestId) => {
     // Make sure we have lineups.
     if (!contestsStats[contestId].hasOwnProperty('lineups')) {
       return;
@@ -46,7 +49,7 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
     // if stats exist (aka the lineup has started playing), then modify the given contest stats with some additional
     // information, such as our entry's rank and position, since we don't need to calculate for everyone yet
     if (entryStats && contestStats && liveContest) {
-      stats[contestId] = Object.assign(
+      stats[contestId] = _merge(
         contestStats,
         {
           myPercentagePosition: (entryStats.rank - 1) / liveContest.info.entries * 100,
@@ -66,7 +69,7 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
  * @return {number}               Total potential earnings for the lineup
  */
 const calcLineupPotentialEarnings = (entries, contestsStats) =>
-  _.reduce(entries, (sum, entry) => {
+  _reduce(entries, (sum, entry) => {
     // Make sure we have entries.
     if (contestsStats.hasOwnProperty(entry.contest)) {
       const contestLineups = contestsStats[entry.contest].lineups;
@@ -91,14 +94,14 @@ const calcLineupPotentialEarnings = (entries, contestsStats) =>
 export const compileRosterStats = (roster, draftGroup, games, relevantPlayers) => {
   const currentPlayers = {};
 
-  _.forEach(roster, (playerId) => {
+  _forEach(roster, (playerId) => {
     // exit if we don't have any player info.
     if (draftGroup.playersInfo.hasOwnProperty(playerId) === false) return;
 
     const player = {
       id: playerId,
       info: draftGroup.playersInfo[playerId],
-      stats: Object.assign(
+      stats: _merge(
         {
           // default to no points and no minutes remaining
           fp: 0,
@@ -157,12 +160,12 @@ export const compileLineupStats = (lineup, draftGroup, games, relevantPlayers) =
 
   // determine total fantasy points for the lineup
   // only add if they have fantasy points
-  stats.points = _.reduce(stats.rosterDetails, (fp, player) =>
+  stats.points = _reduce(stats.rosterDetails, (fp, player) =>
     (isNaN(player.stats.fp)) ? fp : fp + player.stats.fp,
   0);
 
   // calculate minutes
-  stats.minutesRemaining = _.reduce(stats.rosterDetails, (timeRemaining, player) =>
+  stats.minutesRemaining = _reduce(stats.rosterDetails, (timeRemaining, player) =>
     (player.stats.minutesRemaining) ? player.stats.minutesRemaining + timeRemaining : timeRemaining,
   0);
   stats.decimalRemaining = calcDecimalRemaining(stats.minutesRemaining, stats.totalMinutes);
@@ -193,12 +196,12 @@ export const compileVillianLineup = (roster, draftGroup, sport, games) => {
 
   // determine total fantasy points for the lineup
   // only add if they have fantasy points
-  stats.points = _.reduce(stats.rosterDetails, (fp, player) =>
+  stats.points = _reduce(stats.rosterDetails, (fp, player) =>
     (isNaN(player.stats.fp)) ? fp : fp + player.stats.fp,
   0);
 
   // calculate minutes
-  stats.minutesRemaining = _.reduce(stats.rosterDetails, (timeRemaining, player) =>
+  stats.minutesRemaining = _reduce(stats.rosterDetails, (timeRemaining, player) =>
     (player.stats.minutesRemaining) ? player.stats.minutesRemaining + timeRemaining : timeRemaining,
   0);
   stats.decimalRemaining = calcDecimalRemaining(stats.minutesRemaining, stats.totalMinutes);
@@ -227,7 +230,7 @@ export const currentLineupsSelector = createSelector(
     }
 
     const stats = {};
-    _.forEach(lineups, (lineup) => {
+    _forEach(lineups, (lineup) => {
       const draftGroup = liveDraftGroups[lineup.draft_group];
 
       // if the draftgroup has ended, then you can no longer see the lineup
@@ -254,13 +257,13 @@ export const currentLineupsSelector = createSelector(
 
       // combine the normal lineup stats (that are used in the contests selector), with additional stats that are only
       // used for the lineups you're watching
-      stats[lineup.id] = Object.assign(
+      stats[lineup.id] = _merge(
         compileLineupStats(lineup, draftGroup, sports.games, relevantPlayers),
         {
           draftGroup,
           formattedStart: moment(lineup.start).format('ha'),
           // used for animations to determine which side
-          rosterBySRID: _.map(stats.rosterDetails, (player) => player.info.player_srid),
+          rosterBySRID: _map(stats.rosterDetails, (player) => player.info.player_srid),
           // used by LiveOverallStats to show potential earnings
           totalPotentialEarnings: calcLineupPotentialEarnings(entries, contestsStats),
           // used by LiveContestsPane to view contests for a lineup

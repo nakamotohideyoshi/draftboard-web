@@ -1,6 +1,7 @@
 import 'babel-core/polyfill';  // so I can use Promises
 const request = require('superagent-promise')(require('superagent'), Promise);
-import _ from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { merge as _merge } from 'lodash';
 
 import * as ActionTypes from '../action-types';
 import { dateNow } from '../lib/utils';
@@ -30,7 +31,7 @@ const requestPlayersStats = (lineupId) => ({
  */
 const receivePlayersStats = (lineupId, response) => {
   const players = {};
-  _.forEach(response, (player) => {
+  _forEach(response, (player) => {
     // don't include if the player hasn't started
     if (player.started === false ||
         player.hasOwnProperty('data') === false ||
@@ -41,7 +42,7 @@ const receivePlayersStats = (lineupId, response) => {
 
     const playerFields = player.data[0].fields;
 
-    players[playerFields.srid_player] = Object.assign(
+    players[playerFields.srid_player] = _merge(
       { lineup_id: lineupId },
       playerFields
     );
