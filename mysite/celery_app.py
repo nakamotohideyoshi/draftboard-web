@@ -221,7 +221,7 @@ app.conf.update(
         #
         # payout task
         'notify_admin_contests_automatically_paid_out' : {
-            'task'      : 'contest.payout.tasks.notify_admin_contests_automatically_paid_out',
+            'task'      : 'contest.tasks.notify_admin_contests_automatically_paid_out',
             'schedule'  : timedelta(minutes=5),
         }
 
