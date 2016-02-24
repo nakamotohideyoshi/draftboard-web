@@ -19,7 +19,7 @@ DATETIME_DELTA_ENABLE  = True
 #
 #
 INSTALLED_APPS = ('test_without_migrations',) + INSTALLED_APPS
-print(str(INSTALLED_APPS))
+#print(str(INSTALLED_APPS))
 
 #
 # try to create the database, if it already exists, this will have no effect

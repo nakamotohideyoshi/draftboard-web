@@ -29,6 +29,7 @@ from contest.serializers import (
     RemoveAndRefundEntryStatusSerializer,
     UserLineupHistorySerializer,
     #PlayHistoryLineupSerializer,
+    RankedEntrySerializer,
 )
 from contest.classes import ContestLineupManager
 from contest.models import (
@@ -376,6 +377,26 @@ class RegisteredUsersAPIView(generics.GenericAPIView):
         get the registered user information
         """
         serialized_data = RegisteredUserSerializer( self.get_object(contest_id), many=True ).data
+        return Response(serialized_data)
+
+class ContestRanksAPIView(generics.GenericAPIView):
+    """
+    get the lineup Players
+    """
+    serializer_class = RankedEntrySerializer
+
+    def get_object(self, contest_id):
+        """
+        get the contest.models.Entry objects, ordered by their rank, for a given contest pk
+        """
+        entries = Entry.objects.filter( contest__pk=contest_id ).order_by('final_rank')
+        return entries
+
+    def get(self, request, contest_id, format=None):
+        """
+        get the registered user information
+        """
+        serialized_data = self.serializer_class( self.get_object(contest_id), many=True ).data
         return Response(serialized_data)
 
 # class EnterLineupAPIView(generics.CreateAPIView):
