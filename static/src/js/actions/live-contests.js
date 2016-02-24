@@ -348,7 +348,7 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
  */
 export const fetchContestIfNeeded = (id, force) => (dispatch, getState) => {
   if (shouldFetchContest(getState().liveContests, id) === false && force !== true) {
-    return Promise.resolve('Contest already exists');
+    return dispatch(fetchRelatedContestInfo(id));
   }
 
   return Promise.all([

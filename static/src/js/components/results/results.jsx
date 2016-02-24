@@ -6,6 +6,7 @@ import ResultsHeader from './results-header.jsx';
 import ResultsLineups from './results-lineups.jsx';
 import ResultsStats from './results-stats.jsx';
 import store from '../../store';
+import { dateNow } from '../../lib/utils';
 import { fetchResultsIfNeeded } from '../../actions/results';
 import { Provider, connect } from 'react-redux';
 import { Router, Route } from 'react-router';
@@ -22,7 +23,7 @@ const Results = React.createClass({
   },
 
   getInitialState() {
-    const yesterday = moment().subtract(1, 'day');
+    const yesterday = moment(dateNow()).subtract(1, 'day');
 
     return {
       year: yesterday.format('YYYY'),
