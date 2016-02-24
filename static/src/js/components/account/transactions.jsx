@@ -19,7 +19,7 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    fetchTransactions: () => dispatch(fetchTransactions()),
+    fetchTransactions: (startDate, endDate) => dispatch(fetchTransactions(startDate, endDate)),
     filterTransactions: (isPeriod, days, startDate, endDate) => dispatch(
       filterTransactions(isPeriod, days, startDate, endDate)
     ),
@@ -49,7 +49,14 @@ const Transactions = React.createClass({
   },
 
 
-  handlePeriodSelected({ isPeriod = false, days = 0, startDate = new Date(), endDate = new Date() }) {
+  handlePeriodSelected({
+    isPeriod = false, days = 0, startDate = new Date(), endDate = new Date(),
+  }) {
+    // If the same date was passed in, make the start 1 month ago.
+    if (startDate === endDate) {
+      startDate.setMonth(endDate.getMonth() - 1);
+    }
+
     // if period is selected calling /?start_ts=[timestamp]&end_ts=[timestamp]/
     if (isPeriod) {
       const startDateString = stringifyDate(startDate, '-');
@@ -61,7 +68,8 @@ const Transactions = React.createClass({
       const newUrl = `${window.location.pathname}?since=${days}days`;
       window.history.pushState('change the', 'url', newUrl);
     }
-    this.props.filterTransactions(isPeriod, days, startDate.getTime(), endDate.getTime());
+    // this.props.filterTransactions(isPeriod, days, startDate.getTime(), endDate.getTime());
+    this.props.fetchTransactions(startDate.getTime(), endDate.getTime());
   },
 
   render() {

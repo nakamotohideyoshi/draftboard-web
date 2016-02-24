@@ -28,12 +28,35 @@ function fetchTransactionsFail(ex) {
 }
 
 
-export function fetchTransactions() {
-  return (dispatch) =>
+export function fetchTransactions(startDate = null, endDate = null) {
+  return (dispatch) => {
+    // The server is expecting a UTC timestamp - that is the number of seconds since 1970-whatever.
+    // JS's  .getTime() gives us the UTC in milleseconds. So here we turn it into a seconds-based
+    // timestamp.
+    //
+    // If we send 'null', the server will respond with it's default "last 30 days" of transactions.
+    let startDateUTCSeconds = startDate;
+    let endDateUTCSeconds = endDate;
+
+    if (startDate) {
+      startDateUTCSeconds = Math.floor(startDate / 1000);
+    }
+
+    if (endDate) {
+      endDateUTCSeconds = Math.floor(endDate / 1000);
+    }
+
+
     request
-      .get('/account/api/transactions/')
-      .set({ 'X-REQUESTED-WITH': 'XMLHttpRequest' })
-      .set('Accept', 'application/json')
+      .get('/api/cash/transactions/')
+      .set({
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        Accept: 'application/json',
+      })
+      .query({
+        start_ts: startDateUTCSeconds,
+        end_ts: endDateUTCSeconds,
+      })
       .end((err, res) => {
         if (err) {
           return dispatch(fetchTransactionsFail(err));
@@ -41,7 +64,9 @@ export function fetchTransactions() {
 
         return dispatch(fetchTransactionsSuccess(res.body));
       }
-  );
+
+    );
+  };
 }
 
 

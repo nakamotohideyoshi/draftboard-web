@@ -1,5 +1,6 @@
 import React from 'react';
 import * as AppActions from '../../../stores/app-state-store.js';
+import moment from 'moment';
 require('./transactions-details.jsx');
 
 
@@ -11,7 +12,7 @@ const TransactionsTableRow = React.createClass({
 
 
   handleDetailsClick(event) {
-    this.props.focusTransaction(this.props.transaction.pk);
+    this.props.focusTransaction(this.props.transaction.id);
     event.preventDefault();
     AppActions.openPane();
   },
@@ -20,18 +21,20 @@ const TransactionsTableRow = React.createClass({
   render() {
     return (
       <tr>
-        <td>{this.props.transaction.date_date} <sub className="table__sub">{this.props.transaction.date_time}</sub></td>
-        <td>{this.props.transaction.amount}</td>
-        <td>{this.props.transaction.balance}</td>
-        <td>{this.props.transaction.type}</td>
-        <td>{this.props.transaction.description}</td>
+        <td>{moment(this.props.transaction.details[0].created).format('MM/DD/YYYY')}
+          <sub className="table__sub">{moment(this.props.transaction.details[0].created).format('h:mm:ss a')}</sub>
+        </td>
+        <td>{this.props.transaction.details[0].amount}</td>
+        <td>{this.props.transaction.details[0].balance}</td>
+        <td>{this.props.transaction.details[0].type}</td>
+        <td>{this.props.transaction.details[0].description}</td>
         <td>
           <a
             classNameName="transaction-info"
             onClick={this.handleDetailsClick}
             href="#"
           >
-            {this.props.transaction.pk}
+            {this.props.transaction.id}
         </a>
         </td>
       </tr>

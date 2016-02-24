@@ -14,7 +14,7 @@ export const focusedTransactionSelector = createSelector(
   allTransactionsSelector, focusedTransactionIdSelector,
   (transactions, focusedTransactionId) => {
     if (focusedTransactionId) {
-      return _find(transactions, { pk: focusedTransactionId });
+      return _find(transactions, { id: focusedTransactionId });
     }
 
     return {};

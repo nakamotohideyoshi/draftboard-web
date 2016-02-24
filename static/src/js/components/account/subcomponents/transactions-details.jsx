@@ -50,12 +50,12 @@ const TransactionsDetails = React.createClass({
         <div className="pane__header__content">
           <div className="pane__transaction_status__completed">completed</div>
 
-          <div className="pane__title">Transaction #{this.props.transaction.pk}</div>
+          <div className="pane__title">Transaction #{this.props.transaction.id}</div>
 
           <div className="pane__header__info">
             <div><span>transaction type</span> <div>contest result</div></div>
-            <div><span>description</span> <div>{this.props.transaction.description}</div></div>
-            <div><span>contest type</span> <div>{this.props.transaction.type}</div></div>
+            <div><span>description</span> <div>transaction - description</div></div>
+            <div><span>contest type</span> <div>{this.props.transaction.details[0].type}</div></div>
           </div>
 
           <div className="pane__header__extra-info">
@@ -394,7 +394,7 @@ renderComponent(
   <Provider store={store}>
     <TransactionsDetailsConnected />
   </Provider>,
-  '.pane__content'
+  '.cmp-transactions-details'
 );
 
 
