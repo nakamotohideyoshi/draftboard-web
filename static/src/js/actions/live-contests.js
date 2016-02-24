@@ -156,6 +156,10 @@ const convertLineup = (numberOfPlayers, byteArray, firstBytePosition) => {
     total_points: '',
   };
 
+  if (lineup.id === 0) {
+    return null;
+  }
+
   // move from the ID to the start of the players
   const shiftedBytePosition = firstBytePosition + 4;
 
@@ -186,7 +190,9 @@ const parseContestLineups = (apiContestLineupsBytes) => {
   for (let i = 6; i < responseByteArray.length; i += 20) {
     const lineup = convertLineup(8, responseByteArray, i);
 
-    lineups[lineup.id] = lineup;
+    if (lineup !== null) {
+      lineups[lineup.id] = lineup;
+    }
   }
 
   return lineups;

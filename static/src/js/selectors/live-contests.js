@@ -1,6 +1,9 @@
 import { forEach as _forEach } from 'lodash';
+import { filter as _filter } from 'lodash';
+import { groupBy as _groupBy } from 'lodash';
 import { map as _map } from 'lodash';
 import { merge as _merge } from 'lodash';
+import { reduce as _reduce } from 'lodash';
 import { sortBy as _sortBy } from 'lodash';
 import { compileLineupStats } from './current-lineups';
 import { createSelector } from 'reselect';
@@ -22,6 +25,7 @@ export const rankContestLineups = (contest, draftGroup, games, prizeStructure, r
   const lineupsUsernames = contest.lineupsUsernames || {};
 
   const lineupsStats = {};
+  const lineupsWithValue = [];
   let rankedLineups = [];
 
   _forEach(lineups, (lineup, id) => {
@@ -50,8 +54,37 @@ export const rankContestLineups = (contest, draftGroup, games, prizeStructure, r
       lineupStats.potentialEarnings = prizeStructure.ranks[index].value;
     }
 
-    if (lineupStats.potentialEarnings !== 0) {
-      lineupStats.potentialEarnings = lineupStats.potentialEarnings;
+    lineupsWithValue.push({
+      lineupId,
+      rankValue: lineupStats.potentialEarnings,
+      points: lineupStats.points,
+    });
+  });
+
+  // group by points
+  const groupedByValue = _filter(
+    _groupBy(
+      lineupsWithValue, (i) => i.points
+    ),
+    (group) => group.length > 1
+  );
+
+  // loop through each tie and split the sum
+  _forEach(groupedByValue, (group) => {
+    // sum up the entries potential earnings
+    const total = _reduce(group, (sum, entry) => sum + entry.rankValue, 0);
+
+    // if they are actually making money
+    if (total > 0) {
+      // then we split out to three decimal points
+      let split = total / group.length;
+
+      // round down to the nearest cent, then set values
+      split = Math.floor(split * 100) / 100;
+
+      _forEach(group, (entry) => {
+        lineupsStats[entry.lineupId].potentialEarnings = split;
+      });
     }
   });
 
