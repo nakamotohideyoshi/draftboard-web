@@ -9,10 +9,11 @@ DATABASES = {
     'USER': os.environ.get('PG_USER'),
     'PASSWORD': os.environ.get('PG_PASSWORD'),
     'HOST': '127.0.0.1',
+
+    # https://codeship.com/documentation/databases/postgresql/
+    'PORT': 5433,    # currently using 5433 uses postgres 9.3
   }
 }
-
-print('codeship PG_USER >>> %s' % os.environ.get('PG_USER'))
 
 #
 # we dont want to run ./manage.py test because

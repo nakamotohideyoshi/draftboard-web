@@ -44,7 +44,7 @@ print(str(INSTALLED_APPS))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': db_name,
+        'NAME':  db_name,
         #'USER': 'vagrant',      # by not specifying a user at all, it will not prompt for password
         #'HOST': 'localhost',    # default to localhost
         #'CONN_MAX_AGE': 60,
