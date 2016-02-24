@@ -173,11 +173,11 @@ def notify_admin_contests_automatically_paid_out(self, *args, **kwargs):
     # use the payout_task to payout all completed contests
     task = payout_task.delay( contests=list(contests_to_pay) )
 
-    if contests_to_pay.count() > 0:
-        msg_str = '*** %s *** automatically paid out!' % (num_contests)
-        print( msg_str )
-
-        send_mail("Contest Auto Payout Time!",
-                    msg_str,
-                    HIGH_PRIORITY_FROM_EMAIL,
-                    HIGH_PRIORITY_EMAILS)
+    # if contests_to_pay.count() > 0:
+    #     msg_str = '*** %s *** automatically paid out!' % (num_contests)
+    #     print( msg_str )
+    #
+    #     send_mail("Contest Auto Payout Time!",
+    #                 msg_str,
+    #                 HIGH_PRIORITY_FROM_EMAIL,
+    #                 HIGH_PRIORITY_EMAILS)
