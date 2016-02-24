@@ -18,8 +18,11 @@ purger: celery -A mysite worker -l info -n celery1.%h --purge
 #
 # the mandatory (and the only) worker responsible for running dataden.
 # no other worker should consume from the queue this worker consumes from
-#dataden: celery -A mysite worker -c 1 -l info -Q q_dataden -n dataden1.%h
-dataden: java -jar dataden/dataden-rio.jar -k 20491e2a4feda595b7347708915b200b -q
+#
+#   -q : quick startup flag (for restarting without re-parsing initialization feeds)
+#   -apiSpeedDelta <integer> : +/- values will increase or decrease the parse interval
+#
+dataden: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15
 
 #
 # the mandatory (and the only) worker responsible for running dataden triggers
