@@ -1,5 +1,5 @@
 import * as ActionTypes from '../action-types';
-import _ from 'lodash';
+import { forEach as _forEach } from 'lodash';
 import { fetchContestLineupsUsernamesIfNeeded } from './live-contests';
 import { fetchDraftGroupFPIfNeeded } from './live-draft-groups';
 import { fetchPlayersStatsIfNeeded } from './live-players';
@@ -42,7 +42,7 @@ export const updateLiveMode = (changedFields) => (dispatch, getState) => {
 
   // make sure every defined field is an integer
   const newMode = {};
-  _.forEach(changedFields, (val, key) => {
+  _forEach(changedFields, (val, key) => {
     newMode[key] = (val === undefined) ? undefined : parseInt(val, 10);
   });
 

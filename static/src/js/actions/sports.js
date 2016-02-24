@@ -2,8 +2,11 @@
 import 'babel-core/polyfill';
 const request = require('superagent-promise')(require('superagent'), Promise);
 import * as ActionTypes from '../action-types';
-import _ from 'lodash';
 import { dateNow } from '../lib/utils';
+import { forEach as _forEach } from 'lodash';
+import { map as _map } from 'lodash';
+import { merge as _merge } from 'lodash';
+import { sortBy as _sortBy } from 'lodash';
 
 
 // global constants
@@ -56,8 +59,8 @@ const requestTeams = (sport) => ({
  * @return {object}        Changes for reducer
  */
 const receiveGames = (sport, games) => {
-  const gameIds = _.map(
-    _.sortBy(
+  const gameIds = _map(
+    _sortBy(
       games, (game) => game.start
     ),
     (game) => game.srid
@@ -82,7 +85,7 @@ const receiveGames = (sport, games) => {
  */
 const receiveTeams = (sport, response) => {
   const newTeams = {};
-  _.forEach(response, (team) => {
+  _forEach(response, (team) => {
     newTeams[team.srid] = team;
   });
 
@@ -151,8 +154,8 @@ const fetchGames = (sport) => (dispatch) => {
     Accept: 'application/json',
   }).then((res) => {
     // add in the sport so we know how to differentiate it
-    const games = Object.assign({}, res.body);
-    _.forEach(games, (game, id) => {
+    const games = _merge({}, res.body);
+    _forEach(games, (game, id) => {
       games[id].sport = sport;
 
       if (game.hasOwnProperty('boxscore')) {
@@ -270,7 +273,7 @@ export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchSportsIfNeeded = () => (dispatch, getState) => {
-  _.forEach(
+  _forEach(
     getState().sports.types, (sport) => {
       dispatch(fetchSportIfNeeded(sport));
     }

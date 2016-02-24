@@ -1,4 +1,7 @@
-import _ from 'lodash';
+import { forEach as _forEach } from 'lodash';
+import { map as _map } from 'lodash';
+import { merge as _merge } from 'lodash';
+import { sortBy as _sortBy } from 'lodash';
 import { compileLineupStats } from './current-lineups';
 import { createSelector } from 'reselect';
 import { dateNow } from '../lib/utils';
@@ -21,7 +24,7 @@ export const rankContestLineups = (contest, draftGroup, games, prizeStructure, r
   const lineupsStats = {};
   let rankedLineups = [];
 
-  _.forEach(lineups, (lineup, id) => {
+  _forEach(lineups, (lineup, id) => {
     const stats = compileLineupStats(lineup, draftGroup, games, relevantPlayers);
 
     if (id in lineupsUsernames) {
@@ -33,11 +36,11 @@ export const rankContestLineups = (contest, draftGroup, games, prizeStructure, r
   });
 
   // sort then make just ID
-  rankedLineups = _.sortBy(rankedLineups, 'points').reverse();
-  rankedLineups = _.map(rankedLineups, (lineup) => lineup.id);
+  rankedLineups = _sortBy(rankedLineups, 'points').reverse();
+  rankedLineups = _map(rankedLineups, (lineup) => lineup.id);
 
   // set standings for use in contests pane
-  _.forEach(rankedLineups, (lineupId, index) => {
+  _forEach(rankedLineups, (lineupId, index) => {
     const lineupStats = lineupsStats[lineupId];
 
     lineupStats.rank = parseInt(index, 10) + 1;
@@ -79,7 +82,7 @@ export const liveContestsSelector = createSelector(
     const contestsStats = {};
     let prizeStructure = {};
 
-    _.forEach(contests, (contest, id) => {
+    _forEach(contests, (contest, id) => {
       // This seems to be a recurring issue. I believe it has something to do with the logged-in
       // user not having any lineups. For now we'll skip things if we don't have any contest.info.
       if (!contest.info) {
@@ -116,7 +119,7 @@ export const liveContestsSelector = createSelector(
         return;
       }
 
-      contestsStats[id] = Object.assign(
+      contestsStats[id] = _merge(
         stats,
         rankContestLineups(contest, draftGroup, games, prizeStructure, relevantPlayers)
       );

@@ -6,5 +6,8 @@
     "react/prefer-es6-class": [0, "never"], // sadly using react es6 class requires es7 autobinding of class properties http://goo.gl/6pjYcU
     "no-unused-vars": 1,
     "react/jsx-no-bind": 0 // TODO - this is a good thing but it means we have to create a handful of new components, let's address this later.
-  }
+  },
+  "env": {
+      "mocha": true
+  },
 }

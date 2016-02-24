@@ -1,6 +1,6 @@
 import 'babel-core/polyfill';
 const request = require('superagent-promise')(require('superagent'), Promise);
-import _ from 'lodash';
+import { forEach as _forEach } from 'lodash';
 import Cookies from 'js-cookie';
 import { Buffer } from 'buffer/';
 
@@ -101,7 +101,7 @@ const receiveContestInfo = (id, response) => ({
  */
 const receiveContestLineupsUsernames = (id, response) => {
   const lineupsUsernames = {};
-  _.forEach(response, (lineup) => {
+  _forEach(response, (lineup) => {
     lineupsUsernames[lineup.id] = {
       id: lineup.id,
       user: lineup.user,
@@ -360,7 +360,7 @@ export const fetchContestIfNeeded = (id, force) => (dispatch, getState) => {
 export const removeUnusedContests = () => (dispatch, getState) => {
   const contestIds = [];
 
-  _.forEach(getState().liveContests, (contest) => {
+  _forEach(getState().liveContests, (contest) => {
     const id = contest.id;
 
     // if there are no lineups the group is related to, then remove

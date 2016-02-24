@@ -45,6 +45,7 @@ const EnterContestButton = React.createClass({
 
 
   componentWillMount() {
+    const self = this;
     // Start a loop that will keep checking if the contest has started yet.
     this.checkStartStatusLoop = window.setInterval(self.checkStartStatus, 1000);
   },
@@ -82,7 +83,7 @@ const EnterContestButton = React.createClass({
       props.contest &&
       props.contest.hasOwnProperty('id')
     ) {
-      if (props.lineupsInfo[props.lineup.id].entryRequests) {
+      if (props.lineupsInfo.hasOwnProperty(props.lineup.id) && props.lineupsInfo[props.lineup.id].entryRequests) {
         return props.lineupsInfo[props.lineup.id].entryRequests[props.contest.id];
       }
     } else {
@@ -101,7 +102,11 @@ const EnterContestButton = React.createClass({
     if (entryRequest && entryRequest.status === 'SUCCESS') {
       return true;
     }
-    if (this.props.lineup && this.props.lineupsInfo[this.props.lineup.id].contests) {
+    if (
+      this.props.lineup
+      && this.props.lineupsInfo.hasOwnProperty(this.props.lineup.id)
+      && this.props.lineupsInfo[this.props.lineup.id].contests
+    ) {
       // If we have an entry for the contest in our lineupsInfo selector.
       if (this.props.lineupsInfo[this.props.lineup.id].contests.indexOf(this.props.contest.id) !== -1) {
         return true;

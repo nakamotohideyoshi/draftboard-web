@@ -65,7 +65,7 @@ module.exports = (state = initialState, action) => {
         count: action.filter.match.length,
       };
 
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         filters,
       });
 
