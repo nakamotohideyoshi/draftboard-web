@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 
 
@@ -7,7 +5,7 @@ const SettingsEmailNotifications = React.createClass({
 
   propTypes: {
     user: React.PropTypes.object.isRequired,
-    editMode: React.PropTypes.bool.isRequired
+    editMode: React.PropTypes.bool.isRequired,
   },
 
   renderInfo() {
@@ -57,12 +55,24 @@ const SettingsEmailNotifications = React.createClass({
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting2" name="email_notification_contests_starting"  value="off" defaultChecked="checked" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting2"
+                  name="email_notification_contests_starting"
+                  value="off"
+                  defaultChecked="checked"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting2">Off</label>
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting1" name="email_notification_contests_starting" value="on" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio" id="contests--starting1"
+                  name="email_notification_contests_starting"
+                  value="on"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting1">On</label>
               </div>
             </li>
@@ -73,12 +83,24 @@ const SettingsEmailNotifications = React.createClass({
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting4" name="email_notification_contest_victories" value="off" defaultChecked="checked" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio" id="contests--starting4"
+                  name="email_notification_contest_victories"
+                  value="off"
+                  defaultChecked="checked"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting4">Off</label>
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting3" name="email_notification_contest_victories" value="on" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting3"
+                  name="email_notification_contest_victories"
+                  value="on"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting3">On</label>
               </div>
             </li>
@@ -89,12 +111,25 @@ const SettingsEmailNotifications = React.createClass({
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting6" name="email_notification_newsletter" value="off" defaultChecked="checked" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting6"
+                  name="email_notification_newsletter"
+                  value="off"
+                  defaultChecked="checked"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting6">Off</label>
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting5" name="email_notification_newsletter" value="on" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting5"
+                  name="email_notification_newsletter"
+                  value="on"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting5">On</label>
               </div>
             </li>
@@ -105,12 +140,25 @@ const SettingsEmailNotifications = React.createClass({
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting8" name="email_notification_upcoming_contests" value="off" defaultChecked="checked" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting8"
+                  name="email_notification_upcoming_contests"
+                  value="off"
+                  defaultChecked="checked"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting8">Off</label>
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting7" name="email_notification_upcoming_contests" value="on" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting7"
+                  name="email_notification_upcoming_contests"
+                  value="on"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting7">On</label>
               </div>
             </li>
@@ -127,7 +175,7 @@ const SettingsEmailNotifications = React.createClass({
         { !this.props.editMode && this.renderInfo() }
       </div>
     );
-  }
+  },
 
 });
 
