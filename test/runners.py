@@ -195,7 +195,7 @@ class InlineAppDiscoverRunner( DiscoverRunner ):
         :return:
         """
         # turn the next lines of script into a function that takes requires_sudo as a boolean param
-        requires_sudo = True # if True, prepend 'sudo -u postgres ' to psql commands
+        #requires_sudo = True # if True, prepend 'sudo -u postgres ' to psql commands
         prepend_postgres_user = ''
         if requires_sudo: prepend_postgres_user = 'sudo -u postgres '
         # from django.utils.six import StringIO
