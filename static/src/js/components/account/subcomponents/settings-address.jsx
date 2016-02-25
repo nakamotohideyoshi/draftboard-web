@@ -1,7 +1,5 @@
-'use strict';
-
 import React from 'react';
-const isEmpty = require('lodash/lang/isEmpty')
+import isEmpty from 'lodash/lang/isEmpty';
 
 
 const SettingsAddress = React.createClass({
@@ -9,11 +7,11 @@ const SettingsAddress = React.createClass({
   propTypes: {
     user: React.PropTypes.object.isRequired,
     errors: React.PropTypes.object.isRequired,
-    onHandleSubmit: React.PropTypes.func.isRequired
+    onHandleSubmit: React.PropTypes.func.isRequired,
   },
 
   getInitialState() {
-    return {editMode: false}
+    return { editMode: false };
   },
 
   /**
@@ -21,21 +19,21 @@ const SettingsAddress = React.createClass({
    */
   componentWillReceiveProps(nextProps) {
     if (isEmpty(nextProps.errors)) {
-      this.setState({editMode: false})
+      this.setState({ editMode: false });
     } else {
-      this.setState({editMode: true})
+      this.setState({ editMode: true });
     }
   },
 
   setEditMode(event) {
     event.preventDefault();
-    this.setState({editMode: true});
+    this.setState({ editMode: true });
   },
 
   handleSubmit(event) {
     event.preventDefault();
     // TODO: get form data, and send it as arg
-    this.props.onHandleSubmit({})
+    this.props.onHandleSubmit({});
   },
 
   renderInfo() {
@@ -54,8 +52,8 @@ const SettingsAddress = React.createClass({
   },
 
   renderForm() {
-    let nameClasses = 'name' in this.props.errors ? 'form-field--error ' : ''
-    nameClasses += 'form-field'
+    let nameClasses = 'name' in this.props.errors ? 'form-field--error ' : '';
+    nameClasses += 'form-field';
 
     return (
       <form className="form" onSubmit={this.handleSubmit}>
@@ -111,7 +109,7 @@ const SettingsAddress = React.createClass({
         { !this.state.editMode && this.renderInfo() }
       </fieldset>
     );
-  }
+  },
 });
 
 

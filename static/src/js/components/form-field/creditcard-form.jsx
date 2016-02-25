@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import ReactCardFormContainer from 'card-react';
 
@@ -20,10 +18,10 @@ const CreditcardForm = React.createClass({
             number: 'CCnumber',
             expiry: 'CCexpiry',
             cvc: 'CCcvc',
-            name: 'CCname'
+            name: 'CCname',
           }
         }
-        >
+      >
 
         <div id="react-credit-card-animator" />
 
@@ -53,7 +51,7 @@ const CreditcardForm = React.createClass({
 
       </ReactCardFormContainer>
     );
-  }
+  },
 
 });
 
