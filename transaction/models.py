@@ -60,7 +60,6 @@ class Transaction( models.Model ):
         collector.collect([self])
         array = []
         for model_tmp, instance_tmp in collector.instances_with_model():
-            print("HERE "+str(instance_tmp))
             if hasattr(instance_tmp, "to_json") and instance_tmp != self and instance_tmp.user == self.user:
                 array.append(instance_tmp.to_json())
 
@@ -98,4 +97,3 @@ class Balance( models.Model ):
 
     class Meta:
         abstract = True
-

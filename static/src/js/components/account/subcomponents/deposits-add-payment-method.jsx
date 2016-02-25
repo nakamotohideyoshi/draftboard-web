@@ -1,21 +1,19 @@
-'use strict';
-
-var React = require('react');
-var ModalAddPaymentMethod = require('./modal-add-payment-method.jsx');
+import React from 'react';
+import ModalAddPaymentMethod from './modal-add-payment-method.jsx';
 
 
 /**
  * Button / Link for adding new payment method connected with that user
  * Opens modal window in which form is provided, for inputting payment method options
  */
-var DepositsAddPaymentMethod = React.createClass({
+const DepositsAddPaymentMethod = React.createClass({
 
-  openModal: function(event) {
+  openModal(event) {
     event.preventDefault();
     this.refs.cardModal.open();
   },
 
-  render: function() {
+  render() {
     return (
       <div className="form-field">
 
@@ -23,13 +21,17 @@ var DepositsAddPaymentMethod = React.createClass({
           <a
             href="#"
             className="add__paymentmethod"
-            onClick={this.openModal}>+ New payment method</a>
+            onClick={this.openModal}
+          >
+          + New payment method
+          </a>
 
           <ModalAddPaymentMethod ref="cardModal" />
         </div>
       </div>
     );
-  }
+  },
+
 });
 
 
