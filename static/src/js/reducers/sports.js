@@ -21,6 +21,7 @@ module.exports = (state = {
         [action.sport]: {
           $merge: {
             isFetchingTeams: true,
+            teamsExpireAt: action.expiresAt,
           },
         },
       });
