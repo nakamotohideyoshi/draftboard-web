@@ -203,20 +203,25 @@ class InlineAppDiscoverRunner( DiscoverRunner ):
         #db_name = 'dfs_codeship1'
         #template_db_name = 'template_%s' % db_name
         cmd_pg_dump = 'pg_dump -Fc --no-acl --no-owner %s' % db_name
-        cmd_psql_drop = '%spsql -c "DROP DATABASE IF EXISTS %s;"' % (prepend_postgres_user, to_db_name)
-        cmd_psql_create = '%spsql -c "CREATE DATABASE %s;"' % (prepend_postgres_user, to_db_name)
+        cmd_psql = '%spsql' % prepend_postgres_user
+        statement_drop_db = r"DROP DATABASE IF EXISTS %s;" % to_db_name
+        statement_create_db = r"CREATE DATABASE %s;" % to_db_name
         cmd_pg_restore = 'pg_restore --no-acl --no-owner -d %s' % to_db_name
         # 'dump' should be the postgres db dumpfile
         p = Popen(cmd_pg_dump.split(), stdout=PIPE)
-        dump, p_err = p.communicate()
+        dump, e = p.communicate()
         # drop the template database we are going to make (if it exists)
         #p2 = Popen(cmd_psql_drop.split(), stdin=PIPE)
         #p2_out, p2_err = p2.communicate(dump)
-        drop_output = check_output(cmd_psql_drop, shell=True)
+        #drop_output = check_output(cmd_psql_drop, shell=True)      # check_output requires sudo - wont have
+        p2 = Popen(cmd_psql.split(), stdin=PIPE)
+        o2, e2 = p2.communicate(statement_drop_db.encode('utf-8'))
         # create an empty db which we can restore the dump into
         #p3 = Popen(cmd_pg_create.split(), stdin=PIPE)
         #p3_out, p3_err = p3.communicate(dump)
-        create_output = check_output(cmd_psql_create, shell=True)
+        #create_output = check_output(cmd_psql_create, shell=True)  # check_output requires sudo - wont have
+        p3 = Popen(cmd_psql.split(), stdin=PIPE)
+        o3, e3 = p3.communicate(statement_create_db.encode('utf-8'))
         # pg_restore the dumped db into the template db we just created
         p4 = Popen(cmd_pg_restore.split(), stdin=PIPE)
         p4_out, p4_err = p4.communicate(dump)
