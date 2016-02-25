@@ -149,8 +149,6 @@ const NavScoreboard = React.createClass({
    * @return {Object} options key-value pairs
    */
   handleChangeSelection(selectedOption, selectedType, selectedKey) {
-    log.trace('handleChangeSelection()', selectedOption, selectedType, selectedKey);
-
     this.setState({ selectedOption, selectedType, selectedKey });
   },
 
@@ -219,7 +217,7 @@ const NavScoreboard = React.createClass({
     // whether we are logged in or not, we always need to check whether to update sports and draftgroups
     // check every few seconds, and if expired (which happens after 10 minutes), then they will fetch
     const parityChecks = {
-      sports: window.setInterval(this.props.dispatch(fetchSportsIfNeeded()), 5000),
+      sports: window.setInterval(() => this.props.dispatch(fetchSportsIfNeeded()), 5000),
     };
 
     // add the checsk to the state in case we need to clearInterval in the future

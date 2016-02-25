@@ -286,11 +286,7 @@ const Live = React.createClass({
   listenToSockets() {
     // NOTE: this really bogs down your console, only use locally when needed
     // uncomment this ONLY if you need to debug why Pusher isn't connecting
-    // Pusher.log = function(message) {
-    //   if (window.console && window.console.log) {
-    //     window.console.log(message);
-    //   }
-    // };
+    Pusher.log = (message) => log.trace(message);
 
     const pusher = new Pusher(window.dfs.user.pusher_key, {
       encrypted: true,
@@ -548,8 +544,6 @@ const Live = React.createClass({
    * Internal method to start listening to pusher and poll for updates
    */
   startListening() {
-    log.info('Live.startListening()');
-
     this.listenToSockets();
     this.startParityChecks();
   },

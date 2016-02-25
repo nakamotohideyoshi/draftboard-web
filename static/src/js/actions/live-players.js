@@ -19,6 +19,7 @@ import { dateNow } from '../lib/utils';
 const requestPlayersStats = (lineupId) => ({
   lineupId,
   type: ActionTypes.REQUEST_LIVE_PLAYERS_STATS,
+  expiresAt: dateNow() + 1000 * 60,  // 1 minute before trying again
 });
 
 /**
@@ -105,10 +106,6 @@ const shouldFetchPlayersStats = (state, lineupId) => {
   }
 
   if (dateNow() < state.livePlayers.expiresAt) {
-    return false;
-  }
-
-  if (state.livePlayers.isFetching.indexOf(lineupId) !== -1) {
     return false;
   }
 
