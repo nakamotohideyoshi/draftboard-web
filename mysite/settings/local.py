@@ -109,3 +109,9 @@ PUSHER_APP_ID           = '179543'
 PUSHER_KEY              = '5a4601521c1e2a3778aa'
 PUSHER_SECRET           = '2c286ac8c239f8e73f00'
 PUSHER_CHANNEL_PREFIX   = ''
+
+#
+# because of the local setup, custom test runner requires root priviledges
+# from test.runners import InlineAppDiscoverRunner
+TEST_RUNNER = 'test.runners.InlineAppDiscoverRunner'
+INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = True

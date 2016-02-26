@@ -468,3 +468,7 @@ if USE_LOCKDOWN:
         r'^/api-token-auth/',
         r'^/api-token-refresh/',
     )
+
+#
+# custom test runner by default does not require sudo privileges
+INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = False
