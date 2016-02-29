@@ -32,8 +32,22 @@ const SettingsAddress = React.createClass({
 
   handleSubmit(event) {
     event.preventDefault();
-    // TODO: get form data, and send it as arg
-    this.props.onHandleSubmit({});
+    // get the data from here
+    const fullname = this.refs.fullname.value;
+    const address1 = this.refs.address1.value;
+    const address2 = this.refs.address2.value;
+    const city = this.refs.city.value;
+    const state = this.refs.state.value;
+    const zipcode = this.refs.zipcode.value;
+
+    this.props.onHandleSubmit({
+      fullname,
+      address1,
+      address2,
+      city,
+      state,
+      zipcode,
+    });
   },
 
   renderInfo() {
@@ -59,7 +73,14 @@ const SettingsAddress = React.createClass({
       <form className="form" onSubmit={this.handleSubmit}>
         <div className={nameClasses}>
           <label className="form-field__label" htmlFor="name">Name</label>
-          <input className="form-field__text-input" type="text" id="name" name="fullname.name" placeholder="John Doe" />
+          <input
+            ref="fullname"
+            className="form-field__text-input"
+            type="text"
+            id="name"
+            name="fullname.name"
+            placeholder="John Doe"
+          />
           { 'name' in this.props.errors &&
           <div className="form-field-message form-field-message--error form-field-message--settings">
             <h6 className="form-field-message__title">{ this.props.errors.name.title }</h6>
@@ -70,22 +91,45 @@ const SettingsAddress = React.createClass({
 
         <div className="form-field">
           <label className="form-field__label" htmlFor="address1">Address 1</label>
-          <input className="form-field__text-input" type="text" id="address1" name="address1" />
+          <input
+            ref="address1"
+            className="form-field__text-input"
+            type="text"
+            id="address1"
+            name="address1"
+          />
         </div>
 
         <div className="form-field">
           <label className="form-field__label" htmlFor="address2">Address 2</label>
-          <input className="form-field__text-input" type="text" id="address2" name="address2" />
+          <input
+            ref="address2"
+            className="form-field__text-input"
+            type="text"
+            id="address2"
+            name="address2"
+          />
         </div>
 
         <div className="form-field">
           <label className="form-field__label" htmlFor="city">City</label>
-          <input className="form-field__text-input" type="text" id="city" name="city" />
+          <input
+            ref="city"
+            className="form-field__text-input"
+            type="text"
+            id="city"
+            name="city"
+          />
         </div>
 
         <div className="form-field">
           <label className="form-field__label" htmlFor="state">State</label>
-          <select className="form-field__select" id="state" name="state">
+          <select
+            ref="state"
+            className="form-field__select"
+            id="state"
+            name="state"
+          >
             <option value="hi" selected="selected">hi</option>
             <option value="you" selected="selected">you</option>
             <option value="there" selected="selected">there</option>
@@ -94,7 +138,14 @@ const SettingsAddress = React.createClass({
 
         <div className="form-field">
           <label className="form-field__label" htmlFor="zipcode">Zip Code</label>
-          <input className="form-field__text-input" type="text" id="zipcode" name="zipcode" placeholder="32806" />
+          <input
+            ref="zipcode"
+            className="form-field__text-input"
+            type="text"
+            id="zipcode"
+            name="zipcode"
+            placeholder="32806"
+          />
         </div>
 
         <input type="submit" className="button--medium" value="Save" />
