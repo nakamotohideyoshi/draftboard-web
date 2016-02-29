@@ -99,6 +99,7 @@ export const liveSelector = createSelector(
     const uniqueEntries = _uniq(_values(entries.items), 'lineup');
 
     const stats = {
+      draftGroupStarted: false,
       draftGroupEnded: false,
       hasRelatedInfo: false,
       lineups: {},
@@ -124,6 +125,10 @@ export const liveSelector = createSelector(
       // this pairs up with addMessage in Live component to make user aware
       if (myLineup.draftGroup.end < dateNow()) {
         stats.draftGroupEnded = true;
+      }
+
+      if (myLineup.draftGroup.start < dateNow()) {
+        stats.draftGroupStarted = true;
       }
 
       const sport = myLineup.draftGroup.sport;

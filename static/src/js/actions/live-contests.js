@@ -290,7 +290,7 @@ const shouldFetchContest = (liveContests, id) => {
   }
 
   // if it hasn't started yet, don't bother getting lineups yet
-  if (new Date(contest.info.start) < dateNow()) {
+  if (new Date(contest.info.start).getTime() > dateNow()) {
     return false;
   }
 

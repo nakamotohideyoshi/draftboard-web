@@ -592,20 +592,20 @@ const Live = React.createClass({
       return this.renderLoadingScreen();
     }
 
+    const myLineup = liveData.lineups.mine || {};
+
+    // show the countdown until it goes live
+    if (myLineup.roster === undefined && liveData.draftGroupStarted === false) {
+      return (
+        <LiveCountdown
+          onCountdownComplete={this.forceContestLineupsRefresh}
+          lineup={myLineup}
+        />
+      );
+    }
+
     // wait until the lineup data has loaded before rendering
-    if (liveData.lineups.hasOwnProperty('mine')) {
-      const myLineup = liveData.lineups.mine;
-
-      // show the countdown until it goes live
-      if (myLineup.roster === undefined) {
-        return (
-          <LiveCountdown
-            onCountdownComplete={this.forceContestLineupsRefresh}
-            lineup={myLineup}
-          />
-        );
-      }
-
+    if (liveData.lineups.hasOwnProperty('mine') && myLineup.roster !== undefined) {
       // if viewing a contest, then add standings pane and moneyline
       if (mode.contestId) {
         const contest = liveData.contest;
