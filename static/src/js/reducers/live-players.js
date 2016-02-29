@@ -12,8 +12,8 @@ module.exports = (state = {
   switch (action.type) {
     case ActionTypes.REQUEST_LIVE_PLAYERS_STATS:
       return update(state, {
-        isFetching: {
-          $push: [action.lineupId],
+        $merge: {
+          expiresAt: action.expiresAt,
         },
       });
 

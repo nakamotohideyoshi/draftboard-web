@@ -26,12 +26,13 @@ import LiveNBACourt from './live-nba-court';
 import LiveStandingsPaneConnected from './live-standings-pane';
 import log from '../../lib/logging';
 import store from '../../store';
+import { addMessage, clearMessages } from '../../actions/message-actions';
 import { checkForUpdates } from '../../actions/live';
 import { currentLineupsSelector } from '../../selectors/current-lineups';
 import { fetchContestLineups } from '../../actions/live-contests';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
-import { fetchRelatedEntriesInfo } from '../../actions/entries';
 import { fetchEntriesIfNeeded } from '../../actions/entries';
+import { fetchRelatedEntriesInfo } from '../../actions/entries';
 import { fetchSportIfNeeded } from '../../actions/sports';
 import { liveContestsSelector } from '../../selectors/live-contests';
 import { liveSelector } from '../../selectors/live';
@@ -89,6 +90,9 @@ const Live = React.createClass({
         contestId: urlParams.contestId || undefined,
         opponentLineupId: urlParams.opponentLineupId || undefined,
       }));
+
+      // double check all related information is up to date
+      this.props.dispatch(fetchRelatedEntriesInfo());
     } else {
       // force entries to refresh
       this.props.dispatch(fetchEntriesIfNeeded(true));
@@ -97,6 +101,17 @@ const Live = React.createClass({
 
     // start listening for pusher calls, and server updates
     this.startListening();
+  },
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.liveSelector.draftGroupEnded === false && nextProps.liveSelector.draftGroupEnded === true) {
+      store.dispatch(clearMessages());
+      store.dispatch(addMessage({
+        header: 'Contests have finished!',
+        content: '<div>See your results <a href="/results/">here</a></div>',
+        level: 'success',
+      }));
+    }
   },
 
   /*
@@ -271,11 +286,7 @@ const Live = React.createClass({
   listenToSockets() {
     // NOTE: this really bogs down your console, only use locally when needed
     // uncomment this ONLY if you need to debug why Pusher isn't connecting
-    // Pusher.log = function(message) {
-    //   if (window.console && window.console.log) {
-    //     window.console.log(message);
-    //   }
-    // };
+    Pusher.log = (message) => log.trace(message);
 
     const pusher = new Pusher(window.dfs.user.pusher_key, {
       encrypted: true,
@@ -533,8 +544,6 @@ const Live = React.createClass({
    * Internal method to start listening to pusher and poll for updates
    */
   startListening() {
-    log.info('Live.startListening()');
-
     this.listenToSockets();
     this.startParityChecks();
   },
@@ -583,20 +592,20 @@ const Live = React.createClass({
       return this.renderLoadingScreen();
     }
 
+    const myLineup = liveData.lineups.mine || {};
+
+    // show the countdown until it goes live
+    if (myLineup.roster === undefined && liveData.draftGroupStarted === false) {
+      return (
+        <LiveCountdown
+          onCountdownComplete={this.forceContestLineupsRefresh}
+          lineup={myLineup}
+        />
+      );
+    }
+
     // wait until the lineup data has loaded before rendering
-    if (liveData.lineups.hasOwnProperty('mine')) {
-      const myLineup = liveData.lineups.mine;
-
-      // show the countdown until it goes live
-      if (myLineup.roster === undefined) {
-        return (
-          <LiveCountdown
-            onCountdownComplete={this.forceContestLineupsRefresh}
-            lineup={myLineup}
-          />
-        );
-      }
-
+    if (liveData.lineups.hasOwnProperty('mine') && myLineup.roster !== undefined) {
       // if viewing a contest, then add standings pane and moneyline
       if (mode.contestId) {
         const contest = liveData.contest;

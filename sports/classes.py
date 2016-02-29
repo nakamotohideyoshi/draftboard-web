@@ -348,9 +348,11 @@ class SiteSportManager(object):
         game_class = self.get_game_class(site_sport)
         # get the date_range tuple so we can filter the games !
         if sport == 'nfl':
-            dt_range = DfsDate.get_current_nfl_date_range()
+            dt_range = DfsDate.get_current_nfl_date_range(offset_hours=6)
         else:
-            dt_range = DfsDate.get_current_dfs_date_range()
+            # offset_hours = 6 shifts the 24 window into the next day
+            # so that we get all the games
+            dt_range = DfsDate.get_current_dfs_date_range(offset_hours=6)
         games = game_class.objects.filter( start__range=dt_range )
         return games
 

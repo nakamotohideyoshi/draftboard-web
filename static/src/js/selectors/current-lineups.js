@@ -7,6 +7,7 @@ import { createSelector } from 'reselect';
 import { dateNow } from '../lib/utils';
 import { GAME_DURATIONS } from '../actions/sports';
 import { liveContestsSelector } from './live-contests';
+import log from '../lib/logging';
 
 
 /**
@@ -226,6 +227,7 @@ export const currentLineupsSelector = createSelector(
   (contestsStats, liveContests, liveDraftGroups, sports, entries, lineups, hasRelatedInfo, relevantPlayers) => {
     // do not show if we don't have data yet
     if (hasRelatedInfo === false) {
+      log.trace('currentLineupsSelector() - entries have not finished loading yet');
       return {};
     }
 
@@ -233,13 +235,10 @@ export const currentLineupsSelector = createSelector(
     _forEach(lineups, (lineup) => {
       const draftGroup = liveDraftGroups[lineup.draft_group];
 
-      // if the draftgroup has ended, then you can no longer see the lineup
-      if (new Date(draftGroup.end) < dateNow()) {
-        return;
-      }
-
       // send back a default lineup if it has not started playing yet
       if (new Date(lineup.start) > dateNow() || lineup.roster === undefined) {
+        log.trace('currentLineupsSelector() - lineup has not started yet', lineup.id);
+
         stats[lineup.id] = {
           decimalRemaining: 0.99,
           draftGroup,

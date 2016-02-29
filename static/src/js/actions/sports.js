@@ -7,6 +7,7 @@ import { forEach as _forEach } from 'lodash';
 import { map as _map } from 'lodash';
 import { merge as _merge } from 'lodash';
 import { sortBy as _sortBy } from 'lodash';
+import log from '../lib/logging';
 
 
 // global constants
@@ -36,7 +37,7 @@ export const GAME_DURATIONS = {
 const requestGames = (sport) => ({
   sport,
   type: ActionTypes.REQUEST_GAMES,
-  expiresAt: dateNow() + 1000 * 60 * 5,  // 1 minute
+  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**
@@ -48,6 +49,7 @@ const requestGames = (sport) => ({
 const requestTeams = (sport) => ({
   sport,
   type: ActionTypes.REQUEST_TEAMS,
+  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**
@@ -203,11 +205,6 @@ const shouldFetchGames = (state, sport, force) => {
     return false;
   }
 
-  // fetch if not currently fetching
-  if (state.sports[sport].isFetchingGames === true) {
-    return false;
-  }
-
   return true;
 };
 
@@ -219,12 +216,7 @@ const shouldFetchGames = (state, sport, force) => {
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchTeams = (state, sport) => {
-  // if currently fetching, don't fetch again
-  if (state.sports[sport].isFetchingTeams === true) {
-    return false;
-  }
-
-  // fetch if expired
+  // don't fetch until expired
   if (dateNow() < state.sports[sport].teamsExpireAt) {
     return false;
   }
@@ -262,6 +254,11 @@ export const fetchTeamsIfNeeded = (sport) => (dispatch, getState) => {
   return dispatch(fetchTeams(sport));
 };
 
+/**
+ * Fetch sport if needed
+ * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
+ *                     returned method or directly as a resolved promise
+ */
 export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
   dispatch(fetchTeamsIfNeeded(sport));
   dispatch(fetchGamesIfNeeded(sport, force));
@@ -273,6 +270,8 @@ export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchSportsIfNeeded = () => (dispatch, getState) => {
+  log.trace('actions.sports.fetchSportsIfNeeded()');
+
   _forEach(
     getState().sports.types, (sport) => {
       dispatch(fetchSportIfNeeded(sport));
