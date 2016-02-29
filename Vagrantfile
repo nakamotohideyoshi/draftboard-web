@@ -13,8 +13,8 @@ Vagrant.configure(2) do |config|
     web.vm.box = "ubuntu/trusty64"
 
     #
-    # forward http traffic to port 8080 on the vm
-    web.vm.network "forwarded_port", host: 8080, guest: 80
+    # forward http traffic from port 8080 to port 8000 on the vm
+    web.vm.network "forwarded_port", host: 8080, guest: 8000
     web.vm.network "forwarded_port", host: 5555, guest: 5555
 
     #
