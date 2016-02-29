@@ -345,9 +345,11 @@ class BuildWorldForTesting(object):
     #-------------------------------------------------------------------
     # Shared setup methods for the test cases
     def create_sport_and_rosters(self):
-        self.sitesport       = SiteSport()
-        self.sitesport.name  = 'test'
-        self.sitesport.save()
+        # self.sitesport       = SiteSport()
+        # self.sitesport.name  = 'test'
+        # self.sitesport.save()
+
+        self.sitesport, created = SiteSport.objects.get_or_create(name='nfl')
 
         position1                = Position()
         position1.name           = "1"
