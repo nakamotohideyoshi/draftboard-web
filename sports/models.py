@@ -125,11 +125,24 @@ class Game( DirtyFieldsMixin, models.Model ):
     STATUS_CLOSED = 'closed'
     STATUS_INPROGRESS = 'inprogress'
 
+    SEASON_TYPE_PRE = 'pre'     # preseason
+    SEASON_TYPE_REG = 'reg'     # regular season
+    SEASON_TYPE_PST = 'pst'     # postseason
+    SEASON_TYPES = [
+        (SEASON_TYPE_PRE, 'Preseason'),
+        (SEASON_TYPE_REG, 'Regular Season'),
+        (SEASON_TYPE_PST, 'Postseason'),
+    ]
+
     created = models.DateTimeField(auto_now_add=True)
     updated     = models.DateTimeField(auto_now=True)
 
     srid = models.CharField(max_length=64, unique=True, null=False,
                                 help_text='the sportsradar global id')
+
+    season_year = models.IntegerField(default=0, null=False,
+                                      help_text='the year the season started')
+    season_type = models.CharField(max_length=32, default=SEASON_TYPE_REG, null=False, choices=SEASON_TYPES)
 
     start       = models.DateTimeField(null=False)
     status      = models.CharField(max_length=32, null=False)

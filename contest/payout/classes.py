@@ -41,12 +41,13 @@ class PayoutManager(AbstractManagerClass):
     def __init__(self):
         pass
 
-    def payout(self, contests=None):
+    def payout(self, contests=None, finalize_score=True):
         """
         Takes in an array of contests to payout. If there are not contests passed
         then the payout mechanism will look for all contests who have not been
         paid out yet and pay them out.
         :param contests: an array of :class:`contest.models.Contest` models
+        :param finalize_score: always True in production. (may be set to False to skip the re-scoring during payouts).
         """
 
         #
@@ -75,25 +76,26 @@ class PayoutManager(AbstractManagerClass):
             # gets all the contests that are completed
             contests = Contest.objects.filter(status=Contest.COMPLETED)
 
-        #
-        # get the unique draft group ids within this queryset of contests.
-        # update the final scoring for the players in the distinct draft groups.
-        draft_group_ids = list(set([ c.draft_group.pk for c in contests if c.draft_group != None ]))
-        for draft_group_id in draft_group_ids:
-            draft_group_manager = DraftGroupManager()
-            try:
-                draft_group_manager.update_final_fantasy_points(draft_group_id)
-            except FantasyPointsAlreadyFinalizedException:
-                pass # its possible the contest we are trying to payout was already finalized
+        if finalize_score:
+            #
+            # get the unique draft group ids within this queryset of contests.
+            # update the final scoring for the players in the distinct draft groups.
+            draft_group_ids = list(set([ c.draft_group.pk for c in contests if c.draft_group != None ]))
+            for draft_group_id in draft_group_ids:
+                draft_group_manager = DraftGroupManager()
+                try:
+                    draft_group_manager.update_final_fantasy_points(draft_group_id)
+                except FantasyPointsAlreadyFinalizedException:
+                    pass # its possible the contest we are trying to payout was already finalized
 
-        #
-        # update the fantasy_points for each unique Lineup.
-        # get the unique lineups from the contests' entries,
-        # so we're not doing extra processing...
-        lineups = Lineup.objects.filter(draft_group__pk__in=draft_group_ids)
-        for lineup in lineups:
-            lineup_manager = LineupManager( lineup.user )
-            lineup_manager.update_fantasy_points( lineup )
+            #
+            # update the fantasy_points for each unique Lineup.
+            # get the unique lineups from the contests' entries,
+            # so we're not doing extra processing...
+            lineups = Lineup.objects.filter(draft_group__pk__in=draft_group_ids)
+            for lineup in lineups:
+                lineup_manager = LineupManager( lineup.user )
+                lineup_manager.update_fantasy_points( lineup )
 
         #
         # finally, we can pay out the contests!

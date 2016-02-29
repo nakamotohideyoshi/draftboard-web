@@ -15,7 +15,7 @@ class AbstractScoreSystem(object):
     score_system        = None
     stat_values         = None
 
-    def __init__(self, sport):
+    def __init__(self, sport, validate=True):
         self.sport      = sport
         self.verbose    = False
         self.str_stats  = None # string
@@ -23,7 +23,8 @@ class AbstractScoreSystem(object):
         self.stat_values_cache = ScoreSystemCache(sport)
         self.stat_values = self.get_stat_values()
         # print('stat_values', str(self.stat_values))
-        self.__validate()
+        if validate:
+            self.__validate()
 
     def __validate(self):
         """
@@ -744,3 +745,4 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
         if self.verbose: self.str_stats += '%s DstPts ' % fantasy_pts
 
         return fantasy_pts
+
