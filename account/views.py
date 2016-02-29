@@ -1,6 +1,3 @@
-#
-# account/views.py
-
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework import status
@@ -45,8 +42,8 @@ class AuthAPIView(APIView):
     Login endpoint. POST to login. DELETE to logout.
     """
 
-    authentication_classes  = (BasicAuthentication,)
-    serializer_class        = LoginSerializer
+    authentication_classes = (BasicAuthentication,)
+    serializer_class = LoginSerializer
 
     def post(self, request, *args, **kwargs):
         args = request.data
@@ -75,8 +72,8 @@ class ForgotPasswordAPIView(APIView):
     issue an email, and generate a temp password hash for them.
     """
 
-    authentication_classes  = (BasicAuthentication,)
-    serializer_class        = ForgotPasswordSerializer
+    authentication_classes = (BasicAuthentication,)
+    serializer_class = ForgotPasswordSerializer
 
     def post(self, request, *args, **kwargs):
         #
@@ -85,16 +82,15 @@ class ForgotPasswordAPIView(APIView):
         args = request.data
         email = args.get('email')
         if email:
-
             try:
                 user = User.objects.get(email=email)
             except User.DoesNotExist:
-                user = None # no user found... moving on.
+                user = None  # no user found... moving on.
 
             if user:
                 #
                 # fire the task that sends a password reset email to this user
-                account.tasks.send_password_reset_email.delay( user )
+                account.tasks.send_password_reset_email.delay(user)
 
                 #
                 #
@@ -102,20 +98,23 @@ class ForgotPasswordAPIView(APIView):
         # return success no matter what
         return Response({}, status=status.HTTP_200_OK)
 
+
 class PasswordResetAPIView(APIView):
-    # handles https://www.draftboard.com/api/account/password-reset-confirm/MjA0/47k-95ee193717cb75448cf0/
-    authentication_classes  = (BasicAuthentication,)
-    serializer_class        = PasswordResetSerializer
+    # handles
+    # https://www.draftboard.com/api/account/password-reset-confirm/MjA0/47k-95ee193717cb75448cf0/
+    authentication_classes = (BasicAuthentication,)
+    serializer_class = PasswordResetSerializer
 
     def post(self, request, *args, **kwargs):
         args = request.data
         uid = args.get('uid')
         token = args.get('token')
 
-        print( uid, token )
+        print(uid, token)
         if uid and token:
             return Response({}, status=status.HTTP_200_OK)
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 class RegisterAccountAPIView(generics.CreateAPIView):
     """
@@ -165,7 +164,7 @@ class UserAPIView(generics.GenericAPIView):
         user = self.request.user
         return user
 
-    def put(self, request, format=None):
+    def post(self, request, format=None):
         user = self.get_object()
         data = request.data
         serializer = UserSerializer(user, data=data, partial=True)
@@ -197,6 +196,7 @@ class InformationAPIView (generics.GenericAPIView):
             #
             # Creates the user information for the user to modify
             # if it does not already exist in the database.
+            #
             info = Information()
             info.user = user
             info.fullname = ""
@@ -216,7 +216,7 @@ class InformationAPIView (generics.GenericAPIView):
 
         return Response(serializer.data)
 
-    def put(self, request, format=None):
+    def post(self, request, format=None):
         info = self.get_object()
         serializer = InformationSerializer(info, data=request.data, partial=True)
         if serializer.is_valid():
@@ -291,55 +291,13 @@ class UserEmailNotificationAPIView (generics.GenericAPIView):
 
         user_email_notification = self.get_object(notif)
 
-        serializer = UserEmailNotificationSerializer(user_email_notification, data=request.data, many=False)
+        serializer = UserEmailNotificationSerializer(
+            user_email_notification, data=request.data, many=False
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UserBasicAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def get(self, request, *args, **kwargs):
-        return Response({
-            'username': 'fancyusername',
-            'email': 'example@dfs.com',
-            'balance': '23130.00',
-            'bonus': '3130.00',
-            'emailNotifications': {
-                'contests_starting': True,
-                'contests_victories': True,
-                'contests_upcoming': True,
-                'newsletters': False
-            },
-            'name': 'Lookma Noname',
-            'address1': 'Some address or should it',
-            'address2': 'Be connected with specific payment method',
-            'city': 'Denver',
-            'state': 'Colorado',
-            'stateShort': 'CO',
-            'zipcode': '4000'
-        })
-
-    def post(self, request, *args, **kwargs):
-        import random
-        errors = random.choice([0, 1, 2, 3])
-
-        if errors == 0:
-            return Response(status=200)
-
-        return Response(
-            status=409,
-            data={
-                'errors': {
-                    'email': {
-                        'title': 'Email already taken!',
-                        'description': 'It looks like this email is already taken by another user. Please choose a different one.'
-                    }
-                }
-            })
 
 
 class UserInformationAPI(APIView):
@@ -366,13 +324,13 @@ class UserInformationAPI(APIView):
 
         return Response(
             status=409,
-            data={
-                'errors': {
-                    'name': {
-                        'title': 'Name you have..not.',
-                        'description': 'You must provide us with your name. It is probably not that unique so no need to hide!'
-                    }
+            data={'errors': {
+                'name': {
+                    'title': 'Name you have..not.',
+                    'description': """You must provide us with your name. It
+                        is probably not that unique so no need to hide!"""
                 }
+            }
             })
 
 
@@ -383,11 +341,11 @@ class WithdrawAPI(APIView):
     def post(self, request, *args, **kwargs):
         return Response(
             status=409,
-            data={
-                'errors': {
+            data={'errors': {
                     'ssn': {
                         'title': 'SSN needed.',
-                        'description': 'By law restrictions, if you are willing to withdraw more than $700, ssn is needed.'
+                        'description': """By law restrictions, if you are willing to withdraw
+                            more than $700, ssn is needed."""
                     }
                 }
             }
@@ -467,7 +425,6 @@ class SetDefaultPaymentMethodAPI(APIView):
 
     def post(self, request, *args, **kwargs):
         return Response(status=201)
-
 
 
 class RegisterView(TemplateView):
