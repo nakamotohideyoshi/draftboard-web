@@ -43,8 +43,8 @@ const LivePlayerPane = React.createClass({
     let renderedStats;
     if (player.hasOwnProperty('seasonalStats') === true) {
       // ordered stats
-      const statTypes = ['fp', 'points', 'rebounds', 'assists', 'steals', 'turnovers'];
-      const statNames = ['FPPG', 'PPG', 'RPG', 'APG', 'stlpg', 'TOPG'];
+      const statTypes = ['fp', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers'];
+      const statNames = ['FPPG', 'PPG', 'RPG', 'APG', 'STLPG', 'BLKPG', 'TOPG'];
 
       renderedStats = statTypes.map((statType, index) => {
         const value = player.seasonalStats[`avg_${statType}`].toFixed(1);
