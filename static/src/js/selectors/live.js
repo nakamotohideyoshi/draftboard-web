@@ -99,7 +99,7 @@ export const liveSelector = createSelector(
     const uniqueEntries = _uniq(_values(entries.items), 'lineup');
 
     const stats = {
-      draftGroupStarted: false,
+      draftGroupStarted: true,
       draftGroupEnded: false,
       hasRelatedInfo: false,
       lineups: {},
@@ -127,8 +127,8 @@ export const liveSelector = createSelector(
         stats.draftGroupEnded = true;
       }
 
-      if (myLineup.draftGroup.start < dateNow()) {
-        stats.draftGroupStarted = true;
+      if (myLineup.draftGroup.start > dateNow()) {
+        stats.draftGroupStarted = false;
       }
 
       const sport = myLineup.draftGroup.sport;

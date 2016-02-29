@@ -41,7 +41,6 @@ const LiveContestsPane = React.createClass({
         contest={contest}
         onItemClick={this.viewContest}
         key={contest.id}
-        lineupPotentialEarnings={lineup.potentialEarnings || 0}
       />
     ));
   },

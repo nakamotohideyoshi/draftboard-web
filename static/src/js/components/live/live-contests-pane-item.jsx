@@ -9,7 +9,6 @@ const LiveContestsPaneItem = React.createClass({
   propTypes: {
     contest: React.PropTypes.object.isRequired,
     onItemClick: React.PropTypes.func.isRequired,
-    lineupPotentialEarnings: React.PropTypes.number.isRequired,
   },
 
   /**
@@ -37,7 +36,7 @@ const LiveContestsPaneItem = React.createClass({
           <span className="live-contests-pane__place--mine">{ contest.myEntryRank }</span> of { contest.entriesCount }
         </div>
         <div className="live-contests-pane__potential-earnings">
-          ${ contest.buyin }/${ this.props.lineupPotentialEarnings }
+          ${ contest.buyin }/${ contest.potentialEarnings }
         </div>
 
         <section className={ moneyLineClass }>
