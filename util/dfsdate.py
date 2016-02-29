@@ -86,7 +86,7 @@ class DfsDate(object):
         return (start, end)
 
     @staticmethod
-    def get_current_nfl_date_range():
+    def get_current_nfl_date_range(offset_hours=0):
         """
         returns a tuple of (start
 
@@ -96,7 +96,7 @@ class DfsDate(object):
         # DfsDate.nfl_weekdays_active     # [3,4,5,6,0]
         # DfsDate.nfl_weekdays_inactive   # [1,2]
 
-        rng = DfsDate.get_current_dfs_date_range()
+        rng = DfsDate.get_current_dfs_date_range(offset_hours=offset_hours)
         today_dt = rng[0]
         # print('rng.weekday():', rng[0].weekday())
 
