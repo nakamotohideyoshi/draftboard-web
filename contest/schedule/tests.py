@@ -4,7 +4,7 @@
 from django.db.utils import IntegrityError
 from django.utils import timezone
 from datetime import datetime, date, time, timedelta
-from test.classes import AbstractTest, AbstractTestTransaction
+from test.classes import AbstractTest
 from sports.classes import SiteSportManager
 from prize.classes import CashPrizeStructureCreator
 from salary.dummy import Dummy # only to be used for testing
@@ -20,7 +20,7 @@ from contest.schedule.models import (
     Interval,
 )
 
-class ScheduleManagerTest(AbstractTestTransaction):
+class ScheduleManagerTest(AbstractTest):
     """
     test the scheduling system. (primarily the object ScheduleManager)
     """

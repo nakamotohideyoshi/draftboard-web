@@ -1,22 +1,16 @@
-import unittest
+#
+# cash/tests/tests.py
+
 import decimal
 from django.contrib.auth.models import User
 from cash.classes import CashTransaction
 from cash.models import CashBalance, CashTransactionDetail
-from mysite.exceptions import IncorrectVariableTypeException, AmountZeroException
-import django.test
-from cash.forms import AdminCashDepositForm
-from cash.admin import AdminCashDepositFormAdmin
+from mysite.exceptions import IncorrectVariableTypeException
 from cash.models import AdminCashDeposit, AdminCashWithdrawal, BraintreeTransaction
 from test.classes import AbstractTest
-
 from django.test.client import Client
-from django.test import RequestFactory
-from django.contrib import admin
 from django.contrib.auth.models import Permission
-from cash.views import DepositView
-from django.utils.crypto import get_random_string   # usage: get_random_string( length=8 )
-import transaction
+from django.utils.crypto import get_random_string
 
 class InitialCashTransactionTest(AbstractTest):
     """

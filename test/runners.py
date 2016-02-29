@@ -2,6 +2,7 @@
 # test/runners.py
 
 import os
+import time
 from subprocess import Popen, PIPE, check_output
 from unittest.runner import (
     TextTestRunner
@@ -17,6 +18,19 @@ from django.test.runner import (
 )
 from django.db import connection, connections, DEFAULT_DB_ALIAS
 from django.conf import settings
+from scoring.models import (
+    ScoreSystem,
+)
+
+class SSHELP:
+    @staticmethod
+    def check_score_systems():
+        score_systems = ScoreSystem.objects.all()
+        for ss in score_systems:
+            print( ss )
+        print('... there are [%s] ScoreSystem objects in the database' % str(score_systems.count()))
+        current_db_name = connections[DEFAULT_DB_ALIAS].settings_dict['NAME']
+        print('... and we are connected to database [%s]' % current_db_name)
 
 class PgUtil:
 
@@ -43,7 +57,7 @@ class PgUtil:
         :param close_connection: whether to close the db connection prior to copy (default: True)
         """
         if close_connection:
-            print('closed db connection prior to copy... ')
+            print('closed db connection [%s] prior to copy... ' % connections[DEFAULT_DB_ALIAS].settings_dict['NAME'])
             connection.close()
 
         print('cloning db [%s] into [%s]' % (db_name, to_db_name))
@@ -162,6 +176,22 @@ class InlineAppTestSuite( TestSuite ):
             if result.shouldStop:
                 break
 
+            #
+            # previous to the test execution,
+            # copy our template test db into the test db
+            # and then instantiate the test
+            # TODO - db connection.close()
+            PgUtil.clone_db(self.template_db_name, self.test_db_name, self.requires_sudo)
+            # TODO - settings.DATABASES[self.connection.alias]["NAME"] = self.test_db_name
+            # TODO - self.connection.settings_dict["NAME"] = self.test_db_name
+            # TODO - not sure if we HAVE to do this, but try it with it and without it
+            connection.ensure_connection()
+            countdown = 5
+            while countdown >= 0:
+                time.sleep(0.5)
+                SSHELP.check_score_systems()
+                countdown -= 0.5
+
             if _isnotsuite(test):
                 self._tearDownPreviousClass(test, result)
                 self._handleModuleFixture(test, result)
@@ -173,17 +203,6 @@ class InlineAppTestSuite( TestSuite ):
                     continue
 
             if not debug:
-                #
-                # previous to the test execution,
-                # copy our template test db into the test db
-                # and then instantiate the test
-                # TODO - db connection.close()
-                PgUtil.clone_db(self.template_db_name, self.test_db_name, self.requires_sudo)
-                # TODO - settings.DATABASES[self.connection.alias]["NAME"] = self.test_db_name
-                # TODO - self.connection.settings_dict["NAME"] = self.test_db_name
-                # TODO - not sure if we HAVE to do this, but try it with it and without it
-                # connection.ensure_connection()
-
                 #
                 # now make the test
                 test(result)
@@ -378,6 +397,8 @@ class InlineAppDiscoverRunner( DiscoverRunner ):
         # sets up django settings.DATABASES (creates new test db, and runs manage.py migrate on it).
         print('>>> setup_databases')
         original_dbs, mirrors = self.setup_databases()
+        SSHELP.check_score_systems()
+        ss, c = ScoreSystem.objects.get_or_create(name='caleb')
         old_config = (original_dbs, mirrors)
         #original_db_name = original_dbs[0][1] # get the db name that we are running tests for (ie: dfs_master)
         # In [10]: connections[DEFAULT_DB_ALIAS].creation.test_db_signature()
@@ -389,7 +410,7 @@ class InlineAppDiscoverRunner( DiscoverRunner ):
         # custom - copy the 'test_XXXX' db to 'template_test_XXXX'
         template_db_name = self.clone_db_prefix + test_db_name # TODO - copy it, and get it so we can pass it to run_suite()
         print('>>> clone_db: %s' % template_db_name)
-        connection.close()
+
         PgUtil.clone_db(test_db_name, template_db_name, requires_sudo=settings.INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO)
 
         # MANDATORY to set these in the suite before its run() method can be called

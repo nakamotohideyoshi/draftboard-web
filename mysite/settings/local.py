@@ -83,6 +83,12 @@ CACHES = {
     }
 }
 
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+#     }
+# }
+
 # Asset locations
 STATIC_URL = '/static/'
 
@@ -113,5 +119,5 @@ PUSHER_CHANNEL_PREFIX   = ''
 #
 # because of the local setup, custom test runner requires root priviledges
 # from test.runners import InlineAppDiscoverRunner
-TEST_RUNNER = 'test.runners.InlineAppDiscoverRunner'
+#TEST_RUNNER = 'test.runners.InlineAppDiscoverRunner'
 INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = True

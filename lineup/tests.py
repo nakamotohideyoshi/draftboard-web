@@ -1,4 +1,7 @@
-from test.classes import AbstractTest, AbstractTestTransaction
+#
+# lineup/tests.py
+
+from test.classes import AbstractTest
 from django.contrib.auth.models import User
 from test.models import PlayerChild
 from .classes import LineupManager
@@ -123,10 +126,7 @@ class CreateLineupAPITest( APITestCase, test.classes.BuildWorldMixin, test.class
 #         # is_client_error() checks any 400 errors (401, 402, etc...)
 #         self.assertTrue( status.is_client_error( response.status_code) )
 
-class LineupBaseTest(AbstractTest):
-
-    def setUp(self):
-        self.build_world()
+class BuildWorldMixin(object):
 
     def build_world(self):
 
@@ -151,13 +151,12 @@ class LineupBaseTest(AbstractTest):
             draftgroup_player.salary = 10000
             draftgroup_player.save()
 
-
     def create_valid_lineup(self):
         self.lm = LineupManager(self.user)
         self.team = [self.one.pk, self.two.pk, self.three.pk]
         self.lineup = self.lm.create_lineup(self.team, self.draftgroup)
 
-class LineupTest(LineupBaseTest):
+class LineupTest(AbstractTest, BuildWorldMixin):
 
     def setUp(self):
         self.build_world()
@@ -408,18 +407,12 @@ class LineupTest(LineupBaseTest):
         for player_obj_arr in data:
             self.assertEquals(player_obj_arr['started'], True)
 
+class LineupConcurrentTest(AbstractTest, BuildWorldMixin):
 
-
-
-
-
-
-
-class LineupConcurrentTest(AbstractTestTransaction, LineupBaseTest):
     def setUp(self):
         self.build_world()
 
-    @override_settings(TEST_RUNNER=LineupBaseTest.CELERY_TEST_RUNNER,
+    @override_settings(TEST_RUNNER=AbstractTest.CELERY_TEST_RUNNER,
                        CELERY_ALWAYS_EAGER=True,
                        CELERYD_CONCURRENCY=3)
     def test_edit_lineup_as_task(self):
@@ -434,7 +427,7 @@ class LineupConcurrentTest(AbstractTestTransaction, LineupBaseTest):
         self.concurrent_test(3, run_test, self.user, team, self.lineup)
         self.assertTrue(task.successful())
 
-    @override_settings(TEST_RUNNER=LineupBaseTest.CELERY_TEST_RUNNER,
+    @override_settings(TEST_RUNNER=AbstractTest.CELERY_TEST_RUNNER,
                        CELERY_ALWAYS_EAGER=True,
                        CELERYD_CONCURRENCY=3)
     def test_edit_entry_as_task(self):

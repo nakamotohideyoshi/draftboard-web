@@ -275,13 +275,6 @@ class AbstractTest(django.test.TestCase, MasterAbstractTest):
     def setUp(self):
         pass
 
-
-
-class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTest):
-
-    def setUp(self):
-        pass
-
     def concurrent_test(self, times, test_func, *args, **kwargs ):
         exceptions = []
         def call_test_func():
@@ -303,6 +296,41 @@ class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTes
             t.join()
 
         return exceptions
+
+# class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTest):
+#     """
+#     WARNING: AbstractTestTransaction PRE-WIPES the test database when it runs!
+#
+#     this is very annoying, since we install a few basic objects for the site
+#     during migrations! make sure you know what you are doing if you use
+#     this class, and dont expect ANYTHING to exist when it calls its setUp() method!
+#     """
+#     pre_flush = True
+#
+#     def setUp(self):
+#         pass
+#
+#     def concurrent_test(self, times, test_func, *args, **kwargs ):
+#         exceptions = []
+#         def call_test_func():
+#             try:
+#                 test_func(*args, **kwargs)
+#             except Exception as e:
+#                 exceptions.append(e)
+#                 print(str(e))
+#                 #print(traceback.format_exc())
+#
+#             for conn in connections.all():
+#                 conn.close()
+#         threads = []
+#         for i in range(times):
+#             threads.append(threading.Thread(target=call_test_func))
+#         for t in threads:
+#             t.start()
+#         for t in threads:
+#             t.join()
+#
+#         return exceptions
 
 class BuildWorldForTesting(object):
 
