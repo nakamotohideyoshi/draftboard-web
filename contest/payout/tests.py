@@ -39,8 +39,6 @@ class PayoutTest(AbstractTest):
         self.prize_structure.save()
         self.ranks = cps.ranks
 
-
-
         self.world = BuildWorldForTesting()
         self.world.build_world()
         self.draftgroup = self.world.draftgroup

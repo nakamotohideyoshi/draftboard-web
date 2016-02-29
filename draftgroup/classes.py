@@ -155,6 +155,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
         # get all the PlayerStats objects for this draft group
         ssm = SiteSportManager()
+        print('ssm.get_score_system_class( %s ):' % str(site_sport))
         salary_score_system_class = ssm.get_score_system_class(site_sport)
         score_system = salary_score_system_class()
         game_srids = [ x.game_srid for x in self.get_game_teams(draft_group=draft_group) ]
