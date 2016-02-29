@@ -32,6 +32,7 @@ import { currentLineupsSelector } from '../../selectors/current-lineups';
 import { fetchContestLineups } from '../../actions/live-contests';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
 import { fetchEntriesIfNeeded } from '../../actions/entries';
+import { fetchPlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
 import { fetchRelatedEntriesInfo } from '../../actions/entries';
 import { fetchSportIfNeeded } from '../../actions/sports';
 import { liveContestsSelector } from '../../selectors/live-contests';
@@ -70,6 +71,7 @@ const Live = React.createClass({
 
   getInitialState() {
     return {
+      isLoaded: false,
       courtEvents: {},
       eventDescriptions: {},
       playersPlaying: [],
@@ -93,14 +95,16 @@ const Live = React.createClass({
 
       // double check all related information is up to date
       this.props.dispatch(fetchRelatedEntriesInfo());
+      this.props.dispatch(fetchPlayerBoxScoreHistoryIfNeeded('nba'));
     } else {
       // force entries to refresh
       this.props.dispatch(fetchEntriesIfNeeded(true));
     }
 
-
     // start listening for pusher calls, and server updates
     this.startListening();
+
+    setTimeout(() => this.setState({ isLoaded: true }), 500);
   },
 
   componentWillReceiveProps(nextProps) {
@@ -588,7 +592,7 @@ const Live = React.createClass({
     }
 
     // wait for data to load before showing anything
-    if (liveData.hasRelatedInfo === false) {
+    if (liveData.hasRelatedInfo === false || this.state.isLoaded === false) {
       return this.renderLoadingScreen();
     }
 

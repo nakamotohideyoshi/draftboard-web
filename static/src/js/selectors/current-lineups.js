@@ -55,6 +55,7 @@ const calcEntryContestStats = (lineupId, lineupContests, contestsStats, liveCont
         {
           myPercentagePosition: (entryStats.rank - 1) / liveContest.info.entries * 100,
           myEntryRank: entryStats.rank,
+          potentialEarnings: entryStats.potentialEarnings,
         }
       );
     }
