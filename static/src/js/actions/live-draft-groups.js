@@ -197,15 +197,6 @@ const shouldFetchDraftGroupFP = (state, id) => {
     return false;
   }
 
-  // do not fetch if fetching info
-  if (liveDraftGroups[id].isFetchingInfo === true) {
-    return false;
-  }
-  // do not fetch if fetching fp
-  if (liveDraftGroups[id].isFetchingFP === true) {
-    return false;
-  }
-
   return true;
 };
 
@@ -224,8 +215,8 @@ const shouldFetchDraftGroup = (state, id) => {
   }
 
   // fetch if expired
-  if (dateNow() < liveDraftGroups[id].infoExpiresAt) {
-    return false;
+  if (dateNow() > liveDraftGroups[id].infoExpiresAt) {
+    return true;
   }
 
   return false;

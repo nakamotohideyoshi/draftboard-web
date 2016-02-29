@@ -156,6 +156,10 @@ const convertLineup = (numberOfPlayers, byteArray, firstBytePosition) => {
     total_points: '',
   };
 
+  if (lineup.id === 0) {
+    return null;
+  }
+
   // move from the ID to the start of the players
   const shiftedBytePosition = firstBytePosition + 4;
 
@@ -186,7 +190,9 @@ const parseContestLineups = (apiContestLineupsBytes) => {
   for (let i = 6; i < responseByteArray.length; i += 20) {
     const lineup = convertLineup(8, responseByteArray, i);
 
-    lineups[lineup.id] = lineup;
+    if (lineup !== null) {
+      lineups[lineup.id] = lineup;
+    }
   }
 
   return lineups;
@@ -284,7 +290,7 @@ const shouldFetchContest = (liveContests, id) => {
   }
 
   // if it hasn't started yet, don't bother getting lineups yet
-  if (new Date(contest.info.start) < dateNow()) {
+  if (new Date(contest.info.start).getTime() > dateNow()) {
     return false;
   }
 
@@ -342,7 +348,7 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
  */
 export const fetchContestIfNeeded = (id, force) => (dispatch, getState) => {
   if (shouldFetchContest(getState().liveContests, id) === false && force !== true) {
-    return Promise.resolve('Contest already exists');
+    return dispatch(fetchRelatedContestInfo(id));
   }
 
   return Promise.all([

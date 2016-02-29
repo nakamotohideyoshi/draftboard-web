@@ -1,4 +1,5 @@
 import React from 'react';
+import { size as _size } from 'lodash';
 
 import LivePMRProgressBar from './live-pmr-progress-bar';
 
@@ -6,7 +7,7 @@ import LivePMRProgressBar from './live-pmr-progress-bar';
 const LiveLineupPlayer = React.createClass({
 
   propTypes: {
-    eventDescription: React.PropTypes.object,
+    eventDescription: React.PropTypes.object.isRequired,
     isPlaying: React.PropTypes.bool.isRequired,
     openPlayerPane: React.PropTypes.func.isRequired,
     player: React.PropTypes.object.isRequired,
@@ -21,7 +22,7 @@ const LiveLineupPlayer = React.createClass({
    */
   renderEventDescription() {
     // only show when there's an event
-    if (this.props.eventDescription === 'empty') {
+    if (_size(this.props.eventDescription) === 0) {
       return (<div key="5" />);
     }
 

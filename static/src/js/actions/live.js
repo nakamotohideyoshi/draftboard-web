@@ -3,9 +3,12 @@ import { forEach as _forEach } from 'lodash';
 import { fetchContestLineupsUsernamesIfNeeded } from './live-contests';
 import { fetchDraftGroupFPIfNeeded } from './live-draft-groups';
 import { fetchPlayersStatsIfNeeded } from './live-players';
+import log from '../lib/logging';
 
 
 export const checkForUpdates = () => (dispatch, getState) => {
+  log.trace('actions.live.checkForUpdates()');
+
   const state = getState();
   const mode = state.live.mode;
 

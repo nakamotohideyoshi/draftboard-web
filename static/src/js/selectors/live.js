@@ -10,6 +10,8 @@ import { sortBy as _sortBy } from 'lodash';
 import { uniq as _uniq } from 'lodash';
 import { union as _union } from 'lodash';
 import { values as _values } from 'lodash';
+import { dateNow } from '../lib/utils';
+import log from '../lib/logging';
 
 import { liveContestsSelector } from './live-contests';
 import { currentLineupsSelector, compileRosterStats, compileVillianLineup } from './current-lineups';
@@ -97,6 +99,8 @@ export const liveSelector = createSelector(
     const uniqueEntries = _uniq(_values(entries.items), 'lineup');
 
     const stats = {
+      draftGroupStarted: false,
+      draftGroupEnded: false,
       hasRelatedInfo: false,
       lineups: {},
       mode,
@@ -114,7 +118,17 @@ export const liveSelector = createSelector(
       const myLineup = currentLineupsStats[mode.myLineupId];
 
       if (myLineup === undefined) {
+        log.warn('liveSelector - myLineup is undefined');
         return stats;
+      }
+
+      // this pairs up with addMessage in Live component to make user aware
+      if (myLineup.draftGroup.end < dateNow()) {
+        stats.draftGroupEnded = true;
+      }
+
+      if (myLineup.draftGroup.start < dateNow()) {
+        stats.draftGroupStarted = true;
       }
 
       const sport = myLineup.draftGroup.sport;

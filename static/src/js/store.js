@@ -10,18 +10,38 @@ import { compose } from 'redux';
 import createStoreWithMiddleware from './middleware/index';
 import reducers from './reducers/index';
 
+const liveSubstates = [
+  'currentLineups',
+  'entries',
+  'liveContests',
+  'liveDraftGroups',
+  'livePlayers',
+  'prizes',
+];
+
+/**
+ * Method called each time redux state is saved, and saves `subset` to localStorage
+ * @param  {object} ) Redux state
+ * @return {object}   Object to store to localStorage
+ */
+const slicer = () => (state) => {
+  const subset = {};
+
+  // save sports when available
+  if (state.sports.games !== {}) {
+    subset.sports = state.sports;
+  }
+
+  // only store entries and related info once all loaded
+  if (state.entries.hasRelatedInfo === true) {
+    liveSubstates.forEach((subState) => subset[subState] = state[subState]);
+  }
+
+  return subset;
+};
+
 const createPersistentStore = compose(
-  persistState([
-    'currentDraftGroups',
-    'currentLineups',
-    'entries',
-    'liveContests',
-    'liveDraftGroups',
-    'livePlayers',
-    'playerBoxScoreHistory',
-    'prizes',
-    'sports',
-  ])
+  persistState([], { slicer })
 )(createStoreWithMiddleware);
 
 // Store WITH localStorage, is default

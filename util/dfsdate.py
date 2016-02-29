@@ -49,13 +49,15 @@ class DfsDate(object):
         return dfs_dt # TODO return just a date() object?
 
     @staticmethod
-    def get_current_dfs_date_range():
+    def get_current_dfs_date_range(offset_hours=0):
         """
         return a tuple of (start_datetime, end_datetime) that are the boundaries
         of the current DFS day in UTC.
 
         :return:
         """
+
+        td_offset = timedelta(hours=offset_hours)
         now = timezone.now()
         now_date = now.date()
         now_est = now.replace(tzinfo=DfsDate.est_tz)
@@ -76,13 +78,15 @@ class DfsDate(object):
         # if they span over into the following day in utc.
         start = dfs_dt.replace(dfs_date.year, dfs_date.month, dfs_date.day, 5, 0, 0, 0)
         end = start + timedelta(days=1)
-        #print('start', str(start))
-        #print('end', str(end))
+
+        # incoporate offset
+        start = start + td_offset
+        end = end + td_offset
 
         return (start, end)
 
     @staticmethod
-    def get_current_nfl_date_range():
+    def get_current_nfl_date_range(offset_hours=0):
         """
         returns a tuple of (start
 
@@ -92,7 +96,7 @@ class DfsDate(object):
         # DfsDate.nfl_weekdays_active     # [3,4,5,6,0]
         # DfsDate.nfl_weekdays_inactive   # [1,2]
 
-        rng = DfsDate.get_current_dfs_date_range()
+        rng = DfsDate.get_current_dfs_date_range(offset_hours=offset_hours)
         today_dt = rng[0]
         # print('rng.weekday():', rng[0].weekday())
 

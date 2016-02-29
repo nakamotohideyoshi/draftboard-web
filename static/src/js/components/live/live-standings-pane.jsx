@@ -301,8 +301,10 @@ const LiveStandingsPane = React.createClass({
         username = lineup.user.username;
       }
       let earningsClass = 'lineup--score-earnings';
-      if (lineup.potentialEarnings !== 0) {
+      let potentialEarnings = lineup.potentialEarnings;
+      if (potentialEarnings !== 0) {
         earningsClass += ' in-the-money';
+        potentialEarnings = potentialEarnings.toFixed(2);
       }
       return (
         <div key={lineup.id} className={ className }>
@@ -310,7 +312,7 @@ const LiveStandingsPane = React.createClass({
           { pmr }
           <div className="lineup--score-name">{username}</div>
           <div className="lineup--score-points"><b>{lineup.points}</b> <span>Pts</span></div>
-          <div className={earningsClass}>${lineup.potentialEarnings}</div>
+          <div className={earningsClass}>${potentialEarnings}</div>
           { overlay }
         </div>
       );
