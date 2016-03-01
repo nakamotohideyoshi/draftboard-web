@@ -158,7 +158,7 @@ class TestLinkedExpiringObjectQueueTable(TestCase):
         """
         qt = QueueTable(self.queue_names)
 
-        self.assertEquals( self.queue_names, qt.get_queue_names() )
+        self.assertEquals( set(self.queue_names), set(qt.get_queue_names()) )
 
         # empty queues should return None when get() is called on them.
         for i in range(len(self.queue_names)):

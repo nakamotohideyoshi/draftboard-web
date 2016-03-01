@@ -36,8 +36,8 @@ ENVS = {
     'testing': {
         'heroku_repo': 'draftboard-testing',
     },
-    'ios_sandbox': {
-        'heroku_repo': 'draftboard-ios-sandbox',
+    'dev': {
+        'heroku_repo': 'draftboard-dev',
     },
 }
 
@@ -153,7 +153,10 @@ def importdb():
 
 
 def syncdb():
-    """fab [environment] syncdb [--set no_backup=true] (resets db for testing server with production db)"""
+    """
+    fab [environment] syncdb [--set no_backup=true] [--set remote_db=draftboard-staging]
+    (resets db for testing server with production db)
+    """
 
     operations.require('environment')
 
@@ -165,7 +168,21 @@ def syncdb():
     # flush_cache()
 
     # if we want a new version, then capture new backup of production
-    if 'no_backup' not in env:
+    if env.remote_db is not None:
+        heroku_server_name = ENVS[ env.remote_db ]['heroku_repo']
+
+        _puts('Capturing new %s backup' % env.remote_db)
+        operations.local(
+            'heroku pg:backups capture --app %s' % heroku_server_name # ie: 'draftboard-dev'
+        )
+
+        # pull down db to local
+        if env.environment == 'local':
+            _puts('Pull latest %s down to local' % heroku_server_name)
+            operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app %s`' % heroku_server_name)
+
+
+    elif 'no_backup' not in env:
         _puts('Capturing new production backup')
         operations.local(
             'heroku pg:backups capture --app %s' % ENVS['production']['heroku_repo']
