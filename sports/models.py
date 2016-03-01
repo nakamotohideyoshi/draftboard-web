@@ -182,8 +182,8 @@ class Game( DirtyFieldsMixin, models.Model ):
         try:
             changed_fields = self.get_dirty_fields()
         except django.core.exceptions.ValidationError:
-            print('Game model self.get_dirty_fields() threw django.core.exceptions.ValidationError because of a datetime problem... skipping it for testing purposes')
-            print('debug>>>', 'game.start', str(self.start), 'game instance[', str( self ), ']' )
+            #print('Game model self.get_dirty_fields() threw django.core.exceptions.ValidationError because of a datetime problem... skipping it for testing purposes')
+            #print('debug>>>', 'game.start', str(self.start), 'game instance[', str( self ), ']' )
             changed_fields = {}
 
         super().save(*args, **kwargs) # Call the "real" save() method.

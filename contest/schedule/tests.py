@@ -347,7 +347,14 @@ class ScheduleManagerTest(AbstractTest):
         #          self.template_contest, start_time, duration_minutes, self.interval, multiplier=3) )
 
         # now make sure we can create it at a different time on the same day
-        new_start_time = time( start_time.hour, start_time.minute + 15 )
+        # so we dont break the time() constructor, if its less than 30 add 15,
+        # but if its greater than or equal to 30 subtract 15 minutes
+        mins = start_time.minute
+        if mins < 30:
+            mins += 15
+        else:
+            mins -= 15
+        new_start_time = time( start_time.hour, mins ) # + or - 15 minutes from original
         stc_same_day_different_time = self.__create_scheduled_template_contest(self.schedule,
                  self.template_contest, new_start_time, duration_minutes, self.interval, multiplier=3)
 

@@ -159,29 +159,29 @@ class CashTransactionTest(AbstractTest):
 
 
 
-class BraintreeDeposit(AbstractTest):
-    """
-    test the CashTransaction.braintree_deposit() method.
-
-    creates random braintree_transaction_ids for testing purposes!
-    (ie: you cant look them up in the braintree account)
-
-    """
-    def setUp(self):
-        self.admin     = self.get_admin_user()
-        self.ct         = CashTransaction( self.admin )
-
-    def __braintree_transaction_deposit(self, amount):
-        # count the braintree transactions before we create the new one
-        count_btree_trans_before = len( BraintreeTransaction.objects.all() )
-
-        # generate a fake id
-        braintree_transaction_id = get_random_string( 8 )
-        self.ct.deposit_braintree( amount, braintree_transaction_id )
-
-        count_btree_trans_after = len( BraintreeTransaction.objects.all() )
-
-        self.assertEquals(count_btree_trans_before + 1, count_btree_trans_after)
+# class BraintreeDeposit(AbstractTest):
+#     """
+#     test the CashTransaction.braintree_deposit() method.
+#
+#     creates random braintree_transaction_ids for testing purposes!
+#     (ie: you cant look them up in the braintree account)
+#
+#     """
+#     def setUp(self):
+#         self.admin     = self.get_admin_user()
+#         self.ct         = CashTransaction( self.admin )
+#
+#     def __braintree_transaction_deposit(self, amount):
+#         # count the braintree transactions before we create the new one
+#         count_btree_trans_before = len( BraintreeTransaction.objects.all() )
+#
+#         # generate a fake id
+#         braintree_transaction_id = get_random_string( 8 )
+#         self.ct.deposit_braintree( amount, braintree_transaction_id )
+#
+#         count_btree_trans_after = len( BraintreeTransaction.objects.all() )
+#
+#         self.assertEquals(count_btree_trans_before + 1, count_btree_trans_after)
 
 
 

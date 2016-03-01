@@ -3,6 +3,7 @@
 
 from django.test import TestCase
 import random
+from django.utils.crypto import get_random_string
 import mysite.exceptions
 from testfixtures import Replacer,test_datetime
 from test.classes import AbstractTest
@@ -68,10 +69,20 @@ class TestStatsCache(TestCase):
 class TestLiveStatsCache(TestCase):
 
     def setUp(self):
-        self.live_stats_cache = LiveStatsCache(clear=True) # totally wipe out the cache
+        #
+        # WARNING: entirely clearing the cache will break other tests!
+        #self.live_stats_cache = LiveStatsCache(clear=True) # totally wipe out the cache
+
+        #
+        # use a very short timeout so that the next time we run tests
+        # redis is clean from things added from this test
+        self.cache_timeout      = 30
+        self.cache_timeout_mod  = 1  # 1 % variability
+        self.live_stats_cache   = LiveStatsCache(to=self.cache_timeout, to_mod=self.cache_timeout_mod)
 
     def test_update_pbp_object(self):
-        pbp_dataden_obj_id          = 'thisisarandomlygenerateduniquevalue'
+        #pbp_dataden_obj_id          = 'LiveStatsCache_abcdefghijklmnopqrstuvwxz'
+        pbp_dataden_obj_id  = get_random_string(32)
         spoofed_dataden_pbp_object  = {'_id':pbp_dataden_obj_id, 'parent_api__id':'any_parent_api'}
         oplog_obj = OpLogObjWrapper('any_db','any_coll', spoofed_dataden_pbp_object)
 
