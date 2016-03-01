@@ -15,15 +15,6 @@ from django.db import connection, connections, DEFAULT_DB_ALIAS
 from scoring.models import (
     ScoreSystem,
 )
-class SSHELP:
-    @staticmethod
-    def check_score_systems():
-        score_systems = ScoreSystem.objects.all()
-        for ss in score_systems:
-            print( ss )
-        print('... there are [%s] ScoreSystem objects in the database' % str(score_systems.count()))
-        current_db_name = connections[DEFAULT_DB_ALIAS].settings_dict['NAME']
-        print('... and we are connected to database [%s]' % current_db_name)
 
 class SiteSportPosition():
     def get_position(self, site_sport, name):
@@ -51,7 +42,6 @@ class NbaScoringTest(AbstractTest):
     """
 
     def setUp(self):
-        SSHELP.check_score_systems()
         self.create_team()
         self.create_game()
         self.create_player()
@@ -169,7 +159,6 @@ class NbaScoringTest(AbstractTest):
         g.save()
 
     def create_player_stats(self):
-        print(self.__class__.__name__, 'create_player_stats() called')
         srid_game   = "5fbd3295-32ca-445f-baf5-c7c008351398"
         srid_player = "09d25155-c3be-4246-a986-55921a1b5e61"
 
@@ -366,7 +355,6 @@ class NhlScoringTest(AbstractTest):
     #available_apps = None
 
     def setUp(self):
-        SSHELP.check_score_systems()
         self.create_team()
         self.create_game()
         self.create_player()
@@ -484,7 +472,6 @@ class NhlScoringTest(AbstractTest):
         g.save()
 
     def create_player_stats(self):
-        print(self.__class__.__name__, 'create_player_stats() called')
         srid_game   = "5fbd3295-32ca-445f-baf5-c7c008351398"
         srid_player = "434f82a5-0f24-11e2-8525-18a905767e44"
 
