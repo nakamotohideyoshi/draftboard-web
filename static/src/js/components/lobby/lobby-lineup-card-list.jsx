@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDom from 'react-dom';
+import log from '../../lib/logging.js';
 import * as ReactRedux from 'react-redux';
 import { find as _find } from 'lodash';
 import store from '../../store';
@@ -77,7 +78,9 @@ const LineupCardList = React.createClass({
 
   componentWillMount() {
     if (window.dfs.user.isAuthenticated === true) {
-      this.props.fetchUpcomingLineups();
+      this.props.fetchUpcomingLineups().catch((err) => {
+        log.error(err);
+      });
     }
   },
 

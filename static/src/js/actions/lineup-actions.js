@@ -28,7 +28,6 @@ function fetchUpcomingLineupsSuccess(res) {
 
 
 function fetchUpcomingLineupsFail(ex) {
-  log.error(ex);
   return {
     type: types.FETCH_UPCOMING_LINEUPS_FAIL,
     ex,
@@ -61,37 +60,37 @@ export function fetchUpcomingLineups(draftGroupId = null) {
           if (err) {
             dispatch(fetchUpcomingLineupsFail(err));
             reject(err);
-          }
+          } else {
+            // If a specific draft group was requested, update the filter property which will
+            // filter them out with a selector.
+            if (draftGroupId) {
+              dispatch(filterLineupsByDraftGroupId(draftGroupId));
+            }
 
-          // If a specific draft group was requested, update the filter property which will
-          // filter them out with a selector.
-          if (draftGroupId) {
-            dispatch(filterLineupsByDraftGroupId(draftGroupId));
-          }
-
-          // Normalize lineups list by ID.
-          const normalizedLineups = normalize(
-            res.body,
-            arrayOf(lineupSchema)
-          );
-
-          // Find unique draft groups that we have a lineup for.
-          const draftGroups = _uniq(
-            res.body.map((lineup) => lineup.draft_group),
-            (group) => group
-          );
-
-          // Sort playres by roster slot (idx)
-          _forEach(normalizedLineups.entities.lineups, (lineup, key) => {
-            normalizedLineups.entities.lineups[key].players = _sortBy(
-              normalizedLineups.entities.lineups[key].players, 'idx'
+            // Normalize lineups list by ID.
+            const normalizedLineups = normalize(
+              res.body,
+              arrayOf(lineupSchema)
             );
-          });
 
-          dispatch(fetchUpcomingLineupsSuccess({
-            draftGroupsWithLineups: draftGroups,
-            lineups: normalizedLineups.entities.lineups,
-          }));
+            // Find unique draft groups that we have a lineup for.
+            const draftGroups = _uniq(
+              res.body.map((lineup) => lineup.draft_group),
+              (group) => group
+            );
+
+            // Sort playres by roster slot (idx)
+            _forEach(normalizedLineups.entities.lineups, (lineup, key) => {
+              normalizedLineups.entities.lineups[key].players = _sortBy(
+                normalizedLineups.entities.lineups[key].players, 'idx'
+              );
+            });
+
+            dispatch(fetchUpcomingLineupsSuccess({
+              draftGroupsWithLineups: draftGroups,
+              lineups: normalizedLineups.entities.lineups,
+            }));
+          }
 
           resolve(res);
         });

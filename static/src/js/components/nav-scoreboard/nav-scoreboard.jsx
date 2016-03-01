@@ -120,11 +120,17 @@ const NavScoreboard = React.createClass({
     const options = [];
 
     _forEach(this.props.sportsSelector.types, (sport) => {
+      // Make sure it doesn't break if the sport has no games.
+      let count = 0;
+      if (this.props.sportsSelector[sport].gameIds) {
+        count = this.props.sportsSelector[sport].gameIds.length;
+      }
+
       options.push({
         option: `${sport} games`,
         type: TYPE_SELECT_GAMES,
         key: sport,
-        count: this.props.sportsSelector[sport].gameIds.length,
+        count,
       });
     });
 

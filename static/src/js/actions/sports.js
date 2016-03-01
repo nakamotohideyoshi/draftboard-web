@@ -155,8 +155,8 @@ const fetchGames = (sport) => (dispatch) => {
     'X-REQUESTED-WITH': 'XMLHttpRequest',
     Accept: 'application/json',
   }).then((res) => {
-    // add in the sport so we know how to differentiate it
-    const games = _merge({}, res.body);
+    // add in the sport so we know how to differentiate it.
+    const games = _merge({}, res.body || {});
     _forEach(games, (game, id) => {
       games[id].sport = sport;
 
@@ -216,9 +216,14 @@ const shouldFetchGames = (state, sport, force) => {
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchTeams = (state, sport) => {
-  // don't fetch until expired
-  if (dateNow() < state.sports[sport].teamsExpireAt) {
-    return false;
+  // First, check if the sport has an entry.
+  if (state.sports.hasOwnProperty(sport)) {
+    // don't fetch until expired
+    if (dateNow() < state.sports[sport].teamsExpireAt) {
+      return false;
+    }
+  } else {
+    log.error('We aren\'t set up to accommodate teams for sport: ${sport}');
   }
 
   return true;
