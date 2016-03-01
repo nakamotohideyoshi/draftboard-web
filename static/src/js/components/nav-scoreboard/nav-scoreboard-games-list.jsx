@@ -18,6 +18,11 @@ const NavScoreboardGamesList = React.createClass({
   defaultList: [],
 
   render() {
+    // If there are no games, show an empty list.
+    if (!this.props.sport.gameIds) {
+      return <div className="cmp-nav-scoreboard--games-list"></div>;
+    }
+
     const list = this.props.sport.gameIds.map((gameId) => [
       <NavScoreboardGame key={gameId} game={this.props.games[gameId]} />,
       <NavScoreboardSeparator key={`${gameId}--separator'`} half />,
