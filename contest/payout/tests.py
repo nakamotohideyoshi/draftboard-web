@@ -7,7 +7,7 @@ from test.classes import (
     AbstractTest,
     TestSalaryScoreSystem,
 )
-from contest.models import Contest
+from contest.models import Contest, Entry
 from prize.classes import CashPrizeStructureCreator, TicketPrizeStructureCreator
 from lineup.models import Lineup
 from .classes import PayoutManager
@@ -114,7 +114,6 @@ class PayoutTest(AbstractTest):
         self.contest.status = Contest.COMPLETED
         self.contest.save()
 
-
     def create_last_place_tie_teams(self):
         #
         # create Lineups
@@ -218,7 +217,6 @@ class PayoutTest(AbstractTest):
         self.validate_side_effects_of_transaction()
 
     def test_simple_ticket_payout(self):
-        #self.create_ticket_contest()
         self.create_simple_teams()
         pm = PayoutManager()
         pm.payout(finalize_score=False)
@@ -228,7 +226,6 @@ class PayoutTest(AbstractTest):
         self.validate_side_effects_of_transaction()
 
     def test_simple_ticket_payout_tie(self):
-        #self.create_ticket_contest()
         self.create_last_place_tie_teams()
         pm = PayoutManager()
         pm.payout(finalize_score=False)
@@ -240,61 +237,63 @@ class PayoutTest(AbstractTest):
                 self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
         self.validate_side_effects_of_transaction()
 
-    def test_complex_tie_payout(self):
-        #
-        lineup_points   = [10,10,10,10,11,12]
-        lineup_ranks    = [3, 3, 3, 3, 2, 1]
+    def __run_payouts(self, lineup_points, lineup_ranks, payout_ranks):
+        """
+        helper method that a) creates lineups with the points in 'lineup_points',
+         b) does payouts, c) ensures all the ranks are set as expected
+         based on the ranks in lineup_ranks and payout_ranks
+
+        example of valid params:
+
+            lineup_points   = [9, 10,10,10,11,12]
+            lineup_ranks    = [6, 3, 3, 3, 2, 1]
+            payout_ranks    = [   3, 3, 3, 2, 1]    # only 5 spots paid (of the 6)
+
+        :param lineup_points:
+        :param lineup_ranks:
+        :param payout_ranks:
+        :return:
+        """
         self.__create_lineups_with_fantasy_points(self.contest, lineup_points=lineup_points)
         pm = PayoutManager()
         pm.payout(finalize_score=False)
-        # ranked descending because of order or lineup_points/lineup_ranks
+
+        # test payout ranks
         payouts = Payout.objects.order_by('contest', '-rank')
         i = 0
         for payout in payouts:
-            self.assertEquals(payout.rank, lineup_ranks[i])
-            i += 1
-        self.validate_side_effects_of_transaction()
-
-    def test_complex_tie_payout_2(self):
-        #
-        lineup_points   = [9, 10,10,10,11,12]
-        lineup_ranks    = [6, 3, 3, 3, 2, 1]
-        #
-        # this test doesnt set the rank of the last spot ... (or does it... just not in the payout!)
-        # (Rank:3, $3.34, fp:10.00) | 2 | test_contest (pk: 1) rank:3   should be lineup_rank[3]:6
-        # (Rank:3, $3.33, fp:10.00) | 3 | test_contest (pk: 1) rank:3   should be lineup_rank[3]:3
-        # (Rank:3, $3.33, fp:10.00) | 4 | test_contest (pk: 1) rank:3   should be lineup_rank[3]:3
-        # (Rank:2, $10.00, fp:11.00) | 5 | test_contest (pk: 1) rank:2   should be lineup_rank[2]:3
-        # (Rank:1, $34.00, fp:12.00) | 6 | test_contest (pk: 1) rank:1   should be lineup_rank[1]:2
-        # F
-        # ======================================================================
-        # FAIL: test_complex_tie_payout_2 (contest.payout.tests.PayoutTest)
-        # ----------------------------------------------------------------------
-        # Traceback (most recent call last):
-        #   File "/vagrant/contest/payout/tests.py", line 274, in test_complex_tie_payout_2
-        #     self.assertEquals(payout.rank, lineup_ranks[i])
-        # AssertionError: 3 != 6
-        #
-        # ----------------------------------------------------------------------
-        # Ran 1 test in 1.902s
-        #
-        # FAILED (failures=1)
-
-        self.__create_lineups_with_fantasy_points(self.contest, lineup_points=lineup_points)
-        pm = PayoutManager()
-        pm.payout(finalize_score=False)
-        # ranked descending because of order or lineup_points/lineup_ranks
-        payouts = Payout.objects.order_by('contest', '-rank')
-        i = 0
-        for payout in payouts:
-            print(str(payout), 'rank:%s' % payout.rank, '  should be lineup_rank[%s]:%s' % (str(payout.rank), str(lineup_ranks[i])) )
+            print(str(payout), 'rank:%s' % payout.rank, '  should be payout_ranks[%s]:%s' % (str(payout.rank), str(payout_ranks[i])) )
             i += 1
         i = 0
         for payout in payouts:
             #print(str(payout), 'rank:%s' % payout.rank, '  should be lineup_rank[%s]:%s' % (str(payout.rank), str(lineup_ranks[i])) )
-            self.assertEquals(payout.rank, lineup_ranks[i])
+            self.assertEquals(payout.rank, payout_ranks[i])
             i += 1
+
+        # test Entry ranks (each distinct buyin)
+        lineups = Lineup.objects.order_by('fantasy_points') # ascending
+        i = 0
+        for lineup in lineups:
+            for entry in Entry.objects.filter(lineup=lineup):
+                print('    ', str(entry), 'entry.final_rank:', entry.final_rank, '  should be entry rank:', lineup_ranks[i] )
+                self.assertEquals( entry.final_rank, lineup_ranks[i])
+                i += 1
+
         self.validate_side_effects_of_transaction()
+
+    def test_complex_tie_payout(self):
+        # all spots paid, tie thru the last payout spot
+        lineup_points   = [10,10,10,10,11,12]
+        lineup_ranks    = [3, 3, 3, 3, 2, 1]
+        payout_ranks    = [3, 3, 3, 3, 2, 1]  # note: there may be fewer Payouts than ranks
+        self.__run_payouts(lineup_points, lineup_ranks, payout_ranks)
+
+    def test_complex_tie_payout_2(self):
+        # last place not paid (rank 6), tie thru bubble, (although 1st and 2nd unique payouts)
+        lineup_points   = [9, 10,10,10,11,12]
+        lineup_ranks    = [6, 3, 3, 3, 2, 1]
+        payout_ranks    = [   3, 3, 3, 2, 1]    # only 5 spots paid (of the 6)
+        self.__run_payouts(lineup_points, lineup_ranks, payout_ranks)
 
     def test_overlay(self):
         self.create_simple_teams(5)

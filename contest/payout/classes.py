@@ -4,7 +4,7 @@
 import mysite.exceptions
 from contest.models import Contest, Entry, ClosedContest
 from prize.models import Rank
-from django.db.models import Q
+from django.db.models import Q, F
 from transaction.models import  AbstractAmount
 import mysite.exceptions
 from transaction.classes import  CanDeposit
@@ -174,37 +174,31 @@ class PayoutManager(AbstractManagerClass):
         ###############################################################
         # rank all of the entries with the same payout algorithm.
         ###############################################################
-        j = 0
-        entries_count = entries.count()
-        while j < entries_count:
-            entries_to_pay = list()
-            ranks_to_pay = list()
-            entries_to_pay.append( entries[ j ] )
-            ranks_to_pay.append( j )            # just add the current rank j
-            score = entries[ j ].lineup.fantasy_points
-            #
-            # For each tie add the user to the list to chop the payment
-            # and add the next payout to be split with the ties.
-            num_tied = 0
-            while j+1 < entries.count() and score == entries[j+1].lineup.fantasy_points:
-                num_tied += 1
+        # j = 0
+        # last_fantasy_points = None
+        # for entry in entries:
+        #     if last_fantasy_points is None:
+        #         last_fantasy_points = entry.lineup.fantasy_points
+        #     count_at_rank = Entry.objects.filter(contest=contest, lineup__fantasy_points=)
 
-                if (j+num_tied) >= len(entries):
-                    break # it tied off the end -- break while, and rank em all whatever 'j' is
-                entries_to_pay.append(entries[j+num_tied])
+        # using the fantasy_points as the key, add/increment the entry id to the list.
+        # the length of that list will be the # of entries at that rank, and
+        # the rank will be the order of the keys.
+        entry_fantasy_points_map = {}
+        for entry in entries:
+            try:
+                entry_fantasy_points_map[entry.lineup.fantasy_points] += [entry.pk]
+            except KeyError:
+                entry_fantasy_points_map[entry.lineup.fantasy_points] = [entry.pk]
+        # sort the fantasy points map on the map key (ascending)
+        sorted_list = sorted( entry_fantasy_points_map.items(), key=lambda x: x[0] )
+        sorted_list.reverse() # so its descending ie: [(75.5, [432, 213]), (50.25, [431234, 234534]), (25.0, [1, 123])]
 
-                if entries_count > (j+num_tied):
-                    ranks_to_pay.append(j+num_tied)
-
-            # self.__rank_spot(ranks_to_pay, entries_to_pay, contest)
-            # set the current 'j' to each entry in entries_to_pay
-            for e in entries:
-                #print('>>>> setting entry[%s] to rank: %s' % (str(e),str(j)))
-                e.final_rank = j + 1   # +1 because the highest rank is 0, but this is for the front end
-                e.save()
-
-            j += num_tied   # add the additional # entries at the same rank before incrementing
-            j += 1
+        entry_rank = 1
+        for fantasy_points, entry_id_list in sorted_list:
+            count_at_rank = len(entry_id_list)
+            Entry.objects.filter( pk__in=entry_id_list ).update(final_rank=entry_rank)
+            entry_rank += count_at_rank
 
         #
         # get the total number of dollars leftover for rake

@@ -15,7 +15,7 @@ class Lineup(models.Model):
 
     fantasy_points  = models.FloatField(default=0.0, null=False, blank=True)
     user            = models.ForeignKey(User, null=False)
-    draft_group      = models.ForeignKey('draftgroup.DraftGroup', null=False)
+    draft_group     = models.ForeignKey('draftgroup.DraftGroup', null=False)
 
     name            = models.CharField(max_length=64, null=False, default='')
 
