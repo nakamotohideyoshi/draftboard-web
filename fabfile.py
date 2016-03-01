@@ -153,10 +153,7 @@ def importdb():
 
 
 def syncdb():
-    """
-    fab [environment] syncdb [--set no_backup=true] [--set remote_db=draftboard-staging]
-    (resets db for testing server with production db)
-    """
+    """fab [environment] syncdb [--set no_backup=true] (resets db for testing server with production db)"""
 
     operations.require('environment')
 
@@ -168,21 +165,7 @@ def syncdb():
     # flush_cache()
 
     # if we want a new version, then capture new backup of production
-    if env.remote_db is not None:
-        heroku_server_name = ENVS[ env.remote_db ]['heroku_repo']
-
-        _puts('Capturing new %s backup' % env.remote_db)
-        operations.local(
-            'heroku pg:backups capture --app %s' % heroku_server_name # ie: 'draftboard-dev'
-        )
-
-        # pull down db to local
-        if env.environment == 'local':
-            _puts('Pull latest %s down to local' % heroku_server_name)
-            operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app %s`' % heroku_server_name)
-
-
-    elif 'no_backup' not in env:
+    if 'no_backup' not in env:
         _puts('Capturing new production backup')
         operations.local(
             'heroku pg:backups capture --app %s' % ENVS['production']['heroku_repo']
@@ -195,21 +178,16 @@ def syncdb():
 
     # restore locally
     if (env.environment == 'local'):
-        local_db_name = env.db_name
-        if env.local_db_name is not None:
-            local_db_name = env.local_db_name
-
         with warn_only():
             _puts('Dropping local database')
-            operations.local('sudo -u postgres dropdb -U postgres %s' % local_db_name)
+            operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
 
             _puts('Creating local database')
-            operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % local_db_name)
+            operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % env.db_name)
             operations.local(
                 'sudo -u postgres pg_restore --no-acl --no-owner -d %s /tmp/latest.dump' %
-                local_db_name
+                env.db_name
             )
-
 
 def _puts(message):
     """Extends puts to separate out what we're doing"""
