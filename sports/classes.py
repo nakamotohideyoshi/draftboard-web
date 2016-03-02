@@ -40,6 +40,7 @@ from .exceptions import (
     PlayerHistorySerializerClassNotFoundException,
     TsxModelClassNotFoundException,
     TsxSerializerClassNotFoundException,
+    PlayerNewsSerializerClassNotFoundException,
 )
 
 from mysite.exceptions import IncorrectVariableTypeException
@@ -551,6 +552,21 @@ class SiteSportManager(object):
         except:
             #
             raise PlayerHistorySerializerClassNotFoundException(type(self).__name__, sport)
+
+    def get_playernews_serializer_class(self, sport):
+        """
+        :param sport: either the string name, or the SiteSport instance for the actual sport
+        :return: the sports.<sport>.serializers.PlayerNewsSerializer class for the sport
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+
+        try:
+            class_string = 'sports.%s.serializers.PlayerNewsSerializer' % sport.name
+            return SiteSportManager.buildSpecialAliasMetaClass(class_string, "PlayerNewsSerializer", sport.name)
+        except:
+            #
+            raise PlayerNewsSerializerClassNotFoundException(type(self).__name__, sport)
 
     def __get_tsx_model_class(self, sport, model_name, model_parent_class):
         """

@@ -8,7 +8,10 @@ from django.views.generic import TemplateView, View
 from sports.forms import PlayerCsvForm
 import sports.classes
 from sports.serializers import FantasyPointsSerializer
-from sports.nba.serializers import InjurySerializer, PlayerNewsSerializer
+from sports.nba.serializers import (
+    InjurySerializer,
+    PlayerNewsSerializer,
+)
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 import json
@@ -291,6 +294,7 @@ class PlayerHistoryAPIView(generics.ListAPIView):
             # add the fields to scoring_fields to array_agg() AND to avg()
             game_fields     = ['start','home_id','away_id','srid_home','srid_away']
             scoring_fields  = player_stats_class.SCORING_FIELDS
+            scoring_fields_dont_avg = player_stats_class.SCORING_FIELDS_DONT_AVG
 
             #
             # build the statement:
@@ -323,7 +327,8 @@ class PlayerHistoryAPIView(generics.ListAPIView):
                 select_str += ', array_agg({0}) as {0}'.format(field)
             for field in scoring_fields:
                 select_str += ', array_agg({0}) as {0}, avg({0}) as avg_{0}'.format(field)
-
+            for field in scoring_fields_dont_avg:
+                select_str += ', array_agg({0}) as {0}'.format(field)
             # inner select
             # (select all_player_stats.*, nba_game.home_id, nba_game.away_id, nba_game.start from (select * from (select *, row_number() over (partition by player_id order by created) as rn from nba_playerstats) as nba_playerstats where rn <=5) as all_player_stats join nba_game on nba_game.srid = all_player_stats.srid_game) as player_stats group by player_id
             final_select_str = "{0} from (select all_player_stats.*, {1}.home_id, {1}.away_id, {1}.srid_home, {1}.srid_away, {1}.start from (select * from (select *, row_number() over (partition by player_id order by created DESC) as rn from {2}) as {2} where rn <= {3}) as all_player_stats join {1} on {1}.srid = all_player_stats.srid_game) as player_stats group by player_id".format(select_str, game_table_name, playerstats_table_name, str(n_games_history))
@@ -411,21 +416,25 @@ class PlayerNewsAPIView(generics.ListAPIView):
 
     permission_classes      = (IsAuthenticated,)
 
+    def __get_sport(self):
+        return self.kwargs['sport']
+
     def get_serializer_class(self):
         """
         override for having to set the self.serializer_class
         """
-        return PlayerNewsSerializer
+        #return PlayerNewsSerializer
+        site_sport_manager = sports.classes.SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport(self.__get_sport())
+        return site_sport_manager.get_playernews_serializer_class( site_sport )
 
     def get_queryset(self):
         """
         Return a QuerySet from the LobbyContest model.
         """
-        sport = self.kwargs['sport']
         player_id = self.kwargs.get('player')
-        #print('player_id', str(player_id))
         site_sport_manager = sports.classes.SiteSportManager()
-        site_sport = site_sport_manager.get_site_sport(sport)
+        site_sport = site_sport_manager.get_site_sport(self.__get_sport())
         sport_player_class = site_sport_manager.get_player_class( site_sport )
         if player_id is None:
             # get all of them
