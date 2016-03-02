@@ -4,7 +4,7 @@
 import sports.nhl.models
 from scoring.classes import NhlSalaryScoreSystem
 from sports.nhl.models import Team, Game, Player, PlayerStats, \
-                                GameBoxscore, Pbp, PbpDescription, GamePortion
+                                GameBoxscore, Pbp, PbpDescription, GamePortion, Season
 
 from sports.sport.base_parser import (
     AbstractDataDenParser,
@@ -17,6 +17,7 @@ from sports.sport.base_parser import (
     DataDenPbpDescription,
     DataDenInjury,
     SridFinder,
+    DataDenSeasonSchedule,
 )
 
 from dataden.classes import DataDen
@@ -40,12 +41,30 @@ class TeamHierarchy(DataDenTeamHierarchy):
         super().parse(obj)
         self.team.save()
 
+class SeasonSchedule(DataDenSeasonSchedule):
+    """
+    """
+    season_model = Season
+
+    def __init__(self):
+        super().__init__()
+
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        if self.season is None:
+            return
+
+        self.season.save()
+
 class GameSchedule(DataDenGameSchedule):
     """
     GameSchedule simply needs to set the right Team & Game model internally
     """
     team_model = Team
     game_model = Game
+    season_model = Season
 
     def __init__(self):
         super().__init__()
@@ -290,7 +309,8 @@ class DataDenNhl(AbstractDataDenParser):
 
         #
         # nhl.game
-        if self.target == ('nhl.game','schedule'): GameSchedule().parse( obj )
+        if self.target == ('nhl.season_schedule','schedule'): SeasonSchedule().parse( obj )
+        elif self.target == ('nhl.game','schedule'): GameSchedule().parse( obj )
         elif self.target == ('nhl.game','boxscores'):
             GameBoxscores().parse( obj )
             push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
