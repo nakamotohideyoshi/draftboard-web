@@ -114,9 +114,9 @@ class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
     #
     # goalie stats below
 
-    avg_w  = serializers.FloatField()
+    #avg_w  = serializers.FloatField() # cant average boolean fields
     w      = serializers.ListField(
-        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
+        child=serializers.BooleanField(), help_text="This is an ARRAY of BOOLEANS"
     )
 
     avg_saves  = serializers.FloatField()
@@ -129,9 +129,9 @@ class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
         child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
     )
 
-    avg_shutout  = serializers.FloatField()
+    #avg_shutout  = serializers.FloatField() # cant average boolean fields
     shutout      = serializers.ListField(
-        child=serializers.FloatField(), help_text="This is an ARRAY of FLOATS"
+        child=serializers.BooleanField(), help_text="This is an ARRAY of BOOLEANS"
     )
 
 class PlayerSerializer(sports.serializers.PlayerSerializer):
