@@ -71,3 +71,7 @@ class TsxModelClassNotFoundException(Exception):
     pass
 
 class TsxSerializerClassNotFoundException(Exception): pass
+
+class PlayerNewsSerializerClassNotFoundException(Exception):
+    def __init__(self, class_name, sport_name):
+        super().__init__( "PlayerNewsSerializer class for %s not found" % sport_name )

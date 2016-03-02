@@ -350,7 +350,8 @@ class PlayerStats(models.Model):
 
     FANTASY_POINTS_OVERRIDE = 'fantasy_points_override'
 
-    SCORING_FIELDS = None # override as a list in child classes, ie: ['rebounds','assists']
+    SCORING_FIELDS          = None # override as a list in child classes, ie: ['rebounds','assists']
+    SCORING_FIELDS_DONT_AVG = []
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

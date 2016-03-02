@@ -98,9 +98,14 @@ class PlayerStats( sports.models.PlayerStats ):
         'so_goal',
 
         # goalie stats
-        'w',
+        #'w',
         'saves',
         'ga',
+        #'shutout',
+    ]
+
+    SCORING_FIELDS_DONT_AVG = [
+        'w',
         'shutout',
     ]
 
