@@ -6,41 +6,64 @@ from rest_framework import serializers
 from lineup.models import Lineup, Player
 from sports.nfl.models import Player as NflPlayer
 from sports.nba.models import Player as NbaPlayer
+from sports.nhl.models import Player as NhlPlayer
+from sports.mlb.models import Player as MlbPlayer
 from sports.nfl.models import Team as NflTeam
 from sports.nba.models import Team as NbaTeam
-
+from sports.nhl.models import Team as NhlTeam
+from sports.mlb.models import Team as MlbTeam
+from sports.serializers import PlayerSerializer
 import draftgroup.models
 
+class AbstractTeamSerializer:
+    FIELDS = ('id', 'alias', 'market', 'name')
 
-# NFL specific
+class AbstractPlayerSerializer:
+    FIELDS = ('first_name', 'last_name', 'status', 'status', 'srid', 'team')
+
 class NflTeamSerializer(serializers.ModelSerializer):
     class Meta:
-        model = NflTeam
-        fields = ('id', 'alias', 'market', 'name')
-
+        model   = NflTeam
+        fields  = AbstractTeamSerializer.FIELDS
 
 class NflPlayerSerializer(serializers.ModelSerializer):
     team = NflTeamSerializer()
-
     class Meta:
-        model = NflPlayer
-        fields = ('first_name', 'last_name', 'status', 'srid', 'team')
+        model   = NflPlayer
+        fields  = AbstractTeamSerializer.FIELDS
 
-
-# NBA specific
 class NbaTeamSerializer(serializers.ModelSerializer):
     class Meta:
-        model = NbaTeam
-        fields = ('id', 'alias', 'market', 'name')
-
+        model   = NbaTeam
+        fields  = AbstractTeamSerializer.FIELDS
 
 class NbaPlayerSerializer(serializers.ModelSerializer):
     team = NbaTeamSerializer()
-
     class Meta:
-        model = NbaPlayer
-        fields = ('first_name', 'last_name', 'status', 'srid', 'team',)
+        model   = NbaPlayer
+        fields  = AbstractPlayerSerializer.FIELDS
 
+class NhlTeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model   = NhlTeam
+        fields  = AbstractTeamSerializer.FIELDS
+
+class NhlPlayerSerializer(serializers.ModelSerializer):
+    team = NhlTeamSerializer()
+    class Meta:
+        model   = NhlPlayer
+        fields  = AbstractPlayerSerializer.FIELDS
+
+class MlbTeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model   = MlbTeam
+        fields  = AbstractTeamSerializer.FIELDS
+
+class MlbPlayerSerializer(serializers.ModelSerializer):
+    team = MlbTeamSerializer()
+    class Meta:
+        model   = MlbPlayer
+        fields  = AbstractPlayerSerializer.FIELDS
 
 class LineupUsernameSerializer(serializers.ModelSerializer):
     class Meta:
@@ -70,18 +93,24 @@ class LineupIdSerializer(serializers.ModelSerializer):
 
 # Choose the correct serializer for the sport the player plays.
 class GenericSportPlayerSerializer(serializers.RelatedField):
+
     def to_representation(self, value):
         if isinstance(value, NflPlayer):
             serializer = NflPlayerSerializer(value)
         elif isinstance(value, NbaPlayer):
             serializer = NbaPlayerSerializer(value)
+        elif isinstance(value, NhlPlayer):
+            serializer = NhlPlayerSerializer(value)
+        elif isinstance(value, MlbPlayer):
+            serializer = MlbPlayerSerializer(value)
         else:
-            raise Exception('Unexpected type of player object in GenericSportPlayerSerializer')
+            err_msg = 'Unexpected type of player object [%s] in GenericSportPlayerSerializer' % type(value)
+            raise Exception(err_msg)
 
         return serializer.data
 
-
 class PlayerSerializer(serializers.ModelSerializer):
+
     player_meta = GenericSportPlayerSerializer(read_only=True, source='player')
     roster_spot = serializers.StringRelatedField()
 
