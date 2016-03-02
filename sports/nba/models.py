@@ -11,6 +11,9 @@ from django.contrib.contenttypes.fields import GenericRelation
 from sports.tasks import countdown_send_player_stats_data, COUNTDOWN
 
 class Season( sports.models.Season ):
+    """
+
+    """
     class Meta:
         abstract = False
 
@@ -46,6 +49,9 @@ class Game( sports.models.Game ):
     """
     all we get from the inherited model is: 'start' and 'status'
     """
+
+    season      = models.ForeignKey(Season, null=False)
+
     home = models.ForeignKey( Team, null=False, related_name='game_hometeam')
     srid_home   = models.CharField(max_length=64, null=False,
                                 help_text='home team sportsradar global id')

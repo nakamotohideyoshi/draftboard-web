@@ -110,12 +110,16 @@ class Season( models.Model ):
     """
     information about the part of the season we are in
     """
-    start_year      = models.CharField(max_length=100, null=False)
+
+    srid            = models.CharField(max_length=64, unique=True, null=False,
+                                        help_text='the sportsradar global id of the season/schedule')
+    season_year     = models.IntegerField(default=0, null=False,
+                                        help_text='the year the season started')
     season_type     = models.CharField(max_length=255, null=False)
 
     class Meta:
         abstract = True
-        unique_together = ('start_year', 'season_type')
+        unique_together = ('season_year', 'season_type')
 
 class Game( DirtyFieldsMixin, models.Model ):
     """
