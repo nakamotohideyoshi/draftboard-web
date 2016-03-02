@@ -231,6 +231,88 @@ class AbstractDataDenParseable(object):
             err_msg = 'call parse() before calling send()'
             raise self.DataDenParseableSendException(err_msg)
 
+class DataDenSeasonSchedule(AbstractDataDenParseable):
+    """
+    parse a sports "season schedule" object. this is the object
+    which contains an srid, year, and season-type for the sport.
+
+    the year will be the calendar year the sport started in,
+    and the season type will designate preseason/regular season/post / etc...
+    """
+
+    class ValidationException(Exception): pass # raised for bad field values during parse()
+
+    season_types = ['pre','reg','pst']
+
+    season_model = None # subclasses will need to set their own
+
+    def __init__(self):
+        if self.season_model is None:
+            err_msg = '"season_model" class must be set'
+            raise Exception(err_msg)
+
+        # once parsed, the sports.<sports>.models.Season instance
+        self.season = None
+
+        super().__init__()
+
+    def validate_srid(self, o):
+        """ clean and return the srid value """
+        val = o.get('id', None)
+        if not isinstance(val, str):
+            err_msg = 'srid [%s] is not a string: %s' % (type(val), str(val))
+            raise self.ValidationException(err_msg)
+        return val
+
+    def validate_season_year(self, o):
+        """ clean and return the season_year value """
+        val = o.get('year', None)
+        if isinstance(val, float):
+            val = int(val)
+        if not isinstance(val, int):
+            err_msg = 'season_year [%s] is not an integer: %s' % (type(val), str(val))
+            raise self.ValidationException(err_msg)
+        return val
+
+    def validate_season_type(self, o):
+        """ clean and return the season_type value """
+        val = o.get('type', None)
+        if not isinstance(val, str):
+            err_msg = 'season_type [%s] is not a string: %s' % (type(val), str(val))
+            raise self.ValidationException(err_msg)
+        val = val.lower()
+        if val not in self.season_types:
+            err_msg = 'season_type [%s] not in acceptable ' \
+                      'types %s. try overriding: season_types' % (val, self.season_types)
+            raise self.ValidationException(err_msg)
+        return val
+
+    def parse(self, obj, target=None):
+        """
+        """
+        super().parse( obj, target )
+
+        # example:
+        # {
+        #   'parent_api__id': 'schedule',
+        #   'year': 2015.0,
+        #   'id': '529bed34-5a8d-46d4-9eef-114bd1340867',
+        #   'type': 'PST',
+        # }
+
+        srid            = self.validate_srid(self.o)
+        season_year     = self.validate_season_year(self.o)
+        season_type     = self.validate_season_type(self.o)
+
+        try:
+            self.season = self.season_model.objects.get( srid=srid )
+        except self.season_model.DoesNotExist:
+            self.season             = self.season_model()
+            self.season.srid        = srid
+            self.season.season_year = season_year
+            self.season.season_type = season_type
+            #self.season.save() # inheriting class must call save()
+
 class DataDenTeamHierarchy(AbstractDataDenParseable):
     """
     Parse a team object form the hieraarchy feed (parent_api).
@@ -307,14 +389,17 @@ class DataDenGameSchedule(AbstractDataDenParseable):
 
     this class should not need much modification for nba & nhl, but it will for other sports.
     """
-    team_model = None
-    game_model = None
+    team_model      = None
+    game_model      = None
+    season_model    = None
 
     def __init__(self):
         if self.team_model is None:
             raise Exception('"team_model cant be None!')
         if self.game_model is None:
             raise Exception('"game_model" cant be None!')
+        if self.season_model is None:
+            raise Exception('"season_model" cant be None!')
 
         self.game = None
 
@@ -330,9 +415,15 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         start       = DataDenDatetime.from_string( start_str )
         status      = o.get('status')
 
+        srid_season = o.get('season_schedule__id')
         srid_home   = o.get('home')
         srid_away   = o.get('away')
         title       = o.get('title', '')
+
+        try:
+            season = self.season_model.objects.get(srid=srid_season)
+        except self.season_model.DoesNotExist:
+            return
 
         try:
             h = self.team_model.objects.get(srid=srid_home)
@@ -354,6 +445,7 @@ class DataDenGameSchedule(AbstractDataDenParseable):
             self.game = self.game_model()
             self.game.srid = srid
 
+        self.game.season    = season
         self.game.home      = h
         self.game.away      = a
         self.game.start     = start

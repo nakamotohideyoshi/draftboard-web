@@ -11,11 +11,12 @@ from sports.nba.models import (
     GameBoxscore,
     Pbp,
     PbpDescription,
-    GamePortion
+    GamePortion,
+    Season,
 )
-
 from sports.sport.base_parser import (
     AbstractDataDenParser,
+    DataDenSeasonSchedule,
     DataDenTeamHierarchy,
     DataDenGameSchedule,
     DataDenPlayerRosters,
@@ -26,15 +27,16 @@ from sports.sport.base_parser import (
     DataDenInjury,
     SridFinder,
 )
-
-from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
-from pymongo import DESCENDING
 from dataden.classes import DataDen
-import json
-from push.classes import DataDenPush, PbpDataDenPush
+from push.classes import (
+    DataDenPush,
+    PbpDataDenPush,
+)
 from django.conf import settings
 import push.classes
-from sports.sport.base_parser import TsxContentParser
+from sports.sport.base_parser import (
+    TsxContentParser,
+)
 
 class TeamBoxscores(DataDenTeamBoxscores):
 
@@ -100,6 +102,24 @@ class PlayerRosters(DataDenPlayerRosters):
 
         self.player.save() # commit to db
 
+class SeasonSchedule(DataDenSeasonSchedule):
+    """
+    """
+
+    season_model = Season
+
+    def __init__(self):
+        super().__init__()
+
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        if self.season is None:
+            return
+
+        self.season.save()
+
 class TeamHierarchy(DataDenTeamHierarchy):
     """
     Parse an object from which represents a Team for this sport into the db.
@@ -120,8 +140,9 @@ class TeamHierarchy(DataDenTeamHierarchy):
 
 class GameSchedule(DataDenGameSchedule):
 
-    team_model  = Team
-    game_model  = Game
+    team_model      = Team
+    game_model      = Game
+    season_model    = Season
 
     def __init__(self):
         super().__init__()
@@ -438,7 +459,8 @@ class DataDenNba(AbstractDataDenParser):
 
         #
         # nba.game
-        if self.target == ('nba.game','schedule'): GameSchedule().parse( obj )
+        if self.target == ('nba.season_schedule','schedule'): SeasonSchedule().parse( obj )
+        elif self.target == ('nba.game','schedule'): GameSchedule().parse( obj )
         elif self.target == ('nba.game','boxscores'):
             GameBoxscores().parse( obj )
             DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )

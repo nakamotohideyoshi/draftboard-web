@@ -98,7 +98,8 @@ class DataDenParser(object):
         ('mlb','away','summary'),
         ('mlb','player','summary'),
 
-        # nba   # temporary commented out
+        # nba
+        ('nba','season_schedule','schedule'),
         ('nba','team','hierarchy'),     # 1
         ('nba','game','schedule'),      # 2
         ('nba','player','rosters'),     # 3
@@ -107,6 +108,7 @@ class DataDenParser(object):
         ('nba','player','stats'),
 
         # nhl
+        ('nhl','season_schedule','schedule'),
         ('nhl','team','hierarchy'),     # 1
         ('nhl','game','schedule'),      # 2
         ('nhl','player','rosters'),     # 3
