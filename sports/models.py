@@ -144,9 +144,9 @@ class Game( DirtyFieldsMixin, models.Model ):
     srid = models.CharField(max_length=64, unique=True, null=False,
                                 help_text='the sportsradar global id')
 
-    season_year = models.IntegerField(default=0, null=False,
-                                      help_text='the year the season started')
-    season_type = models.CharField(max_length=32, default=SEASON_TYPE_REG, null=False, choices=SEASON_TYPES)
+    # season_year = models.IntegerField(default=0, null=False,
+    #                                   help_text='the year the season started')
+    # season_type = models.CharField(max_length=32, default=SEASON_TYPE_REG, null=False, choices=SEASON_TYPES)
 
     start       = models.DateTimeField(null=False)
     status      = models.CharField(max_length=32, null=False)

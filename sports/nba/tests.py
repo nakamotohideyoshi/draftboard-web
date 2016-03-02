@@ -1,14 +1,57 @@
 #
 # sports/nba/tests.py
 
+from ast import literal_eval
+from dataden.watcher import OpLogObj, OpLogObjWrapper
+from sports.sport.base_parser import DataDenSeasonSchedule
+from sports.nba.parser import (
+    SeasonSchedule,
+    GameSchedule,
+)
 from test.classes import AbstractTest
-from django.test import TestCase
 from datetime import datetime
 from django.utils import timezone
-from dataden.watcher import OpLogObj
 from sports.nba.parser import EventPbp
-from ast import literal_eval
 import sports.nba.models
+
+class TestSeasonScheduleParser(AbstractTest):
+    """
+    tests sports.nba.parser.SeasonSchedule
+    """
+
+    def setUp(self):
+        self.obj_str = """{'parent_api__id': 'schedule', 'year': 2015.0, 'games__list': {}, '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWxlYWd1ZV9faWQ0MzUzMTM4ZC00YzIyLTQzOTYtOTVkOC01ZjU4N2QyZGYyNWNpZDUyOWJlZDM0LTVhOGQtNDZkNC05ZWVmLTExNGJkMTM0MDg2Nw==', 'id': '529bed34-5a8d-46d4-9eef-114bd1340867', 'type': 'PST', 'league__id': '4353138d-4c22-4396-95d8-5f587d2df25c', 'dd_updated__id': 1456944953067}"""
+        self.season_parser = SeasonSchedule()
+
+    def __validate_season(self, season_model, expected_season_year, expected_season_type):
+        self.assertEquals(season_model.season_year, expected_season_year)
+        self.assertEquals(season_model.season_type, expected_season_type)
+
+    def test_pst_season(self):
+        obj = literal_eval(self.obj_str)
+        srid = obj.get('id') # the srid will be found in the 'id' field
+        oplog_obj = OpLogObjWrapper('nba','season_schedule', obj)
+        self.season_parser.parse( oplog_obj )
+        season = sports.nba.models.Season.objects.get(srid=srid)
+        self.__validate_season( season, 2015, 'pst' )
+
+#
+# requires: Season and Team(s) to work
+# class TestGameScheduleParser(AbstractTest):
+#     """
+#     tests sports.nba.parser.GameSchedule -- the parser for sports.nba.models.Game objects
+#     """
+#
+#     def setUp(self):
+#         self.obj_str = """{'parent_list__id': 'games__list', 'broadcast__list': {'satellite': 216.0, 'network': 'NBA TV'}, '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWxlYWd1ZV9faWQ0MzUzMTM4ZC00YzIyLTQzOTYtOTVkOC01ZjU4N2QyZGYyNWNzZWFzb24tc2NoZWR1bGVfX2lkY2Y0YzU0NDMtZTIyNC00Zjk3LTg2OTgtMjc5OTZhMzIyZmQzcGFyZW50X2xpc3RfX2lkZ2FtZXNfX2xpc3RpZGQ1M2JjZmUyLTY4YWMtNDE2Mi1hYzJlLWQ3ZjkzMzg3ZmJhNQ==', 'league__id': '4353138d-4c22-4396-95d8-5f587d2df25c', 'id': 'd53bcfe2-68ac-4162-ac2e-d7f93387fba5', 'coverage': 'full', 'status': 'closed', 'home': '583ecdfb-fb46-11e1-82cb-f4ce4684ea4c', 'away_team': '583ed102-fb46-11e1-82cb-f4ce4684ea4c', 'parent_api__id': 'schedule', 'dd_updated__id': 1456944907982, 'away': '583ed102-fb46-11e1-82cb-f4ce4684ea4c', 'scheduled': '2015-10-03T02:30:00+00:00', 'venue': '792ec100-691e-5e16-8ef8-79b2b6ee38ba', 'home_team': '583ecdfb-fb46-11e1-82cb-f4ce4684ea4c', 'season_schedule__id': 'cf4c5443-e224-4f97-8698-27996a322fd3'}"""
+#         self.game_parser = GameSchedule()
+#
+#     def test_game_schedule_parse(self):
+#         obj = literal_eval(self.obj_str)
+#         srid = obj.get('id') # the game's srid
+#         oplog_obj = OpLogObjWrapper('nba','game', obj)
+#         self.game_parser.parse( oplog_obj )
+#         game = sports.nba.models.Game.objects.get(srid=srid)
 
 class TestEventPbp(AbstractTest):
     """
