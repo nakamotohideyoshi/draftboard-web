@@ -8,7 +8,10 @@ from django.views.generic import TemplateView, View
 from sports.forms import PlayerCsvForm
 import sports.classes
 from sports.serializers import FantasyPointsSerializer
-from sports.nba.serializers import InjurySerializer, PlayerNewsSerializer
+from sports.nba.serializers import (
+    InjurySerializer,
+    PlayerNewsSerializer,
+)
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 import json
@@ -413,21 +416,25 @@ class PlayerNewsAPIView(generics.ListAPIView):
 
     permission_classes      = (IsAuthenticated,)
 
+    def __get_sport(self):
+        return self.kwargs['sport']
+
     def get_serializer_class(self):
         """
         override for having to set the self.serializer_class
         """
-        return PlayerNewsSerializer
+        #return PlayerNewsSerializer
+        site_sport_manager = sports.classes.SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport(self.__get_sport())
+        return site_sport_manager.get_playernews_serializer_class( site_sport )
 
     def get_queryset(self):
         """
         Return a QuerySet from the LobbyContest model.
         """
-        sport = self.kwargs['sport']
         player_id = self.kwargs.get('player')
-        #print('player_id', str(player_id))
         site_sport_manager = sports.classes.SiteSportManager()
-        site_sport = site_sport_manager.get_site_sport(sport)
+        site_sport = site_sport_manager.get_site_sport(self.__get_sport())
         sport_player_class = site_sport_manager.get_player_class( site_sport )
         if player_id is None:
             # get all of them
