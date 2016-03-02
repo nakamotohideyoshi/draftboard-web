@@ -90,7 +90,6 @@ class LineupIdSerializer(serializers.ModelSerializer):
         model = Lineup
         fields = ('id', 'user')
 
-
 # Choose the correct serializer for the sport the player plays.
 class GenericSportPlayerSerializer(serializers.RelatedField):
 
