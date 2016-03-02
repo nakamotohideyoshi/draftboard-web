@@ -87,7 +87,7 @@ const LiveLineup = React.createClass({
       const playerSRID = player.info.player_srid;
       const isPlaying = this.props.playersPlaying.indexOf(playerSRID) !== -1;
       const eventDescription = this.props.eventDescriptions[playerSRID] || {};
-      const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}/380`;
+      const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}/120`;
 
       return (
         <LiveLineupPlayer
