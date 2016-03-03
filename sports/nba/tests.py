@@ -2,17 +2,15 @@
 # sports/nba/tests.py
 
 from ast import literal_eval
+from test.classes import AbstractTest
+import sports.nba.models
 from dataden.watcher import OpLogObj, OpLogObjWrapper
-from sports.sport.base_parser import DataDenSeasonSchedule
 from sports.nba.parser import (
     SeasonSchedule,
     GameSchedule,
+    TeamHierarchy,
+    EventPbp,
 )
-from test.classes import AbstractTest
-from datetime import datetime
-from django.utils import timezone
-from sports.nba.parser import EventPbp
-import sports.nba.models
 
 class TestSeasonScheduleParser(AbstractTest):
     """
@@ -35,23 +33,46 @@ class TestSeasonScheduleParser(AbstractTest):
         season = sports.nba.models.Season.objects.get(srid=srid)
         self.__validate_season( season, 2015, 'pst' )
 
-#
-# requires: Season and Team(s) to work
-# class TestGameScheduleParser(AbstractTest):
-#     """
-#     tests sports.nba.parser.GameSchedule -- the parser for sports.nba.models.Game objects
-#     """
-#
-#     def setUp(self):
-#         self.obj_str = """{'parent_list__id': 'games__list', 'broadcast__list': {'satellite': 216.0, 'network': 'NBA TV'}, '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWxlYWd1ZV9faWQ0MzUzMTM4ZC00YzIyLTQzOTYtOTVkOC01ZjU4N2QyZGYyNWNzZWFzb24tc2NoZWR1bGVfX2lkY2Y0YzU0NDMtZTIyNC00Zjk3LTg2OTgtMjc5OTZhMzIyZmQzcGFyZW50X2xpc3RfX2lkZ2FtZXNfX2xpc3RpZGQ1M2JjZmUyLTY4YWMtNDE2Mi1hYzJlLWQ3ZjkzMzg3ZmJhNQ==', 'league__id': '4353138d-4c22-4396-95d8-5f587d2df25c', 'id': 'd53bcfe2-68ac-4162-ac2e-d7f93387fba5', 'coverage': 'full', 'status': 'closed', 'home': '583ecdfb-fb46-11e1-82cb-f4ce4684ea4c', 'away_team': '583ed102-fb46-11e1-82cb-f4ce4684ea4c', 'parent_api__id': 'schedule', 'dd_updated__id': 1456944907982, 'away': '583ed102-fb46-11e1-82cb-f4ce4684ea4c', 'scheduled': '2015-10-03T02:30:00+00:00', 'venue': '792ec100-691e-5e16-8ef8-79b2b6ee38ba', 'home_team': '583ecdfb-fb46-11e1-82cb-f4ce4684ea4c', 'season_schedule__id': 'cf4c5443-e224-4f97-8698-27996a322fd3'}"""
-#         self.game_parser = GameSchedule()
-#
-#     def test_game_schedule_parse(self):
-#         obj = literal_eval(self.obj_str)
-#         srid = obj.get('id') # the game's srid
-#         oplog_obj = OpLogObjWrapper('nba','game', obj)
-#         self.game_parser.parse( oplog_obj )
-#         game = sports.nba.models.Game.objects.get(srid=srid)
+class TestGameScheduleParser(AbstractTest):
+    """
+    tests sports.nba.parser.GameSchedule -- the parser for sports.nba.models.Game objects
+    """
+
+    def setUp(self):
+        self.sport = 'nba'
+        self.season_str = """{'parent_api__id': 'schedule', 'year': 2015.0, 'games__list': [{'game': '3950bf88-7d69-45cb-957f-9b73ffca1d6e'}, {'game': 'f00b4cf7-4722-4ffb-8d6a-9d378f370228'}], '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWxlYWd1ZV9faWQ0MzUzMTM4ZC00YzIyLTQzOTYtOTVkOC01ZjU4N2QyZGYyNWNpZDY5ODU5MGMyLTM1NzktNGQ0ZS1hOTMxLTNkNmRmZjQyN2VlMg==', 'id': '698590c2-3579-4d4e-a931-3d6dff427ee2', 'type': 'REG', 'league__id': '4353138d-4c22-4396-95d8-5f587d2df25c', 'dd_updated__id': 1456944928793}"""
+        self.away_team_str = """{'parent_api__id': 'hierarchy', 'market': 'Cleveland', 'league__id': '4353138d-4c22-4396-95d8-5f587d2df25c', 'conference__id': '3960cfac-7361-4b30-bc25-8d393de6f62f', 'division__id': 'f3aaf23a-1ceb-46ef-8fef-9403692e801b', 'alias': 'CLE', 'venue': '42cddf7a-0e1f-5f91-ae6f-c620582fdb01', 'id': '583ec773-fb46-11e1-82cb-f4ce4684ea4c', 'dd_updated__id': 1456973069473, 'name': 'Cavaliers', '_id': 'cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkNDM1MzEzOGQtNGMyMi00Mzk2LTk1ZDgtNWY1ODdkMmRmMjVjY29uZmVyZW5jZV9faWQzOTYwY2ZhYy03MzYxLTRiMzAtYmMyNS04ZDM5M2RlNmY2MmZkaXZpc2lvbl9faWRmM2FhZjIzYS0xY2ViLTQ2ZWYtOGZlZi05NDAzNjkyZTgwMWJpZDU4M2VjNzczLWZiNDYtMTFlMS04MmNiLWY0Y2U0Njg0ZWE0Yw=='}"""
+        self.home_team_str = """{'parent_api__id': 'hierarchy', 'market': 'Chicago', 'league__id': '4353138d-4c22-4396-95d8-5f587d2df25c', 'conference__id': '3960cfac-7361-4b30-bc25-8d393de6f62f', 'division__id': 'f3aaf23a-1ceb-46ef-8fef-9403692e801b', 'alias': 'CHI', 'venue': '38911649-acfd-551a-949b-68f0fcaa44e7', 'id': '583ec5fd-fb46-11e1-82cb-f4ce4684ea4c', 'dd_updated__id': 1456973069473, 'name': 'Bulls', '_id': 'cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkNDM1MzEzOGQtNGMyMi00Mzk2LTk1ZDgtNWY1ODdkMmRmMjVjY29uZmVyZW5jZV9faWQzOTYwY2ZhYy03MzYxLTRiMzAtYmMyNS04ZDM5M2RlNmY2MmZkaXZpc2lvbl9faWRmM2FhZjIzYS0xY2ViLTQ2ZWYtOGZlZi05NDAzNjkyZTgwMWJpZDU4M2VjNWZkLWZiNDYtMTFlMS04MmNiLWY0Y2U0Njg0ZWE0Yw=='}"""
+        self.game_str = """{'parent_api__id': 'schedule', 'season_schedule__id': '698590c2-3579-4d4e-a931-3d6dff427ee2', 'away': '583ec773-fb46-11e1-82cb-f4ce4684ea4c', 'scheduled': '2015-10-28T00:00:00+00:00', 'home_team': '583ec5fd-fb46-11e1-82cb-f4ce4684ea4c', 'parent_list__id': 'games__list', 'coverage': 'full', 'home': '583ec5fd-fb46-11e1-82cb-f4ce4684ea4c', 'status': 'closed', 'dd_updated__id': 1456973746005, '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWxlYWd1ZV9faWQ0MzUzMTM4ZC00YzIyLTQzOTYtOTVkOC01ZjU4N2QyZGYyNWNzZWFzb24tc2NoZWR1bGVfX2lkNjk4NTkwYzItMzU3OS00ZDRlLWE5MzEtM2Q2ZGZmNDI3ZWUycGFyZW50X2xpc3RfX2lkZ2FtZXNfX2xpc3RpZGYwMGI0Y2Y3LTQ3MjItNGZmYi04ZDZhLTlkMzc4ZjM3MDIyOA==', 'id': 'f00b4cf7-4722-4ffb-8d6a-9d378f370228', 'broadcast__list': {'network': 'TNT', 'satellite': 245.0}, 'away_team': '583ec773-fb46-11e1-82cb-f4ce4684ea4c', 'league__id': '4353138d-4c22-4396-95d8-5f587d2df25c', 'venue': '38911649-acfd-551a-949b-68f0fcaa44e7'}"""
+
+        self.season_parser = SeasonSchedule()
+        self.away_team_parser = TeamHierarchy()
+        self.home_team_parser = TeamHierarchy()
+        self.game_parser = GameSchedule()
+
+    def test_game_schedule_parse(self):
+        """
+        as a prerequisite, parse the seasonschedule, and both home & away teams
+
+        effectively tests the TeamHierarchy parser too
+        """
+        # parse the season_schedule obj
+        season_oplog_obj = OpLogObjWrapper(self.sport,'season_schedule',literal_eval(self.season_str))
+        self.season_parser.parse( season_oplog_obj )
+        self.assertEquals( 1, sports.nba.models.Season.objects.all().count() ) # should have parsed 1 thing
+
+        away_team_oplog_obj = OpLogObjWrapper(self.sport,'team',literal_eval(self.away_team_str))
+        self.away_team_parser.parse( away_team_oplog_obj )
+        self.assertEquals( 1, sports.nba.models.Team.objects.all().count() ) # should be 1 team in there now
+
+        home_team_oplog_obj = OpLogObjWrapper(self.sport,'team',literal_eval(self.home_team_str))
+        self.home_team_parser.parse( home_team_oplog_obj )
+        self.assertEquals( 2, sports.nba.models.Team.objects.all().count() ) # should be 2 teams in there now
+
+        # now attempt to parse the game
+        game_oplog_obj = OpLogObjWrapper(self.sport,'game',literal_eval(self.game_str))
+        self.game_parser.parse( game_oplog_obj )
+        self.assertEquals( 1, sports.nba.models.Game.objects.all().count() )
 
 class TestEventPbp(AbstractTest):
     """
