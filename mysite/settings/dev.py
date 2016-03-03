@@ -74,6 +74,8 @@ PUSHER_APP_ID = '159461'
 PUSHER_KEY = '49224807c21863bf259b'
 PUSHER_SECRET = environ.get('PUSHER_SECRET')
 
+PUSHER_ENABLED = False
+
 #
 # dataden mongo database connection
 MONGO_AUTH_DB   = 'admin'
