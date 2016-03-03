@@ -1,16 +1,49 @@
 import React from 'react';
+import isEmpty from 'lodash/lang/isEmpty';
 
 
 const SettingsEmailNotifications = React.createClass({
 
   propTypes: {
     user: React.PropTypes.object.isRequired,
-    editMode: React.PropTypes.bool.isRequired,
+    errors: React.PropTypes.object.isRequired,
+    handleSubmit: React.PropTypes.func.isRequired,
   },
+
+
+  getInitialState() {
+    return {
+      editMode: false,
+      user: this.props.user,
+    };
+  },
+
+
+  /**
+   * if there are no errors comming set edit mode to False
+   */
+  componentWillReceiveProps(nextProps) {
+    if (isEmpty(nextProps.errors)) {
+      this.setState({ editMode: false });
+    } else {
+      this.setState({ editMode: true });
+    }
+
+    // Update user info.
+    if (!Object.keys(this.state.user).length) {
+      this.setState({ user: nextProps.user });
+    }
+  },
+
+
+  setEditMode(event) {
+    event.preventDefault();
+    this.setState({ editMode: true });
+  },
+
 
   renderInfo() {
     return (
-      <fieldset className="form__fieldset">
       <div className="form-field form-field--with-help">
         <label className="form-field__label" htmlFor="notifications">Email Notifications</label>
 
@@ -26,9 +59,10 @@ const SettingsEmailNotifications = React.createClass({
             <li>Newsletter</li>
             <li>Upcoming contetsts</li>
           </ul>
+
+          <a href="#" onClick={this.setEditMode}>Edit</a>
         </div>
       </div>
-      </fieldset>
     );
   },
 
@@ -170,10 +204,10 @@ const SettingsEmailNotifications = React.createClass({
 
   render() {
     return (
-      <div>
-        { this.props.editMode && this.renderForm() }
-        { !this.props.editMode && this.renderInfo() }
-      </div>
+      <fieldset className="form__fieldset">
+        { this.state.editMode && this.renderForm() }
+        { !this.state.editMode && this.renderInfo() }
+      </fieldset>
     );
   },
 

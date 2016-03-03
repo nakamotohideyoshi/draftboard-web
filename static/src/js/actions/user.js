@@ -5,35 +5,69 @@ import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
 
 
-function fetchUserSuccess(body) {
+function fetchUserInfoSuccess(body) {
   return {
-    type: types.FETCH_USER_SUCCESS,
+    type: types.FETCH_USER_INFO_SUCCESS,
     body,
   };
 }
 
-
-function fetchUserFail(ex) {
+function fetchUserInfoFail(ex) {
   return {
-    type: types.FETCH_USER_FAIL,
+    type: types.FETCH_USER_INFO_FAIL,
     ex,
   };
 }
 
-
-export function fetchUser() {
+export function fetchUserInfo() {
   return (dispatch) => {
     request
-      .get('/account/api/account/user/')
-      .set({ 'X-REQUESTED-WITH': 'XMLHttpRequest' })
-      .set('Accept', 'application/json')
+      .get('/api/account/information/')
+      .set({
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        Accept: 'application/json',
+      })
       .end((err, res) => {
         if (err) {
-          return dispatch(fetchUserFail(err));
+          return dispatch(fetchUserInfoFail(err));
         }
 
-        return dispatch(fetchUserSuccess(res.body));
+        return dispatch(fetchUserInfoSuccess(res.body));
       });
+  };
+}
+
+
+/**
+ * Update user information -  address, DOB, name.
+ */
+function updateUserInfoSuccess(body) {
+  return {
+    type: types.UPDATE_USER_INFO_SUCCESS,
+    body,
+  };
+}
+
+function updateUserInfoFail(ex) {
+  return {
+    type: types.UPDATE_USER_INFO_FAIL,
+    ex,
+  };
+}
+
+export function updateUserInfo(postData = {}) {
+  return (dispatch) => {
+    request
+    .post('/api/account/information/')
+    .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
+    .send(postData)
+    .end((err, res) => {
+      if (err) {
+        return dispatch(updateUserInfoFail(err));
+      }
+
+      return dispatch(updateUserInfoSuccess(res.body));
+    });
   };
 }
 
@@ -43,14 +77,14 @@ export function fetchUser() {
  */
 function updateUserEmailPassSuccess(body) {
   return {
-    type: types.UPDATE_USER_INFO_SUCCESS,
+    type: types.UPDATE_USER_EMAIL_PASS_SUCCESS,
     body,
   };
 }
 
 function updateUserEmailPassFail(ex) {
   return {
-    type: types.UPDATE_USER_INFO_FAIL,
+    type: types.UPDATE_USER_EMAIL_PASS_FAIL,
     ex,
   };
 }
@@ -99,73 +133,6 @@ export function updateUserEmailPass(postData = {}) {
 
       return dispatch(updateUserEmailPassSuccess(res.body));
     });
-  };
-}
-
-
-/**
- * Update user information -  address, DOB, name.
- */
-function updateUserInfoSuccess(body) {
-  return {
-    type: types.UPDATE_USER_INFO_SUCCESS,
-    body,
-  };
-}
-
-function updateUserInfoFail(ex) {
-  return {
-    type: types.UPDATE_USER_INFO_FAIL,
-    ex,
-  };
-}
-
-export function updateUserInfo(postData = {}) {
-  return (dispatch) => {
-    request
-    .post('/api/account/information/')
-    .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
-    .send(postData)
-    .end((err, res) => {
-      if (err) {
-        return dispatch(updateUserInfoFail(err));
-      }
-
-      return dispatch(updateUserInfoSuccess(res.body));
-    });
-  };
-}
-
-
-function updateUserAddressSuccess(body) {
-  return {
-    type: types.UPDATE_USER_ADDRESS_SUCCESS,
-    body,
-  };
-}
-
-
-function updateUserAddressFail(ex) {
-  return {
-    type: types.UPDATE_USER_ADDRESS_FAIL,
-    ex,
-  };
-}
-
-
-export function updateUserAddress(postData = {}) {
-  return (dispatch) => {
-    request
-      .post('/api/account/information/')
-      .send(postData)
-      .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
-      .end((err, res) => {
-        if (err) {
-          return dispatch(updateUserAddressFail(err));
-        }
-
-        return dispatch(updateUserAddressSuccess(res.body));
-      });
   };
 }
 
