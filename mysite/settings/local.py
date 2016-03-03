@@ -115,6 +115,7 @@ PUSHER_APP_ID           = '179543'
 PUSHER_KEY              = '5a4601521c1e2a3778aa'
 PUSHER_SECRET           = '2c286ac8c239f8e73f00'
 PUSHER_CHANNEL_PREFIX   = ''
+PUSHER_ENABLED          = False
 
 #
 # because of the local setup, custom test runner requires root priviledges

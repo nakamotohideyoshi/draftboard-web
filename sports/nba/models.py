@@ -192,10 +192,13 @@ class PlayerStats( sports.models.PlayerStats ):
 
         #
         # send the pusher obj for fantasy points with scoring
-        #push.classes.StatsDataDenPush( push.classes.PUSHER_NBA_STATS, 'player' ).send( self.to_json() )
-        args = (self.get_cache_token(), push.classes.PUSHER_NBA_STATS, 'player', self.to_json())
-        self.set_cache_token()
-        countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
+        if kwargs.get('bulk', False):
+            print('bulk = True skip player stats monkey business')
+        else:
+            print('bulk == False, do normal playerstats save() stuff like caching and pusher')
+            args = (self.get_cache_token(), push.classes.PUSHER_NBA_STATS, 'player', self.to_json())
+            self.set_cache_token()
+            countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
 
         super().save(*args, **kwargs)
 

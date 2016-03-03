@@ -165,8 +165,9 @@ class PlayerStats(DataDenPlayerStats):
     player_model        = Player
     player_stats_model  = sports.nba.models.PlayerStats
 
-    def __init__(self):
+    def __init__(self, bulk=False):
         super().__init__()
+        self.bulk = bulk
 
     def parse(self, obj, target=None):
         super().parse( obj, target )
@@ -227,7 +228,7 @@ class PlayerStats(DataDenPlayerStats):
         #         'three_points_pct': 0.0
         self.ps.three_points_pct = o.get('three_points_pct', 0.0)
 
-        self.ps.save() # commit changes
+        self.ps.save(bulk=self.bulk) # commit changes
 
 class QuarterPbp(DataDenPbpDescription):
     """
@@ -443,8 +444,9 @@ class Injury(DataDenInjury):
 
 class DataDenNba(AbstractDataDenParser):
 
-    def __init__(self):
+    def __init__(self, bulk=False):
         self.sport = 'nba'
+        self.bulk = bulk
 
     def parse(self, obj):
         """
@@ -496,7 +498,7 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.player','stats'):
             #
             # will save() the nba PlayerStats model corresponding to this player.
-            PlayerStats().parse( obj )
+            PlayerStats(bulk=self.bulk).parse( obj )
             # note: the PlayerStats model takes care of pushering its updated data!
         #
         # nba.injury
