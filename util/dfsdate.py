@@ -37,9 +37,6 @@ class DfsDate(object):
         # ts = int(now.strftime('%s'))
         # ts -= ((4*3600) + dst_seconds)
 
-        # tack on an extra 5 hours, in case a game goes super super late, 5am EST = 3am PST
-        total_seconds += 60 * 60 * 5
-
         # subtract the 'total_seconds' from the original 'now' utc datetime.
         # that datetimes's date() should be the DFS "day".
         dfs_dt = now - timedelta(seconds=total_seconds)
@@ -66,6 +63,11 @@ class DfsDate(object):
         now_est = now.replace(tzinfo=DfsDate.est_tz)
         timedelta_est = now_est.dst()
 
+        # if this is non-zero, add it to the amount of
+        # seconds we subtract from the UTC time to get the EST time
+        dst_seconds = timedelta_est.seconds
+        total_seconds = 4*3600 + dst_seconds
+
         # subtract the 'total_seconds' from the original 'now' utc datetime.
         # that datetimes's date() should be the DFS "day".
         dfs_dt = DfsDate.get_current_dfs_date()
@@ -80,9 +82,6 @@ class DfsDate(object):
         # incoporate offset
         start = start + td_offset
         end = end + td_offset
-
-        print(start, 'start')
-        print(end, 'end')
 
         return (start, end)
 
