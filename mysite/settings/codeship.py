@@ -36,3 +36,7 @@ TEST_SANDBOXED_INSTALLED_APPS = [
 # codeship test environment does not need sudo privledges,
 # and since this .py file import local, we need to override it back to False
 INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = False
+
+#
+# dont actually send objects out with codeship!
+PUSHER_ENABLED = False
