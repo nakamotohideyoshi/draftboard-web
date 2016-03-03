@@ -1,9 +1,19 @@
 import React from 'react';
-
+import ImageLoader from 'react-imageloader';
 import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import log from '../../lib/logging';
 
+function preloader() {
+  return (
+    <div className="loading-player-image">
+      <div className="spinner">
+        <div className="double-bounce1" />
+        <div className="double-bounce2" />
+      </div>
+    </div>
+  );
+}
 
 /**
  * When a lineup player is clicked, this pane will show seasonal data, player information, team information and
@@ -182,9 +192,10 @@ const LivePlayerPane = React.createClass({
     return (
       <section className="header-section">
         <div className="header__player-image">
-          <img
-            height="190"
+          <ImageLoader
             src={playerImage}
+            wrapper={React.DOM.div}
+            preloader={preloader}
           />
         </div>
 
