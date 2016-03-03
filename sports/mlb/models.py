@@ -95,7 +95,6 @@ class GameBoxscore( sports.models.GameBoxscore ):
     class Meta:
         abstract = False
 
-
 class Player( sports.models.Player ):
     """
     inherited: 'srid', 'first_name', 'last_name'

@@ -2,9 +2,17 @@
 # sports/nfl/parser.py
 
 import sports.nfl.models
-from sports.nfl.models import Team, Game, Player, PlayerStats, \
-                                GameBoxscore, GamePortion, Pbp, PbpDescription
-
+from sports.nfl.models import (
+    Team,
+    Game,
+    Player,
+    PlayerStats,
+    GameBoxscore,
+    GamePortion,
+    Pbp,
+    PbpDescription,
+    Season,
+)
 from sports.sport.base_parser import (
     AbstractDataDenParser,
     DataDenTeamHierarchy,
@@ -16,6 +24,7 @@ from sports.sport.base_parser import (
     DataDenPbpDescription,
     DataDenInjury,
     SridFinder,
+    DataDenSeasonSchedule,
 )
 import json
 from dataden.classes import DataDen
@@ -40,12 +49,42 @@ class TeamHierarchy(DataDenTeamHierarchy):
         self.team.alias     = o.get('id', None)   # nfl ids are the team acronym, which is the alias
         self.team.save() # commit changes
 
+class SeasonSchedule(DataDenSeasonSchedule):
+    """
+    parse a "season" object to get an srid, and the year/type of the season.
+
+    note for NFL the srid field of a Season object looks like a url,
+    because thats whats actually found in the field we typically
+    find srids. plus, the url uniquely identifies the season so its fine.
+    """
+
+    season_model = Season
+
+    # override the default season_year field
+    field_season_year = 'season'
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        if self.season is None:
+            return
+
+        self.season.save()
+
 class GameSchedule(DataDenGameSchedule):
     """
     GameSchedule simply needs to set the right Team & Game model internally
     """
-    team_model = Team
-    game_model = Game
+
+    team_model      = Team
+    game_model      = Game
+    season_model    = Season
+
+    # override parent field for retrieving season srid
+    field_season_srid = 'season__id'
 
     def __init__(self):
         super().__init__()
@@ -132,6 +171,9 @@ class GameSchedule(DataDenGameSchedule):
         #     ]
         # }
         super().parse(obj)
+        if self.game is None:
+            return
+
         o = obj.get_o()
 
         # super sets these fields (start is pulled from 'scheduled')
@@ -674,7 +716,8 @@ class DataDenNfl(AbstractDataDenParser):
 
         #
         # nfl.game
-        if self.target == ('nfl.game','schedule'): GameSchedule().parse( obj )
+        if self.target == ('nfl.season','schedule'): SeasonSchedule().parse( obj )
+        elif self.target == ('nfl.game','schedule'): GameSchedule().parse( obj )
         elif self.target == ('nfl.game','boxscores'):
             GameBoxscores().parse( obj )
             push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )

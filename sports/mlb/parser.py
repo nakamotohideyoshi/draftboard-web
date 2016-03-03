@@ -3,8 +3,17 @@
 
 from sports.classes import SiteSportManager
 import sports.mlb.models
-from sports.mlb.models import Team, Game, Player, PlayerStats, \
-                                GameBoxscore, Pbp, PbpDescription, GamePortion
+from sports.mlb.models import (
+    Team,
+    Game,
+    Player,
+    PlayerStats,
+    GameBoxscore,
+    Pbp,
+    PbpDescription,
+    GamePortion,
+    Season,
+)
 from sports.sport.base_parser import (
     AbstractDataDenParser,
     AbstractDataDenParseable,
@@ -17,6 +26,7 @@ from sports.sport.base_parser import (
     DataDenPbpDescription,
     DataDenInjury,
     SridFinder,
+    DataDenSeasonSchedule,
 )
 import json
 from django.contrib.contenttypes.models import ContentType
@@ -452,10 +462,29 @@ class TeamHierarchy(DataDenTeamHierarchy):
         self.team.alias = self.o.get('abbr', None)
         self.team.save()
 
+class SeasonSchedule(DataDenSeasonSchedule):
+    """
+    parse a "season" object to get an srid, and the year/type of the season.
+    """
+
+    season_model = Season
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        if self.season is None:
+            return
+
+        self.season.save()
+
 class GameSchedule(DataDenGameSchedule):
 
-    team_model = Team
-    game_model = Game
+    team_model      = Team
+    game_model      = Game
+    season_model    = Season
 
     def __init__(self):
         super().__init__()
@@ -1210,7 +1239,11 @@ class DataDenMlb(AbstractDataDenParser):
 
         #
         # game
-        if self.target == ('mlb.game','schedule_reg'): GameSchedule().parse( obj )
+        if self.target in [ ('mlb','season_schedule','schedule_pre'),
+                            ('mlb','season_schedule','schedule_reg'),
+                            ('mlb','season_schedule','schedule_pst') ]:
+            SeasonSchedule().parse( obj )
+        elif self.target == ('mlb.game','schedule_reg'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pre'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pst'): GameSchedule().parse( obj )
         #

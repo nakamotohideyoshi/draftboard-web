@@ -246,6 +246,11 @@ class DataDenSeasonSchedule(AbstractDataDenParseable):
 
     season_model = None # subclasses will need to set their own
 
+    # default field names for extracting the values we want
+    field_srid          = 'id'
+    field_season_year   = 'year'
+    field_season_type   = 'type'
+
     def __init__(self):
         if self.season_model is None:
             err_msg = '"season_model" class must be set'
@@ -258,7 +263,7 @@ class DataDenSeasonSchedule(AbstractDataDenParseable):
 
     def validate_srid(self, o):
         """ clean and return the srid value """
-        val = o.get('id', None)
+        val = o.get(self.field_srid, None)
         if not isinstance(val, str):
             err_msg = 'srid [%s] is not a string: %s' % (type(val), str(val))
             raise self.ValidationException(err_msg)
@@ -266,7 +271,7 @@ class DataDenSeasonSchedule(AbstractDataDenParseable):
 
     def validate_season_year(self, o):
         """ clean and return the season_year value """
-        val = o.get('year', None)
+        val = o.get(self.field_season_year, None)
         if isinstance(val, float):
             val = int(val)
         if not isinstance(val, int):
@@ -276,7 +281,7 @@ class DataDenSeasonSchedule(AbstractDataDenParseable):
 
     def validate_season_type(self, o):
         """ clean and return the season_type value """
-        val = o.get('type', None)
+        val = o.get(self.field_season_type, None)
         if not isinstance(val, str):
             err_msg = 'season_type [%s] is not a string: %s' % (type(val), str(val))
             raise self.ValidationException(err_msg)
@@ -393,6 +398,8 @@ class DataDenGameSchedule(AbstractDataDenParseable):
     game_model      = None
     season_model    = None
 
+    field_season_srid = 'season_schedule__id'
+
     def __init__(self):
         if self.team_model is None:
             raise Exception('"team_model cant be None!')
@@ -415,7 +422,7 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         start       = DataDenDatetime.from_string( start_str )
         status      = o.get('status')
 
-        srid_season = o.get('season_schedule__id')
+        srid_season = o.get(self.field_season_srid)
         srid_home   = o.get('home')
         srid_away   = o.get('away')
         title       = o.get('title', '')
