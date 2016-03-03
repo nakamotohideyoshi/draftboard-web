@@ -1,5 +1,6 @@
 import React from 'react';
 import isEmpty from 'lodash/lang/isEmpty';
+import { forEach as _forEach } from 'lodash';
 
 
 const SettingsAddress = React.createClass({
@@ -11,7 +12,10 @@ const SettingsAddress = React.createClass({
   },
 
   getInitialState() {
-    return { editMode: false };
+    return {
+      editMode: false,
+      user: this.props.user,
+    };
   },
 
   /**
@@ -22,6 +26,11 @@ const SettingsAddress = React.createClass({
       this.setState({ editMode: false });
     } else {
       this.setState({ editMode: true });
+    }
+
+    // Update user info.
+    if (!Object.keys(this.state.user).length) {
+      this.setState({ user: nextProps.user });
     }
   },
 
@@ -56,11 +65,30 @@ const SettingsAddress = React.createClass({
         <label className="form-field__label">Billing Address</label>
         <div className="form-field__content">
           <p className="form-field__static-content">
-            Andrew Smith<br/>
-            1317 Oakley St.<br/>
+            { this.props.user.fullname }<br/>
+            { this.props.user.address1 } { this.props.user.address2 }<br/>
+          { this.props.user.city }, { this.props.user.state } { this.props.user.zipcode }<br />
             <a href="#" onClick={this.setEditMode}>Edit</a>
           </p>
         </div>
+      </div>
+    );
+  },
+
+  renderErrors(errors) {
+    const errorList = [];
+
+    _forEach(errors, (error) => {
+      errorList.push(<h6 className="form-field-message__title">{ error }</h6>);
+    });
+
+    if (!errorList.length) {
+      return '';
+    }
+
+    return (
+      <div className="form-field-message form-field-message--error form-field-message--settings">
+        {errorList}
       </div>
     );
   },
@@ -79,14 +107,10 @@ const SettingsAddress = React.createClass({
             type="text"
             id="name"
             name="fullname.name"
-            placeholder="John Doe"
+            defaultValue={this.state.user.fullname}
           />
-          { 'name' in this.props.errors &&
-          <div className="form-field-message form-field-message--error form-field-message--settings">
-            <h6 className="form-field-message__title">{ this.props.errors.name.title }</h6>
-            <p className="form-field-message__description">{ this.props.errors.name.description }</p>
-          </div>
-          }
+
+        {this.renderErrors(this.props.errors.fullname)}
         </div>
 
         <div className="form-field">
@@ -97,7 +121,10 @@ const SettingsAddress = React.createClass({
             type="text"
             id="address1"
             name="address1"
+            defaultValue={this.state.user.address1}
           />
+
+        {this.renderErrors(this.props.errors.address1)}
         </div>
 
         <div className="form-field">
@@ -108,6 +135,7 @@ const SettingsAddress = React.createClass({
             type="text"
             id="address2"
             name="address2"
+            defaultValue={this.state.user.address2}
           />
         </div>
 
@@ -119,7 +147,10 @@ const SettingsAddress = React.createClass({
             type="text"
             id="city"
             name="city"
+            defaultValue={this.state.user.city}
           />
+
+        {this.renderErrors(this.props.errors.city)}
         </div>
 
         <div className="form-field">
@@ -129,11 +160,62 @@ const SettingsAddress = React.createClass({
             className="form-field__select"
             id="state"
             name="state"
+            defaultValue={this.state.user.state}
           >
-            <option value="hi" selected="selected">hi</option>
-            <option value="you" selected="selected">you</option>
-            <option value="there" selected="selected">there</option>
+            <option value="AL">Alabama</option>
+            <option value="AK">Alaska</option>
+            <option value="AZ">Arizona</option>
+            <option value="AR">Arkansas</option>
+            <option value="CA">California</option>
+            <option value="CO">Colorado</option>
+            <option value="CT">Connecticut</option>
+            <option value="DE">Delaware</option>
+            <option value="DC">Dist of Columbia</option>
+            <option value="FL">Florida</option>
+            <option value="GA">Georgia</option>
+            <option value="HI">Hawaii</option>
+            <option value="ID">Idaho</option>
+            <option value="IL">Illinois</option>
+            <option value="IN">Indiana</option>
+            <option value="IA">Iowa</option>
+            <option value="KS">Kansas</option>
+            <option value="KY">Kentucky</option>
+            <option value="LA">Louisiana</option>
+            <option value="ME">Maine</option>
+            <option value="MD">Maryland</option>
+            <option value="MA">Massachusetts</option>
+            <option value="MI">Michigan</option>
+            <option value="MN">Minnesota</option>
+            <option value="MS">Mississippi</option>
+            <option value="MO">Missouri</option>
+            <option value="MT">Montana</option>
+            <option value="NE">Nebraska</option>
+            <option value="NV">Nevada</option>
+            <option value="NH">New Hampshire</option>
+            <option value="NJ">New Jersey</option>
+            <option value="NM">New Mexico</option>
+            <option value="NY">New York</option>
+            <option value="NC">North Carolina</option>
+            <option value="ND">North Dakota</option>
+            <option value="OH">Ohio</option>
+            <option value="OK">Oklahoma</option>
+            <option value="OR">Oregon</option>
+            <option value="PA">Pennsylvania</option>
+            <option value="RI">Rhode Island</option>
+            <option value="SC">South Carolina</option>
+            <option value="SD">South Dakota</option>
+            <option value="TN">Tennessee</option>
+            <option value="TX">Texas</option>
+            <option value="UT">Utah</option>
+            <option value="VT">Vermont</option>
+            <option value="VA">Virginia</option>
+            <option value="WA">Washington</option>
+            <option value="WV">West Virginia</option>
+            <option value="WI">Wisconsin</option>
+            <option value="WY">Wyoming</option>
           </select>
+
+          {this.renderErrors(this.props.errors.state)}
         </div>
 
         <div className="form-field">
@@ -144,8 +226,10 @@ const SettingsAddress = React.createClass({
             type="text"
             id="zipcode"
             name="zipcode"
-            placeholder="32806"
+            defaultValue={this.state.user.zipcode}
           />
+
+        {this.renderErrors(this.props.errors.zipcode)}
         </div>
 
         <input type="submit" className="button--medium" value="Save" />
