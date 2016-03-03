@@ -312,7 +312,13 @@ class AbstractPush(object):
          will block pusher objects from being sent!
         """
         if settings.PUSHER_ENABLED:
+            # TODO remove this
+            print('settings.PUSHER_ENABLED == True ... object sent')
+
             self.pusher.trigger( self.channel, self.event, data )
+        else:
+            # TODO remove this
+            print('settings.PUSHER_ENABLED == False ... pusher.trigger() blocked. object not sent.')
 
     @locking(unique_lock_name=PUSH_TASKS_STATS_LINKER, timeout=30)
     def edit_linker_queue(self, channel, linkable_object, linker, linker_queue):
