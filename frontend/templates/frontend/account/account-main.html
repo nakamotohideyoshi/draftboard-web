@@ -6,20 +6,16 @@
 {% block sidebar-header %}
   <div class="sidebar--header">
     <div class="sidebar--header-inner">
-      <h2 class="sidebar--header-title">
-        {% if action == 'edit' %}
-          Edit Lineup
-        {% else %}
-          New Lineup
-        {% endif %}
-      </h2>
+      <header class="settings-sidebar-actions">
+        <h2 class="sidebar--header-title">My Account</h2>
+      </header>
     </div>
   </div>
 {% endblock sidebar-header %}
 
 
 {% block sidebar %}
-  <div class="cmp-draft-lineup-card-list lineup-sidebar-list"></div>
+  <div class="lineup-sidebar-list" id="account-sidebar"></div>
 {% endblock sidebar %}
 
 

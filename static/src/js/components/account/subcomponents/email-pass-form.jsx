@@ -5,6 +5,7 @@ import isEmpty from 'lodash/lang/isEmpty';
 const EmailPasssForm = React.createClass({
 
   propTypes: {
+    username: React.PropTypes.string.isRequired,
     user: React.PropTypes.object.isRequired,
     errors: React.PropTypes.object.isRequired,
     updateUserEmailPass: React.PropTypes.func.isRequired,
@@ -50,7 +51,7 @@ const EmailPasssForm = React.createClass({
         <fieldset className="form__fieldset">
           <div className="form-field">
             <label className="form-field__label" htmlFor="username">Username</label>
-            <div className="username-display">{ this.props.user.username }</div>
+            <div className="username-display">{ this.props.username }</div>
           </div>
           <div className="form-field">
             <label className="form-field__label" htmlFor="username">Email</label>
