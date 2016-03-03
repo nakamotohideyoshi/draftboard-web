@@ -2,9 +2,14 @@ import ActionTypes from '../action-types';
 import { merge as _merge } from 'lodash';
 
 const initialState = {
-  user: {},
+  username: window.dfs.user.username,
+  info: {
+    isFetching: false,
+  },
   infoFormErrors: {},
-  addressFormErrors: {},
+  infoFormSaved: false,
+  emailPassFormErrors: {},
+  emailPassFormSaved: false,
   cashBalance: {
     isFetching: false,
   },
@@ -14,31 +19,24 @@ const initialState = {
 module.exports = (state = initialState, action) => {
   switch (action.type) {
 
-    case ActionTypes.FETCH_USER_SUCCESS:
-      return Object.assign({}, state, {
-        user: action.body,
+    // Fetch user info (name, address, dob)
+    case ActionTypes.FETCH_USER_INFO_SUCCESS:
+      return _merge({}, state, {
+        infoFormErrors: {},
+        info: action.body,
       });
+
 
     case ActionTypes.UPDATE_USER_INFO_SUCCESS:
       // TODO: update user with the response
-      return Object.assign({}, state, {
+      return _merge({}, state, {
         infoFormErrors: {},
       });
 
-    case ActionTypes.UPDATE_USER_ADDRESS_SUCCESS:
-      // TODO: update user with the response
-      return Object.assign({}, state, {
-        addressFormErrors: {},
-      });
 
     case ActionTypes.UPDATE_USER_INFO_FAIL:
-      return Object.assign({}, state, {
-        infoFormErrors: action.ex.response.body.errors,
-      });
-
-    case ActionTypes.UPDATE_USER_ADDRESS_FAIL:
-      return Object.assign({}, state, {
-        addressFormErrors: action.ex.response.body.errors,
+      return _merge({}, state, {
+        infoFormErrors: action.ex.response.body,
       });
 
 
