@@ -351,9 +351,11 @@ class PlayerStats(DataDenPlayerStats):
             pass # TODO
         elif parent_list == 'field_goal_return__list':
             pass # TODO
+        elif parent_list == 'defense__list':
+            pass # we dont currently care about defense__list stats
         else:
-            print( str(o) )
-            print( 'obj parent_list__id was not found !')
+            # print( str(o) )
+            # print( 'obj parent_list__id was not found !')
             return
 
         self.ps.save()
