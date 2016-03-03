@@ -560,7 +560,7 @@ const Live = React.createClass({
    */
   renderLoadingScreen() {
     return (
-      <div className="loading">
+      <div className="live--loading">
         <div className="preload-court" />
         <div className="spinner">
           <div className="double-bounce1" />

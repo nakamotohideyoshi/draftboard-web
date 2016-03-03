@@ -34,6 +34,7 @@ function mapStateToProps(state) {
     allContests: state.upcomingContests.allContests,
     contestInfo: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
+    focusedContestId: state.upcomingContests.focusedContestId,
     boxScores: state.upcomingDraftGroups.boxScores,
     teams: state.sports,
     lineupsInfo: upcomingLineupsInfo(state),
@@ -69,6 +70,7 @@ const ContestListDetail = React.createClass({
     fetchContestEntrantsIfNeeded: React.PropTypes.func,
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
     fetchTeamsIfNeeded: React.PropTypes.func,
+    focusedContestId: React.PropTypes.string,
     focusedLineup: React.PropTypes.object,
     params: React.PropTypes.object,
     setFocusedContest: React.PropTypes.func,
@@ -95,10 +97,17 @@ const ContestListDetail = React.createClass({
    */
   componentWillReceiveProps(nextProps) {
     // A new contest has been focused. Fetch all of it's required data.
-    if (nextProps.params.contestId && nextProps.contestInfo.contest.id !== nextProps.params.contestId) {
+    if (
+        nextProps.params.contestId &&
+        nextProps.contestInfo.contest.id !== nextProps.params.contestId
+      ) {
       AppActions.openPane();
-      // // This is what "monitors" for URL changes.
-      this.props.setFocusedContest(nextProps.params.contestId);
+      // This is what "monitors" for URL changes.
+      // If our current url prop for contestId does not match the focousedContest in the state,
+      // set the  new one as focused.
+      if (this.props.focusedContestId !== nextProps.params.contestId) {
+        this.props.setFocusedContest(nextProps.params.contestId);
+      }
       this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId);
     }
 

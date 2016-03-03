@@ -43,8 +43,11 @@ export function setFocusedContest(contestId) {
   return (dispatch, getState) => {
     const state = getState();
 
-    if (state.hasOwnProperty('allContests')) {
-      fetchFocusedContestInfo(state.allContests[contestId]);
+    if (
+      state.upcomingContests.hasOwnProperty('allContests') &&
+      state.upcomingContests.hasOwnProperty(contestId)
+    ) {
+      fetchFocusedContestInfo(state.upcomingContests.allContests[contestId]);
     }
 
     dispatch({

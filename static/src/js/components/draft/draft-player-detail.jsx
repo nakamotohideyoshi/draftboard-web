@@ -1,4 +1,5 @@
 import React from 'react';
+import ImageLoader from 'react-imageloader';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import * as AppActions from '../../stores/app-state-store.js';
@@ -11,6 +12,20 @@ import moment from 'moment';
 
 const { Provider, connect } = ReactRedux;
 
+/**
+ * What shows when a player image is loading
+ * @return {JSX}
+ */
+function preloader() {
+  return (
+    <div className="loading-player-image">
+      <div className="spinner">
+        <div className="double-bounce1" />
+        <div className="double-bounce2" />
+      </div>
+    </div>
+  );
+}
 
 /*
  * Map selectors to the React component
@@ -370,9 +385,10 @@ const DraftPlayerDetail = React.createClass({
         <div className="pane-upper">
           <div className="header-section">
             <div className="header__player-image">
-              <img
-                height="190"
+              <ImageLoader
                 src={`${playerImagesBaseUrl}/380/${this.props.player.player_srid}.png`}
+                wrapper={React.DOM.div}
+                preloader={preloader}
               />
             </div>
 

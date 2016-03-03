@@ -51,6 +51,7 @@ const ContestListSportFilter = React.createClass({
         { title: 'All', column: 'sport', match: '' },
         { title: 'NBA', column: 'sport', match: 'nba' },
         { title: 'NFL', column: 'sport', match: 'nfl' },
+        { title: 'NHL', column: 'sport', match: 'nhl' },
         { title: 'MLB', column: 'sport', match: 'mlb' },
       ],
     };
