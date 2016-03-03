@@ -2,6 +2,7 @@
 # salary/classes.py
 
 import csv
+from statistics import mean
 from django.db.models import Q
 from .exceptions import (
     NoPlayersAtRosterSpotException,
@@ -355,15 +356,26 @@ class SalaryGenerator(FppgGenerator):
             number_of_games = len(player.player_stats_list)
             player.fantasy_weighted_average = 0
 
-            if(number_of_games > 0 ):
-                #
+            # if not a lot of games played
+            if number_of_games <= self.salary_conf.min_games_flag:
+                #print('less than the required games: %s for %s' % (str(number_of_games), str(player)))
+                # if player has played in 0 thru the min_games_flag,
+                # dont use weights, and just average the points they do have
+                # and flag them.
+                if number_of_games > 0:
+                    fp_list = [ stat.fantasy_points for stat in player.player_stats_list ]
+                    player.fantasy_weighted_average = mean(fp_list)
+                # flag them regardless
+                player.flagged = True
+
+            # else: if more than the min-required-games-played have been played
+            else:
+                #print('met required games')
                 # check to makes sure the most recent game played has been less than
-                # days_since_last_game_flag days ago.
-                #  OR
-                # check to makes sure the min games are played
+                # days_since_last_game_flag days ago
                 delta = timezone.now() - player.player_stats_list[0].start
-                if (delta.days > self.salary_conf.days_since_last_game_flag) or \
-                    (number_of_games < self.salary_conf.min_games_flag ):
+                if delta.days > self.salary_conf.days_since_last_game_flag:
+                    #print('days since last game: %s -- last game %s' % (str(delta.days), str(player.player_stats_list[0].start)))
                     player.flagged= True
 
                 #
@@ -375,11 +387,8 @@ class SalaryGenerator(FppgGenerator):
                             if j < number_of_games:
                                 player.fantasy_weighted_average += \
                                     player.player_stats_list[j].fantasy_points * (float)(tgw.weight)
-
-                                #print('    ', str(player.player), float(player.player_stats_list[j].fantasy_points * (float)(tgw.weight)))
+                    #
                     i = tgw.through
-
-                #print('final',str(player),str(player.fantasy_weighted_average))
 
                 #
                 # If the configuration does not account trailing games use a 1x multiplier
@@ -392,12 +401,7 @@ class SalaryGenerator(FppgGenerator):
 
                 #
                 # takes the sum and divides by the total allowed games
-                #print('before player.fantasy_weighted_average', str(player.fantasy_weighted_average))
                 player.fantasy_weighted_average /= (float)(self.salary_conf.trailing_games)
-                #print('after player.fantasy_weighted_average', str(player.fantasy_weighted_average))
-
-            else:
-                player.flagged= True
 
     def helper_sum_average_points_per_roster_spot(self, position_average_list):
         """
