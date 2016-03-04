@@ -46,7 +46,7 @@ class PlayerLineupNameAdmin(admin.ModelAdmin):
 
 @admin.register(sports.nba.models.PlayerStats)
 class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):
-    list_display = ['game','player','points','three_points_made','rebounds','assists','steals','blocks','turnovers']
+    list_display = ['game','player','fantasy_points','points','three_points_made','rebounds','assists','steals','blocks','turnovers']
 
     # list_filter     = sports.admin.PlayerStatsAdmin.list_filter   # + ('',)
     search_fields   = sports.admin.PlayerStatsAdmin.search_fields # + ('more','specific','fields...',)
