@@ -85,7 +85,7 @@ class DataDen(object):
     PARENT_API__ID = 'parent_api__id'
     DD_UPDATED__ID = 'dd_updated__id'
 
-    def __init__(self, client=None):
+    def __init__(self, client=None, no_cursor_timeout=False):
         """
         if client is None, we will attempt to connect on default localhost:27017
 
@@ -94,6 +94,7 @@ class DataDen(object):
         """
 
         self.client = None
+        self.no_cursor_timeout = no_cursor_timeout
 
         #
         # get the default cache for DataDen
@@ -133,10 +134,10 @@ class DataDen(object):
         if projection and projection.keys():
             #
             # if the projection has any keys, use it
-            return coll.find( target, projection )
+            return coll.find( filter=target, projection=projection, no_cursor_timeout=self.no_cursor_timeout )
 
         # by default, dont apply projection
-        return coll.find( target )
+        return coll.find( filter=target, no_cursor_timeout=self.no_cursor_timeout )
 
     def find_recent(self, db, coll, parent_api, target={}):
         """

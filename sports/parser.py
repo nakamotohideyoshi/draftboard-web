@@ -158,35 +158,17 @@ class DataDenParser(object):
         ns = obj.get_ns()
         return ns.split('.')[0] # sport always on the left side of the dot
 
-    def bulk_parse(self, sport):
-        """
-        calls, setup() for a sport, but disables pusher and
-        tries to get the data into the database asap
-        with proudction level things happening
-        because we dont care about the front end when
-        we do this.
-
-        :param sport:
-        :return:
-        """
-
-        # setup bulk_parser so we can rip off bulk amounts of parsing
-        # for this sport.
+    def __get_parser(self, sport):
         dataden_sport_parser = self.parsers[ sport ]
-        bulk_parser = dataden_sport_parser(bulk=True)
-        # TODO
+        return dataden_sport_parser()
 
-    def __get_parser(self, sport, bulk=False):
-        dataden_sport_parser = self.parsers[ sport ]
-        return dataden_sport_parser(bulk=True)
-
-    # def parse(self, obj):
-    #     """
-    #     inspect the namespace of the object, and pass it to the proper sport parser
-    #     """
-    #     self.sport = self.get_sport_from_namespace( obj )
-    #     parser = self.__get_parser( self.sport )
-    #     parser.parse( obj ) # the sub parser will infer what type of object it is
+    def parse(self, obj):
+        """
+        inspect the namespace of the object, and pass it to the proper sport parser
+        """
+        self.sport = self.get_sport_from_namespace( obj )
+        parser = self.__get_parser( self.sport )
+        parser.parse( obj ) # the sub parser will infer what type of object it is
 
     def setup_triggers(self, sport=None, enable=True, pbp=False):
         """
@@ -228,7 +210,7 @@ class DataDenParser(object):
             parent_api  = t[2]
             trg = Trigger.create( db, coll, parent_api, enable=enable )
 
-    def setup(self, sport, async=False, replay=False, force_triggers=None, bulk=False):
+    def setup(self, sport, async=False, replay=False, force_triggers=None):
         """
         NOTE: This method should ONLY BE CALLED after dataden.jar has run
         and populated its own database for whatever sport you
@@ -263,12 +245,7 @@ class DataDenParser(object):
 
         self.__valid_sport(sport) # make sure we can set it up
         self.setup_triggers(sport)
-        dataden = DataDen()
-
-        #
-        bulk_parser = None
-        if bulk == True:
-            bulk_parser = self.__get_parser( sport, bulk=True )
+        dataden = DataDen(no_cursor_timeout=True) # dont let cursor timeout for setup()
 
         triggers = self.DEFAULT_TRIGGERS
         if replay:
@@ -302,13 +279,12 @@ class DataDenParser(object):
                 #
                 # create a oplog wrapper with the mongo object and signal it
                 # so the parser takes care of the rest!
-                if bulk:
-                    if i % 100 == 0:
-                        msg = '(%s / %s)' % (str(i), str(size))
-                        print(msg)
-                    bulk_parser.parse( OpLogObjWrapper( db, coll, mongo_obj) )
-                else:
-                    self.parse_obj( db, coll, mongo_obj, async=async )
+
+                if i % 100 == 0:
+                    msg = '(%s / %s)' % (str(i), str(size))
+                    print(msg)
+
+                self.parse_obj( db, coll, mongo_obj, async=async )
 
                 i += 1
 
