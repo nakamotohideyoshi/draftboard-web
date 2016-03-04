@@ -119,7 +119,7 @@ class PayoutManager(AbstractManagerClass):
 
         #
         # get the prize pool ranks for the contest
-        ranks = Rank.objects.filter(prize_structure=contest.prize_structure)
+        ranks = Rank.objects.filter(prize_structure=contest.prize_structure).order_by('rank')
 
         #
         # get the entries for the contest

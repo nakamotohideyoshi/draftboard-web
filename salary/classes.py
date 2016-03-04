@@ -412,7 +412,7 @@ class SalaryGenerator(FppgGenerator):
                 # Iterates through the weights and applies them to the fantasy points
                 i = 0
                 for tgw in trailing_game_weights:
-                    for j in range(i, tgw.through-1):
+                    for j in range(i, tgw.through):
                         if i < self.salary_conf.trailing_games:
                             if j < number_of_games:
                                 player.fantasy_weighted_average += \
