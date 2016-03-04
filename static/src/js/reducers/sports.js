@@ -65,7 +65,7 @@ module.exports = (state = {
             gamesExpireAt: action.expiresAt,
           },
           gameIds: {
-            $merge: action.gameIds,
+            $set: action.gameIds,
           },
         },
       });
