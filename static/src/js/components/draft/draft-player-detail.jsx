@@ -1,6 +1,7 @@
 import React from 'react';
 import ImageLoader from 'react-imageloader';
 import * as ReactRedux from 'react-redux';
+import moment from 'moment';
 import store from '../../store';
 import * as AppActions from '../../stores/app-state-store.js';
 import renderComponent from '../../lib/render-component';
@@ -8,7 +9,6 @@ import { forEach as _forEach } from 'lodash';
 import { focusedPlayerSelector } from '../../selectors/draft-selectors.js';
 import { roundUpToDecimalPlace } from '../../lib/utils.js';
 import { createLineupAddPlayer, removePlayer } from '../../actions/lineup-actions.js';
-import moment from 'moment';
 
 const { Provider, connect } = ReactRedux;
 
@@ -193,6 +193,7 @@ const DraftPlayerDetail = React.createClass({
 
   renderPlayerSplits() {
     const content = [];
+    let headers = [];
 
     if (!Object.keys(this.props.player.boxScoreHistory).length) {
       content.push(
@@ -200,22 +201,74 @@ const DraftPlayerDetail = React.createClass({
       );
     }
 
-    this.props.player.splitsHistory.map((game, index) => {
-      content.push(
-        <tr key={index}>
-          <td>{game.opp}</td>
-          <td>{game.date}</td>
-          <td>{game.points}</td>
-          <td>{game.rebounds}</td>
-          <td>{game.assists}</td>
-          <td>{game.blocks}</td>
-          <td>{game.steals}</td>
-          <td>{game.three_pointers}</td>
-          <td>{game.turnovers}</td>
-          <td>{game.fp}</td>
-        </tr>
-      );
-    });
+
+    switch (this.props.player.sport) {
+      case 'nba':
+        headers = [
+          <th>opp</th>,
+          <th>date</th>,
+          <th>pts</th>,
+          <th>reb</th>,
+          <th>ast</th>,
+          <th>blk</th>,
+          <th>stl</th>,
+          <th>3pt</th>,
+          <th>to</th>,
+          <th>fp</th>,
+        ];
+
+        this.props.player.splitsHistory.map((game, index) => {
+          content.push(
+            <tr key={index}>
+              <td>{game.opp}</td>
+
+              <td>{moment(game.date, moment.ISO_8601).format('M-D-YY')}</td>
+              <td>{game.points}</td>
+              <td>{game.rebounds}</td>
+              <td>{game.assists}</td>
+              <td>{game.blocks}</td>
+              <td>{game.steals}</td>
+              <td>{game.three_pointers}</td>
+              <td>{game.turnovers}</td>
+              <td>{game.fp}</td>
+            </tr>
+          );
+        });
+
+        break;
+      case 'nhl':
+        headers = [
+          <th>opp</th>,
+          <th>date</th>,
+          <th>g</th>,
+          <th>ast</th>,
+          <th>blk</th>,
+          <th>sog</th>,
+          <th>s</th>,
+          <th>ga</th>,
+          <th>fp</th>,
+        ];
+
+        this.props.player.splitsHistory.map((game, index) => {
+          content.push(
+            <tr key={index}>
+              <td>{game.opp}</td>
+              <td>{moment(game.date, moment.ISO_8601).format('M-D-YY')}</td>
+              <td>{game.goal}</td>
+              <td>{game.assist}</td>
+              <td>{game.blocks}</td>
+              <td>{game.sog}</td>
+              <td>{game.saves}</td>
+              <td>{game.ga}</td>
+              <td>{game.fp}</td>
+            </tr>
+          );
+        });
+
+        break;
+      default:
+        // show nothing.
+    }
 
 
     return (
@@ -223,16 +276,7 @@ const DraftPlayerDetail = React.createClass({
         <table className="table">
           <thead className="header">
             <tr>
-              <th>opp</th>
-              <th>date</th>
-              <th>pts</th>
-              <th>reb</th>
-              <th>ast</th>
-              <th>blk</th>
-              <th>stl</th>
-              <th>3pt</th>
-              <th>to</th>
-              <th>fp</th>
+              {headers}
             </tr>
           </thead>
           <tbody>
@@ -254,10 +298,18 @@ const DraftPlayerDetail = React.createClass({
     return (
       <div className="next-game">
         <h4 className="team away-team">
-          <span className={`city nba-${this.props.player.nextGame.awayTeam.alias.toLowerCase()}-2-text`}>
+          <span
+            className={
+              `city ${this.props.player.sport}-${this.props.player.nextGame.awayTeam.alias.toLowerCase()}-2-text`
+            }
+          >
             {this.props.player.nextGame.awayTeam.city}
           </span>
-          <span className={`name nba-${this.props.player.nextGame.awayTeam.alias.toLowerCase()}-1-text`}>
+          <span
+            className={
+              `name ${this.props.player.sport}-${this.props.player.nextGame.awayTeam.alias.toLowerCase()}-1-text`
+            }
+          >
             {this.props.player.nextGame.awayTeam.name}
           </span>
         </h4>
@@ -267,10 +319,16 @@ const DraftPlayerDetail = React.createClass({
         </span></div>
 
         <h4 className="team home-team">
-          <span className={`city nba-${this.props.player.nextGame.homeTeam.alias.toLowerCase()}-2-text`}>
+          <span className={
+              `city ${this.props.player.sport}-${this.props.player.nextGame.homeTeam.alias.toLowerCase()}-2-text`
+            }
+          >
             {this.props.player.nextGame.homeTeam.city}
           </span>
-          <span className={`name nba-${this.props.player.nextGame.homeTeam.alias.toLowerCase()}-1-text`}>
+          <span className={
+              `name ${this.props.player.sport}-${this.props.player.nextGame.homeTeam.alias.toLowerCase()}-1-text`
+            }
+          >
             {this.props.player.nextGame.homeTeam.name}
           </span>
         </h4>
@@ -317,48 +375,127 @@ const DraftPlayerDetail = React.createClass({
       return <div className="player-stats"></div>;
     }
 
-    return (
-      <div className="player-stats">
-        <ul>
-          <li>
-            <div className="stat-name">PPG</div>
-            <div className="stat-score">
-              {roundUpToDecimalPlace(player.boxScoreHistory.avg_points, 1)}
+
+    switch (player.sport) {
+      case 'nba':
+        return (
+          <div className="player-stats">
+            <ul>
+              <li>
+                <div className="stat-name">PPG</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_points, 1)}
+                </div>
+              </li>
+              <li>
+                <div className="stat-name">RPG</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_rebounds, 1)}
+                </div>
+              </li>
+              <li>
+                <div className="stat-name">APG</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_assists, 1)}
+                </div>
+              </li>
+              <li>
+                <div className="stat-name">STLPG</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_steals, 1)}
+                </div>
+              </li>
+              <li>
+                <div className="stat-name">TO</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_turnovers, 1)}
+                </div>
+              </li>
+              <li>
+                <div className="stat-name">FPPG</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.fppg, 1)}
+                </div>
+              </li>
+            </ul>
+          </div>
+        );
+
+      case 'nhl':
+      // For NHL goalies:
+        if (player.position === 'G') {
+          return (
+            <div className="player-stats">
+              <ul>
+                <li>
+                  <div className="stat-name">S</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(player.boxScoreHistory.avg_saves, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">A</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(player.boxScoreHistory.avg_assist, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">SOG</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(player.boxScoreHistory.avg_sog, 1)}
+                  </div>
+                </li>
+                <li>
+                  <div className="stat-name">FPPG</div>
+                  <div className="stat-score">
+                    {roundUpToDecimalPlace(player.boxScoreHistory.avg_fp, 1)}
+                  </div>
+                </li>
+              </ul>
             </div>
-          </li>
-          <li>
-            <div className="stat-name">RPG</div>
-            <div className="stat-score">
-              {roundUpToDecimalPlace(player.boxScoreHistory.avg_rebounds, 1)}
-            </div>
-          </li>
-          <li>
-            <div className="stat-name">APG</div>
-            <div className="stat-score">
-              {roundUpToDecimalPlace(player.boxScoreHistory.avg_assists, 1)}
-            </div>
-          </li>
-          <li>
-            <div className="stat-name">STLPG</div>
-            <div className="stat-score">
-              {roundUpToDecimalPlace(player.boxScoreHistory.avg_steals, 1)}
-            </div>
-          </li>
-          <li>
-            <div className="stat-name">TO</div>
-            <div className="stat-score">
-              {roundUpToDecimalPlace(player.boxScoreHistory.avg_turnovers, 1)}
-            </div>
-          </li>
-          <li>
-            <div className="stat-name">FPPG</div>
-            <div className="stat-score">
-              {roundUpToDecimalPlace(player.fppg, 1)}
-            </div>
-          </li>
-        </ul>
-      </div>
-    );
+          );
+        }
+        // For regular NHL Players:
+        return (
+          <div className="player-stats">
+            <ul>
+              <li>
+                <div className="stat-name">G</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_goal, 1)}
+                </div>
+              </li>
+              <li>
+                <div className="stat-name">A</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_assist, 1)}
+                </div>
+              </li>
+              <li>
+                <div className="stat-name">BLK</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_blk, 1)}
+                </div>
+              </li>
+              <li>
+                <div className="stat-name">SOG</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_sog, 1)}
+                </div>
+              </li>
+              <li>
+                <div className="stat-name">FPPG</div>
+                <div className="stat-score">
+                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_fp, 1)}
+                </div>
+              </li>
+            </ul>
+          </div>
+        );
+
+      default:
+        return <div className="player-stats"></div>;
+    }
   },
 
 
