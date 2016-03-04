@@ -41,7 +41,7 @@ class DraftGroupSerializer(AbstractDraftGroupSerializer):
 
     class Meta:
         model = DraftGroup
-        fields = ('pk', 'start', 'end', 'sport', 'players')
+        fields = ('pk', 'start', 'end', 'sport', 'players', 'closed')
 
 class UpcomingDraftGroupSerializer(AbstractDraftGroupSerializer):
 
