@@ -689,7 +689,10 @@ class UserPlayHistoryAPIView(APIView):
             for history_entry in history_entries.filter(lineup=lineup):
                 total_buyins += history_entry.contest.buyin
                 num_entries += 1
-                winnings += payouts.get(entry=history_entry).amount
+                try:
+                    winnings += payouts.get(entry=history_entry).amount
+                except Payout.DoesNotExist:
+                    pass
                 print( possible, 'plus', history_entry.contest.prize_structure.generator.first_place)
                 possible += history_entry.contest.prize_structure.generator.first_place
                 contest_map[ history_entry.contest.pk ] = history_entry.contest

@@ -40,9 +40,10 @@ class DraftGroupAPIView(generics.GenericAPIView):
         """
         given the GET param 'id', get the draft_group
         """
+        draft_group = self.get_object(pk)
         c = caches['default']
         serialized_data = c.get(self.__class__.__name__ + str(pk), None)
-        if serialized_data is None:
+        if serialized_data is None or (draft_group.closed is not None and serialized_data.get('closed', None) is None):
             serialized_data = DraftGroupSerializer( self.get_object(pk), many=False ).data
             c.add( self.__class__.__name__ + str(pk), serialized_data, self.DEFAULT_CACHE_TIMEOUT )
         return Response(serialized_data)
