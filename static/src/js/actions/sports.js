@@ -21,6 +21,12 @@ export const GAME_DURATIONS = {
     gameMinutes: 48,
     players: 8,
   },
+  nhl: {
+    periods: 3,
+    periodMinutes: 20,
+    gameMinutes: 60,
+    players: 8,
+  },
 };
 
 
@@ -73,7 +79,7 @@ const receiveGames = (sport, games) => {
     sport,
     games,
     gameIds,
-    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
+    expiresAt: dateNow() + 1000 * 60 * 2,  // 2 minutes TODO update to 10 minutes once pusher calls have
   };
 };
 
@@ -160,7 +166,7 @@ const fetchGames = (sport) => (dispatch) => {
     _forEach(games, (game, id) => {
       games[id].sport = sport;
 
-      if (game.hasOwnProperty('boxscore')) {
+      if (game.hasOwnProperty('boxscore') && game.boxscore.hasOwnProperty('periods')) {
         games[id].boxscore.timeRemaining = calculateTimeRemaining(sport, game);
       }
     });
@@ -303,15 +309,18 @@ export const updateGame = (gameId, teamId, points) => (dispatch, getState) => {
 
   if (state.sports[game.sport].isFetchingGames === false) {
     // if the boxscore doesn't exist yet, that means we need to update games
-    if (game.hasOwnProperty('boxscore') === false &&
-        state.sports[game.sport].isFetchingGames === false) {
+    if (game.hasOwnProperty('boxscore') === false) {
+      return dispatch(fetchGames(game.sport));
+    }
+
+    // if the boxscore doesn't have periods yet, update the game
+    if (game.boxscore.hasOwnProperty('periods') === false) {
       return dispatch(fetchGames(game.sport));
     }
 
     // if we think the game hasn't started, also update the games
     const upcomingStates = ['scheduled', 'created'];
-    if (game.hasOwnProperty('boxscore') === true &&
-        upcomingStates.indexOf(game.boxscore.status) > -1) {
+    if (upcomingStates.indexOf(game.boxscore.status) > -1) {
       return dispatch(fetchGames(game.sport));
     }
   }
@@ -328,6 +337,61 @@ export const updateGame = (gameId, teamId, points) => (dispatch, getState) => {
     updatedGameFields.away_score = points;
   }
 
+  return dispatch({
+    type: ActionTypes.UPDATE_GAME,
+    gameId,
+    updatedGameFields,
+  });
+};
+
+/**
+ * Update game information based on pusher stream call
+ * @param  {string} gameId  Game SRID
+ * @param  {string} clock   Time remaining in period
+ * @param  {string} quarter Period in play
+ * @return {object}   Changes for reducer, wrapped in a thunk
+ */
+export const updateGameTime = (gameId, clock, quarter) => (dispatch, getState) => {
+  const state = getState();
+  const game = _merge({}, state.sports.games[gameId]);
+
+  // if game does not exist yet, we don't know what sport so just cancel the update and wait for polling call
+  if (state.sports.games.hasOwnProperty(gameId) === false) {
+    return false;
+  }
+
+  if (state.sports[game.sport].isFetchingGames === false) {
+    // if the boxscore doesn't exist yet, that means we need to update games
+    if (game.hasOwnProperty('boxscore') === false) {
+      return dispatch(fetchGames(game.sport));
+    }
+
+    // if the boxscore doesn't have periods yet, update the game
+    if (game.boxscore.hasOwnProperty('periods') === false) {
+      return dispatch(fetchGames(game.sport));
+    }
+
+    // if we think the game hasn't started, also update the games
+    const upcomingStates = ['scheduled', 'created'];
+    if (upcomingStates.indexOf(game.boxscore.status) > -1) {
+      return dispatch(fetchGames(game.sport));
+    }
+  }
+
+  const boxscore = game.boxscore;
+
+  if (boxscore === undefined) {
+    return false;
+  }
+
+  const updatedGameFields = {
+    clock,
+    quarter,
+  };
+
+  // find time remaining through these new fields
+  game.boxscore.clock = clock;
+  game.boxscore.quarter = quarter;
   updatedGameFields.timeRemaining = calculateTimeRemaining(game.sport, game);
 
   return dispatch({

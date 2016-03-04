@@ -39,6 +39,7 @@ import { liveContestsSelector } from '../../selectors/live-contests';
 import { liveSelector } from '../../selectors/live';
 import { sportsSelector } from '../../selectors/sports';
 import { updateGame } from '../../actions/sports';
+import { updateGameTime } from '../../actions/sports';
 import { updateLiveMode } from '../../actions/live';
 import { updatePlayerStats } from '../../actions/live-draft-groups';
 
@@ -123,8 +124,31 @@ const Live = React.createClass({
    *
    * @param  {object} eventCall The received event from Pusher
    */
-  onBoxscoreReceived(eventCall) {
-    log.debug('Live.onBoxscoreReceived()');
+  onBoxscoreGameReceived(eventCall) {
+    log.debug('Live.onBoxscoreGameReceived()');
+    const gameId = eventCall.id;
+
+    // return if basic checks fail
+    if (this.isPusherEventRelevant(eventCall, gameId) === false) {
+      return;
+    }
+
+    // if the event didn't involve points, then don't bother bc that's all we deal with
+    if (eventCall.hasOwnProperty('clock') === false) {
+      log.debug('Live.onBoxscoreGameReceived() - call had no points', eventCall);
+      return;
+    }
+
+    this.addEventAndStartQueue(eventCall.id, eventCall, 'boxscore-game');
+  },
+
+  /*
+   * When we receive a Pusher stats call, make sure it's related to our games, and if so send to the appropriate queue
+   *
+   * @param  {object} eventCall The received event from Pusher
+   */
+  onBoxscoreTeamReceived(eventCall) {
+    log.debug('Live.onBoxscoreTeamReceived()');
     const gameId = eventCall.game__id;
 
     // current bug where player stats are being passed through in boxscore feed
@@ -140,11 +164,11 @@ const Live = React.createClass({
 
     // if the event didn't involve points, then don't bother bc that's all we deal with
     if (eventCall.hasOwnProperty('points') === false) {
-      log.debug('Live.onBoxscoreReceived() - call had no points', eventCall);
+      log.debug('Live.onBoxscoreTeamReceived() - call had no points', eventCall);
       return;
     }
 
-    this.addEventAndStartQueue(eventCall.game__id, eventCall, 'boxscore');
+    this.addEventAndStartQueue(eventCall.game__id, eventCall, 'boxscore-team');
   },
 
   /*
@@ -306,7 +330,8 @@ const Live = React.createClass({
     nbaStatsChannel.bind('player', this.onStatsReceived);
 
     const boxscoresChannel = pusher.subscribe(`${channelPrefix}boxscores`);
-    boxscoresChannel.bind('team', this.onBoxscoreReceived);
+    boxscoresChannel.bind('team', this.onBoxscoreTeamReceived);
+    boxscoresChannel.bind('game', this.onBoxscoreGameReceived);
   },
 
   /*
@@ -331,7 +356,7 @@ const Live = React.createClass({
 
     // if we haven't received from the server that the game has started, then ask the server for an update!
     if (games[gameId].hasOwnProperty('boxscore') === false) {
-      log.trace('Live.onBoxscoreReceived() - related game had no boxscore from server', eventCall);
+      log.trace('Live.isPusherEventRelevant() - related game had no boxscore from server', eventCall);
 
       // by passing in a sport, you force
       this.props.dispatch(fetchSportIfNeeded('nba', true));
@@ -391,8 +416,22 @@ const Live = React.createClass({
         this.showGameEvent(eventCall);
         break;
 
-      // if boxscore, then update the boxscore data
-      case 'boxscore':
+      // if boxscore game, then update the clock/quarter
+      case 'boxscore-game':
+        log.info('Live.shiftOldestGameEvent().updateGame()', eventCall);
+
+        this.props.dispatch(updateGameTime(
+          eventCall.id,
+          eventCall.clock,
+          eventCall.quarter
+        ));
+
+        // then move on to the next
+        this.shiftOldestGameEvent(gameId);
+        break;
+
+      // if boxscore team, then update the team points
+      case 'boxscore-team':
         log.info('Live.shiftOldestGameEvent().updateGame()', eventCall);
 
         this.props.dispatch(updateGame(
