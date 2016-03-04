@@ -168,15 +168,15 @@ def syncdb():
     if 'no_backup' not in env:
         _puts('Capturing new production backup')
         operations.local(
-            # 'heroku pg:backups capture --app %s' % ENVS['production']['heroku_repo']
-            'heroku pg:backups capture --app draftboard-dev'
+            'heroku pg:backups capture --app %s' % ENVS['production']['heroku_repo']
+            #'heroku pg:backups capture --app draftboard-dev'
         )
 
         # pull down db to local
         if env.environment == 'local':
             _puts('Pull latest production down to local')
-            #operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app draftboard-staging`')
-            operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app draftboard-dev`')
+            operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app draftboard-staging`')
+            #operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app draftboard-dev`')
 
     # restore locally
     if (env.environment == 'local'):
