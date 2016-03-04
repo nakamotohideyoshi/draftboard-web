@@ -230,7 +230,7 @@ class FppgGenerator(object):
 
 class SalaryGenerator(FppgGenerator):
     """
-    This class is responsible for generating the salaries for a given sport.
+    This class is responsible for generating the salaries for a given sport.=
     """
 
     def __init__(self, player_stats_classes, pool):
@@ -254,7 +254,8 @@ class SalaryGenerator(FppgGenerator):
         self.pool = pool
         self.salary_conf = pool.salary_config
         self.site_sport = pool.site_sport
-
+        self.site_sport_manager = SiteSportManager()
+        self.regular_season_games = None
 
     def generate_salaries(self):
         """
@@ -262,7 +263,10 @@ class SalaryGenerator(FppgGenerator):
         :return:
         """
         #
-        # Get all the players
+        # get the regular season games, and all the players
+        game_class = self.site_sport_manager.get_game_class(self.site_sport)
+        self.regular_season_games = game_class.objects.filter( season__season_type='reg' )
+
         players = self.helper_get_player_stats()
 
         #
@@ -285,6 +289,32 @@ class SalaryGenerator(FppgGenerator):
         # Calculate the salaries for each player based on
         # the mean of weighted score of their position
         self.helper_update_salaries(players, position_average_list,sum_average_points)
+
+    def helper_get_player_stats(self):
+        """
+        For each player in the PlayerStats table, get the games
+        that are relevant.
+
+        :param player_stats_objects: default: None. overrides the PlayerStats objects used
+        :return a list of SalaryPlayerObjects
+
+        """
+
+        print( 'self.player_stats_classes', str(self.player_stats_classes))
+
+        #
+        #
+        players = []
+        for player_stats_class in self.player_stats_classes:
+            #
+            # iterate through all player_stats ever
+            reg_season_game_pks = [ g.pk for g in self.regular_season_games ]
+            all_player_stats = player_stats_class.objects.filter(fantasy_points__gt=0,
+                                                        game_id__in=reg_season_game_pks)
+
+            players.extend(self.get_salary_player_stats_objects(all_player_stats))
+
+        return players
 
     def helper_get_average_score_per_position(self, players):
 
@@ -357,8 +387,8 @@ class SalaryGenerator(FppgGenerator):
             player.fantasy_weighted_average = 0
 
             # if not a lot of games played
-            if number_of_games <= self.salary_conf.min_games_flag:
-                #print('less than the required games: %s for %s' % (str(number_of_games), str(player)))
+            if number_of_games < self.salary_conf.min_games_flag:
+                print('less than the required games: %s for %s' % (str(number_of_games), str(player)))
                 # if player has played in 0 thru the min_games_flag,
                 # dont use weights, and just average the points they do have
                 # and flag them.
@@ -370,12 +400,12 @@ class SalaryGenerator(FppgGenerator):
 
             # else: if more than the min-required-games-played have been played
             else:
-                #print('met required games')
+                print('MET required games: %s for %s' % (str(number_of_games), str(player)))
                 # check to makes sure the most recent game played has been less than
                 # days_since_last_game_flag days ago
                 delta = timezone.now() - player.player_stats_list[0].start
                 if delta.days > self.salary_conf.days_since_last_game_flag:
-                    #print('days since last game: %s -- last game %s' % (str(delta.days), str(player.player_stats_list[0].start)))
+                    print('days since last game: %s -- last game %s' % (str(delta.days), str(player.player_stats_list[0].start)))
                     player.flagged= True
 
                 #

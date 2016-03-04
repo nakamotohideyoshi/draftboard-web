@@ -166,12 +166,8 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
         total += self.blocks(player_stats.blocks)
         total += self.turnovers(player_stats.turnovers)
 
-        #
-        # to determined a dbl-dbl or triple-dbl, we have to pass the whole object
-        if self.get_tpl_dbl(player_stats):
-            total += self.triple_double( self.get_tpl_dbl(player_stats) )
-        else:
-            total += self.double_double( self.get_dbl_dbl(player_stats) )
+        total += self.triple_double( self.get_tpl_dbl(player_stats) ) # you can get the triple dbl
+        total += self.double_double( self.get_dbl_dbl(player_stats) ) # as well as the dbl dbl bonus .. they stack
         return total
 
     def points(self, value):
@@ -215,7 +211,7 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
     # the list with at least a value of 10:
     #           [points, rebs, asts, blks, steals]
     def get_dbl_dbl(self, player_stats):
-        return int(self.__double_digits_count(player_stats) == 2)
+        return int(self.__double_digits_count(player_stats) >= 2)
 
     # return int(1) if player_stats have a triple double.
     # a triple double is THREE or more categories from
