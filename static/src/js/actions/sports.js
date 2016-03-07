@@ -135,15 +135,22 @@ const calculateTimeRemaining = (sport, game) => {
     return 0;
   }
 
-  const currentQuarter = boxScore.quarter;
+  const currentPeriod = boxScore.quarter;
   const clockMinSec = boxScore.clock.split(':');
 
   // determine remaining minutes based on quarters
-  const remainingQuarters = (currentQuarter > sportDurations.periods) ? 0 : sportDurations.periods - currentQuarter;
-  const remainingMinutes = remainingQuarters * 12;
+  const remainingPeriods = (currentPeriod > sportDurations.periods) ? 0 : sportDurations.periods - currentPeriod;
+  const remainingMinutes = remainingPeriods * 12;
+
+  const periodMinutesRemaining = parseInt(clockMinSec[0], 10);
+
+  // if less than a minute left, then add one minute
+  if (periodMinutesRemaining === 0 && parseInt(clockMinSec[1], 10) !== 0) {
+    return remainingMinutes + 1;
+  }
 
   // round up to the nearest minute
-  return remainingMinutes + parseInt(clockMinSec[0], 10) + 1;
+  return remainingMinutes + periodMinutesRemaining;
 };
 
 /**
@@ -166,7 +173,7 @@ const fetchGames = (sport) => (dispatch) => {
     _forEach(games, (game, id) => {
       games[id].sport = sport;
 
-      if (game.hasOwnProperty('boxscore') && game.boxscore.hasOwnProperty('periods')) {
+      if (game.hasOwnProperty('boxscore')) {
         games[id].boxscore.timeRemaining = calculateTimeRemaining(sport, game);
       }
     });

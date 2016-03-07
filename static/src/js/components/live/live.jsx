@@ -346,6 +346,11 @@ const Live = React.createClass({
       return false;
     }
 
+    if (this.props.liveSelector.draftGroupStarted === false) {
+      log.trace('Live.isPusherEventRelevant() - in countdown mode', eventCall);
+      return false;
+    }
+
     const games = this.props.sportsSelector.games;
 
     // check that the game is relevant
