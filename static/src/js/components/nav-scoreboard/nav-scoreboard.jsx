@@ -16,7 +16,8 @@ import { liveSelector } from '../../selectors/live';
 import { removeUnusedContests } from '../../actions/live-contests';
 import { removeUnusedDraftGroups } from '../../actions/live-draft-groups';
 import { sportsSelector } from '../../selectors/sports';
-import { updateGame } from '../../actions/sports';
+import { updateGameTeam } from '../../actions/sports';
+import { updateGameTime } from '../../actions/sports';
 
 import NavScoreboardFilters from './nav-scoreboard-filters';
 import NavScoreboardGamesList from './nav-scoreboard-games-list';
@@ -188,10 +189,21 @@ const NavScoreboard = React.createClass({
       if (this.props.sportsSelector.games.hasOwnProperty(eventData.game__id) &&
           eventData.hasOwnProperty('points')
       ) {
-        this.props.dispatch(updateGame(
+        this.props.dispatch(updateGameTeam(
           eventData.game__id,
           eventData.id,
           eventData.points
+        ));
+      }
+    });
+    boxscoresChannel.bind('game', (eventData) => {
+      if (this.props.sportsSelector.games.hasOwnProperty(eventData.id) &&
+          eventData.hasOwnProperty('clock')
+      ) {
+        this.props.dispatch(updateGameTime(
+          eventData.id,
+          eventData.clock,
+          eventData.quarter
         ));
       }
     });

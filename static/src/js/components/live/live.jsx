@@ -38,7 +38,7 @@ import { fetchSportIfNeeded } from '../../actions/sports';
 import { liveContestsSelector } from '../../selectors/live-contests';
 import { liveSelector } from '../../selectors/live';
 import { sportsSelector } from '../../selectors/sports';
-import { updateGame } from '../../actions/sports';
+import { updateGameTeam } from '../../actions/sports';
 import { updateGameTime } from '../../actions/sports';
 import { updateLiveMode } from '../../actions/live';
 import { updatePlayerStats } from '../../actions/live-draft-groups';
@@ -423,7 +423,7 @@ const Live = React.createClass({
 
       // if boxscore game, then update the clock/quarter
       case 'boxscore-game':
-        log.info('Live.shiftOldestGameEvent().updateGame()', eventCall);
+        log.info('Live.shiftOldestGameEvent().updateGameTime()', eventCall);
 
         this.props.dispatch(updateGameTime(
           eventCall.id,
@@ -437,9 +437,9 @@ const Live = React.createClass({
 
       // if boxscore team, then update the team points
       case 'boxscore-team':
-        log.info('Live.shiftOldestGameEvent().updateGame()', eventCall);
+        log.info('Live.shiftOldestGameEvent().updateGameTeam()', eventCall);
 
-        this.props.dispatch(updateGame(
+        this.props.dispatch(updateGameTeam(
           eventCall.game__id,
           eventCall.id,
           eventCall.points
