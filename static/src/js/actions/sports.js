@@ -304,7 +304,7 @@ export const fetchSportsIfNeeded = () => (dispatch, getState) => {
  * @param  {number} points  Number of points to set to the game
  * @return {object}   Changes for reducer, wrapped in a thunk
  */
-export const updateGame = (gameId, teamId, points) => (dispatch, getState) => {
+export const updateGameTeam = (gameId, teamId, points) => (dispatch, getState) => {
   const state = getState();
   const game = state.sports.games[gameId];
   const updatedGameFields = {};
@@ -320,8 +320,8 @@ export const updateGame = (gameId, teamId, points) => (dispatch, getState) => {
       return dispatch(fetchGames(game.sport));
     }
 
-    // if the boxscore doesn't have periods yet, update the game
-    if (game.boxscore.hasOwnProperty('periods') === false) {
+    // if the boxscore doesn't have quarters yet, update the game
+    if (game.boxscore.hasOwnProperty('quarter') === false) {
       return dispatch(fetchGames(game.sport));
     }
 
@@ -373,8 +373,8 @@ export const updateGameTime = (gameId, clock, quarter) => (dispatch, getState) =
       return dispatch(fetchGames(game.sport));
     }
 
-    // if the boxscore doesn't have periods yet, update the game
-    if (game.boxscore.hasOwnProperty('periods') === false) {
+    // if the boxscore doesn't have quarter yet, update the game
+    if (game.boxscore.hasOwnProperty('quarter') === false) {
       return dispatch(fetchGames(game.sport));
     }
 
