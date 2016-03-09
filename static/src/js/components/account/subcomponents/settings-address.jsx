@@ -67,8 +67,8 @@ const SettingsAddress = React.createClass({
         <div className="form-field__content">
           <p className="form-field__static-content">
             { this.props.info.fullname }<br/>
-          { this.props.info.address1 } { this.props.info.address2 }<br/>
-          { this.props.info.city }, { this.props.info.state } { this.props.info.zipcode }<br />
+            { this.props.info.address1 } { this.props.info.address2 }<br/>
+            { this.props.info.city }, { this.props.info.state } { this.props.info.zipcode }<br />
             <a href="#" onClick={this.setEditMode}>Edit</a>
           </p>
         </div>
