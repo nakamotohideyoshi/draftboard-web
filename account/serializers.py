@@ -24,12 +24,15 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ("username", "email", "password")
 
+class UserSerializerNoPassword(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('email',)
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("email", "password")
-
 
 class InformationSerializer(serializers.ModelSerializer):
     class Meta:
