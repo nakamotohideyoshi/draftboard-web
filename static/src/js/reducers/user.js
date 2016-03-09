@@ -26,6 +26,7 @@ module.exports = (state = initialState, action) => {
         info: action.body,
       });
 
+
     case ActionTypes.UPDATE_USER_INFO_SUCCESS:
       // TODO: update user with the response
       return _merge({}, state, {
