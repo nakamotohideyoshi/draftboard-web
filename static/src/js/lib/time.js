@@ -1,7 +1,9 @@
+import log from './logging.js';
+
+
 /**
  * This module contains some time related utility functions.
  */
-'use strict';
 
 /**
  * Returns a list of Date objects. Each object represents a day
@@ -129,9 +131,13 @@ export function daysToWeekView(days) {
  * MM [-] DD [-] YYYY
  */
 export function stringifyDate(date, delimiter) {
-  const day = date.getDate();
-  const month = date.getMonth() + 1;
-  const year = date.getFullYear();
+  if (date && delimiter) {
+    const day = date.getDate();
+    const month = date.getMonth() + 1;
+    const year = date.getFullYear();
+    return month + delimiter + day + delimiter + year
+  }
 
-  return month + delimiter + day + delimiter + year
+  log.warn('Missing date or delimiter parameter');
+  return
 }

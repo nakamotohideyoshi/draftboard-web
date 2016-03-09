@@ -81,28 +81,42 @@ class FrontendLobbyTemplateView(TemplateView):
 
 class FrontendSettingsTemplateView(LoginRequiredMixin, TemplateView):
     """
-    Build out of settings page. Coderden should take this and incorporate into their backend.
+    Account settings page
     """
-    template_name = 'frontend/settings.html'
-
-
-class FrontendResultsTemplateView(LoginRequiredMixin, TemplateView):
-    template_name = 'frontend/results.html'
-
-
-class FrontendSettingsDepositsTemplateView(LoginRequiredMixin, TemplateView):
-    template_name = 'frontend/settings/deposits.html'
+    template_name = 'frontend/account/partials/settings.html'
 
 
 class FrontendSettingsTransactionHistoryTemplateView(LoginRequiredMixin, TemplateView):
-    template_name = 'frontend/settings/transactions.html'
+    """
+    Account transaction history page
+    """
+    template_name = 'frontend/account/partials/transactions.html'
 
 
-class FrontendSettingsWithdrawsTemplateView(LoginRequiredMixin, TemplateView):
+class FrontendSettingsDepositsTemplateView(LoginRequiredMixin, TemplateView):
     """
-    Build out of settings page. Coderden should take this and incorporate into their backend.
+    Account deposits page
     """
-    template_name = 'frontend/settings/withdraws.html'
+    template_name = 'frontend/account/partials/deposits.html'
+
+
+class FrontendSettingsWithdrawTemplateView(LoginRequiredMixin, TemplateView):
+    """
+    Account Withdrawals page.
+    """
+    template_name = 'frontend/account/partials/withdraw.html'
+
+
+class FrontendResultsTemplateView(LoginRequiredMixin, TemplateView):
+    """
+    Contest results page
+    """
+    template_name = 'frontend/results.html'
+
+
+
+
+
 
 
 class FrontendDraftTemplateView(LoginRequiredMixin, TemplateView):

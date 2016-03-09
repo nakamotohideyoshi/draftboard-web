@@ -1,8 +1,5 @@
-'use strict';
-
 import React from 'react';
-
-const ModalRemovePaymentMethod = require('./modal-remove-payment-method.jsx');
+import ModalRemovePaymentMethod from './modal-remove-payment-method.jsx';
 
 
 const DepositsPaymentsRow = React.createClass({
@@ -10,7 +7,7 @@ const DepositsPaymentsRow = React.createClass({
   propTypes: {
     method: React.PropTypes.object.isRequired,
     onSetDefault: React.PropTypes.func.isRequired,
-    onRemovePaymentMethod: React.PropTypes.func.isRequired
+    onRemovePaymentMethod: React.PropTypes.func.isRequired,
   },
 
   openModal(event) {
@@ -30,7 +27,7 @@ const DepositsPaymentsRow = React.createClass({
 
   render() {
     // select the proper icon for this payment method (visa / mastercard / american express etc.)
-    const iconClass = "creditcard-icon__"  + this.props.method.type;
+    const iconClass = `creditcard-icon__${this.props.method.type}`;
 
     return (
         <li>
@@ -41,7 +38,11 @@ const DepositsPaymentsRow = React.createClass({
             '(default)'
           }
           { !this.props.method.isDefault &&
-            <a href="#" onClick={this.handleSetDefault} className='setdefault__creditcard'>Set as Default</a>
+            <a
+              href="#"
+              onClick={this.handleSetDefault}
+              className="setdefault__creditcard"
+            >Set as Default</a>
           }
           </p>
 
@@ -49,11 +50,12 @@ const DepositsPaymentsRow = React.createClass({
             <a href="#" className="remove__creditcard" onClick={this.openModal}></a>
             <ModalRemovePaymentMethod
               ref="removePaymentMethodModal"
-              onConfirm={this.handleRemovePaymentMethod} />
+              onConfirm={this.handleRemovePaymentMethod}
+            />
           </span>
         </li>
     );
-  }
+  },
 });
 
 
