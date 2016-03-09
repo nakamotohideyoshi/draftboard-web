@@ -2,12 +2,11 @@ from rest_framework import serializers
 from django.contrib.auth.models import User
 from account.models import Information, EmailNotification, UserEmailNotification
 
-class UserSerializer(serializers.ModelSerializer):
 
+class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     def create(self, validated_data):
-
         user = User.objects.create(
             username=validated_data['username']
         )
@@ -18,6 +17,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
+
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,21 +47,20 @@ class EmailNotificationSerializer(serializers.ModelSerializer):
 
 
 class UserEmailNotificationSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = UserEmailNotification
         fields = ("email_notification", "enabled")
 
-class LoginSerializer(serializers.Serializer):
 
+class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(style={'input_type': 'password'})
 
-class ForgotPasswordSerializer(serializers.Serializer):
 
+class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
-class PasswordResetSerializer(serializers.Serializer):
 
+class PasswordResetSerializer(serializers.Serializer):
     uid = serializers.CharField()
     token = serializers.CharField()

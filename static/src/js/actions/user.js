@@ -5,46 +5,48 @@ import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
 
 
-function fetchUserSuccess(body) {
+function fetchUserInfoSuccess(body) {
   return {
-    type: types.FETCH_USER_SUCCESS,
+    type: types.FETCH_USER_INFO_SUCCESS,
     body,
   };
 }
 
-
-function fetchUserFail(ex) {
+function fetchUserInfoFail(ex) {
   return {
-    type: types.FETCH_USER_FAIL,
+    type: types.FETCH_USER_INFO_FAIL,
     ex,
   };
 }
 
-
-export function fetchUser() {
+export function fetchUserInfo() {
   return (dispatch) => {
     request
-      .get('/account/api/account/user/')
-      .set({ 'X-REQUESTED-WITH': 'XMLHttpRequest' })
-      .set('Accept', 'application/json')
+      .get('/api/account/information/')
+      .set({
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        Accept: 'application/json',
+      })
       .end((err, res) => {
         if (err) {
-          return dispatch(fetchUserFail(err));
+          return dispatch(fetchUserInfoFail(err));
         }
 
-        return dispatch(fetchUserSuccess(res.body));
+        return dispatch(fetchUserInfoSuccess(res.body));
       });
   };
 }
 
 
+/**
+ * Update user information -  address, DOB, name.
+ */
 function updateUserInfoSuccess(body) {
   return {
     type: types.UPDATE_USER_INFO_SUCCESS,
     body,
   };
 }
-
 
 function updateUserInfoFail(ex) {
   return {
@@ -53,11 +55,10 @@ function updateUserInfoFail(ex) {
   };
 }
 
-
 export function updateUserInfo(postData = {}) {
   return (dispatch) => {
     request
-    .post('/account/api/account/user/')
+    .post('/api/account/information/')
     .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
     .send(postData)
     .end((err, res) => {
@@ -71,35 +72,75 @@ export function updateUserInfo(postData = {}) {
 }
 
 
-function updateUserAddressSuccess(body) {
+/**
+ * Update user email + password.
+ */
+function updateUserEmailPassSuccess(body) {
   return {
-    type: types.UPDATE_USER_ADDRESS_SUCCESS,
+    type: types.UPDATE_USER_EMAIL_PASS_SUCCESS,
     body,
   };
 }
 
-
-function updateUserAddressFail(ex) {
+function updateUserEmailPassFail(body) {
   return {
-    type: types.UPDATE_USER_ADDRESS_FAIL,
-    ex,
+    type: types.UPDATE_USER_EMAIL_PASS_FAIL,
+    body,
   };
 }
 
+/**
+ * Do some basic client-side validation - the important stuff should be done
+ * on the server.
+ */
+function validateUserEmailPass(data) {
+  const errors = {};
 
-export function updateUserAddress(postData = {}) {
+  if (data.password !== data.passwordConfirm) {
+    errors.password = {
+      title: 'Passwords',
+      description: 'Passwords do not match',
+    };
+  }
+
+  if (data.email === '') {
+    errors.email = {
+      title: 'Email Address',
+      description: 'Email cannot be empty',
+    };
+  }
+
+  return errors;
+}
+
+export function updateUserEmailPass(formData = {}) {
   return (dispatch) => {
-    request
-      .post('/account/api/account/information/')
-      .send(postData)
-      .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
-      .end((err, res) => {
-        if (err) {
-          return dispatch(updateUserAddressFail(err));
-        }
+    const postData = formData;
+    // Check data for errors.
+    const errors = validateUserEmailPass(postData);
+    // if we have errors, pass them back to the component via props.
+    if (Object.keys(errors).length) {
+      return dispatch(updateUserEmailPassFail({ errors }));
+    }
 
-        return dispatch(updateUserAddressSuccess(res.body));
-      });
+    // If no new password was entered, don't send it to the server.
+    if (postData.password === '') {
+      delete postData.password;
+      delete postData.passwordConfirm;
+    }
+
+    // If we don't have any errors, send the request to the server.
+    request
+    .post('/api/account/settings/')
+    .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
+    .send(postData)
+    .end((err, res) => {
+      if (err) {
+        return dispatch(updateUserEmailPassFail(err));
+      }
+
+      return dispatch(updateUserEmailPassSuccess(res.body));
+    });
   };
 }
 
@@ -107,7 +148,6 @@ export function updateUserAddress(postData = {}) {
 /**
  * User cash balance actions.
  */
-
 function fetchingCashBalance() {
   return {
     type: types.FETCHING_CASH_BALANCE,
