@@ -300,40 +300,6 @@ class UserEmailNotificationAPIView (generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserInformationAPI(APIView):
-
-    renderer_classes = (JSONRenderer, )
-
-    def get(self, request, *args, **kwargs):
-        return Response({
-            'name': 'Lookma Noname',
-            'address1': 'Some address or should it',
-            'address2': 'Be connected with specific payment method',
-            'city': 'Denver',
-            'state': 'Colorado',
-            'stateShort': 'CO',
-            'zipcode': '4000'
-        })
-
-    def post(self, request, *args, **kwargs):
-        import random
-        errors = random.choice([0, 1, 2, 3])
-
-        if errors == 0:
-            return Response(status=200)
-
-        return Response(
-            status=409,
-            data={'errors': {
-                'name': {
-                    'title': 'Name you have..not.',
-                    'description': """You must provide us with your name. It
-                        is probably not that unique so no need to hide!"""
-                }
-            }
-            })
-
-
 class WithdrawAPI(APIView):
 
     renderer_classes = (JSONRenderer, )

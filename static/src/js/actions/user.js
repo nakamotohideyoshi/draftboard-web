@@ -82,10 +82,10 @@ function updateUserEmailPassSuccess(body) {
   };
 }
 
-function updateUserEmailPassFail(ex) {
+function updateUserEmailPassFail(body) {
   return {
     type: types.UPDATE_USER_EMAIL_PASS_FAIL,
-    ex,
+    body,
   };
 }
 
@@ -113,17 +113,25 @@ function validateUserEmailPass(data) {
   return errors;
 }
 
-export function updateUserEmailPass(postData = {}) {
+export function updateUserEmailPass(formData = {}) {
   return (dispatch) => {
+    const postData = formData;
     // Check data for errors.
     const errors = validateUserEmailPass(postData);
     // if we have errors, pass them back to the component via props.
-    if (errors.length) {
-      return dispatch(updateUserEmailPassFail(errors));
+    if (Object.keys(errors).length) {
+      return dispatch(updateUserEmailPassFail({ errors }));
     }
+
+    // If no new password was entered, don't send it to the server.
+    if (postData.password === '') {
+      delete postData.password;
+      delete postData.passwordConfirm;
+    }
+
     // If we don't have any errors, send the request to the server.
     request
-    .post('/api/account/information/')
+    .post('/api/account/settings/')
     .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
     .send(postData)
     .end((err, res) => {

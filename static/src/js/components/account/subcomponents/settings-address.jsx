@@ -6,7 +6,7 @@ import { forEach as _forEach } from 'lodash';
 const SettingsAddress = React.createClass({
 
   propTypes: {
-    user: React.PropTypes.object.isRequired,
+    info: React.PropTypes.object.isRequired,
     errors: React.PropTypes.object.isRequired,
     onHandleSubmit: React.PropTypes.func.isRequired,
   },
@@ -14,7 +14,7 @@ const SettingsAddress = React.createClass({
   getInitialState() {
     return {
       editMode: false,
-      user: this.props.user,
+      info: this.props.info,
     };
   },
 
@@ -29,9 +29,10 @@ const SettingsAddress = React.createClass({
     }
 
     // Update user info.
-    if (!Object.keys(this.state.user).length) {
-      this.setState({ user: nextProps.user });
-    }
+    this.setState({ info: nextProps.info });
+    // if (!Object.keys(this.state.info).length) {
+    //   this.setState({ info: nextProps.info });
+    // }
   },
 
   setEditMode(event) {
@@ -65,9 +66,9 @@ const SettingsAddress = React.createClass({
         <label className="form-field__label">Billing Address</label>
         <div className="form-field__content">
           <p className="form-field__static-content">
-            { this.props.user.fullname }<br/>
-            { this.props.user.address1 } { this.props.user.address2 }<br/>
-          { this.props.user.city }, { this.props.user.state } { this.props.user.zipcode }<br />
+            { this.props.info.fullname }<br/>
+          { this.props.info.address1 } { this.props.info.address2 }<br/>
+          { this.props.info.city }, { this.props.info.state } { this.props.info.zipcode }<br />
             <a href="#" onClick={this.setEditMode}>Edit</a>
           </p>
         </div>
@@ -107,7 +108,7 @@ const SettingsAddress = React.createClass({
             type="text"
             id="name"
             name="fullname.name"
-            defaultValue={this.state.user.fullname}
+            defaultValue={this.state.info.fullname}
           />
 
         {this.renderErrors(this.props.errors.fullname)}
@@ -121,7 +122,7 @@ const SettingsAddress = React.createClass({
             type="text"
             id="address1"
             name="address1"
-            defaultValue={this.state.user.address1}
+            defaultValue={this.state.info.address1}
           />
 
         {this.renderErrors(this.props.errors.address1)}
@@ -135,7 +136,7 @@ const SettingsAddress = React.createClass({
             type="text"
             id="address2"
             name="address2"
-            defaultValue={this.state.user.address2}
+            defaultValue={this.state.info.address2}
           />
         </div>
 
@@ -147,7 +148,7 @@ const SettingsAddress = React.createClass({
             type="text"
             id="city"
             name="city"
-            defaultValue={this.state.user.city}
+            defaultValue={this.state.info.city}
           />
 
         {this.renderErrors(this.props.errors.city)}
@@ -160,7 +161,7 @@ const SettingsAddress = React.createClass({
             className="form-field__select"
             id="state"
             name="state"
-            defaultValue={this.state.user.state}
+            defaultValue={this.state.info.state}
           >
             <option value="AL">Alabama</option>
             <option value="AK">Alaska</option>
@@ -226,7 +227,7 @@ const SettingsAddress = React.createClass({
             type="text"
             id="zipcode"
             name="zipcode"
-            defaultValue={this.state.user.zipcode}
+            defaultValue={this.state.info.zipcode}
           />
 
         {this.renderErrors(this.props.errors.zipcode)}
