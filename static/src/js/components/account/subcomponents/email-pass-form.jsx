@@ -78,17 +78,17 @@ const EmailPasssForm = React.createClass({
     let emailClasses = 'email' in this.props.errors ? 'form-field--error ' : '';
     emailClasses += 'form-field';
 
-    let passwordClasses = 'password' in this.props.errors ? 'form-field--error' : '';
+    let passwordClasses = 'password' in this.props.errors ? 'form-field--error ' : '';
     passwordClasses += 'form-field';
 
     return (
       <form id="base-settings" className="form" method="post" onSubmit={this.handleSubmit}>
         <fieldset className="form__fieldset">
-        <input type="hidden" name="username" defaultValue={ this.props.user.username } />
+        <input type="hidden" name="username" defaultValue={ this.props.username } />
 
         <div className="form-field">
           <label className="form-field__label" htmlFor="username">Username</label>
-          <div className="username-display">{ this.props.user.username }</div>
+          <div className="username-display">{ this.props.username }</div>
         </div>
 
         <div className={emailClasses}>
@@ -105,7 +105,6 @@ const EmailPasssForm = React.createClass({
 
           { 'email' in this.props.errors &&
             <div className="form-field-message form-field-message--error form-field-message--settings">
-              <h6 className="form-field-message__title">{ this.props.errors.email.title }</h6>
               <p className="form-field-message__description">{ this.props.errors.email.description }</p>
             </div>
           }
@@ -124,8 +123,7 @@ const EmailPasssForm = React.createClass({
 
           { 'password' in this.props.errors &&
             <div className="form-field-message form-field-message--error form-field-message--settings">
-              <h6 className="form-field-message__title">{ this.props.errors.password.title }</h6>
-              <p className="form-field-message__description">{ this.props.errors.password.message }</p>
+              <p className="form-field-message__description">{ this.props.errors.password.description }</p>
             </div>
           }
           </div>

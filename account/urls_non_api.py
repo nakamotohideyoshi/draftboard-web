@@ -9,7 +9,7 @@ from account.views import (
 
     # Dummy API endpoints TO BE REMOVED
     # UserBasicAPI,
-    UserInformationAPI,
+    # UserInformationAPI,
     WithdrawAPI,
     DepositAPI,
     PaymentsAPI,
@@ -30,7 +30,7 @@ urlpatterns = [
 
     # THE FOLLOWING ARE TO BE REMOVED
     # url(r'^account/api/account/user/$', UserBasicAPI.as_view()),
-    url(r'^account/api/account/information/$', UserInformationAPI.as_view()),
+    # url(r'^account/api/account/information/$', UserInformationAPI.as_view()),
     url(r'^account/api/account/payments/$', PaymentsAPI.as_view()),
     url(r'^account/api/account/payments/add/$', AddPaymentMethodAPI.as_view()),
     url(r'^account/api/account/payments/deposit/$', DepositAPI.as_view()),

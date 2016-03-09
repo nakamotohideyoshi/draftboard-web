@@ -26,10 +26,10 @@ module.exports = (state = initialState, action) => {
         info: action.body,
       });
 
-
     case ActionTypes.UPDATE_USER_INFO_SUCCESS:
       // TODO: update user with the response
       return _merge({}, state, {
+        info: action.body,
         infoFormErrors: {},
       });
 
@@ -39,15 +39,10 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.UPDATE_USER_ADDRESS_SUCCESS:
-      // TODO: update user with the response
+    // Email Pass
+    case ActionTypes.UPDATE_USER_EMAIL_PASS_FAIL:
       return _merge({}, state, {
-        addressFormErrors: {},
-      });
-
-    case ActionTypes.UPDATE_USER_ADDRESS_FAIL:
-      return _merge({}, state, {
-        addressFormErrors: action.ex.response.body.errors,
+        emailPassFormErrors: action.body.errors,
       });
 
 

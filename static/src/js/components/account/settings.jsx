@@ -63,7 +63,7 @@ const Settings = React.createClass({
         <legend className="form__legend">User Profile</legend>
 
         <SettingsAddress
-          user={this.props.user}
+          info={this.props.user}
           errors={this.props.infoFormErrors}
           onHandleSubmit={this.props.updateUserInfo}
         />
