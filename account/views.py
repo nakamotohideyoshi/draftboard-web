@@ -21,6 +21,7 @@ from account.serializers import (
     PasswordResetSerializer,
     RegisterUserSerializer,
     UserSerializer,
+    UserSerializerNoPassword,
     InformationSerializer,
     UserEmailNotificationSerializer,
     EmailNotificationSerializer
@@ -173,7 +174,7 @@ class UserAPIView(generics.GenericAPIView):
             if(data.get('password')):
                 user.set_password(data.get('password'))
             user.save()
-            return Response(serializer.data)
+            return Response(UserSerializerNoPassword(user).data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -189,6 +190,7 @@ class InformationAPIView (generics.GenericAPIView):
 
     def get_object(self):
         user = self.request.user
+
         try:
             info = Information.objects.get(user=user)
         except Information.DoesNotExist:
