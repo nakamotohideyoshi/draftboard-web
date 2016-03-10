@@ -227,6 +227,17 @@ class PlayerStats(DataDenPlayerStats):
         #         'three_points_pct': 0.0
         self.ps.three_points_pct = o.get('three_points_pct', 0.0)
 
+        # minutes will be in the form '20:13'   (20 minutes, 13 seconds)
+        minutes_val = o.get('minutes', None)
+        if not isinstance( minutes_val, str ):
+            # its not a string, set default value of 0
+            self.ps.minutes = 0.0
+        else:
+            # parse the string
+            parts = minutes_val.split(':')
+            if len(parts) == 2:
+                self.ps.minutes = float(parts[0])
+
         self.ps.save() # commit changes
 
 class QuarterPbp(DataDenPbpDescription):
