@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import DepositsPaymentsRow from './deposits-payments-row.jsx';
 
@@ -9,19 +7,19 @@ const DepositsPayments = React.createClass({
   propTypes: {
     payments: React.PropTypes.array.isRequired,
     onSetDefault: React.PropTypes.func.isRequired,
-    onRemovePaymentMethod: React.PropTypes.func.isRequired
+    onRemovePaymentMethod: React.PropTypes.func.isRequired,
   },
 
   render() {
-    const paymentMethods = this.props.payments.map((method) => {
-      return (
+    const paymentMethods = this.props.payments.map((method) => (
         <DepositsPaymentsRow
           key={method.id}
           method={method}
           onSetDefault={this.props.onSetDefault}
-          onRemovePaymentMethod={this.props.onRemovePaymentMethod} />
-      );
-    });
+          onRemovePaymentMethod={this.props.onRemovePaymentMethod}
+        />
+      )
+    );
 
     return (
       <div className="form-field">
@@ -35,7 +33,7 @@ const DepositsPayments = React.createClass({
         </div>
       </div>
     );
-  }
+  },
 
 });
 

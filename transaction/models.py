@@ -41,6 +41,13 @@ class TransactionType( models.Model ):
     class Meta:
         unique_together = ('category', 'name')
 
+    def to_json(self):
+        return {
+            'category'  : self.category,
+            'name'      : self.name,
+            'description' : self.description,
+        }
+
     def __str__(self):
         return '%s  %s' % (self.category, self.name)
 
@@ -48,6 +55,9 @@ class Transaction( models.Model ):
     """
     This class keeps track of all
     """
+
+    JSON_CONTEST_FIELD = 'contest'
+
     category = models.ForeignKey( TransactionType )
     user 	 = models.ForeignKey( User )
     created  = models.DateTimeField(auto_now_add=True, null=True)
@@ -59,12 +69,41 @@ class Transaction( models.Model ):
         collector = Collector(using='default') # or specific database
         collector.collect([self])
         array = []
+
+        buyin_ctype = ContentType.objects.get(app_label='buyin', model='buyin')
+        buyin_model_class = buyin_ctype.model_class()
+        payout_ctype = ContentType.objects.get(app_label='payout', model='payout')
+        payout_model_class = payout_ctype.model_class()
+        #buyins = buyin_model_class.objects.all()
+
         for model_tmp, instance_tmp in collector.instances_with_model():
-            print("HERE "+str(instance_tmp))
             if hasattr(instance_tmp, "to_json") and instance_tmp != self and instance_tmp.user == self.user:
                 array.append(instance_tmp.to_json())
 
-        return {"created":str(self.created), "details":array, "id":self.pk}
+        data =  {
+            "created":str(self.created),
+            "details":array,
+            "id":self.pk,
+            self.JSON_CONTEST_FIELD  : None,
+        }
+
+        buyin = None
+        try:
+            buyin = buyin_model_class.objects.get(transaction_id=self.pk)
+            data[self.JSON_CONTEST_FIELD] = buyin.contest.pk
+        except:
+            pass
+
+        if buyin is None:
+            # it must be a payout
+            try:
+                payout = payout_model_class.objects.get(transaction_id=self.pk)
+                data[self.JSON_CONTEST_FIELD] = payout.contest.pk
+            except:
+                pass
+
+        # return the json
+        return data
 
 class TransactionDetail( models.Model ):
     """
@@ -82,7 +121,14 @@ class TransactionDetail( models.Model ):
 
 
     def to_json(self):
-        return {"created":str(self.created), "amount":self.amount, "type": self.__class__.__name__ , "id":self.pk}
+        return {
+            "created":str(self.created),
+            "amount":self.amount,
+            "type": self.__class__.__name__ ,
+            "id":self.pk,
+            'category':self.transaction.category.to_json()
+
+        }
 
 class Balance( models.Model ):
 
@@ -98,4 +144,3 @@ class Balance( models.Model ):
 
     class Meta:
         abstract = True
-

@@ -60,9 +60,9 @@ const NavScoreboardGame = React.createClass({
 
       return (
         <div className="scores">
-          { boxScore.home_score }
-          <br />
           { boxScore.away_score }
+          <br />
+          { boxScore.home_score }
         </div>
       );
     }
@@ -76,9 +76,9 @@ const NavScoreboardGame = React.createClass({
     return (
       <div className="game scroll-item game--is-live">
         <div className="left">
-          {game.homeTeamInfo.alias}
-          <br />
           {game.awayTeamInfo.alias}
+          <br />
+          {game.homeTeamInfo.alias}
         </div>
 
         { this.renderScores() }
