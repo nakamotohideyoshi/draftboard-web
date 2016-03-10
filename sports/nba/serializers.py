@@ -125,6 +125,10 @@ class PlayerHistorySerializer(sports.serializers.PlayerHistorySerializer):
         child=serializers.FloatField(),  help_text="This is an ARRAY of FLOATS"
     )
 
+    avg_minutes  = serializers.FloatField()
+    minutes      = serializers.ListField(
+        child=serializers.FloatField(),  help_text="This is an ARRAY of FLOATS"
+    )
 
 class PlayerSerializer(sports.serializers.PlayerSerializer):
     """

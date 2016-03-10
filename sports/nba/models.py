@@ -129,6 +129,7 @@ class PlayerStats( sports.models.PlayerStats ):
         'steals',
         'blocks',
         'turnovers',
+        'minutes',
     ]
 
     #   { 'defensive_rebounds': 1.0,
@@ -181,6 +182,10 @@ class PlayerStats( sports.models.PlayerStats ):
     free_throws_pct = models.FloatField(null=False, default=0.0)
     #         'three_points_pct': 0.0
     three_points_pct = models.FloatField(null=False, default=0.0)
+
+    # the minutes is originally a string like "20:13" -- 20 minutes, 13 seconds
+    # which we parse, and truncate to get just the minutes
+    minutes = models.FloatField(null=False, default=0.0)
 
     class Meta:
         abstract = False
