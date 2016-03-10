@@ -1,11 +1,21 @@
-import * as types from '../action-types.js'
-import request from 'superagent'
+import * as types from '../action-types.js';
+import request from 'superagent';
+
+
+export function transactionFocused(transactionId) {
+  return (dispatch) => {
+    dispatch({
+      type: types.TRANSACTION_FOCUSED,
+      transactionId,
+    });
+  };
+}
 
 
 function fetchTransactionsSuccess(body) {
   return {
     type: types.FETCH_TRANSACTIONS_SUCCESS,
-    body
+    body,
   };
 }
 
@@ -13,36 +23,61 @@ function fetchTransactionsSuccess(body) {
 function fetchTransactionsFail(ex) {
   return {
     type: types.FETCH_TRANSACTIONS_FAIL,
-    ex
+    ex,
   };
 }
 
 
-export function fetchTransactions() {
+export function fetchTransactions(startDate = null, endDate = null) {
   return (dispatch) => {
-    return request
-      .get('/account/api/transactions/')
-      .set({'X-REQUESTED-WITH': 'XMLHttpRequest'})
-      .set('Accept', 'application/json')
-      .end(function(err, res) {
+    // The server is expecting a UTC timestamp - that is the number of seconds since 1970-whatever.
+    // JS's  .getTime() gives us the UTC in milleseconds. So here we turn it into a seconds-based
+    // timestamp.
+    //
+    // If we send 'null', the server will respond with it's default "last 30 days" of transactions.
+    let startDateUTCSeconds = startDate;
+    let endDateUTCSeconds = endDate;
+
+    if (startDate) {
+      startDateUTCSeconds = Math.floor(startDate / 1000);
+    }
+
+    if (endDate) {
+      endDateUTCSeconds = Math.floor(endDate / 1000);
+    }
+
+
+    request
+      .get('/api/cash/transactions/')
+      .set({
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        Accept: 'application/json',
+      })
+      .query({
+        start_ts: startDateUTCSeconds,
+        end_ts: endDateUTCSeconds,
+      })
+      .end((err, res) => {
         if (err) {
-          return dispatch(fetchTransactionsFail(err))
-        } else {
-          return dispatch(fetchTransactionsSuccess(res.body))
+          return dispatch(fetchTransactionsFail(err));
         }
-      });
+
+        return dispatch(fetchTransactionsSuccess(res.body));
+      }
+
+    );
   };
 }
 
 
-export function filterTransactions(isPeriod, days, startDate=null, endDate=null) {
+export function filterTransactions(isPeriod, days, startDate = null, endDate = null) {
   return {
     type: types.FILTER_TRANSACTIONS,
     filters: {
       isPeriod,
       days,
       startDate,
-      endDate
-    }
+      endDate,
+    },
   };
 }

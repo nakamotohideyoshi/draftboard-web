@@ -1,45 +1,43 @@
-'use strict';
-
-var React = require('react');
-var renderComponent = require('../../../lib/render-component');
-var Modal = require('../../modal/modal.jsx');
-var CreditcardForm = require('../../form-field/creditcard-form.jsx');
+import React from 'react';
+import renderComponent from '../../../lib/render-component';
+import Modal from '../../modal/modal.jsx';
+import CreditcardForm from '../../form-field/creditcard-form.jsx';
 
 
 /**
  * Modal window, that has to render the CredicardForm in it
  * responsible for providing the user with the form needed to create new payment method
  */
-var ModalAddPaymentMethod = React.createClass({
+const ModalAddPaymentMethod = React.createClass({
 
-  getInitialState: function() {
-    return {isOpen: false};
+  getInitialState() {
+    return { isOpen: false };
   },
 
   /**
    * When this component is mounted (the modal window inserted in the DOM)
    * find DOM element with ID `creditcard-form` and render <CreditcardForm /> component inplace
    */
-  componentDidMount: function() {
+  componentDidMount() {
     renderComponent(<CreditcardForm />, '#creditcard-form');
   },
 
   // open modal
-  open: function() {
-    this.setState({isOpen: true});
+  open() {
+    this.setState({ isOpen: true });
   },
 
   // close modal
-  close: function() {
-    this.setState({isOpen: false});
+  close() {
+    this.setState({ isOpen: false });
   },
 
-  render: function() {
+  render() {
     return (
       <Modal
         isOpen={this.state.isOpen}
         onClose={this.close}
-        className='cmp-modal-payment-action'
+        className="cmp-modal-payment-action"
       >
         <div>
           <div className="cmp-modal__content">
@@ -48,8 +46,9 @@ var ModalAddPaymentMethod = React.createClass({
         </div>
       </Modal>
     );
-  }
+  },
 
 });
+
 
 module.exports = ModalAddPaymentMethod;

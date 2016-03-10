@@ -1,18 +1,31 @@
-'use strict';
-
 import React from 'react';
-const ReactRedux = require('react-redux')
-const store = require('../../store')
-const renderComponent = require('../../lib/render-component');
-import { withdraw } from '../../actions/payments'
-const SSNMaskedInput = require('../form-field/ssn.jsx');
+import * as ReactRedux from 'react-redux';
+import store from '../../store';
+import renderComponent from '../../lib/render-component';
+import { withdraw } from '../../actions/payments';
+import SSNMaskedInput from '../form-field/ssn.jsx';
+
+const { Provider, connect } = ReactRedux;
+
+function mapStateToProps(state) {
+  return {
+    errors: state.payments.withdrawalFormErrors,
+  };
+}
+
+
+function mapDispatchToProps(dispatch) {
+  return {
+    onWithdraw: (postData) => dispatch(withdraw(postData)),
+  };
+}
 
 
 const Withdrawals = React.createClass({
 
   propTypes: {
     errors: React.PropTypes.object.isRequired,
-    onWithdraw: React.PropTypes.func.isRequired
+    onWithdraw: React.PropTypes.func.isRequired,
   },
 
   handleWithdraw(event) {
@@ -54,11 +67,17 @@ const Withdrawals = React.createClass({
             <label className="form-field__label" htmlFor="notifications">Withdraw Method</label>
             <div className="form-field__content">
               <p className="form-field__info">
-                You may receive your withdraw thru PayPal or a mailed check. Mailed checks may take between 7-12 business
-                days to arrive.
+                You may receive your withdraw thru PayPal or a mailed check. Mailed checks may take
+                between 7-12 business days to arrive.
               </p>
 
-              <input className="form-field__text-input" type="email" id="paypal-email" name="paypal-email" placeholder="Paypal associated email address..." />
+              <input
+                className="form-field__text-input"
+                type="email"
+                id="paypal-email"
+                name="paypal-email"
+                placeholder="Paypal associated email address..."
+              />
             </div>
           </div>
 
@@ -67,33 +86,15 @@ const Withdrawals = React.createClass({
         </form>
       </div>
     );
-  }
+  },
 
 });
 
 
-
-let {Provider, connect} = ReactRedux;
-
-function mapStateToProps(state) {
-  return {
-    errors: state.payments.withdrawalFormErrors
-  }
-}
-
-
-function mapDispatchToProps(dispatch) {
-  return {
-    onWithdraw: (postData) => dispatch(withdraw(postData))
-  }
-}
-
-
-let WithdrawalsConnected = connect(
+const WithdrawalsConnected = connect(
   mapStateToProps,
   mapDispatchToProps
-)(Withdrawals)
-
+)(Withdrawals);
 
 
 renderComponent(

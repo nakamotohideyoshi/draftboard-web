@@ -1,18 +1,49 @@
-'use strict';
-
 import React from 'react';
+import isEmpty from 'lodash/lang/isEmpty';
 
 
 const SettingsEmailNotifications = React.createClass({
 
   propTypes: {
     user: React.PropTypes.object.isRequired,
-    editMode: React.PropTypes.bool.isRequired
+    errors: React.PropTypes.object.isRequired,
+    handleSubmit: React.PropTypes.func.isRequired,
   },
+
+
+  getInitialState() {
+    return {
+      editMode: false,
+      user: this.props.user,
+    };
+  },
+
+
+  /**
+   * if there are no errors comming set edit mode to False
+   */
+  componentWillReceiveProps(nextProps) {
+    if (isEmpty(nextProps.errors)) {
+      this.setState({ editMode: false });
+    } else {
+      this.setState({ editMode: true });
+    }
+
+    // Update user info.
+    if (!Object.keys(this.state.user).length) {
+      this.setState({ user: nextProps.user });
+    }
+  },
+
+
+  setEditMode(event) {
+    event.preventDefault();
+    this.setState({ editMode: true });
+  },
+
 
   renderInfo() {
     return (
-      <fieldset className="form__fieldset">
       <div className="form-field form-field--with-help">
         <label className="form-field__label" htmlFor="notifications">Email Notifications</label>
 
@@ -28,9 +59,10 @@ const SettingsEmailNotifications = React.createClass({
             <li>Newsletter</li>
             <li>Upcoming contetsts</li>
           </ul>
+
+          <a href="#" onClick={this.setEditMode}>Edit</a>
         </div>
       </div>
-      </fieldset>
     );
   },
 
@@ -57,12 +89,24 @@ const SettingsEmailNotifications = React.createClass({
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting2" name="email_notification_contests_starting"  value="off" defaultChecked="checked" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting2"
+                  name="email_notification_contests_starting"
+                  value="off"
+                  defaultChecked="checked"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting2">Off</label>
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting1" name="email_notification_contests_starting" value="on" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio" id="contests--starting1"
+                  name="email_notification_contests_starting"
+                  value="on"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting1">On</label>
               </div>
             </li>
@@ -73,12 +117,24 @@ const SettingsEmailNotifications = React.createClass({
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting4" name="email_notification_contest_victories" value="off" defaultChecked="checked" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio" id="contests--starting4"
+                  name="email_notification_contest_victories"
+                  value="off"
+                  defaultChecked="checked"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting4">Off</label>
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting3" name="email_notification_contest_victories" value="on" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting3"
+                  name="email_notification_contest_victories"
+                  value="on"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting3">On</label>
               </div>
             </li>
@@ -89,12 +145,25 @@ const SettingsEmailNotifications = React.createClass({
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting6" name="email_notification_newsletter" value="off" defaultChecked="checked" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting6"
+                  name="email_notification_newsletter"
+                  value="off"
+                  defaultChecked="checked"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting6">Off</label>
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting5" name="email_notification_newsletter" value="on" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting5"
+                  name="email_notification_newsletter"
+                  value="on"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting5">On</label>
               </div>
             </li>
@@ -105,12 +174,25 @@ const SettingsEmailNotifications = React.createClass({
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting8" name="email_notification_upcoming_contests" value="off" defaultChecked="checked" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting8"
+                  name="email_notification_upcoming_contests"
+                  value="off"
+                  defaultChecked="checked"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting8">Off</label>
               </div>
 
               <div className="radio-button-list__button-container pull-right">
-                <input className="radio-button-list__input" type="radio" id="contests--starting7" name="email_notification_upcoming_contests" value="on" />
+                <input
+                  className="radio-button-list__input"
+                  type="radio"
+                  id="contests--starting7"
+                  name="email_notification_upcoming_contests"
+                  value="on"
+                />
                 <label className="radio-button-list__label" htmlFor="contests--starting7">On</label>
               </div>
             </li>
@@ -122,12 +204,12 @@ const SettingsEmailNotifications = React.createClass({
 
   render() {
     return (
-      <div>
-        { this.props.editMode && this.renderForm() }
-        { !this.props.editMode && this.renderInfo() }
-      </div>
+      <fieldset className="form__fieldset">
+        { this.state.editMode && this.renderForm() }
+        { !this.state.editMode && this.renderInfo() }
+      </fieldset>
     );
-  }
+  },
 
 });
 
