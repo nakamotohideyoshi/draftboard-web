@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 const Modal = require('../../modal/modal.jsx');
 
@@ -7,19 +5,19 @@ const Modal = require('../../modal/modal.jsx');
 const ModalRemovePaymentMethod = React.createClass({
 
   propTypes: {
-    onConfirm: React.PropTypes.func.isRequired
+    onConfirm: React.PropTypes.func.isRequired,
   },
 
   getInitialState() {
-    return {isOpen: false};
+    return { isOpen: false };
   },
 
   open() {
-    this.setState({isOpen: true});
+    this.setState({ isOpen: true });
   },
 
   close() {
-    this.setState({isOpen: false});
+    this.setState({ isOpen: false });
   },
 
   render() {
@@ -27,7 +25,7 @@ const ModalRemovePaymentMethod = React.createClass({
       <Modal
         isOpen={this.state.isOpen}
         onClose={this.close}
-        className='cmp-modal-payment-action'
+        className="cmp-modal-payment-action"
       >
         <div>
           <header className="cmp-modal__header">Are you sure you want to delete this credit card?</header>
@@ -37,13 +35,14 @@ const ModalRemovePaymentMethod = React.createClass({
               <input
                 type="submit"
                 className="button--medium button--gradient--background button--gradient-outline button--confirm"
-                value="Yes" />
+                value="Yes"
+              />
             </form>
           </div>
         </div>
       </Modal>
     );
-  }
+  },
 });
 
 

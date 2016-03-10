@@ -99,13 +99,13 @@ category: Forms
 
     // placeholder color needs to be separated by browser prefix
     &::-webkit-input-placeholder {
-      color: $primary-charcoal;
+      color: #dbdee0;
     }
     &::-moz-placeholder {
-      color: $primary-charcoal;
+      color: #dbdee0;
     }
     &:-ms-input-placeholder {
-      color: $primary-charcoal;
+      color: #dbdee0;
     }
 
     &:focus {

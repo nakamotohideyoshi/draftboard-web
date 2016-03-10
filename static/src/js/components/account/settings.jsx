@@ -1,72 +1,78 @@
-'use strict';
-
 import React from 'react';
-const ReactRedux = require('react-redux')
-const store = require('../../store')
-const renderComponent = require('../../lib/render-component');
-
-import {
-  fetchUser,
-  updateUserInfo,
-  updateUserAddress
-} from '../../actions/user'
-
-
-const SettingsBase = require('./subcomponents/settings-base.jsx');
-const SettingsAddress = require('./subcomponents/settings-address.jsx');
-
-
-const Settings = React.createClass({
-
-  propTypes: {
-    user: React.PropTypes.object.isRequired,
-    infoFormErrors: React.PropTypes.object.isRequired,
-    addressFormErrors: React.PropTypes.object.isRequired,
-
-    updateUserInfo: React.PropTypes.func.isRequired,
-    updateUserAddress: React.PropTypes.func.isRequired
-  },
-
-  render: function() {
-    return (
-      <div>
-        <SettingsBase
-          user={this.props.user}
-          errors={this.props.infoFormErrors}
-          onHandleSubmit={this.props.updateUserInfo} />
-
-        <legend className="form__legend">User Profile</legend>
-
-        <SettingsAddress
-          user={this.props.user}
-          errors={this.props.addressFormErrors}
-          onHandleSubmit={this.props.updateUserAddress} />
-
-      </div>
-    );
-  }
-
-});
-
-
-let { Provider, connect } = ReactRedux;
+import * as ReactRedux from 'react-redux';
+import store from '../../store';
+import renderComponent from '../../lib/render-component';
+import { updateUserInfo, updateUserEmailPass, updateUserNotifications } from '../../actions/user';
+import EmailPasssForm from './subcomponents/email-pass-form.jsx';
+import SettingsEmailNotifications from './subcomponents/settings-email-notifications.jsx';
+import SettingsAddress from './subcomponents/settings-address.jsx';
+const { Provider, connect } = ReactRedux;
 
 
 function mapStateToProps(state) {
   return {
-    user: state.user.user,
+    username: state.user.username,
+    user: state.user.info,
     infoFormErrors: state.user.infoFormErrors,
-    addressFormErrors: state.user.addressFormErrors
+    emailPassFormErrors: state.user.emailPassFormErrors,
   };
 }
-
 
 function mapDispatchToProps(dispatch) {
   return {
+    updateUserEmailPass: (postData) => dispatch(updateUserEmailPass(postData)),
+    updateUserNotifications: (postData) => dispatch(updateUserNotifications(postData)),
     updateUserInfo: (postData) => dispatch(updateUserInfo(postData)),
-    updateUserAddress: (postData) => dispatch(updateUserAddress(postData))
   };
 }
+
+
+/**
+ * The user settings panel in the account section.
+ */
+const Settings = React.createClass({
+
+  propTypes: {
+    user: React.PropTypes.object.isRequired,
+    username: React.PropTypes.string.isRequired,
+    infoFormErrors: React.PropTypes.object.isRequired,
+    emailPassFormErrors: React.PropTypes.object.isRequired,
+    updateUserInfo: React.PropTypes.func.isRequired,
+    updateUserEmailPass: React.PropTypes.func.isRequired,
+    updateUserNotifications: React.PropTypes.func.isRequired,
+  },
+
+  render() {
+    return (
+      <div>
+        <EmailPasssForm
+          user={this.props.user}
+          username={this.props.username}
+          errors={this.props.emailPassFormErrors}
+          updateUserEmailPass={this.props.updateUserEmailPass}
+        />
+
+        <legend className="form__legend">Notifications</legend>
+
+        <SettingsEmailNotifications
+          user={this.props.user}
+          errors={this.props.emailPassFormErrors}
+          handleSubmit={this.props.updateUserNotifications}
+        />
+
+        <legend className="form__legend">User Profile</legend>
+
+        <SettingsAddress
+          info={this.props.user}
+          errors={this.props.infoFormErrors}
+          onHandleSubmit={this.props.updateUserInfo}
+        />
+
+      </div>
+    );
+  },
+
+});
 
 
 const SettingsConnected = connect(
