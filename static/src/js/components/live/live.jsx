@@ -379,7 +379,7 @@ const Live = React.createClass({
     const eventDescriptions = _merge({}, this.state.eventDescriptions);
     _forEach(eventDescriptionsToRemove, (playerId) => delete eventDescriptions[playerId]);
 
-    log.warn('Live.removeEventDescriptions()', eventDescriptionsToRemove, eventDescriptions);
+    log.trace('Live.removeEventDescriptions()', eventDescriptionsToRemove, eventDescriptions);
 
     this.setState({
       eventDescriptions,
@@ -428,7 +428,8 @@ const Live = React.createClass({
         this.props.dispatch(updateGameTime(
           eventCall.id,
           eventCall.clock,
-          eventCall.quarter
+          eventCall.quarter,
+          eventCall.status
         ));
 
         // then move on to the next
