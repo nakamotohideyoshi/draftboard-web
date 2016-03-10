@@ -4,6 +4,7 @@ const request = require('superagent-promise')(require('superagent'), Promise);
 import * as ActionTypes from '../action-types';
 import { dateNow } from '../lib/utils';
 import { forEach as _forEach } from 'lodash';
+import { filter as _filter } from 'lodash';
 import { map as _map } from 'lodash';
 import { merge as _merge } from 'lodash';
 import { sortBy as _sortBy } from 'lodash';
@@ -67,12 +68,29 @@ const requestTeams = (sport) => ({
  * @return {object}        Changes for reducer
  */
 const receiveGames = (sport, games) => {
-  const gameIds = _map(
+  const doneStatuses = ['closed', 'complete'];
+
+  const gamesCompleted = _map(
     _sortBy(
-      games, (game) => game.start
+      _filter(
+        games, (game) => game.hasOwnProperty('boxscore') && doneStatuses.indexOf(game.boxscore.status) !== -1
+      ),
+      (filteredGame) => filteredGame.start
     ),
-    (game) => game.srid
+    (sortedGame) => sortedGame.srid
   );
+
+  const gamesNotCompleted = _map(
+    _sortBy(
+      _filter(
+        games, (game) => gamesCompleted.indexOf(game.srid) === -1
+      ),
+      (filteredGame) => filteredGame.start
+    ),
+    (sortedGame) => sortedGame.srid
+  );
+
+  const gameIds = gamesNotCompleted.concat(gamesCompleted);
 
   return {
     type: ActionTypes.RECEIVE_GAMES,
@@ -394,12 +412,12 @@ export const updateGameTime = (gameId, clock, quarter, status) => (dispatch, get
   const updatedGameFields = {
     clock,
     quarter,
+    status,
   };
 
   // find time remaining through these new fields
   game.boxscore.clock = clock;
   game.boxscore.quarter = quarter;
-  game.boxscore.status = status;
   updatedGameFields.timeRemaining = calculateTimeRemaining(game.sport, game);
 
   return dispatch({

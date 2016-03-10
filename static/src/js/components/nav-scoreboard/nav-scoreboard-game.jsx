@@ -22,7 +22,7 @@ const NavScoreboardGame = React.createClass({
 
       // if the game has ended
       const doneStatuses = ['closed', 'complete'];
-      if (doneStatuses.indexOf(boxScore.status) === -1) {
+      if (doneStatuses.indexOf(boxScore.status) !== -1) {
         return (
           <div className="right">
             Final
