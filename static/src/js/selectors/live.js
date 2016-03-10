@@ -123,7 +123,7 @@ export const liveSelector = createSelector(
       }
 
       // this pairs up with addMessage in Live component to make user aware
-      if (myLineup.draftGroup.end < dateNow()) {
+      if (myLineup.draftGroup.closed !== null && myLineup.draftGroup.closed < dateNow()) {
         stats.draftGroupEnded = true;
       }
 

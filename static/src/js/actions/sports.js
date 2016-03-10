@@ -358,7 +358,7 @@ export const updateGameTeam = (gameId, teamId, points) => (dispatch, getState) =
  * @param  {string} quarter Period in play
  * @return {object}   Changes for reducer, wrapped in a thunk
  */
-export const updateGameTime = (gameId, clock, quarter) => (dispatch, getState) => {
+export const updateGameTime = (gameId, clock, quarter, status) => (dispatch, getState) => {
   const state = getState();
   const game = _merge({}, state.sports.games[gameId]);
 
@@ -399,6 +399,7 @@ export const updateGameTime = (gameId, clock, quarter) => (dispatch, getState) =
   // find time remaining through these new fields
   game.boxscore.clock = clock;
   game.boxscore.quarter = quarter;
+  game.boxscore.status = status;
   updatedGameFields.timeRemaining = calculateTimeRemaining(game.sport, game);
 
   return dispatch({
