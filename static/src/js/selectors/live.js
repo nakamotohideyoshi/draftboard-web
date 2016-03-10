@@ -118,7 +118,7 @@ export const liveSelector = createSelector(
       const myLineup = currentLineupsStats[mode.myLineupId];
 
       if (myLineup === undefined) {
-        log.warn('liveSelector - myLineup is undefined');
+        log.debug('liveSelector - myLineup is undefined');
         return stats;
       }
 

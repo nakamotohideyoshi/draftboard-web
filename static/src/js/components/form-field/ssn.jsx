@@ -1,17 +1,15 @@
-"use strict";
-
-var React = require('react');
-var MaskedInput = require('react-maskedinput');
-var renderComponent = require('../../lib/render-component');
+import React from 'react';
+import MaskedInput from 'react-maskedinput';
+import renderComponent from '../../lib/render-component';
 
 
-var SSNMaskedInput = React.createClass({
+const SSNMaskedInput = React.createClass({
 
-  getInitialState: function() {
+  getInitialState() {
     return ({
       state: {
-        ssn: ''
-      }
+        ssn: '',
+      },
     });
   },
 
@@ -20,14 +18,14 @@ var SSNMaskedInput = React.createClass({
    * When the input changes, update based on the input mask react component
    * @param {e} the input element
    */
-  _onChange: function(e) {
-    var stateChange = {};
+  _onChange(e) {
+    const stateChange = {};
     stateChange[e.target.name] = e.target.value;
     this.setState(stateChange);
   },
 
 
-  render: function() {
+  render() {
     return (
       <MaskedInput
         className="form-field__text-input"
@@ -40,7 +38,7 @@ var SSNMaskedInput = React.createClass({
         onChange={this._onChange}
       />
     );
-  }
+  },
 
 });
 

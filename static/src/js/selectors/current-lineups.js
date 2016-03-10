@@ -22,7 +22,8 @@ const calcDecimalRemaining = (minutesRemaining, totalMinutes) => {
   // we don't want 1 exactly, as that messes with the calculations, 0.99 looks full
   if (decimalRemaining === 1) return 0.9999;
 
-  return decimalRemaining;
+  // round to the nearest 4th decimal
+  return Math.ceil(decimalRemaining * 10000) / 10000;
 };
 
 /**
@@ -128,7 +129,7 @@ export const compileRosterStats = (roster, draftGroup, games, relevantPlayers) =
       // otherwise this means the game is scheduled, so show as full
       } else {
         player.stats.minutesRemaining = GAME_DURATIONS.nba.gameMinutes;
-        player.stats.decimalRemaining = 0.99;
+        player.stats.decimalRemaining = 0.9999;
       }
     }
 
@@ -241,7 +242,7 @@ export const currentLineupsSelector = createSelector(
         log.trace('currentLineupsSelector() - lineup has not started yet', lineup.id);
 
         stats[lineup.id] = {
-          decimalRemaining: 0.99,
+          decimalRemaining: 0.9999,
           draftGroup,
           formattedStart: moment(lineup.start).format('ha'),
           id: lineup.id,

@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import { isPlayerInLineup } from './draft-group-players-selector.js';
 import { merge as _merge } from 'lodash';
-
+import { sortByOrder as _sortByOrder } from 'lodash';
 
 const focusedPlayerIdSelector = (state) => state.draftGroupPlayers.focusedPlayer;
 const sportSelector = (state) => state.draftGroupPlayers.sport;
@@ -58,20 +58,46 @@ export const focusedPlayerSelector = createSelector(
 
         // If we have boxscore info, attach splits history.
         if (activeDraftGroupId && boxScoreGames.hasOwnProperty(activeDraftGroupId)) {
-          player.splitsHistory = player.boxScoreHistory.games.map((game, i) => ({
-            // TODO: Add date and opponent info into focusedPlayerSelector - this needs to be
-            // done server-side since we don't have ALL historical boxScores to pull from.
-            assists: player.boxScoreHistory.assists[i],
-            blocks: player.boxScoreHistory.blocks[i],
-            date: player.boxScoreHistory.start[i],
-            fp: player.boxScoreHistory.fp[i],
-            opp: 'opp',
-            points: player.boxScoreHistory.points[i],
-            rebounds: player.boxScoreHistory.rebounds[i],
-            steals: player.boxScoreHistory.steals[i],
-            three_pointers: player.boxScoreHistory.three_points_made[i],
-            turnovers: player.boxScoreHistory.turnovers[i],
-          }));
+          switch (sport) {
+            case 'nba':
+              player.splitsHistory = player.boxScoreHistory.games.map((game, i) => ({
+                // TODO: Add date and opponent info into focusedPlayerSelector - this needs to be
+                // done server-side since we don't have ALL historical boxScores to pull from.
+                assists: player.boxScoreHistory.assists[i],
+                blocks: player.boxScoreHistory.blocks[i],
+                date: player.boxScoreHistory.start[i],
+                fp: player.boxScoreHistory.fp[i],
+                opp: 'opp',
+                points: player.boxScoreHistory.points[i],
+                rebounds: player.boxScoreHistory.rebounds[i],
+                steals: player.boxScoreHistory.steals[i],
+                three_pointers: player.boxScoreHistory.three_points_made[i],
+                turnovers: player.boxScoreHistory.turnovers[i],
+              }));
+
+              break;
+
+            case 'nhl':
+              player.splitsHistory = player.boxScoreHistory.games.map((game, i) => ({
+                // TODO: Add date and opponent info into focusedPlayerSelector - this needs to be
+                // done server-side since we don't have ALL historical boxScores to pull from.
+                date: player.boxScoreHistory.start[i],
+                opp: 'opp',
+                fp: player.boxScoreHistory.fp[i],
+                goal: player.boxScoreHistory.goal[i],
+                assist: player.boxScoreHistory.assist[i],
+                blocks: player.boxScoreHistory.blk[i],
+                sog: player.boxScoreHistory.sog[i],
+                saves: player.boxScoreHistory.saves[i],
+                ga: player.boxScoreHistory.ga[i],
+              }));
+              break;
+
+            default:
+
+          }
+          // Now sort them by date since the server is dumb.
+          player.splitsHistory = _sortByOrder(player.splitsHistory, 'date', 'desc');
         }
       }
     }
