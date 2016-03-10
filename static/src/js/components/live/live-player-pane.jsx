@@ -96,7 +96,7 @@ const LivePlayerPane = React.createClass({
     // TODO Live - make sure clock and quarter display are set in liveSelector so we don't do logic in the component
     let gameTimeInfo;
     const doneStatuses = ['closed', 'complete'];
-    if (doneStatuses.indexOf(boxScore.status) === -1) {
+    if (doneStatuses.indexOf(boxScore.status) !== -1) {
       gameTimeInfo = ['', 'Final'];
     } else {
       gameTimeInfo = [
