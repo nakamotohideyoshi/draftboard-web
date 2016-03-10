@@ -1,6 +1,7 @@
 import Raven from 'raven-js';
 import Cookies from 'js-cookie';
 import log from 'lib/logging';
+// import store from './store';
 
 
 // Sentry error reporting.
@@ -16,16 +17,24 @@ require('app.scss');
 
 // before we execute anything else, wipe the redux entry in localStorage if asked.
 if (window.dfs.wipeLocalStorage === '1') {
-  log.info('store.js - Wiping localStorage due to query param');
+  log.info('app.jsx - Wiping localStorage due to query param');
+  window.localStorage.clear();
+}
+
+if (window.localStorage.version !== window.dfs.gitCommitUUID) {
+  log.info('app.jsx - Wiping localStorage due to new deployment');
   window.localStorage.clear();
 }
 
 // wipe localStorage if the user changes
 if (Cookies.get('username') !== window.dfs.user.username) {
-  log.info('store.js - Wiping localStorage due to new username existing');
+  log.info('app.jsx - Wiping localStorage due to new username existing');
   Cookies.set('username', window.dfs.user.username);
   window.localStorage.clear();
 }
+
+// set new version
+window.localStorage.setItem('version', window.dfs.gitCommitUUID);
 
 // Global
 require('actions/keypress-actions');

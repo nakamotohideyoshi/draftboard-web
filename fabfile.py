@@ -2,8 +2,10 @@ from fabric.api import env, warn_only
 from fabric.contrib import django
 from fabric import operations
 from fabric import utils
+from subprocess import check_output
 from distutils.util import strtobool
 from boto.s3.connection import S3Connection
+import hashlib
 
 AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
 AWS_SECRET_ACCESS_KEY = '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'
@@ -59,6 +61,13 @@ def deploy():
     operations.local('git push -f %s %s:master' % (
         env.environment,
         env.local_git_branch,
+    ))
+
+    # set the git hash so we can cache version localStorage
+    git_hash = hashlib.md5(check_output(['git', 'rev-parse', '--short', 'HEAD']).strip()).hexdigest()
+    operations.local('heroku config:set GIT_COMMIT_UUID=%s -a %s' % (
+        git_hash,
+        env.heroku_repo
     ))
 
     #

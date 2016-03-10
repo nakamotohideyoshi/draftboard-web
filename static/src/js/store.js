@@ -27,6 +27,10 @@ const liveSubstates = [
 const slicer = () => (state) => {
   const subset = {};
 
+  if (state.version !== {}) {
+    subset.version = state.version;
+  }
+
   // save sports when available
   if (state.sports.games !== {}) {
     subset.sports = state.sports;
