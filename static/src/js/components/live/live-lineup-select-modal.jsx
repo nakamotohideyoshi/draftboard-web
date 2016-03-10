@@ -3,6 +3,7 @@ import moment from 'moment';
 import React from 'react';
 import { forEach as _forEach } from 'lodash';
 import { size as _size } from 'lodash';
+import { uniq as _uniq } from 'lodash';
 
 
 /**
@@ -23,12 +24,29 @@ const LiveLineupSelectModal = React.createClass({
 
     return {
       isOpen: true,
-      selectedSport: 'nba',
+      selectedSport: null,
     };
   },
 
   getModalContent() {
-    return (this.state.selectedSport === null) ? this.renderSports() : this.renderLineups();
+    // if there's only one entry, then just go to it
+    if (_size(this.props.entries) === 1) {
+      this.selectLineup(this.props.entries[0]);
+    }
+
+    if (this.state.selectedSport === null) {
+      const differentSports = _uniq(
+        this.props.entries.map((entry) => entry.sport),
+        (sport) => sport
+      );
+
+      // if there are multiple sports, then make them choose which
+      if (differentSports.length > 1) {
+        return this.renderSports();
+      }
+    }
+
+    return this.renderLineups();
   },
 
   open() {
@@ -68,8 +86,8 @@ const LiveLineupSelectModal = React.createClass({
   sportLineups() {
     const sportLineups = {};
 
-    _forEach(this.props.entries, (lineup) => {
-      const sport = lineup.draftGroup.sport;
+    _forEach(this.props.entries, (entry) => {
+      const sport = entry.sport;
 
       if (sport in sportLineups) {
         sportLineups[sport] += 1;
@@ -90,7 +108,7 @@ const LiveLineupSelectModal = React.createClass({
         className="cmp-live-lineup-select__sport"
         onClick={this.selectSport.bind(this, sport)}
       >
-        <h4 className="cmp-live-lineup-select__sport__title">{sport}</h4>
+        <h4 className="cmp-live-lineup-select__sport__title">{sport.toUpperCase()}</h4>
         <div className="cmp-live-lineup-select__sport__sub">{sportLineups[sport]} lineups</div>
       </li>
     ));

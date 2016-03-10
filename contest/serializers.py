@@ -70,10 +70,14 @@ class CurrentEntrySerializer(serializers.ModelSerializer):
     def get_lineup_name(self, entry):
         return entry.lineup.name
 
+    sport = serializers.SerializerMethodField()
+    def get_sport(self, entry):
+        return entry.lineup.sport
+
     class Meta:
 
         model  = Entry
-        fields = ('id', 'contest', 'lineup', 'draft_group', 'start', 'lineup_name')
+        fields = ('id', 'contest', 'lineup', 'draft_group', 'start', 'lineup_name', 'sport')
 
 class RegisteredUserSerializer(serializers.Serializer):
 
