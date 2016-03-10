@@ -79,7 +79,7 @@ const receiveGames = (sport, games) => {
     sport,
     games,
     gameIds,
-    expiresAt: dateNow() + 1000 * 60 * 2,  // 2 minutes TODO update to 10 minutes once pusher calls have
+    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
   };
 };
 
