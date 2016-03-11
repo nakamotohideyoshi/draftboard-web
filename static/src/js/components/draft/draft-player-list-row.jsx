@@ -1,4 +1,5 @@
 import React from 'react';
+import shallowCompare from 'react-addons-shallow-compare';
 import * as AppActions from '../../stores/app-state-store.js';
 import Sparkline from './sparkline.jsx';
 import { find as _find } from 'lodash';
@@ -24,6 +25,11 @@ const DraftPlayerListRow = React.createClass({
 
   getInitialState() {
     return {};
+  },
+
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return shallowCompare(this, nextProps, nextState);
   },
 
 

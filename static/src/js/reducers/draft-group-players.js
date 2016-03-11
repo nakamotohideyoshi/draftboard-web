@@ -65,9 +65,14 @@ module.exports = (state = initialState, action) => {
         count: action.filter.match.length,
       };
 
-      return _merge({}, state, {
+      const newFilterState = _merge({}, state, {
         filters,
       });
+      // Since a merge won't replace the `match` array, do it manually, otherwise the previous
+      // filter matches will still remain in the array.
+      newFilterState.filters[action.filter.filterName].match = action.filter.match;
+
+      return newFilterState;
 
 
     case ActionTypes.DRAFTGROUP_ORDER_CHANGED:
