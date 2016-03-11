@@ -19,6 +19,12 @@ const Sparkline = React.createClass({
   },
 
 
+  shouldComponentUpdate(nextProps) {
+    // Only upate if our new props include points,and we previously didn't have any.
+    return (nextProps.points.length > 0 && this.props.points.length === 0);
+  },
+
+
   getAverage(points) {
     if (!points.length) {
       return 0;
@@ -136,7 +142,9 @@ const Sparkline = React.createClass({
     if (this.props.points.length < 1) {
       return (<span className="cmp-sparkline"></span>);
     }
-    const sparkine = this.drawLine(this.props.points);
+
+    // Since we want to show the most recent point last, reverse the array.
+    const sparkine = this.drawLine(this.props.points.slice().reverse());
 
     return (
       <span className="cmp-sparkline">

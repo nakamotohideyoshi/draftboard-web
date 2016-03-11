@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import { isPlayerInLineup } from './draft-group-players-selector.js';
 import { merge as _merge } from 'lodash';
 import { sortByOrder as _sortByOrder } from 'lodash';
+import { find as _find } from 'lodash';
 
 const focusedPlayerIdSelector = (state) => state.draftGroupPlayers.focusedPlayer;
 const sportSelector = (state) => state.draftGroupPlayers.sport;
@@ -60,20 +61,32 @@ export const focusedPlayerSelector = createSelector(
         if (activeDraftGroupId && boxScoreGames.hasOwnProperty(activeDraftGroupId)) {
           switch (sport) {
             case 'nba':
-              player.splitsHistory = player.boxScoreHistory.games.map((game, i) => ({
-                // TODO: Add date and opponent info into focusedPlayerSelector - this needs to be
-                // done server-side since we don't have ALL historical boxScores to pull from.
-                assists: player.boxScoreHistory.assists[i],
-                blocks: player.boxScoreHistory.blocks[i],
-                date: player.boxScoreHistory.start[i],
-                fp: player.boxScoreHistory.fp[i],
-                opp: 'opp',
-                points: player.boxScoreHistory.points[i],
-                rebounds: player.boxScoreHistory.rebounds[i],
-                steals: player.boxScoreHistory.steals[i],
-                three_pointers: player.boxScoreHistory.three_points_made[i],
-                turnovers: player.boxScoreHistory.turnovers[i],
-              }));
+              const playerTeam = sportInfo[sport].teams[player.team_srid];
+
+              player.splitsHistory = player.boxScoreHistory.games.map((game, i) => {
+                // Figure out which team the opponent was.
+                const awayTeam = _find(sportInfo[sport].teams, { id: player.boxScoreHistory.away_id[i] });
+                const homeTeam = _find(sportInfo[sport].teams, { id: player.boxScoreHistory.home_id[i] });
+                // start with the assumption that the home team is the opponent.
+                let oppTeam = homeTeam;
+                // if the home team is actually the player's team, the away team is the opp.
+                if (homeTeam.id === playerTeam.id) {
+                  oppTeam = awayTeam;
+                }
+
+                return {
+                  assists: player.boxScoreHistory.assists[i],
+                  blocks: player.boxScoreHistory.blocks[i],
+                  date: player.boxScoreHistory.start[i],
+                  fp: player.boxScoreHistory.fp[i],
+                  opp: oppTeam.alias,
+                  points: player.boxScoreHistory.points[i],
+                  rebounds: player.boxScoreHistory.rebounds[i],
+                  steals: player.boxScoreHistory.steals[i],
+                  three_pointers: player.boxScoreHistory.three_points_made[i],
+                  turnovers: player.boxScoreHistory.turnovers[i],
+                };
+              });
 
               break;
 

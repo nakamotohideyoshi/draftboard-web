@@ -210,7 +210,7 @@ const DraftPlayerList = React.createClass({
 
 
   handleGameCountClick() {
-    this.setState({ showTeamFilter: true });
+    this.setState({ showTeamFilter: !this.state.showTeamFilter });
   },
 
 
@@ -335,7 +335,7 @@ const DraftPlayerList = React.createClass({
               <th>Status</th>
               <th onClick={this.handleSetOrderBy.bind(null, 'team_alias')}>OPP</th>
               <th onClick={this.handleSetOrderBy.bind(null, 'fppg')}>AVG</th>
-              <th>History</th>
+              <th>Last 10</th>
               <th
                 onClick={this.handleSetOrderBy.bind(null, 'salary')}
                 className="table__sortable"

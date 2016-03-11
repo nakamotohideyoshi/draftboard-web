@@ -156,8 +156,8 @@ const DraftPlayerDetail = React.createClass({
   // the hassle right now.
   getTabNav() {
     const tabs = [
-      { title: 'Reports', tab: 'reports' },
-      { title: 'Splits', tab: 'splits' },
+      { title: 'Updates', tab: 'reports' },
+      { title: 'Game Log', tab: 'splits' },
     ];
 
     return tabs.map((tab) => {
@@ -212,7 +212,7 @@ const DraftPlayerDetail = React.createClass({
           <th>ast</th>,
           <th>blk</th>,
           <th>stl</th>,
-          <th>3pt</th>,
+          <th>min</th>,
           <th>to</th>,
           <th>fp</th>,
         ];
@@ -222,13 +222,13 @@ const DraftPlayerDetail = React.createClass({
             <tr key={index}>
               <td>{game.opp}</td>
 
-              <td>{moment(game.date, moment.ISO_8601).format('M-D-YY')}</td>
+              <td>{moment(game.date, moment.ISO_8601).format('M/D/YY')}</td>
               <td>{game.points}</td>
               <td>{game.rebounds}</td>
               <td>{game.assists}</td>
               <td>{game.blocks}</td>
               <td>{game.steals}</td>
-              <td>{game.three_pointers}</td>
+              <td>MIN</td>
               <td>{game.turnovers}</td>
               <td>{game.fp}</td>
             </tr>
@@ -253,7 +253,7 @@ const DraftPlayerDetail = React.createClass({
           content.push(
             <tr key={index}>
               <td>{game.opp}</td>
-              <td>{moment(game.date, moment.ISO_8601).format('M-D-YY')}</td>
+              <td>{moment(game.date, moment.ISO_8601).format('M/D/YY')}</td>
               <td>{game.goal}</td>
               <td>{game.assist}</td>
               <td>{game.blocks}</td>
