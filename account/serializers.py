@@ -35,9 +35,14 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ("email", "password")
 
 class InformationSerializer(serializers.ModelSerializer):
+
+    email = serializers.SerializerMethodField()
+    def get_email(self, information):
+        return information.user.email
+
     class Meta:
         model = Information
-        fields = ("dob", "fullname", "address1", "address2", "city", "state", "zipcode")
+        fields = ("dob", "email","fullname", "address1", "address2", "city", "state", "zipcode")
 
 
 class EmailNotificationSerializer(serializers.ModelSerializer):
