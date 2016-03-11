@@ -38,3 +38,8 @@ def delta_now_prefix(request):
 # this way we can pass through the replayer time for testing purposes into javascript
 def player_images_url(request):
     return {'PLAYER_IMAGES_URL': settings.PLAYER_IMAGES_URL }
+
+
+# returns an md5 hash of the latest git commit uuid
+def git_commit_uuid(request):
+    return {'GIT_COMMIT_UUID': settings.GIT_COMMIT_UUID }

@@ -4,6 +4,7 @@ const request = require('superagent-promise')(require('superagent'), Promise);
 import * as ActionTypes from '../action-types';
 import { dateNow } from '../lib/utils';
 import { forEach as _forEach } from 'lodash';
+import { filter as _filter } from 'lodash';
 import { map as _map } from 'lodash';
 import { merge as _merge } from 'lodash';
 import { sortBy as _sortBy } from 'lodash';
@@ -67,19 +68,36 @@ const requestTeams = (sport) => ({
  * @return {object}        Changes for reducer
  */
 const receiveGames = (sport, games) => {
-  const gameIds = _map(
+  const doneStatuses = ['closed', 'complete'];
+
+  const gamesCompleted = _map(
     _sortBy(
-      games, (game) => game.start
+      _filter(
+        games, (game) => game.hasOwnProperty('boxscore') && doneStatuses.indexOf(game.boxscore.status) !== -1
+      ),
+      (filteredGame) => filteredGame.start
     ),
-    (game) => game.srid
+    (sortedGame) => sortedGame.srid
   );
+
+  const gamesNotCompleted = _map(
+    _sortBy(
+      _filter(
+        games, (game) => gamesCompleted.indexOf(game.srid) === -1
+      ),
+      (filteredGame) => filteredGame.start
+    ),
+    (sortedGame) => sortedGame.srid
+  );
+
+  const gameIds = gamesNotCompleted.concat(gamesCompleted);
 
   return {
     type: ActionTypes.RECEIVE_GAMES,
     sport,
     games,
     gameIds,
-    expiresAt: dateNow() + 1000 * 60 * 2,  // 2 minutes TODO update to 10 minutes once pusher calls have
+    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
   };
 };
 
@@ -304,7 +322,7 @@ export const fetchSportsIfNeeded = () => (dispatch, getState) => {
  * @param  {number} points  Number of points to set to the game
  * @return {object}   Changes for reducer, wrapped in a thunk
  */
-export const updateGame = (gameId, teamId, points) => (dispatch, getState) => {
+export const updateGameTeam = (gameId, teamId, points) => (dispatch, getState) => {
   const state = getState();
   const game = state.sports.games[gameId];
   const updatedGameFields = {};
@@ -320,8 +338,8 @@ export const updateGame = (gameId, teamId, points) => (dispatch, getState) => {
       return dispatch(fetchGames(game.sport));
     }
 
-    // if the boxscore doesn't have periods yet, update the game
-    if (game.boxscore.hasOwnProperty('periods') === false) {
+    // if the boxscore doesn't have quarters yet, update the game
+    if (game.boxscore.hasOwnProperty('quarter') === false) {
       return dispatch(fetchGames(game.sport));
     }
 
@@ -358,7 +376,7 @@ export const updateGame = (gameId, teamId, points) => (dispatch, getState) => {
  * @param  {string} quarter Period in play
  * @return {object}   Changes for reducer, wrapped in a thunk
  */
-export const updateGameTime = (gameId, clock, quarter) => (dispatch, getState) => {
+export const updateGameTime = (gameId, clock, quarter, status) => (dispatch, getState) => {
   const state = getState();
   const game = _merge({}, state.sports.games[gameId]);
 
@@ -373,8 +391,8 @@ export const updateGameTime = (gameId, clock, quarter) => (dispatch, getState) =
       return dispatch(fetchGames(game.sport));
     }
 
-    // if the boxscore doesn't have periods yet, update the game
-    if (game.boxscore.hasOwnProperty('periods') === false) {
+    // if the boxscore doesn't have quarter yet, update the game
+    if (game.boxscore.hasOwnProperty('quarter') === false) {
       return dispatch(fetchGames(game.sport));
     }
 
@@ -394,6 +412,7 @@ export const updateGameTime = (gameId, clock, quarter) => (dispatch, getState) =
   const updatedGameFields = {
     clock,
     quarter,
+    status,
   };
 
   // find time remaining through these new fields
