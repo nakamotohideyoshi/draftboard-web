@@ -722,22 +722,23 @@ const Live = React.createClass({
           {opponentLineupComponent}
 
           <section className="cmp-live__court-scoreboard">
-            <LiveHeader
-              changePathAndMode={this.changePathAndMode}
-              liveSelector={liveData}
-            />
+            <div className="court-scoreboard__content">
+              <LiveHeader
+                changePathAndMode={this.changePathAndMode}
+                liveSelector={liveData}
+              />
 
-            <LiveNBACourt
-              liveSelector={liveData}
-              courtEvents={this.state.courtEvents}
-            />
+              <LiveNBACourt
+                liveSelector={liveData}
+                courtEvents={this.state.courtEvents}
+              />
 
-            {moneyLine}
+              {moneyLine}
 
-            <LiveBottomNav
-              hasContest={mode.contestId !== undefined}
-            />
-
+              <LiveBottomNav
+                hasContest={mode.contestId !== undefined}
+              />
+            </div>
           </section>
 
           <LiveContestsPane

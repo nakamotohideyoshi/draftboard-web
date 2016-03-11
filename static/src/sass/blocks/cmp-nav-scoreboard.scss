@@ -413,3 +413,11 @@ $nav-scoreboard-foreground-color: #25A758;
     }
   }
 }
+
+
+@media (max-width: 960px) {
+  .cmp-nav-scoreboard--slider,
+  .cmp-nav-scoreboard--filters {
+    display: none;
+  }
+}

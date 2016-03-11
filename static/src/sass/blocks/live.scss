@@ -6,11 +6,17 @@ body.one-col--live-nba {
 }
 
 .cmp-live {
+  min-height: 600px;
   height: 100%;
   margin: 0 auto;
   min-width: 1024px;
   position: relative;
   width: 100%;
+
+  // react element
+  > div {
+    height: 100%;
+  }
 
   // for the top menu
   padding-top: 60px;
@@ -21,9 +27,16 @@ body.one-col--live-nba {
   }
 
   &__court-scoreboard {
+    display: table;
+    height: 100%;
     min-height: 600px;
     padding: 0 $live-lineup-width;
     width: 100%;
+  }
+
+  .court-scoreboard__content {
+    display: table-cell;
+    vertical-align: middle;
   }
 
   &--with-opponent {
