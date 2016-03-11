@@ -103,9 +103,12 @@ const LiveLineup = React.createClass({
     }, this);
 
     return (
-      <ul className="live-lineup__players">
-        {renderedPlayers}
-      </ul>
+      <div className="live-lineup__players">
+        {this.renderCloseLineup()}
+        <ul>
+          {renderedPlayers}
+        </ul>
+      </div>
     );
   },
 
@@ -147,7 +150,6 @@ const LiveLineup = React.createClass({
 
     return (
       <div className={className}>
-        {this.renderCloseLineup()}
         {this.renderPlayers()}
         {this.renderPlayerPane()}
       </div>
