@@ -56,7 +56,7 @@ require('components/lobby/lobby-lineup-card-list');
 
 // Draft
 require('components/draft/draft-lineup-card-list');
-require('components/draft/draft-player-list');
+require('components/draft/draft-container');
 
 // Live
 require('components/live/live');
