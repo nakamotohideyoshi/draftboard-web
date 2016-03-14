@@ -81,6 +81,7 @@ virtualenv venv 		# create our virtual environment dir
 
 # Set vagrant user as the owner for the new virtualenv
 # It was created by sudo, but vagrant needs to be the owner.
+chown -R vagrant:vagrant /vagrant
 chown -R vagrant:vagrant /home/vagrant/venv
 
 # Activate the virtual env.
@@ -124,6 +125,7 @@ echo "export DJANGO_SETTINGS_MODULE=mysite.settings.local" >> /home/vagrant/.bas
 #
 # Activate the virtualenv on every login
 echo "source venv/bin/activate" >> /home/vagrant/.bashrc
+echo "cd /vagrant" >> /home/vagrant/.bashrc
 
 #
 ####################################################################
