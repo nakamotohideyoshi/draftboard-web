@@ -111,9 +111,9 @@ DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 ##########################################################################
 #        pusher - DEVELOPMENT ids
 ##########################################################################
-PUSHER_APP_ID           = '179543'
-PUSHER_KEY              = '5a4601521c1e2a3778aa'
-PUSHER_SECRET           = '2c286ac8c239f8e73f00'
+PUSHER_APP_ID           = '159462'
+PUSHER_KEY              = '961cebaf8b45649cc786'
+PUSHER_SECRET           = '47002883ba8571a48d90'
 PUSHER_CHANNEL_PREFIX   = ''
 PUSHER_ENABLED          = False
 
