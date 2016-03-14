@@ -3,6 +3,7 @@ import shallowCompare from 'react-addons-shallow-compare';
 import * as AppActions from '../../stores/app-state-store.js';
 import Sparkline from './sparkline.jsx';
 import { find as _find } from 'lodash';
+import { focusSearchField } from './draft-utils.js';
 
 
 /**
@@ -20,6 +21,7 @@ const DraftPlayerListRow = React.createClass({
     focusPlayer: React.PropTypes.func,
     draftPlayer: React.PropTypes.func,
     unDraftPlayer: React.PropTypes.func,
+    isVisible: React.PropTypes.bool.isRequired,
   },
 
 
@@ -42,14 +44,14 @@ const DraftPlayerListRow = React.createClass({
   onDraftClick(player, e) {
     e.stopPropagation();
     this.props.draftPlayer(player);
-    this.focusSearchField();
+    focusSearchField();
   },
 
 
   onUnDraftClick(player, e) {
     e.stopPropagation();
     this.props.unDraftPlayer(player.player_id);
-    this.focusSearchField();
+    focusSearchField();
   },
 
 
@@ -97,23 +99,15 @@ const DraftPlayerListRow = React.createClass({
   },
 
 
-  // Once a player is added or removed from the lineup, clear + focus the search field.
-  focusSearchField() {
-    const searchField = document.querySelectorAll('.cmp-collection-search-filter__input');
-    if (searchField.length) {
-      if (searchField[0].value !== '') {
-        searchField[0].focus();
-        AppActions.clearPlayerSearchField();
-      }
-    }
-  },
-
-
   render() {
     let classes = 'cmp-player-list__row';
 
     if (this.props.row.draftable === false) {
       classes += ' fade';
+    }
+
+    if (this.props.isVisible === false) {
+      classes += ' hidden';
     }
 
     return (

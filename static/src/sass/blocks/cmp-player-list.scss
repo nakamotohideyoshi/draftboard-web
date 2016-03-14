@@ -11,6 +11,10 @@
     color: #46495e;
     cursor: pointer;
 
+    &.hidden {
+      display: none;
+    }
+
     .draft {
       width: 58px;
       cursor: default;
@@ -74,19 +78,19 @@
       width: 45px;
       display: block;
     }
-  }
 
-  .draft-button {
-    cursor: pointer;
-    width: 28px;
-    height: 28px;
-    background: url('../img/blocks/draft-list/btn-add-remove.png') no-repeat;
-    background-size: auto 28px;
-    text-indent: -9999px;
-    overflow: hidden;
+    .draft-button {
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      background: url('../img/blocks/draft-list/btn-add-remove.png') no-repeat;
+      background-size: auto 28px;
+      text-indent: -9999px;
+      overflow: hidden;
 
-    &.remove {
-      background-position: top right;
+      &.remove {
+        background-position: top right;
+      }
     }
   }
 }

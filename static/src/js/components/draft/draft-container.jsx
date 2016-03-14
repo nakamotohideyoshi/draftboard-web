@@ -9,6 +9,7 @@ import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
 import PlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
 import { forEach as _forEach, filter as _filter } from 'lodash';
+import { findIndex as _findIndex } from 'lodash';
 import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter, }
   from '../../actions/draft-group-players-actions.js';
 import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId, }
@@ -81,7 +82,7 @@ function mapDispatchToProps(dispatch) {
 /**
  * Render a list of players able to be drafted.
  */
-const DraftPlayerList = React.createClass({
+const DraftContainer = React.createClass({
 
   propTypes: {
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func.isRequired,
@@ -255,7 +256,11 @@ const DraftPlayerList = React.createClass({
     let visibleRows = [];
 
     // Build up a list of rows to be displayed.
-    _forEach(self.props.filteredPlayers, (row) => {
+    _forEach(self.props.allPlayers, (row) => {
+      const isVisible = _findIndex(this.props.filteredPlayers, (player) =>
+        player.player_id === row.player_id
+      ) > -1;
+
       visibleRows.push(
         <PlayerListRow
           key={row.player_id}
@@ -264,6 +269,7 @@ const DraftPlayerList = React.createClass({
           focusPlayer={self.props.focusPlayer}
           draftPlayer={self.props.draftPlayer}
           unDraftPlayer={self.props.unDraftPlayer}
+          isVisible={isVisible}
         />
       );
     });
@@ -352,20 +358,20 @@ const DraftPlayerList = React.createClass({
 
 
 // Wrap the component to inject dispatch and selected state into it.
-const DraftPlayerListConnected = connect(
+const DraftContainerConnected = connect(
   mapStateToProps,
   mapDispatchToProps
-)(DraftPlayerList);
+)(DraftContainer);
 
 renderComponent(
   <Provider store={store}>
     <Router history={history}>
-      <Route path="/draft/:draftgroupId/" component={DraftPlayerListConnected} />
-      <Route path="/draft/:draftgroupId/lineup/:lineupId/:lineupAction" component={DraftPlayerListConnected} />
+      <Route path="/draft/:draftgroupId/" component={DraftContainerConnected} />
+      <Route path="/draft/:draftgroupId/lineup/:lineupId/:lineupAction" component={DraftContainerConnected} />
     </Router>
   </Provider>,
-  '.cmp-player-list'
+  '.cmp-draft-container'
 );
 
 
-module.exports = DraftPlayerList;
+module.exports = DraftContainer;
