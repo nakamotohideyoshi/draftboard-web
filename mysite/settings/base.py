@@ -66,6 +66,7 @@ TEMPLATES = [
                 'mysite.context_processors.pusher_channel_prefix',
                 'mysite.context_processors.delta_now_prefix',
                 'mysite.context_processors.player_images_url',
+                'mysite.context_processors.git_commit_uuid',
             )
         }
     },
@@ -449,6 +450,9 @@ SUIT_CONFIG = {
 USERNAME_DRAFTBOARD = "draftboard"
 USERNAME_ESCROW = "escrow"
 BONUS_CASH_RAKE_PERCENTAGE = .4
+
+# used to cache version localStorage on frontend
+GIT_COMMIT_UUID = os.environ.get('GIT_COMMIT_UUID', 'LOCAL')
 
 #
 # DataDen license key for account: devs@draftboard.com

@@ -59,7 +59,6 @@
   }
 
 
-
   .pane-lower {
     .tabs {
       padding: 40px 10%;
@@ -67,7 +66,11 @@
 
     .table {
       td {
-        padding: 10px 2px;
+        padding: 10px 5px;
+
+        &:first-child {
+          padding-left: 20px;
+        }
       }
     }
   }
