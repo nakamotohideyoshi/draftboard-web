@@ -4,6 +4,8 @@ import { expect } from 'chai';
 import { mount } from 'enzyme';
 import { merge as _merge } from 'lodash';
 import ContestListRow from '../../../components/contest-list/contest-list-row.jsx';
+import DraftButton from '../../../components/contest-list/draft-button.jsx';
+
 
 const defaultTestProps = {
   draftGroupsWithLineups: [],
@@ -58,6 +60,6 @@ describe('ContestListRow Component', () => {
 
 
   it('should always render a draft button.', () => {
-    expect(wrapper.find('.draft-button')).to.have.length(1);
+    expect(wrapper.find(DraftButton)).to.have.length(1);
   });
 });
