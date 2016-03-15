@@ -33,6 +33,7 @@ const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDr
 const sportSelector = (state) => state.draftGroupPlayers.sport;
 const availablePositionSelector = (state) => state.createLineup.availablePositions;
 const newLineupSelector = (state) => state.createLineup.lineup;
+const remainingSalarySelector = (state) => state.createLineup.remainingSalary;
 
 
 // Add injury information to each player.
@@ -46,8 +47,9 @@ const playersWithInfo = createSelector(
   boxScoreGamesSelector,
   availablePositionSelector,
   newLineupSelector,
+  remainingSalarySelector,
   (players, injuries, histories, sport, sportInfo,
-    activeDraftGroupId, boxScoreGames, availablePositions, newLineup
+    activeDraftGroupId, boxScoreGames, availablePositions, newLineup, remainingSalary
   ) => _mapValues(players, (player) => {
     // Duplicate the player so we don't mutate the state.
     const playerWithInfo = _merge({}, player);
@@ -84,6 +86,9 @@ const playersWithInfo = createSelector(
         }
       }
 
+      // add affordability.
+      playerWithInfo.canAfford = remainingSalary >= player.salary;
+
       // Add draft status.
       let draftable = true;
       let drafted = false;
@@ -107,12 +112,28 @@ const playersWithInfo = createSelector(
 );
 
 
+/**
+ * Sort the players.
+ */
+const sortDirection = (state) => state.draftGroupPlayers.filters.orderBy.direction;
+const sortProperty = (state) => state.draftGroupPlayers.filters.orderBy.property;
+
+export const draftGroupPlayerSelector = createSelector(
+  [playersWithInfo, sortProperty, sortDirection],
+  (collection, sortProp, sortDir) => orderBy(collection, sortProp, sortDir)
+);
+
+
+/**
+ * The folloiwng selectors are used to filter the state.draftGroups.filteredPlayers
+ */
+
 // Filter players based on the search filter
 const filterPropertySelector = (state) => state.draftGroupPlayers.filters.playerSearchFilter.filterProperty;
 const filterMatchSelector = (state) => state.draftGroupPlayers.filters.playerSearchFilter.match;
 
 const playerNameSelector = createSelector(
-  [playersWithInfo, filterPropertySelector, filterMatchSelector],
+  [allPlayersSelector, filterPropertySelector, filterMatchSelector],
   (collection, filterProperty, searchString) => stringSearchFilter(collection, filterProperty, searchString)
 );
 
@@ -131,19 +152,7 @@ const teamSelector = createSelector(
 const positionFilterPropertySelector = (state) => state.draftGroupPlayers.filters.positionFilter.filterProperty;
 const positionFilterMatchSelector = (state) => state.draftGroupPlayers.filters.positionFilter.match;
 
-const positionSelector = createSelector(
+export const filteredPlayersSelector = createSelector(
   [teamSelector, positionFilterPropertySelector, positionFilterMatchSelector],
   (collection, filterProperty, searchString) => matchFilter(collection, filterProperty, searchString)
-);
-
-
-/**
- * Sort the players.
- */
-const sortDirection = (state) => state.draftGroupPlayers.filters.orderBy.direction;
-const sortProperty = (state) => state.draftGroupPlayers.filters.orderBy.property;
-
-export const draftGroupPlayerSelector = createSelector(
-  [positionSelector, sortProperty, sortDirection],
-  (collection, sortProp, sortDir) => orderBy(collection, sortProp, sortDir)
 );
