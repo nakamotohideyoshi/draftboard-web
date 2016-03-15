@@ -110,8 +110,7 @@ const ContestListRow = React.createClass({
 
         <DraftButton
           draftGroupId={this.props.row.draft_group}
-
-          disableTime="2099-03-15T23:00:00Z"
+          disableTime={this.props.row.start}
         />
 
 
