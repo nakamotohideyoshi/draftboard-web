@@ -70,7 +70,10 @@ const ContestListDetail = React.createClass({
     fetchContestEntrantsIfNeeded: React.PropTypes.func,
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
     fetchTeamsIfNeeded: React.PropTypes.func,
-    focusedContestId: React.PropTypes.string,
+    focusedContestId: React.PropTypes.oneOfType([
+      React.PropTypes.string,
+      React.PropTypes.number,
+    ]),
     focusedLineup: React.PropTypes.object,
     params: React.PropTypes.object,
     setFocusedContest: React.PropTypes.func,

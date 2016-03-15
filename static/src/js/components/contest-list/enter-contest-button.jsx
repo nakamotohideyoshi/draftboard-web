@@ -47,7 +47,8 @@ const EnterContestButton = React.createClass({
   componentWillMount() {
     const self = this;
     // Start a loop that will keep checking if the contest has started yet.
-    this.checkStartStatusLoop = window.setInterval(self.checkStartStatus, 1000);
+    this.checkStartStatusLoop = window.setInterval(self.checkStartStatus, 2000);
+    this.checkStartStatus();
   },
 
 
@@ -139,9 +140,13 @@ const EnterContestButton = React.createClass({
       return;
     }
 
-    this.setState({
-      hasContestStarted: !isTimeInFuture(this.props.contest.start),
-    });
+    const contestHasStarted = !isTimeInFuture(this.props.contest.start);
+    // Only update the state (and thus re-render) if something has changed.
+    if (contestHasStarted !== this.state.hasContestStarted) {
+      this.setState({
+        hasContestStarted: contestHasStarted,
+      });
+    }
   },
 
 
