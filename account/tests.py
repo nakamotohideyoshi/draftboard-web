@@ -84,6 +84,9 @@ class RegisterAccountTest( APITestCase ):
 
 class AccountInformationTest(AbstractTest):
     def setUp(self):
+        from django.conf import settings
+        self.db = settings.DATABASES['default'].get('NAME')
+        print('account app db name: %s' % str(self.db))
         self.user     = self.get_admin_user()
 
 

@@ -40,6 +40,7 @@ class OpLogObj( Hashable ):
     exclude_field_names = ['dd_updated__id']
 
     def __init__(self, obj):
+        self.original_obj           = obj # save the original object
         self.ts                     = obj.get('ts')
         self.ns                     = obj.get('ns')
         self.o                      = obj.get('o')
@@ -61,6 +62,9 @@ class OpLogObj( Hashable ):
 
         for k,v in tmp.items():
             self.o[ k ] = v
+
+    def __str__(self):
+        return str(self.original_obj)
 
     def get_ns(self):
         """

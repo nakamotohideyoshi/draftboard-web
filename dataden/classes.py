@@ -85,7 +85,7 @@ class DataDen(object):
     PARENT_API__ID = 'parent_api__id'
     DD_UPDATED__ID = 'dd_updated__id'
 
-    def __init__(self, client=None):
+    def __init__(self, client=None, no_cursor_timeout=False):
         """
         if client is None, we will attempt to connect on default localhost:27017
 
@@ -94,6 +94,7 @@ class DataDen(object):
         """
 
         self.client = None
+        self.no_cursor_timeout = no_cursor_timeout
 
         #
         # get the default cache for DataDen
@@ -133,10 +134,10 @@ class DataDen(object):
         if projection and projection.keys():
             #
             # if the projection has any keys, use it
-            return coll.find( target, projection )
+            return coll.find( filter=target, projection=projection, no_cursor_timeout=self.no_cursor_timeout )
 
         # by default, dont apply projection
-        return coll.find( target )
+        return coll.find( filter=target, no_cursor_timeout=self.no_cursor_timeout )
 
     def find_recent(self, db, coll, parent_api, target={}):
         """
@@ -166,6 +167,32 @@ class DataDen(object):
         #
         # return empty cursor if no objects exist
         return all_objects
+
+    def aggregate(self, db, coll, pipeline):
+        """
+        regular queries not enough for you? no? you want to branch out
+         and do something that is unbelievably complex, huh? ... and
+         you want to do it one single operation!? look no further.
+
+        pipline example for getting the 'at_bat' out of the super-nested mlb inning structure:
+
+            pipeline = [
+                {"$match": {"id": "0f36323c-ba26-4272-ab93-f1630def90a1"} },
+                {"$unwind": "$innings"},
+                {"$match": {"innings.inning.inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "70ad813e-98eb-4160-9c44-b860e64f21f4"} },
+                {"$project": {"inning_halfs":"$innings.inning.inning_halfs"}},
+                {"$unwind": "$inning_halfs"},
+                {"$match": {"inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "70ad813e-98eb-4160-9c44-b860e64f21f4"} },
+                {"$project": {"at_bats":"$inning_halfs.inning_half.at_bats"}},
+                {"$unwind": "$at_bats"},
+                {"$match": {"at_bats.at_bat.pitchs.pitch": "70ad813e-98eb-4160-9c44-b860e64f21f4"} },
+                {"$project": {"at_bat":"$at_bats.at_bat"}},
+            ]
+
+        :param pipeline: list of commands to run in order, using mongos aggregation framework
+        :return: list of matched objs
+        """
+        return list(self.db(db).get_collection(coll).aggregate(pipeline))
 
     def enabled_sports(self):
         coll = self.db(self.DB_CONFIG).get_collection(self.COLL_SCHEDULE)
@@ -496,6 +523,9 @@ class Season(DataDen):
             raise self.SeasonNotFoundException('no seasons for %s' % title )
 
         if seasons_found.count() >= 2:
+            for season_found in seasons_found:
+                print('')
+                print(str(season_found))
             raise self.MultipleSeasonObjectsReturnedException('more than 1 season for %s' % title)
 
     def get_seasons(self, season):
@@ -559,7 +589,7 @@ class MlbSeason(Season):
             self.season_type_field : self.season_type_reg,
             self.season_year_field : int(season),
         }
-        seasons = self.find(self.sport, self.schedule_collection, self.parent_api)
+        seasons = self.find(self.sport, self.schedule_collection, self.parent_api, target=target)
         # a little error checking to ensure we have the object we want (and only 1 of them)
         self.validate_season(season, seasons)
 

@@ -105,7 +105,7 @@ class PlayerHistorySerializer(serializers.Serializer):
     )
 
     #
-    # home_id, away_id, start
+    # home_id, away_id, start, srid_home, srid_away
     home_id = serializers.ListField(
         child=serializers.IntegerField(),
         help_text="This is an ARRAY of INTEGER primary keys to home teams referenced by the srid in games at the same index"
@@ -118,7 +118,14 @@ class PlayerHistorySerializer(serializers.Serializer):
         child=serializers.DateTimeField(),
         help_text="This is an ARRAY of DATETIMES to the start of each game referenced by the srid in games at the same index"
     )
-
+    srid_home = serializers.ListField(
+        child=serializers.CharField(),
+        help_text="This is an ARRAY of STRINGS of sportradar ids (srids) for each home team for the game at the same index"
+    )
+    srid_away = serializers.ListField(
+        child=serializers.CharField(),
+        help_text="This is an ARRAY of STRINGS of sportradar ids (srids) for each away team for the game at the same index"
+    )
     #
     # the Fantasy Points have to get a different name in this
     # serializer because there is already a column called fantasy_points which

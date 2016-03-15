@@ -38,8 +38,8 @@ ENVS = {
     'testing': {
         'heroku_repo': 'draftboard-testing',
     },
-    'ios_sandbox': {
-        'heroku_repo': 'draftboard-ios-sandbox',
+    'dev': {
+        'heroku_repo': 'draftboard-dev',
     },
 }
 
@@ -178,12 +178,14 @@ def syncdb():
         _puts('Capturing new production backup')
         operations.local(
             'heroku pg:backups capture --app %s' % ENVS['production']['heroku_repo']
+            #'heroku pg:backups capture --app draftboard-dev'
         )
 
         # pull down db to local
         if env.environment == 'local':
             _puts('Pull latest production down to local')
             operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app draftboard-staging`')
+            #operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app draftboard-dev`')
 
     # restore locally
     if (env.environment == 'local'):
@@ -197,7 +199,6 @@ def syncdb():
                 'sudo -u postgres pg_restore --no-acl --no-owner -d %s /tmp/latest.dump' %
                 env.db_name
             )
-
 
 def _puts(message):
     """Extends puts to separate out what we're doing"""
@@ -213,12 +214,12 @@ def local():
     _get_local_git_db()
 
 
-def ios_sandbox():
+def dev():
     """fab local [command]"""
 
-    testing = ENVS['ios_sandbox']
+    testing = ENVS['dev']
 
-    env.environment = 'ios-sandbox'
+    env.environment = 'dev'
     env.heroku_repo = testing['heroku_repo']
     _get_local_git_db()
 

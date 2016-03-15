@@ -88,9 +88,6 @@ class RegisteredUserSerializer(serializers.Serializer):
     def get_username(self, entry):
         return entry.get('lineup__user__username')
 
-    # class Meta:
-    #     fields  = ('total', 'username')
-
 class EnterLineupSerializer(serializers.Serializer):
 
     contest = serializers.IntegerField()
@@ -183,3 +180,25 @@ class UserLineupHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model   = Lineup
         fields  = ('id','players','entries', 'name', 'sport',)
+
+class RankedEntrySerializer(serializers.ModelSerializer):
+    """
+    for an entry in a contest that has been paid out.
+    there may or may not be a payout, but this entry
+    should be ranked and have fantasy points for the lineup
+    """
+
+    username = serializers.SerializerMethodField()
+    def get_username(self, entry):
+        return entry.user.username
+
+    fantasy_points = serializers.SerializerMethodField()
+    def get_fantasy_points(self, entry):
+        return entry.lineup.fantasy_points
+
+    payout = SuccinctPayoutSerializer()
+
+    class Meta:
+
+        model  = Entry
+        fields = ('username', 'final_rank', 'payout', 'fantasy_points')

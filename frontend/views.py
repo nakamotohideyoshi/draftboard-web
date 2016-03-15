@@ -2,6 +2,7 @@ from braces.views import LoginRequiredMixin
 from django.views.generic.base import TemplateView
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
+from django.shortcuts import redirect
 
 from contest.models import (
     Entry,
@@ -125,6 +126,11 @@ class FrontendDraftTemplateView(LoginRequiredMixin, TemplateView):
     """
     # TODO: Check if the draft_group_id GET param is for a valid draft group. 404 otherwise.
     template_name = 'frontend/draft.html'
+
+    def get(self, request, *args, **kwargs):
+        draft_group_id = kwargs.get('draft_group_id', 0)
+        if CurrentContest.objects.filter(draft_group__pk=int(draft_group_id)).count() == 0:
+            return HttpResponseRedirect(reverse('frontend:lobby'))
 
     def get_context_data(self, **kwargs):
         context = super(FrontendDraftTemplateView, self).get_context_data(**kwargs)

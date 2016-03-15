@@ -39,6 +39,9 @@ class Game( sports.models.Game ):
     """
     all we get from the inherited model is: 'start' and 'status'
     """
+
+    season      = models.ForeignKey(Season, null=False)
+
     home = models.ForeignKey( Team, null=False, related_name='game_hometeam')
     srid_home   = models.CharField(max_length=64, null=False,
                                 help_text='home team sportsradar global id')
@@ -92,7 +95,6 @@ class GameBoxscore( sports.models.GameBoxscore ):
     class Meta:
         abstract = False
 
-
 class Player( sports.models.Player ):
     """
     inherited: 'srid', 'first_name', 'last_name'
@@ -122,7 +124,10 @@ class Player( sports.models.Player ):
     class Meta:
         abstract = False
 
+class PlayerLineupName( Player ):
 
+    class Meta:
+        proxy = True
 
 class PlayerStats( sports.models.PlayerStats ):
 
@@ -142,6 +147,7 @@ class PlayerStats( sports.models.PlayerStats ):
 
         #
         # send the pusher obj for fantasy points with scoring
+        self.set_cache_token()
         push.classes.DataDenPush( push.classes.PUSHER_MLB_STATS, 'player').send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
 
         super().save(*args, **kwargs)

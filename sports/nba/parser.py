@@ -11,11 +11,12 @@ from sports.nba.models import (
     GameBoxscore,
     Pbp,
     PbpDescription,
-    GamePortion
+    GamePortion,
+    Season,
 )
-
 from sports.sport.base_parser import (
     AbstractDataDenParser,
+    DataDenSeasonSchedule,
     DataDenTeamHierarchy,
     DataDenGameSchedule,
     DataDenPlayerRosters,
@@ -23,17 +24,19 @@ from sports.sport.base_parser import (
     DataDenGameBoxscores,
     DataDenTeamBoxscores,
     DataDenPbpDescription,
-    DataDenInjury
+    DataDenInjury,
+    SridFinder,
 )
-
-from dataden.cache.caches import PlayByPlayCache
-from pymongo import DESCENDING
 from dataden.classes import DataDen
-import json
-from push.classes import DataDenPush, PbpDataDenPush
+from push.classes import (
+    DataDenPush,
+    PbpDataDenPush,
+)
 from django.conf import settings
 import push.classes
-from sports.sport.base_parser import TsxContentParser
+from sports.sport.base_parser import (
+    TsxContentParser,
+)
 
 class TeamBoxscores(DataDenTeamBoxscores):
 
@@ -99,6 +102,24 @@ class PlayerRosters(DataDenPlayerRosters):
 
         self.player.save() # commit to db
 
+class SeasonSchedule(DataDenSeasonSchedule):
+    """
+    """
+
+    season_model = Season
+
+    def __init__(self):
+        super().__init__()
+
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        if self.season is None:
+            return
+
+        self.season.save()
+
 class TeamHierarchy(DataDenTeamHierarchy):
     """
     Parse an object from which represents a Team for this sport into the db.
@@ -119,8 +140,9 @@ class TeamHierarchy(DataDenTeamHierarchy):
 
 class GameSchedule(DataDenGameSchedule):
 
-    team_model  = Team
-    game_model  = Game
+    team_model      = Team
+    game_model      = Game
+    season_model    = Season
 
     def __init__(self):
         super().__init__()
@@ -205,6 +227,17 @@ class PlayerStats(DataDenPlayerStats):
         #         'three_points_pct': 0.0
         self.ps.three_points_pct = o.get('three_points_pct', 0.0)
 
+        # minutes will be in the form '20:13'   (20 minutes, 13 seconds)
+        minutes_val = o.get('minutes', None)
+        if not isinstance( minutes_val, str ):
+            # its not a string, set default value of 0
+            self.ps.minutes = 0.0
+        else:
+            # parse the string
+            parts = minutes_val.split(':')
+            if len(parts) == 2:
+                self.ps.minutes = float(parts[0])
+
         self.ps.save() # commit changes
 
 class QuarterPbp(DataDenPbpDescription):
@@ -272,12 +305,18 @@ class EventPbp(DataDenPbpDescription):
     pbp_model               = Pbp
     portion_model           = GamePortion
     pbp_description_model   = PbpDescription
+    #
+    player_stats_model      = sports.nba.models.PlayerStats
+    pusher_sport_pbp        = push.classes.PUSHER_NBA_PBP
+    pusher_sport_stats      = push.classes.PUSHER_NBA_STATS
 
     def __init__(self):
         super().__init__()
 
     def parse(self, obj, target=None):
-        #self.timer_start()
+        # since we dont call super().parse() in this class
+        self.original_obj = obj
+        self.srid_finder = SridFinder(obj.get_o())
         #
         # dont need to call super for EventPbp - just get the event by srid.
         # if it doesnt exist dont do anything, else set the description
@@ -307,6 +346,73 @@ class EventPbp(DataDenPbpDescription):
             #print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
             pass
         #self.timer_stop()
+
+    # def send(self):
+    #     """
+    #     pusher the pbp + stats info as one piece of data.
+    #     :return:
+    #     """
+    #     super().send()
+    #
+    #     # adding the pbp obj to the cache will return if it previously existed.
+    #     # if it was already in there, we dont need to re-send it.
+    #     live_stats_cache = LiveStatsCache()
+    #     just_added = live_stats_cache.update_pbp( self.get_obj() )
+    #     if just_added:
+    #         print(' === DataDenPush === SENDING PBP FIRST TIME:', str(self.o)) # TODO remove print
+    #     else:
+    #         return # dont send it again! get out of here
+    #
+    #     #
+    #     # try to retrieve the player(s) and game srids to look up linked PlayerStats
+    #     # and add them to the player_stats list if found.
+    #     player_stats = self.__find_player_stats()
+    #
+    #     #
+    #     # send normally, or as linked data depending on the found PlayerStats instances
+    #     if len(player_stats) == 0:
+    #         # solely push pbp object
+    #         DataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( self.o )
+    #     else:
+    #         # push combined pbp+stats data
+    #         data = self.__build_linked_pbp_stats_data( player_stats )
+    #         DataDenPush( push.classes.PUSHER_NBA_PBP, 'linked' ).send( data )
+    #
+    # def __find_player_stats(self):
+    #     """
+    #     extract player and game srids and return a list
+    #     of any matching PlayerStats models found
+    #     :return:
+    #     """
+    #
+    #     player_srids = self.get_srids_for_field('player')
+    #     game_srids = list(set(self.get_srids_for_field('game__id')))
+    #     if len(game_srids) != 1:
+    #         # ambiguous, multiple unique game ids found - unexpected!
+    #         return []
+    #
+    #     game_srid = game_srids[0]
+    #     return sports.nba.models.PlayerStats.objects.filter(srid_game=game_srid,
+    #                                                 srid_player__in=player_srids)
+    #
+    # def __build_linked_pbp_stats_data(self, player_stats):
+    #     """
+    #     builds and returns a dictionary in the form:
+    #
+    #         {
+    #             "nba_pbp"   : { <typical nba_pbp pusher formatted data> },
+    #             "nba_stats" : [
+    #                 { <PlayerStats pusher formatted data> },
+    #                 { <PlayerStats pusher formatted data> },
+    #             ],
+    #         }
+    #
+    #     """
+    #     data = {
+    #         push.classes.PUSHER_NBA_PBP : self.o,
+    #         push.classes.PUSHER_NBA_STATS : [ ps.to_json() for ps in player_stats ]
+    #     }
+    #     return data
 
 class Injury(DataDenInjury):
 
@@ -364,7 +470,8 @@ class DataDenNba(AbstractDataDenParser):
 
         #
         # nba.game
-        if self.target == ('nba.game','schedule'): GameSchedule().parse( obj )
+        if self.target == ('nba.season_schedule','schedule'): SeasonSchedule().parse( obj )
+        elif self.target == ('nba.game','schedule'): GameSchedule().parse( obj )
         elif self.target == ('nba.game','boxscores'):
             GameBoxscores().parse( obj )
             DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
@@ -384,13 +491,24 @@ class DataDenNba(AbstractDataDenParser):
         #
         # nba.event
         elif self.target == ('nba.event','pbp'):
-            EventPbp().parse( obj )
-            PbpDataDenPush( push.classes.PUSHER_NBA_PBP, 'event' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES ) # use Pusher to send this object after DB entry created
-            self.add_pbp( obj ) # stashes the pbp object for the trailing history
+            #
+            # handle a play by play event from dataden.
+            event_pbp = EventPbp()
+            event_pbp.parse( obj )      # takes care of pushering the data too.
+            event_pbp.send()            # pushers the pbp + stats data as one piece of data
+
+            self.add_pbp( obj )         # stashes the pbp object for the trailing history api
+
         #
         # nba.player
-        elif self.target == ('nba.player','rosters'): PlayerRosters().parse( obj )
-        elif self.target == ('nba.player','stats'): PlayerStats().parse( obj )
+        elif self.target == ('nba.player','rosters'):
+            PlayerRosters().parse( obj )
+
+        elif self.target == ('nba.player','stats'):
+            #
+            # will save() the nba PlayerStats model corresponding to this player.
+            PlayerStats().parse( obj )
+            # note: the PlayerStats model takes care of pushering its updated data!
         #
         # nba.injury
         elif self.target == ('nba.injury','injuries'): Injury().parse( obj )

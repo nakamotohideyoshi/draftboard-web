@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 import re
-
+from django.core.cache import cache
 from django.dispatch import Signal, receiver
 from django.db.models.signals import pre_save
 from dirtyfields import DirtyFieldsMixin
@@ -110,12 +110,16 @@ class Season( models.Model ):
     """
     information about the part of the season we are in
     """
-    start_year      = models.CharField(max_length=100, null=False)
+
+    srid            = models.CharField(max_length=64, unique=True, null=False,
+                                        help_text='the sportsradar global id of the season/schedule')
+    season_year     = models.IntegerField(default=0, null=False,
+                                        help_text='the year the season started')
     season_type     = models.CharField(max_length=255, null=False)
 
     class Meta:
         abstract = True
-        unique_together = ('start_year', 'season_type')
+        unique_together = ('season_year', 'season_type')
 
 class Game( DirtyFieldsMixin, models.Model ):
     """
@@ -125,11 +129,24 @@ class Game( DirtyFieldsMixin, models.Model ):
     STATUS_CLOSED = 'closed'
     STATUS_INPROGRESS = 'inprogress'
 
+    SEASON_TYPE_PRE = 'pre'     # preseason
+    SEASON_TYPE_REG = 'reg'     # regular season
+    SEASON_TYPE_PST = 'pst'     # postseason
+    SEASON_TYPES = [
+        (SEASON_TYPE_PRE, 'Preseason'),
+        (SEASON_TYPE_REG, 'Regular Season'),
+        (SEASON_TYPE_PST, 'Postseason'),
+    ]
+
     created = models.DateTimeField(auto_now_add=True)
     updated     = models.DateTimeField(auto_now=True)
 
     srid = models.CharField(max_length=64, unique=True, null=False,
                                 help_text='the sportsradar global id')
+
+    # season_year = models.IntegerField(default=0, null=False,
+    #                                   help_text='the year the season started')
+    # season_type = models.CharField(max_length=32, default=SEASON_TYPE_REG, null=False, choices=SEASON_TYPES)
 
     start       = models.DateTimeField(null=False)
     status      = models.CharField(max_length=32, null=False)
@@ -169,8 +186,8 @@ class Game( DirtyFieldsMixin, models.Model ):
         try:
             changed_fields = self.get_dirty_fields()
         except django.core.exceptions.ValidationError:
-            print('Game model self.get_dirty_fields() threw django.core.exceptions.ValidationError because of a datetime problem... skipping it for testing purposes')
-            print('debug>>>', 'game.start', str(self.start), 'game instance[', str( self ), ']' )
+            #print('Game model self.get_dirty_fields() threw django.core.exceptions.ValidationError because of a datetime problem... skipping it for testing purposes')
+            #print('debug>>>', 'game.start', str(self.start), 'game instance[', str( self ), ']' )
             changed_fields = {}
 
         super().save(*args, **kwargs) # Call the "real" save() method.
@@ -274,6 +291,9 @@ class Player(models.Model):
 
     season_fppg     = models.FloatField(null=False, default=0.0)
 
+    lineup_nickname = models.CharField(max_length=64, default='', editable=True, blank=True,
+                         help_text='sets the the automatically generated name for lineups using this player' )
+
     def remove_injury(self):
         """
         Remove the injury, if one exists.
@@ -362,6 +382,15 @@ class PlayerStats(models.Model):
     #position            = models.CharField(max_length=16, null=False, default='')
     # primary_position    = models.CharField(max_length=16, null=False, default='')
 
+    def get_cache_token(self):
+        """
+        return a globally unique value for this object
+        """
+        return 'game_%s__player_%s' % (self.srid_game, self.srid_player)
+
+    def set_cache_token(self):
+        cache.set(self.get_cache_token(), 'exists')
+
     def get_scoring_fields(self):
         """
         get the fields relevant to scoring which we want
@@ -380,9 +409,9 @@ class PlayerStats(models.Model):
 
     def to_score(self):
         return {
-            'id'         : self.player_id,
+            'id'    : self.player_id,
             'fp'    : self.fantasy_points,
-            'pos'          : self.position.name
+            'pos'   : self.position.name
         }
 
     class Meta:
@@ -559,7 +588,7 @@ class AbstractTsxItem(models.Model):
     byline      = models.CharField(max_length=256, null=False)
     dateline    = models.CharField(max_length=32, null=False)
     credit      = models.CharField(max_length=128, null=False)
-    content     = models.CharField(max_length=1024*16, null=False)
+    content     = models.CharField(max_length=1024*32, null=False)
 
     class Meta:
         abstract = True

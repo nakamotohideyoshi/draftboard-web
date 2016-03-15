@@ -17,6 +17,11 @@ DEBUG               = True
 DATETIME_DELTA_ENABLE  = True
 
 #
+#
+INSTALLED_APPS = ('test_without_migrations',) + INSTALLED_APPS
+#print(str(INSTALLED_APPS))
+
+#
 # try to create the database, if it already exists, this will have no effect
 # create_db_cmd = 'sudo -u postgres createdb %s' % db_name
 # try:
@@ -39,7 +44,7 @@ DATETIME_DELTA_ENABLE  = True
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': db_name,
+        'NAME':  db_name,
         #'USER': 'vagrant',      # by not specifying a user at all, it will not prompt for password
         #'HOST': 'localhost',    # default to localhost
         #'CONN_MAX_AGE': 60,
@@ -78,20 +83,26 @@ CACHES = {
     }
 }
 
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+#     }
+# }
+
 # Asset locations
 STATIC_URL = '/static/'
 
 # # (Dev) Mongo Connection settings
-MONGO_PASSWORD  = ''
-MONGO_HOST      = 'localhost'
-MONGO_PORT      = 27017         # default port may be the actual port
+# MONGO_PASSWORD  = ''
+# MONGO_HOST      = 'localhost'
+# MONGO_PORT      = 27017         # default port may be the actual port
 
 # # dataden mongo database connection
-# MONGO_AUTH_DB   = 'admin'
-# MONGO_USER      = 'admin'
-# MONGO_PASSWORD  = 'dataden1'
-# MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
-# MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
+MONGO_AUTH_DB   = 'admin'
+MONGO_USER      = 'admin'
+MONGO_PASSWORD  = 'dataden1'
+MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
+MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
 #MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
 
 DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
@@ -100,7 +111,14 @@ DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 ##########################################################################
 #        pusher - DEVELOPMENT ids
 ##########################################################################
-PUSHER_APP_ID           = '144196'
-PUSHER_KEY              = 'f23775e0c1d0da57bb4b'
-PUSHER_SECRET           = 'fc815c85237d726b9d8e'
-PUSHER_CHANNEL_PREFIX   = 'local_'
+PUSHER_APP_ID           = '159462'
+PUSHER_KEY              = '961cebaf8b45649cc786'
+PUSHER_SECRET           = '47002883ba8571a48d90'
+PUSHER_CHANNEL_PREFIX   = ''
+PUSHER_ENABLED          = False
+
+#
+# because of the local setup, custom test runner requires root priviledges
+# from test.runners import InlineAppDiscoverRunner
+#TEST_RUNNER = 'test.runners.InlineAppDiscoverRunner'
+INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = True

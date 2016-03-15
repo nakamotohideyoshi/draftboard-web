@@ -133,11 +133,12 @@ class DraftGroupManager( AbstractDraftGroupManager ):
             # check results... ?
 
     @atomic
-    def update_final_fantasy_points(self, draft_group_id):
+    def update_final_fantasy_points(self, draft_group_id, scorer_class=None):
         """
         updates the final_fantasy_points for all players in the draft group
 
         :param draft_group:
+        :param scorer_class: gives the caller ability to override the scoring class used to calc fantasy points
         :return:
         """
 
@@ -155,7 +156,13 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
         # get all the PlayerStats objects for this draft group
         ssm = SiteSportManager()
-        salary_score_system_class = ssm.get_score_system_class(site_sport)
+        #print('ssm.get_score_system_class( %s ):' % str(site_sport))
+
+        if scorer_class is None:
+            salary_score_system_class = ssm.get_score_system_class(site_sport)
+        else:
+            salary_score_system_class = scorer_class
+
         score_system = salary_score_system_class()
         game_srids = [ x.game_srid for x in self.get_game_teams(draft_group=draft_group) ]
 

@@ -11,7 +11,11 @@ class Payout(Action):
     entry = models.OneToOneField(Entry, null=False, related_name='payout' )
 
     def __str__(self):
-        return "Contest_Name:"+self.contest.name+" user_name:"+self.entry.lineup.user.username+"  rank:"+str(self.rank)
+        rnk_str     = '(Rank:%s, $%.02f, fp:%.02f)' % (str(self.rank),
+                            self.amount, self.entry.lineup.fantasy_points)
+        user_str    = self.entry.lineup.user.username
+        contest_str = '%s (pk: %s)' % (self.contest.name, self.contest.pk)
+        return '%s | %s | %s' % (rnk_str, user_str, contest_str)
 
     @property
     def amount(self):

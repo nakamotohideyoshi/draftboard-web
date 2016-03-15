@@ -1,13 +1,14 @@
 #
 # contest/tests.py
 
-from test.classes import AbstractTest, AbstractTestTransaction
+from test.classes import AbstractTest
 from salary.dummy import Dummy
 from prize.classes import CashPrizeStructureCreator
 from django.utils import timezone
 from datetime import timedelta
 from cash.classes import CashTransaction
 from draftgroup.classes import DraftGroupManager
+from draftgroup.tasks import on_game_closed, on_game_inprogress
 from django.test.utils import override_settings
 from contest.models import Contest, LobbyContest, UpcomingContest, LiveContest, HistoryContest
 from contest.classes import ContestCreator
@@ -16,7 +17,7 @@ from contest.views import (
     EnterLineupAPIView,
 )
 
-class ContestManagerTest(AbstractTestTransaction):
+class ContestManagerTest(AbstractTest):
     """
     tests the managers for:
         LobbyContest    - contests that havent been cancelled or paid out.
@@ -27,14 +28,14 @@ class ContestManagerTest(AbstractTestTransaction):
     def setUp(self):
         pass # TODO
 
-class ContestCreatorClone(AbstractTestTransaction):
+class ContestCreatorClone(AbstractTest):
     """
     test cloning a Contest does what we expect.
     """
     def setUp(self):
         pass # TODO
 
-class ContestCreatorRespawn(AbstractTestTransaction):
+class ContestCreatorRespawn(AbstractTest):
     """
     test respawn functionality (similar to clone,
     but should only work on upcoming contests.
@@ -42,13 +43,7 @@ class ContestCreatorRespawn(AbstractTestTransaction):
     def setUp(self):
         pass # TODO
 
-#
-# NOTE:
-#       This has been thoroughly tested, but because of the behavior
-#       of threading in the django test environment there are
-#       non-deterministic issues, so were removing it.
-#
-# class ContestOnGameClosedRaceCondition(AbstractTestTransaction): ## AbstractTestTransaction
+# class ContestOnGameClosedRaceCondition(AbstractTest):
 #
 #     def setUp(self):
 #         self.user = self.get_basic_user()
@@ -58,7 +53,8 @@ class ContestCreatorRespawn(AbstractTestTransaction):
 #         # updated Dummy so we can get an instance for a sport, ie: 'nfl'
 #         # call generate and it works for that sport. this is the latest
 #         # and greatest Dummy.
-#         self.dummy          = Dummy('nfl')
+#         self.sport          = 'nfl'
+#         self.dummy          = Dummy(self.sport)
 #
 #         # does the same thing as generate_salaries()
 #         # but creates it for a specific sport, whereas
@@ -87,9 +83,22 @@ class ContestCreatorRespawn(AbstractTestTransaction):
 #
 #         #
 #         # create the Contest
-#         now     = timezone.now()
-#         start   = now - timedelta(days=1) # behind 24 hours
-#         end     = now + timedelta(days=1) # ahead 24 hours to capture all games
+#         ssm = SiteSportManager()
+#         site_sport = ssm.get_site_sport(self.sport)
+#         game_model = ssm.get_game_class(site_sport)
+#
+#         now = timezone.now() # get the current time
+#
+#         # increase the start time of all the upcoming games by 20 minutes,
+#         # then use the start time of the next game as the start time of the contest.
+#         # and add a bunch of hours to start to spoof the end
+#         for g in game_model.objects.filter(start__gte=now):
+#             g.start + timedelta(minutes=20)
+#             g.save()
+#         upcoming_games = game_model.objects.filter(start__gte=now).order_by('start')
+#         game = upcoming_games[0] # the closest upcoming game
+#         start   = game.start
+#         end     = start + timedelta(hours=12) # ahead 24 hours to capture all games
 #         cc      = ContestCreator("test_contest", "nfl", self.prize_structure, start, end)
 #
 #         self.contest        = cc.create()
@@ -105,9 +114,9 @@ class ContestCreatorRespawn(AbstractTestTransaction):
 #         self.contest.draft_group = self.draft_group
 #         self.contest.save()
 #
-#     @override_settings(TEST_RUNNER=AbstractTestTransaction.CELERY_TEST_RUNNER,
-#                        CELERY_ALWAYS_EAGER=True,
-#                        CELERYD_CONCURRENCY=3)
+#     # @override_settings(TEST_RUNNER=AbstractTest.CELERY_TEST_RUNNER,
+#     #                    CELERY_ALWAYS_EAGER=True,
+#     #                    CELERYD_CONCURRENCY=1)
 #     def test_race_condition_on_game_closed(self):
 #         """
 #         when live games go to 'closed' status,

@@ -2,7 +2,7 @@
 # contest/buyin/tests.py
 
 from rest_framework.test import APITestCase
-from test.classes import AbstractTest, AbstractTestTransaction
+from test.classes import AbstractTest
 from salary.dummy import Dummy
 from prize.classes import CashPrizeStructureCreator
 from ticket.classes import TicketManager
@@ -219,14 +219,7 @@ class BuyinTest(AbstractTest):
         self.assertRaises(exceptions.ContestMaxEntriesReachedException,
                   lambda: bm.buyin(self.contest))
 
-
-# NOTE:
-# 1.)   The buyin task has been tested thoroughly and works.
-# 2.)   However(!) the way the django test harness runs threads
-#           and deals with the concurrent database transactions
-#           leads this test case to fail.
-#
-# class BuyinRaceTest(AbstractTestTransaction):
+# class BuyinRaceTest(AbstractTest):
 #
 #     def setUp(self):
 #

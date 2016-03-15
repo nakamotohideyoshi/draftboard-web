@@ -7,7 +7,16 @@ from draftgroup.models import DraftGroup, Player
 from .models import Lineup, Player as LineupPlayer
 from sports.classes import SiteSportManager
 from roster.classes import RosterManager
-from.exceptions import LineupInvalidRosterSpotException, InvalidLineupSizeException, PlayerDoesNotExistInDraftGroupException, InvalidLineupSalaryException, DuplicatePlayerException, PlayerSwapGameStartedException, LineupUnchangedException, CreateLineupExpiredDraftgroupException
+from .exceptions import (
+    LineupInvalidRosterSpotException,
+    InvalidLineupSizeException,
+    PlayerDoesNotExistInDraftGroupException,
+    InvalidLineupSalaryException,
+    DuplicatePlayerException,
+    PlayerSwapGameStartedException,
+    LineupUnchangedException,
+    CreateLineupExpiredDraftgroupException,
+)
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from contest.models import Contest, Entry
@@ -59,7 +68,8 @@ class LineupManager(AbstractSiteUserClass):
         """
         total_fantasy_points = 0.0
         for player in self.get_players(lineup):
-            total_fantasy_points += player.draft_group_player.finalized_fantasy_points
+            # player is a lineup.models.Player object
+            total_fantasy_points += player.draft_group_player.final_fantasy_points
         #
         # and save the lineup
         lineup.fantasy_points = total_fantasy_points
@@ -170,6 +180,7 @@ class LineupManager(AbstractSiteUserClass):
         lineup.save()
 
         i = 0
+        highest_salary_player = None
         for player in players:
             lineup_player = LineupPlayer()
             lineup_player.player                = player
@@ -179,6 +190,15 @@ class LineupManager(AbstractSiteUserClass):
             lineup_player.idx                   = i
             lineup_player.save()
             i += 1
+
+            if highest_salary_player is None:
+                highest_salary_player = lineup_player.draft_group_player
+            elif lineup_player.draft_group_player.salary > highest_salary_player.salary:
+                highest_salary_player = lineup_player.draft_group_player
+
+        if lineup.name == '' and highest_salary_player.salary_player.player.lineup_nickname != '':
+            lineup.name = highest_salary_player.salary_player.player.lineup_nickname
+            lineup.save()
 
         self.__merge_lineups(lineup)
         return lineup

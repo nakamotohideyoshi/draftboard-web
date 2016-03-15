@@ -42,5 +42,5 @@ class PlayerTierTest(AbstractTest):
             # now call update for this user, and validate they are that tier
             manager = LoyaltyStatusManager( self.user )
             manager.update()
-            print( 'manager.player_tier.status', str(manager.player_tier.status), ' == (?) ', str(status))
+            #print( 'manager.player_tier.status', str(manager.player_tier.status), ' == (?) ', str(status))
             self.assertEqual( manager.player_tier.status, status )

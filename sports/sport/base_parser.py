@@ -1,9 +1,12 @@
 #
 # sports/sport/base_parser.py
 
+import re
+from django.core.cache import cache
+from mysite.celery_app import locking
 from django.utils import timezone
 from dataden.util.timestamp import Parse as DataDenDatetime
-from dataden.cache.caches import PlayByPlayCache
+from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
 from django.db.transaction import atomic
 import json
 from django.contrib.contenttypes.models import ContentType
@@ -11,15 +14,103 @@ from sports.models import SiteSport, Position
 from dataden.classes import DataDen
 import sports.classes
 import dateutil.parser
+import push.classes
+
+#
+################################################################################
+#################### this will get the {player-srid} and the {game-srid}       #
+################################################################################
+# %cpaste
+# import re
+# import operator
+# from ast import literal_eval
+# f = open('site-setup/lillard_updates.txt', 'r')
+# lines = f.readlines()
+# f.close()
+# items = []
+# for line in lines:
+#     d = literal_eval( line )
+#     items.append( d )
+# sorted_items = sorted(items, key=lambda k: k['ts']) # ascending
+# len(sorted_items)
+# for item in sorted_items:
+#     if item.get('ns') == 'nba.player':
+#         print(item.get('ts'), '>>>', item.get('o').get('statistics__list'))
+#     elif item.get('ns') == 'nba.event':
+#         print(item.get('ts'), '>>>', item.get('o').get('description'))
+#         pattern = r"'player':\s'([^']*)'"
+#         player_srids = re.findall(pattern, str(item))
+#         for psrid in player_srids:
+#             print('        player: ', psrid)
+#         pattern_game = r"'game__id':\s'([^']*)'"
+#         game_srids = re.findall(pattern_game, str(item))
+#         for gsrid in game_srids:
+#             print('        game:   ', gsrid)
+# --
+####################################################################################
+
+class PatternFinder(object):
+
+    def __init__(self, s):
+        self.s = s
+
+    def findall(self, pattern):
+        return list(re.findall(pattern, self.s))
+
+class SridFinder(PatternFinder):
+    """
+    has methods to find global ids from a dictionary.
+    global ids are simply long strings of alpha-numeric
+    character values of dict fields.
+    """
+
+    class InvalidArgumentTypeException(Exception): pass
+
+    srid_pattern = r"'([^']*)'"    # will match anything between single quotes
+
+    def __init__(self, data):
+        if not isinstance(data, dict):
+            err_msg = '"data" param must be a dict. type was: %s' % type(data)
+            raise self.InvalidArgumentTypeException(err_msg)
+        super().__init__(str(data))
+
+    def get_for_field(self, fieldname):
+        """
+        return all the srids of fields (ie: dict keys) with this name.
+
+        returns a list of string srids found
+        """
+
+        pattern = r"'%s':\s%s" % (fieldname, self.srid_pattern)
+        return self.findall(pattern)
+
+# class PbpStatsLinker(object):
+#     """
+#     this class is designed to extract the player-srid(s) and game-srid
+#     from a play-by-play object (dictionary), and it uses pusher to
+#     send a pbp object after it finds the corresponding PlayerStats to
+#     send along with it.
+#     """
+#
+#     def __init__(self, pbp):
+#         """
+#         construct this object with a play by play event object
+#         which contains the description, players, teams, etc.
+#         that are involved in a unique scoring play.
+#         """
+#         self.pbp = pbp
+#
+#     def get_data(self):
+#         pass # TODO - implement?
 
 class AbstractDataDenParser(object):
     """
     for parsing each individual sport, which will have some differences
     """
     def __init__(self):
-        self.ns         = None
-        self.parent_api = None
-        self.o          = None
+        self.ns                 = None
+        self.parent_api         = None
+        self.o                  = None
 
     def add_pbp(self, obj):
         pbp_cache = PlayByPlayCache( self.ns.split('.')[0] ) # the self.ns is "sport.collection"
@@ -58,10 +149,17 @@ class AbstractDataDenParseable(object):
     such as: nba.player stats.
     """
 
+    class DataDenParseableSendException(Exception): pass
+
     def __init__(self, wrapped=True):
-        self.name   = self.__class__.__name__
-        self.o      = None
-        self.wrapped = wrapped
+        self.name           = self.__class__.__name__
+        self.original_obj   = None
+        self.o              = None
+        self.wrapped        = wrapped
+        self.srid_finder    = None
+
+    def get_obj(self):
+        return self.original_obj
 
         self.start = None
         self.stop = None
@@ -82,11 +180,17 @@ class AbstractDataDenParseable(object):
         will strip the oplog wrapper from the obj, and set
         the mongo object to self.o.
         """
+        self.original_obj = obj
         #print( self.name, str(obj)[:100], 'target='+str(target) )
         if self.wrapped:
             self.o  = obj.get_o()
         else:
             self.o  = obj
+
+        #
+        # constrcut an SridFinder with the dictionary data
+        #print('self.o -- ', str(self.o))        # TODO remove print
+        self.srid_finder = SridFinder(self.o)
 
     def get_site_sport(self, obj):
         """
@@ -105,7 +209,114 @@ class AbstractDataDenParseable(object):
         # because i want it to crash.
         return SiteSport.objects.get( name=sport_name )
 
+    def get_srids_for_field(self, fieldname):
+        """
+        returns a list of string "srids" (globally unique sportradar ids)
 
+        using regular expressions, get the srids for the named field.
+        for example: if fieldname is 'game__id', get every game srid found.
+        """
+        #print( fieldname, str(self.srid_finder.get_for_field(fieldname)))
+        return self.srid_finder.get_for_field(fieldname)
+
+    def send(self):
+        """
+        inheriting classes should override this method to send/pusher/signal
+        the data after its been parsed.
+
+        child classes may call this method in their implementation to
+        validate that parse() has been called
+        """
+        if self.o is None:
+            err_msg = 'call parse() before calling send()'
+            raise self.DataDenParseableSendException(err_msg)
+
+class DataDenSeasonSchedule(AbstractDataDenParseable):
+    """
+    parse a sports "season schedule" object. this is the object
+    which contains an srid, year, and season-type for the sport.
+
+    the year will be the calendar year the sport started in,
+    and the season type will designate preseason/regular season/post / etc...
+    """
+
+    class ValidationException(Exception): pass # raised for bad field values during parse()
+
+    season_types = ['pre','reg','pst']
+
+    season_model = None # subclasses will need to set their own
+
+    # default field names for extracting the values we want
+    field_srid          = 'id'
+    field_season_year   = 'year'
+    field_season_type   = 'type'
+
+    def __init__(self):
+        if self.season_model is None:
+            err_msg = '"season_model" class must be set'
+            raise Exception(err_msg)
+
+        # once parsed, the sports.<sports>.models.Season instance
+        self.season = None
+
+        super().__init__()
+
+    def validate_srid(self, o):
+        """ clean and return the srid value """
+        val = o.get(self.field_srid, None)
+        if not isinstance(val, str):
+            err_msg = 'srid [%s] is not a string: %s' % (type(val), str(val))
+            raise self.ValidationException(err_msg)
+        return val
+
+    def validate_season_year(self, o):
+        """ clean and return the season_year value """
+        val = o.get(self.field_season_year, None)
+        if isinstance(val, float):
+            val = int(val)
+        if not isinstance(val, int):
+            err_msg = 'season_year [%s] is not an integer: %s' % (type(val), str(val))
+            raise self.ValidationException(err_msg)
+        return val
+
+    def validate_season_type(self, o):
+        """ clean and return the season_type value """
+        val = o.get(self.field_season_type, None)
+        if not isinstance(val, str):
+            err_msg = 'season_type [%s] is not a string: %s' % (type(val), str(val))
+            raise self.ValidationException(err_msg)
+        val = val.lower()
+        if val not in self.season_types:
+            err_msg = 'season_type [%s] not in acceptable ' \
+                      'types %s. try overriding: season_types' % (val, self.season_types)
+            raise self.ValidationException(err_msg)
+        return val
+
+    def parse(self, obj, target=None):
+        """
+        """
+        super().parse( obj, target )
+
+        # example:
+        # {
+        #   'parent_api__id': 'schedule',
+        #   'year': 2015.0,
+        #   'id': '529bed34-5a8d-46d4-9eef-114bd1340867',
+        #   'type': 'PST',
+        # }
+
+        srid            = self.validate_srid(self.o)
+        season_year     = self.validate_season_year(self.o)
+        season_type     = self.validate_season_type(self.o)
+
+        try:
+            self.season = self.season_model.objects.get( srid=srid )
+        except self.season_model.DoesNotExist:
+            self.season             = self.season_model()
+            self.season.srid        = srid
+            self.season.season_year = season_year
+            self.season.season_type = season_type
+            #self.season.save() # inheriting class must call save()
 
 class DataDenTeamHierarchy(AbstractDataDenParseable):
     """
@@ -183,14 +394,19 @@ class DataDenGameSchedule(AbstractDataDenParseable):
 
     this class should not need much modification for nba & nhl, but it will for other sports.
     """
-    team_model = None
-    game_model = None
+    team_model      = None
+    game_model      = None
+    season_model    = None
+
+    field_season_srid = 'season_schedule__id'
 
     def __init__(self):
         if self.team_model is None:
             raise Exception('"team_model cant be None!')
         if self.game_model is None:
             raise Exception('"game_model" cant be None!')
+        if self.season_model is None:
+            raise Exception('"season_model" cant be None!')
 
         self.game = None
 
@@ -206,9 +422,15 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         start       = DataDenDatetime.from_string( start_str )
         status      = o.get('status')
 
+        srid_season = o.get(self.field_season_srid)
         srid_home   = o.get('home')
         srid_away   = o.get('away')
         title       = o.get('title', '')
+
+        try:
+            season = self.season_model.objects.get(srid=srid_season)
+        except self.season_model.DoesNotExist:
+            return
 
         try:
             h = self.team_model.objects.get(srid=srid_home)
@@ -230,6 +452,7 @@ class DataDenGameSchedule(AbstractDataDenParseable):
             self.game = self.game_model()
             self.game.srid = srid
 
+        self.game.season    = season
         self.game.home      = h
         self.game.away      = a
         self.game.start     = start
@@ -576,10 +799,18 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     Parses the pbp text description objects.
     """
 
+    class SridGameNotFoundException(Exception): pass
+
+    class SridGameMultipleSridsFoundException(Exception): pass
+
     game_model              = None # fields: srid
     portion_model           = None #
     pbp_model               = None
     pbp_description_model   = None
+    #
+    player_stats_model      = None # ie: sports.<sport>.models.PlayerStats
+    pusher_sport_pbp        = None # ie: push.classes.PUSHER_NBA_PBP
+    pusher_sport_stats      = None # ie: push.classes.PUSHER_NBA_STATS
 
     def __init__(self):
         if self.game_model is None:
@@ -596,6 +827,8 @@ class DataDenPbpDescription(AbstractDataDenParseable):
 
         self.pbp            = None
         self.pbp_ctype      = None # set if self.pbp is set
+
+        self.live_stats_cache = LiveStatsCache()
 
         super().__init__()
 
@@ -720,6 +953,94 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         # from here the child class may need to use:
         #   self.get_game_portion()
         #   self.get_pbp_description()
+
+    def add_to_cache(self, obj):
+        """
+        adds the pbp obj to the cache.
+
+        :return: True if object was just added. else returns False
+        """
+        return self.live_stats_cache.update_pbp( self.get_obj() )
+
+    def send(self):
+        """
+        pusher the pbp + stats info as one piece of data.
+        :return:
+        """
+        super().send()
+
+        if not self.add_to_cache(self.get_obj()):
+            return  # return out of method - we dont need to send this obj again
+
+        #
+        # try to retrieve the player(s) and game srids to look up linked PlayerStats
+        # and add them to the player_stats list if found.
+        player_stats = self.find_player_stats()
+
+        #
+        # send normally, or as linked data depending on the found PlayerStats instances
+        if len(player_stats) == 0:
+            # solely push pbp object
+            push.classes.DataDenPush( self.pusher_sport_pbp, 'event' ).send( self.o )
+        else:
+            # push combined pbp+stats data
+
+            # delete the cache_token (if they exist) for each player_stats pushered
+            # so if there are any pending/countdown tasks which havent fired yet, they
+            # will effectively be cancelled (ie: eliminate the double-send or late stats update).
+            self.delete_cache_tokens(player_stats)
+            data = self.build_linked_pbp_stats_data( player_stats )
+            push.classes.DataDenPush( self.pusher_sport_pbp, 'linked' ).send( data )
+
+    def delete_cache_tokens(self, player_stats_objects):
+        for player_stats in player_stats_objects:
+            cache.delete(player_stats.get_cache_token())
+
+    def get_srid_game(self, fieldname):
+        """
+        we should expect to find only 1 game srid
+        :return:
+        """
+        game_srids = list(set(self.get_srids_for_field(fieldname)))
+        if len(game_srids) < 1:
+            raise self.SridGameNotFoundException(str(self.o))
+        elif len(game_srids) > 1:
+            raise self.SridGameMultipleSridsFoundException(str(self.o))
+        return game_srids[0]
+
+    def find_player_stats(self):
+        """
+        extract player and game srids and return a list
+        of any matching PlayerStats models found
+        :return:
+        """
+
+        game_srid       = self.get_srid_game('game__id')
+
+        # we may find any number of player srids - including 0
+        player_srids    = self.get_srids_for_field('player')
+
+        return self.player_stats_model.objects.filter(srid_game=game_srid,
+                                                    srid_player__in=player_srids)
+
+    def build_linked_pbp_stats_data(self, player_stats):
+        """
+        builds and returns a dictionary in the form:
+
+            {
+                "nba_pbp"   : { <typical nba_pbp pusher formatted data> },
+                "nba_stats" : [
+                    { <PlayerStats pusher formatted data> },
+                    { <PlayerStats pusher formatted data> },
+                ],
+            }
+
+        """
+        data = {
+            self.pusher_sport_pbp   : self.o,
+            self.pusher_sport_stats : [ ps.to_json() for ps in player_stats ]
+        }
+        return data
 
 class DataDenInjury(AbstractDataDenParseable):
     """
