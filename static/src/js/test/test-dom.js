@@ -17,5 +17,6 @@ module.exports = (markup) => {
   global.window.dfs = {
     user: {},
     logLevel: 'warn',
+    replayerTimeDelta: 0,
   };
 };
