@@ -4,7 +4,7 @@
 import mysite.exceptions
 from contest.models import Contest, Entry, ClosedContest
 from prize.models import Rank
-from django.db.models import Q
+from django.db.models import Q, F
 from transaction.models import  AbstractAmount
 import mysite.exceptions
 from transaction.classes import  CanDeposit
@@ -41,12 +41,13 @@ class PayoutManager(AbstractManagerClass):
     def __init__(self):
         pass
 
-    def payout(self, contests=None):
+    def payout(self, contests=None, finalize_score=True):
         """
         Takes in an array of contests to payout. If there are not contests passed
         then the payout mechanism will look for all contests who have not been
         paid out yet and pay them out.
         :param contests: an array of :class:`contest.models.Contest` models
+        :param finalize_score: always True in production. (may be set to False to skip the re-scoring during payouts).
         """
 
         #
@@ -75,25 +76,26 @@ class PayoutManager(AbstractManagerClass):
             # gets all the contests that are completed
             contests = Contest.objects.filter(status=Contest.COMPLETED)
 
-        #
-        # get the unique draft group ids within this queryset of contests.
-        # update the final scoring for the players in the distinct draft groups.
-        draft_group_ids = list(set([ c.draft_group.pk for c in contests if c.draft_group != None ]))
-        for draft_group_id in draft_group_ids:
-            draft_group_manager = DraftGroupManager()
-            try:
-                draft_group_manager.update_final_fantasy_points(draft_group_id)
-            except FantasyPointsAlreadyFinalizedException:
-                pass # its possible the contest we are trying to payout was already finalized
+        if finalize_score:
+            #
+            # get the unique draft group ids within this queryset of contests.
+            # update the final scoring for the players in the distinct draft groups.
+            draft_group_ids = list(set([ c.draft_group.pk for c in contests if c.draft_group != None ]))
+            for draft_group_id in draft_group_ids:
+                draft_group_manager = DraftGroupManager()
+                try:
+                    draft_group_manager.update_final_fantasy_points(draft_group_id)
+                except FantasyPointsAlreadyFinalizedException:
+                    pass # its possible the contest we are trying to payout was already finalized
 
-        #
-        # update the fantasy_points for each unique Lineup.
-        # get the unique lineups from the contests' entries,
-        # so we're not doing extra processing...
-        lineups = Lineup.objects.filter(draft_group__pk__in=draft_group_ids)
-        for lineup in lineups:
-            lineup_manager = LineupManager()
-            lineup_manager.update_fantasy_points( lineup )
+            #
+            # update the fantasy_points for each unique Lineup.
+            # get the unique lineups from the contests' entries,
+            # so we're not doing extra processing...
+            lineups = Lineup.objects.filter(draft_group__pk__in=draft_group_ids)
+            for lineup in lineups:
+                lineup_manager = LineupManager( lineup.user )
+                lineup_manager.update_fantasy_points( lineup )
 
         #
         # finally, we can pay out the contests!
@@ -110,14 +112,14 @@ class PayoutManager(AbstractManagerClass):
 
         try:
             c = ClosedContest.objects.get( pk=contest.pk )
-            print('%s already closed & paid out.'%str(contest))
+            #print('%s already closed & paid out.'%str(contest))
             return # go no further
         except:
             pass
 
         #
         # get the prize pool ranks for the contest
-        ranks = Rank.objects.filter(prize_structure=contest.prize_structure)
+        ranks = Rank.objects.filter(prize_structure=contest.prize_structure).order_by('rank')
 
         #
         # get the entries for the contest
@@ -131,7 +133,7 @@ class PayoutManager(AbstractManagerClass):
             # verify the abstract amount is correct type
             if not isinstance(rank.amount, AbstractAmount):
                 raise mysite.exceptions.IncorrectVariableTypeException(
-                    type(self).__name,
+                    type(self).__name__,
                     'rank')
 
             #
@@ -139,18 +141,18 @@ class PayoutManager(AbstractManagerClass):
             transaction_class = rank.amount.get_transaction_class()
             if not issubclass(transaction_class, CanDeposit):
                 raise mysite.exceptions.IncorrectVariableTypeException(
-                    type(self).__name,
+                    type(self).__name__,
                     'transaction_class')
 
 
-        print('------- entries [%s] contest [%s] -------' %(str(len(entries)), str(contest)))
+        #print('------- entries [%s] contest [%s] -------' %(str(len(entries)), str(contest)))
         #
         # perform the payouts by going through each entry and finding
         # ties and ranks for the ties to chop.
-        print('======= ranks [%s] =======' % (str(ranks)))
+        #print('======= ranks [%s] =======' % (str(ranks)))
         i = 0
         while i < len(ranks):
-            print('++++ i (rank): %s +++++' % str(i) )
+            #print('++++ i (rank): %s +++++' % str(i) )
             entries_to_pay = list()
             ranks_to_pay = list()
             entries_to_pay.append(entries[i])
@@ -172,37 +174,31 @@ class PayoutManager(AbstractManagerClass):
         ###############################################################
         # rank all of the entries with the same payout algorithm.
         ###############################################################
-        j = 0
-        entries_count = entries.count()
-        while j < entries_count:
-            entries_to_pay = list()
-            ranks_to_pay = list()
-            entries_to_pay.append( entries[ j ] )
-            ranks_to_pay.append( j )            # just add the current rank j
-            score = entries[ j ].lineup.fantasy_points
-            #
-            # For each tie add the user to the list to chop the payment
-            # and add the next payout to be split with the ties.
-            num_tied = 0
-            while j+1 < entries.count() and score == entries[j+1].lineup.fantasy_points:
-                num_tied += 1
+        # j = 0
+        # last_fantasy_points = None
+        # for entry in entries:
+        #     if last_fantasy_points is None:
+        #         last_fantasy_points = entry.lineup.fantasy_points
+        #     count_at_rank = Entry.objects.filter(contest=contest, lineup__fantasy_points=)
 
-                if (j+num_tied) >= len(entries):
-                    break # it tied off the end -- break while, and rank em all whatever 'j' is
-                entries_to_pay.append(entries[j+num_tied])
+        # using the fantasy_points as the key, add/increment the entry id to the list.
+        # the length of that list will be the # of entries at that rank, and
+        # the rank will be the order of the keys.
+        entry_fantasy_points_map = {}
+        for entry in entries:
+            try:
+                entry_fantasy_points_map[entry.lineup.fantasy_points] += [entry.pk]
+            except KeyError:
+                entry_fantasy_points_map[entry.lineup.fantasy_points] = [entry.pk]
+        # sort the fantasy points map on the map key (ascending)
+        sorted_list = sorted( entry_fantasy_points_map.items(), key=lambda x: x[0] )
+        sorted_list.reverse() # so its descending ie: [(75.5, [432, 213]), (50.25, [431234, 234534]), (25.0, [1, 123])]
 
-                if entries_count > (j+num_tied):
-                    ranks_to_pay.append(j+num_tied)
-
-            # self.__rank_spot(ranks_to_pay, entries_to_pay, contest)
-            # set the current 'j' to each entry in entries_to_pay
-            for e in entries:
-                print('>>>> setting entry[%s] to rank: %s' % (str(e),str(j)))
-                e.final_rank = j + 1   # +1 because the highest rank is 0, but this is for the front end
-                e.save()
-
-            j += num_tied   # add the additional # entries at the same rank before incrementing
-            j += 1
+        entry_rank = 1
+        for fantasy_points, entry_id_list in sorted_list:
+            count_at_rank = len(entry_id_list)
+            Entry.objects.filter( pk__in=entry_id_list ).update(final_rank=entry_rank)
+            entry_rank += count_at_rank
 
         #
         # get the total number of dollars leftover for rake

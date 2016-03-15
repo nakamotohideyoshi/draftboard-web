@@ -182,6 +182,10 @@ PUSHER_SECRET   = 'fcbe16f4bf9e8c0b2b51'
 PUSHER_CHANNEL_PREFIX = ''     #   *** MUST REMAIN EMPTY IN PRODUCTION ***
 
 #
+# default: True.  whether Pusher will actually send objects its told to send()
+PUSHER_ENABLED = os.environ.get( 'PUSHER_ENABLED', True )
+
+#
 ##########################################################################
 #        django_braintree
 ##########################################################################
@@ -472,3 +476,7 @@ if USE_LOCKDOWN:
         r'^/api-token-auth/',
         r'^/api-token-refresh/',
     )
+
+#
+# custom test runner by default does not require sudo privileges
+INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = False

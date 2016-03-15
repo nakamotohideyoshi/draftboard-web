@@ -1,22 +1,26 @@
 #
 # contest/buyin/tests.py
 
-from test.classes import AbstractTest
-from contest.models import Contest
+import decimal
+from test.classes import (
+    BuildWorldForTesting,
+    AbstractTest,
+    TestSalaryScoreSystem,
+)
+from contest.models import Contest, Entry
 from prize.classes import CashPrizeStructureCreator, TicketPrizeStructureCreator
 from lineup.models import Lineup
 from .classes import PayoutManager
 from .models import Payout
-from test.classes import BuildWorldForTesting
 from contest.buyin.classes import BuyinManager
 from cash.classes import CashTransaction
 from ticket.classes import TicketManager
 from contest.payout.models import Rake, FPP
-import decimal
 from fpp.classes import FppTransaction
 from mysite.classes import  AbstractManagerClass
 from promocode.bonuscash.classes import BonusCashTransaction
 from cash.models import CashTransactionDetail
+
 class PayoutTest(AbstractTest):
 
     def setUp(self):
@@ -39,8 +43,6 @@ class PayoutTest(AbstractTest):
         self.prize_structure.save()
         self.ranks = cps.ranks
 
-
-
         self.world = BuildWorldForTesting()
         self.world.build_world()
         self.draftgroup = self.world.draftgroup
@@ -51,6 +53,8 @@ class PayoutTest(AbstractTest):
         self.contest.draft_group = self.draftgroup
         self.contest.entries = 6
         self.contest.save()
+
+        self.scorer_class = TestSalaryScoreSystem
 
     def create_ticket_contest(self):
         #
@@ -110,7 +114,6 @@ class PayoutTest(AbstractTest):
         self.contest.status = Contest.COMPLETED
         self.contest.save()
 
-
     def create_last_place_tie_teams(self):
         #
         # create Lineups
@@ -137,18 +140,23 @@ class PayoutTest(AbstractTest):
         self.contest.save()
 
     def create_last_place_tie_teams_three_way(self):
-        #
-        # create Lineups
+        """
+        create Lineups such that there is a 3 way tie amongst the last 3 ranks.
+        """
+
         max = 6
-        for i in range(1,max+1):
+        tie_amount = 10.0
+        for i in range(1, max+1):
             user = self.get_user(username=str(i))
             self.fund_user_account(user)
 
             lineup = Lineup()
-            if  i ==2 or i ==3 or i == 4:
-                lineup.fantasy_points = max -2
+            if  i <= 3:
+                # for 1, 2, 3
+                lineup.test_fantasy_points = tie_amount
             else:
-                lineup.fantasy_points = max -i
+                # teams 4, 5, 6 should have unique test_fantasy_points
+                lineup.test_fantasy_points = tie_amount + i
 
             lineup.user = user
             lineup.draft_group = self.draftgroup
@@ -160,21 +168,46 @@ class PayoutTest(AbstractTest):
         self.contest.status = Contest.COMPLETED
         self.contest.save()
 
+    def __create_lineups_with_fantasy_points(self, contest, lineup_points=[]):
+        """
+        contest is the contest to associate lineups with
+        lineup_points is an array of the points to give to the lineups in creation order.
+        """
+
+        max = contest.entries
+        for i in range(1, max+1):
+            # get the user for the lineup
+            user = self.get_user(username=str(i))
+            self.fund_user_account(user)
+
+            # set the rest of the lineup properties
+            lineup = Lineup()
+            lineup.fantasy_points   = lineup_points[i-1]
+            lineup.user             = user
+            lineup.draft_group      = self.draftgroup
+            lineup.save()
+
+            # buy this lineup into the contest
+            bm = BuyinManager(lineup.user)
+            bm.buyin(self.contest, lineup)
+
+        # set the contest as payout-able
+        self.contest.status = Contest.COMPLETED
+        self.contest.save()
 
     def test_simple_payout(self):
         self.create_simple_teams()
         pm = PayoutManager()
-        pm.payout()
+        pm.payout(finalize_score=False)
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
             self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
         self.validate_side_effects_of_transaction()
-
 
     def test_simple_tie_payout(self):
         self.create_last_place_tie_teams()
         pm = PayoutManager()
-        pm.payout()
+        pm.payout(finalize_score=False)
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
             if payout.entry.lineup.user.username == str(4):
@@ -183,23 +216,19 @@ class PayoutTest(AbstractTest):
                 self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
         self.validate_side_effects_of_transaction()
 
-
     def test_simple_ticket_payout(self):
-        #self.create_ticket_contest()
         self.create_simple_teams()
         pm = PayoutManager()
-        pm.payout()
+        pm.payout(finalize_score=False)
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
             self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
         self.validate_side_effects_of_transaction()
 
-
     def test_simple_ticket_payout_tie(self):
-        #self.create_ticket_contest()
         self.create_last_place_tie_teams()
         pm = PayoutManager()
-        pm.payout()
+        pm.payout(finalize_score=False)
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
             if payout.entry.lineup.user.username == str(4):
@@ -208,35 +237,68 @@ class PayoutTest(AbstractTest):
                 self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
         self.validate_side_effects_of_transaction()
 
-    def test_complex_tie_payout(self):
-        self.create_last_place_tie_teams_three_way()
+    def __run_payouts(self, lineup_points, lineup_ranks, payout_ranks):
+        """
+        helper method that a) creates lineups with the points in 'lineup_points',
+         b) does payouts, c) ensures all the ranks are set as expected
+         based on the ranks in lineup_ranks and payout_ranks
+
+        example of valid params:
+
+            lineup_points   = [9, 10,10,10,11,12]
+            lineup_ranks    = [6, 3, 3, 3, 2, 1]
+            payout_ranks    = [   3, 3, 3, 2, 1]    # only 5 spots paid (of the 6)
+
+        :param lineup_points:
+        :param lineup_ranks:
+        :param payout_ranks:
+        :return:
+        """
+        self.__create_lineups_with_fantasy_points(self.contest, lineup_points=lineup_points)
         pm = PayoutManager()
-        pm.payout()
+        pm.payout(finalize_score=False)
+
+        # test payout ranks
         payouts = Payout.objects.order_by('contest', '-rank')
+        i = 0
         for payout in payouts:
-            if payout.entry.lineup.user.username in ["2", "3", "4"]:
-                self.assertEqual(payout.rank, 2)
-            else:
-                self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
+            print(str(payout), 'rank:%s' % payout.rank, '  should be payout_ranks[%s]:%s' % (str(payout.rank), str(payout_ranks[i])) )
+            i += 1
+        i = 0
+        for payout in payouts:
+            #print(str(payout), 'rank:%s' % payout.rank, '  should be lineup_rank[%s]:%s' % (str(payout.rank), str(lineup_ranks[i])) )
+            self.assertEquals(payout.rank, payout_ranks[i])
+            i += 1
+
+        # test Entry ranks (each distinct buyin)
+        lineups = Lineup.objects.order_by('fantasy_points') # ascending
+        i = 0
+        for lineup in lineups:
+            for entry in Entry.objects.filter(lineup=lineup):
+                print('    ', str(entry), 'entry.final_rank:', entry.final_rank, '  should be entry rank:', lineup_ranks[i] )
+                self.assertEquals( entry.final_rank, lineup_ranks[i])
+                i += 1
+
         self.validate_side_effects_of_transaction()
 
-
     def test_complex_tie_payout(self):
-        self.create_last_place_tie_teams_three_way()
-        pm = PayoutManager()
-        pm.payout()
-        payouts = Payout.objects.order_by('contest', '-rank')
-        for payout in payouts:
-            if payout.entry.lineup.user.username in ["2", "3", "4"]:
-                self.assertEqual(payout.rank, 2)
-            else:
-                self.assertEqual(str(payout.rank), payout.entry.lineup.user.username)
-        self.validate_side_effects_of_transaction()
+        # all spots paid, tie thru the last payout spot
+        lineup_points   = [10,10,10,10,11,12]
+        lineup_ranks    = [3, 3, 3, 3, 2, 1]
+        payout_ranks    = [3, 3, 3, 3, 2, 1]  # note: there may be fewer Payouts than ranks
+        self.__run_payouts(lineup_points, lineup_ranks, payout_ranks)
+
+    def test_complex_tie_payout_2(self):
+        # last place not paid (rank 6), tie thru bubble, (although 1st and 2nd unique payouts)
+        lineup_points   = [9, 10,10,10,11,12]
+        lineup_ranks    = [6, 3, 3, 3, 2, 1]
+        payout_ranks    = [   3, 3, 3, 2, 1]    # only 5 spots paid (of the 6)
+        self.__run_payouts(lineup_points, lineup_ranks, payout_ranks)
 
     def test_overlay(self):
         self.create_simple_teams(5)
         pm = PayoutManager()
-        pm.payout()
+        pm.payout(finalize_score=False)
         rake = Rake.objects.get(contest=self.contest)
         self.assertEqual(rake.amount, decimal.Decimal(-4.0))
         self.validate_escrow_is_zero()
@@ -257,26 +319,20 @@ class PayoutTest(AbstractTest):
         self.prize_structure.save()
         self.ranks = cps.ranks
 
-
-
-
         self.contest.status = Contest.SCHEDULED
         self.contest.prize_structure = self.prize_structure
         self.contest.draft_group = self.draftgroup
         self.contest.entries = 2
         self.contest.save()
 
-
         self.create_simple_teams_all_tie(2)
         pm = PayoutManager()
-        pm.payout()
+        pm.payout(finalize_score=False)
         payouts = Payout.objects.order_by('contest', '-rank')
         for payout in payouts:
             self.assertEqual(payout.rank, 1)
             trans = CashTransactionDetail.objects.get(transaction=payout.transaction, user=payout.user)
             self.assertAlmostEqual(trans.amount, decimal.Decimal(.90))
-
-
 
     def validate_escrow_is_zero(self):
         ct = CashTransaction(AbstractManagerClass.get_escrow_user())
@@ -296,7 +352,7 @@ class PayoutTest(AbstractTest):
         bct = BonusCashTransaction(user)
         bct.deposit(50.0)
         pm = PayoutManager()
-        pm.payout()
+        pm.payout(finalize_score=False)
         bct = BonusCashTransaction(user)
         self.assertAlmostEqual(decimal.Decimal(49.60), bct.get_balance_amount())
 

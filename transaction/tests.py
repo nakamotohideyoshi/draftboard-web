@@ -1,4 +1,8 @@
+#
+# transaction/tests.py
+
 import unittest
+from test.classes import AbstractTest
 from transaction.classes import AbstractTransaction
 from django.contrib.auth.models import User
 from transaction.models import TransactionDetail, Balance, TransactionType
@@ -7,9 +11,7 @@ import decimal
 from django.core.exceptions import ValidationError
 from test.models import TransactionDetailChild, BalanceChild
 
-from test.classes import AbstractTestTransaction
-
-class AbstractTransactionTest(unittest.TestCase):
+class AbstractTransactionTest(AbstractTest):
     """
     Tests the :class:`transaction.classes.AbstractTransaction` class
     """
@@ -101,49 +103,50 @@ class AbstractTransactionTest(unittest.TestCase):
         # Tests creation of object with an object that is not a user
         self.assertRaises(IncorrectVariableTypeException, lambda: TransactionChild(1))
 
-class AbstractTransactionConcurrencyTest(AbstractTestTransaction):
-    class TransactionChild(AbstractTransaction):
-        def __init__(self, user):
-            super().__init__(user)
-            self.transaction_detail_class = TransactionDetailChild
-            self.balance_class = BalanceChild
-            self.accountName = "test"
-
-    def setUp(self):
-        self.TRANSACTION_TYPE_CATEGORY = 'test_cat'
-        self.TRANSACTION_TYPE_NAME = 'transaction_type_name'
-        self.TRANSACTION_TYPE_DES = 'transaction_type_desc'
-        self.AMOUNT = decimal.Decimal(5.00)
-        self.AMOUNT_2 = decimal.Decimal(5.38)
-        self.AMOUNT_3_NEGATIVE = decimal.Decimal(-3.33)
-        self.AMOUNT_4 = decimal.Decimal(100.00)
-        self.user = self.get_basic_user("test_user")
-
-        self.category = TransactionType(category=self.TRANSACTION_TYPE_CATEGORY,
-                                   name= self.TRANSACTION_TYPE_NAME,
-                                   description = self.TRANSACTION_TYPE_DES)
-        self.category.save()
-
-    def test_concurrency(self):
-
-        #
-        # deposit base amount
-        test = self.TransactionChild(self.user)
-        test.create(self.category, self.AMOUNT_4)
-        tran_det= TransactionDetailChild.objects.get(
-                    user=test.transaction_detail.user,
-                    transaction=test.transaction_detail.transaction)
-
-        def run_test(self_obj):
-            test = self_obj.TransactionChild(self.user)
-            test.create(self_obj.category, self_obj.AMOUNT)
-            pass
-
-        self.concurrent_test(10, run_test, self)
-
-        tran_det= TransactionDetailChild.objects.get(
-                        user=test.transaction_detail.user,
-                        transaction=test.transaction_detail.transaction)
-
-        bal = BalanceChild.objects.get(user=self.user)
-        print("result: "+str(bal.amount))
+# class AbstractTransactionConcurrencyTest(AbstractTest):
+#
+#     class TransactionChild(AbstractTransaction):
+#         def __init__(self, user):
+#             super().__init__(user)
+#             self.transaction_detail_class = TransactionDetailChild
+#             self.balance_class = BalanceChild
+#             self.accountName = "test"
+#
+#     def setUp(self):
+#         self.TRANSACTION_TYPE_CATEGORY = 'test_cat'
+#         self.TRANSACTION_TYPE_NAME = 'transaction_type_name'
+#         self.TRANSACTION_TYPE_DES = 'transaction_type_desc'
+#         self.AMOUNT = decimal.Decimal(5.00)
+#         self.AMOUNT_2 = decimal.Decimal(5.38)
+#         self.AMOUNT_3_NEGATIVE = decimal.Decimal(-3.33)
+#         self.AMOUNT_4 = decimal.Decimal(100.00)
+#         self.user = self.get_basic_user("test_user")
+#
+#         self.category = TransactionType(category=self.TRANSACTION_TYPE_CATEGORY,
+#                                    name= self.TRANSACTION_TYPE_NAME,
+#                                    description = self.TRANSACTION_TYPE_DES)
+#         self.category.save()
+#
+#     def test_concurrency(self):
+#
+#         #
+#         # deposit base amount
+#         test = self.TransactionChild(self.user)
+#         test.create(self.category, self.AMOUNT_4)
+#         tran_det= TransactionDetailChild.objects.get(
+#                     user=test.transaction_detail.user,
+#                     transaction=test.transaction_detail.transaction)
+#
+#         def run_test(self_obj):
+#             test = self_obj.TransactionChild(self.user)
+#             test.create(self_obj.category, self_obj.AMOUNT)
+#             pass
+#
+#         self.concurrent_test(10, run_test, self)
+#
+#         tran_det= TransactionDetailChild.objects.get(
+#                         user=test.transaction_detail.user,
+#                         transaction=test.transaction_detail.transaction)
+#
+#         bal = BalanceChild.objects.get(user=self.user)
+#         print("result: "+str(bal.amount))

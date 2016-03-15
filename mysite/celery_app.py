@@ -15,12 +15,13 @@
 from __future__ import absolute_import
 
 import os
-
+import redis
 from celery import Celery
 from celery.schedules import crontab
 import celery.states
 from datetime import timedelta
 import time
+from django.core.cache import cache
 
 #
 # setdefault ONLY sets the default value if the key (ie: DJANGO_SETTINGS_MODULE)
@@ -220,7 +221,7 @@ app.conf.update(
         #
         # payout task
         'notify_admin_contests_automatically_paid_out' : {
-            'task'      : 'contest.payout.tasks.notify_admin_contests_automatically_paid_out',
+            'task'      : 'contest.tasks.notify_admin_contests_automatically_paid_out',
             'schedule'  : timedelta(minutes=5),
         }
 
@@ -231,6 +232,45 @@ app.conf.update(
     CELERY_TRACK_STARTED = True,
 
 )
+
+class locking(object):
+    """
+    a DECORATOR for locking a task, utilizing the django cache
+
+    usage:
+
+        @app.task(bind=True)
+        @locking("lock_prefix", 30)       #
+        def some_task(a1, a2, a3, a4):
+            print('sayHello arguments:', a1, a2, a3, a4)
+
+    """
+
+    def __init__(self, unique_lock_name, timeout):
+        """
+        If there are decorator arguments, the function
+        to be decorated is not passed to the constructor!
+        """
+        #print("Inside __init__()")
+        self.unique_lock_name       = unique_lock_name
+        self.timeout                = timeout
+
+    def __call__(self, f):
+        """
+        If there are decorator arguments, __call__() is only called
+        once, as part of the decoration process! You can only give
+        it a single argument, which is the function object.
+        """
+
+        def wrapped_f(*args):
+            #print("Decorator arguments:", self.unique_lock_name, self.timeout)
+
+            # the redis lock is blocking, and will auto-release
+            with redis.Redis().lock(self.unique_lock_name, timeout=self.timeout):
+                # call the function this decorator is decorating!
+                return f(*args)
+
+        return wrapped_f # return the return vlue of our wrapped method if there are any
 
 class TaskHelper(object):
     """

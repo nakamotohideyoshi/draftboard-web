@@ -11,6 +11,10 @@ from test.classes import AbstractTest
 from scoring.classes import NbaSalaryScoreSystem, NhlSalaryScoreSystem, MlbSalaryScoreSystem, NflSalaryScoreSystem
 from dataden.util.timestamp import Parse as DataDenDatetime
 from sports.models import SiteSport, Position
+from django.db import connection, connections, DEFAULT_DB_ALIAS
+from scoring.models import (
+    ScoreSystem,
+)
 
 class SiteSportPosition():
     def get_position(self, site_sport, name):
@@ -211,10 +215,10 @@ class NbaScoringTest(AbstractTest):
             setattr(self.player_stats, stat, stat_list[stat])
         self.player_stats.save()
 
-    def test_stats_all_0(self):
+    def test_stats_all_0__NbaScoringTest(self):
         self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), 0)
 
-    def test_all_unused_stats(self):
+    def test_all_unused_stats__NbaScoringTest(self):
         # Set all unused stats values to 10 and make sure that the total points calculated is still 0
         unused_stats = {
             'defensive_rebounds': 10.0,
@@ -240,7 +244,7 @@ class NbaScoringTest(AbstractTest):
         self.update_player_stats(unused_stats)
         self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), 0)
 
-    def test_points(self):
+    def test_points__NbaScoringTest(self):
         # Test various values of points to make sure the calculations are correct
         self.create_player_stats()
         for points in range(0, 101, 10):
@@ -248,7 +252,7 @@ class NbaScoringTest(AbstractTest):
             multiplier = self.nba_Salary_Score_System.get_value_of('point')
             self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), points * multiplier)
 
-    def test_three_points_made(self):
+    def test_three_points_made__NbaScoringTest(self):
         # Test various values of three_points_made to make sure the calculations are correct
         self.create_player_stats()
         for three_points_made in range(0, 101, 10):
@@ -256,7 +260,7 @@ class NbaScoringTest(AbstractTest):
             multiplier = self.nba_Salary_Score_System.get_value_of('three_pm')
             self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), three_points_made * multiplier)
 
-    def test_rebounds(self):
+    def test_rebounds__NbaScoringTest(self):
         # Test various values of rebounds to make sure the calculations are correct
         self.create_player_stats()
         for rebounds in range(0, 101, 10):
@@ -264,7 +268,7 @@ class NbaScoringTest(AbstractTest):
             multiplier = self.nba_Salary_Score_System.get_value_of('rebound')
             self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), rebounds * multiplier)
 
-    def test_assists(self):
+    def test_assists__NbaScoringTest(self):
         # Test various values of assists to make sure the calculations are correct
         self.create_player_stats()
         for assists in range(0, 101, 10):
@@ -272,7 +276,7 @@ class NbaScoringTest(AbstractTest):
             multiplier = self.nba_Salary_Score_System.get_value_of('assist')
             self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), assists * multiplier)
 
-    def test_steals(self):
+    def test_steals__NbaScoringTest(self):
         # Test various values of steals to make sure the calculations are correct
         self.create_player_stats()
         for steals in range(0, 101, 10):
@@ -280,7 +284,7 @@ class NbaScoringTest(AbstractTest):
             multiplier = self.nba_Salary_Score_System.get_value_of('steal')
             self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), steals * multiplier)
 
-    def test_blocks(self):
+    def test_blocks__NbaScoringTest(self):
         # Test various values of blocks to make sure the calculations are correct
         self.create_player_stats()
         for blocks in range(0, 101, 10):
@@ -288,7 +292,7 @@ class NbaScoringTest(AbstractTest):
             multiplier = self.nba_Salary_Score_System.get_value_of('block')
             self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), blocks * multiplier)
 
-    def test_turnovers(self):
+    def test_turnovers__NbaScoringTest(self):
         # Test various values of turnovers to make sure the calculations are correct
         self.create_player_stats()
         for turnovers in range(0, 101, 10):
@@ -296,7 +300,7 @@ class NbaScoringTest(AbstractTest):
             multiplier = self.nba_Salary_Score_System.get_value_of('turnover')
             self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), turnovers * multiplier)
 
-    def test_double_double_and_triple_double(self):
+    def test_double_double_and_triple_double__NbaScoringTest(self):
         """
         Test various values of stats to make sure the calculations are correct for double doubles and triple doubles.
         If exactly two stats are >= 10.0, a double double bonus should be given.
@@ -335,7 +339,6 @@ class NbaScoringTest(AbstractTest):
                 total += self.nba_Salary_Score_System.get_value_of('triple-dbl')
             self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), total)
 
-
 class NhlScoringTest(AbstractTest):
     """
     Test the scoring system for NHL.  The test method will be:
@@ -343,6 +346,13 @@ class NhlScoringTest(AbstractTest):
         - Increment individual stats and compare the calculated point value against the scoring system projected value
         - Increment groups of stats and compare the calculated point value against the scoring system projected value
     """
+
+    # Subclasses can ask for resetting of auto increment sequence before each
+    # test case
+    #reset_sequences = False
+
+    # Subclasses can enable only a subset of apps for faster tests
+    #available_apps = None
 
     def setUp(self):
         self.create_team()
@@ -509,10 +519,10 @@ class NhlScoringTest(AbstractTest):
             setattr(self.player_stats, stat, stat_list[stat])
         self.player_stats.save()
 
-    def test_stats_all_0(self):
+    def test_stats_all_0__NhlScoringTest(self):
         self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), 0)
 
-    def test_all_unused_stats(self):
+    def test_all_unused_stats__NhlScoringTest(self):
         # Set all unused stats values to 10 and make sure that the total points calculated is still 0
         unused_stats = {
             'pp_goal': 10,
@@ -523,7 +533,7 @@ class NhlScoringTest(AbstractTest):
         self.update_player_stats(unused_stats)
         self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), 0)
 
-    def test_goal_and_hat_trick(self):
+    def test_goal_and_hat_trick__NhlScoringTest(self):
         # Test various values of goals to make sure the calculations are correct, including hat tricks
         self.create_player_stats()
         for goals in range(0, 10):
@@ -532,7 +542,7 @@ class NhlScoringTest(AbstractTest):
             total += self.nhl_Salary_Score_System.get_value_of('hat') if goals >= 3 else 0
             self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), total)
 
-    def test_assist(self):
+    def test_assist__NhlScoringTest(self):
         # Test various values of assists to make sure the calculations are correct
         self.create_player_stats()
         for assists in range(0, 10):
@@ -540,7 +550,7 @@ class NhlScoringTest(AbstractTest):
             multiplier = self.nhl_Salary_Score_System.get_value_of('assist')
             self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), assists * multiplier)
 
-    def test_shots_on_goal(self):
+    def test_shots_on_goal__NhlScoringTest(self):
         # Test various values of sog to make sure the calculations are correct
         self.create_player_stats()
         for sogs in range(0, 10):
@@ -548,7 +558,7 @@ class NhlScoringTest(AbstractTest):
             multiplier = self.nhl_Salary_Score_System.get_value_of('sog')
             self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), sogs * multiplier)
 
-    def test_blocks(self):
+    def test_blocks__NhlScoringTest(self):
         # Test various values of blocks to make sure the calculations are correct
         self.create_player_stats()
         for blocks in range(0, 10):
@@ -556,7 +566,7 @@ class NhlScoringTest(AbstractTest):
             multiplier = self.nhl_Salary_Score_System.get_value_of('blk')
             self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), blocks * multiplier)
 
-    def test_short_handed_bonus(self):
+    def test_short_handed_bonus__NhlScoringTest(self):
         # Test various values of goals and short handed bonuses to make sure the calculations are correct
         self.create_player_stats()
         for goals in range(0, 10):
@@ -567,7 +577,7 @@ class NhlScoringTest(AbstractTest):
                 total += sh_goals * self.nhl_Salary_Score_System.get_value_of('sh-bonus')
                 self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), total)
 
-    def test_shootout_goals(self):
+    def test_shootout_goals__NhlScoringTest(self):
         # Test various values of goals and shootout_goals to make sure the calculations are correct
         self.create_player_stats()
         for goals in range(1, 10):
@@ -578,14 +588,14 @@ class NhlScoringTest(AbstractTest):
                 total += so_goals * self.nhl_Salary_Score_System.get_value_of('so-goal')
                 self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), total)
 
-    def test_win(self):
+    def test_win__NhlScoringTest(self):
         # Test a win to make sure the calculations are correct
         self.create_player_stats()
         self.update_player_stats({'w': bool(1)})
         multiplier = self.nhl_Salary_Score_System.get_value_of('win')
         self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), multiplier)
 
-    def test_saves(self):
+    def test_saves__NhlScoringTest(self):
         # Test saves to make sure the calculations are correct
         self.create_player_stats()
         for saves in range(0, 10):
@@ -593,7 +603,7 @@ class NhlScoringTest(AbstractTest):
             multiplier = self.nhl_Salary_Score_System.get_value_of('save')
             self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), saves * multiplier)
 
-    def test_goals_against(self):
+    def test_goals_against__NhlScoringTest(self):
         # Test goals against to make sure the calculations are correct
         self.create_player_stats()
         for gas in range(0, 10):
@@ -601,7 +611,7 @@ class NhlScoringTest(AbstractTest):
             multiplier = self.nhl_Salary_Score_System.get_value_of('ga')
             self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), gas * multiplier)
 
-    def test_shutout(self):
+    def test_shutout__NhlScoringTest(self):
         # Test shutout to make sure the calculations are correct
         self.create_player_stats()
         self.update_player_stats({'shutout': bool(1)})
@@ -611,7 +621,7 @@ class NhlScoringTest(AbstractTest):
         total += self.nhl_Salary_Score_System.get_value_of('win')
         self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), total)
 
-    def test_all_values(self):
+    def test_all_values__NhlScoringTest(self):
         """
         Test various values of stats to make sure the calculations are correct for double doubles and triple doubles.
         If exactly two stats are >= 10.0, a double double bonus should be given.
@@ -637,7 +647,7 @@ class NhlScoringTest(AbstractTest):
                         'shutout': not bool(ga)
                     }
                     self.update_player_stats(stats)
-        
+
                     total = (goals * self.nhl_Salary_Score_System.get_value_of('goal') +
                             assists * self.nhl_Salary_Score_System.get_value_of('assist') +
                             sogs * self.nhl_Salary_Score_System.get_value_of('sog') +

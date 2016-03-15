@@ -16,22 +16,46 @@ from roster.models import RosterSpot, RosterSpotPosition
 from salary.models import SalaryConfig, Pool, TrailingGameWeight, Salary
 from dataden.util.timestamp import DfsDateTimeUtil
 from draftgroup.models import DraftGroup, Player, GameTeam
-from draftgroup.classes import DraftGroupManager
 from datetime import timedelta, time, datetime
 from salary.classes import SalaryGenerator                 # for testing celery
 from django.test.utils import override_settings             # for testing celery
 from contest.classes import ContestCreator
 from contest.models import Contest
-from sports.classes import SiteSportManager
 from ticket.classes import TicketManager
-from util.timeshift import set_system_time, reset_system_time
-from random import Random
-from rest_framework.test import APITestCase
-from rest_framework import status
 from rest_framework.test import force_authenticate
 from rest_framework.test import APIRequestFactory
 from django.contrib.contenttypes.models import ContentType
 from lineup.classes import LineupManager
+from scoring.classes import AbstractScoreSystem
+from scoring.models import ScoreSystem
+
+class TestSalaryScoreSystem(AbstractScoreSystem):
+    """
+    defines a test score system
+    """
+    THE_SPORT = 'test'
+
+    FANTASY_POINTS = 'fantasy_points'
+
+    def __init__(self):
+        self.score_system, created = ScoreSystem.objects.get_or_create(sport=self.THE_SPORT, name='salary')
+
+        #
+        # call super last - it will perform validation and ensure proper setup
+        super().__init__(self.THE_SPORT)
+
+    def get_primary_player_stats_class_for_player(self, player):
+        """
+        override
+        """
+        return PlayerStatsChild
+
+    def score_player(self, player_stats, verbose=True):
+        """
+        return the fantasy points already set as the new fantasy_points for simplicity in testing
+        """
+        self.set_verbose( verbose )
+        return player_stats.fantasy_points
 
 class BuildWorldMixin( object ):
     """
@@ -269,15 +293,122 @@ class MasterAbstractTest():
         return self.PASSWORD
 
 
+class TestSalaryScoreSystem(AbstractScoreSystem):
+    """
+    defines a test score system
+    """
+    THE_SPORT = 'test'
+    THE_TYPE = 'salary'
+
+    STAT_A      = 'stat_a'    # a statistic named 'stat_a'
+    STAT_B      = 'stat_b'    # a statistic named 'stat_b'
+
+    def __init__(self, the_sport=None, the_type=None):
+        if the_sport is None:
+            the_sport = self.THE_SPORT
+        if the_type is None:
+            the_type = self.THE_TYPE
+
+        self.score_system, created = ScoreSystem.objects.get_or_create(sport=the_sport, name=the_type)
+
+        #
+        # call super last - it will perform validation and ensure proper setup
+        super().__init__(self.THE_SPORT, validate=False)
+
+    def get_primary_player_stats_class_for_player(self, player):
+        """
+        override
+        """
+        return PlayerStatsChild
+
+    def score_player(self, player_stats, verbose=True):
+        """
+        return the fantasy points accrued by this nba PlayerStats object
+        """
+        self.set_verbose( verbose )
+
+        total = 0
+        total += self.points(player_stats.points)
+        total += self.three_pms(player_stats.three_points_made)
+        total += self.rebounds(player_stats.rebounds)
+        total += self.assists(player_stats.assists)
+        total += self.steals(player_stats.steals)
+        total += self.blocks(player_stats.blocks)
+        total += self.turnovers(player_stats.turnovers)
+
+        #
+        # to determined a dbl-dbl or triple-dbl, we have to pass the whole object
+        if self.get_tpl_dbl(player_stats):
+            total += self.triple_double( self.get_tpl_dbl(player_stats) )
+        else:
+            total += self.double_double( self.get_dbl_dbl(player_stats) )
+        return total
+
+    def points(self, value):
+        if self.verbose: self.str_stats += '%s Pts ' % value
+        return value * self.get_value_of(self.POINT)
+
+    def three_pms(self, value):
+        if self.verbose: self.str_stats += '%s ThreePm ' % value
+        return value * self.get_value_of(self.THREE_PM)
+
+    def rebounds(self, value):
+        if self.verbose: self.str_stats += '%s Reb ' % value
+        return value * self.get_value_of(self.REBOUND)
+
+    def assists(self, value):
+        if self.verbose: self.str_stats += '%s Ast ' % value
+        return value * self.get_value_of(self.ASSIST)
+
+    def steals(self, value):
+        if self.verbose: self.str_stats += '%s Stl ' % value
+        return value * self.get_value_of(self.STEAL)
+
+    def blocks(self, value):
+        if self.verbose: self.str_stats += '%s Blk ' % value
+        return value * self.get_value_of(self.BLOCK)
+
+    def turnovers(self, value):
+        if self.verbose: self.str_stats += '%s TO ' % value
+        return value * self.get_value_of(self.TURNOVER)
+
+    def double_double(self, value):
+        if self.verbose: self.str_stats += '%s DblDbl ' % value
+        return value * self.get_value_of(self.DBL_DBL)
+
+    def triple_double(self, value):
+        if self.verbose: self.str_stats += '%s TrpDbl ' % value
+        return value * self.get_value_of(self.TRIPLE_DBL)
+
+    # return int(1) if player_stats have a double double.
+    # a double-double is TWO or more categories from
+    # the list with at least a value of 10:
+    #           [points, rebs, asts, blks, steals]
+    def get_dbl_dbl(self, player_stats):
+        return int(self.__double_digits_count(player_stats) == 2)
+
+    # return int(1) if player_stats have a triple double.
+    # a triple double is THREE or more categories from
+    # the list with at least a value of 10:
+    #           [points, rebs, asts, blks, steals]
+    def get_tpl_dbl(self, player_stats):
+        return int(self.__double_digits_count(player_stats) >= 3)
+
+    def __double_digits_count(self, player_stats):
+        l = [
+            player_stats.points,
+            player_stats.rebounds,
+            player_stats.assists,
+            player_stats.blocks,
+            player_stats.steals
+        ]
+        #
+        # create a list where we have replaced 10.0+ with int(1),
+        # and lesss than 10.0 with int(0).  then sum the list
+        # and return that value - thats how many "doubles" we have
+        return sum( [ 1 if x >= 10.0 else 0 for x in l ] )
 
 class AbstractTest(django.test.TestCase, MasterAbstractTest):
-
-    def setUp(self):
-        pass
-
-
-
-class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTest):
 
     def setUp(self):
         pass
@@ -304,6 +435,41 @@ class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTes
 
         return exceptions
 
+# class AbstractTestTransaction(django.test.TransactionTestCase, MasterAbstractTest):
+#     """
+#     WARNING: AbstractTestTransaction PRE-WIPES the test database when it runs!
+#
+#     this is very annoying, since we install a few basic objects for the site
+#     during migrations! make sure you know what you are doing if you use
+#     this class, and dont expect ANYTHING to exist when it calls its setUp() method!
+#     """
+#     pre_flush = True
+#
+#     def setUp(self):
+#         pass
+#
+#     def concurrent_test(self, times, test_func, *args, **kwargs ):
+#         exceptions = []
+#         def call_test_func():
+#             try:
+#                 test_func(*args, **kwargs)
+#             except Exception as e:
+#                 exceptions.append(e)
+#                 print(str(e))
+#                 #print(traceback.format_exc())
+#
+#             for conn in connections.all():
+#                 conn.close()
+#         threads = []
+#         for i in range(times):
+#             threads.append(threading.Thread(target=call_test_func))
+#         for t in threads:
+#             t.start()
+#         for t in threads:
+#             t.join()
+#
+#         return exceptions
+
 class BuildWorldForTesting(object):
 
     def build_world(self):
@@ -317,9 +483,7 @@ class BuildWorldForTesting(object):
     #-------------------------------------------------------------------
     # Shared setup methods for the test cases
     def create_sport_and_rosters(self):
-        self.sitesport       = SiteSport()
-        self.sitesport.name  = 'test'
-        self.sitesport.save()
+        self.sitesport, created = SiteSport.objects.get_or_create(name='test')
 
         position1                = Position()
         position1.name           = "1"

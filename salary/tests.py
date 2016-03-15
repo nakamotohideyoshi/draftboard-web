@@ -1,3 +1,6 @@
+#
+# salary/tests.py
+
 from test.classes import AbstractTest
 import mysite.exceptions
 from test.models import PlayerChild, PlayerStatsChild, GameChild
@@ -8,25 +11,11 @@ from random import randint
 from .models import SalaryConfig, TrailingGameWeight, Pool
 from sports.models import SiteSport, Position
 from roster.models import RosterSpot, RosterSpotPosition
-
-#
-# quick caleb test of dummy data class
 from salary.dummy import Dummy
-# class SomeTest(AbstractTest):
-#     def setUp(self):
-#         #self.roster_spot_positions  = Dummy.create_roster()
-#         #self.player_stats_list      = Dummy.create_player_stats_list()
-#
-#         # generate_salaries()
-#         Dummy.generate_salaries()
-#
-#     def test_it(self):
-#         pass
 
-#-------------------------------------------------------------------
-#-------------------------------------------------------------------
-# Shared setup methods for the test cases
 def create_sport_and_rosters():
+    """ Shared setup methods for the test cases """
+
     sitesport       = SiteSport()
     sitesport.name  = 'testsport'
     sitesport.save()
@@ -92,6 +81,8 @@ def create_sport_and_rosters():
     return sitesport
 
 def create_basic_player_stats():
+    """ Shared setup methods for the test cases """
+
     position = Position.objects.get(name="1")
 
     game                            = GameChild()
@@ -123,6 +114,8 @@ def create_basic_player_stats():
 
 
 def create_simple_player_stats_list():
+    """ Shared setup methods for the test cases """
+
 
     players = []
     position1 = Position.objects.get(name="1")
@@ -165,10 +158,9 @@ def create_simple_player_stats_list():
             player_stats.position           = player.position
             player_stats.save()
 
-#-------------------------------------------------------------------
-#-------------------------------------------------------------------
-# Tests the Player Stats Object
 class PlayerStatsObjectTest(AbstractTest):
+    """ test PlayerStats object """
+
     def setUp(self):
         create_sport_and_rosters()
         self.player_stats = create_basic_player_stats()
@@ -185,10 +177,9 @@ class PlayerStatsObjectTest(AbstractTest):
         self.assertRaises(mysite.exceptions.NullModelValuesException,
                           lambda: SalaryPlayerStatsObject(self.player_stats))
 
-#-------------------------------------------------------------------
-#-------------------------------------------------------------------
-# Tests the Salary Generator
 class SalaryGeneratorTest(AbstractTest):
+    """ test the salary generation """
+
     def setUp(self):
         self.site_sport = create_sport_and_rosters()
 
@@ -453,45 +444,3 @@ class CreateActivePoolAndSideEffectExisting(AbstractTest):
                 self.assertTrue( p.active ) # the new_pool should be the only active
             else:
                 self.assertFalse( p.active ) # the existing pool should not be active
-
-# class MyTest:
-#     """
-#     EXTREMELY IMPORTANT: Do not use this class on the live site
-#     """
-#     def __init__(self):
-#         self.site_sport, c  = SiteSport.objects.get_or_create(name='test')
-#         self.existing_pool  = None
-#         self.new_pool       = None
-#
-#         # remove all existing pools for test purposes
-#         for p in Pool.objects.all():
-#             p.delete()
-#
-#     def create_pool_helper(self, existing=None, new=None):
-#         salary_config = Dummy.create_salary_config()
-#         existing_pool, c = Pool.objects.get_or_create(salary_config=salary_config,
-#                                                         site_sport=self.site_sport,
-#                                                         active=existing)
-#         #existing_pool = Pool.objects.get(pk=existing_pool.pk)
-#         existing_pool.refresh_from_db()
-#
-#         # create a second pool, and make sure active is overridden to False
-#         new_config = Dummy.create_salary_config()
-#         new_pool, c = Pool.objects.get_or_create(salary_config=new_config,
-#                                                     site_sport=self.site_sport,
-#                                                     active=new)
-#         new_pool.refresh_from_db()
-#         return existing_pool, new_pool   # return tuple
-#
-#     def create(self, existing=True, new=True):
-#         self.existing_pool, self.new_pool = self.create_pool_helper( existing=existing, new=new )
-#
-#     def show(self):
-#         for p in Pool.objects.all():
-#             print(str(p))
-#
-#     def check(self):
-#         existing_pool = Pool.objects.get(pk=self.existing_pool.pk)
-#         print('existing_pool.active should be True and its:', existing_pool.active)
-#         new_pool = Pool.objects.get(pk=self.new_pool.pk)
-#         print('new_pool.active should be False and its:', new_pool.active)

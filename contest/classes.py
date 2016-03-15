@@ -149,7 +149,6 @@ class ContestLineupManager(object):
         :param draft_group_players:
         :return:
         """
-        #print( 'TODO - dont forget to cache the starter_map -- it cant be too fast!!')
         self.starter_map = {}
         now = timezone.now()
         for p in self.draft_group_players:
@@ -200,7 +199,7 @@ class ContestLineupManager(object):
 
         :return:
         """
-        return (self.SIZE_LINEUP_ID + self.players_per_lineup * self.SIZE_PLAYER) * self.contest.entries
+        return (self.SIZE_LINEUP_ID + self.players_per_lineup * self.SIZE_PLAYER) * self.entries.count()
 
     def get_size_in_bytes(self):
         #print( '__header_size() = %s' %str(self.__header_size()), '__payload_size() = %s' % str(self.__payload_size()))
@@ -309,22 +308,67 @@ class ContestLineupManager(object):
     def get_http_payload(self):
         return ''.join('{:02x}'.format(x) for x in self.get_raw_bytes() )
 
-# # params: draft_group, games (ids), players (ids)
-# class AbstractPlayerStatsManager(object):
-#     """
-#     this class will typically be held in cache, and can quickly
-#     get, or update those player stats based on real-time data.
-#     """
-#
-#     def __init__(self):
-#         pass # TODO get from cache, else: initialize here
-#
-#         self.load_games( )   # TODO
-#         self.load_players( ) # TODO
-#
-#     def get_players(self, player_ids):
-#         pass # TODO
-#
-#
-#     # def update_players(self, player_stats):
-#     #     pass # TODO
+# %cpaste
+# from random import Random, shuffle
+# class EntryFiller(object):
+#     def __init__(self, entries=[], contest_size=2):
+#         self.r = Random()
+#         self.original_entries = list(entries)
+#         self.entries = list(entries)
+#         self.first_entries = None
+#         self.contest_size = contest_size
+#     def get_uniques_from_pool(self, limit=0, excludes=[]):
+#         # get uniques from the pool.
+#         # if limit is non-zero, return equal to or less than limit.
+#         # does not return any values contains in exclude list.
+#         ret_entries = list(set(self.entries))
+#         for e in excludes:
+#             if e in ret_entries:
+#                 ret_entries.remove(e)
+#         shuffle(ret_entries)
+#         return ret_entries[:limit]
+#     def make_contest(self, entries):
+#         print('making contest:', str(entries))
+#     def remove_from_pool(self, remove_entries):
+#         for e in remove_entries:
+#             self.entries.remove(e)
+#     def cleanup_post_round_unfilled_entries(self, entries_to_fill):
+#         # combine entries to fill with the extras.
+#         # create contest if possible
+#         num_entries_needed = contest_size - len(entries_to_fill)
+#         extras = self.get_uniques_from_pool(limit=num_entries_needed, excludes=entries_to_fill)
+#         combined_entries = entries_to_fill + extras
+#         if len(combined_entries) < self.contest_size:
+#             # check if we have to bonus out any remainders here, we're at the end.
+#             print('check only entry not filled:', str(combined_entries))
+#         else:
+#             # make a contest
+#             self.make_contest(combined_entries)
+#     def print_match(self, list_entries=[]):
+#         print('print_match:', str(list_entries))
+#     def fair_match(self):
+#         # stash everyones first entry
+#         self.first_entries = list(set(self.entries))
+#         self.fair_match_h(self.first_entries)
+#     def fair_match_h(self, entries_to_fill=[], round=1):
+#         if entries_to_fill == [] and self.entries == []:
+#             print('done.')
+#             return # we are done
+#         print('round:', str(round))
+#         if entries_to_fill == []:
+#             # do the next round. get unique set from self.entries and recurse
+#             entries_to_fill = self.get_uniques_from_pool()
+#             self.remove_from_pool(entries_to_fill)
+#             self.fair_match_h(entries_to_fill)
+#         elif len(entries_to_fill) < self.contest_size:
+#             # we had an odd number leftover.
+#             # get additional entries from to match with
+#             self.cleanup_post_round_unfilled_entries(entries_to_fill)
+#         else:
+#             self.make_contest(entries_to_fill[:self.contest_size])
+#             self.fair_match_h(entries_to_fill[self.contest_size:], round=round+1)
+# --
+# test_entries = [1,1,2,3,4,5,5,5,6,7,8,9,9,9,9,9,9,9]
+# contest_size = 2
+# filler = EntryFiller(test_entries, contest_size)
+# filler.fair_match()

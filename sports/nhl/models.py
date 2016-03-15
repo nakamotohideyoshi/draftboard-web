@@ -6,8 +6,8 @@ import sports.models
 import scoring.classes
 import push.classes
 from django.conf import settings
-
-# Any classes that still have the abtract = True, just havent been migrated/implemented yet!
+from django.core.cache import cache
+from sports.tasks import countdown_send_player_stats_data, COUNTDOWN
 
 class Season( sports.models.Season ):
     class Meta:
@@ -30,6 +30,9 @@ class Game( sports.models.Game ):
     """
     all we get from the inherited model is: 'srid', 'start' and 'status'
     """
+
+    season      = models.ForeignKey(Season, null=False)
+
     home = models.ForeignKey( Team, null=False, related_name='game_hometeam')
     srid_home   = models.CharField(max_length=64, null=False,
                                 help_text='home team sportsradar global id')
@@ -76,6 +79,11 @@ class Player( sports.models.Player ):
 
     class Meta:
         abstract = False
+
+class PlayerLineupName( Player ):
+
+    class Meta:
+        proxy = True
 
 class PlayerStats( sports.models.PlayerStats ):
 
@@ -131,7 +139,10 @@ class PlayerStats( sports.models.PlayerStats ):
 
         #
         # pusher the fantasy points w/ stats
-        push.classes.DataDenPush( push.classes.PUSHER_NHL_STATS, 'player').send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
+        # push.classes.DataDenPush( push.classes.PUSHER_NHL_STATS, 'player').send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
+        args = (self.get_cache_token(), push.classes.PUSHER_NHL_STATS, 'player', self.to_json())
+        self.set_cache_token()
+        countdown_send_player_stats_data.apply_async( args, countdown=COUNTDOWN )
 
         super().save(*args, **kwargs)
 

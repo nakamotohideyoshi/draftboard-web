@@ -37,7 +37,11 @@ urlpatterns = patterns(
         views.FrontendLiveTemplateView.as_view(),
         name='live'
     ),
-    (r'^lobby/$', views.FrontendLobbyTemplateView.as_view()),
+    url(
+        r'^lobby/$',
+        views.FrontendLobbyTemplateView.as_view(),
+        name='lobby'
+    ),
     # Contest detail view in lobby.
     (r'^lobby/(?P<contest_id>\d+)/$', views.FrontendLobbyTemplateView.as_view()),
     url(

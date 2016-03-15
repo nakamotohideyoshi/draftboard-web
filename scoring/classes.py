@@ -15,7 +15,7 @@ class AbstractScoreSystem(object):
     score_system        = None
     stat_values         = None
 
-    def __init__(self, sport):
+    def __init__(self, sport, validate=True):
         self.sport      = sport
         self.verbose    = False
         self.str_stats  = None # string
@@ -23,7 +23,8 @@ class AbstractScoreSystem(object):
         self.stat_values_cache = ScoreSystemCache(sport)
         self.stat_values = self.get_stat_values()
         # print('stat_values', str(self.stat_values))
-        self.__validate()
+        if validate:
+            self.__validate()
 
     def __validate(self):
         """
@@ -165,12 +166,8 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
         total += self.blocks(player_stats.blocks)
         total += self.turnovers(player_stats.turnovers)
 
-        #
-        # to determined a dbl-dbl or triple-dbl, we have to pass the whole object
-        if self.get_tpl_dbl(player_stats):
-            total += self.triple_double( self.get_tpl_dbl(player_stats) )
-        else:
-            total += self.double_double( self.get_dbl_dbl(player_stats) )
+        total += self.triple_double( self.get_tpl_dbl(player_stats) ) # you can get the triple dbl
+        total += self.double_double( self.get_dbl_dbl(player_stats) ) # as well as the dbl dbl bonus .. they stack
         return total
 
     def points(self, value):
@@ -214,7 +211,7 @@ class NbaSalaryScoreSystem(AbstractScoreSystem):
     # the list with at least a value of 10:
     #           [points, rebs, asts, blks, steals]
     def get_dbl_dbl(self, player_stats):
-        return int(self.__double_digits_count(player_stats) == 2)
+        return int(self.__double_digits_count(player_stats) >= 2)
 
     # return int(1) if player_stats have a triple double.
     # a triple double is THREE or more categories from
@@ -744,3 +741,4 @@ class NflSalaryScoreSystem(AbstractScoreSystem):
         if self.verbose: self.str_stats += '%s DstPts ' % fantasy_pts
 
         return fantasy_pts
+

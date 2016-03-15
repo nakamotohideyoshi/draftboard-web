@@ -76,7 +76,8 @@ class DataDenParser(object):
 
         #
         # NHL
-        # TODO
+        ('nhl','period','pbp'),        # parent of the following
+        ('nhl','event','pbp'),         # contains the play data, including players
 
         #
         # NFL
@@ -87,36 +88,42 @@ class DataDenParser(object):
     # list of default triggers for the basic needs of the four major sports
     DEFAULT_TRIGGERS = [
         # mlb
-        ('mlb','team','hierarchy'),	        # 1
-        ('mlb','game','schedule_pre'),      # 2
-        ('mlb','game','schedule_reg'),      # 2
-        ('mlb','game','schedule_pst'),      # 2
-        ('mlb','player','team_profile'),    # 3
+        ('mlb','team','hierarchy'),	                # 1
+        ('mlb','season_schedule','schedule_pre'),
+        ('mlb','season_schedule','schedule_reg'),
+        ('mlb','season_schedule','schedule_pst'),
+        ('mlb','game','schedule_pre'),              # 2
+        ('mlb','game','schedule_reg'),              # 2
+        ('mlb','game','schedule_pst'),              # 2
+        ('mlb','player','team_profile'),            # 3
         ('mlb','game','boxscores'),
         ('mlb','home','summary'),
         ('mlb','away','summary'),
         ('mlb','player','summary'),
 
-        # nba   # temporary commented out
-        ('nba','team','hierarchy'),     # 1
-        ('nba','game','schedule'),      # 2
-        ('nba','player','rosters'),     # 3
+        # nba
+        ('nba','team','hierarchy'),             # 1
+        ('nba','season_schedule','schedule'),
+        ('nba','game','schedule'),              # 2
+        ('nba','player','rosters'),             # 3
         ('nba','game','boxscores'),
         ('nba','team','boxscores'),
         ('nba','player','stats'),
 
         # nhl
-        ('nhl','team','hierarchy'),     # 1
-        ('nhl','game','schedule'),      # 2
-        ('nhl','player','rosters'),     # 3
+        ('nhl','season_schedule','schedule'),
+        ('nhl','team','hierarchy'),             # 1
+        ('nhl','game','schedule'),              # 2
+        ('nhl','player','rosters'),             # 3
         ('nhl','game','boxscores'),
         ('nhl','team','boxscores'),
         ('nhl','player','stats'),
 
         # nfl
-        ('nfl','team','hierarchy'),     # 1
-        ('nfl','game','schedule'),     # 2
-        ('nfl','player','rosters'),     # 3 ordered for setup priority
+        ('nfl','team','hierarchy'),             # 1
+        ('nfl','season','schedule'),
+        ('nfl','game','schedule'),              # 2
+        ('nfl','player','rosters'),             # 3 ordered for setup priority
         ('nfl','game','boxscores'),
         ('nfl','team','stats'),
         ('nfl','team','boxscores'),
@@ -238,7 +245,7 @@ class DataDenParser(object):
 
         self.__valid_sport(sport) # make sure we can set it up
         self.setup_triggers(sport)
-        dataden = DataDen()
+        dataden = DataDen(no_cursor_timeout=True) # dont let cursor timeout for setup()
 
         triggers = self.DEFAULT_TRIGGERS
         if replay:
@@ -264,13 +271,22 @@ class DataDenParser(object):
             parent_api  = t[2]
             print( 'ns:%s.%s, parent_api:%s' % (db,coll,parent_api) )
             cursor = dataden.find(db,coll,parent_api)
-            print( ' ... count: ' + str(cursor.count()))
+            size = cursor.count()
+            print( ' ... count: ' + str(size))
 
+            i = 1
             for mongo_obj in cursor:
                 #
                 # create a oplog wrapper with the mongo object and signal it
                 # so the parser takes care of the rest!
+
+                if i % 100 == 0:
+                    msg = '(%s / %s)' % (str(i), str(size))
+                    print(msg)
+
                 self.parse_obj( db, coll, mongo_obj, async=async )
+
+                i += 1
 
     def setup_score_players_for_sport(self, sport):
         if sport == 'nfl':

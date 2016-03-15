@@ -1,13 +1,33 @@
 #
 # sports/mlb/parser.py
 
+from sports.classes import SiteSportManager
 import sports.mlb.models
-from sports.mlb.models import Team, Game, Player, PlayerStats, \
-                                GameBoxscore, Pbp, PbpDescription, GamePortion
-from sports.sport.base_parser import AbstractDataDenParser, AbstractDataDenParseable, \
-                        DataDenTeamHierarchy, DataDenGameSchedule, DataDenPlayerRosters, \
-                        DataDenPlayerStats, DataDenGameBoxscores, DataDenTeamBoxscores, \
-                        DataDenPbpDescription, DataDenInjury
+from sports.mlb.models import (
+    Team,
+    Game,
+    Player,
+    PlayerStats,
+    GameBoxscore,
+    Pbp,
+    PbpDescription,
+    GamePortion,
+    Season,
+)
+from sports.sport.base_parser import (
+    AbstractDataDenParser,
+    AbstractDataDenParseable,
+    DataDenTeamHierarchy,
+    DataDenGameSchedule,
+    DataDenPlayerRosters,
+    DataDenPlayerStats,
+    DataDenGameBoxscores,
+    DataDenTeamBoxscores,
+    DataDenPbpDescription,
+    DataDenInjury,
+    SridFinder,
+    DataDenSeasonSchedule,
+)
 import json
 from django.contrib.contenttypes.models import ContentType
 from dataden.classes import DataDen
@@ -246,7 +266,7 @@ class HomeAwaySummary(DataDenTeamBoxscores):
 
         if self.boxscore.srid_home == srid_team:
             # home
-            print( 'home_score / runs:', str(runs) )
+            #print( 'home_score / runs:', str(runs) )
             self.boxscore.home_score        = runs
             self.boxscore.srid_home_pp      = probable_pitcher
             self.boxscore.srid_home_sp      = starting_pitcher
@@ -255,7 +275,7 @@ class HomeAwaySummary(DataDenTeamBoxscores):
 
         elif self.boxscore.srid_away == srid_team:
             # away
-            print( 'away_score / runs:', str(runs) )
+            #print( 'away_score / runs:', str(runs) )
             self.boxscore.away_score        = runs
             self.boxscore.srid_away_pp      = probable_pitcher
             self.boxscore.srid_away_sp      = starting_pitcher
@@ -267,7 +287,7 @@ class HomeAwaySummary(DataDenTeamBoxscores):
             print( 'HomeAwaySummary team[%s] does not match home or away!' % srid_team)
             return
 
-        print( 'boxscore results | home_score %s | away_score %s' % (str(self.boxscore.home_score),str(self.boxscore.away_score)))
+        #print( 'boxscore results | home_score %s | away_score %s' % (str(self.boxscore.home_score),str(self.boxscore.away_score)))
         self.boxscore.save()
 
 class GameBoxscores(DataDenGameBoxscores):
@@ -442,10 +462,29 @@ class TeamHierarchy(DataDenTeamHierarchy):
         self.team.alias = self.o.get('abbr', None)
         self.team.save()
 
+class SeasonSchedule(DataDenSeasonSchedule):
+    """
+    parse a "season" object to get an srid, and the year/type of the season.
+    """
+
+    season_model = Season
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        if self.season is None:
+            return
+
+        self.season.save()
+
 class GameSchedule(DataDenGameSchedule):
 
-    team_model = Team
-    game_model = Game
+    team_model      = Team
+    game_model      = Game
+    season_model    = Season
 
     def __init__(self):
         super().__init__()
@@ -762,11 +801,11 @@ class PlayerStats(DataDenPlayerStats):
 
             # collect pitching stats
             statistics = o.get('statistics__list', {}) # default will useful if it doenst exist
-            print('')
-            print( statistics )
+            #print('')
+            #print( statistics )
             pitching = statistics.get('pitching__list', {})
-            print('')
-            print( pitching )
+            #print('')
+            #print( pitching )
             games   = pitching.get('games__list', {})
             onbase  = pitching.get('onbase__list', {})
             runs    = pitching.get('runs__list', {})
@@ -796,11 +835,11 @@ class PlayerStats(DataDenPlayerStats):
                 return # if super().parse() doesnt create this, get out of here
 
             statistics = o.get('statistics__list', {})
-            print('')
-            print( statistics )
+            #print('')
+            #print( statistics )
             hitting = statistics.get('hitting__list', {}) # default will useful if it doenst exist
-            print('')
-            print( hitting )
+            #print('')
+            #print( hitting )
             onbase  = hitting.get('onbase__list', {})
             runs    = hitting.get('runs__list', {})
             steals  = hitting.get('steal__list', {})
@@ -830,6 +869,134 @@ class PlayerStats(DataDenPlayerStats):
         self.ps.start = bool( game_info.get('start', 0) )
 
         self.ps.save() # commit changes
+
+class PitchPbp(DataDenPbpDescription):
+    """
+    given an object whose namespace, parent api is a target like:
+     ('mlb.pitch','pbp') this object is capable of emitting
+     the play by play information with send()
+    """
+
+    class AtBatNotFoundException(Exception): pass
+
+    class MultipleAtBatObjectsFoundException(Exception): pass
+
+    game_model              = Game
+    pbp_model               = Pbp
+    portion_model           = GamePortion
+    pbp_description_model   = PbpDescription
+    #
+    player_stats_model      = sports.mlb.models.PlayerStatsPitcher
+    pusher_sport_pbp        = push.classes.PUSHER_MLB_PBP
+    pusher_sport_stats      = push.classes.PUSHER_MLB_STATS
+
+    def __init__(self):
+        super().__init__()
+        self.player_stats_pitcher_model  = sports.mlb.models.PlayerStatsPitcher      # mlb pitcher stats
+        self.player_stats_hitter_model   = sports.mlb.models.PlayerStatsHitter       # mlb hitter stats
+
+    def parse(self, obj, target=None):
+        """
+        the object must first be parsed before send() can be called
+
+        :param obj: a dataden.watcher.OpLogObj object
+        """
+        self.original_obj = obj
+        self.srid_finder = SridFinder(obj.get_o()) # get the data from the oplogobj
+        self.o = obj.get_o() # we didnt call super so we should do this
+
+    def get_at_bat(self, srid_game, srid_pitch):
+        """
+        using DataDen's aggregate wrapper to mongo, builds a pipeline
+        (list of commands, basically) and extract the deeply nested
+        'at_bat' element from a 'game' pbp object!
+
+        :param srid_game: supplying the srid for the game the pitch was in greatly speeds up query, but is optional.
+        """
+        dd = DataDen()
+
+        pipeline = [
+            {"$match": {"id": "%s" % srid_game} },     # matching the game id first, greatly improves speed
+
+            {"$unwind": "$innings"},
+            {"$match": {"innings.inning.inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
+            {"$project": {"inning_halfs":"$innings.inning.inning_halfs"}},
+
+            {"$unwind": "$inning_halfs"},
+            {"$match": {"inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
+            {"$project": {"at_bats":"$inning_halfs.inning_half.at_bats"}},
+
+            {"$unwind": "$at_bats"},
+            {"$match": {"at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
+            {"$project": {"at_bat":"$at_bats.at_bat"}},
+        ]
+
+        results = dd.aggregate('mlb','game', pipeline)
+
+        if len(results) == 0:
+            err_msg = 'no at_bat object found for game %s and pitch %s' % (srid_game, srid_pitch)
+            raise self.AtBatNotFoundException(err_msg)
+        if len(results) != 1:
+            err_msg = 'expected 1 at_bat object for game %s and pitch %s, but found %s' % (srid_game, srid_pitch, len(results))
+            raise self.MultipleAtBatObjectsFoundException(err_msg)
+        #print( 'dataden aggregate results:', str(results[0]))
+        return results[0]
+
+    def __find_player_stats(self, player_stats_class, srid_game, srid_players=[]):
+        return player_stats_class.objects.filter( srid_game=srid_game, srid_player__in=srid_players)
+
+    def find_player_stats(self):
+        """
+        override parent method  -- return a list of the PlayerStats objects
+        for players related to the pitch object.
+        """
+
+        # site_sport_manager = SiteSportManager()
+        # site_sport = site_sport_manager.get_site_sport('mlb')
+        # salary_score_system_class = site_sport_manager.get_score_system_class(site_sport)
+        # score_system = salary_score_system_class()
+        # # get the PlayerStats model(s) for the sport.
+        # # and get an instance of the sports scoring.classes.<Sport>SalaryScoreSystem
+        # # to determine which player stats models to use to retrieve the final fantasy_points from!
+        # for draft_group_player in players:
+        #     # get the sports.<sport>.player  -- we'll need it later
+        #     sport_player = draft_group_player.salary_player.player
+        #     # determine the PlayerStats class to retrieve the fantasy_points from
+        #     player_stats_class = score_system.get_primary_player_stats_class_for_player(draft_group_player)
+
+        player_stats    = []
+        srid_game       = self.get_srid_game('game__id')
+        srid_pitcher    = self.get_srids_for_field('pitcher')
+        pitcher_stats   = self.__find_player_stats( self.player_stats_pitcher_model, srid_game, srid_pitcher )
+        player_stats.extend(list(pitcher_stats))
+
+        #
+        # get the runners, but it does not yet include the hitter in the at bat!
+        srid_runners    = self.get_srids_for_field('runner')
+        runner_stats    = self.__find_player_stats( self.player_stats_hitter_model, srid_game, srid_runners )
+        player_stats.extend(list(runner_stats))
+
+        #
+        # attempt to get the at_bat object which ontains the hitter (as well as the description)
+        # if the play is over. we will probably want to get the glossary definition of the result.
+        #at_bat = None
+        # try:
+        srid_pitch = self.o.get('id')
+        #print('srid_pitch', srid_pitch)
+        at_bat = self.get_at_bat(srid_game, srid_pitch)
+        #print('at_bat:', str(at_bat))
+        # except:
+        #     pass
+
+        if at_bat is not None:
+            finder = SridFinder(at_bat)
+            srid_hitters    = finder.get_for_field('hitter_id')
+            hitter_stats    = self.__find_player_stats( self.player_stats_hitter_model, srid_game, srid_hitters )
+            player_stats.extend(list(hitter_stats))
+
+        #
+        # return PlayerStat objects for the pitcher, runners, and hitter
+        return player_stats
 
 class GamePbp(DataDenPbpDescription):
 
@@ -915,7 +1082,7 @@ class GamePbp(DataDenPbpDescription):
 
         # self.game & self.pbp are setup by super().parse()
 
-        print('srid game', self.o.get('id'))
+        #print('srid game', self.o.get('id'))
         innings = self.o.get('innings', {})
         overall_idx = 0
         inning_half_idx = 0
@@ -1072,20 +1239,28 @@ class DataDenMlb(AbstractDataDenParser):
 
         #
         # game
-        if self.target == ('mlb.game','schedule_reg'): GameSchedule().parse( obj )
+        if self.target in [ ('mlb','season_schedule','schedule_pre'),
+                            ('mlb','season_schedule','schedule_reg'),
+                            ('mlb','season_schedule','schedule_pst') ]:
+            SeasonSchedule().parse( obj )
+        elif self.target == ('mlb.game','schedule_reg'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pre'): GameSchedule().parse( obj )
         elif self.target == ('mlb.game','schedule_pst'): GameSchedule().parse( obj )
         #
         # specal case: 'pbp' where we also send the object to Pusher !
         elif self.target == ('mlb.game','pbp'):
-            GamePbp().parse( obj )
-            push.classes.PbpDataDenPush( push.classes.PUSHER_MLB_PBP, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
-
+            #GamePbp().parse( obj )
+            #push.classes.PbpDataDenPush( push.classes.PUSHER_MLB_PBP, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            pass # we dont need this
+        elif self.target == ():
+            pitch_pbp = PitchPbp()
+            pitch_pbp.parse( obj )
+            pitch_pbp.send()
+            self.add_pbp( obj )
         #
         elif self.target == ('mlb.game','boxscores'):
             GameBoxscores().parse( obj )  # top level boxscore info
             push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
-
         elif self.target == ('mlb.home','summary'): HomeAwaySummary().parse( obj )  # home team of boxscore
         elif self.target == ('mlb.away','summary'): HomeAwaySummary().parse( obj )  # away team of boxscore
         #

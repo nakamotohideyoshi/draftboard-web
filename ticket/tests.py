@@ -1,12 +1,21 @@
+#
+# ticket/tests.py
+
 from test.classes import AbstractTest
 from .classes import TicketManager
 from .models import TicketAmount
 import ticket.models
 import mysite.exceptions
-from .exceptions import  InvalidTicketAmountException, TicketAlreadyUsedException, UserDoesNotHaveTicketException
+from .exceptions import (
+    InvalidTicketAmountException,
+    TicketAlreadyUsedException,
+    UserDoesNotHaveTicketException,
+)
+
 class TicketManagerTest(AbstractTest):
+
     def setUp(self):
-        self.user           = self.get_admin_user()
+        self.user = self.get_admin_user()
         #
         # Creates a ticket amount for testing
         self.good_amount    = 5.50

@@ -12,7 +12,7 @@ from draftgroup.models import GameTeam
 from sports.models import SiteSport
 from salary.dummy import Dummy as SalaryDummy
 
-from test.classes import AbstractTest, AbstractTestTransaction
+from test.classes import AbstractTest
 from salary.dummy import Dummy
 from prize.classes import CashPrizeStructureCreator
 from django.utils import timezone
@@ -25,17 +25,12 @@ from contest.classes import ContestCreator
 from draftgroup.tasks import on_game_closed
 from sports.classes import SiteSportManager
 
-class DraftGroupSimpleTest(AbstractTest):
-
-    def setUp(self):
-        pass # this is a stub for a new test
+# class DraftGroupSimpleTest(AbstractTest):
 #
-# NOTE:
-#       This has been thoroughly tested, but because of the behavior
-#       of threading in the django test environment there are
-#       non-deterministic issues, so were removing it.
+#     def setUp(self):
+#         pass # this is a stub for a new test
 #
-# class DraftGroupOnGameClosedRaceCondition(AbstractTestTransaction):
+# class DraftGroupOnGameClosedRaceCondition(AbstractTest):
 #
 #     def setUp(self):
 #         self.user = self.get_basic_user()
@@ -92,7 +87,7 @@ class DraftGroupSimpleTest(AbstractTest):
 #         self.contest.draft_group = self.draft_group
 #         self.contest.save()
 #
-#     @override_settings(TEST_RUNNER=AbstractTestTransaction.CELERY_TEST_RUNNER,
+#     @override_settings(TEST_RUNNER=AbstractTest.CELERY_TEST_RUNNER,
 #                        CELERY_ALWAYS_EAGER=True,
 #                        CELERYD_CONCURRENCY=3)
 #     def test_race_condition_on_game_closed(self):
