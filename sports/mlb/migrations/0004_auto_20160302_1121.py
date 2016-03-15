@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='game',
             name='season',
-            field=models.ForeignKey(to='mlb.Season', default=None),
+            field=models.ForeignKey(to='mlb.Season', default=1),
             preserve_default=False,
         ),
         migrations.AddField(
