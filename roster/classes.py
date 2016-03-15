@@ -86,13 +86,13 @@ class Initial(object):
     # P, C, 1B, 2B, 3B, SS, OF, OF, OF
     # sportradar types: 'RP', 'DH', 'C', 'RF', '2B', '1B', 'LF', 'CF', '3B', 'SP', 'SS'
     DEFAULT_ROSTER_MAP_MLB = {
-        ('SP',2,0,True)     :['SP'],                    # x2 starting pitchers
-        ('C',1,2,True)      :['C'],
-        ('1B',1,3,True)     :['1B'],
-        ('2B',1,4,True)     :['2B'],
-        ('3B',1,5,True)     :['3B'],
-        ('SS',1,6,True)     :['SS'],
-        ('OF',3,7,True)     :['LF','CF','RF'],          # x3 outfield
+        ('SP',1,0,True)     :['SP'],                    # x1 starting pitchers
+        ('C',1,1,True)      :['C'],
+        ('1B',1,2,True)     :['1B'],
+        ('2B',1,3,True)     :['2B'],
+        ('3B',1,4,True)     :['3B'],
+        ('SS',1,5,True)     :['SS'],
+        ('OF',3,6,True)     :['LF','CF','RF'],          # x3 outfield
     }
 
     #
