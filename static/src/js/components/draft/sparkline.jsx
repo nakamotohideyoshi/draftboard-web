@@ -140,7 +140,7 @@ const Sparkline = React.createClass({
 
   render() {
     if (this.props.points.length < 1) {
-      return (<span className="cmp-sparkline"></span>);
+      return (<span className="cmp-sparkline"><span className="no-data"></span></span>);
     }
 
     // Since we want to show the most recent point last, reverse the array.

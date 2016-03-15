@@ -79,6 +79,10 @@
       display: block;
     }
 
+    .salary.over-budget {
+      color: red;
+    }
+
     .draft-button {
       cursor: pointer;
       width: 28px;

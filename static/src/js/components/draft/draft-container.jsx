@@ -6,7 +6,7 @@ import log from '../../lib/logging.js';
 import renderComponent from '../../lib/render-component';
 import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
-import PlayerListRow from './draft-player-list-row.jsx';
+import DraftPlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
 import { forEach as _forEach, filter as _filter } from 'lodash';
 import { findIndex as _findIndex } from 'lodash';
@@ -16,7 +16,7 @@ import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId, }
   from '../../actions/upcoming-draft-groups-actions.js';
 import { createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
   editLineupInit, importLineup } from '../../actions/lineup-actions.js';
-import { draftGroupPlayerSelector } from '../../selectors/draft-group-players-selector.js';
+import { draftGroupPlayerSelector, filteredPlayersSelector } from '../../selectors/draft-group-players-selector.js';
 import { activeDraftGroupBoxScoresSelector } from '../../selectors/draft-group-info-selector.js';
 // Other components that will take care of themselves on the draft page.
 import './draft-player-detail.jsx';
@@ -37,8 +37,8 @@ const { Provider, connect } = ReactRedux;
  */
 function mapStateToProps(state) {
   return {
-    allPlayers: state.draftGroupPlayers.allPlayers || {},
-    filteredPlayers: draftGroupPlayerSelector(state),
+    allPlayers: draftGroupPlayerSelector(state),
+    filteredPlayers: filteredPlayersSelector(state),
     activeDraftGroupBoxScores: activeDraftGroupBoxScoresSelector(state),
     filters: state.draftGroupPlayers.filters,
     draftGroupTime: state.draftGroupPlayers.start,
@@ -92,7 +92,7 @@ const DraftContainer = React.createClass({
     createLineupViaCopy: React.PropTypes.func.isRequired,
     editLineupInit: React.PropTypes.func,
     importLineup: React.PropTypes.func,
-    allPlayers: React.PropTypes.object,
+    allPlayers: React.PropTypes.array,
     lineups: React.PropTypes.object,
     filteredPlayers: React.PropTypes.array,
     focusPlayer: React.PropTypes.func,
@@ -257,12 +257,14 @@ const DraftContainer = React.createClass({
 
     // Build up a list of rows to be displayed.
     _forEach(self.props.allPlayers, (row) => {
+      // determine if the player should be visible in the list.
+      // We figure this out by seeing if the player is in the filteredPlayers list.
       const isVisible = _findIndex(this.props.filteredPlayers, (player) =>
         player.player_id === row.player_id
       ) > -1;
 
       visibleRows.push(
-        <PlayerListRow
+        <DraftPlayerListRow
           key={row.player_id}
           playerImagesBaseUrl={playerImagesBaseUrl}
           row={row}
