@@ -126,6 +126,7 @@ const receiveDraftGroupInfo = (id, response) => {
     sport: response.sport,
     start: new Date(response.start).getTime(),
     end: new Date(response.end).getTime(),
+    closed: (response.closed !== null) ? new Date(response.closed).getTime() : null,
     expiresAt: dateNow() + 1000 * 60 * 60 * 12,  // 12 hours
   };
 };

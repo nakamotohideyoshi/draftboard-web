@@ -1,4 +1,5 @@
 import React from 'react';
+// import PubSub from 'pubsub-js';
 import ImageLoader from 'react-imageloader';
 import * as ReactRedux from 'react-redux';
 import moment from 'moment';
@@ -9,6 +10,7 @@ import { forEach as _forEach } from 'lodash';
 import { focusedPlayerSelector } from '../../selectors/draft-selectors.js';
 import { roundUpToDecimalPlace } from '../../lib/utils.js';
 import { createLineupAddPlayer, removePlayer } from '../../actions/lineup-actions.js';
+import { focusSearchField } from './draft-utils.js';
 
 const { Provider, connect } = ReactRedux;
 
@@ -71,15 +73,28 @@ const DraftPlayerDetail = React.createClass({
   },
 
 
+  componentWillMount() {
+    // TODO: You can't focus() a field that isn't visible or on top of the z-index stack.
+    // We're going to have to find a way to focus it *after* the pane_bg div is gone.
+    // When the pane is closed, focus on the search field.
+    // PubSub.subscribe('pane.close', () => {
+    //   console.log('focus')
+    //   focusSearchField();
+    // });
+  },
+
+
   onDraftClick(player, e) {
     e.stopPropagation();
     this.props.draftPlayer(player);
+    focusSearchField();
   },
 
 
   onUnDraftClick(player, e) {
     e.stopPropagation();
     this.props.unDraftPlayer(player.player_id);
+    focusSearchField();
   },
 
 
@@ -156,8 +171,8 @@ const DraftPlayerDetail = React.createClass({
   // the hassle right now.
   getTabNav() {
     const tabs = [
-      { title: 'Reports', tab: 'reports' },
-      { title: 'Splits', tab: 'splits' },
+      { title: 'Updates', tab: 'reports' },
+      { title: 'Game Log', tab: 'splits' },
     ];
 
     return tabs.map((tab) => {
@@ -212,7 +227,7 @@ const DraftPlayerDetail = React.createClass({
           <th>ast</th>,
           <th>blk</th>,
           <th>stl</th>,
-          <th>3pt</th>,
+          <th>min</th>,
           <th>to</th>,
           <th>fp</th>,
         ];
@@ -222,13 +237,13 @@ const DraftPlayerDetail = React.createClass({
             <tr key={index}>
               <td>{game.opp}</td>
 
-              <td>{moment(game.date, moment.ISO_8601).format('M-D-YY')}</td>
+              <td>{moment(game.date, moment.ISO_8601).format('M/D/YY')}</td>
               <td>{game.points}</td>
               <td>{game.rebounds}</td>
               <td>{game.assists}</td>
               <td>{game.blocks}</td>
               <td>{game.steals}</td>
-              <td>{game.three_pointers}</td>
+              <td>MIN</td>
               <td>{game.turnovers}</td>
               <td>{game.fp}</td>
             </tr>
@@ -253,7 +268,7 @@ const DraftPlayerDetail = React.createClass({
           content.push(
             <tr key={index}>
               <td>{game.opp}</td>
-              <td>{moment(game.date, moment.ISO_8601).format('M-D-YY')}</td>
+              <td>{moment(game.date, moment.ISO_8601).format('M/D/YY')}</td>
               <td>{game.goal}</td>
               <td>{game.assist}</td>
               <td>{game.blocks}</td>

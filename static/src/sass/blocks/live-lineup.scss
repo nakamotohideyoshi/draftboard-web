@@ -26,7 +26,7 @@
     height: 33px;
     width: 33px;
     position: absolute;
-    top: 28px;
+    top: -52px;
     right: 41px;
   }
 
@@ -34,6 +34,10 @@
   // tut available at https://goo.gl/pMVBPE
   &__players {
     flex: none;
-    list-style: none;
+    position: relative;
+
+    ul {
+      list-style: none;
+    }
   }
 }
