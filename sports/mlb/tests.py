@@ -82,19 +82,19 @@ class TestEventPbp(AbstractTest):
     """
 
     def setUp(self):
-        self.obj_str = """{'o': {'parent_list__id': 'events__list', 'location__list': {'coord_x': 370.0, 'coord_y': 209.0}, 'parent_api__id': 'pbp', 'quarter__id': '715a0977-ab1e-4d13-9425-7d776b69615e', 'game__id': 'dcecc6c6-d6f8-40e2-a83c-d22953e55112', 'id': 'fb8be809-6822-439e-aaf0-e5d334ed25aa', 'dd_updated__id': 1454641970660, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjZWNjNmM2LWQ2ZjgtNDBlMi1hODNjLWQyMjk1M2U1NTExMnF1YXJ0ZXJfX2lkNzE1YTA5NzctYWIxZS00ZDEzLTk0MjUtN2Q3NzZiNjk2MTVlcGFyZW50X2xpc3RfX2lkZXZlbnRzX19saXN0aWRmYjhiZTgwOS02ODIyLTQzOWUtYWFmMC1lNWQzMzRlZDI1YWE=', 'updated': '2016-02-05T03:12:41+00:00', 'clock': '11:41', 'statistics__list': {'fieldgoal__list': {'team': '583ed056-fb46-11e1-82cb-f4ce4684ea4c', 'made': 'false', 'three_point_shot': 'true', 'player': '5382cf43-3a79-4a5a-a7fd-153906fe65dd', 'shot_type': 'jump shot'}}, 'event_type': 'threepointmiss', 'attribution': '583ed056-fb46-11e1-82cb-f4ce4684ea4c', 'description': 'Damian Lillard misses three point jump shot'}, 'ns': 'nba.event', 'ts': 1454659978}"""
+        self.obj_str = """{'dd_updated__id': 1444422139504, 'status': 'official', 'game__id': 'e8eca722-ceae-4c43-a9f0-cedab1e8bb07', 'flags__list': {'is_double_play': 'false', 'is_bunt_shown': 'false', 'is_ab_over': 'false', 'is_triple_play': 'false', 'is_bunt': 'false', 'is_passed_ball': 'false', 'is_ab': 'false', 'is_wild_pitch': 'false', 'is_on_base': 'false', 'is_hit': 'false'}, 'created_at': '2015-10-07T00:10:18Z', 'updated_at': '2015-10-07T00:11:03Z', 'id': 'a5ab62b3-20cc-4b2d-a951-40491e05ad00', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGU4ZWNhNzIyLWNlYWUtNGM0My1hOWYwLWNlZGFiMWU4YmIwN2lkYTVhYjYyYjMtMjBjYy00YjJkLWE5NTEtNDA0OTFlMDVhZDAw', 'parent_api__id': 'pbp', 'outcome_id': 'bB', 'count__list': {'outs': 0.0, 'strikes': 0.0, 'pitch_count': 1.0, 'balls': 1.0}, 'pitcher': 'fdfda40f-e77b-4cc2-a72c-11951460beda'}"""
         self.data = literal_eval(self.obj_str) # convert to dict
         self.oplog_obj = OpLogObj(self.data)
 
         # the field we will try to get a game srid from
         self.game_srid_field        = 'game__id'
         # a list of the game_srids we expect to get back (only 1 for this test)
-        self.target_game_srids      = ['dcecc6c6-d6f8-40e2-a83c-d22953e55112']
+        self.target_game_srids      = ['e8eca722-ceae-4c43-a9f0-cedab1e8bb07']
 
         # the field name we will search for player srid(s)
-        self.player_srid_field      = 'player'
+        self.player_srid_field      = 'pitcher'
         # the list of player srids we expect to find in this object
-        self.target_player_srids    = ['5382cf43-3a79-4a5a-a7fd-153906fe65dd']
+        self.target_player_srids    = ['fdfda40f-e77b-4cc2-a72c-11951460beda']
 
         self.player_stats_class     = sports.mlb.models.PlayerStatsPitcher
 

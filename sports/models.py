@@ -111,7 +111,7 @@ class Season( models.Model ):
     information about the part of the season we are in
     """
 
-    srid            = models.CharField(max_length=64, unique=True, null=False,
+    srid            = models.CharField(max_length=64, null=False,
                                         help_text='the sportsradar global id of the season/schedule')
     season_year     = models.IntegerField(default=0, null=False,
                                         help_text='the year the season started')
@@ -119,7 +119,7 @@ class Season( models.Model ):
 
     class Meta:
         abstract = True
-        unique_together = ('season_year', 'season_type')
+        unique_together = ('srid', 'season_year', 'season_type')
 
 class Game( DirtyFieldsMixin, models.Model ):
     """

@@ -42,6 +42,7 @@ class NbaScoringTest(AbstractTest):
     """
 
     def setUp(self):
+        self.season_model_class = sports.nba.models.Season
         self.create_team()
         self.create_game()
         self.create_player()
@@ -149,6 +150,7 @@ class NbaScoringTest(AbstractTest):
             g = sports.nba.models.Game()
             g.srid = srid
 
+        g.season, created    = self.season_model_class.objects.get_or_create(srid='seasonsrid',season_year=2016,season_type='reg')
         g.home      = h
         g.away      = a
         g.start     = start
@@ -355,6 +357,7 @@ class NhlScoringTest(AbstractTest):
     #available_apps = None
 
     def setUp(self):
+        self.season_model_class = sports.nhl.models.Season
         self.create_team()
         self.create_game()
         self.create_player()
@@ -462,6 +465,7 @@ class NhlScoringTest(AbstractTest):
             g = sports.nhl.models.Game()
             g.srid = srid
 
+        g.season, created    = self.season_model_class.objects.get_or_create(srid='seasonsrid',season_year=2016,season_type='reg')
         g.home      = h
         g.away      = a
         g.start     = start
@@ -662,7 +666,6 @@ class NhlScoringTest(AbstractTest):
 
                     self.assertAlmostEquals(self.nhl_Salary_Score_System.score_player(self.player_stats), total)
 
-
 class MlbScoringTest(AbstractTest):
     """
     Test the scoring system for MLB.  The test method will be:
@@ -672,6 +675,7 @@ class MlbScoringTest(AbstractTest):
     """
 
     def setUp(self):
+        self.season_model_class = sports.mlb.models.Season
         self.create_team()
         self.create_game()
         self.create_pitcher()
@@ -836,6 +840,7 @@ class MlbScoringTest(AbstractTest):
             g = sports.mlb.models.Game()
             g.srid = srid
 
+        g.season, created    = self.season_model_class.objects.get_or_create(srid='seasonsrid',season_year=2016,season_type='reg')
         g.home      = h
         g.away      = a
         g.start     = start
@@ -1188,7 +1193,6 @@ class MlbScoringTest(AbstractTest):
 
             self.assertAlmostEquals(self.mlb_Salary_Score_System.score_player(self.hitter_stats), total)
 
-
 class NflScoringTest(AbstractTest):
     """
     Test the scoring system for NFL.  The test method will be:
@@ -1198,6 +1202,7 @@ class NflScoringTest(AbstractTest):
     """
 
     def setUp(self):
+        self.season_model_class = sports.nfl.models.Season
         self.create_team()
         self.create_game()
         self.create_player()
@@ -1305,6 +1310,7 @@ class NflScoringTest(AbstractTest):
             g = sports.nfl.models.Game()
             g.srid = srid
 
+        g.season, created    = self.season_model_class.objects.get_or_create(srid='seasonsrid',season_year=2016,season_type='reg')
         g.home      = h
         g.away      = a
         g.start     = start

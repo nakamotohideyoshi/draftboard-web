@@ -3,7 +3,7 @@
 
 from test.classes import AbstractTest
 import mysite.exceptions
-from test.models import PlayerChild, PlayerStatsChild, GameChild
+from test.models import PlayerChild, PlayerStatsChild, GameChild, SeasonChild
 from django.utils import timezone
 from .classes import SalaryPlayerStatsObject, SalaryGenerator, SalaryPlayerObject
 from datetime import date, timedelta

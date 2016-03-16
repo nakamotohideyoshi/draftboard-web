@@ -309,8 +309,9 @@ class DataDenSeasonSchedule(AbstractDataDenParseable):
         season_year     = self.validate_season_year(self.o)
         season_type     = self.validate_season_type(self.o)
 
+        print('season srid, season_year, season_type:', srid, season_year, season_type)
         try:
-            self.season = self.season_model.objects.get( srid=srid )
+            self.season = self.season_model.objects.get( srid=srid, season_year=season_year, season_type=season_type )
         except self.season_model.DoesNotExist:
             self.season             = self.season_model()
             self.season.srid        = srid
@@ -410,6 +411,11 @@ class DataDenGameSchedule(AbstractDataDenParseable):
 
         self.game = None
 
+        # mlb has the same srid for all three season_types,
+        # so we have to hack this just a bit to
+        # use the self.season if its already set. default is None
+        self.season = None
+
         super().__init__()
 
     def parse(self, obj, target=None):
@@ -427,10 +433,12 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         srid_away   = o.get('away')
         title       = o.get('title', '')
 
-        try:
-            season = self.season_model.objects.get(srid=srid_season)
-        except self.season_model.DoesNotExist:
-            return
+        if self.season is None:
+            # i guess the previous class didnt set it
+            try:
+                self.season = self.season_model.objects.get(srid=srid_season)
+            except self.season_model.DoesNotExist:
+                return
 
         try:
             h = self.team_model.objects.get(srid=srid_home)
@@ -452,7 +460,7 @@ class DataDenGameSchedule(AbstractDataDenParseable):
             self.game = self.game_model()
             self.game.srid = srid
 
-        self.game.season    = season
+        self.game.season    = self.season
         self.game.home      = h
         self.game.away      = a
         self.game.start     = start
