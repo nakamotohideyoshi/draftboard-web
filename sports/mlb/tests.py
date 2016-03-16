@@ -59,7 +59,7 @@ class TestGameScheduleParser(AbstractTest):
         # parse the season_schedule obj
         season_oplog_obj = OpLogObjWrapper(self.sport,'season_schedule',literal_eval(self.season_str))
         self.season_parser.parse( season_oplog_obj )
-        self.assertEquals( 1, sports.mlb.models.Season.objects.all().count() ) # should have parsed 1 thing
+        self.assertEquals( 1, sports.mlb.models.Season.objects.filter(season_year=2015,season_type='reg').count() ) # should have parsed 1 thing
 
         away_team_oplog_obj = OpLogObjWrapper(self.sport,'team',literal_eval(self.away_team_str))
         self.away_team_parser.parse( away_team_oplog_obj )
@@ -82,12 +82,16 @@ class TestEventPbp(AbstractTest):
     """
 
     def setUp(self):
-        self.obj_str = """{'dd_updated__id': 1444422139504, 'status': 'official', 'game__id': 'e8eca722-ceae-4c43-a9f0-cedab1e8bb07', 'flags__list': {'is_double_play': 'false', 'is_bunt_shown': 'false', 'is_ab_over': 'false', 'is_triple_play': 'false', 'is_bunt': 'false', 'is_passed_ball': 'false', 'is_ab': 'false', 'is_wild_pitch': 'false', 'is_on_base': 'false', 'is_hit': 'false'}, 'created_at': '2015-10-07T00:10:18Z', 'updated_at': '2015-10-07T00:11:03Z', 'id': 'a5ab62b3-20cc-4b2d-a951-40491e05ad00', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGU4ZWNhNzIyLWNlYWUtNGM0My1hOWYwLWNlZGFiMWU4YmIwN2lkYTVhYjYyYjMtMjBjYy00YjJkLWE5NTEtNDA0OTFlMDVhZDAw', 'parent_api__id': 'pbp', 'outcome_id': 'bB', 'count__list': {'outs': 0.0, 'strikes': 0.0, 'pitch_count': 1.0, 'balls': 1.0}, 'pitcher': 'fdfda40f-e77b-4cc2-a72c-11951460beda'}"""
+        self.obj_str = """{'ns': 'mlb.pitch', 'o': {'fielders__list': {'putout': 'eb4fe55f-14ba-4da5-ba4c-5e8df005fa0a'}, 'count__list': {'outs': 2.0, 'strikes': 3.0, 'pitch_count': 5.0, 'balls': 2.0}, 'updated_at': '2015-10-07T00:15:07Z', 'id': 'd0113392-a710-4da9-9b7c-e3d1f1deb6e3', 'flags__list': {'is_ab_over': 'true', 'is_on_base': 'false', 'is_triple_play': 'false', 'is_bunt': 'false', 'is_passed_ball': 'false', 'is_ab': 'true', 'is_wild_pitch': 'false', 'is_double_play': 'false', 'is_bunt_shown': 'false', 'is_hit': 'false'}, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGU4ZWNhNzIyLWNlYWUtNGM0My1hOWYwLWNlZGFiMWU4YmIwN2lkZDAxMTMzOTItYTcxMC00ZGE5LTliN2MtZTNkMWYxZGViNmUz', 'status': 'official', 'created_at': '2015-10-07T00:15:02Z', 'game__id': 'e8eca722-ceae-4c43-a9f0-cedab1e8bb07', 'parent_api__id': 'pbp', 'pitcher': 'fdfda40f-e77b-4cc2-a72c-11951460beda', 'outcome_id': 'kKS', 'dd_updated__id': 1444422139504}, 'h': 0, 'op': 'u', 'o2': {'_id': None}, 'ts': 0, 'v': 2}"""
         self.data = literal_eval(self.obj_str) # convert to dict
         self.oplog_obj = OpLogObj(self.data)
 
         # the field we will try to get a game srid from
         self.game_srid_field        = 'game__id'
+
+        # 'game__id': 'e8eca722-ceae-4c43-a9f0-cedab1e8bb07',
+        # 'parent_api__id': 'pbp',
+        # 'pitcher': 'fdfda40f-e77b-4cc2-a72c-11951460beda'
         # a list of the game_srids we expect to get back (only 1 for this test)
         self.target_game_srids      = ['e8eca722-ceae-4c43-a9f0-cedab1e8bb07']
 
