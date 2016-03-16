@@ -22,7 +22,7 @@ def create_sport_and_rosters():
     """ Shared setup methods for the test cases """
 
     sitesport       = SiteSport()
-    sitesport.name  = 'testsport'
+    sitesport.name  = 'test'
     sitesport.save()
 
     position1                = Position()
@@ -240,6 +240,17 @@ class SalaryGeneratorTest(AbstractTest):
             PlayerStatsChild
         ]
         salary_gen = SalaryGenerator(player_stats_classes, self.pool)
+
+        #
+        # salary.classes SalaryGenerator internally sets the self.regular_season_games!
+        # but since this tests.py is kind of a hack, and since SiteSportManager
+        # wont get GameChild as a class -- lets just set it manually!
+        #
+        # # get the regular season games, and all the players
+        # game_class = self.site_sport_manager.get_game_class(self.site_sport)
+        # self.regular_season_games = game_class.objects.filter( season__season_type='reg' )
+        salary_gen.regular_season_games = GameChild.objects.filter(season__season_type='reg')
+
         players = salary_gen.helper_get_player_stats()
 
         self.assertEquals(len(players) , 10)
