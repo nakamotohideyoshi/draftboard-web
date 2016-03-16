@@ -132,6 +132,8 @@ class FrontendDraftTemplateView(LoginRequiredMixin, TemplateView):
         if CurrentContest.objects.filter(draft_group__pk=int(draft_group_id)).count() == 0:
             return HttpResponseRedirect(reverse('frontend:lobby'))
 
+        return super(FrontendDraftTemplateView, self).get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super(FrontendDraftTemplateView, self).get_context_data(**kwargs)
         return context
