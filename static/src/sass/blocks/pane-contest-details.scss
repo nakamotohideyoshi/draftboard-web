@@ -8,7 +8,7 @@
   .pane-upper {
     .title {
       color: $primary-white;
-      font-size: 18px;
+      font-size: 14px;
       font-family: $font-open-sans;
       font-weight: 100;
       max-width: 300px;
@@ -18,20 +18,22 @@
 
     .header {
       background: url('../img/blocks/pane/pane-header-background.jpg') no-repeat;
-      background-size: $pane-width $pane-header-height;
+      background-size: $pane-width auto;
       min-height: $pane-header-height;
 
       .info-title {
-        color: $secondary-grey;
+        color: #8694a7;
+        display: block;
         font-family: $open-sans;
-        font-size: 10px;
+        font-size: 9px;
         letter-spacing: .15em;
+        padding-bottom: 2px;
         text-transform: uppercase;
       }
 
       // pane__header__content
       &__content {
-        padding: 50px 30px 0;
+        padding: 42px 30px 0;
         text-align: center;
       }
 
@@ -39,14 +41,30 @@
       &__info {
         position: relative;
         margin: 0 auto;
-        margin-top: 30px;
+        margin-top: 20px;
         display: table;
         padding: 10px 0px 10px 0px;
         font-style: $font-georgia;
 
+        .clock-labels {
+          color: #8694a7;
+          display: block;
+          font-family: $open-sans;
+          font-size: 9px;
+          letter-spacing: .15em;
+          padding: 10px 0 20px;
+          text-transform: uppercase;
+
+          > span {
+            display: inline-block;
+            padding: 0px 13px;
+            text-align: center;
+          }
+        }
+
         .cmp-countdown-clock {
           font-family: $font-oswald;
-          font-size: 45px;
+          font-size: 50px;
         }
 
         .minutes,
@@ -84,19 +102,24 @@
 
       // pane__header__fee-prizes-pool
       &__fee-prizes-pool {
-        padding-bottom: 30px;
 
         div {
-          text-transform: uppercase;
-          max-width: $pane-width / 3;
+          border-right: 1px solid #283445;
           display: inline-block;
           line-height: 15px;
+          padding: 10px 0;
+          text-transform: uppercase;
+          width: $pane-width / 4;
+
+          &:last-child {
+            border-right: none;
+          }
 
           div {
             font-family: $font-oswald;
-            padding-top: 5px;
+            padding: 5px 0 0;
             width: 100%;
-            font-size: 20px;
+            font-size: 16px;
             color: #ffffff;
           }
         }
@@ -126,7 +149,7 @@
     background: -ms-linear-gradient(left, #219d87 0%,#34cc68 100%); /* IE10+ */
     background: linear-gradient(to right, #219d87 0%,#34cc68 100%); /* W3C */
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#219d87', endColorstr='#34cc68',GradientType=1 ); /* IE6-9 */
-
+    padding: 13px;
     text-transform: uppercase;
     font-size: 10px;
 

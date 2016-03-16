@@ -12,7 +12,7 @@
 .pane {
   .tab-nav {
     text-align: left;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     color: #b0b2c1;
@@ -27,14 +27,15 @@
       margin: 5px 40px 5px 0;
       display: inline-block;
       cursor: pointer;
+      line-height: 2em;
 
       &:hover {
         color: #262a3b;
       }
 
       &.active {
-        color: $primary-green;
-        border-bottom: 1px solid #e0e3eb;
+        color: #262a3b;
+        border-bottom: 2px solid #e0e3eb;
       }
     }
   }
