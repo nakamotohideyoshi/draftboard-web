@@ -476,8 +476,10 @@ class SeasonSchedule(DataDenSeasonSchedule):
         super().parse(obj, target)
 
         if self.season is None:
+            print('mlb Season was None - not saving')
             return
-
+        else:
+            print('mlb Season was NOT NONE')
         self.season.save()
 
 class GameSchedule(DataDenGameSchedule):
@@ -490,6 +492,16 @@ class GameSchedule(DataDenGameSchedule):
         super().__init__()
 
     def parse(self, obj, target=None):
+        #
+        # get and pre-set the season object -- mlb is special
+        o = obj.get_o()
+        srid = o.get('season_schedule__id')
+        # we only know the season_type from chopping up the parent_api__id !
+        season_type = str(o.get('parent_api__id')).split('_')[1]
+        # although its unique on srid, year and type, mlb just has srid and type in this obj
+        print('srid', srid, 'season_type', season_type)
+        self.season = self.season_model.objects.get(srid=srid, season_type=season_type)
+
         super().parse(obj, target)
 
         if self.game is None:
@@ -1239,20 +1251,28 @@ class DataDenMlb(AbstractDataDenParser):
 
         #
         # game
-        if self.target in [ ('mlb','season_schedule','schedule_pre'),
-                            ('mlb','season_schedule','schedule_reg'),
-                            ('mlb','season_schedule','schedule_pst') ]:
+        if self.target in [ ('mlb.season_schedule','schedule_pre'),
+                            ('mlb.season_schedule','schedule_reg'),
+                            ('mlb.season_schedule','schedule_pst') ]:
+            #print( str(obj) )
             SeasonSchedule().parse( obj )
-        elif self.target == ('mlb.game','schedule_reg'): GameSchedule().parse( obj )
-        elif self.target == ('mlb.game','schedule_pre'): GameSchedule().parse( obj )
-        elif self.target == ('mlb.game','schedule_pst'): GameSchedule().parse( obj )
+        elif self.target == ('mlb.game','schedule_reg'):
+            #print( str(obj) )
+            GameSchedule().parse( obj )
+        elif self.target == ('mlb.game','schedule_pre'):
+            #print( str(obj) )
+            GameSchedule().parse( obj )
+        elif self.target == ('mlb.game','schedule_pst'):
+            #print( str(obj) )
+            GameSchedule().parse( obj )
         #
         # specal case: 'pbp' where we also send the object to Pusher !
-        elif self.target == ('mlb.game','pbp'):
-            #GamePbp().parse( obj )
-            #push.classes.PbpDataDenPush( push.classes.PUSHER_MLB_PBP, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
-            pass # we dont need this
-        elif self.target == ():
+        # elif self.target == ('mlb.game','pbp'):
+        #     #GamePbp().parse( obj )
+        #     #push.classes.PbpDataDenPush( push.classes.PUSHER_MLB_PBP, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+        #     pass # we dont need this
+        elif self.target == ('mlb.pitch','pbp'):
+            print( obj )
             pitch_pbp = PitchPbp()
             pitch_pbp.parse( obj )
             pitch_pbp.send()

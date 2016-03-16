@@ -22,6 +22,9 @@ class TeamChild(Team):
     def __str__(self):
         return super().__str__()
 
+# class SeasonChild(Season):
+#     pass
+
 class GameChild(Game):
 
     home = models.ForeignKey( TeamChild, null=True, related_name='gamechild_hometeam')

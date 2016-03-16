@@ -67,7 +67,7 @@ class DataDenParser(object):
     PBP_TRIGGERS = [
         #
         # MLB
-        # TODO
+        ('mlb','pitch','pbp'),
 
         #
         # NBA    ... pbp quarter + event parsing:
