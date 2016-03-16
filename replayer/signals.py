@@ -13,8 +13,12 @@ class ReplayUpdateReceiver(object):
         #print('replayer: got signal')
 
 
-        #
-        # if we are currently recording, save this update.
-        if replayer.classes.ReplayManager.recording_in_progress():
-            obj = kwargs['o']
-            replayer.classes.ReplayManager().save( obj )
+        # #
+        # # if we are currently recording, save this update.
+        # if replayer.classes.ReplayManager.recording_in_progress():
+        #     obj = kwargs['o']
+        #     replayer.classes.ReplayManager().save( obj )
+
+        # alwasy record
+        obj = kwargs['o']
+        replayer.classes.ReplayManager().save( obj )
