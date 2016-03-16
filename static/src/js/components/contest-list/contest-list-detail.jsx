@@ -200,19 +200,14 @@ const ContestListDetail = React.createClass({
                 <div className="title">{this.props.contestInfo.contest.name}</div>
                 <div className="header__info">
                   <div>
-                    <div className="info-title">Live In</div>
                     <span>
                       <CountdownClock
                         time={this.props.contestInfo.contest.start}
                         timePassedDisplay="Live"
                       />
                     </span>
+                    <div className="clock-labels"><span>H</span> <span>M</span> <span>S</span></div>
                   </div>
-                </div>
-
-                <div className="header__extra-info">
-                  <div className="m badge">M</div>
-                  <div className="g badge">G</div>
                 </div>
 
                 <div className="header__fee-prizes-pool">
@@ -221,14 +216,19 @@ const ContestListDetail = React.createClass({
                     <div>${this.props.contestInfo.contest.prize_pool.toFixed(2)}</div>
                   </div>
                   <div>
-                    <span className="info-title">Fee</span><div>${this.props.contestInfo.contest.buyin.toFixed(2)}</div>
-                  </div>
-                  <div>
                     <span className="info-title">Entrants</span>
                     <div>
                       {this.props.contestInfo.contest.current_entries} / {this.props.contestInfo.contest.entries}
                     </div>
                   </div>
+                  <div>
+                    <span className="info-title">Fee</span><div>${this.props.contestInfo.contest.buyin.toFixed(2)}</div>
+                  </div>
+                </div>
+
+                <div className="header__extra-info">
+                  <div className="m badge">M</div>
+                  <div className="g badge">G</div>
                 </div>
 
                 <div className="btn-enter-contest">
