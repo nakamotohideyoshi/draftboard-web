@@ -476,10 +476,9 @@ class SeasonSchedule(DataDenSeasonSchedule):
         super().parse(obj, target)
 
         if self.season is None:
-            print('mlb Season was None - not saving')
+            #print('mlb Season was None - not saving')
             return
-        else:
-            print('mlb Season was NOT NONE')
+
         self.season.save()
 
 class GameSchedule(DataDenGameSchedule):
@@ -499,7 +498,7 @@ class GameSchedule(DataDenGameSchedule):
         # we only know the season_type from chopping up the parent_api__id !
         season_type = str(o.get('parent_api__id')).split('_')[1]
         # although its unique on srid, year and type, mlb just has srid and type in this obj
-        print('srid', srid, 'season_type', season_type)
+        #print('srid', srid, 'season_type', season_type)
         self.season = self.season_model.objects.get(srid=srid, season_type=season_type)
 
         super().parse(obj, target)

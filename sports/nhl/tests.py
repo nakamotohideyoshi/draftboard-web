@@ -59,7 +59,7 @@ class TestGameScheduleParser(AbstractTest):
         # parse the season_schedule obj
         season_oplog_obj = OpLogObjWrapper(self.sport,'season_schedule',literal_eval(self.season_str))
         self.season_parser.parse( season_oplog_obj )
-        self.assertEquals( 1, sports.nhl.models.Season.objects.all().count() ) # should have parsed 1 thing
+        self.assertEquals( 1, sports.nhl.models.Season.objects.filter(season_year=2015,season_type='reg').count() ) # should have parsed 1 thing
 
         away_team_oplog_obj = OpLogObjWrapper(self.sport,'team',literal_eval(self.away_team_str))
         self.away_team_parser.parse( away_team_oplog_obj )

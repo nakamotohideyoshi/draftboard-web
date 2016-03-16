@@ -5,7 +5,13 @@ from django.utils import timezone
 from ast import literal_eval
 from test.classes import AbstractTest
 import sports.nfl.models
-from sports.nfl.models import Team, Player, Game, PlayerStats
+from sports.nfl.models import (
+    Team,
+    Player,
+    Season,
+    Game,
+    PlayerStats,
+)
 from dataden.watcher import OpLogObj, OpLogObjWrapper
 from sports.nfl.parser import (
     SeasonSchedule,
@@ -36,6 +42,8 @@ class GameStatusChangedSignal(AbstractTest):
         self.away = self.__create_team('alias-away', 'market-away')
 
         self.game = Game()
+
+        self.game.season, created = Season.objects.get_or_create(srid='nflsrid',season_year=2015,season_type='reg')
         self.game.srid      = '%s--test--%s' % (self.away.srid, self.home.srid)
 
         self.game.home      = self.home
@@ -138,7 +146,7 @@ class TestGameScheduleParser(AbstractTest):
         # parse the season_schedule obj
         season_oplog_obj = OpLogObjWrapper(self.sport,'season',literal_eval(self.season_str))
         self.season_parser.parse( season_oplog_obj )
-        self.assertEquals( 1, sports.nfl.models.Season.objects.all().count() ) # should have parsed 1 thing
+        self.assertEquals( 1, sports.nfl.models.Season.objects.filter(season_year=2015,season_type='pre').count() ) # should have parsed 1 thing
 
         away_team_oplog_obj = OpLogObjWrapper(self.sport,'team',literal_eval(self.away_team_str))
         self.away_team_parser.parse( away_team_oplog_obj )
