@@ -7,10 +7,6 @@ from distutils.util import strtobool
 from boto.s3.connection import S3Connection
 import hashlib
 
-AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
-AWS_SECRET_ACCESS_KEY = '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'
-AWS_STORAGE_BUCKET_NAME = 'draftboard-db-dumps'
-
 def _confirm(prompt='Continue?\n', failure_prompt='User cancelled task'):
     '''
     Prompt the user to continue. Repeat on unknown response. Raise
@@ -267,6 +263,96 @@ def heroku_restore_db():
 #     """
 #     _puts('arg1: %s' % env.arg1)
 
+def generate_replayer():
+    """
+    Command that generates a database dump consisting of data between two dates, and TimeMachine instances for every
+    draft group between the two.
+
+    The resulting dump will be /tmp/replayer.dump
+
+    fab generate_replayer --set start=2016-03-01,end=2016-03-02
+    """
+    def _show_progress(current_bytes, total_bytes):
+        print('%s%%' % int(round(current_bytes/total_bytes * 100)))
+
+    # check we have needed parameters
+    if 'start' not in env or 'end' not in env:
+        utils.abort('You need to add --set start=[2016-03-01],end=[2016-03-02] to the fab command')
+
+    # this key/value gives full access to s3, need to pare down to just the right bucket.
+    AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
+    AWS_SECRET_ACCESS_KEY = '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'
+    AWS_STORAGE_BUCKET_NAME = 'k6yjtzz2xuccqyn'
+
+    c = S3Connection(
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+
+    bucket = c.get_bucket(AWS_STORAGE_BUCKET_NAME)
+
+    # download, unzip start
+    tmp_dir = '/tmp'
+
+    startS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
+    startFilename = 'start.dump'
+    keyStart = bucket.get_key('draftboard-staging/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
+    keyStart.get_contents_to_filename('%s/%s.gz' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
+    operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
+
+    # # download end
+    endS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
+    endFilename = 'end.dump'
+    keyEnd = bucket.get_key('draftboard-staging/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
+    keyEnd.get_contents_to_filename('%s/%s.gz' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
+    operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
+
+    temp_db = 'generate_replayer'
+
+    with warn_only():
+        # load start into temporary db
+        _puts('Restoring start db into %s' % temp_db)
+
+        operations.local('sudo -u postgres dropdb -U postgres %s' % temp_db)
+        operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % temp_db)
+        operations.local(
+            'sudo -u postgres pg_restore --no-acl --no-owner -d %s %s/%s' % (temp_db, tmp_dir, startFilename)
+        )
+
+        # remove all updates
+        operations.local(
+            'sudo -u postgres psql -d %s -c "DROP TABLE replayer_update, replayer_replay;"' % (
+                temp_db
+            )
+        )
+
+    # load in needed tables from end
+    _puts('Loading replay tables from end dump into %s' % temp_db)
+
+    operations.local('sudo -u postgres pg_restore --no-acl --no-owner -d %s %s %s/%s' % (
+        temp_db,
+        '-t replayer_replay -t replayer_update',
+        tmp_dir,
+        endFilename
+    ))
+
+    # delete updates older than the time you did step 1 from replayer_update
+    operations.local(
+        'sudo -u postgres psql -d %s -c "DELETE FROM replayer_update WHERE ts < \'%s\';"' % (
+            temp_db,
+            env.start
+        )
+    )
+
+    # loop through applicable draft_group rows and create time_machine rows, based on start and end dates
+    operations.local(
+        'DJANGO_SETTINGS_MODULE="mysite.settings.local_replayer_generation" python manage.py generate_timemachines %s %s' %
+        (env.start, env.end)
+    )
+
+    # export finished db
+    operations.local('sudo -u postgres pg_dump -Fc --no-acl --no-owner %s > /tmp/replayer_generated.dump' % temp_db)
+
+
 def restore_db():
     """
     To restore a postgres dump, you must have previously uploaded it with something like:
@@ -285,7 +371,6 @@ def restore_db():
     :param: --set s3file=thefilenameons3
     :return:
     """
-
     # filename on s3
     S3_FILE = env.s3file #'dfs_master_example.dump'
 
@@ -296,6 +381,8 @@ def restore_db():
     connection = S3Connection(
         aws_access_key_id=AWS_ACCESS_KEY_ID,
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+
+    # reference http://boto.readthedocs.org/en/latest/ref/s3.html#boto.s3.key.Key.generate_url
     url = connection.generate_url(
         60,
         'GET',
