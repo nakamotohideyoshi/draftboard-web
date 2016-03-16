@@ -339,7 +339,7 @@ class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMix
                                                     EnterLineupAPIView,
                                                     self.url,
                                                     data )
-        print('response', str(response.status_code), str(response.data))
+        # print('response', str(response.status_code), str(response.data))
 
         # status.is_success() indicates a http response for 2xx
         #
@@ -359,12 +359,12 @@ class BuyinTaskTest(APITestCase, BuildWorldMixin, ForceAuthenticateAndRequestMix
         enter_lineup_status_response = self.force_authenticate_and_GET(self.user,
                                                     EnterLineupStatusAPIView,
                                                     enter_lineup_status_url , data, task_id=buyin_task_id )
-        print('enter_lineup_status_response.status_code:',
-              str(enter_lineup_status_response.status_code) )
+        # print('enter_lineup_status_response.status_code:',
+        #       str(enter_lineup_status_response.status_code) )
         #
         # celery is probably not running, so dont assume the success of this api
         #self.assertTrue( status.is_success(enter_lineup_status_response.status_code) )
-        print( 'enter-lineup-status response.data:', str(enter_lineup_status_response.data))
+        #print( 'enter-lineup-status response.data:', str(enter_lineup_status_response.data))
         # make sure the status field exists
         self.assertTrue( 'status' in enter_lineup_status_response.data.keys() )
         buyin_status = enter_lineup_status_response.data.get('status')

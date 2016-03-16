@@ -3,6 +3,7 @@
 
 from django.db import models
 from transaction.models import TransactionDetail, Balance
+import sports.models
 from sports.models import Game, PlayerStats, Player, Team
 from lineup.models import Lineup
 
@@ -22,10 +23,18 @@ class TeamChild(Team):
     def __str__(self):
         return super().__str__()
 
-# class SeasonChild(Season):
-#     pass
+class Season( sports.models.Season ):
+    """
+
+    """
+    class Meta:
+        abstract = False
 
 class GameChild(Game):
+
+    # the season field for actual sports all set null=False
+    # but setting this to allow None will save a lot of tests from breaking
+    season      = models.ForeignKey(Season, null=True)
 
     home = models.ForeignKey( TeamChild, null=True, related_name='gamechild_hometeam')
     srid_home   = models.CharField(max_length=64, null=True,

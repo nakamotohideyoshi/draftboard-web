@@ -8,7 +8,12 @@ from django.db import connections
 
 from prize.classes import CashPrizeStructureCreator
 from cash.classes import CashTransaction
-from test.models import PlayerChild, PlayerStatsChild, GameChild
+from test.models import (
+    PlayerChild,
+    PlayerStatsChild,
+    GameChild,
+    Season as SeasonChild,
+)
 from django.utils import timezone
 from random import randint
 from sports.models import SiteSport, Position
@@ -572,6 +577,7 @@ class BuildWorldForTesting(object):
 
             d =timezone.now() - timedelta(days=i)
             game                            = GameChild()
+            game.season, created            = SeasonChild.objects.get_or_create(srid='seasonchild-srid',season_year=2015, season_type='reg')
             game.created                    = d
             game.srid                       = i
             game.start                      = d

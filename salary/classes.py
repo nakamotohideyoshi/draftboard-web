@@ -195,7 +195,7 @@ class FppgGenerator(object):
 
         """
 
-        print( 'self.player_stats_classes', str(self.player_stats_classes))
+        #print( 'self.player_stats_classes', str(self.player_stats_classes))
 
         #
         #
@@ -300,7 +300,7 @@ class SalaryGenerator(FppgGenerator):
 
         """
 
-        print( 'self.player_stats_classes', str(self.player_stats_classes))
+        #print( 'self.player_stats_classes', str(self.player_stats_classes))
 
         #
         #
@@ -388,7 +388,7 @@ class SalaryGenerator(FppgGenerator):
 
             # if not a lot of games played
             if number_of_games < self.salary_conf.min_games_flag:
-                print('less than the required games: %s for %s' % (str(number_of_games), str(player)))
+                #print('less than the required games: %s for %s' % (str(number_of_games), str(player)))
                 # if player has played in 0 thru the min_games_flag,
                 # dont use weights, and just average the points they do have
                 # and flag them.
@@ -400,12 +400,12 @@ class SalaryGenerator(FppgGenerator):
 
             # else: if more than the min-required-games-played have been played
             else:
-                print('MET required games: %s for %s' % (str(number_of_games), str(player)))
+                #print('MET required games: %s for %s' % (str(number_of_games), str(player)))
                 # check to makes sure the most recent game played has been less than
                 # days_since_last_game_flag days ago
                 delta = timezone.now() - player.player_stats_list[0].start
                 if delta.days > self.salary_conf.days_since_last_game_flag:
-                    print('days since last game: %s -- last game %s' % (str(delta.days), str(player.player_stats_list[0].start)))
+                    #print('days since last game: %s -- last game %s' % (str(delta.days), str(player.player_stats_list[0].start)))
                     player.flagged= True
 
                 #

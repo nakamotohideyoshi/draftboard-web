@@ -335,9 +335,9 @@ class NbaScoringTest(AbstractTest):
             double_digit_stats += 1 if steals >= 10.0 else 0
             double_digit_stats += 1 if blocks >= 10.0 else 0
 
-            if double_digit_stats == 2:
+            if double_digit_stats > 1:
                 total += self.nba_Salary_Score_System.get_value_of('dbl-dbl')
-            elif double_digit_stats > 2:
+            if double_digit_stats > 2:  # elif double_digit_stats > 2:   NO LONG MUTUALLY EXCLUSIVE - THEY STACK
                 total += self.nba_Salary_Score_System.get_value_of('triple-dbl')
             self.assertAlmostEquals(self.nba_Salary_Score_System.score_player(self.player_stats), total)
 
