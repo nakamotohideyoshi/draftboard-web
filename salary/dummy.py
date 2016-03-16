@@ -229,6 +229,14 @@ class Dummy(object):
     def create_game(srid=None, status='scheduled', away=None, home=None, site_sport=None, round_start_times=False):
         #site_sport, created = SiteSport.objects.get_or_create(name=sport)
 
+        ssm = SiteSportManager()
+        season_model_class  = ssm.get_season_class(site_sport)
+        dum_srid            = '%s'%site_sport
+        dum_season_year     = 2016
+        dum_season_type     = 'reg'
+        dum_season, created = season_model_class.objects.get_or_create(srid=dum_srid,
+                                    season_year=dum_season_year, season_type=dum_season_type)
+
         if away is None:
             away    = Dummy.create_team('away', 'AWAY', site_sport)
         if home is None:
@@ -246,6 +254,7 @@ class Dummy(object):
             game_model = ssm.get_game_class( site_sport )
             game = game_model()
 
+        game.season             = dum_season # cant be None
         game.srid               = srid
         game.start              = dt_now
         game.status             = status
@@ -303,8 +312,18 @@ class Dummy(object):
         dt_now  = timezone.now()
         unix_ts = int(dt_now.strftime('%s')) # unix timestamp as srid ... not bad
         games = []
+        ssm = SiteSportManager()
+        season_model_class = ssm.get_season_class(site_sport)
+
+        # dum_srid        = '%s'%site_sport
+        # dum_season_year = 2016
+        # dum_season_type = 'reg'
+        # dum_season, created = season_model_class.objects.get_or_create(srid=dum_srid,
+        #                             season_year=dum_season_year, season_type=dum_season_type)
+
         for x in range(0, n):
             game = Dummy.create_game(srid='%s' % (unix_ts+x), site_sport=site_sport, round_start_times=round_start_times )
+            #game.season = dum_season # cant be null
             game.start = game.start + timedelta(minutes=x) # stagger each game by 1 minute
             game.save()
             games.append( game )

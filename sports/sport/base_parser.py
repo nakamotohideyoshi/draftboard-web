@@ -309,7 +309,7 @@ class DataDenSeasonSchedule(AbstractDataDenParseable):
         season_year     = self.validate_season_year(self.o)
         season_type     = self.validate_season_type(self.o)
 
-        print('season srid, season_year, season_type:', srid, season_year, season_type)
+        #print('season srid, season_year, season_type:', srid, season_year, season_type)
         try:
             self.season = self.season_model.objects.get( srid=srid, season_year=season_year, season_type=season_type )
         except self.season_model.DoesNotExist:

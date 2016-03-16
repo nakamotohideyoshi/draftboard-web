@@ -3,7 +3,12 @@
 
 from test.classes import AbstractTest
 import mysite.exceptions
-from test.models import PlayerChild, PlayerStatsChild, GameChild, SeasonChild
+from test.models import (
+    PlayerChild,
+    PlayerStatsChild,
+    GameChild,
+    Season as SeasonChild,
+)
 from django.utils import timezone
 from .classes import SalaryPlayerStatsObject, SalaryGenerator, SalaryPlayerObject
 from datetime import date, timedelta
@@ -86,6 +91,7 @@ def create_basic_player_stats():
     position = Position.objects.get(name="1")
 
     game                            = GameChild()
+    game.season, created            = SeasonChild.objects.get_or_create(srid='xxxx',season_year=2015,season_type='reg')
     game.created                    = timezone.now()
     game.srid                       = "1121231232"
     game.start                      = timezone.now()
@@ -139,6 +145,7 @@ def create_simple_player_stats_list():
 
         d =timezone.now() - timedelta(days=i)
         game                            = GameChild()
+        game.season, created            = SeasonChild.objects.get_or_create(srid='xxxx',season_year=2015,season_type='reg')
         game.created                    = d
         game.srid                       = i
         game.start                      = d
@@ -249,6 +256,7 @@ class SalaryGeneratorTest(AbstractTest):
         # Creates player stat with 1 fppg under the min for keeping the average
         d =timezone.now()
         game                            = GameChild()
+        game.season, created            = SeasonChild.objects.get_or_create(srid='xxxx',season_year=2015,season_type='reg')
         game.created                    = ""
         game.srid                       = ""
         game.start                      = d

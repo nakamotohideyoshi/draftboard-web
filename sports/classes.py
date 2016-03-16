@@ -9,6 +9,7 @@ from .models import (
     SiteSport,
     PlayerStats,
     Player,
+    Season,
     Game,
     Team,
     GameBoxscore,
@@ -28,6 +29,7 @@ from .models import (
 from .exceptions import (
     GameBoxscoreClassNotFoundException,
     SiteSportWithNameDoesNotExistException,
+    SeasonClassNotFoundException,
     GameClassNotFoundException,
     TeamClassNotFoundException,
     PbpDescriptionClassNotFoundException,
@@ -420,6 +422,22 @@ class SiteSportManager(object):
 
         # by default raise an exception if we couldnt return a game class
         raise GameBoxscoreClassNotFoundException(type(self).__name__, sport)
+
+    def get_season_class(self, sport):
+        """
+        get the sports.<sport>.models.Season class for the sport
+
+        :param sport:
+        :return:
+        """
+        sport = self.__get_site_sport_from_str(sport)
+        self.__check_sport(sport)
+        arr = self.__get_array_of_classes(sport, 'season', Season)
+        if len(arr) >= 1:
+            return arr[0]
+
+        # by default raise an exception if we couldnt return a game class
+        raise SeasonClassNotFoundException(type(self).__name__, sport)
 
     def get_injury_class(self, sport):
         """
