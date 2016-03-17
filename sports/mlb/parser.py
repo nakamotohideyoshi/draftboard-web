@@ -994,7 +994,11 @@ class PitchPbp(DataDenPbpDescription):
         # try:
         srid_pitch = self.o.get('id')
         #print('srid_pitch', srid_pitch)
-        at_bat = self.get_at_bat(srid_game, srid_pitch)
+        try:
+            # get_at_bat() may throw:
+            at_bat = self.get_at_bat(srid_game, srid_pitch)
+        except self.AtBatNotFoundException:
+            at_bat = None
         #print('at_bat:', str(at_bat))
         # except:
         #     pass
