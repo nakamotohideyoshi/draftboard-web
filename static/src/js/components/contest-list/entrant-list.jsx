@@ -40,7 +40,7 @@ const EntrantList = React.createClass({
         <table className="table">
           <thead>
             <tr>
-              <th className="place">Entries</th>
+              <th className="place">User</th>
             </tr>
           </thead>
           <tbody>
