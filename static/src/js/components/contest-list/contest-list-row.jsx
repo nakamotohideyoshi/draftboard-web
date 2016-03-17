@@ -1,6 +1,7 @@
 import React from 'react';
 import CountdownClock from '../site/countdown-clock.jsx';
 import EnterContestButton from './enter-contest-button.jsx';
+import DraftButton from './draft-button.jsx';
 
 
 /**
@@ -107,13 +108,12 @@ const ContestListRow = React.createClass({
             onEnterSuccess={this.close}
           />
 
-          <a
-            className="button button--gradient--background draft-button"
-            href={`/draft/${this.props.row.draft_group}/`}
-            onClick={this.ignoreClick}
-          >
-            Draft
-          </a>
+        <DraftButton
+          draftGroupId={this.props.row.draft_group}
+          disableTime={this.props.row.start}
+        />
+
+
         </td>
       </tr>
     );

@@ -70,7 +70,10 @@ const ContestListDetail = React.createClass({
     fetchContestEntrantsIfNeeded: React.PropTypes.func,
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
     fetchTeamsIfNeeded: React.PropTypes.func,
-    focusedContestId: React.PropTypes.string,
+    focusedContestId: React.PropTypes.oneOfType([
+      React.PropTypes.string,
+      React.PropTypes.number,
+    ]),
     focusedLineup: React.PropTypes.object,
     params: React.PropTypes.object,
     setFocusedContest: React.PropTypes.func,
@@ -139,9 +142,9 @@ const ContestListDetail = React.createClass({
           );
         }
 
-        return 'no boxscore info';
+        return 'No boxscore info';
 
-      case 'entries':
+      case 'participants':
         return (
           <EntrantList entrants={this.props.contestInfo.entrants} />
         );
@@ -157,8 +160,9 @@ const ContestListDetail = React.createClass({
   getTabNav() {
     const tabs = [
       { title: 'Payout', tab: 'prizes' },
-      { title: 'Games', tab: 'games' },
       { title: 'Entries', tab: 'entries' },
+      { title: 'Participants', tab: 'participants' },
+      { title: 'Games', tab: 'games' },
     ];
 
     return tabs.map((tab) => {
@@ -197,19 +201,14 @@ const ContestListDetail = React.createClass({
                 <div className="title">{this.props.contestInfo.contest.name}</div>
                 <div className="header__info">
                   <div>
-                    <div className="info-title">Live In</div>
                     <span>
                       <CountdownClock
                         time={this.props.contestInfo.contest.start}
                         timePassedDisplay="Live"
                       />
                     </span>
+                    <div className="clock-labels"><span>H</span> <span>M</span> <span>S</span></div>
                   </div>
-                </div>
-
-                <div className="header__extra-info">
-                  <div className="m badge">M</div>
-                  <div className="g badge">G</div>
                 </div>
 
                 <div className="header__fee-prizes-pool">
@@ -218,14 +217,19 @@ const ContestListDetail = React.createClass({
                     <div>${this.props.contestInfo.contest.prize_pool.toFixed(2)}</div>
                   </div>
                   <div>
-                    <span className="info-title">Fee</span><div>${this.props.contestInfo.contest.buyin.toFixed(2)}</div>
-                  </div>
-                  <div>
-                    <span className="info-title">Entrants</span>
+                    <span className="info-title">Entries</span>
                     <div>
                       {this.props.contestInfo.contest.current_entries} / {this.props.contestInfo.contest.entries}
                     </div>
                   </div>
+                  <div>
+                    <span className="info-title">Fee</span><div>${this.props.contestInfo.contest.buyin.toFixed(2)}</div>
+                  </div>
+                </div>
+
+                <div className="header__extra-info">
+                  <div className="m badge">M</div>
+                  <div className="g badge">G</div>
                 </div>
 
                 <div className="btn-enter-contest">
