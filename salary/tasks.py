@@ -1,16 +1,51 @@
 from __future__ import absolute_import
 
-from mysite.celery_app import app
+from mysite.celery_app import app, locking
+from .models import Pool
 from .classes import SalaryGenerator, PlayerFppgGenerator
 import sports.classes
+from celery import task
+from django.core.cache import cache
+from hashlib import md5
 
+LOCK_EXPIRE = 60 * 15 # Lock expires in 5 minutes
 
-@app.task
-def generate_salary(pool):
+@app.task(bind=True)
+def generate_salaries_for_sport(self, sport):
     ssm = sports.classes.SiteSportManager()
+    site_sport = ssm.get_site_sport(sport)
+    pool = Pool.objects.get(site_sport=site_sport, active=True)
     player_stats_class = ssm.get_player_stats_class(pool.site_sport)
-    sg = SalaryGenerator(player_stats_class, pool)
-    sg.generate_salaries()
+    # The cache key consists of the task name and the MD5 digest of the sport
+    sport_md5 = md5(str(sport).encode('utf-8')).hexdigest()
+    lock_id = '{0}-lock-{1}'.format(self.name, sport_md5)
+
+    # cache.add fails if the key already exists
+    acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
+    # advantage of using add() for atomic locking
+    release_lock = lambda: cache.delete(lock_id)
+
+    if acquire_lock():
+        try:
+            # start generating the salary pool, time consuming...
+            sg = SalaryGenerator(player_stats_class, pool)
+            sg.generate_salaries()
+        finally:
+            release_lock()
+        return sport
+    else:
+        err_msg = 'a task is already generating salaries for sport: %s' % sport
+        print(err_msg)
+        raise Exception(err_msg)
+
+# @app.task
+# def generate_salary(pool):
+#     # ssm = sports.classes.SiteSportManager()
+#     # player_stats_class = ssm.get_player_stats_class(pool.site_sport)
+#     # sg = SalaryGenerator(player_stats_class, pool)
+#     # sg.generate_salaries()
+#     sport = pool.site_sport.name
+#     generate_salaries_for_sport.delay(sport)
 
 @app.task
 def generate_season_fppgs(sport=None):

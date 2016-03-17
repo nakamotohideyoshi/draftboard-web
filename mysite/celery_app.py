@@ -77,21 +77,34 @@ app.conf.update(
             # if no queue is specified uses the default 'celery' queue
         },
 
-        # #
-        # ########################################################################
-        # # THIS LONG-RUNNING, CRITICAL TASK REQUIRES ITS OWN QUEUE & WORKER     #
-        # ########################################################################
-        # # this is the tasks that maintains a running dataden process.
-        # # without this task, live stats will never be parsed into
-        # # the mongolab database.
-        # 'dataden': {
-        #     'task': 'dataden.tasks.dataden',
-        #     'schedule': timedelta(seconds=20),
-        #     #
-        #     # for this task, the queue in the comment match the queue for
-        #     # the corresponding worker in the Procfile
-        #     #'options': {'queue' : 'q_dataden'}
-        # },
+        #
+        ########################################################################
+        # generate salaries each day at 8am (est)
+        ########################################################################
+        'nba_generate_salaries' : {
+            'task'      : 'salary.tasks.generate_salaries_for_sport',
+            'schedule'  : crontab(hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
+            'args'      : ('nba',),
+        },
+        'nhl_generate_salaries' : {
+            'task'      : 'salary.tasks.generate_salaries_for_sport',
+            'schedule'  : crontab(hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
+            'args'      : ('nhl',),
+        },
+        'mlb_generate_salaries' : {
+            'task'      : 'salary.tasks.generate_salaries_for_sport',
+            'schedule'  : crontab(hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
+            'args'      : ('mlb',),
+        },
+        # nfl done on thursdays only
+        'nfl_generate_salaries' : {
+            'task'      : 'salary.tasks.generate_salaries_for_sport',
+            'schedule'  : crontab(day_of_week='thu', hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
+            'args'      : ('nfl',),
+        },
+
+        # crontab(minute='*/10',
+        # hour='3,17,22', day_of_week='thu,fri')
 
         #
         ########################################################################
