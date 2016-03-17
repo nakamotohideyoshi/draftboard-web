@@ -142,9 +142,9 @@ const ContestListDetail = React.createClass({
           );
         }
 
-        return 'no boxscore info';
+        return 'No boxscore info';
 
-      case 'entries':
+      case 'participants':
         return (
           <EntrantList entrants={this.props.contestInfo.entrants} />
         );
@@ -160,8 +160,9 @@ const ContestListDetail = React.createClass({
   getTabNav() {
     const tabs = [
       { title: 'Payout', tab: 'prizes' },
-      { title: 'Games', tab: 'games' },
       { title: 'Entries', tab: 'entries' },
+      { title: 'Participants', tab: 'participants' },
+      { title: 'Games', tab: 'games' },
     ];
 
     return tabs.map((tab) => {
@@ -216,7 +217,7 @@ const ContestListDetail = React.createClass({
                     <div>${this.props.contestInfo.contest.prize_pool.toFixed(2)}</div>
                   </div>
                   <div>
-                    <span className="info-title">Entrants</span>
+                    <span className="info-title">Entries</span>
                     <div>
                       {this.props.contestInfo.contest.current_entries} / {this.props.contestInfo.contest.entries}
                     </div>
