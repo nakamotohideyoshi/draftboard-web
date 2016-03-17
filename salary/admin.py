@@ -5,7 +5,7 @@ import sports.classes
 from sports.models import Player
 import mysite.mixins.generic_search
 import django.db.utils
-from .tasks import generate_salary
+from .tasks import generate_salaries_for_sport # generate_salary
 import celery.states
 from django.utils.html import format_html
 
@@ -56,7 +56,8 @@ class PoolAdmin(admin.ModelAdmin):
             self.message_user(request, 'You must select only one pool to generate salaries for at a time.')
         else:
             for pool in queryset:
-                task = generate_salary.delay(pool)
+                #task = generate_salary.delay(pool)
+                task = generate_salaries_for_sport.delay(pool.site_sport.name)
                 pool.generate_salary_task_id = task.id
                 print("task.id "+task.id)
                 pool.save()
@@ -64,7 +65,7 @@ class PoolAdmin(admin.ModelAdmin):
     def generating_salary(self, obj):
         if obj.generate_salary_task_id is None:
             return ""
-        result = generate_salary.AsyncResult(obj.generate_salary_task_id)
+        result = generate_salaries_for_sport.AsyncResult(obj.generate_salary_task_id)
         status = result.status
         if status == celery.states.SUCCESS:
             obj.generate_salary_task_id = None
