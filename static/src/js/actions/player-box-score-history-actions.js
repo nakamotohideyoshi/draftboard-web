@@ -2,8 +2,6 @@ import log from '../lib/logging';
 import * as types from '../action-types.js';
 import request from 'superagent';
 import { dateNow } from '../lib/utils';
-// so we can use Promises
-import 'babel-core/polyfill';
 import { normalize, Schema, arrayOf } from 'normalizr';
 const playerHistorySchema = new Schema('playerHistory', {
   idAttribute: 'player_id',

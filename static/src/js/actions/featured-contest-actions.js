@@ -1,4 +1,4 @@
-import 'babel-core/polyfill';
+
 import * as types from '../action-types.js';
 import request from 'superagent';
 import log from '../lib/logging.js';

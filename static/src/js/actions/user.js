@@ -1,5 +1,5 @@
 import * as types from '../action-types';
-import 'babel-core/polyfill';
+
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import log from '../lib/logging.js';

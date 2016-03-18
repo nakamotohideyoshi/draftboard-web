@@ -1,4 +1,4 @@
---compilers js:babel/register
+--compilers js:babel-register
 --require static/src/js/test/bootstrap.js
 --reporter spec
 --recursive

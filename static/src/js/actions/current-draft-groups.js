@@ -1,6 +1,6 @@
 const moment = require('moment');
 const request = require('superagent-promise')(require('superagent'), Promise);
-import 'babel-core/polyfill';
+
 import { map as _map } from 'lodash';
 
 import * as ActionTypes from '../action-types';

@@ -1,8 +1,6 @@
 import log from '../lib/logging';
 import * as types from '../action-types.js';
 import request from 'superagent';
-// so we can use Promises
-import 'babel-core/polyfill';
 import { normalize, Schema, arrayOf } from 'normalizr';
 const playerNewsSchema = new Schema('playerNews', {
   idAttribute: 'id',

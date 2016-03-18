@@ -1,7 +1,7 @@
 import React from 'react';
 const ReactRedux = require('react-redux');
 const store = require('../../store');
-const renderComponent = require('../../lib/render-component');
+import renderComponent from '../../lib/render-component.js';
 import { fetchUserInfo } from '../../actions/user';
 const { Provider, connect } = ReactRedux;
 
