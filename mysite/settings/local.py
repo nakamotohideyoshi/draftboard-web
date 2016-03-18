@@ -111,9 +111,12 @@ DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 ##########################################################################
 #        pusher - DEVELOPMENT ids
 ##########################################################################
-PUSHER_APP_ID           = '159462'
-PUSHER_KEY              = '961cebaf8b45649cc786'
-PUSHER_SECRET           = '47002883ba8571a48d90'
+# PUSHER_APP_ID           = '159462'
+# PUSHER_KEY              = '961cebaf8b45649cc786'
+# PUSHER_SECRET           = '47002883ba8571a48d90'
+PUSHER_APP_ID           = '179543'    # pbp-stats-linking-dev
+PUSHER_KEY              = '5a4601521c1e2a3778aa'
+PUSHER_SECRET           = '2c286ac8c239f8e73f00'
 PUSHER_CHANNEL_PREFIX   = ''
 PUSHER_ENABLED          = True
 
@@ -122,3 +125,7 @@ PUSHER_ENABLED          = True
 # from test.runners import InlineAppDiscoverRunner
 #TEST_RUNNER = 'test.runners.InlineAppDiscoverRunner'
 INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = True
+
+#
+# we dont want to record locally (especially for a machine running a replay!)
+DISABLE_REPLAYER_UPDATE_RECORDING = True

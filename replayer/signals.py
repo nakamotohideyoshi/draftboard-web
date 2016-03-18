@@ -1,6 +1,7 @@
 #
 # replayer/signals.py
 
+from django.conf import settings
 import replayer.classes
 from django.dispatch import receiver
 from dataden.signals import Update
@@ -12,7 +13,9 @@ class ReplayUpdateReceiver(object):
     def update(sender, **kwargs):
         #print('replayer: got signal')
 
-
+        if settings.DISABLE_REPLAYER_UPDATE_RECORDING:
+            return
+        
         # #
         # # if we are currently recording, save this update.
         # if replayer.classes.ReplayManager.recording_in_progress():
@@ -21,4 +24,6 @@ class ReplayUpdateReceiver(object):
 
         # alwasy record
         obj = kwargs['o']
+        #print(str(obj))
+
         replayer.classes.ReplayManager().save( obj )

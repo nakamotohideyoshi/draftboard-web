@@ -480,3 +480,7 @@ if USE_LOCKDOWN:
 #
 # custom test runner by default does not require sudo privileges
 INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = False
+
+#
+# disable recording
+DISABLE_REPLAYER_UPDATE_RECORDING = False
