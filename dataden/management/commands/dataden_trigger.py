@@ -3,6 +3,7 @@
 
 from django.core.management.base import NoArgsCommand
 from dataden.watcher import Trigger
+from raven.contrib.django.raven_compat.models import client
 
 class Command(NoArgsCommand):
 
@@ -23,6 +24,7 @@ class Command(NoArgsCommand):
             except Exception as e:
                 print( e )
                 print( 'exception caught in ./manage.py dataden_trigger... restarting trigger!')
+                client.captureException()
                 # ... and continue
 
         # self.stdout.write('a msg\n')
