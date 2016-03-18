@@ -243,7 +243,7 @@ const DraftPlayerDetail = React.createClass({
               <td>{game.assists}</td>
               <td>{game.blocks}</td>
               <td>{game.steals}</td>
-              <td>MIN</td>
+              <td>{game.minutes}</td>
               <td>{game.turnovers}</td>
               <td>{game.fp}</td>
             </tr>
