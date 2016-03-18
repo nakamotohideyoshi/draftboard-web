@@ -3,7 +3,7 @@ import shallowCompare from 'react-addons-shallow-compare';
 import * as AppActions from '../../stores/app-state-store.js';
 import Sparkline from './sparkline.jsx';
 import { find as _find } from 'lodash';
-import { focusSearchField } from './draft-utils.js';
+import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils.js';
 
 
 /**
@@ -44,14 +44,16 @@ const DraftPlayerListRow = React.createClass({
   onDraftClick(player, e) {
     e.stopPropagation();
     this.props.draftPlayer(player);
-    focusSearchField();
+    clearPlayerSearchField();
+    focusPlayerSearchField();
   },
 
 
   onUnDraftClick(player, e) {
     e.stopPropagation();
     this.props.unDraftPlayer(player.player_id);
-    focusSearchField();
+    clearPlayerSearchField();
+    focusPlayerSearchField();
   },
 
 

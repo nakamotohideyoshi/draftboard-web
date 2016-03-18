@@ -43,7 +43,7 @@ const DraftNewLineupCardPlayer = React.createClass({
           </span>
 
           <span className="cmp-lineup-card__average">
-            {roundUpToDecimalPlace(this.props.player.player.fppg, 1)}
+            <span className="text">{roundUpToDecimalPlace(this.props.player.player.fppg, 1)}</span>
           </span>
 
           <span

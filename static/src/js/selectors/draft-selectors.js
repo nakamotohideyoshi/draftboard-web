@@ -83,8 +83,8 @@ export const focusedPlayerSelector = createSelector(
                   points: player.boxScoreHistory.points[i],
                   rebounds: player.boxScoreHistory.rebounds[i],
                   steals: player.boxScoreHistory.steals[i],
-                  three_pointers: player.boxScoreHistory.three_points_made[i],
                   turnovers: player.boxScoreHistory.turnovers[i],
+                  minutes: player.boxScoreHistory.minutes[i],
                 };
               });
 
