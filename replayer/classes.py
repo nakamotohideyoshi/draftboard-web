@@ -101,6 +101,8 @@ class ReplayManager(object):
         update.ts = timezone.now()
         update.ns = oplog_object.get_ns()
         update.o = json.loads( json.dumps( oplog_object.get_o() ) )
+        print(json.loads( json.dumps( oplog_object.get_o() ) ))
+        #print('update.ts',str(update.ts), 'update.ns', str(update.ns), 'update.o', str(update.o))
         update.save()
 
     def record(self, name, create_restore_point=False):
@@ -185,7 +187,7 @@ class ReplayManager(object):
         self.reset_system_time()
 
     def play(self, replay_name='', start_from=None, fast_forward=1.0,
-             no_delay=False, pk=None, tick=6.0, offset_minutes=0, async=False,
+             no_delay=False, pk=None, tick=6.0, offset_minutes=0, async=True,
              load_db=True, play_until=None):
         """
         Run the stat object thru sports.parser.DataDenParser.parse_obj(db, collection, obj)
