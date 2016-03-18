@@ -28,9 +28,11 @@ const LiveLineupPlayer = React.createClass({
 
     const { points, info, when } = this.props.eventDescription;
 
+    const pointsDiv = (points !== null) ? (<div className="event-description__points">{points}</div>) : '';
+
     return (
       <div className="live-lineup-player__event-description event-description showing">
-        <div className="event-description__points">{points}</div>
+        {pointsDiv}
         <div className="event-description__info">{info}</div>
         <div className="event-description__when">{when}</div>
       </div>

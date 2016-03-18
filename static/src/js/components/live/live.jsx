@@ -178,23 +178,26 @@ const Live = React.createClass({
    */
   onPBPReceived(eventCall) {
     log.debug('Live.onPBPReceived()');
-    const gameId = eventCall.game__id;
+
+    const isLinked = eventCall.hasOwnProperty('nba_pbp');
+    const eventData = isLinked ? eventCall.nba_pbp : eventCall;
+    const gameId = eventData.game__id;
 
     // return if basic checks fail
-    if (this.isPusherEventRelevant(eventCall, gameId) === false) {
+    if (this.isPusherEventRelevant(eventData, gameId) === false) {
       return;
     }
 
     // if this is not a statistical based call or has no location to animate, ignore
-    if (eventCall.hasOwnProperty('statistics__list') === false ||
-        eventCall.hasOwnProperty('location__list') === false
+    if (eventData.hasOwnProperty('statistics__list') === false ||
+        eventData.hasOwnProperty('location__list') === false
       ) {
       log.debug('Live.onPBPReceived() - had no statistics__list', eventCall);
       return;
     }
 
     const relevantPlayers = this.props.liveSelector.relevantPlayers;
-    const eventPlayers = _map(eventCall.statistics__list, event => event.player);
+    const eventPlayers = _map(eventData.statistics__list, event => event.player);
 
     // only add to the queue if we care about the player(s)
     if (_intersection(relevantPlayers, eventPlayers).length > 0) {
@@ -325,6 +328,7 @@ const Live = React.createClass({
 
     const nbaPBPChannel = pusher.subscribe(`${channelPrefix}nba_pbp`);
     nbaPBPChannel.bind('event', this.onPBPReceived);
+    nbaPBPChannel.bind('linked', this.onPBPReceived);
 
     const nbaStatsChannel = pusher.subscribe(`${channelPrefix}nba_stats`);
     nbaStatsChannel.bind('player', this.onStatsReceived);
@@ -478,15 +482,19 @@ const Live = React.createClass({
    * @param  {object} eventCall The event call to parse for information
    */
   showGameEvent(eventCall) {
+    // get just pbp data if linked
+    const isLinked = eventCall.hasOwnProperty('nba_pbp');
+    const eventData = isLinked ? eventCall.nba_pbp : eventCall;
+
     // relevant information for court animation
     const courtEvent = {
-      location: eventCall.location__list,
-      id: eventCall.id,
+      location: eventData.location__list,
+      id: eventData.id,
       whichSide: 'mine',
     };
 
     const relevantPlayers = this.props.liveSelector.relevantPlayers;
-    const eventPlayers = _map(eventCall.statistics__list, event => event.player);
+    const eventPlayers = _map(eventData.statistics__list, event => event.player);
     const relevantPlayersInEvent = _intersection(relevantPlayers, eventPlayers);
 
     // determine what color the animation should be, based on which lineup(s) the player(s) are in
@@ -533,9 +541,9 @@ const Live = React.createClass({
 
         // set up event description
         const eventDescription = {
-          points: '?',
-          info: eventCall.description,
-          when: eventCall.clock,
+          points: null,
+          info: eventData.description,
+          when: eventData.clock,
           courtEventId: courtEvent.id,
           playerId,
         };
@@ -543,6 +551,23 @@ const Live = React.createClass({
         // add to player's history
         playerHistory.unshift(eventDescription);
         updatesToState.relevantPlayerHistory[playerId] = playerHistory;
+
+        // update player stats if we have them
+        if (isLinked === true) {
+          const players = this.props.liveSelector.draftGroup.playersInfo;
+
+          _forEach(eventCall.nba_stats, (playerStats) => {
+            const player = players[playerStats.fields.srid_player] || {};
+
+            log.info('setTimeout - linked pbp - updatePlayerStats()', player.name || 'Unknown', eventCall);
+
+            this.props.dispatch(updatePlayerStats(
+              playerStats.fields.player_id,
+              playerStats,
+              this.props.liveSelector.lineups.mine.draftGroup.id
+            ));
+          });
+        }
 
         // add then remove from animation
         updatesToState.eventDescriptions[playerId] = eventDescription;
@@ -572,7 +597,7 @@ const Live = React.createClass({
 
     // enter the next item in the queue once everything is done
     setTimeout(() => {
-      this.shiftOldestGameEvent(eventCall.game__id);
+      this.shiftOldestGameEvent(eventData.game__id);
     }, 9000);
   },
 
