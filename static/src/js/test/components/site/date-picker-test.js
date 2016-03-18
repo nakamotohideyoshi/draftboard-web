@@ -4,7 +4,7 @@ require('../../test-dom')();
 const React = require('react');
 const ReactDOM = require('react-dom');
 const ReactTestUtils = require('react-addons-test-utils');
-const DatePicker = require('../../../components/site/date-picker.jsx');
+import DatePicker from '../../../components/site/date-picker.jsx';
 const expect = require('chai').expect;
 
 let selectedDate = null;

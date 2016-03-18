@@ -1,8 +1,7 @@
 import Raven from 'raven-js';
+import 'babel-polyfill';
 import Cookies from 'js-cookie';
 import log from 'lib/logging';
-// import store from './store';
-
 
 // Sentry error reporting.
 if (process.env.NODE_ENV !== 'debug') {

@@ -1,5 +1,5 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
-import 'babel-core/polyfill';
+
 import { filter as _filter } from 'lodash';
 import { forEach as _forEach } from 'lodash';
 import { map as _map } from 'lodash';

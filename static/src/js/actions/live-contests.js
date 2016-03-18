@@ -1,4 +1,4 @@
-import 'babel-core/polyfill';
+
 const request = require('superagent-promise')(require('superagent'), Promise);
 import { forEach as _forEach } from 'lodash';
 import Cookies from 'js-cookie';

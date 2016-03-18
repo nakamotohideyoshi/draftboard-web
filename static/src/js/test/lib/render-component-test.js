@@ -1,8 +1,6 @@
-'use strict';
-
 require('../test-dom')();
 var React = require('react');
-var renderComponent = require('../../lib/render-component');
+import renderComponent from '../../lib/render-component.js';
 var expect = require('chai').expect;
 
 

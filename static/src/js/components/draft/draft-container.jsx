@@ -1,4 +1,4 @@
-import 'babel-core/polyfill';
+
 import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';

@@ -1,14 +1,11 @@
-import 'babel-core/polyfill';  // so I can use Promises
 const request = require('superagent-promise')(require('superagent'), Promise);
 import { forEach as _forEach } from 'lodash';
 import { merge as _merge } from 'lodash';
-
 import * as ActionTypes from '../action-types';
 import { dateNow } from '../lib/utils';
 
 
 // dispatch to reducer methods
-
 
 /**
  * Dispatch information to reducer that we are trying to get player stats

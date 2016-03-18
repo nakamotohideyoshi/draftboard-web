@@ -4,7 +4,7 @@ require('../../test-dom')();
 const React = require('react');
 const ReactDOM = require('react-dom');
 const ReactTestUtils = require('react-addons-test-utils');
-const ResultsDaysSlider = require('../../../components/results/results-days-slider.jsx');
+import ResultsDaysSlider from '../../../components/results/results-days-slider.jsx';
 const expect = require('chai').expect;
 
 let selectedDate = null;

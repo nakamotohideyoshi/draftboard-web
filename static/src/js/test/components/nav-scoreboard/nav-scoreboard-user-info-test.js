@@ -3,7 +3,7 @@
 require('../../test-dom')();
 const React = require('react');
 const ReactDOM = require('react-dom');
-const NavScoreboardUserInfo = require('../../../components/nav-scoreboard/nav-scoreboard-user-info.jsx');
+import NavScoreboardUserInfo from '../../../components/nav-scoreboard/nav-scoreboard-user-info.jsx';
 const expect = require('chai').expect;
 
 const defaultProps = {

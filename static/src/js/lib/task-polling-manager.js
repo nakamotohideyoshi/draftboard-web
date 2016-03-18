@@ -1,5 +1,5 @@
 // import Raven from 'raven-js';
-import 'babel-core/polyfill';
+
 // so we can use superagent with Promises
 import log from '../lib/logging.js';
 import store from '../store.js';

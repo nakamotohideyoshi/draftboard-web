@@ -1,5 +1,3 @@
-// so we can use Promises
-import 'babel-core/polyfill';
 const request = require('superagent-promise')(require('superagent'), Promise);
 import { filter as _filter } from 'lodash';
 import { forEach as _forEach } from 'lodash';

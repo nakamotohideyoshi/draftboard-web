@@ -1,6 +1,6 @@
 // import Raven from 'raven-js';
 import * as types from '../action-types.js';
-import 'babel-core/polyfill';
+
 // so we can use superagent with Promises
 import request from 'superagent';
 import Cookies from 'js-cookie';
