@@ -55,7 +55,7 @@ def deploy():
     operations.require('environment')
     _puts('Git push to %s' % env.environment)
     operations.local('git push -f %s %s:master' % (
-        env.environment,
+        env.heroku_repo,
         env.local_git_branch,
     ))
 
@@ -430,4 +430,3 @@ def s3ls():
     cmd = 'aws s3 ls s3://draftboard-db-dumps/'
     _puts('%s' % cmd)
     operations.local(cmd)
-
