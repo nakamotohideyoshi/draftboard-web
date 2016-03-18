@@ -1,5 +1,5 @@
 import React from 'react';
-// import PubSub from 'pubsub-js';
+import PubSub from 'pubsub-js';
 import ImageLoader from 'react-imageloader';
 import * as ReactRedux from 'react-redux';
 import moment from 'moment';
@@ -10,7 +10,7 @@ import { forEach as _forEach } from 'lodash';
 import { focusedPlayerSelector } from '../../selectors/draft-selectors.js';
 import { roundUpToDecimalPlace } from '../../lib/utils.js';
 import { createLineupAddPlayer, removePlayer } from '../../actions/lineup-actions.js';
-import { focusSearchField } from './draft-utils.js';
+import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils.js';
 
 const { Provider, connect } = ReactRedux;
 
@@ -74,27 +74,23 @@ const DraftPlayerDetail = React.createClass({
 
 
   componentWillMount() {
-    // TODO: You can't focus() a field that isn't visible or on top of the z-index stack.
-    // We're going to have to find a way to focus it *after* the pane_bg div is gone.
-    // When the pane is closed, focus on the search field.
-    // PubSub.subscribe('pane.close', () => {
-    //   console.log('focus')
-    //   focusSearchField();
-    // });
+    PubSub.subscribe('pane.close', () => {
+      focusPlayerSearchField();
+    });
   },
 
 
   onDraftClick(player, e) {
     e.stopPropagation();
     this.props.draftPlayer(player);
-    focusSearchField();
+    clearPlayerSearchField();
   },
 
 
   onUnDraftClick(player, e) {
     e.stopPropagation();
     this.props.unDraftPlayer(player.player_id);
-    focusSearchField();
+    clearPlayerSearchField();
   },
 
 
@@ -243,7 +239,7 @@ const DraftPlayerDetail = React.createClass({
               <td>{game.assists}</td>
               <td>{game.blocks}</td>
               <td>{game.steals}</td>
-              <td>MIN</td>
+              <td>{game.minutes}</td>
               <td>{game.turnovers}</td>
               <td>{game.fp}</td>
             </tr>

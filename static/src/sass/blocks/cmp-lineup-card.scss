@@ -234,14 +234,18 @@ category: Lineup
   &__average {
     font-family: $font-oswald;
     line-height: 1em;
-    min-width: 33px;
+
+    .text {
+      display: block;
+      width: 30px;
+    }
   }
 
   &__delete {
     // hidden by default.
     display: none !important;
     cursor: pointer;
-    padding: 0px 5px !important;
+    padding: 0px 15px 0 5px !important;
 
     &:hover {
       opacity: .8;
@@ -253,7 +257,7 @@ category: Lineup
       background: url(../img/blocks/lineup-card/icon-delete.png) no-repeat;
       background-size: 23px auto;
       height: 23px;
-      width: 23px;
+      width: 30px;
     }
   }
 
@@ -396,7 +400,7 @@ category: Lineup
 
   &__list-header {
     color: #6d718a;
-    padding: 0px 20px;
+    padding: 0px 25px 0 20px;
     text-align: right;
 
     &-average {

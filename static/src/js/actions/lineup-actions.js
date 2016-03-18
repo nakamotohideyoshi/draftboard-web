@@ -1,6 +1,4 @@
 import * as types from '../action-types.js';
-
-// so we can use superagent with Promises
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import { normalize, Schema, arrayOf } from 'normalizr';
