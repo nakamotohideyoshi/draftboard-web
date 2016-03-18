@@ -290,7 +290,7 @@ const DraftContainer = React.createClass({
     return (
       <div>
         <h2 className="player-list__header">
-          <span className="player-list__header-title">Draft a Team</span>
+          <span className="player-list__header-title">{this.props.sport} DraftBoard</span>
           <span className="player-list__header-divider">/</span>
           <span
             className="player-list__header-games"
