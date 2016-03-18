@@ -293,15 +293,15 @@ def generate_replayer():
     # download, unzip start
     tmp_dir = '/tmp'
 
-    startS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
     startFilename = 'start.dump'
+    startS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
     keyStart = bucket.get_key('draftboard-staging/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
     keyStart.get_contents_to_filename('%s/%s.gz' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
     operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
 
-    # # download end
-    endS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
+    # download end
     endFilename = 'end.dump'
+    endS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
     keyEnd = bucket.get_key('draftboard-staging/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
     keyEnd.get_contents_to_filename('%s/%s.gz' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
     operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
