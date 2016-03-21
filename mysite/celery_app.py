@@ -179,7 +179,7 @@ app.conf.update(
 
             #
             # run every 30 minutes, but only during (EST) 5pm, 8pm, and 9pm.
-            'schedule'  : crontab(minute='*/30', hour='17,20,21'),
+            'schedule'  : crontab(minute='*/30', hour='23'),
 
             #
             # alternatively, run every X seconds, instead of at specific times:
