@@ -171,28 +171,6 @@ app.conf.update(
             'args'      : ('mlb',),
         },
 
-        #
-        # The ScheduleManager that creates Contests from
-        # admin-defined templates on a preset schedule.
-        'schedule_contests_for_tomorrow' : {
-            'task'      : 'contest.schedule.tasks.create_scheduled_contests',
-
-            #
-            # run every 30 minutes, but only during (EST) 5pm, 8pm, and 9pm.
-            'schedule'  : crontab(minute='*/30', hour='17,20,21'),
-
-            #
-            # alternatively, run every X seconds, instead of at specific times:
-            #'schedule': timedelta(seconds=20),
-
-            #
-            # the first integer in the tuple represents how many days
-            # in advance we want to create scheduled contests.
-            #  ... in this instance, everytime this task is fired
-            #      it ensures games for 1 day in advance are scheduled.
-            'args'      : (1,),
-        },
-
         # #
         # # monitor for Contest(s) that need to be paid out
         # 'notify_admin_draft_groups_not_completed' : {
@@ -216,20 +194,6 @@ app.conf.update(
         #     'task'      : 'contest.tasks.notify_admin_contests_not_paid',
         #     'schedule': timedelta(minutes=15),
         # },
-
-        # #
-        # # let the admins know we are approaching contests that need draft groups
-        # 'notifiy_admin_contests_require_draft_group' : {
-        #     'task'      : 'contest.tasks.notifiy_admin_contests_require_draft_group',
-        #     'schedule': timedelta(hours=12),
-        # },
-
-        #
-        # add the refund&canceller for newly "live" games that should be cancelled.
-        'refund_and_cancel_live_contests_task' : {
-            'task'      : 'contest.refund.tasks.refund_and_cancel_live_contests_task',
-            'schedule': timedelta(minutes=5),
-        },
 
         #
         # payout task
