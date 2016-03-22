@@ -1,5 +1,8 @@
 import React from 'react';
-
+import { removeAnimationEvent } from '../../actions/pusher-live';
+import { shiftOldestGameEvent } from '../../actions/pusher-live';
+import { showAnimationEventResults } from '../../actions/pusher-live';
+import store from '../../store';
 
 /**
  * The shooter that appears and disappears. This will be changing to an animation
@@ -7,15 +10,15 @@ import React from 'react';
 const LiveNBACourtShooter = React.createClass({
 
   propTypes: {
-    x: React.PropTypes.number.isRequired,
-    y: React.PropTypes.number.isRequired,
-    whichSide: React.PropTypes.string.isRequired,
+    event: React.PropTypes.object.isRequired,
   },
 
   getInitialState() {
-    // example coordinates from the API
-    const xCoord = this.props.x;
-    const yCoord = this.props.y;
+    // needed event props
+    const event = this.props.event;
+    const key = event.id;
+    const xCoord = event.location.coord_x;
+    const yCoord = event.location.coord_y;
 
     // width and height of image
     const imgWidth = 2003;
@@ -64,6 +67,18 @@ const LiveNBACourtShooter = React.createClass({
     finalTop = Math.ceil(finalTop * 10000) / 100;
     finalLeft = Math.ceil(finalLeft * 10000) / 100;
 
+    // Triggered in court component once animation is complete!
+    setTimeout(() => {
+      // show the results, remove the animation
+      showAnimationEventResults(event);
+      store.dispatch(removeAnimationEvent(key));
+
+      // enter the next item in the queue once everything is done
+      setTimeout(() => {
+        shiftOldestGameEvent(event.gameId);
+      }, 3000);
+    }, 5000);
+
     return {
       finalLeft,
       finalTop,
@@ -79,7 +94,7 @@ const LiveNBACourtShooter = React.createClass({
       left: `${this.state.finalLeft}%`,
       top: `${this.state.finalTop}%`,
     };
-    const className = `shooter-position shooter-position--${this.props.whichSide}`;
+    const className = `shooter-position shooter-position--${this.props.event.whichSide}`;
 
     return (
       <div className={className} style={shooterPositionStyle}>

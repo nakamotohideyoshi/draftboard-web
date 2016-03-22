@@ -18,17 +18,17 @@ urlpatterns = patterns(
     ),
     # need these simply to open the react app to then use redux-simple-router
     url(
-        r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/opponents/(?P<opponent_lineup_id>\d+)/$',
+        r'^live/(?P<sport>[a-z]+)/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/opponents/(?P<opponent_lineup_id>\d+)/$',
         views.FrontendLiveTemplateView.as_view(),
         name='live-opponent-mode'
     ),
     url(
-        r'^live/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/$',
+        r'^live/(?P<sport>[a-z]+)/lineups/(?P<lineup_id>\d+)/contests/(?P<contest_id>\d+)/$',
         views.FrontendLiveTemplateView.as_view(),
         name='live-contest-mode'
     ),
     url(
-        r'^live/lineups/(?P<lineup_id>\d+)/$',
+        r'^live/(?P<sport>[a-z]+)/lineups/(?P<lineup_id>\d+)/$',
         views.FrontendLiveTemplateView.as_view(),
         name='live-lineup-mode'
     ),

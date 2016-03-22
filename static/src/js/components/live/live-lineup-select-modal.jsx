@@ -67,10 +67,11 @@ const LiveLineupSelectModal = React.createClass({
   },
 
   selectLineup(entry) {
-    const path = `/live/lineups/${entry.lineup}/`;
+    const path = `/live/${entry.sport}/lineups/${entry.lineup}/`;
     const changedFields = {
       draftGroupId: entry.draft_group,
       myLineupId: entry.lineup,
+      sport: entry.sport,
     };
 
     this.props.changePathAndMode(path, changedFields);
