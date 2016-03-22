@@ -1,15 +1,6 @@
 #
 # replayer/classes.py
 
-##################################################
-#        WARNING !!!
-##################################################
-# In order for the replayer to work in VirtualBox
-# you must turn off time sync !
-#
-#   >>>> https://gist.github.com/X0nic/4724674
-##################################################
-
 from django.db.transaction import atomic
 import subprocess
 from django.conf import settings
@@ -23,7 +14,6 @@ from django.utils import timezone
 from cash.classes import CashTransaction
 from ticket.classes import TicketManager
 import prize.helpers
-from contest.models import UpcomingContest
 from replayer.models import Replay
 import replayer.models
 from django.core.cache import caches
@@ -476,19 +466,23 @@ class ReplayManager(object):
             except User.DoesNotExist:
                 self.user_list = self.generate_users()
 
+        #
+        ############################################################
+        # this code needs to be rewritten to fill a contest pool!
+        ############################################################
         # get all upcoming contests
-        contests = UpcomingContest.objects.all()
-        print('[%s] upcoming contests to fill...' % str(contests.count()))
-
-        for c in contests:
-
-            # for each unfilled spot in the contest...
-            for remaining_entry in range(c.entries - c.current_entries):
-
-                user = self.__get_user()
-                rlc = RandomLineupCreator( c.site_sport.name,
-                                                        user.username )
-                rlc.create( c.pk )
+        # contests = UpcomingContest.objects.all()
+        # print('[%s] upcoming contests to fill...' % str(contests.count()))
+        #
+        # for c in contests:
+        #
+        #     # for each unfilled spot in the contest...
+        #     for remaining_entry in range(c.entries - c.current_entries):
+        #
+        #         user = self.__get_user()
+        #         rlc = RandomLineupCreator( c.site_sport.name,
+        #                                                 user.username )
+        #         rlc.create( c.pk )
 
     def play_single_update(self, update_id, async=False):
         """

@@ -6,12 +6,12 @@ from django.conf.urls import url
 from contest.views import (
     LobbyAPIView,
     AllLineupsView,
-    UserUpcomingAPIView,
+    #UserUpcomingAPIView,
     UserLiveAPIView,
     UserHistoryAPIView,
     SingleContestLineupView,
     SingleLineupView,
-    CurrentEntryAPIView,
+    #CurrentEntryAPIView,
     SingleContestAPIView,
     RegisteredUsersAPIView,
     EnterLineupAPIView,
@@ -55,7 +55,7 @@ urlpatterns = patterns( '',
 
     #
     # get a users current entries (the Entries they current have in live/upcoming contests
-    (r'^current-entries/$', CurrentEntryAPIView.as_view()),
+    #(r'^current-entries/$', CurrentEntryAPIView.as_view()),
 
     #
     # get the contests for display on the main contest lobby
@@ -63,7 +63,7 @@ urlpatterns = patterns( '',
 
     #
     # get a logged in user's upcoming contests
-    (r'^upcoming/$', UserUpcomingAPIView.as_view()),
+    #(r'^upcoming/$', UserUpcomingAPIView.as_view()),
 
     #
     # get a logged in user's live contests

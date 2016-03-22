@@ -1,14 +1,27 @@
 #
 # contest/classes.py
 
+from django.db.transaction import atomic
 import os
 import struct
-from .models import Contest
-from sports.models import SiteSport, PlayerStats
+from .models import (
+    Contest,
+    ContestPool,
+)
+from sports.models import (
+    SiteSport,
+    PlayerStats,
+)
+from mysite.exceptions import (
+    IncorrectVariableTypeException,
+)
 from dataden.util.timestamp import DfsDateTimeUtil
-from datetime import datetime
-from datetime import timedelta
-from datetime import time
+from datetime import (
+    datetime,
+    timedelta,
+    time,
+    date,
+)
 from django.utils import timezone
 from sports.classes import SiteSportManager as SSM
 from ticket.classes import TicketManager
@@ -16,9 +29,94 @@ from ticket.models import TicketAmount
 from contest.models import Contest, Entry
 from lineup.classes import LineupManager
 import lineup.models
+import prize.models
 from prize.classes import TicketPrizeStructureCreator
+import draftgroup.models
 from draftgroup.classes import DraftGroupManager
 from roster.classes import RosterManager
+
+class ContestPoolCreator(object):
+
+    def __init__(self, sport, prize_structure, start, duration, draft_group=None):
+        """
+        :param sport: the name of the sport
+        :param prize_structure: the prize.models.PrizeStructure
+        :param start: datetime object, the scheduled start time
+        :param duration: the integer number of minutes from the start until the end
+                         that makes a range of datetime objects, between which to use
+                         the sport's games.
+        :param draft_group: if specified, the DraftGroup to use. otherwise get an existing one
+                            using the DraftGroupManager class.
+        """
+        site_sport_manager = SSM()
+        self.sport = sport
+        self.site_sport = site_sport_manager.get_site_sport(self.sport)
+
+        # validate and set the start datetime
+        self.start = self.validate_start(start)
+
+        # validate and set the duration (integer minutes)
+        self.duration = self.validate_duration(duration)
+
+        # validate and set the prize_structure model
+        self.prize_structure = self.validate_prize_structure(prize_structure)
+
+        # if a draft_group is specified, validate it
+        if draft_group is not None:
+            self.draft_group = self.validate_draft_group(draft_group)
+
+    def get_or_create(self):
+        """
+        Gets a matching ContestPool or else creates and returns a new one for
+        the parameters passed in the __init__ method.
+
+        If a matching DraftGroup does not exist for the sport and timeframe,
+        this class will use the DraftGroupManager class and attempt to create one,
+        using DraftGroupManager.get_for_site_sport(site_sport, start, end).
+
+        returns the newly created ContestPool, or raises the proper exception if errors exist
+        """
+        if self.draft_group is None:
+            # use the DraftGroupManager class to create (or retrieve a matching) draft group
+            draft_group_manager = DraftGroupManager()
+            self.draft_group = draft_group_manager.get_for_site_sport(self.site_sport, self.start, self.get_end())
+
+        # now create the ContestPool model instance
+        contest_pool, created = ContestPool.objects.get_or_create()
+
+    def get_end(self):
+        """
+        returns the datetime equivalent to the start time plus the duration minutes
+        """
+        return self.start + timedelta(minutes=self.duration)
+
+    def validate_duration(self, duration):
+        if not isinstance(duration, int):
+            raise IncorrectVariableTypeException(self.__class__.__name__, 'duration')
+        return duration
+
+    def validate_start(self, start):
+        if not isinstance(start, datetime):
+           raise IncorrectVariableTypeException(self.__class__.__name__, 'start')
+        return start
+
+    def validate_prize_structure(self, prize_structure):
+        if isinstance(prize_structure, prize.models.PrizeStructure):
+            return prize_structure
+        # else raise exception that this is not the proper type
+        raise IncorrectVariableTypeException(self.__class__.__name__, 'prize_structure')
+
+    def validate_draft_group(self, draft_group):
+        if isinstance(draft_group, draftgroup.models.DraftGroup):
+            return draft_group
+        # else raise exception that this is not the proper type
+        raise IncorrectVariableTypeException(self.__class__.__name__, 'draft_group')
+#
+# class ContestPoolCreator(ContestPoolCreator):
+#
+#     def __init__(self, sport):
+#         # call parents constructor __init__(sport, prize_structure, start, duration, draft_group=None)
+#         super().__init__(sport, prize_structure, start, duration, draft_group=None)
 
 class AbstractContestCreator(object):
 
