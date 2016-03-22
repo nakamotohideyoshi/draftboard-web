@@ -10,12 +10,22 @@ from cash.classes import CashTransaction
 from draftgroup.classes import DraftGroupManager
 from draftgroup.tasks import on_game_closed, on_game_inprogress
 from django.test.utils import override_settings
-from contest.models import Contest, LobbyContest, UpcomingContest, LiveContest, HistoryContest
+from contest.models import (
+    Contest,
+    LiveContest,
+    HistoryContest,
+)
 from contest.classes import ContestCreator
 from sports.classes import SiteSportManager
 from contest.views import (
     EnterLineupAPIView,
 )
+
+class ContestPoolManagertest(AbstractTest):
+
+    def setUp(self):
+        # if the "world" doesnt exist (ie: games, playerstats, draftgroups) create it.
+        pass # TODO
 
 class ContestManagerTest(AbstractTest):
     """

@@ -35,11 +35,8 @@ from contest.classes import ContestLineupManager
 from contest.models import (
     Contest,
     Entry,
-    LobbyContest,
-    UpcomingContest,
     LiveContest,
     HistoryContest,
-    CurrentContest,
     HistoryEntry,
     ClosedEntry,
 )
@@ -79,7 +76,6 @@ class ContestUpdate(UpdateView):
     model       = Contest
     form_class  = ContestForm
     #fields      = ['name','start']
-
 
 class SingleContestAPIView(generics.GenericAPIView):
     """
@@ -163,45 +159,42 @@ class UserEntryAPIView(generics.ListAPIView):
         # timer.stop() - takes about 40 milliseconds for small datasets: ie: 100 entries
         return data
 
+# class CurrentEntryAPIView(generics.ListAPIView):
+#     """
+#     Get the User's current entries (the Entries they own in live/upcoming contests)
+#     """
+#
+#     permission_classes      = (IsAuthenticated,)
+#     serializer_class        = CurrentEntrySerializer
+#
+#     def get_entries(self, user, contests):
+#         """
+#         return a queryset of the users entries (a map between contest & lineup)
+#         which are from the
+#         """
+#         return Entry.objects.filter(lineup__user=user, contest__in=contests)
+#
+#     def get_contests(self, user):
+#         # get a list of our entries to every possible distinct contest
+#         # timer = SimpleTimer()
+#         # timer.start()
+#         return CurrentContest.objects.all()
+#
+#     def get_queryset(self):
+#         """
+#         Return a QuerySet from the UpcomingContest model, for authenticated user.
+#
+#         raises Exception if the inheriting class did not set 'contest_model'
+#         """
+#
+#         contests = self.get_contests(self.request.user)
+#         return self.get_entries(self.request.user, contests)
 
-class CurrentEntryAPIView(generics.ListAPIView):
-    """
-    Get the User's current entries (the Entries they own in live/upcoming contests)
-    """
-
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = CurrentEntrySerializer
-
-    def get_entries(self, user, contests):
-        """
-        return a queryset of the users entries (a map between contest & lineup)
-        which are from the
-        """
-        return Entry.objects.filter(lineup__user=user, contest__in=contests)
-
-    def get_contests(self, user):
-        # get a list of our entries to every possible distinct contest
-        # timer = SimpleTimer()
-        # timer.start()
-        return CurrentContest.objects.all()
-
-    def get_queryset(self):
-        """
-        Return a QuerySet from the UpcomingContest model, for authenticated user.
-
-        raises Exception if the inheriting class did not set 'contest_model'
-        """
-
-        contests = self.get_contests(self.request.user)
-        return self.get_entries(self.request.user, contests)
-
-
-class UserUpcomingAPIView(UserEntryAPIView):
-    """
-    A User's upcoming Contests
-    """
-    contest_model = UpcomingContest
-
+# class UserUpcomingAPIView(UserEntryAPIView):
+#     """
+#     A User's upcoming Contests
+#     """
+#     contest_model = UpcomingContest
 
 class UserLiveAPIView(UserEntryAPIView):
     """
