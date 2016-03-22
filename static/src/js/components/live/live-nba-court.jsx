@@ -8,21 +8,19 @@ import LiveNBACourtShooter from'./live-nba-court-shooter';
  */
 const LiveNBACourt = React.createClass({
   propTypes: {
-    courtEvents: React.PropTypes.object.isRequired,
+    animationEvents: React.PropTypes.object.isRequired,
     liveSelector: React.PropTypes.object.isRequired,
   },
 
   render() {
     const self = this;
-    const currentEvents = Object.keys(self.props.courtEvents).map((key) => {
-      const event = self.props.courtEvents[key];
+    const currentEvents = Object.keys(self.props.animationEvents).map((key) => {
+      const event = self.props.animationEvents[key];
 
       return (
         <LiveNBACourtShooter
-          whichSide={ event.whichSide }
+          event={ event }
           key={ event.id }
-          x={ event.location.coord_x }
-          y={ event.location.coord_y }
         />
       );
     });

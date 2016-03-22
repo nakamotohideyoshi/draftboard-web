@@ -18,7 +18,7 @@ const LiveHeader = React.createClass({
    */
   returnToLineup() {
     const mode = this.props.liveSelector.mode;
-    const path = `/live/lineups/${mode.myLineupId}/`;
+    const path = `/live/${mode.sport}/lineups/${mode.myLineupId}/`;
     const changedFields = {
       opponentLineupId: undefined,
       contestId: undefined,

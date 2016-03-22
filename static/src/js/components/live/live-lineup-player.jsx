@@ -31,7 +31,7 @@ const LiveLineupPlayer = React.createClass({
     const pointsDiv = (points !== null) ? (<div className="event-description__points">{points}</div>) : '';
 
     return (
-      <div className="live-lineup-player__event-description event-description showing">
+      <div key="5" className="live-lineup-player__event-description event-description showing">
         {pointsDiv}
         <div className="event-description__info">{info}</div>
         <div className="event-description__when">{when}</div>
