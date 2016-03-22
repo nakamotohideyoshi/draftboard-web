@@ -29,10 +29,11 @@ def _confirm(prompt='Continue?\n', failure_prompt='User cancelled task'):
 ENVS = {
     'production': {
         'local_git_branch': 'master',
-        'heroku_repo': 'draftboard-staging',
+        'heroku_repo': 'draftboard-staging',  # currently draftboard-staging is the production server
     },
-    'testing': {
-        'heroku_repo': 'draftboard-testing',
+    'staging': {
+        'local_git_branch': 'master',
+        'heroku_repo': 'draftboard-staging',
     },
     'dev': {
         'heroku_repo': 'draftboard-dev',
@@ -113,7 +114,7 @@ def _get_local_git_db():
 def importdb():
     """fab [environment] importdb --set db_dump=/path/to/database/dump --set db_url=https://path.com/to/database/dump
        (takes provided db and creates env db with it)"""
-
+    # ./manage.py dumpdata --exclude=contenttypes -o test_fixture.json
     operations.require('environment')
 
     if env.environment == 'local':
@@ -157,44 +158,57 @@ def importdb():
     ))
 
 
-def syncdb():
-    """fab [environment] syncdb [--set no_backup=true] (resets db for testing server with production db)"""
+def syncdb(app=None):
+    """
+    fab [environment] syncdb [--set no_backup=true]
+
+    uses heroku pg:backups to capture a snapshot of the target server.
+    downloads the snapshot, drops and does a pg_restore into our
+    current branches database. (_get_local_git_db() sets the env.db_name)
+    """
 
     operations.require('environment')
 
+    if app is None:
+        app = 'staging'
+
+    target_server = ENVS[app]['heroku_repo']
+
+    # quick disclaimer about overwriting the production db...
     if (env.environment == 'production'):
         utils.abort('You cannot sync the production database to itself')
 
+    #
     # always wipe memcached before putting in new db
     # TODO fix with virtualenv
     # flush_cache()
 
+    #
     # if we want a new version, then capture new backup of production
     if 'no_backup' not in env:
-        _puts('Capturing new production backup')
-        operations.local(
-            'heroku pg:backups capture --app %s' % ENVS['production']['heroku_repo']
-            #'heroku pg:backups capture --app draftboard-dev'
-        )
+        _puts('Capturing new [%s] backup' % target_server)
+        operations.local('heroku pg:backups capture --app %s' % target_server)
 
-        # pull down db to local
-        if env.environment == 'local':
-            _puts('Pull latest production down to local')
-            operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app draftboard-staging`')
-            #operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app draftboard-dev`')
+    #
+    # pg_restore the downloaded .dump to the local "dfs_GITBRANCHNAME" database
+    if env.environment != 'local':
+        _puts('You can only drop&restore the database in your personal dev environment!'
+              ' Currently your environment is: %s' % env.environment)
+        return
 
-    # restore locally
-    if (env.environment == 'local'):
-        with warn_only():
-            _puts('Dropping local database')
-            operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
+    with warn_only():
+        # download backup
+        _puts('Pull latest [%s] backup down to local' % target_server)
+        operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app %s`' % target_server)
 
-            _puts('Creating local database')
-            operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % env.db_name)
-            operations.local(
-                'sudo -u postgres pg_restore --no-acl --no-owner -d %s /tmp/latest.dump' %
-                env.db_name
-            )
+        # drop local database
+        _puts('Dropping local database: %s' % env.db_name)
+        operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
+
+        # [re]create empty local database, and pg_restore the backup into it
+        _puts('Creating local database')
+        operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % env.db_name)
+        operations.local('sudo -u postgres pg_restore --no-acl --no-owner -d %s /tmp/latest.dump' % env.db_name)
 
 def _puts(message):
     """Extends puts to separate out what we're doing"""
