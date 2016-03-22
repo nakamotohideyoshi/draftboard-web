@@ -240,6 +240,10 @@ class SiteSportManager(object):
         self.__check_sport(sport)
         return self.__get_array_of_classes(sport, 'playerstats', PlayerStats)
 
+    def get_player_stats_classes(self, sport):
+        """ wrapper for calling the ill-named self.get_player_stats_class(sport) which returns a list  """
+        return self.get_player_stats_class(sport)
+
     def get_player_class(self, sport):
         """
         Class that fetches the class or classes required for the specified
