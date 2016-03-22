@@ -4,6 +4,7 @@
 from test.classes import AbstractTest
 from salary.dummy import Dummy
 from prize.classes import CashPrizeStructureCreator
+from prize.models import PrizeStructure
 from django.utils import timezone
 from datetime import timedelta
 from cash.classes import CashTransaction
@@ -12,20 +13,37 @@ from draftgroup.tasks import on_game_closed, on_game_inprogress
 from django.test.utils import override_settings
 from contest.models import (
     Contest,
+    ContestPool,
     LiveContest,
     HistoryContest,
 )
-from contest.classes import ContestCreator
+from contest.classes import (
+    ContestCreator,
+    ContestPoolCreator,
+)
 from sports.classes import SiteSportManager
 from contest.views import (
     EnterLineupAPIView,
 )
 
-class ContestPoolManagertest(AbstractTest):
+class ContestPoolManagerTest(AbstractTest):
 
     def setUp(self):
         # if the "world" doesnt exist (ie: games, playerstats, draftgroups) create it.
+        ContestPool.objects.all().delete() # so we can run with --keepdb locally for quicker testing
+
+    def __call_creator(self, sport=None, prize_structure=None, start=None, duration=None, draft_group=None):
+        """
+        This method will select a VALID argument if None is passed for any variable.
+
+        We can easily test INVALID variables one at a time with this method.
+        """
         pass # TODO
+
+    def test_init_args(self):
+        sport = 'nba'
+        prize_structure =
+        contest_pool_creator = ContestPoolCreator()
 
 class ContestManagerTest(AbstractTest):
     """

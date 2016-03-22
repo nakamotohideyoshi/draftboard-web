@@ -21,14 +21,17 @@ SITE = 'www.draftboard.com'
 # ----------------------------------------------------------
 
 # Constant definitions
-PROJECT_ROOT = Path(__file__).ancestor(3)
-STATIC_ROOT = PROJECT_ROOT.child('collected_static')
-INTERNAL_IPS = ()
+PROJECT_ROOT    = Path(__file__).ancestor(3)
+STATIC_ROOT     = PROJECT_ROOT.child('collected_static')
+INTERNAL_IPS    = ()
 
 import os
 
-BASE_DIR    = os.path.dirname(os.path.dirname(__file__))
-SITE_ROOT   = os.path.dirname(os.path.realpath(__file__))
+BASE_DIR        = os.path.dirname(os.path.dirname(__file__))
+SITE_ROOT       = os.path.dirname(os.path.realpath(__file__))
+#
+# fixtures directory: /PATH/TO/BASE_PROJECT_DIR/test/fixtures
+FIXTURES_DIR    = (os.path.join(BASE_DIR, 'test/fixtures'),)  # for $> manage.py test
 
 from os.path import join
 
@@ -482,5 +485,11 @@ if USE_LOCKDOWN:
 INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = False
 
 #
+# set FIXTURES_DIR
+PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
+FIXTURE_DIRS = (os.path.join(PROJECT_ROOT, 'fixtures'),)
+
+#
 # disable recording
 DISABLE_REPLAYER_UPDATE_RECORDING = False
+

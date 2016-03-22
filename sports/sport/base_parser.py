@@ -819,6 +819,8 @@ class DataDenPbpDescription(AbstractDataDenParseable):
     player_stats_model      = None # ie: sports.<sport>.models.PlayerStats
     pusher_sport_pbp        = None # ie: push.classes.PUSHER_NBA_PBP
     pusher_sport_stats      = None # ie: push.classes.PUSHER_NBA_STATS
+    linked_pbp_field        = 'pbp'
+    linked_stats_field      = 'stats'
 
     def __init__(self):
         if self.game_model is None:
@@ -1045,8 +1047,8 @@ class DataDenPbpDescription(AbstractDataDenParseable):
 
         """
         data = {
-            self.pusher_sport_pbp   : self.o,
-            self.pusher_sport_stats : [ ps.to_json() for ps in player_stats ]
+            self.linked_pbp_field   : self.o,
+            self.linked_stats_field : [ ps.to_json() for ps in player_stats ]
         }
         return data
 
