@@ -1,15 +1,26 @@
 #
 # contest/tests.py
 
-from test.classes import AbstractTest
+from mysite.exceptions import (
+    IncorrectVariableTypeException,
+)
+from test.classes import (
+    AbstractTest,
+    ResetDatabaseMixin,
+)
 from salary.dummy import Dummy
 from prize.classes import CashPrizeStructureCreator
-from prize.models import PrizeStructure
+from prize.models import (
+    PrizeStructure,
+)
 from django.utils import timezone
 from datetime import timedelta
 from cash.classes import CashTransaction
 from draftgroup.classes import DraftGroupManager
 from draftgroup.tasks import on_game_closed, on_game_inprogress
+from draftgroup.models import (
+    DraftGroup,
+)
 from django.test.utils import override_settings
 from contest.models import (
     Contest,
@@ -22,28 +33,155 @@ from contest.classes import (
     ContestPoolCreator,
 )
 from sports.classes import SiteSportManager
+from sports.models import (
+    SiteSport,
+)
 from contest.views import (
     EnterLineupAPIView,
 )
+from test.classes import (
+    BuildWorldMixin,
+)
 
-class ContestPoolManagerTest(AbstractTest):
+class TestResetDataBase(AbstractTest, ResetDatabaseMixin):
+
+    def test_reset_it(self):
+        self.reset_db()
+
+class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
+    """
+    test the constructor arguments to ensure we raise
+    exceptions if they are not the proper type.
+
+    Note: functionality / database stuff should be test in a different test class!
+    """
 
     def setUp(self):
+        # setup a salary pool and draft group
+        self.sport = 'test' # build_world() should create a sport called 'test'
+        # if DraftGroup.objects.all().count() == 0:
+        #     self.build_world()
+        #     self.draft_group = self.world.draftgroup
+        # else:
+        #     self.draft_group = DraftGroup.objects.filter().order_by('-created')[0]
+        #
+        # # get a headsup prize_structure (most recently created)
+        # self.prize_structure = PrizeStructure.objects.filter().order_by('-created')[0]
+
         # if the "world" doesnt exist (ie: games, playerstats, draftgroups) create it.
         ContestPool.objects.all().delete() # so we can run with --keepdb locally for quicker testing
 
-    def __call_creator(self, sport=None, prize_structure=None, start=None, duration=None, draft_group=None):
+        # create a custom class for an invalid type of object to pass as params
+        class CustomInvalidType:
+            def __init__(self):
+                pass
+        self.custom_invalid_type_class = CustomInvalidType
+        self.invalid_type_obj = self.custom_invalid_type_class()
+
+    def __call_creator_constructor_test(self, sport=None, prize_structure=None, start=None, duration=None, draft_group=None):
         """
+        This method is simply to test that the constructor
+        properly validates the parameters passed to it.
+        It does NOT check to make sure the data backing
+        the parameters are valid start times, etc...
+
         This method will select a VALID argument if None is passed for any variable.
 
         We can easily test INVALID variables one at a time with this method.
         """
-        pass # TODO
+        if sport is None:
+            sport = self.sport
+        if prize_structure is None:
+            class PrizeStructureChild(PrizeStructure):
+                def __init__(self):
+                    pass
+            prize_structure = PrizeStructureChild
+        if start is None:
+            start = timezone.now()
+        if duration is None:
+            duration = int(300)
+        # if draft_group is not None:
+        #     # create a dummy child of DraftGroup
+        #     class DraftGroupChild(DraftGroup):
+        #         def __init__(self):
+        #             pass
+        #     draft_group = DraftGroupChild()
 
-    def test_init_args(self):
-        sport = 'nba'
-        prize_structure =
-        contest_pool_creator = ContestPoolCreator()
+        # try to construct a ContestPool
+        try:
+            #print('sport:', str(sport))
+            self.assertRaises( IncorrectVariableTypeException,
+                lambda:ContestPoolCreator(sport, prize_structure, start, duration, draft_group) )
+        except:
+            # there might be other exceptions from
+            # inner objects, but those arent tested here!
+            pass
+
+    def test_constructor_arg_sport(self):
+        self.__call_creator_constructor_test(sport=self.invalid_type_obj)
+
+    def test_constructor_arg_prize_structure(self):
+        self.__call_creator_constructor_test(prize_structure=self.invalid_type_obj)
+
+    def test_constructor_arg_start(self):
+        self.__call_creator_constructor_test(start=self.invalid_type_obj)
+
+    def test_constructor_arg_duration(self):
+        self.__call_creator_constructor_test(duration=self.invalid_type_obj)
+
+    def test_constructor_arg_draft_group(self):
+        self.__call_creator_constructor_test(duration=self.invalid_type_obj)
+
+class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
+    """
+    Test functionality of ContestPoolManager.create()
+
+    BuildWorldMixin gives us these methods:
+        self.build_world()
+        self.create_valid_lineup()
+
+    """
+
+    def setUp(self):
+        # setup a salary pool and draft group
+        #print("WTF")
+        self.sport = 'nfl' # build_world() should create a sport called 'test'
+        self.build_world()
+        self.draft_group = self.world.draftgroup
+
+        # get a headsup prize_structure (most recently created)
+        self.prize_structure = PrizeStructure.objects.filter().order_by('-created')[0]
+
+        # if the "world" doesnt exist (ie: games, playerstats, draftgroups) create it.
+        ContestPool.objects.all().delete() # so we can run with --keepdb locally for quicker testing
+
+        #
+        ####### print some debug stuff so we know it exists (or doesnt ####
+        all_site_sports = SiteSport.objects.all()
+        print('%s existing SiteSport objects' % all_site_sports.count())
+        for ss in all_site_sports:
+            print(str(ss))
+            print('')
+
+    def __call_construct(self, sport=None, prize_structure=None, start=None, duration=None, draft_group=None):
+        """
+        If any value is None, we will use a known good default value.
+        """
+        if sport is None:
+            sport = self.sport
+        if prize_structure is None:
+            prize_structure = self.prize_structure
+        if start is None:
+            start = timezone.now()
+        if duration is None:
+            duration = int(300)
+
+        contest_pool_creator = ContestPoolCreator(sport, prize_structure, start, duration, draft_group)
+        return contest_pool_creator
+
+    def test_create_simple_default_values_existing_draft_group(self):
+        creator = self.__call_construct(draft_group=self.draft_group)
+        contest_pool, created = creator.get_or_create()
 
 class ContestManagerTest(AbstractTest):
     """

@@ -62,7 +62,8 @@ class ContestPoolCreator(object):
         self.prize_structure = self.validate_prize_structure(prize_structure)
 
         # if a draft_group is specified, validate it
-        if draft_group is not None:
+        self.draft_group = draft_group
+        if self.draft_group is not None:
             self.draft_group = self.validate_draft_group(draft_group)
 
     def get_or_create(self):
@@ -82,7 +83,12 @@ class ContestPoolCreator(object):
             self.draft_group = draft_group_manager.get_for_site_sport(self.site_sport, self.start, self.get_end())
 
         # now create the ContestPool model instance
-        contest_pool, created = ContestPool.objects.get_or_create()
+        contest_pool, created = ContestPool.objects.get_or_create(site_sport=self.site_sport,
+                                                                  prize_structure=self.prize_structure,
+                                                                  start=self.start,
+                                                                  end=self.get_end(),
+                                                                  draft_group=self.draft_group)
+        return contest_pool, created
 
     def get_end(self):
         """
