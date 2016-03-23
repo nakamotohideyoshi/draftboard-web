@@ -34,6 +34,22 @@ from lineup.classes import LineupManager
 from scoring.classes import AbstractScoreSystem
 from scoring.models import ScoreSystem
 
+class ResetDatabaseMixin(object):
+
+    exclude_apps = ['admin','auth','contenttypes','sessions','djcelery']
+
+    def setUp(self):
+        self.reset_db()
+
+    def reset_db(self):
+        #from django.contrib.contenttypes.models import ContentType
+        start = timezone.now()
+        for content_type in ContentType.objects.all().exclude(app_label__in=self.exclude_apps):
+            # delete all rows of any models we find
+            print( str(content_type.app_label), str(content_type.model) )
+            content_type.model_class().objects.all().delete()
+        print('total delete time (seconds):', str((timezone.now() - start).total_seconds()))
+
 class TestSalaryScoreSystem(AbstractScoreSystem):
     """
     defines a test score system

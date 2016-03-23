@@ -127,7 +127,20 @@ class CreateLineupAPITest( APITestCase, test.classes.BuildWorldMixin, test.class
 #         self.assertTrue( status.is_client_error( response.status_code) )
 
 class BuildWorldMixin(object):
+    """
+    inherit this class in a TestCase with the intent to call build_world() in the setUp() method.
 
+    usage:
+
+         class LineupTest(AbstractTest, BuildWorldMixin):
+
+            def setUp(self):
+                self.build_world()
+
+            def test_something_with_with_the_world(self):
+                pass # perform some test ...
+
+    """
     def build_world(self):
 
         self.world = BuildWorldForTesting()
