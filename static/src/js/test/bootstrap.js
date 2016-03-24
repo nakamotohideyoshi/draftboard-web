@@ -12,5 +12,8 @@ console.log(`\n
 import 'babel-core/register';
 import 'babel-polyfill';
 import 'mock-local-storage';
+/**
+ * Note: Any browser globals that are needed get added in the test-dom.js file.
+ */
 import testDom from '../test/test-dom.js';
 testDom();

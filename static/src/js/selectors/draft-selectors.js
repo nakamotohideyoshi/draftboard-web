@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { isPlayerInLineup } from './draft-group-players-selector.js';
+import { isPlayerInLineup } from '../components/draft/draft-utils.js';
 import { merge as _merge } from 'lodash';
 import { sortByOrder as _sortByOrder } from 'lodash';
 import { find as _find } from 'lodash';

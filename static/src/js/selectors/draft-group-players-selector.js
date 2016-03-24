@@ -1,26 +1,9 @@
 import { createSelector } from 'reselect';
-import { filter as _filter } from 'lodash';
 import { mapValues as _mapValues } from 'lodash';
 import { merge as _merge } from 'lodash';
 import { orderBy } from './order-by.js';
 import { stringSearchFilter, matchFilter, inArrayFilter } from './filters';
-
-
-// Determine whether a supplied player is in the lineup.
-export function isPlayerInLineup(lineup, player) {
-  // Return a list of all matching players.
-  const matchingPlayers = _filter(lineup, (slot) => {
-    if (slot.player) {
-      if (slot.player.player_id === player.player_id) {
-        return true;
-      }
-    }
-    return false;
-  });
-
-  // If the list of matching players is empty, the player is not in the lineup.
-  return Object.keys(matchingPlayers).length > 0;
-}
+import { isPlayerInLineup } from '../components/draft/draft-utils.js';
 
 
 // All the players in the state.

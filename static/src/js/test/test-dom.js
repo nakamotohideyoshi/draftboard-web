@@ -1,4 +1,3 @@
-
 /*
   Create a fake document for jsdom to insert our rendered components into.
 
@@ -13,10 +12,19 @@ module.exports = (markup) => {
   global.navigator = {
     userAgent: 'node.js',
   };
+  /**
+   * `new Image` barfs an error.
+   * I think it's doing this because there is no Image support in node.
+   */
+  global.Image = () => {
+    console.warn('Warning: The `Image` method is being mocked from test-dom.js.');
+  };
+
   // ... add whatever browser globals your tests might need ...
   global.window.dfs = {
     user: {},
     logLevel: 'warn',
     replayerTimeDelta: 0,
+    playerImagesBaseUrl: 'http://localhost',
   };
 };
