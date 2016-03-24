@@ -96,10 +96,10 @@ class FairMatchTest(unittest.TestCase):
         self.assertEqual(True, True)
         fm.print_debug_info()
 
-class TestResetDataBase(AbstractTest, ResetDatabaseMixin):
-
-    def test_reset_it(self):
-        self.reset_db()
+# class TestResetDataBase(AbstractTest, ResetDatabaseMixin):
+#
+#     def test_reset_it(self):
+#         self.reset_db()
 
 class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
     """
