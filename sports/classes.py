@@ -140,6 +140,7 @@ class SiteSportManager(object):
         newClassName = "{0}{1}".format(prefix.upper(), class_name)
         my_class = eval(class_string)
         return type(newClassName, (my_class,), {})
+
     @staticmethod
     def get_site_sport(sport):
         """
