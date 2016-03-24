@@ -1,6 +1,7 @@
 #
 # contest/tests.py
 
+import unittest
 from mysite.exceptions import (
     IncorrectVariableTypeException,
 )
@@ -14,14 +15,6 @@ from prize.models import (
     PrizeStructure,
 )
 from django.utils import timezone
-from datetime import timedelta
-from cash.classes import CashTransaction
-from draftgroup.classes import DraftGroupManager
-from draftgroup.tasks import on_game_closed, on_game_inprogress
-from draftgroup.models import (
-    DraftGroup,
-)
-from django.test.utils import override_settings
 from contest.models import (
     Contest,
     ContestPool,
@@ -31,6 +24,7 @@ from contest.models import (
 from contest.classes import (
     ContestCreator,
     ContestPoolCreator,
+    FairMatch,
 )
 from sports.classes import SiteSportManager
 from sports.models import (
@@ -42,6 +36,65 @@ from contest.views import (
 from test.classes import (
     BuildWorldMixin,
 )
+
+class FairMatchTest(unittest.TestCase):
+    """
+    unit tests (no database required) for contest.classes.FairMatch
+    """
+
+    def test_simple_h2h_contest_1(self):
+        #            = [1   2 3 4 5     6 7 8 9            ]
+        test_entries = [1,1,2,3,4,5,5,5,6,7,8,9,9,9,9,9,9,9]
+        contest_size = 2
+        fm = FairMatch(test_entries, contest_size)
+        fm.run()
+        self.assertEqual(True, True)
+        fm.print_debug_info()
+
+    def test_simple_h2h_contest_2(self):
+        #            = [1     2     3   4   5 6 7 8 9
+        test_entries = [1,1,1,2,2,2,3,3,4,4,5,6,7,8,9]
+        contest_size = 2
+        fm = FairMatch(test_entries, contest_size)
+        fm.run()
+        self.assertEqual(True, True)
+        fm.print_debug_info()
+
+    def test_simple_h2h_contest_1_superlay(self):
+        #
+        test_entries = [1]
+        contest_size = 2
+        fm = FairMatch(test_entries, contest_size)
+        fm.run()
+        self.assertEqual(True, True)
+        fm.print_debug_info()
+
+    def test_simple_h2h_contest_2_superlay(self):
+        #
+        test_entries = [1,2,3]
+        contest_size = 2
+        fm = FairMatch(test_entries, contest_size)
+        fm.run()
+        self.assertEqual(True, True)
+        fm.print_debug_info()
+
+    def test_simple_3man_contest_1(self):
+        #
+        test_entries = [1,2,3]
+        contest_size = 3
+        fm = FairMatch(test_entries, contest_size)
+        fm.run()
+        self.assertEqual(True, True)
+        fm.print_debug_info()
+
+    def test_simple_3man_contest_2(self):
+        #
+        test_entries = [1,2,3,9]
+        contest_size = 3
+        fm = FairMatch(test_entries, contest_size)
+        fm.run()
+        self.assertEqual(True, True)
+        fm.print_debug_info()
 
 class TestResetDataBase(AbstractTest, ResetDatabaseMixin):
 
