@@ -13,7 +13,7 @@ const DraftTeamFilter = React.createClass({
     boxScores: React.PropTypes.object,
     isVisible: React.PropTypes.bool.isRequired,
     onFilterChange: React.PropTypes.func.isRequired,
-    selectedTeams: React.PropTypes.array.isRequired,
+    selectedTeams: React.PropTypes.array,
     teams: React.PropTypes.object.isRequired,
     sport: React.PropTypes.string,
   },
@@ -21,6 +21,7 @@ const DraftTeamFilter = React.createClass({
 
   getDefaultProps() {
     return {
+      selectedTeams: [],
       isVisible: false,
     };
   },
