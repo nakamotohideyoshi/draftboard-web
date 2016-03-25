@@ -8,7 +8,7 @@ import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
 import DraftPlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
-import { forEach as _forEach, filter as _filter } from 'lodash';
+import { forEach as _forEach } from 'lodash';
 import { findIndex as _findIndex } from 'lodash';
 import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter, }
   from '../../actions/draft-group-players-actions.js';
@@ -100,7 +100,7 @@ const DraftContainer = React.createClass({
     unDraftPlayer: React.PropTypes.func,
     newLineup: React.PropTypes.array,
     newLineupExtra: React.PropTypes.object,
-    updateFilter: React.PropTypes.func,
+    updateFilter: React.PropTypes.func.isRequired,
     sport: React.PropTypes.string,
     availablePositions: React.PropTypes.array,
     draftGroupTime: React.PropTypes.string,
@@ -181,27 +181,38 @@ const DraftContainer = React.createClass({
     this.props.setActiveDraftGroupId(this.props.params.draftgroupId);
     this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.params.draftgroupId);
     // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
-    Promise.all([
-      this.props.fetchDraftGroupIfNeeded(this.props.params.draftgroupId),
-      this.props.fetchUpcomingLineups(this.props.params.draftgroupId),
-    ]).then(() => {
-      // If the url has told us that the user wants to copy (import) a lineup, do that.
-      if (this.props.params.lineupAction === 'copy' && this.props.params.lineupId) {
-        this.props.createLineupViaCopy(this.props.params.lineupId);
-      } else if (this.props.params.lineupAction === 'edit' && this.props.params.lineupId) {
-        // if we're editing...
-        const lineup = this.props.lineups[this.props.params.lineupId];
-        // Make sure we have the requested lineup.
-        if (lineup) {
-          this.props.importLineup(lineup, true);
-          this.props.editLineupInit(this.props.params.lineupId);
-        } else {
-          log.error(`lineup #${this.props.params.lineupId} not found.`);
-        }
-      }
-    }).catch((reason) => {
-      log.error(reason);
+    // Wrap this in a promise for testing purposes.
+    return new Promise((resolve, reject) => {
+      Promise.all([
+        this.props.fetchDraftGroupIfNeeded(this.props.params.draftgroupId),
+        this.props.fetchUpcomingLineups(this.props.params.draftgroupId),
+      ]).then(() => {
+        // Once we know we have data, we can perform any actions specified by the URL parameters.
+        this.performUrlAction();
+        resolve();
+      }).catch((reason) => {
+        log.error(reason);
+        reject(reason);
+      });
     });
+  },
+
+
+  performUrlAction() {
+    // If the url has told us that the user wants to copy (import) a lineup, do that.
+    if (this.props.params.lineupAction === 'copy' && this.props.params.lineupId) {
+      this.props.createLineupViaCopy(this.props.params.lineupId);
+    } else if (this.props.params.lineupAction === 'edit' && this.props.params.lineupId) {
+      // if we're editing...
+      const lineup = this.props.lineups[this.props.params.lineupId];
+      // Make sure we have the requested lineup.
+      if (lineup) {
+        this.props.importLineup(lineup, true);
+        this.props.editLineupInit(this.props.params.lineupId);
+      } else {
+        log.error(`lineup #${this.props.params.lineupId} not found.`);
+      }
+    }
   },
 
 
@@ -225,23 +236,6 @@ const DraftContainer = React.createClass({
     }
     // Dispatch the filter update.
     this.props.updateOrderByFilter(propertyColumn, direction);
-  },
-
-
-  // Determine whether a supplied player is in the lineup.
-  isPlayerInLineup(lineup, player) {
-    // Return a list of all matching players.
-    const matchingPlayers = _filter(lineup, (slot) => {
-      if (slot.player) {
-        if (slot.player.player_id === player.player_id) {
-          return true;
-        }
-      }
-      return false;
-    });
-
-    // If the list of matching players is empty, the player is not in the lineup.
-    return Object.keys(matchingPlayers).length > 0;
   },
 
 

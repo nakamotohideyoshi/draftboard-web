@@ -21,7 +21,7 @@ const DraftNewLineupCard = React.createClass({
     sport: React.PropTypes.string,
     avgRemainingPlayerSalary: React.PropTypes.number,
     errorMessage: React.PropTypes.oneOfType([React.PropTypes.array, React.PropTypes.string]),
-    saveLineup: React.PropTypes.func,
+    saveLineup: React.PropTypes.func.isRequired,
     handlePlayerClick: React.PropTypes.func,
     lineupCanBeSaved: React.PropTypes.bool,
   },

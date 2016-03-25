@@ -39,7 +39,7 @@ function mapDispatchToProps(dispatch) {
 const ContestListSportFilter = React.createClass({
 
   propTypes: {
-    updateFilter: React.PropTypes.func,
+    updateFilter: React.PropTypes.func.isRequired,
     openDraftGroupSelectionModal: React.PropTypes.func,
   },
 
