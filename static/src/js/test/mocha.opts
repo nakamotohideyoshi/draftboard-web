@@ -1,5 +1,6 @@
 --compilers js:babel-register
 --require static/src/js/test/bootstrap.js
+--require mock-local-storage
 --reporter spec
 --recursive
 --verbose
