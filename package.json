@@ -86,8 +86,8 @@
   },
 
   "scripts": {
-    "coverage": "NODE_ENV=development ./node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha  -- static/src/js/test -r mock-local-storage --compilers js:babel-register --recursive && ./node_modules/.bin/istanbul report text",
-    "coverage-coveralls": "NODE_ENV=development ./node_modules/.bin/istanbul cover node_modules/.bin/_mocha  -- static/src/js/test -r mock-local-storage --compilers js:babel-register --recursive && cat ./coverage/lcov.info  | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage",
+    "coverage": "NODE_ENV=test ./node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha  -- --opts static/src/js/test/mocha.opts static/src/js/test && ./node_modules/.bin/istanbul report text",
+    "coverage-coveralls": "NODE_ENV=test ./node_modules/.bin/istanbul cover node_modules/.bin/_mocha  -- --opts static/src/js/test/mocha.opts static/src/js/test && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",
     "test": "NODE_ENV=test ./node_modules/.bin/mocha static/src/js/test --opts static/src/js/test/mocha.opts",
     "devserver": "NODE_ENV=development ./node_modules/.bin/webpack-dev-server --progress --hot --config webpack-development.config.js",
     "live-events": "NODE_ENV=development node ./static/src/js/simulations/live-events.js",
