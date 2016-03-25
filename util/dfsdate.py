@@ -40,7 +40,7 @@ class DfsDate(object):
         # subtract the 'total_seconds' from the original 'now' utc datetime.
         # that datetimes's date() should be the DFS "day".
         dfs_dt = now - timedelta(seconds=total_seconds)
-        print('dfsdate date():', str(dfs_dt.date()))
+        #print('dfsdate date():', str(dfs_dt.date()))
 
         # We need to
         # get all the games on that day even

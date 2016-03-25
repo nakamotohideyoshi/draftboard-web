@@ -3,7 +3,7 @@
 
 from django.conf import settings
 from pytz import timezone as pytz_timezone
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, time, date
 from django.utils import timezone
 from django.db.transaction import atomic
 from django.db.models import Q
@@ -30,6 +30,10 @@ from .models import (
     CreatedContest,
 )
 from util.midnight import midnight
+from sports.classes import (
+    SiteSportManager,
+)
+from util.dfsdate import DfsDate
 
 class ScheduleManager(object):
     """
@@ -342,4 +346,299 @@ class ScheduleManager(object):
 
                 sport_webhook = WebhookContestScheduler.get_for_sport(sched.site_sport.name)
                 sport_webhook.send( str(sched), 0, 0, 0, err_msg=str(se))
+
+class ScheduleDay(object):
+
+    tzinfo_est              = pytz_timezone('America/New_York')
+    datetime_format_date    = '%Y-%m-%d'
+    datetime_format_time    = '%I:%M %p'
+
+    class SportDay(object):
+
+        tzinfo_est              = pytz_timezone('America/New_York')
+        datetime_format_date    = '%Y-%m-%d'
+        datetime_format_time    = '%I:%M %p'
+
+        weekday     = None
+        saturday    = None
+        sunday      = None
+
+        def __init__(self, games):
+            self.games = games
+
+            #self.get_data()
+
+            self.data = {
+                'weekday'       : None,
+                'type'          : None,
+                'total'         : None,
+                'include'       : None,
+                'exclude'       : None,
+                'include_times' : None,
+                'exclude_times' : None,
+                'include_pct'   : None,
+            }
+
+            self.get_data()
+
+        def get_data(self):
+            if self.games.count() == 0:
+                return None
+
+            weekday = None
+            include = []
+            exclude = []
+            include_times = []
+            exclude_times = []
+            for game in self.games:
+
+                if weekday is None:
+                    weekday = game.start.weekday()
+
+                datetime_start_est = self.get_local_datetime(game.start)
+                if weekday in [0,1,2,3,4] and self.include_in_weekday_block(datetime_start_est):
+                    include.append(game.pk)
+                    include_times.append(self.get_str_local_time(game.start))
+                elif weekday in [5] and self.include_in_saturday_block(datetime_start_est):
+                    include.append(game.pk)
+                    include_times.append(self.get_str_local_time(game.start))
+                elif weekday in [6] and self.include_in_sunday_block(datetime_start_est):
+                    include.append(game.pk)
+                    include_times.append(self.get_str_local_time(game.start))
+                else:
+                    exclude.append(game.pk)
+                    exclude_times.append(self.get_str_local_time(game.start))
+
+            self.data = {
+                'weekday'       : weekday,
+                'type'          : self.weekday_to_str(weekday),
+                'total'         : self.games.count(),
+                'include'       : include,
+                'exclude'       : exclude,
+                'include_times' : include_times,
+                'exclude_times' : exclude_times,
+                'include_pct'   : float(float(len(include)) / float(self.games.count()))
+            }
+
+            return self.data
+
+        def __str__(self):
+            include_pct = self.data['include_pct']
+            if include_pct is None:
+                include_pct = 0.0
+            else:
+                include_pct = int(include_pct * 100.0)
+
+            included = self.data['include']
+            if included is None:
+                included = 0
+            else:
+                included = len(included)
+
+            return 'type: %s, weekday:%s, included games:%s pct   (%s of %s) >>> included times %s  ((excluded times %s))' \
+                   '' % (self.data['type'], self.data['weekday'], include_pct,
+                         included, str(self.data['total']), str(self.data['include_times']), str(self.data['exclude_times']))
+
+        def weekday_to_str(self, weekday):
+            if weekday in [0,1,2,3,4]:
+                return 'Weekday'
+            elif weekday in [5]:
+                return 'Saturday'
+            elif weekday in [6]:
+                return 'Sunday'
+
+        def get_local_datetime(self, utc_datetime_obj):
+            return utc_datetime_obj.astimezone(self.tzinfo_est)
+
+        def get_str_local_time(self, datetime_obj):
+            local_dt = datetime_obj.astimezone(self.tzinfo_est)
+            return local_dt.strftime(self.datetime_format_time)
+
+        def get_str_local_date(self, datetime_obj):
+            local_dt = datetime_obj.astimezone(self.tzinfo_est)
+            return local_dt.strftime(self.datetime_format_date)
+
+        def include_in_weekday_block(self, datetime_obj):
+            return datetime_obj.time() >= self.weekday
+
+        def include_in_saturday_block(self, datetime_obj):
+            return datetime_obj.time() >= self.saturday
+
+        def include_in_sunday_block(self, datetime_obj):
+            return datetime_obj.time() >= self.sunday
+
+    class MlbDay(SportDay):
+
+        weekday     = time(19, 0)   # 7pm +
+        saturday    = time(16, 0)   # 4pm +
+        sunday      = time(13, 0)   # 1pm +
+
+        def __init__(self, games):
+            super().__init__(games)
+
+    class NhlDay(SportDay):
+
+        weekday     = time(19, 0)   # 7pm +
+        saturday    = time(19, 0)   # 7pm +
+        sunday      = time(15, 0)   # 3pm +
+
+        def __init__(self, games):
+            super().__init__(games)
+
+    class NbaDay(SportDay):
+
+        weekday     = time(19, 0)   # 7pm +
+        saturday    = time(19, 0)   # 7pm +
+        sunday      = time(18, 0)   # 6pm +
+
+        def __init__(self, games):
+            super().__init__(games)
+            # self.games = games
+            #
+            # self.get_data()
+
+    @staticmethod
+    def factory(sport):
+        if sport == 'nba': return ScheduleDay.NbaDay
+        if sport == 'nhl': return ScheduleDay.NhlDay
+        if sport == 'mlb': return ScheduleDay.MlbDay
+
+        else:
+            raise Exception('%s - UNIMPLEMENTED')
+        # def get_data(self):
+        #     if self.games.count() == 0:
+        #         return None
+        #
+        #     weekday = None
+        #     include = []
+        #     exclude = []
+        #     include_times = []
+        #     exclude_times = []
+        #     for game in self.games:
+        #
+        #         if weekday is None:
+        #             weekday = game.start.weekday()
+        #
+        #         datetime_start_est = self.get_local_datetime(game.start)
+        #         if weekday in [0,1,2,3,4] and self.include_in_weekday_block(datetime_start_est):
+        #             include.append(game.pk)
+        #             include_times.append(self.get_str_local_time(game.start))
+        #         elif weekday in [5] and self.include_in_saturday_block(datetime_start_est):
+        #             include.append(game.pk)
+        #             include_times.append(self.get_str_local_time(game.start))
+        #         elif weekday in [6] and self.include_in_sunday_block(datetime_start_est):
+        #             include.append(game.pk)
+        #             include_times.append(self.get_str_local_time(game.start))
+        #         else:
+        #             exclude.append(game.pk)
+        #             exclude_times.append(self.get_str_local_time(game.start))
+        #
+        #     self.data = {
+        #         'weekday'       : weekday,
+        #         'type'          : self.weekday_to_str(weekday),
+        #         'total'         : self.games.count(),
+        #         'include'       : include,
+        #         'exclude'       : exclude,
+        #         'include_times' : include_times,
+        #         'exclude_times' : exclude_times,
+        #         'include_pct'   : float(float(len(include)) / float(self.games.count()))
+        #     }
+        #
+        #     return self.data
+
+    def __init__(self, sport, season, season_type='reg'):
+        self.data = None
+        self.sport = sport
+        #self.sport_day = None # TODO set this up like NbaDay, MlbDay, etc...
+        self.sport_day_class = ScheduleDay.factory(self.sport) #self.MlbDay #self.NbaDay # TODO TODO TOOD dont hardcode
+        self.site_sport_manager = SiteSportManager()
+        self.site_sport = self.site_sport_manager.get_site_sport(self.sport)
+        self.game_model_class = self.site_sport_manager.get_game_class(self.site_sport)
+        self.season = season
+        self.season_type = season_type
+
+        # setup the datetime range with a start and end
+        self.start = None
+        self.end = None
+
+    def update_range(self, days_ago):
+        """
+        add timedelta(days=days) to the start and end datetime object
+
+        :param days:
+        :return:
+        """
+        dfs_date_range = DfsDate.get_current_dfs_date_range()
+        # set our dfsday range to start on the first day of the games we found
+        self.start = dfs_date_range[0] - timedelta(days=days_ago)
+        self.end  = dfs_date_range[1] - timedelta(days=days_ago)
+
+    def get_day_range(self):
+        return (self.start, self.end)
+
+    def get_days_since(self, datetime_obj):
+        td = (timezone.now() - datetime_obj)
+        return abs(td.days) + 1
+
+    def increment_day_range(self):
+        self.start = self.start + timedelta(days=1)
+        self.end = self.end + timedelta(days=1)
+
+    def update(self):
+        """
+        update the list of dfs days, with tuples of the start times
+        and lists of all the games with their own unique start times
+        """
+        self.data = []
+        games = self.game_model_class.objects.filter(season__season_year=self.season,
+            season__season_type=self.season_type).order_by('start') # oldest first
+        if games.count() <= 0:
+            print('0 games found. exiting...')
+            return
+        else:
+            print('%s games found, as old as %s' % (games.count(), games[0].start))
+
+        #
+        days_ago = self.get_days_since(games[0].start)
+        self.update_range(days_ago)
+        day_range = self.get_day_range()
+
+        print('')
+        print('first day (dt range)', str(day_range))
+
+        # Weekdays@7pm or later
+        # Saturdays@7pm or later
+        # Sundays@6pm or later
+
+        # idx = 0
+        while games.filter(start__gt=self.get_day_range()[1]).count() > 0:
+            # get all the games for the dfs day
+            daily_games = games.filter(start__range=self.get_day_range())
+            # date_str = self.get_str_local_date(day_range[0])
+            # games_for_day = []
+            # for game in daily_games:
+            #     #print('game in EST:', self.get_str_local_time(game))
+            #     games_for_day.append(self.get_str_local_time(game.start))
+
+            date_str = self.get_str_local_date(self.get_day_range()[0])
+            self.data.append( (date_str, self.sport_day_class(daily_games)) )
+            # idx += 1
+            self.increment_day_range()
+
+    def get_str_local_time(self, datetime_obj):
+        local_dt = datetime_obj.astimezone(self.tzinfo_est)
+        return local_dt.strftime(self.datetime_format_time)
+
+    def get_str_local_date(self, datetime_obj):
+        local_dt = datetime_obj.astimezone(self.tzinfo_est)
+        return local_dt.strftime(self.datetime_format_date)
+
+    def show_time_blocks(self):
+        self.update()
+
+        for date_str, sport_day in self.data:
+            print(date_str, str(sport_day))
+
+
+
 

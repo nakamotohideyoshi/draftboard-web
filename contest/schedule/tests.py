@@ -1,6 +1,14 @@
 #
 # contest/schedule/tests.py
 
+import unittest
+from .classes import ScheduleDay
+
+# class TestSchedulingMechanic(unittest.TestCase):
+#
+#     def test_simple(self):
+#         schedule_day = ScheduleDay()
+
 #
 #############################################################################
 # with the introduction of Contest Pools this scheduling basically goes away
