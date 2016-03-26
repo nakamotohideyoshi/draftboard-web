@@ -30,6 +30,7 @@ from contest.serializers import (
     UserLineupHistorySerializer,
     #PlayHistoryLineupSerializer,
     RankedEntrySerializer,
+    ContestPoolSerializer,
 )
 from contest.classes import ContestLineupManager
 from contest.models import (
@@ -39,6 +40,7 @@ from contest.models import (
     HistoryContest,
     HistoryEntry,
     ClosedEntry,
+    LobbyContestPool,
 )
 from contest.payout.models import (
     Payout,
@@ -103,22 +105,13 @@ class LobbyAPIView(generics.ListAPIView):
     Retrieve the contests which are relevant to the home page lobby.
     """
 
-    #
-    # Dont need permission - we want everyone to be able to view upcoming contests!
-    #permission_classes      = (IsAuthenticated,)
-
-    serializer_class        = ContestSerializer
-
-    #
-    # Dont paginate - we really always want this api to return
-    # the full list of lobby contests!
-    #pagination_class        = LimitOffsetPagination
+    serializer_class = ContestPoolSerializer
 
     def get_queryset(self):
         """
-        Return a QuerySet from the LobbyContest model.
+        Return a QuerySet from the LobbyContestPool model.
         """
-        return LobbyContest.objects.all()
+        return LobbyContestPool.objects.all()
 
 
 class UserEntryAPIView(generics.ListAPIView):

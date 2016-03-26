@@ -312,6 +312,24 @@ class Contest(AbstractContest):
         verbose_name        = 'All Contests'
         verbose_name_plural = 'All Contests'
 
+class LobbyContestPool(ContestPool):
+    """
+    PROXY model for Upcoming ContestPools
+
+    This is the model which gets the ContestPools for
+    display on the home lobby, so make sure you know
+    what you are doing if you are making changes.
+    """
+    class LobbyContestPoolManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status=ContestPool.SCHEDULED,
+                                                          start__gt=timezone.now())
+
+    objects = LobbyContestPoolManager()
+
+    class Meta:
+        proxy = True
+
 # class LobbyContest(Contest):
 #     """
 #     PROXY model for Upcoming & Live Contests ... and rest API use.
@@ -450,14 +468,19 @@ class ClosedContest(Contest):
 
 class Entry(models.Model):
     """
-    An instance of a Lineup in a Contest. One of these is created
-    every time a user pays the entry fee.
+    An instance of a Lineup in a Contest (having been entered from a ContestPool starting)
     """
 
     created     = models.DateTimeField(auto_now_add=True)
     updated     = models.DateTimeField(auto_now=True)
 
-    contest     = models.ForeignKey(Contest, null=False, related_name='contests')
+    contest         = models.ForeignKey(Contest, null=True, related_name='contests')
+
+    # although this field will never be null, we allow it
+    # because replays will break if it cannot be migrated easily
+    contest_pool    = models.ForeignKey(ContestPool, null=True, related_name='contest_pools')
+
+
     lineup      = models.ForeignKey("lineup.Lineup", null=True, related_name='entries')
     user        = models.ForeignKey(User, null=False)
 
@@ -502,8 +525,8 @@ class ClosedEntry(Entry):
 class Action(models.Model):
 
     created = models.DateTimeField( auto_now_add=True)
-    transaction = models.OneToOneField("transaction.Transaction", null=False,)
-    contest = models.ForeignKey(Contest, null=False)
+    transaction = models.OneToOneField("transaction.Transaction", null=False)
+    contest = models.ForeignKey(Contest, null=True)
 
     class Meta:
         abstract = True

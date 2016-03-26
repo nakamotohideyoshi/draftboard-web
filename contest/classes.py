@@ -118,12 +118,58 @@ class ContestPoolCreator(object):
             return draft_group
         # else raise exception that this is not the proper type
         raise IncorrectVariableTypeException(self.__class__.__name__, 'draft_group')
-#
-# class ContestPoolCreator(ContestPoolCreator):
-#
-#     def __init__(self, sport):
-#         # call parents constructor __init__(sport, prize_structure, start, duration, draft_group=None)
-#         super().__init__(sport, prize_structure, start, duration, draft_group=None)
+
+class ContestPoolManager(object):
+
+    def __init__(self, contest_pool):
+        self.contest_pool = contest_pool
+
+    def add_entry(self, contest, entry):
+        pass # TODO remove
+        # TODO - we are going to need the ContestPool to set the Contest(s)
+        # TODO   it creates when it starts into the Entry and Buyin objects
+        # TODO   which point to it. this way we
+
+        #
+        ###################################################
+        # the below code shows a snippet from the buyinmanager
+        # which shows the Entry and Buyin, and incrememnting/logging we need to do
+        # to finish properly hooking up Entry objects to Contests for inprogress or later Contests!
+        ##################################################
+        # #
+        # # Create the Entry
+        # entry = Entry()
+        # entry.contest_pool = contest_pool
+        # #entry.contest = contest # the contest will be set later when the ContestPool starts
+        # entry.contest = None
+        # entry.lineup = lineup
+        # entry.user = self.user
+        # entry.save()
+        #
+        # #
+        # # Create the Buyin model
+        # buyin = Buyin()
+        # buyin.transaction = transaction
+        # buyin.contest_pool = contest_pool
+        # #buyin.contest = contest # the contest will be set later when the ContestPool starts (?)
+        # buyin.contest = None
+        # buyin.entry = entry
+        # buyin.save()
+        #
+        # #
+        # # Increment the contest_entry variable
+        # contest.current_entries = F('current_entries') + 1
+        # contest.save()
+        # contest.refresh_from_db()
+        #
+        # msg = "User["+self.user.username+"] bought into the contest #"\
+        #               +str(contest.pk)+" with entry #"+str(entry.pk)
+        # Logger.log(ErrorCodes.INFO, "Contest Buyin", msg )
+        #
+        # #
+        # # pusher contest updates because entries were changed
+        # ContestPush(ContestSerializer(contest).data).send()
+
 
 class AbstractContestCreator(object):
 
