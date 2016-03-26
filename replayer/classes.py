@@ -23,7 +23,9 @@ import util.timeshift as timeshift
 from draftgroup.models import Player
 from contest.buyin.classes import BuyinManager
 from lineup.classes import LineupManager
-from contest.models import Contest
+from contest.models import (
+    ContestPool,
+)
 from sports.classes import SiteSportManager
 from roster.classes import RosterManager
 from random import Random
@@ -542,7 +544,7 @@ class RandomLineupCreator(object):
         self.lineup_player_ids  = None
 
     @atomic
-    def create(self, contest_id):
+    def create(self, contest_pool_id):
         """
         creates a loosly validated lineup (may be over max salary)
         and associates it (creates a contest.models.Entry) with the contest.
@@ -556,8 +558,8 @@ class RandomLineupCreator(object):
 
         # from the contest, use the draft group to build positional player lists
         # from which we can select players for each roster spot
-        contest             = Contest.objects.get( pk=contest_id )
-        self.build_positional_lists( contest.draft_group )
+        contest_pool = ContestPool.objects.get( pk=contest_pool_id )
+        self.build_positional_lists( contest_pool.draft_group )
 
         # select a random player for each roster spot,
         # making sure not to reuse players we have already chosen
@@ -571,7 +573,7 @@ class RandomLineupCreator(object):
         #  ** this hacks the total salary  for the contest ***
         #
         #
-        salary_config = contest.draft_group.salary_pool.salary_config
+        salary_config = contest_pool.draft_group.salary_pool.salary_config
         original_max_team_salary = salary_config.max_team_salary
         salary_config.max_team_salary = 999999
         salary_config.save()
@@ -580,16 +582,16 @@ class RandomLineupCreator(object):
         lm = LineupManager( self.user )
         # this lineup will very likely exceed the total, salary, so
         # lets hack it to make sure it gets created
-        lineup = lm.create_lineup( self.lineup_player_ids, contest.draft_group )
+        lineup = lm.create_lineup( self.lineup_player_ids, contest_pool.draft_group )
 
         # give the admin just enough cash to buy this team into the contest
         admin = User.objects.get(username='admin')
         ct = CashTransaction( admin )
-        ct.deposit( contest.buyin )
+        ct.deposit( contest_pool.buyin )
 
         # attempt to buy the team into the contest
         bm = BuyinManager( self.user )
-        bm.buyin( contest, lineup )
+        bm.buyin( contest_pool, lineup )
 
         # set the salary back to its original value
         salary_config.max_team_salary = original_max_team_salary

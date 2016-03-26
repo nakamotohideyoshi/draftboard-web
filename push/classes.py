@@ -31,6 +31,7 @@ from push.tasks import linker_pusher_send_task, PUSH_TASKS_STATS_LINKER
 PUSHER_CHANNEL_PREFIX = settings.PUSHER_CHANNEL_PREFIX
 
 PUSHER_CONTEST      = 'contest'
+PUSHER_CONTEST_POOL = 'contest_pool'
 
 PUSHER_BOXSCORES    = 'boxscores'
 
@@ -465,6 +466,24 @@ class ContestPush( AbstractPush ):
         :param data: serialized contest data (likely from ContestSerializer(contest).data
         """
         super().__init__( PUSHER_CONTEST )
+        self.event = self.DEFAULT_EVENT
+        self.data = data
+
+    def send(self):
+        super().send(self.data, async=self.async)
+
+class ContestPoolPush( AbstractPush ):
+    """
+    Anything that is sent from a Contest update
+    """
+
+    DEFAULT_EVENT = 'update'
+
+    def __init__(self, data):
+        """
+        :param data: serialized contest data (likely from ContestSerializer(contest).data
+        """
+        super().__init__( PUSHER_CONTEST_POOL )
         self.event = self.DEFAULT_EVENT
         self.data = data
 

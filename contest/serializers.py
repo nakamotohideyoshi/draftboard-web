@@ -8,6 +8,8 @@ from contest.models import (
 
     Entry,
     ClosedEntry,
+
+    ContestPool,
 )
 from lineup.models import (
     Lineup,
@@ -38,6 +40,15 @@ class PrizeStructureSerializer(serializers.ModelSerializer):
             'ranks',
             'prize_pool'
         )
+
+class ContestPoolSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = ContestPool
+        fields = ('id','name','sport','status','start','buyin',
+                  'draft_group','max_entries', 'prize_structure','prize_pool',
+                  'entries','current_entries')
 
 class ContestSerializer(serializers.ModelSerializer):
 
