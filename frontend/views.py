@@ -114,10 +114,17 @@ class FrontendResultsTemplateView(LoginRequiredMixin, TemplateView):
     """
     template_name = 'frontend/results.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(FrontendResultsTemplateView, self).get_context_data(**kwargs)
 
+        log_level = self.request.GET.get('loglevel', None)
+        if log_level in ['trace', 'debug', 'info', 'warn', 'error']:
+            context['loglevel'] = log_level
 
+        if self.request.GET.get('wipe_localstorage', 0) is '1':
+            context['wipe_localstorage'] = 1
 
-
+        return context
 
 
 class FrontendDraftTemplateView(LoginRequiredMixin, TemplateView):

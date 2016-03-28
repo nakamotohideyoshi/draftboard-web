@@ -2,6 +2,7 @@ import { forEach as _forEach } from 'lodash';
 import { map as _map } from 'lodash';
 import { merge as _merge } from 'lodash';
 import { reduce as _reduce } from 'lodash';
+import { size as _size } from 'lodash';
 import moment from 'moment';
 import { createSelector } from 'reselect';
 import { dateNow } from '../lib/utils';
@@ -251,10 +252,28 @@ export const currentLineupsSelector = createSelector(
           points: 0,
           roster: lineup.roster,
           start: lineup.start,
+          // used by results to show total fees
+          totalFees: _reduce(contestsStats, (sum, contest) => sum + contest.buyin, 0),
+          entriesSize: _size(lineup.contests),
+          upcomingContestsStats: _map(lineup.contests, (contestId) => {
+            const upcomingContest = contestsStats[contestId];
+
+            return {
+              id: contestId,
+              buyin: upcomingContest.buyin,
+              name: upcomingContest.name,
+            };
+          }),
         };
+
+        // great for upcoming lineups
+        if (lineup.roster !== undefined) {
+          stats[lineup.id].rosterDetails = compileRosterStats(lineup.roster, draftGroup, sports.games, relevantPlayers);
+        }
 
         return;
       }
+
 
       // combine the normal lineup stats (that are used in the contests selector), with additional stats that are only
       // used for the lineups you're watching
@@ -262,7 +281,6 @@ export const currentLineupsSelector = createSelector(
         compileLineupStats(lineup, draftGroup, sports.games, relevantPlayers),
         {
           draftGroup,
-          formattedStart: moment(lineup.start).format('ha'),
           // used for animations to determine which side
           rosterBySRID: _map(stats.rosterDetails, (player) => player.info.player_srid),
           // used by LiveOverallStats to show potential earnings

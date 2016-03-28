@@ -21,7 +21,6 @@ from celery.schedules import crontab
 import celery.states
 from datetime import timedelta
 import time
-from django.core.cache import cache
 
 #
 # setdefault ONLY sets the default value if the key (ie: DJANGO_SETTINGS_MODULE)

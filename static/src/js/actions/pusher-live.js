@@ -230,16 +230,21 @@ export const shiftOldestGameEvent = (gameId) => {
 
     // if stats, then update the player stats
     case 'stats':
-      const players = this.props.liveSelector.draftGroup.playersInfo;
-      const player = players[eventCall.fields.playerId] || {};
+      const liveSelectorData = liveSelector(state);
 
-      log.info('Live.shiftOldestGameEvent().updatePlayerStats()', player.name || 'Unknown', eventCall);
+      // TODO mod this to work with results
+      if (liveSelectorData.hasOwnProperty('draftGroup')) {
+        const players = liveSelectorData.draftGroup.playersInfo;
+        const player = players[eventCall.fields.playerId] || {};
 
-      store.dispatch(updatePlayerStats(
-        eventCall.fields.player_id,
-        eventCall,
-        this.props.liveSelector.lineups.mine.draftGroup.id
-      ));
+        log.info('Live.shiftOldestGameEvent().updatePlayerStats()', player.name || 'Unknown', eventCall);
+
+        store.dispatch(updatePlayerStats(
+          eventCall.fields.player_id,
+          eventCall,
+          liveSelectorData.lineups.mine.draftGroup.id
+        ));
+      }
 
       // then move on to the next
       shiftOldestGameEvent(gameId);
