@@ -28,12 +28,14 @@ const LiveLineupSelectModal = React.createClass({
     };
   },
 
-  getModalContent() {
+  componentWillMount() {
     // if there's only one entry, then just go to it
-    if (_size(this.props.entries) === 1) {
+    if (_size(this.props.entries)) {
       this.selectLineup(this.props.entries[0]);
     }
+  },
 
+  getModalContent() {
     if (this.state.selectedSport === null) {
       const differentSports = _uniq(
         this.props.entries.map((entry) => entry.sport),

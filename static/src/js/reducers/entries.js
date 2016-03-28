@@ -2,6 +2,7 @@ import * as ActionTypes from '../action-types';
 import update from 'react-addons-update';
 import { dateNow } from '../lib/utils';
 import { forEach as _forEach } from 'lodash';
+import { map as _map } from 'lodash';
 import { merge as _merge } from 'lodash';
 
 
@@ -11,9 +12,21 @@ module.exports = (state = {
   expiresAt: dateNow(),
   items: [],
 }, action) => {
+  const newState = _merge({}, state);
+
   switch (action.type) {
+    case ActionTypes.RECEIVE_ENTRIES_UPCOMING_LINEUPS:
+
+      _forEach(newState.items, (entry, index) => {
+        const lineup = action.lineups[entry.lineup];
+        if (typeof lineup !== 'undefined' && lineup.hasOwnProperty('players')) {
+          newState.items[index].roster = _map(lineup.players, player => player.player_id);
+        }
+      });
+
+      return newState;
+
     case ActionTypes.ADD_ENTRIES_PLAYERS:
-      const newState = _merge({}, state);
 
       _forEach(action.entriesPlayers, (roster, entryId) => {
         newState.items[entryId].roster = roster;

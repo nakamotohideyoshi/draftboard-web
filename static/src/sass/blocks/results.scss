@@ -236,6 +236,14 @@ $results-selected-text-color: #2bb677;
             color: $results-fg-text-color;
           }
         }
+
+        .right-stat-title {
+          font-size: 8px;
+          position: absolute;
+          right: 15px;
+          top: 53px;
+          line-height: 1.5;
+        }
       }
 
       .list {
@@ -252,16 +260,51 @@ $results-selected-text-color: #2bb677;
             min-width: 10px;
             display: inline-block;
           }
-          .image {
-            display: inline-block;
-            margin: 0 10px;
-            background: #dee0e8;
-            width: 25px;
-            height: 25px;
-            border-radius: 20px;
+
+          .circle {
+            background-size: 120% auto;
+            border-radius: 50%;
+            height: 32px;
             position: relative;
-            top: 7px;
+            width: 32px;
+            display: inline-block;
+            top: 13px;
+            margin-left: 6px;
           }
+
+          .live-pmr {
+            position: absolute;
+            width: 28px;
+            z-index: 5040;
+          }
+
+          > .player-image {
+            margin: 0 6px;
+            max-width: 40px;
+            position: relative;
+            top: 12px;
+          }
+
+          .photo {
+            background: #ebedf2;
+            border-radius: 50%;
+            height: 26px;
+            overflow: hidden;
+            position: absolute;
+            top: 0;
+            z-index: 5030;
+            width: 26px;
+
+            img {
+              background: #dee0e8;
+              display: inline-block;
+              height: 26px;
+              left: -12%;
+              position: relative;
+              top: 5px;
+            }
+          }
+
           .name {
             color: $results-fg-text-color;
             font-size: 13px;
@@ -272,6 +315,7 @@ $results-selected-text-color: #2bb677;
             font-size: 13px;
             position: absolute;
             right: 20px;
+            top: 9px;
           }
         }
       }
@@ -293,6 +337,95 @@ $results-selected-text-color: #2bb677;
 
           .value {
             color: #46495e;
+            font-family: $font-oswald;
+            font-size: 17px;
+          }
+        }
+      }
+
+      .footer-upcoming {
+        .cmp-countdown-clock {
+          display: inline-block;
+          width: 75px;
+
+          color: #46495e;
+
+          .hours {
+            color: #dee0e8;
+          }
+
+          span span:first-child,
+          .seconds {
+            display: inline-block;
+            text-align: center;
+            width: 22px;
+          }
+
+          span span:last-child {
+            display: inline-block;
+          }
+        }
+
+        .item {
+          display: inline-block;
+          padding: 16px 0 16px 45px;
+          width: 50%;
+
+          &:first-child {
+            border-right: 1px solid #ebedf2;
+          }
+
+          .title {
+            color: #9c9faf;
+            display: block;
+            font-size: 9px;
+            text-transform: uppercase;
+          }
+
+          .value {
+            color: #babdc9;
+            font-family: $font-oswald;
+            font-size: 17px;
+
+            .fees {
+              color: #46495e;
+            }
+          }
+        }
+      }
+
+      .footer-live {
+        background: #343849;
+
+        .watch-live {
+          border-right: 1px solid #5b5f79;
+          color: #fff;
+          display: inline-block;
+          font-family: $font-oswald;
+          font-size: 16px;
+          padding: 30px 0;
+          text-align: center;
+          text-transform: uppercase;
+          white-space: nowrap;
+          width: 44%;
+        }
+
+        .item {
+          display: inline-block;
+          width: 28%;
+          padding: 20px 24px;
+          position: relative;
+          top: 4px;
+
+          .title {
+            color: #9c9faf;
+            display: block;
+            font-size: 9px;
+            text-transform: uppercase;
+          }
+
+          .value {
+            color: #fff;
             font-family: $font-oswald;
             font-size: 17px;
           }
@@ -380,10 +513,10 @@ $results-selected-text-color: #2bb677;
       }
     }
 
-    /* SEE: https://davidwalsh.name/css-flip */
-    flip-container {
-      perspective: 1000;
-    }
+    // // SEE: https://davidwalsh.name/css-flip
+    // .flip-container {
+    //   perspective: 1000;
+    // }
 
     .flip-container.hover .flipper {
       transform: rotateY(180deg);

@@ -6,6 +6,7 @@ import { addEventAndStartQueue } from '../../actions/pusher-live';
 import { fetchSportIfNeeded } from '../../actions/sports';
 import { intersection as _intersection } from 'lodash';
 import { liveSelector } from '../../selectors/live';
+import { forEach as _forEach } from 'lodash';
 import { map as _map } from 'lodash';
 import { sportsSelector } from '../../selectors/sports';
 import { updatePlayerStats } from '../../actions/live-draft-groups';
@@ -63,12 +64,15 @@ const PusherData = React.createClass({
    * @return {[type]}           [description]
    */
   componentDidUpdate(prevProps) {
-    const oldSport = prevProps.liveSelector.mode.sport;
-    const newSport = this.props.liveSelector.mode.sport;
+    let oldSports = prevProps.liveSelector.mode.sport || [];
+    oldSports = [...oldSports];
 
-    if (oldSport !== newSport) {
-      this.unsubscribeToSportSockets(oldSport);
-      this.subscribeToSportSockets(newSport);
+    let newSports = this.props.liveSelector.mode.sport || [];
+    newSports = [...newSports];
+
+    if (oldSports !== newSports) {
+      this.unsubscribeToSportSockets(oldSports);
+      this.subscribeToSportSockets(newSports);
     }
   },
 
@@ -110,13 +114,6 @@ const PusherData = React.createClass({
   onBoxscoreTeamReceived(eventCall) {
     log.trace('Live.onBoxscoreTeamReceived()');
     const gameId = eventCall.game__id;
-
-    // TODO Craig - remove this
-    // current bug where player stats are being passed through in boxscore feed
-    if (eventCall.model === `${this.props.liveSelector.mode.sport}.playerstats`) {
-      this.onStatsReceived(eventCall);
-      return;
-    }
 
     // return if basic checks fail
     if (this.isPusherEventRelevant(eventCall, gameId) === false) {
@@ -200,22 +197,24 @@ const PusherData = React.createClass({
    *
    * @param  {string} newSport New sport to subscribe to
    */
-  subscribeToSportSockets(newSport) {
+  subscribeToSportSockets(newSports) {
     log.trace('pusherData.subscribeToSockets()');
 
     // if there's no sport, then no need to subscribe
-    if (newSport === null) {
+    if (newSports.length === 0) {
       return;
     }
 
     const { pusher, channelPrefix } = this.state;
 
-    const pbpChannel = pusher.subscribe(`${channelPrefix}${newSport}_pbp`);
-    pbpChannel.bind('event', this.onPBPReceived);
-    pbpChannel.bind('linked', this.onPBPReceived);
+    _forEach(newSports, (sport) => {
+      const pbpChannel = pusher.subscribe(`${channelPrefix}${sport}_pbp`);
+      pbpChannel.bind('event', this.onPBPReceived);
+      pbpChannel.bind('linked', this.onPBPReceived);
 
-    const statsChannel = pusher.subscribe(`${channelPrefix}${newSport}_stats`);
-    statsChannel.bind('player', this.onStatsReceived);
+      const statsChannel = pusher.subscribe(`${channelPrefix}${sport}_stats`);
+      statsChannel.bind('player', this.onStatsReceived);
+    });
   },
 
   /*
@@ -223,17 +222,20 @@ const PusherData = React.createClass({
    *
    * @param  {string} oldSport Old sport to unsubscribe from
    */
-  unsubscribeToSportSockets(oldSport) {
+  unsubscribeToSportSockets(oldSports) {
     log.trace('pusherData.unsubscribeToSockets()');
 
     // if there's no old sport, then no need to unsubscribe
-    if (oldSport === null) {
+    if (oldSports.length === 0) {
       return;
     }
 
     const { pusher, channelPrefix } = this.state;
-    pusher.unsubscribe(`${channelPrefix}${oldSport}_pbp`);
-    pusher.unsubscribe(`${channelPrefix}${oldSport}_stats`);
+
+    _forEach(oldSports, (sport) => {
+      pusher.unsubscribe(`${channelPrefix}${sport}_pbp`);
+      pusher.unsubscribe(`${channelPrefix}${sport}_stats`);
+    });
   },
 
   /*
