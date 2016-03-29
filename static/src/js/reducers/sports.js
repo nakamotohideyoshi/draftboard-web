@@ -6,7 +6,7 @@ import { dateNow } from '../lib/utils';
 // TODO remove this hardcode of nba
 module.exports = (state = {
   games: {},
-  types: ['nba', 'nhl'],
+  types: ['nba', 'nhl', 'mlb'],
   nba: {
     gameIds: [],
     isFetchingTeams: false,
@@ -15,6 +15,13 @@ module.exports = (state = {
     teamsExpireAt: dateNow(),
   },
   nhl: {
+    gameIds: [],
+    isFetchingTeams: false,
+    isFetchingGames: false,
+    gamesExpireAt: dateNow(),
+    teamsExpireAt: dateNow(),
+  },
+  mlb: {
     gameIds: [],
     isFetchingTeams: false,
     isFetchingGames: false,
