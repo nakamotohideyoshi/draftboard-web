@@ -5,7 +5,7 @@ import { expect } from 'chai'
 import sd from 'skin-deep'
 import {sum as _sum} from 'lodash'
 
-const TestUtils = React.addons.TestUtils
+const TestUtils = require('react-addons-test-utils');
 const props = {points: [0, 34, -5, 56, 12, 1.5, -1.7, 0, 33]}
 
 
