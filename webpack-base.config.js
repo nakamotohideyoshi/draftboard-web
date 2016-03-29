@@ -2,6 +2,7 @@ const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const WebpackNotifierPlugin = require('webpack-notifier');
 const webpack = require('webpack');
+const autoprefixer = require('autoprefixer');
 
 
 module.exports = {
@@ -31,7 +32,7 @@ module.exports = {
         test: /\.scss$/,
         loader: ExtractTextPlugin.extract(
           'css-loader?sourceMap!' +
-          'autoprefixer-loader?browsers=last 2 version!' +
+          'postcss-loader!' +
           'sass-loader?sourceMap'
         ),
       },
@@ -52,6 +53,10 @@ module.exports = {
       },
     ],
   },
+
+  postcss: [
+    autoprefixer({ browsers: ['last 2 versions'] }),
+  ],
 
   plugins: [
     // Extract css text and save to file.

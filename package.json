@@ -8,7 +8,7 @@
   "private": true,
   "dependencies": {},
   "devDependencies": {
-    "autoprefixer-loader": "^3.1.0",
+    "autoprefixer": "^6.3.5",
     "babel-core": "^6.7.2",
     "babel-loader": "^6.2.4",
     "babel-polyfill": "^6.7.2",
@@ -47,6 +47,7 @@
     "normalizr": "^1.4.0",
     "nouislider": "git://github.com/leongersen/noUiSlider.git",
     "ordinal": "0.0.2",
+    "postcss-loader": "^0.8.2",
     "pubsub-js": "^1.5.3",
     "pusher-js": "^3.0.0",
     "raven-js": "^2.0.5",
@@ -61,7 +62,6 @@
     "react-maskedinput": "^2.0.0",
     "react-redux": "^4.0.0",
     "react-router": "^1.0.0",
-    "react-tools": "^0.13.3",
     "redux": "^3.0.4",
     "redux-localstorage": "^0.4.0",
     "redux-logger": "^2.0.4",
@@ -84,7 +84,6 @@
     "webpack-dev-server": "^1.10.1",
     "webpack-notifier": "^1.2.1"
   },
-
   "scripts": {
     "coverage": "NODE_ENV=test ./node_modules/.bin/istanbul cover node_modules/mocha/bin/_mocha  -- --opts static/src/js/test/mocha.opts static/src/js/test && ./node_modules/.bin/istanbul report text",
     "coverage-coveralls": "NODE_ENV=test ./node_modules/.bin/istanbul cover node_modules/.bin/_mocha  -- --opts static/src/js/test/mocha.opts static/src/js/test && cat ./coverage/lcov.info | ./node_modules/.bin/coveralls && rm -rf ./coverage",

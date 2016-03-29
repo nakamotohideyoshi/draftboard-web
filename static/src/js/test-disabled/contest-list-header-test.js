@@ -2,7 +2,7 @@
 
 require("../../test-dom")();
 var assert = require("assert");
-var React = require("react/addons");
+var React = require("react");
 var Component = require("../../../components/contest-list/contest-list-header.jsx");
 
 
