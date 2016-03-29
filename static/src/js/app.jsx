@@ -4,12 +4,28 @@ import Cookies from 'js-cookie';
 import log from 'lib/logging';
 
 // Sentry error reporting.
-if (process.env.NODE_ENV !== 'debug') {
-  Raven.config('https://698f3f69f1e446cea667c680c4e1931b@app.getsentry.com/40103', {
-    // Whitelist all of our heroku instances.
-    whitelistUrls: [/draftboard-.*\.herokuapp\.com/],
-  }).install();
+//
+// Set the default Sentry project as Draftboard - Local. If we aren't in debug mode, change it to
+// the Draftboard - Staging project.
+// the DSN for the Draftboard - Local Sentry Project
+let sentryDSN = 'https://bbae8e8654e34a80b02999b5ade6fd81@app.getsentry.com/72241';
+
+if (process.env.NODE_ENV === 'production') {
+  // the DSN for the Draftboard - Staging Sentry Project
+  sentryDSN = 'https://698f3f69f1e446cea667c680c4e1931b@app.getsentry.com/40103';
 }
+
+Raven.config(sentryDSN, {
+  // Whitelist all of our heroku instances.
+  // whitelistUrls: [/draftboard-.*\.herokuapp\.com/],
+}).install();
+
+// Send any unhandled promise rejections to Sentry.
+// https://docs.getsentry.com/hosted/clients/javascript/usage/#promises
+window.onunhandledrejection = (evt) => {
+  Raven.captureException(evt.reason);
+};
+
 
 // Pull in the main scss file.
 require('app.scss');
