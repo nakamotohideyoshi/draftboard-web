@@ -5,7 +5,7 @@ var onChangeSpy = sinon.spy(function() {
 });
 
 require('../../test-dom')();
-var React = require('react/addons');
+var React = require('react');
 var RangeSliderComponent = require('../../../components/form-field/range-slider.jsx');
 var expect = require('chai').expect;
 

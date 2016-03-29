@@ -2,7 +2,7 @@
 
 require('../../test-dom')();
 // var sinon = require("sinon");
-var React = require('react/addons');
+var React = require('react');
 var Tooltip = require('../../../components/site/tooltip.jsx');
 var expect = require('chai').expect;
 

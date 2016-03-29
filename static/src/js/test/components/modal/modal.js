@@ -3,9 +3,10 @@
 require('../../test-dom')();
 var sinon = require("sinon");
 var onCloseSpy = sinon.spy(function() {return;});
-var React = require('react/addons');
+var React = require('react');
 var Component = require('../../../components/modal/modal.jsx');
 var expect = require('chai').expect;
+var ReactTestUtils = require('react-addons-test-utils');
 
 
 describe('Modal Component', function() {
@@ -66,7 +67,7 @@ describe('Modal Component', function() {
 
   it('should run the provided onClose prop function when the close button is pressed', function() {
     var closeBtn = React.findDOMNode(component.refs.closeBtn);
-    React.addons.TestUtils.Simulate.click(closeBtn);
+    ReactTestUtils.Simulate.click(closeBtn);
     sinon.assert.calledOnce(onCloseSpy);
   });
 
