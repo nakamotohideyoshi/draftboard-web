@@ -1,7 +1,7 @@
 'use strict';
 
 require("../../test-dom")();
-var React = require("react/addons");
+var React = require("react");
 var MyComponent = require("../../../components/lobby/lobby-draft-group-selection-sport.jsx");
 var expect = require('chai').expect;
 

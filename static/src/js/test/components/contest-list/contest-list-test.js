@@ -2,7 +2,7 @@
 
 require("../../test-dom")();
 var assert = require("assert");
-var React = require("react/addons");
+var React = require("react");
 var ContestListComponent = require("../../../components/contest-list/contest-list.jsx");
 // var expect = require('chai').expect;
 
