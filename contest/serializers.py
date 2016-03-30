@@ -67,7 +67,35 @@ class ContestIdSerializer(serializers.ModelSerializer):
         model   = Contest
         fields  = ('id', 'draft_group')
 
+class UpcomingEntrySerializer(serializers.ModelSerializer):
+    """
+    serializer for an Entry in an upcoming ContestPool
+    """
+    draft_group = serializers.SerializerMethodField()
+    def get_draft_group(self, entry):
+        return entry.contest_pool.draft_group.id
+
+    start = serializers.SerializerMethodField()
+    def get_start(self, entry):
+        return entry.contest_pool.start
+
+    lineup_name = serializers.SerializerMethodField()
+    def get_lineup_name(self, entry):
+        return entry.lineup.name
+
+    sport = serializers.SerializerMethodField()
+    def get_sport(self, entry):
+        return entry.lineup.sport
+
+    class Meta:
+
+        model  = Entry
+        fields = ('id', 'contest', 'lineup', 'draft_group', 'start', 'lineup_name', 'sport')
+
 class CurrentEntrySerializer(serializers.ModelSerializer):
+    """
+    serializers for an Entry with a non-null Contest
+    """
 
     draft_group = serializers.SerializerMethodField()
     def get_draft_group(self, entry):
