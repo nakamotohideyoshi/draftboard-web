@@ -35,6 +35,7 @@ from prize.classes import TicketPrizeStructureCreator
 import draftgroup.models
 from draftgroup.classes import DraftGroupManager
 from roster.classes import RosterManager
+from contest.buyin.models import Buyin
 
 class ContestPoolCreator(object):
 
@@ -142,6 +143,15 @@ class ContestPoolManager(object):
     def __init__(self, contest_pool):
         self.contest_pool = contest_pool
 
+    def new_contest(self):
+        """
+        create and return a new contest based on the settings of this ContestPool
+        """
+        contest_creator = ContestCreator('new contest', self.contest_pool.site_sport,
+                                         self.contest_pool.prize_structure,
+                                         self.contest_pool.start, self.contest_pool.end )
+        return contest_creator.create()
+
     def add_entry(self, contest, entry):
         pass # TODO remove
         # TODO - we are going to need the ContestPool to set the Contest(s)
@@ -191,24 +201,23 @@ class ContestPoolManager(object):
 
 class AbstractContestCreator(object):
 
-    def __init__(self, name, sport, prize_structure):
-        self.name               = None
-        self.site_sport         = None
-        self.prize_structure    = None
-        self.start              = None  # start of the contest
-        self.end                = None  # live games must start before this datetime
+    def __init__(self, name, site_sport, prize_structure, start=None, end=None):
+        self.name               = name
+        self.site_sport         = site_sport
+        self.prize_structure    = prize_structure
+        self.start              = start  # start of the contest
+        self.end                = end  # live games must start before this datetime
 
     def create(self):
         """
         Validate all the internal fields which will make this contest.
         Then create the underlying model and return it.
         """
-        c =  Contest(name=self.name,
+        c =  Contest.objects.create(name=self.name,
                      site_sport=self.site_sport,
                      prize_structure=self.prize_structure,
                      start=self.start,
                      end=self.end)
-        c.save()
         return c
 
 class ContestCreator(AbstractContestCreator):
@@ -222,12 +231,8 @@ class ContestCreator(AbstractContestCreator):
     respawn() methods, respectively.
     """
 
-    def __init__(self, name, sport, prize_structure, start, end):
-        self.name               = name
-        self.site_sport         = SiteSport.objects.get( name=sport )
-        self.prize_structure    = prize_structure
-        self.start              = start     # start of the contest
-        self.end                = end       # live games must start before this datetime
+    def __init__(self, name, site_sport, prize_structure, start, end):
+        super().__init__(name, site_sport, prize_structure, start, end)
 
 class Dummy(object):
     """
@@ -496,8 +501,11 @@ class FairMatch(object):
         # for debugging - a list of all the contests made
         self.contests = None
 
-    def create_contest(self):
-        return None # TODO - return a new contest for this ContestPool
+    def get_contests(self):
+        return self.contests['contests']
+
+    def get_contests_forced(self):
+        return self.contests['contests_forced']
 
     def fill_contest(self, entries, size, force=False):
         """
@@ -512,11 +520,10 @@ class FairMatch(object):
             err_msg = '%s needed, entries list: %s' % (size, str(entries))
             raise self.NotEnoughEntriesException(err_msg)
 
-        c = self.create_contest()
         ss = ''
         if force:
             ss = '** = superlay is possible here.'
-        print('    making contest:', str(entries), 'contest:', str(c), 'force:', str(force), '%s'%ss)
+        print('    making contest:', str(entries), 'force:', str(force), '%s'%ss)
         # TODO fill c
 
         self.__add_contest_debug(entries, size, force=force)
@@ -759,13 +766,6 @@ class ContestPoolFiller(object):
         # self.distinct_user_entries = self.entries.distinct('user')
         self.user_entries = None
 
-    def create_contest(self):
-        """
-        using the ContestPool as a template, create a contest
-        :return:
-        """
-        return None # TODO
-
     @atomic
     def fair_match(self):
         """
@@ -781,55 +781,40 @@ class ContestPoolFiller(object):
                 self.user_entries[ e.user.pk ].append( e )
             except KeyError:
                 self.user_entries[ e.user.pk ] = [ e ]
-        #print(str(self.user_entries))
 
+        # run the FairMatch algorithm to get the
+        # information on how to fill the contests
         fm = FairMatch(entry_pool, contest_size)
         fm.run()
 
+        # debug - can be removed
         fm.print_debug_info()
 
         # use the (random) contests + contests_forced lists of lists of entries
         # to generate the contests, extracting and removing 1 entry for each
         # user id we find along the way
-        for contest_entries in fm.contests.get_contests():
+        for contest_entries in fm.get_contests():
             # 1. create a contest for the entries
-            # TODO make contestpoolmanager give us a fresh newly created Contest
+            cpm = ContestPoolManager(self.contest_pool)
+            contest = cpm.new_contest()
 
             # 2. enter them into the contest
             for user_id in contest_entries:
-                entry_model = self.user_entries[ user_id ].pop()
+                entry = self.user_entries[ user_id ].pop()
 
-                # TODO by whatever means necessasry run this code for the this entry
-                #      except for COntests -- use the code in the BuyinManager as an exmaple
+                # find the contest pool entry for this user
+                entry.contest = contest
+                entry.save()
 
-                # # Create the Entry
-                # entry = Entry()
-                # entry.contest_pool = contest_pool
-                # #entry.contest = contest # the contest will be set later when the ContestPool starts
-                # entry.contest = None
-                # entry.lineup = lineup
-                # entry.user = self.user
-                # entry.save()
-                #
-                # #
-                # # Create the Buyin model
-                # buyin = Buyin()
-                # buyin.transaction = transaction
-                # #buyin.contest = contest # the contest will be set later when the ContestPool starts (?)
-                # buyin.contest = None
-                # buyin.entry = entry
-                # buyin.save()
-                #
-                # #
-                # # Increment the contest_entry variable
-                # contest_pool.current_entries = F('current_entries') + 1
-                # contest_pool.save()
-                # contest_pool.refresh_from_db()
-                #
-                # msg = "User["+self.user.username+"] bought into the contest_pool #"\
-                #               +str(contest_pool.pk)+" with entry #"+str(entry.pk)
-                # Logger.log(ErrorCodes.INFO, "ContestPool Buyin", msg )
-                #
-                # #
-                # # pusher contest updates because entries were changed
-                # ContestPoolPush(ContestPoolSerializer(contest_pool).data).send()
+                # find the buyin and set the contest to that and save it
+                buyin = Buyin.objects.get(entry=entry)
+                buyin.contest = contest
+                buyin.save()
+
+            # set the number of entries for completeness
+            contest.current_entries = len(contest_entries)
+            contest.save()
+
+            # #
+            # # pusher contest updates because entries were changed
+            # ContestPoolPush(ContestPoolSerializer(contest_pool).data).send()
