@@ -115,7 +115,10 @@ class AbstractContest(models.Model):
         :return:
         """
 
-        self.entries = self.prize_structure.get_entries()
+        if 'override_entries' not in kwargs:
+            self.entries = self.prize_structure.get_entries()
+        else:
+            kwargs.pop('override_entries') # delete it or super() will be unhappy later
 
         if self.pk is None and not self.cid:
             while True: # we'll break when we've found a non-existing id
@@ -215,6 +218,9 @@ class ContestPool(AbstractContest):
 
         verbose_name        = 'Contest Pools'
         verbose_name_plural = 'Contest Pools'
+
+    def save(self, *args, **kwargs):
+        super().save(override_entries=True, *args, **kwargs)
 
 class CurrentContestPool(ContestPool):
     """

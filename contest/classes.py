@@ -38,7 +38,11 @@ from roster.classes import RosterManager
 
 class ContestPoolCreator(object):
 
-    def __init__(self, sport, prize_structure, start, duration, draft_group=None):
+    USER_ENTRY_LIMIT    = 3
+    ENTRY_CAP           = 0     # 0 means there is no cap on the total # of entries
+
+    def __init__(self, sport, prize_structure, start, duration,
+                 draft_group=None, user_entry_limit=None, entry_cap=None):
         """
         :param sport: the name of the sport
         :param prize_structure: the prize.models.PrizeStructure
@@ -67,6 +71,16 @@ class ContestPoolCreator(object):
         if self.draft_group is not None:
             self.draft_group = self.validate_draft_group(draft_group)
 
+        # set the user entry limit (the max # of Entrys from one user for this ContestPool)
+        self.user_entry_limit = self.USER_ENTRY_LIMIT
+        if user_entry_limit is not None:
+            self.user_entry_limit = user_entry_limit
+
+        # set the entry cap (if there is one, typically there is not)
+        self.entry_cap = self.ENTRY_CAP
+        if entry_cap is not None:
+            self.entry_cap = entry_cap
+
     def get_or_create(self):
         """
         Gets a matching ContestPool or else creates and returns a new one for
@@ -89,6 +103,10 @@ class ContestPoolCreator(object):
                                                                   start=self.start,
                                                                   end=self.get_end(),
                                                                   draft_group=self.draft_group)
+        contest_pool.current_entries = 0
+        contest_pool.max_entries = self.user_entry_limit
+        contest_pool.entries = self.entry_cap
+        contest_pool.save()
         return contest_pool, created
 
     def get_end(self):
@@ -500,11 +518,16 @@ class FairMatch(object):
             ss = '** = superlay is possible here.'
         print('    making contest:', str(entries), 'contest:', str(c), 'force:', str(force), '%s'%ss)
         # TODO fill c
-        # TODO dont do this in production probably just slows it down
-        self.__add_contest_debug(entries, size)
 
-    def __add_contest_debug(self, entries, size):
-        self.contests['contests'].append( entries )
+        self.__add_contest_debug(entries, size, force=force)
+
+    def __add_contest_debug(self, entries, size, force=False):
+        if force:
+            # entries we need to enter into a contest no matter what (first entries)
+            self.contests['contests_forced'].append( entries )
+        else:
+            # this
+            self.contests['contests'].append( entries )
         self.contests['contest_size'] = size
 
     @atomic
@@ -515,15 +538,23 @@ class FairMatch(object):
         """
 
         self.contests = {
-            'entry_pool_size' : len(list(self.original_entries)),
-            'entry_pool' : list(self.original_entries),
-            'contests' : [],
+            'entry_pool_size'   : len(list(self.original_entries)),
+            'entry_pool'        : list(self.original_entries),
+            'contests'          : [],
+            'contests_forced'   : []
         }
 
         # run the algorithm, starting it all off by passing
         # a mutable copy of all the unique entries to run_h()
         all_entries = list(self.original_entries)
         self.run_h(all_entries, 1, [], verbose=True)
+
+        # now set the unused entries
+        unused_entries = self.contests['entry_pool']
+        for c in self.contests['contests']:
+            for entry in c:
+                unused_entries.remove(entry)
+        self.contests['unused_entries'] = unused_entries
 
     def get_and_remove_uniques(self, entries, exclude):
         """
@@ -668,11 +699,11 @@ class FairMatch(object):
         for k,v in self.contests.items():
             print('%-16s:'%k, v)
         print(len(self.contests['contests']), 'contests created')
-        unused_entries = self.contests['entry_pool']
-        for c in self.contests['contests']:
-            for entry in c:
-                unused_entries.remove(entry)
-        print('unused entries:', str(unused_entries))
+        #unused_entries = self.contests['entry_pool']
+        # for c in self.contests['contests']:
+        #     for entry in c:
+        #         unused_entries.remove(entry)
+        print('unused entries:', str(self.contests['unused_entries']))
 
 # from contest.classes import ContestPoolCreator
 # creator = ContestPoolCreator('nba', ps, start, duration)
@@ -710,3 +741,95 @@ class FairMatch(object):
 #         rlc = RandomLineupCreator('nba',username)
 #         rlc.create(contest_pool_id=contest_pool.pk)
 #     fair_match = FairMatch(entries=Entry.objects.filter(contest_pool=contest_pool))
+
+class ContestPoolFiller(object):
+    """
+    uses FairMatch object to determine how to fill contests based on all the entries of the ContestPool
+    """
+
+    def __init__(self, contest_pool):
+        self.contest_pool = contest_pool
+        if isinstance(self.contest_pool, int):
+            self.contest_pool = ContestPool.objects.get(pk=self.contest_pool)
+
+        # get all the Entry objects for the given contest pool
+        self.entries = Entry.objects.filter(contest_pool=contest_pool)
+
+        # # get the unique users entries
+        # self.distinct_user_entries = self.entries.distinct('user')
+        self.user_entries = None
+
+    def create_contest(self):
+        """
+        using the ContestPool as a template, create a contest
+        :return:
+        """
+        return None # TODO
+
+    @atomic
+    def fair_match(self):
+        """
+        create all required contests using the FairMatch algorithm
+        with the given user entries.
+        """
+        contest_size = self.contest_pool.prize_structure.get_entries()
+        entry_pool = [ e.user.pk for e in self.entries ]
+
+        self.user_entries = {}
+        for e in self.entries:
+            try:
+                self.user_entries[ e.user.pk ].append( e )
+            except KeyError:
+                self.user_entries[ e.user.pk ] = [ e ]
+        #print(str(self.user_entries))
+
+        fm = FairMatch(entry_pool, contest_size)
+        fm.run()
+
+        fm.print_debug_info()
+
+        # use the (random) contests + contests_forced lists of lists of entries
+        # to generate the contests, extracting and removing 1 entry for each
+        # user id we find along the way
+        for contest_entries in fm.contests.get_contests():
+            # 1. create a contest for the entries
+            # TODO make contestpoolmanager give us a fresh newly created Contest
+
+            # 2. enter them into the contest
+            for user_id in contest_entries:
+                entry_model = self.user_entries[ user_id ].pop()
+
+                # TODO by whatever means necessasry run this code for the this entry
+                #      except for COntests -- use the code in the BuyinManager as an exmaple
+
+                # # Create the Entry
+                # entry = Entry()
+                # entry.contest_pool = contest_pool
+                # #entry.contest = contest # the contest will be set later when the ContestPool starts
+                # entry.contest = None
+                # entry.lineup = lineup
+                # entry.user = self.user
+                # entry.save()
+                #
+                # #
+                # # Create the Buyin model
+                # buyin = Buyin()
+                # buyin.transaction = transaction
+                # #buyin.contest = contest # the contest will be set later when the ContestPool starts (?)
+                # buyin.contest = None
+                # buyin.entry = entry
+                # buyin.save()
+                #
+                # #
+                # # Increment the contest_entry variable
+                # contest_pool.current_entries = F('current_entries') + 1
+                # contest_pool.save()
+                # contest_pool.refresh_from_db()
+                #
+                # msg = "User["+self.user.username+"] bought into the contest_pool #"\
+                #               +str(contest_pool.pk)+" with entry #"+str(entry.pk)
+                # Logger.log(ErrorCodes.INFO, "ContestPool Buyin", msg )
+                #
+                # #
+                # # pusher contest updates because entries were changed
+                # ContestPoolPush(ContestPoolSerializer(contest_pool).data).send()
