@@ -283,7 +283,7 @@ class HomeAwaySummary(DataDenTeamBoxscores):
             self.boxscore.away_errors       = errors
 
         else:
-            print( str(self.o) )
+            #print( str(self.o) )
             print( 'HomeAwaySummary team[%s] does not match home or away!' % srid_team)
             return
 
@@ -1275,7 +1275,7 @@ class DataDenMlb(AbstractDataDenParser):
         #     #push.classes.PbpDataDenPush( push.classes.PUSHER_MLB_PBP, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
         #     pass # we dont need this
         elif self.target == ('mlb.pitch','pbp'):
-            print( obj )
+            #print( obj )
             pitch_pbp = PitchPbp()
             pitch_pbp.parse( obj )
             pitch_pbp.send()
@@ -1320,7 +1320,7 @@ class DataDenMlb(AbstractDataDenParser):
         # injury process:
         # 1) get all the updates (ie: get the most recent dd_updated__id, and get all objects with that value)
         injury_objects = list( dd.find_recent('mlb','player','rostersfull') )
-        print(str(len(injury_objects)), 'recent injury updates (for mlb its from the rostersfull parent api')
+        #print(str(len(injury_objects)), 'recent injury updates (for mlb its from the rostersfull parent api')
 
         # 2) get all the existing players with injuries
         # players = list( Player.objects.filter( injury_type__isnull=False,
