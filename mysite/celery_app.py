@@ -244,6 +244,13 @@ app.conf.update(
     CELERY_TIMEZONE = 'UTC',
     CELERY_TRACK_STARTED = True,
 
+    # testing this out
+    CELERY_REDIS_MAX_CONNECTIONS = 100,
+
+    # testing this out
+    BROKER_TRANSPORT_OPTIONS = {
+        'max_connections': 50,
+    },
 )
 
 class locking(object):
