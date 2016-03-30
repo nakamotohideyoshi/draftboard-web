@@ -631,7 +631,7 @@ class CardPurchase(object):
         '''
         Constructor
         '''
-        print('OptimalPayments: %s' % settings.OPTIMAL_ENVIRONMENT)
+        #print('OptimalPayments: %s' % settings.OPTIMAL_ENVIRONMENT)
 
         self.optimal_obj        = None
         self.r_process_payment  = None   # the last process_payment() response
