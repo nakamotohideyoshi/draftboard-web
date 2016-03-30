@@ -11,5 +11,5 @@ Django==1.8
 #dj-database-url==0.3.0 # in /requirements/_base
 
 # New Relic
-newrelic>=2.34.0.29
+newrelic>=2.60.0.46
 
