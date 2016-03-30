@@ -140,6 +140,15 @@ const calculateTimeRemaining = (sport, game) => {
   }
   const boxScore = game.boxscore;
 
+  // Baseball games don't have a 'time remaining', so return the current inning.
+  if (sport === 'mlb') {
+    // Return (top/bottom)(inning #) - example: T5
+    // TODO: the react component performs a time conversion on this so it prints
+    // out as NaN. I don't know how we plan on handling general data-instability
+    // issues so I'll let @craig take care of it.
+    return `${boxScore.inning_half}${parseInt(boxScore.inning, 10)}`;
+  }
+
   // if the game hasn't started but we have boxscore, return with full minutes
   if (boxScore.quarter === '') {
     return sportDurations.gameMinutes;
