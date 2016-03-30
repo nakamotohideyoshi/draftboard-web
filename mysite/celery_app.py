@@ -118,15 +118,15 @@ app.conf.update(
         # from the mongo instance to the django/postgres site!
         #
         # see: dataden.watcher.Trigger
-        'dataden_trigger': {
-            'task': 'dataden.tasks.dataden_trigger',
-            'schedule': timedelta(seconds=19),
-
-            #
-            # for this task, the queue in the comment match the queue for
-            # the corresponding worker in the Procfile
-            #'options': {'queue' : 'q_dataden_trigger'}
-        },
+        # 'dataden_trigger': {
+        #     'task': 'dataden.tasks.dataden_trigger',
+        #     'schedule': timedelta(seconds=19),
+        #
+        #     #
+        #     # for this task, the queue in the comment match the queue for
+        #     # the corresponding worker in the Procfile
+        #     #'options': {'queue' : 'q_dataden_trigger'}
+        # },
 
         'nba_injuries' : {
             'task': 'sports.nba.tasks.update_injuries',
