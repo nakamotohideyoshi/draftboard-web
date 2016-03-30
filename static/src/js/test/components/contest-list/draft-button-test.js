@@ -10,7 +10,7 @@ const defaultTestProps = {
 };
 
 
-describe('DraftButton Component', () => {
+describe('<DraftButton /> Component', () => {
   let wrapper;
 
   function renderComponent(props) {

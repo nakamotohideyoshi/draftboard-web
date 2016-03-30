@@ -1,7 +1,7 @@
 'use strict';
 
 require('../../test-dom')();
-var React = require('react/addons');
+var React = require('react');
 var Component = require('../../../components/contest-list/contest-range-slider-filter.jsx');
 var expect = require('chai').expect;
 var sinon = require("sinon");
