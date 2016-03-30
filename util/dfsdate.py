@@ -40,7 +40,7 @@ class DfsDate(object):
         # subtract the 'total_seconds' from the original 'now' utc datetime.
         # that datetimes's date() should be the DFS "day".
         dfs_dt = now - timedelta(seconds=total_seconds)
-        print('dfsdate date():', str(dfs_dt.date()))
+        #print('dfsdate date():', str(dfs_dt.date()))
 
         # We need to
         # get all the games on that day even
@@ -125,7 +125,7 @@ class DfsDate(object):
             end_dt = today_dt + timedelta(days=5)
 
             # print final date range for active nfl week
-            print('get_current_nfl_date_range():', str(today_dt), str(end_dt))
+            #print('get_current_nfl_date_range():', str(today_dt), str(end_dt))
 
         else:
             raise Exception('get_current_nfl_date_range() - today_dt.weekday() wasnt '
