@@ -256,7 +256,7 @@ class Trigger(object):
                     #
                     # send the 'o' object (a stat update) out as a
                     # signal because its been updated!!
-                    Update( hashable_object ).send(async=False)
+                    Update( hashable_object ).send(async=True)
                     added += 1
 
                 count += 1
