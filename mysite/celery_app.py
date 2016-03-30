@@ -256,6 +256,8 @@ app.conf.update(
 
     # None causes a connection to be created and closed for each use
     BROKER_POOL_LIMIT = None,  # default: 10
+
+
 )
 
 class locking(object):
