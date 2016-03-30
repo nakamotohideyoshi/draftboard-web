@@ -23,6 +23,7 @@ Raven.config(sentryDSN, {
 // Send any unhandled promise rejections to Sentry.
 // https://docs.getsentry.com/hosted/clients/javascript/usage/#promises
 window.onunhandledrejection = (evt) => {
+  log.error(evt.reason);
   Raven.captureException(evt.reason);
 };
 
