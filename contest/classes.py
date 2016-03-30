@@ -674,9 +674,39 @@ class FairMatch(object):
                 unused_entries.remove(entry)
         print('unused entries:', str(unused_entries))
 
+# from contest.classes import ContestPoolCreator
+# creator = ContestPoolCreator('nba', ps, start, duration)
+# from prize.models import PrizeStructure
+# ps = PrizeStructure.objects.get(pk = 1)
+# from django.utils import timezone
+# start = timezone.now()
+# start = start.replace(2016, 3, 30, 23, 30, 0, 0) # 7:30pm est
+# duration = 270
+# creator = ContestPoolCreator('nba', ps, start, duration)
+# cp, c = creator.get_or_create()
 #
-# examples usage:
-#   test_entries = [1,1,2,3,4,5,5,5,6,7,8,9,9,9,9,9,9,9]
-#   contest_size = 2
-#   fm = FairMatch(test_entries, contest_size)
-#   fm.run()
+# username = 'steve'
+# from django.contrib.auth.models import User
+# user = User.objects.get(username=username)
+# from cash.classes import CashTransaction
+# ct = CashTransaction(user)
+# ct.deposit(10.00)
+# contest_pool_id = 2
+# from contest.models import ContestPool
+# cp = ContestPool.objects.get(pk = contest_pool_id)
+# from replayer.classes import RandomLineupCreator
+# rlc = RandomLineupCreator('nba',username)
+# rlc.create(cp.pk)
+#
+# # get all LiveContestPool.objects.all()
+# # ensure that some ContestPools exist upcoming for this to work
+# %cpaste
+# from contest.models import UpcomingContestPool, Entry
+# from contest.classes import FairMatch
+# from replayer.classes import RandomLineupCreator
+# contest_pools = UpcomingContestPool.objects.all()
+# for contest_pool in contest_pools:
+#     for username in usernames:
+#         rlc = RandomLineupCreator('nba',username)
+#         rlc.create(contest_pool_id=contest_pool.pk)
+#     fair_match = FairMatch(entries=Entry.objects.filter(contest_pool=contest_pool))

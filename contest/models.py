@@ -330,43 +330,67 @@ class LobbyContestPool(ContestPool):
     class Meta:
         proxy = True
 
-# class LobbyContest(Contest):
-#     """
-#     PROXY model for Upcoming & Live Contests ... and rest API use.
+class UpcomingContestPool(ContestPool):
+    """
+    PROXY model for upcoming Contests ... and rest API use.
+
+    This model contains all the ContestPools which havent started yet.
+
+    This may appear the same as the LobbyContestPool model,
+    however this should always contain all the ContestPools,
+    whereas LobbyContestPool may not!
+    """
+
+    class UpcomingContestPoolManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status=ContestPool.SCHEDULED,
+                                                        start__gt=timezone.now())
+
+    # yes, the UpcomingContest.objects on which you can get() or filter(), etc...
+    objects = UpcomingContestPoolManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = 'Upcoming'
+        verbose_name_plural = 'Upcoming'
+
+class LiveContestPool(ContestPool):
+    """
+    PROXY model for Live ContestPools
+
+    Get the live ContestPool objects, which should only exist in this state
+    until they have spawned the necessary Contests and have had their
+    status set to 'created'.
+    """
+    class LiveContestPoolManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status__in=ContestPool.SCHEDULED,
+                                                            start__lte=timezone.now())
+
+    objects = LiveContestPoolManager()
+
+    class Meta:
+        proxy = True
 #
-#     This is the model which gets the Contests for
-#     display on the home lobby, so make sure you know
-#     what you are doing if you are making changes.
-#     """
-#     class LobbyContestManager(models.Manager):
-#         def get_queryset(self):
-#             return super().get_queryset().filter(status__in=Contest.STATUS_LOBBY_CONTESTS,
-#                                                                     start__gte=timezone.now())
-#
-#     objects = LobbyContestManager()
-#
-#     class Meta:
-#         proxy = True
-#
-# class CurrentContest(Contest):
-#     """
-#     PROXY model for Upcoming & Live Contests ... but for which User Entries will be pulled out of.
-#
-#     The reason for separating this from LobbyContest is in preparation for potential future changes.
-#
-#     This is the model which gets the Contests for
-#     display on the home lobby, so make sure you know
-#     what you are doing if you are making changes.
-#     """
-#     class CurrentContestManager(models.Manager):
-#         def get_queryset(self):
-#             return super().get_queryset().filter(status__in=Contest.STATUS_CURRENT_CONTESTS)
-#
-#     objects = CurrentContestManager()
-#
-#     class Meta:
-#         proxy = True
-#
+class CurrentContest(Contest):
+    """
+    PROXY model for Upcoming & Live Contests ... but for which User Entries will be pulled out of.
+
+    The reason for separating this from LobbyContest is in preparation for potential future changes.
+
+    This is the model which gets the Contests for
+    display on the home lobby, so make sure you know
+    what you are doing if you are making changes.
+    """
+    class CurrentContestManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status__in=Contest.STATUS_CURRENT_CONTESTS)
+
+    objects = CurrentContestManager()
+
+    class Meta:
+        proxy = True
+
 # class UpcomingContest(Contest):
 #     """
 #     PROXY model for upcoming Contests ... and rest API use.
@@ -386,7 +410,6 @@ class LobbyContestPool(ContestPool):
 #         proxy = True
 #         verbose_name = 'Upcoming'
 #         verbose_name_plural = 'Upcoming'
-
 
 class CompletedContest(Contest):
     """

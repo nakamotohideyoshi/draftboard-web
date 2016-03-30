@@ -18,6 +18,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.exceptions import ValidationError, NotFound
 from contest.serializers import (
     ContestSerializer,
+    UpcomingEntrySerializer,
     CurrentEntrySerializer,
     RegisteredUserSerializer,
     EnterLineupSerializer,
@@ -32,15 +33,20 @@ from contest.serializers import (
     RankedEntrySerializer,
     ContestPoolSerializer,
 )
-from contest.classes import ContestLineupManager
+from contest.classes import (
+    ContestLineupManager,
+)
 from contest.models import (
     Contest,
     Entry,
+    CurrentContest,
     LiveContest,
     HistoryContest,
     HistoryEntry,
     ClosedEntry,
     LobbyContestPool,
+    CurrentContestPool,
+    UpcomingContestPool,
 )
 from contest.payout.models import (
     Payout,
@@ -152,42 +158,64 @@ class UserEntryAPIView(generics.ListAPIView):
         # timer.stop() - takes about 40 milliseconds for small datasets: ie: 100 entries
         return data
 
-# class CurrentEntryAPIView(generics.ListAPIView):
-#     """
-#     Get the User's current entries (the Entries they own in live/upcoming contests)
-#     """
-#
-#     permission_classes      = (IsAuthenticated,)
-#     serializer_class        = CurrentEntrySerializer
-#
-#     def get_entries(self, user, contests):
-#         """
-#         return a queryset of the users entries (a map between contest & lineup)
-#         which are from the
-#         """
-#         return Entry.objects.filter(lineup__user=user, contest__in=contests)
-#
-#     def get_contests(self, user):
-#         # get a list of our entries to every possible distinct contest
-#         # timer = SimpleTimer()
-#         # timer.start()
-#         return CurrentContest.objects.all()
-#
-#     def get_queryset(self):
-#         """
-#         Return a QuerySet from the UpcomingContest model, for authenticated user.
-#
-#         raises Exception if the inheriting class did not set 'contest_model'
-#         """
-#
-#         contests = self.get_contests(self.request.user)
-#         return self.get_entries(self.request.user, contests)
+class CurrentEntryAPIView(generics.ListAPIView):
+    """
+    Get the User's current entries (the Entries they own in live/upcoming contests)
+    """
+
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = CurrentEntrySerializer
+
+    def get_entries(self, user, contests):
+        """
+        return a queryset of the users entries (a map between contest & lineup)
+        which are from the
+        """
+        return Entry.objects.filter(lineup__user=user, contest__in=contests)
+
+    def get_contests(self, user):
+        # get a list of our entries to every possible distinct contest
+        # timer = SimpleTimer()
+        # timer.start()
+        return CurrentContest.objects.all()
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the UpcomingContest model, for authenticated user.
+
+        raises Exception if the inheriting class did not set 'contest_model'
+        """
+
+        contests = self.get_contests(self.request.user)
+        return self.get_entries(self.request.user, contests)
 
 # class UserUpcomingAPIView(UserEntryAPIView):
 #     """
 #     A User's upcoming Contests
 #     """
 #     contest_model = UpcomingContest
+
+class UserUpcomingContestPoolAPIView(UserEntryAPIView):
+    """
+    a user's registered-in ContestPools in the future
+    """
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = UpcomingEntrySerializer
+
+    def get_entries(self, user):
+        """
+        return a queryset of the users entries (a map between contest & lineup)
+        which are from the upcoming ContestPools
+        """
+        return Entry.objects.filter(lineup__user=user,
+                                    contest_pool__in=UpcomingContestPool.objects.all())
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the UpcomingContestPool model containing
+        all the entries for the user
+        """
+        return self.get_entries(self.request.user)
 
 class UserLiveAPIView(UserEntryAPIView):
     """
