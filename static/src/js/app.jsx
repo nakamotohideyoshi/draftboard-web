@@ -16,6 +16,11 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 Raven.config(sentryDSN, {
+  release: window.dfs.gitCommitUUID,
+  tags: {
+    git_commit: window.dfs.gitCommitUUID,
+    pusher_key: window.dfs.user.pusher_key,
+  },
   // Whitelist all of our heroku instances.
   // whitelistUrls: [/draftboard-.*\.herokuapp\.com/],
 }).install();
@@ -26,7 +31,12 @@ window.onunhandledrejection = (evt) => {
   log.error(evt.reason);
   Raven.captureException(evt.reason);
 };
-
+// Set user info.
+if (window.dfs.user.isAuthenticated) {
+  Raven.setUserContext({
+    id: window.dfs.user.username,
+  });
+}
 
 // Pull in the main scss file.
 require('app.scss');
