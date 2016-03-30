@@ -125,7 +125,7 @@ class DfsDate(object):
             end_dt = today_dt + timedelta(days=5)
 
             # print final date range for active nfl week
-            print('get_current_nfl_date_range():', str(today_dt), str(end_dt))
+            #print('get_current_nfl_date_range():', str(today_dt), str(end_dt))
 
         else:
             raise Exception('get_current_nfl_date_range() - today_dt.weekday() wasnt '

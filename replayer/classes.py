@@ -93,7 +93,7 @@ class ReplayManager(object):
         update.ts = timezone.now()
         update.ns = oplog_object.get_ns()
         update.o = json.loads( json.dumps( oplog_object.get_o() ) )
-        print(json.loads( json.dumps( oplog_object.get_o() ) ))
+        #print(json.loads( json.dumps( oplog_object.get_o() ) ))
         #print('update.ts',str(update.ts), 'update.ns', str(update.ns), 'update.o', str(update.o))
         update.save()
 

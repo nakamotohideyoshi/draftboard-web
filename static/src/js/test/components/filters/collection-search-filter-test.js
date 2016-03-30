@@ -1,9 +1,10 @@
 'use strict';
 
 require('../../test-dom')();
-var React = require('react/addons');
+var React = require('react');
 var Component = require('../../../components/filters/collection-search-filter.jsx');
 var expect = require('chai').expect;
+var ReactTestUtils = require('react-addons-test-utils');
 
 
 describe('CollectionSearchFilter Component', function() {
@@ -77,7 +78,7 @@ describe('CollectionSearchFilter Component', function() {
 
   it("should show the search field when clicked", function() {
     // Click the element.
-    React.addons.TestUtils.Simulate.click(this.component.getDOMNode());
+    ReactTestUtils.Simulate.click(this.component.getDOMNode());
     // ensure the active class was added.
     expect(this.component.getDOMNode().className).to.contain('cmp-collection-search-filter--active');
   });

@@ -26,7 +26,7 @@ CACHES = {
         'LOCATION': "redis://:%s@%s:%s/0" % (redis_url.password, redis_url.hostname, redis_url.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_KWARGS': {"max_connections": 256}
+            'CONNECTION_POOL_KWARGS': {"max_connections": 5}
         },
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
@@ -73,11 +73,13 @@ PUSHER_SECRET = environ.get('PUSHER_SECRET')
 
 #
 # dataden mongo database connection
-MONGO_AUTH_DB   = 'admin'
-MONGO_USER      = 'admin'
-MONGO_PASSWORD  = 'dataden1'
+MONGO_AUTH_DB   = environ.get('MONGO_AUTH_DB','admin')
+MONGO_USER      = environ.get('MONGO_USER','admin')
+MONGO_PASSWORD  = environ.get('MONGO_PASSWORD','dataden1') #'dataden1'
 MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
-MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
+MONGO_HOST      = environ.get('MONGO_HOST','mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273')
+MONGO_HOST      = MONGO_HOST % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
+#MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
 # MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
 
 # # if this config var exists, override the default production value

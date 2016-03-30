@@ -118,15 +118,15 @@ app.conf.update(
         # from the mongo instance to the django/postgres site!
         #
         # see: dataden.watcher.Trigger
-        'dataden_trigger': {
-            'task': 'dataden.tasks.dataden_trigger',
-            'schedule': timedelta(seconds=19),
-
-            #
-            # for this task, the queue in the comment match the queue for
-            # the corresponding worker in the Procfile
-            #'options': {'queue' : 'q_dataden_trigger'}
-        },
+        # 'dataden_trigger': {
+        #     'task': 'dataden.tasks.dataden_trigger',
+        #     'schedule': timedelta(seconds=19),
+        #
+        #     #
+        #     # for this task, the queue in the comment match the queue for
+        #     # the corresponding worker in the Procfile
+        #     #'options': {'queue' : 'q_dataden_trigger'}
+        # },
 
         'nba_injuries' : {
             'task': 'sports.nba.tasks.update_injuries',
@@ -207,6 +207,20 @@ app.conf.update(
     CELERY_ENABLE_UTC = True,
     CELERY_TIMEZONE = 'UTC',
     CELERY_TRACK_STARTED = True,
+
+    # testing this out, but the BROKER_TRANSPORT_OPTIONS seems to be the
+    # setting that actually caps the max connections when were viewing
+    # connections on the redis side
+    CELERY_REDIS_MAX_CONNECTIONS = 5,
+
+    # testing this out
+    BROKER_TRANSPORT_OPTIONS = {
+        'max_connections': 5,
+    },
+
+    # None causes a connection to be created and closed for each use
+    BROKER_POOL_LIMIT = None,  # default: 10
+
 
 )
 
