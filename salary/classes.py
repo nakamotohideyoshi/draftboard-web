@@ -256,6 +256,8 @@ class SalaryGenerator(FppgGenerator):
         self.site_sport = pool.site_sport
         self.site_sport_manager = SiteSportManager()
         self.regular_season_games = None
+        self.excluded_players       = None
+        self.excluded_player_stats  = None
 
     def generate_salaries(self):
         """
@@ -268,6 +270,7 @@ class SalaryGenerator(FppgGenerator):
         self.regular_season_games = game_class.objects.filter( season__season_type='reg' )
 
         players = self.helper_get_player_stats()
+        self.excluded_players = self.get_salary_player_stats_objects(self.excluded_player_stats)
 
         #
         # Get the average score per position so we know
@@ -290,6 +293,12 @@ class SalaryGenerator(FppgGenerator):
         # the mean of weighted score of their position
         self.helper_update_salaries(players, position_average_list,sum_average_points)
 
+        # call same method on the excluded players who should all get set to the minimum salary
+        #self.helper_update_salaries(self.excluded_players, position_average_list, sum_average_points)
+        # get all the pool players now and make sure none of them are below the min value
+        min_salary = self.salary_conf.min_player_salary
+        Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
+
     def helper_get_player_stats(self):
         """
         For each player in the PlayerStats table, get the games
@@ -305,14 +314,21 @@ class SalaryGenerator(FppgGenerator):
         #
         #
         players = []
+        excluded_players = []
         for player_stats_class in self.player_stats_classes:
             #
             # iterate through all player_stats ever
             reg_season_game_pks = [ g.pk for g in self.regular_season_games ]
             all_player_stats = player_stats_class.objects.filter(fantasy_points__gt=0,
                                                         game_id__in=reg_season_game_pks)
-
+            excluded_players.extend(player_stats_class.objects.filter(fantasy_points__lte=0))
             players.extend(self.get_salary_player_stats_objects(all_player_stats))
+
+        # this will exclude a set of players from receiving a salary in
+        # the algorithm -- that being the set of players who have
+        # not played, or who have played but have 0.0 fantasy points.
+        # lets store those players and give them a minimum salary later on.
+        self.excluded_player_stats = excluded_players
 
         return players
 
@@ -518,21 +534,26 @@ class SalaryGenerator(FppgGenerator):
                 # in the pos_arr
                 count = 0
                 sum   = 0.0
+                average_weighted_fantasy_points_for_pos = 0.0
                 for player in players:
                     if(player.player_stats_list[0].position in pos_arr):
                         if player.get_fantasy_average() >= self.salary_conf.min_avg_fppg_allowed_for_avg_calc:
                             sum   += player.fantasy_weighted_average
                             count += 1
-                average_weighted_fantasy_points_for_pos = (sum / ((float)(count)))
+                if count > 0:
+                    average_weighted_fantasy_points_for_pos = (sum / ((float)(count)))
 
                 #
                 # creates the salary for each player in the specified roster spot
                 for player in players:
                     if player.player_stats_list[0].position in pos_arr:
                         salary          = self.get_salary_for_player(player.player)
-                        salary.amount   = ((player.fantasy_weighted_average /
-                                          average_weighted_fantasy_points_for_pos) *
-                                         average_salary)
+                        if average_weighted_fantasy_points_for_pos == 0.0:
+                            salary.amount = self.salary_conf.min_player_salary
+                        else:
+                            salary.amount = ((player.fantasy_weighted_average /
+                                              average_weighted_fantasy_points_for_pos) * average_salary)
+
                         salary.amount   = self.__round_salary(salary.amount)
                         if(salary.amount < self.salary_conf.min_player_salary):
                             salary.amount = self.salary_conf.min_player_salary
@@ -541,6 +562,8 @@ class SalaryGenerator(FppgGenerator):
                         salary.player   = player.player
                         salary.primary_roster = roster_spot
                         salary.fppg     = player.fantasy_weighted_average
+                        if salary.fppg is None:
+                            salary.fppg = 0.0
                         salary.save()
 
     def get_salary_for_player(self, player):
