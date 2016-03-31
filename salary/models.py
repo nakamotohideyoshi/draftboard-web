@@ -1,8 +1,12 @@
+#
+# salary/models.py
+
 from django.db import models
 import sports.models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from roster.models import RosterSpot
+
 class SalaryConfig(models.Model):
     """
     The class that keeps a Salary algorithm for a specified sport
