@@ -250,10 +250,12 @@ const NavScoreboard = React.createClass({
     if (this.state.selectedType === TYPE_SELECT_LINEUPS) {
       return <NavScoreboardLineupsList lineups={this.props.currentLineupsSelector} />;
     } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
-      const sport = this.props.sportsSelector[this.state.selectedKey];
-      const games = this.props.sportsSelector.games;
-
-      return <NavScoreboardGamesList sport={sport} games={games} />;
+      return (
+        <NavScoreboardGamesList
+          sport={this.props.sportsSelector[this.state.selectedKey]}
+          games={this.props.sportsSelector.games}
+        />
+      );
     }
 
     return null;

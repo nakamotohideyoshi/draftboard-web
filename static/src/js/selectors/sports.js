@@ -20,12 +20,10 @@ export const sportsSelector = createSelector(
       const sport = game.sport;
       const teams = sports[sport].teams;
 
-      // If we have team info...
-      if (teams) {
-        // add team information
-        newGame.homeTeamInfo = teams[game.srid_home];
-        newGame.awayTeamInfo = teams[game.srid_away];
-      }
+      // Add team information - In case we don't have team info yet, default to
+      // an empty object so things don't die looking for properties.
+      newGame.homeTeamInfo = teams[game.srid_home] || {};
+      newGame.awayTeamInfo = teams[game.srid_away] || {};
 
       // update quarter to display properly
       if (newGame.hasOwnProperty('boxscore')) {

@@ -21,6 +21,10 @@ Raven.config(sentryDSN, {
     git_commit: window.dfs.gitCommitUUID,
     pusher_key: window.dfs.user.pusher_key,
   },
+  ignoreErrors: [
+    // This is generally a pusher disconnection due to things like the user closing their laptop.
+    'Error: Request has been terminated',
+  ],
   // Whitelist all of our heroku instances.
   // whitelistUrls: [/draftboard-.*\.herokuapp\.com/],
 }).install();
