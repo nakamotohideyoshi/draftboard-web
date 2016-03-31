@@ -818,3 +818,8 @@ class ContestPoolFiller(object):
             # #
             # # pusher contest updates because entries were changed
             # ContestPoolPush(ContestPoolSerializer(contest_pool).data).send()
+
+        # change the status of the contest pool to created now
+        self.contest_pool.status = ContestPool.CREATED
+        self.contest_pool.save()
+        self.contest_pool.refresh_from_db()
