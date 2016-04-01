@@ -497,13 +497,13 @@ class SalaryGenerator(FppgGenerator):
         # initialize the salaries by setting everyone to the minimum
         min_salary = self.salary_conf.min_player_salary
         #Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
-        count = 0
+        #count = 0
         for sal_obj in Salary.objects.filter(pool=self.pool):
             old_sal = sal_obj.amount
             sal_obj.amount = min_salary
             sal_obj.save()
             sal_obj.refresh_from_db()
-            print('old:', str(old_sal), 'now:', str(sal_obj.amount), 'player:',str(sal_obj.player))
+            #print('old:', str(old_sal), 'now:', str(sal_obj.amount), 'player:',str(sal_obj.player))
 
         roster_spots = RosterSpot.objects.filter(site_sport = self.site_sport)
         for roster_spot in roster_spots:
