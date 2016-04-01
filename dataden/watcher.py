@@ -166,8 +166,10 @@ class Trigger(object):
 
     PARENT_API__ID = 'parent_api__id'
 
+    DEFAULT_CURSOR_TYPE = CursorType.TAILABLE_AWAIT
+
     def __init__(self, cache='default', clear=False, init=False,
-                                db=None, coll=None, parent_api=None ):
+                                db=None, coll=None, parent_api=None, cursor_type=None ):
         """
         by default, uses all the enabled Trigger(s), see /admin/dataden/trigger/
 
@@ -204,6 +206,8 @@ class Trigger(object):
         self.live_stats_cache   = LiveStatsCache( cache, clear=clear )
         self.trigger_cache      = TriggerCache()
 
+        self.cursor_type = cursor_type
+
     def single_trigger_override(self):
         """
         if this returns True, it will block the query() from
@@ -235,37 +239,49 @@ class Trigger(object):
             self.last_ts = self.get_last_ts() # get most recent ts, (by default, dont reparse the world)
 
         print('last_ts():', str(self.last_ts))
-        while True:
-            self.timer.start()
-            self.reload_triggers() # do this pre query() being called
-            cur = self.get_cursor( self.oplog, self.query() )
+        self.timer.start()
+        self.reload_triggers() # do this pre query() being called
+        cur = self.get_cursor( self.oplog, self.query(), cursor_type=self.cursor_type )
+        #count = 0
+        while cur.alive:
+            #count += 1
+            # self.timer.start()
+            # self.reload_triggers() # do this pre query() being called
+            # cur = self.get_cursor( self.oplog, self.query(), cursor_type=self.cursor_type )
 
-            count = 0
-            added = 0
+            # count = 0
+            # added = 0
 
-            for obj in cur:
-                #self.timer.start()
-                hashable_object = OpLogObj(obj)
-                self.last_ts = hashable_object.get_ts()
+            #self.timer.start()
+            try:
+                obj = cur.next()
+            except StopIteration:
+                #print('waiting')
+                continue
 
+            hashable_object = OpLogObj(obj)
+            self.last_ts = hashable_object.get_ts()
+
+            #
+            # the live stats cache will filter out objects
+            # from being sent unless its the first time
+            # they've been seen, or if there have been changes
+            if self.live_stats_cache.update( hashable_object ):
                 #
-                # the live stats cache will filter out objects
-                # from being sent unless its the first time
-                # they've been seen, or if there have been changes
-                if self.live_stats_cache.update( hashable_object ):
-                    #
-                    # send the 'o' object (a stat update) out as a
-                    # signal because its been updated!!
-                    Update( hashable_object ).send(async=True)
-                    added += 1
+                # send the 'o' object (a stat update) out as a
+                # signal because its been updated!!
+                Update( hashable_object ).send(async=True)
+                #added += 1
 
-                count += 1
-                self.timer.stop(print_now=False, sum=True)
-
-            msg = '(%s of %s) total objects are new' % (str(added), str(count))
-            self.timer.stop(msg='%s | loop time [avg time per object %s]' % \
-                                            (msg, str(self.timer.get_sum())) )
-            self.timer.start(clear_sum=True) # and then the next start() will correct
+            #count += 1
+            #self.timer.stop(print_now=False, sum=True)
+            ns = hashable_object.get_ns()
+            parent_api = hashable_object.get_parent_api()
+            #self.timer.stop(msg='(%s) obj %s %s' % (str(count), str(ns), str(parent_api)))
+            #msg = '(%s of %s) total objects are new' % (str(added), str(count))
+            #self.timer.stop(msg='%s | loop time [avg time per object %s]' % \
+            #                                (msg, str(self.timer.get_sum())) )
+            #self.timer.start(clear_sum=True) # and then the next start() will correct
 
     def reload_triggers(self):
         self.triggers = self.trigger_cache.get_triggers()
