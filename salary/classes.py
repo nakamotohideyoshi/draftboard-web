@@ -264,6 +264,7 @@ class SalaryGenerator(FppgGenerator):
         Generates the salaries for the player_stats_players
         :return:
         """
+
         #
         # get the regular season games, and all the players
         game_class = self.site_sport_manager.get_game_class(self.site_sport)
@@ -293,12 +294,6 @@ class SalaryGenerator(FppgGenerator):
         # the mean of weighted score of their position
         self.helper_update_salaries(players, position_average_list,sum_average_points)
 
-        # call same method on the excluded players who should all get set to the minimum salary
-        #self.helper_update_salaries(self.excluded_players, position_average_list, sum_average_points)
-        # get all the pool players now and make sure none of them are below the min value
-        min_salary = self.salary_conf.min_player_salary
-        Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
-
     def helper_get_player_stats(self):
         """
         For each player in the PlayerStats table, get the games
@@ -308,8 +303,6 @@ class SalaryGenerator(FppgGenerator):
         :return a list of SalaryPlayerObjects
 
         """
-
-        #print( 'self.player_stats_classes', str(self.player_stats_classes))
 
         #
         #
@@ -500,6 +493,18 @@ class SalaryGenerator(FppgGenerator):
         :param sum_average_points:
         :return:
         """
+
+        # initialize the salaries by setting everyone to the minimum
+        min_salary = self.salary_conf.min_player_salary
+        #Salary.objects.filter(pool=self.pool, amount__lt=min_salary).update(amount=min_salary)
+        count = 0
+        for sal_obj in Salary.objects.filter(pool=self.pool):
+            old_sal = sal_obj.amount
+            sal_obj.amount = min_salary
+            sal_obj.save()
+            sal_obj.refresh_from_db()
+            print('old:', str(old_sal), 'now:', str(sal_obj.amount), 'player:',str(sal_obj.player))
+
         roster_spots = RosterSpot.objects.filter(site_sport = self.site_sport)
         for roster_spot in roster_spots:
             #
