@@ -188,6 +188,7 @@ const Live = React.createClass({
       return (
         <LiveLineupSelectModal
           changePathAndMode={this.changePathAndMode}
+          entriesLoaded={liveData.entriesHaveLoaded}
           entries={liveData.entries}
         />
       );

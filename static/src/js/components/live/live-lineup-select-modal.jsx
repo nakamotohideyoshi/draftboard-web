@@ -13,6 +13,7 @@ import { uniq as _uniq } from 'lodash';
 const LiveLineupSelectModal = React.createClass({
 
   propTypes: {
+    entriesLoaded: React.PropTypes.bool.isRequired,
     changePathAndMode: React.PropTypes.func.isRequired,
     entries: React.PropTypes.array.isRequired,
   },
@@ -30,7 +31,15 @@ const LiveLineupSelectModal = React.createClass({
 
   componentWillMount() {
     // if there's only one entry, then just go to it
-    if (_size(this.props.entries)) {
+    if (_size(this.props.entries) === 1) {
+      this.selectLineup(this.props.entries[0]);
+    }
+  },
+
+  componentDidUpdate(prevProps) {
+    // if there's only one entry, then just go to it
+    const newSize = _size(this.props.entries);
+    if (newSize !== _size(prevProps.entries) && newSize === 1) {
       this.selectLineup(this.props.entries[0]);
     }
   },
@@ -144,7 +153,29 @@ const LiveLineupSelectModal = React.createClass({
     );
   },
 
+  /*
+   * This loading screen shows in lieu of the live section when it takes longer than a second to do an initial load
+   * TODO Live - get built out
+   *
+   * @return {JSXElement}
+   */
+  renderLoadingScreen() {
+    return (
+      <div className="live--loading">
+        <div className="preload-court" />
+        <div className="spinner">
+          <div className="double-bounce1" />
+          <div className="double-bounce2" />
+        </div>
+      </div>
+    );
+  },
+
   render() {
+    if (this.props.entriesLoaded === false) {
+      return this.renderLoadingScreen();
+    }
+
     // let title = (this.state.selectedSport) ? 'Choose a lineup' : 'Choose a sport'
     let title = 'Choose a lineup';
     if (_size(this.props.entries) === 0) {
