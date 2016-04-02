@@ -1,25 +1,41 @@
 $live-lineup-width: 200px;
 
-body.one-col--live-nba {
-  background: transparent url(../img/blocks/live/bg.jpg) no-repeat left top;
-  background-size: 100% 100%;
-}
-
 .cmp-live {
   min-height: 600px;
   height: 100%;
   margin: 0 auto;
   min-width: 1024px;
+  padding-top: 54px;
   position: relative;
   width: 100%;
 
   // react element
-  > div {
+  .live__bg {
+    background-color: transparent;
+    background-image: transparent url(../img/blocks/live/bg.jpg);
+    background-position: center top;
+    background-repeat: no-repeat;
+    background-size: cover;
     height: 100%;
-  }
 
-  // for the top menu
-  padding-top: 60px;
+    &.live--countdown {
+      &.live--sport {
+        &-mlb {
+          background-image: url(../img/blocks/live-countdown/bg-mlb.jpg);
+          background-size: cover;
+        }
+        &-nba {
+          background-image: url(../img/blocks/live-countdown/bg-nba.jpg);
+          background-size: cover;
+        }
+      }
+    }
+
+    &.live--sport-nba {
+      background: transparent url(../img/blocks/live/bg-nba.jpg) no-repeat left top;
+      background-size: cover;
+    }
+  }
 
   & > * {
     position: relative;
@@ -57,7 +73,6 @@ body.one-col--live-nba {
     left: 0;
     top: 0;
     position: absolute;
-    background: rgba(18, 21, 29, .8);
 
     .spinner {
       width: 40px;
