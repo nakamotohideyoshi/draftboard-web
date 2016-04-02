@@ -102,7 +102,7 @@ const shouldFetchPlayersStats = (state, lineupId) => {
     return false;
   }
 
-  if (dateNow() < state.livePlayers.expiresAt) {
+  if (dateNow() > state.livePlayers.expiresAt) {
     return false;
   }
 
