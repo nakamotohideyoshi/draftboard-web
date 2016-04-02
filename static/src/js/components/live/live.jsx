@@ -162,11 +162,13 @@ const Live = React.createClass({
    */
   renderLoadingScreen() {
     return (
-      <div className="live--loading">
-        <div className="preload-court" />
-        <div className="spinner">
-          <div className="double-bounce1" />
-          <div className="double-bounce2" />
+      <div className="live__bg">
+        <div className="live--loading">
+          <div className="preload-court" />
+          <div className="spinner">
+            <div className="double-bounce1" />
+            <div className="double-bounce2" />
+          </div>
         </div>
       </div>
     );
@@ -186,11 +188,13 @@ const Live = React.createClass({
         liveData.hasOwnProperty('entries')
     ) {
       return (
-        <LiveLineupSelectModal
-          changePathAndMode={this.changePathAndMode}
-          entriesLoaded={liveData.entriesHaveLoaded}
-          entries={liveData.entries}
-        />
+        <div className="live__bg">
+          <LiveLineupSelectModal
+            changePathAndMode={this.changePathAndMode}
+            entriesLoaded={liveData.entriesHaveLoaded}
+            entries={liveData.entries}
+          />
+        </div>
       );
     }
 
@@ -204,10 +208,12 @@ const Live = React.createClass({
     // show the countdown until it goes live
     if (myLineup.roster === undefined && liveData.draftGroupStarted === false) {
       return (
-        <LiveCountdown
-          onCountdownComplete={this.forceContestLineupsRefresh}
-          lineup={myLineup}
-        />
+        <div className={`live__bg live--countdown live--sport-${myLineup.draftGroup.sport}`}>
+          <LiveCountdown
+            onCountdownComplete={this.forceContestLineupsRefresh}
+            lineup={myLineup}
+          />
+        </div>
       );
     }
 
@@ -261,7 +267,7 @@ const Live = React.createClass({
       }
 
       return (
-        <div>
+        <div className={`live__bg live--sport-${myLineup.draftGroup.sport}`}>
           <LiveLineup
             changePathAndMode={this.changePathAndMode}
             games={this.props.sportsSelector.games}
