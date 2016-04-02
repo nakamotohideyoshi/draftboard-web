@@ -24,6 +24,7 @@ const LiveLineup = React.createClass({
 
   propTypes: {
     changePathAndMode: React.PropTypes.func.isRequired,
+    draftGroupStarted: React.PropTypes.bool.isRequired,
     games: React.PropTypes.object.isRequired,
     lineup: React.PropTypes.object.isRequired,
     mode: React.PropTypes.object.isRequired,
@@ -102,6 +103,7 @@ const LiveLineup = React.createClass({
 
       return (
         <LiveLineupPlayer
+          draftGroupStarted={this.props.draftGroupStarted}
           eventDescription={eventDescription}
           key={playerId}
           isPlaying={isPlaying}

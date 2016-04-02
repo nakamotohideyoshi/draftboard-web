@@ -152,13 +152,13 @@ export const compileLineupStats = (lineup, draftGroup, games, relevantPlayers) =
   const stats = {
     id: lineup.id,
     name: lineup.name || 'Example Lineup Name',
-    roster: lineup.roster,
+    roster: lineup.roster || [],
     start: lineup.start,
     totalMinutes: GAME_DURATIONS.nba.gameMinutes * GAME_DURATIONS.nba.players,
   };
 
   // return if the lineup hasn't started yet
-  if (lineup.roster === undefined) return stats;
+  if (lineup.roster.length === 0) return stats;
 
   stats.rosterDetails = compileRosterStats(lineup.roster, draftGroup, games, relevantPlayers);
 
@@ -250,7 +250,7 @@ export const currentLineupsSelector = createSelector(
           minutesRemaining: 384,
           name: lineup.name || 'Example Lineup Name',
           points: 0,
-          roster: lineup.roster,
+          roster: lineup.roster || [],
           start: lineup.start,
           // used by results to show total fees
           totalFees: _reduce(contestsStats, (sum, contest) => sum + contest.buyin, 0),

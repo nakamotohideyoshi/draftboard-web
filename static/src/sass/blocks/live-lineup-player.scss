@@ -1,5 +1,4 @@
 .live-lineup-player {
-  cursor: pointer;
   padding: 8px 0;
   position: relative;
 
@@ -9,6 +8,28 @@
     top: -3px;
     width: 54px;
     z-index: 5020;
+  }
+
+  // dumbed down version for countdown
+  &--upcoming {
+    .live-lineup-player__circle {
+      cursor: auto;
+    }
+    .live-lineup-player__photo {
+      border: 1px solid #45485d;
+    }
+    .live-lineup-player__only-name {
+      color: #6d718a;
+      display: inline-block;
+      font-family: $font-oswald;
+      font-size: 13px;
+      line-height: 1;
+      margin-left: 7px;
+      position: relative;
+      text-transform: uppercase;
+      top: 1px;
+      vertical-align: middle;
+    }
   }
 
   // shortcut for each child, if it's too slow we can define all the children manually
@@ -34,6 +55,7 @@
   &__circle {
     background-size: 120% auto;
     border-radius: 50%;
+    cursor: pointer;
     height: 48px;
     position: relative;
     width: 48px;
@@ -45,14 +67,14 @@
   }
 
   &__photo {
-    background: #3a3f52;
+    background: #050814;
     border-radius: 50%;
-    height: 48px;
+    height: 100%;
     overflow: hidden;
     position: absolute;
     top: 0;
     z-index: 5030;
-    width: 48px;
+    width: 100%;
 
     img {
       left: -12%;
