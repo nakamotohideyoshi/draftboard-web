@@ -7,6 +7,7 @@ import LivePMRProgressBar from './live-pmr-progress-bar';
 const LiveLineupPlayer = React.createClass({
 
   propTypes: {
+    draftGroupStarted: React.PropTypes.bool.isRequired,
     eventDescription: React.PropTypes.object.isRequired,
     isPlaying: React.PropTypes.bool.isRequired,
     openPlayerPane: React.PropTypes.func.isRequired,
@@ -95,6 +96,30 @@ const LiveLineupPlayer = React.createClass({
 
   render() {
     const stats = this.props.player.stats;
+
+    // if we have not started, show dumbed down version for countdown
+    if (this.props.draftGroupStarted === false) {
+      const playerImage = `${this.props.playerImagesBaseUrl}/${this.props.player.info.player_srid}.png`;
+
+      return (
+        <li className="live-lineup-player live-lineup-player--upcoming">
+          <div className="live-lineup-player__position">
+            {this.props.player.info.position}
+          </div>
+          <div className="live-lineup-player__circle">
+            <div className="live-lineup-player__photo">
+              <img
+                width="62"
+                src={playerImage}
+              />
+            </div>
+          </div>
+          <div className="live-lineup-player__only-name">
+            {this.props.player.info.name}
+          </div>
+        </li>
+      );
+    }
 
     // classname for the whole player
     const gameCompleted = (stats.decimalRemaining === 0) ? 'not' : 'is';

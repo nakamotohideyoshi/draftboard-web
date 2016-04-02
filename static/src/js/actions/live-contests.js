@@ -332,7 +332,7 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
   const sport = contestInfo.sport;
 
   return Promise.all([
-    dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
+    dispatch(fetchDraftGroupIfNeeded(draftGroupId, sport)),
     dispatch(fetchGamesIfNeeded(sport)),
     dispatch(fetchPrizeIfNeeded(prizeId)),
   ]).then(() =>

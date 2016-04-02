@@ -26,6 +26,7 @@ import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contest
 import { fetchEntriesIfNeeded } from '../../actions/entries';
 import { fetchPlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
 import { fetchRelatedEntriesInfo } from '../../actions/entries';
+import { fetchUpcomingLineups } from '../../actions/entries';
 import { liveContestsSelector } from '../../selectors/live-contests';
 import { liveSelector } from '../../selectors/live';
 import { sportsSelector } from '../../selectors/sports';
@@ -61,6 +62,7 @@ const Live = React.createClass({
   getInitialState() {
     return {
       isLoaded: false,
+      calledUpcomingLineups: false,
     };
   },
 
@@ -101,6 +103,17 @@ const Live = React.createClass({
         content: '<div>See your results <a href="/results/">here</a></div>',
         level: 'success',
       }));
+    }
+  },
+
+  componentDidUpdate(prevProps) {
+    const liveData = this.props.liveSelector;
+
+    // when we get related info
+    if (liveData.draftGroupStarted === false &&
+        prevProps.liveSelector.draftGroupStarted === true
+    ) {
+      this.props.dispatch(fetchUpcomingLineups());
     }
   },
 
@@ -206,9 +219,18 @@ const Live = React.createClass({
     const myLineup = liveData.lineups.mine || {};
 
     // show the countdown until it goes live
-    if (myLineup.roster === undefined && liveData.draftGroupStarted === false) {
+    if (liveData.draftGroupStarted === false) {
       return (
         <div className={`live__bg live--countdown live--sport-${myLineup.draftGroup.sport}`}>
+          <LiveLineup
+            changePathAndMode={this.changePathAndMode}
+            draftGroupStarted={false}
+            games={this.props.sportsSelector.games}
+            lineup={myLineup}
+            mode={mode}
+            sport={myLineup.draftGroup.sport}
+            whichSide="mine"
+          />
           <LiveCountdown
             onCountdownComplete={this.forceContestLineupsRefresh}
             lineup={myLineup}
@@ -246,6 +268,7 @@ const Live = React.createClass({
           opponentLineupComponent = (
             <LiveLineup
               changePathAndMode={this.changePathAndMode}
+              draftGroupStarted={liveData.draftGroupStarted}
               games={this.props.sportsSelector.games}
               lineup={opponentLineup}
               mode={mode}
@@ -270,6 +293,7 @@ const Live = React.createClass({
         <div className={`live__bg live--sport-${myLineup.draftGroup.sport}`}>
           <LiveLineup
             changePathAndMode={this.changePathAndMode}
+            draftGroupStarted={liveData.draftGroupStarted}
             games={this.props.sportsSelector.games}
             lineup={myLineup}
             mode={mode}

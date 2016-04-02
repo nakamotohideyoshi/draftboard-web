@@ -302,7 +302,7 @@ export const fetchDraftGroupFPIfNeeded = (id) => (dispatch, getState) => {
  * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
  *                     returned method or directly as a resolved promise
  */
-export const fetchDraftGroupIfNeeded = (id) => (dispatch, getState) => {
+export const fetchDraftGroupIfNeeded = (id, sport) => (dispatch, getState) => {
   if (shouldFetchDraftGroup(getState(), id) === false) {
     log.trace('actionsLiveDraftGroup.fetchDraftGroupIfNeeded() - Draft group exists');
     return Promise.resolve('Draft group exists');
@@ -310,7 +310,7 @@ export const fetchDraftGroupIfNeeded = (id) => (dispatch, getState) => {
   return Promise.all([
     dispatch(fetchDraftGroupInfo(id)),
     dispatch(fetchDraftGroupFP(id)),
-    dispatch(fetchPlayerBoxScoreHistoryIfNeeded('nba')),
+    dispatch(fetchPlayerBoxScoreHistoryIfNeeded(sport)),
   ])
   .then(() =>
     dispatch(confirmDraftGroupStored(id))
