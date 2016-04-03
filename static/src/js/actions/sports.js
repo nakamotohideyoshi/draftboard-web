@@ -19,12 +19,19 @@ export const GAME_DURATIONS = {
     periodMinutes: 12,
     gameMinutes: 48,
     players: 8,
+    lineupByteLength: 20,
   },
   nhl: {
     periods: 3,
     periodMinutes: 20,
     gameMinutes: 60,
     players: 8,
+    lineupByteLength: 20,
+  },
+  mlb: {
+    periods: 9,
+    players: 9,
+    lineupByteLength: 22,
   },
 };
 

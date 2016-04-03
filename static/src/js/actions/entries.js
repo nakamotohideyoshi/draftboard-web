@@ -225,7 +225,7 @@ export const fetchUpcomingLineups = () => (dispatch) =>
  */
 export const fetchRelatedEntriesInfo = () => (dispatch, getState) => {
   const calls = _map(
-    getState().entries.items, (entry) => dispatch(fetchContestIfNeeded(entry.contest))
+    getState().entries.items, (entry) => dispatch(fetchContestIfNeeded(entry.contest, entry.sport))
   );
 
   // first fetch all contest information (which also gets draft groups, games, prizes)

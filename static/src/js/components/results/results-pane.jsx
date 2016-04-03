@@ -34,7 +34,7 @@ const ResultsPane = React.createClass({
   componentWillUpdate(nextProps) {
     if (nextProps.contestId !== null && nextProps.contestId !== this.props.contestId) {
       this.props.dispatch(
-        fetchContestIfNeeded(nextProps.contestId, true)
+        fetchContestIfNeeded(nextProps.contestId, nextProps.entry.sport, true)
       ).then(() => {
         const newContestInfo = this.props.resultsContestsSelector[this.props.contestId];
 
