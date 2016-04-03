@@ -284,6 +284,9 @@ export const currentLineupsSelector = createSelector(
         compileLineupStats(lineup, draftGroup, sports.games, relevantPlayers),
         {
           draftGroup,
+          // used by results to show total fees
+          totalFees: _reduce(contestsStats, (sum, contest) => sum + contest.buyin, 0),
+          entriesSize: _size(lineup.contests),
           // used for animations to determine which side
           rosterBySRID: _map(stats.rosterDetails, (player) => player.info.player_srid),
           // used by LiveOverallStats to show potential earnings
