@@ -4,6 +4,7 @@ import { merge as _merge } from 'lodash';
 const initialState = {
   isFetching: false,
   nba: {},
+  mlb: {},
 };
 
 /**

@@ -19,7 +19,7 @@ const LiveContestsPane = React.createClass({
 
   viewContest(contestId) {
     const mode = this.props.mode;
-    const path = `/live/lineups/${mode.myLineupId}/contests/${contestId}/`;
+    const path = `/live/${mode.sport}/lineups/${mode.myLineupId}/contests/${contestId}/`;
     const changedFields = {
       draftGroupId: mode.draftGroupId,
       myLineupId: mode.myLineupId,
