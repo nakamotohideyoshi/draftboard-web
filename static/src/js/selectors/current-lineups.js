@@ -13,12 +13,12 @@ import log from '../lib/logging';
 
 /**
  * Calculate the amount of time remaining in decimal between 0 and 1, where 1 is 100% of the time remaining
- * @param  {number} minutesRemaining Number of minutes remaining
- * @param  {number} totalMinutes     Total number of minutes for all of the player's games combined
+ * @param  {number} durationRemaining Number of minutes remaining
+ * @param  {number} totalQuantity    Total number of minutes/innings/measurement possible for a player
  * @return {number}                  Remaining time in decimal form
  */
-const calcDecimalRemaining = (minutesRemaining, totalMinutes) => {
-  const decimalRemaining = minutesRemaining / totalMinutes;
+const calcDecimalRemaining = (durationRemaining, gameDuration) => {
+  const decimalRemaining = durationRemaining / gameDuration;
 
   // we don't want 1 exactly, as that messes with the calculations, 0.99 looks full
   if (decimalRemaining === 1) return 0.9999;
@@ -97,6 +97,7 @@ const calcLineupPotentialEarnings = (entries, contestsStats) =>
  */
 export const compileRosterStats = (roster, draftGroup, games, relevantPlayers) => {
   const currentPlayers = {};
+  const sport = draftGroup.sport;
 
   _forEach(roster, (playerId) => {
     // exit if we don't have any player info.
@@ -109,7 +110,7 @@ export const compileRosterStats = (roster, draftGroup, games, relevantPlayers) =
         {
           // default to no points and no minutes remaining
           fp: 0,
-          minutesRemaining: 0,
+          durationRemaining: 0,
           decimalRemaining: 0,
         },
         draftGroup.playersStats[playerId] || {}
@@ -122,14 +123,14 @@ export const compileRosterStats = (roster, draftGroup, games, relevantPlayers) =
     if (game) {
       // if playing then get the live amount remaining
       if (game.hasOwnProperty('boxscore')) {
-        player.stats.minutesRemaining = game.boxscore.timeRemaining || 0;
+        player.stats.durationRemaining = game.boxscore.durationRemaining || 0;
         player.stats.decimalRemaining = calcDecimalRemaining(
-          player.stats.minutesRemaining,
-          GAME_DURATIONS.nba.gameMinutes
+          player.stats.durationRemaining,
+          GAME_DURATIONS[sport].gameDuration
         );
       // otherwise this means the game is scheduled, so show as full
       } else {
-        player.stats.minutesRemaining = GAME_DURATIONS.nba.gameMinutes;
+        player.stats.durationRemaining = GAME_DURATIONS[sport].gameDuration;
         player.stats.decimalRemaining = 0.9999;
       }
     }
@@ -149,12 +150,14 @@ export const compileRosterStats = (roster, draftGroup, games, relevantPlayers) =
  * @return {object}                 Super loaded lineup with all relevant information
  */
 export const compileLineupStats = (lineup, draftGroup, games, relevantPlayers) => {
+  const sport = draftGroup.sport;
+
   const stats = {
     id: lineup.id,
     name: lineup.name || 'Example Lineup Name',
     roster: lineup.roster || [],
     start: lineup.start,
-    totalMinutes: GAME_DURATIONS.nba.gameMinutes * GAME_DURATIONS.nba.players,
+    lineupDuration: GAME_DURATIONS[sport].gameDuration * GAME_DURATIONS[sport].players,
   };
 
   // return if the lineup hasn't started yet
@@ -169,10 +172,10 @@ export const compileLineupStats = (lineup, draftGroup, games, relevantPlayers) =
   0);
 
   // calculate minutes
-  stats.minutesRemaining = _reduce(stats.rosterDetails, (timeRemaining, player) =>
-    (player.stats.minutesRemaining) ? player.stats.minutesRemaining + timeRemaining : timeRemaining,
+  stats.durationRemaining = _reduce(stats.rosterDetails, (durationRemaining, player) =>
+    (player.stats.durationRemaining) ? player.stats.durationRemaining + durationRemaining : durationRemaining,
   0);
-  stats.decimalRemaining = calcDecimalRemaining(stats.minutesRemaining, stats.totalMinutes);
+  stats.decimalRemaining = calcDecimalRemaining(stats.durationRemaining, stats.lineupDuration);
 
   return stats;
 };
@@ -193,7 +196,7 @@ export const compileVillianLineup = (roster, draftGroup, sport, games) => {
     name: 'Top Owned',
     roster,
     start: draftGroup.start,
-    totalMinutes: sportConst.gameMinutes * sportConst.players,
+    lineupDuration: sportConst.gameDuration * sportConst.players,
   };
 
   stats.rosterDetails = compileRosterStats(roster, draftGroup, games, roster);
@@ -205,10 +208,10 @@ export const compileVillianLineup = (roster, draftGroup, sport, games) => {
   0);
 
   // calculate minutes
-  stats.minutesRemaining = _reduce(stats.rosterDetails, (timeRemaining, player) =>
-    (player.stats.minutesRemaining) ? player.stats.minutesRemaining + timeRemaining : timeRemaining,
+  stats.durationRemaining = _reduce(stats.rosterDetails, (durationRemaining, player) =>
+    (player.stats.durationRemaining) ? player.stats.durationRemaining + durationRemaining : durationRemaining,
   0);
-  stats.decimalRemaining = calcDecimalRemaining(stats.minutesRemaining, stats.totalMinutes);
+  stats.decimalRemaining = calcDecimalRemaining(stats.durationRemaining, stats.lineupDuration);
 
   return stats;
 };
@@ -247,7 +250,7 @@ export const currentLineupsSelector = createSelector(
           draftGroup,
           formattedStart: moment(lineup.start).format('ha'),
           id: lineup.id,
-          minutesRemaining: 384,
+          durationRemaining: 384,
           name: lineup.name || 'Example Lineup Name',
           points: 0,
           roster: lineup.roster || [],

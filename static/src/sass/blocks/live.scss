@@ -31,9 +31,15 @@ $live-lineup-width: 200px;
       }
     }
 
-    &.live--sport-nba {
-      background: transparent url(../img/blocks/live/bg-nba.jpg) no-repeat left top;
-      background-size: cover;
+    &.live--sport {
+      &-mlb {
+        background-image: url(../img/blocks/live-countdown/bg-mlb.jpg);
+        background-size: cover;
+      }
+      &-nba {
+        background-image: url(../img/blocks/live/bg-nba.jpg);
+        background-size: cover;
+      }
     }
   }
 

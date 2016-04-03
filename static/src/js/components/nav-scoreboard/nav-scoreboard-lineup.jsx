@@ -20,7 +20,7 @@ const NavScoreboardLineup = React.createClass({
   render() {
     const {
       formattedStart,
-      minutesRemaining,
+      durationRemaining,
       points,
     } = this.props.lineup;
 
@@ -45,7 +45,7 @@ const NavScoreboardLineup = React.createClass({
 
         <div className="right">
           { points } <span className="unit">PTS / </span>
-          { minutesRemaining } <span className="unit">PMR / </span>
+          { durationRemaining } <span className="unit">PMR / </span>
           <span className="balance">${ totalPotentialEarnings.toFixed(2) }</span>
         </div>
       </div>
