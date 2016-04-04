@@ -876,8 +876,8 @@ class PlayerStats(DataDenPlayerStats):
 
         #
         # hitters and pitchers both get these pieces of info
-        self.ps.play = bool( game_info.get('play', 0) )
-        self.ps.start = bool( game_info.get('start', 0) )
+        self.ps.played  = bool( game_info.get('play', 0) )
+        self.ps.started = bool( game_info.get('start', 0) )
 
         self.ps.save() # commit changes
 
