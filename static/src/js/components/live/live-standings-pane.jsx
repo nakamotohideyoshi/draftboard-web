@@ -119,7 +119,8 @@ const LiveStandingsPane = React.createClass({
    */
   handleViewOpponentLineup(opponentLineupId) {
     const mode = this.props.mode;
-    const path = `/live/lineups/${mode.myLineupId}/contests/${mode.contestId}/opponents/${opponentLineupId}/`;
+    const lineupUrl = `/live/${mode.sport}/lineups/${mode.myLineupId}`;
+    const path = `${lineupUrl}/contests/${mode.contestId}/opponents/${opponentLineupId}/`;
     const changedFields = {
       opponentLineupId,
     };

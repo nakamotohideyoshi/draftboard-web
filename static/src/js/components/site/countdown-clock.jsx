@@ -29,6 +29,7 @@ const CountdownClock = React.createClass({
   },
 
   componentDidMount() {
+    this.setTimeRemaining();
     this.updateTimeRemainingLoop = window.setInterval(this.setTimeRemaining, 1000);
   },
 

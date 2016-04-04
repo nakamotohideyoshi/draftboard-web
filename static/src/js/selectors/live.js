@@ -106,6 +106,7 @@ export const liveSelector = createSelector(
       mode,
       relevantGames: [],
       relevantPlayers: [],
+      entriesHaveLoaded: entries.isFetching === false,
       entries: uniqueEntries,
     };
 

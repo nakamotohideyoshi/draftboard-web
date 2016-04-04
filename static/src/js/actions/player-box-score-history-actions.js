@@ -48,6 +48,11 @@ function fetchPlayerBoxScoreHistoryFail(ex) {
 function shouldFetchPlayerBoxScoreHistory(state, sport) {
   const history = state.playerBoxScoreHistory;
 
+  // TODO Craig allow MLB once Caleb fixes API call
+  if (sport === 'mlb') {
+    return false;
+  }
+
   if (history[sport] && Object.keys(history[sport]).length > 0) {
     // do we have any PlayerHistory for the sport in the store, if so, is it empty?
     return false;

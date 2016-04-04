@@ -53,6 +53,28 @@ const receiveEntries = (response) => {
 };
 
 /**
+ * Dispatch API response object of upcoming lineups to parse into entries
+ * NOTE: this method must be wrapped with dispatch()
+ * @return {object}   Changes for reducer
+ */
+const receiveUpcomingLineups = (response) => {
+  // normalize the API call into a list of entry objects
+  const lineupsSchema = new Schema('lineups', {
+    idAttribute: 'id',
+  });
+  const normalizedLineups = normalize(
+    response,
+    arrayOf(lineupsSchema)
+  );
+
+  return {
+    type: ActionTypes.RECEIVE_ENTRIES_UPCOMING_LINEUPS,
+    lineups: normalizedLineups.entities.lineups,
+    expiresAt: dateNow() + 1000 * 60,  // 1 minute
+  };
+};
+
+/**
  * Dispatch information to reducer that we are trying to get current entries
  * Used to prevent repeat calls while requesting.
  * NOTE: this method must be wrapped with dispatch()
@@ -174,6 +196,26 @@ const shouldFetchEntries = (state) => {
 
 
 /**
+ * Right, so when entries have upcoming contests, we need a way to pull in all upcoming lineups. This takes the upcoming
+ * lineups, and then adds them to the associated entry.
+ * @return {promise}          Promise that resolves with API response body to reducer
+ */
+export const fetchUpcomingLineups = () => (dispatch) =>
+  request.get(
+    '/api/lineup/upcoming/'
+  ).set({
+    'X-REQUESTED-WITH': 'XMLHttpRequest',
+
+  // then associate rosters to their entries
+  }).then(
+    (res) => dispatch(receiveUpcomingLineups(res.body))
+
+  // then stores related lineups
+  ).then(() =>
+    dispatch(generateLineups())
+  );
+
+/**
  * Crazy method. After we finish GETting current entries, we go and fetch each related contest.
  * Then that fetchContestIfNeeded() pulls in related draft groups, games, prizes.
  * This is a key method to the live/nav section, as it connects entries will all of the related calls and needed info.
@@ -183,7 +225,7 @@ const shouldFetchEntries = (state) => {
  */
 export const fetchRelatedEntriesInfo = () => (dispatch, getState) => {
   const calls = _map(
-    getState().entries.items, (entry) => dispatch(fetchContestIfNeeded(entry.contest))
+    getState().entries.items, (entry) => dispatch(fetchContestIfNeeded(entry.contest, entry.sport))
   );
 
   // first fetch all contest information (which also gets draft groups, games, prizes)

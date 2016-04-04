@@ -7,7 +7,6 @@ $nav-scoreboard-separator-color: #292c39;
 $nav-scoreboard-foreground-color: #25A758;
 
 .cmp-nav-scoreboard {
-  background: $nav-scoreboard-background-color;
   color: #fff;
   height: $nav-scoreboard-height;
   left: 0;
@@ -18,6 +17,7 @@ $nav-scoreboard-foreground-color: #25A758;
 
   // We need a single top-level element that react renders to (aaaannoying).
   .inner {
+    background: $nav-scoreboard-background-color;
     display: flex;
     flex-direction: row;
     position: relative;
