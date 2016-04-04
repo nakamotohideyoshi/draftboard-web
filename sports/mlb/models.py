@@ -133,9 +133,13 @@ class PlayerStats( sports.models.PlayerStats ):
 
     # player  = models.ForeignKey(Player, null=False)
     # game    = models.ForeignKey(Game, null=False)
+    SCORING_FIELDS_DONT_AVG = [
+        'played',
+        'started',
+    ]
 
-    play    = models.BooleanField(default=False, null=False) # indicates they PLAYED in the game
-    start   = models.BooleanField(default=False, null=False) # indicates they STARTED the game
+    played    = models.BooleanField(default=False, null=False) # indicates they PLAYED in the game
+    started   = models.BooleanField(default=False, null=False) # indicates they STARTED the game
 
     class Meta:
         abstract = True
@@ -186,17 +190,25 @@ class PlayerStatsHitter(PlayerStats):
     xbh = models.IntegerField(default=0, null=False) # extra base hits
 
 class PlayerStatsPitcher(PlayerStats):
+    #
+    # this is for the /api/sports/player/history/mlb/{days}/ api.
+    # we define the fields (booleans) that we dont want to be averaged,
+    # because of a postgres issue -- postgres cant average boolean fields.
+    SCORING_FIELDS_DONT_AVG = PlayerStats.SCORING_FIELDS_DONT_AVG + [
+        'win',
+        'loss',
+        'qstart',
+        'cg',
+        #'cgso',   # so rare not sure it makes sense to display
+        #'nono',   # so rare not sure it makes sense to display
+    ]
 
     SCORING_FIELDS = [
         'ip_1',
         'ktotal',
-        'win',
         'er',
         'h',
         'bb',
-        'cg',
-        'cgso',
-        'nono',
     ]
 
     ip_1    = models.FloatField(default=0.0, null=False) # outs, basically
@@ -216,7 +228,7 @@ class PlayerStatsPitcher(PlayerStats):
 
 class PlayerStatsSeason( sports.models.PlayerStatsSeason ):
     class Meta:
-        abstract = True # TODO
+        abstract = True
 
 class Injury( sports.models.Injury ):
     class Meta:

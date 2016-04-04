@@ -12,6 +12,14 @@ from sports.nba.serializers import (
     InjurySerializer,
     PlayerNewsSerializer,
 )
+from sports.mlb.serializers import (
+    PlayerHistoryHitterSerializer,
+    PlayerHistoryPitcherSerializer,
+)
+from sports.mlb.models import (
+    PlayerStatsHitter,
+    PlayerStatsPitcher,
+)
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 import json
@@ -265,6 +273,21 @@ class PlayerHistoryAPIView(generics.ListAPIView):
         class_sport = site_sport_manager.get_playerhistory_serializer_class( sport )
         return class_sport
 
+    def get_player_stats_class(self, sport=None):
+        """
+        any sports that provide more than 1 possible playerstats model
+        should override this view and override this method
+        to provide views that return the history stats for a single playerstats object.
+        as an exmaple, mlb does this for hitter history, and pitcher history
+
+        :param sport:
+        :return:
+        """
+        site_sport_manager = sports.classes.SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport( sport )
+        player_stats_class_list = site_sport_manager.get_player_stats_class( site_sport )
+        return player_stats_class_list
+
     def get_queryset(self):
         """
         from django.db import connections
@@ -276,7 +299,9 @@ class PlayerHistoryAPIView(generics.ListAPIView):
         #print( str(n_games_history), 'games for', sport )
         site_sport_manager = sports.classes.SiteSportManager()
         site_sport = site_sport_manager.get_site_sport( sport )
-        player_stats_class_list = site_sport_manager.get_player_stats_class( site_sport )
+        # player_stats_class_list = site_sport_manager.get_player_stats_class( site_sport )
+
+        player_stats_class_list = self.get_player_stats_class( sport=sport )
         game_class = site_sport_manager.get_game_class( site_sport )
         player_stats = []
         for player_stats_class in player_stats_class_list:
@@ -348,6 +373,34 @@ class PlayerHistoryAPIView(generics.ListAPIView):
                 player_stats += self.dictfetchall( c )
 
         return player_stats
+
+class PlayerHistoryMlbHitterAPIView(PlayerHistoryAPIView):
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        return PlayerHistoryHitterSerializer
+
+    def get_player_stats_class(self, **kwargs):
+        """
+        override parent method to simply return the specific PlayerStats model for this view
+        """
+        return [PlayerStatsHitter]
+
+class PlayerHistoryMlbPitcherAPIView(PlayerHistoryAPIView):
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        return PlayerHistoryPitcherSerializer
+
+    def get_player_stats_class(self, **kwargs):
+        """
+        override parent method to simply return the specific PlayerStats model for this view
+        """
+        return [PlayerStatsPitcher]
 
 class TsxPlayerNewsAPIView(generics.ListAPIView):
     """
