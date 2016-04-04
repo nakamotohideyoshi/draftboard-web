@@ -148,7 +148,7 @@ const Live = React.createClass({
     )[0];
 
     this.props.dispatch(
-      fetchContestLineups(contestEntry.contest)
+      fetchContestLineups(contestEntry.contest, contestEntry.sport)
     ).then(() =>
       this.props.dispatch(fetchRelatedEntriesInfo())
     );

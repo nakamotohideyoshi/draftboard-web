@@ -65,10 +65,14 @@ const PusherData = React.createClass({
    */
   componentDidUpdate(prevProps) {
     let oldSports = prevProps.liveSelector.mode.sport || [];
-    oldSports = [...oldSports];
+    if (typeof oldSports === 'string') {
+      oldSports = [oldSports];
+    }
 
     let newSports = this.props.liveSelector.mode.sport || [];
-    newSports = [...newSports];
+    if (typeof newSports === 'string') {
+      newSports = [newSports];
+    }
 
     if (oldSports !== newSports) {
       this.unsubscribeToSportSockets(oldSports);
