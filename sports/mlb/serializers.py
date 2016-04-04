@@ -63,10 +63,6 @@ class TeamSerializer(sports.serializers.TeamSerializer):
 
 class FantasyPointsSerializer(sports.serializers.FantasyPointsSerializer):
 
-    # class Meta:
-    #     model   = PlayerStats
-    #     fields  = ('created','player_id','fantasy_points')
-
     player_id = serializers.IntegerField()
 
     #
@@ -75,6 +71,122 @@ class FantasyPointsSerializer(sports.serializers.FantasyPointsSerializer):
     #################################################################
 
     # raise Exception('UNIMPLEMENTED - mlb.serializers.FantasyPointsSerializer')
+    fantasy_points = serializers.ListField(
+        source='array_agg',
+        child=serializers.FloatField(), # min_value=-9999, max_value=9999)
+        help_text="This is an ARRAY of FLOAT fantasy points for trailing games"
+
+    )
+
+class PlayerHistoryHitterSerializer(sports.serializers.PlayerHistorySerializer):
+    """
+    use the fields, especially from the PlayerStats get_scoring_fields()
+    """
+    player_id = serializers.IntegerField()
+
+    # from nba PlayerStats.SCORING_FIELDS
+    avg_s   = serializers.FloatField()
+    s       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_d   = serializers.FloatField()
+    d       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_t   = serializers.FloatField()
+    t       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_hr   = serializers.FloatField()
+    hr       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_rbi   = serializers.FloatField()
+    rbi       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_r   = serializers.FloatField()
+    r       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_bb   = serializers.FloatField()
+    bb       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_hbp   = serializers.FloatField()
+    hbp       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_sb   = serializers.FloatField()
+    sb       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_cs   = serializers.FloatField()
+    cs       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+class PlayerHistoryPitcherSerializer(sports.serializers.PlayerHistorySerializer):
+    """
+    use the fields, especially from the PlayerStats get_scoring_fields()
+    """
+    player_id = serializers.IntegerField()
+
+    # from scoring fields dont avg
+    win       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    loss       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    qstart       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    cg       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    #
+    # cgso
+    # nono
+
+    # from scoring fields
+    avg_ip_1   = serializers.FloatField()
+    ip_1       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_ktotal   = serializers.FloatField()
+    ktotal       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_er   = serializers.FloatField()
+    er       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_h   = serializers.FloatField()
+    h       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
+
+    avg_bb   = serializers.FloatField()
+    bb       = serializers.ListField(
+        child=serializers.IntegerField(),  help_text="This is an ARRAY of INTEGERS"
+    )
 
 class PlayerSerializer(sports.serializers.PlayerSerializer):
     """

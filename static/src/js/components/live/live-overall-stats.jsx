@@ -188,7 +188,7 @@ const LiveOverallStats = React.createClass({
           </div>
           <div className="live-overview__potential-earnings">{ potentialEarnings }</div>
           <div className="live-overview__pmr">
-            <div className="live-overview__pmr__quantity">{ lineup.minutesRemaining }</div>
+            <div className="live-overview__pmr__quantity">{ lineup.durationRemaining }</div>
             <div className="live-overview__pmr__title">PMR</div>
           </div>
         </section>

@@ -34,7 +34,7 @@ const ResultsPane = React.createClass({
   componentWillUpdate(nextProps) {
     if (nextProps.contestId !== null && nextProps.contestId !== this.props.contestId) {
       this.props.dispatch(
-        fetchContestIfNeeded(nextProps.contestId, true)
+        fetchContestIfNeeded(nextProps.contestId, nextProps.entry.sport, true)
       ).then(() => {
         const newContestInfo = this.props.resultsContestsSelector[this.props.contestId];
 
@@ -195,6 +195,15 @@ const ResultsPane = React.createClass({
 
     const prize = contest.prizeStructure.info.ranks[0].value.toFixed(2);
 
+    let hasEnded = (
+      <div className="has-ended">
+        This contest has ended
+      </div>
+    );
+    if (entry.hasNotEnded === true) {
+      hasEnded = (<div />);
+    }
+
     return (
       <section className="pane pane--contest-detail pane--contest-results">
         <div className="pane__close" onClick={this.handleHide}></div>
@@ -202,9 +211,7 @@ const ResultsPane = React.createClass({
         <div className="pane__content">
           <div className="pane-upper">
             <div className="header">
-              <div className="has-ended">
-                This contest has ended
-              </div>
+              {hasEnded}
               <div className="header__content">
                 <div className="title">
                   {contest.name}<br />

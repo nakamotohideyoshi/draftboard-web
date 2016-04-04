@@ -6,6 +6,7 @@ import ResultsLineup from './results-lineup.jsx';
 const ResultsLineups = React.createClass({
 
   propTypes: {
+    dateIsToday: React.PropTypes.bool.isRequired,
     lineups: React.PropTypes.array.isRequired,
   },
 
@@ -20,7 +21,7 @@ const ResultsLineups = React.createClass({
       <div className="results-page--lineups">
         {this.props.lineups.map((lineup) => React.createElement(
           ResultsLineup, extend(
-            {}, lineup, { key: lineup.id }
+            {}, lineup, { key: lineup.id, dateIsToday: this.props.dateIsToday }
           ))
         )}
       </div>

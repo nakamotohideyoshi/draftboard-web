@@ -5,6 +5,7 @@ from fabric import utils
 from subprocess import check_output
 from distutils.util import strtobool
 from boto.s3.connection import S3Connection
+from util.timeshift import reset_system_time
 import hashlib
 
 def _confirm(prompt='Continue?\n', failure_prompt='User cancelled task'):
@@ -126,9 +127,21 @@ def importdb():
 
         operations.local('cp %s /tmp/latest.dump' % env.db_dump)
 
-        # then run the syncdb no-backup command for local
-        env.no_backup = True
-        syncdb()
+        # flush out redis
+        flush_cache()
+
+        # reset time
+        _puts('Resetting system time')
+        reset_system_time()
+
+        # drop local database
+        _puts('Dropping local database: %s' % env.db_name)
+        operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
+
+        # [re]create empty local database, and pg_restore the backup into it
+        _puts('Creating local database')
+        operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % env.db_name)
+        operations.local('sudo -u postgres pg_restore --no-acl --no-owner -d %s /tmp/latest.dump' % env.db_name)
 
         return
 
@@ -178,10 +191,8 @@ def syncdb(app=None):
     if (env.environment == 'production'):
         utils.abort('You cannot sync the production database to itself')
 
-    #
     # always wipe memcached before putting in new db
-    # TODO fix with virtualenv
-    # flush_cache()
+    flush_cache()
 
     #
     # if we want a new version, then capture new backup of production

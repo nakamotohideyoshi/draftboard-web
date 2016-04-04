@@ -15,16 +15,24 @@ import log from '../lib/logging';
 // constant related to game durations
 export const GAME_DURATIONS = {
   nba: {
-    periods: 4,
+    gameDuration: 48,
+    lineupByteLength: 20,
     periodMinutes: 12,
-    gameMinutes: 48,
+    periods: 4,
     players: 8,
   },
   nhl: {
-    periods: 3,
+    gameDuration: 60,
+    lineupByteLength: 20,
     periodMinutes: 20,
-    gameMinutes: 60,
+    periods: 3,
     players: 8,
+  },
+  mlb: {
+    // total half innings, or innings * 2
+    gameDuration: 18,
+    lineupByteLength: 22,
+    players: 9,
   },
 };
 
@@ -132,50 +140,57 @@ const receiveTeams = (sport, response) => {
  * @return {number}       Minutes remaining in the game
  */
 const calculateTimeRemaining = (sport, game) => {
-  const sportDurations = GAME_DURATIONS[sport];
+  const sportConst = GAME_DURATIONS[sport];
 
   // if the game hasn't started, return full time
   if (!game.hasOwnProperty('boxscore')) {
-    return sportDurations.gameMinutes;
+    return sportConst.gameDuration;
   }
   const boxScore = game.boxscore;
 
-  // Baseball games don't have a 'time remaining', so return the current inning.
-  if (sport === 'mlb') {
-    // Return (top/bottom)(inning #) - example: T5
-    // TODO: the react component performs a time conversion on this so it prints
-    // out as NaN. I don't know how we plan on handling general data-instability
-    // issues so I'll let @craig take care of it.
-    return `${boxScore.inning_half}${parseInt(boxScore.inning, 10)}`;
+  switch (sport) {
+    // MLB uses half innings as its time remaining.
+    case 'mlb':
+      let durationComplete = parseInt(boxScore.inning || 0, 10) * 2;
+
+      // determine whether to add half inning for being in the bottom
+      if (boxScore.inning_half === 'B') {
+        durationComplete += 1;
+      }
+
+      return sportConst.gameDuration - durationComplete;
+
+    case 'nba':
+    case 'nhl':
+    default:
+      // if the game hasn't started but we have boxscore, return with full minutes
+      if (boxScore.quarter === '') {
+        return sportConst.gameDuration;
+      }
+
+      // if the game is done, then set to 0
+      const endOfGameStatuses = ['completed', 'closed'];
+      if (endOfGameStatuses.indexOf(boxScore.status) > -1) {
+        return 0;
+      }
+
+      const currentPeriod = boxScore.quarter;
+      const clockMinSec = boxScore.clock.split(':');
+
+      // determine remaining minutes based on quarters
+      const remainingPeriods = (currentPeriod > sportConst.periods) ? 0 : sportConst.periods - currentPeriod;
+      const remainingMinutes = remainingPeriods * sportConst.periodMinutes;
+
+      const periodMinutesRemaining = parseInt(clockMinSec[0], 10);
+
+      // if less than a minute left, then add one minute
+      if (periodMinutesRemaining === 0 && parseInt(clockMinSec[1], 10) !== 0) {
+        return remainingMinutes + 1;
+      }
+
+      // round up to the nearest minute
+      return remainingMinutes + periodMinutesRemaining;
   }
-
-  // if the game hasn't started but we have boxscore, return with full minutes
-  if (boxScore.quarter === '') {
-    return sportDurations.gameMinutes;
-  }
-
-  // if the game is done, then set to 0
-  const endOfGameStatuses = ['completed', 'closed'];
-  if (endOfGameStatuses.indexOf(boxScore.status) > -1) {
-    return 0;
-  }
-
-  const currentPeriod = boxScore.quarter;
-  const clockMinSec = boxScore.clock.split(':');
-
-  // determine remaining minutes based on quarters
-  const remainingPeriods = (currentPeriod > sportDurations.periods) ? 0 : sportDurations.periods - currentPeriod;
-  const remainingMinutes = remainingPeriods * 12;
-
-  const periodMinutesRemaining = parseInt(clockMinSec[0], 10);
-
-  // if less than a minute left, then add one minute
-  if (periodMinutesRemaining === 0 && parseInt(clockMinSec[1], 10) !== 0) {
-    return remainingMinutes + 1;
-  }
-
-  // round up to the nearest minute
-  return remainingMinutes + periodMinutesRemaining;
 };
 
 /**
@@ -199,7 +214,7 @@ const fetchGames = (sport) => (dispatch) => {
       games[id].sport = sport;
 
       if (game.hasOwnProperty('boxscore')) {
-        games[id].boxscore.timeRemaining = calculateTimeRemaining(sport, game);
+        games[id].boxscore.durationRemaining = calculateTimeRemaining(sport, game);
       }
     });
 
@@ -425,7 +440,7 @@ export const updateGameTime = (gameId, clock, quarter, status) => (dispatch, get
   // find time remaining through these new fields
   game.boxscore.clock = clock;
   game.boxscore.quarter = quarter;
-  updatedGameFields.timeRemaining = calculateTimeRemaining(game.sport, game);
+  updatedGameFields.durationRemaining = calculateTimeRemaining(game.sport, game);
 
   return dispatch({
     type: ActionTypes.UPDATE_GAME,

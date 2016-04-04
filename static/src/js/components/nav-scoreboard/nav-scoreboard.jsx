@@ -28,6 +28,7 @@ import NavScoreboardMenu from './nav-scoreboard-menu';
 import NavScoreboardSeparator from './nav-scoreboard-separator';
 import NavScoreboardSlider from './nav-scoreboard-slider';
 import NavScoreboardUserInfo from './nav-scoreboard-user-info';
+import PusherData from '../site/pusher-data';
 
 import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const';
 
@@ -301,6 +302,7 @@ const NavScoreboard = React.createClass({
         { filters }
         { slider }
         <NavScoreboardLogo />
+        <PusherData />
       </div>
     );
   },

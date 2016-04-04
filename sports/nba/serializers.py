@@ -64,10 +64,6 @@ class TeamSerializer(sports.serializers.TeamSerializer):
 
 class FantasyPointsSerializer(sports.serializers.FantasyPointsSerializer):
 
-    # class Meta:
-    #     model   = PlayerStats
-    #     fields  = ('created','player_id','fantasy_points')
-
     player_id = serializers.IntegerField()
 
     fantasy_points = serializers.ListField(

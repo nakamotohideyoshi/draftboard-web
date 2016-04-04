@@ -15,6 +15,8 @@ from sports.views import (
     TsxPlayerItemsAPIView,
     PlayerNewsAPIView,
     ScheduleGameBoxscoresView,
+    PlayerHistoryMlbHitterAPIView,
+    PlayerHistoryMlbPitcherAPIView,
 )
 
 urlpatterns = patterns( '',
@@ -64,12 +66,9 @@ urlpatterns = patterns( '',
     (r'^player/history/nba/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view(), {"sport": "nba"}),
     (r'^player/history/nfl/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view(), {"sport": "nfl"}),
     (r'^player/history/nhl/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view(), {"sport": "nhl"}),
-
-    #(r'^player/history/mlb/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view(),  {'sport': 'mlb'}),
-
-
-    # (r'^player/history/(?P<sport>[a-z]+)/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view()),
-
+    # mlb is split up for hitters and pitchers
+    (r'^player/history/mlb/hitter/(?P<n_games_history>[0-9]+)/$', PlayerHistoryMlbHitterAPIView.as_view(),  {'sport': 'mlb'}),
+    (r'^player/history/mlb/pitcher/(?P<n_games_history>[0-9]+)/$', PlayerHistoryMlbPitcherAPIView.as_view(),  {'sport': 'mlb'}),
 
     # #
     # # get news content for the sport, for all the players

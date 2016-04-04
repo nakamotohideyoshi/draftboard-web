@@ -9,6 +9,7 @@ import { fetchDraftGroupIfNeeded } from './live-draft-groups';
 import { fetchPrizeIfNeeded } from './prizes';
 import { fetchGamesIfNeeded } from './sports';
 import { dateNow } from '../lib/utils';
+import { GAME_DURATIONS } from '../actions/sports';
 
 
 // dispatch to reducer methods
@@ -181,14 +182,15 @@ const convertLineup = (numberOfPlayers, byteArray, firstBytePosition) => {
  *
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
-const parseContestLineups = (apiContestLineupsBytes) => {
+const parseContestLineups = (apiContestLineupsBytes, sport) => {
   // add up who's in what place
   const responseByteArray = new Buffer(apiContestLineupsBytes, 'hex');
   const lineups = {};
+  const sportConst = GAME_DURATIONS[sport];
 
   // each lineup is 20 bytes long
-  for (let i = 6; i < responseByteArray.length; i += 20) {
-    const lineup = convertLineup(8, responseByteArray, i);
+  for (let i = 6; i < responseByteArray.length; i += sportConst.lineupByteLength) {
+    const lineup = convertLineup(sportConst.players, responseByteArray, i);
 
     if (lineup !== null) {
       lineups[lineup.id] = lineup;
@@ -204,7 +206,7 @@ const parseContestLineups = (apiContestLineupsBytes) => {
  * @param {number} contestId  Contest ID
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-export const fetchContestLineups = (id) => (dispatch) => {
+export const fetchContestLineups = (id, sport) => (dispatch) => {
   dispatch(requestContestLineups(id));
 
   return request.get(
@@ -213,7 +215,7 @@ export const fetchContestLineups = (id) => (dispatch) => {
     'X-REQUESTED-WITH': 'XMLHttpRequest',
   }).then(
     // NOTE we use res.text instead of res.body because the response is in hex bytes!
-    (res) => dispatch(receiveContestLineups(id, res.text, parseContestLineups(res.text)))
+    (res) => dispatch(receiveContestLineups(id, res.text, parseContestLineups(res.text, sport)))
   );
 };
 
@@ -332,7 +334,7 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
   const sport = contestInfo.sport;
 
   return Promise.all([
-    dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
+    dispatch(fetchDraftGroupIfNeeded(draftGroupId, sport)),
     dispatch(fetchGamesIfNeeded(sport)),
     dispatch(fetchPrizeIfNeeded(prizeId)),
   ]).then(() =>
@@ -346,14 +348,14 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
  * @return {promise}   When returned, redux-thunk middleware executes dispatch and returns a promise, either from the
  *                     returned method or directly as a resolved promise
  */
-export const fetchContestIfNeeded = (id, force) => (dispatch, getState) => {
+export const fetchContestIfNeeded = (id, sport, force) => (dispatch, getState) => {
   if (shouldFetchContest(getState().liveContests, id) === false && force !== true) {
     return dispatch(fetchRelatedContestInfo(id));
   }
 
   return Promise.all([
     dispatch(fetchContestInfo(id)),
-    dispatch(fetchContestLineups(id)),
+    dispatch(fetchContestLineups(id, sport)),
   ]).then(() =>
     dispatch(fetchRelatedContestInfo(id))
   );

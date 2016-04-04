@@ -46,7 +46,11 @@ export const updateLiveMode = (changedFields) => (dispatch, getState) => {
   // make sure every defined field is an integer
   const newMode = {};
   _forEach(changedFields, (val, key) => {
-    newMode[key] = (val === undefined) ? undefined : parseInt(val, 10);
+    if (key === 'sport') {
+      newMode[key] = val;
+    } else {
+      newMode[key] = (val === undefined) ? undefined : parseInt(val, 10);
+    }
   });
 
   return dispatch({
