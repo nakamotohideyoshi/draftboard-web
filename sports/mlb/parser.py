@@ -1,6 +1,7 @@
 #
 # sports/mlb/parser.py
 
+from django.db.transaction import atomic
 from sports.classes import SiteSportManager
 import sports.mlb.models
 from sports.mlb.models import (
@@ -1345,3 +1346,15 @@ class DataDenMlb(AbstractDataDenParser):
             if player.remove_injury():
                 ctr_removed += 1
         print(str(ctr_removed), 'leftover/stale injuries removed')
+
+    @atomic
+    def cleanup_rosters(self):
+        """
+        give the parent method the Team, Player classes,
+        and rosters parent api so it can flag players
+        who are no long on the teams roster on_active_roster = False
+        """
+        super().cleanup_rosters(self.sport,                         # datadeb sport db, ie: 'nba'
+                                sports.mlb.models.Team,             # model class for the Team
+                                sports.mlb.models.Player,           # model class for the Player
+                                parent_api='team_profile')               # parent api where the roster players found

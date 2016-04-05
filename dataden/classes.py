@@ -163,7 +163,9 @@ class DataDen(object):
             #
             # get all the most recently parsed injury objects from dataden.
             #  use '$gte' in case new objects have been added recently !
-            return self.find(db, coll, parent_api, {self.DD_UPDATED__ID:{'$gte':ts_last_parse }})
+            target[self.DD_UPDATED__ID] = {'$gte':ts_last_parse }
+            # return self.find(db, coll, parent_api, {self.DD_UPDATED__ID:{'$gte':ts_last_parse }})
+            return self.find(db, coll, parent_api, target)
         #
         # return empty cursor if no objects exist
         return all_objects

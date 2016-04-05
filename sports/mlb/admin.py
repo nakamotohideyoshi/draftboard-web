@@ -17,7 +17,7 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(sports.mlb.models.Player)
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ['srid','position','preferred_name','first_name','last_name']
+    list_display = ['preferred_name'] + sports.admin.PlayerAdmin.list_display
 
     list_filter     = sports.admin.PlayerAdmin.list_filter   # + ('',)
     search_fields   = sports.admin.PlayerAdmin.search_fields # + ('more','specific','fields...',)

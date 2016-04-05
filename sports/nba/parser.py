@@ -2,6 +2,7 @@
 # sports/nba/models.py
 
 from django.db.utils import IntegrityError
+from django.db.transaction import atomic
 import sports.nba.models
 from sports.nba.models import (
     Team,
@@ -569,3 +570,46 @@ class DataDenNba(AbstractDataDenParser):
                 ctr_removed += 1
         print(str(ctr_removed), 'leftover/stale injuries removed')
 
+    @atomic
+    def cleanup_rosters(self):
+        """
+        give the parent method the Team, Player classes,
+        and rosters parent api so it can flag players
+        who are no long on the teams roster on_active_roster = False
+        """
+        super().cleanup_rosters(self.sport,                         # datadeb sport db, ie: 'nba'
+                                sports.nba.models.Team,             # model class for the Team
+                                sports.nba.models.Player,           # model class for the Player
+                                parent_api='rosters')               # parent api where the roster players found
+
+    # @atomic
+    # def cleanup_rosters(self):
+    #     dd = DataDen()
+    #     # get all the sport's teams
+    #     teams = sports.nba.models.Team.objects.all()
+    #
+    #     for team in teams:
+    #         print(str(team))
+    #         # get all the sports players for that team
+    #         players = sports.nba.models.Player.objects.filter(team=team, on_active_roster=True)
+    #         player_srids = [ p.srid for p in players ]
+    #         print('player_srids:', str(player_srids))
+    #
+    #
+    #         # from dataden, get all the players recently parsed for this team.
+    #         dd_recent_players = dd.find_recent('nba','player','rosters', target={'team__id':team.srid})
+    #         dd_recent_player_srids = []
+    #         for p in dd_recent_players:
+    #             dd_recent_player_srids.append(p.get('id'))
+    #
+    #         print('dd_recent_player_srids:', str(dd_recent_player_srids))
+    #
+    #         print('... count:', str(len(player_srids)))
+    #         print('... count(recents):', str(len(dd_recent_player_srids)))
+    #
+    #         # subtract the set of dd-recent players from the set of team players
+    #         deactivate_player_srids = set(player_srids) - set(dd_recent_player_srids)
+    #
+    #         # flag the remaining set NOT_ON_ROSTER !
+    #         print('set of srids to deactivate (for current team):', str(len(deactivate_player_srids)))
+    #         players.filter(srid__in=deactivate_player_srids).update(on_active_roster=False)

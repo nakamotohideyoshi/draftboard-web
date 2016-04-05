@@ -1,11 +1,20 @@
 #
 # sports/nhl/parser.py
 
+from django.db.transaction import atomic
 import sports.nhl.models
 from scoring.classes import NhlSalaryScoreSystem
-from sports.nhl.models import Team, Game, Player, PlayerStats, \
-                                GameBoxscore, Pbp, PbpDescription, GamePortion, Season
-
+from sports.nhl.models import (
+    Team,
+    Game,
+    Player,
+    PlayerStats,
+    GameBoxscore,
+    Pbp,
+    PbpDescription,
+    GamePortion,
+    Season,
+)
 from sports.sport.base_parser import (
     AbstractDataDenParser,
     DataDenTeamHierarchy,
@@ -19,7 +28,6 @@ from sports.sport.base_parser import (
     SridFinder,
     DataDenSeasonSchedule,
 )
-
 from dataden.classes import DataDen
 import push.classes
 from django.conf import settings
@@ -399,3 +407,15 @@ class DataDenNhl(AbstractDataDenParser):
             if player.remove_injury():
                 ctr_removed += 1
         print(str(ctr_removed), 'leftover/stale injuries removed')
+
+    @atomic
+    def cleanup_rosters(self):
+        """
+        give the parent method the Team, Player classes,
+        and rosters parent api so it can flag players
+        who are no long on the teams roster on_active_roster = False
+        """
+        super().cleanup_rosters(self.sport,                         # datadeb sport db, ie: 'nba'
+                                sports.nhl.models.Team,             # model class for the Team
+                                sports.nhl.models.Player,           # model class for the Player
+                                parent_api='rosters')               # parent api where the roster players found
