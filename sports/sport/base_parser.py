@@ -141,6 +141,40 @@ class AbstractDataDenParser(object):
         # child parse() will execute here -- they must call super().parse( obj )
         # then this class will have setup self.ns and self.parent_api for them
 
+    @atomic
+    def cleanup_rosters(self, sport, team_class, player_class, parent_api):
+        """ sets on_active_roster=False for players no longer with a team """
+
+        dd = DataDen()
+        # get all the sport's teams
+        teams = team_class.objects.all()
+
+        for team in teams:
+            #print(str(team))
+            # get all the sports players for that team
+            players = player_class.objects.filter(team=team, on_active_roster=True)
+            player_srids = [ p.srid for p in players ]
+            #print('player_srids:', str(player_srids))
+
+
+            # from dataden, get all the players recently parsed for this team.
+            dd_recent_players = dd.find_recent(sport, 'player', parent_api, target={'team__id':team.srid})
+            dd_recent_player_srids = []
+            for p in dd_recent_players:
+                dd_recent_player_srids.append(p.get('id'))
+
+            # print('dd_recent_player_srids:', str(active_player_srids))
+            #
+            # print('... count:', str(len(player_srids)))
+            # print('... count(recents):', str(len(active_player_srids)))
+
+            # subtract the set of dd-recent players from the set of team players
+            deactivate_player_srids = set(player_srids) - set(dd_recent_player_srids)
+
+            # flag the remaining set NOT_ON_ROSTER !
+            #print('set of srids to deactivate (for current team):', str(len(deactivate_player_srids)))
+            players.filter(srid__in=deactivate_player_srids).update(on_active_roster=False)
+
 class AbstractDataDenParseable(object):
     """
     Essentially provides an interface via the 'parse()' method,

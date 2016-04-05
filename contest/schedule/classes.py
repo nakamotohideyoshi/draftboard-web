@@ -353,6 +353,8 @@ class ScheduleDay(object):
     datetime_format_date    = '%Y-%m-%d'
     datetime_format_time    = '%I:%M %p'
 
+    default_season_types    = ['reg','pst']
+
     class SportDay(object):
 
         tzinfo_est              = pytz_timezone('America/New_York')
@@ -409,18 +411,32 @@ class ScheduleDay(object):
                     exclude.append(game.pk)
                     exclude_times.append(self.get_str_local_time(game.start))
 
+            # self.data = {
+            #     'weekday'       : weekday,
+            #     'type'          : self.weekday_to_str(weekday),
+            #     'total'         : self.games.count(),
+            #     'include'       : include,
+            #     'exclude'       : exclude,
+            #     'include_times' : include_times,
+            #     'exclude_times' : exclude_times,
+            #     'include_pct'   : float(float(len(include)) / float(self.games.count()))
+            # }
+            self.save_internal_data(weekday, self.weekday_to_str(weekday), self.games.count(),
+                                                include, exclude, include_times, exclude_times )
+
+            return self.data
+
+        def save_internal_data(self, weekday, type, total, include, exclude, include_times, exclude_times):
             self.data = {
                 'weekday'       : weekday,
-                'type'          : self.weekday_to_str(weekday),
-                'total'         : self.games.count(),
+                'type'          : type,
+                'total'         : total,
                 'include'       : include,
                 'exclude'       : exclude,
                 'include_times' : include_times,
                 'exclude_times' : exclude_times,
-                'include_pct'   : float(float(len(include)) / float(self.games.count()))
+                'include_pct'   : float(float(len(include)) / float(total))
             }
-
-            return self.data
 
         def __str__(self):
             include_pct = self.data['include_pct']
@@ -497,14 +513,24 @@ class ScheduleDay(object):
             #
             # self.get_data()
 
+    class NflDay(SportDay):
+
+        weekday     = time(19, 0)   # 7pm +  (thursday night games)
+        saturday    = time(13, 0)   # 1pm +  (saturday games)
+        sunday      = time(13, 0)   # 1pm +  (sunday games)
+
+        def __init__(self, games):
+            super().__init__(games)
+
     @staticmethod
     def factory(sport):
         if sport == 'nba': return ScheduleDay.NbaDay
         if sport == 'nhl': return ScheduleDay.NhlDay
         if sport == 'mlb': return ScheduleDay.MlbDay
+        if sport == 'nfl': return ScheduleDay.NflDay
 
         else:
-            raise Exception('%s - UNIMPLEMENTED')
+            raise Exception('ScheduleDay for sport: %s - UNIMPLEMENTED' % sport)
         # def get_data(self):
         #     if self.games.count() == 0:
         #         return None
@@ -546,7 +572,7 @@ class ScheduleDay(object):
         #
         #     return self.data
 
-    def __init__(self, sport, season, season_type='reg'):
+    def __init__(self, sport, season, season_types=None):
         self.data = None
         self.sport = sport
         #self.sport_day = None # TODO set this up like NbaDay, MlbDay, etc...
@@ -555,7 +581,9 @@ class ScheduleDay(object):
         self.site_sport = self.site_sport_manager.get_site_sport(self.sport)
         self.game_model_class = self.site_sport_manager.get_game_class(self.site_sport)
         self.season = season
-        self.season_type = season_type
+        self.season_types = season_types
+        if self.season_types is None:
+            self.season_types = self.default_season_types
 
         # setup the datetime range with a start and end
         self.start = None
@@ -584,14 +612,14 @@ class ScheduleDay(object):
         self.start = self.start + timedelta(days=1)
         self.end = self.end + timedelta(days=1)
 
-    def update(self):
+    def update(self, verbose=False):
         """
         update the list of dfs days, with tuples of the start times
         and lists of all the games with their own unique start times
         """
         self.data = []
         games = self.game_model_class.objects.filter(season__season_year=self.season,
-            season__season_type=self.season_type).order_by('start') # oldest first
+            season__season_type__in=self.season_types).order_by('start') # oldest first
         if games.count() <= 0:
             print('0 games found. exiting...')
             return
@@ -614,15 +642,14 @@ class ScheduleDay(object):
         while games.filter(start__gt=self.get_day_range()[1]).count() > 0:
             # get all the games for the dfs day
             daily_games = games.filter(start__range=self.get_day_range())
-            # date_str = self.get_str_local_date(day_range[0])
-            # games_for_day = []
-            # for game in daily_games:
-            #     #print('game in EST:', self.get_str_local_time(game))
-            #     games_for_day.append(self.get_str_local_time(game.start))
 
-            date_str = self.get_str_local_date(self.get_day_range()[0])
-            self.data.append( (date_str, self.sport_day_class(daily_games)) )
-            # idx += 1
+
+            if daily_games.count() >= 2:
+                # there must be more than 2 games for DFS!
+                date_str = self.get_str_local_date(self.get_day_range()[0])
+                self.data.append( (date_str, self.sport_day_class(daily_games)) )
+
+            #
             self.increment_day_range()
 
     def get_str_local_time(self, datetime_obj):
@@ -639,6 +666,26 @@ class ScheduleDay(object):
         for date_str, sport_day in self.data:
             print(date_str, str(sport_day))
 
+class ScheduleWeek(ScheduleDay):
 
+    default_season_types = ['reg']
 
+    def update_range(self, days_ago):
+        """
+        add timedelta(days=days) to the start and end datetime object
 
+        :param days:
+        :return:
+        """
+        dfs_date_range = DfsDate.get_current_nfl_date_range()
+        # set our dfsday range to start on the first day of the games we found
+        self.start = dfs_date_range[0] - timedelta(days=days_ago)
+        self.end  = dfs_date_range[1] - timedelta(days=days_ago)
+
+    def increment_day_range(self):
+        """
+        increment the weekly range by adding 7
+        """
+        self.start = self.start + timedelta(days=7)
+        #self.end = self.end + timedelta(days=7)
+        self.end = self.start + timedelta(days=3)

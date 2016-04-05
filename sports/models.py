@@ -284,15 +284,14 @@ class Player(models.Model):
     injury_id             = models.PositiveIntegerField(null=True)
     injury                = GenericForeignKey('injury_type', 'injury_id')
 
-    # # the GFK to the Team
-    # team_type         = models.ForeignKey(ContentType,  related_name='%(app_label)s_%(class)s_player_team')
-    # team_id           = models.PositiveIntegerField()
-    # team              = GenericForeignKey('team_type', 'team_id')
-
     season_fppg     = models.FloatField(null=False, default=0.0)
 
     lineup_nickname = models.CharField(max_length=64, default='', editable=True, blank=True,
                          help_text='sets the the automatically generated name for lineups using this player' )
+
+    # True indicates this player is on a teams roster currently,
+    # False indicates the player is NOT associated with a professional team!
+    on_active_roster = models.BooleanField(default=True, null=False)
 
     def remove_injury(self):
         """

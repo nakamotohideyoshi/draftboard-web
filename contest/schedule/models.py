@@ -4,6 +4,37 @@
 from django.db import models
 import contest.models
 
+#
+################################################################################
+# maybe we want the schedule to be a list of things we dont want to happen...  #
+################################################################################
+# class Block(models.Model):
+#     """ a sport and a time, which characterizes a ContestPools start time """
+#     created = models.DateTimeField(auto_now_add=True)
+#     modified = models.DateTimeField(auto_now=True)
+#     site_sport = models.ForeignKey('sports.SiteSport', null=False)
+#     start = models.DateTimeField(null=False)
+#     class Meta:
+#         unique_together = ('site_sport','start')
+#     # TODO finish implementing
+# class SportDefaultPrizeStructure(models.Model):
+#     """ for a sport, this is the set of PrizeStructures to create for a Block """
+#     created = models.DateTimeField(auto_now_add=True)
+#     modified = models.DateTimeField(auto_now=True)
+#     site_sport = models.ForeignKey('sports.SiteSport', null=False)
+#     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
+#     class Meta:
+#         unique_together = ('site_sport','prize_structure')
+#     # TODO finish implementing
+# class BlockPrizeStructure(models.Model):
+#     """ for a block, this is the editable set of PrizeStructures (editable until the block starts) """
+#     created = models.DateTimeField(auto_now_add=True)
+#     modified = models.DateTimeField(auto_now=True)
+#     block = models.ForeignKey('schedule.Block', null=False)
+#     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
+#     class Meta:
+#         unique_together = ('block','prize_structure')
+#     # TODO finish implementing
 
 class Category( models.Model ):
     created     = models.DateTimeField(auto_now_add=True)
