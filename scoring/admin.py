@@ -11,3 +11,4 @@ class ScoreSystemAdmin(admin.ModelAdmin):
 @admin.register(scoring.models.StatPoint)
 class StatPointAdmin(admin.ModelAdmin):
     list_display = ['score_system','stat','value']
+    list_filter = ['score_system','stat','value']
