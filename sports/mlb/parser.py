@@ -1013,6 +1013,38 @@ class PitchPbp(DataDenPbpDescription):
         # return PlayerStat objects for the pitcher, runners, and hitter
         return player_stats
 
+class ZonePitchPbp(PitchPbp):
+    """
+    parse a single pitch from the target: ('mlb.pitcher','pbp').
+    ... yes thats right its in the pitcher collection unfortunately.
+
+    the purpose of this class is simply to allow us to call send()
+    without trying to link to a stats object or do any additional
+    mongo queries behind the scenes in the way that PitchPbp does.
+    """
+
+    # override default value from DataDenPbpDescription
+    pusher_sport_pbp_event  = 'zonepitch'
+
+    def __init__(self):
+        """ call parent constructor """
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        """
+        the object must first be parsed before send() can be called
+
+        :param obj: a dataden.watcher.OpLogObj object
+        """
+        self.original_obj = obj
+        # we dont really need to set the SridFinder
+        # self.srid_finder = SridFinder(obj.get_o()) # get the data from the oplogobj
+        self.o = obj.get_o() # we didnt call super so we should do this
+
+    def find_player_stats(self):
+        """ override - return an emtpy list, dont look for stats objects for zone pitches """
+        return []
+
 class GamePbp(DataDenPbpDescription):
 
     game_model              = Game
