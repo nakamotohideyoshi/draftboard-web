@@ -152,6 +152,9 @@ class Game( DirtyFieldsMixin, models.Model ):
     status      = models.CharField(max_length=32, null=False)
     prev_status = models.CharField(max_length=32, null=False, default='')
 
+    def get_home_at_away_str(self):
+        return '%s @ %s' % (str(self.away), str(self.home))
+
     def is_closed(self):
         """
         Indicates if this game is closed (complete + all stat corrections are in).
