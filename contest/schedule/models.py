@@ -2,39 +2,52 @@
 # contest/schedule/models.py
 
 from django.db import models
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 import contest.models
+from prize.models import (
+    PrizeStructure,
+)
 
-#
-################################################################################
-# maybe we want the schedule to be a list of things we dont want to happen...  #
-################################################################################
-# class Block(models.Model):
-#     """ a sport and a time, which characterizes a ContestPools start time """
-#     created = models.DateTimeField(auto_now_add=True)
-#     modified = models.DateTimeField(auto_now=True)
-#     site_sport = models.ForeignKey('sports.SiteSport', null=False)
-#     start = models.DateTimeField(null=False)
-#     class Meta:
-#         unique_together = ('site_sport','start')
-#     # TODO finish implementing
-# class SportDefaultPrizeStructure(models.Model):
-#     """ for a sport, this is the set of PrizeStructures to create for a Block """
-#     created = models.DateTimeField(auto_now_add=True)
-#     modified = models.DateTimeField(auto_now=True)
-#     site_sport = models.ForeignKey('sports.SiteSport', null=False)
-#     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
-#     class Meta:
-#         unique_together = ('site_sport','prize_structure')
-#     # TODO finish implementing
-# class BlockPrizeStructure(models.Model):
-#     """ for a block, this is the editable set of PrizeStructures (editable until the block starts) """
-#     created = models.DateTimeField(auto_now_add=True)
-#     modified = models.DateTimeField(auto_now=True)
-#     block = models.ForeignKey('schedule.Block', null=False)
-#     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
-#     class Meta:
-#         unique_together = ('block','prize_structure')
-#     # TODO finish implementing
+class Block(models.Model):
+    """ a sport and a time, which characterizes a ContestPools start time """
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    site_sport = models.ForeignKey('sports.SiteSport', null=False)
+    start = models.DateTimeField(null=False)
+    class Meta:
+        unique_together = ('site_sport','start')
+    # TODO finish implementing
+class DefaultPrizeStructure(models.Model):
+    """ for a sport, this is the set of PrizeStructures to create for a Block """
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    site_sport = models.ForeignKey('sports.SiteSport', null=False)
+    prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
+    class Meta:
+        unique_together = ('site_sport','prize_structure')
+    # TODO finish implementing
+class BlockGame(models.Model):
+    """ an object that maps a real life game to a block """
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=256, null=False, blank=False, default='')
+    block = models.ForeignKey('schedule.Block', null=False)
+    srid = models.CharField(max_length=128, null=False)
+    game_type           = models.ForeignKey(ContentType) #,  related_name='%(app_label)s_%(class)s_block_game')
+    game_id             = models.PositiveIntegerField()
+    game                = GenericForeignKey('game_type', 'game_id')
+    class Meta:
+        unique_together = ('block','srid')
+class BlockPrizeStructure(models.Model):
+    """ for a block, this is the editable set of PrizeStructures (editable until the block starts) """
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    block = models.ForeignKey('schedule.Block', null=False)
+    prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
+    class Meta:
+        unique_together = ('block','prize_structure')
+    # TODO finish implementing
 
 class Category( models.Model ):
     created     = models.DateTimeField(auto_now_add=True)

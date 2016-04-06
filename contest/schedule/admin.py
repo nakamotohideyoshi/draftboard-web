@@ -3,10 +3,40 @@
 
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminSplitDateTime
+from django.contrib.contenttypes import generic
 from django.utils.html import format_html
 import contest.schedule.models
 import contest.schedule.forms
 
+class TabularInlineGame(admin.TabularInline):
+
+    model = contest.schedule.models.BlockGame
+    extra = 3
+
+    def get_queryset(self, request):
+        print(str(request))
+        return super().get_queryset(request)
+
+    def get_extra (self, request, obj=None, **kwargs):
+        """Dynamically sets the number of extra forms. 0 if the related object
+        already exists or the extra configuration otherwise."""
+        if obj:
+            # Don't add any extra forms if the related object already exists.
+            return 0
+        return self.extra
+
+@admin.register(contest.schedule.models.Block)
+class BlockAdmin(admin.ModelAdmin):
+    list_display = ['site_sport','start']
+    inlines = [ TabularInlineGame, ]
+
+@admin.register(contest.schedule.models.DefaultPrizeStructure)
+class DefaultPrizeStructureAdmin(admin.ModelAdmin):
+    list_display = ['site_sport','prize_structure']
+
+@admin.register(contest.schedule.models.BlockPrizeStructure)
+class BlockPrizeStructureAdmin(admin.ModelAdmin):
+    list_display = ['block','prize_structure']
 
 @admin.register(contest.schedule.models.Category)
 class CategoryAdmin(admin.ModelAdmin):
