@@ -70,7 +70,7 @@ INSTALLED_APPS += (
 PUSHER_APP_ID = '144195'
 PUSHER_KEY = '9754d03a7816e43abb64'
 PUSHER_SECRET = environ.get('PUSHER_SECRET')
-PUSHER_ENABLED = environ.get('PUSHER_ENABLED', True)
+PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true') # heroku config vars are strings!
 
 #
 # dataden mongo database connection
