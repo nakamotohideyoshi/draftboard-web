@@ -811,16 +811,17 @@ class DataDenPbpDescription(AbstractDataDenParseable):
 
     class SridGameMultipleSridsFoundException(Exception): pass
 
-    game_model              = None # fields: srid
-    portion_model           = None #
+    game_model              = None      # fields: srid
+    portion_model           = None
     pbp_model               = None
     pbp_description_model   = None
     #
-    player_stats_model      = None # ie: sports.<sport>.models.PlayerStats
-    pusher_sport_pbp        = None # ie: push.classes.PUSHER_NBA_PBP
-    pusher_sport_stats      = None # ie: push.classes.PUSHER_NBA_STATS
-    linked_pbp_field        = 'pbp'
-    linked_stats_field      = 'stats'
+    player_stats_model          = None      # example: sports.<sport>.models.PlayerStats
+    pusher_sport_pbp            = None      # example: push.classes.PUSHER_NBA_PBP
+    pusher_sport_pbp_event      = 'event'   # default 'event' value. ie: { ..., 'event':'event'}
+    pusher_sport_stats          = None      # example: push.classes.PUSHER_NBA_STATS
+    linked_pbp_field            = 'pbp'
+    linked_stats_field          = 'stats'
 
     def __init__(self):
         if self.game_model is None:
@@ -991,7 +992,10 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         # send normally, or as linked data depending on the found PlayerStats instances
         if len(player_stats) == 0:
             # solely push pbp object
-            push.classes.DataDenPush( self.pusher_sport_pbp, 'event' ).send( self.o )
+            # push.classes.DataDenPush( self.pusher_sport_pbp, 'event' ).send( self.o )
+            push.classes.DataDenPush( self.pusher_sport_pbp,
+                                      self.pusher_sport_pbp_event ).send( self.o ) # pusher_sport_pbp_event
+
         else:
             # push combined pbp+stats data
 

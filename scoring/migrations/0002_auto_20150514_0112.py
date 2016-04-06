@@ -24,26 +24,26 @@ def load_initial_scoring_systems(apps, schema_editor):
             ('triple-dbl',  3.0)        # three 10+ categories from (points, rebs, asts, blks, steals)
         ],
         'mlb' : [
-            ('single',  3.0),           # hitter - singles
-            ('double',  5.0),           # hitter - doubles
-            ('triple',  8.0),           # hitter - triples
-            ('hr',      10.0),          # hitter - home runs
-            ('rbi',     2.0),           # hitter - runs batted in
-            ('run',     2.0),           # hitter - runs scored
+            ('single',  2.0),           # hitter - singles
+            ('double',  4.0),           # hitter - doubles
+            ('triple',  6.0),           # hitter - triples
+            ('hr',      8.0),          # hitter - home runs
+            ('rbi',     1.0),           # hitter - runs batted in
+            ('run',     1.0),           # hitter - runs scored
             ('bb',      2.0),           # hitter - walks
             ('hbp',     2.0),           # hitter - hit by pitch
-            ('sb',      5.0),           # hitter - stolen bases
-            ('cs',      -2.0),          # hitter - # times caught stealing
+            ('sb',      2.0),           # hitter - stolen bases
+            ('cs',      0.0),          # hitter - # times caught stealing
             # --
-            ('ip',      2.25),          # pitcher - inning pitched
-            ('k',       2.0),           # pitcher - strikeout
-            ('win',     4.0),           # pitcher - Win
-            ('er',      -2.0),          # pitcher - earned runs allowed
-            ('hit',     -0.6),          # pitcher - hits against
-            ('walk',    -0.6),          # pitcher - walked batters
-            ('cg',      2.5),           # pitcher - complete game
-            ('cgso',    2.5),           # pitcher - complete game AND shutout
-            ('no-hitter', 5.0)          # pitcher - complete game AND no hits allowed
+            ('ip',      1.0),          # pitcher - inning pitched
+            ('k',       1.0),           # pitcher - strikeout
+            ('win',     2.0),           # pitcher - Win
+            ('er',      -1.0),          # pitcher - earned runs allowed
+            ('hit',     -0.25),          # pitcher - hits against
+            ('walk',    -0.25),          # pitcher - walked batters
+            ('cg',      0.0),           # pitcher - complete game
+            ('cgso',    0.0),           # pitcher - complete game AND shutout
+            ('no-hitter', 0.0)          # pitcher - complete game AND no hits allowed
         ],
         'nhl' : [
             ('goal',    3.0),           # goals scored
