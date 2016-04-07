@@ -65,18 +65,20 @@ class TabularInlineBlockGame(admin.TabularInline):
 
     model = contest.schedule.models.BlockGame
     extra = 3
-
     readonly_fields = ('game_start_time_est', 'name')
     exclude = ('srid', 'game_id', 'game_type', 'game')
 
+    def has_delete_permission(self, request, obj=None):
+        return False
+
     def date_est(self, obj):
         dt = local_date(obj.game.start)
-        print(str(dt))
+        #print(str(dt))
         return dt
 
     def game_start_time_est(self, obj):
         dt = local_daymonthtime(obj.game.start)
-        print(str(dt))
+        #print(str(dt))
         return dt
 
     # def get_queryset(self, request):
@@ -96,28 +98,36 @@ class TabularInlineBlockGame(admin.TabularInline):
 
 class TabularInlineBlockGameIncluded(TabularInlineBlockGame):
 
+    verbose_name = 'Included Game'
+    verbose_name_plural = verbose_name + 's'
+
     def get_queryset(self, request):
         """ get included blocks """
         included, excluded = self.block_obj.get_block_games()
         qs = super().get_queryset(request)
-        print('block?', str(self.block_obj), 'qs:', str(qs))
+        #print('block?', str(self.block_obj), 'qs:', str(qs))
         included_game_block_ids = [ g.pk for g in included ]
         qs = qs.filter(pk__in=included_game_block_ids)
         return qs
 
 class TabularInlineBlockGameExcluded(TabularInlineBlockGame):
 
+    verbose_name = 'Excluded Game'
+    verbose_name_plural = verbose_name + 's'
+
     def get_queryset(self, request):
         """ get excluded blocks """
         included, excluded = self.block_obj.get_block_games()
         qs = super().get_queryset(request)
-        print(str(qs))
+        #print(str(qs))
         excluded_game_block_ids = [ g.pk for g in excluded ]
         qs = qs.filter(pk__in=excluded_game_block_ids)
         return qs
 
 class TabularInlineBlockPrizeStructure(admin.TabularInline):
 
+    verbose_name = 'Contest Pool Prize Structure'
+    verbose_name_plural = verbose_name + 's'
     model = contest.schedule.models.BlockPrizeStructure
     extra = 3
 
@@ -141,6 +151,8 @@ class BlockAdmin(admin.ModelAdmin):
     list_display = ['sport','weekday','games_included','earliest_game_in_block','cutoff_time']
     list_filter = ['site_sport',]
     list_editable = ['cutoff_time',]
+    readonly_fields = ('site_sport',)
+    exclude = ('dfsday_start','dfsday_end',)
     ordering = ('dfsday_start','site_sport')
 
     block_game_inlines = [
@@ -244,118 +256,18 @@ class BlockAdmin(admin.ModelAdmin):
 
 @admin.register(contest.schedule.models.DefaultPrizeStructure)
 class DefaultPrizeStructureAdmin(admin.ModelAdmin):
+
     list_display = ['site_sport','prize_structure']
+    list_filter = ['site_sport',]
 
-@admin.register(contest.schedule.models.BlockPrizeStructure)
-class BlockPrizeStructureAdmin(admin.ModelAdmin):
-    list_display = ['block','prize_structure']
+# @admin.register(contest.schedule.models.BlockPrizeStructure)
+# class BlockPrizeStructureAdmin(admin.ModelAdmin):
+#     list_display = ['block','prize_structure']
 
-@admin.register(contest.schedule.models.Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name']
+@admin.register(contest.schedule.models.Notification)
+class NotificationAdmin(admin.ModelAdmin):
 
-@admin.register(contest.schedule.models.Schedule)
-class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ['site_sport','category','enable']
+    list_display = ['name','enabled']
 
-@admin.register(contest.schedule.models.TemplateContest)
-class TemplateContestAdmin(admin.ModelAdmin):
-
-    list_display = [
-        'site_sport',
-        'name',
-        'scheduler',
-    ]
-
-    def scheduler(self, obj):
-        """
-        Add a button into the admin views so its easy to add a TemplateSchedule to an existing schedule
-
-        :param obj:   the model instance for each row
-        :return:
-        """
-
-        # the {} in the first argument are like %s for python strings,
-        # and the subsequent arguments fill the {}
-        return format_html('<a href="{}={}" class="btn btn-success">{}</a>',
-                            "/admin/schedule/scheduledtemplatecontest/add/?template_contest",
-                             obj.pk,
-                             'Add to Schedule')
-
-    form = contest.schedule.forms.TemplateContestForm
-
-    def get_form(self, request, obj=None, **kwargs):
-        if obj is None:
-            kwargs['form'] = contest.schedule.forms.TemplateContestFormAdd
-        return super().get_form(request, obj, **kwargs)
-
-    #@transaction.atomic
-    def save_model(self, request, obj, form, change):
-        """
-        Override save_model to hook up draftgroup and anything else
-        we can do dynamically without forcing user to do it manually.
-
-        :param request: http request with authenticated user
-        :param obj: the model instance about to be saved
-        :param form:
-        :param change:
-        :return:
-        """
-        obj.save()
-
-    # use the fields which we are explicity stating in the Meta class
-    fieldsets = (
-        #
-        ('Contest Template', {
-            'fields': (
-                'site_sport',
-                'name',
-
-                'prize_structure',
-                'max_entries',
-
-                'gpp',
-                'respawn',
-                'doubleup'
-            )
-        }),
-
-        #
-        # these fields are purposely collapsed,
-        # and the form takes care of setting
-        # them to default values.
-        ('ignore these fields', {
-            'classes' : ('collapse',),
-            'fields': (
-                'start',
-                'end',
-            )
-        }),
-    )
-
-@admin.register(contest.schedule.models.ScheduledTemplateContest)
-class ScheduledTemplateContestAdmin(admin.ModelAdmin):
-
-    list_display = [
-        'schedule',
-        'template_contest',
-        'start_time',
-        'duration_minutes',
-        'multiplier',
-        'buyin'
-    ]
-
-    def buyin(self, obj):
-        return obj.template_contest.prize_structure.generator.buyin
-
-@admin.register(contest.schedule.models.Interval)
-class IntervalAdmin(admin.ModelAdmin):
-    def get_model_perms(self, request):
-       """
-       Return empty perms dict thus hiding the model from admin index.
-       """
-       return {}
-
-    list_display = [
-        'monday','tuesday','wednesday','thursday','friday','saturday','sunday'
-    ]
+    def has_delete_permission(self, request, obj=None):
+        return False
