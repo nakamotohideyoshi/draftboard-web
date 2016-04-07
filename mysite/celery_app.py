@@ -64,6 +64,14 @@ app.conf.update(
 
     CELERYBEAT_SCHEDULE = {
         #
+        # contest pool schedule manager updates the upcoming
+        # days with what is going to be created.
+        'contest_pool_schedule_manager' : {
+            'task' : 'contest.schedule.tasks.contest_pool_schedule_manager',
+            'schedule' : timedelta(hours=6),
+        },
+
+        #
         # very fast, low cpu-intensity task. use default queue (ie: dont specify one)
         #
         # this is a task that simply prints 'heartbeat' in the logs.
@@ -102,31 +110,9 @@ app.conf.update(
             'args'      : ('nfl',),
         },
 
-        # crontab(minute='*/10',
-        # hour='3,17,22', day_of_week='thu,fri')
 
         #
-        ########################################################################
-        # THIS LONG-RUNNING, CRITICAL TASK REQUIRES ITS OWN QUEUE & WORKER     #
-        ########################################################################
-        # this is the process monitoring the mongolab instance
-        # for any changes, and it sends django signals
-        # when it finds new sports data.
-        #
-        # without this task, stats will never be pushed
-        # from the mongo instance to the django/postgres site!
-        #
-        # see: dataden.watcher.Trigger
-        # 'dataden_trigger': {
-        #     'task': 'dataden.tasks.dataden_trigger',
-        #     'schedule': timedelta(seconds=19),
-        #
-        #     #
-        #     # for this task, the queue in the comment match the queue for
-        #     # the corresponding worker in the Procfile
-        #     #'options': {'queue' : 'q_dataden_trigger'}
-        # },
-
+        # update injury information for the sports
         'nba_injuries' : {
             'task': 'sports.nba.tasks.update_injuries',
             'schedule': timedelta(minutes=30),
@@ -170,30 +156,6 @@ app.conf.update(
             'args'      : ('mlb',),
         },
 
-        # #
-        # # monitor for Contest(s) that need to be paid out
-        # 'notify_admin_draft_groups_not_completed' : {
-        #     'task'      : 'contest.tasks.notify_admin_draft_groups_not_completed',
-        #
-        #     # run once an hour
-        #     'schedule': timedelta(minutes=60),
-        #
-        #     #
-        #     # the first integer in the tuple represents how many days
-        #     # in advance we want to create scheduled contests.
-        #     #  ... in this instance, everytime this task is fired
-        #     #      it ensures games for 1 day in advance are scheduled.
-        #     'args'      : (1,),
-        # },
-        #
-        # #
-        # # monitor for Contest(s) which need to be paid out.
-        # # this task wont be necessary once payouts happen automatically.
-        # 'notify_admin_contests_not_paid' : {
-        #     'task'      : 'contest.tasks.notify_admin_contests_not_paid',
-        #     'schedule': timedelta(minutes=15),
-        # },
-
         #
         # payout task
         'notify_admin_contests_automatically_paid_out' : {
@@ -219,7 +181,6 @@ app.conf.update(
 
     # None causes a connection to be created and closed for each use
     BROKER_POOL_LIMIT = None,  # default: 10
-
 
 )
 

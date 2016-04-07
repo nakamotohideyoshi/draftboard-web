@@ -4,15 +4,18 @@ from __future__ import absolute_import
 # contest/schedule/tasks.py
 
 from datetime import timedelta
+
 from mysite.celery_app import app
 from django.core.cache import cache
-from contest.schedule.classes import ScheduleManager
+from contest.schedule.classes import (
+    ContestPoolScheduleManager,
+)
 
-LOCK_EXPIRE = 30 # Lock expires in 30 seconds
-SHARED_LOCK_NAME = "create_scheduled_contests"
+LOCK_EXPIRE         = 60  # lock expires in 30 seconds
+SHARED_LOCK_NAME    = 'contest_pool_schedule_manager'
 
 @app.task
-def create_scheduled_contests( days_in_future=None ):
+def contest_pool_schedule_manager( days_in_future=None ):
     """
     uses the ScheduleManager to create scheduled contests by calling
     ScheduleManager.run( td = td ).
@@ -28,11 +31,8 @@ def create_scheduled_contests( days_in_future=None ):
 
     if acquire_lock():
         try:
-            sm = ScheduleManager()
-            sm.run( time_delta=timedelta(days=days_in_future) )
+            scheduler = ContestPoolScheduleManager()
+            scheduler.run()
+
         finally:
             release_lock()
-
-@app.task
-def create_scheduled_contests_now():
-    create_scheduled_contests( days_in_future=0 )

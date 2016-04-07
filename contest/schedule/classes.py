@@ -623,6 +623,9 @@ class ScheduleDay(object):
         self.start = None
         self.end = None
 
+    def get_data(self):
+        return self.data
+
     def update_range(self, days_ago):
         """
         add timedelta(days=days) to the start and end datetime object
@@ -741,88 +744,96 @@ class ContestPoolScheduleManager(object): # TODO
     are created at the proper times.
     """
 
-    def __init__(self):
-        self.upcoming_blocks = None # TODO get the the upcoming blocks
+    max_days_upcoming = 10
 
-    def should_run(self):
-        """
-        """
-        return True # TODO how are we going to know when NOT to run?
+    def __init__(self, sport):
+        self.sport = sport
 
-    def run(self):
+    def run(self, now=None):
         """
+        create the Blocks for the admin to see what ContestPools
+        are currently planned to be created in the upcoming days.
         """
-        pass # TODO
+        if now is None:
+            now = timezone.now()
+
+        # create a ScheduleDay object and call update() to load real-time
+        # information about the actual live games for the sport.
+        schedule_day = ScheduleDay(self.sport)
+        schedule_day.update()
+
+        # create any necessary blocks
+        for date_str, sport_day in schedule_day.get_data()[:self.max_days_upcoming]:
+            print(str(date_str)) # TODO remove print
+            # use the BlockCreator to make new blocks
+            # which will have all teh default prize structures
+            # and display the included/excluded games currently included/excluded
+            block_creator = BlockCreator(sport_day)
+            block = block_creator.create()
 
 class BlockCreator(object):
     """
     Given a sport, create a Block
     """
 
-    class BlockScheduleExists(Exception): pass
-
-    max_days_scheduled = 10
+    class BlockExistsException(Exception): pass
 
     def __init__(self, sport_day):
         self.sport_day = sport_day
 
-    def create(self):
-        """
-        create the block and its block games from the SportDay instance information
-        """
-
-        block = Block.objects.create(site_sport=self.sport_day.site_sport,
-                                     start=self.sport_day.the_datetime)
-
+    def create_block(self):
         #
-        # create the BlockGames which are excluded from the schedule
-        for game in self.sport_day.get_excluded_games():
-            print('creating this excluded BlockGame...')
-            print('    ', str(game))
-            block_game = BlockGame()
-            block_game.block = block
-            block_game.name = game.get_home_at_away_str()
-            block_game.srid = game.srid
-            block_game.game = game
-            block_game.save()
+        # raise an exception if the block already exists
+        site_sport = self.sport_day.site_sport
+        start = self.sport_day.the_datetime
+        try:
+            Block.objects.get(site_sport=site_sport, start=start)
+            err_msg = 'a %s scheduled block at %s ' \
+                      'already exists'%(str(site_sport.name), str(start))
+            raise self.BlockExistsException(err_msg)
+        except Block.DoesNotExist:
+            pass
 
-        #
-        # create the BlockGames associated with this Block at the current time
-        for game in self.sport_day.get_included_games():
-            print('creating this included BlockGame...')
-            print('    ', str(game))
-            block_game = BlockGame()
-            block_game.block = block
-            block_game.name = game.get_home_at_away_str()
-            block_game.srid = game.srid
-            block_game.game = game
-            block_game.save()
-
+        # create it
+        block = Block.objects.create(site_sport=self.sport_day.site_sport, start=start)
         return block
 
-    # def get_game_data(self):
-    #     """
-    #     ScheduleDay has the data about the sports upcoming games
-    #     """
-    #     self.schedule_day.update()
-    #     return self.schedule_day.data
-    #
-    # def create_upcoming_blocks(self):
-    #     """
-    #     update the next few days of the block schedule.
-    #     if necessary, create new blocks.
-    #     """
-    #     game_data = self.get_game_data()
-    #     for date_str, sport_day in game_data[:self.max_days_scheduled]:
-    #         #
-    #         # date_str is just a date string like: '2016-04-07', starting with tomorrow
-    #         # sport_day is a sport specific instance of ScheduleDay.SportDay
-    #         #           and has a method get_data() which contains information like this:
-    #         #
-    #
-    #         # TODO if there is already a Block for this sport & day, go no further
-    #         # potentially move this logic into the BlockScheduleManager
-    #         # and just use this class to always create a block
+    def create_block_games(self, block, games):
+        block_games = []
+        for game in games:
+            print('creating a BlockGame for', str(game)) # TODO remove print
+            block_game = BlockGame()
+            block_game.block = block
+            block_game.name = game.get_home_at_away_str()
+            block_game.srid = game.srid
+            block_game.game = game
+            block_game.save()
+
+            block_games.append( block_game )
+        return block_games
+
+    def create(self):
+        """
+        create the block, its block games from the SportDay instance information,
+        as well as the block prize structures.
+
+        returns the Block created
+        """
+
+        # create a new block
+        block = self.create_block()
+
+        # create the BlockGames (both included & excluded)
+        included_games = self.sport_day.get_included_games()
+        excluded_games = self.sport_day.get_excluded_games()
+        all_games = list(included_games) + list(excluded_games)
+        block_games = self.create_block_games(block, all_games)
+
+        # create the block prize structures
+        block_prize_structure_creator = BlockPrizeStructureCreator(block)
+        block_prize_structure_creator.create()
+
+        return block
 
 class BlockPrizeStructureCreator(object):
     """
