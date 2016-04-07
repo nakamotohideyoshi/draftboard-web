@@ -44,7 +44,7 @@ class Block(models.Model):
         #                                                          ms, microsec
         est_cutoff = est_startofday.replace(year, month, day, hour, minute, 0, 0)
         utc_cutoff = est_cutoff.astimezone(timezone('UTC'))
-        print('cutoff_time:', str(self.cutoff_time), 'utc_cutoff', str(utc_cutoff))
+        #print('cutoff_time:', str(self.cutoff_time), 'utc_cutoff', str(utc_cutoff))
         return utc_cutoff
     def get_block_games(self):
         """
