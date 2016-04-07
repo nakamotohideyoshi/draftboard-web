@@ -21,7 +21,8 @@ from account.serializers import (
     UserSerializerNoPassword,
     InformationSerializer,
     UserEmailNotificationSerializer,
-    EmailNotificationSerializer
+    EmailNotificationSerializer,
+    UpdateUserEmailNotificationSerializer
 )
 import account.tasks
 from braces.views import LoginRequiredMixin
@@ -227,28 +228,29 @@ class InformationAPIView (generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class EmailNotificationAPIView (generics.ListCreateAPIView):
-    """
-    Allows the admin to modify and insert new Email Notifications
-
-        * |api-text| :dfs:`account/email/notification/`
-    """
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsAdminUser,)
-    serializer_class = EmailNotificationSerializer
-    queryset = EmailNotification.objects.all()
+# class EmailNotificationAPIView (generics.ListCreateAPIView):
+#     """
+#     Allows the admin to modify and insert new Email Notifications
+#
+#         * |api-text| :dfs:`account/email/notification/`
+#     """
+#     authentication_classes = (SessionAuthentication, BasicAuthentication)
+#     permission_classes = (IsAdminUser,)
+#     serializer_class = EmailNotificationSerializer
+#     queryset = EmailNotification.objects.all()
 
 
 class UserEmailNotificationAPIView (generics.GenericAPIView):
     """
     Allows the user to get and update their user email settings
 
-        * |api-text| :dfs:`account/email/settings/`
+        * |api-text| :dfs:`account/notifications/email/`
     """
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated, )
     serializer_class = UserEmailNotificationSerializer
 
+    # Get all of the notification types, then run through each type and check if the user has a
+    # setting, if not, create one in get_object().
     def get_objects(self):
         user = self.request.user
         notifications = EmailNotification.objects.filter(deprecated=False)
@@ -281,25 +283,36 @@ class UserEmailNotificationAPIView (generics.GenericAPIView):
 
         return Response(serializer.data)
 
+    # Update a list of UserEmailNotifications.
     def post(self, request, format=None):
-        print(request.data)
-        try:
-            notif = EmailNotification.objects.get(
-                deprecated=False,
-                id=request.data['email_notification']
+        errors = []
+
+        # Run through each supplied UserEmailNotification, updating the 'enabled' field and saving.
+        for setting in request.data:
+            try:
+                notif = EmailNotification.objects.get(
+                    deprecated=False,
+                    id=setting['id']
+                )
+            except EmailNotification.DoesNotExist:
+                errors.append("Notification id: %s does not exist" % setting.id)
+
+            # Get the UserEmailNotification from the DB, and update the enabled field.
+            user_email_notification = self.get_object(notif)
+            user_email_notification.enabled = setting['enabled']
+            serializer = UpdateUserEmailNotificationSerializer(
+                user_email_notification, data=setting, many=False
             )
-        except EmailNotification.DoesNotExist:
-            return Response("Notification does not exist", status=status.HTTP_400_BAD_REQUEST)
+            # Save or add error to errors list.
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                errors.append(serializer.errors)
 
-        user_email_notification = self.get_object(notif)
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = UserEmailNotificationSerializer(
-            user_email_notification, data=request.data, many=False
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return self.get(request)
 
 
 class WithdrawAPI(APIView):

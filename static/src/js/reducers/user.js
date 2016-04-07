@@ -13,6 +13,12 @@ const initialState = {
   cashBalance: {
     isFetching: false,
   },
+  notificationSettings: {
+    isFetchingEmail: false,
+    isUpdatingEmail: false,
+    email: [],
+    emailErrors: [],
+  },
 };
 
 
@@ -71,6 +77,57 @@ module.exports = (state = initialState, action) => {
       return _merge({}, state, {
         cashBalance: {
           isFetching: false,
+        },
+      });
+
+
+    case ActionTypes.FETCH_EMAIL_NOTIFICATIONS:
+      return _merge({}, state, {
+        notificationSettings: {
+          isFetchingEmail: true,
+        },
+      });
+
+
+    case ActionTypes.FETCH_EMAIL_NOTIFICATIONS_SUCCESS:
+      return _merge({}, state, {
+        notificationSettings: {
+          isFetchingEmail: false,
+          email: action.body,
+        },
+      });
+
+
+    case ActionTypes.FETCH_EMAIL_NOTIFICATIONS_FAIL:
+      return _merge({}, state, {
+        notificationSettings: {
+          isFetchingEmail: false,
+        },
+      });
+
+
+    case ActionTypes.UPDATE_EMAIL_NOTIFICATIONS:
+      return _merge({}, state, {
+        notificationSettings: {
+          isUpdatingEmail: true,
+        },
+      });
+
+
+    case ActionTypes.UPDATE_EMAIL_NOTIFICATIONS_SUCCESS:
+      return _merge({}, state, {
+        notificationSettings: {
+          isUpdatingEmail: false,
+          email: action.body,
+        },
+      });
+
+
+    case ActionTypes.UPDATE_EMAIL_NOTIFICATIONS_FAIL:
+      return _merge({}, state, {
+        notificationSettings: {
+          isUpdatingEmail: false,
+          emailErrors: [action.err.message],
         },
       });
 
