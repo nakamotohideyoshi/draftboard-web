@@ -24,37 +24,48 @@ class RegisterUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ("username", "email", "password")
 
+
 class UserSerializerNoPassword(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('email',)
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ("email", "password")
 
-class InformationSerializer(serializers.ModelSerializer):
 
+class InformationSerializer(serializers.ModelSerializer):
     email = serializers.SerializerMethodField()
+
     def get_email(self, information):
         return information.user.email
 
     class Meta:
         model = Information
-        fields = ("dob", "email","fullname", "address1", "address2", "city", "state", "zipcode")
+        fields = ("dob", "email", "fullname", "address1", "address2", "city", "state", "zipcode")
 
 
 class EmailNotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmailNotification
-        fields = ("pk", "category", "name", "description", "default_value", "deprecated")
+        fields = ("id", "category", "name", "description", "deprecated")
 
 
 class UserEmailNotificationSerializer(serializers.ModelSerializer):
+    notification_info = EmailNotificationSerializer(source="email_notification")
+
     class Meta:
         model = UserEmailNotification
-        fields = ("email_notification", "enabled")
+        fields = ("notification_info", "enabled")
+
+
+class UpdateUserEmailNotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserEmailNotification
+        fields = ("id", "enabled")
 
 
 class LoginSerializer(serializers.Serializer):
