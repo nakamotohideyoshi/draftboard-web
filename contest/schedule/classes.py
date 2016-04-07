@@ -408,14 +408,18 @@ class ScheduleDay(object):
         def get_included_games(self):
             return self.games.filter(pk__in=self.get_included_game_ids())
 
-        def get_cutoff_datetime(self):
-            return self.data['cutoff_datetime']
+        def get_cutoff(self):
+            """ get the 'cutoff_time' from the internal data """
+            return self.data['cutoff_time']
+
+        # def get_cutoff_datetime(self):
+        #     return self.data['cutoff_datetime']
 
         def get_data(self):
             if self.games.count() == 0:
                 return None
 
-            weekday = None
+            weekday = None # 0 - 6 day index.  its poorly named, but its NOT the self.weekday time() cutoff
             include = []
             exclude = []
             include_times = []
@@ -423,7 +427,9 @@ class ScheduleDay(object):
             for game in self.games:
 
                 if weekday is None:
-                    weekday = game.start.weekday()
+                    # weekday = game.start.weekday()
+                    #    ... i think its actually this:
+                    weekday = self.get_local_datetime(game.start).weekday()
 
                 datetime_start_est = self.get_local_datetime(game.start)
                 if weekday in [0,1,2,3,4] and self.include_in_weekday_block(datetime_start_est):
@@ -464,7 +470,7 @@ class ScheduleDay(object):
                 'include_times' : include_times,
                 'exclude_times' : exclude_times,
                 'include_pct'   : float(float(len(include)) / float(total)),
-                'cutoff_time'   : self.get_cutoff_time(weekday),
+                'cutoff_time'   : self.get_weekday_cutoff_time(weekday),
             }
 
         def __str__(self):
@@ -492,7 +498,15 @@ class ScheduleDay(object):
             elif weekday in self.sunday_values:
                 return 'Sunday'
 
-        def get_cutoff_time(self, weekday):
+        def get_weekday_cutoff_time(self, weekday):
+            """
+            this is an internal method.
+
+            use method get_cutoff() to retrieve the datetime.time()
+            specifically related to the day of this instance
+            after this sportday  has been updated
+            """
+
             if weekday in self.weekday_values:
                 return self.weekday
             elif weekday in self.saturday_values:
@@ -749,8 +763,14 @@ class ContestPoolScheduleManager(object): # TODO
     def __init__(self, sport):
         self.sport = sport
 
+        # testing
+        self.sport_day = None
+
+    @atomic
     def run(self, now=None):
         """
+        if anything goes wrong within this method, nothing is created, fyi (@atomic)
+
         create the Blocks for the admin to see what ContestPools
         are currently planned to be created in the upcoming days.
         """
@@ -765,6 +785,7 @@ class ContestPoolScheduleManager(object): # TODO
         # create any necessary blocks
         for date_str, sport_day in schedule_day.get_data()[:self.max_days_upcoming]:
             print(str(date_str)) # TODO remove print
+            self.sport_day = sport_day # TODO debug setting, remove from __init__() too!
             # use the BlockCreator to make new blocks
             # which will have all teh default prize structures
             # and display the included/excluded games currently included/excluded
@@ -782,12 +803,24 @@ class BlockCreator(object):
         self.sport_day = sport_day
 
     def create_block(self):
+        """
+        TODO - this creates DAILY blocks, and will need a tweak for NFL weekly stuff
+
+        :return: the newly created Block
+        """
         #
         # raise an exception if the block already exists
         site_sport = self.sport_day.site_sport
         start = self.sport_day.the_datetime
+        end = start + timedelta(hours=24)
+        cutoff_time = self.sport_day.get_cutoff() # datetime.time() object
         try:
-            Block.objects.get(site_sport=site_sport, start=start)
+            #
+            # set fields: dfsday_start (datetime), dfsday_end (datetime), cutoff_time (time object)
+            Block.objects.get(site_sport=site_sport,
+                                dfsday_start=start,
+                                dfsday_end=end,
+                                cutoff_time=cutoff_time)
             err_msg = 'a %s scheduled block at %s ' \
                       'already exists'%(str(site_sport.name), str(start))
             raise self.BlockExistsException(err_msg)
@@ -795,7 +828,10 @@ class BlockCreator(object):
             pass
 
         # create it
-        block = Block.objects.create(site_sport=self.sport_day.site_sport, start=start)
+        block = Block.objects.create(site_sport=self.sport_day.site_sport,
+                                        dfsday_start=start,
+                                        dfsday_end=end,
+                                        cutoff_time=cutoff_time)
         return block
 
     def create_block_games(self, block, games):
