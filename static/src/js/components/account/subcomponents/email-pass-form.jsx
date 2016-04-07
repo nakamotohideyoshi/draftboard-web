@@ -2,7 +2,7 @@ import React from 'react';
 import isEmpty from 'lodash/lang/isEmpty';
 
 
-const EmailPasssForm = React.createClass({
+const EmailPassForm = React.createClass({
 
   propTypes: {
     username: React.PropTypes.string.isRequired,
@@ -159,4 +159,4 @@ const EmailPasssForm = React.createClass({
 });
 
 
-export default EmailPasssForm;
+export default EmailPassForm;
