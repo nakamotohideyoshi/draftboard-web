@@ -1,13 +1,16 @@
 import React from 'react';
 import isEmpty from 'lodash/lang/isEmpty';
-
+import { forEach as _forEach } from 'lodash';
 
 const SettingsEmailNotifications = React.createClass({
 
   propTypes: {
     user: React.PropTypes.object.isRequired,
-    errors: React.PropTypes.object.isRequired,
+    errors: React.PropTypes.array.isRequired,
     handleSubmit: React.PropTypes.func.isRequired,
+    emailNotificationSettings: React.PropTypes.array.isRequired,
+    isUpdatingEmail: React.PropTypes.bool,
+    isFetchingEmail: React.PropTypes.bool,
   },
 
 
@@ -23,7 +26,7 @@ const SettingsEmailNotifications = React.createClass({
    * if there are no errors comming set edit mode to False
    */
   componentWillReceiveProps(nextProps) {
-    if (isEmpty(nextProps.errors)) {
+    if (isEmpty(nextProps.errors) || nextProps.isUpdatingEmail) {
       this.setState({ editMode: false });
     } else {
       this.setState({ editMode: true });
@@ -42,172 +45,157 @@ const SettingsEmailNotifications = React.createClass({
   },
 
 
+  handleSubmit() {
+    const fieldset = this.refs.formFieldset;
+    if (fieldset) {
+      const values = [];
+
+      _forEach(fieldset.querySelectorAll('input'), (field) => {
+        if (field.checked) {
+          values.push({
+            id: field.getAttribute('data-notification-id'),
+            enabled: field.value,
+          });
+        }
+      });
+
+      this.props.handleSubmit(values);
+    }
+  },
+
+
   renderInfo() {
+    const notificationList = this.props.emailNotificationSettings.map((notification) =>
+      <li key={notification.notification_info.name}>
+        {notification.notification_info.description}
+      </li>
+    );
+
     return (
-      <div className="form-field form-field--with-help">
-        <label className="form-field__label" htmlFor="notifications">Email Notifications</label>
+      <div className="info-state">
+        <ul>
+          {notificationList}
+        </ul>
 
-        <div className="form-field__content">
-          <p className="form-field__info">
-            Master cleanse Thundercats forage small batch Williamsburg. YOLO migas farm-to-table Vice, heirloom trust
-            fund lo-fi.
-          </p>
-
-          <ul>
-            <li>Contests are starting</li>
-            <li>Contest victories</li>
-            <li>Newsletter</li>
-            <li>Upcoming contetsts</li>
-          </ul>
-
-          <a href="#" onClick={this.setEditMode}>Edit</a>
-        </div>
+        <a href="#" onClick={this.setEditMode}>Edit</a>
       </div>
     );
   },
 
-  renderForm() {
+
+  renderErrors() {
+    if (this.props.errors) {
+      return (
+        <div className="error"><p>{this.props.errors}</p></div>
+      );
+    }
+
+    return (<div></div>);
+  },
+
+
+  renderSaveButton() {
+    if (this.props.isUpdatingEmail) {
+      return (
+        <input
+          type="submit"
+          className="button--medium"
+          defaultValue="Saving..."
+        />
+      );
+    }
+
     return (
-      <div className="form-field form-field--with-help">
-        <label className="form-field__label" htmlFor="notifications">Email Notifications</label>
+      <input
+        type="submit"
+        className="button--medium"
+        defaultValue="Save"
+        onClick={this.handleSubmit}
+      />
+    );
+  },
 
-        <div className="form-field__content">
-          <p className="form-field__info">
-            Master cleanse Thundercats forage small batch Williamsburg. YOLO migas farm-to-table Vice, heirloom trust
-            fund lo-fi.
-          </p>
 
-          <ul className="radio-button-list">
-            <li>
-              <div className="radio-button-list__header-label">Off</div>
-              <div className="radio-button-list__header-label">On</div>
-            </li>
+  renderForm() {
+    const notificationList = this.props.emailNotificationSettings.map((notification) =>
+      <li key={notification.notification_info.name}>
+        <div>
+          <div className="radio-button-list__title">
+            {notification.notification_info.description}
+          </div>
 
-            <li>
-              <div className="radio-button-list__title">
-                Contests are starting
-              </div>
+          <div className="radio-button-list__button-container pull-right">
+            <input
+              className="radio-button-list__input"
+              data-notification-id={notification.notification_info.id}
+              type="radio"
+              id={`${notification.notification_info.name}--off`}
+              name={`${notification.notification_info.name}`}
+              value="false"
+              defaultChecked={!notification.enabled}
+            />
+            <label
+              className="radio-button-list__label"
+              htmlFor={`${notification.notification_info.name}--off`}
+            >Off</label>
+          </div>
 
-              <div className="radio-button-list__button-container pull-right">
-                <input
-                  className="radio-button-list__input"
-                  type="radio"
-                  id="contests--starting2"
-                  name="email_notification_contests_starting"
-                  value="off"
-                  defaultChecked="checked"
-                />
-                <label className="radio-button-list__label" htmlFor="contests--starting2">Off</label>
-              </div>
-
-              <div className="radio-button-list__button-container pull-right">
-                <input
-                  className="radio-button-list__input"
-                  type="radio" id="contests--starting1"
-                  name="email_notification_contests_starting"
-                  value="on"
-                />
-                <label className="radio-button-list__label" htmlFor="contests--starting1">On</label>
-              </div>
-            </li>
-
-            <li>
-              <div className="radio-button-list__title">
-                Contests victories
-              </div>
-
-              <div className="radio-button-list__button-container pull-right">
-                <input
-                  className="radio-button-list__input"
-                  type="radio" id="contests--starting4"
-                  name="email_notification_contest_victories"
-                  value="off"
-                  defaultChecked="checked"
-                />
-                <label className="radio-button-list__label" htmlFor="contests--starting4">Off</label>
-              </div>
-
-              <div className="radio-button-list__button-container pull-right">
-                <input
-                  className="radio-button-list__input"
-                  type="radio"
-                  id="contests--starting3"
-                  name="email_notification_contest_victories"
-                  value="on"
-                />
-                <label className="radio-button-list__label" htmlFor="contests--starting3">On</label>
-              </div>
-            </li>
-
-            <li>
-              <div className="radio-button-list__title">
-                Newsletter
-              </div>
-
-              <div className="radio-button-list__button-container pull-right">
-                <input
-                  className="radio-button-list__input"
-                  type="radio"
-                  id="contests--starting6"
-                  name="email_notification_newsletter"
-                  value="off"
-                  defaultChecked="checked"
-                />
-                <label className="radio-button-list__label" htmlFor="contests--starting6">Off</label>
-              </div>
-
-              <div className="radio-button-list__button-container pull-right">
-                <input
-                  className="radio-button-list__input"
-                  type="radio"
-                  id="contests--starting5"
-                  name="email_notification_newsletter"
-                  value="on"
-                />
-                <label className="radio-button-list__label" htmlFor="contests--starting5">On</label>
-              </div>
-            </li>
-
-            <li>
-              <div className="radio-button-list__title">
-                Upcoming Contests
-              </div>
-
-              <div className="radio-button-list__button-container pull-right">
-                <input
-                  className="radio-button-list__input"
-                  type="radio"
-                  id="contests--starting8"
-                  name="email_notification_upcoming_contests"
-                  value="off"
-                  defaultChecked="checked"
-                />
-                <label className="radio-button-list__label" htmlFor="contests--starting8">Off</label>
-              </div>
-
-              <div className="radio-button-list__button-container pull-right">
-                <input
-                  className="radio-button-list__input"
-                  type="radio"
-                  id="contests--starting7"
-                  name="email_notification_upcoming_contests"
-                  value="on"
-                />
-                <label className="radio-button-list__label" htmlFor="contests--starting7">On</label>
-              </div>
-            </li>
-          </ul>
+          <div className="radio-button-list__button-container pull-right">
+            <input
+              className="radio-button-list__input"
+              data-notification-id={notification.notification_info.id}
+              type="radio"
+              id={`${notification.notification_info.name}--on`}
+              name={`${notification.notification_info.name}`}
+              value="true"
+              defaultChecked={notification.enabled}
+            />
+            <label
+              className="radio-button-list__label"
+              htmlFor={`${notification.notification_info.name}--on`}
+            >On</label>
+          </div>
         </div>
+      </li>
+    );
+
+
+    return (
+      <div className="edit-state">>
+        <ul className="radio-button-list">
+          <li>
+            <div className="radio-button-list__header-label">Off</div>
+            <div className="radio-button-list__header-label">On</div>
+          </li>
+
+          {notificationList}
+        </ul>
+
+        {this.renderErrors()}
+
+        {this.renderSaveButton()}
       </div>
     );
   },
 
   render() {
     return (
-      <fieldset className="form__fieldset">
-        { this.state.editMode && this.renderForm() }
-        { !this.state.editMode && this.renderInfo() }
-      </fieldset>
+      <form className="cmp-settings-email-notifications">
+        <fieldset className="form__fieldset" ref="formFieldset">
+          <div className="form-field form-field--with-help">
+            <label className="form-field__label" htmlFor="notifications">Email Notifications</label>
+
+            <div className="form-field__content">
+              <p className="form-field__info">
+                Here you can change your email notication preferences.
+              </p>
+
+              { this.state.editMode && this.renderForm() }
+              { !this.state.editMode && this.renderInfo() }
+            </div>
+          </div>
+        </fieldset>
+      </form>
     );
   },
 
