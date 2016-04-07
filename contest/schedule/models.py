@@ -8,15 +8,63 @@ import contest.models
 from prize.models import (
     PrizeStructure,
 )
+from django.conf import settings
+from pytz import timezone
 
+class Notification(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+    modified = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=128, null=False, unique=True)
+    enabled = models.BooleanField(default=True, null=False)
+    # TODO are there more fields?
 class Block(models.Model):
     """ a sport and a time, which characterizes a ContestPools start time """
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     site_sport = models.ForeignKey('sports.SiteSport', null=False)
-    start = models.DateTimeField(null=False)
+    dfsday_start = models.DateTimeField(null=False)
+    dfsday_end = models.DateTimeField(null=False)
+    cutoff_time = models.TimeField(null=False)
     class Meta:
-        unique_together = ('site_sport','start')
+        unique_together = ('site_sport','dfsday_start','dfsday_end','cutoff_time')
+    def get_utc_cutoff(self):
+        """
+        we have to convert the dfsday start to local time (EST), combine
+        with the time object, and convert it back to UTC so we can
+        compare it with the games in the database, which are in UTC !
+        """
+
+        # convert the utc start of the day into est  (so should be 00:00:01 AM basically)
+        est_startofday = self.dfsday_start.astimezone(timezone(settings.TIME_ZONE))
+        year = est_startofday.year
+        month = est_startofday.month
+        day = est_startofday.day
+        hour = self.cutoff_time.hour
+        minute = self.cutoff_time.minute
+        #                                                          ms, microsec
+        est_cutoff = est_startofday.replace(year, month, day, hour, minute, 0, 0)
+        utc_cutoff = est_cutoff.astimezone(timezone('UTC'))
+        print('cutoff_time:', str(self.cutoff_time), 'utc_cutoff', str(utc_cutoff))
+        return utc_cutoff
+    def get_block_games(self):
+        """
+        returns a tuple of two lists in the form: ([included games], [excluded games])
+
+        :param block:
+        :return:
+        """
+        included    = []
+        excluded    = []
+        utc_cutoff  = self.get_utc_cutoff()
+
+        for block_game in BlockGame.objects.filter(block=self):
+            if block_game.game.start < utc_cutoff:
+                excluded.append(block_game)
+            else:
+                included.append(block_game)
+        #
+        # return a tuple of included, excluded
+        return (included, excluded)
     # TODO finish implementing
 class DefaultPrizeStructure(models.Model):
     """ for a sport, this is the set of PrizeStructures to create for a Block """
@@ -39,6 +87,14 @@ class BlockGame(models.Model):
     game                = GenericForeignKey('game_type', 'game_id')
     class Meta:
         unique_together = ('block','srid')
+# class IncludedBlockGame(BlockGame):
+#     """ PROXY for "included" block games """
+#     class IncludedBlockGameManager(models.Manager):
+#         def get_queryset(self):
+#             return super().get_queryset().filter()
+#     objects = IncludedBlockGameManager()
+#     class Meta:
+#         proxy = True
 class BlockPrizeStructure(models.Model):
     """ for a block, this is the editable set of PrizeStructures (editable until the block starts) """
     created = models.DateTimeField(auto_now_add=True)

@@ -3,6 +3,10 @@ from sys import stdout
 from unipath import Path
 import datetime
 
+from django.conf.locale.en import formats as en_formats
+en_formats.DATETIME_FORMAT = "m/d/Y h:i:s P"
+# en_formats.DATETIME_FORMAT = "l m.d.Y  @  P"
+
 from django.core.exceptions import ImproperlyConfigured
 
 def get_env_variable(var_name):
@@ -51,7 +55,8 @@ TEMPLATES = [
             join(BASE_DIR, 'account/templates'),
             join(BASE_DIR, 'prize/templates'),
             join(BASE_DIR, 'salary/templates'),
-            join(BASE_DIR, 'sports/templates')
+            join(BASE_DIR, 'sports/templates'),
+            join(BASE_DIR, 'contest/schedule'),
         ],
         'APP_DIRS': True, # defaults to False
         'OPTIONS' : {
@@ -131,6 +136,13 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
+#
+# for the editing/display format of time objects in the admin
+TIME_INPUT_FORMATS = [
+    '%H:%M',        # '14:30'
+    '%H:%M:%S',     # '14:30:59'
+    '%H:%M:%S.%f',  # '14:30:59.000200'
+]
 
 # Third party settings
 # ----------------------------------------------------------
