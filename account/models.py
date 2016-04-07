@@ -39,6 +39,8 @@ class EmailNotification(models.Model):
     class Meta:
         unique_together = ("category", "name")
         verbose_name = 'Email Notification'
+
+
 class UserEmailNotification(models.Model):
     """
     Options for enabling various email / notifications
@@ -50,6 +52,3 @@ class UserEmailNotification(models.Model):
 
     class Meta:
         unique_together = ("user", "email_notification")
-
-
-
