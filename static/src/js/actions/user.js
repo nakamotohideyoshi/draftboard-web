@@ -216,3 +216,73 @@ export function fetchCashBalanceIfNeeded() {
     return Promise.resolve();
   };
 }
+
+
+export function fetchEmailNotificationSettings() {
+  return (dispatch) => {
+    dispatch({
+      type: types.FETCH_EMAIL_NOTIFICATIONS,
+    });
+
+    return new Promise((resolve, reject) => {
+      request
+      .get('/api/account/notifications/email/')
+      .set({
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        'X-CSRFToken': Cookies.get('csrftoken'),
+        Accept: 'application/json',
+      })
+      .end((err, res) => {
+        if (err) {
+          log.error("Could not fetch user's email notification settings", err);
+          reject(err);
+          dispatch({
+            type: types.FETCH_EMAIL_NOTIFICATIONS_FAIL,
+            body: res.body,
+          });
+        } else {
+          dispatch({
+            type: types.FETCH_EMAIL_NOTIFICATIONS_SUCCESS,
+            body: res.body,
+          });
+          resolve(res);
+        }
+      });
+    });
+  };
+}
+
+export function updateEmailNotificationSettings(formData) {
+  return (dispatch) => {
+    dispatch({
+      type: types.UPDATE_EMAIL_NOTIFICATIONS,
+    });
+
+    return new Promise((resolve, reject) => {
+      request
+      .post('/api/account/notifications/email/')
+      .send(formData)
+      .set({
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        'X-CSRFToken': Cookies.get('csrftoken'),
+        Accept: 'application/json',
+      })
+      .end((err, res) => {
+        if (err) {
+          log.error("Could not update user's email notification settings", err);
+          dispatch({
+            type: types.UPDATE_EMAIL_NOTIFICATIONS_FAIL,
+            err,
+          });
+          reject(err);
+        } else {
+          dispatch({
+            type: types.UPDATE_EMAIL_NOTIFICATIONS_SUCCESS,
+            body: res.body,
+          });
+          resolve(res);
+        }
+      });
+    });
+  };
+}
