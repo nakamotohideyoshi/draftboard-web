@@ -15,7 +15,7 @@ LOCK_EXPIRE         = 60  # lock expires in 30 seconds
 SHARED_LOCK_NAME    = 'contest_pool_schedule_manager'
 
 @app.task
-def contest_pool_schedule_manager( days_in_future=None ):
+def contest_pool_schedule_manager(sport):
     """
     uses the ScheduleManager to create scheduled contests by calling
     ScheduleManager.run( td = td ).
@@ -24,14 +24,16 @@ def contest_pool_schedule_manager( days_in_future=None ):
                 amount of time in the future from now to schedule for
     :return:
     """
-    lock_id = 'task-LOCK-%s' % SHARED_LOCK_NAME
+
+    # unique per sport, ie: task-LOCK--nfl--contest_pool_schedule_manager'
+    lock_id = 'task-LOCK--%s--%s' % (sport, SHARED_LOCK_NAME)
 
     acquire_lock = lambda: cache.add(lock_id, 'lock', LOCK_EXPIRE)
     release_lock = lambda: cache.delete(lock_id)
 
     if acquire_lock():
         try:
-            scheduler = ContestPoolScheduleManager()
+            scheduler = ContestPoolScheduleManager(sport=sport)
             scheduler.run()
 
         finally:

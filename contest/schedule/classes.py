@@ -8,6 +8,10 @@ from django.utils import timezone
 from django.db.transaction import atomic
 from django.db.models import Q
 import contest.models
+from contest.classes import (
+    ContestPoolCreator,
+    ContestPoolManager,
+)
 from draftgroup.classes import DraftGroupManager
 from util.slack import WebhookContestScheduler
 from mysite.exceptions import (
@@ -24,11 +28,8 @@ from .exceptions import (
     SchedulerNumberOfGamesException,
 )
 from .models import (
-    Schedule,
-    TemplateContest,
-    ScheduledTemplateContest,
-    CreatedContest,
     Block,
+    UpcomingBlock, # proxy model for upcoming Block (all sports)
     BlockGame,
     DefaultPrizeStructure,
     BlockPrizeStructure,
@@ -752,7 +753,7 @@ class ScheduleWeek(ScheduleDay):
         #self.end = self.end + timedelta(days=7)
         self.end = self.start + timedelta(days=3)
 
-class ContestPoolScheduleManager(object): # TODO
+class ContestPoolScheduleManager(object):
     """
     This class takes over all the duties of ensuring that ContestPools
     are created at the proper times.
@@ -767,10 +768,30 @@ class ContestPoolScheduleManager(object): # TODO
         self.sport_day = None
 
     @atomic
+    def create_contest_pools(self):
+        """
+        this will create ContestPools which should
+        appear on the website and be active right now.
+        """
+
+        # get next upcoming Block and make sure its ContestPools exist
+        next_block = None
+        upcoming_blocks = UpcomingBlock.objects.filter(site_sport__name=self.sport)
+        if upcoming_blocks.count() > 0:
+            # get the first one
+            next_block = upcoming_blocks[0]
+        else:
+            err_msg = '%s - no active Block to create ContestPool(s) for...' % self.sport
+            print(err_msg)
+            return # there is no active block to create
+
+        # use the blockmanager to create all necessary ContestPools
+        block_manager = BlockManager(next_block)
+        block_manager.create_contest_pools()
+
+    @atomic
     def run(self, now=None):
         """
-        if anything goes wrong within this method, nothing is created, fyi (@atomic)
-
         create the Blocks for the admin to see what ContestPools
         are currently planned to be created in the upcoming days.
         """
@@ -790,6 +811,8 @@ class ContestPoolScheduleManager(object): # TODO
             # which will have all teh default prize structures
             # and display the included/excluded games currently included/excluded
             block_creator = BlockCreator(sport_day)
+
+            # creates the block (although we dont do anything with the new block, it is returned)
             block = block_creator.create()
 
 class BlockCreator(object):
@@ -853,23 +876,38 @@ class BlockCreator(object):
         create the block, its block games from the SportDay instance information,
         as well as the block prize structures.
 
+        keep in mind this creates the Blocks -- NOT the actual ContestPools themselves.
+
         returns the Block created
         """
 
         # create a new block
-        block = self.create_block()
+        try:
+            block = self.create_block()
+        except self.BlockExistsException:
+            print('existing block for day -- skipping it')
+            return
 
         # create the BlockGames (both included & excluded)
         included_games = self.sport_day.get_included_games()
         excluded_games = self.sport_day.get_excluded_games()
         all_games = list(included_games) + list(excluded_games)
-        block_games = self.create_block_games(block, all_games)
+        block_games = self.create_block_games(block, all_games) # returns the created BlockGames
 
         # create the block prize structures
         block_prize_structure_creator = BlockPrizeStructureCreator(block)
         block_prize_structure_creator.create()
 
         return block
+
+class BlockManager(object):
+
+    def __init__(self, block):
+        self.block = block
+        self.block_prize_structures = BlockPrizeStructure.objects.filter(block=self.block)
+
+    def create_contest_pools(self):
+        pass # TODO TODO TODO TODO TODO TODO
 
 class BlockPrizeStructureCreator(object):
     """

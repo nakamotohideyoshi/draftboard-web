@@ -27,6 +27,9 @@ class Block(models.Model):
     cutoff_time = models.TimeField(null=False)
     class Meta:
         unique_together = ('site_sport','dfsday_start','dfsday_end','cutoff_time')
+    def __str__(self):
+        local_cutoff = self.get_utc_cutoff().astimezone(timezone(settings.TIME_ZONE))
+        return '%s %s' % (self.site_sport, str(local_cutoff))
     def get_utc_cutoff(self):
         """
         we have to convert the dfsday start to local time (EST), combine
@@ -65,6 +68,16 @@ class Block(models.Model):
         #
         # return a tuple of included, excluded
         return (included, excluded)
+    # TODO finish implementing
+class UpcomingBlock(Block):
+    """ PROXY for upcoming Blocks """
+    class UpcomingBlockManager(models.Manager):
+        def get_queryset(self):
+            # allegedly order_by() can take multiple params to sort by
+            return super().get_queryset().order_by('dfsday_start','cutoff_time')
+    objects = UpcomingBlockManager()
+    class Meta:
+        proxy = True
     # TODO finish implementing
 class DefaultPrizeStructure(models.Model):
     """ for a sport, this is the set of PrizeStructures to create for a Block """

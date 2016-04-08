@@ -8,16 +8,13 @@ from mysite.celery_app import app
 from datetime import timedelta
 from django.utils import timezone
 from contest.models import (
-    LiveContest,
     Contest,
-    UpcomingContest,
     CompletedContest, # can pay these out
 )
 from contest.payout.tasks import payout_task
-from draftgroup.models import DraftGroup, UpcomingDraftGroup
+from draftgroup.models import DraftGroup
 from django.core.mail import send_mail
 from rakepaid.classes import LoyaltyStatusManager
-from push.classes import ContestPush
 
 #
 #
@@ -63,24 +60,6 @@ def recalculate_user_loyalty():
 #########################################################################
 # contests
 #########################################################################
-
-#
-# check if we are getting within a few days of any contests
-# which dont have a draft_group set. (this implies the contests
-# were allowing early registration.)
-#
-# notifiy someone to remind them to create the draft group asap!
-@app.task
-def notifiy_admin_contests_require_draft_group():
-    td = timedelta(days=7)
-    target = timezone.now() + td
-    contests = UpcomingContest.objects.filter( draft_group__isnull=True, start__lte=target)
-    contests_str = str([ str(c.name) for c in contests])
-
-    send_mail("Alert! Upcoming Contests need a Draft-Group!",
-                contests_str,
-                HIGH_PRIORITY_FROM_EMAIL,
-                HIGH_PRIORITY_EMAILS)
 
 #
 # based on the time it is, make sure there are no Contests

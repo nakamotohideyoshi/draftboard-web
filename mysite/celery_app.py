@@ -66,9 +66,25 @@ app.conf.update(
         #
         # contest pool schedule manager updates the upcoming
         # days with what is going to be created.
-        'contest_pool_schedule_manager' : {
+        'nba_contest_pool_schedule_manager' : {
             'task' : 'contest.schedule.tasks.contest_pool_schedule_manager',
-            'schedule' : timedelta(hours=6),
+            'schedule' : timedelta(hours=4),
+            'args'      : ('nba',),
+        },
+        'nhl_contest_pool_schedule_manager' : {
+            'task' : 'contest.schedule.tasks.contest_pool_schedule_manager',
+            'schedule' : timedelta(hours=4, minutes=3),  # staggered
+            'args'      : ('nhl',),
+        },
+        'mlb_contest_pool_schedule_manager' : {
+            'task' : 'contest.schedule.tasks.contest_pool_schedule_manager',
+            'schedule' : timedelta(hours=4, minutes=7), # staggered
+            'args'      : ('mlb',),
+        },
+        'nfl_contest_pool_schedule_manager' : {
+            'task' : 'contest.schedule.tasks.contest_pool_schedule_manager',
+            'schedule' : timedelta(hours=4, minutes=13), # staggered
+            'args'      : ('nfl',),
         },
 
         #
