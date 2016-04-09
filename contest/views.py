@@ -45,7 +45,6 @@ from contest.models import (
     HistoryEntry,
     ClosedEntry,
     LobbyContestPool,
-    CurrentContestPool,
     UpcomingContestPool,
 )
 from contest.payout.models import (

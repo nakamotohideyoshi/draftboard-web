@@ -2,7 +2,8 @@
 # contest/schedule/admin.py
 
 from django.conf import settings
-from pytz import timezone
+from django.utils import timezone
+from pytz import timezone as pytz_timezone
 from django.contrib import admin
 from django.contrib.admin.widgets import AdminSplitDateTime
 from django.contrib.contenttypes import generic
@@ -32,7 +33,7 @@ WEEKDAY_TIME_FORMAT = WEEKDAY_FORMAT + ', ' + TIME_FORMAT
 WEEKDAY_MONTH_TIME_FORMAT = '%s, %s %s. %s' % (WEEKDAY_FORMAT, MONTH_FORMAT, DAYNUM, TIME_FORMAT)
 
 def as_local_timezone(datetime_obj):
-    return datetime_obj.astimezone(timezone(settings.TIME_ZONE))
+    return datetime_obj.astimezone(pytz_timezone(settings.TIME_ZONE))
 
 def local_date(datetime_obj):
     #dt = datetime_obj.astimezone(timezone(settings.TIME_ZONE))
@@ -139,8 +140,9 @@ class TabularInlineBlockPrizeStructure(admin.TabularInline):
             return 0
         return self.extra
 
-@admin.register(contest.schedule.models.Block)
-class BlockAdmin(admin.ModelAdmin):
+# @admin.register(contest.schedule.models.Block)
+@admin.register(contest.schedule.models.UpcomingBlock)
+class UpcomingBlockAdmin(admin.ModelAdmin):
 
     # customize the template, basically so we can group blocks by a Date
     # and then only show the TIME in the each row.
@@ -168,55 +170,17 @@ class BlockAdmin(admin.ModelAdmin):
     def sport(self, obj):
         return obj.site_sport.name.upper()
 
-    def weekday(self, obj):
-        return local_daymonth(obj.dfsday_start)
+    def weekday(self, block):
+        """
+        lets be specific, and if the current time is after the cutoff
+        display that its running...
+        """
+        if block.get_utc_cutoff() <= timezone.now():
+            return 'Drafting'
+        return local_daymonth(block.dfsday_start)
 
     def cutoff_time(self, obj):
         return local_time(obj.dfsday_start)
-
-    # def get_changelist_form(self, request, **kwargs):
-    #     kwargs.setdefault('form', MyAdminForm)
-    #     return super(MyModelAdmin, self).get_changelist_form(request, **kwargs)
-
-    # def __get_utc_cutoff(self, block):
-    #     """
-    #     we have to convert the dfsday start to local time (EST), combine
-    #     with the time object, and convert it back to UTC so we can
-    #     compare it with the games in the database, which are in UTC !
-    #     """
-    #
-    #     # convert the utc start of the day into est  (so should be 00:00:01 AM basically)
-    #     est_startofday = as_local_timezone(block.dfsday_start)
-    #     year = est_startofday.year
-    #     month = est_startofday.month
-    #     day = est_startofday.day
-    #     hour = block.cutoff_time.hour
-    #     minute = block.cutoff_time.minute
-    #     #                                                          ms, microsec
-    #     est_cutoff = est_startofday.replace(year, month, day, hour, minute, 0, 0)
-    #     utc_cutoff = est_cutoff.astimezone(timezone('UTC'))
-    #     print('cutoff_time:', str(block.cutoff_time), 'utc_cutoff', str(utc_cutoff))
-    #     return utc_cutoff
-
-    # def get_block_games(self, block):
-    #     """
-    #     returns a tuple of two lists in the form: ([included games], [excluded games])
-    #
-    #     :param block:
-    #     :return:
-    #     """
-    #     included    = []
-    #     excluded    = []
-    #     utc_cutoff  = block.get_utc_cutoff()
-    #
-    #     for block_game in contest.schedule.models.BlockGame.objects.filter(block=block):
-    #         if block_game.game.start < utc_cutoff:
-    #             excluded.append(block_game)
-    #         else:
-    #             included.append(block_game)
-    #     #
-    #     # return a tuple of included, excluded
-    #     return (included, excluded)
 
     def get_block_games(self, block):
         return block.get_block_games()

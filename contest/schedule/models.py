@@ -9,7 +9,8 @@ from prize.models import (
     PrizeStructure,
 )
 from django.conf import settings
-from pytz import timezone
+from django.utils import timezone
+from pytz import timezone as pytz_timezone
 
 class Notification(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -25,11 +26,19 @@ class Block(models.Model):
     dfsday_start = models.DateTimeField(null=False)
     dfsday_end = models.DateTimeField(null=False)
     cutoff_time = models.TimeField(null=False)
+    cutoff = models.DateTimeField(null=False, blank=True,
+                help_text='the UTC datetime object for the cutoff_time')
     class Meta:
         unique_together = ('site_sport','dfsday_start','dfsday_end','cutoff_time')
     def __str__(self):
-        local_cutoff = self.get_utc_cutoff().astimezone(timezone(settings.TIME_ZONE))
+        local_cutoff = self.get_utc_cutoff().astimezone(pytz_timezone(settings.TIME_ZONE))
         return '%s %s' % (self.site_sport, str(local_cutoff))
+    def save(self, *args, **kwargs):
+        """
+        override save() method to update the cutoff datetime
+        """
+        self.cutoff = self.get_utc_cutoff()
+        super().save(*args, **kwargs)
     def get_utc_cutoff(self):
         """
         we have to convert the dfsday start to local time (EST), combine
@@ -38,7 +47,7 @@ class Block(models.Model):
         """
 
         # convert the utc start of the day into est  (so should be 00:00:01 AM basically)
-        est_startofday = self.dfsday_start.astimezone(timezone(settings.TIME_ZONE))
+        est_startofday = self.dfsday_start.astimezone(pytz_timezone(settings.TIME_ZONE))
         year = est_startofday.year
         month = est_startofday.month
         day = est_startofday.day
@@ -46,7 +55,7 @@ class Block(models.Model):
         minute = self.cutoff_time.minute
         #                                                          ms, microsec
         est_cutoff = est_startofday.replace(year, month, day, hour, minute, 0, 0)
-        utc_cutoff = est_cutoff.astimezone(timezone('UTC'))
+        utc_cutoff = est_cutoff.astimezone(pytz_timezone('UTC'))
         #print('cutoff_time:', str(self.cutoff_time), 'utc_cutoff', str(utc_cutoff))
         return utc_cutoff
     def get_block_games(self):
@@ -74,10 +83,12 @@ class UpcomingBlock(Block):
     class UpcomingBlockManager(models.Manager):
         def get_queryset(self):
             # allegedly order_by() can take multiple params to sort by
-            return super().get_queryset().order_by('dfsday_start','cutoff_time')
+            return super().get_queryset().filter(
+                dfsday_start__gte=timezone.now()).order_by('dfsday_start','cutoff_time')
     objects = UpcomingBlockManager()
     class Meta:
         proxy = True
+        verbose_name = 'Schedule'
     # TODO finish implementing
 class DefaultPrizeStructure(models.Model):
     """ for a sport, this is the set of PrizeStructures to create for a Block """
