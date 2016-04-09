@@ -9,7 +9,29 @@ from contest.refund.tasks import refund_task
 from .payout.tasks import payout_task
 from django.utils.html import format_html
 
+# for ContestPools
+CONTEST_POOL_LIST_DISPLAY = ['name','status','start']
+
+# for Contests
 CONTEST_LIST_DISPLAY = ['name', 'created','status','start','end']
+
+@admin.register(contest.models.LobbyContestPool)
+class LobbyContestPoolAdmin(admin.ModelAdmin):
+
+    list_display = CONTEST_POOL_LIST_DISPLAY
+    search_fields = ['name',]
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            arr = [f.name for f in self.model._meta.fields]
+            return arr
+        return []
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 @admin.register(contest.models.Contest)
 class ContestAdmin(admin.ModelAdmin):

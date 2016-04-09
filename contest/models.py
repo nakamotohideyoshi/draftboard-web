@@ -222,15 +222,64 @@ class ContestPool(AbstractContest):
     def save(self, *args, **kwargs):
         super().save(override_entries=True, *args, **kwargs)
 
-class CurrentContestPool(ContestPool):
+class LobbyContestPool(ContestPool):
     """
-    PROXY model for Upcoming Contest Pools
-    """
-    class CurrentContestPoolManager(models.Manager):
-        def get_queryset(self):
-            return super().get_queryset().filter(status__in=ContestPool.SCHEDULED)
+    PROXY model for Upcoming ContestPools
 
-    objects = CurrentContestPoolManager()
+    This is the model which gets the ContestPools for
+    display on the home lobby, so make sure you know
+    what you are doing if you are making changes.
+    """
+    class LobbyContestPoolManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status=ContestPool.SCHEDULED,
+                                                          start__gt=timezone.now())
+
+    objects = LobbyContestPoolManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = 'Contest Pools (Lobby)'
+        verbose_name_plural = verbose_name
+
+class UpcomingContestPool(ContestPool):
+    """
+    PROXY model for upcoming Contests ... and rest API use.
+
+    This model contains all the ContestPools which havent started yet.
+
+    This may appear the same as the LobbyContestPool model,
+    however this should always contain all the ContestPools,
+    whereas LobbyContestPool may not!
+    """
+
+    class UpcomingContestPoolManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status=ContestPool.SCHEDULED,
+                                                        start__gt=timezone.now())
+
+    # yes, the UpcomingContest.objects on which you can get() or filter(), etc...
+    objects = UpcomingContestPoolManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = 'Upcoming'
+        verbose_name_plural = 'Upcoming'
+
+class LiveContestPool(ContestPool):
+    """
+    PROXY model for Live ContestPools
+
+    Get the live ContestPool objects, which should only exist in this state
+    until they have spawned the necessary Contests and have had their
+    status set to 'created'.
+    """
+    class LiveContestPoolManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(status__in=ContestPool.SCHEDULED,
+                                                            start__lte=timezone.now())
+
+    objects = LiveContestPoolManager()
 
     class Meta:
         proxy = True
@@ -318,66 +367,6 @@ class Contest(AbstractContest):
         verbose_name        = 'All Contests'
         verbose_name_plural = 'All Contests'
 
-class LobbyContestPool(ContestPool):
-    """
-    PROXY model for Upcoming ContestPools
-
-    This is the model which gets the ContestPools for
-    display on the home lobby, so make sure you know
-    what you are doing if you are making changes.
-    """
-    class LobbyContestPoolManager(models.Manager):
-        def get_queryset(self):
-            return super().get_queryset().filter(status=ContestPool.SCHEDULED,
-                                                          start__gt=timezone.now())
-
-    objects = LobbyContestPoolManager()
-
-    class Meta:
-        proxy = True
-
-class UpcomingContestPool(ContestPool):
-    """
-    PROXY model for upcoming Contests ... and rest API use.
-
-    This model contains all the ContestPools which havent started yet.
-
-    This may appear the same as the LobbyContestPool model,
-    however this should always contain all the ContestPools,
-    whereas LobbyContestPool may not!
-    """
-
-    class UpcomingContestPoolManager(models.Manager):
-        def get_queryset(self):
-            return super().get_queryset().filter(status=ContestPool.SCHEDULED,
-                                                        start__gt=timezone.now())
-
-    # yes, the UpcomingContest.objects on which you can get() or filter(), etc...
-    objects = UpcomingContestPoolManager()
-
-    class Meta:
-        proxy = True
-        verbose_name = 'Upcoming'
-        verbose_name_plural = 'Upcoming'
-
-class LiveContestPool(ContestPool):
-    """
-    PROXY model for Live ContestPools
-
-    Get the live ContestPool objects, which should only exist in this state
-    until they have spawned the necessary Contests and have had their
-    status set to 'created'.
-    """
-    class LiveContestPoolManager(models.Manager):
-        def get_queryset(self):
-            return super().get_queryset().filter(status__in=ContestPool.SCHEDULED,
-                                                            start__lte=timezone.now())
-
-    objects = LiveContestPoolManager()
-
-    class Meta:
-        proxy = True
-#
 class CurrentContest(Contest):
     """
     PROXY model for Upcoming & Live Contests ... but for which User Entries will be pulled out of.
@@ -396,26 +385,6 @@ class CurrentContest(Contest):
 
     class Meta:
         proxy = True
-
-# class UpcomingContest(Contest):
-#     """
-#     PROXY model for upcoming Contests ... and rest API use.
-#
-#     This model has access to all contests which have not started yet.
-#     """
-#
-#     class UpcomingContestManager(models.Manager):
-#         def get_queryset(self):
-#             now = timezone.now()
-#             return super().get_queryset().filter(start__gt=now)
-#
-#     # yes, the UpcomingContest.objects on which you can get() or filter(), etc...
-#     objects = UpcomingContestManager()
-#
-#     class Meta:
-#         proxy = True
-#         verbose_name = 'Upcoming'
-#         verbose_name_plural = 'Upcoming'
 
 class CompletedContest(Contest):
     """

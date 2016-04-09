@@ -6,8 +6,8 @@ from django.shortcuts import redirect
 
 from contest.models import (
     Entry,
-    #CurrentContest,
-    CurrentContestPool,
+    CurrentContest,
+    UpcomingContestPool,
 )
 
 
@@ -23,7 +23,7 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
         if a user can be found via the 'user_id' return it,
         else return None.
         """
-        contests = CurrentContestPool.objects.all()
+        contests = UpcomingContestPool.objects.all()
         entries = Entry.objects.filter(lineup__user=request.user, contest__in=contests)
 
         # if lineup id is not related to user, then redirect to live base url

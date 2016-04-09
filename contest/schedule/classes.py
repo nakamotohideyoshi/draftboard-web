@@ -904,10 +904,43 @@ class BlockManager(object):
 
     def __init__(self, block):
         self.block = block
+        self.cutoff = self.block.get_utc_cutoff()
         self.block_prize_structures = BlockPrizeStructure.objects.filter(block=self.block)
+        self.site_sport_manager = SiteSportManager()
+        self.game_model_class = self.site_sport_manager.get_game_class(self.block.site_sport)
 
     def create_contest_pools(self):
-        pass # TODO TODO TODO TODO TODO TODO
+        """
+        to determine the start of the earliest game in the block, we look for
+        all games between the dfsday_start and dfsday_end of the block,
+        and get the earliest start time of games after the cutoff.
+        this ensures we capture all the games in the range, as opposed
+        to relying on the BlockGame objects which have a very low chance
+        of not including very recent scheduling changes!
+        """
+
+        # determine the start time
+        included_games = self.game_model_class.objects.filter(
+                                    start__gte=self.cutoff,
+                                    start_lt=self.block.dfsday_end).order('start')
+
+        # we will not check if there are enough games here, and
+        # ultimately let the draft group creator raise an exception
+        # if it cant find enough games!
+        if included_games.count() >= 1:
+            earliest_start_time = included_games[0].start
+
+            # duration is the # of minutes until the end of the Block (dfsday_end)
+            td = earliest_start_time - self.block.dfsday_end
+            duration = int(td.total_seconds() / 60) # convert seconds to minutes
+
+            # create all required ContestPools
+            for prize_structure in self.block_prize_structures:
+                contest_pool_creator = ContestPoolCreator(self.block.site_sport.name,
+                                            prize_structure, earliest_start_time, duration )
+                                            #
+                                            # optionally:
+                                            # draft_group=None, user_entry_limit=None, entry_cap=None)
 
 class BlockPrizeStructureCreator(object):
     """
