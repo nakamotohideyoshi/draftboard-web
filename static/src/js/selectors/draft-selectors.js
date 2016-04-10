@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import { isPlayerInLineup } from '../components/draft/draft-utils.js';
 import { merge as _merge } from 'lodash';
-import { sortByOrder as _sortByOrder } from 'lodash';
+import { orderBy as _orderBy } from 'lodash';
 import { find as _find } from 'lodash';
 
 const focusedPlayerIdSelector = (state) => state.draftGroupPlayers.focusedPlayer;
@@ -60,7 +60,7 @@ export const focusedPlayerSelector = createSelector(
         // If we have boxscore info, attach splits history.
         if (activeDraftGroupId && boxScoreGames.hasOwnProperty(activeDraftGroupId)) {
           switch (sport) {
-            case 'nba':
+            case 'nba': {
               const playerTeam = sportInfo[sport].teams[player.team_srid];
 
               player.splitsHistory = player.boxScoreHistory.games.map((game, i) => {
@@ -89,6 +89,7 @@ export const focusedPlayerSelector = createSelector(
               });
 
               break;
+            }
 
             case 'nhl':
               player.splitsHistory = player.boxScoreHistory.games.map((game, i) => ({
@@ -110,7 +111,7 @@ export const focusedPlayerSelector = createSelector(
 
           }
           // Now sort them by date since the server is dumb.
-          player.splitsHistory = _sortByOrder(player.splitsHistory, 'date', 'desc');
+          player.splitsHistory = _orderBy(player.splitsHistory, 'date', 'desc');
         }
       }
     }

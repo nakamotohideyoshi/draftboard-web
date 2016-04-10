@@ -101,7 +101,7 @@ const DraftNewLineupCard = React.createClass({
 
 
   render() {
-    const showError = (!this.props.errorMessage) ? false : true;
+    const showError = !!this.props.errorMessage;
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}`;
     const self = this;
 

@@ -1,4 +1,4 @@
-import { sortByOrder } from 'lodash';
+import { orderBy as _orderBy } from 'lodash';
 
 
 /**
@@ -9,7 +9,7 @@ import { sortByOrder } from 'lodash';
  * @return {array}                    The sorted collection
  */
 export const orderBy = (collection, sortProperty, direction = 'desc') => {
-  let sorted = sortByOrder(collection, sortProperty);
+  let sorted = _orderBy(collection, sortProperty);
 
   if (direction === 'asc') {
     sorted = sorted.reverse();

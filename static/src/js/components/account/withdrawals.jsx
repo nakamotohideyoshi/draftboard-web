@@ -3,7 +3,6 @@ import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
 import { withdraw } from '../../actions/payments';
-import SSNMaskedInput from '../form-field/ssn.jsx';
 
 const { Provider, connect } = ReactRedux;
 
@@ -54,13 +53,6 @@ const Withdrawals = React.createClass({
                 required
               />
             </span>
-          </div>
-
-          <div className="form-field">
-            <label className="form-field__label form-field__label--twoline" htmlFor="ssn">
-              SSN for Taxes<br />(1099 Misc.)
-            </label>
-            <SSNMaskedInput />
           </div>
 
           <div className="form-field form-field--with-help">

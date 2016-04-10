@@ -35,7 +35,7 @@ const CountdownClock = React.createClass({
 
   componentWillUnmount() {
     window.clearInterval(this.updateTimeRemainingLoop);
-    window.clearInterval(this.props.onCountdownOver);
+    window.clearInterval(this.onCountdownOverLoop);
   },
 
   setTimeRemaining() {
@@ -50,13 +50,9 @@ const CountdownClock = React.createClass({
       this.updateTimeRemainingLoop = null;
 
       if (typeof this.props.onCountdownOver === 'function') {
-        window.setInterval(this.props.onCountdownOver, 5000);
+        this.onCountdownOverLoop = window.setInterval(this.props.onCountdownOver, 5000);
         this.props.onCountdownOver();
       }
-
-      this.setState({
-        timeRemaining: timeObj,
-      });
 
       return;
     }
@@ -70,18 +66,26 @@ const CountdownClock = React.createClass({
   render() {
     if (this.state.timeRemaining.hours === undefined) {
       return (
-        <span className="cmp-countdown-clock">
+        <div className="cmp-countdown-clock">
           <span className="hours">&nbsp;</span>
-        </span>
+        </div>
       );
     }
 
     return (
-      <span className="cmp-countdown-clock">
-        <span className="hours">{this.state.timeRemaining.hours}:</span>
-        <span className="minutes">{this.state.timeRemaining.minutes}:</span>
-        <span className="seconds">{this.state.timeRemaining.seconds}</span>
-      </span>
+      <div className="cmp-countdown-clock">
+        <div className="hours">
+          <span>{this.state.timeRemaining.hours}</span>
+          <span>:</span>
+        </div>
+        <div className="minutes">
+          <span>{this.state.timeRemaining.minutes}</span>
+          <span>:</span>
+        </div>
+        <div className="seconds">
+          <span>{this.state.timeRemaining.seconds}</span>
+        </div>
+      </div>
     );
   },
 });

@@ -56,7 +56,7 @@ const Tooltip = React.createClass({
 
   // Toggle the tooltip.
   toggle(callback = () => ({})) {
-    const newVisibility = this.state.isVisible ? false : true;
+    const newVisibility = !this.state.isVisible;
     this.setState({ isVisible: newVisibility }, callback);
   },
 

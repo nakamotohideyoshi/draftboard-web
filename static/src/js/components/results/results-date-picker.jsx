@@ -37,8 +37,8 @@ const ResultsDatePicker = React.createClass({
     this.setState({ shown: false });
   },
 
-  handleSelectDate() {
-    this.props.onSelectDate.apply(this, arguments);
+  handleSelectDate(...args) {
+    this.props.onSelectDate.apply(this, args);
   },
 
   render() {

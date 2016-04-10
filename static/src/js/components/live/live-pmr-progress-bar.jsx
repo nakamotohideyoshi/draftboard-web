@@ -76,88 +76,85 @@ export const describeArc = (x, y, radius, startAngle, endAngle) => {
 /**
  * Reusable PMR progress bar using SVG
  */
-const LivePMRProgressBar = React.createClass({
+const LivePMRProgressBar = (props) => {
+  const { decimalRemaining, strokeWidth, svgWidth } = props;
+  let decimalDone = 1 - decimalRemaining;
 
-  propTypes: {
-    decimalRemaining: React.PropTypes.number.isRequired,
-    strokeWidth: React.PropTypes.number.isRequired,
-    backgroundHex: React.PropTypes.string.isRequired,
-    hexStart: React.PropTypes.string.isRequired,
-    hexEnd: React.PropTypes.string.isRequired,
-    svgWidth: React.PropTypes.number.isRequired,
-  },
+  if (decimalRemaining === 0) {
+    decimalDone = 0.9999;
+  }
 
-  render() {
-    const { decimalRemaining, strokeWidth, svgWidth } = this.props;
-    let decimalDone = 1 - decimalRemaining;
+  const totalWidth = svgWidth + (2 * strokeWidth);
+  const svgMidpoint = totalWidth / 2;
+  const radius = svgWidth / 2;
 
-    if (decimalRemaining === 0) {
-      decimalDone = 0.9999;
-    }
+  const svgProps = {
+    viewBox: `0 0 ${totalWidth} ${totalWidth}`,
+    translate: `translate(${svgMidpoint}, ${svgMidpoint})`,
+  };
 
-    const totalWidth = svgWidth + (2 * strokeWidth);
-    const svgMidpoint = totalWidth / 2;
-    const radius = svgWidth / 2;
+  const backgroundCircleProps = {
+    r: radius,
+    stroke: `#${props.backgroundHex}`,
+    strokeWidth,
+  };
 
-    const svgProps = {
-      viewBox: `0 0 ${totalWidth} ${totalWidth}`,
-      translate: `translate(${svgMidpoint}, ${svgMidpoint})`,
-    };
+  const progressArc = {
+    hexStart: `#${props.hexStart}`,
+    hexHalfway: `#${percentageHexColor(props.hexStart, props.hexEnd, 0.5)}`,
+    hexEnd: `#${props.hexEnd}`,
+    d: describeArc(0, 0, radius, decimalDone * 360, 360),
+    strokeWidth,
+  };
 
-    const backgroundCircleProps = {
-      r: radius,
-      stroke: `#${this.props.backgroundHex}`,
-      strokeWidth,
-    };
+  // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
+  // https://github.com/facebook/react/issues/1657#issuecomment-146905709
+  const svgMaskMarkup = {
+    __html: `<g mask="url(#gradientMask)">\
+      <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${totalWidth}" fill="url(#cl2)" />\
+      <rect x="0" y="-${svgMidpoint}" height="${totalWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`,
+  };
 
-    const progressArc = {
-      hexStart: `#${this.props.hexStart}`,
-      hexHalfway: `#${percentageHexColor(this.props.hexStart, this.props.hexEnd, 0.5)}`,
-      hexEnd: `#${this.props.hexEnd}`,
-      d: describeArc(0, 0, radius, decimalDone * 360, 360),
-      strokeWidth,
-    };
+  return (
+    <div className="live-pmr">
 
-    // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
-    // https://github.com/facebook/react/issues/1657#issuecomment-146905709
-    const svgMaskMarkup = {
-      __html: `<g mask="url(#gradientMask)">\
-        <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${totalWidth}" fill="url(#cl2)" />\
-        <rect x="0" y="-${svgMidpoint}" height="${totalWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`,
-    };
+      <svg className="pmr" viewBox={svgProps.viewBox}>
+        <defs>
+          <linearGradient id="cl1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
+            <stop stopColor={progressArc.hexEnd} />
+            <stop offset="100%" stopColor={progressArc.hexHalfway} />
+          </linearGradient>
+          <linearGradient id="cl2" gradientUnits="objectBoundingBox" x1="0" y1="1" x2="0" y2="0">
+            <stop stopColor={progressArc.hexHalfway} />
+            <stop offset="100%" stopColor={progressArc.hexStart} />
+          </linearGradient>
+        </defs>
 
-    return (
-      <div className="live-pmr">
+        <g transform={svgProps.translate}>
+          <circle
+            r={backgroundCircleProps.r}
+            stroke={backgroundCircleProps.stroke}
+            strokeWidth={backgroundCircleProps.strokeWidth}
+            fill="none"
+          />
 
-        <svg className="pmr" viewBox={svgProps.viewBox}>
-          <defs>
-            <linearGradient id="cl1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
-              <stop stopColor={progressArc.hexEnd} />
-              <stop offset="100%" stopColor={progressArc.hexHalfway} />
-            </linearGradient>
-            <linearGradient id="cl2" gradientUnits="objectBoundingBox" x1="0" y1="1" x2="0" y2="0">
-              <stop stopColor={progressArc.hexHalfway} />
-              <stop offset="100%" stopColor={progressArc.hexStart} />
-            </linearGradient>
-          </defs>
+          <mask id="gradientMask">
+            <path fill="none" stroke="#fff" strokeWidth={progressArc.strokeWidth} d={progressArc.d}></path>
+          </mask>
+          <g dangerouslySetInnerHTML={svgMaskMarkup} />
+        </g>
+      </svg>
+    </div>
+  );
+};
 
-          <g transform={svgProps.translate}>
-            <circle
-              r={backgroundCircleProps.r}
-              stroke={backgroundCircleProps.stroke}
-              strokeWidth={backgroundCircleProps.strokeWidth}
-              fill="none"
-            />
-
-            <mask id="gradientMask">
-              <path fill="none" stroke="#fff" strokeWidth={progressArc.strokeWidth} d={progressArc.d}></path>
-            </mask>
-            <g dangerouslySetInnerHTML={svgMaskMarkup} />
-          </g>
-        </svg>
-      </div>
-    );
-  },
-});
+LivePMRProgressBar.propTypes = {
+  decimalRemaining: React.PropTypes.number.isRequired,
+  strokeWidth: React.PropTypes.number.isRequired,
+  backgroundHex: React.PropTypes.string.isRequired,
+  hexStart: React.PropTypes.string.isRequired,
+  hexEnd: React.PropTypes.string.isRequired,
+  svgWidth: React.PropTypes.number.isRequired,
+};
 
 export default LivePMRProgressBar;

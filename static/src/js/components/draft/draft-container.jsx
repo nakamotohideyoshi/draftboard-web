@@ -1,4 +1,3 @@
-
 import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
@@ -10,9 +9,9 @@ import DraftPlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
 import { forEach as _forEach } from 'lodash';
 import { findIndex as _findIndex } from 'lodash';
-import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter, }
+import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter }
   from '../../actions/draft-group-players-actions.js';
-import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId, }
+import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId }
   from '../../actions/upcoming-draft-groups-actions.js';
 import { createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
   editLineupInit, importLineup } from '../../actions/lineup-actions.js';
@@ -21,13 +20,9 @@ import { activeDraftGroupBoxScoresSelector } from '../../selectors/draft-group-i
 // Other components that will take care of themselves on the draft page.
 import './draft-player-detail.jsx';
 // Router stuff
-import { Router, Route } from 'react-router';
-import { updatePath, syncReduxAndRouter } from 'redux-simple-router';
-import createBrowserHistory from 'history/lib/createBrowserHistory';
-
-const history = createBrowserHistory();
-syncReduxAndRouter(history, store);
-const { Provider, connect } = ReactRedux;
+import { push as routerPush } from 'react-router-redux';
+import { Router, Route, browserHistory } from 'react-router';
+import { syncHistoryWithStore } from 'react-router-redux';
 
 
 /*
@@ -73,7 +68,7 @@ function mapDispatchToProps(dispatch) {
     editLineupInit: (lineupId) => dispatch(editLineupInit(lineupId)),
     importLineup: (lineup, importTitle) => dispatch(importLineup(lineup, importTitle)),
     updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
-    updatePath: (path) => dispatch(updatePath(path)),
+    routerPush: (path) => dispatch(routerPush(path)),
     setActiveDraftGroupId: (draftGroupId) => dispatch(setActiveDraftGroupId(draftGroupId)),
   };
 }
@@ -352,6 +347,12 @@ const DraftContainer = React.createClass({
 
 });
 
+
+// Set up Redux connections to React
+const { Provider, connect } = ReactRedux;
+
+// Create an enhanced history that syncs navigation events with the store
+const history = syncHistoryWithStore(browserHistory, store);
 
 // Wrap the component to inject dispatch and selected state into it.
 const DraftContainerConnected = connect(

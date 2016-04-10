@@ -27,17 +27,18 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.REMOVE_PLAYER_BOX_SCORE_HISTORY:
-      let newState = _merge({}, state);
+    case ActionTypes.REMOVE_PLAYER_BOX_SCORE_HISTORY: {
+      const newState = _merge({}, state);
 
       delete newState.updatedAt;
       delete newState[action.sport];
 
       return newState;
+    }
 
 
-    case ActionTypes.FETCH_PLAYER_BOX_SCORE_HISTORY_SUCCESS:
-      newState = _merge({}, state, {
+    case ActionTypes.FETCH_PLAYER_BOX_SCORE_HISTORY_SUCCESS: {
+      const newState = _merge({}, state, {
         isFetching: false,
         updatedAt: action.updatedAt,
       });
@@ -45,6 +46,7 @@ module.exports = (state = initialState, action) => {
       newState[action.sport] = action.playerHistory;
 
       return newState;
+    }
 
 
     default:

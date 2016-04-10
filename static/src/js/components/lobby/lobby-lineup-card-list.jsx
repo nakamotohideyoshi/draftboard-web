@@ -9,7 +9,7 @@ import renderComponent from '../../lib/render-component';
 import smoothScrollTo from '../../lib/smooth-scroll-to.js';
 import LobbyDraftGroupSelectionModal from './lobby-draft-group-selection-modal.jsx';
 import { fetchUpcomingLineups, lineupFocused, lineupHovered } from '../../actions/lineup-actions.js';
-import { openDraftGroupSelectionModal, closeDraftGroupSelectionModal, } from
+import { openDraftGroupSelectionModal, closeDraftGroupSelectionModal } from
   '../../actions/upcoming-draft-groups-actions.js';
 import { draftGroupInfoSelector } from '../../selectors/draft-group-info-selector.js';
 import { lineupsBySportSelector } from '../../selectors/upcoming-lineups-by-sport.js';

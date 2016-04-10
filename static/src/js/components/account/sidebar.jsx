@@ -41,7 +41,7 @@ const Sidebar = React.createClass({
             <span className="currency">$</span>{this.props.cashBalance}
           </h2>
 
-        <hr/>
+        <hr />
           <h2>
             <sup>Pending Bonus</sup>
             <span className="currency">$</span>{this.props.user.bonus}

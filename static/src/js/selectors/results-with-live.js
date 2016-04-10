@@ -4,7 +4,7 @@ import { liveContestsSelector } from './live-contests';
 import { map as _map } from 'lodash';
 import { merge as _merge } from 'lodash';
 import { size as _size } from 'lodash';
-import { uniq as _uniq } from 'lodash';
+import { uniqBy as _uniqBy } from 'lodash';
 import { values as _values } from 'lodash';
 import { dateNow } from '../lib/utils';
 
@@ -19,13 +19,13 @@ import { dateNow } from '../lib/utils';
  * contest
  */
 export const resultsWithLive = createSelector(
-  liveContestsSelector,
-  currentLineupsSelector,
+  state => liveContestsSelector(state),
+  state => currentLineupsSelector(state),
   state => state.live.mode,
   state => state.entries,
 
   (contestStats, currentLineupsStats, mode, entries) => {
-    const uniqueEntries = _uniq(_values(entries.items), 'lineup');
+    const uniqueEntries = _uniqBy(_values(entries.items), 'lineup');
 
     const lineups = _map(uniqueEntries, (entry) => {
       let lineupInfo = {

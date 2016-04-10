@@ -98,7 +98,7 @@ const LineupCard = React.createClass({
 
             <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
               <span className="cmp-lineup-card__footer-title">Live In</span>
-              <CountdownClock time={this.props.draftGroupInfo.start}/>
+              <CountdownClock time={this.props.draftGroupInfo.start} />
             </div>
 
             <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">

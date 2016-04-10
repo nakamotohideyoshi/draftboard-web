@@ -7,16 +7,11 @@ import renderComponent from '../../lib/render-component';
 import * as AppActions from '../../stores/app-state-store.js';
 import { lineupsByDraftGroupSelector } from '../../selectors/upcoming-lineups-by-draftgroup.js';
 import { setFocusedPlayer } from '../../actions/draft-group-players-actions.js';
-import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit, }
+import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit }
   from '../../actions/lineup-actions.js';
 import { map as _map } from 'lodash';
-import { Router, Route } from 'react-router';
-import { syncReduxAndRouter } from 'redux-simple-router';
-import createBrowserHistory from 'history/lib/createBrowserHistory';
-
-const history = createBrowserHistory();
-const { Provider, connect } = ReactRedux;
-syncReduxAndRouter(history, store);
+import { Router, Route, browserHistory } from 'react-router';
+import { syncHistoryWithStore } from 'react-router-redux';
 
 
 /*
@@ -162,6 +157,11 @@ const DraftLineupCardList = React.createClass({
   },
 });
 
+// Set up Redux connections to React
+const { Provider, connect } = ReactRedux;
+
+// Create an enhanced history that syncs navigation events with the store
+const history = syncHistoryWithStore(browserHistory, store);
 
 // Wrap the component to inject dispatch and selected state into it.
 const DraftLineupCardListConnected = connect(

@@ -2,6 +2,7 @@
 
 require("../../test-dom")();
 var React = require('react');
+import ReactDOM from 'react-dom';
 var Component = require("../../../components/lobby/lobby-draft-group-selection-modal.jsx");
 var expect = require('chai').expect;
 var _ = require('lodash');
@@ -19,7 +20,7 @@ var defaultProps = {};
 function render(newProps, callback) {
     var props = _.merge(defaultProps, newProps);
     var targetElement = document.body.appendChild(document.createElement('div'));
-    return React.render(
+    return ReactDOM.render(
       React.createElement(Component, props),
       targetElement, function() {
         if (typeof callback === 'function') setTimeout(callback);

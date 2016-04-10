@@ -1,5 +1,5 @@
 import React from 'react';
-import isEmpty from 'lodash/lang/isEmpty';
+import { isEmpty as _isEmpty } from 'lodash';
 import { forEach as _forEach } from 'lodash';
 
 const SettingsEmailNotifications = React.createClass({
@@ -26,7 +26,7 @@ const SettingsEmailNotifications = React.createClass({
    * if there are no errors comming set edit mode to False
    */
   componentWillReceiveProps(nextProps) {
-    if (isEmpty(nextProps.errors) || nextProps.isUpdatingEmail) {
+    if (_isEmpty(nextProps.errors) || nextProps.isUpdatingEmail) {
       this.setState({ editMode: false });
     } else {
       this.setState({ editMode: true });
