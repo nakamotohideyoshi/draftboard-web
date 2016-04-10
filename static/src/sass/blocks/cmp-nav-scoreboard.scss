@@ -214,12 +214,20 @@ $nav-scoreboard-foreground-color: #25A758;
       display: inline-block;
       z-index: 2;
 
-      &.left {
-        width: 42px;
-      }
-
       &:hover .icon line {
         stroke: #5b5f70;
+      }
+
+      &.not-scrollable {
+        cursor: auto;
+
+        &.right div.cmp-nav-scoreboard--separator:first-child, svg {
+          display: none;
+        }
+
+        &.left div.cmp-nav-scoreboard--separator:first-child, svg {
+          visibility: hidden;
+        }
       }
 
       .left-arrow-icon, .right-arrow-icon {
