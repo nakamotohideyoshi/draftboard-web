@@ -272,6 +272,7 @@ const LiveStandingsPane = React.createClass({
           hexStart="ffffff"
           hexEnd="ffffff"
           svgWidth={50}
+          id={`${lineup.id}Lineup`}
         />
       );
       let overlay = (
@@ -294,6 +295,7 @@ const LiveStandingsPane = React.createClass({
             hexStart="34B4CC"
             hexEnd="2871AC"
             svgWidth={50}
+            id={`${lineup.id}Lineup`}
           />
         );
       }
@@ -345,6 +347,7 @@ const LiveStandingsPane = React.createClass({
             hexStart="ffffff"
             hexEnd="ffffff"
             svgWidth={50}
+            id={`${player.id}StandingsPlayer`}
           />
           <div className="avatar" />
         </div>
