@@ -198,6 +198,14 @@ class ContestPoolManager(object):
         # # pusher contest updates because entries were changed
         # ContestPush(ContestSerializer(contest).data).send()
 
+    def start(self):
+        """
+        this method should be called to create the underlying contests
+        and add entries to them and everything should be inprogress
+        when this method is done!
+        """
+        cpf = ContestPoolFiller(self.contest_pool)
+        cpf.fair_match()
 
 class AbstractContestCreator(object):
 
@@ -822,4 +830,4 @@ class ContestPoolFiller(object):
         # change the status of the contest pool to created now
         self.contest_pool.status = ContestPool.CREATED
         self.contest_pool.save()
-        self.contest_pool.refresh_from_db()
+        #self.contest_pool.refresh_from_db()

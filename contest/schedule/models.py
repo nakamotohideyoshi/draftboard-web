@@ -84,7 +84,7 @@ class UpcomingBlock(Block):
         def get_queryset(self):
             # allegedly order_by() can take multiple params to sort by
             return super().get_queryset().filter(
-                dfsday_start__gte=timezone.now()).order_by('dfsday_start','cutoff_time')
+                cutoff__gte=timezone.now()).order_by('dfsday_start','cutoff_time')
     objects = UpcomingBlockManager()
     class Meta:
         proxy = True

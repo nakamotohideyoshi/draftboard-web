@@ -154,7 +154,7 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
     list_filter = ['site_sport',]
     list_editable = ['cutoff_time',]
     readonly_fields = ('site_sport',)
-    exclude = ('dfsday_start','dfsday_end',)
+    exclude = ('dfsday_start','dfsday_end','cutoff')
     ordering = ('dfsday_start','site_sport')
 
     block_game_inlines = [
@@ -175,7 +175,11 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         lets be specific, and if the current time is after the cutoff
         display that its running...
         """
-        if block.get_utc_cutoff() <= timezone.now():
+        if self.model.objects.filter(cutoff__lt=block.cutoff).count() == 0:
+            # this is the currently upcoming,
+            # and there are no upcomingblocks before it,
+            # which means its the active block.
+            # If its ContestPools exist, they are drafting right now...
             return 'Drafting'
         return local_daymonth(block.dfsday_start)
 

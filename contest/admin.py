@@ -10,7 +10,7 @@ from .payout.tasks import payout_task
 from django.utils.html import format_html
 
 # for ContestPools
-CONTEST_POOL_LIST_DISPLAY = ['name','status','start']
+CONTEST_POOL_LIST_DISPLAY = ['site_sport','prize_structure','start']
 
 # for Contests
 CONTEST_LIST_DISPLAY = ['name', 'created','status','start','end']
@@ -19,7 +19,7 @@ CONTEST_LIST_DISPLAY = ['name', 'created','status','start','end']
 class LobbyContestPoolAdmin(admin.ModelAdmin):
 
     list_display = CONTEST_POOL_LIST_DISPLAY
-    search_fields = ['name',]
+    search_fields = ['name','prize_structure']
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
@@ -222,8 +222,12 @@ class EntryAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def contest_link(self, obj):
+    def contest_link(self, entry):
+        if entry.contest is None:
+            return '-'
+
+        # otherwise, return a button that can take us to the contest itself
         return format_html('<a href="{}{}/" class="btn btn-success">{}</a>',
                             "/admin/contest/contest/",
-                             obj.contest.pk,
-                             str(obj.contest))
+                             entry.contest.pk,
+                             str(entry.contest))

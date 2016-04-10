@@ -28,8 +28,8 @@ class AbstractContest(models.Model):
     site_sport = models.ForeignKey('sports.SiteSport', null=False,
                                     related_name='%(app_label)s_%(class)s_site_sport')
 
-    name = models.CharField(default="", null=False, verbose_name="Public Name", max_length=64,
-                            help_text= "The front-end name of the Contest")
+    name = models.CharField(default="", null=False, verbose_name="Name", max_length=64,
+                            help_text= "frontfacing name")
 
     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
 
@@ -486,7 +486,8 @@ class Entry(models.Model):
                                        help_text='the rank of the entry after the contest has been paid out')
 
     def __str__(self):
-        return '%s %s' % (self.contest.name, str(self.lineup))
+        # return '%s %s' % (self.contest.name, str(self.lineup))
+        return '%s %s' % (self.user, str(self.lineup))
 
     class Meta:
         verbose_name = 'Entry'
