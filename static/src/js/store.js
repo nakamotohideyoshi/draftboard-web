@@ -38,7 +38,7 @@ const slicer = () => (state) => {
 
   // only store entries and related info once all loaded
   if (state.entries.hasRelatedInfo === true) {
-    liveSubstates.forEach((subState) => subset[subState] = state[subState]);
+    liveSubstates.forEach((subState) => (subset[subState] = state[subState]));
   }
 
   return subset;

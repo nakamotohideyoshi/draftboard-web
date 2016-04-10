@@ -71,6 +71,8 @@ const getAvailableLineupSlots = (state) => state.lineup.filter((slot) => {
   if (!slot.player) {
     return slot;
   }
+
+  return null;
 });
 
 
@@ -162,7 +164,11 @@ const findAvailablePositions = (state) => {
  * @param  {Object} player A player.
  * @return {Boolean}
  */
-const isPlayerInLineup = (player, state) => typeof _find(state.lineup, 'player', player) !== 'undefined';
+const isPlayerInLineup = (player, state) => typeof _find(
+  state.lineup,
+  (lineupPlayer) =>
+    lineupPlayer.player !== null && lineupPlayer.player.player_id === player.player_id
+) !== 'undefined';
 
 
 /**

@@ -75,7 +75,7 @@ const Transactions = React.createClass({
   render() {
     return (
       <div>
-        <TransactionsForm onPeriodSelected={this.handlePeriodSelected}/>
+        <TransactionsForm onPeriodSelected={this.handlePeriodSelected} />
         <TransactionsTable
           transactions={this.props.transactions}
           focusTransaction={this.handleFocusTransaction}

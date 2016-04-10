@@ -1,5 +1,5 @@
 import React from 'react';
-import isEmpty from 'lodash/lang/isEmpty';
+import { isEmpty as _isEmpty } from 'lodash';
 
 
 const EmailPassForm = React.createClass({
@@ -19,7 +19,7 @@ const EmailPassForm = React.createClass({
    * if there are no errors coming set edit mode to False
    */
   componentWillReceiveProps(nextProps) {
-    if (isEmpty(nextProps.errors)) {
+    if (_isEmpty(nextProps.errors)) {
       this.setState({ editMode: false });
     } else {
       this.setState({ editMode: true });

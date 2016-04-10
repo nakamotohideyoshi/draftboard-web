@@ -6,7 +6,7 @@ const initialState = {
   activeDraftGroupId: null,
   draftGroupSelectionModalIsOpen: false,
   sportContestCounts: {},
-  draftGroups: [],
+  draftGroups: {},
   // BoxScores + game info, indexed by draftGroupId.
   boxScores: {
     isFetching: false,
@@ -24,11 +24,12 @@ module.exports = (state = initialState, action) => {
 
 
     // Insert boxscores + games into store, indexed by the draftGroupId
-    case ActionTypes.FETCH_DRAFTGROUP_BOX_SCORES_SUCCESS:
+    case ActionTypes.FETCH_DRAFTGROUP_BOX_SCORES_SUCCESS: {
       const stateCopy = _merge({}, state);
       stateCopy.boxScores.isFetching = false;
       stateCopy.boxScores[action.draftGroupId] = action.body;
       return stateCopy;
+    }
 
 
     case ActionTypes.FETCHING_DRAFTGROUP_BOX_SCORES:

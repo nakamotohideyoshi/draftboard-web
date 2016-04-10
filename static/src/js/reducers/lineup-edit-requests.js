@@ -26,7 +26,7 @@ module.exports = (state = initialState, action) => {
       // try to enter again - we need to remove the first entry request.
       _forEach(stateCopy, (entryRequest, key) => {
         if (entryRequest.lineupId === action.lineupId) {
-          log.debug(`Deleting already-existing edit request for this entry.`, key);
+          log.debug('Deleting already-existing edit request for this entry.', key);
           delete stateCopy[key];
         }
       });
@@ -41,7 +41,7 @@ module.exports = (state = initialState, action) => {
       return stateCopy;
 
 
-    case ActionTypes.FETCHING_LINEUP_EDIT_REQUEST_STATUS:
+    case ActionTypes.FETCHING_LINEUP_EDIT_REQUEST_STATUS: {
       // Add 1 to the attempt count
       let attemptCount = parseInt(stateCopy[action.taskId].attempt, 10) + 1;
 
@@ -54,11 +54,12 @@ module.exports = (state = initialState, action) => {
       stateCopy[action.taskId].attempt = attemptCount;
 
       return stateCopy;
+    }
 
 
     case ActionTypes.LINEUP_EDIT_REQUEST_RECIEVED:
       if (action.status === 'FAILURE' || action.status === 'POLLING_TIMEOUT') {
-        log.debug(`Edit failed, deleting task from store.`, action.taskId);
+        log.debug('Edit failed, deleting task from store.', action.taskId);
         delete stateCopy[action.taskId];
         return stateCopy;
       }
@@ -71,7 +72,7 @@ module.exports = (state = initialState, action) => {
 
     case ActionTypes.DELETE_LINEUP_EDIT_REQUEST:
       delete stateCopy[action.taskId];
-      log.debug(`deleting task from store.`, action.taskId);
+      log.debug('deleting task from store.', action.taskId);
       return stateCopy;
 
 

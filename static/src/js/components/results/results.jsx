@@ -1,4 +1,3 @@
-import createBrowserHistory from 'history/lib/createBrowserHistory';
 import moment from 'moment';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
@@ -13,15 +12,15 @@ import { fetchResultsIfNeeded } from '../../actions/results';
 import { fetchUpcomingLineups } from '../../actions/entries';
 import { liveContestsSelector } from '../../selectors/live-contests';
 import { liveSelector } from '../../selectors/live';
-import { Provider, connect } from 'react-redux';
-import { Router, Route } from 'react-router';
-import { sportsSelector } from '../../selectors/sports';
-import { syncReduxAndRouter } from 'redux-simple-router';
-import { updatePath } from 'redux-simple-router';
-import { resultsWithLive } from '../../selectors/results-with-live';
-import { updateLiveMode } from '../../actions/live';
-import { uniq as _uniq } from 'lodash';
 import { map as _map } from 'lodash';
+import { push as routerPush } from 'react-router-redux';
+import { Provider, connect } from 'react-redux';
+import { resultsWithLive } from '../../selectors/results-with-live';
+import { Router, Route, browserHistory } from 'react-router';
+import { sportsSelector } from '../../selectors/sports';
+import { syncHistoryWithStore } from 'react-router-redux';
+import { uniqBy as _uniqBy } from 'lodash';
+import { updateLiveMode } from '../../actions/live';
 
 
 /*
@@ -96,7 +95,7 @@ const Results = React.createClass({
       if (this.state.dateIsToday === true) {
         this.props.dispatch(updateLiveMode({
           sport: _map(
-            _uniq(this.props.resultsWithLive.lineups, 'sport'),
+            _uniqBy(this.props.resultsWithLive.lineups, 'sport'),
             lineup => lineup.sport
           ),
         }));
@@ -136,7 +135,7 @@ const Results = React.createClass({
       this.props.dispatch(fetchResultsIfNeeded(newState.formattedDate));
     }
 
-    this.props.dispatch(updatePath(`/results/${newState.year}/${newState.month}/${newState.day}/`));
+    this.props.dispatch(routerPush(`/results/${newState.year}/${newState.month}/${newState.day}/`));
   },
 
   render() {
@@ -179,9 +178,8 @@ const ResultsConnected = connect(
   mapStateToProps
 )(Results);
 
-// Set up to make sure that push states are synced with redux substore
-const history = createBrowserHistory();
-syncReduxAndRouter(history, store);
+// Create an enhanced history that syncs navigation events with the store
+const history = syncHistoryWithStore(browserHistory, store);
 
 // Uses the Provider and Routes in order to have URL routing via redux-simple-router and redux state
 renderComponent(

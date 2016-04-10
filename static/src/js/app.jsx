@@ -77,7 +77,6 @@ require('components/account/settings');
 require('components/account/sidebar');
 require('components/account/transactions');
 require('components/account/withdrawals');
-require('components/form-field/ssn');
 
 // Lobby
 require('components/nav-scoreboard/nav-scoreboard');

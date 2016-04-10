@@ -17,7 +17,7 @@ module.exports = (state = {
         },
       });
 
-    case ActionTypes.RECEIVE_LIVE_PLAYERS_STATS:
+    case ActionTypes.RECEIVE_LIVE_PLAYERS_STATS: {
       const newState = update(state, {
         // add in players
         relevantPlayers: {
@@ -33,6 +33,7 @@ module.exports = (state = {
       newState.expiresAt = action.expiresAt;
 
       return newState;
+    }
 
 
     case ActionTypes.UPDATE_LIVE_PLAYER_STATS:

@@ -24,7 +24,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.FETCH_PLAYER_NEWS_SUCCESS:
+    case ActionTypes.FETCH_PLAYER_NEWS_SUCCESS: {
       const newState = _merge({}, state, {
         isFetching: false,
       });
@@ -32,6 +32,7 @@ module.exports = (state = initialState, action) => {
       newState[action.sport] = action.playerNews;
 
       return newState;
+    }
 
 
     default:

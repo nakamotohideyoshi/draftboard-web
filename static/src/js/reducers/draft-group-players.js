@@ -56,7 +56,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.DRAFTGROUP_FILTER_CHANGED:
+    case ActionTypes.DRAFTGROUP_FILTER_CHANGED: {
       // Override any previous filters with what has been passed.
       const filters = _merge({}, state.filters);
       filters[action.filter.filterName] = {
@@ -73,12 +73,14 @@ module.exports = (state = initialState, action) => {
       newFilterState.filters[action.filter.filterName].match = action.filter.match;
 
       return newFilterState;
+    }
 
 
-    case ActionTypes.DRAFTGROUP_ORDER_CHANGED:
+    case ActionTypes.DRAFTGROUP_ORDER_CHANGED: {
       const newState = _merge({}, state);
       newState.filters.orderBy = action.orderBy;
       return newState;
+    }
 
 
     default:

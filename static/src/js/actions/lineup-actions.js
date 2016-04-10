@@ -5,7 +5,7 @@ import { normalize, Schema, arrayOf } from 'normalizr';
 import { forEach as _forEach } from 'lodash';
 import { merge as _merge } from 'lodash';
 import { sortBy as _sortBy } from 'lodash';
-import { uniq as _uniq } from 'lodash';
+import { uniqWith as _uniqWith } from 'lodash';
 import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
 import { monitorLineupEditRequest } from './lineup-edit-request.js';
@@ -72,7 +72,7 @@ export function fetchUpcomingLineups(draftGroupId = null) {
             );
 
             // Find unique draft groups that we have a lineup for.
-            const draftGroups = _uniq(
+            const draftGroups = _uniqWith(
               res.body.map((lineup) => lineup.draft_group),
               (group) => group
             );

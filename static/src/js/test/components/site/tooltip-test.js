@@ -1,8 +1,7 @@
-'use strict';
-
 require('../../test-dom')();
 // var sinon = require("sinon");
 var React = require('react');
+import ReactDOM from 'react-dom';
 var Tooltip = require('../../../components/site/tooltip.jsx');
 var expect = require('chai').expect;
 
@@ -16,7 +15,7 @@ describe('Tooltip Component', function() {
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.TooltipComponent = React.render(
+    this.TooltipComponent = ReactDOM.render(
       <Tooltip
         isVisible={true}
         position='top'
@@ -25,7 +24,7 @@ describe('Tooltip Component', function() {
       this.targetElement,
       function() {
         // Once it has been rendered...  Grab it from the DOM.
-        self.TooltipElement = React.findDOMNode(this);
+        self.TooltipElement = ReactDOM.findDOMNode(this);
         done();
       }
     );
@@ -53,7 +52,7 @@ describe('Tooltip Component', function() {
     document.body.innerHTML = '';
     this.targetElement = document.body.appendChild(document.createElement('div'));
 
-    this.TooltipComponent = React.render(
+    this.TooltipComponent = ReactDOM.render(
       <Tooltip
         isVisible={false}
       />,

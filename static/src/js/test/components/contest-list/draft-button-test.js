@@ -32,7 +32,7 @@ describe('<DraftButton /> Component', () => {
 
   it('should link to the provided draftgroup page', () => {
     // These are both basically the same.
-    expect(wrapper.find('a.draft-button').get(0).href).to.equal('/draft/666/');
+    expect(wrapper.find('a.draft-button').get(0).href).to.equal('http://localhost/draft/666/');
     expect(wrapper.find('a[href="/draft/666/"]')).to.have.length(1);
   });
 

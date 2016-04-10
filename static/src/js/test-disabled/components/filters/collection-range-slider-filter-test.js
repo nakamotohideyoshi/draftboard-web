@@ -2,6 +2,7 @@
 
 require('../../test-dom')();
 var React = require('react');
+import ReactDOM from 'react-dom';
 var Component = require('../../../components/contest-list/contest-range-slider-filter.jsx');
 var expect = require('chai').expect;
 var sinon = require("sinon");
@@ -18,7 +19,7 @@ describe('CollectionRangeSliderFilter Component', function() {
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.component = React.render(
+    this.component = ReactDOM.render(
       <Component
         filterProperty='name'
         filterName='test'
@@ -29,7 +30,7 @@ describe('CollectionRangeSliderFilter Component', function() {
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.domElement = this.getDOMNode();
+        self.domElement = ReactDOM.findDOMNode(this);
         done();
       }
     );

@@ -5,77 +5,71 @@ import { roundUpToDecimalPlace } from '../../lib/utils.js';
 /**
  * An individual player row in the new lineup card in the draft section sidebar
  */
-const DraftNewLineupCardPlayer = React.createClass({
-
-  propTypes: {
-    // A player row object.
-    player: React.PropTypes.object.isRequired,
-    playerImagesBaseUrl: React.PropTypes.string.isRequired,
-    // What happens when the delete button is clicked.
-    removePlayer: React.PropTypes.func.isRequired,
-    onPlayerClick: React.PropTypes.func,
-  },
-
-
-  render() {
-    if (this.props.player.player) {
-      const names = this.props.player.player.name.split(' ');
-
-      return (
-        <li className="cmp-lineup-card__player occupied" key={this.props.player.idx}>
-          <span className="cmp-lineup-card__position">{this.props.player.name}</span>
-          <span className="cmp-lineup-card__photo">
-            <img
-              src={`${this.props.playerImagesBaseUrl}/120/${this.props.player.player.player_srid}.png`}
-              width="auto"
-              height="35px"
-            />
-          </span>
-          <span
-            className="cmp-lineup-card__name-salary"
-            onClick={this.props.onPlayerClick.bind(null, this.props.player.player.player_id)}
-          >
-            <span className="name">
-              {names[0][0]}. {names[names.length - 1]}
-              <span className="cmp-lineup-card__team">- {this.props.player.player.team_alias}</span>
-            </span>
-            <span className="salary">${this.props.player.player.salary.toLocaleString('en')}</span>
-          </span>
-
-          <span className="cmp-lineup-card__average">
-            <span className="text">{roundUpToDecimalPlace(this.props.player.player.fppg, 1)}</span>
-          </span>
-
-          <span
-            className="cmp-lineup-card__delete"
-            onClick={this.props.removePlayer.bind(null, this.props.player.player.player_id)}
-          >
-            <div className="icon"></div>
-          </span>
-        </li>
-      );
-    }
+const DraftNewLineupCardPlayer = (props) => {
+  if (props.player.player) {
+    const names = props.player.player.name.split(' ');
 
     return (
-      <li className="cmp-lineup-card__player vacant" key={this.props.player.idx}>
-        <span className="cmp-lineup-card__position">{this.props.player.name}</span>
+      <li className="cmp-lineup-card__player occupied" key={props.player.idx}>
+        <span className="cmp-lineup-card__position">{props.player.name}</span>
         <span className="cmp-lineup-card__photo">
-          <img src="/static/src/img/blocks/draft-list/lineup-no-player.png" width="auto" height="35px" />
+          <img
+            src={`${props.playerImagesBaseUrl}/120/${props.player.player.player_srid}.png`}
+            width="auto"
+            height="35px"
+          />
         </span>
-        <span className="cmp-lineup-card__name-salary">
+        <span
+          className="cmp-lineup-card__name-salary"
+          onClick={props.onPlayerClick.bind(null, props.player.player.player_id)}
+        >
           <span className="name">
-            &nbsp;
-            <span className="cmp-lineup-card__team">&nbsp;</span>
+            {names[0][0]}. {names[names.length - 1]}
+            <span className="cmp-lineup-card__team">- {props.player.player.team_alias}</span>
           </span>
-          <span className="salary">&nbsp;</span>
+          <span className="salary">${props.player.player.salary.toLocaleString('en')}</span>
         </span>
 
-        <span className="cmp-lineup-card__average">&nbsp;</span>
+        <span className="cmp-lineup-card__average">
+          <span className="text">{roundUpToDecimalPlace(props.player.player.fppg, 1)}</span>
+        </span>
+
+        <span
+          className="cmp-lineup-card__delete"
+          onClick={props.removePlayer.bind(null, props.player.player.player_id)}
+        >
+          <div className="icon"></div>
+        </span>
       </li>
     );
-  },
+  }
 
-});
+  return (
+    <li className="cmp-lineup-card__player vacant" key={props.player.idx}>
+      <span className="cmp-lineup-card__position">{props.player.name}</span>
+      <span className="cmp-lineup-card__photo">
+        <img src="/static/src/img/blocks/draft-list/lineup-no-player.png" width="auto" height="35px" />
+      </span>
+      <span className="cmp-lineup-card__name-salary">
+        <span className="name">
+          &nbsp;
+          <span className="cmp-lineup-card__team">&nbsp;</span>
+        </span>
+        <span className="salary">&nbsp;</span>
+      </span>
 
+      <span className="cmp-lineup-card__average">&nbsp;</span>
+    </li>
+  );
+};
+
+DraftNewLineupCardPlayer.propTypes = {
+  // A player row object.
+  player: React.PropTypes.object.isRequired,
+  playerImagesBaseUrl: React.PropTypes.string.isRequired,
+  // What happens when the delete button is clicked.
+  removePlayer: React.PropTypes.func.isRequired,
+  onPlayerClick: React.PropTypes.func,
+};
 
 module.exports = DraftNewLineupCardPlayer;

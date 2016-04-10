@@ -2,6 +2,11 @@
 .cmp-countdown-clock {
   color: #334359;
   line-height: 1.25em;
+  display: inline;
+
+  .hours, .minutes, .seconds {
+    display: inline;
+  }
 
   .minutes,
   .seconds {
