@@ -26,6 +26,13 @@ const NavScoreboardSlider = React.createClass({
     if (oldType !== newType) {
       this.handleResetScroll();
     }
+
+    const isScrollableNow = this.isScrollable();
+
+    if (isScrollableNow !== this.isScrollableVal) {
+      this.isScrollableVal = isScrollableNow;
+      this.forceUpdate();
+    }
   },
 
   /**
@@ -75,6 +82,8 @@ const NavScoreboardSlider = React.createClass({
    * Scrolls slider left.
    */
   handleScrollLeft() {
+    if (!this.isScrollableVal) return;
+
     this.refs.content.style.left = `${this.getNextScrollPosition(-1)}px`;
   },
 
@@ -82,6 +91,8 @@ const NavScoreboardSlider = React.createClass({
    * Scrolls slider right.
    */
   handleScrollRight() {
+    if (!this.isScrollableVal) return;
+
     let left = this.getNextScrollPosition(1);
 
     const content = this.refs.content;
@@ -103,10 +114,21 @@ const NavScoreboardSlider = React.createClass({
     this.refs.content.style.left = '0px';
   },
 
+  /**
+   * Reset the scroll position.
+   */
+  isScrollable() {
+    const outer = this.refs.content;
+    const inner = this.refs.content.children[0];
+    return inner && inner.offsetWidth > outer.offsetWidth;
+  },
+
   render() {
+    const scrollableClass = this.isScrollableVal ? '' : ' not-scrollable';
+
     return (
       <div className="cmp-nav-scoreboard--slider">
-        <div className="arrow" onClick={this.handleScrollLeft}>
+        <div className={`arrow left${scrollableClass}`} onClick={this.handleScrollLeft}>
           <NavScoreboardSeparator />
           <svg
             className="icon icon-arrow left-arrow-icon"
@@ -127,7 +149,7 @@ const NavScoreboardSlider = React.createClass({
             {this.props.children}
           </div>
         </div>
-        <div className="arrow right" onClick={this.handleScrollRight}>
+        <div className={`arrow right${scrollableClass}`} onClick={this.handleScrollRight}>
           <NavScoreboardSeparator />
           <svg
             className="icon icon-arrow right-arrow-icon"
