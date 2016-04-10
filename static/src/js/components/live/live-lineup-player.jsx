@@ -88,6 +88,7 @@ const LiveLineupPlayer = React.createClass({
           hexStart="34B4CC"
           hexEnd="2871AC"
           svgWidth={50}
+          id={`${this.props.player.id}LineupPlayer`}
         />
         {this.renderGameStats()}
       </div>

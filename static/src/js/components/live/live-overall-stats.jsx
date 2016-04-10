@@ -61,14 +61,6 @@ const LiveOverallStats = React.createClass({
         d: describeArc(0, 0, radius, 0, decimalDone * 360),
       };
 
-      // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
-      // https://github.com/facebook/react/issues/1657#issuecomment-146905709
-      const svgMaskMarkup = {
-        __html: `<g mask="url(#gradientMask)"> \
-          <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${svgWidth}" fill="url(#cl2)" />\
-          <rect x="0" y="-${svgMidpoint}" height="${svgWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`,
-      };
-
       const endpointCoord = polarToCartesian(0, 0, radius, decimalDone * 360);
       const endOuter = {
         r: strokeWidth + 6,
@@ -87,7 +79,7 @@ const LiveOverallStats = React.createClass({
 
       renderPMRCircle = (
         <g>
-          <mask id="gradientMask">
+          <mask id="gradientMaskOverall">
             <path
               fill="none"
               stroke="#fff"
@@ -95,7 +87,10 @@ const LiveOverallStats = React.createClass({
               d={progressArc.d}
             />
           </mask>
-          <g dangerouslySetInnerHTML={svgMaskMarkup} />
+          <g mask="url(#gradientMaskOverall)">
+            <rect x={-svgMidpoint} y={-svgMidpoint} width={svgMidpoint} height={svgWidth} fill="url(#cl2)" />
+            <rect x="0" y={-svgMidpoint} height={svgWidth} width={svgMidpoint} fill="url(#cl1)" />
+          </g>
 
           <path
             fill="none"

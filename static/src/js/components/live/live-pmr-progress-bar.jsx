@@ -107,14 +107,6 @@ const LivePMRProgressBar = (props) => {
     strokeWidth,
   };
 
-  // sadly react lacks support for svg tags like mask, have to use dangerouslySetInnerHTML to work
-  // https://github.com/facebook/react/issues/1657#issuecomment-146905709
-  const svgMaskMarkup = {
-    __html: `<g mask="url(#gradientMask)">\
-      <rect x="-${svgMidpoint}" y="-${svgMidpoint}" width="${svgMidpoint}" height="${totalWidth}" fill="url(#cl2)" />\
-      <rect x="0" y="-${svgMidpoint}" height="${totalWidth}" width="${svgMidpoint}" fill="url(#cl1)" /></g>`,
-  };
-
   return (
     <div className="live-pmr">
 
@@ -138,10 +130,13 @@ const LivePMRProgressBar = (props) => {
             fill="none"
           />
 
-          <mask id="gradientMask">
+          <mask id={`gradientMask${props.id}`}>
             <path fill="none" stroke="#fff" strokeWidth={progressArc.strokeWidth} d={progressArc.d}></path>
           </mask>
-          <g dangerouslySetInnerHTML={svgMaskMarkup} />
+          <g mask={`url(#gradientMask${props.id})`}>
+            <rect x={-svgMidpoint} y={-svgMidpoint} width={svgMidpoint} height={totalWidth} fill="url(#cl2)" />
+            <rect x="0" y={-svgMidpoint} height={totalWidth} width={svgMidpoint} fill="url(#cl1)" />
+          </g>
         </g>
       </svg>
     </div>
@@ -150,6 +145,7 @@ const LivePMRProgressBar = (props) => {
 
 LivePMRProgressBar.propTypes = {
   decimalRemaining: React.PropTypes.number.isRequired,
+  id: React.PropTypes.string.isRequired,
   strokeWidth: React.PropTypes.number.isRequired,
   backgroundHex: React.PropTypes.string.isRequired,
   hexStart: React.PropTypes.string.isRequired,
