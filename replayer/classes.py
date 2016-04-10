@@ -528,17 +528,35 @@ class RandomLineupCreator(object):
     all teams are created with the admin user (pk: 1)
     """
 
-    def __init__(self, sport, username):
+    def __init__(self, sport, username=None, cash=None):
+        """
+        given a sport, get or create the username specified.
+
+        if username is None, a random use will be gotten or created
+        if cash is a positive number, give their account that much cash
+
+        :param sport:
+        :param username:
+        :param cash:
+        :return:
+        """
         print( 'WARNING - This class can & will submit teams that EXCEED SALARY REQUIREMENTS')
+        self.r = Random()
+        self.username = username
+        if self.username is None:
+            self.username = 'user%s' % str(self.r.randint(1,99))
+
         self.user, created               = User.objects.get_or_create(username=username)
         self.user.set_password('test')
         self.user.save()
 
+        if cash is not None:
+            ct = CashTransaction(self.user)
+            ct.deposit(cash)
+
         self.site_sport_manager = SiteSportManager()
         self.site_sport         = self.site_sport_manager.get_site_sport( sport )
         self.roster_manager     = RosterManager( self.site_sport )
-
-        self.r = Random()
 
         self.position_lists     = None
         self.lineup_player_ids  = None

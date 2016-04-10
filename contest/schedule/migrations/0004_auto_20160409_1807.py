@@ -2,7 +2,13 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+from contest.schedule.classes import DefaultPrizeStructureManager
 
+def load_contestpool_default_prize_structures(apps, schema_editor):
+    """
+    creates the DefaultPrizeStructure instances that every Block should get a copy of
+    """
+    DefaultPrizeStructureManager.create_initial_default_prize_structures()
 
 class Migration(migrations.Migration):
 
@@ -96,4 +102,6 @@ class Migration(migrations.Migration):
             name='block',
             unique_together=set([('site_sport', 'dfsday_start', 'dfsday_end', 'cutoff_time')]),
         ),
+
+        migrations.RunPython( load_contestpool_default_prize_structures ),
     ]
