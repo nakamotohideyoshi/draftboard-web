@@ -137,7 +137,7 @@ class FrontendDraftTemplateView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
         draft_group_id = kwargs.get('draft_group_id', 0)
-        if CurrentContest.objects.filter(draft_group__pk=int(draft_group_id)).count() == 0:
+        if UpcomingContestPool.objects.filter(draft_group__pk=int(draft_group_id)).count() == 0:
             return HttpResponseRedirect(reverse('frontend:lobby'))
 
         return super(FrontendDraftTemplateView, self).get(request, *args, **kwargs)
