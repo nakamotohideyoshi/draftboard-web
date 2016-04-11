@@ -396,7 +396,6 @@ class ScheduleDay(object):
             # get all the games for the dfs day
             daily_games = games.filter(start__range=self.get_day_range())
 
-
             if daily_games.count() >= 2:
                 # there must be more than 2 games for DFS!
                 dt = self.get_day_range()[0]
