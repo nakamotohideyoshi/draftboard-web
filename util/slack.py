@@ -57,99 +57,76 @@ class Webhook(object):
         self.session    = requests.Session()
         self.r          = None # request
 
-    def send(self, text, attachments=None, verbose=True):
-        self.data = {
-            'channel'   : self.channel,
-            'username'  : self.username,
-            'icon_emoji': ':%s:' % self.icon,
-            'text'      : text,
-        }
+        self.attachments    = []
 
-        if attachments is not None:
-            self.data['attachments'] = attachments
+    def send(self, text, verbose=True):
+        self.data = {
+            'channel'       : self.channel,
+            'username'      : self.username,
+            'icon_emoji'    : ':%s:' % self.icon,
+            'text'          : text,
+            'attachments'   : self.attachments,
+        }
 
         url = '%s/%s' % (self.base_url, self.identifier)
         r = self.session.post( url, json.dumps(self.data) )
         print(str(r.status_code), r.text)
         return r
 
-class WebhookContestScheduler(Webhook):
+    def add_attachment(self, attachment):
+        self.attachments.append( attachment.build() )
 
-    identifier = 'T03UVUNP8/B0K6GUFE3/CNop5c62QB6LFTNOmccnHCzT'
+class Attachment(object):
+
+    COLOR_BLACK     = '#333333'
+    COLOR_RED       = '#ff3333'
+    COLOR_GREEN     = '#33ff33'
+    COLOR_YELLOW    = '#ffff33'
+
+    def __init__(self, title, value, short=False, color=None):
+        self.title = title
+        self.value = value
+        self.short = short
+        self.color = color
+        if self.color is None:
+            self.color = self.COLOR_BLACK
+
+    def build(self):
+        self.data = {
+            'color'  : self.color,
+            'fields' : [
+                {
+                    'title' : self.title,
+                    'value' : self.value,
+                    'short' : self.short,
+                }
+            ]
+        }
+        return self.data
+
+class WebhookContestScheduler(Webhook):
+    """
+    use this class for sending notifications to  #contest-pool-admin
+
+    usage:
+
+        from util.slack import WebhookContestScheduler, Attachment
+        hook = WebhookContestScheduler('nba')
+        a = Attachment('TestTitle','TestValue',color=Attachment.COLOR_RED)
+        hook.add_attachment( a )
+        hook.send('Main Webhook Text')
+
+    """
+
+    # currently for draftboard: #contest-pool-admin
+    # https://hooks.slack.com/services/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
+    identifier = 'T03UVUNP8/B0YSXEPPY/pKte0MIETAHMwowloM0Yl4UX'
 
     def __init__(self, sport):
         super().__init__()
-        self.sport      = sport
-        self.username   = '%s-scheduler' % self.sport
-        self.icon       = self.icons.get(sport)
-
-    def send(self, text, existing, created, total, warn=False, err_msg=None):
-
-        if err_msg is not None:
-            attachments = [
-                {
-                    "color"  : "#ff3333",   # red
-                    'fields' : [
-                        {
-                            "title": "Issue",
-                            "value": '%s' % err_msg,
-                            "short": False
-                        }
-                    ]
-                }
-            ]
-        elif total == 0:
-            attachments = None
-        else:
-            attachments = [
-                {
-                    "color"  : "#333333",   # very dark
-                    'fields' : [
-                        {
-                            "title": "Contests",
-                            "value": "%s of %s" % (str(existing+created), str(total)),
-                            "short": True
-                        }
-                    ]
-                }
-            ]
-
-            if created > 0:
-                attachments.append(
-                    {
-                        "color"  : "#33ff33",   # green
-                        'fields' : [
-                            {
-                                "title": "Newly Created",
-                                "value": "%s" % (str(created)),
-                                "short": True
-                            }
-                        ]
-                    }
-                )
-
-        if warn:
-            if attachments is None:
-                attachments = []
-            attachments.append(
-                {
-                        "color"  : "#ffff33",   # yellow
-                        'fields' : [
-                            {
-                                "title": "Investigate",
-                                "value": 'There are not enough games for this schedule to '
-                                         'run on the planned day. It might have scheduled '
-                                         'games for the following day, or failed. Please check.',
-                                "short": False
-                            }
-                        ]
-                    }
-            )
-
-        # call super
-        super().send( text, attachments=attachments )
-
-
+        self.sport          = sport
+        self.username       = '%s-scheduler' % self.sport
+        self.icon           = self.icons.get(sport)
 
     @staticmethod
     def get_for_sport(sport):
