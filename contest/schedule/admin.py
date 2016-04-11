@@ -8,6 +8,7 @@ from django.contrib import admin
 from django.contrib.admin.widgets import AdminSplitDateTime
 from django.contrib.contenttypes import generic
 from django.utils.html import format_html
+import contest.schedule.classes
 import contest.schedule.models
 import contest.schedule.forms
 
@@ -156,6 +157,7 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
     readonly_fields = ('site_sport',)
     exclude = ('dfsday_start','dfsday_end','cutoff')
     ordering = ('dfsday_start','site_sport')
+    actions = ['create_contest_pools']
 
     block_game_inlines = [
         TabularInlineBlockGameIncluded,
@@ -167,6 +169,24 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         TabularInlineBlockPrizeStructure,
     ]
 
+    def __is_block_drafting(self, block):
+        # True if there are no blocks previous to it, for its sport
+        return self.model.objects.filter(cutoff__lt=block.cutoff,
+                                     site_sport=block.site_sport).count() == 0
+
+    def create_contest_pools(self, request, queryset):
+        if queryset.count() != 1:
+            # you must select exactly 1 block
+            return
+        block = queryset[0]
+        if not self.__is_block_drafting(block):
+            # this is not the drafting
+            return
+        else:
+            # create the contest pools for this block manually
+            cpsm = contest.schedule.classes.ContestPoolScheduleManager(block.site_sport.name)
+            cpsm.create_contest_pools(block)
+
     def sport(self, obj):
         return obj.site_sport.name.upper()
 
@@ -175,7 +195,8 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         lets be specific, and if the current time is after the cutoff
         display that its running...
         """
-        if self.model.objects.filter(cutoff__lt=block.cutoff).count() == 0:
+        if self.model.objects.filter(cutoff__lt=block.cutoff,
+                                     site_sport=block.site_sport).count() == 0:
             # this is the currently upcoming,
             # and there are no upcomingblocks before it,
             # which means its the active block.

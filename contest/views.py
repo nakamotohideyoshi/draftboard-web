@@ -38,6 +38,7 @@ from contest.classes import (
 )
 from contest.models import (
     Contest,
+    ContestPool,
     Entry,
     CurrentContest,
     LiveContest,
@@ -461,24 +462,60 @@ class ContestRanksAPIView(generics.GenericAPIView):
 #         serializer = CurrentEntrySerializer(entry, many=False)
 #         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+# class EnterLineupAPIView(generics.CreateAPIView): # original for CONTESTS
+#     """
+#     enter a lineup into the contest. (exceptions may occur based on user balance, etc...)
+#     """
+#     permission_classes      = (IsAuthenticated,)
+#     serializer_class        = EnterLineupSerializer
+#     # renderer_classes        = (JSONRenderer, BrowsableAPIRenderer)
+#
+#     def post(self, request, format=None):
+#         lineup_id       = request.data.get('lineup')
+#         contest_id      = request.data.get('contest')
+#
+#         #print('contest_id', str(contest_id), 'str:', isinstance(contest_id, str))
+#         # ensure the contest is valid
+#         try:
+#             contest = Contest.objects.get( pk=contest_id )
+#         except Contest.DoesNotExist:
+#             return Response( 'Contest does not exist', status=status.HTTP_403_FORBIDDEN )
+#
+#         # ensure the lineup is valid for this user
+#         try:
+#             lineup = Lineup.objects.get( pk=lineup_id, user=request.user )
+#         except Lineup.DoesNotExist:
+#             return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
+#
+#         #
+#         # call the buyin task - it has a time_limit of ~20 seconds before it will timeout
+#         task_result = buyin_task.delay( request.user, contest, lineup=lineup )
+#
+#         #
+#         # return task id
+#         return Response({'buyin_task_id':task_result.id}, status=status.HTTP_201_CREATED)
+#
+#         # If Entry creation was successful, return the created Entry object.
+#         # entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
+#         # serializer = CurrentEntrySerializer(entry, many=False)
+#         # return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 class EnterLineupAPIView(generics.CreateAPIView):
     """
-    enter a lineup into the contest. (exceptions may occur based on user balance, etc...)
+    enter a lineup into a ContestPool. (exceptions may occur based on user balance, etc...)
     """
     permission_classes      = (IsAuthenticated,)
     serializer_class        = EnterLineupSerializer
-    # renderer_classes        = (JSONRenderer, BrowsableAPIRenderer)
 
     def post(self, request, format=None):
         lineup_id       = request.data.get('lineup')
-        contest_id      = request.data.get('contest')
+        contest_pool_id      = request.data.get('contest_pool')
 
-        #print('contest_id', str(contest_id), 'str:', isinstance(contest_id, str))
-        # ensure the contest is valid
+        # ensure the ContestPool exists
         try:
-            contest = Contest.objects.get( pk=contest_id )
-        except Contest.DoesNotExist:
-            return Response( 'Contest does not exist', status=status.HTTP_403_FORBIDDEN )
+            contest = ContestPool.objects.get( pk=contest_pool_id )
+        except ContestPool.DoesNotExist:
+            return Response( 'ContestPool does not exist', status=status.HTTP_403_FORBIDDEN )
 
         # ensure the lineup is valid for this user
         try:
@@ -488,7 +525,7 @@ class EnterLineupAPIView(generics.CreateAPIView):
 
         #
         # call the buyin task - it has a time_limit of ~20 seconds before it will timeout
-        task_result = buyin_task.delay( request.user, contest, lineup=lineup )
+        task_result = buyin_task.delay( request.user, contest, lineup=lineup ) # TODO - check this after the call and commit
 
         #
         # return task id
