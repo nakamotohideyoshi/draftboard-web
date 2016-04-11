@@ -229,7 +229,7 @@ export const shiftOldestGameEvent = (gameId) => {
       break;
 
     // if stats, then update the player stats
-    case 'stats':
+    case 'stats': {
       const liveSelectorData = liveSelector(state);
 
       // TODO mod this to work with results
@@ -249,6 +249,7 @@ export const shiftOldestGameEvent = (gameId) => {
       // then move on to the next
       shiftOldestGameEvent(gameId);
       break;
+    }
 
     // no default
     default:

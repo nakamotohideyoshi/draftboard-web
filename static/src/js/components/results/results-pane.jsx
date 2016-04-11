@@ -119,10 +119,11 @@ const ResultsPane = React.createClass({
     const contest = this.props.resultsContestsSelector[this.props.contestId] || {};
 
     switch (this.state.activeTab) {
-      case 'prizes':
+      case 'prizes': {
         return (<PrizeStructure structure={contest.prizeStructure} />);
+      }
 
-      case 'games':
+      case 'games': {
         if (contest.boxScores !== null) {
           return (
             <GamesList
@@ -133,8 +134,9 @@ const ResultsPane = React.createClass({
         }
 
         return 'No boxscore info available.';
+      }
 
-      case 'scoring':
+      case 'scoring': {
         const scoringVals = [
           ['Point', '+1'],
           ['Rebound', '+1.25'],
@@ -156,12 +158,15 @@ const ResultsPane = React.createClass({
             {scoring}
           </ul>
         );
+      }
 
-      case 'standings':
+      case 'standings': {
         return this.renderStandings(contest);
+      }
 
-      default:
+      default: {
         return ('Select a tab');
+      }
     }
   },
 

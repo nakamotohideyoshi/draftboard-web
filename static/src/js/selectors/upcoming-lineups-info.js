@@ -1,7 +1,6 @@
 import { createSelector } from 'reselect';
 import { forEach as _forEach } from 'lodash';
 import { countBy as _countBy } from 'lodash';
-import { where as _where } from 'lodash';
 import { filter as _filter } from 'lodash';
 
 /**
@@ -60,7 +59,7 @@ export const upcomingLineupsInfo = createSelector(
 
 
       // Find all entries for the lineup.
-      const lineupEntries = _where(entries, { lineup: lineup.id });
+      const lineupEntries = _filter(entries, (entry) => entry.lineup === lineup.id);
       let lineupFeeTotal = 0;
       const lineupContests = [];
 

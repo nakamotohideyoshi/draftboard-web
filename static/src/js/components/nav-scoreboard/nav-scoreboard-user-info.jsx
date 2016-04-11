@@ -21,7 +21,7 @@ const NavScoreboardUserInfo = React.createClass({
       <div className="cmp-nav-scoreboard--user-info">
         <div className="name">{name}</div>
         <div className="balance">
-          {balance}
+          <span>{balance}</span>
           <a href="/account/settings/deposits/" className="add-funds">Add funds</a>
         </div>
       </div>

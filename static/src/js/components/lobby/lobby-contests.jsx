@@ -3,14 +3,14 @@ import Pusher from 'pusher-js';
 import * as ReactRedux from 'react-redux';
 import Cookies from 'js-cookie';
 import store from '../../store';
-import { updatePath } from 'redux-simple-router';
+import { push as routerPush } from 'react-router-redux';
 import { fetchEntriesIfNeeded } from '../../actions/entries.js';
 import { fetchFeaturedContestsIfNeeded } from '../../actions/featured-contest-actions.js';
 import { fetchPrizeIfNeeded } from '../../actions/prizes.js';
-import { fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter, }
+import { fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter }
   from '../../actions/upcoming-contests-actions.js';
 import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions.js';
-import { focusedContestInfoSelector, focusedLineupSelector, highestContestBuyin, }
+import { focusedContestInfoSelector, focusedLineupSelector, highestContestBuyin }
   from '../../selectors/lobby-selectors.js';
 import { upcomingContestSelector } from '../../selectors/upcoming-contest-selector.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
@@ -69,7 +69,7 @@ function mapDispatchToProps(dispatch) {
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
     updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
-    updatePath: (path) => dispatch(updatePath(path)),
+    routerPush: (path) => dispatch(routerPush(path)),
     addMessage: (options) => dispatch(addMessage(options)),
     upcomingContestUpdateReceived: (contest) => dispatch(upcomingContestUpdateReceived(contest)),
   };
@@ -101,7 +101,7 @@ const LobbyContests = React.createClass({
     setFocusedContest: React.PropTypes.func,
     updateFilter: React.PropTypes.func,
     updateOrderByFilter: React.PropTypes.func,
-    updatePath: React.PropTypes.func,
+    routerPush: React.PropTypes.func,
     addMessage: React.PropTypes.func,
     upcomingContestUpdateReceived: React.PropTypes.func,
     highestContestBuyin: React.PropTypes.number,
@@ -132,7 +132,7 @@ const LobbyContests = React.createClass({
     if (window.location.search.indexOf('lineup-saved=true') !== -1) {
       // remove the param from the URL.
       const strippedParams = removeParamFromURL(window.location.search, 'lineup-saved');
-      this.props.updatePath(`/lobby/${strippedParams}`);
+      this.props.routerPush(`/lobby/${strippedParams}`);
       this.props.addMessage({
         header: 'Lineup Saved!',
         content: 'Now enter it into some contests',
@@ -210,7 +210,7 @@ const LobbyContests = React.createClass({
 
 
   handleFocusContest(contest) {
-    this.props.updatePath(`/lobby/${contest.id}/`);
+    this.props.routerPush(`/lobby/${contest.id}/`);
     this.props.setFocusedContest(contest.id);
     this.props.fetchPrizeIfNeeded(contest.prize_structure);
     AppActions.openPane();

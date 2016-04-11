@@ -1,11 +1,10 @@
 import * as ReactRedux from 'react-redux';
-import createBrowserHistory from 'history/lib/createBrowserHistory';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
 import { filter as _filter } from 'lodash';
-import { Router, Route } from 'react-router';
-import { syncReduxAndRouter } from 'redux-simple-router';
-import { updatePath } from 'redux-simple-router';
+import { push as routerPush } from 'react-router-redux';
+import { Router, Route, browserHistory } from 'react-router';
+import { syncHistoryWithStore } from 'react-router-redux';
 
 import LiveAnimationArea from './live-animation-area';
 import LiveBottomNav from './live-bottom-nav';
@@ -127,7 +126,7 @@ const Live = React.createClass({
     log.debug('Live.changePathAndMode()', path);
 
     // update the URL path
-    this.props.dispatch(updatePath(path));
+    this.props.dispatch(routerPush(path));
 
     // update redux store mode
     this.props.dispatch(updateLiveMode(changedFields));
@@ -347,9 +346,8 @@ const LiveConnected = connect(
   mapStateToProps
 )(Live);
 
-// Set up to make sure that push states are synced with redux substore
-const history = createBrowserHistory();
-syncReduxAndRouter(history, store);
+// Create an enhanced history that syncs navigation events with the store
+const history = syncHistoryWithStore(browserHistory, store);
 
 // Uses the Provider and Routes in order to have URL routing via redux-simple-router and redux state
 renderComponent(

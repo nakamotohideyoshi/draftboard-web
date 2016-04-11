@@ -1,5 +1,5 @@
 import React from 'react';
-import isEmpty from 'lodash/lang/isEmpty';
+import { isEmpty as _isEmpty } from 'lodash';
 import { forEach as _forEach } from 'lodash';
 
 
@@ -22,7 +22,7 @@ const SettingsAddress = React.createClass({
    * if there are no errors comming set edit mode to False
    */
   componentWillReceiveProps(nextProps) {
-    if (isEmpty(nextProps.errors)) {
+    if (_isEmpty(nextProps.errors)) {
       this.setState({ editMode: false });
     } else {
       this.setState({ editMode: true });
@@ -66,8 +66,8 @@ const SettingsAddress = React.createClass({
         <label className="form-field__label">Billing Address</label>
         <div className="form-field__content">
           <p className="form-field__static-content">
-            { this.props.info.fullname }<br/>
-            { this.props.info.address1 } { this.props.info.address2 }<br/>
+            { this.props.info.fullname }<br />
+            { this.props.info.address1 } { this.props.info.address2 }<br />
             { this.props.info.city }, { this.props.info.state } { this.props.info.zipcode }<br />
             <a href="#" onClick={this.setEditMode}>Edit</a>
           </p>

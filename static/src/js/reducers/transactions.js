@@ -21,7 +21,7 @@ module.exports = (state = initialState, action) => {
         filteredTransactions: action.body,
       });
 
-    case ActionTypes.FILTER_TRANSACTIONS:
+    case ActionTypes.FILTER_TRANSACTIONS: {
       // TODO: filter out transactions if startDate / endDate provided.
       // const startDate = action.filters.startDate || state.startDate
       // const endDate = action.filters.endDate || state.endDate
@@ -34,6 +34,7 @@ module.exports = (state = initialState, action) => {
           endDate: action.filters.endDate,
         },
       });
+    }
 
 
     case ActionTypes.TRANSACTION_FOCUSED:

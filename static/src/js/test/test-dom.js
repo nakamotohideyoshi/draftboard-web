@@ -7,7 +7,8 @@ module.exports = (markup) => {
   if (typeof document !== 'undefined') { return; }
   const jsdom = require('jsdom').jsdom;
 
-  global.document = jsdom(markup || '<!doctype html><html><body></body></html>');
+  // the second parameter for url is because of react-router-redux, see https://goo.gl/pDwoDa
+  global.document = jsdom(markup || '<!doctype html><html><body></body></html>', { url: 'http://localhost' });
   global.window = document.defaultView;
   global.navigator = {
     userAgent: 'node.js',

@@ -2,7 +2,7 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
-import { updateUserInfo, updateUserEmailPass, fetchEmailNotificationSettings, updateEmailNotificationSettings, } from
+import { updateUserInfo, updateUserEmailPass, fetchEmailNotificationSettings, updateEmailNotificationSettings } from
   '../../actions/user';
 import EmailPassForm from './subcomponents/email-pass-form.jsx';
 import SettingsEmailNotifications from './subcomponents/settings-email-notifications.jsx';

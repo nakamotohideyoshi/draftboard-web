@@ -3,7 +3,7 @@ import moment from 'moment';
 import React from 'react';
 import { forEach as _forEach } from 'lodash';
 import { size as _size } from 'lodash';
-import { uniq as _uniq } from 'lodash';
+import { uniqWith as _uniqWith } from 'lodash';
 
 
 /**
@@ -46,7 +46,7 @@ const LiveLineupSelectModal = React.createClass({
 
   getModalContent() {
     if (this.state.selectedSport === null) {
-      const differentSports = _uniq(
+      const differentSports = _uniqWith(
         this.props.entries.map((entry) => entry.sport),
         (sport) => sport
       );

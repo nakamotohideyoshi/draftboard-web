@@ -4,6 +4,7 @@ require('../../test-dom')();
 var sinon = require("sinon");
 var onCloseSpy = sinon.spy(function() {return;});
 var React = require('react');
+import ReactDOM from 'react-dom';
 var Component = require('../../../components/modal/modal.jsx');
 var expect = require('chai').expect;
 var ReactTestUtils = require('react-addons-test-utils');
@@ -18,7 +19,7 @@ describe('Modal Component', function() {
     document.body.innerHTML = '';
 
     // Render the component into our fake jsdom element.
-    component = React.render(
+    component = ReactDOM.render(
       <Component onClose={onCloseSpy}>
         <div>{modalContent}</div>
       </Component>,
@@ -38,7 +39,7 @@ describe('Modal Component', function() {
 
   afterEach(function(done) {
     // Unmount the component
-    React.unmountComponentAtNode(document.body);
+    ReactDOM.unmountComponentAtNode(document.body);
     // Remove component from the DOM and empty the DOM for good measure.
     document.body.innerHTML = '';
     /**
@@ -66,7 +67,7 @@ describe('Modal Component', function() {
 
 
   it('should run the provided onClose prop function when the close button is pressed', function() {
-    var closeBtn = React.findDOMNode(component.refs.closeBtn);
+    var closeBtn = ReactDOM.findDOMNode(component.refs.closeBtn);
     ReactTestUtils.Simulate.click(closeBtn);
     sinon.assert.calledOnce(onCloseSpy);
   });

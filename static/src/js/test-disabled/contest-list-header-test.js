@@ -3,6 +3,7 @@
 require("../../test-dom")();
 var assert = require("assert");
 var React = require("react");
+import ReactDOM from 'react-dom';
 var Component = require("../../../components/contest-list/contest-list-header.jsx");
 
 
@@ -14,13 +15,13 @@ describe("ContestListHeader Component", function() {
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.component = React.render(
+    this.component = ReactDOM.render(
       <Component />,
       this.targetElement,
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.domElement = this.getDOMNode();
+        self.domElement = ReactDOM.findDOMNode(this);
         done();
       }
     );
@@ -31,7 +32,7 @@ describe("ContestListHeader Component", function() {
     // Remove component from the DOM and empty the DOM for good measure.
     //
     // These suckers don't clean up nicely, so ignore this for now.
-    // React.unmountComponentAtNode(this.targetElement);
+    // ReactDOM.unmountComponentAtNode(this.targetElement);
     document.body.innerHTML = '';
   });
 

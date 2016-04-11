@@ -5,7 +5,7 @@ import * as ActionTypes from '../action-types';
 module.exports = (state = {}, action) => {
   switch (action.type) {
 
-    case ActionTypes.REQUEST_PRIZE:
+    case ActionTypes.REQUEST_PRIZE: {
       const newProps = {
         id: action.id,
         isFetching: true,
@@ -16,6 +16,7 @@ module.exports = (state = {}, action) => {
           [action.id]: newProps,
         },
       });
+    }
 
 
     case ActionTypes.RECEIVE_PRIZE:

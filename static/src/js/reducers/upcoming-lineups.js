@@ -14,7 +14,7 @@ const initialState = {
 module.exports = (state = initialState, action) => {
   switch (action.type) {
 
-    case ActionTypes.FETCH_UPCOMING_LINEUPS_SUCCESS:
+    case ActionTypes.FETCH_UPCOMING_LINEUPS_SUCCESS: {
       // Grab the first lineup in our object and set it as focused.
       let focusedLineupId;
       if (action.lineups && Object.keys(action.lineups).length > 0) {
@@ -28,7 +28,7 @@ module.exports = (state = initialState, action) => {
         draftGroupsWithLineups: action.draftGroupsWithLineups,
         focusedLineupId,
       });
-
+    }
 
     case ActionTypes.LINEUP_FOCUSED:
       return _merge({}, state, {
