@@ -2,6 +2,7 @@
 
 require('../../test-dom')();
 var React = require('react');
+import ReactDOM from 'react-dom';
 var Component = require('../../../components/filters/collection-search-filter.jsx');
 var expect = require('chai').expect;
 var ReactTestUtils = require('react-addons-test-utils');
@@ -17,7 +18,7 @@ describe('CollectionSearchFilter Component', function() {
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.component = React.render(
+    this.component = ReactDOM.render(
       <Component
         filterProperty='name'
         filterName='test'
@@ -27,7 +28,7 @@ describe('CollectionSearchFilter Component', function() {
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.domElement = this.getDOMNode();
+        self.domElement = ReactDOM.findDOMNode(this);
         done();
       }
     );
@@ -72,15 +73,15 @@ describe('CollectionSearchFilter Component', function() {
     // check if the state changed...
     expect(this.component.state.isExpanded).to.equal(true);
     // and the class was added.
-    expect(this.component.getDOMNode().className).to.contain('cmp-collection-search-filter--active');
+    expect(ReactDOM.findDOMNode(this.component).className).to.contain('cmp-collection-search-filter--active');
   });
 
 
   it("should show the search field when clicked", function() {
     // Click the element.
-    ReactTestUtils.Simulate.click(this.component.getDOMNode());
+    ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(this.component));
     // ensure the active class was added.
-    expect(this.component.getDOMNode().className).to.contain('cmp-collection-search-filter--active');
+    expect(ReactDOM.findDOMNode(this.component).className).to.contain('cmp-collection-search-filter--active');
   });
 
 });

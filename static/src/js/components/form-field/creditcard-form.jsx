@@ -14,12 +14,12 @@ const CreditcardForm = React.createClass({
         container="react-credit-card-animator"
 
         formInputsNames={
-          {
-            number: 'CCnumber',
-            expiry: 'CCexpiry',
-            cvc: 'CCcvc',
-            name: 'CCname',
-          }
+        {
+          number: 'CCnumber',
+          expiry: 'CCexpiry',
+          cvc: 'CCcvc',
+          name: 'CCname',
+        }
         }
       >
 

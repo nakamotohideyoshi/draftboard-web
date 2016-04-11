@@ -136,7 +136,7 @@ module.exports = (state = {}, action) => {
 
 
     // in order to remove all the keys properly, we need to loop through and delete them
-    case ActionTypes.REMOVE_LIVE_DRAFT_GROUPS:
+    case ActionTypes.REMOVE_LIVE_DRAFT_GROUPS: {
       const newState = _merge({}, state);
 
       _forEach(state, (dg) => {
@@ -146,6 +146,7 @@ module.exports = (state = {}, action) => {
       });
 
       return newState;
+    }
 
 
     default:

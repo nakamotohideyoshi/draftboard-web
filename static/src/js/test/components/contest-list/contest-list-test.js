@@ -3,6 +3,7 @@
 require("../../test-dom")();
 var assert = require("assert");
 var React = require("react");
+import ReactDOM from 'react-dom';
 var ContestListComponent = require("../../../components/contest-list/contest-list.jsx");
 // var expect = require('chai').expect;
 
@@ -18,13 +19,13 @@ describe("ContestList Component", function() {
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.contestListComponent = React.render(
+    this.contestListComponent = ReactDOM.render(
       <ContestListComponent setOrderBy={props.setOrderBy} />,
       this.targetElement,
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.contestListElement = this.getDOMNode();
+        self.contestListElement = ReactDOM.findDOMNode(this);
         done();
       }
     );
@@ -35,7 +36,7 @@ describe("ContestList Component", function() {
     // Remove component from the DOM and empty the DOM for good measure.
     //
     // These suckers don't clean up nicely, so ignore this for now.
-    // React.unmountComponentAtNode(this.targetElement);
+    // ReactDOM.unmountComponentAtNode(this.targetElement);
     document.body.innerHTML = '';
   });
 

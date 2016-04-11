@@ -6,22 +6,17 @@ import PrizeStructure from './prize-structure.jsx';
 import GamesList from './games-list.jsx';
 import EntrantList from './entrant-list.jsx';
 import EnterContestButton from './enter-contest-button.jsx';
-import { enterContest, setFocusedContest, fetchContestEntrantsIfNeeded, }
+import { enterContest, setFocusedContest, fetchContestEntrantsIfNeeded }
   from '../../actions/upcoming-contests-actions.js';
 import * as AppActions from '../../stores/app-state-store.js';
-import { updatePath } from 'redux-simple-router';
-import { Router, Route } from 'react-router';
-import { syncReduxAndRouter } from 'redux-simple-router';
-import createBrowserHistory from 'history/lib/createBrowserHistory';
+import { push as routerPush } from 'react-router-redux';
+import { Router, Route, browserHistory } from 'react-router';
+import { syncHistoryWithStore } from 'react-router-redux';
 import CountdownClock from '../site/countdown-clock.jsx';
 import { fetchDraftGroupBoxScoresIfNeeded } from '../../actions/upcoming-draft-groups-actions.js';
 import { focusedContestInfoSelector, focusedLineupSelector } from '../../selectors/lobby-selectors.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
 import PubSub from 'pubsub-js';
-
-
-const history = createBrowserHistory();
-syncReduxAndRouter(history, store);
 
 
 /*
@@ -52,7 +47,7 @@ function mapDispatchToProps(dispatch) {
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
     fetchContestEntrantsIfNeeded: (contestId) => dispatch(fetchContestEntrantsIfNeeded(contestId)),
-    updatePath: (path) => dispatch(updatePath(path)),
+    routerPush: (path) => dispatch(routerPush(path)),
   };
 }
 
@@ -79,7 +74,7 @@ const ContestListDetail = React.createClass({
     setFocusedContest: React.PropTypes.func,
     teams: React.PropTypes.object,
     lineupsInfo: React.PropTypes.object,
-    updatePath: React.PropTypes.func,
+    routerPush: React.PropTypes.func,
   },
 
   getInitialState() {
@@ -269,7 +264,7 @@ const ContestListDetail = React.createClass({
 
 
   stripContestFromUrl() {
-    this.props.updatePath('/lobby/');
+    this.props.routerPush('/lobby/');
   },
 
 
@@ -309,12 +304,14 @@ const ContestListDetail = React.createClass({
 
 });
 
-
 // Wrap the component to inject dispatch and selected state into it.
 const ContestListDetailConnected = connect(
   mapStateToProps,
   mapDispatchToProps
 )(ContestListDetail);
+
+// Create an enhanced history that syncs navigation events with the store
+const history = syncHistoryWithStore(browserHistory, store);
 
 renderComponent(
   <Provider store={store}>

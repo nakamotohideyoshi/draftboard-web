@@ -7,7 +7,7 @@ import { intersection as _intersection } from 'lodash';
 import { map as _map } from 'lodash';
 import { merge as _merge } from 'lodash';
 import { sortBy as _sortBy } from 'lodash';
-import { uniq as _uniq } from 'lodash';
+import { uniqBy as _uniqBy } from 'lodash';
 import { union as _union } from 'lodash';
 import { values as _values } from 'lodash';
 import { dateNow } from '../lib/utils';
@@ -87,8 +87,8 @@ const calculatePlayerOwnership = (contest, draftGroup, sport, games, myRoster) =
  * contest
  */
 export const liveSelector = createSelector(
-  liveContestsSelector,
-  currentLineupsSelector,
+  state => liveContestsSelector(state),
+  state => currentLineupsSelector(state),
   state => state.live.mode,
   state => state.entries,
   state => state.playerBoxScoreHistory,
@@ -96,7 +96,7 @@ export const liveSelector = createSelector(
   state => state.sports,
 
   (contestStats, currentLineupsStats, mode, entries, playerBoxScoreHistory, liveDraftGroups, sports) => {
-    const uniqueEntries = _uniq(_values(entries.items), 'lineup');
+    const uniqueEntries = _uniqBy(_values(entries.items), 'lineup');
 
     const stats = {
       draftGroupStarted: true,

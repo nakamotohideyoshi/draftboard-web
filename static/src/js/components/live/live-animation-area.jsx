@@ -15,32 +15,25 @@ const mapStateToProps = (state) => ({
 /**
  * Return the header section of the live page, including the lineup/contest title and overall stats
  */
-const LiveAnimationArea = React.createClass({
+const LiveAnimationArea = (props) => {
+  switch (props.sport) {
+    case 'nba':
+      return (
+        <LiveNBACourt
+          animationEvents={props.animationEvents}
+          liveSelector={props.liveSelector}
+        />
+      );
+    default:
+      return (<div />);
+  }
+};
 
-  propTypes: {
-    animationEvents: React.PropTypes.object.isRequired,
-    liveSelector: React.PropTypes.object.isRequired,
-    sport: React.PropTypes.string.isRequired,
-  },
-
-  /**
-   * Typical react render method. What's interesting here is that we default to when there's just a lineup, then
-   * modify the DOM elements if we're viewing a contest and/or an opponent.
-   */
-  render() {
-    switch (this.props.sport) {
-      case 'nba':
-        return (
-          <LiveNBACourt
-            animationEvents={this.props.animationEvents}
-            liveSelector={this.props.liveSelector}
-          />
-        );
-      default:
-        return (<div />);
-    }
-  },
-});
+LiveAnimationArea.propTypes = {
+  animationEvents: React.PropTypes.object.isRequired,
+  liveSelector: React.PropTypes.object.isRequired,
+  sport: React.PropTypes.string.isRequired,
+};
 
 // Set up Redux connections to React
 const { connect } = ReactRedux;

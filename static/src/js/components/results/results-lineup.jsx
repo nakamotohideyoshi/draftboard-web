@@ -109,6 +109,7 @@ const ResultsLineup = React.createClass({
               hexStart="36b5cc"
               hexEnd="214e9d"
               svgWidth={30}
+              id={`${player.id}Player`}
             />
           </div>
         );

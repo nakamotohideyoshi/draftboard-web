@@ -66,7 +66,7 @@ module.exports = (state = initialState, action) => {
         },
       });
 
-    case ActionTypes.PUSHER_REMOVE_ANIMATION_EVENT:
+    case ActionTypes.PUSHER_REMOVE_ANIMATION_EVENT: {
       const animationEvents = _merge({}, state.animationEvents);
       delete animationEvents[action.key];
 
@@ -75,8 +75,9 @@ module.exports = (state = initialState, action) => {
           animationEvents,
         },
       });
+    }
 
-    case ActionTypes.PUSHER_REMOVE_PLAYER_EVENT_DESCRIPTION:
+    case ActionTypes.PUSHER_REMOVE_PLAYER_EVENT_DESCRIPTION: {
       const playerEventDescriptions = _merge({}, state.playerEventDescriptions);
       delete playerEventDescriptions[action.key];
 
@@ -85,8 +86,9 @@ module.exports = (state = initialState, action) => {
           playerEventDescriptions,
         },
       });
+    }
 
-    case ActionTypes.PUSHER_SHIFT_GAME_QUEUE_EVENT:
+    case ActionTypes.PUSHER_SHIFT_GAME_QUEUE_EVENT: {
       const queue = [...state.gamesQueue[action.gameId].queue];
       queue.shift();
 
@@ -99,6 +101,7 @@ module.exports = (state = initialState, action) => {
           },
         },
       });
+    }
 
     case ActionTypes.PUSHER_UNION_PLAYERS_PLAYING:
       return update(state, {
@@ -107,7 +110,7 @@ module.exports = (state = initialState, action) => {
         },
       });
 
-    case ActionTypes.PUSHER_UNSHIFT_PLAYER_HISTORY:
+    case ActionTypes.PUSHER_UNSHIFT_PLAYER_HISTORY: {
       const playerHistory = state.playerHistories[action.key] || [];
       const newHistory = [...playerHistory];
       newHistory.unshift(action.value);
@@ -119,6 +122,7 @@ module.exports = (state = initialState, action) => {
           },
         },
       });
+    }
 
     default:
       return state;

@@ -214,6 +214,7 @@ const LivePlayerPane = React.createClass({
               hexStart="34B4CC"
               hexEnd="2871AC"
               svgWidth={50}
+              id={`${player.id}PlayerPane`}
             />
 
             <div className="header__pts-stats__info__insvg">

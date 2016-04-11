@@ -5,7 +5,9 @@
     "max-len": [2, 120, 2], // specify the maximum length of a line in your program (off by default)
     "react/prefer-es6-class": [0, "never"], // sadly using react es6 class requires es7 autobinding of class properties http://goo.gl/6pjYcU
     "no-unused-vars": 1,
-    "react/jsx-no-bind": 0 // TODO - this is a good thing but it means we have to create a handful of new components, let's address this later.
+    "react/jsx-no-bind": 0, // TODO - this is a good thing but it means we have to create a handful of new components, let's address this later.
+    "consistent-return": 0,  // TODO - this is good, but would need to refactor a bunch of functions
+    "array-callback-return": 0 // TODO - this is good, but would need to refactor a bunch of functions
   },
   "env": {
       "mocha": true

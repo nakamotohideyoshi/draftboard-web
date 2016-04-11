@@ -6,6 +6,7 @@ var onChangeSpy = sinon.spy(function() {
 
 require('../../test-dom')();
 var React = require('react');
+import ReactDOM from 'react-dom';
 var RangeSliderComponent = require('../../../components/form-field/range-slider.jsx');
 var expect = require('chai').expect;
 
@@ -23,7 +24,7 @@ describe('RangeSliderComponent Component', function() {
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
-    this.SliderComponent = React.render(
+    this.SliderComponent = ReactDOM.render(
       <RangeSliderComponent
         minValLimit = {0}
         maxValLimit = {100}
@@ -33,7 +34,7 @@ describe('RangeSliderComponent Component', function() {
       function() {
         // Once it has been rendered...
         // Grab it from the DOM.
-        self.RangeSliderElement = this.getDOMNode();
+        self.RangeSliderElement = ReactDOM.findDOMNode(this);
         done();
       }
     );

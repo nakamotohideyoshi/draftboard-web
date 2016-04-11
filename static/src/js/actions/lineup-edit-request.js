@@ -236,6 +236,8 @@ function fetchIfNeeded(taskId) {
     dispatch({
       type: types.IGNORING_FETCH_LINEUP_EDIT_REQUEST,
     });
+
+    return null;
   };
 }
 
@@ -276,5 +278,7 @@ export function monitorLineupEditRequest(taskId, lineupId) {
        minimumPollInterval
     );
     log.info('monitoring lineup edit request: ', editMonitors[taskId]);
+
+    return null;
   };
 }

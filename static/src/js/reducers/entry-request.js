@@ -17,7 +17,7 @@ function archiveEntries(newState) {
     // If the status is failure or timeout, move the task into the history.
     if (entry.hasOwnProperty('status')) {
       if (entry.status === 'FAILURE' || entry.status === 'POLLING_TIMEOUT') {
-        log.debug(`Moving task to history`, entry);
+        log.debug('Moving task to history', entry);
         archivedState.history[taskId] = _merge({}, entry);
       } else {
         archivedState[taskId] = _merge({}, entry);
@@ -50,7 +50,7 @@ module.exports = (state = initialState, action) => {
       // try to enter again - we need to remove the first entry request.
       _forEach(stateCopy, (entryRequest, key) => {
         if (entryRequest.lineupId === action.lineupId && entryRequest.contestId === action.contestId) {
-          log.debug(`Deleting already-existing request for this entry.`, key);
+          log.debug('Deleting already-existing request for this entry.', key);
           delete stateCopy[key];
         }
       });
@@ -66,7 +66,7 @@ module.exports = (state = initialState, action) => {
       return archiveEntries(stateCopy);
 
 
-    case ActionTypes.FETCHING_ENTRY_REQUEST_STATUS:
+    case ActionTypes.FETCHING_ENTRY_REQUEST_STATUS: {
       // Add 1 to the attempt count
       let attemptCount = parseInt(stateCopy[action.taskId].attempt, 10) + 1;
 
@@ -79,6 +79,7 @@ module.exports = (state = initialState, action) => {
       stateCopy[action.taskId].attempt = attemptCount;
 
       return archiveEntries(stateCopy);
+    }
 
 
     case ActionTypes.ENTRY_REQUEST_RECIEVED:

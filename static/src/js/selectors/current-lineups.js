@@ -168,12 +168,12 @@ export const compileLineupStats = (lineup, draftGroup, games, relevantPlayers) =
   // determine total fantasy points for the lineup
   // only add if they have fantasy points
   stats.points = _reduce(stats.rosterDetails, (fp, player) =>
-    (isNaN(player.stats.fp)) ? fp : fp + player.stats.fp,
+    (isNaN(player.stats.fp) ? fp : fp + player.stats.fp),
   0);
 
   // calculate minutes
   stats.durationRemaining = _reduce(stats.rosterDetails, (durationRemaining, player) =>
-    (player.stats.durationRemaining) ? player.stats.durationRemaining + durationRemaining : durationRemaining,
+    (player.stats.durationRemaining ? player.stats.durationRemaining + durationRemaining : durationRemaining),
   0);
   stats.decimalRemaining = calcDecimalRemaining(stats.durationRemaining, stats.lineupDuration);
 
@@ -204,12 +204,12 @@ export const compileVillianLineup = (roster, draftGroup, sport, games) => {
   // determine total fantasy points for the lineup
   // only add if they have fantasy points
   stats.points = _reduce(stats.rosterDetails, (fp, player) =>
-    (isNaN(player.stats.fp)) ? fp : fp + player.stats.fp,
+    (isNaN(player.stats.fp) ? fp : fp + player.stats.fp),
   0);
 
   // calculate minutes
   stats.durationRemaining = _reduce(stats.rosterDetails, (durationRemaining, player) =>
-    (player.stats.durationRemaining) ? player.stats.durationRemaining + durationRemaining : durationRemaining,
+    (player.stats.durationRemaining ? player.stats.durationRemaining + durationRemaining : durationRemaining),
   0);
   stats.decimalRemaining = calcDecimalRemaining(stats.durationRemaining, stats.lineupDuration);
 
@@ -221,7 +221,7 @@ export const compileVillianLineup = (roster, draftGroup, sport, games) => {
 // - loops through the entries per lineup and calculates potential earnings
 // - loops through the players per lineup and calculates PMR
 export const currentLineupsSelector = createSelector(
-  liveContestsSelector,
+  state => liveContestsSelector(state),
   state => state.liveContests,
   state => state.liveDraftGroups,
   state => state.sports,

@@ -35,7 +35,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.UPCOMING_CONTESTS_FILTER_CHANGED:
+    case ActionTypes.UPCOMING_CONTESTS_FILTER_CHANGED: {
       const newFilter = {};
 
       newFilter[action.filter.filterName] = {
@@ -46,6 +46,7 @@ module.exports = (state = initialState, action) => {
       return _merge({}, state, {
         filters: _merge({}, state.filters, newFilter),
       });
+    }
 
 
     case ActionTypes.SET_FOCUSED_CONTEST:
@@ -72,7 +73,7 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS:
+    case ActionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS: {
       const newEntrants = _merge({}, state.entrants);
       newEntrants[action.contestId] = action.entrants;
 
@@ -80,9 +81,10 @@ module.exports = (state = initialState, action) => {
         isFetchingEntrants: false,
         entrants: newEntrants,
       });
+    }
 
 
-    case ActionTypes.UPCOMING_CONTESTS_UPDATE_RECEIVED:
+    case ActionTypes.UPCOMING_CONTESTS_UPDATE_RECEIVED: {
       const stateCopy = _merge({}, state);
 
       stateCopy.allContests[action.contest.id] = action.contest;
@@ -91,6 +93,7 @@ module.exports = (state = initialState, action) => {
       }
 
       return stateCopy;
+    }
 
 
     default:
