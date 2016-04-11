@@ -72,7 +72,7 @@ class UpcomingDraftGroup(DraftGroup):
         #
         def get_queryset(self):
             # get the distinct DraftGroup(s) only upcoming contests
-            distinct_contest_draft_groups = contest.models.UpcomingContest.objects.filter(
+            distinct_contest_draft_groups = contest.models.UpcomingContestPool.objects.filter(
                                                 draft_group__isnull=False).distinct('draft_group')
             # build a list of the (distinct) draft_group.pk's
             draft_group_ids = [c.draft_group.pk for c in distinct_contest_draft_groups ]
