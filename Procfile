@@ -22,7 +22,7 @@ purger: celery -A mysite worker -l info -n celery1.%h --purge
 #   -q : quick startup flag (for restarting without re-parsing initialization feeds)
 #   -apiSpeedDelta <integer> : +/- values will increase or decrease the parse interval
 #
-dataden: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15
+dataden: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
 
 #
 # the mandatory (and the only) worker responsible for running dataden triggers
