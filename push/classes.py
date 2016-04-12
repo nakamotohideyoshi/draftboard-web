@@ -1,6 +1,7 @@
 #
 # pusher/classes.py
 
+from django.utils import timezone
 import collections
 import hashlib
 import six
@@ -17,6 +18,9 @@ from .tasks import pusher_send_task
 from .exceptions import ChannelNotSetException, EventNotSetException
 import ast
 import json
+from dataden.models import (
+    PbpDebug,
+)
 from dataden.cache.caches import (
     LiveStatsCache,
     LinkableObject,
@@ -377,6 +381,46 @@ class DataDenPush( AbstractPush ):
         """
         super().__init__(channel) # init pusher object
         self.event      = event
+
+    # for debug purposes
+    def trigger(self, data):
+        # for metrics and timing info (if ./manage.py record_pbp is running)
+        # a dataden pbp object (for nba)
+        # {
+        #   "game__id": "c7a78f76-9c2b-487d-906d-a7c7e927e1b7",
+        #   "parent_api__id": "pbp",
+        #   "updated": "2016-04-12T03:25:58+00:00",
+        #   "clock": "00:01",
+        #   "dd_updated__id": 1460431574411,
+        #   "description": "Play review",
+        #   "event_type": "review",
+        #   "id": "e76504c5-1175-43d5-8180-2244febe7506",
+        #   "quarter__id": "630a74ce-f4e2-495c-9f62-4248660d8966",
+        #   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGM3YTc4Zjc2LTljMmItNDg3ZC05MDZkLWE3YzdlOTI3ZTFiN3F1YXJ0ZXJfX2lkNjMwYTc0Y2UtZjRlMi00OTVjLTlmNjItNDI0ODY2MGQ4OTY2cGFyZW50X2xpc3RfX2lkZXZlbnRzX19saXN0aWRlNzY1MDRjNS0xMTc1LTQzZDUtODE4MC0yMjQ0ZmViZTc1MDY=",
+        #   "parent_list__id": "events__list",
+        #   "possession": "583ecf50-fb46-11e1-82cb-f4ce4684ea4c"
+        # }
+        try:
+            pbpdebug = PbpDebug.objects.get(game_srid=data.get('game__id'),
+                                            srid=data.get('id'))
+            if pbpdebug.timestamp_pushered is None:
+                #print('its none')
+                # only update it the first time we see it!
+                pbpdebug.timestamp_pushered = timezone.now()
+                pbpdebug.save()
+                print('updated timestamp_pushered')
+            else:
+                #print('second go around')
+                pass
+        except PbpDebug.DoesNotExist:
+            #print('pbpdebug.doesnotexist')
+            pass
+        except:
+            #print('exception')
+            pass
+
+        # make sure to call super()
+        super().trigger(data)
 
 class StatsDataDenPush( AbstractPush ):
     """

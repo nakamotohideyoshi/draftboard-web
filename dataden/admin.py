@@ -21,6 +21,8 @@ class LiveStatsCacheConfigAdmin(admin.ModelAdmin):
         'srid',
         'description',
         'xml_str',
+        'timestamp_pushered',
+        'delta_seconds',
     ]
 
     list_filter = [
@@ -37,3 +39,5 @@ class LiveStatsCacheConfigAdmin(admin.ModelAdmin):
         'description',
     ]
 
+    def delta_seconds(self, pbpdebug):
+        return pbpdebug.get_delta_seconds()
