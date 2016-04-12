@@ -77,16 +77,15 @@ PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true') # heroku config va
 
 #
 # dataden mongo database connection
-MONGO_AUTH_DB   = 'admin'
-MONGO_USER      = 'admin'
-MONGO_PASSWORD  = 'dataden1'
-MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
-MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
-# MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
-
-# # if this config var exists, override the default production value
-# dataden_mongo_uri = urlparse(environ.get('DATADEN_MONGO_URI'))
-# if dataden_mongo_uri:
-#     MONGO_HOST = dataden_mongo_uri
+MONGO_SERVER_ADDRESS    = environ.get('MONGO_SERVER_ADDRESS')   # ie: '123.132.123.123'
+MONGO_AUTH_DB           = environ.get('MONGO_AUTH_DB')          # 'admin'
+MONGO_USER              = environ.get('MONGO_USER')             # 'admin'
+MONGO_PASSWORD          = environ.get('MONGO_PASSWORD')         # 'dataden1'
+MONGO_PORT              = environ.get('MONGO_PORT')             # 27017
+MONGO_HOST = environ.get('MONGO_HOST') % ( MONGO_USER,
+                                            MONGO_PASSWORD,
+                                            MONGO_SERVER_ADDRESS,
+                                            MONGO_PORT,
+                                            MONGO_AUTH_DB )
 
 DATETIME_DELTA_ENABLE = True   # dont do this once production environemnt is actual live!
