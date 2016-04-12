@@ -60,6 +60,13 @@ class PbpDebug(models.Model):
     description = models.CharField(max_length=1024 * 2, null=True)
     xml_str     = models.CharField(max_length=1024 * 16, null=True)
 
+    timestamp_pushered = models.DateTimeField(null=True)
+
+    def get_delta_seconds(self):
+        if self.timestamp_pushered is None:
+            return 'na'
+        return str((self.timestamp_pushered - self.created).total_seconds())
+
     class Meta:
         unique_together = ('game_srid','srid')
 
