@@ -12,3 +12,28 @@ class TriggerAdmin(admin.ModelAdmin):
 class LiveStatsCacheConfigAdmin(admin.ModelAdmin):
     list_display = ['updated','key_timeout','timeout_mod']
 
+@admin.register(dataden.models.PbpDebug)
+class LiveStatsCacheConfigAdmin(admin.ModelAdmin):
+    list_display = [
+        'created',
+        'url',
+        'game_srid',
+        'srid',
+        'description',
+        'xml_str',
+    ]
+
+    list_filter = [
+        'created',
+        'url',
+        'game_srid',
+        'srid',
+    ]
+
+    search_fields = [
+        'url',
+        'game_srid',
+        'srid',
+        'description',
+    ]
+
