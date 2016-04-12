@@ -46,3 +46,20 @@ class LiveStatsCacheConfig(models.Model):
                               'of how much to randomize the key_timeout. 25 indicates +/-25%'
                               '  If its set too low the database has a higher likelihood'
                               ' of getting big bursts of insert/updates')
+
+class PbpDebug(models.Model):
+    """
+    a log table for a standalone script to update a the pbp objects
+    as it sees them in real time.
+    """
+    created     = models.DateTimeField(auto_now_add=True)
+
+    url         = models.CharField(max_length=2048, null=True)
+    game_srid   = models.CharField(max_length=128, null=False)
+    srid        = models.CharField(max_length=128, null=False)
+    description = models.CharField(max_length=1024 * 2, null=True)
+    xml_str     = models.CharField(max_length=1024 * 16, null=True)
+
+    class Meta:
+        unique_together = ('game_srid','srid')
+

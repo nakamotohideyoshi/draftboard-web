@@ -2,10 +2,92 @@ from __future__ import generators
 #
 # dataden/classes.py
 
+from django.utils import timezone
+from datetime import timedelta
+import requests
+import xml.etree.ElementTree as ET
 from pymongo import MongoClient, ASCENDING, DESCENDING
 import dataden.cache.caches
 import dataden.models
 from django.conf import settings
+
+class FeedTest(object):
+
+    def __init__(self, game_srid, url, apikey):
+        self.game_srid = game_srid
+        self.url = url
+        self.apikey = apikey
+        self.session = requests.Session()
+        self.r = None # the HttpResponse from the last download()
+        self.feed_model_class = dataden.models.PbpDebug
+        self.et = None
+
+        self.events = []
+
+        # prepopulate the srids list with the ones we already have in the db
+        self.srids = []
+        for srid in self.feed_model_class.objects.filter(game_srid=self.game_srid):
+            self.srids.append(srid)
+
+        self.descriptions = []
+
+    def get_url(self):
+        return '%s%s' % (self.url, self.apikey)
+
+    def download(self):
+        """ download and return the ElementTree, after its initialized with the feed xml """
+        self.r = self.session.get(self.get_url())
+        return ET.fromstring(self.r.text)
+
+    def parse(self, root):
+        # parse the root node
+
+        for node in root:
+            if 'quarter' in node.tag:
+                #print('quarter', node.get('number'))
+
+                for events in node:
+                    if 'events' in events.tag:
+
+                        for event in events:
+                            #print( event.get('id'), event.get('clock') )
+
+                            srid = event.get('id')
+                            if srid in self.srids:
+                                continue # dont even both trying to go further
+
+                            self.events.append(event)
+                            self.srids.append(event.get('id'))
+
+                            desc = ''
+                            for description in event:
+                                if 'description' in description.tag:
+                                    desc = description.text
+                                    #print(desc)
+                                    self.descriptions.append(description)
+
+                            self.add_to_db(srid=srid, description=desc, xml_str=None)
+
+    def add_to_db(self, srid, description, xml_str=None):
+        """
+        returns True if this object was just created. (ie: the first time we parsed it).
+
+        otherwise return False
+
+        """
+        xml_str = xml_str
+        if xml_str is None:
+            xml_str = ''
+
+        # self.feed_model_class.objects.get(srid=srid, game_srid=game_srid)
+        obj, created = self.feed_model_class.objects.get_or_create(
+            url=self.url,
+            game_srid=self.game_srid,
+            srid=srid,
+            description=description,
+            xml_str=xml_str,
+        )
+        return created
 
 class Trigger(object):
     """
