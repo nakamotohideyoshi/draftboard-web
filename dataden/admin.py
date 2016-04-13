@@ -14,9 +14,11 @@ class LiveStatsCacheConfigAdmin(admin.ModelAdmin):
 
 @admin.register(dataden.models.PbpDebug)
 class LiveStatsCacheConfigAdmin(admin.ModelAdmin):
+
+    show_full_result_count = True
+
     list_display = [
         'created',
-        'url',
         'game_srid',
         'srid',
         'description',

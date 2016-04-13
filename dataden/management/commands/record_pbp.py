@@ -52,9 +52,4 @@ class Command(BaseCommand):
         self.stdout.write(str(arguments))
 
         ft = FeedTest(game_srid=game_srid, url=url, apikey=sportradar_apikey)
-        i = 0
-        while i < iterations:
-            tree = ft.download()
-            ft.parse(tree)
-            time.sleep(1.0)
-            i += 1
+        ft.run(iterations=iterations)
