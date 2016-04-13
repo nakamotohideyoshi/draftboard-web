@@ -400,20 +400,23 @@ class DataDenPush( AbstractPush ):
         #   "parent_list__id": "events__list",
         #   "possession": "583ecf50-fb46-11e1-82cb-f4ce4684ea4c"
         # }
+        game_srid = data.get('game__id')
+        srid = data.get('id')
+        game_srid_pbp_srid = 'game_srid: %s, pbp srid: %s' % (str(game_srid), str(srid))
         try:
-            pbpdebug = PbpDebug.objects.get(game_srid=data.get('game__id'),
-                                            srid=data.get('id'))
+            pbpdebug = PbpDebug.objects.get(game_srid=game_srid, srid=srid)
             if pbpdebug.timestamp_pushered is None:
+
                 #print('its none')
                 # only update it the first time we see it!
                 pbpdebug.timestamp_pushered = timezone.now()
                 pbpdebug.save()
-                print('updated timestamp_pushered')
+                print('updated timestamp_pushered. %s' % (game_srid_pbp_srid))
             else:
                 #print('second go around')
                 pass
         except PbpDebug.DoesNotExist:
-            #print('pbpdebug.doesnotexist')
+            print('pbpdebug.doesnotexist -', game_srid_pbp_srid)
             pass
         except:
             #print('exception')

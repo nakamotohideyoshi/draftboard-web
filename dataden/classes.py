@@ -4,6 +4,7 @@ from __future__ import generators
 
 from django.utils import timezone
 from datetime import timedelta
+import time
 import requests
 import xml.etree.ElementTree as ET
 from pymongo import MongoClient, ASCENDING, DESCENDING
@@ -34,6 +35,16 @@ class FeedTest(object):
     def get_url(self):
         return '%s%s' % (self.url, self.apikey)
 
+    def run(self, iterations=10, delay_ms=3000.0):
+        print('%s iterations' % str(iterations))
+        i = 1
+        while i <= iterations:
+            self.et = self.download()
+            self.parse(self.et)
+            print('%s of %s' % (str(i), str(iterations)))
+            time.sleep(float(float(delay_ms)/float(1000.0))) # divide millis by 1000 to get values in seconds
+            i += 1
+
     def download(self):
         """ download and return the ElementTree, after its initialized with the feed xml """
         self.r = self.session.get(self.get_url())
@@ -44,26 +55,26 @@ class FeedTest(object):
 
         for node in root:
             if 'quarter' in node.tag:
-                #print('quarter', node.get('number'))
+                print('quarter', node.get('number'))
 
                 for events in node:
                     if 'events' in events.tag:
 
                         for event in events:
-                            #print( event.get('id'), event.get('clock') )
+                            print( event.get('id'), event.get('clock') )
 
                             srid = event.get('id')
                             if srid in self.srids:
                                 continue # dont even both trying to go further
 
                             self.events.append(event)
-                            self.srids.append(event.get('id'))
+                            self.srids.append(srid)
 
                             desc = ''
                             for description in event:
                                 if 'description' in description.tag:
                                     desc = description.text
-                                    #print(desc)
+                                    print(desc)
                                     self.descriptions.append(description)
 
                             self.add_to_db(srid=srid, description=desc, xml_str=None)
@@ -87,6 +98,10 @@ class FeedTest(object):
             description=description,
             xml_str=xml_str,
         )
+
+        if created:
+            print('new pbp:', str(description))
+
         return created
 
 class Trigger(object):
