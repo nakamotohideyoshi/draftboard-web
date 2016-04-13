@@ -1,4 +1,7 @@
 # node_modules ignored by default
+static/src/js/test-disabled/*
 
 # Ignore easing library
-static/src/js/lib/*.js
+static/src/js/lib/easing.js
+static/src/js/lib/smooth-scroll-to.js
+static/src/js/lib/time.js

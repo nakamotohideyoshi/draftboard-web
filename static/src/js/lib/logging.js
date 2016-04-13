@@ -1,6 +1,5 @@
 import log from 'loglevel';
 import createLogger from 'redux-logger';
-// import testDom from '../test/test-dom.js';
 
 
 /**
@@ -25,14 +24,14 @@ const getLevel = () => {
   }
 
   return logLevel;
-}
+};
 
 // get and set the appropriate logging level
 export const logLevel = getLevel();
 log.setLevel(logLevel);
 
 // by default, export the log object to work with
-export default log
+export default log;
 
 // configure redux-logging, is added in to middleware
 export const logger = createLogger({

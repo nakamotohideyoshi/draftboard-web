@@ -86,7 +86,9 @@ const ContestListRow = React.createClass({
         <td key="sport" className="sport">
           <span className={`icon icon-${this.props.row.sport}`}></span>
         </td>
-        <td key="name" className="name">{this.props.row.name} {guaranteedIcon}</td>
+        <td key="name" className="name">
+          {this.props.row.name} {this.props.row.sport} CONTEST POOLS HAVE NO NAMES! {guaranteedIcon}
+        </td>
         <td key="entries" className="entries">
           {multiEntryIcon} {this.props.row.current_entries}/{this.props.row.entries}
         </td>
@@ -108,12 +110,10 @@ const ContestListRow = React.createClass({
             onEnterSuccess={this.close}
           />
 
-        <DraftButton
-          draftGroupId={this.props.row.draft_group}
-          disableTime={this.props.row.start}
-        />
-
-
+          <DraftButton
+            draftGroupId={this.props.row.draft_group}
+            disableTime={this.props.row.start}
+          />
         </td>
       </tr>
     );
