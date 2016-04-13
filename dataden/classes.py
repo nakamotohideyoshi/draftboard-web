@@ -2,6 +2,7 @@ from __future__ import generators
 #
 # dataden/classes.py
 
+from django.db import IntegrityError
 from django.utils import timezone
 from datetime import timedelta
 import time
@@ -91,13 +92,16 @@ class FeedTest(object):
             xml_str = ''
 
         # self.feed_model_class.objects.get(srid=srid, game_srid=game_srid)
-        obj, created = self.feed_model_class.objects.get_or_create(
-            url=self.url,
-            game_srid=self.game_srid,
-            srid=srid,
-            description=description,
-            xml_str=xml_str,
-        )
+        try:
+            obj, created = self.feed_model_class.objects.get_or_create(
+                url=self.url,
+                game_srid=self.game_srid,
+                srid=srid,
+                description=description,
+                xml_str=xml_str,
+            )
+        except IntegrityError:
+            return False
 
         if created:
             print('new pbp:', str(description))
