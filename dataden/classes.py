@@ -42,7 +42,8 @@ class FeedTest(object):
         while i <= iterations:
             self.et = self.download()
             self.parse(self.et)
-            print('%s of %s' % (str(i), str(iterations)))
+            if i % 10 == 0:
+                print('%s of %s' % (str(i), str(iterations)))
             time.sleep(float(float(delay_ms)/float(1000.0))) # divide millis by 1000 to get values in seconds
             i += 1
 
@@ -56,22 +57,26 @@ class FeedTest(object):
 
         for node in root:
             if 'quarter' in node.tag:
+                q = node.get('number')
                 #print('quarter', node.get('number'))
 
                 for events in node:
                     #if 'events' in events.tag:
 
                         for event in events:
-                            print( event.get('id'), event.get('clock') )
+                            #print( event.get('id'), event.get('clock') )
 
                             srid = event.get('id')
                             if srid in self.srids:
                                 continue # dont even both trying to go further
 
+                            clock = str(event.get('clock'))
+                            print( event.get('id'), clock )
                             self.events.append(event)
                             self.srids.append(srid)
 
-                            desc = ''
+                            desc = 'Q%s ' % str(q)
+                            desc += clock + ' - '
                             for description in event:
                                 if 'description' in description.tag:
                                     desc = description.text
