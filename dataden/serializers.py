@@ -15,4 +15,5 @@ class PbpDebugSerializer( serializers.ModelSerializer ):
             'timestamp_pushered',
             'description',
             'get_delta_seconds',
+            'delta_seconds_valid',
         )

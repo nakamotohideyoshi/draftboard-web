@@ -429,41 +429,37 @@ class AbstractPush(object):
             # a string we can use for this play if its relevant
             game_srid_pbp_srid_desc = 'game_srid: %s, pbp srid: %s, ' \
                                  'dd_udpated__id: %s, description: %s' % (str(game_srid),
-                                                                          str(srid), str(dd_updated_id), str(description))
+                                  str(srid), str(dd_updated_id), str(description))
 
-            try:
-                with atomic():
-                    #pbpdebug = PbpDebug.objects.get(game_srid=game_srid, srid=srid)
+            #try:
+            with atomic():
+                try:
+                    pbpdebug = PbpDebug.objects.get(game_srid=game_srid, srid=srid)
+                except PbpDebug.DoesNotExist:
+                    pbpdebug = PbpDebug()
+                    pbpdebug.url = 'na'
+                    pbpdebug.game_srid = game_srid
+                    pbpdebug.srid = srid
+                    pbpdebug.description = description
+                    pbpdebug.xml_str = ''
+                    pbpdebug.delta_seconds_valid = False
+                    pbpdebug.save()
 
-                    #
-                    # get_or_create, BUT if created, subtract
-                    pbpdebug, created = PbpDebug.objects.get_or_create(game_srid=game_srid, srid=srid)
+                # if we were able to retrieve an existing one,
+                # check if theres a timestamp and set it if its None
+                # because this is the first time its going out after being parsed
+                if pbpdebug.timestamp_pushered is None:
+                    print('updated timestamp_pushered. %s' % (game_srid_pbp_srid_desc))
+                    pbpdebug.timestamp_pushered = timezone.now()
+                    pbpdebug.save()
+                    print('     \-> save() called at:', str(pbpdebug.timestamp_pushered))
 
-                    if pbpdebug.timestamp_pushered is None:
-                        print('updated timestamp_pushered. %s' % (game_srid_pbp_srid_desc))
-                        # only update it the first time we see it!
-
-                        # if created is True, then this happened before the real-time
-                        # script could even create it, so it kind of invalidates delta seconds
-                        # which will always be ~0.00 in this case. (basically we parsed
-                        # it regularly earlier that the real-time feed -- which is great!)
-                        if created:
-                            pbpdebug.delta_seconds_valid = False
-
-                        pbpdebug.timestamp_pushered = timezone.now()
-                        pbpdebug.save()
-                        print('     \-> save() called at:', str(pbpdebug.timestamp_pushered))
-
-                    else:
-                        #print('second go around')
-                        pass
-
-            except PbpDebug.DoesNotExist:
-                print('pbpdebug.doesnotexist -', game_srid_pbp_srid_desc)
-                pass
-            except Exception as e:
-                print(str(e)[:100])
-                pass
+            # except PbpDebug.DoesNotExist:
+            #     print('pbpdebug.doesnotexist -', game_srid_pbp_srid_desc)
+            #     pass
+            # except Exception as e:
+            #     print(str(e)[:100])
+            #     pass
 
         #############
         #############
