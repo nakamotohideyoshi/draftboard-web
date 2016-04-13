@@ -17,6 +17,7 @@ from sports.views import (
     ScheduleGameBoxscoresView,
     PlayerHistoryMlbHitterAPIView,
     PlayerHistoryMlbPitcherAPIView,
+    PbpDebugAPIView,
 )
 
 urlpatterns = patterns( '',
@@ -103,6 +104,8 @@ urlpatterns = patterns( '',
     (r'^scoreboard-games/nhl/$', ScheduleGameBoxscoresView.as_view(), {"sport": "nhl"}),
     (r'^scoreboard-games/mlb/$', ScheduleGameBoxscoresView.as_view(), {"sport": "mlb"}),
 
-
+    #
+    # debug api for the front to get the timestamp when an PBP object was pushered.
+    (r'^pbp-debug/(?P<game_srid>[a-z0-9\-]+)/(?P<srid>[a-z0-9\-]+)/$', PbpDebugAPIView.as_view()),
 
 )
