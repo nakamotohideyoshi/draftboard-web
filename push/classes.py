@@ -315,6 +315,137 @@ class AbstractPush(object):
         note: if django.conf.settings.PUSHER_ENABLED = False,
          will block pusher objects from being sent!
         """
+
+        #
+        #############
+        # main task debug
+        #############
+        # for debug purposes
+
+        # for metrics and timing info (if ./manage.py record_pbp is running)
+        # a dataden pbp object (for nba)
+        #
+        # linked pbp object (nba)
+        # {
+        #   "stats": [
+        #     {
+        #       "fields": {
+        #         "offensive_rebounds": 0,
+        #         "game_type": 71,
+        #         "two_points_pct": 0.333,
+        #         "three_points_att": 0,
+        #         "srid_game": "fb9a28a6-23d9-4c01-9a6c-40c2863203bf",
+        #         "updated": "2016-04-13T01:49:16.159Z",
+        #         "minutes": 12,
+        #         "tech_fouls": 0,
+        #         "assists": 4,
+        #         "three_points_pct": 0,
+        #         "points": 5,
+        #         "field_goals_pct": 33.3,
+        #         "rebounds": 1,
+        #         "assists_turnover_ratio": 2,
+        #         "two_points_att": 6,
+        #         "player_type": 73,
+        #         "created": "2016-04-12T23:27:54.419Z",
+        #         "defensive_rebounds": 1,
+        #         "srid_player": "1db0df17-b3d5-4ddb-98d0-8f86239347bf",
+        #         "two_points_made": 2,
+        #         "three_points_made": 0,
+        #         "game_id": 1314,
+        #         "position": 2,
+        #         "free_throws_att": 1,
+        #         "fantasy_points": 13.25,
+        #         "personal_fouls": 0,
+        #         "field_goals_att": 6,
+        #         "blocks": 1,
+        #         "field_goals_made": 2,
+        #         "steals": 0,
+        #         "flagrant_fouls": 0,
+        #         "free_throws_pct": 100,
+        #         "free_throws_made": 1,
+        #         "blocked_att": 0,
+        #         "player_id": 332,
+        #         "turnovers": 2
+        #       },
+        #       "model": "nba.playerstats",
+        #       "pk": 36192
+        #     }
+        #   ],
+        #   "pbp": {
+        #     "quarter__id": "72b2d818-1ac2-460f-a1e9-b9ca1cc973d7",
+        #     "description": "Delon Wright makes free throw 2 of 2",
+        #     "dd_updated__id": 1460511785162,
+        #     "location__list": {
+        #       "coord_y": 307,
+        #       "coord_x": 897
+        #     },
+        #     "attribution": "583ecda6-fb46-11e1-82cb-f4ce4684ea4c",
+        #     "id": "7b5ac7df-0a7a-47f9-86d1-2637d11db93d",
+        #     "updated": "2016-04-13T01:42:43+00:00",
+        #     "event_type": "freethrowmade",
+        #     "clock": "3:57",
+        #     "game__id": "fb9a28a6-23d9-4c01-9a6c-40c2863203bf",
+        #     "statistics__list": {
+        #       "freethrow__list": {
+        #         "team": "583ecda6-fb46-11e1-82cb-f4ce4684ea4c",
+        #         "player": "1db0df17-b3d5-4ddb-98d0-8f86239347bf",
+        #         "made": "true",
+        #         "points": 1
+        #       }
+        #     },
+        #     "possession": "583ec87d-fb46-11e1-82cb-f4ce4684ea4c",
+        #     "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiOWEyOGE2LTIzZDktNGMwMS05YTZjLTQwYzI4NjMyMDNiZnF1YXJ0ZXJfX2lkNzJiMmQ4MTgtMWFjMi00NjBmLWExZTktYjljYTFjYzk3M2Q3cGFyZW50X2xpc3RfX2lkZXZlbnRzX19saXN0aWQ3YjVhYzdkZi0wYTdhLTQ3ZjktODZkMS0yNjM3ZDExZGI5M2Q=",
+        #     "parent_api__id": "pbp",
+        #     "parent_list__id": "events__list"
+        #   }
+        # }
+        # {
+        #   "game__id": "c7a78f76-9c2b-487d-906d-a7c7e927e1b7",
+        #   "parent_api__id": "pbp",
+        #   "updated": "2016-04-12T03:25:58+00:00",
+        #   "clock": "00:01",
+        #   "dd_updated__id": 1460431574411,
+        #   "description": "Play review",
+        #   "event_type": "review",
+        #   "id": "e76504c5-1175-43d5-8180-2244febe7506",
+        #   "quarter__id": "630a74ce-f4e2-495c-9f62-4248660d8966",
+        #   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGM3YTc4Zjc2LTljMmItNDg3ZC05MDZkLWE3YzdlOTI3ZTFiN3F1YXJ0ZXJfX2lkNjMwYTc0Y2UtZjRlMi00OTVjLTlmNjItNDI0ODY2MGQ4OTY2cGFyZW50X2xpc3RfX2lkZXZlbnRzX19saXN0aWRlNzY1MDRjNS0xMTc1LTQzZDUtODE4MC0yMjQ0ZmViZTc1MDY=",
+        #   "parent_list__id": "events__list",
+        #   "possession": "583ecf50-fb46-11e1-82cb-f4ce4684ea4c"
+        # }
+        pbp_data = data
+        game_srid = data.get('game__id')
+        srid = data.get('id')
+        dd_updated_id = data.get('dd_updated__id')
+        if self.channel == PUSHER_NBA_PBP and self.event == 'linked':
+            pbp_data = data.get('pbp')
+            game_srid = data.get('game__id')
+            srid = data.get('id')
+            dd_updated_id = data.get('dd_updated__id')
+
+        game_srid_pbp_srid = 'game_srid: %s, pbp srid: %s, dd_udpated__id: %s' % (str(game_srid), str(srid), str(dd_updated_id))
+        try:
+            pbpdebug = PbpDebug.objects.get(game_srid=game_srid, srid=srid)
+            if pbpdebug.timestamp_pushered is None:
+
+                #print('its none')
+                # only update it the first time we see it!
+                pbpdebug.timestamp_pushered = timezone.now()
+                pbpdebug.save()
+                print('updated timestamp_pushered. %s' % (game_srid_pbp_srid))
+            else:
+                #print('second go around')
+                pass
+        except PbpDebug.DoesNotExist:
+            print('pbpdebug.doesnotexist -', game_srid_pbp_srid)
+            pass
+        except:
+            #print('exception')
+            pass
+
+        #############
+        #############
+
         if settings.PUSHER_ENABLED:
             # TODO remove this
             print('settings.PUSHER_ENABLED == True ... object sent')
@@ -381,49 +512,6 @@ class DataDenPush( AbstractPush ):
         """
         super().__init__(channel) # init pusher object
         self.event      = event
-
-    # for debug purposes
-    def trigger(self, data):
-        # for metrics and timing info (if ./manage.py record_pbp is running)
-        # a dataden pbp object (for nba)
-        # {
-        #   "game__id": "c7a78f76-9c2b-487d-906d-a7c7e927e1b7",
-        #   "parent_api__id": "pbp",
-        #   "updated": "2016-04-12T03:25:58+00:00",
-        #   "clock": "00:01",
-        #   "dd_updated__id": 1460431574411,
-        #   "description": "Play review",
-        #   "event_type": "review",
-        #   "id": "e76504c5-1175-43d5-8180-2244febe7506",
-        #   "quarter__id": "630a74ce-f4e2-495c-9f62-4248660d8966",
-        #   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGM3YTc4Zjc2LTljMmItNDg3ZC05MDZkLWE3YzdlOTI3ZTFiN3F1YXJ0ZXJfX2lkNjMwYTc0Y2UtZjRlMi00OTVjLTlmNjItNDI0ODY2MGQ4OTY2cGFyZW50X2xpc3RfX2lkZXZlbnRzX19saXN0aWRlNzY1MDRjNS0xMTc1LTQzZDUtODE4MC0yMjQ0ZmViZTc1MDY=",
-        #   "parent_list__id": "events__list",
-        #   "possession": "583ecf50-fb46-11e1-82cb-f4ce4684ea4c"
-        # }
-        game_srid = data.get('game__id')
-        srid = data.get('id')
-        game_srid_pbp_srid = 'game_srid: %s, pbp srid: %s' % (str(game_srid), str(srid))
-        try:
-            pbpdebug = PbpDebug.objects.get(game_srid=game_srid, srid=srid)
-            if pbpdebug.timestamp_pushered is None:
-
-                #print('its none')
-                # only update it the first time we see it!
-                pbpdebug.timestamp_pushered = timezone.now()
-                pbpdebug.save()
-                print('updated timestamp_pushered. %s' % (game_srid_pbp_srid))
-            else:
-                #print('second go around')
-                pass
-        except PbpDebug.DoesNotExist:
-            print('pbpdebug.doesnotexist -', game_srid_pbp_srid)
-            pass
-        except:
-            #print('exception')
-            pass
-
-        # make sure to call super()
-        super().trigger(data)
 
 class StatsDataDenPush( AbstractPush ):
     """
