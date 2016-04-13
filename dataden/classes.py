@@ -55,10 +55,10 @@ class FeedTest(object):
 
         for node in root:
             if 'quarter' in node.tag:
-                print('quarter', node.get('number'))
+                #print('quarter', node.get('number'))
 
                 for events in node:
-                    if 'events' in events.tag:
+                    #if 'events' in events.tag:
 
                         for event in events:
                             print( event.get('id'), event.get('clock') )
@@ -74,7 +74,7 @@ class FeedTest(object):
                             for description in event:
                                 if 'description' in description.tag:
                                     desc = description.text
-                                    print(desc)
+                                    #print(desc)
                                     self.descriptions.append(description)
 
                             self.add_to_db(srid=srid, description=desc, xml_str=None)
