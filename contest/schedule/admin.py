@@ -222,6 +222,8 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
                 earliest_game = game
         #
         # return the localized time for the admin to display
+        if earliest_game is None:
+            return 'na'
         return local_time(earliest_game.start)
 
     def games_included(self, block):
