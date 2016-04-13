@@ -1,7 +1,9 @@
 #
 # pusher/classes.py
 
+from django.db.transaction import atomic
 from django.utils import timezone
+from django.db.models import F
 import collections
 import hashlib
 import six
@@ -413,34 +415,46 @@ class AbstractPush(object):
         #   "parent_list__id": "events__list",
         #   "possession": "583ecf50-fb46-11e1-82cb-f4ce4684ea4c"
         # }
+
         pbp_data = data
-        game_srid = data.get('game__id')
-        srid = data.get('id')
-        dd_updated_id = data.get('dd_updated__id')
         if self.channel == PUSHER_NBA_PBP and self.event == 'linked':
-            pbp_data = data.get('pbp')
-            game_srid = data.get('game__id')
-            srid = data.get('id')
-            dd_updated_id = data.get('dd_updated__id')
+            pbp_data = pbp_data.get('pbp')
+        game_srid = pbp_data.get('game__id')
+        srid = pbp_data.get('id')
+        dd_updated_id = pbp_data.get('dd_updated__id')
+        description = pbp_data.get('description')
 
-        game_srid_pbp_srid = 'game_srid: %s, pbp srid: %s, dd_udpated__id: %s' % (str(game_srid), str(srid), str(dd_updated_id))
+        # a string we can use for this play if its relevant
+        game_srid_pbp_srid_desc = 'game_srid: %s, pbp srid: %s, ' \
+                             'dd_udpated__id: %s, description: %s' % (str(game_srid),
+                                                                      str(srid), str(dd_updated_id), str(description))
+
         try:
-            pbpdebug = PbpDebug.objects.get(game_srid=game_srid, srid=srid)
-            if pbpdebug.timestamp_pushered is None:
+            with atomic():
+                pbpdebug = PbpDebug.objects.get(game_srid=game_srid, srid=srid)
+                if pbpdebug.timestamp_pushered is None:
+                    print('updated timestamp_pushered. %s' % (game_srid_pbp_srid_desc))
+                    #print('its none')
+                    # only update it the first time we see it!
 
-                #print('its none')
-                # only update it the first time we see it!
-                pbpdebug.timestamp_pushered = timezone.now()
-                pbpdebug.save()
-                print('updated timestamp_pushered. %s' % (game_srid_pbp_srid))
-            else:
-                #print('second go around')
-                pass
+                    # 'F' usage:
+                    # contest.current_entries = F('current_entries') + 1
+                    # contest.save()
+                    # contest.refresh_from_db() # you might need to do this to refresh the value
+                    #
+                    pbpdebug.timestamp_pushered = timezone.now()
+                    pbpdebug.save()
+                    print('     \-> save() called at:', str(pbpdebug.timestamp_pushered))
+
+                else:
+                    #print('second go around')
+                    pass
+
         except PbpDebug.DoesNotExist:
-            print('pbpdebug.doesnotexist -', game_srid_pbp_srid)
+            print('pbpdebug.doesnotexist -', game_srid_pbp_srid_desc)
             pass
-        except:
-            #print('exception')
+        except Exception as e:
+            print(str(e)[:100])
             pass
 
         #############
