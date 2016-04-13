@@ -33,5 +33,12 @@ dataden: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -a
 
 #
 # non-celery way of running dataden triggers on the mongo database
-dataden_trigger: python manage.py dataden_trigger
+#dataden_trigger: python manage.py dataden_trigger
 
+trigger_nba: python manage.py sport_trigger nba
+
+trigger_nhl: python manage.py sport_trigger nhl
+
+trigger_nfl: python manage.py sport_trigger nfl
+
+trigger_mlb: python manage.py sport_trigger mlb
