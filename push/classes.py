@@ -437,11 +437,6 @@ class AbstractPush(object):
                     #print('its none')
                     # only update it the first time we see it!
 
-                    # 'F' usage:
-                    # contest.current_entries = F('current_entries') + 1
-                    # contest.save()
-                    # contest.refresh_from_db() # you might need to do this to refresh the value
-                    #
                     pbpdebug.timestamp_pushered = timezone.now()
                     pbpdebug.save()
                     print('     \-> save() called at:', str(pbpdebug.timestamp_pushered))
