@@ -15,10 +15,10 @@ export const dateNow = () => new Date().getTime() - (window.dfs.replayerTimeDelt
 export function toTwoDigit(number) {
   // Don't add a leading zero to negative numbers.
   if (number < 0) {
-    return number
+    return number;
   }
 
-  return (number < 10) ? `0${number}` : number
+  return (number < 10) ? `0${number}` : number;
 }
 
 /**
@@ -38,7 +38,7 @@ export function timeRemaining(timestamp) {
       hours: '00',
       minutes: '00',
       seconds: '00',
-    }
+    };
   }
 
   // The hours have no Math.abs because should be displayed as negative. (-32:05:57)
@@ -48,19 +48,19 @@ export function timeRemaining(timestamp) {
     hours: toTwoDigit(Math.floor(duration.asHours())),
     minutes: toTwoDigit(Math.abs(duration.minutes())),
     seconds: toTwoDigit(Math.abs(duration.seconds())),
-  }
+  };
 }
 
 // Has this timestamp passed?
 export function isTimeInFuture(timestamp) {
-  return moment.utc(timestamp) > moment(dateNow()).utc()
+  return moment.utc(timestamp) > moment(dateNow()).utc();
 }
 
 /**
  * Round a provided number to X decimal places
  */
 export function roundUpToDecimalPlace(number, places) {
-  return (Math.round(number * 10) / 10).toFixed(places)
+  return (Math.round(number * 10) / 10).toFixed(places);
 }
 
 

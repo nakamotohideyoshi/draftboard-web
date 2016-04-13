@@ -35,16 +35,16 @@ export function getDaysForThisMonth() {
  * @return {String}
  */
 export function weekdayNumToName(dayNum) {
-  switch(dayNum) {
-  case 0: return "SUN";
-  case 1: return "MON";
-  case 2: return "TUE";
-  case 3: return "WED";
-  case 4: return "THU";
-  case 5: return "FRI";
-  case 6: return "SAT";
-  default:
-    throw new Error(`Unknown weekday number: ${dayNum}`);
+  switch (dayNum) {
+    case 0: return 'SUN';
+    case 1: return 'MON';
+    case 2: return 'TUE';
+    case 3: return 'WED';
+    case 4: return 'THU';
+    case 5: return 'FRI';
+    case 6: return 'SAT';
+    default:
+      throw new Error(`Unknown weekday number: ${dayNum}`);
   }
 }
 
@@ -54,21 +54,21 @@ export function weekdayNumToName(dayNum) {
  * @return {String}
  */
 export function monthNumToName(monthNum) {
-  switch(monthNum) {
-  case 0: return "January";
-  case 1: return "February";
-  case 2: return "March";
-  case 3: return "April";
-  case 4: return "May";
-  case 5: return "June";
-  case 6: return "July";
-  case 7: return "August";
-  case 8: return "September";
-  case 9: return "October";
-  case 10: return "November";
-  case 11: return "December";
-  default:
-    throw new Error(`Unknown month number: ${monthNum}`);
+  switch (monthNum) {
+    case 0: return 'January';
+    case 1: return 'February';
+    case 2: return 'March';
+    case 3: return 'April';
+    case 4: return 'May';
+    case 5: return 'June';
+    case 6: return 'July';
+    case 7: return 'August';
+    case 8: return 'September';
+    case 9: return 'October';
+    case 10: return 'November';
+    case 11: return 'December';
+    default:
+      throw new Error(`Unknown month number: ${monthNum}`);
   }
 }
 
@@ -85,13 +85,13 @@ export function daysToWeekView(days) {
   let firstWeek = [];
   let firstWeekLength = 0;
 
-  if(days[0].getDay() !== 1) {
-    for(let i=-1; days[++i].getDay() !== 1;) {
+  if (days[0].getDay() !== 1) {
+    for (let i = -1; days[++i].getDay() !== 1;) {
       firstWeek.push(days[i]);
     }
 
     firstWeekLength = firstWeek.length;
-    while(firstWeek.length != 7) firstWeek.unshift(prevMonth.pop());
+    while (firstWeek.length != 7) firstWeek.unshift(prevMonth.pop());
   }
 
   let groupedByWeekDay = days.slice(firstWeekLength).reduce((accum, d) => {
@@ -114,12 +114,12 @@ export function daysToWeekView(days) {
 
   // Fill last week if it is incomplete.
   let lastWeek = daysPerWeeks[daysPerWeeks.length - 1];
-  while(lastWeek[lastWeek.length -1] == null) lastWeek.pop();
-  while(lastWeek.length != 7) lastWeek.push(nextMonth.shift());
+  while (lastWeek[lastWeek.length - 1] == null) lastWeek.pop();
+  while (lastWeek.length != 7) lastWeek.push(nextMonth.shift());
 
   let result = daysPerWeeks;
   if (firstWeekLength > 0) {
-     result = [firstWeek].concat(result);
+    result = [firstWeek].concat(result);
   }
 
   return result;
@@ -135,9 +135,9 @@ export function stringifyDate(date, delimiter) {
     const day = date.getDate();
     const month = date.getMonth() + 1;
     const year = date.getFullYear();
-    return month + delimiter + day + delimiter + year
+    return month + delimiter + day + delimiter + year;
   }
 
   log.warn('Missing date or delimiter parameter');
-  return
+  return;
 }
