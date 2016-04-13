@@ -208,8 +208,8 @@ class TriggerCache( UsesCacheKeyPrefix ):
         self.triggers       = self.get_triggers()
 
         #print('TriggerCache...')
-        for t in self.triggers:
-            print( '  ', t )
+        # for t in self.triggers:
+        #     print( '  ', t )
 
     def __key(self):
         """
