@@ -62,6 +62,8 @@ class PbpDebug(models.Model):
 
     timestamp_pushered = models.DateTimeField(null=True)
 
+    delta_seconds_valid = models.BooleanField(default=False)
+
     def get_delta_seconds(self):
         if self.timestamp_pushered is None:
             return 'na'
