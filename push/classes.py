@@ -416,52 +416,64 @@ class AbstractPush(object):
         #   "possession": "583ecf50-fb46-11e1-82cb-f4ce4684ea4c"
         # }
 
-        pbp_data = data
-        if self.channel == PUSHER_NBA_PBP and self.event == 'linked':
-            pbp_data = pbp_data.get('pbp')
-        game_srid = pbp_data.get('game__id')
-        srid = pbp_data.get('id')
-        dd_updated_id = pbp_data.get('dd_updated__id')
-        description = pbp_data.get('description')
+        if self.channel == PUSHER_NBA_PBP:
+            # just do this for nba pbp right now
+            pbp_data = data
+            if self.event == 'linked':
+                pbp_data = pbp_data.get('pbp')
+            game_srid = pbp_data.get('game__id')
+            srid = pbp_data.get('id')
+            dd_updated_id = pbp_data.get('dd_updated__id')
+            description = pbp_data.get('description')
 
-        # a string we can use for this play if its relevant
-        game_srid_pbp_srid_desc = 'game_srid: %s, pbp srid: %s, ' \
-                             'dd_udpated__id: %s, description: %s' % (str(game_srid),
-                                                                      str(srid), str(dd_updated_id), str(description))
+            # a string we can use for this play if its relevant
+            game_srid_pbp_srid_desc = 'game_srid: %s, pbp srid: %s, ' \
+                                 'dd_udpated__id: %s, description: %s' % (str(game_srid),
+                                                                          str(srid), str(dd_updated_id), str(description))
 
-        try:
-            with atomic():
-                pbpdebug = PbpDebug.objects.get(game_srid=game_srid, srid=srid)
-                if pbpdebug.timestamp_pushered is None:
-                    print('updated timestamp_pushered. %s' % (game_srid_pbp_srid_desc))
-                    #print('its none')
-                    # only update it the first time we see it!
+            try:
+                with atomic():
+                    #pbpdebug = PbpDebug.objects.get(game_srid=game_srid, srid=srid)
 
-                    pbpdebug.timestamp_pushered = timezone.now()
-                    pbpdebug.save()
-                    print('     \-> save() called at:', str(pbpdebug.timestamp_pushered))
+                    #
+                    # get_or_create, BUT if created, subtract
+                    pbpdebug, created = PbpDebug.objects.get_or_create(game_srid=game_srid, srid=srid)
 
-                else:
-                    #print('second go around')
-                    pass
+                    if pbpdebug.timestamp_pushered is None:
+                        print('updated timestamp_pushered. %s' % (game_srid_pbp_srid_desc))
+                        # only update it the first time we see it!
 
-        except PbpDebug.DoesNotExist:
-            print('pbpdebug.doesnotexist -', game_srid_pbp_srid_desc)
-            pass
-        except Exception as e:
-            print(str(e)[:100])
-            pass
+                        # if created is True, then this happened before the real-time
+                        # script could even create it, so it kind of invalidates delta seconds
+                        # which will always be ~0.00 in this case. (basically we parsed
+                        # it regularly earlier that the real-time feed -- which is great!)
+                        if created:
+                            pbpdebug.delta_seconds_valid = False
+
+                        pbpdebug.timestamp_pushered = timezone.now()
+                        pbpdebug.save()
+                        print('     \-> save() called at:', str(pbpdebug.timestamp_pushered))
+
+                    else:
+                        #print('second go around')
+                        pass
+
+            except PbpDebug.DoesNotExist:
+                print('pbpdebug.doesnotexist -', game_srid_pbp_srid_desc)
+                pass
+            except Exception as e:
+                print(str(e)[:100])
+                pass
 
         #############
         #############
 
         if settings.PUSHER_ENABLED:
-            # TODO remove this
-            print('settings.PUSHER_ENABLED == True ... object sent')
-
+            #print('settings.PUSHER_ENABLED == True ... object sent')
             self.pusher.trigger( self.channel, self.event, data )
+
         else:
-            # TODO remove this
+            # print to console if its disable to remind us
             print('settings.PUSHER_ENABLED == False ... pusher.trigger() blocked. object not sent.')
 
     @locking(unique_lock_name=PUSH_TASKS_STATS_LINKER, timeout=30)
