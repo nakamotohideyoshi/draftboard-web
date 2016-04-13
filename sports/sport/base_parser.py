@@ -84,25 +84,6 @@ class SridFinder(PatternFinder):
         pattern = r"'%s':\s%s" % (fieldname, self.srid_pattern)
         return self.findall(pattern)
 
-# class PbpStatsLinker(object):
-#     """
-#     this class is designed to extract the player-srid(s) and game-srid
-#     from a play-by-play object (dictionary), and it uses pusher to
-#     send a pbp object after it finds the corresponding PlayerStats to
-#     send along with it.
-#     """
-#
-#     def __init__(self, pbp):
-#         """
-#         construct this object with a play by play event object
-#         which contains the description, players, teams, etc.
-#         that are involved in a unique scoring play.
-#         """
-#         self.pbp = pbp
-#
-#     def get_data(self):
-#         pass # TODO - implement?
-
 class AbstractDataDenParser(object):
     """
     for parsing each individual sport, which will have some differences

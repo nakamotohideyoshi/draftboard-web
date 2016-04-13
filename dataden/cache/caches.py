@@ -58,10 +58,10 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
                 self.conf = LiveStatsCacheConfig()
 
                 # the expiration (seconds) for objects added to the cache, before any modifiers.
-                self.conf.key_timeout = 30 * 60
+                self.conf.key_timeout = self.conf.key_timeout
 
                 # randomly vary the cache expiration of added objects by this percentage.
-                self.conf.timeout_mod = 25      # for example: 33 indicates 33%
+                self.conf.timeout_mod = self.conf.timeout_mod  # for example: 33 indicates 33%
 
                 self.conf.save()
 
