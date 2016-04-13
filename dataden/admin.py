@@ -25,6 +25,7 @@ class LiveStatsCacheConfigAdmin(admin.ModelAdmin):
         'xml_str',
         'timestamp_pushered',
         'delta_seconds',
+        'delta_seconds_valid',
     ]
 
     list_filter = [
@@ -32,6 +33,7 @@ class LiveStatsCacheConfigAdmin(admin.ModelAdmin):
         'url',
         'game_srid',
         'srid',
+        'delta_seconds_valid',
     ]
 
     search_fields = [

@@ -104,6 +104,7 @@ class FeedTest(object):
                 srid=srid,
                 description=description,
                 xml_str=xml_str,
+                delta_seconds_valid=True,
             )
         except IntegrityError:
             return False
