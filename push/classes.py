@@ -430,12 +430,15 @@ class AbstractPush(object):
             game_srid_pbp_srid_desc = 'game_srid: %s, pbp srid: %s, ' \
                                  'dd_udpated__id: %s, description: %s' % (str(game_srid),
                                   str(srid), str(dd_updated_id), str(description))
+            print('game_srid_pbp_srid_desc', str(game_srid_pbp_srid_desc))
 
             #try:
             with atomic():
                 try:
                     pbpdebug = PbpDebug.objects.get(game_srid=game_srid, srid=srid)
+                    print('pbpexisted')
                 except PbpDebug.DoesNotExist:
+
                     pbpdebug = PbpDebug()
                     pbpdebug.url = 'na'
                     pbpdebug.game_srid = game_srid
@@ -443,7 +446,9 @@ class AbstractPush(object):
                     pbpdebug.description = description
                     pbpdebug.xml_str = ''
                     pbpdebug.delta_seconds_valid = False
+                    print('pbp DID NOT EXIST saving.')
                     pbpdebug.save()
+                    print('... saved!')
 
                 # if we were able to retrieve an existing one,
                 # check if theres a timestamp and set it if its None
