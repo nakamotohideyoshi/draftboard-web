@@ -11,7 +11,7 @@ celerybeat: celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler
 #
 # this worker always wipes out the brokers existing/pending tasks on startup.
 # without startup purge, its possible we will have WAY too to consume initially.
-celery: celery -A mysite worker --events -l info -n celery1.%h
+celery: celery -A mysite worker -l info -n celery1.%h
 
 purger: celery -A mysite worker -l info -n celery1.%h --purge
 
