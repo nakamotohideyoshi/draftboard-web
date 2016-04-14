@@ -92,10 +92,19 @@ CACHES = {
 # Asset locations
 STATIC_URL = '/static/'
 
+# this happens to be the live ec2 mongo
 # (Dev) Mongo Connection settings
-MONGO_PASSWORD  = ''
-MONGO_HOST      = 'localhost'
-MONGO_PORT      = 27017         # default port may be the actual port
+MONGO_SERVER_ADDRESS    = '52.91.48.235'
+MONGO_AUTH_DB           = 'admin'
+MONGO_USER              = 'admin'
+MONGO_PASSWORD          = 'dataden1'
+MONGO_PORT              = 27017         # default port may be the actual port
+MONGO_HOST = 'mongodb://%s:%s@%s:%s/%s' % (
+                    MONGO_USER,
+                    MONGO_PASSWORD,
+                    MONGO_SERVER_ADDRESS,
+                    MONGO_PORT,
+                    MONGO_AUTH_DB )
 
 # # dataden mongo database connection
 # MONGO_AUTH_DB   = 'admin'

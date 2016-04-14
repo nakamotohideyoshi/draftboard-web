@@ -12,3 +12,36 @@ class TriggerAdmin(admin.ModelAdmin):
 class LiveStatsCacheConfigAdmin(admin.ModelAdmin):
     list_display = ['updated','key_timeout','timeout_mod']
 
+@admin.register(dataden.models.PbpDebug)
+class LiveStatsCacheConfigAdmin(admin.ModelAdmin):
+
+    show_full_result_count = True
+
+    list_display = [
+        'created',
+        'game_srid',
+        'srid',
+        'description',
+        'xml_str',
+        'timestamp_pushered',
+        'delta_seconds',
+        'delta_seconds_valid',
+    ]
+
+    list_filter = [
+        'created',
+        'url',
+        'game_srid',
+        'srid',
+        'delta_seconds_valid',
+    ]
+
+    search_fields = [
+        'url',
+        'game_srid',
+        'srid',
+        'description',
+    ]
+
+    def delta_seconds(self, pbpdebug):
+        return pbpdebug.get_delta_seconds()
