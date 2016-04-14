@@ -647,6 +647,9 @@ class BlockManager(object):
             duration = int(td.total_seconds() / 60) # convert seconds to minutes
 
             # create all required ContestPools
+            print('%s formats based on default %s '
+                  'PrizeStructure(s)'%(str(len(self.block_prize_structures)),
+                                       self.block.site_sport))
             for block_prize_structure in self.block_prize_structures:
                 # additional (optional) ContestPoolCreator arguments:
                 #  draft_group=None, user_entry_limit=None, entry_cap=None
@@ -657,18 +660,24 @@ class BlockManager(object):
                 # because this method may attempt to create a DraftGroup,
                 # we must be able to handle the DraftGroup exceptions that
                 # could potentially be thrown.
-                try:
-                    contest_pool = contest_pool_creator.get_or_create()
-                    num_contest_pools_created += 1
-                    print('creating ContestPool: %s for Block: %s' % (str(contest_pool), str(self.block)))
+
+                contest_pool = contest_pool_creator.get_or_create()
+                num_contest_pools_created += 1
+                print('creating ContestPool: %s for Block: %s' % (str(contest_pool), str(self.block)))
+
+                #
+                # we really want to let exceptions propagate up to the admin
+                # so were not currently catching any in here...
 
                 # TODO
                 # except DraftGroup.NoGamesInRangeException:
                 #
                 # TODO there are more i think
 
-                except:
-                    pass
+                # except Exception as e:
+                #     print(e)
+                #     #pass
+
         print('%s ContestPool(s) created for Block: %s' % (str(num_contest_pools_created), str(self.block)))
 
 class BlockPrizeStructureCreator(object):
