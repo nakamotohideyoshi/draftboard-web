@@ -303,7 +303,6 @@ class Trigger(object):
             self.timer.stop(msg='get_last_ts()')
             return self.last_ts
 
-
     def query(self):
         """
         when we get many triggers, the need arises for us to run the results
@@ -392,27 +391,3 @@ class Trigger(object):
     def trigger(self):
         raise UnimplementedTriggerCallbackException(
             self.__class__.__name__ + 'must implement trigger() method')
-
-class NbaPlayerStats(Trigger):
-
-    #
-    # may want to specify the parent api id as well
-
-    DB_NBA      = 'nba'
-    COLL_PLAYER = 'player'
-    PARENT_API  = 'stats'
-
-    def __init__(self):
-        super().__init__(db=self.DB_NBA, coll=self.COLL_PLAYER, parent_api=self.PARENT_API)
-
-class NbaPbpEvent(Trigger):
-
-    #
-    # may want to specify the parent api id as well
-
-    DB          = 'nba'
-    COLL        = 'event'
-    PARENT_API  = 'pbp'
-
-    def __init__(self):
-        super().__init__(db=self.DB, coll=self.COLL, parent_api=self.PARENT_API)

@@ -4,13 +4,16 @@
 from django.conf import settings
 from django.utils import timezone
 from pytz import timezone as pytz_timezone
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.admin.widgets import AdminSplitDateTime
 from django.contrib.contenttypes import generic
 from django.utils.html import format_html
 import contest.schedule.classes
 import contest.schedule.models
 import contest.schedule.forms
+from mysite.exceptions import (
+    SalaryPoolException,
+)
 
 #
 # WARNING: this sets en_formats for ALL contest.schedule admin model fields!
@@ -181,11 +184,21 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         block = queryset[0]
         if not self.__is_block_drafting(block):
             # this is not the drafting
+            err_msg = 'Cant create ContestPools for blocks ahead of currently drafting blocks!'
+            messages.error(request, err_msg)
             return
+
         else:
-            # create the contest pools for this block manually
-            cpsm = contest.schedule.classes.ContestPoolScheduleManager(block.site_sport.name)
-            cpsm.create_contest_pools(block)
+            try:
+                #
+                # create the contest pools for this block manually
+                cpsm = contest.schedule.classes.ContestPoolScheduleManager(block.site_sport.name)
+                cpsm.create_contest_pools(block)
+            except SalaryPoolException as e:
+                # just send the exception message straight to the admin in red text
+                err_msg = 'We could not find a SalaryPool for %s.' \
+                          ' [ Exception message: %s ]' % (block.site_sport, str(e))
+                messages.error(request, err_msg)
 
     def sport(self, obj):
         return obj.site_sport.name.upper()
@@ -222,6 +235,8 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
                 earliest_game = game
         #
         # return the localized time for the admin to display
+        if earliest_game is None:
+            return 'na'
         return local_time(earliest_game.start)
 
     def games_included(self, block):

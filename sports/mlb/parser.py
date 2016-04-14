@@ -1313,6 +1313,15 @@ class DataDenMlb(AbstractDataDenParser):
             pitch_pbp.parse( obj )
             pitch_pbp.send()
             self.add_pbp( obj )
+
+        # the pitch zone information
+        elif self.target == ('mlb.pitcher','pbp'):
+            #print( obj )
+            zone_pitch_pbp = ZonePitchPbp()
+            zone_pitch_pbp.parse( obj )
+            zone_pitch_pbp.send()
+            self.add_pbp( obj )
+
         #
         elif self.target == ('mlb.game','boxscores'):
             GameBoxscores().parse( obj )  # top level boxscore info
