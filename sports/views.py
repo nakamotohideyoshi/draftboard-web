@@ -22,8 +22,11 @@ from sports.mlb.models import (
 )
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 import json
 from dataden.cache.caches import PlayByPlayCache
+import dataden.models
+import dataden.serializers
 from django.http import HttpResponse
 from django.contrib.contenttypes.models import ContentType
 
@@ -507,50 +510,24 @@ class ScheduleGameBoxscoresView(View):
 
     for /api/sports/nba/scoreboard-games/
     """
-
-    # def __add_to_dict(self, target, extras):
-    #     for k,v in extras.items():
-    #         target[ k ] = v
-    #     return target
-
     def get(self, request, sport):
-
-        # return HttpResponse( {}, content_type='application/json', status=status.HTTP_404_NOT_FOUND)
-
         ssm     = sports.classes.SiteSportManager()
         data    = ssm.get_serialized_scoreboard_data(sport)
-        #
-        # # notes:
-        # # boxscores   = dgm.get_game_boxscores( draft_group )
-        # # get_game_serializer_class(sport)
-        # # get_boxscore_serializer_class(sport)
-        #
-        # # data = []
-        # # for b in boxscores:
-        # #     data.append( b.to_json() )
-        # data = {}
-        # for game in games:
-        #     # initial inner_data
-        #     inner_data = {}
-        #
-        #     # add the game data
-        #     g = game_serializer_class( game ).data
-        #     self.__add_to_dict( inner_data, g )
-        #
-        #     # add the boxscore data
-        #     boxscore = None
-        #     try:
-        #         boxscore = boxscores.get(srid_game=game.srid) # may not exist
-        #     except:
-        #         pass
-        #     b = {}
-        #     if boxscore is not None:
-        #         b = {
-        #             'boxscore' : boxscore_serializer_class( boxscore ).data
-        #         }
-        #     self.__add_to_dict( inner_data, b )
-        #
-        #     # finish it by adding the game data to the return data dict
-        #     data[ game.srid ] = inner_data
-
         return HttpResponse( json.dumps(data), content_type='application/json' )
+
+class PbpDebugAPIView(generics.GenericAPIView):
+
+    pbp_debug_class         = dataden.models.PbpDebug
+
+    serializer_class        = dataden.serializers.PbpDebugSerializer
+    #permission_classes      = (IsAuthenticated,)
+
+    def get(self, request, game_srid, srid, format=None):
+
+        # game_srid   = self.kwargs.get('game_srid')
+        # srid        = self.kwargs.get('pbp_srid')
+        # print('get_queryset kwargs', str(self.kwargs))
+
+        qs = self.pbp_debug_class.objects.filter(game_srid=game_srid, srid=srid)
+        serialized_data = self.serializer_class(qs, many=True).data
+        return Response(serialized_data)
