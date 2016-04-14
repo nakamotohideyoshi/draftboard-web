@@ -12,6 +12,11 @@ from pymongo import MongoClient, ASCENDING, DESCENDING
 import dataden.cache.caches
 import dataden.models
 from django.conf import settings
+from util.slack import Webhook
+
+class FeedTestWebhook(Webhook):
+
+    identifier = 'T03UVUNP8/B0K6GUFE3/CNop5c62QB6LFTNOmccnHCzT'
 
 class FeedTest(object):
 
@@ -32,6 +37,8 @@ class FeedTest(object):
             self.srids.append(srid)
 
         self.descriptions = []
+
+        self.slack = FeedTestWebhook()
 
     def get_url(self):
         return '%s%s' % (self.url, self.apikey)
@@ -111,6 +118,7 @@ class FeedTest(object):
 
         if created:
             print('new pbp:', str(description))
+            self.slack.send('%s:'%str(timezone.now())+' ' +description)
 
         return created
 
