@@ -58,10 +58,10 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
                 self.conf = LiveStatsCacheConfig()
 
                 # the expiration (seconds) for objects added to the cache, before any modifiers.
-                self.conf.key_timeout = self.conf.key_timeout
+                self.conf.key_timeout = 86400
 
                 # randomly vary the cache expiration of added objects by this percentage.
-                self.conf.timeout_mod = self.conf.timeout_mod  # for example: 33 indicates 33%
+                self.conf.timeout_mod = 5  # for example: 33 indicates 33%
 
                 self.conf.save()
 
@@ -79,8 +79,8 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
             self.conf.timeout_mod = percent_as_int
             self.conf.save()
 
-    def __init__(self, name='default', key_version=1, to=1800,
-                        to_mod=25, clear=False, use_admin_conf=True):
+    def __init__(self, name='default', key_version=1, to=86400,
+                        to_mod=5, clear=False, use_admin_conf=True):
         """
         'to' is the timeout when setting an object in the cache
         'to_mod' is an integer value from 0 to anything that specifies the percentage
