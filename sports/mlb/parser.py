@@ -1,7 +1,9 @@
 #
 # sports/mlb/parser.py
 
+from django.core.cache import cache
 from sports.classes import SiteSportManager
+from sports.trigger import CacheList
 import sports.mlb.models
 from sports.mlb.models import (
     Team,
@@ -901,6 +903,8 @@ class PitchPbp(DataDenPbpDescription):
     pusher_sport_pbp        = push.classes.PUSHER_MLB_PBP
     pusher_sport_stats      = push.classes.PUSHER_MLB_STATS
 
+    zone_pitches = 'zone_pitches'
+
     def __init__(self):
         super().__init__()
         self.player_stats_pitcher_model  = sports.mlb.models.PlayerStatsPitcher      # mlb pitcher stats
@@ -915,6 +919,27 @@ class PitchPbp(DataDenPbpDescription):
         self.original_obj = obj
         self.srid_finder = SridFinder(obj.get_o()) # get the data from the oplogobj
         self.o = obj.get_o() # we didnt call super so we should do this
+
+    def build_linked_pbp_stats_data(self, player_stats):
+        """
+        override parent method to also add the zone pitch list.
+
+        be sure to call super method, and add the zonepitches to the object returned
+        """
+
+        # parent builds a dictionary that looks something like this:
+        # data = {
+        #     self.linked_pbp_field   : self.o,
+        #     self.linked_stats_field : [ ps.to_json() for ps in player_stats ]
+        # }
+
+        data = super().build_linked_pbp_stats_data(player_stats)
+
+        # add the zonepitch list
+        zone_pitch_cache = CacheList(cache=cache)
+        data[self.zone_pitches] = zone_pitch_cache.get(at_bat_id=self.o.get('at_bat__id'))
+
+        return data
 
     def get_at_bat(self, srid_game, srid_pitch):
         """
