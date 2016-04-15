@@ -84,7 +84,9 @@ class CacheList(object):
         l = self.get(key)
         l.append(val)
         # set it in the cache, with the specified timeout
-        self.cache.set(self.__get_key(key), l, self.timeout)
+        k = self.__get_key(key)
+        print('k[%s] cache[%s] set timeout[%s] zonepitch [%s]' % (k, str(self.cache), str(self.timeout), str(val)))
+        self.cache.set(k, l, self.timeout)
 
     def __get_key(self, key):
         return '%s%s%s' % (self.unique_name, self.key_separator, str(key))
