@@ -1,7 +1,9 @@
 #
 # sports/trigger.py
 
-from dataden.cache.caches import TriggerCache
+from django.core.cache import cache
+from sports.classes import SiteSportManager
+from dataden.cache.caches import TriggerCache, LiveStatsCache
 from dataden.watcher import Trigger
 from sports.parser import DataDenParser
 
@@ -33,3 +35,114 @@ class SportTrigger(Trigger):
             # print them to the screen so we know exactly which are about to be used
             for t in self.triggers:
                 print('    ', t)
+
+class CacheList(object):
+    """
+    a list implementation. the list is stored in cache using a combination
+    of the unique_name __init__() param as well as the key in the add() method
+    """
+
+    class UniqueNameException(Exception): pass
+
+    # unique_name cannot include this because its used
+    # to index into the cache used by CacheList
+    key_separator = ':'
+
+    # default timeout (seconds)
+    timeout = 300
+
+    def __init__(self, cache, unique_name=None, timeout=None):
+        """
+        create this list in the specified cache, with the timeout (seconds)
+
+        :param cache: any cache implementation, ie: django.core.cache.cache
+        :param unique_name: a string, unique prefix to the key that indexes to the list
+        :param timeout: the cache expiration, in seconds
+        :return:
+        """
+
+        #
+        self.cache = cache
+
+        #
+        self.unique_name = unique_name
+        if unique_name is None:
+            self.unique_name = self.__class__.__name__
+        elif self.key_separator in unique_name:
+            err_msg = 'unique_name cannot include character "%s"' % self.key_separator
+            raise self.UniqueNameException(err_msg)
+
+        #
+        self.timeout = timeout
+
+    def add(self, key, val):
+        """
+        key is the lookup to a list(). add val to it.
+
+        :param key: string (or we will use str() to cast it to a string)
+        :param val: any object the cache will let us add
+        :return:
+        """
+        l = self.get(key)
+        l.append(val)
+        # set it in the cache, with the specified timeout
+        self.cache.set(self.__get_key(key), l, self.timeout)
+
+    def __get_key(self, key):
+        return '%s%s%s' % (self.unique_name, self.key_separator, str(key))
+
+    def get(self, key):
+        """
+        returns a list of the vals added (unless it has expired),
+        in which case it returns an empty list
+
+        :param key: the key of the list to retrieve
+        :return:
+        """
+        return self.cache.get(self.__get_key(key), [])
+
+class DjangoCacheList(CacheList):
+
+    def __init__(self):
+        super().__init__(cache)
+
+class MlbTrigger(SportTrigger):
+
+    class MlbCache(LiveStatsCache):
+        """
+        extend the default trigger's LiveStatsCache to provide
+        mlb the mechanism for saving the lists of ZonePitch objects
+        along with the ability to retrieve them using an at-bat srid.
+        """
+
+        def update(self, oplog_obj):
+            """
+            override update() method to add this livestat to the
+            list of zonepitches if it is actually a zonepitch
+            """
+
+            # we must call super, and we must return
+            # its return value at end of this method!
+            was_added = super().update(oplog_obj)
+
+            # if the object was _just_ added, then we should also
+            # add it to our list of zonepitches for the atbat (in the cache).
+            if was_added == True:
+                ns = oplog_obj.get_ns()
+                parent_api = oplog_obj.get_parent_api()
+                if ns == 'mlb.pitcher' and parent_api == 'pbp':
+                    #
+                    # its a zone pitch, add it to its cached list
+                    # using the MlbTrigger's cache (self.c)
+                    at_bat_id = oplog_obj.get_o().get('at_bat__id')
+                    print('adding to cache_list, at_bat_id:', str(at_bat_id))
+                    cache_list = CacheList(self.c)
+                    cache_list.add(at_bat_id, oplog_obj.get_o())
+                    print('cache_list is now:', str(cache_list.get(at_bat_id)))
+
+            return was_added
+
+    live_stats_cache_class = MlbCache
+
+    def __init__(self):
+        super().__init__('mlb')
