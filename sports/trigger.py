@@ -47,7 +47,7 @@ class CacheList(object):
     key_separator = ':'
 
     # default timeout (seconds)
-    timeout = 300
+    default_timeout = 300
 
     def __init__(self, cache, unique_name=None, timeout=None):
         """
@@ -72,6 +72,8 @@ class CacheList(object):
 
         #
         self.timeout = timeout
+        if self.timeout is None:
+            self.timeout = self.default_timeout
 
     def add(self, key, val):
         """
