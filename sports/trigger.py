@@ -135,10 +135,10 @@ class MlbCache(LiveStatsCache):
                 zonepitch = oplog_obj.get_o()
                 zpid = zonepitch.pop('_id') # remove it. its a lot of unnecessary characters
                 at_bat_id = zonepitch.get('at_bat__id')
-                print('adding to cache_list, at_bat_id:', str(at_bat_id))
+                #print('adding to cache_list, at_bat_id:', str(at_bat_id))
                 cache_list = CacheList(self.c)
                 cache_list.add(at_bat_id, zonepitch)
-                print('cache_list is now:', str(cache_list.get(at_bat_id)))
+                #print('cache_list is now:', str(cache_list.get(at_bat_id)))
 
         return was_added
 

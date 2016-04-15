@@ -937,7 +937,8 @@ class PitchPbp(DataDenPbpDescription):
 
         # add the zonepitch list
         zone_pitch_cache = CacheList(cache=cache)
-        data[self.zone_pitches] = zone_pitch_cache.get(at_bat_id=self.o.get('at_bat__id'))
+        key = self.o.get('at_bat__id')
+        data[self.zone_pitches] = zone_pitch_cache.get(key=key)
 
         return data
 
