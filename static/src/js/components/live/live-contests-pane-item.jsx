@@ -26,13 +26,14 @@ const LiveContestsPaneItem = React.createClass({
       moneyLineClass += ' live-moneyline--is-losing';
     }
 
-    let potentialEarnings = contest.potentialEarnings;
-    if (potentialEarnings === 0) {
-      potentialEarnings = `$${potentialEarnings}`;
+    let winnings = contest.potentialEarnings;
+    let winningsClass = 'winnings';
+    if (winnings === 0) {
+      winnings = `$${winnings}`;
     } else {
-      potentialEarnings = `$${potentialEarnings.toFixed(2)}`;
+      winnings = `$${winnings.toFixed(2)}`;
+      winningsClass += ' active';
     }
-
 
     // flip to be to the right
     const myPercentagePosition = 100 - contest.myPercentagePosition;
@@ -43,8 +44,10 @@ const LiveContestsPaneItem = React.createClass({
         <div className="live-contests-pane__place">
           <span className="live-contests-pane__place--mine">{ contest.myEntryRank }</span> of { contest.entriesCount }
         </div>
-        <div className="live-contests-pane__potential-earnings">
-          { potentialEarnings }
+        <div className="live-contests-pane__stats">
+          <span className="fees">${ contest.buyin }</span>
+          {" "} / {" "}
+          <span className={winningsClass}>{ winnings }</span>
         </div>
 
         <section className={ moneyLineClass }>
@@ -57,7 +60,7 @@ const LiveContestsPaneItem = React.createClass({
           </div>
         </section>
 
-        <div className="live-contest-cta" onClick={this._onClick}>Watch Live</div>
+        <div className="live-contest-cta" onClick={this._onClick}>View contest</div>
       </li>
     );
   },
