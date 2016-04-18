@@ -80,7 +80,7 @@ require('components/account/withdrawals');
 
 // Lobby
 require('components/nav-scoreboard/nav-scoreboard');
-require('components/lobby/lobby-contests');
+require('components/lobby/lobby-container');
 require('components/lobby/lobby-lineup-card-list');
 
 // Draft

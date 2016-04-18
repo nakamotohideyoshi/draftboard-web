@@ -8,7 +8,7 @@ import { sortBy as _sortBy } from 'lodash';
 import { uniqWith as _uniqWith } from 'lodash';
 import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
-import { monitorLineupEditRequest } from './lineup-edit-request.js';
+import { monitorLineupEditRequest } from './lineup-edit-request-actions.js';
 
 // Normalization scheme for lineups.
 const lineupSchema = new Schema('lineups', {
@@ -214,7 +214,9 @@ export function saveLineup(lineup, title, draftGroupId) {
 
 
 /**
- * Save an already existing lineup.
+ * Save an already existing lineup. After this request is done we will have a
+ * task_id that we then need to poll for. check lineup-edit-request-actions.js
+ * for furthur info.
  * @param  {[type]} lineup       [description]
  * @param  {[type]} title        [description]
  * @return {[type]}              [description]
@@ -265,8 +267,7 @@ export function saveLineupEdit(lineup, title, lineupId) {
 /**
  * When an edit is requested, we need to import the lineup and remove the lineup from our list of
  * lineups.
- * @param  {[type]} lineupId [description]
- * @return {[type]}          [description]
+ * @param  {Integer} lineupId The id of the lineup to be edited.
  */
 export function editLineupInit(lineupId) {
   return (dispatch, getState) => {
@@ -293,7 +294,7 @@ export function editLineupInit(lineupId) {
  * When drafting a lineup, this takes an already-created lineup and copies all players into the
  * lineup card that is currently being drafted.
  *
- * @param  {Object} lineup   A valid lineup (most likely from state.upcomingLineups.lineups)
+ * @param  {Object} lineup A valid lineup (most likely from state.upcomingLineups.lineups)
  */
 export function importLineup(lineup, importTitle = false) {
   return (dispatch, getState) => {

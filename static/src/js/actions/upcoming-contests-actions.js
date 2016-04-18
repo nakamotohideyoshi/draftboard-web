@@ -124,12 +124,12 @@ export function updateOrderByFilter(property, direction = 'desc') {
 
 /**
  * Enter a lineup into an upcoming contest.
- * @param  {int} contestId The contest to be entered.
+ * @param  {int} contestPoolId The contest pool to be entered into.
  * @param  {int} lineupId  The lineup's id.
  */
-export function enterContest(contestId, lineupId) {
+export function enterContest(contestPoolId, lineupId) {
   const postData = {
-    contest: contestId,
+    contest_pool: contestPoolId,
     lineup: lineupId,
   };
 
@@ -150,7 +150,7 @@ export function enterContest(contestId, lineupId) {
         });
         log.error(res);
       } else {
-        dispatch(monitorEntryRequest(res.body.buyin_task_id, contestId, lineupId));
+        dispatch(monitorEntryRequest(res.body.buyin_task_id, contestPoolId, lineupId));
       }
     });
   };

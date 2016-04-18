@@ -1,6 +1,7 @@
 import { routerReducer as routing } from 'react-router-redux';
 import { combineReducers } from 'redux';
 
+const contestPoolEntries = require('./contest-pool-entries.js');
 const createLineup = require('./create-lineup');
 const currentDraftGroups = require('./current-draft-groups');
 const currentLineups = require('./current-lineups');
@@ -36,6 +37,7 @@ const user = require('./user');
  * single place.
  */
 export default combineReducers({
+  contestPoolEntries,
   createLineup,
   currentDraftGroups,
   currentLineups,
