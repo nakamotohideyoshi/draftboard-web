@@ -49,7 +49,7 @@ module.exports = (state = initialState, action) => {
       // The best use-case for this is if a user tries to enter a contest but it fails, then they
       // try to enter again - we need to remove the first entry request.
       _forEach(stateCopy, (entryRequest, key) => {
-        if (entryRequest.lineupId === action.lineupId && entryRequest.contestId === action.contestId) {
+        if (entryRequest.lineupId === action.lineupId && entryRequest.contestPoolId === action.contestPoolId) {
           log.debug('Deleting already-existing request for this entry.', key);
           delete stateCopy[key];
         }
@@ -57,10 +57,10 @@ module.exports = (state = initialState, action) => {
 
       stateCopy[action.taskId] = {
         status: 'PENDING',
-        contestId: action.contestId,
+        contestPoolId: action.contestPoolId,
         lineupId: action.lineupId,
         maxAttempts: action.maxAttempts,
-        attempt: action.attempt,
+        attempt: 0,
       };
 
       return archiveEntries(stateCopy);
