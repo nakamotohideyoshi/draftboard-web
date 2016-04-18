@@ -360,8 +360,10 @@ class ScheduleDay(object):
         update the list of dfs days, with tuples of the start times
         and lists of all the games with their own unique start times
         """
-        dfs_date_tomorrow = DfsDate.get_current_dfs_date_range()[0] + timedelta(days=1)
-
+        # if running for the first time, its very likely you wont want to add 1 day to start time
+        #dfs_date_tomorrow = DfsDate.get_current_dfs_date_range()[0] + timedelta(days=1)
+        dfs_date_tomorrow = DfsDate.get_current_dfs_date_range()[0]
+        
         games = [] # default
         self.data = []
         if self.season is None:
