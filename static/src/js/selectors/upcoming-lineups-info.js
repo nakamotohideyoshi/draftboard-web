@@ -31,7 +31,7 @@ Exampe of output:
 // filter the contests by sport.
 export const upcomingLineupsInfo = createSelector(
   (state) => state.upcomingLineups.lineups,
-  (state) => state.entries.items,
+  (state) => state.contestPoolEntries.entries,
   (state) => state.upcomingContests.allContests,
   (state) => state.entryRequests,
   (lineups, entries, contests, entryRequests) => {
@@ -51,9 +51,9 @@ export const upcomingLineupsInfo = createSelector(
         // Find all contest entry requests for this lineup.
         const lineupEntryRequests = _filter(entryRequests, { lineupId: lineup.id });
         lineupEntryRequestMap[lineup.id] = {};
-        // Insert each of the lineup's entry requests, grouped by contestId,
+        // Insert each of the lineup's entry requests, grouped by contestPoolId,
         _forEach(lineupEntryRequests, (entryRequest) => {
-          lineupEntryRequestMap[lineup.id][entryRequest.contestId] = entryRequest;
+          lineupEntryRequestMap[lineup.id][entryRequest.contestPoolId] = entryRequest;
         });
       }
 
@@ -65,9 +65,9 @@ export const upcomingLineupsInfo = createSelector(
 
       // for each entry, look up the contest it's entered into, then add up the fees.
       _forEach(lineupEntries, (lineupEntry) => {
-        if (contests.hasOwnProperty(lineupEntry.contest)) {
-          lineupFeeTotal = lineupFeeTotal + contests[lineupEntry.contest].buyin;
-          lineupContests.push(contests[lineupEntry.contest].id);
+        if (contests.hasOwnProperty(lineupEntry.contest_pool)) {
+          lineupFeeTotal = lineupFeeTotal + contests[lineupEntry.contest_pool].buyin;
+          lineupContests.push(contests[lineupEntry.contest_pool].id);
         }
       });
       // Add it to our feeMap + contesetMap

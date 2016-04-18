@@ -31,7 +31,7 @@ export function addEntryRequestMonitor(taskId, contestPoolId, lineupId) {
  */
 export function entryRequestRecieved(taskId, status) {
   return {
-    type: 'ENTRY_REQUEST_RECIEVED',
+    type: types.ENTRY_REQUEST_RECIEVED,
     taskId,
     status,
   };
@@ -45,7 +45,7 @@ export function entryRequestRecieved(taskId, status) {
  */
 export function fetchingEntryRequestStatus(taskId) {
   return {
-    type: 'FETCHING_ENTRY_REQUEST_STATUS',
+    type: types.FETCHING_ENTRY_REQUEST_STATUS,
     taskId,
   };
 }
@@ -69,7 +69,7 @@ export function monitorEntryRequest(taskId, contestPoolId, lineupId) {
     if (existingRequest) {
       log.warn('entryRequests for this lineup & contest pool already exists', contestPoolId, lineupId);
       return {
-        type: 'ADD_ENTRY_REQUEST_MONITOR_EXISTS',
+        type: types.ADD_ENTRY_REQUEST_MONITOR_EXISTS,
       };
     }
 
