@@ -1,30 +1,77 @@
 @import "../variables.scss";
 
 .live-contests-pane {
+  width: 424px !important;
+
+  .live-pane__content {
+    margin-left: 0;
+    background: #070b1d;
+  }
+
   h2 {
     background: rgb(28, 31, 43);
     color: #fff;
     font-family: $font-open-sans;
-    font-size: 16px;
+    font-size: 27px;
     font-weight: 300;
-    left: 30px;
     position: absolute;
     text-transform: none;
-    padding: 108px 0 46px;
+    padding: 50px 0 46px 30px;
     top: 0;
     width: 100%;
     // stay above the contests so they scroll under
     z-index: 3;
 
+    background-image: url(../img/blocks/live/bg-contests-pane-header.jpg);
+    background-size: cover;
+
     &:after {
       background: #717989;
       content: '';
       height: 1px;
-      left: 0;
+      left: 30px;
       position: absolute;
-      top: 140px;
+      top: 99px;
       width: 35px;
     }
+
+    .stats {
+      width: 100%;
+      font-size: 14px;
+      z-index: 3;
+      position: relative;
+      margin-top: 50px;
+
+      .num-contest {
+        display: inline-block;
+        color: white;
+
+        span {
+          color: #747c8d;
+        }
+      }
+
+      .profit {
+        position: absolute;
+        top: 0px;
+        right: 30px;
+        color: #747c8d;
+
+        .fees {
+          display: inline-block;
+        }
+
+        .earnings {
+          display: inline-block;
+          color: white;
+
+          span {
+            color: #26cc65;
+          }
+        }
+      }
+    }
+
   }
 
   &__list {
@@ -39,7 +86,7 @@
     width: 96%;
 
     &__inner {
-      margin: 180px 0 0;
+      margin: 230px 0 0;
       list-style: none;
     }
   }
@@ -81,13 +128,17 @@
     font-weight: 300;
   }
 
-  &__potential-earnings {
+  &__stats {
     color: #747c8d;
     font-family: $font-oswald;
     font-size: 10px;
     position: absolute;
     right: 20px;
     top: 15px;
+
+    .winnings.active {
+      color: #26cc65;
+    }
   }
 
   &__place {
