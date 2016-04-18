@@ -4,13 +4,17 @@ from __future__ import absolute_import
 # mysite/tasks.py
 
 from django.conf import settings
+from django.core.cache import cache
 from mysite.celery_app import app
 from datetime import timedelta
 from django.utils import timezone
 from contest.models import (
     Contest,
     CompletedContest, # can pay these out
+
+    LiveContestPool, # in this state, all of its Contests should be created
 )
+from contest.classes import ContestPoolFiller
 from contest.payout.tasks import payout_task
 from draftgroup.models import DraftGroup
 from django.core.mail import send_mail
@@ -35,6 +39,26 @@ HIGH_PRIORITY_EMAILS = [
 LOW_PRIORITY_EMAILS = [
     'cbanister@coderden.com'
 ]
+
+LOCK_EXPIRE         = 60  # lock expires in this many seconds
+SHARED_LOCK_NAME    = 'spawn_contest_pool_contests'
+
+@app.task(bind=True)
+def spawn_contest_pool_contests(self):
+    lock_id = 'task-LOCK--%s--%s' % ('all_sports', SHARED_LOCK_NAME)
+
+    acquire_lock = lambda: cache.add(lock_id, 'lock', LOCK_EXPIRE)
+    release_lock = lambda: cache.delete(lock_id)
+
+    if acquire_lock():
+        try:
+            contest_pools = LiveContestPool.objects.all()
+            #contest_pools.count()
+            for cp in contest_pools:
+                cpf = ContestPoolFiller(cp)
+                cpf.fair_match() # create all its Contests using FairMatch
+        finally:
+            release_lock()
 
 #
 #########################################################################

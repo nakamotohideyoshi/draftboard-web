@@ -363,7 +363,7 @@ class ScheduleDay(object):
         # if running for the first time, its very likely you wont want to add 1 day to start time
         #dfs_date_tomorrow = DfsDate.get_current_dfs_date_range()[0] + timedelta(days=1)
         dfs_date_tomorrow = DfsDate.get_current_dfs_date_range()[0]
-        
+
         games = [] # default
         self.data = []
         if self.season is None:
