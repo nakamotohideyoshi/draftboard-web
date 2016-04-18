@@ -328,7 +328,7 @@ const Live = React.createClass({
             mode={mode}
           />
 
-          {liveStandingsPane }
+          {liveStandingsPane}
         </div>
       );
     }
