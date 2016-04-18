@@ -1,13 +1,13 @@
 /* eslint no-use-before-define: "off" */
 
 import log from '../logging.js';
-import * as entryRequestActions from '../../actions/entry-request-actions.js';
 import * as ContestPoolEntryCommand from './contest-pool-entry-command.js';
+import * as LineupEditCommand from './lineup-edit-command.js';
 
 
 /**
  * PollingRequestReceiver
- * This is a classic receiver in the Command pattern. It maintains stack of
+ * This is a classic receiver in the Command pattern. It maintains queue of
  * commands as commandQueue.
  *
  * When a lineup is saved, or a lineup is entered into a contest pool, it isn't
@@ -43,23 +43,30 @@ const PollingRequestReceiver = (() => {
    */
   function addCommand(command, taskId) {
     commandQueue.push({ command, taskId });
+    log.debug('command added.', commandQueue);
   }
 
   /**
    * Remove the current command from the queue.
    */
   function finishCurrentCommand() {
-    commandQueue.shift();
+    if (commandQueue.length > 0) {
+      commandQueue.shift();
+    } else {
+      log.warn('Cannot finishCurrentCommand, commandQueue is empty!', commandQueue);
+    }
   }
 
   /**
    * Stat the next command (if one exists).
    */
   function startNextCommand() {
-    log.trace('startNextCommand()');
-    if (!commandQueue.length) {
+    if (commandQueue.length === 0) {
+      log.debug('Cannot start next command, commandQueue is empty.');
+      log.debug('setting running = false');
       running = false;
     } else {
+      log.debug('Starting next command.');
       const currentCommand = commandQueue[0];
       fetchLoop(currentCommand);
     }
@@ -71,13 +78,19 @@ const PollingRequestReceiver = (() => {
    * @param  {Object} task A command in the commandQueue.
    */
   function fetchLoop(task) {
-    log.trace('fetchLoop()');
+    log.debug('fetchLoop()');
     running = true;
 
     task.command.fetch(task.taskId).then(() => {
       if (task.command.shouldFetch(task.taskId)) {
-        fetchLoop(task);
+        window.setTimeout(fetchLoop, 500, task);
+        return;
       }
+      log.debug('fetchLoop() finished with a non-FAILURE fetch response');
+      finishCurrentCommand();
+      startNextCommand();
+    }).catch((reason) => {
+      log.debug('fetchLoop() finished due to \'FAILURE\' fetch response:', reason);
       finishCurrentCommand();
       startNextCommand();
     });
@@ -87,7 +100,7 @@ const PollingRequestReceiver = (() => {
     if (!running) {
       startNextCommand();
     } else {
-      log.warn('Receiver not running, no commands in queue.');
+      log.debug('run() ignored, Receiver is already running.');
     }
   }
 
@@ -112,14 +125,17 @@ export function addPollingRequest(type, taskId) {
     case 'entryRequest':
       command = ContestPoolEntryCommand;
       break;
+
+    case 'LineupEditRequest':
+      command = LineupEditCommand;
+      break;
+
     default:
       log.error('Command type is not supported:', type);
       return;
   }
 
   log.info('adding polling request command', taskId);
-  // Add the task's command info into the app store.
-  entryRequestActions.addEntryRequestMonitor(command, taskId);
   // Add the command to our receiver and tell it to start.
   PollingRequestReceiver.addCommand(command, taskId);
   PollingRequestReceiver.run();

@@ -4,7 +4,7 @@ import log from '../logging.js';
 import store from '../../store.js';
 import { addMessage } from '../../actions/message-actions.js';
 import * as entryRequestActions from '../../actions/entry-request-actions.js';
-import { fetchEntriesIfNeeded } from '../../actions/entries.js';
+import { fetchContestPoolEntries } from '../../actions/contest-pool-actions.js';
 import { fetchCashBalanceIfNeeded } from '../../actions/user.js';
 
 
@@ -24,8 +24,6 @@ export function getTaskState(taskId) {
   return store.getState().entryRequests[taskId];
 }
 
-
-// Should this command be fetched?
 
 /**
  * Determine whether the entry request status should be fetched from the server
@@ -121,8 +119,8 @@ export function fetch(taskId) {
       if (res.body.status === 'SUCCESS') {
         // Because the user just entered a contest, their cash balance should be different.
         store.dispatch(fetchCashBalanceIfNeeded());
-        // Fetch new entries. (force this to fetch.)
-        store.dispatch(fetchEntriesIfNeeded(true));
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        store.dispatch(fetchContestPoolEntries());
         // Display a success message to the user.
         store.dispatch(addMessage({
           level: 'success',
