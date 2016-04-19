@@ -17,6 +17,10 @@ const LiveContestsPane = React.createClass({
     mode: React.PropTypes.object.isRequired,
   },
 
+  componentWillMount() {
+    AppActions.addClass('appstate--live-contests-pane--open');
+  },
+
   viewContest(contestId) {
     const mode = this.props.mode;
     const path = `/live/${mode.sport}/lineups/${mode.myLineupId}/contests/${contestId}/`;
@@ -27,6 +31,7 @@ const LiveContestsPane = React.createClass({
     };
 
     this.props.changePathAndMode(path, changedFields);
+    this.closePane();
   },
 
   closePane() {
@@ -46,13 +51,33 @@ const LiveContestsPane = React.createClass({
   },
 
   render() {
+    const { lineup } = this.props;
+    const fees = lineup.totalFees;
+    const winnings = lineup.totalPotentialEarnings;
+
     return (
       <div className="live-contests-pane live-pane live-pane--right">
-        <div className="live-pane__close" onClick={this.closePane} />
-
         <div className="live-pane__content">
           <h2>
             My Contests
+
+            <div className="stats">
+              <div className="num-contest">
+                18 <span>Contests</span>
+              </div>
+
+              <div className="profit">
+                <div className="fees">
+                  ${fees} Fees
+                </div>
+                {" "} / {" "}
+                <div className="earnings">
+                  Winning
+                  {" "}
+                  <span>${winnings}</span>
+                </div>
+              </div>
+            </div>
           </h2>
 
           <div className="live-contests-pane__list">

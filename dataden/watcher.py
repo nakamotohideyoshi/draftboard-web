@@ -168,6 +168,8 @@ class Trigger(object):
 
     DEFAULT_CURSOR_TYPE = CursorType.TAILABLE_AWAIT
 
+    live_stats_cache_class = LiveStatsCache
+
     def __init__(self, cache='default', clear=False, init=False,
                                 db=None, coll=None, parent_api=None, cursor_type=None ):
         """
@@ -203,7 +205,9 @@ class Trigger(object):
         self.db_local   = self.client.get_database( self.DB_LOCAL )
         self.oplog      = self.db_local.get_collection( self.OPLOG )
 
-        self.live_stats_cache   = LiveStatsCache( cache, clear=clear )
+        # self.live_stats_cache   = LiveStatsCache( cache, clear=clear )
+        self.live_stats_cache   = self.live_stats_cache_class( cache, clear=clear )
+
         self.trigger_cache      = TriggerCache()
 
         self.cursor_type = cursor_type

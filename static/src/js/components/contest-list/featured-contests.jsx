@@ -18,7 +18,10 @@ const FeaturedContests = React.createClass({
     return this.props.featuredContests.map((contest) => (
         <div className="featured-contests--contest" key={contest.image_url}>
           <a href={contest.links_to}>
-            <img src={contest.image_url} />
+            <img
+              alt="Featured Contest Banner"
+              src={contest.image_url}
+            />
           </a>
         </div>
       )

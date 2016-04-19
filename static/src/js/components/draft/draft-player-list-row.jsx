@@ -129,6 +129,7 @@ const DraftPlayerListRow = React.createClass({
         <td className="position">{this.props.row.position}</td>
         <td className="photo">
           <img
+            alt="Player Headshot"
             src={`${this.props.playerImagesBaseUrl}/120/${this.props.row.player_srid}.png`}
             width="auto"
             height="35px"
