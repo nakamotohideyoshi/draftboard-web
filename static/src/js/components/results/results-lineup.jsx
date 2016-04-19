@@ -87,7 +87,9 @@ const ResultsLineup = React.createClass({
 
     const players = this.props.players.map((player) => {
       const playerPhoto = (
-        <img className="player-image"
+        <img
+          alt="Player Headshot"
+          className="player-image"
           src={`${playerImagesBaseUrl}/${player.player_meta.srid}.png`}
         />
       );
