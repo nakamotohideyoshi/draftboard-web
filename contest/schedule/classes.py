@@ -657,7 +657,7 @@ class BlockManager(object):
                 #  draft_group=None, user_entry_limit=None, entry_cap=None
                 contest_pool_creator = ContestPoolCreator(self.block.site_sport.name,
                                             block_prize_structure.prize_structure,
-                                            earliest_start_time, duration)
+                                            earliest_start_time, duration, set_name=True)
 
                 # because this method may attempt to create a DraftGroup,
                 # we must be able to handle the DraftGroup exceptions that
@@ -679,6 +679,9 @@ class BlockManager(object):
                 # except Exception as e:
                 #     print(e)
                 #     #pass
+
+        self.block.contest_pools_created = True
+        self.block.save()
 
         print('%s ContestPool(s) created for Block: %s' % (str(num_contest_pools_created), str(self.block)))
 

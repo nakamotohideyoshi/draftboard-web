@@ -154,10 +154,10 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
 
     #change_list_template = 'change_list_block.html'
 
-    list_display = ['sport','weekday','games_included','earliest_game_in_block','cutoff_time']
+    list_display = ['sport','date','games_included','earliest_game_in_block','cutoff_time','contest_pools_created']
     list_filter = ['site_sport',]
     list_editable = ['cutoff_time',]
-    readonly_fields = ('site_sport',)
+    readonly_fields = ('site_sport','contest_pools_created')
     exclude = ('dfsday_start','dfsday_end','cutoff')
     ordering = ('dfsday_start','site_sport')
     actions = ['create_contest_pools']
@@ -182,6 +182,11 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
             # you must select exactly 1 block
             return
         block = queryset[0]
+        if block.contest_pools_created == True:
+            warning_msg = 'Contest Pools already exist for this block. No new Contest Pools have been created!'
+            messages.warning(request, warning_msg)
+            return
+
         if not self.__is_block_drafting(block):
             # this is not the drafting
             err_msg = 'Cant create ContestPools for blocks ahead of currently drafting blocks!'
@@ -200,22 +205,34 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
                           ' [ Exception message: %s ]' % (block.site_sport, str(e))
                 messages.error(request, err_msg)
 
-    def sport(self, obj):
-        return obj.site_sport.name.upper()
+    def is_drafting(self, block):
+        return self.model.objects.filter(cutoff__lt=block.cutoff,
+                                     site_sport=block.site_sport).count() == 0
 
-    def weekday(self, block):
-        """
-        lets be specific, and if the current time is after the cutoff
-        display that its running...
-        """
-        if self.model.objects.filter(cutoff__lt=block.cutoff,
-                                     site_sport=block.site_sport).count() == 0:
+    def get_bold_text(self, block, text):
+        if self.is_drafting(block):
             # this is the currently upcoming,
             # and there are no upcomingblocks before it,
             # which means its the active block.
             # If its ContestPools exist, they are drafting right now...
-            return 'Drafting'
-        return local_daymonth(block.dfsday_start)
+            return format_html( '<strong>' + text + '</strong>' )
+        else:
+            return text
+
+    def sport(self, block):
+        return self.get_bold_text( block, block.site_sport.name.upper() )
+
+    def date(self, block):
+        """
+        lets be specific, and if the current time is after the cutoff
+        display that its running...
+        """
+
+        #return format_html( prefix + local_daymonth(block.dfsday_start) + suffix )
+        suffix = ''
+        if self.is_drafting(block):
+            suffix += ' | Drafting'
+        return self.get_bold_text(block, local_daymonth(block.dfsday_start) + suffix)
 
     def cutoff_time(self, obj):
         return local_time(obj.dfsday_start)
@@ -237,13 +254,14 @@ class UpcomingBlockAdmin(admin.ModelAdmin):
         # return the localized time for the admin to display
         if earliest_game is None:
             return 'na'
-        return local_time(earliest_game.start)
+        return self.get_bold_text(block, local_time(earliest_game.start) )
 
     def games_included(self, block):
         included, excluded = block.get_block_games()
         incl = len(included)
         total = incl + len(excluded)
-        return '%s of %s' % (str(incl), str(total))
+        text = '%s of %s' % (str(incl), str(total))
+        return self.get_bold_text( block, text )
 
     def get_inline_instances(self, request, obj=None):
         if obj is None:

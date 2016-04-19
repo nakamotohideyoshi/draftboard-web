@@ -17,7 +17,7 @@ class Notification(models.Model):
     modified = models.DateTimeField(auto_now=True)
     name = models.CharField(max_length=128, null=False, unique=True)
     enabled = models.BooleanField(default=True, null=False)
-    # TODO are there more fields?
+
 class Block(models.Model):
     """ a sport and a time, which characterizes a ContestPools start time """
     created = models.DateTimeField(auto_now_add=True)
@@ -28,17 +28,25 @@ class Block(models.Model):
     cutoff_time = models.TimeField(null=False)
     cutoff = models.DateTimeField(null=False, blank=True,
                 help_text='the UTC datetime object for the cutoff_time')
+
+    # False if the ContestPools for this Block have not been created yet.
+    # otherwise, this field should be set to True if ANY Contest Pools have been created
+    contest_pools_created = models.BooleanField(default=False)
+
     class Meta:
         unique_together = ('site_sport','dfsday_start','dfsday_end','cutoff_time')
+
     def __str__(self):
         local_cutoff = self.get_utc_cutoff().astimezone(pytz_timezone(settings.TIME_ZONE))
         return '%s %s' % (self.site_sport, str(local_cutoff))
+
     def save(self, *args, **kwargs):
         """
         override save() method to update the cutoff datetime
         """
         self.cutoff = self.get_utc_cutoff()
         super().save(*args, **kwargs)
+
     def get_utc_cutoff(self):
         """
         we have to convert the dfsday start to local time (EST), combine
@@ -58,6 +66,7 @@ class Block(models.Model):
         utc_cutoff = est_cutoff.astimezone(pytz_timezone('UTC'))
         #print('cutoff_time:', str(self.cutoff_time), 'utc_cutoff', str(utc_cutoff))
         return utc_cutoff
+
     def get_block_games(self):
         """
         returns a tuple of two lists in the form: ([included games], [excluded games])
@@ -77,28 +86,32 @@ class Block(models.Model):
         #
         # return a tuple of included, excluded
         return (included, excluded)
-    # TODO finish implementing
+
 class UpcomingBlock(Block):
     """ PROXY for upcoming Blocks """
+
     class UpcomingBlockManager(models.Manager):
         def get_queryset(self):
             # allegedly order_by() can take multiple params to sort by
             return super().get_queryset().filter(
                 cutoff__gte=timezone.now()).order_by('dfsday_start','cutoff_time')
+
     objects = UpcomingBlockManager()
+
     class Meta:
         proxy = True
         verbose_name = 'Schedule'
-    # TODO finish implementing
+
 class DefaultPrizeStructure(models.Model):
     """ for a sport, this is the set of PrizeStructures to create for a Block """
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     site_sport = models.ForeignKey('sports.SiteSport', null=False)
     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
+
     class Meta:
         unique_together = ('site_sport','prize_structure')
-    # TODO finish implementing
+
 class BlockGame(models.Model):
     """ an object that maps a real life game to a block """
     created = models.DateTimeField(auto_now_add=True)
@@ -109,25 +122,19 @@ class BlockGame(models.Model):
     game_type           = models.ForeignKey(ContentType) #,  related_name='%(app_label)s_%(class)s_block_game')
     game_id             = models.PositiveIntegerField()
     game                = GenericForeignKey('game_type', 'game_id')
+
     class Meta:
         unique_together = ('block','srid')
-# class IncludedBlockGame(BlockGame):
-#     """ PROXY for "included" block games """
-#     class IncludedBlockGameManager(models.Manager):
-#         def get_queryset(self):
-#             return super().get_queryset().filter()
-#     objects = IncludedBlockGameManager()
-#     class Meta:
-#         proxy = True
+
 class BlockPrizeStructure(models.Model):
     """ for a block, this is the editable set of PrizeStructures (editable until the block starts) """
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     block = models.ForeignKey('schedule.Block', null=False)
     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
+
     class Meta:
         unique_together = ('block','prize_structure')
-    # TODO finish implementing
 
 class Category( models.Model ):
     created     = models.DateTimeField(auto_now_add=True)
@@ -138,7 +145,6 @@ class Category( models.Model ):
 
     class Meta:
         verbose_name = 'Time Slot'
-
 
 class Schedule( models.Model ):
     created     = models.DateTimeField(auto_now_add=True)
@@ -177,7 +183,6 @@ class TemplateContest( contest.models.AbstractContest ):
     class Meta:
         abstract = False
         verbose_name = 'Contest Template'
-
 
 class Interval(models.Model):
 
