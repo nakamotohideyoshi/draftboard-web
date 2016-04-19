@@ -1,11 +1,12 @@
+import Raven from 'raven-js';
 import * as types from '../action-types.js';
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import { normalize, Schema, arrayOf } from 'normalizr';
-import { forEach as _forEach } from 'lodash';
-import { merge as _merge } from 'lodash';
-import { sortBy as _sortBy } from 'lodash';
-import { uniqWith as _uniqWith } from 'lodash';
+import forEach from 'lodash/forEach';
+import merge from 'lodash/merge';
+import sortBy from 'lodash/sortBy';
+import uniqWith from 'lodash/uniqWith';
 import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
 import { monitorLineupEditRequest } from './lineup-edit-request-actions.js';
@@ -72,14 +73,14 @@ export function fetchUpcomingLineups(draftGroupId = null) {
             );
 
             // Find unique draft groups that we have a lineup for.
-            const draftGroups = _uniqWith(
+            const draftGroups = uniqWith(
               res.body.map((lineup) => lineup.draft_group),
               (group) => group
             );
 
             // Sort playres by roster slot (idx)
-            _forEach(normalizedLineups.entities.lineups, (lineup, key) => {
-              normalizedLineups.entities.lineups[key].players = _sortBy(
+            forEach(normalizedLineups.entities.lineups, (lineup, key) => {
+              normalizedLineups.entities.lineups[key].players = sortBy(
                 normalizedLineups.entities.lineups[key].players, 'idx'
               );
             });
@@ -270,22 +271,13 @@ export function saveLineupEdit(lineup, title, lineupId) {
  * @param  {Integer} lineupId The id of the lineup to be edited.
  */
 export function editLineupInit(lineupId) {
-  return (dispatch, getState) => {
-    const state = getState();
+  return (dispatch) => {
+    log.info(`Lineup #${lineupId} found, importing for editing.`);
 
-    if (state.upcomingLineups.lineups.hasOwnProperty(lineupId)) {
-      log.info(`Lineup #${lineupId} found, importing for editing.`);
-      dispatch({
-        type: types.EDIT_LINEUP_INIT,
-        lineupId,
-      });
-    } else {
-      log.warn(`Lineup #${lineupId} does not exist in upcoming lineups.`);
-      dispatch({
-        type: types.EDIT_LINEUP_INIT,
-        lineupId,
-      });
-    }
+    dispatch({
+      type: types.EDIT_LINEUP_INIT,
+      lineupId,
+    });
   };
 }
 
@@ -308,11 +300,11 @@ export function importLineup(lineup, importTitle = false) {
 
     // Since the lineup API endpoint 'player' doesn't have the same info as the DraftGruoup
     // 'player', we need to grab the corresponding DraftGroup player object and use that.
-    _forEach(lineup.players, (player) => {
+    forEach(lineup.players, (player) => {
       // Get the DraftGroup player
       let DraftGroupPlayer = state.draftGroupPlayers.allPlayers[player.player_id];
       //  Copy and append the idx to the player.
-      DraftGroupPlayer = _merge({}, DraftGroupPlayer, { idx: player.idx });
+      DraftGroupPlayer = merge({}, DraftGroupPlayer, { idx: player.idx });
       // push them into a list of players.
       players.push(DraftGroupPlayer);
     });

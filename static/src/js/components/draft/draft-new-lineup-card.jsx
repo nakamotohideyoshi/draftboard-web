@@ -2,7 +2,7 @@ import React from 'react';
 import Tooltip from '../site/tooltip.jsx';
 import DraftNewLineupCardTitle from './draft-new-lineup-card-title.jsx';
 import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 
 const defaultLineupTitle = 'New Lineup';
 
@@ -73,7 +73,7 @@ const DraftNewLineupCard = React.createClass({
 
 
   renderErrors(errors) {
-    return _forEach(errors, (error) => <span>{error}</span>);
+    return forEach(errors, (error) => <span>{error}</span>);
   },
 
 
