@@ -276,6 +276,8 @@ class ReplayManager(object):
                 db          = ns_parts[0]
                 collection  = ns_parts[1]
                 # send it thru parser! Triggers do NOT need to be running for this to work!
+                if db == 'mlb' and collection == 'pitcher':
+                    print('update.o:', str(update.o))
                 parser.parse_obj( db, collection, ast.literal_eval( update.o ), async=async )
 
             last = now # update last, now that we've parsed up until now
