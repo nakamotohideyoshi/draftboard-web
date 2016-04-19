@@ -2,7 +2,10 @@
 # sports/management/commands/sport_trigger.py
 
 from django.core.management.base import BaseCommand, CommandError
-from sports.trigger import SportTrigger
+from sports.trigger import (
+    SportTrigger,
+    MlbTrigger,
+)
 from raven.contrib.django.raven_compat.models import client
 
 class Command(BaseCommand):
@@ -40,7 +43,11 @@ class Command(BaseCommand):
 
         while True:
             try:
-                sport_trigger = SportTrigger(sport)
+                if sport == 'mlb':
+                    sport_trigger = MlbTrigger()
+                else:
+                    sport_trigger = SportTrigger(sport)
+
                 sport_trigger.run()
             except Exception as e:
                 print(e)

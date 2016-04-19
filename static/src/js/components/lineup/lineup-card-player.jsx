@@ -7,6 +7,7 @@ const LineupCardPlayer = (props) => (
     <span className="cmp-lineup-card__position">{props.player.roster_spot}</span>
     <span className="cmp-lineup-card__photo">
       <img
+        alt="Player Headshot"
         src={`${props.playerImagesBaseUrl}/120/${props.player.player_meta.srid}.png`}
         width="auto"
         height="35px"
