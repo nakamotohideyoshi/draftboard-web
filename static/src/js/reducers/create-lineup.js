@@ -1,5 +1,7 @@
 import ActionTypes from '../action-types';
-import { merge as _merge, find as _find, forEach as _forEach } from 'lodash';
+import merge from 'lodash/merge';
+import find from 'lodash/find';
+import forEach from 'lodash/forEach';
 import log from '../lib/logging.js';
 
 
@@ -164,7 +166,7 @@ const findAvailablePositions = (state) => {
  * @param  {Object} player A player.
  * @return {Boolean}
  */
-const isPlayerInLineup = (player, state) => typeof _find(
+const isPlayerInLineup = (player, state) => typeof find(
   state.lineup,
   (lineupPlayer) =>
     lineupPlayer.player !== null && lineupPlayer.player.player_id === player.player_id
@@ -260,7 +262,7 @@ module.exports = (state = initialState, action) => {
     // Create an empty lineup card based on the roster of the sport of the current draftgroup.
     case ActionTypes.CREATE_LINEUP_INIT:
       // Return a copy of the previous state with our new things added to it.
-      newState = _merge({}, state, {
+      newState = merge({}, state, {
         lineup: rosterTemplates[action.sport],
         remainingSalary: salaryCaps[action.sport],
         contestSalaryLimit: salaryCaps[action.sport],
@@ -284,13 +286,13 @@ module.exports = (state = initialState, action) => {
       // if there is an error adding the player, return the state with an error message
       return addPlayer(action.player, state, (errors, updatedLineup) => {
         if (errors.length > 0) {
-          return _merge({}, state, {
+          return merge({}, state, {
             errorMessage: errors,
           });
         }
         // If we can add the player, add them and update the state.
-        _merge({}, state, { lineup: updatedLineup, errorMessage: null });
-        newState = _merge({}, state, {
+        merge({}, state, { lineup: updatedLineup, errorMessage: null });
+        newState = merge({}, state, {
           avgRemainingPlayerSalary: getAvgRemainingPlayerSalary(state),
           remainingSalary: getRemainingSalary(state),
           errorMessage: null,
@@ -310,7 +312,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.CREATE_LINEUP_REMOVE_PLAYER:
-      newState = _merge({}, state, {
+      newState = merge({}, state, {
         errorMessage: null,
       });
       removePlayer(action.playerId, newState);
@@ -329,17 +331,17 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.CREATE_LINEUP_SAVE_FAIL:
-      return _merge({}, state, {
+      return merge({}, state, {
         errorMessage: action.err,
       });
 
 
     case ActionTypes.CREATE_LINEUP_IMPORT:
-      newState = _merge({}, state);
+      newState = merge({}, state);
       // We're passed a list of players. Make sure we're putting each one into the correct lineup
       // slot based on the idx property.
-      _forEach(newState.lineup, (slot, index) => {
-        newState.lineup[index].player = _find(action.players, 'idx', slot.idx);
+      forEach(newState.lineup, (slot, index) => {
+        newState.lineup[index].player = find(action.players, { idx: slot.idx });
       });
 
       // Update the title (optional)
