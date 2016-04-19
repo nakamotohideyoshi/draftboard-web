@@ -76,6 +76,7 @@ const LiveLineupPlayer = React.createClass({
       <div key="1" className="live-lineup-player__circle">
         <div className="live-lineup-player__photo">
           <img
+            alt="Player Headshot"
             width="62"
             src={playerImage}
           />
@@ -110,6 +111,7 @@ const LiveLineupPlayer = React.createClass({
           <div className="live-lineup-player__circle">
             <div className="live-lineup-player__photo">
               <img
+                alt="Player Headshot"
                 width="62"
                 src={playerImage}
               />

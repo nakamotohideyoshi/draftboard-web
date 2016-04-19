@@ -35,13 +35,13 @@ const ContestList = React.createClass({
       <tr className="featured-contests">
         <td colSpan="7">
           <div className="featured-contests--contest">
-            <img src="/static/src/img/temp/featured-contest.png" />
+            <img alt="Default feature placeholder" src="/static/src/img/temp/featured-contest.png" />
           </div>
           <div className="featured-contests--contest">
-            <img src="/static/src/img/temp/featured-contest.png" />
+            <img alt="Default feature placeholder" src="/static/src/img/temp/featured-contest.png" />
           </div>
           <div className="featured-contests--contest">
-            <img src="/static/src/img/temp/featured-contest.png" />
+            <img alt="Default feature placeholder" src="/static/src/img/temp/featured-contest.png" />
           </div>
         </td>
       </tr>
