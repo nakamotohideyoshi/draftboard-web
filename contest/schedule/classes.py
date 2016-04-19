@@ -472,7 +472,7 @@ class ContestPoolScheduleManager(object):
         on the front of the site (in all likelihood).
         """
 
-        upcoming_blocks = UpcomingBlock.objects.all()
+        upcoming_blocks = UpcomingBlock.objects.filter(site_sport__name=self.sport)
         if upcoming_blocks.count() == 0:
             err_msg = '[%s] ContestPoolScheduleManager ' \
                       'an active block could not be found!' % (self.sport)
@@ -480,6 +480,15 @@ class ContestPoolScheduleManager(object):
 
         # return the first UpcomingBlock
         return upcoming_blocks[0]
+
+    @atomic
+    def create_upcoming_contest_pools(self):
+        """
+        attempts to create Contest Pools for the active block (if they havent been created).
+        """
+        active_block = self.get_active_block()
+        if active_block.contest_pools_created == False:
+            self.create_contest_pools(active_block)
 
     @atomic
     def create_contest_pools(self, block):
