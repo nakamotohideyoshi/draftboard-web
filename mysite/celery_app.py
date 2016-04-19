@@ -112,6 +112,16 @@ app.conf.update(
 
         #
         ########################################################################
+        # generate the underlying contests for ContestPools at their start
+        ########################################################################
+        'create_scheduled_block_contest_pools' : {
+            'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
+            'schedule'  : timedelta(seconds=60), # every 60 seconds
+            #'args'      : ('nba',),
+        },
+
+        #
+        ########################################################################
         # generate salaries each day at 8am (est)
         ########################################################################
         'nba_generate_salaries' : {
