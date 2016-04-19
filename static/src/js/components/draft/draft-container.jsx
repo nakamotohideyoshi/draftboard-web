@@ -7,8 +7,9 @@ import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
 import DraftPlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
-import { forEach as _forEach } from 'lodash';
-import { findIndex as _findIndex } from 'lodash';
+import forEach from 'lodash/forEach';
+import findIndex from 'lodash/findIndex';
+import { addMessage } from '../../actions/message-actions.js';
 import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter }
   from '../../actions/draft-group-players-actions.js';
 import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId }
@@ -205,6 +206,13 @@ const DraftContainer = React.createClass({
         this.props.importLineup(lineup, true);
         this.props.editLineupInit(this.props.params.lineupId);
       } else {
+        store.dispatch(addMessage({
+          header: 'Lineup Not Found',
+          content: `We couldn't find the requested lineup. It's possible that the contest has started
+          and you can no longer edit the lineup.`,
+          level: 'warning',
+        }));
+
         log.error(`lineup #${this.props.params.lineupId} not found.`);
       }
     }
@@ -245,10 +253,10 @@ const DraftContainer = React.createClass({
     let visibleRows = [];
 
     // Build up a list of rows to be displayed.
-    _forEach(self.props.allPlayers, (row) => {
+    forEach(self.props.allPlayers, (row) => {
       // determine if the player should be visible in the list.
       // We figure this out by seeing if the player is in the filteredPlayers list.
-      const isVisible = _findIndex(this.props.filteredPlayers, (player) =>
+      const isVisible = findIndex(this.props.filteredPlayers, (player) =>
         player.player_id === row.player_id
       ) > -1;
 
