@@ -51,10 +51,29 @@ class PrizeStructure( models.Model ):
     def __str__(self):
         return '[%s]entries %s' % (self.get_entries(), self.name)
 
+    def get_format_str(self):
+        """
+        Get a string that describes the type of prize structure it is.
+        The number of total entries, along with information about the prizes in factored.
+
+        For example, returns:
+            "H2H"               for 1v1, heads-up games
+            "50/50"             for 50/50 formats
+            "10-Man Tourney"    for curved prize structures
+        """
+        max_entrants = self.get_entries()
+        payout_spots = self.payout_spots
+
+        if max_entrants == 2:
+            return 'H2H'
+        elif payout_spots == (max_entrants / 2):
+            return '50/50'
+        else:
+            return '%s-Man Tourney' % max_entrants
+
     class Meta:
         verbose_name = 'Prize Structure'
         verbose_name_plural = 'Prize Structure'
-
 
 class Rank( models.Model ):
     """

@@ -1068,6 +1068,21 @@ class ZonePitchPbp(PitchPbp):
         # self.srid_finder = SridFinder(obj.get_o()) # get the data from the oplogobj
         self.o = obj.get_o() # we didnt call super so we should do this
 
+        # so we can retrieve the list of zonepitches from the cache
+        zonepitch = self.o
+        try:
+            zpid = zonepitch.pop('_id') # remove it. its a lot of unnecessary characters
+        except KeyError:
+            # if the replayer is sending this object,
+            # the mongo object id with the key: '_id'
+            # will likely not exist, but thats fine.
+            pass
+        at_bat_id = zonepitch.get('at_bat__id')
+        #print('adding to cache_list, at_bat_id:', str(at_bat_id))
+        #cache_list = CacheList(self.c)
+        cache_list = CacheList(cache=cache)
+        cache_list.add(at_bat_id, zonepitch)
+
     def find_player_stats(self):
         """ override - return an emtpy list, dont look for stats objects for zone pitches """
         return []

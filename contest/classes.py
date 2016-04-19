@@ -43,7 +43,7 @@ class ContestPoolCreator(object):
     ENTRY_CAP           = 0     # 0 means there is no cap on the total # of entries
 
     def __init__(self, sport, prize_structure, start, duration,
-                 draft_group=None, user_entry_limit=None, entry_cap=None):
+                 draft_group=None, user_entry_limit=None, entry_cap=None, set_name=True):
         """
         :param sport: the name of the sport
         :param prize_structure: the prize.models.PrizeStructure
@@ -82,6 +82,9 @@ class ContestPoolCreator(object):
         if entry_cap is not None:
             self.entry_cap = entry_cap
 
+        # whether or not to set a name at creation time
+        self.set_name = set_name
+
     def get_or_create(self):
         """
         Gets a matching ContestPool or else creates and returns a new one for
@@ -104,11 +107,34 @@ class ContestPoolCreator(object):
                                                                   start=self.start,
                                                                   end=self.get_end(),
                                                                   draft_group=self.draft_group)
+        if self.set_name:
+            contest_pool.name = self.build_name()
+            # save() will get called later
+
         contest_pool.current_entries = 0
         contest_pool.max_entries = self.user_entry_limit
         contest_pool.entries = self.entry_cap
         contest_pool.save()
         return contest_pool, created
+
+    def build_name(self):
+        """
+        :return: string name for the ContestPool
+        """
+
+        # format the buyin amount
+        buyin_dollars   = self.prize_structure.buyin
+        buyin_cents     = self.prize_structure.buyin - float(buyin_dollars)
+        buyin_str = '$%s' % str(int(buyin_dollars))
+        if buyin_cents >= 0.01:
+            buyin_str += '%.2f' % buyin_cents
+
+        # get the sport & tourney type (H2H, 50/50, 10-Man Tourney, etc...)
+        sport_str = self.site_sport.name.upper()
+        game_format_str = self.prize_structure.get_format_str()
+
+        name = '%s %s %s' % (buyin_str, str(sport_str), str(game_format_str))
+        return name
 
     def get_end(self):
         """
