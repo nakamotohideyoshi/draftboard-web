@@ -114,10 +114,29 @@ app.conf.update(
         ########################################################################
         # generate the underlying contests for ContestPools at their start
         ########################################################################
-        'create_scheduled_block_contest_pools' : {
+        # NBA
+        'nba_create_scheduled_block_contest_pools' : {
             'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
             'schedule'  : timedelta(seconds=60), # every 60 seconds
-            #'args'      : ('nba',),
+            'args'      : ('nba',),
+        },
+        # NHL
+        'nhl_create_scheduled_block_contest_pools' : {
+            'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
+            'schedule'  : timedelta(seconds=60), # every 60 seconds
+            'args'      : ('nhl',),
+        },
+        # MLB
+        'mlb_create_scheduled_block_contest_pools' : {
+            'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
+            'schedule'  : timedelta(seconds=60), # every 60 seconds
+            'args'      : ('mlb',),
+        },
+        # NFL
+        'nfl_create_scheduled_block_contest_pools' : {
+            'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
+            'schedule'  : timedelta(seconds=60), # every 60 seconds
+            'args'      : ('nfl',),
         },
 
         #
