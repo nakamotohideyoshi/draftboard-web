@@ -14,6 +14,7 @@ const DraftNewLineupCardPlayer = (props) => {
         <span className="cmp-lineup-card__position">{props.player.name}</span>
         <span className="cmp-lineup-card__photo">
           <img
+            alt="Player Headshot"
             src={`${props.playerImagesBaseUrl}/120/${props.player.player.player_srid}.png`}
             width="auto"
             height="35px"
@@ -48,7 +49,12 @@ const DraftNewLineupCardPlayer = (props) => {
     <li className="cmp-lineup-card__player vacant" key={props.player.idx}>
       <span className="cmp-lineup-card__position">{props.player.name}</span>
       <span className="cmp-lineup-card__photo">
-        <img src="/static/src/img/blocks/draft-list/lineup-no-player.png" width="auto" height="35px" />
+        <img
+          alt="No Player Chosen"
+          src="/static/src/img/blocks/draft-list/lineup-no-player.png"
+          width="auto"
+          height="35px"
+        />
       </span>
       <span className="cmp-lineup-card__name-salary">
         <span className="name">
