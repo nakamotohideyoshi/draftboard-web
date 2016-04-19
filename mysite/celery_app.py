@@ -43,6 +43,8 @@ app.autodiscover_tasks(settings.INSTALLED_APPS)
 #     CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
 # )
 
+ALL_SPORTS = ['nba','nhl','mlb','nfl']
+
 #
 # put the settings here, otherwise they could be in
 # the main settings.py file, but this is cleaner
@@ -104,35 +106,54 @@ app.conf.update(
         ########################################################################
         # generate the underlying contests for ContestPools at their start
         ########################################################################
-        'generate_contest_pool_contests' : {
+        # nba
+        'nba_generate_contest_pool_contests' : {
             'task'      : 'contest.tasks.spawn_contest_pool_contests',
             'schedule'  : timedelta(seconds=60), # every 60 seconds
-            #'args'      : ('nba',),
+            'args'      : ('nba',),
+        },
+        # nhl
+        'nhl_generate_contest_pool_contests' : {
+            'task'      : 'contest.tasks.spawn_contest_pool_contests',
+            'schedule'  : timedelta(seconds=60), # every 60 seconds
+            'args'      : ('nhl',),
+        },
+        # mlb
+        'mlb_generate_contest_pool_contests' : {
+            'task'      : 'contest.tasks.spawn_contest_pool_contests',
+            'schedule'  : timedelta(seconds=60), # every 60 seconds
+            'args'      : ('mlb',),
+        },
+        # nfl
+        'nfl_generate_contest_pool_contests' : {
+            'task'      : 'contest.tasks.spawn_contest_pool_contests',
+            'schedule'  : timedelta(seconds=60), # every 60 seconds
+            'args'      : ('nfl',),
         },
 
         #
         ########################################################################
-        # generate the underlying contests for ContestPools at their start
+        # generate the scheduled blocks for upcoming days
         ########################################################################
-        # NBA
+        # nba
         'nba_create_scheduled_block_contest_pools' : {
             'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
             'schedule'  : timedelta(seconds=60), # every 60 seconds
             'args'      : ('nba',),
         },
-        # NHL
+        # nhl
         'nhl_create_scheduled_block_contest_pools' : {
             'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
             'schedule'  : timedelta(seconds=60), # every 60 seconds
             'args'      : ('nhl',),
         },
-        # MLB
+        # mlb
         'mlb_create_scheduled_block_contest_pools' : {
             'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
             'schedule'  : timedelta(seconds=60), # every 60 seconds
             'args'      : ('mlb',),
         },
-        # NFL
+        # nfl
         'nfl_create_scheduled_block_contest_pools' : {
             'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
             'schedule'  : timedelta(seconds=60), # every 60 seconds
