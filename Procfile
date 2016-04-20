@@ -98,3 +98,19 @@ trigger_nba_performanceL_m1: python manage.py sport_trigger nba --settings=mysit
 trigger_nhl_performanceL_m1: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
 trigger_nfl_performanceL_m1: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
 trigger_mlb_performanceL_m1: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
+
+#
+# dataden processes:
+#   1) be sure to double-check/update their datadenapp.com settings! (connect to the proper mongo instance!)
+#   2) use the uniquely named processes to differentiate processes in sumoLogic -- even though they run the same thing
+dataden_1x_m1: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
+dataden_2x_m1: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
+dataden_performanceM_m1: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
+dataden_performanceL_m1: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
+
+dataden_1x_m3: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
+dataden_2x_m3: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
+dataden_performanceM_m3: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
+dataden_performanceL_m3: java -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
+
+
