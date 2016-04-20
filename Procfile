@@ -79,25 +79,25 @@ trigger_mlb_performanceL_m1: python manage.py sport_trigger mlb --settings=mysit
 
 #
 # 1x, 2x, Performance-M, Performance-L sport triggers using mongolab.com --> M3 <-- instance
-trigger_nba_1x_m1: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
-trigger_nhl_1x_m1: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
-trigger_nfl_1x_m1: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
-trigger_mlb_1x_m1: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
+trigger_nba_1x_m3: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
+trigger_nhl_1x_m3: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
+trigger_nfl_1x_m3: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
+trigger_mlb_1x_m3: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
 
-trigger_nba_2x_m1: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
-trigger_nhl_2x_m1: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
-trigger_nfl_2x_m1: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
-trigger_mlb_2x_m1: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
+trigger_nba_2x_m3: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
+trigger_nhl_2x_m3: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
+trigger_nfl_2x_m3: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
+trigger_mlb_2x_m3: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
 
-trigger_nba_performanceM_m1: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
-trigger_nhl_performanceM_m1: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
-trigger_nfl_performanceM_m1: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
-trigger_mlb_performanceM_m1: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
+trigger_nba_performanceM_m3: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
+trigger_nhl_performanceM_m3: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
+trigger_nfl_performanceM_m3: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
+trigger_mlb_performanceM_m3: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
 
-trigger_nba_performanceL_m1: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
-trigger_nhl_performanceL_m1: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
-trigger_nfl_performanceL_m1: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
-trigger_mlb_performanceL_m1: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
+trigger_nba_performanceL_m3: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
+trigger_nhl_performanceL_m3: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
+trigger_nfl_performanceL_m3: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
+trigger_mlb_performanceL_m3: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
 
 #
 # dataden processes:
