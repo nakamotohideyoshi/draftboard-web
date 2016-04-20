@@ -17,8 +17,8 @@ from contest.schedule.models import (
 LOCK_EXPIRE         = 60  # lock expires in X seconds
 SHARED_LOCK_NAME    = 'contest_pool_schedule_manager'
 
-@app.task
-def contest_pool_schedule_manager(sport):
+@app.task(bind=True)
+def contest_pool_schedule_manager(self, sport):
     """
     uses the ScheduleManager to create scheduled contests by calling
     ScheduleManager.run( td = td ).
@@ -42,8 +42,8 @@ def contest_pool_schedule_manager(sport):
         finally:
             release_lock()
 
-@app.task
-def create_scheduled_contest_pools(sport):
+@app.task(bind=True)
+def create_scheduled_contest_pools(self, sport):
     """
     uses the ScheduleManager to create scheduled contests by calling
     ScheduleManager.run( td = td ).

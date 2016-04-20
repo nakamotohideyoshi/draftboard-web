@@ -505,3 +505,6 @@ FIXTURE_DIRS = (os.path.join(PROJECT_ROOT, 'fixtures'),)
 # disable recording
 DISABLE_REPLAYER_UPDATE_RECORDING = False
 
+#
+# for testing purposes, defaults to None, unless otherwise specified in child settings file
+TEST_SETUP = None
