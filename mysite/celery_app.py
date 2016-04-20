@@ -106,30 +106,30 @@ app.conf.update(
         ########################################################################
         # generate the underlying contests for ContestPools at their start
         ########################################################################
-        # nba
-        'nba_generate_contest_pool_contests' : {
+        # checks all sports all sports
+        'generate_contest_pool_contests' : {
             'task'      : 'contest.tasks.spawn_contest_pool_contests',
             'schedule'  : timedelta(seconds=60), # every 60 seconds
-            'args'      : ('nba',),
+            #'args'      : ('nba',),
         },
-        # nhl
-        'nhl_generate_contest_pool_contests' : {
-            'task'      : 'contest.tasks.spawn_contest_pool_contests',
-            'schedule'  : timedelta(seconds=60), # every 60 seconds
-            'args'      : ('nhl',),
-        },
-        # mlb
-        'mlb_generate_contest_pool_contests' : {
-            'task'      : 'contest.tasks.spawn_contest_pool_contests',
-            'schedule'  : timedelta(seconds=60), # every 60 seconds
-            'args'      : ('mlb',),
-        },
-        # nfl
-        'nfl_generate_contest_pool_contests' : {
-            'task'      : 'contest.tasks.spawn_contest_pool_contests',
-            'schedule'  : timedelta(seconds=60), # every 60 seconds
-            'args'      : ('nfl',),
-        },
+        # # nhl
+        # 'nhl_generate_contest_pool_contests' : {
+        #     'task'      : 'contest.tasks.spawn_contest_pool_contests',
+        #     'schedule'  : timedelta(seconds=60), # every 60 seconds
+        #     'args'      : ('nhl',),
+        # },
+        # # mlb
+        # 'mlb_generate_contest_pool_contests' : {
+        #     'task'      : 'contest.tasks.spawn_contest_pool_contests',
+        #     'schedule'  : timedelta(seconds=60), # every 60 seconds
+        #     'args'      : ('mlb',),
+        # },
+        # # nfl
+        # 'nfl_generate_contest_pool_contests' : {
+        #     'task'      : 'contest.tasks.spawn_contest_pool_contests',
+        #     'schedule'  : timedelta(seconds=60), # every 60 seconds
+        #     'args'      : ('nfl',),
+        # },
 
         #
         ########################################################################

@@ -150,42 +150,6 @@ class MlbCache(LiveStatsCache):
 
 class MlbTrigger(SportTrigger):
 
-    # class MlbCache(LiveStatsCache):
-    #     """
-    #     extend the default trigger's LiveStatsCache to provide
-    #     mlb the mechanism for saving the lists of ZonePitch objects
-    #     along with the ability to retrieve them using an at-bat srid.
-    #     """
-    #
-    #     def update(self, oplog_obj):
-    #         """
-    #         override update() method to add this livestat to the
-    #         list of zonepitches if it is actually a zonepitch
-    #         """
-    #
-    #         # we must call super, and we must return
-    #         # its return value at end of this method!
-    #         was_added = super().update(oplog_obj)
-    #
-    #         # if the object was _just_ added, then we should also
-    #         # add it to our list of zonepitches for the atbat (in the cache).
-    #         if was_added == True:
-    #             ns = oplog_obj.get_ns()
-    #             parent_api = oplog_obj.get_parent_api()
-    #             if ns == 'mlb.pitcher' and parent_api == 'pbp':
-    #                 #
-    #                 # its a zone pitch, add it to its cached list
-    #                 # using the MlbTrigger's cache (self.c)
-    #                 zonepitch = oplog_obj.get_o()
-    #                 zpid = zonepitch.pop('_id') # remove it. its a lot of unnecessary characters
-    #                 at_bat_id = zonepitch.get('at_bat__id')
-    #                 print('adding to cache_list, at_bat_id:', str(at_bat_id))
-    #                 cache_list = CacheList(self.c)
-    #                 cache_list.add(at_bat_id, zonepitch)
-    #                 print('cache_list is now:', str(cache_list.get(at_bat_id)))
-    #
-    #         return was_added
-
     live_stats_cache_class = MlbCache
 
     def __init__(self):
