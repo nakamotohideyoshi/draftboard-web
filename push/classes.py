@@ -472,7 +472,41 @@ class AbstractPush(object):
 
         if settings.PUSHER_ENABLED:
             #print('settings.PUSHER_ENABLED == True ... object sent')
+
+            #
+            # data-parsing step: "send-to-pusher",
+            #    # channel: "mlb-pbp",
+            #    # event: "linked",
+            #    # id: "c598f08a-76ff-4176-aa33-5642fd0f9fed",
+            #    # start_ts: "1461118200",
+            #    # completed_ts: "1461118231"
+
+            #
+            # DD_NOW="Wed Apr 20 22:32:46 UTC 2016",
+            # DD_NOW_TS=1461191566695,
+            # DD_LOG=DDParser,
+            # DD_CATEGORY=UpsertComplete,
+            # DD_ITEM=url,
+            # DD_VALUE=http://api.sportsdatallc.org/mlb-p5/games/2016/REG/schedule.xml,
+            # DD_START_TS=1461191545208,
+            # DD_END_TS=1461191566695,
+            # DD_DELTA_MS=21487,
+
+            pusher_start_ts = int(time.time())
             self.pusher.trigger( self.channel, self.event, data )
+            pusher_completed_ts = int(time.time())
+            print('PSHR_NOW="%s",' % str(timezone.now()),
+                    'PSHR_NOW_TS=%s,' % int(time.time()),
+                    'PSHR_LOG=Send',
+                    'PSHR_CHANNEL=%s' % self.channel,
+                    'PSHR_EVENT=%s' % self.event,
+                    'PSHR_DATA_ID="%s"' % str(data.get('id')),
+                    'PSHR_ITEM=Object',
+                    'PSHR_VALUE=%s' % str(data),
+                    'PSHR_START_TS=%s' % str(pusher_start_ts),
+                    'PSHR_END_TS=%s' % str(pusher_completed_ts),
+                    'PSHR_DELTA_MS=%s' % str(int(pusher_completed_ts - pusher_start_ts))
+                  )
 
         else:
             # print to console if its disable to remind us
