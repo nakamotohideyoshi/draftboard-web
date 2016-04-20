@@ -274,6 +274,13 @@ class Trigger(object):
                 #
                 # send the 'o' object (a stat update) out as a
                 # signal because its been updated!!
+
+                # #
+                # # data-parsing step: "send-to-pusher", channel: "mlb-pbp", event: "linked", id: "c598f08a-76ff-4176-aa33-5642fd0f9fed", start_ts: "1461118200", completed_ts: "1461118231"
+                # log_msg = ''
+                # print('')
+
+                # send the update signal along with the object to Pusher/etc...
                 Update( hashable_object ).send(async=True)
                 #added += 1
 
