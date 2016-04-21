@@ -12,8 +12,9 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(sports.nfl.models.Game)
 class GameAdmin(admin.ModelAdmin):
-    list_display = ['srid','status','start','home','away','weather_json']
-    list_filter = ['start','home','away']
+    list_display    = ['srid','status','start','home','away','weather_json']
+    list_filter     = sports.admin.GameAdmin.list_filter
+    search_fields   = sports.admin.GameAdmin.search_fields
 
 @admin.register(sports.nfl.models.Player)
 class PlayerAdmin(sports.admin.PlayerAdmin):

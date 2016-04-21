@@ -27,14 +27,6 @@ class PlayerLineupName(admin.ModelAdmin):
     search_fields   = ['first_name','last_name','position__name','lineup_nickname']
     list_editable   = ['lineup_nickname']
 
-# class PlayerStatsAdmin(admin.ModelAdmin):
-#     """
-#     lists to be inherited by the actual sports
-#     """
-#
-#     list_filter     = ['first_name','last_name']
-#     search_fields   = ['first_name','last_name']
-
 class PlayerStatsAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
 
     #model           = Salary
@@ -55,3 +47,8 @@ class PlayerStatsAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.Mo
     except django.db.utils.ProgrammingError:
         # relation "django_content_type" does not exist
         print('relation "django_content_type" does not exist - this should only happen on the first migrate!')
+
+class GameAdmin(admin.ModelAdmin):
+
+    list_filter     = ['status','start','home','away']
+    search_fields   = ['status']
