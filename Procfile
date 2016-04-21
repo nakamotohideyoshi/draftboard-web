@@ -101,10 +101,10 @@ trigger_mlb_1x_m3: python manage.py sport_trigger mlb --settings=mysite.settings
 
 #
 # 1x, 2x, Performance-M, Performance-L sport triggers using mongolab.com --> ec2 (amazon) <-- instance
-trigger_nba_1x_ec2: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
-trigger_nhl_1x_ec2: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
-trigger_nfl_1x_ec2: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
-trigger_mlb_1x_ec2: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
+trigger_nba_1x_ec2: python manage.py sport_trigger nba --settings=mysite.settings.production_mongo_ec2
+trigger_nhl_1x_ec2: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongo_ec2
+trigger_nfl_1x_ec2: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongo_ec2
+trigger_mlb_1x_ec2: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongo_ec2
 
 # 2x_ec2 procs
 # performanceM_ec2 procs
