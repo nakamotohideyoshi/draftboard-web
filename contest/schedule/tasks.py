@@ -64,11 +64,12 @@ def create_scheduled_contest_pools(self, sport):
 
     if acquire_lock():
         try:
-            # upcoming_blocks = UpcomingBlock.objects.filter(site_sport__name=sport,
-            #                                             contest_pools_created=False)
+            #
             scheduler = ContestPoolScheduleManager(sport=sport)
             scheduler.create_upcoming_contest_pools()
-            #scheduler.run()
+
+        except ContestPoolScheduleManager.ActiveBlockNotFoundException:
+            pass
 
         finally:
             release_lock()
