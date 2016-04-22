@@ -536,9 +536,15 @@ class FairMatch(object):
         self.contests = None
 
     def get_contests(self):
+        """
+        :return: a list of lists-of-entries to fill contests
+        """
         return self.contests['contests']
 
     def get_contests_forced(self):
+        """
+        :return: a list of lists-of-unfilled-entries, ie the superlay contest entries
+        """
         return self.contests['contests_forced']
 
     def fill_contest(self, entries, size, force=False):
@@ -800,12 +806,16 @@ class ContestPoolFiller(object):
         # self.distinct_user_entries = self.entries.distinct('user')
         self.user_entries = None
 
+        self.new_contests = None
+
     @atomic
     def fair_match(self):
         """
         create all required contests using the FairMatch algorithm
         with the given user entries.
         """
+        self.new_contests = []
+
         contest_size = self.contest_pool.prize_structure.get_entries()
         entry_pool = [ e.user.pk for e in self.entries ]
 
@@ -827,33 +837,51 @@ class ContestPoolFiller(object):
         # use the (random) contests + contests_forced lists of lists of entries
         # to generate the contests, extracting and removing 1 entry for each
         # user id we find along the way
-        for contest_entries in fm.get_contests():
-            # 1. create a contest for the entries
-            cpm = ContestPoolManager(self.contest_pool)
-            contest = cpm.new_contest()
+        contest_entry_lists = fm.get_contests()
+        for contest_entries in contest_entry_lists:
+            print('creating contest for users', str(contest_entries))
+            c = self.create_contest_from_entry_list(contest_entries)
+            self.new_contests.append( c )
 
-            # 2. enter them into the contest
-            for user_id in contest_entries:
-                entry = self.user_entries[ user_id ].pop()
-
-                # find the contest pool entry for this user
-                entry.contest = contest
-                entry.save()
-
-                # find the buyin and set the contest to that and save it
-                buyin = Buyin.objects.get(entry=entry)
-                buyin.contest = contest
-                buyin.save()
-
-            # set the number of entries for completeness
-            contest.current_entries = len(contest_entries)
-            contest.save()
-
-            # #
-            # # pusher contest updates because entries were changed
-            # ContestPoolPush(ContestPoolSerializer(contest_pool).data).send()
+        #
+        # create any of the superlay contests if there are unfilled first-entries
+        superlay_contest_entry_lists = fm.get_contests_forced()
+        for contest_entries in superlay_contest_entry_lists:
+            print('creating contest for users (unfilled first-entries)', str(contest_entries))
+            c = self.create_contest_from_entry_list(contest_entries)
+            self.new_contests.append( c )
 
         # change the status of the contest pool to created now
         self.contest_pool.status = ContestPool.CREATED
         self.contest_pool.save()
         #self.contest_pool.refresh_from_db()
+        return self.new_contests
+
+    def create_contest_from_entry_list(self, entry_list):
+        # 1. create a contest for the entries
+        cpm = ContestPoolManager(self.contest_pool)
+        contest = cpm.new_contest()
+
+        # 2. enter them into the contest
+        for user_id in entry_list:
+            entry = self.user_entries[ user_id ].pop()
+
+            # find the contest pool entry for this user
+            entry.contest = contest
+            entry.save()
+
+            # find the buyin and set the contest to that and save it
+            buyin = Buyin.objects.get(entry=entry)
+            buyin.contest = contest
+            buyin.save()
+
+        # set the number of entries for completeness
+        contest.current_entries = len(entry_list)
+        contest.save()
+
+        # #
+        # # pusher contest updates because entries were changed
+        # ContestPoolPush(ContestPoolSerializer(contest_pool).data).send()
+
+        # return the newly created (and filled) contest
+        return contest

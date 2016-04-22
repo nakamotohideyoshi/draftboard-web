@@ -1,7 +1,6 @@
 #
 # contest/admin.py
 
-from django.db import transaction
 from django.contrib import admin
 import contest.models
 import contest.forms
@@ -10,16 +9,40 @@ from .payout.tasks import payout_task
 from django.utils.html import format_html
 
 # for ContestPools
-CONTEST_POOL_LIST_DISPLAY = ['site_sport','prize_structure','start']
+CONTEST_POOL_LIST_DISPLAY   = ['site_sport','created','status','prize_structure','start']
+CONTEST_POOL_SEARCH_FIELDS  = ['name','status','prize_structure']
+CONTEST_POOL_LIST_FILTERS   = ['site_sport','created','status','start']
 
 # for Contests
-CONTEST_LIST_DISPLAY = ['name', 'created','status','start','end']
+CONTEST_LIST_DISPLAY    = ['name','created','status','start','end']
+CONTEST_SEARCH_FIELDS   = ['name','status']
+CONTEST_LIST_FILTERS    = ['name','status','start']
 
 @admin.register(contest.models.LobbyContestPool)
 class LobbyContestPoolAdmin(admin.ModelAdmin):
 
-    list_display = CONTEST_POOL_LIST_DISPLAY
-    search_fields = ['name','prize_structure']
+    list_display    = CONTEST_POOL_LIST_DISPLAY
+    list_filter     = CONTEST_POOL_LIST_FILTERS
+    search_fields   = CONTEST_POOL_SEARCH_FIELDS
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:
+            arr = [f.name for f in self.model._meta.fields]
+            return arr
+        return []
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+@admin.register(contest.models.ContestPool)
+class ContestPoolAdmin(admin.ModelAdmin):
+
+    list_display    = CONTEST_POOL_LIST_DISPLAY
+    list_filter     = CONTEST_POOL_LIST_FILTERS
+    search_fields   = CONTEST_POOL_SEARCH_FIELDS
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
@@ -35,8 +58,10 @@ class LobbyContestPoolAdmin(admin.ModelAdmin):
 
 @admin.register(contest.models.Contest)
 class ContestAdmin(admin.ModelAdmin):
-    search_fields = ['name',]
-    list_display = CONTEST_LIST_DISPLAY
+
+    list_display    = CONTEST_LIST_DISPLAY
+    list_filters    = CONTEST_LIST_FILTERS
+    search_fields   = CONTEST_SEARCH_FIELDS
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
@@ -50,106 +75,12 @@ class ContestAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-# @admin.register(contest.models.UpcomingContest)
-# class UpcomingContestAdmin(admin.ModelAdmin):
-#     readonly_fields = ['entries']
-#     form = contest.forms.ContestFormAdd
-#     list_display = CONTEST_LIST_DISPLAY
-#
-#     def cancel_and_refund_upcoming_contests(self, request, queryset):
-#         if queryset.count() > 0:
-#             for contest in queryset:
-#                 refund_task.delay( contest, force=True )
-#
-#     actions = [ cancel_and_refund_upcoming_contests ]
-#
-#     def get_readonly_fields(self, request, obj=None):
-#         if obj:
-#             arr = [f.name for f in self.model._meta.fields]
-#             return arr
-#         return []
-#
-#     """
-#     Note to programmer:
-#         - the clean()'ing (ie: field validation) is done in contest.forms.ContestForm
-#         - the post-processing, like setting the proper draft group is done in this class
-#
-#     Administratively create a contest.
-#     """
-#     exclude = ('contest',)
-#     #list_display = CONTEST_LIST_DISPLAY
-#
-#     #create some "sections" of the form"
-#     fieldsets = (
-#         # ('Create Contest from Existing', {
-#         #     'classes': ('collapse',),
-#         #     'fields': ('clone_from', 'name')
-#         # }),
-#
-#
-#
-#         ('Create Contest', {
-#             #'classes': ('collapse',),
-#             'fields': (
-#                 'site_sport',
-#                 'name',
-#                 'prize_structure',
-#                 'start',
-#                 #'ends_tonight',
-#             )
-#         }),
-#
-#         ('Advanced Options', {
-#             'classes': ('collapse',),
-#             'fields': (
-#                 'ends_tonight',
-#
-#                 'end',
-#                 'max_entries',
-#                 # 'entries',
-#                 'gpp',
-#                 'respawn',
-#                 'doubleup',
-#
-#                 'early_registration',
-#             )
-#         }),
-#     )
-#
-#     # def get_form(self, request, obj=None, **kwargs):
-#     #     if obj is None:
-#     #         return contest.forms.ContestFormAdd
-#     #     else:
-#     #         return contest.forms.ContestForm(request, obj, **kwargs)
-#
-#     def get_form(self, request, obj=None, **kwargs):
-#         if obj is None:
-#             kwargs['form'] = contest.forms.ContestFormAdd
-#         return super().get_form(request, obj, **kwargs)
-#
-#     #@transaction.atomic
-#     def save_model(self, request, obj, form, change):
-#         """
-#         Override save_model to hook up draftgroup and anything else
-#         we can do dynamically without forcing user to do it manually.
-#
-#         :param request: http request with authenticated user
-#         :param obj: the model instance about to be saved
-#         :param form:
-#         :param change:
-#         :return:
-#         """
-#         #print(str(obj))
-#         #print('dg?', str(form.cleaned_data['draft_group']))
-#         obj.draft_group = form.cleaned_data['draft_group']
-#         obj.save()
-#
-#     def has_delete_permission(self, request, obj=None):
-#         return False
-
 @admin.register(contest.models.CompletedContest)
 class CompletedContestAdmin(admin.ModelAdmin):
-    list_display = CONTEST_LIST_DISPLAY
+
+    list_display    = CONTEST_LIST_DISPLAY
+    list_filters    = CONTEST_LIST_FILTERS
+    search_fields   = CONTEST_SEARCH_FIELDS
 
     def payout_contests(self, request, queryset):
         arr = []
