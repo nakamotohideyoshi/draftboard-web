@@ -56,7 +56,9 @@ def spawn_contest_pool_contests(self):
             #contest_pools.count()
             for cp in contest_pools:
                 cpf = ContestPoolFiller(cp)
-                cpf.fair_match() # create all its Contests using FairMatch
+                # create all its Contests using FairMatch
+                new_contests = cpf.fair_match()
+
         finally:
             release_lock()
 

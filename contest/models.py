@@ -216,8 +216,8 @@ class ContestPool(AbstractContest):
     class Meta:
         abstract = False
 
-        verbose_name        = 'Contest Pools'
-        verbose_name_plural = 'Contest Pools'
+        verbose_name        = 'Contest Pools (All)'
+        verbose_name_plural = verbose_name
 
     def save(self, *args, **kwargs):
         super().save(override_entries=True, *args, **kwargs)
@@ -276,8 +276,13 @@ class LiveContestPool(ContestPool):
     """
     class LiveContestPoolManager(models.Manager):
         def get_queryset(self):
-            return super().get_queryset().filter(status__in=ContestPool.SCHEDULED,
-                                                            start__lte=timezone.now())
+            # qs = super().get_queryset()
+            # now = timezone.now()
+            # print('%s objects in initial QuerySet' % str(qs.count()))
+            # print('ContestPool.SCHEDULED [%s]' % ContestPool.SCHEDULED,
+            #        'start__lte= [%s]' % str(now))
+            # qs2 = qs.filter(
+            return super().get_queryset().filter(status=ContestPool.SCHEDULED, start__lte=timezone.now())
 
     objects = LiveContestPoolManager()
 
