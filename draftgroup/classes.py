@@ -102,6 +102,8 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
     """
 
+    class DuplicateTeamInRangeException(Exception): pass
+
     def __init__(self):
         super().__init__()
 
@@ -144,6 +146,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
         # get the draft group and then get its players
         draft_group = self.get_draft_group(draft_group_id)
+        print(str(draft_group), 'pk:', str(draft_group.pk))
 
         # check if the draft_group has already finalized fantasy_points...
         if draft_group.fantasy_points_finalized is not None:
@@ -165,6 +168,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
         score_system = salary_score_system_class()
         game_srids = [ x.game_srid for x in self.get_game_teams(draft_group=draft_group) ]
+        game_srids = list(set(game_srids)) # itll have the same games twice. this removes duplicates
 
         # get the PlayerStats model(s) for the sport.
         # and get an instance of the sports scoring.classes.<Sport>SalaryScoreSystem
@@ -173,12 +177,28 @@ class DraftGroupManager( AbstractDraftGroupManager ):
             # get the sports.<sport>.player  -- we'll need it later
             sport_player = draft_group_player.salary_player.player
             # determine the PlayerStats class to retrieve the fantasy_points from
-            player_stats_class = score_system.get_primary_player_stats_class_for_player(draft_group_player)
+            player_stats_class = score_system.get_primary_player_stats_class_for_player(sport_player)
 
             try:
                 player_stats = player_stats_class.objects.get( srid_game__in=game_srids,
                                                            srid_player=sport_player.srid )
+            # except player_stats_class.MultipleObjectsReturned as e1:
+            #     # print('site_sport:', str(site_sport))
+            #     # print('game_srids:', str(game_srids))
+            #     # print('sport_player.srid:', str(sport_player.srid))
+            #     # raise Exception('testing MultipleObjectsReturned issue')
+            #
+            #     #
+            #     # raise an exception that will let us troubleshoot the draft group range...
+            #     # because the draft group probably has too wide of a range
+            #     # but it never should have let us create it then!
+            #     err_msg = 'original exception[%s]' % str(e1)
+            #     err_msg += ''
+            #     raise self.StartEndRangeException(err_msg)
+
             except player_stats_class.DoesNotExist:
+                print('game_srids:', str(game_srids))
+                print('sport_player.srid:', str(sport_player.srid))
                 player_stats = None
                 continue
 
@@ -412,6 +432,16 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         team_srids      = {}
         game_teams      = {} # newly created game_team objects will need to be associated with draftgroup players
         for g in games:
+            #
+            # make sure we do not encounter the same team multiple times!
+            for check_team in [g.away, g.home]:
+                if check_team.srid in team_srids:
+                    err_msg = '%s, srid: %s' % (str(check_team), str(check_team.srid))
+                    err_msg += '  range[ start:%s  end:%s ]' % (str(start), str(end))
+                    raise self.DuplicateTeamInRangeException(err_msg)
+
+            #
+            # create the GameTeam objects
             gt = self.create_gameteam( draft_group, g.srid, g.away.srid, g.away.alias, g.start )
             game_teams[ g.away.srid ] = gt
             gt = self.create_gameteam( draft_group, g.srid, g.home.srid, g.home.alias, g.start )

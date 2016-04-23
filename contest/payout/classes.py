@@ -150,8 +150,17 @@ class PayoutManager(AbstractManagerClass):
         # perform the payouts by going through each entry and finding
         # ties and ranks for the ties to chop.
         #print('======= ranks [%s] =======' % (str(ranks)))
+
+        #
+        # we now need to check which is shorter: the list of ranks or the list of entries,
+        # and only use that many ranks for calculating winners! (its possible for
+        # fewer entries than the total number of ranks!
+    
+        if len(entries) < len(ranks):
+            print('SUPERLAY PAYOUT CONTEST:', str(contest))
+
         i = 0
-        while i < len(ranks):
+        while i < len(ranks[:len(entries)]):
             #print('++++ i (rank): %s +++++' % str(i) )
             entries_to_pay = list()
             ranks_to_pay = list()
