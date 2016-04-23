@@ -309,7 +309,7 @@ class Contest(AbstractContest):
 
     STATUS_LIVE = [
         INPROGRESS,
-        COMPLETED
+        COMPLETED       # ie: needs to be paid out
     ]
 
     STATUS_HISTORY = [

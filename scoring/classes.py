@@ -274,12 +274,18 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
         """
         override
         """
-        if player.position.get_matchname() in self.PITCHER_POSITIONS:
-            # pitching PlayerStats class
-            return sports.mlb.models.PlayerStatsPitcher
-        else:
-            # hitting PlayerStats class
-            return sports.mlb.models.PlayerStatsHitter
+        try:
+            if player.position.get_matchname() in MlbSalaryScoreSystem.PITCHER_POSITIONS:
+                # pitching PlayerStats class
+                return sports.mlb.models.PlayerStatsPitcher
+            else:
+                # hitting PlayerStats class
+                return sports.mlb.models.PlayerStatsHitter
+        except:
+            print(str(player), 'instance of class:', str(type(player)))
+            print('player.position.get_matchname():', str(player.position.get_matchname()))
+
+            raise Exception('get_primary_player_stats_class_for_player problem')
 
     def score_player(self, player_stats, verbose=True):
         """
