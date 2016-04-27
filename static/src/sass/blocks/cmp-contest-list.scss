@@ -13,7 +13,12 @@ $table-row-hover-bg: #f9fafb;
     background: $table-row-hover-bg;
   }
 
+  .draft-button {
+    margin-right: 10px;
+  }
+
   &__row {
+
 
     &.highlight {
         background: #f3faf4;
@@ -21,85 +26,6 @@ $table-row-hover-bg: #f9fafb;
 
     .enter {
       cursor: default;
-
-      .enter-contest-button-none {
-        min-width: 100px;
-        margin-right: 5px;
-        display: inline-block;
-      }
-
-      .button {
-        &:first-child {
-            margin-right: 5px;
-        }
-
-        @extend %button--outline;
-        @extend %button--mini;
-        background: none;
-        border-color: #2dba74;
-        color: #26c661;
-        display: inline-block;
-        text-transform: uppercase;
-        font-weight: 500;
-        min-width: 100px;
-        text-align: center;
-
-        &.entered {
-          color: #fff;
-          background: #219d87; /* Old browsers */
-          background: -moz-linear-gradient(left, #219d87 0%, #34cc68 100%); /* FF3.6+ */
-          background: -webkit-gradient(linear, left top, right top, color-stop(0%,#219d87), color-stop(100%,#34cc68)); /* Chrome,Safari4+ */
-          background: -webkit-linear-gradient(left, #219d87 0%,#34cc68 100%); /* Chrome10+,Safari5.1+ */
-          background: -o-linear-gradient(left, #219d87 0%,#34cc68 100%); /* Opera 11.10+ */
-          background: -ms-linear-gradient(left, #219d87 0%,#34cc68 100%); /* IE10+ */
-          background: linear-gradient(to right, #219d87 0%,#34cc68 100%); /* W3C */
-          filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#219d87', endColorstr='#34cc68',GradientType=1 ); /* IE6-9 */
-
-          &:hover {
-            border-color: #2dba74;
-          }
-        }
-      }
-
-      .draft-button {
-        text-decoration: none;
-        min-width: 0px;
-      }
-
-    }
-
-
-    &:hover {
-      background: $table-row-hover-bg !important;
-      cursor: pointer;
-
-      .enter .button {
-        color: #fff;
-        background: #219d87; /* Old browsers */
-        background: -moz-linear-gradient(left, #219d87 0%, #34cc68 100%); /* FF3.6+ */
-        background: -webkit-gradient(linear, left top, right top, color-stop(0%,#219d87), color-stop(100%,#34cc68)); /* Chrome,Safari4+ */
-        background: -webkit-linear-gradient(left, #219d87 0%,#34cc68 100%); /* Chrome10+,Safari5.1+ */
-        background: -o-linear-gradient(left, #219d87 0%,#34cc68 100%); /* Opera 11.10+ */
-        background: -ms-linear-gradient(left, #219d87 0%,#34cc68 100%); /* IE10+ */
-        background: linear-gradient(to right, #219d87 0%,#34cc68 100%); /* W3C */
-        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#219d87', endColorstr='#34cc68',GradientType=1 ); /* IE6-9 */
-
-        &:hover {
-          border-color: #2dba74;
-        }
-      }
-
-      .button-multi input {
-        color: #fff;
-        background: #219d87; /* Old browsers */
-        background: -moz-linear-gradient(left, #219d87 0%, #34cc68 100%); /* FF3.6+ */
-        background: -webkit-gradient(linear, left top, right top, color-stop(0%, #219d87), color-stop(100%, #34cc68)); /* Chrome,Safari4+ */
-        background: -webkit-linear-gradient(left, #219d87 0%, #34cc68 100%); /* Chrome10+,Safari5.1+ */
-        background: -o-linear-gradient(left, #219d87 0%, #34cc68 100%); /* Opera 11.10+ */
-        background: -ms-linear-gradient(left, #219d87 0%, #34cc68 100%); /* IE10+ */
-        background: linear-gradient(to right, #219d87 0%, #34cc68 100%); /* W3C */
-        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#219d87', endColorstr='#34cc68', GradientType=1); /* IE6-9 */
-      }
     }
   }
 

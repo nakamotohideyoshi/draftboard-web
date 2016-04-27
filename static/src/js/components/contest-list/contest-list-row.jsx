@@ -25,7 +25,7 @@ const ContestListRow = React.createClass({
     highlighted: React.PropTypes.bool,
     isEntered: React.PropTypes.bool,
     lineupsInfo: React.PropTypes.object,
-    row: React.PropTypes.object.isRequired,
+    contest: React.PropTypes.object.isRequired,
     setFocusedContest: React.PropTypes.func,
   },
 
@@ -33,11 +33,23 @@ const ContestListRow = React.createClass({
   componentWillReceiveProps(nextProps) {
     // Use this semi-janky method to run a css animation on an already-redered element.
     // https://github.com/ordishs/react-animation-example
-    const newValue = nextProps.row.current_entries;
+    const newValue = nextProps.contest.current_entries;
 
-    if (this.props.row.current_entries !== newValue) {
+    if (this.props.contest.current_entries !== newValue) {
       this.flash = this.flash === 'flash1' ? 'flash2' : 'flash1';
     }
+  },
+
+
+  getLineupEntryCount(focusedLineup) {
+    if (focusedLineup &&
+        this.props.contest &&
+        this.props.lineupsInfo.hasOwnProperty(focusedLineup.id) &&
+        this.props.lineupsInfo[focusedLineup.id].contestPoolEntries.hasOwnProperty(this.props.contest.id)
+      ) {
+      return this.props.lineupsInfo[focusedLineup.id].contestPoolEntries[this.props.contest.id].entryCount;
+    }
+    return 0;
   },
 
 
@@ -47,7 +59,7 @@ const ContestListRow = React.createClass({
 
 
   handleRowClick() {
-    this.props.setFocusedContest(this.props.row);
+    this.props.setFocusedContest(this.props.contest);
   },
 
 
@@ -56,7 +68,7 @@ const ContestListRow = React.createClass({
 
   render() {
     // If it's the currently focused contest, add a class to it.
-    let classes = this.props.focusedContest.id === this.props.row.id ? 'active ' : '';
+    let classes = this.props.focusedContest.id === this.props.contest.id ? 'active ' : '';
     classes += `cmp-contest-list__row ${this.flash}`;
     if (this.props.isEntered) {
       classes += ' entered';
@@ -68,11 +80,11 @@ const ContestListRow = React.createClass({
 
     // Icons
     let guaranteedIcon;
-    if (this.props.row.gpp) {
+    if (this.props.contest.gpp) {
       guaranteedIcon = <span className="contest-icon contest-icon__guaranteed">G</span>;
     }
     let multiEntryIcon;
-    if (this.props.row.max_entries > 1) {
+    if (this.props.contest.max_entries > 1) {
       multiEntryIcon = <span className="contest-icon contest-icon__multi-entry">M</span>;
     }
 
@@ -80,39 +92,43 @@ const ContestListRow = React.createClass({
     return (
       <tr
         onClick={this.handleRowClick}
-        key={this.props.row.id}
+        key={this.props.contest.id}
         className={classes}
       >
         <td key="sport" className="sport">
-          <span className={`icon icon-${this.props.row.sport}`}></span>
+          <span className={`icon icon-${this.props.contest.sport}`}></span>
         </td>
         <td key="name" className="name">
-          {this.props.row.name} {this.props.row.sport} CONTEST POOLS HAVE NO NAMES! {guaranteedIcon}
+          {this.props.contest.name} {this.props.contest.sport} CONTEST POOLS HAVE NO NAMES! {guaranteedIcon}
         </td>
         <td key="entries" className="entries">
-          {multiEntryIcon} {this.props.row.current_entries}/{this.props.row.entries}
+          {multiEntryIcon} {this.props.contest.current_entries}/∞
         </td>
-        <td key="fee" className="fee">${this.props.row.buyin}</td>
-        <td key="prizes" className="prizes">${this.props.row.prize_pool}</td>
+        <td key="fee" className="fee">${this.props.contest.buyin}</td>
+        <td key="prizes" className="prizes">${this.props.contest.prize_pool}</td>
         <td key="start" className="start">
           <CountdownClock
-            time={this.props.row.start}
+            time={this.props.contest.start}
             timePassedDisplay="Live"
           />
         </td>
 
+        <td className="user-entries">
+          {this.getLineupEntryCount(this.props.focusedLineup)} of {this.props.contest.max_entries}
+        </td>
+
         <td className="enter">
+          <DraftButton
+            draftGroupId={this.props.contest.draft_group}
+            disableTime={this.props.contest.start}
+          />
+
           <EnterContestButton
             lineup={this.props.focusedLineup}
-            contest={this.props.row}
+            contest={this.props.contest}
             lineupsInfo={this.props.lineupsInfo}
             onEnterClick={this.props.enterContest}
             onEnterSuccess={this.close}
-          />
-
-          <DraftButton
-            draftGroupId={this.props.row.draft_group}
-            disableTime={this.props.row.start}
           />
         </td>
       </tr>

@@ -46,11 +46,11 @@ describe('<DraftNewLineupCard /> Component', () => {
 
   it('save button should not be enabled until lineupCanBeSaved is true.', () => {
     // The disabled save button should exist.
-    expect(wrapper.find('.cmp-lineup-card__save.disabled')).to.have.length(1);
+    expect(wrapper.find('.cmp-lineup-card__save.button--disabled')).to.have.length(1);
     // Set the lineup as 'saveable'.
     wrapper.setProps({ lineupCanBeSaved: true });
     // The disabled save button should be gone.
-    expect(wrapper.find('.cmp-lineup-card__save.disabled')).to.have.length(0);
+    expect(wrapper.find('.cmp-lineup-card__save.button--disabled')).to.have.length(0);
     // The enabled save button should exist.
     expect(wrapper.find('.cmp-lineup-card__save')).to.have.length(1);
   });

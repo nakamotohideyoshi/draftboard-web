@@ -241,6 +241,12 @@ const ContestListDetail = React.createClass({
                       entering: 'Entering...',
                       entered: 'Entered',
                     }}
+                    buttonClasses= {{
+                      default: 'button--med button--med-len button--gradient',
+                      contestEntered: 'button--med button--med-len button--gradient',
+                      pending: 'button--med button--med-len button--gradient',
+                      contestHasStarted: 'button--med button--med-len button--gradient',
+                    }}
                   />
                 </div>
 

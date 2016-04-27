@@ -42,7 +42,9 @@ export const focusedContestInfoSelector = createSelector(
 
       // Add 'isEntered' attribute if the focused lineup has been entered into this contest
       if (focusedLineupId && lineupsInfo.hasOwnProperty(focusedLineupId)) {
-        contestInfo.isEntered = (lineupsInfo[focusedLineupId].contests.indexOf(contestInfo.contest.id) !== -1);
+        contestInfo.isEntered = (
+          lineupsInfo[focusedLineupId].contestPoolEntries.indexOf(contestInfo.contest.id) !== -1
+        );
       }
 
       // Add the prize payout structure.

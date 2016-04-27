@@ -1,4 +1,3 @@
-import Raven from 'raven-js';
 import * as types from '../action-types.js';
 import request from 'superagent';
 import Cookies from 'js-cookie';

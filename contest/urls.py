@@ -63,8 +63,8 @@ urlpatterns = patterns( '',
     (r'^lobby/$', LobbyAPIView.as_view()),
 
     #
-    # get a logged in user's upcoming contests
-    (r'^upcoming/$', UserUpcomingContestPoolAPIView.as_view()),
+    # get a logged in user's contest pool entries.
+    (r'^contest-pools/entries/$', UserUpcomingContestPoolAPIView.as_view()),
 
     #
     # get a logged in user's live contests

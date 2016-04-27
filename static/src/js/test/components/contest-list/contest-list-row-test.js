@@ -3,6 +3,7 @@ import sinon from 'sinon';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
 import { merge as _merge } from 'lodash';
+import storeUpcomingContestsFix from '../../../fixtures/json/store-upcoming-contests.js';
 import ContestListRow from '../../../components/contest-list/contest-list-row.jsx';
 import DraftButton from '../../../components/contest-list/draft-button.jsx';
 
@@ -15,10 +16,9 @@ const defaultTestProps = {
   highlighted: false,
   isEntered: false,
   lineupsInfo: {},
-  row: {
-    id: 8,
-    name: 'player name',
-  },
+  contest: storeUpcomingContestsFix.allContests[
+    Object.keys(storeUpcomingContestsFix.allContests)[0]
+  ],
   setFocusedContest: () => true,
 };
 
@@ -53,7 +53,7 @@ describe('ContestListRow Component', () => {
     wrapper = renderComponent(props);
     wrapper.find(ContestListRow).simulate('click');
     // Expect method to be called with the row argument.
-    expect(props.setFocusedContest.calledWith(props.row)).to.equal(true);
+    expect(props.setFocusedContest.calledWith(props.contest)).to.equal(true);
     // Expect it to be called only once.
     expect(props.setFocusedContest.callCount).to.equal(1);
   });

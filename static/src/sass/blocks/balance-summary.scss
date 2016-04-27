@@ -68,23 +68,7 @@ to deposit, withdraw
   }
 
   .balance-summary--action {
-    border: 1px solid #726d8a;
-    border-radius: 2px;
-    color: #fff;
-    display: block;
-    font-family: $font-open-sans;
-    text-transform: uppercase;
-    font-size: 9px;
-    letter-spacing: 1px;
     margin: 6px 0;
-    cursor: pointer;
-    font-weight: 200;
-    text-align: center;
-    text-decoration: none;
-    -ms-touch-action: manipulation;
-    touch-action: manipulation;
-    vertical-align: middle;
-    white-space: nowrap;
-    padding: 14px 40px;
+    color: #fff;
   }
 }

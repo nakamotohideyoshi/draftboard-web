@@ -124,4 +124,4 @@ const InputDayPicker = React.createClass({
 });
 
 
-export default InputDayPicker;
+module.exports = InputDayPicker;

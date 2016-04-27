@@ -62,4 +62,4 @@ TransactionsTable.propTypes = {
   focusTransaction: React.PropTypes.func.isRequired,
 };
 
-export default TransactionsTable;
+module.exports = TransactionsTable;
