@@ -16,7 +16,7 @@ function archiveEntries(newState) {
   _forEach(newState, (entry, taskId) => {
     // If the status is failure or timeout, move the task into the history.
     if (entry.hasOwnProperty('status')) {
-      if (entry.status === 'FAILURE' || entry.status === 'POLLING_TIMEOUT') {
+      if (entry.status === 'FAILURE' || entry.status === 'POLLING_TIMEOUT' || entry.status === 'SUCCESS') {
         log.debug('Moving task to history', entry);
         archivedState.history[taskId] = _merge({}, entry);
       } else {

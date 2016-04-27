@@ -30,7 +30,7 @@ export function fetchContestPoolEntries() {
 
     return new Promise((resolve, reject) => {
       request
-      .get('/api/contest/upcoming/')
+      .get('/api/contest/contest-pools/entries/')
       .set({
         'X-REQUESTED-WITH': 'XMLHttpRequest',
         'X-CSRFToken': Cookies.get('csrftoken'),

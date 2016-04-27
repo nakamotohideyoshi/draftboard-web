@@ -46,7 +46,7 @@ const CreditcardForm = React.createClass({
             <input className="form-field__text-input" type="text" name="CCcvc" id="CCcvc" />
           </div>
 
-          <input type="submit" className="button--medium" value="ADD CARD" />
+          <input type="submit" className="button button--flat-alt1" value="ADD CARD" />
         </form>
 
       </ReactCardFormContainer>
