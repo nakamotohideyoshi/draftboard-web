@@ -16,7 +16,9 @@ from util.slack import Webhook
 
 class FeedTestWebhook(Webhook):
 
-    identifier = 'T03UVUNP8/B0K6GUFE3/CNop5c62QB6LFTNOmccnHCzT'
+    # https://hooks.slack.com/services/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
+    #identifier = 'T03UVUNP8/B0K6GUFE3/CNop5c62QB6LFTNOmccnHCzT' # #scheduler-logs
+    identifier = 'T03UVUNP8/B141P6N2C/9TMse3utYJSqICg1iXdcaOPZ'
 
 class FeedTest(object):
 
@@ -47,8 +49,13 @@ class FeedTest(object):
         print('%s iterations' % str(iterations))
         i = 1
         while i <= iterations:
-            self.et = self.download()
-            self.parse(self.et)
+            try:
+                self.et = self.download()
+                self.parse(self.et)
+            except Exception as e:
+                print(str(e))
+                pass
+
             if i % 10 == 0:
                 print('%s of %s' % (str(i), str(iterations)))
             time.sleep(float(float(delay_ms)/float(1000.0))) # divide millis by 1000 to get values in seconds

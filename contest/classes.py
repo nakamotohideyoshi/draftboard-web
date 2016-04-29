@@ -861,6 +861,8 @@ class ContestPoolFiller(object):
         # 1. create a contest for the entries
         cpm = ContestPoolManager(self.contest_pool)
         contest = cpm.new_contest()
+        contest.draft_group = self.contest_pool.draft_group
+        contest.save()
 
         # 2. enter them into the contest
         for user_id in entry_list:
