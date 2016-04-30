@@ -6,6 +6,7 @@ import { addMessage } from '../../actions/message-actions.js';
 import * as entryRequestActions from '../../actions/entry-request-actions.js';
 import { fetchContestPoolEntries } from '../../actions/contest-pool-actions.js';
 import { fetchCashBalanceIfNeeded } from '../../actions/user.js';
+import { fetchUpcomingContests } from '../../actions/upcoming-contests-actions.js';
 
 
 /**
@@ -121,6 +122,8 @@ export function fetch(taskId) {
         store.dispatch(fetchCashBalanceIfNeeded());
         // Fetch the user's current contest pool entries which will force the UI to update.
         store.dispatch(fetchContestPoolEntries());
+        // Re-Fetch the contest list that will have an updated current_entries count.
+        store.dispatch(fetchUpcomingContests());
         // Display a success message to the user.
         store.dispatch(addMessage({
           level: 'success',

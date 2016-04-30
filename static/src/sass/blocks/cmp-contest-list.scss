@@ -25,12 +25,17 @@ $table-row-hover-bg: #f9fafb;
     }
 
     .enter {
+      min-width: 210px;
       cursor: default;
     }
   }
 
   .sport {
     width: 40px;
+  }
+
+  .start {
+    min-width: 85px;
   }
 
   .icon-mlb,

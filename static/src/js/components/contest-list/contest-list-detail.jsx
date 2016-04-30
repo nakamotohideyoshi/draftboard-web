@@ -1,10 +1,12 @@
 import React from 'react';
 import { Provider, connect } from 'react-redux';
 import store from '../../store';
+import log from '../../lib/logging.js';
 import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx';
 import GamesList from './games-list.jsx';
 import EntrantList from './entrant-list.jsx';
+import EntryList from './entry-list.jsx';
 import EnterContestButton from './enter-contest-button.jsx';
 import { enterContest, setFocusedContest, fetchContestEntrantsIfNeeded }
   from '../../actions/upcoming-contests-actions.js';
@@ -127,7 +129,7 @@ const ContestListDetail = React.createClass({
       case 'prizes':
         return (<PrizeStructure structure={this.props.contestInfo.prizeStructure} />);
 
-      case 'games':
+      case 'games': {
         if (this.props.contestInfo.boxScores) {
           return (
             <GamesList
@@ -138,14 +140,37 @@ const ContestListDetail = React.createClass({
         }
 
         return 'No boxscore info';
+      }
 
-      case 'participants':
+      case 'participants': {
         return (
           <EntrantList entrants={this.props.contestInfo.entrants} />
         );
+      }
 
-      default:
+      case 'entries': {
+        let contestPoolEntryCount = 0;
+
+        if (
+            this.props.contestInfo && this.props.focusedLineup &&
+            this.props.focusedLineup.contestPoolEntries &&
+            this.props.focusedLineup.contestPoolEntries[this.props.focusedContestId]
+          ) {
+          contestPoolEntryCount = this.props.focusedLineup.contestPoolEntries[this.props.focusedContestId].entryCount;
+        }
+
+        return (
+          <EntryList
+            entryCount={contestPoolEntryCount}
+            contestPoolInfo={this.props.contestInfo}
+            removeContestPoolEntry={this.removeContestPoolEntry}
+          />
+        );
+      }
+
+      default: {
         return ('Select a tab');
+      }
     }
   },
 
@@ -266,6 +291,11 @@ const ContestListDetail = React.createClass({
     return (
       <div>Select a Contest</div>
     );
+  },
+
+
+  removeContestPoolEntry() {
+    log.info('removeContestPoolEntry');
   },
 
 

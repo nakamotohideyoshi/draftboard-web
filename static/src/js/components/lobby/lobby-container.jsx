@@ -68,8 +68,12 @@ function mapDispatchToProps(dispatch) {
     fetchUpcomingContests: () => dispatch(fetchUpcomingContests()),
     fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
-    updateFilter: (filterName, filterProperty, match) => dispatch(updateFilter(filterName, filterProperty, match)),
-    updateOrderByFilter: (property, direction) => dispatch(updateOrderByFilter(property, direction)),
+    updateFilter: (filterName, filterProperty, match) => dispatch(
+      updateFilter(filterName, filterProperty, match)
+    ),
+    updateOrderByFilter: (property, direction) => dispatch(
+      updateOrderByFilter(property, direction)
+    ),
     routerPush: (path) => dispatch(routerPush(path)),
     addMessage: (options) => dispatch(addMessage(options)),
     upcomingContestUpdateReceived: (contest) => dispatch(upcomingContestUpdateReceived(contest)),

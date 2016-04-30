@@ -114,7 +114,7 @@ const ContestListRow = React.createClass({
         </td>
 
         <td className="user-entries">
-          {this.getLineupEntryCount(this.props.focusedLineup)} of {this.props.contest.max_entries}
+          {this.props.contest.current_entries} of {this.props.contest.max_entries}
         </td>
 
         <td className="enter">
