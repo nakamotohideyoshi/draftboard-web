@@ -6,7 +6,7 @@ from django.conf.urls import url
 from contest.views import (
     LobbyAPIView,
     AllLineupsView,
-    #UserUpcomingAPIView,
+    # UserUpcomingAPIView,
     UserUpcomingContestPoolAPIView,
     UserLiveAPIView,
     UserHistoryAPIView,
@@ -27,8 +27,8 @@ from contest.views import (
 )
 from contest.views import ContestCreate, ContestUpdate
 
-urlpatterns = patterns( '',
-
+urlpatterns = patterns(
+    '',
     url(r'^add/$', ContestCreate.as_view(), name='contest_add'),
 
     url(r'^(?P<pk>[0-9]+)/$', ContestUpdate.as_view(), name='contest-detail'),
@@ -89,7 +89,7 @@ urlpatterns = patterns( '',
     # get a users Entry history. For each lineup returned
     # has some contest information, and final rank. plus overall stats for the day.
     (r'^play-history/(?P<year>[0-9]+)/(?P<month>[0-9]+)/(?P<day>[0-9]+)/$',
-                                                UserPlayHistoryAPIView.as_view()),
+        UserPlayHistoryAPIView.as_view()),
 
     #
     # get the usernames for all users who have lineups in the contest
@@ -104,8 +104,9 @@ urlpatterns = patterns( '',
     (r'^final-ranks/(?P<contest_id>[0-9]+)/$', ContestRanksAPIView.as_view()),
 
     #
-    # remove a contest Entry, and refund the user
+    # Request to remove a contest pool Entry, and refund the user
     (r'^unregister-entry/(?P<entry_id>[0-9]+)/$', RemoveAndRefundEntryAPIView.as_view()),
-    (r'^unregister-entry-status/(?P<task_id>[a-z0-9-]+)/$', RemoveAndRefundEntryStatusAPIView.as_view()),
-
+    # Check the status of an unregister request.
+    (r'^unregister-entry-status/(?P<task_id>[a-z0-9-]+)/$',
+        RemoveAndRefundEntryStatusAPIView.as_view()),
 )
