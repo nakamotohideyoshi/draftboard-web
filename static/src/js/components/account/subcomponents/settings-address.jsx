@@ -233,7 +233,7 @@ const SettingsAddress = React.createClass({
         {this.renderErrors(this.props.errors.zipcode)}
         </div>
 
-        <input type="submit" className="button--medium" value="Save" />
+        <input type="submit" className="button button--flat-alt1" value="Save" />
       </form>
     );
   },
@@ -249,4 +249,4 @@ const SettingsAddress = React.createClass({
 });
 
 
-export default SettingsAddress;
+module.exports = SettingsAddress;

@@ -14,19 +14,22 @@ const LiveContestsPane = React.createClass({
   propTypes: {
     changePathAndMode: React.PropTypes.func.isRequired,
     lineup: React.PropTypes.object.isRequired,
-    mode: React.PropTypes.object.isRequired,
+    openOnStart: React.PropTypes.bool.isRequired,
+    watching: React.PropTypes.object.isRequired,
   },
 
   componentWillMount() {
-    AppActions.addClass('appstate--live-contests-pane--open');
+    if (this.props.openOnStart) {
+      AppActions.addClass('appstate--live-contests-pane--open');
+    }
   },
 
   viewContest(contestId) {
-    const mode = this.props.mode;
-    const path = `/live/${mode.sport}/lineups/${mode.myLineupId}/contests/${contestId}/`;
+    const watching = this.props.watching;
+    const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/contests/${contestId}/`;
     const changedFields = {
-      draftGroupId: mode.draftGroupId,
-      myLineupId: mode.myLineupId,
+      draftGroupId: watching.draftGroupId,
+      myLineupId: watching.myLineupId,
       contestId,
     };
 
@@ -52,8 +55,8 @@ const LiveContestsPane = React.createClass({
 
   render() {
     const { lineup } = this.props;
-    const fees = lineup.totalFees;
-    const winnings = lineup.totalPotentialEarnings;
+    const fees = lineup.totalBuyin;
+    const winnings = lineup.potentialWinnings;
 
     return (
       <div className="live-contests-pane live-pane live-pane--right">

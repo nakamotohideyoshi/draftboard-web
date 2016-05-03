@@ -395,31 +395,31 @@ const DraftPlayerDetail = React.createClass({
               <li>
                 <div className="stat-name">PPG</div>
                 <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_points, 1)}
+                  {roundUpToDecimalPlace(player.boxScoreHistory.points, 1)}
                 </div>
               </li>
               <li>
                 <div className="stat-name">RPG</div>
                 <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_rebounds, 1)}
+                  {roundUpToDecimalPlace(player.boxScoreHistory.rebounds, 1)}
                 </div>
               </li>
               <li>
                 <div className="stat-name">APG</div>
                 <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_assists, 1)}
+                  {roundUpToDecimalPlace(player.boxScoreHistory.assists, 1)}
                 </div>
               </li>
               <li>
                 <div className="stat-name">STLPG</div>
                 <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_steals, 1)}
+                  {roundUpToDecimalPlace(player.boxScoreHistory.steals, 1)}
                 </div>
               </li>
               <li>
                 <div className="stat-name">TO</div>
                 <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_turnovers, 1)}
+                  {roundUpToDecimalPlace(player.boxScoreHistory.turnovers, 1)}
                 </div>
               </li>
               <li>
@@ -441,25 +441,25 @@ const DraftPlayerDetail = React.createClass({
                 <li>
                   <div className="stat-name">S</div>
                   <div className="stat-score">
-                    {roundUpToDecimalPlace(player.boxScoreHistory.avg_saves, 1)}
+                    {roundUpToDecimalPlace(player.boxScoreHistory.saves, 1)}
                   </div>
                 </li>
                 <li>
                   <div className="stat-name">A</div>
                   <div className="stat-score">
-                    {roundUpToDecimalPlace(player.boxScoreHistory.avg_assist, 1)}
+                    {roundUpToDecimalPlace(player.boxScoreHistory.assist, 1)}
                   </div>
                 </li>
                 <li>
                   <div className="stat-name">SOG</div>
                   <div className="stat-score">
-                    {roundUpToDecimalPlace(player.boxScoreHistory.avg_sog, 1)}
+                    {roundUpToDecimalPlace(player.boxScoreHistory.sog, 1)}
                   </div>
                 </li>
                 <li>
                   <div className="stat-name">FPPG</div>
                   <div className="stat-score">
-                    {roundUpToDecimalPlace(player.boxScoreHistory.avg_fp, 1)}
+                    {roundUpToDecimalPlace(player.boxScoreHistory.fp, 1)}
                   </div>
                 </li>
               </ul>
@@ -473,31 +473,31 @@ const DraftPlayerDetail = React.createClass({
               <li>
                 <div className="stat-name">G</div>
                 <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_goal, 1)}
+                  {roundUpToDecimalPlace(player.boxScoreHistory.goal, 1)}
                 </div>
               </li>
               <li>
                 <div className="stat-name">A</div>
                 <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_assist, 1)}
+                  {roundUpToDecimalPlace(player.boxScoreHistory.assist, 1)}
                 </div>
               </li>
               <li>
                 <div className="stat-name">BLK</div>
                 <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_blk, 1)}
+                  {roundUpToDecimalPlace(player.boxScoreHistory.blk, 1)}
                 </div>
               </li>
               <li>
                 <div className="stat-name">SOG</div>
                 <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_sog, 1)}
+                  {roundUpToDecimalPlace(player.boxScoreHistory.sog, 1)}
                 </div>
               </li>
               <li>
                 <div className="stat-name">FPPG</div>
                 <div className="stat-score">
-                  {roundUpToDecimalPlace(player.boxScoreHistory.avg_fp, 1)}
+                  {roundUpToDecimalPlace(player.boxScoreHistory.fp, 1)}
                 </div>
               </li>
             </ul>

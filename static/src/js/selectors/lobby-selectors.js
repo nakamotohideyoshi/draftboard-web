@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { upcomingLineupsInfo } from './upcoming-lineups-info.js';
-import { sortBy as _sortBy } from 'lodash';
+import sortBy from 'lodash/sortBy';
+import filter from 'lodash/filter';
 
 
 /**
@@ -15,7 +16,10 @@ export const focusedContestInfoSelector = createSelector(
   (state) => state.prizes,
   (state) => state.upcomingContests.entrants,
   (state) => upcomingLineupsInfo(state),
-  (upcomingContests, focusedContestId, focusedLineupId, boxScores, prizes, entrants, lineupsInfo) => {
+  (state) => state.contestPoolEntries.entries,
+  (upcomingContests, focusedContestId, focusedLineupId, boxScores, prizes, entrants, lineupsInfo,
+    contestPoolEntries
+  ) => {
     // Default return data.
     const contestInfo = {
       contest: {
@@ -24,6 +28,7 @@ export const focusedContestInfoSelector = createSelector(
       prizeStructure: {},
       entrants: [],
       isEntered: false,
+      entries: [],
     };
 
     // Add additional info if available.
@@ -42,7 +47,17 @@ export const focusedContestInfoSelector = createSelector(
 
       // Add 'isEntered' attribute if the focused lineup has been entered into this contest
       if (focusedLineupId && lineupsInfo.hasOwnProperty(focusedLineupId)) {
-        contestInfo.isEntered = (lineupsInfo[focusedLineupId].contests.indexOf(contestInfo.contest.id) !== -1);
+        contestInfo.isEntered = (
+          lineupsInfo[focusedLineupId].contestPoolEntries.indexOf(contestInfo.contest.id) !== -1
+        );
+      }
+
+      // Add contestPool entries for the current lineup.
+      if (focusedLineupId && contestPoolEntries) {
+        contestInfo.entries = filter(contestPoolEntries, (entry) =>
+           entry.contest_pool.toString() === focusedContestId.toString()
+          && entry.lineup.toString() === focusedLineupId.toString()
+        );
       }
 
       // Add the prize payout structure.
@@ -75,7 +90,7 @@ export const focusedLineupSelector = createSelector(
 export const highestContestBuyin = createSelector(
   (state) => state.upcomingContests.allContests,
   (contests) => {
-    const sortedContests = _sortBy(contests, ['buyin']);
+    const sortedContests = sortBy(contests, ['buyin']);
 
     if (sortedContests.length) {
       return parseFloat(sortedContests[0].buyin);

@@ -2,14 +2,17 @@ import * as ReactRedux from 'react-redux';
 import log from '../../lib/logging';
 import Pusher from 'pusher-js';
 import React from 'react';
-import { addEventAndStartQueue } from '../../actions/pusher-live';
+import { addEventAndStartQueue } from '../../actions/events';
 import { fetchSportIfNeeded } from '../../actions/sports';
 import { intersection as _intersection } from 'lodash';
-import { liveSelector } from '../../selectors/live';
+import { watchingMyLineupSelector, relevantGamesPlayersSelector } from '../../selectors/watching';
 import { forEach as _forEach } from 'lodash';
 import { map as _map } from 'lodash';
+import { merge as _merge } from 'lodash';
 import { sportsSelector } from '../../selectors/sports';
 import { updatePlayerStats } from '../../actions/live-draft-groups';
+import { entriesHaveRelatedInfoSelector } from '../../selectors/entries';
+import { watchingDraftGroupTimingSelector } from '../../selectors/watching';
 
 
 /*
@@ -18,7 +21,11 @@ import { updatePlayerStats } from '../../actions/live-draft-groups';
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  liveSelector: liveSelector(state),
+  draftGroupTiming: watchingDraftGroupTimingSelector(state),
+  hasRelatedInfo: entriesHaveRelatedInfoSelector(state),
+  relevantGamesPlayers: relevantGamesPlayersSelector(state),
+  myLineup: watchingMyLineupSelector(state),
+  watching: state.watching,
   sportsSelector: sportsSelector(state),
 });
 
@@ -29,7 +36,11 @@ const PusherData = React.createClass({
 
   propTypes: {
     dispatch: React.PropTypes.func.isRequired,
-    liveSelector: React.PropTypes.object.isRequired,
+    draftGroupTiming: React.PropTypes.object.isRequired,
+    hasRelatedInfo: React.PropTypes.bool.isRequired,
+    relevantGamesPlayers: React.PropTypes.object.isRequired,
+    myLineup: React.PropTypes.object.isRequired,
+    watching: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
     sportsSelector: React.PropTypes.object.isRequired,
   },
@@ -64,12 +75,12 @@ const PusherData = React.createClass({
    * @return {[type]}           [description]
    */
   componentDidUpdate(prevProps) {
-    let oldSports = prevProps.liveSelector.mode.sport || [];
+    let oldSports = prevProps.watching.sport || [];
     if (typeof oldSports === 'string') {
       oldSports = [oldSports];
     }
 
-    let newSports = this.props.liveSelector.mode.sport || [];
+    let newSports = this.props.watching.sport || [];
     if (typeof newSports === 'string') {
       newSports = [newSports];
     }
@@ -107,7 +118,13 @@ const PusherData = React.createClass({
       return;
     }
 
-    addEventAndStartQueue(eventCall.id, eventCall, 'boxscore-game');
+    // determine sports
+    let sport = 'nba';
+    if (eventCall.hasOwnProperty('outcome__list')) {
+      sport = 'mlb';
+    }
+
+    addEventAndStartQueue(eventCall.id, eventCall, 'boxscore-game', sport);
   },
 
   /*
@@ -130,7 +147,7 @@ const PusherData = React.createClass({
       return;
     }
 
-    addEventAndStartQueue(eventCall.game__id, eventCall, 'boxscore-team');
+    addEventAndStartQueue(eventCall.game__id, eventCall, 'boxscore-team', 'nba');
   },
 
   /*
@@ -138,7 +155,7 @@ const PusherData = React.createClass({
    *
    * @param  {object} eventCall The received event from Pusher
    */
-  onPBPReceived(eventCall) {
+  onPBPReceived(eventCall, sport) {
     log.trace('Live.onPBPReceived()');
 
     const isLinked = eventCall.hasOwnProperty('pbp');
@@ -150,20 +167,40 @@ const PusherData = React.createClass({
       return;
     }
 
-    // if this is not a statistical based call or has no location to animate, ignore
-    if (eventData.hasOwnProperty('statistics__list') === false ||
-        eventData.hasOwnProperty('location__list') === false
-      ) {
-      log.debug('Live.onPBPReceived() - had no statistics__list', eventCall);
-      return;
+    let eventPlayers;
+    const relevantPlayers = this.props.relevantGamesPlayers.relevantItems.players;
+
+    switch (sport) {
+      case 'mlb':
+        eventPlayers = [
+          eventData.pitcher,
+          eventData.at_bat__id,
+        ];
+        break;
+      case 'nba':
+      default:
+        // if this is not a statistical based call or has no location to animate, ignore
+        if (eventData.hasOwnProperty('statistics__list') === false ||
+            eventData.hasOwnProperty('location__list') === false
+          ) {
+          log.debug('Live.onPBPReceived() - had no statistics__list', eventCall);
+          return;
+        }
+
+        eventPlayers = _map(eventData.statistics__list, event => event.player);
     }
 
-    const relevantPlayers = this.props.liveSelector.relevantPlayers;
-    const eventPlayers = _map(eventData.statistics__list, event => event.player);
+    // make sure to add eventPlayers as its own entity on the call
+    const eventWithExtraData = _merge(eventCall, {
+      addedData: {
+        eventPlayers,
+        sport,
+      },
+    });
 
     // only add to the queue if we care about the player(s)
     if (_intersection(relevantPlayers, eventPlayers).length > 0) {
-      addEventAndStartQueue(gameId, eventCall, 'pbp');
+      addEventAndStartQueue(gameId, eventWithExtraData, 'pbp', sport);
     }
   },
 
@@ -172,8 +209,9 @@ const PusherData = React.createClass({
    * method to be parsed
    *
    * @param  {object} eventCall The received event from Pusher
+   * @param  {string} sport     The player's sport, used to parse in actions
    */
-  onStatsReceived(eventCall) {
+  onStatsReceived(eventCall, sport) {
     log.trace('Live.onStatsReceived()');
     const gameId = eventCall.fields.srid_game;
 
@@ -183,17 +221,17 @@ const PusherData = React.createClass({
     }
 
     // if it's not a relevant game to the live section, then just update the player's FP to update the NavScoreboard
-    if (this.props.liveSelector.relevantGames.indexOf(gameId) !== -1) {
+    if (this.props.relevantGamesPlayers.relevantItems.games.indexOf(gameId) !== -1) {
       // otherwise just update the player's FP
       this.props.dispatch(updatePlayerStats(
         eventCall.fields.player_id,
         eventCall,
-        this.props.liveSelector.lineups.mine.draftGroup.id
+        this.props.myLineup.draftGroup.id
       ));
       return;
     }
 
-    addEventAndStartQueue(gameId, eventCall, 'stats');
+    addEventAndStartQueue(gameId, eventCall, 'stats', sport);
   },
 
   /*
@@ -213,11 +251,11 @@ const PusherData = React.createClass({
 
     _forEach(newSports, (sport) => {
       const pbpChannel = pusher.subscribe(`${channelPrefix}${sport}_pbp`);
-      pbpChannel.bind('event', this.onPBPReceived);
-      pbpChannel.bind('linked', this.onPBPReceived);
+      pbpChannel.bind('event', (eventCall) => this.onPBPReceived(eventCall, sport));
+      pbpChannel.bind('linked', (eventCall) => this.onPBPReceived(eventCall, sport));
 
       const statsChannel = pusher.subscribe(`${channelPrefix}${sport}_stats`);
-      statsChannel.bind('player', this.onStatsReceived);
+      statsChannel.bind('player', (eventCall) => this.onStatsReceived(eventCall, sport));
     });
   },
 
@@ -249,12 +287,12 @@ const PusherData = React.createClass({
    */
   isPusherEventRelevant(eventCall, gameId) {
     // for now, only use calls once data is loaded
-    if (this.props.liveSelector.hasRelatedInfo === false) {
+    if (this.props.hasRelatedInfo === false) {
       log.trace('Live.isPusherEventRelevant() - hasRelatedInfo === false', eventCall);
       return false;
     }
 
-    if (this.props.liveSelector.draftGroupStarted === false) {
+    if (this.props.draftGroupTiming.started === false) {
       log.trace('Live.isPusherEventRelevant() - in countdown mode', eventCall);
       return false;
     }
@@ -272,7 +310,7 @@ const PusherData = React.createClass({
       log.trace('Live.isPusherEventRelevant() - related game had no boxscore from server', eventCall);
 
       // by passing in a sport, you force
-      this.props.dispatch(fetchSportIfNeeded(this.props.liveSelector.mode.sport, true));
+      this.props.dispatch(fetchSportIfNeeded(this.props.watching.sport, true));
       return false;
     }
 

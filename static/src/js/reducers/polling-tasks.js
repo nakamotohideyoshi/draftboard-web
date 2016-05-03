@@ -16,7 +16,7 @@ function archiveEntries(newState) {
   _forEach(newState, (entry, taskId) => {
     // If the status is failure or timeout, move the task into the history.
     if (entry.hasOwnProperty('status')) {
-      if (entry.status === 'FAILURE' || entry.status === 'POLLING_TIMEOUT') {
+      if (entry.status === 'FAILURE' || entry.status === 'POLLING_TIMEOUT' || entry.status === 'SUCCESS') {
         log.debug('Moving task to history', entry);
         archivedState.history[taskId] = _merge({}, entry);
       } else {
@@ -40,6 +40,7 @@ module.exports = (state = initialState, action) => {
 
   switch (action.type) {
 
+    case ActionTypes.ADD_UNREGISTER_REQUEST_MONITOR:
     case ActionTypes.ADD_ENTRY_REQUEST_MONITOR:
 
       // Find and delete any existing entryRequests for the same lineup+contest.
@@ -66,6 +67,7 @@ module.exports = (state = initialState, action) => {
       return archiveEntries(stateCopy);
 
 
+    case ActionTypes.FETCHING_UNREGISTER_REQUEST_STATUS:
     case ActionTypes.FETCHING_ENTRY_REQUEST_STATUS: {
       // Add 1 to the attempt count
       let attemptCount = parseInt(stateCopy[action.taskId].attempt, 10) + 1;
@@ -82,6 +84,7 @@ module.exports = (state = initialState, action) => {
     }
 
 
+    case ActionTypes.UNREGISTER_REQUEST_RECIEVED:
     case ActionTypes.ENTRY_REQUEST_RECIEVED:
       // Update the status and merge states
       stateCopy[action.taskId].status = action.status;

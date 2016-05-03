@@ -1,5 +1,5 @@
 import React from 'react';
-
+import size from 'lodash/size';
 import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-progress-bar';
 
 
@@ -9,9 +9,10 @@ import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-pr
 const LiveOverallStats = React.createClass({
 
   propTypes: {
-    whichSide: React.PropTypes.string.isRequired,
+    contest: React.PropTypes.object.isRequired,
     hasContest: React.PropTypes.bool.isRequired,
     lineup: React.PropTypes.object.isRequired,
+    whichSide: React.PropTypes.string.isRequired,
   },
 
   renderOverallPMR() {
@@ -31,7 +32,7 @@ const LiveOverallStats = React.createClass({
     }
 
     const strokeWidth = 2;
-    const decimalDone = 1 - lineup.decimalRemaining;
+    const decimalDone = 1 - lineup.timeRemaining.decimal;
     const backgroundHex = '#0c0e16';
     const svgWidth = 280;
 
@@ -154,19 +155,21 @@ const LiveOverallStats = React.createClass({
   render() {
     const lineup = this.props.lineup;
 
-    let potentialEarnings = 0;
-    if (this.props.hasContest === false) {
-      potentialEarnings = lineup.totalPotentialEarnings || 0;
+    if (size(lineup) === 0) return (<div />);
+
+    let potentialWinnings = 0;
+    if (this.props.hasContest === true) {
+      potentialWinnings = this.props.contest.potentialWinnings.amount || 0;
     } else {
-      potentialEarnings = lineup.potentialEarnings || 0;
+      potentialWinnings = lineup.potentialWinnings.amount || 0;
     }
 
     if (lineup.id === 1) {
-      potentialEarnings = 'N/A';
-    } else if (potentialEarnings === 0) {
-      potentialEarnings = `$${potentialEarnings}`;
+      potentialWinnings = 'N/A';
+    } else if (potentialWinnings === 0) {
+      potentialWinnings = `$${potentialWinnings}`;
     } else {
-      potentialEarnings = `$${potentialEarnings.toFixed(2)}`;
+      potentialWinnings = `$${potentialWinnings.toFixed(2)}`;
     }
 
     return (
@@ -179,11 +182,11 @@ const LiveOverallStats = React.createClass({
             <div className="live-overview__help">
               Points
             </div>
-            <h4 className="live-overview__quantity">{ lineup.points }</h4>
+            <h4 className="live-overview__quantity">{ lineup.fp }</h4>
           </div>
-          <div className="live-overview__potential-earnings">{ potentialEarnings }</div>
+          <div className="live-overview__potential-earnings">{ potentialWinnings }</div>
           <div className="live-overview__pmr">
-            <div className="live-overview__pmr__quantity">{ lineup.durationRemaining }</div>
+            <div className="live-overview__pmr__quantity">{ lineup.timeRemaining.duration }</div>
             <div className="live-overview__pmr__title">PMR</div>
           </div>
         </section>

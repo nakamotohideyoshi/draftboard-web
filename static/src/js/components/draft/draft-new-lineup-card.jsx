@@ -2,7 +2,7 @@ import React from 'react';
 import Tooltip from '../site/tooltip.jsx';
 import DraftNewLineupCardTitle from './draft-new-lineup-card-title.jsx';
 import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 
 const defaultLineupTitle = 'New Lineup';
 
@@ -73,7 +73,7 @@ const DraftNewLineupCard = React.createClass({
 
 
   renderErrors(errors) {
-    return _forEach(errors, (error) => <span>{error}</span>);
+    return forEach(errors, (error) => <span>{error}</span>);
   },
 
 
@@ -81,7 +81,7 @@ const DraftNewLineupCard = React.createClass({
     if (this.props.lineupCanBeSaved) {
       return (
         <span
-          className="cmp-lineup-card__save button--mini--outline button--gradient-outline"
+          className="cmp-lineup-card__save button button--outline buttom--sm"
           onClick={this.saveLineup}
         >
           Save
@@ -91,7 +91,7 @@ const DraftNewLineupCard = React.createClass({
 
     return (
       <span
-        className="cmp-lineup-card__save button--mini--outline button--gradient-outline disabled"
+        className="cmp-lineup-card__save button button--outline buttom--sm button--disabled"
         title="This lineup is incomplete."
       >
         Save

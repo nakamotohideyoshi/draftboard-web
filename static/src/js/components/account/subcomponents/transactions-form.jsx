@@ -122,7 +122,7 @@ const TransactionsForm = React.createClass({
 
           <input
             type="submit"
-            className="button--medium pull-right"
+            className="button button--flat-alt1 button--sm pull-right"
             value="Export"
           />
         </fieldset>
@@ -132,4 +132,4 @@ const TransactionsForm = React.createClass({
 });
 
 
-export default TransactionsForm;
+module.exports = TransactionsForm;

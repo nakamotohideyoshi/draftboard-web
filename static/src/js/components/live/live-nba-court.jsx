@@ -27,7 +27,6 @@ const LiveNBACourt = (props) => {
 
 LiveNBACourt.propTypes = {
   animationEvents: React.PropTypes.object.isRequired,
-  liveSelector: React.PropTypes.object.isRequired,
 };
 
 export default LiveNBACourt;

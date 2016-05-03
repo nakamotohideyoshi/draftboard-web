@@ -82,8 +82,3 @@ def unregister_entry_task(self, entry):
             release_lock()
     else:
         self.retry(countdown=1, max_retries=20)
-
-
-
-
-

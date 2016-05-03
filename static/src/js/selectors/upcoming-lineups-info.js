@@ -33,10 +33,11 @@ export const upcomingLineupsInfo = createSelector(
   (state) => state.upcomingLineups.lineups,
   (state) => state.contestPoolEntries.entries,
   (state) => state.upcomingContests.allContests,
-  (state) => state.entryRequests,
+  (state) => state.pollingTasks,
   (lineups, entries, contests, entryRequests) => {
     const info = {};
     const feeMap = {};
+    // The contest pools the lineup is entered into
     const contestMap = {};
     const lineupEntryRequestMap = {};
 
@@ -61,18 +62,28 @@ export const upcomingLineupsInfo = createSelector(
       // Find all entries for the lineup.
       const lineupEntries = _filter(entries, (entry) => entry.lineup === lineup.id);
       let lineupFeeTotal = 0;
-      const lineupContests = [];
+      const lineupContestPools = [];
 
       // for each entry, look up the contest it's entered into, then add up the fees.
       _forEach(lineupEntries, (lineupEntry) => {
         if (contests.hasOwnProperty(lineupEntry.contest_pool)) {
           lineupFeeTotal = lineupFeeTotal + contests[lineupEntry.contest_pool].buyin;
-          lineupContests.push(contests[lineupEntry.contest_pool].id);
+          // Take a tally to count up all of the contest pool entries this lineup has.
+          let currentEntryCount = 0;
+          if (
+            lineupContestPools[contests[lineupEntry.contest_pool].id] &&
+            lineupContestPools[contests[lineupEntry.contest_pool].id].hasOwnProperty('entryCount')
+          ) {
+            currentEntryCount = lineupContestPools[contests[lineupEntry.contest_pool].id].entryCount;
+          }
+          lineupContestPools[contests[lineupEntry.contest_pool].id] = {
+            entryCount: currentEntryCount + 1,
+          };
         }
       });
       // Add it to our feeMap + contesetMap
       feeMap[lineup.id] = lineupFeeTotal;
-      contestMap[lineup.id] = lineupContests;
+      contestMap[lineup.id] = lineupContestPools;
     });
 
     // Add each lineup entry to the final info object
@@ -84,7 +95,7 @@ export const upcomingLineupsInfo = createSelector(
         sport: lineup.sport,
         name: lineup.name,
         entries: entryMap[lineup.id] || 0,
-        contests: contestMap[lineup.id],
+        contestPoolEntries: contestMap[lineup.id],
         fees: feeMap[lineup.id],
         entryRequests: lineupEntryRequestMap[lineup.id] || {},
       };
