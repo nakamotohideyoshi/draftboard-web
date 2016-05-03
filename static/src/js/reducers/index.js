@@ -7,7 +7,7 @@ const currentDraftGroups = require('./current-draft-groups');
 const currentLineups = require('./current-lineups');
 const draftGroupPlayers = require('./draft-group-players');
 const entries = require('./entries');
-const entryRequests = require('./entry-request.js');
+
 const fantasyHistory = require('./fantasy-history.js');
 const featuredContests = require('./featured-contests.js');
 const injuries = require('./injuries.js');
@@ -21,6 +21,7 @@ const messages = require('./messages.js');
 const payments = require('./payments');
 const playerBoxScoreHistory = require('./player-box-score-history.js');
 const playerNews = require('./player-news.js');
+const pollingTasks = require('./polling-tasks.js');
 const prizes = require('./prizes');
 const pusherLive = require('./pusher-live');
 const results = require('./results');
@@ -43,7 +44,6 @@ export default combineReducers({
   currentLineups,
   draftGroupPlayers,
   entries,
-  entryRequests,
   fantasyHistory,
   featuredContests,
   injuries,
@@ -56,6 +56,7 @@ export default combineReducers({
   payments,
   playerNews,
   playerBoxScoreHistory,
+  pollingTasks,
   prizes,
   pusherLive,
   results,

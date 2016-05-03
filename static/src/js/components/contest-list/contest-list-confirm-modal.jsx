@@ -59,6 +59,7 @@ const ContestListConfirmModal = React.createClass({
     }
     // confirm entry via the provided function.
     this.props.confirmEntry(this.props.contest.id);
+    this.close();
   },
 
 
@@ -115,6 +116,12 @@ const ContestListConfirmModal = React.createClass({
                   lineupsInfo={this.props.lineupsInfo}
                   onEnterClick={this.handleConfirmEntry}
                   onEnterSuccess={this.close}
+                  buttonClasses= {{
+                    default: 'button--med button--lrg-len button--flat',
+                    contestEntered: 'button--med button--lrg-len button--flat',
+                    pending: 'button--med button--lrg-len button--flat',
+                    contestHasStarted: 'button--med button--lrg-len button--flat',
+                  }}
                 />
               </div>
             </div>

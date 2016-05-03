@@ -1,6 +1,8 @@
 import React from 'react';
+import log from '../../lib/logging.js';
 import { isTimeInFuture } from '../../lib/utils.js';
 import AppStateStore from '../../stores/app-state-store.js';
+
 
 /**
  * This is a button that allows the user to enter a contest and shows the status of an entry.
@@ -20,6 +22,7 @@ const EnterContestButton = React.createClass({
     onEnterSuccess: React.PropTypes.func,
     onEnterFail: React.PropTypes.func,
     buttonText: React.PropTypes.object,
+    buttonClasses: React.PropTypes.object,
   },
 
 
@@ -32,6 +35,12 @@ const EnterContestButton = React.createClass({
         enter: 'Enter',
         entering: 'Entering...',
         entered: 'Entered',
+      },
+      buttonClasses: {
+        default: 'button--sm button--outline',
+        contestEntered: 'button--sm button--outline',
+        pending: 'button--sm button--outline',
+        contestHasStarted: 'button--sm button--outline',
       },
     };
   },
@@ -98,23 +107,22 @@ const EnterContestButton = React.createClass({
   },
 
 
-  isLineupEnteredIntoContest() {
-    const entryRequest = this.getCurrentEntryRequest();
-    if (entryRequest && entryRequest.status === 'SUCCESS') {
-      return true;
-    }
-    if (
-      this.props.lineup
-      && this.props.lineupsInfo.hasOwnProperty(this.props.lineup.id)
-      && this.props.lineupsInfo[this.props.lineup.id].contests
-    ) {
-      // If we have an entry for the contest in our lineupsInfo selector.
-      if (this.props.lineupsInfo[this.props.lineup.id].contests.indexOf(this.props.contest.id) !== -1) {
-        return true;
+  canLineupEnterContestPool(lineup, lineupsInfo, contest) {
+    let entryCount = 0;
+
+    try {
+      entryCount = lineupsInfo[lineup.id].contestPoolEntries[contest.id].entryCount;
+    } catch (e) {
+      // Ignore any Type Errors from the above not being populated yet.
+      if (e instanceof TypeError) {
+        log.trace(e);
+      } else {
+        throw e;
       }
     }
 
-    return false;
+
+    return entryCount < contest.max_entries;
   },
 
 
@@ -153,11 +161,15 @@ const EnterContestButton = React.createClass({
   render() {
     const currentEntryRequest = this.getCurrentEntryRequest(this.props);
 
+    let classes = '';
+
     // If the window to enter the contest has passed, disable the button.
     if (this.state.hasContestStarted) {
+      classes = this.props.buttonClasses.contestHasStarted;
+
       return (
         <span
-          className={"button button--mini--outline button--green-outline"}
+          className={`button ${classes} button--disabled enter-contest-button`}
           onClick={this.ignoreClick}
         >
           {this.props.buttonText.started}
@@ -168,11 +180,13 @@ const EnterContestButton = React.createClass({
 
     // This stuff can only apply if we know which lineup + contest we are dealing with.
     if (this.props.contest && this.props.lineup) {
-      // The contest has been entered.
-      if (this.isLineupEnteredIntoContest()) {
+      // The contest has been entered the max number of times.
+      if (!this.canLineupEnterContestPool(this.props.lineup, this.props.lineupsInfo, this.props.contest)) {
+        classes = this.props.buttonClasses.contestEntered;
+
         return (
           <div
-            className="button disabled enter-contest-button entered"
+            className={`button button--disabled ${classes} entered enter-contest-button`}
             onClick={this.ignoreClick}
           >
             {this.props.buttonText.entered}
@@ -185,9 +199,11 @@ const EnterContestButton = React.createClass({
         currentEntryRequest.status !== 'FAILURE' &&
         currentEntryRequest.status !== 'POLLING_TIMEOUT'
       ) {
+        classes = this.props.buttonClasses.pending;
+
         return (
           <div
-            className="button button--gradient--background disabled enter-contest-button"
+            className={`button ${classes} button--working enter-contest-button`}
             onClick={this.ignoreClick}
           >
             {this.props.buttonText.entering}
@@ -198,9 +214,11 @@ const EnterContestButton = React.createClass({
       // If there is no pending entry request, but the lineup can be entered, show the enter
       // contest button.
       if (this.props.lineup.draft_group === this.props.contest.draft_group) {
+        classes = this.props.buttonClasses.default;
+
         return (
           <div
-            className="button button--gradient--background enter-contest-button"
+            className={`button ${classes} enter-contest-button`}
             onClick={this.handleButtonClick.bind(null, this.props.contest)}
             onMouseEnter={this.handleMouseOver}
             onMouseLeave={this.handleMouseOut}

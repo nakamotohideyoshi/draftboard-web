@@ -133,32 +133,6 @@
   .pane-lower {
     padding: 20px 45px;
   }
-
-
-  // Lobby-specific pane stuff.
-  .btn-enter-contest .button {
-    @extend %button--large;
-    display: inline-block;
-    width: 225px;
-    color: #fff;
-    background: #219d87; /* Old browsers */
-    background: -moz-linear-gradient(left, #219d87 0%, #34cc68 100%); /* FF3.6+ */
-    background: -webkit-gradient(linear, left top, right top, color-stop(0%,#219d87), color-stop(100%,#34cc68)); /* Chrome,Safari4+ */
-    background: -webkit-linear-gradient(left, #219d87 0%,#34cc68 100%); /* Chrome10+,Safari5.1+ */
-    background: -o-linear-gradient(left, #219d87 0%,#34cc68 100%); /* Opera 11.10+ */
-    background: -ms-linear-gradient(left, #219d87 0%,#34cc68 100%); /* IE10+ */
-    background: linear-gradient(to right, #219d87 0%,#34cc68 100%); /* W3C */
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#219d87', endColorstr='#34cc68',GradientType=1 ); /* IE6-9 */
-    padding: 13px;
-    text-transform: uppercase;
-    font-size: 10px;
-
-    &.disabled {
-      &:hover {
-        cursor: progress;
-      }
-    }
-  }
 }
 
 

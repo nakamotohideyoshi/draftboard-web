@@ -8,11 +8,13 @@ var Component = require('../../../components/draft/draft-player-list-row.jsx');
 // var expect = require('chai').expect;
 
 
-describe("DraftPlayerListRow Component", function() {
+describe('DraftPlayerListRow Component', function () {
   var component;
   var domElement;
   var targetElement;
   var props = {
+    playerImagesBaseUrl: '',
+    isVisible: true,
     row: {
       'player_id': 7,
       'salary': 234987,
@@ -21,15 +23,16 @@ describe("DraftPlayerListRow Component", function() {
   };
 
 
-  var renderComponent = function(done) {
+  var renderComponent = function (done) {
     document.body.innerHTML = '';
     // The DOM element that the component will be rendered to.
     targetElement = document.body.appendChild(document.createElement('table'));
+    targetElement = targetElement.appendChild(document.createElement('tbody'));
     // Render the component into our fake jsdom element.
     component = ReactDOM.render(
-      <Component row={props.row} />,
+      <Component {...props} />,
       targetElement,
-      function() {
+      function () {
         // Once it has been rendered...
         // Grab it from the DOM.
         domElement = ReactDOM.findDOMNode(this);
@@ -39,12 +42,12 @@ describe("DraftPlayerListRow Component", function() {
   };
 
 
-  beforeEach(function(done) {
+  beforeEach(function (done) {
     renderComponent(done);
   });
 
 
-  afterEach(function() {
+  afterEach(function () {
     // Remove component from the DOM and empty the DOM for good measure.
     //
     // These suckers don't clean up nicely, so ignore this for now.
@@ -53,7 +56,7 @@ describe("DraftPlayerListRow Component", function() {
   });
 
 
-  it("should render a tr tag", function() {
+  it('should render a tr tag', function () {
     assert.equal(domElement.tagName, 'TR');
   });
 

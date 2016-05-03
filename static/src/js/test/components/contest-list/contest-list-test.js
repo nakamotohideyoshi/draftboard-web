@@ -1,28 +1,29 @@
-"use strict";
+'use strict';
 
-require("../../test-dom")();
-var assert = require("assert");
-var React = require("react");
+require('../../test-dom')();
+var assert = require('assert');
+var React = require('react');
 import ReactDOM from 'react-dom';
-var ContestListComponent = require("../../../components/contest-list/contest-list.jsx");
+var ContestListComponent = require('../../../components/contest-list/contest-list.jsx');
 // var expect = require('chai').expect;
 
 
-describe("ContestList Component", function() {
+describe('ContestList Component', function () {
 
-  beforeEach(function(done) {
+  beforeEach(function (done) {
     var self = this;
     let props = {
-      setOrderBy: function() {return true}
-    }
+      featuredContests: [],
+      setOrderBy: function () {return true;}
+    };
     document.body.innerHTML = '';
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
     this.contestListComponent = ReactDOM.render(
-      <ContestListComponent setOrderBy={props.setOrderBy} />,
+      <ContestListComponent {...props} />,
       this.targetElement,
-      function() {
+      function () {
         // Once it has been rendered...
         // Grab it from the DOM.
         self.contestListElement = ReactDOM.findDOMNode(this);
@@ -32,7 +33,7 @@ describe("ContestList Component", function() {
   });
 
 
-  afterEach(function() {
+  afterEach(function () {
     // Remove component from the DOM and empty the DOM for good measure.
     //
     // These suckers don't clean up nicely, so ignore this for now.
@@ -41,8 +42,8 @@ describe("ContestList Component", function() {
   });
 
 
-  it("should render a div tag", function() {
-    assert.equal(this.contestListElement.tagName, "TABLE");
+  it('should render a div tag', function () {
+    assert.equal(this.contestListElement.tagName, 'TABLE');
   });
 
 

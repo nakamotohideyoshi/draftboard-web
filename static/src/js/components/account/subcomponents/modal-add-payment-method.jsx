@@ -1,7 +1,7 @@
 import React from 'react';
-import renderComponent from '../../../lib/render-component';
+// import renderComponent from '../../../lib/render-component';
 import Modal from '../../modal/modal.jsx';
-import CreditcardForm from '../../form-field/creditcard-form.jsx';
+// import CreditcardForm from '../../form-field/creditcard-form.jsx';
 
 
 /**
@@ -19,7 +19,7 @@ const ModalAddPaymentMethod = React.createClass({
    * find DOM element with ID `creditcard-form` and render <CreditcardForm /> component inplace
    */
   componentDidMount() {
-    renderComponent(<CreditcardForm />, '#creditcard-form');
+    // renderComponent(<CreditcardForm />, '#creditcard-form');
   },
 
   // open modal
