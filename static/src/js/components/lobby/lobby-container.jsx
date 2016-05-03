@@ -8,14 +8,14 @@ import { fetchContestPoolEntries } from '../../actions/contest-pool-actions.js';
 import { fetchFeaturedContestsIfNeeded } from '../../actions/featured-contest-actions.js';
 import { fetchPrizeIfNeeded } from '../../actions/prizes.js';
 import { fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter }
-  from '../../actions/upcoming-contests-actions.js';
+  from '../../actions/contest-pool-actions.js';
 import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions.js';
 import { focusedContestInfoSelector, focusedLineupSelector, highestContestBuyin }
   from '../../selectors/lobby-selectors.js';
 import { upcomingContestSelector } from '../../selectors/upcoming-contest-selector.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
 import { updateFilter, upcomingContestUpdateReceived }
-  from '../../actions/upcoming-contests-actions.js';
+  from '../../actions/contest-pool-actions.js';
 import * as AppActions from '../../stores/app-state-store.js';
 import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
