@@ -20,6 +20,34 @@ from django.db.transaction import atomic
 from sports.classes import SiteSportManager
 from dataden.classes import DataDen, Season
 
+class OwnershipPercentageAdjuster(object):
+
+    def __init__(self, pool):
+        self.pool = pool
+        self.salaries = Salary.objects.filter(pool=pool)
+
+    def update(self):
+        """
+        adjust the salaries of the players in the pool based on their
+        ownership percentages.
+        """
+        for salary in self.salaries:
+            # precedence: do the high end first
+            if salary.ownership_percentage > self.pool.ownership_threshold_high_cutoff:
+                # increase this players salary by pool.high_cutoff_increment
+                diff = (salary.ownership_percentage - self.pool.ownership_threshold_high_cutoff)
+                high_sal_adjustment = ((diff * self.pool.high_cutoff_increment) / 100.0) * salary.amount
+                print('high sal adjustment:', high_sal_adjustment, str(salary))
+                salary.amount += high_sal_adjustment
+                salary.save()
+            elif salary.ownership_percentage < self.pool.ownership_threshold_low_cutoff:
+                # decrease this players salary by 'pool.low_cutoff_increment'
+                diff = (self.pool.ownership_threshold_low_cutoff - salary.ownership_percentage)
+                low_sal_adjustment = ((diff * self.pool.low_cutoff_increment) / 100.0) * salary.amount
+                print('low sal adjustment:', low_sal_adjustment, str(salary))
+                salary.amount -= low_sal_adjustment
+                salary.save()
+
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
 class SalaryPlayerStatsObject(object):

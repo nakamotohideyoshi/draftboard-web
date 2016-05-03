@@ -1,5 +1,8 @@
-from django.contrib import admin
+#
+# salary/admin.py
 
+from django.contrib import admin
+from django.db.transaction import atomic
 from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
 import sports.classes
 from sports.models import Player
@@ -8,13 +11,15 @@ import django.db.utils
 from .tasks import generate_salaries_for_sport # generate_salary
 import celery.states
 from django.utils.html import format_html
+from salary.classes import (
+    OwnershipPercentageAdjuster,
+)
 
 class TrailingGameWeightInline(admin.TabularInline):
     model = TrailingGameWeight
 
 class PlayerInline(admin.TabularInline):
     model = Player
-
 
 class SalaryInline(admin.TabularInline):
     model = Salary
@@ -24,11 +29,8 @@ class SalaryInline(admin.TabularInline):
     def player(self, obj):
         return obj.player
 
-
     def has_add_permission(self, request):
         return False
-
-
 
 @admin.register(SalaryConfig)
 class SalaryConfigAdmin(admin.ModelAdmin):
@@ -37,8 +39,6 @@ class SalaryConfigAdmin(admin.ModelAdmin):
         TrailingGameWeightInline,
     ]
     model = SalaryConfig
-
-
 
 @admin.register(Pool)
 class PoolAdmin(admin.ModelAdmin):
@@ -62,6 +62,15 @@ class PoolAdmin(admin.ModelAdmin):
                 print("task.id "+task.id)
                 pool.save()
 
+    @atomic
+    def apply_ownership_adjustment(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(request, 'Select a single pool to apply the ownership adjustment.')
+        else:
+            for pool in queryset:
+                opa = OwnershipPercentageAdjuster(pool)
+                opa.update()
+
     def generating_salary(self, obj):
         if obj.generate_salary_task_id is None:
             return ""
@@ -75,16 +84,16 @@ class PoolAdmin(admin.ModelAdmin):
             return status
         return ""
 
-    actions = [generate_salaries, ]
-    list_filter = ['salary__flagged', 'salary__primary_roster']
-
     def get_inline_instances(self, request, obj=None):
         if obj is None:
             return []
         else:
-            return  [inline(self.model, self.admin_site) for inline in self.inlines]
+            return [inline(self.model, self.admin_site) for inline in self.inlines]
 
-
+    #
+    # admin actions in dropdown
+    actions = [generate_salaries, apply_ownership_adjustment]
+    list_filter = ['salary__flagged', 'salary__primary_roster']
 
 @admin.register(Salary)
 class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
@@ -96,7 +105,6 @@ class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAd
     search_fields = ('player__first_name', 'player__last_name')
     def has_add_permission(self, request):
         return False
-
 
     try:
         related_search_mapping = {
