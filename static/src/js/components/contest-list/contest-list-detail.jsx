@@ -8,8 +8,8 @@ import GamesList from './games-list.jsx';
 import EntrantList from './entrant-list.jsx';
 import EntryList from './entry-list.jsx';
 import EnterContestButton from './enter-contest-button.jsx';
-import { enterContest, setFocusedContest, fetchContestEntrantsIfNeeded }
-  from '../../actions/upcoming-contests-actions.js';
+import { enterContest, setFocusedContest, fetchContestEntrantsIfNeeded, removeContestPoolEntry }
+  from '../../actions/contest-pool-actions.js';
 import * as AppActions from '../../stores/app-state-store.js';
 import { push as routerPush } from 'react-router-redux';
 import { Router, Route, browserHistory } from 'react-router';
@@ -49,6 +49,7 @@ function mapDispatchToProps(dispatch) {
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
     fetchContestEntrantsIfNeeded: (contestId) => dispatch(fetchContestEntrantsIfNeeded(contestId)),
+    removeContestPoolEntry: (entryId) => dispatch(removeContestPoolEntry(entryId)),
     routerPush: (path) => dispatch(routerPush(path)),
   };
 }
@@ -73,6 +74,7 @@ const ContestListDetail = React.createClass({
     ]),
     focusedLineup: React.PropTypes.object,
     params: React.PropTypes.object,
+    removeContestPoolEntry: React.PropTypes.func.isRequired,
     setFocusedContest: React.PropTypes.func,
     teams: React.PropTypes.object,
     lineupsInfo: React.PropTypes.object,
@@ -149,21 +151,11 @@ const ContestListDetail = React.createClass({
       }
 
       case 'entries': {
-        let contestPoolEntryCount = 0;
-
-        if (
-            this.props.contestInfo && this.props.focusedLineup &&
-            this.props.focusedLineup.contestPoolEntries &&
-            this.props.focusedLineup.contestPoolEntries[this.props.focusedContestId]
-          ) {
-          contestPoolEntryCount = this.props.focusedLineup.contestPoolEntries[this.props.focusedContestId].entryCount;
-        }
-
         return (
           <EntryList
-            entryCount={contestPoolEntryCount}
+            entries={this.props.contestInfo.entries}
             contestPoolInfo={this.props.contestInfo}
-            removeContestPoolEntry={this.removeContestPoolEntry}
+            removeContestPoolEntry={this.props.removeContestPoolEntry}
           />
         );
       }
