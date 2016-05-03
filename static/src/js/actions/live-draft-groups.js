@@ -162,7 +162,7 @@ const shouldFetchDraftGroupBoxscores = (state, id) => {
 
   // error if no draft group to associate players to
   if (id in liveDraftGroups === false) {
-    throw new Error('You cannot get fantasy points for a player that is not in the draft group');
+    throw new Error('You cannot get boxscore data for a draft group that does not exist yet');
   }
 
   // don't fetch until expired
@@ -188,7 +188,7 @@ const shouldFetchDraftGroupFP = (state, id) => {
 
   // error if no draft group to associate players to
   if (id in liveDraftGroups === false) {
-    throw new Error('You cannot get fantasy points for a player that is not in the draft group');
+    throw new Error('You cannot get fantasy points for a draft group that does not exist yet');
   }
 
   // don't fetch until expired
@@ -259,10 +259,9 @@ export const fetchDraftGroupFP = (id) => (dispatch) => {
     Accept: 'application/json',
   }).then((res) => {
     let players = res.body.players;
-    if (_size(players) === 0) {
-      players = {};
-      log.debug('shouldFetchDraftGroupFP() - FP not available yet', id);
-    }
+
+    // default to empty if FP isn't available yet
+    if (_size(players) === 0) players = {};
 
     return dispatch(receiveDraftGroupFP(id, players));
   });

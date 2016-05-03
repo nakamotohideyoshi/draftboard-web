@@ -11,7 +11,7 @@ module.exports = (state = {
   hasRelatedInfo: false,
   expiresAt: dateNow(),
   items: [],
-}, action) => {
+}, action = {}) => {
   const newState = _merge({}, state);
 
   switch (action.type) {

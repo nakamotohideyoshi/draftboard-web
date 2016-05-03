@@ -11,8 +11,7 @@ import store from '../../store';
 
 import { fetchEntriesIfNeeded } from '../../actions/entries';
 import { fetchSportsIfNeeded } from '../../actions/sports';
-import { currentLineupsSelector } from '../../selectors/current-lineups';
-import { liveSelector } from '../../selectors/live';
+import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { removeUnusedContests } from '../../actions/live-contests';
 import { removeUnusedDraftGroups } from '../../actions/live-draft-groups';
 import { sportsSelector } from '../../selectors/sports';
@@ -40,8 +39,7 @@ import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const';
  */
 const mapStateToProps = (state) => ({
   cashBalance: state.user.cashBalance.amount,
-  currentLineupsSelector: currentLineupsSelector(state),
-  liveSelector: liveSelector(state),
+  myCurrentLineupsSelector: myCurrentLineupsSelector(state),
   sportsSelector: sportsSelector(state),
 });
 
@@ -55,9 +53,8 @@ const NavScoreboard = React.createClass({
 
   propTypes: {
     cashBalance: React.PropTypes.string,
-    currentLineupsSelector: React.PropTypes.object.isRequired,
+    myCurrentLineupsSelector: React.PropTypes.object.isRequired,
     dispatch: React.PropTypes.func.isRequired,
-    liveSelector: React.PropTypes.object.isRequired,
     sportsSelector: React.PropTypes.object.isRequired,
   },
 
@@ -142,7 +139,7 @@ const NavScoreboard = React.createClass({
         option: 'MY LINEUPS',
         type: TYPE_SELECT_LINEUPS,
         key: 'LINEUPS',
-        count: _size(this.props.currentLineupsSelector),
+        count: _size(this.props.myCurrentLineupsSelector),
       });
     }
 
@@ -249,7 +246,7 @@ const NavScoreboard = React.createClass({
    */
   renderSliderContent() {
     if (this.state.selectedType === TYPE_SELECT_LINEUPS) {
-      return <NavScoreboardLineupsList lineups={this.props.currentLineupsSelector} />;
+      return <NavScoreboardLineupsList lineups={this.props.myCurrentLineupsSelector} />;
     } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
       return (
         <NavScoreboardGamesList

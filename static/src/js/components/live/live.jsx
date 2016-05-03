@@ -1,11 +1,5 @@
 import * as ReactRedux from 'react-redux';
-import React from 'react';
-import renderComponent from '../../lib/render-component';
-import { filter as _filter } from 'lodash';
-import { push as routerPush } from 'react-router-redux';
-import { Router, Route, browserHistory } from 'react-router';
-import { syncHistoryWithStore } from 'react-router-redux';
-
+import filter from 'lodash/filter';
 import LiveAnimationArea from './live-animation-area';
 import LiveBottomNav from './live-bottom-nav';
 import LiveContestsPane from './live-contests-pane';
@@ -14,23 +8,32 @@ import LiveHeader from './live-header';
 import LiveLineup from './live-lineup';
 import LiveLineupSelectModal from './live-lineup-select-modal';
 import LiveMoneyline from './live-moneyline';
-import LiveStandingsPaneConnected from './live-standings-pane';
+import LiveStandingsPane from './live-standings-pane';
 import log from '../../lib/logging';
+import React from 'react';
+import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
-import { checkForUpdates } from '../../actions/live';
-import { currentLineupsSelector } from '../../selectors/current-lineups';
+import { checkForUpdates } from '../../actions/watching';
+import { eventsMultipart } from '../../selectors/events-multipart';
 import { fetchContestLineups } from '../../actions/live-contests';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
 import { fetchEntriesIfNeeded } from '../../actions/entries';
 import { fetchPlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
 import { fetchRelatedEntriesInfo } from '../../actions/entries';
 import { fetchUpcomingLineups } from '../../actions/entries';
-import { liveContestsSelector } from '../../selectors/live-contests';
-import { liveSelector } from '../../selectors/live';
-import { sportsSelector } from '../../selectors/sports';
-import { updateLiveMode } from '../../actions/live';
-
+import { push as routerPush } from 'react-router-redux';
+import { Router, Route, browserHistory } from 'react-router';
+import { syncHistoryWithStore } from 'react-router-redux';
+import { uniqueEntriesSelector } from '../../selectors/entries';
+import { updateLiveMode } from '../../actions/watching';
+import {
+  watchingContestSelector,
+  watchingDraftGroupTimingSelector,
+  watchingMyLineupSelector,
+  relevantGamesPlayersSelector,
+  watchingOpponentLineupSelector,
+} from '../../selectors/watching';
 
 /*
  * Map selectors to the React component
@@ -38,10 +41,14 @@ import { updateLiveMode } from '../../actions/live';
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  currentLineupsSelector: currentLineupsSelector(state),
-  liveContestsSelector: liveContestsSelector(state),
-  liveSelector: liveSelector(state),
-  sportsSelector: sportsSelector(state),
+  draftGroupTiming: watchingDraftGroupTimingSelector(state),
+  eventsMultipart: eventsMultipart(state),
+  relevantGamesPlayers: relevantGamesPlayersSelector(state),
+  contest: watchingContestSelector(state),
+  myLineup: watchingMyLineupSelector(state),
+  opponentLineup: watchingOpponentLineupSelector(state),
+  uniqueEntries: uniqueEntriesSelector(state),
+  watching: state.watching,
 });
 
 /*
@@ -50,18 +57,21 @@ const mapStateToProps = (state) => ({
 const Live = React.createClass({
 
   propTypes: {
-    currentLineupsSelector: React.PropTypes.object.isRequired,
+    contest: React.PropTypes.object.isRequired,
     dispatch: React.PropTypes.func.isRequired,
-    liveContestsSelector: React.PropTypes.object.isRequired,
-    liveSelector: React.PropTypes.object.isRequired,
+    draftGroupTiming: React.PropTypes.object.isRequired,
+    eventsMultipart: React.PropTypes.object.isRequired,
+    relevantGamesPlayers: React.PropTypes.object.isRequired,
+    myLineup: React.PropTypes.object.isRequired,
+    opponentLineup: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
-    sportsSelector: React.PropTypes.object.isRequired,
+    uniqueEntries: React.PropTypes.object.isRequired,
+    watching: React.PropTypes.object.isRequired,
   },
 
   getInitialState() {
     return {
-      isLoaded: false,
-      calledUpcomingLineups: false,
+      watchingPlayerSRID: '956280da-4ce3-41db-8830-e04ef52bb0f2',
     };
   },
 
@@ -70,14 +80,14 @@ const Live = React.createClass({
    * Here's the documentation on the order in which all the data comes in https://goo.gl/uSCH0K
    */
   componentWillMount() {
-    // update mode based on where we are in the live section
+    // update what we are watching based on where we are in the live section
     const urlParams = this.props.params;
     if (urlParams.hasOwnProperty('myLineupId')) {
       this.props.dispatch(updateLiveMode({
         myLineupId: urlParams.myLineupId,
         sport: urlParams.sport,
-        contestId: urlParams.contestId || undefined,
-        opponentLineupId: urlParams.opponentLineupId || undefined,
+        contestId: urlParams.contestId || null,
+        opponentLineupId: urlParams.opponentLineupId || null,
       }));
 
       // double check all related information is up to date
@@ -90,12 +100,10 @@ const Live = React.createClass({
 
     // start listening for pusher calls, and server updates
     this.startParityChecks();
-
-    setTimeout(() => this.setState({ isLoaded: true }), 500);
   },
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.liveSelector.draftGroupEnded === false && nextProps.liveSelector.draftGroupEnded === true) {
+    if (this.props.draftGroupTiming.ended === false && nextProps.draftGroupTiming.ended === true) {
       store.dispatch(clearMessages());
       store.dispatch(addMessage({
         header: 'Contests have finished!',
@@ -106,11 +114,11 @@ const Live = React.createClass({
   },
 
   componentDidUpdate(prevProps) {
-    const liveData = this.props.liveSelector;
+    const draftGroupTiming = this.props.draftGroupTiming;
 
     // when we get related info
-    if (liveData.draftGroupStarted === false &&
-        prevProps.liveSelector.draftGroupStarted === true
+    if (draftGroupTiming.started === false &&
+        prevProps.draftGroupTiming.started === true
     ) {
       this.props.dispatch(fetchUpcomingLineups());
     }
@@ -128,7 +136,7 @@ const Live = React.createClass({
     // update the URL path
     this.props.dispatch(routerPush(path));
 
-    // update redux store mode
+    // update what user is watching
     this.props.dispatch(updateLiveMode(changedFields));
 
     // if the contest has changed, then get the appropriate usernames for the standings pane
@@ -142,8 +150,8 @@ const Live = React.createClass({
    */
   forceContestLineupsRefresh() {
     log.info('Live.forceContestLineupsRefresh()');
-    const contestEntry = _filter(this.props.liveSelector.entries,
-      (entry) => entry.lineup === this.props.liveSelector.mode.myLineupId
+    const contestEntry = filter(this.props.uniqueEntries.entries,
+      (entry) => entry.lineup === this.props.watching.myLineupId
     )[0];
 
     this.props.dispatch(
@@ -187,154 +195,160 @@ const Live = React.createClass({
   },
 
   render() {
-    const liveData = this.props.liveSelector;
-    const mode = liveData.mode;
+    const {
+      draftGroupTiming,
+      relevantGamesPlayers,
+      contest,
+      myLineup,
+      opponentLineup,
+      uniqueEntries,
+      watching,
+    } = this.props;
 
-    // defining optional component pieces
-    let liveStandingsPane;
-    let moneyLine;
-    let opponentLineupComponent;
+    // don't do anything until we have entries!
+    if (uniqueEntries.haveLoaded === false) return this.renderLoadingScreen();
 
-    // if a lineup has not been chosen yet
-    if (mode.hasOwnProperty('myLineupId') === false &&
-        liveData.hasOwnProperty('entries')
-    ) {
+    // choose a lineup if we haven't yet
+    if (watching.myLineupId === null) {
       return (
         <div className="live__bg">
           <LiveLineupSelectModal
             changePathAndMode={this.changePathAndMode}
-            entriesLoaded={liveData.entriesHaveLoaded}
-            entries={liveData.entries}
+            entriesLoaded={uniqueEntries.haveLoaded}
+            entries={uniqueEntries.entries}
+          />
+        </div>
+      );
+    }
+
+    // show the countdown until it goes live
+    const myEntry = uniqueEntries.entriesObj[watching.myLineupId];
+    if (!myEntry.hasStarted) {
+      // wait to show lineup until it's ready
+      let countdownLineup;
+      if (relevantGamesPlayers.isLoading === false) {
+        countdownLineup = (
+          <LiveLineup
+            changePathAndMode={this.changePathAndMode}
+            draftGroupStarted={false}
+            lineup={myLineup}
+            watching={watching}
+            whichSide="mine"
+            watchingPlayerSRID={this.state.watchingPlayerSRID}
+          />
+        );
+      }
+
+      // but immediately show the countdown
+      return (
+        <div className={`live__bg live--countdown live--sport-${watching.sport}`}>
+          {countdownLineup}
+          <LiveCountdown
+            onCountdownComplete={this.forceContestLineupsRefresh}
+            entry={myEntry}
           />
         </div>
       );
     }
 
     // wait for data to load before showing anything
-    if (liveData.hasRelatedInfo === false || this.state.isLoaded === false) {
-      return this.renderLoadingScreen();
-    }
+    if (relevantGamesPlayers.isLoading) return this.renderLoadingScreen();
 
-    const myLineup = liveData.lineups.mine || {};
+    // defining optional component pieces
+    let liveStandingsPane;
+    let moneyLine;
+    let opponentLineupComponent;
+    let contestsPaneOpen = true;
 
-    // show the countdown until it goes live
-    if (liveData.draftGroupStarted === false) {
-      return (
-        <div className={`live__bg live--countdown live--sport-${myLineup.draftGroup.sport}`}>
-          <LiveLineup
-            changePathAndMode={this.changePathAndMode}
-            draftGroupStarted={false}
-            games={this.props.sportsSelector.games}
-            lineup={myLineup}
-            mode={mode}
-            sport={myLineup.draftGroup.sport}
-            whichSide="mine"
-          />
-          <LiveCountdown
-            onCountdownComplete={this.forceContestLineupsRefresh}
-            lineup={myLineup}
-          />
-        </div>
+    // if viewing a contest, then add standings pane and moneyline
+    if (watching.contestId !== null && !contest.isLoading) {
+      let opponentWinPercent;
+      contestsPaneOpen = false;
+
+      liveStandingsPane = (
+        <LiveStandingsPane
+          changePathAndMode={this.changePathAndMode}
+          contest={contest}
+          lineups={contest.lineups}
+          rankedLineups={contest.rankedLineups}
+          watching={watching}
+        />
       );
-    }
 
-    // wait until the lineup data has loaded before rendering
-    if (liveData.lineups.hasOwnProperty('mine') && myLineup.roster !== undefined) {
-      // if viewing a contest, then add standings pane and moneyline
-      if (mode.contestId) {
-        const contest = liveData.contest;
-        let opponentWinPercent;
-
-        liveStandingsPane = (
-          <LiveStandingsPaneConnected
-            changePathAndMode={this.changePathAndMode}
-            contest={contest}
-            lineups={contest.lineups}
-            rankedLineups={contest.rankedLineups}
-            mode={mode}
-          />
-        );
-
-        // if viewing an opponent, add in lineup and update moneyline
-        if (mode.opponentLineupId) {
-          const opponentLineup = liveData.lineups.opponent;
-
-          // if not villian watch, then show opponent
-          if (opponentLineup.id !== 1) {
-            opponentWinPercent = opponentLineup.opponentWinPercent;
-          }
-
-          opponentLineupComponent = (
-            <LiveLineup
-              changePathAndMode={this.changePathAndMode}
-              draftGroupStarted={liveData.draftGroupStarted}
-              games={this.props.sportsSelector.games}
-              lineup={opponentLineup}
-              mode={mode}
-              sport={myLineup.draftGroup.sport}
-              whichSide="opponent"
-            />
-          );
+      // if viewing an opponent, add in lineup and update moneyline
+      if (watching.opponentLineupId !== null && !opponentLineup.isLoading) {
+        // if not villian watch, then show opponent
+        if (opponentLineup.id !== 1) {
+          opponentWinPercent = opponentLineup.potentialWinnings.percent;
         }
 
-        moneyLine = (
-          <section className="live-moneyline live-moneyline--contest-overall">
-            <LiveMoneyline
-              percentageCanWin={contest.percentageCanWin}
-              myWinPercent={myLineup.myWinPercent}
-              opponentWinPercent={opponentWinPercent}
-            />
-          </section>
+        opponentLineupComponent = (
+          <LiveLineup
+            changePathAndMode={this.changePathAndMode}
+            draftGroupStarted={draftGroupTiming.started}
+            lineup={opponentLineup}
+            watching={watching}
+            watchingPlayerSRID={this.state.watchingPlayerSRID}
+            whichSide="opponent"
+          />
         );
       }
 
-      return (
-        <div className={`live__bg live--sport-${myLineup.draftGroup.sport}`}>
-          <LiveLineup
-            changePathAndMode={this.changePathAndMode}
-            draftGroupStarted={liveData.draftGroupStarted}
-            games={this.props.sportsSelector.games}
-            lineup={myLineup}
-            mode={mode}
-            sport={myLineup.draftGroup.sport}
-            whichSide="mine"
+      moneyLine = (
+        <section className="live-moneyline live-moneyline--contest-overall">
+          <LiveMoneyline
+            percentageCanWin={contest.percentageCanWin}
+            myWinPercent={contest.potentialWinnings.percent}
+            opponentWinPercent={opponentWinPercent}
           />
-
-          {opponentLineupComponent}
-
-          <section className="cmp-live__court-scoreboard">
-            <div className="court-scoreboard__content">
-              <LiveHeader
-                changePathAndMode={this.changePathAndMode}
-                liveSelector={liveData}
-              />
-
-              <LiveAnimationArea
-                liveSelector={liveData}
-                sport={mode.sport}
-              />
-
-              {moneyLine}
-
-              <LiveBottomNav
-                hasContest={mode.contestId !== undefined}
-              />
-            </div>
-          </section>
-
-          <LiveContestsPane
-            changePathAndMode={this.changePathAndMode}
-            lineup={myLineup}
-            mode={mode}
-          />
-
-          {liveStandingsPane}
-        </div>
+        </section>
       );
     }
 
-    // TODO Live - make a loading screen if it takes longer than a second to load
-    return this.renderLoadingScreen();
+    return (
+      <div className={`live__bg live--sport-${watching.sport}`}>
+        <LiveLineup
+          changePathAndMode={this.changePathAndMode}
+          draftGroupStarted={draftGroupTiming.started}
+          lineup={myLineup}
+          watching={watching}
+          watchingPlayerSRID={this.state.watchingPlayerSRID}
+          whichSide="mine"
+        />
+
+        {opponentLineupComponent}
+
+        <section className="cmp-live__court-scoreboard">
+          <div className="court-scoreboard__content">
+            <LiveHeader
+              changePathAndMode={this.changePathAndMode}
+              contest={contest}
+              myLineup={myLineup}
+              opponentLineup={opponentLineup}
+              watching={watching}
+            />
+
+            <LiveAnimationArea
+              multipartEvents={this.props.eventsMultipart}
+              sport={watching.sport}
+            />
+
+            {moneyLine}
+
+            <LiveBottomNav hasContest={watching.contestId !== null} />
+          </div>
+        </section>
+
+        <LiveContestsPane
+          changePathAndMode={this.changePathAndMode}
+          lineup={myLineup}
+          openOnStart={contestsPaneOpen}
+          watching={watching}
+        />
+
+        {liveStandingsPane}
+      </div>
+    );
   },
 });
 

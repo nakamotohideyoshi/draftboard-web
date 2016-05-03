@@ -1,7 +1,9 @@
 import React from 'react';
-import { removeAnimationEvent } from '../../actions/pusher-live';
-import { shiftOldestGameEvent } from '../../actions/pusher-live';
-import { showAnimationEventResults } from '../../actions/pusher-live';
+import {
+  removeAnimationEvent,
+  shiftOldestGameEvent,
+  showAnimationEventResults,
+} from '../../actions/events';
 import store from '../../store';
 
 /**

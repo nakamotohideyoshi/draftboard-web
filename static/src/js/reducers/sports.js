@@ -28,7 +28,7 @@ module.exports = (state = {
     gamesExpireAt: dateNow(),
     teamsExpireAt: dateNow(),
   },
-}, action) => {
+}, action = {}) => {
   switch (action.type) {
     case ActionTypes.REQUEST_TEAMS:
       return update(state, {

@@ -20,6 +20,10 @@ export const GAME_DURATIONS = {
     periodMinutes: 12,
     periods: 4,
     players: 8,
+    seasonStats: {
+      types: ['fp', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers'],
+      names: ['FPPG', 'PPG', 'RPG', 'APG', 'STLPG', 'BLKPG', 'TOPG'],
+    },
   },
   nhl: {
     gameDuration: 60,
@@ -27,12 +31,141 @@ export const GAME_DURATIONS = {
     periodMinutes: 20,
     periods: 3,
     players: 8,
+    seasonStats: {
+      types: ['saves', 'assist', 'sog', 'fp', 'goal', 'blk'],
+      names: ['S', 'A', 'SOG', 'FP', 'G', 'BLK'],
+    },
   },
   mlb: {
     // total half innings, or innings * 2
     gameDuration: 18,
     lineupByteLength: 22,
     players: 9,
+    pitchOutcomes: {
+      aBK: 'Balk',
+      aCI: 'Catcher Interference',
+      aD: 'Double',
+      aDAD3: 'Double - Adv 3rd',
+      aDAD4: 'Double - Adv Home',
+      aFCAD2: 'Fielders Choice - Adv 2nd ',
+      aFCAD3: 'Fielders Choice - Adv 3rd ',
+      aFCAD4: 'Fielders Choice - Adv Home ',
+      aHBP: 'Hit By Pitch',
+      aHR: 'Homerun',
+      aKLAD1: 'Strike Looking - Adv 1st ',
+      aKLAD2: 'Strike Looking - Adv 2nd ',
+      aKLAD3: 'Strike Looking - Adv 3rd ',
+      aKLAD4: 'Strike Looking - Adv Home ',
+      aKSAD1: 'Strike Swinging - Adv 1st ',
+      aKSAD2: 'Strike Swinging - Adv 2nd',
+      aKSAD3: 'Strike Swinging - Adv 3rd ',
+      aKSAD4: 'Strike Swinging - Adv Home ',
+      aROE: 'Reached On Error',
+      aROEAD2: 'Reached On Error - Adv 2nd ',
+      aROEAD3: 'Reached On Error - Adv 3rd ',
+      aROEAD4: 'Reached On Error - Adv Home ',
+      aS: 'Single',
+      aSAD2: 'Single - Adv 2nd',
+      aSAD3: 'Single - Adv 3rd',
+      aSAD4: 'Single - Adv Home',
+      aSBAD1: 'Sacrifice Bunt - Adv 1st ',
+      aSBAD2: 'Sacrifice Bunt - Adv 2nd ',
+      aSBAD3: 'Sacrifice Bunt - Adv 3rd ',
+      aSBAD4: 'Sacrifice Bunt - Adv Home ',
+      aSFAD1: 'Sacrifice Fly - Adv 1st ',
+      aSFAD2: 'Sacrifice Fly - Adv 2nd ',
+      aSFAD3: 'Sacrifice Fly - Adv 3rd ',
+      aSFAD4: 'Sacrifice Fly - Adv Home ',
+      aT: 'Triple',
+      aTAD4: 'Triple - Adv Home',
+      bB: 'Ball',
+      bDB: 'Dirt Ball',
+      bIB: 'Intentional Ball',
+      bPO: 'Pitchout',
+      kF: 'Foul Ball',
+      kFT: 'Foul Tip',
+      kKL: 'Strike Looking',
+      kKS: 'Strike Swinging',
+      oBI: 'Hitter Interference',
+      oDT3: 'Double - Out at 3rd ',
+      oDT4: 'Double - Out at Home ',
+      oFC: 'Fielders Choice',
+      oFCT2: 'Fielders Choice - Out at 2nd ',
+      oFCT3: 'Fielders Choice - Out at 3rd ',
+      oFCT4: 'Fielders Choice - Out at Home ',
+      oFO: 'Fly Out',
+      oGO: 'Ground Out',
+      oKLT1: 'Strike Looking - Out at 1st',
+      oKLT2: 'Strike Looking - Out at 2nd',
+      oKLT3: 'Strike Looking - Out at 3rd',
+      oKLT4: 'Strike Looking - Out at Home ',
+      oKST1: 'Strike Swinging - Out at 1st ',
+      oKST2: 'Strike Swinging - Out at 2nd ',
+      oKST3: 'Strike Swinging - Out at 3rd ',
+      oKST4: 'Strike Swinging - Out at Home ',
+      oLO: 'Line Out',
+      oOBB: 'Out of Batters Box',
+      oOP: 'Out on Appeal',
+      oPO: 'Pop Out',
+      oROET2: 'Reached On Error - Out at 2nd ',
+      oROET3: 'Reached On Error - Out at 3rd ',
+      oROET4: 'Reached On Error - Out at Home ',
+      oSB: 'Sacrifice Bunt',
+      oSBT2: 'Sacrifice Bunt - Out at 2nd',
+      oSBT3: 'Sacrifice Bunt - Out at 3rd ',
+      oSBT4: 'Sacrifice Bunt - Out at Home ',
+      oSF: 'Sacrifice Fly',
+      oSFT2: 'Sacrifice Fly - Out at 2nd ',
+      oSFT3: 'Sacrifice Fly - Out at 3rd ',
+      oSFT4: 'Sacrifice Fly - Out at Home ',
+      oST2: 'Single - Out at 2nd',
+      oST3: 'Single - Out at 3rd ',
+      oST4: 'Single - Out at Home ',
+      oTT4: 'Triple - Out at Home',
+    },
+    runnerOutcomes: {
+      CK: 'Checked',
+      ERN: 'Earned Run/RBI',
+      eRN: 'Earned Run/No RBI',
+      URN: 'Unearned Run/RBI',
+      uRN: 'Unearned Run/No RBI',
+      PO: 'Pickoff',
+      POCS2: 'Pickoff/Caught Stealing 2nd ',
+      POCS3: 'Pickoff/Caught Stealing 3nd ',
+      POCS4: 'Pickoff/Caught Stealing Home ',
+      AD1: 'Advance 1st',
+      AD2: 'Advance 2nd',
+      AD3: 'Advance 3rd',
+      SB2: 'Stole 2nd',
+      SB3: 'Stole 3rd',
+      SB4: 'Stole Home',
+      TO2: 'Tag out 2nd',
+      TO3: 'Tag out 3rd',
+      TO4: 'Tag out Home',
+      FO1: 'Force out 1st',
+      FO2: 'Force out 2nd',
+      FO3: 'Force out 3rd',
+      FO4: 'Force out Home',
+      CS2: 'Caught Stealing 2nd',
+      CS3: 'Caught Stealing 3rd',
+      CS4: 'Caught Stealing Home',
+      SB2E3: 'Stole 2nd, error to 3rd',
+      SB2E4: 'Stole 2nd, error to Home ',
+      SB3E4: 'Stole 3nd, error to Home',
+      DI2: 'Indifference to 2nd',
+      DI3: 'Indifference to 3rd',
+      DO1: 'Doubled off 1st',
+      DO2: 'Doubled off 2nd',
+      DO3: 'Doubled off 3rd',
+      RI: 'Runner Interference',
+      OOA: 'Out on Appeal',
+      OBP: 'Out of Base Path',
+      HBB: 'Hit by Batted Ball',
+    },
+    seasonStats: {
+      types: [],
+      names: [],
+    },
   },
 };
 
@@ -134,6 +267,22 @@ const receiveTeams = (sport, response) => {
 
 
 /**
+ * Calculate the amount of time remaining in decimal between 0 and 1, where 1 is 100% of the time remaining
+ * @param  {number} durationRemaining Number of minutes remaining
+ * @param  {number} totalQuantity     Total number of minutes/innings/measurement possible for a player
+ * @return {number}                   Remaining time in decimal form
+ */
+export const calcDecimalRemaining = (durationRemaining, gameDuration) => {
+  const decimalRemaining = durationRemaining / gameDuration;
+
+  // we don't want 1 exactly, as that messes with the calculations, 0.99 looks full
+  if (decimalRemaining === 1) return 0.9999;
+
+  // round to the nearest 4th decimal
+  return Math.ceil(decimalRemaining * 10000) / 10000;
+};
+
+/**
  * Helper method to determine amount of time remaining in a game
  * @param  {string} sport     Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
  * @param  {object} game  Game information
@@ -215,8 +364,20 @@ const fetchGames = (sport) => (dispatch) => {
     _forEach(games, (game, id) => {
       games[id].sport = sport;
 
-      if (game.hasOwnProperty('boxscore')) {
-        games[id].boxscore.durationRemaining = calculateTimeRemaining(sport, game);
+      // if no boxscore, default to upcoming = 100% remaining
+      if (game.hasOwnProperty('boxscore') === false) {
+        games[id].timeRemaining = {
+          duration: GAME_DURATIONS[sport].gameDuration,
+          decimal: 0.9999,
+        };
+      } else {
+        const durationRemaining = calculateTimeRemaining(sport, game);
+        const decimalRemaining = calcDecimalRemaining(durationRemaining, GAME_DURATIONS[sport].gameDuration);
+
+        games[id].timeRemaining = {
+          duration: durationRemaining,
+          decimal: decimalRemaining,
+        };
       }
     });
 
@@ -242,6 +403,21 @@ const fetchTeams = (sport) => (dispatch) => {
     (res) => dispatch(receiveTeams(sport, res.body))
   );
 };
+
+/**
+ * Helper method to convert an object of pitch types into a readable sentence
+ * Example pitchCount:
+ * "count__list": {
+ *    "pitch_count": 5,
+ *    "strikes": 1,
+ *    "balls": 3,
+ *    "outs": 3
+ *  },
+ * @param  {object} pitchCount Types of pitches and their count
+ * @return {string}            Human readable pitch count
+ */
+export const humanizePitchCount = (pitchCount) =>
+  `${pitchCount.balls}B/${pitchCount.strikes}S - ${pitchCount.outs} Outs`;
 
 /**
  * Method to determine whether we need to fetch games for a sport

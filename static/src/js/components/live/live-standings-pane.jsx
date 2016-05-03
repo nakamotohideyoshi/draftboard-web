@@ -22,7 +22,7 @@ const LiveStandingsPane = React.createClass({
     lineups: React.PropTypes.object.isRequired,
     contest: React.PropTypes.object.isRequired,
     rankedLineups: React.PropTypes.array.isRequired,
-    mode: React.PropTypes.object.isRequired,
+    watching: React.PropTypes.object.isRequired,
     fetchLineupUsernames: React.PropTypes.func,
   },
 
@@ -38,7 +38,7 @@ const LiveStandingsPane = React.createClass({
   },
 
   componentDidMount() {
-    // this.props.fetchLineupUsernames(this.props.mode.contestId)
+    // this.props.fetchLineupUsernames(this.props.watching.contestId)
     this.handleSearchByUsername = _debounce(this.handleSearchByUsername, 150);
   },
 
@@ -58,7 +58,7 @@ const LiveStandingsPane = React.createClass({
       const filter = this.state.currentPositionFilter;
 
       if (filter !== 'all') {
-        data = _filter(data, p => p.info.position.toLowerCase() === filter);
+        data = _filter(data, p => p.position.toLowerCase() === filter);
       }
     }
 
@@ -118,9 +118,9 @@ const LiveStandingsPane = React.createClass({
    * Used to view an opponent lineup. Sets up parameters to then call props.changePathAndMode()
    */
   handleViewOpponentLineup(opponentLineupId) {
-    const mode = this.props.mode;
-    const lineupUrl = `/live/${mode.sport}/lineups/${mode.myLineupId}`;
-    const path = `${lineupUrl}/contests/${mode.contestId}/opponents/${opponentLineupId}/`;
+    const watching = this.props.watching;
+    const lineupUrl = `/live/${watching.sport}/lineups/${watching.myLineupId}`;
+    const path = `${lineupUrl}/contests/${watching.contestId}/opponents/${opponentLineupId}/`;
     const changedFields = {
       opponentLineupId,
     };
@@ -154,7 +154,7 @@ const LiveStandingsPane = React.createClass({
 
   handleSearchByUsername() {
     const params = {
-      contest_id: this.props.mode.contestId,
+      contest_id: this.props.watching.contestId,
       search_str: this.state.searchValue,
     };
 
@@ -254,19 +254,21 @@ const LiveStandingsPane = React.createClass({
   },
 
   renderStandings() {
+    const lineupsUsernames = this.props.contest.lineupsUsernames;
     const { page, perPage } = this.state;
     let data = this.getListData();
     data = data.slice(
       (page - 1) * perPage,
       Math.min(page * perPage, data.length)
     );
-    const mode = this.props.mode;
+    const watching = this.props.watching;
 
     const standings = data.filter((lineup) => lineup.id !== 1).map((lineup) => {
+      const decimalRemaining = lineup.timeRemaining.decimal;
       let className = 'lineup';
       let pmr = (
         <LivePMRProgressBar
-          decimalRemaining={lineup.decimalRemaining}
+          decimalRemaining={decimalRemaining}
           strokeWidth={2}
           backgroundHex="46495e"
           hexStart="ffffff"
@@ -284,12 +286,12 @@ const LiveStandingsPane = React.createClass({
         </div>
       );
 
-      if (mode.myLineupId === lineup.id) {
+      if (watching.myLineupId === lineup.id) {
         overlay = '';
         className += ' lineup--mine';
         pmr = (
           <LivePMRProgressBar
-            decimalRemaining={lineup.decimalRemaining}
+            decimalRemaining={decimalRemaining}
             strokeWidth={2}
             backgroundHex="46495e"
             hexStart="34B4CC"
@@ -299,23 +301,20 @@ const LiveStandingsPane = React.createClass({
           />
         );
       }
-      let username = '';
-      if (lineup.hasOwnProperty('user') && lineup.user.hasOwnProperty('username')) {
-        username = lineup.user.username;
-      }
+      const username = lineupsUsernames[lineup.id] || '';
       let earningsClass = 'lineup--score-earnings';
-      let potentialEarnings = lineup.potentialEarnings;
-      if (potentialEarnings !== 0) {
+      let potentialWinnings = lineup.potentialWinnings;
+      if (potentialWinnings !== 0) {
         earningsClass += ' in-the-money';
-        potentialEarnings = potentialEarnings.toFixed(2);
+        potentialWinnings = potentialWinnings.toFixed(2);
       }
       return (
         <div key={lineup.id} className={ className }>
           <div className="lineup--place">{lineup.rank}</div>
           { pmr }
           <div className="lineup--score-name">{username}</div>
-          <div className="lineup--score-points"><b>{lineup.points}</b> <span>Pts</span></div>
-          <div className={earningsClass}>${potentialEarnings}</div>
+          <div className="lineup--score-points"><b>{lineup.fp}</b> <span>Pts</span></div>
+          <div className={earningsClass}>${potentialWinnings}</div>
           { overlay }
         </div>
       );
@@ -338,10 +337,10 @@ const LiveStandingsPane = React.createClass({
 
     const players = data.map((player) => (
       <div key={player.id} className="player">
-        <div className="player--position">{player.info.position}</div>
+        <div className="player--position">{player.position}</div>
         <div className="player--pmr-photo">
           <LivePMRProgressBar
-            decimalRemaining={player.stats.decimalRemaining}
+            decimalRemaining={player.timeRemaining.decimal}
             strokeWidth={3}
             backgroundHex="46495e"
             hexStart="ffffff"
@@ -352,9 +351,9 @@ const LiveStandingsPane = React.createClass({
           <div className="avatar" />
         </div>
         <div className="player--name">
-          {player.info.name} <div className="team">{player.info.team_alias}</div>
+          {player.name} <div className="team">{player.teamAlias}</div>
         </div>
-        <div className="player--points"><b>{player.stats.fp}</b><span>Pts</span></div>
+        <div className="player--points"><b>{player.fp}</b><span>Pts</span></div>
         <div className="player--progress">{player.ownershipPercent}%</div>
       </div>
     ));
@@ -399,7 +398,7 @@ const LiveStandingsPane = React.createClass({
     });
 
     let onClick = '';
-    if (this.props.mode.opponentLineupId !== 1) {
+    if (this.props.watching.opponentLineupId !== 1) {
       onClick = this.handleViewOpponentLineup.bind(this, 1);
     }
 

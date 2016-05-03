@@ -3,6 +3,7 @@ import ImageLoader from 'react-imageloader';
 import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import log from '../../lib/logging';
+import { GAME_DURATIONS } from '../../actions/sports';
 
 function preloader() {
   return (
@@ -23,10 +24,12 @@ const LivePlayerPane = React.createClass({
 
   propTypes: {
     eventHistory: React.PropTypes.array.isRequired,
+    game: React.PropTypes.object,
     player: React.PropTypes.object.isRequired,
     playerImagesBaseUrl: React.PropTypes.string.isRequired,
+    seasonStats: React.PropTypes.object.isRequired,
+    sport: React.PropTypes.string.isRequired,
     whichSide: React.PropTypes.string.isRequired,
-    game: React.PropTypes.object,
   },
 
   /**
@@ -48,20 +51,17 @@ const LivePlayerPane = React.createClass({
    * @return {JSXElement}
    */
   renderStatsAverage() {
-    const player = this.props.player;
+    const seasonStats = this.props.seasonStats;
+    const { types, names } = GAME_DURATIONS[this.props.sport].seasonStats;
 
     let renderedStats;
-    if (player.hasOwnProperty('seasonalStats') === true) {
-      // ordered stats
-      const statTypes = ['fp', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers'];
-      const statNames = ['FPPG', 'PPG', 'RPG', 'APG', 'STLPG', 'BLKPG', 'TOPG'];
-
-      renderedStats = statTypes.map((statType, index) => {
-        const value = player.seasonalStats[`avg_${statType}`].toFixed(1);
+    if (seasonStats.hasOwnProperty('fp') === true) {
+      renderedStats = types.map((statType, index) => {
+        const value = seasonStats[statType].toFixed(1);
 
         return (
           <li key={statType}>
-            <div className="stat-name">{statNames[index]}</div>
+            <div className="stat-name">{names[index]}</div>
             <div className="stat-score">{value}</div>
           </li>
         );
@@ -92,8 +92,6 @@ const LivePlayerPane = React.createClass({
     }
 
     const boxScore = game.boxscore;
-
-    // TODO Live - make sure clock and quarter display are set in liveSelector so we don't do logic in the component
     let gameTimeInfo;
     const doneStatuses = ['closed', 'complete'];
     if (doneStatuses.indexOf(boxScore.status) !== -1) {
@@ -168,18 +166,23 @@ const LivePlayerPane = React.createClass({
    * @return {JSXElement}
    */
   renderHeader() {
-    const player = this.props.player;
-    const teamInfo = player.teamInfo;
-    const playerImage = `${this.props.playerImagesBaseUrl}/${player.info.player_srid}.png`;
+    const { player, game } = this.props;
+    let playerImage = `${this.props.playerImagesBaseUrl}/${player.srid}.png`;
 
-
-    let fp = 0;
-    let percentOwned = '';
-
-    // TODO Live - make sure this stat is in the liveSelector and remove logic from component
-    if (player.stats !== undefined) {
-      fp = player.stats.fp;
+    // TODO remove once we have player images
+    if (this.props.sport === 'mlb') {
+      playerImage = '/static/src/img/temp/live-player-pane--lebron.png';
     }
+
+    let teamInfo = {};
+    if (player.teamSRID === game.srid_home) {
+      teamInfo = game.homeTeamInfo;
+    }
+    if (player.teamSRID === game.srid_away) {
+      teamInfo = game.awayTeamInfo;
+    }
+
+    let percentOwned = '';
 
     if (player.ownershipPercent !== undefined) {
       percentOwned = (
@@ -201,14 +204,14 @@ const LivePlayerPane = React.createClass({
         </div>
 
         <div className="header__team-role">
-          {teamInfo.city} {teamInfo.name} - {player.info.position}
+          {teamInfo.city} {teamInfo.name} - {player.position}
         </div>
-        <div className="header__name">{player.info.name}</div>
+        <div className="header__name">{player.name}</div>
 
         <div className="header__pts-stats">
           <div className="header__pts-stats__info">
             <LivePMRProgressBar
-              decimalRemaining={player.stats.decimalRemaining}
+              decimalRemaining={player.timeRemaining.decimal}
               strokeWidth={1}
               backgroundHex="46495e"
               hexStart="34B4CC"
@@ -219,7 +222,7 @@ const LivePlayerPane = React.createClass({
 
             <div className="header__pts-stats__info__insvg">
               <p>pts</p>
-              <p>{fp}</p>
+              <p>{player.fp}</p>
             </div>
           </div>
 

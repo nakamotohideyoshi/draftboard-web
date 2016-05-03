@@ -1,8 +1,8 @@
 import Modal from '../modal/modal.jsx';
 import moment from 'moment';
 import React from 'react';
-import { forEach as _forEach } from 'lodash';
-import { size as _size } from 'lodash';
+import forEach from 'lodash/forEach';
+import size from 'lodash/size';
 import { uniqWith as _uniqWith } from 'lodash';
 
 
@@ -19,10 +19,6 @@ const LiveLineupSelectModal = React.createClass({
   },
 
   getInitialState() {
-    // const sports = this.sportLineups()
-    // if all lineups are in same sport, do not show sport selection options
-    // const selectedSport = (Object.keys(sports).length === 1) ? Object.keys(sports)[0] : null
-
     return {
       isOpen: true,
       selectedSport: null,
@@ -31,15 +27,15 @@ const LiveLineupSelectModal = React.createClass({
 
   componentWillMount() {
     // if there's only one entry, then just go to it
-    if (_size(this.props.entries) === 1) {
+    if (size(this.props.entries) === 1) {
       this.selectLineup(this.props.entries[0]);
     }
   },
 
   componentDidUpdate(prevProps) {
     // if there's only one entry, then just go to it
-    const newSize = _size(this.props.entries);
-    if (newSize !== _size(prevProps.entries) && newSize === 1) {
+    const newSize = size(this.props.entries);
+    if (newSize !== size(prevProps.entries) && newSize === 1) {
       this.selectLineup(this.props.entries[0]);
     }
   },
@@ -98,7 +94,7 @@ const LiveLineupSelectModal = React.createClass({
   sportLineups() {
     const sportLineups = {};
 
-    _forEach(this.props.entries, (entry) => {
+    forEach(this.props.entries, (entry) => {
       const sport = entry.sport;
 
       if (sport in sportLineups) {
@@ -178,7 +174,7 @@ const LiveLineupSelectModal = React.createClass({
 
     // let title = (this.state.selectedSport) ? 'Choose a lineup' : 'Choose a sport'
     let title = 'Choose a lineup';
-    if (_size(this.props.entries) === 0) {
+    if (size(this.props.entries) === 0) {
       title = 'You have no entered lineups.';
     }
 
