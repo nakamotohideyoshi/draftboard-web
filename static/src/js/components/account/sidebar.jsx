@@ -49,11 +49,11 @@ const Sidebar = React.createClass({
 
           <a
             href="/account/settings/deposit/"
-            className="balance-summary--action button--large button--gradient-outline"
+            className="balance-summary--action button button--outline-alt1 button--med button--lrg-len"
           >Deposit</a>
           <a
             href="/account/settings/withdrawals/"
-            className="balance-summary--action button--gradient--background button--large button--gradient-outline"
+            className="balance-summary--action button button--gradient button--med button--lrg-len"
           >Withdraw</a>
         </section>
       </div>

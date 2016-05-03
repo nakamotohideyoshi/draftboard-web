@@ -2,6 +2,7 @@
 
 import log from '../logging.js';
 import * as ContestPoolEntryCommand from './contest-pool-entry-command.js';
+import * as ContestPoolUnregisterCommand from './contest-pool-unregister-command.js';
 import * as LineupEditCommand from './lineup-edit-command.js';
 
 
@@ -124,6 +125,10 @@ export function addPollingRequest(type, taskId) {
   switch (type) {
     case 'entryRequest':
       command = ContestPoolEntryCommand;
+      break;
+
+    case 'unregisterRequest':
+      command = ContestPoolUnregisterCommand;
       break;
 
     case 'LineupEditRequest':

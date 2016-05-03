@@ -140,7 +140,7 @@ const EmailPassForm = React.createClass({
           />
         </div>
 
-        <input type="submit" className="button--medium" defaultValue="Save" />
+        <input type="submit" className="button button--flat-alt1" defaultValue="Save" />
 
         </fieldset>
       </form>

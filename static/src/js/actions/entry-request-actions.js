@@ -61,7 +61,7 @@ export function monitorEntryRequest(taskId, contestPoolId, lineupId) {
   return (dispatch, getState) => {
     const state = getState();
 
-    const existingRequest = _find(state.entryRequests, {
+    const existingRequest = _find(state.pollingTasks, {
       lineupId,
       contestPoolId,
     });
@@ -76,5 +76,48 @@ export function monitorEntryRequest(taskId, contestPoolId, lineupId) {
     dispatch(addEntryRequestMonitor(taskId, contestPoolId, lineupId));
     addPollingRequest('entryRequest', taskId);
     log.info('monitoring entry taskId: ', taskId);
+  };
+}
+
+
+/**
+ * Create an UnregisterRequest in the state.
+ * @param {[type]} taskId    [description]
+ * @param {[type]} entryId  [description]
+ */
+export function addUnregisterRequestMonitor(taskId, entryId) {
+  return {
+    type: types.ADD_ENTRY_REQUEST_MONITOR,
+    taskId,
+    entryId,
+    maxAttempts: 10,
+    attempt: 0,
+  };
+}
+
+/**
+ * Periodically check the status of an unregisterRequest task. Once we get a response that tells us the
+ * task has been processed, stop checking and return the status.
+ * @param  {[type]} taskId [description]
+ * @return {[type]} entryId [description]
+ */
+export function monitorUnregisterRequest(taskId, entryId) {
+  return (dispatch, getState) => {
+    const state = getState();
+
+    const existingRequest = _find(state.pollingTasks, {
+      entryId,
+    });
+
+    if (existingRequest) {
+      log.warn('unregisterRequest monitor entry already exists', entryId);
+      return {
+        type: types.ADD_UNREGISTER_REQUEST_MONITOR_EXISTS,
+      };
+    }
+
+    dispatch(addUnregisterRequestMonitor(taskId, entryId));
+    addPollingRequest('unregisterRequest', taskId);
+    log.info('monitoring unregister taskId: ', taskId);
   };
 }

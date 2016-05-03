@@ -100,4 +100,4 @@ renderComponent(
 );
 
 
-export default TransactionsConnected;
+module.exports = TransactionsConnected;

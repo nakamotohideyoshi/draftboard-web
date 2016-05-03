@@ -12,7 +12,7 @@ import { fetchUpcomingContests } from '../../actions/contest-pool-actions.js';
 /**
  * This is a Command that gets used by the PollingRequestReceiver. It never
  * gets used directly, it is simply a few methods that let the
- * PollingRequestReceiver know how to work with a contest pool entry request.
+ * PollingRequestReceiver know how to remove a contest pool entry.
  */
 
 
@@ -91,7 +91,7 @@ export function fetch(taskId) {
 
   return new Promise((resolve, reject) => {
     request
-    .get(`/api/contest/enter-lineup-status/${taskId}/`)
+    .get(`/api/contest/unregister-entry-status/${taskId}/`)
     .set({
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'X-CSRFToken': Cookies.get('csrftoken'),
@@ -103,8 +103,8 @@ export function fetch(taskId) {
        * be reported as 'err'. So expect a 'FAILURE' on the entry status to be a 200 response.
        */
       if (err) {
-        log.error('Contest entry request status error:', res.body);
-        const content = 'Contest entry failed.';
+        log.error('ContestPool unregistration request status error:', res.body);
+        const content = 'ContestPool unregistration failed.';
 
         store.dispatch(addMessage({
           level: 'warning',
