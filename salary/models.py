@@ -85,6 +85,13 @@ class Pool(models.Model):
                                                    max_length=255)
 
     #
+    # fields for factoring in ownership percentages.
+    ownership_threshold_low_cutoff  = models.FloatField(null=True, default=10.0)
+    low_cutoff_increment = models.FloatField(null=True, default=1.0)
+    ownership_threshold_high_cutoff = models.FloatField(null=True, default=30.0)
+    high_cutoff_increment = models.FloatField(null=True, default=1.0)
+
+    #
     # make sure that only one Pool can be active at a time (for the site_sport)
     def save(self, *args, **kwargs):
         if self.active:
@@ -125,6 +132,10 @@ class Salary(models.Model):
     player          = GenericForeignKey('player_type',
                                         'player_id')
 
+    #
+    # field for the ownership percentage value which may
+    # be used in postprocessing to adjust salary
+    ownership_percentage = models.FloatField(null=True, default=10.0)
 
     class Meta:
         ordering = ('primary_roster', '-amount')
