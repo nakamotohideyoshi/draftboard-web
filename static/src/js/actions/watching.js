@@ -4,26 +4,27 @@ import { fetchContestLineupsUsernamesIfNeeded } from './live-contests';
 import { fetchDraftGroupFPIfNeeded } from './live-draft-groups';
 import { fetchPlayersStatsIfNeeded } from './live-players';
 import log from '../lib/logging';
+import { dateNow } from '../lib/utils';
 
 
 export const checkForUpdates = () => (dispatch, getState) => {
-  log.trace('actions.live.checkForUpdates()');
+  log.trace('actions.watching.checkForUpdates()');
 
   const state = getState();
-  const mode = state.live.mode;
+  const watching = state.watching;
 
-  if (mode.myLineupId) {
-    dispatch(fetchPlayersStatsIfNeeded(mode.myLineupId));
+  if (watching.myLineupId) {
+    dispatch(fetchPlayersStatsIfNeeded(watching.myLineupId));
 
-    const myLineup = state.currentLineups.items[mode.myLineupId] || {};
+    const myLineup = state.currentLineups.items[watching.myLineupId] || {};
 
-    if (myLineup.hasOwnProperty('draft_group')) {
+    if (dateNow() > myLineup.start && myLineup.hasOwnProperty('draft_group')) {
       dispatch(fetchDraftGroupFPIfNeeded(myLineup.draft_group));
     }
   }
 
-  if (mode.opponentLineupId) {
-    dispatch(fetchPlayersStatsIfNeeded(mode.opponentLineupId));
+  if (watching.opponentLineupId) {
+    dispatch(fetchPlayersStatsIfNeeded(watching.opponentLineupId));
   }
 };
 
@@ -49,12 +50,12 @@ export const updateLiveMode = (changedFields) => (dispatch, getState) => {
     if (key === 'sport') {
       newMode[key] = val;
     } else {
-      newMode[key] = (val === undefined) ? undefined : parseInt(val, 10);
+      newMode[key] = (val === null) ? null : parseInt(val, 10);
     }
   });
 
   return dispatch({
-    type: ActionTypes.LIVE_MODE_CHANGED,
-    mode: newMode,
+    type: ActionTypes.WATCHING_UPDATE,
+    watching: newMode,
   });
 };

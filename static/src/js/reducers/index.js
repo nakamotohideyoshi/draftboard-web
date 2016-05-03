@@ -7,29 +7,30 @@ const currentDraftGroups = require('./current-draft-groups');
 const currentLineups = require('./current-lineups');
 const draftGroupPlayers = require('./draft-group-players');
 const entries = require('./entries');
-const entryRequests = require('./entry-request.js');
-const fantasyHistory = require('./fantasy-history.js');
-const featuredContests = require('./featured-contests.js');
-const injuries = require('./injuries.js');
-const lineupEditRequests = require('./lineup-edit-requests.js');
+const events = require('./events');
+const eventsMultipart = require('./events-multipart');
+const fantasyHistory = require('./fantasy-history');
+const featuredContests = require('./featured-contests');
+const injuries = require('./injuries');
+const lineupEditRequests = require('./lineup-edit-requests');
 const lineupUsernames = require('./lineup-usernames');
-const live = require('./live');
 const liveContests = require('./live-contests');
 const liveDraftGroups = require('./live-draft-groups');
 const livePlayers = require('./live-players');
-const messages = require('./messages.js');
+const messages = require('./messages');
 const payments = require('./payments');
 const playerBoxScoreHistory = require('./player-box-score-history.js');
 const playerNews = require('./player-news.js');
+const pollingTasks = require('./polling-tasks.js');
 const prizes = require('./prizes');
-const pusherLive = require('./pusher-live');
 const results = require('./results');
 const sports = require('./sports');
 const transactions = require('./transactions');
-const upcomingContests = require('./upcoming-contests.js');
-const upcomingDraftGroups = require('./upcoming-draft-groups.js');
+const upcomingContests = require('./upcoming-contests');
+const upcomingDraftGroups = require('./upcoming-draft-groups');
 const upcomingLineups = require('./upcoming-lineups');
 const user = require('./user');
+const watching = require('./watching');
 
 
 /**
@@ -43,21 +44,21 @@ export default combineReducers({
   currentLineups,
   draftGroupPlayers,
   entries,
-  entryRequests,
   fantasyHistory,
   featuredContests,
   injuries,
   lineupEditRequests,
-  live,
   liveContests,
   liveDraftGroups,
+  eventsMultipart,
   livePlayers,
   messages,
   payments,
   playerNews,
   playerBoxScoreHistory,
+  pollingTasks,
   prizes,
-  pusherLive,
+  events,
   results,
   routing,
   sports,
@@ -67,4 +68,5 @@ export default combineReducers({
   upcomingLineups,
   lineupUsernames,
   user,
+  watching,
 });

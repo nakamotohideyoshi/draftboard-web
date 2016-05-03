@@ -58,7 +58,7 @@ const DraftButton = React.createClass({
 
     return (
       <a
-        className="button button--gradient--background draft-button"
+        className="button button--sm button--outline-alt1 draft-button"
         href={`/draft/${this.props.draftGroupId}/`}
         onClick={this.ignoreClick}
       >

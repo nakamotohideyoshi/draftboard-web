@@ -94,7 +94,7 @@ const ResultsPane = React.createClass({
       return (
         <tr key={lineup.id}>
           <td>{username}</td>
-          <td>${lineup.potentialEarnings.toFixed(2)}</td>
+          <td>${lineup.potentialWinnings.toFixed(2)}</td>
         </tr>
       );
     });

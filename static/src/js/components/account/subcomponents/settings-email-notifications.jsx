@@ -99,7 +99,7 @@ const SettingsEmailNotifications = React.createClass({
       return (
         <input
           type="submit"
-          className="button--medium"
+          className="button button--flat-alt1"
           defaultValue="Saving..."
         />
       );
@@ -108,7 +108,7 @@ const SettingsEmailNotifications = React.createClass({
     return (
       <input
         type="submit"
-        className="button--medium"
+        className="button button--flat-alt1"
         defaultValue="Save"
         onClick={this.handleSubmit}
       />

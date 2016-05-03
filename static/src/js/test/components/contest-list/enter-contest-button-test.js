@@ -11,7 +11,9 @@ import UpcomingLineupsInfoSelectorFix from
 
 
 const defaultTestProps = {
-  contest: storeUpcomingContestsFix.allContests[0],
+  contest: storeUpcomingContestsFix.allContests[
+    Object.keys(storeUpcomingContestsFix.allContests)[0]
+  ],
   lineup: storeUpcomingLineupsFix.lineups[0],
   lineupsInfo: UpcomingLineupsInfoSelectorFix,
   onEnterClick: () => true,
@@ -34,7 +36,7 @@ describe('<EnterContestButton /> Component', () => {
 
   it('should render a disabled button if contest has started.', () => {
     wrapper.setState({ hasContestStarted: true });
-    expect(wrapper.find('.button.button--mini--outline.button--green-outline')).to.have.length(1);
+    expect(wrapper.find('.button.button--disabled')).to.have.length(1);
     // Make sure that it's only rendering 1 .button.
     expect(wrapper.find('.button')).to.have.length(1);
   });

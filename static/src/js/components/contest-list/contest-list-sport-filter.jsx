@@ -3,7 +3,7 @@ import * as ReactRedux from 'react-redux';
 import store from '../../store.js';
 import renderComponent from '../../lib/render-component';
 import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
-import { updateFilter } from '../../actions/upcoming-contests-actions.js';
+import { updateFilter } from '../../actions/contest-pool-actions.js';
 import { openDraftGroupSelectionModal } from '../../actions/upcoming-draft-groups-actions.js';
 
 const { Provider, connect } = ReactRedux;

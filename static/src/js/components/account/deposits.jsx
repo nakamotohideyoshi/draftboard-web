@@ -20,7 +20,7 @@ const { Provider, connect } = ReactRedux;
 
 function mapStateToProps(state) {
   return {
-    user: state.user.user,
+    user: state.user.info,
     addressFormErrors: state.user.addressFormErrors,
     payments: state.payments.payments,
   };
@@ -144,14 +144,14 @@ const Deposits = React.createClass({
 
           <DepositsAddPaymentMethod onAddPaymentMethod={this.props.addPaymentMethod} />
 
-          <input type="submit" className="button--medium" value="Deposit" />
+          <input type="submit" className="button button--flat-alt1" value="Deposit" />
 
           </fieldset>
         </form>
 
         <SettingsAddress
-          user={this.props.user}
-          errors={this.props.addressFormErrors}
+          info={this.props.user}
+          errors={[]}
           onHandleSubmit={this.props.updateUserAddress}
         />
 

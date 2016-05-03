@@ -48,7 +48,7 @@ module.exports = (state = {}, action) => {
         [action.id]: {
           playersStats: {
             [action.playerId]: {
-              $set: {
+              $merge: {
                 fp: action.fp,
               },
             },

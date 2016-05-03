@@ -4,7 +4,7 @@ import * as AppActions from '../../stores/app-state-store';
 
 
 /**
- * Bottom nav for the live section, changes based on contest vs lineup mode
+ * Bottom nav for the live section, changes based on watching contest vs lineup
  */
 const LiveBottomNav = React.createClass({
   propTypes: {
@@ -31,7 +31,7 @@ const LiveBottomNav = React.createClass({
         </div>
       );
 
-    // otherwise lineup mode
+    // otherwise watching lineup
     } else {
       classNames += 'lineup';
     }

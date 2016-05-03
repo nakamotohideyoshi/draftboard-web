@@ -5,13 +5,12 @@ import ResultsHeader from './results-header.jsx';
 import ResultsLineups from './results-lineups.jsx';
 import ResultsStats from './results-stats.jsx';
 import store from '../../store';
-import { currentLineupsSelector } from '../../selectors/current-lineups';
+import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { dateNow } from '../../lib/utils';
 import { fetchEntriesIfNeeded } from '../../actions/entries';
 import { fetchResultsIfNeeded } from '../../actions/results';
 import { fetchUpcomingLineups } from '../../actions/entries';
 import { liveContestsSelector } from '../../selectors/live-contests';
-import { liveSelector } from '../../selectors/live';
 import { map as _map } from 'lodash';
 import { push as routerPush } from 'react-router-redux';
 import { Provider, connect } from 'react-redux';
@@ -20,8 +19,8 @@ import { Router, Route, browserHistory } from 'react-router';
 import { sportsSelector } from '../../selectors/sports';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { uniqBy as _uniqBy } from 'lodash';
-import { updateLiveMode } from '../../actions/live';
-
+import { updateLiveMode } from '../../actions/watching';
+import { entriesHaveRelatedInfoSelector } from '../../selectors/entries';
 
 /*
  * Map selectors to the React component
@@ -29,9 +28,9 @@ import { updateLiveMode } from '../../actions/live';
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  currentLineupsSelector: currentLineupsSelector(state),
+  hasRelatedInfo: entriesHaveRelatedInfoSelector(state),
+  myCurrentLineupsSelector: myCurrentLineupsSelector(state),
   liveContestsSelector: liveContestsSelector(state),
-  liveSelector: liveSelector(state),
   results: state.results,
   resultsWithLive: resultsWithLive(state),
   sportsSelector: sportsSelector(state),
@@ -44,11 +43,11 @@ const Results = React.createClass({
 
   propTypes: {
     dispatch: React.PropTypes.func.isRequired,
+    hasRelatedInfo: React.PropTypes.bool.isRequired,
     params: React.PropTypes.object,
     results: React.PropTypes.object.isRequired,
-    currentLineupsSelector: React.PropTypes.object.isRequired,
+    myCurrentLineupsSelector: React.PropTypes.object.isRequired,
     liveContestsSelector: React.PropTypes.object.isRequired,
-    liveSelector: React.PropTypes.object.isRequired,
     resultsWithLive: React.PropTypes.object.isRequired,
     sportsSelector: React.PropTypes.object.isRequired,
   },
@@ -91,7 +90,7 @@ const Results = React.createClass({
   },
 
   componentDidUpdate(prevProps) {
-    if (prevProps.resultsWithLive.hasRelatedInfo === false && this.props.resultsWithLive.hasRelatedInfo === true) {
+    if (prevProps.hasRelatedInfo === false && this.props.hasRelatedInfo === true) {
       if (this.state.dateIsToday === true) {
         this.props.dispatch(updateLiveMode({
           sport: _map(
@@ -102,7 +101,7 @@ const Results = React.createClass({
       }
     }
 
-    if (prevProps.resultsWithLive.hasRelatedInfo === true && this.props.resultsWithLive.hasRelatedInfo === false) {
+    if (prevProps.hasRelatedInfo !== true && this.props.hasRelatedInfo === false) {
       this.props.dispatch(updateLiveMode({}));
     }
   },

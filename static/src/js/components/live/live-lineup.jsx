@@ -4,6 +4,13 @@ import LiveLineupPlayer from './live-lineup-player';
 import LivePlayerPane from './live-player-pane';
 import log from '../../lib/logging';
 import React from 'react';
+import size from 'lodash/size';
+import {
+  relevantPlayerBoxScoreHistoriesSelector,
+  relevantPlayerTeamsSelector,
+  relevantPlayersSelector,
+} from '../../selectors/live-players';
+import { sportsSelector } from '../../selectors/sports';
 
 
 /*
@@ -12,9 +19,13 @@ import React from 'react';
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  playerEventDescriptions: state.pusherLive.playerEventDescriptions,
-  playerHistories: state.pusherLive.playerHistories,
-  playersPlaying: state.pusherLive.playersPlaying,
+  playerEventDescriptions: state.events.playerEventDescriptions,
+  playerHistories: state.events.playerHistories,
+  playersPlaying: state.events.playersPlaying,
+  relevantPlayerTeamsSelector: relevantPlayerTeamsSelector(state),
+  relevantSeasonStats: relevantPlayerBoxScoreHistoriesSelector(state),
+  relevantPlayersGameStats: relevantPlayersSelector(state),
+  sports: sportsSelector(state),
 });
 
 /**
@@ -25,20 +36,23 @@ const LiveLineup = React.createClass({
   propTypes: {
     changePathAndMode: React.PropTypes.func.isRequired,
     draftGroupStarted: React.PropTypes.bool.isRequired,
-    games: React.PropTypes.object.isRequired,
     lineup: React.PropTypes.object.isRequired,
-    mode: React.PropTypes.object.isRequired,
+    watching: React.PropTypes.object.isRequired,
     playerEventDescriptions: React.PropTypes.object.isRequired,
     playersPlaying: React.PropTypes.array.isRequired,
     playerHistories: React.PropTypes.object.isRequired,
-    sport: React.PropTypes.string.isRequired,
+    relevantPlayersGameStats: React.PropTypes.object.isRequired,
+    relevantPlayerTeamsSelector: React.PropTypes.object.isRequired,
+    relevantSeasonStats: React.PropTypes.object.isRequired,
+    sports: React.PropTypes.object.isRequired,
+    watchingPlayerSRID: React.PropTypes.string,
     whichSide: React.PropTypes.string.isRequired,
   },
 
   getInitialState() {
     return {
       // (optional) parameter assigned a player ID when we want to show their LivePlayerPane
-      viewPlayerDetails: this.props.lineup.length > 0 ? this.props.lineup.roster[0] : undefined,
+      viewPlayerDetails: size(this.props.lineup) > 0 ? this.props.lineup.roster[0] : undefined,
     };
   },
 
@@ -46,10 +60,10 @@ const LiveLineup = React.createClass({
    * Used to close the current opponent lineup. Sets up parameters to then call props.changePathAndMode()
    */
   closeLineup() {
-    const mode = this.props.mode;
-    const path = `/live/${mode.sport}/lineups/${mode.myLineupId}/contests/${mode.contestId}`;
+    const watching = this.props.watching;
+    const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/contests/${watching.contestId}`;
     const changedFields = {
-      opponentLineupId: undefined,
+      opponentLineupId: null,
     };
 
     this.props.changePathAndMode(path, changedFields);
@@ -96,10 +110,12 @@ const LiveLineup = React.createClass({
   renderPlayers() {
     const renderedPlayers = this.props.lineup.roster.map((playerId) => {
       const player = this.props.lineup.rosterDetails[playerId];
-      const playerSRID = player.info.player_srid;
+      const playerSRID = player.srid;
       const isPlaying = this.props.playersPlaying.indexOf(playerSRID) !== -1;
+      const isWatching = this.props.watchingPlayerSRID === playerSRID;
       const eventDescription = this.props.playerEventDescriptions[playerSRID] || {};
-      const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}/120`;
+      const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.watching.sport}/120`;
+      const gameStats = this.props.relevantPlayersGameStats[playerSRID] || {};
 
       return (
         <LiveLineupPlayer
@@ -107,9 +123,12 @@ const LiveLineup = React.createClass({
           eventDescription={eventDescription}
           key={playerId}
           isPlaying={isPlaying}
+          isWatching={isWatching}
           openPlayerPane={this.openPlayerPane.bind(this, playerId)}
           player={player}
           playerImagesBaseUrl={playerImagesBaseUrl}
+          gameStats={gameStats}
+          sport={this.props.watching.sport}
           whichSide={this.props.whichSide}
         />
       );
@@ -131,23 +150,30 @@ const LiveLineup = React.createClass({
    * @return {JSXElement}
    */
   renderPlayerPane() {
+    // don't show player pane while countdown is showing
+    if (!this.props.draftGroupStarted) return '';
+
+    const { lineup } = this.props;
     const playerId = this.state.viewPlayerDetails;
 
     // don't show if there's no player or the player is not in the roster
-    if (!playerId || this.props.lineup.roster.indexOf(playerId) === -1) {
+    if (!playerId || lineup.roster.indexOf(playerId) === -1) {
       return ('');
     }
 
-    const player = this.props.lineup.rosterDetails[playerId];
-    const game = this.props.games[player.info.game_srid] || {};
-    const history = this.props.playerHistories[player.info.player_srid] || [];
+    const player = lineup.rosterDetails[playerId];
+    const game = this.props.sports.games[player.gameSRID] || {};
+    const history = this.props.playerHistories[player.srid] || [];
 
     return (
       <LivePlayerPane
         eventHistory={history}
         game={game}
+        seasonStats={this.props.relevantSeasonStats[player.srid] || {}}
         player={player}
-        playerImagesBaseUrl={`${window.dfs.playerImagesBaseUrl}/${this.props.sport}/380`}
+        playerImagesBaseUrl={`${window.dfs.playerImagesBaseUrl}/${this.props.watching.sport}/380`}
+        playerTeam={relevantPlayerTeamsSelector[playerId] || {}}
+        sport={this.props.watching.sport}
         whichSide={this.props.whichSide}
       />
     );
@@ -155,7 +181,7 @@ const LiveLineup = React.createClass({
 
   render() {
     // don't show until there's a roster
-    if (this.props.lineup.roster.length === 0) {
+    if (this.props.lineup.hasOwnProperty('roster') === false || this.props.lineup.roster.length === 0) {
       return (<div />);
     }
 

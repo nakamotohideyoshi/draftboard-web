@@ -73,7 +73,7 @@ const Withdrawals = React.createClass({
             </div>
           </div>
 
-          <input type="submit" className="button--medium" value="Withdraw" />
+          <input type="submit" className="button button--flat-alt1" value="Withdraw" />
         </fieldset>
         </form>
       </div>

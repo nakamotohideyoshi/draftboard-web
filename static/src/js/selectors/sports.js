@@ -1,7 +1,13 @@
-import { forEach as _forEach } from 'lodash';
-import { merge as _merge } from 'lodash';
-import { round as _round } from 'lodash';
+import {
+  forEach as _forEach,
+  merge as _merge,
+  mapValues as _mapValues,
+  round as _round,
+} from 'lodash';
 import { createSelector } from 'reselect';
+
+
+const currentGames = (state) => state.sports.games;
 
 
 /**
@@ -43,4 +49,10 @@ export const sportsSelector = createSelector(
 
     return sports;
   }
+);
+
+
+export const gamesTimeRemainingSelector = createSelector(
+  [currentGames],
+  (games) => _mapValues(games, 'timeRemaining')
 );

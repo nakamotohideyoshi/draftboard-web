@@ -1,7 +1,8 @@
-import React from 'react';
-import { size as _size } from 'lodash';
-
+import LiveMLBDiamond from './mlb/live-mlb-diamond';
 import LivePMRProgressBar from './live-pmr-progress-bar';
+import React from 'react';
+import { extend } from 'lodash';
+import { size as _size } from 'lodash';
 
 
 const LiveLineupPlayer = React.createClass({
@@ -9,10 +10,13 @@ const LiveLineupPlayer = React.createClass({
   propTypes: {
     draftGroupStarted: React.PropTypes.bool.isRequired,
     eventDescription: React.PropTypes.object.isRequired,
+    gameStats: React.PropTypes.object.isRequired,
     isPlaying: React.PropTypes.bool.isRequired,
+    isWatching: React.PropTypes.bool.isRequired,
     openPlayerPane: React.PropTypes.func.isRequired,
     player: React.PropTypes.object.isRequired,
     playerImagesBaseUrl: React.PropTypes.string.isRequired,
+    sport: React.PropTypes.string.isRequired,
     whichSide: React.PropTypes.string.isRequired,
   },
 
@@ -46,7 +50,7 @@ const LiveLineupPlayer = React.createClass({
    * @return {JSXElement}
    */
   renderGameStats() {
-    const values = this.props.player.liveStats || {};
+    const values = this.props.gameStats;
 
     // ordered stats
     const statTypes = ['points', 'rebounds', 'steals', 'assists', 'blocks', 'turnovers'];
@@ -69,8 +73,13 @@ const LiveLineupPlayer = React.createClass({
   },
 
   renderPhotoAndHover() {
-    const decimalRemaining = this.props.player.stats.decimalRemaining;
-    const playerImage = `${this.props.playerImagesBaseUrl}/${this.props.player.info.player_srid}.png`;
+    const decimalRemaining = this.props.player.timeRemaining.decimal;
+    let playerImage = `${this.props.playerImagesBaseUrl}/${this.props.player.srid}.png`;
+
+    // TODO remove once we have player images
+    if (this.props.sport === 'mlb') {
+      playerImage = '/static/src/img/temp/mlb-player.png';
+    }
 
     return (
       <div key="1" className="live-lineup-player__circle">
@@ -96,17 +105,59 @@ const LiveLineupPlayer = React.createClass({
     );
   },
 
+  renderWatching() {
+    if (this.props.sport === 'mlb' && this.props.isWatching === true) {
+      const diamondProps = {
+        first: 'mine',
+        second: 'both',
+        third: 'opponent',
+      };
+
+      return [
+        (
+        <div key="8" className="live-lineup-player__watching-indicator" />
+        ),
+        (
+        <div key="9" className="live-lineup-player__watching-info live-player-watching">
+          <div className="live-player-watching__fp">+2</div>
+          <div className="live-player-watching__name-stats">
+            <div className="live-player-watching__name">Nolan Ryan</div>
+            <div className="live-player-watching__stats">
+              <span>1B/2S - 2 Outs</span>
+              <span className="live-player-watching__inning live-player-watching__inning--bottom">
+                5th
+              </span>
+            </div>
+          </div>
+          <div className="live-player-watching__bases">
+            {React.createElement(
+              LiveMLBDiamond, extend({}, diamondProps)
+            )}
+          </div>
+        </div>
+        ),
+      ];
+    }
+
+    return [];
+  },
+
   render() {
-    const stats = this.props.player.stats;
+    const player = this.props.player;
 
     // if we have not started, show dumbed down version for countdown
     if (this.props.draftGroupStarted === false) {
-      const playerImage = `${this.props.playerImagesBaseUrl}/${this.props.player.info.player_srid}.png`;
+      let playerImage = `${this.props.playerImagesBaseUrl}/${player.srid}.png`;
+
+      // TODO remove once we have player images
+      if (this.props.sport === 'mlb') {
+        playerImage = '/static/src/img/temp/mlb-player.png';
+      }
 
       return (
         <li className="live-lineup-player live-lineup-player--upcoming">
           <div className="live-lineup-player__position">
-            {this.props.player.info.position}
+            {player.position}
           </div>
           <div className="live-lineup-player__circle">
             <div className="live-lineup-player__photo">
@@ -118,14 +169,14 @@ const LiveLineupPlayer = React.createClass({
             </div>
           </div>
           <div className="live-lineup-player__only-name">
-            {this.props.player.info.name}
+            {player.name}
           </div>
         </li>
       );
     }
 
     // classname for the whole player
-    const gameCompleted = (stats.decimalRemaining === 0) ? 'not' : 'is';
+    const gameCompleted = (player.timeRemaining.decimal === 0) ? 'not' : 'is';
     const className = `live-lineup-player state--${gameCompleted}-playing`;
 
     // classname to determine whether the player is live or not
@@ -136,14 +187,17 @@ const LiveLineupPlayer = React.createClass({
     // note that the key is required by React when rendering multiple children
     let playerElements = [
       (<div key="0" className="live-lineup-player__position">
-        {this.props.player.info.position}
+        {player.position}
       </div>),
       this.renderPhotoAndHover(),
       (<div key="2" className="live-lineup-player__status"></div>),
-      (<div key="3" className="live-lineup-player__points">{stats.fp}</div>),
+      (<div key="3" className="live-lineup-player__points">{player.fp}</div>),
       (<div key="4" className={ playStatusClass } />),
       this.renderEventDescription(),
     ];
+
+    // add in watching, if applicable
+    playerElements = playerElements.concat(this.renderWatching());
 
     // flip the order of elements for opponent
     if (this.props.whichSide === 'opponent') {
