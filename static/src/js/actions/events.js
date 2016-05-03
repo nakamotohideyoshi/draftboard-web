@@ -1,49 +1,56 @@
 import * as ActionTypes from '../action-types';
 import log from '../lib/logging';
 import store from '../store';
+import { filter as _filter } from 'lodash';
 import { forEach as _forEach } from 'lodash';
+import { GAME_DURATIONS } from './sports';
+import { humanizePitchCount } from './sports';
+import {
+  watchingMyLineupSelector,
+  relevantGamesPlayersSelector,
+  watchingOpponentLineupSelector,
+} from '../selectors/watching';
 import { intersection as _intersection } from 'lodash';
-import { liveSelector } from '../selectors/live';
-import { map as _map } from 'lodash';
 import { merge as _merge } from 'lodash';
+import { storeEventMultipart } from './events-multipart';
 import { updateGameTeam } from './sports';
 import { updateGameTime } from './sports';
 import { updatePlayerStats } from './live-draft-groups';
 
 const addAnimationEvent = (key, value) => ({
-  type: ActionTypes.PUSHER_ADD_ANIMATION_EVENT,
+  type: ActionTypes.EVENT_ADD_ANIMATION,
   key,
   value,
 });
 
 const addPlayerEventDescription = (key, value) => ({
-  type: ActionTypes.PUSHER_ADD_PLAYER_EVENT_DESCRIPTION,
+  type: ActionTypes.EVENT_PLAYER_ADD_DESCRIPTION,
   key,
   value,
 });
 
 const differencePlayersPlaying = (players) => ({
-  type: ActionTypes.PUSHER_DIFFERENCE_PLAYERS_PLAYING,
+  type: ActionTypes.EVENT_DIFFERENCE_PLAYERS_PLAYING,
   players,
 });
 
 const unionPlayersPlaying = (players) => ({
-  type: ActionTypes.PUSHER_DIFFERENCE_PLAYERS_PLAYING,
+  type: ActionTypes.EVENT_UNION_PLAYERS_PLAYING,
   players,
 });
 
 export const removeAnimationEvent = (key) => ({
-  type: ActionTypes.PUSHER_REMOVE_ANIMATION_EVENT,
+  type: ActionTypes.EVENT_REMOVE_ANIMATION,
   key,
 });
 
 const removePlayerEventDescription = (key) => ({
-  type: ActionTypes.PUSHER_REMOVE_PLAYER_EVENT_DESCRIPTION,
+  type: ActionTypes.EVENT_PLAYER_REMOVE_DESCRIPTION,
   key,
 });
 
 const unshiftPlayerHistory = (key, value) => ({
-  type: ActionTypes.PUSHER_UNSHIFT_PLAYER_HISTORY,
+  type: ActionTypes.EVENT_UNSHIFT_PLAYER_HISTORY,
   key,
   value,
 });
@@ -62,14 +69,34 @@ const showThenHidePlayerEventDescription = (key, value) => (dispatch) => {
  * NOTE: this method must be wrapped with dispatch()
  * @return {object}   Changes for reducer
  */
-const addToGameQueue = (gameId, eventCall, type) => ({
-  type: ActionTypes.PUSHER_ADD_GAME_QUEUE_EVENT,
+const addToGameQueue = (gameId, eventCall, type, sport) => ({
+  type: ActionTypes.EVENT_ADD_GAME_QUEUE,
   gameId,
   gameQueueEvent: {
     type,
     eventCall,
   },
+  sport,
 });
+
+const updatePBPPlayersStats = (playersStats) => {
+  const state = store.getState();
+  const myLineup = watchingMyLineupSelector(state);
+  const watching = state.watching;
+
+  // don't update if we aren't ready
+  if (watching.myLineupId === null || myLineup.isLoading === true) return false;
+
+  _forEach(playersStats, (playerStats) => {
+    log.info('setTimeout - linked pbp - updatePlayerStats()', playerStats.fields.player_id);
+
+    store.dispatch(updatePlayerStats(
+      playerStats.fields.player_id,
+      playerStats,
+      myLineup.draftGroupId
+    ));
+  });
+};
 
 /**
  * Dispatch information to reducer that we have completed getting all information related to the entries
@@ -79,14 +106,14 @@ const addToGameQueue = (gameId, eventCall, type) => ({
  */
 export const shiftGameQueueEvent = (gameId) => ({
   gameId,
-  type: ActionTypes.PUSHER_SHIFT_GAME_QUEUE_EVENT,
+  type: ActionTypes.EVENT_SHIFT_GAME_QUEUE,
 });
 
-const whichSide = (relevantPlayersInEvent, liveSelectorData) => {
+const whichSide = (watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers) => {
   // determine what color the animation should be, based on which lineup(s) the player(s) are in
-  if (liveSelectorData.mode.opponentLineupId) {
-    const rosterBySRID = liveSelectorData.lineups.opponent.rosterBySRID;
-    const playersInBothLineups = liveSelectorData.playersInBothLineups;
+  if (watching.opponentLineupId && opponentLineup.isLoading === false) {
+    const rosterBySRID = opponentLineup.rosterBySRID;
+    const playersInBothLineups = relevantGamesPlayers.playersInBothLineups;
 
     if (_intersection(rosterBySRID, relevantPlayersInEvent).length > 0) {
       return 'opponent';
@@ -121,49 +148,80 @@ export const showAnimationEventResults = (animationEvent) => {
   });
 
   // update player stats if we have them
-  if (animationEvent.playersStats !== null) {
-    const state = store.getState();
-    const liveSelectorData = liveSelector(state);
-    const players = liveSelectorData.draftGroup.playersInfo;
-
-    _forEach(animationEvent.playersStats, (playerStats) => {
-      const player = players[playerStats.fields.srid_player] || {};
-
-      log.info('setTimeout - linked pbp - updatePlayerStats()', player.name || 'Unknown', animationEvent);
-
-      store.dispatch(updatePlayerStats(
-        playerStats.fields.player_id,
-        playerStats,
-        liveSelectorData.lineups.mine.draftGroup.id
-      ));
-    });
-  }
+  updatePBPPlayersStats(animationEvent.playersStats);
 };
 
 /*
- * Show a game event from a Pusher pbp call in the court and in the player information
+ * Show a game event from a Pusher pbp call. If this is a multipart, then add there, otherwise just add as normal event
  * @param  {object} eventCall The event call to parse for information
  */
 const showGameEvent = (eventCall, state) => {
   // get just pbp data if linked
   const eventPBP = eventCall.pbp || eventCall;
 
-  const liveSelectorData = liveSelector(state);
-  const eventPlayers = _map(eventPBP.statistics__list, event => event.player);
-  const relevantPlayersInEvent = _intersection(liveSelectorData.relevantPlayers, eventPlayers);
+  const opponentLineup = watchingOpponentLineupSelector(state);
+  const relevantGamesPlayers = relevantGamesPlayersSelector(state);
+  const watching = state.watching;
+  const eventPlayers = eventCall.addedData.eventPlayers;
+  const relevantPlayersInEvent = _intersection(relevantGamesPlayers.relevantItems.players, eventPlayers);
+  const sport = eventCall.addedData.sport;
+  const sportConst = GAME_DURATIONS[sport];
 
   // relevant information for court animation
-  const animationEvent = {
-    eventPBP,
-    gameId: eventPBP.game__id,
-    id: eventPBP.id,
-    location: eventPBP.location__list,
-    playersStats: eventCall.stats || null,
-    relevantPlayersInEvent,
-    whichSide: whichSide(relevantPlayersInEvent, liveSelectorData),
-  };
+  let animationEvent;
 
-  store.dispatch(addAnimationEvent(animationEvent.id, animationEvent));
+  switch (sport) {
+    case 'mlb':
+      animationEvent = {
+        eventPBP,
+        eventCall,
+        gameId: eventPBP.game__id,
+        id: eventPBP.id,
+        playersStats: eventCall.stats || {},
+        relevantPlayersInEvent,
+        whichSide: whichSide(watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers),
+      };
+
+      // if multipart, then return out with
+      if (eventPBP.hasOwnProperty('at_bat__id')) {
+        animationEvent = _merge(animationEvent, {
+          pitchCount: humanizePitchCount(eventPBP.count__list),
+          outcome: sportConst.pitchOutcomes[eventPBP.outcome__id] || null,
+          usedFlags: _filter(eventPBP.flags__list, flag => flag === 'true'),
+          zonePitches: eventCall.zone_pitches,
+        });
+
+        // store multipart event for components to receive in props change
+        storeEventMultipart(eventPBP.at_bat__id, animationEvent);
+
+        // immediately update player stats, no need to wait bc there's no animation
+        updatePBPPlayersStats(eventCall.stats);
+
+        // TODO actions.events - what do we want to show in history?
+        // store.dispatch(unshiftPlayerHistory(playerId, eventDescription));
+
+      // otherwise just add animation event as per usual to show then hide
+      } else {
+        store.dispatch(addAnimationEvent(animationEvent.id, animationEvent));
+      }
+
+      break;
+    case 'nba':
+    default:
+      animationEvent = {
+        eventPBP,
+        gameId: eventPBP.game__id,
+        id: eventPBP.id,
+        location: eventPBP.location__list,
+        playersStats: eventCall.stats || null,
+        relevantPlayersInEvent,
+        whichSide: whichSide(watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers),
+      };
+      store.dispatch(addAnimationEvent(animationEvent.id, animationEvent));
+
+      break;
+  }
+
   store.dispatch(unionPlayersPlaying(relevantPlayersInEvent));
 };
 
@@ -175,7 +233,7 @@ const showGameEvent = (eventCall, state) => {
  */
 export const shiftOldestGameEvent = (gameId) => {
   const state = store.getState();
-  const gameQueue = _merge({}, state.pusherLive.gamesQueue[gameId]);
+  const gameQueue = _merge({}, state.events.gamesQueue[gameId]);
 
   // if there are no more events, then stop running
   if (gameQueue.queue.length === 0) {
@@ -189,14 +247,14 @@ export const shiftOldestGameEvent = (gameId) => {
   // remove oldest event from redux
   store.dispatch(shiftGameQueueEvent(gameId));
 
-  log.info(`actions.pusherLive.shiftOldestGameEvent(), game ${gameId}, queue of ${gameQueue.queue.length}`, eventCall);
+  log.info(`actions.events.shiftOldestGameEvent(), game ${gameId}, queue of ${gameQueue.queue.length}`, eventCall);
 
   // depending on what type of data, either show animation on screen or update stats
   switch (oldestEvent.type) {
 
     // if this is a court animation, then start er up
     case 'pbp':
-      showGameEvent(eventCall, state);
+      showGameEvent(eventCall, state, oldestEvent.sport);
       break;
 
     // if boxscore game, then update the clock/quarter
@@ -230,21 +288,19 @@ export const shiftOldestGameEvent = (gameId) => {
 
     // if stats, then update the player stats
     case 'stats': {
-      const liveSelectorData = liveSelector(state);
+      const myLineup = watchingMyLineupSelector(state);
+      const watching = state.watching;
 
-      // TODO mod this to work with results
-      if (liveSelectorData.hasOwnProperty('draftGroup')) {
-        const players = liveSelectorData.draftGroup.playersInfo;
-        const player = players[eventCall.fields.playerId] || {};
+      // don't update if we aren't ready
+      if (watching.myLineupId === null || myLineup.isLoading === true) return false;
 
-        log.info('Live.shiftOldestGameEvent().updatePlayerStats()', player.name || 'Unknown', eventCall);
+      log.info('Live.shiftOldestGameEvent().updatePlayerStats()', eventCall.fields.player_id);
 
-        store.dispatch(updatePlayerStats(
-          eventCall.fields.player_id,
-          eventCall,
-          liveSelectorData.lineups.mine.draftGroup.id
-        ));
-      }
+      store.dispatch(updatePlayerStats(
+        eventCall.fields.player_id,
+        eventCall,
+        myLineup.draftGroupId
+      ));
 
       // then move on to the next
       shiftOldestGameEvent(gameId);
@@ -263,10 +319,11 @@ export const shiftOldestGameEvent = (gameId) => {
  * @param {integer} gameId Game SRID to determine game queue
  * @param {object} event The json object received from Pusher
  * @param {string} type The type of call, options are 'stats', 'php', 'boxscore'
+ * @param {string} sport [OPTIONAL] For PBP, pass through sport to know how to parse
  */
-export const addEventAndStartQueue = (gameId, eventCall, type) => {
-  log.debug('actions.pusherLive.addEventAndStartQueue', gameId, eventCall, type);
+export const addEventAndStartQueue = (gameId, eventCall, type, sport) => {
+  log.debug('actions.events.addEventAndStartQueue', gameId, eventCall, type, sport);
 
-  store.dispatch(addToGameQueue(gameId, eventCall, type));
+  store.dispatch(addToGameQueue(gameId, eventCall, type, sport));
   shiftOldestGameEvent(gameId);
 };

@@ -51,7 +51,7 @@ if (window.dfs.wipeLocalStorage === '1') {
   window.localStorage.clear();
 }
 
-if (window.localStorage.version !== window.dfs.gitCommitUUID) {
+if (window.localStorage.version && window.localStorage.version !== window.dfs.gitCommitUUID) {
   log.info('app.jsx - Wiping localStorage due to new deployment');
   window.localStorage.clear();
 }

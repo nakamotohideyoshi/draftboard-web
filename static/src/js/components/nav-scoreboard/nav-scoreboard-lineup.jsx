@@ -20,12 +20,12 @@ const NavScoreboardLineup = React.createClass({
   render() {
     const {
       formattedStart,
-      durationRemaining,
-      points,
+      timeRemaining,
+      fp,
     } = this.props.lineup;
 
-    const totalPotentialEarnings = this.props.lineup.totalPotentialEarnings || 0;
-    const sport = this.props.lineup.draftGroup.sport;
+    const potentialWinnings = this.props.lineup.potentialWinnings || 0;
+    const sport = this.props.lineup.sport;
 
     let { name } = this.props.lineup;
 
@@ -44,9 +44,9 @@ const NavScoreboardLineup = React.createClass({
         </div>
 
         <div className="right">
-          { points } <span className="unit">PTS / </span>
-          { durationRemaining } <span className="unit">PMR / </span>
-          <span className="balance">${ totalPotentialEarnings.toFixed(2) }</span>
+          { fp } <span className="unit">PTS / </span>
+          { timeRemaining.duration } <span className="unit">PMR / </span>
+          <span className="balance">${ potentialWinnings.toFixed(2) }</span>
         </div>
       </div>
     );

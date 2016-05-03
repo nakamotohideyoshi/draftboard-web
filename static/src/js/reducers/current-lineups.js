@@ -5,7 +5,7 @@ import * as ActionTypes from '../action-types';
 module.exports = (state = {
   isFetching: false,
   items: {},
-}, action) => {
+}, action = {}) => {
   switch (action.type) {
     case ActionTypes.SET_CURRENT_LINEUPS:
       return update(state, {

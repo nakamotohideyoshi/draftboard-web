@@ -3,6 +3,7 @@ const request = require('superagent-promise')(require('superagent'), Promise);
 import { filter as _filter } from 'lodash';
 import { forEach as _forEach } from 'lodash';
 import { map as _map } from 'lodash';
+import merge from 'lodash/merge';
 import { normalize, Schema, arrayOf } from 'normalizr';
 
 import { dateNow } from '../lib/utils';
@@ -34,13 +35,16 @@ const confirmRelatedEntriesInfo = () => ({
 const receiveEntries = (response) => {
   const yesterday = dateNow() - 1000 * 60 * 60 * 24;  // subtract 1 day
   const filteredResponse = _filter(response, (entry) => new Date(entry.start) > yesterday);
+  const withDefaultName = _map(filteredResponse, (entry) => merge({}, entry, {
+    lineup_name: 'My Lineup',
+  }));
 
   // normalize the API call into a list of entry objects
   const entriesSchema = new Schema('entries', {
     idAttribute: 'id',
   });
   const normalizedEntries = normalize(
-    filteredResponse,
+    withDefaultName,
     arrayOf(entriesSchema)
   );
   const entries = normalizedEntries.entities.entries;
@@ -162,7 +166,7 @@ export const generateLineups = () => (dispatch, getState) => {
         id: entry.lineup,
         draft_group: entry.draft_group,
         name: entry.lineup_name,
-        start: entry.start,
+        start: new Date(entry.start).getTime(),
         roster: entry.roster,
         contests: [entry.contest],
       };

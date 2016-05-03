@@ -1,14 +1,14 @@
-
 const request = require('superagent-promise')(require('superagent'), Promise);
-import { forEach as _forEach } from 'lodash';
-import Cookies from 'js-cookie';
-import { Buffer } from 'buffer/';
-
 import * as ActionTypes from '../action-types';
-import { fetchDraftGroupIfNeeded } from './live-draft-groups';
-import { fetchPrizeIfNeeded } from './prizes';
-import { fetchGamesIfNeeded } from './sports';
+import Cookies from 'js-cookie';
+import map from 'lodash/map';
+import zipObject from 'lodash/zipObject';
+import { Buffer } from 'buffer/';
 import { dateNow } from '../lib/utils';
+import { fetchDraftGroupIfNeeded } from './live-draft-groups';
+import { fetchGamesIfNeeded } from './sports';
+import { fetchPrizeIfNeeded } from './prizes';
+import { forEach as _forEach } from 'lodash';
 import { GAME_DURATIONS } from '../actions/sports';
 
 
@@ -100,22 +100,15 @@ const receiveContestInfo = (id, response) => ({
  * @param  {object} response API response from server
  * @return {object}          Changes for reducer
  */
-const receiveContestLineupsUsernames = (id, response) => {
-  const lineupsUsernames = {};
-  _forEach(response, (lineup) => {
-    lineupsUsernames[lineup.id] = {
-      id: lineup.id,
-      user: lineup.user,
-    };
-  });
-
-  return {
-    type: ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS_USERNAMES,
-    id,
-    lineupsUsernames,
-    expiresAt: dateNow() + 1000 * 60 * 60 * 24, // 1 day
-  };
-};
+const receiveContestLineupsUsernames = (id, response) => ({
+  type: ActionTypes.RECEIVE_LIVE_CONTEST_LINEUPS_USERNAMES,
+  id,
+  lineupsUsernames: zipObject(
+    map(response, (lineup) => lineup.id),
+    map(response, (lineup) => lineup.user.username)
+  ),
+  expiresAt: dateNow() + 1000 * 60 * 60 * 24, // 1 day
+});
 
 
 // helper methods

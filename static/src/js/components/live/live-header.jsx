@@ -1,6 +1,5 @@
-import React from 'react';
-
 import LiveOverallStats from './live-overall-stats';
+import React from 'react';
 
 
 /**
@@ -10,18 +9,21 @@ const LiveHeader = React.createClass({
 
   propTypes: {
     changePathAndMode: React.PropTypes.func.isRequired,
-    liveSelector: React.PropTypes.object.isRequired,
+    contest: React.PropTypes.object.isRequired,
+    myLineup: React.PropTypes.object.isRequired,
+    opponentLineup: React.PropTypes.object.isRequired,
+    watching: React.PropTypes.object.isRequired,
   },
 
   /**
    * Used to close the current contest. Sets up parameters to then call props.changePathAndMode()
    */
   returnToLineup() {
-    const mode = this.props.liveSelector.mode;
-    const path = `/live/${mode.sport}/lineups/${mode.myLineupId}/`;
+    const watching = this.props.watching;
+    const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/`;
     const changedFields = {
-      opponentLineupId: undefined,
-      contestId: undefined,
+      opponentLineupId: null,
+      contestId: null,
     };
 
     this.props.changePathAndMode(path, changedFields);
@@ -32,9 +34,7 @@ const LiveHeader = React.createClass({
    * modify the DOM elements if we're viewing a contest and/or an opponent.
    */
   render() {
-    const liveSelector = this.props.liveSelector;
-    const myLineup = liveSelector.lineups.mine;
-
+    const { myLineup, contest, opponentLineup, watching } = this.props;
 
     // set all needed variables, and default them to lineup only
     let closeContest;
@@ -46,9 +46,7 @@ const LiveHeader = React.createClass({
 
 
     // if watching a contest, then update the titles and ensure the overall stats are contest-based
-    if (liveSelector.hasOwnProperty('contest')) {
-      const contest = liveSelector.contest;
-
+    if (watching.contestId !== null && !contest.isLoading) {
       hasContest = true;
       primary = contest.name;
       secondary = myLineup.name;
@@ -58,9 +56,7 @@ const LiveHeader = React.createClass({
 
 
       // if watching an opponent, then add in second overall stats and update the titles
-      if (liveSelector.lineups.hasOwnProperty('opponent')) {
-        const opponentLineup = liveSelector.lineups.opponent;
-
+      if (watching.opponentLineupId !== null && !opponentLineup.isLoading) {
         let username = '';
         if (opponentLineup.hasOwnProperty('user')) {
           username = opponentLineup.user.username;
@@ -79,6 +75,7 @@ const LiveHeader = React.createClass({
         );
         opponentStats = (
           <LiveOverallStats
+            contest={contest}
             hasContest
             lineup={opponentLineup}
             whichSide="opponent"
@@ -98,6 +95,7 @@ const LiveHeader = React.createClass({
         </h1>
 
         <LiveOverallStats
+          contest={contest}
           lineup={myLineup}
           hasContest={hasContest}
           whichSide="mine"

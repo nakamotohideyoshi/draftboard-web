@@ -19,7 +19,7 @@ const ResultsLineup = React.createClass({
         fantasy_points: React.PropTypes.number.isRequired,
         roster_spot: React.PropTypes.string.isRequired,
         // only needed for live
-        decimalRemaining: React.PropTypes.number,
+        timeRemaining: React.PropTypes.object,
       })
     ).isRequired,
     entries: React.PropTypes.array.isRequired,
@@ -105,7 +105,7 @@ const ResultsLineup = React.createClass({
             </div>
 
             <LivePMRProgressBar
-              decimalRemaining={player.decimalRemaining}
+              decimalRemaining={player.timeRemaining.decimal}
               strokeWidth={2}
               backgroundHex="46495e"
               hexStart="36b5cc"

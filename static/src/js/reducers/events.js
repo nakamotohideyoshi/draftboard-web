@@ -16,7 +16,7 @@ const initialState = {
 module.exports = (state = initialState, action) => {
   switch (action.type) {
 
-    case ActionTypes.PUSHER_ADD_ANIMATION_EVENT:
+    case ActionTypes.EVENT_ADD_ANIMATION:
       return update(state, {
         animationEvents: {
           $merge: {
@@ -25,7 +25,7 @@ module.exports = (state = initialState, action) => {
         },
       });
 
-    case ActionTypes.PUSHER_ADD_GAME_QUEUE_EVENT:
+    case ActionTypes.EVENT_ADD_GAME_QUEUE:
       // update if already running
       if (state.gamesQueue.hasOwnProperty(action.gameId)) {
         return update(state, {
@@ -50,7 +50,7 @@ module.exports = (state = initialState, action) => {
         },
       });
 
-    case ActionTypes.PUSHER_ADD_PLAYER_EVENT_DESCRIPTION:
+    case ActionTypes.EVENT_PLAYER_ADD_DESCRIPTION:
       return update(state, {
         playerEventDescriptions: {
           $merge: {
@@ -59,14 +59,14 @@ module.exports = (state = initialState, action) => {
         },
       });
 
-    case ActionTypes.PUSHER_DIFFERENCE_PLAYERS_PLAYING:
+    case ActionTypes.EVENT_DIFFERENCE_PLAYERS_PLAYING:
       return update(state, {
         $merge: {
           playersPlaying: _difference(state.playersPlaying, action.players),
         },
       });
 
-    case ActionTypes.PUSHER_REMOVE_ANIMATION_EVENT: {
+    case ActionTypes.EVENT_REMOVE_ANIMATION: {
       const animationEvents = _merge({}, state.animationEvents);
       delete animationEvents[action.key];
 
@@ -77,7 +77,7 @@ module.exports = (state = initialState, action) => {
       });
     }
 
-    case ActionTypes.PUSHER_REMOVE_PLAYER_EVENT_DESCRIPTION: {
+    case ActionTypes.EVENT_PLAYER_REMOVE_DESCRIPTION: {
       const playerEventDescriptions = _merge({}, state.playerEventDescriptions);
       delete playerEventDescriptions[action.key];
 
@@ -88,7 +88,7 @@ module.exports = (state = initialState, action) => {
       });
     }
 
-    case ActionTypes.PUSHER_SHIFT_GAME_QUEUE_EVENT: {
+    case ActionTypes.EVENT_SHIFT_GAME_QUEUE: {
       const queue = [...state.gamesQueue[action.gameId].queue];
       queue.shift();
 
@@ -103,14 +103,14 @@ module.exports = (state = initialState, action) => {
       });
     }
 
-    case ActionTypes.PUSHER_UNION_PLAYERS_PLAYING:
+    case ActionTypes.EVENT_UNION_PLAYERS_PLAYING:
       return update(state, {
         $merge: {
           playersPlaying: _union(state.playersPlaying, action.players),
         },
       });
 
-    case ActionTypes.PUSHER_UNSHIFT_PLAYER_HISTORY: {
+    case ActionTypes.EVENT_UNSHIFT_PLAYER_HISTORY: {
       const playerHistory = state.playerHistories[action.key] || [];
       const newHistory = [...playerHistory];
       newHistory.unshift(action.value);

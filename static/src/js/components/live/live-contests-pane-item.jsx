@@ -26,7 +26,7 @@ const LiveContestsPaneItem = React.createClass({
       moneyLineClass += ' live-moneyline--is-losing';
     }
 
-    let winnings = contest.potentialEarnings;
+    let winnings = contest.potentialWinnings;
     let winningsClass = 'winnings';
     if (winnings === 0) {
       winnings = `$${winnings}`;

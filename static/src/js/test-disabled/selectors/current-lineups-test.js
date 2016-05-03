@@ -8,7 +8,7 @@ import { size as _size } from 'lodash'
 import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/live-config'
 import { fetchEntriesIfNeeded, addEntriesPlayers } from '../../actions/entries'
-import { currentLineupsSelector } from '../../selectors/current-lineups'
+import { myCurrentLineupsSelector } from '../../selectors/current-lineups'
 import { mockStore } from '../mock-store'
 
 
@@ -24,13 +24,13 @@ describe('selectorsLiveLineups', () => {
   })
 
 
-  it('should properly return data for currentLineupsSelector', (done) => {
+  it('should properly return data for myCurrentLineupsSelector', (done) => {
     const store = mockStore(reducers, { entries: {} })
 
     store.dispatch(fetchEntriesIfNeeded()).then(() => {
       store.dispatch(addEntriesPlayers()).then(() => {
         var state = store.getState()
-        var data = currentLineupsSelector(state)
+        var data = myCurrentLineupsSelector(state)
 
         // TODO finish checking data
 

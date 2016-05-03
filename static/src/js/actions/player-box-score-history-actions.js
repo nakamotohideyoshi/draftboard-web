@@ -1,10 +1,14 @@
-import log from '../lib/logging';
 import * as types from '../action-types.js';
+import log from '../lib/logging';
+import map from 'lodash/map';
+import merge from 'lodash/merge';
 import request from 'superagent';
+import zipObject from 'lodash/zipObject';
 import { dateNow } from '../lib/utils';
+import { GAME_DURATIONS } from './sports';
 import { normalize, Schema, arrayOf } from 'normalizr';
 const playerHistorySchema = new Schema('playerHistory', {
-  idAttribute: 'player_id',
+  idAttribute: 'id',
 });
 
 
@@ -108,8 +112,21 @@ function fetchPlayerBoxScoreHistory(sport) {
           dispatch(fetchPlayerBoxScoreHistoryFail(err));
           reject(err);
         } else {
+          const seasonStatTypes = GAME_DURATIONS[sport].seasonStats.types;
+          // combine id with the season stats we need and that's it
+          const onlyNeededFields = map(res.body, (player) => merge(
+            {},
+            {
+              id: player.player_id,
+            },
+            zipObject(
+              seasonStatTypes,
+              map(seasonStatTypes, (type) => player[`avg_${type}`])
+            )
+          ));
+
           const normalizedPlayerHistory = normalize(
-            res.body,
+            onlyNeededFields,
             arrayOf(playerHistorySchema)
           );
 

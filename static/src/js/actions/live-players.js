@@ -1,8 +1,11 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
-import { forEach as _forEach } from 'lodash';
-import { merge as _merge } from 'lodash';
 import * as ActionTypes from '../action-types';
+import forEach from 'lodash/forEach';
+import map from 'lodash/map';
+import merge from 'lodash/merge';
+import zipObject from 'lodash/zipObject';
 import { dateNow } from '../lib/utils';
+import { GAME_DURATIONS } from './sports';
 
 
 // dispatch to reducer methods
@@ -29,7 +32,7 @@ const requestPlayersStats = (lineupId) => ({
  */
 const receivePlayersStats = (lineupId, response) => {
   const players = {};
-  _forEach(response, (player) => {
+  forEach(response, (player) => {
     // don't include if the player hasn't started
     if (player.started === false ||
         player.hasOwnProperty('data') === false ||
@@ -39,10 +42,22 @@ const receivePlayersStats = (lineupId, response) => {
     }
 
     const playerFields = player.data[0].fields;
+    const sport = player.data[0].model.split('.')[0];
+    const seasonStatTypes = GAME_DURATIONS[sport].seasonStats.types;
 
-    players[playerFields.srid_player] = _merge(
-      { lineup_id: lineupId },
-      playerFields
+    // combine id with the season stats we need and that's it
+    const onlyNeededFields = zipObject(
+      seasonStatTypes,
+      map(seasonStatTypes, (type) => playerFields[type])
+    );
+
+    players[playerFields.srid_player] = merge(
+      {
+        lineupId,
+        sport,
+        id: playerFields.player_id,
+      },
+      onlyNeededFields
     );
   });
 
@@ -97,12 +112,13 @@ const fetchPlayersStats = (lineupId) => (dispatch) => {
 const shouldFetchPlayersStats = (state, lineupId) => {
   const lineup = state.currentLineups.items[lineupId] || {};
 
-  // if it hasn't started yet, don't bother getting lineups yet
-  if (dateNow() > lineup.start) {
+  // if we have not yet expired, don't fetch
+  if (dateNow() < state.livePlayers.expiresAt) {
     return false;
   }
 
-  if (dateNow() > state.livePlayers.expiresAt) {
+  // if it has started yet, get
+  if (dateNow() < lineup.start) {
     return false;
   }
 

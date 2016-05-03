@@ -24,7 +24,7 @@ const setOrMerge = (state, action, newProps) => {
 };
 
 
-module.exports = (state = {}, action) => {
+module.exports = (state = {}, action = {}) => {
   let newProps = {};
 
   switch (action.type) {
