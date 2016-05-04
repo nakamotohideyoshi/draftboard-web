@@ -92,6 +92,11 @@ class Pool(models.Model):
     high_cutoff_increment = models.FloatField(null=True, default=1.0)
 
     #
+    #
+    max_percent_adjust = models.FloatField(null=False, default=10.0,
+                                    help_text='the maximum percentage shift due to ownership adjustment')
+
+    #
     # make sure that only one Pool can be active at a time (for the site_sport)
     def save(self, *args, **kwargs):
         if self.active:
@@ -120,17 +125,17 @@ class Salary(models.Model):
     created         = models.DateTimeField( auto_now_add=True )
     pool            = models.ForeignKey( Pool, null = False )
     amount          = models.PositiveIntegerField(null=False)
+    # new field to store the salary without ownership % adjustments
+    amount_unadjusted = models.PositiveIntegerField(null=False, default=0)
+
     flagged         = models.BooleanField(default=False, null=False)
     primary_roster  = models.ForeignKey(RosterSpot, null = False)
-    fppg            = models.FloatField(default=0.0,
-                                        verbose_name='Weighted FPPG')
-
+    fppg            = models.FloatField(default=0.0, verbose_name='FPPG')
 
     # the GFK to the Player
     player_type     = models.ForeignKey(ContentType)
     player_id       = models.PositiveIntegerField()
-    player          = GenericForeignKey('player_type',
-                                        'player_id')
+    player          = GenericForeignKey('player_type', 'player_id')
 
     #
     # field for the ownership percentage value which may
