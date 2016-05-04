@@ -15,16 +15,40 @@ from mysite.exceptions import IncorrectVariableTypeException, NullModelValuesExc
 from django.contrib.contenttypes.models import ContentType
 from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
 from django.utils import timezone
+from datetime import timedelta
 from math import ceil
 from django.db.transaction import atomic
 from sports.classes import SiteSportManager
 from dataden.classes import DataDen, Season
 
+class SalaryRounder(object):
+    """
+    use for anything that sets a final salary to centralize the rounding
+    that happens on final salaries.
+    """
+
+    ROUND_TO_NEAREST = 100.0
+
+    def round(self, salary_amount):
+        return (int) (ceil((salary_amount/SalaryRounder.ROUND_TO_NEAREST)) * SalaryRounder.ROUND_TO_NEAREST)
+
 class OwnershipPercentageAdjuster(object):
 
     def __init__(self, pool):
         self.pool = pool
+        self.max_percent_adjust = self.pool.max_percent_adjust
         self.salaries = Salary.objects.filter(pool=pool)
+        self.rounder = SalaryRounder()
+
+    def get_capped_percent_adjustment(self, uncapped_percent_adjustment):
+        """
+        never add/subtract more than this percentage of salary to a given player from his unadjusted amount
+        """
+        # if its under the cap
+        if uncapped_percent_adjustment < self.max_percent_adjust:
+            return uncapped_percent_adjustment
+
+        return self.max_percent_adjust
 
     def update(self):
         """
@@ -32,21 +56,33 @@ class OwnershipPercentageAdjuster(object):
         ownership percentages.
         """
         for salary in self.salaries:
-            # precedence: do the high end first
+
+            # precedence: do the high ownership first
             if salary.ownership_percentage > self.pool.ownership_threshold_high_cutoff:
                 # increase this players salary by pool.high_cutoff_increment
-                diff = (salary.ownership_percentage - self.pool.ownership_threshold_high_cutoff)
-                high_sal_adjustment = ((diff * self.pool.high_cutoff_increment) / 100.0) * salary.amount
+                increments = (salary.ownership_percentage - self.pool.ownership_threshold_high_cutoff)
+                high_sal_adjustment = ((increments * self.pool.high_cutoff_increment) / 100.0) * salary.amount
                 print('high sal adjustment:', high_sal_adjustment, str(salary))
-                salary.amount += high_sal_adjustment
+                salary.amount += self.rounder.round(high_sal_adjustment)
                 salary.save()
+
+            # low ownership
             elif salary.ownership_percentage < self.pool.ownership_threshold_low_cutoff:
                 # decrease this players salary by 'pool.low_cutoff_increment'
-                diff = (self.pool.ownership_threshold_low_cutoff - salary.ownership_percentage)
-                low_sal_adjustment = ((diff * self.pool.low_cutoff_increment) / 100.0) * salary.amount
+                increments = (self.pool.ownership_threshold_low_cutoff - salary.ownership_percentage)
+                low_sal_adjustment = ((increments * self.pool.low_cutoff_increment) / 100.0) * salary.amount
                 print('low sal adjustment:', low_sal_adjustment, str(salary))
-                salary.amount -= low_sal_adjustment
+                salary.amount -= self.rounder.round(low_sal_adjustment)
                 salary.save()
+
+    def reset(self):
+        """
+        unapplies all ownership adjustments, setting the salaries
+        back to their original values
+        """
+        for salary in self.salaries:
+            salary.amount = salary.amount_unadjusted
+            salary.save()
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------
@@ -258,10 +294,12 @@ class FppgGenerator(object):
 
 class SalaryGenerator(FppgGenerator):
     """
-    This class is responsible for generating the salaries for a given sport.=
+    This class is responsible for generating the salaries for a given sport.
     """
 
-    def __init__(self, player_stats_classes, pool):
+    DEFAULT_SEASON_TYPES = ['reg','pst']
+
+    def __init__(self, player_stats_classes, pool, season_types=None):
         """
 
         :return:
@@ -283,9 +321,14 @@ class SalaryGenerator(FppgGenerator):
         self.salary_conf = pool.salary_config
         self.site_sport = pool.site_sport
         self.site_sport_manager = SiteSportManager()
-        self.regular_season_games = None
+        self.season_types           = season_types
+        if self.season_types is None:
+            self.season_types = SalaryGenerator.DEFAULT_SEASON_TYPES
+        self.regular_season_games   = None
         self.excluded_players       = None
         self.excluded_player_stats  = None
+
+        self.rounder = SalaryRounder()
 
     def generate_salaries(self):
         """
@@ -296,9 +339,11 @@ class SalaryGenerator(FppgGenerator):
         #
         # get the regular season games, and all the players
         game_class = self.site_sport_manager.get_game_class(self.site_sport)
-        self.regular_season_games = game_class.objects.filter( season__season_type='reg' )
+        self.regular_season_games = game_class.objects.filter(
+                                        season__season_type__in=self.season_types )
 
-        players = self.helper_get_player_stats()
+        players = self.helper_get_player_stats(trailing_days=self.salary_conf.trailing_games)
+
         self.excluded_players = self.get_salary_player_stats_objects(self.excluded_player_stats)
 
         #
@@ -320,9 +365,13 @@ class SalaryGenerator(FppgGenerator):
         #
         # Calculate the salaries for each player based on
         # the mean of weighted score of their position
-        self.helper_update_salaries(players, position_average_list,sum_average_points)
+        self.helper_update_salaries(players, position_average_list, sum_average_points)
 
-    def helper_get_player_stats(self):
+        #
+        # Save this original salary into the 'amount_unadjusted' field to be able to reset
+        self.update_unadjusted_salaries(self.pool)
+
+    def helper_get_player_stats(self, trailing_days=None):
         """
         For each player in the PlayerStats table, get the games
         that are relevant.
@@ -339,7 +388,19 @@ class SalaryGenerator(FppgGenerator):
         for player_stats_class in self.player_stats_classes:
             #
             # iterate through all player_stats ever
-            reg_season_game_pks = [ g.pk for g in self.regular_season_games ]
+            reg_season_game_pks = []
+            if trailing_days is None:
+                # get them all
+                reg_season_game_pks = [ g.pk for g in self.regular_season_games ]
+            else:
+                # only get the games within the trailing number of days
+                cutoff = timezone.now() - timedelta(days=trailing_days)
+                for reg_game in self.regular_season_games:
+                    if reg_game.start >= cutoff:
+                        reg_season_game_pks.append( reg_game.pk )
+
+            print('%s game pks' % str(len(reg_season_game_pks))) # DEBUG
+
             all_player_stats = player_stats_class.objects.filter(fantasy_points__gt=0,
                                                         game_id__in=reg_season_game_pks)
             excluded_players.extend(player_stats_class.objects.filter(fantasy_points__lte=0))
@@ -352,6 +413,18 @@ class SalaryGenerator(FppgGenerator):
         self.excluded_player_stats = excluded_players
 
         return players
+
+    def update_unadjusted_salaries(self, pool):
+        """
+        set the Salary objects 'amount' into the amount_unadjusted field
+        for all players passed in via 'players' param
+
+        :param players:
+        :return:
+        """
+        for sal_obj in Salary.objects.filter(pool=pool):
+            sal_obj.amount_unadjusted = sal_obj.amount
+            sal_obj.save()
 
     def helper_get_average_score_per_position(self, players):
 
@@ -580,7 +653,7 @@ class SalaryGenerator(FppgGenerator):
                 # creates the salary for each player in the specified roster spot
                 for player in players:
                     if player.player_stats_list[0].position in pos_arr:
-                        salary          = self.get_salary_for_player(player.player)
+                        salary              = self.get_salary_for_player(player.player)
                         if average_weighted_fantasy_points_for_pos == 0.0:
                             salary.amount = self.salary_conf.min_player_salary
                         else:
@@ -618,7 +691,8 @@ class SalaryGenerator(FppgGenerator):
             return Salary()
 
     def __round_salary(self, val):
-        return (int) (ceil((val/100.0)) *100.0)
+        #return (int) (ceil((val/SalaryGenerator.ROUND_TO_NEAREST)) * SalaryGenerator.ROUND_TO_NEAREST)
+        return self.rounder.round(val)
 
 class PlayerFppgGenerator(FppgGenerator):
     """

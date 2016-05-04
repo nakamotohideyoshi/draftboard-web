@@ -59,8 +59,14 @@ class AbstractDraftGroupManager(object):
             raise mysite.exceptions.SalaryPoolException('could not find active salary pool for given site_sport')
 
         pool = active_pools[0]
+        players = []
         salaried_players = Salary.objects.filter( pool=pool )
-        return self.Salaries( pool, list(salaried_players) )
+        # remove players not on active roster
+        for sp in salaried_players:
+            if sp.player.on_active_roster:
+                players.append( sp )
+        # return active players
+        return self.Salaries( pool, list(players) )
 
     def get_draft_group(self, draft_group_id):
         """
@@ -401,12 +407,10 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         game_model      = ssm.get_game_class(site_sport)
 
         # get all games equal to or greater than start, and less than end.
-        # print( 'game_model', str(game_model) )
-        # print( 'game_model.objects.all().count():', game_model.objects.all().count() )
         games = game_model.objects.filter( start__gte=start, start__lte=end )
-        # games = game_model.objects.filter( start__in=range(start, end) )
         if len(games) == 0:
-            raise mysite.exceptions.NoGamesInRangeException('there are ZERO games in [%s until %s]' % (start, end))
+            err_msg = 'there are ZERO games in [%s until %s]' % (start, end)
+            raise mysite.exceptions.NoGamesInRangeException(err_msg)
         elif len(games) < 2:
             raise NotEnoughGamesException()
 
@@ -453,7 +457,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         #
         # for each salaried player, create their draftgroup.models.Player
         # instance if their team is in the team srids list we generated above
-        for p in salary.get_players():    # these 3 lines work but lets get rid of if statement
+        for p in salary.get_players():
             if p.player.team.srid in team_srids:
                 self.create_player(draft_group, p, p.amount,
                                    team_srids.get( p.player.team.srid ),

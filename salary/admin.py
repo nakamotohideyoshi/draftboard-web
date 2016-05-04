@@ -23,9 +23,12 @@ class PlayerInline(admin.TabularInline):
 
 class SalaryInline(admin.TabularInline):
     model = Salary
+    can_delete = False
     extra = 0
     readonly_fields = ('player', 'primary_roster', 'fppg')
+                    # + ('flagged','amount','amount_unadjusted','ownership_percentage')
     exclude = ('player_id', 'player_type')
+
     def player(self, obj):
         return obj.player
 
@@ -90,19 +93,45 @@ class PoolAdmin(admin.ModelAdmin):
         else:
             return [inline(self.model, self.admin_site) for inline in self.inlines]
 
+    def generate_salaries_and_adjust_for_ownership(self, *args, **kwargs):
+        """
+        condense the two actions into 1 step for ease.
+        """
+        self.generate_salaries(*args, **kwargs)
+        self.apply_ownership_adjustment(*args, **kwargs)
+
+    def reset_ownership_adjustment(self, request, queryset):
+        """
+        unapplies all ownership adjustments, setting the salaries
+        back to their original values
+        """
+        if queryset.count() != 1:
+            self.message_user(request, 'Select a single pool to apply the ownership adjustment.')
+        else:
+            for pool in queryset:
+                opa = OwnershipPercentageAdjuster(pool)
+                opa.reset()
+
     #
     # admin actions in dropdown
-    actions = [generate_salaries, apply_ownership_adjustment]
+    actions = [
+        generate_salaries,
+        apply_ownership_adjustment,
+        reset_ownership_adjustment,
+        generate_salaries_and_adjust_for_ownership,
+    ]
     list_filter = ['salary__flagged', 'salary__primary_roster']
 
 @admin.register(Salary)
 class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
-    list_display = ['player','amount','flagged','pool', 'primary_roster', 'fppg']
-    list_editable = ['amount', 'flagged']
-    model = Salary
-    list_filter = [ 'primary_roster', 'flagged', 'pool']
-    raw_id_admin = ('pool', )
-    search_fields = ('player__first_name', 'player__last_name')
+
+    list_display    = ['player','amount','flagged','pool', 'primary_roster', 'fppg']
+    list_editable   = ['amount', 'flagged']
+    model           = Salary
+    list_filter     = [ 'primary_roster', 'flagged', 'pool']
+    raw_id_admin    = ('pool',)
+    search_fields   = ('player__first_name', 'player__last_name')
+
     def has_add_permission(self, request):
         return False
 
