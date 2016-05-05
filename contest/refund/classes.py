@@ -44,33 +44,31 @@ class RefundManager(AbstractManagerClass):
         :param entry:
         :raises EntryCanNotBeUnregisteredException: raised if the Contest is full, or inprogress/closed
         """
-        contest = entry.contest
-        if contest.is_started():
-            raise EntryCanNotBeUnregisteredException('contest is running')
-        if contest.is_filled():
-            raise EntryCanNotBeUnregisteredException('contest is full')
+
+        if entry.contest is not None:
+            # if the contest is non-null, then the ContestPool has created
+            # the contest and set it -- this means its in progress
+            raise EntryCanNotBeUnregisteredException('The contest is running and you may no longer unregister.')
 
     @atomic
     def remove_and_refund_entry(self, entry):
         """
-        refunds the buyin for the entry, and completely removes it from the contest.
+        refunds the buyin for the entry, and completely removes it from the ContestPool.
 
         :param entry:
         :return:
         """
 
-        #
-        # TODO - add more validation and constraints to this check:
-        # TODO      right now it only ensures the contest is not full.
+        # ensures the Entry can be unregistered from the ContestPool its associated with.
         self.__validate_entry_can_be_unregistered(entry)
 
         # refund the buyin
         self.__refund_entry(entry)
 
         # remove the entry from the contest, and cleanup contest properties
-        contest = entry.contest
-        contest.current_entries += F('current_entries') - 1   # true atomic decrement
-        contest.save()
+        contest_pool = entry.contest_pool
+        contest_pool.current_entries += F('current_entries') - 1   # true atomic decrement
+        contest_pool.save()
 
         entry.delete()
 
