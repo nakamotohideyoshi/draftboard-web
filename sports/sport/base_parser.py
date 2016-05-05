@@ -5,6 +5,7 @@ import re
 from django.core.cache import cache
 from mysite.celery_app import locking
 from django.utils import timezone
+from dataden.util.hsh import Hashable
 from dataden.util.timestamp import Parse as DataDenDatetime
 from dataden.cache.caches import PlayByPlayCache, LiveStatsCache
 from django.db.transaction import atomic
@@ -1017,9 +1018,11 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             # delete the cache_token (if they exist) for each player_stats pushered
             # so if there are any pending/countdown tasks which havent fired yet, they
             # will effectively be cancelled (ie: eliminate the double-send or late stats update).
+            hashable = Hashable(self.get_obj().get_o())
+            primary_object_hash = hashable.hsh()
             self.delete_cache_tokens(player_stats)
             data = self.build_linked_pbp_stats_data( player_stats )
-            push.classes.DataDenPush( self.pusher_sport_pbp, 'linked' ).send( data )
+            push.classes.DataDenPush( self.pusher_sport_pbp, 'linked', hash=primary_object_hash ).send( data )
 
     def delete_cache_tokens(self, player_stats_objects):
         for player_stats in player_stats_objects:
