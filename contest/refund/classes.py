@@ -9,6 +9,7 @@ from ..models import (
     LiveContest,
     HistoryContest,
 )
+from dfslog.classes import Logger, ErrorCodes
 from contest.buyin.classes import BuyinManager
 from ticket.classes import TicketManager
 from cash.classes import CashTransaction
@@ -17,6 +18,12 @@ from django.db.transaction import atomic
 from ..exceptions import ContestCanNotBeRefunded
 from .exceptions import (
     EntryCanNotBeUnregisteredException,
+)
+from contest.serializers import (
+    ContestPoolSerializer,
+)
+from push.classes import (
+    ContestPoolPush,
 )
 
 class RefundManager(AbstractManagerClass):
@@ -69,7 +76,17 @@ class RefundManager(AbstractManagerClass):
         contest_pool = entry.contest_pool
         contest_pool.current_entries += F('current_entries') - 1   # true atomic decrement
         contest_pool.save()
+        contest_pool.refresh_from_db()
 
+        msg = "User["+entry.user.username+"] unregistered from the contest_pool #"\
+                      +str(contest_pool.pk)+" with entry #"+str(entry.pk)
+        Logger.log(ErrorCodes.INFO, "ContestPool Unregister", msg )
+
+        #
+        # pusher contest updates because entries were changed
+        ContestPoolPush(ContestPoolSerializer(contest_pool).data).send()
+
+        # entirely delete the entry, since the users lineup is no longer in the contest
         entry.delete()
 
     @atomic
@@ -83,7 +100,7 @@ class RefundManager(AbstractManagerClass):
         :return:
         """
 
-        buyin           = entry.contest.prize_structure.buyin
+        buyin           = entry.contest_pool.prize_structure.buyin
         bm              = BuyinManager(entry.user)
         transaction     = None
 
@@ -163,7 +180,8 @@ class RefundManager(AbstractManagerClass):
         except Refund.DoesNotExist:
             # only create a refund if one doesnt exist
             refund = Refund()
-            refund.contest = entry.contest
+            # refund.contest = entry.contest
+            refund.contest_pool = entry.contest_pool
             refund.entry = entry
             refund.transaction = transaction
             refund.save()
