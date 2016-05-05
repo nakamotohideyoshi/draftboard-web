@@ -214,6 +214,23 @@ class AbstractPush(object):
         # by default, this object is not linkable
         self.linkable_object = None
 
+        # the hash to use to identify the most important object in the
+        # case it is a composite (like Pbp Linked data is a pbp + list of stats).
+        # hash is used explicitly for logging purposes to track stat items thru the system.
+        self.hash = None
+
+    def set_primary_object_hash(self, hsh):
+        """
+        must be set prior to send() being called for it to take effect.
+
+        sets the hash for this object. this should only be done for
+        composite objects, such as PBP Linked objects.
+
+        :param hsh:
+        :return:
+        """
+        self.hash = hsh
+
     def set_linkable_object(self, obj, link_id=None):
         self.linkable_object = LinkableObject( obj, link_id=link_id )
 
@@ -222,7 +239,7 @@ class AbstractPush(object):
             raise self.LinkableObjectNotSetException('the linkable object was never set')
         return self.linkable_object
 
-    def send(self, data, async=True, force=True ):
+    def send(self, data, async=True, force=True):
         """
         uses the internal channel ( likely the sport name) and pushes the data out
         with teh event name specified by the child classes
@@ -245,8 +262,6 @@ class AbstractPush(object):
         # send the data on the channel with the specified event name
         if not isinstance( data, dict ):
             data = data.get_o()
-
-        #print(data) # TODO remove
 
         #
         # get the linkedExpiringObjectQueueTable (ie: pbp+stats combiner
@@ -321,14 +336,22 @@ class AbstractPush(object):
 
         if settings.PUSHER_ENABLED:
             #
-            # prior to this object going out we also need to capture
-            # the timestamp for when the item was stored in the oplog
-            # but we have lost the mongo oplog wrapper by this point,
-            # so ... #TODO
-            #
-            # 673 <190>1 2016-05-05T03:35:04.445152+00:00 host app purger.3 - [2016-05-04 23:35:04,445: WARNING/Worker-7] PSHR_VALUE={'pk': 17630, 'model': 'mlb.playerstatshitter', 'fields': {'s': 0.0, 'srid_player': 'ecdcb57f-d0c5-4409-89ee-6680a77588de', 'srid_game': 'c9141a4f-7ae7-4a64-b9ec-4f9535096b41', 'game_id': 5315, 't': 0.0, 'started': False, 'bb': 0.0, 'lob': 0.0, 'player_type': 57, 'ktotal': 0.0, 'ab': 4.0, 'xbh': 0, 'updated': '2016-05-05T03:33:08.809Z', 'hr': 0.0, 'cs': 0.0, 'sb': 0.0, 'rbi': 0.0, 'played': False, 'ap': 4.0, 'fantasy_points': 9.0, 'player_id': 390, 'game_type': 55, 'd': 2.0, 'hbp': 0.0, 'created': '2016-05-05T00:06:24.243Z', 'position': 22, 'r': 1.0}}
+            # example line item from sumo logic for this trigger() method:
+            # 673 <190>1 2016-05-05T03:35:04.445152+00:00 host app purger.3 -
+            # [2016-05-04 23:35:04,445: WARNING/Worker-7]
+            # PSHR_VALUE={'pk': 17630, 'model': 'mlb.playerstatshitter',
+            # 'fields': {'s': 0.0, 'srid_player': 'ecdcb57f-d0c5-4409-89ee-6680a77588de',
+            # 'srid_game': 'c9141a4f-7ae7-4a64-b9ec-4f9535096b41',
+            # 'game_id': 5315, 't': 0.0, 'started': False, 'bb': 0.0, 'lob': 0.0, 'player_type': 57,
+            # 'ktotal': 0.0, 'ab': 4.0, 'xbh': 0, 'updated': '2016-05-05T03:33:08.809Z',
+            # 'hr': 0.0, 'cs': 0.0, 'sb': 0.0, 'rbi': 0.0, 'played': False, 'ap': 4.0,
+            # 'fantasy_points': 9.0, 'player_id': 390, 'game_type': 55, 'd': 2.0,
+            # 'hbp': 0.0, 'created': '2016-05-05T00:06:24.243Z', 'position': 22, 'r': 1.0}}
             pusher_start_ts = int(time.time())
+
+            # use pusher to send the data to clients!
             self.pusher.trigger( self.channel, self.event, data )
+
             pusher_completed_ts = int(time.time())
             log_msg = 'PSHR_NOW="%s", PSHR_NOW_TS=%s, PSHR_LOG=Send, PSHR_CHANNEL=%s, ' \
                         'PSHR_EVENT=%s, PSHR_DATA_ID="%s", PSHR_ITEM=Object, PSHR_VALUE=%s, ' \
@@ -392,13 +415,16 @@ class DataDenPush( AbstractPush ):
     always be pushered out.
     """
 
-    def __init__(self, channel, event):
+    def __init__(self, channel, event, hash=False):
         """
         channel: the string name of the stream (ie: 'boxscores', or 'nba_pbp'
         event: the string name of the general type of the object, ie: 'player', or 'team'
         """
         super().__init__(channel) # init pusher object
         self.event      = event
+
+        # overrides / sets a single hash for composite objects (like pbp linked data)
+        self.set_primary_object_hash(hash)
 
 class StatsDataDenPush( AbstractPush ):
     """

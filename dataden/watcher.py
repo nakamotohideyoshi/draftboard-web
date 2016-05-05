@@ -245,18 +245,13 @@ class Trigger(object):
         print('last_ts():', str(self.last_ts))
         self.timer.start()
         self.reload_triggers() # do this pre query() being called
+
+        #
+        # using a tailable cursor allows us to loop on it
+        # and we will pick up new objects as they come into
+        # the oplog based on whatever our query is!
         cur = self.get_cursor( self.oplog, self.query(), cursor_type=self.cursor_type )
-        #count = 0
         while cur.alive:
-            #count += 1
-            # self.timer.start()
-            # self.reload_triggers() # do this pre query() being called
-            # cur = self.get_cursor( self.oplog, self.query(), cursor_type=self.cursor_type )
-
-            # count = 0
-            # added = 0
-
-            #self.timer.start()
             try:
                 obj = cur.next()
             except StopIteration:
@@ -271,28 +266,39 @@ class Trigger(object):
             # from being sent unless its the first time
             # they've been seen, or if there have been changes
             if self.live_stats_cache.update( hashable_object ):
-                #
-                # send the 'o' object (a stat update) out as a
-                # signal because its been updated!!
+                # primarily for sumo logic, log this object making
+                # sure to include the 'ts' timestamp from the oplog
+                self.log_for_sumo( hashable_object )
 
-                # #
-                # # data-parsing step: "send-to-pusher", channel: "mlb-pbp", event: "linked", id: "c598f08a-76ff-4176-aa33-5642fd0f9fed", start_ts: "1461118200", completed_ts: "1461118231"
-                # log_msg = ''
-                # print('')
-
+                # the object is new or has been updated.
                 # send the update signal along with the object to Pusher/etc...
                 Update( hashable_object ).send(async=True)
-                #added += 1
 
-            #count += 1
-            #self.timer.stop(print_now=False, sum=True)
             ns = hashable_object.get_ns()
             parent_api = hashable_object.get_parent_api()
-            #self.timer.stop(msg='(%s) obj %s %s' % (str(count), str(ns), str(parent_api)))
-            #msg = '(%s of %s) total objects are new' % (str(added), str(count))
-            #self.timer.stop(msg='%s | loop time [avg time per object %s]' % \
-            #                                (msg, str(self.timer.get_sum())) )
-            #self.timer.start(clear_sum=True) # and then the next start() will correct
+
+    def log_for_sumo(self, hashable_object):
+        """
+        log the mongo object the instant we pick it up in from the oplog.
+        be sure to present and identifiable token for the object,
+        as well as the oplog objects 'ts' field, from which we can
+        get a unix timestamp of the time it was added to mongo.
+
+        :param hashable_object: an instance of OpLogObj
+        :return:
+        """
+
+        # create a hashable using just the 'o' fields object,
+        # which is the actual dataden object
+        dd_hashable = Hashable(hashable_object.get_o())
+
+        # log this object from the oplog, including the dataden object's hash value.
+        # the hash value of the inner object should be logged later on
+        # so that we can track this object thru the system.
+        log_msg = 'MONGO_LOG=%s, MONGO_OBJ_TS=%s, MONGO_OBJ=%s, DD_HASH=%s,' \
+                  '' % ('OpLogTrigger', hashable_object.get_ts().time,
+                        str(hashable_object), dd_hashable.hsh())
+        print(log_msg)
 
     def reload_triggers(self):
         self.triggers = self.trigger_cache.get_triggers()
