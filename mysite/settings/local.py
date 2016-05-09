@@ -94,25 +94,17 @@ STATIC_URL = '/static/'
 
 # this happens to be the live ec2 mongo
 # (Dev) Mongo Connection settings
-MONGO_SERVER_ADDRESS    = '52.91.48.235'
+MONGO_SERVER_ADDRESS    = 'ds015781-a0.mlab.com'
 MONGO_AUTH_DB           = 'admin'
 MONGO_USER              = 'admin'
 MONGO_PASSWORD          = 'dataden1'
-MONGO_PORT              = 27017         # default port may be the actual port
+MONGO_PORT              = 15781         # default port may be the actual port
 MONGO_HOST = 'mongodb://%s:%s@%s:%s/%s' % (
                     MONGO_USER,
                     MONGO_PASSWORD,
                     MONGO_SERVER_ADDRESS,
                     MONGO_PORT,
                     MONGO_AUTH_DB )
-
-# # dataden mongo database connection
-# MONGO_AUTH_DB   = 'admin'
-# MONGO_USER      = 'admin'
-# MONGO_PASSWORD  = 'dataden1'
-# MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
-# MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
-# # examples: MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
 
 DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 
