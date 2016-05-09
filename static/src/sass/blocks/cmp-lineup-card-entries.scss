@@ -1,0 +1,58 @@
+@import "./variables.scss";
+
+$header-height: 60px;
+
+
+.cmp-lineup-card-entries {
+  background: #4c555f;
+  position: relative;
+  padding-top: $header-height;
+  overflow: auto;
+
+  header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: $header-height;
+    background: #4c555f;
+  }
+
+
+  .entry-list {
+    border-collapse: collapse;
+    font-size: 11px;
+    display: table;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background: #474f59;
+  }
+
+  .entry {
+    border-bottom: 1px solid #5f626d;
+    list-style: none;
+    display: table-row;
+    margin: 0;
+    padding: 0;
+
+    > span {
+      display: table-cell;
+      padding: 10px;
+
+      &:first-child {
+        padding-left: 20px;
+      }
+
+      &:last-child {
+        padding-right: 20px;
+      }
+    }
+
+    .fees {
+      min-width: 90px;
+      font-family: $font-oswald;
+      font-size: 12px;
+    }
+  }
+}

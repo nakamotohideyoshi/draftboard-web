@@ -121,27 +121,21 @@ const LineupCardList = React.createClass({
       const refName = `lineup-${lineup.id}`;
       const lineupInfo = _find(this.props.lineupsInfo, { id: lineup.id });
       const draftGroupInfo = _find(this.props.draftGroupInfo.draftGroups, { pk: lineup.draft_group });
-      let entries;
-      let fees;
 
       if (lineupInfo) {
-        fees = lineupInfo.fees;
-        entries = lineupInfo.entries;
+        return (
+          <LineupCard
+            key={lineup.id}
+            lineup={lineup}
+            lineupInfo={lineupInfo}
+            draftGroupInfo={draftGroupInfo}
+            isActive={this.props.focusedLineupId === lineup.id}
+            ref={refName}
+            onCardClick={this.onCardClick}
+            onHover={this.handleLineupHovered}
+          />
+        );
       }
-
-      return (
-        <LineupCard
-          key={lineup.id}
-          lineup={lineup}
-          draftGroupInfo={draftGroupInfo}
-          isActive={this.props.focusedLineupId === lineup.id}
-          ref={refName}
-          onCardClick={this.onCardClick}
-          fees={fees}
-          entries={entries}
-          onHover={this.handleLineupHovered}
-        />
-      );
     }, this);
   },
 

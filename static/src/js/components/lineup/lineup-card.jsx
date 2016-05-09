@@ -1,7 +1,7 @@
 import React from 'react';
 import LineupCardPlayer from './lineup-card-player.jsx';
-import Tooltip from '../site/tooltip.jsx';
 import CountdownClock from '../site/countdown-clock.jsx';
+import LineupCardEntries from './lineup-card-entries.jsx';
 
 
 const LineupCard = React.createClass({
@@ -10,10 +10,9 @@ const LineupCard = React.createClass({
     isActive: React.PropTypes.bool,
     onCardClick: React.PropTypes.func.isRequired,
     lineup: React.PropTypes.object.isRequired,
+    lineupInfo: React.PropTypes.object.isRequired,
     hoverText: React.PropTypes.string,
     draftGroupInfo: React.PropTypes.object.isRequired,
-    fees: React.PropTypes.number,
-    entries: React.PropTypes.number,
     onHover: React.PropTypes.func,
   },
 
@@ -27,6 +26,20 @@ const LineupCard = React.createClass({
   },
 
 
+  getInitialState() {
+    return {
+      flipped: false,
+    };
+  },
+
+
+  flipCard() {
+    this.setState({
+      flipped: !this.state.flipped,
+    });
+  },
+
+
   // Toggle the visibility of the tooltip.
   showControls() {
     this.refs.lineupCardTip.toggle();
@@ -36,7 +49,11 @@ const LineupCard = React.createClass({
   render() {
     let lineup = '';
 
+    /**
+     * If the lineup card is active, show the expanded state with player details.
+     */
     if (this.props.isActive) {
+      const flippedClass = this.state.flipped ? 'flipped' : '';
       const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.lineup.sport}`;
       const players = this.props.lineup.players.map((player) => (
         <LineupCardPlayer
@@ -47,68 +64,73 @@ const LineupCard = React.createClass({
       ));
 
       lineup = (
-        <div className="cmp-lineup-card cmp-lineup-card--expanded">
-          <header className="cmp-lineup-card__header">
-            <h3 className="cmp-lineup-card__title">
-              {this.props.lineup.name || `Untitled Lineup # ${this.props.lineup.id}`}
-            </h3>
+        <div className={`cmp-lineup-card cmp-lineup-card--expanded flip-container ${flippedClass}`}>
+          <div className="flipper">
+            <div className="front">
+              <header className="cmp-lineup-card__header">
+                <h3 className="cmp-lineup-card__title">
+                  {this.props.lineup.name || `Untitled Lineup # ${this.props.lineup.id}`}
+                </h3>
 
-            <div
-              className="actions-menu-container"
-              onClick={this.showControls}
-            >
-              <Tooltip
-                additionalClassName="actions-menu"
-                position="top"
-                isVisible={false}
-                ref="lineupCardTip"
-              >
+                <div className="actions-menu-container">
                 <ul className="actions">
-                  <li><a
-                    href={`/draft/${this.props.lineup.draft_group}/lineup/${this.props.lineup.id}/edit/`}
-                    className="action"
-                  >
-                    Edit Lineup
-                  </a></li>
-                  <li><a
-                    href={`/draft/${this.props.lineup.draft_group}/lineup/${this.props.lineup.id}/copy/`}
-                    className="action"
-                  >
-                    New Lineup via Copy
-                  </a></li>
+                  <li>
+                    <a
+                      className="icon-edit action"
+                      href={`/draft/${this.props.lineup.draft_group}/lineup/${this.props.lineup.id}/edit/`}
+                    ></a>
+                  </li>
+
+                  <li>
+                    <div
+                      className="icon-flip action"
+                      onClick={this.flipCard}
+                    ></div>
+                  </li>
                 </ul>
-              </Tooltip>
+                </div>
+              </header>
+
+              <div className="cmp-lineup-card__list-header">
+                <span className="cmp-lineup-card__list-header-salary">Salary</span>
+              </div>
+
+              <ul className="players">
+                {players}
+              </ul>
+
+              <footer className="cmp-lineup-card__footer">
+                <div className="cmp-lineup-card__fees cmp-lineup-card__footer-section">
+                  <span className="cmp-lineup-card__footer-title">Fees</span>
+                ${this.props.lineupInfo.fees}
+                </div>
+
+                <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
+                  <span className="cmp-lineup-card__footer-title">Live In</span>
+                  <CountdownClock time={this.props.draftGroupInfo.start} />
+                </div>
+
+                <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
+                  <span className="cmp-lineup-card__footer-title">Entries</span>
+                {this.props.lineupInfo.totalEntryCount}
+                </div>
+              </footer>
             </div>
 
-          </header>
-
-          <div className="cmp-lineup-card__list-header">
-            <span className="cmp-lineup-card__list-header-average">Avg</span>
+            <div className="back">
+              <LineupCardEntries
+                lineupInfo={this.props.lineupInfo}
+                flipCard={this.flipCard}
+              />
+            </div>
           </div>
 
-          <ul className="players">
-            {players}
-          </ul>
-
-          <footer className="cmp-lineup-card__footer">
-            <div className="cmp-lineup-card__fees cmp-lineup-card__footer-section">
-              <span className="cmp-lineup-card__footer-title">Fees</span>
-              ${this.props.fees}
-            </div>
-
-            <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
-              <span className="cmp-lineup-card__footer-title">Live In</span>
-              <CountdownClock time={this.props.draftGroupInfo.start} />
-            </div>
-
-            <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
-              <span className="cmp-lineup-card__footer-title">Entries</span>
-              {this.props.entries}
-            </div>
-          </footer>
         </div>
       );
     } else {
+      /**
+       * If it is not the active lineup, only show the lineup title.
+       */
       lineup = (
         <div
           className="cmp-lineup-card cmp-lineup-card--collapsed"
