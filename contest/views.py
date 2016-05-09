@@ -1,6 +1,7 @@
 #
 # contest/views.py
 
+from django.db.models import Q
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import datetime, date, time, timedelta
@@ -189,12 +190,6 @@ class CurrentEntryAPIView(generics.ListAPIView):
         contests = self.get_contests(self.request.user)
         return self.get_entries(self.request.user, contests)
 
-# class UserUpcomingAPIView(UserEntryAPIView):
-#     """
-#     A User's upcoming Contests
-#     """
-#     contest_model = UpcomingContest
-
 class UserUpcomingContestPoolAPIView(UserEntryAPIView):
     """
     a user's registered-in ContestPools in the future
@@ -209,6 +204,34 @@ class UserUpcomingContestPoolAPIView(UserEntryAPIView):
         """
         return Entry.objects.filter(lineup__user=user,
                                     contest_pool__in=UpcomingContestPool.objects.all())
+
+    def get_queryset(self):
+        """
+        Return a QuerySet from the UpcomingContestPool model containing
+        all the entries for the user
+        """
+        return self.get_entries(self.request.user)
+
+class UserUpcomingContestPoolAndLiveContestEntriesAPIView(UserEntryAPIView):
+    """
+    a user's Entries which are registered-in ContestPools in the future,
+    as well as Entries in live Contests
+    """
+    permission_classes      = (IsAuthenticated,)
+    serializer_class        = UpcomingEntrySerializer
+
+    def get_entries(self, user):
+        """
+        return a queryset of the users entries (a map between contest & lineup)
+        which are from the upcoming ContestPools
+        """
+
+        # Q(question__startswith='What')
+        # return Entry.objects.filter(lineup__user=user,
+        #                             contest_pool__in=UpcomingContestPool.objects.all())
+        return Entry.objects.filter( Q(lineup__user=user),
+                        Q(contest_pool__in=UpcomingContestPool.objects.all()) |
+                        Q(contest__in=LiveContest.objects.all()))
 
     def get_queryset(self):
         """
