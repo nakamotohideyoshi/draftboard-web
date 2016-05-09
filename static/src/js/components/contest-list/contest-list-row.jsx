@@ -41,14 +41,11 @@ const ContestListRow = React.createClass({
   },
 
 
-  getLineupEntryCount(focusedLineup) {
-    if (focusedLineup &&
-        this.props.contest &&
-        this.props.lineupsInfo.hasOwnProperty(focusedLineup.id) &&
-        this.props.lineupsInfo[focusedLineup.id].contestPoolEntries.hasOwnProperty(this.props.contest.id)
-      ) {
-      return this.props.lineupsInfo[focusedLineup.id].contestPoolEntries[this.props.contest.id].entryCount;
+  getFocusedLineupEntryCount() {
+    if (this.props.focusedLineup.contestPoolEntries[this.props.contest.id]) {
+      return this.props.focusedLineup.contestPoolEntries[this.props.contest.id].entryCount;
     }
+
     return 0;
   },
 
@@ -114,7 +111,7 @@ const ContestListRow = React.createClass({
         </td>
 
         <td className="user-entries">
-          {this.props.contest.current_entries} of {this.props.contest.max_entries}
+          {this.getFocusedLineupEntryCount()} of {this.props.contest.max_entries}
         </td>
 
         <td className="enter">

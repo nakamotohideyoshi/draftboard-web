@@ -62,7 +62,7 @@ export const upcomingLineupsInfo = createSelector(
       // Find all entries for the lineup.
       const lineupEntries = _filter(entries, (entry) => entry.lineup === lineup.id);
       let lineupFeeTotal = 0;
-      const lineupContestPools = [];
+      const lineupContestPools = {};
 
       // for each entry, look up the contest it's entered into, then add up the fees.
       _forEach(lineupEntries, (lineupEntry) => {
