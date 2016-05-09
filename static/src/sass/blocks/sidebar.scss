@@ -42,6 +42,7 @@
   .sidebar-inner {
     overflow: auto;
     height: 100%;
+    transform: translateZ(0); // To prevent repaint on scroll.
   }
 
   .sidebar-content {

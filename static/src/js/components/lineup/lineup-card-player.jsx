@@ -1,14 +1,19 @@
+/* eslint no-param-reassign: 0 */
 import React from 'react';
-import { roundUpToDecimalPlace } from '../../lib/utils.js';
 
 
+/**
+ * A player row to be placed in a lineup card.
+ */
 const LineupCardPlayer = (props) => (
   <li className="cmp-lineup-card__player">
     <span className="cmp-lineup-card__position">{props.player.roster_spot}</span>
     <span className="cmp-lineup-card__photo">
       <img
-        alt="Player Headshot"
         src={`${props.playerImagesBaseUrl}/120/${props.player.player_meta.srid}.png`}
+        onError={(tag) => {
+          tag.currentTarget.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
+        }}
         width="auto"
         height="35px"
       />
@@ -20,7 +25,7 @@ const LineupCardPlayer = (props) => (
         - {props.player.player_meta.team.alias}
       </span>
     </span>
-    <span className="cmp-lineup-card__average">{roundUpToDecimalPlace(props.player.fppg, 1)}</span>
+    <span className="cmp-lineup-card__salary">${props.player.salary.toLocaleString('en')}</span>
   </li>
 );
 

@@ -15,7 +15,7 @@ Hello WOrld!
 @import "./variables.scss";
 
 // Font import
-// @import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700|Oswald:300,400|Droid+Sans+Mono:400);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700|Oswald:300,400|Droid+Sans+Mono:400);
 
 // Reusable mixins
 @import "./mixins/_media-queries.scss";
@@ -94,3 +94,4 @@ Hello WOrld!
 @import "./blocks/cmp-draft-team-filter.scss";
 @import "./blocks/cmp-contest-list-confirm-modal.scss";
 @import "./blocks/cmp-live-countdown.scss";
+@import "./blocks/cmp-lineup-card-entries.scss";

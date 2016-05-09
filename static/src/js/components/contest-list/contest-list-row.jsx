@@ -99,7 +99,7 @@ const ContestListRow = React.createClass({
           <span className={`icon icon-${this.props.contest.sport}`}></span>
         </td>
         <td key="name" className="name">
-          {this.props.contest.name} {this.props.contest.sport} CONTEST POOLS HAVE NO NAMES! {guaranteedIcon}
+          {this.props.contest.name} {guaranteedIcon}
         </td>
         <td key="entries" className="entries">
           {multiEntryIcon} {this.props.contest.current_entries}/∞
