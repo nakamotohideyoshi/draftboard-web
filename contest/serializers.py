@@ -90,7 +90,7 @@ class UpcomingEntrySerializer(serializers.ModelSerializer):
     class Meta:
 
         model  = Entry
-        fields = ('id', 'contest_pool', 'lineup', 'draft_group', 'start', 'lineup_name', 'sport')
+        fields = ('id', 'contest_pool', 'contest', 'lineup', 'draft_group', 'start', 'lineup_name', 'sport')
 
 class CurrentEntrySerializer(serializers.ModelSerializer):
     """

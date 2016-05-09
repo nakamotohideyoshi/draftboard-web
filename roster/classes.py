@@ -88,7 +88,7 @@ class Initial(object):
     DEFAULT_ROSTER_MAP_MLB = {
         ('SP',1,0,True)     :['SP'],                    # x1 starting pitchers
         ('C',1,1,True)      :['C'],
-        ('1B',1,2,True)     :['1B'],
+        ('1B',1,2,True)     :['1B','DH'],
         ('2B',1,3,True)     :['2B'],
         ('3B',1,4,True)     :['3B'],
         ('SS',1,5,True)     :['SS'],
