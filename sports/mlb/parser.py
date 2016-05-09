@@ -904,12 +904,17 @@ class PitchPbp(DataDenPbpDescription):
     pusher_sport_pbp        = push.classes.PUSHER_MLB_PBP
     pusher_sport_stats      = push.classes.PUSHER_MLB_STATS
 
-    zone_pitches = 'zone_pitches'
+    at_bat_srid_field       = 'at_bat__id'
+
+    at_bat          = 'at_bat'
+    zone_pitches    = 'zone_pitches'
 
     def __init__(self):
         super().__init__()
         self.player_stats_pitcher_model  = sports.mlb.models.PlayerStatsPitcher      # mlb pitcher stats
         self.player_stats_hitter_model   = sports.mlb.models.PlayerStatsHitter       # mlb hitter stats
+
+        self.at_bat_object = None
 
     def parse(self, obj, target=None):
         """
@@ -938,47 +943,69 @@ class PitchPbp(DataDenPbpDescription):
 
         # add the zonepitch list
         zone_pitch_cache = CacheList(cache=cache)
-        key = self.o.get('at_bat__id')
-        data[self.zone_pitches] = zone_pitch_cache.get(key=key)
+        at_bat_srid = self.o.get(self.at_bat_srid_field)
+
+        #
+        # add the zone pitches to the data to be sent to clients
+        data[self.zone_pitches] = zone_pitch_cache.get(key=at_bat_srid)
+        data[self.at_bat]       = self.get_at_bat(at_bat_srid)
 
         return data
 
-    def get_at_bat(self, srid_game, srid_pitch):
-        """
-        using DataDen's aggregate wrapper to mongo, builds a pipeline
-        (list of commands, basically) and extract the deeply nested
-        'at_bat' element from a 'game' pbp object!
+    def get_at_bat(self, at_bat_srid):
+        if self.at_bat_object is not None:
+            return self.at_bat_object
 
-        :param srid_game: supplying the srid for the game the pitch was in greatly speeds up query, but is optional.
-        """
         dd = DataDen()
+        results = dd.find('mlb','at_bat','pbp', target={'id':at_bat_srid})
 
-        pipeline = [
-            {"$match": {"id": "%s" % srid_game} },     # matching the game id first, greatly improves speed
-
-            {"$unwind": "$innings"},
-            {"$match": {"innings.inning.inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
-            {"$project": {"inning_halfs":"$innings.inning.inning_halfs"}},
-
-            {"$unwind": "$inning_halfs"},
-            {"$match": {"inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
-            {"$project": {"at_bats":"$inning_halfs.inning_half.at_bats"}},
-
-            {"$unwind": "$at_bats"},
-            {"$match": {"at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
-            {"$project": {"at_bat":"$at_bats.at_bat"}},
-        ]
-
-        results = dd.aggregate('mlb','game', pipeline)
-
-        if len(results) == 0:
-            err_msg = 'no at_bat object found for game %s and pitch %s' % (srid_game, srid_pitch)
+        if results.count() == 0:
+            err_msg = 'no at_bat object found for srid %s' % (at_bat_srid)
             raise self.AtBatNotFoundException(err_msg)
-        if len(results) != 1:
-            err_msg = 'expected 1 at_bat object for game %s and pitch %s, but found %s' % (srid_game, srid_pitch, len(results))
+        if results.count() != 1:
+            err_msg = 'expected 1 at_bat object for srid %s, but found %s' % (at_bat_srid, len(results))
             raise self.MultipleAtBatObjectsFoundException(err_msg)
-        #print( 'dataden aggregate results:', str(results[0]))
-        return results[0]
+        #
+        # return the at_bat object
+        self.at_bat_object = results[0]
+        return self.at_bat_object
+
+    # def get_at_bat(self, srid_game, srid_pitch):
+    #     """
+    #     using DataDen's aggregate wrapper to mongo, builds a pipeline
+    #     (list of commands, basically) and extract the deeply nested
+    #     'at_bat' element from a 'game' pbp object!
+    #
+    #     :param srid_game: supplying the srid for the game the pitch was in greatly speeds up query, but is optional.
+    #     """
+    #     dd = DataDen()
+    #
+    #     pipeline = [
+    #         {"$match": {"id": "%s" % srid_game} },     # matching the game id first, greatly improves speed
+    #
+    #         {"$unwind": "$innings"},
+    #         {"$match": {"innings.inning.inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
+    #         {"$project": {"inning_halfs":"$innings.inning.inning_halfs"}},
+    #
+    #         {"$unwind": "$inning_halfs"},
+    #         {"$match": {"inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
+    #         {"$project": {"at_bats":"$inning_halfs.inning_half.at_bats"}},
+    #
+    #         {"$unwind": "$at_bats"},
+    #         {"$match": {"at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
+    #         {"$project": {"at_bat":"$at_bats.at_bat"}},
+    #     ]
+    #
+    #     results = dd.aggregate('mlb','game', pipeline)
+    #
+    #     if len(results) == 0:
+    #         err_msg = 'no at_bat object found for game %s and pitch %s' % (srid_game, srid_pitch)
+    #         raise self.AtBatNotFoundException(err_msg)
+    #     if len(results) != 1:
+    #         err_msg = 'expected 1 at_bat object for game %s and pitch %s, but found %s' % (srid_game, srid_pitch, len(results))
+    #         raise self.MultipleAtBatObjectsFoundException(err_msg)
+    #     #print( 'dataden aggregate results:', str(results[0]))
+    #     return results[0]
 
     def __find_player_stats(self, player_stats_class, srid_game, srid_players=[]):
         return player_stats_class.objects.filter( srid_game=srid_game, srid_player__in=srid_players)
@@ -988,20 +1015,6 @@ class PitchPbp(DataDenPbpDescription):
         override parent method  -- return a list of the PlayerStats objects
         for players related to the pitch object.
         """
-
-        # site_sport_manager = SiteSportManager()
-        # site_sport = site_sport_manager.get_site_sport('mlb')
-        # salary_score_system_class = site_sport_manager.get_score_system_class(site_sport)
-        # score_system = salary_score_system_class()
-        # # get the PlayerStats model(s) for the sport.
-        # # and get an instance of the sports scoring.classes.<Sport>SalaryScoreSystem
-        # # to determine which player stats models to use to retrieve the final fantasy_points from!
-        # for draft_group_player in players:
-        #     # get the sports.<sport>.player  -- we'll need it later
-        #     sport_player = draft_group_player.salary_player.player
-        #     # determine the PlayerStats class to retrieve the fantasy_points from
-        #     player_stats_class = score_system.get_primary_player_stats_class_for_player(draft_group_player)
-
         player_stats    = []
         srid_game       = self.get_srid_game('game__id')
         srid_pitcher    = self.get_srids_for_field('pitcher')
@@ -1017,18 +1030,10 @@ class PitchPbp(DataDenPbpDescription):
         #
         # attempt to get the at_bat object which ontains the hitter (as well as the description)
         # if the play is over. we will probably want to get the glossary definition of the result.
-        #at_bat = None
-        # try:
-        srid_pitch = self.o.get('id')
-        #print('srid_pitch', srid_pitch)
         try:
-            # get_at_bat() may throw:
-            at_bat = self.get_at_bat(srid_game, srid_pitch)
+            at_bat = self.get_at_bat(self.o.get(self.at_bat_srid_field))
         except self.AtBatNotFoundException:
             at_bat = None
-        #print('at_bat:', str(at_bat))
-        # except:
-        #     pass
 
         if at_bat is not None:
             finder = SridFinder(at_bat)
