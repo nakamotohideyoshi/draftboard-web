@@ -24,6 +24,7 @@ from contest.views import (
     RemoveAndRefundEntryStatusAPIView,
     UserPlayHistoryAPIView,
     ContestRanksAPIView,
+    UserUpcomingContestPoolAndLiveContestEntriesAPIView,
 )
 from contest.views import ContestCreate, ContestUpdate
 
@@ -63,8 +64,14 @@ urlpatterns = patterns(
     (r'^lobby/$', LobbyAPIView.as_view()),
 
     #
-    # get a logged in user's contest pool entries.
+    # get a logged in user's contest pool entries in UPCOMING CONTEST POOLS ONLY
     (r'^contest-pools/entries/$', UserUpcomingContestPoolAPIView.as_view()),
+
+    #
+    # get the users Entries from Upcoming Contest pools, as well as Entries
+    # in "live" Contests (ie: contests which have just been created due
+    # to a Contest Pool having started)
+    (r'^contest-pools/current-entries/$', UserUpcomingContestPoolAndLiveContestEntriesAPIView.as_view()),
 
     #
     # get a logged in user's live contests
