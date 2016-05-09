@@ -99,13 +99,15 @@ class CurrentEntrySerializer(serializers.ModelSerializer):
 
     draft_group = serializers.SerializerMethodField()
     def get_draft_group(self, entry):
-        print('get_draft_group(self, entry):', str(entry), 'contest:', str(entry.contest),
-                'draft_group:', str(entry.contest.draft_group))
-        return entry.contest.draft_group.id
+        # if entry.contest is None:
+        #     return None
+        # print('get_draft_group(self, entry):', str(entry), 'contest:', str(entry.contest),
+        #         'draft_group:', str(entry.contest.draft_group))
+        return entry.contest_pool.draft_group.id
 
     start = serializers.SerializerMethodField()
     def get_start(self, entry):
-        return entry.contest.start
+        return entry.contest_pool.start
 
     lineup_name = serializers.SerializerMethodField()
     def get_lineup_name(self, entry):
@@ -118,7 +120,7 @@ class CurrentEntrySerializer(serializers.ModelSerializer):
     class Meta:
 
         model  = Entry
-        fields = ('id', 'contest', 'lineup', 'draft_group', 'start', 'lineup_name', 'sport')
+        fields = ('id', 'contest_pool', 'contest', 'lineup', 'draft_group', 'start', 'lineup_name', 'sport')
 
 class RegisteredUserSerializer(serializers.Serializer):
 
