@@ -1,5 +1,6 @@
 import React from 'react';
 import LineupCardEntry from './lineup-card-entry.jsx';
+import forEach from 'lodash/forEach';
 
 
 const LineupCardEntries = React.createClass({
@@ -10,11 +11,13 @@ const LineupCardEntries = React.createClass({
   },
 
   getEntries() {
-    return (
-      this.props.lineupInfo.contestPoolEntries.map(
-        (entry) => <LineupCardEntry key={entry.contest.id} entry={entry} />
-      )
-    );
+    const entries = [];
+
+    forEach(this.props.lineupInfo.contestPoolEntries, (entry) => {
+      entries.push(<LineupCardEntry key={entry.contest.id} entry={entry} />);
+    });
+
+    return entries;
   },
 
 

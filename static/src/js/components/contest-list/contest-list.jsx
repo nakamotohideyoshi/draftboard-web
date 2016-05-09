@@ -41,12 +41,12 @@ const ContestList = React.createClass({
 
       if (this.props.focusedLineup && this.props.lineupsInfo.hasOwnProperty(this.props.focusedLineup.id)) {
         info = this.props.lineupsInfo[this.props.focusedLineup.id];
-        isEntered = (info.contestPoolEntries.indexOf(row.id) !== -1);
+        isEntered = (info.contestPoolEntries.hasOwnProperty(row.id));
       }
 
       if (this.props.lineupsInfo.hasOwnProperty(this.props.hoveredLineupId)) {
         info = this.props.lineupsInfo[this.props.hoveredLineupId];
-        isHoveredEntered = (info.contestPoolEntries.indexOf(row.id) !== -1);
+        isHoveredEntered = (info.contestPoolEntries.hasOwnProperty(row.id));
       }
 
       visibleRows.push(
