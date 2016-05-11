@@ -20,6 +20,7 @@ PUSH_TASKS_STATS_LINKER = 'push_tasks_stats_linker'
 
 @app.task(bind=True)
 def pusher_send_task(self, pushable, data):
+    print('pusher_send_task ::', str(data))
     pushable.trigger( data )
 
 @app.task(bind=True)

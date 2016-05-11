@@ -100,7 +100,7 @@ class Rank( models.Model ):
         """
         wrapper to grab the amount instances 'amount' field ($ value)
         """
-        return self.amount.amount
+        return float(self.amount.amount)
 
     def __str__(self):
         return '<%s | %s>' % (self.__class__.__name__, self.value)
@@ -108,7 +108,6 @@ class Rank( models.Model ):
     class Meta:
         verbose_name = 'Payout Structure'
         verbose_name_plural = 'Payout Structure'
-
 
 class CreateTicketPrizeStructure(models.Model):
 
