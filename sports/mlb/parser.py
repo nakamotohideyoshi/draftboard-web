@@ -1111,7 +1111,7 @@ class RunnerPbp(PitchPbp):
             # the mongo object id with the key: '_id'
             # will likely not exist, but thats fine.
             pass
-        
+
         # get the pitch srid, but if it doesnt exist, do nothing (dont add to CacheList)
         pitch_srid = runner.get('pitch__id', None)
         if pitch_srid is not None:

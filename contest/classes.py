@@ -1,6 +1,8 @@
 #
 # contest/classes.py
 
+from collections import OrderedDict
+from collections import Counter
 from random import Random, shuffle
 from django.db.transaction import atomic
 import os
@@ -27,7 +29,12 @@ from django.utils import timezone
 from sports.classes import SiteSportManager as SSM
 from ticket.classes import TicketManager
 from ticket.models import TicketAmount
-from contest.models import Contest, Entry
+from contest.models import (
+    Contest,
+    Entry,
+    ClosedContest,
+    ClosedEntry,
+)
 from lineup.classes import LineupManager
 import lineup.models
 import prize.models
@@ -887,3 +894,102 @@ class ContestPoolFiller(object):
 
         # return the newly created (and filled) contest
         return contest
+
+class ContestPlayerOwnership(object):
+    """
+    gathers the data about player ownership for the given contest
+    """
+
+    def __init__(self, contest):
+        if not isinstance( contest, Contest ):
+            err_msg = 'contest param [%s] must be a contest.models.Contest' % type(contest)
+            raise Exception(err_msg)
+        self.contest = contest
+        self.entries = None
+        self.lineups = None
+        self.lineup_players = None
+
+        # store the results in a collections.Counter instance.
+        # it will be initialized in update() method.
+        self.player_counter = None
+
+    def update(self):
+        """
+        gather the lineup and player data and populate the internal data
+        with sums of occurences of players, and the # of lineups
+        """
+        self.entries = Entry.objects.filter(contest=self.contest)
+        self.lineups = [ e.lineup for e in self.entries ]
+        self.lineup_players = lineup.models.Player.objects.filter(lineup__in=self.lineups)
+
+        # add players to the data with an initial count of 1.
+        # incrememnt a players count if they already exist
+        self.player_counter = Counter([p.player.srid for p in self.lineup_players]).items()
+
+    def get_player_counter(self):
+        """
+        return an iterable of tuples where each tuple is of the form:
+            (sports.models.Player.pk, number_of_lineup_occurrences)
+        """
+        if self.player_counter is None:
+            self.update()
+
+        return self.player_counter
+
+    def count_for_srid(self, srid):
+        """
+        for the given player srid, return the count of their occurrences
+        in lineups for this contest.
+        """
+        if self.player_counter is None:
+            self.update()
+
+        return self.player_counter.get(srid)
+
+class RecentPlayerOwnership(object):
+    """
+    Gather player ownership data for the most recent days those players played.
+
+    Only lineup.models.Lineup's which have been associated with ClosedContest(s),
+    will be considered to ensure validity of the results.
+
+    Lineups may span multiple DraftGroups so long as the DraftGroups
+    are from the same "DFS Day"; that means early/regular/late block
+    draft groups for a single day may be used.
+    """
+
+    recent_days = 10
+
+    def __init__(self, site_sport):
+        # set the SiteSport instance. if its a string, try to get the SiteSport model
+        self.site_sport = site_sport
+        if isinstance(self.site_sport, str):
+            self.site_sport = SiteSport.objects.get(name=site_sport)
+        # validate the self.site_sport we ended up with...
+        if not isinstance(self.site_sport, SiteSport):
+            err_msg = 'site_sport must be an instance of ' \
+                      'sports.models.SiteSport (or the string name of the sport)'
+            raise Exception(err_msg)
+
+        # get all ClosedContest objects within the last 'recent_days'
+        dt = timezone.now() - timedelta(days=self.recent_days)
+        self.contests = ClosedContest.objects.filter(
+                            site_sport=self.site_sport, start__gte=dt).order_by('-start')
+
+        # get the distinct DraftGroup(s) for those contests
+        self.draft_groups = self.get_distinct_ordered_draft_groups(self.contests)
+
+    def get_distinct_ordered_draft_groups(self, contests):
+        """
+        extract, and return -- maintaining order -- the distinct draft groups from the 'contests'
+
+        :param contests:
+        :return:
+        """
+        draft_group_map = OrderedDict()
+        for contest in contests:
+            dg = contest.draft_group
+            if dg.pk not in draft_group_map:
+                draft_group_map[ dg.pk ] = dg
+        return list(draft_group_map.values())
+
