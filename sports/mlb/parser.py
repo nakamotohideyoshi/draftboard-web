@@ -908,6 +908,7 @@ class PitchPbp(DataDenPbpDescription):
 
     at_bat          = 'at_bat'
     zone_pitches    = 'zone_pitches'
+    runners         = 'runners'
 
     def __init__(self):
         super().__init__()
@@ -933,11 +934,8 @@ class PitchPbp(DataDenPbpDescription):
         be sure to call super method, and add the zonepitches to the object returned
         """
 
-        # parent builds a dictionary that looks something like this:
-        # data = {
-        #     self.linked_pbp_field   : self.o,
-        #     self.linked_stats_field : [ ps.to_json() for ps in player_stats ]
-        # }
+        # get the pitch pbp's srid. it uniquely identifies each discrete mlb pitch
+        pitch_srid = self.o.get('id')
 
         data = super().build_linked_pbp_stats_data(player_stats)
 
@@ -950,6 +948,14 @@ class PitchPbp(DataDenPbpDescription):
         data[self.zone_pitches] = zone_pitch_cache.get(key=at_bat_srid)
         data[self.at_bat]       = self.get_at_bat(at_bat_srid)
 
+        # get the runners list from cache (sort of like how we get zone pitches.
+        runners_cache           = CacheList(cache=cache)
+        # use the pitch_srid as the key for runners list,
+        # because runner objects will always be associated with an individual pitch,
+        # from what i've seen anyways...
+        data[self.runners]      = runners_cache.get(key=pitch_srid)
+
+        # return the linked data
         return data
 
     def get_at_bat(self, at_bat_srid):
@@ -970,42 +976,8 @@ class PitchPbp(DataDenPbpDescription):
         self.at_bat_object = results[0]
         return self.at_bat_object
 
-    # def get_at_bat(self, srid_game, srid_pitch):
-    #     """
-    #     using DataDen's aggregate wrapper to mongo, builds a pipeline
-    #     (list of commands, basically) and extract the deeply nested
-    #     'at_bat' element from a 'game' pbp object!
-    #
-    #     :param srid_game: supplying the srid for the game the pitch was in greatly speeds up query, but is optional.
-    #     """
-    #     dd = DataDen()
-    #
-    #     pipeline = [
-    #         {"$match": {"id": "%s" % srid_game} },     # matching the game id first, greatly improves speed
-    #
-    #         {"$unwind": "$innings"},
-    #         {"$match": {"innings.inning.inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
-    #         {"$project": {"inning_halfs":"$innings.inning.inning_halfs"}},
-    #
-    #         {"$unwind": "$inning_halfs"},
-    #         {"$match": {"inning_halfs.inning_half.at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
-    #         {"$project": {"at_bats":"$inning_halfs.inning_half.at_bats"}},
-    #
-    #         {"$unwind": "$at_bats"},
-    #         {"$match": {"at_bats.at_bat.pitchs.pitch": "%s" % srid_pitch} },
-    #         {"$project": {"at_bat":"$at_bats.at_bat"}},
-    #     ]
-    #
-    #     results = dd.aggregate('mlb','game', pipeline)
-    #
-    #     if len(results) == 0:
-    #         err_msg = 'no at_bat object found for game %s and pitch %s' % (srid_game, srid_pitch)
-    #         raise self.AtBatNotFoundException(err_msg)
-    #     if len(results) != 1:
-    #         err_msg = 'expected 1 at_bat object for game %s and pitch %s, but found %s' % (srid_game, srid_pitch, len(results))
-    #         raise self.MultipleAtBatObjectsFoundException(err_msg)
-    #     #print( 'dataden aggregate results:', str(results[0]))
-    #     return results[0]
+    def get_runners(self, at_bat_srid):
+        pass # TODO
 
     def __find_player_stats(self, player_stats_class, srid_game, srid_players=[]):
         return player_stats_class.objects.filter( srid_game=srid_game, srid_player__in=srid_players)
@@ -1090,6 +1062,68 @@ class ZonePitchPbp(PitchPbp):
 
     def find_player_stats(self):
         """ override - return an emtpy list, dont look for stats objects for zone pitches """
+        return []
+
+class RunnerPbp(PitchPbp):
+    """
+    parse a single pitch from the target: ('mlb.runner','pbp').
+
+    If it does not have a 'pitch__id', that indicates it was an event
+    independent of any pitches -- it was likely a steal.
+
+    NOTE: if it was a steal, it still have a 'steal__id' field,
+    but typical runner objects will not have this field!
+
+    NOTE 2: if it has a 'steal__id' field, but the starting and
+    ending base is the same, (the outcome will be 'CK') this
+    likely means the pitcher checked the runner with some kind
+    of pickoff attempt.
+
+    we are going to model Runner pbp objects after ZonePitchPbp
+    objects because we also want to add them to a cache to
+    be able to fetch a list of the recent ones per-at bat in real-time.
+    """
+
+    # override default value from DataDenPbpDescription
+    pusher_sport_pbp_event  = 'runner'
+
+    def __init__(self):
+        """ call parent constructor """
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        """
+        the object must first be parsed before send() can be called
+
+        :param obj: a dataden.watcher.OpLogObj object
+        """
+        self.original_obj = obj
+        # we dont really need to set the SridFinder
+        # self.srid_finder = SridFinder(obj.get_o()) # get the data from the oplogobj
+        self.o = obj.get_o() # we didnt call super so we should do this
+
+        # so we can retrieve the list of zonepitches from the cache
+        runner = self.o
+        try:
+            runner_obj_id = runner.pop('_id') # remove it. its a lot of unnecessary characters
+        except KeyError:
+            # if the replayer is sending this object,
+            # the mongo object id with the key: '_id'
+            # will likely not exist, but thats fine.
+            pass
+        
+        # get the pitch srid, but if it doesnt exist, do nothing (dont add to CacheList)
+        pitch_srid = runner.get('pitch__id', None)
+        if pitch_srid is not None:
+            print('adding runner obj to cache_list, pitch_srid:', str(pitch_srid))
+            #cache_list = CacheList(self.c)
+            cache_list = CacheList(cache=cache)
+            cache_list.add(pitch_srid, runner)
+        else:
+            print('runner obj had no pitch__id so not adding to runner list for linked obj')
+
+    def find_player_stats(self):
+        """ override - return an emtpy list, dont look for stats objects for runner objects """
         return []
 
 class GamePbp(DataDenPbpDescription):
@@ -1372,6 +1406,14 @@ class DataDenMlb(AbstractDataDenParser):
         elif self.target == ('mlb.game','boxscores'):
             GameBoxscores().parse( obj )  # top level boxscore info
             push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+
+        # runner objects (from pbp)
+        elif self.target == ('mlb.runner','pbp'):
+            runner_pbp = RunnerPbp()
+            runner_pbp.parse( obj )     # cache it/save it/do django and/or postgres related things
+            runner_pbp.send()           # pusher it.
+            self.add_pbp( obj )         # add it to a list of objects we've sent (helps us not double-send later on)
+
         elif self.target == ('mlb.home','summary'): HomeAwaySummary().parse( obj )  # home team of boxscore
         elif self.target == ('mlb.away','summary'): HomeAwaySummary().parse( obj )  # away team of boxscore
         #
