@@ -42,7 +42,10 @@ const ContestListRow = React.createClass({
 
 
   getFocusedLineupEntryCount() {
-    if (this.props.focusedLineup && this.props.focusedLineup.contestPoolEntries[this.props.contest.id]) {
+    if (this.props.focusedLineup
+      && this.props.focusedLineup.contestPoolEntries
+      && this.props.focusedLineup.contestPoolEntries[this.props.contest.id]
+    ) {
       return this.props.focusedLineup.contestPoolEntries[this.props.contest.id].entryCount;
     }
 
