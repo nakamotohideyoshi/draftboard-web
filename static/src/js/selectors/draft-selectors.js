@@ -92,7 +92,10 @@ export const focusedPlayerSelector = createSelector(
             }
 
             case 'nhl':
-            // TODO: check if games exists (breaks if it doesn't.)
+              if (!player.boxScoreHistory.games) {
+                player.splitsHistory = [];
+                break;
+              }
               player.splitsHistory = player.boxScoreHistory.games.map((game, i) => ({
                 // TODO: Add date and opponent info into focusedPlayerSelector - this needs to be
                 // done server-side since we don't have ALL historical boxScores to pull from.

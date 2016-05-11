@@ -42,7 +42,7 @@ const ContestListRow = React.createClass({
 
 
   getFocusedLineupEntryCount() {
-    if (this.props.focusedLineup.contestPoolEntries[this.props.contest.id]) {
+    if (this.props.focusedLineup && this.props.focusedLineup.contestPoolEntries[this.props.contest.id]) {
       return this.props.focusedLineup.contestPoolEntries[this.props.contest.id].entryCount;
     }
 
@@ -63,6 +63,21 @@ const ContestListRow = React.createClass({
   flash: '',
 
 
+  renderPrizeRanks(prizeStructure) {
+    let rankList = [];
+    if (prizeStructure.ranks) {
+      rankList = prizeStructure.ranks.map((rank, i, arr) => {
+        const delimiter = i < arr.length - 1 ? '|' : '';
+        return (
+          <span key={i}>${rank.value} {delimiter} </span>
+        );
+      });
+    }
+
+    return rankList;
+  },
+
+
   render() {
     // If it's the currently focused contest, add a class to it.
     let classes = this.props.focusedContest.id === this.props.contest.id ? 'active ' : '';
@@ -80,11 +95,6 @@ const ContestListRow = React.createClass({
     if (this.props.contest.gpp) {
       guaranteedIcon = <span className="contest-icon contest-icon__guaranteed">G</span>;
     }
-    let multiEntryIcon;
-    if (this.props.contest.max_entries > 1) {
-      multiEntryIcon = <span className="contest-icon contest-icon__multi-entry">M</span>;
-    }
-
 
     return (
       <tr
@@ -98,11 +108,11 @@ const ContestListRow = React.createClass({
         <td key="name" className="name">
           {this.props.contest.name} {guaranteedIcon}
         </td>
-        <td key="entries" className="entries">
-          {multiEntryIcon} {this.props.contest.current_entries}/∞
+        <td key="entries" className="payouts">
+          {this.renderPrizeRanks(this.props.contest.prize_structure)}
         </td>
-        <td key="fee" className="fee">${this.props.contest.buyin}</td>
-        <td key="prizes" className="prizes">${this.props.contest.prize_pool}</td>
+        <td key="fee" className="entries">{this.props.contest.entries}</td>
+        <td key="contestSize" className="contest-size">&lt;size&gt;</td>
         <td key="start" className="start">
           <CountdownClock
             time={this.props.contest.start}

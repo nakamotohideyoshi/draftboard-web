@@ -129,7 +129,7 @@ const ContestListDetail = React.createClass({
   getActiveTab() {
     switch (this.state.activeTab) {
       case 'prizes':
-        return (<PrizeStructure structure={this.props.contestInfo.prizeStructure} />);
+        return (<PrizeStructure structure={this.props.contestInfo.contest.prize_structure} />);
 
       case 'games': {
         if (this.props.contestInfo.boxScores) {

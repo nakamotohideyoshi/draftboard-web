@@ -217,7 +217,6 @@ const LobbyContainer = React.createClass({
   handleFocusContest(contest) {
     this.props.routerPush(`/lobby/${contest.id}/`);
     this.props.setFocusedContest(contest.id);
-    this.props.fetchPrizeIfNeeded(contest.prize_structure);
     AppActions.openPane();
   },
 

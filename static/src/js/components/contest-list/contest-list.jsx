@@ -79,16 +79,15 @@ const ContestList = React.createClass({
             >Contest</th>
             <th
               className="table__sortable"
-              onClick={this.props.setOrderBy.bind(null, 'entries')}
-            >Entries / Size</th>
-            <th
-              className="table__sortable"
-              onClick={this.props.setOrderBy.bind(null, 'buyin')}
-            >Fee</th>
-            <th
-              className="table__sortable"
               onClick={this.props.setOrderBy.bind(null, 'prize_pool')}
-            >Prizes</th>
+            >Payouts</th>
+            <th
+              className="table__sortable"
+              onClick={this.props.setOrderBy.bind(null, 'entries')}
+            >Entries</th>
+            <th
+              className="table__sortable"
+            >Contest Size</th>
             <th
               className="table__sortable"
               onClick={this.props.setOrderBy.bind(null, 'start')}

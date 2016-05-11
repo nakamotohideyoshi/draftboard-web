@@ -52,8 +52,9 @@ function fetchPlayerBoxScoreHistoryFail(ex) {
 function shouldFetchPlayerBoxScoreHistory(state, sport) {
   const history = state.playerBoxScoreHistory;
 
-  // TODO Craig allow MLB once Caleb fixes API call
+  // TODO Craig/Zach allow MLB once Caleb fixes API call
   if (sport === 'mlb') {
+    log.warn('Not fetching MLB PlayerBoxScoreHistory.');
     return false;
   }
 

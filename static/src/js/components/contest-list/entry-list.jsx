@@ -40,7 +40,7 @@ const EntryList = React.createClass({
 
 
   render() {
-    if (!this.props.entries) {
+    if (!Object.keys(this.props.entries).length) {
       return (
         <div>The selected lineup has no entries in this contest.</div>
       );
