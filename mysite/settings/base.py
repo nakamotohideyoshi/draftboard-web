@@ -392,6 +392,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'INFO',
         },
+        'mysite': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
     },
 }
 

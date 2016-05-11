@@ -41,14 +41,11 @@ const ContestListRow = React.createClass({
   },
 
 
-  getLineupEntryCount(focusedLineup) {
-    if (focusedLineup &&
-        this.props.contest &&
-        this.props.lineupsInfo.hasOwnProperty(focusedLineup.id) &&
-        this.props.lineupsInfo[focusedLineup.id].contestPoolEntries.hasOwnProperty(this.props.contest.id)
-      ) {
-      return this.props.lineupsInfo[focusedLineup.id].contestPoolEntries[this.props.contest.id].entryCount;
+  getFocusedLineupEntryCount() {
+    if (this.props.focusedLineup && this.props.focusedLineup.contestPoolEntries[this.props.contest.id]) {
+      return this.props.focusedLineup.contestPoolEntries[this.props.contest.id].entryCount;
     }
+
     return 0;
   },
 
@@ -64,6 +61,21 @@ const ContestListRow = React.createClass({
 
 
   flash: '',
+
+
+  renderPrizeRanks(prizeStructure) {
+    let rankList = [];
+    if (prizeStructure.ranks) {
+      rankList = prizeStructure.ranks.map((rank, i, arr) => {
+        const delimiter = i < arr.length - 1 ? '|' : '';
+        return (
+          <span key={i}>${rank.value} {delimiter} </span>
+        );
+      });
+    }
+
+    return rankList;
+  },
 
 
   render() {
@@ -83,11 +95,6 @@ const ContestListRow = React.createClass({
     if (this.props.contest.gpp) {
       guaranteedIcon = <span className="contest-icon contest-icon__guaranteed">G</span>;
     }
-    let multiEntryIcon;
-    if (this.props.contest.max_entries > 1) {
-      multiEntryIcon = <span className="contest-icon contest-icon__multi-entry">M</span>;
-    }
-
 
     return (
       <tr
@@ -99,13 +106,13 @@ const ContestListRow = React.createClass({
           <span className={`icon icon-${this.props.contest.sport}`}></span>
         </td>
         <td key="name" className="name">
-          {this.props.contest.name} {this.props.contest.sport} CONTEST POOLS HAVE NO NAMES! {guaranteedIcon}
+          {this.props.contest.name} {guaranteedIcon}
         </td>
-        <td key="entries" className="entries">
-          {multiEntryIcon} {this.props.contest.current_entries}/∞
+        <td key="entries" className="payouts">
+          {this.renderPrizeRanks(this.props.contest.prize_structure)}
         </td>
-        <td key="fee" className="fee">${this.props.contest.buyin}</td>
-        <td key="prizes" className="prizes">${this.props.contest.prize_pool}</td>
+        <td key="fee" className="entries">{this.props.contest.entries}</td>
+        <td key="contestSize" className="contest-size">&lt;size&gt;</td>
         <td key="start" className="start">
           <CountdownClock
             time={this.props.contest.start}
@@ -114,7 +121,7 @@ const ContestListRow = React.createClass({
         </td>
 
         <td className="user-entries">
-          {this.props.contest.current_entries} of {this.props.contest.max_entries}
+          {this.getFocusedLineupEntryCount()} of {this.props.contest.max_entries}
         </td>
 
         <td className="enter">

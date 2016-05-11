@@ -25,6 +25,10 @@ class RankSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Rank
+        fields = (
+            'rank',
+            'value',
+        )
 
 class PrizeStructureSerializer(serializers.ModelSerializer):
 
@@ -36,12 +40,13 @@ class PrizeStructureSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'buyin',
-            'generator',
             'ranks',
             'prize_pool'
         )
 
 class ContestPoolSerializer(serializers.ModelSerializer):
+
+    prize_structure = PrizeStructureSerializer()
 
     class Meta:
 

@@ -1,3 +1,4 @@
+/* eslint no-param-reassign: 0 */
 import React from 'react';
 import shallowCompare from 'react-addons-shallow-compare';
 import * as AppActions from '../../stores/app-state-store.js';
@@ -128,12 +129,14 @@ const DraftPlayerListRow = React.createClass({
         </td>
         <td className="position">{this.props.row.position}</td>
         <td className="photo">
-          <img
-            alt="Player Headshot"
-            src={`${this.props.playerImagesBaseUrl}/120/${this.props.row.player_srid}.png`}
-            width="auto"
-            height="35px"
-          />
+            <img
+              src={`${this.props.playerImagesBaseUrl}/120/${this.props.row.player_srid}.png`}
+              onError={(tag) => {
+                tag.currentTarget.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
+              }}
+              width="auto"
+              height="35px"
+            />
         </td>
         <td className="name">
           <span className="player">{this.props.row.name} </span>
