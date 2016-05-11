@@ -118,7 +118,9 @@ class LobbyAPIView(generics.ListAPIView):
         """
         Return a QuerySet from the LobbyContestPool model.
         """
-        return LobbyContestPool.objects.all()
+        return LobbyContestPool.objects.select_related(
+                'site_sport', 'draft_group', 'prize_structure'
+            ).prefetch_related('prize_structure__ranks', 'prize_structure__generator').all()
 
 
 class UserEntryAPIView(generics.ListAPIView):

@@ -62,7 +62,7 @@ export const upcomingLineupsInfo = createSelector(
       // Find all entries for the lineup.
       const lineupEntries = _filter(entries, (entry) => entry.lineup === lineup.id);
       let lineupFeeTotal = 0;
-      const lineupContestPools = [];
+      const lineupContestPools = {};
 
       // for each entry, look up the contest it's entered into, then add up the fees.
       _forEach(lineupEntries, (lineupEntry) => {
@@ -70,14 +70,18 @@ export const upcomingLineupsInfo = createSelector(
           lineupFeeTotal = lineupFeeTotal + contests[lineupEntry.contest_pool].buyin;
           // Take a tally to count up all of the contest pool entries this lineup has.
           let currentEntryCount = 0;
+
           if (
             lineupContestPools[contests[lineupEntry.contest_pool].id] &&
             lineupContestPools[contests[lineupEntry.contest_pool].id].hasOwnProperty('entryCount')
           ) {
             currentEntryCount = lineupContestPools[contests[lineupEntry.contest_pool].id].entryCount;
           }
+
           lineupContestPools[contests[lineupEntry.contest_pool].id] = {
             entryCount: currentEntryCount + 1,
+            entry: lineupEntry,
+            contest: contests[lineupEntry.contest_pool] || {},
           };
         }
       });
@@ -94,13 +98,12 @@ export const upcomingLineupsInfo = createSelector(
         fantasy_points: lineup.fantasy_points,
         sport: lineup.sport,
         name: lineup.name,
-        entries: entryMap[lineup.id] || 0,
+        totalEntryCount: entryMap[lineup.id] || 0,
         contestPoolEntries: contestMap[lineup.id],
         fees: feeMap[lineup.id],
         entryRequests: lineupEntryRequestMap[lineup.id] || {},
       };
     });
-
 
     return info;
   }

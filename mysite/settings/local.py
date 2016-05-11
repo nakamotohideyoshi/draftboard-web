@@ -130,3 +130,12 @@ INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = True
 #
 # we dont want to record locally (especially for a machine running a replay!)
 DISABLE_REPLAYER_UPDATE_RECORDING = True
+
+
+MIDDLEWARE_CLASSES = ('mysite.middleware.query_count_debug.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
+
+LOGGING['loggers'].update({'mysite.middleware.query_count_debug.QueryCountDebugMiddleware': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+        }
+    })

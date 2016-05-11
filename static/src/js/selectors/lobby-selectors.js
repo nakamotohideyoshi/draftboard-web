@@ -48,7 +48,7 @@ export const focusedContestInfoSelector = createSelector(
       // Add 'isEntered' attribute if the focused lineup has been entered into this contest
       if (focusedLineupId && lineupsInfo.hasOwnProperty(focusedLineupId)) {
         contestInfo.isEntered = (
-          lineupsInfo[focusedLineupId].contestPoolEntries.indexOf(contestInfo.contest.id) !== -1
+          lineupsInfo[focusedLineupId].contestPoolEntries.hasOwnProperty(contestInfo.contest.id)
         );
       }
 
@@ -58,14 +58,6 @@ export const focusedContestInfoSelector = createSelector(
            entry.contest_pool.toString() === focusedContestId.toString()
           && entry.lineup.toString() === focusedLineupId.toString()
         );
-      }
-
-      // Add the prize payout structure.
-      if (
-          contestInfo.contest.prize_structure &&
-          prizes.hasOwnProperty(contestInfo.contest.prize_structure)
-        ) {
-        contestInfo.prizeStructure = prizes[contestInfo.contest.prize_structure];
       }
     }
 

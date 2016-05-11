@@ -41,12 +41,12 @@ const ContestList = React.createClass({
 
       if (this.props.focusedLineup && this.props.lineupsInfo.hasOwnProperty(this.props.focusedLineup.id)) {
         info = this.props.lineupsInfo[this.props.focusedLineup.id];
-        isEntered = (info.contestPoolEntries.indexOf(row.id) !== -1);
+        isEntered = (info.contestPoolEntries.hasOwnProperty(row.id));
       }
 
       if (this.props.lineupsInfo.hasOwnProperty(this.props.hoveredLineupId)) {
         info = this.props.lineupsInfo[this.props.hoveredLineupId];
-        isHoveredEntered = (info.contestPoolEntries.indexOf(row.id) !== -1);
+        isHoveredEntered = (info.contestPoolEntries.hasOwnProperty(row.id));
       }
 
       visibleRows.push(
@@ -79,16 +79,15 @@ const ContestList = React.createClass({
             >Contest</th>
             <th
               className="table__sortable"
-              onClick={this.props.setOrderBy.bind(null, 'entries')}
-            >Entries / Size</th>
-            <th
-              className="table__sortable"
-              onClick={this.props.setOrderBy.bind(null, 'buyin')}
-            >Fee</th>
-            <th
-              className="table__sortable"
               onClick={this.props.setOrderBy.bind(null, 'prize_pool')}
-            >Prizes</th>
+            >Payouts</th>
+            <th
+              className="table__sortable"
+              onClick={this.props.setOrderBy.bind(null, 'entries')}
+            >Entries</th>
+            <th
+              className="table__sortable"
+            >Contest Size</th>
             <th
               className="table__sortable"
               onClick={this.props.setOrderBy.bind(null, 'start')}

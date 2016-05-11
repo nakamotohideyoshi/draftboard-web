@@ -1,3 +1,4 @@
+/* eslint no-param-reassign: 0 */
 import React from 'react';
 import { roundUpToDecimalPlace } from '../../lib/utils.js';
 
@@ -14,8 +15,10 @@ const DraftNewLineupCardPlayer = (props) => {
         <span className="cmp-lineup-card__position">{props.player.name}</span>
         <span className="cmp-lineup-card__photo">
           <img
-            alt="Player Headshot"
             src={`${props.playerImagesBaseUrl}/120/${props.player.player.player_srid}.png`}
+            onError={(tag) => {
+              tag.currentTarget.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
+            }}
             width="auto"
             height="35px"
           />
