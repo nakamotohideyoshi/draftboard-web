@@ -33,86 +33,86 @@ class SalaryRounder(object):
     def round(self, salary_amount):
         return (int) (ceil((salary_amount/SalaryRounder.ROUND_TO_NEAREST)) * SalaryRounder.ROUND_TO_NEAREST)
 
-class OwnershipPercentageManager(object):
-
-    max_search_days = 10
-
-    def __init__(self, pool):
-        self.pool = pool
-        self.occurence_data = None
-        self.dfs_date_range = DfsDate.get_current_dfs_date_range()
-
-    def update(self):
-        """
-        updates the %-owned for all Salary objects based on
-        the players occurence in lineups since the last
-        salary pool for the the same sport.
-        """
-
-        # initialize the dict that will hold player lineup occurence counters.
-        self.occurence_data = {}
-        # get all player srids for this pool - we will go back in time
-        # until we find the last day Entries were submitted with this player
-        player_srids = [ p.srid for p in self.get_sport_players(self.pool) ]
-
-        # get all the lineups with which to calculate ownership percentages
-       #lineups = self.get_recent_lineups()
-
-        # TODO - get the start and end datetimes (get enough draft groups in the recent past
-        #        so as to capture at
-        #        ... a draft group which must be at least a day older than now(?)
-        #      start = start of the previous salary pool run
-        #      end =
-        pass
-
-        #
-        # using the DfsDate range builder
-        dfs_date_range = DfsDate.get_current_dfs_date_range()
-        # TODO iterate this backwards
-
-        # TODO get unique lineups
-        # from Entry, get the unique lineups
-        # >>> entries = Entry.objects.filter(user__username='user8').distinct('lineup')
-        # >>> unique_lineups = [ e.lineup for e in entries ]
-
-        # TODO make sure we get the most recent set of lineups entered in contests for the player for %-owned
-
-    # def get_recent_lineups(self):
-    #     """
-    #     get the Entry objects associated with Contests.
-    #     start with today, and work backwards in time until
-    #     we have the most recent day's worth of lineups for
-    #     a specific player -- or until we give up searching, and give
-    #     a default, typical ownership percentage to players we never found.
-    #     """
-    #
-    #     # initialize the list of Lineups to return
-    #     lineups = {}
-    #
-    #     td_delta = timedelta(days=1)
-    #     dfs_dt_range = DfsDate.get_current_dfs_date_range()
-    #
-    #     i = 0
-    #     while i < self.max_search_days:
-    #         # get the Entry objects with a non-null Contest by unique lineup for the day.
-    #         entries = Entry.objects.filter(contest__start__range=dfs_dt_range).distinct('lineup')
-    #         for e in entries:
-    #
-    #
-    #             lineups[e.lineup.pk] =
-    #
-    #         #
-    #         dfs_dt_range = ((dfs_dt_range[0] - td_delta), (dfs_dt_range[1] - td_delta))
-    #         i += 1
-
-    def remove_from_list(self, remove_vals, remove_from_list):
-        pass # TODO
-
-    def get_sport_players(self, pool):
-        pass # TODO
-
-    def add_player_occurence(self, player):
-        pass # TODO
+# class OwnershipPercentageManager(object):
+#
+#     max_search_days = 10
+#
+#     def __init__(self, pool): # TODO this should probably take a draft_group , or list of contests
+#         self.pool = pool
+#         self.occurence_data = None
+#         self.dfs_date_range = DfsDate.get_current_dfs_date_range()
+#
+#     def update(self):
+#         """
+#         updates the %-owned for all Salary objects based on
+#         the players occurence in lineups since the last
+#         salary pool for the the same sport.
+#         """
+#
+#         # initialize the dict that will hold player lineup occurence counters.
+#         self.occurence_data = {}
+#         # get all player srids for this pool - we will go back in time
+#         # until we find the last day Entries were submitted with this player
+#         player_srids = [ p.srid for p in self.get_sport_players(self.pool) ]
+#
+#         # get all the lineups with which to calculate ownership percentages
+#        #lineups = self.get_recent_lineups()
+#
+#         # TODO - get the start and end datetimes (get enough draft groups in the recent past
+#         #        so as to capture at
+#         #        ... a draft group which must be at least a day older than now(?)
+#         #      start = start of the previous salary pool run
+#         #      end =
+#         pass
+#
+#         #
+#         # using the DfsDate range builder
+#         dfs_date_range = DfsDate.get_current_dfs_date_range()
+#         # TODO iterate this backwards
+#
+#         # TODO get unique lineups
+#         # from Entry, get the unique lineups
+#         # >>> entries = Entry.objects.filter(user__username='user8').distinct('lineup')
+#         # >>> unique_lineups = [ e.lineup for e in entries ]
+#
+#         # TODO make sure we get the most recent set of lineups entered in contests for the player for %-owned
+#
+#     # def get_recent_lineups(self):
+#     #     """
+#     #     get the Entry objects associated with Contests.
+#     #     start with today, and work backwards in time until
+#     #     we have the most recent day's worth of lineups for
+#     #     a specific player -- or until we give up searching, and give
+#     #     a default, typical ownership percentage to players we never found.
+#     #     """
+#     #
+#     #     # initialize the list of Lineups to return
+#     #     lineups = {}
+#     #
+#     #     td_delta = timedelta(days=1)
+#     #     dfs_dt_range = DfsDate.get_current_dfs_date_range()
+#     #
+#     #     i = 0
+#     #     while i < self.max_search_days:
+#     #         # get the Entry objects with a non-null Contest by unique lineup for the day.
+#     #         entries = Entry.objects.filter(contest__start__range=dfs_dt_range).distinct('lineup')
+#     #         for e in entries:
+#     #
+#     #
+#     #             lineups[e.lineup.pk] =
+#     #
+#     #         #
+#     #         dfs_dt_range = ((dfs_dt_range[0] - td_delta), (dfs_dt_range[1] - td_delta))
+#     #         i += 1
+#
+#     def remove_from_list(self, remove_vals, remove_from_list):
+#         pass # TODO
+#
+#     def get_sport_players(self, pool):
+#         pass # TODO
+#
+#     def add_player_occurence(self, player):
+#         pass # TODO
 
 class OwnershipPercentageAdjuster(object):
 
