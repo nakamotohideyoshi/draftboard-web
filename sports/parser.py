@@ -69,6 +69,7 @@ class DataDenParser(object):
         # MLB
         ('mlb','pitch','pbp'),
         ('mlb','pitcher','pbp'),        # see mlb parser class ZonePitchPbp
+        ('mlb','runner','pbp'),         # baserunners
 
         #
         # NBA    ... pbp quarter + event parsing:
