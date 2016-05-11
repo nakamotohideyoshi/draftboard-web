@@ -63,6 +63,11 @@ export const focusedPlayerSelector = createSelector(
             case 'nba': {
               const playerTeam = sportInfo[sport].teams[player.team_srid];
 
+              if (!player.boxScoreHistory.games) {
+                player.splitsHistory = [];
+                break;
+              }
+
               player.splitsHistory = player.boxScoreHistory.games.map((game, i) => {
                 // Figure out which team the opponent was.
                 const awayTeam = _find(sportInfo[sport].teams, { id: player.boxScoreHistory.away_id[i] });
