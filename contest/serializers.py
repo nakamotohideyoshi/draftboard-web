@@ -48,12 +48,16 @@ class ContestPoolSerializer(serializers.ModelSerializer):
 
     prize_structure = PrizeStructureSerializer()
 
+    contest_size = serializers.SerializerMethodField()
+    def get_contest_size(self, contest_pool):
+        return contest_pool.prize_structure.get_entries()
+
     class Meta:
 
         model = ContestPool
         fields = ('id','name','sport','status','start','buyin',
                   'draft_group','max_entries', 'prize_structure','prize_pool',
-                  'entries','current_entries')
+                  'entries','current_entries','contest_size')
 
 class ContestSerializer(serializers.ModelSerializer):
 
