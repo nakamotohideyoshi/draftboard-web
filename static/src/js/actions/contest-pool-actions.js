@@ -3,7 +3,6 @@ import { normalize, Schema, arrayOf } from 'normalizr';
 import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
 import * as actionTypes from '../action-types';
-import { fetchPrizeIfNeeded } from './prizes.js';
 import { monitorEntryRequest, monitorUnregisterRequest } from './entry-request-actions.js';
 import { addMessage } from './message-actions.js';
 
@@ -86,27 +85,12 @@ function fetchUpcomingContestsFail(ex) {
 }
 
 
-function fetchFocusedContestInfo(dispatch, contest) {
-  dispatch(fetchPrizeIfNeeded(contest.prize_structure));
-  fetchPrizeIfNeeded(contest.prize_structure);
-}
-
-
 /**
  * Set the focused contest based on the provided contest ID.
  * @param {number} contestId the ID of the contest to set as active.
  */
 export function setFocusedContest(contestId) {
-  return (dispatch, getState) => {
-    const state = getState();
-
-    if (
-      state.upcomingContests.hasOwnProperty('allContests') &&
-      state.upcomingContests.hasOwnProperty(contestId)
-    ) {
-      fetchFocusedContestInfo(state.upcomingContests.allContests[contestId]);
-    }
-
+  return (dispatch) => {
     dispatch({
       type: actionTypes.SET_FOCUSED_CONTEST,
       contestId,
@@ -137,10 +121,7 @@ export function fetchUpcomingContests() {
       const state = getState();
 
       if (state.upcomingContests.focusedContestId && normalizedContests.entities.contests) {
-        if (normalizedContests.entities.contests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
-          const contest = normalizedContests.entities.contests[state.upcomingContests.focusedContestId];
-          fetchFocusedContestInfo(dispatch, contest);
-        } else {
+        if (!normalizedContests.entities.contests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
           log.error("404! that contest isn't in the lobby!");
         }
       }

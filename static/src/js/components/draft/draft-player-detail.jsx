@@ -208,7 +208,7 @@ const DraftPlayerDetail = React.createClass({
 
     if (!Object.keys(this.props.player.boxScoreHistory).length) {
       content.push(
-        <li colSpan="10">Loading...</li>
+        <tr><td colSpan="10"><h5>Loading...</h5></td></tr>
       );
     }
 

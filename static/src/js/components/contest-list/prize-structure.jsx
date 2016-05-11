@@ -16,11 +16,7 @@ const PrizeStructure = React.createClass({
   getRanks() {
     const rankList = [];
 
-    if (typeof this.props.structure.info === 'undefined') {
-      return '';
-    }
-
-    _forEach(this.props.structure.info.ranks, (item) => {
+    _forEach(this.props.structure.ranks, (item) => {
       rankList.push(
         <tr key={item.rank}>
           <td className="place">{ordinal(item.rank)}</td>
@@ -34,12 +30,6 @@ const PrizeStructure = React.createClass({
 
 
   render() {
-    if (!this.props.structure || this.props.structure.isFetching === true) {
-      return (
-        <div>Loading...</div>
-      );
-    }
-
     const rankList = this.getRanks();
 
     return (
