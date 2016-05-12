@@ -1,8 +1,11 @@
 #
 # contest/classes.py
 
-from collections import OrderedDict
-from collections import Counter
+from util.dicts import DictTools
+from collections import (
+    OrderedDict,
+    Counter,
+)
 from random import Random, shuffle
 from django.db.transaction import atomic
 import os
@@ -43,6 +46,7 @@ import draftgroup.models
 from draftgroup.classes import DraftGroupManager
 from roster.classes import RosterManager
 from contest.buyin.models import Buyin
+from util.dfsdate import DfsDate
 
 class ContestPoolCreator(object):
 
@@ -905,13 +909,20 @@ class ContestPlayerOwnership(object):
             err_msg = 'contest param [%s] must be a contest.models.Contest' % type(contest)
             raise Exception(err_msg)
         self.contest = contest
-        self.entries = None
-        self.lineups = None
+
+        self.entries        = None
+        self.lineups        = None
         self.lineup_players = None
 
         # store the results in a collections.Counter instance.
         # it will be initialized in update() method.
         self.player_counter = None
+
+    def get_lineups(self):
+        """
+        return the list of Lineup objects
+        """
+        return self.lineups
 
     def update(self):
         """
@@ -923,7 +934,7 @@ class ContestPlayerOwnership(object):
         self.lineup_players = lineup.models.Player.objects.filter(lineup__in=self.lineups)
 
         # add players to the data with an initial count of 1.
-        # incrememnt a players count if they already exist
+        # increment a players count if they already exist
         self.player_counter = Counter([p.player.srid for p in self.lineup_players]).items()
 
     def get_player_counter(self):
@@ -958,6 +969,12 @@ class RecentPlayerOwnership(object):
     draft groups for a single day may be used.
     """
 
+    class DfsDayOwnership(object):
+
+        def __init__(self, lineups, ownerships):
+            self.lineups = lineups
+            self.ownerships = ownerships
+
     recent_days = 10
 
     def __init__(self, site_sport):
@@ -971,13 +988,65 @@ class RecentPlayerOwnership(object):
                       'sports.models.SiteSport (or the string name of the sport)'
             raise Exception(err_msg)
 
-        # get all ClosedContest objects within the last 'recent_days'
-        dt = timezone.now() - timedelta(days=self.recent_days)
-        self.contests = ClosedContest.objects.filter(
-                            site_sport=self.site_sport, start__gte=dt).order_by('-start')
+        # these will be set in update() method
+        self.contests = None
+        self.draft_groups = None
 
+    def update(self):
+        """
+        :return: a list of DfsDayOwnership objects for the past 'recent_days'
+        """
+
+        # get all ClosedContest objects within the last 'recent_days'.
+        # we get the ClosedContest's DraftGroups so we avoid DraftGroups
+        # which werent used for contests!
+        dt = timezone.now() - timedelta(days=self.recent_days)
+        closed_contests = ClosedContest.objects.filter(site_sport=self.site_sport,
+                                                       start__gte=dt).order_by('-start')
         # get the distinct DraftGroup(s) for those contests
-        self.draft_groups = self.get_distinct_ordered_draft_groups(self.contests)
+        self.draft_groups = self.get_distinct_ordered_draft_groups(closed_contests)
+
+        # group the draft groups by dfs date
+        draft_groups_by_day = []
+        i = 0
+        while i < self.recent_days:
+            # get the current datetime range for the dfs day. offset_hours should be negative
+            start, end = DfsDate.get_current_dfs_date_range(offset_hours=24*i*-1)
+            # get the 'group', ie: the DraftGroups (a subset of our self.draft_groups) for the day.
+            group = draftgroup.models.DraftGroup.objects.filter(start__range=(start, end),
+                                                pk__in=[dg.pk for dg in self.draft_groups])
+            # print('%s draft groups added' % len(group))
+            draft_groups_by_day.append(group)
+            i += 1
+
+        # for each days draft groups, collect contest lineup/player data,
+        # and keep track of players we've update along the way.
+        # do not add older dfs day's ownership data for any players.
+        dfs_day_ownership_list = []
+        player_ownerships = {}
+        for group in draft_groups_by_day:
+            # we need to keep track of all player ownerships for the day
+            day_ownerships = {}
+            num_lineups_in_group = 0
+            for contest in closed_contests.filter(draft_group__in=group):
+                # get the player ownerships for a contest
+                cpo = ContestPlayerOwnership(contest)
+                day_ownerships = DictTools.combine(day_ownerships, dict(cpo.get_player_counter()))
+                num_lineups_in_group += len(cpo.get_lineups())
+
+            # now we can simply use dict.update() on day_ownerships (reverse from
+            # what you might expect!) to merge the overall 'player_ownerships'
+            # and the 'day_ownerships' without replacing existing keys in 'player_ownerships'
+            new_day_ownerships = DictTools.subtract(day_ownerships.copy(), player_ownerships)
+            print('new_day_ownerships', str(new_day_ownerships))
+            dfs_day_ownership_list.append(self.DfsDayOwnership(num_lineups_in_group, new_day_ownerships))
+            day_ownerships.update(player_ownerships)
+            # replace player_ownerships with the updated copy of all ownerships we've seen thus far
+            player_ownerships = day_ownerships.copy()
+
+        # player_ownerships should contain the ownership results
+        # for players on the first day they were found only
+        return dfs_day_ownership_list
 
     def get_distinct_ordered_draft_groups(self, contests):
         """
@@ -992,4 +1061,3 @@ class RecentPlayerOwnership(object):
             if dg.pk not in draft_group_map:
                 draft_group_map[ dg.pk ] = dg
         return list(draft_group_map.values())
-
