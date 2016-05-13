@@ -55,77 +55,16 @@ trigger_mlb: python manage.py sport_trigger mlb
 #
 ######################################################################################################
 
-#
-# 1x, 2x, Performance-M, Performance-L sport triggers using mongolab.com --> M1 <-- instance
-trigger_nba_1x_m1: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m1
-trigger_nhl_1x_m1: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m1
-trigger_nfl_1x_m1: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m1
-trigger_mlb_1x_m1: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m1
-
-#trigger_nba_2x_m1: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m1
-#trigger_nhl_2x_m1: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m1
-#trigger_nfl_2x_m1: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m1
-#trigger_mlb_2x_m1: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m1
-#
-#trigger_nba_performanceM_m1: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m1
-#trigger_nhl_performanceM_m1: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m1
-#trigger_nfl_performanceM_m1: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m1
-#trigger_mlb_performanceM_m1: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m1
-#
-#trigger_nba_performanceL_m1: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m1
-#trigger_nhl_performanceL_m1: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m1
-#trigger_nfl_performanceL_m1: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m1
-#trigger_mlb_performanceL_m1: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m1
-
-#
-# 1x, 2x, Performance-M, Performance-L sport triggers using mongolab.com --> M3 <-- instance
+# 1x Dyno sport triggers using mongolab.com --> M3 <-- instance
 trigger_nba_1x_m3: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
 trigger_nhl_1x_m3: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
 trigger_nfl_1x_m3: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
 trigger_mlb_1x_m3: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
 
-#trigger_nba_2x_m3: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
-#trigger_nhl_2x_m3: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
-#trigger_nfl_2x_m3: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
-#trigger_mlb_2x_m3: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
-#
-#trigger_nba_performanceM_m3: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
-#trigger_nhl_performanceM_m3: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
-#trigger_nfl_performanceM_m3: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
-#trigger_mlb_performanceM_m3: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
-#
-#trigger_nba_performanceL_m3: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
-#trigger_nhl_performanceL_m3: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
-#trigger_nfl_performanceL_m3: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
-#trigger_mlb_performanceL_m3: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
-
-#
-# 1x, 2x, Performance-M, Performance-L sport triggers using mongolab.com --> ec2 (amazon) <-- instance
-trigger_nba_1x_ec2: python manage.py sport_trigger nba --settings=mysite.settings.production_mongo_ec2
-trigger_nhl_1x_ec2: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongo_ec2
-trigger_nfl_1x_ec2: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongo_ec2
-trigger_mlb_1x_ec2: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongo_ec2
-
-# 2x_ec2 procs
-# performanceM_ec2 procs
-# performanceL_ec2 procs
-
-#
 # dataden processes:
 #   1) be sure to double-check/update their datadenapp.com settings! (connect to the proper mongo instance!)
 #   2) use the uniquely named processes to differentiate processes in sumoLogic -- even though they run the same thing
-dataden_1x_m1: java -Xmx256m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
-dataden_2x_m1: java -Xmx512m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
-dataden_performanceM_m1: java -Xmx1024m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
-dataden_performanceL_m1: java -Xmx2048m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
-
-dataden_1x_m3: java -Xmx256m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
-dataden_2x_m3: java -Xmx512m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
 dataden_performanceM_m3: java -Xmx1024m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
-dataden_performanceL_m3: java -Xmx2048m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
+#dataden_performanceL_m3: java -Xmx2048m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
 
-dataden_1x_ec2: java -Xmx256m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
-dataden_2x_ec2: java -Xmx512m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
-dataden_performanceM_ec2: java -Xmx1024m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
-dataden_performanceL_ec2: java -Xmx2048m -jar dataden/dataden.jar -k 20491e2a4feda595b7347708915b200b -q -apiSpeedDelta -15 -t 8
 
