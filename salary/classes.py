@@ -21,6 +21,7 @@ from django.db.transaction import atomic
 from sports.classes import SiteSportManager
 from dataden.classes import DataDen, Season
 from util.dfsdate import DfsDate
+from contest.classes import RecentPlayerOwnership
 
 class SalaryRounder(object):
     """
@@ -33,91 +34,11 @@ class SalaryRounder(object):
     def round(self, salary_amount):
         return (int) (ceil((salary_amount/SalaryRounder.ROUND_TO_NEAREST)) * SalaryRounder.ROUND_TO_NEAREST)
 
-# class OwnershipPercentageManager(object):
-#
-#     max_search_days = 10
-#
-#     def __init__(self, pool): # TODO this should probably take a draft_group , or list of contests
-#         self.pool = pool
-#         self.occurence_data = None
-#         self.dfs_date_range = DfsDate.get_current_dfs_date_range()
-#
-#     def update(self):
-#         """
-#         updates the %-owned for all Salary objects based on
-#         the players occurence in lineups since the last
-#         salary pool for the the same sport.
-#         """
-#
-#         # initialize the dict that will hold player lineup occurence counters.
-#         self.occurence_data = {}
-#         # get all player srids for this pool - we will go back in time
-#         # until we find the last day Entries were submitted with this player
-#         player_srids = [ p.srid for p in self.get_sport_players(self.pool) ]
-#
-#         # get all the lineups with which to calculate ownership percentages
-#        #lineups = self.get_recent_lineups()
-#
-#         # TODO - get the start and end datetimes (get enough draft groups in the recent past
-#         #        so as to capture at
-#         #        ... a draft group which must be at least a day older than now(?)
-#         #      start = start of the previous salary pool run
-#         #      end =
-#         pass
-#
-#         #
-#         # using the DfsDate range builder
-#         dfs_date_range = DfsDate.get_current_dfs_date_range()
-#         # TODO iterate this backwards
-#
-#         # TODO get unique lineups
-#         # from Entry, get the unique lineups
-#         # >>> entries = Entry.objects.filter(user__username='user8').distinct('lineup')
-#         # >>> unique_lineups = [ e.lineup for e in entries ]
-#
-#         # TODO make sure we get the most recent set of lineups entered in contests for the player for %-owned
-#
-#     # def get_recent_lineups(self):
-#     #     """
-#     #     get the Entry objects associated with Contests.
-#     #     start with today, and work backwards in time until
-#     #     we have the most recent day's worth of lineups for
-#     #     a specific player -- or until we give up searching, and give
-#     #     a default, typical ownership percentage to players we never found.
-#     #     """
-#     #
-#     #     # initialize the list of Lineups to return
-#     #     lineups = {}
-#     #
-#     #     td_delta = timedelta(days=1)
-#     #     dfs_dt_range = DfsDate.get_current_dfs_date_range()
-#     #
-#     #     i = 0
-#     #     while i < self.max_search_days:
-#     #         # get the Entry objects with a non-null Contest by unique lineup for the day.
-#     #         entries = Entry.objects.filter(contest__start__range=dfs_dt_range).distinct('lineup')
-#     #         for e in entries:
-#     #
-#     #
-#     #             lineups[e.lineup.pk] =
-#     #
-#     #         #
-#     #         dfs_dt_range = ((dfs_dt_range[0] - td_delta), (dfs_dt_range[1] - td_delta))
-#     #         i += 1
-#
-#     def remove_from_list(self, remove_vals, remove_from_list):
-#         pass # TODO
-#
-#     def get_sport_players(self, pool):
-#         pass # TODO
-#
-#     def add_player_occurence(self, player):
-#         pass # TODO
-
 class OwnershipPercentageAdjuster(object):
 
     def __init__(self, pool):
         self.pool = pool
+        self.default_ownership_percentage = self.pool.ownership_threshold_low_cutoff
         self.max_percent_adjust = self.pool.max_percent_adjust
         self.salaries = Salary.objects.filter(pool=pool)
         self.rounder = SalaryRounder()
@@ -133,6 +54,43 @@ class OwnershipPercentageAdjuster(object):
         return self.max_percent_adjust
 
     def update(self):
+        """
+        returns the integer number of how many salaries were updated
+        """
+
+        # sets the ownership percentage in the players
+        updated_count = self.update_recent_ownership()
+        # modifies the salaries based on the ownership percentages
+        self.adjust()
+
+        return updated_count
+
+    @atomic
+    def update_recent_ownership(self):
+        """
+        returns the integer number of how many salaries were updated
+        """
+
+        rpo = RecentPlayerOwnership(self.pool.site_sport)
+        # get a dict of 'player_srid':<ownership percentage float> items
+        players = rpo.get_players()
+
+        # reset everyone to the default ownership percentage level
+        self.salaries.update(ownership_percentage=self.default_ownership_percentage)
+
+        # update any recent players we have data for
+        updated_count = 0
+        for player_srid, pct_owned in players.items():
+            for player_salary in self.salaries:
+                if player_srid == player_salary.player.srid:
+                    print('updating %s percent-owned to %s' % (str(player_salary), str(pct_owned)))
+                    player_salary.ownership_percentage = (pct_owned * 100)
+                    player_salary.save()
+                    updated_count += 1
+        #
+        return updated_count
+
+    def adjust(self):
         """
         adjust the salaries of the players in the pool based on their
         ownership percentages.

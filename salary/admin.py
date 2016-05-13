@@ -1,7 +1,10 @@
 #
 # salary/admin.py
 
-from django.contrib import admin
+from django.contrib import (
+    admin,
+    messages,
+)
 from django.db.transaction import atomic
 from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
 import sports.classes
@@ -72,7 +75,10 @@ class PoolAdmin(admin.ModelAdmin):
         else:
             for pool in queryset:
                 opa = OwnershipPercentageAdjuster(pool)
-                opa.update()
+                updated_count = opa.update()
+                # msg the admin with a note about how many were updated
+                msg = '%s players updated.' % str(updated_count)
+                messages.success(request, msg)
 
     def generating_salary(self, obj):
         if obj.generate_salary_task_id is None:

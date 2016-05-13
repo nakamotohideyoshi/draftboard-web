@@ -595,6 +595,8 @@ class PlayerStats(DataDenPlayerStats):
     game_model          = Game
     player_model        = Player
 
+    cache_list_unique_name = 'cache_list_player_stats'
+
     #
     # Set PlayerStatsPitcher when necessary - this gets set
     # just to make the constructor happy and not throw exceptions.
@@ -604,6 +606,15 @@ class PlayerStats(DataDenPlayerStats):
 
     def __init__(self):
         super().__init__()
+
+        # we are going to use CacheList to save the last (only the last)
+        # occurrence of this player in order that we can return
+        # the hitter for the linked pbp object to be able to have his stats
+        self.cache_list = CacheList(cache=cache, unique_name=self.cache_list_unique_name)
+
+    @staticmethod
+    def get_cache_list():
+        return CacheList(cache=cache, unique_name=PlayerStats.cache_list_unique_name)
 
     def parse(self, obj, target=None):
         #     {
@@ -793,6 +804,9 @@ class PlayerStats(DataDenPlayerStats):
         # >>> [ "1B", "LF", "3B", "CF", "RF", "C", "2B", "SP", "RP", "SS", "DH" ]
         o = obj.get_o()
 
+        # stash this player in the cache, for his srid
+        self.cache_list.add(o.get('id'), o)
+
         #
         # we do NOT want to parse the objects if they do not have 'statistics__list' key!
         the_stats = o.get('statistics__list', None)
@@ -907,6 +921,7 @@ class PitchPbp(DataDenPbpDescription):
     at_bat_srid_field       = 'at_bat__id'
 
     at_bat          = 'at_bat'
+    at_bat_stats    = 'at_bat_stats'
     zone_pitches    = 'zone_pitches'
     runners         = 'runners'
 
@@ -954,6 +969,14 @@ class PitchPbp(DataDenPbpDescription):
         # because runner objects will always be associated with an individual pitch,
         # from what i've seen anyways...
         data[self.runners]      = runners_cache.get(key=pitch_srid)
+
+        # add the playerStats object for the hitter in the current at_bat
+        player_stats_cache_list = PlayerStats.get_cache_list()[0]
+        player_stats_obj_list = player_stats_cache_list.get()
+        # TODO
+        if len(player_stats_obj_list) > 0:
+            data[self.at_bat_stats] = player_stats_obj_list[0]
+
 
         # return the linked data
         return data
