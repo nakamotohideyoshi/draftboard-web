@@ -10,13 +10,13 @@ from sports.mlb.models import (
     Team,
     Game,
     Player,
-    PlayerStats,
     GameBoxscore,
     Pbp,
     PbpDescription,
     GamePortion,
     Season,
 )
+import sports.mlb.models # mainly to use sports.mlb.models.PlayerStats and avoid conflict with PlayerStats parser
 from sports.sport.base_parser import (
     AbstractDataDenParser,
     AbstractDataDenParseable,
@@ -971,12 +971,14 @@ class PitchPbp(DataDenPbpDescription):
         data[self.runners]      = runners_cache.get(key=pitch_srid)
 
         # add the playerStats object for the hitter in the current at_bat
-        player_stats_cache_list = PlayerStats.get_cache_list()[0]
-        player_stats_obj_list = player_stats_cache_list.get()
-        # TODO
-        if len(player_stats_obj_list) > 0:
-            data[self.at_bat_stats] = player_stats_obj_list[0]
+        player_stats_cache = PlayerStats.get_cache_list()
+        player_stats_obj_list = player_stats_cache.get(key=self.get_at_bat(at_bat_srid).get('hitter_id'))
 
+        # add the stats object for the current at_bat hitter
+        data[self.at_bat_stats] = None
+        if len(player_stats_obj_list) > 0:
+            # get the one most recently added to the list
+            data[self.at_bat_stats] = player_stats_obj_list[-1]
 
         # return the linked data
         return data
