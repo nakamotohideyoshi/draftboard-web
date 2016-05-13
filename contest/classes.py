@@ -975,7 +975,18 @@ class RecentPlayerOwnership(object):
             self.lineups = lineups
             self.ownerships = ownerships
 
-    recent_days = 10
+        def get_lineup_count(self):
+            return self.lineups
+
+        def get_ownerships(self):
+            return self.ownerships
+
+        def __str__(self):
+            return '%s Lineups | ("player_srid":"occurrences") %s' % (str(self.lineups), str(self.ownerships))
+
+    # maximum number of days we will search for players,
+    # looking back thru historical days of lineups.
+    recent_days = 50
 
     def __init__(self, site_sport):
         # set the SiteSport instance. if its a string, try to get the SiteSport model
@@ -991,6 +1002,29 @@ class RecentPlayerOwnership(object):
         # these will be set in update() method
         self.contests = None
         self.draft_groups = None
+        self.dfs_day_ownerships = None
+
+    def get_players(self):
+        """
+        :return: a dictionary whose key-value-pairs are all in the form:
+            {
+                'player_srid': percent_owned_float,
+                'player_srid': percent_owned_float,
+                    ...
+            }
+        """
+        if self.dfs_day_ownerships is None:
+            self.dfs_day_ownerships = self.update()
+
+        # use this data to generate some data that is easier to use
+        data = {}
+        for day in self.dfs_day_ownerships:
+            # day will be a collections.Counter() class (ie: a dict, basically)
+            lineup_count = day.get_lineup_count()
+            for player_srid, occurrences in day.get_ownerships().items():
+                #print()
+                data[player_srid] = occurrences / lineup_count
+        return data
 
     def update(self):
         """
@@ -1038,7 +1072,7 @@ class RecentPlayerOwnership(object):
             # what you might expect!) to merge the overall 'player_ownerships'
             # and the 'day_ownerships' without replacing existing keys in 'player_ownerships'
             new_day_ownerships = DictTools.subtract(day_ownerships.copy(), player_ownerships)
-            print('new_day_ownerships', str(new_day_ownerships))
+            #print('new_day_ownerships', str(new_day_ownerships))
             dfs_day_ownership_list.append(self.DfsDayOwnership(num_lineups_in_group, new_day_ownerships))
             day_ownerships.update(player_ownerships)
             # replace player_ownerships with the updated copy of all ownerships we've seen thus far
@@ -1046,7 +1080,8 @@ class RecentPlayerOwnership(object):
 
         # player_ownerships should contain the ownership results
         # for players on the first day they were found only
-        return dfs_day_ownership_list
+        self.dfs_day_ownerships = dfs_day_ownership_list
+        return self.dfs_day_ownerships
 
     def get_distinct_ordered_draft_groups(self, contests):
         """
