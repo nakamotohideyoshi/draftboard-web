@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
-import { forEach as _forEach } from 'lodash';
-import { countBy as _countBy } from 'lodash';
-import { filter as _filter } from 'lodash';
+import forEach from 'lodash/forEach';
+import countBy from 'lodash/countBy';
+import filter from 'lodash/filter';
 
 /**
 This selector will give us entry count and fee information about a user's upcoming lineups.
@@ -34,64 +34,67 @@ export const upcomingLineupsInfo = createSelector(
   (state) => state.contestPoolEntries.entries,
   (state) => state.upcomingContests.allContests,
   (state) => state.pollingTasks,
-  (lineups, entries, contests, entryRequests) => {
+  (lineups, entries, contests, pollingTasks) => {
     const info = {};
     const feeMap = {};
     // The contest pools the lineup is entered into
     const contestMap = {};
     const lineupEntryRequestMap = {};
+    const unregisterRequestMap = {};
 
     // Count the entries for each lineup.
-    const entryMap = _countBy(entries, (entry) => entry.lineup);
+    const entryMap = countBy(entries, (entry) => entry.lineup);
 
 
     // Determine fees.
-    _forEach(lineups, (lineup) => {
-      // Attach entryRequests for each lineup & contest.
-      if (entryRequests) {
+    forEach(lineups, (lineup) => {
+      // Attach entryRequests and unregister requests for each lineup & contest.
+      if (pollingTasks) {
         // Find all contest entry requests for this lineup.
-        const lineupEntryRequests = _filter(entryRequests, { lineupId: lineup.id });
+        const lineupEntryRequests = filter(pollingTasks, { lineupId: lineup.id, requestType: 'entry' });
         lineupEntryRequestMap[lineup.id] = {};
         // Insert each of the lineup's entry requests, grouped by contestPoolId,
-        _forEach(lineupEntryRequests, (entryRequest) => {
+        forEach(lineupEntryRequests, (entryRequest) => {
           lineupEntryRequestMap[lineup.id][entryRequest.contestPoolId] = entryRequest;
+        });
+
+        // Find all entry unregister requests for this lineup.
+        const unregisterRequests = filter(pollingTasks, { lineupId: lineup.id, requestType: 'unregister' });
+        unregisterRequestMap[lineup.id] = {};
+        // Insert each of the lineup's unregister requests, grouped by contestPoolId,
+        forEach(unregisterRequests, (request) => {
+          unregisterRequestMap[lineup.id][request.entryId] = request;
         });
       }
 
 
       // Find all entries for the lineup.
-      const lineupEntries = _filter(entries, (entry) => entry.lineup === lineup.id);
+      const lineupEntries = filter(entries, (entry) => entry.lineup === lineup.id);
       let lineupFeeTotal = 0;
       const lineupContestPools = {};
 
       // for each entry, look up the contest it's entered into, then add up the fees.
-      _forEach(lineupEntries, (lineupEntry) => {
+      forEach(lineupEntries, (lineupEntry) => {
         if (contests.hasOwnProperty(lineupEntry.contest_pool)) {
           lineupFeeTotal = lineupFeeTotal + contests[lineupEntry.contest_pool].buyin;
-          // Take a tally to count up all of the contest pool entries this lineup has.
-          let currentEntryCount = 0;
+          // Grab all of the entries for this lineup & contest pool combo.
+          const lineupContestPoolEntries = filter(entries, { contest_pool: lineupEntry.contest_pool });
 
-          if (
-            lineupContestPools[contests[lineupEntry.contest_pool].id] &&
-            lineupContestPools[contests[lineupEntry.contest_pool].id].hasOwnProperty('entryCount')
-          ) {
-            currentEntryCount = lineupContestPools[contests[lineupEntry.contest_pool].id].entryCount;
-          }
-
-          lineupContestPools[contests[lineupEntry.contest_pool].id] = {
-            entryCount: currentEntryCount + 1,
-            entry: lineupEntry,
+          lineupContestPools[lineupEntry.contest_pool] = {
+            entryCount: Object.keys(lineupContestPoolEntries).length,
+            entries: lineupContestPoolEntries,
             contest: contests[lineupEntry.contest_pool] || {},
           };
         }
       });
+
       // Add it to our feeMap + contesetMap
       feeMap[lineup.id] = lineupFeeTotal;
       contestMap[lineup.id] = lineupContestPools;
     });
 
     // Add each lineup entry to the final info object
-    _forEach(lineups, (lineup) => {
+    forEach(lineups, (lineup) => {
       info[lineup.id] = {
         id: lineup.id,
         draft_group: lineup.draft_group,
@@ -102,8 +105,10 @@ export const upcomingLineupsInfo = createSelector(
         contestPoolEntries: contestMap[lineup.id],
         fees: feeMap[lineup.id],
         entryRequests: lineupEntryRequestMap[lineup.id] || {},
+        unregisterRequests: unregisterRequestMap[lineup.id] || {},
       };
     });
+
 
     return info;
   }

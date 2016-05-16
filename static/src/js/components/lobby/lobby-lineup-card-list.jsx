@@ -11,6 +11,7 @@ import LobbyDraftGroupSelectionModal from './lobby-draft-group-selection-modal.j
 import { fetchUpcomingLineups, lineupFocused, lineupHovered } from '../../actions/lineup-actions.js';
 import { openDraftGroupSelectionModal, closeDraftGroupSelectionModal } from
   '../../actions/upcoming-draft-groups-actions.js';
+import { removeContestPoolEntry } from '../../actions/contest-pool-actions.js';
 import { draftGroupInfoSelector } from '../../selectors/draft-group-info-selector.js';
 import { lineupsBySportSelector } from '../../selectors/upcoming-lineups-by-sport.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
@@ -46,6 +47,7 @@ function mapDispatchToProps(dispatch) {
     lineupHovered: (lineupId) => dispatch(lineupHovered(lineupId)),
     openDraftGroupSelectionModal: () => dispatch(openDraftGroupSelectionModal()),
     closeDraftGroupSelectionModal: () => dispatch(closeDraftGroupSelectionModal()),
+    removeContestPoolEntry: (entry) => dispatch(removeContestPoolEntry(entry)),
   };
 }
 
@@ -67,6 +69,7 @@ const LineupCardList = React.createClass({
     openDraftGroupSelectionModal: React.PropTypes.func,
     closeDraftGroupSelectionModal: React.PropTypes.func,
     draftGroupSelectionModalIsOpen: React.PropTypes.bool,
+    removeContestPoolEntry: React.PropTypes.func.isRequired,
   },
 
   getDefaultProps() {
@@ -133,6 +136,7 @@ const LineupCardList = React.createClass({
             ref={refName}
             onCardClick={this.onCardClick}
             onHover={this.handleLineupHovered}
+            removeContestPoolEntry={this.props.removeContestPoolEntry}
           />
         );
       }

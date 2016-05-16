@@ -1,5 +1,10 @@
 @import "./variables.scss";
 
+@keyframes spinner {
+  to {transform: rotate(359deg);}
+}
+
+
 $header-height: 60px;
 
 
@@ -36,6 +41,10 @@ $header-height: 60px;
     margin: 0;
     padding: 0;
 
+    &:hover {
+      background: #505964;
+    }
+
     > span {
       display: table-cell;
       padding: 10px;
@@ -53,6 +62,40 @@ $header-height: 60px;
       min-width: 90px;
       font-family: $font-oswald;
       font-size: 12px;
+    }
+
+    .button-container {
+      height: 15px;
+      width: 15px;
+      display: inline-block;
+      position: relative;
+    }
+
+    .remove-button {
+      position: absolute;
+      top: 3px;
+      left: 0;
+      background: url(../img/blocks/lineup-card/icon-controls.png) no-repeat top left;
+      background-size: 15px 90px;
+      display: inline-block;
+      height: 15px;
+      width: 15px;
+    }
+
+    .button-remove {
+      text-align: center;
+      vertical-align: middle;
+      cursor: pointer;
+
+      &:hover {
+        background-position: 0px -35px;
+      }
+    }
+
+    .button-working {
+      cursor: default;
+      animation: spinner .5s linear infinite;
+      background-position: bottom left;
     }
   }
 }

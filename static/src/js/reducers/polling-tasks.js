@@ -62,7 +62,13 @@ module.exports = (state = initialState, action) => {
         lineupId: action.lineupId,
         maxAttempts: action.maxAttempts,
         attempt: 0,
+        requestType: action.requestType,
       };
+
+      // unregister requests have an entryId, so add that.
+      if (action.entryId) {
+        stateCopy[action.taskId].entryId = action.entryId;
+      }
 
       return archiveEntries(stateCopy);
 

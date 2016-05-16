@@ -1,20 +1,32 @@
 import React from 'react';
-import LineupCardEntry from './lineup-card-entry.jsx';
+import LineupCardContestEntrySet from './lineup-card-contest-entry-set.jsx';
 import forEach from 'lodash/forEach';
 
 
+/**
+ * Renders a list of a user's contest pool entries for use on the back of
+ * a lineup card.
+ */
 const LineupCardEntries = React.createClass({
 
   propTypes: {
     lineupInfo: React.PropTypes.object.isRequired,
     flipCard: React.PropTypes.func.isRequired,
+    removeContestPoolEntry: React.PropTypes.func.isRequired,
   },
 
   getEntries() {
     const entries = [];
 
-    forEach(this.props.lineupInfo.contestPoolEntries, (entry) => {
-      entries.push(<LineupCardEntry key={entry.contest.id} entry={entry} />);
+    forEach(this.props.lineupInfo.contestPoolEntries, (entrySet) => {
+      entries.push(
+        <LineupCardContestEntrySet
+          key={entrySet.contest.id}
+          entrySet={entrySet}
+          unregisterRequests={this.props.lineupInfo.unregisterRequests}
+          removeContestPoolEntry={this.props.removeContestPoolEntry}
+        />
+      );
     });
 
     return entries;

@@ -147,6 +147,8 @@ export function fetch(taskId) {
         }));
 
         reject(content);
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        store.dispatch(fetchContestPoolEntries());
         // Remove the request from the store.
         return store.dispatch(entryRequestActions.entryRequestRecieved(taskId, res.body.status));
       }
