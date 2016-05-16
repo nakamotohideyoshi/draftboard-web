@@ -25,7 +25,7 @@ import renderComponent from '../../lib/render-component';
 import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx';
 import { addMessage } from '../../actions/message-actions.js';
 import { removeParamFromURL } from '../../lib/utils.js';
-// import log from '../../lib/logging.js';
+import log from '../../lib/logging.js';
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
@@ -110,6 +110,7 @@ const LobbyContainer = React.createClass({
     addMessage: React.PropTypes.func,
     upcomingContestUpdateReceived: React.PropTypes.func,
     highestContestBuyin: React.PropTypes.number,
+    removeContestPoolEntry: React.PropTypes.func,
   },
 
 
@@ -155,6 +156,7 @@ const LobbyContainer = React.createClass({
 
 
   onContestUpdateReceived(event) {
+    // log.info('Pusher Event:', event);
     this.props.upcomingContestUpdateReceived(event);
   },
 
@@ -175,7 +177,7 @@ const LobbyContainer = React.createClass({
     // used to separate developers into different channels, based on their django settings filename
     const channelPrefix = window.dfs.user.pusher_channel_prefix.toString();
 
-    const contestChannel = pusher.subscribe(`${channelPrefix}contest`);
+    const contestChannel = pusher.subscribe(`${channelPrefix}contest_pool`);
     contestChannel.bind('update', this.onContestUpdateReceived);
   },
 

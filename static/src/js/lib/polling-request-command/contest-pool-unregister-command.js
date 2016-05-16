@@ -50,7 +50,7 @@ export function shouldFetch(entryRequestId) {
   if (entryRequest.attempt > entryRequest.maxAttempts) {
     store.dispatch(addMessage({
       level: 'warning',
-      header: 'Contest entry failed.',
+      header: 'Contest entry removal failed.',
       content: 'Polling attempt timed out.',
     }));
 
@@ -127,8 +127,8 @@ export function fetch(taskId) {
         // Display a success message to the user.
         store.dispatch(addMessage({
           level: 'success',
-          header: 'Your lineup has been entered.',
-          ttl: 2000,
+          header: 'Your lineup entry has been removed.',
+          ttl: 3000,
         }));
       }
       // If it was a failure.
@@ -147,6 +147,8 @@ export function fetch(taskId) {
         }));
 
         reject(content);
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        store.dispatch(fetchContestPoolEntries());
         // Remove the request from the store.
         return store.dispatch(entryRequestActions.entryRequestRecieved(taskId, res.body.status));
       }

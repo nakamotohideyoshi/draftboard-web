@@ -22,11 +22,14 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case ActionTypes.FETCH_CONTEST_POOL_ENTRIES_SUCCESS:
-      return _merge({}, state, {
+    case ActionTypes.FETCH_CONTEST_POOL_ENTRIES_SUCCESS: {
+      const newState = _merge({}, state, {
         isFetching: false,
-        entries: action.body,
       });
+      // replace old entries for the current ones.
+      newState.entries = action.body;
+      return newState;
+    }
 
 
     case ActionTypes.FETCH_CONTEST_POOL_ENTRIES_FAIL:

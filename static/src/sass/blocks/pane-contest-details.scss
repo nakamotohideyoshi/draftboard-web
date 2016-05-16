@@ -137,8 +137,12 @@
 
 
 
-.cmp-entrant-list {
+.cmp-entry-list {
   ul {
     column-count: 1;
+  }
+
+  .button {
+    min-width: 13em;
   }
 }

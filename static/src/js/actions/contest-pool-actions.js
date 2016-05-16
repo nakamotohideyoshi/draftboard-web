@@ -283,10 +283,10 @@ export function upcomingContestUpdateReceived(contest) {
 }
 
 
-export function removeContestPoolEntry(entryId) {
+export function removeContestPoolEntry(entry) {
   return (dispatch) => {
     request
-    .post(`/api/contest/unregister-entry/${entryId}/`)
+    .post(`/api/contest/unregister-entry/${entry.id}/`)
     .set({
       'X-REQUESTED-WITH': 'XMLHttpRequest',
       'X-CSRFToken': Cookies.get('csrftoken'),
@@ -294,13 +294,14 @@ export function removeContestPoolEntry(entryId) {
     })
     .end((err, res) => {
       if (err) {
-        addMessage({
-          title: 'Unable to join contest.',
+        dispatch(addMessage({
+          header: 'Unable to remove contest entry.',
+          content: res.body.error,
           level: 'warning',
-        });
+        }));
         log.error(res);
       } else {
-        dispatch(monitorUnregisterRequest(res.body.task_id, entryId));
+        dispatch(monitorUnregisterRequest(res.body.task_id, entry));
       }
     });
   };
