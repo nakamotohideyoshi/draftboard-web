@@ -592,7 +592,7 @@ body.appstate-enterContestButtonHover {
   /* flip the card when .flipped class is added. */
   &.flipped {
     .flipper {
-      transform: rotateY(180deg);
+      transform: rotateY(-180deg);
     }
   }
 
@@ -607,7 +607,7 @@ body.appstate-enterContestButtonHover {
   .back {
     /* hide back of pane during swap */
   	backface-visibility: hidden;
-  	min-height: 510px;
+  	// min-height: 510px;
   	width: 290px;
   }
 
@@ -626,5 +626,6 @@ body.appstate-enterContestButtonHover {
     position: absolute;
     top: 0;
     transform: rotateY(180deg);
+    overflow: auto;
   }
 }

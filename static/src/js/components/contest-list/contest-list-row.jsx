@@ -93,12 +93,6 @@ const ContestListRow = React.createClass({
       classes += ' highlight';
     }
 
-    // Icons
-    let guaranteedIcon;
-    if (this.props.contest.gpp) {
-      guaranteedIcon = <span className="contest-icon contest-icon__guaranteed">G</span>;
-    }
-
     return (
       <tr
         onClick={this.handleRowClick}
@@ -109,13 +103,13 @@ const ContestListRow = React.createClass({
           <span className={`icon icon-${this.props.contest.sport}`}></span>
         </td>
         <td key="name" className="name">
-          {this.props.contest.name} {guaranteedIcon}
+          {this.props.contest.name}
         </td>
         <td key="entries" className="payouts">
           {this.renderPrizeRanks(this.props.contest.prize_structure)}
         </td>
-        <td key="fee" className="entries">{this.props.contest.entries}</td>
-        <td key="contestSize" className="contest-size">&lt;size&gt;</td>
+        <td key="fee" className="entries">{this.props.contest.current_entries}</td>
+        <td key="contestSize" className="contest-size">{this.props.contest.contest_size}</td>
         <td key="start" className="start">
           <CountdownClock
             time={this.props.contest.start}
