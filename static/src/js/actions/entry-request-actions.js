@@ -19,6 +19,7 @@ export function addEntryRequestMonitor(taskId, contestPoolId, lineupId) {
     lineupId,
     maxAttempts: 10,
     attempt: 0,
+    requestType: 'entry',
   };
 }
 
@@ -85,13 +86,16 @@ export function monitorEntryRequest(taskId, contestPoolId, lineupId) {
  * @param {[type]} taskId    [description]
  * @param {[type]} entryId  [description]
  */
-export function addUnregisterRequestMonitor(taskId, entryId) {
+export function addUnregisterRequestMonitor(taskId, entry) {
   return {
     type: types.ADD_ENTRY_REQUEST_MONITOR,
     taskId,
-    entryId,
+    entryId: entry.id,
+    lineupId: entry.lineup,
+    contestPoolId: entry.contest_pool,
     maxAttempts: 10,
     attempt: 0,
+    requestType: 'unregister',
   };
 }
 
@@ -101,22 +105,22 @@ export function addUnregisterRequestMonitor(taskId, entryId) {
  * @param  {[type]} taskId [description]
  * @return {[type]} entryId [description]
  */
-export function monitorUnregisterRequest(taskId, entryId) {
+export function monitorUnregisterRequest(taskId, entry) {
   return (dispatch, getState) => {
     const state = getState();
 
     const existingRequest = _find(state.pollingTasks, {
-      entryId,
+      entryId: entry.id,
     });
 
     if (existingRequest) {
-      log.warn('unregisterRequest monitor entry already exists', entryId);
+      log.warn('unregisterRequest monitor entry already exists', entry);
       return {
         type: types.ADD_UNREGISTER_REQUEST_MONITOR_EXISTS,
       };
     }
 
-    dispatch(addUnregisterRequestMonitor(taskId, entryId));
+    dispatch(addUnregisterRequestMonitor(taskId, entry));
     addPollingRequest('unregisterRequest', taskId);
     log.info('monitoring unregister taskId: ', taskId);
   };

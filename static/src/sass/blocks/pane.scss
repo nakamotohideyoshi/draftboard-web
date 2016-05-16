@@ -17,6 +17,7 @@
   -webkit-animation-delay: 100ms; /* Chrome, Safari, Opera */
   animation-delay: 100ms;
   width: $pane-width;
+  will-change: right, transition, transform;
   transform: translateZ(0); // To prevent repaint on scroll.
   z-index: $zindex-modal + 1;
 
@@ -44,6 +45,7 @@
 }
 
 .pane__bg-cover {
+  will-change: opacity, visibility, height;
   background: rgba(79, 81, 89, .9);
   height: 0;
   left: 0;

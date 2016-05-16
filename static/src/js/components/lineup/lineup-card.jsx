@@ -14,6 +14,7 @@ const LineupCard = React.createClass({
     hoverText: React.PropTypes.string,
     draftGroupInfo: React.PropTypes.object.isRequired,
     onHover: React.PropTypes.func,
+    removeContestPoolEntry: React.PropTypes.func.isRequired,
   },
 
 
@@ -30,6 +31,25 @@ const LineupCard = React.createClass({
     return {
       flipped: false,
     };
+  },
+
+
+  componentDidMount() {
+    this.setCardHeight();
+  },
+
+
+  componentDidUpdate() {
+    this.setCardHeight();
+  },
+
+
+  // Because of the 3D transform, we have to manually set the height of the card back.
+  // Run this on componentDidMount & componentDidUpdate.
+  setCardHeight() {
+    if (this.refs.back && this.refs.front) {
+      this.refs.back.style.height = `${this.refs.front.clientHeight}px`;
+    }
   },
 
 
@@ -66,7 +86,7 @@ const LineupCard = React.createClass({
       lineup = (
         <div className={`cmp-lineup-card cmp-lineup-card--expanded flip-container ${flippedClass}`}>
           <div className="flipper">
-            <div className="front">
+            <div className="front" ref="front">
               <header className="cmp-lineup-card__header">
                 <h3 className="cmp-lineup-card__title">
                   {this.props.lineup.name || `Untitled Lineup # ${this.props.lineup.id}`}
@@ -117,10 +137,11 @@ const LineupCard = React.createClass({
               </footer>
             </div>
 
-            <div className="back">
+            <div className="back" ref="back">
               <LineupCardEntries
                 lineupInfo={this.props.lineupInfo}
                 flipCard={this.flipCard}
+                removeContestPoolEntry={this.props.removeContestPoolEntry}
               />
             </div>
           </div>

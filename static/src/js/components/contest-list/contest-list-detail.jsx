@@ -151,11 +151,22 @@ const ContestListDetail = React.createClass({
       }
 
       case 'entries': {
+        // get any unregister requests for this lineup & contest combo.
+        let unregisterRequests = {};
+
+        if (this.props.focusedLineup &&
+            this.props.lineupsInfo &&
+            this.props.lineupsInfo[this.props.focusedLineup.id]
+          ) {
+          unregisterRequests = this.props.lineupsInfo[this.props.focusedLineup.id].unregisterRequests;
+        }
+
         return (
           <EntryList
             entries={this.props.contestInfo.entries}
             contestPoolInfo={this.props.contestInfo}
             removeContestPoolEntry={this.props.removeContestPoolEntry}
+            unregisterRequests={unregisterRequests}
           />
         );
       }
