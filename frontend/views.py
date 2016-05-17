@@ -14,6 +14,13 @@ from contest.models import (
 class FrontendHomepageTemplateView(TemplateView):
     template_name = 'frontend/homepage.html'
 
+    # If a logged-in user goes to the homepage, redirect them to the lobby.
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('frontend:lobby'))
+
+        return super(FrontendHomepageTemplateView, self).get(request, *args, **kwargs)
+
 
 class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
     template_name = 'frontend/live.html'
@@ -53,7 +60,6 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
                 }))
 
         return super(FrontendLiveTemplateView, self).get(request, *args, **kwargs)
-
 
     def get_context_data(self, **kwargs):
         context = super(FrontendLiveTemplateView, self).get_context_data(**kwargs)
