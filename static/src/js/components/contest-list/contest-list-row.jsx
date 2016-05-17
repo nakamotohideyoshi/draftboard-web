@@ -2,7 +2,8 @@ import React from 'react';
 import CountdownClock from '../site/countdown-clock.jsx';
 import EnterContestButton from './enter-contest-button.jsx';
 import DraftButton from './draft-button.jsx';
-
+import uniq from 'lodash/uniq';
+import ordinal from '../../lib/ordinal.js';
 
 /**
  * Render a single ContestList 'row'.
@@ -15,7 +16,6 @@ import DraftButton from './draft-button.jsx';
  * through DataTable.
  */
 const ContestListRow = React.createClass({
-
 
   propTypes: {
     draftGroupsWithLineups: React.PropTypes.array,
@@ -68,13 +68,25 @@ const ContestListRow = React.createClass({
 
   renderPrizeRanks(prizeStructure) {
     let rankList = [];
+    // Create an array of unique rank.value values. if there is only 1, then all
+    // payouts are the same.
+    const payoutIsFlat = uniq(prizeStructure.ranks.map(
+        (rank) => rank.value)
+      ).length === 1;
+
     if (prizeStructure.ranks) {
-      rankList = prizeStructure.ranks.map((rank, i, arr) => {
-        const delimiter = i < arr.length - 1 ? '|' : '';
-        return (
-          <span key={i}>${rank.value} {delimiter} </span>
+      if (payoutIsFlat && prizeStructure.ranks.length > 1) {
+        rankList.push(
+          <span key="h2h">1st - {ordinal(prizeStructure.ranks.length)}: ${prizeStructure.ranks[0].value}</span>
         );
-      });
+      } else {
+        rankList = prizeStructure.ranks.map((rank, i, arr) => {
+          const delimiter = i < arr.length - 1 ? '|' : '';
+          return (
+            <span key={i}>{ordinal(i + 1)}: ${rank.value} {delimiter} </span>
+          );
+        });
+      }
     }
 
     return rankList;

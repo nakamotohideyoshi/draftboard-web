@@ -30,9 +30,14 @@ class RankSerializer(serializers.ModelSerializer):
             'value',
         )
 
+
 class PrizeStructureSerializer(serializers.ModelSerializer):
 
     ranks = RankSerializer(many=True, read_only=True)
+    is_h2h = serializers.SerializerMethodField()
+
+    def get_is_h2h(self, prize_structure):
+        return prize_structure.get_entries() == 2
 
     class Meta:
         model = PrizeStructure
@@ -41,14 +46,16 @@ class PrizeStructureSerializer(serializers.ModelSerializer):
             'name',
             'buyin',
             'ranks',
-            'prize_pool'
+            'prize_pool',
+            'is_h2h',
         )
+
 
 class ContestPoolSerializer(serializers.ModelSerializer):
 
     prize_structure = PrizeStructureSerializer()
-
     contest_size = serializers.SerializerMethodField()
+
     def get_contest_size(self, contest_pool):
         return contest_pool.prize_structure.get_entries()
 
@@ -58,6 +65,7 @@ class ContestPoolSerializer(serializers.ModelSerializer):
         fields = ('id','name','sport','status','start','buyin',
                   'draft_group','max_entries', 'prize_structure','prize_pool',
                   'entries','current_entries','contest_size')
+
 
 class ContestSerializer(serializers.ModelSerializer):
 
@@ -69,12 +77,14 @@ class ContestSerializer(serializers.ModelSerializer):
                   'entries','current_entries','gpp','doubleup',
                   'respawn')
 
+
 class ContestIdSerializer(serializers.ModelSerializer):
 
     class Meta:
 
-        model   = Contest
-        fields  = ('id', 'draft_group')
+        model = Contest
+        fields = ('id', 'draft_group')
+
 
 class UpcomingEntrySerializer(serializers.ModelSerializer):
     """

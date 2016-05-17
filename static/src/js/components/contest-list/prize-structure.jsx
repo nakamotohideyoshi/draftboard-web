@@ -1,6 +1,6 @@
 import React from 'react';
 import { forEach as _forEach } from 'lodash';
-import { english as ordinal } from 'ordinal';
+import ordinal from '../../lib/ordinal.js';
 
 
 /**
