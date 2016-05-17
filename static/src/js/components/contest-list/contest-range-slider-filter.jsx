@@ -2,7 +2,7 @@ import React from 'react';
 import RangeSlider from '../form-field/range-slider.jsx';
 
 
-const CollectionRangeSliderFilter = React.createClass({
+const ContestRangeSliderFilter = React.createClass({
 
   propTypes: {
     className: React.PropTypes.string,
@@ -72,4 +72,4 @@ const CollectionRangeSliderFilter = React.createClass({
 });
 
 
-module.exports = CollectionRangeSliderFilter;
+module.exports = ContestRangeSliderFilter;

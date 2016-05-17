@@ -82,7 +82,7 @@ export const focusedLineupSelector = createSelector(
 export const highestContestBuyin = createSelector(
   (state) => state.upcomingContests.allContests,
   (contests) => {
-    const sortedContests = sortBy(contests, ['buyin']);
+    const sortedContests = sortBy(contests, ['buyin']).reverse();
 
     if (sortedContests.length) {
       return parseFloat(sortedContests[0].buyin);
