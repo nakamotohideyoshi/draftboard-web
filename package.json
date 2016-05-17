@@ -43,7 +43,6 @@
     "node-sass": "^3.4.2",
     "normalizr": "^2.0.1",
     "nouislider": "git://github.com/leongersen/noUiSlider.git",
-    "ordinal": "0.0.4",
     "postcss-loader": "^0.8.2",
     "pubsub-js": "^1.5.3",
     "pusher-js": "^3.0.0",
