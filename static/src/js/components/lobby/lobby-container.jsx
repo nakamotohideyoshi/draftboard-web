@@ -25,7 +25,7 @@ import renderComponent from '../../lib/render-component';
 import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx';
 import { addMessage } from '../../actions/message-actions.js';
 import { removeParamFromURL } from '../../lib/utils.js';
-import log from '../../lib/logging.js';
+// import log from '../../lib/logging.js';
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');
