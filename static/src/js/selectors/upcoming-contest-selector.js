@@ -57,7 +57,7 @@ const contestsWithMatchingFee = createSelector(
  */
 const typeFilterMatchSelector = (state) => state.upcomingContests.filters.contestTypeFilter.match;
 
-export const contestsWithMatchingType = createSelector(
+const contestsWithMatchingType = createSelector(
   [contestsWithMatchingFee, typeFilterMatchSelector],
   (collection, contestType) => gameTypeFilter(collection, contestType)
 );
