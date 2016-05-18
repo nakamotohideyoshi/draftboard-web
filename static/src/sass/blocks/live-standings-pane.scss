@@ -1,11 +1,30 @@
+@import "../variables.scss";
+
 .live-standings-pane {
+  width: 400px !important;
+  font-family: $font-open-sans;
+
+  .live-pane {
+    &__close {
+      top: 35px !important;
+      left: -25px !important;
+      opacity: 0.6;
+      background-size: 23px;
+      transform: rotateY(180deg) scaleX(1.4);
+    }
+
+    &__content {
+      margin-left: 0;
+      background: #070b1d;
+    }
+  }
+
+
   width: 100%;
   height: 100%;
 
   .inner {
-    margin-left: 60px;
-    padding: 30px 25px 0;
-    background-color: #1C202B;
+    background-color: #060b1c;
     height: 100%;
   }
 
@@ -27,7 +46,32 @@
 
   .standings-list {
     text-align: center;
-    margin: 40px 0 20px 0;
+    margin: 20px 25px 20px 25px;
+    font-weight: 100;
+
+    .header {
+      color: #747c8d;
+      font-size: 10px;
+      text-align: left;
+      padding-bottom: 10px;
+      position: relative;
+
+      .pmr {
+        display: inline-block;
+        width: 235px;
+        text-indent: 40px;
+      }
+
+      .pts {
+        display: inline-block;
+        width: 65px;
+      }
+
+      .prize {
+        display: inline-block;
+        width: 40px;
+      }
+    }
 
     .live-pmr {
       display: inline-block;
@@ -37,7 +81,7 @@
     }
 
     .lineup {
-      color: white;
+      color: #747c8d;
       background-color: #25293A;
       font-size: 12px;
       margin-bottom: 3px;
@@ -50,12 +94,28 @@
         -webkit-box-sizing: border-box;
         -moz-box-sizing: border-box;
         box-sizing: border-box;
-        background-position: 0 0, 0 100% ;
+        background-position: 0 0, 0 100%;
         background-repeat: no-repeat;
         -webkit-background-size: 100% 2px;
         -moz-background-size: 100% 2px;
         background-size: 100% 2px;
         background-image: linear-gradient(to right, #214e9d 0%, #34b4cc 100%), linear-gradient(to right, #214e9d 0%, #34b4cc 100%);
+
+        .lineup--place {
+          color: white;
+        }
+
+        .lineup--score-name {
+          color: white;
+        }
+
+        .lineup--score-points {
+          color: white;
+        }
+
+        .lineup--score-earnings.in-the-money {
+          color: #25c462;
+        }
       }
 
       .overlay {
@@ -68,7 +128,6 @@
         background-color: rgba(57,61,78,0.96);
         line-height: 46px;
         font-size: 11px;
-        font-weight: bold;
         text-transform: uppercase;
         color: white;
         cursor: pointer;
@@ -92,31 +151,78 @@
         display: inline-block;
         text-align: left;
       }
+
       &--score-points {
         width: 70px;
         display: inline-block;
-
-        span {
-          color: #737A8A;
-        }
       }
 
       &--score-earnings {
         width: 50px;
         display: inline-block;
-        color: #737A8A;
-        /* color: #25A758; -> active*/
-
-        &.in-the-money {
-          color: #25c462;
-        }
       }
     }
   }
 
   .ownership-list {
     text-align: center;
-    margin: 20px 0;
+    margin: 20px 25px;
+
+    .header {
+      color: #747c8d;
+      font-size: 10px;
+      text-align: left;
+      padding-bottom: 10px;
+      position: relative;
+
+      .pmr {
+        display: inline-block;
+        width: 235px;
+        text-indent: 43px;
+      }
+
+      .pts {
+        display: inline-block;
+        width: 50px;
+      }
+
+      .owned {
+        display: inline-block;
+        width: 55px;
+      }
+
+      .owned, .pmr, .pts {
+        span {
+          cursor: pointer;
+        }
+
+        .icon-arrow {
+          display: none;
+        }
+
+        &.sorter {
+          .icon-arrow {
+            display: inline-block;
+
+            line {
+              stroke: #747c8d;
+            }
+          }
+        }
+
+        &.asc {
+          .icon-arrow {
+            transform: rotate(90deg);
+          }
+        }
+
+        &.desc {
+          .icon-arrow {
+            transform: rotate(-90deg);
+          }
+        }
+      }
+    }
 
     .player {
       color: #747c8d;
@@ -125,6 +231,7 @@
       padding-bottom: 10px;
       margin-bottom: 3px;
       position: relative;
+      cursor: pointer;
 
       &--position {
         font-size: 9px;
@@ -168,11 +275,9 @@
         width: 140px;
         display: inline-block;
         text-align: left;
-        color: white;
 
         .team {
           display: inline-block;
-          color: #9EA2A9;
           text-transform: uppercase;
         }
       }
@@ -186,44 +291,51 @@
         width: 50px;
         display: inline-block;
       }
-    }
-  }
 
-  .position-filter {
-    display: block;
-    padding: 15px 0;
-
-    & > div {
-      display: inline-block;
-      margin-right: 15px;
-      text-transform: uppercase;
-      color: #737A8A;
-      font-size: 14px;
-      cursor: pointer;
-
-      &.active {
+      &--overlay {
+        display: none;
+        width: 100%;
+        height: 100%;
+        padding-right: 25px;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        background-color: rgba(57,61,78,0.46);
+        line-height: 38px;
+        font-size: 10px;
+        text-align: right;
+        text-transform: uppercase;
         color: white;
-        cursor: auto;
+        cursor: pointer;
       }
-    }
-  }
 
-  .watch-live {
-    display: block;
-    text-transform: uppercase;
-    color: #737A8A;
-    text-align: center;
-    border: solid 1px #737A8A;
-    padding: 10px 0;
-    font-size: 11px;
-    font-weight: bold;
-    cursor: pointer;
+      &:hover {
+        .player--overlay {
+          display: block;
+        }
 
-    &:hover {
-      background-color: rgba(57,61,78,0.96);
-      border-color: rgba(57,61,78,0.96);
-      color: white;
-      cursor: pointer;
+        .player--points, .player--progress {
+          visibility: hidden;
+        }
+      }
+
+      &.watched {
+        border-left: 1px solid red;
+        border-right: 1px solid #422752;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        background-position: 0 0, 0 100%;
+        background-repeat: no-repeat;
+        -webkit-background-size: 100% 1px;
+        -moz-background-size: 100% 1px;
+        background-size: 100% 1px;
+        background-image: linear-gradient(to right, red 0%, #422752 100%), linear-gradient(to right, red 0%, #422752 100%);
+
+        .player--name, .player--position, .player--points, .player--progress {
+          color: white;
+        }
+      }
     }
   }
 
@@ -297,80 +409,138 @@
     }
   }
 
-  &__header {
-    height: 35px;
+  .search {
+    display: inline-block;
+    margin: 25px 0 0 25px;
+    vertical-align: middle;
+    line-height: 25px;
+    font-weight: 100;
+    font-size: 13px;
 
-    .title {
-      line-height: 35px;
-      font-weight: 300;
+    .icon {
+      opacity: 0.5;
+      background: transparent url('../img/blocks/live-standings-pane/search.png') no-repeat center left;
+      background-size: 20px 20px;
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
       display: inline-block;
       position: relative;
-      margin-right: 20px;
-      color: #737A8A;
-      cursor: pointer;
+      top: -2px;
+      left: -2px;
+    }
 
-      .border {
-        display: none;
-        position: absolute;
-        width: 50%;
-        bottom: 0px;
-        border-bottom: solid #737A8A 2px;
+    input {
+      height: 25px;
+      width: 120px;
+      border: none;
+      position: relative;
+      top: -8px;
+      text-indent: 5px;
+      color: #717989;
+      background: transparent;
+
+      &::-webkit-input-placeholder {
+        opacity: 1;
+        color: #717989;
+      }
+      &:-moz-placeholder {
+        opacity: 1;
+        color: #717989;
+      }
+      &::-moz-placeholder {
+        opacity: 1;
+        color: #717989;
+      }
+      &:-ms-input-placeholder {
+        opacity: 1;
+        color: #717989;
       }
 
-      &.active {
-        color: white;
-        cursor: auto;
+      &:focus {
+        outline: none;
+      }
+    }
+  }
 
-        .border {
-          display: block;
+  &__header {
+    height: 170px;
+    background-image: url(../img/blocks/live-standings-pane/bg-live-standings-pane-header.jpg);
+    background-size: cover;
+
+    .stats {
+      margin-bottom: 15px;
+      padding-top: 30px;
+
+      .title {
+        color: #fff;
+        font-size: 17px;
+        font-weight: 100;
+        padding-left: 30px;
+        margin-bottom: 25px;
+      }
+
+      .profit {
+        font-size: 13px;
+        font-weight: 100;
+        text-align: right;
+        padding-right: 30px;
+        color: #747c8d;
+
+        .fees {
+          color: #a2a8b4;
+          display: inline-block;
+        }
+
+        .earnings {
+          display: inline-block;
+          color: white;
+
+          span {
+            color: #26cc65;
+          }
         }
       }
     }
-    .search {
-      display: inline-block;
-      position: absolute;
-      right: 20px;
-      margin-top: 10px;
-      line-height: 25px;
-      vertical-align: middle;
 
-      .icon {
-        background: transparent url('../img/blocks/live-standings-pane/search.png') no-repeat center left;
-        background-size: 20px 20px;
-        cursor: pointer;
-        width: 20px;
-        height: 20px;
+    .live-moneyline {
+      width: auto;
+      margin: 5px 25px 15px 25px;
+
+      &__pmr-line {
+        background-color: #565E6C;
+      }
+    }
+
+    .menu {
+      padding-top: 5px;
+      padding-left: 30px;
+
+      .title {
+        font-size: 12px;
+        line-height: 35px;
+        font-weight: 300;
         display: inline-block;
         position: relative;
-        top: -2px;
-        left: -2px;
-      }
+        margin-right: 20px;
+        color: #737A8A;
+        cursor: pointer;
 
-      input {
-        height: 25px;
-        width: 120px;
-        transition: all 0.4s ease-out;
-        border: none;
-        position: relative;
-        top: -8px;
-        background-color: rgba(115, 122, 138, 0.4);
-        text-indent: 5px;
-        color: white;
-      }
-
-      &.active {
-        right: 25px;
-
-        input {
-          width: 120px;
+        .border {
+          display: none;
+          position: absolute;
+          width: 70%;
+          bottom: 0px;
+          border-bottom: solid #737A8A 2px;
         }
-      }
 
-      &:not(.active) {
-        input {
-          width: 0px;
-          margin: 0;
-          padding: 0;
+        &.active {
+          color: white;
+          cursor: auto;
+
+          .border {
+            display: block;
+          }
         }
       }
     }
