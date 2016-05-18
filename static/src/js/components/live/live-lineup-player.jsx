@@ -3,6 +3,7 @@ import LivePMRProgressBar from './live-pmr-progress-bar';
 import React from 'react';
 import { extend } from 'lodash';
 import { size as _size } from 'lodash';
+import { humanizeFP } from '../../actions/sports';
 
 
 const LiveLineupPlayer = React.createClass({
@@ -12,12 +13,22 @@ const LiveLineupPlayer = React.createClass({
     eventDescription: React.PropTypes.object.isRequired,
     gameStats: React.PropTypes.object.isRequired,
     isPlaying: React.PropTypes.bool.isRequired,
+    isWatchable: React.PropTypes.bool.isRequired,
     isWatching: React.PropTypes.bool.isRequired,
+    multipartEvent: React.PropTypes.object.isRequired,
     openPlayerPane: React.PropTypes.func.isRequired,
     player: React.PropTypes.object.isRequired,
     playerImagesBaseUrl: React.PropTypes.string.isRequired,
+    setWatchingPlayer: React.PropTypes.func.isRequired,
     sport: React.PropTypes.string.isRequired,
     whichSide: React.PropTypes.string.isRequired,
+  },
+
+  /**
+   * Propogating up a click handler to choose the player to watch
+   */
+  _onClick() {
+    this.props.setWatchingPlayer(this.props.player.srid);
   },
 
   /**
@@ -64,7 +75,7 @@ const LiveLineupPlayer = React.createClass({
     ));
 
     return (
-      <div key="6" className="live-lineup-player__hover-stats">
+      <div key="6" className="live-lineup-player__hover-stats" onClick={this.props.openPlayerPane}>
         <ul>
           {renderedStats}
         </ul>
@@ -82,7 +93,7 @@ const LiveLineupPlayer = React.createClass({
     }
 
     return (
-      <div key="1" className="live-lineup-player__circle">
+      <div key="1" className="live-lineup-player__circle" onClick={this.props.openPlayerPane}>
         <div className="live-lineup-player__photo">
           <img
             alt="Player Headshot"
@@ -106,28 +117,48 @@ const LiveLineupPlayer = React.createClass({
   },
 
   renderWatching() {
-    if (this.props.sport === 'mlb' && this.props.isWatching === true) {
-      const diamondProps = {
-        first: 'mine',
-        second: 'both',
-        third: 'opponent',
-      };
+    const { player } = this.props;
 
-      return [
-        (
-        <div key="8" className="live-lineup-player__watching-indicator" />
-        ),
-        (
-        <div key="9" className="live-lineup-player__watching-info live-player-watching">
-          <div className="live-player-watching__fp">+2</div>
+    // only applicable sport right now
+    if (this.props.sport !== 'mlb') {
+      return [];
+    }
+
+    const diamondProps = {
+      key: player.id,
+      first: 'mine',
+      second: 'both',
+      third: 'opponent',
+    };
+
+    let status = 'possible';
+    const elements = [];
+
+    // override isWatchable and add in watching indicator
+    if (this.props.isWatching) {
+      status = 'active';
+
+      elements.push((<div key="8" className="live-lineup-player__watching-indicator" />));
+    }
+
+    // always put in the watchable information
+    if (this.props.isWatchable) {
+      elements.push((
+        <div
+          key="9"
+          className={`live-lineup-player__watching-info live-player-watching live-player-watching--${status}`}
+          onClick={this._onClick}
+        >
+          <div className="live-player-watching__fp" />
           <div className="live-player-watching__name-stats">
-            <div className="live-player-watching__name">Nolan Ryan</div>
+            <div className="live-player-watching__name">{player.name}</div>
             <div className="live-player-watching__stats">
               <span>1B/2S - 2 Outs</span>
               <span className="live-player-watching__inning live-player-watching__inning--bottom">
                 5th
               </span>
             </div>
+            <div className="live-player-watching__choose">Click Here to Watch</div>
           </div>
           <div className="live-player-watching__bases">
             {React.createElement(
@@ -135,11 +166,10 @@ const LiveLineupPlayer = React.createClass({
             )}
           </div>
         </div>
-        ),
-      ];
+      ));
     }
 
-    return [];
+    return elements;
   },
 
   render() {
@@ -191,13 +221,13 @@ const LiveLineupPlayer = React.createClass({
       </div>),
       this.renderPhotoAndHover(),
       (<div key="2" className="live-lineup-player__status"></div>),
-      (<div key="3" className="live-lineup-player__points">{player.fp}</div>),
+      (<div key="3" className="live-lineup-player__points">{humanizeFP(player.fp)}</div>),
       (<div key="4" className={ playStatusClass } />),
       this.renderEventDescription(),
     ];
 
     // add in watching, if applicable
-    playerElements = playerElements.concat(this.renderWatching());
+    playerElements = [...playerElements, ...this.renderWatching()];
 
     // flip the order of elements for opponent
     if (this.props.whichSide === 'opponent') {
@@ -205,7 +235,7 @@ const LiveLineupPlayer = React.createClass({
     }
 
     return (
-      <li className={className} onClick={this.props.openPlayerPane}>
+      <li className={className}>
         {playerElements}
       </li>
     );

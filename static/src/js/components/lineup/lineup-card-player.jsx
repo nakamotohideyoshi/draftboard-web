@@ -14,6 +14,7 @@ const LineupCardPlayer = (props) => (
         onError={(tag) => {
           tag.currentTarget.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
         }}
+        alt="Player Headshot"
         width="auto"
         height="35px"
       />

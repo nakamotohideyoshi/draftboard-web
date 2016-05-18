@@ -2,8 +2,10 @@ import React from 'react';
 import ImageLoader from 'react-imageloader';
 import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
+import { stringifyMLBWhen } from '../../actions/events-multipart';
 import log from '../../lib/logging';
 import { GAME_DURATIONS } from '../../actions/sports';
+import { humanizeFP } from '../../actions/sports';
 
 function preloader() {
   return (
@@ -87,20 +89,48 @@ const LivePlayerPane = React.createClass({
 
     // if the game isn't loaded yet or something then return
     if (!game.hasOwnProperty('boxscore')) {
-      log.debug('LivePlayerPane.renderCurrentGame() - boxScore undefined');
+      // log.debug('LivePlayerPane.renderCurrentGame() - boxScore undefined');
       return (<div className="current-game" />);
     }
 
     const boxScore = game.boxscore;
     let gameTimeInfo;
+    let gameTimeElement;
     const doneStatuses = ['closed', 'complete'];
     if (doneStatuses.indexOf(boxScore.status) !== -1) {
       gameTimeInfo = ['', 'Final'];
     } else {
-      gameTimeInfo = [
-        boxScore.clock,
-        boxScore.quarterDisplay,
-      ];
+      switch (this.props.sport) {
+        case 'mlb':
+          gameTimeElement = (
+            <div className="current-game__time">
+              <div className={`current-game__mlb-half-inning mlb-half-inning--${boxScore.inning_half}`}>
+                <svg className="down-arrow" viewBox="0 0 40 22.12">
+                  <path d="M20,31.06L0,8.94H40Z" transform="translate(0 -8.94)" />
+                </svg>
+              </div>
+              <div className="current-game__time__timer">{stringifyMLBWhen(boxScore.inning)}</div>
+            </div>
+          );
+
+          break;
+        case 'nba':
+        case 'nhl':
+        default:
+          gameTimeInfo = [
+            boxScore.clock,
+            boxScore.quarterDisplay,
+          ];
+      }
+    }
+
+    if (gameTimeInfo) {
+      gameTimeElement = (
+        <div className="current-game__time">
+          <div className="current-game__time__timer">{gameTimeInfo[0]}</div>
+          <div className="current-game__time__period">{gameTimeInfo[1]}</div>
+        </div>
+      );
     }
 
     return (
@@ -113,10 +143,7 @@ const LivePlayerPane = React.createClass({
               <div className="name">{game.homeTeamInfo.name}</div>
             </div>
           </div>
-          <div className="current-game__time">
-            <div className="current-game__time__timer">{gameTimeInfo[0]}</div>
-            <div className="current-game__time__period">{gameTimeInfo[1]}</div>
-          </div>
+          {gameTimeElement}
           <div className="current-game__team2">
             <div className="current-game__team1__points">{boxScore.away_score}</div>
             <div className="current-game__team-name">
@@ -222,7 +249,7 @@ const LivePlayerPane = React.createClass({
 
             <div className="header__pts-stats__info__insvg">
               <p>pts</p>
-              <p>{player.fp}</p>
+              <p>{humanizeFP(player.fp)}</p>
             </div>
           </div>
 

@@ -1,8 +1,9 @@
 import * as ActionTypes from '../action-types';
-import { forEach as _forEach } from 'lodash';
-import { merge as _merge } from 'lodash';
+import log from '../lib/logging';
 import update from 'react-addons-update';
 import { dateNow } from '../lib/utils';
+import { forEach as _forEach } from 'lodash';
+import { merge as _merge } from 'lodash';
 
 
 // shortcut method to $set new state if the key doesn't exist, otherwise $merges the properties in to existing
@@ -44,6 +45,11 @@ module.exports = (state = {}, action) => {
 
   switch (action.type) {
     case ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP:
+      if (state[action.id].playersStats.hasOwnProperty(action.playerId) === false) {
+        log.warn(`No player stats for ${action.playerId} in draft group ${action.id}`);
+        return state;
+      }
+
       return update(state, {
         [action.id]: {
           playersStats: {

@@ -1,10 +1,12 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
 
-import { filter as _filter } from 'lodash';
-import { forEach as _forEach } from 'lodash';
-import { map as _map } from 'lodash';
+import filter from 'lodash/filter';
+import forEach from 'lodash/forEach';
+import map from 'lodash/map';
 import merge from 'lodash/merge';
 import { normalize, Schema, arrayOf } from 'normalizr';
+import { fetchDraftGroupIfNeeded } from './live-draft-groups';
+import { fetchGamesIfNeeded } from './sports';
 
 import { dateNow } from '../lib/utils';
 import * as ActionTypes from '../action-types';
@@ -34,8 +36,8 @@ const confirmRelatedEntriesInfo = () => ({
  */
 const receiveEntries = (response) => {
   const yesterday = dateNow() - 1000 * 60 * 60 * 24;  // subtract 1 day
-  const filteredResponse = _filter(response, (entry) => new Date(entry.start) > yesterday);
-  const withDefaultName = _map(filteredResponse, (entry) => merge({}, entry, {
+  const filteredResponse = filter(response, (entry) => new Date(entry.start) > yesterday);
+  const withDefaultName = map(filteredResponse, (entry) => merge({}, entry, {
     lineup_name: 'My Lineup',
   }));
 
@@ -114,10 +116,10 @@ const addEntriesPlayers = () => (dispatch, getState) => {
   const entriesPlayers = {};
 
   // filter entries to only those that have started
-  const liveEntries = _filter(state.entries.items, (entry) => new Date(entry.start) < dateNow());
+  const liveEntries = filter(state.entries.items, (entry) => new Date(entry.start) < dateNow());
 
   // only add players that have started playing, by checking if they are in the roster
-  _forEach(liveEntries, (entry) => {
+  forEach(liveEntries, (entry) => {
     const lineup = state.liveContests[entry.contest].lineups[entry.lineup];
     if (typeof lineup !== 'undefined' && lineup.hasOwnProperty('roster')) {
       entriesPlayers[entry.id] = lineup.roster;
@@ -138,7 +140,7 @@ const fetchEntries = () => (dispatch) => {
   dispatch(requestEntries());
 
   return request.get(
-    '/api/contest/current-entries/'
+    '/api/contest/contest-pools/current-entries/'
   ).set({
     'X-REQUESTED-WITH': 'XMLHttpRequest',
     Accept: 'application/json',
@@ -149,17 +151,15 @@ const fetchEntries = () => (dispatch) => {
 
 /**
  * Generates object of objects of all the lineups related to the current entries, then returns a promise
- * What's cool is we never make an API call for this directly.
- * We instead use actions.live-contests.fetchContestLineups() to get all lineups for any entry's contest all at once!
  * @return {promise}   Promise that resolves with lineup information to lineup action, then to reducer
  */
 export const generateLineups = () => (dispatch, getState) => {
   const lineups = {};
 
-  _forEach(getState().entries.items, (entry) => {
+  forEach(getState().entries.items, (entry) => {
     const id = entry.lineup;
 
-    if (id in lineups) {
+    if (lineups.hasOwnProperty(id)) {
       lineups[id].contests.push(entry.contest);
     } else {
       lineups[id] = {
@@ -228,9 +228,15 @@ export const fetchUpcomingLineups = () => (dispatch) =>
  *                     with store.entries.hasRelatedInfo = True so live/nav know to use the information.
  */
 export const fetchRelatedEntriesInfo = () => (dispatch, getState) => {
-  const calls = _map(
-    getState().entries.items, (entry) => dispatch(fetchContestIfNeeded(entry.contest, entry.sport))
-  );
+  const calls = [];
+
+  forEach(getState().entries.items, (entry) => {
+    if (entry.hasOwnProperty('contest') && entry.contest !== null) {
+      calls.push(dispatch(fetchContestIfNeeded(entry.contest, entry.sport)));
+    }
+    calls.push(dispatch(fetchDraftGroupIfNeeded(entry.draft_group, entry.sport)));
+    calls.push(dispatch(fetchGamesIfNeeded(entry.sport)));
+  });
 
   // first fetch all contest information (which also gets draft groups, games, prizes)
   return Promise.all(

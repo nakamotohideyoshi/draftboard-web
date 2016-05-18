@@ -222,8 +222,9 @@ const LiveStandingsPane = React.createClass({
     this.setState({ playersWatched });
   },
 
-  handleClosePane() {
+  backToContestsPane() {
     AppActions.removeClass('appstate--live-standings-pane--open');
+    AppActions.addClass('appstate--live-contests-pane--open');
   },
 
   renderHeader() {
@@ -555,7 +556,7 @@ const LiveStandingsPane = React.createClass({
 
     return (
       <div className={classNames}>
-        <div className="live-pane__close" onClick={this.handleClosePane}></div>
+        <div className="live-pane__back" onClick={this.backToContestsPane}></div>
         {this.renderStandingsTab()}
         {this.renderOwnershipTab()}
       </div>

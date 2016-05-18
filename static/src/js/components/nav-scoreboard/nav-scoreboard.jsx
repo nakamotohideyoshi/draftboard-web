@@ -203,9 +203,7 @@ const NavScoreboard = React.createClass({
       ) {
         this.props.dispatch(updateGameTime(
           eventData.id,
-          eventData.clock,
-          eventData.quarter,
-          eventData.status
+          eventData
         ));
       }
     });

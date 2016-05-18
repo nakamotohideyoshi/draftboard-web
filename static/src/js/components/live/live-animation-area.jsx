@@ -22,7 +22,8 @@ const LiveAnimationArea = (props) => {
       return (
         <LiveMLBStadium
           animationEvents={props.animationEvents}
-          multipartEvents={props.multipartEvents}
+          eventsMultipart={props.eventsMultipart}
+          watching={props.watching}
         />
       );
     case 'nba':
@@ -36,8 +37,9 @@ const LiveAnimationArea = (props) => {
 
 LiveAnimationArea.propTypes = {
   animationEvents: React.PropTypes.object.isRequired,
-  multipartEvents: React.PropTypes.object.isRequired,
+  eventsMultipart: React.PropTypes.object.isRequired,
   sport: React.PropTypes.string.isRequired,
+  watching: React.PropTypes.object.isRequired,
 };
 
 // Set up Redux connections to React
