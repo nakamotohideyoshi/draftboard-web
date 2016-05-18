@@ -4,11 +4,13 @@ import * as ActionTypes from '../action-types';
 
 // Reducer for the live section, stores what you're watching
 module.exports = (state = {
-  myLineupId: null,
-  sport: null,
   contestId: null,
+  myLineupId: null,
+  myPlayerSRID: null,
   opponentLineupId: null,
-}, action = {}) => {
+  opponentPlayerSRID: null,
+  sport: null,
+}, action) => {
   switch (action.type) {
     case ActionTypes.WATCHING_UPDATE:
       return update(state, {

@@ -37,7 +37,7 @@ const fetchPrize = (id) => (dispatch) =>
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch, false if not
  */
-const shouldFetchPrize = (state, id) => id in state.prizes === false;
+const shouldFetchPrize = (state, id) => state.prizes.hasOwnProperty(id) === false;
 
 /**
  * Fetch a prize if we need to

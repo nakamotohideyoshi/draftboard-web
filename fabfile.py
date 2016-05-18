@@ -296,6 +296,9 @@ def generate_replayer():
     The resulting dump will be /tmp/replayer.dump
 
     fab generate_replayer --set start=2016-03-01,end=2016-03-02
+
+    optional parameter to filter by sport, `--set sport=mlb`, choices are ['mlb', 'nhl', 'nba']
+    optional parameter to use already downloaded instances, `--set nodownload=true`
     """
     def _show_progress(current_bytes, total_bytes):
         print('%s%%' % int(round(current_bytes/total_bytes * 100)))
@@ -304,32 +307,33 @@ def generate_replayer():
     if 'start' not in env or 'end' not in env:
         utils.abort('You need to add --set start=[2016-03-01],end=[2016-03-02] to the fab command')
 
-    # this key/value gives full access to s3, need to pare down to just the right bucket.
-    AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
-    AWS_SECRET_ACCESS_KEY = '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'
-    AWS_STORAGE_BUCKET_NAME = 'k6yjtzz2xuccqyn'
-
-    c = S3Connection(
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
-
-    bucket = c.get_bucket(AWS_STORAGE_BUCKET_NAME)
-
-    # download, unzip start
     tmp_dir = '/tmp'
-
     startFilename = 'start.dump'
-    startS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
-    keyStart = bucket.get_key('draftboard-staging/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
-    keyStart.get_contents_to_filename('%s/%s.gz' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
-    operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
-
-    # download end
     endFilename = 'end.dump'
-    endS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
-    keyEnd = bucket.get_key('draftboard-staging/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
-    keyEnd.get_contents_to_filename('%s/%s.gz' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
-    operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
+
+    if 'nodownload' in env and env.nodownload is 'true':
+        # this key/value gives full access to s3, need to pare down to just the right bucket.
+        AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
+        AWS_SECRET_ACCESS_KEY = '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'
+        AWS_STORAGE_BUCKET_NAME = 'k6yjtzz2xuccqyn'
+
+        c = S3Connection(
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+
+        bucket = c.get_bucket(AWS_STORAGE_BUCKET_NAME)
+
+        # download start
+        startS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
+        keyStart = bucket.get_key('draftboard-staging/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
+        keyStart.get_contents_to_filename('%s/%s.gz' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
+        operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
+
+        # download end
+        endS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
+        keyEnd = bucket.get_key('draftboard-staging/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
+        keyEnd.get_contents_to_filename('%s/%s.gz' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
+        operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
 
     temp_db = 'generate_replayer'
 
@@ -373,6 +377,30 @@ def generate_replayer():
         'DJANGO_SETTINGS_MODULE="mysite.settings.local_replayer_generation" python manage.py generate_timemachines %s %s' %
         (env.start, env.end)
     )
+
+    # remove all scheduled tasks except for contest pools
+    operations.local('sudo -u postgres psql -d %s -c "update djcelery_periodictask set enabled=\'f\';"' % (
+        temp_db
+        )
+    )
+
+    # remove other sport replayer updates, time machines, if sport is chosen
+    if 'sport' in env and env.sport in ['mlb', 'nba', 'nhl']:
+        operations.local('sudo -u postgres psql -d %s -c "delete from replayer_update where ns not ILIKE \'%%%s%%\';"' % (
+            temp_db,
+            env.sport
+            )
+        )
+        operations.local('sudo -u postgres psql -d %s -c "delete from replayer_timemachine where replay not ILIKE \'%%%s%%\';"' % (
+            temp_db,
+            env.sport
+            )
+        )
+        operations.local('sudo -u postgres psql -d %s -c "update djcelery_periodictask set enabled=\'t\' where task=\'contest.schedule.tasks.create_scheduled_contest_pools\' AND args ILIKE \'%%%s%%\';"' % (
+            temp_db,
+            env.sport
+            )
+        )
 
     # export finished db
     operations.local('sudo -u postgres pg_dump -Fc --no-acl --no-owner %s > /tmp/replayer_generated.dump' % temp_db)

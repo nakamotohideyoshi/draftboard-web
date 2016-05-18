@@ -76,19 +76,17 @@ const PusherData = React.createClass({
    */
   componentDidUpdate(prevProps) {
     let oldSports = prevProps.watching.sport || [];
-    if (typeof oldSports === 'string') {
-      oldSports = [oldSports];
-    }
-
     let newSports = this.props.watching.sport || [];
-    if (typeof newSports === 'string') {
-      newSports = [newSports];
-    }
 
-    if (oldSports !== newSports) {
-      this.unsubscribeToSportSockets(oldSports);
-      this.subscribeToSportSockets(newSports);
-    }
+    // make sure we have an array TODO make sure it's this before we get to this point!
+    if (typeof oldSports === 'string') oldSports = [oldSports];
+    if (typeof newSports === 'string') newSports = [newSports];
+
+    // if unchanged, then return
+    if (oldSports.length > 0 && newSports.length > 0 && oldSports[0] === newSports[0]) return;
+
+    this.unsubscribeToSportSockets(oldSports);
+    this.subscribeToSportSockets(newSports);
   },
 
   /*
@@ -113,8 +111,8 @@ const PusherData = React.createClass({
     }
 
     // if the event didn't involve points, then don't bother bc that's all we deal with
-    if (eventCall.hasOwnProperty('clock') === false) {
-      log.debug('Live.onBoxscoreGameReceived() - call had no points', eventCall);
+    if (eventCall.hasOwnProperty('clock') === false && eventCall.hasOwnProperty('outcome__list') === false) {
+      log.debug('Live.onBoxscoreGameReceived() - call had no time', eventCall);
       return;
     }
 
@@ -174,8 +172,11 @@ const PusherData = React.createClass({
       case 'mlb':
         eventPlayers = [
           eventData.pitcher,
-          eventData.at_bat__id,
         ];
+
+        if (eventCall.hasOwnProperty('at_bat')) {
+          eventPlayers.push(eventCall.at_bat.hitter_id);
+        }
         break;
       case 'nba':
       default:
@@ -220,13 +221,15 @@ const PusherData = React.createClass({
       return;
     }
 
+    if (this.props.relevantGamesPlayers.isLoading) return;
+
     // if it's not a relevant game to the live section, then just update the player's FP to update the NavScoreboard
     if (this.props.relevantGamesPlayers.relevantItems.games.indexOf(gameId) !== -1) {
       // otherwise just update the player's FP
       this.props.dispatch(updatePlayerStats(
         eventCall.fields.player_id,
         eventCall,
-        this.props.myLineup.draftGroup.id
+        this.props.myLineup.draftGroupId
       ));
       return;
     }

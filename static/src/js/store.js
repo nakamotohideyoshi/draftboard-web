@@ -6,6 +6,7 @@
 
 import persistState from 'redux-localstorage';
 import { compose } from 'redux';
+import { enableBatching } from 'redux-batched-actions';
 
 import createStoreWithMiddleware from './middleware/index';
 import reducers from './reducers/index';
@@ -49,7 +50,7 @@ const createPersistentStore = compose(
 )(createStoreWithMiddleware);
 
 // Store WITH localStorage, is default
-export default createPersistentStore(reducers);
+export default createPersistentStore(enableBatching(reducers));
 
 // Store WITHOUT localStorage, turn on if you need to debug
 // export default middleware.createStoreWithMiddleware(reducers)

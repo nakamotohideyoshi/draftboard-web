@@ -294,6 +294,32 @@ $nav-scoreboard-foreground-color: #25A758;
         position: relative;
         line-height: 18px;
         top: -1px;
+        white-space: nowrap;
+
+        > div {
+          display: inline-block;
+        }
+      }
+
+      .mlb-when {
+        display: inline-block;
+        min-width: 7px;
+        position: relative;
+        top: -1px;
+        margin-right: 2px;
+
+        svg {
+          display: inline-block;
+        }
+
+        path {
+          fill: #878b9c;
+        }
+      }
+
+      .mlb-half-inning--top {
+        transform: rotate(180deg);
+        top: 1px;
       }
     }
   }
