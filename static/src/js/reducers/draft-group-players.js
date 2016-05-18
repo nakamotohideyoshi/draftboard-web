@@ -1,5 +1,7 @@
 import { merge as _merge } from 'lodash';
 import * as ActionTypes from '../action-types.js';
+import log from '../lib/logging.js';
+
 
 const initialState = {
   sport: null,
@@ -9,11 +11,11 @@ const initialState = {
   focusedPlayer: null,
   filters: {
     orderBy: {
-      property: 'salary',
+      filterProperty: 'salary',
       direction: 'asc',
     },
     playerSearchFilter: {
-      property: 'player.name',
+      filterProperty: 'player.name',
       match: '',
     },
     positionFilter: {},
@@ -59,6 +61,16 @@ module.exports = (state = initialState, action) => {
     case ActionTypes.DRAFTGROUP_FILTER_CHANGED: {
       // Override any previous filters with what has been passed.
       const filters = _merge({}, state.filters);
+
+      // If nothing has changed, ignore the DRAFTGROUP_FILTER_CHANGED action.
+      if (
+        filters[action.filter.filterName].filterProperty === action.filter.filterProperty &&
+        filters[action.filter.filterName].match === action.filter.match
+      ) {
+        log.info(`${action.filter.filterProperty} filter has not changed, ignoring DRAFTGROUP_FILTER_CHANGED action.`);
+        return state;
+      }
+
       filters[action.filter.filterName] = {
         filterProperty: action.filter.filterProperty,
         match: action.filter.match,

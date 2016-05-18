@@ -1,4 +1,5 @@
 import React from 'react';
+import shallowCompare from 'react-addons-shallow-compare';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import log from '../../lib/logging.js';
@@ -134,6 +135,11 @@ const DraftContainer = React.createClass({
     // KeypressActions.keypressJ.listen(this.focusNextRow);
     // KeypressActions.keypressK.listen(this.focusPreviousRow);
     this.loadData();
+  },
+
+
+  shouldComponentUpdate(nextProps, nextState) {
+    return shallowCompare(this, nextProps, nextState);
   },
 
 
