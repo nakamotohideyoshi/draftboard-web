@@ -1,9 +1,9 @@
 /* eslint no-param-reassign: 0 */
 import React from 'react';
-import shallowCompare from 'react-addons-shallow-compare';
 import * as AppActions from '../../stores/app-state-store.js';
 import Sparkline from './sparkline.jsx';
-import { find as _find } from 'lodash';
+import find from 'lodash/find';
+import isEqual from 'lodash/isEqual';
 import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils.js';
 
 
@@ -26,13 +26,11 @@ const DraftPlayerListRow = React.createClass({
   },
 
 
-  getInitialState() {
-    return {};
-  },
-
-
-  shouldComponentUpdate(nextProps, nextState) {
-    return shallowCompare(this, nextProps, nextState);
+  shouldComponentUpdate(nextProps) {
+    // shallowCompare does a poor job of actually discerning if the props have changed.
+    // use a lodash deep-equal instead. Note: This comparison is slower, but leads to
+    // significantly less re-renders.
+    return !isEqual(this.props, nextProps);
   },
 
 
@@ -81,8 +79,8 @@ const DraftPlayerListRow = React.createClass({
   getNextGame() {
     if (this.props.row.nextGame && this.props.row.nextGame.homeTeam) {
       // get the home + away teams
-      const homeTeam = _find(this.props.row.nextGame, { srid: this.props.row.nextGame.srid_home });
-      const awayTeam = _find(this.props.row.nextGame, { srid: this.props.row.nextGame.srid_away });
+      const homeTeam = find(this.props.row.nextGame, { srid: this.props.row.nextGame.srid_home });
+      const awayTeam = find(this.props.row.nextGame, { srid: this.props.row.nextGame.srid_away });
 
       // if this player is on the away team, make that bold.
       if (this.props.row.team_srid === this.props.row.nextGame.srid_away) {
