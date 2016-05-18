@@ -74,7 +74,7 @@ class RefundManager(AbstractManagerClass):
 
         # remove the entry from the contest, and cleanup contest properties
         contest_pool = entry.contest_pool
-        contest_pool.current_entries += F('current_entries') - 1   # true atomic decrement
+        contest_pool.current_entries = F('current_entries') - 1   # true atomic decrement
         contest_pool.save()
         contest_pool.refresh_from_db()
 
