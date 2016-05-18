@@ -144,7 +144,7 @@ const NavScoreboardSlider = React.createClass({
           <NavScoreboardSeparator />
           <div className="cmp-nav-scoreboard--shadow"></div>
         </div>
-        <div className="slider-content">
+        <div className={`slider-content${scrollableClass}`}>
           <div className="slider-content--holder" ref="content">
             {this.props.children}
           </div>

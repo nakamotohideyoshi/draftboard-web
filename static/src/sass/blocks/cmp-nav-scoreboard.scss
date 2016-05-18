@@ -206,6 +206,15 @@ $nav-scoreboard-foreground-color: #25A758;
         left: 0px;
         transition: left 1s;
       }
+
+      &.not-scrollable {
+        padding-right: 0px;
+        min-width: initial;
+
+        .cmp-nav-scoreboard--separator:last-child {
+          display: none;
+        }
+      }
     }
 
     .arrow {
