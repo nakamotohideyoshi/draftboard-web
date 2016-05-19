@@ -1,7 +1,14 @@
+#
+# lineup/exceptions.py
+
 class LineupDoesNotMatchUser(Exception):
     def __init__(self):
         super().__init__(
            "The lineup does not match the User's account" )
+
+class LineupDoesNotMatchExistingEntryLineup(Exception): pass
+    # def __init__(self, lineup_name):
+    #     super().__init__("Lineup must match the existing lineup '%s' for this Contest." % lineup_name)
 
 class LineupInvalidRosterSpotException(Exception):
     def __init__(self):

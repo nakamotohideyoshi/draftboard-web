@@ -4,7 +4,10 @@
 from mysite.classes import AbstractSiteUserClass
 from django.db.transaction import atomic
 from draftgroup.models import DraftGroup, Player
-from .models import Lineup, Player as LineupPlayer
+from .models import (
+    Lineup,
+    Player as LineupPlayer,
+)
 from sports.classes import SiteSportManager
 from roster.classes import RosterManager
 from .exceptions import (
@@ -49,7 +52,17 @@ class LineupManager(AbstractSiteUserClass):
         :param lineup:
         :return:
         """
-        return [ p.player_id for p in LineupPlayer.objects.filter( lineup=lineup ).order_by('idx') ]
+        return [ p.player_id for p in self.get_players(lineup) ]
+
+    def get_player_srids(self, lineup):
+        """
+        get an array of sports.models.Player "srid"s
+        for the given lineup, ordered by the roster
+
+        :param lineup:
+        :return:
+        """
+        return [ p.player.srid for p in self.get_players(lineup) ]
 
     def get_players(self, lineup):
         """
@@ -58,7 +71,7 @@ class LineupManager(AbstractSiteUserClass):
         :param lineup:
         :return:
         """
-        return LineupPlayer.objects.filter( lineup=lineup )
+        return LineupPlayer.objects.filter( lineup=lineup ).order_by('idx')
 
     def update_fantasy_points(self, lineup):
         """

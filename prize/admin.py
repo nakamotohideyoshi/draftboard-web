@@ -5,7 +5,6 @@ from django.contrib import admin
 
 import prize.models
 
-
 class RankAdminInline(admin.TabularInline):
     model = prize.models.Rank
     list_display = ['prize_structure','rank','amount']
@@ -18,7 +17,6 @@ class RankAdminInline(admin.TabularInline):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
 
 @admin.register(prize.models.PrizeStructure)
 class PrizeStructureAdmin(admin.ModelAdmin):
@@ -33,7 +31,6 @@ class PrizeStructureAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request): # removes Add button
         return False
-
 
 @admin.register(prize.models.CreateTicketPrizeStructure)
 class CreateTicketPrizeStructureAdmin(admin.ModelAdmin):
