@@ -81,9 +81,7 @@ module.exports = (state = {
       return update(state, {
         games: {
           [action.gameId]: {
-            boxscore: {
-              $merge: action.updatedGameFields,
-            },
+            $merge: action.updatedGameFields,
           },
         },
       });

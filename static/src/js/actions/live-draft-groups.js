@@ -161,7 +161,7 @@ const shouldFetchDraftGroupBoxscores = (state, id) => {
   const liveDraftGroups = state.liveDraftGroups;
 
   // error if no draft group to associate players to
-  if (id in liveDraftGroups === false) {
+  if (liveDraftGroups.hasOwnProperty(id) === false) {
     throw new Error('You cannot get boxscore data for a draft group that does not exist yet');
   }
 
@@ -187,7 +187,7 @@ const shouldFetchDraftGroupFP = (state, id) => {
   const liveDraftGroups = state.liveDraftGroups;
 
   // error if no draft group to associate players to
-  if (id in liveDraftGroups === false) {
+  if (liveDraftGroups.hasOwnProperty(id) === false) {
     throw new Error('You cannot get fantasy points for a draft group that does not exist yet');
   }
 

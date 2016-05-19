@@ -5,6 +5,7 @@ import LivePlayerPane from './live-player-pane';
 import log from '../../lib/logging';
 import React from 'react';
 import size from 'lodash/size';
+import { updateLiveMode } from '../../actions/watching';
 import {
   relevantPlayerBoxScoreHistoriesSelector,
   relevantPlayerTeamsSelector,
@@ -26,6 +27,8 @@ const mapStateToProps = (state) => ({
   relevantSeasonStats: relevantPlayerBoxScoreHistoriesSelector(state),
   relevantPlayersGameStats: relevantPlayersSelector(state),
   sports: sportsSelector(state),
+  multipartEvents: state.eventsMultipart.events,
+  watchablePlayers: state.eventsMultipart.watchablePlayers,
 });
 
 /**
@@ -35,9 +38,11 @@ const LiveLineup = React.createClass({
 
   propTypes: {
     changePathAndMode: React.PropTypes.func.isRequired,
+    dispatch: React.PropTypes.func.isRequired,
     draftGroupStarted: React.PropTypes.bool.isRequired,
     lineup: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
+    multipartEvents: React.PropTypes.object.isRequired,
     playerEventDescriptions: React.PropTypes.object.isRequired,
     playersPlaying: React.PropTypes.array.isRequired,
     playerHistories: React.PropTypes.object.isRequired,
@@ -45,7 +50,7 @@ const LiveLineup = React.createClass({
     relevantPlayerTeamsSelector: React.PropTypes.object.isRequired,
     relevantSeasonStats: React.PropTypes.object.isRequired,
     sports: React.PropTypes.object.isRequired,
-    watchingPlayerSRID: React.PropTypes.string,
+    watchablePlayers: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
   },
 
@@ -54,6 +59,18 @@ const LiveLineup = React.createClass({
       // (optional) parameter assigned a player ID when we want to show their LivePlayerPane
       viewPlayerDetails: size(this.props.lineup) > 0 ? this.props.lineup.roster[0] : undefined,
     };
+  },
+
+  /**
+   * Update the store.watching.playerSRID to the player chosen
+   * @param {string} playerSRID  Sports Radar ID of the player
+   */
+  setWatchingPlayer(playerSRID) {
+    if (this.props.whichSide === 'opponent') {
+      this.props.dispatch(updateLiveMode({ opponentPlayerSRID: playerSRID }));
+    } else {
+      this.props.dispatch(updateLiveMode({ myPlayerSRID: playerSRID }));
+    }
   },
 
   /**
@@ -67,6 +84,9 @@ const LiveLineup = React.createClass({
     };
 
     this.props.changePathAndMode(path, changedFields);
+
+    // open the standings pane back up
+    AppActions.addClass('appstate--live-standings-pane--open');
   },
 
   /**
@@ -108,26 +128,34 @@ const LiveLineup = React.createClass({
    * @return {JSXElement}
    */
   renderPlayers() {
+    const { watching } = this.props;
+    const watchingSRID = (this.props.whichSide === 'mine') ? watching.myPlayerSRID : watching.opponentPlayerSRID;
+
     const renderedPlayers = this.props.lineup.roster.map((playerId) => {
       const player = this.props.lineup.rosterDetails[playerId];
       const playerSRID = player.srid;
+      const isWatching = watchingSRID === playerSRID;
       const isPlaying = this.props.playersPlaying.indexOf(playerSRID) !== -1;
-      const isWatching = this.props.watchingPlayerSRID === playerSRID;
       const eventDescription = this.props.playerEventDescriptions[playerSRID] || {};
       const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.watching.sport}/120`;
       const gameStats = this.props.relevantPlayersGameStats[playerSRID] || {};
+      const isWatchable = this.props.watchablePlayers.hasOwnProperty(playerSRID);
+      const multipartEvent = this.props.multipartEvents[player.srid] || {};
 
       return (
         <LiveLineupPlayer
           draftGroupStarted={this.props.draftGroupStarted}
           eventDescription={eventDescription}
-          key={playerId}
+          gameStats={gameStats}
           isPlaying={isPlaying}
+          isWatchable={isWatchable}
           isWatching={isWatching}
+          key={playerId}
+          multipartEvent={multipartEvent}
           openPlayerPane={this.openPlayerPane.bind(this, playerId)}
           player={player}
           playerImagesBaseUrl={playerImagesBaseUrl}
-          gameStats={gameStats}
+          setWatchingPlayer={this.setWatchingPlayer}
           sport={this.props.watching.sport}
           whichSide={this.props.whichSide}
         />

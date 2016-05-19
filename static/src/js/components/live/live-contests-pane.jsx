@@ -34,11 +34,10 @@ const LiveContestsPane = React.createClass({
     };
 
     this.props.changePathAndMode(path, changedFields);
-    this.closePane();
-  },
 
-  closePane() {
+    // open up the standings pane
     AppActions.removeClass('appstate--live-contests-pane--open');
+    AppActions.addClass('appstate--live-standings-pane--open');
   },
 
   renderContests() {
