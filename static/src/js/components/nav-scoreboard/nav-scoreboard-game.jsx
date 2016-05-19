@@ -50,7 +50,7 @@ const NavScoreboardGame = React.createClass({
           default: {
             // otherwise the game is live
             const clock = (boxscore.clock === '00:00') ? 'END OF' : boxscore.clock;
-            clockElement = (<div>{clock}<br />${boxscore.quarterDisplay}</div>);
+            clockElement = (<div>{clock}<br />{boxscore.periodDisplay}</div>);
           }
         }
       }

@@ -3,8 +3,6 @@
 
 // right or left hand pane that slides out on trigger. also includes a back button to close out.
 .live-pane {
-  -webkit-animation-delay: 100ms; /* Chrome, Safari, Opera */
-  animation-delay: 100ms;
   height: 100%;
   position: fixed;
   top: $nav-scoreboard-height;
