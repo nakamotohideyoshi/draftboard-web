@@ -1,6 +1,7 @@
 import React from 'react';
 import { forEach as _forEach } from 'lodash';
 import ordinal from '../../lib/ordinal.js';
+import { formatCurrency } from '../../lib/utils.js';
 
 
 /**
@@ -20,7 +21,7 @@ const PrizeStructure = React.createClass({
       rankList.push(
         <tr key={item.rank}>
           <td className="place">{ordinal(item.rank)}</td>
-          <td className="prize">${item.value}</td>
+          <td className="prize">${formatCurrency(item.value)}</td>
         </tr>
       );
     });
