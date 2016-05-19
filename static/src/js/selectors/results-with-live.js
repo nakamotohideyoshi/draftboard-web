@@ -8,6 +8,7 @@ import { size as _size } from 'lodash';
 import { uniqBy as _uniqBy } from 'lodash';
 import { values as _values } from 'lodash';
 import { dateNow } from '../lib/utils';
+import { calcTotalPotentialEarnings } from './watching';
 
 
 /**
@@ -20,13 +21,14 @@ import { dateNow } from '../lib/utils';
  * contest
  */
 export const resultsWithLive = createSelector(
+  state => state.liveDraftGroups,
   state => liveContestsSelector(state),
   state => myCurrentLineupsSelector(state),
   state => state.currentLineups.items,
   state => state.watching,
   state => state.entries,
 
-  (contestsStats, currentLineupsStats, currentLineups, watching, entries) => {
+  (liveDraftGroups, contestsStats, currentLineupsStats, currentLineups, watching, entries) => {
     const uniqueEntries = _uniqBy(_values(entries.items), 'lineup');
 
     const lineups = _map(uniqueEntries, (entry) => {
@@ -42,7 +44,8 @@ export const resultsWithLive = createSelector(
       if (entries.hasRelatedInfo === true) {
         const lineupSelector = currentLineupsStats[entry.lineup];
         const lineup = currentLineups[entry.lineup];
-        const hasEnded = lineupSelector.draftGroup.closed !== null && lineupSelector.draftGroup.closed < dateNow();
+        const draftGroup = liveDraftGroups[lineup.draftGroupId] || {};
+        const hasEnded = draftGroup.closed !== null && draftGroup.closed < dateNow();
 
         const lineupEntriesInfo = lineupSelector.upcomingContestsStats ||
           _map(lineupSelector.contestsStats, (contestEntry) => ({
@@ -54,6 +57,7 @@ export const resultsWithLive = createSelector(
             payout: {
               amount: contestEntry.potentialWinnings,
             },
+            sport: entry.sport,
             hasNotEnded: hasEnded === false,
           })
         );
@@ -77,9 +81,16 @@ export const resultsWithLive = createSelector(
             entries: _size(lineup.contests),
             points: lineupSelector.points,
             totalBuyin: reduce(lineup.contests || {}, (sum, id) => sum + contestsStats[id].buyin, 0),
-            winning: lineupSelector.potentialWinnings,
+            potentialWinnings: {
+              amount: 0,
+              percentage: 100,
+            },
           },
         });
+
+        if (lineupSelector.hasOwnProperty('contestsStats')) {
+          lineupInfo.potentialWinnings = calcTotalPotentialEarnings(entries, lineupSelector.contestsStats);
+        }
       }
 
       return lineupInfo;

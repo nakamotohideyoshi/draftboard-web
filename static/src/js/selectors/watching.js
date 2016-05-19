@@ -177,7 +177,7 @@ const calcRelevantItems = (myLineup, opponentLineup) =>
  * @param  {object} contestsStats List of contests with their associated stats
  * @return {number}               Total potential earnings for the lineup
  */
-const calcTotalPotentialEarnings = (entries, contestsStats) =>
+export const calcTotalPotentialEarnings = (entries, contestsStats) =>
   reduce(entries, (sum, entry) => {
     // Make sure we have entries.
     if (contestsStats.hasOwnProperty(entry.contest)) {

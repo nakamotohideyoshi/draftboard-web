@@ -629,6 +629,8 @@ $results-selected-text-color: #2bb677;
     .flip-container, .lineup, .contests {
       width: 320px;
       min-height: 480px;
+      display: inline-block;
+      margin-right: 40px;
     }
 
     .flipper {
