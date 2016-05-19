@@ -1,8 +1,14 @@
 #
 # contest/buyin/classes.py
 
+from collections import Counter
 from mysite.classes import AbstractSiteUserClass
-from lineup.models import Lineup
+from lineup.classes import (
+    LineupManager,
+)
+from lineup.models import (
+    Lineup,
+)
 from ..exceptions import (
     ContestLineupMismatchedDraftGroupsException,
     ContestIsInProgressOrClosedException,
@@ -19,7 +25,10 @@ from ..models import (
     ContestPool,
 )
 from .models import Buyin
-from lineup.exceptions import LineupDoesNotMatchUser
+from lineup.exceptions import (
+    LineupDoesNotMatchUser,
+    LineupDoesNotMatchExistingEntryLineup,
+)
 from dfslog.classes import Logger, ErrorCodes
 from ticket.exceptions import  UserDoesNotHaveTicketException
 import ticket.models
@@ -182,12 +191,56 @@ class BuyinManager(AbstractSiteUserClass):
         if lineup is not None and lineup.user != self.user:
             raise LineupDoesNotMatchUser()
 
-        #
+        # get the current entry objects for the user
+        entries = self.get_user_entries(contest_pool)
+
         # Make sure that a contest cannot be entered and the user has not entered
         # more teams than they are allowed.
-        entries = Entry.objects.filter(user=self.user, contest_pool=contest_pool)
-        if len(entries) >= contest_pool.max_entries: # max USER entries that is
+        if len(entries) >= contest_pool.max_entries:
             raise ContestMaxEntriesReachedException()
+
+        # ensure the lineup attempting to be submitted
+        # is the same as any existing lineups.
+        # raises LineupDoesNotMatchExisting
+        self.validate_lineup_players_match_existing_entries(lineup, entries)
+
+    def validate_lineup_players_match_existing_entries(self, lineup, entries):
+        """
+        validate the lineup has the same players as any entries that already exist
+
+        :param lineup: the lineup attempted to be entered
+        :param entries: entry objects which 'lineup' must be equivalent to (ie: have the same players)
+        :return:
+        """
+        #print('+---------------------------------------------+')
+        #print('lineup name:', str(lineup.name))
+        if len(entries) == 0:
+            return
+
+        lm = LineupManager(self.user)
+        player_srids = lm.get_player_srids(lineup)
+
+        for entry in entries:
+            if entry.lineup is None:
+                continue
+            entry_lineup_player_srids = lm.get_player_srids(entry.lineup)
+            if Counter(player_srids) != Counter(entry_lineup_player_srids):
+                # debug
+                #print('Counter(player_srids) != Counter(entry_lineup_player_srids)')
+                #print('lineup       :', str(dict(Counter(player_srids))))
+                #print('entry lineup :', str(dict(Counter(entry_lineup_player_srids))))
+                err_msg = "Lineup must match the existing lineup '%s' for this Contest." % lineup.name
+                raise LineupDoesNotMatchExistingEntryLineup(err_msg)
+
+        #print('+---------------------------------------------+')
+
+    def get_user_entries(self, contest_pool):
+        """
+        get a queryset of the user's entries currently in the ContestPool
+        :param contest_pool:
+        :return:
+        """
+        return Entry.objects.filter(user=self.user, contest_pool=contest_pool)
 
     def check_contest_full(self, contest_pool):
         """
