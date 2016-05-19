@@ -49,6 +49,7 @@ describe('actions.eventsMultipart.storeEventMultipart', () => {
         {
           type: types.EVENT_MULTIPART_MERGE_PLAYERS,
           players,
+          eventId: key,
         },
       ],
     }];
