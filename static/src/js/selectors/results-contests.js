@@ -24,11 +24,8 @@ export const resultsContestsSelector = createSelector(
       const draftGroup = draftGroups[contest.info.draft_group];
       const prizeStructure = prizes[contest.info.prize_structure];
 
-      // if undefined and we're still trying, then return. occurs when cached for days
-      if (draftGroup === undefined) return;
-
       const stats = {
-        boxScores: draftGroup.boxScores || null,
+        boxScores: null,
         buyin: contest.info.buyin,
         draftGroupId: contest.info.draft_group,
         entriesCount: contest.info.entries,
@@ -39,10 +36,17 @@ export const resultsContestsSelector = createSelector(
         teams: sports[contest.info.sport],
       };
 
-      contestsStats[id] = _merge(
-        stats,
-        rankContestLineups(contest, draftGroup, {}, prizeStructure.info, [])
-      );
+      // if undefined and we're still trying, then return. occurs when cached for days
+      if (draftGroup !== undefined) {
+        stats.boxScores = draftGroup.boxScores;
+
+        contestsStats[id] = _merge(
+          stats,
+          rankContestLineups(contest, draftGroup, {}, prizeStructure.info, [])
+        );
+      } else {
+        contestsStats[id] = stats;
+      }
     });
 
     return contestsStats;
