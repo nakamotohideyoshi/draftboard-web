@@ -122,7 +122,7 @@ const Live = React.createClass({
    * @param  {object} changedFields The changed fields in store.live substore
    */
   changePathAndMode(path, changedFields) {
-    log.debug('Live.changePathAndMode()', path);
+    log.debug('Live.changePathAndMode()', path, changedFields);
 
     // update the URL path
     this.props.dispatch(routerPush(path));
@@ -187,11 +187,12 @@ const Live = React.createClass({
 
   render() {
     const {
-      draftGroupTiming,
-      relevantGamesPlayers,
       contest,
+      draftGroupTiming,
       myLineup,
       opponentLineup,
+      params,
+      relevantGamesPlayers,
       uniqueEntries,
       watching,
     } = this.props;
@@ -200,7 +201,7 @@ const Live = React.createClass({
     if (uniqueEntries.haveLoaded === false) return this.renderLoadingScreen();
 
     // choose a lineup if we haven't yet
-    if (watching.myLineupId === null) {
+    if (watching.myLineupId === null && params.hasOwnProperty('myLineupId') === false) {
       return (
         <div className="live__bg">
           <LiveLineupSelectModal
@@ -252,19 +253,12 @@ const Live = React.createClass({
     // if viewing a contest, then add standings pane and moneyline
     if (watching.contestId !== null && !contest.isLoading) {
       contestsPaneOpen = false;
-
-      liveStandingsPane = (
-        <LiveStandingsPane
-          changePathAndMode={this.changePathAndMode}
-          contest={contest}
-          lineups={contest.lineups}
-          rankedLineups={contest.rankedLineups}
-          watching={watching}
-        />
-      );
+      let standingsPaneOpen = true;
 
       // if viewing an opponent, add in lineup and update moneyline
       if (watching.opponentLineupId !== null && !opponentLineup.isLoading) {
+        standingsPaneOpen = false;
+
         opponentLineupComponent = (
           <LiveLineup
             changePathAndMode={this.changePathAndMode}
@@ -275,6 +269,17 @@ const Live = React.createClass({
           />
         );
       }
+
+      liveStandingsPane = (
+        <LiveStandingsPane
+          changePathAndMode={this.changePathAndMode}
+          contest={contest}
+          lineups={contest.lineups}
+          openOnStart={standingsPaneOpen}
+          rankedLineups={contest.rankedLineups}
+          watching={watching}
+        />
+      );
     }
 
     return (

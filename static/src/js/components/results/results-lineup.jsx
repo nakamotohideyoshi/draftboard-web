@@ -33,7 +33,7 @@ const ResultsLineup = React.createClass({
       entries: React.PropTypes.number,
       fees: React.PropTypes.number,
       points: React.PropTypes.number,
-      winning: React.PropTypes.number,
+      potentialWinnings: React.PropTypes.object,
     }),
   },
 
@@ -86,11 +86,18 @@ const ResultsLineup = React.createClass({
     const isUpcoming = isTimeInFuture(this.props.start);
 
     const players = this.props.players.map((player) => {
+      let playerImage = `${playerImagesBaseUrl}/${player.player_meta.srid}.png`;
+
+      // TODO remove once we have player images
+      if (this.props.sport === 'mlb') {
+        playerImage = '/static/src/img/temp/mlb-player.png';
+      }
+
       const playerPhoto = (
         <img
           alt="Player Headshot"
           className="player-image"
-          src={`${playerImagesBaseUrl}/${player.player_meta.srid}.png`}
+          src={playerImage}
         />
       );
 
@@ -192,7 +199,7 @@ const ResultsLineup = React.createClass({
             <div className="item">
               <span className="title">Winning</span>
               <span className="value">
-                {this.props.liveStats.winning.toFixed(2)}
+                {this.props.liveStats.potentialWinnings.amount.toFixed(2)}
               </span>
             </div>
             <div className="item">
@@ -293,6 +300,7 @@ const ResultsLineup = React.createClass({
           entry={this.state.currentEntry}
           onHide={this.handleHideContestPane}
           numToPlace={this.numToPlace}
+          sport={this.props.sport}
         />
       </div>
     );

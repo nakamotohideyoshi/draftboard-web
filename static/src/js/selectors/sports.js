@@ -5,6 +5,7 @@ import {
   round as _round,
 } from 'lodash';
 import { createSelector } from 'reselect';
+import { GAME_DURATIONS } from '../actions/sports';
 
 
 const currentGames = (state) => state.sports.games;
@@ -24,6 +25,7 @@ export const sportsSelector = createSelector(
     _forEach(sports.games, (game, gameId) => {
       const newGame = sports.games[gameId];
       const sport = game.sport;
+      const sportConst = GAME_DURATIONS[sport];
       const teams = sports[sport].teams;
 
       // Add team information - In case we don't have team info yet, default to
@@ -33,17 +35,26 @@ export const sportsSelector = createSelector(
 
       // update quarter to display properly
       if (newGame.hasOwnProperty('boxscore')) {
-        let quarter = _round(newGame.boxscore.quarter, 0);
+        let period = 1;
 
-        if (quarter > 4) {
-          quarter = `${(quarter % 4).toString()}OT`;
+        switch (sport) {
+          case 'nhl':
+            period = _round(newGame.boxscore.period, 0);
 
-          if (quarter === '1OT') {
-            quarter = 'OT';
-          }
+            if (period > sportConst.periods) {
+              period = `${(period % sportConst.periods).toString()}OT`;
+
+              if (period === '1OT') {
+                period = 'OT';
+              }
+            }
+            break;
+          case 'nba':
+          default:
+            period = _round(newGame.boxscore.quarter, 0);
         }
 
-        newGame.boxscore.quarterDisplay = quarter;
+        newGame.boxscore.periodDisplay = period;
       }
     });
 

@@ -4,6 +4,7 @@ import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { fetchContestIfNeeded } from '../../actions/live-contests';
+import { fetchDraftGroupIfNeeded } from '../../actions/live-draft-groups';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
 import { fetchDraftGroupBoxscoresIfNeeded } from '../../actions/live-draft-groups.js';
 import { Provider, connect } from 'react-redux';
@@ -19,6 +20,7 @@ const ResultsPane = React.createClass({
     resultsContestsSelector: React.PropTypes.object.isRequired,
     onHide: React.PropTypes.func,
     numToPlace: React.PropTypes.func,
+    sport: React.PropTypes.string.isRequired,
   },
 
   getInitialState() {
@@ -34,12 +36,22 @@ const ResultsPane = React.createClass({
   componentWillUpdate(nextProps) {
     if (nextProps.contestId !== null && nextProps.contestId !== this.props.contestId) {
       this.props.dispatch(
-        fetchContestIfNeeded(nextProps.contestId, nextProps.entry.sport, true)
+        fetchContestIfNeeded(nextProps.contestId, this.props.sport, true)
       ).then(() => {
         const newContestInfo = this.props.resultsContestsSelector[this.props.contestId];
 
+        // if we don't have a draft group, retrieve!
+        if (newContestInfo.hasOwnProperty('rankedLineups') === false) {
+          this.props.dispatch(
+            fetchDraftGroupIfNeeded(newContestInfo.draftGroupId, this.props.sport)
+          ).then(() => {
+            this.props.dispatch(fetchDraftGroupBoxscoresIfNeeded(newContestInfo.draftGroupId));
+          });
+        } else {
+          this.props.dispatch(fetchDraftGroupBoxscoresIfNeeded(newContestInfo.draftGroupId));
+        }
+
         this.props.dispatch(fetchContestLineupsUsernamesIfNeeded(this.props.contestId));
-        this.props.dispatch(fetchDraftGroupBoxscoresIfNeeded(newContestInfo.draftGroupId));
       });
     }
   },
@@ -176,7 +188,10 @@ const ResultsPane = React.createClass({
     const tabNav = this.getTabNav();
 
     // show loading until we have data
-    if (contest.hasOwnProperty('prizeStructure') === false || contest.boxScores === null) {
+    if (contest.hasOwnProperty('prizeStructure') === false ||
+      contest.boxScores === null ||
+      contest.hasOwnProperty('rankedLineups') === false
+    ) {
       return (
         <section className="pane pane--contest-detail pane--contest-results">
           <div className="pane__close" onClick={this.handleHide}></div>

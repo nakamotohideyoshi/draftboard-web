@@ -37,7 +37,6 @@ const LiveContestsPane = React.createClass({
 
     // open up the standings pane
     AppActions.removeClass('appstate--live-contests-pane--open');
-    AppActions.addClass('appstate--live-standings-pane--open');
   },
 
   renderContests() {
