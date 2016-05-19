@@ -44,7 +44,6 @@
 
   &__watching-info {
     background: #1d2130;
-    box-shadow: 0px 0px 19px 1px rgba(42, 108, 148, 0.75), 0px 0px 53px 0px rgba(15, 90, 136, 0.1);
     border-radius: 32px;
     height: 62px;
     left: 138px;
@@ -57,8 +56,21 @@
   .live-player-watching {
     color: #fff;
     display: table;
-    padding: 14px 18px;
     white-space: nowrap;
+
+    &--active {
+      box-shadow: 0px 0px 19px 1px rgba(42, 108, 148, 0.75), 0px 0px 53px 0px rgba(15, 90, 136, 0.1);
+      padding: 14px 18px;
+    }
+
+    &--possible {
+      cursor: pointer;
+      padding: 4px 18px;
+
+      .live-player-watching__choose {
+        display: block;
+      }
+    }
 
     & > * {
       display: table-cell;
@@ -85,6 +97,12 @@
       font-size: 12px;
     }
 
+    &__choose {
+      color: #878b9c;
+      display: none;
+      font-size: 10px;
+    }
+
     &__inning {
       color: #878b9c;
       display: inline-block;
@@ -92,8 +110,6 @@
     }
 
     &__bases {
-      background: transparent url(../img/temp/mlb-bases.png) no-repeat right center;
-      background-size: auto 92%;
       width: 34px;
       padding-left: 44px;
       min-width: 34px;

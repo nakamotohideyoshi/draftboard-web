@@ -1,13 +1,11 @@
 import * as ReactRedux from 'react-redux';
 import filter from 'lodash/filter';
 import LiveAnimationArea from './live-animation-area';
-import LiveBottomNav from './live-bottom-nav';
 import LiveContestsPane from './live-contests-pane';
 import LiveCountdown from './live-countdown';
 import LiveHeader from './live-header';
 import LiveLineup from './live-lineup';
 import LiveLineupSelectModal from './live-lineup-select-modal';
-import LiveMoneyline from './live-moneyline';
 import LiveStandingsPane from './live-standings-pane';
 import log from '../../lib/logging';
 import React from 'react';
@@ -15,7 +13,6 @@ import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
 import { checkForUpdates } from '../../actions/watching';
-import { eventsMultipart } from '../../selectors/events-multipart';
 import { fetchContestLineups } from '../../actions/live-contests';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
 import { fetchEntriesIfNeeded } from '../../actions/entries';
@@ -42,7 +39,7 @@ import {
  */
 const mapStateToProps = (state) => ({
   draftGroupTiming: watchingDraftGroupTimingSelector(state),
-  eventsMultipart: eventsMultipart(state),
+  eventsMultipart: state.eventsMultipart,
   relevantGamesPlayers: relevantGamesPlayersSelector(state),
   contest: watchingContestSelector(state),
   myLineup: watchingMyLineupSelector(state),
@@ -67,12 +64,6 @@ const Live = React.createClass({
     params: React.PropTypes.object,
     uniqueEntries: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
-  },
-
-  getInitialState() {
-    return {
-      watchingPlayerSRID: '956280da-4ce3-41db-8830-e04ef52bb0f2',
-    };
   },
 
   /**
@@ -222,7 +213,7 @@ const Live = React.createClass({
     }
 
     // show the countdown until it goes live
-    const myEntry = uniqueEntries.entriesObj[watching.myLineupId];
+    const myEntry = uniqueEntries.entriesObj[watching.myLineupId] || {};
     if (!myEntry.hasStarted) {
       // wait to show lineup until it's ready
       let countdownLineup;
@@ -234,7 +225,6 @@ const Live = React.createClass({
             lineup={myLineup}
             watching={watching}
             whichSide="mine"
-            watchingPlayerSRID={this.state.watchingPlayerSRID}
           />
         );
       }
@@ -256,13 +246,11 @@ const Live = React.createClass({
 
     // defining optional component pieces
     let liveStandingsPane;
-    let moneyLine;
     let opponentLineupComponent;
     let contestsPaneOpen = true;
 
     // if viewing a contest, then add standings pane and moneyline
     if (watching.contestId !== null && !contest.isLoading) {
-      let opponentWinPercent;
       contestsPaneOpen = false;
 
       liveStandingsPane = (
@@ -277,32 +265,16 @@ const Live = React.createClass({
 
       // if viewing an opponent, add in lineup and update moneyline
       if (watching.opponentLineupId !== null && !opponentLineup.isLoading) {
-        // if not villian watch, then show opponent
-        if (opponentLineup.id !== 1) {
-          opponentWinPercent = opponentLineup.potentialWinnings.percent;
-        }
-
         opponentLineupComponent = (
           <LiveLineup
             changePathAndMode={this.changePathAndMode}
             draftGroupStarted={draftGroupTiming.started}
             lineup={opponentLineup}
             watching={watching}
-            watchingPlayerSRID={this.state.watchingPlayerSRID}
             whichSide="opponent"
           />
         );
       }
-
-      moneyLine = (
-        <section className="live-moneyline live-moneyline--contest-overall">
-          <LiveMoneyline
-            percentageCanWin={contest.percentageCanWin}
-            myWinPercent={contest.potentialWinnings.percent}
-            opponentWinPercent={opponentWinPercent}
-          />
-        </section>
-      );
     }
 
     return (
@@ -312,7 +284,6 @@ const Live = React.createClass({
           draftGroupStarted={draftGroupTiming.started}
           lineup={myLineup}
           watching={watching}
-          watchingPlayerSRID={this.state.watchingPlayerSRID}
           whichSide="mine"
         />
 
@@ -329,13 +300,10 @@ const Live = React.createClass({
             />
 
             <LiveAnimationArea
-              multipartEvents={this.props.eventsMultipart}
+              eventsMultipart={this.props.eventsMultipart}
               sport={watching.sport}
+              watching={watching}
             />
-
-            {moneyLine}
-
-            <LiveBottomNav hasContest={watching.contestId !== null} />
           </div>
         </section>
 

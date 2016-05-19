@@ -1,3 +1,4 @@
+import * as AppActions from '../../stores/app-state-store';
 import LiveOverallStats from './live-overall-stats';
 import React from 'react';
 
@@ -27,6 +28,9 @@ const LiveHeader = React.createClass({
     };
 
     this.props.changePathAndMode(path, changedFields);
+
+    // open the standings pane back up
+    AppActions.addClass('appstate--live-contests-pane--open');
   },
 
   /**

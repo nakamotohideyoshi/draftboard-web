@@ -26,25 +26,26 @@ module.exports = (state = initialState, action) => {
       });
 
     case ActionTypes.EVENT_ADD_GAME_QUEUE:
-      // update if already running
-      if (state.gamesQueue.hasOwnProperty(action.gameId)) {
-        return update(state, {
-          gamesQueue: {
-            [action.gameId]: {
-              queue: {
-                $push: [action.gameQueueEvent],
-              },
-            },
-          },
-        });
-      }
-
-      // otherwise make a new queue
       return update(state, {
         gamesQueue: {
-          $set: {
+          $merge: {
             [action.gameId]: {
-              queue: [action.gameQueueEvent],
+              queue: [],
+            },
+          },
+        },
+      });
+
+    case ActionTypes.EVENT_GAME_QUEUE_PUSH:
+      if (state.gamesQueue.hasOwnProperty(action.gameId) === false) {
+        throw new Error(`Cannot push an event to a game that does not exist, gameId ${action.gameId}`);
+      }
+
+      return update(state, {
+        gamesQueue: {
+          [action.gameId]: {
+            queue: {
+              $push: [action.event],
             },
           },
         },

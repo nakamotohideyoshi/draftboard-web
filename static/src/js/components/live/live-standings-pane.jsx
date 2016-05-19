@@ -3,7 +3,6 @@ import * as ReactRedux from 'react-redux';
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import { debounce as _debounce } from 'lodash';
-import { filter as _filter } from 'lodash';
 import { map as _map } from 'lodash';
 
 import LivePMRProgressBar from './live-pmr-progress-bar';
@@ -28,12 +27,15 @@ const LiveStandingsPane = React.createClass({
 
   getInitialState() {
     return {
-      page: 1,                      // Current page number starting from 1.
-      perPage: 10,                  // Items per page.
-      search: false,                // Whether or not search form is shown.
-      searchValue: '',              // Search input value.
-      currentTab: 'standings',      // Currently shown tab.
-      currentPositionFilter: 'all', // Current players filter in ownership tab.
+      page: 1,                             // Current page number starting from 1.
+      perPage: 10,                         // Items per page.
+      searchValue: '',                     // Search input value.
+      searchResults: [],                   // Results of the search.
+      searchPlaceholder: 'Search Players', // Search field placeholder.
+      currentTab: 'standings',             // Currently shown tab.
+      playersSortKey: null,                // Key to sort players.
+      playersSortAsc: false,               // Is players sort ascending or descending.
+      playersWatched: [],                  // Watched players.
     };
   },
 
@@ -55,10 +57,26 @@ const LiveStandingsPane = React.createClass({
       data = _map(rankedLineups, (lineupId) => lineups[lineupId]);
     } else {
       data = this.props.contest.playersOwnership.all.slice();
-      const filter = this.state.currentPositionFilter;
 
-      if (filter !== 'all') {
-        data = _filter(data, p => p.position.toLowerCase() === filter);
+      if (this.state.playersSortKey) {
+        const key = this.state.playersSortKey;
+        const asc = this.state.playersSortAsc;
+
+        data.sort((p, n) => {
+          let r;
+
+          if (key === 'pmr') {
+            r = p.stats.decimalRemaining - n.stats.decimalRemaining;
+          } else if (key === 'pts') {
+            r = p.stats.fp - n.stats.fp;
+          } else if (key === 'owned') {
+            r = p.ownershipPercent - n.ownershipPercent;
+          }
+
+          if (!asc) r *= -1;
+
+          return r;
+        });
       }
     }
 
@@ -67,7 +85,7 @@ const LiveStandingsPane = React.createClass({
         data = data.filter(p => this.state.searchResults.indexOf(p.id) !== -1);
       } else {
         const s = this.state.searchValue;
-        data = data.filter(p => p.name.toLowerCase().indexOf(s.toLowerCase()) !== -1);
+        data = data.filter(p => p.info.name.toLowerCase().indexOf(s.toLowerCase()) !== -1);
       }
     }
 
@@ -85,20 +103,21 @@ const LiveStandingsPane = React.createClass({
   handleViewOwnership() {
     this.setState({
       page: 1,
-      search: false,
       searchValue: '',
       searchResults: [],
+      searchPlaceholder: 'Search Players',
       currentTab: 'ownership',
-      currentPositionFilter: 'all',
+      playersSortKey: null,
+      playersSortAsc: false,
     });
   },
 
   handleViewStandings() {
     this.setState({
       page: 1,
-      search: false,
       searchValue: '',
       searchResults: [],
+      searchPlaceholder: 'Search Users',
       currentTab: 'standings',
     });
   },
@@ -129,13 +148,8 @@ const LiveStandingsPane = React.createClass({
     AppActions.toggleLiveRightPane('appstate--live-standings-pane--open');
   },
 
-  handleSetPositionFilter(currentPositionFilter) {
-    this.setState({ currentPositionFilter, page: 1 });
-  },
-
-  handleToggleSearch() {
+  handleFocusSearch() {
     this.setState({
-      search: !this.state.search,
       searchValue: '',
     });
 
@@ -181,42 +195,102 @@ const LiveStandingsPane = React.createClass({
       });
   },
 
-  handleSearchInputBlur() {
-    if (this.refs.search.value === '') {
-      this.setState({ search: false });
+  handleSortPlayers(key) {
+    if (key !== 'pmr' && key !== 'pts' && key !== 'owned') return;
+
+    if (this.state.playersSortKey === key) {
+      this.setState({
+        playersSortAsc: !this.state.playersSortAsc,
+      });
+    } else {
+      this.setState({
+        playersSortKey: key,
+        playersSortAsc: false,
+      });
     }
   },
 
-  handleClosePane() {
+  handleToggleWatchPlayer(id) {
+    let playersWatched = this.state.playersWatched.slice();
+
+    if (playersWatched.indexOf(id) !== -1) {
+      playersWatched = playersWatched.filter(i => i !== id);
+    } else {
+      playersWatched.push(id);
+    }
+
+    this.setState({ playersWatched });
+  },
+
+  backToContestsPane() {
     AppActions.removeClass('appstate--live-standings-pane--open');
+    AppActions.addClass('appstate--live-contests-pane--open');
   },
 
   renderHeader() {
+    const { contest } = this.props;
+    const winnings = contest.potentialEarnings;
+
+    let moneyLineClass = 'live-moneyline';
+    const myPercentagePosition = 100 - contest.myPercentagePosition;
+
+    if (contest.percentageCanWin <= contest.myPercentagePosition) {
+      moneyLineClass += ' live-moneyline--is-losing';
+    }
+
     return (
       <div className="live-standings-pane__header">
-        <div
-          className={`title${(this.state.currentTab === 'standings' ? ' active' : '')}`}
-          onClick={this.handleViewStandings}
-        >
-          Standings
-          <div className="border"></div>
+        <div className="stats">
+          <div className="title">{contest.name}</div>
+          <div className="profit">
+            <div className="fees">
+              ${contest.buyin} Fees
+            </div>
+            {" "} / {" "}
+            <div className="earnings">
+              Winning
+              {" "}
+              <span>${winnings || winnings.toFixed(2)}</span>
+            </div>
+          </div>
         </div>
-        <div
-          className={`title${(this.state.currentTab === 'ownership' ? ' active' : '')}`}
-          onClick={this.handleViewOwnership}
-        >
-          % Owned
-          <div className="border"></div>
+        <section className={moneyLineClass}>
+          <div className="live-moneyline__pmr-line">
+            <div
+              className="live-moneyline__current-position"
+              style={{ left: `${myPercentagePosition}%` }}
+            ></div>
+            <div className="live-moneyline__winners" style={{ width: `${contest.percentageCanWin}%` }}></div>
+          </div>
+        </section>
+        <div className="menu">
+          <div className={`title${(this.state.currentTab === 'standings' ? ' active' : '')}`}
+            onClick={this.handleViewStandings}
+          >
+            Standings
+            <div className="border"></div>
+          </div>
+          <div className={`title${(this.state.currentTab === 'ownership' ? ' active' : '')}`}
+            onClick={this.handleViewOwnership}
+          >
+            Players
+            <div className="border"></div>
+          </div>
         </div>
-        <div className={`search${(this.state.search ? ' active' : '')}`}>
-          <div className="icon" onClick={this.handleToggleSearch}></div>
-          <input type="text"
-            ref="search"
-            value={this.state.searchValue}
-            onBlur={this.handleSearchInputBlur}
-            onChange={this.handleSearchTermChanged}
-          />
-        </div>
+      </div>
+    );
+  },
+
+  renderSearchForm() {
+    return (
+      <div className={`search${(this.state.search ? ' active' : '')}`}>
+        <div className="icon" onClick={this.handleFocusSearch}></div>
+        <input type="text"
+          ref="search"
+          value={this.state.searchValue}
+          placeholder={this.state.searchPlaceholder}
+          onChange={this.handleSearchTermChanged}
+        />
       </div>
     );
   },
@@ -230,7 +304,7 @@ const LiveStandingsPane = React.createClass({
     );
 
     // if only one page, then don't show paginator
-    if (maxPage === 1) {
+    if (maxPage <= 1) {
       return null;
     }
 
@@ -282,7 +356,7 @@ const LiveStandingsPane = React.createClass({
           className="overlay"
           onClick={this.handleViewOpponentLineup.bind(this, lineup.id)}
         >
-          Compare Lineup
+          Watch Live Matchup
         </div>
       );
 
@@ -313,15 +387,27 @@ const LiveStandingsPane = React.createClass({
           <div className="lineup--place">{lineup.rank}</div>
           { pmr }
           <div className="lineup--score-name">{username}</div>
-          <div className="lineup--score-points"><b>{lineup.fp}</b> <span>Pts</span></div>
+          <div className="lineup--score-points">{lineup.fp} Pts</div>
           <div className={earningsClass}>${potentialWinnings}</div>
           { overlay }
         </div>
       );
     });
 
+    let headers = null;
+    if (standings.length) {
+      headers = (
+        <div className="header">
+          <div className="pmr">PMR</div>
+          <div className="pts">PTS</div>
+          <div className="prize">Prize</div>
+        </div>
+      );
+    }
+
     return (
       <div className="standings-list">
+        {headers}
         {standings}
       </div>
     );
@@ -335,31 +421,102 @@ const LiveStandingsPane = React.createClass({
       Math.min(page * perPage, data.length)
     );
 
-    const players = data.map((player) => (
-      <div key={player.id} className="player">
-        <div className="player--position">{player.position}</div>
-        <div className="player--pmr-photo">
-          <LivePMRProgressBar
-            decimalRemaining={player.timeRemaining.decimal}
-            strokeWidth={3}
-            backgroundHex="46495e"
-            hexStart="ffffff"
-            hexEnd="ffffff"
-            svgWidth={50}
-            id={`${player.id}StandingsPlayer`}
-          />
-          <div className="avatar" />
+    const players = data.map((player) => {
+      const isWatched = this.state.playersWatched.indexOf(player.id) !== -1;
+      const overlayTitle = isWatched ? 'Remove from watch' : 'Add to watch';
+      const progressHexStart = isWatched ? '422752' : 'ffffff';
+      const progressHexEnd = isWatched ? 'ff0000' : 'ffffff';
+
+      return (
+        <div key={player.id} className={`player ${isWatched ? 'watched' : ''}`}>
+          <div className="player--position">{player.info.position}</div>
+          <div className="player--pmr-photo">
+            <LivePMRProgressBar
+              decimalRemaining={player.timeRemaining.decimal}
+              strokeWidth={3}
+              backgroundHex="46495e"
+              hexStart={progressHexStart}
+              hexEnd={progressHexEnd}
+              svgWidth={50}
+              id={`${player.id}StandingsPlayer`}
+            />
+            <div className="avatar" />
+          </div>
+          <div className="player--name">
+            {player.name} <div className="team">{player.team_alias}</div>
+          </div>
+          <div className="player--points"><b>{player.fp}</b><span>Pts</span></div>
+          <div className="player--progress">{player.ownershipPercent}%</div>
+          <div
+            className="player--overlay"
+            onClick={this.handleToggleWatchPlayer.bind(this, player.id)}
+          >
+            {overlayTitle}
+          </div>
         </div>
-        <div className="player--name">
-          {player.name} <div className="team">{player.teamAlias}</div>
+      );
+    });
+
+    let pmrClass = '';
+    let ptsClass = '';
+    let ownedClass = '';
+    let sorterClass = ' sorter';
+
+    if (this.state.playersSortAsc) {
+      sorterClass += ' asc';
+    } else {
+      sorterClass += ' desc';
+    }
+
+    if (this.state.playersSortKey === 'pmr') {
+      pmrClass = sorterClass;
+    } else if (this.state.playersSortKey === 'pts') {
+      ptsClass = sorterClass;
+    } else if (this.state.playersSortKey === 'owned') {
+      ownedClass = sorterClass;
+    }
+
+    let headers = null;
+    if (players.length) {
+      let icon = (
+        <svg
+          className="icon icon-arrow down-arrow-icon"
+          height="7"
+          onClick={this.handleScrollRight}
+          viewBox="0 0 16 16"
+          width="7"
+        >
+          <g>
+            <line strokeWidth="2.5" x1="10.3" y1="2.3" x2="4.5" y2="8.1" />
+            <line strokeWidth="2.5" x1="3.6" y1="7.3" x2="10.1" y2="13.8" />
+          </g>
+        </svg>
+      );
+
+      headers = (
+        <div className="header">
+          <div className={`pmr ${pmrClass}`}>
+            <span onClick={this.handleSortPlayers.bind(this, 'pmr')}>
+              {icon} PMR
+            </span>
+          </div>
+          <div className={`pts ${ptsClass}`}>
+            <span onClick={this.handleSortPlayers.bind(this, 'pts')}>
+              {icon} PTS
+            </span>
+          </div>
+          <div className={`owned ${ownedClass}`}>
+            <span onClick={this.handleSortPlayers.bind(this, 'owned')}>
+              {icon} {" "} % Owned
+            </span>
+          </div>
         </div>
-        <div className="player--points"><b>{player.fp}</b><span>Pts</span></div>
-        <div className="player--progress">{player.ownershipPercent}%</div>
-      </div>
-    ));
+      );
+    }
 
     return (
       <div className="ownership-list">
+        {headers}
         {players}
       </div>
     );
@@ -374,6 +531,7 @@ const LiveStandingsPane = React.createClass({
     return (
       <div className="inner">
         {this.renderHeader()}
+        {this.renderSearchForm()}
         {this.renderStandings()}
         {this.renderPages()}
       </div>
@@ -383,32 +541,10 @@ const LiveStandingsPane = React.createClass({
   renderOwnershipTab() {
     if (this.state.currentTab !== 'ownership') return null;
 
-    const filters = ['all', 'pg', 'sg', 'sf', 'pf', 'c'].map((f) => {
-      let className = `position-filter ${f}`;
-      if (f === this.state.currentPositionFilter) className += ' active';
-
-      return (
-          <div key={f}
-            className={className}
-            onClick={this.handleSetPositionFilter.bind(this, f)}
-          >
-          {f}
-        </div>
-      );
-    });
-
-    let onClick = '';
-    if (this.props.watching.opponentLineupId !== 1) {
-      onClick = this.handleViewOpponentLineup.bind(this, 1);
-    }
-
     return (
       <div className="inner">
         {this.renderHeader()}
-        <div className="position-filter">{filters}</div>
-        <div className="watch-live" onClick={onClick}>
-          Watch top 8 owned players live
-        </div>
+        {this.renderSearchForm()}
         {this.renderPlayers()}
         {this.renderPages()}
       </div>
@@ -420,7 +556,7 @@ const LiveStandingsPane = React.createClass({
 
     return (
       <div className={classNames}>
-        <div className="live-pane__close" onClick={this.handleClosePane}></div>
+        <div className="live-pane__back" onClick={this.backToContestsPane}></div>
         {this.renderStandingsTab()}
         {this.renderOwnershipTab()}
       </div>

@@ -125,12 +125,15 @@ const NavScoreboard = React.createClass({
         count = this.props.sportsSelector[sport].gameIds.length;
       }
 
-      options.push({
-        option: `${sport} games`,
-        type: TYPE_SELECT_GAMES,
-        key: sport,
-        count,
-      });
+      // Don't show inactive sports.
+      if (count > 0) {
+        options.push({
+          option: `${sport} games`,
+          type: TYPE_SELECT_GAMES,
+          key: sport,
+          count,
+        });
+      }
     });
 
     // add in lineups if user is logged in
@@ -200,9 +203,7 @@ const NavScoreboard = React.createClass({
       ) {
         this.props.dispatch(updateGameTime(
           eventData.id,
-          eventData.clock,
-          eventData.quarter,
-          eventData.status
+          eventData
         ));
       }
     });
