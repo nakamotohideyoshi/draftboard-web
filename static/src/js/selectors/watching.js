@@ -111,7 +111,7 @@ const calcEntryContestStats = (lineup, lineupContests, liveContests) => {
   // loop through each of the lineup's entered contests
   forEach(lineupContests, (contestId) => {
     // Make sure we have lineups.
-    if (!liveContests[contestId].hasOwnProperty('lineups')) return;
+    if (liveContests.hasOwnProperty(contestId) === false || !liveContests[contestId].hasOwnProperty('lineups')) return;
 
     const liveContest = liveContests[contestId];
     const entryStats = liveContest.lineups[lineup.id];
@@ -181,9 +181,9 @@ const calcTotalPotentialEarnings = (entries, contestsStats) =>
   reduce(entries, (sum, entry) => {
     // Make sure we have entries.
     if (contestsStats.hasOwnProperty(entry.contest)) {
-      const contestLineups = contestsStats[entry.contest].lineups;
+      const contestLineups = contestsStats[entry.contest].lineups || {};
 
-      if (entry.lineup in contestLineups === true) {
+      if (contestLineups.hasOwnProperty(entry.lineup)) {
         return sum + contestsStats[entry.contest].lineups[entry.lineup].potentialWinnings;
       }
     }
@@ -298,8 +298,8 @@ export const watchingDraftGroupTimingSelector = createSelector(
       started: true,
     };
 
-    if (myLineup.hasOwnProperty('draftGroupId')) {
-      const draftGroup = liveDraftGroups[myLineup.draftGroupId];
+    if (watching.draftGroupId && liveDraftGroups.hasOwnProperty(watching.draftGroupId)) {
+      const draftGroup = liveDraftGroups[watching.draftGroupId];
 
       if (draftGroup.closed !== null && draftGroup.closed < dateNow()) whenBooleans.ended = true;
       if (draftGroup.start > dateNow()) whenBooleans.started = false;

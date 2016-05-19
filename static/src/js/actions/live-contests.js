@@ -5,8 +5,6 @@ import map from 'lodash/map';
 import zipObject from 'lodash/zipObject';
 import { Buffer } from 'buffer/';
 import { dateNow } from '../lib/utils';
-import { fetchDraftGroupIfNeeded } from './live-draft-groups';
-import { fetchGamesIfNeeded } from './sports';
 import { fetchPrizeIfNeeded } from './prizes';
 import { forEach as _forEach } from 'lodash';
 import { GAME_DURATIONS } from '../actions/sports';
@@ -259,12 +257,12 @@ const fetchContestLineupsUsernames = (contestId) => (dispatch) => {
  */
 const shouldFetchContestLineupsUsernames = (state, id) => {
   // fetch if we have no data yet
-  if (id in state.liveContests === false) {
+  if (state.liveContests.hasOwnProperty(id) === false) {
     return true;
   }
 
   // fetch if we have no usernames yet
-  return 'lineupsUsernames' in state.liveContests[id] === false;
+  return state.liveContests[id].hasOwnProperty('lineupsUsernames') === false;
 };
 
 /**
@@ -322,13 +320,9 @@ export const fetchContestLineupsUsernamesIfNeeded = (id) => (dispatch, getState)
  */
 export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
   const contestInfo = getState().liveContests[id].info;
-  const draftGroupId = contestInfo.draft_group;
   const prizeId = contestInfo.prize_structure;
-  const sport = contestInfo.sport;
 
   return Promise.all([
-    dispatch(fetchDraftGroupIfNeeded(draftGroupId, sport)),
-    dispatch(fetchGamesIfNeeded(sport)),
     dispatch(fetchPrizeIfNeeded(prizeId)),
   ]).then(() =>
     dispatch(confirmRelatedContestInfo(id))

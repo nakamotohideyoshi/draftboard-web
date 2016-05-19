@@ -1,6 +1,7 @@
 import React from 'react';
 import size from 'lodash/size';
 import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-progress-bar';
+import { humanizeFP } from '../../actions/sports';
 
 
 /**
@@ -13,6 +14,53 @@ const LiveOverallStats = React.createClass({
     hasContest: React.PropTypes.bool.isRequired,
     lineup: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
+  },
+
+  componentDidMount() {
+    this.updateCanvas();
+  },
+
+  updateCanvas() {
+    const diameter = 220;
+    const decimalRemaining = this.props.lineup.timeRemaining.decimal;
+    const radiansRemaining = decimalRemaining * 360 - 180;
+    const ctx = this.refs.canvas.getContext('2d');
+
+    // move to the center
+    ctx.translate(diameter / 2, diameter / 2);
+
+    // start the gradient at the point remaining
+    ctx.rotate(-radiansRemaining * Math.PI / 180);
+
+    // make sure to cap it so that it's smooth around and the right diameter
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+
+    // loop through all 360 degrees and draw a line from the center out
+    for (let i = 0; i <= 360; i++) {
+      ctx.save();
+
+      // invert the gradient to move from
+      ctx.rotate(-Math.PI * i / 180);
+      ctx.translate(-ctx.lineWidth / 2, ctx.lineWidth / 2);
+
+      // move to the center
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+
+      // top out at 30%, as the comp does
+      let percentage = i / 15;
+      if (percentage > 40) percentage = 40;
+
+      ctx.strokeStyle = `rgba(0,0,0,${percentage / 100})`;
+
+      // write and close
+      ctx.lineTo(0, diameter);
+      ctx.stroke();
+      ctx.closePath();
+
+      ctx.restore();
+    }
   },
 
   renderOverallPMR() {
@@ -38,12 +86,6 @@ const LiveOverallStats = React.createClass({
 
     const svgMidpoint = svgWidth / 2;
     const radius = (svgWidth - 40) / 2;
-
-    const backgroundCircle = {
-      r: radius - (strokeWidth / 2),
-      stroke: backgroundHex,
-      strokeWidth: strokeWidth + 26,
-    };
 
     const progressArc = {
       hexStart: `#${hexStart}`,
@@ -126,29 +168,25 @@ const LiveOverallStats = React.createClass({
     // log.trace('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
 
     return (
-      <svg className="pmr-circle" viewBox="0 0 280 280" width="220">
-        <defs>
-          <linearGradient id="cl1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
-           <stop stopColor={progressArc.hexEnd} />
-           <stop offset="100%" stopColor={progressArc.hexHalfway} />
-          </linearGradient>
-          <linearGradient id="cl2" gradientUnits="objectBoundingBox" x1="0" y1="1" x2="0" y2="0">
-           <stop stopColor={progressArc.hexHalfway} />
-           <stop offset="100%" stopColor={progressArc.hexStart} />
-          </linearGradient>
-        </defs>
+      <div className="pmr-circle">
+        <canvas ref="canvas" width="220" height="220" />
+        <svg className="pmr-circle" viewBox="0 0 280 280" width="220">
+          <defs>
+            <linearGradient id="cl1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
+             <stop stopColor={progressArc.hexEnd} />
+             <stop offset="100%" stopColor={progressArc.hexHalfway} />
+            </linearGradient>
+            <linearGradient id="cl2" gradientUnits="objectBoundingBox" x1="0" y1="1" x2="0" y2="0">
+             <stop stopColor={progressArc.hexHalfway} />
+             <stop offset="100%" stopColor={progressArc.hexStart} />
+            </linearGradient>
+          </defs>
 
-        <g transform="translate(140, 140)">
-          <circle
-            r={backgroundCircle.r}
-            stroke={backgroundCircle.stroke}
-            strokeWidth={backgroundCircle.strokeWidth}
-            fill="none"
-          />
-
-          { renderPMRCircle }
-        </g>
-      </svg>
+          <g transform="translate(140, 140)">
+            { renderPMRCircle }
+          </g>
+        </svg>
+      </div>
     );
   },
 
@@ -182,9 +220,8 @@ const LiveOverallStats = React.createClass({
             <div className="live-overview__help">
               Points
             </div>
-            <h4 className="live-overview__quantity">{ lineup.fp }</h4>
+            <h4 className="live-overview__quantity">{humanizeFP(lineup.fp)}</h4>
           </div>
-          <div className="live-overview__potential-earnings">{ potentialWinnings }</div>
           <div className="live-overview__pmr">
             <div className="live-overview__pmr__quantity">{ lineup.timeRemaining.duration }</div>
             <div className="live-overview__pmr__title">PMR</div>

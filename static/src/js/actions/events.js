@@ -4,7 +4,7 @@ import store from '../store';
 import { filter as _filter } from 'lodash';
 import { forEach as _forEach } from 'lodash';
 import { GAME_DURATIONS } from './sports';
-import { humanizePitchCount } from './sports';
+import { stringifyAtBat, stringifyMLBWhen, consolidateZonePitches, removeEventMultipart } from './events-multipart';
 import {
   watchingMyLineupSelector,
   relevantGamesPlayersSelector,
@@ -16,6 +16,7 @@ import { storeEventMultipart } from './events-multipart';
 import { updateGameTeam } from './sports';
 import { updateGameTime } from './sports';
 import { updatePlayerStats } from './live-draft-groups';
+import { batchActions } from 'redux-batched-actions';
 
 const addAnimationEvent = (key, value) => ({
   type: ActionTypes.EVENT_ADD_ANIMATION,
@@ -37,6 +38,17 @@ const differencePlayersPlaying = (players) => ({
 const unionPlayersPlaying = (players) => ({
   type: ActionTypes.EVENT_UNION_PLAYERS_PLAYING,
   players,
+});
+
+const pushEvent = (gameId, event) => ({
+  type: ActionTypes.EVENT_GAME_QUEUE_PUSH,
+  gameId,
+  event,
+});
+
+const eventsQueueAddGame = (gameId) => ({
+  type: ActionTypes.EVENT_ADD_GAME_QUEUE,
+  gameId,
 });
 
 export const removeAnimationEvent = (key) => ({
@@ -64,20 +76,27 @@ const showThenHidePlayerEventDescription = (key, value) => (dispatch) => {
 };
 
 /**
- * Dispatch information to reducer that we have completed getting all information related to the entries
- * Used to make the components aware tht we have finished pulling information.
- * NOTE: this method must be wrapped with dispatch()
- * @return {object}   Changes for reducer
+ * Store a multipart event, by either adding new or updating existing
+ * - Only used internally, exported for testing purposes
+ * - This method must be dispached by redux store
+ * @param  {string} key       Unique ID. Correlates to at_bat__id for mlb, drive__id for nfl
+ * @param  {object} value     All relevant data related to event
+ * @param  {array}  players   List of relevant players to watch
+ * @return {thunk}            Method of action creator
  */
-const addToGameQueue = (gameId, eventCall, type, sport) => ({
-  type: ActionTypes.EVENT_ADD_GAME_QUEUE,
-  gameId,
-  gameQueueEvent: {
-    type,
-    eventCall,
-  },
-  sport,
-});
+export const storeEvent = (gameId, event) => (dispatch, getState) => {
+  const state = getState();
+  const actions = [];
+
+  // if there's no game queue, add it first
+  if (state.events.gamesQueue.hasOwnProperty(gameId) === false) {
+    actions.push(eventsQueueAddGame(gameId));
+  }
+
+  actions.push(pushEvent(gameId, event));
+
+  return dispatch(batchActions(actions));
+};
 
 const updatePBPPlayersStats = (playersStats) => {
   const state = store.getState();
@@ -87,14 +106,19 @@ const updatePBPPlayersStats = (playersStats) => {
   // don't update if we aren't ready
   if (watching.myLineupId === null || myLineup.isLoading === true) return false;
 
-  _forEach(playersStats, (playerStats) => {
-    log.info('setTimeout - linked pbp - updatePlayerStats()', playerStats.fields.player_id);
+  const draftGroupId = myLineup.draftGroupId;
 
-    store.dispatch(updatePlayerStats(
-      playerStats.fields.player_id,
-      playerStats,
-      myLineup.draftGroupId
-    ));
+  _forEach(playersStats, (playerStats) => {
+    const playerId = playerStats.fields.player_id;
+    log.info('updatePBPPlayersStats - linked pbp - updatePlayerStats()', playerId);
+
+    if (state.liveDraftGroups[draftGroupId].playersStats.hasOwnProperty(playerId)) {
+      store.dispatch(updatePlayerStats(
+        playerStats.fields.player_id,
+        playerStats,
+        myLineup.draftGroupId
+      ));
+    }
   });
 };
 
@@ -156,6 +180,8 @@ export const showAnimationEventResults = (animationEvent) => {
  * @param  {object} eventCall The event call to parse for information
  */
 const showGameEvent = (eventCall, state) => {
+  log.trace('showGameEvent', eventCall, state);
+
   // get just pbp data if linked
   const eventPBP = eventCall.pbp || eventCall;
 
@@ -182,17 +208,50 @@ const showGameEvent = (eventCall, state) => {
         whichSide: whichSide(watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers),
       };
 
-      // if multipart, then return out with
+      // if we need to show as an event, push that out first
+      if (eventPBP.hasOwnProperty('at_bat__id') === false || eventPBP.flags__list.is_ab_over) {
+        store.dispatch(addAnimationEvent(animationEvent.id, animationEvent));
+      }
+
+      // if multipart
       if (eventPBP.hasOwnProperty('at_bat__id')) {
+        // remove in 5 seconds if the multievent is over
+        if (eventPBP.flags__list.is_ab_over === 'true') {
+          log.info('At bat over for ', relevantPlayersInEvent);
+          const boxscore = state.sports.games[animationEvent.gameId].boxscore;
+
+          setTimeout(
+            () => {
+              store.dispatch(removeEventMultipart(eventPBP.at_bat__id, relevantPlayersInEvent));
+
+              const actions = [];
+              _forEach(animationEvent.relevantPlayersInEvent, (playerId) => {
+                const eventDescription = {
+                  points: null,
+                  info: eventCall.at_bat.description,
+                  when: stringifyMLBWhen(boxscore.inning, boxscore.inning_half),
+                  id: animationEvent.id,
+                  playerId,
+                };
+
+                actions.push(unshiftPlayerHistory(playerId, eventDescription));
+              });
+
+              store.dispatch(batchActions(actions));
+            },
+            5000
+          );
+        }
+
         animationEvent = _merge(animationEvent, {
-          pitchCount: humanizePitchCount(eventPBP.count__list),
+          pitchCount: stringifyAtBat(eventPBP.count__list),
           outcome: sportConst.pitchOutcomes[eventPBP.outcome__id] || null,
           usedFlags: _filter(eventPBP.flags__list, flag => flag === 'true'),
-          zonePitches: eventCall.zone_pitches,
+          zonePitches: consolidateZonePitches(eventCall.zone_pitches),
         });
 
-        // store multipart event for components to receive in props change
-        storeEventMultipart(eventPBP.at_bat__id, animationEvent);
+        // store multipart event for each player
+        store.dispatch(storeEventMultipart(eventPBP.at_bat__id, animationEvent, relevantPlayersInEvent));
 
         // immediately update player stats, no need to wait bc there's no animation
         updatePBPPlayersStats(eventCall.stats);
@@ -218,15 +277,14 @@ const showGameEvent = (eventCall, state) => {
         whichSide: whichSide(watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers),
       };
       store.dispatch(addAnimationEvent(animationEvent.id, animationEvent));
+      store.dispatch(unionPlayersPlaying(relevantPlayersInEvent));
 
       break;
   }
-
-  store.dispatch(unionPlayersPlaying(relevantPlayersInEvent));
 };
 
 /*
- * This takes the oldest event in a given game queue, from state.gameQueues, and then uses the data, whether it is to
+ * This takes the oldest event in a given game queue, from state.gamesQueue, and then uses the data, whether it is to
  * animate if a pbp, or update redux stats.
  *
  * @param  {string} gameId The game queue SRID to pop the oldest event
@@ -247,7 +305,7 @@ export const shiftOldestGameEvent = (gameId) => {
   // remove oldest event from redux
   store.dispatch(shiftGameQueueEvent(gameId));
 
-  log.info(`actions.events.shiftOldestGameEvent(), game ${gameId}, queue of ${gameQueue.queue.length}`, eventCall);
+  log.info(`actions.events.shiftOldestGameEvent(), game ${gameId}`, eventCall);
 
   // depending on what type of data, either show animation on screen or update stats
   switch (oldestEvent.type) {
@@ -263,9 +321,7 @@ export const shiftOldestGameEvent = (gameId) => {
 
       store.dispatch(updateGameTime(
         eventCall.id,
-        eventCall.clock,
-        eventCall.quarter,
-        eventCall.status
+        eventCall
       ));
 
       // then move on to the next
@@ -324,6 +380,10 @@ export const shiftOldestGameEvent = (gameId) => {
 export const addEventAndStartQueue = (gameId, eventCall, type, sport) => {
   log.debug('actions.events.addEventAndStartQueue', gameId, eventCall, type, sport);
 
-  store.dispatch(addToGameQueue(gameId, eventCall, type, sport));
+  store.dispatch(storeEvent(gameId, {
+    eventCall,
+    sport,
+    type,
+  }));
   shiftOldestGameEvent(gameId);
 };
