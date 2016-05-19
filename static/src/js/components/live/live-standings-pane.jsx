@@ -85,7 +85,7 @@ const LiveStandingsPane = React.createClass({
         data = data.filter(p => this.state.searchResults.indexOf(p.id) !== -1);
       } else {
         const s = this.state.searchValue;
-        data = data.filter(p => p.info.name.toLowerCase().indexOf(s.toLowerCase()) !== -1);
+        data = data.filter(p => p.name.toLowerCase().indexOf(s.toLowerCase()) !== -1);
       }
     }
 
@@ -223,18 +223,24 @@ const LiveStandingsPane = React.createClass({
   },
 
   backToContestsPane() {
+    const watching = this.props.watching;
+    const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/`;
+    const changedFields = {
+      contestId: null,
+    };
+
+    this.props.changePathAndMode(path, changedFields);
     AppActions.removeClass('appstate--live-standings-pane--open');
     AppActions.addClass('appstate--live-contests-pane--open');
   },
 
   renderHeader() {
     const { contest } = this.props;
-    const winnings = contest.potentialEarnings;
+    const { amount, percent } = contest.potentialWinnings;
 
     let moneyLineClass = 'live-moneyline';
-    const myPercentagePosition = 100 - contest.myPercentagePosition;
 
-    if (contest.percentageCanWin <= contest.myPercentagePosition) {
+    if (percent < contest.percentageCanWin) {
       moneyLineClass += ' live-moneyline--is-losing';
     }
 
@@ -250,7 +256,7 @@ const LiveStandingsPane = React.createClass({
             <div className="earnings">
               Winning
               {" "}
-              <span>${winnings || winnings.toFixed(2)}</span>
+              <span>${amount || amount.toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -258,7 +264,7 @@ const LiveStandingsPane = React.createClass({
           <div className="live-moneyline__pmr-line">
             <div
               className="live-moneyline__current-position"
-              style={{ left: `${myPercentagePosition}%` }}
+              style={{ left: `${percent}%` }}
             ></div>
             <div className="live-moneyline__winners" style={{ width: `${contest.percentageCanWin}%` }}></div>
           </div>
@@ -429,7 +435,7 @@ const LiveStandingsPane = React.createClass({
 
       return (
         <div key={player.id} className={`player ${isWatched ? 'watched' : ''}`}>
-          <div className="player--position">{player.info.position}</div>
+          <div className="player--position">{player.position}</div>
           <div className="player--pmr-photo">
             <LivePMRProgressBar
               decimalRemaining={player.timeRemaining.decimal}

@@ -271,7 +271,7 @@ export const watchingContestSelector = createSelector([
   return merge({}, contest, {
     isLoading: false,
     lineupsUsernames: originalContest.lineupsUsernames || {},
-    potentialWinnings: calcPotentialContestStats(myLineup, contest),
+    potentialWinnings: calcPotentialContestStats(myLineup, contest, 1),
     playersOwnership,
   });
 });
