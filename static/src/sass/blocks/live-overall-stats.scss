@@ -29,6 +29,17 @@
   .pmr-circle {
     position: relative;
     z-index: 4010;
+
+    canvas {
+      border-radius: 50%;
+      box-shadow: inset 0px 32px 60px 0px rgba(6, 7, 23, 0.65);
+      z-index: 0;
+      position: absolute;
+    }
+
+    svg {
+      z-index: 1;
+    }
   }
 
   &__contests,

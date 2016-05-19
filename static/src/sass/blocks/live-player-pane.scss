@@ -112,6 +112,26 @@
       }
     }
 
+    &__mlb-half-inning {
+      width: 12px;
+      display: inline-block;
+      position: relative;
+      top: -3px;
+      padding-right: 4px;
+
+      svg {
+        display: inline-block;
+      }
+
+      path {
+        fill: #293f4f;
+      }
+    }
+
+    .mlb-half-inning--top {
+      transform: rotate(180deg);
+    }
+
     &__time {
       min-width: 100px;
       margin-left: 50px;

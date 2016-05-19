@@ -41,6 +41,21 @@ export const GAME_DURATIONS = {
     gameDuration: 18,
     lineupByteLength: 22,
     players: 9,
+    pitchTypes: {
+      FA: 'Fastball',
+      SI: 'Sinker',
+      CT: 'Cutter',
+      CU: 'Curveball',
+      SL: 'Slider',
+      CH: 'Changeup',
+      KN: 'Knuckleball',
+      SP: 'Splitter',
+      SC: 'Screwball',
+      FO: 'Forkball',
+      IB: 'Intentional Ball',
+      PI: 'Pitchout',
+      Other: 'Other',
+    },
     pitchOutcomes: {
       aBK: 'Balk',
       aCI: 'Catcher Interference',
@@ -266,6 +281,17 @@ const receiveTeams = (sport, response) => {
 // helper methods
 
 
+export const humanizeFP = (fp) => {
+  switch (typeof fp) {
+    case 'number':
+      return Math.ceil(fp * 100) / 100;
+    case 'string':
+    default:
+      return fp;
+  }
+};
+
+
 /**
  * Calculate the amount of time remaining in decimal between 0 and 1, where 1 is 100% of the time remaining
  * @param  {number} durationRemaining Number of minutes remaining
@@ -405,21 +431,6 @@ const fetchTeams = (sport) => (dispatch) => {
 };
 
 /**
- * Helper method to convert an object of pitch types into a readable sentence
- * Example pitchCount:
- * "count__list": {
- *    "pitch_count": 5,
- *    "strikes": 1,
- *    "balls": 3,
- *    "outs": 3
- *  },
- * @param  {object} pitchCount Types of pitches and their count
- * @return {string}            Human readable pitch count
- */
-export const humanizePitchCount = (pitchCount) =>
-  `${pitchCount.balls}B/${pitchCount.strikes}S - ${pitchCount.outs} Outs`;
-
-/**
  * Method to determine whether we need to fetch games for a sport
  * @param  {object} state Current Redux state to test
  * @param  {string} sport     Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
@@ -506,7 +517,7 @@ export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchSportsIfNeeded = () => (dispatch, getState) => {
-  log.trace('actions.sports.fetchSportsIfNeeded()');
+  // log.trace('actions.sports.fetchSportsIfNeeded()');
 
   _forEach(
     getState().sports.types, (sport) => {
@@ -572,13 +583,13 @@ export const updateGameTeam = (gameId, teamId, points) => (dispatch, getState) =
 /**
  * Update game information based on pusher stream call
  * @param  {string} gameId  Game SRID
- * @param  {string} clock   Time remaining in period
- * @param  {string} quarter Period in play
- * @return {object}   Changes for reducer, wrapped in a thunk
+ * @param  {object} event   Returned socket data to parse
+ *  * @return {object}   Changes for reducer, wrapped in a thunk
  */
-export const updateGameTime = (gameId, clock, quarter, status) => (dispatch, getState) => {
+export const updateGameTime = (gameId, event) => (dispatch, getState) => {
   const state = getState();
   const game = _merge({}, state.sports.games[gameId]);
+  let updatedGameFields = {};
 
   // if game does not exist yet, we don't know what sport so just cancel the update and wait for polling call
   if (state.sports.games.hasOwnProperty(gameId) === false) {
@@ -591,33 +602,43 @@ export const updateGameTime = (gameId, clock, quarter, status) => (dispatch, get
       return dispatch(fetchGames(game.sport));
     }
 
-    // if the boxscore doesn't have quarter yet, update the game
-    if (game.boxscore.hasOwnProperty('quarter') === false) {
-      return dispatch(fetchGames(game.sport));
-    }
-
     // if we think the game hasn't started, also update the games
     const upcomingStates = ['scheduled', 'created'];
     if (upcomingStates.indexOf(game.boxscore.status) > -1) {
       return dispatch(fetchGames(game.sport));
     }
+
+    switch (game.sport) {
+      case 'mlb':
+        updatedGameFields = { outcome_list: event.outcome__list };
+        game.outcome__list = event.outcome__list;
+        break;
+      case 'nba':
+      case 'nhl':
+      default: {
+        // if the boxscore doesn't have quarter yet, update the game
+        if (game.boxscore.hasOwnProperty('quarter') === false) {
+          return dispatch(fetchGames(game.sport));
+        }
+
+        updatedGameFields = {
+          clock: event.boxscore.clock,
+          quarter: event.boxscore.quarter,
+          status: event.boxscore.status,
+        };
+
+        // update ot get durationRemaining
+        game.boxscore.clock = event.boxscore.clock;
+        game.boxscore.quarter = event.boxscore.quarter;
+      }
+    }
+
+    if (game.boxscore === undefined) {
+      return false;
+    }
   }
-
-  const boxscore = game.boxscore;
-
-  if (boxscore === undefined) {
-    return false;
-  }
-
-  const updatedGameFields = {
-    clock,
-    quarter,
-    status,
-  };
 
   // find time remaining through these new fields
-  game.boxscore.clock = clock;
-  game.boxscore.quarter = quarter;
   updatedGameFields.durationRemaining = calculateTimeRemaining(game.sport, game);
 
   return dispatch({

@@ -1,12 +1,20 @@
 import thunk from 'redux-thunk';
-import { applyMiddleware, createStore } from 'redux';
+import { applyMiddleware, createStore, compose } from 'redux';
 import { browserHistory } from 'react-router';
 import { logger } from '../lib/logging';
 import { routerMiddleware } from 'react-router-redux';
 
 const routerHistory = routerMiddleware(browserHistory);
 
-/**
- * Responsible for combining all the system's middlewares in a single place.
- */
-export default applyMiddleware(thunk, logger, routerHistory)(createStore);
+// Responsible for combining all the system's middlewares in a single place.
+let middleware = applyMiddleware(thunk, logger, routerHistory)(createStore);
+
+// Add in redux devtools if you're developing
+if (process.env.NODE_ENV === 'debug' || process.env.NODE_ENV === 'development') {
+  middleware = compose(
+    applyMiddleware(thunk, logger, routerHistory),
+    window.devToolsExtension ? window.devToolsExtension() : f => f
+  )(createStore);
+}
+
+export default middleware;

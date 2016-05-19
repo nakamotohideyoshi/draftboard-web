@@ -8,27 +8,28 @@ import { dateNow } from '../lib/utils';
 
 
 export const checkForUpdates = () => (dispatch, getState) => {
-  log.trace('actions.watching.checkForUpdates()');
+  // log.trace('actions.watching.checkForUpdates()');
 
   const state = getState();
   const watching = state.watching;
 
   if (watching.myLineupId) {
-    dispatch(fetchPlayersStatsIfNeeded(watching.myLineupId));
-
     const myLineup = state.currentLineups.items[watching.myLineupId] || {};
 
     if (dateNow() > myLineup.start && myLineup.hasOwnProperty('draft_group')) {
+      dispatch(fetchPlayersStatsIfNeeded(watching.myLineupId));
       dispatch(fetchDraftGroupFPIfNeeded(myLineup.draft_group));
-    }
-  }
 
-  if (watching.opponentLineupId) {
-    dispatch(fetchPlayersStatsIfNeeded(watching.opponentLineupId));
+      if (watching.opponentLineupId) {
+        dispatch(fetchPlayersStatsIfNeeded(watching.opponentLineupId));
+      }
+    }
   }
 };
 
 export const updateLiveMode = (changedFields) => (dispatch, getState) => {
+  log.trace('updateLiveMode', changedFields);
+
   const state = getState();
 
   // check that we have relevant players
@@ -46,11 +47,12 @@ export const updateLiveMode = (changedFields) => (dispatch, getState) => {
 
   // make sure every defined field is an integer
   const newMode = {};
+  const integerFields = ['myLineupId', 'contestId', 'opponentLineupId'];
   _forEach(changedFields, (val, key) => {
-    if (key === 'sport') {
-      newMode[key] = val;
-    } else {
+    if (integerFields.indexOf(key) !== -1) {
       newMode[key] = (val === null) ? null : parseInt(val, 10);
+    } else {
+      newMode[key] = val;
     }
   });
 

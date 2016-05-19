@@ -28,6 +28,7 @@
     position: absolute;
     top: -52px;
     right: 41px;
+    z-index: 2;
   }
 
   // vertical centering achieved with flexbox centering
@@ -35,6 +36,9 @@
   &__players {
     flex: none;
     position: relative;
+
+    // fit the close button for opponent
+    margin-top: 40px;
 
     ul {
       list-style: none;
