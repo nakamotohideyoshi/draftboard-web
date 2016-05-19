@@ -20,6 +20,7 @@ const LiveStandingsPane = React.createClass({
     owned: React.PropTypes.array.isRequired,
     lineups: React.PropTypes.object.isRequired,
     contest: React.PropTypes.object.isRequired,
+    openOnStart: React.PropTypes.bool.isRequired,
     rankedLineups: React.PropTypes.array.isRequired,
     watching: React.PropTypes.object.isRequired,
     fetchLineupUsernames: React.PropTypes.func,
@@ -31,7 +32,7 @@ const LiveStandingsPane = React.createClass({
       perPage: 10,                         // Items per page.
       searchValue: '',                     // Search input value.
       searchResults: [],                   // Results of the search.
-      searchPlaceholder: 'Search Players', // Search field placeholder.
+      searchPlaceholder: 'Search Users', // Search field placeholder.
       currentTab: 'standings',             // Currently shown tab.
       playersSortKey: null,                // Key to sort players.
       playersSortAsc: false,               // Is players sort ascending or descending.
@@ -42,6 +43,10 @@ const LiveStandingsPane = React.createClass({
   componentDidMount() {
     // this.props.fetchLineupUsernames(this.props.watching.contestId)
     this.handleSearchByUsername = _debounce(this.handleSearchByUsername, 150);
+
+    setTimeout(() => {
+      AppActions.addClass('appstate--live-standings-pane--open');
+    }, 100);
   },
 
   /**
@@ -229,9 +234,14 @@ const LiveStandingsPane = React.createClass({
       contestId: null,
     };
 
-    this.props.changePathAndMode(path, changedFields);
+    // immediately animate in contest pane
     AppActions.removeClass('appstate--live-standings-pane--open');
     AppActions.addClass('appstate--live-contests-pane--open');
+
+    // hacky! match time with css animation
+    setTimeout(() => {
+      this.props.changePathAndMode(path, changedFields);
+    }, 230);
   },
 
   renderHeader() {

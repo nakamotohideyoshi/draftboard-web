@@ -119,7 +119,7 @@ const LivePlayerPane = React.createClass({
         default:
           gameTimeInfo = [
             boxScore.clock,
-            boxScore.quarterDisplay,
+            boxScore.periodDisplay,
           ];
       }
     }
