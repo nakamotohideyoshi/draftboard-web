@@ -210,7 +210,7 @@ def syncdb(app=None):
     with warn_only():
         # download backup
         _puts('Pull latest [%s] backup down to local' % target_server)
-        operations.local('curl -so /tmp/latest.dump `heroku pg:backups public-url --app %s`' % target_server)
+        operations.local('curl -o /tmp/latest.dump `heroku pg:backups public-url --app %s`' % target_server)
 
         # drop local database
         _puts('Dropping local database: %s' % env.db_name)

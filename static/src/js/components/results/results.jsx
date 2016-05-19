@@ -100,10 +100,6 @@ const Results = React.createClass({
         }));
       }
     }
-
-    if (prevProps.hasRelatedInfo !== true && this.props.hasRelatedInfo === false) {
-      this.props.dispatch(updateLiveMode({}));
-    }
   },
 
   handleSelectDate(year, month, day) {
