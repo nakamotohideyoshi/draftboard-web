@@ -44,6 +44,7 @@ from contest.models import (
     CurrentContest,
     LiveContest,
     HistoryContest,
+    CurrentEntry,
     HistoryEntry,
     ClosedEntry,
     LobbyContestPool,
@@ -227,15 +228,7 @@ class UserUpcomingContestPoolAndLiveContestEntriesAPIView(UserEntryAPIView):
         return a queryset of the users entries (a map between contest & lineup)
         which are from the upcoming ContestPools
         """
-
-        # Q(question__startswith='What')
-        # return Entry.objects.filter(lineup__user=user,
-        #                             contest_pool__in=UpcomingContestPool.objects.all())
-        #from contest.models import Entry, UpcomingContestPool, LiveContest
-        #from django.db.models import Q
-        return Entry.objects.filter( Q(lineup__user=user),
-                        Q(contest_pool__in=UpcomingContestPool.objects.all()) |
-                        Q(contest__in=LiveContest.objects.all()))
+        return CurrentEntry.objects.all()
 
     def get_queryset(self):
         """
