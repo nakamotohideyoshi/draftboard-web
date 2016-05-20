@@ -108,7 +108,6 @@ cd /vagrant
 
 
 pip3 install -r /vagrant/requirements/local.txt
-##pip3 install optimal_source/src/
 
 ##
 ## manage.py migrate to install db tables and schema

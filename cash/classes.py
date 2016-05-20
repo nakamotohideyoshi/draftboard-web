@@ -1,4 +1,6 @@
-#from cash.models import CashBalance, CashTransactionDetail
+#
+# cash/classes.py
+
 import cash.models
 from transaction.classes import AbstractTransaction, CanDeposit
 from transaction.models import TransactionType
@@ -99,20 +101,12 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         msg = "User["+self.user.username+"] deposited $"+str(amount)+" into their cash account."
         Logger.log(ErrorCodes.INFO, "Cash Deposit", msg)
 
-
     def deposit_braintree(self, amount, braintree_transaction):
         self.deposit(amount)
         braintree_model = cash.models.BraintreeTransaction()
         braintree_model.braintree_transaction = braintree_transaction
         braintree_model.transaction = self.transaction_detail.transaction
         braintree_model.save()
-
-    def deposit_optimal(self, amount, optimal_transaction):
-        self.deposit(amount)
-        optimal_model = cash.models.OptimalPaymentsTransaction()
-        optimal_model.netbanx_transaction_id = optimal_transaction
-        optimal_model.transaction = self.transaction_detail.transaction
-        optimal_model.save()
 
     def get_balance_string_formatted(self):
         """
