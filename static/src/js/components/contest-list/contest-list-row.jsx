@@ -4,6 +4,8 @@ import EnterContestButton from './enter-contest-button.jsx';
 import DraftButton from './draft-button.jsx';
 import uniq from 'lodash/uniq';
 import ordinal from '../../lib/ordinal.js';
+import { formatCurrency } from '../../lib/utils.js';
+
 
 /**
  * Render a single ContestList 'row'.
@@ -77,13 +79,15 @@ const ContestListRow = React.createClass({
     if (prizeStructure.ranks) {
       if (payoutIsFlat && prizeStructure.ranks.length > 1) {
         rankList.push(
-          <span key="h2h">1st - {ordinal(prizeStructure.ranks.length)}: ${prizeStructure.ranks[0].value}</span>
+          <span key="h2h">
+            1st - {ordinal(prizeStructure.ranks.length)}: ${formatCurrency(prizeStructure.ranks[0].value)}
+          </span>
         );
       } else {
         rankList = prizeStructure.ranks.map((rank, i, arr) => {
           const delimiter = i < arr.length - 1 ? '|' : '';
           return (
-            <span key={i}>{ordinal(i + 1)}: ${rank.value} {delimiter} </span>
+            <span key={i}>{ordinal(i + 1)}: ${formatCurrency(rank.value)} {delimiter} </span>
           );
         });
       }

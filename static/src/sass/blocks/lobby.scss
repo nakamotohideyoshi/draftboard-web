@@ -3,7 +3,8 @@
 
 
 .section-lobby {
-  &.page-lobby {
+  &.page-lobby,
+  &.page-draft {
 
     .sidebar {
       background: url(../img/blocks/lobby/sidebar-nba-bottom.jpg) no-repeat bottom left #0C1524;
