@@ -188,6 +188,7 @@ const EnterContestButton = React.createClass({
           <div
             className={`button button--disabled ${classes} entered enter-contest-button`}
             onClick={this.ignoreClick}
+            onMouseLeave={this.handleMouseOut}
           >
             {this.props.buttonText.entered}
           </div>
@@ -205,6 +206,8 @@ const EnterContestButton = React.createClass({
           <div
             className={`button ${classes} button--working enter-contest-button`}
             onClick={this.ignoreClick}
+            onMouseEnter={this.handleMouseOver}
+            onMouseLeave={this.handleMouseOut}
           >
             {this.props.buttonText.entering}
           </div>
