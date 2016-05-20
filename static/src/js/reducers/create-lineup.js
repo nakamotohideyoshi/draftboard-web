@@ -51,7 +51,7 @@ const rosterTemplates = {
   mlb: [
     { idx: 0, name: 'SP', positions: ['SP'], player: null },
     { idx: 1, name: 'C', positions: ['C'], player: null },
-    { idx: 2, name: '1B', positions: ['1B'], player: null },
+    { idx: 2, name: '1B', positions: ['1B', 'DH'], player: null },
     { idx: 3, name: '2B', positions: ['2B'], player: null },
     { idx: 4, name: '3B', positions: ['3B'], player: null },
     { idx: 5, name: 'SS', positions: ['SS'], player: null },

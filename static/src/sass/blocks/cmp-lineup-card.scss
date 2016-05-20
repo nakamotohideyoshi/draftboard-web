@@ -24,6 +24,8 @@ category: Lineup
   margin: 0 auto 10px;
   max-width: 290px;
   position: relative;
+  transition: opacity .25s, box-shadow .25s;
+  will-change: opacity, box-shadow;
 
   .players {
     list-style: none;
@@ -383,18 +385,6 @@ category: Lineup
 }
 
 
-
-// When a contest enter button is hovered - highlight the currently focused lineup card.
-body.appstate-enterContestButtonHover {
-  .cmp-lineup-card--expanded {
-    box-shadow: 0px 0px 10px 2px rgba(45, 186, 116, 0.9);
-    outline: 2px solid #2dba74;
-    // transition: outline .25s;
-  }
-}
-
-
-
 // When in the draft section, this is the new lineup card that you are creating.
 .cmp-lineup-card--new {
 
@@ -578,6 +568,25 @@ body.appstate-enterContestButtonHover {
   cursor: pointer;
 }
 
+
+
+/**
+ * 'Enter Contest' & Contest Detail Pane Hover Styles.
+ */
+ .section-lobby.page-lobby.appstate--pane--open,
+ body.appstate-enterContestButtonHover {
+   .sidebar {
+     .cmp-lineup-card {
+       opacity: .3;
+     }
+     .cmp-lineup-card--expanded,
+     .cmp-lineup-card--create {
+       box-shadow: 0px 0px 10px 2px rgba(45, 186, 116, 1);
+       opacity: 1;
+     }
+
+   }
+ }
 
 
 /*
