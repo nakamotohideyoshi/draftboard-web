@@ -2,6 +2,7 @@
 # contest/models.py
 
 from django.db import models
+from django.db.models import Q
 from draftgroup.classes import DraftGroupManager
 from sports.classes import SiteSportManager
 from django.utils.crypto import get_random_string
@@ -497,6 +498,23 @@ class Entry(models.Model):
     class Meta:
         verbose_name = 'Entry'
         verbose_name_plural = 'Entries'
+
+class CurrentEntry(Entry):
+    """
+    PROXY model for Upcoming & Live Entry objects.
+
+    includes Entry objects from the no-mans-land time between start of ContestPool and Contest creation
+    """
+    class CurrentEntryManager(models.Manager):
+        def get_queryset(self):
+            # entries = Entry.objects.filter(Q(user__username='user1'), Q(contest__isnull=True) | Q(contest__in=LiveContest.objects.all()))
+            return super().get_queryset().filter(Q(contest__isnull=True) |
+                                                 Q(contest__in=LiveContest.objects.all()))
+
+    objects = CurrentEntryManager()
+
+    class Meta:
+        proxy = True
 
 class HistoryEntry(Entry):
     """
