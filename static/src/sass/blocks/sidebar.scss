@@ -2,16 +2,9 @@
 
 
 .sidebar {
+  // Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#131a25+42,223044+78,161f2b+100 //
+  background: linear-gradient(135deg, rgba(19,26,37,1) 42%,rgba(34,48,68,1) 78%, rgba(22,31,43,1) 100%);
   color: #fff;
-  /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#131a25+42,223044+78,161f2b+100 */
-  background: rgb(19,26,37); /* Old browsers */
-  background: -moz-linear-gradient(-45deg, rgba(19,26,37,1) 42%, rgba(34,48,68,1) 78%, rgba(22,31,43,1) 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, right bottom, color-stop(42%,rgba(19,26,37,1)), color-stop(78%,rgba(34,48,68,1)), color-stop(100%,rgba(22,31,43,1))); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(-45deg, rgba(19,26,37,1) 42%,rgba(34,48,68,1) 78%,rgba(22,31,43,1) 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(-45deg, rgba(19,26,37,1) 42%,rgba(34,48,68,1) 78%,rgba(22,31,43,1) 100%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(-45deg, rgba(19,26,37,1) 42%,rgba(34,48,68,1) 78%,rgba(22,31,43,1) 100%); /* IE10+ */
-  background: linear-gradient(135deg, rgba(19,26,37,1) 42%,rgba(34,48,68,1) 78%,rgba(22,31,43,1) 100%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#131a25', endColorstr='#161f2b',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
   position: relative;
 
   &--header {
@@ -60,14 +53,25 @@
   }
 
   .sign-out {
-    background: url(../img/blocks/sidebar/sign-out.png) no-repeat right 1px;
+    background: url('../img/blocks/sidebar/sign-out.png') no-repeat right 1px;
     background-size: auto 100%;
-    font-size: 13px;
     color: #72708a;
+    font-size: 13px;
+    padding-right: 20px;
     position: absolute;
     right: 0;
-    padding-right: 20px;
-    top: 2px;
     text-decoration: none;
+    top: 2px;
+  }
+}
+
+
+/**
+ * 'Enter Contest' & Contest Detail Pane Hover Styles.
+ */
+.section-lobby.page-lobby.appstate--pane--open,
+body.appstate-enterContestButtonHover {
+  .sidebar {
+    z-index: 1005;
   }
 }
