@@ -22,8 +22,6 @@ from django.contrib import messages
 from django.http import HttpResponseRedirect
 from cash.classes import CashTransaction
 from transaction.models import Transaction
-from optimal_payments.classes import CardPurchase
-
 
 class TransactionHistoryAPIView(generics.GenericAPIView):
     """
