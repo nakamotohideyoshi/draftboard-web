@@ -132,7 +132,7 @@ const DraftPlayerListRow = React.createClass({
               onError={(tag) => {
                 tag.currentTarget.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
               }}
-              alt="Player Headshot"
+              alt=""
               width="auto"
               height="35px"
             />
