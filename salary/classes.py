@@ -348,7 +348,7 @@ class SalaryGenerator(FppgGenerator):
 
     DEFAULT_SEASON_TYPES = ['reg','pst']
 
-    def __init__(self, player_stats_classes, pool, season_types=None, slack_updates=True):
+    def __init__(self, player_stats_classes, pool, season_types=None, slack_updates=False):
         """
 
         :return:
