@@ -2,6 +2,7 @@
 # salary/classes.py
 
 import csv
+from collections import OrderedDict, Counter
 from statistics import mean
 from django.db.models import Q
 from .exceptions import (
@@ -22,6 +23,13 @@ from sports.classes import SiteSportManager
 from dataden.classes import DataDen, Season
 from util.dfsdate import DfsDate
 from contest.classes import RecentPlayerOwnership
+from util.slack import Webhook
+
+class SalaryProgressWebhook(Webhook):
+
+    # https://hooks.slack.com/services/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
+    #identifier = 'T03UVUNP8/B0K6GUFE3/CNop5c62QB6LFTNOmccnHCzT' # #scheduler-logs
+    identifier = 'T03UVUNP8/B141P6N2C/9TMse3utYJSqICg1iXdcaOPZ'
 
 class SalaryRounder(object):
     """
@@ -339,7 +347,7 @@ class SalaryGenerator(FppgGenerator):
 
     DEFAULT_SEASON_TYPES = ['reg','pst']
 
-    def __init__(self, player_stats_classes, pool, season_types=None):
+    def __init__(self, player_stats_classes, pool, season_types=None, slack_updates=True):
         """
 
         :return:
@@ -353,10 +361,12 @@ class SalaryGenerator(FppgGenerator):
             raise IncorrectVariableTypeException(type(self).__name__,
                                                  type(pool).__name__)
 
+        self.slack = None
+        if slack_updates:
+            self.slack = SalaryProgressWebhook()
 
         #
         # sets the variables after being validated
-        #self.player_stats_classes = player_stats_classes ### in parent class
         self.pool = pool
         self.salary_conf = pool.salary_config
         self.site_sport = pool.site_sport
@@ -370,11 +380,23 @@ class SalaryGenerator(FppgGenerator):
 
         self.rounder = SalaryRounder()
 
+    def update_progress(self, msg):
+        time_format = '%I:%M %p'
+        time_str = timezone.now().strftime(time_format)
+        progress_prefix = '[%s] %s (salary generation)' % (time_str, self.site_sport.name.upper())
+        s = '%s: %s' % (progress_prefix, msg)
+        print(s)
+        if self.slack is not None:
+            self.slack.send(s)
+
     def generate_salaries(self):
         """
         Generates the salaries for the player_stats_players
         :return:
         """
+
+        start = timezone.now()
+        self.update_progress('started')
 
         #
         # get the regular season games, and all the players
@@ -383,12 +405,12 @@ class SalaryGenerator(FppgGenerator):
                                         season__season_type__in=self.season_types )
 
         players = self.helper_get_player_stats(trailing_days=self.salary_conf.trailing_games)
-
         self.excluded_players = self.get_salary_player_stats_objects(self.excluded_player_stats)
 
         #
         # Get the average score per position so we know
         # which positions should have more value
+        self.update_progress('calculating positional averages')
         position_average_list =self.helper_get_average_score_per_position(players)
 
         #
@@ -405,11 +427,14 @@ class SalaryGenerator(FppgGenerator):
         #
         # Calculate the salaries for each player based on
         # the mean of weighted score of their position
+        self.update_progress('updating (%s) players' % len(players))
         self.helper_update_salaries(players, position_average_list, sum_average_points)
 
         #
         # Save this original salary into the 'amount_unadjusted' field to be able to reset
         self.update_unadjusted_salaries(self.pool)
+
+        self.update_progress('finished. (%s seconds)' % str((timezone.now() - start).total_seconds()))
 
     def helper_get_player_stats(self, trailing_days=None):
         """
