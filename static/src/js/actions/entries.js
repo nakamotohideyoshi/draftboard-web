@@ -112,6 +112,8 @@ const storeEntriesPlayers = (entriesPlayers) => ({
  * @return {promise} Returns the object of rosters wrapped in dispatch wrapped in promise, so we can chain
  */
 const addEntriesPlayers = () => (dispatch, getState) => {
+  log.trace('actions.entries.addEntriesPlayers');
+
   const state = getState();
   const entriesPlayers = {};
 
@@ -120,6 +122,11 @@ const addEntriesPlayers = () => (dispatch, getState) => {
 
   // only add players that have started playing, by checking if they are in the roster
   forEach(liveEntries, (entry) => {
+    if (entry.contest === null) {
+      log.warn('Entry has no contest', entry);
+      return;
+    }
+
     const lineup = state.liveContests[entry.contest].lineups[entry.lineup];
     if (typeof lineup !== 'undefined' && lineup.hasOwnProperty('roster')) {
       entriesPlayers[entry.id] = lineup.roster;
