@@ -8,7 +8,7 @@ from celery import task
 from django.core.cache import cache
 from hashlib import md5
 
-LOCK_EXPIRE = 60 * 15 # Lock expires in 5 minutes
+LOCK_EXPIRE = 60 * 10 # Lock expires in 10 minutes
 
 @app.task(bind=True)
 def generate_salaries_for_sport(self, sport):
@@ -18,7 +18,7 @@ def generate_salaries_for_sport(self, sport):
     player_stats_class = ssm.get_player_stats_class(pool.site_sport)
     # The cache key consists of the task name and the MD5 digest of the sport
     sport_md5 = md5(str(sport).encode('utf-8')).hexdigest()
-    lock_id = '{0}-lock-{1}'.format(self.name, sport_md5)
+    lock_id = '{0}-LOCK-generate-salaries-for-sport-{1}'.format(self.name, sport_md5)
 
     # cache.add fails if the key already exists
     acquire_lock = lambda: cache.add(lock_id, 'true', LOCK_EXPIRE)
@@ -36,7 +36,7 @@ def generate_salaries_for_sport(self, sport):
     else:
         err_msg = 'a task is already generating salaries for sport: %s' % sport
         print(err_msg)
-        raise Exception(err_msg)
+        #raise Exception(err_msg)
 
 # @app.task
 # def generate_salary(pool):
