@@ -116,7 +116,7 @@ def rewind_day(days=1):
     :return:
     """
     set_system_time( timezone.now() - timedelta(days=days) )
-    print('the time is now:', str(timezone.now()))
+    #print('the time is now:', str(timezone.now()))
 
 def rewind_hour(hours=1):
     """
@@ -126,5 +126,14 @@ def rewind_hour(hours=1):
     :return:
     """
     set_system_time( timezone.now() - timedelta(hours=hours))
-    print('the time is now:', str(timezone.now()))
+    #print('the time is now:', str(timezone.now()))
 
+def rewind_minute(minutes=1):
+    """
+    helper method using reset_system_time() to set the time back 1 hour
+
+    :param hours: defaults to 1, but you can specify the number of hours to rewind
+    :return:
+    """
+    set_system_time( timezone.now() - timedelta(minutes=minutes))
+    #print('the time is now:', str(timezone.now()))

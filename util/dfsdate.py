@@ -25,9 +25,13 @@ class DfsDate(object):
     nfl_weekdays_inactive   = [1,2]             # tuesday, wednesday. order MATTERS. do not re-order.
 
     @staticmethod
-    def get_current_dfs_date():
-        now = timezone.now()
+    def get_current_dfs_date(offset_hours=0):
+        td_offset = timedelta(hours=offset_hours)
+        now = timezone.now() - td_offset
+        #.replace(now.year, now.month, now.day, now.hour, now.minute, now.second, 0) # now.microsecond
+        #now_est = now.replace(now.year, now.month, now.day, now.hour, 0, 0, 0, tzinfo=DfsDate.est_tz)
         now_est = now.replace(tzinfo=DfsDate.est_tz)
+        #print('now_est sec:%s, micro:%s, '%(str(now_est.second),str(now_est.microsecond)), now_est)
         timedelta_est = now_est.dst()
 
         # if this is non-zero, add it to the amount of
@@ -46,7 +50,7 @@ class DfsDate(object):
         # get all the games on that day even
         # if they span over into the following day
         # in utc.
-        return dfs_dt # TODO return just a date() object?
+        return dfs_dt
 
     @staticmethod
     def get_current_dfs_date_range(offset_hours=0):
@@ -57,7 +61,6 @@ class DfsDate(object):
         :return:
         """
 
-        td_offset = timedelta(hours=offset_hours)
         now = timezone.now()
         now_date = now.date()
         now_est = now.replace(tzinfo=DfsDate.est_tz)
@@ -68,9 +71,9 @@ class DfsDate(object):
         dst_seconds = timedelta_est.seconds
         total_seconds = 4*3600 + dst_seconds
 
-        # subtract the 'total_seconds' from the original 'now' utc datetime.
-        # that datetimes's date() should be the DFS "day".
-        dfs_dt = DfsDate.get_current_dfs_date()
+        # shift back the day that gets the underlying pivot of our range!
+        # by default no shift is done (ie: shift 0 hours)
+        dfs_dt = DfsDate.get_current_dfs_date(offset_hours=offset_hours)
         #print('dfsdate date():', str(dfs_dt.date()))
         dfs_date = dfs_dt.date()
 
@@ -79,9 +82,9 @@ class DfsDate(object):
         start = dfs_dt.replace(dfs_date.year, dfs_date.month, dfs_date.day, 5, 0, 0, 0)
         end = start + timedelta(days=1)
 
-        # incoporate offset
-        start = start + td_offset
-        end = end + td_offset
+        # # incoporate offset
+        # start = start + td_offset
+        # end = end + td_offset
 
         return (start, end)
 
