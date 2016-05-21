@@ -4,6 +4,7 @@ from mysite.celery_app import app, locking
 from .models import Pool
 from .classes import SalaryGenerator, PlayerFppgGenerator
 import sports.classes
+from django.conf import settings
 from celery import task
 from django.core.cache import cache
 from hashlib import md5
@@ -28,7 +29,7 @@ def generate_salaries_for_sport(self, sport):
     if acquire_lock():
         try:
             # start generating the salary pool, time consuming...
-            sg = SalaryGenerator(player_stats_class, pool)
+            sg = SalaryGenerator(player_stats_class, pool, slack_updates=settings.SLACK_UPDATES)
             sg.generate_salaries()
         finally:
             release_lock()
