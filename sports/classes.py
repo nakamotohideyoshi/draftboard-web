@@ -371,7 +371,7 @@ class SiteSportManager(object):
         # tab_width = '    '
         # for g in games:
         #     print(tab_width, g.srid, str(g.start))
-        # return games
+        return games
 
     def __add_to_dict(self, target, extras):
         for k,v in extras.items():
