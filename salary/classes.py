@@ -16,6 +16,7 @@ from mysite.exceptions import IncorrectVariableTypeException, NullModelValuesExc
 from django.contrib.contenttypes.models import ContentType
 from .models import SalaryConfig, TrailingGameWeight, Pool, Salary
 from django.utils import timezone
+from pytz import timezone as pytz_timezone
 from datetime import timedelta
 from math import ceil
 from django.db.transaction import atomic
@@ -382,7 +383,8 @@ class SalaryGenerator(FppgGenerator):
 
     def update_progress(self, msg):
         time_format = '%I:%M %p'
-        time_str = timezone.now().strftime(time_format)
+        est_tz = pytz_timezone('America/New_York')
+        time_str = timezone.now().astimezone(est_tz).strftime(time_format)
         progress_prefix = '[%s] %s (salary generation)' % (time_str, self.site_sport.name.upper())
         s = '%s: %s' % (progress_prefix, msg)
         print(s)
