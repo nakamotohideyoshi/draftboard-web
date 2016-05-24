@@ -102,6 +102,28 @@ const EnterContestButton = React.createClass({
   },
 
 
+  /**
+   * Check if another lineup is already entered into this contest. If so, our currently focused lineup
+   * cannot enter.
+   * @param  {Array}  entryInfo     List of contest pool entries. this is nested in the contest prop.
+   * @param  {Object}  focusedLineup The currently focused lineup.
+   * @return {Boolean}
+   */
+  isAnotherLineupEntered(entryInfo, focusedLineup) {
+    let enteredLineupId = null;
+
+    if (entryInfo && entryInfo.length) {
+      enteredLineupId = entryInfo[0].lineup;
+    }
+
+    if (enteredLineupId && focusedLineup) {
+      return enteredLineupId === focusedLineup.id;
+    }
+
+    return true;
+  },
+
+
   ignoreClick(e) {
     e.stopPropagation();
   },
@@ -110,6 +132,12 @@ const EnterContestButton = React.createClass({
   canLineupEnterContestPool(lineup, lineupsInfo, contest) {
     let entryCount = 0;
 
+    // First check if another lineup is already entered into the contest pool.
+    if (!this.isAnotherLineupEntered(this.props.contest.entryInfo, this.props.lineup)) {
+      return false;
+    }
+
+    // Then see if we have reached the maximum entry count yet.
     try {
       entryCount = lineupsInfo[lineup.id].contestPoolEntries[contest.id].entryCount;
     } catch (e) {
@@ -120,7 +148,6 @@ const EnterContestButton = React.createClass({
         throw e;
       }
     }
-
 
     return entryCount < contest.max_entries;
   },

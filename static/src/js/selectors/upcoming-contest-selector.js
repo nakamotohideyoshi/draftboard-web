@@ -1,6 +1,8 @@
 import { stringSearchFilter, matchFilter, rangeFilter, gameTypeFilter } from './filters';
 import { orderBy } from './order-by.js';
 import { createSelector } from 'reselect';
+import filter from 'lodash/filter';
+// import forEach from 'lodash/forEach';
 
 
 /**
@@ -57,11 +59,29 @@ const contestsWithMatchingFee = createSelector(
  */
 const typeFilterMatchSelector = (state) => state.upcomingContests.filters.contestTypeFilter.match;
 
-const contestsWithMatchingType = createSelector(
+const contestsWithMatchingTypeSelector = createSelector(
   [contestsWithMatchingFee, typeFilterMatchSelector],
   (collection, contestType) => gameTypeFilter(collection, contestType)
 );
 
+
+const contestPoolEntriesSelector = (state) => state.contestPoolEntries.entries;
+
+/**
+ * Add ContestPoolEntry info to each contest.
+ */
+const contestsWithEntryInfoSelector = createSelector(
+  [contestsWithMatchingTypeSelector, contestPoolEntriesSelector],
+  (contests, entries) => contests.map((contest) => {
+    const contestWithEntries = Object.assign({}, contest);
+
+    contestWithEntries.entryInfo = filter(
+      entries, (entry) => entry.contest_pool === contest.id
+    );
+
+    return contestWithEntries;
+  })
+);
 
 /**
  * Sort the contests.
@@ -70,6 +90,6 @@ const sortDirection = (state) => state.upcomingContests.filters.orderBy.directio
 const sortProperty = (state) => state.upcomingContests.filters.orderBy.property;
 
 export const upcomingContestSelector = createSelector(
-  [contestsWithMatchingType, sortProperty, sortDirection],
+  [contestsWithEntryInfoSelector, sortProperty, sortDirection],
   (collection, sortProp, sortDir) => orderBy(collection, sortProp, sortDir)
 );
