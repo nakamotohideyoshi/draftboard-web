@@ -148,23 +148,23 @@ app.conf.update(
         ########################################################################
         'nba_generate_salaries' : {
             'task'      : 'salary.tasks.generate_salaries_for_sport',
-            'schedule'  : crontab(hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
+            'schedule'  : crontab(minute=0, hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
             'args'      : ('nba',),
         },
         'nhl_generate_salaries' : {
             'task'      : 'salary.tasks.generate_salaries_for_sport',
-            'schedule'  : crontab(hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
+            'schedule'  : crontab(minute=0, hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
             'args'      : ('nhl',),
         },
         'mlb_generate_salaries' : {
             'task'      : 'salary.tasks.generate_salaries_for_sport',
-            'schedule'  : crontab(hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
+            'schedule'  : crontab(minute=0, hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
             'args'      : ('mlb',),
         },
         # nfl done on thursdays only
         'nfl_generate_salaries' : {
             'task'      : 'salary.tasks.generate_salaries_for_sport',
-            'schedule'  : crontab(day_of_week='thu', hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
+            'schedule'  : crontab(minute=0, day_of_week='thu', hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
             'args'      : ('nfl',),
         },
 

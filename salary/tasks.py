@@ -63,5 +63,3 @@ def generate_season_fppgs(sport=None):
         season_fppg_generator.update_sport(sport)
     else:
         raise Exception('salary.tasks.generate_season_fppgs() - unknown sport[%s]' % str(sport))
-
-
