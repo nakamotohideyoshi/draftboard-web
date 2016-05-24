@@ -2,6 +2,7 @@ import React from 'react';
 import LineupCardPlayer from './lineup-card-player.jsx';
 import CountdownClock from '../site/countdown-clock.jsx';
 import LineupCardEntries from './lineup-card-entries.jsx';
+import classNames from 'classnames';
 
 
 const LineupCard = React.createClass({
@@ -15,6 +16,7 @@ const LineupCard = React.createClass({
     draftGroupInfo: React.PropTypes.object.isRequired,
     onHover: React.PropTypes.func,
     removeContestPoolEntry: React.PropTypes.func.isRequired,
+    focusedContestInfo: React.PropTypes.object,
   },
 
 
@@ -66,7 +68,40 @@ const LineupCard = React.createClass({
   },
 
 
+  canEnterIntoFocusedContest(focusedContestInfo, lineup) {
+    // If there is no focused contest, always return true.
+    if (!focusedContestInfo || !focusedContestInfo.contest) {
+      return true;
+    }
+    // If there are any entries, check if they are from the same lineup.
+    // If not, then the lineup can not be entered into this contest.
+    if (focusedContestInfo.contest.entryInfo &&
+      focusedContestInfo.contest.entryInfo.length
+    ) {
+      return focusedContestInfo.contest.entryInfo[0].lineup === lineup.id;
+    }
+
+    // If there are no entries, check if the lineup is for the same draftgroup
+    // as the contest pool.
+    if (focusedContestInfo.contest.draft_group !== lineup.draft_group) {
+      return false;
+    }
+
+    // Default to true.
+    return true;
+  },
+
+
   render() {
+    // Add classes based on whether the focused contestpool can be entered into.
+    const classes = classNames({
+      'cannot-enter': !this.canEnterIntoFocusedContest(
+                        this.props.focusedContestInfo,
+                        this.props.lineup
+                      ),
+    });
+
+
     let lineup = '';
 
     /**
@@ -84,7 +119,7 @@ const LineupCard = React.createClass({
       ));
 
       lineup = (
-        <div className={`cmp-lineup-card cmp-lineup-card--expanded flip-container ${flippedClass}`}>
+        <div className={`cmp-lineup-card cmp-lineup-card--expanded flip-container ${flippedClass} ${classes}`}>
           <div className="flipper">
             <div className="front" ref="front">
               <header className="cmp-lineup-card__header">
@@ -154,7 +189,7 @@ const LineupCard = React.createClass({
        */
       lineup = (
         <div
-          className="cmp-lineup-card cmp-lineup-card--collapsed"
+          className={`cmp-lineup-card cmp-lineup-card--collapsed ${classes}`}
           onClick={this.props.onCardClick.bind(null, this.props.lineup)}
           onMouseOver={this.props.onHover.bind(null, this.props.lineup.id)}
           onMouseOut={this.props.onHover.bind(null, null)}

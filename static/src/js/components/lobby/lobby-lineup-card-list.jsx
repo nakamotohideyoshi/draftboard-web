@@ -14,6 +14,7 @@ import { openDraftGroupSelectionModal, closeDraftGroupSelectionModal } from
 import { removeContestPoolEntry } from '../../actions/contest-pool-actions.js';
 import { draftGroupInfoSelector } from '../../selectors/draft-group-info-selector.js';
 import { lineupsBySportSelector } from '../../selectors/upcoming-lineups-by-sport.js';
+import { focusedContestInfoSelector } from '../../selectors/lobby-selectors.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
 import '../contest-list/contest-list-sport-filter.jsx';
 const { Provider, connect } = ReactRedux;
@@ -28,6 +29,7 @@ function mapStateToProps(state) {
   return {
     lineups: lineupsBySportSelector(state),
     lineupsInfo: upcomingLineupsInfo(state),
+    focusedContestInfo: focusedContestInfoSelector(state),
     focusedLineupId: state.upcomingLineups.focusedLineupId,
     draftGroupInfo: draftGroupInfoSelector(state),
     draftGroupSelectionModalIsOpen: state.upcomingDraftGroups.draftGroupSelectionModalIsOpen,
@@ -62,6 +64,7 @@ const LineupCardList = React.createClass({
     lineupFocused: React.PropTypes.func,
     lineupHovered: React.PropTypes.func,
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
+    focusedContestInfo: React.PropTypes.object,
     lineups: React.PropTypes.array.isRequired,
     lineupsInfo: React.PropTypes.object,
     focusedLineupId: React.PropTypes.number,
@@ -137,6 +140,7 @@ const LineupCardList = React.createClass({
             onCardClick={this.onCardClick}
             onHover={this.handleLineupHovered}
             removeContestPoolEntry={this.props.removeContestPoolEntry}
+            focusedContestInfo={this.props.focusedContestInfo}
           />
         );
       }

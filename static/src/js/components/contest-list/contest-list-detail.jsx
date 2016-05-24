@@ -29,7 +29,7 @@ import PubSub from 'pubsub-js';
 function mapStateToProps(state) {
   return {
     allContests: state.upcomingContests.allContests,
-    contestInfo: focusedContestInfoSelector(state),
+    focusedContestInfo: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
     focusedContestId: state.upcomingContests.focusedContestId,
     boxScores: state.upcomingDraftGroups.boxScores,
@@ -63,7 +63,7 @@ const ContestListDetail = React.createClass({
   propTypes: {
     allContests: React.PropTypes.object,
     boxScores: React.PropTypes.object,
-    contestInfo: React.PropTypes.object,
+    focusedContestInfo: React.PropTypes.object,
     enterContest: React.PropTypes.func,
     fetchContestEntrantsIfNeeded: React.PropTypes.func,
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
@@ -101,7 +101,7 @@ const ContestListDetail = React.createClass({
     // A new contest has been focused. Fetch all of it's required data.
     if (
         nextProps.params.contestId &&
-        nextProps.contestInfo.contest.id !== nextProps.params.contestId
+        nextProps.focusedContestInfo.contest.id !== nextProps.params.contestId
       ) {
       AppActions.openPane();
       // This is what "monitors" for URL changes.
@@ -114,8 +114,8 @@ const ContestListDetail = React.createClass({
     }
 
     // If we've got the selected contest, use it's draft_group id to get the boxscores.
-    if (nextProps.contestInfo.contest.draft_group) {
-      this.props.fetchDraftGroupBoxScoresIfNeeded(nextProps.contestInfo.contest.draft_group);
+    if (nextProps.focusedContestInfo.contest.draft_group) {
+      this.props.fetchDraftGroupBoxScoresIfNeeded(nextProps.focusedContestInfo.contest.draft_group);
     }
 
     // If we don't have team names (we problably do), fetch them.
@@ -129,14 +129,14 @@ const ContestListDetail = React.createClass({
   getActiveTab() {
     switch (this.state.activeTab) {
       case 'prizes':
-        return (<PrizeStructure structure={this.props.contestInfo.contest.prize_structure} />);
+        return (<PrizeStructure structure={this.props.focusedContestInfo.contest.prize_structure} />);
 
       case 'games': {
-        if (this.props.contestInfo.boxScores) {
+        if (this.props.focusedContestInfo.boxScores) {
           return (
             <GamesList
-              boxScores={this.props.contestInfo.boxScores}
-              teams={this.props.teams[this.props.contestInfo.contest.sport]}
+              boxScores={this.props.focusedContestInfo.boxScores}
+              teams={this.props.teams[this.props.focusedContestInfo.contest.sport]}
             />
           );
         }
@@ -146,7 +146,7 @@ const ContestListDetail = React.createClass({
 
       case 'participants': {
         return (
-          <EntrantList entrants={this.props.contestInfo.entrants} />
+          <EntrantList entrants={this.props.focusedContestInfo.entrants} />
         );
       }
 
@@ -163,8 +163,8 @@ const ContestListDetail = React.createClass({
 
         return (
           <EntryList
-            entries={this.props.contestInfo.focusedLineupEntries}
-            contestPoolInfo={this.props.contestInfo}
+            entries={this.props.focusedContestInfo.focusedLineupEntries}
+            contestPoolInfo={this.props.focusedContestInfo}
             removeContestPoolEntry={this.props.removeContestPoolEntry}
             unregisterRequests={unregisterRequests}
           />
@@ -209,7 +209,7 @@ const ContestListDetail = React.createClass({
 
 
   getContest() {
-    if (this.props.contestInfo.contest.id) {
+    if (this.props.focusedContestInfo.contest.id) {
       const tabNav = this.getTabNav();
 
       return (
@@ -221,12 +221,12 @@ const ContestListDetail = React.createClass({
           <div className="pane-upper">
             <div className="header">
               <div className="header__content">
-                <div className="title">{this.props.contestInfo.contest.name}</div>
+                <div className="title">{this.props.focusedContestInfo.contest.name}</div>
                 <div className="header__info">
                   <div>
                     <span>
                       <CountdownClock
-                        time={this.props.contestInfo.contest.start}
+                        time={this.props.focusedContestInfo.contest.start}
                         timePassedDisplay="Live"
                       />
                     </span>
@@ -237,16 +237,19 @@ const ContestListDetail = React.createClass({
                 <div className="header__fee-prizes-pool">
                   <div>
                     <span className="info-title">Prize</span>
-                    <div>${this.props.contestInfo.contest.prize_pool.toFixed(2)}</div>
+                    <div>${this.props.focusedContestInfo.contest.prize_pool.toFixed(2)}</div>
                   </div>
                   <div>
                     <span className="info-title">Entries</span>
                     <div>
-                      {this.props.contestInfo.contest.current_entries} / {this.props.contestInfo.contest.entries}
+                      {this.props.focusedContestInfo.contest.current_entries} /
+                       {this.props.focusedContestInfo.contest.entries}
                     </div>
                   </div>
                   <div>
-                    <span className="info-title">Fee</span><div>${this.props.contestInfo.contest.buyin.toFixed(2)}</div>
+                    <span className="info-title">Fee</span>
+                    <div>${this.props.focusedContestInfo.contest.buyin.toFixed(2)}
+                    </div>
                   </div>
                 </div>
 
@@ -258,7 +261,7 @@ const ContestListDetail = React.createClass({
                 <div className="btn-enter-contest">
                   <EnterContestButton
                     lineup={this.props.focusedLineup}
-                    contest={this.props.contestInfo.contest}
+                    contest={this.props.focusedContestInfo.contest}
                     lineupsInfo={this.props.lineupsInfo}
                     onEnterClick={this.handleEnterContest}
                     onEnterSuccess={this.close}
