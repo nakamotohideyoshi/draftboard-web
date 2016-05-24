@@ -82,12 +82,12 @@ const Live = React.createClass({
       }));
 
       // double check all related information is up to date
-      this.props.dispatch(fetchRelatedEntriesInfo());
+      // this.props.dispatch(fetchRelatedEntriesInfo());
       this.props.dispatch(fetchPlayerBoxScoreHistoryIfNeeded(urlParams.sport));
-    } else {
-      // force entries to refresh
-      this.props.dispatch(fetchEntriesIfNeeded(true));
     }
+
+    // force entries to refresh
+    this.props.dispatch(fetchEntriesIfNeeded(true));
 
     // start listening for pusher calls, and server updates
     this.startParityChecks();
@@ -101,6 +101,25 @@ const Live = React.createClass({
         content: '<div>See your results <a href="/results/">here</a></div>',
         level: 'success',
       }));
+    }
+
+    // terrible hack to poll for current-entries
+    // instead, we should be looking for pusher call confirming that contests have been generated
+    if (this.props.watching.myLineupId) {
+      const myLineupId = this.props.watching.myLineupId;
+      const myEntry = this.props.uniqueEntries.entriesObj[myLineupId] || {};
+      const myNextEntry = nextProps.uniqueEntries.entriesObj[myLineupId] || {};
+
+      if (!this.state.setTimeoutEntries && myNextEntry.contest === null && myEntry.hasStarted) {
+        console.warn('hi');
+        this.forceContestEntriesRefresh();
+      }
+
+      if (this.state.setTimeoutEntries && myNextEntry.contest !== null) {
+        log.warn('No need to try entries again');
+        window.clearInterval(this.state.setTimeoutEntries);
+        this.setState({ setTimeoutEntries: undefined });
+      }
     }
   },
 
@@ -139,17 +158,13 @@ const Live = React.createClass({
   /**
    * Force a refresh fo draft groups. Called by the countdown when time is up
    */
-  forceContestLineupsRefresh() {
-    log.info('Live.forceContestLineupsRefresh()');
-    const contestEntry = filter(this.props.uniqueEntries.entries,
-      (entry) => entry.lineup === this.props.watching.myLineupId
-    )[0];
+  forceContestEntriesRefresh() {
+    this.setState({ setTimeoutEntries: setInterval(() => {
+      log.warn('live.forceContestEntriesRefresh - fetching entries');
+      this.props.dispatch(fetchEntriesIfNeeded(true));
+    }, 5000) });
 
-    this.props.dispatch(
-      fetchContestLineups(contestEntry.contest, contestEntry.sport)
-    ).then(() =>
-      this.props.dispatch(fetchRelatedEntriesInfo())
-    );
+    this.props.dispatch(fetchEntriesIfNeeded(true));
   },
 
   /**
@@ -177,6 +192,27 @@ const Live = React.createClass({
         <div className="live--loading">
           <div className="preload-court" />
           <div className="spinner">
+            <div className="double-bounce1" />
+            <div className="double-bounce2" />
+          </div>
+        </div>
+      </div>
+    );
+  },
+
+  /*
+   * This loading screen shows only when waiting for contest pools to generate
+   * TODO Live - get built out
+   *
+   * @return {JSXElement}
+   */
+  renderWaitingForContestPools() {
+    return (
+      <div className="live__bg">
+        <div className="live--loading">
+          <div className="preload-court" />
+          <div className="spinner">
+            <div className="live--loading__pools">Generating contest pools</div>
             <div className="double-bounce1" />
             <div className="double-bounce2" />
           </div>
@@ -235,12 +271,15 @@ const Live = React.createClass({
         <div className={`live__bg live--countdown live--sport-${watching.sport}`}>
           {countdownLineup}
           <LiveCountdown
-            onCountdownComplete={this.forceContestLineupsRefresh}
+            onCountdownComplete={this.forceContestEntriesRefresh}
             entry={myEntry}
           />
         </div>
       );
     }
+
+    // TODO make this a loading screen to say we are generating contests from pools
+    if (myEntry.contest === null) return this.renderWaitingForContestPools();
 
     // wait for data to load before showing anything
     if (relevantGamesPlayers.isLoading) return this.renderLoadingScreen();
