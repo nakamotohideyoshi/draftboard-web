@@ -1091,7 +1091,7 @@ class ZonePitchPbp(PitchPbp):
 
 class RunnerPbp(PitchPbp):
     """
-    parse a single pitch from the target: ('mlb.runner','pbp').
+    parse a single runner event from the target: ('mlb.runner','pbp').
 
     If it does not have a 'pitch__id', that indicates it was an event
     independent of any pitches -- it was likely a steal.
@@ -1111,6 +1111,9 @@ class RunnerPbp(PitchPbp):
 
     # override default value from DataDenPbpDescription
     pusher_sport_pbp_event  = 'runner'
+
+    # stolen base outcomes
+    stolen_base_outcomes = ['SB2','SB3','SB4']
 
     def __init__(self):
         """ call parent constructor """
@@ -1146,6 +1149,28 @@ class RunnerPbp(PitchPbp):
             cache_list.add(pitch_srid, runner)
         else:
             print('runner obj had no pitch__id so not adding to runner list for linked obj')
+
+    def send(self):
+        """
+        if the runner object is a stolen base, send it as its own pusher object,
+        but make sure to call super().send() to ensure the linked object goes out as necessary
+        """
+
+        # {'outcome_id': 'SB2', 'pitch__id': '669a6752-1149-4a72-8370-c055950d3646',
+        # 'parent_list__id': 'runners__list', 'description': 'Brett Lawrie steals second.',
+        # 'last_name': 'Lawrie', 'ending_base': 2.0, 'starting_base': 1.0,
+        # 'id': '6ac6fa53-ea9b-467d-87aa-6429a6bcb90c',
+        # 'game__id': '24791492-42dd-4162-a57f-cc0e4a62729c', 'jersey_number': 15.0,
+        # 'at_bat__id': '049d9d3b-033c-492f-826e-5a78ffaf87e4',
+        # 'preferred_name': 'Brett', 'out': 'false', 'first_name': 'Brett',
+        # 'parent_api__id': 'pbp', 'dd_updated__id': 1464041840497}
+        #if self.o.get('outcome_id','') in self.stolen_base_outcomes:
+            # its a stolen base, which is kind of unique, so send it out.
+            # super().send() will take care of adding it to the sent cache!
+        push.classes.DataDenPush( push.classes.PUSHER_MLB_PBP, 'runner' ).send( self.o )
+
+        # send it normally...
+        super().send()
 
     def find_player_stats(self):
         """ override - return an emtpy list, dont look for stats objects for runner objects """
