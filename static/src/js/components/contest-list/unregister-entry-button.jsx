@@ -6,7 +6,7 @@ import React from 'react';
 const UnregisterEntryButton = React.createClass({
 
   propTypes: {
-    unregisterRequest: React.PropTypes.object.isRequired,
+    unregisterRequest: React.PropTypes.object,
     entry: React.PropTypes.object.isRequired,
     onClick: React.PropTypes.func.isRequired,
   },
