@@ -90,3 +90,8 @@ MONGO_HOST = environ.get('MONGO_HOST') % ( MONGO_USER,
 
 #
 DATETIME_DELTA_ENABLE = True   # dont do this once production environemnt is actual live!
+
+SLACK_UPDATES = False
+slack_updates = environ.get('SLACK_UPDATES', None)
+if slack_updates is not None and 't' in str(slack_updates).lower():
+    SLACK_UPDATES = True

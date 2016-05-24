@@ -501,3 +501,6 @@ DISABLE_REPLAYER_UPDATE_RECORDING = False
 #
 # for testing purposes, defaults to None, unless otherwise specified in child settings file
 TEST_SETUP = None
+
+# defaults to false, though we made turn this on in production.py
+SLACK_UPDATES = False
