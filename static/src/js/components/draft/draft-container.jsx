@@ -143,7 +143,7 @@ const DraftContainer = React.createClass({
   },
 
 
-  // Contest type filter data.
+  // Position type filter data.
   playerPositionFilters: {
     nba: [
       { title: 'All', column: 'position', match: '' },
@@ -174,7 +174,7 @@ const DraftContainer = React.createClass({
       { title: '2B', column: 'position', match: '2b' },
       { title: '3B', column: 'position', match: '3b' },
       { title: 'SS', column: 'position', match: 'ss' },
-      { title: 'OF', column: 'position', match: 'of' },
+      { title: 'OF', column: 'position', match: ['lf', 'rf', 'cf'] },
     ],
   },
 
