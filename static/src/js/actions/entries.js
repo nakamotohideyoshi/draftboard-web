@@ -37,6 +37,9 @@ const confirmRelatedEntriesInfo = () => ({
 const receiveEntries = (response) => {
   const yesterday = dateNow() - 1000 * 60 * 60 * 24;  // subtract 1 day
   const filteredResponse = filter(response, (entry) => new Date(entry.start) > yesterday);
+  // const withContest = filter(filteredResponse, (entry) =>
+  //   new Date(entry.start).getTime() > dateNow() || entry.contest !== null
+  // );
   const withDefaultName = map(filteredResponse, (entry) => merge({}, entry, {
     lineup_name: 'My Lineup',
   }));

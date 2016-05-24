@@ -369,7 +369,7 @@ class SingleContestLineupView(View):
     """
 
     def get(self, request, lineup_id):
-        entries = Entry.objects.filter(lineup__pk=lineup_id)
+        entries = Entry.objects.filter(lineup__pk=lineup_id).exclude(contest__pk=None)
         if entries.count() == 0:
             no_return_data = []
             return HttpResponse( json.dumps(no_return_data), content_type="application/json" )

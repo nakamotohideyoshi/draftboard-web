@@ -43,12 +43,13 @@ const ContestListRow = React.createClass({
   },
 
 
-  getFocusedLineupEntryCount() {
-    if (this.props.focusedLineup
-      && this.props.focusedLineup.contestPoolEntries
-      && this.props.focusedLineup.contestPoolEntries[this.props.contest.id]
-    ) {
-      return this.props.focusedLineup.contestPoolEntries[this.props.contest.id].entryCount;
+  /**
+   * How many entries the user has in this contest pool.
+   * @return {int} The number of entries.
+   */
+  getEntryCount() {
+    if (this.props.contest.entryInfo) {
+      return this.props.contest.entryInfo.length;
     }
 
     return 0;
@@ -121,10 +122,10 @@ const ContestListRow = React.createClass({
         <td key="name" className="name">
           {this.props.contest.name}
         </td>
-        <td key="entries" className="payouts">
+        <td key="payouts" className="payouts">
           {this.renderPrizeRanks(this.props.contest.prize_structure)}
         </td>
-        <td key="fee" className="entries">{this.props.contest.current_entries}</td>
+        <td key="entries" className="entries">{this.props.contest.current_entries}</td>
         <td key="contestSize" className="contest-size">{this.props.contest.contest_size}</td>
         <td key="start" className="start">
           <CountdownClock
@@ -133,11 +134,11 @@ const ContestListRow = React.createClass({
           />
         </td>
 
-        <td className="user-entries">
-          {this.getFocusedLineupEntryCount()} of {this.props.contest.max_entries}
+        <td key="user-entries" className="user-entries">
+          {this.getEntryCount()} of {this.props.contest.max_entries}
         </td>
 
-        <td className="enter">
+        <td key="enter" className="enter">
           <DraftButton
             draftGroupId={this.props.contest.draft_group}
             disableTime={this.props.contest.start}
