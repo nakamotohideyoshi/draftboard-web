@@ -35,7 +35,6 @@ const CountdownClock = React.createClass({
 
   componentWillUnmount() {
     window.clearInterval(this.updateTimeRemainingLoop);
-    window.clearInterval(this.onCountdownOverLoop);
   },
 
   setTimeRemaining() {
@@ -49,10 +48,7 @@ const CountdownClock = React.createClass({
       window.clearInterval(this.updateTimeRemainingLoop);
       this.updateTimeRemainingLoop = null;
 
-      if (typeof this.props.onCountdownOver === 'function') {
-        this.onCountdownOverLoop = window.setInterval(this.props.onCountdownOver, 5000);
-        this.props.onCountdownOver();
-      }
+      if (typeof this.props.onCountdownOver === 'function') this.props.onCountdownOver();
 
       return;
     }

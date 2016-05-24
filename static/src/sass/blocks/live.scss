@@ -80,6 +80,15 @@ $live-lineup-width: 200px;
     top: 0;
     position: absolute;
 
+    &__pools {
+      font-size: 20px;
+      color: #fff;
+      white-space: nowrap;
+      left: -90px;
+      position: relative;
+      top: -50px;
+    }
+
     .spinner {
       width: 40px;
       height: 40px;
