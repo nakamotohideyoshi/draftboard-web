@@ -1164,10 +1164,10 @@ class RunnerPbp(PitchPbp):
         # 'at_bat__id': '049d9d3b-033c-492f-826e-5a78ffaf87e4',
         # 'preferred_name': 'Brett', 'out': 'false', 'first_name': 'Brett',
         # 'parent_api__id': 'pbp', 'dd_updated__id': 1464041840497}
-        #if self.o.get('outcome_id','') in self.stolen_base_outcomes:
+        if self.o.get('outcome_id','') in self.stolen_base_outcomes:
             # its a stolen base, which is kind of unique, so send it out.
             # super().send() will take care of adding it to the sent cache!
-        push.classes.DataDenPush( push.classes.PUSHER_MLB_PBP, 'runner' ).send( self.o )
+            push.classes.DataDenPush( push.classes.PUSHER_MLB_PBP, 'runner' ).send( self.o )
 
         # send it normally...
         super().send()
