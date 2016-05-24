@@ -17,21 +17,29 @@ export const focusedContestInfoSelector = createSelector(
   (state) => state.upcomingContests.entrants,
   (state) => upcomingLineupsInfo(state),
   (state) => state.contestPoolEntries.entries,
-  (upcomingContests, focusedContestId, focusedLineupId, boxScores, prizes, entrants, lineupsInfo,
+  (upcomingContests,
+    focusedContestId,
+    focusedLineupId,
+    boxScores,
+    prizes,
+    entrants,
+    lineupsInfo,
     contestPoolEntries
   ) => {
     // Default return data.
     const contestInfo = {
       contest: {
         id: null,
+        entryInfo: [],
       },
       prizeStructure: {},
       entrants: [],
       isEntered: false,
-      entries: [],
+      focusedLineupEntries: [],
+
     };
 
-    // Add additional info if available.
+    // Add additional info if a contest is focused.
     if (upcomingContests.hasOwnProperty(focusedContestId)) {
       contestInfo.contest = upcomingContests[focusedContestId];
 
@@ -54,11 +62,16 @@ export const focusedContestInfoSelector = createSelector(
 
       // Add contestPool entries for the current lineup.
       if (focusedLineupId && contestPoolEntries) {
-        contestInfo.entries = filter(contestPoolEntries, (entry) =>
+        contestInfo.focusedLineupEntries = filter(contestPoolEntries, (entry) =>
            entry.contest_pool.toString() === focusedContestId.toString()
           && entry.lineup.toString() === focusedLineupId.toString()
         );
       }
+
+      // Add info about ALL lineups entered into this contest pool, not just the focused one.
+      contestInfo.contest.entryInfo = filter(
+        contestPoolEntries, (entry) => entry.contest_pool === contestInfo.contest.id
+      );
     }
 
     return contestInfo;
