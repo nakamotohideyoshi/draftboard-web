@@ -361,7 +361,16 @@ class SiteSportManager(object):
             # offset_hours = 6 shifts the 24 window into the next day
             # so that we get all the games
             dt_range = DfsDate.get_current_dfs_date_range(offset_hours=6)
-        games = game_class.objects.filter( start__range=dt_range )
+
+        #games = game_class.objects.filter( start__range=dt_range )
+        start = dt_range[0]
+        end = dt_range[1]
+        #print('get_scoreboard_games:', 'start[%s]'%str(start), start, 'end[%s]'%str(end), end, str(dt_range))
+        games = game_class.objects.filter( start__gt=start,
+                                           start__lte=end)
+        # tab_width = '    '
+        # for g in games:
+        #     print(tab_width, g.srid, str(g.start))
         return games
 
     def __add_to_dict(self, target, extras):
