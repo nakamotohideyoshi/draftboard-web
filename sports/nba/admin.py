@@ -51,6 +51,7 @@ class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):
 
     # list_filter     = sports.admin.PlayerStatsAdmin.list_filter   # + ('',)
     search_fields   = sports.admin.PlayerStatsAdmin.search_fields # + ('more','specific','fields...',)
+    ordering        = sports.admin.PlayerStatsAdmin.ordering # + ['more']
 
 @admin.register(sports.nba.models.GameBoxscore)
 class GameBoxscoreAdmin(admin.ModelAdmin):

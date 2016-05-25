@@ -47,7 +47,7 @@ class PlayerLineupNameAdmin(admin.ModelAdmin):
 @admin.register(sports.nfl.models.PlayerStats)
 class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):
     list_display = [
-        'game','player',
+        'game','player', 'fantasy_points',
 
         # passing stats, receiving, rushing:
         'pass_td','pass_yds','pass_int',
@@ -67,6 +67,7 @@ class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):
     ]
 
     search_fields   = sports.admin.PlayerStatsAdmin.search_fields # + ('more','specific','fields...',)
+    ordering        = sports.admin.PlayerStatsAdmin.ordering # + ['more']
 
 @admin.register(sports.nfl.models.GameBoxscore)
 class GameBoxscoreAdmin(admin.ModelAdmin):
