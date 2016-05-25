@@ -1,6 +1,6 @@
 import * as ReactRedux from 'react-redux';
 import log from '../../lib/logging';
-import Pusher from 'pusher-js';
+import Pusher from '../../lib/pusher';
 import React from 'react';
 import { addEventAndStartQueue } from '../../actions/events';
 import { fetchSportIfNeeded } from '../../actions/sports';
