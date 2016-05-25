@@ -1,5 +1,4 @@
 import * as ReactRedux from 'react-redux';
-import filter from 'lodash/filter';
 import LiveAnimationArea from './live-animation-area';
 import LiveContestsPane from './live-contests-pane';
 import LiveCountdown from './live-countdown';
@@ -13,11 +12,9 @@ import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
 import { checkForUpdates } from '../../actions/watching';
-import { fetchContestLineups } from '../../actions/live-contests';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
 import { fetchEntriesIfNeeded } from '../../actions/entries';
 import { fetchPlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
-import { fetchRelatedEntriesInfo } from '../../actions/entries';
 import { fetchUpcomingLineups } from '../../actions/entries';
 import { push as routerPush } from 'react-router-redux';
 import { Router, Route, browserHistory } from 'react-router';
@@ -111,7 +108,6 @@ const Live = React.createClass({
       const myNextEntry = nextProps.uniqueEntries.entriesObj[myLineupId] || {};
 
       if (!this.state.setTimeoutEntries && myNextEntry.contest === null && myEntry.hasStarted) {
-        console.warn('hi');
         this.forceContestEntriesRefresh();
       }
 

@@ -1,18 +1,25 @@
 import * as ReactRedux from 'react-redux';
 import log from '../../lib/logging';
-import Pusher from 'pusher-js';
 import React from 'react';
 import { addEventAndStartQueue } from '../../actions/events';
+import { entriesHaveRelatedInfoSelector } from '../../selectors/entries';
 import { fetchSportIfNeeded } from '../../actions/sports';
-import { intersection as _intersection } from 'lodash';
-import { watchingMyLineupSelector, relevantGamesPlayersSelector } from '../../selectors/watching';
 import { forEach as _forEach } from 'lodash';
+import { intersection as _intersection } from 'lodash';
 import { map as _map } from 'lodash';
 import { merge as _merge } from 'lodash';
 import { sportsSelector } from '../../selectors/sports';
 import { updatePlayerStats } from '../../actions/live-draft-groups';
-import { entriesHaveRelatedInfoSelector } from '../../selectors/entries';
 import { watchingDraftGroupTimingSelector } from '../../selectors/watching';
+import { watchingMyLineupSelector, relevantGamesPlayersSelector } from '../../selectors/watching';
+
+// hack to use test-stub, hopefully pusher comes up with a better solution
+let Pusher;
+if (process.env.NODE_ENV === 'test') {
+  Pusher = require('../../lib/pusher-test-stub/PusherTestStub');
+} else {
+  Pusher = require('pusher-js');
+}
 
 
 /*
