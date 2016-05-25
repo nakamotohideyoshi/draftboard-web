@@ -934,12 +934,17 @@ class AbstractStatReducer(object):
                 pass
         return self.data
 
+class PbpReducer(AbstractStatReducer):
+
+    remove_fields = ['_id','dd_updated__id']
+
 class ZonePitchReducer(AbstractStatReducer):
 
     remove_fields = ['parent_api__id','game__id','id','at_bat__id','pitch__id','dd_updated__id']
 
-    def __init__(self, zone_pitch):
-        super().__init__(zone_pitch)
+class AtBatReducer(AbstractStatReducer):
+
+    remove_fields = ['_id', 'parent_api__id', 'pitchs']
 
 class AtBatStatsReducer(AbstractStatReducer):
 
@@ -948,9 +953,6 @@ class AtBatStatsReducer(AbstractStatReducer):
         'game__id','status','parent_list__id',
         'parent_api__id','dd_updated__id','statistics__list',
     ]
-
-    def __init__(self, at_bat_stats):
-        super().__init__(at_bat_stats)
 
     def pre_reduce(self):
         # before we start popping off keys we dont care about get the stats we do care about
@@ -1035,9 +1037,9 @@ class PitchPbp(DataDenPbpDescription):
             pitch_order_map[pitch_srid] = i + 1
         # now using the pitch_order_map, set the p_idx of the zone pitch
         for zp in data[self.zone_pitches]:
-            if zp.get('pitch__id') == pitch_srid:
-                zp['p_idx'] = pitch_order_map[pitch_srid]
-            else:
+            try:
+                zp['p_idx'] = pitch_order_map[zp.get('pitch__id')]
+            except:
                 zp['p_idx'] = -1
 
         # get the runners list from cache (sort of like how we get zone pitches.
