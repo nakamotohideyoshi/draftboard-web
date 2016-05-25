@@ -26,6 +26,9 @@ const LiveOverallStats = React.createClass({
     const radiansRemaining = decimalRemaining * 360 - 180;
     const ctx = this.refs.canvas.getContext('2d');
 
+    // skip update if canvas is not supported (like in tests)
+    if (!ctx) return;
+
     // move to the center
     ctx.translate(diameter / 2, diameter / 2);
 
