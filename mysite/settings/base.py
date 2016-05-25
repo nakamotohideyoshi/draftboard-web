@@ -4,7 +4,8 @@ from unipath import Path
 import datetime
 
 from django.conf.locale.en import formats as en_formats
-en_formats.DATETIME_FORMAT = "m/d/Y h:i:s P"
+en_formats.DATETIME_FORMAT = "l, M d P"
+#en_formats.DATETIME_FORMAT = "m/d/Y h:i:s P"
 # en_formats.DATETIME_FORMAT = "l m.d.Y  @  P"
 
 from django.core.exceptions import ImproperlyConfigured
