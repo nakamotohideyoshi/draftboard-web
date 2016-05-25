@@ -899,6 +899,31 @@ class PlayerStats(DataDenPlayerStats):
 
         self.ps.save() # commit changes
 
+class AtBatStatsReducer(object):
+    remove_fields = [
+        '_id',
+        'game__id','status','parent_list__id',
+        'parent_api__id','dd_updated__id','statistics__list',
+    ]
+    def __init__(self, at_bat_stats):
+        self.at_bat_stats = at_bat_stats
+    def reduce(self):
+        # before we start popping off keys we dont care about get the stats we do care about
+        statistics_list = self.at_bat_stats.get('statistics__list',{})
+        hitting_list = statistics_list.get('hitting__list',{})
+        onbase_list = hitting_list.get('onbase__list',{})
+
+        # remove keys we dont care about
+        for field in self.remove_fields:
+            try:
+                self.at_bat_stats.pop(field)
+            except:
+                pass
+
+        # add onbase_list stats back in
+        self.at_bat_stats['onbase__list'] = onbase_list
+        return self.at_bat_stats
+
 class PitchPbp(DataDenPbpDescription):
     """
     given an object whose namespace, parent api is a target like:
@@ -990,7 +1015,8 @@ class PitchPbp(DataDenPbpDescription):
         data[self.at_bat_stats] = None
         if len(player_stats_obj_list) > 0:
             # get the one most recently added to the list
-            data[self.at_bat_stats] = player_stats_obj_list[-1]
+            atbat_stats_reducer = AtBatStatsReducer(player_stats_obj_list[-1])
+            data[self.at_bat_stats] = atbat_stats_reducer.reduce()
 
         # return the linked data
         return data

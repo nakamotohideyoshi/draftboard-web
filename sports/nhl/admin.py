@@ -49,11 +49,12 @@ class PlayerLineupNameAdmin(admin.ModelAdmin):
 class PlayerStatsAdmin(sports.admin.PlayerStatsAdmin):
     list_display = [
         # skater stats:
-        'game','player','position','fantasy_points','goal','assist','sog','blk','sh_goal','pp_goal', 'so_goal',
+        'game','player','fantasy_points', 'position','goal','assist','sog','blk','sh_goal','pp_goal', 'so_goal',
         # goalie stats:
         'w', 'l', 'otl', 'saves', 'ga', 'shutout'
     ]
     search_fields   = sports.admin.PlayerStatsAdmin.search_fields # + ('more','specific','fields...',)
+    ordering        = sports.admin.PlayerStatsAdmin.ordering # + ['more']
 
 @admin.register(sports.nhl.models.GameBoxscore)
 class GameBoxscoreAdmin(admin.ModelAdmin):
