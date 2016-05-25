@@ -1,4 +1,3 @@
-import Pusher from 'pusher-js';
 import React from 'react';
 import { Provider, connect } from 'react-redux';
 
@@ -18,6 +17,14 @@ import { updateGameTime } from '../../actions/sports';
 
 import NavScoreboardStatic from './nav-scoreboard-static';
 import PusherData from '../site/pusher-data';
+
+// hack to use test-stub, hopefully pusher comes up with a better solution
+let Pusher;
+if (process.env.NODE_ENV === 'test') {
+  Pusher = require('../../lib/pusher-test-stub/PusherTestStub');
+} else {
+  Pusher = require('pusher-js');
+}
 
 /*
  * Map selectors to the React component
