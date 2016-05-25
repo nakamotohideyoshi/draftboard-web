@@ -127,9 +127,10 @@ const DraftNewLineupCard = React.createClass({
           {this.renderSaveButton()}
 
           <Tooltip
-            position="bottom"
+            position="right"
             isVisible={showError}
             ref="lineupCardTip"
+            clickToClose
           >
             <span>{this.renderErrors(this.props.errorMessage)}</span>
           </Tooltip>
