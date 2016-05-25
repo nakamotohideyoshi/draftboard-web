@@ -348,7 +348,7 @@ class SalaryGenerator(FppgGenerator):
 
     DEFAULT_SEASON_TYPES = ['reg','pst']
 
-    def __init__(self, player_stats_classes, pool, season_types=None, slack_updates=False):
+    def __init__(self, player_stats_classes, pool, season_types=None, slack_updates=False, debug_srid='1616381c-d6ac-40b1-8c3f-c70d51bda098'):
         """
 
         :return:
@@ -380,6 +380,9 @@ class SalaryGenerator(FppgGenerator):
         self.excluded_player_stats  = None
 
         self.rounder = SalaryRounder()
+
+        #
+        self.debug_srid = debug_srid
 
     def update_progress(self, msg):
         time_format = '%I:%M %p'
@@ -715,10 +718,13 @@ class SalaryGenerator(FppgGenerator):
                             count += 1
                 if count > 0:
                     average_weighted_fantasy_points_for_pos = (sum / ((float)(count)))
+                    print(average_weighted_fantasy_points_for_pos)
 
                 #
                 # creates the salary for each player in the specified roster spot
                 for player in players:
+                    if player.player.srid == self.debug_srid:
+                        print(player)
                     if player.player_stats_list[0].position in pos_arr:
                         salary              = self.get_salary_for_player(player.player)
                         if average_weighted_fantasy_points_for_pos == 0.0:
@@ -734,9 +740,17 @@ class SalaryGenerator(FppgGenerator):
                         salary.pool     = self.pool
                         salary.player   = player.player
                         salary.primary_roster = roster_spot
-                        salary.fppg     = player.fantasy_weighted_average
-                        if salary.fppg is None:
-                            salary.fppg = 0.0
+
+                        salary.fppg = player.get_fantasy_average()
+
+                        salary.fppg_pos_weighted     = player.fantasy_weighted_average
+                        if salary.fppg_pos_weighted is None:
+                            salary.fppg_pos_weighted = 0.0
+
+                        salary.avg_fppg_for_position = average_weighted_fantasy_points_for_pos
+
+                        salary.num_games_included = len(player.player_stats_list)
+
                         salary.save()
 
     def get_salary_for_player(self, player):
@@ -891,7 +905,8 @@ class SalaryPool2Csv(object):
     #         """
     #         return value
 
-    columns = ['id','last_name','first_name','price_draftboard']
+    columns = ['id','last_name','first_name','price_draftboard','position',
+               'fppg','avg_fppg_for_position','num_games_included']
 
     def __init__(self, salary_pool_id, httpresponse=None):
         self.httpresponse = httpresponse # set streaming to True when returning this csv in an http response
@@ -905,6 +920,10 @@ class SalaryPool2Csv(object):
             salary.player.last_name,    # 'last_name'
             salary.player.first_name,   # 'first_name'
             salary.amount,              # 'price_draftboard'
+            salary.player.position.name, # 'position'
+            salary.fppg,
+            salary.avg_fppg_for_position,
+            salary.num_games_included,
         ])
 
     def generate(self):
