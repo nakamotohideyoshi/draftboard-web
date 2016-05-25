@@ -5,3 +5,6 @@ static/src/js/test-disabled/*
 static/src/js/lib/easing.js
 static/src/js/lib/smooth-scroll-to.js
 static/src/js/lib/time.js
+
+# ignore pusher-stub-test
+static/src/js/lib/pusher-test-stub/*
