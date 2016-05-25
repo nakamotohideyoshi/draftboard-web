@@ -163,7 +163,7 @@ const ContestListDetail = React.createClass({
 
         return (
           <EntryList
-            entries={this.props.focusedContestInfo.focusedLineupEntries}
+            entries={this.props.focusedContestInfo.contest.entryInfo}
             contestPoolInfo={this.props.focusedContestInfo}
             removeContestPoolEntry={this.props.removeContestPoolEntry}
             unregisterRequests={unregisterRequests}
