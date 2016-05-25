@@ -55,6 +55,19 @@ category: Lineup
     padding: 0;
     display: inline-block;
 
+    .cmp-countdown-clock {
+      color: #c5c7ce;
+      float: right;
+
+      .hours {
+        color: #c5c7ce;
+      }
+      .minutes,
+      .seconds {
+        color: #fff;
+      }
+    }
+
     // Sport ball icon.
     &:before {
       content: " ";
@@ -254,6 +267,11 @@ category: Lineup
 
     .cmp-lineup-card__header {
       padding: 15px;
+    }
+
+
+    .cmp-lineup-card__title {
+      display: block;
     }
 
     // Select CTA.
