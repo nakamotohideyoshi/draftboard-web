@@ -124,6 +124,13 @@ class Player( sports.models.Player ):
     class Meta:
         abstract = False
 
+    def save(self, *args, **kwargs):
+        preferred_name = self.preferred_name
+        if preferred_name is not None and preferred_name != '':
+            self.first_name = preferred_name
+
+        super().save(*args, **kwargs)
+
 class ProbablePitcher( models.Model ):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
