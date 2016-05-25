@@ -143,6 +143,13 @@ class Player( models.Model ):
     final_fantasy_points = models.FloatField(default=0, null=False,
                                 help_text='the payout-time fantasy points of this player')
 
+    # # let it be null if the info is unknown,
+    # # and we can set it to various thing depending on whether the information
+    # # is known or not
+    # # unofficial_status => 'us'
+    # us = models.CharField(max_length=2048, null=True)
+    # # official_status => 'os'
+    # os = models.CharField(max_length=2048, null=True)
 
     def __str__(self):
         return '%s $%.2f' % (str(self.player), self.salary)

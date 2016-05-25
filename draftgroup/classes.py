@@ -17,6 +17,7 @@ from sports.classes import SiteSportManager
 import datetime
 from django.utils import timezone
 from draftgroup.tasks import on_game_closed
+from roster.models import RosterSpotPosition
 
 class AbstractDraftGroupManager(object):
     """
@@ -54,6 +55,10 @@ class AbstractDraftGroupManager(object):
         If not pool exists for the given site_sport, raise SalaryPoolException
         """
 
+        valid_positions = []
+        for rsp in RosterSpotPosition.objects.filter(roster_spot__site_sport=site_sport):
+            valid_positions.append(rsp.position.name)
+
         active_pools = Pool.objects.filter(site_sport=site_sport, active=True)
         if len(active_pools) == 0:
             raise mysite.exceptions.SalaryPoolException('could not find active salary pool for given site_sport')
@@ -63,6 +68,8 @@ class AbstractDraftGroupManager(object):
         salaried_players = Salary.objects.filter( pool=pool )
         # remove players not on active roster
         for sp in salaried_players:
+            if sp.player.position.name not in valid_positions:
+                continue  # ignore players who cant fit on the roster anyways.
             if sp.player.on_active_roster:
                 players.append( sp )
         # return active players
