@@ -130,7 +130,14 @@ class Salary(models.Model):
 
     flagged         = models.BooleanField(default=False, null=False)
     primary_roster  = models.ForeignKey(RosterSpot, null = False)
-    fppg            = models.FloatField(default=0.0, verbose_name='FPPG')
+
+    fppg                = models.FloatField(default=0.0, verbose_name='FPPG',
+                            help_text='simply: (sum of fantasy points for trailing games) / (# of trailing games)')
+    fppg_pos_weighted   = models.FloatField(default=0.0, verbose_name='FPPG Position Weighted')
+
+    avg_fppg_for_position = models.FloatField(default=0.0, verbose_name='AVG Positional FPPG')
+
+    num_games_included   = models.IntegerField(default=0, null=False)
 
     # the GFK to the Player
     player_type     = models.ForeignKey(ContentType)

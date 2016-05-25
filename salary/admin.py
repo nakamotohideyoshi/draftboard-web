@@ -28,7 +28,7 @@ class SalaryInline(admin.TabularInline):
     model = Salary
     can_delete = False
     extra = 0
-    readonly_fields = ('player', 'primary_roster', 'fppg')
+    readonly_fields = ('player', 'primary_roster', 'fppg_pos_weighted', 'fppg','avg_fppg_for_position','num_games_included')
                     # + ('flagged','amount','amount_unadjusted','ownership_percentage')
     exclude = ('player_id', 'player_type')
 
@@ -131,7 +131,8 @@ class PoolAdmin(admin.ModelAdmin):
 @admin.register(Salary)
 class SalaryAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.ModelAdmin):
 
-    list_display    = ['player','amount','flagged','pool', 'primary_roster', 'fppg']
+    list_display    = ['player','amount','flagged','pool',
+                       'primary_roster', 'fppg_pos_weighted', 'fppg','avg_fppg_for_position','num_games_included']
     list_editable   = ['amount', 'flagged']
     model           = Salary
     list_filter     = [ 'primary_roster', 'flagged', 'pool']

@@ -899,30 +899,69 @@ class PlayerStats(DataDenPlayerStats):
 
         self.ps.save() # commit changes
 
-class AtBatStatsReducer(object):
+class AbstractStatReducer(object):
+    """
+    pop()'s keys out of dictionaries for the strict purpose
+    or removing superfluous data right before we pusher the data
+    to cut down on packet size.
+    """
+
+    class InvalidDataType(Exception): pass
+
+    # inheriting classes should set this to a list of string field names to remove
+    remove_fields = []
+
+    def __init__(self, data):
+        if not isinstance(data, dict):
+            raise self.InvalidDataType('"data" must be of type "dict"')
+        self.data = data
+
+    def get_internal_data(self):
+        return self.data
+
+    def pre_reduce(self):
+        """ you should override this in child class if you want to perform customizations """
+        pass # by default does nothing, side effects nothing
+
+    def reduce(self):
+        self.pre_reduce()
+
+        # remove keys we dont care about, and return the internal data
+        for field in self.remove_fields:
+            try:
+                self.data.pop(field)
+            except:
+                pass
+        return self.data
+
+class ZonePitchReducer(AbstractStatReducer):
+
+    remove_fields = ['parent_api__id','game__id','id','at_bat__id','pitch__id','dd_updated__id']
+
+    def __init__(self, zone_pitch):
+        super().__init__(zone_pitch)
+
+class AtBatStatsReducer(AbstractStatReducer):
+
     remove_fields = [
         '_id',
         'game__id','status','parent_list__id',
         'parent_api__id','dd_updated__id','statistics__list',
     ]
+
     def __init__(self, at_bat_stats):
-        self.at_bat_stats = at_bat_stats
-    def reduce(self):
+        super().__init__(at_bat_stats)
+
+    def pre_reduce(self):
         # before we start popping off keys we dont care about get the stats we do care about
-        statistics_list = self.at_bat_stats.get('statistics__list',{})
+        d = self.get_internal_data()
+        statistics_list = d.get('statistics__list',{})
         hitting_list = statistics_list.get('hitting__list',{})
         onbase_list = hitting_list.get('onbase__list',{})
 
-        # remove keys we dont care about
-        for field in self.remove_fields:
-            try:
-                self.at_bat_stats.pop(field)
-            except:
-                pass
-
         # add onbase_list stats back in
-        self.at_bat_stats['onbase__list'] = onbase_list
-        return self.at_bat_stats
+        d['onbase__list'] = onbase_list
+        self.data = d
 
 class PitchPbp(DataDenPbpDescription):
     """
@@ -990,15 +1029,16 @@ class PitchPbp(DataDenPbpDescription):
         data[self.at_bat]       = self.get_at_bat(at_bat_srid)
 
         # number the zone pitches
-        p_idx = 1
-        for pitch_dict in data[self.at_bat].get('pitchs',[]):
+        pitch_order_map = {}
+        for i, pitch_dict in enumerate(data[self.at_bat].get('pitchs',[])):
             pitch_srid = pitch_dict.get('pitch', None)
-            for zp in data[self.zone_pitches]:
-                if zp.get('pitch__id') == pitch_srid:
-                    zp['p_idx'] = p_idx
-                else:
-                    zp['p_idx'] = -1
-            p_idx += 1
+            pitch_order_map[pitch_srid] = i + 1
+        # now using the pitch_order_map, set the p_idx of the zone pitch
+        for zp in data[self.zone_pitches]:
+            if zp.get('pitch__id') == pitch_srid:
+                zp['p_idx'] = pitch_order_map[pitch_srid]
+            else:
+                zp['p_idx'] = -1
 
         # get the runners list from cache (sort of like how we get zone pitches.
         runners_cache           = CacheList(cache=cache)
@@ -1016,7 +1056,15 @@ class PitchPbp(DataDenPbpDescription):
         if len(player_stats_obj_list) > 0:
             # get the one most recently added to the list
             atbat_stats_reducer = AtBatStatsReducer(player_stats_obj_list[-1])
+            # reduction
             data[self.at_bat_stats] = atbat_stats_reducer.reduce()
+
+        # reduction
+        reduced_zone_pitches = []
+        for zp in data[self.zone_pitches]:
+            zp_reducer = ZonePitchReducer(zp)
+            reduced_zone_pitches.append(zp_reducer.reduce())
+        data[self.zone_pitches] = reduced_zone_pitches
 
         # return the linked data
         return data
