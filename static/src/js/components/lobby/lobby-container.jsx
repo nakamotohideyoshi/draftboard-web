@@ -1,5 +1,5 @@
 import React from 'react';
-import Pusher from 'pusher-js';
+import Pusher from '../../lib/pusher';
 import * as ReactRedux from 'react-redux';
 import Cookies from 'js-cookie';
 import store from '../../store';

@@ -3,7 +3,7 @@ import moment from 'moment';
 import React from 'react';
 import forEach from 'lodash/forEach';
 import size from 'lodash/size';
-import { uniqWith as _uniqWith } from 'lodash';
+import { uniq as _uniq } from 'lodash';
 
 
 /**
@@ -41,19 +41,19 @@ const LiveLineupSelectModal = React.createClass({
   },
 
   getModalContent() {
-    if (this.state.selectedSport === null) {
-      const differentSports = _uniqWith(
-        this.props.entries.map((entry) => entry.sport),
-        (sport) => sport
-      );
+    return this.shouldChoseSport() ? this.renderSports() : this.renderLineups();
+  },
 
-      // if there are multiple sports, then make them choose which
-      if (differentSports.length > 1) {
-        return this.renderSports();
-      }
+  shouldChoseSport() {
+    if (this.state.selectedSport) {
+      return false;
     }
 
-    return this.renderLineups();
+    const differentSports = _uniq(
+      this.props.entries.map((entry) => entry.sport)
+    );
+
+    return differentSports.length > 1;
   },
 
   open() {
@@ -172,8 +172,7 @@ const LiveLineupSelectModal = React.createClass({
       return this.renderLoadingScreen();
     }
 
-    // let title = (this.state.selectedSport) ? 'Choose a lineup' : 'Choose a sport'
-    let title = 'Choose a lineup';
+    let title = (this.shouldChoseSport()) ? 'Choose a sport' : 'Choose a lineup';
     if (size(this.props.entries) === 0) {
       title = 'You have no entered lineups.';
     }

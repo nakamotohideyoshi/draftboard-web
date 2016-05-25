@@ -1,8 +1,6 @@
-import Pusher from 'pusher-js';
+import Pusher from '../../lib/pusher';
 import React from 'react';
-import { forEach as _forEach } from 'lodash';
 import { Provider, connect } from 'react-redux';
-import { size as _size } from 'lodash';
 
 import errorHandler from '../../actions/live-error-handler';
 import log from '../../lib/logging';
@@ -18,19 +16,8 @@ import { sportsSelector } from '../../selectors/sports';
 import { updateGameTeam } from '../../actions/sports';
 import { updateGameTime } from '../../actions/sports';
 
-import NavScoreboardFilters from './nav-scoreboard-filters';
-import NavScoreboardGamesList from './nav-scoreboard-games-list';
-import NavScoreboardLineupsList from './nav-scoreboard-lineups-list';
-import NavScoreboardLoggedOutInfo from './nav-scoreboard-logged-out-info';
-import NavScoreboardLogo from './nav-scoreboard-logo';
-import NavScoreboardMenu from './nav-scoreboard-menu';
-import NavScoreboardSeparator from './nav-scoreboard-separator';
-import NavScoreboardSlider from './nav-scoreboard-slider';
-import NavScoreboardUserInfo from './nav-scoreboard-user-info';
+import NavScoreboardStatic from './nav-scoreboard-static';
 import PusherData from '../site/pusher-data';
-
-import { TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS } from './nav-scoreboard-const';
-
 
 /*
  * Map selectors to the React component
@@ -46,8 +33,8 @@ const mapStateToProps = (state) => ({
 /*
  * The overarching component for the scoreboard spanning the top of the site.
  *
- * Most important thing to glean from this comment is that this component is the one that loads all data for the live
- * and scoreboard redux substores!
+ * Most important thing to glean from this comment is that this component is the
+ * one that loads all data for the live and scoreboard redux substores!
  */
 const NavScoreboard = React.createClass({
 
@@ -68,16 +55,6 @@ const NavScoreboard = React.createClass({
 
   getInitialState() {
     return {
-      // Selected option string. SEE: `getSelectOptions`
-      selectedOption: null,
-
-      // Selected option type. See type constants above.
-      selectedType: null,
-
-      // Selected option key. Subtype from the main type.
-      // Competition from games and null for lineups.
-      selectedKey: null,
-
       // whether the user is logged in or not, useful for parity checks
       user: window.dfs.user,
 
@@ -109,55 +86,6 @@ const NavScoreboard = React.createClass({
     }
 
     this.startListening();
-  },
-
-  /**
-   * Get the options for `NavScoreboardFilters` select menu.
-   * @return {Array} options key-value pairs
-   */
-  getSelectOptions() {
-    const options = [];
-
-    _forEach(this.props.sportsSelector.types, (sport) => {
-      // Make sure it doesn't break if the sport has no games.
-      let count = 0;
-      if (this.props.sportsSelector[sport].gameIds) {
-        count = this.props.sportsSelector[sport].gameIds.length;
-      }
-
-      // Don't show inactive sports.
-      if (count > 0) {
-        options.push({
-          option: `${sport} games`,
-          type: TYPE_SELECT_GAMES,
-          key: sport,
-          count,
-        });
-      }
-    });
-
-    // add in lineups if user is logged in
-    if (this.state.user.username !== '') {
-      options.push({
-        option: 'MY LINEUPS',
-        type: TYPE_SELECT_LINEUPS,
-        key: 'LINEUPS',
-        count: _size(this.props.myCurrentLineupsSelector),
-      });
-    }
-
-    return options;
-  },
-
-  /**
-   * Handle `NavScoreboardFilters` select menu change.
-   * @param {String} selectedOption Name of the selected option
-   * @param {String} selectedType Type of the selected item
-   * @param {String} selectedKey Key of the selected item type
-   * @return {Object} options key-value pairs
-   */
-  handleChangeSelection(selectedOption, selectedType, selectedKey) {
-    this.setState({ selectedOption, selectedType, selectedKey });
   },
 
   /*
@@ -245,61 +173,15 @@ const NavScoreboard = React.createClass({
   /**
    * Render slider contents based on selected filter.
    */
-  renderSliderContent() {
-    if (this.state.selectedType === TYPE_SELECT_LINEUPS) {
-      return <NavScoreboardLineupsList lineups={this.props.myCurrentLineupsSelector} />;
-    } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
-      return (
-        <NavScoreboardGamesList
-          sport={this.props.sportsSelector[this.state.selectedKey]}
-          games={this.props.sportsSelector.games}
-        />
-      );
-    }
-
-    return null;
-  },
-
   render() {
-    const { username } = window.dfs.user;
-    let userInfo;
-    let filters;
-    let slider;
-
-    if (_size(this.props.sportsSelector.games) > 0) {
-      filters = (
-        <NavScoreboardFilters
-          selected={this.state.selectedOption}
-          options={this.getSelectOptions()}
-          onChangeSelection={this.handleChangeSelection}
-        />
-      );
-      slider = (
-        <NavScoreboardSlider type={this.state.selectedOption}>
-          {this.renderSliderContent()}
-        </NavScoreboardSlider>
-      );
-    }
-
-    if (this.state.user.username !== '') {
-      userInfo = (
-        <NavScoreboardUserInfo name={username} balance={this.props.cashBalance} />
-      );
-    } else {
-      userInfo = (
-        <NavScoreboardLoggedOutInfo />
-      );
-    }
-
     return (
-      <div className="inner">
-        <NavScoreboardMenu />
-        <NavScoreboardSeparator half />
-        { userInfo }
-        <NavScoreboardSeparator />
-        { filters }
-        { slider }
-        <NavScoreboardLogo />
+      <div>
+        <NavScoreboardStatic
+          user={window.dfs.user}
+          sportsSelector={this.props.sportsSelector}
+          myCurrentLineupsSelector={this.props.myCurrentLineupsSelector}
+          cashBalance={this.props.cashBalance}
+        />
         <PusherData />
       </div>
     );
