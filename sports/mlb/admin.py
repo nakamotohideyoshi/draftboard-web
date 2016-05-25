@@ -49,17 +49,20 @@ class PlayerLineupNameAdmin(admin.ModelAdmin):
 class PlayerStatsHitterAdmin(sports.admin.PlayerStatsAdmin):
     list_display = ['game','player','bb','s','d','t','hr','rbi','r','hbp','sb','cs','ktotal','ab','ap','lob','xbh']
     search_fields   = sports.admin.PlayerStatsAdmin.search_fields # + ('more','specific','fields...',)
+    ordering        = ['-created']
 
 @admin.register(sports.mlb.models.PlayerStatsPitcher)
 class PlayerStatsPitcherAdmin(sports.admin.PlayerStatsAdmin):
     list_display = ['game','player','ip_1','ip_2','win','loss','qstart','ktotal','er','h','bb','hbp','cg','cgso','nono']
     search_fields   = sports.admin.PlayerStatsAdmin.search_fields # + ('more','specific','fields...',)
+    ordering        = ['-created']
 
 @admin.register(sports.mlb.models.GameBoxscore)
 class GameBoxscoreAdmin(admin.ModelAdmin):
     list_display = ['srid_game','status','title','home_score','home',
                     'away','away_score','inning','inning_half','coverage',
-                    'home_scoring_json','away_scoring_json']
+                    'home_scoring_json','away_scoring_json',
+                    'srid_home_pp', 'srid_away_pp']
 
 @admin.register(sports.mlb.models.GamePortion)
 class GamePortionAdmin(admin.ModelAdmin):

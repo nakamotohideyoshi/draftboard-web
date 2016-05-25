@@ -15,6 +15,7 @@ from sports.mlb.models import (
     PbpDescription,
     GamePortion,
     Season,
+    ProbablePitcher,
 )
 import sports.mlb.models # mainly to use sports.mlb.models.PlayerStats and avoid conflict with PlayerStats parser
 from sports.sport.base_parser import (
@@ -963,6 +964,17 @@ class PitchPbp(DataDenPbpDescription):
         data[self.zone_pitches] = zone_pitch_cache.get(key=at_bat_srid)
         data[self.at_bat]       = self.get_at_bat(at_bat_srid)
 
+        # number the zone pitches
+        p_idx = 1
+        for pitch_dict in data[self.at_bat].get('pitchs',[]):
+            pitch_srid = pitch_dict.get('pitch', None)
+            for zp in data[self.zone_pitches]:
+                if zp.get('pitch__id') == pitch_srid:
+                    zp['p_idx'] = p_idx
+                else:
+                    zp['p_idx'] = -1
+            p_idx += 1
+
         # get the runners list from cache (sort of like how we get zone pitches.
         runners_cache           = CacheList(cache=cache)
         # use the pitch_srid as the key for runners list,
@@ -1405,6 +1417,53 @@ class Injury(DataDenInjury):
         # connect the player object to the injury object
         self.player.injury = self.injury
         self.player.save()
+
+class ProbablePitcherParser(AbstractDataDenParseable):
+
+    model = ProbablePitcher
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        # {'parent_api__id': 'daily_summary',
+        # 'away__id': '27a59d3b-ff7c-48ea-b016-4798f560f5e1',
+        # 'league__id': '2fa448bc-fc17-4d3d-be03-e60e080fdc26',
+        # 'preferred_name': 'Zach',
+        # 'id': '169b7765-2519-4f2f-a67f-2e010c0d361e',
+        # 'last_name': 'Neal', 'win': 0.0,
+        # 'loss': 0.0,
+        # 'jersey_number': 58.0, 'first_name':
+        # 'Zachary', 'parent_list__id': 'games__list',
+        # 'era': 9.0, 'game__id': '090a0fda-7842-4b31-b6cb-65f84971754a',
+        # 'dd_updated__id': 1464125707339}=
+
+        srid_game = self.o.get('game__id')
+        srid_team = self.o.get('away__id',None)
+        srid_player = self.o.get('id')
+
+        if srid_team is None:
+            srid_team = self.o.get('home__id',None)
+        try:
+            pp = self.model.objects.get(srid_game=srid_game, srid_team=srid_team)
+
+        # except self.model.MultipleObjectsReturned:
+        #     self.model.objects.filter(srid_game=srid_game, srid_team=srid_team).delete()
+        #     return
+
+        except self.model.DoesNotExist:
+
+            pp = self.model()
+            pp.srid_game        = srid_game
+            pp.srid_team        = srid_team
+
+        if pp.srid_player != srid_player:
+            pp.srid_player = srid_player
+            pp.save()
+
+
 
 class DataDenMlb(AbstractDataDenParser):
 
