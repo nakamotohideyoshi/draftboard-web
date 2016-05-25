@@ -197,6 +197,7 @@ const LineupCard = React.createClass({
           <header className="cmp-lineup-card__header">
             <h3 className="cmp-lineup-card__title">
               {this.props.lineup.name || `Untitled Lineup # ${this.props.lineup.id}`}
+              <CountdownClock time={this.props.draftGroupInfo.start} />
             </h3>
           </header>
           <div className="cmp-lineup-card__select">
