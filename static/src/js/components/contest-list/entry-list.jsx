@@ -25,7 +25,7 @@ const EntryList = React.createClass({
       return (
         <tr key={`entry-${entry.id}`}>
           <td className="contest-entry">
-            <div className="contest-name">{this.props.contestPoolInfo.contest.name}</div>
+            <div className="lineup-name">{entry.lineup_name}</div>
           </td>
           <td>
             <UnregisterEntryButton
