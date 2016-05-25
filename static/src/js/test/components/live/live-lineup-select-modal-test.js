@@ -1,21 +1,23 @@
 'use strict'
 
-require('../../test-dom')()
-import React from 'react'
-import LiveLineupSelectModalConnected from '../../../components/live/live-lineup-select-modal'
-import { expect } from 'chai'
+require('../../test-dom')();
+
+import React from 'react';
+import LiveLineupSelectModalConnected from '../../../components/live/live-lineup-select-modal';
+import { expect } from 'chai';
 import sd from 'skin-deep';
 import { merge as _merge } from 'lodash';
 
-import reducers from '../../../reducers/index'
-import { mockStore } from '../../mock-store'
+import reducers from '../../../reducers/index';
+import { mockStore } from '../../mock-store';
 
-const TestUtils = React.addons.TestUtils;
-
+import ReactTestUtils from 'react-addons-test-utils';
 
 const lineupsSameSportProps = {
-  lineups: {
-    1: {
+  entriesLoaded: true,
+  changePathAndMode() {},
+  entries: [
+    {
       "id": 1,
       "draftGroup": {
         "id": 1
@@ -27,8 +29,7 @@ const lineupsSameSportProps = {
       "sport": "nba",
       "points": 85,
       "minutesRemaining": 42
-    },
-    2: {
+    }, {
       "id": 2,
       "contest": 2,
       "lineup": 2,
@@ -40,8 +41,7 @@ const lineupsSameSportProps = {
       "sport": "nba",
       "points": 85,
       "minutesRemaining": 42
-    },
-    3: {
+    }, {
       "id": 3,
       "contest": 3,
       "lineup": 3,
@@ -54,13 +54,15 @@ const lineupsSameSportProps = {
       "points": 102,
       "minutesRemaining": 67
     }
-  }
-}
+  ]
+};
 
 
 const lineupsDifferentSportProps = {
-  lineups: {
-    1: {
+  entriesLoaded: true,
+  changePathAndMode() {},
+  entries: [
+    {
       "id": 1,
       "draftGroup": {
         "id": 1
@@ -73,7 +75,7 @@ const lineupsDifferentSportProps = {
       "points": 85,
       "minutesRemaining": 42
     },
-    2: {
+    {
       "id": 2,
       "contest": 2,
       "lineup": 2,
@@ -86,7 +88,7 @@ const lineupsDifferentSportProps = {
       "points": 85,
       "minutesRemaining": 42
     },
-    3: {
+    {
       "id": 3,
       "contest": 3,
       "lineup": 3,
@@ -98,10 +100,9 @@ const lineupsDifferentSportProps = {
       "sport": "nfl",
       "points": 102,
       "minutesRemaining": 67
-    }
-  }
-}
-
+    },
+  ]
+};
 
 
 describe('LiveLineupSelectModalConnected Component', function() {
@@ -110,28 +111,25 @@ describe('LiveLineupSelectModalConnected Component', function() {
     let vdom, instance;
 
     beforeEach(function() {
-      const store = mockStore(reducers, {})
-      const props = _merge({}, lineupsSameSportProps, {'store': store})
-      const tree = sd.shallowRender(React.createElement(LiveLineupSelectModalConnected, props))
+      const store = mockStore(reducers, {});
+      const props = lineupsSameSportProps;
+      const tree = sd.shallowRender(React.createElement(LiveLineupSelectModalConnected, props));
 
-      instance = tree.getMountedInstance()
-      vdom = tree.getRenderOutput()
-
-    })
-
-    it('it should set state.selectedSport directly as all lineups same sport', function() {
-      expect(instance.state.selectedSport).to.equal('nba')
-    })
+      instance = tree.getMountedInstance();
+      vdom = tree.getRenderOutput();
+    });
 
     it('title should be select lineup as we are directly on the lineup selection', function() {
       // I guess I'm supposed to do this with https://facebook.github.io/react/docs/test-utils.html
-      const header = vdom.props.children.props.children.filter(prop => TestUtils.isElementOfType(prop, 'header'))[0]
-      expect(header.props.children).to.equal('Choose a lineup')
+      const header = vdom.props.children.props.children
+              .filter(prop => ReactTestUtils.isElementOfType(prop, 'header'))[0];
+      expect(header.props.children).to.equal('Choose a lineup');
     })
 
     it('should provide you with 3 lineups to choose from (according to props given)', function() {
-      const content = vdom.props.children.props.children.filter(prop => TestUtils.isElementOfType(prop, 'div'))[0]
-      expect(content.props.children.props.children.length).to.equal(3)
+      const content = vdom.props.children.props.children
+              .filter(prop => ReactTestUtils.isElementOfType(prop, 'div'))[0];
+      expect(content.props.children.props.children.length).to.equal(3);
     })
   })
 
@@ -139,27 +137,29 @@ describe('LiveLineupSelectModalConnected Component', function() {
     let vdom, instance;
 
     beforeEach(function() {
-      const store = mockStore(reducers, {})
-      const props = _merge({}, lineupsDifferentSportProps, {'store': store})
-      const tree = sd.shallowRender(React.createElement(LiveLineupSelectModalConnected, props))
+      const store = mockStore(reducers, {});
+      const props = lineupsDifferentSportProps;
+      const tree = sd.shallowRender(React.createElement(LiveLineupSelectModalConnected, props));
 
-      instance = tree.getMountedInstance()
-      vdom = tree.getRenderOutput()
+      instance = tree.getMountedInstance();
+      vdom = tree.getRenderOutput();
     });
 
     it('it should set state.selectedSport to null as there is more than one sport', function() {
-      expect(instance.state.selectedSport).to.equal(null)
+      expect(instance.state.selectedSport).to.equal(null);
     });
 
     it('title should be choose a sport as we have a sport yet to choose', function() {
       // I guess I'm supposed to do this with https://facebook.github.io/react/docs/test-utils.html
-      const header = vdom.props.children.props.children.filter(prop => TestUtils.isElementOfType(prop, 'header'))[0]
-      expect(header.props.children).to.equal('Choose a sport')
+      const header = vdom.props.children.props.children
+              .filter(prop => ReactTestUtils.isElementOfType(prop, 'header'))[0];
+      expect(header.props.children).to.equal('Choose a sport');
     })
 
-    it('should provide you with 2 sports to choose from (according to props given)', function() {
-      const content = vdom.props.children.props.children.filter(prop => TestUtils.isElementOfType(prop, 'div'))[0]
-      expect(content.props.children.props.children.length).to.equal(2)
+    it('should provide you with 3 sports to choose from (according to props given)', function() {
+      const content = vdom.props.children.props.children
+              .filter(prop => ReactTestUtils.isElementOfType(prop, 'div'))[0];
+      expect(content.props.children.props.children.length).to.equal(3);
     })
   })
 

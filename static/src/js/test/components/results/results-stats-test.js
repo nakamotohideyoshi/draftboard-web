@@ -3,17 +3,17 @@
 require('../../test-dom')();
 const React = require('react');
 const ReactDOM = require('react-dom');
-const ResultsStats = require('../../../components/results/results-stats.jsx');
+import ResultsStats from '../../../components/results/results-stats.jsx';
 const expect = require('chai').expect;
 
 const defaultProps = {
   stats: {
-    winnings: "$101",
-    possible: "$512.4",
-    fees:     "$359",
+    winnings: "101",
+    possible: "512.4",
+    buyins:   "359",
     entries:  18,
     contests: 8
-  }
+  },
 };
 
 describe("ResultsStats Component", function() {
@@ -45,15 +45,15 @@ describe("ResultsStats Component", function() {
 
     expect(
       this.componentElement.querySelector('.winnings .value').textContent.trim()
-    ).to.equal(defaultProps.stats.winnings);
+    ).to.equal('$' + defaultProps.stats.winnings);
 
     expect(
       this.componentElement.querySelector('.possible .value').textContent.trim()
-    ).to.equal(defaultProps.stats.possible);
+    ).to.equal('$' + defaultProps.stats.possible);
 
     expect(
-      this.componentElement.querySelector('.fees .value').textContent.trim()
-    ).to.equal(defaultProps.stats.fees);
+      this.componentElement.querySelector('.buyins .value').textContent.trim()
+    ).to.equal('$' + defaultProps.stats.buyins);
 
     expect(
       this.componentElement.querySelector('.entries .value').textContent.trim()

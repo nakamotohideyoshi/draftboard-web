@@ -3,7 +3,7 @@
 require('../../test-dom')();
 var React = require('react');
 import ReactDOM from 'react-dom';
-var Component = require('../../../components/contest-list/contest-range-slider-filter.jsx');
+import Component from '../../../components/contest-list/contest-range-slider-filter.jsx';
 var expect = require('chai').expect;
 var sinon = require("sinon");
 var onMount = function() {};
@@ -23,6 +23,7 @@ describe('CollectionRangeSliderFilter Component', function() {
       <Component
         filterProperty='name'
         filterName='test'
+        maxValLimit={10}
         onUpdate={onUpdateSpy}
         onMount={onMount}
       />,

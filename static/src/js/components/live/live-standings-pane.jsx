@@ -9,11 +9,14 @@ import LivePMRProgressBar from './live-pmr-progress-bar';
 import * as AppActions from '../../stores/app-state-store';
 import { fetchLineupUsernames } from '../../actions/lineup-usernames';
 
+const STANDINGS_TAB = 'standings';
+const OWNERSHIP_TAB = 'ownership';
+
 /**
  * When `View Contests` element is clicked, open side pane to show
  * a user's current contests for that lineup.
  */
-const LiveStandingsPane = React.createClass({
+export const LiveStandingsPane = React.createClass({
 
   propTypes: {
     changePathAndMode: React.PropTypes.func.isRequired,
@@ -32,8 +35,8 @@ const LiveStandingsPane = React.createClass({
       perPage: 10,                         // Items per page.
       searchValue: '',                     // Search input value.
       searchResults: [],                   // Results of the search.
-      searchPlaceholder: 'Search Users', // Search field placeholder.
-      currentTab: 'standings',             // Currently shown tab.
+      searchPlaceholder: 'Search Users',   // Search field placeholder.
+      currentTab: STANDINGS_TAB,           // Currently shown tab.
       playersSortKey: null,                // Key to sort players.
       playersSortAsc: false,               // Is players sort ascending or descending.
       playersWatched: [],                  // Watched players.
@@ -56,7 +59,7 @@ const LiveStandingsPane = React.createClass({
   getListData() {
     let data;
 
-    if (this.state.currentTab === 'standings') {
+    if (this.state.currentTab === STANDINGS_TAB) {
       const lineups = this.props.lineups;
       const rankedLineups = this.props.rankedLineups;
       data = _map(rankedLineups, (lineupId) => lineups[lineupId]);
@@ -86,7 +89,7 @@ const LiveStandingsPane = React.createClass({
     }
 
     if (this.state.searchValue !== '') {
-      if (this.state.currentTab === 'standings') {
+      if (this.state.currentTab === STANDINGS_TAB) {
         data = data.filter(p => this.state.searchResults.indexOf(p.id) !== -1);
       } else {
         const s = this.state.searchValue;
@@ -111,7 +114,7 @@ const LiveStandingsPane = React.createClass({
       searchValue: '',
       searchResults: [],
       searchPlaceholder: 'Search Players',
-      currentTab: 'ownership',
+      currentTab: OWNERSHIP_TAB,
       playersSortKey: null,
       playersSortAsc: false,
     });
@@ -123,7 +126,7 @@ const LiveStandingsPane = React.createClass({
       searchValue: '',
       searchResults: [],
       searchPlaceholder: 'Search Users',
-      currentTab: 'standings',
+      currentTab: STANDINGS_TAB,
     });
   },
 
@@ -166,7 +169,7 @@ const LiveStandingsPane = React.createClass({
   handleSearchTermChanged() {
     this.setState({ searchValue: this.refs.search.value });
 
-    if (this.state.currentTab === 'standings') {
+    if (this.state.currentTab === STANDINGS_TAB) {
       this.handleSearchByUsername();
     }
   },
@@ -280,13 +283,13 @@ const LiveStandingsPane = React.createClass({
           </div>
         </section>
         <div className="menu">
-          <div className={`title${(this.state.currentTab === 'standings' ? ' active' : '')}`}
+          <div className={`title${(this.state.currentTab === STANDINGS_TAB ? ' active' : '')}`}
             onClick={this.handleViewStandings}
           >
             Standings
             <div className="border"></div>
           </div>
-          <div className={`title${(this.state.currentTab === 'ownership' ? ' active' : '')}`}
+          <div className={`title${(this.state.currentTab === OWNERSHIP_TAB ? ' active' : '')}`}
             onClick={this.handleViewOwnership}
           >
             Players
@@ -539,7 +542,7 @@ const LiveStandingsPane = React.createClass({
   },
 
   renderStandingsTab() {
-    if (this.state.currentTab !== 'standings') return null;
+    if (this.state.currentTab !== STANDINGS_TAB) return null;
 
     // wait for usernames
     if (this.props.contest.hasLineupsUsernames === false) return null;
@@ -555,7 +558,7 @@ const LiveStandingsPane = React.createClass({
   },
 
   renderOwnershipTab() {
-    if (this.state.currentTab !== 'ownership') return null;
+    if (this.state.currentTab !== OWNERSHIP_TAB) return null;
 
     return (
       <div className="inner">
@@ -579,7 +582,6 @@ const LiveStandingsPane = React.createClass({
     );
   },
 });
-
 
 // Redux integration
 const { connect } = ReactRedux;
