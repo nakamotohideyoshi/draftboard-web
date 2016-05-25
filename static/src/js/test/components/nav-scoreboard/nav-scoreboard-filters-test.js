@@ -3,7 +3,7 @@
 require('../../test-dom')();
 const React = require('react');
 const ReactDOM = require('react-dom');
-const NavScoreboardFilters = require('../../../components/nav-scoreboard/nav-scoreboard-filters.jsx');
+import NavScoreboardFilters from '../../../components/nav-scoreboard/nav-scoreboard-filters.jsx';
 const expect = require('chai').expect;
 
 const defaultProps = {
@@ -12,13 +12,13 @@ const defaultProps = {
     {
       option: "$$$A$$$",
       type: "##1##",
-      key: null,
-      count: "1"
+      key: 1,
+      count: 1
     } , {
       option: "$$$B$$$",
       type: "##1##",
-      key: null,
-      count: "2"
+      key: 2,
+      count: 2
     }],
   onChangeSelection: (() => {})
 };

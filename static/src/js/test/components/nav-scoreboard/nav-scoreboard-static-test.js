@@ -3,21 +3,42 @@
 require('../../test-dom')();
 const React = require('react');
 const ReactDOM = require('react-dom');
-const NavScoreboard = require('../../../components/nav-scoreboard/nav-scoreboard.jsx');
+import NavScoreboardStatic from '../../../components/nav-scoreboard/nav-scoreboard-static.jsx';
 const expect = require('chai').expect;
 
-const {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} = NavScoreboard;
+const {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} = NavScoreboardStatic;
 
-describe("NavScoreboard Component", function() {
+describe("NavScoreboardStatic Component", function() {
 
   beforeEach(function(done) {
+    window.dfs.user = {
+      username: 'test'
+    };
+
     var self = this;
     document.body.innerHTML = '';
     // The DOM element that the component will be rendered to.
     this.targetElement = document.body.appendChild(document.createElement('div'));
     // Render the component into our fake jsdom element.
     this.component = ReactDOM.render(
-      <NavScoreboard />,
+      React.createElement(NavScoreboardStatic, {
+        user: {username: 'fasfas'},
+        sportsSelector: {
+          types: ['type1'],
+          type1: {
+            gameIds: [1],
+          },
+          games: {
+            1: {
+              awayTeamInfo: {alias: '1'},
+              homeTeamInfo: {alias: '2'},
+            }
+          }
+        },
+        myCurrentLineupsSelector: {},
+        cashBalance: '132123',
+        isLivePage: 'faf',
+      }),
       this.targetElement,
       function() {
         // Once it has been rendered...
