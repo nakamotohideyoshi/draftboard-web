@@ -27,7 +27,7 @@
   }
 
   .message-content {
-    padding: 20px;
+    padding: 10px;
     max-width: 600px;
     margin: 0 auto;
 
@@ -50,7 +50,7 @@
     font-family: $font-open-sans;
     font-weight: 100;
     margin: 0;
-    padding: 0 0 20px 0;
+    padding: 0;
 
     .text {
       display: inline-block;
@@ -61,6 +61,7 @@
 
   .content {
     font-size: 13px;
+    padding-top: 10px;
   }
 
   /**
@@ -119,7 +120,7 @@
 
 .message-transition-enter.message-transition-enter-active {
   opacity: 1;
-  transition: opacity 500ms ease-in;
+  transition: opacity 150ms ease-in;
 }
 
 .message-transition-leave {
@@ -128,5 +129,5 @@
 
 .message-transition-leave.message-transition-leave-active {
   opacity: 0.01;
-  transition: opacity 300ms ease-in;
+  transition: opacity 100ms ease-in;
 }

@@ -265,7 +265,7 @@ const ContestListDetail = React.createClass({
                       started: 'Contest Has Started',
                       enter: 'Enter Contest',
                       entering: 'Entering...',
-                      entered: 'Another Lineup is Entered',
+                      entered: `Enter '${this.props.focusedLineup.name}' Again`,
                       maxEntered: 'Max Entries Reached',
                     }}
                     buttonClasses= {{
