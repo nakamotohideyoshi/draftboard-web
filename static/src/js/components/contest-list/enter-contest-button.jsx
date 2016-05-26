@@ -1,5 +1,4 @@
 import React from 'react';
-import log from '../../lib/logging.js';
 import { isTimeInFuture } from '../../lib/utils.js';
 import AppStateStore from '../../stores/app-state-store.js';
 
@@ -35,12 +34,14 @@ const EnterContestButton = React.createClass({
         enter: 'Enter',
         entering: 'Entering...',
         entered: 'Entered',
+        maxEntered: 'Max',
       },
       buttonClasses: {
         default: 'button--sm button--outline',
         contestEntered: 'button--sm button--outline',
         pending: 'button--sm button--outline',
         contestHasStarted: 'button--sm button--outline',
+        maxEntered: 'button--sm button--outline',
       },
     };
   },
@@ -117,10 +118,10 @@ const EnterContestButton = React.createClass({
     }
 
     if (enteredLineupId && focusedLineup) {
-      return enteredLineupId === focusedLineup.id;
+      return enteredLineupId !== focusedLineup.id;
     }
 
-    return true;
+    return false;
   },
 
 
@@ -129,27 +130,13 @@ const EnterContestButton = React.createClass({
   },
 
 
-  canLineupEnterContestPool(lineup, lineupsInfo, contest) {
-    let entryCount = 0;
-
-    // First check if another lineup is already entered into the contest pool.
-    if (!this.isAnotherLineupEntered(this.props.contest.entryInfo, this.props.lineup)) {
-      return false;
+  hasReachedMaxEntries(contest) {
+    // Is our current entry count less than the contest's max entry value?
+    if (contest.entryInfo) {
+      return contest.entryInfo.length < contest.max_entries;
     }
 
-    // Then see if we have reached the maximum entry count yet.
-    try {
-      entryCount = lineupsInfo[lineup.id].contestPoolEntries[contest.id].entryCount;
-    } catch (e) {
-      // Ignore any Type Errors from the above not being populated yet.
-      if (e instanceof TypeError) {
-        log.trace(e);
-      } else {
-        throw e;
-      }
-    }
-
-    return entryCount < contest.max_entries;
+    return false;
   },
 
 
@@ -207,8 +194,8 @@ const EnterContestButton = React.createClass({
 
     // This stuff can only apply if we know which lineup + contest we are dealing with.
     if (this.props.contest && this.props.lineup) {
-      // The contest has been entered the max number of times.
-      if (!this.canLineupEnterContestPool(this.props.lineup, this.props.lineupsInfo, this.props.contest)) {
+      // Another lineup is already entered in the contest pool.
+      if (this.isAnotherLineupEntered(this.props.contest.entryInfo, this.props.lineup)) {
         classes = this.props.buttonClasses.contestEntered;
 
         return (
@@ -221,6 +208,22 @@ const EnterContestButton = React.createClass({
           </div>
         );
       }
+
+      // The contest has been entered the max number of times.
+      if (!this.hasReachedMaxEntries(this.props.contest)) {
+        classes = this.props.buttonClasses.maxEntered;
+
+        return (
+          <div
+            className={`button button--disabled ${classes} entered enter-contest-button`}
+            onClick={this.ignoreClick}
+            onMouseLeave={this.handleMouseOut}
+          >
+            {this.props.buttonText.maxEntered}
+          </div>
+        );
+      }
+
 
       // If we have a pending entry request, don't do anything onClick.
       if (currentEntryRequest &&

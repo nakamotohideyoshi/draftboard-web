@@ -16,6 +16,7 @@ const Tooltip = React.createClass({
     position: React.PropTypes.string,
     additionalClassName: React.PropTypes.string,
     children: React.PropTypes.element,
+    clickToClose: React.PropTypes.bool,
   },
 
 
@@ -24,6 +25,7 @@ const Tooltip = React.createClass({
       isVisible: true,
       position: 'bottom',
       additionalClassName: '',
+      clickToClose: false,
     };
   },
 
@@ -62,10 +64,15 @@ const Tooltip = React.createClass({
 
 
   /**
-   * I'm pretty sure we'll always want to ignore a tooltip click... I think.
+   * Handle the tooltip click event.
    */
-  ignoreClick(e) {
-    e.stopPropagation();
+  handleClick(e) {
+    // If we want it to close on click...
+    if (this.props.clickToClose) {
+      this.hide();
+    } else {
+      e.stopPropagation();
+    }
   },
 
 
@@ -78,7 +85,7 @@ const Tooltip = React.createClass({
     }
 
     return (
-      <div className={tipClass} onClick={this.ignoreClick}>
+      <div className={tipClass} onClick={this.handleClick}>
         <div className="tooltip__content">{this.props.children}</div>
       </div>
     );

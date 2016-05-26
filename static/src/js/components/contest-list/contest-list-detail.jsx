@@ -163,7 +163,7 @@ const ContestListDetail = React.createClass({
 
         return (
           <EntryList
-            entries={this.props.focusedContestInfo.focusedLineupEntries}
+            entries={this.props.focusedContestInfo.contest.entryInfo}
             contestPoolInfo={this.props.focusedContestInfo}
             removeContestPoolEntry={this.props.removeContestPoolEntry}
             unregisterRequests={unregisterRequests}
@@ -242,8 +242,8 @@ const ContestListDetail = React.createClass({
                   <div>
                     <span className="info-title">Entries</span>
                     <div>
-                      {this.props.focusedContestInfo.contest.current_entries} /
-                       {this.props.focusedContestInfo.contest.entries}
+                      {this.props.focusedContestInfo.contest.current_entries} /&nbsp;
+                      {this.props.focusedContestInfo.contest.max_entries}
                     </div>
                   </div>
                   <div>
@@ -251,11 +251,6 @@ const ContestListDetail = React.createClass({
                     <div>${this.props.focusedContestInfo.contest.buyin.toFixed(2)}
                     </div>
                   </div>
-                </div>
-
-                <div className="header__extra-info">
-                  <div className="m badge">M</div>
-                  <div className="g badge">G</div>
                 </div>
 
                 <div className="btn-enter-contest">
@@ -270,13 +265,15 @@ const ContestListDetail = React.createClass({
                       started: 'Contest Has Started',
                       enter: 'Enter Contest',
                       entering: 'Entering...',
-                      entered: 'Entered',
+                      entered: 'Another Lineup is Entered',
+                      maxEntered: 'Max Entries Reached',
                     }}
                     buttonClasses= {{
                       default: 'button--med button--med-len button--gradient',
                       contestEntered: 'button--med button--med-len button--gradient',
                       pending: 'button--med button--med-len button--gradient',
                       contestHasStarted: 'button--med button--med-len button--gradient',
+                      maxEntered: 'button--med button--med-len button--gradient',
                     }}
                   />
                 </div>

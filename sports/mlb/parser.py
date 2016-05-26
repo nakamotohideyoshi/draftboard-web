@@ -15,6 +15,7 @@ from sports.mlb.models import (
     PbpDescription,
     GamePortion,
     Season,
+    ProbablePitcher,
 )
 import sports.mlb.models # mainly to use sports.mlb.models.PlayerStats and avoid conflict with PlayerStats parser
 from sports.sport.base_parser import (
@@ -37,6 +38,10 @@ from dataden.classes import DataDen
 import push.classes
 from django.conf import settings
 from sports.sport.base_parser import TsxContentParser
+from draftgroup.classes import (
+    PlayerUpdateManager,
+    GameUpdateManager,
+)
 
 class HomeAwaySummary(DataDenTeamBoxscores):
 
@@ -898,6 +903,72 @@ class PlayerStats(DataDenPlayerStats):
 
         self.ps.save() # commit changes
 
+class AbstractStatReducer(object):
+    """
+    pop()'s keys out of dictionaries for the strict purpose
+    or removing superfluous data right before we pusher the data
+    to cut down on packet size.
+    """
+
+    class InvalidDataType(Exception): pass
+
+    # inheriting classes should set this to a list of string field names to remove
+    remove_fields = []
+
+    def __init__(self, data):
+        if not isinstance(data, dict):
+            raise self.InvalidDataType('"data" must be of type "dict"')
+        self.data = data
+
+    def get_internal_data(self):
+        return self.data
+
+    def pre_reduce(self):
+        """ you should override this in child class if you want to perform customizations """
+        pass # by default does nothing, side effects nothing
+
+    def reduce(self):
+        self.pre_reduce()
+
+        # remove keys we dont care about, and return the internal data
+        for field in self.remove_fields:
+            try:
+                self.data.pop(field)
+            except:
+                pass
+        return self.data
+
+class PbpReducer(AbstractStatReducer):
+
+    remove_fields = ['_id','dd_updated__id']
+
+class ZonePitchReducer(AbstractStatReducer):
+
+    remove_fields = ['parent_api__id','game__id','id','at_bat__id','pitch__id','dd_updated__id']
+
+class AtBatReducer(AbstractStatReducer):
+
+    remove_fields = ['_id', 'parent_api__id', 'pitchs']
+
+class AtBatStatsReducer(AbstractStatReducer):
+
+    remove_fields = [
+        '_id',
+        'game__id','status','parent_list__id',
+        'parent_api__id','dd_updated__id','statistics__list',
+    ]
+
+    def pre_reduce(self):
+        # before we start popping off keys we dont care about get the stats we do care about
+        d = self.get_internal_data()
+        statistics_list = d.get('statistics__list',{})
+        hitting_list = statistics_list.get('hitting__list',{})
+        onbase_list = hitting_list.get('onbase__list',{})
+
+        # add onbase_list stats back in
+        d['onbase__list'] = onbase_list
+        self.data = d
+
 class PitchPbp(DataDenPbpDescription):
     """
     given an object whose namespace, parent api is a target like:
@@ -963,6 +1034,18 @@ class PitchPbp(DataDenPbpDescription):
         data[self.zone_pitches] = zone_pitch_cache.get(key=at_bat_srid)
         data[self.at_bat]       = self.get_at_bat(at_bat_srid)
 
+        # number the zone pitches
+        pitch_order_map = {}
+        for i, pitch_dict in enumerate(data[self.at_bat].get('pitchs',[])):
+            pitch_srid = pitch_dict.get('pitch', None)
+            pitch_order_map[pitch_srid] = i + 1
+        # now using the pitch_order_map, set the p_idx of the zone pitch
+        for zp in data[self.zone_pitches]:
+            try:
+                zp['p_idx'] = pitch_order_map[zp.get('pitch__id')]
+            except:
+                zp['p_idx'] = -1
+
         # get the runners list from cache (sort of like how we get zone pitches.
         runners_cache           = CacheList(cache=cache)
         # use the pitch_srid as the key for runners list,
@@ -978,7 +1061,16 @@ class PitchPbp(DataDenPbpDescription):
         data[self.at_bat_stats] = None
         if len(player_stats_obj_list) > 0:
             # get the one most recently added to the list
-            data[self.at_bat_stats] = player_stats_obj_list[-1]
+            atbat_stats_reducer = AtBatStatsReducer(player_stats_obj_list[-1])
+            # reduction
+            data[self.at_bat_stats] = atbat_stats_reducer.reduce()
+
+        # reduction
+        reduced_zone_pitches = []
+        for zp in data[self.zone_pitches]:
+            zp_reducer = ZonePitchReducer(zp)
+            reduced_zone_pitches.append(zp_reducer.reduce())
+        data[self.zone_pitches] = reduced_zone_pitches
 
         # return the linked data
         return data
@@ -1406,6 +1498,59 @@ class Injury(DataDenInjury):
         self.player.injury = self.injury
         self.player.save()
 
+class ProbablePitcherParser(AbstractDataDenParseable):
+
+    probable_pitcher_type = 'pp'
+
+    model = ProbablePitcher
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target=None):
+        super().parse(obj, target)
+
+        # {'parent_api__id': 'daily_summary',
+        # 'away__id': '27a59d3b-ff7c-48ea-b016-4798f560f5e1',
+        # 'league__id': '2fa448bc-fc17-4d3d-be03-e60e080fdc26',
+        # 'preferred_name': 'Zach',
+        # 'id': '169b7765-2519-4f2f-a67f-2e010c0d361e',
+        # 'last_name': 'Neal', 'win': 0.0,
+        # 'loss': 0.0,
+        # 'jersey_number': 58.0, 'first_name':
+        # 'Zachary', 'parent_list__id': 'games__list',
+        # 'era': 9.0, 'game__id': '090a0fda-7842-4b31-b6cb-65f84971754a',
+        # 'dd_updated__id': 1464125707339}=
+
+        srid_game = self.o.get('game__id')
+        srid_team = self.o.get('away__id',None)
+        srid_player = self.o.get('id')
+
+        if srid_team is None:
+            srid_team = self.o.get('home__id',None)
+        try:
+            pp = self.model.objects.get(srid_game=srid_game, srid_team=srid_team)
+
+        # except self.model.MultipleObjectsReturned:
+        #     self.model.objects.filter(srid_game=srid_game, srid_team=srid_team).delete()
+        #     return
+
+        except self.model.DoesNotExist:
+
+            pp = self.model()
+            pp.srid_game        = srid_game
+            pp.srid_team        = srid_team
+
+        if pp.srid_player != srid_player:
+            pp.srid_player = srid_player
+            pp.save()
+
+        # add the proabable pitcher using the GameUpdateManager
+        # which will ensure the information gets pushed into
+        # the draftgroup information
+        gum = GameUpdateManager('mlb', srid_game)
+        gum.add_probable_pitcher(srid_team, srid_player)
+
 class DataDenMlb(AbstractDataDenParser):
 
     def __init__(self):
@@ -1473,6 +1618,11 @@ class DataDenMlb(AbstractDataDenParser):
         # player
         elif self.target == ('mlb.player','team_profile'): PlayerTeamProfile().parse( obj ) # ie: rosters
         elif self.target == ('mlb.player','summary'): PlayerStats().parse( obj ) # stats from games
+        #
+        # probable_pitcher
+        elif self.target == ('mlb.probable_pitcher','daily_summary'):
+            ppparser = ProbablePitcherParser()
+            ppparser.parse(obj)
         #
         # default case, print this message for now
 

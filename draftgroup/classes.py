@@ -10,13 +10,20 @@ from .exceptions import (
     FantasyPointsAlreadyFinalizedException,
 )
 from django.db.transaction import atomic
-from .models import DraftGroup, Player, GameTeam
+from .models import (
+    DraftGroup,
+    Player,
+    GameTeam,
+    PlayerUpdate,
+    GameUpdate,
+)
 from sports.models import Game, SiteSport, GameStatusChangedSignal
 from salary.models import Pool, Salary
 from sports.classes import SiteSportManager
 import datetime
 from django.utils import timezone
 from draftgroup.tasks import on_game_closed
+from roster.models import RosterSpotPosition
 
 class AbstractDraftGroupManager(object):
     """
@@ -54,6 +61,10 @@ class AbstractDraftGroupManager(object):
         If not pool exists for the given site_sport, raise SalaryPoolException
         """
 
+        valid_positions = []
+        for rsp in RosterSpotPosition.objects.filter(roster_spot__site_sport=site_sport):
+            valid_positions.append(rsp.position.name)
+
         active_pools = Pool.objects.filter(site_sport=site_sport, active=True)
         if len(active_pools) == 0:
             raise mysite.exceptions.SalaryPoolException('could not find active salary pool for given site_sport')
@@ -63,6 +74,8 @@ class AbstractDraftGroupManager(object):
         salaried_players = Salary.objects.filter( pool=pool )
         # remove players not on active roster
         for sp in salaried_players:
+            if sp.player.position.name not in valid_positions:
+                continue  # ignore players who cant fit on the roster anyways.
             if sp.player.on_active_roster:
                 players.append( sp )
         # return active players
@@ -469,3 +482,150 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
         #
         return draft_group
+
+class AbstractUpdateManager(object):
+
+    class CategoryException(Exception): pass
+
+    class TypeException(Exception): pass
+
+    class ValueException(Exception): pass
+
+    def __init__(self):
+        pass
+
+class PlayerUpdateManager(AbstractUpdateManager):
+    """
+    This class should exclusively be used as the interface
+    to adding draftgroup.models.PlayerUpdate objects to draftgroups.
+
+    """
+
+    model = PlayerUpdate
+
+    def __init__(self, sport, player_srid, draft_groups=None, now=None):
+        """
+
+        :param sport:
+        :param player_srid:
+        :param draft_groups:
+        :param now: used to help determine the 'draft_groups' unless they are specified
+        :return:
+        """
+        super().__init__()
+
+        self.sport = sport
+        self.player_srid = player_srid
+        self.now = now
+        if self.now is None:
+            self.now = timezone.now()
+        self.draft_groups = draft_groups
+        if self.draft_groups is None:
+            self.draft_groups = self.get_applicable_draft_groups(self.now)
+        print('found', len(self.draft_groups), 'draft_groups:', str(self.draft_groups))
+
+    def add(self, update_id, category, value):
+        """
+        create or update a PlayerUpdate
+
+        :param update_id:
+        :param category:
+        :param value:
+        :return:
+        """
+        pass # TODO
+
+    def get_applicable_draft_groups(self, dt):
+        """
+        return a queryset of draft groups which we think the
+        update is for , stirctly based on the time param 'dt'
+        :param dt:
+        :return:
+        """
+        return [] # TODO
+
+class GameUpdateManager(AbstractUpdateManager):
+    """
+    This class should exclusively be used as the interface
+    to adding draftgroup.models.GameUpdate objects to draftgroups.
+
+    """
+
+    model = GameUpdate
+
+    def __init__(self, sport, game_srid, now=None):
+        """
+
+        :param sport:
+        :param player_srid:
+        :return:
+        """
+        super().__init__()
+
+        self.sport = sport
+        self.game_srid = game_srid
+        self.now = now
+        if self.now is None:
+            self.now = timezone.now()
+
+        self.draft_groups = self.get_draft_groups(self.game_srid)
+        print('found', len(self.draft_groups), 'draft_groups:', str(self.draft_groups))
+
+    def add_probable_pitcher(self, team_srid, player_srid):
+        """
+        helper method that calls add() with the GameUpdate.LINEUP category
+        """
+        update_id = '%s%s' % (self.game_srid, team_srid)
+        self.add(update_id, GameUpdate.LINEUP, 'pp', player_srid)
+
+    def add(self, update_id, category, type, value):
+        """
+        create or update a GameUpdate
+
+        :param update_id:
+        :param category:
+        :param type:
+        :param value:
+        :return:
+        """
+
+        # TODO - validation methods
+        self.validate_update_id(update_id)
+        self.validate_category(category)
+        self.validate_type(type)
+        self.validate_value(value)
+
+        created = False
+        try:
+            gu = self.model.objects.get(update_id=update_id)
+        except self.model.DoesNotExist:
+            gu = self.model()
+            gu.category = category
+            gu.type = type
+            created = True
+
+        if gu.value is None or gu.value != value:
+            gu.value = value
+            gu.save()
+
+        if created == True:
+            # add it if we are in the process of creating it
+            for draft_group in self.draft_groups:
+                gu.draft_groups.add( draft_group ) # ManyToMany relationship!
+
+    def get_draft_groups(self, game_srid):
+        """
+        get all DraftGroup objects which include this game (by its srid)
+        """
+        game_teams = GameTeam.objects.filter(game_srid=game_srid).distinct('draft_group')
+        return [ gt.draft_group for gt in game_teams ]
+
+    def validate_update_id(self, update_id): pass # TODO
+
+    def validate_category(self, category):
+        if category not in [ x[0] for x in self.model.CATEGORIES ]:
+            raise self.CategoryException()
+
+    def validate_type(self, type): pass # TODO
+
+    def validate_value(self, value): pass # TODO

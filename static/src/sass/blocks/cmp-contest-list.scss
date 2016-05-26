@@ -19,14 +19,16 @@ $table-row-hover-bg: #f9fafb;
 
   &__row {
 
-
     &.highlight {
         background: #f3faf4;
     }
 
     .enter {
-      min-width: 210px;
       cursor: default;
+
+      .enter-contest-button {
+        min-width: 11em;
+      }
     }
   }
 
