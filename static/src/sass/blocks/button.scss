@@ -138,6 +138,14 @@ $button-box-shadow: 0px 5px 20px 0px rgba(22, 37, 48, 0.38);
         box-shadow: none;
       }
     }
+
+    &.button--disabled {
+      &:hover {
+        background: linear-gradient(to right, #219d87 0%, #34cc68 100%);
+        box-shadow: none;
+        cursor: not-allowed;
+      }
+    }
   }
 
   /**
