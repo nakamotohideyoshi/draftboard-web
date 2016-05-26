@@ -2,7 +2,12 @@
 # draftgroup/serializers.py
 
 from rest_framework import serializers
-from draftgroup.models import DraftGroup, Player
+from draftgroup.models import (
+    DraftGroup,
+    Player,
+    PlayerUpdate,
+    GameUpdate,
+)
 from roster.models import RosterSpot
 
 class PlayerSerializer(serializers.ModelSerializer):
@@ -25,6 +30,14 @@ class PlayerSerializer(serializers.ModelSerializer):
                   'start', 'position', 'fppg',
                   'team_alias', 'game_srid', 'team_srid', 'player_srid')
 
+# class PlayerUpdateSerializer(serializers.ModelSerializer): pass # TODO
+
+class GameUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GameUpdate
+        fields = ('category','type','value')
+
 class AbstractDraftGroupSerializer(serializers.ModelSerializer):
     """
     super class which has the sport for the DraftGroup
@@ -39,9 +52,11 @@ class DraftGroupSerializer(AbstractDraftGroupSerializer):
 
     players = PlayerSerializer(many=True, read_only=True)
 
+    game_updates = GameUpdateSerializer(source='gameupdate_set', many=True, read_only=True)
+
     class Meta:
         model = DraftGroup
-        fields = ('pk', 'start', 'end', 'sport', 'players', 'closed')
+        fields = ('pk', 'start', 'end', 'sport', 'game_updates', 'players', 'closed')
 
 class UpcomingDraftGroupSerializer(AbstractDraftGroupSerializer):
 

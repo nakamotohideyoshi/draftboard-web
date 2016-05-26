@@ -102,6 +102,7 @@ class DataDenParser(object):
         ('mlb','home','summary'),
         ('mlb','away','summary'),
         ('mlb','player','summary'),
+        ('mlb','probable_pitcher','daily_summary'), # PP info
 
         # nba
         ('nba','team','hierarchy'),             # 1

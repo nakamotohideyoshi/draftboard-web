@@ -17,8 +17,8 @@ from mysite.exceptions import (
 
 #
 # WARNING: this sets en_formats for ALL contest.schedule admin model fields!
-from django.conf.locale.en import formats as en_formats
-en_formats.DATETIME_FORMAT = "l, M P"
+#from django.conf.locale.en import formats as en_formats
+#en_formats.DATETIME_FORMAT = "l, M d P"
 
 #
 #DATETIME_FORMAT = '%A, %d. %B %Y %I:%M%p'    # %B %Y is MM YYYY

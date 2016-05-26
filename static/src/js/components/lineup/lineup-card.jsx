@@ -92,6 +92,16 @@ const LineupCard = React.createClass({
   },
 
 
+  handleMouseOver(lineupId) {
+    this.props.onHover(lineupId);
+  },
+
+
+  handleMouseOut() {
+    this.props.onHover(null, null);
+  },
+
+
   render() {
     // Add classes based on whether the focused contestpool can be entered into.
     const classes = classNames({
@@ -191,8 +201,8 @@ const LineupCard = React.createClass({
         <div
           className={`cmp-lineup-card cmp-lineup-card--collapsed ${classes}`}
           onClick={this.props.onCardClick.bind(null, this.props.lineup)}
-          onMouseOver={this.props.onHover.bind(null, this.props.lineup.id)}
-          onMouseOut={this.props.onHover.bind(null, null)}
+          onMouseOver={this.handleMouseOver.bind(null, this.props.lineup.id)}
+          onMouseOut={this.handleMouseOut}
         >
           <header className="cmp-lineup-card__header">
             <h3 className="cmp-lineup-card__title">

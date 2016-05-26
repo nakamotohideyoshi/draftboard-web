@@ -26,7 +26,7 @@ class DraftGroupAPIView(generics.GenericAPIView):
     return the draft group players for the given draftgroup id
     """
 
-    DEFAULT_CACHE_TIMEOUT = 48 * 24 * 60 * 60
+    DEFAULT_CACHE_TIMEOUT = 5 * 60 # 48 * 24 * 60 * 60
 
     serializer_class = DraftGroupSerializer
 
@@ -36,16 +36,23 @@ class DraftGroupAPIView(generics.GenericAPIView):
         except DraftGroup.DoesNotExist:
             raise NotFound()
 
+    def get_cache_key(self, pk):
+        return self.__class__.__name__ + str(pk)
+
     def get(self, request, pk, format=None):
         """
         given the GET param 'id', get the draft_group
         """
         draft_group = self.get_object(pk)
         c = caches['default']
-        serialized_data = c.get(self.__class__.__name__ + str(pk), None)
+        serialized_data = c.get(self.get_cache_key(pk), None)
         if serialized_data is None or (draft_group.closed is not None and serialized_data.get('closed', None) is None):
             serialized_data = DraftGroupSerializer( self.get_object(pk), many=False ).data
-            c.add( self.__class__.__name__ + str(pk), serialized_data, self.DEFAULT_CACHE_TIMEOUT )
+            c.add( self.get_cache_key(pk), serialized_data, self.DEFAULT_CACHE_TIMEOUT )
+
+        # # skip cache for testing
+        # draft_group = self.get_object(pk)
+        # serialized_data = DraftGroupSerializer( self.get_object(pk), many=False ).data
         return Response(serialized_data)
 
 

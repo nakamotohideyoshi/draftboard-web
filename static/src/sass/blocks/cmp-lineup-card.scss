@@ -661,3 +661,16 @@ category: Lineup
     overflow: auto;
   }
 }
+
+
+
+/**
+ * Draft Page lineup card overrides
+ */
+body.section-lobby.page-draft {
+  .cmp-lineup-card--new .tooltip {
+    top: -7px;
+    margin-right: -225px;
+    width: 240px;
+  }
+}
