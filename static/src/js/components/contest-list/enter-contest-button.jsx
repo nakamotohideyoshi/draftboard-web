@@ -1,6 +1,7 @@
 import React from 'react';
 import { isTimeInFuture } from '../../lib/utils.js';
 import AppStateStore from '../../stores/app-state-store.js';
+import Tooltip from '../site/tooltip.jsx';
 
 
 /**
@@ -33,8 +34,8 @@ const EnterContestButton = React.createClass({
         started: 'Contest Started',
         enter: 'Enter',
         entering: 'Entering...',
-        entered: 'Entered',
-        maxEntered: 'Max',
+        entered: 'Enter Again',
+        maxEntered: 'Max Entered',
       },
       buttonClasses: {
         default: 'button--sm button--outline',
@@ -104,6 +105,32 @@ const EnterContestButton = React.createClass({
 
 
   /**
+   * How many entries the user has in this contest pool.
+   * @return {int} The number of entries.
+   */
+  getFocusedLineupEntryCount(contest) {
+    if (contest.entryInfo) {
+      return contest.entryInfo.filter(entry => entry.lineup === this.props.lineup.id).length;
+    }
+
+    return 0;
+  },
+
+
+  /**
+   * How many entries the user has in this contest pool.
+   * @return {int} The number of entries.
+   */
+  getEntryCount(contest) {
+    if (contest.entryInfo) {
+      return contest.entryInfo.length;
+    }
+
+    return 0;
+  },
+
+
+  /**
    * Check if another lineup is already entered into this contest. If so, our currently focused lineup
    * cannot enter.
    * @param  {Array}  entryInfo     List of contest pool entries. this is nested in the contest prop.
@@ -133,7 +160,7 @@ const EnterContestButton = React.createClass({
   hasReachedMaxEntries(contest) {
     // Is our current entry count less than the contest's max entry value?
     if (contest.entryInfo) {
-      return contest.entryInfo.length < contest.max_entries;
+      return this.getFocusedLineupEntryCount(contest) < contest.max_entries;
     }
 
     return false;
@@ -194,37 +221,6 @@ const EnterContestButton = React.createClass({
 
     // This stuff can only apply if we know which lineup + contest we are dealing with.
     if (this.props.contest && this.props.lineup) {
-      // Another lineup is already entered in the contest pool.
-      if (this.isAnotherLineupEntered(this.props.contest.entryInfo, this.props.lineup)) {
-        classes = this.props.buttonClasses.contestEntered;
-
-        return (
-          <div
-            className={`button button--disabled ${classes} entered enter-contest-button`}
-            onClick={this.ignoreClick}
-            onMouseLeave={this.handleMouseOut}
-          >
-            {this.props.buttonText.entered}
-          </div>
-        );
-      }
-
-      // The contest has been entered the max number of times.
-      if (!this.hasReachedMaxEntries(this.props.contest)) {
-        classes = this.props.buttonClasses.maxEntered;
-
-        return (
-          <div
-            className={`button button--disabled ${classes} entered enter-contest-button`}
-            onClick={this.ignoreClick}
-            onMouseLeave={this.handleMouseOut}
-          >
-            {this.props.buttonText.maxEntered}
-          </div>
-        );
-      }
-
-
       // If we have a pending entry request, don't do anything onClick.
       if (currentEntryRequest &&
         currentEntryRequest.status !== 'FAILURE' &&
@@ -243,6 +239,60 @@ const EnterContestButton = React.createClass({
           </div>
         );
       }
+
+
+      // This contest pool has an entry in it...
+      if (this.getEntryCount(this.props.contest) > 0) {
+        classes = this.props.buttonClasses.contestEntered;
+
+        // Another lineup is already entered in the contest pool.
+        if (this.isAnotherLineupEntered(this.props.contest.entryInfo, this.props.lineup)) {
+          return (
+            <div
+              className={`button ${classes} button--disabled has-tooltip entered enter-contest-button`}
+              onClick={this.ignoreClick}
+              onMouseLeave={this.handleMouseOut}
+            >
+              {this.props.buttonText.entered}
+              <Tooltip
+                isVisible
+                position={'bottom'}
+              >
+                <span>You can only enter 1 lineup into a contest.</span>
+              </Tooltip>
+            </div>
+          );
+        }
+
+        // The focused contest already has an entry in it, and can add another.
+        return (
+          <div
+            className={`button ${classes} entered enter-contest-button`}
+            onClick={this.handleButtonClick.bind(null, this.props.contest)}
+            onMouseEnter={this.handleMouseOver}
+            onMouseLeave={this.handleMouseOut}
+          >
+            {this.props.buttonText.entered}
+          </div>
+        );
+      }
+
+
+      // The contest has been entered the max number of times.
+      if (!this.hasReachedMaxEntries(this.props.contest)) {
+        classes = this.props.buttonClasses.maxEntered;
+
+        return (
+          <div
+            className={`button button--disabled ${classes} entered enter-contest-button`}
+            onClick={this.ignoreClick}
+            onMouseLeave={this.handleMouseOut}
+          >
+            {this.props.buttonText.maxEntered}
+          </div>
+        );
+      }
+
 
       // If there is no pending entry request, but the lineup can be entered, show the enter
       // contest button.

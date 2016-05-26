@@ -105,14 +105,20 @@ category: Tooltips
   margin: 0;
   z-index: $zindex-tooltip;
 
+
   .tooltip__content {
     background: #fff;
     border-radius: 3px;
     border: 1px solid #d8dadf;
     box-shadow: 0px 11px 51px 0px rgba(0, 0, 0, 0.11);
+    color: #293f4f;
+    font-family: $font-open-sans;
+    font-size: 13px;
+    letter-spacing: normal;
     padding: 10px 18px;
     position: relative;
     text-align: center;
+    text-transform: none;
   }
 
   &--hidden {

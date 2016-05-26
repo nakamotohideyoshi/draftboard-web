@@ -48,6 +48,20 @@ const MessageDisplayMessage = React.createClass({
   },
 
 
+  renderContent(content) {
+    if (content) {
+      return (
+        <div
+          className="content"
+          dangerouslySetInnerHTML={this.createMarkupFromContent(content)}
+        />
+      );
+    }
+
+    return '';
+  },
+
+
   render() {
     return (
       <div className={`message ${this.props.message.level}`}>
@@ -59,10 +73,7 @@ const MessageDisplayMessage = React.createClass({
             ></span>
           </h3>
 
-          <div
-            className="content"
-            dangerouslySetInnerHTML={this.createMarkupFromContent(this.props.message.content)}
-          ></div>
+          {this.renderContent(this.props.message.content)}
           {this.renderCloseButton()}
         </div>
       </div>
