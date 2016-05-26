@@ -38,6 +38,10 @@ from dataden.classes import DataDen
 import push.classes
 from django.conf import settings
 from sports.sport.base_parser import TsxContentParser
+from draftgroup.classes import (
+    PlayerUpdateManager,
+    GameUpdateManager,
+)
 
 class HomeAwaySummary(DataDenTeamBoxscores):
 
@@ -1496,6 +1500,8 @@ class Injury(DataDenInjury):
 
 class ProbablePitcherParser(AbstractDataDenParseable):
 
+    probable_pitcher_type = 'pp'
+
     model = ProbablePitcher
 
     def __init__(self):
@@ -1539,7 +1545,11 @@ class ProbablePitcherParser(AbstractDataDenParseable):
             pp.srid_player = srid_player
             pp.save()
 
-
+        # add the proabable pitcher using the GameUpdateManager
+        # which will ensure the information gets pushed into
+        # the draftgroup information
+        gum = GameUpdateManager('mlb', srid_game)
+        gum.add_probable_pitcher(srid_team, srid_player)
 
 class DataDenMlb(AbstractDataDenParser):
 
@@ -1608,6 +1618,11 @@ class DataDenMlb(AbstractDataDenParser):
         # player
         elif self.target == ('mlb.player','team_profile'): PlayerTeamProfile().parse( obj ) # ie: rosters
         elif self.target == ('mlb.player','summary'): PlayerStats().parse( obj ) # stats from games
+        #
+        # probable_pitcher
+        elif self.target == ('mlb.probable_pitcher','daily_summary'):
+            ppparser = ProbablePitcherParser()
+            ppparser.parse(obj)
         #
         # default case, print this message for now
 

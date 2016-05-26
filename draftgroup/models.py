@@ -143,7 +143,7 @@ class Player( models.Model ):
     final_fantasy_points = models.FloatField(default=0, null=False,
                                 help_text='the payout-time fantasy points of this player')
 
-    # # let it be null if the info is unknown,
+    #let it be null if the info is unknown,# #
     # # and we can set it to various thing depending on whether the information
     # # is known or not
     # # unofficial_status => 'us'
@@ -192,3 +192,57 @@ class Player( models.Model ):
     class Meta:
         # each player should only exist once in each group!
         unique_together = ('draft_group','salary_player')
+
+class PlayerUpdate(models.Model):
+    NEWS    = 'news'
+    INJURY  = 'injury'
+    LINEUP  = 'lineup'
+    START   = 'start'
+
+    CATEGORIES = [
+        (NEWS, 'News'),
+        (INJURY, 'Injury'),
+        (LINEUP, 'Lineup'),
+        (START, 'Start'),
+    ]
+
+    created = models.DateTimeField(auto_now_add=True)
+
+    update_id = models.CharField(max_length=128, null=True) # maybe not neccessary
+
+    draft_groups = models.ManyToManyField(DraftGroup)
+
+    # draft_group = models.ForeignKey(DraftGroup, null=False, related_name='player_updates')
+    player_srid = models.CharField(max_length=64, null=False)
+    player_id   = models.IntegerField(null=False, default=0)
+
+    category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
+
+    type = models.CharField(max_length=128, null=False, default='')
+    value = models.CharField(max_length=1024*8, null=False, default='')
+
+class GameUpdate(models.Model):
+    NEWS    = 'news'
+    LINEUP  = 'lineup'
+
+    CATEGORIES = [
+        (NEWS, 'News'),
+        (LINEUP, 'Lineup'),
+    ]
+
+    created = models.DateTimeField(auto_now_add=True)
+
+    update_id = models.CharField(max_length=128, null=True)
+
+    draft_groups = models.ManyToManyField(DraftGroup)
+
+    game_srid = models.CharField(max_length=64, null=False)
+    game_id   = models.IntegerField(null=False, default=0)
+
+    category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
+
+    type = models.CharField(max_length=128, null=False, default='')
+    value = models.CharField(max_length=1024*8, null=False, default='')
+
+
+
