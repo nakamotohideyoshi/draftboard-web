@@ -1,20 +1,17 @@
 'use strict';
 
 require('../../test-dom')();
-const React = require('react');
-const ReactDOM = require('react-dom');
+
+import React from 'react';
+import ReactDOM from 'react-dom';
 import NavScoreboardStatic from '../../../components/nav-scoreboard/nav-scoreboard-static.jsx';
-const expect = require('chai').expect;
+import { expect } from 'chai';
 
 const {TYPE_SELECT_GAMES, TYPE_SELECT_LINEUPS} = NavScoreboardStatic;
 
 describe("NavScoreboardStatic Component", function() {
 
   beforeEach(function(done) {
-    window.dfs.user = {
-      username: 'test'
-    };
-
     var self = this;
     document.body.innerHTML = '';
     // The DOM element that the component will be rendered to.
