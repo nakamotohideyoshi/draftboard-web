@@ -156,6 +156,7 @@ const calcPotentialContestStats = (lineup, contest, entriesCount = 0) => {
   return {
     amount: contestLineup.potentialWinnings,
     percent: rank / entriesCount * 100,
+    rank,
   };
 };
 
