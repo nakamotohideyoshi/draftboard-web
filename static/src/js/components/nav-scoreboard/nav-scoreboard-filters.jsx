@@ -3,9 +3,9 @@ import NavScoreboardFilterItem from './nav-scoreboard-filter-item';
 
 
 /*
- *   Responsible for rendering the scoreboard navigation filters
+ * Responsible for rendering the scoreboard navigation filters
  * select menu.
-*/
+ */
 const NavScoreboardFilters = React.createClass({
 
   propTypes: {
@@ -43,7 +43,7 @@ const NavScoreboardFilters = React.createClass({
 
   /**
    * Selects first available option.
-  */
+   */
   selectFirstOption() {
     if (this.props.options.length === 0) {
       return;
@@ -56,21 +56,21 @@ const NavScoreboardFilters = React.createClass({
 
   /**
    * Show select menu options.
-  */
+   */
   handleMenuShow() {
     this.setState({ expanded: true });
   },
 
   /**
    * Hide select menu options.
-  */
+   */
   handleMenuLeave() {
     this.setState({ expanded: false });
   },
 
   /**
    * Change selected menu item.
-  */
+   */
   handleChangeSelection(option) {
     const results = this.props.options.filter((opt) => opt.option === option);
     const { type, key } = results[0];
