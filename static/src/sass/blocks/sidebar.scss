@@ -64,14 +64,3 @@
     top: 2px;
   }
 }
-
-
-/**
- * 'Enter Contest' & Contest Detail Pane Hover Styles.
- */
-.section-lobby.page-lobby.appstate--pane--open,
-body.appstate-enterContestButtonHover {
-  .sidebar {
-    z-index: 1005;
-  }
-}
