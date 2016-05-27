@@ -40,9 +40,9 @@ const receiveEntries = (response) => {
   // const withContest = filter(filteredResponse, (entry) =>
   //   new Date(entry.start).getTime() > dateNow() || entry.contest !== null
   // );
-  const withDefaultName = map(filteredResponse, (entry) => merge({}, entry, {
+  const withDefaultName = map(filteredResponse, (entry) => merge({
     lineup_name: 'My Lineup',
-  }));
+  }, entry));
 
   // normalize the API call into a list of entry objects
   const entriesSchema = new Schema('entries', {
