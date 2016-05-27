@@ -245,6 +245,22 @@ const EnterContestButton = React.createClass({
       if (this.getEntryCount(this.props.contest) > 0) {
         classes = this.props.buttonClasses.contestEntered;
 
+        // The contest has been entered the max number of times.
+        if (!this.hasReachedMaxEntries(this.props.contest)) {
+          classes = this.props.buttonClasses.maxEntered;
+
+          return (
+            <div
+              className={`button button--disabled ${classes} entered enter-contest-button`}
+              onClick={this.ignoreClick}
+              onMouseLeave={this.handleMouseOut}
+            >
+              {this.props.buttonText.maxEntered}
+            </div>
+          );
+        }
+
+
         // Another lineup is already entered in the contest pool.
         if (this.isAnotherLineupEntered(this.props.contest.entryInfo, this.props.lineup)) {
           return (
@@ -273,22 +289,6 @@ const EnterContestButton = React.createClass({
             onMouseLeave={this.handleMouseOut}
           >
             {this.props.buttonText.entered}
-          </div>
-        );
-      }
-
-
-      // The contest has been entered the max number of times.
-      if (!this.hasReachedMaxEntries(this.props.contest)) {
-        classes = this.props.buttonClasses.maxEntered;
-
-        return (
-          <div
-            className={`button button--disabled ${classes} entered enter-contest-button`}
-            onClick={this.ignoreClick}
-            onMouseLeave={this.handleMouseOut}
-          >
-            {this.props.buttonText.maxEntered}
           </div>
         );
       }
