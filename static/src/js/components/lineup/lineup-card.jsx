@@ -11,11 +11,11 @@ const LineupCard = React.createClass({
     isActive: React.PropTypes.bool,
     onCardClick: React.PropTypes.func.isRequired,
     lineup: React.PropTypes.object.isRequired,
-    lineupInfo: React.PropTypes.object.isRequired,
+    lineupInfo: React.PropTypes.object,
     hoverText: React.PropTypes.string,
     draftGroupInfo: React.PropTypes.object.isRequired,
     onHover: React.PropTypes.func,
-    removeContestPoolEntry: React.PropTypes.func.isRequired,
+    removeContestPoolEntry: React.PropTypes.func,
     focusedContestInfo: React.PropTypes.object,
   },
 
@@ -24,6 +24,7 @@ const LineupCard = React.createClass({
     return ({
       hoverText: 'Select This Lineup',
       draftGroupInfo: {},
+      lineupInfo: {},
       onHover: () => ({}),
     });
   },

@@ -208,9 +208,44 @@ const ContestListDetail = React.createClass({
   },
 
 
+  getEnterContestButton() {
+    let enteredText = 'Enter Again';
+
+    if (this.props.focusedLineup) {
+      enteredText = `Enter '${this.props.focusedLineup.name}' Again`;
+    }
+
+    return (
+      <EnterContestButton
+        lineup={this.props.focusedLineup}
+        contest={this.props.focusedContestInfo.contest}
+        lineupsInfo={this.props.lineupsInfo}
+        onEnterClick={this.handleEnterContest}
+        onEnterSuccess={this.close}
+        buttonText= {{
+          draft: 'Draft a Team',
+          started: 'Contest Has Started',
+          enter: 'Enter Contest',
+          entering: 'Entering...',
+          entered: enteredText,
+          maxEntered: 'Max Entries Reached',
+        }}
+        buttonClasses= {{
+          default: 'button--med button--med-len button--gradient',
+          contestEntered: 'button--med button--med-len button--gradient',
+          pending: 'button--med button--med-len button--gradient',
+          contestHasStarted: 'button--med button--med-len button--gradient',
+          maxEntered: 'button--med button--med-len button--gradient',
+        }}
+      />
+    );
+  },
+
+
   getContest() {
     if (this.props.focusedContestInfo.contest.id) {
       const tabNav = this.getTabNav();
+
 
       return (
         <div className="pane--contest-detail">
@@ -254,28 +289,7 @@ const ContestListDetail = React.createClass({
                 </div>
 
                 <div className="btn-enter-contest">
-                  <EnterContestButton
-                    lineup={this.props.focusedLineup}
-                    contest={this.props.focusedContestInfo.contest}
-                    lineupsInfo={this.props.lineupsInfo}
-                    onEnterClick={this.handleEnterContest}
-                    onEnterSuccess={this.close}
-                    buttonText= {{
-                      draft: 'Draft a Team',
-                      started: 'Contest Has Started',
-                      enter: 'Enter Contest',
-                      entering: 'Entering...',
-                      entered: `Enter '${this.props.focusedLineup.name}' Again`,
-                      maxEntered: 'Max Entries Reached',
-                    }}
-                    buttonClasses= {{
-                      default: 'button--med button--med-len button--gradient',
-                      contestEntered: 'button--med button--med-len button--gradient',
-                      pending: 'button--med button--med-len button--gradient',
-                      contestHasStarted: 'button--med button--med-len button--gradient',
-                      maxEntered: 'button--med button--med-len button--gradient',
-                    }}
-                  />
+                  {this.getEnterContestButton()}
                 </div>
 
               </div>

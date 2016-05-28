@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import { mapValues as _mapValues } from 'lodash';
 import { merge as _merge } from 'lodash';
-import { orderBy } from './order-by.js';
+import { orderByProperty } from './order-by-property.js';
 import { stringSearchFilter, matchFilter, inArrayFilter } from './filters';
 import { isPlayerInLineup } from '../components/draft/draft-utils.js';
 
@@ -99,11 +99,11 @@ const playersWithInfo = createSelector(
  * Sort the players.
  */
 const sortDirection = (state) => state.draftGroupPlayers.filters.orderBy.direction;
-const sortProperty = (state) => state.draftGroupPlayers.filters.orderBy.property;
+const sortProperty = (state) => state.draftGroupPlayers.filters.orderBy.filterProperty;
 
 export const draftGroupPlayerSelector = createSelector(
   [playersWithInfo, sortProperty, sortDirection],
-  (collection, sortProp, sortDir) => orderBy(collection, sortProp, sortDir)
+  (collection, sortProp, sortDir) => orderByProperty(collection, sortProp, sortDir)
 );
 
 
