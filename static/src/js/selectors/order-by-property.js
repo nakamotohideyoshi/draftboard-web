@@ -1,4 +1,4 @@
-import { orderBy as _orderBy } from 'lodash';
+import orderBy from 'lodash/orderBy';
 
 
 /**
@@ -8,8 +8,8 @@ import { orderBy as _orderBy } from 'lodash';
  * @param  {string} direction         The sort direction ['asc' or 'desc']
  * @return {array}                    The sorted collection
  */
-export const orderBy = (collection, sortProperty, direction = 'desc') => {
-  let sorted = _orderBy(collection, sortProperty);
+export const orderByProperty = (collection, sortProperty, direction = 'desc') => {
+  let sorted = orderBy(collection, [sortProperty]);
 
   if (direction === 'asc') {
     sorted = sorted.reverse();

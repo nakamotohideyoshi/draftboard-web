@@ -34,12 +34,6 @@ const Modal = React.createClass({
   },
 
 
-  componentDidMount() {
-    // Close the modal with the ESC key.
-    // KeypressActions.keypressESC.listen(this.handleClose);
-  },
-
-
   handleClose() {
     this.props.onClose();
   },

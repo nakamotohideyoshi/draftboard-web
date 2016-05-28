@@ -171,6 +171,16 @@ const AppActions = {
   },
 
 
+  modalOpened() {
+    this.addClass('appstate-modal-open');
+  },
+
+
+  modalClosed() {
+    this.removeClass('appstate-modal-open');
+  },
+
+
   clearPlayerSearchField() {
     PubSub.publish('playerSearch.clear');
   },
