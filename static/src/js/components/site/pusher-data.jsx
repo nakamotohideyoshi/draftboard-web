@@ -12,14 +12,7 @@ import { sportsSelector } from '../../selectors/sports';
 import { updatePlayerStats } from '../../actions/live-draft-groups';
 import { watchingDraftGroupTimingSelector } from '../../selectors/watching';
 import { watchingMyLineupSelector, relevantGamesPlayersSelector } from '../../selectors/watching';
-
-// hack to use test-stub, hopefully pusher comes up with a better solution
-let Pusher;
-if (process.env.NODE_ENV === 'test') {
-  Pusher = require('../../lib/pusher-test-stub/PusherTestStub');
-} else {
-  Pusher = require('pusher-js');
-}
+import Pusher from '../../lib/pusher.js';
 
 
 /*
@@ -55,9 +48,7 @@ const PusherData = React.createClass({
   getInitialState() {
     return {
       channelPrefix: window.dfs.user.pusher_channel_prefix.toString(),
-      pusher: new Pusher(window.dfs.user.pusher_key, {
-        encrypted: true,
-      }),
+      pusher: Pusher,
     };
   },
 
