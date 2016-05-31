@@ -16,15 +16,9 @@ import { updateGameTeam } from '../../actions/sports';
 import { updateGameTime } from '../../actions/sports';
 
 import NavScoreboardStatic from './nav-scoreboard-static';
+import Pusher from '../../lib/pusher.js';
 import PusherData from '../site/pusher-data';
 
-// hack to use test-stub, hopefully pusher comes up with a better solution
-let Pusher;
-if (process.env.NODE_ENV === 'test') {
-  Pusher = require('../../lib/pusher-test-stub/PusherTestStub');
-} else {
-  Pusher = require('pusher-js');
-}
 
 /*
  * Map selectors to the React component
@@ -113,14 +107,10 @@ const NavScoreboard = React.createClass({
     //   }
     // };
 
-    const pusher = new Pusher(window.dfs.user.pusher_key, {
-      encrypted: true,
-    });
-
     // used to separate developers into different channels, based on their django settings filename
     const channelPrefix = window.dfs.user.pusher_channel_prefix.toString();
 
-    const boxscoresChannel = pusher.subscribe(`${channelPrefix}boxscores`);
+    const boxscoresChannel = Pusher.subscribe(`${channelPrefix}boxscores`);
     boxscoresChannel.bind('team', (eventData) => {
       if (this.props.sportsSelector.games.hasOwnProperty(eventData.game__id) &&
           eventData.hasOwnProperty('points')
