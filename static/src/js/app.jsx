@@ -21,9 +21,42 @@ Raven.config(sentryDSN, {
     git_commit: window.dfs.gitCommitUUID,
     pusher_key: window.dfs.user.pusher_key,
   },
+  // These are mostly taken from https://gist.github.com/impressiver/5092952
   ignoreErrors: [
     // This is generally a pusher disconnection due to things like the user closing their laptop.
-    'Error: Request has been terminated',
+    'Request has been terminated',
+    // Random plugins/extensions
+    'top.GLOBALS',
+    // See: http://blog.errorception.com/2012/03/tale-of-unfindable-js-error.html
+    'originalCreateNotification',
+    'canvas.contentDocument',
+    'MyApp_RemoveAllHighlights',
+    'http://tt.epicplay.com',
+    'Can\'t find variable: ZiteReader',
+    'jigsaw is not defined',
+    'ComboSearch is not defined',
+    'http://loading.retry.widdit.com/',
+    'atomicFindClose',
+    // Facebook borked
+    'fb_xd_fragment',
+    // ISP "optimizing" proxy - `Cache-Control: no-transform` seems to reduce this. (thanks @acdha)
+    // See http://stackoverflow.com/questions/4113268/how-to-stop-javascript-injection-from-vodafone-proxy
+    'bmi_SafeAddOnload',
+    'EBCallBackMessageReceived',
+    // See http://toolbar.conduit.com/Developer/HtmlAndGadget/Methods/JSInjection.aspx
+    'conduitPage',
+    // Generic error code from errors outside the security sandbox
+    // You can delete this if using raven.js > 1.0, which ignores these automatically.
+    'Script error.',
+  ],
+  ignoreUrls: [
+    // Chrome extensions
+    /extensions\//i,
+    /^chrome:\/\//i,
+    // Other plugins
+    /127\.0\.0\.1:4001\/isrunning/i,  // Cacaoweb
+    /webappstoolbarba\.texthelp\.com\//i,
+    /metrics\.itunes\.apple\.com\.edgesuite\.net\//i,
   ],
   // Whitelist all of our heroku instances.
   // whitelistUrls: [/draftboard-.*\.herokuapp\.com/],
