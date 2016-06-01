@@ -136,7 +136,7 @@ def importdb():
 
         # drop local database
         _puts('Dropping local database: %s' % env.db_name)
-        operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
+        operations.local('sudo -u postgres dropdb --if-exists -U postgres %s' % env.db_name)
 
         # [re]create empty local database, and pg_restore the backup into it
         _puts('Creating local database')
@@ -298,7 +298,7 @@ def generate_replayer():
     fab generate_replayer --set start=2016-03-01,end=2016-03-02
 
     optional parameter to filter by sport, `--set sport=mlb`, choices are ['mlb', 'nhl', 'nba']
-    optional parameter to use already downloaded instances, `--set nodownload=true`
+    optional parameter to download instances, `--set download=true`
     """
     def _show_progress(current_bytes, total_bytes):
         print('%s%%' % int(round(current_bytes/total_bytes * 100)))
@@ -311,7 +311,7 @@ def generate_replayer():
     startFilename = 'start.dump'
     endFilename = 'end.dump'
 
-    if 'nodownload' in env and env.nodownload is 'true':
+    if 'download' in env and env.nodownload is 'true':
         # this key/value gives full access to s3, need to pare down to just the right bucket.
         AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
         AWS_SECRET_ACCESS_KEY = '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'
@@ -341,7 +341,7 @@ def generate_replayer():
         # load start into temporary db
         _puts('Restoring start db into %s' % temp_db)
 
-        operations.local('sudo -u postgres dropdb -U postgres %s' % temp_db)
+        operations.local('sudo -u postgres dropdb --if-exists -U postgres %s' % temp_db)
         operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % temp_db)
         operations.local(
             'sudo -u postgres pg_restore --no-acl --no-owner -d %s %s/%s' % (temp_db, tmp_dir, startFilename)
