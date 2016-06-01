@@ -23,6 +23,9 @@ from sports.classes import SiteSportManager
 import datetime
 from django.utils import timezone
 from draftgroup.tasks import on_game_closed
+from draftgroup.signals import (
+    CheckForGameUpdatesSignal,
+)
 from roster.models import RosterSpotPosition
 
 class AbstractDraftGroupManager(object):
@@ -394,7 +397,6 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         """
         return self.create( contest.site_sport, contest.start, contest.end )
 
-
     @atomic
     def create(self, site_sport, start, end):
         """
@@ -446,9 +448,13 @@ class DraftGroupManager( AbstractDraftGroupManager ):
 
         #
         # build lists of all the teams, and all the player srids in the draft group
+        game_srids      = {}
         team_srids      = {}
         game_teams      = {} # newly created game_team objects will need to be associated with draftgroup players
         for g in games:
+            # add each game srid as a key, using the game itself as the value
+            game_srids[g.srid] = g
+
             #
             # make sure we do not encounter the same team multiple times!
             for check_team in [g.away, g.home]:
@@ -479,6 +485,17 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         draft_group.num_games   = len(games)
         draft_group.category    = DraftGroup.DEFAULT_CATEGORY
         draft_group.save()
+        draft_group.refresh_from_db()
+
+        #
+        # as a final step, signal that this DraftGroup
+        # can have any relevant GameUpdates created
+        try:
+            sport = draft_group.salary_pool.site_sport.name # ie: 'mlb', or 'nfl', etc...
+            sig = CheckForGameUpdatesSignal( draft_group.pk, sport, game_srids=list(game_srids.keys()))
+            sig.send()
+        except Exception as e:
+            print('unable to send CheckForGameUpdatesSignal, skipping...')
 
         #
         return draft_group

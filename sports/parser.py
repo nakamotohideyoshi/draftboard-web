@@ -213,7 +213,7 @@ class DataDenParser(object):
             parent_api  = t[2]
             trg = Trigger.create( db, coll, parent_api, enable=enable )
 
-    def setup(self, sport, async=False, replay=False, force_triggers=None):
+    def setup(self, sport, async=False, replay=False, force_triggers=None, target={}):
         """
         NOTE: This method should ONLY BE CALLED after dataden.jar has run
         and populated its own database for whatever sport you
@@ -272,8 +272,8 @@ class DataDenParser(object):
             db          = t[0]
             coll        = t[1]
             parent_api  = t[2]
-            print( 'ns:%s.%s, parent_api:%s' % (db,coll,parent_api) )
-            cursor = dataden.find(db,coll,parent_api)
+            print( 'ns:%s.%s, parent_api:%s, target:%s' % (db, coll, parent_api, str(target)) )
+            cursor = dataden.find(db,coll,parent_api, target=target)
             size = cursor.count()
             print( ' ... count: ' + str(size))
 
