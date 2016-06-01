@@ -305,5 +305,7 @@ renderComponent(
   '.cmp-lobby-contests'
 );
 
-
-module.exports = LobbyContainerConnected;
+// Export the React component.
+module.exports = LobbyContainer;
+// Export the store-injected ReactRedux component.
+export default LobbyContainerConnected;
