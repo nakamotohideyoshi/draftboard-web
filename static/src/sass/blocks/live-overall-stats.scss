@@ -6,16 +6,38 @@
   // because the pmr circle needs to be absolute
   min-height: 120px;
 
-  &__vs {
-    color: #313545;
-    display: inline-block;
+  &__name {
     font-family: $font-oswald;
-    font-size: 34px;
-    font-weight: 700;
+    font-size: 22px;
+    text-transform: uppercase;
+    color: #fff;
+    padding-bottom: 6px;
+
+    > .vs {
+      text-transform: none;
+    }
+  }
+
+  &__stats {
+    font-size: 12px;
+    min-height: 40px;  // blank space between name and overview
+  }
+  &__rank {
+    color: #9c9faf;
+  }
+  &__potential-winnings {
+    color: #26cc65;
+  }
+
+  &__vs {
+    color: #9c9faf;
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 500;
     margin: 0 60px;
     position: relative;
     text-transform: uppercase;
-    top: -90px;
+    top: -270px;
   }
 
   &__pmr-circle__background {
@@ -23,6 +45,10 @@
     left: -10px;
     top: -10px;
     z-index: 4000;
+  }
+
+  &__live-overview {
+    position: relative;
   }
 
   // BREAKING BEM

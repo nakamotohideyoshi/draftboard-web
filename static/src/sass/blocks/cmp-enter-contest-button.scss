@@ -1,0 +1,34 @@
+/**
+ * Enter Contest Button.
+ */
+.enter-contest-button {
+  position: relative;
+
+  // &.entered {
+  //   min-width: 19em !important;
+  // }
+
+  &.has-tooltip {
+      &:hover {
+        opacity: 1;
+      }
+  }
+
+  // When a tooltip is nested in the button.
+  .tooltip {
+    margin-bottom: -8px;
+    opacity: 0;
+    transition: none;
+    visibility: hidden;
+
+  }
+
+  &:hover {
+    .tooltip {
+      margin-bottom: -4px;
+      opacity: 1;
+      transition: opacity 250ms linear, margin-bottom 250ms linear;
+      visibility: visible;
+    }
+  }
+}

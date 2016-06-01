@@ -10,17 +10,18 @@ const LiveHeader = (props) => {
 
   // set all needed variables, and default them to lineup only
   let opponentStats;
-  let primary = myLineup.name;
   let statsVs;
   let hasContest = false;
+  let hasOpponent = false;
 
   // if watching a contest, then update the titles and ensure the overall stats are contest-based
   if (watching.contestId !== null && !contest.isLoading) {
     hasContest = true;
-    primary = myLineup.name;
 
     // if watching an opponent, then add in second overall stats and update the titles
     if (watching.opponentLineupId !== null && !opponentLineup.isLoading) {
+      hasOpponent = true;
+
       statsVs = (
         <div className="live-overall-stats__vs">vs</div>
       );
@@ -28,6 +29,7 @@ const LiveHeader = (props) => {
         <LiveOverallStats
           contest={contest}
           hasContest
+          hasOpponent={hasOpponent}
           lineup={opponentLineup}
           whichSide="opponent"
         />
@@ -37,14 +39,11 @@ const LiveHeader = (props) => {
 
   return (
     <header className="cmp-live__scoreboard live-scoreboard">
-      <h1 className="live-scoreboard__contest-name">
-        {primary}
-      </h1>
-
       <LiveOverallStats
         contest={contest}
         lineup={myLineup}
         hasContest={hasContest}
+        hasOpponent={hasOpponent}
         whichSide="mine"
       />
 

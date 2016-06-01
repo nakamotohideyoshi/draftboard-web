@@ -75,3 +75,9 @@ body.appstate-enterContestButtonHover {
     z-index: 1005;
   }
 }
+
+body.appstate-enterContestButtonHover.appstate-modal-open {
+  .sidebar {
+    z-index: 1;
+  }
+}

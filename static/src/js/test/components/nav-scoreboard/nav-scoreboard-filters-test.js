@@ -40,22 +40,24 @@ describe("NavScoreboardFilters Component", function() {
     document.body.innerHTML = '';
   });
 
-  it('should render a div tag', function() {
+  it('should render a div tag', function(done) {
     render(defaultProps, (component, domElement) => {
       expect(domElement.tagName).to.equal('DIV');
+      done();
     });
   });
 
-  it('should render a selected option', function() {
+  it('should render a selected option', function(done) {
     render(defaultProps, (component, domElement) => {
-      const elm = domElement.querySelectorAll('.select-list--selected');
+      const elm = domElement.querySelectorAll('.cmp-nav-scoreboard--filters .select-list--selected');
 
       expect(elm.length).to.equal(1);
-      expect(elm[0].innerHTML).to.equal(defaultProps.selected);
+      expect(elm[0].textContent).to.equal(defaultProps.selected);
+      done();
     });
   });
 
-  it('should show/hide menu options', function() {
+  it('should show/hide menu options', function(done) {
     render(defaultProps, (component, domElement) => {
       const elm = (() => {
         return domElement.querySelectorAll('.select-list--options.visible');
@@ -68,22 +70,20 @@ describe("NavScoreboardFilters Component", function() {
 
       component.handleMenuLeave();
       expect(elm().length).to.equal(0);
+      done();
     });
   });
 
-  it('should select first option if not selected', function() {
-    let {options, onChangeSelection} = defaultProps;
-    let selected = null;
-    let props = {selected, options, onChangeSelection};
+  it('should select first option if not selected', function(done) {
+    const { options } = defaultProps;
+    const selected = null;
+    const onChangeSelection = (option) => {
+      expect(option).to.equal(props.options[0].option)
+      done();
+    };
+    const props = { selected, options, onChangeSelection };
 
-    render(props, (component, domElement) => {
-      const elm = domElement.querySelectorAll('.select-list--selected');
-
-      expect(elm.length).to.equal(1);
-      setTimeout(() => {
-        expect(elm[0].innerHTML).to.equal(props.options[0].option);
-      }, 200);
-    });
+    render(props, (component, domElement) => {});
   });
 
 });

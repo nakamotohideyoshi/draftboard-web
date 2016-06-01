@@ -1,63 +1,53 @@
 // "use strict";
 
-// require('../../test-dom')();
-// var HamburgerMenu = require("../../../components/site/hamburger-menu");
-// var expect = require('chai').expect;
+require('../../test-dom')();
 
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-addons-test-utils';
+import NavScoreboardMenu from "../../../components/nav-scoreboard/nav-scoreboard-menu.jsx";
+import { expect } from 'chai';
 
-// describe('HamburgerMenu Component', function() {
+describe('NavScoreboardMenu Component', function() {
 
-//   beforeEach(function() {
-//     this.body = global.document.querySelector('body');
-//     // Reset any body classes and elements
-//     this.body.className = '';
-//     this.body.innerHTML = '<div class="other-element"></div><div class="nav-main-trigger"><span class="nav-main-trigger__menu"></span><div class="nav-main-trigger__logo"></div></div><nav class="nav-main"></nav>';
-//   });
+  beforeEach(function(done) {
+    var self = this;
+    document.body.innerHTML = '';
+    // The DOM element that the component will be rendered to.
+    this.targetElement = document.body.appendChild(document.createElement('div'));
+    // Render the component into our fake jsdom element.
+    this.component = ReactDOM.render(
+      <NavScoreboardMenu />,
+      this.targetElement,
+      function() {
+        // Once it has been rendered...
+        // Grab it from the DOM.
+        self.element = ReactDOM.findDOMNode(this);
+        done();
+      }
+    );
+  });
 
-//   it("should return false if no DOM element exists to attach to", function() {
-//     this.body.innerHTML = '';
+  it("should render a div tag", function() {
+    expect(this.element.tagName).to.equal('DIV');
+  });
 
-//     var didAttach = HamburgerMenu.attachNavEventHandlers();
-//     expect(didAttach).to.equal(false);
-//   });
+  it("should toogle on click", function() {
+    expect(this.targetElement.querySelectorAll('.mobile-forum-hamburger.closed').length).to.equal(0);
+    expect(this.targetElement.querySelectorAll('.mobile-forum-hamburger:not(.closed)').length).to.equal(1);
 
-//   it("should return true when nav element exists", function() {
-//     HamburgerMenu.removeNavEventHandlers();
+    ReactTestUtils.Simulate.click(
+      this.targetElement.querySelector('.mobile-forum-hamburger')
+    );
 
-//     var didAttach = HamburgerMenu.attachNavEventHandlers();
-//     expect(didAttach).to.equal(true);
-//   });
+    expect(this.targetElement.querySelectorAll('.mobile-forum-hamburger.closed').length).to.equal(1);
+    expect(this.targetElement.querySelectorAll('.mobile-forum-hamburger:not(.closed)').length).to.equal(0);
 
-//   it("should open and close when trigger is clicked and anything else is clicked", function(done) {
-//     HamburgerMenu.removeNavEventHandlers();
-//     HamburgerMenu.attachNavEventHandlers();
+    ReactTestUtils.Simulate.click(
+      this.targetElement.querySelector('.mobile-forum-hamburger')
+    );
 
-//     var navTrigger = document.body.querySelectorAll(".nav-main-trigger")[0];
-
-//     // DOM level 3 click event (annoying that we can't just use .click())
-//     var click_ev = document.createEvent("MouseEvents");
-//     click_ev.initEvent("click", true /* bubble */, true /* cancelable */);
-
-//     document.body.querySelector('.nav-main-trigger').dispatchEvent(click_ev);
-
-//     // need the timeouts due to async connections to stores for the app class state update
-//     setTimeout(function() {
-//       expect(document.body.className).to.equal(' appstate--nav-main--open');
-
-//       // now close by clicking on the body
-//       var click_ev = document.createEvent("MouseEvents");
-//       click_ev.initEvent("click", true /* bubble */, true /* cancelable */);
-//       document.body.querySelector('.other-element').dispatchEvent(click_ev);
-
-//       setTimeout(function() {
-//         expect(document.body.className).to.equal(' ');
-//         done();
-//       }, 10);
-
-//     }, 10);
-
-
-
-
-//   });
-// });
+    expect(this.targetElement.querySelectorAll('.mobile-forum-hamburger.closed').length).to.equal(0);
+    expect(this.targetElement.querySelectorAll('.mobile-forum-hamburger:not(.closed)').length).to.equal(1);
+  });
+});
