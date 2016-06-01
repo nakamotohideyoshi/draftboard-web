@@ -571,6 +571,15 @@ class GameUpdateManager(AbstractUpdateManager):
         self.draft_groups = self.get_draft_groups(self.game_srid)
         print('found', len(self.draft_groups), 'draft_groups:', str(self.draft_groups))
 
+    # def validate_game_srid(self, game_srid):
+    #     """
+    #     given a game_srid, return the sports.<sport>.Game model
+    #
+    #     :param game_srid:
+    #     :return:
+    #     """
+    #     pass # TODO decide if were going to look the game up
+
     def add_probable_pitcher(self, team_srid, player_srid):
         """
         helper method that calls add() with the GameUpdate.LINEUP category

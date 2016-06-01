@@ -128,6 +128,8 @@ class PlayerStats(DataDenPlayerStats):
         self.ps.assist      = statistics_list.get('assists', 0)
         self.ps.sog         = statistics_list.get('shots', 0)
         self.ps.blk         = statistics_list.get('blocked_shots', 0)
+        self.ps.blk_att     = statistics_list.get('blocked_att', 0)     # new
+        self.ps.ms          = statistics_list.get('missed_shots', 0)    # new
         self.ps.sh_goal     = skater_sh_list.get('goals', 0)
         self.ps.pp_goal     = skater_pp_list.get('goals', 0)
         self.ps.so_goal     = skater_so_list.get('goals', 0)
@@ -139,6 +141,20 @@ class PlayerStats(DataDenPlayerStats):
         self.ps.saves       = goaltending_list.get('saves', 0)
         self.ps.ga          = goaltending_list.get('goals_against', 0)
         self.ps.shutout     = goaltending_list.get('shutout', '').lower() == "true"
+
+        # determine whether the player played in the game or not
+        # requires that we check the 'played' field. if it exists
+        # and is "true" (a string) the player played, else false.
+        # ie: "played": "true" means they played, else they didnt.
+        played = o.get('played', None)
+        if played is None:
+            played = 0
+        elif 't' in str(played).lower():
+            played = 1
+        else:
+            played = 0
+
+        self.ps.played = played  # 1 or 0.  a value of 1 indicates the skater played in the game
 
         #
         # set the fantasy points
