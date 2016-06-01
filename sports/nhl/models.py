@@ -109,9 +109,6 @@ class PlayerStats( sports.models.PlayerStats ):
         'shutout',
     ]
 
-    # player  = models.ForeignKey(Player, null=False)
-    # game    = models.ForeignKey(Game, null=False)
-
     # skater stats
     goal    = models.IntegerField(default=0, null=False)
     assist  = models.IntegerField(default=0, null=False)
@@ -128,6 +125,14 @@ class PlayerStats( sports.models.PlayerStats ):
     saves   = models.IntegerField(default=0, null=False)        # dont name it 'save' ! django would hate that
     ga      = models.IntegerField(default=0, null=False)        # goals allowed
     shutout = models.BooleanField(default=False, null=False)    # shutout - complete game, and no goals allowed
+
+    # additional stats
+    played = models.IntegerField(default=0, null=False,
+                help_text='a value of 1 indicates the player participated in the game. 0 indicates they did not play at all.')
+    blk_att = models.IntegerField(default=0, null=False,
+                help_text='this players shots which were subsequently blocked by an opposing skater')
+    ms      = models.IntegerField(default=0, null=False,
+                help_text='this players missed shots (shots wide of the goalie/net)')
 
     class Meta:
         abstract = False

@@ -36,7 +36,7 @@ class GameUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GameUpdate
-        fields = ('category','type','value')
+        fields = ('category','type','value') # ,'game_id')
 
 class AbstractDraftGroupSerializer(serializers.ModelSerializer):
     """
