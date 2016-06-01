@@ -27,20 +27,20 @@ def load_initial_scoring_systems(apps, schema_editor):
             ('single',  2.0),           # hitter - singles
             ('double',  4.0),           # hitter - doubles
             ('triple',  6.0),           # hitter - triples
-            ('hr',      8.0),          # hitter - home runs
+            ('hr',      8.0),           # hitter - home runs
             ('rbi',     1.0),           # hitter - runs batted in
             ('run',     1.0),           # hitter - runs scored
             ('bb',      2.0),           # hitter - walks
             ('hbp',     2.0),           # hitter - hit by pitch
             ('sb',      2.0),           # hitter - stolen bases
-            ('cs',      0.0),          # hitter - # times caught stealing
+            ('cs',      0.0),           # hitter - # times caught stealing
             # --
-            ('ip',      1.0),          # pitcher - inning pitched
+            ('ip',      1.0),           # pitcher - inning pitched
             ('k',       1.0),           # pitcher - strikeout
             ('win',     2.0),           # pitcher - Win
             ('er',      -1.0),          # pitcher - earned runs allowed
-            ('hit',     -0.25),          # pitcher - hits against
-            ('walk',    -0.25),          # pitcher - walked batters
+            ('hit',     -0.25),         # pitcher - hits against
+            ('walk',    -0.25),         # pitcher - walked batters
             ('cg',      0.0),           # pitcher - complete game
             ('cgso',    0.0),           # pitcher - complete game AND shutout
             ('no-hitter', 0.0)          # pitcher - complete game AND no hits allowed
@@ -79,12 +79,15 @@ def load_initial_scoring_systems(apps, schema_editor):
             ('two-pt-conv', 2.0),       # passed, rushed, or received succesful 2-pt conversion
             ('off-fum-td',  6.0),       # offensive fumble recovered for TD (unique situation)
 
+            # -- dst, but potentially a kick/punt returner that is a WR
+            ('kick-ret-td',     6.0),       # kickoff returned for TD
+            ('punt-ret-td',     6.0),       # punt returned for TD
+
             # -- dst scoring --
             ('sack',        1.0),       # sacks
             ('ints',        2.0),       # interceptions
             ('fum-rec',     2.0),       # fumble recoveries
-            ('kick-ret-td',     6.0),       # kickoff returned for TD
-            ('punt-ret-td',     6.0),       # punt returned for TD
+
             ('int-ret-td',      6.0),       # int returned for TD
             ('fum-ret-td',      6.0),       # fumble recovered for TD
             ('blk-punt-ret-td', 6.0),   # blocked punt returned for TD

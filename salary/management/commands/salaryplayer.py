@@ -45,7 +45,7 @@ class Command(BaseCommand):
                 player = player_class.objects.get(srid=player_srid)
                 break
             except player_class.DoesNotExist:
-                self.stdout.write('checked %s for Player object but they werent found'%sport)
+                #self.stdout.write('checked %s for Player object but they werent found'%sport)
                 pass
 
         # hopefully we found the player by now

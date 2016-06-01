@@ -259,6 +259,7 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
     WIN     = 'win'              # pitcher - Win
     ER      = 'er'               # pitcher - earned runs allowed
     HIT     = 'hit'              # pitcher - hits against
+    HIT_BATSMAN = 'hit-batsman'  # pitcher - hit batter with pitch
     WALK    = 'walk'             # pitcher - walked batters
     CG      = 'cg'               # pitcher - complete game
     CGSO    = 'cgso'             # pitcher - complete game AND shutout
@@ -364,6 +365,7 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
         total += self.wins( int( player_stats_pitcher.win ) ) # int(True) == 1, else 0
         total += self.earned_runs( player_stats_pitcher.er )
         total += self.hits_against( player_stats_pitcher.h )
+        total += self.hit_batsman( player_stats_pitcher.hbp ) # in the context of a pitcher, 'hbp' means 'hit_batsman'
         total += self.walks_against( player_stats_pitcher.bb ) # pitcher has bb property
         total += self.complete_game( int(player_stats_pitcher.cg) )
         total += self.complete_game_shutout( int( player_stats_pitcher.cgso ) )
@@ -385,6 +387,9 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
     def hits_against(self, value):
         if self.verbose: self.str_stats += '%s Hit ' % value
         return value * self.get_value_of(self.HIT)
+    def hit_batsman(self, value):
+        if self.verbose: self.str_stats += '%s HitBatsman ' % value
+        return value * self.get_value_of(self.HIT_BATSMAN)
     def walks_against(self, value):
         if self.verbose: self.str_stats += '%s Walk ' % value
         return value * self.get_value_of(self.WALK)
@@ -404,18 +409,20 @@ class NhlSalaryScoreSystem(AbstractScoreSystem):
     """
     THE_SPORT = 'nhl'
 
-    GOAL        = 'goal'          # goals scored
-    ASSIST      = 'assist'        # assists
-    SOG         = 'sog'           # shots on goal
-    BLK         = 'blk'           # blocked shot
-    SH_BONUS    = 'sh-bonus'      # bonus points for goals/assists when shorthanded
-    SO_GOAL     = 'so-goal'       # goal in a shootout
-    HAT         = 'hat'           # hattrick is 3 goals scored
+    GOAL        = 'goal'            # goals scored
+    ASSIST      = 'assist'          # assists
+    SOG         = 'sog'             # shots on goal
+    BLK         = 'blk'             # blocked shot
+    BLK_ATT     = 'blk_att'         # shot that was blocked (ie: a blocked attempted shot)
+    MS          = 'ms'              # missed_shots
+    SH_BONUS    = 'sh-bonus'        # bonus points for goals/assists when shorthanded
+    SO_GOAL     = 'so-goal'         # goal in a shootout
+    HAT         = 'hat'             # hattrick is 3 goals scored
 
-    WIN         = 'win'           # goalie - win
-    SAVE        = 'save'          # goalie - shots saved
-    GA          = 'ga'            # goalie - goals allowed
-    SHUTOUT     = 'shutout'       # goalie - complete game(includes OT) no goals (doesnt count shootout goals)
+    WIN         = 'win'             # goalie - win
+    SAVE        = 'save'            # goalie - shots saved
+    GA          = 'ga'              # goalie - goals allowed
+    SHUTOUT     = 'shutout'         # goalie - complete game(includes OT) no goals (doesnt count shootout goals)
 
     def __init__(self):
         self.score_system = ScoreSystem.objects.get(sport=self.THE_SPORT, name='salary')
@@ -445,6 +452,8 @@ class NhlSalaryScoreSystem(AbstractScoreSystem):
         total += self.assists(player_stats.assist)
         total += self.shots_on_goal(player_stats.sog)
         total += self.blocks( player_stats.blk )
+        total += self.blocked_attempts( player_stats.blk_att )
+        total += self.missed_shots( player_stats.ms )               # missed shots
         total += self.short_handed_bonus(player_stats.sh_goal)
         total += self.shootout_goals(player_stats.so_goal)
         total += self.hattrick(player_stats.goal) # goals minus shootout goals
@@ -469,6 +478,12 @@ class NhlSalaryScoreSystem(AbstractScoreSystem):
     def blocks(self, val):
         if self.verbose: self.str_stats += '%s Blk ' % val
         return val * self.get_value_of(self.BLK)
+    def blocked_attempts(self, val):
+        if self.verbose: self.str_stats += '%s BlockedAtt ' % val
+        return val * self.get_value_of(self.BLK_ATT)
+    def missed_shots(self, val):
+        if self.verbose: self.str_stats += '%s MissShot ' % val
+        return val * self.get_value_of(self.MS)
     def short_handed_bonus(self, sh_goals):
         if self.verbose: self.str_stats += '%s SHGoals ' % sh_goals
         return sh_goals * self.get_value_of(self.SH_BONUS)
