@@ -160,6 +160,7 @@ class SalaryPlayerStatsObject(object):
         #
         # Sets the variables of teh PlayerStatsObject to wrap
         # the important data fields of the player_stats_object
+        self.player_stats_instance = player_stats_object
         self.first_name         = player_stats_object.player.first_name
         self.last_name          = player_stats_object.player.last_name
         self.game_id            = player_stats_object.game_id
@@ -181,6 +182,15 @@ class SalaryPlayerStatsObject(object):
             self.player             == None):
             raise NullModelValuesException(type(self).__name__, "player_stats_object")
 
+    def get_player_stats_instance(self):
+        return self.player_stats_instance
+
+    def get_trailing_games(self, trailing_games):
+        if isinstance( self.get_player_stats_instance(), PlayerStatsPitcher ):
+            return int(trailing_games / 5)
+        #
+        return trailing_games
+
     def __str__(self):
         return str(self.game_id)+"--" +str(self.fantasy_points)+"pts\t "+str(self.start)
 
@@ -190,7 +200,12 @@ class SalaryPlayerObject(object):
     and their derived data
     """
 
-    def __init__(self):
+    default_max_games = 99999
+
+    def __init__(self, max_games=None):
+        self.max_games = max_games
+        if self.max_games is None:
+            self.max_games = self.default_max_games
         self.player_stats_list = []
         self.player_id = None
         self.player = None
@@ -202,6 +217,7 @@ class SalaryPlayerObject(object):
     def __str__(self):
         string_ret = str(self.player_id)+ " w_points="+str(self.fantasy_weighted_average)+\
                      " flagged="+str(self.flagged)+": \n"
+        string_ret += '%s total playerstats instances\n' % str(len(self.player_stats_list))
         for player in self.player_stats_list:
             string_ret += "\t"+str(player)+"\n"
         return string_ret
@@ -210,7 +226,7 @@ class SalaryPlayerObject(object):
         if self.fantasy_average == None:
             self.fantasy_average = 0.0
             count = 0
-            for player_stat in self.player_stats_list:
+            for player_stat in self.player_stats_list[:self.max_games]:
                 self.fantasy_average += player_stat.fantasy_points
                 count+=1
 
@@ -233,6 +249,7 @@ class SalaryPositionPointsAverageObject(object):
         return "POS:"+self.pos.name+" average_score:"+str(self.average)
 
 class SalaryRosterSpotObject(object):
+
     def __init__(self, name):
         self.name = name
         self.percentage_of_sum = 0.0
@@ -277,6 +294,7 @@ class FppgGenerator(object):
         # TODO
 
         # TODO fix this code to use 'num_trailing_games'
+        print('num_trailing_games:', str(num_trailing_games))
         salary_player_stats = []
         for player_stat in player_stats:
             #
@@ -292,7 +310,7 @@ class FppgGenerator(object):
             if len(arr) > 0:
                 player = arr[0]
             else:
-                player              = SalaryPlayerObject()
+                player              = SalaryPlayerObject(max_games=trailing_games)
                 player.player_id    = player_stats_object.player_id
                 player.player       = player_stats_object.player
                 salary_player_stats.append(player)
@@ -492,6 +510,9 @@ class SalaryGenerator(FppgGenerator):
                     all_player_stats = all_player_stats.filter(ip_1__gt=0)
                     #excluded_players.extend(player_stats_class.objects.filter(ip_1__lte=0))
 
+                    # a special fix for mlb pitchers, who only play about 1 out of every 5 games
+                    trailing_games = int(trailing_games / 5)
+
                 else:
                     err_msg = 'SalaryGenerator() - Unknown MLB PlayerStats type: %s' % str(class_name)
                     raise Exception(err_msg)
@@ -579,8 +600,9 @@ class SalaryGenerator(FppgGenerator):
         for player in players:
             arrToSort = player.player_stats_list
             arrToSort.sort(key=lambda x:x.start, reverse=True)
-
-            del arrToSort[self.salary_conf.trailing_games : ]
+            # del arrToSort[self.salary_conf.trailing_games : ]
+            player_stats_specific_trailing_games = arrToSort[0].get_trailing_games(self.salary_conf.trailing_games)
+            del arrToSort[ player_stats_specific_trailing_games: ]
 
     def helper_apply_weight_and_flag(self, players):
         """
@@ -601,8 +623,7 @@ class SalaryGenerator(FppgGenerator):
             if number_of_games < self.salary_conf.min_games_flag:
                 #print('less than the required games: %s for %s' % (str(number_of_games), str(player)))
                 # if player has played in 0 thru the min_games_flag,
-                # dont use weights, and just average the points they do have
-                # and flag them.
+                # dont use weights, and just average the points they do have and flag them.
                 if number_of_games > 0:
                     fp_list = [ stat.fantasy_points for stat in player.player_stats_list ]
                     player.fantasy_weighted_average = mean(fp_list)

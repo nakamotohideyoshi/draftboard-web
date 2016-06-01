@@ -94,6 +94,8 @@ class PlayerStats( sports.models.PlayerStats ):
         'assist',
         'sog',
         'blk',
+        'blk_att',  # shots for the player that were blocked by a defender
+        'ms',       # missed shots
         'sh_goal',
         'so_goal',
 
