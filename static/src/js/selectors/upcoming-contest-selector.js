@@ -1,5 +1,5 @@
 import { stringSearchFilter, matchFilter, rangeFilter, gameTypeFilter } from './filters';
-import { orderBy } from './order-by.js';
+import { orderByProperty } from './order-by-property.js';
 import { createSelector } from 'reselect';
 import filter from 'lodash/filter';
 // import forEach from 'lodash/forEach';
@@ -91,5 +91,5 @@ const sortProperty = (state) => state.upcomingContests.filters.orderBy.property;
 
 export const upcomingContestSelector = createSelector(
   [contestsWithEntryInfoSelector, sortProperty, sortDirection],
-  (collection, sortProp, sortDir) => orderBy(collection, sortProp, sortDir)
+  (collection, sortProp, sortDir) => orderByProperty(collection, sortProp, sortDir)
 );

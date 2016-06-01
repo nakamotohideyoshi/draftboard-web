@@ -47,12 +47,37 @@ const ContestListRow = React.createClass({
    * How many entries the user has in this contest pool.
    * @return {int} The number of entries.
    */
-  getEntryCount() {
-    if (this.props.contest.entryInfo) {
-      return this.props.contest.entryInfo.length;
+  getEntryCount(contest) {
+    if (contest.entryInfo) {
+      return contest.entryInfo.length;
     }
 
     return 0;
+  },
+
+
+  isAnotherLineupEntered(entryInfo, focusedLineup) {
+    let enteredLineupId = null;
+
+    if (entryInfo && entryInfo.length) {
+      enteredLineupId = entryInfo[0].lineup;
+    }
+
+    if (enteredLineupId && focusedLineup) {
+      return enteredLineupId !== focusedLineup.id;
+    }
+
+    return false;
+  },
+
+
+  hasReachedMaxEntries(contest) {
+    // Is our current entry count less than the contest's max entry value?
+    if (contest.entryInfo) {
+      return this.getEntryCount(contest) < contest.max_entries;
+    }
+
+    return false;
   },
 
 
@@ -98,6 +123,20 @@ const ContestListRow = React.createClass({
   },
 
 
+  renderDraftButton() {
+    if (this.getEntryCount(this.props.contest) === 0) {
+      return (
+        <DraftButton
+          draftGroupId={this.props.contest.draft_group}
+          disableTime={this.props.contest.start}
+        />
+      );
+    }
+
+    return '';
+  },
+
+
   render() {
     // If it's the currently focused contest, add a class to it.
     let classes = this.props.focusedContest.id === this.props.contest.id ? 'active ' : '';
@@ -108,6 +147,10 @@ const ContestListRow = React.createClass({
 
     if (this.props.highlighted) {
       classes += ' highlight';
+    }
+
+    if (this.isAnotherLineupEntered(this.props.contest.entryInfo, this.props.focusedLineup)) {
+      classes += ' other-lineup';
     }
 
     return (
@@ -135,14 +178,11 @@ const ContestListRow = React.createClass({
         </td>
 
         <td key="user-entries" className="user-entries">
-          {this.getEntryCount()} of {this.props.contest.max_entries}
+          {this.getEntryCount(this.props.contest)} of {this.props.contest.max_entries}
         </td>
 
         <td key="enter" className="enter">
-          <DraftButton
-            draftGroupId={this.props.contest.draft_group}
-            disableTime={this.props.contest.start}
-          />
+          {this.renderDraftButton()}
 
           <EnterContestButton
             lineup={this.props.focusedLineup}
@@ -150,6 +190,13 @@ const ContestListRow = React.createClass({
             lineupsInfo={this.props.lineupsInfo}
             onEnterClick={this.props.enterContest}
             onEnterSuccess={this.close}
+            buttonClasses={{
+              default: 'button--sm button--outline',
+              contestEntered: 'button--sm button--flat',
+              pending: 'button--sm button--flat',
+              contestHasStarted: 'button--sm button--flat',
+              maxEntered: 'button--sm button--flat',
+            }}
           />
         </td>
       </tr>

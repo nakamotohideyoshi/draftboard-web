@@ -1,5 +1,4 @@
 import React from 'react';
-import Pusher from '../../lib/pusher';
 import * as ReactRedux from 'react-redux';
 import Cookies from 'js-cookie';
 import store from '../../store';
@@ -26,6 +25,14 @@ import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.
 import { addMessage } from '../../actions/message-actions.js';
 import { removeParamFromURL } from '../../lib/utils.js';
 // import log from '../../lib/logging.js';
+
+// hack to use test-stub, hopefully pusher comes up with a better solution
+let Pusher;
+if (process.env.NODE_ENV === 'test') {
+  Pusher = require('../../lib/pusher-test-stub/PusherTestStub');
+} else {
+  Pusher = require('pusher-js');
+}
 
 // These components are needed in the lobby, but will take care of rendering themselves.
 require('../contest-list/contest-list-header.jsx');

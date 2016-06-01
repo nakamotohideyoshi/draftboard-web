@@ -4,6 +4,7 @@ import CountdownClock from '../site/countdown-clock.jsx';
 import Cookies from 'js-cookie';
 import classNames from 'classnames';
 import EnterContestButton from './enter-contest-button.jsx';
+import AppStateStore from '../../stores/app-state-store.js';
 
 
 /**
@@ -34,6 +35,7 @@ const ContestListConfirmModal = React.createClass({
   // The parent can also call this components 'close()' method directly.
   componentWillReceiveProps(nextProps) {
     this.setState({ isOpen: nextProps.isOpen });
+    AppStateStore.modalOpened();
   },
 
 
@@ -48,6 +50,7 @@ const ContestListConfirmModal = React.createClass({
     // close the modal.
     this.setState({ isOpen: false });
     this.props.cancelEntry();
+    AppStateStore.modalClosed();
   },
 
 

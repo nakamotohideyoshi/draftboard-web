@@ -1,8 +1,8 @@
+import ordinal from '../../lib/ordinal.js';
 import React from 'react';
 import size from 'lodash/size';
-import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-progress-bar';
 import { humanizeFP } from '../../actions/sports';
-
+import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-progress-bar';
 
 /**
  * Reusable PMR progress bar using SVG
@@ -12,6 +12,7 @@ const LiveOverallStats = React.createClass({
   propTypes: {
     contest: React.PropTypes.object.isRequired,
     hasContest: React.PropTypes.bool.isRequired,
+    hasOpponent: React.PropTypes.bool.isRequired,
     lineup: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
   },
@@ -193,19 +194,20 @@ const LiveOverallStats = React.createClass({
     );
   },
 
-  render() {
-    const lineup = this.props.lineup;
-
-    if (size(lineup) === 0) return (<div />);
-
-    let potentialWinnings = 0;
-    if (this.props.hasContest === true) {
-      potentialWinnings = this.props.contest.potentialWinnings.amount || 0;
-    } else {
-      potentialWinnings = lineup.potentialWinnings.amount || 0;
+  renderStats() {
+    if (!this.props.hasOpponent) {
+      return (<div className="live-overall-stats__stats" />);
     }
 
-    if (lineup.id === 1) {
+    let potentialWinnings = this.props.lineup.potentialWinnings.amount || 0;
+    let rank = this.props.lineup.potentialWinnings.rank || '';
+    if (this.props.whichSide === 'mine') {
+      rank = this.props.contest.potentialWinnings.rank || '';
+      potentialWinnings = this.props.contest.potentialWinnings.amount || 0;
+    }
+    rank = ordinal(rank);
+
+    if (this.props.lineup.id === 1) {
       potentialWinnings = 'N/A';
     } else if (potentialWinnings === 0) {
       potentialWinnings = `$${potentialWinnings}`;
@@ -214,22 +216,42 @@ const LiveOverallStats = React.createClass({
     }
 
     return (
+      <div className="live-overall-stats__stats">
+        <span className="live-overall-stats__rank">{rank} / </span>
+        <span className="live-overall-stats__potential-winnings">{potentialWinnings}</span>
+      </div>
+    );
+  },
+
+  render() {
+    const lineup = this.props.lineup;
+
+    if (size(lineup) === 0) return (<div />);
+
+    return (
       <div className="live-overall-stats live-overall-stats--me">
+        <h1 className="live-overall-stats__name">
+          {lineup.name}
+        </h1>
 
-        {this.renderOverallPMR()}
+        {this.renderStats()}
 
-        <section className="live-overview live-overview--lineup">
-          <div className="live-overview__points">
-            <div className="live-overview__help">
-              Points
+        <div className="live-overall-stats__live-overview">
+          {this.renderOverallPMR()}
+
+          <section className="live-overview live-overview--lineup">
+            <div className="live-overview__points">
+              <div className="live-overview__help">
+                Points
+              </div>
+              <h4 className="live-overview__quantity">{humanizeFP(lineup.fp)}</h4>
             </div>
-            <h4 className="live-overview__quantity">{humanizeFP(lineup.fp)}</h4>
-          </div>
-          <div className="live-overview__pmr">
-            <div className="live-overview__pmr__quantity">{ lineup.timeRemaining.duration }</div>
-            <div className="live-overview__pmr__title">PMR</div>
-          </div>
-        </section>
+            <div className="live-overview__pmr">
+              <div className="live-overview__pmr__quantity">{lineup.timeRemaining.duration}</div>
+              <div className="live-overview__pmr__title">PMR</div>
+            </div>
+          </section>
+        </div>
       </div>
     );
   },

@@ -7,6 +7,7 @@ $table-row-hover-bg: #f9fafb;
  */
 .cmp-contest-list {
   font-size: 12px;
+  overflow: hidden;
   padding-bottom: 40px;
 
   .active {
@@ -18,18 +19,38 @@ $table-row-hover-bg: #f9fafb;
   }
 
   &__row {
+    &.other-lineup {
+      opacity: .3;
+    }
+
+    &:hover {
+      opacity: 1;
+    }
 
     &.highlight {
         background: #f3faf4;
+        opacity: 1;
     }
 
     .enter {
       cursor: default;
+    }
 
-      .enter-contest-button {
-        min-width: 11em;
+    .enter-contest-button {
+      min-width: 11em;
+
+      &.entered {
+        min-width: 19em;
       }
     }
+
+    &.entered .enter-contest-button {
+      min-width: 19em;
+    }
+  }
+
+  .user-entries {
+    color: #9698ab;
   }
 
   .sport {
@@ -72,6 +93,18 @@ $table-row-hover-bg: #f9fafb;
     color: $primary-green;
   }
 
+
+  .cmp-countdown-clock {
+    .hours {
+      color: #9698ab;
+    }
+  }
+
+  .entered {
+    .name {
+      color: #20a94f;
+    }
+  }
 
   // the button for when a contest is 'entered'
   .disabled {
