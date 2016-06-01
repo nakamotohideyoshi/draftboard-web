@@ -5,17 +5,10 @@
 import log from './logging.js';
 import { addMessage, removeMessage } from '../actions/message-actions.js';
 import store from '../store';
+import Pusher from 'pusher-js';
 
 
-let Pusher;
-
-if (process.env.NODE_ENV === 'test') {
-  log.warn('Importing PusherTestStub');
-  Pusher = require('./pusher-test-stub/PusherTestStub');
-} else {
-  log.info('Connecting to Pusher');
-  Pusher = require('pusher-js');
-}
+log.info('Connecting to Pusher');
 
 const pusher = new Pusher(window.dfs.user.pusher_key, {
   encrypted: true,
@@ -30,12 +23,11 @@ const pusher = new Pusher(window.dfs.user.pusher_key, {
 
 /**
  * The connection is temporarily unavailable.
- * This happens after it can't connect for 30 seconds - likely due to internet outage.
  * Pusher will automatically retry the connection every ten seconds.
  */
 pusher.connection.bind('unavailable', () => {
   store.dispatch(addMessage({
-    header: 'Cannot connect to the live update server.',
+    header: 'Cannot connect to live update server.',
     content: 'This is likely temporary and the connection will be retried.',
     id: 'pusherLog',
   }));
@@ -64,7 +56,7 @@ pusher.connection.bind('failed', () => {
 });
 
 /**
- * The connection to Pusher is open and authenticated with your app.
+ *	The connection to Pusher is open and authenticated with your app.
  */
 pusher.connection.bind('connected', () => {
   // Clear any pusher messages.

@@ -23,7 +23,10 @@ module.exports = (markup) => {
 
   // ... add whatever browser globals your tests might need ...
   global.window.dfs = {
-    user: {},
+    user: {
+      pusher_key: 'NONE',
+      pusher_channel_prefix: 'test',
+    },
     logLevel: 'warn',
     replayerTimeDelta: 0,
     playerImagesBaseUrl: 'http://localhost',
