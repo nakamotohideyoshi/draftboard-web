@@ -6,12 +6,12 @@
  */
 
 
-var requireDir = require('require-dir');
+import requireDir from 'require-dir';
 
-requireDir('../actions', {recurse: true});
-requireDir('../components', {recurse: true});
-requireDir('../lib', {recurse: true});
-requireDir('../selectors', {recurse: true});
-requireDir('../reducers', {recurse: true});
-requireDir('../simulations', {recurse: true});
-requireDir('../middleware', {recurse: true});
+requireDir('../actions', { recurse: true });
+requireDir('../components', { recurse: true });
+requireDir('../lib', { recurse: true });
+requireDir('../selectors', { recurse: true });
+requireDir('../reducers', { recurse: true });
+requireDir('../simulations', { recurse: true });
+requireDir('../middleware', { recurse: true });
