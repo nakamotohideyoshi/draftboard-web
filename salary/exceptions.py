@@ -1,9 +1,6 @@
 #
 # salary/exceptions.py
 
-class NoPlayersAtRosterSpotException(Exception):
-    def __init__(self):
-        super().__init__(
-           "Salary generation failed because there were no player to sum an average fppg at a roster spot" )
+class NoPlayersAtRosterSpotException(Exception): pass
 
 class NoPlayerStatsClassesFoundException(Exception): pass

@@ -684,7 +684,7 @@ class SalaryGenerator(FppgGenerator):
             roster_maps = RosterSpotPosition.objects.filter(roster_spot = roster_spot)
             count = 0
             sum   = 0.0
-            #print('roster_maps:', len(roster_maps), 'for %s' % str(roster_spot))
+            msg = 'roster_maps:%s for %s' % (str(len(roster_maps)), str(roster_spot))
             for roster_map in roster_maps:
                 position = roster_map.position
                 if position in position_average_list:
@@ -695,7 +695,7 @@ class SalaryGenerator(FppgGenerator):
             except ZeroDivisionError:
                 print('repeated NoPlayersAtRosterSpotExceptions could indicate you '
                       'have set the "Min FPPG Allowed for Avg Calc too high !!!!')
-                raise NoPlayersAtRosterSpotException()
+                raise NoPlayersAtRosterSpotException(msg)
 
         return sum_average_points
 
