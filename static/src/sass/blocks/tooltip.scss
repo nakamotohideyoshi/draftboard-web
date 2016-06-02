@@ -24,6 +24,9 @@ category: Tooltips
 @mixin generate-tooltip($arrow-direction) {
   // Default variables
   $tooltip-arrow-height: 9px;
+  $direction: 'top';
+  $opposite-axis: 'bottom';
+  $opposite-direction: 'right';
 
   // set initial variables of direction and opposite for arrow positioning
   @if $arrow-direction == 'top' {

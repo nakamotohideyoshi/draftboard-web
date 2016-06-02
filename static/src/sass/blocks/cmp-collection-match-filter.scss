@@ -24,7 +24,6 @@
     }
 
     &--active {
-      @extend .table-contests-filter__filter;
       color: #46495e;
       border: 0px solid transparent;
       -moz-border-image: -moz-linear-gradient(right, #1f907c 0%, #34cc68 100%);
