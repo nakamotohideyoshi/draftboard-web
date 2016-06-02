@@ -49,7 +49,9 @@ const NavScoreboardFilters = React.createClass({
       return;
     }
 
-    const { option, type, key } = this.props.options[0];
+    const { option, type, key } = this.props.options.reduce((p, n) => (
+      p.count > n.count ? p : n
+    ));
 
     this.props.onChangeSelection(option, type, key);
   },
