@@ -6,6 +6,8 @@ import { debounce as _debounce } from 'lodash';
 import { map as _map } from 'lodash';
 
 import LivePMRProgressBar from './live-pmr-progress-bar';
+import { GAME_DURATIONS } from '../../actions/sports.js';
+import { updateLiveMode } from '../../actions/watching.js';
 import * as AppActions from '../../stores/app-state-store';
 import { fetchLineupUsernames } from '../../actions/lineup-usernames';
 
@@ -27,6 +29,7 @@ export const LiveStandingsPane = React.createClass({
     rankedLineups: React.PropTypes.array.isRequired,
     watching: React.PropTypes.object.isRequired,
     fetchLineupUsernames: React.PropTypes.func,
+    updateLiveMode: React.PropTypes.func,
   },
 
   getInitialState() {
@@ -41,6 +44,12 @@ export const LiveStandingsPane = React.createClass({
       playersSortAsc: false,               // Is players sort ascending or descending.
       playersWatched: [],                  // Watched players.
     };
+  },
+
+  componentWillMount() {
+    if (this.props.watching.villainLineup) {
+      this.setState({ playersWatched: this.props.watching.villainLineup });
+    }
   },
 
   componentDidMount() {
@@ -221,13 +230,27 @@ export const LiveStandingsPane = React.createClass({
   handleToggleWatchPlayer(id) {
     let playersWatched = this.state.playersWatched.slice();
 
+    const game = GAME_DURATIONS[this.props.watching.sport];
+    const maxPlayers = game ? game.players : 10;
+
     if (playersWatched.indexOf(id) !== -1) {
       playersWatched = playersWatched.filter(i => i !== id);
-    } else {
+    } else if (playersWatched.length < maxPlayers) {
       playersWatched.push(id);
+    } else {
+      return;
+    }
+
+    if (playersWatched.length === maxPlayers) {
+      this.props.updateLiveMode({ villainLineup: playersWatched });
     }
 
     this.setState({ playersWatched });
+  },
+
+  handleWatchVillainLineup() {
+    // NOTE: 1 is a special lineup id indicating selected villain lineup.
+    this.handleViewOpponentLineup(1);
   },
 
   backToContestsPane() {
@@ -559,10 +582,16 @@ export const LiveStandingsPane = React.createClass({
 
   renderOwnershipTab() {
     if (this.state.currentTab !== OWNERSHIP_TAB) return null;
+    const watchVillain = this.props.watching.villainLineup ? (
+      <div className="watch-live" onClick={this.handleWatchVillainLineup}>
+        Watch villain lineup
+      </div>
+    ) : null;
 
     return (
       <div className="inner">
         {this.renderHeader()}
+        {watchVillain}
         {this.renderSearchForm()}
         {this.renderPlayers()}
         {this.renderPages()}
@@ -617,6 +646,7 @@ function mapStateToProps() {
 function mapDispatchToProps(dispatch) {
   return {
     fetchLineupUsernames: (id) => dispatch(fetchLineupUsernames(id)),
+    updateLiveMode: (data) => dispatch(updateLiveMode(data)),
   };
 }
 
