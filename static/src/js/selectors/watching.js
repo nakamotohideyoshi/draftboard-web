@@ -13,7 +13,6 @@ import { createSelector } from 'reselect';
 import { dateNow } from '../lib/utils';
 import { entriesContestLineupSelector } from './entries';
 import { entriesHaveRelatedInfoSelector } from './entries';
-import { GAME_DURATIONS } from '../actions/sports';
 import { gamesTimeRemainingSelector } from './sports';
 import { liveContestsSelector } from './live-contests';
 
@@ -42,12 +41,9 @@ const addToRelevantItems = (roster, items = { games: [], players: [] }) => ({
  * by me.
  * @param  {object} contest  Contest object
  * @param  {string} sport    Which sport the contest is for, used to determine default roster length
- * @param  {list}   myRoster Roster to filter out players with
  * @return {object}          All players and top 8 players not in my lineup
  */
-const calcContestPlayersOwnership = (contestLineups, draftGroup, sport, gamesTimeRemaining, myRoster) => {
-  const numOfPlayers = GAME_DURATIONS[sport].players;
-
+const calcContestPlayersOwnership = (contestLineups, draftGroup, sport, gamesTimeRemaining) => {
   const lineups = filter(contestLineups, (lineup) => lineup.roster[0] !== 0);
   const allPlayers = flatten(map(lineups, (lineup) => lineup.roster));
   const counts = countBy(allPlayers, (playerId) => playerId);
@@ -59,18 +55,6 @@ const calcContestPlayersOwnership = (contestLineups, draftGroup, sport, gamesTim
     ownershipPercent: parseInt(ownershipCount / allPlayers.length * 100, 10),
   }));
   const allPlayersByCounts = sortBy(mappedPlayers, (playerWithCount) => playerWithCount.ownershipCount).reverse();
-
-  // filter to players not owned by me
-  const nonOwnedByMe = filter(allPlayersByCounts, (player) => myRoster.indexOf(player.playerId) === -1);
-  let top8 = sortBy(nonOwnedByMe, (playerWithCount) => playerWithCount.ownershipCount);
-
-  // return top 8 not owned by me, if there are 8 to use, otherwise return all
-  if (top8.length > numOfPlayers) {
-    top8 = top8.slice(0, numOfPlayers);
-  } else {
-    top8 = allPlayersByCounts.slice(0, numOfPlayers);
-  }
-  top8 = map(top8, (p) => p.playerId);
 
   // return players with their stats
   const allWithStats = compileRosterDetails(allPlayers, draftGroup, gamesTimeRemaining, []);
@@ -90,7 +74,6 @@ const calcContestPlayersOwnership = (contestLineups, draftGroup, sport, gamesTim
 
   return {
     all,
-    top8,
     allByPlayerId,
   };
 };
@@ -256,14 +239,13 @@ export const watchingContestSelector = createSelector([
     contest.lineups,
     draftGroup,
     sport,
-    gamesTimeRemaining,
-    myLineup.roster
+    gamesTimeRemaining
   );
 
   // if villian watching, add to contest lineups
   if (watching.opponentLineupId === 1) {
     contest.lineups[1] = compileVillianLineup(
-      playersOwnership.top8,
+      watching.villainLineup,
       draftGroup,
       gamesTimeRemaining
     );

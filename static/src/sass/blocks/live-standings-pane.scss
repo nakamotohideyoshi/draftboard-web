@@ -164,6 +164,26 @@
     }
   }
 
+  .watch-live {
+    display: block;
+    margin: 25px 25px 0;
+    text-transform: uppercase;
+    color: #737A8A;
+    text-align: center;
+    border: solid 1px #737A8A;
+    padding: 10px 0;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(57,61,78,0.96);
+      border-color: rgba(57,61,78,0.96);
+      color: white;
+      cursor: pointer;
+    }
+  }
+
   .ownership-list {
     text-align: center;
     margin: 20px 25px;
