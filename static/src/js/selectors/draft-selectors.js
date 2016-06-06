@@ -4,7 +4,8 @@ import { merge as _merge } from 'lodash';
 import { orderBy as _orderBy } from 'lodash';
 import { find as _find } from 'lodash';
 
-const focusedPlayerIdSelector = (state) => state.draftGroupPlayers.focusedPlayer;
+const focusedPlayerIdSelector = (state) => state.draftGroupPlayersFilters.focusedPlayerId;
+const allPlayersSelector = (state) => state.draftGroupPlayers.allPlayers;
 const sportSelector = (state) => state.draftGroupPlayers.sport;
 const playerNewsSelector = (state) => state.playerNews;
 const playerBoxScoreHistorySelector = (state) => state.playerBoxScoreHistory;
@@ -21,6 +22,7 @@ const newLineupSelector = (state) => state.createLineup.lineup;
  */
 export const focusedPlayerSelector = createSelector(
   focusedPlayerIdSelector,
+  allPlayersSelector,
   playerNewsSelector,
   playerBoxScoreHistorySelector,
   boxScoreGamesSelector,
@@ -29,13 +31,19 @@ export const focusedPlayerSelector = createSelector(
   sportInfoSelector,
   availablePositionSelector,
   newLineupSelector,
-  (focusedPlayer, playerNews, playerBoxScoreHistory, boxScoreGames, sport, activeDraftGroupId,
+  (focusedPlayerId, allPlayers, playerNews, playerBoxScoreHistory, boxScoreGames, sport, activeDraftGroupId,
     sportInfo, availablePositions, newLineup
   ) => {
     // if no player is focused, return nothing.
-    if (!focusedPlayer) {
+    if (!focusedPlayerId) {
       return null;
     }
+
+    if (!allPlayers[focusedPlayerId]) {
+      return null;
+    }
+
+    const focusedPlayer = allPlayers[focusedPlayerId];
 
     const player = _merge({}, focusedPlayer, {
       sport,

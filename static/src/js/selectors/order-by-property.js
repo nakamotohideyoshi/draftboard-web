@@ -16,7 +16,7 @@ export const orderByProperty = (collection, sortProperty, direction = 'desc') =>
   }
 
   // Due to how lodash sorts, these columns should be reverse-sorted.
-  if (['buyin', 'start', 'prize_pool'].indexOf(sortProperty) > -1) {
+  if (['buyin', 'start', 'prize_pool', 'fppg', 'salary'].indexOf(sortProperty) > -1) {
     sorted = sorted.reverse();
   }
 
