@@ -145,10 +145,11 @@
   .cmp-collection-search-filter {
     float: none;
     display: inline-block;
-    border-left: none;
-    border-right: 1px solid #ebedf2;
-    margin-right: 20px;
+    border: none;
+    margin-right: 0px;
     padding-right: 15px;
+    position: relative;
+    top: 3px;
 
   }
 
@@ -157,6 +158,35 @@
     float: none;
     display: inline-block;
     padding-bottom: 0;
+    position: relative;
+    top: -4px;
   }
 
+}
+
+
+.cmp-probable-pitchers-filter {
+  display: inline-block;
+  position: relative;
+  padding-right: 10px;
+
+  .radio-button-list__button-container {
+    input, label, .text_label {
+      display: inline-block;
+    }
+
+    label {
+
+    }
+
+    .text_label {
+      font-size: 12px;
+      cursor: pointer;
+      vertical-align: top;
+      top: 5px;
+      position: relative;
+      padding-right: 15px;
+
+    }
+  }
 }
