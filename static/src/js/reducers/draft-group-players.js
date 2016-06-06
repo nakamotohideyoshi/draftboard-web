@@ -1,6 +1,5 @@
 import { merge as _merge } from 'lodash';
 import * as ActionTypes from '../action-types.js';
-import log from '../lib/logging.js';
 
 
 const initialState = {
@@ -8,22 +7,7 @@ const initialState = {
   id: null,
   isFetching: false,
   allPlayers: {},
-  focusedPlayer: null,
-  filters: {
-    orderBy: {
-      filterProperty: 'salary',
-      direction: 'asc',
-    },
-    playerSearchFilter: {
-      filterProperty: 'player.name',
-      match: '',
-    },
-    positionFilter: {},
-    teamFilter: {
-      match: [],
-      count: 0,
-    },
-  },
+  probablePitchers: [],
 };
 
 
@@ -48,51 +32,9 @@ module.exports = (state = initialState, action) => {
         start: action.body.start,
         end: action.body.end,
         isFetching: false,
+        // An array containing the values (player.srid) of probably pitchers.
+        probablePitchers: action.body.game_updates.filter((update) => update.type === 'pp').map((pp) => pp.value),
       });
-
-
-    case ActionTypes.SET_FOCUSED_PLAYER:
-      // Grab the focused player from our list of players.
-      return _merge({}, state, {
-        focusedPlayer: state.allPlayers[action.playerId],
-      });
-
-
-    case ActionTypes.DRAFTGROUP_FILTER_CHANGED: {
-      // Override any previous filters with what has been passed.
-      const filters = _merge({}, state.filters);
-
-      // If nothing has changed, ignore the DRAFTGROUP_FILTER_CHANGED action.
-      if (
-        filters[action.filter.filterName].filterProperty === action.filter.filterProperty &&
-        filters[action.filter.filterName].match === action.filter.match
-      ) {
-        log.info(`${action.filter.filterProperty} filter has not changed, ignoring DRAFTGROUP_FILTER_CHANGED action.`);
-        return state;
-      }
-
-      filters[action.filter.filterName] = {
-        filterProperty: action.filter.filterProperty,
-        match: action.filter.match,
-        count: action.filter.match.length,
-      };
-
-      const newFilterState = _merge({}, state, {
-        filters,
-      });
-      // Since a merge won't replace the `match` array, do it manually, otherwise the previous
-      // filter matches will still remain in the array.
-      newFilterState.filters[action.filter.filterName].match = action.filter.match;
-
-      return newFilterState;
-    }
-
-
-    case ActionTypes.DRAFTGROUP_ORDER_CHANGED: {
-      const newState = _merge({}, state);
-      newState.filters.orderBy = action.orderBy;
-      return newState;
-    }
 
 
     default:

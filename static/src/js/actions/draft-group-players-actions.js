@@ -129,6 +129,7 @@ function fetchDraftGroup(draftGroupId) {
             end: res.body.end,
             sport: res.body.sport,
             id: res.body.pk,
+            game_updates: res.body.game_updates,
           }));
 
           resolve(res);
