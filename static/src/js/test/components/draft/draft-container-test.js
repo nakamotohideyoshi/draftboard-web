@@ -19,8 +19,24 @@ const defaultTestProps = {
   updateFilter: () => true,
   editLineupInit: () => true,
   filters: {
+    orderBy: {
+      property: 'salary',
+      direction: 'desc',
+    },
+    playerSearchFilter: {
+      filterProperty: 'player.name',
+      match: '',
+    },
+    probablePitchersFilter: {
+      // match == true means to only show probably pitchers.
+      match: true,
+      // this doesn't matter.
+      filterProperty: 'srid',
+    },
+    positionFilter: {},
     teamFilter: {
-      match: null,
+      match: [],
+      count: 0,
     },
   },
   createLineupViaCopy: () => true,
