@@ -1,9 +1,11 @@
 import { createSelector } from 'reselect';
-import { mapValues as _mapValues } from 'lodash';
-import { merge as _merge } from 'lodash';
+import mapValues from 'lodash/mapValues';
+import merge from 'lodash/merge';
+import filter from 'lodash/filter';
 import { orderByProperty } from './order-by-property.js';
 import { stringSearchFilter, matchFilter, inArrayFilter } from './filters';
 import { isPlayerInLineup } from '../components/draft/draft-utils.js';
+import log from '../lib/logging.js';
 
 
 // All the players in the state.
@@ -14,9 +16,6 @@ const sportInfoSelector = (state) => state.sports;
 const boxScoreGamesSelector = (state) => state.upcomingDraftGroups.boxScores;
 const activeDraftGroupIdSelector = (state) => state.upcomingDraftGroups.activeDraftGroupId;
 const sportSelector = (state) => state.draftGroupPlayers.sport;
-const availablePositionSelector = (state) => state.createLineup.availablePositions;
-const newLineupSelector = (state) => state.createLineup.lineup;
-const remainingSalarySelector = (state) => state.createLineup.remainingSalary;
 
 
 // Add injury information to each player.
@@ -28,14 +27,11 @@ const playersWithInfo = createSelector(
   sportInfoSelector,
   activeDraftGroupIdSelector,
   boxScoreGamesSelector,
-  availablePositionSelector,
-  newLineupSelector,
-  remainingSalarySelector,
-  (players, injuries, histories, sport, sportInfo,
-    activeDraftGroupId, boxScoreGames, availablePositions, newLineup, remainingSalary
-  ) => _mapValues(players, (player) => {
+  (players, injuries, histories, sport, sportInfo, activeDraftGroupId, boxScoreGames
+  ) => mapValues(players, (player) => {
+    log.debug('playersWithInfoSelector()');
     // Duplicate the player so we don't mutate the state.
-    const playerWithInfo = _merge({}, player);
+    const playerWithInfo = merge({}, player);
     // Add injury status if we have it.
     if (injuries.hasOwnProperty(player.player_id)) {
       playerWithInfo.status = injuries[player.player_id].status;
@@ -68,26 +64,7 @@ const playersWithInfo = createSelector(
           playerWithInfo.nextGame.awayTeam = sportInfo[sport].teams[playerWithInfo.nextGame.srid_away];
         }
       }
-
-      // add affordability.
-      playerWithInfo.canAfford = remainingSalary >= player.salary;
-
-      // Add draft status.
-      let draftable = true;
-      let drafted = false;
-      // Is there a slot available?
-      if (availablePositions.indexOf(player.position) === -1) {
-        draftable = false;
-      }
-      // Is the player already drafted?
-      if (isPlayerInLineup(newLineup, player)) {
-        draftable = false;
-        drafted = true;
-      }
-      playerWithInfo.drafted = drafted;
-      playerWithInfo.draftable = draftable;
     }
-
 
     return playerWithInfo;
   })
@@ -95,15 +72,52 @@ const playersWithInfo = createSelector(
 );
 
 
+const remainingSalarySelector = (state) => state.createLineup.remainingSalary;
+const availablePositionSelector = (state) => state.createLineup.availablePositions;
+const newLineupSelector = (state) => state.createLineup.lineup;
+
+
+/**
+ * Add affordability + draftability meta info.
+ */
+const playersWithDraftabilityInfo = createSelector(
+  [playersWithInfo, remainingSalarySelector, availablePositionSelector, newLineupSelector],
+  (players, remainingSalary, availablePositions, newLineup) => mapValues(players, (player) => {
+    log.debug('playersWithAffordabilityInfoSelector() run');
+    const playerWithInfo = merge({}, player);
+
+    // add affordability.
+    playerWithInfo.canAfford = remainingSalary >= player.salary;
+
+    // Add draft status.
+    let draftable = true;
+    let drafted = false;
+    // Is there a slot available?
+    if (availablePositions.indexOf(player.position) === -1) {
+      draftable = false;
+    }
+    // Is the player already drafted?
+    if (isPlayerInLineup(newLineup, player)) {
+      draftable = false;
+      drafted = true;
+    }
+    playerWithInfo.drafted = drafted;
+    playerWithInfo.draftable = draftable;
+
+    return playerWithInfo;
+  })
+);
+
+
 /**
  * Sort the players.
  */
-const sortDirection = (state) => state.draftGroupPlayers.filters.orderBy.direction;
-const sortProperty = (state) => state.draftGroupPlayers.filters.orderBy.filterProperty;
+const sortDirectionSelector = (state) => state.draftGroupPlayersFilters.filters.orderBy.direction;
+const sortPropertySelector = (state) => state.draftGroupPlayersFilters.filters.orderBy.property;
 
 export const draftGroupPlayerSelector = createSelector(
-  [playersWithInfo, sortProperty, sortDirection],
-  (collection, sortProp, sortDir) => orderByProperty(collection, sortProp, sortDir)
+  [playersWithDraftabilityInfo, sortPropertySelector, sortDirectionSelector],
+  (collection, sortProperty, direction) => orderByProperty(collection, sortProperty, direction)
 );
 
 
@@ -111,19 +125,47 @@ export const draftGroupPlayerSelector = createSelector(
  * The folloiwng selectors are used to filter the state.draftGroups.filteredPlayers
  */
 
+ // Filter players based on the probable pitchers filter.
+const probablePitchersFilter = (state) => state.draftGroupPlayersFilters.filters.probablePitchersFilter.match;
+const probablePitchers = (state) => state.draftGroupPlayers.probablePitchers;
+
+const probablePitchersSelector = createSelector(
+   [allPlayersSelector, probablePitchersFilter, probablePitchers],
+   (players, showOnlyProbablePitchers, pitchers) => {
+     log.debug('probablePitchersSelector()');
+     // If we are showing all pitchers, just return them all.
+     if (!showOnlyProbablePitchers) {
+       return players;
+     }
+
+     const pp = filter(players, (player) => {
+       // Show all non pitchers
+       if (player.position !== 'SP') {
+         return true;
+       }
+
+      // Filter out any pitchers that are not found in the probablePitchers list.
+       return pitchers.indexOf(player.player_srid) > -1;
+     });
+
+     return pp;
+   }
+ );
+
+
 // Filter players based on the search filter
-const filterPropertySelector = (state) => state.draftGroupPlayers.filters.playerSearchFilter.filterProperty;
-const filterMatchSelector = (state) => state.draftGroupPlayers.filters.playerSearchFilter.match;
+const filterPropertySelector = (state) => state.draftGroupPlayersFilters.filters.playerSearchFilter.filterProperty;
+const filterMatchSelector = (state) => state.draftGroupPlayersFilters.filters.playerSearchFilter.match;
 
 const playerNameSelector = createSelector(
-  [allPlayersSelector, filterPropertySelector, filterMatchSelector],
+  [probablePitchersSelector, filterPropertySelector, filterMatchSelector],
   (collection, filterProperty, searchString) => stringSearchFilter(collection, filterProperty, searchString)
 );
 
 
 // Filter players based on the team filter
-const teamFilterPropertySelector = (state) => state.draftGroupPlayers.filters.teamFilter.filterProperty;
-const teamFilterMatchSelector = (state) => state.draftGroupPlayers.filters.teamFilter.match;
+const teamFilterPropertySelector = (state) => state.draftGroupPlayersFilters.filters.teamFilter.filterProperty;
+const teamFilterMatchSelector = (state) => state.draftGroupPlayersFilters.filters.teamFilter.match;
 
 const teamSelector = createSelector(
   [playerNameSelector, teamFilterPropertySelector, teamFilterMatchSelector],
@@ -132,8 +174,8 @@ const teamSelector = createSelector(
 
 
 // Filter players based on the position filter
-const positionFilterPropertySelector = (state) => state.draftGroupPlayers.filters.positionFilter.filterProperty;
-const positionFilterMatchSelector = (state) => state.draftGroupPlayers.filters.positionFilter.match;
+const positionFilterPropertySelector = (state) => state.draftGroupPlayersFilters.filters.positionFilter.filterProperty;
+const positionFilterMatchSelector = (state) => state.draftGroupPlayersFilters.filters.positionFilter.match;
 
 export const filteredPlayersSelector = createSelector(
   [teamSelector, positionFilterPropertySelector, positionFilterMatchSelector],
