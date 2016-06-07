@@ -8,6 +8,8 @@ import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
 import DraftPlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
+import DraftTableHeader from './draft-table-header.jsx';
+import ProbablePitchersFilter from './probable-pitchers-filter.jsx';
 import forEach from 'lodash/forEach';
 import findIndex from 'lodash/findIndex';
 import { addMessage } from '../../actions/message-actions.js';
@@ -37,7 +39,7 @@ function mapStateToProps(state) {
     allPlayers: draftGroupPlayerSelector(state),
     filteredPlayers: filteredPlayersSelector(state),
     activeDraftGroupBoxScores: activeDraftGroupBoxScoresSelector(state),
-    filters: state.draftGroupPlayers.filters,
+    filters: state.draftGroupPlayersFilters.filters,
     draftGroupTime: state.draftGroupPlayers.start,
     sport: state.draftGroupPlayers.sport,
     teams: state.sports,
@@ -47,8 +49,8 @@ function mapStateToProps(state) {
     availablePositions: state.createLineup.availablePositions,
     injuries: state.injuries,
     fantasyHistory: state.fantasyHistory,
-    orderByDirection: state.draftGroupPlayers.filters.orderBy.direction,
-    orderByProperty: state.draftGroupPlayers.filters.orderBy.property,
+    orderByDirection: state.draftGroupPlayersFilters.filters.orderBy.direction,
+    orderByProperty: state.draftGroupPlayersFilters.filters.orderBy.property,
   };
 }
 
@@ -310,6 +312,11 @@ const DraftContainer = React.createClass({
             onUpdate={this.handleFilterChange}
           />
 
+          <ProbablePitchersFilter
+            onUpdate={this.handleFilterChange}
+            enabled={this.props.filters.probablePitchersFilter.match}
+          />
+
           <CollectionMatchFilter
             className="collection-filter--player-type"
             filters={positions}
@@ -335,22 +342,38 @@ const DraftContainer = React.createClass({
           <thead>
             <tr className="cmp-player-list__header-row">
               <th></th>
-              <th onClick={this.handleSetOrderBy.bind(null, 'position')}>POS</th>
+              <DraftTableHeader
+                onClick={this.handleSetOrderBy}
+                text="POS"
+                sortParam="position"
+              />
               <th></th>
-              <th
-                className="table__sortable"
-                onClick={this.handleSetOrderBy.bind(null, 'name')}
-              >
-                Player
-              </th>
-              <th>Status</th>
-              <th onClick={this.handleSetOrderBy.bind(null, 'team_alias')}>OPP</th>
-              <th onClick={this.handleSetOrderBy.bind(null, 'fppg')}>AVG</th>
+              <DraftTableHeader
+                onClick={this.handleSetOrderBy}
+                text="Player"
+                sortParam="name"
+              />
+              <DraftTableHeader
+                onClick={this.handleSetOrderBy}
+                text="Status"
+                sortParam="status"
+              />
+              <DraftTableHeader
+                onClick={this.handleSetOrderBy}
+                text="OPP"
+                sortParam="team_alias"
+              />
+              <DraftTableHeader
+                onClick={this.handleSetOrderBy}
+                text="AVG"
+                sortParam="fppg"
+              />
               <th>Last 10</th>
-              <th
-                onClick={this.handleSetOrderBy.bind(null, 'salary')}
-                className="table__sortable"
-              >Salary</th>
+              <DraftTableHeader
+                onClick={this.handleSetOrderBy}
+                text="Salary"
+                sortParam="salary"
+              />
             </tr>
           </thead>
           <tbody>{visibleRows}</tbody>
