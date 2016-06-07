@@ -26,7 +26,7 @@ class DraftGroupAPIView(generics.GenericAPIView):
     return the draft group players for the given draftgroup id
     """
 
-    DEFAULT_CACHE_TIMEOUT = 5 * 60 # 48 * 24 * 60 * 60
+    DEFAULT_CACHE_TIMEOUT = 8 * 60 * 60 # timeout in seconds
 
     serializer_class = DraftGroupSerializer
 
