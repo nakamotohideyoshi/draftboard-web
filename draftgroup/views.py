@@ -20,13 +20,12 @@ import json
 from django.http import HttpResponse
 from django.views.generic import View
 
-
 class DraftGroupAPIView(generics.GenericAPIView):
     """
     return the draft group players for the given draftgroup id
     """
 
-    DEFAULT_CACHE_TIMEOUT = 8 * 60 * 60 # timeout in seconds
+    DEFAULT_CACHE_TIMEOUT = 12 * 60 * 60 # timeout in seconds
 
     serializer_class = DraftGroupSerializer
 
