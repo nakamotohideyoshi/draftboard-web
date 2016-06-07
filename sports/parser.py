@@ -31,26 +31,10 @@ class DataDenParser(object):
         'nba' : sports.nba.parser.DataDenNba,
         'mlb' : sports.mlb.parser.DataDenMlb,
         'nhl' : sports.nhl.parser.DataDenNhl,
-        'nfl' : sports.nfl.parser.DataDenNfl,
+
+        'nfl'   : sports.nfl.parser.DataDenNfl,   # 'nfl' and 'nflo' use the same parser!
+        'nflo'  : sports.nfl.parser.DataDenNfl,
     }
-
-    REPLAY_MINIMAL_TRIGGERS = [
-        ('nba','team','hierarchy'),     # 1
-        ('nba','game','schedule'),      # 2
-        ('nba','player','rosters'),     # 3
-    ]
-
-    #
-    # for all sports, the collection is
-    # called 'content' and so is the parent api!
-    # we need to handle this top level object
-    # being parsed so we can take care of the rest...
-    CONTENT_TRIGGERS = [
-        ('mlb','content','content'),
-        ('nba','content','content'),
-        ('nhl','content','content'),
-        ('nfl','content','content'),
-    ]
 
     #
     # the pbp objects are not something we want to enable by default,
@@ -122,23 +106,18 @@ class DataDenParser(object):
         ('nhl','team','boxscores'),
         ('nhl','player','stats'),
 
-        # nfl
-        ('nfl','team','hierarchy'),             # 1
-        ('nfl','season','schedule'),
-        ('nfl','game','schedule'),              # 2
-        ('nfl','player','rosters'),             # 3 ordered for setup priority
-        ('nfl','game','boxscores'),
-        ('nfl','team','stats'),
-        ('nfl','team','boxscores'),
-        ('nfl','player','stats'),
+        # # nfl (classic feed data - deprecated)
+        # ('nfl','team','hierarchy'),             # 1
+        # ('nfl','season','schedule'),
+        # ('nfl','game','schedule'),              # 2
+        # ('nfl','player','rosters'),             # 3 ordered for setup priority
+        # ('nfl','game','boxscores'),
+        # ('nfl','team','stats'),
+        # ('nfl','team','boxscores'),
+        # ('nfl','player','stats'),
 
-        #
-        # CONTENT TRIGGERS for The Sports Xchange news, injuries, transactions
-        ('mlb','content','content'),
-        ('nba','content','content'),
-        ('nhl','content','content'),
-        ('nfl','content','content'),
     ]
+    DEFAULT_TRIGGERS.extend(sports.nfl.parser.DataDenNfl.triggers)
 
     def __init__(self):
         self.sport = None
@@ -194,10 +173,10 @@ class DataDenParser(object):
         if sport:
             self.__valid_sport(sport) # exception if it is not valid
 
+        parser = self.__get_parser(sport)
+
         # create all the default triggers
-        for t in self.DEFAULT_TRIGGERS:
-            if sport and sport != t[0]:
-                continue # skip all that dont match, if sport is specified
+        for t in parser.get_triggers():
             db          = t[0]
             coll        = t[1]
             parent_api  = t[2]
@@ -207,6 +186,7 @@ class DataDenParser(object):
         # create all the pbp triggers (or for the specified sport!
         for t in self.PBP_TRIGGERS:
             if sport and sport != t[0]:
+                #print('skipping pbp triggers %s because it didnt match %s' % (str(t), str(sport)))
                 continue # skip all that dont match, if sport is specified
             db          = t[0]
             coll        = t[1]
@@ -250,9 +230,8 @@ class DataDenParser(object):
         self.setup_triggers(sport)
         dataden = DataDen(no_cursor_timeout=True) # dont let cursor timeout for setup()
 
-        triggers = self.DEFAULT_TRIGGERS
-        if replay:
-            triggers = self.REPLAY_MINIMAL_TRIGGERS
+        parser = self.__get_parser(sport)
+        triggers = parser.get_triggers()
 
         #
         # if force_triggers is set, it overrides
@@ -260,13 +239,8 @@ class DataDenParser(object):
             triggers = force_triggers
 
         #
-        # the DEFAULT_TRIGGERS has each sport ordered to initialize it.
-        #   parse the teams
-        #   parse the schedule for the games
-        #   parse the rosters for the players
+        # get and parse the corresponding objects
         for t in triggers:
-            if t[0] != sport:
-                continue # skip sports we didnt specify
             #
             # as a debug, print out the 'ns' and the 'parent_api', and count
             db          = t[0]
@@ -348,12 +322,7 @@ class DataDenParser(object):
 
         :return:
         """
-        l = []
-        for tup in self.DEFAULT_TRIGGERS:
-            sport = tup[0]
-            if sport not in l:
-                l.append( sport )
-        return l
+        return list(self.parsers.keys())
 
     def __valid_sport(self, sport):
         """
