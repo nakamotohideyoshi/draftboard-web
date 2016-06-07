@@ -2,6 +2,7 @@
 # sports/nfl/parser.py
 
 from django.db.transaction import atomic
+from sports.sport.base_parser import AbstractDataDenParseable
 import sports.nfl.models
 from sports.nfl.models import (
     Team,
@@ -20,7 +21,6 @@ from sports.sport.base_parser import (
     DataDenGameSchedule,
     DataDenPlayerRosters,
     DataDenPlayerStats,
-    DataDenGameBoxscores,
     DataDenTeamBoxscores,
     DataDenPbpDescription,
     DataDenInjury,
@@ -57,12 +57,25 @@ class SeasonSchedule(DataDenSeasonSchedule):
     note for NFL the srid field of a Season object looks like a url,
     because thats whats actually found in the field we typically
     find srids. plus, the url uniquely identifies the season so its fine.
+
+    example:
+
+        {'type': 'PRE', 'name': 'PRE', 'year': 2016.0,
+        'parent_api__id': 'schedule', 'id': '659d2bd0-c43e-4bb0-8503-9d576911d029',
+        'weeks': [{'week': '60bfeef5-51db-4e2f-bb85-377a6386ac6d'},
+        {'week': '1d810a06-3f3b-4865-a0ba-f28091dd8d6f'},
+        {'week': '79300bc5-2fc5-489a-9d4f-ef641e6f5885'},
+        {'week': '051e133e-75ef-4818-835a-87e84fdc53b2'},
+        {'week': 'acd0b2ac-8d64-4eac-8f34-365b807e996d'}],
+        'dd_updated__id': 1464828462196,
+        'xmlns': 'http://feed.elasticstats.com/schema/nfl/premium/schedule-v2.0.xsd'}
+
     """
 
     season_model = Season
 
     # override the default season_year field
-    field_season_year = 'season'
+    field_season_year = 'year'
 
     def __init__(self):
         super().__init__()
@@ -91,86 +104,9 @@ class GameSchedule(DataDenGameSchedule):
         super().__init__()
 
     def parse(self, obj):
-        # {
-        #     "_id" : "cGFyZW50X2FwaV9faWRzY2hlZHVsZXNlYXNvbl9faWRodHRwOi8vYXBpLnNwb3J0c2RhdGFsbGMub3JnL25mbC10MS8yMDE0L1JFRy9zY2hlZHVsZS54bWxpZDNjNDJmNGVhLWU0YjMtNDQ5ZC04MmQ1LTM2ODUwMTQ0YWRkOQ==",
-        #     "away" : "GB",
-        #     "away_rotation" : "",
-        #     "home" : "SEA",
-        #     "home_rotation" : "",
-        #     "id" : "3c42f4ea-e4b3-449d-82d5-36850144add9",
-        #     "scheduled" : "2014-09-05T00:30:00+00:00",
-        #     "status" : "closed",
-        #     "parent_api__id" : "schedule",
-        #     "dd_updated__id" : NumberLong("1432057846849"),
-        #     "season__id" : "http://api.sportsdatallc.org/nfl-t1/2014/REG/schedule.xml",
-        #     "venue" : "c6b9e5df-c9e4-434c-b3e6-83928f11cbda",
-        #     "weather__list" : {
-        #         "condition" : "Sunny",
-        #         "humidity" : 50,
-        #         "temperature" : 73,
-        #         "wind__list" : {
-        #             "direction" : "WNW",
-        #             "speed" : 11
-        #         }
-        #     },
-        #     "broadcast__list" : {
-        #         "cable" : "",
-        #         "internet" : "",
-        #         "network" : "NBC",
-        #         "satellite" : ""
-        #     },
-        #     "links__list" : [
-        #         {
-        #             "link" : {
-        #                 "href" : "/2014/REG/1/GB/SEA/statistics.xml",
-        #                 "rel" : "statistics",
-        #                 "type" : "application/xml"
-        #             }
-        #         },
-        #         {
-        #             "link" : {
-        #                 "href" : "/2014/REG/1/GB/SEA/summary.xml",
-        #                 "rel" : "summary",
-        #                 "type" : "application/xml"
-        #             }
-        #         },
-        #         {
-        #             "link" : {
-        #                 "href" : "/2014/REG/1/GB/SEA/pbp.xml",
-        #                 "rel" : "pbp",
-        #                 "type" : "application/xml"
-        #             }
-        #         },
-        #         {
-        #             "link" : {
-        #                 "href" : "/2014/REG/1/GB/SEA/boxscore.xml",
-        #                 "rel" : "boxscore",
-        #                 "type" : "application/xml"
-        #             }
-        #         },
-        #         {
-        #             "link" : {
-        #                 "href" : "/2014/REG/1/GB/SEA/roster.xml",
-        #                 "rel" : "roster",
-        #                 "type" : "application/xml"
-        #             }
-        #         },
-        #         {
-        #             "link" : {
-        #                 "href" : "/2014/REG/1/GB/SEA/injuries.xml",
-        #                 "rel" : "injuries",
-        #                 "type" : "application/xml"
-        #             }
-        #         },
-        #         {
-        #             "link" : {
-        #                 "href" : "/2014/REG/1/GB/SEA/depthchart.xml",
-        #                 "rel" : "depthchart",
-        #                 "type" : "application/xml"
-        #             }
-        #         }
-        #     ]
-        # }
+        """
+        parse the object and save the draftboard model
+        """
         super().parse(obj)
         if self.game is None:
             return
@@ -179,8 +115,8 @@ class GameSchedule(DataDenGameSchedule):
 
         # super sets these fields (start is pulled from 'scheduled')
         #   ['srid','home','away','start','status','srid_home','srid_away','title']]
-        weather_info            = o.get('weather__list', {})
-        self.game.weather_json  = json.loads( json.dumps( weather_info ) )
+        weather_info            = o.get('weather', '')
+        self.game.weather_json  = weather_info
         self.game.save()
 
 class PlayerRosters(DataDenPlayerRosters):
@@ -198,48 +134,64 @@ class PlayerRosters(DataDenPlayerRosters):
         #
         # set the fields that arent set, and update the players name (super() grabs invalid fields)
         o = obj.get_o()
-        self.player.first_name      = o.get('name_first',   None)
-        self.player.last_name       = o.get('name_last',    None)
 
-        self.player.draft_pick      = o.get('draft_pick', '')
-        self.player.draft_round     = o.get('draft_round', '')
-        self.player.draft_year      = o.get('draft_year', '')
-        self.player.srid_draft_team = o.get('draft_team', '')
+        # override the first name with preferred first name
+        self.player.first_name = o.get('preferred_name')
+
+        # override the birth date
+        self.player.birth_date      = o.get('birth_date', '')
+
+        # get draft information
+        draft_info = o.get('draft__list', {})
+        self.player.draft_pick      = draft_info.get('number', '')
+        self.player.draft_round     = draft_info.get('round', '')
+        self.player.draft_year      = draft_info.get('year', '')
+        self.player.srid_draft_team = draft_info.get('team', '')
 
         self.player.save()
 
 class PlayerStats(DataDenPlayerStats):
     """
-    nfl stats are somewhat daunting in the sheer amount of individual stats.
-    coupled with that, the way they are broken down in mogno is not super intuitive.
+    parse NFL player stats. player stats are broken up into different objects where
+    each object comes from a list containing the stats for that category.
+    categories are for things like rushing, passing, receiving, etc...
 
-    to sort everything out, the programmer should look at the distinct "parent_list__id"
-    of the nfl.player collection. (in mongo shell:
+    for the complete list of categories, look at the distinct "parent_list__id" field
+    of the player collection:
 
         $> db.player.distinct('parent_list__id')
-        [
-            "players__list",
-            "offense__list",
-            "defense__list",
-            "special_teams__list",
-            "touchdowns__list",
-            "rushing__list",
-            "receiving__list",
-            "punting__list",
-            "punt_return__list",
-            "penalty__list",
-            "passing__list",
-            "kickoffs__list",
-            "kick_return__list",
-            "fumbles__list",
-            "first_downs__list",
-            "field_goal__list",
-            "extra_point__list",
-            "two_point_conversion__list",
-            "blocked_field_goal_return__list",
-            "blocked_punt_return__list",
-            "participants__list"
-        ]
+        ['players__list',
+         'player_records__list',
+         'rushing__list',
+         'receiving__list',
+         'punts__list',
+         'punt_returns__list',
+         'penalties__list',
+         'passing__list',
+         'kickoffs__list',
+         'kick_returns__list',
+         'fumbles__list',
+         'field_goals__list',
+         'kicks__list',
+         'defense__list',
+         'int_returns__list',
+         'misc_returns__list',
+         'conversions__list',
+         'kick__list',
+         'rush__list',
+         'pass__list',
+         'receive__list',
+         'penalty__list',
+         'statistics__list',
+         'field_goal__list',
+         'extra_point__list',
+         'return__list',
+         'fumble__list',
+         'conversion__list',
+         'punt__list',
+         'block__list',
+         'defense_conversion__list',
+         'misc__list']
         $>
 
     now you can query for a category of stats for a player
@@ -247,36 +199,35 @@ class PlayerStats(DataDenPlayerStats):
 
         $> db.player.findOne({'parent_api__id':'stats', 'parent_list__id':'rushing__list'})
             or
-        $> db.player.findOne({'parent_api__id':'stats', 'parent_list__id':'touchdowns__list'})
+        $> db.player.findOne({'parent_api__id':'stats', 'parent_list__id':'passing__list'})
 
-    here is the "rushing__list" from the above query:
+    example from  "passing__list":
 
         {
-            "_id" : "cGFyZW50X2FwaV9faWRzdGF0c2dhbWVfX2lkMjAwNDg5NzgtMGY0My00NzU1LWE2ZGUtZTJkNmIzYjNmY2QydGVhbV9faWRDQVJwYXJlbnRfbGlzdF9faWRydXNoaW5nX19saXN0aWRkYzJiM2UyNy0wYmMxLTRlYTctYjgwZS1mOWVmODFjYWIyYzk=",
-            "att" : 1,
-            "avg" : 5,
-            "fd" : 1,
-            "fd_pct" : 100,
-            "fum" : 0,
-            "id" : "dc2b3e27-0bc1-4ea7-b80e-f9ef81cab2c9",
-            "jersey" : 82,
-            "lg" : 5,
-            "name" : "Jerricho Cotchery",
-            "position" : "WR",
-            "rz_att" : 0,
-            "sfty" : 0,
-            "td" : 0,
-            "yds" : 5,
-            "yds_10_pls" : 0,
-            "yds_20_pls" : 0,
-            "yds_30_pls" : 0,
-            "yds_40_pls" : 0,
-            "yds_50_pls" : 0,
-            "parent_api__id" : "stats",
-            "dd_updated__id" : NumberLong("1432057939467"),
-            "game__id" : "20048978-0f43-4755-a6de-e2d6b3b3fcd2",
-            "team__id" : "CAR",
-            "parent_list__id" : "rushing__list"
+            'air_yards': 198.0,
+             'attempts': 45.0,
+             'avg_yards': 5.7,
+             'cmp_pct': 57.8,
+             'completions': 26.0,
+             'dd_updated__id': 1464829036635,
+             'game__id': '554aac47-088a-42fc-9888-366c3cec5968',
+             'id': 'aae6d92e-5f28-43ee-b0dc-522e80e99f76',
+             'interceptions': 1.0,
+             'jersey': 18.0,
+             'longest': 22.0,
+             'longest_touchdown': 19.0,
+             'name': 'Peyton Manning',
+             'parent_api__id': 'stats',
+             'parent_list__id': 'passing__list',
+             'position': 'QB',
+             'rating': 86.9,
+             'redzone_attempts': 8.0,
+             'reference': '00-0010346',
+             'sack_yards': 18.0,
+             'sacks': 3.0,
+             'team__id': 'ce92bd47-93d5-4fe9-ada4-0fc681e6caa0',
+             'touchdowns': 3.0,
+             'yards': 256.0}
         }
 
     note that a player can be, and probably will be if they accrued stats,
@@ -287,7 +238,42 @@ class PlayerStats(DataDenPlayerStats):
          11
         $>
 
-    ***** The main point: Make sure to update stats in all categories for each player!!
+    ###
+    # for 2015 stats:
+    #
+    # players__list 0
+    # player_records__list 0
+    # rushing__list 2929
+    # receiving__list 5965
+    # punts__list 703
+    # punt_returns__list 875
+    # penalties__list 3998
+    # passing__list 980
+    # kickoffs__list 741
+    # kick_returns__list 834
+    # fumbles__list 1763
+    # field_goals__list 584
+    # kicks__list 613
+    # defense__list 14518
+    # int_returns__list 533
+    # misc_returns__list 24
+    # conversions__list 261
+    # kick__list 0
+    # rush__list 0
+    # pass__list 0
+    # receive__list 0
+    # penalty__list 0
+    # statistics__list 0
+    # field_goal__list 0
+    # extra_point__list 0
+    # return__list 0
+    # fumble__list 0
+    # conversion__list 0
+    # punt__list 0
+    # block__list 0
+    # defense_conversion__list 0
+# misc__list 0
+    ###
     """
 
     game_model          = Game
@@ -306,54 +292,38 @@ class PlayerStats(DataDenPlayerStats):
         # if self.ps is None:
         o = obj.get_o()
 
-        # nfl only has 'position' -- there is no concept of 'primary_position', so use 'position'
         self.ps.position            = self.p.position # copy the dst Player's position in here
         self.ps.primary_position    = self.p.position # copy the dst Player's position in here
 
         parent_list = o.get('parent_list__id', None)
 
-        if parent_list == "touchdowns__list":
-            pass # TODO
-        elif parent_list == "rushing__list":
-            self.ps.rush_td     = o.get('td',   0)
-            self.ps.rush_yds    = o.get('yds',  0)
+        if parent_list == "passing__list":
+            self.ps.pass_td     = o.get('touchdowns',       0)
+            self.ps.pass_yds    = o.get('yards',            0)
+            self.ps.pass_int    = o.get('interceptions',    0)
+        if parent_list == "rushing__list":
+            self.ps.rush_td     = o.get('touchdowns',   0)
+            self.ps.rush_yds    = o.get('yards',        0)
         elif parent_list == "receiving__list":
-            self.ps.rec_td      = o.get('td',   0)
-            self.ps.rec_yds     = o.get('yds',  0)
-            self.ps.rec_rec     = o.get('rec',  0)
-        elif parent_list == "punting__list":
-            pass # TODO
-        elif parent_list == "punt_return__list":
-            pass # TODO
-        elif parent_list == "penalty__list":
-            pass # TODO
-        elif parent_list == "passing__list":
-            self.ps.pass_td     = o.get('td',   0)
-            self.ps.pass_yds    = o.get('yds',  0)
-            self.ps.pass_int    = o.get('int',  0)
-        elif parent_list == "kickoffs__list":
-            pass # TODO
-        elif parent_list == "kick_return__list":
-            pass # TODO
+            self.ps.rec_td      = o.get('touchdowns',   0)
+            self.ps.rec_yds     = o.get('yards',        0)
+            self.ps.rec_rec     = o.get('receptions',   0)
+        elif parent_list == "punt_returns__list":
+            self.ps.ret_punt_td = o.get('touchdowns',   0)
+        elif parent_list == "kick_returns__list":
+            self.ps.ret_kick_td = o.get('touchdowns',   0)
         elif parent_list == "fumbles__list":
-            self.ps.off_fum_lost    = o.get('lost',         0)
-            self.ps.off_fum_rec_td  = o.get('own_rec_td',   0)
-        elif parent_list == "first_downs__list":
-            pass # TODO
-        elif parent_list == "field_goal__list":
-            pass # TODO
-        elif parent_list == "extra_point__list":
-            pass # TODO
-        elif parent_list == "two_point_conversion__list":
-            self.ps.two_pt_conv     = o.get('pass',0) + o.get('rec',0) + o.get('rush',0)
-        elif parent_list == "blocked_field_goal_return__list":
-            pass # TODO
-        elif parent_list == "blocked_punt_return__list":
-            pass # TODO
-        elif parent_list == 'field_goal_return__list':
-            pass # TODO
-        elif parent_list == 'defense__list':
-            pass # we dont currently care about defense__list stats
+            self.ps.off_fum_lost    = o.get('lost_fumbles',     0)
+            self.ps.off_fum_rec_td  = o.get('own_rec_tds',      0)
+        elif parent_list == "conversions__list":
+            # {
+            #   'jersey': 11.0, 'category': 'receive', 'dd_updated__id': 1464828941114,
+            #   'id': 'f9036897-99d5-4d9a-8965-0c7e0f9e43bd', 'team__id': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
+            #   'successes': 1.0, 'reference': '00-0030460', 'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c',
+            #   'attempts': 1.0, 'position': 'WR', 'parent_api__id': 'stats',
+            #   'name': 'Markus Wheaton', 'parent_list__id': 'conversions__list'
+            # }
+            self.ps.two_pt_conv = o.get('successes',    0)
         else:
             # print( str(o) )
             # print( 'obj parent_list__id was not found !')
@@ -361,187 +331,109 @@ class PlayerStats(DataDenPlayerStats):
 
         self.ps.save()
 
-class DstStats(DataDenPlayerStats):
+class GameBoxscores(AbstractDataDenParseable):
     """
-    Similar to PlayerStats, also inherits from DataDenPlayerStats!
+    example data for a GameBoxscore:
+        {
+            'attendance': 76512.0,
+            'clock': '00:00',
+            'dd_updated__id': 1464834044370,
+            'entry_mode': 'INGEST',
+            'id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+            'last_event__list': {'event': 'c68447b0-425f-4e7b-8200-581ca222c03d'},
+            'number': 8.0,
+            'parent_api__id': 'boxscores',
+            'quarter': 4.0,
+            'reference': 56510.0,
+            'scheduled': '2015-09-13T17:02:41+00:00',
+            'scoring__list': [{'quarter': 'fd31368b-a159-4f56-a022-afc691e34755'},
+              {'quarter': '17ee8c4c-3e1c-4dbb-83eb-f54fabe2a117'},
+              {'quarter': 'da1c72aa-a5eb-44db-a23f-f9e2284d7968'},
+              {'quarter': '99063002-e5ee-4239-b686-f5aaa192e5d8'}],
+            'scoring_drives__list': [{'drive': 'a956d9cb-d8ab-408c-91fc-442f06e338ff'},
+              {'drive': '37c135a1-9d50-4da7-a975-f93a5bc2bfb5'},
+              {'drive': 'd7474f02-e785-4638-b604-1065174d4a67'},
+              {'drive': '3b6e7850-bfa5-4ac8-90f4-9bd14a5a12c9'}],
+            'situation__list': {'clock': '00:00',
+              'down': 2.0,
+              'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+              'possession': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+              'yfd': 11.0},
+            'status': 'closed',
+            'summary__list': {'away': '4809ecb0-abd3-451d-9c4a-92a90b83ca06',
+              'home': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+              'season': '46aa2ca3-c2fc-455d-8256-1f7893a87113',
+              'venue': '7c11bb2d-4a53-4842-b842-0f1c63ed78e9',
+              'week': '581edacd-e641-43d6-9e69-76b29a306643'},
+            'utc_offset': -5.0,
+            'weather': 'Partly Cloudy Temp: 69 F, Humidity: 58%, Wind: NW 10 mph'
+        }
     """
-
-    game_model          = Game
-    player_model        = Player
-    player_stats_model  = sports.nfl.models.PlayerStats
-
-    def __init__(self):
-        super().__init__()
-
-    def parse(self, obj):
-        super().parse(obj)   # sets up self.ps  (the PlayerStats instance - may be None)
-
-        if self.p is None or self.ps is None or self.g is None:
-            return
-
-        # if self.ps is None:
-        o = obj.get_o()
-
-        defense_list    = o.get('defense__list', {})
-
-        self.ps.position            = self.p.position # copy the dst Player's position in here
-        self.ps.primary_position    = self.p.position # copy the dst Player's position in here
-
-        self.ps.sack    = defense_list.get('sack',      0)
-        self.ps.ints    = defense_list.get('int',       0)
-        self.ps.fum_rec = defense_list.get('fum_rec',   0)
-
-        self.ps.sfty    = defense_list.get('sfty',      0)
-        self.ps.blk_kick = defense_list.get('bk',       0)
-
-        # defensive touchdowns can happen in a handful of ways:
-        touchdowns_list             = o.get('touchdowns__list', {})
-        blocked_punt_return_list    = o.get('blocked_punt_return__list', {})
-        field_goal_return_list      = o.get('field_goal_return__list',  {})
-        blocked_fg_return_list      = o.get('blocked_field_goal_return__list', {})
-        passing_list                = o.get('passing__list', {})
-        fumble_list                 = o.get('fumble__list', {})
-        rushing_list                = o.get('rushing__list', {})
-        punting_list                = o.get('punting__list', {})
-
-        self.ps.ret_kick_td     = touchdowns_list.get('kick_ret', 0)
-        self.ps.ret_punt_td     = touchdowns_list.get('punt_ret', 0) # will NOT include BLOCKED punt return tds!
-        self.ps.ret_int_td      = touchdowns_list.get('int',      0)
-        self.ps.ret_fum_td      = touchdowns_list.get('fum_ret',  0)
-        self.ps.ret_blk_punt    = blocked_punt_return_list.get('td', 0)
-        self.ps.ret_fg_td       = field_goal_return_list.get('td', 0)
-        self.ps.ret_blk_fg_td   = blocked_fg_return_list.get('td', 0)
-
-        self.ps.int_td_against  = passing_list.get('int_td', 0)
-        self.ps.fum_td_against  = fumble_list.get('opp_rec_td', 0)
-
-        #
-        # get the safeties the offense has committed, because it wont count against DST points allowed!
-        self.off_pass_sfty      = passing_list.get('sfty', 0)     # this team's OFFENSE got safetied
-        self.off_rush_sfty      = rushing_list.get('sfty', 0)
-        self.off_punt_sfty      = punting_list.get('sfty', 0)
-
-        self.ps.save()
-
-class GameBoxscores(DataDenGameBoxscores):
-
     gameboxscore_model  = GameBoxscore
     team_model          = Team
 
     def __init__(self):
         super().__init__()
 
-        self.HOME       = 'home' # override parent field name for HOME
-        self.AWAY       = 'away' # override parent field name for AWAY
-
     def parse(self, obj):
         """
         :param obj:
         :return:
         """
 
-        # "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDIwMDQ4OTc4LTBmNDMtNDc1NS1hNmRlLWUyZDZiM2IzZmNkMg==",
-        # "away" : "ARI",
-        #X "clock" : ":00",
-        # "completed" : "2015-01-04T00:54:36+00:00",
-        # "home" : "CAR",
-        # "id" : "20048978-0f43-4755-a6de-e2d6b3b3fcd2",
-        # "quarter" : 4,
-        # "scheduled" : "2015-01-03T21:20:00+00:00",
-        #X "status" : "closed",
-        # "xmlns" : "http://feed.elasticstats.com/schema/nfl/boxscore-v1.0.xsd",
-        # "parent_api__id" : "boxscores",
-        # "dd_updated__id" : NumberLong("1432078858338"),
-        # "teams" : [
-        #     {
-        #         "team" : "CAR"
-        #     },
-        #     {
-        #         "team" : "ARI"
-        #     }
-        # ],
-        super().parse( obj )
+        # #
+        # ###############################################################
+        # # nfl official data game boxscores must setup:
+        # #   self.original_obj, self.o, self.srid_finder
+        # ###############################################################
+        # self.original_obj = obj
+        # if self.wrapped:
+        #     self.o  = obj.get_o()
+        # else:
+        #     self.o  = obj
+        # # construct an SridFinder with the dictionary data
+        # self.srid_finder = SridFinder(self.o)
+        # ###############################################################
+        # ###############################################################
+        super().parse(obj, target=None)
+        o = self.o
 
-        o = obj.get_o()
-        self.boxscore.clock     = o.get('clock',    '')
-        self.boxscore.quarter   = o.get('quarter',  '')
-        self.completed          = o.get('completed', '')
+        summary_list = o.get('summary__list', {})
 
-        self.boxscore.save()
+        srid_game   = o.get('id', None)
+        srid_home   = summary_list.get('home', None)
+        srid_away   = summary_list.get('away', None)
 
-class TeamBoxscores(DataDenTeamBoxscores):
-
-    gameboxscore_model  = GameBoxscore
-
-    def __init__(self):
-        super().__init__()
-
-    def parse(self, obj):
-        """
-        :param obj:
-        :return:
-        """
-        # "_id" : "cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZDIwMDQ4OTc4LTBmNDMtNDc1NS1hNmRlLWUyZDZiM2IzZmNkMmlkQ0FS",
-        # "id" : "CAR",
-        # "market" : "Carolina",
-        # "name" : "Panthers",
-        # "remaining_challenges" : 2,
-        # "remaining_timeouts" : 2,
-        # "parent_api__id" : "boxscores",
-        # "dd_updated__id" : NumberLong("1432078858338"),
-        # "game__id" : "20048978-0f43-4755-a6de-e2d6b3b3fcd2",
-        # "scoring__list" : {
-        #     "points" : 27,
-        #     "quarters" : [
-        #         {
-        #             "quarter" : {
-        #                 "number" : 1,
-        #                 "points" : 10
-        #             }
-        #         },
-        #         {
-        #             "quarter" : {
-        #                 "number" : 2,
-        #                 "points" : 3
-        #             }
-        #         },
-        #         {
-        #             "quarter" : {
-        #                 "number" : 3,
-        #                 "points" : 14
-        #             }
-        #         },
-        #         {
-        #             "quarter" : {
-        #                 "number" : 4,
-        #                 "points" : 0
-        #             }
-        #         }
-        #     ]
-        # }
-
-        super().parse( obj )
-
-        if self.boxscore is None:
+        try:
+            h = self.team_model.objects.get( srid=srid_home )
+        except self.team_model.DoesNotExist:
+            #print( str(o) )
+            #print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
             return
 
-        o = obj.get_o()
-
-        srid_team           = o.get('id', None)
-        scoring_list        = o.get('scoring__list', {})
-        points              = scoring_list.get('points', 0)
-        scoring_list_json   = json.loads( json.dumps( scoring_list ) )
-
-        if srid_team == self.boxscore.srid_home:
-            self.boxscore.home_score = points
-            self.boxscore.home_scoring_json = scoring_list_json
-        elif srid_team == self.boxscore.srid_away:
-            self.boxscore.away_score = points
-            self.boxscore.away_scoring_json = scoring_list_json
-        else:
-            print( str(o) )
-            print( 'TeamBoxscores srid_team[%s] did not match either home or away team!' % srid_team)
+        try:
+            a = self.team_model.objects.get( srid=srid_away )
+        except self.team_model.DoesNotExist:
+            #print( str(o) )
+            #print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
             return
+
+        try:
+            self.boxscore = self.gameboxscore_model.objects.get(srid_game=srid_game)
+        except self.gameboxscore_model.DoesNotExist:
+            self.boxscore = self.gameboxscore_model()
+            self.boxscore.srid_game = srid_game
+
+        self.boxscore.srid_home     = srid_home
+        self.boxscore.home          = h
+        self.boxscore.away          = a
+        self.boxscore.srid_away     = srid_away
+
+        self.boxscore.quarter       = o.get('quarter', 0)
+        self.boxscore.clock         = o.get('clock', '' )
+        self.boxscore.coverage      = o.get('coverage', '')    # deprecated, but it will default to empty string
+        self.boxscore.status        = o.get('status', '')
+        self.boxscore.title         = o.get('title', '')
 
         self.boxscore.save()
 
@@ -560,31 +452,6 @@ class GamePbp(DataDenPbpDescription):
 
         if self.game is None:
             return
-
-        # self.game & self.pbp are setup by super().parse()
-        #
-        # "quarters" : [
-		# {
-		# 	"quarter" : {
-		# 		"number" : 1,
-		# 		"event__list" : {
-		# 			"clock" : "15:00",
-		# 			"sequence" : 1,
-		# 			"type" : "cointoss",
-		# 			"updated" : "2015-01-03T21:36:00+00:00",
-		# 			"winner" : "ARI",
-		# 			"summary" : "ARI wins coin toss, elects to receive."
-		# 		},
-		# 		"drives" : [
-		# 			{
-		# 				"drive" : {
-		# 					"clock" : "15:00",
-		# 					"team" : "ARI",
-		# 					"plays" : [
-		# 						{
-		# 							"play" : "5974dc8d-692e-4f26-b6ff-8341d8a02a31"
-		# 						},
-		# 						{ play }, ..., { play },
 
         #print('srid game', self.o.get('id'))
         quarters = self.o.get('quarters', {})
@@ -689,10 +556,10 @@ class Injury(DataDenInjury):
 
         #
         # extract the information from self.o
-        self.injury.srid        = self.o.get('id',          '') # not set by parent
+        self.injury.srid                = self.o.get('id',          '') # not set by parent
         self.injury.practice_status     = self.o.get('practice_status', '')
-        self.injury.status      = self.o.get('game_status', '')
-        self.injury.description = self.o.get('description', '')
+        self.injury.status              = self.o.get('game_status', '')
+        self.injury.description         = self.o.get('description', '')
         self.injury.save()
 
         #
@@ -701,6 +568,17 @@ class Injury(DataDenInjury):
         self.player.save()
 
 class DataDenNfl(AbstractDataDenParser):
+
+    mongo_db_for_sport = 'nflo'
+
+    triggers = [
+        #(mongo_db_for_sport,'team','hierarchy'),
+        #(mongo_db_for_sport,'season','schedule'),
+        #(mongo_db_for_sport,'game','schedule'),
+        (mongo_db_for_sport,'player','rosters'),
+        #(mongo_db_for_sport,'game','boxscores'),
+        #(mongo_db_for_sport,'player','stats'),
+    ]
 
     def __init__(self):
         self.game_model = Game # unused
@@ -718,93 +596,42 @@ class DataDenNfl(AbstractDataDenParser):
         # the Namespace-ParentApi combination
 
         #
-        # nfl.game
-        if self.target == ('nfl.season','schedule'): SeasonSchedule().parse( obj )
-        elif self.target == ('nfl.game','schedule'): GameSchedule().parse( obj )
-        elif self.target == ('nfl.game','boxscores'):
+        #
+        if self.target == (self.mongo_db_for_sport+'.season','schedule'):
+            SeasonSchedule().parse( obj )
+
+        #
+        #
+        elif self.target == (self.mongo_db_for_sport+'.game','schedule'):
+            GameSchedule().parse( obj )
+
+        #
+        #
+        elif self.target == (self.mongo_db_for_sport+'.game','boxscores'):
             GameBoxscores().parse( obj )
             push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
 
-        elif self.target == ('nfl.game','pbp'):
-            GamePbp().parse( obj )
-            push.classes.PbpDataDenPush( push.classes.PUSHER_NFL_PBP, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+        #
+        #
+        elif self.target == (self.mongo_db_for_sport+'.team','hierarchy'):
+            TeamHierarchy().parse( obj )
 
         #
-        # nfl.play (events are parsed in the nfl.game | pbp feed, but the PLAYS are parsed here:
-        elif self.target == ('nfl.play','pbp'):
-            #
-            # this obj can be linked with PlayerStats.
-            play_pbp = PlayPbp()
-            play_pbp.parse( obj )
-            play_pbp.send()
-            #push.classes.PbpDataDenPush( push.classes.PUSHER_NFL_PBP, 'play' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
-
         #
-        # nfl.team
-        elif self.target == ('nfl.team','hierarchy'): TeamHierarchy().parse( obj )
-        elif self.target == ('nfl.team','stats'): DstStats().parse( obj )
-        elif self.target == ('nfl.team','boxscores'):
-            TeamBoxscores().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'team' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
-
-        #
-        # nfl.player
-        elif self.target == ('nfl.player','rosters'): PlayerRosters().parse( obj )
-        elif self.target == ('nfl.player','stats'): PlayerStats().parse( obj )
-        # #
-        # # nfl.injury
-        # elif self.target == ('nfl.injury','gameroster'): Injury().parse( obj )
-        #
-        # default case, print this message for now
-
-        #
-        # nfl.content - the master object with list of ids to the content items
-        elif self.target == ('nfl.content', 'content'):
-            #
-            # get an instance of TsxContentParser( sport ) to parse
-            # the Sports Xchange content
-            TsxContentParser(self.sport).parse( obj )
-
-        else: self.unimplemented( self.target[0], self.target[1] )
-
-    def cleanup_injuries(self):
-        """
-
-        :return:
-        """
-        #
-        # get an instance of DataDen - ie: a connection to mongo db with all the stats
-        dd = DataDen()
-
-        #
-        # injury process:
-        # 1) get all the updates (ie: get the most recent dd_updated__id, and get all objects with that value)
-        injury_objects = list( dd.find_recent('nfl','injury','gameroster') )
-        print(str(len(injury_objects)), 'recent injury updates')
-
-        # 2) get all the existing players with injuries
-        # players = list( Player.objects.filter( injury_type__isnull=False,
-        #                                        injury_id__isnull=False ) )
-        all_players = list( Player.objects.all() )
-
-        # 3) for each updated injury, remove the player from the all-players list
-        for inj in injury_objects:
-            #
-            # wrapped=False just means the obj isnt wrapped by the oplogwrapper
-            i = Injury(wrapped=False)
-            i.parse( inj )
+        elif self.target == (self.mongo_db_for_sport+'.player','rosters'):
             try:
-                all_players.remove( i.get_player() )
-            except ValueError:
-                pass # thrown if player not in the list.
+                PlayerRosters().parse( obj )
+            except PlayerRosters.PositionDoesNotExist as e:
+                print(e)
 
-        # 5) with the leftover existing players,
-        #    remove their injury since theres no current injury for them
-        ctr_removed = 0
-        for player in all_players:
-            if player.remove_injury():
-                ctr_removed += 1
-        print(str(ctr_removed), 'leftover/stale injuries removed')
+        #
+        #
+        elif self.target == (self.mongo_db_for_sport+'.player','stats'):
+            PlayerStats().parse( obj )
+
+        #
+        #
+        else: self.unimplemented( self.target[0], self.target[1] )
 
     @atomic
     def cleanup_rosters(self):
@@ -817,3 +644,4 @@ class DataDenNfl(AbstractDataDenParser):
                                 sports.nfl.models.Team,             # model class for the Team
                                 sports.nfl.models.Player,           # model class for the Player
                                 parent_api='rosters')               # parent api where the roster players found
+

@@ -89,10 +89,16 @@ class AbstractDataDenParser(object):
     """
     for parsing each individual sport, which will have some differences
     """
+
+    triggers = None # set by child classes
+
     def __init__(self):
         self.ns                 = None
         self.parent_api         = None
         self.o                  = None
+
+    def get_triggers(self):
+        return self.triggers
 
     def add_pbp(self, obj):
         pbp_cache = PlayByPlayCache( self.ns.split('.')[0] ) # the self.ns is "sport.collection"
@@ -111,6 +117,9 @@ class AbstractDataDenParser(object):
         print('UNIMPLEMENTED <<< %s | %s >>> ... generally this means DataDen<Sport> .parse() just needs an addition to the switch statement.' % (ns,parent_api))
 
     def parse(self, obj, verbose=False):
+        ### debug, remove this print:
+        print('obj:', str(obj))
+
         self.ns         = obj.get_ns()
         self.parent_api = obj.get_parent_api()
         self.target     = (self.ns, self.parent_api)
@@ -197,15 +206,13 @@ class AbstractDataDenParseable(object):
         the mongo object to self.o.
         """
         self.original_obj = obj
-        #print( self.name, str(obj)[:100], 'target='+str(target) )
         if self.wrapped:
             self.o  = obj.get_o()
         else:
             self.o  = obj
 
         #
-        # constrcut an SridFinder with the dictionary data
-        #print('self.o -- ', str(self.o))        # TODO remove print
+        # construct an SridFinder with the dictionary data
         self.srid_finder = SridFinder(self.o)
 
     def get_site_sport(self, obj):
@@ -219,6 +226,10 @@ class AbstractDataDenParseable(object):
         #
         # get the sport name (ie: the db from where this obj came)
         sport_name = obj.get_ns().split('.')[0]
+        if sport_name == 'nflo':
+            sport_name = 'nfl'
+        elif sport_name == 'nhlo':
+            sport_name = 'nhl'
 
         #
         # if this excepts, i dont want to catch the exception
@@ -488,6 +499,8 @@ class DataDenGameSchedule(AbstractDataDenParseable):
 
 class DataDenPlayerRosters(AbstractDataDenParseable):
 
+    class PositionDoesNotExist(Exception): pass
+
     team_model      = None
     player_model    = None
 
@@ -527,9 +540,8 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
 
         position_name       = o.get(self.position_key, None) # nfl will want to override this
         if position_name is None:
-            raise Exception('"%s" was None! cannot create player if their position is invalid!'%self.position_key)
-
-        #primary_position    = o.get('primary_position')
+            err_msg = '"%s" was None! cannot create player if their position is invalid!' % self.position_key
+            raise self.PositionDoesNotExist(err_msg)
 
         status              = o.get('status')   # roster status, ie: basically whether they are on it
 
