@@ -168,7 +168,6 @@ app.conf.update(
             'args'      : ('nfl',),
         },
 
-
         #
         # update injury information for the sports
         'nba_injuries' : {

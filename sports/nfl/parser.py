@@ -645,3 +645,5 @@ class DataDenNfl(AbstractDataDenParser):
                                 sports.nfl.models.Player,           # model class for the Player
                                 parent_api='rosters')               # parent api where the roster players found
 
+    def cleanup_injuries(self):
+        pass # TODO for NFL Official Feed

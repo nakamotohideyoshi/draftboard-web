@@ -300,6 +300,7 @@ INSTALLED_APPS = (
     'contest.refund',
     'contest.schedule',
     'scoring',
+    'scoring.baseball',     # generate stat-strings
     'roster',
     'rakepaid',
     'test',

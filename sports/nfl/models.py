@@ -100,8 +100,11 @@ class Player( sports.models.Player ):
 
     #primary_position = models.CharField(max_length=64, null=False, default='')
 
+    # A01 – Active
+    # NWT – Not with team
+    # P01 – Practice squad
     status = models.CharField(max_length=64, null=False, default='',
-                help_text='roster status - ie: "ACT" means they are ON the roster. Not particularly active as in not-injured!')
+                help_text='roster status - ie: "A01" means they are ON the roster. Not particularly active as in not-injured!')
 
     draft_pick = models.CharField(max_length=64, null=False, default='')
     draft_round = models.CharField(max_length=64, null=False, default='')
