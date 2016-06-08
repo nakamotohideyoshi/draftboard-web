@@ -164,12 +164,15 @@ category: Tables
 
   th {
     color: #fff;
-    cursor: pointer;
     font-size: 10px;
     font-weight: 400;
     padding: 5px 10px;
     text-transform: uppercase;
     text-align: left;
+
+    &.table__sortable {
+      cursor: pointer;
+    }
 
     &.active {
       color: #fff;
