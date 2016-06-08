@@ -242,7 +242,7 @@ class Trigger(object):
         else:
             self.last_ts = self.get_last_ts() # get most recent ts, (by default, dont reparse the world)
 
-        print('last_ts():', str(self.last_ts))
+        #print('last_ts():', str(self.last_ts))
         self.timer.start()
         self.reload_triggers() # do this pre query() being called
 
@@ -313,11 +313,11 @@ class Trigger(object):
 
         :return:
         """
-        self.timer.start()
+        #self.timer.start()
         cur = self.oplog.find().sort([('$natural', -1)])
         for obj in cur:
             self.last_ts = OpLogObj( obj ).get_ts()
-            self.timer.stop(msg='get_last_ts()')
+            #self.timer.stop(msg='get_last_ts()')
             return self.last_ts
 
     def query(self):
