@@ -7,6 +7,9 @@ from django.shortcuts import render
 from django.views.generic import TemplateView, View
 from sports.forms import PlayerCsvForm
 import sports.classes
+from scoring.classes import (
+    MlbSalaryScoreSystem,
+)
 from sports.serializers import FantasyPointsSerializer
 from sports.nba.serializers import (
     InjurySerializer,
@@ -251,11 +254,12 @@ class FantasyPointsHistoryAPIView(generics.ListAPIView):
 class PlayerHistoryAPIView(generics.ListAPIView):
     """
     averages for the primary scoring categories
-
-
     """
+
     permission_classes      = (IsAuthenticated,)
-    sport = None
+    sport                   = None
+    target_single_player_id = None
+
     def dictfetchall(self, cursor):
         """Return all rows from a cursor as a dict"""
         columns = [col[0] for col in cursor.description]
@@ -291,13 +295,18 @@ class PlayerHistoryAPIView(generics.ListAPIView):
         player_stats_class_list = site_sport_manager.get_player_stats_class( site_sport )
         return player_stats_class_list
 
+    def get_target_player_query_part(self):
+        if self.target_single_player_id is not None:
+            return ' and player_id = %s' % str(self.target_single_player_id)
+        return ''
+
     def get_queryset(self):
         """
         from django.db import connections
         cursor = connections['my_db_alias'].cursor()
         """
         sport = self.kwargs['sport']
-
+        self.target_single_player_id = self.kwargs.get('player')
         n_games_history = self.kwargs['n_games_history']
         #print( str(n_games_history), 'games for', sport )
         site_sport_manager = sports.classes.SiteSportManager()
@@ -359,7 +368,7 @@ class PlayerHistoryAPIView(generics.ListAPIView):
                 select_str += ', array_agg({0}) as {0}'.format(field)
             # inner select
             # (select all_player_stats.*, nba_game.home_id, nba_game.away_id, nba_game.start from (select * from (select *, row_number() over (partition by player_id order by created) as rn from nba_playerstats) as nba_playerstats where rn <=5) as all_player_stats join nba_game on nba_game.srid = all_player_stats.srid_game) as player_stats group by player_id
-            final_select_str = "{0} from (select all_player_stats.*, {1}.home_id, {1}.away_id, {1}.srid_home, {1}.srid_away, {1}.start from (select * from (select *, row_number() over (partition by player_id order by created DESC) as rn from {2}) as {2} where rn <= {3}) as all_player_stats join {1} on {1}.srid = all_player_stats.srid_game) as player_stats group by player_id".format(select_str, game_table_name, playerstats_table_name, str(n_games_history))
+            final_select_str = "{0} from (select all_player_stats.*, {1}.home_id, {1}.away_id, {1}.srid_home, {1}.srid_away, {1}.start from (select * from (select *, row_number() over (partition by player_id order by created DESC) as rn from {2}) as {2} where rn <= {3}{4}) as all_player_stats join {1} on {1}.srid = all_player_stats.srid_game) as player_stats group by player_id".format(select_str, game_table_name, playerstats_table_name, str(n_games_history), self.get_target_player_query_part())
 
             # the final query string
             #query_str = "{4} (select {0} from (select * from (select *, row_number() over (partition by player_id order by created) as rn from {1}) as {1} where rn <={2}) as agg group by player_id) as player_stats on {3}.srid = ANY(player_stats.games)".format(select_columns_str, database_table_name, str(n_games_history), game_table_name, outter_select_str)
@@ -404,6 +413,63 @@ class PlayerHistoryMlbPitcherAPIView(PlayerHistoryAPIView):
         override parent method to simply return the specific PlayerStats model for this view
         """
         return [PlayerStatsPitcher]
+
+class PlayerHistoryMlbAPIView(PlayerHistoryAPIView):
+
+    score_system_class = MlbSalaryScoreSystem
+
+    def get_mlb_player(self):
+        """
+        :return: sports.mlb.models.Player instance for the player id , if found
+        """
+        sport = self.kwargs.get('sport')
+        player_id = self.kwargs.get('player')
+        site_sport_manager = sports.classes.SiteSportManager()
+        site_sport = site_sport_manager.get_site_sport(sport)
+        player_class = site_sport_manager.get_player_class(site_sport)
+        try:
+            player = player_class.objects.get(pk=player_id)
+        except player_class.DoesNotExist:
+            err_msg = 'PlayerHistoryMlbAPIView - player with pk %s DoesNotExist' % str(player_id)
+            raise Exception(err_msg)
+        return player
+
+    def get_serializer_class(self):
+        """
+        override for having to set the self.serializer_class
+        """
+        try:
+            sport = self.kwargs['sport']
+        except KeyError:
+            sport = 'mlb' # this is simply a default for teh documentation tools
+
+        player = self.get_mlb_player()
+
+        # its going to be either PlayerHistoryPitcherSerializer, or PlayerHistoryHitterSerializer
+        player_stats_class_list_of_one = self.get_player_stats_class(sport=sport)
+        player_stats_class = player_stats_class_list_of_one[0]
+
+        if issubclass(player_stats_class, PlayerStatsPitcher):
+            return PlayerHistoryPitcherSerializer
+        #
+        # default to returning hitter serializer
+        return PlayerHistoryHitterSerializer
+
+    def get_player_stats_class(self, sport=None):
+        """
+        any sports that provide more than 1 possible playerstats model
+        should override this view and override this method
+        to provide views that return the history stats for a single playerstats object.
+        as an exmaple, mlb does this for hitter history, and pitcher history
+
+        :param sport:
+        :return:
+        """
+        player = self.get_mlb_player()
+        mlb_scoring_system = self.score_system_class()
+        stats_class = mlb_scoring_system.get_primary_player_stats_class_for_player(player)
+        print('PlayerHistoryMlbAPIView primary player stats class:', str(stats_class))
+        return [stats_class]
 
 class TsxPlayerNewsAPIView(generics.ListAPIView):
     """
