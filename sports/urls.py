@@ -17,6 +17,7 @@ from sports.views import (
     ScheduleGameBoxscoresView,
     PlayerHistoryMlbHitterAPIView,
     PlayerHistoryMlbPitcherAPIView,
+    PlayerHistoryMlbAPIView,
     PbpDebugAPIView,
 )
 
@@ -62,23 +63,26 @@ urlpatterns = patterns( '',
     (r'^fp-history/mlb/$', FantasyPointsHistoryAPIView.as_view(), {"sport": "mlb"}),
 
 
-    #
-    # get the player season averages, as well as a 5-game log
+    # single player
+    (r'^player/history/nba/(?P<n_games_history>[0-9]+)/(?P<player>[0-9]+)/$', PlayerHistoryAPIView.as_view(), {"sport": "nba"}),
+    # all players
     (r'^player/history/nba/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view(), {"sport": "nba"}),
+
+    # single player
+    (r'^player/history/nfl/(?P<n_games_history>[0-9]+)/(?P<player>[0-9]+)/$', PlayerHistoryAPIView.as_view(), {"sport": "nfl"}),
+    # all players
     (r'^player/history/nfl/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view(), {"sport": "nfl"}),
+
+    # single player
+    (r'^player/history/nhl/(?P<n_games_history>[0-9]+)/(?P<player>[0-9]+)/$', PlayerHistoryAPIView.as_view(), {"sport": "nhl"}),
+    # all players
     (r'^player/history/nhl/(?P<n_games_history>[0-9]+)/$', PlayerHistoryAPIView.as_view(), {"sport": "nhl"}),
-    # mlb is split up for hitters and pitchers
+
+    # single player - if the player id corresponds to a pitcher returns pitcher stats, else returns hitter stats
+    (r'^player/history/mlb/(?P<n_games_history>[0-9]+)/(?P<player>[0-9]+)/$', PlayerHistoryMlbAPIView.as_view(), {"sport": "mlb"}),
+    # all players - one call for hitters, one for pitchers...
     (r'^player/history/mlb/hitter/(?P<n_games_history>[0-9]+)/$', PlayerHistoryMlbHitterAPIView.as_view(),  {'sport': 'mlb'}),
     (r'^player/history/mlb/pitcher/(?P<n_games_history>[0-9]+)/$', PlayerHistoryMlbPitcherAPIView.as_view(),  {'sport': 'mlb'}),
-
-    # #
-    # # get news content for the sport, for all the players
-    # (r'^player-news/(?P<sport>[a-z]+)/$', TsxPlayerNewsAPIView.as_view()),
-
-    # #
-    # # get the player-news/{sport}/ however do so for a limited range per player
-    # # TsxPlayerItemsAPIView
-    # (r'^player-items/(?P<sport>[a-z]+)/$', TsxPlayerItemsAPIView.as_view()),
 
     #
     # both urls below return the same data.
@@ -88,7 +92,6 @@ urlpatterns = patterns( '',
     (r'^player/news/nfl/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view(), {"sport": "nfl"}),
     (r'^player/news/nhl/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view(), {"sport": "nhl"}),
     (r'^player/news/mlb/(?P<player>[0-9]+)/$', PlayerNewsAPIView.as_view(), {"sport": "mlb"}),
-
 
     (r'^player/news/nba/$', PlayerNewsAPIView.as_view(), {"sport": "nba"}),
     (r'^player/news/nfl/$', PlayerNewsAPIView.as_view(), {"sport": "nfl"}),
