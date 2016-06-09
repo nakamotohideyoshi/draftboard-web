@@ -938,24 +938,56 @@ class AbstractStatReducer(object):
                 pass
         return self.data
 
+class RunnerReducer(AbstractStatReducer):
+
+    remove_fields = [
+        'at_bat__id',
+        'dd_updated__id',
+        'first_name',
+        'game__id',
+        'id',
+        'jersey_number',
+        'parent_api__id',
+        'parent_list__id',
+        'pitch__id',
+    ]
+
 class PbpReducer(AbstractStatReducer):
 
-    remove_fields = ['_id','dd_updated__id']
+    remove_fields = [
+        '_id',
+        'dd_updated__id'
+    ]
 
 class ZonePitchReducer(AbstractStatReducer):
 
-    remove_fields = ['parent_api__id','game__id','id','at_bat__id','pitch__id','dd_updated__id']
+    remove_fields = [
+        'parent_api__id',
+        'game__id',
+        'id',
+        'at_bat__id',
+        'pitch__id',
+        'dd_updated__id'
+    ]
 
 class AtBatReducer(AbstractStatReducer):
 
-    remove_fields = ['_id', 'parent_api__id', 'pitchs']
+    remove_fields = [
+        '_id',
+        'parent_api__id',
+        'pitchs'
+    ]
 
 class AtBatStatsReducer(AbstractStatReducer):
 
     remove_fields = [
         '_id',
-        'game__id','status','parent_list__id',
-        'parent_api__id','dd_updated__id','statistics__list',
+        'game__id',
+        'status',
+        'parent_list__id',
+        'parent_api__id',
+        'dd_updated__id',
+        'statistics__list'
     ]
 
     def pre_reduce(self):
@@ -968,6 +1000,111 @@ class AtBatStatsReducer(AbstractStatReducer):
         # add onbase_list stats back in
         d['onbase__list'] = onbase_list
         self.data = d
+
+class AbstractShrinker(object):
+
+    fields = None
+
+    def __init__(self, data):
+        self.data = data
+        self.shrinked = None
+
+    def shrink(self):
+        """ return shrunk data """
+        self.shrinked = {}
+        for old_field, new_field in self.fields.items():
+            val = self.data.get(old_field)
+            if val is None:
+                continue # dont add a random default value if the field doesnt exist
+            self.shrinked[new_field] = val
+        #
+        return self.shrinked
+
+class ZonePitchShrinker(AbstractShrinker):
+    """ reduce() then shrink the fields of a ZonePitch """
+
+    fields = {
+        'pitch_count' : 'pc',
+        'pitch_speed' : 'mph',
+        'pitch_type'  : 't',
+        'pitch_zone'  : 'z'
+    }
+
+class ZonePitchSorter(object):
+
+    at_bat_pitch_count = 'at_bat_pitch_count'
+
+    def __init__(self, zone_pitches, at_bat):
+        self.zone_pitches = zone_pitches
+        self.at_bat = at_bat
+        self.pitchs = self.at_bat.get('pitchs', [])
+
+    def sort(self):
+        """ reduce, sort, and shrink the zone_pitches and return a list """
+        pitch_order_map = {}
+        for i, pitch_dict in enumerate(self.pitchs):
+            pitch_srid = pitch_dict.get('pitch')
+            pitch_order_map[pitch_srid] = i + 1
+        # now using the pitch_order_map
+        for zone_pitch in self.zone_pitches:
+            try:
+                zone_pitch[self.at_bat_pitch_count] = pitch_order_map[zone_pitch.get('pitch__id')]
+            except:
+                zone_pitch[self.at_bat_pitch_count] = -1
+
+        # dump them into a list the order they happend in real life
+        sorted_zone_pitches = []
+        for zone_pitch in self.zone_pitches:
+            sorted_zone_pitches.append(zone_pitch)
+
+        # return the newly sorted list
+        return sorted_zone_pitches
+
+class ZonePitchManager(object):
+    """
+    sort, reduce, and shrink the zone pitches and return a list of them
+    """
+    def __init__(self, zone_pitches, at_bat):
+        self.zone_pitches = zone_pitches
+        self.at_bat = at_bat
+
+    def get_data(self):
+        sorter = ZonePitchSorter(self.zone_pitches, self.at_bat)
+        sorted_zone_pitches = sorter.sort()
+
+        reduced_and_shrunk_zone_pitches = []
+        for zp in sorted_zone_pitches:
+            reducer = ZonePitchReducer(zp)
+            reduced_zp = reducer.reduce()
+            shrinker = ZonePitchShrinker(reduced_zp)
+            shrunk_zp = shrinker.shrink()
+            reduced_and_shrunk_zone_pitches.append(shrunk_zp)
+        return reduced_and_shrunk_zone_pitches
+
+class RunnerShrinker(AbstractShrinker):
+
+    fields = {
+        'starting_base'     : 'start',
+        'ending_base'       : 'end',
+        'outcome_id'        : 'o',
+        'preferred_name'    : 'fn',
+        'last_name'         : 'ln',
+    }
+
+class RunnerManager(object):
+
+    def __init__(self, runners):
+        self.runners = runners
+
+    def get_data(self):
+        reduced_and_shrunk_runners = []
+        for runner in self.runners:
+            reducer = RunnerReducer(runner)
+            reduced_r = reducer.reduce()
+            shrinker = ZonePitchShrinker(reduced_r)
+            shrunk_r = shrinker.shrink()
+            reduced_and_shrunk_runners.append(shrunk_r)
+        return reduced_and_shrunk_runners
 
 class PitchPbp(DataDenPbpDescription):
     """
