@@ -218,8 +218,29 @@ app.conf.update(
         'notify_admin_contests_automatically_paid_out' : {
             'task'      : 'contest.tasks.notify_admin_contests_automatically_paid_out',
             'schedule'  : timedelta(minutes=5),
-        }
+        },
 
+        # cleanup rosters
+        'nba_cleanup_rosters' : {
+            'task'      : 'sports.nba.tasks.cleanup_rosters',
+            'schedule'  : crontab(hour='3'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'args'      : ('nba',),
+        },
+        'nhl_cleanup_rosters' : {
+            'task'      : 'sports.nhl.tasks.cleanup_rosters',
+            'schedule'  : crontab(hour='3'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'args'      : ('nhl',),
+        },
+        'nfl_cleanup_rosters' : {
+            'task'      : 'sports.nfl.tasks.cleanup_rosters',
+            'schedule'  : crontab(hour='3'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'args'      : ('nfl',),
+        },
+        'mlb_cleanup_rosters' : {
+            'task'      : 'sports.mlb.tasks.cleanup_rosters',
+            'schedule'  : crontab(hour='3'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'args'      : ('mlb',),
+        },
     },
 
     CELERY_ENABLE_UTC = True,
