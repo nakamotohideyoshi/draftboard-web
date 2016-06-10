@@ -3,6 +3,7 @@ import shallowCompare from 'react-addons-shallow-compare';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import log from '../../lib/logging.js';
+import lazyLoadImage from '../../lib/lazy-load-image.js';
 import renderComponent from '../../lib/render-component';
 import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
@@ -131,18 +132,28 @@ const DraftContainer = React.createClass({
   },
 
 
-  // TODO: Make keyboard keys select players in the list.
   componentWillMount() {
-    // Listen to j/k keypress actions to focus players.
-    // KeypressActions.keypressJ.listen(this.focusNextRow);
-    // KeypressActions.keypressK.listen(this.focusPreviousRow);
+    // load in draft group players and injuries and boxscores and stuff.
     this.loadData();
+    // Initialize the lazy image loader for all player images.
+    this.lazyLoader = lazyLoadImage('.photo img');
   },
 
 
   shouldComponentUpdate(nextProps, nextState) {
     return shallowCompare(this, nextProps, nextState);
   },
+
+
+  componentDidUpdate() {
+    // If the component gets re-render, have the lazyLoader check if there are
+    // any images now in-view that should be loaded.
+    this.lazyLoader.reloadImages();
+  },
+
+
+  // A place to keep our lazy image loader.
+  lazyLoader: null,
 
 
   // Position type filter data.
@@ -268,6 +279,13 @@ const DraftContainer = React.createClass({
         player.player_id === row.player_id
       ) > -1;
 
+      // Don't even bother rendering players that should not be seen.
+      // I was hoping this would make swapping the visible/invisible states
+      // faster, but it isn't.
+      if (!isVisible) {
+        return;
+      }
+
       visibleRows.push(
         <DraftPlayerListRow
           key={row.player_id}
@@ -283,7 +301,7 @@ const DraftContainer = React.createClass({
 
 
     // If the draftgroup hasn't been fetched yet, show a loading indicator.
-    if (this.props.allPlayers === {}) {
+    if (!this.props.allPlayers.length) {
       visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>;
     }
 
