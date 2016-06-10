@@ -918,10 +918,11 @@ class AbstractStatReducer(object):
     def __init__(self, data):
         if not isinstance(data, dict):
             raise self.InvalidDataType('"data" must be of type "dict"')
-        self.data = data
+        self.data = data # save the original data
+        self.reduced = self.data.copy() # clone the data coming in
 
     def get_internal_data(self):
-        return self.data
+        return self.reduced
 
     def pre_reduce(self):
         """ you should override this in child class if you want to perform customizations """
@@ -933,10 +934,11 @@ class AbstractStatReducer(object):
         # remove keys we dont care about, and return the internal data
         for field in self.remove_fields:
             try:
-                self.data.pop(field)
+                # this actually removes the fields from the dict!
+                self.reduced.pop(field)
             except:
                 pass
-        return self.data
+        return self.reduced
 
 class RunnerReducer(AbstractStatReducer):
 
@@ -1031,6 +1033,11 @@ class ZonePitchShrinker(AbstractShrinker):
     }
 
 class ZonePitchSorter(object):
+    """
+    this object will sort the zone pitches.
+
+    it will also remove earlier duplicates (and use the most recent/updated pitch).
+    """
 
     at_bat_pitch_count = 'at_bat_pitch_count'
 
@@ -1044,21 +1051,17 @@ class ZonePitchSorter(object):
         pitch_order_map = {}
         for i, pitch_dict in enumerate(self.pitchs):
             pitch_srid = pitch_dict.get('pitch')
-            pitch_order_map[pitch_srid] = i + 1
-        # now using the pitch_order_map
+            pitch_order_map[pitch_srid] = i + 1   # map of srid -> atbat pitch index
+        # now using the pitch_order_map - adding the pitches in order
+        # will have hte effect of taking the most recent zone pitch
+        # which should leave us with no duplicates.
+        indexed_pitch_map = {}
         for zone_pitch in self.zone_pitches:
-            try:
-                zone_pitch[self.at_bat_pitch_count] = pitch_order_map[zone_pitch.get('pitch__id')]
-            except:
-                zone_pitch[self.at_bat_pitch_count] = -1
+            at_bat_idx = pitch_order_map[zone_pitch.get('pitch__id')]
+            zone_pitch[self.at_bat_pitch_count] = at_bat_idx
+            indexed_pitch_map[at_bat_idx] = zone_pitch
+        ordered_zone_pitches = []
 
-        # dump them into a list the order they happend in real life
-        sorted_zone_pitches = []
-        for zone_pitch in self.zone_pitches:
-            sorted_zone_pitches.append(zone_pitch)
-
-        # return the newly sorted list
-        return sorted_zone_pitches
 
 class ZonePitchManager(object):
     """
@@ -1099,11 +1102,11 @@ class RunnerManager(object):
     def get_data(self):
         reduced_and_shrunk_runners = []
         for runner in self.runners:
-            reducer = RunnerReducer(runner)
-            reduced_r = reducer.reduce()
-            shrinker = ZonePitchShrinker(reduced_r)
-            shrunk_r = shrinker.shrink()
-            reduced_and_shrunk_runners.append(shrunk_r)
+            rr = RunnerReducer(runner)
+            reduced_runner = rr.reduce()
+            rs = RunnerShrinker(reduced_runner)
+            shrunk_runner = rs.shrink()
+            reduced_and_shrunk_runners.append(shrunk_runner)
         return reduced_and_shrunk_runners
 
 class PitchPbp(DataDenPbpDescription):
