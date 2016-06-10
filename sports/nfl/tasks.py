@@ -14,3 +14,14 @@ def update_injuries(self):
     """
     parser = DataDenNfl()
     parser.cleanup_injuries()
+
+@app.task(bind=True)
+def cleanup_rosters(self):
+    """
+    dataden will be actively parsing in the injury data, but occasionally we need
+    to clean it up (remove players who are no longer injured!)
+
+    :return:
+    """
+    parser = DataDenNfl()
+    parser.cleanup_rosters()
