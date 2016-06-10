@@ -279,6 +279,13 @@ const DraftContainer = React.createClass({
         player.player_id === row.player_id
       ) > -1;
 
+      // Don't even bother rendering players that should not be seen.
+      // I was hoping this would make swapping the visible/invisible states
+      // faster, but it isn't.
+      if (!isVisible) {
+        return;
+      }
+
       visibleRows.push(
         <DraftPlayerListRow
           key={row.player_id}
