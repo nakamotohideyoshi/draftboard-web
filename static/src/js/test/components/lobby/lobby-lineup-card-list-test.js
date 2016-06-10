@@ -22,6 +22,7 @@ const defaultTestProps = {
   draftGroupSelectionModalIsOpen: false,
   // a promise that will always resolve.
   fetchUpcomingLineups: () => new Promise((resolve) => resolve()),
+  removeContestPoolEntry: () => true,
 };
 
 
