@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDom from 'react-dom';
 import PubSub from 'pubsub-js';
+import debounce from 'lodash/debounce';
 
 
 /**
@@ -45,6 +46,12 @@ const CollectionSearchFilter = React.createClass({
 
 
   componentWillMount() {
+    // Add a debouncer around the onUpdate function.
+    this.debouncedUpdate = debounce(this.props.onUpdate, 250, {
+      leading: false,
+      trailing: true,
+    });
+
     PubSub.subscribe('playerSearch.clear', () => {
       this.setState({
         match: '',
@@ -65,13 +72,7 @@ const CollectionSearchFilter = React.createClass({
    * @param  {Object} e The dom event that triggered this.
    */
   handleChange(e) {
-    this.setState({ match: e.target.value }, () => {
-      this.props.onUpdate(
-        this.props.filterName,
-        this.props.filterProperty,
-        this.state.match
-      );
-    });
+    this.debouncedUpdate(this.props.filterName, this.props.filterProperty, e.target.value);
   },
 
 
@@ -98,7 +99,6 @@ const CollectionSearchFilter = React.createClass({
             ref="searchField"
             className="cmp-collection-search-filter__input"
             type="text"
-            value={this.state.match}
             onChange={this.handleChange}
             placeholder="Search"
           />
