@@ -1,6 +1,9 @@
 #
 # sports/mlb/parser.py
 
+from collections import (
+    OrderedDict,
+)
 from django.db.transaction import atomic
 from django.core.cache import cache
 from sports.classes import SiteSportManager
@@ -1060,8 +1063,11 @@ class ZonePitchSorter(object):
             at_bat_idx = pitch_order_map[zone_pitch.get('pitch__id')]
             zone_pitch[self.at_bat_pitch_count] = at_bat_idx
             indexed_pitch_map[at_bat_idx] = zone_pitch
-        ordered_zone_pitches = []
-
+            # TODO i need to add the at bat index to the zone_pitch json!
+            print(zone_pitch)
+        #
+        ordered_zps = OrderedDict(sorted(indexed_pitch_map.items()))
+        return [ zp for zp in ordered_zps.values() ]
 
 class ZonePitchManager(object):
     """
