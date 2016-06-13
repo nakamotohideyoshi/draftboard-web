@@ -133,7 +133,7 @@ const showGameEvent = (message, state) => {
   let animationEvent;
 
   switch (sport) {
-    case 'mlb':
+    case 'mlb': {
       animationEvent = {
         eventPBP,
         message,
@@ -149,12 +149,13 @@ const showGameEvent = (message, state) => {
         store.dispatch(addAnimationEvent(animationEvent.id, animationEvent));
       }
 
+      const boxscore = state.sports.games[animationEvent.gameId].boxscore;
+
       // if multipart
       if (eventPBP.hasOwnProperty('at_bat__id')) {
         // remove in 5 seconds if the multievent is over
         if (eventPBP.flags__list.is_ab_over === 'true') {
           log.info('At bat over for ', relevantPlayersInEvent);
-          const boxscore = state.sports.games[animationEvent.gameId].boxscore;
 
           setTimeout(
             () => {
@@ -181,6 +182,10 @@ const showGameEvent = (message, state) => {
 
         animationEvent = merge(animationEvent, {
           pitchCount: stringifyAtBat(eventPBP.count__list),
+          when: {
+            inning: stringifyMLBWhen(boxscore.inning),
+            half: boxscore.inning_half,
+          },
           outcome: sportConst.pitchOutcomes[eventPBP.outcome__id] || null,
           usedFlags: filter(eventPBP.flags__list, flag => flag === 'true'),
           zonePitches: consolidateZonePitches(message.zone_pitches),
@@ -207,6 +212,7 @@ const showGameEvent = (message, state) => {
       }
 
       break;
+    }
     case 'nba':
     default:
       animationEvent = {

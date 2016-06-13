@@ -161,8 +161,6 @@ const LiveLineup = React.createClass({
         const eventSrid = this.props.watchablePlayers[playerSRID];
         multipartEvent = this.props.multipartEvents[eventSrid];
 
-        console.warn(multipartEvent.runnerIds, playerSRID, multipartEvent.runnerIds.indexOf[playerSRID]);
-
         if (multipartEvent.runnerIds.indexOf(playerSRID) !== -1) {
           isRunner = true;
         } else {
