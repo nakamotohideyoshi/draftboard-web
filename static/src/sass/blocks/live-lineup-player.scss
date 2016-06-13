@@ -107,6 +107,21 @@
       color: #878b9c;
       display: inline-block;
       padding-left: 6px;
+
+      svg {
+        display: inline-block;
+        width: 8px;
+        position: relative;
+        top: -2px;
+      }
+
+      path {
+        fill: #878b9c;
+      }
+
+      &--top svg {
+        transform: rotate(180deg);
+      }
     }
 
     &__bases {
@@ -126,7 +141,8 @@
   &__circle,
   &__status,
   &__points,
-  &__play-status {
+  &__play-status,
+  &__runner-bases {
     display: inline-block;
     vertical-align: middle;
     margin: 0 4px;
@@ -205,6 +221,18 @@
     .hover-stats__name {
       font-size: 9px;
       color: #9ea1b1;
+    }
+  }
+
+  &__runner-bases {
+    height: 25px;
+    left: 138px;
+    position: absolute;
+    top: 19px;
+    z-index: 5000;
+
+    .live-mlb-diamond, svg {
+      height: 100%;
     }
   }
 
