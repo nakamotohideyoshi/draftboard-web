@@ -184,6 +184,11 @@ const showGameEvent = (message, state) => {
           outcome: sportConst.pitchOutcomes[eventPBP.outcome__id] || null,
           usedFlags: filter(eventPBP.flags__list, flag => flag === 'true'),
           zonePitches: consolidateZonePitches(message.zone_pitches),
+          runners: message.runners.map((runner) => ({
+            whichSide: whichSide(watching, [runner.id], opponentLineup, relevantGamesPlayers),
+            playerSrid: runner.id,
+            endingBase: runner.ending_base,
+          })),
         });
 
         // store multipart event for each player

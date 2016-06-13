@@ -154,7 +154,12 @@ const LiveLineup = React.createClass({
       const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.watching.sport}/120`;
       const gameStats = this.props.relevantPlayersGameStats[playerSRID] || {};
       const isWatchable = this.props.watchablePlayers.hasOwnProperty(playerSRID);
-      const multipartEvent = this.props.multipartEvents[player.srid] || {};
+
+      let multipartEvent = {};
+      if (isWatchable) {
+        const eventSrid = this.props.watchablePlayers[playerSRID];
+        multipartEvent = this.props.multipartEvents[eventSrid];
+      }
 
       return (
         <LiveLineupPlayer
