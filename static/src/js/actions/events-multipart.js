@@ -2,6 +2,7 @@ import * as ActionTypes from '../action-types';
 import filter from 'lodash/filter';
 import orderBy from 'lodash/orderBy';
 import map from 'lodash/map';
+import random from 'lodash/random';
 import uniqBy from 'lodash/uniq';
 import { batchActions } from 'redux-batched-actions';
 import { SPORT_CONST } from './sports';
@@ -42,13 +43,84 @@ export const consolidateZonePitches = (zonePitches) => {
   const uniq = uniqBy(sorted, 'p_idx');
 
   // could make this dynamic, but faster if we just write it out for now
-  return map(uniq, (pitch) => ({
-    count: pitch.p_idx,
-    outcome: (pitch.pitch_zone < 10) ? 'strike' : 'ball',
-    speed: pitch.pitch_speed,
-    type: sportConst.pitchTypes[pitch.pitch_type],
-    zone: pitch.pitch_zone,
-  }));
+  return map(uniq, (pitch) => {
+    // randomize position of pitch within zone
+    const zone = pitch.pitch_zone;
+    let left = 0;
+    let top = 0;
+
+    // left
+    switch (zone) {
+      case 1:
+      case 4:
+      case 7:
+        left = random(-4, 22);
+        break;
+      case 2:
+      case 5:
+      case 8:
+        left = random(30, 55);
+        break;
+      case 3:
+      case 6:
+      case 9:
+        left = random(64, 88);
+        break;
+      case 10:
+        left = random(98, 108);
+        break;
+      case 12:
+        left = random(-24, -12);
+        break;
+      case 11:
+      case 13:
+        left = random(-2, 88);
+        break;
+      default:
+        left = 0;
+    }
+
+    // top
+    switch (zone) {
+      case 1:
+      case 2:
+      case 3:
+        top = random(-2, 23);
+        break;
+      case 4:
+      case 5:
+      case 6:
+        top = random(31, 56);
+        break;
+      case 7:
+      case 8:
+      case 9:
+        top = random(65, 90);
+        break;
+      case 11:
+        top = random(98, 108);
+        break;
+      case 13:
+        top = random(-20, -10);
+        break;
+      case 10:
+      case 12:
+        top = random(-2, 90);
+        break;
+      default:
+        top = 0;
+    }
+
+    return {
+      count: pitch.p_idx,
+      outcome: (pitch.pitch_zone < 10) ? 'strike' : 'ball',
+      speed: pitch.pitch_speed,
+      type: sportConst.pitchTypes[pitch.pitch_type],
+      zone: pitch.pitch_zone,
+      left,
+      top,
+    };
+  });
 };
 
 

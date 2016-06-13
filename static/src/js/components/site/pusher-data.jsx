@@ -124,7 +124,7 @@ export const PusherData = React.createClass({
 
       const statsChannel = pusher.subscribe(`${channelPrefix}${sport}_stats`);
       statsChannel.bind('player', (message) => actions.onPlayerStatsReceived(
-        message, sport, this.props.myLineup.draftGroupId, this.props.relevantGamesPlayers.relevantItems.players
+        message, sport, this.props.myLineup.draftGroupId, this.props.relevantGamesPlayers.relevantItems.games
       ));
     });
   },
