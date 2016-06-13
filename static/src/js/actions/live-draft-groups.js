@@ -350,7 +350,7 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
  * @param  {number} draftGroupId) Draft group ID to find player in redux store
  * @return {object}               Changes for reducer, wrapped in thunk
  */
-export const updatePlayerStats = (message) => (dispatch, getState) => {
+export const updatePlayerStats = (message, draftGroupId) => (dispatch, getState) => {
   const playerId = message.fields.player_id;
 
   // if this is a relevant player, update their stats
@@ -364,7 +364,7 @@ export const updatePlayerStats = (message) => (dispatch, getState) => {
   }
 
   return dispatch({
-    id: message.draftGroupId,
+    id: draftGroupId,
     type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
     playerId,
     fp: message.fields.fantasy_points,
