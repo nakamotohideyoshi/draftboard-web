@@ -116,15 +116,15 @@ export const PusherData = React.createClass({
     newSports.map((sport) => {
       const pbpChannel = pusher.subscribe(`${channelPrefix}${sport}_pbp`);
       pbpChannel.bind('event', (message) => actions.onPBPEventReceived(
-        message, sport, this.props.relevantGamesPlayers
+        message, sport, this.props.relevantGamesPlayers.relevantItems.players
       ));
       pbpChannel.bind('linked', (message) => actions.onPBPReceived(
-        message, sport, this.props.relevantGamesPlayers
+        message, sport, this.props.relevantGamesPlayers.relevantItems.players
       ));
 
       const statsChannel = pusher.subscribe(`${channelPrefix}${sport}_stats`);
       statsChannel.bind('player', (message) => actions.onPlayerStatsReceived(
-        message, sport, this.props.myLineup.draftGroupId, this.props.relevantGamesPlayers
+        message, sport, this.props.myLineup.draftGroupId, this.props.relevantGamesPlayers.relevantItems.players
       ));
     });
   },
