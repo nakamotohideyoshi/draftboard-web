@@ -1,6 +1,7 @@
 import LiveMLBDiamond from './mlb/live-mlb-diamond';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import React from 'react';
+import forEach from 'lodash/forEach';
 import { extend } from 'lodash';
 import { size as _size } from 'lodash';
 import { humanizeFP } from '../../actions/sports';
@@ -117,19 +118,34 @@ const LiveLineupPlayer = React.createClass({
   },
 
   renderWatching() {
-    const { player } = this.props;
+    const { player, multipartEvent } = this.props;
 
     // only applicable sport right now
     if (this.props.sport !== 'mlb') {
       return [];
     }
 
+    // default to no one on base
     const diamondProps = {
       key: player.id,
-      first: 'mine',
-      second: 'both',
-      third: 'opponent',
+      first: 'none',
+      second: 'none',
+      third: 'none',
     };
+
+    // map to convert socket call to needed css classname
+    const diamondMap = {
+      1: 'first',
+      2: 'second',
+      3: 'third',
+      4: 'home',
+    };
+
+    // put runners on base
+    forEach(multipartEvent.runners, (runner) => {
+      const baseName = diamondMap[runner.endingBase];
+      diamondProps[baseName] = runner.whichSide;
+    });
 
     let status = 'possible';
     const elements = [];
