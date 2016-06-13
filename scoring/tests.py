@@ -6,7 +6,7 @@ import sports.nba.models
 import sports.nhl.models
 import sports.mlb.models
 import sports.nfl.models
-from django.test import TestCase
+from django.test import TestCase, SimpleTestCase
 from test.classes import AbstractTest
 from scoring.classes import NbaSalaryScoreSystem, NhlSalaryScoreSystem, MlbSalaryScoreSystem, NflSalaryScoreSystem
 from dataden.util.timestamp import Parse as DataDenDatetime
@@ -15,6 +15,22 @@ from django.db import connection, connections, DEFAULT_DB_ALIAS
 from scoring.models import (
     ScoreSystem,
 )
+
+class MlbOutcome2FantasyPointTest(AbstractTest):
+    """
+    run like this so on subsequent runs we dont have to wait for migrations:
+
+        $ ./manage.py test scoring.tests.MlbOutcome2FantasyPointTest --keepdb
+
+    """
+    def setUp(self):
+        # TODO - setup dummy values
+
+        # fantasy values
+        self.hitter_single = 2.0
+
+    def test_simple(self):
+        pass # TODO
 
 class SiteSportPosition():
     def get_position(self, site_sport, name):

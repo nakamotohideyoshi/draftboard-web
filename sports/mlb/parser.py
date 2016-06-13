@@ -1131,6 +1131,126 @@ class PitchPbpReducer(AbstractStatReducer):
         'status',
     ]
 
+class HittingListToStr(object):
+
+    def __init__(self, hitting_list):
+        #         "hitting__list" : {
+        #             "ab" : 3,
+        #             "abhr" : 0,
+        #             "abk" : 0,
+        #             "ap" : 4,
+        #             "avg" : 0.667,
+        #             "babip" : 0.667,
+        #             "bbk" : 0,
+        #             "bbpa" : 0.25,
+        #             "bip" : 3,
+        #             "gofo" : 0,
+        #             "iso" : 0.333,
+        #             "lob" : 0,
+        #             "obp" : 0.75,
+        #             "ops" : 1.75,
+        #             "pitch_count" : 14,
+        #             "rbi" : 1,
+        #             "seca" : 0.667,
+        #             "slg" : 1,
+        #             "xbh" : 1,
+        #             "onbase__list" : {
+        #                 "bb" : 1,
+        #                 "d" : 1,
+        #                 "fc" : 0,
+        #                 "h" : 2,
+        #                 "hbp" : 0,
+        #                 "hr" : 0,
+        #                 "ibb" : 0,
+        #                 "roe" : 0,
+        #                 "s" : 1,
+        #                 "t" : 0,
+        #                 "tb" : 3
+        #             },
+        #             "runs__list" : {
+        #                 "earned" : 1,
+        #                 "total" : 1,
+        #                 "unearned" : 0
+        #             },
+        #             "outcome__list" : {
+        #                 "ball" : 6,
+        #                 "dirtball" : 1,
+        #                 "foul" : 0,
+        #                 "iball" : 0,
+        #                 "klook" : 2,
+        #                 "kswing" : 2,
+        #                 "ktotal" : 4
+        #             },
+        #             "outs__list" : {
+        #                 "fidp" : 0,
+        #                 "fo" : 0,
+        #                 "gidp" : 0,
+        #                 "go" : 1,
+        #                 "klook" : 0,
+        #                 "kswing" : 0,
+        #                 "ktotal" : 0,
+        #                 "lidp" : 0,
+        #                 "lo" : 0,
+        #                 "po" : 0,
+        #                 "sacfly" : 0,
+        #                 "sachit" : 0
+        #             },
+        #             "steal__list" : {
+        #                 "caught" : 0,
+        #                 "pct" : 0,
+        #                 "stolen" : 0
+        #             },
+        #             "games__list" : {
+        #                 "complete" : 0,
+        #                 "finish" : 0,
+        #                 "play" : 0,
+        #                 "start" : 0
+        #             }
+        #         },
+        self.data = hitting_list
+
+    def get_description(self):
+        stat_desc_list = []
+        onbase_list = self.data.get('onbase__list', {})
+        runs_list = self.data.get('runs__list', {})
+        at_bats = self.data.get('ab')
+        hits = onbase_list.get('h')
+        stat_desc_list.append( self.__format_stat( 'R', runs_list.get('total') ) )
+        stat_desc_list.append( self.__format_stat( 'RBI', self.data.get('rbi') ) )
+        #                 "bb" : 1,
+        #                 "d" : 1,
+        #                 "fc" : 0,
+        #                 "h" : 2,
+        #                 "hbp" : 0,
+        #                 "hr" : 0,
+        #                 "ibb" : 0,
+        #                 "roe" : 0,
+        #                 "s" : 1,
+        #                 "t" : 0,
+        #                 "tb" : 3
+        stat_desc_list.append( self.__format_stat( 'B', onbase_list.get('bb') ) )
+        stat_desc_list.append( self.__format_stat( 'HBP', onbase_list.get('hbp') ) )
+        stat_desc_list.append( self.__format_stat( 'HR',  onbase_list.get('hr') ) )
+        stat_desc_list.append( self.__format_stat( '2B', onbase_list.get('d') ) )
+        stat_desc_list.append( self.__format_stat( '3B', onbase_list.get('t') ) )
+
+        # generaet the return string
+        desc = '%s for %s' % (hits, at_bats)
+
+        stats_list = [x for x in stat_desc_list if x != '']
+        if len(stats_list) > 0:
+            suffix = ' (%s)' % ','.join(stats_list)
+            desc += suffix
+        return desc
+
+    def __format_stat(self, name, value):
+        if value is None or value == 0:
+            return ''
+        elif value == 1:
+            return name
+
+        return '%s %s' % (int(value), name)
+
 class PitchPbp(DataDenPbpDescription):
     """
     given an object whose namespace, parent api is a target like:
@@ -1218,9 +1338,13 @@ class PitchPbp(DataDenPbpDescription):
         data[self.at_bat_stats] = None
         if len(player_stats_obj_list) > 0:
             # get the one most recently added to the list
-            atbat_stats_reducer = AtBatStatsReducer(player_stats_obj_list[-1])
-            # reduction
-            data[self.at_bat_stats] = atbat_stats_reducer.reduce()
+            # atbat_stats_reducer = AtBatStatsReducer(player_stats_obj_list[-1])
+            # # reduction
+            # data[self.at_bat_stats] = atbat_stats_reducer.reduce()
+            statistics_list = player_stats_obj_list[-1].get('statistics__list',{})
+            hitting_list = statistics_list.get('hitting__list',{})
+            hitting_list_to_str = HittingListToStr(hitting_list)
+            data[self.at_bat_stats] = hitting_list_to_str.get_description()
 
         # reduce the pbp object last, incase any of its fields
         # are internally used previous to reducing it.
