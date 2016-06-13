@@ -79,7 +79,8 @@ const unshiftPlayerHistory = (key, value) => ({
 
 export const updatePBPPlayersStats = (playersStats) => (dispatch, getState) => {
   const state = getState();
-  const draftGroupId = playersStats[0].draftGroupId || -1;
+  const myLineup = watchingMyLineupSelector(state);
+  const { draftGroupId } = myLineup;
 
   if (!state.liveDraftGroups[draftGroupId]) return false;
 
@@ -88,7 +89,7 @@ export const updatePBPPlayersStats = (playersStats) => (dispatch, getState) => {
     log.info('updatePBPPlayersStats - linked pbp - updatePlayerStats()', playerId);
 
     if (state.liveDraftGroups[draftGroupId].playersStats.hasOwnProperty(playerId)) {
-      dispatch(updatePlayerStats(playerStats));
+      dispatch(updatePlayerStats(playerStats, draftGroupId));
     }
   });
 };

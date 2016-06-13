@@ -1,4 +1,3 @@
-import merge from 'lodash/merge';
 import { addEventAndStartQueue } from '../events';
 import { updatePlayerStats } from '../live-draft-groups';
 import { isGameReady } from '../sports';
@@ -22,14 +21,11 @@ export const onPlayerStatsReceived = (message, sport, draftGroupId, relevantGame
 
   if (!isGameReady(getState(), dispatch, sport, gameId)) return false;
 
-  // append needed draft group ID
-  const newMessage = merge(message, { draftGroupId });
-
   // if it's not a relevant game to the live section, then just update the player's FP to update the NavScoreboard
   if (relevantGamesPlayers.relevantItems.games.indexOf(gameId) === -1) {
     // otherwise just update the player's FP
-    return dispatch(updatePlayerStats(newMessage));
+    return dispatch(updatePlayerStats(message, draftGroupId));
   }
 
-  return dispatch(addEventAndStartQueue(gameId, newMessage, 'stats', sport));
+  return dispatch(addEventAndStartQueue(gameId, message, 'stats', sport));
 };
