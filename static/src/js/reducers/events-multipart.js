@@ -10,7 +10,7 @@ const initialState = {
   // object of current multipart events that exist
   // key is `at_bat__id` for mlb
   events: {},
-  // object of players with the eventID as their value
+  // object of players with the { eventID, role, [endingBase] } as their value
   watchablePlayers: {},
 };
 
