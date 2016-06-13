@@ -14,6 +14,7 @@ const LiveLineupPlayer = React.createClass({
     eventDescription: React.PropTypes.object.isRequired,
     gameStats: React.PropTypes.object.isRequired,
     isPlaying: React.PropTypes.bool.isRequired,
+    isRunner: React.PropTypes.bool.isRequired,
     isWatchable: React.PropTypes.bool.isRequired,
     isWatching: React.PropTypes.bool.isRequired,
     multipartEvent: React.PropTypes.object.isRequired,
@@ -118,47 +119,44 @@ const LiveLineupPlayer = React.createClass({
   },
 
   renderWatching() {
-    const { player, multipartEvent } = this.props;
+    const { player, multipartEvent, isWatchable, isWatching } = this.props;
 
     // only applicable sport right now
-    if (this.props.sport !== 'mlb') {
-      return [];
-    }
-
-    // default to no one on base
-    const diamondProps = {
-      key: player.id,
-      first: 'none',
-      second: 'none',
-      third: 'none',
-    };
-
-    // map to convert socket call to needed css classname
-    const diamondMap = {
-      1: 'first',
-      2: 'second',
-      3: 'third',
-      4: 'home',
-    };
-
-    // put runners on base
-    forEach(multipartEvent.runners, (runner) => {
-      const baseName = diamondMap[runner.endingBase];
-      diamondProps[baseName] = runner.whichSide;
-    });
+    if (this.props.sport !== 'mlb') return [];
 
     let status = 'possible';
     const elements = [];
 
     // override isWatchable and add in watching indicator
-    if (this.props.isWatching) {
+    if (isWatching) {
       status = 'active';
-
       elements.push((<div key="8" className="live-lineup-player__watching-indicator" />));
     }
 
     // always put in the watchable information
-    if (this.props.isWatchable) {
+    if (isWatchable) {
+      // default to no one on base
+      const diamondProps = {
+        key: player.id,
+        first: 'none',
+        second: 'none',
+        third: 'none',
+      };
+
+      // map to convert socket call to needed css classname
+      const diamondMap = {
+        1: 'first',
+        2: 'second',
+        3: 'third',
+        4: 'home',
+      };
+
+      // put runners on base
+      forEach(multipartEvent.runners, (runner) => {
+        const baseName = diamondMap[runner.endingBase];
+        diamondProps[baseName] = runner.whichSide;
+      });
+
       elements.push((
         <div
           key="9"
