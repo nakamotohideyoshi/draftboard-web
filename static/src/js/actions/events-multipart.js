@@ -39,11 +39,11 @@ export const consolidateZonePitches = (zonePitches) => {
   const sportConst = SPORT_CONST.mlb;
   const filtered = filter(zonePitches, (pitch) => pitch.hasOwnProperty('pitch_speed'));
   const sorted = orderBy(filtered, 'dd_updated__id');
-  const uniq = uniqBy(sorted, 'pitch_count');
+  const uniq = uniqBy(sorted, 'p_idx');
 
   // could make this dynamic, but faster if we just write it out for now
   return map(uniq, (pitch) => ({
-    count: pitch.pitch_count,
+    count: pitch.p_idx,
     outcome: (pitch.pitch_zone < 10) ? 'strike' : 'ball',
     speed: pitch.pitch_speed,
     type: sportConst.pitchTypes[pitch.pitch_type],
