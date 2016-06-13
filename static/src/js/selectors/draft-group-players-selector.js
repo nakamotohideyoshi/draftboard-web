@@ -29,7 +29,6 @@ const playersWithInfo = createSelector(
   boxScoreGamesSelector,
   (players, injuries, histories, sport, sportInfo, activeDraftGroupId, boxScoreGames
   ) => mapValues(players, (player) => {
-    log.debug('playersWithInfoSelector()');
     // Duplicate the player so we don't mutate the state.
     const playerWithInfo = merge({}, player);
     // Add injury status if we have it.
@@ -83,7 +82,6 @@ const newLineupSelector = (state) => state.createLineup.lineup;
 const playersWithDraftabilityInfo = createSelector(
   [playersWithInfo, remainingSalarySelector, availablePositionSelector, newLineupSelector],
   (players, remainingSalary, availablePositions, newLineup) => mapValues(players, (player) => {
-    log.debug('playersWithAffordabilityInfoSelector() run');
     const playerWithInfo = merge({}, player);
 
     // add affordability.

@@ -2,9 +2,9 @@
 import React from 'react';
 import * as AppActions from '../../stores/app-state-store.js';
 import Sparkline from './sparkline.jsx';
-import find from 'lodash/find';
 import isEqual from 'lodash/isEqual';
 import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils.js';
+import DraftPlayerNextGame from './draft-player-next-game.jsx';
 
 
 /**
@@ -75,32 +75,8 @@ const DraftPlayerListRow = React.createClass({
   },
 
 
-  // Get the next game readout column: CLE @ SAS
-  getNextGame() {
-    if (this.props.row.nextGame && this.props.row.nextGame.homeTeam) {
-      // get the home + away teams
-      const homeTeam = find(this.props.row.nextGame, { srid: this.props.row.nextGame.srid_home });
-      const awayTeam = find(this.props.row.nextGame, { srid: this.props.row.nextGame.srid_away });
-
-      // if this player is on the away team, make that bold.
-      if (this.props.row.team_srid === this.props.row.nextGame.srid_away) {
-        return (
-          <span><span className="player-team">{awayTeam.alias}</span> @ {homeTeam.alias}</span>
-        );
-      }
-      // Otherwise, they are on the home team, make that bold.
-      return (
-        <span>{awayTeam.alias} @ <span className="player-team">{homeTeam.alias}</span></span>
-      );
-    }
-
-    return (
-      <span></span>
-    );
-  },
-
-
   render() {
+    // console.log('render player');
     let classes = 'cmp-player-list__row';
     let salaryClasses = 'salary ';
 
@@ -127,22 +103,28 @@ const DraftPlayerListRow = React.createClass({
         </td>
         <td className="position">{this.props.row.position}</td>
         <td className="photo">
-            <img
-              src={`${this.props.playerImagesBaseUrl}/120/${this.props.row.player_srid}.png`}
-              onError={(tag) => {
-                tag.currentTarget.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
-              }}
-              alt=""
-              width="auto"
-              height="35px"
-            />
+          <img
+            src="/static/src/img/blocks/draft-list/lineup-no-player.png"
+            data-src={`${this.props.playerImagesBaseUrl}/120/${this.props.row.player_srid}.png`}
+            onError={(tag) => {
+              tag.currentTarget.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
+            }}
+            alt=""
+            width="auto"
+            height="35px"
+          />
         </td>
         <td className="name">
           <span className="player">{this.props.row.name} </span>
           <span className="team">{this.props.row.team_alias}</span>
         </td>
         <td className="status">{this.props.row.status}</td>
-        <td className="game">{this.getNextGame()}</td>
+        <td className="game">
+          <DraftPlayerNextGame
+            game={this.props.row.nextGame}
+            highlightTeamSrid={this.props.row.team_srid}
+          />
+        </td>
         <td>{this.props.row.fppg.toFixed(1)}</td>
         <td className="history"><Sparkline points={this.props.row.history} /></td>
         <td className={salaryClasses}>${this.props.row.salary.toLocaleString('en')}</td>

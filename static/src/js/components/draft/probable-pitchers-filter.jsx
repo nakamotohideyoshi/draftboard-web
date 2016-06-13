@@ -5,7 +5,6 @@ const ProbablePitchersFilter = React.createClass({
   propTypes: {
     enabled: React.PropTypes.bool,
     onUpdate: React.PropTypes.func.isRequired,
-
   },
 
 
