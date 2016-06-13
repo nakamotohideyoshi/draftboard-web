@@ -979,8 +979,11 @@ class AtBatReducer(AbstractStatReducer):
 
     remove_fields = [
         '_id',
+        'dd_updated__id',
         'parent_api__id',
-        'pitchs'
+        'pitchs',
+        'game__id',
+        'id',
     ]
 
 class AtBatStatsReducer(AbstractStatReducer):
@@ -1115,6 +1118,19 @@ class RunnerManager(object):
             reduced_and_shrunk_runners.append(shrunk_runner)
         return reduced_and_shrunk_runners
 
+class PitchPbpReducer(AbstractStatReducer):
+
+    remove_fields = [
+        '_id',
+        'created_at',
+        'dd_updated__id',
+        'fielders__list',
+        'flags__list',
+        'parent_api__id',
+        'updated_at',
+        'status',
+    ]
+
 class PitchPbp(DataDenPbpDescription):
     """
     given an object whose namespace, parent api is a target like:
@@ -1174,34 +1190,29 @@ class PitchPbp(DataDenPbpDescription):
         # add the zonepitch list
         zone_pitch_cache = CacheList(cache=cache)
         at_bat_srid = self.o.get(self.at_bat_srid_field)
-
-        #
-        # add the zone pitches to the data to be sent to clients
-        data[self.zone_pitches] = zone_pitch_cache.get(key=at_bat_srid)
-        data[self.at_bat]       = self.get_at_bat(at_bat_srid)
-
-        # number the zone pitches
-        pitch_order_map = {}
-        for i, pitch_dict in enumerate(data[self.at_bat].get('pitchs',[])):
-            pitch_srid = pitch_dict.get('pitch', None)
-            pitch_order_map[pitch_srid] = i + 1
-        # now using the pitch_order_map, set the p_idx of the zone pitch
-        for zp in data[self.zone_pitches]:
-            try:
-                zp['p_idx'] = pitch_order_map[zp.get('pitch__id')]
-            except:
-                zp['p_idx'] = -1
+        zone_pitches = zone_pitch_cache.get(key=at_bat_srid)
+        at_bat = self.get_at_bat(at_bat_srid)
 
         # get the runners list from cache (sort of like how we get zone pitches.
         runners_cache           = CacheList(cache=cache)
         # use the pitch_srid as the key for runners list,
         # because runner objects will always be associated with an individual pitch,
         # from what i've seen anyways...
-        data[self.runners]      = runners_cache.get(key=pitch_srid)
+        runners      = runners_cache.get(key=pitch_srid)
+
+        zone_pitch_manager = ZonePitchManager(zone_pitches, at_bat)
+        #reduced_and_shrunk_zone_pitches = zone_pitch_manager.get_data()
+        runner_manager = RunnerManager(runners)
+        reduced_and_shrunk_runners = runner_manager.get_data()
+
+        # add the zone pitches to the data to be sent to clients
+        data[self.zone_pitches] = zone_pitch_manager.get_data()
+        data[self.at_bat]       = AtBatReducer(at_bat).reduce()
+        data[self.runners]      = runner_manager.get_data()
 
         # add the playerStats object for the hitter in the current at_bat
         player_stats_cache = PlayerStats.get_cache_list()
-        player_stats_obj_list = player_stats_cache.get(key=self.get_at_bat(at_bat_srid).get('hitter_id'))
+        player_stats_obj_list = player_stats_cache.get(key=at_bat.get('hitter_id'))
 
         # add the stats object for the current at_bat hitter
         data[self.at_bat_stats] = None
@@ -1211,12 +1222,9 @@ class PitchPbp(DataDenPbpDescription):
             # reduction
             data[self.at_bat_stats] = atbat_stats_reducer.reduce()
 
-        # reduction
-        reduced_zone_pitches = []
-        for zp in data[self.zone_pitches]:
-            zp_reducer = ZonePitchReducer(zp)
-            reduced_zone_pitches.append(zp_reducer.reduce())
-        data[self.zone_pitches] = reduced_zone_pitches
+        # reduce the pbp object last, incase any of its fields
+        # are internally used previous to reducing it.
+        data[self.linked_pbp_field] = PitchPbpReducer(data[self.linked_pbp_field]).reduce()
 
         # return the linked data
         return data
