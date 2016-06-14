@@ -7,6 +7,7 @@ import LiveMLBPitchZone from './live-mlb-pitch-zone';
  */
 const LiveMLBStadium = (props) => {
   let renderPitchZones = [];
+  let renderHitterInfo = '';
   const { watching } = props;
 
   if (watching.myLineupId) {
@@ -16,6 +17,15 @@ const LiveMLBStadium = (props) => {
       const { eventsMultipart } = props;
       const eventId = eventsMultipart.watchablePlayers[watching.myPlayerSRID];
       event = eventsMultipart.events[eventId] || {};
+
+      const hitterInfo = event.message.at_bat_stats;
+      renderHitterInfo = (
+        <div className="live-mlb-stadium__hitter-info hitter-info">
+          <div className="hitter-info__at-bat">At bat</div>
+          <div className="hitter-info__name">{`4. ${hitterInfo.preferred_name} ${hitterInfo.last_name}`}</div>
+          <div className="hitter-info__game-record">1 for 3 (2B, B)</div>
+        </div>
+      );
     }
 
     const pitchZoneBlock = (<LiveMLBPitchZone key="0" event={event} whichSide="mine" />);
@@ -54,6 +64,7 @@ const LiveMLBStadium = (props) => {
     <section className="cmp-live__mlb-stadium live-mlb-stadium">
       <div className="pitch-zone-filler" />
       {renderPitchZones}
+      {renderHitterInfo}
     </section>
   );
 };

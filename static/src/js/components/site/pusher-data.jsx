@@ -75,7 +75,10 @@ export const PusherData = React.createClass({
    * Receive socket messages when everything is ready
    */
   componentWillReceiveProps(nextProps) {
-    if (nextProps.hasRelatedInfo && nextProps.draftGroupTiming.started) {
+    if (nextProps.hasRelatedInfo &&
+        nextProps.draftGroupTiming.started &&
+        !nextProps.relevantGamesPlayers.isLoading
+    ) {
       if (!this.state.loadedBoxscores) {
         const boxscoresChannel = this.state.pusher.subscribe(`${this.state.channelPrefix}boxscores`);
         boxscoresChannel.bind('game', (message) => this.props.actions.onBoxscoreGameReceived(message));
@@ -106,22 +109,22 @@ export const PusherData = React.createClass({
   subscribeToSportSockets(newSports) {
     log.trace('pusherData.subscribeToSockets()');
 
-    const { actions, myLineup, relevantGamesPlayers } = this.props;
+    const { actions } = this.props;
     const { pusher, channelPrefix } = this.state;
-    const { draftGroupId } = myLineup;
 
+    // note that when binding, we need to reference `this.props` so that when the event occurs, it pulls latest props
     newSports.map((sport) => {
       const pbpChannel = pusher.subscribe(`${channelPrefix}${sport}_pbp`);
       pbpChannel.bind('event', (message) => actions.onPBPEventReceived(
-        message, sport, draftGroupId, relevantGamesPlayers
+        message, sport, this.props.relevantGamesPlayers.relevantItems.players
       ));
       pbpChannel.bind('linked', (message) => actions.onPBPReceived(
-        message, sport, draftGroupId, relevantGamesPlayers
+        message, sport, this.props.relevantGamesPlayers.relevantItems.players
       ));
 
       const statsChannel = pusher.subscribe(`${channelPrefix}${sport}_stats`);
       statsChannel.bind('player', (message) => actions.onPlayerStatsReceived(
-        message, sport, draftGroupId, relevantGamesPlayers
+        message, sport, this.props.myLineup.draftGroupId, this.props.relevantGamesPlayers.relevantItems.games
       ));
     });
   },
