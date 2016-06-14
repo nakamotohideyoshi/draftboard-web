@@ -1,6 +1,8 @@
 import LiveMLBDiamond from './mlb/live-mlb-diamond';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import React from 'react';
+import forEach from 'lodash/forEach';
+import merge from 'lodash/merge';
 import { extend } from 'lodash';
 import { size as _size } from 'lodash';
 import { humanizeFP } from '../../actions/sports';
@@ -13,6 +15,7 @@ const LiveLineupPlayer = React.createClass({
     eventDescription: React.PropTypes.object.isRequired,
     gameStats: React.PropTypes.object.isRequired,
     isPlaying: React.PropTypes.bool.isRequired,
+    isRunner: React.PropTypes.bool.isRequired,
     isWatchable: React.PropTypes.bool.isRequired,
     isWatching: React.PropTypes.bool.isRequired,
     multipartEvent: React.PropTypes.object.isRequired,
@@ -116,33 +119,69 @@ const LiveLineupPlayer = React.createClass({
     );
   },
 
-  renderWatching() {
-    const { player } = this.props;
+  renderMLBWatching() {
+    const { player, multipartEvent, isRunner, isWatchable, isWatching } = this.props;
 
     // only applicable sport right now
-    if (this.props.sport !== 'mlb') {
-      return [];
-    }
-
-    const diamondProps = {
-      key: player.id,
-      first: 'mine',
-      second: 'both',
-      third: 'opponent',
-    };
+    if (this.props.sport !== 'mlb') return [];
 
     let status = 'possible';
     const elements = [];
 
-    // override isWatchable and add in watching indicator
-    if (this.props.isWatching) {
-      status = 'active';
+    // default to no one on base
+    const defaultDiamond = {
+      key: player.id,
+      first: 'none',
+      second: 'none',
+      third: 'none',
+    };
 
+    // map to convert socket call to needed css classname
+    const diamondMap = {
+      1: 'first',
+      2: 'second',
+      3: 'third',
+      4: 'home',
+    };
+
+    // override isWatchable and add in watching indicator
+    if (isWatching) {
+      status = 'active';
       elements.push((<div key="8" className="live-lineup-player__watching-indicator" />));
     }
 
+    if (isRunner) {
+      const runnerDiamond = merge({}, defaultDiamond);
+
+      // add runner to diamond
+      const runnerProps = multipartEvent.runners.filter(runner => runner.playerSrid === player.srid)[0];
+      const baseName = diamondMap[runnerProps.endingBase];
+      runnerDiamond[baseName] = runnerProps.whichSide;
+
+      elements.push((
+        <div className="live-lineup-player__runner-bases">
+          {React.createElement(
+            LiveMLBDiamond, extend({}, runnerDiamond)
+          )}
+        </div>
+      ));
+    }
+
     // always put in the watchable information
-    if (this.props.isWatchable) {
+    if (isWatchable) {
+      const watchingDiamondProps = merge({}, defaultDiamond);
+
+      // put runners on base
+      forEach(multipartEvent.runners, (runner) => {
+        const baseName = diamondMap[runner.endingBase];
+        watchingDiamondProps[baseName] = runner.whichSide;
+      });
+
+      const { when, pitchCount } = multipartEvent;
+
+      let halfInningString = 'bottom';
+      if (when.half === 't') halfInningString = 'top';
+
       elements.push((
         <div
           key="9"
@@ -153,16 +192,19 @@ const LiveLineupPlayer = React.createClass({
           <div className="live-player-watching__name-stats">
             <div className="live-player-watching__name">{player.name}</div>
             <div className="live-player-watching__stats">
-              <span>1B/2S - 2 Outs</span>
-              <span className="live-player-watching__inning live-player-watching__inning--bottom">
-                5th
+              <span>{pitchCount}</span>
+              <span className={`live-player-watching__inning live-player-watching__inning--${halfInningString}`}>
+                <svg className="down-arrow" viewBox="0 0 40 22.12">
+                  <path d="M20,31.06L0,8.94H40Z" transform="translate(0 -8.94)" />
+                </svg>
+                {multipartEvent.when.inning}
               </span>
             </div>
             <div className="live-player-watching__choose">Click Here to Watch</div>
           </div>
           <div className="live-player-watching__bases">
             {React.createElement(
-              LiveMLBDiamond, extend({}, diamondProps)
+              LiveMLBDiamond, extend({}, watchingDiamondProps)
             )}
           </div>
         </div>
@@ -227,7 +269,7 @@ const LiveLineupPlayer = React.createClass({
     ];
 
     // add in watching, if applicable
-    playerElements = [...playerElements, ...this.renderWatching()];
+    playerElements = [...playerElements, ...this.renderMLBWatching()];
 
     // flip the order of elements for opponent
     if (this.props.whichSide === 'opponent') {

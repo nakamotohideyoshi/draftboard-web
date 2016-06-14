@@ -153,8 +153,20 @@ const LiveLineup = React.createClass({
       const eventDescription = this.props.playerEventDescriptions[playerSRID] || {};
       const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.watching.sport}/120`;
       const gameStats = this.props.relevantPlayersGameStats[playerSRID] || {};
-      const isWatchable = this.props.watchablePlayers.hasOwnProperty(playerSRID);
-      const multipartEvent = this.props.multipartEvents[player.srid] || {};
+
+      let multipartEvent = {};
+      let isWatchable = false;
+      let isRunner = false;
+      if (this.props.watchablePlayers[playerSRID]) {
+        const eventSrid = this.props.watchablePlayers[playerSRID];
+        multipartEvent = this.props.multipartEvents[eventSrid];
+
+        if (multipartEvent.runnerIds.indexOf(playerSRID) !== -1) {
+          isRunner = true;
+        } else {
+          isWatchable = true;
+        }
+      }
 
       return (
         <LiveLineupPlayer
@@ -164,6 +176,7 @@ const LiveLineup = React.createClass({
           isPlaying={isPlaying}
           isWatchable={isWatchable}
           isWatching={isWatching}
+          isRunner={isRunner}
           key={playerId}
           multipartEvent={multipartEvent}
           openPlayerPane={this.openPlayerPane.bind(this, playerId)}

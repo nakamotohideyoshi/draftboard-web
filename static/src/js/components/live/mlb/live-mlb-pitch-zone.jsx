@@ -10,7 +10,7 @@ const LiveMLBPitchZone = (props) => {
     <li
       key={pitch.count}
       className={`pitch pitch--${pitch.outcome} pitch--zone-${pitch.zone}`}
-      style={{ zIndex: `${pitch.count}` }}
+      style={{ zIndex: `${pitch.count}`, left: `${pitch.left}%`, top: `${pitch.top}%` }}
     >
       <div className="pitch-count">{pitch.count}</div>
       <div className="pitch-info">

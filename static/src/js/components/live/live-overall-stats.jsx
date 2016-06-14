@@ -211,10 +211,11 @@ const LiveOverallStats = React.createClass({
       rank = this.props.contest.potentialWinnings.rank || '';
       potentialWinnings = this.props.contest.potentialWinnings.amount || 0;
     }
-    rank = ordinal(rank);
+    rank = `${ordinal(rank)} /`;
 
     if (this.props.lineup.id === 1) {
       potentialWinnings = 'N/A';
+      rank = '';
     } else if (potentialWinnings === 0) {
       potentialWinnings = `$${potentialWinnings}`;
     } else {
@@ -223,7 +224,7 @@ const LiveOverallStats = React.createClass({
 
     return (
       <div className="live-overall-stats__stats">
-        <span className="live-overall-stats__rank">{rank} / </span>
+        <span className="live-overall-stats__rank">{rank}</span>
         <span className="live-overall-stats__potential-winnings">{potentialWinnings}</span>
       </div>
     );
