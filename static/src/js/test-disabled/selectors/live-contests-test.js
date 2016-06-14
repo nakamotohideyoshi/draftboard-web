@@ -7,7 +7,7 @@ import { size as _size } from 'lodash'
 
 import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/live-config'
-import { fetchEntriesIfNeeded, addEntriesPlayers } from '../../actions/entries'
+import { fetchCurrentEntriesAndRelated, addEntriesPlayers } from '../../actions/entries'
 import { myLiveContestsSelector } from '../../selectors/live-contests'
 import { mockStore } from '../mock-store'
 
@@ -27,7 +27,7 @@ describe('selectorsLiveContests', () => {
   it('should properly return data for myLiveContestsSelector', (done) => {
     const store = mockStore(reducers, { entries: {} })
 
-    store.dispatch(fetchEntriesIfNeeded()).then(() => {
+    store.dispatch(fetchCurrentEntriesAndRelated()).then(() => {
       var state = store.getState()
       var data = myLiveContestsSelector(state)
 

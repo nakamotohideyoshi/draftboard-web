@@ -28,6 +28,20 @@ const getLevel = () => {
 
 // get and set the appropriate logging level
 export const logLevel = getLevel();
+
+// modify logger to have filtering capabilities
+const originalFactory = log.methodFactory;
+log.methodFactory = (methodName, level, loggerName) => {
+  const rawMethod = originalFactory(methodName, level, loggerName);
+
+  return (message) => {
+    if (Array.isArray(message)) {
+      rawMethod(`Is array: ${message}`);
+    } else {
+      rawMethod(`NOT: ${message}`);
+    }
+  };
+};
 log.setLevel(logLevel);
 
 // by default, export the log object to work with

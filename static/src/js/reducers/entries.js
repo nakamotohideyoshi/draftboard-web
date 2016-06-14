@@ -15,33 +15,31 @@ module.exports = (state = {
   const newState = _merge({}, state);
 
   switch (action.type) {
-    case ActionTypes.RECEIVE_ENTRIES_UPCOMING_LINEUPS:
-
-      _forEach(newState.items, (entry, index) => {
-        const lineup = action.lineups[entry.lineup];
-        if (typeof lineup !== 'undefined' && lineup.hasOwnProperty('players')) {
-          newState.items[index].roster = _map(lineup.players, player => player.player_id);
-        }
-      });
-
-      return newState;
-
-    case ActionTypes.ADD_ENTRIES_PLAYERS:
-
+    case ActionTypes.ENTRIES__ADD_PLAYERS:
       _forEach(action.entriesPlayers, (roster, entryId) => {
         newState.items[entryId].roster = roster;
       });
 
       return newState;
 
-    case ActionTypes.CONFIRM_RELATED_ENTRIES_INFO:
+    case ActionTypes.ENTRIES_ROSTERS__RECEIVE:
+      _forEach(newState.items, (entry, index) => {
+        const lineup = action.response.entriesRosters[entry.lineup] || {};
+        if (lineup.hasOwnProperty('players')) {
+          newState.items[index].roster = _map(lineup.players, player => player.playerId);
+        }
+      });
+
+      return newState;
+
+    case ActionTypes.ENTRIES__RELATED_INFO_SUCCESS:
       return update(state, {
         $merge: {
           hasRelatedInfo: true,
         },
       });
 
-    case ActionTypes.REQUEST_ENTRIES:
+    case ActionTypes.ENTRIES__REQUEST:
       return update(state, {
         $merge: {
           isFetching: true,
@@ -49,17 +47,16 @@ module.exports = (state = {
         },
       });
 
-
-    case ActionTypes.RECEIVE_ENTRIES:
+    case ActionTypes.ENTRIES__RECEIVE:
       return update(state, {
         $set: {
           isFetching: false,
           hasRelatedInfo: false,
-          items: action.items,
+          // items: action.items,
+          items: action.response.entries,
           expiresAt: action.expiresAt,
         },
       });
-
 
     default:
       return state;

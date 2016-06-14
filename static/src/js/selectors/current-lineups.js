@@ -6,7 +6,7 @@ import reduce from 'lodash/reduce';
 import size from 'lodash/size';
 import zipObject from 'lodash/zipObject';
 import { assembleCurrentPlayer } from './live-draft-groups';
-import { calcDecimalRemaining, GAME_DURATIONS } from '../actions/sports';
+import { calcDecimalRemaining, SPORT_CONST } from '../actions/sports';
 import { createSelector } from 'reselect';
 import { gamesTimeRemainingSelector } from './sports';
 
@@ -27,7 +27,7 @@ export const calcRosterFP = (roster) => reduce(roster || {}, (sum, player) => (s
  * @return {object}         Return timeRemaining in decimal and quantity
  */
 export const calcRosterTimeRemaining = (sport, roster = {}) => {
-  const sportConst = GAME_DURATIONS[sport] || null;
+  const sportConst = SPORT_CONST[sport] || null;
 
   // if not valid sport, return default of no time left
   if (sportConst === null) {

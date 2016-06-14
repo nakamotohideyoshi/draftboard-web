@@ -1,7 +1,8 @@
 import { routerReducer as routing } from 'react-router-redux';
 import { combineReducers } from 'redux';
 
-const contestPoolEntries = require('./contest-pool-entries.js');
+const asyncFailures = require('./async-failures');
+const contestPoolEntries = require('./contest-pool-entries');
 const createLineup = require('./create-lineup');
 const currentDraftGroups = require('./current-draft-groups');
 const currentLineups = require('./current-lineups');
@@ -20,9 +21,9 @@ const liveDraftGroups = require('./live-draft-groups');
 const livePlayers = require('./live-players');
 const messages = require('./messages');
 const payments = require('./payments');
-const playerBoxScoreHistory = require('./player-box-score-history.js');
-const playerNews = require('./player-news.js');
-const pollingTasks = require('./polling-tasks.js');
+const playerBoxScoreHistory = require('./player-box-score-history');
+const playerNews = require('./player-news');
+const pollingTasks = require('./polling-tasks');
 const prizes = require('./prizes');
 const results = require('./results');
 const sports = require('./sports');
@@ -39,6 +40,7 @@ const watching = require('./watching');
  * single place.
  */
 export default combineReducers({
+  asyncFailures,
   contestPoolEntries,
   createLineup,
   currentDraftGroups,

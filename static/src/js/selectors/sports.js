@@ -5,7 +5,7 @@ import {
   round as _round,
 } from 'lodash';
 import { createSelector } from 'reselect';
-import { GAME_DURATIONS } from '../actions/sports';
+import { SPORT_CONST } from '../actions/sports';
 
 
 const currentGames = (state) => state.sports.games;
@@ -25,7 +25,7 @@ export const sportsSelector = createSelector(
     _forEach(sports.games, (game, gameId) => {
       const newGame = sports.games[gameId];
       const sport = game.sport;
-      const sportConst = GAME_DURATIONS[sport];
+      const sportConst = SPORT_CONST[sport];
       const teams = sports[sport].teams;
 
       // Add team information - In case we don't have team info yet, default to

@@ -5,7 +5,7 @@ import map from 'lodash/map';
 import merge from 'lodash/merge';
 import zipObject from 'lodash/zipObject';
 import { dateNow } from '../lib/utils';
-import { GAME_DURATIONS } from './sports';
+import { SPORT_CONST } from './sports';
 
 
 // dispatch to reducer methods
@@ -43,7 +43,7 @@ const receivePlayersStats = (lineupId, response) => {
 
     const playerFields = player.data[0].fields;
     const sport = player.data[0].model.split('.')[0];
-    const seasonStatTypes = GAME_DURATIONS[sport].seasonStats.types;
+    const seasonStatTypes = SPORT_CONST[sport].seasonStats.types;
 
     // combine id with the season stats we need and that's it
     const onlyNeededFields = zipObject(

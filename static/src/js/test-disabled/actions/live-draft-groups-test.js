@@ -32,12 +32,12 @@ describe('actionsLiveDraftGroups', () => {
 
       // requestLiveDraftGroup
       function(action, state) {
-        expect(action.type).to.equal('REQUEST_LIVE_DRAFT_GROUP_INFO')
+        expect(action.type).to.equal('LIVE_DRAFT_GROUP__INFO__REQUEST')
       },
 
       // receiveLiveDraftGroup
       function(action) {
-        expect(action.type).to.equal('RECEIVE_LIVE_DRAFT_GROUP_INFO')
+        expect(action.type).to.equal('LIVE_DRAFT_GROUP__INFO__RECEIVE')
         expect(_size(action.players)).to.equal(74)
       },
 

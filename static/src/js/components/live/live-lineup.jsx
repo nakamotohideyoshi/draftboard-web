@@ -5,7 +5,8 @@ import LivePlayerPane from './live-player-pane';
 import log from '../../lib/logging';
 import React from 'react';
 import size from 'lodash/size';
-import { updateLiveMode } from '../../actions/watching';
+import { bindActionCreators } from 'redux';
+import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching';
 import {
   relevantPlayerBoxScoreHistoriesSelector,
   relevantPlayerTeamsSelector,
@@ -13,6 +14,18 @@ import {
 } from '../../selectors/live-players';
 import { sportsSelector } from '../../selectors/sports';
 
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component, wrapped in 'action' key
+ */
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    updateLiveMode,
+    updateWatchingAndPath,
+  }, dispatch),
+});
 
 /*
  * Map selectors to the React component
@@ -37,20 +50,19 @@ const mapStateToProps = (state) => ({
 const LiveLineup = React.createClass({
 
   propTypes: {
-    changePathAndMode: React.PropTypes.func.isRequired,
-    dispatch: React.PropTypes.func.isRequired,
+    actions: React.PropTypes.object.isRequired,
     draftGroupStarted: React.PropTypes.bool.isRequired,
     lineup: React.PropTypes.object.isRequired,
-    watching: React.PropTypes.object.isRequired,
     multipartEvents: React.PropTypes.object.isRequired,
     playerEventDescriptions: React.PropTypes.object.isRequired,
-    playersPlaying: React.PropTypes.array.isRequired,
     playerHistories: React.PropTypes.object.isRequired,
+    playersPlaying: React.PropTypes.array.isRequired,
     relevantPlayersGameStats: React.PropTypes.object.isRequired,
     relevantPlayerTeamsSelector: React.PropTypes.object.isRequired,
     relevantSeasonStats: React.PropTypes.object.isRequired,
     sports: React.PropTypes.object.isRequired,
     watchablePlayers: React.PropTypes.object.isRequired,
+    watching: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
   },
 
@@ -66,24 +78,26 @@ const LiveLineup = React.createClass({
    * @param {string} playerSRID  Sports Radar ID of the player
    */
   setWatchingPlayer(playerSRID) {
-    if (this.props.whichSide === 'opponent') {
-      this.props.dispatch(updateLiveMode({ opponentPlayerSRID: playerSRID }));
+    const { whichSide, actions } = this.props;
+
+    if (whichSide === 'opponent') {
+      actions.updateLiveMode({ opponentPlayerSRID: playerSRID });
     } else {
-      this.props.dispatch(updateLiveMode({ myPlayerSRID: playerSRID }));
+      actions.updateLiveMode({ myPlayerSRID: playerSRID });
     }
   },
 
   /**
-   * Used to close the current opponent lineup. Sets up parameters to then call props.changePathAndMode()
+   * Used to close the current opponent lineup. Sets up parameters to then call props.updateWatchingAndPath()
    */
   closeLineup() {
-    const watching = this.props.watching;
+    const { watching, actions } = this.props;
     const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/contests/${watching.contestId}`;
     const changedFields = {
       opponentLineupId: null,
     };
 
-    this.props.changePathAndMode(path, changedFields);
+    actions.updateWatchingAndPath(path, changedFields);
 
     // open the standings pane back up
     AppActions.addClass('appstate--live-standings-pane--open');
@@ -228,8 +242,7 @@ const LiveLineup = React.createClass({
 const { connect } = ReactRedux;
 
 // Wrap the component to inject dispatch and selected state into it.
-const LiveLineupConnected = connect(
-  mapStateToProps
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
 )(LiveLineup);
-
-export default LiveLineupConnected;
