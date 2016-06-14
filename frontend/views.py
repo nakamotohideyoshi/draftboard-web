@@ -32,6 +32,7 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
         """
         contests = CurrentContest.objects.all()
         entries = Entry.objects.filter(lineup__user=request.user, contest__in=contests)
+        sport = kwargs['sport'] if 'sport' in kwargs else None
 
         # if lineup id is not related to user, then redirect to live base url
         lineup_id = kwargs['lineup_id'] if 'lineup_id' in kwargs else None
@@ -45,18 +46,18 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
             if entries.filter(contest__pk=contest_id).count() == 0:
                 return HttpResponseRedirect(reverse('frontend:live-lineup-mode', kwargs={
                     'lineup_id': lineup_id,
+                    'sport': sport,
                 }))
-
-            contest = contests.filter(pk=contest_id)[0]
 
         # if opponent is not in the contest, then redirect back to contest mode
         opponent_lineup_id = kwargs['opponent_lineup_id'] if 'opponent_lineup_id' in kwargs else None
         if opponent_lineup_id:
             # if 1 then we know it's the villian watch
-            if opponent_lineup_id is not '1' and Entry.objects.filter(contest__id=contest_id, lineup__pk=opponent_lineup_id).count() == 0:
+            if opponent_lineup_id is '1' or Entry.objects.filter(contest__id=contest_id, lineup__pk=opponent_lineup_id).count() == 0:
                 return HttpResponseRedirect(reverse('frontend:live-contest-mode', kwargs={
                     'lineup_id': lineup_id,
-                    'contest_id': contest_id
+                    'contest_id': contest_id,
+                    'sport': sport,
                 }))
 
         return super(FrontendLiveTemplateView, self).get(request, *args, **kwargs)

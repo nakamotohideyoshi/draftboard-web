@@ -94,7 +94,7 @@ export const fetchCurrentEntries = () => ({
       ActionTypes.ADD_MESSAGE,
     ],
     expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
-    endpoint: '/api/contest/contest-pools/current-entries/2',
+    endpoint: '/api/contest/contest-pools/current-entries/',
     callback: (json) => {
       const camelizedJson = camelizeKeys(json);
       return normalize(camelizedJson, arrayOf(entrySchema)).entities;
