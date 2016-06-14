@@ -8,6 +8,28 @@
     min-height: 215px;
   }
 
+  &__hitter-info {
+    padding-top: 20px;
+
+    .hitter-info {
+      &__at-bat,
+      &__game-record {
+        color: #878b9c;
+        font-size: 9px;
+        font-weight: 500;
+        line-height: 2.2;
+        text-transform: uppercase;
+      }
+
+      &__name {
+        color: #fff;
+        font-family: $font-oswald;
+        font-size: 16px;
+        text-transform: uppercase;
+      }
+    }
+  }
+
   &__splitscreen--mine,
   &__splitscreen--opponent {
     width: 50%;
@@ -76,7 +98,7 @@
     height: 215px;
     left: 0;
     position: absolute;
-    bottom: 10%;
+    bottom: 14%;
     text-align: center;
     width: 100%;
 

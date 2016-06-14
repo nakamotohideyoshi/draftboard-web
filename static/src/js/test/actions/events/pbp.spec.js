@@ -51,7 +51,7 @@ describe('actions.events.pbp.onPBPReceived', () => {
     const message = { stats: {}, pbp: { game__id: 'game3' } };
 
     assert.equal(
-      store.dispatch(actions.onPBPReceived(message, 'mlb', 'myDraftGroupId', [])),
+      store.dispatch(actions.onPBPReceived(message, 'mlb', [])),
       false
     );
   });
@@ -65,7 +65,7 @@ describe('actions.events.pbp.onPBPReceived', () => {
       },
       stats: {},
     };
-    const response = store.dispatch(actions.onPBPReceived(message, 'mlb', 'myDraftGroupId', relevantPlayers));
+    const response = store.dispatch(actions.onPBPReceived(message, 'mlb', relevantPlayers));
     assert.deepEqual(
       response.message.addedData.eventPlayers,
       ['player1', 'player4']
@@ -85,7 +85,7 @@ describe('actions.events.pbp.onPBPReceived', () => {
       ],
       stats: {},
     };
-    const response = store.dispatch(actions.onPBPReceived(message, 'mlb', 'myDraftGroupId', relevantPlayers));
+    const response = store.dispatch(actions.onPBPReceived(message, 'mlb', relevantPlayers));
     assert.deepEqual(
       response.message.addedData.eventPlayers,
       ['player1', 'player4', 'player5', 'player6']
@@ -102,7 +102,7 @@ describe('actions.events.pbp.onPBPReceived', () => {
       stats: {},
     };
     assert.equal(
-      store.dispatch(actions.onPBPReceived(message, 'mlb', 'myDraftGroupId', relevantPlayers)),
+      store.dispatch(actions.onPBPReceived(message, 'mlb', relevantPlayers)),
       playerStatsRan
     );
   });
@@ -117,7 +117,7 @@ describe('actions.events.pbp.onPBPReceived', () => {
       stats: {},
     };
     assert.equal(
-      store.dispatch(actions.onPBPReceived(message, 'mlb', 'myDraftGroupId', relevantPlayers)).type,
+      store.dispatch(actions.onPBPReceived(message, 'mlb', relevantPlayers)).type,
       addEventRan.type
     );
   });

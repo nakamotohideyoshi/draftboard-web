@@ -64,7 +64,7 @@ const isPBPUsed = (message, sport) => {
  *
  * @param  {object} message The received event from Pusher
  */
-export const onPBPReceived = (message, sport, draftGroupId, relevantPlayers) => (dispatch, getState) => {
+export const onPBPReceived = (message, sport, relevantPlayers) => (dispatch, getState) => {
   const pbp = message.pbp;
   const gameId = pbp.game__id;
 
@@ -73,8 +73,7 @@ export const onPBPReceived = (message, sport, draftGroupId, relevantPlayers) => 
 
   const eventPlayers = compileEventPlayers(message, sport);
   if (intersection(relevantPlayers, eventPlayers).length === 0) {
-    const stats = merge({ draftGroupId }, pbp.stats);
-    return dispatch(updatePBPPlayersStats(stats));
+    return dispatch(updatePBPPlayersStats(message.stats));
   }
 
   const loadedMessage = merge(message, {
@@ -90,10 +89,10 @@ export const onPBPReceived = (message, sport, draftGroupId, relevantPlayers) => 
 /*
  * Shortcut method to pull events into linked, as it's a subset of linked anyways
  */
-export const onPBPEventReceived = (message, sport, draftGroupId, relevantPlayers) => (dispatch) => {
+export const onPBPEventReceived = (message, sport, relevantPlayers) => (dispatch) => {
   const linkedMessage = {
     pbp: message,
   };
 
-  return dispatch(onPBPReceived(linkedMessage, sport, draftGroupId, relevantPlayers));
+  return dispatch(onPBPReceived(linkedMessage, sport, relevantPlayers));
 };
