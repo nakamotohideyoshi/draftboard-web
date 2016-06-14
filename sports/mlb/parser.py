@@ -3,6 +3,7 @@
 
 from collections import (
     OrderedDict,
+    Counter,
 )
 from django.db.transaction import atomic
 from django.core.cache import cache
@@ -813,7 +814,8 @@ class PlayerStats(DataDenPlayerStats):
         o = obj.get_o()
 
         # stash this player in the cache, for his srid
-        self.cache_list.add(o.get('id'), o)
+        player_srid = o.get('id')
+        self.cache_list.add(player_srid, o)
 
         #
         # we do NOT want to parse the objects if they do not have 'statistics__list' key!
@@ -837,11 +839,9 @@ class PlayerStats(DataDenPlayerStats):
 
             # collect pitching stats
             statistics = o.get('statistics__list', {}) # default will useful if it doenst exist
-            #print('')
-            #print( statistics )
+
             pitching = statistics.get('pitching__list', {})
-            #print('')
-            #print( pitching )
+
             games   = pitching.get('games__list', {})
             onbase  = pitching.get('onbase__list', {})
             runs    = pitching.get('runs__list', {})
@@ -871,11 +871,9 @@ class PlayerStats(DataDenPlayerStats):
                 return # if super().parse() doesnt create this, get out of here
 
             statistics = o.get('statistics__list', {})
-            #print('')
-            #print( statistics )
+
             hitting = statistics.get('hitting__list', {}) # default will useful if it doenst exist
-            #print('')
-            #print( hitting )
+
             onbase  = hitting.get('onbase__list', {})
             runs    = hitting.get('runs__list', {})
             steals  = hitting.get('steal__list', {})
@@ -950,7 +948,6 @@ class RunnerReducer(AbstractStatReducer):
         'dd_updated__id',
         'first_name',
         'game__id',
-        'id',
         'jersey_number',
         'parent_api__id',
         'parent_list__id',
@@ -1063,11 +1060,14 @@ class ZonePitchSorter(object):
         # which should leave us with no duplicates.
         indexed_pitch_map = {}
         for zone_pitch in self.zone_pitches:
-            at_bat_idx = pitch_order_map[zone_pitch.get('pitch__id')]
+            try:
+                at_bat_idx = pitch_order_map[zone_pitch.get('pitch__id')] # TODO - this raises exception sometimes
+            except KeyError:
+                print("known Exception KeyError! on at_bat_idx = pitch_order_map[zone_pitch.get('pitch__id')]")
+                #raise Exception('')
             zone_pitch[self.at_bat_pitch_count] = at_bat_idx
             indexed_pitch_map[at_bat_idx] = zone_pitch
             # TODO i need to add the at bat index to the zone_pitch json!
-            print(zone_pitch)
         #
         ordered_zps = OrderedDict(sorted(indexed_pitch_map.items()))
         return [ zp for zp in ordered_zps.values() ]
@@ -1125,6 +1125,7 @@ class PitchPbpReducer(AbstractStatReducer):
         'created_at',
         'dd_updated__id',
         'fielders__list',
+        'runners__list',
         'flags__list',
         'parent_api__id',
         'updated_at',
@@ -1132,6 +1133,15 @@ class PitchPbpReducer(AbstractStatReducer):
     ]
 
 class HittingListToStr(object):
+    """
+    format a string based on the 'hitting__list' in dataden player hitter stats object
+    into something like:
+
+        "1 for 3 (HR, B)"
+
+    """
+
+    DESCRIPTION_NO_AT_BATS = '0 for 0'
 
     def __init__(self, hitting_list):
         #         "hitting__list" : {
@@ -1210,29 +1220,23 @@ class HittingListToStr(object):
         self.data = hitting_list
 
     def get_description(self):
+        if self.data is None or self.data == {}:
+            return self.DESCRIPTION_NO_AT_BATS
+        # ab, h, R, RBI, B, HBP, HR, 2B, 3B, SB
         stat_desc_list = []
         onbase_list = self.data.get('onbase__list', {})
         runs_list = self.data.get('runs__list', {})
+        steal_list = self.data.get('steal__list', {})
         at_bats = self.data.get('ab')
         hits = onbase_list.get('h')
-        stat_desc_list.append( self.__format_stat( 'R', runs_list.get('total') ) )
-        stat_desc_list.append( self.__format_stat( 'RBI', self.data.get('rbi') ) )
-        #                 "bb" : 1,
-        #                 "d" : 1,
-        #                 "fc" : 0,
-        #                 "h" : 2,
-        #                 "hbp" : 0,
-        #                 "hr" : 0,
-        #                 "ibb" : 0,
-        #                 "roe" : 0,
-        #                 "s" : 1,
-        #                 "t" : 0,
-        #                 "tb" : 3
-        stat_desc_list.append( self.__format_stat( 'B', onbase_list.get('bb') ) )
-        stat_desc_list.append( self.__format_stat( 'HBP', onbase_list.get('hbp') ) )
-        stat_desc_list.append( self.__format_stat( 'HR',  onbase_list.get('hr') ) )
-        stat_desc_list.append( self.__format_stat( '2B', onbase_list.get('d') ) )
-        stat_desc_list.append( self.__format_stat( '3B', onbase_list.get('t') ) )
+        stat_desc_list.append( self.format_stat( 'R', runs_list.get('total') ) )
+        stat_desc_list.append( self.format_stat( 'RBI', self.data.get('rbi') ) )
+        stat_desc_list.append( self.format_stat( 'B', onbase_list.get('bb') ) )
+        stat_desc_list.append( self.format_stat( 'HBP', onbase_list.get('hbp') ) )
+        stat_desc_list.append( self.format_stat( 'HR',  onbase_list.get('hr') ) )
+        stat_desc_list.append( self.format_stat( '2B', onbase_list.get('d') ) )
+        stat_desc_list.append( self.format_stat( '3B', onbase_list.get('t') ) )
+        stat_desc_list.append( self.format_stat( 'SB', steal_list.get('stolen') ) )
 
         # generaet the return string
         desc = '%s for %s' % (hits, at_bats)
@@ -1243,13 +1247,48 @@ class HittingListToStr(object):
             desc += suffix
         return desc
 
-    def __format_stat(self, name, value):
+    def format_stat(self, name, value):
         if value is None or value == 0:
             return ''
         elif value == 1:
             return name
 
         return '%s %s' % (int(value), name)
+
+class PlayerStatsToStr(HittingListToStr):
+
+    def __init__(self, player_stats_instance):
+        super().__init__(player_stats_instance)
+
+    def get_description(self):
+        if self.data is None or self.data == {}:
+            return self.DESCRIPTION_NO_AT_BATS
+
+        # ab, h, R, RBI, B, HBP, HR, 2B, 3B, SB
+        stat_desc_list = []
+        singles = self.data.s
+        doubles = self.data.d
+        triples = self.data.t
+        homers  = self.data.hr
+        at_bats = self.data.ab
+        hits = singles + doubles + triples + homers
+        stat_desc_list.append( self.format_stat( 'R',   self.data.r ) )
+        stat_desc_list.append( self.format_stat( 'RBI', self.data.rbi ) )
+        stat_desc_list.append( self.format_stat( 'B',   self.data.bb ) )
+        stat_desc_list.append( self.format_stat( 'HBP', self.data.hbp ) )
+        stat_desc_list.append( self.format_stat( 'HR',  homers ) )
+        stat_desc_list.append( self.format_stat( '2B',  doubles ) )
+        stat_desc_list.append( self.format_stat( '3B',  triples ) )
+        stat_desc_list.append( self.format_stat( 'SB',  self.data.sb ) )
+
+        # generaet the return string
+        desc = '%s for %s' % (hits, at_bats)
+
+        stats_list = [x for x in stat_desc_list if x != '']
+        if len(stats_list) > 0:
+            suffix = ' (%s)' % ','.join(stats_list)
+            desc += suffix
+        return desc
 
 class PitchPbp(DataDenPbpDescription):
     """
@@ -1330,21 +1369,15 @@ class PitchPbp(DataDenPbpDescription):
         data[self.at_bat]       = AtBatReducer(at_bat).reduce()
         data[self.runners]      = runner_manager.get_data()
 
-        # add the playerStats object for the hitter in the current at_bat
-        player_stats_cache = PlayerStats.get_cache_list()
-        player_stats_obj_list = player_stats_cache.get(key=at_bat.get('hitter_id'))
+        # # add the playerStats object for the hitter in the current at_bat.
+        # # its a list of dataden objects, not draftboard 'PlayerStats' models!
+        # player_stats_srid = at_bat.get('hitter_id')
+        # qs = self.find_player_stats(player_srids=[player_stats_srid])
+        # at_bat_hitter_player_stats = self.get_player
 
-        # add the stats object for the current at_bat hitter
-        data[self.at_bat_stats] = None
-        if len(player_stats_obj_list) > 0:
-            # get the one most recently added to the list
-            # atbat_stats_reducer = AtBatStatsReducer(player_stats_obj_list[-1])
-            # # reduction
-            # data[self.at_bat_stats] = atbat_stats_reducer.reduce()
-            statistics_list = player_stats_obj_list[-1].get('statistics__list',{})
-            hitting_list = statistics_list.get('hitting__list',{})
-            hitting_list_to_str = HittingListToStr(hitting_list)
-            data[self.at_bat_stats] = hitting_list_to_str.get_description()
+        # set the description to the 'at_bat_stats' field
+        player_stats_hitter = self.find_player_stats(hitter_only=True)
+        data[self.at_bat_stats] = PlayerStatsToStr(player_stats_hitter).get_description()
 
         # reduce the pbp object last, incase any of its fields
         # are internally used previous to reducing it.
@@ -1377,7 +1410,7 @@ class PitchPbp(DataDenPbpDescription):
     def __find_player_stats(self, player_stats_class, srid_game, srid_players=[]):
         return player_stats_class.objects.filter( srid_game=srid_game, srid_player__in=srid_players)
 
-    def find_player_stats(self):
+    def find_player_stats(self, hitter_only=False):
         """
         override parent method  -- return a list of the PlayerStats objects
         for players related to the pitch object.
@@ -1397,8 +1430,9 @@ class PitchPbp(DataDenPbpDescription):
         #
         # attempt to get the at_bat object which ontains the hitter (as well as the description)
         # if the play is over. we will probably want to get the glossary definition of the result.
+        at_bat_srid = self.o.get(self.at_bat_srid_field)
         try:
-            at_bat = self.get_at_bat(self.o.get(self.at_bat_srid_field))
+            at_bat = self.get_at_bat(at_bat_srid)
         except self.AtBatNotFoundException:
             at_bat = None
 
@@ -1406,11 +1440,29 @@ class PitchPbp(DataDenPbpDescription):
             finder = SridFinder(at_bat)
             srid_hitters    = finder.get_for_field('hitter_id')
             hitter_stats    = self.__find_player_stats( self.player_stats_hitter_model, srid_game, srid_hitters )
-            player_stats.extend(list(hitter_stats))
 
+            #
+            ##########################################################################################
+            # if the 'hitter_only' flag was True, return only the hitter's PlayerStatsHitter instance!
+            ##########################################################################################
+            if hitter_only == True:
+                if len(hitter_stats) == 0:
+                    return None
+                return hitter_stats[0]
+
+            # else add it to the list and proceed as normal!
+            player_stats.extend(list(hitter_stats))
         #
         # return PlayerStat objects for the pitcher, runners, and hitter
-        return player_stats
+        player_srids = []
+        player_stats_no_duplicates = []
+        for ps in player_stats:
+            if ps.srid_player not in player_srids:
+                player_srids.append(ps.srid_player) # add to list of srids weve seen
+                player_stats_no_duplicates.append(ps) # add to return list
+
+        # return the list that ensures no duplicates
+        return player_stats_no_duplicates
 
 class ZonePitchPbp(PitchPbp):
     """
@@ -1450,8 +1502,6 @@ class ZonePitchPbp(PitchPbp):
             # will likely not exist, but thats fine.
             pass
         at_bat_id = zonepitch.get('at_bat__id')
-        #print('adding to cache_list, at_bat_id:', str(at_bat_id))
-        #cache_list = CacheList(self.c)
         cache_list = CacheList(cache=cache)
         cache_list.add(at_bat_id, zonepitch)
 
@@ -1513,8 +1563,6 @@ class RunnerPbp(PitchPbp):
         # get the pitch srid, but if it doesnt exist, do nothing (dont add to CacheList)
         pitch_srid = runner.get('pitch__id', None)
         if pitch_srid is not None:
-            print('adding runner obj to cache_list, pitch_srid:', str(pitch_srid))
-            #cache_list = CacheList(self.c)
             cache_list = CacheList(cache=cache)
             cache_list.add(pitch_srid, runner)
         else:
@@ -1895,7 +1943,8 @@ class DataDenMlb(AbstractDataDenParser):
         #
         # player
         elif self.target == ('mlb.player','team_profile'): PlayerTeamProfile().parse( obj ) # ie: rosters
-        elif self.target == ('mlb.player','summary'): PlayerStats().parse( obj ) # stats from games
+        elif self.target == ('mlb.player','summary'):
+            PlayerStats().parse( obj ) # stats from games
         #
         # probable_pitcher
         elif self.target == ('mlb.probable_pitcher','daily_summary'):
