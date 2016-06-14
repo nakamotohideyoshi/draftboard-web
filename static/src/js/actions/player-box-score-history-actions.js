@@ -5,7 +5,7 @@ import merge from 'lodash/merge';
 import request from 'superagent';
 import zipObject from 'lodash/zipObject';
 import { dateNow } from '../lib/utils';
-import { GAME_DURATIONS } from './sports';
+import { SPORT_CONST } from './sports';
 import { normalize, Schema, arrayOf } from 'normalizr';
 const playerHistorySchema = new Schema('playerHistory', {
   idAttribute: 'id',
@@ -113,7 +113,7 @@ function fetchPlayerBoxScoreHistory(sport) {
           dispatch(fetchPlayerBoxScoreHistoryFail(err));
           reject(err);
         } else {
-          const seasonStatTypes = GAME_DURATIONS[sport].seasonStats.types;
+          const seasonStatTypes = SPORT_CONST[sport].seasonStats.types;
           // combine id with the season stats we need and that's it
           const onlyNeededFields = map(res.body, (player) => merge(
             {},

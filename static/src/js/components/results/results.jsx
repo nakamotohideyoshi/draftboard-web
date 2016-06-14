@@ -7,9 +7,8 @@ import ResultsStats from './results-stats.jsx';
 import store from '../../store';
 import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { dateNow } from '../../lib/utils';
-import { fetchEntriesIfNeeded } from '../../actions/entries';
+import { fetchCurrentEntriesAndRelated } from '../../actions/entries';
 import { fetchResultsIfNeeded } from '../../actions/results';
-import { fetchUpcomingLineups } from '../../actions/entries';
 import { liveContestsSelector } from '../../selectors/live-contests';
 import { map as _map } from 'lodash';
 import { push as routerPush } from 'react-router-redux';
@@ -120,11 +119,7 @@ const Results = React.createClass({
     if (newState.formattedDate === todayFormatted) {
       this.setState({ dateIsToday: true });
 
-      this.props.dispatch(
-        fetchEntriesIfNeeded(true)
-      ).then(() =>
-        this.props.dispatch(fetchUpcomingLineups())
-      );
+      this.props.dispatch(fetchCurrentEntriesAndRelated(true));
     } else {
       this.setState({ dateIsToday: false });
       this.props.dispatch(fetchResultsIfNeeded(newState.formattedDate));

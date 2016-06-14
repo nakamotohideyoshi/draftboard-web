@@ -9,7 +9,7 @@ import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/live-config'
 import { setCurrentLineups } from '../../actions/current-lineups'
 import { mockStore } from '../mock-store'
-import { fetchEntriesIfNeeded, generateLineups } from '../../actions/entries'
+import { fetchCurrentEntriesAndRelated, generateLineups } from '../../actions/entries'
 
 
 describe('actionsCurrentLineups', () => {
@@ -51,7 +51,7 @@ describe('actionsCurrentLineups', () => {
   it('should properly setCurrentLineups based on data from entries', (done) => {
     const store = mockStore(reducers, { entries: {} })
     store.dispatch(
-      fetchEntriesIfNeeded()
+      fetchCurrentEntriesAndRelated()
     ).then(() =>
       store.dispatch(generateLineups())
     ).then(() => {

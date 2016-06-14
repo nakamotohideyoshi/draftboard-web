@@ -13,13 +13,14 @@ import log from '../lib/logging';
 
 
 // constant related to game durations
-export const GAME_DURATIONS = {
+export const SPORT_CONST = {
   nba: {
     gameDuration: 48,
     lineupByteLength: 20,
     periodMinutes: 12,
     periods: 4,
     players: 8,
+    pregameStatuses: ['scheduled', 'created'],
     seasonStats: {
       types: ['fp', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers'],
       names: ['FPPG', 'PPG', 'RPG', 'APG', 'STLPG', 'BLKPG', 'TOPG'],
@@ -31,6 +32,7 @@ export const GAME_DURATIONS = {
     periodMinutes: 20,
     periods: 3,
     players: 8,
+    pregameStatuses: ['scheduled', 'created'],
     seasonStats: {
       types: ['saves', 'assist', 'sog', 'fp', 'goal', 'blk'],
       names: ['S', 'A', 'SOG', 'FP', 'G', 'BLK'],
@@ -177,6 +179,7 @@ export const GAME_DURATIONS = {
       OBP: 'Out of Base Path',
       HBB: 'Hit by Batted Ball',
     },
+    pregameStatuses: ['scheduled'],
     seasonStats: {
       types: [],
       names: [],
@@ -315,7 +318,7 @@ export const calcDecimalRemaining = (durationRemaining, gameDuration) => {
  * @return {number}       Minutes remaining in the game
  */
 const calculateTimeRemaining = (sport, game) => {
-  const sportConst = GAME_DURATIONS[sport];
+  const sportConst = SPORT_CONST[sport];
 
   // if the game hasn't started, return full time
   if (!game.hasOwnProperty('boxscore')) {
@@ -393,12 +396,12 @@ const fetchGames = (sport) => (dispatch) => {
       // if no boxscore, default to upcoming = 100% remaining
       if (game.hasOwnProperty('boxscore') === false) {
         games[id].timeRemaining = {
-          duration: GAME_DURATIONS[sport].gameDuration,
+          duration: SPORT_CONST[sport].gameDuration,
           decimal: 0.9999,
         };
       } else {
         const durationRemaining = calculateTimeRemaining(sport, game);
-        const decimalRemaining = calcDecimalRemaining(durationRemaining, GAME_DURATIONS[sport].gameDuration);
+        const decimalRemaining = calcDecimalRemaining(durationRemaining, SPORT_CONST[sport].gameDuration);
 
         games[id].timeRemaining = {
           duration: durationRemaining,
@@ -527,47 +530,59 @@ export const fetchSportsIfNeeded = () => (dispatch, getState) => {
 };
 
 /**
+ * Check whether a game has started, based on its status
+ * @param  {string} sport  Sport to base statuses on
+ * @param  {string} status Status given in socket message
+ * @return {boolean}       True if game has started, false if not
+ */
+export const hasGameStarted = (sport, status) => SPORT_CONST[sport].pregameStatuses.indexOf(status) === -1;
+
+/**
+ * Helper method to check whether a game is ready to receive data
+ * @param  {object} games   Redux state
+ * @param  {string} gameId  SportsRadar Game UUID
+ * @return {boolean}        Whether the game is ready
+ */
+export const isGameReady = (state, dispatch, sport, gameId) => {
+  const games = state.sports.games;
+
+  // check if game is needed
+  if (!games.hasOwnProperty(gameId)) return false;
+
+  // if no boxscore from the server, ask for it
+  if (!games[gameId].hasOwnProperty('boxscore')) {
+    dispatch(fetchSportIfNeeded(sport, true));
+    return false;
+  }
+
+  return true;
+};
+
+/**
  * Update game information based on pusher stream call
  * @param  {string} gameId  Game SRID
  * @param  {string} teamId  Team SRD
  * @param  {number} points  Number of points to set to the game
  * @return {object}   Changes for reducer, wrapped in a thunk
  */
-export const updateGameTeam = (gameId, teamId, points) => (dispatch, getState) => {
-  const state = getState();
-  const game = state.sports.games[gameId];
-  const updatedGameFields = {};
+export const updateGameTeam = (message) => (dispatch, getState) => {
+  const sports = getState().sports;
+  const gameId = message.game__id;
 
-  // if game does not exist yet, we don't know what sport so just cancel the update and wait for polling call
-  if (state.sports.games.hasOwnProperty(gameId) === false) {
-    return false;
-  }
-
-  if (state.sports[game.sport].isFetchingGames === false) {
-    // if the boxscore doesn't exist yet, that means we need to update games
-    if (game.hasOwnProperty('boxscore') === false) {
-      return dispatch(fetchGames(game.sport));
-    }
-
-    // if the boxscore doesn't have quarters yet, update the game
-    if (game.boxscore.hasOwnProperty('quarter') === false) {
-      return dispatch(fetchGames(game.sport));
-    }
-
-    // if we think the game hasn't started, also update the games
-    const upcomingStates = ['scheduled', 'created'];
-    if (upcomingStates.indexOf(game.boxscore.status) > -1) {
-      return dispatch(fetchGames(game.sport));
-    }
-  }
+  // if game does not exist yet, we don't know what sport
+  // so just cancel the update and wait for polling call
+  const game = sports.games[gameId];
+  if (!game) return false;
 
   const boxscore = game.boxscore;
 
-  if (boxscore === undefined) {
-    return false;
+  if (!boxscore || !hasGameStarted(game.sport, game.boxscore.status)) {
+    return dispatch(fetchGames(game.sport));
   }
 
-  if (boxscore.srid_home === teamId) {
+  const updatedGameFields = {};
+  const { points } = message;
+  if (boxscore.srid_home === message.id) {
     updatedGameFields.home_score = points;
   } else {
     updatedGameFields.away_score = points;
@@ -586,7 +601,8 @@ export const updateGameTeam = (gameId, teamId, points) => (dispatch, getState) =
  * @param  {object} event   Returned socket data to parse
  *  * @return {object}   Changes for reducer, wrapped in a thunk
  */
-export const updateGameTime = (gameId, event) => (dispatch, getState) => {
+export const updateGameTime = (event) => (dispatch, getState) => {
+  const gameId = event.id;
   const state = getState();
   const game = _merge({}, state.sports.games[gameId]);
   let updatedGameFields = {};

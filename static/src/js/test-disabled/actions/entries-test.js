@@ -7,7 +7,7 @@ import { size as _size } from 'lodash'
 
 import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/live-config'
-import { fetchEntriesIfNeeded, addEntriesPlayers } from '../../actions/entries'
+import { fetchCurrentEntriesAndRelated, addEntriesPlayers } from '../../actions/entries'
 import { mockStore } from '../mock-store'
 
 
@@ -23,19 +23,19 @@ describe('actionsEntries', () => {
   })
 
 
-  it('should properly fetchEntriesIfNeeded on initial call', (done) => {
+  it('should properly fetchCurrentEntriesAndRelated on initial call', (done) => {
     const expectedActions = [
-      // fetchEntriesIfNeeded
+      // fetchCurrentEntriesAndRelated
       null,
 
       // requestEntries
       function(action) {
-        expect(action.type).to.equal('REQUEST_ENTRIES')
+        expect(action.type).to.equal('ENTRIES__REQUEST')
       },
 
       // receiveEntries
       function(action) {
-        expect(action.type).to.equal('RECEIVE_ENTRIES')
+        expect(action.type).to.equal('ENTRIES__RECEIVE')
         expect(_size(action.items)).to.equal(1)
       },
 
@@ -60,15 +60,15 @@ describe('actionsEntries', () => {
     ]
 
     const store = mockStore(reducers, { entries: {} }, expectedActions)
-    store.dispatch(fetchEntriesIfNeeded()).then(() => {
+    store.dispatch(fetchCurrentEntriesAndRelated()).then(() => {
       done()
     })
   })
 
 
-  it('should not complete fetchEntriesIfNeeded if data already exists', (done) => {
+  it('should not complete fetchCurrentEntriesAndRelated if data already exists', (done) => {
     const expectedActions = [
-      // fetchEntriesIfNeeded
+      // fetchCurrentEntriesAndRelated
       null
     ]
 
@@ -83,13 +83,13 @@ describe('actionsEntries', () => {
       done
     )
 
-    store.dispatch(fetchEntriesIfNeeded())
+    store.dispatch(fetchCurrentEntriesAndRelated())
   })
 
 
-  it('should not complete fetchEntriesIfNeeded if data is currently being fetched', (done) => {
+  it('should not complete fetchCurrentEntriesAndRelated if data is currently being fetched', (done) => {
     const expectedActions = [
-      // fetchEntriesIfNeeded
+      // fetchCurrentEntriesAndRelated
       null
     ]
 
@@ -104,7 +104,7 @@ describe('actionsEntries', () => {
       done
     )
 
-    store.dispatch(fetchEntriesIfNeeded())
+    store.dispatch(fetchCurrentEntriesAndRelated())
   })
 
 
@@ -112,7 +112,7 @@ describe('actionsEntries', () => {
     const store = mockStore(reducers, {})
 
     store.dispatch(
-      fetchEntriesIfNeeded()
+      fetchCurrentEntriesAndRelated()
     ).then(() =>
       store.dispatch(addEntriesPlayers())
     ).then(() => {
