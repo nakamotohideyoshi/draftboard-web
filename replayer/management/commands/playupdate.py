@@ -7,7 +7,7 @@ from replayer.classes import ReplayManager
 
 class Command(BaseCommand):
 
-    USAGE_STR = './manage.py playupdate UPDATE_ID'
+    USAGE_STR = './manage.py playupdate UPDATE_ID <optional end update id>'
 
     # help is a Command inner variable
     help = 'usage: ' + USAGE_STR
@@ -25,6 +25,19 @@ class Command(BaseCommand):
         :return:
         """
 
-        rp = ReplayManager()
+        update_pks = []
         for update_pk in options['pk']:
-            rp.play_single_update( update_pk, async=False )
+            update_pks.append( update_pk )
+
+        # if there is only one update pk, run it:
+        size = len(update_pks)
+        if size == 0:
+            self.stdout.write('you must specify at least one update pk, or two update pks to specify a range')
+        elif len(update_pks) == 1:
+            rp = ReplayManager()
+            rp.play_single_update( update_pks[0], async=False )
+
+        else:
+            rp = ReplayManager()
+            # truncate chars is how many characters of each object to print out.
+            rp.play_range( update_pks[0], update_pks[1], async=False, truncate_chars=99999 )

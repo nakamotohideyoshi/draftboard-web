@@ -1052,7 +1052,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             raise self.SridGameMultipleSridsFoundException(str(self.o))
         return game_srids[0]
 
-    def find_player_stats(self):
+    def find_player_stats(self, player_srids=None):
         """
         extract player and game srids and return a list
         of any matching PlayerStats models found
@@ -1062,10 +1062,13 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         game_srid       = self.get_srid_game('game__id')
 
         # we may find any number of player srids - including 0
-        player_srids    = self.get_srids_for_field('player')
+        if player_srids is None:
+            player_srids    = self.get_srids_for_field('player')
+        else:
+            pass # this pass is a reminder that we use the player_srids passed into this method
 
         return self.player_stats_model.objects.filter(srid_game=game_srid,
-                                                    srid_player__in=player_srids)
+                                              srid_player__in=player_srids)
 
     def build_linked_pbp_stats_data(self, player_stats):
         """
