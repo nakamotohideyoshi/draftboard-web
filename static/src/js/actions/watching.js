@@ -5,10 +5,11 @@ import { fetchDraftGroupFPIfNeeded } from './live-draft-groups';
 import { fetchPlayersStatsIfNeeded } from './live-players';
 import log from '../lib/logging';
 import { dateNow } from '../lib/utils';
+import { push as routerPush } from 'react-router-redux';
 
 
 export const checkForUpdates = () => (dispatch, getState) => {
-  // log.trace('actions.watching.checkForUpdates()');
+  log.trace('actions.watching.checkForUpdates()');
 
   const state = getState();
   const watching = state.watching;
@@ -60,4 +61,19 @@ export const updateLiveMode = (changedFields) => (dispatch, getState) => {
     type: ActionTypes.WATCHING_UPDATE,
     watching: newMode,
   });
+};
+
+export const updateWatchingAndPath = (path, changedFields) => (dispatch) => {
+  log.trace('actions.watching.changePathAndMode()', path, changedFields);
+
+  // update the URL path
+  dispatch(routerPush(path));
+
+  // update what user is watching
+  dispatch(updateLiveMode(changedFields));
+
+  // if the contest has changed, then get the appropriate usernames for the standings pane
+  if (changedFields.hasOwnProperty('contestId')) {
+    dispatch(fetchContestLineupsUsernamesIfNeeded(changedFields.contestId));
+  }
 };

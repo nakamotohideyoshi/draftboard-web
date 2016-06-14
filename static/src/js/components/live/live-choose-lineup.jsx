@@ -1,21 +1,36 @@
+import LiveLoading from './live-loading';
 import Modal from '../modal/modal.jsx';
 import moment from 'moment';
 import React from 'react';
 import forEach from 'lodash/forEach';
 import size from 'lodash/size';
-import { uniq as _uniq } from 'lodash';
+import uniq from 'lodash/uniq';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { updateWatchingAndPath } from '../../actions/watching.js';
 
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component, wrapped in 'action' key
+ */
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    updateWatchingAndPath,
+  }, dispatch),
+});
 
 /**
  * Modal window from which a user can select sport + lineup
  * so to observe how the lineup is doing in the live section
  */
-const LiveLineupSelectModal = React.createClass({
+export const LiveChooseLineup = React.createClass({
 
   propTypes: {
-    entriesLoaded: React.PropTypes.bool.isRequired,
-    changePathAndMode: React.PropTypes.func.isRequired,
+    actions: React.PropTypes.object.isRequired,
     entries: React.PropTypes.array.isRequired,
+    entriesLoaded: React.PropTypes.bool.isRequired,
   },
 
   getInitialState() {
@@ -49,7 +64,7 @@ const LiveLineupSelectModal = React.createClass({
       return false;
     }
 
-    const differentSports = _uniq(
+    const differentSports = uniq(
       this.props.entries.map((entry) => entry.sport)
     );
 
@@ -81,7 +96,7 @@ const LiveLineupSelectModal = React.createClass({
       sport: entry.sport,
     };
 
-    this.props.changePathAndMode(path, changedFields);
+    this.props.actions.updateWatchingAndPath(path, changedFields);
   },
 
   /*
@@ -168,8 +183,8 @@ const LiveLineupSelectModal = React.createClass({
   },
 
   render() {
-    if (this.props.entriesLoaded === false) {
-      return this.renderLoadingScreen();
+    if (!this.props.entriesLoaded) {
+      return (<LiveLoading isContestPools={false} />);
     }
 
     let title = (this.shouldChoseSport()) ? 'Choose a sport' : 'Choose a lineup';
@@ -194,4 +209,8 @@ const LiveLineupSelectModal = React.createClass({
   },
 });
 
-export default LiveLineupSelectModal;
+// Wrap the component to inject dispatch and selected state into it.
+export default connect(
+  () => ({}),
+  mapDispatchToProps
+)(LiveChooseLineup);

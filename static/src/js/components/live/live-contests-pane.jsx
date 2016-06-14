@@ -1,31 +1,42 @@
 import React from 'react';
-import { map as _map } from 'lodash';
-
+import map from 'lodash/map';
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { updateWatchingAndPath } from '../../actions/watching.js';
 import * as AppActions from '../../stores/app-state-store';
 import LiveContestsPaneItem from './live-contests-pane-item';
 
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component, wrapped in 'action' key
+ */
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    updateWatchingAndPath,
+  }, dispatch),
+});
 
 /**
  * When `View Contests` element is clicked, open side pane to show
  * a user's current contests for that lineup.
  */
-const LiveContestsPane = React.createClass({
+export const LiveContestsPane = React.createClass({
 
   propTypes: {
-    changePathAndMode: React.PropTypes.func.isRequired,
+    actions: React.PropTypes.object.isRequired,
     lineup: React.PropTypes.object.isRequired,
     openOnStart: React.PropTypes.bool.isRequired,
     watching: React.PropTypes.object.isRequired,
   },
 
   componentWillMount() {
-    if (this.props.openOnStart) {
-      AppActions.addClass('appstate--live-contests-pane--open');
-    }
+    if (this.props.openOnStart) AppActions.addClass('appstate--live-contests-pane--open');
   },
 
   viewContest(contestId) {
-    const watching = this.props.watching;
+    const { actions, watching } = this.props;
     const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/contests/${contestId}/`;
     const changedFields = {
       draftGroupId: watching.draftGroupId,
@@ -33,16 +44,16 @@ const LiveContestsPane = React.createClass({
       contestId,
     };
 
-    this.props.changePathAndMode(path, changedFields);
+    actions.updateWatchingAndPath(path, changedFields);
 
     // open up the standings pane
     AppActions.removeClass('appstate--live-contests-pane--open');
   },
 
   renderContests() {
-    const lineup = this.props.lineup;
+    const { lineup } = this.props;
 
-    return _map(lineup.contestsStats, (contest) => (
+    return map(lineup.contestsStats, (contest) => (
       <LiveContestsPaneItem
         contest={contest}
         onItemClick={this.viewContest}
@@ -52,9 +63,7 @@ const LiveContestsPane = React.createClass({
   },
 
   render() {
-    const { lineup } = this.props;
-    const fees = lineup.totalBuyin;
-    const winnings = lineup.potentialWinnings;
+    const { totalBuyin, potentialWinnings } = this.props.lineup;
 
     return (
       <div className="live-contests-pane live-pane live-pane--right">
@@ -69,13 +78,13 @@ const LiveContestsPane = React.createClass({
 
               <div className="profit">
                 <div className="fees">
-                  ${fees} Fees
+                  ${totalBuyin} Fees
                 </div>
                 {" "} / {" "}
                 <div className="earnings">
                   Winning
                   {" "}
-                  <span>${winnings}</span>
+                  <span>${potentialWinnings}</span>
                 </div>
               </div>
             </div>
@@ -95,4 +104,8 @@ const LiveContestsPane = React.createClass({
   },
 });
 
-export default LiveContestsPane;
+// Wrap the component to inject dispatch and selected state into it.
+export default connect(
+  () => ({}),
+  mapDispatchToProps
+)(LiveContestsPane);

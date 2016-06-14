@@ -3,7 +3,7 @@
 require('../../test-dom')();
 
 import React from 'react';
-import LiveLineupSelectModalConnected from '../../../components/live/live-lineup-select-modal';
+import { LiveChooseLineup } from '../../../components/live/live-choose-lineup';
 import { expect } from 'chai';
 import sd from 'skin-deep';
 import { merge as _merge } from 'lodash';
@@ -105,7 +105,7 @@ const lineupsDifferentSportProps = {
 };
 
 
-describe('LiveLineupSelectModalConnected Component', function() {
+describe('LiveChooseLineup Component', function() {
 
   describe('LiveLineupsSelectModal Component when all lineups with same sport', function () {
     let vdom, instance;
@@ -113,7 +113,7 @@ describe('LiveLineupSelectModalConnected Component', function() {
     beforeEach(function() {
       const store = mockStore(reducers, {});
       const props = lineupsSameSportProps;
-      const tree = sd.shallowRender(React.createElement(LiveLineupSelectModalConnected, props));
+      const tree = sd.shallowRender(React.createElement(LiveChooseLineup, props));
 
       instance = tree.getMountedInstance();
       vdom = tree.getRenderOutput();
@@ -133,13 +133,13 @@ describe('LiveLineupSelectModalConnected Component', function() {
     })
   })
 
-  describe('LiveLineupSelectModalConnected Component when lineups are from different sports', function() {
+  describe('LiveChooseLineup Component when lineups are from different sports', function() {
     let vdom, instance;
 
     beforeEach(function() {
       const store = mockStore(reducers, {});
       const props = lineupsDifferentSportProps;
-      const tree = sd.shallowRender(React.createElement(LiveLineupSelectModalConnected, props));
+      const tree = sd.shallowRender(React.createElement(LiveChooseLineup, props));
 
       instance = tree.getMountedInstance();
       vdom = tree.getRenderOutput();

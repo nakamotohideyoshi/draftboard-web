@@ -21,6 +21,12 @@ const LiveOverallStats = React.createClass({
     this.updateCanvas();
   },
 
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.lineup.timeRemaining.decimal !== this.props.lineup.timeRemaining.decimal) {
+      this.updateCanvas();
+    }
+  },
+
   updateCanvas() {
     const diameter = 220;
     const decimalRemaining = this.props.lineup.timeRemaining.decimal;

@@ -4,7 +4,7 @@ import orderBy from 'lodash/orderBy';
 import map from 'lodash/map';
 import uniqBy from 'lodash/uniq';
 import { batchActions } from 'redux-batched-actions';
-import { GAME_DURATIONS } from './sports';
+import { SPORT_CONST } from './sports';
 import log from '../lib/logging';
 
 // dispatch to reducer methods
@@ -36,7 +36,7 @@ const mergeWatchablePlayers = (players, eventId) => ({
 
 
 export const consolidateZonePitches = (zonePitches) => {
-  const sportConst = GAME_DURATIONS.mlb;
+  const sportConst = SPORT_CONST.mlb;
   const filtered = filter(zonePitches, (pitch) => pitch.hasOwnProperty('pitch_speed'));
   const sorted = orderBy(filtered, 'dd_updated__id');
   const uniq = uniqBy(sorted, 'pitch_count');

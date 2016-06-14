@@ -6,13 +6,28 @@ import { debounce as _debounce } from 'lodash';
 import { map as _map } from 'lodash';
 
 import LivePMRProgressBar from './live-pmr-progress-bar';
-import { GAME_DURATIONS } from '../../actions/sports.js';
-import { updateLiveMode } from '../../actions/watching.js';
+import { SPORT_CONST } from '../../actions/sports.js';
+import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching.js';
 import * as AppActions from '../../stores/app-state-store';
 import { fetchLineupUsernames } from '../../actions/lineup-usernames';
+import { bindActionCreators } from 'redux';
 
 const STANDINGS_TAB = 'standings';
 const OWNERSHIP_TAB = 'ownership';
+
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component, wrapped in 'action' key
+ */
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    fetchLineupUsernames,
+    updateLiveMode,
+    updateWatchingAndPath,
+  }, dispatch),
+});
 
 /**
  * When `View Contests` element is clicked, open side pane to show
@@ -21,15 +36,12 @@ const OWNERSHIP_TAB = 'ownership';
 export const LiveStandingsPane = React.createClass({
 
   propTypes: {
-    changePathAndMode: React.PropTypes.func.isRequired,
-    owned: React.PropTypes.array.isRequired,
+    actions: React.PropTypes.object.isRequired,
     lineups: React.PropTypes.object.isRequired,
     contest: React.PropTypes.object.isRequired,
     openOnStart: React.PropTypes.bool.isRequired,
     rankedLineups: React.PropTypes.array.isRequired,
     watching: React.PropTypes.object.isRequired,
-    fetchLineupUsernames: React.PropTypes.func,
-    updateLiveMode: React.PropTypes.func,
   },
 
   getInitialState() {
@@ -53,7 +65,7 @@ export const LiveStandingsPane = React.createClass({
   },
 
   componentDidMount() {
-    // this.props.fetchLineupUsernames(this.props.watching.contestId)
+    // this.props.actions.fetchLineupUsernames(this.props.watching.contestId)
     this.handleSearchByUsername = _debounce(this.handleSearchByUsername, 150);
 
     setTimeout(() => {
@@ -151,17 +163,17 @@ export const LiveStandingsPane = React.createClass({
   },
 
   /**
-   * Used to view an opponent lineup. Sets up parameters to then call props.changePathAndMode()
+   * Used to view an opponent lineup. Sets up parameters to then call props.updateWatchingAndPath()
    */
   handleViewOpponentLineup(opponentLineupId) {
-    const watching = this.props.watching;
+    const { actions, watching } = this.props;
     const lineupUrl = `/live/${watching.sport}/lineups/${watching.myLineupId}`;
     const path = `${lineupUrl}/contests/${watching.contestId}/opponents/${opponentLineupId}/`;
     const changedFields = {
       opponentLineupId,
     };
 
-    this.props.changePathAndMode(path, changedFields);
+    actions.updateWatchingAndPath(path, changedFields);
     AppActions.toggleLiveRightPane('appstate--live-standings-pane--open');
   },
 
@@ -230,7 +242,7 @@ export const LiveStandingsPane = React.createClass({
   handleToggleWatchPlayer(id) {
     let playersWatched = this.state.playersWatched.slice();
 
-    const game = GAME_DURATIONS[this.props.watching.sport];
+    const game = SPORT_CONST[this.props.watching.sport];
     const maxPlayers = game ? game.players : 10;
 
     if (playersWatched.indexOf(id) !== -1) {
@@ -242,7 +254,7 @@ export const LiveStandingsPane = React.createClass({
     }
 
     if (playersWatched.length === maxPlayers) {
-      this.props.updateLiveMode({ villainLineup: playersWatched });
+      this.props.actions.updateLiveMode({ villainLineup: playersWatched });
     }
 
     this.setState({ playersWatched });
@@ -254,7 +266,7 @@ export const LiveStandingsPane = React.createClass({
   },
 
   backToContestsPane() {
-    const watching = this.props.watching;
+    const { actions, watching } = this.props;
     const path = `/live/${watching.sport}/lineups/${watching.myLineupId}/`;
     const changedFields = {
       contestId: null,
@@ -266,7 +278,7 @@ export const LiveStandingsPane = React.createClass({
 
     // hacky! match time with css animation
     setTimeout(() => {
-      this.props.changePathAndMode(path, changedFields);
+      actions.updateWatchingAndPath(path, changedFields);
     }, 230);
   },
 
@@ -615,43 +627,8 @@ export const LiveStandingsPane = React.createClass({
 // Redux integration
 const { connect } = ReactRedux;
 
-// Which part of the Redux global state does our component want to receive as props?
-function mapStateToProps() {
-  // TODO:
-  return {
-    owned: [
-      {
-        id: 1,
-        name: 'Kobe Bryant',
-        team: 'LAL',
-        points: 72,
-        position: 'pg',
-        iamge: '',
-        progress: 0.99,
-      },
-      {
-        id: 2,
-        name: 'Kobe Bryant',
-        team: 'LAL',
-        points: 12,
-        position: 'c',
-        iamge: '',
-        progress: 0.3,
-      },
-    ],
-  };
-}
-
-// Which action creators does it want to receive by props?
-function mapDispatchToProps(dispatch) {
-  return {
-    fetchLineupUsernames: (id) => dispatch(fetchLineupUsernames(id)),
-    updateLiveMode: (data) => dispatch(updateLiveMode(data)),
-  };
-}
-
 // Wrap the component to inject dispatch and selected state into it.
 export default connect(
-  mapStateToProps,
+  () => ({}),
   mapDispatchToProps
 )(LiveStandingsPane);

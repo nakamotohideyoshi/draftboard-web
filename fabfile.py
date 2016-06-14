@@ -127,9 +127,6 @@ def importdb():
 
         operations.local('cp %s /tmp/latest.dump' % env.db_dump)
 
-        # flush out redis
-        flush_cache()
-
         # reset time
         _puts('Resetting system time')
         reset_system_time()
@@ -142,6 +139,9 @@ def importdb():
         _puts('Creating local database')
         operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % env.db_name)
         operations.local('sudo -u postgres pg_restore --no-acl --no-owner -d %s /tmp/latest.dump' % env.db_name)
+
+        # flush out redis
+        flush_cache()
 
         return
 

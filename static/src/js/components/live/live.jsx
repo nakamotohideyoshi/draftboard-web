@@ -1,22 +1,21 @@
-import * as ReactRedux from 'react-redux';
 import LiveAnimationArea from './live-animation-area';
+import LiveChooseLineup from './live-choose-lineup';
 import LiveContestsPane from './live-contests-pane';
 import LiveCountdown from './live-countdown';
 import LiveHeader from './live-header';
 import LiveLineup from './live-lineup';
-import LiveLineupSelectModal from './live-lineup-select-modal';
+import LiveLoading from './live-loading';
 import LiveStandingsPane from './live-standings-pane';
 import log from '../../lib/logging';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
+import { bindActionCreators } from 'redux';
 import { checkForUpdates } from '../../actions/watching';
-import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
-import { fetchEntriesIfNeeded } from '../../actions/entries';
+import { fetchCurrentEntriesAndRelated, fetchRelatedEntriesInfo } from '../../actions/entries';
 import { fetchPlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
-import { fetchUpcomingLineups } from '../../actions/entries';
-import { push as routerPush } from 'react-router-redux';
+import { Provider, connect } from 'react-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { uniqueEntriesSelector } from '../../selectors/entries';
@@ -29,6 +28,24 @@ import {
   watchingOpponentLineupSelector,
 } from '../../selectors/watching';
 
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component, wrapped in 'action' key
+ */
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    addMessage,
+    checkForUpdates,
+    clearMessages,
+    fetchCurrentEntriesAndRelated,
+    fetchPlayerBoxScoreHistoryIfNeeded,
+    fetchRelatedEntriesInfo,
+    updateLiveMode,
+  }, dispatch),
+});
+
 /*
  * Map selectors to the React component
  * @param  {object} state The current Redux state that we need to pass into the selectors
@@ -36,7 +53,6 @@ import {
  */
 const mapStateToProps = (state) => ({
   draftGroupTiming: watchingDraftGroupTimingSelector(state),
-  eventsMultipart: state.eventsMultipart,
   relevantGamesPlayers: relevantGamesPlayersSelector(state),
   contest: watchingContestSelector(state),
   myLineup: watchingMyLineupSelector(state),
@@ -48,13 +64,12 @@ const mapStateToProps = (state) => ({
 /*
  * The overarching component for the live section.
  */
-const Live = React.createClass({
+export const Live = React.createClass({
 
   propTypes: {
+    actions: React.PropTypes.object.isRequired,
     contest: React.PropTypes.object.isRequired,
-    dispatch: React.PropTypes.func.isRequired,
     draftGroupTiming: React.PropTypes.object.isRequired,
-    eventsMultipart: React.PropTypes.object.isRequired,
     relevantGamesPlayers: React.PropTypes.object.isRequired,
     myLineup: React.PropTypes.object.isRequired,
     opponentLineup: React.PropTypes.object.isRequired,
@@ -63,41 +78,51 @@ const Live = React.createClass({
     watching: React.PropTypes.object.isRequired,
   },
 
+  getInitialState() {
+    return {
+      setTimeoutEntries: null,
+    };
+  },
+
   /**
    * Uses promises in order to pull in all relevant data into redux, and then starts to listen for Pusher calls
    * Here's the documentation on the order in which all the data comes in https://goo.gl/uSCH0K
    */
   componentWillMount() {
+    const { actions, params } = this.props;
+
     // update what we are watching based on where we are in the live section
-    const urlParams = this.props.params;
-    if (urlParams.hasOwnProperty('myLineupId')) {
-      this.props.dispatch(updateLiveMode({
-        myLineupId: urlParams.myLineupId,
-        sport: urlParams.sport,
-        contestId: urlParams.contestId || null,
-        opponentLineupId: urlParams.opponentLineupId || null,
-      }));
+    if (params.hasOwnProperty('myLineupId')) {
+      actions.updateLiveMode({
+        myLineupId: params.myLineupId,
+        sport: params.sport,
+        contestId: params.contestId || null,
+        opponentLineupId: params.opponentLineupId || null,
+      });
 
       // double check all related information is up to date
-      // this.props.dispatch(fetchRelatedEntriesInfo());
-      this.props.dispatch(fetchPlayerBoxScoreHistoryIfNeeded(urlParams.sport));
+      actions.fetchPlayerBoxScoreHistoryIfNeeded(params.sport);
+      actions.fetchRelatedEntriesInfo();
     }
 
     // force entries to refresh
-    this.props.dispatch(fetchEntriesIfNeeded(true));
+    actions.fetchCurrentEntriesAndRelated(true);
 
-    // start listening for pusher calls, and server updates
-    this.startParityChecks();
+    // start polling for api updates
+    window.setInterval(this.props.actions.checkForUpdates, 5000);
   },
 
   componentWillReceiveProps(nextProps) {
-    if (this.props.draftGroupTiming.ended === false && nextProps.draftGroupTiming.ended === true) {
-      store.dispatch(clearMessages());
-      store.dispatch(addMessage({
+    const { actions } = this.props;
+
+    // show a message when contests are done for the night
+    if (!this.props.draftGroupTiming.ended && nextProps.draftGroupTiming.ended) {
+      actions.clearMessages();
+      actions.addMessage({
         header: 'Contests have finished!',
         content: '<div>See your results <a href="/results/">here</a></div>',
         level: 'success',
-      }));
+      });
     }
 
     // terrible hack to poll for current-entries
@@ -108,113 +133,23 @@ const Live = React.createClass({
       const myNextEntry = nextProps.uniqueEntries.entriesObj[myLineupId] || {};
 
       if (!this.state.setTimeoutEntries && myNextEntry.contest === null && myEntry.hasStarted) {
-        this.forceContestEntriesRefresh();
+        // check for contest_id every 5 seconds
+        this.setState({ setTimeoutEntries: setInterval(() => {
+          log.warn('live.currentEntriesRefresh - fetching entries');
+          actions.fetchCurrentEntriesAndRelated(true);
+        }, 5000) });
+
+        // also immediately check
+        actions.fetchCurrentEntriesAndRelated(true);
       }
 
+      // stop checking once we have a contest
       if (this.state.setTimeoutEntries && myNextEntry.contest !== null) {
         log.warn('No need to try entries again');
         window.clearInterval(this.state.setTimeoutEntries);
         this.setState({ setTimeoutEntries: undefined });
       }
     }
-  },
-
-  componentDidUpdate(prevProps) {
-    const draftGroupTiming = this.props.draftGroupTiming;
-
-    // when we get related info
-    if (draftGroupTiming.started === false &&
-        prevProps.draftGroupTiming.started === true
-    ) {
-      this.props.dispatch(fetchUpcomingLineups());
-    }
-  },
-
-  /*
-   * Since we base the live section on the redux store.live substore, we have to have this method to update both the
-   * redux substore AND the url push state, so a user can go "back"
-   * @param  {string} path The URL path to push
-   * @param  {object} changedFields The changed fields in store.live substore
-   */
-  changePathAndMode(path, changedFields) {
-    log.debug('Live.changePathAndMode()', path, changedFields);
-
-    // update the URL path
-    this.props.dispatch(routerPush(path));
-
-    // update what user is watching
-    this.props.dispatch(updateLiveMode(changedFields));
-
-    // if the contest has changed, then get the appropriate usernames for the standings pane
-    if (changedFields.hasOwnProperty('contestId')) {
-      this.props.dispatch(fetchContestLineupsUsernamesIfNeeded(changedFields.contestId));
-    }
-  },
-
-  /**
-   * Force a refresh fo draft groups. Called by the countdown when time is up
-   */
-  forceContestEntriesRefresh() {
-    this.setState({ setTimeoutEntries: setInterval(() => {
-      log.warn('live.forceContestEntriesRefresh - fetching entries');
-      this.props.dispatch(fetchEntriesIfNeeded(true));
-    }, 5000) });
-
-    this.props.dispatch(fetchEntriesIfNeeded(true));
-  },
-
-  /**
-   * Periodically override the redux state with server data, to ensure that we have up to date data in case we missed
-   * a Pusher call here or there. In time the intervals will increase, as we gain confidence in the system.
-   */
-  startParityChecks() {
-    const parityChecks = {
-      liveUpdate: window.setInterval(() => this.props.dispatch(checkForUpdates()), 5000),
-    };
-
-    // add the checsk to the state in case we need to clearInterval in the future
-    this.setState({ boxScoresIntervalFunc: parityChecks });
-  },
-
-  /*
-   * This loading screen shows in lieu of the live section when it takes longer than a second to do an initial load
-   * TODO Live - get built out
-   *
-   * @return {JSXElement}
-   */
-  renderLoadingScreen() {
-    return (
-      <div className="live__bg">
-        <div className="live--loading">
-          <div className="preload-court" />
-          <div className="spinner">
-            <div className="double-bounce1" />
-            <div className="double-bounce2" />
-          </div>
-        </div>
-      </div>
-    );
-  },
-
-  /*
-   * This loading screen shows only when waiting for contest pools to generate
-   * TODO Live - get built out
-   *
-   * @return {JSXElement}
-   */
-  renderWaitingForContestPools() {
-    return (
-      <div className="live__bg">
-        <div className="live--loading">
-          <div className="preload-court" />
-          <div className="spinner">
-            <div className="live--loading__pools">Generating contest pools</div>
-            <div className="double-bounce1" />
-            <div className="double-bounce2" />
-          </div>
-        </div>
-      </div>
-    );
   },
 
   render() {
@@ -230,14 +165,13 @@ const Live = React.createClass({
     } = this.props;
 
     // don't do anything until we have entries!
-    if (uniqueEntries.haveLoaded === false) return this.renderLoadingScreen();
+    if (!uniqueEntries.haveLoaded) return (<LiveLoading isContestPools={false} />);
 
     // choose a lineup if we haven't yet
-    if (watching.myLineupId === null && params.hasOwnProperty('myLineupId') === false) {
+    if (watching.myLineupId === null && !params.hasOwnProperty('myLineupId')) {
       return (
         <div className="live__bg">
-          <LiveLineupSelectModal
-            changePathAndMode={this.changePathAndMode}
+          <LiveChooseLineup
             entriesLoaded={uniqueEntries.haveLoaded}
             entries={uniqueEntries.entries}
           />
@@ -248,12 +182,11 @@ const Live = React.createClass({
     // show the countdown until it goes live
     const myEntry = uniqueEntries.entriesObj[watching.myLineupId] || {};
     if (!myEntry.hasStarted) {
-      // wait to show lineup until it's ready
+      // wait to show lineup until it's loaded
       let countdownLineup;
-      if (relevantGamesPlayers.isLoading === false) {
+      if (!relevantGamesPlayers.isLoading) {
         countdownLineup = (
           <LiveLineup
-            changePathAndMode={this.changePathAndMode}
             draftGroupStarted={false}
             lineup={myLineup}
             watching={watching}
@@ -267,25 +200,24 @@ const Live = React.createClass({
         <div className={`live__bg live--countdown live--sport-${watching.sport}`}>
           {countdownLineup}
           <LiveCountdown
-            onCountdownComplete={this.forceContestEntriesRefresh}
             entry={myEntry}
           />
         </div>
       );
     }
 
-    // TODO make this a loading screen to say we are generating contests from pools
-    if (myEntry.contest === null) return this.renderWaitingForContestPools();
+    // wait for contest_id to be returned via current-entries api
+    if (myEntry.contest === null) return (<LiveLoading />);
 
     // wait for data to load before showing anything
-    if (relevantGamesPlayers.isLoading) return this.renderLoadingScreen();
+    if (relevantGamesPlayers.isLoading) return (<LiveLoading isContestPools={false} />);
 
     // defining optional component pieces
     let liveStandingsPane;
     let opponentLineupComponent;
     let contestsPaneOpen = true;
 
-    // if viewing a contest, then add standings pane and moneyline
+    // if viewing a contest
     if (watching.contestId !== null && !contest.isLoading) {
       contestsPaneOpen = false;
       let standingsPaneOpen = true;
@@ -296,7 +228,6 @@ const Live = React.createClass({
 
         opponentLineupComponent = (
           <LiveLineup
-            changePathAndMode={this.changePathAndMode}
             draftGroupStarted={draftGroupTiming.started}
             lineup={opponentLineup}
             watching={watching}
@@ -307,7 +238,6 @@ const Live = React.createClass({
 
       liveStandingsPane = (
         <LiveStandingsPane
-          changePathAndMode={this.changePathAndMode}
           contest={contest}
           lineups={contest.lineups}
           openOnStart={standingsPaneOpen}
@@ -320,7 +250,6 @@ const Live = React.createClass({
     return (
       <div className={`live__bg live--sport-${watching.sport}`}>
         <LiveLineup
-          changePathAndMode={this.changePathAndMode}
           draftGroupStarted={draftGroupTiming.started}
           lineup={myLineup}
           watching={watching}
@@ -332,23 +261,17 @@ const Live = React.createClass({
         <section className="cmp-live__court-scoreboard">
           <div className="court-scoreboard__content">
             <LiveHeader
-              changePathAndMode={this.changePathAndMode}
               contest={contest}
               myLineup={myLineup}
               opponentLineup={opponentLineup}
               watching={watching}
             />
 
-            <LiveAnimationArea
-              eventsMultipart={this.props.eventsMultipart}
-              sport={watching.sport}
-              watching={watching}
-            />
+            <LiveAnimationArea />
           </div>
         </section>
 
         <LiveContestsPane
-          changePathAndMode={this.changePathAndMode}
           lineup={myLineup}
           openOnStart={contestsPaneOpen}
           watching={watching}
@@ -360,18 +283,16 @@ const Live = React.createClass({
   },
 });
 
-// Set up Redux connections to React
-const { Provider, connect } = ReactRedux;
-
 // Wrap the component to inject dispatch and selected state into it.
-const LiveConnected = connect(
-  mapStateToProps
+export const LiveConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
 )(Live);
 
-// Create an enhanced history that syncs navigation events with the store
+// create an enhanced history that syncs navigation events with the store
 const history = syncHistoryWithStore(browserHistory, store);
 
-// Uses the Provider and Routes in order to have URL routing via redux-simple-router and redux state
+// url routing via react-router
 renderComponent(
   <Provider store={store}>
     <Router history={history}>

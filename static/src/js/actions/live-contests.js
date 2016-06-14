@@ -7,7 +7,7 @@ import { Buffer } from 'buffer/';
 import { dateNow } from '../lib/utils';
 import { fetchPrizeIfNeeded } from './prizes';
 import { forEach as _forEach } from 'lodash';
-import { GAME_DURATIONS } from '../actions/sports';
+import { SPORT_CONST } from '../actions/sports';
 
 
 // dispatch to reducer methods
@@ -177,7 +177,7 @@ const parseContestLineups = (apiContestLineupsBytes, sport) => {
   // add up who's in what place
   const responseByteArray = new Buffer(apiContestLineupsBytes, 'hex');
   const lineups = {};
-  const sportConst = GAME_DURATIONS[sport];
+  const sportConst = SPORT_CONST[sport];
 
   // each lineup is 20 bytes long
   for (let i = 6; i < responseByteArray.length; i += sportConst.lineupByteLength) {

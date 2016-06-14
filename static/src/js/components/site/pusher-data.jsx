@@ -1,19 +1,31 @@
 import * as ReactRedux from 'react-redux';
 import log from '../../lib/logging';
+import Pusher from '../../lib/pusher';
 import React from 'react';
-import { addEventAndStartQueue } from '../../actions/events';
+import { bindActionCreators } from 'redux';
 import { entriesHaveRelatedInfoSelector } from '../../selectors/entries';
-import { fetchSportIfNeeded } from '../../actions/sports';
-import { forEach as _forEach } from 'lodash';
-import { intersection as _intersection } from 'lodash';
-import { map as _map } from 'lodash';
-import { merge as _merge } from 'lodash';
-import { sportsSelector } from '../../selectors/sports';
-import { updatePlayerStats } from '../../actions/live-draft-groups';
-import { watchingDraftGroupTimingSelector } from '../../selectors/watching';
-import { watchingMyLineupSelector, relevantGamesPlayersSelector } from '../../selectors/watching';
-import Pusher from '../../lib/pusher.js';
+import { onBoxscoreGameReceived, onBoxscoreTeamReceived } from '../../actions/events/boxscores';
+import { onPBPReceived, onPBPEventReceived } from '../../actions/events/pbp';
+import { onPlayerStatsReceived } from '../../actions/events/stats';
+import {
+  relevantGamesPlayersSelector, watchingDraftGroupTimingSelector, watchingMyLineupSelector,
+} from '../../selectors/watching';
 
+
+/*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component, wrapped in 'action' key
+ */
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    onBoxscoreGameReceived,
+    onBoxscoreTeamReceived,
+    onPBPReceived,
+    onPBPEventReceived,
+    onPlayerStatsReceived,
+  }, dispatch),
+});
 
 /*
  * Map selectors to the React component
@@ -26,309 +38,123 @@ const mapStateToProps = (state) => ({
   relevantGamesPlayers: relevantGamesPlayersSelector(state),
   myLineup: watchingMyLineupSelector(state),
   watching: state.watching,
-  sportsSelector: sportsSelector(state),
 });
 
 /*
  * The overarching component for handling pusher data
  */
-const PusherData = React.createClass({
+export const PusherData = React.createClass({
 
   propTypes: {
-    dispatch: React.PropTypes.func.isRequired,
+    actions: React.PropTypes.object.isRequired,
     draftGroupTiming: React.PropTypes.object.isRequired,
     hasRelatedInfo: React.PropTypes.bool.isRequired,
-    relevantGamesPlayers: React.PropTypes.object.isRequired,
     myLineup: React.PropTypes.object.isRequired,
-    watching: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
-    sportsSelector: React.PropTypes.object.isRequired,
+    relevantGamesPlayers: React.PropTypes.object.isRequired,
+    watching: React.PropTypes.object.isRequired,
   },
 
   getInitialState() {
+    // NOTE: this really bogs down your console, only use locally when needed
+    // uncomment this ONLY if you need to debug why Pusher isn't connecting
+    // Pusher.log = (message) => log.trace(message);
+
     return {
+      // prefix allows us to silo data when developing, is based on the [PUSHER_CHANNEL_PREFIX] django const
       channelPrefix: window.dfs.user.pusher_channel_prefix.toString(),
+      // loaded booleans used to prevent repeat pusher bindings
+      loadedBoxscores: false,
+      loadedSportSockets: false,
+      // pusher is a singleton, keep it accessible within the component
       pusher: Pusher,
     };
   },
 
   /**
-   * Uses promises in order to pull in all relevant data into redux, and then starts to listen for Pusher calls
-   * Here's the documentation on the order in which all the data comes in https://goo.gl/uSCH0K
+   * Receive socket messages when everything is ready
    */
-  componentWillMount() {
-    // always load up boxscores pusher
-    const boxscoresChannel = this.state.pusher.subscribe(`${this.state.channelPrefix}boxscores`);
-    boxscoresChannel.bind('team', this.onBoxscoreTeamReceived);
-    boxscoresChannel.bind('game', this.onBoxscoreGameReceived);
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.hasRelatedInfo && nextProps.draftGroupTiming.started) {
+      if (!this.state.loadedBoxscores) {
+        const boxscoresChannel = this.state.pusher.subscribe(`${this.state.channelPrefix}boxscores`);
+        boxscoresChannel.bind('game', (message) => this.props.actions.onBoxscoreGameReceived(message));
+        boxscoresChannel.bind('team', (message) => this.props.actions.onBoxscoreTeamReceived(message));
 
-    // NOTE: this really bogs down your console, only use locally when needed
-    // uncomment this ONLY if you need to debug why Pusher isn't connecting
-    Pusher.log = (message) => log.trace(message);
-  },
+        this.setState({ loadedBoxscores: true });
+      }
 
-  /**
-   * If the sport has changed, update the socket subscriptions
-   * @param  {[type]} prevProps [description]
-   * @return {[type]}           [description]
-   */
-  componentDidUpdate(prevProps) {
-    let oldSports = prevProps.watching.sport || [];
-    let newSports = this.props.watching.sport || [];
+      // set sport specific sockets
+      let oldSports = this.props.watching.sport || [];
+      let newSports = nextProps.watching.sport || [];
+      if (typeof oldSports === 'string') oldSports = [oldSports];
+      if (typeof newSports === 'string') newSports = [newSports];
 
-    // make sure we have an array TODO make sure it's this before we get to this point!
-    if (typeof oldSports === 'string') oldSports = [oldSports];
-    if (typeof newSports === 'string') newSports = [newSports];
-
-    // if unchanged, then return
-    if (oldSports.length > 0 && newSports.length > 0 && oldSports[0] === newSports[0]) return;
-
-    this.unsubscribeToSportSockets(oldSports);
-    this.subscribeToSportSockets(newSports);
+      // if we have a new sport
+      if (newSports.length > 0 && oldSports[0] !== newSports[0]) {
+        this.unsubscribeToSportSockets(oldSports);
+        this.subscribeToSportSockets(newSports);
+      }
+    }
   },
 
   /*
-   * Don't rerender the component every time the state, props update
-   */
-  // shouldComponentUpdate() {
-  //   return false;
-  // },
-
-  /*
-   * When we receive a Pusher stats call, make sure it's related to our games, and if so send to the appropriate queue
+   * Start up Pusher listeners
    *
-   * @param  {object} eventCall The received event from Pusher
-   */
-  onBoxscoreGameReceived(eventCall) {
-    log.trace('Live.onBoxscoreGameReceived()');
-    const gameId = eventCall.id;
-
-    // return if basic checks fail
-    if (this.isPusherEventRelevant(eventCall, gameId) === false) {
-      return;
-    }
-
-    // if the event didn't involve points, then don't bother bc that's all we deal with
-    if (eventCall.hasOwnProperty('clock') === false && eventCall.hasOwnProperty('outcome__list') === false) {
-      log.debug('Live.onBoxscoreGameReceived() - call had no time', eventCall);
-      return;
-    }
-
-    // determine sports
-    let sport = 'nba';
-    if (eventCall.hasOwnProperty('outcome__list')) {
-      sport = 'mlb';
-    }
-
-    addEventAndStartQueue(eventCall.id, eventCall, 'boxscore-game', sport);
-  },
-
-  /*
-   * When we receive a Pusher stats call, make sure it's related to our games, and if so send to the appropriate queue
-   *
-   * @param  {object} eventCall The received event from Pusher
-   */
-  onBoxscoreTeamReceived(eventCall) {
-    log.trace('Live.onBoxscoreTeamReceived()');
-    const gameId = eventCall.game__id;
-
-    // return if basic checks fail
-    if (this.isPusherEventRelevant(eventCall, gameId) === false) {
-      return;
-    }
-
-    // if the event didn't involve points, then don't bother bc that's all we deal with
-    if (eventCall.hasOwnProperty('points') === false) {
-      log.debug('Live.onBoxscoreTeamReceived() - call had no points', eventCall);
-      return;
-    }
-
-    addEventAndStartQueue(eventCall.game__id, eventCall, 'boxscore-team', 'nba');
-  },
-
-  /*
-   * When we receive a Pusher stats call, make sure it's related to one the relevant players
-   *
-   * @param  {object} eventCall The received event from Pusher
-   */
-  onPBPReceived(eventCall, sport) {
-    log.trace('Live.onPBPReceived()');
-
-    const isLinked = eventCall.hasOwnProperty('pbp');
-    const eventData = isLinked ? eventCall.pbp : eventCall;
-    const gameId = eventData.game__id;
-
-    // return if basic checks fail
-    if (this.isPusherEventRelevant(eventData, gameId) === false) {
-      return;
-    }
-
-    let eventPlayers;
-    const relevantPlayers = this.props.relevantGamesPlayers.relevantItems.players;
-
-    switch (sport) {
-      case 'mlb':
-        eventPlayers = [
-          eventData.pitcher,
-        ];
-
-        if (eventCall.hasOwnProperty('at_bat')) {
-          eventPlayers.push(eventCall.at_bat.hitter_id);
-        }
-        break;
-      case 'nba':
-      default:
-        // if this is not a statistical based call or has no location to animate, ignore
-        if (eventData.hasOwnProperty('statistics__list') === false ||
-            eventData.hasOwnProperty('location__list') === false
-          ) {
-          log.debug('Live.onPBPReceived() - had no statistics__list', eventCall);
-          return;
-        }
-
-        eventPlayers = _map(eventData.statistics__list, event => event.player);
-    }
-
-    // make sure to add eventPlayers as its own entity on the call
-    const eventWithExtraData = _merge(eventCall, {
-      addedData: {
-        eventPlayers,
-        sport,
-      },
-    });
-
-    // only add to the queue if we care about the player(s)
-    if (_intersection(relevantPlayers, eventPlayers).length > 0) {
-      addEventAndStartQueue(gameId, eventWithExtraData, 'pbp', sport);
-    }
-  },
-
-  /*
-   * When we receive a Pusher stats call, make sure it's related to our games/players, and if so send to the appropriate
-   * method to be parsed
-   *
-   * @param  {object} eventCall The received event from Pusher
-   * @param  {string} sport     The player's sport, used to parse in actions
-   */
-  onStatsReceived(eventCall, sport) {
-    log.trace('Live.onStatsReceived()');
-    const gameId = eventCall.fields.srid_game;
-
-    // return if basic checks fail
-    if (this.isPusherEventRelevant(eventCall, gameId) === false) {
-      return;
-    }
-
-    if (this.props.relevantGamesPlayers.isLoading) return;
-
-    // if it's not a relevant game to the live section, then just update the player's FP to update the NavScoreboard
-    if (this.props.relevantGamesPlayers.relevantItems.games.indexOf(gameId) !== -1) {
-      // otherwise just update the player's FP
-      this.props.dispatch(updatePlayerStats(
-        eventCall.fields.player_id,
-        eventCall,
-        this.props.myLineup.draftGroupId
-      ));
-      return;
-    }
-
-    addEventAndStartQueue(gameId, eventCall, 'stats', sport);
-  },
-
-  /*
-   * Start up Pusher listeners to the necessary channels and events
-   *
-   * @param  {string} newSport New sport to subscribe to
+   * @param  {array} newSports  New sports to subscribe to
    */
   subscribeToSportSockets(newSports) {
     log.trace('pusherData.subscribeToSockets()');
 
-    // if there's no sport, then no need to subscribe
-    if (newSports.length === 0) {
-      return;
-    }
-
+    const { actions, myLineup, relevantGamesPlayers } = this.props;
     const { pusher, channelPrefix } = this.state;
+    const { draftGroupId } = myLineup;
 
-    _forEach(newSports, (sport) => {
+    newSports.map((sport) => {
       const pbpChannel = pusher.subscribe(`${channelPrefix}${sport}_pbp`);
-      pbpChannel.bind('event', (eventCall) => this.onPBPReceived(eventCall, sport));
-      pbpChannel.bind('linked', (eventCall) => this.onPBPReceived(eventCall, sport));
+      pbpChannel.bind('event', (message) => actions.onPBPEventReceived(
+        message, sport, draftGroupId, relevantGamesPlayers
+      ));
+      pbpChannel.bind('linked', (message) => actions.onPBPReceived(
+        message, sport, draftGroupId, relevantGamesPlayers
+      ));
 
       const statsChannel = pusher.subscribe(`${channelPrefix}${sport}_stats`);
-      statsChannel.bind('player', (eventCall) => this.onStatsReceived(eventCall, sport));
+      statsChannel.bind('player', (message) => actions.onPlayerStatsReceived(
+        message, sport, draftGroupId, relevantGamesPlayers
+      ));
     });
   },
 
   /*
-   * Shut down Pusher listeners to the necessary channels and events
+   * Shut down unneeded Pusher listeners
    *
-   * @param  {string} oldSport Old sport to unsubscribe from
+   * @param  {array} oldSports  Old sports to unsubscribe from
    */
   unsubscribeToSportSockets(oldSports) {
     log.trace('pusherData.unsubscribeToSockets()');
 
-    // if there's no old sport, then no need to unsubscribe
-    if (oldSports.length === 0) {
-      return;
-    }
+    // if there's no old sports, don't bother
+    if (oldSports.length === 0) return false;
 
     const { pusher, channelPrefix } = this.state;
 
-    _forEach(oldSports, (sport) => {
+    oldSports.map((sport) => {
       pusher.unsubscribe(`${channelPrefix}${sport}_pbp`);
       pusher.unsubscribe(`${channelPrefix}${sport}_stats`);
     });
   },
 
-  /*
-   * Check whether the Pusher call has the right information we need
-   *
-   * @return {Boolean} Whether the event is relevant to the live/nav sections
-   */
-  isPusherEventRelevant(eventCall, gameId) {
-    // for now, only use calls once data is loaded
-    if (this.props.hasRelatedInfo === false) {
-      log.trace('Live.isPusherEventRelevant() - hasRelatedInfo === false', eventCall);
-      return false;
-    }
-
-    if (this.props.draftGroupTiming.started === false) {
-      log.trace('Live.isPusherEventRelevant() - in countdown mode', eventCall);
-      return false;
-    }
-
-    const games = this.props.sportsSelector.games;
-
-    // check that the game is relevant
-    if (games.hasOwnProperty(gameId) === false) {
-      log.trace('eventCall had irrelevant game', eventCall);
-      return false;
-    }
-
-    // if we haven't received from the server that the game has started, then ask the server for an update!
-    if (games[gameId].hasOwnProperty('boxscore') === false) {
-      log.trace('Live.isPusherEventRelevant() - related game had no boxscore from server', eventCall);
-
-      // by passing in a sport, you force
-      this.props.dispatch(fetchSportIfNeeded(this.props.watching.sport, true));
-      return false;
-    }
-
-    return true;
-  },
-
   render() {
-    return <div />;
+    return null;
   },
 });
 
-// Set up Redux connections to React
+// Set up Redux connection to React
 const { connect } = ReactRedux;
 
 // Wrap the component to inject dispatch and selected state into it.
-const PusherDataConnected = connect(
-  mapStateToProps
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
 )(PusherData);
-
-export default PusherDataConnected;
