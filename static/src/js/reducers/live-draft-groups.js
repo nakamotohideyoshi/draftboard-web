@@ -63,7 +63,7 @@ module.exports = (state = {}, action) => {
       });
 
 
-    case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_INFO:
+    case ActionTypes.LIVE_DRAFT_GROUP__INFO__REQUEST:
       newProps = {
         id: action.id,
         isFetchingInfo: true,
@@ -74,14 +74,13 @@ module.exports = (state = {}, action) => {
       return setOrMerge(state, action, newProps);
 
 
-    case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_INFO:
+    case ActionTypes.LIVE_DRAFT_GROUP__INFO__RECEIVE:
       return update(state, {
         [action.id]: {
           $merge: {
             isFetchingInfo: false,
             infoExpiresAt: action.expiresAt,
             playersInfo: action.players,
-            playersBySRID: action.playersBySRID,
             start: action.start,
             end: action.end,
             sport: action.sport,

@@ -1,4 +1,5 @@
 import thunk from 'redux-thunk';
+import api from './api';
 import { applyMiddleware, createStore, compose } from 'redux';
 import { browserHistory } from 'react-router';
 import { logger } from '../lib/logging';
@@ -12,7 +13,7 @@ let middleware = applyMiddleware(thunk, logger, routerHistory)(createStore);
 // Add in redux devtools if you're developing
 if (process.env.NODE_ENV === 'debug' || process.env.NODE_ENV === 'development') {
   middleware = compose(
-    applyMiddleware(thunk, logger, routerHistory),
+    applyMiddleware(thunk, api, logger, routerHistory),
     window.devToolsExtension ? window.devToolsExtension() : f => f
   )(createStore);
 }

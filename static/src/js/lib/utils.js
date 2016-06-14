@@ -61,6 +61,13 @@ export function timeRemaining(timestamp) {
   };
 }
 
+/**
+ * Super shortcut so we always remember expiration is greater than now
+ * @param  {integer} expiresAt  Unix timestamp
+ * @return {boolean}            True if expired, false if not
+ */
+export const hasExpired = (expiresAt) => dateNow() < expiresAt;
+
 // Has this timestamp passed?
 export function isTimeInFuture(timestamp) {
   return moment.utc(timestamp) > moment(dateNow()).utc();

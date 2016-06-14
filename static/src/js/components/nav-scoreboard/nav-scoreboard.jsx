@@ -6,7 +6,7 @@ import log from '../../lib/logging';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
 
-import { fetchEntriesIfNeeded } from '../../actions/entries';
+import { fetchCurrentEntriesAndRelated } from '../../actions/entries';
 import { fetchSportsIfNeeded } from '../../actions/sports';
 import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { removeUnusedContests } from '../../actions/live-contests';
@@ -80,7 +80,7 @@ const NavScoreboard = React.createClass({
     // if the user is logged in
     if (this.state.user.username !== '' && window.location.pathname !== '/live/') {
       try {
-        this.props.dispatch(fetchEntriesIfNeeded());
+        this.props.dispatch(fetchCurrentEntriesAndRelated());
       } catch (e) {
         this.props.dispatch(errorHandler(e, `#JASDFJIE ${defaultMessage}`));
       }

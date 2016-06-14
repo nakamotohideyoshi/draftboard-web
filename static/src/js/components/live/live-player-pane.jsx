@@ -4,7 +4,7 @@ import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import { stringifyMLBWhen } from '../../actions/events-multipart';
 import log from '../../lib/logging';
-import { GAME_DURATIONS } from '../../actions/sports';
+import { SPORT_CONST } from '../../actions/sports';
 import { humanizeFP } from '../../actions/sports';
 
 function preloader() {
@@ -54,7 +54,7 @@ const LivePlayerPane = React.createClass({
    */
   renderStatsAverage() {
     const seasonStats = this.props.seasonStats;
-    const { types, names } = GAME_DURATIONS[this.props.sport].seasonStats;
+    const { types, names } = SPORT_CONST[this.props.sport].seasonStats;
 
     let renderedStats;
     if (seasonStats.hasOwnProperty('fp') === true) {

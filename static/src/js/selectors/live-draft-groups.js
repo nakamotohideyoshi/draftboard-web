@@ -1,5 +1,5 @@
 import Raven from 'raven-js';
-import { GAME_DURATIONS } from '../actions/sports';
+import { SPORT_CONST } from '../actions/sports';
 
 
 /**
@@ -43,7 +43,7 @@ export const assembleCurrentPlayer = (id, draftGroup, gamesTimeRemaining) => {
   // default to 100% time remaining if we do not have game data yet
   const timeRemaining = gamesTimeRemaining[info.game_srid] || {
     decimal: 0.9999,
-    duration: GAME_DURATIONS[draftGroup.sport].gameDuration,
+    duration: SPORT_CONST[draftGroup.sport].gameDuration,
   };
 
   return {

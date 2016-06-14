@@ -74,18 +74,16 @@ describe("NavScoreboardFilters Component", function() {
     });
   });
 
-  // TODO: Test disabled because it always fails
-  //
-  // it('should select first option if not selected', function(done) {
-  //   const { options } = defaultProps;
-  //   const selected = null;
-  //   const onChangeSelection = (option) => {
-  //     expect(option).to.equal(props.options[0].option)
-  //     done();
-  //   };
-  //   const props = { selected, options, onChangeSelection };
-  //
-  //   render(props, (component, domElement) => {});
-  // });
+  it('should select first option if not selected', function(done) {
+    const { options } = defaultProps;
+    const selected = null;
+    const onChangeSelection = (option) => {
+      expect(option).to.equal(props.options[1].option);
+      done();
+    };
+    const props = { selected, options, onChangeSelection };
 
+    render(props, (component, domElement) => {});
+
+  });
 });

@@ -59,7 +59,7 @@ const requestDraftGroupBoxscores = (id) => ({
  */
 const requestDraftGroupInfo = (id) => ({
   id,
-  type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_INFO,
+  type: ActionTypes.LIVE_DRAFT_GROUP__INFO__REQUEST,
 });
 
 /**
@@ -117,7 +117,7 @@ const receiveDraftGroupInfo = (id, response) => {
   });
 
   return {
-    type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_INFO,
+    type: ActionTypes.LIVE_DRAFT_GROUP__INFO__RECEIVE,
     id,
     players,
     playersBySRID,
@@ -350,21 +350,23 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
  * @param  {number} draftGroupId) Draft group ID to find player in redux store
  * @return {object}               Changes for reducer, wrapped in thunk
  */
-export const updatePlayerStats = (playerId, eventCall, draftGroupId) => (dispatch, getState) => {
+export const updatePlayerStats = (message) => (dispatch, getState) => {
+  const playerId = message.fields.player_id;
+
   // if this is a relevant player, update their stats
-  if (getState().livePlayers.relevantPlayers.hasOwnProperty(eventCall.fields.srid_player)) {
-    log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', eventCall);
+  if (getState().livePlayers.relevantPlayers.hasOwnProperty(playerId)) {
+    log.info('stats are for relevantPlayer, calling updateLivePlayersStats()', message);
 
     dispatch(updateLivePlayersStats(
-      eventCall.fields.srid_player,
-      eventCall.fields
+      playerId,
+      message.fields
     ));
   }
 
   return dispatch({
-    id: draftGroupId,
+    id: message.draftGroupId,
     type: ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP,
     playerId,
-    fp: eventCall.fields.fantasy_points,
+    fp: message.fields.fantasy_points,
   });
 };

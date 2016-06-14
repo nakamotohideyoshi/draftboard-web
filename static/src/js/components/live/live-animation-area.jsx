@@ -1,4 +1,4 @@
-import * as ReactRedux from 'react-redux';
+import { connect } from 'react-redux';
 import React from 'react';
 import LiveMLBStadium from './mlb/live-mlb-stadium';
 import LiveNBACourt from './live-nba-court';
@@ -11,13 +11,15 @@ import LiveNBACourt from './live-nba-court';
  */
 const mapStateToProps = (state) => ({
   animationEvents: state.events.animationEvents,
+  eventsMultipart: state.eventsMultipart,
+  watching: state.watching,
 });
 
 /**
  * Return the header section of the live page, including the lineup/contest title and overall stats
  */
-const LiveAnimationArea = (props) => {
-  switch (props.sport) {
+export const LiveAnimationArea = (props) => {
+  switch (props.watching.sport) {
     case 'mlb':
       return (
         <LiveMLBStadium
@@ -38,16 +40,10 @@ const LiveAnimationArea = (props) => {
 LiveAnimationArea.propTypes = {
   animationEvents: React.PropTypes.object.isRequired,
   eventsMultipart: React.PropTypes.object.isRequired,
-  sport: React.PropTypes.string.isRequired,
   watching: React.PropTypes.object.isRequired,
 };
 
-// Set up Redux connections to React
-const { connect } = ReactRedux;
-
 // Wrap the component to inject dispatch and selected state into it.
-const LiveAnimationAreaConnected = connect(
+export default connect(
   mapStateToProps
 )(LiveAnimationArea);
-
-export default LiveAnimationAreaConnected;
