@@ -5,12 +5,13 @@ import Cookies from 'js-cookie';
 import { debounce as _debounce } from 'lodash';
 import { map as _map } from 'lodash';
 
+import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
+import { bindActionCreators } from 'redux';
+import { fetchLineupUsernames } from '../../actions/lineup-usernames';
+import { humanizeFP } from '../../actions/sports';
 import { SPORT_CONST } from '../../actions/sports.js';
 import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching.js';
-import * as AppActions from '../../stores/app-state-store';
-import { fetchLineupUsernames } from '../../actions/lineup-usernames';
-import { bindActionCreators } from 'redux';
 
 const STANDINGS_TAB = 'standings';
 const OWNERSHIP_TAB = 'ownership';
@@ -441,7 +442,7 @@ export const LiveStandingsPane = React.createClass({
           <div className="lineup--place">{lineup.rank}</div>
           { pmr }
           <div className="lineup--score-name">{username}</div>
-          <div className="lineup--score-points">{lineup.fp} Pts</div>
+          <div className="lineup--score-points">{humanizeFP(lineup.fp)} Pts</div>
           <div className={earningsClass}>${potentialWinnings}</div>
           { overlay }
         </div>
@@ -499,7 +500,7 @@ export const LiveStandingsPane = React.createClass({
           <div className="player--name">
             {player.name} <div className="team">{player.team_alias}</div>
           </div>
-          <div className="player--points"><b>{player.fp}</b><span>Pts</span></div>
+          <div className="player--points"><b>{humanizeFP(player.fp)}</b><span>Pts</span></div>
           <div className="player--progress">{player.ownershipPercent}%</div>
           <div
             className="player--overlay"
