@@ -8,6 +8,7 @@ import { merge as _merge } from 'lodash';
 
 module.exports = (state = {
   isFetching: false,
+  isFetchingRosters: false,
   hasRelatedInfo: false,
   expiresAt: dateNow(),
   items: [],
@@ -22,6 +23,14 @@ module.exports = (state = {
 
       return newState;
 
+    case ActionTypes.ENTRIES_ROSTERS__REQUEST:
+      return update(state, {
+        $merge: {
+          isFetchingRosters: true,
+          rostersExpireAt: action.expiresAt,
+        },
+      });
+
     case ActionTypes.ENTRIES_ROSTERS__RECEIVE:
       _forEach(newState.items, (entry, index) => {
         const lineup = action.response.entriesRosters[entry.lineup] || {};
@@ -29,6 +38,9 @@ module.exports = (state = {
           newState.items[index].roster = _map(lineup.players, player => player.playerId);
         }
       });
+
+      newState.isFetchingRosters = false;
+      newState.rostersExpireAt = action.expiresAt;
 
       return newState;
 

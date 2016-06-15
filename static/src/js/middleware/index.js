@@ -8,7 +8,7 @@ import { routerMiddleware } from 'react-router-redux';
 const routerHistory = routerMiddleware(browserHistory);
 
 // Responsible for combining all the system's middlewares in a single place.
-let middleware = applyMiddleware(thunk, logger, routerHistory)(createStore);
+let middleware = applyMiddleware(thunk, api, logger, routerHistory)(createStore);
 
 // Add in redux devtools if you're developing
 if (process.env.NODE_ENV === 'debug' || process.env.NODE_ENV === 'development') {
