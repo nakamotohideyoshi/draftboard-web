@@ -49,6 +49,7 @@ const requestDraftGroupFP = (id) => ({
 const requestDraftGroupBoxscores = (id) => ({
   id,
   type: ActionTypes.REQUEST_DRAFT_GROUP_BOXSCORES,
+  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**
@@ -60,6 +61,7 @@ const requestDraftGroupBoxscores = (id) => ({
 const requestDraftGroupInfo = (id) => ({
   id,
   type: ActionTypes.LIVE_DRAFT_GROUP__INFO__REQUEST,
+  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**

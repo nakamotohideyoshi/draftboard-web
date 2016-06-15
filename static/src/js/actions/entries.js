@@ -1,9 +1,11 @@
 import * as ActionTypes from '../action-types';
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
+import uniqBy from 'lodash/uniqBy';
 import log from '../lib/logging';
 import { CALL_API } from '../middleware/api';
 import { camelizeKeys } from 'humps';  // TODO remove this once API calls are camel-cased
+import { compose } from 'redux';
 import { dateNow, hasExpired } from '../lib/utils';
 import { fetchContestIfNeeded } from './live-contests';
 import { fetchDraftGroupIfNeeded } from './live-draft-groups';
@@ -96,7 +98,22 @@ export const fetchCurrentEntries = () => ({
     expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
     endpoint: '/api/contest/contest-pools/current-entries/',
     callback: (json) => {
-      const camelizedJson = camelizeKeys(json);
+      // TODO remove once this API stops returning past entries
+      const yesterday = dateNow() - 1000 * 60 * 60 * 24;  // subtract 1 day
+
+      // filters
+      const yesterdayOrNewerFilter = (x) => filter(x, (entry) => new Date(entry.start).getTime() > yesterday);
+      const noContestFilter = (x) => filter(x, (entry) => entry.contest === '');
+      const withContestFilter = (x) => filter(x, (entry) => entry.contest !== '');
+      const uniqEntries = (x) => uniqBy(x, 'lineup');
+
+      // pare down to only the lineups we need
+      const upcomingLineups = compose(yesterdayOrNewerFilter, noContestFilter, uniqEntries)(json);
+      const liveLineups = compose(yesterdayOrNewerFilter, withContestFilter, uniqEntries)(json);
+      const currentLineups = liveLineups.concat(upcomingLineups);
+
+      // normalize and camelcase it
+      const camelizedJson = camelizeKeys(currentLineups);
       return normalize(camelizedJson, arrayOf(entrySchema)).entities;
     },
   },

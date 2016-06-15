@@ -207,7 +207,7 @@ export const Live = React.createClass({
     }
 
     // wait for contest_id to be returned via current-entries api
-    if (myEntry.contest === null) return (<LiveLoading />);
+    if (myEntry.contest === null) return (<LiveLoading isContestPools />);
 
     // wait for data to load before showing anything
     if (relevantGamesPlayers.isLoading) return (<LiveLoading isContestPools={false} />);
