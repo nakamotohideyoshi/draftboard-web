@@ -27,17 +27,13 @@ const CollectionMatchFilter = React.createClass({
     onUpdate: React.PropTypes.func.isRequired,
     // 'span' or 'select' - defaults to span.
     elementType: React.PropTypes.string,
+    activeFilter: React.PropTypes.object,
   },
 
 
-  getInitialState() {
+  getDefaultProps() {
     return {
-      // Initial match value.
-      match: this.props.match,
-      // Used to update the rendered HTML with an active class.
-      activeFilter: {
-        title: 'All',
-      },
+      activeFilter: {},
     };
   },
 
@@ -61,15 +57,14 @@ const CollectionMatchFilter = React.createClass({
 
 
   getOptions() {
-    const self = this;
     // Build up html for filter options.
     return this.props.filters.map((filter) => {
       let cssClass = 'cmp-collection-match-filter__option';
 
       // Add active class if the filter is currently active.
       if (
-        self.state.activeFilter === '' && filter.match === '' ||
-        self.state.activeFilter.match === filter.match
+        this.props.activeFilter === '' && filter.match === '' ||
+        this.props.activeFilter.match === filter.match
       ) {
         cssClass += ' cmp-collection-match-filter__option--active';
       }
@@ -94,8 +89,8 @@ const CollectionMatchFilter = React.createClass({
 
       // Add active class if the filter is currently active.
       if (
-        self.state.activeFilter === '' && filter.match === '' ||
-        self.state.activeFilter.match === filter.match
+        this.props.activeFilter === '' && filter.match === '' ||
+        this.props.activeFilter.match === filter.match
       ) {
         cssClass += ' cmp-collection-match-filter__option--active';
       }
@@ -131,18 +126,20 @@ const CollectionMatchFilter = React.createClass({
 
 
     // Check if the row's property matches this filter's match value.
-    switch (typeof this.state.match) {
+    switch (typeof this.props.activeFilter.match) {
       // If the match is a string...
       case 'string':
         if (this.state.match === '' ||
-          row[this.props.filterProperty].toLowerCase() === this.state.match.toLowerCase()) {
+          row[this.props.filterProperty].toLowerCase() === this.props.activeFilter.match.toLowerCase()) {
           return true;
         }
         break;
 
       // But the match can also be an array. Like in MLB, 'OF' can be either 'lf','cf' or 'rf'.
       case 'object':
-        if (this.state.match === '' || this.state.match.indexOf(row[this.props.filterProperty].toLowerCase() !== -1)
+        if (
+          this.props.activeFilter.match === '' ||
+          this.props.activeFilter.match.indexOf(row[this.props.filterProperty].toLowerCase() !== -1)
         ) {
           return true;
         }
@@ -171,15 +168,9 @@ const CollectionMatchFilter = React.createClass({
       activeFilter = find(this.props.filters, { title: filter.target.value });
     }
 
-
-    // Update the filter match value, then tell the parent DataTable that the
-    // filter has been updated - this will re-render() the DataTable.
-    this.setState({
-      match: activeFilter.match,
-      activeFilter,
-    }, () => {
-      this.props.onUpdate(this.props.filterName, this.props.filterProperty, activeFilter.match);
-    });
+    // Update the filter match value in the app store. this will re-render the component
+    // with the selected filter.
+    this.props.onUpdate(this.props.filterName, this.props.filterProperty, activeFilter.match);
   },
 
 
