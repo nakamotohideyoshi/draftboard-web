@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
 import { isPlayerInLineup } from '../components/draft/draft-utils.js';
-import { merge as _merge } from 'lodash';
-import { orderBy as _orderBy } from 'lodash';
-import { find as _find } from 'lodash';
+import merge from 'lodash/merge';
+import orderBy from 'lodash/orderBy';
+import find from 'lodash/find';
 
 const focusedPlayerIdSelector = (state) => state.draftGroupPlayersFilters.focusedPlayerId;
 const allPlayersSelector = (state) => state.draftGroupPlayers.allPlayers;
@@ -45,7 +45,7 @@ export const focusedPlayerSelector = createSelector(
 
     const focusedPlayer = allPlayers[focusedPlayerId];
 
-    const player = _merge({}, focusedPlayer, {
+    const player = merge({}, focusedPlayer, {
       sport,
       news: {},
       nextGame: {},
@@ -78,8 +78,8 @@ export const focusedPlayerSelector = createSelector(
 
               player.splitsHistory = player.boxScoreHistory.games.map((game, i) => {
                 // Figure out which team the opponent was.
-                const awayTeam = _find(sportInfo[sport].teams, { id: player.boxScoreHistory.away_id[i] });
-                const homeTeam = _find(sportInfo[sport].teams, { id: player.boxScoreHistory.home_id[i] });
+                const awayTeam = find(sportInfo[sport].teams, { id: player.boxScoreHistory.away_id[i] });
+                const homeTeam = find(sportInfo[sport].teams, { id: player.boxScoreHistory.home_id[i] });
                 // start with the assumption that the home team is the opponent.
                 let oppTeam = homeTeam;
                 // if the home team is actually the player's team, the away team is the opp.
@@ -128,7 +128,7 @@ export const focusedPlayerSelector = createSelector(
 
           }
           // Now sort them by date since the server is dumb.
-          player.splitsHistory = _orderBy(player.splitsHistory, 'date', 'desc');
+          player.splitsHistory = orderBy(player.splitsHistory, 'date', 'desc');
         }
       }
     }

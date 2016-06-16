@@ -1,6 +1,6 @@
 import React from 'react';
 import log from '../../lib/logging';
-import { find as _find } from 'lodash';
+import find from 'lodash/find';
 
 
 /**
@@ -168,7 +168,7 @@ const CollectionMatchFilter = React.createClass({
     // We have to account for a select value being changed.
     if (filter.hasOwnProperty('target')) {
       // Find the filter with the title of the select value.
-      activeFilter = _find(this.props.filters, { title: filter.target.value });
+      activeFilter = find(this.props.filters, { title: filter.target.value });
     }
 
 

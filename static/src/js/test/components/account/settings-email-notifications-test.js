@@ -2,7 +2,7 @@ import React from 'react';
 // import sinon from 'sinon';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
-// import { merge as _merge } from 'lodash';
+// import merge from 'lodash/merge';
 import SettingsEmailNotifications from
   '../../../components/account/subcomponents/settings-email-notifications.jsx';
 import emailNotificationSettings from

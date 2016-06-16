@@ -1,5 +1,5 @@
 import ActionTypes from '../action-types';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 
 const initialState = {
   username: window.dfs.user.username,
@@ -27,7 +27,7 @@ module.exports = (state = initialState, action) => {
 
     // Fetch user info (name, address, dob)
     case ActionTypes.FETCH_USER_INFO_SUCCESS:
-      return _merge({}, state, {
+      return merge({}, state, {
         infoFormErrors: {},
         info: action.body,
       });
@@ -35,20 +35,20 @@ module.exports = (state = initialState, action) => {
 
     case ActionTypes.UPDATE_USER_INFO_SUCCESS:
       // TODO: update user with the response
-      return _merge({}, state, {
+      return merge({}, state, {
         info: action.body,
         infoFormErrors: {},
       });
 
     case ActionTypes.UPDATE_USER_INFO_FAIL:
-      return _merge({}, state, {
+      return merge({}, state, {
         infoFormErrors: action.ex.response.body.errors,
       });
 
 
     // Email Pass
     case ActionTypes.UPDATE_USER_EMAIL_PASS_FAIL:
-      return _merge({}, state, {
+      return merge({}, state, {
         emailPassFormErrors: action.body.errors,
       });
 
@@ -57,7 +57,7 @@ module.exports = (state = initialState, action) => {
      * User account cash balance actions.
      */
     case ActionTypes.FETCHING_CASH_BALANCE:
-      return _merge({}, state, {
+      return merge({}, state, {
         cashBalance: {
           isFetching: true,
         },
@@ -65,7 +65,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.FETCH_CASH_BALANCE_SUCCESS:
-      return _merge({}, state, {
+      return merge({}, state, {
         cashBalance: {
           isFetching: false,
           amount: action.body.cash_balance,
@@ -74,7 +74,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.FETCH_CASH_BALANCE_FAIL:
-      return _merge({}, state, {
+      return merge({}, state, {
         cashBalance: {
           isFetching: false,
         },
@@ -82,7 +82,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.FETCH_EMAIL_NOTIFICATIONS:
-      return _merge({}, state, {
+      return merge({}, state, {
         notificationSettings: {
           isFetchingEmail: true,
         },
@@ -90,7 +90,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.FETCH_EMAIL_NOTIFICATIONS_SUCCESS:
-      return _merge({}, state, {
+      return merge({}, state, {
         notificationSettings: {
           isFetchingEmail: false,
           email: action.body,
@@ -99,7 +99,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.FETCH_EMAIL_NOTIFICATIONS_FAIL:
-      return _merge({}, state, {
+      return merge({}, state, {
         notificationSettings: {
           isFetchingEmail: false,
         },
@@ -107,7 +107,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.UPDATE_EMAIL_NOTIFICATIONS:
-      return _merge({}, state, {
+      return merge({}, state, {
         notificationSettings: {
           isUpdatingEmail: true,
         },
@@ -115,7 +115,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.UPDATE_EMAIL_NOTIFICATIONS_SUCCESS:
-      return _merge({}, state, {
+      return merge({}, state, {
         notificationSettings: {
           isUpdatingEmail: false,
           email: action.body,
@@ -124,7 +124,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.UPDATE_EMAIL_NOTIFICATIONS_FAIL:
-      return _merge({}, state, {
+      return merge({}, state, {
         notificationSettings: {
           isUpdatingEmail: false,
           emailErrors: [action.err.message],

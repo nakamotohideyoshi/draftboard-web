@@ -1,11 +1,11 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
 import * as ActionTypes from '../action-types';
 import { dateNow } from '../lib/utils';
-import { forEach as _forEach } from 'lodash';
-import { filter as _filter } from 'lodash';
-import { map as _map } from 'lodash';
-import { merge as _merge } from 'lodash';
-import { sortBy as _sortBy } from 'lodash';
+import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
+import map from 'lodash/map';
+import merge from 'lodash/merge';
+import sortBy from 'lodash/sortBy';
 import log from '../lib/logging';
 
 
@@ -227,9 +227,9 @@ const requestTeams = (sport) => ({
 const receiveGames = (sport, games) => {
   const doneStatuses = ['closed', 'complete'];
 
-  const gamesCompleted = _map(
-    _sortBy(
-      _filter(
+  const gamesCompleted = map(
+    sortBy(
+      filter(
         games, (game) => game.hasOwnProperty('boxscore') && doneStatuses.indexOf(game.boxscore.status) !== -1
       ),
       (filteredGame) => filteredGame.start
@@ -237,9 +237,9 @@ const receiveGames = (sport, games) => {
     (sortedGame) => sortedGame.srid
   );
 
-  const gamesNotCompleted = _map(
-    _sortBy(
-      _filter(
+  const gamesNotCompleted = map(
+    sortBy(
+      filter(
         games, (game) => gamesCompleted.indexOf(game.srid) === -1
       ),
       (filteredGame) => filteredGame.start
@@ -268,7 +268,7 @@ const receiveGames = (sport, games) => {
  */
 const receiveTeams = (sport, response) => {
   const newTeams = {};
-  _forEach(response, (team) => {
+  forEach(response, (team) => {
     newTeams[team.srid] = team;
   });
 
@@ -389,8 +389,8 @@ const fetchGames = (sport) => (dispatch) => {
     Accept: 'application/json',
   }).then((res) => {
     // add in the sport so we know how to differentiate it.
-    const games = _merge({}, res.body || {});
-    _forEach(games, (game, id) => {
+    const games = merge({}, res.body || {});
+    forEach(games, (game, id) => {
       games[id].sport = sport;
 
       // if no boxscore, default to upcoming = 100% remaining
@@ -522,7 +522,7 @@ export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
 export const fetchSportsIfNeeded = () => (dispatch, getState) => {
   // log.trace('actions.sports.fetchSportsIfNeeded()');
 
-  _forEach(
+  forEach(
     getState().sports.types, (sport) => {
       dispatch(fetchSportIfNeeded(sport));
     }
@@ -604,7 +604,7 @@ export const updateGameTeam = (message) => (dispatch, getState) => {
 export const updateGameTime = (event) => (dispatch, getState) => {
   const gameId = event.id;
   const state = getState();
-  const game = _merge({}, state.sports.games[gameId]);
+  const game = merge({}, state.sports.games[gameId]);
   let updatedGameFields = {};
 
   // if game does not exist yet, we don't know what sport so just cancel the update and wait for polling call

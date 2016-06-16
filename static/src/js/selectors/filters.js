@@ -1,4 +1,4 @@
-import { filter as _filter } from 'lodash';
+import filter from 'lodash/filter';
 import log from '../lib/logging.js';
 
 
@@ -10,7 +10,7 @@ import log from '../lib/logging.js';
  * @return {array}                A filtered list of items.
  */
 export const stringSearchFilter = (collection, filterProperty, searchString) =>
-  _filter(collection, (item) => {
+  filter(collection, (item) => {
     // Show the row if there is no search query.
     if (!searchString) {
       return true;
@@ -43,7 +43,7 @@ export const stringSearchFilter = (collection, filterProperty, searchString) =>
  * @param  {Object} row The single collection row.
  * @return {boolean} Should the row be displayed in the filtered collection list?
  */
-export const matchFilter = (collection, filterProperty, match) => _filter(collection, (item) => {
+export const matchFilter = (collection, filterProperty, match) => filter(collection, (item) => {
   // If there's nothing to match against, show the item.
   if (!match) {
     return true;
@@ -65,7 +65,7 @@ export const matchFilter = (collection, filterProperty, match) => _filter(collec
   // array of matches.
   //
   // We will have an array as a match for position matching in the draft section ex: ['pg', 'sg']
-  const matches = _filter(
+  const matches = filter(
     match,
     (matchItem) => matchItem.toLowerCase() === item[filterProperty].toLowerCase()
   );
@@ -80,7 +80,7 @@ export const matchFilter = (collection, filterProperty, match) => _filter(collec
  * @param  {Object} row The single collection row.
  * @return {boolean} Should the row be displayed in the filtered collection list?
  */
-export const rangeFilter = (collection, filterProperty, minVal, maxVal) => _filter(collection, (item) => {
+export const rangeFilter = (collection, filterProperty, minVal, maxVal) => filter(collection, (item) => {
   // Is the property value less than the minimum range value, or greater than the biggest?
   if (item[filterProperty] < minVal || item[filterProperty] > maxVal) {
     return false;
@@ -93,7 +93,7 @@ export const rangeFilter = (collection, filterProperty, minVal, maxVal) => _filt
 /**
  * This filter will determine if a contest is one of [GPP, H2H, or double-up]
  */
-export const gameTypeFilter = (collection, gameType) => _filter(collection, (item) => {
+export const gameTypeFilter = (collection, gameType) => filter(collection, (item) => {
   switch (gameType) {
     case 'gpp':
       return item.gpp;
@@ -118,7 +118,7 @@ export const inArrayFilter = (collection, filterProperty, matchList) => {
     return collection;
   }
 
-  const matches = _filter(collection, (item) => matchList.indexOf(item[filterProperty]) !== -1);
+  const matches = filter(collection, (item) => matchList.indexOf(item[filterProperty]) !== -1);
 
   return matches;
 };

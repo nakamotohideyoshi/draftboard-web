@@ -6,7 +6,7 @@ import zipObject from 'lodash/zipObject';
 import { Buffer } from 'buffer/';
 import { dateNow } from '../lib/utils';
 import { fetchPrizeIfNeeded } from './prizes';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 import { SPORT_CONST } from '../actions/sports';
 
 
@@ -355,7 +355,7 @@ export const fetchContestIfNeeded = (id, sport, force) => (dispatch, getState) =
 export const removeUnusedContests = () => (dispatch, getState) => {
   const contestIds = [];
 
-  _forEach(getState().liveContests, (contest) => {
+  forEach(getState().liveContests, (contest) => {
     const id = contest.id;
 
     // if there are no lineups the group is related to, then remove

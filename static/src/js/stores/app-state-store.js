@@ -1,5 +1,5 @@
 import log from '../lib/logging';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 import PubSub from 'pubsub-js';
 
 
@@ -131,7 +131,7 @@ const AppActions = {
     // otherwise close all of the panes and then open that one
     } else {
       log.debug('Opening', className);
-      _forEach(possiblePanes, (pane) => {
+      forEach(possiblePanes, (pane) => {
         this.removeClass(pane);
       });
 
@@ -153,7 +153,7 @@ const AppActions = {
     if (this.classes.indexOf(className) > -1) {
       this.removeClass(className);
     } else {
-      _forEach(possiblePanes, (pane) => {
+      forEach(possiblePanes, (pane) => {
         this.removeClass(pane);
       });
 

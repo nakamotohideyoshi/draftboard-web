@@ -1,6 +1,6 @@
 import React from 'react';
 import sinon from 'sinon';
-// import { merge as _merge } from 'lodash';
+// import merge from 'lodash/merge';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
 import LineupCardList from '../../../components/lobby/lobby-lineup-card-list.jsx';

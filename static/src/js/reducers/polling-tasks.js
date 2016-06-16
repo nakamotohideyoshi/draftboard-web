@@ -1,7 +1,7 @@
 import * as ActionTypes from '../action-types.js';
 import log from '../lib/logging.js';
-import { forEach as _forEach } from 'lodash';
-import { merge as _merge } from 'lodash';
+import forEach from 'lodash/forEach';
+import merge from 'lodash/merge';
 
 const initialState = {
   history: {},
@@ -11,19 +11,19 @@ const initialState = {
 // Find any inactive entries and move them into the history. DO NOT feed the state into this as it
 // will mutate it.
 function archiveEntries(newState) {
-  const archivedState = _merge({}, initialState);
+  const archivedState = merge({}, initialState);
 
-  _forEach(newState, (entry, taskId) => {
+  forEach(newState, (entry, taskId) => {
     // If the status is failure or timeout, move the task into the history.
     if (entry.hasOwnProperty('status')) {
       if (entry.status === 'FAILURE' || entry.status === 'POLLING_TIMEOUT' || entry.status === 'SUCCESS') {
         log.debug('Moving task to history', entry);
-        archivedState.history[taskId] = _merge({}, entry);
+        archivedState.history[taskId] = merge({}, entry);
       } else {
-        archivedState[taskId] = _merge({}, entry);
+        archivedState[taskId] = merge({}, entry);
       }
     } else {
-      archivedState[taskId] = _merge({}, entry);
+      archivedState[taskId] = merge({}, entry);
     }
   });
 
@@ -36,7 +36,7 @@ function archiveEntries(newState) {
  * server. We then ping the server
  */
 module.exports = (state = initialState, action) => {
-  const stateCopy = _merge({}, state);
+  const stateCopy = merge({}, state);
 
   switch (action.type) {
 
@@ -49,7 +49,7 @@ module.exports = (state = initialState, action) => {
       //
       // The best use-case for this is if a user tries to enter a contest but it fails, then they
       // try to enter again - we need to remove the first entry request.
-      _forEach(stateCopy, (entryRequest, key) => {
+      forEach(stateCopy, (entryRequest, key) => {
         if (entryRequest.lineupId === action.lineupId && entryRequest.contestPoolId === action.contestPoolId) {
           log.debug('Deleting already-existing request for this entry.', key);
           delete stateCopy[key];

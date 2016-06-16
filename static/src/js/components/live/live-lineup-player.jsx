@@ -3,8 +3,8 @@ import LivePMRProgressBar from './live-pmr-progress-bar';
 import React from 'react';
 import forEach from 'lodash/forEach';
 import merge from 'lodash/merge';
-import { extend } from 'lodash';
-import { size as _size } from 'lodash';
+import extend from 'lodash/extend';
+import size from 'lodash/size';
 import { humanizeFP } from '../../actions/sports';
 
 
@@ -41,7 +41,7 @@ const LiveLineupPlayer = React.createClass({
    */
   renderEventDescription() {
     // only show when there's an event
-    if (_size(this.props.eventDescription) === 0) {
+    if (size(this.props.eventDescription) === 0) {
       return (<div key="5" />);
     }
 

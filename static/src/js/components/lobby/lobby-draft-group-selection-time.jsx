@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment';
-import { map as _map } from 'lodash';
+import map from 'lodash/map';
 
 
 /**
@@ -30,7 +30,7 @@ const LobbyDraftGroupSelectionTime = React.createClass({
   render() {
     const self = this;
 
-    const groups = _map(self.props.draftGroups, (group) => {
+    const groups = map(self.props.draftGroups, (group) => {
       if (group.sport === self.props.selectedSport) {
         const url = self.getDraftGroupUrl(group.pk);
 

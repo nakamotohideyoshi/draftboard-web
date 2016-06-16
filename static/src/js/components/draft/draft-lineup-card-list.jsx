@@ -9,7 +9,7 @@ import { lineupsByDraftGroupSelector } from '../../selectors/upcoming-lineups-by
 import { setFocusedPlayer } from '../../actions/draft-group-players-actions.js';
 import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit }
   from '../../actions/lineup-actions.js';
-import { map as _map } from 'lodash';
+import map from 'lodash/map';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 
@@ -120,7 +120,7 @@ const DraftLineupCardList = React.createClass({
 
 
   render() {
-    const lineups = _map(this.props.lineups, (lineup) => {
+    const lineups = map(this.props.lineups, (lineup) => {
       const refName = `lineup-${lineup.id}`;
       return (
         <LineupCard

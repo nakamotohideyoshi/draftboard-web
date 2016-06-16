@@ -3,7 +3,7 @@ import store from '../../store';
 import * as ReactRedux from 'react-redux';
 import renderComponent from '../../lib/render-component';
 import { addMessage, removeMessage, clearMessages } from '../../actions/message-actions.js';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 import MessageDisplayMessage from './message-display-message.jsx';
 const { Provider, connect } = ReactRedux;
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group';
@@ -52,7 +52,7 @@ const MessageDisplay = React.createClass({
     const self = this;
     const messages = [];
 
-    _forEach(this.props.messages, (message, messageId) => {
+    forEach(this.props.messages, (message, messageId) => {
       messages.push(
         <MessageDisplayMessage
           message={message}

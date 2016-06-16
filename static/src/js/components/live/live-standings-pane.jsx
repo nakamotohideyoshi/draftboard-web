@@ -1,9 +1,9 @@
-import React from 'react';
 import * as ReactRedux from 'react-redux';
-import request from 'superagent';
 import Cookies from 'js-cookie';
-import { debounce as _debounce } from 'lodash';
-import { map as _map } from 'lodash';
+import debounce from 'lodash/debounce';
+import map from 'lodash/map';
+import React from 'react';
+import request from 'superagent';
 
 import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
@@ -67,7 +67,7 @@ export const LiveStandingsPane = React.createClass({
 
   componentDidMount() {
     // this.props.actions.fetchLineupUsernames(this.props.watching.contestId)
-    this.handleSearchByUsername = _debounce(this.handleSearchByUsername, 150);
+    this.handleSearchByUsername = debounce(this.handleSearchByUsername, 150);
 
     setTimeout(() => {
       AppActions.addClass('appstate--live-standings-pane--open');
@@ -84,7 +84,7 @@ export const LiveStandingsPane = React.createClass({
     if (this.state.currentTab === STANDINGS_TAB) {
       const lineups = this.props.lineups;
       const rankedLineups = this.props.rankedLineups;
-      data = _map(rankedLineups, (lineupId) => lineups[lineupId]);
+      data = map(rankedLineups, (lineupId) => lineups[lineupId]);
     } else {
       data = this.props.contest.playersOwnership.all.slice();
 

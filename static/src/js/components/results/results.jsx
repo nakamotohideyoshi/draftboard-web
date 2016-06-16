@@ -1,3 +1,4 @@
+import map from 'lodash/map';
 import moment from 'moment';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
@@ -5,21 +6,20 @@ import ResultsHeader from './results-header.jsx';
 import ResultsLineups from './results-lineups.jsx';
 import ResultsStats from './results-stats.jsx';
 import store from '../../store';
-import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
+import uniqBy from 'lodash/uniqBy';
 import { dateNow } from '../../lib/utils';
+import { entriesHaveRelatedInfoSelector } from '../../selectors/entries';
 import { fetchCurrentEntriesAndRelated } from '../../actions/entries';
 import { fetchResultsIfNeeded } from '../../actions/results';
 import { liveContestsSelector } from '../../selectors/live-contests';
-import { map as _map } from 'lodash';
-import { push as routerPush } from 'react-router-redux';
+import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { Provider, connect } from 'react-redux';
+import { push as routerPush } from 'react-router-redux';
 import { resultsWithLive } from '../../selectors/results-with-live';
 import { Router, Route, browserHistory } from 'react-router';
 import { sportsSelector } from '../../selectors/sports';
 import { syncHistoryWithStore } from 'react-router-redux';
-import { uniqBy as _uniqBy } from 'lodash';
 import { updateLiveMode } from '../../actions/watching';
-import { entriesHaveRelatedInfoSelector } from '../../selectors/entries';
 
 /*
  * Map selectors to the React component
@@ -92,8 +92,8 @@ const Results = React.createClass({
     if (prevProps.hasRelatedInfo === false && this.props.hasRelatedInfo === true) {
       if (this.state.dateIsToday === true) {
         this.props.dispatch(updateLiveMode({
-          sport: _map(
-            _uniqBy(this.props.resultsWithLive.lineups, 'sport'),
+          sport: map(
+            uniqBy(this.props.resultsWithLive.lineups, 'sport'),
             lineup => lineup.sport
           ),
         }));

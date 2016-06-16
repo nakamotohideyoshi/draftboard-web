@@ -3,7 +3,7 @@
 import request from 'superagent'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { size as _size } from 'lodash'
+import size from 'lodash/size';
 
 import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/live-config'
@@ -36,7 +36,7 @@ describe('actionsEntries', () => {
       // receiveEntries
       function(action) {
         expect(action.type).to.equal('ENTRIES__RECEIVE')
-        expect(_size(action.items)).to.equal(1)
+        expect(size(action.items)).to.equal(1)
       },
 
       // to pull in the related contest information and fantasy points
