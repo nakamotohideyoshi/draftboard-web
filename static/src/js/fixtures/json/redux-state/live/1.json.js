@@ -15,7 +15,9 @@ module.exports = {
   },
   "currentLineups": {
     "isFetching": false,
-    "items": {}
+    "items": {},
+    "hasRelatedInfo": false,
+    "expiresAt": 1458243900898
   },
   "draftGroupPlayers": {
     "sport": null,
@@ -38,12 +40,6 @@ module.exports = {
         "count": 0
       }
     }
-  },
-  "entries": {
-    "isFetching": false,
-    "hasRelatedInfo": false,
-    "expiresAt": 1458243900898,
-    "items": []
   },
   "entryRequests": {
     "history": {}

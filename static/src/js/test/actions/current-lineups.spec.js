@@ -3,29 +3,28 @@ import mockStore from '../mock-store-with-middleware';
 import nock from 'nock';
 
 import * as ActionTypes from '../../action-types';
-import * as actions from '../../actions/entries';
-import reducer from '../../reducers/entries';
+import * as actions from '../../actions/current-lineups';
+import reducer from '../../reducers/current-lineups';
 
 
-describe('actions.entries', () => {
+describe('actions.currentLineups', () => {
   afterEach(() => {
     nock.cleanAll();
   });
 
-  it('should correctly fetch current entries', () => {
+  it('should correctly fetch current lineups', () => {
     // initial store, state
     const store = mockStore({
-      entries: reducer(undefined, {}),
+      lineups: reducer(undefined, {}),
     });
 
     nock('http://example.com/')
-      .get('/api/contest/contest-pools/current-entries/')
+      .get('/api/lineups/current/')
       .reply(200, { body: [
         {
           id: 1,
           contest_pool: 2,
-          contest: 3,
-          lineup: 4,
+          contests: [3],
           draft_group: 5,
           start: '2016-05-11T23:05:00Z',
           lineup_name: 'Foo',
@@ -37,22 +36,22 @@ describe('actions.entries', () => {
     const expectedActions = [{
       payload: [
         {
-          type: ActionTypes.ENTRIES__RECEIVE,
+          type: ActionTypes.CURRENT_LINEUPS__RECEIVE,
         },
       ],
-      type: ActionTypes.ENTRIES__RECEIVE,
+      type: ActionTypes.CURRENT_LINEUPS__RECEIVE,
     }];
 
-    store.dispatch(actions.fetchCurrentEntries())
+    store.dispatch(actions.fetchCurrentLineups())
       .then(() => {
         assert.deepEqual(store.getActions(), expectedActions);
       });
   });
 
-  it('should correctly fetch entries rosters', () => {
+  it('should correctly fetch lineups rosters', () => {
     // initial store, state
     const store = mockStore({
-      entries: reducer(undefined, {}),
+      lineups: reducer(undefined, {}),
     });
 
     nock('http://example.com/')
@@ -76,13 +75,13 @@ describe('actions.entries', () => {
     const expectedActions = [{
       payload: [
         {
-          type: ActionTypes.ENTRIES_ROSTERS__RECEIVE,
+          type: ActionTypes.CURRENT_LINEUPS_ROSTERS__RECEIVE,
         },
       ],
-      type: ActionTypes.ENTRIES_ROSTERS__RECEIVE,
+      type: ActionTypes.CURRENT_LINEUPS_ROSTERS__RECEIVE,
     }];
 
-    store.dispatch(actions.fetchEntriesRosters())
+    store.dispatch(actions.fetchLineupsRosters())
       .then(() => {
         assert.deepEqual(store.getActions(), expectedActions);
       });

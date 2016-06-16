@@ -137,6 +137,24 @@ class LineupSerializer(serializers.ModelSerializer):
         model = Lineup
         fields = ('id', 'user', 'name', 'sport', 'fantasy_points', 'draft_group', 'players')
 
+class LineupCurrentSerializer(serializers.ModelSerializer):
+    """
+    serializers for current lineups
+    """
+
+    contests = serializers.SerializerMethodField()
+    def get_contests(self, lineup):
+        return filter(None, lineup.entries.distinct('contest__id').values_list('contest__id', flat=True))
+
+    start = serializers.SerializerMethodField()
+    def get_start(self, lineup):
+        return lineup.draft_group.start
+
+    class Meta:
+
+        model  = Lineup
+        fields = ('id', 'contests', 'name', 'sport', 'draft_group', 'start')
+
 class CreateLineupSerializer(serializers.Serializer):
     draft_group = serializers.IntegerField()
 

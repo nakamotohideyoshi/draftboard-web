@@ -8,7 +8,6 @@ const currentDraftGroups = require('./current-draft-groups');
 const currentLineups = require('./current-lineups');
 const draftGroupPlayers = require('./draft-group-players');
 const draftGroupPlayersFilters = require('./draft-group-players-filters');
-const entries = require('./entries');
 const events = require('./events');
 const eventsMultipart = require('./events-multipart');
 const fantasyHistory = require('./fantasy-history');
@@ -47,7 +46,6 @@ export default combineReducers({
   currentLineups,
   draftGroupPlayers,
   draftGroupPlayersFilters,
-  entries,
   fantasyHistory,
   featuredContests,
   injuries,

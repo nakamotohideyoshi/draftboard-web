@@ -17,9 +17,10 @@ import reducerCurrentLineups from '../../reducers/current-lineups';
 // default lineup info
 export const testLineup = {
   id: 5,
+  contests: [1, 2, 3],
   name: 'Ultimate',
   roster: [200],
-  draft_group: 52,
+  draftGroup: 52,
   start: 1458255600000,
 };
 

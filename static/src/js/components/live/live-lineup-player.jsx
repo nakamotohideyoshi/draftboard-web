@@ -90,18 +90,20 @@ const LiveLineupPlayer = React.createClass({
     const decimalRemaining = this.props.player.timeRemaining.decimal;
     let playerImage = `${this.props.playerImagesBaseUrl}/${this.props.player.srid}.png`;
 
-    // TODO remove once we have player images
-    if (this.props.sport === 'mlb') {
-      playerImage = '/static/src/img/temp/mlb-player.png';
-    }
-
     return (
       <div key="1" className="live-lineup-player__circle" onClick={this.props.openPlayerPane}>
         <div className="live-lineup-player__photo">
           <img
             alt="Player Headshot"
-            width="62"
             src={playerImage}
+            onError={
+              /* eslint-disable no-param-reassign */
+              (e) => {
+                e.target.className = 'default-player';
+                e.target.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
+              }
+              /* eslint-enable no-param-reassign */
+            }
           />
         </div>
 
@@ -221,13 +223,8 @@ const LiveLineupPlayer = React.createClass({
     if (this.props.draftGroupStarted === false) {
       let playerImage = `${this.props.playerImagesBaseUrl}/${player.srid}.png`;
 
-      // TODO remove once we have player images
-      if (this.props.sport === 'mlb') {
-        playerImage = '/static/src/img/temp/mlb-player.png';
-      }
-
       return (
-        <li className="live-lineup-player live-lineup-player--upcoming">
+        <li className={`live-lineup-player live-lineup-player--upcoming live-lineup-player--sport-${this.props.sport}`}>
           <div className="live-lineup-player__position">
             {player.position}
           </div>
@@ -235,8 +232,15 @@ const LiveLineupPlayer = React.createClass({
             <div className="live-lineup-player__photo">
               <img
                 alt="Player Headshot"
-                width="62"
                 src={playerImage}
+                onError={
+                  /* eslint-disable no-param-reassign */
+                  (e) => {
+                    e.target.className = 'default-player';
+                    e.target.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
+                  }
+                  /* eslint-enable no-param-reassign */
+                }
               />
             </div>
           </div>
@@ -249,7 +253,9 @@ const LiveLineupPlayer = React.createClass({
 
     // classname for the whole player
     const gameCompleted = (player.timeRemaining.decimal === 0) ? 'not' : 'is';
-    const className = `live-lineup-player state--${gameCompleted}-playing`;
+    const className = `live-lineup-player \
+      state--${gameCompleted}-playing \
+      live-lineup-player--sport-${this.props.sport}`;
 
     // classname to determine whether the player is live or not
     const isPlayingClass = this.props.isPlaying === true ? 'play-status--playing' : '';

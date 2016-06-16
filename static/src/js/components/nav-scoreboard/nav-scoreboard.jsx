@@ -1,23 +1,16 @@
-import React from 'react';
-import { Provider, connect } from 'react-redux';
-
 import errorHandler from '../../actions/live-error-handler';
-import log from '../../lib/logging';
+import NavScoreboardStatic from './nav-scoreboard-static';
+import PusherData from '../site/pusher-data';
+import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
-
-import { fetchCurrentEntriesAndRelated } from '../../actions/entries';
+import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups';
 import { fetchSportsIfNeeded } from '../../actions/sports';
 import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
+import { Provider, connect } from 'react-redux';
 import { removeUnusedContests } from '../../actions/live-contests';
 import { removeUnusedDraftGroups } from '../../actions/live-draft-groups';
 import { sportsSelector } from '../../selectors/sports';
-import { updateGameTeam } from '../../actions/sports';
-import { updateGameTime } from '../../actions/sports';
-
-import NavScoreboardStatic from './nav-scoreboard-static';
-import Pusher from '../../lib/pusher.js';
-import PusherData from '../site/pusher-data';
 
 
 /*
@@ -78,9 +71,9 @@ const NavScoreboard = React.createClass({
     }
 
     // if the user is logged in
-    if (this.state.user.username !== '' && window.location.pathname !== '/live/') {
+    if (this.state.user.username !== '' && window.location.pathname.substring(0, 6) !== '/live/') {
       try {
-        this.props.dispatch(fetchCurrentEntriesAndRelated());
+        this.props.dispatch(fetchCurrentLineupsAndRelated());
       } catch (e) {
         this.props.dispatch(errorHandler(e, `#JASDFJIE ${defaultMessage}`));
       }
@@ -89,56 +82,10 @@ const NavScoreboard = React.createClass({
     this.startListening();
   },
 
-  /*
-   * Start up Pusher listeners to the necessary channels and events
-   */
-  listenToSockets() {
-    // let the live page do game score calls
-    if (this.state.isLivePage === true) {
-      return;
-    }
-
-    log.info('NavScoreboard.listenToSockets()');
-
-    // NOTE: this really bogs down your console
-    // Pusher.log = function(message) {
-    //   if (window.console && window.console.log) {
-    //     window.console.log(message);
-    //   }
-    // };
-
-    // used to separate developers into different channels, based on their django settings filename
-    const channelPrefix = window.dfs.user.pusher_channel_prefix.toString();
-
-    const boxscoresChannel = Pusher.subscribe(`${channelPrefix}boxscores`);
-    boxscoresChannel.bind('team', (eventData) => {
-      if (this.props.sportsSelector.games.hasOwnProperty(eventData.game__id) &&
-          eventData.hasOwnProperty('points')
-      ) {
-        this.props.dispatch(updateGameTeam(
-          eventData.game__id,
-          eventData.id,
-          eventData.points
-        ));
-      }
-    });
-    boxscoresChannel.bind('game', (eventData) => {
-      if (this.props.sportsSelector.games.hasOwnProperty(eventData.id) &&
-          eventData.hasOwnProperty('clock')
-      ) {
-        this.props.dispatch(updateGameTime(
-          eventData.id,
-          eventData
-        ));
-      }
-    });
-  },
-
   /**
    * Internal method to start listening to pusher and poll for updates
    */
   startListening() {
-    this.listenToSockets();
     this.startParityChecks();
     this.removeExpiredSubstoreObjects();
   },

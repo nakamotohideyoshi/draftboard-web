@@ -330,7 +330,7 @@ export const shiftOldestGameEvent = (gameId) => {
     case 'stats': {
       const myLineup = watchingMyLineupSelector(state);
 
-      store.dispatch(updatePlayerStats(message, myLineup.draftGroupid));
+      store.dispatch(updatePlayerStats(message, myLineup.draftGroupId));
       break;
     }
     default:

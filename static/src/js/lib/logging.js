@@ -50,6 +50,6 @@ export default log;
 // configure redux-logging, is added in to middleware
 // TODO: remove || logLevel === 'error' to disable redux-logger on staging/production.
 export const logger = createLogger({
-  predicate: () => logLevel === 'debug' || logLevel === 'error',
+  predicate: () => logLevel === 'trace' || logLevel === 'debug' || logLevel === 'error',
   collapsed: true,
 });
