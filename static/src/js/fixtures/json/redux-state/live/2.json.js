@@ -2,14 +2,8 @@
 module.exports = {
   "currentLineups": {
     "isFetching": false,
-    "items": {
-    }
-  },
-  "entries": {
-    "isFetching": false,
+    "items": {},
     "hasRelatedInfo": false,
-    "items": {
-    },
     "expiresAt": 1458247309386
   },
   "liveContests": {

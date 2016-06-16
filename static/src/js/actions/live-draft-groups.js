@@ -6,10 +6,11 @@ import { normalize, Schema, arrayOf } from 'normalizr';
 
 import * as ActionTypes from '../action-types';
 import log from '../lib/logging';
+import { addMessage } from './message-actions';
 import { dateNow } from '../lib/utils';
 import { fetchTeamsIfNeeded } from './sports';
 import { updateLivePlayersStats } from './live-players';
-import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions.js';
+import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions';
 
 
 // dispatch to reducer methods
@@ -25,7 +26,6 @@ import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-a
 const confirmDraftGroupStored = (id) => ({
   type: ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED,
   id,
-  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**
@@ -148,10 +148,9 @@ const fetchDraftGroupInfo = (id) => (dispatch) => {
   ).set({
     'X-REQUESTED-WITH': 'XMLHttpRequest',
     Accept: 'application/json',
-  }).then((res) => Promise.all([
-    dispatch(receiveDraftGroupInfo(id, res.body)),
-    dispatch(fetchTeamsIfNeeded(res.body.sport)),
-  ]));
+  }).then((res) =>
+    dispatch(receiveDraftGroupInfo(id, res.body))
+  );
 };
 
 /**
@@ -193,10 +192,11 @@ const shouldFetchDraftGroupFP = (state, id) => {
     throw new Error('You cannot get fantasy points for a draft group that does not exist yet');
   }
 
+  // no need for fantasy points if the draft group hasn't started playing yet
+  if (liveDraftGroups[id].start > dateNow()) return false;
+
   // don't fetch until expired
-  if (dateNow() < liveDraftGroups[id].fpExpiresAt) {
-    return false;
-  }
+  if (dateNow() < liveDraftGroups[id].fpExpiresAt) return false;
 
   return true;
 };
@@ -310,12 +310,23 @@ export const fetchDraftGroupIfNeeded = (id, sport) => (dispatch, getState) => {
   }
   return Promise.all([
     dispatch(fetchDraftGroupInfo(id)),
-    dispatch(fetchDraftGroupFP(id)),
-    dispatch(fetchPlayerBoxScoreHistoryIfNeeded(sport)),
+    dispatch(fetchTeamsIfNeeded(sport)),
   ])
   .then(() =>
+    dispatch(fetchDraftGroupFPIfNeeded(id)),
+    dispatch(fetchPlayerBoxScoreHistoryIfNeeded(sport))
+  )
+  .then(() =>
     dispatch(confirmDraftGroupStored(id))
-  );
+  )
+  .catch((err) => {
+    dispatch(addMessage({
+      header: 'Failed to connect to API.',
+      content: 'Please refresh the page to reconnect.',
+      level: 'warning',
+    }));
+    log.error(err);
+  });
 };
 
 /**

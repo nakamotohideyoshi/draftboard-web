@@ -29,8 +29,8 @@ export const LiveChooseLineup = React.createClass({
 
   propTypes: {
     actions: React.PropTypes.object.isRequired,
-    entries: React.PropTypes.array.isRequired,
-    entriesLoaded: React.PropTypes.bool.isRequired,
+    lineups: React.PropTypes.array.isRequired,
+    lineupsLoaded: React.PropTypes.bool.isRequired,
   },
 
   getInitialState() {
@@ -41,17 +41,17 @@ export const LiveChooseLineup = React.createClass({
   },
 
   componentWillMount() {
-    // if there's only one entry, then just go to it
-    if (size(this.props.entries) === 1) {
-      this.selectLineup(this.props.entries[0]);
+    // if there's only one lineup, then just go to it
+    if (size(this.props.lineups) === 1) {
+      this.selectLineup(this.props.lineups[0]);
     }
   },
 
   componentDidUpdate(prevProps) {
-    // if there's only one entry, then just go to it
-    const newSize = size(this.props.entries);
-    if (newSize !== size(prevProps.entries) && newSize === 1) {
-      this.selectLineup(this.props.entries[0]);
+    // if there's only one lineup, then just go to it
+    const newSize = size(this.props.lineups);
+    if (newSize !== size(prevProps.lineups) && newSize === 1) {
+      this.selectLineup(this.props.lineups[0]);
     }
   },
 
@@ -65,7 +65,7 @@ export const LiveChooseLineup = React.createClass({
     }
 
     const differentSports = uniq(
-      this.props.entries.map((entry) => entry.sport)
+      this.props.lineups.map((lineup) => lineup.sport)
     );
 
     return differentSports.length > 1;
@@ -88,12 +88,12 @@ export const LiveChooseLineup = React.createClass({
     this.setState({ selectedSport: sport });
   },
 
-  selectLineup(entry) {
-    const path = `/live/${entry.sport}/lineups/${entry.lineup}/`;
+  selectLineup(lineup) {
+    const path = `/live/${lineup.sport}/lineups/${lineup.id}/`;
     const changedFields = {
-      draftGroupId: entry.draft_group,
-      myLineupId: entry.lineup,
-      sport: entry.sport,
+      draftGroupId: lineup.draft_group,
+      myLineupId: lineup.id,
+      sport: lineup.sport,
     };
 
     this.props.actions.updateWatchingAndPath(path, changedFields);
@@ -109,8 +109,8 @@ export const LiveChooseLineup = React.createClass({
   sportLineups() {
     const sportLineups = {};
 
-    forEach(this.props.entries, (entry) => {
-      const sport = entry.sport;
+    forEach(this.props.lineups, (lineup) => {
+      const sport = lineup.sport;
 
       if (sport in sportLineups) {
         sportLineups[sport] += 1;
@@ -142,25 +142,25 @@ export const LiveChooseLineup = React.createClass({
   },
 
   renderLineups() {
-    const entries = this.props.entries.map((entry) => {
-      const name = (entry.lineup_name === undefined) ? 'Example Lineup Name' : entry.lineup_name;
+    const lineups = this.props.lineups.map((lineup) => {
+      const name = (lineup.name === undefined) ? 'Example Lineup Name' : lineup.name;
 
       return (
         <li
-          key={entry.id}
+          key={lineup.id}
           className="cmp-live-lineup-select__lineup"
-          onClick={this.selectLineup.bind(this, entry)}
+          onClick={this.selectLineup.bind(this, lineup)}
         >
           <h4 className="cmp-live-lineup-select__lineup__title">{name}</h4>
           <div className="cmp-live-lineup-select__lineup__sub">
-            {moment(entry.start).format('MMM Do, h:mma')}
+            {moment(lineup.start).format('MMM Do, h:mma')}
           </div>
         </li>
       );
     });
 
     return (
-      <ul>{entries}</ul>
+      <ul>{lineups}</ul>
     );
   },
 
@@ -183,12 +183,12 @@ export const LiveChooseLineup = React.createClass({
   },
 
   render() {
-    if (!this.props.entriesLoaded) {
+    if (!this.props.lineupsLoaded) {
       return (<LiveLoading isContestPools={false} />);
     }
 
     let title = (this.shouldChoseSport()) ? 'Choose a sport' : 'Choose a lineup';
-    if (size(this.props.entries) === 0) {
+    if (size(this.props.lineups) === 0) {
       title = 'You have no entered lineups.';
     }
 

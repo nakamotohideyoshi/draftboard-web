@@ -1,60 +1,14 @@
 // live section fully loaded in countdown mode
 module.exports = {
   "currentLineups": {
-    "updatedAt": 1461566945099,
+    "isFetching": false,
     "items": {
       "194": {
         "id": 194,
-        "draft_group": 127,
+        "contests": [743],
+        "draftGroup": 127,
+        "start": "2016-03-17T23:00:00Z",
         "name": "My Lineup",
-        "start": 1458255600000,
-        "roster": [
-          215,
-          381,
-          154,
-          108,
-          358,
-          116,
-          98,
-          135
-        ],
-        "contests": [
-          743,
-          742
-        ]
-      }
-    }
-  },
-  "entries": {
-    "isFetching": false,
-    "hasRelatedInfo": true,
-    "items": {
-      "622": {
-        "id": 622,
-        "contest": 743,
-        "lineup": 194,
-        "draft_group": 127,
-        "start": "2016-03-17T23:00:00Z",
-        "lineup_name": "My Lineup",
-        "sport": "nba",
-        "roster": [
-          215,
-          381,
-          154,
-          108,
-          358,
-          116,
-          98,
-          135
-        ]
-      },
-      "623": {
-        "id": 623,
-        "contest": 742,
-        "lineup": 194,
-        "draft_group": 127,
-        "start": "2016-03-17T23:00:00Z",
-        "lineup_name": "My Lineup",
         "sport": "nba",
         "roster": [
           215,
@@ -68,6 +22,7 @@ module.exports = {
         ]
       }
     },
+    "hasRelatedInfo": true,
     "expiresAt": 1458247309386
   },
   "liveContests": {

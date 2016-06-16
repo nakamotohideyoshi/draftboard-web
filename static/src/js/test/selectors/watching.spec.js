@@ -15,7 +15,7 @@ export const testLineup = {
   id: 5,
   name: 'Ultimate',
   roster: [200],
-  draft_group: 52,
+  draftGroup: 52,
 };
 
 // note how we don't need to test every situation of data coming in because we already did with compileLineupStats

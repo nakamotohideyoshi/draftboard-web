@@ -1,5 +1,6 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
 import * as ActionTypes from '../action-types';
+import { addMessage } from './message-actions';
 import { dateNow } from '../lib/utils';
 import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
@@ -336,6 +337,13 @@ const calculateTimeRemaining = (sport, game) => {
         durationComplete += 1;
       }
 
+      // if the game is complete
+      if (durationComplete >= sportConst.gameDuration && boxScore.status !== 'inprogress') return 0;
+
+      // if extra innings or bottom of 9th, then return 1
+      if (durationComplete >= sportConst.gameDuration) return 1;
+
+      // otherwise return normal remaining
       return sportConst.gameDuration - durationComplete;
     }
 
@@ -411,6 +419,13 @@ const fetchGames = (sport) => (dispatch) => {
     });
 
     return dispatch(receiveGames(sport, games));
+  }).catch((err) => {
+    dispatch(addMessage({
+      header: 'Failed to connect to API.',
+      content: 'Please refresh the page to reconnect.',
+      level: 'warning',
+    }));
+    log.error(err);
   });
 };
 
@@ -430,7 +445,14 @@ const fetchTeams = (sport) => (dispatch) => {
     Accept: 'application/json',
   }).then(
     (res) => dispatch(receiveTeams(sport, res.body))
-  );
+  ).catch((err) => {
+    dispatch(addMessage({
+      header: 'Failed to connect to API.',
+      content: 'Please refresh the page to reconnect.',
+      level: 'warning',
+    }));
+    log.error(err);
+  });
 };
 
 /**

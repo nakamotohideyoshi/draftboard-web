@@ -8,8 +8,7 @@ import ResultsStats from './results-stats.jsx';
 import store from '../../store';
 import uniqBy from 'lodash/uniqBy';
 import { dateNow } from '../../lib/utils';
-import { entriesHaveRelatedInfoSelector } from '../../selectors/entries';
-import { fetchCurrentEntriesAndRelated } from '../../actions/entries';
+import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups';
 import { fetchResultsIfNeeded } from '../../actions/results';
 import { liveContestsSelector } from '../../selectors/live-contests';
 import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
@@ -20,6 +19,7 @@ import { Router, Route, browserHistory } from 'react-router';
 import { sportsSelector } from '../../selectors/sports';
 import { syncHistoryWithStore } from 'react-router-redux';
 import { updateLiveMode } from '../../actions/watching';
+import { lineupsHaveRelatedInfoSelector } from '../../selectors/current-lineups';
 
 /*
  * Map selectors to the React component
@@ -27,7 +27,7 @@ import { updateLiveMode } from '../../actions/watching';
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  hasRelatedInfo: entriesHaveRelatedInfoSelector(state),
+  hasRelatedInfo: lineupsHaveRelatedInfoSelector(state),
   myCurrentLineupsSelector: myCurrentLineupsSelector(state),
   liveContestsSelector: liveContestsSelector(state),
   results: state.results,
@@ -119,7 +119,7 @@ const Results = React.createClass({
     if (newState.formattedDate === todayFormatted) {
       this.setState({ dateIsToday: true });
 
-      this.props.dispatch(fetchCurrentEntriesAndRelated(true));
+      this.props.dispatch(fetchCurrentLineupsAndRelated(true));
     } else {
       this.setState({ dateIsToday: false });
       this.props.dispatch(fetchResultsIfNeeded(newState.formattedDate));

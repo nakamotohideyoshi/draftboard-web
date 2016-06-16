@@ -40,13 +40,15 @@ const compileEventPlayers = (message, sport) => {
  * @param  {string} sport   Sport, based on available actions.sport.SPORT_CONST
  * @return {boolean}        True if we want to use, false if we don't
  */
-const isPBPUsed = (message, sport) => {
+const isMessageUsed = (message, sport) => {
   switch (sport) {
     case 'mlb':
+      // TODO fix backend, call came in with null at_bat_stats
+      if (!message.at_bat_stats || !message.at_bat_stats.hasOwnProperty('id')) return false;
       break;
     case 'nba':
-      if (!message.hasOwnProperty('statistics__list')) return false;
-      if (!message.hasOwnProperty('location__list')) return false;
+      if (!message.pbp.hasOwnProperty('statistics__list')) return false;
+      if (!message.pbp.hasOwnProperty('location__list')) return false;
       break;
     default:
       return false;
@@ -69,7 +71,7 @@ export const onPBPReceived = (message, sport, relevantPlayers) => (dispatch, get
   const gameId = pbp.game__id;
 
   if (!isGameReady(getState(), dispatch, sport, gameId)) return false;
-  if (!isPBPUsed(pbp, sport)) return false;
+  if (!isMessageUsed(message, sport)) return false;
 
   const eventPlayers = compileEventPlayers(message, sport);
   if (intersection(relevantPlayers, eventPlayers).length === 0) {

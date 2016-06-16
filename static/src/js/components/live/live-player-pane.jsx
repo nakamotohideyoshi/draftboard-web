@@ -196,11 +196,6 @@ const LivePlayerPane = React.createClass({
     const { player, game } = this.props;
     let playerImage = `${this.props.playerImagesBaseUrl}/${player.srid}.png`;
 
-    // TODO remove once we have player images
-    if (this.props.sport === 'mlb') {
-      playerImage = '/static/src/img/temp/live-player-pane--lebron.png';
-    }
-
     let teamInfo = {};
     if (player.teamSRID === game.srid_home) {
       teamInfo = game.homeTeamInfo;

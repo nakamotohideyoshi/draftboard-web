@@ -14,92 +14,62 @@ import { mockStore } from '../../mock-store';
 import ReactTestUtils from 'react-addons-test-utils';
 
 const lineupsSameSportProps = {
-  entriesLoaded: true,
+  lineupsLoaded: true,
   changePathAndMode() {},
-  entries: [
+  lineups: [
     {
       "id": 1,
-      "draftGroup": {
-        "id": 1
-      },
-      "contest": 2,
-      "lineup": 1,
+      "draftGroup": 1,
+      "contests": [2],
       "name": "Curry's Chicken",
       "start": "2015-10-15T23:00:00Z",
-      "sport": "nba",
-      "points": 85,
-      "minutesRemaining": 42
+      "sport": "nba"
     }, {
       "id": 2,
-      "contest": 2,
-      "lineup": 2,
+      "contests": [2],
       "name": "Worriers worry",
-      "draftGroup": {
-        "id": 2
-      },
+      "draftGroup": 2,
       "start": "2015-10-15T23:00:00Z",
-      "sport": "nba",
-      "points": 85,
-      "minutesRemaining": 42
+      "sport": "nba"
     }, {
       "id": 3,
       "contest": 3,
-      "lineup": 3,
       "name": "Kickass your jackass",
-      "draftGroup": {
-        "id": 3
-      },
+      "draftGroup": 3,
       "start": "2015-10-15T23:00:00Z",
-      "sport": "nba",
-      "points": 102,
-      "minutesRemaining": 67
+      "sport": "nba"
     }
   ]
 };
 
 
 const lineupsDifferentSportProps = {
-  entriesLoaded: true,
+  lineupsLoaded: true,
   changePathAndMode() {},
-  entries: [
+  lineups: [
     {
       "id": 1,
-      "draftGroup": {
-        "id": 1
-      },
+      "draftGroup": 1,
       "contest": 2,
-      "lineup": 1,
       "name": "Curry's Chicken",
       "start": "2015-10-15T23:00:00Z",
-      "sport": "nba",
-      "points": 85,
-      "minutesRemaining": 42
+      "sport": "nba"
     },
     {
       "id": 2,
       "contest": 2,
-      "lineup": 2,
       "name": "Worriers worry",
-      "draftGroup": {
-        "id": 2
-      },
+      "draftGroup": 2,
       "start": "2015-10-15T23:00:00Z",
-      "sport": "mlb",
-      "points": 85,
-      "minutesRemaining": 42
+      "sport": "mlb"
     },
     {
       "id": 3,
       "contest": 3,
-      "lineup": 3,
       "name": "Kickass your jackass",
-      "draftGroup": {
-        "id": 3
-      },
+      "draftGroup": 3,
       "start": "2015-10-15T23:00:00Z",
-      "sport": "nfl",
-      "points": 102,
-      "minutesRemaining": 67
+      "sport": "nfl"
     },
   ]
 };

@@ -4,12 +4,15 @@ import CountdownClock from '../site/countdown-clock';
 
 const LiveCountdown = (props) => (
   <div className="live-countdown">
-    <div className="live-countdown__lineup-name">{props.entry.lineup_name}</div>
+    <div className="live-countdown__lineup-name">{props.lineup.name}</div>
     <div className="live-countdown__startsin">Starts in</div>
-    <CountdownClock time={props.entry.start} />
+    <CountdownClock
+      onCountdownOver={props.onCountdownOver}
+      time={props.lineup.start}
+    />
     <div className="live-countdown__actions">
       <a
-        href={`/draft/${props.entry.draft_group}/lineup/${props.entry.lineup}/edit/`}
+        href={`/draft/${props.lineup.draft_group}/lineup/${props.lineup.id}/edit/`}
         className="button--medium--outline"
       >
         Edit Lineup
@@ -20,7 +23,8 @@ const LiveCountdown = (props) => (
 );
 
 LiveCountdown.propTypes = {
-  entry: React.PropTypes.object.isRequired,
+  lineup: React.PropTypes.object.isRequired,
+  onCountdownOver: React.PropTypes.func,
 };
 
 export default LiveCountdown;
