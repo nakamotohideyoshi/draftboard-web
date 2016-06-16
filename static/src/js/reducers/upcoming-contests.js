@@ -12,7 +12,11 @@ const initialState = {
       property: 'start',
       direction: 'asc',
     },
-    contestTypeFilter: {},
+    // Default to 'all' contest type matches.
+    contestTypeFilter: {
+      filterProperty: 'contestType',
+      match: '',
+    },
     contestFeeFilter: {
       match: { minVal: 0, maxVal: null },
     },

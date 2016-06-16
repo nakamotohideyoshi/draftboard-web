@@ -5,12 +5,12 @@ import store from '../../store';
 import log from '../../lib/logging.js';
 import lazyLoadImage from '../../lib/lazy-load-image.js';
 import renderComponent from '../../lib/render-component';
-import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
 import DraftPlayerListRow from './draft-player-list-row.jsx';
 import DraftTeamFilter from './draft-team-filter.jsx';
 import DraftTableHeader from './draft-table-header.jsx';
 import ProbablePitchersFilter from './probable-pitchers-filter.jsx';
+import PlayerPositionFilter from './player-position-filter.jsx';
 import forEach from 'lodash/forEach';
 import findIndex from 'lodash/findIndex';
 import { addMessage } from '../../actions/message-actions.js';
@@ -306,6 +306,7 @@ const DraftContainer = React.createClass({
     }
 
     let positions = [];
+
     if (this.props.sport && this.playerPositionFilters.hasOwnProperty(this.props.sport)) {
       positions = this.playerPositionFilters[this.props.sport];
     }
@@ -335,14 +336,13 @@ const DraftContainer = React.createClass({
             enabled={this.props.filters.probablePitchersFilter.match}
           />
 
-          <CollectionMatchFilter
-            className="collection-filter--player-type"
-            filters={positions}
-            filterName="positionFilter"
-            filterProperty="position"
-            match=""
-            onUpdate={this.handleFilterChange}
+          <PlayerPositionFilter
+            positions={positions}
+            handleFilterChange={this.handleFilterChange}
+            newLineup={this.props.newLineup}
+            activeFilter={this.props.filters.positionFilter}
           />
+
         </div>
 
         <div>
