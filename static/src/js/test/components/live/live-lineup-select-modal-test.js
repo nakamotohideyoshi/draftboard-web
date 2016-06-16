@@ -6,7 +6,7 @@ import React from 'react';
 import { LiveChooseLineup } from '../../../components/live/live-choose-lineup';
 import { expect } from 'chai';
 import sd from 'skin-deep';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 
 import reducers from '../../../reducers/index';
 import { mockStore } from '../../mock-store';

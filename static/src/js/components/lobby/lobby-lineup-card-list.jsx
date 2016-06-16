@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDom from 'react-dom';
 import log from '../../lib/logging.js';
 import * as ReactRedux from 'react-redux';
-import { find as _find } from 'lodash';
+import find from 'lodash/find';
 import store from '../../store';
 import LineupCard from '../lineup/lineup-card.jsx';
 import renderComponent from '../../lib/render-component';
@@ -125,8 +125,8 @@ const LineupCardList = React.createClass({
       // We'll need a reference to the card in order to get it's DOM element and scroll to it when
       // it gets focused.
       const refName = `lineup-${lineup.id}`;
-      const lineupInfo = _find(this.props.lineupsInfo, { id: lineup.id });
-      const draftGroupInfo = _find(this.props.draftGroupInfo.draftGroups, { pk: lineup.draft_group });
+      const lineupInfo = find(this.props.lineupsInfo, { id: lineup.id });
+      const draftGroupInfo = find(this.props.draftGroupInfo.draftGroups, { pk: lineup.draft_group });
 
       if (lineupInfo) {
         return (

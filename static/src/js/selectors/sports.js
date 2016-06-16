@@ -1,9 +1,7 @@
-import {
-  forEach as _forEach,
-  merge as _merge,
-  mapValues as _mapValues,
-  round as _round,
-} from 'lodash';
+import forEach from 'lodash/forEach';
+import merge from 'lodash/merge';
+import mapValues from 'lodash/mapValues';
+import round from 'lodash/round';
 import { createSelector } from 'reselect';
 import { SPORT_CONST } from '../actions/sports';
 
@@ -19,10 +17,10 @@ export const sportsSelector = createSelector(
   state => state.sports,
   (storeSports) => {
     // copy sports to add relevant data
-    const sports = _merge({}, storeSports);
+    const sports = merge({}, storeSports);
 
     // add in game data
-    _forEach(sports.games, (game, gameId) => {
+    forEach(sports.games, (game, gameId) => {
       const newGame = sports.games[gameId];
       const sport = game.sport;
       const sportConst = SPORT_CONST[sport];
@@ -39,7 +37,7 @@ export const sportsSelector = createSelector(
 
         switch (sport) {
           case 'nhl':
-            period = _round(newGame.boxscore.period, 0);
+            period = round(newGame.boxscore.period, 0);
 
             if (period > sportConst.periods) {
               period = `${(period % sportConst.periods).toString()}OT`;
@@ -51,7 +49,7 @@ export const sportsSelector = createSelector(
             break;
           case 'nba':
           default:
-            period = _round(newGame.boxscore.quarter, 0);
+            period = round(newGame.boxscore.quarter, 0);
         }
 
         newGame.boxscore.periodDisplay = period;
@@ -65,5 +63,5 @@ export const sportsSelector = createSelector(
 
 export const gamesTimeRemainingSelector = createSelector(
   [currentGames],
-  (games) => _mapValues(games, 'timeRemaining')
+  (games) => mapValues(games, 'timeRemaining')
 );

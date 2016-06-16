@@ -1,7 +1,7 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
-import { forEach as _forEach } from 'lodash';
-import { filter as _filter } from 'lodash';
-import { size as _size } from 'lodash';
+import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
+import size from 'lodash/size';
 import { normalize, Schema, arrayOf } from 'normalizr';
 
 import * as ActionTypes from '../action-types';
@@ -114,7 +114,7 @@ const receiveDraftGroupInfo = (id, response) => {
   const players = normalizedPlayers.entities.players;
   const playersBySRID = {};
 
-  _forEach(players, (player) => {
+  forEach(players, (player) => {
     playersBySRID[player.player_srid] = player.player_id;
   });
 
@@ -263,7 +263,7 @@ export const fetchDraftGroupFP = (id) => (dispatch) => {
     let players = res.body.players;
 
     // default to empty if FP isn't available yet
-    if (_size(players) === 0) players = {};
+    if (size(players) === 0) players = {};
 
     return dispatch(receiveDraftGroupFP(id, players));
   });
@@ -326,9 +326,9 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
   const draftGroupIds = [];
   const currentLineups = getState().currentLineups.items || {};
 
-  _forEach(getState().liveDraftGroups, (draftGroup) => {
+  forEach(getState().liveDraftGroups, (draftGroup) => {
     const id = draftGroup.id;
-    const lineups = _filter(currentLineups, (lineup) => lineup.draft_group === id);
+    const lineups = filter(currentLineups, (lineup) => lineup.draft_group === id);
 
     // if there are no lineups the group is related to, then remove
     if (lineups.length === 0) {

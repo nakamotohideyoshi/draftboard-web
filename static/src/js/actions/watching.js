@@ -1,5 +1,5 @@
 import * as ActionTypes from '../action-types';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 import { fetchContestLineupsUsernamesIfNeeded } from './live-contests';
 import { fetchDraftGroupFPIfNeeded } from './live-draft-groups';
 import { fetchPlayersStatsIfNeeded } from './live-players';
@@ -49,7 +49,7 @@ export const updateLiveMode = (changedFields) => (dispatch, getState) => {
   // make sure every defined field is an integer
   const newMode = {};
   const integerFields = ['myLineupId', 'contestId', 'opponentLineupId'];
-  _forEach(changedFields, (val, key) => {
+  forEach(changedFields, (val, key) => {
     if (integerFields.indexOf(key) !== -1) {
       newMode[key] = (val === null) ? null : parseInt(val, 10);
     } else {

@@ -1,7 +1,7 @@
 import * as ActionTypes from '../action-types.js';
 import log from '../lib/logging.js';
-import { forEach as _forEach } from 'lodash';
-import { merge as _merge } from 'lodash';
+import forEach from 'lodash/forEach';
+import merge from 'lodash/merge';
 
 
 const initialState = {};
@@ -12,7 +12,7 @@ const initialState = {};
  * server. We then ping the server
  */
 module.exports = (state = initialState, action) => {
-  const stateCopy = _merge({}, state);
+  const stateCopy = merge({}, state);
 
   switch (action.type) {
 
@@ -24,7 +24,7 @@ module.exports = (state = initialState, action) => {
       //
       // The best use-case for this is if a user tries to enter a contest but it fails, then they
       // try to enter again - we need to remove the first entry request.
-      _forEach(stateCopy, (entryRequest, key) => {
+      forEach(stateCopy, (entryRequest, key) => {
         if (entryRequest.lineupId === action.lineupId) {
           log.debug('Deleting already-existing edit request for this entry.', key);
           delete stateCopy[key];

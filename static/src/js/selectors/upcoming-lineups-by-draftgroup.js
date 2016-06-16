@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { filter as _filter } from 'lodash';
+import filter from 'lodash/filter';
 
 // All the upcoming lineups in the state.
 const allLineupsSelector = (state) => state.upcomingLineups.lineups;
@@ -12,7 +12,7 @@ export const lineupsByDraftGroupSelector = createSelector(
   [allLineupsSelector, draftGroupIdSelector, lineupBeingEditedSelector],
   (collection, draftGroupId, lineupBeingEdited) => {
     if (draftGroupId) {
-      return _filter(collection, (lineup) => {
+      return filter(collection, (lineup) => {
         if (lineup.id === lineupBeingEdited) {
           return false;
         }

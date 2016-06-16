@@ -1,5 +1,5 @@
 import React from 'react';
-import { extend } from 'lodash';
+import extend from 'lodash/extend';
 import ResultsLineup from './results-lineup.jsx';
 
 

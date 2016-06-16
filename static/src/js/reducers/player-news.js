@@ -1,5 +1,5 @@
 import * as ActionTypes from '../action-types.js';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 
 const initialState = {
   isFetching: false,
@@ -13,19 +13,19 @@ module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     case ActionTypes.FETCHING_PLAYER_NEWS:
-      return _merge({}, state, {
+      return merge({}, state, {
         isFetching: true,
       });
 
 
     case ActionTypes.FETCH_PLAYER_NEWS_FAIL:
-      return _merge({}, state, {
+      return merge({}, state, {
         isFetching: false,
       });
 
 
     case ActionTypes.FETCH_PLAYER_NEWS_SUCCESS: {
-      const newState = _merge({}, state, {
+      const newState = merge({}, state, {
         isFetching: false,
       });
       // Update the sport entry with the newly fetched data.

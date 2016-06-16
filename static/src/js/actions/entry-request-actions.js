@@ -2,7 +2,7 @@
 import * as types from '../action-types.js';
 import { addPollingRequest } from '../lib/polling-request-command/polling-request-receiver.js';
 import log from '../lib/logging.js';
-import { find as _find } from 'lodash';
+import find from 'lodash/find';
 
 
 /**
@@ -62,7 +62,7 @@ export function monitorEntryRequest(taskId, contestPoolId, lineupId) {
   return (dispatch, getState) => {
     const state = getState();
 
-    const existingRequest = _find(state.pollingTasks, {
+    const existingRequest = find(state.pollingTasks, {
       lineupId,
       contestPoolId,
     });
@@ -109,7 +109,7 @@ export function monitorUnregisterRequest(taskId, entry) {
   return (dispatch, getState) => {
     const state = getState();
 
-    const existingRequest = _find(state.pollingTasks, {
+    const existingRequest = find(state.pollingTasks, {
       entryId: entry.id,
     });
 

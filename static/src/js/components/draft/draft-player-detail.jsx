@@ -6,7 +6,7 @@ import moment from 'moment';
 import store from '../../store';
 import * as AppActions from '../../stores/app-state-store.js';
 import renderComponent from '../../lib/render-component';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 import { focusedPlayerSelector } from '../../selectors/draft-selectors.js';
 import { roundUpToDecimalPlace } from '../../lib/utils.js';
 import { createLineupAddPlayer, removePlayer } from '../../actions/lineup-actions.js';
@@ -357,7 +357,7 @@ const DraftPlayerDetail = React.createClass({
       );
     }
 
-    _forEach(this.props.player.news, (item) => {
+    forEach(this.props.player.news, (item) => {
       news.push(
         <article key={item.tsxitem.srid} className="report">
           <header className="header">

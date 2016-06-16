@@ -1,8 +1,8 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
-import { filter as _filter } from 'lodash';
-import { forEach as _forEach } from 'lodash';
-import { merge as _merge } from 'lodash';
-import { reduce as _reduce } from 'lodash';
+import filter from 'lodash/filter';
+import forEach from 'lodash/forEach';
+import merge from 'lodash/merge';
+import reduce from 'lodash/reduce';
 import ActionTypes from '../action-types';
 import log from '../lib/logging';
 import moment from 'moment';
@@ -16,17 +16,17 @@ import moment from 'moment';
  * @return {object}               Changes for reducer
  */
 const receiveResults = (when, response) => {
-  const filteredResponse = _merge({}, response);
+  const filteredResponse = merge({}, response);
 
   // TODO receiveResults() - remove this when coderden fixes API call to not return bad entries
-  _forEach(filteredResponse.lineups, (lineup, index) => {
-    const entries = _filter(lineup.entries, (entry) => entry.final_rank !== -1);
+  forEach(filteredResponse.lineups, (lineup, index) => {
+    const entries = filter(lineup.entries, (entry) => entry.final_rank !== -1);
 
     filteredResponse.lineups[index].entries = entries;
     filteredResponse.lineups[index].stats = {
       buyin: 100,
       entries: entries.length,
-      won: _reduce(entries, (sum, entry) => sum + entry.payout.amount, 0),
+      won: reduce(entries, (sum, entry) => sum + entry.payout.amount, 0),
     };
   });
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 import classNames from 'classnames';
 
 
@@ -31,7 +31,7 @@ const DraftTeamFilter = React.createClass({
     const self = this;
     const games = [];
 
-    _forEach(this.props.boxScores, (game) => {
+    forEach(this.props.boxScores, (game) => {
       const homeClasses = classNames('team home', {
         selected: self.isTeamSelected(self.props.selectedTeams, game.srid_home),
       });
@@ -73,7 +73,7 @@ const DraftTeamFilter = React.createClass({
   getAllTeams() {
     const allTeams = [];
 
-    _forEach(this.props.boxScores, (game) => {
+    forEach(this.props.boxScores, (game) => {
       allTeams.push(game.srid_home);
       allTeams.push(game.srid_away);
     });

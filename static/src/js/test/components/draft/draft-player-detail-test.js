@@ -2,7 +2,7 @@ import React from 'react';
 import sinon from 'sinon';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 import FocusedPlayerSelectorData from '../../../fixtures/json/focused-player-selector.js';
 import DraftPlayerDetail from '../../../components/draft/draft-player-detail.jsx';
 
@@ -35,7 +35,7 @@ describe('<DraftPlayerDetail /> Component', () => {
 
 
   it('should run the provided methods for draft + undraft clicks.', () => {
-    const props = _merge(
+    const props = merge(
       {}, defaultTestProps, {
         draftPlayer: sinon.spy(),
         unDraftPlayer: sinon.spy(),

@@ -1,4 +1,4 @@
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 import * as ActionTypes from '../action-types.js';
 
 
@@ -18,14 +18,14 @@ module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     case ActionTypes.FETCHING_DRAFT_GROUPS:
-      return _merge({}, state, {
+      return merge({}, state, {
         isFetching: true,
       });
 
 
     case ActionTypes.FETCH_DRAFTGROUP_SUCCESS:
       // Return a copy of the previous state with our new things added to it.
-      return _merge({}, state, {
+      return merge({}, state, {
         sport: action.body.sport,
         allPlayers: action.body.players,
         id: action.body.id,

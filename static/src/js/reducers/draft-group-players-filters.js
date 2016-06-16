@@ -1,4 +1,4 @@
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 import * as ActionTypes from '../action-types.js';
 import log from '../lib/logging.js';
 
@@ -37,14 +37,14 @@ module.exports = (state = initialState, action) => {
 
     case ActionTypes.SET_FOCUSED_PLAYER:
       // Grab the focused player from our list of players.
-      return _merge({}, state, {
+      return merge({}, state, {
         focusedPlayerId: action.playerId,
       });
 
 
     case ActionTypes.DRAFTGROUP_FILTER_CHANGED: {
       // Override any previous filters with what has been passed.
-      const filters = _merge({}, state.filters);
+      const filters = merge({}, state.filters);
 
       if (!filters[action.filter.filterName]) {
         log.error('No matching filter was found in the store.', action);
@@ -66,7 +66,7 @@ module.exports = (state = initialState, action) => {
         count: action.filter.match.length,
       };
 
-      const newFilterState = _merge({}, state, {
+      const newFilterState = merge({}, state, {
         filters,
       });
       // Since a merge won't replace the `match` array, do it manually, otherwise the previous
@@ -78,7 +78,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.DRAFTGROUP_ORDER_CHANGED: {
-      const newState = _merge({}, state);
+      const newState = merge({}, state);
       newState.filters.orderBy = action.orderBy;
       return newState;
     }

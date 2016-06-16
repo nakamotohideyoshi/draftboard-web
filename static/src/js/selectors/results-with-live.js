@@ -1,12 +1,12 @@
 import { createSelector } from 'reselect';
 import { myCurrentLineupsSelector } from './current-lineups';
 import { liveContestsSelector } from './live-contests';
-import { map as _map } from 'lodash';
-import { merge as _merge } from 'lodash';
+import map from 'lodash/map';
+import merge from 'lodash/merge';
 import reduce from 'lodash/reduce';
-import { size as _size } from 'lodash';
-import { uniqBy as _uniqBy } from 'lodash';
-import { values as _values } from 'lodash';
+import size from 'lodash/size';
+import uniqBy from 'lodash/uniqBy';
+import values from 'lodash/values';
 import { dateNow } from '../lib/utils';
 import { calcTotalPotentialEarnings } from './watching';
 
@@ -29,9 +29,9 @@ export const resultsWithLive = createSelector(
   state => state.entries,
 
   (liveDraftGroups, contestsStats, currentLineupsStats, currentLineups, watching, entries) => {
-    const uniqueEntries = _uniqBy(_values(entries.items), 'lineup');
+    const uniqueEntries = uniqBy(values(entries.items), 'lineup');
 
-    const lineups = _map(uniqueEntries, (entry) => {
+    const lineups = map(uniqueEntries, (entry) => {
       let lineupInfo = {
         id: entry.lineup,
         name: entry.lineup_name,
@@ -48,7 +48,7 @@ export const resultsWithLive = createSelector(
         const hasEnded = draftGroup.closed !== null && draftGroup.closed < dateNow();
 
         const lineupEntriesInfo = lineupSelector.upcomingContestsStats ||
-          _map(lineupSelector.contestsStats, (contestEntry) => ({
+          map(lineupSelector.contestsStats, (contestEntry) => ({
             contest: {
               id: contestEntry.id,
               name: contestEntry.name,
@@ -62,8 +62,8 @@ export const resultsWithLive = createSelector(
           })
         );
 
-        lineupInfo = _merge(lineupInfo, {
-          players: _map(lineupSelector.rosterDetails, (player) => ({
+        lineupInfo = merge(lineupInfo, {
+          players: map(lineupSelector.rosterDetails, (player) => ({
             player_id: player.id,
             full_name: player.name,
             fantasy_points: player.fp,
@@ -78,7 +78,7 @@ export const resultsWithLive = createSelector(
           entries: lineupEntriesInfo,
           start: lineup.start,
           liveStats: {
-            entries: _size(lineup.contests),
+            entries: size(lineup.contests),
             points: lineupSelector.points,
             totalBuyin: reduce(lineup.contests || {}, (sum, id) => sum + contestsStats[id].buyin, 0),
             potentialWinnings: {
@@ -101,7 +101,7 @@ export const resultsWithLive = createSelector(
         winnings: '0',
         possible: '0',
         buyins: '0',
-        entries: _size(entries.items),
+        entries: size(entries.items),
         contests: 0,
       },
       lineups,
