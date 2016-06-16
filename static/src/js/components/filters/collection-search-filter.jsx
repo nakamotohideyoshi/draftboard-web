@@ -53,15 +53,15 @@ const CollectionSearchFilter = React.createClass({
     });
 
     PubSub.subscribe('playerSearch.clear', () => {
-      this.setState({
-        match: '',
-      }, () => {
-        this.props.onUpdate(
-          this.props.filterName,
-          this.props.filterProperty,
-          this.state.match
-        );
-      });
+      // Clear the current match in the store filters.
+      this.props.onUpdate(
+        this.props.filterName,
+        this.props.filterProperty,
+        ''
+      );
+
+      // Clear the search field
+      ReactDom.findDOMNode(this.refs.searchField).value = '';
     });
   },
 

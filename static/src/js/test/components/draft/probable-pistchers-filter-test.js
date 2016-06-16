@@ -15,14 +15,11 @@ describe('<ProbablePitchersFilter /> Component', () => {
   let wrapper;
 
   function renderComponent(props) {
-    // We have to render a table + tbody or else react gets mad.
     return mount(<ProbablePitchersFilter {...props} />);
   }
 
 
   beforeEach(() => {
-    // Render the component before each test. If needed we can re-render with
-    // different props.
     wrapper = renderComponent(defaultTestProps);
   });
 
