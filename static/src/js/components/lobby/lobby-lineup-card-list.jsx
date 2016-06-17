@@ -172,7 +172,7 @@ const LineupCardList = React.createClass({
         </header>
 
         <div
-          className="button button--medium button--gradient-outline"
+          className="button button--medium button--outline"
           onClick={this.handleDraftButtonClick}
         >
           Start Drafting <span className="right">→</span>

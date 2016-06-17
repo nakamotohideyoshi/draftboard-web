@@ -1,7 +1,6 @@
 import React from 'react';
 import CountdownClock from '../site/countdown-clock.jsx';
 import EnterContestButton from './enter-contest-button.jsx';
-import DraftButton from './draft-button.jsx';
 import uniq from 'lodash/uniq';
 import ordinal from '../../lib/ordinal.js';
 import { formatCurrency } from '../../lib/utils.js';
@@ -123,20 +122,6 @@ const ContestListRow = React.createClass({
   },
 
 
-  renderDraftButton() {
-    if (this.getEntryCount(this.props.contest) === 0) {
-      return (
-        <DraftButton
-          draftGroupId={this.props.contest.draft_group}
-          disableTime={this.props.contest.start}
-        />
-      );
-    }
-
-    return '';
-  },
-
-
   render() {
     // If it's the currently focused contest, add a class to it.
     let classes = this.props.focusedContest.id === this.props.contest.id ? 'active ' : '';
@@ -182,8 +167,6 @@ const ContestListRow = React.createClass({
         </td>
 
         <td key="enter" className="enter">
-          {this.renderDraftButton()}
-
           <EnterContestButton
             lineup={this.props.focusedLineup}
             contest={this.props.contest}

@@ -21,7 +21,10 @@ const initialState = {
       match: { minVal: 0, maxVal: null },
     },
     contestSearchFilter: {},
-    sportFilter: {},
+    sportFilter: {
+      match: 'mlb',
+      filterProperty: 'sport',
+    },
   },
 };
 
