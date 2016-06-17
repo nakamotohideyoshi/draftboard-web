@@ -8,6 +8,7 @@ import store from '../store';
 import { batchActions } from 'redux-batched-actions';
 import { SPORT_CONST, updateGameTeam, updateGameTime } from './sports';
 import { updatePlayerStats } from './live-draft-groups';
+import { updateLiveMode } from './watching';
 import {
   consolidateZonePitches,
   removeEventMultipart,
@@ -160,6 +161,11 @@ const showGameEvent = (message, state) => {
           setTimeout(
             () => {
               store.dispatch(removeEventMultipart(eventPBP.at_bat__id, relevantPlayersInEvent));
+              store.dispatch(differencePlayersPlaying(relevantPlayersInEvent));
+              store.dispatch(updateLiveMode({
+                myPlayerSRID: null,
+                opponentPlayerSRID: null,
+              }));
 
               const actions = [];
               forEach(animationEvent.relevantPlayersInEvent, (playerId) => {

@@ -1,9 +1,9 @@
-import errorHandler from '../../actions/live-error-handler';
 import NavScoreboardStatic from './nav-scoreboard-static';
 import PusherData from '../site/pusher-data';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
+import { bindActionCreators } from 'redux';
 import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups';
 import { fetchSportsIfNeeded } from '../../actions/sports';
 import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
@@ -14,12 +14,25 @@ import { sportsSelector } from '../../selectors/sports';
 
 
 /*
+ * Map Redux actions to React component properties
+ * @param  {function} dispatch The dispatch method to pass actions into
+ * @return {object}            All of the methods to map to the component, wrapped in 'action' key
+ */
+const mapDispatchToProps = (dispatch) => ({
+  actions: bindActionCreators({
+    fetchCurrentLineupsAndRelated,
+    fetchSportsIfNeeded,
+    removeUnusedContests,
+    removeUnusedDraftGroups,
+  }, dispatch),
+});
+
+/*
  * Map selectors to the React component
  * @param  {object} state The current Redux state that we need to pass into the selectors
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  cashBalance: state.user.cashBalance.amount,
   myCurrentLineupsSelector: myCurrentLineupsSelector(state),
   sportsSelector: sportsSelector(state),
 });
@@ -33,9 +46,9 @@ const mapStateToProps = (state) => ({
 const NavScoreboard = React.createClass({
 
   propTypes: {
+    actions: React.PropTypes.object.isRequired,
     cashBalance: React.PropTypes.string,
     myCurrentLineupsSelector: React.PropTypes.object.isRequired,
-    dispatch: React.PropTypes.func.isRequired,
     sportsSelector: React.PropTypes.object.isRequired,
   },
 
@@ -62,21 +75,11 @@ const NavScoreboard = React.createClass({
    * We separate into different try/catches so we can debug with the error message
    */
   componentWillMount() {
-    const defaultMessage = 'Our support team has been alerted of this error and will fix immediately.';
-
-    try {
-      this.props.dispatch(fetchSportsIfNeeded());
-    } catch (e) {
-      this.props.dispatch(errorHandler(e, `#AJSDFJWI ${defaultMessage}`));
-    }
+    this.props.actions.fetchSportsIfNeeded();
 
     // if the user is logged in
-    if (this.state.user.username !== '' && window.location.pathname.substring(0, 6) !== '/live/') {
-      try {
-        this.props.dispatch(fetchCurrentLineupsAndRelated());
-      } catch (e) {
-        this.props.dispatch(errorHandler(e, `#JASDFJIE ${defaultMessage}`));
-      }
+    if (this.state.user.username !== '' && !this.state.isLivePage) {
+      this.props.actions.fetchCurrentLineupsAndRelated();
     }
 
     this.startListening();
@@ -86,32 +89,12 @@ const NavScoreboard = React.createClass({
    * Internal method to start listening to pusher and poll for updates
    */
   startListening() {
-    this.startParityChecks();
-    this.removeExpiredSubstoreObjects();
-  },
+    // start parity checks
+    window.setInterval(() => this.props.actions.fetchSportsIfNeeded(), 5000);
 
-  /**
-   * Helper method to aggregate all of the methods needed to remove expired objects within Redux.
-   * Is run once per page load.
-   */
-  removeExpiredSubstoreObjects() {
-    this.props.dispatch(removeUnusedContests());
-    this.props.dispatch(removeUnusedDraftGroups());
-  },
-
-  /**
-   * Periodically override the redux state with server data, to ensure that we have up to date data in case we missed
-   * a Pusher call here or there. In time the intervals will increase, as we gain confidence in the system.
-   */
-  startParityChecks() {
-    // whether we are logged in or not, we always need to check whether to update sports and draftgroups
-    // check every few seconds, and if expired (which happens after 10 minutes), then they will fetch
-    const parityChecks = {
-      sports: window.setInterval(() => this.props.dispatch(fetchSportsIfNeeded()), 5000),
-    };
-
-    // add the checsk to the state in case we need to clearInterval in the future
-    this.setState({ boxScoresIntervalFunc: parityChecks });
+    // remove expired objects within Redux
+    this.props.actions.removeUnusedContests();
+    this.props.actions.removeUnusedDraftGroups();
   },
 
   /**
@@ -133,7 +116,10 @@ const NavScoreboard = React.createClass({
 });
 
 // Wrap the component to inject dispatch and selected state into it.
-const NavScoreboardConnected = connect(mapStateToProps)(NavScoreboard);
+const NavScoreboardConnected = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(NavScoreboard);
 
 // Uses the Provider to have redux state
 renderComponent(

@@ -53,6 +53,7 @@ export const sportsSelector = createSelector(
         }
 
         newGame.boxscore.periodDisplay = period;
+        newGame.start = new Date(game.start).getTime();
       }
     });
 

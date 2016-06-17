@@ -289,6 +289,10 @@ class UserCurrentAPIView(AbstractLineupAPIView):
             entries__contest_pool=None
         ).order_by(
             'draft_group__start'
+        ).select_related(
+            'draft_group'
+        ).prefetch_related(
+            'entries'
         ).distinct()
 
 

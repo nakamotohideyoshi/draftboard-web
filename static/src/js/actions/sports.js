@@ -544,11 +544,18 @@ export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
 export const fetchSportsIfNeeded = () => (dispatch, getState) => {
   // log.trace('actions.sports.fetchSportsIfNeeded()');
 
-  forEach(
-    getState().sports.types, (sport) => {
+  try {
+    forEach(getState().sports.types, (sport) => {
       dispatch(fetchSportIfNeeded(sport));
-    }
-  );
+    });
+  } catch (err) {
+    dispatch(addMessage({
+      header: 'Failed to connect to API.',
+      content: 'Please refresh the page to reconnect.',
+      level: 'warning',
+    }));
+    log.error(err);
+  }
 };
 
 /**

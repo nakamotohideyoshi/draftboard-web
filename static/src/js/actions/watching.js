@@ -8,25 +8,9 @@ import { dateNow } from '../lib/utils';
 import { push as routerPush } from 'react-router-redux';
 
 
-export const checkForUpdates = () => (dispatch, getState) => {
-  log.trace('actions.watching.checkForUpdates()');
-
-  const state = getState();
-  const watching = state.watching;
-
-  if (watching.myLineupId) {
-    const myLineup = state.currentLineups.items[watching.myLineupId] || {};
-
-    if (dateNow() > myLineup.start && myLineup.hasOwnProperty('draft_group')) {
-      dispatch(fetchPlayersStatsIfNeeded(watching.myLineupId));
-      dispatch(fetchDraftGroupFPIfNeeded(myLineup.draft_group));
-
-      if (watching.opponentLineupId) {
-        dispatch(fetchPlayersStatsIfNeeded(watching.opponentLineupId));
-      }
-    }
-  }
-};
+const resetWatching = () => ({
+  type: ActionTypes.WATCHING__RESET,
+});
 
 export const updateLiveMode = (changedFields) => (dispatch, getState) => {
   log.trace('updateLiveMode', changedFields);
@@ -63,8 +47,18 @@ export const updateLiveMode = (changedFields) => (dispatch, getState) => {
   });
 };
 
+export const resetWatchingAndPath = () => (dispatch) => {
+  log.trace('actions.watching.resetWatchingAndPath()');
+
+  // update the URL path
+  dispatch(routerPush('/live/'));
+
+  // reset what user is watching
+  dispatch(resetWatching());
+};
+
 export const updateWatchingAndPath = (path, changedFields) => (dispatch) => {
-  log.trace('actions.watching.changePathAndMode()', path, changedFields);
+  log.trace('actions.watching.updateWatchingAndPath()', path, changedFields);
 
   // update the URL path
   dispatch(routerPush(path));
@@ -75,5 +69,44 @@ export const updateWatchingAndPath = (path, changedFields) => (dispatch) => {
   // if the contest has changed, then get the appropriate usernames for the standings pane
   if (changedFields.hasOwnProperty('contestId')) {
     dispatch(fetchContestLineupsUsernamesIfNeeded(changedFields.contestId));
+  }
+};
+
+export const doesMyLineupExist = () => (dispatch, getState) => {
+  log.trace('actions.watching.checkForUpdates()');
+
+  const state = getState();
+  const watching = state.watching;
+
+  if (watching.myLineupId) {
+    const myLineup = state.currentLineups.items[watching.myLineupId] || false;
+
+    // if we no longer have a lineup to look at, reset
+    if (!myLineup) return false;
+  }
+
+  return true;
+};
+
+export const checkForUpdates = () => (dispatch, getState) => {
+  log.trace('actions.watching.checkForUpdates()');
+
+  const state = getState();
+  const watching = state.watching;
+
+  if (watching.myLineupId) {
+    const myLineup = state.currentLineups.items[watching.myLineupId] || {};
+
+    // if we no longer have a lineup to look at, reset
+    if (!myLineup) return dispatch(resetWatching());
+
+    if (dateNow() > myLineup.start && myLineup.hasOwnProperty('draft_group')) {
+      dispatch(fetchPlayersStatsIfNeeded(watching.myLineupId));
+      dispatch(fetchDraftGroupFPIfNeeded(myLineup.draft_group));
+
+      if (watching.opponentLineupId) {
+        dispatch(fetchPlayersStatsIfNeeded(watching.opponentLineupId));
+      }
+    }
   }
 };

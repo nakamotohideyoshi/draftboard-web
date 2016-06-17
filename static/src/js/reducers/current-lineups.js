@@ -11,7 +11,7 @@ module.exports = (state = {
   hasRelatedInfo: false,
   expiresAt: dateNow(),
   rostersExpireAt: dateNow(),
-  items: [],
+  items: {},
 }, action = {}) => {
   const newState = _merge({}, state);
 
@@ -70,7 +70,7 @@ module.exports = (state = {
           isFetching: false,
           hasRelatedInfo: false,
           // items: action.items,
-          items: action.response.lineups,
+          items: action.response.lineups || {},
           expiresAt: action.expiresAt,
         },
       });
