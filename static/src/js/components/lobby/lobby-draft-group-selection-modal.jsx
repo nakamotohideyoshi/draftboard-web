@@ -39,7 +39,7 @@ const LobbyDraftGroupSelectionModal = React.createClass({
     if (this.state.selectedSport === null) {
       return (
         <LobbyDraftGroupSelectionSport
-          sportContestCounts={this.props.draftGroupInfo.sportContestCounts}
+          draftGroupInfo={this.props.draftGroupInfo}
           onSportClick={this.selectSport}
         />
       );

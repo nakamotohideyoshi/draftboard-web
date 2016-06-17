@@ -23,10 +23,15 @@ const contestsFilterSelector = (state) => state.upcomingContests.allContests;
      {pk: 2, sport: 'nfl', start: '2016-03-20T20:56:25Z'},
      {pk: 3, sport: 'nfl', start: '2016-03-20T20:56:25Z'}
    ],
+   // How many contets each sport has
    sportContestCounts: [
      'nba': 1,
      'nfl': 2
-   ]
+   ],
+   // How many draft groups each sport has.
+   sportDraftGroupCounts: [
+     'nfl': 3
+   ],
  }
 */
 export const draftGroupInfoSelector = createSelector(
@@ -34,6 +39,7 @@ export const draftGroupInfoSelector = createSelector(
   (draftGroups, contests) => {
     //  Get a group listing of each sport with counts.
     const sportContestCounts = countBy(contests, (contest) => contest.sport);
+    const sportDraftGroupCounts = countBy(draftGroups, (draftGroup) => draftGroup.sport);
     // For each draft group, figure out how many contests are available to enter.
     let draftGrupsExtra = mapValues(draftGroups, (group) => {
       const groupExtra = merge({}, group);
@@ -46,6 +52,7 @@ export const draftGroupInfoSelector = createSelector(
     return {
       sportContestCounts,
       draftGroups: draftGrupsExtra,
+      sportDraftGroupCounts,
     };
   }
 );
