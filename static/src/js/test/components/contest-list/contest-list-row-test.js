@@ -6,6 +6,7 @@ import merge from 'lodash/merge';
 import storeUpcomingContestsFix from '../../../fixtures/json/store-upcoming-contests.js';
 import ContestListRow from '../../../components/contest-list/contest-list-row.jsx';
 import DraftButton from '../../../components/contest-list/draft-button.jsx';
+import EnterContestButton from '../../../components/contest-list/enter-contest-button.jsx';
 
 
 const defaultTestProps = {
@@ -23,7 +24,7 @@ const defaultTestProps = {
 };
 
 
-describe('ContestListRow Component', () => {
+describe('<ContestListRow /> Component', () => {
   let wrapper;
 
 
@@ -59,7 +60,12 @@ describe('ContestListRow Component', () => {
   });
 
 
-  it('should always render a draft button.', () => {
-    expect(wrapper.find(DraftButton)).to.have.length(1);
+  it('should never render a draft button.', () => {
+    expect(wrapper.find(DraftButton)).to.have.length(0);
+  });
+
+
+  it('should always render an <enterContestButton />', () => {
+    expect(wrapper.find(EnterContestButton)).to.have.length(1);
   });
 });
