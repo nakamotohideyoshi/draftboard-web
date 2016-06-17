@@ -161,21 +161,17 @@ const calcRelevantItems = (myLineup, opponentLineup) =>
  * @return {number}               Total potential earnings for the lineup
  */
 export const calcTotalPotentialEarnings = (lineups, contestsStats) =>
-  reduce(lineups, (sum, lineup) => {
-    const lineupSum = 0;
-    lineup.contests.map((contest) => {
-      if (contestsStats.hasOwnProperty(contest)) {
-        const contestLineups = contestsStats[contest].lineups || {};
+  reduce(lineups, (sum, lineup) =>
+    sum + lineup.contests.reduce((lineupSum, contestId) => {
+      if (contestsStats.hasOwnProperty(contestId)) {
+        const contestLineups = contestsStats[contestId].lineups || {};
 
         if (contestLineups.hasOwnProperty(lineup.id)) {
-          return lineupSum + contestsStats[contest].lineups[lineup.id].potentialWinnings;
+          return lineupSum + contestsStats[contestId].lineups[lineup.id].potentialWinnings;
         }
       }
-    });
-
-    return sum + lineupSum;
-  },
-0);
+    }, 0),
+  0);
 
 // exported simply to test
 export const watchingMyLineupSelector = createSelector([
@@ -199,11 +195,18 @@ export const watchingMyLineupSelector = createSelector([
   // don't return anything until we have the original lineup, for contests stats
   if (!originalLineup) return isLoadingObj;
 
+  const totalBuyin = reduce(originalLineup.contests || {}, (sum, id) => {
+    if (liveContests[id]) {
+      return sum + liveContests[id].buyin;
+    }
+    return sum;
+  }, 0);
+
   return merge({}, lineup, {
     contestsStats: calcEntryContestStats(lineup, originalLineup.contests, liveContests),
     isLoading: false,
-    totalBuyin: reduce(lineup.contests || {}, (sum, id) => sum + liveContests[id].buyin, 0),
     potentialWinnings: calcTotalPotentialEarnings(currentLineups, liveContests),
+    totalBuyin,
   });
 });
 

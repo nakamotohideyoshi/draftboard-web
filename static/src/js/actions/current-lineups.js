@@ -5,6 +5,7 @@ import log from '../lib/logging';
 import { addMessage } from './message-actions';
 import { CALL_API } from '../middleware/api';
 import { camelizeKeys } from 'humps';  // TODO remove this once API calls are camel-cased
+import { doesMyLineupExist, resetWatchingAndPath } from './watching';
 import { dateNow, hasExpired } from '../lib/utils';
 import { fetchContestIfNeeded } from './live-contests';
 import { fetchDraftGroupIfNeeded } from './live-draft-groups';
@@ -176,6 +177,9 @@ const fetchLineupsRostersIfNeeded = () => (dispatch, getState) => {
  */
 export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
   log.info('actions.fetchRelatedLineupsInfo()');
+
+  // if there are no lineups to watch, then reset
+  if (!dispatch(doesMyLineupExist())) return dispatch(resetWatchingAndPath());
 
   const calls = [];
   const state = getState();

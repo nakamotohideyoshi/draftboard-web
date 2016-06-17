@@ -161,7 +161,7 @@ const LiveLineupPlayer = React.createClass({
       runnerDiamond[baseName] = runnerProps.whichSide;
 
       elements.push((
-        <div className="live-lineup-player__runner-bases">
+        <div key="10" className="live-lineup-player__runner-bases">
           {React.createElement(
             LiveMLBDiamond, extend({}, runnerDiamond)
           )}

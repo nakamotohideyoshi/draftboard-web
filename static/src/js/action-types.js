@@ -245,6 +245,7 @@ exports.EVENT_UNSHIFT_PLAYER_HISTORY = 'EVENT_UNSHIFT_PLAYER_HISTORY';
 
 // reducers.watching
 exports.WATCHING_UPDATE = 'WATCHING_UPDATE';
+exports.WATCHING__RESET = 'WATCHING__RESET';
 
 // reducers.async_failures
 exports.ADD_ASYNC_FAILURE = 'ADD_ASYNC_FAILURE';

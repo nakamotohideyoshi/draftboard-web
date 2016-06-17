@@ -6,7 +6,7 @@
 
   .live-pane {
     &__close {
-      top: 35px !important;
+      top: $nav-scoreboard-height + 35px !important;
       left: -25px !important;
       opacity: 0.6;
       background-size: 23px;
@@ -25,6 +25,8 @@
 
   .inner {
     background-color: #060b1c;
+    display: flex;
+    flex-flow: column;
     height: 100%;
   }
 
@@ -45,6 +47,8 @@
   }
 
   .standings-list {
+    flex: 1;
+    overflow-y: scroll;
     text-align: center;
     margin: 20px 25px 20px 25px;
     font-weight: 100;
@@ -186,7 +190,9 @@
 
   .ownership-list {
     text-align: center;
-    margin: 20px 25px;
+    margin: 20px 25px 60px;
+    flex: 1;
+    overflow-y: scroll;
 
     .header {
       color: #747c8d;
@@ -260,23 +266,44 @@
         text-transform: uppercase;
       }
 
-      &--pmr-photo {
-        border-radius: 24px;
+      &__circle {
         display: inline-block;
-        position: relative;
-        width: 24px;
         height: 24px;
         margin: 0 10px;
+        position: relative;
+        top: 10px;
+        width: 24px;
+      }
+
+      &--pmr-photo {
+        background: #050814;
+        border-radius: 50%;
+        height: 20px;
+        left: -1px;
         overflow: hidden;
-        top: 8px;
+        position: absolute;
+        top: -1px;
+        width: 20px;
+        z-index: 5030;
+
+        img {
+          position: relative;
+          width: 20px;
+
+          &.default-player {
+            top: 5px;
+            width: 18px;
+            opacity: 0.5;
+          }
+        }
       }
 
       .live-pmr {
         position: absolute;
-        top: 0;
-        left: 0;
-        z-index: 2010;
+        left: -3px;
+        top: -3px;
         width: 24px;
+        z-index: 5020;
       }
 
       .avatar {
@@ -363,8 +390,8 @@
     text-align: center;
     text-indent: -33px;
     position: absolute;
-    right: 27px;
-    bottom: 100px;
+    right: 46px;
+    bottom: 14px;
     z-index: 3000;
     width: 76.5%;
     height: 30px;
@@ -430,7 +457,6 @@
   }
 
   .search {
-    display: inline-block;
     margin: 25px 0 0 25px;
     vertical-align: middle;
     line-height: 25px;
@@ -484,7 +510,7 @@
   }
 
   &__header {
-    height: 194px;
+    min-height: 194px;
     background-image: url(../img/blocks/live-standings-pane/bg-live-standings-pane-header.jpg);
     background-size: cover;
 

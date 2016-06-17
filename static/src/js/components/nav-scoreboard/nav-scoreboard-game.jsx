@@ -1,7 +1,9 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import moment from 'moment';
+import { dateNow } from '../../lib/utils';
 import { stringifyMLBWhen } from '../../actions/events-multipart';
+
 
 /**
  * Responsible for rendering a singe contest game item.
@@ -21,7 +23,9 @@ const NavScoreboardGame = React.createClass({
     let clockElement = (<div>{moment(game.start).format('h:mma')} <br /> <br /></div>);
 
     const boxscore = game.boxscore || {};
-    const hasGameStarted = boxscore.hasOwnProperty('status') && boxscore.status !== 'scheduled';
+    const hasGameStarted = boxscore.hasOwnProperty('status') &&
+      boxscore.status !== 'scheduled' &&
+      game.start < dateNow();
 
     // if the game hasn't started
     if (hasGameStarted) {

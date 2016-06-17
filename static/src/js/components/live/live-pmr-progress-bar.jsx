@@ -112,11 +112,11 @@ const LivePMRProgressBar = (props) => {
 
       <svg className="pmr" viewBox={svgProps.viewBox}>
         <defs>
-          <linearGradient id="cl1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={`cl1${props.id}`} gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
             <stop stopColor={progressArc.hexEnd} />
             <stop offset="100%" stopColor={progressArc.hexHalfway} />
           </linearGradient>
-          <linearGradient id="cl2" gradientUnits="objectBoundingBox" x1="0" y1="1" x2="0" y2="0">
+          <linearGradient id={`cl2${props.id}`} gradientUnits="objectBoundingBox" x1="0" y1="1" x2="0" y2="0">
             <stop stopColor={progressArc.hexHalfway} />
             <stop offset="100%" stopColor={progressArc.hexStart} />
           </linearGradient>
@@ -134,8 +134,20 @@ const LivePMRProgressBar = (props) => {
             <path fill="none" stroke="#fff" strokeWidth={progressArc.strokeWidth} d={progressArc.d}></path>
           </mask>
           <g mask={`url(#gradientMask${props.id})`}>
-            <rect x={-svgMidpoint} y={-svgMidpoint} width={svgMidpoint} height={totalWidth} fill="url(#cl2)" />
-            <rect x="0" y={-svgMidpoint} height={totalWidth} width={svgMidpoint} fill="url(#cl1)" />
+            <rect
+              x={-svgMidpoint}
+              y={-svgMidpoint}
+              width={svgMidpoint}
+              height={totalWidth}
+              fill={`url(#cl2${props.id})`}
+            />
+            <rect
+              x="0"
+              y={-svgMidpoint}
+              height={totalWidth}
+              width={svgMidpoint}
+              fill={`url(#cl1${props.id})`}
+            />
           </g>
         </g>
       </svg>

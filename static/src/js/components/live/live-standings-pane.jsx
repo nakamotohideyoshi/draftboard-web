@@ -468,6 +468,7 @@ export const LiveStandingsPane = React.createClass({
 
   renderPlayers() {
     const { page, perPage } = this.state;
+    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.watching.sport}/120`;
     let data = this.getListData();
     data = data.slice(
       (page - 1) * perPage,
@@ -479,11 +480,27 @@ export const LiveStandingsPane = React.createClass({
       const overlayTitle = isWatched ? 'Remove from watch' : 'Add to watch';
       const progressHexStart = isWatched ? '422752' : 'ffffff';
       const progressHexEnd = isWatched ? 'ff0000' : 'ffffff';
+      const playerImage = `${playerImagesBaseUrl}/${player.srid}.png`;
 
       return (
         <div key={player.id} className={`player ${isWatched ? 'watched' : ''}`}>
           <div className="player--position">{player.position}</div>
-          <div className="player--pmr-photo">
+          <div className="player__circle">
+            <div className="player--pmr-photo">
+              <img
+                alt="Player Headshot"
+                src={playerImage}
+                onError={
+                  /* eslint-disable no-param-reassign */
+                  (e) => {
+                    e.target.className = 'default-player';
+                    e.target.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
+                  }
+                  /* eslint-enable no-param-reassign */
+                }
+              />
+            </div>
+
             <LivePMRProgressBar
               decimalRemaining={player.timeRemaining.decimal}
               strokeWidth={3}
@@ -493,7 +510,6 @@ export const LiveStandingsPane = React.createClass({
               svgWidth={50}
               id={`${player.id}StandingsPlayer`}
             />
-            <div className="avatar" />
           </div>
           <div className="player--name">
             {player.name} <div className="team">{player.team_alias}</div>
