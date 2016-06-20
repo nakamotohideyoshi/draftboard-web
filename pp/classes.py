@@ -11,9 +11,372 @@ from mysite.celery_app import heartbeat, payout
 
 import cash.withdraw.constants
 import cash.withdraw.models
+import paypalrestsdk as paypal
+# import logging
+# logging.basicConfig(level=logging.INFO)
 
+class CardData(object):
+    # card = {
+    #     "payer_id":external_user_id,
+    #     "external_customer_id":external_user_id,
+    #     "type":"visa",
+    #     "number":"4417119669820331",
+    #     "expire_month":"11",
+    #     "expire_year":"2018",
+    #     "first_name":"Betsy",
+    #     "last_name":"Buyer",
+    #     "billing_address":{
+    #         "line1":"111 First Street",
+    #         "city":"Saratoga",
+    #         "country_code":"US",
+    #         "state":"CA",
+    #         "postal_code":"95070"
+    #     }
+    # }
+
+    EXTERNAL_CUSTOMER_ID    = 'external_customer_id'        # string
+    TYPE                    = 'type'                        # card type, ie: 'visa'
+    NUMBER                  = 'number'                      # credit card number, ie: "4417119669820331" (string)
+    EXPIRE_MONTH            = 'expire_month'                # exp month (string)
+    EXPIRE_YEAR             = 'expire_year'                 # exp year (string)
+    FIRST_NAME              = 'first_name'
+    LAST_NAME               = 'last_name'
+
+    # billing address information
+    LINE_1                  = 'line1'                       # first line of address
+    CITY                    = 'city'                        # ie: 'Saratoga' (string)
+    COUNTRY_CODE            = 'country_code'                # ie: 'US'
+    STATE                   = 'state'                       # ie: 'CA'
+    POSTAL_CODE             = 'postal_code'                 # ie: '95070' (string)
+
+    def __init__(self, data=None):
+        self.data = data
+        if self.data is None:
+            self.data = {
+                'payer_id' : None,
+                self.EXTERNAL_CUSTOMER_ID : None,
+                self.TYPE : None,
+                self.NUMBER : None,
+                self.EXPIRE_MONTH : None,
+                self.EXPIRE_YEAR : None,
+                self.FIRST_NAME : None,
+                self.LAST_NAME : None,
+                "billing_address" : {
+                    self.LINE_1 : None,
+                    self.CITY : None,
+                    self.COUNTRY_CODE : None,
+                    self.STATE : None,
+                    self.POSTAL_CODE : None,
+                }
+            }
+
+    # def set_field(self, field, value):
+    #     pass # TODO
+
+class SavedCard(object):
+
+    def __init__(self, data):
+        self.data = data
+
+    # TODO extract fields of the save card and do whatever to store it
+
+class PayPal(object):
+    #
+    # apparently this is possible:
+    # HTTP [503] Service Unavailable
+    # BODY [{"name":"INTERNAL_SERVICE_ERROR","information_link":"https://api.sandbox.paypal.com/docs/api/#INTERNAL_SERVICE_ERROR","debug_id":"1635acf4b1f6c"}]
+
+    # this can also happen during payments:
+    # In [9]: r = p.pay_with_credit_card(25, 'mastercard', '5500005555555559', 12, 2018, 111, 'Betsy', 'Buyer')
+    # headers: {'Accept-Encoding': 'gzip, deflate', 'User-Agent': 'python-requests/2.6.0 CPython/3.4.3 Linux/3.13.0-49-generic', 'Accept': '*/*', 'Connection': 'keep-alive'}
+    # cookies: <RequestsCookieJar[<Cookie X-PP-SILOVER=name%3DSANDBOX3.API.1%26silo_version%3D1880%26app%3Dplatformapiserv%26TIME%3D3092539479%26HTTP_X_PP_AZ_LOCATOR%3D for .paypal.com/>]>
+    # HTTP [400] Bad Request
+    # BODY [{"name":"UNKNOWN_ERROR","message":"An unknown error has occurred","information_link":"https://developer.paypal.com/webapps/developer/docs/api/#UNKNOWN_ERROR","debug_id":"ce216adf53370"}]
+
+    api = 'https://api.sandbox.paypal.com' # 'https://api.paypal.com'
+
+    api_vault       = api + '/v1/vault'
+    api_payments    = api + '/v1/payments'
+    api_oauth_token = api + '/v1/oauth2/token'
+
+    def delete_card(self, credit_card_id):
+        """
+        delete a stored credit card
+        :return:
+        """
+        pass # TODO
+
+    def pay_with_paypal(self):
+        pass # TODO
+
+    def test_tls(self):
+        paypal.configure({
+          "mode": "security-test-sandbox", # sandbox or live
+          "client_id": self.client_id,
+          "client_secret": self.secret })
+
+        # Payment
+        # A Payment Resource; create one using
+        # the above types and intent as 'sale'
+        payment = paypal.Payment({
+            "intent": "sale",
+
+            # Payer
+            # A resource representing a Payer that funds a payment
+            # Payment Method as 'paypal'
+            "payer": {
+                "payment_method": "paypal"},
+
+            # Redirect URLs
+            "redirect_urls": {
+                "return_url": "http://localhost:3000/payment/execute",
+                "cancel_url": "http://localhost:3000/"},
+
+            # Transaction
+            # A transaction defines the contract of a
+            # payment - what is the payment for and who
+            # is fulfilling it.
+            "transactions": [{
+
+                # ItemList
+                "item_list": {
+                    "items": [{
+                        "name": "item",
+                        "sku": "item",
+                        "price": "5.00",
+                        "currency": "USD",
+                        "quantity": 1}]},
+
+                # Amount
+                # Let's you specify a payment amount.
+                "amount": {
+                    "total": "5.00",
+                    "currency": "USD"},
+                "description": "This is the payment transaction description."}]})
+
+        # Create Payment and return status
+        if payment.create():
+            print("Payment[%s] created successfully" % (payment.id))
+            # Redirect the user to given approval url
+            for link in payment.links:
+                if link.method == "REDIRECT":
+                    # Convert to str to avoid google appengine unicode issue
+                    # https://github.com/paypal/rest-api-sdk-python/pull/58
+                    redirect_url = str(link.href)
+                    print("Redirect for approval: %s" % (redirect_url))
+        else:
+            print("Error while creating payment:")
+            print(payment.error)
+
+    def pay_with_saved_card(self, amount, external_customer_id, credit_card_id):
+        payment_data = {
+            'intent': 'sale',
+            'payer': {
+                'payment_method': 'credit_card',
+                'funding_instruments':[
+                    {
+                        'credit_card_token': {
+                            'credit_card_id' : credit_card_id,              # ie: "CARD-1MD19612EW4364010KGFNJQI",
+                            'payer_id' : external_customer_id               # ie: "ppuser12345",
+                            # "external_customer_id" : external_customer_id   # ie: "ppuser12345"
+                        }
+                    }
+                ]
+            },
+            'transactions':[
+                {
+                    'amount':{
+                        'total' : '%.2f' % float(amount),                   # ie: "6.70"
+                        'currency': 'USD'
+                    },
+                    'description': 'This is the payment transaction description.'
+                }
+            ]
+        }
+
+        if self.auth_data is None:
+            self.auth()
+
+        print('payment_data', str(payment_data))
+
+        url = self.api_payments + '/payment'
+        headers = { 'Content-Type' : 'application/json',
+                    'Authorization' : 'Bearer %s' % self.auth_data.get('access_token') }
+        # call the api to process the payment
+        self.r_payment = self.session.post(url, data=json.dumps(payment_data), headers=headers)
+        return self.get_http_response_dict(self.session, self.r_payment)
+
+    def __init__(self):
+        self.client_id  = 'ARqP3lkXhhR_jmm6NkyoKQfuOcBsn1KBYtlzZGHEvGDCQ-ajNoxpQD2mDScpT6tkgsI7qFgVJ-KgzpFE'
+        self.secret     = 'EOKSd-HCNfWE17mu8e7uyjs2egSla2yXs7joweXCLdimCY8yv-FcCx7LeP1do0gMb9vExJSmjyw9hwRu'
+        self.session = None
+
+        # response values for debugging - officially speaking, dont use outside of the methods that set them
+        self.r_login                = None
+        self.r_save_card            = None
+        self.r_show_card_details    = None
+        self.r_payment              = None
+
+    def pay_with_credit_card(self, amount, type, number, exp_month, exp_year, cvv2, first_name, last_name):
+        payment_data = {
+            "intent": "sale",
+            "payer": {
+                "payment_method": "credit_card",
+                "funding_instruments": [
+                    {
+                        "credit_card": {
+                            "number" : number,              # ie: "5500005555555559"
+                            "type" : type,                  # ie: "mastercard"
+                            "expire_month" : exp_month,     # ie: 12
+                            "expire_year" : exp_year,       # ie: 2018
+                            "cvv2" : cvv2,                  # ie: 111
+                            "first_name" : first_name,      # ie: "Betsy"
+                            "last_name" : last_name         # ie: "Buyer"
+                        }
+                    }
+                ]
+            },
+            "transactions": [
+                {
+                    "amount": {
+                        "total" : '%.2f' % float(amount),         # ie:"total": "7.47",
+                        "currency": "USD"
+                    },
+                    "description": "This is the payment transaction description."
+                }
+            ]
+        }
+
+        if self.auth_data is None:
+            self.auth()
+
+        print('payment_data', str(payment_data))
+
+        url = self.api_payments + '/payment'
+        headers = { 'Content-Type' : 'application/json',
+                    'Authorization' : 'Bearer %s' % self.auth_data.get('access_token') }
+        # call the api to process the payment
+        self.r_payment = self.session.post(url, data=json.dumps(payment_data), headers=headers)
+        return self.get_http_response_dict(self.session, self.r_payment)
+
+    def get_http_response_dict(self, session, r):
+        print( 'headers:', self.session.headers )
+        print( 'cookies:', str(self.session.cookies) )
+        print( 'HTTP [%s] %s' % (str(r.status_code), str(r.reason)) )
+        print( 'BODY [%s]' % str(r.text) )
+        if r.text is None or r.text == '':
+            return {}
+        # else its valid
+        return json.loads(r.text)
+
+    def auth(self):
+        headers = { 'Accept' : 'application/json', 'Accept-Language' : 'en_US' }
+        post_data = {
+            'grant_type' : 'client_credentials'
+        }
+        self.session = requests.Session()
+        self.r_login = self.session.post( self.api_oauth_token,
+                                          headers=headers, data=post_data,
+                                          auth=(self.client_id, self.secret))
+        # print( 'headers:', self.session.headers )
+        # print( 'cookies:', self.session.cookies )
+        # print( self.r_login.status_code )
+        # print( self.api_oauth_token )
+        # print( self.r_login.text )
+
+        #self.auth_data = json.loads( self.r_login.text )
+        self.auth_data = self.get_http_response_dict(self.session, self.r_login)
+        return self.auth_data
+    #
+    # def call_api(self, method, url, data=None, headers=None):
+    #     if self.auth_data is None:
+    #         self.auth()
+    #
+    #     self.session
+
+    def save_card(self, external_customer_id, card_data, access_token=None):
+        """
+        store a credit card using paypal's vault to make it easier to make payments using an associated token
+        :param external_customer_id: also used for the "payer_id" field
+        :param card_data:
+        :param access_token:
+        :return:
+        """
+        access_token = access_token
+        if access_token is None:
+            access_token = self.auth_data.get('access_token')
+
+        # make the call with the existing session object, performing a POST request
+        url = self.api_vault + '/credit-cards'
+        print('url:', url)
+
+        headers = { 'Content-Type' : 'application/json',
+                    'Authorization' : 'Bearer %s' % access_token }
+
+        print('save_card headers', str(headers))
+
+        self.r_save_card = self.session.post(url, data=json.dumps(card_data), headers=headers)
+
+        # return example successful saved card data:
+        # {"id":"CARD-5BS2364403728090LK5UDMHQ","state":"ok","payer_id":"user12345",
+        # "type":"visa","number":"xxxxxxxxxxxx0331","expire_month":"11",
+        # "expire_year":"2018","first_name":"Betsy","last_name":"Buyer",
+        # "billing_address":{"line1":"111 First Street","city":"Saratoga",
+        # "state":"CA","postal_code":"95070","country_code":"US"},"valid_until":"2019-06-20T00:00:00Z",
+        # "create_time":"2016-06-20T18:29:50Z","update_time":"2016-06-20T18:29:50Z",
+        # "links":[
+        #   {"href":"https://api.sandbox.paypal.com/v1/vault/credit-cards/CARD-5BS2364403728090LK5UDMHQ","rel":"self","method":"GET"},
+        #   {"href":"https://api.sandbox.paypal.com/v1/vault/credit-cards/CARD-5BS2364403728090LK5UDMHQ","rel":"delete","method":"DELETE"},
+        #   {"href":"https://api.sandbox.paypal.com/v1/vault/credit-cards/CARD-5BS2364403728090LK5UDMHQ","rel":"patch","method":"PATCH"}
+        #  ]
+        # }
+        return self.get_http_response_dict(self.session, self.r_save_card)
+
+    def show_card(self, credit_card_id):
+        """
+        show details for a stored card
+        :param credit_card_id:
+        :return:
+        """
+        if self.auth_data is None:
+            self.auth()
+
+        url = self.api_vault + '/credit-cards'
+        headers = { 'Content-Type' : 'application/json',
+                    'Authorization' : 'Bearer %s' % self.auth_data.get('access_token') }
+        self.r_show_card_details = self.session.get(url, headers=headers)
+        return self.get_http_response_dict(self.session, self.r_show_card_details)
+
+    def list_cards(self, external_customer_id=None):
+        """
+        filter saved cards by their external customer id
+        :param external_customer_id:
+        :return:
+        """
+        if self.auth_data is None:
+            self.auth()
+
+        get_params = ''
+        if external_customer_id is not None:
+            get_params += '?external_customer_id=%s' % external_customer_id
+
+        url = self.api_vault + '/credit-cards'
+        url += get_params
+
+        headers = { 'Content-Type' : 'application/json',
+                    'Authorization' : 'Bearer %s' % self.auth_data.get('access_token') }
+
+        self.r_list_cards = self.session.get(url, headers=headers)
+        return self.get_http_response_dict(self.session, self.r_list_cards)
+
+
+
+
+#
+#
+# old code
+#
 class Payout( object ):
-
     #
     #
     WITHDRAW_STATUS_PROCESSED = cash.withdraw.constants.WithdrawStatusConstants.Processed.value

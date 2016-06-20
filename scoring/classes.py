@@ -239,6 +239,32 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
     defines the MLB Salary draft scoring metrics
     """
 
+    THE_SPORT = 'mlb'
+
+    PITCHER_POSITIONS = ['P', 'SP', 'RP']
+
+    SINGLE  = 'single'           # hitter - singles
+    DOUBLE  = 'double'           # hitter - doubles
+    TRIPLE  = 'triple'           # hitter - triples
+    HR      = 'hr'               # hitter - home runs
+    RBI     = 'rbi'              # hitter - runs batted in
+    RUN     = 'run'              # hitter - runs scored
+    BB      = 'bb'               # hitter - walks
+    HBP     = 'hbp'              # hitter - hit by pitch
+    SB      = 'sb'               # hitter - stolen bases
+    CS      = 'cs'               # hitter - # times caught stealing
+    # --
+    IP      = 'ip'               # pitcher - inning pitched
+    K       = 'k'                # pitcher - strikeout
+    WIN     = 'win'              # pitcher - Win
+    ER      = 'er'               # pitcher - earned runs allowed
+    HIT     = 'hit'              # pitcher - hits against
+    HIT_BATSMAN = 'hit-batsman'  # pitcher - hit batter with pitch
+    WALK    = 'walk'             # pitcher - walked batters
+    CG      = 'cg'               # pitcher - complete game
+    CGSO    = 'cgso'             # pitcher - complete game AND shutout
+    NO_HITTER = 'no-hitter'      # pitcher - complete game AND no hits allowed
+
     # the mlb outcomes:
     OUTCOMES = {
         'AD1': (0.0, 'Advance 1st'),
@@ -359,32 +385,6 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
         'oTT4': (0.0, 'Triple - Out at Home'),
         'uRN': (0.0, 'Unearned Run/No RBI'),
     }
-
-    THE_SPORT = 'mlb'
-
-    PITCHER_POSITIONS = ['P', 'SP', 'RP']
-
-    SINGLE  = 'single'           # hitter - singles
-    DOUBLE  = 'double'           # hitter - doubles
-    TRIPLE  = 'triple'           # hitter - triples
-    HR      = 'hr'               # hitter - home runs
-    RBI     = 'rbi'              # hitter - runs batted in
-    RUN     = 'run'              # hitter - runs scored
-    BB      = 'bb'               # hitter - walks
-    HBP     = 'hbp'              # hitter - hit by pitch
-    SB      = 'sb'               # hitter - stolen bases
-    CS      = 'cs'               # hitter - # times caught stealing
-    # --
-    IP      = 'ip'               # pitcher - inning pitched
-    K       = 'k'                # pitcher - strikeout
-    WIN     = 'win'              # pitcher - Win
-    ER      = 'er'               # pitcher - earned runs allowed
-    HIT     = 'hit'              # pitcher - hits against
-    HIT_BATSMAN = 'hit-batsman'  # pitcher - hit batter with pitch
-    WALK    = 'walk'             # pitcher - walked batters
-    CG      = 'cg'               # pitcher - complete game
-    CGSO    = 'cgso'             # pitcher - complete game AND shutout
-    NO_HITTER = 'no-hitter'      # pitcher - complete game AND no hits allowed
 
     def __init__(self):
         self.score_system = ScoreSystem.objects.get(sport=self.THE_SPORT, name='salary')
