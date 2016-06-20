@@ -14,19 +14,18 @@ const LazyLoadImage = (DomSelector) => {
     const now = window.innerHeight + window.scrollY;
 
     // Loop through each of our queried images and determine if they should be loaded.
-    imageList.forEach((img, i) => {
+    imageList.forEach((img) => {
+      const imageSrc = img.getAttribute('data-src');
+
+      if (!img || !imageSrc) {
+        return;
+      }
+
       // Is the image in the viewport?
       if (now >= img.getBoundingClientRect().top && img.getBoundingClientRect().top > 0) {
-        // get it's data-src.
-        const imageSrc = img.getAttribute('data-src');
         // Load the image by moving the data-src to the src attribute.
-        if (imageSrc) {
-          img.setAttribute('src', imageSrc);
-          img.removeAttribute('data-src');
-        }
-
-        // Remove the image from the list so we never try to check it again.
-        imageList.splice(i, 1);
+        img.setAttribute('src', imageSrc);
+        img.removeAttribute('data-src');
       }
     });
   }
@@ -36,8 +35,13 @@ const LazyLoadImage = (DomSelector) => {
 
 
   function reloadImages() {
-    imageList = Array.prototype.slice.call(document.querySelectorAll(`${DomSelector}[data-src]`));
-    evaluate();
+    // this is janky but it helps to make sure that the image are done being rendered to the DOM.
+    setTimeout(() => {
+      window.requestAnimationFrame(() => {
+        imageList = Array.prototype.slice.call(document.querySelectorAll(`${DomSelector}[data-src]`));
+        evaluate();
+      });
+    }, 0);
   }
 
 
