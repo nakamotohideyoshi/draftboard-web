@@ -2,7 +2,7 @@ import React from 'react';
 import sinon from 'sinon';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 import DraftTeamFilter from '../../../components/draft/draft-team-filter.jsx';
 import sportsStore from '../../../fixtures/json/store-sports.js';
 import activeDraftGroupBoxScoresSelectorFix from '../../../fixtures/json/active-draft-group-box-scores-selector.js';
@@ -28,7 +28,7 @@ import activeDraftGroupBoxScoresSelectorFix from '../../../fixtures/json/active-
 
 
 //   it('should render nothing when isVisible is false', () => {
-//     const props = _merge(
+//     const props = merge(
 //       {}, defaultTestProps, {
 //         isVisible: false,
 //       }

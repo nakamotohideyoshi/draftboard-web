@@ -1,6 +1,6 @@
 import React from 'react';
 // import sinon from 'sinon';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
 import EnterContestButton from '../../../components/contest-list/enter-contest-button.jsx';
@@ -45,7 +45,7 @@ describe('<EnterContestButton /> Component', () => {
   it('should render an "enter contest" button if the lineup is able to be entered.', () => {
     wrapper.setState({ hasContestStarted: false });
     // Make the button think that the lineup is able to be entered into the contest.
-    wrapper.setProps(_merge({}, defaultTestProps, {
+    wrapper.setProps(merge({}, defaultTestProps, {
       lineup: { draft_group: 666 },
       contest: { draft_group: 666 },
     }));

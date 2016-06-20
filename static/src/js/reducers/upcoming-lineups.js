@@ -1,4 +1,4 @@
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 
 const ActionTypes = require('../action-types');
 const initialState = {
@@ -23,7 +23,7 @@ module.exports = (state = initialState, action) => {
 
 
       // Return a copy of the previous state with our new things added to it.
-      return _merge({}, state, {
+      return merge({}, state, {
         lineups: action.lineups || {},
         draftGroupsWithLineups: action.draftGroupsWithLineups,
         focusedLineupId,
@@ -31,13 +31,13 @@ module.exports = (state = initialState, action) => {
     }
 
     case ActionTypes.LINEUP_FOCUSED:
-      return _merge({}, state, {
+      return merge({}, state, {
         focusedLineupId: action.lineupId,
       });
 
 
     case ActionTypes.LINEUP_HOVERED:
-      return _merge({}, state, {
+      return merge({}, state, {
         hoveredLineupId: action.lineupId,
       });
 
@@ -47,13 +47,13 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.EDIT_LINEUP_INIT:
-      return _merge({}, state, {
+      return merge({}, state, {
         lineupBeingEdited: action.lineupId,
       });
 
 
     case ActionTypes.FILTER_UPCOMING_LINEUPS_BY_DRAFTGROUP_ID:
-      return _merge({}, state, {
+      return merge({}, state, {
         draftGroupIdFilter: action.draftGroupId,
       });
 

@@ -81,7 +81,7 @@
     min-height: 95px;
     background: #fff;
 
-    &__team1 {
+    &__team {
       min-width: 80px;
       display: inline-block;
       vertical-align: middle;
@@ -153,18 +153,6 @@
         font-family: $font-oswald;
         font-size: 15px;
         margin: 2.5px;
-      }
-    }
-
-    &__team2 {
-      min-width: 80px;
-      display: inline-block;
-      vertical-align: middle;
-
-      &__points {
-        color: #45505b;
-        font-family: $font-oswald;
-        font-size: 22px;
       }
     }
   }

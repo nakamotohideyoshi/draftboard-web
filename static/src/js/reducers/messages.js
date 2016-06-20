@@ -1,5 +1,5 @@
 import ActionTypes from '../action-types.js';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 
 const initialState = {};
 
@@ -11,7 +11,7 @@ const initialState = {};
  * CSS styles that will dictate the color of the message the user sees.
  */
 module.exports = (state = initialState, action) => {
-  const nextState = _merge({}, state);
+  const nextState = merge({}, state);
 
   switch (action.type) {
 

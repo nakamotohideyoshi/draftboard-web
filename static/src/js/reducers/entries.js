@@ -1,34 +1,46 @@
 import * as ActionTypes from '../action-types';
 import update from 'react-addons-update';
 import { dateNow } from '../lib/utils';
-import { forEach as _forEach } from 'lodash';
-import { map as _map } from 'lodash';
-import { merge as _merge } from 'lodash';
+import forEach from 'lodash/forEach';
+import map from 'lodash/map';
+import merge from 'lodash/merge';
 
 
 module.exports = (state = {
   isFetching: false,
+  isFetchingRosters: false,
   hasRelatedInfo: false,
   expiresAt: dateNow(),
   items: [],
 }, action = {}) => {
-  const newState = _merge({}, state);
+  const newState = merge({}, state);
 
   switch (action.type) {
     case ActionTypes.ENTRIES__ADD_PLAYERS:
-      _forEach(action.entriesPlayers, (roster, entryId) => {
+      forEach(action.entriesPlayers, (roster, entryId) => {
         newState.items[entryId].roster = roster;
       });
 
       return newState;
 
+    case ActionTypes.ENTRIES_ROSTERS__REQUEST:
+      return update(state, {
+        $merge: {
+          isFetchingRosters: true,
+          rostersExpireAt: action.expiresAt,
+        },
+      });
+
     case ActionTypes.ENTRIES_ROSTERS__RECEIVE:
-      _forEach(newState.items, (entry, index) => {
+      forEach(newState.items, (entry, index) => {
         const lineup = action.response.entriesRosters[entry.lineup] || {};
         if (lineup.hasOwnProperty('players')) {
-          newState.items[index].roster = _map(lineup.players, player => player.playerId);
+          newState.items[index].roster = map(lineup.players, player => player.playerId);
         }
       });
+
+      newState.isFetchingRosters = false;
+      newState.rostersExpireAt = action.expiresAt;
 
       return newState;
 

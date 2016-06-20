@@ -1,5 +1,5 @@
 import * as types from '../action-types.js';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 
 
 const initialState = {
@@ -12,19 +12,19 @@ module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     case types.FETCHING_FEATURED_CONTESTS:
-      return _merge({}, state, {
+      return merge({}, state, {
         isFetching: true,
       });
 
 
     case types.FETCH_FEATURED_CONTESTS_FAIL:
-      return _merge({}, state, {
+      return merge({}, state, {
         isFetching: false,
       });
 
 
     case types.FETCH_FEATURED_CONTESTS_SUCCESS:
-      return _merge({}, state, {
+      return merge({}, state, {
         isFetching: false,
         banners: action.contests,
       });

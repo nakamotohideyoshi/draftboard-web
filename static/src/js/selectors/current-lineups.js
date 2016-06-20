@@ -4,11 +4,53 @@ import mapValues from 'lodash/mapValues';
 import merge from 'lodash/merge';
 import reduce from 'lodash/reduce';
 import size from 'lodash/size';
+import uniqBy from 'lodash/uniqBy';
 import zipObject from 'lodash/zipObject';
 import { assembleCurrentPlayer } from './live-draft-groups';
 import { calcDecimalRemaining, SPORT_CONST } from '../actions/sports';
 import { createSelector } from 'reselect';
+import { dateNow } from '../lib/utils';
 import { gamesTimeRemainingSelector } from './sports';
+
+
+const lineupsItemsSelector = (state) => state.currentLineups.items;
+const lineupsSelector = (state) => state.currentLineups;
+
+/**
+ * Simple selector to return unique lineups and if they are finished loading.
+ * Used by the opening window in /live/ to choose a sport -> lineup
+ */
+export const uniqueLineupsSelector = createSelector(
+  [lineupsSelector],
+  (lineups) => {
+    const uniqueLineupsArray = uniqBy(map(lineups.items, (lineup) => lineup), 'lineup');
+    const uniqueLineups = zipObject(
+      map(uniqueLineupsArray, 'id'),
+      // add in hasStarted to values
+      map(uniqueLineupsArray, (lineup) => merge({}, lineup, {
+        hasStarted: new Date(lineup.start).getTime() < dateNow(),
+        start: new Date(lineup.start).getTime(),
+      }))
+    );
+
+    return {
+      lineups: uniqueLineupsArray,  // for choosing lineup in live
+      lineupsObj: uniqueLineups,  // for showing countdown before lineup is loaded in
+      haveLoaded: lineups.isFetching === false,  // to know when to show lineups to choose from
+    };
+  }
+);
+
+export const lineupsHaveRelatedInfoSelector = createSelector(
+  [lineupsSelector], (lineups) => lineups.hasRelatedInfo
+);
+
+export const contestsLineupsSelector = createSelector(
+  [lineupsItemsSelector], (lineups) => map(lineups, (lineup) => ({
+    contest: lineup.contest,
+    lineup: lineup.id,
+  }))
+);
 
 
 /**
@@ -79,7 +121,7 @@ export const compileLineupStats = (lineup = {}, draftGroup = {}, gamesTimeRemain
     roster: lineup.roster || [],  // default to empty list while we wait for lineup to be received
     rosterDetails: compileRosterDetails(lineup.roster, draftGroup, gamesTimeRemaining),
     sport: draftGroup.sport,  // used in nav
-    start: lineup.start,
+    start: new Date(lineup.start).getTime() || undefined,
   };
 
   return merge(
@@ -134,6 +176,6 @@ export const myCurrentLineupsSelector = createSelector(
   [currentLineupsItemsSelector, liveDraftGroupsSelector, gamesTimeRemainingSelector],
   (lineups, draftGroups, gamesTimeRemaining) =>
     mapValues(lineups, (lineup) =>
-      compileLineupStats(lineup, draftGroups[lineup.draft_group], gamesTimeRemaining)
+      compileLineupStats(lineup, draftGroups[lineup.draftGroup], gamesTimeRemaining)
     )
 );

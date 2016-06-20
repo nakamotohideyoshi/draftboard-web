@@ -44,6 +44,7 @@ function mapStateToProps(state) {
     draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
     featuredContests: state.featuredContests.banners,
     filteredContests: upcomingContestSelector(state),
+    contestFilters: state.upcomingContests.filters,
     focusedContest: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
     hoveredLineupId: state.upcomingLineups.hoveredLineupId,
@@ -105,6 +106,7 @@ const LobbyContainer = React.createClass({
     orderByProperty: React.PropTypes.string,
     setFocusedContest: React.PropTypes.func,
     updateFilter: React.PropTypes.func,
+    contestFilters: React.PropTypes.object,
     updateOrderByFilter: React.PropTypes.func,
     routerPush: React.PropTypes.func,
     addMessage: React.PropTypes.func,
@@ -240,6 +242,7 @@ const LobbyContainer = React.createClass({
           <CollectionMatchFilter
             className="contest-list-filter--contest-type"
             filters={this.state.contestTypeFilters}
+            activeFilter={this.props.contestFilters.contestTypeFilter}
             filterName="contestTypeFilter"
             filterProperty="contestType"
             match=""

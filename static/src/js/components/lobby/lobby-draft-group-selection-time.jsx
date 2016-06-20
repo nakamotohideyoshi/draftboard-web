@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment';
-import { map as _map } from 'lodash';
+import map from 'lodash/map';
 
 
 /**
@@ -30,7 +30,7 @@ const LobbyDraftGroupSelectionTime = React.createClass({
   render() {
     const self = this;
 
-    const groups = _map(self.props.draftGroups, (group) => {
+    const groups = map(self.props.draftGroups, (group) => {
       if (group.sport === self.props.selectedSport) {
         const url = self.getDraftGroupUrl(group.pk);
 
@@ -38,7 +38,7 @@ const LobbyDraftGroupSelectionTime = React.createClass({
           <li className="cmp-draft-group-select__group" key={group.pk}>
             <a href={url} title="Draft a lineup">
               <h4 className="cmp-draft-group-select__title">
-                {moment(group.start).format('dddd, MMM Do - h:mmA')}
+                {this.props.selectedSport.toUpperCase()} - {moment(group.start).format('dddd, MMM Do - h:mmA')}
               </h4>
               <div className="cmp-draft-group-select__sub">
                 {group.contestCount} contests - {group.num_games} games

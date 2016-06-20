@@ -101,10 +101,13 @@ const LivePlayerPane = React.createClass({
       gameTimeInfo = ['', 'Final'];
     } else {
       switch (this.props.sport) {
-        case 'mlb':
+        case 'mlb': {
+          const className = `current-game__mlb-half-inning \
+            mlb-half-inning--${(boxScore.inning_half === 'B') ? 'bottom' : 'top'}`;
+
           gameTimeElement = (
             <div className="current-game__time">
-              <div className={`current-game__mlb-half-inning mlb-half-inning--${boxScore.inning_half}`}>
+              <div className={className}>
                 <svg className="down-arrow" viewBox="0 0 40 22.12">
                   <path d="M20,31.06L0,8.94H40Z" transform="translate(0 -8.94)" />
                 </svg>
@@ -114,6 +117,7 @@ const LivePlayerPane = React.createClass({
           );
 
           break;
+        }
         case 'nba':
         case 'nhl':
         default:
@@ -136,19 +140,19 @@ const LivePlayerPane = React.createClass({
     return (
       <div className="current-game">
         <div>
-          <div className="current-game__team1">
-            <div className="current-game__team1__points">{boxScore.home_score}</div>
-            <div className="current-game__team-name">
-              <div className="city">{game.homeTeamInfo.city}</div>
-              <div className="name">{game.homeTeamInfo.name}</div>
-            </div>
-          </div>
-          {gameTimeElement}
-          <div className="current-game__team2">
-            <div className="current-game__team1__points">{boxScore.away_score}</div>
+          <div className="current-game__team">
+            <div className="current-game__team__points">{boxScore.away_score}</div>
             <div className="current-game__team-name">
               <div className="city">{game.awayTeamInfo.city}</div>
               <div className="name">{game.awayTeamInfo.name}</div>
+            </div>
+          </div>
+          {gameTimeElement}
+          <div className="current-game__team">
+            <div className="current-game__team__points">{boxScore.home_score}</div>
+            <div className="current-game__team-name">
+              <div className="city">{game.homeTeamInfo.city}</div>
+              <div className="name">{game.homeTeamInfo.name}</div>
             </div>
           </div>
         </div>
@@ -195,11 +199,6 @@ const LivePlayerPane = React.createClass({
   renderHeader() {
     const { player, game } = this.props;
     let playerImage = `${this.props.playerImagesBaseUrl}/${player.srid}.png`;
-
-    // TODO remove once we have player images
-    if (this.props.sport === 'mlb') {
-      playerImage = '/static/src/img/temp/live-player-pane--lebron.png';
-    }
 
     let teamInfo = {};
     if (player.teamSRID === game.srid_home) {

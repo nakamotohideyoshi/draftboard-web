@@ -32,19 +32,31 @@ const NavScoreboardFilters = React.createClass({
   },
 
   getInitialState() {
-    return { expanded: false };
+    return {
+      expanded: false,
+      userSelectedOption: false,
+    };
   },
 
   componentDidMount() {
     if (this.props.selected === null) {
-      this.selectFirstOption();
+      this.selectLargestOption();
     }
   },
 
   /**
-   * Selects first available option.
+   * If more sports loading in, then update to show the largest option
    */
-  selectFirstOption() {
+  componentDidUpdate(prevProps) {
+    if (this.props.options.length !== prevProps.options.length &&
+        !this.state.userSelectedOption
+    ) this.selectLargestOption();
+  },
+
+  /**
+   * Selects largest available option.
+   */
+  selectLargestOption() {
     if (this.props.options.length === 0) {
       return;
     }
@@ -79,6 +91,7 @@ const NavScoreboardFilters = React.createClass({
 
     this.props.onChangeSelection(option, type, key);
     this.handleMenuLeave();
+    this.setState({ userSelectedOption: true });
   },
 
   render() {

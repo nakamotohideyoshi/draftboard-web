@@ -3,10 +3,12 @@ import * as ActionTypes from '../action-types';
 import Cookies from 'js-cookie';
 import map from 'lodash/map';
 import zipObject from 'lodash/zipObject';
+import log from '../lib/logging';
+import { addMessage } from './message-actions';
 import { Buffer } from 'buffer/';
 import { dateNow } from '../lib/utils';
 import { fetchPrizeIfNeeded } from './prizes';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 import { SPORT_CONST } from '../actions/sports';
 
 
@@ -324,9 +326,18 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
 
   return Promise.all([
     dispatch(fetchPrizeIfNeeded(prizeId)),
-  ]).then(() =>
+  ])
+  .then(() =>
     dispatch(confirmRelatedContestInfo(id))
-  );
+  )
+  .catch((err) => {
+    dispatch(addMessage({
+      header: 'Failed to connect to API.',
+      content: 'Please refresh the page to reconnect.',
+      level: 'warning',
+    }));
+    log.error(err);
+  });
 };
 
 /**
@@ -343,9 +354,18 @@ export const fetchContestIfNeeded = (id, sport, force) => (dispatch, getState) =
   return Promise.all([
     dispatch(fetchContestInfo(id)),
     dispatch(fetchContestLineups(id, sport)),
-  ]).then(() =>
+  ])
+  .then(() =>
     dispatch(fetchRelatedContestInfo(id))
-  );
+  )
+  .catch((err) => {
+    dispatch(addMessage({
+      header: 'Failed to connect to API.',
+      content: 'Please refresh the page to reconnect.',
+      level: 'warning',
+    }));
+    log.error(err);
+  });
 };
 
 /**
@@ -355,7 +375,7 @@ export const fetchContestIfNeeded = (id, sport, force) => (dispatch, getState) =
 export const removeUnusedContests = () => (dispatch, getState) => {
   const contestIds = [];
 
-  _forEach(getState().liveContests, (contest) => {
+  forEach(getState().liveContests, (contest) => {
     const id = contest.id;
 
     // if there are no lineups the group is related to, then remove

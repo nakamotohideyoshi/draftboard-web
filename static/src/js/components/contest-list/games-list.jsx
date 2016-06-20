@@ -1,5 +1,5 @@
 import React from 'react';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 import moment from 'moment';
 
 
@@ -17,7 +17,7 @@ const GamesList = React.createClass({
   getGameList(games) {
     const gameList = [];
 
-    _forEach(games, (game) => {
+    forEach(games, (game) => {
       // do we have teams?
       if (this.props.teams.hasOwnProperty('teams')) {
         gameList.push(

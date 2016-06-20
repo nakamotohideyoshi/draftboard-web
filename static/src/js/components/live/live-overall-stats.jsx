@@ -141,8 +141,20 @@ const LiveOverallStats = React.createClass({
             />
           </mask>
           <g mask="url(#gradientMaskOverall)">
-            <rect x={-svgMidpoint} y={-svgMidpoint} width={svgMidpoint} height={svgWidth} fill="url(#cl2)" />
-            <rect x="0" y={-svgMidpoint} height={svgWidth} width={svgMidpoint} fill="url(#cl1)" />
+            <rect
+              x={-svgMidpoint}
+              y={-svgMidpoint}
+              width={svgMidpoint}
+              height={svgWidth}
+              fill={`url(#cl2-lineup-${lineup.id})`}
+            />
+            <rect
+              x="0"
+              y={-svgMidpoint}
+              height={svgWidth}
+              width={svgMidpoint}
+              fill={`url(#cl1-lineup-${lineup.id})`}
+            />
           </g>
 
           <path
@@ -182,11 +194,19 @@ const LiveOverallStats = React.createClass({
         <canvas ref="canvas" width="220" height="220" />
         <svg className="pmr-circle" viewBox="0 0 280 280" width="220">
           <defs>
-            <linearGradient id="cl1" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient
+              id={`cl1-lineup-${lineup.id}`}
+              gradientUnits="objectBoundingBox"
+              x1="0" y1="0" x2="0" y2="1"
+            >
              <stop stopColor={progressArc.hexEnd} />
              <stop offset="100%" stopColor={progressArc.hexHalfway} />
             </linearGradient>
-            <linearGradient id="cl2" gradientUnits="objectBoundingBox" x1="0" y1="1" x2="0" y2="0">
+            <linearGradient
+              id={`cl2-lineup-${lineup.id}`}
+              gradientUnits="objectBoundingBox"
+              x1="0" y1="1" x2="0" y2="0"
+            >
              <stop stopColor={progressArc.hexHalfway} />
              <stop offset="100%" stopColor={progressArc.hexStart} />
             </linearGradient>

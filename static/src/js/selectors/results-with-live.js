@@ -1,12 +1,10 @@
 import { createSelector } from 'reselect';
 import { myCurrentLineupsSelector } from './current-lineups';
 import { liveContestsSelector } from './live-contests';
-import { map as _map } from 'lodash';
-import { merge as _merge } from 'lodash';
+import map from 'lodash/map';
+import merge from 'lodash/merge';
 import reduce from 'lodash/reduce';
-import { size as _size } from 'lodash';
-import { uniqBy as _uniqBy } from 'lodash';
-import { values as _values } from 'lodash';
+import size from 'lodash/size';
 import { dateNow } from '../lib/utils';
 import { calcTotalPotentialEarnings } from './watching';
 
@@ -24,31 +22,26 @@ export const resultsWithLive = createSelector(
   state => state.liveDraftGroups,
   state => liveContestsSelector(state),
   state => myCurrentLineupsSelector(state),
-  state => state.currentLineups.items,
-  state => state.watching,
-  state => state.entries,
+  state => state.currentLineups,
 
-  (liveDraftGroups, contestsStats, currentLineupsStats, currentLineups, watching, entries) => {
-    const uniqueEntries = _uniqBy(_values(entries.items), 'lineup');
-
-    const lineups = _map(uniqueEntries, (entry) => {
+  (liveDraftGroups, contestsStats, currentLineupsStats, currentLineups) => {
+    const lineups = map(currentLineups.items, (lineup) => {
       let lineupInfo = {
-        id: entry.lineup,
-        name: entry.lineup_name,
-        sport: entry.sport,
+        id: lineup.id,
+        name: lineup.name,
+        sport: lineup.sport,
         players: [],
         entries: [],
         hasNotEnded: true,
       };
 
-      if (entries.hasRelatedInfo === true) {
-        const lineupSelector = currentLineupsStats[entry.lineup];
-        const lineup = currentLineups[entry.lineup];
+      if (currentLineups.hasRelatedInfo === true) {
+        const lineupSelector = currentLineupsStats[lineup.id];
         const draftGroup = liveDraftGroups[lineup.draftGroupId] || {};
         const hasEnded = draftGroup.closed !== null && draftGroup.closed < dateNow();
 
         const lineupEntriesInfo = lineupSelector.upcomingContestsStats ||
-          _map(lineupSelector.contestsStats, (contestEntry) => ({
+          map(lineupSelector.contestsStats, (contestEntry) => ({
             contest: {
               id: contestEntry.id,
               name: contestEntry.name,
@@ -57,13 +50,13 @@ export const resultsWithLive = createSelector(
             payout: {
               amount: contestEntry.potentialWinnings,
             },
-            sport: entry.sport,
+            sport: lineup.sport,
             hasNotEnded: hasEnded === false,
           })
         );
 
-        lineupInfo = _merge(lineupInfo, {
-          players: _map(lineupSelector.rosterDetails, (player) => ({
+        lineupInfo = merge(lineupInfo, {
+          players: map(lineupSelector.rosterDetails, (player) => ({
             player_id: player.id,
             full_name: player.name,
             fantasy_points: player.fp,
@@ -78,7 +71,7 @@ export const resultsWithLive = createSelector(
           entries: lineupEntriesInfo,
           start: lineup.start,
           liveStats: {
-            entries: _size(lineup.contests),
+            entries: size(lineup.contests),
             points: lineupSelector.points,
             totalBuyin: reduce(lineup.contests || {}, (sum, id) => sum + contestsStats[id].buyin, 0),
             potentialWinnings: {
@@ -89,7 +82,7 @@ export const resultsWithLive = createSelector(
         });
 
         if (lineupSelector.hasOwnProperty('contestsStats')) {
-          lineupInfo.potentialWinnings = calcTotalPotentialEarnings(entries, lineupSelector.contestsStats);
+          lineupInfo.potentialWinnings = calcTotalPotentialEarnings(currentLineups, lineupSelector.contestsStats);
         }
       }
 
@@ -101,11 +94,11 @@ export const resultsWithLive = createSelector(
         winnings: '0',
         possible: '0',
         buyins: '0',
-        entries: _size(entries.items),
+        entries: size(lineups),
         contests: 0,
       },
       lineups,
-      hasRelatedInfo: entries.hasRelatedInfo,
+      hasRelatedInfo: currentLineups.hasRelatedInfo,
     };
   }
 );

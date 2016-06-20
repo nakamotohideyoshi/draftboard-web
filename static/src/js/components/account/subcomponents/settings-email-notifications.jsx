@@ -1,6 +1,6 @@
 import React from 'react';
-import { isEmpty as _isEmpty } from 'lodash';
-import { forEach as _forEach } from 'lodash';
+import isEmpty from 'lodash/isEmpty';
+import forEach from 'lodash/forEach';
 
 const SettingsEmailNotifications = React.createClass({
 
@@ -26,7 +26,7 @@ const SettingsEmailNotifications = React.createClass({
    * if there are no errors comming set edit mode to False
    */
   componentWillReceiveProps(nextProps) {
-    if (_isEmpty(nextProps.errors) || nextProps.isUpdatingEmail) {
+    if (isEmpty(nextProps.errors) || nextProps.isUpdatingEmail) {
       this.setState({ editMode: false });
     } else {
       this.setState({ editMode: true });
@@ -50,7 +50,7 @@ const SettingsEmailNotifications = React.createClass({
     if (fieldset) {
       const values = [];
 
-      _forEach(fieldset.querySelectorAll('input'), (field) => {
+      forEach(fieldset.querySelectorAll('input'), (field) => {
         if (field.checked) {
           values.push({
             id: field.getAttribute('data-notification-id'),

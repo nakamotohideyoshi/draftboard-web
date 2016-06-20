@@ -10,6 +10,31 @@
     z-index: 5020;
   }
 
+  &--sport-mlb,
+  &--sport-nba {
+    .live-lineup-player__photo img.default-player {
+      left: 1%;
+      opacity: 0.5;
+      top: 9px;
+      width: 50px;
+    }
+  }
+
+  &--sport-mlb {
+    .live-lineup-player__photo img {
+      left: 5%;
+      top: 3px;
+      width: 45px;
+    }
+  }
+  &--sport-nba {
+    .live-lineup-player__photo img {
+      left: -12%;
+      top: 5px;
+      width: 62px;
+    }
+  }
+
   // dumbed down version for countdown
   &--upcoming {
     .live-lineup-player__circle {
@@ -182,9 +207,7 @@
     width: 100%;
 
     img {
-      left: -12%;
       position: relative;
-      top: 5px;
     }
   }
 

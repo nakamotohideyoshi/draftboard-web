@@ -78,13 +78,13 @@ export const LiveContestsPane = React.createClass({
 
               <div className="profit">
                 <div className="fees">
-                  ${totalBuyin} Fees
+                  ${totalBuyin.toFixed(2)} Fees
                 </div>
                 {" "} / {" "}
                 <div className="earnings">
                   Winning
                   {" "}
-                  <span>${potentialWinnings}</span>
+                  <span>${potentialWinnings.toFixed(2)}</span>
                 </div>
               </div>
             </div>

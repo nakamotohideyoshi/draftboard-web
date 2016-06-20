@@ -1,15 +1,16 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
-import { forEach as _forEach } from 'lodash';
-import { filter as _filter } from 'lodash';
-import { size as _size } from 'lodash';
+import forEach from 'lodash/forEach';
+import filter from 'lodash/filter';
+import size from 'lodash/size';
 import { normalize, Schema, arrayOf } from 'normalizr';
 
 import * as ActionTypes from '../action-types';
 import log from '../lib/logging';
+import { addMessage } from './message-actions';
 import { dateNow } from '../lib/utils';
 import { fetchTeamsIfNeeded } from './sports';
 import { updateLivePlayersStats } from './live-players';
-import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions.js';
+import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions';
 
 
 // dispatch to reducer methods
@@ -25,7 +26,6 @@ import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-a
 const confirmDraftGroupStored = (id) => ({
   type: ActionTypes.CONFIRM_LIVE_DRAFT_GROUP_STORED,
   id,
-  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**
@@ -49,6 +49,7 @@ const requestDraftGroupFP = (id) => ({
 const requestDraftGroupBoxscores = (id) => ({
   id,
   type: ActionTypes.REQUEST_DRAFT_GROUP_BOXSCORES,
+  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**
@@ -60,6 +61,7 @@ const requestDraftGroupBoxscores = (id) => ({
 const requestDraftGroupInfo = (id) => ({
   id,
   type: ActionTypes.LIVE_DRAFT_GROUP__INFO__REQUEST,
+  expiresAt: dateNow() + 1000 * 60,  // 1 minute
 });
 
 /**
@@ -112,7 +114,7 @@ const receiveDraftGroupInfo = (id, response) => {
   const players = normalizedPlayers.entities.players;
   const playersBySRID = {};
 
-  _forEach(players, (player) => {
+  forEach(players, (player) => {
     playersBySRID[player.player_srid] = player.player_id;
   });
 
@@ -146,10 +148,9 @@ const fetchDraftGroupInfo = (id) => (dispatch) => {
   ).set({
     'X-REQUESTED-WITH': 'XMLHttpRequest',
     Accept: 'application/json',
-  }).then((res) => Promise.all([
-    dispatch(receiveDraftGroupInfo(id, res.body)),
-    dispatch(fetchTeamsIfNeeded(res.body.sport)),
-  ]));
+  }).then((res) =>
+    dispatch(receiveDraftGroupInfo(id, res.body))
+  );
 };
 
 /**
@@ -191,10 +192,11 @@ const shouldFetchDraftGroupFP = (state, id) => {
     throw new Error('You cannot get fantasy points for a draft group that does not exist yet');
   }
 
+  // no need for fantasy points if the draft group hasn't started playing yet
+  if (liveDraftGroups[id].start > dateNow()) return false;
+
   // don't fetch until expired
-  if (dateNow() < liveDraftGroups[id].fpExpiresAt) {
-    return false;
-  }
+  if (dateNow() < liveDraftGroups[id].fpExpiresAt) return false;
 
   return true;
 };
@@ -261,7 +263,7 @@ export const fetchDraftGroupFP = (id) => (dispatch) => {
     let players = res.body.players;
 
     // default to empty if FP isn't available yet
-    if (_size(players) === 0) players = {};
+    if (size(players) === 0) players = {};
 
     return dispatch(receiveDraftGroupFP(id, players));
   });
@@ -308,12 +310,23 @@ export const fetchDraftGroupIfNeeded = (id, sport) => (dispatch, getState) => {
   }
   return Promise.all([
     dispatch(fetchDraftGroupInfo(id)),
-    dispatch(fetchDraftGroupFP(id)),
-    dispatch(fetchPlayerBoxScoreHistoryIfNeeded(sport)),
+    dispatch(fetchTeamsIfNeeded(sport)),
   ])
   .then(() =>
+    dispatch(fetchDraftGroupFPIfNeeded(id)),
+    dispatch(fetchPlayerBoxScoreHistoryIfNeeded(sport))
+  )
+  .then(() =>
     dispatch(confirmDraftGroupStored(id))
-  );
+  )
+  .catch((err) => {
+    dispatch(addMessage({
+      header: 'Failed to connect to API.',
+      content: 'Please refresh the page to reconnect.',
+      level: 'warning',
+    }));
+    log.error(err);
+  });
 };
 
 /**
@@ -324,9 +337,9 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
   const draftGroupIds = [];
   const currentLineups = getState().currentLineups.items || {};
 
-  _forEach(getState().liveDraftGroups, (draftGroup) => {
+  forEach(getState().liveDraftGroups, (draftGroup) => {
     const id = draftGroup.id;
-    const lineups = _filter(currentLineups, (lineup) => lineup.draft_group === id);
+    const lineups = filter(currentLineups, (lineup) => lineup.draft_group === id);
 
     // if there are no lineups the group is related to, then remove
     if (lineups.length === 0) {

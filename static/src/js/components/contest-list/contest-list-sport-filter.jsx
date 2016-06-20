@@ -5,8 +5,9 @@ import renderComponent from '../../lib/render-component';
 import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 import { updateFilter } from '../../actions/contest-pool-actions.js';
 import { openDraftGroupSelectionModal } from '../../actions/upcoming-draft-groups-actions.js';
-
 const { Provider, connect } = ReactRedux;
+import filter from 'lodash/filter';
+import find from 'lodash/find';
 
 
 /*
@@ -14,8 +15,11 @@ const { Provider, connect } = ReactRedux;
  * @param  {object} state The current Redux state that we need to pass into the selectors
  * @return {object}       All of the methods we want to map to the component
  */
-function mapStateToProps() {
-  return {};
+function mapStateToProps(state) {
+  return {
+    sportFilter: state.upcomingContests.filters.sportFilter,
+    contestPools: state.upcomingContests.allContests,
+  };
 }
 
 /*
@@ -41,20 +45,32 @@ const ContestListSportFilter = React.createClass({
   propTypes: {
     updateFilter: React.PropTypes.func.isRequired,
     openDraftGroupSelectionModal: React.PropTypes.func,
+    sportFilter: React.PropTypes.object,
+    contestPools: React.PropTypes.object,
   },
 
 
   getInitialState() {
     return {
-      // League filter data - these will likely be replaced by dynamically determined values.
+      // League filter data
       leagueFilters: [
-        { title: 'All', column: 'sport', match: '' },
+        { title: 'MLB', column: 'sport', match: 'mlb' },
         { title: 'NBA', column: 'sport', match: 'nba' },
         { title: 'NFL', column: 'sport', match: 'nfl' },
         { title: 'NHL', column: 'sport', match: 'nhl' },
-        { title: 'MLB', column: 'sport', match: 'mlb' },
       ],
     };
+  },
+
+  /**
+   * We only want to show filters that have active contest pools. This returns that.
+   */
+  getFiltersWithContestPools(leagueFilters, contestPools) {
+    return filter(
+      leagueFilters, (leagueFilter) => find(
+        contestPools, (contestPool) => contestPool.sport === leagueFilter.match
+      )
+    );
   },
 
 
@@ -68,12 +84,12 @@ const ContestListSportFilter = React.createClass({
       <div>
         <CollectionMatchFilter
           className="contest-list-filter--sport"
-          filters={this.state.leagueFilters}
+          filters={this.getFiltersWithContestPools(this.state.leagueFilters, this.props.contestPools)}
           filterProperty="sport"
           match=""
           filterName="sportFilter"
           onUpdate={this.handleFilterChange}
-          elementType="select"
+          activeFilter={this.props.sportFilter}
         />
       <div
         className="add-lineup"

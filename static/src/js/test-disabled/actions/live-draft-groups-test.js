@@ -4,7 +4,7 @@ import request from 'superagent'
 import sinon from 'sinon'
 import { combineReducers } from 'redux'
 import { expect } from 'chai'
-import { size as _size } from 'lodash'
+import size from 'lodash/size';
 
 import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/live-config'
@@ -38,7 +38,7 @@ describe('actionsLiveDraftGroups', () => {
       // receiveLiveDraftGroup
       function(action) {
         expect(action.type).to.equal('LIVE_DRAFT_GROUP__INFO__RECEIVE')
-        expect(_size(action.players)).to.equal(74)
+        expect(size(action.players)).to.equal(74)
       },
 
       // requestLiveDraftGroupFP

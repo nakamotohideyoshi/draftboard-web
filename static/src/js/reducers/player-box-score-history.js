@@ -1,5 +1,5 @@
 import * as ActionTypes from '../action-types.js';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 
 const initialState = {
   isFetching: false,
@@ -16,19 +16,19 @@ module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     case ActionTypes.FETCHING_PLAYER_BOX_SCORE_HISTORY:
-      return _merge({}, state, {
+      return merge({}, state, {
         isFetching: true,
       });
 
 
     case ActionTypes.FETCH_PLAYER_BOX_SCORE_HISTORY_FAIL:
-      return _merge({}, state, {
+      return merge({}, state, {
         isFetching: false,
       });
 
 
     case ActionTypes.REMOVE_PLAYER_BOX_SCORE_HISTORY: {
-      const newState = _merge({}, state);
+      const newState = merge({}, state);
 
       delete newState.updatedAt;
       delete newState[action.sport];
@@ -38,7 +38,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.FETCH_PLAYER_BOX_SCORE_HISTORY_SUCCESS: {
-      const newState = _merge({}, state, {
+      const newState = merge({}, state, {
         isFetching: false,
         updatedAt: action.updatedAt,
       });

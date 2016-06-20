@@ -1,4 +1,4 @@
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 
 const ActionTypes = require('../action-types');
 const initialState = {
@@ -17,13 +17,13 @@ module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     case ActionTypes.FETCHING_CONTEST_POOL_ENTRIES:
-      return _merge({}, state, {
+      return merge({}, state, {
         isFetching: true,
       });
 
 
     case ActionTypes.FETCH_CONTEST_POOL_ENTRIES_SUCCESS: {
-      const newState = _merge({}, state, {
+      const newState = merge({}, state, {
         isFetching: false,
       });
       // replace old entries for the current ones.
@@ -33,7 +33,7 @@ module.exports = (state = initialState, action) => {
 
 
     case ActionTypes.FETCH_CONTEST_POOL_ENTRIES_FAIL:
-      return _merge({}, state, {
+      return merge({}, state, {
         isFetching: false,
       });
 
