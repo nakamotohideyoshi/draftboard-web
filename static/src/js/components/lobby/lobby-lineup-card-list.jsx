@@ -16,6 +16,7 @@ import { draftGroupInfoSelector } from '../../selectors/draft-group-info-selecto
 import { lineupsBySportSelector } from '../../selectors/upcoming-lineups-by-sport.js';
 import { focusedContestInfoSelector } from '../../selectors/lobby-selectors.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
+import SelectDraftGroupButton from './select-draft-group-button.jsx';
 import '../contest-list/contest-list-sport-filter.jsx';
 const { Provider, connect } = ReactRedux;
 
@@ -33,6 +34,7 @@ function mapStateToProps(state) {
     focusedLineupId: state.upcomingLineups.focusedLineupId,
     draftGroupInfo: draftGroupInfoSelector(state),
     draftGroupSelectionModalIsOpen: state.upcomingDraftGroups.draftGroupSelectionModalIsOpen,
+    focusedSport: state.upcomingContests.filters.sportFilter.match,
   };
 }
 
@@ -67,6 +69,7 @@ const LineupCardList = React.createClass({
     lineups: React.PropTypes.array.isRequired,
     lineupsInfo: React.PropTypes.object,
     focusedLineupId: React.PropTypes.number,
+    focusedSport: React.PropTypes.string.isRequired,
     draftGroupInfo: React.PropTypes.object,
     openDraftGroupSelectionModal: React.PropTypes.func,
     closeDraftGroupSelectionModal: React.PropTypes.func,
@@ -171,12 +174,11 @@ const LineupCardList = React.createClass({
           </h3>
         </header>
 
-        <div
-          className="button button--medium button--outline"
+        <SelectDraftGroupButton
+          draftGroupInfo={this.props.draftGroupInfo}
+          focusedSport={this.props.focusedSport}
           onClick={this.handleDraftButtonClick}
-        >
-          Start Drafting <span className="right">→</span>
-        </div>
+        />
       </div>
     );
   },
@@ -218,6 +220,7 @@ const LineupCardList = React.createClass({
           draftGroupInfo={this.props.draftGroupInfo}
           onClose={this.props.closeDraftGroupSelectionModal}
           isOpen={this.props.draftGroupSelectionModalIsOpen}
+          focusedSport={this.props.focusedSport}
         />
       </div>
     );
