@@ -4,7 +4,7 @@ import request from 'superagent';
 // so we can use Promise
 
 import { normalize, Schema, arrayOf } from 'normalizr';
-import { fetchSportInjuries } from './injury-actions.js';
+// import { fetchSportInjuries } from './injury-actions.js';
 import { fetchFantasyHistory } from './fantasy-history-actions.js';
 import { fetchTeamsIfNeeded } from './sports.js';
 import { fetchPlayerNewsIfNeeded } from './player-news-actions.js';
@@ -112,7 +112,9 @@ function fetchDraftGroup(draftGroupId) {
           // Now that we know which sport we're dealing with, fetch the injuries + fp history for
           // these players.
           dispatch(fetchFantasyHistory(res.body.sport));
-          dispatch(fetchSportInjuries(res.body.sport));
+          // TODO: zach: not loading injuries untill we get the API source sorted out.
+          log.warn('not loading injuries until we get the API source sorted out.');
+          // dispatch(fetchSportInjuries(res.body.sport));
           dispatch(fetchTeamsIfNeeded(res.body.sport));
           dispatch(fetchPlayerNewsIfNeeded(res.body.sport));
           dispatch(fetchPlayerBoxScoreHistoryIfNeeded(res.body.sport));

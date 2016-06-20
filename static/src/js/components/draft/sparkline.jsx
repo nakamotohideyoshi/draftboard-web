@@ -1,5 +1,5 @@
 import React from 'react';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 
 
 /**
@@ -103,7 +103,7 @@ const Sparkline = React.createClass({
     let x = 0;
 
     // Loop through each point and determine where it should be plotted, then push it into the line.
-    _forEach(points, (point) => {
+    forEach(points, (point) => {
       // Figure out what pixel the point should be plotted at.
       const y = self.pointToPixel(point, high, low);
       // The first point needs to use the 'move' command.

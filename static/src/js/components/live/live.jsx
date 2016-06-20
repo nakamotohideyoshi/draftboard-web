@@ -13,12 +13,12 @@ import store from '../../store';
 import { addMessage, clearMessages } from '../../actions/message-actions';
 import { bindActionCreators } from 'redux';
 import { checkForUpdates } from '../../actions/watching';
-import { fetchCurrentEntriesAndRelated, fetchRelatedEntriesInfo } from '../../actions/entries';
+import { fetchCurrentLineupsAndRelated, fetchRelatedLineupsInfo } from '../../actions/current-lineups';
 import { fetchPlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
 import { Provider, connect } from 'react-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
-import { uniqueEntriesSelector } from '../../selectors/entries';
+import { uniqueLineupsSelector } from '../../selectors/current-lineups';
 import { updateLiveMode } from '../../actions/watching';
 import {
   watchingContestSelector,
@@ -39,9 +39,9 @@ const mapDispatchToProps = (dispatch) => ({
     addMessage,
     checkForUpdates,
     clearMessages,
-    fetchCurrentEntriesAndRelated,
+    fetchCurrentLineupsAndRelated,
     fetchPlayerBoxScoreHistoryIfNeeded,
-    fetchRelatedEntriesInfo,
+    fetchRelatedLineupsInfo,
     updateLiveMode,
   }, dispatch),
 });
@@ -55,9 +55,9 @@ const mapStateToProps = (state) => ({
   draftGroupTiming: watchingDraftGroupTimingSelector(state),
   relevantGamesPlayers: relevantGamesPlayersSelector(state),
   contest: watchingContestSelector(state),
-  myLineup: watchingMyLineupSelector(state),
+  myLineupInfo: watchingMyLineupSelector(state),
   opponentLineup: watchingOpponentLineupSelector(state),
-  uniqueEntries: uniqueEntriesSelector(state),
+  uniqueLineups: uniqueLineupsSelector(state),
   watching: state.watching,
 });
 
@@ -71,10 +71,10 @@ export const Live = React.createClass({
     contest: React.PropTypes.object.isRequired,
     draftGroupTiming: React.PropTypes.object.isRequired,
     relevantGamesPlayers: React.PropTypes.object.isRequired,
-    myLineup: React.PropTypes.object.isRequired,
+    myLineupInfo: React.PropTypes.object.isRequired,
     opponentLineup: React.PropTypes.object.isRequired,
     params: React.PropTypes.object,
-    uniqueEntries: React.PropTypes.object.isRequired,
+    uniqueLineups: React.PropTypes.object.isRequired,
     watching: React.PropTypes.object.isRequired,
   },
 
@@ -99,14 +99,10 @@ export const Live = React.createClass({
         contestId: params.contestId || null,
         opponentLineupId: params.opponentLineupId || null,
       });
-
-      // double check all related information is up to date
-      actions.fetchPlayerBoxScoreHistoryIfNeeded(params.sport);
-      actions.fetchRelatedEntriesInfo();
     }
 
-    // force entries to refresh
-    actions.fetchCurrentEntriesAndRelated(true);
+    // force lineups to refresh, then checks everything else is up to date
+    actions.fetchCurrentLineupsAndRelated(true);
 
     // start polling for api updates
     window.setInterval(this.props.actions.checkForUpdates, 5000);
@@ -125,27 +121,29 @@ export const Live = React.createClass({
       });
     }
 
-    // terrible hack to poll for current-entries
+    // terrible hack to poll for current-lineups
     // instead, we should be looking for pusher call confirming that contests have been generated
     if (this.props.watching.myLineupId) {
       const myLineupId = this.props.watching.myLineupId;
-      const myEntry = this.props.uniqueEntries.entriesObj[myLineupId] || {};
-      const myNextEntry = nextProps.uniqueEntries.entriesObj[myLineupId] || {};
+      const myLineup = this.props.uniqueLineups.lineupsObj[myLineupId] || {};
+      const myLineupNext = nextProps.uniqueLineups.lineupsObj[myLineupId] || {};
 
-      if (!this.state.setTimeoutEntries && myNextEntry.contest === null && myEntry.hasStarted) {
+      // when the countdown ends, we trigger a fetchCurrentLineupsAndRelated call
+      // which then jumpstarts this if there are no contests yet
+      if (!this.state.setTimeoutEntries && myLineupNext.contests === null && myLineup.hasStarted) {
         // check for contest_id every 5 seconds
         this.setState({ setTimeoutEntries: setInterval(() => {
-          log.warn('live.currentEntriesRefresh - fetching entries');
-          actions.fetchCurrentEntriesAndRelated(true);
+          log.warn('live.currentEntriesRefresh - fetching lineups');
+          actions.fetchCurrentLineupsAndRelated(true);
         }, 5000) });
 
         // also immediately check
-        actions.fetchCurrentEntriesAndRelated(true);
+        actions.fetchCurrentLineupsAndRelated(true);
       }
 
       // stop checking once we have a contest
-      if (this.state.setTimeoutEntries && myNextEntry.contest !== null) {
-        log.warn('No need to try entries again');
+      if (this.state.setTimeoutEntries && myLineupNext.contests !== null) {
+        log.warn('No need to try lineups again');
         window.clearInterval(this.state.setTimeoutEntries);
         this.setState({ setTimeoutEntries: undefined });
       }
@@ -154,41 +152,42 @@ export const Live = React.createClass({
 
   render() {
     const {
+      actions,
       contest,
       draftGroupTiming,
-      myLineup,
+      myLineupInfo,
       opponentLineup,
       params,
       relevantGamesPlayers,
-      uniqueEntries,
+      uniqueLineups,
       watching,
     } = this.props;
 
-    // don't do anything until we have entries!
-    if (!uniqueEntries.haveLoaded) return (<LiveLoading isContestPools={false} />);
+    // don't do anything until we have lineups!
+    if (!uniqueLineups.haveLoaded) return (<LiveLoading isContestPools={false} />);
 
     // choose a lineup if we haven't yet
     if (watching.myLineupId === null && !params.hasOwnProperty('myLineupId')) {
       return (
         <div className="live__bg">
           <LiveChooseLineup
-            entriesLoaded={uniqueEntries.haveLoaded}
-            entries={uniqueEntries.entries}
+            lineupsLoaded={uniqueLineups.haveLoaded}
+            lineups={uniqueLineups.lineups}
           />
         </div>
       );
     }
 
     // show the countdown until it goes live
-    const myEntry = uniqueEntries.entriesObj[watching.myLineupId] || {};
-    if (!myEntry.hasStarted) {
+    const myLineup = uniqueLineups.lineupsObj[watching.myLineupId] || {};
+    if (!myLineup.hasStarted) {
       // wait to show lineup until it's loaded
       let countdownLineup;
       if (!relevantGamesPlayers.isLoading) {
         countdownLineup = (
           <LiveLineup
             draftGroupStarted={false}
-            lineup={myLineup}
+            lineup={myLineupInfo}
             watching={watching}
             whichSide="mine"
           />
@@ -200,14 +199,15 @@ export const Live = React.createClass({
         <div className={`live__bg live--countdown live--sport-${watching.sport}`}>
           {countdownLineup}
           <LiveCountdown
-            entry={myEntry}
+            onCountdownOver={() => actions.fetchCurrentLineupsAndRelated(true)}
+            lineup={myLineup}
           />
         </div>
       );
     }
 
-    // wait for contest_id to be returned via current-entries api
-    if (myEntry.contest === null) return (<LiveLoading />);
+    // wait for contest_id to be returned via current-lineups api
+    if (myLineup.contest === null) return (<LiveLoading isContestPools />);
 
     // wait for data to load before showing anything
     if (relevantGamesPlayers.isLoading) return (<LiveLoading isContestPools={false} />);
@@ -251,7 +251,7 @@ export const Live = React.createClass({
       <div className={`live__bg live--sport-${watching.sport}`}>
         <LiveLineup
           draftGroupStarted={draftGroupTiming.started}
-          lineup={myLineup}
+          lineup={myLineupInfo}
           watching={watching}
           whichSide="mine"
         />
@@ -262,7 +262,7 @@ export const Live = React.createClass({
           <div className="court-scoreboard__content">
             <LiveHeader
               contest={contest}
-              myLineup={myLineup}
+              myLineup={myLineupInfo}
               opponentLineup={opponentLineup}
               watching={watching}
             />
@@ -272,7 +272,7 @@ export const Live = React.createClass({
         </section>
 
         <LiveContestsPane
-          lineup={myLineup}
+          lineup={myLineupInfo}
           openOnStart={contestsPaneOpen}
           watching={watching}
         />

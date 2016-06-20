@@ -5,6 +5,7 @@ from django.conf.urls import patterns
 from lineup.views import (
     UserUpcomingAPIView,
     UserLiveAPIView,
+    UserCurrentAPIView,
     UserHistoryAPIView,
     PlayersAPIView,
     CreateLineupAPIView,
@@ -27,6 +28,10 @@ urlpatterns = patterns( '',
     #
     # get the players for the lineup
     (r'^(?P<pk>[0-9]+)$', PlayersAPIView.as_view()),
+
+    #
+    # get a logged in user's upcoming contests
+    (r'^current/$', UserCurrentAPIView.as_view()),
 
     #
     # get a logged in user's upcoming contests

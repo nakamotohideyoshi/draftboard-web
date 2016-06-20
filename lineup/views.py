@@ -17,6 +17,7 @@ from lineup.serializers import (
     LineupIdSerializer,
     LineupUsernamesSerializer,
     EditLineupStatusSerializer,
+    LineupCurrentSerializer,
 )
 from lineup.models import Lineup, Player
 from lineup.classes import LineupManager
@@ -266,6 +267,33 @@ class AbstractLineupAPIView(generics.ListAPIView):
 
         """
         return [] # TODO
+
+
+class UserCurrentAPIView(AbstractLineupAPIView):
+    """
+    Get the User's upcoming lineups which are before the draft group start time
+    """
+
+    lineup_model = Lineup
+
+    serializer_class = LineupCurrentSerializer
+
+    def get_queryset(self):
+        """
+        get live/upcoming lineups
+        """
+        return Lineup.objects.filter(
+            user=self.request.user,
+            draft_group__end__gt=timezone.now()
+        ).exclude(
+            entries__contest_pool=None
+        ).order_by(
+            'draft_group__start'
+        ).select_related(
+            'draft_group'
+        ).prefetch_related(
+            'entries'
+        ).distinct()
 
 
 class UserUpcomingAPIView(AbstractLineupAPIView):

@@ -1,5 +1,5 @@
 import React from 'react';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 
 
 /**
@@ -15,7 +15,7 @@ const EntrantList = React.createClass({
   getEntrantList(entrants) {
     const entrantList = [];
 
-    _forEach(entrants, (entrant, key) => {
+    forEach(entrants, (entrant, key) => {
       // Add the key index in case of username collisions on the react key prop.
       // without this we cannot render the same username twice.
       entrantList.push(

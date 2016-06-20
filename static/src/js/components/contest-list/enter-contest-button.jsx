@@ -313,7 +313,7 @@ const EnterContestButton = React.createClass({
     }
 
     return (
-      <div className="enter-contest-button-none"></div>
+      <div className="enter-contest-button-none">&nbsp;</div>
     );
   },
 

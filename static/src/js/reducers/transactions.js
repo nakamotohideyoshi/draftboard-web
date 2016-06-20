@@ -1,5 +1,5 @@
 import ActionTypes from '../action-types';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 
 
 const initialState = {
@@ -16,7 +16,7 @@ const initialState = {
 module.exports = (state = initialState, action) => {
   switch (action.type) {
     case ActionTypes.FETCH_TRANSACTIONS_SUCCESS:
-      return _merge({}, state, {
+      return merge({}, state, {
         allTransactions: action.body,
         filteredTransactions: action.body,
       });
@@ -27,7 +27,7 @@ module.exports = (state = initialState, action) => {
       // const endDate = action.filters.endDate || state.endDate
       const filteredTransactions = state.allTransactions;
 
-      return _merge({}, state, {
+      return merge({}, state, {
         filteredTransactions,
         filters: {
           startDate: action.filters.startDate,
@@ -39,7 +39,7 @@ module.exports = (state = initialState, action) => {
 
     case ActionTypes.TRANSACTION_FOCUSED:
       // Update the currently focused transactionId.
-      return _merge(
+      return merge(
         {}, state, { focusedTransactionId: action.transactionId }
       );
 

@@ -1,16 +1,17 @@
-import React from 'react';
 import * as ReactRedux from 'react-redux';
-import request from 'superagent';
 import Cookies from 'js-cookie';
-import { debounce as _debounce } from 'lodash';
-import { map as _map } from 'lodash';
+import debounce from 'lodash/debounce';
+import map from 'lodash/map';
+import React from 'react';
+import request from 'superagent';
 
+import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
+import { bindActionCreators } from 'redux';
+import { fetchLineupUsernames } from '../../actions/lineup-usernames';
+import { humanizeFP } from '../../actions/sports';
 import { SPORT_CONST } from '../../actions/sports.js';
 import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching.js';
-import * as AppActions from '../../stores/app-state-store';
-import { fetchLineupUsernames } from '../../actions/lineup-usernames';
-import { bindActionCreators } from 'redux';
 
 const STANDINGS_TAB = 'standings';
 const OWNERSHIP_TAB = 'ownership';
@@ -59,6 +60,8 @@ export const LiveStandingsPane = React.createClass({
   },
 
   componentWillMount() {
+    if (this.props.openOnStart) AppActions.addClass('appstate--live-standings-pane--open');
+
     if (this.props.watching.villainLineup) {
       this.setState({ playersWatched: this.props.watching.villainLineup });
     }
@@ -66,11 +69,7 @@ export const LiveStandingsPane = React.createClass({
 
   componentDidMount() {
     // this.props.actions.fetchLineupUsernames(this.props.watching.contestId)
-    this.handleSearchByUsername = _debounce(this.handleSearchByUsername, 150);
-
-    setTimeout(() => {
-      AppActions.addClass('appstate--live-standings-pane--open');
-    }, 100);
+    this.handleSearchByUsername = debounce(this.handleSearchByUsername, 150);
   },
 
   /**
@@ -83,7 +82,7 @@ export const LiveStandingsPane = React.createClass({
     if (this.state.currentTab === STANDINGS_TAB) {
       const lineups = this.props.lineups;
       const rankedLineups = this.props.rankedLineups;
-      data = _map(rankedLineups, (lineupId) => lineups[lineupId]);
+      data = map(rankedLineups, (lineupId) => lineups[lineupId]);
     } else {
       data = this.props.contest.playersOwnership.all.slice();
 
@@ -441,7 +440,7 @@ export const LiveStandingsPane = React.createClass({
           <div className="lineup--place">{lineup.rank}</div>
           { pmr }
           <div className="lineup--score-name">{username}</div>
-          <div className="lineup--score-points">{lineup.fp} Pts</div>
+          <div className="lineup--score-points">{humanizeFP(lineup.fp)} Pts</div>
           <div className={earningsClass}>${potentialWinnings}</div>
           { overlay }
         </div>
@@ -469,6 +468,7 @@ export const LiveStandingsPane = React.createClass({
 
   renderPlayers() {
     const { page, perPage } = this.state;
+    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.watching.sport}/120`;
     let data = this.getListData();
     data = data.slice(
       (page - 1) * perPage,
@@ -480,11 +480,27 @@ export const LiveStandingsPane = React.createClass({
       const overlayTitle = isWatched ? 'Remove from watch' : 'Add to watch';
       const progressHexStart = isWatched ? '422752' : 'ffffff';
       const progressHexEnd = isWatched ? 'ff0000' : 'ffffff';
+      const playerImage = `${playerImagesBaseUrl}/${player.srid}.png`;
 
       return (
         <div key={player.id} className={`player ${isWatched ? 'watched' : ''}`}>
           <div className="player--position">{player.position}</div>
-          <div className="player--pmr-photo">
+          <div className="player__circle">
+            <div className="player--pmr-photo">
+              <img
+                alt="Player Headshot"
+                src={playerImage}
+                onError={
+                  /* eslint-disable no-param-reassign */
+                  (e) => {
+                    e.target.className = 'default-player';
+                    e.target.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
+                  }
+                  /* eslint-enable no-param-reassign */
+                }
+              />
+            </div>
+
             <LivePMRProgressBar
               decimalRemaining={player.timeRemaining.decimal}
               strokeWidth={3}
@@ -494,12 +510,11 @@ export const LiveStandingsPane = React.createClass({
               svgWidth={50}
               id={`${player.id}StandingsPlayer`}
             />
-            <div className="avatar" />
           </div>
           <div className="player--name">
             {player.name} <div className="team">{player.team_alias}</div>
           </div>
-          <div className="player--points"><b>{player.fp}</b><span>Pts</span></div>
+          <div className="player--points"><b>{humanizeFP(player.fp)}</b><span>Pts</span></div>
           <div className="player--progress">{player.ownershipPercent}%</div>
           <div
             className="player--overlay"

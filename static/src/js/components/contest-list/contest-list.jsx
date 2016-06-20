@@ -1,7 +1,7 @@
 import React from 'react';
 import FeaturedContests from './featured-contests.jsx';
 import ContestListRow from './contest-list-row.jsx';
-import { forEach as _forEach } from 'lodash';
+import forEach from 'lodash/forEach';
 
 
 /**
@@ -34,7 +34,7 @@ const ContestList = React.createClass({
     const visibleRows = [];
 
     // Build up a list of rows to be displayed.
-    _forEach(this.props.contests, (row) => {
+    forEach(this.props.contests, (row) => {
       let isEntered = false;
       let isHoveredEntered = false;
       let info = {};

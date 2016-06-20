@@ -3,7 +3,7 @@ import log from '../../lib/logging';
 import Pusher from '../../lib/pusher';
 import React from 'react';
 import { bindActionCreators } from 'redux';
-import { entriesHaveRelatedInfoSelector } from '../../selectors/entries';
+import { lineupsHaveRelatedInfoSelector } from '../../selectors/current-lineups';
 import { onBoxscoreGameReceived, onBoxscoreTeamReceived } from '../../actions/events/boxscores';
 import { onPBPReceived, onPBPEventReceived } from '../../actions/events/pbp';
 import { onPlayerStatsReceived } from '../../actions/events/stats';
@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch) => ({
  */
 const mapStateToProps = (state) => ({
   draftGroupTiming: watchingDraftGroupTimingSelector(state),
-  hasRelatedInfo: entriesHaveRelatedInfoSelector(state),
+  hasRelatedInfo: lineupsHaveRelatedInfoSelector(state),
   relevantGamesPlayers: relevantGamesPlayersSelector(state),
   myLineup: watchingMyLineupSelector(state),
   watching: state.watching,
@@ -65,7 +65,7 @@ export const PusherData = React.createClass({
       channelPrefix: window.dfs.user.pusher_channel_prefix.toString(),
       // loaded booleans used to prevent repeat pusher bindings
       loadedBoxscores: false,
-      loadedSportSockets: false,
+      loadedForSport: false,
       // pusher is a singleton, keep it accessible within the component
       pusher: Pusher,
     };
@@ -77,7 +77,7 @@ export const PusherData = React.createClass({
   componentWillReceiveProps(nextProps) {
     if (nextProps.hasRelatedInfo &&
         nextProps.draftGroupTiming.started &&
-        !nextProps.relevantGamesPlayers.isLoading
+        nextProps.relevantGamesPlayers.isLoading !== true
     ) {
       if (!this.state.loadedBoxscores) {
         const boxscoresChannel = this.state.pusher.subscribe(`${this.state.channelPrefix}boxscores`);
@@ -93,7 +93,12 @@ export const PusherData = React.createClass({
       if (typeof oldSports === 'string') oldSports = [oldSports];
       if (typeof newSports === 'string') newSports = [newSports];
 
-      // if we have a new sport
+      // onload set sport
+      if (!this.state.loadedForSport && newSports.length > 0) {
+        this.subscribeToSportSockets(newSports);
+      }
+
+      // switch sports
       if (newSports.length > 0 && oldSports[0] !== newSports[0]) {
         this.unsubscribeToSportSockets(oldSports);
         this.subscribeToSportSockets(newSports);
@@ -127,6 +132,8 @@ export const PusherData = React.createClass({
         message, sport, this.props.myLineup.draftGroupId, this.props.relevantGamesPlayers.relevantItems.games
       ));
     });
+
+    this.setState({ loadedForSport: true });
   },
 
   /*

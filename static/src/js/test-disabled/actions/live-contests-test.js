@@ -3,7 +3,7 @@
 import request from 'superagent'
 import sinon from 'sinon'
 import { expect } from 'chai'
-import { size as _size } from 'lodash'
+import size from 'lodash/size';
 
 import reducers from '../../reducers/index'
 import urlConfig from '../../fixtures/live-config'

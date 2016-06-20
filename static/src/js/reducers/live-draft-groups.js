@@ -2,15 +2,15 @@ import * as ActionTypes from '../action-types';
 import log from '../lib/logging';
 import update from 'react-addons-update';
 import { dateNow } from '../lib/utils';
-import { forEach as _forEach } from 'lodash';
-import { merge as _merge } from 'lodash';
+import forEach from 'lodash/forEach';
+import merge from 'lodash/merge';
 
 
 // shortcut method to $set new state if the key doesn't exist, otherwise $merges the properties in to existing
 const setOrMerge = (state, action, props) => {
   // if does not exist, then $set to create
   if (action.id in state === false) {
-    const newProps = _merge(
+    const newProps = merge(
       {},
       {
         boxScores: {},
@@ -142,9 +142,9 @@ module.exports = (state = {}, action) => {
 
     // in order to remove all the keys properly, we need to loop through and delete them
     case ActionTypes.REMOVE_LIVE_DRAFT_GROUPS: {
-      const newState = _merge({}, state);
+      const newState = merge({}, state);
 
-      _forEach(state, (dg) => {
+      forEach(state, (dg) => {
         if (action.ids.indexOf(dg.id) > -1) {
           delete newState[dg.id];
         }

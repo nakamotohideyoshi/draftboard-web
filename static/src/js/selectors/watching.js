@@ -11,8 +11,7 @@ import union from 'lodash/union';
 import { compileRosterDetails, compileVillianLineup, myCurrentLineupsSelector } from './current-lineups';
 import { createSelector } from 'reselect';
 import { dateNow } from '../lib/utils';
-import { entriesContestLineupSelector } from './entries';
-import { entriesHaveRelatedInfoSelector } from './entries';
+import { lineupsHaveRelatedInfoSelector } from './current-lineups';
 import { gamesTimeRemainingSelector } from './sports';
 import { liveContestsSelector } from './live-contests';
 
@@ -157,24 +156,22 @@ const calcRelevantItems = (myLineup, opponentLineup) =>
 
 /**
  * Shortcut method to loop through all lineup entries and their associated contests to sum potential earnings
- * @param  {object} entries       List of entries the lineup is in
+ * @param  {object} lineups       List of lineups to find contests
  * @param  {object} contestsStats List of contests with their associated stats
  * @return {number}               Total potential earnings for the lineup
  */
-export const calcTotalPotentialEarnings = (entries, contestsStats) =>
-  reduce(entries, (sum, entry) => {
-    // Make sure we have entries.
-    if (contestsStats.hasOwnProperty(entry.contest)) {
-      const contestLineups = contestsStats[entry.contest].lineups || {};
+export const calcTotalPotentialEarnings = (lineups, contestsStats) =>
+  reduce(lineups, (sum, lineup) =>
+    sum + lineup.contests.reduce((lineupSum, contestId) => {
+      if (contestsStats.hasOwnProperty(contestId)) {
+        const contestLineups = contestsStats[contestId].lineups || {};
 
-      if (contestLineups.hasOwnProperty(entry.lineup)) {
-        return sum + contestsStats[entry.contest].lineups[entry.lineup].potentialWinnings;
+        if (contestLineups.hasOwnProperty(lineup.id)) {
+          return lineupSum + contestsStats[contestId].lineups[lineup.id].potentialWinnings;
+        }
       }
-    }
-
-    return sum;
-  },
-0);
+    }, 0),
+  0);
 
 // exported simply to test
 export const watchingMyLineupSelector = createSelector([
@@ -182,13 +179,11 @@ export const watchingMyLineupSelector = createSelector([
   myCurrentLineupsSelector,
   currentLineupsSelector,
   liveContestsSelector,
-  entriesContestLineupSelector,
 ], (
   watching,
   myCurrentLineups,
   currentLineups,
-  liveContests,
-  entries
+  liveContests
 ) => {
   if (watching.myLineupId === null) return isLoadingObj;
 
@@ -200,11 +195,18 @@ export const watchingMyLineupSelector = createSelector([
   // don't return anything until we have the original lineup, for contests stats
   if (!originalLineup) return isLoadingObj;
 
+  const totalBuyin = reduce(originalLineup.contests || {}, (sum, id) => {
+    if (liveContests[id]) {
+      return sum + liveContests[id].buyin;
+    }
+    return sum;
+  }, 0);
+
   return merge({}, lineup, {
     contestsStats: calcEntryContestStats(lineup, originalLineup.contests, liveContests),
     isLoading: false,
-    totalBuyin: reduce(lineup.contests || {}, (sum, id) => sum + liveContests[id].buyin, 0),
-    potentialWinnings: calcTotalPotentialEarnings(entries, liveContests),
+    potentialWinnings: calcTotalPotentialEarnings(currentLineups, liveContests),
+    totalBuyin,
   });
 });
 
@@ -293,7 +295,7 @@ export const watchingDraftGroupTimingSelector = createSelector(
 );
 
 export const relevantGamesPlayersSelector = createSelector(
-  [watchingMyLineupSelector, watchingContestSelector, watchingOpponentLineupSelector, entriesHaveRelatedInfoSelector],
+  [watchingMyLineupSelector, watchingContestSelector, watchingOpponentLineupSelector, lineupsHaveRelatedInfoSelector],
   (myLineup, contest, opponentLineup, haveRelatedInfo) => {
     // return loading message if it is not done
     if (haveRelatedInfo === false || myLineup.isLoading || contest.isLoading || opponentLineup.isLoading) {

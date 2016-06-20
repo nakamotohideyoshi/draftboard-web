@@ -26,7 +26,7 @@ describe('actions.events.stats.onPlayerStatsReceived', () => {
   });
 
   // default which games matter for testing
-  const relevantGamesPlayers = { relevantItems: { games: ['game1'] } };
+  const relevantGames = ['game1'];
 
   beforeEach(() => {
     // initial state to mock the store with
@@ -62,13 +62,13 @@ describe('actions.events.stats.onPlayerStatsReceived', () => {
       model: 'mlb.playerstatspitcher',
     };
     assert.equal(
-      store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', 'myDraftGroupId', relevantGamesPlayers)),
+      store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', 'myDraftGroupId', relevantGames)),
       playerStatsRan
     );
   });
 
   it('should add event if player is in one of the watched lineups', () => {
-    // key here is that srid_game value `game1` is THE SAME AS `game1` in relevantGamesPlayers above
+    // key here is that srid_game value `game1` is THE SAME AS `game1` in relevantGames above
     const message = {
       fields: {
         srid_game: 'game1',
@@ -76,7 +76,7 @@ describe('actions.events.stats.onPlayerStatsReceived', () => {
       model: 'mlb.playerstatspitcher',
     };
     assert.equal(
-      store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', 'myDraftGroupId', relevantGamesPlayers)),
+      store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', 'myDraftGroupId', relevantGames)),
       addEventRan
     );
   });

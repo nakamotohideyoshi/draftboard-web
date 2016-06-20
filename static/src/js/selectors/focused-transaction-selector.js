@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import { find as _find } from 'lodash';
+import find from 'lodash/find';
 
 
 const allTransactionsSelector = (state) => state.transactions.allTransactions;
@@ -14,7 +14,7 @@ export const focusedTransactionSelector = createSelector(
   allTransactionsSelector, focusedTransactionIdSelector,
   (transactions, focusedTransactionId) => {
     if (focusedTransactionId) {
-      return _find(transactions, { id: focusedTransactionId });
+      return find(transactions, { id: focusedTransactionId });
     }
 
     return {};

@@ -88,11 +88,6 @@ const ResultsLineup = React.createClass({
     const players = this.props.players.map((player) => {
       let playerImage = `${playerImagesBaseUrl}/${player.player_meta.srid}.png`;
 
-      // TODO remove once we have player images
-      if (this.props.sport === 'mlb') {
-        playerImage = '/static/src/img/temp/mlb-player.png';
-      }
-
       const playerPhoto = (
         <img
           alt="Player Headshot"

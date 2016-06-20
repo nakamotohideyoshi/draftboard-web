@@ -2,7 +2,7 @@ import React from 'react';
 import sinon from 'sinon';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
-import { merge as _merge } from 'lodash';
+import merge from 'lodash/merge';
 import DraftContainer from '../../../components/draft/draft-container.jsx';
 import CollectionSearchFilter from '../../../components/filters/collection-search-filter.jsx';
 import CollectionMatchFilter from '../../../components/filters/collection-match-filter.jsx';
@@ -74,7 +74,7 @@ describe('<DraftContainer /> Component', () => {
   });
 
   it('should load data once mounted.', () => {
-    const props = _merge(
+    const props = merge(
       {}, defaultTestProps, {
         setActiveDraftGroupId: sinon.spy(),
         fetchDraftGroupBoxScoresIfNeeded: sinon.spy(),
@@ -88,7 +88,7 @@ describe('<DraftContainer /> Component', () => {
 
 
   it('should create a lineup copy if specifided in the params.', (done) => {
-    const props = _merge(
+    const props = merge(
       {}, defaultTestProps, {
         createLineupViaCopy: sinon.spy(),
         params: {
@@ -114,7 +114,7 @@ describe('<DraftContainer /> Component', () => {
 
 
   it('should import and edit a lineup if specifided in the params.', (done) => {
-    const props = _merge(
+    const props = merge(
       {}, defaultTestProps, {
         editLineupInit: sinon.spy(),
         importLineup: sinon.spy(),

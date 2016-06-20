@@ -23,12 +23,10 @@ describe('UpcomingContestSelector', () => {
   it('should return all contest when no filters are set.', () => {
     // Populate the store with our store fixture data.
     appState.upcomingContests.allContests = contestFixtures.allContests;
+    // Reset the default sport filter.
+    appState.upcomingContests.filters.sportFilter.match = '';
     expect(upcomingContestSelector(appState)).to.be.an('array');
+    // This is no longer true because we are
     expect(upcomingContestSelector(appState)).to.have.lengthOf(Object.keys(contestFixtures.allContests).length);
   });
-
-
-  // it('should filter based on a contest name', () => {
-  //
-  // });
 });

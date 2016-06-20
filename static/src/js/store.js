@@ -13,7 +13,6 @@ import reducers from './reducers/index';
 
 const liveSubstates = [
   'currentLineups',
-  'entries',
   'liveContests',
   'liveDraftGroups',
   'livePlayers',
@@ -38,7 +37,7 @@ const slicer = () => (state) => {
   }
 
   // only store entries and related info once all loaded
-  if (state.entries.hasRelatedInfo === true) {
+  if (state.currentLineups.hasRelatedInfo === true) {
     liveSubstates.forEach((subState) => (subset[subState] = state[subState]));
   }
 

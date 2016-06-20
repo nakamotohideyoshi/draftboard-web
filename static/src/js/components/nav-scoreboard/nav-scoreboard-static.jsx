@@ -1,6 +1,6 @@
 import React from 'react';
-import { forEach as _forEach } from 'lodash';
-import { size as _size } from 'lodash';
+import forEach from 'lodash/forEach';
+import size from 'lodash/size';
 
 import NavScoreboardFilters from './nav-scoreboard-filters';
 import NavScoreboardGamesList from './nav-scoreboard-games-list';
@@ -49,7 +49,7 @@ const NavScoreboardStatic = React.createClass({
   getSelectOptions() {
     const options = [];
 
-    _forEach(this.props.sportsSelector.types, (sport) => {
+    forEach(this.props.sportsSelector.types, (sport) => {
       // Make sure it doesn't break if the sport has no games.
       let count = 0;
       if (this.props.sportsSelector[sport].gameIds) {
@@ -73,7 +73,7 @@ const NavScoreboardStatic = React.createClass({
         option: 'MY LINEUPS',
         type: TYPE_SELECT_LINEUPS,
         key: 'LINEUPS',
-        count: _size(this.props.myCurrentLineupsSelector),
+        count: size(this.props.myCurrentLineupsSelector),
       });
     }
 
@@ -115,7 +115,7 @@ const NavScoreboardStatic = React.createClass({
     let filters;
     let slider;
 
-    if (_size(this.props.sportsSelector.games) > 0) {
+    if (size(this.props.sportsSelector.games) > 0) {
       filters = (
         <NavScoreboardFilters
           selected={this.state.selectedOption}

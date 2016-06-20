@@ -1,5 +1,5 @@
 import * as AppActions from '../../stores/app-state-store.js';
-import { filter as _filter } from 'lodash';
+import filter from 'lodash/filter';
 
 /**
  * Common utilty functions for the draft section.
@@ -27,7 +27,7 @@ export function clearPlayerSearchField() {
 // Determine whether a supplied player is in the lineup.
 export function isPlayerInLineup(lineup, player) {
   // Return a list of all matching players.
-  const matchingPlayers = _filter(lineup, (slot) => {
+  const matchingPlayers = filter(lineup, (slot) => {
     if (slot.player) {
       if (slot.player.player_id === player.player_id) {
         return true;
