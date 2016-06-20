@@ -166,7 +166,11 @@ const ContestListRow = React.createClass({
           {this.getEntryCount(this.props.contest)} of {this.props.contest.max_entries}
         </td>
 
-        <td key="enter" className="enter">
+        <td
+          key="enter"
+          className="enter"
+          onClick={this.ignoreClick}
+        >
           <EnterContestButton
             lineup={this.props.focusedLineup}
             contest={this.props.contest}
