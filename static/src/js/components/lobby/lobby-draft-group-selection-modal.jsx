@@ -15,18 +15,26 @@ const LobbyDraftGroupSelectionModal = React.createClass({
     draftGroupInfo: React.PropTypes.object,
     isOpen: React.PropTypes.bool,
     onClose: React.PropTypes.func,
+    focusedSport: React.PropTypes.string.isRequired,
   },
 
 
   getInitialState() {
     return {
-      selectedSport: null,
+      selectedSport: this.props.focusedSport,
     };
   },
 
 
   componentWillMount() {
     PubSub.subscribe('modal.bgClick', this.close);
+  },
+
+
+  componentWillReceiveProps(nextProps) {
+    this.setState({
+      selectedSport: nextProps.focusedSport,
+    });
   },
 
 
