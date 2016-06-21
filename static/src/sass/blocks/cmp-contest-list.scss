@@ -10,6 +10,10 @@ $table-row-hover-bg: #f9fafb;
   overflow: hidden;
   padding-bottom: 40px;
 
+  td {
+    padding: 12px 10px;
+  }
+
   .active {
     background: $table-row-hover-bg;
   }
@@ -52,10 +56,16 @@ $table-row-hover-bg: #f9fafb;
 
   .user-entries {
     color: #9698ab;
+    width: 90px;
   }
 
-  .sport {
-    width: 40px;
+  td.sport {
+    padding-left: 10px;
+    width: 30px;
+  }
+
+  .cmp-sport-icon {
+    vertical-align: middle;
   }
 
   .start {
