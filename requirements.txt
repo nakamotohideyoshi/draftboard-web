@@ -1,14 +1,6 @@
-# Install Django before base dependencies
-Django==1.8
 
 # Base dependencies
 -r ./requirements/_base.txt
-
-# Gunicorn setup
-#gunicorn==19.3     # in /requirements/_base
-
-# Uses Heroku config vars to connect Django to Postgres
-#dj-database-url==0.3.0 # in /requirements/_base
 
 # New Relic
 newrelic>=2.60.0.46
