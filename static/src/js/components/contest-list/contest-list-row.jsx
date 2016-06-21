@@ -4,6 +4,7 @@ import EnterContestButton from './enter-contest-button.jsx';
 import uniq from 'lodash/uniq';
 import ordinal from '../../lib/ordinal.js';
 import { formatCurrency } from '../../lib/utils.js';
+import SportIcon from '../site/sport-icon.jsx';
 
 
 /**
@@ -145,7 +146,7 @@ const ContestListRow = React.createClass({
         className={classes}
       >
         <td key="sport" className="sport">
-          <span className={`icon icon-${this.props.contest.sport}`}></span>
+          <SportIcon sport={this.props.contest.sport} />
         </td>
         <td key="name" className="name">
           {this.props.contest.name}
@@ -166,7 +167,11 @@ const ContestListRow = React.createClass({
           {this.getEntryCount(this.props.contest)} of {this.props.contest.max_entries}
         </td>
 
-        <td key="enter" className="enter">
+        <td
+          key="enter"
+          className="enter"
+          onClick={this.ignoreClick}
+        >
           <EnterContestButton
             lineup={this.props.focusedLineup}
             contest={this.props.contest}
