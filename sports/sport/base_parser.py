@@ -17,39 +17,6 @@ import sports.classes
 import dateutil.parser
 import push.classes
 
-#
-################################################################################
-#################### this will get the {player-srid} and the {game-srid}       #
-################################################################################
-# %cpaste
-# import re
-# import operator
-# from ast import literal_eval
-# f = open('site-setup/lillard_updates.txt', 'r')
-# lines = f.readlines()
-# f.close()
-# items = []
-# for line in lines:
-#     d = literal_eval( line )
-#     items.append( d )
-# sorted_items = sorted(items, key=lambda k: k['ts']) # ascending
-# len(sorted_items)
-# for item in sorted_items:
-#     if item.get('ns') == 'nba.player':
-#         print(item.get('ts'), '>>>', item.get('o').get('statistics__list'))
-#     elif item.get('ns') == 'nba.event':
-#         print(item.get('ts'), '>>>', item.get('o').get('description'))
-#         pattern = r"'player':\s'([^']*)'"
-#         player_srids = re.findall(pattern, str(item))
-#         for psrid in player_srids:
-#             print('        player: ', psrid)
-#         pattern_game = r"'game__id':\s'([^']*)'"
-#         game_srids = re.findall(pattern_game, str(item))
-#         for gsrid in game_srids:
-#             print('        game:   ', gsrid)
-# --
-####################################################################################
-
 class PatternFinder(object):
 
     def __init__(self, s):
@@ -118,7 +85,7 @@ class AbstractDataDenParser(object):
 
     def parse(self, obj, verbose=False):
         ### debug, remove this print:
-        print('obj:', str(obj))
+        #print('obj:', str(obj))
 
         self.ns         = obj.get_ns()
         self.parent_api = obj.get_parent_api()

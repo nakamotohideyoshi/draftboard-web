@@ -5,6 +5,7 @@ from django.db import models
 import sports.models
 import scoring.classes
 import push.classes
+from django.contrib.postgres.fields import JSONField
 from django.conf import settings
 
 class Season( sports.models.Season ):
@@ -243,6 +244,25 @@ class PlayerStatsPitcher(PlayerStats):
     cg      = models.BooleanField(default=False, null=False) # complete game
     cgso    = models.BooleanField(default=False, null=False) # complete game shut out
     nono    = models.BooleanField(default=False, null=False) # no hitter (cg and no hits)
+
+class RealTimeAtBat(models.Model):   # django.contrib.contenttypes.xxxx where generic has been moved here
+    """
+    entries in this table wont necessarily be unique.
+    we just want to capture the realtime at bat objects
+    in order that:
+        a) at_bat objects can be looked up quickly (instead of going back to mongo)
+        b) we support the replayer functionality
+
+    Note: this might be useful for JSONField information:
+        https://docs.djangoproject.com/en/1.9/ref/contrib/postgres/fields/
+    """
+
+    # not unique! we will have to identify them by their dd_updated timestamp
+    dd_updated = models.BigIntegerField(default=0, null=False,
+                        help_text='unix timestamp when this was originally parsed by dataden')
+    srid = models.CharField(max_length=64, null=False,
+                        help_text='sportsradar global id')
+    at_bat = JSONField()
 
 class PlayerStatsSeason( sports.models.PlayerStatsSeason ):
     class Meta:

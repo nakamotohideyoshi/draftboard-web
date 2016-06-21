@@ -6,7 +6,7 @@ from django.utils import timezone
 from pytz import timezone as pytz_timezone
 from django.contrib import admin, messages
 from django.contrib.admin.widgets import AdminSplitDateTime
-from django.contrib.contenttypes import generic
+
 from django.utils.html import format_html
 import contest.schedule.classes
 import contest.schedule.models
