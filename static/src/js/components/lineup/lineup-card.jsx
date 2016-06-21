@@ -3,6 +3,7 @@ import LineupCardPlayer from './lineup-card-player.jsx';
 import CountdownClock from '../site/countdown-clock.jsx';
 import LineupCardEntries from './lineup-card-entries.jsx';
 import classNames from 'classnames';
+import SportIcon from '../site/sport-icon.jsx';
 
 
 const LineupCard = React.createClass({
@@ -135,25 +136,26 @@ const LineupCard = React.createClass({
             <div className="front" ref="front">
               <header className="cmp-lineup-card__header">
                 <h3 className="cmp-lineup-card__title">
+                  <SportIcon sport={this.props.lineup.sport} />
                   {this.props.lineup.name || `Untitled Lineup # ${this.props.lineup.id}`}
                 </h3>
 
                 <div className="actions-menu-container">
-                <ul className="actions">
-                  <li>
-                    <a
-                      className="icon-edit action"
-                      href={`/draft/${this.props.lineup.draft_group}/lineup/${this.props.lineup.id}/edit/`}
-                    ></a>
-                  </li>
+                  <ul className="actions">
+                    <li>
+                      <a
+                        className="icon-edit action"
+                        href={`/draft/${this.props.lineup.draft_group}/lineup/${this.props.lineup.id}/edit/`}
+                      ></a>
+                    </li>
 
-                  <li>
-                    <div
-                      className="icon-flip action"
-                      onClick={this.flipCard}
-                    ></div>
-                  </li>
-                </ul>
+                    <li>
+                      <div
+                        className="icon-flip action"
+                        onClick={this.flipCard}
+                      ></div>
+                    </li>
+                  </ul>
                 </div>
               </header>
 
@@ -207,6 +209,7 @@ const LineupCard = React.createClass({
         >
           <header className="cmp-lineup-card__header">
             <h3 className="cmp-lineup-card__title">
+              <SportIcon sport={this.props.lineup.sport} />
               {this.props.lineup.name || `Untitled Lineup # ${this.props.lineup.id}`}
               <CountdownClock time={this.props.draftGroupInfo.start} />
             </h3>
