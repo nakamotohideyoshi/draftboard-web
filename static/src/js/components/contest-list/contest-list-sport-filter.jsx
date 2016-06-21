@@ -91,12 +91,6 @@ const ContestListSportFilter = React.createClass({
           onUpdate={this.handleFilterChange}
           activeFilter={this.props.sportFilter}
         />
-      <div
-        className="add-lineup"
-        onClick={this.props.openDraftGroupSelectionModal}
-      >
-          +
-        </div>
       </div>
     );
   },

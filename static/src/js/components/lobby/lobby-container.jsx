@@ -134,7 +134,7 @@ const LobbyContainer = React.createClass({
     // Fetch all of the necessary data for the lobby.
     this.props.fetchUpcomingContests();
     this.props.fetchUpcomingDraftGroupsInfo();
-    this.props.fetchFeaturedContestsIfNeeded();
+    // this.props.fetchFeaturedContestsIfNeeded();
 
     // If the url indicates that a lineup was just saved, show a success message.
     if (window.location.search.indexOf('lineup-saved=true') !== -1) {

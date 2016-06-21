@@ -68,15 +68,7 @@ category: Lineup
       }
     }
 
-    // Sport ball icon.
-    &:before {
-      content: " ";
-      width: 16px;
-      height: 16px;
-      display: inline-block;
-      text-align: center;
-      position: relative;
-      top: 4px;
+    .cmp-sport-icon {
       margin-right: 10px;
     }
   }
@@ -356,6 +348,13 @@ category: Lineup
       text-align: left;
       text-transform: uppercase;
       line-height: 1.1em;
+
+      &:before {
+        content: '';
+        padding: 0;
+        margin: 0;
+        width: 0;
+      }
     }
 
     .button {
@@ -364,6 +363,16 @@ category: Lineup
       font-size: 10px;
       margin: 150px 20px 25px;
       text-transform: uppercase;
+
+      a {
+        color: #fff;
+        text-decoration: none;
+        display: block;
+      }
+
+      > span {
+        display: block;
+      }
 
       .right {
         float: right;
@@ -388,6 +397,24 @@ category: Lineup
 
   // Expanded sport-specific versions.
   &--create__nba {
+    background: url(../img/blocks/lineup-card/draft-cta-bg-nba.jpg) #161922 no-repeat;
+    background-size: 100% auto;
+    min-height: 450px;
+  }
+
+  &--create__mlb {
+    background: url(../img/blocks/lineup-card/draft-cta-bg-nba.jpg) #161922 no-repeat;
+    background-size: 100% auto;
+    min-height: 450px;
+  }
+
+  &--create__nhl {
+    background: url(../img/blocks/lineup-card/draft-cta-bg-nba.jpg) #161922 no-repeat;
+    background-size: 100% auto;
+    min-height: 450px;
+  }
+
+  &--create__nfl {
     background: url(../img/blocks/lineup-card/draft-cta-bg-nba.jpg) #161922 no-repeat;
     background-size: 100% auto;
     min-height: 450px;

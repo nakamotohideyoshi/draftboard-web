@@ -38,7 +38,7 @@ const LobbyDraftGroupSelectionTime = React.createClass({
           <li className="cmp-draft-group-select__group" key={group.pk}>
             <a href={url} title="Draft a lineup">
               <h4 className="cmp-draft-group-select__title">
-                {this.props.selectedSport.toUpperCase()} - {moment(group.start).format('dddd, MMM Do - h:mmA')}
+                {moment(group.start).format('dddd, MMM Do - h:mmA')}
               </h4>
               <div className="cmp-draft-group-select__sub">
                 {group.contestCount} contests - {group.num_games} games

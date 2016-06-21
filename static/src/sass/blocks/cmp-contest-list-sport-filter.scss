@@ -1,0 +1,45 @@
+@import "../variables.scss";
+
+.cmp-contest-list-sport-filter {
+  position: relative;
+  top: -5px;
+  float: right;
+
+  // .add-lineup {
+  //   cursor: pointer;
+  //   display: inline-block;
+  //   font-size: 20px;
+  //   padding: 0 0 0 15px;
+  //
+  //   &:hover {
+  //     color: $link-green;
+  //   }
+  // }
+
+  .cmp-collection-match-filter {
+    padding: 0;
+
+    &__option {
+      color: #747682;
+      font-family: $font-oswald;
+      font-size: 25px;
+      line-height: 1.1em;
+      transition: color 500ms ease;
+
+      &:last-child {
+        margin-right: 0px;
+      }
+
+      &:hover {
+        transition: none;
+        color: #999;
+      }
+
+      &--active {
+        color: #fff !important;
+        border-image: none;
+        border-bottom: 1px solid #fff;
+      }
+    }
+  }
+}
