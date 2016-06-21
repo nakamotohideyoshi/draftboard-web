@@ -1,0 +1,40 @@
+@import "../variables.scss";
+
+.cmp-contest-list-sport-filter {
+  position: relative;
+  top: -10px;
+  float: right;
+
+  // .add-lineup {
+  //   cursor: pointer;
+  //   display: inline-block;
+  //   font-size: 20px;
+  //   padding: 0 0 0 15px;
+  //
+  //   &:hover {
+  //     color: $link-green;
+  //   }
+  // }
+
+  .cmp-collection-match-filter {
+    padding: 0;
+
+    &__option {
+      transition: color 500ms ease;
+      font-family: $font-oswald;
+      font-size: 25px;
+      color: #747682;
+
+      &:hover {
+        transition: none;
+        color: #999;
+      }
+
+      &--active {
+
+        color: #fff !important;
+        border: none;
+      }
+    }
+  }
+}

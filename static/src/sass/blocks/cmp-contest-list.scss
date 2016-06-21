@@ -47,14 +47,6 @@ $table-row-hover-bg: #f9fafb;
 
     .enter-contest-button {
       min-width: 11em;
-
-      &.entered {
-        min-width: 19em;
-      }
-    }
-
-    &.entered .enter-contest-button {
-      min-width: 19em;
     }
   }
 
@@ -70,38 +62,9 @@ $table-row-hover-bg: #f9fafb;
     min-width: 85px;
   }
 
-  .icon-mlb {
-    background: url(../img/common/icon-baseball.svg) no-repeat bottom center;
-  }
-
-  .icon-nfl {
-    background: url(../img/common/icon-football.svg) no-repeat bottom center;
-  }
-
-  .icon-nba {
-    background: url(../img/common/icon-basketball.svg) no-repeat bottom center;
-  }
-
-  .icon-nhl {
-    background: url(../img/common/icon-hockey.svg) no-repeat bottom center;
-  }
-
-  .icon-mlb,
-  .icon-nfl,
-  .icon-nba,
-  .icon-nhl {
-    background-size: 13px auto;
-    display: block;
-    height: 13px;
-    width: 13px;
-    color: transparent;
-    font-size: 0px;
-  }
-
   .prizes {
     color: $primary-green;
   }
-
 
   .cmp-countdown-clock {
     .hours {

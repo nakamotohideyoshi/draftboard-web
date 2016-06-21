@@ -1,6 +1,7 @@
 import React from 'react';
 import LineupCardContestEntrySet from './lineup-card-contest-entry-set.jsx';
 import forEach from 'lodash/forEach';
+import SportIcon from '../site/sport-icon.jsx';
 
 
 /**
@@ -38,6 +39,7 @@ const LineupCardEntries = React.createClass({
       <div className="cmp-lineup-card-entries">
         <header className="cmp-lineup-card__header">
           <h3 className="cmp-lineup-card__title">
+            <SportIcon sport={this.props.lineupInfo.sport} />
             {this.props.lineupInfo.name || `Untitled Lineup # ${this.props.lineupInfo.id}`}
           </h3>
 

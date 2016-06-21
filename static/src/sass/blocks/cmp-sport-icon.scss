@@ -1,0 +1,29 @@
+/**
+ * Tiny sport ball icons seen on the contest list or lineup card title.
+ */
+.cmp-sport-icon {
+  background: no-repeat bottom center;
+  background-size: 13px auto;
+  display: inline-block;
+  height: 13px;
+  width: 13px;
+  color: transparent;
+  font-size: 0px;
+
+
+  &.icon-mlb {
+    background-image: url(../img/common/icon-baseball.svg);
+  }
+
+  &.icon-nfl {
+    background-image: url(../img/common/icon-football.svg);
+  }
+
+  &.icon-nba {
+    background-image: url(../img/common/icon-basketball.svg);
+  }
+
+  &.icon-nhl {
+    background-image: url(../img/common/icon-hockey.svg);
+  }
+}
