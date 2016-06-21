@@ -2,7 +2,7 @@
 
 .cmp-contest-list-sport-filter {
   position: relative;
-  top: -10px;
+  top: -5px;
   float: right;
 
   // .add-lineup {
@@ -20,10 +20,15 @@
     padding: 0;
 
     &__option {
-      transition: color 500ms ease;
+      color: #747682;
       font-family: $font-oswald;
       font-size: 25px;
-      color: #747682;
+      line-height: 1.1em;
+      transition: color 500ms ease;
+
+      &:last-child {
+        margin-right: 0px;
+      }
 
       &:hover {
         transition: none;
@@ -31,9 +36,9 @@
       }
 
       &--active {
-
         color: #fff !important;
-        border: none;
+        border-image: none;
+        border-bottom: 1px solid #fff;
       }
     }
   }

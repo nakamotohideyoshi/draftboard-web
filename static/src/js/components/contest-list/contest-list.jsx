@@ -1,5 +1,5 @@
 import React from 'react';
-import FeaturedContests from './featured-contests.jsx';
+// import FeaturedContests from './featured-contests.jsx';
 import ContestListRow from './contest-list-row.jsx';
 import forEach from 'lodash/forEach';
 
@@ -97,11 +97,6 @@ const ContestList = React.createClass({
           </tr>
         </thead>
         <tbody>
-          <tr className="featured-contests">
-            <td colSpan="8">
-              <FeaturedContests featuredContests={this.props.featuredContests} />
-            </td>
-          </tr>
           {visibleRows}
         </tbody>
       </table>
