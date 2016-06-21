@@ -25,9 +25,9 @@ class PlayerAdmin(sports.admin.PlayerAdmin):
 @admin.register(sports.nfl.models.PlayerLineupName)
 class PlayerLineupNameAdmin(admin.ModelAdmin):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.list_display_links = (None, )
+    # def __init__(self, *args, **kwargs):
+    #     super().__init__(*args, **kwargs)
+    #     self.list_display_links = (None, )
 
     lineup_nickname = forms.CharField( widget=forms.Textarea )
 
