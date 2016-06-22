@@ -43,6 +43,11 @@ export function shouldFetch(editLineupRequestId) {
 
   const saveRequest = getTaskState(editLineupRequestId);
 
+  // If the saveRequest has been removed from the state, don't fetch.
+  if (!saveRequest) {
+    return false;
+  }
+
   // If we've reached our maximum number of retries, don't reattempt.
   if (saveRequest.attempt > saveRequest.maxAttempts) {
     store.dispatch(addMessage({

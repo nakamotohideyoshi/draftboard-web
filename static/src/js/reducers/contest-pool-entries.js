@@ -27,7 +27,7 @@ module.exports = (state = initialState, action) => {
         isFetching: false,
       });
       // replace old entries for the current ones.
-      newState.entries = action.body;
+      newState.entries = action.response;
       return newState;
     }
 
