@@ -324,6 +324,7 @@ export const fetchDraftGroupIfNeeded = (id, sport) => (dispatch, getState) => {
       header: 'Failed to connect to API.',
       content: 'Please refresh the page to reconnect.',
       level: 'warning',
+      id: 'apiFailure',
     }));
     log.error(err);
   });
