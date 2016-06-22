@@ -107,7 +107,7 @@
 
 // Page header
 .player-list__header {
-  position: absolute; // this sucks but whatever.
+  display: inline-block;
   font-family: $font-open-sans;
   font-size: 13px;
   font-weight: 400;
@@ -138,8 +138,8 @@
 
 // Player list filters.
 .player-list-filter-set {
-  display: block;
-  text-align: right;
+  display: inline-block;
+  float: right;
 
   // Search
   .cmp-collection-search-filter {
