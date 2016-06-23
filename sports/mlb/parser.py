@@ -1461,6 +1461,9 @@ class QuickCache(object):
     def add_to_cache_method(self, k, data):
         return self.cache.set(k, data, self.timeout_seconds)
 
+    def bytes_2_dict(self, bytes):
+        return literal_eval(bytes.decode())
+
     # @timeit
     # def stash(self, data):
     #     ts = data.get('dd_updated__id')
@@ -1471,8 +1474,21 @@ class QuickCache(object):
     #     print('stashed: key', str(k), ':', str(data))
     #     return ret_val
 
+    def validate_stashable(self, data):
+        if not isinstance(data, dict):
+            err_msg = 'data must be an instance of dict'
+            raise Exception(err_msg)
+
+    @timeit
+    def fetch(self, ts, gid):
+        k = self.get_key(ts, gid)
+        return self.cache.get(k)
+
     @timeit
     def stash(self, data):
+        #
+        self.validate_stashable(data)
+
         #
         ts = data.get('dd_updated__id')
         gid = data.get('id')
@@ -1499,11 +1515,11 @@ class QuickCacheList(QuickCache):
     # in inheriting classes, but dont do it here
     #field_id = 'id'
 
-    def __init__(self):
-        super().__init__() # must call super first!
-        # self.key_prefix_pattern = self.name + self.extra_key    # ex: 'QuickCacheList--'
-        # self.scan_pattern = self.key_prefix_pattern + '*'       # ex: 'QuickCacheList--*'
-        # self.key_pattern = self.key_prefix_pattern + '%s'       # ex: 'QuickCacheList--%s'
+    # def __init__(self):
+    #     super().__init__() # must call super first!
+    #     # self.key_prefix_pattern = self.name + self.extra_key    # ex: 'QuickCacheList--'
+    #     # self.scan_pattern = self.key_prefix_pattern + '*'       # ex: 'QuickCacheList--*'
+    #     # self.key_pattern = self.key_prefix_pattern + '%s'       # ex: 'QuickCacheList--%s'
 
     def add_to_cache_method(self, k, data):
         """
@@ -1513,11 +1529,10 @@ class QuickCacheList(QuickCache):
         """
         return self.cache.rpush(k, data)
 
+    @timeit
     def stash(self, data):
         """ adds the data to its corresponding list in the cache """
-        if not isinstance(data, dict):
-            err_msg = 'data must be an instance of dict'
-            raise Exception(err_msg)
+        self.validate_stashable(data)
 
         #
         gid = data.get(self.field_id)
@@ -1532,11 +1547,12 @@ class QuickCacheList(QuickCache):
         key = self.key_pattern % gid
         return key
 
+    @timeit
     def fetch(self, gid):
         # get a list of dicts from the key
         k = self.get_key(gid)
         l = self.cache.lrange(k, 0, -1) # start with 0, get thru last!
-        return [ literal_eval(dict_bytes.decode()) for dict_bytes in l ]
+        return [ self.bytes_2_dict(dict_bytes) for dict_bytes in l ]
 
 class PitchPbp(DataDenPbpDescription):
     """
@@ -1550,21 +1566,17 @@ class PitchPbp(DataDenPbpDescription):
 
     class MultipleAtBatObjectsFoundException(Exception): pass
 
-    # cache helpers
-    class PitchPbpCache(QuickCache):
-        name = 'PitchPbp'
+    # parent class for single object caches
+    # class PitchPbpCache(QuickCache):
+    #     name = 'PitchPbp'
 
-    def get_stashed_object_keys(self, ts):
-        """ helper method - wrapper for getting the cache keys """
-        return self.PitchPbpCache().scan(ts)
+    # the primary objects of a linked object
+    class AtBatCache(QuickCache): pass
+    class PitchCache(QuickCache): pass
 
-    class AtBatCache(PitchPbpCache): pass
-
-    class PitchCache(PitchPbpCache): pass
-
-    class ZonePitchCache(PitchPbpCache): pass
-
-    class RunnerCache(PitchPbpCache): pass
+    # parent class for cache lists)
+    class ZonePitchCache(QuickCacheList): pass
+    class RunnerCache(QuickCacheList): pass
 
     cache_classes = [AtBatCache, PitchCache, ZonePitchCache, RunnerCache]
 
@@ -1591,25 +1603,26 @@ class PitchPbp(DataDenPbpDescription):
 
         self.at_bat_object = None
 
+        self.srid_pitch = None
+
     #
     ###############################################################
     # override parent send():
     # when we get one of these objects, check if we also have the
     # other and if we do, build the linked object and send it!
     ###############################################################
-    def send(self):
-        if 'steve' == 'steve': # TODO only call send() if we have the objects we require to build the main object!
-            super().send()
-        else:
-            super().send() # TODO for now call send either way for testing!
+    # def send(self):
+    #     pass # TODO - but only unlock send() if we got all the objects we needed and can build the linked object
 
     def stash_at_bat(self, at_bat):
         return self.AtBatCache(at_bat)
 
     def stash_pitch(self, pitch):
+        self.srid_pitch = pitch.get('id') # TODO the other stash_xxx() methods will update srid_pitch different ways!
         return self.PitchCache(pitch)
 
     def stash_zone_pitch(self, zone_pitch):
+        json.dumps
         return self.ZonePitchCache(zone_pitch)
 
     def stash_runner(self, runner):
@@ -1617,30 +1630,6 @@ class PitchPbp(DataDenPbpDescription):
 
     @timeit
     def __update_sendability(self, obj, target):
-
-        #
-        # operations on cached lists:
-        #
-        # redis.lrange('listkeyasdf', 0, 99)
-        #   [b"{'test': 'test'}"]
-        #
-        # redis.rpush('listkeyasdf', {'test2':'test2'})
-        #   2   # returns length of list
-
-        # redis.lrange('listkeyasdf', 0, 99)
-        #  [b"{'test': 'test'}", b"{'test2': 'test2'}"]
-
-        # get dicts from the cache list
-        #
-        # In [32]: l = redis.lrange('list-PitchPbp--1466573790384--e62634ff-113f-41ad-b808-52bc3f34154f', 0, 99)
-        # In [33]: objs = [ literal_eval(dict_bytes.decode()) for dict_bytes in l ]
-
-        # requirements = {
-        #     'pitch' : None,
-        #     'at_bat' : None,
-        #     #'zone_pitch' : None,    # we need the zone_pitch at this time, but also other ones!
-        #     #'runner' : None,        # we need the runner at this time, but also other ones!
-        # }
 
         # TODO - need a way of retrieving everything except for the obj passed in.
 
@@ -1656,11 +1645,8 @@ class PitchPbp(DataDenPbpDescription):
             err_msg = 'unknown target %s in __update_sendability()' % str(target)
             raise Exception(err_msg)
 
-        # scan redis for the keys for this PitchPbp's underlying objects.
-        # it is mandatory that we include the timestamp !
-        ts = self.o.get('dd_updated__id', 0)
-        keys = self.get_stashed_object_keys(ts)
-        print('ts:', str(ts), 'keys:', str(keys))
+        # check if we have all the objects we need in send()
+        # TODO ... or here, doesnt matter
 
     @timeit
     def parse(self, obj, target): # =None):
@@ -1680,13 +1666,12 @@ class PitchPbp(DataDenPbpDescription):
 
     def build_linked_pbp_stats_data(self, player_stats):
         """
-        override parent method to also add the zone pitch list.
-
-        be sure to call super method, and add the zonepitches to the object returned
+        override default method from parent to add the linked objects
         """
 
-        # get the pitch pbp's srid. it uniquely identifies each discrete mlb pitch
-        pitch_srid = self.o.get('id')
+        if self.srid_pitch is None:
+            err_msg = 'self.srid_pitch is None - cant build linked object'
+            raise Exception(err_msg)
 
         data = super().build_linked_pbp_stats_data(player_stats)
 
@@ -1728,6 +1713,57 @@ class PitchPbp(DataDenPbpDescription):
 
         # return the linked data
         return data
+
+    # def build_linked_pbp_stats_data(self, player_stats):
+    #     """
+    #     override parent method to also add the zone pitch list.
+    #
+    #     be sure to call super method, and add the zonepitches to the object returned
+    #     """
+    #
+    #     # get the pitch pbp's srid. it uniquely identifies each discrete mlb pitch
+    #     pitch_srid = self.o.get('id')
+    #
+    #     data = super().build_linked_pbp_stats_data(player_stats)
+    #
+    #     # add the zonepitch list
+    #     zone_pitch_cache = CacheList(cache=cache)
+    #     at_bat_srid = self.o.get(self.at_bat_srid_field)
+    #     zone_pitches = zone_pitch_cache.get(key=at_bat_srid)
+    #     at_bat = self.get_at_bat(at_bat_srid)
+    #
+    #     # get the runners list from cache (sort of like how we get zone pitches.
+    #     runners_cache = CacheList(cache=cache)
+    #     # use the pitch_srid as the key for runners list,
+    #     # because runner objects will always be associated with an individual pitch,
+    #     # from what i've seen anyways...
+    #     runners = runners_cache.get(key=pitch_srid)
+    #     runner_manager = RunnerManager(runners)
+    #
+    #     zone_pitch_manager = ZonePitchManager(zone_pitches, at_bat)
+    #
+    #     # add the zone pitches to the data to be sent to clients
+    #     data[self.zone_pitches] = zone_pitch_manager.get_data()
+    #     data[self.at_bat]       = AtBatReducer(at_bat).reduce()
+    #     data[self.runners]      = runner_manager.get_data()
+    #
+    #     # # add the playerStats object for the hitter in the current at_bat.
+    #     # # its a list of dataden objects, not draftboard 'PlayerStats' models!
+    #     # player_stats_srid = at_bat.get('hitter_id')
+    #     # qs = self.find_player_stats(player_srids=[player_stats_srid])
+    #     # at_bat_hitter_player_stats = self.get_player
+    #
+    #     # set the description to the 'at_bat_stats' field
+    #     player_stats_hitter = self.find_player_stats(hitter_only=True)
+    #     data[self.at_bat_stats] = PlayerStatsToStr(player_stats_hitter).get_description()
+    #
+    #     # reduce the pbp object last, incase any of its fields
+    #     # are internally used previous to reducing it.
+    #     pitch_pbp_reduced = PitchPbpReducer(data[self.linked_pbp_field]).reduce()
+    #     data[self.linked_pbp_field] = PitchPbpShrinker(pitch_pbp_reduced).shrink()
+    #
+    #     # return the linked data
+    #     return data
 
     def get_at_bat(self, at_bat_srid):
         if self.at_bat_object is not None:
