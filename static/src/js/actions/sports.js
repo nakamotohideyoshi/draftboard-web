@@ -27,6 +27,13 @@ export const SPORT_CONST = {
       names: ['FPPG', 'PPG', 'RPG', 'APG', 'STLPG', 'BLKPG', 'TOPG'],
     },
   },
+  nfl: {
+    pregameStatuses: [],
+    seasonStats: {
+      types: [],
+      names: [],
+    },
+  },
   nhl: {
     gameDuration: 60,
     lineupByteLength: 20,
@@ -492,7 +499,7 @@ const shouldFetchTeams = (state, sport) => {
       return false;
     }
   } else {
-    log.error('We aren\'t set up to accommodate teams for sport: ${sport}');
+    log.error(`We aren\'t set up to accommodate teams for sport: ${sport}`);
   }
 
   return true;
