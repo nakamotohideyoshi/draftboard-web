@@ -335,6 +335,7 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
       header: 'Failed to connect to API.',
       content: 'Please refresh the page to reconnect.',
       level: 'warning',
+      id: 'apiFailure',
     }));
     log.error(err);
   });
@@ -363,6 +364,7 @@ export const fetchContestIfNeeded = (id, sport, force) => (dispatch, getState) =
       header: 'Failed to connect to API.',
       content: 'Please refresh the page to reconnect.',
       level: 'warning',
+      id: 'apiFailure',
     }));
     log.error(err);
   });

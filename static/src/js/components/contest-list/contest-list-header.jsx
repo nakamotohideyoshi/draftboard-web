@@ -77,10 +77,13 @@ const ContestListHeader = React.createClass({
     }
 
     return (
-      <div className="cmp-contest-list__header" onClick={this.toggleFilters}>
+      <div className="cmp-contest-list__header">
         <h2>
           {currentLeague}
-          <span className="cmp-contest-list__header-type">{currentContestType}</span>
+          <span
+            className="cmp-contest-list__header-type"
+            onClick={this.toggleFilters}
+          >{currentContestType}</span>
         </h2>
       </div>
     );

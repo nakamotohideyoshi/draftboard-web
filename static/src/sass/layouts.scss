@@ -74,21 +74,18 @@
 }
 
 
-// ---------------------------------------------------------------------------------------------------------------------
-// Three column layout
-// Example:  https://projects.invisionapp.com/d/main#/console/2830423/71010203/preview
-
-// at < 1024px, show them in vertical line for now until pedro comes back with opinions on what to do
-// -----------------
-// |      nav      |
-// |      ---      |
-// |    section    |
-// |      ---      |
-// |    sidebar    |
-// -----------------
 .two-col {
   // this layout is the same as two column, except that the sidebar now exists
   @extend .one-col;
+
+  .sidebar {
+    left: 0;
+    padding-top: $nav-scoreboard-height;
+    top: 0;
+    position: fixed;
+    height: 100%;
+    width: $sidebar-width;
+  }
 
   .content-container {
     margin-left: $sidebar-width;
@@ -96,49 +93,18 @@
 
   // anything larger than a tablet (768px).
   @media (min-width: $break-tablet + 1) {
-    .content-container {
-      margin-left: $sidebar-width;
-    }
   }
 
   // anything smaller than a laptop (1024px).
   @media (max-width: $break-laptop) {
-    .sidebar {
-      display: none;
-    }
   }
-
-
-  // at desktop size, show the sports ticker and make three column
-  // --------------------------------------------------------------
-  // |         |                  |                               |
-  // |         |                  |                               |
-  // |   nav   |     sidebar      |           section             |
-  // |         |                  |                               |
-  // |         |                  |                               |
-  // --------------------------------------------------------------
 
   // anything larger than 1024px.
   @media (min-width: $break-laptop + 1) {
-    .sidebar {
-      left: 0;
-      padding-top: $nav-scoreboard-height;
-      top: 0;
-      position: fixed;
-      height: 100%;
-      width: $sidebar-width;
-    }
   }
 
   // the biggest size.
   @media (min-width: $break-desktop + 1) {
-    .content-container {
-      margin-left: $sidebar-width;
-    }
-
-    .sidebar {
-      left: 0;
-    }
   }
 }
 

@@ -46,6 +46,11 @@ export function shouldFetch(entryRequestId) {
 
   const entryRequest = getTaskState(entryRequestId);
 
+  // If the entryRequest has been removed from the state, don't fetch.
+  if (!entryRequest) {
+    return false;
+  }
+
   // If we've reached our maximum number of retries, don't reattempt.
   if (entryRequest.attempt > entryRequest.maxAttempts) {
     store.dispatch(addMessage({

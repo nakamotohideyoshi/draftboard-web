@@ -109,8 +109,8 @@ const ContestListDetail = React.createClass({
       // set the  new one as focused.
       if (this.props.focusedContestId !== nextProps.params.contestId) {
         this.props.setFocusedContest(nextProps.params.contestId);
+        this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId);
       }
-      this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId);
     }
 
     // If we've got the selected contest, use it's draft_group id to get the boxscores.
