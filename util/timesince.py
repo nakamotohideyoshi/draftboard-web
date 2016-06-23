@@ -1,9 +1,23 @@
 #
 # util/timesince.py
 
+import time
 from datetime import datetime, timedelta
 from pytz import timezone as pytz_timezone
 from util.utctime import UtcTime
+
+def timeit(method):
+    def timed(*args, **kwargs):
+        start = time.time()
+        result = method(*args, **kwargs)
+        end = time.time()
+        print('[timeit] %s (%.6f sec)' % (method.__name__, end - start))
+        return result
+    return timed
+
+@timeit
+def testit():
+    print('steve')
 
 class TimeSince(UtcTime):
 
