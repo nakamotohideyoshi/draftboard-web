@@ -63,8 +63,7 @@ const PollingRequestReceiver = (() => {
    */
   function startNextCommand() {
     if (commandQueue.length === 0) {
-      log.debug('Cannot start next command, commandQueue is empty.');
-      log.debug('setting running = false');
+      log.debug('Not starting next command, commandQueue is empty. :)');
       running = false;
     } else {
       log.debug('Starting next command.');
@@ -87,11 +86,12 @@ const PollingRequestReceiver = (() => {
         window.setTimeout(fetchLoop, 500, task);
         return;
       }
-      log.debug('fetchLoop() finished with a non-FAILURE fetch response');
+      log.info('fetchLoop() finished with a non-FAILURE fetch response');
       finishCurrentCommand();
       startNextCommand();
     }).catch((reason) => {
-      log.debug('fetchLoop() finished due to \'FAILURE\' fetch response:', reason);
+      log.error(reason);
+      log.warn('fetchLoop() finished due to \'FAILURE\' fetch response', task);
       finishCurrentCommand();
       startNextCommand();
     });

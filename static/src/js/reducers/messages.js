@@ -1,5 +1,6 @@
 import ActionTypes from '../action-types.js';
 import merge from 'lodash/merge';
+import log from '../lib/logging.js';
 
 const initialState = {};
 
@@ -16,6 +17,12 @@ module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     case ActionTypes.ADD_MESSAGE:
+
+      if (state[action.id]) {
+        log.warn('not displaying user message, message.id already exists.', action.id);
+        return state;
+      }
+
       nextState[action.id] = {
         level: action.level,
         header: action.header,

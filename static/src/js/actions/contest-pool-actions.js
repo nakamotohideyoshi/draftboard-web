@@ -5,6 +5,7 @@ import log from '../lib/logging.js';
 import * as actionTypes from '../action-types';
 import { monitorEntryRequest, monitorUnregisterRequest } from './entry-request-actions.js';
 import { addMessage } from './message-actions.js';
+import { CALL_API } from '../middleware/api';
 
 
 const contestSchema = new Schema('contests', {
@@ -13,56 +14,34 @@ const contestSchema = new Schema('contests', {
 
 
 /**
- *
  * Contests Pool Entry Actions
- *
  */
+export const fetchContestPoolEntries = () => (dispatch) => {
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.FETCHING_CONTEST_POOL_ENTRIES,
+        actionTypes.FETCH_CONTEST_POOL_ENTRIES_SUCCESS,
+        actionTypes.ADD_MESSAGE,
+      ],
+      endpoint: '/api/contest/contest-pools/entries/',
+    },
+  });
 
-function fetchContestPoolEntriesFail(err) {
-  return {
-    type: actionTypes.FETCH_CONTEST_POOL_ENTRIES_FAIL,
-    err,
-  };
-}
-
-
-function fetchContestPoolEntriesSucess(body) {
-  return {
-    type: actionTypes.FETCH_CONTEST_POOL_ENTRIES_SUCCESS,
-    body,
-  };
-}
-
-
-/**
- * Get the user's contest pool entries.
- */
-export function fetchContestPoolEntries() {
-  return (dispatch) => {
-    // Tell the store we are currently fetching entries.
-    dispatch({ type: actionTypes.FETCHING_CONTEST_POOL_ENTRIES });
-
-    return new Promise((resolve, reject) => {
-      request
-      .get('/api/contest/contest-pools/entries/')
-      .set({
-        'X-REQUESTED-WITH': 'XMLHttpRequest',
-        'X-CSRFToken': Cookies.get('csrftoken'),
-        Accept: 'application/json',
-      })
-      .end((err, res) => {
-        if (err) {
-          log.error(err);
-          dispatch(fetchContestPoolEntriesFail(err));
-          reject(err);
-        } else {
-          dispatch(fetchContestPoolEntriesSucess(res.body));
-          resolve(res);
-        }
+  apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      dispatch({
+        type: actionTypes.FETCH_CONTEST_POOL_ENTRIES_FAIL,
+        response: action.error,
       });
-    });
-  };
-}
+    }
+  });
+
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse;
+};
+
 
 /**
  *
@@ -183,7 +162,7 @@ export function enterContest(contestPoolId, lineupId) {
     .end((err, res) => {
       if (err) {
         addMessage({
-          title: 'Unable to join contest.',
+          header: 'Unable to join contest.',
           level: 'warning',
         });
         log.error(res);

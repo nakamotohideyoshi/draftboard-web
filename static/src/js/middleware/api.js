@@ -1,30 +1,41 @@
 import { dateNow } from '../lib/utils';
+import log from '../lib/logging.js';
+import Cookies from 'js-cookie';
 import fetch from 'isomorphic-fetch';
 
 
 // Fetches an API response and normalizes the result JSON according to schema.
 // This makes every API response have the same shape, regardless of how nested it was.
-const callApi = (endpoint, callback) =>
-  fetch(endpoint, {
-    credentials: 'same-origin',
-  }).then(response =>
-    response.json().then(json => ({ json, response }))
-  ).then(({ json, response }) => {
-    if (!response.ok) {
-      return Promise.reject(json);
-    }
+const callApi = (endpoint, callback) => fetch(endpoint, {
+  credentials: 'same-origin',
+  Accept: 'application/json',
+  'X-CSRFToken': Cookies.get('csrftoken'),
+}).then(response => {
+  // First, reject a response that isn't in the 200 range.
+  if (!response.ok) {
+    log.error('API request failed:', response);
+    return Promise.reject(response);
+  }
 
-    if (callback) return callback(json);
-    return json;
-  });
+  // Otherwise parse the (hopefully) json from the response body.
+  return response.json().then(json => ({ json, response }));
+}).then(({ json }) => {
+  // If a callback was supplied, call it.
+  if (callback) return callback(json);
+  // Return the json payload.
+  return json;
+}); // Do not catch() this here. it needs to bubble up for error handling.
+
 
 // Action key that carries API call info interpreted by this Redux middleware.
 export const CALL_API = Symbol('Call API');
+
 
 // A Redux middleware that interprets actions with CALL_API info specified.
 // Performs the call and promises when such actions are dispatched.
 export default store => next => action => {
   const callAPI = action[CALL_API];
+
   if (typeof callAPI === 'undefined') {
     return next(action);
   }
@@ -53,6 +64,7 @@ export default store => next => action => {
   }
 
   const [requestType, successType, failureType] = types;
+
   next(actionWith({
     type: requestType,
     expiresAt: dateNow() + 1000 * 60,  // be able to try again in a minute
@@ -74,6 +86,7 @@ export default store => next => action => {
       header: 'Failed to connect to API.',
       content: 'Please refresh the page to reconnect.',
       level: 'warning',
+      id: 'apiFailure',
     }))
   );
 };

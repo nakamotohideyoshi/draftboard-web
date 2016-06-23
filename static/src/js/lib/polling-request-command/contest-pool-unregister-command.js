@@ -46,6 +46,11 @@ export function shouldFetch(entryRequestId) {
 
   const entryRequest = getTaskState(entryRequestId);
 
+  // If the entryRequest has been removed from the state, don't fetch.
+  if (!entryRequest) {
+    return false;
+  }
+
   // If we've reached our maximum number of retries, don't reattempt.
   if (entryRequest.attempt > entryRequest.maxAttempts) {
     store.dispatch(addMessage({
@@ -131,10 +136,11 @@ export function fetch(taskId) {
           ttl: 3000,
         }));
       }
+
       // If it was a failure.
       if (res.body.status === 'FAILURE') {
         log.error('Contest entry request status error:', res.body);
-        let content = '';
+        let content = 'res.body';
         // Add the response msg to the message we display to the user.
         if (res.body.exception) {
           content = res.body.exception.msg;
