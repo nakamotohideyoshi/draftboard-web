@@ -315,8 +315,6 @@ category: Lineup
     }
 
     .cmp-lineup-card__title {
-
-
       color: #fff;
       padding: 15px;
     }
@@ -594,6 +592,10 @@ category: Lineup
 
       &:first-child {
         border-right: 1px solid #ebedf2;
+      }
+
+      &.negative {
+        color: $primary-red;
       }
   }
 
