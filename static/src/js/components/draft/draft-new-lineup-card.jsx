@@ -3,6 +3,7 @@ import Tooltip from '../site/tooltip.jsx';
 import DraftNewLineupCardTitle from './draft-new-lineup-card-title.jsx';
 import DraftNewLineupCardPlayer from './draft-new-lineup-card-player.jsx';
 import forEach from 'lodash/forEach';
+import classnames from 'classnames';
 
 const defaultLineupTitle = 'New Lineup';
 
@@ -105,6 +106,13 @@ const DraftNewLineupCard = React.createClass({
     const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}`;
     const self = this;
 
+    const remainingSalaryClasses = classnames({
+      negative: this.props.remainingSalary <= 0,
+    });
+    const avgRemainingPlayerSalaryClasses = classnames({
+      negative: this.props.avgRemainingPlayerSalary <= 0,
+    });
+
     const players = this.props.lineup.map((player) => (
         <DraftNewLineupCardPlayer
           player={player}
@@ -146,11 +154,15 @@ const DraftNewLineupCard = React.createClass({
         </ul>
 
         <footer className="cmp-lineup-card__footer">
-          <div className="cmp-lineup-card__fees cmp-lineup-card__footer-section">
+          <div
+            className={`cmp-lineup-card__fees cmp-lineup-card__footer-section ${remainingSalaryClasses}`}
+          >
             <span className="cmp-lineup-card__footer-title">Rem. Salary</span>
             ${this.props.remainingSalary.toLocaleString('en')}
           </div>
-          <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
+          <div
+            className={`cmp-lineup-card__countdown cmp-lineup-card__footer-section ${avgRemainingPlayerSalaryClasses}`}
+          >
             <span className="cmp-lineup-card__footer-title">Avg. Salary Rem.</span>
             ${this.props.avgRemainingPlayerSalary.toLocaleString('en')}
           </div>
