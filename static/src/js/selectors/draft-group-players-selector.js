@@ -130,7 +130,6 @@ const probablePitchers = (state) => state.draftGroupPlayers.probablePitchers;
 const probablePitchersSelector = createSelector(
    [allPlayersSelector, probablePitchersFilter, probablePitchers],
    (players, showOnlyProbablePitchers, pitchers) => {
-     log.debug('probablePitchersSelector()');
      // If we are showing all pitchers, just return them all.
      if (!showOnlyProbablePitchers) {
        return players;
@@ -152,11 +151,12 @@ const probablePitchersSelector = createSelector(
 
 
 // Filter players based on the search filter
-const filterPropertySelector = (state) => state.draftGroupPlayersFilters.filters.playerSearchFilter.filterProperty;
-const filterMatchSelector = (state) => state.draftGroupPlayersFilters.filters.playerSearchFilter.match;
+const searchFilterPropertySelector = (state) =>
+  state.draftGroupPlayersFilters.filters.playerSearchFilter.filterProperty;
+const searchFilterMatchSelector = (state) => state.draftGroupPlayersFilters.filters.playerSearchFilter.match;
 
 const playerNameSelector = createSelector(
-  [probablePitchersSelector, filterPropertySelector, filterMatchSelector],
+  [probablePitchersSelector, searchFilterPropertySelector, searchFilterMatchSelector],
   (collection, filterProperty, searchString) => stringSearchFilter(collection, filterProperty, searchString)
 );
 
@@ -166,8 +166,14 @@ const teamFilterPropertySelector = (state) => state.draftGroupPlayersFilters.fil
 const teamFilterMatchSelector = (state) => state.draftGroupPlayersFilters.filters.teamFilter.match;
 
 const teamSelector = createSelector(
-  [playerNameSelector, teamFilterPropertySelector, teamFilterMatchSelector],
-  (collection, filterProperty, teamArray) => inArrayFilter(collection, filterProperty, teamArray)
+  [playerNameSelector, teamFilterPropertySelector, teamFilterMatchSelector, searchFilterMatchSelector],
+  (collection, filterProperty, teamArray, searchFilterMatch) => {
+    // If the user is searching via player name, ignore any other filters.
+    if (searchFilterMatch !== '') {
+      return collection;
+    }
+    return inArrayFilter(collection, filterProperty, teamArray);
+  }
 );
 
 
@@ -176,6 +182,13 @@ const positionFilterPropertySelector = (state) => state.draftGroupPlayersFilters
 const positionFilterMatchSelector = (state) => state.draftGroupPlayersFilters.filters.positionFilter.match;
 
 export const filteredPlayersSelector = createSelector(
-  [teamSelector, positionFilterPropertySelector, positionFilterMatchSelector],
-  (collection, filterProperty, searchString) => matchFilter(collection, filterProperty, searchString)
+  [teamSelector, positionFilterPropertySelector, positionFilterMatchSelector, searchFilterMatchSelector],
+  (collection, filterProperty, searchString, searchFilterMatch) => {
+    // If the user is searching via player name, ignore any other filters.
+    if (searchFilterMatch !== '') {
+      return collection;
+    }
+
+    return matchFilter(collection, filterProperty, searchString);
+  }
 );
