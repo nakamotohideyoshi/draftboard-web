@@ -75,6 +75,9 @@ const NavScoreboardSlider = React.createClass({
       this.scrollItem = scrollItems.length - 1;
     }
 
+    // if there are no other items yet is still trying to scroll, return 0
+    if (!scrollItems[this.scrollItem]) return 0;
+
     return -1 * scrollItems[this.scrollItem].offsetLeft;
   },
 

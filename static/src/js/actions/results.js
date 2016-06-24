@@ -26,7 +26,11 @@ const receiveResults = (when, response) => {
     filteredResponse.lineups[index].stats = {
       buyin: 100,
       entries: entries.length,
-      won: reduce(entries, (sum, entry) => sum + entry.payout.amount, 0),
+      won: reduce(entries, (sum, entry) => {
+        if (!entry.payout) return sum;
+        const amount = entry.payout.amount || 0;
+        return sum + amount;
+      }, 0),
     };
   });
 

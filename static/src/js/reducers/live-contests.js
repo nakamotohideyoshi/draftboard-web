@@ -40,9 +40,9 @@ module.exports = (state = {}, action = {}) => {
 
     case ActionTypes.RECEIVE_LIVE_CONTEST_INFO:
       return update(state, {
-        [action.id]: {
+        [action.response.id]: {
           $merge: {
-            info: action.info,
+            info: action.response.info,
             expiresAt: action.expiresAt,
             isFetchingInfo: false,
           },

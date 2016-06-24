@@ -208,13 +208,6 @@ const showGameEvent = (message, state) => {
 
         // immediately update player stats, no need to wait bc there's no animation
         store.dispatch(updatePBPPlayersStats(message.stats));
-
-        // TODO actions.events - what do we want to show in history?
-        // store.dispatch(unshiftPlayerHistory(playerId, eventDescription));
-
-      // otherwise just add animation event as per usual to show then hide
-      } else {
-        store.dispatch(addAnimationEvent(animationEvent.id, animationEvent));
       }
 
       break;
