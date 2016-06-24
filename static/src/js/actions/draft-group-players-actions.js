@@ -125,6 +125,12 @@ function fetchDraftGroup(draftGroupId) {
             arrayOf(playerSchema)
           );
 
+          // If there are no probable pitcher updates, disable the filter.
+          if (!res.body.game_updates.filter((update) => update.type === 'pp').length) {
+            log.warn('No probable pitcher info was recieved, disabling filter.');
+            dispatch(updateFilter('probablePitchersFilter', 'srid', false));
+          }
+
           dispatch(fetchDraftgroupSuccess({
             players: normalizedPlayers.entities.players,
             start: res.body.start,

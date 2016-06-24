@@ -5,7 +5,6 @@ import filter from 'lodash/filter';
 import { orderByProperty } from './order-by-property.js';
 import { stringSearchFilter, matchFilter, inArrayFilter } from './filters';
 import { isPlayerInLineup } from '../components/draft/draft-utils.js';
-import log from '../lib/logging.js';
 
 
 // All the players in the state.
@@ -120,7 +119,7 @@ export const draftGroupPlayerSelector = createSelector(
 
 
 /**
- * The folloiwng selectors are used to filter the state.draftGroups.filteredPlayers
+ * The following selectors are used to filter the state.draftGroups.filteredPlayers
  */
 
  // Filter players based on the probable pitchers filter.
@@ -128,21 +127,27 @@ const probablePitchersFilter = (state) => state.draftGroupPlayersFilters.filters
 const probablePitchers = (state) => state.draftGroupPlayers.probablePitchers;
 
 const probablePitchersSelector = createSelector(
-   [allPlayersSelector, probablePitchersFilter, probablePitchers],
-   (players, showOnlyProbablePitchers, pitchers) => {
+   [allPlayersSelector, probablePitchersFilter, probablePitchers, sportSelector],
+   (players, showOnlyProbablePitchers, probables, sport) => {
+     // Ignore this for any non-mlb sports.
+     if (sport !== 'mlb') {
+       return players;
+     }
+
      // If we are showing all pitchers, just return them all.
      if (!showOnlyProbablePitchers) {
        return players;
      }
 
+     //  Filter out any non-probable pitchers.
      const pp = filter(players, (player) => {
-       // Show all non pitchers
+       // Hide all non pitchers
        if (player.position !== 'SP') {
          return true;
        }
 
       // Filter out any pitchers that are not found in the probablePitchers list.
-       return pitchers.indexOf(player.player_srid) > -1;
+       return probables.indexOf(player.player_srid) > -1;
      });
 
      return pp;
