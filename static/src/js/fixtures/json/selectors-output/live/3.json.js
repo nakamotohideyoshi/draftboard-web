@@ -135,6 +135,6 @@ module.exports = {
   },
   "contestsStats": {},
   "isLoading": false,
-  "totalBuyin": 0,
+  "totalBuyin": 1,
   "potentialWinnings": 0
 };

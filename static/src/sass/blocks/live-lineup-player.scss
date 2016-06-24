@@ -1,47 +1,12 @@
 .live-lineup-player {
+  height: 11%;
   padding: 8px 0;
   position: relative;
-
-  .live-pmr {
-    position: absolute;
-    left: -3px;
-    top: -3px;
-    width: 54px;
-    z-index: 5020;
-  }
-
-  &--sport-mlb,
-  &--sport-nba {
-    .live-lineup-player__photo img.default-player {
-      left: 1%;
-      opacity: 0.5;
-      top: 9px;
-      width: 50px;
-    }
-  }
-
-  &--sport-mlb {
-    .live-lineup-player__photo img {
-      left: 5%;
-      top: 3px;
-      width: 45px;
-    }
-  }
-  &--sport-nba {
-    .live-lineup-player__photo img {
-      left: -12%;
-      top: 5px;
-      width: 62px;
-    }
-  }
 
   // dumbed down version for countdown
   &--upcoming {
     .live-lineup-player__circle {
       cursor: auto;
-    }
-    .live-lineup-player__photo {
-      border: 1px solid #45485d;
     }
     .live-lineup-player__only-name {
       color: #6d718a;
@@ -75,7 +40,6 @@
     position: absolute;
     top: 0;
     transition: all 500ms cubic-bezier(.8,.16,.18,.85) 400ms;
-    z-index: 5000;
   }
 
   .live-player-watching {
@@ -163,7 +127,7 @@
   }
 
   &__position,
-  &__circle,
+  &__headshot-gamestats,
   &__status,
   &__points,
   &__play-status,
@@ -182,13 +146,9 @@
     text-align: center;
   }
 
-  &__circle {
-    background-size: 120% auto;
-    border-radius: 50%;
+  &__headshot-gamestats {
     cursor: pointer;
-    height: 48px;
     position: relative;
-    width: 48px;
 
     &:hover .live-lineup-player__hover-stats {
       padding: 0 18px 0 120px;
@@ -203,7 +163,7 @@
     overflow: hidden;
     position: absolute;
     top: 0;
-    z-index: 5030;
+    z-index: 30;
     width: 100%;
 
     img {
@@ -216,13 +176,14 @@
     border-radius: 50px;
     background-size: auto 64%;
     height: 50px;
+    left: 2px;
     overflow: hidden;
     padding: 0;
     position: absolute;
     top: 0;
     transition: all 316ms cubic-bezier(.8,.16,.18,.85) 400ms;
     width: 48px;
-    z-index: 5010;
+    z-index: 10;
 
     ul {
       list-style: none;
@@ -247,12 +208,15 @@
     }
   }
 
+  &__headshot-gamestats .player-pmr-headshot {
+    z-index: 30;
+  }
+
   &__runner-bases {
     height: 25px;
     left: 138px;
     position: absolute;
     top: 19px;
-    z-index: 5000;
 
     .live-mlb-diamond, svg {
       height: 100%;
@@ -265,7 +229,6 @@
     border-radius: 32px;
     height: 32px;
     padding: 4px 14px;
-    z-index: 5000;
     position: absolute;
     left: 138px;
     top: 16px;
@@ -314,20 +277,6 @@
     font-size: 12px;
   }
 
-  // TEMP until real photos exist
-  &__initials {
-    color: #fff;
-    font-size: 15px;
-    font-family: $font-oswald;
-    text-transform: uppercase;
-    font-weight: 400;
-    opacity: 0.5;
-    text-align: center;
-    padding-top: 13px;
-    z-index: 5050;
-    position: relative;
-  }
-
   &__status {
     border-radius: 50%;
     width: 6px;
@@ -355,7 +304,7 @@
     font-family: $font-oswald;
     text-transform: uppercase;
     font-weight: 400;
-    z-index: 5050;
+    z-index: 50;
   }
 
   // when playing show the green status indicator as well as make the PMR circle around the photo
@@ -408,9 +357,8 @@
     background-color: #bf313e;
   }
 
-  .live-lineup-player__hover-stats,
-  .love-lineup-player__photo {
-    right: 0;
+  .live-lineup-player__hover-stats {
+    right: 2px;
     left: auto;
   }
 }

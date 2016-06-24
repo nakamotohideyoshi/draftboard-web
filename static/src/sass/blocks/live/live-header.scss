@@ -1,0 +1,15 @@
+@import '../../variables.scss';
+
+
+//
+// BEM block for React LiveHeader
+//
+
+$block: '.live-header';
+
+#{$block} {
+  padding: 0 0 60px;
+  position: relative;
+  text-align: center;
+  z-index: $zindex-live-header;
+}

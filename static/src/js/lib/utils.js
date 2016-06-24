@@ -22,15 +22,6 @@ export function toTwoDigit(number) {
 }
 
 
-export function formatCurrency(number) {
-  if (number % 1 !== 0) {
-    return number.toFixed(2);
-  }
-
-  return number;
-}
-
-
 /**
  * From a UTC timestamp, determine the time remaining, parsed out into hours, minutes, and seconds.
  * @param  {[type]} timestamp A UTC timestamp.

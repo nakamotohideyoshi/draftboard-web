@@ -6,6 +6,7 @@ import store from '../../store';
 import { bindActionCreators } from 'redux';
 import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups';
 import { fetchSportsIfNeeded } from '../../actions/sports';
+import { humanizeCurrency } from '../../lib/utils/currency';
 import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { Provider, connect } from 'react-redux';
 import { removeUnusedContests } from '../../actions/live-contests';
@@ -55,7 +56,7 @@ const NavScoreboard = React.createClass({
 
   getDefaultProps() {
     return {
-      cashBalance: `$${window.dfs.user.cashBalance}`,
+      cashBalance: humanizeCurrency(window.dfs.user.cashBalance),
     };
   },
 
@@ -92,9 +93,11 @@ const NavScoreboard = React.createClass({
     // start parity checks
     window.setInterval(() => this.props.actions.fetchSportsIfNeeded(), 5000);
 
-    // remove expired objects within Redux
-    this.props.actions.removeUnusedContests();
-    this.props.actions.removeUnusedDraftGroups();
+    // remove expired objects within Redux if you aren't on the results page
+    if (window.location.pathname.substring(0, 9) !== '/results/') {
+      this.props.actions.removeUnusedContests();
+      this.props.actions.removeUnusedDraftGroups();
+    }
   },
 
   /**

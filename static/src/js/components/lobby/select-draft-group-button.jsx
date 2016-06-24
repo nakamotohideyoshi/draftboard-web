@@ -12,6 +12,26 @@ const SelectDraftGroupButton = React.createClass({
     draftGroupInfo: React.PropTypes.object.isRequired,
     focusedSport: React.PropTypes.string.isRequired,
     onClick: React.PropTypes.func.isRequired,
+    style: React.PropTypes.string,
+    classNames: React.PropTypes.string,
+    title: React.PropTypes.string,
+  },
+
+
+  getDefaultProps() {
+    return {
+      style: 'button',
+      classNames: 'button button--medium button--outline',
+    };
+  },
+
+
+  getTitle(title, focusedSport) {
+    if (title) {
+      return title;
+    }
+
+    return `New ${focusedSport.toUpperCase()} Lineup`;
   },
 
 
@@ -23,9 +43,9 @@ const SelectDraftGroupButton = React.createClass({
       return (
         <a
           href={`/draft/${draftGroup.pk}`}
-          className="button button--medium button--outline"
+          className={this.props.classNames}
         >
-          Draft an {focusedSport} Team <span className="right">→</span>
+          {this.getTitle(this.props.title, focusedSport)} <span className="right">→</span>
         </a>
       );
     }
@@ -35,9 +55,9 @@ const SelectDraftGroupButton = React.createClass({
     return (
       <span
         onClick={this.props.onClick}
-        className="button button--medium button--outline"
+        className={this.props.classNames}
       >
-        Select a Contest Time <span className="right">→</span>
+        {this.getTitle(this.props.title, focusedSport)} <span className="right">→</span>
       </span>
     );
   },

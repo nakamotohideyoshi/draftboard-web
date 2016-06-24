@@ -1,0 +1,83 @@
+@import "../../variables.scss";
+
+
+//
+// BEM block for React LiveChooseLineup
+// - uses flex to center the __inner div
+// - uses transition on hover for push out effect on each __option
+//
+
+$block: '.live-choose-lineup';
+
+#{$block} {
+  align-items: center;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+
+  &__inner {
+    background: #262a3b;
+    overflow: auto;
+    padding: 25px;
+    width: 370px;
+  }
+
+  &__title {
+    color: #fff;
+    font-size: 18px;
+    font-family: $font-oswald;
+    font-weight: 700;
+    margin: 0;
+    padding: 0 0 15px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  &__options {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__option {
+    background: #fff url(../../../img/blocks/draft-group-select/arrows.png) no-repeat 90% 38px;
+    background-size: 15px auto;
+    border-bottom: 1px solid #d8dadf;
+    cursor: pointer;
+    display: block;
+    margin: 0 5px;
+    padding: 15px 25px;
+    transition: margin 0.25s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-position: 90% -73px;  // green arrow
+      margin: 0;
+
+      #{$block}__name {
+        color: #46495e;
+      }
+
+      #{$block}__info {
+        color: #46495e;
+      }
+    }
+  }
+
+  &__name {
+    color: #9c9faf;
+    font-family: $font-oswald;
+    font-size: 20px;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__info {
+    color: #9c9faf;
+    font-size: 12px;
+  }
+}

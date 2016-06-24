@@ -192,24 +192,23 @@ category: HTML Elements
 
 @import "./variables.scss";
 
-
-// Default to box layout http://www.w3schools.com/css/css_boxmodel.asp
-*, *:before, *:after {
+html {
   box-sizing: border-box;
+  font-family: $font-open-sans;
 }
 
-// default font
-html {
-  font-family: $font-open-sans;
+// http://www.paulirish.com/2012/box-sizing-border-box-ftw/
+*, *:before, *:after {
+  box-sizing: inherit;
 }
 
 html, body {
   background: #050e1f;
+  color: $primary-text;
   // Avoid the IE 10-11 `min-height` bug by using `height`.
   // Use `%` instead of `vh` since `vh` is buggy in older mobile Safari.
   height: 100%;
   margin: 0;
-  color: $primary-text;
 }
 
 h1, h2, h3, h4, h5, h6 {
