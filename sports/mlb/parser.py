@@ -908,6 +908,45 @@ class PlayerStats(DataDenPlayerStats):
 
         self.ps.save() # commit changes
 
+class AbstractManager(object):
+
+    # exceptions for validity checking
+    class InvalidReducer(Exception): pass
+    class InvalidShrinker(Exception): pass
+
+    # must be set by child classes
+    reducer_class = None
+    shrinker_class = None
+
+    def __init__(self, raw_data):
+        """
+        adds the key values in the 'stats' dict into the
+        """
+        if self.reducer_class is None:
+            raise self.InvalidReducer('"reducer_class" cant be None')
+        if self.shrinker_class is None:
+            raise self.InvalidShrinker('"shrinker_class" cant be None')
+
+        self.raw_data = raw_data
+
+    def get_data(self, additional_data=None):
+        # reduce the raw data - pop() unwanted fields
+        reduced = self.reducer_class(self.raw_data).reduce()
+        # shrink the reduced data
+        shrunk = self.shrinker_class(reduced).shrink()
+
+        # add_data should be called after
+        return self.add_data(shrunk, additional_data)
+
+    def add_data(self, base_data, additional=None):
+        if additional is not None:
+            for k,v in additional.items():
+                # add this key:value of additional data,
+                # but only if the field doesnt exist already in orig
+                if base_data.get(k, None) is None:
+                    base_data[k] = v
+        return base_data
+
 class AbstractStatReducer(object):
     """
     pop()'s keys out of dictionaries for the strict purpose
@@ -984,59 +1023,40 @@ class AbstractShrinker(object):
         #
         return self.shrinked
 
-class RunnerReducer(AbstractStatReducer):
-
-    remove_fields = [
-        'at_bat__id',
-        'dd_updated__id',
-        'first_name',
-        'game__id',
-        'jersey_number',
-        'parent_api__id',
-        'parent_list__id',
-        'pitch__id',
-    ]
-
-    field_out = 'out'
-
-    def pre_reduce(self):
-        d = self.get_internal_data()
-        out_as_str = d.get(self.field_out, None)
-        #print('out_as_str:', str(out_as_str))
-        d[self.field_out] = self.str2bool(out_as_str)
-        #print('d:', str(d))
-        self.data = d
-
-        super().pre_reduce()
-
 class AtBatReducer(AbstractStatReducer):
 
     remove_fields = [
         '_id',
-        'dd_updated__id',
         'parent_api__id',
         'pitchs',
         'game__id',
         'id',
         'created_at',
+        'updated_at',
+        'runners__list',
         'count__list',
+        'flags__list',
+        'fielders__list',
+        'status',
+        'pitcher',
+        'hit_location',
+        'hit_type',
     ]
 
 class AtBatShrinker(AbstractShrinker):
 
     fields = {
+        'id' : 'srid',
+        'at_bat__id' : 'srid_at_bat',
+        'dd_updated__id' : 'ts',
         'hitter_id' : 'srid_hitter',
+        'outcome_id' : 'oid',
     }
 
-class AtBatManager(object):
+class AtBatManager(AbstractManager):
 
-    def __init__(self, at_bat):
-        self.data = at_bat
-
-    def get_data(self):
-        reduced = AtBatReducer(self.data).reduce()
-        shrunk = AtBatShrinker(reduced).shrink()
-        return shrunk
+    reducer_class = AtBatReducer
+    shrinker_class = AtBatShrinker
 
 class ZonePitchReducer(AbstractStatReducer):
 
@@ -1124,15 +1144,19 @@ class ZonePitchSorter(object):
         #print('leftover unused_pitches:', str(unused_pitches))
         return [ zp for zp in ordered_zps.values() ]
 
-class ZonePitchManager(object):
+class ZonePitchManager(AbstractManager):
     """
+    note: this class does not inherit AbstractManager.
+
     sort, reduce, and shrink the zone pitches and return a list of them
     """
+
     def __init__(self, zone_pitches, at_bat):
         self.zone_pitches = zone_pitches
         self.at_bat = at_bat
 
-    def get_data(self):
+    def get_data(self, additional_data=None):
+        """ override parent get_data() to perform on all the list items """
         sorter = ZonePitchSorter(self.zone_pitches, self.at_bat)
         sorted_zone_pitches = sorter.sort()
 
@@ -1143,29 +1167,52 @@ class ZonePitchManager(object):
             shrinker = ZonePitchShrinker(reduced_zp)
             shrunk_zp = shrinker.shrink()
             reduced_and_shrunk_zone_pitches.append(shrunk_zp)
+            for rszp in reduced_and_shrunk_zone_pitches:
+                self.add_data(rszp, additional_data)
         return reduced_and_shrunk_zone_pitches
+
+class RunnerReducer(AbstractStatReducer):
+
+    remove_fields = [
+        'at_bat__id',
+        'dd_updated__id',
+        'first_name',
+        'game__id',
+        'jersey_number',
+        'parent_api__id',
+        'parent_list__id',
+        'pitch__id',
+    ]
+
+    field_out = 'out'
+
+    def pre_reduce(self):
+        d = self.get_internal_data()
+        out_as_str = d.get(self.field_out, None)
+        #print('out_as_str:', str(out_as_str))
+        d[self.field_out] = self.str2bool(out_as_str)
+        #print('d:', str(d))
+        self.data = d
+
+        super().pre_reduce()
 
 class RunnerShrinker(AbstractShrinker):
 
     fields = {
+        'id'                : 'srid',
         'starting_base'     : 'start',
         'ending_base'       : 'end',
-        'outcome_id'        : 'o',
+        'outcome_id'        : 'oid',
         'preferred_name'    : 'fn',
         'last_name'         : 'ln',
     }
 
-class RunnerManager(object):
+class RunnerManager(AbstractManager):
 
     def __init__(self, runners):
         self.runners = runners
-        # print('')
-        # print('')
-        # print('RunnerManager runners:', str(runners))
-        # print('')
-        # print('')
 
-    def get_data(self):
+    def get_data(self, additional_data=None):
         reduced_and_shrunk_runners = []
         for runner in self.runners:
             rr = RunnerReducer(runner)
@@ -1173,6 +1220,8 @@ class RunnerManager(object):
             rs = RunnerShrinker(reduced_runner)
             shrunk_runner = rs.shrink()
             reduced_and_shrunk_runners.append(shrunk_runner)
+            for rsr in reduced_and_shrunk_runners:
+                self.add_data(rsr, additional_data)
         return reduced_and_shrunk_runners
 
 class PitchPbpReducer(AbstractStatReducer):
@@ -1194,7 +1243,7 @@ class PitchPbpReducer(AbstractStatReducer):
                 flags[k] = self.str2bool(v)
 
             # add onbase_list stats back in
-            self.data = flags
+            self.reduced = flags
 
             # make sure to call super at the end
             super().pre_reduce()
@@ -1207,7 +1256,6 @@ class PitchPbpReducer(AbstractStatReducer):
         'hit_location',
         'hit_type',
         'parent_api__id',
-        'dd_updated__id',
         'status',
     ]
 
@@ -1234,11 +1282,14 @@ class PitchPbpShrinker(AbstractShrinker):
         }
 
     fields = {
+        'dd_updated__id'    : 'ts',
+        'id'                : 'srid',
         'at_bat__id'        : 'srid_at_bat',
         'count__list'       : 'count',
         'flags__list'       : 'flags',
         'game__id'          : 'srid_game',
         'pitcher'           : 'srid_pitcher',
+        'outcome_id'        : 'oid',
     }
 
     def shrink(self):
@@ -1248,15 +1299,10 @@ class PitchPbpShrinker(AbstractShrinker):
             data[k] = self.CountShrinker(data[k]).shrink()
         return data
 
-class PitchPbpManager(object):
+class PitchPbpManager(AbstractManager):
 
-    def __init__(self, pitch):
-        self.data = pitch
-
-    def get_data(self):
-        reduced = PitchPbpReducer(self.data).reduce()
-        shrunk = PitchPbpShrinker(reduced).shrink()
-        return shrunk
+    reducer_class = PitchPbpReducer
+    shrinker_class = PitchPbpShrinker
 
 class HittingListToStr(object):
     """
@@ -1843,7 +1889,7 @@ class PitchPbp(DataDenPbpDescription):
         """
         override default method from parent to add the linked objects
         """
-
+        additional_pitch_data = {'oid_fp':1.7} # TODO for testing
         pitch = requirements.get(self.pitch)
         srid_pitcher = pitch.get('pitcher')
         at_bat = requirements.get(self.at_bat)
@@ -1851,19 +1897,27 @@ class PitchPbp(DataDenPbpDescription):
         srid_at_bat_hitter = at_bat.get('hitter_id')
         zone_pitches = requirements.get(self.zone_pitches)
         runners = requirements.get(self.runners)
+        additional_runner_data = {'oid_fp':3.7} # TODO for testing
         srid_runners = [ r.get('id') for r in runners ] # not pulled from original data, but i think its fine
         # player_stats
         player_stats = self.find_player_stats(srid_game, srid_pitcher, srid_at_bat_hitter, srid_runners)
         # at_bat_stats
         at_bat_player_stats_hitter = self.find_at_bat_hitter_player_stats(srid_game, srid_at_bat_hitter)
+        additional_hitter_data = {
+            'fn' : at_bat_player_stats_hitter.player.first_name,
+            'ln' : at_bat_player_stats_hitter.player.last_name,
+            'srid_team' : at_bat_player_stats_hitter.player.team.srid,
+            'oid_fp' : 2.7, # TODO - arbitrary for testing
+        }
+
         at_bat_stats_str = PlayerStatsToStr(at_bat_player_stats_hitter).get_description()
 
         # get reduce/shrink manager instances
         pbp = {
-            self.pitch_pbp : PitchPbpManager(pitch).get_data(),
-            self.at_bat : AtBatManager(pitch).get_data(),
+            self.pitch_pbp : PitchPbpManager(pitch).get_data(additional_pitch_data),
+            self.at_bat : AtBatManager(pitch).get_data(additional_hitter_data),
             self.zone_pitches : ZonePitchManager(zone_pitches, at_bat).get_data(),
-            self.runners : RunnerManager(runners).get_data(),
+            self.runners : RunnerManager(runners).get_data(additional_runner_data),
             self.at_bat_stats : at_bat_stats_str,
             self.stats : [ ps.to_json() for ps in player_stats ],
         }
