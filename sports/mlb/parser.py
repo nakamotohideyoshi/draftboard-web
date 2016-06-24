@@ -1046,8 +1046,7 @@ class AtBatReducer(AbstractStatReducer):
 class AtBatShrinker(AbstractShrinker):
 
     fields = {
-        'id' : 'srid',
-        'at_bat__id' : 'srid_at_bat',
+        'at_bat__id' : 'srid',
         'dd_updated__id' : 'ts',
         'hitter_id' : 'srid_hitter',
         'outcome_id' : 'oid',
@@ -1251,6 +1250,7 @@ class PitchPbpReducer(AbstractStatReducer):
     remove_fields = [
         '_id',
         'created_at',
+        'updated_at',
         'fielders__list',
         'runners__list',    # leave runners_list in there for debugging
         'hit_location',
@@ -1274,7 +1274,9 @@ class PitchPbpShrinker(AbstractShrinker):
     """ reduce() then shrink the fields of a ZonePitch """
 
     class CountShrinker(AbstractShrinker):
+
         key = 'count'
+
         fields = {
             'strikes'       : 'k',
             'balls'         : 'b',
