@@ -1,6 +1,7 @@
 import CountdownClock from '../site/countdown-clock';
+import { humanizeCurrency } from '../../lib/utils/currency';
 import { isTimeInFuture } from '../../lib/utils';
-import LivePMRProgressBar from '../live/live-pmr-progress-bar';
+import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import React from 'react';
 import ResultsPane from './results-pane';
@@ -82,48 +83,33 @@ const ResultsLineup = React.createClass({
   },
 
   renderLineup() {
-    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.sport}/120`;
+    const { sport } = this.props;
     const isUpcoming = isTimeInFuture(this.props.start);
 
     const players = this.props.players.map((player) => {
-      let playerImage = `${playerImagesBaseUrl}/${player.player_meta.srid}.png`;
-
-      const playerPhoto = (
-        <img
-          alt="Player Headshot"
-          className="player-image"
-          src={playerImage}
-        />
-      );
-
-      let playerPhotoAndTimeRemaining = playerPhoto;
+      let decimalRemaining = 0;
 
       // if live, then show progress bar
       if (this.props.dateIsToday === true && isUpcoming === false) {
-        playerPhotoAndTimeRemaining = (
-          <div className="circle">
-            <div className="photo">
-              {playerPhoto}
-            </div>
-
-            <LivePMRProgressBar
-              decimalRemaining={player.timeRemaining.decimal}
-              strokeWidth={2}
-              backgroundHex="46495e"
-              hexStart="36b5cc"
-              hexEnd="214e9d"
-              svgWidth={30}
-              id={`${player.id}Player`}
-            />
-          </div>
-        );
+        decimalRemaining = player.timeRemaining.decimal;
       }
 
       return (
         <div key={player.player_id} className="player">
           <span className="position">{player.roster_spot}</span>
 
-          {playerPhotoAndTimeRemaining}
+          <div className="circle">
+            <PlayerPmrHeadshotComponent
+              colors={['46495e', '36b5cc', '214e9d']}
+              decimalRemaining={decimalRemaining}
+              modifiers={['results']}
+              playerSrid={player.player_meta.srid}
+              sport={sport}
+              uniquePmrId={`pmr-live-lineup-player-${player.id}`}
+              width={32}
+            />
+          </div>
+
           <span className="name">{player.full_name}</span>
           <span className="score">{player.fantasy_points}</span>
         </div>
@@ -143,13 +129,13 @@ const ResultsLineup = React.createClass({
           <div className="item">
             <span className="title">Fees</span>
             <span className="value">
-              {this.props.stats.buyin.toFixed(2)}
+              {humanizeCurrency(this.props.stats.buyin)}
             </span>
           </div>
           <div className="item">
             <span className="title">Won</span>
             <span className="value">
-              {this.props.stats.won.toFixed(2)}
+              {humanizeCurrency(this.props.stats.won)}
             </span>
           </div>
           <div className="item">
@@ -176,7 +162,7 @@ const ResultsLineup = React.createClass({
             <div className="item">
               <span className="title">Fees&nbsp;/&nbsp;Entries</span>
               <span className="value">
-                <span className="fees">${this.props.liveStats.fees.toFixed(2)}</span>
+                <span className="fees">{humanizeCurrency(this.props.liveStats.fees)}</span>
                 &nbsp;/&nbsp;
                 {this.props.liveStats.entries}
               </span>
@@ -194,7 +180,7 @@ const ResultsLineup = React.createClass({
             <div className="item">
               <span className="title">Winning</span>
               <span className="value">
-                {this.props.liveStats.potentialWinnings.amount.toFixed(2)}
+                {humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
               </span>
             </div>
             <div className="item">
@@ -243,7 +229,7 @@ const ResultsLineup = React.createClass({
             className="contest"
           >
             <div className="title">{contest.name}</div>
-            <div className="prize">${entry.buyin}</div>
+            <div className="prize">{humanizeCurrency(entry.buyin)}</div>
           </div>
         );
       }
@@ -254,7 +240,7 @@ const ResultsLineup = React.createClass({
           onClick={this.handleShowContestPane.bind(this, contest.id, entry)}
         >
           <div className="title">{contest.name}</div>
-          <div className="prize">${entry.payout.amount.toFixed(2)}</div>
+          <div className="prize">{humanizeCurrency(entry.payout.amount)}</div>
           <div className="place">{this.numToPlace(entry.final_rank)}</div>
         </div>
       );

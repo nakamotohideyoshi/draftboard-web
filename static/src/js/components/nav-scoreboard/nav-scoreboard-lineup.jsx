@@ -1,5 +1,6 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
+import { humanizeCurrency } from '../../lib/utils/currency';
 import { humanizeFP } from '../../actions/sports';
 
 
@@ -47,7 +48,7 @@ const NavScoreboardLineup = React.createClass({
         <div className="right">
           { humanizeFP(fp) } <span className="unit">PTS / </span>
           { timeRemaining.duration } <span className="unit">PMR / </span>
-          <span className="balance">${ potentialWinnings.toFixed(2) }</span>
+          <span className="balance">{ humanizeCurrency(potentialWinnings) }</span>
         </div>
       </div>
     );

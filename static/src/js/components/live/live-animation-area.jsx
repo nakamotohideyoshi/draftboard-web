@@ -19,15 +19,44 @@ const mapStateToProps = (state) => ({
  * Return the header section of the live page, including the lineup/contest title and overall stats
  */
 export const LiveAnimationArea = (props) => {
-  switch (props.watching.sport) {
-    case 'mlb':
-      return (
+  const { eventsMultipart, watching } = props;
+
+  switch (watching.sport) {
+    case 'mlb': {
+      const myEventId = eventsMultipart.watchablePlayers[watching.myPlayerSRID];
+      const myEvent = eventsMultipart.events[myEventId] || {};
+      let modifiers = ['all-mine'];
+
+      if (watching.opponentLineupId) modifiers = ['splitscreen-mine'];
+      const venues = [(
         <LiveMLBStadium
-          animationEvents={props.animationEvents}
-          eventsMultipart={props.eventsMultipart}
-          watching={props.watching}
+          event={myEvent}
+          key="mine"
+          modifiers={modifiers}
+          whichSide="mine"
         />
+      )];
+
+      if (watching.opponentLineupId) {
+        const opponentEventId = eventsMultipart.watchablePlayers[watching.opponentPlayerSRID];
+        const opponentEvent = eventsMultipart.events[opponentEventId] || {};
+
+        venues.push(
+          <LiveMLBStadium
+            event={opponentEvent}
+            key="opponent"
+            modifiers={['splitscreen-opponent']}
+            whichSide="opponent"
+          />
+        );
+      }
+
+      return (
+        <div className="live__venue-mlb">
+          {venues}
+        </div>
       );
+    }
     case 'nba':
       return (
         <LiveNBACourt animationEvents={props.animationEvents} />

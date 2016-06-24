@@ -13,7 +13,7 @@ $nav-scoreboard-foreground-color: #25A758;
   position: fixed;
   top: 0;
   width: 100%;
-  z-index: 1010;
+  z-index: $zindex-nav-scoreboard;
 
   // We need a single top-level element that react renders to (aaaannoying).
   .inner {
@@ -331,7 +331,7 @@ $nav-scoreboard-foreground-color: #25A758;
       cursor: pointer;
       display: inline-block;
       font-size: 11px;
-      padding: 12px 5px;
+      padding: 12px 20px;
       height: $nav-scoreboard-height;
       overflow: hidden;
 

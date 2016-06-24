@@ -1,0 +1,66 @@
+@import "../../../variables.scss";
+
+
+//
+// BEM block for React LiveMLBPitchZone
+// - the large screen-wide stadium bg is within this, so the pitch zone is always
+//   over the catcher
+//
+
+$block: '.live-mlb-pitch-zone-pitch';
+
+#{$block} {
+  border-radius: 50%;
+  color: #fff;
+  display: block;
+  height: 25px;
+  opacity: 0.4;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  width: 25px;
+
+  // latest pitch should show fully
+  &:last-child {
+    opacity: 1;
+  }
+
+  &__info {
+    // position off screen
+    bottom: -9999px;
+    left: -9999px;
+
+    color: #fff;
+    font-size: 8px;
+    line-height: 1.2;
+    position: absolute;
+    text-align: left;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  &:hover #{$block}__info {
+    bottom: -15px;
+    left: 22px;
+  }
+
+  &__count {
+    font-size: 12px;
+    font-family: $font-oswald;
+    line-height: 25px;
+  }
+
+  &--ball {
+    background-image: -moz-radial-gradient( 50% 50%, circle closest-side, rgb(227,60,60) 0%, rgb(95,7,101) 100%);
+    background-image: -webkit-radial-gradient( 50% 50%, circle closest-side, rgb(227,60,60) 0%, rgb(95,7,101) 100%);
+    background-image: radial-gradient(circle closest-side at 50% 50%, rgb(227,60,60) 0%, rgb(95,7,101) 100%);
+    background-image: -ms-radial-gradient( 50% 50%, circle closest-side, rgb(227,60,60) 0%, rgb(95,7,101) 100%);
+  }
+
+  &--strike {
+    background-image: -moz-radial-gradient( 50% 50%, circle closest-side, rgb(52,180,204) 0%, rgb(33,78,157) 100%);
+    background-image: -webkit-radial-gradient( 50% 50%, circle closest-side, rgb(52,180,204) 0%, rgb(33,78,157) 100%);
+    background-image: radial-gradient(circle closest-side at 50% 50%, rgb(52,180,204) 0%, rgb(33,78,157) 100%);
+    background-image: -ms-radial-gradient( 50% 50%, circle closest-side, rgb(52,180,204) 0%, rgb(33,78,157) 100%);
+  }
+}

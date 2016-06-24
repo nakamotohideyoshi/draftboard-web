@@ -178,11 +178,12 @@ const fetchLineupsRostersIfNeeded = () => (dispatch, getState) => {
 export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
   log.info('actions.fetchRelatedLineupsInfo()');
 
+  const state = getState();
+
   // if there are no lineups to watch, then reset
-  if (!dispatch(doesMyLineupExist())) return dispatch(resetWatchingAndPath());
+  if (!doesMyLineupExist(state)) return dispatch(resetWatchingAndPath());
 
   const calls = [];
-  const state = getState();
 
   forEach(state.currentLineups.items, (lineup) => {
     const { contests, sport, draftGroup } = lineup;
@@ -252,5 +253,6 @@ export const fetchCurrentLineupsAndRelated = (force) => (dispatch, getState) => 
     });
   }
 
-  return Promise.resolve('Lineups already fetched');
+  // otherwise just check on the related info
+  return dispatch(fetchRelatedLineupsInfo());
 };
