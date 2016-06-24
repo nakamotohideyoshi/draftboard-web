@@ -1,140 +1,64 @@
-$live-lineup-width: 200px;
+@import "../variables.scss";
 
-.cmp-live {
-  min-height: 600px;
-  height: 100%;
+
+//
+// BEM block for React Live
+// - trickery with block height that uses viewport height minus the top nav bar
+// - backgrounds for the live section are set here (except MLB stadium, is in LiveMLBPitchZone)
+//
+
+$block: '.live';
+
+#{$block} {
+  background: transparent url(../img/blocks/live/bg.jpg) no-repeat center top;
+  background-size: cover;
+  min-height: 700px;
+  height: calc(100vh - #{$nav-scoreboard-height});
   margin: 0 auto;
   min-width: 1024px;
-  padding-top: 54px;
+  overflow: hidden;
   position: relative;
-  width: 100%;
+  top: $nav-scoreboard-height;
+  width: 100vw;
 
-  // react element
-  .live__bg {
-    background-color: transparent;
-    background-image: transparent url(../img/blocks/live/bg.jpg);
-    background-position: center top;
-    background-repeat: no-repeat;
-    background-size: cover;
-    height: 100%;
+  &--sport {
+    &-mlb {
+      // background that matches edges of stadium background
+      background-color: rgb(8,20,38);
 
-    &.live--countdown {
-      &.live--sport {
-        &-mlb {
-          background-image: url(../img/blocks/live-countdown/bg-mlb.jpg);
-          background-size: cover;
-        }
-        &-nba {
-          background-image: url(../img/blocks/live-countdown/bg-nba.jpg);
-          background-size: cover;
-        }
+      &#{$block}--countdown {
+        background-image: url(../img/blocks/live-countdown/bg-mlb.jpg);
+        background-size: cover;
       }
     }
 
-    &.live--sport {
-      &-mlb {
-        background-image: url(../img/blocks/live/bg-mlb.jpg);
-        background-size: cover;
-      }
-      &-nba {
-        background-image: url(../img/blocks/live/bg-nba.jpg);
+    &-nba {
+      background-image: url(../img/blocks/live/bg-nba.jpg);
+      background-size: cover;
+
+      &#{$block}--countdown {
+        background-image: url(../img/blocks/live-countdown/bg-nba.jpg);
         background-size: cover;
       }
     }
   }
 
-  & > * {
-    position: relative;
-    z-index: 2;
-  }
-
-  &__court-scoreboard {
+  // vertically center the stats of the venue
+  &__venues {
     display: table;
     height: 100%;
-    min-height: 600px;
     padding: 0 $live-lineup-width;
+    position: absolute;
     width: 100%;
   }
-
-  .court-scoreboard__content {
+  &__venues-inner {
     display: table-cell;
     vertical-align: middle;
   }
 
-  &--with-opponent {
-    &:after {
-      content: " ";
-      width: 50%;
-      height: 100%;
-      position: absolute;
-      right: 0;
-      top: 0;
-      z-index: 1;
-    }
-  }
-
-  .live--loading {
+  &__venue-mlb {
     width: 100%;
-    height: 100%;
-    left: 0;
-    top: 0;
-    position: absolute;
-
-    &__pools {
-      font-size: 20px;
-      color: #fff;
-      white-space: nowrap;
-      left: -90px;
-      position: relative;
-      top: -50px;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      position: relative;
-      margin: 0 auto;
-      top: 50%;
-    }
-
-    .double-bounce1, .double-bounce2 {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      background-color: #fff;
-      opacity: 0.6;
-      position: absolute;
-      top: 0;
-      left: 0;
-
-      -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
-      animation: sk-bounce 2.0s infinite ease-in-out;
-    }
-
-    .double-bounce2 {
-      -webkit-animation-delay: -1.0s;
-      animation-delay: -1.0s;
-    }
-
-    @-webkit-keyframes sk-bounce {
-      0%, 100% { -webkit-transform: scale(0.0) }
-      50% { -webkit-transform: scale(1.0) }
-    }
-
-    @keyframes sk-bounce {
-      0%, 100% {
-        transform: scale(0.0);
-        -webkit-transform: scale(0.0);
-      } 50% {
-        transform: scale(1.0);
-        -webkit-transform: scale(1.0);
-      }
-    }
-  }
-
-  .preload-court {
-    background: transparent url(../img/blocks/live-nba-court/bg.png) no-repeat;
-    width: 0;
-    height: 0;
+    min-height: 215px;  // same height has pitch-zone, since it's absolute
+    text-align: center;
   }
 }

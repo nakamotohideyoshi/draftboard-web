@@ -1,11 +1,11 @@
 import LiveMLBDiamond from './mlb/live-mlb-diamond';
-import LivePMRProgressBar from './live-pmr-progress-bar';
 import React from 'react';
 import forEach from 'lodash/forEach';
 import merge from 'lodash/merge';
 import extend from 'lodash/extend';
 import size from 'lodash/size';
 import { humanizeFP } from '../../actions/sports';
+import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 
 
 const LiveLineupPlayer = React.createClass({
@@ -87,35 +87,25 @@ const LiveLineupPlayer = React.createClass({
   },
 
   renderPhotoAndHover() {
-    const decimalRemaining = this.props.player.timeRemaining.decimal;
-    let playerImage = `${this.props.playerImagesBaseUrl}/${this.props.player.srid}.png`;
+    const { player, openPlayerPane, sport } = this.props;
+
+    // use different colors for which side client is viewing
+    let colors = ['46495e', '34B4CC', '2871AC'];
+    if (this.props.whichSide === 'opponent') {
+      colors = ['3e4155', 'db3c3d', '611a59'];
+    }
 
     return (
-      <div key="1" className="live-lineup-player__circle" onClick={this.props.openPlayerPane}>
-        <div className="live-lineup-player__photo">
-          <img
-            alt="Player Headshot"
-            src={playerImage}
-            onError={
-              /* eslint-disable no-param-reassign */
-              (e) => {
-                e.target.className = 'default-player';
-                e.target.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
-              }
-              /* eslint-enable no-param-reassign */
-            }
-          />
-        </div>
-
-        <LivePMRProgressBar
-          decimalRemaining={decimalRemaining}
-          strokeWidth={2}
-          backgroundHex="46495e"
-          hexStart="34B4CC"
-          hexEnd="2871AC"
-          svgWidth={50}
-          id={`${this.props.player.id}LineupPlayer`}
+      <div key="1" className="live-lineup-player__headshot-gamestats" onClick={openPlayerPane}>
+        <PlayerPmrHeadshotComponent
+          colors={colors}
+          decimalRemaining={player.timeRemaining.decimal}
+          playerSrid={player.srid}
+          sport={sport}
+          uniquePmrId={`pmr-live-lineup-player-${player.id}`}
+          width={52}
         />
+
         {this.renderGameStats()}
       </div>
     );
@@ -221,28 +211,20 @@ const LiveLineupPlayer = React.createClass({
 
     // if we have not started, show dumbed down version for countdown
     if (this.props.draftGroupStarted === false) {
-      let playerImage = `${this.props.playerImagesBaseUrl}/${player.srid}.png`;
-
       return (
         <li className={`live-lineup-player live-lineup-player--upcoming live-lineup-player--sport-${this.props.sport}`}>
           <div className="live-lineup-player__position">
             {player.position}
           </div>
-          <div className="live-lineup-player__circle">
-            <div className="live-lineup-player__photo">
-              <img
-                alt="Player Headshot"
-                src={playerImage}
-                onError={
-                  /* eslint-disable no-param-reassign */
-                  (e) => {
-                    e.target.className = 'default-player';
-                    e.target.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
-                  }
-                  /* eslint-enable no-param-reassign */
-                }
-              />
-            </div>
+          <div key="1" className="live-lineup-player__headshot-gamestats" onClick={this.props.openPlayerPane}>
+            <PlayerPmrHeadshotComponent
+              modifiers={['upcoming', `sport-${this.props.sport}`]}
+              pmrColors={['46495e', '34B4CC', '2871AC']}
+              playerSrid={this.props.player.srid}
+              sport={this.props.sport}
+              uniquePmrId={`pmr-live-lineup-player-${this.props.player.id}`}
+              width={50}
+            />
           </div>
           <div className="live-lineup-player__only-name">
             {player.name}

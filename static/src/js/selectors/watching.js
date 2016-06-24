@@ -136,8 +136,8 @@ const calcPotentialContestStats = (lineup, contest, entriesCount = 0) => {
   const rank = contestLineup.rank || 0;
 
   return {
-    amount: contestLineup.potentialWinnings,
-    percent: rank / entriesCount * 100,
+    potentialWinnings: contestLineup.potentialWinnings,
+    rankPercent: rank / entriesCount * 100,
     rank,
   };
 };
@@ -167,9 +167,11 @@ export const calcTotalPotentialEarnings = (lineups, contestsStats) =>
         const contestLineups = contestsStats[contestId].lineups || {};
 
         if (contestLineups.hasOwnProperty(lineup.id)) {
-          return lineupSum + contestsStats[contestId].lineups[lineup.id].potentialWinnings;
+          return lineupSum + contestLineups[lineup.id].potentialWinnings;
         }
       }
+
+      return lineupSum;
     }, 0),
   0);
 
@@ -253,12 +255,16 @@ export const watchingContestSelector = createSelector([
     );
   }
 
-  return merge({}, contest, {
-    isLoading: false,
-    lineupsUsernames: originalContest.lineupsUsernames || {},
-    potentialWinnings: calcPotentialContestStats(myLineup, contest, 1),
-    playersOwnership,
-  });
+  return merge(
+    {},
+    contest,
+    calcPotentialContestStats(myLineup, contest, 1),
+    {
+      isLoading: false,
+      lineupsUsernames: originalContest.lineupsUsernames || {},
+      playersOwnership,
+    }
+  );
 });
 
 // exported simply to test
@@ -269,9 +275,7 @@ export const watchingOpponentLineupSelector = createSelector(
     if (contest.isLoading) return isLoadingObj;
 
     const lineup = contest.lineups[watching.opponentLineupId];
-    return merge({}, lineup, {
-      potentialWinnings: calcPotentialContestStats(lineup, contest),
-    });
+    return merge({}, lineup, calcPotentialContestStats(lineup, contest));
   }
 );
 

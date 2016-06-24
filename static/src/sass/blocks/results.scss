@@ -264,45 +264,12 @@ $results-selected-text-color: #2bb677;
           .circle {
             background-size: 120% auto;
             border-radius: 50%;
-            height: 32px;
-            position: relative;
-            width: 32px;
             display: inline-block;
-            top: 13px;
-            margin-left: 6px;
-          }
-
-          .live-pmr {
-            position: absolute;
-            width: 28px;
-            z-index: 5040;
-          }
-
-          > .player-image {
+            height: 32px;
             margin: 0 6px;
-            max-width: 40px;
             position: relative;
-            top: 12px;
-          }
-
-          .photo {
-            background: #ebedf2;
-            border-radius: 50%;
-            height: 26px;
-            overflow: hidden;
-            position: absolute;
-            top: 0;
-            z-index: 5030;
-            width: 26px;
-
-            img {
-              background: #dee0e8;
-              display: inline-block;
-              height: 26px;
-              left: 2%;
-              position: relative;
-              top: 3px;
-            }
+            top: 10px;
+            width: 32px;
           }
 
           .name {

@@ -105,16 +105,19 @@ const LivePlayerPane = React.createClass({
           const className = `current-game__mlb-half-inning \
             mlb-half-inning--${(boxScore.inning_half === 'B') ? 'bottom' : 'top'}`;
 
-          gameTimeElement = (
-            <div className="current-game__time">
-              <div className={className}>
-                <svg className="down-arrow" viewBox="0 0 40 22.12">
-                  <path d="M20,31.06L0,8.94H40Z" transform="translate(0 -8.94)" />
-                </svg>
+          if (boxScore.inning > 0) {
+            gameTimeElement = (
+              <div className="current-game__time">
+                <div className={className}>
+                  <svg className="down-arrow" viewBox="0 0 40 22.12">
+                    <path d="M20,31.06L0,8.94H40Z" transform="translate(0 -8.94)" />
+                  </svg>
+                </div>
+                <div className="current-game__time__timer">{stringifyMLBWhen(boxScore.inning)}</div>
               </div>
-              <div className="current-game__time__timer">{stringifyMLBWhen(boxScore.inning)}</div>
-            </div>
-          );
+            );
+          }
+
 
           break;
         }
@@ -237,13 +240,11 @@ const LivePlayerPane = React.createClass({
         <div className="header__pts-stats">
           <div className="header__pts-stats__info">
             <LivePMRProgressBar
+              colors={['46495e', '34B4CC', '2871AC']}
               decimalRemaining={player.timeRemaining.decimal}
-              strokeWidth={1}
-              backgroundHex="46495e"
-              hexStart="34B4CC"
-              hexEnd="2871AC"
-              svgWidth={50}
               id={`${player.id}PlayerPane`}
+              strokeDecimal={0.03}
+              svgWidth={50}
             />
 
             <div className="header__pts-stats__info__insvg">

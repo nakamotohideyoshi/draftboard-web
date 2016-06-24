@@ -1,0 +1,67 @@
+@import "../../variables.scss";
+
+
+//
+// BEM block for React CountdownClock
+// - timestamp for time remaining till contest is live.
+// - so varied between places that modifiers are key
+// - TODO change to BEM elements
+//
+
+$block: '.cmp-countdown-clock';
+
+#{$block} {
+  color: #334359;
+  line-height: 1.25em;
+  display: inline;
+
+  .hours, .minutes, .seconds {
+    display: inline;
+  }
+
+  .minutes,
+  .seconds {
+    color: #46495e;
+  }
+
+  &--live-countdown {
+    display: inline-block;
+    height: 78px;
+    width: 300px;
+
+    .hours :first-child,
+    .minutes :first-child,
+    .seconds {
+      display: inline-block;
+      font-family: $font-droid-sans-mono;
+      font-size: 80px;
+      font-weight: 700;
+      left: 2px;
+      letter-spacing: -4px;
+      line-height: 0.94;
+      position: relative;
+      transform: scaleX(0.92);
+    }
+
+    .hours,
+    .minutes {
+      color: #8b8e9d;
+
+      :last-child {
+        display: inline-block;
+        font-family: $font-oswald;
+        font-size: 70px;
+        left: 1px;
+        position: relative;
+        text-align: center;
+        width: 16px;
+        top: -3px;
+      }
+    }
+
+    .seconds {
+      color: #fff;
+      left: 4px;
+    }
+  }
+}

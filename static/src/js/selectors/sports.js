@@ -24,7 +24,7 @@ export const sportsSelector = createSelector(
       const newGame = sports.games[gameId];
       const sport = game.sport;
       const sportConst = SPORT_CONST[sport];
-      const teams = sports[sport].teams;
+      const teams = sports[sport].teams || {};
 
       // Add team information - In case we don't have team info yet, default to
       // an empty object so things don't die looking for properties.

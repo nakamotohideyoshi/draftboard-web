@@ -155,12 +155,14 @@ const LineupCardList = React.createClass({
       return (
         <div
           className="cmp-lineup-card cmp-lineup-card--collapsed cmp-lineup-card--create-collapsed"
-          onClick={this.handleDraftButtonClick}
         >
           <header className="cmp-lineup-card__header">
-            <h3 className="cmp-lineup-card__title">
-              Create a Lineup <span className="cmp-lineup-card__plus">+</span>
-            </h3>
+            <SelectDraftGroupButton
+              draftGroupInfo={this.props.draftGroupInfo}
+              focusedSport={this.props.focusedSport}
+              onClick={this.props.openDraftGroupSelectionModal}
+              classNames="cmp-lineup-card__title"
+            />
           </header>
         </div>
       );
@@ -177,7 +179,8 @@ const LineupCardList = React.createClass({
         <SelectDraftGroupButton
           draftGroupInfo={this.props.draftGroupInfo}
           focusedSport={this.props.focusedSport}
-          onClick={this.handleDraftButtonClick}
+          onClick={this.props.openDraftGroupSelectionModal}
+          title="Start Drafting"
         />
       </div>
     );
@@ -186,11 +189,6 @@ const LineupCardList = React.createClass({
 
   handleLineupHovered(lineupId) {
     this.props.lineupHovered(lineupId);
-  },
-
-
-  handleDraftButtonClick() {
-    this.props.openDraftGroupSelectionModal();
   },
 
 

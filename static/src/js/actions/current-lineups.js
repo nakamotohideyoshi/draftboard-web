@@ -2,7 +2,6 @@ import * as ActionTypes from '../action-types';
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
 import log from '../lib/logging';
-import { addMessage } from './message-actions';
 import { CALL_API } from '../middleware/api';
 import { camelizeKeys } from 'humps';  // TODO remove this once API calls are camel-cased
 import { doesMyLineupExist, resetWatchingAndPath } from './watching';
@@ -10,6 +9,7 @@ import { dateNow, hasExpired } from '../lib/utils';
 import { fetchContestIfNeeded } from './live-contests';
 import { fetchDraftGroupIfNeeded } from './live-draft-groups';
 import { fetchGamesIfNeeded } from './sports';
+import errorHandler from './live-error-handler';
 import { Schema, arrayOf, normalize } from 'normalizr';
 
 
@@ -178,11 +178,12 @@ const fetchLineupsRostersIfNeeded = () => (dispatch, getState) => {
 export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
   log.info('actions.fetchRelatedLineupsInfo()');
 
+  const state = getState();
+
   // if there are no lineups to watch, then reset
-  if (!dispatch(doesMyLineupExist())) return dispatch(resetWatchingAndPath());
+  if (!doesMyLineupExist(state)) return dispatch(resetWatchingAndPath());
 
   const calls = [];
-  const state = getState();
 
   forEach(state.currentLineups.items, (lineup) => {
     const { contests, sport, draftGroup } = lineup;
@@ -216,15 +217,12 @@ export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
   ).then(
     () => dispatch(confirmRelatedLineupsInfo())
   )
-  .catch((err) => {
-    dispatch(addMessage({
-      header: 'Failed to connect to API.',
-      content: 'Please refresh the page to reconnect.',
-      level: 'warning',
-      id: 'apiFailure',
-    }));
-    log.error(err);
-  });
+  .catch((err) => dispatch(errorHandler(err, {
+    header: 'Failed to connect to API.',
+    content: 'Please refresh the page to reconnect.',
+    level: 'warning',
+    id: 'apiFailure',
+  })));
 };
 
 /**
@@ -241,16 +239,14 @@ export const fetchCurrentLineupsAndRelated = (force) => (dispatch, getState) => 
     ).then(
       () => dispatch(fetchRelatedLineupsInfo())
     )
-    .catch((err) => {
-      dispatch(addMessage({
-        header: 'Failed to connect to API.',
-        content: 'Please refresh the page to reconnect.',
-        level: 'warning',
-        id: 'apiFailure',
-      }));
-      log.error(err);
-    });
+    .catch((err) => dispatch(errorHandler(err, {
+      header: 'Failed to connect to API.',
+      content: 'Please refresh the page to reconnect.',
+      level: 'warning',
+      id: 'apiFailure',
+    })));
   }
 
-  return Promise.resolve('Lineups already fetched');
+  // otherwise just check on the related info
+  return dispatch(fetchRelatedLineupsInfo());
 };

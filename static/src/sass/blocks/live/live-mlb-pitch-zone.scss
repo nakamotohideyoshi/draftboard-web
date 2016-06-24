@@ -1,0 +1,36 @@
+//
+// BEM block for React LiveMLBPitchZone
+// - the large screen-wide stadium bg is within this, so the pitch zone is always over the catcher
+//
+
+$block: '.live-mlb-pitch-zone';
+
+#{$block} {
+  height: 215px;
+  position: relative;
+  width: 172.5px;
+
+  &__stadium-bg {
+    bottom: -140px;
+    position: absolute;
+    right: -640px;
+    width: 1440px;
+  }
+
+  &__inner {
+    display: inline-block;
+    position: relative;
+    z-index: 2;
+  }
+
+  &__zone-bg {
+    display: block;
+    width: 100%;
+  }
+
+  &__pitches {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+}

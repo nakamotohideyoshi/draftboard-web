@@ -1,7 +1,9 @@
 import React from 'react';
 import map from 'lodash/map';
+import size from 'lodash/size';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { humanizeCurrency } from '../../lib/utils/currency';
 import { updateWatchingAndPath } from '../../actions/watching.js';
 import * as AppActions from '../../stores/app-state-store';
 import LiveContestsPaneItem from './live-contests-pane-item';
@@ -63,7 +65,7 @@ export const LiveContestsPane = React.createClass({
   },
 
   render() {
-    const { totalBuyin, potentialWinnings } = this.props.lineup;
+    const { contestsStats, totalBuyin, potentialWinnings } = this.props.lineup;
 
     return (
       <div className="live-contests-pane live-pane live-pane--right">
@@ -73,18 +75,18 @@ export const LiveContestsPane = React.createClass({
 
             <div className="stats">
               <div className="num-contest">
-                18 <span>Contests</span>
+                {size(contestsStats)} <span>Contests</span>
               </div>
 
               <div className="profit">
                 <div className="fees">
-                  ${totalBuyin.toFixed(2)} Fees
+                  {humanizeCurrency(totalBuyin)} Fees
                 </div>
                 {" "} / {" "}
                 <div className="earnings">
                   Winning
                   {" "}
-                  <span>${potentialWinnings.toFixed(2)}</span>
+                  <span>{humanizeCurrency(potentialWinnings)}</span>
                 </div>
               </div>
             </div>

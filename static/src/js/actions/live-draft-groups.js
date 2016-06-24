@@ -1,16 +1,14 @@
-const request = require('superagent-promise')(require('superagent'), Promise);
-import forEach from 'lodash/forEach';
-import filter from 'lodash/filter';
-import size from 'lodash/size';
-import { normalize, Schema, arrayOf } from 'normalizr';
-
 import * as ActionTypes from '../action-types';
+import errorHandler from './live-error-handler';
+import filter from 'lodash/filter';
+import forEach from 'lodash/forEach';
 import log from '../lib/logging';
-import { addMessage } from './message-actions';
-import { dateNow } from '../lib/utils';
-import { fetchTeamsIfNeeded } from './sports';
-import { updateLivePlayersStats } from './live-players';
+import { CALL_API } from '../middleware/api';
+import { dateNow, hasExpired } from '../lib/utils';
 import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions';
+import { fetchTeamsIfNeeded } from './sports';
+import { normalize, Schema, arrayOf } from 'normalizr';
+import { updateLivePlayersStats } from './live-players';
 
 
 // dispatch to reducer methods
@@ -28,109 +26,6 @@ const confirmDraftGroupStored = (id) => ({
   id,
 });
 
-/**
- * Dispatch information to reducer that we are trying to get fantasy points for players in a draft group
- * Used to prevent repeat calls while requesting.
- * NOTE: this method must be wrapped with dispatch()
- * @return {object}   Changes for reducer
- */
-const requestDraftGroupFP = (id) => ({
-  id,
-  type: ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP,
-  expiresAt: dateNow() + 1000 * 60,  // 1 minute
-});
-
-/**
- * Dispatch information to reducer that we are trying to get draft group boxscores (only used for results)
- * Used to prevent repeat calls while requesting.
- * NOTE: this method must be wrapped with dispatch()
- * @return {object}   Changes for reducer
- */
-const requestDraftGroupBoxscores = (id) => ({
-  id,
-  type: ActionTypes.REQUEST_DRAFT_GROUP_BOXSCORES,
-  expiresAt: dateNow() + 1000 * 60,  // 1 minute
-});
-
-/**
- * Dispatch information to reducer that we are trying to get draft group information
- * Used to prevent repeat calls while requesting.
- * NOTE: this method must be wrapped with dispatch()
- * @return {object}   Changes for reducer
- */
-const requestDraftGroupInfo = (id) => ({
-  id,
-  type: ActionTypes.LIVE_DRAFT_GROUP__INFO__REQUEST,
-  expiresAt: dateNow() + 1000 * 60,  // 1 minute
-});
-
-/**
- * Dispatch API response object of boxscores for a draft group (only used for results)
- * NOTE: this method must be wrapped with dispatch()
- * @param  {number} id            Contest ID
- * @param  {object} response      Response of players
- * @return {object}               Changes for reducer
- */
-const receiveDraftGroupBoxscores = (id, boxscores) => ({
-  type: ActionTypes.RECEIVE_DRAFT_GROUP_BOXSCORES,
-  id,
-  boxscores,
-  expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
-});
-
-/**
- * Dispatch API response object of players with fantasy points in a draft group
- * Also pass through an updated at so that we can expire and re-poll after a period of time.
- * NOTE: this method must be wrapped with dispatch()
- * @param  {number} id            Contest ID
- * @param  {object} response      Response of players
- * @return {object}               Changes for reducer
- */
-const receiveDraftGroupFP = (id, players) => ({
-  type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
-  id,
-  players,
-  expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
-});
-
-/**
- * Dispatch API response object of draft group information
- * Also pass through an updated at so that we can expire and re-poll after a period of time.
- * NOTE: this method must be wrapped with dispatch()
- * @param  {number} id            Contest ID
- * @param  {object} response      API response
- * @return {object}               Changes for reducer
- */
-const receiveDraftGroupInfo = (id, response) => {
-  const playerSchema = new Schema('players', {
-    idAttribute: 'player_id',
-  });
-
-  const normalizedPlayers = normalize(
-    response.players,
-    arrayOf(playerSchema)
-  );
-
-  const players = normalizedPlayers.entities.players;
-  const playersBySRID = {};
-
-  forEach(players, (player) => {
-    playersBySRID[player.player_srid] = player.player_id;
-  });
-
-  return {
-    type: ActionTypes.LIVE_DRAFT_GROUP__INFO__RECEIVE,
-    id,
-    players,
-    playersBySRID,
-    sport: response.sport,
-    start: new Date(response.start).getTime(),
-    end: new Date(response.end).getTime(),
-    closed: (response.closed !== null) ? new Date(response.closed).getTime() : null,
-    expiresAt: dateNow() + 1000 * 60 * 60 * 12,  // 12 hours
-  };
-};
-
 
 // helper methods
 
@@ -140,18 +35,37 @@ const receiveDraftGroupInfo = (id, response) => {
  * @param {number} id  Draft group ID
  * @return {promise}   Promise that resolves with API response body to reducer
  */
-const fetchDraftGroupInfo = (id) => (dispatch) => {
-  dispatch(requestDraftGroupInfo(id));
+const fetchDraftGroupInfo = (id) => ({
+  [CALL_API]: {
+    types: [
+      ActionTypes.LIVE_DRAFT_GROUP__INFO__REQUEST,
+      ActionTypes.LIVE_DRAFT_GROUP__INFO__RECEIVE,
+      ActionTypes.ADD_MESSAGE,
+    ],
+    expiresAt: dateNow() + 1000 * 60 * 60 * 12,  // 12 hours
+    endpoint: `/api/draft-group/${id}/`,
+    requestFields: { id },
+    callback: (json) => {
+      const playerSchema = new Schema('players', {
+        idAttribute: 'player_id',
+      });
 
-  return request.get(
-    `/api/draft-group/${id}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    Accept: 'application/json',
-  }).then((res) =>
-    dispatch(receiveDraftGroupInfo(id, res.body))
-  );
-};
+      const normalizedPlayers = normalize(
+        json.players,
+        arrayOf(playerSchema)
+      );
+
+      return {
+        closed: (json.closed !== null) ? new Date(json.closed).getTime() : null,
+        end: new Date(json.end).getTime(),
+        id,
+        players: normalizedPlayers.entities.players,
+        sport: json.sport,
+        start: new Date(json.start).getTime(),
+      };
+    },
+  },
+});
 
 /**
  * Method to determine whether we need to fetch boxscores for a draft group.
@@ -167,14 +81,10 @@ const shouldFetchDraftGroupBoxscores = (state, id) => {
   }
 
   // don't fetch until expired
-  if (dateNow() < liveDraftGroups[id].boxscoresExpiresAt) {
-    return false;
-  }
+  if (!hasExpired(liveDraftGroups[id].boxscoresExpiresAt)) return false;
 
   // do not fetch if fetching info
-  if (liveDraftGroups[id].isFetchingBoxscores === true) {
-    return false;
-  }
+  if (liveDraftGroups[id].isFetchingBoxscores === true) return false;
 
   return true;
 };
@@ -196,7 +106,7 @@ const shouldFetchDraftGroupFP = (state, id) => {
   if (liveDraftGroups[id].start > dateNow()) return false;
 
   // don't fetch until expired
-  if (dateNow() < liveDraftGroups[id].fpExpiresAt) return false;
+  if (!hasExpired(liveDraftGroups[id].fpExpiresAt)) return false;
 
   return true;
 };
@@ -211,14 +121,10 @@ const shouldFetchDraftGroup = (state, id) => {
   const liveDraftGroups = state.liveDraftGroups;
 
   // fetch if draft group does not exist yet
-  if (liveDraftGroups.hasOwnProperty(id) === false) {
-    return true;
-  }
+  if (liveDraftGroups.hasOwnProperty(id) === false) return true;
 
   // fetch if expired
-  if (dateNow() > liveDraftGroups[id].infoExpiresAt) {
-    return true;
-  }
+  if (hasExpired(liveDraftGroups[id].infoExpiresAt)) return true;
 
   return false;
 };
@@ -231,43 +137,44 @@ const shouldFetchDraftGroup = (state, id) => {
  * @param {number} id  Draft group ID
  * @return {promise}   Promise that resolves with API response body to reducer
  */
-export const fetchDraftGroupBoxscores = (id) => (dispatch) => {
-  dispatch(requestDraftGroupBoxscores(id));
-
-  return request.get(
-    `/api/draft-group/boxscores/${id}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    Accept: 'application/json',
-  }).then(
-    (res) => dispatch(receiveDraftGroupBoxscores(id, res.body))
-  );
-};
+export const fetchDraftGroupBoxscores = (id) => ({
+  [CALL_API]: {
+    types: [
+      ActionTypes.REQUEST_DRAFT_GROUP_BOXSCORES,
+      ActionTypes.RECEIVE_DRAFT_GROUP_BOXSCORES,
+      ActionTypes.ADD_MESSAGE,
+    ],
+    expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
+    endpoint: `/api/draft-group/boxscores/${id}/`,
+    requestFields: { id },
+    callback: (json) => ({
+      id,
+      boxscores: json,
+    }),
+  },
+});
 
 /**
  * API GET to return fantasy points of players in a draft group
  * @param {number} id  Draft group ID
  * @return {promise}   Promise that resolves with API response body to reducer
  */
-export const fetchDraftGroupFP = (id) => (dispatch) => {
-  dispatch(requestDraftGroupFP(id));
-
-  log.info('actions.fetchDraftGroupFP() - Updating player fantasy points');
-
-  return request.get(
-    `/api/draft-group/fantasy-points/${id}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    Accept: 'application/json',
-  }).then((res) => {
-    let players = res.body.players;
-
-    // default to empty if FP isn't available yet
-    if (size(players) === 0) players = {};
-
-    return dispatch(receiveDraftGroupFP(id, players));
-  });
-};
+export const fetchDraftGroupFP = (id) => ({
+  [CALL_API]: {
+    types: [
+      ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP,
+      ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
+      ActionTypes.ADD_MESSAGE,
+    ],
+    expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
+    endpoint: `/api/draft-group/fantasy-points/${id}/`,
+    requestFields: { id },
+    callback: (json) => ({
+      id,
+      players: json.players || {},
+    }),
+  },
+});
 
 /**
  * Get fantasy points for players in a draft group if need be
@@ -319,15 +226,12 @@ export const fetchDraftGroupIfNeeded = (id, sport) => (dispatch, getState) => {
   .then(() =>
     dispatch(confirmDraftGroupStored(id))
   )
-  .catch((err) => {
-    dispatch(addMessage({
-      header: 'Failed to connect to API.',
-      content: 'Please refresh the page to reconnect.',
-      level: 'warning',
-      id: 'apiFailure',
-    }));
-    log.error(err);
-  });
+  .catch((err) => dispatch(errorHandler(err, {
+    header: 'Failed to connect to API.',
+    content: 'Please refresh the page to reconnect.',
+    level: 'warning',
+    id: 'apiFailure',
+  })));
 };
 
 /**

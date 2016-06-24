@@ -1,14 +1,14 @@
-const request = require('superagent-promise')(require('superagent'), Promise);
 import * as ActionTypes from '../action-types';
 import Cookies from 'js-cookie';
+import errorHandler from './live-error-handler';
+import fetch from 'isomorphic-fetch';
+import forEach from 'lodash/forEach';
+import log from '../lib/logging.js';
 import map from 'lodash/map';
 import zipObject from 'lodash/zipObject';
-import log from '../lib/logging';
-import { addMessage } from './message-actions';
-import { Buffer } from 'buffer/';
+import { CALL_API } from '../middleware/api';
 import { dateNow } from '../lib/utils';
 import { fetchPrizeIfNeeded } from './prizes';
-import forEach from 'lodash/forEach';
 import { SPORT_CONST } from '../actions/sports';
 
 
@@ -40,17 +40,6 @@ const requestContestLineups = (id) => ({
 });
 
 /**
- * Dispatch information to reducer that we are trying to get contest information
- * Used to prevent repeat calls while requesting.
- * NOTE: this method must be wrapped with dispatch()
- * @return {object}   Changes for reducer
- */
-const requestContestInfo = (id) => ({
-  id,
-  type: ActionTypes.REQUEST_LIVE_CONTEST_INFO,
-});
-
-/**
  * Dispatch information to reducer that we are trying to get contest lineup usernames
  * Used to prevent repeat calls while requesting.
  * NOTE: this method must be wrapped with dispatch()
@@ -75,21 +64,6 @@ const receiveContestLineups = (id, response, parsedLineups) => ({
   id,
   lineupBytes: response,
   lineups: parsedLineups,
-  expiresAt: dateNow() + 1000 * 60 * 60 * 24, // 1 day
-});
-
-/**
- * Dispatch API response object of contest information to the store
- * Also pass through an expires at so that we can re-poll after a period of time.
- * NOTE: this method must be wrapped with dispatch()
- * @param  {number} id       Contest ID
- * @param  {object} response API response from server
- * @return {object}          Changes for reducer
- */
-const receiveContestInfo = (id, response) => ({
-  type: ActionTypes.RECEIVE_LIVE_CONTEST_INFO,
-  id,
-  info: response,
   expiresAt: dateNow() + 1000 * 60 * 60 * 24, // 1 day
 });
 
@@ -202,14 +176,26 @@ const parseContestLineups = (apiContestLineupsBytes, sport) => {
 export const fetchContestLineups = (id, sport) => (dispatch) => {
   dispatch(requestContestLineups(id));
 
-  return request.get(
-    `/api/contest/all-lineups/${id}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-  }).then(
-    // NOTE we use res.text instead of res.body because the response is in hex bytes!
-    (res) => dispatch(receiveContestLineups(id, res.text, parseContestLineups(res.text, sport)))
-  );
+  return fetch(`/api/contest/all-lineups/${id}/`, {
+    credentials: 'same-origin',
+    Accept: 'application/json',
+    'X-CSRFToken': Cookies.get('csrftoken'),
+  }).then(response => {
+    // First, reject a response that isn't in the 200 range.
+    if (!response.ok) {
+      log.error('API request failed:', response);
+      return Promise.reject(response);
+    }
+
+    return response.text();
+  }).then(res =>
+    dispatch(receiveContestLineups(id, res, parseContestLineups(res, sport)))
+  ).catch((err) => dispatch(errorHandler(err, {
+    header: 'Failed to connect to API.',
+    content: 'Please refresh the page to reconnect.',
+    level: 'warning',
+    id: 'apiFailure',
+  })));
 };
 
 /**
@@ -217,39 +203,61 @@ export const fetchContestLineups = (id, sport) => (dispatch) => {
  * @param {number} contestId  Contest ID
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-const fetchContestInfo = (contestId) => (dispatch) => {
-  dispatch(requestContestInfo(contestId));
-
-  return request.get(
-    `/api/contest/info/${contestId}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    Accept: 'application/json',
-  }).then(
-    (res) => dispatch(receiveContestInfo(contestId, res.body))
-  );
-};
+const fetchContestInfo = (id) => ({
+  [CALL_API]: {
+    types: [
+      ActionTypes.REQUEST_LIVE_CONTEST_INFO,
+      ActionTypes.RECEIVE_LIVE_CONTEST_INFO,
+      ActionTypes.ADD_MESSAGE,
+    ],
+    expiresAt: dateNow() + 1000 * 60 * 60 * 24,  // 1 day
+    endpoint: `/api/contest/info/${id}/`,
+    requestFields: { id },
+    callback: (json) => ({
+      id,
+      info: json,
+    }),
+  },
+});
 
 /**
- * API GET to return all the usernames for all the lineups in a contest.
+ * API POST to return all the usernames for all the lineups in a contest.
  * Used in the live section for contest pane, and filtering by username
+ * Based heavily on middleware/api, adjusted for POST use
  * @param  {number} contestId  Contest ID
  * @return {promise}           Promise that resolves with API response body to reducer
  */
-const fetchContestLineupsUsernames = (contestId) => (dispatch) => {
-  dispatch(requestContestLineupsUsernames(contestId));
+const fetchContestLineupsUsernames = (id) => (dispatch) => {
+  dispatch(requestContestLineupsUsernames(id));
 
-  return request.post(
-    '/api/lineup/usernames/'
-  ).send({
-    contest_id: contestId,
-  }).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    'X-CSRFToken': Cookies.get('csrftoken'),
-    Accept: 'application/json',
+  return fetch('/api/lineup/usernames/', {
+    credentials: 'same-origin',
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-CSRFToken': Cookies.get('csrftoken'),
+    },
+    body: JSON.stringify({
+      contest_id: id,
+    }),
+  }).then(response => {
+    // First, reject a response that isn't in the 200 range.
+    if (!response.ok) {
+      log.error('API request failed:', response);
+      return Promise.reject(response);
+    }
+
+    // Otherwise parse the (hopefully) json from the response body.
+    return response.json().then(json => ({ json, response }));
   }).then(
-    (res) => dispatch(receiveContestLineupsUsernames(contestId, res.body))
-  );
+    ({ json }) => dispatch(receiveContestLineupsUsernames(id, json))
+  ).catch((err) => dispatch(errorHandler(err, {
+    header: 'Failed to connect to API.',
+    content: 'Please refresh the page to reconnect.',
+    level: 'warning',
+    id: 'apiFailure',
+  })));
 };
 
 /**
@@ -273,27 +281,19 @@ const shouldFetchContestLineupsUsernames = (state, id) => {
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchContest = (liveContests, id) => {
+  const contest = liveContests[id] || false;
+
   // if we have no data yet, fetch
-  if (liveContests.hasOwnProperty(id) === false) {
-    return true;
-  }
+  if (contest === false) return true;
 
-  const contest = liveContests[id];
-
-  if (contest.hasOwnProperty('info') === false) {
-    return true;
-  }
+  // if no info yet, then fetch
+  if (contest.hasOwnProperty('info') === false) return true;
 
   // if it hasn't started yet, don't bother getting lineups yet
-  if (new Date(contest.info.start).getTime() > dateNow()) {
-    return false;
-  }
+  if (new Date(contest.info.start).getTime() > dateNow()) return false;
 
   // if we don't yet have lineups (as in not live), then fetch
-  if (contest.hasOwnProperty('lineupBytes') === true &&
-      contest.lineupBytes !== '') {
-    return false;
-  }
+  if (contest.hasOwnProperty('lineupBytes') === true && contest.lineupBytes !== '') return false;
 
   return true;
 };
@@ -330,15 +330,12 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
   .then(() =>
     dispatch(confirmRelatedContestInfo(id))
   )
-  .catch((err) => {
-    dispatch(addMessage({
-      header: 'Failed to connect to API.',
-      content: 'Please refresh the page to reconnect.',
-      level: 'warning',
-      id: 'apiFailure',
-    }));
-    log.error(err);
-  });
+  .catch((err) => dispatch(errorHandler(err, {
+    header: 'Failed to connect to API.',
+    content: 'Please refresh the page to reconnect.',
+    level: 'warning',
+    id: 'apiFailure',
+  })));
 };
 
 /**
@@ -359,15 +356,12 @@ export const fetchContestIfNeeded = (id, sport, force) => (dispatch, getState) =
   .then(() =>
     dispatch(fetchRelatedContestInfo(id))
   )
-  .catch((err) => {
-    dispatch(addMessage({
-      header: 'Failed to connect to API.',
-      content: 'Please refresh the page to reconnect.',
-      level: 'warning',
-      id: 'apiFailure',
-    }));
-    log.error(err);
-  });
+  .catch((err) => dispatch(errorHandler(err, {
+    header: 'Failed to connect to API.',
+    content: 'Please refresh the page to reconnect.',
+    level: 'warning',
+    id: 'apiFailure',
+  })));
 };
 
 /**

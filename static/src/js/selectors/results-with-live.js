@@ -72,8 +72,11 @@ export const resultsWithLive = createSelector(
           start: lineup.start,
           liveStats: {
             entries: size(lineup.contests),
-            points: lineupSelector.points,
-            totalBuyin: reduce(lineup.contests || {}, (sum, id) => sum + contestsStats[id].buyin, 0),
+            points: lineupSelector.fp,
+            totalBuyin: reduce(lineup.contests || {}, (sum, id) => {
+              if (!contestsStats[id]) return sum;
+              return sum + contestsStats[id].buyin;
+            }, 0),
             potentialWinnings: {
               amount: 0,
               percentage: 100,

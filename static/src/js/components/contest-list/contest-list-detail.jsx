@@ -11,6 +11,7 @@ import EnterContestButton from './enter-contest-button.jsx';
 import { enterContest, setFocusedContest, fetchContestEntrantsIfNeeded, removeContestPoolEntry }
   from '../../actions/contest-pool-actions.js';
 import * as AppActions from '../../stores/app-state-store.js';
+import { humanizeCurrency } from '../../lib/utils/currency';
 import { push as routerPush } from 'react-router-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
@@ -272,7 +273,7 @@ const ContestListDetail = React.createClass({
                 <div className="header__fee-prizes-pool">
                   <div>
                     <span className="info-title">Prize</span>
-                    <div>${this.props.focusedContestInfo.contest.prize_pool.toFixed(2)}</div>
+                    <div>{humanizeCurrency(this.props.focusedContestInfo.contest.prize_pool)}</div>
                   </div>
                   <div>
                     <span className="info-title">Entries</span>
@@ -283,7 +284,7 @@ const ContestListDetail = React.createClass({
                   </div>
                   <div>
                     <span className="info-title">Fee</span>
-                    <div>${this.props.focusedContestInfo.contest.buyin.toFixed(2)}
+                    <div>{humanizeCurrency(this.props.focusedContestInfo.contest.buyin)}
                     </div>
                   </div>
                 </div>

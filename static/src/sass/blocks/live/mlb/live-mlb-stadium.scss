@@ -1,0 +1,94 @@
+@import "../../../variables.scss";
+
+//
+// BEM block for React LiveMLBStadium
+//
+
+$block: '.live-mlb-stadium';
+
+#{$block} {
+
+  /**
+   * Pitch zone bottom trick is a ratio. I calculated what the bottom should be when the screen is the same width as
+   * the background, 1440px, which came to 50px, so when the screen width changes, we can do
+   * `calc([screen-width] * [bottom-when-screen-is-1440px-wide] / [bg-width]) = new bottom`
+   *
+   * @param  {number} $bottom Distance from bottom of the page
+   */
+  @mixin bottom-by-ratio($bottom) {
+    bottom: calc(100vw * #{$bottom}/1440);
+  }
+
+  &__pitch-zone {
+    @include bottom-by-ratio(140);
+    position: absolute;
+    width: 172.5px;
+    margin: 0 auto;
+  }
+
+  // under 800px height, move the pitch zone to the bottom as there's no room
+  @media (max-height: 800px) {
+    #{$block}__pitch-zone {
+      @include bottom-by-ratio(90);
+    }
+  }
+
+  &__hitter {
+    padding-top: 20px;
+  }
+
+  &__at-bat,
+  &__record {
+    color: #878b9c;
+    font-size: 9px;
+    font-weight: 500;
+    line-height: 2.2;
+    text-transform: uppercase;
+  }
+
+  &__name {
+    color: #fff;
+    font-family: $font-oswald;
+    font-size: 16px;
+    text-transform: uppercase;
+  }
+
+  &--splitscreen-mine,
+  &--splitscreen-opponent {
+    height: 100%;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+    width: 50%;
+  }
+
+  &--all-mine {
+    width: 100%;
+
+    // centered horizontally
+    #{$block}__pitch-zone {
+      left: 0;
+      right: 0;
+    }
+  }
+
+  // left half, above opponent
+  &--splitscreen-mine {
+    box-shadow: 20px 0px 84px 1px rgba(13, 30, 50, 0.76);  // right hand side of mine
+    left: 0;
+    z-index: $zindex-venue-mlb-mine;
+
+    #{$block}__pitch-zone {
+      right: 100px;
+    }
+  }
+
+  // right half, below mine
+  &--splitscreen-opponent {
+    right: 0;
+
+    #{$block}__pitch-zone {
+      left: 100px;
+    }
+  }
+}
