@@ -9,7 +9,7 @@ import renderComponent from '../../lib/render-component';
 import forEach from 'lodash/forEach';
 import { focusedPlayerSelector } from '../../selectors/draft-selectors.js';
 import { roundUpToDecimalPlace } from '../../lib/utils.js';
-import { createLineupAddPlayer, removePlayer } from '../../actions/lineup-actions.js';
+import { createLineupAddPlayer, removePlayer } from '../../actions/upcoming-lineup-actions.js';
 import { focusPlayerSearchField, clearPlayerSearchField } from './draft-utils.js';
 
 const { Provider, connect } = ReactRedux;

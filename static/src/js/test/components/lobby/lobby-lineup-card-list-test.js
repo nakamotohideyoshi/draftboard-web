@@ -38,9 +38,9 @@ describe('<LineupCardList /> Component', () => {
   });
 
 
-  it('should render a <LobbyDraftGroupSelectionModal />', () => {
-    expect(wrapper.find(LobbyDraftGroupSelectionModal)).to.have.length(1);
-  });
+  // it('should render a <LobbyDraftGroupSelectionModal />', () => {
+  //   expect(wrapper.find(LobbyDraftGroupSelectionModal)).to.have.length(1);
+  // });
 
 
   it('should render a <LineupCard /> for each provided lineup.', () => {
