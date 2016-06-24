@@ -5,6 +5,7 @@ import LivePlayerPane from './live-player-pane';
 import log from '../../lib/logging';
 import React from 'react';
 import size from 'lodash/size';
+import uniqBy from 'lodash/uniq';
 import { bindActionCreators } from 'redux';
 import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching';
 import {
@@ -13,6 +14,9 @@ import {
   relevantPlayersSelector,
 } from '../../selectors/live-players';
 import { sportsSelector } from '../../selectors/sports';
+
+// assets
+require('../../../sass/blocks/live/live-lineup.scss');
 
 
 /*
@@ -192,7 +196,7 @@ const LiveLineup = React.createClass({
     return (
       <div className="live-lineup__players">
         {this.renderCloseLineup()}
-        <ul>
+        <ul className="live-lineup__players-list">
           {renderedPlayers}
         </ul>
       </div>
@@ -218,7 +222,9 @@ const LiveLineup = React.createClass({
 
     const player = lineup.rosterDetails[playerId];
     const game = this.props.sports.games[player.gameSRID] || {};
-    const history = this.props.playerHistories[player.srid] || [];
+
+    // unique to prevent repeats of same event
+    const history = uniqBy(this.props.playerHistories[player.srid] || [], 'id');
 
     return (
       <LivePlayerPane
@@ -240,7 +246,7 @@ const LiveLineup = React.createClass({
       return (<div />);
     }
 
-    const className = `cmp-live__lineup live-lineup live-lineup--${this.props.whichSide}`;
+    const className = `live__lineup live-lineup live-lineup--${this.props.whichSide}`;
 
     return (
       <div className={className}>

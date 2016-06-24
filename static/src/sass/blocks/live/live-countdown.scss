@@ -1,0 +1,88 @@
+@import "../../variables.scss";
+
+
+//
+// BEM block for React LiveCountdown
+// - the large screen-wide stadium bg is within this, so the pitch zone is always
+//   over the catcher
+//
+
+$block: '.live-countdown';
+
+#{$block} {
+  background: url(../../../img/blocks/live-countdown/glow.png) no-repeat left top;
+  background-size: auto 100%;
+  height: 652px;
+  text-align: center;
+  width: 730px;
+
+  // trick to absolutely center
+  bottom: 0;
+  margin: auto;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+
+  // this is the container of the text / buttons / timer
+  &__lineup-name {
+    color: $primary-white;
+    font-family: $font-oswald;
+    font-size: 30px;
+    line-spacing: 1.5px;
+    padding-top: 184px;
+    text-transform: uppercase;
+  }
+
+  &__starts-in {
+    color: #9c9faf;
+    font-weight: 700;
+    font-size: 9px;
+    margin-top: 62px;
+    text-transform: uppercase;
+  }
+
+  &__actions {
+    margin-top: 64px;
+  }
+
+  &__action {
+    background: none;
+    border-radius: 16px;
+    border: 1px solid #34374a;
+    color: #fff;
+    cursor: pointer;
+    display: inline-block;
+    font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    margin: 0;
+    min-width: 100px;
+    padding: 11px 18px;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    transition: all 0.2s;
+    vertical-align: middle;
+    white-space: nowrap;
+
+    &:hover {
+      border-color: $secondary-grey;
+    }
+
+    &:active {
+      opacity: 0.8;
+    }
+
+    &:first-child {
+      margin-right: 10px;
+    }
+
+    &:last-child {
+      margin-left: 10px;
+    }
+  }
+}

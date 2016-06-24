@@ -1,13 +1,13 @@
 import LiveLoading from './live-loading';
-import Modal from '../modal/modal.jsx';
 import moment from 'moment';
 import React from 'react';
-import forEach from 'lodash/forEach';
-import size from 'lodash/size';
 import uniq from 'lodash/uniq';
-import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { connect } from 'react-redux';
 import { updateWatchingAndPath } from '../../actions/watching.js';
+
+// assets
+require('../../../sass/blocks/live/live-choose-lineup.scss');
 
 
 /*
@@ -22,8 +22,7 @@ const mapDispatchToProps = (dispatch) => ({
 });
 
 /**
- * Modal window from which a user can select sport + lineup
- * so to observe how the lineup is doing in the live section
+ * User can select sport + lineup on load
  */
 export const LiveChooseLineup = React.createClass({
 
@@ -35,22 +34,22 @@ export const LiveChooseLineup = React.createClass({
 
   getInitialState() {
     return {
-      isOpen: true,
+      block: 'live-choose-lineup',
       selectedSport: null,
     };
   },
 
   componentWillMount() {
     // if there's only one lineup, then just go to it
-    if (size(this.props.lineups) === 1) {
+    if (this.props.lineups.length === 1) {
       this.selectLineup(this.props.lineups[0]);
     }
   },
 
   componentDidUpdate(prevProps) {
     // if there's only one lineup, then just go to it
-    const newSize = size(this.props.lineups);
-    if (newSize !== size(prevProps.lineups) && newSize === 1) {
+    const newSize = this.props.lineups.length;
+    if (newSize !== prevProps.lineups.length && newSize === 1) {
       this.selectLineup(this.props.lineups[0]);
     }
   },
@@ -60,28 +59,13 @@ export const LiveChooseLineup = React.createClass({
   },
 
   shouldChoseSport() {
-    if (this.state.selectedSport) {
-      return false;
-    }
+    if (this.state.selectedSport) return false;
 
     const differentSports = uniq(
       this.props.lineups.map((lineup) => lineup.sport)
     );
 
     return differentSports.length > 1;
-  },
-
-  open() {
-    this.setState({ isOpen: true });
-  },
-
-  close() {
-    this.resetSport();
-    this.setState({ isOpen: false });
-  },
-
-  resetSport() {
-    this.setState({ selectedSport: null });
   },
 
   selectSport(sport) {
@@ -91,7 +75,7 @@ export const LiveChooseLineup = React.createClass({
   selectLineup(lineup) {
     const path = `/live/${lineup.sport}/lineups/${lineup.id}/`;
     const changedFields = {
-      draftGroupId: lineup.draft_group,
+      draftGroupId: lineup.draftGroup,
       myLineupId: lineup.id,
       sport: lineup.sport,
     };
@@ -99,17 +83,10 @@ export const LiveChooseLineup = React.createClass({
     this.props.actions.updateWatchingAndPath(path, changedFields);
   },
 
-  /*
-   * How many lineups user has for specific sport
-   * {
-   *   'nba': 10,
-   *   'nfl': 5
-   * }
-   */
   sportLineups() {
     const sportLineups = {};
 
-    forEach(this.props.lineups, (lineup) => {
+    this.props.lineups.map((lineup) => {
       const sport = lineup.sport;
 
       if (sport in sportLineups) {
@@ -124,62 +101,35 @@ export const LiveChooseLineup = React.createClass({
   renderSports() {
     const sportLineups = this.sportLineups();
     const sportsSorted = Object.keys(sportLineups).sort((x, y) => x > y);
+    const { block } = this.state;
 
-    const sports = sportsSorted.map((sport) => (
+    return sportsSorted.map((sport) => (
       <li
         key={sport}
-        className="cmp-live-lineup-select__sport"
+        className={`${block}__option`}
         onClick={this.selectSport.bind(this, sport)}
       >
-        <h4 className="cmp-live-lineup-select__sport__title">{sport.toUpperCase()}</h4>
-        <div className="cmp-live-lineup-select__sport__sub">{sportLineups[sport]} lineups</div>
+        <h4 className={`${block}__name`}>{sport.toUpperCase()}</h4>
+        <div className={`${block}__info`}>{sportLineups[sport]} lineups</div>
       </li>
     ));
-
-    return (
-      <ul>{sports}</ul>
-    );
   },
 
   renderLineups() {
-    const lineups = this.props.lineups.map((lineup) => {
-      const name = (lineup.name === undefined) ? 'Example Lineup Name' : lineup.name;
+    const { block } = this.state;
 
-      return (
-        <li
-          key={lineup.id}
-          className="cmp-live-lineup-select__lineup"
-          onClick={this.selectLineup.bind(this, lineup)}
-        >
-          <h4 className="cmp-live-lineup-select__lineup__title">{name}</h4>
-          <div className="cmp-live-lineup-select__lineup__sub">
-            {moment(lineup.start).format('MMM Do, h:mma')}
-          </div>
-        </li>
-      );
-    });
-
-    return (
-      <ul>{lineups}</ul>
-    );
-  },
-
-  /*
-   * This loading screen shows in lieu of the live section when it takes longer than a second to do an initial load
-   * TODO Live - get built out
-   *
-   * @return {JSXElement}
-   */
-  renderLoadingScreen() {
-    return (
-      <div className="live--loading">
-        <div className="preload-court" />
-        <div className="spinner">
-          <div className="double-bounce1" />
-          <div className="double-bounce2" />
+    return this.props.lineups.map((lineup) => (
+      <li
+        key={lineup.id}
+        className={`${block}__option`}
+        onClick={this.selectLineup.bind(this, lineup)}
+      >
+        <h4 className={`${block}__name`}>{lineup.name}</h4>
+        <div className={`${block}__info`}>
+          {moment(lineup.start).format('MMM Do, h:mma')}
         </div>
-      </div>
-    );
+      </li>
+    ));
   },
 
   render() {
@@ -187,24 +137,20 @@ export const LiveChooseLineup = React.createClass({
       return (<LiveLoading isContestPools={false} />);
     }
 
+    const { block } = this.state;
+
     let title = (this.shouldChoseSport()) ? 'Choose a sport' : 'Choose a lineup';
-    if (size(this.props.lineups) === 0) {
-      title = 'You have no entered lineups.';
-    }
+    if (this.props.lineups.length === 0) title = 'You have no entered lineups.';
 
     return (
-      <Modal
-        isOpen={this.state.isOpen}
-        onClose={this.close}
-        className="cmp-modal-live-lineup-select"
-      >
-
-        <div>
-          <header className="cmp-modal__header">{title}</header>
-          <div className="cmp-live-lineup-select">{this.getModalContent()}</div>
+      <section className={block}>
+        <div className={`${block}__inner`}>
+          <h2 className={`${block}__title`}>{title}</h2>
+          <ul className={`${block}__options`}>
+            {this.getModalContent()}
+          </ul>
         </div>
-
-      </Modal>
+      </section>
     );
   },
 });

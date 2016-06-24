@@ -75,7 +75,7 @@ const receiveDraftGroupBoxscores = (id, boxscores) => ({
   type: ActionTypes.RECEIVE_DRAFT_GROUP_BOXSCORES,
   id,
   boxscores,
-  expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
+  expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
 });
 
 /**
@@ -90,7 +90,7 @@ const receiveDraftGroupFP = (id, players) => ({
   type: ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP,
   id,
   players,
-  expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
+  expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
 });
 
 /**

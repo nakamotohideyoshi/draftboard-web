@@ -1,5 +1,9 @@
 import React from 'react';
-import { timeRemaining } from '../../lib/utils.js';
+import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
+import { timeRemaining } from '../../lib/utils';
+
+// assets
+require('../../../sass/blocks/site/countdown-clock.scss');
 
 
 /**
@@ -9,8 +13,9 @@ const CountdownClock = React.createClass({
 
 
   propTypes: {
-    time: React.PropTypes.any,
+    modifiers: React.PropTypes.array,
     onCountdownOver: React.PropTypes.func,
+    time: React.PropTypes.any,
     timePassedDisplay: React.PropTypes.string,
   },
 
@@ -60,16 +65,20 @@ const CountdownClock = React.createClass({
   updateTimeRemainingTimeout: null,
 
   render() {
+    const block = 'cmp-countdown-clock';
+    const classNames = generateBlockNameWithModifiers(block, this.props.modifiers || []);
+
     if (this.state.timeRemaining.hours === undefined) {
       return (
-        <div className="cmp-countdown-clock">
+        <div className={classNames}>
           <span className="hours">&nbsp;</span>
+        }
         </div>
       );
     }
 
     return (
-      <div className="cmp-countdown-clock">
+      <div className={classNames}>
         <div className="hours">
           <span>{this.state.timeRemaining.hours}</span>
           <span>:</span>

@@ -72,10 +72,9 @@ export const updateWatchingAndPath = (path, changedFields) => (dispatch) => {
   }
 };
 
-export const doesMyLineupExist = () => (dispatch, getState) => {
+export const doesMyLineupExist = (state) => {
   log.trace('actions.watching.checkForUpdates()');
 
-  const state = getState();
   const watching = state.watching;
 
   if (watching.myLineupId) {

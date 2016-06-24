@@ -15,6 +15,7 @@ import { bindActionCreators } from 'redux';
 import { checkForUpdates } from '../../actions/watching';
 import { fetchCurrentLineupsAndRelated, fetchRelatedLineupsInfo } from '../../actions/current-lineups';
 import { fetchPlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
+import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { Provider, connect } from 'react-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
@@ -130,7 +131,7 @@ export const Live = React.createClass({
 
       // when the countdown ends, we trigger a fetchCurrentLineupsAndRelated call
       // which then jumpstarts this if there are no contests yet
-      if (!this.state.setTimeoutEntries && myLineupNext.contests === null && myLineup.hasStarted) {
+      if (!this.state.setTimeoutEntries && myLineupNext.contests.length === 0 && myLineup.hasStarted) {
         // check for contest_id every 5 seconds
         this.setState({ setTimeoutEntries: setInterval(() => {
           log.warn('live.currentEntriesRefresh - fetching lineups');
@@ -142,10 +143,10 @@ export const Live = React.createClass({
       }
 
       // stop checking once we have a contest
-      if (this.state.setTimeoutEntries && myLineupNext.contests !== null) {
+      if (this.state.setTimeoutEntries && myLineupNext.contests.length > 0) {
         log.warn('No need to try lineups again');
         window.clearInterval(this.state.setTimeoutEntries);
-        this.setState({ setTimeoutEntries: undefined });
+        this.setState({ setTimeoutEntries: null });
       }
     }
   },
@@ -163,13 +164,16 @@ export const Live = React.createClass({
       watching,
     } = this.props;
 
+    // BEM CSS block name
+    const block = 'live';
+
     // don't do anything until we have lineups!
-    if (!uniqueLineups.haveLoaded) return (<LiveLoading isContestPools={false} />);
+    if (!uniqueLineups.haveLoaded) return (<div className={`${block}`}><LiveLoading isContestPools={false} /></div>);
 
     // choose a lineup if we haven't yet
     if (watching.myLineupId === null && !params.hasOwnProperty('myLineupId')) {
       return (
-        <div className="live__bg">
+        <div className={`${block}`}>
           <LiveChooseLineup
             lineupsLoaded={uniqueLineups.haveLoaded}
             lineups={uniqueLineups.lineups}
@@ -195,8 +199,9 @@ export const Live = React.createClass({
       }
 
       // but immediately show the countdown
+      const classNames = generateBlockNameWithModifiers(block, ['countdown', `sport-${watching.sport}`]);
       return (
-        <div className={`live__bg live--countdown live--sport-${watching.sport}`}>
+        <div className={classNames}>
           {countdownLineup}
           <LiveCountdown
             onCountdownOver={() => actions.fetchCurrentLineupsAndRelated(true)}
@@ -207,10 +212,14 @@ export const Live = React.createClass({
     }
 
     // wait for contest_id to be returned via current-lineups api
-    if (myLineup.contest === null) return (<LiveLoading isContestPools />);
+    if (myLineup.contests.length === 0) {
+      return (<div className={`${block}`}><LiveLoading isContestPools /></div>);
+    }
 
     // wait for data to load before showing anything
-    if (relevantGamesPlayers.isLoading) return (<LiveLoading isContestPools={false} />);
+    if (relevantGamesPlayers.isLoading) {
+      return (<div className={`${block}`}><LiveLoading isContestPools={false} /></div>);
+    }
 
     // defining optional component pieces
     let liveStandingsPane;
@@ -247,8 +256,9 @@ export const Live = React.createClass({
       );
     }
 
+    const classNames = generateBlockNameWithModifiers(block, [`sport-${watching.sport}`]);
     return (
-      <div className={`live__bg live--sport-${watching.sport}`}>
+      <div className={classNames}>
         <LiveLineup
           draftGroupStarted={draftGroupTiming.started}
           lineup={myLineupInfo}
@@ -258,8 +268,8 @@ export const Live = React.createClass({
 
         {opponentLineupComponent}
 
-        <section className="cmp-live__court-scoreboard">
-          <div className="court-scoreboard__content">
+        <section className={`${block}__venues`}>
+          <div className={`${block}__venues-inner`}>
             <LiveHeader
               contest={contest}
               myLineup={myLineupInfo}
@@ -305,5 +315,5 @@ renderComponent(
       />
     </Router>
   </Provider>,
-  '.cmp-live'
+  '#cmp-live'
 );

@@ -1,6 +1,9 @@
 import LiveOverallStats from './live-overall-stats';
 import React from 'react';
 
+// assets
+require('../../../sass/blocks/live/live-header.scss');
+
 
 /**
  * Return the header section of the live page, including the lineup/contest title and overall stats
@@ -11,26 +14,26 @@ const LiveHeader = (props) => {
   // set all needed variables, and default them to lineup only
   let opponentStats;
   let statsVs;
-  let hasContest = false;
-  let hasOpponent = false;
+  let { potentialWinnings, rank } = myLineup;
 
   // if watching a contest, then update the titles and ensure the overall stats are contest-based
   if (watching.contestId !== null && !contest.isLoading) {
-    hasContest = true;
+    potentialWinnings = contest.potentialWinnings;
+    potentialWinnings = contest.rank;
 
     // if watching an opponent, then add in second overall stats and update the titles
     if (watching.opponentLineupId !== null && !opponentLineup.isLoading) {
-      hasOpponent = true;
-
       statsVs = (
         <div className="live-overall-stats__vs">vs</div>
       );
       opponentStats = (
         <LiveOverallStats
-          contest={contest}
-          hasContest
-          hasOpponent={hasOpponent}
-          lineup={opponentLineup}
+          fp={opponentLineup.fp}
+          id={opponentLineup.id}
+          name={opponentLineup.name}
+          potentialWinnings={potentialWinnings}
+          rank={rank}
+          timeRemaining={opponentLineup.timeRemaining}
           whichSide="opponent"
         />
       );
@@ -38,12 +41,14 @@ const LiveHeader = (props) => {
   }
 
   return (
-    <header className="cmp-live__scoreboard live-scoreboard">
+    <header className="live-header">
       <LiveOverallStats
-        contest={contest}
-        lineup={myLineup}
-        hasContest={hasContest}
-        hasOpponent={hasOpponent}
+        fp={myLineup.fp}
+        id={myLineup.id}
+        name={myLineup.name}
+        potentialWinnings={potentialWinnings}
+        rank={rank}
+        timeRemaining={myLineup.timeRemaining}
         whichSide="mine"
       />
 

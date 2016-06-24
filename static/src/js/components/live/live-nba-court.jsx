@@ -19,7 +19,7 @@ const LiveNBACourt = (props) => {
   });
 
   return (
-    <section className="cmp-live__court live-nba-court">
+    <section className="live__court live-nba-court">
       { currentEvents }
     </section>
   );

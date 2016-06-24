@@ -1,8 +1,16 @@
 import ordinal from '../../lib/ordinal.js';
 import React from 'react';
-import size from 'lodash/size';
+import { describeArc, polarToCartesian } from '../../lib/utils/shapes';
+import { humanizeCurrency } from '../../lib/utils/currency';
 import { humanizeFP } from '../../actions/sports';
-import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-progress-bar';
+import { percentageHexColor } from '../../lib/utils/colors';
+
+// assets
+require('../../../sass/blocks/live/live-overall-stats.scss');
+
+// constants
+const BLOCK = 'live-overall-stats';
+
 
 /**
  * Reusable PMR progress bar using SVG
@@ -10,10 +18,12 @@ import { percentageHexColor, polarToCartesian, describeArc } from './live-pmr-pr
 const LiveOverallStats = React.createClass({
 
   propTypes: {
-    contest: React.PropTypes.object.isRequired,
-    hasContest: React.PropTypes.bool.isRequired,
-    hasOpponent: React.PropTypes.bool.isRequired,
-    lineup: React.PropTypes.object.isRequired,
+    fp: React.PropTypes.number.isRequired,
+    id: React.PropTypes.number.isRequired,
+    name: React.PropTypes.string.isRequired,
+    potentialWinnings: React.PropTypes.number.isRequired,
+    rank: React.PropTypes.number,
+    timeRemaining: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
   },
 
@@ -21,15 +31,15 @@ const LiveOverallStats = React.createClass({
     this.updateCanvas();
   },
 
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.lineup.timeRemaining.decimal !== this.props.lineup.timeRemaining.decimal) {
+  componentDidUpdate(prevProps) {
+    if (prevProps.timeRemaining.decimal !== this.props.timeRemaining.decimal) {
       this.updateCanvas();
     }
   },
 
   updateCanvas() {
     const diameter = 220;
-    const decimalRemaining = this.props.lineup.timeRemaining.decimal;
+    const decimalRemaining = this.props.timeRemaining.decimal;
     const radiansRemaining = decimalRemaining * 360 - 180;
     const ctx = this.refs.canvas.getContext('2d');
 
@@ -74,23 +84,18 @@ const LiveOverallStats = React.createClass({
   },
 
   renderOverallPMR() {
-    let hexStart;
-    let hexEnd;
-    const lineup = this.props.lineup;
+    const { id, timeRemaining, whichSide } = this.props;
 
-    switch (this.props.whichSide) {
-      case 'opponent':
-        hexStart = 'e33c3c';
-        hexEnd = '871c5a';
-        break;
-      default:
-        hexStart = '34B4CC';
-        hexEnd = '2871AC';
-        break;
+    let hexStart = '34B4CC';
+    let hexEnd = '2871AC';
+
+    if (whichSide === 'opponent') {
+      hexStart = 'e33c3c';
+      hexEnd = '871c5a';
     }
 
     const strokeWidth = 2;
-    const decimalDone = 1 - lineup.timeRemaining.decimal;
+    const decimalDone = 1 - timeRemaining.decimal;
     const backgroundHex = '#0c0e16';
     const svgWidth = 280;
 
@@ -132,7 +137,7 @@ const LiveOverallStats = React.createClass({
 
       renderPMRCircle = (
         <g>
-          <mask id="gradientMaskOverall">
+          <mask id={`gradientMaskOverall-lineup-${id}`}>
             <path
               fill="none"
               stroke="#fff"
@@ -140,20 +145,20 @@ const LiveOverallStats = React.createClass({
               d={progressArc.d}
             />
           </mask>
-          <g mask="url(#gradientMaskOverall)">
+          <g mask={`url(#gradientMaskOverall-lineup-${id})`}>
             <rect
               x={-svgMidpoint}
               y={-svgMidpoint}
               width={svgMidpoint}
               height={svgWidth}
-              fill={`url(#cl2-lineup-${lineup.id})`}
+              fill={`url(#cl2-lineup-${id})`}
             />
             <rect
               x="0"
               y={-svgMidpoint}
               height={svgWidth}
               width={svgMidpoint}
-              fill={`url(#cl1-lineup-${lineup.id})`}
+              fill={`url(#cl1-lineup-${id})`}
             />
           </g>
 
@@ -187,15 +192,13 @@ const LiveOverallStats = React.createClass({
       );
     }
 
-    // log.trace('LiveOverallStats', progressArc, dottedRemainingArc, endOuter, endInner)
-
     return (
-      <div className="pmr-circle">
-        <canvas ref="canvas" width="220" height="220" />
-        <svg className="pmr-circle" viewBox="0 0 280 280" width="220">
+      <div className={`${BLOCK}__pmr-circle`}>
+        <canvas className={`${BLOCK}__radial-bg`} ref="canvas" width="220" height="220" />
+        <svg className={`${BLOCK}__svg-arcs`} viewBox="0 0 280 280" width="220">
           <defs>
             <linearGradient
-              id={`cl1-lineup-${lineup.id}`}
+              id={`cl1-lineup-${id}`}
               gradientUnits="objectBoundingBox"
               x1="0" y1="0" x2="0" y2="1"
             >
@@ -203,7 +206,7 @@ const LiveOverallStats = React.createClass({
              <stop offset="100%" stopColor={progressArc.hexHalfway} />
             </linearGradient>
             <linearGradient
-              id={`cl2-lineup-${lineup.id}`}
+              id={`cl2-lineup-${id}`}
               gradientUnits="objectBoundingBox"
               x1="0" y1="1" x2="0" y2="0"
             >
@@ -220,66 +223,57 @@ const LiveOverallStats = React.createClass({
     );
   },
 
-  renderStats() {
-    if (!this.props.hasOpponent) {
-      return (<div className="live-overall-stats__stats" />);
-    }
+  renderPotentialWinnings() {
+    const { id, potentialWinnings, rank } = this.props;
 
-    let potentialWinnings = this.props.lineup.potentialWinnings.amount || 0;
-    let rank = this.props.lineup.potentialWinnings.rank || '';
-    if (this.props.whichSide === 'mine') {
-      rank = this.props.contest.potentialWinnings.rank || '';
-      potentialWinnings = this.props.contest.potentialWinnings.amount || 0;
-    }
-    rank = `${ordinal(rank)} /`;
+    // default to villian
+    let rankStr = '';
+    let amountStr = 'N/A';
 
-    if (this.props.lineup.id === 1) {
-      potentialWinnings = 'N/A';
-      rank = '';
-    } else if (potentialWinnings === 0) {
-      potentialWinnings = `$${potentialWinnings}`;
-    } else {
-      potentialWinnings = `$${potentialWinnings.toFixed(2)}`;
+    // if not villian
+    if (id !== 1) {
+      amountStr = humanizeCurrency(potentialWinnings || 0);
+
+      // if in contest mode
+      if (rank) rankStr = `${ordinal(rank || '')} /`;
     }
 
     return (
-      <div className="live-overall-stats__stats">
-        <span className="live-overall-stats__rank">{rank}</span>
-        <span className="live-overall-stats__potential-winnings">{potentialWinnings}</span>
+      <div className={`${BLOCK}__potential-winnings`}>
+        <span className={`${BLOCK}__rank`}>{rankStr}</span>
+        <span className={`${BLOCK}__amount`}>{amountStr}</span>
       </div>
     );
   },
 
   render() {
-    const lineup = this.props.lineup;
-
-    if (size(lineup) === 0) return (<div />);
+    const { fp, name, timeRemaining } = this.props;
 
     return (
-      <div className="live-overall-stats live-overall-stats--me">
-        <h1 className="live-overall-stats__name">
-          {lineup.name}
+      <section className={BLOCK}>
+        <h1 className={`${BLOCK}__name`}>
+          {name}
         </h1>
 
-        {this.renderStats()}
+        {this.renderPotentialWinnings()}
 
-        <div className="live-overall-stats__live-overview">
+        <div className={`${BLOCK}__circle-stats-container`}>
           {this.renderOverallPMR()}
 
-          <section className="live-overview live-overview--lineup">
-            <div className="live-overview__points">
-              <div className="live-overview__help">
+          <div className={`${BLOCK}__overview`}>
+            <div className={`${BLOCK}__fp-container`}>
+              <div className={`${BLOCK}__fp-title`}>
                 Points
               </div>
-              <h4 className="live-overview__quantity">{humanizeFP(lineup.fp)}</h4>
+              <h4 className={`${BLOCK}__fp`}>{humanizeFP(fp)}</h4>
             </div>
-            <div className="live-overview__pmr">
-              <div className="live-overview__pmr__quantity">{lineup.timeRemaining.duration}</div>
-              <div className="live-overview__pmr__title">PMR</div>
+            <div className={`${BLOCK}__time-remaining`}>
+              <div className={`${BLOCK}__duration`}>{timeRemaining.duration}</div>
+              <div className={`${BLOCK}__pmr-title`}>PMR</div>
             </div>
-          </section>
+          </div>
         </div>
-      </div>
+      </section>
     );
   },
 });

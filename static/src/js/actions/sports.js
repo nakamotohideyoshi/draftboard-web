@@ -262,7 +262,7 @@ const receiveGames = (sport, games) => {
     sport,
     games,
     gameIds,
-    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
+    expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
   };
 };
 
@@ -321,11 +321,12 @@ export const calcDecimalRemaining = (durationRemaining, gameDuration) => {
 
 /**
  * Helper method to determine amount of time remaining in a game
+ * This is exported just so we can make sure it's tested individually, important
  * @param  {string} sport     Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
  * @param  {object} game  Game information
  * @return {number}       Minutes remaining in the game
  */
-const calculateTimeRemaining = (sport, game) => {
+export const calculateTimeRemaining = (sport, game) => {
   const sportConst = SPORT_CONST[sport];
 
   // if the game hasn't started, return full time
@@ -340,9 +341,12 @@ const calculateTimeRemaining = (sport, game) => {
       let durationComplete = parseInt(boxScore.inning || 0, 10) * 2;
 
       // determine whether to add half inning for being in the bottom
-      if (boxScore.inning_half === 'B') {
-        durationComplete += 1;
+      if (boxScore.inning_half === 'T') {
+        durationComplete -= 1;
       }
+
+      // subtract 1 overall, since top of 1st should technically be 0
+      durationComplete -= 1;
 
       // if the game is complete
       if (durationComplete >= sportConst.gameDuration && boxScore.status !== 'inprogress') return 0;

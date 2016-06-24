@@ -1,4 +1,5 @@
 import React from 'react';
+import { humanizeCurrency } from '../../lib/utils/currency';
 
 
 /**
@@ -26,12 +27,9 @@ const LiveContestsPaneItem = React.createClass({
       moneyLineClass += ' live-moneyline--is-losing';
     }
 
-    let winnings = contest.potentialWinnings;
+    const winnings = contest.potentialWinnings;
     let winningsClass = 'winnings';
-    if (winnings === 0) {
-      winnings = `$${winnings}`;
-    } else {
-      winnings = `$${winnings.toFixed(2)}`;
+    if (winnings !== 0) {
       winningsClass += ' active';
     }
 
@@ -45,9 +43,9 @@ const LiveContestsPaneItem = React.createClass({
           <span className="live-contests-pane__place--mine">{ contest.myEntryRank }</span> of { contest.entriesCount }
         </div>
         <div className="live-contests-pane__stats">
-          <span className="fees">${ contest.buyin }</span>
+          <span className="fees">{ humanizeCurrency(contest.buyin) }</span>
           {" "} / {" "}
-          <span className={winningsClass}>{ winnings }</span>
+          <span className={winningsClass}>{ humanizeCurrency(winnings) }</span>
         </div>
 
         <section className={ moneyLineClass }>

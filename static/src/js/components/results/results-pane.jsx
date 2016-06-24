@@ -7,6 +7,7 @@ import { fetchContestIfNeeded } from '../../actions/live-contests';
 import { fetchDraftGroupIfNeeded } from '../../actions/live-draft-groups';
 import { fetchContestLineupsUsernamesIfNeeded } from '../../actions/live-contests';
 import { fetchDraftGroupBoxscoresIfNeeded } from '../../actions/live-draft-groups.js';
+import { humanizeCurrency } from '../../lib/utils/currency';
 import { Provider, connect } from 'react-redux';
 import { resultsContestsSelector } from '../../selectors/results-contests';
 
@@ -106,7 +107,7 @@ const ResultsPane = React.createClass({
       return (
         <tr key={lineup.id}>
           <td>{username}</td>
-          <td>${lineup.potentialWinnings.toFixed(2)}</td>
+          <td>{humanizeCurrency(lineup.potentialWinnings)}</td>
         </tr>
       );
     });
@@ -213,7 +214,7 @@ const ResultsPane = React.createClass({
       );
     }
 
-    const prize = contest.prizeStructure.info.ranks[0].value.toFixed(2);
+    const prize = humanizeCurrency(contest.prizeStructure.info.ranks[0].value);
 
     let hasEnded = (
       <div className="has-ended">
@@ -235,7 +236,7 @@ const ResultsPane = React.createClass({
               <div className="header__content">
                 <div className="title">
                   {contest.name}<br />
-                (${prize} to 1st)
+                ({prize} to 1st)
               </div>
               <div className="header__info">
                 <div className="header__place">
@@ -250,8 +251,8 @@ const ResultsPane = React.createClass({
               </div>
 
               <div className="header__fee-prizes-pool">
-                <div><span className="info-title">Prize</span><div>${prize}</div></div>
-                <div><span className="info-title">Fee</span><div>${contest.buyin.toFixed(2)}</div></div>
+                <div><span className="info-title">Prize</span><div>{humanizeCurrency(prize)}</div></div>
+                <div><span className="info-title">Fee</span><div>{humanizeCurrency(contest.buyin)}</div></div>
                 <div><span className="info-title">Entrants</span><div>
                   {contest.rankedLineups.length}/{contest.entriesCount}
                 </div></div>

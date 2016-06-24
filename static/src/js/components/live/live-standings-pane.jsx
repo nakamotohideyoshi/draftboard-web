@@ -7,8 +7,10 @@ import request from 'superagent';
 
 import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
+import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import { bindActionCreators } from 'redux';
 import { fetchLineupUsernames } from '../../actions/lineup-usernames';
+import { humanizeCurrency } from '../../lib/utils/currency';
 import { humanizeFP } from '../../actions/sports';
 import { SPORT_CONST } from '../../actions/sports.js';
 import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching.js';
@@ -282,28 +284,27 @@ export const LiveStandingsPane = React.createClass({
   },
 
   renderHeader() {
-    const { contest } = this.props;
-    const { amount, percent } = contest.potentialWinnings;
+    const { buyin, name, percentageCanWin, potentialWinnings, rankPercent } = this.props.contest;
 
     let moneyLineClass = 'live-moneyline';
 
-    if (percent < contest.percentageCanWin) {
+    if (rankPercent < percentageCanWin) {
       moneyLineClass += ' live-moneyline--is-losing';
     }
 
     return (
       <div className="live-standings-pane__header">
         <div className="stats">
-          <div className="title">{contest.name}</div>
+          <div className="title">{name}</div>
           <div className="profit">
             <div className="fees">
-              ${contest.buyin} Fees
+              {humanizeCurrency(buyin)} Fees
             </div>
             {" "} / {" "}
             <div className="earnings">
               Winning
               {" "}
-              <span>${amount || amount.toFixed(2)}</span>
+              <span>{humanizeCurrency(potentialWinnings)}</span>
             </div>
           </div>
         </div>
@@ -311,9 +312,9 @@ export const LiveStandingsPane = React.createClass({
           <div className="live-moneyline__pmr-line">
             <div
               className="live-moneyline__current-position"
-              style={{ left: `${percent}%` }}
+              style={{ left: `${rankPercent}%` }}
             ></div>
-            <div className="live-moneyline__winners" style={{ width: `${contest.percentageCanWin}%` }}></div>
+            <div className="live-moneyline__winners" style={{ width: `${percentageCanWin}%` }}></div>
           </div>
         </section>
         <div className="menu">
@@ -395,11 +396,8 @@ export const LiveStandingsPane = React.createClass({
       let className = 'lineup';
       let pmr = (
         <LivePMRProgressBar
+          colors={['46495e', 'aab0be', 'aab0be']}
           decimalRemaining={decimalRemaining}
-          strokeWidth={2}
-          backgroundHex="46495e"
-          hexStart="ffffff"
-          hexEnd="ffffff"
           svgWidth={50}
           id={`${lineup.id}Lineup`}
         />
@@ -418,11 +416,8 @@ export const LiveStandingsPane = React.createClass({
         className += ' lineup--mine';
         pmr = (
           <LivePMRProgressBar
+            colors={['46495e', '34B4CC', '2871AC']}
             decimalRemaining={decimalRemaining}
-            strokeWidth={2}
-            backgroundHex="46495e"
-            hexStart="34B4CC"
-            hexEnd="2871AC"
             svgWidth={50}
             id={`${lineup.id}Lineup`}
           />
@@ -430,18 +425,17 @@ export const LiveStandingsPane = React.createClass({
       }
       const username = lineupsUsernames[lineup.id] || '';
       let earningsClass = 'lineup--score-earnings';
-      let potentialWinnings = lineup.potentialWinnings;
+      const potentialWinnings = lineup.potentialWinnings;
       if (potentialWinnings !== 0) {
         earningsClass += ' in-the-money';
-        potentialWinnings = potentialWinnings.toFixed(2);
       }
       return (
         <div key={lineup.id} className={ className }>
           <div className="lineup--place">{lineup.rank}</div>
-          { pmr }
+          <div className="live-pmr">{ pmr }</div>
           <div className="lineup--score-name">{username}</div>
           <div className="lineup--score-points">{humanizeFP(lineup.fp)} Pts</div>
-          <div className={earningsClass}>${potentialWinnings}</div>
+          <div className={earningsClass}>{humanizeCurrency(potentialWinnings)}</div>
           { overlay }
         </div>
       );
@@ -468,7 +462,7 @@ export const LiveStandingsPane = React.createClass({
 
   renderPlayers() {
     const { page, perPage } = this.state;
-    const playerImagesBaseUrl = `${window.dfs.playerImagesBaseUrl}/${this.props.watching.sport}/120`;
+    const { sport } = this.props.watching;
     let data = this.getListData();
     data = data.slice(
       (page - 1) * perPage,
@@ -478,39 +472,25 @@ export const LiveStandingsPane = React.createClass({
     const players = data.map((player) => {
       const isWatched = this.state.playersWatched.indexOf(player.id) !== -1;
       const overlayTitle = isWatched ? 'Remove from watch' : 'Add to watch';
-      const progressHexStart = isWatched ? '422752' : 'ffffff';
-      const progressHexEnd = isWatched ? 'ff0000' : 'ffffff';
-      const playerImage = `${playerImagesBaseUrl}/${player.srid}.png`;
+      const progressHexStart = isWatched ? 'ff0000' : 'aab0be';
+      const progressHexEnd = isWatched ? '422752' : 'aab0be';
+      const colors = ['46495e', progressHexStart, progressHexEnd];
 
       return (
         <div key={player.id} className={`player ${isWatched ? 'watched' : ''}`}>
           <div className="player--position">{player.position}</div>
-          <div className="player__circle">
-            <div className="player--pmr-photo">
-              <img
-                alt="Player Headshot"
-                src={playerImage}
-                onError={
-                  /* eslint-disable no-param-reassign */
-                  (e) => {
-                    e.target.className = 'default-player';
-                    e.target.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
-                  }
-                  /* eslint-enable no-param-reassign */
-                }
-              />
-            </div>
 
-            <LivePMRProgressBar
+          <div className="player__pmr-headshot">
+            <PlayerPmrHeadshotComponent
               decimalRemaining={player.timeRemaining.decimal}
-              strokeWidth={3}
-              backgroundHex="46495e"
-              hexStart={progressHexStart}
-              hexEnd={progressHexEnd}
-              svgWidth={50}
-              id={`${player.id}StandingsPlayer`}
+              playerSrid={player.srid}
+              colors={colors}
+              sport={sport}
+              uniquePmrId={`pmr-live-standings-pane--player-${player.id}`}
+              width={24}
             />
           </div>
+
           <div className="player--name">
             {player.name} <div className="team">{player.team_alias}</div>
           </div>
