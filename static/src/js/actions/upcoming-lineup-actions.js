@@ -1,5 +1,6 @@
-import * as types from '../action-types.js';
+import * as actionTypes from '../action-types.js';
 import request from 'superagent';
+import { CALL_API } from '../middleware/api';
 import Cookies from 'js-cookie';
 import { normalize, Schema, arrayOf } from 'normalizr';
 import forEach from 'lodash/forEach';
@@ -16,93 +17,83 @@ const lineupSchema = new Schema('lineups', {
 });
 
 
-function fetchUpcomingLineupsSuccess(res) {
-  return {
-    type: types.FETCH_UPCOMING_LINEUPS_SUCCESS,
-    lineups: res.lineups,
-    draftGroupsWithLineups: res.draftGroupsWithLineups,
-  };
-}
-
-
-function fetchUpcomingLineupsFail(ex) {
-  return {
-    type: types.FETCH_UPCOMING_LINEUPS_FAIL,
-    ex,
-  };
-}
-
-
 export function filterLineupsByDraftGroupId(draftGroupId) {
   return {
-    type: types.FILTER_UPCOMING_LINEUPS_BY_DRAFTGROUP_ID,
+    type: actionTypes.FILTER_UPCOMING_LINEUPS_BY_DRAFTGROUP_ID,
     draftGroupId,
   };
 }
 
 
-export function fetchUpcomingLineups(draftGroupId = null) {
+export const fetchUpcomingLineups = (draftGroupId = null) => (dispatch) => {
+  // The user is not auth'd and anonymous users don't have lineups.
   if (window.dfs.user.isAuthenticated !== true) {
     return {
-      type: types.USER_NOT_AUTHENTICATED,
+      type: actionTypes.USER_NOT_AUTHENTICATED,
     };
   }
 
-  return (dispatch) => {
-    const promise = new Promise((resolve, reject) => {
-      request
-        .get('/api/lineup/upcoming/')
-        .set({ 'X-REQUESTED-WITH': 'XMLHttpRequest' })
-        .set('Accept', 'application/json')
-        .end((err, res) => {
-          if (err) {
-            dispatch(fetchUpcomingLineupsFail(err));
-            reject(err);
-          } else {
-            // If a specific draft group was requested, update the filter property which will
-            // filter them out with a selector.
-            if (draftGroupId) {
-              dispatch(filterLineupsByDraftGroupId(draftGroupId));
-            }
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.FETCH_UPCOMING_LINEUPS,
+        actionTypes.FETCH_UPCOMING_LINEUPS_SUCCESS,
+        actionTypes.ADD_MESSAGE,
+      ],
+      endpoint: '/api/lineup/upcoming/',
+      callback: (json) => {
+        // If a specific draft group was requested, update the filter property which will
+        // filter them out with a selector.
+        if (draftGroupId) {
+          dispatch(filterLineupsByDraftGroupId(draftGroupId));
+        }
 
-            // Normalize lineups list by ID.
-            const normalizedLineups = normalize(
-              res.body,
-              arrayOf(lineupSchema)
-            );
+        // Normalize lineups list by ID.
+        const normalizedLineups = normalize(
+          json,
+          arrayOf(lineupSchema)
+        );
 
-            // Find unique draft groups that we have a lineup for.
-            const draftGroups = uniqWith(
-              res.body.map((lineup) => lineup.draft_group),
-              (group) => group
-            );
+        // Find unique draft groups that we have a lineup for.
+        const draftGroups = uniqWith(
+          json.map((lineup) => lineup.draft_group),
+          (group) => group
+        );
 
-            // Sort playres by roster slot (idx)
-            forEach(normalizedLineups.entities.lineups, (lineup, key) => {
-              normalizedLineups.entities.lineups[key].players = sortBy(
-                normalizedLineups.entities.lineups[key].players, 'idx'
-              );
-            });
-
-            dispatch(fetchUpcomingLineupsSuccess({
-              draftGroupsWithLineups: draftGroups,
-              lineups: normalizedLineups.entities.lineups,
-            }));
-          }
-
-          resolve(res);
+        // Sort playres by roster slot (idx)
+        forEach(normalizedLineups.entities.lineups, (lineup, key) => {
+          normalizedLineups.entities.lineups[key].players = sortBy(
+            normalizedLineups.entities.lineups[key].players, 'idx'
+          );
         });
-    });
 
-    return promise;
-  };
-}
+        return {
+          draftGroupsWithLineups: draftGroups,
+          lineups: normalizedLineups.entities.lineups,
+        };
+      },
+    },
+  });
+
+  apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      dispatch({
+        type: actionTypes.FETCH_UPCOMING_LINEUPS_FAIL,
+        response: action.error,
+      });
+    }
+  });
+
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse;
+};
 
 
 export function lineupFocused(lineupId) {
   return (dispatch) => {
     dispatch({
-      type: types.LINEUP_FOCUSED,
+      type: actionTypes.LINEUP_FOCUSED,
       lineupId,
     });
   };
@@ -112,7 +103,7 @@ export function lineupFocused(lineupId) {
 export function lineupHovered(lineupId) {
   return (dispatch) => {
     dispatch({
-      type: types.LINEUP_HOVERED,
+      type: actionTypes.LINEUP_HOVERED,
       lineupId,
     });
   };
@@ -123,7 +114,7 @@ export function lineupHovered(lineupId) {
 export function createLineupInit(sport) {
   return (dispatch) => {
     dispatch({
-      type: types.CREATE_LINEUP_INIT,
+      type: actionTypes.CREATE_LINEUP_INIT,
       sport,
     });
   };
@@ -133,7 +124,7 @@ export function createLineupInit(sport) {
 export function createLineupAddPlayer(player) {
   return (dispatch) => {
     dispatch({
-      type: types.CREATE_LINEUP_ADD_PLAYER,
+      type: actionTypes.CREATE_LINEUP_ADD_PLAYER,
       player,
     });
   };
@@ -143,7 +134,7 @@ export function createLineupAddPlayer(player) {
 export function removePlayer(playerId) {
   return (dispatch) => {
     dispatch({
-      type: types.CREATE_LINEUP_REMOVE_PLAYER,
+      type: actionTypes.CREATE_LINEUP_REMOVE_PLAYER,
       playerId,
     });
   };
@@ -153,7 +144,7 @@ export function removePlayer(playerId) {
 function saveLineupFail(err) {
   return (dispatch) => {
     dispatch({
-      type: types.CREATE_LINEUP_SAVE_FAIL,
+      type: actionTypes.CREATE_LINEUP_SAVE_FAIL,
       err,
     });
   };
@@ -274,7 +265,7 @@ export function editLineupInit(lineupId) {
     log.info(`Lineup #${lineupId} found, importing for editing.`);
 
     dispatch({
-      type: types.EDIT_LINEUP_INIT,
+      type: actionTypes.EDIT_LINEUP_INIT,
       lineupId,
     });
   };
@@ -309,7 +300,7 @@ export function importLineup(lineup, importTitle = false) {
     });
 
     dispatch({
-      type: types.CREATE_LINEUP_IMPORT,
+      type: actionTypes.CREATE_LINEUP_IMPORT,
       players,
       title,
     });

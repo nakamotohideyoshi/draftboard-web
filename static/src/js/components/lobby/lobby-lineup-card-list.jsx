@@ -8,7 +8,7 @@ import LineupCard from '../lineup/lineup-card.jsx';
 import renderComponent from '../../lib/render-component';
 import smoothScrollTo from '../../lib/smooth-scroll-to.js';
 import LobbyDraftGroupSelectionModal from './lobby-draft-group-selection-modal.jsx';
-import { fetchUpcomingLineups, lineupFocused, lineupHovered } from '../../actions/lineup-actions.js';
+import { fetchUpcomingLineups, lineupFocused, lineupHovered } from '../../actions/upcoming-lineup-actions.js';
 import { openDraftGroupSelectionModal, closeDraftGroupSelectionModal } from
   '../../actions/upcoming-draft-groups-actions.js';
 import { removeContestPoolEntry } from '../../actions/contest-pool-actions.js';

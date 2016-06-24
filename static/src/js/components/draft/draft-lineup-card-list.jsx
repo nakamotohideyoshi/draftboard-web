@@ -8,7 +8,7 @@ import * as AppActions from '../../stores/app-state-store.js';
 import { lineupsByDraftGroupSelector } from '../../selectors/upcoming-lineups-by-draftgroup.js';
 import { setFocusedPlayer } from '../../actions/draft-group-players-actions.js';
 import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit }
-  from '../../actions/lineup-actions.js';
+  from '../../actions/upcoming-lineup-actions.js';
 import map from 'lodash/map';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
