@@ -96,9 +96,9 @@ export const LiveStandingsPane = React.createClass({
           let r;
 
           if (key === 'pmr') {
-            r = p.stats.decimalRemaining - n.stats.decimalRemaining;
+            r = p.timeRemaining.decimal - n.timeRemaining.decimal;
           } else if (key === 'pts') {
-            r = p.stats.fp - n.stats.fp;
+            r = p.fp - n.fp;
           } else if (key === 'owned') {
             r = p.ownershipPercent - n.ownershipPercent;
           }

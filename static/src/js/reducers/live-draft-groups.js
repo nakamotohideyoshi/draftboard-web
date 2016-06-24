@@ -45,6 +45,9 @@ module.exports = (state = {}, action) => {
 
   switch (action.type) {
     case ActionTypes.UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP:
+      // ignore if we aren't watching this draft group
+      if (!state[action.id]) return state;
+
       if (state[action.id].playersStats.hasOwnProperty(action.playerId) === false) {
         log.warn(`No player stats for ${action.playerId} in draft group ${action.id}`);
         return state;
@@ -74,20 +77,22 @@ module.exports = (state = {}, action) => {
       return setOrMerge(state, action, newProps);
 
 
-    case ActionTypes.LIVE_DRAFT_GROUP__INFO__RECEIVE:
+    case ActionTypes.LIVE_DRAFT_GROUP__INFO__RECEIVE: {
+      const response = action.response;
+
       return update(state, {
-        [action.id]: {
+        [response.id]: {
           $merge: {
             isFetchingInfo: false,
             infoExpiresAt: action.expiresAt,
-            playersInfo: action.players,
-            start: action.start,
-            end: action.end,
-            sport: action.sport,
+            playersInfo: response.players,
+            start: response.start,
+            end: response.end,
+            sport: response.sport,
           },
         },
       });
-
+    }
 
     case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP:
       newProps = {
@@ -101,11 +106,11 @@ module.exports = (state = {}, action) => {
 
     case ActionTypes.RECEIVE_LIVE_DRAFT_GROUP_FP:
       return update(state, {
-        [action.id]: {
+        [action.response.id]: {
           $merge: {
             isFetchingFP: false,
             fpExpiresAt: action.expiresAt,
-            playersStats: action.players,
+            playersStats: action.response.players,
           },
         },
       });
@@ -121,11 +126,11 @@ module.exports = (state = {}, action) => {
 
     case ActionTypes.RECEIVE_DRAFT_GROUP_BOXSCORES:
       return update(state, {
-        [action.id]: {
+        [action.response.id]: {
           $merge: {
             isFetchingBoxscores: false,
             boxscoresExpiresAt: action.expiresAt,
-            boxScores: action.boxscores,
+            boxScores: action.response.boxscores,
           },
         },
       });

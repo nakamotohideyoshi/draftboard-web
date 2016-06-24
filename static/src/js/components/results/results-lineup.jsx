@@ -221,6 +221,7 @@ const ResultsLineup = React.createClass({
     const isUpcoming = this.props.dateIsToday && isTimeInFuture(this.props.start);
 
     const entries = this.props.entries.map((entry) => {
+      const payout = entry.payout || {};
       const contest = entry.contest || entry;
 
       if (isUpcoming === true) {
@@ -240,7 +241,7 @@ const ResultsLineup = React.createClass({
           onClick={this.handleShowContestPane.bind(this, contest.id, entry)}
         >
           <div className="title">{contest.name}</div>
-          <div className="prize">{humanizeCurrency(entry.payout.amount)}</div>
+          <div className="prize">{humanizeCurrency(payout.amount || 0)}</div>
           <div className="place">{this.numToPlace(entry.final_rank)}</div>
         </div>
       );

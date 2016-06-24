@@ -4,6 +4,8 @@ import Cookies from 'js-cookie';
 import fetch from 'isomorphic-fetch';
 
 
+// based on https://git.io/vo1Js
+
 // Fetches an API response and normalizes the result JSON according to schema.
 // This makes every API response have the same shape, regardless of how nested it was.
 const callApi = (endpoint, callback) => fetch(endpoint, {
@@ -65,10 +67,17 @@ export default store => next => action => {
 
   const [requestType, successType, failureType] = types;
 
-  next(actionWith({
-    type: requestType,
-    expiresAt: dateNow() + 1000 * 60,  // be able to try again in a minute
-  }));
+  // pass through any additional request fields you want
+  const requestFields = callAPI.requestFields || {};
+
+  next(actionWith(Object.assign(
+    {},
+    {
+      type: requestType,
+      expiresAt: dateNow() + 1000 * 60,  // be able to try again in a minute
+    },
+    requestFields
+  )));
 
   return callApi(endpoint, callback).then(
     response => next(actionWith({
