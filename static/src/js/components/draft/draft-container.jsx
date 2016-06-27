@@ -197,7 +197,7 @@ const DraftContainer = React.createClass({
     this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.params.draftgroupId);
     // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
     // Wrap this in a promise for testing purposes.
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       Promise.all([
         this.props.fetchDraftGroupIfNeeded(this.props.params.draftgroupId),
         this.props.fetchUpcomingLineups(this.props.params.draftgroupId),
@@ -205,9 +205,6 @@ const DraftContainer = React.createClass({
         // Once we know we have data, we can perform any actions specified by the URL parameters.
         this.performUrlAction();
         resolve();
-      }).catch((reason) => {
-        log.error(reason);
-        reject(reason);
       });
     });
   },
