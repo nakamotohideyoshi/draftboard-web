@@ -309,9 +309,11 @@ INSTALLED_APPS = (
     'frontend', # front end styles, layout, etc
     'mysite', # just for management command access
     'replayer',
+    'pp',
 
     'lobby',
     'rest_framework_swagger',
+
 )
 
 #
