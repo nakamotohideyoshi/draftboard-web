@@ -175,28 +175,6 @@ export function enterContest(contestPoolId, lineupId) {
  *
  */
 
-function fetchingContestEntrants() {
-  return {
-    type: actionTypes.FETCHING_CONTEST_ENTRANTS,
-  };
-}
-
-function fetchContestEntrantsSuccess(body, contestId) {
-  return {
-    type: actionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS,
-    entrants: body,
-    contestId,
-  };
-}
-
-function fetchContestEntrantsFail(ex) {
-  log.error(ex);
-  return {
-    type: actionTypes.FETCH_CONTEST_ENTRANTS_FAIL,
-    ex,
-  };
-}
-
 // Do we need to fetch the specified contest entrants?
 function shouldFetchContestEntrants(state, contestId) {
   const entrants = state.contestPools.entrants;
@@ -213,30 +191,39 @@ function shouldFetchContestEntrants(state, contestId) {
   return true;
 }
 
-function fetchContestEntrants(contestId) {
-  return dispatch => {
-    // update the fetching state.
-    dispatch(fetchingContestEntrants());
 
-    return new Promise((resolve, reject) => {
-      request
-      .get(`/api/contest/registered-users/${contestId}/`)
-      .set({
-        'X-REQUESTED-WITH': 'XMLHttpRequest',
-        Accept: 'application/json',
-      })
-      .end((err, res) => {
-        if (err) {
-          dispatch(fetchContestEntrantsFail(err));
-          reject(err);
-        } else {
-          dispatch(fetchContestEntrantsSuccess(res.body, contestId));
-          resolve(res);
-        }
+const fetchContestEntrants = (contestId) => (dispatch) => {
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.FETCHING_CONTEST_ENTRANTS,
+        actionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS,
+        actionTypes.ADD_MESSAGE,
+      ],
+      endpoint: `/api/contest/registered-users/${contestId}/`,
+      callback: (json) => {
+        /* eslint-disable no-param-reassign */
+        json.contestId = contestId;
+        /* eslint-enable no-param-reassign */
+        return json;
+      },
+    },
+  });
+
+  apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      dispatch({
+        type: actionTypes.FETCH_CONTEST_ENTRANTS_FAIL,
+        response: action.error,
       });
-    });
-  };
-}
+    }
+  });
+
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse;
+};
+
 
 export function fetchContestEntrantsIfNeeded(contestId) {
   return (dispatch, getState) => {

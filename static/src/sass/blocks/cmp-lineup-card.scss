@@ -210,6 +210,7 @@ category: Lineup
     display: none !important;
     cursor: pointer;
     padding: 0px 15px 0 5px !important;
+    text-align: center;
 
     &:hover {
       opacity: .8;
@@ -218,10 +219,12 @@ category: Lineup
     .icon {
       position: relative;
       top: 0px;
-      background: url(../img/blocks/lineup-card/icon-delete.png) no-repeat;
+      background: url(../img/blocks/lineup-card/icon-delete.png) no-repeat 50% 0;
       background-size: 23px auto;
       height: 23px;
-      width: 30px;
+      // left: 50%;
+      // margin-left: -15px;
+      width: 40px;
     }
   }
 
