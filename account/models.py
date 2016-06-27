@@ -1,6 +1,8 @@
+#
+# models.py
+
 from django.db import models
 from django.contrib.auth.models import User
-
 
 class Information(models.Model):
     """
@@ -21,7 +23,6 @@ class Information(models.Model):
     class Meta:
         verbose_name = 'Information'
 
-
 class EmailNotification(models.Model):
     """
     The Individual Notifications table
@@ -40,7 +41,6 @@ class EmailNotification(models.Model):
         unique_together = ("category", "name")
         verbose_name = 'Email Notification'
 
-
 class UserEmailNotification(models.Model):
     """
     Options for enabling various email / notifications
@@ -52,3 +52,33 @@ class UserEmailNotification(models.Model):
 
     class Meta:
         unique_together = ("user", "email_notification")
+
+class SavedCardDetails(models.Model):
+    """
+    A token for using the credit card, plus last four digits and expiration.
+
+    does NOT store the entire credit card, but rather
+    enough brief details to be able to identify the card.
+    (ie: "Ending in 1234 expires 11/2016")
+    """
+    CHOICES = (
+        ('amex','AmericanExpress'),
+        ('discover','Discover'),
+        ('mastercard','MasterCard'),
+        ('visa','Visa'),
+    )
+
+    created = models.DateTimeField(auto_now_add=True)
+    token = models.CharField(max_length=256, null=False)
+    user = models.ForeignKey('auth.User', null=False)
+    type = models.CharField(max_length=32, null=False, choices=CHOICES)
+    last_4 = models.CharField(max_length=4, null=False)
+    exp_month = models.IntegerField(default=0, null=False)
+    exp_year = models.IntegerField(default=0, null=False)
+    default = models.BooleanField(default=False, null=False)
+
+    class Meta:
+        # make sure a user cant have multiple similar saved cards
+        unique_together = ('user','token')
+
+

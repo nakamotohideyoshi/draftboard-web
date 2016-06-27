@@ -1,7 +1,14 @@
+#
+# serializers.py
+
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from account.models import Information, EmailNotification, UserEmailNotification
-
+from account.models import (
+    Information,
+    EmailNotification,
+    UserEmailNotification,
+    SavedCardDetails,
+)
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -80,3 +87,23 @@ class ForgotPasswordSerializer(serializers.Serializer):
 class PasswordResetSerializer(serializers.Serializer):
     uid = serializers.CharField()
     token = serializers.CharField()
+
+class SavedCardSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedCardDetails
+        fields = ('user','token','type','last_4','exp_month','exp_year','default')
+
+class SetSavedCardDefaultSerializer(serializers.Serializer):
+    token = serializers.CharField()
+
+    # dont need default, because assume we are trying to set this one to the default
+    #default = serializers.BooleanField()
+
+class SavedCardAddSerializer(serializers.Serializer):
+    type = serializers.CharField()
+    number = serializers.CharField()
+    exp_month = serializers.CharField()
+    exp_year = serializers.CharField()
+    cvv2 = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
