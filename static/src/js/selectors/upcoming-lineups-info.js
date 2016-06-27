@@ -32,7 +32,7 @@ Exampe of output:
 export const upcomingLineupsInfo = createSelector(
   (state) => state.upcomingLineups.lineups,
   (state) => state.contestPoolEntries.entries,
-  (state) => state.upcomingContests.allContests,
+  (state) => state.contestPools.allContests,
   (state) => state.pollingTasks,
   (lineups, entries, contests, pollingTasks) => {
     const info = {};

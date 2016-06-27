@@ -44,24 +44,8 @@ export const fetchContestPoolEntries = () => (dispatch) => {
 
 
 /**
- *
  * Contests Pool Actions
- *
  */
-function fetchUpcomingContestsSuccess(body) {
-  return {
-    type: actionTypes.FETCH_UPCOMING_CONTESTS_SUCCESS,
-    body,
-  };
-}
-
-
-function fetchUpcomingContestsFail(ex) {
-  return {
-    type: actionTypes.FETCH_UPCOMING_CONTESTS_FAIL,
-    ex,
-  };
-}
 
 
 /**
@@ -78,39 +62,50 @@ export function setFocusedContest(contestId) {
 }
 
 
-export function fetchUpcomingContests() {
-  return (dispatch, getState) => {
-    request
-    .get('/api/contest/lobby/')
-    .set({ 'X-REQUESTED-WITH': 'XMLHttpRequest' })
-    .set('Accept', 'application/json')
-    .end((err, res) => {
-      if (err) {
-        return dispatch(fetchUpcomingContestsFail(err));
-      }
+export const fetchContestPools = () => (dispatch, getState) => {
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.FETCH_CONTEST_POOLS,
+        actionTypes.FETCH_CONTEST_POOLS_SUCCESS,
+        actionTypes.ADD_MESSAGE,
+      ],
+      endpoint: '/api/contest/lobby/',
+      callback: (json) => {
+        // Normalize contest list by ID.
+        const normalizedContests = normalize(
+          json,
+          arrayOf(contestSchema)
+        );
 
-      // Normalize contest list by ID.
-      const normalizedContests = normalize(
-        res.body,
-        arrayOf(contestSchema)
-      );
+        // Now that we have contests, check if a contest is already set to be focused (probably
+        // via URL param). if set, fetch the necessary info for the contest detail pane.
+        const state = getState();
 
-      // Now that we have contests, check if a contest is already set to be focused (probably
-      // via URL param). if set, fetch the necessary info for the contest detail pane.
-      const state = getState();
-
-      if (state.upcomingContests.focusedContestId && normalizedContests.entities.contests) {
-        if (!normalizedContests.entities.contests.hasOwnProperty(state.upcomingContests.focusedContestId)) {
-          log.error("404! that contest isn't in the lobby!");
+        if (state.contestPools.focusedContestId && normalizedContests.entities.contests) {
+          if (!normalizedContests.entities.contests.hasOwnProperty(state.contestPools.focusedContestId)) {
+            log.error("404! that contest isn't in the lobby!");
+          }
         }
-      }
 
-      return dispatch(fetchUpcomingContestsSuccess({
-        contests: normalizedContests.entities.contests || {},
-      }));
-    });
-  };
-}
+        return normalizedContests.entities.contests;
+      },
+    },
+  });
+
+  apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      dispatch({
+        type: actionTypes.FETCH_CONTEST_POOLS_FAIL,
+        response: action.error,
+      });
+    }
+  });
+
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse;
+};
 
 
 /**
@@ -204,12 +199,12 @@ function fetchContestEntrantsFail(ex) {
 
 // Do we need to fetch the specified contest entrants?
 function shouldFetchContestEntrants(state, contestId) {
-  const entrants = state.upcomingContests.entrants;
+  const entrants = state.contestPools.entrants;
 
   if (entrants.hasOwnProperty(contestId)) {
     // does the state already have entrants for this contest?
     return false;
-  } else if (state.upcomingContests.isFetchingEntrants) {
+  } else if (state.contestPools.isFetchingEntrants) {
     // are we currently fetching it?
     return false;
   }

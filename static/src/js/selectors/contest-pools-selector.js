@@ -11,14 +11,14 @@ import filter from 'lodash/filter';
  */
 
 // All the upcoming contests in the state.
-const allContestsSelector = (state) => state.upcomingContests.allContests;
+const allContestsSelector = (state) => state.contestPools.allContests;
 
 
 /**
  * First, filter the contests by the title search field...
  */
-const searchFilterPropertySelector = (state) => state.upcomingContests.filters.contestSearchFilter.filterProperty;
-const searchFilterMatchSelector = (state) => state.upcomingContests.filters.contestSearchFilter.match;
+const searchFilterPropertySelector = (state) => state.contestPools.filters.contestSearchFilter.filterProperty;
+const searchFilterMatchSelector = (state) => state.contestPools.filters.contestSearchFilter.match;
 
 // Search the contest's name.
 const contestsWithMatchingTitles = createSelector(
@@ -30,8 +30,8 @@ const contestsWithMatchingTitles = createSelector(
 /**
  * Then filter that list by the sport selection dropdown...
  */
-const sportSelectorProperty = (state) => state.upcomingContests.filters.sportFilter.filterProperty;
-const sportSelectorMatch = (state) => state.upcomingContests.filters.sportFilter.match;
+const sportSelectorProperty = (state) => state.contestPools.filters.sportFilter.filterProperty;
+const sportSelectorMatch = (state) => state.contestPools.filters.sportFilter.match;
 
 // filter the contests by sport.
 const contestsWithMatchingSport = createSelector(
@@ -43,8 +43,8 @@ const contestsWithMatchingSport = createSelector(
 /**
  * Then filter that list by the FEE selection dropdown...
  */
-const feeSelectorProperty = (state) => state.upcomingContests.filters.contestFeeFilter.filterProperty;
-const feeSelectorMatch = (state) => state.upcomingContests.filters.contestFeeFilter.match;
+const feeSelectorProperty = (state) => state.contestPools.filters.contestFeeFilter.filterProperty;
+const feeSelectorMatch = (state) => state.contestPools.filters.contestFeeFilter.match;
 
 // filter the contests by sport.
 const contestsWithMatchingFee = createSelector(
@@ -57,7 +57,7 @@ const contestsWithMatchingFee = createSelector(
 /**
  * filter them by the contest type [GPP, H2H, etc..].
  */
-const typeFilterMatchSelector = (state) => state.upcomingContests.filters.contestTypeFilter.match;
+const typeFilterMatchSelector = (state) => state.contestPools.filters.contestTypeFilter.match;
 
 const contestsWithMatchingTypeSelector = createSelector(
   [contestsWithMatchingFee, typeFilterMatchSelector],
@@ -86,10 +86,10 @@ const contestsWithEntryInfoSelector = createSelector(
 /**
  * Sort the contests.
  */
-const sortDirection = (state) => state.upcomingContests.filters.orderBy.direction;
-const sortProperty = (state) => state.upcomingContests.filters.orderBy.property;
+const sortDirection = (state) => state.contestPools.filters.orderBy.direction;
+const sortProperty = (state) => state.contestPools.filters.orderBy.property;
 
-export const upcomingContestSelector = createSelector(
+export const contestPoolsSelector = createSelector(
   [contestsWithEntryInfoSelector, sortProperty, sortDirection],
   (collection, sortProp, sortDir) => orderByProperty(collection, sortProp, sortDir)
 );

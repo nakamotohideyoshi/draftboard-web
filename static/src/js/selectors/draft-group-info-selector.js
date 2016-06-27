@@ -8,7 +8,7 @@ import sortBy from 'lodash/sortBy';
 
 // Input Selectors
 const draftGroupsFilterSelector = (state) => state.upcomingDraftGroups.draftGroups;
-const contestsFilterSelector = (state) => state.upcomingContests.allContests;
+const contestsFilterSelector = (state) => state.contestPools.allContests;
 
 
 /**
