@@ -133,6 +133,9 @@ class CardData(object):
         if field not in self.CARD_FIELDS:
             raise self.InvalidCardFieldException(field)
         self.data[field] = value
+        # setting the external customer id also sets the payer id to make them identical!
+        if field == self.EXTERNAL_CUSTOMER_ID:
+            self.data[self.PAYER_ID] = value
 
     def set_billing_field(self, field, value):
         if field not in self.BILLING_FIELDS:
