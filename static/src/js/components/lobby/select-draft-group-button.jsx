@@ -26,7 +26,7 @@ const SelectDraftGroupButton = React.createClass({
   },
 
 
-  getTitle(title, focusedSport) {
+  getTitle(title, focusedSport = '') {
     if (title) {
       return title;
     }

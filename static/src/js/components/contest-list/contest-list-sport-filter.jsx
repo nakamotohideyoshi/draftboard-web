@@ -17,8 +17,8 @@ import find from 'lodash/find';
  */
 function mapStateToProps(state) {
   return {
-    sportFilter: state.upcomingContests.filters.sportFilter,
-    contestPools: state.upcomingContests.allContests,
+    sportFilter: state.contestPools.filters.sportFilter,
+    contestPools: state.contestPools.allContests,
   };
 }
 

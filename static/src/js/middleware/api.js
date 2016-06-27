@@ -1,3 +1,4 @@
+import Raven from 'raven-js';
 import { dateNow } from '../lib/utils';
 import log from '../lib/logging.js';
 import Cookies from 'js-cookie';
@@ -15,7 +16,17 @@ const callApi = (endpoint, callback) => fetch(endpoint, {
 }).then(response => {
   // First, reject a response that isn't in the 200 range.
   if (!response.ok) {
-    log.error('API request failed:', response);
+    log.error(`API request failed: ${endpoint}`, response);
+    // Log the request error to Sentry with some info.
+    Raven.captureMessage(
+      `API request failed: ${endpoint}`,
+      { extra: {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+      },
+    });
+
     return Promise.reject(response);
   }
 
@@ -93,7 +104,9 @@ export default store => next => action => {
 
       // what to show the user
       header: 'Failed to connect to API.',
-      content: 'Please refresh the page to reconnect.',
+      // Added some detailed info for non-production purposes
+      // TODO: remove these when we go public.
+      content: `Please refresh the page to reconnect.<br /> ${error.url}<br />${error.status} ${error.statusText} `,
       level: 'warning',
       id: 'apiFailure',
     }))

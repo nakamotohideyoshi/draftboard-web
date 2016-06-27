@@ -1,11 +1,12 @@
 import merge from 'lodash/merge';
-const ActionTypes = require('../action-types');
+const actionTypes = require('../action-types');
 
 const initialState = {
   allContests: {},
   filteredContests: {},
   focusedContestId: null,
   isFetchingEntrants: false,
+  isFetchingContestPools: false,
   entrants: {},
   filters: {
     orderBy: {
@@ -22,6 +23,7 @@ const initialState = {
     },
     contestSearchFilter: {},
     sportFilter: {
+      // Default sport filter is set here.
       match: 'mlb',
       filterProperty: 'sport',
     },
@@ -34,15 +36,28 @@ module.exports = (state = initialState, action) => {
 
   switch (action.type) {
 
-    case ActionTypes.FETCH_UPCOMING_CONTESTS_SUCCESS:
-      // Return a copy of the previous state with our new things added to it.
+    case actionTypes.FETCH_CONTEST_POOLS:
       return merge({}, state, {
-        allContests: action.body.contests,
-        filteredContests: action.body.contests,
+        isFetchingContestPools: true,
       });
 
 
-    case ActionTypes.UPCOMING_CONTESTS_FILTER_CHANGED: {
+    case actionTypes.FETCH_CONTEST_POOLS_SUCCESS:
+      // Return a copy of the previous state with our new things added to it.
+      return merge({}, state, {
+        allContests: action.response,
+        filteredContests: action.response,
+        isFetchingContestPools: false,
+      });
+
+
+    case actionTypes.FETCH_CONTEST_POOLS_FAIL:
+      return merge({}, state, {
+        isFetchingContestPools: false,
+      });
+
+
+    case actionTypes.UPCOMING_CONTESTS_FILTER_CHANGED: {
       const newFilter = {};
 
       newFilter[action.filter.filterName] = {
@@ -56,31 +71,31 @@ module.exports = (state = initialState, action) => {
     }
 
 
-    case ActionTypes.SET_FOCUSED_CONTEST:
+    case actionTypes.SET_FOCUSED_CONTEST:
       return merge({}, state, {
         focusedContestId: action.contestId,
       });
 
 
-    case ActionTypes.UPCOMING_CONTESTS_ORDER_CHANGED:
+    case actionTypes.UPCOMING_CONTESTS_ORDER_CHANGED:
       newState = merge({}, state);
       newState.filters.orderBy = action.orderBy;
       return newState;
 
 
-    case ActionTypes.FETCHING_CONTEST_ENTRANTS:
+    case actionTypes.FETCHING_CONTEST_ENTRANTS:
       return merge({}, state, {
         isFetchingEntrants: true,
       });
 
 
-    case ActionTypes.FETCH_CONTEST_ENTRANTS_FAIL:
+    case actionTypes.FETCH_CONTEST_ENTRANTS_FAIL:
       return merge({}, state, {
         isFetchingEntrants: false,
       });
 
 
-    case ActionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS: {
+    case actionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS: {
       const newEntrants = merge({}, state.entrants);
       newEntrants[action.contestId] = action.entrants;
 
@@ -91,7 +106,7 @@ module.exports = (state = initialState, action) => {
     }
 
 
-    case ActionTypes.UPCOMING_CONTESTS_UPDATE_RECEIVED: {
+    case actionTypes.UPCOMING_CONTESTS_UPDATE_RECEIVED: {
       const stateCopy = merge({}, state);
 
       stateCopy.allContests[action.contest.id] = action.contest;

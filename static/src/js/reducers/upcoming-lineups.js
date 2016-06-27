@@ -1,6 +1,6 @@
 import merge from 'lodash/merge';
 
-const ActionTypes = require('../action-types');
+const actionTypes = require('../action-types');
 const initialState = {
   lineups: {},
   draftGroupIdFilter: null,
@@ -14,45 +14,47 @@ const initialState = {
 module.exports = (state = initialState, action) => {
   switch (action.type) {
 
-    case ActionTypes.FETCH_UPCOMING_LINEUPS_SUCCESS: {
+    case actionTypes.FETCH_UPCOMING_LINEUPS_SUCCESS: {
       // Grab the first lineup in our object and set it as focused.
       let focusedLineupId;
-      if (action.lineups && Object.keys(action.lineups).length > 0) {
-        focusedLineupId = action.lineups[Object.keys(action.lineups)[Object.keys(action.lineups).length - 1]].id;
+      if (action.response.lineups && Object.keys(action.response.lineups).length > 0) {
+        focusedLineupId = action.response.lineups[
+          Object.keys(action.response.lineups)[Object.keys(action.response.lineups).length - 1]
+        ].id;
       }
 
 
       // Return a copy of the previous state with our new things added to it.
       return merge({}, state, {
-        lineups: action.lineups || {},
-        draftGroupsWithLineups: action.draftGroupsWithLineups,
+        lineups: action.response.lineups || {},
+        draftGroupsWithLineups: action.response.draftGroupsWithLineups,
         focusedLineupId,
       });
     }
 
-    case ActionTypes.LINEUP_FOCUSED:
+    case actionTypes.LINEUP_FOCUSED:
       return merge({}, state, {
         focusedLineupId: action.lineupId,
       });
 
 
-    case ActionTypes.LINEUP_HOVERED:
+    case actionTypes.LINEUP_HOVERED:
       return merge({}, state, {
         hoveredLineupId: action.lineupId,
       });
 
 
-    case ActionTypes.FETCH_UPCOMING_LINEUPS_FAIL:
+    case actionTypes.FETCH_UPCOMING_LINEUPS_FAIL:
       return state;
 
 
-    case ActionTypes.EDIT_LINEUP_INIT:
+    case actionTypes.EDIT_LINEUP_INIT:
       return merge({}, state, {
         lineupBeingEdited: action.lineupId,
       });
 
 
-    case ActionTypes.FILTER_UPCOMING_LINEUPS_BY_DRAFTGROUP_ID:
+    case actionTypes.FILTER_UPCOMING_LINEUPS_BY_DRAFTGROUP_ID:
       return merge({}, state, {
         draftGroupIdFilter: action.draftGroupId,
       });
