@@ -19,7 +19,7 @@ import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByF
 import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId }
   from '../../actions/upcoming-draft-groups-actions.js';
 import { createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
-  editLineupInit, importLineup } from '../../actions/lineup-actions.js';
+  editLineupInit, importLineup } from '../../actions/upcoming-lineup-actions.js';
 import { draftGroupPlayerSelector, filteredPlayersSelector } from '../../selectors/draft-group-players-selector.js';
 import { activeDraftGroupBoxScoresSelector } from '../../selectors/draft-group-info-selector.js';
 // Other components that will take care of themselves on the draft page.

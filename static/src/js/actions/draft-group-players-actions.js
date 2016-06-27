@@ -1,9 +1,8 @@
 import log from '../lib/logging';
-import * as types from '../action-types.js';
-import request from 'superagent';
-// so we can use Promise
-
+import * as actionTypes from '../action-types.js';
+import { CALL_API } from '../middleware/api';
 import { normalize, Schema, arrayOf } from 'normalizr';
+// import { dateNow } from '../lib/utils';
 // import { fetchSportInjuries } from './injury-actions.js';
 import { fetchFantasyHistory } from './fantasy-history-actions.js';
 import { fetchTeamsIfNeeded } from './sports.js';
@@ -20,7 +19,7 @@ const playerSchema = new Schema('players', {
 // These control the filter + sorting of the player list in the draft section.
 export function updateFilter(filterName, filterProperty, match) {
   return {
-    type: types.DRAFTGROUP_FILTER_CHANGED,
+    type: actionTypes.DRAFTGROUP_FILTER_CHANGED,
     filter: {
       filterName,
       filterProperty,
@@ -31,7 +30,7 @@ export function updateFilter(filterName, filterProperty, match) {
 
 export function updateOrderByFilter(property, direction = 'desc') {
   return {
-    type: types.DRAFTGROUP_ORDER_CHANGED,
+    type: actionTypes.DRAFTGROUP_ORDER_CHANGED,
     orderBy: {
       property,
       direction,
@@ -42,7 +41,7 @@ export function updateOrderByFilter(property, direction = 'desc') {
 export function setFocusedPlayer(playerId) {
   return (dispatch) => {
     dispatch({
-      type: types.SET_FOCUSED_PLAYER,
+      type: actionTypes.SET_FOCUSED_PLAYER,
       playerId,
     });
   };
@@ -51,29 +50,8 @@ export function setFocusedPlayer(playerId) {
 
 /**
  * Draft Group fetching actions
- * /api/draft-group/draftGroupId
+ * /api/draft-group/<draftGroupId>/
  */
-function fetchingDraftgroup() {
-  return {
-    type: types.FETCHING_DRAFT_GROUPS,
-  };
-}
-
-function fetchDraftgroupSuccess(body) {
-  return {
-    type: types.FETCH_DRAFTGROUP_SUCCESS,
-    body,
-  };
-}
-
-function fetchDraftgroupFail(ex) {
-  log.error(ex);
-  return {
-    type: types.FETCH_DRAFTGROUP_FAIL,
-    ex,
-  };
-}
-
 
 // Do we need to fetch the specified draft group?
 function shouldFetchDraftGroup(state, draftGroupId) {
@@ -92,62 +70,66 @@ function shouldFetchDraftGroup(state, draftGroupId) {
 }
 
 
-function fetchDraftGroup(draftGroupId) {
-  return dispatch => {
-    // update the fetching state.
-    dispatch(fetchingDraftgroup());
+const fetchDraftGroup = (draftGroupId) => (dispatch) => {
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.FETCHING_DRAFT_GROUPS,
+        actionTypes.FETCH_DRAFTGROUP_SUCCESS,
+        actionTypes.ADD_MESSAGE,
+      ],
+      endpoint: `/api/draft-group/${draftGroupId}/`,
+      // expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
+      callback: (json) => {
+        // Now that we know which sport we're dealing with, fetch the injuries + fp history for
+        // these players.
+        dispatch(fetchFantasyHistory(json.sport));
+        // TODO: zach: not loading injuries untill we get the API source sorted out.
+        log.warn('not loading injuries until we get the API source sorted out.');
+        // dispatch(fetchSportInjuries(res.body.sport));
+        dispatch(fetchTeamsIfNeeded(json.sport));
+        dispatch(fetchPlayerNewsIfNeeded(json.sport));
+        dispatch(fetchPlayerBoxScoreHistoryIfNeeded(json.sport));
 
-    const promise = new Promise((resolve, reject) => {
-      request
-      .get(`/api/draft-group/${draftGroupId}/`)
-      .set({
-        'X-REQUESTED-WITH': 'XMLHttpRequest',
-        Accept: 'application/json',
-      })
-      .end((err, res) => {
-        if (err) {
-          dispatch(fetchDraftgroupFail(err));
-          reject(err);
-        } else {
-          // Now that we know which sport we're dealing with, fetch the injuries + fp history for
-          // these players.
-          dispatch(fetchFantasyHistory(res.body.sport));
-          // TODO: zach: not loading injuries untill we get the API source sorted out.
-          log.warn('not loading injuries until we get the API source sorted out.');
-          // dispatch(fetchSportInjuries(res.body.sport));
-          dispatch(fetchTeamsIfNeeded(res.body.sport));
-          dispatch(fetchPlayerNewsIfNeeded(res.body.sport));
-          dispatch(fetchPlayerBoxScoreHistoryIfNeeded(res.body.sport));
+        // Normalize player list by ID.
+        const normalizedPlayers = normalize(
+          json.players,
+          arrayOf(playerSchema)
+        );
 
-          // Normalize player list by ID.
-          const normalizedPlayers = normalize(
-            res.body.players,
-            arrayOf(playerSchema)
-          );
-
-          // If there are no probable pitcher updates, disable the filter.
-          if (!res.body.game_updates.filter((update) => update.type === 'pp').length) {
-            log.warn('No probable pitcher info was recieved, disabling filter.');
-            dispatch(updateFilter('probablePitchersFilter', 'srid', false));
-          }
-
-          dispatch(fetchDraftgroupSuccess({
-            players: normalizedPlayers.entities.players,
-            start: res.body.start,
-            end: res.body.end,
-            sport: res.body.sport,
-            id: res.body.pk,
-            game_updates: res.body.game_updates,
-          }));
-
-          resolve(res);
+        // If there are no probable pitcher updates, disable the filter.
+        if (!json.game_updates.filter((update) => update.type === 'pp').length) {
+          log.warn('No probable pitcher info was recieved, disabling filter.');
+          dispatch(updateFilter('probablePitchersFilter', 'srid', false));
         }
-      });
 
-      return promise;
-    });
-  };
-}
+        // return some normalized json to the success action.
+        return {
+          players: normalizedPlayers.entities.players,
+          start: json.start,
+          end: json.end,
+          sport: json.sport,
+          id: json.pk,
+          game_updates: json.game_updates,
+        };
+      },
+    },
+  });
+
+  apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      dispatch({
+        type: actionTypes.FETCH_DRAFTGROUP_FAIL,
+        response: action.error,
+      });
+    }
+  });
+
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse;
+};
+
 
 export function fetchDraftGroupIfNeeded(draftGroupId) {
   return (dispatch, getState) => {

@@ -6,12 +6,12 @@ import { push as routerPush } from 'react-router-redux';
 import { fetchContestPoolEntries } from '../../actions/contest-pool-actions.js';
 import { fetchFeaturedContestsIfNeeded } from '../../actions/featured-contest-actions.js';
 import { fetchPrizeIfNeeded } from '../../actions/prizes.js';
-import { fetchUpcomingContests, enterContest, setFocusedContest, updateOrderByFilter }
+import { fetchContestPools, enterContest, setFocusedContest, updateOrderByFilter }
   from '../../actions/contest-pool-actions.js';
 import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions.js';
 import { focusedContestInfoSelector, focusedLineupSelector, highestContestBuyin }
   from '../../selectors/lobby-selectors.js';
-import { upcomingContestSelector } from '../../selectors/upcoming-contest-selector.js';
+import { contestPoolsSelector } from '../../selectors/contest-pools-selector.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
 import { updateFilter, upcomingContestUpdateReceived }
   from '../../actions/contest-pool-actions.js';
@@ -40,17 +40,17 @@ const { Provider, connect } = ReactRedux;
  */
 function mapStateToProps(state) {
   return {
-    allContests: state.upcomingContests.allContests,
+    allContests: state.contestPools.allContests,
     draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
     featuredContests: state.featuredContests.banners,
-    filteredContests: upcomingContestSelector(state),
-    contestFilters: state.upcomingContests.filters,
+    filteredContests: contestPoolsSelector(state),
+    contestFilters: state.contestPools.filters,
     focusedContest: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
     hoveredLineupId: state.upcomingLineups.hoveredLineupId,
     lineupsInfo: upcomingLineupsInfo(state),
-    orderByDirection: state.upcomingContests.filters.orderBy.direction,
-    orderByProperty: state.upcomingContests.filters.orderBy.property,
+    orderByDirection: state.contestPools.filters.orderBy.direction,
+    orderByProperty: state.contestPools.filters.orderBy.property,
     highestContestBuyin: highestContestBuyin(state),
   };
 }
@@ -66,7 +66,7 @@ function mapDispatchToProps(dispatch) {
     fetchContestPoolEntries: () => dispatch(fetchContestPoolEntries()),
     fetchFeaturedContestsIfNeeded: () => dispatch(fetchFeaturedContestsIfNeeded()),
     fetchPrizeIfNeeded: (prizeStructureId) => dispatch(fetchPrizeIfNeeded(prizeStructureId)),
-    fetchUpcomingContests: () => dispatch(fetchUpcomingContests()),
+    fetchContestPools: () => dispatch(fetchContestPools()),
     fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     updateFilter: (filterName, filterProperty, match) => dispatch(
@@ -95,7 +95,7 @@ const LobbyContainer = React.createClass({
     fetchContestPoolEntries: React.PropTypes.func,
     fetchFeaturedContestsIfNeeded: React.PropTypes.func,
     fetchPrizeIfNeeded: React.PropTypes.func,
-    fetchUpcomingContests: React.PropTypes.func,
+    fetchContestPools: React.PropTypes.func,
     fetchUpcomingDraftGroupsInfo: React.PropTypes.func,
     filteredContests: React.PropTypes.array,
     focusedContest: React.PropTypes.object,
@@ -132,7 +132,7 @@ const LobbyContainer = React.createClass({
 
   componentWillMount() {
     // Fetch all of the necessary data for the lobby.
-    this.props.fetchUpcomingContests();
+    this.props.fetchContestPools();
     this.props.fetchUpcomingDraftGroupsInfo();
     // this.props.fetchFeaturedContestsIfNeeded();
 

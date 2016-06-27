@@ -38,7 +38,13 @@ export const assembleCurrentPlayer = (id, draftGroup, gamesTimeRemaining) => {
   //   id: 1,
   //   pos: "SG",
   // }
-  const stats = draftGroup.playersStats[id] || {};
+
+  let stats = {};
+
+  // Load up some stats, if we have them.
+  if (draftGroup.playersStats && draftGroup.playersStats[id]) {
+    stats = draftGroup.playersStats[id];
+  }
 
   // default to 100% time remaining if we do not have game data yet
   const timeRemaining = gamesTimeRemaining[info.game_srid] || {

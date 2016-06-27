@@ -79,19 +79,18 @@ module.exports = (state = {}, action) => {
 
     case ActionTypes.LIVE_DRAFT_GROUP__INFO__RECEIVE: {
       const response = action.response;
+      const newState = merge({}, state);
+      // Replace any current draftgroup info with the new one.
+      newState[response.id] = {
+        isFetchingInfo: false,
+        infoExpiresAt: action.expiresAt,
+        playersInfo: response.players,
+        start: response.start,
+        end: response.end,
+        sport: response.sport,
+      };
 
-      return update(state, {
-        [response.id]: {
-          $merge: {
-            isFetchingInfo: false,
-            infoExpiresAt: action.expiresAt,
-            playersInfo: response.players,
-            start: response.start,
-            end: response.end,
-            sport: response.sport,
-          },
-        },
-      });
+      return newState;
     }
 
     case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP:

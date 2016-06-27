@@ -5,7 +5,7 @@ import { mount } from 'enzyme';
 import LobbyContainer from '../../../components/lobby/lobby-container.jsx';
 import ContestRangeSliderFilter from '../../../components/contest-list/contest-range-slider-filter.jsx';
 import allContestsFix from '../../../fixtures/json/redux-state/upcoming-contests/all-contests.js';
-import UpcomingContestSelectorFix from '../../../fixtures/json/selectors-output/upcoming-contest-selector.js';
+import UpcomingContestSelectorFix from '../../../fixtures/json/selectors-output/contest-pools-selector.js';
 
 
 const defaultTestProps = {
@@ -32,7 +32,7 @@ const defaultTestProps = {
   fetchContestPoolEntries: () => true,
   fetchFeaturedContestsIfNeeded: () => true,
   fetchPrizeIfNeeded: () => true,
-  fetchUpcomingContests: () => true,
+  fetchContestPools: () => true,
   fetchUpcomingDraftGroupsInfo: () => true,
   filteredContests: UpcomingContestSelectorFix,
   focusedContest: {},
