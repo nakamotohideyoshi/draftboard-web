@@ -42,7 +42,7 @@ export const assembleCurrentPlayer = (id, draftGroup, gamesTimeRemaining) => {
   let stats = {};
 
   // Load up some stats, if we have them.
-  if (draftGroup.playersStats && !draftGroup.playersStats[id]) {
+  if (draftGroup.playersStats && draftGroup.playersStats[id]) {
     stats = draftGroup.playersStats[id];
   }
 
