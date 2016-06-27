@@ -34,7 +34,7 @@ function mapStateToProps(state) {
     focusedLineupId: state.upcomingLineups.focusedLineupId,
     draftGroupInfo: draftGroupInfoSelector(state),
     draftGroupSelectionModalIsOpen: state.upcomingDraftGroups.draftGroupSelectionModalIsOpen,
-    focusedSport: state.upcomingContests.filters.sportFilter.match,
+    focusedSport: state.contestPools.filters.sportFilter.match,
   };
 }
 

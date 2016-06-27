@@ -29,10 +29,10 @@ import PubSub from 'pubsub-js';
  */
 function mapStateToProps(state) {
   return {
-    allContests: state.upcomingContests.allContests,
+    allContests: state.contestPools.allContests,
     focusedContestInfo: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
-    focusedContestId: state.upcomingContests.focusedContestId,
+    focusedContestId: state.contestPools.focusedContestId,
     boxScores: state.upcomingDraftGroups.boxScores,
     teams: state.sports,
     lineupsInfo: upcomingLineupsInfo(state),

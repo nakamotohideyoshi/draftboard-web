@@ -1,10 +1,10 @@
 import { expect } from 'chai';
-import { upcomingContestSelector } from '../../selectors/upcoming-contest-selector.js';
+import { contestPoolsSelector } from '../../selectors/contest-pools-selector.js';
 import * as contestFixtures from '../../fixtures/json/store-upcoming-contests.js';
 import store from '../../store.js';
 
 
-describe('UpcomingContestSelector', () => {
+describe('contestPoolselector', () => {
   let appState = {};
 
   beforeEach(() => {
@@ -15,18 +15,18 @@ describe('UpcomingContestSelector', () => {
 
 
   it('should return empty array when no contest are present.', () => {
-    expect(upcomingContestSelector(appState)).to.be.an('array');
-    expect(upcomingContestSelector(appState)).to.have.lengthOf(0);
+    expect(contestPoolsSelector(appState)).to.be.an('array');
+    expect(contestPoolsSelector(appState)).to.have.lengthOf(0);
   });
 
 
   it('should return all contest when no filters are set.', () => {
     // Populate the store with our store fixture data.
-    appState.upcomingContests.allContests = contestFixtures.allContests;
+    appState.contestPools.allContests = contestFixtures.allContests;
     // Reset the default sport filter.
-    appState.upcomingContests.filters.sportFilter.match = '';
-    expect(upcomingContestSelector(appState)).to.be.an('array');
+    appState.contestPools.filters.sportFilter.match = '';
+    expect(contestPoolsSelector(appState)).to.be.an('array');
     // This is no longer true because we are
-    expect(upcomingContestSelector(appState)).to.have.lengthOf(Object.keys(contestFixtures.allContests).length);
+    expect(contestPoolsSelector(appState)).to.have.lengthOf(Object.keys(contestFixtures.allContests).length);
   });
 });

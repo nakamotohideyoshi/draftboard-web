@@ -5,16 +5,16 @@ import filter from 'lodash/filter';
 
 
 /**
- * Get the currently focused contest object based on state.upcomingContests.focusedContestId
+ * Get the currently focused contest object based on state.contestPools.focusedContestId
  * Add it's prize structure and entrant usernames.
  */
 export const focusedContestInfoSelector = createSelector(
-  (state) => state.upcomingContests.allContests,
-  (state) => state.upcomingContests.focusedContestId,
+  (state) => state.contestPools.allContests,
+  (state) => state.contestPools.focusedContestId,
   (state) => state.upcomingLineups.focusedLineupId,
   (state) => state.upcomingDraftGroups.boxScores,
   (state) => state.prizes,
-  (state) => state.upcomingContests.entrants,
+  (state) => state.contestPools.entrants,
   (state) => upcomingLineupsInfo(state),
   (state) => state.contestPoolEntries.entries,
   (upcomingContests,
@@ -93,7 +93,7 @@ export const focusedLineupSelector = createSelector(
  * Find the highest buyin for a contest - this is used for contest filters.
  */
 export const highestContestBuyin = createSelector(
-  (state) => state.upcomingContests.allContests,
+  (state) => state.contestPools.allContests,
   (contests) => {
     const sortedContests = sortBy(contests, ['buyin']).reverse();
 

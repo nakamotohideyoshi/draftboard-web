@@ -27,7 +27,7 @@ const prizes = require('./prizes');
 const results = require('./results');
 const sports = require('./sports');
 const transactions = require('./transactions');
-const upcomingContests = require('./upcoming-contests');
+const contestPools = require('./contest-pools');
 const upcomingDraftGroups = require('./upcoming-draft-groups');
 const upcomingLineups = require('./upcoming-lineups');
 const user = require('./user');
@@ -40,6 +40,7 @@ const watching = require('./watching');
  */
 export default combineReducers({
   asyncFailures,
+  contestPools,
   contestPoolEntries,
   createLineup,
   currentDraftGroups,
@@ -65,7 +66,6 @@ export default combineReducers({
   routing,
   sports,
   transactions,
-  upcomingContests,
   upcomingDraftGroups,
   upcomingLineups,
   lineupUsernames,

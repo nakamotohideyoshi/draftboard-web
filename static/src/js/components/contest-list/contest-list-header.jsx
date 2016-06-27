@@ -14,8 +14,8 @@ const { Provider, connect } = ReactRedux;
  */
 function mapStateToProps(state) {
   return {
-    contests: state.upcomingContests.allContests,
-    filters: state.upcomingContests.filters,
+    contests: state.contestPools.allContests,
+    filters: state.contestPools.filters,
   };
 }
 
