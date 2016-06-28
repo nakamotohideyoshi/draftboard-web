@@ -71,7 +71,7 @@ class CardData(object):
 
     # used for validation
     CARD_FIELDS = [
-        EXTERNAL_CUSTOMER_ID, TYPE, NUMBER, EXPIRE_MONTH, EXPIRE_YEAR, FIRST_NAME, LAST_NAME
+        EXTERNAL_CUSTOMER_ID, TYPE, NUMBER, EXPIRE_MONTH, EXPIRE_YEAR, FIRST_NAME, LAST_NAME, CVV2
     ]
 
     # billing address information
@@ -108,6 +108,9 @@ class CardData(object):
                 }
             }
 
+    def get_data(self):
+        return self.data
+
     def get_number(self):
         return self.data.get(self.NUMBER)
 
@@ -140,7 +143,7 @@ class CardData(object):
     def set_billing_field(self, field, value):
         if field not in self.BILLING_FIELDS:
             raise self.InvalidBillingFieldException(field)
-        self.data.get(self.BILLING_ADDRESS_DATA)[field] = value
+        self.data[self.BILLING_ADDRESS_DATA][field] = value
 
 class SavedCard(object):
 
