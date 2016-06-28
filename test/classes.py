@@ -33,6 +33,9 @@ from django.contrib.contenttypes.models import ContentType
 from lineup.classes import LineupManager
 from scoring.classes import AbstractScoreSystem
 from scoring.models import ScoreSystem
+from django.contrib.auth.models import User
+from account.classes import AccountInformation
+import datetime
 
 class ResetDatabaseMixin(object):
 
@@ -156,9 +159,11 @@ class ForceAuthenticateAndRequestMixin( object ):
         return response
 
 class MasterAbstractTest():
+
     CELERY_TEST_RUNNER = 'djcelery.contrib.test_runner.CeleryTestSuiteRunner'
 
     PASSWORD = 'password'
+
     def get_user(self, username='username', is_superuser=False,
                  is_staff=False, permissions=[]):
         #
@@ -188,6 +193,15 @@ class MasterAbstractTest():
 
         user.save()
 
+        return user
+
+    def get_user_with_account_information(self, username='userWithInformation'):
+        user = self.get_user(username)
+        info = AccountInformation(user)
+        info.set_fields(fullname='', # user.first_name + ' ' + user.last_name,
+                        address1='1 Draftboard Drive',
+                        city='Draft City', state='NH',
+                        dob=datetime.date(1995, 12, 25))
         return user
 
     def get_admin_user(self, username='admin'):

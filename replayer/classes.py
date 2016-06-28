@@ -63,6 +63,9 @@ class ReplayManager(object):
 
     class InvalidStateException(Exception): pass
 
+    # default, used in play_range/play_all method to determine how much of each object to print
+    TRUNCATE_CHARS = 75
+
     # directory for pg_dump'ed restore points for the database
     RESTORE_DIR                     = 'replayer/restore/'
 
@@ -496,7 +499,7 @@ class ReplayManager(object):
 
         parser = sports.parser.DataDenParser()
         update = replayer.models.Update.objects.get(pk=update_id)
-        print( 'playing single stat...')
+        print( 'playing replayer update (pk=%s) ...' % update_id)
 
         ns_parts    = update.ns.split('.') # split namespace on dot for db and coll
         db          = ns_parts[0]
@@ -504,16 +507,31 @@ class ReplayManager(object):
         # send it thru parser! Triggers do NOT need to be running for this to work!
         parser.parse_obj( db, collection, ast.literal_eval( update.o ), async=async )
 
-    def play_all(self, async=False):
+    def play_range(self, update_id, end_update_id, async=False, truncate_chars=None):
+        updates = replayer.models.Update.objects.filter(pk__range=(update_id, end_update_id))
+        if updates.count() <= 0:
+            print('there are no updates in the range (%s, %s)' % (str(update_id), str(end_update_id) ))
+            return
+
+        self.play_all(updates=updates, async=async)
+
+    def play_all(self, updates=None, async=False, truncate_chars=None):
+        if truncate_chars is None:
+            truncate_chars = self.TRUNCATE_CHARS
+
         parser = sports.parser.DataDenParser()
-        updates = replayer.models.Update.objects.all()
-        print( 'playing all...')
+        if updates is None:
+            updates = replayer.models.Update.objects.all()
+        start_pk = updates[0].pk
+        size = len(updates)
+
+        print( 'playing %s updates, starting at pk %s ...' % (str(size), str(start_pk) ))
 
         i = 0
         total_updates = updates.count()
         for update in updates:
             i += 1
-            print( '%s of %s -' % (str(i), str(total_updates)), update.o[:75], '...' ) #update.o[:75]
+            print( '%s of %s -' % (str(i), str(total_updates)), update.o[:truncate_chars], '...' ) #update.o[:75]
             ns_parts    = update.ns.split('.') # split namespace on dot for db and coll
             db          = ns_parts[0]
             collection  = ns_parts[1]

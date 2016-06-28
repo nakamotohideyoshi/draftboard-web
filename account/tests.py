@@ -7,6 +7,30 @@ from rest_framework.test import APITestCase
 from test.classes import AbstractTest
 from .classes import AccountInformation
 from .exceptions import AccountInformationException
+from rest_framework import status
+from rest_framework.test import APITestCase
+from test.classes import (
+    MasterAbstractTest,                 # has get_user() method
+    ForceAuthenticateAndRequestMixin,
+)
+from account.views import (
+    # PayPalDepositWithPayPalAccountAPIView,
+    # PayPalDepositWithPayPalAccountSuccessAPIView,
+    # PayPalDepositWithPayPalAccountFailAPIView,
+    PayPalDepositCreditCardAPIView,
+    PayPalDepositSavedCardAPIView,
+    PayPalSavedCardAddAPIView,
+    PayPalSavedCardDeleteAPIView,
+    PayPalSavedCardListAPIView,
+)
+
+# Notes:
+# rest_framework.status has these helper methods (which all return a boolean):
+# is_informational()  # 1xx
+# is_success()        # 2xx
+# is_redirect()       # 3xx
+# is_client_error()   # 4xx
+# is_server_error()   # 5xx
 
 class RegisterAccountTest( APITestCase ):
 
@@ -167,3 +191,77 @@ class AccountInformationTest(AbstractTest):
             zipcode         = ''
         )
         self.should_fail_validate_mailing_address(information)
+
+class APITestCaseMixin(APITestCase):
+    """
+    provides print_response just while were setting up tests to help print the response
+    and help diagnose problems
+    """
+    def print_response(self, response):
+        status_code = response.status_code
+        data        = response.data
+        print('HTTP [%s] %s' % (status_code, str(data)))
+
+class PayWithCreditCardAPITest(APITestCase, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
+    pass # TODO
+
+class AddSavedCardAPI_TestMissingInformation(APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
+
+    def setUp(self):
+        # the view class
+        self.view = PayPalSavedCardAddAPIView
+        # the url of the endpoint and a default user
+        self.url = '/api/account/paypal/saved-card/add/'
+        self.user = self.get_user('user_missinginformation')
+
+    def test_1(self):
+        # double quotes is real JSON, single quotes will make it unhappy
+        # data = {
+        #     "type":"visa",
+        #     "number":"4032036765082399",
+        #     "exp_month":"12",
+        #     "exp_year":"2020",
+        #     "cvv2":"012"
+        # }
+
+        data = {}
+        response = self.force_authenticate_and_POST(self.user, self.view, self.url, data )
+
+        self.print_response(response)
+
+        # is_client_error() checks any 400 errors (401, 402, etc...)
+        self.assertTrue(status.is_client_error(response.status_code))
+
+class AddSavedCardAPI_TestEmptyPostParams(APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
+
+    def setUp(self):
+        # the view class
+        self.view = PayPalSavedCardAddAPIView
+        # the url of the endpoint and a default user
+        self.url = '/api/account/paypal/saved-card/add/'
+        self.user = self.get_user_with_account_information('user_withinformation')
+
+    def test_1(self):
+        data = {}
+
+        response = self.force_authenticate_and_POST(self.user, self.view, self.url, data )
+        self.print_response(response)
+        # is_client_error() checks any 400 errors (401, 402, etc...)
+        self.assertTrue(status.is_client_error(response.status_code))
+
+# class AddSavedCardAPI_TestEmptyPostParams(APITestCaseMixin, MasterAbstractTest, ForceAuthenticateAndRequestMixin):
+#
+#     def setUp(self):
+#         # the view class
+#         self.view = PayPalSavedCardAddAPIView
+#         # the url of the endpoint and a default user
+#         self.url = '/api/account/paypal/saved-card/add/'
+#         self.user = self.get_user_with_account_information('userWithInformation')
+#
+#     def test_1(self):
+#         data = {}
+#
+#         response = self.force_authenticate_and_POST(self.user, self.view, self.url, data )
+#         self.print_response(response)
+#         # is_client_error() checks any 400 errors (401, 402, etc...)
+#         self.assertTrue(status.is_client_error(response.status_code))

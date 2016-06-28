@@ -17,39 +17,6 @@ import sports.classes
 import dateutil.parser
 import push.classes
 
-#
-################################################################################
-#################### this will get the {player-srid} and the {game-srid}       #
-################################################################################
-# %cpaste
-# import re
-# import operator
-# from ast import literal_eval
-# f = open('site-setup/lillard_updates.txt', 'r')
-# lines = f.readlines()
-# f.close()
-# items = []
-# for line in lines:
-#     d = literal_eval( line )
-#     items.append( d )
-# sorted_items = sorted(items, key=lambda k: k['ts']) # ascending
-# len(sorted_items)
-# for item in sorted_items:
-#     if item.get('ns') == 'nba.player':
-#         print(item.get('ts'), '>>>', item.get('o').get('statistics__list'))
-#     elif item.get('ns') == 'nba.event':
-#         print(item.get('ts'), '>>>', item.get('o').get('description'))
-#         pattern = r"'player':\s'([^']*)'"
-#         player_srids = re.findall(pattern, str(item))
-#         for psrid in player_srids:
-#             print('        player: ', psrid)
-#         pattern_game = r"'game__id':\s'([^']*)'"
-#         game_srids = re.findall(pattern_game, str(item))
-#         for gsrid in game_srids:
-#             print('        game:   ', gsrid)
-# --
-####################################################################################
-
 class PatternFinder(object):
 
     def __init__(self, s):
@@ -118,7 +85,7 @@ class AbstractDataDenParser(object):
 
     def parse(self, obj, verbose=False):
         ### debug, remove this print:
-        print('obj:', str(obj))
+        #print('obj:', str(obj))
 
         self.ns         = obj.get_ns()
         self.parent_api = obj.get_parent_api()
@@ -1052,7 +1019,7 @@ class DataDenPbpDescription(AbstractDataDenParseable):
             raise self.SridGameMultipleSridsFoundException(str(self.o))
         return game_srids[0]
 
-    def find_player_stats(self):
+    def find_player_stats(self, player_srids=None):
         """
         extract player and game srids and return a list
         of any matching PlayerStats models found
@@ -1062,10 +1029,13 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         game_srid       = self.get_srid_game('game__id')
 
         # we may find any number of player srids - including 0
-        player_srids    = self.get_srids_for_field('player')
+        if player_srids is None:
+            player_srids    = self.get_srids_for_field('player')
+        else:
+            pass # this pass is a reminder that we use the player_srids passed into this method
 
         return self.player_stats_model.objects.filter(srid_game=game_srid,
-                                                    srid_player__in=player_srids)
+                                              srid_player__in=player_srids)
 
     def build_linked_pbp_stats_data(self, player_stats):
         """
