@@ -1,3 +1,6 @@
+#
+# views.py
+
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework import status
@@ -32,11 +35,15 @@ from account.serializers import (
     SetSavedCardDefaultSerializer,
     SavedCardAddSerializer,
     SavedCardDeleteSerializer,
+    SavedCardPaymentSerializer,
 )
 import account.tasks
 from pp.classes import (
     CardData,
     PayPal,
+)
+from cash.classes import (
+    CashTransaction,
 )
 from braces.views import LoginRequiredMixin
 from django.conf import settings
@@ -421,7 +428,92 @@ class PayPalDepositWithPayPalAccountFailAPIView(APIView): pass      # TODO
 
 class PayPalDepositCreditCardAPIView(APIView): pass                 # TODO
 
-class PayPalDepositSavedCardAPIView(APIView): pass                  # TODO
+class PayPalDepositSavedCardAPIView(APIView):
+    """
+    example format json post params:
+
+        {"amount":77.00,"token":"CARD-6WP04454GN306160EK5ZOADI"}
+
+    """
+    authentication_classes = (IsAuthenticated, )
+    serializer_class = SavedCardPaymentSerializer
+
+    def post(self, request, *args, **kwargs):
+        self.serializer_class(data=self.request.data).is_valid(raise_exception=True)
+        token = self.request.data.get('token')
+        amount = self.request.data.get('amount')
+        print('%.2f' % amount)
+
+        # make sure the card token is valid for this user
+        try:
+            saved_card = SavedCardDetails.objects.get(user=self.request.user, token=token)
+        except SavedCardDetails.DoesNotExist:
+            raise APIException('No saved card exists for the user and token specified.')
+
+        # make the deposit
+        pp = PayPal()
+        pp.auth()
+        payment_data = pp.pay_with_saved_card(amount, saved_card.user.username, saved_card.token)
+
+        # check the payment state to determine if the funds deposit was successful
+        success = payment_data.get('state') == 'approved'
+        message = payment_data.get('message')
+        if message is not None:
+            raise APIException(message)
+        if not success:
+            raise APIException('The deposit was unsuccessful.')
+
+        #
+        paypal_transaction_id = payment_data.get('id')
+        if paypal_transaction_id is None:
+            raise APIException('PayPal payment did not respond with a valid "id".')
+
+        ct = CashTransaction(self.request.user)
+        ct.deposit_paypal_with_saved_card(amount, paypal_transaction_id)
+
+        # money deposited!
+        return Response(status=200)
+
+        # In [4]: pp.pay_with_saved_card(25.55, 'admin', 'CARD-6WP04454GN306160EK5ZOADI')
+        # Out[4]:
+        # {'create_time': '2016-06-28T20:47:39Z',
+        #  'id': 'PAY-8B978986LB367434PK5ZOE2Y',
+        #  'intent': 'sale',
+        #  'links': [{'href': 'https://api.sandbox.paypal.com/v1/payments/payment/PAY-8B978986LB367434PK5ZOE2Y',
+        #    'method': 'GET',
+        #    'rel': 'self'}],
+        #  'payer': {'funding_instruments': [{'credit_card_token': {'credit_card_id': 'CARD-6WP04454GN306160EK5ZOADI',
+        #      'expire_month': '12',
+        #      'expire_year': '2020',
+        #      'last4': '2399',
+        #      'payer_id': 'admin',
+        #      'type': 'visa'}}],
+        #   'payment_method': 'credit_card'},
+        #  'state': 'approved',
+        #  'transactions': [{'amount': {'currency': 'USD',
+        #     'details': {'subtotal': '25.55'},
+        #     'total': '25.55'},
+        #    'description': 'This is the payment transaction description.',
+        #    'related_resources': [{'sale': {'amount': {'currency': 'USD',
+        #        'total': '25.55'},
+        #       'create_time': '2016-06-28T20:47:39Z',
+        #       'fmf_details': {},
+        #       'id': '3CS45219T6507753W',
+        #       'links': [{'href': 'https://api.sandbox.paypal.com/v1/payments/sale/3CS45219T6507753W',
+        #         'method': 'GET',
+        #         'rel': 'self'},
+        #        {'href': 'https://api.sandbox.paypal.com/v1/payments/sale/3CS45219T6507753W/refund',
+        #         'method': 'POST',
+        #         'rel': 'refund'},
+        #        {'href': 'https://api.sandbox.paypal.com/v1/payments/payment/PAY-8B978986LB367434PK5ZOE2Y',
+        #         'method': 'GET',
+        #         'rel': 'parent_payment'}],
+        #       'parent_payment': 'PAY-8B978986LB367434PK5ZOE2Y',
+        #       'processor_response': {'avs_code': 'X', 'cvv_code': 'M'},
+        #       'state': 'completed',
+        #       'update_time': '2016-06-28T20:47:50Z'}}]}],
+        #  'update_time': '2016-06-28T20:47:50Z'}
+
 
 class PayPalSavedCardAddAPIView(APIView):
     """
