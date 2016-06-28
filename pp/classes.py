@@ -8,6 +8,11 @@ import json
 from util.timesince import timeit
 import paypalrestsdk as paypal
 from rest_framework.exceptions import APIException
+from pp.models import (
+    SavedCardPaymentData,
+    CreditCardPaymentData,
+    PayPalAccountPaymentData,
+)
 
 # import logging
 # logging.basicConfig(level=logging.INFO)
@@ -147,12 +152,10 @@ class CardData(object):
             raise self.InvalidBillingFieldException(field)
         self.data[self.BILLING_ADDRESS_DATA][field] = value
 
-class SavedCard(object):
-
-    def __init__(self, data):
-        self.data = data
-
-    # TODO extract fields of the save card and do whatever to store it
+# class SavedCard(object):
+#
+#     def __init__(self, data):
+#         self.data = data
 
 class PayPal(object):
     #
@@ -279,15 +282,23 @@ class PayPal(object):
         :param amount:
         :return:
         """
+        # print('formatted_amount before [%.2f]' % amount)
         formatted_amount = amount
-        if isinstance(formatted_amount, str) or isinstance(formatted_amount, int):
+        print('formatted_amount before [%.2f]' % amount)
+        #if isinstance(formatted_amount, str) or isinstance(formatted_amount, int):
             # attempt to cast to float() and format into 2 decimal place string
-            formatted_amount = '%.2f' % float(formatted_amount)
+        formatted_amount = '%.2f' % float(formatted_amount)
+        print('formatted_amount after [%s]' % formatted_amount)
         return formatted_amount
 
-    def pay_with_saved_card(self, amount, external_customer_id, saved_card_id):
-        formatted_amount = self.get_formatted_amount(amount)
+    def save_payment_data(self, model_class, payment_data):
+        model = model_class()
+        model.payment_data = payment_data
+        model.save()
 
+    def pay_with_saved_card(self, amount, external_customer_id, saved_card_id):
+        # format the amount
+        formatted_amount = self.get_formatted_amount(amount)
         payment_data = {
             "intent": "sale",
             "payer": {
@@ -320,6 +331,7 @@ class PayPal(object):
         self.r_payment = self.session.post(url, data=json.dumps(payment_data), headers=self.get_headers())
 
         payment_data = self.get_http_response_dict(self.session, self.r_payment)
+        self.save_payment_data(SavedCardPaymentData, payment_data)
 
         self.validate_payment_data(payment_data, debug_tag=__name__)
 
@@ -389,7 +401,8 @@ class PayPal(object):
         if name is not None:
             if name == 'INVALID_RESOURCE_ID':
                 raise self.InvalidSavedCardIdException()
-
+        #print('payment_data:', str(payment_data))
+        print('payment_data issues below:')
         for issue_data in details:
             err_msg = '        message[%s] name[%s] issue[%s]' % (message, name, str(issue_data.get('issue')))
             print(err_msg)

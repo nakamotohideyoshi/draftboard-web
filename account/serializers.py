@@ -108,3 +108,8 @@ class SavedCardAddSerializer(serializers.Serializer):
 
 class SavedCardDeleteSerializer(serializers.Serializer):
     token = serializers.CharField()
+
+class SavedCardPaymentSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    #amount = serializers.DecimalField(max_digits=9, decimal_places=2)
+    amount = serializers.FloatField()
