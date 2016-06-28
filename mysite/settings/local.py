@@ -122,6 +122,13 @@ PUSHER_CHANNEL_PREFIX   = ''
 PUSHER_ENABLED          = True
 
 #
+##########################################################################
+#        paypal client_id, secret keys
+##########################################################################
+PAYPAL_CLIENT_ID    = 'ARqP3lkXhhR_jmm6NkyoKQfuOcBsn1KBYtlzZGHEvGDCQ-ajNoxpQD2mDScpT6tkgsI7qFgVJ-KgzpFE'
+PAYPAL_SECRET       = 'EOKSd-HCNfWE17mu8e7uyjs2egSla2yXs7joweXCLdimCY8yv-FcCx7LeP1do0gMb9vExJSmjyw9hwRu'
+
+#
 # because of the local setup, custom test runner requires root priviledges
 # from test.runners import InlineAppDiscoverRunner
 #TEST_RUNNER = 'test.runners.InlineAppDiscoverRunner'
@@ -131,7 +138,7 @@ INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = True
 # we dont want to record locally (especially for a machine running a replay!)
 DISABLE_REPLAYER_UPDATE_RECORDING = True
 
-
+#
 MIDDLEWARE_CLASSES = ('mysite.middleware.query_count_debug.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
 
 LOGGING['loggers'].update({'mysite.middleware.query_count_debug.QueryCountDebugMiddleware': {
