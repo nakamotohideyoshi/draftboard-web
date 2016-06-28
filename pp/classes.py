@@ -171,6 +171,8 @@ class PayPal(object):
 
     class PayWithCreditCardException(Exception): pass
 
+    class PayWithSavedCardException(Exception): pass
+
     class InvalidSavedCardIdException(Exception): pass
 
     # TODO add pay wtih paypal account exception
