@@ -50,6 +50,7 @@ from rest_framework import permissions
 # from django.contrib.auth import get_user_model # If used custom user model
 # /password/reset/confirm/{uid}/{token}
 from django.contrib.auth import authenticate, login, logout
+from rest_framework.exceptions import APIException
 
 class AuthAPIView(APIView):
     """
@@ -502,6 +503,8 @@ class PayPalSavedCardAddAPIView(APIView):
         return saved_card
 
     def post(self, request, *args, **kwargs):
+        self.serializer_class(data=self.request.data).is_valid(raise_exception=True)
+
         user = self.request.user
         args = self.request.data
 
@@ -509,25 +512,17 @@ class PayPalSavedCardAddAPIView(APIView):
         # the first/last name will come from the user object internally
         #first_name  = args.get('first_name')       # TODO - validate the CARDHOLDER first name
         #last_name   = args.get('last_name')        # TODO - validate the CARDHOLDER last name
-        card_type = args.get('type')                # TODO - validate
-        if card_type is None:
-            return Response("Required: 'type'", status=405)
-        number = args.get('number')                 # TODO - validate
-        if number is None:
-            return Response("Required: 'number'", status=405)
-        exp_month   = args.get('exp_month')         # TODO - validate
-        exp_year    = args.get('exp_year')          # TODO - validate
-        cvv2        = args.get('cvv2')              # TODO - validate
-
-
-        # wraps quite a bit of code to try to catch any straggler exceptions
-        #try:
+        card_type   = args.get('type')
+        number      = args.get('number')
+        exp_month   = args.get('exp_month')
+        exp_year    = args.get('exp_year')
+        cvv2        = args.get('cvv2')
 
         # save the card using paypal
         try:
             save_card_api_data = self.create_paypal_saved_card(user, card_type, number, exp_month, exp_year, cvv2)
         except Information.DoesNotExist:
-            return Response("Incomplete information. Is the billing address filled out?", status=405)
+            return APIException("Incomplete information. Is the billing address filled out?")
 
         # use the paypal api response to stash some
         # information about the saved card in our db.
@@ -535,9 +530,6 @@ class PayPalSavedCardAddAPIView(APIView):
         token = save_card_api_data.get('id')
         last_4 = number[-4:] # slice off the last 4 digits
         saved_card = self.create_saved_card_details(user, token, card_type, last_4, exp_month, exp_year)
-
-        # except Exception as e:
-        #     return Response(e, status=405)
 
         # return serialized data of the new saved card
         return Response(SavedCardSerializer(saved_card, many=False).data, status=200)
@@ -588,13 +580,13 @@ class PayPalSavedCardListAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         user = self.request.user
-        print('PayPalSavedCardListAPIView user:', user)
+        #print('PayPalSavedCardListAPIView user:', user)
 
         saved_cards = None
         try:
             saved_cards = SavedCardDetails.objects.filter(user=user)
         except TypeError:
-           return Response(status=405)
+           raise APIException("Invalid user: %s" % user)
 
         # serialize the list of saved cards
         serialized_data = self.response_serializer(saved_cards, many=True).data
