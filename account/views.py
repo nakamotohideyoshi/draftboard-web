@@ -477,7 +477,7 @@ class PayPalSavedCardAddAPIView(APIView):
         """
         once we have successfully saved a card using paypal's api,
         create a reference to that saved card (especially the token)
-        in our own backened.
+        in our own backend.
         """
 
         default = False

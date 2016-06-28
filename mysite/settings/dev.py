@@ -76,6 +76,13 @@ PUSHER_SECRET = environ.get('PUSHER_SECRET')
 PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true') # heroku config vars are strings!
 
 #
+##########################################################################
+#        paypal client_id, secret keys
+##########################################################################
+PAYPAL_CLIENT_ID    = environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_SECRET       = environ.get('PAYPAL_SECRET')
+
+#
 # dataden mongo database connection
 MONGO_SERVER_ADDRESS    = environ.get('MONGO_SERVER_ADDRESS')   # ie: '123.132.123.123'
 MONGO_AUTH_DB           = environ.get('MONGO_AUTH_DB')          # 'admin'
