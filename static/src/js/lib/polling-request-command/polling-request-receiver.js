@@ -83,7 +83,7 @@ const PollingRequestReceiver = (() => {
 
     task.command.fetch(task.taskId).then(() => {
       if (task.command.shouldFetch(task.taskId)) {
-        window.setTimeout(fetchLoop, 500, task);
+        window.setTimeout(fetchLoop, 1000, task);
         return;
       }
       log.info('fetchLoop() finished with a non-FAILURE fetch response');

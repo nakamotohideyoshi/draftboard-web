@@ -107,10 +107,10 @@ const DraftNewLineupCard = React.createClass({
     const self = this;
 
     const remainingSalaryClasses = classnames({
-      negative: this.props.remainingSalary <= 0,
+      negative: this.props.remainingSalary < 0,
     });
     const avgRemainingPlayerSalaryClasses = classnames({
-      negative: this.props.avgRemainingPlayerSalary <= 0,
+      negative: this.props.avgRemainingPlayerSalary < 0,
     });
 
     const players = this.props.lineup.map((player) => (
@@ -146,7 +146,7 @@ const DraftNewLineupCard = React.createClass({
         </header>
 
         <div className="cmp-lineup-card__list-header">
-          <span className="cmp-lineup-card__list-header-average">Avg</span>
+          <span className="cmp-lineup-card__list-header-salary">Salary</span>
         </div>
 
         <ul className="players">

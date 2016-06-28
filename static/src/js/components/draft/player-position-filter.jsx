@@ -50,7 +50,7 @@ const PlayerPositionFilter = React.createClass({
         }
       }
     } else {
-      log.debug('no matching filter found to auto-select.');
+      log.trace('no matching filter found to auto-select.');
     }
   },
 

@@ -8,7 +8,7 @@ module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     case ActionTypes.FETCH_INJURIES_SUCCESS:
-      return merge({}, state, action.body.injuries);
+      return merge({}, state, action.response.injuries);
 
 
     default:
