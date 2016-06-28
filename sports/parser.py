@@ -66,8 +66,7 @@ class DataDenParser(object):
         ('nhl','event','pbp'),         # contains the play data, including players
 
         #
-        # NFL
-        # TODO
+        # NFL - is in its own parser class in its package
     ]
 
     #
@@ -87,6 +86,7 @@ class DataDenParser(object):
         ('mlb','away','summary'),
         ('mlb','player','summary'),
         ('mlb','probable_pitcher','daily_summary'), # PP info
+        ('mlb','at_bat','pbp'),                     # for pbp efficiency
 
         # nba
         ('nba','team','hierarchy'),             # 1

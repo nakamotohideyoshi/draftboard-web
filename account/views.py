@@ -10,7 +10,12 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from django.contrib.auth.models import User
 from django.views.generic.base import TemplateView
 
-from account.models import Information, EmailNotification, UserEmailNotification
+from account.models import (
+    Information,
+    EmailNotification,
+    UserEmailNotification,
+    SavedCardDetails,
+)
 from account.permissions import IsNotAuthenticated
 from account.serializers import (
     LoginSerializer,
@@ -22,9 +27,17 @@ from account.serializers import (
     InformationSerializer,
     UserEmailNotificationSerializer,
     EmailNotificationSerializer,
-    UpdateUserEmailNotificationSerializer
+    UpdateUserEmailNotificationSerializer,
+    SavedCardSerializer,
+    SetSavedCardDefaultSerializer,
+    SavedCardAddSerializer,
+    SavedCardDeleteSerializer,
 )
 import account.tasks
+from pp.classes import (
+    CardData,
+    PayPal,
+)
 from braces.views import LoginRequiredMixin
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, EmailMessage
@@ -37,7 +50,6 @@ from rest_framework import permissions
 # from django.contrib.auth import get_user_model # If used custom user model
 # /password/reset/confirm/{uid}/{token}
 from django.contrib.auth import authenticate, login, logout
-
 
 class AuthAPIView(APIView):
     """
@@ -64,7 +76,6 @@ class AuthAPIView(APIView):
     def delete(self, request, *args, **kwargs):
         logout(request)
         return Response({}, status=status.HTTP_200_OK)
-
 
 class ForgotPasswordAPIView(APIView):
     """
@@ -100,7 +111,6 @@ class ForgotPasswordAPIView(APIView):
         # return success no matter what
         return Response({}, status=status.HTTP_200_OK)
 
-
 class PasswordResetAPIView(APIView):
     # handles
     # https://www.draftboard.com/api/account/password-reset-confirm/MjA0/47k-95ee193717cb75448cf0/
@@ -116,7 +126,6 @@ class PasswordResetAPIView(APIView):
         if uid and token:
             return Response({}, status=status.HTTP_200_OK)
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 class RegisterAccountAPIView(generics.CreateAPIView):
     """
@@ -145,7 +154,6 @@ class RegisterAccountAPIView(generics.CreateAPIView):
             user.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class UserAPIView(generics.GenericAPIView):
     """
@@ -178,7 +186,6 @@ class UserAPIView(generics.GenericAPIView):
             user.save()
             return Response(UserSerializerNoPassword(user).data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 class InformationAPIView (generics.GenericAPIView):
     """
@@ -227,7 +234,6 @@ class InformationAPIView (generics.GenericAPIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 # class EmailNotificationAPIView (generics.ListCreateAPIView):
 #     """
 #     Allows the admin to modify and insert new Email Notifications
@@ -238,7 +244,6 @@ class InformationAPIView (generics.GenericAPIView):
 #     permission_classes = (IsAdminUser,)
 #     serializer_class = EmailNotificationSerializer
 #     queryset = EmailNotification.objects.all()
-
 
 class UserEmailNotificationAPIView (generics.GenericAPIView):
     """
@@ -314,7 +319,6 @@ class UserEmailNotificationAPIView (generics.GenericAPIView):
 
         return self.get(request)
 
-
 class WithdrawAPI(APIView):
 
     renderer_classes = (JSONRenderer, )
@@ -332,14 +336,12 @@ class WithdrawAPI(APIView):
             }
         )
 
-
 class DepositAPI(APIView):
 
     renderer_classes = (JSONRenderer, )
 
     def post(self, request, *args, **kwargs):
         return Response(status=202)
-
 
 class PaymentsAPI(APIView):
 
@@ -377,7 +379,6 @@ class PaymentsAPI(APIView):
             }
         ])
 
-
 class AddPaymentMethodAPI(APIView):
 
     renderer_classes = (JSONRenderer, )
@@ -391,14 +392,12 @@ class AddPaymentMethodAPI(APIView):
             'id': 14,
         })
 
-
 class RemovePaymentMethodAPI(APIView):
 
     renderer_classes = (JSONRenderer, )
 
     def delete(self, request, *args, **kwargs):
         return Response(status=204)
-
 
 class SetDefaultPaymentMethodAPI(APIView):
 
@@ -407,7 +406,244 @@ class SetDefaultPaymentMethodAPI(APIView):
     def post(self, request, *args, **kwargs):
         return Response(status=201)
 
-
 class RegisterView(TemplateView):
 
     template_name = 'registration/register.html'
+
+#
+##########################################################
+# PayPal specific views
+###########################################################
+class PayPalDepositWithPayPalAccountAPIView(APIView): pass          # TODO
+class PayPalDepositWithPayPalAccountSuccessAPIView(APIView): pass   # TODO
+class PayPalDepositWithPayPalAccountFailAPIView(APIView): pass      # TODO
+
+class PayPalDepositCreditCardAPIView(APIView): pass                 # TODO
+
+class PayPalDepositSavedCardAPIView(APIView): pass                  # TODO
+
+class PayPalSavedCardAddAPIView(APIView):
+    """
+    the first card added will be set to be the default saved card.
+
+    post json to this endpoint in the form:
+
+        {"type":"visa","number":"4032036765082399","exp_month":"12","exp_year":"2020","cvv2":"012"}
+
+    """
+
+    authentication_classes = (IsAuthenticated, )
+    serializer_class = SavedCardAddSerializer
+
+    def create_paypal_saved_card(self, user, card_type, number, exp_month, exp_year, cvv2): # TODO - test
+        """
+        using paypal api, try to save a card, and return the data
+        """
+
+        # ensure the users first_name and last_name exist! we require them
+
+
+        card_data = CardData()
+
+        # populate the CardData with required user/creditcard info
+        card_data.set_card_field(CardData.EXTERNAL_CUSTOMER_ID, user.username)
+        card_data.set_card_field(CardData.TYPE, card_type)
+        card_data.set_card_field(CardData.NUMBER, number)
+        card_data.set_card_field(CardData.EXPIRE_MONTH, exp_month)
+        card_data.set_card_field(CardData.EXPIRE_YEAR, exp_year)
+        card_data.set_card_field(CardData.CVV2, cvv2)
+        card_data.set_card_field(CardData.FIRST_NAME, user.first_name)
+        card_data.set_card_field(CardData.LAST_NAME, user.last_name)
+
+        # get the billing address information
+        info = Information.objects.get(user=user) # TODO - all the fields we use should exist (its possible they do not)
+
+        # populate the CardData with required billing info
+        line1 = info.address1
+        line2 = info.address2 # unused currently
+        card_data.set_billing_field(CardData.LINE_1, line1)
+        card_data.set_billing_field(CardData.CITY, info.city)
+        card_data.set_billing_field(CardData.STATE, info.state)
+        card_data.set_billing_field(CardData.COUNTRY_CODE, 'US') # TODO allow others?
+        card_data.set_billing_field(CardData.POSTAL_CODE, info.zipcode)
+
+        #print('card_data.get_data():', str(card_data.get_data()))
+
+        # call paypal api
+        pp = PayPal()
+        pp.auth()
+        saved_card_data = pp.save_card(card_data.get_data())
+        return saved_card_data
+
+    def create_saved_card_details(self, user, token, card_type, last_4, exp_month, exp_year): # TODO - finish/test
+        """
+        once we have successfully saved a card using paypal's api,
+        create a reference to that saved card (especially the token)
+        in our own backend.
+        """
+
+        default = False
+        # check if any previously saved cards
+        existing_saved_cards = SavedCardDetails.objects.filter(user=user)
+        if existing_saved_cards.count() == 0:
+            default = True
+
+        # get the card type properties
+        # and create the SavedCardDetails instance.
+        saved_card = SavedCardDetails()
+        saved_card.token = token
+        saved_card.user = user
+        saved_card.type = card_type
+        saved_card.last_4 = last_4
+        saved_card.exp_month = exp_month
+        saved_card.exp_year = exp_year
+        saved_card.default = default
+        saved_card.save()
+        return saved_card
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        args = self.request.data
+
+        # get the card type properties so we can create a SavedCardDetails instance
+        # the first/last name will come from the user object internally
+        #first_name  = args.get('first_name')       # TODO - validate the CARDHOLDER first name
+        #last_name   = args.get('last_name')        # TODO - validate the CARDHOLDER last name
+        card_type = args.get('type')                # TODO - validate
+        if card_type is None:
+            return Response("Required: 'type'", status=405)
+        number = args.get('number')                 # TODO - validate
+        if number is None:
+            return Response("Required: 'number'", status=405)
+        exp_month   = args.get('exp_month')         # TODO - validate
+        exp_year    = args.get('exp_year')          # TODO - validate
+        cvv2        = args.get('cvv2')              # TODO - validate
+
+
+        # wraps quite a bit of code to try to catch any straggler exceptions
+        #try:
+
+        # save the card using paypal
+        try:
+            save_card_api_data = self.create_paypal_saved_card(user, card_type, number, exp_month, exp_year, cvv2)
+        except Information.DoesNotExist:
+            return Response("Incomplete information. Is the billing address filled out?", status=405)
+
+        # use the paypal api response to stash some
+        # information about the saved card in our db.
+        # we do not save sensitive information for security reasons!
+        token = save_card_api_data.get('id')
+        last_4 = number[-4:] # slice off the last 4 digits
+        saved_card = self.create_saved_card_details(user, token, card_type, last_4, exp_month, exp_year)
+
+        # except Exception as e:
+        #     return Response(e, status=405)
+
+        # return serialized data of the new saved card
+        return Response(SavedCardSerializer(saved_card, many=False).data, status=200)
+
+class PayPalSavedCardDeleteAPIView(APIView):
+    """
+    post json in this form to delete a saved card:
+
+        {"token": "Card-99999"}
+
+    """
+    authentication_classes = (IsAuthenticated, )
+    serializer_class = SavedCardDeleteSerializer
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        token = self.request.data.get('token')
+        if token is None:
+            return Response("token required", status=405)
+        try:
+            card = SavedCardDetails.objects.get(user=user, token=token)
+        except SavedCardDetails.DoesNotExist:
+            return Response("card not found for user, token: %s" % token, status=404)
+
+        deleted_card_was_default = card.default
+        card.delete()
+
+        # if the card was the default card, and there are any more cards
+        # randomly set one of them to the new default
+        remaining_cards = SavedCardDetails.objects.filter(user=user)
+        if deleted_card_was_default and remaining_cards.count() > 0:
+            new_default_card = remaining_cards[0]
+            new_default_card.default = True
+            new_default_card.save()
+
+        return Response(status=200)
+
+class PayPalSavedCardListAPIView(APIView):
+    """
+    get a list of the saved cards.
+
+    these cards have an id which can be used to
+    quickly deposit money to the site.
+    """
+
+    authentication_classes = (IsAuthenticated, )
+    response_serializer = SavedCardSerializer
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+        print('PayPalSavedCardListAPIView user:', user)
+
+        saved_cards = None
+        try:
+            saved_cards = SavedCardDetails.objects.filter(user=user)
+        except TypeError:
+           return Response(status=405)
+
+        # serialize the list of saved cards
+        serialized_data = self.response_serializer(saved_cards, many=True).data
+        return Response(serialized_data)
+
+class SetSavedCardDefaultAPIView(APIView):
+    """
+    the arguments to this method should be passed
+    in the POST as application/json, ie: {"token":"theToken"}
+    """
+    authentication_classes = (IsAuthenticated, )
+    serializer_class = SetSavedCardDefaultSerializer
+
+    def post(self, request):
+        user = self.request.user
+        args = self.request.data
+        token = args.get('token')
+        print('args:', str(args))
+        print('token:', str(token))
+        # if token is None: # TODO raise error if token is not set
+        #     raise rest_framework
+
+        saved_cards = None
+        try:
+            saved_cards = SavedCardDetails.objects.filter(user=user)
+        except TypeError:
+           return Response(status=405)
+
+        # update this specific card to default=True
+        enabled_cards = saved_cards.filter(token=token) # filter() returns a queryset
+        if enabled_cards.count() >= 1:
+            # update all the cards to default=False
+            saved_cards.update(default=False)
+            # update this card to default=True
+            card = enabled_cards[0]
+            card.default = True
+            card.save()
+
+        # return success response of simply http 200
+        return Response(status=200)
+
+# In [1]: from account.models import SavedCardDetails
+# In [2]: saved_card = SavedCardDetails()
+# In [3]: from django.contrib.auth.models import User
+# In [4]: user = User.objects.get(username='admin')
+# In [5]: saved_card.user = user
+# In [6]: saved_card.type = 'visa'
+# In [7]: saved_card.last_4 =
+# In [8]: saved_card.exp_month = '11'
+# In [9]: saved_card.exp_year = 2017
+# In [10]: saved_card.default = True
+# In [11]: saved_card.save()

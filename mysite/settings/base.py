@@ -203,6 +203,13 @@ PUSHER_ENABLED = True
 
 #
 ##########################################################################
+#        paypal client_id, secret keys
+##########################################################################
+PAYPAL_CLIENT_ID    = None
+PAYPAL_SECRET       = None
+
+#
+##########################################################################
 #        django_braintree
 ##########################################################################
 import braintree
@@ -309,9 +316,11 @@ INSTALLED_APPS = (
     'frontend', # front end styles, layout, etc
     'mysite', # just for management command access
     'replayer',
+    'pp',       # our implementation of a few required paypal apis
 
     'lobby',
     'rest_framework_swagger',
+
 )
 
 #

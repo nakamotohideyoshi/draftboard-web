@@ -1,6 +1,3 @@
-# Install Django before base dependencies
-Django==1.8
-
 # Base dependencies
 -r _base.txt
 

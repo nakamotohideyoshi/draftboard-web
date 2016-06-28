@@ -32,9 +32,12 @@ java -version    # output the version
 
 #
 ######################################################################
-#     				Postgres
+#     				Postgres   now 9.4  for django 1.9 =)
 ######################################################################
-apt-get install -y postgresql
+sudo add-apt-repository "deb https://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main"
+wget --quiet -O - https://postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install -y postgresql-9.4
 
 # Remove password from default postgres user
 sudo -u postgres psql template1 -x -c "ALTER ROLE postgres PASSWORD '';"
@@ -99,32 +102,30 @@ apt-get install -y nginx
 cp /vagrant/site-setup/nginx-default /etc/nginx/sites-available/default
 service nginx restart
 
-### get back to the project root before the following commands
-cd /vagrant
-
 #
 # install django and everything in requirements/local.txt
 cd /vagrant
 
-
-pip3 install -r /vagrant/requirements/local.txt
-
-##
-## manage.py migrate to install db tables and schema
-./site-setup/migrate.sh
+pip3 install -r requirements/local.txt
 
 # install heroku toolbelt
 wget -O- https://toolbelt.heroku.com/install-ubuntu.sh | sh
 
-#
 # Add an environment variable to tell django to always use the local settings by default
 #cat site-setup/etc_profile_add_django_settings_module.txt | sudo tee -a /etc/profile
 echo "export DJANGO_SETTINGS_MODULE=mysite.settings.local" >> /home/vagrant/.bashrc
 
-#
 # Activate the virtualenv on every login
 echo "source venv/bin/activate" >> /home/vagrant/.bashrc
 echo "cd /vagrant" >> /home/vagrant/.bashrc
+
+# create the master and dev branch databases
+sudo -u postgres createdb dfs_master
+
+sudo -u postgres createdb dfs_dev
+
+# manage.py migrate to install db tables and schema
+./site-setup/migrate.sh
 
 #
 ####################################################################

@@ -1,16 +1,13 @@
-from dj_database_url import config as heroku_db_config
-from urllib.parse import urlparse
-
+#
+# production.py
 from .base import *
+
+from dj_database_url import config as heroku_db_config
+import urllib
 
 # Constant for determining environment
 DOMAIN = 'draftboard-staging.herokuapp.com'
 
-# Connect Heroku database
-# Based on https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-of-active-connections
-# and Django 1.6 we can set 10 persistent connections bc we have a limit of 400 connections with our Premium 2 database.
-# 4 workers * up to 10 dynos * 10 connections = 400
-# TODO django16 upgrade to persistent connections
 DATABASES = {
     'default': heroku_db_config()
 }
@@ -18,7 +15,7 @@ DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 60
 
 # Redis caching
-redis_url = urlparse(environ.get('REDISCLOUD_URL'))
+redis_url = urllib.parse.urlparse(environ.get('REDISCLOUD_URL'))
 
 CACHES = {
     'default': {
@@ -71,6 +68,13 @@ PUSHER_APP_ID = '144195'
 PUSHER_KEY = '9754d03a7816e43abb64'
 PUSHER_SECRET = environ.get('PUSHER_SECRET')
 PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true') # heroku config vars are strings!
+
+#
+##########################################################################
+#        paypal client_id, secret keys
+##########################################################################
+PAYPAL_CLIENT_ID    = environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_SECRET       = environ.get('PAYPAL_SECRET')
 
 #
 # dataden mongo database connection
