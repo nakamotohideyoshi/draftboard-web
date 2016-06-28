@@ -1,7 +1,8 @@
-import * as types from '../action-types.js';
-import request from 'superagent';
+// import request from 'superagent';
 import { normalize, Schema, arrayOf } from 'normalizr';
-import log from '../lib/logging';
+// import log from '../lib/logging';
+import actionTypes from '../action-types.js';
+import { CALL_API } from '../middleware/api';
 
 
 const injurySchema = new Schema('injuries', {
@@ -9,41 +10,44 @@ const injurySchema = new Schema('injuries', {
 });
 
 
-function fetchSportInjuriesSuccess(body) {
-  return {
-    type: types.FETCH_INJURIES_SUCCESS,
-    body,
-  };
-}
-
-
-export function fetchSportInjuries(sport) {
+export const fetchSportInjuries = (sport) => (dispatch) => {
   if (!sport) {
-    log.error('<sport> must be supplied to fetch injuries.');
+    throw new Error('<sport> must be supplied to fetch injuries.');
   }
 
-  return (dispatch) => {
-    request
-    .get(`/api/sports/injuries/${sport}/`)
-    .set({
-      'X-REQUESTED-WITH': 'XMLHttpRequest',
-      Accept: 'application/json',
-    })
-    .end((err, res) => {
-      if (err) {
-        log.error(res.body);
-      }
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.FETCHING_INJURIES,
+        actionTypes.FETCH_INJURIES_SUCCESS,
+        actionTypes.ADD_MESSAGE,
+      ],
+      endpoint: `/api/sports/injuries/${sport}/`,
+      callback: (json) => {
+        // Normalize injuries
+        const normalizedInjuries = normalize(
+          json,
+          arrayOf(injurySchema)
+        );
 
-      // Normalize injuries
-      const normalizedInjuries = normalize(
-        res.body,
-        arrayOf(injurySchema)
-      );
+        return {
+          injuries: normalizedInjuries.entities.injuries,
+          sport,
+        };
+      },
+    },
+  });
 
-      return dispatch(fetchSportInjuriesSuccess({
-        injuries: normalizedInjuries.entities.injuries,
-        sport,
-      }));
-    });
-  };
-}
+  apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      dispatch({
+        type: actionTypes.FETCH_INJURIES_FAIL,
+        response: action.error,
+      });
+    }
+  });
+
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse;
+};

@@ -96,19 +96,33 @@ export default store => next => action => {
       response,
       type: successType,
     })),
-    error => next(actionWith({
-      // where to pass to
-      type: failureType,
-      requestType,
-      error,
+    error => {
+      // The 'captureMessage' above will catch any http related errors, this will catch any errors
+      // in our code that occur further on in the pipeline. Without this, any errors in our reducers
+      // or actions or callbacks will die silently and get passed into the failure action.
+      if (error instanceof Error) {
+        Raven.captureException(error);
+        log.error(error.stack);
+      }
 
-      // what to show the user
-      header: 'Failed to connect to API.',
-      // Added some detailed info for non-production purposes
-      // TODO: remove these when we go public.
-      content: `Please refresh the page to reconnect.<br /> ${error.url}<br />${error.status} ${error.statusText} `,
-      level: 'warning',
-      id: 'apiFailure',
-    }))
+
+      // Call the failure action (probably showing a message to the user) with the supplied info.
+      return next(actionWith({
+
+        // where to pass to
+        type: failureType,
+        requestType,
+        error: error || {},
+
+        // what to show the user
+        header: 'Failed to connect to API.',
+        // Added some detailed info for non-production purposes
+        // TODO: remove these when we go public.
+        content: `Please refresh the page to reconnect.<br /> ${error.url || ''}<br />
+                  ${error.status || ''} ${error.statusText || error} `,
+        level: 'warning',
+        id: 'apiFailure',
+      }));
+    }
   );
 };

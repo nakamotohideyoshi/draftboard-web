@@ -72,7 +72,6 @@ const CountdownClock = React.createClass({
       return (
         <div className={classNames}>
           <span className="hours">&nbsp;</span>
-        }
         </div>
       );
     }

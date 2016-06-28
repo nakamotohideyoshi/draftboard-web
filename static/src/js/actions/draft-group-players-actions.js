@@ -86,7 +86,8 @@ const fetchDraftGroup = (draftGroupId) => (dispatch) => {
         dispatch(fetchFantasyHistory(json.sport));
         // TODO: zach: not loading injuries untill we get the API source sorted out.
         log.warn('not loading injuries until we get the API source sorted out.');
-        // dispatch(fetchSportInjuries(res.body.sport));
+        // dispatch(fetchSportInjuries(json.sport));
+
         dispatch(fetchTeamsIfNeeded(json.sport));
         dispatch(fetchPlayerNewsIfNeeded(json.sport));
         dispatch(fetchPlayerBoxScoreHistoryIfNeeded(json.sport));
