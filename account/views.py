@@ -36,6 +36,7 @@ from account.serializers import (
 import account.tasks
 from pp.classes import (
     CardData,
+    PayPal,
 )
 from braces.views import LoginRequiredMixin
 from django.conf import settings
@@ -426,53 +427,71 @@ class PayPalSavedCardAddAPIView(APIView):
     the first card added will be set to be the default saved card
     """
 
+    # TEST json
+    # {"type":"mastercard","number":"4032036765082399","exp_month":"12","exp_year":"2020","cvv2":"012"}
+
     authentication_classes = (IsAuthenticated, )
     serializer_class = SavedCardAddSerializer
 
-    def __create_paypal_saved_card(self, asdf): # TODO - finish/test
+    def create_paypal_saved_card(self, user, card_type, number, exp_month, exp_year, cvv2): # TODO - test
         """
         using paypal api, try to save a card, and return the data
         """
-        pass # TODO
 
-    def __create_saved_card_details(self, token, user, type, number, exp_month, exp_year, cvv2): # TODO - finish/test
+        # ensure the users first_name and last_name exist! we require them
+
+
+        card_data = CardData()
+
+        # populate the CardData with required user/creditcard info
+        card_data.set_card_field(CardData.EXTERNAL_CUSTOMER_ID, user.username)
+        card_data.set_card_field(CardData.TYPE, card_type)
+        card_data.set_card_field(CardData.NUMBER, number)
+        card_data.set_card_field(CardData.EXPIRE_MONTH, exp_month)
+        card_data.set_card_field(CardData.EXPIRE_YEAR, exp_year)
+        card_data.set_card_field(CardData.CVV2, cvv2)
+        card_data.set_card_field(CardData.FIRST_NAME, user.first_name)
+        card_data.set_card_field(CardData.LAST_NAME, user.last_name)
+
+        # get the billing address information
+        info = Information.objects.get(user=user) # TODO - all the fields we use should exist (its possible they do not)
+
+        # populate the CardData with required billing info
+        line1 = info.address1
+        line2 = info.address2 # unused currently
+        card_data.set_billing_field(CardData.LINE_1, line1)
+        card_data.set_billing_field(CardData.CITY, info.city)
+        card_data.set_billing_field(CardData.STATE, info.state)
+        card_data.set_billing_field(CardData.COUNTRY_CODE, 'US') # TODO allow others?
+        card_data.set_billing_field(CardData.POSTAL_CODE, info.zipcode)
+
+        print('card_data.get_data():', str(card_data.get_data()))
+
+        # call paypal api
+        pp = PayPal()
+        pp.auth()
+        saved_card_data = pp.save_card(card_data.get_data())
+        return saved_card_data
+
+    def create_saved_card_details(self, user, token, card_type, last_4, exp_month, exp_year): # TODO - finish/test
         """
         once we have successfully saved a card using paypal's api,
         create a reference to that saved card (especially the token)
         in our own backened.
         """
 
-        #
-        #####################
-        # paypal api stuff
-        #####################
-        card_data = CardData()
-        card_data.set_card_field(CardData.EXTERNAL_CUSTOMER_ID, user.username)
-        card_data.set_card_field(CardData.TYPE, type)
-        card_data.set_card_field(CardData.NUMBER, number)
-
-        #
-        #####################
-        # server side stuff
-        #####################
         default = False
         # check if any previously saved cards
         existing_saved_cards = SavedCardDetails.objects.filter(user=user)
-        if existing_saved_cards.count() > 0:
+        if existing_saved_cards.count() == 0:
             default = True
 
-        # # get the card type properties so we can create a SavedCardDetails instance
-        # token       = None # TODO
-        # card_type   = None # TODO
-        # last_4      = None # TODO
-        # exp_month   = None # TODO
-        # exp_year    = None # TODO
-
-        # create the new card
+        # get the card type properties
+        # and create the SavedCardDetails instance.
         saved_card = SavedCardDetails()
         saved_card.token = token
         saved_card.user = user
-        saved_card.type = type
+        saved_card.type = card_type
         saved_card.last_4 = last_4
         saved_card.exp_month = exp_month
         saved_card.exp_year = exp_year
@@ -485,14 +504,25 @@ class PayPalSavedCardAddAPIView(APIView):
         args = self.request.data
 
         # get the card type properties so we can create a SavedCardDetails instance
-        token       = None # TODO
-        card_type   = None # TODO
-        last_4      = None # TODO
-        exp_month   = None # TODO
-        exp_year    = None # TODO
-        cvv2        = None # TODO - necessary for paypal api call
+        # the first/last name will come from the user object internally
+        card_type   = args.get('type')          # TODO - validate
+        number      = args.get('number')        # TODO - validate
+        exp_month   = args.get('exp_month')     # TODO - validate
+        exp_year    = args.get('exp_year')      # TODO - validate
+        cvv2        = args.get('cvv2')          # TODO - validate
 
-        saved_card = self.__create_saved_card_details(token, user, card_type, last_4, exp_month, exp_year, cvv2)
+        # TODO this can raise a number of notable Exceptions ! TODO
+        save_card_api_data = self.create_paypal_saved_card(user, card_type, number, exp_month, exp_year, cvv2)
+        # TODO add exception issues like wrong card_type + number combination
+
+        print('save_card_api_data:', str(save_card_api_data))
+
+        token = save_card_api_data.get('id') # get the token for the saved card from paypal
+        last_4 = number[-4:] # slice off the last 4 digits
+        saved_card = self.create_saved_card_details(user, token, card_type, last_4, exp_month, exp_year)
+
+        # return serialized data of the new saved card
+        return Response(SavedCardSerializer(saved_card, many=False).data, status=200)
 
 class PayPalSavedCardDeleteAPIView(APIView): pass                   # TODO
 
