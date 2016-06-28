@@ -1,5 +1,6 @@
 /* eslint no-use-before-define: "off" */
 
+import Raven from 'raven-js';
 import log from '../logging.js';
 import * as ContestPoolEntryCommand from './contest-pool-entry-command.js';
 import * as ContestPoolUnregisterCommand from './contest-pool-unregister-command.js';
@@ -90,6 +91,7 @@ const PollingRequestReceiver = (() => {
       finishCurrentCommand();
       startNextCommand();
     }).catch((reason) => {
+      Raven.captureException(reason);
       log.error(reason);
       log.warn('fetchLoop() finished due to \'FAILURE\' fetch response', task);
       finishCurrentCommand();
