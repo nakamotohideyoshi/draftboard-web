@@ -105,3 +105,6 @@ class SavedCardAddSerializer(serializers.Serializer):
     exp_month = serializers.CharField()
     exp_year = serializers.CharField()
     cvv2 = serializers.CharField()
+
+class SavedCardDeleteSerializer(serializers.Serializer):
+    token = serializers.CharField()

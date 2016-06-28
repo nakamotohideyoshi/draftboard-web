@@ -31,7 +31,7 @@ from account.serializers import (
     SavedCardSerializer,
     SetSavedCardDefaultSerializer,
     SavedCardAddSerializer,
-    # TODO there are a few more things
+    SavedCardDeleteSerializer,
 )
 import account.tasks
 from pp.classes import (
@@ -424,11 +424,13 @@ class PayPalDepositSavedCardAPIView(APIView): pass                  # TODO
 
 class PayPalSavedCardAddAPIView(APIView):
     """
-    the first card added will be set to be the default saved card
-    """
+    the first card added will be set to be the default saved card.
 
-    # TEST json
-    # {"type":"mastercard","number":"4032036765082399","exp_month":"12","exp_year":"2020","cvv2":"012"}
+    post json to this endpoint in the form:
+
+        {"type":"visa","number":"4032036765082399","exp_month":"12","exp_year":"2020","cvv2":"012"}
+
+    """
 
     authentication_classes = (IsAuthenticated, )
     serializer_class = SavedCardAddSerializer
@@ -465,7 +467,7 @@ class PayPalSavedCardAddAPIView(APIView):
         card_data.set_billing_field(CardData.COUNTRY_CODE, 'US') # TODO allow others?
         card_data.set_billing_field(CardData.POSTAL_CODE, info.zipcode)
 
-        print('card_data.get_data():', str(card_data.get_data()))
+        #print('card_data.get_data():', str(card_data.get_data()))
 
         # call paypal api
         pp = PayPal()
@@ -505,26 +507,73 @@ class PayPalSavedCardAddAPIView(APIView):
 
         # get the card type properties so we can create a SavedCardDetails instance
         # the first/last name will come from the user object internally
-        card_type   = args.get('type')          # TODO - validate
-        number      = args.get('number')        # TODO - validate
-        exp_month   = args.get('exp_month')     # TODO - validate
-        exp_year    = args.get('exp_year')      # TODO - validate
-        cvv2        = args.get('cvv2')          # TODO - validate
+        #first_name  = args.get('first_name')       # TODO - validate the CARDHOLDER first name
+        #last_name   = args.get('last_name')        # TODO - validate the CARDHOLDER last name
+        card_type = args.get('type')                # TODO - validate
+        if card_type is None:
+            return Response("Required: 'type'", status=405)
+        number = args.get('number')                 # TODO - validate
+        if number is None:
+            return Response("Required: 'number'", status=405)
+        exp_month   = args.get('exp_month')         # TODO - validate
+        exp_year    = args.get('exp_year')          # TODO - validate
+        cvv2        = args.get('cvv2')              # TODO - validate
 
-        # TODO this can raise a number of notable Exceptions ! TODO
-        save_card_api_data = self.create_paypal_saved_card(user, card_type, number, exp_month, exp_year, cvv2)
-        # TODO add exception issues like wrong card_type + number combination
 
-        print('save_card_api_data:', str(save_card_api_data))
+        # wraps quite a bit of code to try to catch any straggler exceptions
+        #try:
 
-        token = save_card_api_data.get('id') # get the token for the saved card from paypal
+        # save the card using paypal
+        try:
+            save_card_api_data = self.create_paypal_saved_card(user, card_type, number, exp_month, exp_year, cvv2)
+        except Information.DoesNotExist:
+            return Response("Incomplete information. Is the billing address filled out?", status=405)
+
+        # use the paypal api response to stash some
+        # information about the saved card in our db.
+        # we do not save sensitive information for security reasons!
+        token = save_card_api_data.get('id')
         last_4 = number[-4:] # slice off the last 4 digits
         saved_card = self.create_saved_card_details(user, token, card_type, last_4, exp_month, exp_year)
+
+        # except Exception as e:
+        #     return Response(e, status=405)
 
         # return serialized data of the new saved card
         return Response(SavedCardSerializer(saved_card, many=False).data, status=200)
 
-class PayPalSavedCardDeleteAPIView(APIView): pass                   # TODO
+class PayPalSavedCardDeleteAPIView(APIView):
+    """
+    post json in this form to delete a saved card:
+
+        {"token": "Card-99999"}
+
+    """
+    authentication_classes = (IsAuthenticated, )
+    serializer_class = SavedCardDeleteSerializer
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        token = self.request.data.get('token')
+        if token is None:
+            return Response("token required", status=405)
+        try:
+            card = SavedCardDetails.objects.get(user=user, token=token)
+        except SavedCardDetails.DoesNotExist:
+            return Response("card not found for user, token: %s" % token, status=404)
+
+        deleted_card_was_default = card.default
+        card.delete()
+
+        # if the card was the default card, and there are any more cards
+        # randomly set one of them to the new default
+        remaining_cards = SavedCardDetails.objects.filter(user=user)
+        if deleted_card_was_default and remaining_cards.count() > 0:
+            new_default_card = remaining_cards[0]
+            new_default_card.default = True
+            new_default_card.save()
+
+        return Response(status=200)
 
 class PayPalSavedCardListAPIView(APIView):
     """
