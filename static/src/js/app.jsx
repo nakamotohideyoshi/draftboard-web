@@ -25,6 +25,7 @@ Raven.config(sentryDSN, {
   ignoreErrors: [
     // This is generally a pusher disconnection due to things like the user closing their laptop.
     'Request has been terminated',
+    'NetworkError when attempting to fetch resource',
     // Random plugins/extensions
     'top.GLOBALS',
     // See: http://blog.errorception.com/2012/03/tale-of-unfindable-js-error.html
