@@ -4,6 +4,10 @@
 import os
 import urllib
 from redis import Redis
+from util.dicts import (
+    Reducer,
+    Shrinker,
+)
 from util.timesince import timeit
 from collections import (
     OrderedDict,
@@ -54,11 +58,11 @@ from draftgroup.classes import (
 )
 
 def get_redis_instance():
-    url = os.environ.get('REDISCLOUD_URL')
+    url = os.environ.get('REDISCLOUD_URL') # TODO get this env var from settings
     if url is None:
         return Redis()
     else:
-        redis_url = urllib.parse.urlparse(os.environ.get('REDISCLOUD_URL'))
+        redis_url = urllib.parse.urlparse(os.environ.get('REDISCLOUD_URL')) # TODO get this env var from settings
         r = Redis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password, db=0)
         return r
 
