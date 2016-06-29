@@ -2,6 +2,7 @@
 # util/tests.py
 
 from unittest import TestCase
+from ast import literal_eval
 from util.dicts import (
     Reducer,
     Shrinker,
@@ -187,3 +188,23 @@ class ShrinkerTest(TestCase):
         # which is effectively how we know we didnt overwrite
         # the existing 'key1' value!
         self.assertTrue(ts.data == orig)
+
+#
+##################################################################################################
+# tests below here are not really for the system so much as they are for quick examples
+##################################################################################################
+
+class TestRawRequirements(TestCase):
+
+    def setUp(self):
+        #
+        raw_requirements_str = """{'at_bat_stats': None, 'runners': [{'last_name': 'Prado', 'starting_base': 1.0, 'parent_api__id': 'pbp', 'id': '933a0bc9-26c0-478e-982c-01fd8ffe0614', 'ending_base': 1.0, 'out': 'false', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'jersey_number': 14.0, 'dd_updated__id': 1467229174873, 'preferred_name': 'Martin', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVwaXRjaF9faWRmZDkzODc0Yi0xMmI1LTQyZGEtOWY2ZS1kYWM4MTQzNmRmYWZwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ5MzNhMGJjOS0yNmMwLTQ3OGUtOTgyYy0wMWZkOGZmZTA2MTQ=', 'parent_list__id': 'runners__list', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'first_name': 'Martin', 'pitch__id': 'fd93874b-12b5-42da-9f6e-dac81436dfaf'}], 'at_bat': {'id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'dd_updated__id': 1467229174873, 'pitchs': [{'pitch': '9e27aede-76e2-410e-aff2-0be26834a443'}, {'pitch': 'de3fefa7-90c6-4524-bdd2-e75b75538e1c'}, {'pitch': '1f3909cb-fd36-4193-8b87-9c67cd8aabc4'}, {'pitch': 'fd93874b-12b5-42da-9f6e-dac81436dfaf'}], '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGlkYjlmODBkYTgtZDg4MS00M2I1LTg5ZjgtYWYwZWJkOWM0YWM1', 'hitter_id': '42cb5171-ffa3-4600-9c41-dbc3805206ea', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'parent_api__id': 'pbp'}, 'pitch': {'outcome_id': 'bB', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'parent_api__id': 'pbp', 'id': 'fd93874b-12b5-42da-9f6e-dac81436dfaf', 'updated_at': '2016-06-29T19:39:29Z', 'status': 'official', 'pitcher': '97fb113f-b852-4bc1-91bf-79dd11e14992', 'dd_updated__id': 1467229174873, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVpZGZkOTM4NzRiLTEyYjUtNDJkYS05ZjZlLWRhYzgxNDM2ZGZhZg==', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'created_at': '2016-06-29T19:39:27Z', 'count__list': {'outs': 0.0, 'balls': 2.0, 'pitch_count': 4.0, 'strikes': 2.0}, 'flags__list': {'is_ab': 'false', 'is_on_base': 'false', 'is_bunt': 'false', 'is_passed_ball': 'false', 'is_ab_over': 'false', 'is_wild_pitch': 'false', 'is_double_play': 'false', 'is_hit': 'false', 'is_bunt_shown': 'false', 'is_triple_play': 'false'}, 'runners__list': {'runner': '933a0bc9-26c0-478e-982c-01fd8ffe0614'}}, 'zone_pitches': [{'id': '97fb113f-b852-4bc1-91bf-79dd11e14992', 'pitch_speed': 92.0, 'parent_api__id': 'pbp', 'pitch_type': 'FA', 'pitch_count': 20.0, 'pitch_zone': 8.0, 'dd_updated__id': 1467229093256, 'hitter_hand': 'L', 'pitcher_hand': 'R', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVwaXRjaF9faWQ5ZTI3YWVkZS03NmUyLTQxMGUtYWZmMi0wYmUyNjgzNGE0NDNpZDk3ZmIxMTNmLWI4NTItNGJjMS05MWJmLTc5ZGQxMWUxNDk5Mg==', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'pitch__id': '9e27aede-76e2-410e-aff2-0be26834a443'}, {'id': '97fb113f-b852-4bc1-91bf-79dd11e14992', 'pitch_speed': 86.0, 'parent_api__id': 'pbp', 'pitch_type': 'SL', 'pitch_count': 21.0, 'pitch_zone': 1.0, 'dd_updated__id': 1467229147682, 'hitter_hand': 'L', 'pitcher_hand': 'R', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVwaXRjaF9faWRkZTNmZWZhNy05MGM2LTQ1MjQtYmRkMi1lNzViNzU1MzhlMWNpZDk3ZmIxMTNmLWI4NTItNGJjMS05MWJmLTc5ZGQxMWUxNDk5Mg==', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'pitch__id': 'de3fefa7-90c6-4524-bdd2-e75b75538e1c'}, {'id': '97fb113f-b852-4bc1-91bf-79dd11e14992', 'pitch_speed': 87.0, 'parent_api__id': 'pbp', 'pitch_type': 'SL', 'pitch_count': 22.0, 'pitch_zone': 13.0, 'dd_updated__id': 1467229156775, 'hitter_hand': 'L', 'pitcher_hand': 'R', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVwaXRjaF9faWQxZjM5MDljYi1mZDM2LTQxOTMtOGI4Ny05YzY3Y2Q4YWFiYzRpZDk3ZmIxMTNmLWI4NTItNGJjMS05MWJmLTc5ZGQxMWUxNDk5Mg==', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'pitch__id': '1f3909cb-fd36-4193-8b87-9c67cd8aabc4'}, {'id': '97fb113f-b852-4bc1-91bf-79dd11e14992', 'pitch_speed': 92.0, 'parent_api__id': 'pbp', 'pitch_type': 'FA', 'pitch_count': 23.0, 'pitch_zone': 13.0, 'dd_updated__id': 1467229174873, 'hitter_hand': 'L', 'pitcher_hand': 'R', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVwaXRjaF9faWRmZDkzODc0Yi0xMmI1LTQyZGEtOWY2ZS1kYWM4MTQzNmRmYWZpZDk3ZmIxMTNmLWI4NTItNGJjMS05MWJmLTc5ZGQxMWUxNDk5Mg==', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'pitch__id': 'fd93874b-12b5-42da-9f6e-dac81436dfaf'}], 'stats': None}"""
+        self.raw = literal_eval(raw_requirements_str)
+        self.pitch = self.raw.get('pitch')
+        self.at_bat = self.raw.get('at_bat')
+        self.zone_pitches = self.raw.get('zone_pitches')
+        self.runners = self.raw.get('runners')
+
+
+
+
