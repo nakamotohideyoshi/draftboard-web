@@ -1,6 +1,8 @@
 #
 # sports/mlb/parser.py
 
+import os
+import urllib
 from redis import Redis
 from util.timesince import timeit
 from collections import (
@@ -50,6 +52,15 @@ from draftgroup.classes import (
     PlayerUpdateManager,
     GameUpdateManager,
 )
+
+def get_redis_instance():
+    url = os.environ.get('REDISCLOUD_URL')
+    if url is None:
+        redis_url = urllib.parse.urlparse(os.environ.get('REDISCLOUD_URL'))
+        r = Redis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password, db=0)
+        return r
+    else:
+        return Redis()
 
 class HomeAwaySummary(DataDenTeamBoxscores):
 
@@ -1494,7 +1505,10 @@ class QuickCache(object):
         self.cache = override_cache
         if self.cache is None:
             # default: use django default cache
-            self.cache = Redis() #cache
+            # TODO fix this hack
+
+            self.cache = get_redis_instance()
+
         # immediately cache it based on 'stash_now' bool
         if data is not None and stash_now == True:
             self.stash(data)
@@ -1505,7 +1519,10 @@ class QuickCache(object):
 
     def scan(self, ts):
         """ return the keys for objects matching the same cache and timestamp 'ts' """
-        redis = Redis()
+
+        #redis = Redis()
+        redis = get_redis_instance()
+
         keys = []
         pattern = self.scan_pattern % ts
         print('scan pattern:', pattern)
