@@ -200,11 +200,64 @@ class TestRawRequirements(TestCase):
         #
         raw_requirements_str = """{'at_bat_stats': None, 'runners': [{'last_name': 'Prado', 'starting_base': 1.0, 'parent_api__id': 'pbp', 'id': '933a0bc9-26c0-478e-982c-01fd8ffe0614', 'ending_base': 1.0, 'out': 'false', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'jersey_number': 14.0, 'dd_updated__id': 1467229174873, 'preferred_name': 'Martin', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVwaXRjaF9faWRmZDkzODc0Yi0xMmI1LTQyZGEtOWY2ZS1kYWM4MTQzNmRmYWZwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ5MzNhMGJjOS0yNmMwLTQ3OGUtOTgyYy0wMWZkOGZmZTA2MTQ=', 'parent_list__id': 'runners__list', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'first_name': 'Martin', 'pitch__id': 'fd93874b-12b5-42da-9f6e-dac81436dfaf'}], 'at_bat': {'id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'dd_updated__id': 1467229174873, 'pitchs': [{'pitch': '9e27aede-76e2-410e-aff2-0be26834a443'}, {'pitch': 'de3fefa7-90c6-4524-bdd2-e75b75538e1c'}, {'pitch': '1f3909cb-fd36-4193-8b87-9c67cd8aabc4'}, {'pitch': 'fd93874b-12b5-42da-9f6e-dac81436dfaf'}], '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGlkYjlmODBkYTgtZDg4MS00M2I1LTg5ZjgtYWYwZWJkOWM0YWM1', 'hitter_id': '42cb5171-ffa3-4600-9c41-dbc3805206ea', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'parent_api__id': 'pbp'}, 'pitch': {'outcome_id': 'bB', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'parent_api__id': 'pbp', 'id': 'fd93874b-12b5-42da-9f6e-dac81436dfaf', 'updated_at': '2016-06-29T19:39:29Z', 'status': 'official', 'pitcher': '97fb113f-b852-4bc1-91bf-79dd11e14992', 'dd_updated__id': 1467229174873, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVpZGZkOTM4NzRiLTEyYjUtNDJkYS05ZjZlLWRhYzgxNDM2ZGZhZg==', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'created_at': '2016-06-29T19:39:27Z', 'count__list': {'outs': 0.0, 'balls': 2.0, 'pitch_count': 4.0, 'strikes': 2.0}, 'flags__list': {'is_ab': 'false', 'is_on_base': 'false', 'is_bunt': 'false', 'is_passed_ball': 'false', 'is_ab_over': 'false', 'is_wild_pitch': 'false', 'is_double_play': 'false', 'is_hit': 'false', 'is_bunt_shown': 'false', 'is_triple_play': 'false'}, 'runners__list': {'runner': '933a0bc9-26c0-478e-982c-01fd8ffe0614'}}, 'zone_pitches': [{'id': '97fb113f-b852-4bc1-91bf-79dd11e14992', 'pitch_speed': 92.0, 'parent_api__id': 'pbp', 'pitch_type': 'FA', 'pitch_count': 20.0, 'pitch_zone': 8.0, 'dd_updated__id': 1467229093256, 'hitter_hand': 'L', 'pitcher_hand': 'R', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVwaXRjaF9faWQ5ZTI3YWVkZS03NmUyLTQxMGUtYWZmMi0wYmUyNjgzNGE0NDNpZDk3ZmIxMTNmLWI4NTItNGJjMS05MWJmLTc5ZGQxMWUxNDk5Mg==', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'pitch__id': '9e27aede-76e2-410e-aff2-0be26834a443'}, {'id': '97fb113f-b852-4bc1-91bf-79dd11e14992', 'pitch_speed': 86.0, 'parent_api__id': 'pbp', 'pitch_type': 'SL', 'pitch_count': 21.0, 'pitch_zone': 1.0, 'dd_updated__id': 1467229147682, 'hitter_hand': 'L', 'pitcher_hand': 'R', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVwaXRjaF9faWRkZTNmZWZhNy05MGM2LTQ1MjQtYmRkMi1lNzViNzU1MzhlMWNpZDk3ZmIxMTNmLWI4NTItNGJjMS05MWJmLTc5ZGQxMWUxNDk5Mg==', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'pitch__id': 'de3fefa7-90c6-4524-bdd2-e75b75538e1c'}, {'id': '97fb113f-b852-4bc1-91bf-79dd11e14992', 'pitch_speed': 87.0, 'parent_api__id': 'pbp', 'pitch_type': 'SL', 'pitch_count': 22.0, 'pitch_zone': 13.0, 'dd_updated__id': 1467229156775, 'hitter_hand': 'L', 'pitcher_hand': 'R', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVwaXRjaF9faWQxZjM5MDljYi1mZDM2LTQxOTMtOGI4Ny05YzY3Y2Q4YWFiYzRpZDk3ZmIxMTNmLWI4NTItNGJjMS05MWJmLTc5ZGQxMWUxNDk5Mg==', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'pitch__id': '1f3909cb-fd36-4193-8b87-9c67cd8aabc4'}, {'id': '97fb113f-b852-4bc1-91bf-79dd11e14992', 'pitch_speed': 92.0, 'parent_api__id': 'pbp', 'pitch_type': 'FA', 'pitch_count': 23.0, 'pitch_zone': 13.0, 'dd_updated__id': 1467229174873, 'hitter_hand': 'L', 'pitcher_hand': 'R', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDc1OGJjOTg1LTQxNzEtNGM4Yi1iZWUzLWM3YzJhYjY3ODBmZGF0X2JhdF9faWRiOWY4MGRhOC1kODgxLTQzYjUtODlmOC1hZjBlYmQ5YzRhYzVwaXRjaF9faWRmZDkzODc0Yi0xMmI1LTQyZGEtOWY2ZS1kYWM4MTQzNmRmYWZpZDk3ZmIxMTNmLWI4NTItNGJjMS05MWJmLTc5ZGQxMWUxNDk5Mg==', 'game__id': '758bc985-4171-4c8b-bee3-c7c2ab6780fd', 'at_bat__id': 'b9f80da8-d881-43b5-89f8-af0ebd9c4ac5', 'pitch__id': 'fd93874b-12b5-42da-9f6e-dac81436dfaf'}], 'stats': None}"""
         self.raw = literal_eval(raw_requirements_str)
+        #
         self.pitch = self.raw.get('pitch')
         self.at_bat = self.raw.get('at_bat')
         self.zone_pitches = self.raw.get('zone_pitches')
         self.runners = self.raw.get('runners')
 
+class TestRawRequirements2(TestCase):
 
+    def setUp(self):
+        #
+        raw_requirements_str = """{'at_bat': {'dd_updated__id': 1467229093423, 'description': 'Matt Szczur walks.', 'game__id': '08981bd8-d1d7-48e1-8668-9098b8f7fe90', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDA4OTgxYmQ4LWQxZDctNDhlMS04NjY4LTkwOThiOGY3ZmU5MGlkMGEwNGUyNDMtMDA4YS00ODhjLWFjZjMtYTFkNDMzNmI2ZTEy', 'parent_api__id': 'pbp', 'id': '0a04e243-008a-488c-acf3-a1d4336b6e12', 'pitchs': [{'pitch': 'ad9e77a5-59ff-4182-89c5-873a97ce6b02'}, {'pitch': '77619054-127a-4180-b4b6-998b3b9e6ab8'}, {'pitch': '76bbe755-8128-453b-bd43-6f2ae10f85f5'}, {'pitch': '57fda296-4ce6-4430-ab81-78d0da39f5a7'}, {'pitch': 'bfa4c342-1dee-4119-b0e1-fa814b46ec70'}], 'hitter_id': 'ea8fad1f-1c47-4f61-b7c7-9c725f02d9a2'}, 'runners': [{'dd_updated__id': 1467229093423, 'at_bat__id': '0a04e243-008a-488c-acf3-a1d4336b6e12', 'first_name': 'Matthew', 'ending_base': 1.0, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDA4OTgxYmQ4LWQxZDctNDhlMS04NjY4LTkwOThiOGY3ZmU5MGF0X2JhdF9faWQwYTA0ZTI0My0wMDhhLTQ4OGMtYWNmMy1hMWQ0MzM2YjZlMTJwaXRjaF9faWRiZmE0YzM0Mi0xZGVlLTQxMTktYjBlMS1mYTgxNGI0NmVjNzBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWRlYThmYWQxZi0xYzQ3LTRmNjEtYjdjNy05YzcyNWYwMmQ5YTI=', 'preferred_name': 'Matt', 'out': 'false', 'game__id': '08981bd8-d1d7-48e1-8668-9098b8f7fe90', 'outcome_id': 'AD1', 'pitch__id': 'bfa4c342-1dee-4119-b0e1-fa814b46ec70', 'last_name': 'Szczur', 'parent_api__id': 'pbp', 'starting_base': 0.0, 'jersey_number': 20.0, 'id': 'ea8fad1f-1c47-4f61-b7c7-9c725f02d9a2', 'parent_list__id': 'runners__list'}], 'stats': None, 'at_bat_stats': None, 'zone_pitches': [{'dd_updated__id': 1467229029937, 'game__id': '08981bd8-d1d7-48e1-8668-9098b8f7fe90', 'pitch_count': 5.0, 'hitter_hand': 'R', 'pitcher_hand': 'R', 'at_bat__id': '0a04e243-008a-488c-acf3-a1d4336b6e12', 'pitch_type': 'FA', 'pitch__id': 'ad9e77a5-59ff-4182-89c5-873a97ce6b02', 'parent_api__id': 'pbp', 'pitch_zone': 13.0, 'pitch_speed': 95.0, 'id': 'e7f69d9c-f311-466b-8f28-591255b49489', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDA4OTgxYmQ4LWQxZDctNDhlMS04NjY4LTkwOThiOGY3ZmU5MGF0X2JhdF9faWQwYTA0ZTI0My0wMDhhLTQ4OGMtYWNmMy1hMWQ0MzM2YjZlMTJwaXRjaF9faWRhZDllNzdhNS01OWZmLTQxODItODljNS04NzNhOTdjZTZiMDJpZGU3ZjY5ZDljLWYzMTEtNDY2Yi04ZjI4LTU5MTI1NWI0OTQ4OQ=='}, {'dd_updated__id': 1467229048032, 'game__id': '08981bd8-d1d7-48e1-8668-9098b8f7fe90', 'pitch_count': 6.0, 'hitter_hand': 'R', 'pitcher_hand': 'R', 'at_bat__id': '0a04e243-008a-488c-acf3-a1d4336b6e12', 'pitch_type': 'FA', 'pitch__id': '77619054-127a-4180-b4b6-998b3b9e6ab8', 'parent_api__id': 'pbp', 'pitch_zone': 4.0, 'pitch_speed': 95.0, 'id': 'e7f69d9c-f311-466b-8f28-591255b49489', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDA4OTgxYmQ4LWQxZDctNDhlMS04NjY4LTkwOThiOGY3ZmU5MGF0X2JhdF9faWQwYTA0ZTI0My0wMDhhLTQ4OGMtYWNmMy1hMWQ0MzM2YjZlMTJwaXRjaF9faWQ3NzYxOTA1NC0xMjdhLTQxODAtYjRiNi05OThiM2I5ZTZhYjhpZGU3ZjY5ZDljLWYzMTEtNDY2Yi04ZjI4LTU5MTI1NWI0OTQ4OQ=='}, {'dd_updated__id': 1467229084251, 'game__id': '08981bd8-d1d7-48e1-8668-9098b8f7fe90', 'pitch_count': 7.0, 'hitter_hand': 'R', 'pitcher_hand': 'R', 'at_bat__id': '0a04e243-008a-488c-acf3-a1d4336b6e12', 'pitch_type': 'SL', 'pitch__id': '76bbe755-8128-453b-bd43-6f2ae10f85f5', 'parent_api__id': 'pbp', 'pitch_zone': 13.0, 'pitch_speed': 82.0, 'id': 'e7f69d9c-f311-466b-8f28-591255b49489', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDA4OTgxYmQ4LWQxZDctNDhlMS04NjY4LTkwOThiOGY3ZmU5MGF0X2JhdF9faWQwYTA0ZTI0My0wMDhhLTQ4OGMtYWNmMy1hMWQ0MzM2YjZlMTJwaXRjaF9faWQ3NmJiZTc1NS04MTI4LTQ1M2ItYmQ0My02ZjJhZTEwZjg1ZjVpZGU3ZjY5ZDljLWYzMTEtNDY2Yi04ZjI4LTU5MTI1NWI0OTQ4OQ=='}, {'dd_updated__id': 1467229084251, 'game__id': '08981bd8-d1d7-48e1-8668-9098b8f7fe90', 'pitch_count': 8.0, 'hitter_hand': 'R', 'pitcher_hand': 'R', 'at_bat__id': '0a04e243-008a-488c-acf3-a1d4336b6e12', 'pitch_type': 'FA', 'pitch__id': '57fda296-4ce6-4430-ab81-78d0da39f5a7', 'parent_api__id': 'pbp', 'pitch_zone': 13.0, 'pitch_speed': 95.0, 'id': 'e7f69d9c-f311-466b-8f28-591255b49489', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDA4OTgxYmQ4LWQxZDctNDhlMS04NjY4LTkwOThiOGY3ZmU5MGF0X2JhdF9faWQwYTA0ZTI0My0wMDhhLTQ4OGMtYWNmMy1hMWQ0MzM2YjZlMTJwaXRjaF9faWQ1N2ZkYTI5Ni00Y2U2LTQ0MzAtYWI4MS03OGQwZGEzOWY1YTdpZGU3ZjY5ZDljLWYzMTEtNDY2Yi04ZjI4LTU5MTI1NWI0OTQ4OQ=='}, {'dd_updated__id': 1467229093423, 'game__id': '08981bd8-d1d7-48e1-8668-9098b8f7fe90', 'pitch_count': 9.0, 'hitter_hand': 'R', 'pitcher_hand': 'R', 'at_bat__id': '0a04e243-008a-488c-acf3-a1d4336b6e12', 'pitch_type': 'FA', 'pitch__id': 'bfa4c342-1dee-4119-b0e1-fa814b46ec70', 'parent_api__id': 'pbp', 'pitch_zone': 10.0, 'pitch_speed': 95.0, 'id': 'e7f69d9c-f311-466b-8f28-591255b49489', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDA4OTgxYmQ4LWQxZDctNDhlMS04NjY4LTkwOThiOGY3ZmU5MGF0X2JhdF9faWQwYTA0ZTI0My0wMDhhLTQ4OGMtYWNmMy1hMWQ0MzM2YjZlMTJwaXRjaF9faWRiZmE0YzM0Mi0xZGVlLTQxMTktYjBlMS1mYTgxNGI0NmVjNzBpZGU3ZjY5ZDljLWYzMTEtNDY2Yi04ZjI4LTU5MTI1NWI0OTQ4OQ=='}], 'pitch': {'dd_updated__id': 1467229093423, 'status': 'official', 'runners__list': {'runner': 'ea8fad1f-1c47-4f61-b7c7-9c725f02d9a2'}, 'updated_at': '2016-06-29T19:38:08Z', 'at_bat__id': '0a04e243-008a-488c-acf3-a1d4336b6e12', 'pitcher': 'e7f69d9c-f311-466b-8f28-591255b49489', 'count__list': {'balls': 4.0, 'strikes': 1.0, 'pitch_count': 5.0, 'outs': 1.0}, 'created_at': '2016-06-29T19:38:04Z', 'flags__list': {'is_bunt': 'false', 'is_hit': 'false', 'is_on_base': 'true', 'is_triple_play': 'false', 'is_bunt_shown': 'false', 'is_double_play': 'false', 'is_ab_over': 'true', 'is_wild_pitch': 'false', 'is_ab': 'false', 'is_passed_ball': 'false'}, 'outcome_id': 'bB', 'parent_api__id': 'pbp', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDA4OTgxYmQ4LWQxZDctNDhlMS04NjY4LTkwOThiOGY3ZmU5MGF0X2JhdF9faWQwYTA0ZTI0My0wMDhhLTQ4OGMtYWNmMy1hMWQ0MzM2YjZlMTJpZGJmYTRjMzQyLTFkZWUtNDExOS1iMGUxLWZhODE0YjQ2ZWM3MA==', 'game__id': '08981bd8-d1d7-48e1-8668-9098b8f7fe90', 'id': 'bfa4c342-1dee-4119-b0e1-fa814b46ec70'}}"""
+        self.raw = literal_eval(raw_requirements_str)
+        #
+        self.pitch = self.raw.get('pitch')
+        self.at_bat = self.raw.get('at_bat')
+        self.zone_pitches = self.raw.get('zone_pitches')
+        self.runners = self.raw.get('runners')
 
+    def test_at_bat_has_description(self):
+        print(self.at_bat)
+        description = self.at_bat.get('description')
+        print('description[%s]' % description)
+        self.assertIsNotNone(description)
 
+        class AtBatReducer(Reducer):
+            remove_fields = [
+                '_id',
+                'errors__list',
+                'parent_api__id',
+                'pitchs',
+                'game__id',
+                'id',
+                'created_at',
+                'updated_at',
+                'runners__list',
+                'count__list',
+                'flags__list',
+                'fielders__list',
+                'status',
+                'pitcher',
+                'hit_location',
+                'hit_type',
+            ]
+
+        class AtBatShrinker(Shrinker):
+
+            fields = {
+                'at_bat__id' : 'srid',
+                'dd_updated__id' : 'ts',
+                'hitter_id' : 'srid_hitter',
+                'outcome_id' : 'oid',
+                'description' : 'oid_description',
+            }
+
+        r = AtBatReducer(self.at_bat)
+        reduced = r.reduce()
+        print('reduced:', str(reduced))
+
+        s = AtBatShrinker(reduced)
+        shrunk = s.shrink()
+        print('shrunk:', str(shrunk))

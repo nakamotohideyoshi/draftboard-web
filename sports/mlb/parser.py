@@ -1038,7 +1038,7 @@ class AbstractShrinker(object):
         #
         return self.shrinked
 
-class AtBatReducer(AbstractStatReducer):
+class AtBatReducer(Reducer):
 
     remove_fields = [
         '_id',
@@ -1059,13 +1059,14 @@ class AtBatReducer(AbstractStatReducer):
         'hit_type',
     ]
 
-class AtBatShrinker(AbstractShrinker):
+class AtBatShrinker(Shrinker):
 
     fields = {
         'at_bat__id' : 'srid',
         'dd_updated__id' : 'ts',
         'hitter_id' : 'srid_hitter',
         'outcome_id' : 'oid',
+        'description' : 'oid_description',
     }
 
 class AtBatManager(AbstractManager):
@@ -1967,14 +1968,15 @@ class PitchPbp(DataDenPbpDescription):
         """ get the PlayerStatsHitter instance for the current at bat player """
         player_stats = self.__find_player_stats(self.player_stats_hitter_model, game, [hitter])
 
-        if player_stats.count() == 1:
+        count = player_stats.count()
+        if count == 1:
             return player_stats[0]
 
-        elif player_stats < 1:
+        elif count < 1:
             return None
 
         # otherwise something bad is happening
-        err_msg = 'more than 1 PlayerStatsHitter object found for game[%s]-player[%s]' % (game, hitter)
+        err_msg = '%s PlayerStatsHitter object(s) found for game[%s]-player[%s]' % (str(count),game, hitter)
         raise Exception(err_msg)
 
     def find_player_stats(self, game, pitcher, hitter, runners=[]):
