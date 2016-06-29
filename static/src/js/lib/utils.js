@@ -57,7 +57,7 @@ export function timeRemaining(timestamp) {
  * @param  {integer} expiresAt  Unix timestamp
  * @return {boolean}            True if expired, false if not
  */
-export const hasExpired = (expiresAt) => dateNow() < expiresAt;
+export const hasExpired = (expiresAt) => dateNow() > expiresAt;
 
 // Has this timestamp passed?
 export function isTimeInFuture(timestamp) {

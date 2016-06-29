@@ -10,6 +10,7 @@ import { expect } from 'chai';
 import { LiveStandingsPane } from '../../../components/live/live-standings-pane';
 
 const defaultProps = {
+  actions: {},
   changePathAndMode() {},
   contest: {
     id: 2,
@@ -138,11 +139,11 @@ describe("LiveStandingsPane Component", function() {
     setTimeout(() => {
       expect(
         this.componentElement.querySelectorAll('.lineup').length
-      ).to.equal(1);
+      ).to.equal(2);
 
       expect(
         this.componentElement.querySelector('.lineup--place').innerHTML.trim()
-      ).to.equal('1');
+      ).to.equal('');
 
       ReactTestUtils.Simulate.click(
         this.componentElement.querySelector('.arrow-right')

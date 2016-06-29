@@ -1,11 +1,20 @@
 import LiveMLBDiamond from './mlb/live-mlb-diamond';
+import LiveMlbLineupPlayerWatch from './mlb/live-mlb-lineup-player-watch';
 import React from 'react';
-import forEach from 'lodash/forEach';
 import merge from 'lodash/merge';
 import extend from 'lodash/extend';
 import size from 'lodash/size';
 import { humanizeFP } from '../../actions/sports';
 import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
+
+
+// map to convert socket call to needed css classname
+export const mlbDiamondMap = {
+  1: 'first',
+  2: 'second',
+  3: 'third',
+  4: 'home',
+};
 
 
 const LiveLineupPlayer = React.createClass({
@@ -15,8 +24,7 @@ const LiveLineupPlayer = React.createClass({
     eventDescription: React.PropTypes.object.isRequired,
     gameStats: React.PropTypes.object.isRequired,
     isPlaying: React.PropTypes.bool.isRequired,
-    isRunner: React.PropTypes.bool.isRequired,
-    isWatchable: React.PropTypes.bool.isRequired,
+    playerType: React.PropTypes.string.isRequired,
     isWatching: React.PropTypes.bool.isRequired,
     multipartEvent: React.PropTypes.object.isRequired,
     openPlayerPane: React.PropTypes.func.isRequired,
@@ -25,13 +33,6 @@ const LiveLineupPlayer = React.createClass({
     setWatchingPlayer: React.PropTypes.func.isRequired,
     sport: React.PropTypes.string.isRequired,
     whichSide: React.PropTypes.string.isRequired,
-  },
-
-  /**
-   * Propogating up a click handler to choose the player to watch
-   */
-  _onClick() {
-    this.props.setWatchingPlayer(this.props.player.srid);
   },
 
   /**
@@ -87,11 +88,11 @@ const LiveLineupPlayer = React.createClass({
   },
 
   renderPhotoAndHover() {
-    const { player, openPlayerPane, sport } = this.props;
+    const { player, openPlayerPane, sport, whichSide } = this.props;
 
     // use different colors for which side client is viewing
     let colors = ['46495e', '34B4CC', '2871AC'];
-    if (this.props.whichSide === 'opponent') {
+    if (whichSide === 'opponent') {
       colors = ['3e4155', 'db3c3d', '611a59'];
     }
 
@@ -102,7 +103,7 @@ const LiveLineupPlayer = React.createClass({
           decimalRemaining={player.timeRemaining.decimal}
           playerSrid={player.srid}
           sport={sport}
-          uniquePmrId={`pmr-live-lineup-player-${player.id}`}
+          uniquePmrId={`pmr-live-lineup-player-${player.id}-${whichSide}`}
           width={52}
         />
 
@@ -112,7 +113,7 @@ const LiveLineupPlayer = React.createClass({
   },
 
   renderMLBWatching() {
-    const { player, multipartEvent, isRunner, isWatchable, isWatching } = this.props;
+    const { player, multipartEvent, playerType, isWatching } = this.props;
 
     // only applicable sport right now
     if (this.props.sport !== 'mlb') return [];
@@ -128,26 +129,19 @@ const LiveLineupPlayer = React.createClass({
       third: 'none',
     };
 
-    // map to convert socket call to needed css classname
-    const diamondMap = {
-      1: 'first',
-      2: 'second',
-      3: 'third',
-      4: 'home',
-    };
-
     // override isWatchable and add in watching indicator
     if (isWatching) {
       status = 'active';
       elements.push((<div key="8" className="live-lineup-player__watching-indicator" />));
     }
 
-    if (isRunner) {
+    if (playerType === 'runner') {
       const runnerDiamond = merge({}, defaultDiamond);
 
       // add runner to diamond
-      const runnerProps = multipartEvent.runners.filter(runner => runner.playerSrid === player.srid)[0];
-      const baseName = diamondMap[runnerProps.endingBase];
+      const { runners = [] } = multipartEvent;
+      const runnerProps = runners.filter(runner => runner.playerSrid === player.srid)[0];
+      const baseName = mlbDiamondMap[runnerProps.endingBase];
       runnerDiamond[baseName] = runnerProps.whichSide;
 
       elements.push((
@@ -160,48 +154,19 @@ const LiveLineupPlayer = React.createClass({
     }
 
     // always put in the watchable information
-    if (isWatchable) {
-      const watchingDiamondProps = merge({}, defaultDiamond);
-
-      // put runners on base
-      forEach(multipartEvent.runners, (runner) => {
-        const baseName = diamondMap[runner.endingBase];
-        watchingDiamondProps[baseName] = runner.whichSide;
-      });
-
-      const { when, pitchCount } = multipartEvent;
-
-      let halfInningString = 'bottom';
-      if (when.half === 't') halfInningString = 'top';
-
-      elements.push((
-        <div
-          key="9"
-          className={`live-lineup-player__watching-info live-player-watching live-player-watching--${status}`}
-          onClick={this._onClick}
-        >
-          <div className="live-player-watching__fp" />
-          <div className="live-player-watching__name-stats">
-            <div className="live-player-watching__name">{player.name}</div>
-            <div className="live-player-watching__stats">
-              <span>{pitchCount}</span>
-              <span className={`live-player-watching__inning live-player-watching__inning--${halfInningString}`}>
-                <svg className="down-arrow" viewBox="0 0 40 22.12">
-                  <path d="M20,31.06L0,8.94H40Z" transform="translate(0 -8.94)" />
-                </svg>
-                {multipartEvent.when.inning}
-              </span>
-            </div>
-            <div className="live-player-watching__choose">Click Here to Watch</div>
-          </div>
-          <div className="live-player-watching__bases">
-            {React.createElement(
-              LiveMLBDiamond, extend({}, watchingDiamondProps)
-            )}
-          </div>
-        </div>
-      ));
-    }
+    elements.push(
+      <LiveMlbLineupPlayerWatch
+        key="9"
+        modifiers={[status]}
+        multipartEvent={multipartEvent}
+        onClick={() => this.props.setWatchingPlayer(this.props.player.srid)}
+        player={{
+          id: player.id,
+          name: player.name,
+          type: playerType,
+        }}
+      />
+    );
 
     return elements;
   },

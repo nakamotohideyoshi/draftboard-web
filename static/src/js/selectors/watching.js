@@ -301,9 +301,16 @@ export const watchingDraftGroupTimingSelector = createSelector(
 export const relevantGamesPlayersSelector = createSelector(
   [watchingMyLineupSelector, watchingContestSelector, watchingOpponentLineupSelector, lineupsHaveRelatedInfoSelector],
   (myLineup, contest, opponentLineup, haveRelatedInfo) => {
-    // return loading message if it is not done
+    // nothing relevant if it's not loaded yet
     if (haveRelatedInfo === false || myLineup.isLoading || contest.isLoading || opponentLineup.isLoading) {
-      return isLoadingObj;
+      return {
+        isLoading: true,
+        playersInBothLineups: [],
+        relevantItems: {
+          players: [],
+          games: [],
+        },
+      };
     }
 
     return {

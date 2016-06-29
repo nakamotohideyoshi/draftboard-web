@@ -124,13 +124,15 @@ export const compileLineupStats = (lineup = {}, draftGroup = {}, gamesTimeRemain
     start: new Date(lineup.start).getTime() || undefined,
   };
 
-  return merge(
+  const foo = merge(
     stats,
     {
       fp: calcRosterFP(stats.rosterDetails),
       timeRemaining: calcRosterTimeRemaining(draftGroup.sport, stats.rosterDetails),
     }
   );
+
+  return foo;
 };
 
 /**

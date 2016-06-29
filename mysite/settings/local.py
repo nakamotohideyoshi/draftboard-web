@@ -112,9 +112,9 @@ DATADEN_ASYNC_UPDATES   = True  # for dev, we wont always have celery running
 ##########################################################################
 #        pusher - DEVELOPMENT ids
 ##########################################################################
-# PUSHER_APP_ID           = '159462'
-# PUSHER_KEY              = '961cebaf8b45649cc786'
-# PUSHER_SECRET           = '47002883ba8571a48d90'
+# PUSHER_APP_ID           = '144195'    # production
+# PUSHER_KEY              = '9754d03a7816e43abb64'
+# PUSHER_SECRET           = 'fcbe16f4bf9e8c0b2b51'
 PUSHER_APP_ID           = '179543'    # pbp-stats-linking-dev
 PUSHER_KEY              = '5a4601521c1e2a3778aa'
 PUSHER_SECRET           = '2c286ac8c239f8e73f00'

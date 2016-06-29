@@ -1,3 +1,4 @@
+import log from '../../lib/logging';
 import { addEventAndStartQueue } from '../events';
 import { hasGameStarted, isGameReady } from '../sports';
 
@@ -31,6 +32,7 @@ const calcBoxscoreTeamSport = (message) => {
  * @param  {object} message The received event from Pusher
  */
 export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
+  log.trace('onBoxscoreGameReceived', message);
   const gameId = message.id;
 
   const sport = calcBoxscoreGameSport(message);
@@ -51,6 +53,7 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
  * @param  {object} message The received event from Pusher
  */
 export const onBoxscoreTeamReceived = (message) => (dispatch, getState) => {
+  log.trace('onBoxscoreTeamReceived', message);
   const gameId = message.game__id;
 
   const sport = calcBoxscoreTeamSport(message);

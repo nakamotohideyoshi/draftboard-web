@@ -120,12 +120,8 @@ export const PusherData = React.createClass({
     // note that when binding, we need to reference `this.props` so that when the event occurs, it pulls latest props
     newSports.map((sport) => {
       const pbpChannel = pusher.subscribe(`${channelPrefix}${sport}_pbp`);
-      pbpChannel.bind('event', (message) => actions.onPBPEventReceived(
-        message, sport, this.props.relevantGamesPlayers.relevantItems.players
-      ));
-      pbpChannel.bind('linked', (message) => actions.onPBPReceived(
-        message, sport, this.props.relevantGamesPlayers.relevantItems.players
-      ));
+      pbpChannel.bind('event', (message) => actions.onPBPEventReceived(message, sport));
+      pbpChannel.bind('linked', (message) => actions.onPBPReceived(message, sport));
 
       const statsChannel = pusher.subscribe(`${channelPrefix}${sport}_stats`);
       statsChannel.bind('player', (message) => actions.onPlayerStatsReceived(
