@@ -11,7 +11,6 @@ describe('<LiveCountdown /> Component', () => {
   let wrapper;
 
   const defaultTestProps = {
-    onCountdownOver: {},
     lineup: {
       id: 1,
       draftGroup: 3,

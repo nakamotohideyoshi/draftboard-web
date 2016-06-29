@@ -1,3 +1,4 @@
+import log from '../../lib/logging';
 import { addEventAndStartQueue } from '../events';
 import { updatePlayerStats } from '../live-draft-groups';
 import { isGameReady } from '../sports';
@@ -17,6 +18,8 @@ import { isGameReady } from '../sports';
  * @param  {object} relevantGames  Games we would need to animate
  */
 export const onPlayerStatsReceived = (message, sport, draftGroupId, relevantGames) => (dispatch, getState) => {
+  log.trace('onPlayerStatsReceived', message);
+
   const gameId = message.fields.srid_game;
 
   if (!isGameReady(getState(), dispatch, sport, gameId)) return false;

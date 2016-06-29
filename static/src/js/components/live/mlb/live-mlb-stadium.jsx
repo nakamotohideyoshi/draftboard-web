@@ -16,21 +16,19 @@ require('../../../../sass/blocks/live/mlb/live-mlb-stadium.scss');
  */
 const LiveMLBStadium = (props) => {
   const { event, modifiers, whichSide } = props;
+  const { zonePitches } = event;
 
   const block = 'live-mlb-stadium';
   const classNames = generateBlockNameWithModifiers(block, modifiers);
+
   let hitterInfo = null;
-
-  if (event.message) {
-    const atBatStats = event.message.at_bat_stats;
-
+  if (event.hitter) {
+    const { atBatStats, name } = event.hitter;
     hitterInfo = (
       <div className={`${block}__hitter`}>
         <div className={`${block}__hitter-at-bat`}>At bat</div>
-        <div className={`${block}__hitter-name`}>
-          {`4. ${atBatStats.preferred_name} ${atBatStats.last_name}`}
-        </div>
-        <div className={`${block}__hitter-record`}>1 for 3 (2B, B)</div>
+        <div className={`${block}__hitter-name`}>{name}</div>
+        <div className={`${block}__hitter-record`}>{atBatStats}</div>
       </div>
     );
   }
@@ -38,7 +36,7 @@ const LiveMLBStadium = (props) => {
   return (
     <section className={classNames}>
       <div className={`${block}__pitch-zone`}>
-        <LiveMLBPitchZone event={event} modifiers={[whichSide]} />
+        <LiveMLBPitchZone zonePitches={zonePitches} modifiers={[whichSide]} />
         {hitterInfo}
       </div>
     </section>
