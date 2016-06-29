@@ -1112,15 +1112,34 @@ class ZonePitchSorter(object):
     def __init__(self, zone_pitches, at_bat):
         self.zone_pitches = zone_pitches
         self.at_bat = at_bat
-        self.pitchs = self.at_bat.get('pitchs', [])
+        #self.pitchs = self.at_bat.get('pitchs', None)
+        self.srid_pitchs = None
+        self.pitchs = self.at_bat.get('pitchs', None)
+        if self.pitchs is None:
+            # the at bat must have a pitch in it (the 1st one, thats not in a list yet!)
+            found_pitch_srid = self.at_bat.get('pitch')
+            if found_pitch_srid is None:
+                err_msg = 'ZonePitchSorter didnt expect found_pitch_srid (a single one in the at, not in a list) to be None!'
+                print(err_msg)
+                raise Exception(err_msg)
+            self.srid_pitchs = [ found_pitch_srid ]
+        else:
+            # pitchs was not none, and we can get the srids
+            self.srid_pitchs = [ v.get('pitch') for v in self.pitchs ]
+        # self.srid_pitchs shouldnt be None here now:
+        if self.srid_pitchs is None:
+            err_msg = 'ZonePitchSorter self.srid_pitchs was None at end of __init__  (thats bad)'
+            print(err_msg)
+            raise Exception(err_msg)
 
     def sort(self):
         """ reduce, sort, and shrink the zone_pitches and return a list """
         pitch_order_map = {}
-        for i, pitch_dict in enumerate(self.pitchs):
-            pitch_srid = pitch_dict.get('pitch')
+        #for i, pitch_dict in enumerate(self.pitchs):
+        for i, pitch_srid in enumerate(self.srid_pitchs):
+            # pitch_srid = pitch_dict.get('pitch')
             pitch_order_map[pitch_srid] = i + 1   # map of srid -> atbat pitch index
-        #print('pitch_order_map:', str(pitch_order_map)) # TODO DEBUG -> REMOVE
+        #print('pitch_order_map:', str(pitch_order_map))
         # we will remove pitch__ids we've used from this.
         # if there are pitch srids remaining at the end, those are ones we missed, and we should make note!
         unused_pitches = list(pitch_order_map.keys())
@@ -1712,8 +1731,13 @@ class PitchPbp(DataDenPbpDescription):
         }
 
     def send(self):
-
+        #
         # TODO - take care of caching i think so we dont double send but im not sure...
+        # from dataden.util.hsh import Hashable
+        # In [1]: h = Hashable({})
+        # In [2]: h.hsh()
+        # In [3]: h.hsh()
+        # Out[3]: '191fa51276db527e432472e94a1433f3ced3b85ffbb01e73c44888d642cc4ac8'
 
         # skip send() method entirely if 'raw' is True!
         if self.raw == True:
@@ -1757,13 +1781,28 @@ class PitchPbp(DataDenPbpDescription):
         primary_object_hash = hashable.hsh()                        # 2
         # self.delete_cache_tokens(player_stats)                    # 3
         # data = self.build_linked_pbp_stats_data( player_stats )   # 4
-        push.classes.DataDenPush( self.pusher_sport_pbp, 'linked', hash=primary_object_hash ).send( linked_pbp )
 
-        #debug
-        print('')
-        print('linked_pbp:', str(linked_pbp))
-        print('')
-        print('')
+        # TODO right about here is where we need to check the cache to see if we can send this linked object!
+        r = get_redis_instance()
+        pitch = raw_requirements.get('pitch')
+        ts = pitch.get('dd_updated__id')
+        id = pitch.get('id')
+        send_hsh = 'mlblinkedpbp-%s-%s' % (ts, id)
+        print('send_hsh:', str(send_hsh))
+        if r.get(send_hsh) is not None:
+            print('already sent linked object')
+            pass
+        else:
+            # if the cached hash value doesnt exist, we need to send it
+            print('sending')
+            r.set(send_hsh, True, 60*60*12)
+            push.classes.DataDenPush( self.pusher_sport_pbp, 'linked', hash=send_hsh ).send( linked_pbp )
+
+            #debug
+            print('')
+            print('linked_pbp:', str(linked_pbp))
+            print('')
+            print('')
 
     def reconstruct_from_pitch(self, ts, srid_pitch):
         return self.reconstruct(ts, srid_pitch)
@@ -1797,6 +1836,8 @@ class PitchPbp(DataDenPbpDescription):
         pid = found_pitch.get('id')
         abid = found_pitch.get('at_bat__id')
         zps = self.ZonePitchCacheList().fetch(abid) # get zone pitches for the at bat
+        # if zps == []:
+        #     raise Exception('ZonePitchCacheList zone_pitches is empty! This means we dont have the zone_pitch for the pitch(pbp) object! go no further')
         rnrs = self.RunnerCacheList().fetch(pid)    # get runners for the pitch
 
         # a) get the at_bat, using the srid from the pitch
@@ -1805,9 +1846,25 @@ class PitchPbp(DataDenPbpDescription):
             raise self.MissingCachedObjectException('at_bat')
 
         # b) find the zone pitches
-        srid_pitchs = [ v.get('pitch') for v in found_ab.get('pitchs', []) ]
+        pitchs = found_ab.get('pitchs', None)
+        if pitchs is None:
+            # the at bat must have a pitch in it (the 1st one, thats not in a list yet!)
+            found_pitch_srid = found_ab.get('pitch')
+            if found_pitch_srid is None:
+                err_msg = 'didnt expect found_pitch_srid (a single one in the at, not in a list) to be None!'
+                print(err_msg)
+                raise Exception(err_msg)
+            srid_pitchs = [ found_pitch_srid ]
+        else:
+            # pitchs was not none, and we can get the srids
+            srid_pitchs = [ v.get('pitch') for v in pitchs ]
+
         # raises MissingCachedObjectException
         found_zone_pitches = self.get_all_newest(srid_pitchs, zps, 'pitch__id', 'dd_updated__id')
+        # print("found_zone_pitches = self.get_all_newest(srid_pitchs, zps, 'pitch__id', 'dd_updated__id')")
+        print('found_zone_pitches:', str(found_zone_pitches))
+        if len(found_zone_pitches) == 0:
+            raise self.MissingCachedObjectException('[found_]zone_pitches was 0!')
 
         # c) find the runners
         rlist = found_pitch.get('runners__list', [])
@@ -1918,7 +1975,7 @@ class PitchPbp(DataDenPbpDescription):
         # check if we have all the necessary things to build the object!
         self.__update_sendability(self.o, target)
 
-        # TODO - and also attempt to send
+        #
         self.send()
 
     def build_linked_pbp_stats_data(self, requirements):

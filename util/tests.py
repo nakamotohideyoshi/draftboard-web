@@ -261,3 +261,45 @@ class TestRawRequirements2(TestCase):
         s = AtBatShrinker(reduced)
         shrunk = s.shrink()
         print('shrunk:', str(shrunk))
+
+class TestLinkedParts(TestCase):
+
+    def setUp(self):
+        # get the updates ordered this way >>>   ./manage.py playupdate 5269090 5269094
+        #
+        # updates = Update.objects.filter(o__contains='1467237448660').order_by('ts')
+
+        # print out updates the way they are formatted below
+        #
+        # for u in updates:
+        #     print(u.pk, u.ts, u.ns, u.o)
+        #     print( '' )
+
+        # pk      ts                               ns          o
+        # 5269090 2016-06-29 21:57:39.731651+00:00 mlb.pitcher {'dd_updated__id': 1467237448660, 'hitter_hand': 'R', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'pitcher_hand': 'R', 'pitch__id': '4275e881-c745-41e4-a91c-abd12358be16', 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'id': '48347189-837d-4453-9e54-d3be3b9fc639', 'pitch_type': 'SL', 'pitch_count': 15.0, 'parent_api__id': 'pbp', 'pitch_zone': 12.0, 'pitch_speed': 85.0, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVwaXRjaF9faWQ0Mjc1ZTg4MS1jNzQ1LTQxZTQtYTkxYy1hYmQxMjM1OGJlMTZpZDQ4MzQ3MTg5LTgzN2QtNDQ1My05ZTU0LWQzYmUzYjlmYzYzOQ=='}
+        #
+        # 5269091 2016-06-29 21:57:39.824714+00:00 mlb.runner {'_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVwaXRjaF9faWQ0Mjc1ZTg4MS1jNzQ1LTQxZTQtYTkxYy1hYmQxMjM1OGJlMTZwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWRmYjA2MWM3Ny01MjUzLTQxODEtYWQ3Yi1jNjhlZjE4YWE1MTE=', 'last_name': 'Pujols', 'pitch__id': '4275e881-c745-41e4-a91c-abd12358be16', 'starting_base': 1.0, 'id': 'fb061c77-5253-4181-ad7b-c68ef18aa511', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'parent_list__id': 'runners__list', 'parent_api__id': 'pbp', 'preferred_name': 'Albert', 'dd_updated__id': 1467237448660, 'ending_base': 1.0, 'jersey_number': 5.0, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'first_name': 'Jose', 'out': 'false'}
+        #
+        # 5269092 2016-06-29 21:57:39.829554+00:00 mlb.runner {'jersey_number': 27.0, 'first_name': 'Michael', 'starting_base': 2.0, 'out': 'false', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'last_name': 'Trout', 'pitch__id': '4275e881-c745-41e4-a91c-abd12358be16', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVwaXRjaF9faWQ0Mjc1ZTg4MS1jNzQ1LTQxZTQtYTkxYy1hYmQxMjM1OGJlMTZwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ3ZjUxODYzMi0yZDVkLTQ4YzgtYjk5NC0yZDRkNDNhMWVmM2I=', 'ending_base': 2.0, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'preferred_name': 'Mike', 'parent_list__id': 'runners__list', 'id': '7f518632-2d5d-48c8-b994-2d4d43a1ef3b', 'parent_api__id': 'pbp', 'dd_updated__id': 1467237448660}
+        #
+        # 5269093 2016-06-29 21:57:39.860150+00:00 mlb.pitch {'dd_updated__id': 1467237448660, 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'outcome_id': 'bB', 'created_at': '2016-06-29T21:57:19Z', 'pitcher': '48347189-837d-4453-9e54-d3be3b9fc639', 'count__list': {'balls': 1.0, 'strikes': 0.0, 'outs': 1.0, 'pitch_count': 1.0}, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'runners__list': [{'runner': 'fb061c77-5253-4181-ad7b-c68ef18aa511'}, {'runner': '7f518632-2d5d-48c8-b994-2d4d43a1ef3b'}], 'flags__list': {'is_wild_pitch': 'false', 'is_bunt_shown': 'false', 'is_triple_play': 'false', 'is_hit': 'false', 'is_ab_over': 'false', 'is_passed_ball': 'false', 'is_on_base': 'false', 'is_double_play': 'false', 'is_bunt': 'false', 'is_ab': 'false'}, 'id': '4275e881-c745-41e4-a91c-abd12358be16', 'parent_api__id': 'pbp', 'updated_at': '2016-06-29T21:57:23Z', 'status': 'official', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVpZDQyNzVlODgxLWM3NDUtNDFlNC1hOTFjLWFiZDEyMzU4YmUxNg=='}
+        #
+        # 5269094 2016-06-29 21:57:39.989930+00:00 mlb.at_bat {'hitter_id': 'd28626fe-94c6-4fdb-bcf3-ba7b1c5180e6', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGlkZTg2Nzg2MTctM2E5Yi00NGYxLWI5MGQtNjg5MTliMDY0Yzg1', 'dd_updated__id': 1467237448660, 'id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'pitch': '4275e881-c745-41e4-a91c-abd12358be16', 'parent_api__id': 'pbp'}
+
+        self.zone_pitch = literal_eval("""{'dd_updated__id': 1467237448660, 'hitter_hand': 'R', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'pitcher_hand': 'R', 'pitch__id': '4275e881-c745-41e4-a91c-abd12358be16', 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'id': '48347189-837d-4453-9e54-d3be3b9fc639', 'pitch_type': 'SL', 'pitch_count': 15.0, 'parent_api__id': 'pbp', 'pitch_zone': 12.0, 'pitch_speed': 85.0, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVwaXRjaF9faWQ0Mjc1ZTg4MS1jNzQ1LTQxZTQtYTkxYy1hYmQxMjM1OGJlMTZpZDQ4MzQ3MTg5LTgzN2QtNDQ1My05ZTU0LWQzYmUzYjlmYzYzOQ=='}""")
+        self.runner1 = literal_eval("""{'_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVwaXRjaF9faWQ0Mjc1ZTg4MS1jNzQ1LTQxZTQtYTkxYy1hYmQxMjM1OGJlMTZwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWRmYjA2MWM3Ny01MjUzLTQxODEtYWQ3Yi1jNjhlZjE4YWE1MTE=', 'last_name': 'Pujols', 'pitch__id': '4275e881-c745-41e4-a91c-abd12358be16', 'starting_base': 1.0, 'id': 'fb061c77-5253-4181-ad7b-c68ef18aa511', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'parent_list__id': 'runners__list', 'parent_api__id': 'pbp', 'preferred_name': 'Albert', 'dd_updated__id': 1467237448660, 'ending_base': 1.0, 'jersey_number': 5.0, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'first_name': 'Jose', 'out': 'false'}""")
+        self.runner2 = literal_eval("""{'jersey_number': 27.0, 'first_name': 'Michael', 'starting_base': 2.0, 'out': 'false', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'last_name': 'Trout', 'pitch__id': '4275e881-c745-41e4-a91c-abd12358be16', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVwaXRjaF9faWQ0Mjc1ZTg4MS1jNzQ1LTQxZTQtYTkxYy1hYmQxMjM1OGJlMTZwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ3ZjUxODYzMi0yZDVkLTQ4YzgtYjk5NC0yZDRkNDNhMWVmM2I=', 'ending_base': 2.0, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'preferred_name': 'Mike', 'parent_list__id': 'runners__list', 'id': '7f518632-2d5d-48c8-b994-2d4d43a1ef3b', 'parent_api__id': 'pbp', 'dd_updated__id': 1467237448660}""")
+        self.runners = [self.runner1, self.runner2]
+        self.pitch = literal_eval("""{'dd_updated__id': 1467237448660, 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'outcome_id': 'bB', 'created_at': '2016-06-29T21:57:19Z', 'pitcher': '48347189-837d-4453-9e54-d3be3b9fc639', 'count__list': {'balls': 1.0, 'strikes': 0.0, 'outs': 1.0, 'pitch_count': 1.0}, 'at_bat__id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'runners__list': [{'runner': 'fb061c77-5253-4181-ad7b-c68ef18aa511'}, {'runner': '7f518632-2d5d-48c8-b994-2d4d43a1ef3b'}], 'flags__list': {'is_wild_pitch': 'false', 'is_bunt_shown': 'false', 'is_triple_play': 'false', 'is_hit': 'false', 'is_ab_over': 'false', 'is_passed_ball': 'false', 'is_on_base': 'false', 'is_double_play': 'false', 'is_bunt': 'false', 'is_ab': 'false'}, 'id': '4275e881-c745-41e4-a91c-abd12358be16', 'parent_api__id': 'pbp', 'updated_at': '2016-06-29T21:57:23Z', 'status': 'official', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGF0X2JhdF9faWRlODY3ODYxNy0zYTliLTQ0ZjEtYjkwZC02ODkxOWIwNjRjODVpZDQyNzVlODgxLWM3NDUtNDFlNC1hOTFjLWFiZDEyMzU4YmUxNg=='}""")
+        self.at_bat = literal_eval("""{'hitter_id': 'd28626fe-94c6-4fdb-bcf3-ba7b1c5180e6', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDNlNTIyZGMxLTA0MzUtNDU1Ni1iMzBhLTU4ZGM1NTY1ZWZlMGlkZTg2Nzg2MTctM2E5Yi00NGYxLWI5MGQtNjg5MTliMDY0Yzg1', 'dd_updated__id': 1467237448660, 'id': 'e8678617-3a9b-44f1-b90d-68919b064c85', 'game__id': '3e522dc1-0435-4556-b30a-58dc5565efe0', 'pitch': '4275e881-c745-41e4-a91c-abd12358be16', 'parent_api__id': 'pbp'}""")
+
+    def test_it(self):
+        print('')
+        print('zone_pitch:', str(self.zone_pitch))
+        print('')
+        print('runners:', str(self.runners))
+        print('')
+        print('pitch:', str(self.pitch))
+        print('')
+        print('at_bat:', str(self.at_bat))
+        print('')
