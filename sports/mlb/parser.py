@@ -4,6 +4,10 @@
 import os
 import urllib
 from redis import Redis
+from util.dicts import (
+    Reducer,
+    Shrinker,
+)
 from util.timesince import timeit
 from collections import (
     OrderedDict,
@@ -54,11 +58,11 @@ from draftgroup.classes import (
 )
 
 def get_redis_instance():
-    url = os.environ.get('REDISCLOUD_URL')
+    url = os.environ.get('REDISCLOUD_URL') # TODO get this env var from settings
     if url is None:
         return Redis()
     else:
-        redis_url = urllib.parse.urlparse(os.environ.get('REDISCLOUD_URL'))
+        redis_url = urllib.parse.urlparse(os.environ.get('REDISCLOUD_URL')) # TODO get this env var from settings
         r = Redis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password, db=0)
         return r
 
@@ -1038,6 +1042,7 @@ class AtBatReducer(AbstractStatReducer):
 
     remove_fields = [
         '_id',
+        'errors__list',
         'parent_api__id',
         'pitchs',
         'game__id',
@@ -1071,6 +1076,7 @@ class AtBatManager(AbstractManager):
 class ZonePitchReducer(AbstractStatReducer):
 
     remove_fields = [
+        '_id',
         'parent_api__id',
         'game__id',
         'id',
@@ -1184,6 +1190,7 @@ class ZonePitchManager(AbstractManager):
 class RunnerReducer(AbstractStatReducer):
 
     remove_fields = [
+        '_id',
         'at_bat__id',
         'dd_updated__id',
         'first_name',
@@ -1260,6 +1267,7 @@ class PitchPbpReducer(AbstractStatReducer):
 
     remove_fields = [
         '_id',
+        'errors__list',
         'created_at',
         'updated_at',
         'fielders__list',
@@ -1717,8 +1725,16 @@ class PitchPbp(DataDenPbpDescription):
         raw_requirements = None
         try:
             if self.srid_pitch is None and self.srid_at_bat is None:
-                err_msg = 'send() self.srid_pitch and self.srid_at_bat are both None! at least one must be set'
-                raise Exception(err_msg)
+                # this should simply return out of the method without doing anything
+                # because weve tried to call send() without a
+                # one of the two necessary objects required to
+                # attempt to send the mlb linked data
+                part1 = 'send() self.srid_pitch and self.srid_at_bat are both None!'
+                part2 = ' one of the two objects are required at a minimum.'
+                err_msg = '%s %s' % (part1, part2)
+                print(err_msg)
+                #raise Exception(err_msg)
+                return
 
             elif self.srid_pitch is not None:
                 raw_requirements = self.reconstruct_from_pitch(self.ts, self.srid_pitch)
@@ -1951,8 +1967,7 @@ class PitchPbp(DataDenPbpDescription):
         """ get the PlayerStatsHitter instance for the current at bat player """
         player_stats = self.__find_player_stats(self.player_stats_hitter_model, game, [hitter])
 
-        count = player_stats.count()
-        if player_stats.count() == count:
+        if player_stats.count() == 1:
             return player_stats[0]
 
         elif player_stats < 1:
