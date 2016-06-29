@@ -8,6 +8,14 @@ import reducer from '../../reducers/current-lineups';
 
 
 describe('actions.currentLineups', () => {
+  before(() => {
+    // nock.disableNetConnect();
+  });
+
+  after(() => {
+    // nock.enableNetConnect();
+  });
+
   afterEach(() => {
     nock.cleanAll();
   });
@@ -18,8 +26,8 @@ describe('actions.currentLineups', () => {
       lineups: reducer(undefined, {}),
     });
 
-    nock('http://example.com/')
-      .get('/api/lineups/current/')
+    nock('http://localhost')
+      .get('/api/lineup/current/')
       .reply(200, { body: [
         {
           id: 1,
@@ -54,7 +62,7 @@ describe('actions.currentLineups', () => {
       lineups: reducer(undefined, {}),
     });
 
-    nock('http://example.com/')
+    nock('127.0.0.1/')
       .get('/api/lineup/upcoming/')
       .reply(200, { body: [
         {

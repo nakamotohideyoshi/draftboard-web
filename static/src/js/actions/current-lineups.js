@@ -3,13 +3,12 @@ import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
 import log from '../lib/logging';
 import { CALL_API } from '../middleware/api';
-import { camelizeKeys } from 'humps';  // TODO remove this once API calls are camel-cased
+import { camelizeKeys } from 'humps';
 import { doesMyLineupExist, resetWatchingAndPath } from './watching';
 import { dateNow, hasExpired } from '../lib/utils';
 import { fetchContestIfNeeded } from './live-contests';
 import { fetchDraftGroupIfNeeded } from './live-draft-groups';
 import { fetchGamesIfNeeded } from './sports';
-import errorHandler from './live-error-handler';
 import { Schema, arrayOf, normalize } from 'normalizr';
 
 
@@ -131,7 +130,7 @@ export const fetchLineupsRosters = () => ({
  */
 const shouldFetchLineups = (state) => {
   // fetch if expired
-  if (hasExpired(state.currentLineups.expiresAt)) return false;
+  if (hasExpired(state.currentLineups.expiresAt)) return true;
 
   // only fetch if not already fetching
   return state.currentLineups.isFetching === false;
@@ -216,13 +215,7 @@ export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
   // then let's everyone know we're done
   ).then(
     () => dispatch(confirmRelatedLineupsInfo())
-  )
-  .catch((err) => dispatch(errorHandler(err, {
-    header: 'Failed to connect to API.',
-    content: 'Please refresh the page to reconnect.',
-    level: 'warning',
-    id: 'apiFailure',
-  })));
+  );
 };
 
 /**
@@ -238,13 +231,7 @@ export const fetchCurrentLineupsAndRelated = (force) => (dispatch, getState) => 
       fetchCurrentLineups()
     ).then(
       () => dispatch(fetchRelatedLineupsInfo())
-    )
-    .catch((err) => dispatch(errorHandler(err, {
-      header: 'Failed to connect to API.',
-      content: 'Please refresh the page to reconnect.',
-      level: 'warning',
-      id: 'apiFailure',
-    })));
+    );
   }
 
   // otherwise just check on the related info

@@ -72,7 +72,7 @@ const LiveNBACourtShooter = React.createClass({
     // Triggered in court component once animation is complete!
     setTimeout(() => {
       // show the results, remove the animation
-      showAnimationEventResults(event);
+      store.dispatch(showAnimationEventResults(event));
       store.dispatch(removeAnimationEvent(key));
 
       // enter the next item in the queue once everything is done

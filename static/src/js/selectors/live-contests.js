@@ -24,9 +24,9 @@ const calcContestLineupsValues = (lineups, rankedLineupIDs, prizeRanks) => {
   // generate rank, winnings for all entries in contest
   const lineupsValues = zipObject(rankedLineupIDs, map(rankedLineupIDs, (lineupId, index) => {
     const rankInfo = prizeRanks[index] || {};
-
+    const lineup = lineups[lineupId] || {};
     return {
-      fp: lineups[lineupId].fp,
+      fp: lineup.fp || 0,  // default to 0 while loading
       lineupId,
       potentialWinnings: rankInfo.value || 0,  // default winnings to 0
       rank: index + 1,  // since index starts at 0 we have to bump up by 1

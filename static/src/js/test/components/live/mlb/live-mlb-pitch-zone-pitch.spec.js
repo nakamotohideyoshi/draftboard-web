@@ -6,11 +6,7 @@ import LiveMLBPitchZonePitch from '../../../../components/live/mlb/live-mlb-pitc
 
 
 /**
- * Tests for LiveMLBDiamond
- * - currently no support in jsdom to handle svgs nor their children, so there are two scenarios untested atm:
- *   github issue here https://github.com/airbnb/enzyme/issues/375
- *   - should render fill differently if a player in my lineup is on base
- *   - should render fill differently if a player in the opposing lineup is on base
+ * Tests for LiveMLBPitchZone
  */
 describe('<LiveMLBPitchZonePitch /> Component', () => {
   const renderComponent = (props) => mount(<LiveMLBPitchZonePitch {...props} />);

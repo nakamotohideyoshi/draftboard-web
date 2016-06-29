@@ -108,6 +108,13 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         braintree_model.transaction = self.transaction_detail.transaction
         braintree_model.save()
 
+    def deposit_paypal_with_saved_card(self, amount, paypal_transaction_id):
+        self.deposit(amount)
+        saved_card_transaction = cash.models.PayPalSavedCardTransaction()
+        saved_card_transaction.paypal_transaction_id = paypal_transaction_id
+        saved_card_transaction.transaction = self.transaction_detail.transaction
+        saved_card_transaction.save()
+
     def get_balance_string_formatted(self):
         """
 

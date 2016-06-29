@@ -50,6 +50,30 @@ class BraintreeTransaction(models.Model):
     braintree_transaction   = models.CharField( max_length=128, null=False )
     created                 = models.DateTimeField(auto_now_add=True, null=True)
 
+class PayPalSavedCardTransaction(models.Model):
+    """
+    for a saved card
+    """
+    created                 = models.DateTimeField(auto_now_add=True, null=True)
+    transaction             = models.ForeignKey( Transaction )
+    paypal_transaction_id   = models.CharField( max_length=128, null=False )
+
+class PayPalCreditCardTransaction(models.Model):
+    """
+    for processing a regular credit card
+    """
+    created                 = models.DateTimeField(auto_now_add=True, null=True)
+    transaction             = models.ForeignKey( Transaction )
+    paypal_transaction_id   = models.CharField( max_length=128, null=False )
+
+class PayPalTransaction(models.Model):
+    """
+    for a paypal account payment
+    """
+    created                 = models.DateTimeField(auto_now_add=True, null=True)
+    transaction             = models.ForeignKey( Transaction )
+    paypal_transaction_id   = models.CharField( max_length=128, null=False )
+
 class AdminCashDeposit( models.Model ):
     """
     keep track of times the admin has deposited cash
