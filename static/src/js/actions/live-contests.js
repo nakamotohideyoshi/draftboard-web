@@ -173,7 +173,7 @@ const parseContestLineups = (apiContestLineupsBytes, sport) => {
  * @param {number} contestId  Contest ID
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-export const fetchContestLineups = (id, sport) => (dispatch) => {
+const fetchContestLineups = (id, sport) => (dispatch) => {
   dispatch(requestContestLineups(id));
 
   return fetch(`/api/contest/all-lineups/${id}/`, {
@@ -250,14 +250,16 @@ const fetchContestLineupsUsernames = (id) => (dispatch) => {
 
     // Otherwise parse the (hopefully) json from the response body.
     return response.json().then(json => ({ json, response }));
-  }).then(
+  }).catch(
+    (err) => dispatch(errorHandler(err, {
+      header: 'Failed to connect to API.',
+      content: 'Please refresh the page to reconnect.',
+      level: 'warning',
+      id: 'apiFailure',
+    }))
+  ).then(
     ({ json }) => dispatch(receiveContestLineupsUsernames(id, json))
-  ).catch((err) => dispatch(errorHandler(err, {
-    header: 'Failed to connect to API.',
-    content: 'Please refresh the page to reconnect.',
-    level: 'warning',
-    id: 'apiFailure',
-  })));
+  );
 };
 
 /**

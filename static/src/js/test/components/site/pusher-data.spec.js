@@ -9,6 +9,7 @@ describe('<PusherData /> Component', () => {
   let wrapper;
   // mocking propTypes
   const defaultTestProps = {
+    actions: {},
     addEventAndStartQueue: () => true,
     draftGroupTiming: {},
     fetchSportIfNeeded: () => true,

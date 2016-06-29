@@ -1,5 +1,4 @@
 import * as ActionTypes from '../action-types';
-import errorHandler from './live-error-handler';
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
 import log from '../lib/logging';
@@ -74,17 +73,19 @@ const fetchDraftGroupInfo = (id) => ({
  */
 const shouldFetchDraftGroupBoxscores = (state, id) => {
   const liveDraftGroups = state.liveDraftGroups;
+  const reasons = [];
 
   // error if no draft group to associate players to
   if (liveDraftGroups.hasOwnProperty(id) === false) {
     throw new Error('You cannot get boxscore data for a draft group that does not exist yet');
   }
 
-  // don't fetch until expired
-  if (!hasExpired(liveDraftGroups[id].boxscoresExpiresAt)) return false;
+  if (!hasExpired(liveDraftGroups[id].boxscoresExpiresAt)) reasons.push('has not expired');
 
-  // do not fetch if fetching info
-  if (liveDraftGroups[id].isFetchingBoxscores === true) return false;
+  if (reasons.length > 0) {
+    log.trace('shouldFetchDraftGroupBoxscores returned false', reasons);
+    return false;
+  }
 
   return true;
 };
@@ -96,17 +97,20 @@ const shouldFetchDraftGroupBoxscores = (state, id) => {
  */
 const shouldFetchDraftGroupFP = (state, id) => {
   const liveDraftGroups = state.liveDraftGroups;
+  const reasons = [];
 
   // error if no draft group to associate players to
   if (liveDraftGroups.hasOwnProperty(id) === false) {
     throw new Error('You cannot get fantasy points for a draft group that does not exist yet');
   }
 
-  // no need for fantasy points if the draft group hasn't started playing yet
-  if (liveDraftGroups[id].start > dateNow()) return false;
+  if (liveDraftGroups[id].start > dateNow()) reasons.push('draft group has not started');
+  if (!hasExpired(liveDraftGroups[id].fpExpiresAt)) reasons.push('has not expired');
 
-  // don't fetch until expired
-  if (!hasExpired(liveDraftGroups[id].fpExpiresAt)) return false;
+  if (reasons.length > 0) {
+    log.trace('shouldFetchDraftGroupFP returned false', reasons);
+    return false;
+  }
 
   return true;
 };
@@ -137,7 +141,7 @@ const shouldFetchDraftGroup = (state, id) => {
  * @param {number} id  Draft group ID
  * @return {promise}   Promise that resolves with API response body to reducer
  */
-export const fetchDraftGroupBoxscores = (id) => ({
+const fetchDraftGroupBoxscores = (id) => ({
   [CALL_API]: {
     types: [
       ActionTypes.REQUEST_DRAFT_GROUP_BOXSCORES,
@@ -159,7 +163,7 @@ export const fetchDraftGroupBoxscores = (id) => ({
  * @param {number} id  Draft group ID
  * @return {promise}   Promise that resolves with API response body to reducer
  */
-export const fetchDraftGroupFP = (id) => ({
+const fetchDraftGroupFP = (id) => ({
   [CALL_API]: {
     types: [
       ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP,
@@ -225,13 +229,7 @@ export const fetchDraftGroupIfNeeded = (id, sport) => (dispatch, getState) => {
   )
   .then(() =>
     dispatch(confirmDraftGroupStored(id))
-  )
-  .catch((err) => dispatch(errorHandler(err, {
-    header: 'Failed to connect to API.',
-    content: 'Please refresh the page to reconnect.',
-    level: 'warning',
-    id: 'apiFailure',
-  })));
+  );
 };
 
 /**

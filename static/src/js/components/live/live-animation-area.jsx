@@ -19,27 +19,30 @@ const mapStateToProps = (state) => ({
  * Return the header section of the live page, including the lineup/contest title and overall stats
  */
 export const LiveAnimationArea = (props) => {
-  const { eventsMultipart, watching } = props;
+  const { watching } = props;
+  const { sport } = watching;
+  const venues = [];
 
-  switch (watching.sport) {
+  switch (sport) {
     case 'mlb': {
-      const myEventId = eventsMultipart.watchablePlayers[watching.myPlayerSRID];
-      const myEvent = eventsMultipart.events[myEventId] || {};
+      const { watchablePlayers, events } = props.eventsMultipart;
+      const myEventId = watchablePlayers[watching.myPlayerSRID];
+      const myEvent = events[myEventId] || {};
       let modifiers = ['all-mine'];
 
       if (watching.opponentLineupId) modifiers = ['splitscreen-mine'];
-      const venues = [(
+      venues.push(
         <LiveMLBStadium
           event={myEvent}
           key="mine"
           modifiers={modifiers}
           whichSide="mine"
         />
-      )];
+      );
 
       if (watching.opponentLineupId) {
-        const opponentEventId = eventsMultipart.watchablePlayers[watching.opponentPlayerSRID];
-        const opponentEvent = eventsMultipart.events[opponentEventId] || {};
+        const opponentEventId = watchablePlayers[watching.opponentPlayerSRID];
+        const opponentEvent = events[opponentEventId] || {};
 
         venues.push(
           <LiveMLBStadium
@@ -51,19 +54,25 @@ export const LiveAnimationArea = (props) => {
         );
       }
 
-      return (
-        <div className="live__venue-mlb">
-          {venues}
-        </div>
-      );
+      break;
     }
     case 'nba':
-      return (
-        <LiveNBACourt animationEvents={props.animationEvents} />
+      venues.push(
+        <LiveNBACourt
+          animationEvents={props.animationEvents}
+          key="nba"
+        />
       );
+      break;
     default:
-      return (<div />);
+      break;
   }
+
+  return (
+    <div className={`live__venue-${sport}`}>
+      {venues}
+    </div>
+  );
 };
 
 LiveAnimationArea.propTypes = {

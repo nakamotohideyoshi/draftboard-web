@@ -49,7 +49,7 @@ const Modal = React.createClass({
         ref="closeBtn"
         className="cmp-modal__close"
         onClick={this.handleClose}
-      ></div>
+      />
       );
     }
 
