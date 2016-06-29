@@ -292,10 +292,16 @@ const receiveTeams = (sport, response) => {
 // helper methods
 
 
-export const humanizeFP = (fp) => {
+export const humanizeFP = (fp, showPlusMinus = false) => {
   switch (typeof fp) {
-    case 'number':
-      return Math.ceil(fp * 100) / 100;
+    case 'number': {
+      const cleanedFp = Math.ceil(fp * 100) / 100;
+
+      if (!showPlusMinus) return cleanedFp;
+
+      const sign = (cleanedFp > 0) ? '+' : '-';
+      return `${sign}${cleanedFp}`;
+    }
     case 'string':
     default:
       return fp;
@@ -430,14 +436,6 @@ const fetchGames = (sport) => (dispatch) => {
     });
 
     return dispatch(receiveGames(sport, games));
-  }).catch((err) => {
-    dispatch(addMessage({
-      header: 'Failed to connect to API.',
-      content: 'Please refresh the page to reconnect.',
-      level: 'warning',
-      id: 'apiFailure',
-    }));
-    log.error(err);
   });
 };
 

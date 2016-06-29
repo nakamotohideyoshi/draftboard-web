@@ -26,7 +26,7 @@ export const updateLiveMode = (changedFields) => (dispatch, getState) => {
   }
 
   // make sure to get the usernames as well
-  if (changedFields.contestId) {
+  if (changedFields.contestId && changedFields.contestId !== null) {
     dispatch(fetchContestLineupsUsernamesIfNeeded(changedFields.contestId));
   }
 
@@ -65,11 +65,6 @@ export const updateWatchingAndPath = (path, changedFields) => (dispatch) => {
 
   // update what user is watching
   dispatch(updateLiveMode(changedFields));
-
-  // if the contest has changed, then get the appropriate usernames for the standings pane
-  if (changedFields.hasOwnProperty('contestId')) {
-    dispatch(fetchContestLineupsUsernamesIfNeeded(changedFields.contestId));
-  }
 };
 
 export const doesMyLineupExist = (state) => {

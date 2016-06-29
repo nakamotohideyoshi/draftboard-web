@@ -7,28 +7,44 @@ import eventsReducer from '../../../reducers/events';
 import sportsReducer from '../../../reducers/sports';
 
 
-describe('actions.events.pbp.onPBPReceived', () => {
+describe('actions.events.pbp.onPBPReceived (mlb)', () => {
   // scope the state we reset in beforeEach
   let state;
   let store;
 
   // mock responses, answers to make sure it ran correctly
   const addEventRan = { type: 'addEventAndStartQueue ran' };
-  const playerStatsRan = { type: 'updatePBPPlayersStats ran' };
 
   // use proxyquire to mock in responses
   const actions = proxyquire('../../../actions/events/pbp', {
     '../events': {
-      addEventAndStartQueue: (gameId, message) =>
-        merge({}, addEventRan, {
-          message,
-        }),
-      updatePBPPlayersStats: () => playerStatsRan,
+      addEventAndStartQueue: (gameId, message) => merge({}, addEventRan, { message }),
     },
   });
 
-  // default which games matter for testing
-  const relevantPlayers = ['player1', 'player2'];
+  const defaultMessage = {
+    at_bat: {
+      srid: 'player4',
+      srid_team: 'team1',
+    },
+    pbp: {
+      count: {
+        pc: 3,
+        outs: 2,
+        k: 1,
+        b: 1,
+      },
+      flags: {
+        is_ab_over: false,
+      },
+      srid: 'pbp1',
+      srid_at_bat: 'atbat1',
+      srid_game: 'game1',  // in state.sports.games
+      srid_pitcher: 'player1',
+    },
+    zone_pitches: [],
+  };
+
 
   beforeEach(() => {
     // initial state to mock the store with
@@ -46,79 +62,126 @@ describe('actions.events.pbp.onPBPReceived', () => {
     store = mockStore(state);
   });
 
-  it('should return false if game is not ready', () => {
-    // key here is that `game3` is not in state.sports.games
-    const message = { stats: {}, pbp: { game__id: 'game3' } };
+  // it('should return false if game is not ready', () => {
+  //   // key here is that `game3` is not in state.sports.games
+  //   const message = {
+  //     at_bat: {
+  //       srid_hitter: 'hitter1',
+  //     },
+  //     pbp: {
+  //       srid_game: 'game3',
+  //       flags: {},
+  //     },
+  //     stats: {},
+  //   };
 
-    assert.equal(
-      store.dispatch(actions.onPBPReceived(message, 'mlb', [])),
-      false
-    );
-  });
+  //   assert.equal(
+  //     store.dispatch(actions.onPBPReceived(message, 'mlb')),
+  //     false
+  //   );
+  // });
 
   it('should properly find pitcher, hitter IDs and include in message', () => {
-    const message = {
-      at_bat_stats: { id: 'player4' },
-      pbp: {
-        game__id: 'game1',  // in state.sports.games
-        pitcher: 'player1',  // this IS IN relevantPlayers
-      },
-      stats: {},
-    };
-    const response = store.dispatch(actions.onPBPReceived(message, 'mlb', relevantPlayers));
+    const response = store.dispatch(actions.onPBPReceived(defaultMessage, 'mlb'));
     assert.deepEqual(
-      response.message.addedData.eventPlayers,
+      response.message.eventPlayers,
       ['player1', 'player4']
     );
   });
 
   it('should properly find runners if in message', () => {
-    const message = {
-      at_bat_stats: { id: 'player4' },
-      pbp: {
-        game__id: 'game1',  // in state.sports.games
-        pitcher: 'player1',  // this IS IN relevantPlayers
-      },
+    const message = merge({}, defaultMessage, {
       runners: [
-        { id: 'player5' },
-        { id: 'player6' },
+        { srid: 'player5' },
+        { srid: 'player6' },
       ],
-      stats: {},
-    };
-    const response = store.dispatch(actions.onPBPReceived(message, 'mlb', relevantPlayers));
+    });
+
+    const response = store.dispatch(actions.onPBPReceived(message, 'mlb'));
     assert.deepEqual(
-      response.message.addedData.eventPlayers,
+      response.message.eventPlayers,
       ['player1', 'player4', 'player5', 'player6']
     );
   });
 
-  it('should update player stats if player is not in a game that involves a player in our lineup', () => {
-    const message = {
-      at_bat_stats: { id: 'player4' },
-      pbp: {
-        game__id: 'game1',  // in state.sports.games
-        pitcher: 'player3',  // important, this is NOT in relevantPlayers
-      },
-      stats: {},
-    };
+  // it('should fail if at bat is over but has no description', () => {
+  //   const message = merge({}, defaultMessage, {
+  //     pbp: {
+  //       flags: {
+  //         is_ab_over: true,
+  //       },
+  //     },
+  //   });
+  //   const response = store.dispatch(actions.onPBPReceived(message, 'mlb'));
+  //   assert.deepEqual(
+  //     response,
+  //     false
+  //   );
+  // });
+
+  it('should add event if valid', () => {
+    const response = store.dispatch(actions.onPBPReceived(defaultMessage, 'mlb'));
+    assert.deepEqual(
+      response.message,
+      {
+        description: '',
+        eventPlayers: ['player1', 'player4'],
+        gameId: 'game1',
+        hitter: {
+          atBatStats: '',
+          name: ' ',
+          sridPlayer: 'player4',
+          sridTeam: 'team1',
+          outcomeFp: null,
+        },
+        id: 'pbp1',
+        isAtBatOver: false,
+        pitcher: {
+          outcomeFp: null,
+          sridPlayer: 'player1',
+        },
+        pitchCount: '1B/1S - 2 Outs',
+        runnerIds: [],
+        runners: [],
+        playersStats: {},
+        sport: 'mlb',
+        sridAtBat: 'atbat1',
+        when: { half: false, inning: false, humanized: false },
+        zonePitches: [],
+      }
+    );
     assert.equal(
-      store.dispatch(actions.onPBPReceived(message, 'mlb', relevantPlayers)),
-      playerStatsRan
+      response.type,
+      addEventRan.type
     );
   });
 
-  it('should add event if one of the players is in one of the watched lineups', () => {
-    const message = {
-      at_bat_stats: { id: 'player4' },
-      pbp: {
-        game__id: 'game1',  // in state.sports.games
-        pitcher: 'player1',  // important, this IS IN relevantPlayers
-      },
-      stats: {},
-    };
-    assert.equal(
-      store.dispatch(actions.onPBPReceived(message, 'mlb', relevantPlayers)).type,
-      addEventRan.type
-    );
+  it('should generate zone pitches', () => {
+    const message = merge({}, defaultMessage, {
+      zone_pitches: [
+        {
+          z: 11,
+          t: 'CT',
+          pc: 1,
+          mph: 93,
+        },
+        {
+          z: 3,
+          t: 'SL',
+          pc: 2,
+          mph: 88,
+        },
+        {
+          z: 8,
+          t: 'SL',
+          pc: 3,
+          mph: 89,
+        },
+      ],
+    });
+
+    const response = store.dispatch(actions.onPBPReceived(message, 'mlb'));
+    assert.equal(response.message.zonePitches[0].count, 1);
+    assert.equal(response.message.zonePitches[0].outcome, 'ball');
   });
 });

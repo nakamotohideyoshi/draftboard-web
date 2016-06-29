@@ -70,6 +70,9 @@ export default store => next => action => {
     throw new Error('Expected action types to be strings.');
   }
 
+  // append localhost to tests so we can use nock
+  if (process.env.NODE_ENV === 'test') endpoint = `http://localhost${endpoint}`;
+
   function actionWith(data) {
     const finalAction = Object.assign({}, action, data);
     delete finalAction[CALL_API];

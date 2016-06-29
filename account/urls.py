@@ -59,8 +59,6 @@ urlpatterns = [
     # make a deposit with a saved payment method
     url(r'^paypal/deposit/saved-card/$', PayPalDepositSavedCardAPIView.as_view()),
 
-
-
     # add a payment method (a saved credit card)
     url(r'^paypal/saved-card/add/$', PayPalSavedCardAddAPIView.as_view()),
 

@@ -131,7 +131,7 @@ export const Live = React.createClass({
 
       // when the countdown ends, we trigger a fetchCurrentLineupsAndRelated call
       // which then jumpstarts this if there are no contests yet
-      if (!this.state.setTimeoutEntries && myLineupNext.contests.length === 0 && myLineup.hasStarted) {
+      if (!this.state.setTimeoutEntries && myLineup.hasStarted && myLineupNext.contests.length === 0) {
         // check for contest_id every 5 seconds
         this.setState({ setTimeoutEntries: setInterval(() => {
           log.warn('live.currentEntriesRefresh - fetching lineups');
@@ -257,6 +257,7 @@ export const Live = React.createClass({
     }
 
     const classNames = generateBlockNameWithModifiers(block, [`sport-${watching.sport}`]);
+
     return (
       <div className={classNames}>
         <LiveLineup
