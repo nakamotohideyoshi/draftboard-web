@@ -56,11 +56,11 @@ from draftgroup.classes import (
 def get_redis_instance():
     url = os.environ.get('REDISCLOUD_URL')
     if url is None:
+        return Redis()
+    else:
         redis_url = urllib.parse.urlparse(os.environ.get('REDISCLOUD_URL'))
         r = Redis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password, db=0)
         return r
-    else:
-        return Redis()
 
 class HomeAwaySummary(DataDenTeamBoxscores):
 
