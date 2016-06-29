@@ -50,3 +50,129 @@ class DictTools:
             except KeyError:
                 pass
         return d1
+
+class Reducer(object):
+    """
+    Removes key-values from the top level of a dict,
+     for all keys in the 'remove_fields' list.
+
+    The primary goal of this class is to reduce the
+    size of the dict by removing unwanted/unecessary key-values.
+    """
+
+    class InvalidDataType(Exception): pass
+
+    class RemoveFieldsNotSetException(Exception): pass
+
+    # inheriting classes should set this to a list of string field names to remove
+    remove_fields = None
+
+    str_true = "true"
+    str_false = "false"
+    str_bools = [str_true, str_false]
+
+    def __init__(self, data):
+        if not isinstance(data, dict):
+            err_msg = '"data" must be of type: dict'
+            raise self.InvalidDataType(err_msg)
+        self.data = data # save the original data
+        self.reduced = self.data.copy() # clone the data coming in
+        self.__validate_remove_fields(self.remove_fields)
+
+    def __validate_remove_fields(self, remove_fields):
+        if remove_fields is None:
+            err_msg = '"remove_fields" list must be a list of key names'
+            raise self.RemoveFieldsNotSetException(err_msg)
+
+    def str2bool(self, val):
+        """
+        val can be any type.
+            if val is a 'str' and (val == "true" or val == "false"):
+                True, or False  (for "true" and "false", respectively) is returned
+            else:
+                val is returned as-is/unchanged
+
+        """
+        if not isinstance(val, str):
+            return val
+
+        if val == self.str_false:
+            return False
+        elif val == self.str_true:
+            return True
+        else:
+            return False # default !?
+
+    def get_internal_data(self):
+        return self.reduced
+
+    def pre_reduce(self):
+        """
+        you should override this in child class if you want
+        to do anything that happens immediately prior
+        to the code in reduce() being executed
+        """
+        pass # by default does nothing, side effects nothing
+
+    def reduce(self):
+        self.pre_reduce()
+
+        # remove keys we dont care about, and return the internal data
+        for field in self.remove_fields:
+            try:
+                # this actually removes the fields from the dict!
+                self.reduced.pop(field)
+            except KeyError:
+                # the key did not exist, but we dont care
+                pass
+        #
+        return self.reduced
+
+class Shrinker(object):
+    """
+    Shrinker is meant to be subclassed and have its 'fields' set, ie:
+
+        >>> class MyShrinker(Shrinker):
+        ...     fields = { 'rename_this_key' : 'new_name' }
+
+    Renames keys at the top of level of this object (ie: it shrinks them).
+    """
+
+    class FieldsNotSetException(Exception): pass
+
+    # child classes must set a dict of the key:value pairs
+    # that define the renamings. for example, setting 'fields':
+    #
+    #      fields = { 'some_key' : 'sk' }
+    #
+    # and calling the shrink() method will return a new dict
+    # in which the key "some_key" has been renamed to "sk"
+    fields = None
+
+    def __init__(self, data):
+        self.data = data
+        self.shrunk = None
+        self.__validate_fields(self.fields)
+
+    def shrink(self):
+        """ return shrunk data """
+        self.shrunk = self.data.copy()
+        for old_field, new_field in self.fields.items():
+            if new_field in self.shrunk:
+                # prevent us from remapping a key
+                # to a keyname that already exists
+                continue
+            try:
+                val = self.shrunk.pop(old_field)
+            except KeyError:
+                continue # old_field didnt exist. dont hold it against them
+            if val is None:
+                continue # dont add a random default value if the field doesnt exist
+            self.shrunk[new_field] = val
+        #
+        return self.shrunk
+
+    def __validate_fields(self, fields):
+        if fields is None:
+            err_msg = '"fields" must be set to a dict of key renamings!'
+            raise self.FieldsNotSetException(err_msg)
