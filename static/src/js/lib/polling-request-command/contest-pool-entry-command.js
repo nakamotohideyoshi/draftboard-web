@@ -1,3 +1,4 @@
+import Raven from 'raven-js';
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import log from '../logging.js';
@@ -56,10 +57,18 @@ export function shouldFetch(entryRequestId) {
     store.dispatch(addMessage({
       level: 'warning',
       header: 'Contest entry failed.',
-      content: 'Polling attempt timed out.',
+      content: 'The status of your entry is unknown. Refresh the page to check if it was a success.',
     }));
 
     store.dispatch(entryRequestActions.entryRequestRecieved(entryRequestId, 'POLLING_TIMEOUT'));
+
+    Raven.captureMessage(
+      'POLLING_TIMEOUT: contest-pool-entry-command',
+      { extra: {
+        entryRequestId,
+        entryRequest,
+      },
+    });
 
     return false;
   }

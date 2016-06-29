@@ -209,6 +209,9 @@ html, body {
   // Use `%` instead of `vh` since `vh` is buggy in older mobile Safari.
   height: 100%;
   margin: 0;
+  // TODO: This will def need to go once we get responsive styles.
+  min-width: 1200px;
+  overflow: auto;
 }
 
 h1, h2, h3, h4, h5, h6 {

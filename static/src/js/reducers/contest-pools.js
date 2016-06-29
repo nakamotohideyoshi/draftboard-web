@@ -1,5 +1,27 @@
 import merge from 'lodash/merge';
+import intersection from 'lodash/intersection';
+import map from 'lodash/map';
+import uniq from 'lodash/uniq';
 const actionTypes = require('../action-types');
+
+// This is the order in which sports should be pre-selected.  If we don't have
+// any contests, it will walk the array looking for the first sport which has
+// contests.
+// To change the order that the filters appear on the page, look in
+// contest-list-sport-filter.jsx.
+const preselectedSportFilterOrder = ['mlb', 'nfl', 'nba', 'nhl'];
+
+const findPreselectedSport = (contests, presetOrder) => {
+  const contestSports = uniq(map(contests, (contest) => contest.sport));
+  const defaultSportList = intersection(presetOrder, contestSports);
+
+  if (defaultSportList.length) {
+    return defaultSportList[0];
+  }
+
+  return '';
+};
+
 
 const initialState = {
   allContests: {},
@@ -23,8 +45,7 @@ const initialState = {
     },
     contestSearchFilter: {},
     sportFilter: {
-      // Default sport filter is set here.
-      match: 'mlb',
+      match: '',
       filterProperty: 'sport',
     },
   },
@@ -48,6 +69,11 @@ module.exports = (state = initialState, action) => {
         allContests: action.response,
         filteredContests: action.response,
         isFetchingContestPools: false,
+        filters: {
+          sportFilter: {
+            match: findPreselectedSport(action.response, preselectedSportFilterOrder),
+          },
+        },
       });
 
 

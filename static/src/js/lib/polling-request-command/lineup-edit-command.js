@@ -1,3 +1,4 @@
+import Raven from 'raven-js';
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import log from '../logging.js';
@@ -53,12 +54,21 @@ export function shouldFetch(editLineupRequestId) {
     store.dispatch(addMessage({
       level: 'warning',
       header: 'Lineup Save failed.',
-      content: 'Polling attempt timed out.',
+      content: 'The status of your edit is unknown.',
     }));
 
     store.dispatch(
       lineupEditRequestActions.editRequestRecieved(editLineupRequestId, 'POLLING_TIMEOUT')
     );
+
+    Raven.captureMessage(
+      'POLLING_TIMEOUT: lineup-edit-command',
+      { extra: {
+        editLineupRequestId,
+        saveRequest,
+      },
+    });
+
     return false;
   }
 
