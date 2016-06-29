@@ -2,7 +2,7 @@ import React from 'react';
 import ImageLoader from 'react-imageloader';
 import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
-import { stringifyMLBWhen } from '../../actions/events-multipart';
+import { stringifyMLBWhen } from '../../actions/events/pbp';
 import log from '../../lib/logging';
 import { SPORT_CONST } from '../../actions/sports';
 import { humanizeFP } from '../../actions/sports';

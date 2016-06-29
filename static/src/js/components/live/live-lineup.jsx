@@ -160,14 +160,23 @@ const LiveLineup = React.createClass({
 
       let multipartEvent = {};
       let isWatchable = false;
-      let isRunner = false;
+      let playerType = '';
+
       if (this.props.watchablePlayers[playerSRID]) {
         const eventSrid = this.props.watchablePlayers[playerSRID];
         multipartEvent = this.props.multipartEvents[eventSrid];
 
         if (multipartEvent.runnerIds.indexOf(playerSRID) !== -1) {
-          isRunner = true;
+          playerType = 'runner';
         } else {
+          if (multipartEvent.hitter.sridPlayer === playerSRID) {
+            playerType = 'hitter';
+          } else if (multipartEvent.pitcher.sridPlayer === playerSRID) {
+            playerType = 'pitcher';
+          }
+        }
+
+        if (['hitter', 'pitcher'].indexOf(playerType) !== -1) {
           isWatchable = true;
         }
       }
@@ -180,7 +189,7 @@ const LiveLineup = React.createClass({
           isPlaying={isPlaying}
           isWatchable={isWatchable}
           isWatching={isWatching}
-          isRunner={isRunner}
+          playerType={playerType}
           key={playerId}
           multipartEvent={multipartEvent}
           openPlayerPane={this.openPlayerPane.bind(this, playerId)}

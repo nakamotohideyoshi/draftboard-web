@@ -34,11 +34,16 @@ $block: '.live-mlb-stadium';
   }
 
   &__hitter {
+    bottom: -90px;
+    left: 0;
     padding-top: 20px;
+    position: absolute;
+    text-align: center;
+    width: 100%;
   }
 
-  &__at-bat,
-  &__record {
+  &__hitter-at-bat,
+  &__hitter-record {
     color: #878b9c;
     font-size: 9px;
     font-weight: 500;
@@ -46,7 +51,7 @@ $block: '.live-mlb-stadium';
     text-transform: uppercase;
   }
 
-  &__name {
+  &__hitter-name {
     color: #fff;
     font-family: $font-oswald;
     font-size: 16px;

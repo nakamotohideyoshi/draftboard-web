@@ -15,9 +15,9 @@ import LiveMLBDiamond from '../../../../components/live/mlb/live-mlb-diamond.jsx
 describe('<LiveMLBDiamond /> Component', () => {
   const renderComponent = (props) => mount(<LiveMLBDiamond {...props} />);
 
-  afterEach(() => {
-    document.body.innerHTML = '';
-  });
+  // afterEach(() => {
+  //   document.body.innerHTML = '';
+  // });
 
   it('should render an svg', () => {
     const wrapper = renderComponent({});

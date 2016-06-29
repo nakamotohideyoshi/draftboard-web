@@ -16,13 +16,21 @@ import stadiumBgSrc from '../../../../img/blocks/live/bg-mlb.jpg';
  * @return {jsx}          JSX of component
  */
 const LiveMLBPitchZone = (props) => {
-  const block = 'live-mlb-pitch-zone';
-  const classNames = generateBlockNameWithModifiers(block, props.modifiers);
+  const { modifiers, zonePitches } = props;
 
-  const zonePitches = props.event.zonePitches || [];
-  const pitches = zonePitches.map((pitch) => (
-    <LiveMLBPitchZonePitch {...pitch} />
-  ));
+  const block = 'live-mlb-pitch-zone';
+  const classNames = generateBlockNameWithModifiers(block, modifiers);
+
+  let pitches = null;
+  if (zonePitches.length > 0) {
+    pitches = (
+      <ul className={`${block}__pitches`}>
+        {zonePitches.map((pitch) => (
+          <LiveMLBPitchZonePitch {...pitch} key={pitch.count} />
+        ))}
+      </ul>
+    );
+  }
 
   return (
     <div className={classNames}>
@@ -38,17 +46,19 @@ const LiveMLBPitchZone = (props) => {
           className={`${block}__zone-bg`}
           src="/static/src/img/blocks/live-mlb-pitch-zone/bg.png"
         />
-        <ul className={`${block}__pitches`}>
-          {pitches}
-        </ul>
+        {pitches}
       </div>
     </div>
   );
 };
 
 LiveMLBPitchZone.propTypes = {
-  event: React.PropTypes.object.isRequired,
+  zonePitches: React.PropTypes.array.isRequired,
   modifiers: React.PropTypes.array,
+};
+
+LiveMLBPitchZone.defaultProps = {
+  zonePitches: [],
 };
 
 export default LiveMLBPitchZone;

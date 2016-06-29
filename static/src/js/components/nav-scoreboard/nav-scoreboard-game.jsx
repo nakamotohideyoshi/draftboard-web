@@ -2,7 +2,7 @@ import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import moment from 'moment';
 import { dateNow } from '../../lib/utils';
-import { stringifyMLBWhen } from '../../actions/events-multipart';
+import { stringifyMLBWhen } from '../../actions/events/pbp';
 
 
 /**
