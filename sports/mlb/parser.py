@@ -1978,6 +1978,54 @@ class PitchPbp(DataDenPbpDescription):
         #
         self.send()
 
+    class Extras(object):
+
+        defaults = None
+
+        def __init__(self, data):
+            self.data = data
+
+        def add(self, key, val):
+            self.data[key] = val
+
+        def get_data(self):
+            return self.data
+
+    class AtBatExtras(Extras):
+        """
+        this class builds a dict of additional data
+        that can be added to the final at_bat stats
+        """
+
+        FIRST_NAME  = 'fn'
+        LAST_NAME   = 'ln'
+        SRID_TEAM   = 'srid_team'
+        STATS_STR   = 'stats_str'
+
+        OID_FP      = 'oid_fp'
+
+
+        defaults = {
+            FIRST_NAME  : '',
+            LAST_NAME   : '',
+            SRID_TEAM   : '',
+            STATS_STR   : '0 for 0',
+
+            OID_FP      : 0.0,
+        }
+
+        def __init__(self):
+            super().__init__(self.defaults)
+
+        def update_player_stats(self, player_stats):
+            self.add(self.FIRST_NAME, player_stats.player.first_name)
+            self.add(self.LAST_NAME, player_stats.player.last_name)
+            self.add(self.SRID_TEAM, player_stats.player.team.srid)
+            self.add(self.STATS_STR, PlayerStatsToStr(player_stats).get_description())
+
+        def update_oid_fp(self, oid_fp):
+            self.add(self.OID_FP, oid_fp)
+
     def build_linked_pbp_stats_data(self, requirements):
         """
         override default method from parent to add the linked objects
@@ -1986,6 +2034,7 @@ class PitchPbp(DataDenPbpDescription):
         pitch = requirements.get(self.pitch)
         srid_pitcher = pitch.get('pitcher')
         at_bat = requirements.get(self.at_bat)
+        print('description, hello????', str(at_bat))
         srid_game = at_bat.get('game__id')
         srid_at_bat_hitter = at_bat.get('hitter_id')
         zone_pitches = requirements.get(self.zone_pitches)
@@ -1996,22 +2045,32 @@ class PitchPbp(DataDenPbpDescription):
         player_stats = self.find_player_stats(srid_game, srid_pitcher, srid_at_bat_hitter, srid_runners)
         # at_bat_stats
         at_bat_player_stats_hitter = self.find_at_bat_hitter_player_stats(srid_game, srid_at_bat_hitter)
-        additional_hitter_data = {
-            'fn' : at_bat_player_stats_hitter.player.first_name,
-            'ln' : at_bat_player_stats_hitter.player.last_name,
-            'srid_team' : at_bat_player_stats_hitter.player.team.srid,
-            'oid_fp' : 2.7, # TODO - arbitrary for testing
-        }
+        # additional_hitter_data = {
+        #     'fn' : at_bat_player_stats_hitter.player.first_name,
+        #     'ln' : at_bat_player_stats_hitter.player.last_name,
+        #     'srid_team' : at_bat_player_stats_hitter.player.team.srid,
+        #     'oid_fp' : 2.7,
+        # }
 
-        at_bat_stats_str = PlayerStatsToStr(at_bat_player_stats_hitter).get_description()
+        # moved into AtBatExtras!
+        # at_bat_stats_str = PlayerStatsToStr(at_bat_player_stats_hitter).get_description()
+        # if at_bat_stats_str is None:
+        #     at_bat_stats_str = '0 for 0'
+        at_bat_extras = self.AtBatExtras()
+        at_bat_extras.update_oid_fp(2.7) # TODO - hardcoded for testing
+        if at_bat_player_stats_hitter is not None:
+            at_bat_extras.update_player_stats(at_bat_player_stats_hitter)
 
         # get reduce/shrink manager instances
         pbp = {
             self.pitch_pbp : PitchPbpManager(pitch).get_data(additional_pitch_data),
-            self.at_bat : AtBatManager(pitch).get_data(additional_hitter_data),
+            self.at_bat : AtBatManager(at_bat).get_data(at_bat_extras.get_data()),
             self.zone_pitches : ZonePitchManager(zone_pitches, at_bat).get_data(),
             self.runners : RunnerManager(runners).get_data(additional_runner_data),
-            self.at_bat_stats : at_bat_stats_str,
+
+            # TODO - remove this field after telling craig and him confirming
+            self.at_bat_stats : at_bat_extras.get_data().get(self.AtBatExtras.STATS_STR),
+
             self.stats : [ ps.to_json() for ps in player_stats ],
         }
 
@@ -2019,12 +2078,15 @@ class PitchPbp(DataDenPbpDescription):
         return pbp
 
     def __find_player_stats(self, player_stats_class, srid_game, srid_players=[]):
-        return player_stats_class.objects.filter( srid_game=srid_game, srid_player__in=srid_players)
+        #print('__find_player_stats', str(player_stats_class), 'srid_game', srid_game, 'srid_players:', str(srid_players))
+        player_stats = player_stats_class.objects.filter( srid_game=srid_game, srid_player__in=srid_players)
+        #print('    ', str(player_stats.count()))
+        return player_stats
 
     def find_at_bat_hitter_player_stats(self, game, hitter):
         """ get the PlayerStatsHitter instance for the current at bat player """
         player_stats = self.__find_player_stats(self.player_stats_hitter_model, game, [hitter])
-
+        #print('find_at_bat_hitter_player_stats():', str(player_stats))
         count = player_stats.count()
         if count == 1:
             return player_stats[0]
@@ -2040,14 +2102,21 @@ class PitchPbp(DataDenPbpDescription):
         """ all arguments are srids, runners is a list of srids """
         player_stats = []
 
+        #print('game', game, 'pitcher', pitcher, 'hitter', hitter, 'runners:', str(runners))
         # append the (single) instance for the hitter playerstats
-        player_stats.append(self.find_at_bat_hitter_player_stats(game, hitter))
+        player_stats_hitter = self.find_at_bat_hitter_player_stats(game, hitter)
+        if player_stats_hitter is not None:
+            player_stats.append(player_stats_hitter)
+        #print('add hitter stats:', str(player_stats))
 
         # extend the list of playerstats for the remaining srids
         player_stats.extend(self.__find_player_stats(self.player_stats_pitcher_model, game, [pitcher]))
+        #print('add pitcher stats:', str(player_stats))
         player_stats.extend(self.__find_player_stats(self.player_stats_hitter_model, game, runners))
+        #print('add runner stats:', str(player_stats))
         player_srids = []
         player_stats_no_duplicates = []
+        #print(player_stats)
         for ps in player_stats:
             if ps.srid_player not in player_srids:
                 player_srids.append(ps.srid_player) # add to list of srids weve seen
