@@ -10,6 +10,8 @@ import sports.nhl.models
 
 class AbstractScoreSystem(object):
 
+    class MustOverrideMethodException(Exception): pass
+
     class PrimaryPlayerStatsClassException(Exception): pass
 
     score_system        = None
@@ -55,20 +57,6 @@ class AbstractScoreSystem(object):
         :return:
         """
 
-        # #
-        # # original code:
-        # cached_stat_values = self.stat_values_cache.get_stat_values()
-        # if cached_stat_values is not None:
-        #     return cached_stat_values
-        # else:
-        #     # get the stat values from the db
-        #     db_stat_values = StatPoint.objects.filter(score_system=self.score_system)
-        #     # set them in the cache
-        #     self.stat_values_cache.add_stat_values(db_stat_values)
-        #     # return them
-        #     return db_stat_values
-
-        #
         # temp code without cache:
         db_stat_values = StatPoint.objects.filter(score_system=self.score_system)
         # set them in the cache
@@ -121,6 +109,17 @@ class AbstractScoreSystem(object):
         err_msg = 'object inheriting AbstractScoreSystem for sport [%s] must override method ' \
                   'get_primary_player_stats_class_for_player()' % (self.sport)
         raise self.PrimaryPlayerStatsClassException(err_msg)
+
+    def get_outcome_fantasy_points(self, outcome_id):
+        """
+        originally the term 'outcome_id' (or 'oid' its called sometimes,
+        was originally a baseball term for the type of pbp "event".
+
+        we should create our own outcomes if necessary so that all sports
+        can use this generic method for their particular scoring system.
+        """
+        err_msg = '%s.get_outcome_fantasy_points(outcome_id)' % self.__class__.__name__
+        raise self.MustOverrideMethodException(err_msg)
 
 class NbaSalaryScoreSystem(AbstractScoreSystem):
     """
@@ -265,7 +264,7 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
     CGSO    = 'cgso'             # pitcher - complete game AND shutout
     NO_HITTER = 'no-hitter'      # pitcher - complete game AND no hits allowed
 
-    # the mlb outcomes:
+    # the mlb outcomes, unsullied by our guesses as to what is worth how-many fantasy points.
     OUTCOMES = {
         'AD1': (0.0, 'Advance 1st'),
         'AD2': (0.0, 'Advance 2nd'),
@@ -391,6 +390,138 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
 
         # call super last - ensures you have class variables setup
         super().__init__(self.THE_SPORT)
+
+        # the mlb outcomes:
+        self.outcomes = {
+
+            # runner outcomes - 1st character is Upper case!
+            'AD1': (self.get_value_of(self.SINGLE), 'Advance 1st'), # or BB, or HBP?
+            'AD2': (0.0, 'Advance 2nd'),
+            'AD3': (0.0, 'Advance 3rd'),
+            'CK': (0.0, 'Checked'),
+            'CS2': (self.get_value_of(self.CS), 'Caught Stealing 2nd'),
+            'CS3': (self.get_value_of(self.CS), 'Caught Stealing 3rd'),
+            'CS4': (self.get_value_of(self.CS), 'Caught Stealing Home'),
+            'DI2': (0.0, 'Indifference to 2nd'),
+            'DI3': (0.0, 'Indifference to 3rd'),
+            'DO1': (0.0, 'Doubled off 1st'),
+            'DO2': (0.0, 'Doubled off 2nd'),
+            'DO3': (0.0, 'Doubled off 3rd'),
+            'ERN': (self.get_value_of(self.RUN), 'Earned Run/RBI'),
+            'FO1': (0.0, 'Force out 1st'),
+            'FO2': (0.0, 'Force out 2nd'),
+            'FO3': (0.0, 'Force out 3rd'),
+            'FO4': (0.0, 'Force out Home'),
+            'HBB': (0.0, 'Hit by Batted Ball'),
+            'OBP': (0.0, 'Out of Base Path'),
+            'OOA': (0.0, 'Out on Appeal'),
+            'PO': (0.0, 'Pickoff'),
+            'POCS2': (self.get_value_of(self.CS), 'Pickoff/Caught Stealing 2nd'),
+            'POCS3': (self.get_value_of(self.CS), 'Pickoff/Caught Stealing 3rd'),
+            'POCS4': (self.get_value_of(self.CS), 'Pickoff/Caught Stealing Home'),
+            'RI': (0.0, 'Runner Interference'),
+            'SB2': (self.get_value_of(self.SB), 'Stole 2nd'),
+            'SB2E3': (self.get_value_of(self.SB), 'Stole 2nd, error to 3rd'),
+            'SB2E4': (self.get_value_of(self.SB), 'Stole 2nd, error to Home'),      # +RUN?
+            'SB3': (self.get_value_of(self.SB), 'Stole 3rd'),
+            'SB3E4': (self.get_value_of(self.SB), 'Stole 3rd, error to Home'),      # +RUN?
+            'SB4': (self.get_value_of(self.SB), 'Stole Home'),                      # +RUN?
+            'TO2': (0.0, 'Tag out 2nd'),
+            'TO3': (0.0, 'Tag out 3rd'),
+            'TO4': (0.0, 'Tag out Home'),
+            'URN': (self.get_value_of(self.RUN), 'Unearned Run/RBI'),
+
+            # hitter outcomes - 1st character is lower case!
+            'aBK': (0.0, 'Balk'),
+            'aCI': (0.0, 'Catcher Interference'),
+            'aD': (self.get_value_of(self.DOUBLE), 'Double'),
+            'aDAD3': (self.get_value_of(self.DOUBLE), 'Double - Adv 3rd'),
+            'aDAD4': (self.get_value_of(self.DOUBLE), 'Double - Adv Home'),         # +RUN?
+            'aFCAD2': (0.0, 'Fielders Choice - Adv 2nd'),
+            'aFCAD3': (0.0, 'Fielders Choice - Adv 3rd'),
+            'aFCAD4': (0.0, 'Fielders Choice - Adv Home'),                          # +RUN?
+            'aHBP': (self.get_value_of(self.HBP), 'Hit By Pitch'),
+            'aHR': (self.get_value_of(self.HR), 'Homerun'),
+            'aKLAD1': (0.0, 'Strike Looking - Adv 1st'),    # dropped 3rd strike?
+            'aKLAD2': (0.0, 'Strike Looking - Adv 2nd'),    # dropped 3rd strike?
+            'aKLAD3': (0.0, 'Strike Looking - Adv 3rd'),    # dropped 3rd strike?
+            'aKLAD4': (0.0, 'Strike Looking - Adv Home'),   # dropped 3rd strike?   # +RUN?
+            'aKSAD1': (0.0, 'Strike Swinging - Adv 1st'),   # dropped 3rd strike?
+            'aKSAD2': (0.0, 'Strike Swinging - Adv 2nd'),   # dropped 3rd strike?
+            'aKSAD3': (0.0, 'Strike Swinging - Adv 3rd'),   # dropped 3rd strike?
+            'aKSAD4': (0.0, 'Strike Swinging - Adv Home'),  # dropped 3rd strike?   # +RUN?
+            'aROE': (0.0, 'Reached On Error'),
+            'aROEAD2': (0.0, 'Reached On Error - Adv 2nd'),
+            'aROEAD3': (0.0, 'Reached On Error - Adv 3rd'),
+            'aROEAD4': (0.0, 'Reached On Error - Adv Home'),                        # +RUN?
+            'aS': (self.get_value_of(self.SINGLE), 'Single'),
+            'aSAD2': (self.get_value_of(self.SINGLE), 'Single - Adv 2nd'),
+            'aSAD3': (self.get_value_of(self.SINGLE), 'Single - Adv 3rd'),
+            'aSAD4': (self.get_value_of(self.SINGLE), 'Single - Adv Home'),         # +RUN?
+            'aSBAD1': (0.0, 'Sacrifice Bunt - Adv 1st'),
+            'aSBAD2': (0.0, 'Sacrifice Bunt - Adv 2nd'),
+            'aSBAD3': (0.0, 'Sacrifice Bunt - Adv 3rd'),
+            'aSBAD4': (0.0, 'Sacrifice Bunt - Adv Home'),                           # +RUN?
+            'aSFAD1': (0.0, 'Sacrifice Fly - Adv 1st'),
+            'aSFAD2': (0.0, 'Sacrifice Fly - Adv 2nd'),
+            'aSFAD3': (0.0, 'Sacrifice Fly - Adv 3rd'),
+            'aSFAD4': (0.0, 'Sacrifice Fly - Adv Home'),                            # +RUN?
+            'aT': (self.get_value_of(self.TRIPLE), 'Triple'),
+            'aTAD4': (self.get_value_of(self.TRIPLE), 'Triple - Adv Home'),         # +RUN?
+            'bB': (0.0, 'Ball'),
+            'bDB': (0.0, 'Dirt Ball'),
+            'bIB': (0.0, 'iBall'),
+            'bPO': (0.0, 'Pitchout'),
+            'eRN': (0.0, 'Earned Run/No RBI'),
+            'kF': (0.0, 'Foul Ball'),
+            'kFT': (0.0, 'Foul Tip'),
+            'kKL': (0.0, 'Strike Looking'),
+            'kKS': (0.0, 'Strike Swinging'),
+            'oBI': (0.0, 'Batter Interference'),
+            'oDT3': (self.get_value_of(self.DOUBLE), 'Double - Out at 3rd'),
+            'oDT4': (self.get_value_of(self.DOUBLE), 'Double - Out at Home'),
+            'oFC': (0.0, 'Fielders Choice'),
+            'oFCT2': (0.0, 'Fielders Choice - Out at 2nd'),
+            'oFCT3': (0.0, 'Fielders Choice - Out at 3rd'),
+            'oFCT4': (0.0, 'Fielders Choice - Out at Home'),
+            'oFO': (0.0, 'Fly Out'),
+            'oGO': (0.0, 'Ground Out'),
+            'oKLT1': (0.0, 'Strike Looking - Out at 1st'),  # dropped 3rd strike?
+            'oKLT2': (0.0, 'Strike Looking - Out at 2nd'),  # dropped 3rd strike?
+            'oKLT3': (0.0, 'Strike Looking - Out at 3rd'),  # dropped 3rd strike?
+            'oKLT4': (0.0, 'Strike Looking - Out at Home'), # dropped 3rd strike?
+            'oKST1': (0.0, 'Strike Swinging - Out at 1st'), # dropped 3rd strike?
+            'oKST2': (0.0, 'Strike Swinging - Out at 2nd'), # dropped 3rd strike?
+            'oKST3': (0.0, 'Strike Swinging - Out at 3rd'), # dropped 3rd strike?
+            'oKST4': (0.0, 'Strike Swinging - Out at Home'),# dropped 3rd strike?
+            'oLO': (0.0, 'Line Out'),
+            'oOBB': (0.0, 'Out of Batters Box'),
+            'oOP': (0.0, 'Out on Appeal'),
+            'oPO': (0.0, 'Pop Out'),
+            'oROET2': (0.0, 'Reached On Error - Out at 2nd'),
+            'oROET3': (0.0, 'Reached On Error - Out at 3rd'),
+            'oROET4': (0.0, 'Reached On Error - Out at Home'),
+            'oSB': (0.0, 'Sacrifice Bunt'),
+            'oSBT2': (0.0, 'Sacrifice Bunt - Out at 2nd'),
+            'oSBT3': (0.0, 'Sacrifice Bunt - Out at 3rd'),
+            'oSBT4': (0.0, 'Sacrifice Bunt - Out at Home'),
+            'oSF': (0.0, 'Sacrifice Fly'),
+            'oSFT2': (0.0, 'Sacrifice Fly - Out at 2nd'),
+            'oSFT3': (0.0, 'Sacrifice Fly - Out at 3rd'),
+            'oSFT4': (0.0, 'Sacrifice Fly - Out at Home'),
+            'oST2': (self.get_value_of(self.SINGLE), 'Single - Out at 2nd'),
+            'oST3': (self.get_value_of(self.SINGLE), 'Single - Out at 3rd'),
+            'oST4': (self.get_value_of(self.SINGLE), 'Single - Out at Home'),
+            'oTT4': (self.get_value_of(self.TRIPLE), 'Triple - Out at Home'),
+            'uRN': (0.0, 'Unearned Run/No RBI'),
+        }
+
+    def get_outcome_fantasy_points(self, outcome_id):
+        """
+        :param outcome_id: the mlb outcome id of the pbp event
+        :return: a tuple of (float, str)
+        """
+        return self.outcomes[outcome_id]
 
     def get_primary_player_stats_class_for_player(self, player):
         """
