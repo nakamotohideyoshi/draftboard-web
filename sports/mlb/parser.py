@@ -56,6 +56,7 @@ from draftgroup.classes import (
     PlayerUpdateManager,
     GameUpdateManager,
 )
+import scoring.classes
 
 def get_redis_instance():
     url = os.environ.get('REDISCLOUD_URL') # TODO get this env var from settings
@@ -2003,7 +2004,7 @@ class PitchPbp(DataDenPbpDescription):
         STATS_STR   = 'stats_str'
 
         OID_FP      = 'oid_fp'
-
+        OID_SUMMARY = 'oid_summary'
 
         defaults = {
             FIRST_NAME  : '',
@@ -2012,10 +2013,12 @@ class PitchPbp(DataDenPbpDescription):
             STATS_STR   : '0 for 0',
 
             OID_FP      : 0.0,
+            OID_SUMMARY : '',
         }
 
         def __init__(self):
             super().__init__(self.defaults)
+            self.score_system = scoring.classes.MlbSalaryScoreSystem()
 
         def update_player_stats(self, player_stats):
             self.add(self.FIRST_NAME, player_stats.player.first_name)
@@ -2023,18 +2026,20 @@ class PitchPbp(DataDenPbpDescription):
             self.add(self.SRID_TEAM, player_stats.player.team.srid)
             self.add(self.STATS_STR, PlayerStatsToStr(player_stats).get_description())
 
-        def update_oid_fp(self, oid_fp):
+        def update_outcome(self, outcome_id):
+            oid_fp, oid_summary = self.score_system.get_outcome_fantasy_points(outcome_id)
             self.add(self.OID_FP, oid_fp)
+            self.add(self.OID_SUMMARY, oid_summary)
 
     def build_linked_pbp_stats_data(self, requirements):
         """
         override default method from parent to add the linked objects
         """
-        additional_pitch_data = {'oid_fp':1.7} # TODO for testing
+        additional_pitch_data = {'oid_fp':1.7}
         pitch = requirements.get(self.pitch)
         srid_pitcher = pitch.get('pitcher')
         at_bat = requirements.get(self.at_bat)
-        print('description, hello????', str(at_bat))
+        #print('description, hello????', str(at_bat))
         srid_game = at_bat.get('game__id')
         srid_at_bat_hitter = at_bat.get('hitter_id')
         zone_pitches = requirements.get(self.zone_pitches)
@@ -2057,7 +2062,7 @@ class PitchPbp(DataDenPbpDescription):
         # if at_bat_stats_str is None:
         #     at_bat_stats_str = '0 for 0'
         at_bat_extras = self.AtBatExtras()
-        at_bat_extras.update_oid_fp(2.7) # TODO - hardcoded for testing
+        at_bat_extras.update_outcome(pitch.get('outcome_id'))
         if at_bat_player_stats_hitter is not None:
             at_bat_extras.update_player_stats(at_bat_player_stats_hitter)
 

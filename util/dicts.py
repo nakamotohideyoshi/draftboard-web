@@ -158,24 +158,24 @@ class Shrinker(object):
         """ return shrunk data """
         self.shrunk = self.data.copy()
         for old_field, new_field in self.fields.items():
-            print(self.__class__.__name__, 'old_field', old_field, 'new_field', new_field)
+            #print(self.__class__.__name__, 'old_field', old_field, 'new_field', new_field)
             if new_field in self.shrunk:
                 # prevent us from remapping a key
                 # to a keyname that already exists
-                print('    new_field already exists:', new_field)
+                #print('    new_field already exists:', new_field)
                 continue
 
             try:
                 val = self.shrunk.pop(old_field)
             except KeyError:
-                print('    old_field does not exist:', old_field)
+                #print('    old_field does not exist:', old_field)
                 continue # old_field didnt exist. dont hold it against them
 
             # if val is None:
             #     print('    old_field pop()ed value:', str(val))
             #     continue # dont add a random default value if the field doesnt exist
 
-            print('    remapping old_field[%s] to { "%s" : "%s" }' % (old_field, new_field, str(val)))
+            #print('    remapping old_field[%s] to { "%s" : "%s" }' % (old_field, new_field, str(val)))
             self.shrunk[new_field] = val
         #
         return self.shrunk
