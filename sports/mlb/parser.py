@@ -1045,6 +1045,7 @@ class AtBatReducer(Reducer):
         '_id',
         'errors__list',
         'parent_api__id',
+        'pitch',
         'pitchs',
         'game__id',
         'id',
@@ -1678,6 +1679,9 @@ class PitchPbp(DataDenPbpDescription):
 
     cache_classes = [AtBatCache, PitchCache, ZonePitchCacheList, RunnerCacheList]
 
+    # the number of seconds we hold linked objects in the cache to prevent double sending
+    cache_timeout = 60*60*12
+
     game_model              = Game
     pbp_model               = Pbp
     portion_model           = GamePortion
@@ -1732,13 +1736,6 @@ class PitchPbp(DataDenPbpDescription):
         }
 
     def send(self):
-        #
-        # TODO - take care of caching i think so we dont double send but im not sure...
-        # from dataden.util.hsh import Hashable
-        # In [1]: h = Hashable({})
-        # In [2]: h.hsh()
-        # In [3]: h.hsh()
-        # Out[3]: '191fa51276db527e432472e94a1433f3ced3b85ffbb01e73c44888d642cc4ac8'
 
         # skip send() method entirely if 'raw' is True!
         if self.raw == True:
@@ -1773,37 +1770,47 @@ class PitchPbp(DataDenPbpDescription):
             return None
 
         print('')
+        print('+------------------raw linked object before reduce/shrink/updates---------------')
+        print('    ', str(raw_requirements))
         print('')
-        print('raw_requirements:', str(raw_requirements))
-        print('')
+
+        #
+        # convert the raw requirements data by reducing, shrinking,
+        # and updating in order to get the final data we can send to clients
         linked_pbp = self.build_linked_pbp_stats_data(raw_requirements)
 
-        hashable = Hashable(raw_requirements)                       # these 4 lines are from super().send()
-        primary_object_hash = hashable.hsh()                        # 2
-        # self.delete_cache_tokens(player_stats)                    # 3
-        # data = self.build_linked_pbp_stats_data( player_stats )   # 4
+        #
+        # right about here is where we need to check the
+        # cache to see if we can send this linked object!
+        is_sendable, key, cache_instance = self.can_send(raw_requirements)
 
-        # TODO right about here is where we need to check the cache to see if we can send this linked object!
+        if is_sendable:
+            # if the cached hash value doesnt exist, we need to send it
+            # print('sending')
+            cache_instance.set(key, True, self.cache_timeout)
+            push.classes.DataDenPush( self.pusher_sport_pbp, 'linked', hash=key ).send( linked_pbp )
+
+        else:
+            print('already sent linked object with key:', key)
+            pass
+
+    def can_send(self, raw_requirements):
+        """
+        returns a tuple in the form (bool, str) where
+         the bool is True if we can send (ie: if we havent yet sent) the data
+         and the str is the cache_key so we can easily cache it when we do send it
+
+        :param raw_requirements:
+        :return:
+        """
         r = get_redis_instance()
         pitch = raw_requirements.get('pitch')
         ts = pitch.get('dd_updated__id')
         id = pitch.get('id')
-        send_hsh = 'mlblinkedpbp-%s-%s' % (ts, id)
-        print('send_hsh:', str(send_hsh))
-        if r.get(send_hsh) is not None:
-            print('already sent linked object')
-            pass
-        else:
-            # if the cached hash value doesnt exist, we need to send it
-            print('sending')
-            r.set(send_hsh, True, 60*60*12)
-            push.classes.DataDenPush( self.pusher_sport_pbp, 'linked', hash=send_hsh ).send( linked_pbp )
-
-            #debug
-            print('')
-            print('linked_pbp:', str(linked_pbp))
-            print('')
-            print('')
+        cache_key = 'mlblinkedpbp-%s-%s' % (ts, id)
+        # the send_hsh should only exist if we havent sent it yet
+        is_sendable = r.get(cache_key) is None
+        return is_sendable, cache_key, r
 
     def reconstruct_from_pitch(self, ts, srid_pitch):
         return self.reconstruct(ts, srid_pitch)
@@ -1863,7 +1870,7 @@ class PitchPbp(DataDenPbpDescription):
         # raises MissingCachedObjectException
         found_zone_pitches = self.get_all_newest(srid_pitchs, zps, 'pitch__id', 'dd_updated__id')
         # print("found_zone_pitches = self.get_all_newest(srid_pitchs, zps, 'pitch__id', 'dd_updated__id')")
-        print('found_zone_pitches:', str(found_zone_pitches))
+        #print('found_zone_pitches:', str(found_zone_pitches))
         if len(found_zone_pitches) == 0:
             raise self.MissingCachedObjectException('[found_]zone_pitches was 0!')
 
@@ -1912,7 +1919,7 @@ class PitchPbp(DataDenPbpDescription):
                 found_objects.append(found_object)
             else:
                 err_msg = 'known_srids had %s but our cached object list didnt (yet)' % srid
-                print(err_msg)
+                #print(err_msg)
                 raise self.MissingCachedObjectException(err_msg)
         return found_objects
 
@@ -1979,12 +1986,35 @@ class PitchPbp(DataDenPbpDescription):
         #
         self.send()
 
-    class Extras(object):
+    class OidExtras(object):
 
-        defaults = None
+        class ScoreSystemClassNotSetException(Exception): pass
 
-        def __init__(self, data):
-            self.data = data
+        # sub-classes must set 'score_system_class'
+        score_system_class = None
+
+        OID_FP      = 'oid_fp'
+        OID_SUMMARY = 'oid_summary'
+
+        defaults = {
+            OID_FP      : 0.0,
+            OID_SUMMARY : '',
+        }
+
+        def __init__(self, data=None):
+            #
+            self.data = self.defaults.copy()
+
+            # the __init__ param 'data' will overwrite matching
+            # keys in self.data, FYI.
+            if data is not None:
+                self.data.update(data)
+
+            #
+            if self.score_system_class is None:
+                err_msg = 'in class: %s' % self.__class_.__name__
+                raise self.ScoreSystemClassNotSetException(err_msg)
+            self.score_system = self.score_system_class()
 
         def add(self, key, val):
             self.data[key] = val
@@ -1992,33 +2022,37 @@ class PitchPbp(DataDenPbpDescription):
         def get_data(self):
             return self.data
 
-    class AtBatExtras(Extras):
+        def update_outcome(self, outcome_id):
+            oid_fp, oid_summary = self.score_system.get_outcome_fantasy_points(outcome_id)
+            self.add(self.OID_FP, oid_fp)
+            self.add(self.OID_SUMMARY, oid_summary)
+
+    class AtBatExtras(OidExtras):
         """
-        this class builds a dict of additional data
-        that can be added to the final at_bat stats
+        used to add additional data, especially outcome information and fantasy points
         """
+
+        # set the class with the method: get_outcome_fantasy_points( outcome_id )
+        score_system_class = scoring.classes.MlbSalaryScoreSystem
 
         FIRST_NAME  = 'fn'
         LAST_NAME   = 'ln'
         SRID_TEAM   = 'srid_team'
         STATS_STR   = 'stats_str'
 
-        OID_FP      = 'oid_fp'
-        OID_SUMMARY = 'oid_summary'
-
-        defaults = {
+        ab_bat_extra_data = {
             FIRST_NAME  : '',
             LAST_NAME   : '',
             SRID_TEAM   : '',
             STATS_STR   : '0 for 0',
-
-            OID_FP      : 0.0,
-            OID_SUMMARY : '',
         }
 
         def __init__(self):
-            super().__init__(self.defaults)
-            self.score_system = scoring.classes.MlbSalaryScoreSystem()
+            """
+            create AtBatExtras with the additional key-values in a custom dict
+            to get a few more fields we want
+            """
+            super().__init__(self.ab_bat_extra_data)
 
         def update_player_stats(self, player_stats):
             self.add(self.FIRST_NAME, player_stats.player.first_name)
@@ -2026,11 +2060,15 @@ class PitchPbp(DataDenPbpDescription):
             self.add(self.SRID_TEAM, player_stats.player.team.srid)
             self.add(self.STATS_STR, PlayerStatsToStr(player_stats).get_description())
 
-        def update_outcome(self, outcome_id):
-            oid_fp, oid_summary = self.score_system.get_outcome_fantasy_points(outcome_id)
-            self.add(self.OID_FP, oid_fp)
-            self.add(self.OID_SUMMARY, oid_summary)
+    class RunnerExtras(OidExtras):
+        """
+        used to add additional data, especially outcome information and fantasy points
+        """
 
+        # set the class with the method: get_outcome_fantasy_points( outcome_id )
+        score_system_class = scoring.classes.MlbSalaryScoreSystem
+
+    @timeit
     def build_linked_pbp_stats_data(self, requirements):
         """
         override default method from parent to add the linked objects
@@ -2129,145 +2167,6 @@ class PitchPbp(DataDenPbpDescription):
 
         # return the list that ensures no duplicates
         return player_stats_no_duplicates
-
-# class ZonePitchPbp(PitchPbp):
-#     """
-#     parse a single pitch from the target: ('mlb.pitcher','pbp').
-#     ... yes thats right its in the pitcher collection unfortunately.
-#
-#     the purpose of this class is simply to allow us to call send()
-#     without trying to link to a stats object or do any additional
-#     mongo queries behind the scenes in the way that PitchPbp does.
-#     """
-#
-#     # override default value from DataDenPbpDescription
-#     pusher_sport_pbp_event  = 'zonepitch'
-#
-#     def __init__(self):
-#         """ call parent constructor """
-#         super().__init__()
-#
-#     def parse(self, obj, target=None):
-#         """
-#         the object must first be parsed before send() can be called
-#
-#         :param obj: a dataden.watcher.OpLogObj object
-#         """
-#         self.original_obj = obj
-#         # we dont really need to set the SridFinder
-#         # self.srid_finder = SridFinder(obj.get_o()) # get the data from the oplogobj
-#         self.o = obj.get_o() # we didnt call super so we should do this
-#
-#         # so we can retrieve the list of zonepitches from the cache
-#         zonepitch = self.o
-#         try:
-#             zpid = zonepitch.pop('_id') # remove it. its a lot of unnecessary characters
-#         except KeyError:
-#             # if the replayer is sending this object,
-#             # the mongo object id with the key: '_id'
-#             # will likely not exist, but thats fine.
-#             pass
-#         at_bat_id = zonepitch.get('at_bat__id')
-#         cache_list = CacheList(cache=cache)
-#         cache_list.add(at_bat_id, zonepitch)
-#
-#     def find_player_stats(self):
-#         """ override - return an emtpy list, dont look for stats objects for zone pitches """
-#         return []
-
-# class RunnerPbp(PitchPbp):
-#     """
-#     parse a single runner event from the target: ('mlb.runner','pbp').
-#
-#     If it does not have a 'pitch__id', that indicates it was an event
-#     independent of any pitches -- it was likely a steal.
-#
-#     NOTE: if it was a steal, it still have a 'steal__id' field,
-#     but typical runner objects will not have this field!
-#
-#     NOTE 2: if it has a 'steal__id' field, but the starting and
-#     ending base is the same, (the outcome will be 'CK') this
-#     likely means the pitcher checked the runner with some kind
-#     of pickoff attempt.
-#
-#     we are going to model Runner pbp objects after ZonePitchPbp
-#     objects because we also want to add them to a cache to
-#     be able to fetch a list of the recent ones per-at bat in real-time.
-#     """
-#
-#     debug = True
-#
-#     # override default value from DataDenPbpDescription
-#     pusher_sport_pbp_event  = 'runner'
-#
-#     # stolen base outcomes
-#     stolen_base_outcomes = ['SB2','SB3','SB4']
-#
-#     def __init__(self):
-#         """ call parent constructor """
-#         super().__init__()
-#
-#     def parse(self, obj, target=None):
-#         """
-#         the object must first be parsed before send() can be called
-#
-#         :param obj: a dataden.watcher.OpLogObj object
-#         """
-#
-#         if self.debug:
-#             print('[%s] %s' % (self.__class__.__name__, str(obj)))
-#
-#         self.original_obj = obj
-#         # we dont really need to set the SridFinder
-#         # self.srid_finder = SridFinder(obj.get_o()) # get the data from the oplogobj
-#         self.o = obj.get_o() # we didnt call super so we should do this
-#
-#         # so we can retrieve the list of zonepitches from the cache
-#         runner = self.o
-#         try:
-#             runner_obj_id = runner.pop('_id') # remove it. its a lot of unnecessary characters
-#         except KeyError:
-#             # if the replayer is sending this object,
-#             # the mongo object id with the key: '_id'
-#             # will likely not exist, but thats fine.
-#             pass
-#
-#         # get the pitch srid, but if it doesnt exist, do nothing (dont add to CacheList)
-#         pitch_srid = runner.get('pitch__id', None)
-#         if pitch_srid is None:
-#             if self.debug:
-#                 print('no "pitch__id" for runner obj/self.o: %s' % str(self.o))
-#         else:
-#             cache_list = CacheList(cache=cache)
-#             cache_list.add(pitch_srid, runner)
-#             if self.debug:
-#                 print('     runnerPbp cache for pitch_srid[%s]' % pitch_srid, str(cache_list.get(pitch_srid)))
-#
-#     def send(self):
-#         """
-#         if the runner object is a stolen base, send it as its own pusher object,
-#         but make sure to call super().send() to ensure the linked object goes out as necessary
-#         """
-#
-#         # {'outcome_id': 'SB2', 'pitch__id': '669a6752-1149-4a72-8370-c055950d3646',
-#         # 'parent_list__id': 'runners__list', 'description': 'Brett Lawrie steals second.',
-#         # 'last_name': 'Lawrie', 'ending_base': 2.0, 'starting_base': 1.0,
-#         # 'id': '6ac6fa53-ea9b-467d-87aa-6429a6bcb90c',
-#         # 'game__id': '24791492-42dd-4162-a57f-cc0e4a62729c', 'jersey_number': 15.0,
-#         # 'at_bat__id': '049d9d3b-033c-492f-826e-5a78ffaf87e4',
-#         # 'preferred_name': 'Brett', 'out': 'false', 'first_name': 'Brett',
-#         # 'parent_api__id': 'pbp', 'dd_updated__id': 1464041840497}
-#         if self.o.get('outcome_id','') in self.stolen_base_outcomes:
-#             # its a stolen base, which is kind of unique, so send it out.
-#             # super().send() will take care of adding it to the sent cache!
-#             push.classes.DataDenPush( push.classes.PUSHER_MLB_PBP, 'runner' ).send( self.o )
-#
-#         # send it normally...
-#         super().send()
-#
-#     def find_player_stats(self):
-#         """ override - return an emtpy list, dont look for stats objects for runner objects """
-#         return []
 
 class GamePbp(DataDenPbpDescription):
 
