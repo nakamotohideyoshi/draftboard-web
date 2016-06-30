@@ -7,30 +7,37 @@ import find from 'lodash/find';
  */
 const LineupCardContestEntrySet = React.createClass({
   propTypes: {
+    entry: React.PropTypes.object.isRequired,
     entrySet: React.PropTypes.object.isRequired,
     removeContestPoolEntry: React.PropTypes.func.isRequired,
     unregisterRequests: React.PropTypes.object.isRequired,
+    entryIndex: React.PropTypes.number.isRequired,
   },
 
-
-  getEntryIds(entries) {
-    return entries.map((entry) => entry.id);
-  },
 
   handleOnClick() {
     if (this.props.entrySet.entries) {
-      this.props.removeContestPoolEntry(this.props.entrySet.entries[0]);
+      this.props.removeContestPoolEntry(this.props.entry);
     }
   },
 
-  isUnregistering(entryIds, unregisterRequests) {
-    return find(unregisterRequests, (request) => entryIds.indexOf(request.entryId) > -1) !== undefined;
+  isUnregistering(entryId, unregisterRequests) {
+    return find(unregisterRequests, (request) => entryId === request.entryId) !== undefined;
+  },
+
+
+  formatTitle() {
+    if (this.props.entryIndex > 0) {
+      return `${this.props.entrySet.contest.name} #${this.props.entryIndex + 1}`;
+    }
+
+    return this.props.entrySet.contest.name;
   },
 
 
   renderRemoveButton() {
     const unregistering = this.isUnregistering(
-      this.getEntryIds(this.props.entrySet.entries),
+      this.props.entry.id,
       this.props.unregisterRequests
     );
 
@@ -59,9 +66,9 @@ const LineupCardContestEntrySet = React.createClass({
         <span className="remove">
           <div className="button-container">{this.renderRemoveButton()}</div>
         </span>
-        <span className="contest">{this.props.entrySet.contest.name}</span>
+        <span className="contest">{this.formatTitle()}</span>
         <span className="fees">
-          ${this.props.entrySet.contest.buyin.toLocaleString('en')} x {this.props.entrySet.entryCount}
+          ${this.props.entrySet.contest.buyin.toLocaleString('en')}
         </span>
       </li>
     );
