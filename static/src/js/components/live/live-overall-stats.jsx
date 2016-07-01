@@ -1,5 +1,6 @@
 import ordinal from '../../lib/ordinal.js';
 import React from 'react';
+import LiveOverallStatsBg from './live-overall-stats-bg';
 import { describeArc, polarToCartesian } from '../../lib/utils/shapes';
 import { humanizeCurrency } from '../../lib/utils/currency';
 import { humanizeFP } from '../../actions/sports';
@@ -25,62 +26,6 @@ const LiveOverallStats = React.createClass({
     rank: React.PropTypes.number,
     timeRemaining: React.PropTypes.object.isRequired,
     whichSide: React.PropTypes.string.isRequired,
-  },
-
-  componentDidMount() {
-    this.updateCanvas();
-  },
-
-  componentDidUpdate(prevProps) {
-    if (prevProps.timeRemaining.decimal !== this.props.timeRemaining.decimal) {
-      this.updateCanvas();
-    }
-  },
-
-  updateCanvas() {
-    const diameter = 220;
-    const decimalRemaining = this.props.timeRemaining.decimal;
-    const radiansRemaining = decimalRemaining * 360 - 180;
-    const ctx = this.refs.canvas.getContext('2d');
-
-    // skip update if canvas is not supported (like in tests)
-    if (!ctx) return;
-
-    // move to the center
-    ctx.translate(diameter / 2, diameter / 2);
-
-    // start the gradient at the point remaining
-    ctx.rotate(-radiansRemaining * Math.PI / 180);
-
-    // make sure to cap it so that it's smooth around and the right diameter
-    ctx.lineWidth = 2;
-    ctx.lineCap = 'round';
-
-    // loop through all 360 degrees and draw a line from the center out
-    for (let i = 0; i <= 360; i++) {
-      ctx.save();
-
-      // invert the gradient to move from
-      ctx.rotate(-Math.PI * i / 180);
-      ctx.translate(-ctx.lineWidth / 2, ctx.lineWidth / 2);
-
-      // move to the center
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-
-      // top out at 30%, as the comp does
-      let percentage = i / 15;
-      if (percentage > 40) percentage = 40;
-
-      ctx.strokeStyle = `rgba(0,0,0,${percentage / 100})`;
-
-      // write and close
-      ctx.lineTo(0, diameter);
-      ctx.stroke();
-      ctx.closePath();
-
-      ctx.restore();
-    }
   },
 
   renderOverallPMR() {
@@ -194,6 +139,10 @@ const LiveOverallStats = React.createClass({
 
     return (
       <div className={`${BLOCK}__pmr-circle`}>
+        <LiveOverallStatsBg
+          decimalRemaining={timeRemaining.decimal}
+          diameter={220}
+        />
         <canvas className={`${BLOCK}__radial-bg`} ref="canvas" width="220" height="220" />
         <svg className={`${BLOCK}__svg-arcs`} viewBox="0 0 280 280" width="220">
           <defs>
