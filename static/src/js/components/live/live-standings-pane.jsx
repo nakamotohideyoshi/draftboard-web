@@ -62,7 +62,9 @@ export const LiveStandingsPane = React.createClass({
   },
 
   componentWillMount() {
-    if (this.props.openOnStart) AppActions.addClass('appstate--live-standings-pane--open');
+    if (this.props.openOnStart) {
+      setTimeout(() => AppActions.addClass('appstate--live-standings-pane--open'), 100);
+    }
 
     if (this.props.watching.villainLineup) {
       this.setState({ playersWatched: this.props.watching.villainLineup });
@@ -175,7 +177,8 @@ export const LiveStandingsPane = React.createClass({
     };
 
     actions.updateWatchingAndPath(path, changedFields);
-    AppActions.toggleLiveRightPane('appstate--live-standings-pane--open');
+    AppActions.removeClass('appstate--live-standings-pane--open');
+    AppActions.removeClass('appstate--live-contests-pane--open');
   },
 
   handleFocusSearch() {
@@ -275,12 +278,13 @@ export const LiveStandingsPane = React.createClass({
 
     // immediately animate in contest pane
     AppActions.removeClass('appstate--live-standings-pane--open');
+    AppActions.removeClass('appstate--live-contests-pane--faded-out');
     AppActions.addClass('appstate--live-contests-pane--open');
 
     // hacky! match time with css animation
     setTimeout(() => {
       actions.updateWatchingAndPath(path, changedFields);
-    }, 230);
+    }, 600);
   },
 
   renderHeader() {

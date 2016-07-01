@@ -11,18 +11,21 @@ require('../../../sass/blocks/live/live-header.scss');
 const LiveHeader = (props) => {
   const { myLineup, contest, opponentLineup, watching } = props;
 
+  // show nothing if loading
+  if (myLineup.isLoading !== false) return null;
+
   // set all needed variables, and default them to lineup only
   let opponentStats;
   let statsVs;
   let { potentialWinnings, rank } = myLineup;
 
   // if watching a contest, then update the titles and ensure the overall stats are contest-based
-  if (watching.contestId !== null && !contest.isLoading) {
+  if (watching.contestId !== null && contest.isLoading === false) {
     potentialWinnings = contest.potentialWinnings;
-    potentialWinnings = contest.rank;
+    rank = contest.rank;
 
     // if watching an opponent, then add in second overall stats and update the titles
-    if (watching.opponentLineupId !== null && !opponentLineup.isLoading) {
+    if (watching.opponentLineupId !== null && opponentLineup.isLoading === false) {
       statsVs = (
         <div className="live-overall-stats__vs">vs</div>
       );

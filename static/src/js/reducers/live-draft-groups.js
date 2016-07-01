@@ -1,9 +1,10 @@
 import * as ActionTypes from '../action-types';
+import forEach from 'lodash/forEach';
 import log from '../lib/logging';
+import merge from 'lodash/merge';
+import Raven from 'raven-js';
 import update from 'react-addons-update';
 import { dateNow } from '../lib/utils';
-import forEach from 'lodash/forEach';
-import merge from 'lodash/merge';
 
 
 // shortcut method to $set new state if the key doesn't exist, otherwise $merges the properties in to existing
@@ -49,7 +50,17 @@ module.exports = (state = {}, action) => {
       if (!state[action.id]) return state;
 
       if (state[action.id].playersStats.hasOwnProperty(action.playerId) === false) {
-        log.warn(`No player stats for ${action.playerId} in draft group ${action.id}`);
+        const reasonWhy = `No player stats for ${action.playerId} in draft group ${action.id}`;
+        const why = {
+          extra: {
+            action,
+            reasonWhy,
+          },
+        };
+
+        Raven.captureMessage('UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP failed', why);
+        log.info(reasonWhy);
+
         return state;
       }
 

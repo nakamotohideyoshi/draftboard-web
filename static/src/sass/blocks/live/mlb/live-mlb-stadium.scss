@@ -7,6 +7,10 @@
 $block: '.live-mlb-stadium';
 
 #{$block} {
+  height: 100%;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
 
   /**
    * Pitch zone bottom trick is a ratio. I calculated what the bottom should be when the screen is the same width as
@@ -60,14 +64,11 @@ $block: '.live-mlb-stadium';
 
   &--splitscreen-mine,
   &--splitscreen-opponent {
-    height: 100%;
-    overflow: hidden;
-    position: absolute;
-    top: 0;
     width: 50%;
   }
 
   &--all-mine {
+    left: 0;
     width: 100%;
 
     // centered horizontally

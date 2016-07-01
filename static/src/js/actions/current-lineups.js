@@ -62,9 +62,7 @@ const addLineupsPlayers = () => (dispatch, getState) => {
 
   // filter lineups to only those that have started
   const liveLineups = filter(state.currentLineups.items,
-    (lineup) =>
-      new Date(lineup.start) < dateNow() &&
-      lineup.contests.length > 0
+    (lineup) => hasExpired(lineup.start) && lineup.contests.length > 0
   );
 
   // only add players that have started playing, by checking if they are in the roster
@@ -128,13 +126,7 @@ export const fetchLineupsRosters = () => ({
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch draft groups, false if not
  */
-const shouldFetchLineups = (state) => {
-  // fetch if expired
-  if (hasExpired(state.currentLineups.expiresAt)) return true;
-
-  // only fetch if not already fetching
-  return state.currentLineups.isFetching === false;
-};
+const shouldFetchLineups = (state) => hasExpired(state.currentLineups.expiresAt);
 
 /**
  * Method to determine whether we need to fetch lineups.
@@ -192,7 +184,7 @@ export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
 
     // only pull contests for the lineup you are watching
     if (contests.length > 0 &&
-        new Date(lineup.start).getTime() < dateNow() &&
+        hasExpired(lineup.start) &&
         state.watching.myLineupId === lineup.id
     ) {
       contests.map(
