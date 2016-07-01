@@ -117,11 +117,14 @@ const LiveLineup = React.createClass({
     log.debug('openPlayerPane() - open', playerId);
 
     this.setState({ viewPlayerDetails: playerId });
-    if (this.props.whichSide === 'opponent') {
-      AppActions.togglePlayerPane('right');
-    } else {
-      AppActions.togglePlayerPane('left');
-    }
+
+    setTimeout(() => {
+      if (this.props.whichSide === 'opponent') {
+        AppActions.togglePlayerPane('right');
+      } else {
+        AppActions.togglePlayerPane('left');
+      }
+    }, 100);
   },
 
   /**

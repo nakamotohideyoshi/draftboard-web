@@ -1,6 +1,8 @@
 @import "../variables.scss";
 
 .live-contests-pane {
+  transform: scale(1) translateX(0) rotateY(0);
+  transition: all 600ms !important;
   width: 424px !important;
 
   .live-pane__content {
@@ -158,6 +160,12 @@
   }
 }
 
+.appstate--live-contests-pane--faded-out {
+  .live-contests-pane {
+    opacity: 0.4;
+    transform: perspective(600px) scale(.94) translateX(3%) rotateY(4deg);
+  }
+}
 
 .appstate--live-contests-pane--open {
   .live-contests-pane {

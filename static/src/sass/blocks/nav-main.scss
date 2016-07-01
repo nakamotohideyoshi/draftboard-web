@@ -27,6 +27,7 @@ body.appstate--nav-main--open .nav-main {
   position: fixed;
   left: -$nav-main-width;
   top: 54px;
+  transform: translateX(0);  // gpu accelerate
   transition: all 0.2s ease-out;
   width: $nav-main-width;
   z-index: $zindex-nav-main;

@@ -33,7 +33,7 @@ export const LiveContestsPane = React.createClass({
     watching: React.PropTypes.object.isRequired,
   },
 
-  componentWillMount() {
+  componentDidMount() {
     if (this.props.openOnStart) AppActions.addClass('appstate--live-contests-pane--open');
   },
 
@@ -48,8 +48,8 @@ export const LiveContestsPane = React.createClass({
 
     actions.updateWatchingAndPath(path, changedFields);
 
-    // open up the standings pane
-    AppActions.removeClass('appstate--live-contests-pane--open');
+    // open up the standings pane, fade out contests
+    AppActions.addClass('appstate--live-contests-pane--faded-out');
   },
 
   renderContests() {

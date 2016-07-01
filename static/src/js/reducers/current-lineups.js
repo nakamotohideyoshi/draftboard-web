@@ -1,19 +1,18 @@
 import * as ActionTypes from '../action-types';
+import forEach from 'lodash/forEach';
+import merge from 'lodash/merge';
 import update from 'react-addons-update';
 import { dateNow } from '../lib/utils';
-import { forEach as _forEach } from 'lodash';
-import { map as _map } from 'lodash';
-import { merge as _merge } from 'lodash';
 
 
 module.exports = (state = {
-  isFetching: false,
   hasRelatedInfo: false,
   expiresAt: dateNow(),
+  isFetching: false,
   rostersExpireAt: dateNow(),
   items: {},
 }, action = {}) => {
-  const newState = _merge({}, state);
+  const newState = merge({}, state);
 
   switch (action.type) {
     case ActionTypes.SET_CURRENT_LINEUPS:
@@ -24,8 +23,10 @@ module.exports = (state = {
       });
 
     case ActionTypes.CURRENT_LINEUPS__ADD_PLAYERS:
-      _forEach(action.lineupsPlayers, (roster, entryId) => {
-        newState.items[entryId].roster = roster;
+      forEach(action.lineupsPlayers, (roster, entryId) => {
+        if (entryId in newState.items) {
+          newState.items[entryId].roster = roster;
+        }
       });
 
       return newState;
@@ -38,10 +39,10 @@ module.exports = (state = {
       });
 
     case ActionTypes.CURRENT_LINEUPS_ROSTERS__RECEIVE:
-      _forEach(newState.items, (lineup, index) => {
+      forEach(newState.items, (lineup, index) => {
         const withRoster = action.response.lineupsRosters[lineup.id] || {};
         if (withRoster.hasOwnProperty('players')) {
-          newState.items[index].roster = _map(withRoster.players, player => player.playerId);
+          newState.items[index].roster = withRoster.players.map(player => player.playerId);
         }
       });
 
@@ -67,9 +68,8 @@ module.exports = (state = {
     case ActionTypes.CURRENT_LINEUPS__RECEIVE:
       return update(state, {
         $set: {
-          isFetching: false,
           hasRelatedInfo: false,
-          // items: action.items,
+          isFetching: false,
           items: action.response.lineups || {},
           expiresAt: action.expiresAt,
         },

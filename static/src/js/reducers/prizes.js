@@ -2,13 +2,13 @@ import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
 
 
-module.exports = (state = {}, action) => {
+module.exports = (state = {}, action = {}) => {
   switch (action.type) {
 
     case ActionTypes.REQUEST_PRIZE: {
       const newProps = {
         id: action.id,
-        isFetching: true,
+        expiresAt: action.expiresAt,
       };
 
       return update(state, {
@@ -21,10 +21,10 @@ module.exports = (state = {}, action) => {
 
     case ActionTypes.RECEIVE_PRIZE:
       return update(state, {
-        [action.id]: {
+        [action.response.id]: {
           $set: {
-            info: action.info,
-            isFetching: false,
+            info: action.response.info,
+            expiresAt: action.expiresAt,
           },
         },
       });
