@@ -91,7 +91,7 @@ module.exports = (state = {}, action) => {
     case ActionTypes.LIVE_DRAFT_GROUP__INFO__RECEIVE: {
       const response = action.response;
 
-      return update(state, {
+      return merge({}, state, {
         [response.id]: {
           $merge: {
             isFetchingInfo: false,
@@ -105,6 +105,7 @@ module.exports = (state = {}, action) => {
         },
       });
     }
+
 
     case ActionTypes.REQUEST_LIVE_DRAFT_GROUP_FP:
       newProps = {

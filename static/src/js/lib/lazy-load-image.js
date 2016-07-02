@@ -47,9 +47,7 @@ const LazyLoadImage = (DomSelector) => {
 
   // Add a single, throttled onscroll event listener.
   document.addEventListener('DOMContentLoaded', () => {
-    window.onscroll = () => {
-      throttledevaluation();
-    };
+    window.onscroll = throttledevaluation;
   });
 
 
