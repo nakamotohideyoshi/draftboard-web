@@ -1,10 +1,10 @@
 import extend from 'lodash/extend';
+import LiveLineupPlayerEventInfo from './lineup-player/live-lineup-player-event-info';
 import LiveMLBDiamond from './mlb/live-mlb-diamond';
 import LiveMlbLineupPlayerWatch from './mlb/live-mlb-lineup-player-watch';
 import merge from 'lodash/merge';
 import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import React from 'react';
-import size from 'lodash/size';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { humanizeFP } from '../../actions/sports';
 
@@ -46,19 +46,14 @@ const LiveLineupPlayer = React.createClass({
    */
   renderEventDescription() {
     // only show when there's an event
-    if (size(this.props.eventDescription) === 0) {
-      return (<div key="5" />);
-    }
+    if (Object.keys(this.props.eventDescription).length === 0) return null;
 
     const { points, info, when } = this.props.eventDescription;
-
-    const pointsDiv = (points !== null) ? (<div className="event-description__points">{points}</div>) : '';
+    const eventProps = { info, points, when };
 
     return (
-      <div key="5" className="live-lineup-player__event-description event-description showing">
-        {pointsDiv}
-        <div className="event-description__info">{info}</div>
-        <div className="event-description__when">{when}</div>
+      <div key="5" className="live-lineup-player__event-description">
+        <LiveLineupPlayerEventInfo {...eventProps} />
       </div>
     );
   },
