@@ -154,6 +154,7 @@ const LiveLineup = React.createClass({
 
     const renderedPlayers = this.props.lineup.roster.map((playerId) => {
       const player = this.props.lineup.rosterDetails[playerId];
+      const game = this.props.sports.games[player.gameSRID] || {};
       const playerSRID = player.srid;
       const isWatching = watchingSRID === playerSRID;
       const isPlaying = this.props.playersPlaying.indexOf(playerSRID) !== -1;
@@ -189,6 +190,7 @@ const LiveLineup = React.createClass({
           draftGroupStarted={this.props.draftGroupStarted}
           eventDescription={eventDescription}
           gameStats={gameStats}
+          game={game}
           isPlaying={isPlaying}
           isWatchable={isWatchable}
           isWatching={isWatching}

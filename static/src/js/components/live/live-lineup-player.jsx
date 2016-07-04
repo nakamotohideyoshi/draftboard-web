@@ -1,12 +1,15 @@
+import extend from 'lodash/extend';
 import LiveMLBDiamond from './mlb/live-mlb-diamond';
 import LiveMlbLineupPlayerWatch from './mlb/live-mlb-lineup-player-watch';
-import React from 'react';
 import merge from 'lodash/merge';
-import extend from 'lodash/extend';
-import size from 'lodash/size';
-import { humanizeFP } from '../../actions/sports';
 import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
+import React from 'react';
+import size from 'lodash/size';
+import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
+import { humanizeFP } from '../../actions/sports';
 
+// assets
+require('../../../sass/blocks/live/live-lineup-player.scss');
 
 // map to convert socket call to needed css classname
 export const mlbDiamondMap = {
@@ -23,6 +26,7 @@ const LiveLineupPlayer = React.createClass({
     draftGroupStarted: React.PropTypes.bool.isRequired,
     eventDescription: React.PropTypes.object.isRequired,
     gameStats: React.PropTypes.object.isRequired,
+    game: React.PropTypes.object.isRequired,
     isPlaying: React.PropTypes.bool.isRequired,
     playerType: React.PropTypes.string.isRequired,
     isWatching: React.PropTypes.bool.isRequired,
@@ -72,7 +76,7 @@ const LiveLineupPlayer = React.createClass({
     const statNames = ['PTS', 'RB', 'ST', 'ASST', 'BLK', 'TO'];
 
     const renderedStats = statTypes.map((statType, index) => (
-      <li key={statType}>
+      <li key={statType} className="live-lineup-player__hover-stat">
         <div className="hover-stats__amount">{values[statType] || 0}</div>
         <div className="hover-stats__name">{statNames[index]}</div>
       </li>
@@ -89,7 +93,7 @@ const LiveLineupPlayer = React.createClass({
             5th
           </div>
         </div>
-        <ul>
+        <ul className="live-lineup-player__hover-stats-list">
           {renderedStats}
         </ul>
       </div>
@@ -181,7 +185,7 @@ const LiveLineupPlayer = React.createClass({
   },
 
   render() {
-    const player = this.props.player;
+    const { player, whichSide } = this.props;
 
     // if we have not started, show dumbed down version for countdown
     if (this.props.draftGroupStarted === false) {
@@ -209,9 +213,9 @@ const LiveLineupPlayer = React.createClass({
 
     // classname for the whole player
     const gameCompleted = (player.timeRemaining.decimal === 0) ? 'not' : 'is';
-    const className = `live-lineup-player \
-      state--${gameCompleted}-playing \
-      live-lineup-player--sport-${this.props.sport}`;
+    const block = 'live-lineup-player';
+    const modifiers = [whichSide, `state-${gameCompleted}-playing`, `sport-${this.props.sport}`];
+    const classNames = generateBlockNameWithModifiers(block, modifiers);
 
     // classname to determine whether the player is live or not
     const isPlayingClass = this.props.isPlaying === true ? 'play-status--playing' : '';
@@ -241,7 +245,7 @@ const LiveLineupPlayer = React.createClass({
     }
 
     return (
-      <li className={className}>
+      <li className={classNames}>
         {playerElements}
       </li>
     );
