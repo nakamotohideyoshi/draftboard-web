@@ -12,8 +12,8 @@ const initialState = {
   playersPlaying: [],
 };
 
-// Reducer for the live section, stores what mode the app is in
-module.exports = (state = initialState, action) => {
+// Reducer for the pusher events coming through
+module.exports = (state = initialState, action = {}) => {
   switch (action.type) {
 
     case ActionTypes.EVENT_ADD_ANIMATION:
@@ -80,6 +80,10 @@ module.exports = (state = initialState, action) => {
 
     case ActionTypes.EVENT_PLAYER_REMOVE_DESCRIPTION: {
       const playerEventDescriptions = merge({}, state.playerEventDescriptions);
+
+      // don't bother if it isn't there
+      if (!(action.key in playerEventDescriptions)) return state;
+
       delete playerEventDescriptions[action.key];
 
       return update(state, {
@@ -90,7 +94,14 @@ module.exports = (state = initialState, action) => {
     }
 
     case ActionTypes.EVENT_SHIFT_GAME_QUEUE: {
+      // if no queue, return
+      if (!(action.gameId in state.gamesQueue)) return state;
+
       const queue = [...state.gamesQueue[action.gameId].queue];
+
+      // if queue empty, return
+      if (queue.length === 0) return state;
+
       queue.shift();
 
       return update(state, {
