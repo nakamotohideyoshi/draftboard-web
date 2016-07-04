@@ -145,7 +145,7 @@ describe('reducers.current-lineups', () => {
     );
   });
 
-  it('should handle CURRENT_LINEUPS_ROSTERS__REQUEST', () => {
+  it('should handle CURRENT_LINEUPS__RELATED_INFO_SUCCESS', () => {
     const newState = reducer(defaultState, {
       type: types.CURRENT_LINEUPS__RELATED_INFO_SUCCESS,
     });

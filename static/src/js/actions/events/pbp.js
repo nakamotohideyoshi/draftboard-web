@@ -191,7 +191,6 @@ const isMessageUsed = (message, sport) => {
     case 'mlb':
       // only working with at bats
       if (!('srid_at_bat' in message.pbp)) reasons.push('!message.pbp.srid_at_bat');
-      // TODO fix backend, call came in with null at_bat_stats
       if (typeof message.at_bat !== 'object' || !('srid' in message.at_bat)) reasons.push('!message.at_bat.srid');
       // if the at bat is over, then there must be a description
       // if (message.pbp.flags.is_ab_over === true && !message.at_bat.oid_description) {
@@ -233,8 +232,8 @@ const isMessageUsed = (message, sport) => {
 const getMLBData = (message, gameId, boxscore) => {
   // faster to not camelize the object
   /* eslint-disable camelcase */
-  const { at_bat_stats = '', at_bat = {}, pbp = {}, runners = [], stats = {}, zone_pitches = [] } = message;
-  const { fn = '', ln = '', srid_team } = at_bat;
+  const { at_bat = {}, pbp = {}, runners = [], stats = {}, zone_pitches = [] } = message;
+  const { stats_str = '', fn = '', ln = '', srid_team } = at_bat;
   const { count = {}, flags = {}, srid_at_bat, srid_pitcher } = pbp;
   /* eslint-enable camelcase */
 
@@ -243,7 +242,7 @@ const getMLBData = (message, gameId, boxscore) => {
     eventPlayers: compileEventPlayers(message, 'mlb'),
     gameId,
     hitter: {
-      atBatStats: at_bat_stats,
+      atBatStats: stats_str,
       name: `${fn} ${ln}`,
       sridPlayer: at_bat.srid,
       sridTeam: srid_team,
