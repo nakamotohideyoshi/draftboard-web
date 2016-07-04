@@ -242,37 +242,9 @@ $block: '.live-lineup-player';
   }
 
   &__event-description {
-    transition: all 500ms cubic-bezier(.8,.16,.18,.85) 400ms;
-    background: #1f2231;
-    border-radius: 32px;
-    height: 32px;
-    padding: 4px 14px;
-    position: absolute;
     left: 138px;
-    top: 16px;
-    white-space: nowrap;
-
-    > * {
-      display: inline-block;
-    }
-  }
-
-  .event-description__points {
-    color: #3db8e3;
-    font-family: $font-oswald;
-    font-size: 11px;
-    margin-right: 12px;
-  }
-
-  .event-description__info {
-    color: #fff;
-    font-size: 12px;
-    margin-right: 4px;
-  }
-
-  .event-description__when {
-    color: #878b9c;
-    font-size: 12px;
+    position: absolute;
+    top: 18px;
   }
 
   &__status {
