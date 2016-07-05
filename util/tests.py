@@ -320,3 +320,8 @@ class TestBuildLinkedPbpStatsData(TestCase):
         #
         data = self.parser.build_linked_pbp_stats_data(self.raw)
         print(str(data))
+
+    def test_send_because_of_runner_with_steal(self):
+        # runner object with 'SB2' outcome ... 2nd base was stolen
+        runner = literal_eval("""{'game__id': '5293a648-c570-440a-8230-9dba92249e5d', 'parent_api__id': 'pbp', 'pitch__id': 'b1139c07-d64a-4e62-931a-f0dd20adecf1', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDUyOTNhNjQ4LWM1NzAtNDQwYS04MjMwLTlkYmE5MjI0OWU1ZGF0X2JhdF9faWQ0ODk1ZWQxZS1jMTU1LTRlZmUtOWFkMi1mZWY2MzRhNTJlODJwaXRjaF9faWRiMTEzOWMwNy1kNjRhLTRlNjItOTMxYS1mMGRkMjBhZGVjZjFwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWRkODIwMTc1Mi1jNjcwLTQxMDQtYjhiYy0xZmI4YWE3Y2IyNmY=', 'last_name': 'Arcia', 'description': 'Oswaldo Arcia steals second.', 'outcome_id': 'SB2', 'ending_base': 2.0, 'first_name': 'Oswaldo', 'preferred_name': 'Oswaldo', 'jersey_number': 9.0, 'out': 'false', 'dd_updated__id': 1467338190681, 'id': 'd8201752-c670-4104-b8bc-1fb8aa7cb26f', 'at_bat__id': '4895ed1e-c155-4efe-9ad2-fef634a52e82', 'starting_base': 1.0, 'parent_list__id': 'runners__list'}""")
+

@@ -1156,7 +1156,7 @@ class ZonePitchSorter(object):
                 if retrieve_zp_id is None:
                     #print('        it didnt have one')
                     continue # not having a pitch__id could mean it was simply a pickoff attempt
-                at_bat_idx = pitch_order_map[retrieve_zp_id] # TODO - this raises exception sometimes
+                at_bat_idx = pitch_order_map[retrieve_zp_id]
 
                 # remove the references to pitches srids we used
                 while True:
@@ -1578,6 +1578,7 @@ class QuickCache(object):
     def fetch(self, ts, gid):
         k = self.get_key(ts, gid)
         ret_val = None
+        print('<<< fetch key: %s' % k)
         try:
             ret_val = self.bytes_2_dict(self.cache.get(k))
         except self.BytesIsNoneException:
@@ -1593,7 +1594,7 @@ class QuickCache(object):
         ts = data.get('dd_updated__id')
         gid = data.get('id')
         k = self.get_key(ts, gid)
-
+        print('>>> stash key: %s' % k)
         #
         ret_val = self.add_to_cache_method(k, data)
         #print('stashed: key', str(k), ':', str(data))
@@ -1735,6 +1736,12 @@ class PitchPbp(DataDenPbpDescription):
             self.stats : None,
         }
 
+    def debug_print(self, data, msg=''):
+        print('')
+        # print('%s' % msg)
+        print(msg, '= """%s"""' % str(data))
+        print('')
+
     def send(self):
 
         # skip send() method entirely if 'raw' is True!
@@ -1747,6 +1754,21 @@ class PitchPbp(DataDenPbpDescription):
 
         raw_requirements = None
         try:
+            # print('# send() because: ---- ts %s ---- pitch %s ----- at_bat %s -----+' % (self.ts,
+            #                                     self.srid_pitch, self.srid_at_bat))
+
+            # if self.srid_pitch is None and self.srid_at_bat is None:
+            #     # this should simply return out of the method without doing anything
+            #     # because weve tried to call send() without a
+            #     # one of the two necessary objects required to
+            #     # attempt to send the mlb linked data
+            #     part1 = 'send() self.srid_pitch and self.srid_at_bat are both None!'
+            #     part2 = ' one of the two objects are required at a minimum.'
+            #     err_msg = '%s %s' % (part1, part2)
+            #     print(err_msg)
+            #     #raise Exception(err_msg)
+            #     return
+
             if self.srid_pitch is None and self.srid_at_bat is None:
                 # this should simply return out of the method without doing anything
                 # because weve tried to call send() without a
@@ -1757,22 +1779,19 @@ class PitchPbp(DataDenPbpDescription):
                 err_msg = '%s %s' % (part1, part2)
                 print(err_msg)
                 #raise Exception(err_msg)
-                return
+                #return
 
-            elif self.srid_pitch is not None:
+            if self.srid_pitch is not None:
                 raw_requirements = self.reconstruct_from_pitch(self.ts, self.srid_pitch)
 
             else:
                 raw_requirements = self.reconstruct_from_at_bat(self.ts, self.srid_at_bat)
 
         except self.MissingCachedObjectException as e:
-            #print('dont have complete object yet', str(e))
+            print('# MissingCachedObjectException', str(e))
             return None
 
-        print('')
-        print('+------------------raw linked object before reduce/shrink/updates---------------')
-        print('    ', str(raw_requirements))
-        print('')
+        self.debug_print(raw_requirements, 'raw linked object before reduce/shrink/updates')
 
         #
         # convert the raw requirements data by reducing, shrinking,
@@ -1837,9 +1856,9 @@ class PitchPbp(DataDenPbpDescription):
             self.data[k] = None
 
         # now get the pitch (although if its None, we definitely dont have everything yet
-        found_pitch = self.PitchCache().fetch(ts, srid_pitch)
+        found_pitch = self.PitchCache().fetch(ts, srid_pitch) # CBAN TODO
         if found_pitch is None:
-            raise self.MissingCachedObjectException('pitch')
+            raise self.MissingCachedObjectException('base reconstruct() missing pitch')
 
         pid = found_pitch.get('id')
         abid = found_pitch.get('at_bat__id')
@@ -1851,7 +1870,7 @@ class PitchPbp(DataDenPbpDescription):
         # a) get the at_bat, using the srid from the pitch
         found_ab = self.AtBatCache().fetch(ts, abid) # could also use pitch.get() and extract ts
         if found_ab is None:
-            raise self.MissingCachedObjectException('at_bat')
+            raise self.MissingCachedObjectException('base reconstruct() missing at_bat')
 
         # b) find the zone pitches
         pitchs = found_ab.get('pitchs', None)
@@ -1927,11 +1946,10 @@ class PitchPbp(DataDenPbpDescription):
         return self.AtBatCache(at_bat)
 
     def stash_pitch(self, pitch):
-        self.srid_pitch = pitch.get('id') # TODO the other stash_xxx() methods will update srid_pitch different ways!
+        #self.srid_pitch = pitch.get('id')
         return self.PitchCache(pitch)
 
     def stash_zone_pitch(self, zone_pitch):
-
         return self.ZonePitchCacheList(zone_pitch)
 
     def stash_runner(self, runner):
@@ -1939,27 +1957,33 @@ class PitchPbp(DataDenPbpDescription):
 
     def __update_sendability(self, obj, target):
 
+        obj_type = target[0].split('.')[1]
+        self.debug_print(obj, str(obj_type))
+
         if target == ('mlb.pitch','pbp'):       # TODO consolidate the targets into DataDenMlb parser!
-            self.stash_pitch(self.o)
+            self.stash_pitch(obj)
             # set the pitch srid
-            self.srid_pitch = self.o.get('id')
+            self.srid_pitch = obj.get('id')
 
         elif target == ('mlb.at_bat','pbp'):
-            self.stash_at_bat(self.o)
+            self.stash_at_bat(obj)
             # set the at bats srid
-            self.srid_at_bat = self.o.get('id')
+            self.srid_at_bat = obj.get('id')
 
         elif target == ('mlb.pitcher','pbp'):
-            self.stash_zone_pitch(self.o)
+            self.stash_zone_pitch(obj)
             # set the internal at bat id from the zone pitch data,
             # since they are grouped by at bat
-            self.srid_at_bat = self.o.get('at_bat__id')
+            self.srid_at_bat = obj.get('at_bat__id')
 
         elif target == ('mlb.runner','pbp'):
-            self.stash_runner(self.o)
+            #print('>>>>>> RUNNER >>>>>>')
+            self.stash_runner(obj)
+            #print('>>>>>>     stashed:', str(self.o))
             # pitch srid comes from 'pitch__id' field of a runner,
             # since runners are grouped by pitch
-            self.srid_pitch = self.o.get('pitch__id')
+            self.srid_pitch = obj.get('pitch__id')
+            #print('>>>>>>     pitch__id:', str(self.srid_pitch))
 
         else:
             err_msg = 'unknown target %s in __update_sendability()' % str(target)
@@ -2110,10 +2134,6 @@ class PitchPbp(DataDenPbpDescription):
             self.at_bat : AtBatManager(at_bat).get_data(at_bat_extras.get_data()),
             self.zone_pitches : ZonePitchManager(zone_pitches, at_bat).get_data(),
             self.runners : RunnerManager(runners).get_data(additional_runner_data),
-
-            # TODO - remove this field after telling craig and him confirming
-            self.at_bat_stats : at_bat_extras.get_data().get(self.AtBatExtras.STATS_STR),
-
             self.stats : [ ps.to_json() for ps in player_stats ],
         }
 

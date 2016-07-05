@@ -38,7 +38,8 @@ body.appstate--nav-main--open .nav-main {
 
   &__primary {
     list-style: none;
-    padding-top: 40px;
+    margin: 0;
+    padding: 40px 0 0 0;
 
     li {
       display: block;
@@ -77,7 +78,8 @@ body.appstate--nav-main--open .nav-main {
 
   &__secondary {
     list-style: none;
-    padding-top: 28px;
+    margin: 0;
+    padding: 28px 0 0 0;
 
     li {
       display: block;

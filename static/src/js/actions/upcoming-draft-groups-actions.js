@@ -1,7 +1,7 @@
-import * as types from '../action-types.js';
+import * as actionTypes from '../action-types.js';
 import request from 'superagent';
+import { CALL_API } from '../middleware/api';
 import { normalize, Schema, arrayOf } from 'normalizr';
-import log from '../lib/logging.js';
 
 
 /**
@@ -18,7 +18,7 @@ const draftGroupInfoSchema = new Schema('draftGroups', {
 
 function fetchSuccess(body) {
   return {
-    type: types.FETCH_UPCOMING_DRAFTGROUPS_INFO_SUCCESS,
+    type: actionTypes.FETCH_UPCOMING_DRAFTGROUPS_INFO_SUCCESS,
     body,
   };
 }
@@ -26,7 +26,7 @@ function fetchSuccess(body) {
 
 function fetchFail(ex) {
   return {
-    type: types.FETCH_UPCOMING_DRAFTGROUPS_INFO_FAIL,
+    type: actionTypes.FETCH_UPCOMING_DRAFTGROUPS_INFO_FAIL,
     ex,
   };
 }
@@ -59,41 +59,14 @@ export function fetchUpcomingDraftGroupsInfo() {
 // Open the draft group selection modal in the lobby.
 export function openDraftGroupSelectionModal() {
   return {
-    type: types.OPEN_DRAFT_GROUP_SELECTION_MODAL,
+    type: actionTypes.OPEN_DRAFT_GROUP_SELECTION_MODAL,
   };
 }
 
 // Close the draft group selection modal in the lobby.
 export function closeDraftGroupSelectionModal() {
   return {
-    type: types.CLOSE_DRAFT_GROUP_SELECTION_MODAL,
-  };
-}
-
-
-/**
- * Draft Group Box Score fetching Actions.
- * /api/draft-group/boxscores/${draftGroupId}/
- */
-
-function fetchingDraftGroupBoxScores() {
-  return {
-    type: types.FETCHING_DRAFTGROUP_BOX_SCORES,
-  };
-}
-
-function fetchDraftGroupBoxScoresSuccess(draftGroupId, body) {
-  return {
-    type: types.FETCH_DRAFTGROUP_BOX_SCORES_SUCCESS,
-    body,
-    draftGroupId,
-  };
-}
-
-function fetchDraftGroupBoxScoresFail(draftGroupId, body) {
-  log.error(body);
-  return {
-    type: types.FETCH_DRAFTGROUP_BOX_SCORES_FAIL,
+    type: actionTypes.CLOSE_DRAFT_GROUP_SELECTION_MODAL,
   };
 }
 
@@ -103,35 +76,45 @@ function fetchDraftGroupBoxScoresFail(draftGroupId, body) {
  */
 export function setActiveDraftGroupId(draftGroupId) {
   return {
-    type: types.SET_ACTIVE_DRAFT_GROUP_ID,
+    type: actionTypes.SET_ACTIVE_DRAFT_GROUP_ID,
     draftGroupId,
   };
 }
 
 
-function fetchDraftGroupBoxScores(draftGroupId) {
-  return dispatch => {
-    dispatch(fetchingDraftGroupBoxScores());
+/**
+ * Draft Group Box Score fetching Actions.
+ * /api/draft-group/boxscores/${draftGroupId}/
+ */
+export const fetchDraftGroupBoxScores = (draftGroupId) => (dispatch) => {
+  const apiActionResponse = dispatch({
+    [CALL_API]: {
+      types: [
+        actionTypes.FETCHING_DRAFTGROUP_BOX_SCORES,
+        actionTypes.FETCH_DRAFTGROUP_BOX_SCORES_SUCCESS,
+        actionTypes.ADD_MESSAGE,
+      ],
+      endpoint: `/api/draft-group/boxscores/${draftGroupId}/`,
+      callback: (json) => ({
+        draftGroupId,
+        boxScores: json,
+      }),
+    },
+  });
 
-    return new Promise((resolve, reject) => {
-      request
-      .get(`/api/draft-group/boxscores/${draftGroupId}/`)
-      .set({
-        'X-REQUESTED-WITH': 'XMLHttpRequest',
-        Accept: 'application/json',
-      })
-      .end((err, res) => {
-        if (err) {
-          reject(err);
-          dispatch(fetchDraftGroupBoxScoresFail(draftGroupId, res.body));
-        } else {
-          resolve(res.body);
-          dispatch(fetchDraftGroupBoxScoresSuccess(draftGroupId, res.body));
-        }
+  apiActionResponse.then((action) => {
+    // If something fails, the 3rd action is dispatched, then this.
+    if (action.error) {
+      dispatch({
+        type: actionTypes.FETCH_DRAFTGROUP_BOX_SCORES_FAIL,
+        response: action.error,
       });
-    });
-  };
-}
+    }
+  });
+
+  // Return the promise chain in case we want to use it elsewhere.
+  return apiActionResponse;
+};
 
 
 function shouldFetchDraftGroupBoxScores(state, draftGroupId) {
