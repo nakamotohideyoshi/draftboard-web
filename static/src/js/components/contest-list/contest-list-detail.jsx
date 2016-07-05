@@ -5,10 +5,9 @@ import log from '../../lib/logging.js';
 import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx';
 import GamesList from './games-list.jsx';
-import EntrantList from './entrant-list.jsx';
 import EntryList from './entry-list.jsx';
 import EnterContestButton from './enter-contest-button.jsx';
-import { enterContest, setFocusedContest, fetchContestEntrantsIfNeeded, removeContestPoolEntry }
+import { enterContest, setFocusedContest, removeContestPoolEntry }
   from '../../actions/contest-pool-actions.js';
 import * as AppActions from '../../stores/app-state-store.js';
 import { humanizeCurrency } from '../../lib/utils/currency';
@@ -49,7 +48,6 @@ function mapDispatchToProps(dispatch) {
     enterContest: (contestId, lineupId) => dispatch(enterContest(contestId, lineupId)),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
     fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
-    fetchContestEntrantsIfNeeded: (contestId) => dispatch(fetchContestEntrantsIfNeeded(contestId)),
     removeContestPoolEntry: (entryId) => dispatch(removeContestPoolEntry(entryId)),
     routerPush: (path) => dispatch(routerPush(path)),
   };
@@ -66,7 +64,6 @@ const ContestListDetail = React.createClass({
     boxScores: React.PropTypes.object,
     focusedContestInfo: React.PropTypes.object,
     enterContest: React.PropTypes.func,
-    fetchContestEntrantsIfNeeded: React.PropTypes.func,
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func,
     fetchTeamsIfNeeded: React.PropTypes.func,
     focusedContestId: React.PropTypes.oneOfType([
@@ -110,7 +107,6 @@ const ContestListDetail = React.createClass({
       // set the  new one as focused.
       if (this.props.focusedContestId !== nextProps.params.contestId) {
         this.props.setFocusedContest(nextProps.params.contestId);
-        this.props.fetchContestEntrantsIfNeeded(nextProps.params.contestId);
       }
     }
 
@@ -143,12 +139,6 @@ const ContestListDetail = React.createClass({
         }
 
         return 'No boxscore info';
-      }
-
-      case 'participants': {
-        return (
-          <EntrantList entrants={this.props.focusedContestInfo.entrants} />
-        );
       }
 
       case 'entries': {
@@ -185,7 +175,6 @@ const ContestListDetail = React.createClass({
     const tabs = [
       { title: 'Payout', tab: 'prizes' },
       { title: 'Entries', tab: 'entries' },
-      { title: 'Participants', tab: 'participants' },
       { title: 'Games', tab: 'games' },
     ];
 

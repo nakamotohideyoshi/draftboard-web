@@ -2,6 +2,7 @@
 # replayer/classes.py
 
 from django.db.transaction import atomic
+from django.db.models import Q
 import subprocess
 from django.conf import settings
 import ast
@@ -29,6 +30,7 @@ from contest.models import (
 from sports.classes import SiteSportManager
 from roster.classes import RosterManager
 from random import Random
+from ast import literal_eval
 
 class ReplayManager(object):
     """
@@ -515,6 +517,57 @@ class ReplayManager(object):
 
         self.play_all(updates=updates, async=async)
 
+    def play_range_by_ts(self, ts_start, ts_end, max=None, async=False, truncate_chars=None):
+        if ts_end < ts_start:
+            raise Exception('ts_end < ts_start. hows that going to work exactly?')
+
+        if max is None:
+            max = 0 # ie: no limit of how many objects we will play thru
+
+        # query by the timestamp inside the objects, not the time this was created.
+        # typically results in a handful of objects (for a single time we parsed all objects in an xml feed))
+
+        # get the first Update ever created for the ts_start, and the last one ever found for the ts_end
+        # then get everything between those pks, and remove anything that is not in their range
+        print('finding start of range...')
+        updates = replayer.models.Update.objects.filter(o__contains=str(ts_start)).order_by('ts')
+        if updates.count() == 0:
+            print('No replayer Update(s) found!')
+            return
+
+        # get the first one
+        update_0 = None
+        for u in updates:
+            update_0 = u
+            break
+
+        # get all updates matching the ts_end, is descending order.
+        print('finding end of range...')
+        updates = replayer.models.Update.objects.filter(o__contains=str(ts_end)).order_by('-ts')
+        if updates.count() == 0:
+            raise Exception('you need to choose a ts_end that actually matches something or is equal to ts_start')
+
+        update_1 = None
+        for u in updates:
+            update_1 = u
+            break
+
+        dt_start    = update_0.ts # poorly named field, this is actually the 'created' field for Updates
+        dt_end      = update_1.ts
+        print('removing updates we dont need...')
+        updates_in_range = replayer.models.Update.objects.filter(ts__range=(dt_start, dt_end))
+        # now create a list of the objects whos 'o' field is really in the range [ts_start, ts_end]
+        update_pks = []
+        for u in updates_in_range:
+            o_ts = literal_eval(u.o).get('dd_updated__id', 0)
+            if o_ts >= ts_start and o_ts <= ts_end:
+                update_pks.append(u.pk)
+        print('getting the exact updates we need by pk...')
+        updates = replayer.models.Update.objects.filter(pk__in=update_pks)
+
+        print('playing soon...')
+        self.play_all(updates=updates, async=async)
+
     def play_all(self, updates=None, async=False, truncate_chars=None):
         if truncate_chars is None:
             truncate_chars = self.TRUNCATE_CHARS
@@ -531,7 +584,7 @@ class ReplayManager(object):
         total_updates = updates.count()
         for update in updates:
             i += 1
-            print( '%s of %s - pk %s - ' % (str(i), str(total_updates), update.pk), update.o[:truncate_chars], '...' ) #update.o[:75]
+            print( '# %s of %s - pk %s - ' % (str(i), str(total_updates), update.pk), update.o[:truncate_chars], '...' ) #update.o[:75]
             ns_parts    = update.ns.split('.') # split namespace on dot for db and coll
             db          = ns_parts[0]
             collection  = ns_parts[1]

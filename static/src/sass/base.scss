@@ -198,17 +198,20 @@ html {
   font-family: $font-open-sans;
 }
 
-// This is slightly janky. We want the html bg to be white on most of the site, but dark blue in
-// the live section. Also, having height: 100% screws up any onscroll events in ff/chrome. onscroll
-// is used in the draft section to lazy-load images.
-html.section-live {
+// This is slightly janky. We want the html bg to be white on most of the site,
+// but dark blue in the live section.
+html.section-live,
+html.section-results {
   background: #050e1f;
+}
+
+// Also, having height: 100% screws up any onscroll events in ff/chrome. onscroll
+// is used in the draft section to lazy-load images.
+html.section-live,
+html.section-live body {
   // Avoid the IE 10-11 `min-height` bug by using `height`.
   // Use `%` instead of `vh` since `vh` is buggy in older mobile Safari.
   height: 100%;
-}
-html.section-results {
-  background: #050e1f;
 }
 
 // http://www.paulirish.com/2012/box-sizing-border-box-ftw/
@@ -219,8 +222,6 @@ html.section-results {
 html, body {
   color: $primary-text;
   margin: 0;
-  // TODO: This will def need to go once we get responsive styles.
-  min-width: 1200px;
   overflow: auto;
 }
 

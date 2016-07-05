@@ -24,6 +24,7 @@ describe('actions.events.pbp.onPBPReceived (mlb)', () => {
 
   const defaultMessage = {
     at_bat: {
+      stats_str: 'This happened',
       srid: 'player4',
       srid_team: 'team1',
     },
@@ -128,7 +129,7 @@ describe('actions.events.pbp.onPBPReceived (mlb)', () => {
         eventPlayers: ['player1', 'player4'],
         gameId: 'game1',
         hitter: {
-          atBatStats: '',
+          atBatStats: 'This happened',
           name: ' ',
           sridPlayer: 'player4',
           sridTeam: 'team1',

@@ -143,7 +143,6 @@ const LiveOverallStats = React.createClass({
           decimalRemaining={timeRemaining.decimal}
           diameter={220}
         />
-        <canvas className={`${BLOCK}__radial-bg`} ref="canvas" width="220" height="220" />
         <svg className={`${BLOCK}__svg-arcs`} viewBox="0 0 280 280" width="220">
           <defs>
             <linearGradient
