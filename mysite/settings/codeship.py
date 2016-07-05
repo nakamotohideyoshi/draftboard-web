@@ -11,7 +11,7 @@ DATABASES = {
     'HOST': '127.0.0.1',
 
     # https://codeship.com/documentation/databases/postgresql/
-    'PORT': 5433,    # currently using 5433 uses postgres 9.3
+    'PORT': 5434,    # currently using 5434 uses postgres 9.4
   }
 }
 
