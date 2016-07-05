@@ -5,7 +5,6 @@ import django.test
 from django.contrib.auth.models import User
 import threading
 from django.db import connections
-
 from prize.classes import CashPrizeStructureCreator
 from cash.classes import CashTransaction
 from test.models import (
@@ -416,14 +415,31 @@ class AbstractTest(django.test.TestCase, MasterAbstractTest):
 #
 #         return exceptions
 
+def create_site_sports():
+    sports  = [ 'test',  'nfl',  'mlb',  'nba',  'nhl' ]
+    seasons = [  1999,    2015,   2016,   2015,   2015 ]
+    for sport, season in zip(sports, seasons):
+        site_sport, created = SiteSport.objects.get_or_create(name=sport)
+        site_sport.current_season = season
+        # if created == True:
+        #     # if it was newly created, set the current_season as well
+        #     site_sport.current_season = season
+        #     site_sport.save()
+
 class BuildWorldForTesting(object):
 
     def build_world(self):
         TicketManager.create_default_ticket_amounts()
+        self.create_site_sports()
         self.create_sport_and_rosters()
         self.create_simple_player_stats_list()
         self.create_pool_and_draftgroup()
         self.create_contest()
+
+    # -------------------------------------------------------------------
+    # -------------------------------------------------------------------
+    def create_site_sports(self):
+        create_site_sports()
 
     #-------------------------------------------------------------------
     #-------------------------------------------------------------------
@@ -593,6 +609,8 @@ class BuildWorldForTesting(object):
             dgp.save()
 
     def create_contest(self):
+        # ensure it exists for testing purposes
+        self.create_site_sports()
 
         self.first = 100.0
         self.second = 50.0

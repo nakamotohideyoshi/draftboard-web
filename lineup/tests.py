@@ -22,13 +22,6 @@ from rest_framework.test import APIRequestFactory
 from lineup.views import (
     CreateLineupAPIView,
     UserUpcomingAPIView,
-    # UserLiveAPIView,
-    # UserHistoryAPIView,
-    # PlayersAPIView,
-    # CreateLineupAPIView,
-    # EditLineupAPIView,
-    # LineupUserAPIView,
-
 )
 import test.classes
 
@@ -40,34 +33,15 @@ import test.classes
 # is_client_error()   # 4xx
 # is_server_error()   # 5xx
 
-#  DEFAULT_USER_PASSWORD = 'test'
-
-# class BuildWorldMixin( object ):
-#     """
-#     this class is intended to be inherited by test classes that require
-#     fundamental things required for submitting lineups (ie: contests)
-#     """
-#
-#     def build_world(self):
-#         self.world = BuildWorldForTesting()
-#         self.world.build_world()
-#         self.draft_group = self.world.draftgroup
-#
-#     def create_user(self, username):
-#         user = User.objects.create(username=username)
-#         user.set_password(DEFAULT_USER_PASSWORD)
-#         user.save()
-#         return user
-
-class CreateLineupAPITest( APITestCase, test.classes.BuildWorldMixin, test.classes.ForceAuthenticateAndRequestMixin ):
+class CreateLineupAPITest( APITestCase,
+                           test.classes.BuildWorldMixin,
+                           test.classes.ForceAuthenticateAndRequestMixin ):
 
     def setUp(self):
         """
         1. builds the world
-
         2. logs in a newly created user
 
-        :return:
         """
         # build world, and create a user with username='user'
         self.build_world()
@@ -83,48 +57,6 @@ class CreateLineupAPITest( APITestCase, test.classes.BuildWorldMixin, test.class
 
         # is_client_error() checks any 400 errors (401, 402, etc...)
         self.assertTrue( status.is_client_error( response.status_code) )
-
-# class CreateLineup2APITest( APITestCase, BuildWorldMixin ):
-#
-#     def setUp(self):
-#         """
-#         1. builds the world
-#
-#         2. logs in a newly created user
-#
-#         :return:
-#         """
-#         # build world, and create a user with username='user'
-#         self.build_world()
-#         self.user = self.create_user('user')
-#
-#     def force_authenticate_and_post(self, user, view_class, url, data):
-#         """
-#         major helper method for testing rest_framework APIs
-#         so that we dont have to perform prerequisite calls to login
-#         or use multiple lines of boiler-plate code.
-#
-#         read this link for more info:
-#             http://www.django-rest-framework.org/api-guide/testing/
-#         """
-#         factory = APIRequestFactory()
-#         view = view_class.as_view()
-#         # Make an authenticated request to the view...
-#         request = factory.post(url, data)
-#         force_authenticate(request, user=user)
-#         response = view(request)
-#         return response
-#
-#     def test_create_lineup_invalid_params(self):
-#         data = {
-#             'draft_group_id' : "asdf",
-#             'players'        : "['steve', 9999]",
-#         }
-#         url = '/api/lineup/create/'
-#         response = self.force_authenticate_and_post(self.user, CreateLineupAPIView, url, data )
-#
-#         # is_client_error() checks any 400 errors (401, 402, etc...)
-#         self.assertTrue( status.is_client_error( response.status_code) )
 
 class BuildWorldMixin(object):
     """

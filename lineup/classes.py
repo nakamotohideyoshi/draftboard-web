@@ -1,6 +1,7 @@
 #
 # lineup/classes.py
 
+from collections import Counter
 from mysite.classes import AbstractSiteUserClass
 from django.db.transaction import atomic
 from draftgroup.models import DraftGroup, Player
@@ -19,6 +20,7 @@ from .exceptions import (
     PlayerSwapGameStartedException,
     LineupUnchangedException,
     CreateLineupExpiredDraftgroupException,
+    NotEnoughTeamsException,
 )
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
@@ -356,6 +358,13 @@ class LineupManager(AbstractSiteUserClass):
         if roster_manager.get_roster_spots_count() != len(players):
             print("player size: "+str(len(players)))
             raise InvalidLineupSizeException()
+        #
+        # ensure that players from at least 3 different team exist
+        counter = Counter()
+        for player in players:
+            counter[player.team.pk] += 1
+        if len(counter.items()) <3:
+            raise NotEnoughTeamsException()
 
         #
         # Logical Validation of the Lineups
