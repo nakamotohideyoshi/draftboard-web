@@ -44,14 +44,15 @@ const addToRelevantItems = (roster, items = { games: [], players: [] }) => ({
  */
 const calcContestPlayersOwnership = (contestLineups, draftGroup, sport, gamesTimeRemaining) => {
   const lineups = filter(contestLineups, (lineup) => lineup.roster[0] !== 0);
-  const allPlayers = flatten(map(lineups, (lineup) => lineup.roster));
+  const rosters = map(lineups, (lineup) => lineup.roster);
+  const allPlayers = flatten(rosters);
   const counts = countBy(allPlayers, (playerId) => playerId);
 
   // all
   const mappedPlayers = map(counts, (ownershipCount, playerId) => ({
     ownershipCount,
     playerId,
-    ownershipPercent: parseInt(ownershipCount / allPlayers.length * 100, 10),
+    ownershipPercent: parseInt(ownershipCount / rosters.length * 100, 10),
   }));
   const allPlayersByCounts = sortBy(mappedPlayers, (playerWithCount) => playerWithCount.ownershipCount).reverse();
 
@@ -275,7 +276,7 @@ export const watchingOpponentLineupSelector = createSelector(
     if (contest.isLoading) return isLoadingObj;
 
     const lineup = contest.lineups[watching.opponentLineupId];
-    return merge({}, lineup, calcPotentialContestStats(lineup, contest));
+    return merge({ isLoading: false }, lineup, calcPotentialContestStats(lineup, contest));
   }
 );
 

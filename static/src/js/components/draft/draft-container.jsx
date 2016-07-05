@@ -299,7 +299,7 @@ const DraftContainer = React.createClass({
 
     // If the draftgroup hasn't been fetched yet, show a loading indicator.
     if (!this.props.allPlayers.length) {
-      visibleRows = <tr><td colSpan="7"><h4>Loading Players.</h4></td></tr>;
+      visibleRows = <tr><td colSpan="9"><h4>Loading Players.</h4></td></tr>;
     }
 
     let positions = [];

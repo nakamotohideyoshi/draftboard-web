@@ -112,10 +112,10 @@ export const PusherData = React.createClass({
    * @param  {array} newSports  New sports to subscribe to
    */
   subscribeToSportSockets(newSports) {
-    log.trace('pusherData.subscribeToSockets()');
-
     const { actions } = this.props;
     const { pusher, channelPrefix } = this.state;
+
+    log.trace('pusherData.subscribeToSockets()', channelPrefix);
 
     // note that when binding, we need to reference `this.props` so that when the event occurs, it pulls latest props
     newSports.map((sport) => {

@@ -80,6 +80,15 @@ const LiveLineupPlayer = React.createClass({
 
     return (
       <div key="6" className="live-lineup-player__hover-stats" onClick={this.props.openPlayerPane}>
+        <div className="hover-stats__title">
+          <h4 className="hover-stats__name">
+            BRYCE HARPER
+          </h4>
+          <div className="hover-stats__place">
+            <div className="hover-stats__triangle"></div>
+            5th
+          </div>
+        </div>
         <ul>
           {renderedStats}
         </ul>
@@ -211,10 +220,12 @@ const LiveLineupPlayer = React.createClass({
     // in an effort to have DRY code, i render this list and reverse it for the opponent side
     // note that the key is required by React when rendering multiple children
     let playerElements = [
-      (<div key="0" className="live-lineup-player__position">
-        {player.position}
+      (<div className="live-lineup-player__hover-area" key="0">
+        <div className="live-lineup-player__position">
+          {player.position}
+        </div>
+        {this.renderPhotoAndHover()}
       </div>),
-      this.renderPhotoAndHover(),
       (<div key="2" className="live-lineup-player__status"></div>),
       (<div key="3" className="live-lineup-player__points">{humanizeFP(player.fp)}</div>),
       (<div key="4" className={ playStatusClass } />),

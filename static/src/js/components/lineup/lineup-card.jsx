@@ -168,29 +168,61 @@ const LineupCard = React.createClass({
               </ul>
 
               <footer className="cmp-lineup-card__footer">
-                <div className="cmp-lineup-card__fees cmp-lineup-card__footer-section">
-                  <span className="cmp-lineup-card__footer-title">Fees</span>
-                ${this.props.lineupInfo.fees}
-                </div>
-
                 <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
                   <span className="cmp-lineup-card__footer-title">Live In</span>
                   <CountdownClock time={this.props.draftGroupInfo.start} />
                 </div>
 
                 <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
-                  <span className="cmp-lineup-card__footer-title">Entries</span>
-                {this.props.lineupInfo.totalEntryCount}
+                  <span className="cmp-lineup-card__footer-title">Fees / Entries</span>
+                  ${this.props.lineupInfo.fees} / {this.props.lineupInfo.totalEntryCount}
                 </div>
               </footer>
             </div>
 
             <div className="back" ref="back">
+              <header className="cmp-lineup-card__header">
+                <h3 className="cmp-lineup-card__title">
+                  <SportIcon sport={this.props.lineupInfo.sport} />
+                  {this.props.lineupInfo.name || `Untitled Lineup # ${this.props.lineupInfo.id}`}
+                </h3>
+
+                <div className="actions-menu-container">
+                  <ul className="actions">
+                    <li>
+                      <div
+                        className="icon-flop action"
+                        onClick={this.flipCard}
+                      ></div>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="cmp-lineup-card__list-header">
+                  <span className="cmp-lineup-card__list-header-remove">Remove</span>
+                  <span className="cmp-lineup-card__list-header-contest">Contest</span>
+                  <span className="cmp-lineup-card__list-header-fee">Fee</span>
+                </div>
+              </header>
+
               <LineupCardEntries
                 lineupInfo={this.props.lineupInfo}
                 flipCard={this.flipCard}
                 removeContestPoolEntry={this.props.removeContestPoolEntry}
+                draftGroupInfo={this.props.draftGroupInfo}
               />
+
+              <footer className="cmp-lineup-card__footer">
+                <div className="cmp-lineup-card__countdown cmp-lineup-card__footer-section">
+                  <span className="cmp-lineup-card__footer-title">Live In</span>
+                  <CountdownClock time={this.props.draftGroupInfo.start} />
+                </div>
+
+                <div className="cmp-lineup-card__entries cmp-lineup-card__footer-section">
+                  <span className="cmp-lineup-card__footer-title">Fees / Entries</span>
+                  ${this.props.lineupInfo.fees} / {this.props.lineupInfo.totalEntryCount}
+                </div>
+              </footer>
             </div>
           </div>
 

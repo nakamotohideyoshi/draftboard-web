@@ -85,10 +85,12 @@ module.exports = (state = {
       });
 
     case ActionTypes.UPDATE_GAME:
+      if (!(action.gameId in state.games)) break;
+
       return update(state, {
         games: {
           [action.gameId]: {
-            $merge: action.updatedGameFields,
+            $merge: action.updatedFields,
           },
         },
       });

@@ -25,10 +25,7 @@ export const onPlayerStatsReceived = (message, sport, draftGroupId, relevantGame
   if (!isGameReady(getState(), dispatch, sport, gameId)) return false;
 
   // if it's not a relevant game to the live section, then just update the player's FP to update the NavScoreboard
-  if (relevantGames.indexOf(gameId) === -1) {
-    // otherwise just update the player's FP
-    return dispatch(updatePlayerStats(message, draftGroupId));
-  }
+  if (relevantGames.indexOf(gameId) === -1) return dispatch(updatePlayerStats(message, draftGroupId));
 
   return dispatch(addEventAndStartQueue(gameId, message, 'stats', sport));
 };

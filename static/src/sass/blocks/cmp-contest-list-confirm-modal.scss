@@ -3,19 +3,11 @@
 // Modal to prompt a user to confirm their contest entry.
 .cmp-modal--contest-list-confirm {
   .cmp-modal {
-    &__header {
-      padding-bottom: 25px;
-
-      &:after {
-        content: none;
-        border: none;
-      }
-    }
-
     &__dialog {
-      background: #262a3b;
+      background: #4b545f;
       color: #fff;
-      width: 305px;
+      width: 320px;
+      padding: 15px;
     }
   }
 }
@@ -24,13 +16,32 @@
 // Inner modal content.
 .cmp-contest-list-confirm-modal {
 
+  .footer {
+    padding: 0 0 20px;
+    border-bottom: 1px solid #57616d;
+  }
+
+  .title {
+    font-family: $font-oswald;
+    font-weight: 400;
+    font-size: 15px;
+    padding: 20px 0 35px;
+    text-transform: uppercase;
+  }
+
   .content {
     .footer-section {
-        display: inline-block;
-        font-family: $font-oswald;
-        font-size: 20px;
-        text-align: center;
-        width: 50%;
+      border-right: 1px solid #57616d;
+      display: inline-block;
+      font-family: $font-oswald;
+      font-size: 18px;
+      padding: 15px 0;
+      text-align: center;
+      width: 33%;
+
+      &:last-child {
+        border-right: none;
+      }
     }
 
     .footer-title {
@@ -44,27 +55,16 @@
   }
 
   .content-inner {
-    background: #fff;
-    color: #46495e;
+    color: #fff;
     font-size: 15px;
-    padding: 30px;
   }
 
-  .title {
-    font-family: $font-oswald;
-    font-weight: 400;
-    padding-bottom: 25px;
-    text-transform: uppercase;
 
-    &:after {
-      background: #c7c9d3;
-      content: " ";
-      display: block;
-      height: 1px;
-      margin: 25px auto 0;
-      width: 60px;
-    }
+
+  .cmp-countdown-clock span {
+    color: #fff;
   }
+
 
   .remember {
     font-size: 13px;
@@ -87,4 +87,14 @@
       }
     }
   }
+
+  .enter-contest-button {
+    margin-bottom: 10px;
+  }
+
+  .cancel-button {
+    color: #fff;
+  }
+
+
 }
