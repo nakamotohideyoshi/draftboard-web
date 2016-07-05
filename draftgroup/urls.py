@@ -3,9 +3,16 @@
 
 from django.conf.urls import patterns
 from django.conf.urls import url
-from draftgroup.views import DraftGroupAPIView, \
-    DraftGroupFantasyPointsView, DraftGroupGameBoxscoresView, \
-    DraftGroupPbpDescriptionView, UpcomingDraftGroupAPIView, CurrentDraftGroupAPIView
+from draftgroup.views import (
+    DraftGroupAPIView,
+    DraftGroupFantasyPointsView,
+    DraftGroupGameBoxscoresView,
+    DraftGroupPbpDescriptionView,
+    UpcomingDraftGroupAPIView,
+    CurrentDraftGroupAPIView,
+    GameUpdateAPIView,
+    PlayerUpdateAPIView,
+)
 
 urlpatterns = patterns(
     '',
@@ -30,6 +37,11 @@ urlpatterns = patterns(
     # get the draftgroup players (including the fantasy points for each player currently).
     # use this api to get the fantasy_points for each player in a draftgroup.
     (r'^fantasy-points/(?P<draft_group_id>[0-9]+)/$', DraftGroupFantasyPointsView.as_view()),
+
+    #
+    # get the game updates for draft group by its id
+    (r'^game-updates/(?P<draft_group_id>[0-9]+)/$', GameUpdateAPIView.as_view()),
+    (r'^player-updates/(?P<draft_group_id>[0-9]+)/$', PlayerUpdateAPIView.as_view()),
 
     #
     # Get the draftgroup players for a draftgroup id.

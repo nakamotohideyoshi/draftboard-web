@@ -6,13 +6,10 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.views import APIView
-
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
-
 from django.contrib.auth.models import User
 from django.views.generic.base import TemplateView
-
 from account.models import (
     Information,
     EmailNotification,
@@ -53,9 +50,6 @@ from rest_framework import response, status
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from rest_framework import permissions
-# from rest_framework.generics import CreateAPIView
-# from django.contrib.auth import get_user_model # If used custom user model
-# /password/reset/confirm/{uid}/{token}
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.exceptions import APIException
 
