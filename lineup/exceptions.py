@@ -25,7 +25,6 @@ class PlayerDoesNotExistInDraftGroupException(Exception):
         super().__init__(
            "The player ["+str(player_id)+"] does not exist in the draftgroup #"+str(draftgroup_id))
 
-
 class InvalidLineupSalaryException(Exception):
     def __init__(self, username, salary, max_team_salary):
         super().__init__(
@@ -56,3 +55,8 @@ class CreateLineupExpiredDraftgroupException(Exception):
     def __init__(self):
         super().__init__(
            "The draftgroup has expired, you cannot create a new lineup for this contest.")
+
+class NotEnoughTeamsException(Exception):
+    def __init__(self):
+        super().__init__(
+            "Lineup must consist of players from at least three different teams.")

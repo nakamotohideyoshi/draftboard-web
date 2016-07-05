@@ -28,6 +28,7 @@ from lineup.exceptions import (
     LineupInvalidRosterSpotException,
     PlayerDoesNotExistInDraftGroupException,
     InvalidLineupSalaryException,
+    NotEnoughTeamsException,
 )
 from draftgroup.models import DraftGroup
 from django.utils import timezone
@@ -68,6 +69,11 @@ class CreateLineupAPIView(generics.CreateAPIView):
         try:
             lineup = lm.create_lineup( players, draft_group, name )
 
+        except NotEnoughTeamsException as e:
+            return Response(
+                'Lineup must include players from at least three different teams.',
+                status=status.HTTP_403_FORBIDDEN
+            )
         except InvalidLineupSalaryException:
             return Response(
                 'Lineup exceeds max salary.',

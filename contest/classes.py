@@ -184,7 +184,7 @@ class ContestPoolManager(object):
         """
         create and return a new contest based on the settings of this ContestPool
         """
-        contest_creator = ContestCreator('new contest', self.contest_pool.site_sport,
+        contest_creator = ContestCreator(self.contest_pool.name, self.contest_pool.site_sport,
                                          self.contest_pool.prize_structure,
                                          self.contest_pool.start, self.contest_pool.end )
         return contest_creator.create()
@@ -249,6 +249,8 @@ class AbstractContestCreator(object):
     def __init__(self, name, site_sport, prize_structure, start=None, end=None):
         self.name               = name
         self.site_sport         = site_sport
+        if isinstance(site_sport, str):
+            self.site_sport = SiteSport.objects.get(name=site_sport)
         self.prize_structure    = prize_structure
         self.start              = start  # start of the contest
         self.end                = end  # live games must start before this datetime
