@@ -30,7 +30,11 @@ class PlayerSerializer(serializers.ModelSerializer):
                   'start', 'position', 'fppg',
                   'team_alias', 'game_srid', 'team_srid', 'player_srid')
 
-# class PlayerUpdateSerializer(serializers.ModelSerializer): pass # TODO
+class PlayerUpdateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PlayerUpdate
+        fields = ('category','type','value')
 
 class GameUpdateSerializer(serializers.ModelSerializer):
 

@@ -21,7 +21,7 @@ from draftgroup.serializers import (
     DraftGroupSerializer,
     UpcomingDraftGroupSerializer,
     GameUpdateSerializer,
-    #PlayerUpdateSerializer, # TODO
+    PlayerUpdateSerializer,
 )
 from django.core.cache import caches
 from sports.classes import SiteSportManager
@@ -33,25 +33,30 @@ class UpdateAPIView(APIView):
     """
     parent view class for XxxxUpdateAPIView(s)
     """
-    pass
+    authentication_classes = (IsAuthenticated, )
+
+    model_class = None          # child view must set this
+    serializer_class = None     # child view must set this
+
+    def get(self, request, *args, **kwargs):
+        draft_group_id = kwargs.get('draft_group_id')
+        game_updates = self.model_class.objects.filter(draft_groups__pk=draft_group_id)
+        serialized_data = self.serializer_class(game_updates, many=True).data
+        return Response(serialized_data, status=200)
 
 class GameUpdateAPIView(UpdateAPIView):
     """
 
     """
-
+    model_class = GameUpdate
     serializer_class = GameUpdateSerializer
 
-    # GameUpdate.objects.filter(draft_groups__pk=1819)
-    def get(self, request, *args, **kwargs):
-        # print(request.data)
-        draft_group_id = kwargs.get('draft_group_id')
-        game_updates = GameUpdate.objects.filter(draft_groups__pk=draft_group_id)
-        serialized_data = self.serializer_class(game_updates, many=True).data
-        return Response(serialized_data, status=200)
-
 class PlayerUpdateAPIView(UpdateAPIView):
-    pass # TODO
+    """
+
+    """
+    model_class = PlayerUpdate
+    serializer_class = PlayerUpdateSerializer
 
 class DraftGroupAPIView(generics.GenericAPIView):
     """
