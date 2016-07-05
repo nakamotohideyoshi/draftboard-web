@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import forEach from 'lodash/forEach';
+import sortBy from 'lodash/sortBy';
 import classNames from 'classnames';
 
 
@@ -30,8 +31,9 @@ const DraftTeamFilter = React.createClass({
   getGames() {
     const self = this;
     const games = [];
+    const sortedGames = sortBy(this.props.boxScores, 'start');
 
-    forEach(this.props.boxScores, (game) => {
+    forEach(sortedGames, (game) => {
       const homeClasses = classNames('team home', {
         selected: self.isTeamSelected(self.props.selectedTeams, game.srid_home),
       });

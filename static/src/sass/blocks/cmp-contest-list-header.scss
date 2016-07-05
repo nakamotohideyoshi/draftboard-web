@@ -85,6 +85,8 @@
   // Hide these by default - they get shown when the header display is selected.
   display: none;
   position: relative;
+  padding-bottom: 25px;
+  overflow: hidden;
 
   .contest-list-filter {
     display: inline-block;

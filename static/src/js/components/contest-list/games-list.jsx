@@ -1,5 +1,6 @@
 import React from 'react';
 import forEach from 'lodash/forEach';
+import sortBy from 'lodash/sortBy';
 import moment from 'moment';
 
 
@@ -17,7 +18,9 @@ const GamesList = React.createClass({
   getGameList(games) {
     const gameList = [];
 
-    forEach(games, (game) => {
+    const sortedGames = sortBy(games, 'start');
+
+    forEach(sortedGames, (game) => {
       // do we have teams?
       if (this.props.teams.hasOwnProperty('teams')) {
         gameList.push(
