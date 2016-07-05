@@ -184,7 +184,7 @@ class ContestPoolManager(object):
         """
         create and return a new contest based on the settings of this ContestPool
         """
-        contest_creator = ContestCreator('new contest', self.contest_pool.site_sport,
+        contest_creator = ContestCreator(self.contest_pool.name, self.contest_pool.site_sport,
                                          self.contest_pool.prize_structure,
                                          self.contest_pool.start, self.contest_pool.end )
         return contest_creator.create()
