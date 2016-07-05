@@ -27,7 +27,7 @@ module.exports = (state = initialState, action) => {
     case ActionTypes.FETCH_DRAFTGROUP_BOX_SCORES_SUCCESS: {
       const stateCopy = merge({}, state);
       stateCopy.boxScores.isFetching = false;
-      stateCopy.boxScores[action.draftGroupId] = action.body;
+      stateCopy.boxScores[action.response.draftGroupId] = action.response.boxScores;
       return stateCopy;
     }
 

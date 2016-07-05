@@ -32,7 +32,7 @@ const DraftNewLineupCardPlayer = (props) => {
             {names[0][0]}. {names[names.length - 1]}
             <span className="cmp-lineup-card__team">- {props.player.player.team_alias}</span>
           </span>
-          <span className="salary">{roundUpToDecimalPlace(props.player.player.fppg, 1)} avg</span>
+          <span className="salary">{roundUpToDecimalPlace(props.player.player.fppg, 1)} Avg</span>
         </span>
 
         <span className="cmp-lineup-card__average">
