@@ -5,20 +5,53 @@ from dataden.classes import DataDen
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import generics
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.exceptions import ValidationError, NotFound, APIException
 from rest_framework.pagination import LimitOffsetPagination
-from draftgroup.models import DraftGroup, UpcomingDraftGroup, CurrentDraftGroup
+from draftgroup.models import (
+    DraftGroup,
+    UpcomingDraftGroup,
+    CurrentDraftGroup,
+    GameUpdate,
+    PlayerUpdate,
+)
 from draftgroup.classes import DraftGroupManager
 from draftgroup.serializers import (
     DraftGroupSerializer,
     UpcomingDraftGroupSerializer,
+    GameUpdateSerializer,
+    #PlayerUpdateSerializer, # TODO
 )
 from django.core.cache import caches
 from sports.classes import SiteSportManager
 import json
 from django.http import HttpResponse
 from django.views.generic import View
+
+class UpdateAPIView(APIView):
+    """
+    parent view class for XxxxUpdateAPIView(s)
+    """
+    pass
+
+class GameUpdateAPIView(UpdateAPIView):
+    """
+
+    """
+
+    serializer_class = GameUpdateSerializer
+
+    # GameUpdate.objects.filter(draft_groups__pk=1819)
+    def get(self, request, *args, **kwargs):
+        # print(request.data)
+        draft_group_id = kwargs.get('draft_group_id')
+        game_updates = GameUpdate.objects.filter(draft_groups__pk=draft_group_id)
+        serialized_data = self.serializer_class(game_updates, many=True).data
+        return Response(serialized_data, status=200)
+
+class PlayerUpdateAPIView(UpdateAPIView):
+    pass # TODO
 
 class DraftGroupAPIView(generics.GenericAPIView):
     """
