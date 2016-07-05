@@ -222,8 +222,6 @@ html.section-live body {
 html, body {
   color: $primary-text;
   margin: 0;
-  // TODO: This will def need to go once we get responsive styles.
-  min-width: 1200px;
   overflow: auto;
 }
 
