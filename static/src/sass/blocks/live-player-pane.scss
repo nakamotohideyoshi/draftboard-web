@@ -9,6 +9,10 @@
 
 
 .live-player-pane {
+  box-shadow: 0px 8px 84.28px 13.72px rgba(0, 0, 1, 0.46);
+  transform: translateX(0); // gpu enhanced animations
+  transition: all 600ms cubic-bezier(.65, .47, .35, 1) !important;
+
   .header-section {
     /**
      * Current Points + Owned Percentage
@@ -248,6 +252,4 @@
   .pane-lower {
     background: #1a1e30;
   }
-
-
 }

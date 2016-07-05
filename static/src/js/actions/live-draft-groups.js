@@ -1,3 +1,4 @@
+import Raven from 'raven-js';
 import * as ActionTypes from '../action-types';
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
@@ -101,7 +102,15 @@ const shouldFetchDraftGroupFP = (state, id) => {
 
   // error if no draft group to associate players to
   if (liveDraftGroups.hasOwnProperty(id) === false) {
-    throw new Error('You cannot get fantasy points for a draft group that does not exist yet');
+    Raven.captureMessage(
+      'You cannot get fantasy points for a draft group that does not exist yet',
+      { extra: {
+        liveDraftGroups,
+        draftGroupId: id,
+      },
+    });
+
+    return false;
   }
 
   if (liveDraftGroups[id].start > dateNow()) reasons.push('draft group has not started');

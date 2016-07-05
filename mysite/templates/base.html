@@ -4,9 +4,9 @@
 {% spaceless %}
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{% block html_class %}{% endblock %}">
 <head>
-  <title>{% block title %}DFS{% endblock %}</title>
+  <title>{% block title %}Draftboard{% endblock %}</title>
 
   {% comment %} default meta tags for UTF8 and mobile device width {% endcomment %}
   <meta http-equiv="content-type" content="text/html" charset="UTF-8">

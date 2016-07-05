@@ -1,10 +1,11 @@
 import React from 'react';
 import Modal from '../modal/modal.jsx';
-import CountdownClock from '../site/countdown-clock.jsx';
+// import CountdownClock from '../site/countdown-clock.jsx';
 import Cookies from 'js-cookie';
 import classNames from 'classnames';
 import EnterContestButton from './enter-contest-button.jsx';
 import AppStateStore from '../../stores/app-state-store.js';
+import { humanizeCurrency } from '../../lib/utils/currency.js';
 
 
 /**
@@ -84,10 +85,9 @@ const ContestListConfirmModal = React.createClass({
         isOpen={this.state.isOpen}
         onClose={this.close}
         className="cmp-modal--contest-list-confirm"
+        showCloseBtn={false}
       >
         <div>
-          <header className="cmp-modal__header">Confirm Entry</header>
-
           <div className="cmp-contest-list-confirm-modal">
             <div className="content">
               <div className="content-inner">
@@ -95,13 +95,18 @@ const ContestListConfirmModal = React.createClass({
 
                 <footer className="footer">
                   <div className="contest-fees footer-section">
-                    <span className="footer-title">Fees</span>
-                    ${this.props.contest.buyin}
+                    <span className="footer-title">Prize</span>
+                    {humanizeCurrency(this.props.contest.prize_structure.ranks[0].value)}
+                  </div>
+
+                  <div className="contest-fees footer-section">
+                    <span className="footer-title">Entrants</span>
+                    {this.props.contest.current_entries}
                   </div>
 
                   <div className="contest-countdown footer-section">
-                    <span className="footer-title">Live In</span>
-                    <CountdownClock time={this.props.contest.start} />
+                    <span className="footer-title">Fee</span>
+                    {humanizeCurrency(this.props.contest.buyin)}
                   </div>
                 </footer>
               </div>
@@ -113,6 +118,7 @@ const ContestListConfirmModal = React.createClass({
                 >
                   <div className={rememberClass}>Don't ask me again.</div>
                 </div>
+
                 <EnterContestButton
                   lineup={this.props.lineup}
                   contest={this.props.contest}
@@ -126,6 +132,12 @@ const ContestListConfirmModal = React.createClass({
                     contestHasStarted: 'button--med button--lrg-len button--flat',
                   }}
                 />
+              <div
+                className="button button--med button--lrg-len button--outline-alt1 cancel-button"
+                onClick={this.close}
+              >
+                Cancel, don't enter contest
+              </div>
               </div>
             </div>
           </div>

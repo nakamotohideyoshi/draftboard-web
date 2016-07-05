@@ -231,15 +231,22 @@ category: Lineup
 
   // Footer section.
   &__footer {
-    padding: 15px;
+    padding: 15px 0;
   }
 
   &__footer-section {
       display: inline-block;
-      width: 33%;
-      text-align: center;
-      font-size: 18px;
+      width: 50%;
+      text-align: left;
+      padding-left: 15px;
+      font-size: 16px;
       font-family: $font-oswald;
+      border-right: 1px solid #ebedf2;
+
+      &:last-child {
+        padding-left: 30px;
+        border-right: none;
+      }
   }
 
   &__footer-title {
@@ -248,6 +255,12 @@ category: Lineup
     text-transform: uppercase;
     font-size: 9px;
     display: block;
+  }
+
+  .cmp-countdown-clock {
+    .hours {
+      color: #9c9faf;
+    }
   }
 
 
@@ -413,7 +426,10 @@ category: Lineup
     text-align: right;
 
     &-average,
-    &-salary {
+    &-salary,
+    &-remove,
+    &-contest,
+    &-fee {
       font-size: 7px;
       text-transform: uppercase;
     }
@@ -475,8 +491,9 @@ category: Lineup
 
     // Editable title input field.
     &__title {
-
       &:before {
+        background: url('../img/common/icon-pencil.png') no-repeat;
+        background-size: 16px auto;
         content: " ";
         width: 16px;
         height: 16px;
@@ -499,7 +516,7 @@ category: Lineup
       font-size: 16px;
       border: 0px solid transparent;
       max-width: 170px;
-      padding: 10px 15px 0px 0px;
+      padding: 10px 15px 0px 10px;
 
       &::placeholder {
         transition: color .25s;
@@ -672,7 +689,7 @@ category: Lineup
   Source: https://davidwalsh.name/css-flip
  */
 .cmp-lineup-card.flip-container {
-	perspective: 1000;
+  perspective: 1000px;
   background: none;
   width: 290px;
 
@@ -713,7 +730,73 @@ category: Lineup
     position: absolute;
     top: 0;
     transform: rotateY(180deg);
-    overflow: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    .cmp-lineup-card__header {
+      box-shadow: 0px 7px 42px 0px rgba(21, 23, 36, 0.3);
+      z-index: 2;
+    }
+
+    .cmp-lineup-card__list-header {
+      padding: 5px 0 0 0;
+      text-align: left;
+
+      > span {
+        color: #c5c7ce;
+        display: inline-block;
+      }
+
+      &-remove {
+        width: 45px;
+      }
+      &-contest {
+        width: 190px;
+      }
+
+      &-fee {
+        width: auto;
+      }
+    }
+
+    .cmp-lineup-card-entries {
+      flex: 1;
+      height:100%;
+      overflow: auto;
+      width:100%;
+    }
+
+    .entry-list {
+      height: auto;
+    }
+
+    .cmp-lineup-card__footer {
+      background: #4c555f;
+      border-top: 1px solid #5f626d;
+      bottom: 0px;
+      box-shadow: 0px -7px 42px 0px rgba(21, 23, 36, 0.3);
+      position: fixed;
+      width: 100%;
+      z-index: 1;
+
+      &-section {
+        border-color: #5f626d;
+      }
+    }
+
+    .cmp-countdown-clock {
+      .minutes,
+      .seconds {
+        color: #fff;
+      }
+
+      .hours {
+        color: #c5c7ce;
+      }
+    }
+
+
   }
 }
 

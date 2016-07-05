@@ -36,10 +36,6 @@ describe('<LiveAnimationArea /> Component', () => {
     expect(wrapper.find('.live__venue-mlb')).to.have.length(1);
   });
 
-  // should render out single MLB stadium if only watching my MLB lineup
-  // should render out splitscreen stadiums if watching MLB opponent
-  // should render out NBA court if watching NBA lineup
-
   it('should render out single MLB stadium if only watching my MLB lineup', () => {
     const wrapper = renderComponent(defaultTestProps);
 

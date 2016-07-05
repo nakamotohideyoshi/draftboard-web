@@ -331,13 +331,7 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
   ])
   .then(() =>
     dispatch(confirmRelatedContestInfo(id))
-  )
-  .catch((err) => dispatch(errorHandler(err, {
-    header: 'Failed to connect to API.',
-    content: 'Please refresh the page to reconnect.',
-    level: 'warning',
-    id: 'apiFailure',
-  })));
+  );
 };
 
 /**
@@ -357,13 +351,7 @@ export const fetchContestIfNeeded = (id, sport, force) => (dispatch, getState) =
   ])
   .then(() =>
     dispatch(fetchRelatedContestInfo(id))
-  )
-  .catch((err) => dispatch(errorHandler(err, {
-    header: 'Failed to connect to API.',
-    content: 'Please refresh the page to reconnect.',
-    level: 'warning',
-    id: 'apiFailure',
-  })));
+  );
 };
 
 /**

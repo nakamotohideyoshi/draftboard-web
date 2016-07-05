@@ -334,6 +334,7 @@ export const calcDecimalRemaining = (durationRemaining, gameDuration) => {
  */
 export const calculateTimeRemaining = (sport, game) => {
   const sportConst = SPORT_CONST[sport];
+  const endStatuses = ['completed', 'complete', 'closed'];
 
   // if the game hasn't started, return full time
   if (!game.hasOwnProperty('boxscore')) {
@@ -344,6 +345,9 @@ export const calculateTimeRemaining = (sport, game) => {
   switch (sport) {
     // MLB uses half innings as its time remaining.
     case 'mlb': {
+      // if the game is done, then set to 0
+      if (endStatuses.indexOf(game.status) > -1) return 0;
+
       let durationComplete = parseInt(boxScore.inning || 0, 10) * 2;
 
       // determine whether to add half inning for being in the bottom
@@ -355,7 +359,7 @@ export const calculateTimeRemaining = (sport, game) => {
       durationComplete -= 1;
 
       // if the game is complete
-      if (durationComplete >= sportConst.gameDuration && boxScore.status !== 'inprogress') return 0;
+      if (durationComplete >= sportConst.gameDuration && game.status !== 'inprogress') return 0;
 
       // if extra innings or bottom of 9th, then return 1
       if (durationComplete >= sportConst.gameDuration) return 1;
@@ -367,15 +371,12 @@ export const calculateTimeRemaining = (sport, game) => {
     case 'nba':
     case 'nhl':
     default: {
+      // if the game is done, then set to 0
+      if (endStatuses.indexOf(boxScore.status) > -1) return 0;
+
       // if the game hasn't started but we have boxscore, return with full minutes
       if (boxScore.quarter === '') {
         return sportConst.gameDuration;
-      }
-
-      // if the game is done, then set to 0
-      const endOfGameStatuses = ['completed', 'closed'];
-      if (endOfGameStatuses.indexOf(boxScore.status) > -1) {
-        return 0;
       }
 
       const currentPeriod = boxScore.quarter;
@@ -643,64 +644,44 @@ export const updateGameTeam = (message) => (dispatch, getState) => {
  *  * @return {object}   Changes for reducer, wrapped in a thunk
  */
 export const updateGameTime = (event) => (dispatch, getState) => {
-  const gameId = event.id;
+  const { gameId } = event;
   const state = getState();
-  const game = merge({}, state.sports.games[gameId]);
-  let updatedGameFields = {};
 
   // if game does not exist yet, we don't know what sport so just cancel the update and wait for polling call
-  if (state.sports.games.hasOwnProperty(gameId) === false) {
-    return false;
-  }
+  if (!(gameId in state.sports.games)) return false;
 
-  if (state.sports[game.sport].isFetchingGames === false) {
-    // if the boxscore doesn't exist yet, that means we need to update games
-    if (game.hasOwnProperty('boxscore') === false) {
-      return dispatch(fetchGames(game.sport));
-    }
+  let game = merge({}, state.sports.games[gameId]);
+  const { updatedFields } = event;
 
-    // if we think the game hasn't started, also update the games
-    const upcomingStates = ['scheduled', 'created'];
-    if (upcomingStates.indexOf(game.boxscore.status) > -1) {
-      return dispatch(fetchGames(game.sport));
-    }
+  // if the boxscore doesn't exist yet, that means we need to update games
+  if (!('boxscore' in game)) return dispatch(fetchGames(game.sport));
 
-    switch (game.sport) {
-      case 'mlb':
-        updatedGameFields = { outcome_list: event.outcome__list };
-        game.outcome__list = event.outcome__list;
-        break;
-      case 'nba':
-      case 'nhl':
-      default: {
-        // if the boxscore doesn't have quarter yet, update the game
-        if (game.boxscore.hasOwnProperty('quarter') === false) {
-          return dispatch(fetchGames(game.sport));
-        }
+  // if we think the game hasn't started, also update the games
+  if (['scheduled', 'created'].indexOf(game.boxscore.status) > -1) return dispatch(fetchGames(game.sport));
 
-        updatedGameFields = {
-          clock: event.boxscore.clock,
-          quarter: event.boxscore.quarter,
-          status: event.boxscore.status,
-        };
-
-        // update ot get durationRemaining
-        game.boxscore.clock = event.boxscore.clock;
-        game.boxscore.quarter = event.boxscore.quarter;
+  switch (game.sport) {
+    case 'nba':
+    case 'nhl': {
+      // if the boxscore doesn't have quarter yet, update the game
+      if (game.boxscore.hasOwnProperty('quarter') === false) {
+        return dispatch(fetchGames(game.sport));
       }
+      break;
     }
-
-    if (game.boxscore === undefined) {
-      return false;
-    }
+    default:
+      break;
   }
 
-  // find time remaining through these new fields
-  updatedGameFields.durationRemaining = calculateTimeRemaining(game.sport, game);
+  // temp update fields to be able to calculateTimeRemaining
+  game = merge({}, game, updatedFields);
+
+  const duration = calculateTimeRemaining(game.sport, game);
+  const decimal = calcDecimalRemaining(duration, SPORT_CONST[game.sport].gameDuration);
+  updatedFields.timeRemaining = { duration, decimal };
 
   return dispatch({
     type: ActionTypes.UPDATE_GAME,
     gameId,
-    updatedGameFields,
+    updatedFields,
   });
 };

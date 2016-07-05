@@ -27,6 +27,7 @@ body.appstate--nav-main--open .nav-main {
   position: fixed;
   left: -$nav-main-width;
   top: 54px;
+  transform: translateX(0);  // gpu accelerate
   transition: all 0.2s ease-out;
   width: $nav-main-width;
   z-index: $zindex-nav-main;
@@ -37,7 +38,8 @@ body.appstate--nav-main--open .nav-main {
 
   &__primary {
     list-style: none;
-    padding-top: 40px;
+    margin: 0;
+    padding: 40px 0 0 0;
 
     li {
       display: block;
@@ -76,7 +78,8 @@ body.appstate--nav-main--open .nav-main {
 
   &__secondary {
     list-style: none;
-    padding-top: 28px;
+    margin: 0;
+    padding: 28px 0 0 0;
 
     li {
       display: block;

@@ -1,25 +1,10 @@
 @import "../variables.scss";
 
 .live-standings-pane {
+  transform: translateX(0);  // gpu assist animation
+  transition: right 600ms cubic-bezier(.65, .47, .35, 1) !important;
   width: 424px !important;
   font-family: $font-open-sans;
-
-  .live-pane {
-    &__close {
-      top: $nav-scoreboard-height + 35px !important;
-      left: -25px !important;
-      opacity: 0.6;
-      background-size: 23px;
-      transform: rotateY(180deg) scaleX(1.4);
-    }
-
-    &__content {
-      margin-left: 0;
-      background: #070b1d;
-    }
-  }
-
-
   width: 100%;
   height: 100%;
 

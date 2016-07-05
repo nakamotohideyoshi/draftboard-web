@@ -23,7 +23,7 @@ const compileEventPlayers = (message, sport) => {
       ];
 
       // runners on base
-      if (message.hasOwnProperty('runners')) {
+      if (Array.isArray(message.runners)) {
         message.runners.map((runner) => eventPlayers.push(runner.srid));
       }
 
@@ -131,7 +131,7 @@ const consolidateZonePitches = (zonePitches) => {
  *    "balls": 3,
  *    "outs": 3
  *  },
- * @param  {object} pitchCount Types of pitches and their count
+ * @param  {object} pitchCount Types of pitches and their count, defaults all to 0
  * @return {string}            Human readable pitch count
  */
 export const stringifyAtBat = (pitchCount) => {
@@ -190,17 +190,16 @@ const isMessageUsed = (message, sport) => {
   switch (sport) {
     case 'mlb':
       // only working with at bats
-      if (!message.pbp.srid_at_bat) reasons.push('!message.pbp.srid_at_bat');
-      // TODO fix backend, call came in with null at_bat_stats
-      if (!message.at_bat || !message.at_bat.hasOwnProperty('srid')) reasons.push('!message.at_bat.srid');
+      if (!('srid_at_bat' in message.pbp)) reasons.push('!message.pbp.srid_at_bat');
+      if (typeof message.at_bat !== 'object' || !('srid' in message.at_bat)) reasons.push('!message.at_bat.srid');
       // if the at bat is over, then there must be a description
       // if (message.pbp.flags.is_ab_over === true && !message.at_bat.oid_description) {
       //   reasons.push('!message.at_bat.oid_description');
       // }
       break;
     case 'nba':
-      if (!message.pbp.hasOwnProperty('statistics__list')) reasons.push('!message.pbp.statistics__list');
-      if (!message.pbp.hasOwnProperty('location__list')) reasons.push('!message.pbp.location__list');
+      if (typeof message.pbp.statistics__list !== 'object') reasons.push('!message.pbp.statistics__list');
+      if (typeof message.pbp.location__list !== 'object') reasons.push('!message.pbp.location__list');
       break;
     default:
       break;
@@ -233,8 +232,8 @@ const isMessageUsed = (message, sport) => {
 const getMLBData = (message, gameId, boxscore) => {
   // faster to not camelize the object
   /* eslint-disable camelcase */
-  const { at_bat_stats = '', at_bat = {}, pbp = {}, runners = [], stats = {}, zone_pitches = [] } = message;
-  const { fn = '', ln = '', srid_team } = at_bat;
+  const { at_bat = {}, pbp = {}, runners = [], stats = {}, zone_pitches = [] } = message;
+  const { stats_str = '', fn = '', ln = '', srid_team } = at_bat;
   const { count = {}, flags = {}, srid_at_bat, srid_pitcher } = pbp;
   /* eslint-enable camelcase */
 
@@ -243,7 +242,7 @@ const getMLBData = (message, gameId, boxscore) => {
     eventPlayers: compileEventPlayers(message, 'mlb'),
     gameId,
     hitter: {
-      atBatStats: at_bat_stats,
+      atBatStats: stats_str,
       name: `${fn} ${ln}`,
       sridPlayer: at_bat.srid,
       sridTeam: srid_team,
