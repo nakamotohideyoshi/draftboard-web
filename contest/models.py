@@ -29,7 +29,7 @@ class AbstractContest(models.Model):
     site_sport = models.ForeignKey('sports.SiteSport', null=False,
                                     related_name='%(app_label)s_%(class)s_site_sport')
 
-    name = models.CharField(default="", null=False, verbose_name="Name", max_length=64,
+    name = models.CharField(default="", null=False, verbose_name="Name", max_length=256,
                             help_text= "frontfacing name")
 
     prize_structure = models.ForeignKey('prize.PrizeStructure', null=False)
