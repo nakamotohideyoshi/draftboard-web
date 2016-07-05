@@ -249,6 +249,8 @@ class AbstractContestCreator(object):
     def __init__(self, name, site_sport, prize_structure, start=None, end=None):
         self.name               = name
         self.site_sport         = site_sport
+        if isinstance(site_sport, str):
+            self.site_sport = SiteSport.objects.get(name=site_sport)
         self.prize_structure    = prize_structure
         self.start              = start  # start of the contest
         self.end                = end  # live games must start before this datetime
