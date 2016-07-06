@@ -21,6 +21,12 @@ const config = Object.assign(
         'webpack/hot/dev-server',
         path.join(__dirname, 'static', 'src', 'js', 'app-logged-out.jsx'),
       ],
+      // separated homepage
+      homepage: [
+        // Enable Webpack's dev server hot reloads for this entry.
+        'webpack/hot/dev-server',
+        path.join(__dirname, 'static', 'src', 'sass', 'blocks', 'homepage.scss'),
+      ],
     },
     // Devserver config
     devServer: {

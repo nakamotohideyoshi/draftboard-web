@@ -12,6 +12,7 @@ from draftgroup.views import (
     CurrentDraftGroupAPIView,
     GameUpdateAPIView,
     PlayerUpdateAPIView,
+    PlayerAndGameUpdateAPIView,
 )
 
 urlpatterns = patterns(
@@ -42,6 +43,8 @@ urlpatterns = patterns(
     # get the game updates for draft group by its id
     (r'^game-updates/(?P<draft_group_id>[0-9]+)/$', GameUpdateAPIView.as_view()),
     (r'^player-updates/(?P<draft_group_id>[0-9]+)/$', PlayerUpdateAPIView.as_view()),
+    # get the game and player updates
+    (r'^updates/(?P<draft_group_id>[0-9]+)/$', PlayerAndGameUpdateAPIView.as_view()),
 
     #
     # Get the draftgroup players for a draftgroup id.

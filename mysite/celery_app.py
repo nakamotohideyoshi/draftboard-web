@@ -430,6 +430,7 @@ class TaskHelper(object):
         # the top-level 'status' is not the task status, it
         # is a more general indication of the success/pending/failure
         data = {
+            'task_id'       : self.task_id,
             'status'        : self.get_overall_status(),
             'note'          : self.get_note(),
             'task'          : self.get_task_data(),
