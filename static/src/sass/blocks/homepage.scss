@@ -159,10 +159,12 @@
       &--number {
         color: #f2f4f6;
         font-family: $font-oswald;
+        font-size: 46vw;
         line-height: 1;
         position: absolute;
-        right: 36%;
+        right: 25%;
         text-align: center;
+        width: 48%;
       }
     }
 
@@ -257,6 +259,7 @@
 
     &--group-2 {
       text-align: right;
+      z-index: 5;
 
       .home-page--content--group--bg {
         background: url('../img/blocks/homepage/section_2_bg.png') no-repeat left top;
@@ -280,7 +283,7 @@
 
     &--group-3 {
       .home-page--content--group--bg {
-        background: url('../img/blocks/homepage/section_3_bg.png') no-repeat right top;
+        background: url('../img/blocks/homepage/section_3_bg.jpg') no-repeat right top;
         background-size: 100% auto;
       }
 
@@ -419,14 +422,6 @@
     }
 
     &--content {
-      &--group {
-        &--number {
-          font-size: 46vw;
-          right: 25%;
-          width: 48%;
-        }
-      }
-
       &--group-1,
       &--group-2 {
         padding-top: 55.8%;  // proportion of 1900 height / 3400 width
@@ -536,7 +531,7 @@
 
       &--group-3 {
         .home-page--content--group--bg {
-          background: url('../img/blocks/homepage/section_3_bg_ipad.png') right top no-repeat;
+          background: url('../img/blocks/homepage/section_3_bg_ipad.jpg') right top no-repeat;
           background-size: 100% auto;
         }
 
@@ -597,6 +592,10 @@
       &--group-2 {
         padding-top: 100%;
 
+        .home-page--content--group--number {
+          top: 0;
+        }
+
         .home-page--content--group--bg {
           background-size: auto 58%;
         }
@@ -615,6 +614,10 @@
 
       &--group-3 {
         padding-top: 252%;
+
+        .home-page--content--group--number {
+          top: 0;
+        }
 
         .home-page--content--group--bg {
           background-position: right 61%;
@@ -699,7 +702,7 @@
       padding-top: 46.7%;  // proportion according to 1658px height / 3549px width in comp
 
       &--bg {
-        background: url(../img/blocks/homepage/header.png) no-repeat center bottom;
+        background: url(../img/blocks/homepage/header.jpg) no-repeat center bottom;
         background-size: 100% auto;
       }
     }
@@ -739,7 +742,7 @@
         padding-top: 122%;
 
         .home-page--content--group--bg {
-          background: url('../img/blocks/homepage/section_3_bg.png') right top no-repeat;
+          background: url('../img/blocks/homepage/section_3_bg.jpg') right top no-repeat;
           background-size: 100% auto;
         }
 
