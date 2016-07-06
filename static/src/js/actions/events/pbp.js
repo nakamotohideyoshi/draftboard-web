@@ -19,7 +19,7 @@ const compileEventPlayers = (message, sport) => {
     case 'mlb': {
       const eventPlayers = [
         message.pbp.srid_pitcher,  // pitcher
-        message.at_bat.srid,  // hitter
+        message.at_bat.srid_hitter,  // hitter
       ];
 
       // runners on base
@@ -235,7 +235,7 @@ const getMLBData = (message, gameId, boxscore) => {
   // faster to not camelize the object
   /* eslint-disable camelcase */
   const { at_bat = {}, pbp = {}, runners = [], stats = {}, zone_pitches = [] } = message;
-  const { stats_str = '', fn = '', ln = '', srid_team } = at_bat;
+  const { stats_str = '', fn = '', ln = '', srid_team, srid_hitter } = at_bat;
   const { count = {}, flags = {}, srid_at_bat, srid_pitcher } = pbp;
   /* eslint-enable camelcase */
 
@@ -246,7 +246,7 @@ const getMLBData = (message, gameId, boxscore) => {
     hitter: {
       atBatStats: stats_str,
       name: `${fn} ${ln}`,
-      sridPlayer: at_bat.srid_hitter,
+      sridPlayer: srid_hitter,
       sridTeam: srid_team,
       outcomeFp: humanizeFP(at_bat.oid_fp, true) || null,
     },
