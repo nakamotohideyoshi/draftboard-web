@@ -83,7 +83,6 @@ TEMPLATES = [
 
 # Folder locations
 STATICFILES_DIRS = (
-    PROJECT_ROOT.child('static'),
     PROJECT_ROOT.child('static').child('build')
 )
 
