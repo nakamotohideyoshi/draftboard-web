@@ -5,7 +5,7 @@ import { generateBlockNameWithModifiers } from '../../../lib/utils/bem';
 // assets
 require('../../../../sass/blocks/live/live-mlb-pitch-zone.scss');
 import stadiumBgSrc from '../../../../img/blocks/live/bg-mlb.jpg';
-// import zoneBg from '../../../../img/blocks/live-mlb-pitch-zone/bg.png';
+const zoneBg = require('../../../../img/blocks/live-mlb-pitch-zone/bg-pitch-zone.png');
 
 
 /**
@@ -44,7 +44,7 @@ const LiveMLBPitchZone = (props) => {
         <img
           alt="Pitch zone background"
           className={`${block}__zone-bg`}
-          src="/static/src/img/blocks/live-mlb-pitch-zone/bg.png"
+          src={zoneBg}
         />
         {pitches}
       </div>
