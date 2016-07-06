@@ -44,7 +44,7 @@ const LiveMLBPitchZone = (props) => {
         <img
           alt="Pitch zone background"
           className={`${block}__zone-bg`}
-          src="/static/src/img/blocks/live-mlb-pitch-zone/bg.png"
+          src="/static/src/img/blocks/live-mlb-pitch-zone/bg-pitch-zone.png"
         />
         {pitches}
       </div>
