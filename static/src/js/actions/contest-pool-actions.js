@@ -3,9 +3,9 @@ import { normalize, Schema, arrayOf } from 'normalizr';
 import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
 import * as actionTypes from '../action-types';
-import { monitorEntryRequest, monitorUnregisterRequest } from './entry-request-actions.js';
 import { addMessage } from './message-actions.js';
 import { CALL_API } from '../middleware/api';
+import { fetchCashBalanceIfNeeded } from './user.js';
 
 
 const contestSchema = new Schema('contests', {
@@ -156,13 +156,30 @@ export function enterContest(contestPoolId, lineupId) {
     .send(postData)
     .end((err, res) => {
       if (err) {
-        addMessage({
+        log.error('Contest entry request status error:', res);
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        dispatch(fetchContestPoolEntries());
+        // Re-Fetch the contest list that will have an updated current_entries count.
+        dispatch(fetchContestPools());
+
+        dispatch(addMessage({
           header: 'Unable to join contest.',
           level: 'warning',
-        });
-        log.error(res);
+          content: res.text,
+        }));
       } else {
-        dispatch(monitorEntryRequest(res.body.buyin_task_id, contestPoolId, lineupId));
+        // Because the user just entered a contest, their cash balance should be different.
+        dispatch(fetchCashBalanceIfNeeded());
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        dispatch(fetchContestPoolEntries());
+        // Re-Fetch the contest list that will have an updated current_entries count.
+        dispatch(fetchContestPools());
+        // Display a success message to the user.
+        dispatch(addMessage({
+          level: 'success',
+          header: 'Your lineup has been entered.',
+          ttl: 2000,
+        }));
       }
     });
   };
@@ -260,9 +277,27 @@ export function removeContestPoolEntry(entry) {
           content: res.body.error,
           level: 'warning',
         }));
+        // Because the user just entered a contest, their cash balance should be different.
+        dispatch(fetchCashBalanceIfNeeded());
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        dispatch(fetchContestPoolEntries());
+        // Re-Fetch the contest list that will have an updated current_entries count.
+        dispatch(fetchContestPools());
+
         log.error(res);
       } else {
-        dispatch(monitorUnregisterRequest(res.body.task_id, entry));
+        // Because the user just entered a contest, their cash balance should be different.
+        dispatch(fetchCashBalanceIfNeeded());
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        dispatch(fetchContestPoolEntries());
+        // Re-Fetch the contest list that will have an updated current_entries count.
+        dispatch(fetchContestPools());
+        // Display a success message to the user.
+        dispatch(addMessage({
+          level: 'success',
+          header: 'Your lineup entry has been removed.',
+          ttl: 3000,
+        }));
       }
     });
   };

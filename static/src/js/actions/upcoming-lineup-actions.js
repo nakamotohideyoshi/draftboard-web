@@ -9,7 +9,7 @@ import sortBy from 'lodash/sortBy';
 import uniqWith from 'lodash/uniqWith';
 import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
-import { monitorLineupEditRequest } from './lineup-edit-request-actions.js';
+
 
 // Normalization scheme for lineups.
 const lineupSchema = new Schema('lineups', {
@@ -240,15 +240,19 @@ export function saveLineupEdit(lineup, title, lineupId) {
       .send(postData)
       .end((err, res) => {
         if (err) {
-          addMessage({
-            title: 'Unable to edit contest.',
+          dispatch(addMessage({
+            header: 'Unable to edit lineup',
+            content: res.text,
             level: 'warning',
-          });
+            id: 'lineupEdit',
+          }));
           log.error(res);
           dispatch(saveLineupFail(res.body));
         } else {
-          log.info(res.body);
-          dispatch(monitorLineupEditRequest(res.body.task_id, lineupId));
+          if (res.body.status === 'SUCCESS') {
+            // Redirect to lobby with url param.
+            document.location.href = '/lobby/?lineup-saved=true';
+          }
         }
       });
   };
