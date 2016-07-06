@@ -107,7 +107,11 @@ const DraftPlayerListRow = React.createClass({
             src="/static/src/img/blocks/draft-list/lineup-no-player.png"
             data-src={`${this.props.playerImagesBaseUrl}/120/${this.props.row.player_srid}.png`}
             onError={(tag) => {
-              tag.currentTarget.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
+              // Prevent load loops if the lineup-no-player.png is unable to load.
+              if (!tag.currentTarget.getAttribute('loaded')) {
+                tag.currentTarget.setAttribute('loaded', true);
+                tag.currentTarget.src = require('../../../img/blocks/draft-list/lineup-no-player.png');
+              }
             }}
             alt=""
             width="auto"

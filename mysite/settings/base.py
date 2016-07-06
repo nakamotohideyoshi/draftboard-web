@@ -1,9 +1,10 @@
 from os import environ
+from os.path import join
 from sys import stdout
 from unipath import Path
 import datetime
-
 from django.conf.locale.en import formats as en_formats
+
 en_formats.DATETIME_FORMAT = "l, M d P"
 #en_formats.DATETIME_FORMAT = "m/d/Y h:i:s P"
 # en_formats.DATETIME_FORMAT = "l m.d.Y  @  P"
@@ -38,7 +39,6 @@ SITE_ROOT       = os.path.dirname(os.path.realpath(__file__))
 # fixtures directory: /PATH/TO/BASE_PROJECT_DIR/test/fixtures
 FIXTURES_DIR    = (os.path.join(BASE_DIR, 'test/fixtures'),)  # for $> manage.py test
 
-from os.path import join
 
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
@@ -498,11 +498,6 @@ if USE_LOCKDOWN:
 #
 # custom test runner by default does not require sudo privileges
 INLINE_APP_DISCOVER_RUNNER_REQURES_SUDO = False
-
-#
-# set FIXTURES_DIR
-PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
-FIXTURE_DIRS = (os.path.join(PROJECT_ROOT, 'fixtures'),)
 
 #
 # disable recording
