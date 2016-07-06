@@ -113,3 +113,12 @@ class SavedCardPaymentSerializer(serializers.Serializer):
     token = serializers.CharField()
     #amount = serializers.DecimalField(max_digits=9, decimal_places=2)
     amount = serializers.FloatField()
+
+class CreditCardPaymentSerializer(SavedCardAddSerializer):
+    """
+    Note: we also get a bunch of fields from the inherited serializer...
+    """
+
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    amount = serializers.FloatField()

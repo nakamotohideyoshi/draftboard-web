@@ -174,6 +174,8 @@ class PayPal(object):
 
     class AuthException(Exception): pass
 
+    class PayPalException(Exception): pass
+
     class PayWithCreditCardException(Exception): pass
 
     class PayWithSavedCardException(Exception): pass
@@ -212,65 +214,6 @@ class PayPal(object):
         """
         # TODO - this requires a bit more complicated flow between us and paypal
         raise self.UnimplementedMethodException('pay_with_paypal() - TODO')
-
-    # def test_tls(self):
-    #     paypal.configure({
-    #       "mode": "security-test-sandbox", # sandbox or live
-    #       "client_id": self.client_id,
-    #       "client_secret": self.secret })
-    #
-    #     # Payment
-    #     # A Payment Resource; create one using
-    #     # the above types and intent as 'sale'
-    #     payment = paypal.Payment({
-    #         "intent": "sale",
-    #
-    #         # Payer
-    #         # A resource representing a Payer that funds a payment
-    #         # Payment Method as 'paypal'
-    #         "payer": {
-    #             "payment_method": "paypal"},
-    #
-    #         # Redirect URLs
-    #         "redirect_urls": {
-    #             "return_url": "http://localhost:3000/payment/execute",
-    #             "cancel_url": "http://localhost:3000/"},
-    #
-    #         # Transaction
-    #         # A transaction defines the contract of a
-    #         # payment - what is the payment for and who
-    #         # is fulfilling it.
-    #         "transactions": [{
-    #
-    #             # ItemList
-    #             "item_list": {
-    #                 "items": [{
-    #                     "name": "item",
-    #                     "sku": "item",
-    #                     "price": "5.00",
-    #                     "currency": "USD",
-    #                     "quantity": 1}]},
-    #
-    #             # Amount
-    #             # Let's you specify a payment amount.
-    #             "amount": {
-    #                 "total": "5.00",
-    #                 "currency": "USD"},
-    #             "description": "This is the payment transaction description."}]})
-    #
-    #     # Create Payment and return status
-    #     if payment.create():
-    #         print("Payment[%s] created successfully" % (payment.id))
-    #         # Redirect the user to given approval url
-    #         for link in payment.links:
-    #             if link.method == "REDIRECT":
-    #                 # Convert to str to avoid google appengine unicode issue
-    #                 # https://github.com/paypal/rest-api-sdk-python/pull/58
-    #                 redirect_url = str(link.href)
-    #                 print("Redirect for approval: %s" % (redirect_url))
-    #     else:
-    #         print("Error while creating payment:")
-    #         print(payment.error)
 
     def get_formatted_amount(self, amount):
         """
@@ -381,6 +324,7 @@ class PayPal(object):
         self.validate_pay_with_credit_card(self.r_payment)
 
         payment_data = self.get_http_response_dict(self.session, self.r_payment)
+        self.save_payment_data(CreditCardPaymentData, payment_data)
 
         self.validate_payment_data(payment_data, debug_tag=__name__)
 
@@ -396,7 +340,7 @@ class PayPal(object):
 
         message = payment_data.get('message','')
         name = payment_data.get('name')
-        details = payment_data.get('details',{})
+        details = payment_data.get('details',[])
 
         if name is not None:
             if name == 'INVALID_RESOURCE_ID':
@@ -404,8 +348,10 @@ class PayPal(object):
         #print('payment_data:', str(payment_data))
         print('payment_data issues below:')
         for issue_data in details:
-            err_msg = '        message[%s] name[%s] issue[%s]' % (message, name, str(issue_data.get('issue')))
+            err_msg = '%s - %s' % (name, str(issue_data.get('issue')))
             print(err_msg)
+            raise self.PayPalException(err_msg)
+
 
     def validate_pay_with_credit_card(self, r):
         # TODO pass this while i work on testing
