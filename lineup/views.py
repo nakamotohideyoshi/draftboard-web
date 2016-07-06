@@ -222,8 +222,13 @@ class EditLineupAPIView(generics.CreateAPIView):
 
         #
         # call task
+        # we could call the same task like this, fwiw:
+        # >>> task_result = edit_lineup.apply_async(args=(request.user, players, lineup))
         task_result = edit_lineup.delay(request.user, players, lineup)
-        return Response({'task_id':task_result.id}, status=status.HTTP_201_CREATED)
+        # get() blocks the view from returning until the task finishes
+        task_result.get()
+        task_helper = TaskHelper(edit_lineup, task_result.id)
+        return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
 
 class EditLineupStatusAPIView(generics.GenericAPIView):
 
