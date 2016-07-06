@@ -545,16 +545,23 @@ class EnterLineupAPIView(generics.CreateAPIView):
 
         #
         # call the buyin task - it has a time_limit of ~20 seconds before it will timeout
-        task_result = buyin_task.delay( request.user, contest, lineup=lineup ) # TODO - check this after the call and commit
-
+        # print('before:', str(timezone.now()))
+        # # task_result = buyin_task.delay( request.user, contest, lineup=lineup )
+        # task_result = buyin_task.apply(args=(request.user, contest, lineup))
+        # print('after:', str(timezone.now()))
         #
-        # return task id
-        return Response({'buyin_task_id':task_result.id}, status=status.HTTP_201_CREATED)
+        # #
+        # # return task id
+        # return Response({'buyin_task_id':task_result.id}, status=status.HTTP_201_CREATED)
 
-        # If Entry creation was successful, return the created Entry object.
-        # entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
-        # serializer = CurrentEntrySerializer(entry, many=False)
-        # return Response(serializer.data, status=status.HTTP_201_CREATED)
+        task_result = buyin_task.delay(request.user, contest, lineup=lineup)
+        # get() blocks the view from returning until the task completes its work
+        task_result.get()
+        task_helper = TaskHelper(buyin_task, task_result.id)
+        #print('task_helper.get_data()', task_helper.get_data())
+        data = task_helper.get_data()
+        data['buyin_task_id'] = task_result.id # dont break what was there by adding this extra field
+        return Response(data, status=status.HTTP_201_CREATED)
 
 class EnterLineupStatusAPIView(generics.GenericAPIView):
 
@@ -614,9 +621,12 @@ class EditEntryLineupAPIView(APIView):
             return Response({'error':'invalid "entry" parameter -- does not exist'},
                                         status=status.HTTP_400_BAD_REQUEST )
         #
-        # call task
+        # execute task
         task_result = edit_entry.delay(request.user, players, entry)
-        return Response({'task_id':task_result.id}, status=status.HTTP_201_CREATED)
+        # get() blocks the view until the task completes its work
+        task_result.get()
+        task_helper = TaskHelper(edit_entry, task_result.id)
+        return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
 
 class EditEntryLineupStatusAPIView(generics.GenericAPIView):
     """
@@ -665,10 +675,17 @@ class RemoveAndRefundEntryAPIView(APIView):
             return Response({'error':'only an admin or the creating user can unregister this entry'},
                                             status=status.HTTP_403_FORBIDDEN )
 
+        #if entry.contest_pool not in UpcomingContestPool.objects.all():
+        if entry.contest_pool not in UpcomingContestPool.objects.all():
+            return Response({'error':'Cannot unregister at this time.'}, status=status.HTTP_403_FORBIDDEN)
+
         #
         # execute the unregister task (non-blocking) and return the task_id
-        task = unregister_entry_task.delay( entry )
-        return Response({'task_id':task.id}, status=status.HTTP_201_CREATED)
+        task_result = unregister_entry_task.delay(entry)
+        # get() blocks the view from returning until the task finishes
+        task_result.get()
+        task_helper = TaskHelper(unregister_entry_task, task_result.id)
+        return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
 
 class RemoveAndRefundEntryStatusAPIView(generics.GenericAPIView):
     """
