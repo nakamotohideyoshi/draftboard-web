@@ -33,6 +33,7 @@ from account.serializers import (
     SavedCardAddSerializer,
     SavedCardDeleteSerializer,
     SavedCardPaymentSerializer,
+    CreditCardPaymentSerializer,
 )
 import account.tasks
 from pp.classes import (
@@ -420,7 +421,94 @@ class PayPalDepositWithPayPalAccountAPIView(APIView): pass          # TODO
 class PayPalDepositWithPayPalAccountSuccessAPIView(APIView): pass   # TODO
 class PayPalDepositWithPayPalAccountFailAPIView(APIView): pass      # TODO
 
-class PayPalDepositCreditCardAPIView(APIView): pass                 # TODO
+class PayPalDepositMixin:
+    """
+    it may be useful to have a mixin that can validate and perform our
+    own server side deposit (a CashTransaction)
+    """
+    def deposit(self, user, payment_data):
+        print('     ', str(payment_data))
+        # check the payment state to determine if the funds deposit was successful
+        success = payment_data.get('state') == 'approved'
+        message = payment_data.get('message')
+        if message is not None:
+            raise APIException(message)
+        if not success:
+            raise APIException('The deposit was unsuccessful.')
+
+        #
+        paypal_transaction_id = payment_data.get('id')
+        # 'transactions': [
+        #   {'amount':
+        #       {'currency': 'USD',
+        #       'details': {'subtotal': '25.55'},
+        #       'total': '25.55'
+        #   },
+
+        # if we fail to get the amount here, thats bad i think
+        try:
+            amount = float(payment_data.get('transactions')[0].get('amount').get('total'))
+        except Exception as e:
+            print("float(payment_data.get('transactions')[0].get('amount').get('total'))")
+            raise APIException(e)
+
+        if paypal_transaction_id is None:
+            raise APIException('PayPal payment did not respond with a valid "id".')
+
+        ct = CashTransaction(user)
+        ct.deposit_paypal_with_saved_card(amount, paypal_transaction_id)
+
+        # money deposited!
+        return Response(status=200)
+
+class PayPalDepositCreditCardAPIView(APIView, PayPalDepositMixin):
+    """
+    example of the POST data:
+
+        {
+            "type":"visa","number":"4032036765082399",
+            "exp_month":"12","exp_year":"2020","cvv2":"012",
+            "first_name":"joe","last_name":"depositor","amount":21.99
+        }
+
+    """
+    authentication_classes = (IsAuthenticated, )
+    serializer_class = CreditCardPaymentSerializer
+
+    def post(self, request, *args, **kwargs):
+        self.serializer_class(data=self.request.data).is_valid(raise_exception=True)
+
+        # get the values from the serializer
+        type = self.request.data.get('type')
+        number = self.request.data.get('number')
+        exp_month = self.request.data.get('exp_month')
+        exp_year = self.request.data.get('exp_year')
+        cvv2 = self.request.data.get('cvv2')
+        first_name = self.request.data.get('first_name')
+        last_name = self.request.data.get('last_name')
+        amount = self.request.data.get('amount')
+
+        #return Response(status=200)
+
+        pp = PayPal()
+        pp.auth()
+
+        # example: we could build a CardData() object for some light
+        # validation, but we could also let the serializer do it...or paypals own api...
+        # but lets just ship it to paypal and use their error responses and see
+        # how that works out initially.
+
+        # execute paypal api call
+        try:
+            payment_data = pp.pay_with_credit_card(amount, type, number, exp_month, exp_year,
+                                                cvv2, first_name, last_name)
+        except PayPal.PayPalException as e:
+            raise APIException(e)
+
+        # uses the mixin's method to validate the
+        # paypal response and deposit a cash transaction
+        # in the users account if the pp transaction was successful
+        return self.deposit(self.request.user, payment_data)
 
 class PayPalDepositSavedCardAPIView(APIView):
     """
@@ -713,15 +801,3 @@ class SetSavedCardDefaultAPIView(APIView):
 
         # return success response of simply http 200
         return Response(status=200)
-
-# In [1]: from account.models import SavedCardDetails
-# In [2]: saved_card = SavedCardDetails()
-# In [3]: from django.contrib.auth.models import User
-# In [4]: user = User.objects.get(username='admin')
-# In [5]: saved_card.user = user
-# In [6]: saved_card.type = 'visa'
-# In [7]: saved_card.last_4 =
-# In [8]: saved_card.exp_month = '11'
-# In [9]: saved_card.exp_year = 2017
-# In [10]: saved_card.default = True
-# In [11]: saved_card.save()

@@ -127,6 +127,7 @@ class TestPayPal(AbstractTest):
 
         card_data = CardData(CARD_DATA_1)
 
+        # {"type":"visa","number":"4032036765082399","exp_month":"12","exp_year":"2020","cvv2":"012"}
         #type = card_data.get_type()
         type = 'visa'
         #number = card_data.get_number() # originally this was not a valid credit card complying with "mod-10"
