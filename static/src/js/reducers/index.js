@@ -27,6 +27,7 @@ const sports = require('./sports');
 const transactions = require('./transactions');
 const contestPools = require('./contest-pools');
 const upcomingDraftGroups = require('./upcoming-draft-groups');
+const upcomingDraftGroupUpdates = require('./upcoming-draft-group-updates.js');
 const upcomingLineups = require('./upcoming-lineups');
 const user = require('./user');
 const watching = require('./watching');
@@ -63,6 +64,7 @@ export default combineReducers({
   sports,
   transactions,
   upcomingDraftGroups,
+  upcomingDraftGroupUpdates,
   upcomingLineups,
   lineupUsernames,
   user,

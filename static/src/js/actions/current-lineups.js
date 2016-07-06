@@ -70,8 +70,12 @@ const addLineupsPlayers = () => (dispatch, getState) => {
 
   // only add players that have started playing, by checking if they are in the roster
   forEach(liveLineups, (lineup) => {
-    // just choose the first contest
-    const contestLineup = state.liveContests[lineup.contests[0]].lineups[lineup.id] || {};
+    // just choose the first contest, if we have one.
+    let contestLineup = {};
+    if (lineup.contests.length && lineup.contests && state.liveContests[lineup.contests[0]]) {
+      contestLineup = state.liveContests[lineup.contests[0]].lineups[lineup.id];
+    }
+
     if (contestLineup.roster) {
       lineupsPlayers[lineup.id] = contestLineup.roster;
     }
