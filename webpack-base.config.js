@@ -42,13 +42,15 @@ module.exports = {
         loader: 'eslint-loader',
         exclude: /node_modules/,
       },
-      // Images.
+      // Images under 8KB made inline base64
       {
-        test: /\.(jpe?g|png|gif|svg)$/i,
+        test: /\.(png|jpe?g|gif)$/,
+        loader: 'url-loader?name=img/[name]-[sha512:hash:base64:7].[ext]&limit=8192',
+      },
+      {
+        test: /\.(svg)$/i,
         loaders: [
-          // Optimize image files, and move them to the build directory.
           'file-loader?name=img/[name]-[sha512:hash:base64:7].[ext]',
-          'image-webpack?bypassOnDebug=true&optimizationLevel=0',
         ],
       },
     ],
