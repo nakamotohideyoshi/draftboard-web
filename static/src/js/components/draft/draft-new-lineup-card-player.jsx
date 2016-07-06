@@ -55,7 +55,7 @@ const DraftNewLineupCardPlayer = (props) => {
       <span className="cmp-lineup-card__photo">
         <img
           alt="No Player Chosen"
-          src="/static/src/img/blocks/draft-list/lineup-no-player.png"
+          src={require('../../../img/blocks/draft-list/lineup-no-player.png')}
           width="auto"
           height="35px"
         />
