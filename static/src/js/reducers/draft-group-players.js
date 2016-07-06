@@ -7,7 +7,6 @@ const initialState = {
   id: null,
   isFetching: false,
   allPlayers: {},
-  probablePitchers: [],
 };
 
 
