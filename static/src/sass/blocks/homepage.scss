@@ -1,4 +1,6 @@
+@import url(https://fonts.googleapis.com/css?family=Open+Sans:400|Oswald:400);
 @import "../variables.scss";
+@import "../base.scss";
 
 .home-page {
   margin: 0 auto;
@@ -17,7 +19,7 @@
     line-height: 23px;
     letter-spacing: 3px;
     text-transform: uppercase;
-    background: transparent url('../img/blocks/homepage/logo.png') no-repeat left top;
+    background: transparent url('../../img/blocks/homepage/logo.png') no-repeat left top;
     background-size: 30px auto;
     z-index: 10;  // stay above absolute header bg
   }
@@ -107,8 +109,8 @@
 
       color: white;
       font-size: 10px;
-      font-family: $open-sans;
-      font-weight: 500;
+      font-family: $font-open-sans;
+      font-weight: 400;
       text-transform: uppercase;
       letter-spacing: 1px;
       text-align: center;
@@ -133,7 +135,7 @@
         right: 0px;
         width: 19px;
         height: 11px;
-        background: url(../img/account/arrow.png);
+        background: url('../../img/account/arrow.png');
         background-repeat: no-repeat;
         background-size: 9px auto;
       }
@@ -218,7 +220,7 @@
       height: 18px;
 
       .arrow {
-        background: url(../img/blocks/homepage/arrow.png) no-repeat;
+        background: url('../../img/blocks/homepage/arrow.png') no-repeat;
         background-size: 5px auto;
         bottom: 0px;
         display: inline-block;
@@ -252,7 +254,6 @@
 
     &--group-1 {
       .home-page--content--group--bg {
-        background: url('../img/blocks/homepage/section_1_bg.png') right top no-repeat;
         background-size: auto 100%;
       }
     }
@@ -262,7 +263,6 @@
       z-index: 5;
 
       .home-page--content--group--bg {
-        background: url('../img/blocks/homepage/section_2_bg.png') no-repeat left top;
         background-size: auto 100%;
       }
 
@@ -283,7 +283,6 @@
 
     &--group-3 {
       .home-page--content--group--bg {
-        background: url('../img/blocks/homepage/section_3_bg.jpg') no-repeat right top;
         background-size: 100% auto;
       }
 
@@ -338,8 +337,8 @@
 
           color: white;
           font-size: 12px;
-          font-family: $open-sans;
-          font-weight: 500;
+          font-family: $font-open-sans;
+          font-weight: 400;
           text-transform: uppercase;
           letter-spacing: 1px;
           text-align: center;
@@ -364,7 +363,7 @@
             right: 0px;
             width: 19px;
             height: 11px;
-            background: url(../img/account/arrow.png);
+            background: url('../../img/account/arrow.png');
             background-repeat: no-repeat;
             background-size: 9px auto;
           }
@@ -388,7 +387,7 @@
       display: inline-block;
       width: 24px;
       height: 20px;
-      background: transparent url('../img/blocks/homepage/logo.png') no-repeat left top;
+      background: transparent url('../../img/blocks/homepage/logo.png') no-repeat left top;
       background-size: 24px auto;
       position: relative;
       top: 7px;
@@ -443,10 +442,6 @@
           bottom: 40%;
         }
 
-        .home-page--content--section {
-          margin-top: 36%;
-        }
-
         .home-page--content--footer {
           left: 10%;
           bottom: 8%;
@@ -494,7 +489,7 @@
 
     &--header {
       &--bg {
-        background: #fff url(../img/blocks/homepage/header_ipad.jpg) no-repeat center bottom;
+        background: #02071D url('../../img/blocks/homepage/header_ipad.jpg') no-repeat center bottom;
       }
     }
 
@@ -515,13 +510,13 @@
 
       &--group-1 {
         .home-page--content--group--bg {
-          background: url('../img/blocks/homepage/section_1_bg_ipad.png') right top no-repeat;
+          background: url('../../img/blocks/homepage/section_1_bg_ipad.png') right top no-repeat;
         }
       }
 
       &--group-2 {
         .home-page--content--group--bg {
-          background: url('../img/blocks/homepage/section_2_bg_ipad.png') left top no-repeat;
+          background: url('../../img/blocks/homepage/section_2_bg_ipad.png') left top no-repeat;
         }
 
         .home-page--content--section {
@@ -531,7 +526,7 @@
 
       &--group-3 {
         .home-page--content--group--bg {
-          background: url('../img/blocks/homepage/section_3_bg_ipad.jpg') right top no-repeat;
+          background: url('../../img/blocks/homepage/section_3_bg_ipad.png') right top no-repeat;
           background-size: 100% auto;
         }
 
@@ -677,6 +672,10 @@
 
       &--group-3 {
         padding-top: 156%;  // proportion of 1900 height / 3400 width
+
+        .home-page--content--section {
+          margin-top: 30%;
+        }
       }
     }
   }
@@ -702,7 +701,7 @@
       padding-top: 46.7%;  // proportion according to 1658px height / 3549px width in comp
 
       &--bg {
-        background: url(../img/blocks/homepage/header.jpg) no-repeat center bottom;
+        background: #02071D url('../../img/blocks/homepage/header.jpg') no-repeat center bottom;
         background-size: 100% auto;
       }
     }
@@ -722,14 +721,14 @@
 
       &--group-1 {
         .home-page--content--group--bg {
-          background: url('../img/blocks/homepage/section_1_bg.png') right top no-repeat;
+          background: url('../../img/blocks/homepage/section_1_bg.png') right top no-repeat;
           background-size: auto 100%;
         }
       }
 
       &--group-2 {
         .home-page--content--group--bg {
-          background: url('../img/blocks/homepage/section_2_bg.png') left top no-repeat;
+          background: url('../../img/blocks/homepage/section_2_bg.png') left top no-repeat;
           background-size: auto 100%;
         }
 
@@ -742,8 +741,12 @@
         padding-top: 122%;
 
         .home-page--content--group--bg {
-          background: url('../img/blocks/homepage/section_3_bg.jpg') right top no-repeat;
+          background: url('../../img/blocks/homepage/section_3_bg.png') right top no-repeat;
           background-size: 100% auto;
+        }
+
+        .home-page--content--section {
+          margin-top: 36%;
         }
 
         .home-page--content--footer {
