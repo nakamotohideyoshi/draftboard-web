@@ -48,7 +48,6 @@ module.exports = {
         loaders: [
           // Optimize image files, and move them to the build directory.
           'file-loader?name=img/[name]-[sha512:hash:base64:7].[ext]',
-          'image-webpack?bypassOnDebug=true&optimizationLevel=0',
         ],
       },
     ],
