@@ -12,7 +12,7 @@ const LineupCardPlayer = (props) => (
       <img
         src={`${props.playerImagesBaseUrl}/120/${props.player.player_meta.srid}.png`}
         onError={(tag) => {
-          tag.currentTarget.src = '/static/src/img/blocks/draft-list/lineup-no-player.png';
+          tag.currentTarget.src = require('../../../img/blocks/draft-list/lineup-no-player.png');
         }}
         alt=""
         width="auto"
