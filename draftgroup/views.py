@@ -29,7 +29,14 @@ import json
 from django.http import HttpResponse
 from django.views.generic import View
 
-class UpdateAPIView(APIView):
+class GetSerializedDataMixin:
+
+    def get_serialized_data(self, draft_group_id, model_class, serializer_class):
+        game_updates = model_class.objects.filter(draft_groups__pk=draft_group_id)
+        serialized_data = serializer_class(game_updates, many=True).data
+        return serialized_data
+
+class UpdateAPIView(APIView, GetSerializedDataMixin):
     """
     parent view class for XxxxUpdateAPIView(s)
     """
@@ -38,11 +45,17 @@ class UpdateAPIView(APIView):
     model_class = None          # child view must set this
     serializer_class = None     # child view must set this
 
+    # def get_serialized_data(self, draft_group_id):
+    #     game_updates = self.model_class.objects.filter(draft_groups__pk=draft_group_id)
+    #     serialized_data = self.serializer_class(game_updates, many=True).data
+    #     return serialized_data
+
     def get(self, request, *args, **kwargs):
         draft_group_id = kwargs.get('draft_group_id')
-        game_updates = self.model_class.objects.filter(draft_groups__pk=draft_group_id)
-        serialized_data = self.serializer_class(game_updates, many=True).data
-        return Response(serialized_data, status=200)
+        # game_updates = self.model_class.objects.filter(draft_groups__pk=draft_group_id)
+        # serialized_data = self.serializer_class(game_updates, many=True).data
+        data = self.get_serialized_data(draft_group_id, self.model_class, self.serializer_class)
+        return Response(data, status=200)
 
 class GameUpdateAPIView(UpdateAPIView):
     """
@@ -57,6 +70,21 @@ class PlayerUpdateAPIView(UpdateAPIView):
     """
     model_class = PlayerUpdate
     serializer_class = PlayerUpdateSerializer
+
+class PlayerAndGameUpdateAPIView(APIView, GetSerializedDataMixin):
+    """
+
+    """
+
+    authentication_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        draft_group_id = kwargs.get('draft_group_id')
+        data = {
+            'player_updates' : self.get_serialized_data(draft_group_id, PlayerUpdate, PlayerUpdateSerializer),
+            'game_updates' : self.get_serialized_data(draft_group_id, GameUpdate, GameUpdateSerializer),
+        }
+        return Response(data, status=200)
 
 class DraftGroupAPIView(generics.GenericAPIView):
     """
