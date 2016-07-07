@@ -3,55 +3,58 @@ import createLogger from 'redux-logger';
 
 
 /**
- * Return the appropriate log level
- * @return {string} The log level
+ * Returns a default logging level based on environment
+ *
+ * @return {[type]} [description]
  */
-const getLevel = () => {
-  // Default to errors only and prouction
-  let logLevel = 'error';
+const getDefaultLevel = () => {
+  const { NODE_ENV } = process.env;
 
-  if (process.env.NODE_ENV === 'debug' || process.env.NODE_ENV === 'development') {
-    logLevel = 'debug';
-  }
+  // sometimes it's called development so map to debug
+  if (['debug', 'development'].indexOf(NODE_ENV) > -1) return 'DEBUG';
 
-  if (process.env.NODE_ENV === 'test') {
-    logLevel = 'warn';
-  }
+  // increase level for testing in cloud, we don't want to see bc we're already testing
+  if (NODE_ENV === 'test') return 'WARN';
 
-  // override with URL query param
-  if (window.dfs.logLevel !== '') {
-    logLevel = window.dfs.logLevel;
-  }
-
-  return logLevel;
+  // default to errors only for production
+  return 'ERROR';
 };
 
-// get and set the appropriate logging level
-export const logLevel = getLevel();
+// default if setLevel isn't used, see
+// https://www.npmjs.com/package/loglevel for more info
+log.setDefaultLevel(getDefaultLevel());
 
-// modify logger to have filtering capabilities
-// const originalFactory = log.methodFactory;
-//
-// log.methodFactory = (methodName, level, loggerName) => {
-//   const rawMethod = originalFactory(methodName, level, loggerName);
-//
-//   return (message) => {
-//     if (Array.isArray(message)) {
-//       rawMethod(`Is array: ${message}`);
-//     } else {
-//       rawMethod(`NOT: ${message}`);
-//     }
-//   };
-// };
+// setLevel if user overrides
+if (['trace', 'debug', 'info', 'warn', 'error'].indexOf(window.dfs.logLevel) > -1) {
+  const { logLevel } = window.dfs;
 
-log.setLevel(logLevel);
+  // let the user know what they did
+  const overrideLog = log.getLogger('override-log-level');
+  overrideLog.setLevel('WARN');
+  overrideLog.warn(`Log level overridden by backend, set to "${logLevel}"`);
+
+  // don't persist! we do that in python so we can clear js localStorage yet still log
+  log.setLevel(logLevel, false);
+}
+
+// default custom loggers to ERROR, change when debugging locally
+// search for `getLogger` on this page to learn more https://www.npmjs.com/package/loglevel
+log.getLogger('action').setLevel('ERROR');
+log.getLogger('app-state-store').setLevel('ERROR');
+log.getLogger('component').setLevel('ERROR');
+log.getLogger('selector').setLevel('ERROR');
 
 // by default, export the log object to work with
 export default log;
 
-// configure redux-logging, is added in to middleware
-// TODO: remove || logLevel === 'error' to disable redux-logger on staging/production.
+// we export this to have test to ensure this is never shown on production
+// works differently than setLevel, shows for any level less than this reduxLoggerLevel
+// default to TRACE so it does not show
+export const reduxLoggerLevel = log.levels.TRACE;
+
+// configure redux-logging to show messages about reducer state
+// show for TRACE, DEBUG, INFO, WARN levels
 export const logger = createLogger({
-  predicate: () => logLevel === 'trace' || logLevel === 'debug' || logLevel === 'error',
+  predicate: () => log.getLevel() < reduxLoggerLevel,
   collapsed: true,
 });

@@ -1,8 +1,8 @@
+from django.core.cache import cache
 from braces.views import LoginRequiredMixin
 from django.views.generic.base import TemplateView
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from django.shortcuts import redirect
 
 from contest.models import (
     Entry,
@@ -16,6 +16,14 @@ class FrontendHomepageTemplateView(TemplateView):
 
     # If a logged-in user goes to the homepage, redirect them to the lobby.
     def get(self, request, *args, **kwargs):
+        # cache loglevel so it persists until we reset
+        loglevel = request.GET.get('loglevel', None)
+        cache_id = 'js_loglevel'
+        if loglevel in ['trace', 'debug', 'info', 'warn', 'error']:
+            cache.add(cache_id, loglevel)
+        elif loglevel == 'reset':
+            cache.delete(cache_id)
+
         if request.user.is_authenticated():
             return HttpResponseRedirect(reverse('frontend:lobby'))
 
@@ -65,10 +73,6 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(FrontendLiveTemplateView, self).get_context_data(**kwargs)
 
-        log_level = self.request.GET.get('loglevel', None)
-        if log_level in ['trace', 'debug', 'info', 'warn', 'error']:
-            context['loglevel'] = log_level
-
         if self.request.GET.get('wipe_localstorage', 0) is '1':
             context['wipe_localstorage'] = 1
 
@@ -77,15 +81,6 @@ class FrontendLiveTemplateView(LoginRequiredMixin, TemplateView):
 
 class FrontendLobbyTemplateView(TemplateView):
     template_name = 'frontend/lobby.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(FrontendLobbyTemplateView, self).get_context_data(**kwargs)
-
-        log_level = self.request.GET.get('loglevel', None)
-        if log_level in ['trace', 'debug', 'info', 'warn', 'error']:
-            context['loglevel'] = log_level
-
-        return context
 
 
 class FrontendSettingsTemplateView(LoginRequiredMixin, TemplateView):
