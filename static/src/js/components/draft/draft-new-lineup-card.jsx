@@ -15,6 +15,7 @@ const DraftNewLineupCard = React.createClass({
 
   propTypes: {
     isActive: React.PropTypes.bool,
+    isSaving: React.PropTypes.bool,
     lineup: React.PropTypes.array.isRequired,
     lineupTitle: React.PropTypes.string,
     removePlayer: React.PropTypes.func.isRequired,
@@ -79,6 +80,17 @@ const DraftNewLineupCard = React.createClass({
 
 
   renderSaveButton() {
+    // If the lineup is being saved, disable the button.
+    if (this.props.isSaving) {
+      return (
+        <span
+          className="cmp-lineup-card__save button button--outline buttom--sm button--disabled"
+        >
+          Save
+        </span>
+      );
+    }
+
     if (this.props.lineupCanBeSaved) {
       return (
         <span
