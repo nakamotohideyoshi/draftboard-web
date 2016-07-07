@@ -21,6 +21,8 @@ from celery.schedules import crontab
 import celery.states
 from datetime import timedelta
 import time
+from django.core.cache import cache
+from hashlib import md5
 
 #
 # setdefault ONLY sets the default value if the key (ie: DJANGO_SETTINGS_MODULE)
@@ -480,3 +482,23 @@ def stat_update(self, updateable, **kwargs):
     # call send() on a dataden.signals.Updateable instance
     updateable.send()
 
+@app.task(bind=True)
+def save_model_instance(self, instance):
+    """
+    calls save() on a model instance
+    """
+    LOCK_EXPIRE_SECONDS = 5
+    # The cache key consists of the task name and the MD5 digest of the sport
+    lock_id = 'LOCK-save-{0}-{1}'.format(str(type(instance)), str(instance.pk))
+    # cache.add fails if the key already exists
+    acquire_lock = lambda: cache.add(lock_id, 1, LOCK_EXPIRE_SECONDS)
+    release_lock = lambda: cache.delete(lock_id)
+
+    if acquire_lock():
+        try:
+            # call save() on the instance
+            instance.save()
+        finally:
+            release_lock()
+    else:
+        pass # if it couldnt aquire the lock thats really too bad, isnt it?...
