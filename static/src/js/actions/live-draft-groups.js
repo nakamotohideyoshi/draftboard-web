@@ -1,4 +1,3 @@
-import Raven from 'raven-js';
 import * as ActionTypes from '../action-types';
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
@@ -8,7 +7,11 @@ import { dateNow, hasExpired } from '../lib/utils';
 import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions';
 import { fetchTeamsIfNeeded } from './sports';
 import { normalize, Schema, arrayOf } from 'normalizr';
+import { trackUnexpected } from './track-exceptions';
 import { updateLivePlayersStats } from './live-players';
+
+// get custom logger for actions
+const logAction = log.getLogger('action');
 
 
 // dispatch to reducer methods
@@ -73,6 +76,8 @@ const fetchDraftGroupInfo = (id) => ({
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchDraftGroupBoxscores = (state, id) => {
+  logAction.debug('actions.shouldFetchDraftGroupBoxscores');
+
   const liveDraftGroups = state.liveDraftGroups;
   const reasons = [];
 
@@ -84,7 +89,7 @@ const shouldFetchDraftGroupBoxscores = (state, id) => {
   if (!hasExpired(liveDraftGroups[id].boxscoresExpiresAt)) reasons.push('has not expired');
 
   if (reasons.length > 0) {
-    log.trace('shouldFetchDraftGroupBoxscores returned false', reasons);
+    logAction.debug('shouldFetchDraftGroupBoxscores - returned false', reasons);
     return false;
   }
 
@@ -97,27 +102,25 @@ const shouldFetchDraftGroupBoxscores = (state, id) => {
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchDraftGroupFP = (state, id) => {
+  logAction.debug('actions.shouldFetchDraftGroupFP');
+
   const liveDraftGroups = state.liveDraftGroups;
   const reasons = [];
 
   // error if no draft group to associate players to
   if (liveDraftGroups.hasOwnProperty(id) === false) {
-    Raven.captureMessage(
-      'You cannot get fantasy points for a draft group that does not exist yet',
-      { extra: {
-        liveDraftGroups,
-        draftGroupId: id,
-      },
+    return trackUnexpected('actions.shouldFetchDraftGroupFP returned false', {
+      liveDraftGroups,
+      id,
+      reason: 'Draft group does not exist yet',
     });
-
-    return false;
   }
 
   if (liveDraftGroups[id].start > dateNow()) reasons.push('draft group has not started');
-  if (!hasExpired(liveDraftGroups[id].fpExpiresAt)) reasons.push('has not expired');
+  else if (!hasExpired(liveDraftGroups[id].fpExpiresAt)) reasons.push('has not expired');
 
   if (reasons.length > 0) {
-    log.trace('shouldFetchDraftGroupFP returned false', reasons);
+    logAction.debug('shouldFetchDraftGroupFP - returned false', reasons);
     return false;
   }
 
@@ -131,6 +134,8 @@ const shouldFetchDraftGroupFP = (state, id) => {
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchDraftGroup = (state, id) => {
+  logAction.debug('actions.shouldFetchDraftGroup');
+
   const liveDraftGroups = state.liveDraftGroups;
 
   // fetch if draft group does not exist yet
@@ -196,6 +201,8 @@ const fetchDraftGroupFP = (id) => ({
  *                     returned method or directly as a resolved promise
  */
 export const fetchDraftGroupBoxscoresIfNeeded = (id) => (dispatch, getState) => {
+  logAction.debug('actions.fetchDraftGroupBoxscoresIfNeeded');
+
   if (shouldFetchDraftGroupBoxscores(getState(), id) === true) {
     return dispatch(fetchDraftGroupBoxscores(id));
   }
@@ -210,6 +217,8 @@ export const fetchDraftGroupBoxscoresIfNeeded = (id) => (dispatch, getState) => 
  *                     returned method or directly as a resolved promise
  */
 export const fetchDraftGroupFPIfNeeded = (id) => (dispatch, getState) => {
+  logAction.debug('actions.fetchDraftGroupFPIfNeeded');
+
   if (shouldFetchDraftGroupFP(getState(), id) === true) {
     return dispatch(fetchDraftGroupFP(id));
   }
@@ -224,10 +233,10 @@ export const fetchDraftGroupFPIfNeeded = (id) => (dispatch, getState) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchDraftGroupIfNeeded = (id, sport) => (dispatch, getState) => {
-  if (shouldFetchDraftGroup(getState(), id) === false) {
-    log.trace('actionsLiveDraftGroup.fetchDraftGroupIfNeeded() - Draft group exists');
-    return Promise.resolve('Draft group exists');
-  }
+  logAction.debug('actions.fetchDraftGroupIfNeeded');
+
+  if (shouldFetchDraftGroup(getState(), id) === false) return Promise.resolve('Draft group exists');
+
   return Promise.all([
     dispatch(fetchDraftGroupInfo(id)),
     dispatch(fetchTeamsIfNeeded(sport)),
@@ -246,6 +255,8 @@ export const fetchDraftGroupIfNeeded = (id, sport) => (dispatch, getState) => {
  * @return {object}  Changes for reducer, wrapped in thunk
  */
 export const removeUnusedDraftGroups = () => (dispatch, getState) => {
+  logAction.debug('actions.removeUnusedDraftGroups');
+
   const draftGroupIds = [];
   const currentLineups = getState().currentLineups.items || {};
 
@@ -276,6 +287,8 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
  * @return {object}               Changes for reducer, wrapped in thunk
  */
 export const updatePlayerStats = (message, draftGroupId) => (dispatch, getState) => {
+  logAction.debug('actions.updatePlayerStats');
+
   const playerId = message.fields.player_id;
 
   // if this is a relevant player, update their stats

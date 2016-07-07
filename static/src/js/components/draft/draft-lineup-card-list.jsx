@@ -10,6 +10,7 @@ import { setFocusedPlayer } from '../../actions/draft-group-players-actions.js';
 import { importLineup, saveLineup, saveLineupEdit, removePlayer, createLineupInit }
   from '../../actions/upcoming-lineup-actions.js';
 import map from 'lodash/map';
+// import find from 'lodash/find';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 
@@ -119,6 +120,20 @@ const DraftLineupCardList = React.createClass({
   },
 
 
+  isLineupBeingSaved() {
+    // TODO: this breaks when not editing a lineup. Dump this idea and figure out a better way to handle it.
+    //
+    // const currentLineup = find(this.props.lineups, (lineup) =>
+    //   lineup.id.toString() === this.props.params.lineupId.toString()
+    // );
+    // if (currentLineup) {
+    //   return currentLineup.isSaving;
+    // }
+    //
+    return false;
+  },
+
+
   render() {
     const lineups = map(this.props.lineups, (lineup) => {
       const refName = `lineup-${lineup.id}`;
@@ -137,6 +152,7 @@ const DraftLineupCardList = React.createClass({
     return (
       <div>
         <DraftNewLineupCard
+          isSaving={this.isLineupBeingSaved()}
           lineup={this.props.newLineup.lineup}
           lineupTitle={this.props.newLineup.lineupTitle}
           lineupCanBeSaved={this.props.newLineup.lineupCanBeSaved}

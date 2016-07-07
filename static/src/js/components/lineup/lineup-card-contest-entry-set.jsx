@@ -1,5 +1,4 @@
 import React from 'react';
-import find from 'lodash/find';
 
 
 /**
@@ -10,7 +9,6 @@ const LineupCardContestEntrySet = React.createClass({
     entry: React.PropTypes.object.isRequired,
     entrySet: React.PropTypes.object.isRequired,
     removeContestPoolEntry: React.PropTypes.func.isRequired,
-    unregisterRequests: React.PropTypes.object.isRequired,
     entryIndex: React.PropTypes.number.isRequired,
   },
 
@@ -19,10 +17,6 @@ const LineupCardContestEntrySet = React.createClass({
     if (this.props.entrySet.entries) {
       this.props.removeContestPoolEntry(this.props.entry);
     }
-  },
-
-  isUnregistering(entryId, unregisterRequests) {
-    return find(unregisterRequests, (request) => entryId === request.entryId) !== undefined;
   },
 
 
@@ -36,14 +30,9 @@ const LineupCardContestEntrySet = React.createClass({
 
 
   renderRemoveButton() {
-    const unregistering = this.isUnregistering(
-      this.props.entry.id,
-      this.props.unregisterRequests
-    );
-
     // If there is an outstanding unregistration request - show a 'working'
     // spinner image.
-    if (unregistering) {
+    if (this.props.entry.isRemoving) {
       return (
         <span className="remove-button button-working"></span>
       );

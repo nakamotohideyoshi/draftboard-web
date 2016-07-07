@@ -67,11 +67,13 @@ module.exports = (state = {
 
     case ActionTypes.CURRENT_LINEUPS__RECEIVE:
       return update(state, {
-        $set: {
+        $merge: {
           hasRelatedInfo: false,
           isFetching: false,
-          items: action.response.lineups || {},
           expiresAt: action.expiresAt,
+        },
+        items: {
+          $set: action.response.lineups || {},
         },
       });
 

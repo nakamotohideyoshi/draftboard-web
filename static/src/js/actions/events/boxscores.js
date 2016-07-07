@@ -1,7 +1,10 @@
 import log from '../../lib/logging';
-import Raven from 'raven-js';
 import { addEventAndStartQueue } from '../events';
 import { hasGameStarted, isGameReady } from '../sports';
+import { trackUnexpected } from '../track-exceptions';
+
+// get custom logger for actions
+const logAction = log.getLogger('action');
 
 /**
  * Figure out sport by message content
@@ -31,6 +34,8 @@ const calcBoxscoreTeamSport = (message) => {
  * @return {boolean}        True if we want to use, false if we don't
  */
 const isMessageUsed = (message, sport) => {
+  logAction.trace('actions.isMessageUsed');
+
   const reasons = [];
 
   // check that game is relevant
@@ -49,19 +54,8 @@ const isMessageUsed = (message, sport) => {
       break;
   }
 
-  if (reasons.length > 0) {
-    const why = {
-      extra: {
-        message,
-        reasons,
-      },
-    };
-
-    Raven.captureMessage('isMessageUsed returned false', why);
-    log.trace('isMessageUsed returned false', why);
-
-    return false;
-  }
+  // returns false
+  if (reasons.length > 0) return trackUnexpected('boxscores.isMessageUsed returned false', { message, reasons });
 
   return true;
 };
@@ -75,7 +69,8 @@ const isMessageUsed = (message, sport) => {
  * @param  {object} message The received event from Pusher
  */
 export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
-  log.trace('onBoxscoreGameReceived', message);
+  logAction.debug('actions.onBoxscoreTeamReceived', message);
+
   const gameId = message.id;
 
   const sport = calcBoxscoreGameSport(message);
@@ -146,7 +141,8 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
  * @param  {object} message The received event from Pusher
  */
 export const onBoxscoreTeamReceived = (message) => (dispatch, getState) => {
-  log.trace('onBoxscoreTeamReceived', message);
+  logAction.debug('actions.onBoxscoreTeamReceived', message);
+
   const gameId = message.game__id;
 
   const sport = calcBoxscoreTeamSport(message);

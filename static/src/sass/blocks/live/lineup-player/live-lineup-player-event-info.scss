@@ -1,0 +1,40 @@
+@import '../../../variables.scss';
+
+
+//
+// BEM block for React LiveLineupPlayerEventInfo
+//
+
+$block: '.live-lineup-player-event-info';
+
+#{$block} {
+  background: #1f2231;
+  border-radius: 32px;
+  height: 32px;
+  padding: 4px 14px;
+  white-space: nowrap;
+
+  &__points,
+  &__info,
+  &__when {
+    display: inline-block;
+  }
+
+  &__points {
+    color: #3db8e3;
+    font-family: $font-oswald;
+    font-size: 11px;
+    margin-right: 12px;
+  }
+
+  &__info {
+    color: #fff;
+    font-size: 12px;
+    margin-right: 4px;
+  }
+
+  &__when {
+    color: #878b9c;
+    font-size: 12px;
+  }
+}

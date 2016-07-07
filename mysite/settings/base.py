@@ -76,6 +76,7 @@ TEMPLATES = [
                 'mysite.context_processors.delta_now_prefix',
                 'mysite.context_processors.player_images_url',
                 'mysite.context_processors.git_commit_uuid',
+                'mysite.context_processors.js_loglevel',
             )
         }
     },
