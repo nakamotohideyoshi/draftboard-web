@@ -2,7 +2,6 @@ import * as AppActions from '../../stores/app-state-store';
 import * as ReactRedux from 'react-redux';
 import LiveLineupPlayer from './live-lineup-player';
 import LivePlayerPane from './live-player-pane';
-import log from '../../lib/logging';
 import React from 'react';
 import size from 'lodash/size';
 import uniqBy from 'lodash/uniq';
@@ -114,8 +113,6 @@ const LiveLineup = React.createClass({
    * @param  {integer} Player ID to show the LivePlayerPane for
    */
   openPlayerPane(playerId) {
-    log.debug('openPlayerPane() - open', playerId);
-
     this.setState({ viewPlayerDetails: playerId });
 
     setTimeout(() => {

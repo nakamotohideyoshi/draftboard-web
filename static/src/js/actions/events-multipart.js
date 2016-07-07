@@ -2,6 +2,9 @@ import * as ActionTypes from '../action-types';
 import { batchActions } from 'redux-batched-actions';
 import log from '../lib/logging';
 
+// get custom logger for actions
+const logAction = log.getLogger('action');
+
 
 // dispatch to reducer methods
 
@@ -39,7 +42,7 @@ const mergeWatchablePlayers = (players, eventId) => ({
  * @return {thunk}            Method of action creator
  */
 export const removeEventMultipart = (key, players = []) => (dispatch, getState) => {
-  log.trace('removeEventMultipart', key, players);
+  logAction.debug('actions.removeEventMultipart');
 
   const state = getState();
   const actions = [];
@@ -65,6 +68,8 @@ export const removeEventMultipart = (key, players = []) => (dispatch, getState) 
  * @return {thunk}            Method of action creator
  */
 export const storeEventMultipart = (key, value, players = []) => (dispatch) => {
+  logAction.debug('actions.storeEventMultipart');
+
   const actions = [setEventMultipart(key, value)];
 
   if (players.length > 0) {

@@ -37,12 +37,13 @@ if (['trace', 'debug', 'info', 'warn', 'error'].indexOf(window.dfs.logLevel) > -
   log.setLevel(logLevel, false);
 }
 
-// default custom loggers to ERROR, change when debugging locally
+// default custom loggers to production level, change when debugging locally
 // search for `getLogger` on this page to learn more https://www.npmjs.com/package/loglevel
-log.getLogger('action').setLevel('ERROR');
-log.getLogger('app-state-store').setLevel('ERROR');
-log.getLogger('component').setLevel('ERROR');
-log.getLogger('selector').setLevel('ERROR');
+log.getLogger('action').setLevel('SILENT');
+log.getLogger('app').setLevel('DEBUG');  // normally DEBUG
+log.getLogger('app-state-store').setLevel('SILENT');
+log.getLogger('component').setLevel('SILENT');
+log.getLogger('selector').setLevel('SILENT');
 
 // by default, export the log object to work with
 export default log;

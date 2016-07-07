@@ -2,6 +2,9 @@ import log from '../lib/logging';
 import forEach from 'lodash/forEach';
 import PubSub from 'pubsub-js';
 
+// get custom logger for actions
+const logAppStateChange = log.getLogger('app-state-store');
+
 
 /*
 * This component listens to the AppStateStore store and keeps the <body> tag's classes in sync with whatever
@@ -14,7 +17,8 @@ const AppStateClass = (() => {
   const exports = {
     // Sync up classes in the AppStateStore to the <body> tag.
     updateBodyClasses: (classes) => {
-      log.debug('AppStateClass.updateBodyClasses()', classes, bodyEl.className);
+      logAppStateChange.debug('app-state-store.updateBodyClasses', classes, bodyEl.className);
+
       // Remove any existing appstate classes
       bodyEl.className = bodyEl.className.replace(/appstate-\S*(?!\S)/g, '');
       // Add the current set.
@@ -41,7 +45,8 @@ const AppActions = {
    * @param {string} className The class to be added.
    */
   addClass(className) {
-    log.trace('AppStateStore.addClass()', className);
+    logAppStateChange.debug('app-state-store.addClass', className);
+
     // If the class isn't already in our list, add it.
     if (this.classes.indexOf(className) === -1) {
       this.classes.push(className);
@@ -55,7 +60,8 @@ const AppActions = {
    * @param  {string} className Class to be removed
    */
   removeClass(className) {
-    log.debug('AppStateStore.removeClass()', className);
+    logAppStateChange.debug('app-state-store.removeClass', className);
+
     const index = this.classes.indexOf(className);
     // If the class is in the list, delete it.
     if (index > -1) {
@@ -70,6 +76,8 @@ const AppActions = {
    * @param  {string} className Class to be toggled
    */
   toggleClass(className) {
+    logAppStateChange.debug('app-state-store.toggleClass', className);
+
     if (this.classes.indexOf(className) === -1) {
       this.addClass(className);
     } else {
@@ -114,7 +122,7 @@ const AppActions = {
 
   // Toggle the included class. If opening, then close all other live panes
   togglePlayerPane(side) {
-    log.debug('AppStateStore.togglePlayerPane()');
+    logAppStateChange.debug('app-state-store.togglePlayerPane', side);
 
     const className = `appstate--pane--player--${side}--open`;
 

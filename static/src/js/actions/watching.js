@@ -7,13 +7,16 @@ import log from '../lib/logging';
 import { dateNow } from '../lib/utils';
 import { push as routerPush } from 'react-router-redux';
 
+// get custom logger for actions
+const logAction = log.getLogger('action');
+
 
 const resetWatching = () => ({
   type: ActionTypes.WATCHING__RESET,
 });
 
 export const updateLiveMode = (changedFields) => (dispatch, getState) => {
-  log.trace('updateLiveMode', changedFields);
+  logAction.debug('actions.updateLiveMode', changedFields);
 
   const state = getState();
 
@@ -48,7 +51,7 @@ export const updateLiveMode = (changedFields) => (dispatch, getState) => {
 };
 
 export const resetWatchingAndPath = () => (dispatch) => {
-  log.trace('actions.watching.resetWatchingAndPath()');
+  logAction.debug('actions.resetWatchingAndPath');
 
   // update the URL path
   dispatch(routerPush('/live/'));
@@ -58,7 +61,7 @@ export const resetWatchingAndPath = () => (dispatch) => {
 };
 
 export const updateWatchingAndPath = (path, changedFields) => (dispatch) => {
-  log.trace('actions.watching.updateWatchingAndPath()', path, changedFields);
+  logAction.debug('actions.updateWatchingAndPath', path, changedFields);
 
   // update the URL path
   dispatch(routerPush(path));
@@ -68,7 +71,7 @@ export const updateWatchingAndPath = (path, changedFields) => (dispatch) => {
 };
 
 export const doesMyLineupExist = (state) => {
-  log.trace('actions.watching.checkForUpdates()');
+  logAction.debug('actions.doesMyLineupExist');
 
   const watching = state.watching;
 
@@ -83,7 +86,7 @@ export const doesMyLineupExist = (state) => {
 };
 
 export const checkForUpdates = () => (dispatch, getState) => {
-  log.trace('actions.watching.checkForUpdates()');
+  logAction.trace('actions.checkForUpdates');
 
   const state = getState();
   const watching = state.watching;
