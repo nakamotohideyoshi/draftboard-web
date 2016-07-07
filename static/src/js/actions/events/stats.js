@@ -3,6 +3,9 @@ import { addEventAndStartQueue } from '../events';
 import { updatePlayerStats } from '../live-draft-groups';
 import { isGameReady } from '../sports';
 
+// get custom logger for actions
+const logAction = log.getLogger('action');
+
 
 /*
  * When we receive a Pusher stats call, make sure it's related to our games/players, and if so send to the appropriate
@@ -18,7 +21,7 @@ import { isGameReady } from '../sports';
  * @param  {object} relevantGames  Games we would need to animate
  */
 export const onPlayerStatsReceived = (message, sport, draftGroupId, relevantGames) => (dispatch, getState) => {
-  log.trace('onPlayerStatsReceived', message);
+  logAction.debug('actions.onPlayerStatsReceived', message);
 
   const gameId = message.fields.srid_game;
 

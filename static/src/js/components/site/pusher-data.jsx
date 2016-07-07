@@ -11,6 +11,9 @@ import {
   relevantGamesPlayersSelector, watchingDraftGroupTimingSelector, watchingMyLineupSelector,
 } from '../../selectors/watching';
 
+// get custom logger for actions
+const logComponent = log.getLogger('component');
+
 
 /*
  * Map Redux actions to React component properties
@@ -58,7 +61,7 @@ export const PusherData = React.createClass({
   getInitialState() {
     // NOTE: this really bogs down your console, only use locally when needed
     // uncomment this ONLY if you need to debug why Pusher isn't connecting
-    // Pusher.log = (message) => log.trace(message);
+    // Pusher.log = (message) => logComponent.trace('pusher', message);
 
     return {
       // prefix allows us to silo data when developing, is based on the [PUSHER_CHANNEL_PREFIX] django const
@@ -115,7 +118,7 @@ export const PusherData = React.createClass({
     const { actions } = this.props;
     const { pusher, channelPrefix } = this.state;
 
-    log.trace('pusherData.subscribeToSockets()', channelPrefix);
+    logComponent.debug('pusherData.subscribeToSockets', { channelPrefix });
 
     // note that when binding, we need to reference `this.props` so that when the event occurs, it pulls latest props
     newSports.map((sport) => {
@@ -138,7 +141,7 @@ export const PusherData = React.createClass({
    * @param  {array} oldSports  Old sports to unsubscribe from
    */
   unsubscribeToSportSockets(oldSports) {
-    log.trace('pusherData.unsubscribeToSockets()');
+    logComponent.debug('pusherData.unsubscribeToSockets');
 
     // if there's no old sports, don't bother
     if (oldSports.length === 0) return false;

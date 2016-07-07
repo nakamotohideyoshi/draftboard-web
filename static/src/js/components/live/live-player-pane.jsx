@@ -3,7 +3,6 @@ import ImageLoader from 'react-imageloader';
 import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import { stringifyMLBWhen } from '../../actions/events/pbp';
-import log from '../../lib/logging';
 import { SPORT_CONST } from '../../actions/sports';
 import { humanizeFP } from '../../actions/sports';
 
@@ -38,8 +37,6 @@ const LivePlayerPane = React.createClass({
    * Close the player pane using AppActions
    */
   closePane() {
-    log.debug('LivePlayerPane.closePane()');
-
     if (this.props.whichSide === 'opponent') {
       AppActions.togglePlayerPane('right');
     } else {
@@ -88,10 +85,7 @@ const LivePlayerPane = React.createClass({
     const game = this.props.game;
 
     // if the game isn't loaded yet or something then return
-    if (!game.hasOwnProperty('boxscore')) {
-      // log.debug('LivePlayerPane.renderCurrentGame() - boxScore undefined');
-      return (<div className="current-game" />);
-    }
+    if (!game.hasOwnProperty('boxscore')) return (<div className="current-game" />);
 
     const boxScore = game.boxscore;
     let gameTimeInfo;
