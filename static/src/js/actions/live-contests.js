@@ -1,6 +1,6 @@
 import * as ActionTypes from '../action-types';
 import Cookies from 'js-cookie';
-import errorHandler from './live-error-handler';
+import { handleError, trackUnexpected } from './track-exceptions';
 import fetch from 'isomorphic-fetch';
 import forEach from 'lodash/forEach';
 import log from '../lib/logging.js';
@@ -10,6 +10,9 @@ import { CALL_API } from '../middleware/api';
 import { dateNow } from '../lib/utils';
 import { fetchPrizeIfNeeded } from './prizes';
 import { SPORT_CONST } from '../actions/sports';
+
+// get custom logger for actions
+const logAction = log.getLogger('action');
 
 
 // dispatch to reducer methods
@@ -118,6 +121,8 @@ const convertToInt = (byteSize, byteArray, byteOffset, byteLength) => {
  * @return {Object} The parsed lineup object
  */
 const convertLineup = (numberOfPlayers, byteArray, firstBytePosition) => {
+  logAction.debug('actions.convertLineup');
+
   const lineup = {
     id: convertToInt(32, byteArray, firstBytePosition, 4),
     roster: [],
@@ -150,6 +155,8 @@ const convertLineup = (numberOfPlayers, byteArray, firstBytePosition) => {
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
 const parseContestLineups = (apiContestLineupsBytes, sport) => {
+  logAction.debug('actions.parseContestLineups');
+
   // add up who's in what place
   const responseByteArray = new Buffer(apiContestLineupsBytes, 'hex');
   const lineups = {};
@@ -174,6 +181,8 @@ const parseContestLineups = (apiContestLineupsBytes, sport) => {
  * @return {promise}          Promise that resolves with API response body to reducer
  */
 const fetchContestLineups = (id, sport) => (dispatch) => {
+  logAction.debug('actions.fetchContestLineups');
+
   dispatch(requestContestLineups(id));
 
   return fetch(`/api/contest/all-lineups/${id}/`, {
@@ -190,7 +199,7 @@ const fetchContestLineups = (id, sport) => (dispatch) => {
     return response.text();
   }).then(res =>
     dispatch(receiveContestLineups(id, res, parseContestLineups(res, sport)))
-  ).catch((err) => dispatch(errorHandler(err, {
+  ).catch((err) => dispatch(handleError(err, {
     header: 'Failed to connect to API.',
     content: 'Please refresh the page to reconnect.',
     level: 'warning',
@@ -228,6 +237,8 @@ const fetchContestInfo = (id) => ({
  * @return {promise}           Promise that resolves with API response body to reducer
  */
 const fetchContestLineupsUsernames = (id) => (dispatch) => {
+  logAction.debug('actions.fetchContestLineupsUsernames');
+
   dispatch(requestContestLineupsUsernames(id));
 
   return fetch('/api/lineup/usernames/', {
@@ -251,7 +262,7 @@ const fetchContestLineupsUsernames = (id) => (dispatch) => {
     // Otherwise parse the (hopefully) json from the response body.
     return response.json().then(json => ({ json, response }));
   }).catch(
-    (err) => dispatch(errorHandler(err, {
+    (err) => dispatch(handleError(err, {
       header: 'Failed to connect to API.',
       content: 'Please refresh the page to reconnect.',
       level: 'warning',
@@ -310,6 +321,8 @@ const shouldFetchContest = (liveContests, id) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchContestLineupsUsernamesIfNeeded = (id) => (dispatch, getState) => {
+  logAction.debug('actions.fetchContestLineupsUsernamesIfNeeded');
+
   if (shouldFetchContestLineupsUsernames(getState(), id) === false) {
     return Promise.resolve('Contest usernames already exists');
   }
@@ -323,7 +336,21 @@ export const fetchContestLineupsUsernamesIfNeeded = (id) => (dispatch, getState)
  *                     returned method or directly as a resolved promise
  */
 export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
-  const contestInfo = getState().liveContests[id].info;
+  logAction.debug('actions.fetchRelatedContestInfo');
+
+  const state = getState();
+
+  // don't bother if there is no contest yet!
+  if (!(id in state.liveContests)) {
+    return trackUnexpected(`fetchRelatedContestInfo failed, no contest ${id} in Redux`, { state });
+  }
+
+  const contestInfo = getState().liveContests[id].info || {};
+
+  if (!('prize_structure' in contestInfo)) {
+    return trackUnexpected(`fetchRelatedContestInfo failed, no prize structure in contest ${id}`, { state });
+  }
+
   const prizeId = contestInfo.prize_structure;
 
   return Promise.all([
@@ -341,6 +368,8 @@ export const fetchRelatedContestInfo = (id) => (dispatch, getState) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchContestIfNeeded = (id, sport, force) => (dispatch, getState) => {
+  logAction.debug('actions.fetchContestIfNeeded');
+
   if (shouldFetchContest(getState().liveContests, id) === false && force !== true) {
     return dispatch(fetchRelatedContestInfo(id));
   }
@@ -359,6 +388,8 @@ export const fetchContestIfNeeded = (id, sport, force) => (dispatch, getState) =
  * @return {object}  Changes for reducer, wrapped in thunk
  */
 export const removeUnusedContests = () => (dispatch, getState) => {
+  logAction.debug('actions.removeUnusedContests');
+
   const contestIds = [];
 
   forEach(getState().liveContests, (contest) => {

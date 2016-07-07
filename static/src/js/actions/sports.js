@@ -1,13 +1,17 @@
 const request = require('superagent-promise')(require('superagent'), Promise);
 import * as ActionTypes from '../action-types';
-import { addMessage } from './message-actions';
-import { dateNow } from '../lib/utils';
-import forEach from 'lodash/forEach';
 import filter from 'lodash/filter';
+import forEach from 'lodash/forEach';
+import log from '../lib/logging';
 import map from 'lodash/map';
 import merge from 'lodash/merge';
 import sortBy from 'lodash/sortBy';
-import log from '../lib/logging';
+import { addMessage } from './message-actions';
+import { dateNow, hasExpired } from '../lib/utils';
+
+
+// get custom logger for actions
+const logAction = log.getLogger('action');
 
 
 // global constants
@@ -291,7 +295,15 @@ const receiveTeams = (sport, response) => {
 
 // helper methods
 
-
+/**
+ * TODO move to lib.utils
+ *
+ * Humanize fantasy points to be readable by user
+ *
+ * @param  {mixed}  fp           Fantasy points in either string or number
+ * @param  {bool} showPlusMinus  Whether to show +,- before the number
+ * @return {string}              Humanized fantasy points, rounded to whole if int, else hundredths
+ */
 export const humanizeFP = (fp, showPlusMinus = false) => {
   switch (typeof fp) {
     case 'number': {
@@ -308,8 +320,9 @@ export const humanizeFP = (fp, showPlusMinus = false) => {
   }
 };
 
-
 /**
+ * TODO move to lib.utils
+ *
  * Calculate the amount of time remaining in decimal between 0 and 1, where 1 is 100% of the time remaining
  * @param  {number} durationRemaining Number of minutes remaining
  * @param  {number} totalQuantity     Total number of minutes/innings/measurement possible for a player
@@ -333,6 +346,8 @@ export const calcDecimalRemaining = (durationRemaining, gameDuration) => {
  * @return {number}       Minutes remaining in the game
  */
 export const calculateTimeRemaining = (sport, game) => {
+  logAction.debug('actions.calculateTimeRemaining');
+
   const sportConst = SPORT_CONST[sport];
   const endStatuses = ['completed', 'complete', 'closed'];
 
@@ -400,12 +415,16 @@ export const calculateTimeRemaining = (sport, game) => {
 };
 
 /**
+ * TODO switch to fetch
+ *
  * API GET to return all the games for a given sport
  * Used in the live section for contest pane, and filtering by username
  * @param  {string} sport     Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
  * @return {promise}          Promise that resolves with API response body to reducer
  */
 const fetchGames = (sport) => (dispatch) => {
+  logAction.debug('actions.fetchGames');
+
   dispatch(requestGames(sport));
 
   return request.get(
@@ -441,12 +460,16 @@ const fetchGames = (sport) => (dispatch) => {
 };
 
 /**
+ * TODO switch to fetch
+ *
  * API GET to return all the teams for a given sport
  * Used in the live section for contest pane, and filtering by username
  * @param  {string} sport     Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
  * @return {promise}          Promise that resolves with API response body to reducer
  */
 const fetchTeams = (sport) => (dispatch) => {
+  logAction.debug('actions.fetchGames');
+
   dispatch(requestTeams(sport));
 
   return request.get(
@@ -474,13 +497,17 @@ const fetchTeams = (sport) => (dispatch) => {
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchGames = (state, sport, force) => {
-  // ignore the expiration if forcing
-  if (force === true) {
-    return true;
-  }
+  logAction.trace('actions.shouldFetchGames');
 
-  // don't fetch until expired
-  if (dateNow() < state.sports[sport].gamesExpireAt) {
+  // ignore the expiration if forcing
+  if (force === true) return true;
+
+  const reasons = [];
+
+  if (!hasExpired(state.sports[sport].gamesExpireAt)) reasons.push('has not expired');
+
+  if (reasons.length > 0) {
+    logAction.trace('shouldFetchGames - returned false', reasons);
     return false;
   }
 
@@ -495,14 +522,15 @@ const shouldFetchGames = (state, sport, force) => {
  * @return {boolean}      True if we should fetch, false if not
  */
 const shouldFetchTeams = (state, sport) => {
-  // First, check if the sport has an entry.
-  if (state.sports.hasOwnProperty(sport)) {
-    // don't fetch until expired
-    if (dateNow() < state.sports[sport].teamsExpireAt) {
-      return false;
-    }
-  } else {
-    log.error(`We aren\'t set up to accommodate teams for sport: ${sport}`);
+  logAction.trace('actions.shouldFetchGames');
+  const reasons = [];
+
+  if (!(sport in state.sports)) reasons.push(`we do not support ${sport} yet`);
+  else if (!hasExpired(state.sports[sport].teamsExpireAt)) reasons.push('has not expired');
+
+  if (reasons.length > 0) {
+    logAction.trace('shouldFetchTeams - returned false', reasons);
+    return false;
   }
 
   return true;
@@ -518,6 +546,8 @@ const shouldFetchTeams = (state, sport) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchGamesIfNeeded = (sport, force) => (dispatch, getState) => {
+  logAction.trace('actions.fetchGamesIfNeeded');
+
   if (shouldFetchGames(getState(), sport, force) === false) {
     return Promise.resolve('Games already exists');
   }
@@ -531,6 +561,8 @@ export const fetchGamesIfNeeded = (sport, force) => (dispatch, getState) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchTeamsIfNeeded = (sport) => (dispatch, getState) => {
+  logAction.trace('actions.fetchTeamsIfNeeded');
+
   if (shouldFetchTeams(getState(), sport) === false) {
     return Promise.resolve('Teams already exists');
   }
@@ -544,6 +576,8 @@ export const fetchTeamsIfNeeded = (sport) => (dispatch, getState) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
+  logAction.trace('actions.fetchSportIfNeeded');
+
   dispatch(fetchTeamsIfNeeded(sport));
   dispatch(fetchGamesIfNeeded(sport, force));
 };
@@ -554,7 +588,7 @@ export const fetchSportIfNeeded = (sport, force) => (dispatch) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchSportsIfNeeded = () => (dispatch, getState) => {
-  // log.trace('actions.sports.fetchSportsIfNeeded()');
+  logAction.trace('actions.fetchSportsIfNeeded');
 
   try {
     forEach(getState().sports.types, (sport) => {
@@ -572,6 +606,8 @@ export const fetchSportsIfNeeded = () => (dispatch, getState) => {
 };
 
 /**
+ * TODO move to lib.utils
+ *
  * Check whether a game has started, based on its status
  * @param  {string} sport  Sport to base statuses on
  * @param  {string} status Status given in socket message
@@ -586,6 +622,8 @@ export const hasGameStarted = (sport, status) => SPORT_CONST[sport].pregameStatu
  * @return {boolean}        Whether the game is ready
  */
 export const isGameReady = (state, dispatch, sport, gameId) => {
+  logAction.debug('actions.isGameReady');
+
   const games = state.sports.games;
 
   // check if game is needed
@@ -608,6 +646,8 @@ export const isGameReady = (state, dispatch, sport, gameId) => {
  * @return {object}   Changes for reducer, wrapped in a thunk
  */
 export const updateGameTeam = (message) => (dispatch, getState) => {
+  logAction.debug('actions.updateGameTeam');
+
   const sports = getState().sports;
   const gameId = message.game__id;
 
@@ -644,6 +684,8 @@ export const updateGameTeam = (message) => (dispatch, getState) => {
  *  * @return {object}   Changes for reducer, wrapped in a thunk
  */
 export const updateGameTime = (event) => (dispatch, getState) => {
+  logAction.debug('actions.updateGameTime');
+
   const { gameId } = event;
   const state = getState();
 

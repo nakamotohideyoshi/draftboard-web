@@ -27,6 +27,7 @@ describe("NavScoreboardStatic Component", function() {
           },
           games: {
             1: {
+              sport: 'mlb',
               awayTeamInfo: {alias: '1'},
               homeTeamInfo: {alias: '2'},
             }

@@ -30,6 +30,9 @@ import {
 } from '../../selectors/watching';
 
 
+// get custom logger for actions
+const logComponent = log.getLogger('component');
+
 /*
  * Map Redux actions to React component properties
  * @param  {function} dispatch The dispatch method to pass actions into
@@ -134,7 +137,7 @@ export const Live = React.createClass({
       if (!this.state.setTimeoutEntries && myLineup.hasStarted && myLineupNext.contests.length === 0) {
         // check for contest_id every 5 seconds
         this.setState({ setTimeoutEntries: setInterval(() => {
-          log.warn('live.currentEntriesRefresh - fetching lineups');
+          logComponent.warn('live.currentEntriesRefresh - fetching lineups');
           actions.fetchCurrentLineupsAndRelated(true);
         }, 5000) });
 
@@ -144,7 +147,7 @@ export const Live = React.createClass({
 
       // stop checking once we have a contest
       if (this.state.setTimeoutEntries && myLineupNext.contests.length > 0) {
-        log.warn('No need to try lineups again');
+        logComponent.warn('No need to try lineups again');
         window.clearInterval(this.state.setTimeoutEntries);
         this.setState({ setTimeoutEntries: null });
       }

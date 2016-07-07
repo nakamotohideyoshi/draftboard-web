@@ -1,0 +1,55 @@
+//
+// BEM block for React GameTime
+// - animate flipping between top and bottom of MLB inning
+//
+
+$block: '.game-time';
+
+#{$block} {
+  position: relative;
+  white-space: nowrap;
+
+  &__inning,
+  &__half-inning {
+    display: inline-block;
+  }
+
+  &__half-inning {
+    margin-right: 2px;
+    position: relative;
+    transition: all 316ms cubic-bezier(.8,.16,.18,.85) 400ms;
+    width: 7px;
+
+    // top of inning
+    &--t {
+      transform: rotate(180deg);
+      top: 1px;
+    }
+    // bottom of inning
+    &--b {
+      top: -1px;
+    }
+  }
+
+  &--nav-scoreboard {
+    color: #babdc9;
+    display: inline-block;
+    font-size: 9.5px;
+    line-height: 2;
+
+    #{$block}__half-inning path {
+      fill: #878b9c;
+    }
+
+    &#{$block}--has-not-started {
+      top: -1px;
+      vertical-align: top;
+    }
+
+    &#{$block}--game-complete,
+    &#{$block}--is-live {
+      top: 1px;
+      vertical-align: bottom;
+    }
+  }
+}
