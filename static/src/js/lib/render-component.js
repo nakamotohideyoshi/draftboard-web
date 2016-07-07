@@ -1,6 +1,9 @@
 import ReactDOM from 'react-dom';
 import log from './logging';
 
+// get custom logger for actions
+const logComponent = log.getLogger('component');
+
 
 /**
  * Render a React Component to all instances of the given DOM selector.
@@ -12,7 +15,7 @@ export default (component, selector) => {
   const elements = document.querySelectorAll(selector);
 
   Array.from(elements).forEach((element) => {
-    log.trace('Rendering component on:', selector);
+    logComponent.debug('Rendering component on:', selector);
     ReactDOM.render(component, element);
   });
 };

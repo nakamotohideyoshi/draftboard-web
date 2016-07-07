@@ -3,9 +3,12 @@ import log from '../../lib/logging';
 import map from 'lodash/map';
 import orderBy from 'lodash/orderBy';
 import random from 'lodash/random';
-import Raven from 'raven-js';
+import { trackUnexpected } from '../track-exceptions';
 import { addEventAndStartQueue } from '../events';
 import { humanizeFP, SPORT_CONST, isGameReady } from '../sports';
+
+// get custom logger for actions
+const logAction = log.getLogger('action');
 
 
 /**
@@ -15,11 +18,13 @@ import { humanizeFP, SPORT_CONST, isGameReady } from '../sports';
  * @return {array}          List of players
  */
 const compileEventPlayers = (message, sport) => {
+  logAction.trace('actions.compileEventPlayers');
+
   switch (sport) {
     case 'mlb': {
       const eventPlayers = [
         message.pbp.srid_pitcher,  // pitcher
-        message.at_bat.srid,  // hitter
+        message.at_bat.srid_hitter,  // hitter
       ];
 
       // runners on base
@@ -37,6 +42,8 @@ const compileEventPlayers = (message, sport) => {
 };
 
 const consolidateZonePitches = (zonePitches) => {
+  logAction.trace('actions.consolidateZonePitches');
+
   const sportConst = SPORT_CONST.mlb;
   const filtered = filter(zonePitches, (pitch) => pitch.hasOwnProperty('mph'));
   const sorted = orderBy(filtered, 'pc');
@@ -123,6 +130,8 @@ const consolidateZonePitches = (zonePitches) => {
 };
 
 /**
+ * TODO move to lib.utils
+ *
  * Helper method to convert an object of pitch types into a readable sentence
  * Example pitchCount:
  * "count__list": {
@@ -144,7 +153,10 @@ export const stringifyAtBat = (pitchCount) => {
 };
 
 /**
+ * TODO move to lib.utils
+ *
  * Returns string stating when event occurred in game
+ *
  * @param  {number} inning Loose number of inning, eg '5.0'
  * @param  {string} half   Bottom or top of inning, denoted with 'B', 'T', respectively
  * @return {string}        Readable version of when, eg 'Bottom of 5th', or false if it has not started
@@ -185,6 +197,8 @@ export const stringifyMLBWhen = (inning, half) => {
  * @return {boolean}        True if we want to use, false if we don't
  */
 const isMessageUsed = (message, sport) => {
+  logAction.trace('actions.isMessageUsed');
+
   const reasons = [];
 
   switch (sport) {
@@ -207,19 +221,8 @@ const isMessageUsed = (message, sport) => {
       break;
   }
 
-  if (reasons.length > 0) {
-    const why = {
-      extra: {
-        message,
-        reasons,
-      },
-    };
-
-    Raven.captureMessage('isMessageUsed returned false', why);
-    log.trace('isMessageUsed returned false', why);
-
-    return false;
-  }
+  // returns false
+  if (reasons.length > 0) return trackUnexpected('pbp.isMessageUsed returned false', { message, reasons });
 
   return true;
 };
@@ -232,10 +235,12 @@ const isMessageUsed = (message, sport) => {
  * @param  {object} boxscore Boxscore object for inning data
  */
 const getMLBData = (message, gameId, boxscore) => {
+  logAction.trace('actions.getMLBData');
+
   // faster to not camelize the object
   /* eslint-disable camelcase */
   const { at_bat = {}, pbp = {}, runners = [], stats = {}, zone_pitches = [] } = message;
-  const { stats_str = '', fn = '', ln = '', srid_team } = at_bat;
+  const { stats_str = '', fn = '', ln = '', srid_team, srid_hitter } = at_bat;
   const { count = {}, flags = {}, srid_at_bat, srid_pitcher } = pbp;
   /* eslint-enable camelcase */
 
@@ -246,7 +251,7 @@ const getMLBData = (message, gameId, boxscore) => {
     hitter: {
       atBatStats: stats_str,
       name: `${fn} ${ln}`,
-      sridPlayer: at_bat.srid_hitter,
+      sridPlayer: srid_hitter,
       sridTeam: srid_team,
       outcomeFp: humanizeFP(at_bat.oid_fp, true) || null,
     },
@@ -281,9 +286,10 @@ const getMLBData = (message, gameId, boxscore) => {
  *
  * @param  {object} message  The received event from Pusher
  * @param  {string} gameId   Game SRID
- * @param  {object} boxscore Boxscore object for inning data
  */
-const getNBAData = (message, sport, gameId) => {
+const getNBAData = (message, gameId) => {
+  logAction.trace('actions.getNBAData');
+
   const { pbp, stats } = message;
 
   return {
@@ -308,7 +314,7 @@ const getNBAData = (message, sport, gameId) => {
  * @param  {object} message The received event from Pusher
  */
 export const onPBPReceived = (message, sport) => (dispatch, getState) => {
-  log.trace('onPBPReceived', message);
+  logAction.debug('actions.onPBPReceived', message);
 
   const state = getState();
   const gameId = message.pbp.srid_game;
@@ -337,6 +343,8 @@ export const onPBPReceived = (message, sport) => (dispatch, getState) => {
  * Shortcut method to pull events into linked, as it's a subset of linked anyways
  */
 export const onPBPEventReceived = (message, sport) => (dispatch) => {
+  logAction.debug('actions.onPBPEventReceived');
+
   const linkedMessage = {
     pbp: message,
   };

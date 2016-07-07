@@ -17,6 +17,9 @@ import {
   watchingOpponentLineupSelector,
 } from '../selectors/watching';
 
+// get custom logger for actions
+const logAction = log.getLogger('action');
+
 
 const addAnimationEvent = (key, value) => ({
   type: ActionTypes.EVENT_ADD_ANIMATION,
@@ -74,7 +77,7 @@ const unshiftPlayerHistory = (key, value) => ({
 });
 
 export const updatePBPPlayersStats = (playersStats) => (dispatch, getState) => {
-  log.trace('updatePBPPlayersStats', playersStats);
+  logAction.debug('actions.updatePBPPlayersStats');
 
   const state = getState();
   const myLineup = watchingMyLineupSelector(state);
@@ -93,6 +96,8 @@ export const updatePBPPlayersStats = (playersStats) => (dispatch, getState) => {
 };
 
 const whichSide = (watching, relevantPlayersInEvent, opponentLineup, relevantGamesPlayers) => {
+  logAction.debug('actions.whichSide');
+
   // determine what color the animation should be, based on which lineup(s) the player(s) are in
   if (watching.opponentLineupId && opponentLineup.isLoading === false) {
     const rosterBySRID = opponentLineup.rosterBySRID;
@@ -110,6 +115,8 @@ const whichSide = (watching, relevantPlayersInEvent, opponentLineup, relevantGam
 };
 
 const showThenHidePlayerEventDescription = (key, value) => (dispatch) => {
+  logAction.debug('actions.showThenHidePlayerEventDescription');
+
   dispatch(addPlayerEventDescription(key, value));
 
   setTimeout(() => {
@@ -127,6 +134,8 @@ const showThenHidePlayerEventDescription = (key, value) => (dispatch) => {
  * @return {thunk}            Method of action creator
  */
 export const storeEvent = (gameId, event) => (dispatch, getState) => {
+  logAction.debug('actions.storeEvent');
+
   const state = getState();
   const actions = [];
 
@@ -152,7 +161,7 @@ const shiftGameQueueEvent = (gameId) => ({
 });
 
 export const showAnimationEventResults = (animationEvent) => (dispatch) => {
-  log.debug('setTimeout - show the results');
+  logAction.debug('actions.showAnimationEventResults');
 
   const { description, id, relevantPlayersInEvent, when } = animationEvent;
 
@@ -215,7 +224,7 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
  * @param  {object} message The event call to parse for information
  */
 export const showGameEvent = (message) => (dispatch, getState) => {
-  log.trace('showGameEvent', message);
+  logAction.debug('actions.showGameEvent', message);
 
   // selectors
   const state = getState();
@@ -276,6 +285,8 @@ export const showGameEvent = (message) => (dispatch, getState) => {
  * @param  {string} gameId The game queue SRID to pop the oldest event
  */
 export const shiftOldestGameEvent = (gameId) => (dispatch, getState) => {
+  logAction.debug('actions.shiftOldestGameEvent');
+
   const state = getState();
   const gameQueue = merge({}, state.events.gamesQueue[gameId]);
 
@@ -321,7 +332,7 @@ export const shiftOldestGameEvent = (gameId) => (dispatch, getState) => {
  * @param {string} sport [OPTIONAL] For PBP, pass through sport to know how to parse
  */
 export const addEventAndStartQueue = (gameId, message, type, sport) => (dispatch) => {
-  log.trace('actions.events.addEventAndStartQueue', gameId, message, type, sport);
+  logAction.debug('actions.events.addEventAndStartQueue', gameId, message, type, sport);
 
   return Promise.all([
     dispatch(storeEvent(gameId, {

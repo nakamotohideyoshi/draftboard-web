@@ -11,6 +11,9 @@ import { fetchDraftGroupIfNeeded } from './live-draft-groups';
 import { fetchGamesIfNeeded } from './sports';
 import { Schema, arrayOf, normalize } from 'normalizr';
 
+// get custom logger for actions
+const logAction = log.getLogger('action');
+
 
 // normalizr schemas for this redux substore
 
@@ -55,7 +58,7 @@ const storeLineupsPlayers = (lineupsPlayers) => ({
  * @return {promise} Returns the object of rosters wrapped in dispatch wrapped in promise, so we can chain
  */
 const addLineupsPlayers = () => (dispatch, getState) => {
-  log.trace('actions.lineups.addLineupsPlayers');
+  logAction.debug('actions.addLineupsPlayers');
 
   const state = getState();
   const lineupsPlayers = {};
@@ -111,7 +114,7 @@ export const fetchLineupsRosters = () => ({
       ActionTypes.CURRENT_LINEUPS_ROSTERS__RECEIVE,
       ActionTypes.ADD_MESSAGE,
     ],
-    expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
+    expiresAt: dateNow(),  // important! set to now so that it always refreshes
     endpoint: '/api/lineup/upcoming/',
     callback: (json) => {
       const camelizedJson = camelizeKeys(json);
@@ -126,7 +129,21 @@ export const fetchLineupsRosters = () => ({
  * @param  {object} state Current Redux state to test
  * @return {boolean}      True if we should fetch draft groups, false if not
  */
-const shouldFetchLineups = (state) => hasExpired(state.currentLineups.expiresAt);
+const shouldFetchLineups = (state) => {
+  logAction.debug('actions.shouldFetchLineups');
+
+  const reasons = [];
+
+  if (!hasExpired(state.currentLineups.expiresAt)) reasons.push('has not expired');
+
+  if (reasons.length > 0) {
+    logAction.debug('shouldFetchLineups - returned false', reasons);
+
+    return false;
+  }
+
+  return true;
+};
 
 /**
  * Method to determine whether we need to fetch lineups.
@@ -135,10 +152,18 @@ const shouldFetchLineups = (state) => hasExpired(state.currentLineups.expiresAt)
  * @return {boolean}      True if we should fetch draft groups, false if not
  */
 const shouldFetchLineupsRosters = (state) => {
+  logAction.debug('actions.shouldFetchLineupsRosters');
+
+  const reasons = [];
   const upcomingLineups = filter(state.currentLineups.items, (lineup) => new Date(lineup.start) >= dateNow());
 
-  if (upcomingLineups.length === 0) return false;
-  if (state.currentLineups.rostersExpireAt > dateNow()) return false;
+  if (upcomingLineups.length === 0) reasons.push('no upcoming lineups');
+  else if (!hasExpired(state.currentLineups.rostersExpireAt)) reasons.push('has not expired');
+
+  if (reasons.length > 0) {
+    logAction.debug('shouldFetchLineupsRosters - returned false', reasons, state);
+    return false;
+  }
 
   return true;
 };
@@ -147,6 +172,8 @@ const shouldFetchLineupsRosters = (state) => {
 // primary methods (mainly exported, some needed in there to have proper init of const)
 
 const fetchLineupsRostersIfNeeded = () => (dispatch, getState) => {
+  logAction.debug('actions.fetchLineupsRostersIfNeeded()');
+
   const state = getState();
 
   if (!shouldFetchLineupsRosters(state)) {
@@ -167,7 +194,7 @@ const fetchLineupsRostersIfNeeded = () => (dispatch, getState) => {
  *                     with store.lineups.hasRelatedInfo = True so live/nav know to use the information.
  */
 export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
-  log.info('actions.fetchRelatedLineupsInfo()');
+  logAction.debug('actions.fetchRelatedLineupsInfo()');
 
   const state = getState();
 
@@ -216,9 +243,9 @@ export const fetchRelatedLineupsInfo = () => (dispatch, getState) => {
  *                     returned method or directly as a resolved promise
  */
 export const fetchCurrentLineupsAndRelated = (force) => (dispatch, getState) => {
-  if (shouldFetchLineups(getState()) === true || force === true) {
-    log.info('actions.fetchCurrentLineupsIfNeeded() - Updating lineups');
+  logAction.debug('actions.fetchCurrentLineupsAndRelated()');
 
+  if (shouldFetchLineups(getState()) === true || force === true) {
     return dispatch(
       fetchCurrentLineups()
     ).then(

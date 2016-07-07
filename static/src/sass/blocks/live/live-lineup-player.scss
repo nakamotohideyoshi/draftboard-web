@@ -1,14 +1,67 @@
-.live-lineup-player {
+@import '../../variables.scss';
+
+
+//
+// BEM block for React LiveLineupPlayer
+// - opposite modifier switches the alignment, as the lineup is on the right
+// - upcoming modifier is for the countdown, simplified version of the player
+//
+
+$block: '.live-lineup-player';
+
+#{$block} {
   height: 11%;
   padding: 8px 0;
   position: relative;
 
+  // when playing show the green status indicator as well as make the PMR circle around the photo
+  &--state-is-playing {
+    #{$block}__status {
+      background-color: #2c8fb1;
+    }
+
+    #{$block}--eventInProgress {
+      background-color: #ff0000;
+    }
+  }
+
+  &--state-not-playing #{$block}__points {
+    color: #6d718a;
+  }
+
+  // for the opponent we have to flip the alignment
+  &--opponent {
+    &#{$block}--state-is-playing #{$block}__status {
+      background-color: #bf313e;
+    }
+
+    #{$block}__event-description {
+      right: 138px;
+      left: auto;
+    }
+
+    #{$block}__play-status {
+      left: -10px;
+    }
+
+    #{$block}__hover-stats {
+      background-position: 210px center;
+      left: auto;
+      right: 0;
+      text-align: left;
+    }
+
+    #{$block}__headshot-gamestats:hover #{$block}__hover-stats {
+      padding: 0 120px 0 18px;
+    }
+  }
+
   // dumbed down version for countdown
   &--upcoming {
-    .live-lineup-player__circle {
+    #{$block}__circle {
       cursor: auto;
     }
-    .live-lineup-player__only-name {
+    #{$block}__only-name {
       color: #6d718a;
       display: inline-block;
       font-family: $font-oswald;
@@ -23,7 +76,7 @@
   }
 
   &__watching-indicator {
-    background: transparent url(../img/blocks/live-lineup-player/watching-left.png) no-repeat right center;
+    background: transparent url(../../../img/blocks/live-lineup-player/watching-left.png) no-repeat right center;
     background-size: auto 100%;
     width: 21px;
     height: 68px;
@@ -42,12 +95,12 @@
     transition: all 500ms cubic-bezier(.8,.16,.18,.85) 400ms;
   }
 
-  &__position,
   &__headshot-gamestats,
-  &__status,
-  &__points,
   &__play-status,
-  &__runner-bases {
+  &__points,
+  &__position,
+  &__runner-bases,
+  &__status {
     display: inline-block;
     vertical-align: middle;
     margin: 0 4px;
@@ -71,43 +124,28 @@
     position: relative;
     display: inline-block;
 
-    &:hover {
-      .live-lineup-player__hover-stats {
-        opacity: 1;
-        z-index: initial;
-        transform: initial;
-      }
-    }
-  }
-
-  &__photo {
-    background: #050814;
-    border-radius: 50%;
-    height: 100%;
-    overflow: hidden;
-    position: absolute;
-    top: 0;
-    z-index: 30;
-    width: 100%;
-
-    img {
-      position: relative;
+    &:hover #{$block}__hover-stats {
+      opacity: 1;
+      z-index: initial;
+      transform: initial;
+      padding: 0 18px 0 120px;
+      width: 330px;
     }
   }
 
   &__hover-stats {
-    background: #1e2130 url(../img/blocks/live-lineup-player/hover-stats-divider.jpg) no-repeat 100px center;
-    border-radius: 50px;
+    background: #1e2130 url(../../../img/blocks/live-lineup-player/hover-stats-divider.jpg) no-repeat 100px center;
     background-size: auto 64%;
-    height: 50px;
-    left: 2px;
+    border-radius: 50px;
+    height: 53px;
+    left: 0;
     overflow: hidden;
     padding: 0 18px 0 120px;
     position: absolute;
     top: 0;
     transition: all 316ms cubic-bezier(.8,.16,.18,.85) 400ms;
     width: 330px;
-    z-index: 10;
+
     opacity: 0;
     z-index: -1;
     transform: translateY(15px);
@@ -117,18 +155,27 @@
       padding-top: 23px;
       width: 290px;
     }
+  }
 
-    li {
-      display: inline-block;
-      text-align: center;
-      width: 32px;
-    }
+  &__hover-stats-list {
+    list-style: none;
+    margin: 0;
+    padding: 9px 0 0 0;
+    width: 290px;
+  }
+
+  &__hover-stat {
+    color: #9ea1b1;
+    display: inline-block;
+    text-align: center;
+    width: 32px;
+  }
 
     .hover-stats__title {
+      font-family: $font-oswald;
       position: absolute;
       top: -1px;
       left: 130px;
-      transform: scaleY(1.4);
 
       .hover-stats__name {
         display: inline;
@@ -169,6 +216,14 @@
       font-size: 6px;
       color: #9ea1b1;
     }
+
+  &__hover-stat-amount {
+    font-family: $font-oswald;
+    font-size: 14px;
+  }
+
+  &__hover-stat-name {
+    font-size: 9px;
   }
 
   &__headshot-gamestats .player-pmr-headshot {
@@ -187,57 +242,9 @@
   }
 
   &__event-description {
-    transition: all 500ms cubic-bezier(.8,.16,.18,.85) 400ms;
-    background: #1f2231;
-    border-radius: 32px;
-    height: 32px;
-    padding: 4px 14px;
-    position: absolute;
     left: 138px;
-    top: 16px;
-    white-space: nowrap;
-
-    > * {
-      display: inline-block;
-    }
-  }
-
-  .event-description-enter {
-    opacity: 0.01;
-    top: 36px;
-  }
-
-  .event-description-enter.event-description-enter-active {
-    opacity: 1;
-    top: 16px;
-  }
-
-  .event-description-leave {
-    opacity: 1;
-    top: 16px;
-  }
-
-  .event-description-leave.event-description-leave-active {
-    opacity: 0.01;
-    top: -4px;
-  }
-
-  .event-description__points {
-    color: #3db8e3;
-    font-family: $font-oswald;
-    font-size: 11px;
-    margin-right: 12px;
-  }
-
-  .event-description__info {
-    color: #fff;
-    font-size: 12px;
-    margin-right: 4px;
-  }
-
-  .event-description__when {
-    color: #878b9c;
-    font-size: 12px;
+    position: absolute;
+    top: 18px;
   }
 
   &__status {
@@ -247,7 +254,7 @@
   }
 
   &__play-status {
-    background: transparent url(../img/blocks/live-lineup-player/happening.png) no-repeat left top;
+    background: transparent url(../../../img/blocks/live-lineup-player/happening.png) no-repeat left top;
     background-size: 100% auto;
     width: 22px;
     height: 4px;
@@ -268,60 +275,5 @@
     text-transform: uppercase;
     font-weight: 400;
     z-index: 50;
-  }
-
-  // when playing show the green status indicator as well as make the PMR circle around the photo
-  &.state--is-playing {
-    .live-lineup-player__status {
-      background-color: #2c8fb1;
-    }
-
-    .play-status--eventInProgress {
-      background-color: #ff0000;
-    }
-  }
-
-  &.state--not-playing {
-    .live-lineup-player__points {
-      color: #6d718a;
-    }
-  }
-
-}
-
-
-
-// NON BEM not sure how else to though...
-.live-lineup--opponent {
-  .live-lineup-player.state--is-playing {
-    .live-lineup-player__status {
-      background-color: #2c8fb1;
-    }
-  }
-
-  .live-lineup-player .live-lineup-player__event-description {
-    right: 138px;
-    left: auto;
-  }
-
-  .live-lineup-player .live-lineup-player__hover-stats {
-    text-align: left;
-    background-position: 210px center;
-  }
-  .live-lineup-player:hover .live-lineup-player__hover-stats {
-    padding: 0 120px 0 18px;
-  }
-
-  .live-lineup-player__play-status {
-    left: -10px;
-  }
-
-  .live-lineup-player.state--is-playing .live-lineup-player__status {
-    background-color: #bf313e;
-  }
-
-  .live-lineup-player__hover-stats {
-    right: 2px;
-    left: auto;
   }
 }

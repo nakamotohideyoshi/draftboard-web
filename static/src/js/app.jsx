@@ -3,6 +3,10 @@ import 'babel-polyfill';
 import Cookies from 'js-cookie';
 import log from 'lib/logging';
 
+// get custom logger for actions
+const logApp = log.getLogger('app');
+
+
 // Sentry error reporting.
 //
 // Set the default Sentry project as Draftboard - Local. If we aren't in debug mode, change it to
@@ -81,18 +85,17 @@ require('app.scss');
 
 // before we execute anything else, wipe the redux entry in localStorage if asked.
 if (window.dfs.wipeLocalStorage === '1') {
-  log.info('app.jsx - Wiping localStorage due to query param');
+  logApp.info('app.jsx - Wiping localStorage due to query param');
   window.localStorage.clear();
-}
 
-if (window.localStorage.version && window.localStorage.version !== window.dfs.gitCommitUUID) {
-  log.info('app.jsx - Wiping localStorage due to new deployment');
+// wipe localStorage if git commit changes
+} else if (window.localStorage.version && window.localStorage.version !== window.dfs.gitCommitUUID) {
+  logApp.info('app.jsx - Wiping localStorage due to new deployment');
   window.localStorage.clear();
-}
 
 // wipe localStorage if the user changes
-if (Cookies.get('username') !== window.dfs.user.username) {
-  log.info('app.jsx - Wiping localStorage due to new username existing');
+} else if (Cookies.get('username') !== window.dfs.user.username) {
+  logApp.info('app.jsx - Wiping localStorage due to new username existing');
   Cookies.set('username', window.dfs.user.username);
   window.localStorage.clear();
 }
