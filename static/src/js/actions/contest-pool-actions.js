@@ -12,6 +12,10 @@ const contestSchema = new Schema('contests', {
   idAttribute: 'id',
 });
 
+const entrySchema = new Schema('entries', {
+  idAttribute: 'id',
+});
+
 
 /**
  * Contests Pool Entry Actions
@@ -25,6 +29,15 @@ export const fetchContestPoolEntries = () => (dispatch) => {
         actionTypes.ADD_MESSAGE,
       ],
       endpoint: '/api/contest/contest-pools/entries/',
+      callback: (json) => {
+        // Normalize contest list by ID.
+        const normalizedEntries = normalize(
+          json,
+          arrayOf(entrySchema)
+        );
+
+        return normalizedEntries.entities.entries;
+      },
     },
   });
 
@@ -146,6 +159,13 @@ export function enterContest(contestPoolId, lineupId) {
   };
 
   return (dispatch) => {
+    // Tell the state that we are entering a contest.
+    dispatch({
+      type: actionTypes.ENTERING_CONTEST_POOL,
+      contestPoolId,
+      lineupId,
+    });
+
     request
     .post('/api/contest/enter-lineup/')
     .set({
@@ -167,6 +187,12 @@ export function enterContest(contestPoolId, lineupId) {
           level: 'warning',
           content: res.text,
         }));
+        // Tell the state the entry attempt failed.
+        dispatch({
+          type: actionTypes.ENTERING_CONTEST_POOL_FAIL,
+          contestPoolId,
+          lineupId,
+        });
       } else {
         // Because the user just entered a contest, their cash balance should be different.
         dispatch(fetchCashBalanceIfNeeded());
@@ -180,6 +206,12 @@ export function enterContest(contestPoolId, lineupId) {
           header: 'Your lineup has been entered.',
           ttl: 2000,
         }));
+        // Tell the state the entry attempt succeeded.
+        dispatch({
+          type: actionTypes.ENTERING_CONTEST_POOL_SUCCESS,
+          contestPoolId,
+          lineupId,
+        });
       }
     });
   };
@@ -263,6 +295,12 @@ export function upcomingContestUpdateReceived(contest) {
 
 export function removeContestPoolEntry(entry) {
   return (dispatch) => {
+    // Tell the app we are attempting to unregister this entry.
+    dispatch({
+      type: actionTypes.REMOVING_CONTEST_POOL_ENTRY,
+      entry,
+    });
+
     request
     .post(`/api/contest/unregister-entry/${entry.id}/`)
     .set({
@@ -272,11 +310,19 @@ export function removeContestPoolEntry(entry) {
     })
     .end((err, res) => {
       if (err) {
+        // Show the user an error message.
         dispatch(addMessage({
           header: 'Unable to remove contest entry.',
           content: res.body.error,
           level: 'warning',
         }));
+
+        // tell the state it failed.
+        dispatch({
+          type: actionTypes.REMOVING_CONTEST_POOL_ENTRY_FAIL,
+          entry,
+        });
+
         // Because the user just entered a contest, their cash balance should be different.
         dispatch(fetchCashBalanceIfNeeded());
         // Fetch the user's current contest pool entries which will force the UI to update.
@@ -286,6 +332,11 @@ export function removeContestPoolEntry(entry) {
 
         log.error(res);
       } else {
+        dispatch({
+          type: actionTypes.REMOVING_CONTEST_POOL_ENTRY_SUCCESS,
+          entry,
+        });
+
         // Because the user just entered a contest, their cash balance should be different.
         dispatch(fetchCashBalanceIfNeeded());
         // Fetch the user's current contest pool entries which will force the UI to update.

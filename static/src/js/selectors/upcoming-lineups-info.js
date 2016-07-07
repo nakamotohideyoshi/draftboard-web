@@ -33,8 +33,8 @@ export const upcomingLineupsInfo = createSelector(
   (state) => state.upcomingLineups.lineups,
   (state) => state.contestPoolEntries.entries,
   (state) => state.contestPools.allContests,
-  (state) => state.pollingTasks,
-  (lineups, entries, contests, pollingTasks) => {
+  (state) => state.contestPoolEntries.entryRequests,
+  (lineups, entries, contests, entryRequests) => {
     const info = {};
     const feeMap = {};
     // The contest pools the lineup is entered into
@@ -48,22 +48,15 @@ export const upcomingLineupsInfo = createSelector(
 
     // Determine fees.
     forEach(lineups, (lineup) => {
-      // Attach entryRequests and unregister requests for each lineup & contest.
-      if (pollingTasks) {
+      // Attach entryRequests for each lineup & contest. These let us tell the enterContestButton
+      // component when the user has an outstanding request to enter the contest.
+      if (entryRequests) {
         // Find all contest entry requests for this lineup.
-        const lineupEntryRequests = filter(pollingTasks, { lineupId: lineup.id, requestType: 'entry' });
+        const lineupEntryRequests = filter(entryRequests, { lineupId: lineup.id });
         lineupEntryRequestMap[lineup.id] = {};
         // Insert each of the lineup's entry requests, grouped by contestPoolId,
         forEach(lineupEntryRequests, (entryRequest) => {
           lineupEntryRequestMap[lineup.id][entryRequest.contestPoolId] = entryRequest;
-        });
-
-        // Find all entry unregister requests for this lineup.
-        const unregisterRequests = filter(pollingTasks, { lineupId: lineup.id, requestType: 'unregister' });
-        unregisterRequestMap[lineup.id] = {};
-        // Insert each of the lineup's unregister requests, grouped by contestPoolId,
-        forEach(unregisterRequests, (request) => {
-          unregisterRequestMap[lineup.id][request.entryId] = request;
         });
       }
 

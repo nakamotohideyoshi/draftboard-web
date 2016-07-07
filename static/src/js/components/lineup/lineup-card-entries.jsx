@@ -26,7 +26,6 @@ const LineupCardEntries = React.createClass({
             key={`${entrySet.contest.id}-${i}`}
             entrySet={entrySet}
             entry={entry}
-            unregisterRequests={this.props.lineupInfo.unregisterRequests}
             removeContestPoolEntry={this.props.removeContestPoolEntry}
             entryIndex={i}
           />

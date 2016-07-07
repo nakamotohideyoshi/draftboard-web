@@ -213,8 +213,14 @@ export function saveLineup(lineup, title, draftGroupId) {
  * @return {[type]}              [description]
  */
 export function saveLineupEdit(lineup, title, lineupId) {
-  log.info('saveLineupEdit', lineup, title, lineupId);
   return (dispatch) => {
+    log.info('saveLineupEdit', lineup, title, lineupId);
+
+    dispatch({
+      type: actionTypes.SAVE_LINEUP_EDIT,
+      lineupId,
+    });
+
     const lineupErrors = validateLineup(lineup);
 
     // If we have errors, dispatch a fail action with them.
@@ -247,9 +253,17 @@ export function saveLineupEdit(lineup, title, lineupId) {
             id: 'lineupEdit',
           }));
           log.error(res);
+          dispatch({
+            type: actionTypes.SAVE_LINEUP_EDIT_FAIL,
+            lineupId,
+          });
           dispatch(saveLineupFail(res.body));
         } else {
           if (res.body.status === 'SUCCESS') {
+            dispatch({
+              type: actionTypes.SAVE_LINEUP_EDIT_SUCCESS,
+              lineupId,
+            });
             // Redirect to lobby with url param.
             document.location.href = '/lobby/?lineup-saved=true';
           }
@@ -308,27 +322,5 @@ export function importLineup(lineup, importTitle = false) {
       players,
       title,
     });
-  };
-}
-
-
-/**
- * When a user wants to create a new lineup via copying another one of their lineups, this takes
- * the first lineup's id, and imports it.
- * @param  {Int} lineupId Which lineup should be copied.
- */
-export function createLineupViaCopy(lineupId) {
-  return (dispatch, getState) => {
-    const state = getState();
-    // When copying a lineup is requested, import a lineup by id (via url), check if we have the
-    // necessary data, if so then import it.
-    if (lineupId && state.draftGroupPlayers.id) {
-      // Does this lineup exist in our lineups list?
-      if (state.upcomingLineups.lineups.hasOwnProperty(lineupId)) {
-        dispatch(importLineup(state.upcomingLineups.lineups[lineupId], getState));
-      } else {
-        log.error(`Lineup #${lineupId} is not in upcoming lineups.`);
-      }
-    }
   };
 }
