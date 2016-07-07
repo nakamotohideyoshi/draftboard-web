@@ -191,7 +191,9 @@ const isMessageUsed = (message, sport) => {
     case 'mlb':
       // only working with at bats
       if (!('srid_at_bat' in message.pbp)) reasons.push('!message.pbp.srid_at_bat');
-      if (typeof message.at_bat !== 'object' || !('srid' in message.at_bat)) reasons.push('!message.at_bat.srid');
+      if (typeof message.at_bat !== 'object' || !('srid_hitter' in message.at_bat)) {
+        reasons.push('!message.at_bat.srid_hitter');
+      }
       // if the at bat is over, then there must be a description
       // if (message.pbp.flags.is_ab_over === true && !message.at_bat.oid_description) {
       //   reasons.push('!message.at_bat.oid_description');
@@ -244,7 +246,7 @@ const getMLBData = (message, gameId, boxscore) => {
     hitter: {
       atBatStats: stats_str,
       name: `${fn} ${ln}`,
-      sridPlayer: at_bat.srid,
+      sridPlayer: at_bat.srid_hitter,
       sridTeam: srid_team,
       outcomeFp: humanizeFP(at_bat.oid_fp, true) || null,
     },
