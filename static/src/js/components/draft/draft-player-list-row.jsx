@@ -104,7 +104,7 @@ const DraftPlayerListRow = React.createClass({
         <td className="position">{this.props.row.position}</td>
         <td className="photo">
           <img
-            src="/static/src/img/blocks/draft-list/lineup-no-player.png"
+            src={require('../../../img/blocks/draft-list/lineup-no-player.png')}
             data-src={`${this.props.playerImagesBaseUrl}/120/${this.props.row.player_srid}.png`}
             onError={(tag) => {
               tag.currentTarget.src = require('../../../img/blocks/draft-list/lineup-no-player.png');

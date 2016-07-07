@@ -3,12 +3,16 @@ import { normalize, Schema, arrayOf } from 'normalizr';
 import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
 import * as actionTypes from '../action-types';
-import { monitorEntryRequest, monitorUnregisterRequest } from './entry-request-actions.js';
 import { addMessage } from './message-actions.js';
 import { CALL_API } from '../middleware/api';
+import { fetchCashBalanceIfNeeded } from './user.js';
 
 
 const contestSchema = new Schema('contests', {
+  idAttribute: 'id',
+});
+
+const entrySchema = new Schema('entries', {
   idAttribute: 'id',
 });
 
@@ -25,6 +29,15 @@ export const fetchContestPoolEntries = () => (dispatch) => {
         actionTypes.ADD_MESSAGE,
       ],
       endpoint: '/api/contest/contest-pools/entries/',
+      callback: (json) => {
+        // Normalize contest list by ID.
+        const normalizedEntries = normalize(
+          json,
+          arrayOf(entrySchema)
+        );
+
+        return normalizedEntries.entities.entries;
+      },
     },
   });
 
@@ -146,6 +159,13 @@ export function enterContest(contestPoolId, lineupId) {
   };
 
   return (dispatch) => {
+    // Tell the state that we are entering a contest.
+    dispatch({
+      type: actionTypes.ENTERING_CONTEST_POOL,
+      contestPoolId,
+      lineupId,
+    });
+
     request
     .post('/api/contest/enter-lineup/')
     .set({
@@ -156,13 +176,42 @@ export function enterContest(contestPoolId, lineupId) {
     .send(postData)
     .end((err, res) => {
       if (err) {
-        addMessage({
+        log.error('Contest entry request status error:', res);
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        dispatch(fetchContestPoolEntries());
+        // Re-Fetch the contest list that will have an updated current_entries count.
+        dispatch(fetchContestPools());
+
+        dispatch(addMessage({
           header: 'Unable to join contest.',
           level: 'warning',
+          content: res.text,
+        }));
+        // Tell the state the entry attempt failed.
+        dispatch({
+          type: actionTypes.ENTERING_CONTEST_POOL_FAIL,
+          contestPoolId,
+          lineupId,
         });
-        log.error(res);
       } else {
-        dispatch(monitorEntryRequest(res.body.buyin_task_id, contestPoolId, lineupId));
+        // Because the user just entered a contest, their cash balance should be different.
+        dispatch(fetchCashBalanceIfNeeded());
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        dispatch(fetchContestPoolEntries());
+        // Re-Fetch the contest list that will have an updated current_entries count.
+        dispatch(fetchContestPools());
+        // Display a success message to the user.
+        dispatch(addMessage({
+          level: 'success',
+          header: 'Your lineup has been entered.',
+          ttl: 2000,
+        }));
+        // Tell the state the entry attempt succeeded.
+        dispatch({
+          type: actionTypes.ENTERING_CONTEST_POOL_SUCCESS,
+          contestPoolId,
+          lineupId,
+        });
       }
     });
   };
@@ -246,6 +295,12 @@ export function upcomingContestUpdateReceived(contest) {
 
 export function removeContestPoolEntry(entry) {
   return (dispatch) => {
+    // Tell the app we are attempting to unregister this entry.
+    dispatch({
+      type: actionTypes.REMOVING_CONTEST_POOL_ENTRY,
+      entry,
+    });
+
     request
     .post(`/api/contest/unregister-entry/${entry.id}/`)
     .set({
@@ -255,14 +310,45 @@ export function removeContestPoolEntry(entry) {
     })
     .end((err, res) => {
       if (err) {
+        // Show the user an error message.
         dispatch(addMessage({
           header: 'Unable to remove contest entry.',
           content: res.body.error,
           level: 'warning',
         }));
+
+        // tell the state it failed.
+        dispatch({
+          type: actionTypes.REMOVING_CONTEST_POOL_ENTRY_FAIL,
+          entry,
+        });
+
+        // Because the user just entered a contest, their cash balance should be different.
+        dispatch(fetchCashBalanceIfNeeded());
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        dispatch(fetchContestPoolEntries());
+        // Re-Fetch the contest list that will have an updated current_entries count.
+        dispatch(fetchContestPools());
+
         log.error(res);
       } else {
-        dispatch(monitorUnregisterRequest(res.body.task_id, entry));
+        dispatch({
+          type: actionTypes.REMOVING_CONTEST_POOL_ENTRY_SUCCESS,
+          entry,
+        });
+
+        // Because the user just entered a contest, their cash balance should be different.
+        dispatch(fetchCashBalanceIfNeeded());
+        // Fetch the user's current contest pool entries which will force the UI to update.
+        dispatch(fetchContestPoolEntries());
+        // Re-Fetch the contest list that will have an updated current_entries count.
+        dispatch(fetchContestPools());
+        // Display a success message to the user.
+        dispatch(addMessage({
+          level: 'success',
+          header: 'Your lineup entry has been removed.',
+          ttl: 3000,
+        }));
       }
     });
   };

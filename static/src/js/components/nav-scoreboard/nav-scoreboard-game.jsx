@@ -1,8 +1,6 @@
-import React from 'react';
+import GameTime from '../site/game-time';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
-import moment from 'moment';
-import { dateNow } from '../../lib/utils';
-import { stringifyMLBWhen } from '../../actions/events/pbp';
+import React from 'react';
 
 
 /**
@@ -17,58 +15,19 @@ const NavScoreboardGame = React.createClass({
   mixins: [PureRenderMixin],
 
   renderClock() {
-    const game = this.props.game;
+    const { game } = this.props;
+    const { boxscore = {}, sport, start } = game;
+    const { status } = boxscore;
 
-    // default
-    let clockElement = (<div>{moment(game.start).format('h:mma')} <br /> <br /></div>);
+    const gameTimeProps = {
+      boxscore,
+      modifiers: ['nav-scoreboard'],
+      sport,
+      start,
+      status,
+    };
 
-    const boxscore = game.boxscore || {};
-    const hasGameStarted = boxscore.hasOwnProperty('status') &&
-      boxscore.status !== 'scheduled' &&
-      game.start < dateNow();
-
-    // if the game hasn't started
-    if (hasGameStarted) {
-      // if the game has ended
-      const doneStatuses = ['closed', 'complete'];
-      if (doneStatuses.indexOf(boxscore.status) !== -1) {
-        clockElement = 'Final';
-      } else {
-        switch (game.sport) {
-          case 'mlb': {
-            const strInning = stringifyMLBWhen(boxscore.inning, boxscore.innning_half);
-            clockElement = (
-              <div>
-                <div className={`mlb-when mlb-half-inning--${(boxscore.inning_half === 'B') ? 'bottom' : 'top'}`}>
-                  <svg className="down-arrow" viewBox="0 0 40 22.12">
-                    <path d="M20,31.06L0,8.94H40Z" transform="translate(0 -8.94)" />
-                  </svg>
-                </div>
-                {strInning}
-              </div>
-            );
-            break;
-          }
-          case 'nba':
-          case 'nhl':
-          default: {
-            // otherwise the game is live
-            const clock = (boxscore.clock === '00:00') ? 'END OF' : boxscore.clock;
-            clockElement = (<div>{clock}<br />{boxscore.periodDisplay}</div>);
-          }
-        }
-      }
-    }
-
-    return (
-      <div className="right">
-        {clockElement}
-      </div>
-    );
-  },
-
-  renderInning() {
-
+    return (<GameTime {...gameTimeProps} />);
   },
 
   renderScores() {
@@ -102,7 +61,8 @@ const NavScoreboardGame = React.createClass({
         </div>
 
         { this.renderScores() }
-        { this.renderClock() }
+
+        {this.renderClock()}
       </div>
     );
   },
