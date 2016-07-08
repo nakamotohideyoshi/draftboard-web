@@ -22,8 +22,8 @@ $block: '.game-time';
 
     // top of inning
     &--t {
+      top: -2px;
       transform: rotate(180deg);
-      top: 1px;
     }
     // bottom of inning
     &--b {
@@ -50,6 +50,19 @@ $block: '.game-time';
     &#{$block}--is-live {
       top: 1px;
       vertical-align: bottom;
+    }
+  }
+
+  &--live-lineup-player {
+    color: #9ea1b1;
+    display: inline-block;
+    font-size: 9px;
+    left: 10px;
+    position: relative;
+    top: -1px;
+
+    #{$block}__half-inning path {
+      fill: #9ea1b1;
     }
   }
 }
