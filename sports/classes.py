@@ -373,12 +373,16 @@ class SiteSportManager(object):
         #     print(tab_width, g.srid, str(g.start))
         return games
 
-    def __add_to_dict(self, target, extras):
+    def __add_to_dict(self, target, extras, exclude_fields=[]):
         for k,v in extras.items():
+            if k in exclude_fields:
+                continue # dont add this one
             target[ k ] = v
         return target
 
     def get_serialized_scoreboard_data(self, sport):
+        #boxscore_exclude_fields = ['status']
+
         site_sport = self.__get_site_sport_from_str(sport)
         boxscore_class = self.get_game_boxscore_class(site_sport)
         boxscore_serializer_class = self.get_boxscore_serializer_class(sport)
@@ -407,6 +411,7 @@ class SiteSportManager(object):
                 b = {
                     'boxscore' : boxscore_serializer_class( boxscore ).data
                 }
+            # add these fields, except for the 'status' because we'll use the schedule game status
             self.__add_to_dict( inner_data, b )
 
             # finish it by adding the game data to the return data dict

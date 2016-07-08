@@ -17,6 +17,7 @@ from django.db.transaction import atomic
 from django.core.cache import cache
 from sports.classes import SiteSportManager
 from sports.trigger import CacheList
+import sports.models
 import sports.mlb.models
 from sports.mlb.models import (
     Team,
@@ -571,6 +572,9 @@ class GameSchedule(DataDenGameSchedule):
 
 class PlayerTeamProfile(DataDenPlayerRosters):
 
+    POSITION_DH = 'DH'
+    POSITION_1B = '1B'
+
     team_model      = Team
     player_model    = Player
 
@@ -607,6 +611,22 @@ class PlayerTeamProfile(DataDenPlayerRosters):
         #     "team__id" : "55714da8-fcaf-4574-8443-59bfb511a524",
         #     "parent_list__id" : "players__list"
         # }
+
+        # convert DH straight into 1B
+        position = self.player.position
+        site_sport = position.site_sport
+        if position.name == self.POSITION_DH:
+            # were going to set him to a 1B instead
+            try:
+                #print(site_sport, self.POSITION_1B)
+                position_1b = sports.models.Position.objects.get(site_sport=site_sport, name=self.POSITION_1B)
+            except Position.DoesNotExist:
+                position_1b = Position()
+                position_1b.site_sport = site_sport
+                position_1b.name = self.POSITION_1B
+                position_1b.save()
+
+        self.player.position        = position_1b
 
         self.player.preferred_name  = self.o.get('preferred_name', None)
 
@@ -2459,7 +2479,8 @@ class DataDenMlb(AbstractDataDenParser):
         elif self.target == ('mlb.team','hierarchy'): TeamHierarchy().parse( obj ) # parse each team
         #
         # player
-        elif self.target == ('mlb.player','team_profile'): PlayerTeamProfile().parse( obj ) # ie: rosters
+        elif self.target == ('mlb.player','team_profile'):
+            PlayerTeamProfile().parse( obj ) # ie: rosters
         elif self.target == ('mlb.player','summary'):
             PlayerStats().parse( obj ) # stats from games
         #
