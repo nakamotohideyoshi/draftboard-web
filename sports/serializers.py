@@ -52,7 +52,7 @@ class BoxscoreSerializer(serializers.ModelSerializer):
     PARENT_FIELDS = ('srid_game',
                      'srid_home','srid_away',
                      'home_score','away_score',
-                     'status',
+                     # 'status', # remove because we want to start using only the Game.status!
                      'attendance','coverage',
                      'home_score','away_score',
                      'home_scoring_data','away_scoring_data')
