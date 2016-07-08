@@ -1,0 +1,61 @@
+version: '2'
+services:
+  # when linked container is up, this will also be running
+  # you can see this by running `docker-compose ps` to view active containers
+  # run `docker-compose exec postgres sh` to mess around in this container
+  postgres:
+    image: kiasaki/alpine-postgres:9.4
+    restart: unless-stopped
+    expose:
+      - "5432"
+    volumes:
+      - draftboard_postgres:/var/lib/postgresql/data
+
+  # when linked container is up, this will also be running
+  # you can see this by running `docker-compose ps` to view active containers
+  # run `docker-compose exec redis sh` to mess around in this container
+  redis:
+    image: mendsley/alpine-redis
+    restart: unless-stopped
+    expose:
+      - "6379"
+
+  # run `docker-compose up celery` to start the process
+  # then `docker-compose scale celery=[x]` to add x number of processes!
+  celery:
+    build:
+      context: .
+      args:
+        - DRAFTBOARD_SETTINGS
+    command: dumb-init celery -A mysite worker -l info --purge
+    links:
+      - postgres
+      - redis
+    volumes:
+      - .:/code
+    environment:
+      # allows celery to run as the root user.
+      - C_FORCE_ROOT=true
+
+  # Run `docker-compose up django` to start up runserver process
+  # Run `docker-compose run django sh -l` to access shell where you can run commands
+  django:
+    build:
+      context: .
+      args:
+        - DRAFTBOARD_SETTINGS
+    command: dumb-init python3 manage.py runserver 0.0.0.0:8000 --noreload
+    links:
+      - postgres
+      - redis
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/code
+
+# declare the named volumes so that they persist
+# need to create this before running services
+# run `docker volume create --name draftboard_postgres`
+volumes:
+  draftboard_postgres:
+    external: true

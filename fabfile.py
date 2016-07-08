@@ -1,12 +1,35 @@
-from fabric.api import env, warn_only
-from fabric.contrib import django
+from boto.s3.connection import S3Connection
+from distutils.util import strtobool
 from fabric import operations
 from fabric import utils
+from fabric.api import env, warn_only
+from fabric.contrib import django
 from subprocess import check_output
-from distutils.util import strtobool
-from boto.s3.connection import S3Connection
-from util.timeshift import reset_system_time
 import hashlib
+
+
+
+# CONSTANTS
+
+ENVS = {
+    'production': {
+        'local_git_branch': 'master',
+        'heroku_repo': 'draftboard-staging',  # currently draftboard-staging is the production server
+    },
+    'staging': {
+        'local_git_branch': 'master',
+        'heroku_repo': 'draftboard-staging',
+    },
+    'dev': {
+        'heroku_repo': 'draftboard-dev',
+    },
+}
+
+# default to vagrant setup
+env.virtual_machine_type = 'vagrant'
+
+
+# INTERNAL METHODS
 
 def _confirm(prompt='Continue?\n', failure_prompt='User cancelled task'):
     '''
@@ -27,32 +50,118 @@ def _confirm(prompt='Continue?\n', failure_prompt='User cancelled task'):
     return response_bool
 
 
-ENVS = {
-    'production': {
-        'local_git_branch': 'master',
-        'heroku_repo': 'draftboard-staging',  # currently draftboard-staging is the production server
-    },
-    'staging': {
-        'local_git_branch': 'master',
-        'heroku_repo': 'draftboard-staging',
-    },
-    'dev': {
-        'heroku_repo': 'draftboard-dev',
-    },
-}
-
-django.settings_module('mysite.settings.local')
-
-
-
 def _confirm_env():
     """Confirms you want to run the commands on Heroku"""
     if not _confirm('Are you sure you want to run these commands on the %s environment? ' % env.environment):
         utils.abort('Aborting at user request')
 
 
+def _db_drop_then_create(db_name):
+    """Drops then creates database"""
+    if env.virtual_machine_type == 'vagrant':
+        dropCmd = 'sudo -u postgres dropdb --if-exists -U postgres %s' % db_name
+        createCmd = 'sudo -u postgres createdb -U postgres -T template0 %s' % db_name
+    else:
+        dropCmd = 'dropdb --if-exists %s' % db_name
+        createCmd = 'createdb -T template0 %s' % db_name
+
+    operations.local(dropCmd)
+    operations.local(createCmd)
+
+
+def _db_restore(db_name, dump_path):
+    """Restores db"""
+    if env.virtual_machine_type == 'vagrant':
+        cmd = 'sudo -u postgres pg_restore --no-acl --no-owner -d %s %s' % (db_name, dump_path)
+    else:
+        cmd = 'pg_restore --no-acl --no-owner -d %s %s' % (db_name, dump_path)
+
+    operations.local(cmd)
+
+
+def _db_export(db_name, dump_path='/tmp/dfs_exported.dump'):
+    """exports a database to file"""
+
+    operations.require('environment')
+
+    if env.environment != 'local':
+        utils.abort('You cannot export a remote db')
+
+    pg_dump_cmd = 'pg_dump'
+    if env.virtual_machine_type == 'vagrant':
+        pg_dump_cmd = 'sudo -u postgres pg_dump'
+
+    cmd = '%s -Fc --no-acl --no-owner %s > %s' % (pg_dump_cmd, db_name, dump_path)
+
+    _puts('Exporting %s database to %s' % (db_name, dump_path))
+    operations.local(cmd)
+
+
+def _get_local_git_db():
+    """Add local git branch and db name for use when pushing"""
+
+    _puts('Determining envirnoment git branch, dbname')
+    env.local_git_branch = operations.local('git rev-parse --abbrev-ref HEAD', capture=True)
+    env.db_name = 'dfs_' + env.local_git_branch
+
+
+def _importdb(db_name, db_dump):
+    # drop, create, then import db
+    _db_drop_then_create(db_name)
+    _db_restore(db_name, db_dump)
+
+    # flush out redis
+    flush_cache()
+
+
+def _puts(message):
+    """Extends puts to separate out what we're doing"""
+    utils.puts('\n- %s' % message)
+
+
+def _python():
+    """Returns the proper alias for python, depending on environment"""
+    return 'python3' if env.virtual_machine_type == 'docker' else 'python'
+
+
+def _show_progress(current_bytes, total_bytes):
+    """Shortcut to print out progress of bytes being pulled down"""
+    print('%s%%' % int(round(current_bytes / total_bytes * 100)))
+
+
+# AVAILABLE FAB COMMANDS
+
+def db2s3():
+    """
+    fab db2s3 --set s3file=thefilenameons3
+
+    Upload a postgres dump to s3
+
+        $> sudo pip3 install awscli
+        $> sudo pip3 install --upgrade awscli
+        $> aws configure
+        AWS Access Key ID [None]: AKIAIJC5GEI5Y3BEMETQ
+        AWS Secret Access Key [None]: AjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1
+        Default region name [None]: us-east-1
+        Default output format [None]:
+        $> aws s3 cp dfs_master_example.dump s3://draftboard-db-dumps/dfs_master_example.dump    # <--- db2s3 does this cmd
+        upload: ./dfs_master_example.dump to s3://draftboard-db-dumps/dfs_master_example.dump
+        $>
+
+    :param: --set s3file=thefilenameons3
+    :return:
+    """
+
+    # filename on s3
+    db_dump_name = env.s3file
+
+    cmd = 'aws s3 cp %s s3://draftboard-db-dumps/%s' % (db_dump_name, db_dump_name)
+    _puts('%s' % cmd)
+    operations.local(cmd)
+
+
 def deploy():
-    """fab [environment] deploy (pushes changes up to heroku)"""
+    """fab [env] deploy (pushes changes up to heroku)"""
 
     operations.require('environment')
     _puts('Git push to %s' % env.environment)
@@ -68,240 +177,62 @@ def deploy():
         env.heroku_repo
     ))
 
-    #
-    # TODO
-    # after git push, we should do a $> heroku run python manage.py migrate
 
 def exportdb():
-    """fab [environment] exportdb (exports the environment database to `/tmp/dfs_exported.dump`)"""
+    """
+    fab [env] [virtual_machine_type] exportdb
+
+    exports the environment database to `/tmp/dfs_exported.dump`
+    """
 
     operations.require('environment')
 
     if env.environment == 'local':
-        _puts('Exporting local database to `/tmp/dfs_exported.dump`')
-        operations.local('sudo -u postgres pg_dump -Fc --no-acl --no-owner %s > /tmp/dfs_exported.dump' % (env.db_name))
+        _db_export(env.db_name)
 
 
 def flush_cache():
-    """fab [environment] flush_cache (wipes redis)"""
+    """
+    fab [env] [virtual_machine_type] flush_cache
+
+    wipes redis
+    """
 
     operations.require('environment')
 
     if env.environment == 'local':
         _puts('Flushing memcached')
-        operations.local('python manage.py flush_cache --settings mysite.settings.local')
+        operations.local('%s manage.py flush_cache' % _python())  # use default settings here
     else:
         if env.environment == 'production' and not _confirm('Are you sure you want to wipe memcached on the production server?'):
             utils.abort('Aborting at user request')
 
-        operations.local('heroku run python manage.py flush_cache --app %s' % env.heroku_repo)
+        operations.local('heroku run %s manage.py flush_cache --app %s' % (_python(), env.heroku_repo))
 
 
 def flush_pyc():
-    """fab local flush_pyc (removes all .pyc files, use if django is failing after switching branches)"""
+    """
+    fab local [virtual_machine_type] flush_pyc
+
+    removes all .pyc files, use if django is failing after switching branches
+    """
 
     operations.require('environment')
     operations.local('find . -name "*.pyc" -delete')
 
 
-def _get_local_git_db():
-    """Add local git branch and db name for use when pushing"""
-
-    _puts('Determining envirnoment git branch, dbname')
-    env.local_git_branch = operations.local('git rev-parse --abbrev-ref HEAD', capture=True)
-    env.db_name = 'dfs_' + env.local_git_branch
-
-
-def importdb():
-    """fab [environment] importdb --set db_dump=/path/to/database/dump --set db_url=https://path.com/to/database/dump
-       (takes provided db and creates env db with it)"""
-    # ./manage.py dumpdata --exclude=contenttypes -o test_fixture.json
-    operations.require('environment')
-
-    if env.environment == 'local':
-        if 'db_dump' not in env:
-            utils.abort('You need to add --set db_dump=/path/to/database/dump to the fab command')
-
-        # copy db to tmp dir
-        _puts('Copying local to /tmp to then run syncdb with')
-
-        operations.local('cp %s /tmp/latest.dump' % env.db_dump)
-
-        # reset time
-        _puts('Resetting system time')
-        reset_system_time()
-
-        # drop local database
-        _puts('Dropping local database: %s' % env.db_name)
-        operations.local('sudo -u postgres dropdb --if-exists -U postgres %s' % env.db_name)
-
-        # [re]create empty local database, and pg_restore the backup into it
-        _puts('Creating local database')
-        operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % env.db_name)
-        operations.local('sudo -u postgres pg_restore --no-acl --no-owner -d %s /tmp/latest.dump' % env.db_name)
-
-        # flush out redis
-        flush_cache()
-
-        return
-
-    # otherwise we are replacing a heroku db SCARY
-    # remove this ability on production once we have a staging, testing envs
-
-    if 'db_url' not in env:
-        utils.abort('You need to add --set db_url=https://path.com/to/database/dump to the fab command')
-
-    _puts('Backing up %s db' % env.environment)
-    operations.local(
-        'heroku pg:backups capture --app %s' % ENVS[env.environment]['heroku_repo']
-    )
-
-    _puts('Wiping %s db' % env.environment)
-    operations.local('heroku pg:reset DATABASE --app %s --confirm %s' % (
-        ENVS[env.environment]['heroku_repo'],
-        ENVS[env.environment]['heroku_repo']
-    ))
-
-    _puts('Creating %s db from uploaded backup' % env.environment)
-    operations.local('heroku pg:backups restore %s --app %s %s --confirm %s' % (
-        ENVS[env.environment]['database_url'],
-        ENVS[env.environment]['heroku_repo'],
-        env.db_url,
-        ENVS[env.environment]['heroku_repo'],
-    ))
-
-
-def syncdb(app=None):
-    """
-    fab [environment] syncdb [--set no_backup=true]
-
-    uses heroku pg:backups to capture a snapshot of the target server.
-    downloads the snapshot, drops and does a pg_restore into our
-    current branches database. (_get_local_git_db() sets the env.db_name)
-    """
-
-    operations.require('environment')
-
-    if app is None:
-        app = 'staging'
-
-    target_server = ENVS[app]['heroku_repo']
-
-    # quick disclaimer about overwriting the production db...
-    if (env.environment == 'production'):
-        utils.abort('You cannot sync the production database to itself')
-
-    # always wipe memcached before putting in new db
-    flush_cache()
-
-    #
-    # if we want a new version, then capture new backup of production
-    if 'no_backup' not in env:
-        _puts('Capturing new [%s] backup' % target_server)
-        operations.local('heroku pg:backups capture --app %s' % target_server)
-
-    #
-    # pg_restore the downloaded .dump to the local "dfs_GITBRANCHNAME" database
-    if env.environment != 'local':
-        _puts('You can only drop&restore the database in your personal dev environment!'
-              ' Currently your environment is: %s' % env.environment)
-        return
-
-    with warn_only():
-        # download backup
-        _puts('Pull latest [%s] backup down to local' % target_server)
-        operations.local('curl -o /tmp/latest.dump `heroku pg:backups public-url --app %s`' % target_server)
-
-        # drop local database
-        _puts('Dropping local database: %s' % env.db_name)
-        operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
-
-        # [re]create empty local database, and pg_restore the backup into it
-        _puts('Creating local database')
-        operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % env.db_name)
-        operations.local('sudo -u postgres pg_restore --no-acl --no-owner -d %s /tmp/latest.dump' % env.db_name)
-
-def _puts(message):
-    """Extends puts to separate out what we're doing"""
-    utils.puts('\n- %s' % message)
-
-
-# Environments methods (required to run at least once for any method)
-
-def local():
-    """fab local [command]"""
-
-    env.environment = 'local'
-    _get_local_git_db()
-
-
-def dev():
-    """fab local [command]"""
-
-    testing = ENVS['dev']
-
-    env.environment = 'dev'
-    env.heroku_repo = testing['heroku_repo']
-    _get_local_git_db()
-
-
-def testing():
-    """fab local [command]"""
-
-    testing = ENVS['testing']
-
-    env.environment = 'testing'
-    env.heroku_repo = testing['heroku_repo']
-    _get_local_git_db()
-
-
-def production():
-    """fab production [command]"""
-
-    production = ENVS['production']
-
-    env.environment = 'production'
-    env.local_git_branch = production['local_git_branch']
-    env.heroku_repo = production['heroku_repo']
-    _confirm_env()
-
-def pg_info():
-    """
-    fab pg_info
-    """
-    #_puts('heroku pg:info')
-    #operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
-    operations.local('heroku pg:info') # <<< "cbanister@coderden.com\ncalebriodfs\n"')
-
-def heroku_restore_db():
-    """
-
-    """
-    #operations.local("sudo apt-get update -y")
-    operations.local("sudo pip3 install awscli")
-    operations.local("sudo pip3 install --upgrade awscli")
-    operations.local("aws configure <<< 'AKIAIJC5GEI5Y3BEMETQ\nAjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1\nus-east-1\n\n'")
-
-# def tester():
-#     """
-#     --set arg1=someval
-#     """
-#     _puts('arg1: %s' % env.arg1)
-
 def generate_replayer():
     """
+    fab [virtual_machine_type] generate_replayer --set start=2016-03-01,end=2016-03-02,[sport=mlb],[download=true]
+
     Command that generates a database dump consisting of data between two dates, and TimeMachine instances for every
     draft group between the two.
 
     The resulting dump will be /tmp/replayer.dump
 
-    fab generate_replayer --set start=2016-03-01,end=2016-03-02
-
     optional parameter to filter by sport, `--set sport=mlb`, choices are ['mlb', 'nhl', 'nba']
     optional parameter to download instances, `--set download=true`
     """
-    def _show_progress(current_bytes, total_bytes):
-        print('%s%%' % int(round(current_bytes/total_bytes * 100)))
 
     # check we have needed parameters
     if 'start' not in env or 'end' not in env:
@@ -337,15 +268,12 @@ def generate_replayer():
 
     temp_db = 'generate_replayer'
 
-    with warn_only():
-        # load start into temporary db
-        _puts('Restoring start db into %s' % temp_db)
+    psql_cmd = 'psql'
+    if env.virtual_machine_type == 'vagrant':
+        psql_cmd = 'sudo -u postgres psql'
 
-        operations.local('sudo -u postgres dropdb --if-exists -U postgres %s' % temp_db)
-        operations.local('sudo -u postgres createdb -U postgres -T template0 %s' % temp_db)
-        operations.local(
-            'sudo -u postgres pg_restore --no-acl --no-owner -d %s %s/%s' % (temp_db, tmp_dir, startFilename)
-        )
+    with warn_only():
+        _importdb(temp_db, '%s/%s' % (tmp_dir, startFilename))
 
         # remove all updates
         operations.local(
@@ -357,7 +285,8 @@ def generate_replayer():
     # load in needed tables from end
     _puts('Loading replay tables from end dump into %s' % temp_db)
 
-    operations.local('sudo -u postgres pg_restore --no-acl --no-owner -d %s %s %s/%s' % (
+    operations.local('%s pg_restore --no-acl --no-owner -d %s %s %s/%s' % (
+        psql_cmd,
         temp_db,
         '-t replayer_replay -t replayer_update',
         tmp_dir,
@@ -366,7 +295,8 @@ def generate_replayer():
 
     # delete updates older than the time you did step 1 from replayer_update
     operations.local(
-        'sudo -u postgres psql -d %s -c "DELETE FROM replayer_update WHERE ts < \'%s\';"' % (
+        '%s -d %s -c "DELETE FROM replayer_update WHERE ts < \'%s\';"' % (
+            psql_cmd,
             temp_db,
             env.start
         )
@@ -374,36 +304,99 @@ def generate_replayer():
 
     # loop through applicable draft_group rows and create time_machine rows, based on start and end dates
     operations.local(
-        'DJANGO_SETTINGS_MODULE="mysite.settings.local_replayer_generation" python manage.py generate_timemachines %s %s' %
-        (env.start, env.end)
+        'DJANGO_SETTINGS_MODULE="mysite.settings.local_replayer_generation" %s manage.py generate_timemachines %s %s' %
+        (_python(), env.start, env.end)
     )
 
     # remove all scheduled tasks except for contest pools
-    operations.local('sudo -u postgres psql -d %s -c "update djcelery_periodictask set enabled=\'f\';"' % (
+    operations.local('%s -d %s -c "update djcelery_periodictask set enabled=\'f\';"' % (
+        psql_cmd,
         temp_db
-        )
-    )
+    ))
 
     # remove other sport replayer updates, time machines, if sport is chosen
     if 'sport' in env and env.sport in ['mlb', 'nba', 'nhl']:
-        operations.local('sudo -u postgres psql -d %s -c "delete from replayer_update where ns not ILIKE \'%%%s%%\';"' % (
+        operations.local('%s -d %s -c "delete from replayer_update where ns not ILIKE \'%%%s%%\';"' % (
+            psql_cmd,
             temp_db,
             env.sport
-            )
-        )
-        operations.local('sudo -u postgres psql -d %s -c "delete from replayer_timemachine where replay not ILIKE \'%%%s%%\';"' % (
+        ))
+        operations.local('%s -d %s -c "delete from replayer_timemachine where replay not ILIKE \'%%%s%%\';"' % (
+            psql_cmd,
             temp_db,
             env.sport
-            )
-        )
-        operations.local('sudo -u postgres psql -d %s -c "update djcelery_periodictask set enabled=\'t\' where task=\'contest.schedule.tasks.create_scheduled_contest_pools\' AND args ILIKE \'%%%s%%\';"' % (
+        ))
+        operations.local('%s -d %s -c "update djcelery_periodictask set enabled=\'t\' where task=\'contest.schedule.tasks.create_scheduled_contest_pools\' AND args ILIKE \'%%%s%%\';"' % (
+            psql_cmd,
             temp_db,
             env.sport
-            )
-        )
+        ))
 
     # export finished db
-    operations.local('sudo -u postgres pg_dump -Fc --no-acl --no-owner %s > /tmp/replayer_generated.dump' % temp_db)
+    _db_export(temp_db, '/tmp/replayer_generated.dump')
+
+
+def heroku_restore_db():
+    """
+    fab heroku_restore_db
+
+    Restore amazon s3 db into heroku
+    """
+    # operations.local("sudo apt-get update -y")
+    operations.local("sudo pip3 install awscli")
+    operations.local("sudo pip3 install --upgrade awscli")
+    operations.local("aws configure <<< 'AKIAIJC5GEI5Y3BEMETQ\nAjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1\nus-east-1\n\n'")
+
+
+def importdb():
+    """
+    fab [env] [virtual_machine_type] importdb --set db_dump=/path/to/database/dump,[db_url=https://path.com/to/database/dump]
+
+    takes provided db and creates env db with it
+    """
+    operations.require('environment')
+
+    if env.environment == 'local':
+        if 'db_dump' not in env:
+            utils.abort('You need to add --set db_dump=/path/to/database/dump to the fab command')
+
+        _importdb(env.db_name, env.db_dump)
+
+        return
+
+    # otherwise we are replacing a heroku db SCARY
+    # remove this ability on production once we have a staging, testing envs
+
+    if 'db_url' not in env:
+        utils.abort('You need to add --set db_url=https://path.com/to/database/dump to the fab command')
+
+    _puts('Backing up %s db' % env.environment)
+    operations.local(
+        'heroku pg:backups capture --app %s' % ENVS[env.environment]['heroku_repo']
+    )
+
+    _puts('Wiping %s db' % env.environment)
+    operations.local('heroku pg:reset DATABASE --app %s --confirm %s' % (
+        ENVS[env.environment]['heroku_repo'],
+        ENVS[env.environment]['heroku_repo']
+    ))
+
+    _puts('Creating %s db from uploaded backup' % env.environment)
+    operations.local('heroku pg:backups restore %s --app %s %s --confirm %s' % (
+        ENVS[env.environment]['database_url'],
+        ENVS[env.environment]['heroku_repo'],
+        env.db_url,
+        ENVS[env.environment]['heroku_repo'],
+    ))
+
+
+def pg_info():
+    """
+    fab pg_info
+    """
+    # _puts('heroku pg:info')
+    # operations.local('sudo -u postgres dropdb -U postgres %s' % env.db_name)
+    operations.local('heroku pg:info')  # <<< "cbanister@coderden.com\ncalebriodfs\n"')
 
 
 def restore_db():
@@ -425,7 +418,7 @@ def restore_db():
     :return:
     """
     # filename on s3
-    S3_FILE = env.s3file #'dfs_master_example.dump'
+    S3_FILE = env.s3file  # 'dfs_master_example.dump'
 
     AWS_ACCESS_KEY_ID = 'AKIAIJC5GEI5Y3BEMETQ'
     AWS_SECRET_ACCESS_KEY = 'AjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1'
@@ -450,31 +443,6 @@ def restore_db():
     # example:heroku pg:backups restore 'https://draftboard-db-dumps.s3.amazonaws.com/dfs_master.dump?Signature=Ft3MxTcq%2BySJ9Y7lkBp1Vig5sTY%3D&Expires=1449611209&AWSAccessKeyId=AKIAIJC5GEI5Y3BEMETQ&response-content-type=application/octet-stream' DATABASE_URL --app draftboard-staging --confirm draftboard-staging
     operations.local("heroku pg:backups restore '%s' DATABASE_URL --app draftboard-staging --confirm draftboard-staging" % url)
 
-def db2s3():
-    """
-    Upload a postgres dump to s3
-
-        $> sudo pip3 install awscli
-        $> sudo pip3 install --upgrade awscli
-        $> aws configure
-        AWS Access Key ID [None]: AKIAIJC5GEI5Y3BEMETQ
-        AWS Secret Access Key [None]: AjurV5cjzhrd2ieJMhqUyJYXWObBDF6GPPAAi3G1
-        Default region name [None]: us-east-1
-        Default output format [None]:
-        $> aws s3 cp dfs_master_example.dump s3://draftboard-db-dumps/dfs_master_example.dump    # <--- db2s3 does this cmd
-        upload: ./dfs_master_example.dump to s3://draftboard-db-dumps/dfs_master_example.dump
-        $>
-
-    :param: --set s3file=thefilenameons3
-    :return:
-    """
-
-    # filename on s3
-    db_dump_name = env.s3file #
-
-    cmd = 'aws s3 cp %s s3://draftboard-db-dumps/%s' % (db_dump_name, db_dump_name)
-    _puts('%s' % cmd)
-    operations.local(cmd)
 
 def s3ls():
     """
@@ -483,3 +451,99 @@ def s3ls():
     cmd = 'aws s3 ls s3://draftboard-db-dumps/'
     _puts('%s' % cmd)
     operations.local(cmd)
+
+
+def syncdb(app=None):
+    """
+    fab [env] syncdb [--set no_backup=true]
+
+    uses heroku pg:backups to capture a snapshot of the target server.
+    downloads the snapshot, drops and does a pg_restore into our
+    current branches database. (_get_local_git_db() sets the env.db_name)
+    """
+
+    operations.require('environment')
+
+    if app is None:
+        app = 'staging'
+
+    target_server = ENVS[app]['heroku_repo']
+
+    # quick disclaimer about overwriting the production db...
+    if (env.environment == 'production'):
+        utils.abort('You cannot sync the production database to itself')
+
+    # if we want a new version, then capture new backup of production
+    if 'no_backup' not in env:
+        _puts('Capturing new [%s] backup' % target_server)
+        operations.local('heroku pg:backups capture --app %s' % target_server)
+
+    # pg_restore the downloaded .dump to the local "dfs_GITBRANCHNAME" database
+    if env.environment != 'local':
+        _puts('You can only drop&restore the database in your personal dev environment!'
+              ' Currently your environment is: %s' % env.environment)
+        return
+
+    with warn_only():
+        # download backup
+        _puts('Pull latest [%s] backup down to local' % target_server)
+        operations.local('curl -o /tmp/latest.dump `heroku pg:backups public-url --app %s`' % target_server)
+
+        # import database
+        _importdb(env.db_name, '/tmp/latest.dump')
+
+
+# Environments methods (required to run at least once for any method)
+
+def local():
+    """fab local [virtual_machine_type] [command]"""
+
+    env.environment = 'local'
+    _get_local_git_db()
+
+
+def dev():
+    """fab dev [virtual_machine_type] [command]"""
+
+    testing = ENVS['dev']
+
+    env.environment = 'dev'
+    env.heroku_repo = testing['heroku_repo']
+    _get_local_git_db()
+
+
+def testing():
+    """fab testing [virtual_machine_type] [command]"""
+
+    testing = ENVS['testing']
+
+    env.environment = 'testing'
+    env.heroku_repo = testing['heroku_repo']
+    _get_local_git_db()
+
+
+def production():
+    """fab production [virtual_machine_type] [command]"""
+
+    production = ENVS['production']
+
+    env.environment = 'production'
+    env.local_git_branch = production['local_git_branch']
+    env.heroku_repo = production['heroku_repo']
+    _confirm_env()
+
+
+# Virtual machine prefs
+
+def docker():
+    """fab [env] docker [command]"""
+
+    env.virtual_machine_type = 'docker'
+
+
+def vagrant():
+    """fab [env] vagrant [command]"""
+
+    # default to local settings
+    django.settings_module('mysite.settings.local')
+    env.virtual_machine_type = 'vagrant'
