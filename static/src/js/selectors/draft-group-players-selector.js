@@ -124,34 +124,45 @@ export const draftGroupPlayerSelector = createSelector(
 
  // Filter players based on the probable pitchers filter.
 const probablePitchersFilter = (state) => state.draftGroupPlayersFilters.filters.probablePitchersFilter.match;
-const probablePitchers = (state) => state.draftGroupPlayers.probablePitchers;
+const draftGroupUpdatesSelector = (state) => state.upcomingDraftGroupUpdates;
 
 const probablePitchersSelector = createSelector(
-   [allPlayersSelector, probablePitchersFilter, probablePitchers, sportSelector],
-   (players, showOnlyProbablePitchers, probables, sport) => {
-     // Ignore this for any non-mlb sports.
-     if (sport !== 'mlb') {
-       return players;
-     }
+    [allPlayersSelector, probablePitchersFilter, draftGroupUpdatesSelector, sportSelector, activeDraftGroupIdSelector],
+    (players, showOnlyProbablePitchers, draftGroupUpdates, sport, draftGroupId) => {
+      // Ignore this for any non-mlb sports.
+      if (sport !== 'mlb') {
+        return players;
+      }
 
-     // If we are showing all pitchers, just return them all.
-     if (!showOnlyProbablePitchers) {
-       return players;
-     }
+      // If we are showing all pitchers, just return them all.
+      if (!showOnlyProbablePitchers) {
+        return players;
+      }
 
-     //  Filter out any non-probable pitchers.
-     const pp = filter(players, (player) => {
-       // Hide all non pitchers
-       if (player.position !== 'SP') {
-         return true;
-       }
+      // Make sure the draftgroup with pitchers exists in the store.
+      if (
+        draftGroupId &&
+        draftGroupUpdates.draftGroups &&
+        draftGroupId in draftGroupUpdates.draftGroups &&
+        draftGroupUpdates.draftGroups[draftGroupId].probablePitchers &&
+        draftGroupUpdates.draftGroups[draftGroupId].probablePitchers.length
+      ) {
+        //  Filter out any non-probable pitchers.
+        const pp = filter(players, (player) => {
+          // Hide all non pitchers
+          if (player.position !== 'SP') {
+            return true;
+          }
 
-      // Filter out any pitchers that are not found in the probablePitchers list.
-       return probables.indexOf(player.player_srid) > -1;
-     });
+          // Filter out any pitchers that are not found in the probablePitchers list.
+          return draftGroupUpdates.draftGroups[draftGroupId].probablePitchers.indexOf(player.player_srid) > -1;
+        });
 
-     return pp;
-   }
+        return pp;
+      }
+
+      return players;
+    }
  );
 
 

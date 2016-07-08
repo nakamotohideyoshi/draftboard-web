@@ -12,7 +12,7 @@ const fetchUpcomingDraftGroupUpdates = (draftGroupId) => (dispatch) => {
         actionTypes.DRAFTGROUP_UPDATES__FETCH_SUCCESS,
         actionTypes.ADD_MESSAGE,
       ],
-      endpoint: `/api/draft-group/player-updates/${draftGroupId}/`,
+      endpoint: `/api/draft-group/game-updates/${draftGroupId}/`,
       callback: (json) => ({
         draftGroupId,
         updates: json,
