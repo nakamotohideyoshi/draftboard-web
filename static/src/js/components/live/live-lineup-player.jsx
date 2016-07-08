@@ -121,7 +121,7 @@ const LiveLineupPlayer = React.createClass({
   },
 
   renderMLBWatching() {
-    const { player, multipartEvent, playerType, isWatching } = this.props;
+    const { player, multipartEvent, playerType, isWatching, whichSide } = this.props;
 
     // only applicable sport right now
     if (this.props.sport !== 'mlb') return [];
@@ -165,7 +165,7 @@ const LiveLineupPlayer = React.createClass({
     elements.push(
       <LiveMlbLineupPlayerWatch
         key="9"
-        modifiers={[status]}
+        modifiers={[status, whichSide]}
         multipartEvent={multipartEvent}
         onClick={() => this.props.setWatchingPlayer(this.props.player.srid)}
         player={{
