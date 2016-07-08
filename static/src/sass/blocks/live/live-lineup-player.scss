@@ -29,15 +29,50 @@ $block: '.live-lineup-player';
     color: #6d718a;
   }
 
+  &--mine {
+    #{$block}__watching-indicator {
+      left: -28px;
+    }
+
+    #{$block}__event-description {
+      left: 138px;
+    }
+
+    #{$block}__runner-bases {
+      left: 138px;
+    }
+
+    #{$block}__play-status {
+      right: -10px;
+    }
+
+    #{$block}__hover-stats {
+      left: 0;
+    }
+
+    #{$block}__hover-area #{$block}__hover-stats {
+      padding: 0 18px 0 120px;
+    }
+  }
+
   // for the opponent we have to flip the alignment
   &--opponent {
     &#{$block}--state-is-playing #{$block}__status {
       background-color: #bf313e;
     }
 
+    #{$block}__watching-indicator {
+      right: -28px;
+      transform: rotateY(180deg);
+      top: 3px;
+    }
+
     #{$block}__event-description {
       right: 138px;
-      left: auto;
+    }
+
+    #{$block}__runner-bases {
+      right: 138px;
     }
 
     #{$block}__play-status {
@@ -46,12 +81,11 @@ $block: '.live-lineup-player';
 
     #{$block}__hover-stats {
       background-position: 210px center;
-      left: auto;
       right: 0;
       text-align: left;
     }
 
-    #{$block}__headshot-gamestats:hover #{$block}__hover-stats {
+    #{$block}__hover-area #{$block}__hover-stats {
       padding: 0 120px 0 18px;
     }
   }
@@ -81,7 +115,6 @@ $block: '.live-lineup-player';
     width: 21px;
     height: 68px;
     position: absolute;
-    left: -28px;
     top: 0;
   }
 
@@ -118,7 +151,6 @@ $block: '.live-lineup-player';
       opacity: 1;
       z-index: initial;
       transform: initial;
-      padding: 0 18px 0 120px;
       width: 330px;
     }
   }
@@ -128,9 +160,7 @@ $block: '.live-lineup-player';
     background-size: auto 64%;
     border-radius: 50px;
     height: 53px;
-    left: 0;
     overflow: hidden;
-    padding: 0 18px 0 120px;
     position: absolute;
     top: 0;
     transition: all 316ms cubic-bezier(.8,.16,.18,.85) 400ms;
@@ -142,7 +172,7 @@ $block: '.live-lineup-player';
 
     ul {
       list-style: none;
-      padding-top: 23px;
+      padding: 5px 0 0 0;
       width: 290px;
     }
   }
@@ -163,9 +193,9 @@ $block: '.live-lineup-player';
 
     .hover-stats__title {
       font-family: $font-oswald;
-      position: absolute;
-      top: -1px;
-      left: 130px;
+      line-height: 1;
+      margin: 0;
+      padding: 0 10px;
 
       .hover-stats__name {
         display: inline;
@@ -189,11 +219,12 @@ $block: '.live-lineup-player';
       }
 
       .hover-stats__place {
-        position: relative;
-        font-size: 8px;
-        display: inline-block;
-        margin-left: 15px;
         color: #9ea1b1;
+        display: inline-block;
+        font-size: 8px;
+        left: 10px;
+        position: relative;
+        top: 4px;
       }
     }
 
@@ -222,7 +253,6 @@ $block: '.live-lineup-player';
 
   &__runner-bases {
     height: 25px;
-    left: 138px;
     position: absolute;
     top: 19px;
 
@@ -232,7 +262,6 @@ $block: '.live-lineup-player';
   }
 
   &__event-description {
-    left: 138px;
     position: absolute;
     top: 18px;
   }

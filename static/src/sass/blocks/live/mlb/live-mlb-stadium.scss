@@ -15,12 +15,12 @@ $block: '.live-mlb-stadium';
   /**
    * Pitch zone bottom trick is a ratio. I calculated what the bottom should be when the screen is the same width as
    * the background, 1440px, which came to 50px, so when the screen width changes, we can do
-   * `calc([screen-width] * [bottom-when-screen-is-1440px-wide] / [bg-width]) = new bottom`
+   * `calc([screen-height] * [bottom-when-screen-is-1440px-wide] / [bg-width]) = new bottom`
    *
    * @param  {number} $bottom Distance from bottom of the page
    */
   @mixin bottom-by-ratio($bottom) {
-    bottom: calc(100vw * #{$bottom}/1440);
+    bottom: calc(100vh * #{$bottom}/1440);
   }
 
   &__pitch-zone {

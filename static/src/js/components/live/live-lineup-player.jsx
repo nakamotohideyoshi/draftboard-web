@@ -1,4 +1,5 @@
 import extend from 'lodash/extend';
+import GameTime from '../site/game-time';
 import LiveLineupPlayerEventInfo from './lineup-player/live-lineup-player-event-info';
 import LiveMLBDiamond from './mlb/live-mlb-diamond';
 import LiveMlbLineupPlayerWatch from './mlb/live-mlb-lineup-player-watch';
@@ -65,6 +66,17 @@ const LiveLineupPlayer = React.createClass({
    */
   renderGameStats() {
     const values = this.props.gameStats;
+    const { game, player } = this.props;
+    const { boxscore = {}, sport, start } = game;
+    const { status } = boxscore;
+
+    const gameTimeProps = {
+      boxscore,
+      modifiers: ['nav-scoreboard'],
+      sport,
+      start,
+      status,
+    };
 
     // ordered stats
     const statTypes = ['points', 'rebounds', 'steals', 'assists', 'blocks', 'turnovers'];
@@ -81,11 +93,10 @@ const LiveLineupPlayer = React.createClass({
       <div key="6" className="live-lineup-player__hover-stats" onClick={this.props.openPlayerPane}>
         <div className="hover-stats__title">
           <h4 className="hover-stats__name">
-            BRYCE HARPER
+            {player.name}
           </h4>
           <div className="hover-stats__place">
-            <div className="hover-stats__triangle"></div>
-            5th
+            <GameTime {...gameTimeProps} />
           </div>
         </div>
         <ul className="live-lineup-player__hover-stats-list">
@@ -219,10 +230,10 @@ const LiveLineupPlayer = React.createClass({
     // in an effort to have DRY code, i render this list and reverse it for the opponent side
     // note that the key is required by React when rendering multiple children
     let playerElements = [
+      (<div className="live-lineup-player__position">
+        {player.position}
+      </div>),
       (<div className="live-lineup-player__hover-area" key="0">
-        <div className="live-lineup-player__position">
-          {player.position}
-        </div>
         {this.renderPhotoAndHover()}
       </div>),
       (<div key="2" className="live-lineup-player__status"></div>),
