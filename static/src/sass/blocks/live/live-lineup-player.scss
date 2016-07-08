@@ -85,16 +85,6 @@ $block: '.live-lineup-player';
     top: 0;
   }
 
-  &__watching-info {
-    background: #1d2130;
-    border-radius: 32px;
-    height: 62px;
-    left: 138px;
-    position: absolute;
-    top: 0;
-    transition: all 500ms cubic-bezier(.8,.16,.18,.85) 400ms;
-  }
-
   &__headshot-gamestats,
   &__play-status,
   &__points,

@@ -22,8 +22,7 @@ const LiveMlbLineupPlayerWatch = (props) => {
   if (['pitcher', 'hitter'].indexOf(type) === -1) return null;
 
   const block = 'live-mlb-lineup-player-watch';
-  // sadly putting in non BEM modifier, should be parent but weird absolute stuff happening, want to fix up
-  const classNames = `${generateBlockNameWithModifiers(block, modifiers)} live-lineup-player__watching-info`;
+  const classNames = generateBlockNameWithModifiers(block, modifiers);
 
   // default to no one on base
   const watchingDiamondProps = {
