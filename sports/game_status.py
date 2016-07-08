@@ -84,10 +84,21 @@ class GameStatus(object):
             'unnecessary'   : closed,       # a team won/clinched a series early, making this game unnecessary
         },
 
-        # commented out so GameStatus will raise exception until its implemented for this sport
-        # nhl : {
-        #
-        # },
+        # these statuses were taken from the classic feed on 2016.07.08,
+        # we are assuming the official feed holds similar values
+        # but its specific documentation is not out yet.
+        nhl : {
+            'scheduled'     : scheduled,
+            'created'       : inprogress,   # the game just started, along with real-time data being available
+            'inprogress'    : inprogress,
+            'complete'      : closed,       # the game is over, but the statistics validation is not yet finished
+            'closed'        : closed,       # game over, statistics validation done
+            'cancelled'     : closed,
+            'delayed'       : inprogress,   # scheduled and inprogress games can enter this status
+            'postponed'     : closed,       # for dfs purposes, it closed because it wont happen on original date
+            'time-tbd'      : scheduled,    # scheduled to occur, date known, start time not yet determined
+            'unnecessary'   : closed,       # a team won/clinched a series early, making this game unnecessary
+        },
     }
 
     def __init__(self, sport):
@@ -111,6 +122,7 @@ class GameStatus(object):
         :raise InvalidGranularStatus: the key for this granular status does not exist
         :raise UnknownPrimaryStatusException: if the granular status does not map to a primary status
         """
+        # print('>>>', str(self.status_map))
         if status not in self.status_map.keys():
             err_msg = '%s does not exist and therefore cant have a primary status!' % status
             #print(err_msg)
@@ -121,3 +133,5 @@ class GameStatus(object):
             err_msg = '%s does not map to a primary position. update sports.game_status.GameStatus asap' % status
             #print(err_msg)
             raise self.UnknownPrimaryStatusException(err_msg)
+
+        return primary_status

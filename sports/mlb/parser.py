@@ -15,6 +15,7 @@ from collections import (
 )
 from django.db.transaction import atomic
 from django.core.cache import cache
+from sports.game_status import GameStatus
 from sports.classes import SiteSportManager
 from sports.trigger import CacheList
 import sports.models
@@ -328,6 +329,12 @@ class GameBoxscores(DataDenGameBoxscores):
     gameboxscore_model  = GameBoxscore
     team_model          = Team
 
+    # the Game model
+    game_model          = Game
+
+    # an instance of GameStatus helps us determine the "primary" status
+    game_status         = GameStatus(GameStatus.mlb)
+
     def __init__(self):
         super().__init__()
 
@@ -421,8 +428,6 @@ class GameBoxscores(DataDenGameBoxscores):
         #     "home" : "c874a065-c115-4e7d-b0f0-235584fb0e6f",
         #     "away" : "a7723160-10b7-4277-a309-d8dd95a8ae65"
         # }
-
-
 
         self.boxscore.attendance     = self.o.get('attendance', 0)
         self.boxscore.day_night      = self.o.get('day_night', '')

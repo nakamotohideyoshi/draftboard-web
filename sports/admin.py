@@ -36,7 +36,6 @@ class PlayerStatsAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.Mo
     # def has_add_permission(self, request):
     #     return False
 
-
     try:
         related_search_mapping = {
             'player': {
@@ -52,4 +51,4 @@ class PlayerStatsAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.Mo
 class GameAdmin(admin.ModelAdmin):
 
     list_filter     = ['status','start','home','away']
-    search_fields   = ['status']
+    search_fields   = ['status','start','srid']

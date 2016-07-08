@@ -3,6 +3,7 @@
 
 from django.db.utils import IntegrityError
 from django.db.transaction import atomic
+from sports.game_status import GameStatus
 import sports.nba.models
 from sports.nba.models import (
     Team,
@@ -57,6 +58,12 @@ class GameBoxscores(DataDenGameBoxscores):
     """
     gameboxscore_model  = GameBoxscore
     team_model          = Team
+
+    # the Game model
+    game_model = Game
+
+    # an instance of GameStatus helps us determine the "primary" status
+    game_status = GameStatus(GameStatus.nba)
 
     def __init__(self):
         super().__init__()

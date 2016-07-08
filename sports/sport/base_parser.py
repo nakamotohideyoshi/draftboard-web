@@ -393,6 +393,8 @@ class DataDenGameSchedule(AbstractDataDenParseable):
     game_model      = None
     season_model    = None
 
+    game_status     = None
+
     field_season_srid = 'season_schedule__id'
 
     def __init__(self):
@@ -402,6 +404,8 @@ class DataDenGameSchedule(AbstractDataDenParseable):
             raise Exception('"game_model" cant be None!')
         if self.season_model is None:
             raise Exception('"season_model" cant be None!')
+        if self.game_status is None:
+            raise Exception('"game_status" cant be None. set it to a GameStatus() instance in inheriting class!')
 
         self.game = None
 
@@ -643,11 +647,19 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
     gameboxscore_model  = None
     team_model          = None
 
+    game_model          = None
+    game_status         = None
+
     def __init__(self):
         if self.gameboxscore_model is None:
             raise Exception('"gameboxscore_model" cant be None!')
         if self.team_model is None:
             raise Exception('"team_model" cant be None!')
+        if self.game_model is None:
+            raise Exception('"game_model" cant be None!')
+        if self.game_status is None:
+            raise Exception('"game_status" not set. set to a valid instance '
+                            'of GameStatus() in inheriting class.')
 
         self.boxscore = None
 
@@ -655,6 +667,23 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         self.AWAY = 'away_team'
 
         super().__init__()
+
+    def update_schedule_game_status(self, srid_game, game_boxscore_status):
+        """
+        :param srid_game: SRID of the game
+        :param game_boxscore_status: the status to set the Game.status field to
+        """
+        try:
+            game = self.game_model.objects.get(srid=srid_game)
+        except self.game_model.DoesNotExist:
+            return # go no further
+
+        # convert a granular status to one of the primary, overarching statuses
+        # and set it in the schedule Game to keep it as up to date as possible.
+        primary_status = self.game_status.get_primary_status(game_boxscore_status)
+        if game.status != primary_status:
+            game.status = primary_status
+            game.save()
 
     def parse(self, obj, target=None):
         super().parse( obj, target )
@@ -717,8 +746,15 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
 
         self.boxscore.clock      = o.get('clock', '' )
         self.boxscore.coverage   = o.get('coverage', '')
-        self.boxscore.status     = o.get('status', '')
         self.boxscore.title      = o.get('title', '')
+
+        game_boxscore_status        = o.get('status', '')
+        print('>>>', game_boxscore_status, str(o)) #
+        self.boxscore.status        = game_boxscore_status
+
+        # use the boxscore status to update the Game object
+        # because the boxscore will be updated much more frequently in real-time especially
+        self.update_schedule_game_status(srid_game, game_boxscore_status)
 
 class DataDenTeamBoxscores(AbstractDataDenParseable):
 
