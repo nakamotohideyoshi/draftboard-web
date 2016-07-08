@@ -98,12 +98,6 @@ const fetchDraftGroup = (draftGroupId) => (dispatch) => {
           arrayOf(playerSchema)
         );
 
-        // If there are no probable pitcher updates, disable the filter.
-        if (!json.game_updates.filter((update) => update.type === 'pp').length) {
-          log.warn('No probable pitcher info was recieved, disabling filter.');
-          dispatch(updateFilter('probablePitchersFilter', 'srid', false));
-        }
-
         // return some normalized json to the success action.
         return {
           players: normalizedPlayers.entities.players,
