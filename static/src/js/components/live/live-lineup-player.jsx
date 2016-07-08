@@ -72,7 +72,7 @@ const LiveLineupPlayer = React.createClass({
 
     const gameTimeProps = {
       boxscore,
-      modifiers: ['nav-scoreboard'],
+      modifiers: ['live-lineup-player'],
       sport,
       start,
       status,
@@ -95,9 +95,7 @@ const LiveLineupPlayer = React.createClass({
           <h4 className="hover-stats__name">
             {player.name}
           </h4>
-          <div className="hover-stats__place">
-            <GameTime {...gameTimeProps} />
-          </div>
+          <GameTime {...gameTimeProps} />
         </div>
         <ul className="live-lineup-player__hover-stats-list">
           {renderedStats}
@@ -230,10 +228,10 @@ const LiveLineupPlayer = React.createClass({
     // in an effort to have DRY code, i render this list and reverse it for the opponent side
     // note that the key is required by React when rendering multiple children
     let playerElements = [
-      (<div className="live-lineup-player__position">
+      (<div className="live-lineup-player__position" key="0">
         {player.position}
       </div>),
-      (<div className="live-lineup-player__hover-area" key="0">
+      (<div className="live-lineup-player__hover-area" key="1">
         {this.renderPhotoAndHover()}
       </div>),
       (<div key="2" className="live-lineup-player__status"></div>),
