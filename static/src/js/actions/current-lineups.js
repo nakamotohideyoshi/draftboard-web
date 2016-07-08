@@ -10,6 +10,7 @@ import { fetchContestIfNeeded } from './live-contests';
 import { fetchDraftGroupIfNeeded } from './live-draft-groups';
 import { fetchGamesIfNeeded } from './sports';
 import { Schema, arrayOf, normalize } from 'normalizr';
+import { trackUnexpected } from './track-exceptions';
 
 // get custom logger for actions
 const logAction = log.getLogger('action');
@@ -70,10 +71,14 @@ const addLineupsPlayers = () => (dispatch, getState) => {
 
   // only add players that have started playing, by checking if they are in the roster
   forEach(liveLineups, (lineup) => {
-    // just choose the first contest
-    const contestLineup = state.liveContests[lineup.contests[0]].lineups[lineup.id] || {};
-    if (contestLineup.roster) {
-      lineupsPlayers[lineup.id] = contestLineup.roster;
+    if (!(lineup.contests[0] in state.liveContests)) {
+      trackUnexpected(`addLineupsPlayers failed, no lineups for contest 0 in lineup ${lineup.id}`, { state });
+    } else {
+      // just choose the first contest
+      const contestLineup = state.liveContests[lineup.contests[0]].lineups[lineup.id] || {};
+      if (contestLineup.roster) {
+        lineupsPlayers[lineup.id] = contestLineup.roster;
+      }
     }
   });
 

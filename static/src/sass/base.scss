@@ -201,13 +201,16 @@ html {
 // This is slightly janky. We want the html bg to be white on most of the site,
 // but dark blue in the live section.
 html.section-live,
-html.section-results {
+html.section-results,
+html.section-login {
   background: #050e1f;
 }
 
 // Also, having height: 100% screws up any onscroll events in ff/chrome. onscroll
 // is used in the draft section to lazy-load images.
 html.section-live,
+html.section-live body,
+html.section-login,
 html.section-live body {
   // Avoid the IE 10-11 `min-height` bug by using `height`.
   // Use `%` instead of `vh` since `vh` is buggy in older mobile Safari.

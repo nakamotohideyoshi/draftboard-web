@@ -7,14 +7,13 @@ $grey-dark: #5d6072;
 $open-sans: "Open Sans", "Arial", "Helvetica", sans-serif;
 $width-left: 490px;
 $footer-height: 150px;
-$account-height: 800px;
+$account-height: 600px;
 
 
 .account {
   height: 100%;
   min-height: $account-height;
   margin: 0;
-  background: $white;
 
   // this section is in the __content but above the v-middle on the screen
   &__header {
@@ -414,9 +413,9 @@ $account-height: 800px;
     background-repeat: no-repeat;
     background-size: cover;
     background-position: right;
-    display: inline-block;
     height: 100%;
     overflow: hidden;
+    position: fixed;
     padding-left: 490px;
     width: 100%;
 
