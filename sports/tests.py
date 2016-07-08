@@ -10,6 +10,48 @@ from .exceptions import (
 )
 from test.classes import AbstractTest
 from sports.models import SiteSport
+from sports.game_status import GameStatus
+
+class GameStatusTest(AbstractTest):
+
+    def setUp(self):
+        self.invalid_sport  = 'asdfawef'
+        self.valid_sport    = 'nfl'
+
+    def test_game_status_bad_sport(self):
+
+        self.assertRaises(
+            GameStatus.InvalidSportException,
+            lambda: GameStatus(self.invalid_sport)
+        )
+
+    def test_granular_status_does_not_exist(self):
+
+        status_dne = 'status_dne_doesnt_exist'
+
+        gs = GameStatus(self.valid_sport)
+
+        self.assertRaises(
+            GameStatus.InvalidGranularStatus,
+            lambda: gs.get_primary_status(status_dne)
+        )
+
+    def test_granular_status_has_no_primary_status_mapping_exception(self):
+
+        status_with_no_primary = 'status_with_no_primary_abc123'
+
+        class TestGameStatus(GameStatus):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                # for testing purposes, add a granular status key with no primary status value
+                self.status_map[status_with_no_primary] = None
+
+        tgs = TestGameStatus(self.valid_sport)
+
+        self.assertRaises(
+            GameStatus.UnknownPrimaryStatusException,
+            lambda: tgs.get_primary_status(status_with_no_primary)
+        )
 
 class SiteSportManagerGetPlayerClassTest(AbstractTest):
 
