@@ -257,7 +257,7 @@ export const showGameEvent = (message) => (dispatch, getState) => {
 
       // after 5 seconds, remove the at bat from multipart-events
       if (message.isAtBatOver) {
-        logAction.debug('At bat over for ', relevantPlayersInEvent);
+        logAction.warn('At bat over for ', { info: { relevantPlayersInEvent, animationEvent } });
         setTimeout(() => dispatch(showAnimationEventResults(animationEvent)), 5000);
       }
 
