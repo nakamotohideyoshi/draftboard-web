@@ -318,7 +318,7 @@ class HomeAwaySummary(DataDenTeamBoxscores):
 
         else:
             #print( str(self.o) )
-            print( 'HomeAwaySummary team[%s] does not match home or away!' % srid_team)
+            #print( 'HomeAwaySummary team[%s] does not match home or away!' % srid_team)
             return
 
         #print( 'boxscore results | home_score %s | away_score %s' % (str(self.boxscore.home_score),str(self.boxscore.away_score)))
@@ -1147,7 +1147,7 @@ class ZonePitchSorter(object):
             found_pitch_srid = self.at_bat.get('pitch')
             if found_pitch_srid is None:
                 err_msg = 'ZonePitchSorter didnt expect found_pitch_srid (a single one in the at, not in a list) to be None!'
-                print(err_msg)
+                #print(err_msg)
                 raise Exception(err_msg)
             self.srid_pitchs = [ found_pitch_srid ]
         else:
@@ -1156,7 +1156,7 @@ class ZonePitchSorter(object):
         # self.srid_pitchs shouldnt be None here now:
         if self.srid_pitchs is None:
             err_msg = 'ZonePitchSorter self.srid_pitchs was None at end of __init__  (thats bad)'
-            print(err_msg)
+            #print(err_msg)
             raise Exception(err_msg)
 
     def sort(self):
@@ -1580,7 +1580,7 @@ class QuickCache(object):
 
         keys = []
         pattern = self.scan_pattern % ts
-        print('scan pattern:', pattern)
+        #print('scan pattern:', pattern)
         for k in redis.scan_iter(pattern):
             keys.append(k)
         return keys
@@ -1603,7 +1603,7 @@ class QuickCache(object):
     def fetch(self, ts, gid):
         k = self.get_key(ts, gid)
         ret_val = None
-        print('<<< fetch key: %s' % k)
+        #print('<<< fetch key: %s' % k)
         try:
             ret_val = self.bytes_2_dict(self.cache.get(k))
         except self.BytesIsNoneException:
@@ -1619,7 +1619,7 @@ class QuickCache(object):
         ts = data.get('dd_updated__id')
         gid = data.get('id')
         k = self.get_key(ts, gid)
-        print('>>> stash key: %s' % k)
+        #print('>>> stash key: %s' % k)
         #
         ret_val = self.add_to_cache_method(k, data)
         #print('stashed: key', str(k), ':', str(data))
@@ -1762,10 +1762,11 @@ class PitchPbp(DataDenPbpDescription):
         }
 
     def debug_print(self, data, msg=''):
-        print('')
+        #print('')
         # print('%s' % msg)
-        print(msg, '= """%s"""' % str(data))
-        print('')
+        #print(msg, '= """%s"""' % str(data))
+        #print('')
+        pass
 
     def send(self):
 
@@ -1802,7 +1803,7 @@ class PitchPbp(DataDenPbpDescription):
                 part1 = 'send() self.srid_pitch and self.srid_at_bat are both None!'
                 part2 = ' one of the two objects are required at a minimum.'
                 err_msg = '%s %s' % (part1, part2)
-                print(err_msg)
+                #print(err_msg)
                 #raise Exception(err_msg)
                 #return
 
@@ -1813,7 +1814,7 @@ class PitchPbp(DataDenPbpDescription):
                 raw_requirements = self.reconstruct_from_at_bat(self.ts, self.srid_at_bat)
 
         except self.MissingCachedObjectException as e:
-            print('# MissingCachedObjectException', str(e))
+            #print('# MissingCachedObjectException', str(e))
             return None
 
         self.debug_print(raw_requirements, 'raw linked object before reduce/shrink/updates')
@@ -1835,7 +1836,7 @@ class PitchPbp(DataDenPbpDescription):
             push.classes.DataDenPush( self.pusher_sport_pbp, 'linked', hash=key ).send( linked_pbp )
 
         else:
-            print('already sent linked object with key:', key)
+            #print('already sent linked object with key:', key)
             pass
 
     def can_send(self, raw_requirements):
@@ -1904,7 +1905,7 @@ class PitchPbp(DataDenPbpDescription):
             found_pitch_srid = found_ab.get('pitch')
             if found_pitch_srid is None:
                 err_msg = 'didnt expect found_pitch_srid (a single one in the at, not in a list) to be None!'
-                print(err_msg)
+                #print(err_msg)
                 raise Exception(err_msg)
             srid_pitchs = [ found_pitch_srid ]
         else:
@@ -1983,7 +1984,7 @@ class PitchPbp(DataDenPbpDescription):
     def __update_sendability(self, obj, target):
 
         obj_type = target[0].split('.')[1]
-        self.debug_print(obj, str(obj_type))
+        #self.debug_print(obj, str(obj_type))
 
         if target == ('mlb.pitch','pbp'):       # TODO consolidate the targets into DataDenMlb parser!
             self.stash_pitch(obj)
@@ -1996,6 +1997,11 @@ class PitchPbp(DataDenPbpDescription):
             self.srid_at_bat = obj.get('id')
 
         elif target == ('mlb.pitcher','pbp'):
+            # do NOT cache zone pitches with incomplete information.
+            # if they dont have a zone or a type especially do not cache them
+            if obj.get('pitch_zone') is None or obj.get('pitch_type') is None or obj.get('pitch_speed') is None:
+                return
+
             self.stash_zone_pitch(obj)
             # set the internal at bat id from the zone pitch data,
             # since they are grouped by at bat
@@ -2236,7 +2242,7 @@ class GamePbp(DataDenPbpDescription):
             inning = inning_json.get('inning', {})
             inning_sequence = inning.get('sequence', None)
             if inning_sequence == 0:
-                print('skipping inning sequence 0 - its just lineup information')
+                #print('skipping inning sequence 0 - its just lineup information')
                 continue
 
             if inning_sequence is None:

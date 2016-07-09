@@ -462,10 +462,19 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         self.game.home      = h
         self.game.away      = a
         self.game.start     = start
-        self.game.status    = status
         self.game.srid_home = srid_home
         self.game.srid_away = srid_away
         self.game.title     = title
+
+        # parsing boxscores will update this Game's 'status' field
+        # so dont allow this class to ever move to an older status.
+        # only allow it to progress the status, ie:
+        # scheduled -> inprogress | inprogress -> complete | complete -> closed
+        # TODO logic is a bit sketchy ... lets pay attention to this
+        current_status = self.game.status
+        if current_status is None or status == self.game_status.closed:
+            self.game.status = status
+
         # child class must save the self.game !
 
 class DataDenPlayerRosters(AbstractDataDenParseable):
@@ -678,6 +687,10 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         except self.game_model.DoesNotExist:
             return # go no further
 
+        # if the game instance has a status of 'closed', dont change it
+        if game.status == self.game_status.closed:
+            return # go no further
+
         # convert a granular status to one of the primary, overarching statuses
         # and set it in the schedule Game to keep it as up to date as possible.
         primary_status = self.game_status.get_primary_status(game_boxscore_status)
@@ -749,7 +762,7 @@ class DataDenGameBoxscores(AbstractDataDenParseable):
         self.boxscore.title      = o.get('title', '')
 
         game_boxscore_status        = o.get('status', '')
-        print('>>>', game_boxscore_status, str(o)) #
+        #print('>>>', game_boxscore_status, str(o)) #
         self.boxscore.status        = game_boxscore_status
 
         # use the boxscore status to update the Game object
@@ -1428,7 +1441,7 @@ class TsxContentParser(AbstractDataDenParseable):
             elif ref_obj.get('type') == 'organization':
                 ref_instance = self.__parse_ref_for_class( tsxitem, ref_obj, self.team_model_class)
             else:
-                print('__parse_item_for_class() - invalid ref type: %s, not in ["profile","organization"]' % str(ref_obj.get('type')))
+                #print('__parse_item_for_class() - invalid ref type: %s, not in ["profile","organization"]' % str(ref_obj.get('type')))
                 pass
 
         return tsxitem
