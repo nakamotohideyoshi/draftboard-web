@@ -658,7 +658,7 @@ export const updateGameTeam = (message) => (dispatch, getState) => {
 
   const boxscore = game.boxscore;
 
-  if (!boxscore || !hasGameStarted(game.sport, game.boxscore.status)) {
+  if (!boxscore || !hasGameStarted(game.sport, game.status)) {
     return dispatch(fetchGames(game.sport));
   }
 
@@ -699,7 +699,7 @@ export const updateGameTime = (event) => (dispatch, getState) => {
   if (!('boxscore' in game)) return dispatch(fetchGames(game.sport));
 
   // if we think the game hasn't started, also update the games
-  if (['scheduled', 'created'].indexOf(game.boxscore.status) > -1) return dispatch(fetchGames(game.sport));
+  if (['scheduled', 'created'].indexOf(game.status) > -1) return dispatch(fetchGames(game.sport));
 
   switch (game.sport) {
     case 'nba':

@@ -16,8 +16,7 @@ const NavScoreboardGame = React.createClass({
 
   renderClock() {
     const { game } = this.props;
-    const { boxscore = {}, sport, start } = game;
-    const { status } = boxscore;
+    const { boxscore = {}, sport, start, status } = game;
 
     const gameTimeProps = {
       boxscore,
