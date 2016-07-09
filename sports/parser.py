@@ -422,14 +422,11 @@ class PlayerPushStatPrinter(ObjectPrinter):
         # the the list of <sport>.models.PlayerStats objects for the sport specified
         player_stats_models = self.ssm.get_player_stats_class( site_sport )
 
-        print('')
-        print('[%s] example object(s) for: %s ...' % (str(self.examples), str(player_stats_models) ))
-
         # get some objects and print them
         for player_stats_model in player_stats_models:
             player_stats = player_stats_model.objects.all()
             for n, player_stat_obj in enumerate(player_stats):
-                # TODO - serialize the player_stat_obj, then convert to dictionary
+                #
                 self.print( player_stat_obj.to_json(), 'example %s' % (str(n+1)) )
 
 #player_printer = PlayerPushStatPrinter()
@@ -456,7 +453,7 @@ class BoxscorePushStatPrinter(ObjectPrinter):
         # get some objects and print them
         boxscores = game_boxscore_model.objects.all()
         for n, boxscore in enumerate(boxscores):
-            # TODO - serialize the boxscore, then convert to dictionary
+            #
             self.print( boxscore.to_json(), 'example %s' % (str(n+1)) )
 
 #boxscore_printer = BoxscorePushStatPrinter()
