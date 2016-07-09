@@ -22,7 +22,7 @@ describe('reducers.prizes', () => {
   });
 
   it('should handle REQUEST_PRIZE', () => {
-    const newState = reducer(defaultState, {
+    let newState = reducer(defaultState, {
       type: types.REQUEST_PRIZE,
       expiresAt: 'myDate',
       id: 1,
@@ -31,6 +31,14 @@ describe('reducers.prizes', () => {
       newState[1].expiresAt,
       'myDate'
     );
+
+    // make sure that we aren't overwriting the state
+    newState = reducer(newState, {
+      type: types.REQUEST_PRIZE,
+      expiresAt: 'myDate',
+      id: 2,
+    });
+    assert.equal(Object.keys(newState).length, 2);
   });
 
   it('should handle RECEIVE_PRIZE', () => {

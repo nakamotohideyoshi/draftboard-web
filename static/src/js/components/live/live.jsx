@@ -131,10 +131,11 @@ export const Live = React.createClass({
       const myLineupId = this.props.watching.myLineupId;
       const myLineup = this.props.uniqueLineups.lineupsObj[myLineupId] || {};
       const myLineupNext = nextProps.uniqueLineups.lineupsObj[myLineupId] || {};
+      const myContestNext = myLineupNext.contests || [];
 
       // when the countdown ends, we trigger a fetchCurrentLineupsAndRelated call
       // which then jumpstarts this if there are no contests yet
-      if (!this.state.setTimeoutEntries && myLineup.hasStarted && myLineupNext.contests.length === 0) {
+      if (!this.state.setTimeoutEntries && myLineup.hasStarted && myContestNext.length === 0) {
         // check for contest_id every 5 seconds
         this.setState({ setTimeoutEntries: setInterval(() => {
           logComponent.warn('live.currentEntriesRefresh - fetching lineups');
@@ -146,8 +147,8 @@ export const Live = React.createClass({
       }
 
       // stop checking once we have a contest
-      if (this.state.setTimeoutEntries && myLineupNext.contests.length > 0) {
-        logComponent.warn('No need to try lineups again');
+      if (this.state.setTimeoutEntries && myContestNext.length > 0) {
+        log.warn('No need to try lineups again');
         window.clearInterval(this.state.setTimeoutEntries);
         this.setState({ setTimeoutEntries: null });
       }
