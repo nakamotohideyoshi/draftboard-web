@@ -19,7 +19,7 @@ require('../../../sass/blocks/site/game-time.scss');
 const GameTime = (props) => {
   const { boxscore, modifiers, sport, start, status } = props;
   const block = 'game-time';
-  const hasNotStarted = !hasGameStarted(sport, status) || start > dateNow()
+  const hasNotStarted = !hasGameStarted(sport, status) || start > dateNow();
   let value = null;
 
   // always have sport modifier
