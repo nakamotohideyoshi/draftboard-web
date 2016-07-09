@@ -62,10 +62,6 @@ export const LiveStandingsPane = React.createClass({
   },
 
   componentWillMount() {
-    if (this.props.openOnStart) {
-      setTimeout(() => AppActions.addClass('appstate--live-standings-pane--open'), 100);
-    }
-
     if (this.props.watching.villainLineup) {
       this.setState({ playersWatched: this.props.watching.villainLineup });
     }
@@ -74,6 +70,10 @@ export const LiveStandingsPane = React.createClass({
   componentDidMount() {
     // this.props.actions.fetchLineupUsernames(this.props.watching.contestId)
     this.handleSearchByUsername = debounce(this.handleSearchByUsername, 150);
+
+    if (this.props.openOnStart) {
+      setTimeout(() => AppActions.addClass('appstate--live-standings-pane--open'), 100);
+    }
   },
 
   /**
