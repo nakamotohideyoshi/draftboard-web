@@ -1,6 +1,7 @@
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
 import groupBy from 'lodash/groupBy';
+import log from '../lib/logging';
 import map from 'lodash/map';
 import mapValues from 'lodash/mapValues';
 import merge from 'lodash/merge';
@@ -12,6 +13,9 @@ import { compileLineupStats } from './current-lineups';
 import { createSelector } from 'reselect';
 import { dateNow } from '../lib/utils';
 import { gamesTimeRemainingSelector } from './sports';
+
+// get custom logger for actions
+const logSelector = log.getLogger('selector');
 
 /**
  * Calculate potential earnings based on rank and prize structure
@@ -71,6 +75,10 @@ const calcContestLineupsValues = (lineups, rankedLineupIDs, prizeRanks) => {
  * @return {Object, Object} Return the lineups, sorted highest to lowest points
  */
 export const rankContestLineups = (contest, draftGroup, gamesTimeRemaining, prizeStructure = {}) => {
+  logSelector.info('rankContestLineups', contest.id, {
+    info: { contest, draftGroup, gamesTimeRemaining, prizeStructure },
+  });
+
   // return nothing if the contest hasn't started or we don't have info yet
   if (
     new Date(contest.start).getTime() > dateNow() ||
@@ -125,11 +133,15 @@ export const liveContestsSelector = createSelector(
   [onlyLiveContestsSelector, liveDraftGroupsSelector, gamesTimeRemainingSelector, prizesSelector],
   (liveContests, liveDraftGroups, gamesTimeRemaining, prizes) =>
     mapValues(liveContests, (contest) => {
+      logSelector.info('selectors.liveContestsSelector', contest.id);
+
       // if the contest has not started, return nothing
       if (!contest.info) return {};
 
       // if draft groups have not loaded yet, return nothing
       if (liveDraftGroups.hasOwnProperty(contest.info.draft_group) === false) return {};
+
+      // logSelector.info('selectors.liveContestsSelector - IN', contest.id);
 
       // default prize structure so we can still return stats
       const prize = prizes[contest.info.prize_structure] || {};
@@ -144,14 +156,20 @@ export const liveContestsSelector = createSelector(
         start: contest.info.start,
       };
 
-      return merge(
-        stats,
-        rankContestLineups(
-          contest,
-          liveDraftGroups[contest.info.draft_group],
-          gamesTimeRemaining,
-          prizeStructure
-        )
+      const rankedLineups = rankContestLineups(
+        contest,
+        liveDraftGroups[contest.info.draft_group],
+        gamesTimeRemaining,
+        prizeStructure
       );
+
+      const all = merge(
+        stats,
+        rankedLineups
+      );
+
+      logSelector.info('selectors.liveContestsSelector - DONE', contest.id, { rankedLineups, all });
+
+      return all;
     })
 );
