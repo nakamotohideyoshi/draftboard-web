@@ -1875,14 +1875,14 @@ class PitchPbp(DataDenPbpDescription):
 
         return self.reconstruct(ts, srid_pitch)
 
-    @timeit
+    #@timeit
     def reconstruct(self, ts, srid_pitch):
         # zeroes out the internal constructed data
         for k in self.data.keys():
             self.data[k] = None
 
         # now get the pitch (although if its None, we definitely dont have everything yet
-        found_pitch = self.PitchCache().fetch(ts, srid_pitch) # CBAN TODO
+        found_pitch = self.PitchCache().fetch(ts, srid_pitch)
         if found_pitch is None:
             raise self.MissingCachedObjectException('base reconstruct() missing pitch')
 

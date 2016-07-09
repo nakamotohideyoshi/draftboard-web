@@ -337,7 +337,7 @@ class Trigger(object):
             #
             # single trigger specified
             single_trig = '<<< %s.%s %s >>>' % (self.db_name, self.coll_name, self.parent_api)
-            print('single_trigger_override() True - triggering on %s' % single_trig)
+            #print('single_trigger_override() True - triggering on %s' % single_trig)
             q = {
                 'ts' : {'$gt' : self.last_ts},
                 #'ts' : {'$gt' : str( self.last_ts.time * 1000 + self.last_ts.inc) },
