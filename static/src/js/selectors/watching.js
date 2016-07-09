@@ -133,7 +133,7 @@ const calcPlayersInBothLineups = (myLineup, opponentLineup) =>
  * @return {object}                  Potential winnings in amount and percent
  */
 const calcPotentialContestStats = (lineup, contest, entriesCount = 0) => {
-  const contestLineup = contest.lineups[lineup.id];
+  const contestLineup = contest.lineups[lineup.id] || {};
   const rank = contestLineup.rank || 0;
 
   return {
