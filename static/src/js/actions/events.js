@@ -238,7 +238,7 @@ export const showGameEvent = (message) => (dispatch, getState) => {
   // if there are no more relevant players, just update stats
   if (relevantPlayersInEvent.length === 0) return dispatch(updatePBPPlayersStats(playersStats));
 
-  log.info('showGameEvent has relevant player(s)', relevantPlayersInEvent, message);
+  logAction.debug('showGameEvent has relevant player(s)', relevantPlayersInEvent, message);
 
   // update message to reflect current lineups the user is watching
   const animationEvent = merge({}, message, {
@@ -257,7 +257,7 @@ export const showGameEvent = (message) => (dispatch, getState) => {
 
       // after 5 seconds, remove the at bat from multipart-events
       if (message.isAtBatOver) {
-        log.info('At bat over for ', relevantPlayersInEvent);
+        logAction.debug('At bat over for ', relevantPlayersInEvent);
         setTimeout(() => dispatch(showAnimationEventResults(animationEvent)), 5000);
       }
 
@@ -298,7 +298,7 @@ export const shiftOldestGameEvent = (gameId) => (dispatch, getState) => {
   const { message, type } = oldestEvent;
   dispatch(shiftGameQueueEvent(gameId));
 
-  log.info('shiftOldestGameEvent', type, message);
+  logAction.debug('shiftOldestGameEvent', type, message);
 
   switch (type) {
     case 'pbp':

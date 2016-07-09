@@ -69,7 +69,7 @@ const isMessageUsed = (message, sport) => {
  * @param  {object} message The received event from Pusher
  */
 export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
-  logAction.debug('actions.onBoxscoreTeamReceived', message);
+  logAction.debug('actions.onBoxscoreGameReceived', message);
 
   const gameId = message.id;
 

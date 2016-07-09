@@ -1,5 +1,6 @@
 import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
+import merge from 'lodash/merge';
 import { dateNow } from '../lib/utils';
 
 
@@ -90,7 +91,7 @@ module.exports = (state = {
       return update(state, {
         games: {
           [action.gameId]: {
-            $merge: action.updatedFields,
+            $set: merge({}, state.games[action.gameId], action.updatedFields),
           },
         },
       });
