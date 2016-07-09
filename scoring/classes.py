@@ -535,8 +535,8 @@ class MlbSalaryScoreSystem(AbstractScoreSystem):
                 # hitting PlayerStats class
                 return sports.mlb.models.PlayerStatsHitter
         except:
-            print(str(player), 'instance of class:', str(type(player)))
-            print('player.position.get_matchname():', str(player.position.get_matchname()))
+            #print(str(player), 'instance of class:', str(type(player)))
+            #print('player.position.get_matchname():', str(player.position.get_matchname()))
 
             raise Exception('get_primary_player_stats_class_for_player problem')
 
