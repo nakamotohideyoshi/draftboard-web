@@ -12,7 +12,7 @@ module.exports = (state = {}, action = {}) => {
       };
 
       return update(state, {
-        $set: {
+        $merge: {
           [action.id]: newProps,
         },
       });

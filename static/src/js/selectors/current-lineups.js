@@ -1,4 +1,5 @@
 import Raven from 'raven-js';
+import log from '../lib/logging';
 import map from 'lodash/map';
 import mapValues from 'lodash/mapValues';
 import merge from 'lodash/merge';
@@ -12,6 +13,8 @@ import { createSelector } from 'reselect';
 import { dateNow } from '../lib/utils';
 import { gamesTimeRemainingSelector } from './sports';
 
+// get custom logger for actions
+const logSelector = log.getLogger('selector');
 
 const lineupsItemsSelector = (state) => state.currentLineups.items;
 const lineupsSelector = (state) => state.currentLineups;
@@ -69,6 +72,8 @@ export const calcRosterFP = (roster) => reduce(roster || {}, (sum, player) => (s
  * @return {object}         Return timeRemaining in decimal and quantity
  */
 export const calcRosterTimeRemaining = (sport, roster = {}) => {
+  // logSelector.info('selectors.calcRosterTimeRemaining', { sport, roster });
+
   const sportConst = SPORT_CONST[sport] || null;
 
   // if not valid sport, return default of no time left
@@ -110,6 +115,8 @@ export const compileRosterDetails = (roster, draftGroup, gamesTimeRemaining) =>
  * @return {object}                 Lineup with all relevant information
  */
 export const compileLineupStats = (lineup = {}, draftGroup = {}, gamesTimeRemaining) => {
+  logSelector.info('selectors.compileLineupStats', lineup.id);
+
   // check that enough is loaded in to return stats
   const hasAllInfo = draftGroup.hasAllInfo || false;
   if (hasAllInfo === false) return {};
@@ -124,7 +131,7 @@ export const compileLineupStats = (lineup = {}, draftGroup = {}, gamesTimeRemain
     start: new Date(lineup.start).getTime() || undefined,
   };
 
-  const foo = merge(
+  const all = merge(
     stats,
     {
       fp: calcRosterFP(stats.rosterDetails),
@@ -132,7 +139,9 @@ export const compileLineupStats = (lineup = {}, draftGroup = {}, gamesTimeRemain
     }
   );
 
-  return foo;
+  logSelector.info('selectors.compileLineupStats - DONE', all);
+
+  return all;
 };
 
 /**
