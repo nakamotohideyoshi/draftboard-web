@@ -393,8 +393,6 @@ class DataDenGameSchedule(AbstractDataDenParseable):
     game_model      = None
     season_model    = None
 
-    game_status     = None
-
     field_season_srid = 'season_schedule__id'
 
     def __init__(self):
@@ -404,8 +402,6 @@ class DataDenGameSchedule(AbstractDataDenParseable):
             raise Exception('"game_model" cant be None!')
         if self.season_model is None:
             raise Exception('"season_model" cant be None!')
-        if self.game_status is None:
-            raise Exception('"game_status" cant be None. set it to a GameStatus() instance in inheriting class!')
 
         self.game = None
 

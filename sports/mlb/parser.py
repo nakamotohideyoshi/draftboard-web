@@ -631,8 +631,10 @@ class PlayerTeamProfile(DataDenPlayerRosters):
                 position_1b.name = self.POSITION_1B
                 position_1b.save()
 
-        self.player.position        = position_1b
+            # remap player who is a DH to 1B for dfs purposes
+            self.player.position = position_1b
 
+        #
         self.player.preferred_name  = self.o.get('preferred_name', None)
 
         self.player.birthcity       = self.o.get('birthcity', '')
