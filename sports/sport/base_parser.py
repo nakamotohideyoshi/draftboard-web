@@ -468,7 +468,7 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         # scheduled -> inprogress | inprogress -> complete | complete -> closed
         # TODO logic is a bit sketchy ... lets pay attention to this
         current_status = self.game.status
-        if current_status is None or status == self.game_status.closed:
+        if current_status is None or status == GameStatus.closed:
             self.game.status = status
 
         # child class must save the self.game !
