@@ -1777,8 +1777,9 @@ class PitchPbp(DataDenPbpDescription):
             return
 
         if self.ts is None:
-            err_msg = 'send() self.ts is None. make sure parse_xxxx() methods set it!'
-            raise Exception(err_msg)
+            # err_msg = 'send() self.ts is None. make sure parse_xxxx() methods set it!'
+            # raise Exception(err_msg)
+            return # TODO this really shouldnt raise an exception. but we need to know it happened sometimes
 
         raw_requirements = None
         try:
@@ -2001,8 +2002,8 @@ class PitchPbp(DataDenPbpDescription):
         elif target == ('mlb.pitcher','pbp'):
             # do NOT cache zone pitches with incomplete information.
             # if they dont have a zone or a type especially do not cache them
-            if obj.get('pitch_zone') is None or obj.get('pitch_type') is None or obj.get('pitch_speed') is None:
-                return
+            # if obj.get('pitch_zone') is None or obj.get('pitch_type') is None or obj.get('pitch_speed') is None:
+            #     return
 
             self.stash_zone_pitch(obj)
             # set the internal at bat id from the zone pitch data,
@@ -2459,6 +2460,11 @@ class DataDenMlb(AbstractDataDenParser):
 
         # the pitch zone information
         elif self.target == ('mlb.pitcher','pbp'):
+            # dont parse incomplete zone pitches
+            o = obj.get_o()
+            if o.get('pitch_zone') is None or o.get('pitch_type') is None or o.get('pitch_speed') is None:
+                return
+
             # potentially build the main (linked) mlb pbp object
             pitch_pbp = PitchPbp()
             pitch_pbp.parse(obj, self.target)
