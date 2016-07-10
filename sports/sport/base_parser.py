@@ -16,6 +16,7 @@ from dataden.classes import DataDen
 import sports.classes
 import dateutil.parser
 import push.classes
+from sports.game_status import GameStatus
 
 class PatternFinder(object):
 
