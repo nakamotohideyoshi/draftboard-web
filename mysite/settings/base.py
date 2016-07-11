@@ -48,20 +48,50 @@ LOGIN_REDIRECT_URL = '/lobby/'
 # Django 1.8 removed TEMPLATE_DIRS. It is now TEMPLATES = {}
 # https://docs.djangoproject.com/en/1.8/ref/templates/upgrading/
 # TEMPLATE_DIRS = ( PROJECT_ROOT.child('templates'), )
+
+# TEMPLATES = (
+#     {
+#         'BACKEND':'django.template.backends.django.DjangoTemplates',
+#         'DIRS': [],
+#         'APP_DIRS': True,
+#         'OPTIONS': {
+#             'context_processors': [
+#                 'django.template.context_processors.debug',
+#                 'django.template.context_processors.request',
+#                 'django.contrib.auth.context_processors.auth',
+#                  ...
+#             ],
+#             'debug': DEBUG,
+#         },
+#     },
+# )
+
+# Testing mode by default
+DEBUG = False
+
 TEMPLATES = [
     {
         'BACKEND' : 'django.template.backends.django.DjangoTemplates',
         'DIRS'    : [
-            join(BASE_DIR, 'templates'),
+            #join(BASE_DIR, 'templates'),
             join(BASE_DIR, 'account/templates'),
             join(BASE_DIR, 'prize/templates'),
             join(BASE_DIR, 'salary/templates'),
             join(BASE_DIR, 'sports/templates'),
             join(BASE_DIR, 'contest/schedule'),
         ],
-        'APP_DIRS': True, # defaults to False
+        #'APP_DIRS': True, # defaults to False
         'OPTIONS' : {
-            'context_processors' : (
+            # TEMPLATE_CONTEXT_PROCESSORS = (
+            #     'django.core.context_processors.static',
+            #     'django.core.context_processors.request',
+            #     'django.contrib.auth.context_processors.auth',
+            #
+            #
+            #     # CSRF token masking
+            #     'debreach.context_processors.csrf',
+            # )
+            'context_processors' : [
                 "django.contrib.auth.context_processors.auth",
                 "django.template.context_processors.debug",
                 "django.template.context_processors.i18n",
@@ -77,7 +107,17 @@ TEMPLATES = [
                 'mysite.context_processors.player_images_url',
                 'mysite.context_processors.git_commit_uuid',
                 'mysite.context_processors.js_loglevel',
-            )
+
+                # testing this here... had to move it in here in django 1.9
+                'debreach.context_processors.csrf',
+            ],
+
+            'loaders' : [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader'
+            ],
+
+            'debug' : DEBUG, # set the template debug to the same as global settings debug
         }
     },
 ]
@@ -86,17 +126,6 @@ TEMPLATES = [
 STATICFILES_DIRS = (
     PROJECT_ROOT.child('static').child('build'),
 )
-
-# Templates
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-)
-
-# Testing mode by default
-DEBUG = True
-# Match template debugging to what environment debug is
-TEMPLATE_DEBUG = DEBUG
 
 # session uses redis and postgres to create cached db
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
@@ -253,7 +282,7 @@ JWT_AUTH = {
 # Django installs
 # ----------------------------------------------------------
 INSTALLED_APPS = (
-    #'suit',
+    'suit',
     #
     # # django defaults
     'django.contrib.admin',
@@ -354,16 +383,15 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.static',
-    'django.core.context_processors.request',
-    'django.contrib.auth.context_processors.auth',
-
-
-    # CSRF token masking
-    'debreach.context_processors.csrf',
-)
-
+# TEMPLATE_CONTEXT_PROCESSORS = (
+#     'django.core.context_processors.static',
+#     'django.core.context_processors.request',
+#     'django.contrib.auth.context_processors.auth',
+#
+#
+#     # CSRF token masking
+#     'debreach.context_processors.csrf',
+# )
 
 # Django Logging
 # ----------------------------------------------------------

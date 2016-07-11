@@ -10,7 +10,7 @@ def get_db_name():
 
 db_name = get_db_name()
 
-DEBUG               = True
+DEBUG = True
 
 #
 # overrides timezone.now() so that
