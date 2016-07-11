@@ -28,9 +28,9 @@ from salary.classes import (
 
 class TrailingGameWeightInline(admin.TabularInline):
     model = TrailingGameWeight
-    extra = 0
+    extra = 1
     list_display = ['through', 'weight']
-    readonly_fields = ['through','weight']
+    # readonly_fields = ['through','weight']
 
 class PlayerInline(admin.TabularInline):
     model = Player
