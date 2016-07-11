@@ -25,7 +25,7 @@ export const SPORT_CONST = {
     periodMinutes: 12,
     periods: 4,
     players: 8,
-    pregameStatuses: ['scheduled', 'created'],
+    pregameStatuses: ['scheduled', 'created', 'time-tbd'],
     seasonStats: {
       types: ['fp', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers'],
       names: ['FPPG', 'PPG', 'RPG', 'APG', 'STLPG', 'BLKPG', 'TOPG'],
