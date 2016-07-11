@@ -49,6 +49,8 @@ config.plugins = config.plugins.concat([
   new webpack.DefinePlugin({
     'process.env': {
       NODE_ENV: JSON.stringify('debug'),
+      API_DOMAIN: JSON.stringify('http://localhost:3000'),
+      // API_DOMAIN: '',
     } }),
 ]);
 

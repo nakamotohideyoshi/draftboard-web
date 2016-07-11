@@ -9,9 +9,10 @@ import sortBy from 'lodash/sortBy';
 import { addMessage } from './message-actions';
 import { dateNow, hasExpired } from '../lib/utils';
 
-
 // get custom logger for actions
 const logAction = log.getLogger('action');
+// custom API domain for local dev testing
+const { API_DOMAIN = '' } = process.env;
 
 
 // global constants
@@ -428,7 +429,7 @@ const fetchGames = (sport) => (dispatch) => {
   dispatch(requestGames(sport));
 
   return request.get(
-    `/api/sports/scoreboard-games/${sport}/`
+    `${API_DOMAIN}/api/sports/scoreboard-games/${sport}/`
   ).set({
     'X-REQUESTED-WITH': 'XMLHttpRequest',
     Accept: 'application/json',
@@ -473,7 +474,7 @@ const fetchTeams = (sport) => (dispatch) => {
   dispatch(requestTeams(sport));
 
   return request.get(
-    `/api/sports/teams/${sport}/`
+    `${API_DOMAIN}/api/sports/teams/${sport}/`
   ).set({
     'X-REQUESTED-WITH': 'XMLHttpRequest',
     Accept: 'application/json',
