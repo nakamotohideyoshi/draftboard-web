@@ -18,6 +18,10 @@ from salary.classes import (
     OwnershipPercentageAdjuster,
 )
 
+@admin.register(TrailingGameWeight)
+class TrailingGameWeightAdmin(admin.ModelAdmin):
+    pass
+
 class TrailingGameWeightInline(admin.TabularInline):
     model = TrailingGameWeight
 

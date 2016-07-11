@@ -184,3 +184,42 @@ class Shrinker(object):
         if fields is None:
             err_msg = '"fields" must be set to a dict of key renamings!'
             raise self.FieldsNotSetException(err_msg)
+
+class Manager(object):
+
+    # exceptions for validity checking
+    class InvalidReducer(Exception): pass
+    class InvalidShrinker(Exception): pass
+
+    # must be set by child classes
+    reducer_class = None
+    shrinker_class = None
+
+    def __init__(self, raw_data):
+        """
+        adds the key values in the 'stats' dict into the
+        """
+        if self.reducer_class is None:
+            raise self.InvalidReducer('"reducer_class" cant be None')
+        if self.shrinker_class is None:
+            raise self.InvalidShrinker('"shrinker_class" cant be None')
+
+        self.raw_data = raw_data
+
+    def get_data(self, additional_data=None):
+        # reduce the raw data - pop() unwanted fields
+        reduced = self.reducer_class(self.raw_data).reduce()
+        # shrink the reduced data
+        shrunk = self.shrinker_class(reduced).shrink()
+
+        # add_data should be called after
+        return self.add_data(shrunk, additional_data)
+
+    def add_data(self, base_data, additional=None):
+        if additional is not None:
+            for k,v in additional.items():
+                # add this key:value of additional data,
+                # but only if the field doesnt exist already in orig
+                if base_data.get(k, None) is None:
+                    base_data[k] = v
+        return base_data

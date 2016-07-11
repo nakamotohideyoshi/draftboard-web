@@ -16,9 +16,119 @@ from dataden.watcher import OpLogObj, OpLogObjWrapper
 from sports.nfl.parser import (
     SeasonSchedule,
     GameSchedule,
-    PlayPbp,
+    # PlayPbp,
     TeamHierarchy,
+    PlayParser,
 )
+
+class TestPlayParser(AbstractTest):
+    """
+    parsers and sends PBP objects from the official feed
+
+    NOTE: because the test database does parse the stats previously,
+    we will NOT HAVE the PlayerStats objects.
+    """
+
+    def setUp(self):
+        self.parser = PlayParser()
+
+    def __parse_and_send(self, unwrapped_obj):
+        oplog_obj = OpLogObjWrapper('nfl', 'play', unwrapped_obj)
+        self.parser.parse(oplog_obj)
+
+        #
+        # get the 'player' srids
+        player_srids = self.parser.get_srids_for_field('player')
+        print('"player" field srids:', str(player_srids))
+
+        # get the game srid from the 'game__id' field
+        #game_srid = self.parser.get_srids_for_field('game__id')
+        game_srid = self.parser.get_srid_game('game__id')
+        print('"game" field srid:', str(game_srid))
+
+        #
+        # look up the player stats (TODO get the game srid as well)
+        player_stats_found = self.parser.find_player_stats()
+        print('player_stats_found:', str(player_stats_found), ' BECAUSE THERE ARE NONE IN THE TEST DB!')
+
+        # test sending with pusher. we cant do this with codeship though! (so remove it when done)
+        self.parser.send()#force=True)
+
+    def test_1(self):
+        """ kickoff (touchback) """
+        unwrapped_obj = {
+            'start_situation__list': {'yfd': 0.0, 'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'clock': '15:00',
+                                      'possession': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'down': 0.0},
+            'away_points': 0.0, 'reference': 63.0,
+            'end_situation__list': {'yfd': 10.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '15:00',
+                                    'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 1.0},
+            'alt_description': 'A.Franks kicks 65 yards from MIA 35 to end zone, Touchback.',
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_api__id': 'pbp', 'clock': '15:00',
+            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'statistics__list': {
+                'kick__list': {'gross_yards': 74.0, 'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'yards': 65.0,
+                               'attempt': 1.0, 'touchback': 1.0, 'player': '59da7aea-f21a-43c5-b0bf-2d1e8b19da80',
+                               'confirmed': 'true'},
+                'return__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'touchback': 1.0, 'confirmed': 'true',
+                                 'category': 'kick_return'}}, 'id': '9de4c5df-5e94-4fe2-b646-ba1dca0a1afd',
+            'sequence': 63.0, 'parent_list__id': 'play_by_play__list', 'home_points': 0.0,
+            'description': '3-A.Franks kicks 65 yards from MIA 35 to end zone, Touchback.',
+            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQ5ZGU0YzVkZi01ZTk0LTRmZTItYjY0Ni1iYTFkY2EwYTFhZmQ=',
+            'type': 'kickoff', 'play_clock': 12.0, 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+            'dd_updated__id': 1464841517401, 'wall_clock': '2015-09-13T17:02:41+00:00'}
+
+        self.__parse_and_send(unwrapped_obj)
+
+    def test_2(self):
+        """ rushing play """
+        unwrapped_obj = {
+            'start_situation__list': {'yfd': 10.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '15:00',
+                                      'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 1.0},
+            'away_points': 0.0, 'reference': 82.0,
+            'end_situation__list': {'yfd': 5.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '14:30',
+                                    'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 2.0},
+            'alt_description': '(15:00) A.Morris left tackle to WAS 25 for 5 yards (K.Sheppard).',
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_api__id': 'pbp', 'clock': '15:00',
+            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'statistics__list': {
+                'rush__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 5.0, 'goaltogo': 0.0,
+                               'attempt': 1.0, 'player': 'bd10efdf-d8e7-4e23-ab1a-1e42fb65131b', 'inside_20': 0.0,
+                               'confirmed': 'true'},
+                'defense__list': {'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'tackle': 1.0,
+                                  'player': '7190fb71-0916-4f9d-88a0-8c1a8c1c9d0d', 'confirmed': 'true'}},
+            'id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71', 'sequence': 82.0, 'parent_list__id': 'play_by_play__list',
+            'home_points': 0.0, 'description': '(15:00) 46-A.Morris left tackle to WAS 25 for 5 yards (52-K.Sheppard).',
+            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQzYTJlOWJiNC02Yjc5LTQ3M2EtYjg2YS01MjJiOTJlODhjNzE=',
+            'type': 'rush', 'play_clock': 12.0, 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+            'dd_updated__id': 1464841517401, 'wall_clock': '2015-09-13T17:03:26+00:00'}
+
+        self.__parse_and_send(unwrapped_obj)
+
+    def test_3(self):
+        """ passing play """
+        unwrapped_obj = {
+            'start_situation__list': {'yfd': 5.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '14:30',
+                                      'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 2.0},
+            'away_points': 0.0, 'reference': 103.0,
+            'end_situation__list': {'yfd': 1.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '13:56',
+                                    'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 3.0},
+            'alt_description': '(14:30) (Shotgun) K.Cousins pass short right to A.Roberts to WAS 29 for 4 yards (B.Grimes).',
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_api__id': 'pbp', 'clock': '14:30',
+            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'id': '7e49db54-68d0-444d-b244-690f3930b77b',
+            'sequence': 103.0, 'parent_list__id': 'play_by_play__list', 'home_points': 0.0,
+            'description': '(14:30) (Shotgun) 8-K.Cousins pass short right to 12-A.Roberts to WAS 29 for 4 yards (21-B.Grimes).',
+            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQ3ZTQ5ZGI1NC02OGQwLTQ0NGQtYjI0NC02OTBmMzkzMGI3N2I=',
+            'type': 'pass', 'statistics__list': {
+                'receive__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 4.0, 'goaltogo': 0.0,
+                                  'player': '9691f874-be36-4529-a7eb-dde22ee4a848', 'confirmed': 'true',
+                                  'reception': 1.0, 'yards_after_catch': 2.0, 'inside_20': 0.0, 'target': 1.0},
+                'pass__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 4.0, 'goaltogo': 0.0,
+                               'att_yards': 2.0, 'attempt': 1.0, 'player': 'bbd0942c-6f77-4f83-a6d0-66ec6548019e',
+                               'complete': 1.0, 'inside_20': 0.0, 'confirmed': 'true'},
+                'defense__list': {'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'tackle': 1.0,
+                                  'player': '7979b613-6dbf-4534-8166-6430433c1ec3', 'confirmed': 'true'}},
+            'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'dd_updated__id': 1464841517401,
+            'wall_clock': '2015-09-13T17:03:57+00:00'}
+
+        self.__parse_and_send(unwrapped_obj)
 
 class GameStatusChangedSignal(AbstractTest):
 
@@ -161,63 +271,63 @@ class TestGameScheduleParser(AbstractTest):
         self.game_parser.parse( game_oplog_obj )
         self.assertEquals( 1, sports.nfl.models.Game.objects.all().count() )
 
-class TestPlayPbp(AbstractTest):
-    """
-    test parse an actual object which once came from dataden. (sanity check)
-
-    there is a more generic test in sports.sport.tests
-    """
-
-    def setUp(self):
-        # passing play has some player srids we might care about
-        self.obj_str = """{'o': {'yfd': 10.0, 'distance': 'Short', 'yard_line': 31.0, 'direction': 'Left', 'formation': 'Shotgun', 'summary': '12-A.Rodgers incomplete. Intended for 17-D.Adams.', 'updated': '2015-09-29T00:32:01+00:00', 'type': 'pass', 'side': 'GB', 'down': 1.0, 'participants__list': [{'player': '0ce48193-e2fa-466e-a986-33f751add206'}, {'player': 'e7d6ae25-bf15-4660-8b37-c37716551de3'}], 'game__id': 'af51f745-7e7d-4762-864c-bac67c2db7e4', 'clock': '14:53', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFmNTFmNzQ1LTdlN2QtNDc2Mi04NjRjLWJhYzY3YzJkYjdlNHBhcmVudF9saXN0X19pZGRyaXZlX19saXN0aWQwM2ZmZDlkOC05NGQ2LTQ2NzUtOWE1MC00ZGNjMWY5NDFhODE=', 'id': '03ffd9d8-94d6-4675-9a50-4dcc1f941a81', 'dd_updated__id': 1443486878736, 'parent_list__id': 'drive__list', 'sequence': 3.0, 'links__list': {'link__list': {'href': '/2015/REG/3/KC/GB/plays/03ffd9d8-94d6-4675-9a50-4dcc1f941a81.xml', 'type': 'application/xml', 'rel': 'summary'}}, 'parent_api__id': 'pbp'}, 'ns': 'nfl.play', 'ts': 1454659978}"""
-        # kick play may not have player srdis we care about
-        # self.data = literal_eval(self.obj_str) # convert to dict
-        # self.oplog_obj = OpLogObj(self.data)
-
-        # the field we will try to get a game srid from
-        self.game_srid_field        = 'game__id'
-        # a list of the game_srids we expect to get back (only 1 for this test)
-        self.target_game_srids      = ['af51f745-7e7d-4762-864c-bac67c2db7e4']
-
-        # the field name we will search for player srid(s)
-        self.player_srid_field      = 'player'
-        # the list of player srids we expect to find in this object
-        self.target_player_srids    = ['0ce48193-e2fa-466e-a986-33f751add206']
-
-        self.player_stats_class     = PlayerStats
-
-    def __play_pbp_parse(self, str_oplog_obj):
-        data        = literal_eval( str_oplog_obj )
-        oplog_obj   = OpLogObj( data )
-        play_pbp    = PlayPbp()
-        play_pbp.parse( oplog_obj )
-        return play_pbp
-
-    def test_play_pbp_parse(self):
-        """
-        """
-        play_pbp = self.__play_pbp_parse(self.obj_str)
-
-        game_srids = play_pbp.get_srids_for_field(self.game_srid_field)
-        self.assertIsInstance( game_srids, list )
-        self.assertEquals( set(game_srids), set(self.target_game_srids) )
-        self.assertEquals( len(set(game_srids)), 1 )
-
-        # we are going to use the game_srid for a PlayerStats filter()
-        game_srid = list(set(game_srids))[0]
-        self.assertIsInstance( game_srid, str ) # the srid should be a string
-
-        # we are going to use the list of player srids for the PlayerStats filter()
-        player_srids = play_pbp.get_srids_for_field(self.player_srid_field)
-        self.assertTrue( set(self.target_player_srids) <= set(player_srids) )
-
-    def test_play_pbp_for_kick_play(self):
-        """
-        we dont really care about kick plays for scoring, so lets
-        just see how the PlayPbp / pbp+stats linker handles this object
-        """
-        obj_str2 = """{'o': {'yfd': 10.0, 'yard_line': 35.0, 'id': '85345fbd-d2f1-43e7-885f-925370a9828e', 'summary': '5-C.Santos kicks 70 yards from KC 35. 88-T.Montgomery to GB 31 for 36 yards (30-J.Fleming).', 'updated': '2015-09-29T00:32:06+00:00', 'type': 'kick', 'side': 'KC', 'down': 1.0, 'participants__list': [{'player': 'd96ff17c-841a-4768-8e08-3a4cfcb7f717'}, {'player': '0c39e276-7a5b-448f-a696-532506f1035a'}, {'player': '349a994b-4b6d-42e6-a2fe-bdb3359b0a31'}], 'game__id': 'af51f745-7e7d-4762-864c-bac67c2db7e4', 'clock': '15:00', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFmNTFmNzQ1LTdlN2QtNDc2Mi04NjRjLWJhYzY3YzJkYjdlNHBhcmVudF9saXN0X19pZGRyaXZlX19saXN0aWQ4NTM0NWZiZC1kMmYxLTQzZTctODg1Zi05MjUzNzBhOTgyOGU=', 'parent_api__id': 'pbp', 'dd_updated__id': 1443486878736, 'parent_list__id': 'drive__list', 'sequence': 2.0, 'links__list': {'link__list': {'href': '/2015/REG/3/KC/GB/plays/85345fbd-d2f1-43e7-885f-925370a9828e.xml', 'type': 'application/xml', 'rel': 'summary'}}}, 'ns': 'nfl.play', 'ts': 1454659978}"""
-
-        play_pbp = self.__play_pbp_parse(obj_str2)
+# class TestPlayPbp(AbstractTest):
+#     """
+#     test parse an actual object which once came from dataden. (sanity check)
+#
+#     there is a more generic test in sports.sport.tests
+#     """
+#
+#     def setUp(self):
+#         # passing play has some player srids we might care about
+#         self.obj_str = """{'o': {'yfd': 10.0, 'distance': 'Short', 'yard_line': 31.0, 'direction': 'Left', 'formation': 'Shotgun', 'summary': '12-A.Rodgers incomplete. Intended for 17-D.Adams.', 'updated': '2015-09-29T00:32:01+00:00', 'type': 'pass', 'side': 'GB', 'down': 1.0, 'participants__list': [{'player': '0ce48193-e2fa-466e-a986-33f751add206'}, {'player': 'e7d6ae25-bf15-4660-8b37-c37716551de3'}], 'game__id': 'af51f745-7e7d-4762-864c-bac67c2db7e4', 'clock': '14:53', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFmNTFmNzQ1LTdlN2QtNDc2Mi04NjRjLWJhYzY3YzJkYjdlNHBhcmVudF9saXN0X19pZGRyaXZlX19saXN0aWQwM2ZmZDlkOC05NGQ2LTQ2NzUtOWE1MC00ZGNjMWY5NDFhODE=', 'id': '03ffd9d8-94d6-4675-9a50-4dcc1f941a81', 'dd_updated__id': 1443486878736, 'parent_list__id': 'drive__list', 'sequence': 3.0, 'links__list': {'link__list': {'href': '/2015/REG/3/KC/GB/plays/03ffd9d8-94d6-4675-9a50-4dcc1f941a81.xml', 'type': 'application/xml', 'rel': 'summary'}}, 'parent_api__id': 'pbp'}, 'ns': 'nfl.play', 'ts': 1454659978}"""
+#         # kick play may not have player srdis we care about
+#         # self.data = literal_eval(self.obj_str) # convert to dict
+#         # self.oplog_obj = OpLogObj(self.data)
+#
+#         # the field we will try to get a game srid from
+#         self.game_srid_field        = 'game__id'
+#         # a list of the game_srids we expect to get back (only 1 for this test)
+#         self.target_game_srids      = ['af51f745-7e7d-4762-864c-bac67c2db7e4']
+#
+#         # the field name we will search for player srid(s)
+#         self.player_srid_field      = 'player'
+#         # the list of player srids we expect to find in this object
+#         self.target_player_srids    = ['0ce48193-e2fa-466e-a986-33f751add206']
+#
+#         self.player_stats_class     = PlayerStats
+#
+#     def __play_pbp_parse(self, str_oplog_obj):
+#         data        = literal_eval( str_oplog_obj )
+#         oplog_obj   = OpLogObj( data )
+#         play_pbp    = PlayPbp()
+#         play_pbp.parse( oplog_obj )
+#         return play_pbp
+#
+#     def test_play_pbp_parse(self):
+#         """
+#         """
+#         play_pbp = self.__play_pbp_parse(self.obj_str)
+#
+#         game_srids = play_pbp.get_srids_for_field(self.game_srid_field)
+#         self.assertIsInstance( game_srids, list )
+#         self.assertEquals( set(game_srids), set(self.target_game_srids) )
+#         self.assertEquals( len(set(game_srids)), 1 )
+#
+#         # we are going to use the game_srid for a PlayerStats filter()
+#         game_srid = list(set(game_srids))[0]
+#         self.assertIsInstance( game_srid, str ) # the srid should be a string
+#
+#         # we are going to use the list of player srids for the PlayerStats filter()
+#         player_srids = play_pbp.get_srids_for_field(self.player_srid_field)
+#         self.assertTrue( set(self.target_player_srids) <= set(player_srids) )
+#
+#     def test_play_pbp_for_kick_play(self):
+#         """
+#         we dont really care about kick plays for scoring, so lets
+#         just see how the PlayPbp / pbp+stats linker handles this object
+#         """
+#         obj_str2 = """{'o': {'yfd': 10.0, 'yard_line': 35.0, 'id': '85345fbd-d2f1-43e7-885f-925370a9828e', 'summary': '5-C.Santos kicks 70 yards from KC 35. 88-T.Montgomery to GB 31 for 36 yards (30-J.Fleming).', 'updated': '2015-09-29T00:32:06+00:00', 'type': 'kick', 'side': 'KC', 'down': 1.0, 'participants__list': [{'player': 'd96ff17c-841a-4768-8e08-3a4cfcb7f717'}, {'player': '0c39e276-7a5b-448f-a696-532506f1035a'}, {'player': '349a994b-4b6d-42e6-a2fe-bdb3359b0a31'}], 'game__id': 'af51f745-7e7d-4762-864c-bac67c2db7e4', 'clock': '15:00', '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFmNTFmNzQ1LTdlN2QtNDc2Mi04NjRjLWJhYzY3YzJkYjdlNHBhcmVudF9saXN0X19pZGRyaXZlX19saXN0aWQ4NTM0NWZiZC1kMmYxLTQzZTctODg1Zi05MjUzNzBhOTgyOGU=', 'parent_api__id': 'pbp', 'dd_updated__id': 1443486878736, 'parent_list__id': 'drive__list', 'sequence': 2.0, 'links__list': {'link__list': {'href': '/2015/REG/3/KC/GB/plays/85345fbd-d2f1-43e7-885f-925370a9828e.xml', 'type': 'application/xml', 'rel': 'summary'}}}, 'ns': 'nfl.play', 'ts': 1454659978}"""
+#
+#         play_pbp = self.__play_pbp_parse(obj_str2)
 

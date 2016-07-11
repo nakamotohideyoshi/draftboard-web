@@ -33,6 +33,11 @@ import push.classes
 from django.conf import settings
 from sports.sport.base_parser import TsxContentParser
 from push.classes import DataDenPush, PbpDataDenPush
+from util.dicts import (
+    Reducer,
+    Shrinker,
+    Manager,
+)
 
 class TeamHierarchy(DataDenTeamHierarchy):
     """
@@ -437,94 +442,63 @@ class GameBoxscores(AbstractDataDenParseable):
 
         self.boxscore.save()
 
-class GamePbp(DataDenPbpDescription):
+class PlayReducer(Reducer): # TODO - test
+    remove_fields = [
+        'away_points',
+        'wall_clock',
+        'home_points',
+        # 'statistics__list',       # this has the passer/rusher / receiver/defense guy
+        'parent_api__id',
+        '_id',
+        # 'alt_description',        # this one reads better than the 'description' field imo
+        'quarter__id',              # not sure if we will want the quarter information or not
+        'reference',                # matches sequence from the looks of it
+        'id',                       # srid of this play
+        # 'type',                   # ex: "pass"
+        'sequence',                 # order of the play within the game i think
+        # 'start_situation__list',  # ex: {"yfd": 5, "location": <srid>, "down": 2, "clock": "14:30", "possession": <srid>}
+        # 'dd_updated__id',         # unix ts play was parsed
+        'parent_list__id',          # 'pbp'
+        'description',              # has the player numbers - use 'alt_description'
+        'drive__id',                # srid of the drive this play is contained within
+        # 'game__id',               # game srid
+        'end_situation__list',    # ex: {"yfd": 5, "location": <srid>, "down": 2, "clock": "14:30", "possession": <srid>}
+    ]
+
+class PlayShrinker(Shrinker): # TODO - test
+    fields = {
+        'alt_description' : 'description',
+        'game__id' : 'srid_game',
+        'start_situation__list' : 'start',
+    }
+
+class PlayManager(Manager): # TODO - test
+    reducer_class = PlayReducer
+    shrinker_class = PlayShrinker
+
+class PlayParser(DataDenPbpDescription):
 
     game_model              = Game
     pbp_model               = Pbp
     portion_model           = GamePortion
     pbp_description_model   = PbpDescription
 
-    def __init__(self):
-        super().__init__()
-
-    def parse(self, obj, target=None):
-        super().parse( obj, target )
-
-        if self.game is None:
-            return
-
-        #print('srid game', self.o.get('id'))
-        quarters = self.o.get('quarters', {})
-
-        for quarter_json in quarters:
-            quarter_play_idx = 0
-            quarter = quarter_json.get('quarter', {})
-            quarter_number = quarter.get('number', None)
-
-            if quarter_number is None:
-                raise Exception('quarter_number is None! what the!?')
-
-            #
-            # get (or create) the game portion object
-            game_portion = self.get_game_portion( 'quarter', quarter_number )
-
-            drives = quarter.get('drives', [])
-
-            for drive_json in drives:
-                drive = drive_json.get('drive')     # half is a drive object! ill rename later
-                #
-                # create the plays
-                plays = drive.get('plays', {})
-                for play_json in plays:
-                    srid_play   = play_json.get('play', -1)
-                    summary     = play_json.get('summary','')
-                    pbp_desc = self.get_pbp_description(game_portion, quarter_play_idx, '', save=False)
-                    pbp_desc.srid = srid_play
-                    pbp_desc.save()
-                    quarter_play_idx += 1
-
-                #
-                # create the event s
-                events = drive.get('events', {})
-                for event_json in events:
-                    sequence    = event_json.get('sequence', -1)
-                    summary     = event_json.get('summary','')
-                    pbp_desc = self.get_pbp_description(game_portion, sequence, summary)
-
-class PlayPbp(DataDenPbpDescription):
-
-    game_model              = Game
-    pbp_model               = Pbp
-    portion_model           = GamePortion
-    pbp_description_model   = PbpDescription
-    #
     player_stats_model      = sports.nfl.models.PlayerStats
     pusher_sport_pbp        = push.classes.PUSHER_NFL_PBP
     pusher_sport_stats      = push.classes.PUSHER_NFL_STATS
 
+    manager_class           = PlayManager
+
     def __init__(self):
         super().__init__()
 
     def parse(self, obj, target=None):
-        #
-        # dont need to call super for EventPbp - just get the event by srid.
-        # if it doesnt exist dont do anything, else set the description
-        #super().parse( obj, target )
+        # this strips off the dataden oplog wrapper, and sets the SridFinder internally.
+        # now we can use self.o which is the data object we care about.
+        self.parse_triggered_object(obj)
 
-        self.original_obj = obj # since we dont call super().parse() in this class
-        self.srid_finder = SridFinder(obj.get_o())
-
-        self.o = obj.get_o() # we didnt call super so we should do thisv
-        srid_pbp_desc = self.o.get('id', None)
-        pbp_desc = self.get_pbp_description_by_srid( srid_pbp_desc )
-        if pbp_desc:
-            description = self.o.get('summary', None)
-            if pbp_desc.description != description:
-                # only save it if its changed
-                pbp_desc.description = description
-                pbp_desc.save()
-        # else:
-        #     print( 'pbp_desc not found by srid %s' % srid_pbp_desc)
+    def send(self, *args, **kwargs):
+        super().send(force=True)
 
 class Injury(DataDenInjury):
 
@@ -578,6 +552,9 @@ class DataDenNfl(AbstractDataDenParser):
         (mongo_db_for_sport,'player','rosters'),
         (mongo_db_for_sport,'game','boxscores'),
         (mongo_db_for_sport,'player','stats'),
+
+        # play by play
+        (mongo_db_for_sport, 'play', 'pbp'),
     ]
 
     def __init__(self):
@@ -629,6 +606,12 @@ class DataDenNfl(AbstractDataDenParser):
         elif self.target == (self.mongo_db_for_sport+'.player','stats'):
             PlayerStats().parse( obj )
 
+        #
+        # pbp -> plays
+        elif self.target == (self.mongo_db_for_sport + '.play', 'pbp'):
+            parser.PlayParser()
+            parser.parse(obj)
+            pasers.send()
         #
         #
         else: self.unimplemented( self.target[0], self.target[1] )
