@@ -282,7 +282,7 @@ JWT_AUTH = {
 # Django installs
 # ----------------------------------------------------------
 INSTALLED_APPS = (
-    'suit',
+    #'suit',
     #
     # # django defaults
     'django.contrib.admin',
