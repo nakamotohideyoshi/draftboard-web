@@ -6,7 +6,7 @@ import ResultsLineup from './results-lineup.jsx';
 const ResultsLineups = (props) => {
   if (props.lineups.length === 0) {
     return (
-      <div>No contests entered on this date.</div>
+      <div className="results-page__no-contests">No contests entered on this date.</div>
     );
   }
 

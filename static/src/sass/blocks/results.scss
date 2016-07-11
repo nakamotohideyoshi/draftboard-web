@@ -199,8 +199,27 @@ $results-selected-text-color: #2bb677;
     }
   }
 
+  &__no-contests {
+    color: #fff;
+    font-family: $font-oswald;
+    font-size: 18px;
+    font-weight: 700;
+    height: 100px;
+    left: 50%;
+    margin: 0;
+    padding: 0;
+    position: fixed;
+    text-align: center;
+    text-transform: uppercase;
+    top: 60%;
+    transform: translateX(-50%) translateY(-50%);
+    width: 300px;
+    z-index: 1;
+  }
+
   &--lineups {
     padding: 40px 0 0 88px;
+
 
     .lineup {
       width: 380px;
