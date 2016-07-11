@@ -18,12 +18,19 @@ from salary.classes import (
     OwnershipPercentageAdjuster,
 )
 
-@admin.register(TrailingGameWeight)
-class TrailingGameWeightAdmin(admin.ModelAdmin):
-    pass
+# @admin.register(TrailingGameWeight)
+# class TrailingGameWeightAdmin(admin.ModelAdmin):
+#     list_display = ['salary', 'through', 'weight']
+
+
+# class TrailingGameWeightInline(admin.TabularInline):
+#     model = TrailingGameWeight
 
 class TrailingGameWeightInline(admin.TabularInline):
     model = TrailingGameWeight
+    extra = 0
+    list_display = ['through', 'weight']
+    readonly_fields = ['through','weight']
 
 class PlayerInline(admin.TabularInline):
     model = Player
