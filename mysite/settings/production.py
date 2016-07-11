@@ -44,16 +44,6 @@ STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
 
 # Testing mode off for production
 DEBUG = False
-# Match template debugging to what environment debug is
-TEMPLATE_DEBUG = DEBUG
-
-# Cache templates
-TEMPLATE_LOADERS = (
-    ('django.template.loaders.cached.Loader', (
-        'django.template.loaders.filesystem.Loader',
-        'django.template.loaders.app_directories.Loader',
-    )),
-)
 
 # Add gunicorn
 INSTALLED_APPS += (
