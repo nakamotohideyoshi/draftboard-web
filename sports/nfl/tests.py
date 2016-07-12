@@ -33,8 +33,8 @@ class TestPlayParser(AbstractTest):
         self.parser = PlayParser()
 
     def __parse_and_send(self, unwrapped_obj):
-        oplog_obj = OpLogObjWrapper('nfl', 'play', unwrapped_obj)
-        self.parser.parse(oplog_obj)
+        oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
+        self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
 
         #
         # get the 'player' srids
