@@ -8,6 +8,7 @@ const initialState = {
   },
   infoFormErrors: {},
   infoFormSaved: false,
+  addressFormErrors: {},
   emailPassFormErrors: {},
   emailPassFormSaved: false,
   cashBalance: {

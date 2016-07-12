@@ -3,12 +3,12 @@ import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
 import { updateUserAddress } from '../../actions/user';
-import DepositsAddPaymentMethod from './subcomponents/deposits-add-payment-method.jsx';
+// import DepositsAddPaymentMethod from './subcomponents/deposits-add-payment-method.jsx';
 import DepositsPayments from './subcomponents/deposits-payments.jsx';
 import SettingsAddress from './subcomponents/settings-address.jsx';
 
 import {
-  fetchPayments,
+  fetchPaymentMethods,
   addPaymentMethod,
   setPaymentMethodDefault,
   removePaymentMethod,
@@ -29,7 +29,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   return {
     updateUserAddress: (postData) => dispatch(updateUserAddress(postData)),
-    fetchPayments: () => dispatch(fetchPayments()),
+    fetchPaymentMethods: () => dispatch(fetchPaymentMethods()),
     addPaymentMethod: (postData) => dispatch(addPaymentMethod(postData)),
     setPaymentMethodDefault: (id) => dispatch(setPaymentMethodDefault(id)),
     removePaymentMethod: (id) => dispatch(removePaymentMethod(id)),
@@ -46,7 +46,7 @@ const Deposits = React.createClass({
     updateUserAddress: React.PropTypes.func.isRequired,
 
     payments: React.PropTypes.array.isRequired,
-    fetchPayments: React.PropTypes.func.isRequired,
+    fetchPaymentMethods: React.PropTypes.func.isRequired,
 
     addPaymentMethod: React.PropTypes.func.isRequired,
     setPaymentMethodDefault: React.PropTypes.func.isRequired,
@@ -56,7 +56,7 @@ const Deposits = React.createClass({
 
 
   componentWillMount() {
-    this.props.fetchPayments();
+    this.props.fetchPaymentMethods();
   },
 
 
@@ -95,7 +95,7 @@ const Deposits = React.createClass({
     const quckDeposits = depositOptions.map((amount) => {
       const dolarPrepended = '$'.concat(amount);
       return (
-        <li>
+        <li key={amount}>
           <input
             type="radio"
             name="quickDeposit"
@@ -110,7 +110,7 @@ const Deposits = React.createClass({
 
     return (
       <div>
-        <form className="form" method="post" onSubmit={this.submitDeposit}>
+        <div className="form">
           <fieldset className="form__fieldset">
 
           <div className="form-field">
@@ -142,16 +142,14 @@ const Deposits = React.createClass({
             onRemovePaymentMethod={this.props.removePaymentMethod}
           />
 
-          <DepositsAddPaymentMethod onAddPaymentMethod={this.props.addPaymentMethod} />
-
           <input type="submit" className="button button--flat-alt1" value="Deposit" />
 
           </fieldset>
-        </form>
+        </div>
 
         <SettingsAddress
           info={this.props.user}
-          errors={[]}
+          errors={{}}
           onHandleSubmit={this.props.updateUserAddress}
         />
 
