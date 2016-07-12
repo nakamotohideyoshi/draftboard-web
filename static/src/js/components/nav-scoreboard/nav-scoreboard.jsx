@@ -6,12 +6,12 @@ import store from '../../store';
 import { bindActionCreators } from 'redux';
 import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups';
 import { fetchSportsIfNeeded } from '../../actions/sports';
-import { humanizeCurrency } from '../../lib/utils/currency';
 import { myCurrentLineupsSelector } from '../../selectors/current-lineups';
 import { Provider, connect } from 'react-redux';
 import { removeUnusedContests } from '../../actions/live-contests';
 import { removeUnusedDraftGroups } from '../../actions/live-draft-groups';
 import { sportsSelector } from '../../selectors/sports';
+import { fetchCashBalanceIfNeeded } from '../../actions/user.js';
 
 
 /*
@@ -25,6 +25,7 @@ const mapDispatchToProps = (dispatch) => ({
     fetchSportsIfNeeded,
     removeUnusedContests,
     removeUnusedDraftGroups,
+    fetchCashBalanceIfNeeded,
   }, dispatch),
 });
 
@@ -36,6 +37,7 @@ const mapDispatchToProps = (dispatch) => ({
 const mapStateToProps = (state) => ({
   myCurrentLineupsSelector: myCurrentLineupsSelector(state),
   sportsSelector: sportsSelector(state),
+  cashBalance: state.user.cashBalance.amount,
 });
 
 /*
@@ -48,16 +50,12 @@ const NavScoreboard = React.createClass({
 
   propTypes: {
     actions: React.PropTypes.object.isRequired,
-    cashBalance: React.PropTypes.string,
+    cashBalance: React.PropTypes.oneOfType([
+      React.PropTypes.string,
+      React.PropTypes.number,
+    ]),
     myCurrentLineupsSelector: React.PropTypes.object.isRequired,
     sportsSelector: React.PropTypes.object.isRequired,
-  },
-
-
-  getDefaultProps() {
-    return {
-      cashBalance: humanizeCurrency(window.dfs.user.cashBalance),
-    };
   },
 
 
@@ -81,6 +79,7 @@ const NavScoreboard = React.createClass({
     // if the user is logged in
     if (this.state.user.username !== '' && !this.state.isLivePage) {
       this.props.actions.fetchCurrentLineupsAndRelated();
+      this.props.actions.fetchCashBalanceIfNeeded();
     }
 
     this.startListening();
