@@ -1,4 +1,4 @@
-FROM frolvlad/alpine-python3
+FROM python:3.5.1-alpine
 ENV PYTHONUNBUFFERED 1
 
 # dir for python app
@@ -9,8 +9,14 @@ WORKDIR /code
 RUN apk add python3-dev build-base --update-cache
 RUN apk add make libffi-dev openssl-dev
 
+# update with needed outside repositories
+RUN echo "@main33 http://dl-cdn.alpinelinux.org/alpine/v3.3/main" >> /etc/apk/repositories
+RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
+RUN apk update
+
 # install req for python modules using postgres
-RUN apk add postgresql-dev
+# force this to 9.4 to match kiasaki/alpine-postgres:9.4
+RUN apk add "postgresql@main33<9.5" "postgresql-dev@main33<9.5" "postgresql-client@main33<9.5"
 
 # install these for python req that use git
 RUN apk add git
@@ -28,8 +34,7 @@ COPY docker-services/django/.ash_history /root/.ash_history
 RUN echo "alias python='python3'" >> /etc/profile.d/draftboard.sh
 
 # dumb-init https://github.com/Yelp/dumb-init
-RUN echo "@testing http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-RUN apk --update add dumb-init@testing
+RUN apk add dumb-init@testing
 
 # placing this last as it is a run time variable
 ARG DRAFTBOARD_SETTINGS
