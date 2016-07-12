@@ -7,7 +7,6 @@ const initialState = {
   id: null,
   isFetching: false,
   allPlayers: {},
-  probablePitchers: [],
 };
 
 
@@ -38,8 +37,6 @@ module.exports = (state = initialState, action) => {
         start: action.response.start,
         end: action.response.end,
         isFetching: false,
-        // An array containing the values (player.srid) of probably pitchers.
-        probablePitchers: action.response.game_updates.filter((update) => update.type === 'pp').map((pp) => pp.value),
       });
 
 

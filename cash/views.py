@@ -102,7 +102,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
 
 class BalanceAPIView(generics.GenericAPIView):
     """
-    Gets the cash balance as a string for the logged in user formatted like '$5.50'.
+    Gets the cash balance as a string for the logged in user formatted like '5.50'.
 
         * |api-text| :dfs:`cash/balance/`
 
@@ -115,7 +115,7 @@ class BalanceAPIView(generics.GenericAPIView):
     def get(self, request, format=None):
         user = self.request.user
         cash_transaction = CashTransaction(user)
-        content = {'cash_balance': cash_transaction.get_balance_string_formatted()}
+        content = {'cash_balance': cash_transaction.get_balance_amount()}
         return Response(content)
 
 

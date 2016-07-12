@@ -25,7 +25,10 @@ const NavScoreboardStatic = React.createClass({
     user: React.PropTypes.object.isRequired,
     sportsSelector: React.PropTypes.object.isRequired,
     myCurrentLineupsSelector: React.PropTypes.object.isRequired,
-    cashBalance: React.PropTypes.string,
+    cashBalance: React.PropTypes.oneOfType([
+      React.PropTypes.string,
+      React.PropTypes.number,
+    ]),
   },
 
   getInitialState() {
