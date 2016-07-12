@@ -38,6 +38,7 @@ from util.dicts import (
     Shrinker,
     Manager,
 )
+from mysite.utils import QuickCache
 
 class TeamHierarchy(DataDenTeamHierarchy):
     """
@@ -478,6 +479,17 @@ class PlayManager(Manager): # TODO - test
 
 class PlayParser(DataDenPbpDescription):
 
+    class PlayCache(QuickCache):
+        name = 'PlayCache_nflo_pbp'
+
+    class PossessionCache(QuickCache):
+        name = 'PossessionCache_nflo_pbp'
+        field_id = 'play__id'
+
+    class LocationCache(QuickCache):
+        name = 'LocationCache_nflo_pbp'
+        field__id = 'play__id'
+
     game_model              = Game
     pbp_model               = Pbp
     portion_model           = GamePortion
@@ -491,11 +503,79 @@ class PlayParser(DataDenPbpDescription):
 
     def __init__(self):
         super().__init__()
+        self.ts = None
+        self.play_srid = None
 
-    def parse(self, obj, target=None):
+    def update_required_parts(self, ts, play_srid):
+        """ must be called after we've cached the item we just set with parse() """
+
+        # these three items are required in order to send this item
+        required_parts = []
+
+        play = self.PlayCache().fetch(ts, play_srid)
+        required_parts.append(play)
+
+        location = self.PossessionCache().fetch(ts, play_srid)
+        required_parts.append(location)
+
+        possession = self.LocationCache().fetch(ts, play_srid)
+        required_parts.append(possession)
+
+        if None in required_parts:
+            return False # there was at least one cached item that doesnt exist
+
+        # very important to set ts, and play_srid internally now
+        # because they are the values enabling us to get our complete object
+        self.ts = ts
+        self.play_srid = play_srid
+        return True # everything existed
+
+    def cache_target(self, o, target):
+        ts = o.get('dd_updated__id')
+        play_srid = None
+        if target == ('nflo.play', 'pbp'):
+            play_srid = o.get('id')
+            self.PlayCache(o)
+        elif target == ('nflo.possession', 'pbp'):
+            play_srid = o.get('play__id')
+            self.PossessionCache(o)
+        elif target == ('nflo.location', 'pbp'):
+            play_srid = o.get('play__id')
+            self.LocationCache(o)
+
+        if ts is not None and play_srid is not None:
+            return (ts, play_srid)
+        # else:
+        return None
+
+    def parse(self, obj, target):
         # this strips off the dataden oplog wrapper, and sets the SridFinder internally.
         # now we can use self.o which is the data object we care about.
         self.parse_triggered_object(obj)
+
+        # update the current object it its own cache first
+        ts, play_srid = self.cache_target(self.o, target)
+
+        # completes all the required parts (if they exist yet)
+        can_send = self.update_required_parts(ts, play_srid)
+
+        if can_send:
+            self.send()
+
+    def get_send_data(self):
+        """ build the linked object from the parts """
+
+        #
+        # assumes that everthing must exist at this point for us to be able to build it!
+        play = self.PlayCache().fetch(self.ts, self.play_srid)
+        location = self.PossessionCache().fetch(self.ts, self.play_srid)
+        possession = self.LocationCache().fetch(self.ts, self.play_srid)
+
+        return {
+            'play' : play,
+            'location' : location,
+            'possession' : possession,
+        }
 
     def send(self, *args, **kwargs):
         super().send(force=True)
@@ -609,9 +689,8 @@ class DataDenNfl(AbstractDataDenParser):
         #
         # pbp -> plays
         elif self.target == (self.mongo_db_for_sport + '.play', 'pbp'):
-            parser.PlayParser()
-            parser.parse(obj)
-            pasers.send()
+            parser = PlayParser()
+            parser.parse(obj, self.target) # will call send() if it can
         #
         #
         else: self.unimplemented( self.target[0], self.target[1] )
