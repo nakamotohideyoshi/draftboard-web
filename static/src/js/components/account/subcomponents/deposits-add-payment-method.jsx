@@ -1,5 +1,7 @@
 import React from 'react';
-import ModalAddPaymentMethod from './modal-add-payment-method.jsx';
+// import ModalAddPaymentMethod from './modal-add-payment-method.jsx';
+import Modal from '../../modal/modal.jsx';
+import CreditcardForm from '../../form-field/creditcard-form.jsx';
 
 
 /**
@@ -8,9 +10,22 @@ import ModalAddPaymentMethod from './modal-add-payment-method.jsx';
  */
 const DepositsAddPaymentMethod = React.createClass({
 
+  getInitialState() {
+    return {
+      isOpen: false,
+    };
+  },
+
+
   openModal(event) {
     event.preventDefault();
-    this.refs.cardModal.open();
+    // this.refs.cardModal.open();
+    this.setState({ isOpen: true });
+  },
+
+  // close modal
+  close() {
+    this.setState({ isOpen: false });
   },
 
   render() {
@@ -26,7 +41,22 @@ const DepositsAddPaymentMethod = React.createClass({
           + New payment method
           </a>
 
-          <ModalAddPaymentMethod ref="cardModal" />
+          <div>
+            <Modal
+              isOpen={this.state.isOpen}
+              onClose={this.close}
+              className="cmp-modal-payment-action"
+
+            >
+              <div>
+                <div className="cmp-modal__content">
+                  <CreditcardForm />
+                  <div id="creditcard-form" />
+                </div>
+              </div>
+            </Modal>
+          </div>
+
         </div>
       </div>
     );
