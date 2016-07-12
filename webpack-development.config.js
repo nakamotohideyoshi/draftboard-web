@@ -49,7 +49,8 @@ config.plugins = config.plugins.concat([
   new webpack.DefinePlugin({
     'process.env': {
       NODE_ENV: JSON.stringify('debug'),
-      API_DOMAIN: JSON.stringify('http://localhost:3000'),
+      API_DOMAIN: JSON.stringify('http://draftboard-api-sandbox.herokuapp.com'),
+      // API_DOMAIN: JSON.stringify('http://localhost:5000'),
       // API_DOMAIN: '',
     } }),
 ]);

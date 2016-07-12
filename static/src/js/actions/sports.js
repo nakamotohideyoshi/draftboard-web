@@ -243,7 +243,7 @@ const receiveGames = (sport, games) => {
   const gamesCompleted = map(
     sortBy(
       filter(
-        games, (game) => game.hasOwnProperty('boxscore') && doneStatuses.indexOf(game.boxscore.status) !== -1
+        games, (game) => game.hasOwnProperty('boxscore') && doneStatuses.indexOf(game.status) !== -1
       ),
       (filteredGame) => filteredGame.start
     ),
