@@ -5,8 +5,8 @@ import { expect } from 'chai';
 import { mount } from 'enzyme';
 import LineupCardList from '../../../components/lobby/lobby-lineup-card-list.jsx';
 import LineupCard from '../../../components/lineup/lineup-card.jsx';
-import LobbyDraftGroupSelectionModal from
-  '../../../components/lobby/lobby-draft-group-selection-modal.jsx';
+// import LobbyDraftGroupSelectionModal from
+//   '../../../components/lobby/lobby-draft-group-selection-modal.jsx';
 import draftGroupInfoSelectorFix from '../../../fixtures/json/draft-group-info-selector.js';
 import storeUpcomingLineupsFix from '../../../fixtures/json/store-upcoming-lineups.js';
 import upcomingLineupsInfoSelectorFix from
@@ -15,11 +15,13 @@ import upcomingLineupsBySportSelectorFix from
   '../../../fixtures/json/upcoming-lineups-by-sport-selector.js';
 
 const defaultTestProps = {
+  focusedSport: '',
   lineups: upcomingLineupsBySportSelectorFix,
   lineupsInfo: upcomingLineupsInfoSelectorFix,
   focusedLineupId: storeUpcomingLineupsFix.focusedLineupId,
   draftGroupInfo: draftGroupInfoSelectorFix,
   draftGroupSelectionModalIsOpen: false,
+  openDraftGroupSelectionModal: () => true,
   // a promise that will always resolve.
   fetchUpcomingLineups: () => new Promise((resolve) => resolve()),
   removeContestPoolEntry: () => true,

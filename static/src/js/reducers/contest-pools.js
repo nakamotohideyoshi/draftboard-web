@@ -52,7 +52,7 @@ const initialState = {
 };
 
 
-module.exports = (state = initialState, action) => {
+module.exports = (state = initialState, action = {}) => {
   let newState;
 
   switch (action.type) {
@@ -86,14 +86,19 @@ module.exports = (state = initialState, action) => {
     case actionTypes.UPCOMING_CONTESTS_FILTER_CHANGED: {
       const newFilter = {};
 
-      newFilter[action.filter.filterName] = {
-        filterProperty: action.filter.filterProperty,
-        match: action.filter.match,
-      };
+      if (action.filter) {
+        newFilter[action.filter.filterName] = {
+          filterProperty: action.filter.filterProperty,
+          match: action.filter.match,
+        };
 
-      return merge({}, state, {
-        filters: merge({}, state.filters, newFilter),
-      });
+        return merge({}, state, {
+          filters: merge({}, state.filters, newFilter),
+        });
+      }
+
+      // If no filter was supplied, return the original state.
+      return state;
     }
 
 
