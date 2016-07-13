@@ -79,6 +79,7 @@ describe('actions.events.boxscores.onBoxscoreGameReceived', () => {
     const newState = merge({}, state);
     newState.sports.games.foo = {
       boxscore: {},
+      sport: 'mlb',
     };
 
     const store = mockStore(newState);
@@ -108,6 +109,7 @@ describe('actions.events.boxscores.onBoxscoreGameReceived', () => {
     const newState = merge({}, state);
     newState.sports.games.foo = {
       boxscore: {},
+      sport: 'mlb',
     };
 
     const store = mockStore(newState);
@@ -138,6 +140,7 @@ describe('actions.events.boxscores.onBoxscoreGameReceived', () => {
     const newState = merge({}, state);
     newState.sports.games.foo = {
       boxscore: {},
+      sport: 'mlb',
     };
 
     const store = mockStore(newState);
@@ -155,7 +158,7 @@ describe('actions.events.boxscores.onBoxscoreTeamReceived', () => {
   let state;
 
   // mock responses, answers to make sure it ran correctly
-  const properMessage = { game__id: 'foo', points: 23 };
+  const properMessage = { srid_game: 'foo', points: 23 };
 
   // use proxyquire to mock in responses
   const actions = proxyquire('../../../actions/events/boxscores', {
@@ -175,14 +178,15 @@ describe('actions.events.boxscores.onBoxscoreTeamReceived', () => {
     };
   });
 
-  it('should return false if points are missing, no sport', () => {
+  it('should return false if gameId is missing, no sport', () => {
     const newState = merge({}, state);
     newState.sports.games.foo = {
       boxscore: {},
+      sport: 'mlb',
     };
     const store = mockStore(newState);
 
-    const message = { game__id: 'foo' };
+    const message = { srid_game: 'bar' };  // not in games
     assert.equal(
       store.dispatch(actions.onBoxscoreTeamReceived(message)),
       false
@@ -203,6 +207,7 @@ describe('actions.events.boxscores.onBoxscoreTeamReceived', () => {
     const newState = merge({}, state);
     newState.sports.games.foo = {
       boxscore: {},
+      sport: 'mlb',
     };
 
     const store = mockStore(newState);

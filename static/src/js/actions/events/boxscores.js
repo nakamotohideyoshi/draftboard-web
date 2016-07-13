@@ -8,23 +8,13 @@ const logAction = log.getLogger('action');
 
 /**
  * Figure out sport by message content
- * @param  {object} message Socket message received
+ * @param  {object} games   List of games, key is ID
+ * @param  {string} gameId  SportsRadar UUID
  * @return {mixed}          Sport || false
  */
-const calcBoxscoreGameSport = (message) => {
-  if (message.hasOwnProperty('clock')) return 'nba';
-  if (message.hasOwnProperty('outcome__list') || message.hasOwnProperty('final__list')) return 'mlb';
-  return false;
-};
-
-/**
- * Figure out sport by message content
- * @param  {object} message Socket message received
- * @return {mixed}          Sport || false
- */
-const calcBoxscoreTeamSport = (message) => {
-  if (message.hasOwnProperty('points')) return 'nba';
-  return false;
+const calcSportByGame = (games = {}, gameId) => {
+  if (!(gameId in games)) return false;
+  return games[gameId].sport || false;
 };
 
 /**
@@ -50,6 +40,11 @@ const isMessageUsed = (message, sport) => {
       }
       break;
     case 'nba':
+    case 'nfl':
+      if (message.status === 'inprogress' && (!('clock' in message) || !('quarter' in message))) {
+        reasons.push('!message.outcome__list');
+      }
+      break;
     default:
       break;
   }
@@ -72,21 +67,22 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
   logAction.debug('actions.onBoxscoreGameReceived', message);
 
   const gameId = message.id;
+  const state = getState();
 
-  const sport = calcBoxscoreGameSport(message);
+  const sport = calcSportByGame(state.sports.games, gameId);
   if (!sport) return false;
 
-  if (!isGameReady(getState(), dispatch, sport, gameId)) return false;
+  if (!isGameReady(state, dispatch, sport, gameId)) return false;
   if (!hasGameStarted(sport, message.status)) return false;
   if (!isMessageUsed(message, sport)) return false;
 
-  const updatedFields = {};
+  const status = message.status;
+  const updatedFields = {
+    status,
+  };
 
   switch (sport) {
     case 'mlb': {
-      const status = message.status;
-      updatedFields.status = status;
-
       switch (status) {
         case 'inprogress': {
           const latestList = message.outcome__list;
@@ -112,12 +108,17 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
       break;
     }
     case 'nba': {
-      const status = message.status;
-      updatedFields.status = status;
-
       updatedFields.boxscore = {
         clock: message.boxscore.clock,
         quarter: message.boxscore.quarter,
+      };
+      break;
+    }
+    case 'nfl': {
+      const { clock, quarter } = message;
+      updatedFields.boxscore = {
+        clock,
+        quarter,
       };
       break;
     }
@@ -143,12 +144,13 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
 export const onBoxscoreTeamReceived = (message) => (dispatch, getState) => {
   logAction.debug('actions.onBoxscoreTeamReceived', message);
 
-  const gameId = message.game__id;
+  const gameId = message.srid_game;
+  const state = getState();
 
-  const sport = calcBoxscoreTeamSport(message);
+  const sport = calcSportByGame(state.sports.games, gameId);
   if (!sport) return false;
 
-  if (!isGameReady(getState(), dispatch, sport, gameId)) return false;
+  if (!isGameReady(state, dispatch, sport, gameId)) return false;
 
   return dispatch(addEventAndStartQueue(gameId, message, 'boxscore-team', sport));
 };
