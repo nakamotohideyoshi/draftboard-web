@@ -43,14 +43,16 @@ const config = Object.assign(
   }
 );
 
-
+/**
+ * API_DOMAIN requires a scenario at the end of the URL. current options are ['nba-live', 'mlb-live']
+ */
 config.plugins = config.plugins.concat([
   // removes a lot of debugging code in React
   new webpack.DefinePlugin({
     'process.env': {
       NODE_ENV: JSON.stringify('debug'),
-      // API_DOMAIN: JSON.stringify('http://draftboard-api-sandbox.herokuapp.com'),
-      // API_DOMAIN: JSON.stringify('http://localhost:5000'),
+      // API_DOMAIN: JSON.stringify('http://draftboard-api-sandbox.herokuapp.com/mlb-live'),
+      // API_DOMAIN: JSON.stringify('http://localhost:5000/mlb-live'),
       API_DOMAIN: JSON.stringify(''),
     } }),
 ]);
