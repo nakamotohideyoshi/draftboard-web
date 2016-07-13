@@ -11,9 +11,10 @@ const logAction = log.getLogger('action');
  * When we receive a Pusher stats call, make sure it's related to our games/players, and if so send to the appropriate
  * method to be parsed
  * `stats.player` message depends on sport:
- * - MLB `mlb_stats.player` pitcher docs here https://git.io/vofDG
  * - MLB `mlb_stats.player` hitter docs here https://git.io/vofy6
+ * - MLB `mlb_stats.player` pitcher docs here https://git.io/vofDG
  * - NBA `nba_stats.player` docs here https://git.io/vofyi
+ * - NFL `nfl_stats.player` docs here https://git.io/vKlSG
  *
  * @param  {object} message        The received message from Pusher
  * @param  {string} sport          The player's sport, used to parse in actions
