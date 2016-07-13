@@ -9,3 +9,9 @@ DATABASES = {
         #'CONN_MAX_AGE': 60,
     }
 }
+
+
+# if in docker, switch for this
+# from .dev_[YOUR_CUSTOM_SETTINGS_HERE] import *
+
+# DATABASES['default']['NAME'] = 'generate_replayer'
