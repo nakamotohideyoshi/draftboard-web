@@ -5,7 +5,11 @@ from django.core.cache import caches
 from rest_framework.response import Response
 from rest_framework import generics
 from rest_framework import status
-from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.exceptions import (
+    ValidationError,
+    NotFound,
+    APIException,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.views import APIView
@@ -51,59 +55,63 @@ class CreateLineupAPIView(generics.CreateAPIView):
         try:
             draft_group = DraftGroup.objects.get(pk=draft_group_id)
         except DraftGroup.DoesNotExist:
-            return Response(
-                'Draft group does not exist',
-                status=status.HTTP_403_FORBIDDEN
-            )
+            # return Response(
+            #     'Draft group does not exist',
+            #     status=status.HTTP_403_FORBIDDEN
+            # )
+            raise APIException('Draft group does not exist.')
 
         #
         # use the lineup manager to create the lineup
         try:
             lm = LineupManager( request.user )
         except:
-            return Response(
-                'Invalid user',
-                status=status.HTTP_403_FORBIDDEN
-            )
+            # return Response(
+            #     'Invalid user',
+            #     status=status.HTTP_403_FORBIDDEN
+            # )
+            raise APIException('Invalid user')
 
         try:
             lineup = lm.create_lineup( players, draft_group, name )
 
-        except NotEnoughTeamsException as e:
-            return Response(
-                'Lineup must include players from at least three different teams.',
-                status=status.HTTP_403_FORBIDDEN
-            )
-        except InvalidLineupSalaryException:
-            return Response(
-                'Lineup exceeds max salary.',
-                status=status.HTTP_403_FORBIDDEN
-            )
-        except CreateLineupExpiredDraftgroupException:
-            return Response(
-                'You can no longer create lineups for this draft group',
-                status=status.HTTP_403_FORBIDDEN
-            )
-        except InvalidLineupSizeException:
-            return Response(
-                'You have not drafted enough players.',
-                status=status.HTTP_403_FORBIDDEN
-            )
-        except LineupInvalidRosterSpotException:
-            return Response(
-                'One or more of the players are invalid for the roster.',
-                status=status.HTTP_403_FORBIDDEN
-            )
-        except PlayerDoesNotExistInDraftGroupException as e:
-            return Response(
-                str(e),
-                status=status.HTTP_403_FORBIDDEN
-            )
-        except: # catch anything
-            return Response(
-                'Unknown error.',
-                status=status.HTTP_403_FORBIDDEN
-            )
+            # except NotEnoughTeamsException as e:
+            #     return Response(
+            #         'Lineup must include players from at least three different teams.',
+            #         status=status.HTTP_403_FORBIDDEN
+            #     )
+            # except InvalidLineupSalaryException:
+            #     return Response(
+            #         'Lineup exceeds max salary.',
+            #         status=status.HTTP_403_FORBIDDEN
+            #     )
+            # except CreateLineupExpiredDraftgroupException:
+            #     return Response(
+            #         'You can no longer create lineups for this draft group',
+            #         status=status.HTTP_403_FORBIDDEN
+            #     )
+            # except InvalidLineupSizeException:
+            #     return Response(
+            #         'You have not drafted enough players.',
+            #         status=status.HTTP_403_FORBIDDEN
+            #     )
+            # except LineupInvalidRosterSpotException:
+            #     return Response(
+            #         'One or more of the players are invalid for the roster.',
+            #         status=status.HTTP_403_FORBIDDEN
+            #     )
+            # except PlayerDoesNotExistInDraftGroupException as e:
+            #     return Response(
+            #         str(e),
+            #         status=status.HTTP_403_FORBIDDEN
+            #     )
+            # except: # catch anything
+            #     return Response(
+            #         'Unknown error.',
+            #         status=status.HTTP_403_FORBIDDEN
+            #     )
+        except Exception as e:
+            raise APIException(e)
 
         # on successful lineup creation:
         return Response('Lineup created.', status=status.HTTP_201_CREATED)
@@ -204,16 +212,20 @@ class EditLineupAPIView(generics.CreateAPIView):
         #
         # validate the parameters passed in here.
         if players is None:
-            return Response({'error':'you must supply the "players" parameter -- the list of player ids'},
-                                        status=status.HTTP_400_BAD_REQUEST )
+            # return Response({'error':'you must supply the "players" parameter -- the list of player ids'},
+            #                             status=status.HTTP_400_BAD_REQUEST )
+            raise APIException('You must supply the "players" parameter -- the list of player ids.')
+
         if lineup_id is None:
-            return Response({'error':'you must supply the "lineup_id" parameter -- the Lineup id'},
-                                        status=status.HTTP_400_BAD_REQUEST )
+            # return Response({'error':'you must supply the "lineup_id" parameter -- the Lineup id'},
+            #                             status=status.HTTP_400_BAD_REQUEST )
+            raise APIException('You must supply the "lineup_id" parameter -- the Lineup id.')
         try:
             lineup = Lineup.objects.get(pk=lineup_id, user=request.user)
         except Lineup.DoesNotExist:
-            return Response({'error':'invalid "lineup" parameter -- does not existt'},
-                                        status=status.HTTP_400_BAD_REQUEST )
+            # return Response({'error':'invalid "lineup" parameter -- does not existt'},
+            #                             status=status.HTTP_400_BAD_REQUEST )
+            raise APIException('Lineup id does not exist.')
         #
         # change the lineups name if it differs from the existing name
         if lineup.name != name:
@@ -228,7 +240,7 @@ class EditLineupAPIView(generics.CreateAPIView):
         # get() blocks the view from returning until the task finishes
         task_result.get()
         task_helper = TaskHelper(edit_lineup, task_result.id)
-        return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
+        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
 
 class EditLineupStatusAPIView(generics.GenericAPIView):
 
