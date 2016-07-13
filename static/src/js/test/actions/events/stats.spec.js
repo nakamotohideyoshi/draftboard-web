@@ -59,7 +59,6 @@ describe('actions.events.stats.onPlayerStatsReceived', () => {
       fields: {
         srid_game: 'game2',
       },
-      model: 'mlb.playerstatspitcher',
     };
     assert.equal(
       store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', 'myDraftGroupId', relevantGames)),
@@ -73,7 +72,6 @@ describe('actions.events.stats.onPlayerStatsReceived', () => {
       fields: {
         srid_game: 'game1',
       },
-      model: 'mlb.playerstatspitcher',
     };
     assert.equal(
       store.dispatch(actions.onPlayerStatsReceived(message, 'mlb', 'myDraftGroupId', relevantGames)),
