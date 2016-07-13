@@ -113,7 +113,7 @@ class QuickCache(object):
 
         #
         ts = data.get('dd_updated__id')
-        gid = data.get('id')
+        gid = data.get(self.field_id)
         k = self.get_key(ts, gid)
         #print('>>> stash key: %s' % k)
         #

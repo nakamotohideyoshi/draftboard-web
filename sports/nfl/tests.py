@@ -16,10 +16,130 @@ from dataden.watcher import OpLogObj, OpLogObjWrapper
 from sports.nfl.parser import (
     SeasonSchedule,
     GameSchedule,
-    # PlayPbp,
+    GameBoxscoreParser,
+    TeamBoxscoreParser,
     TeamHierarchy,
     PlayParser,
 )
+
+class TestTeamBoxscoreParser(AbstractTest):
+    """ tests the send() part only """
+
+    def setUp(self):
+        self.parser = TeamBoxscoreParser()
+
+    def __parse_and_send(self, unwrapped_obj, target):
+        # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
+        # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+        self.parser.send()
+
+    def test_1(self):
+        sport_db = 'nflo'
+        parent_api = 'boxscores'
+
+        data = {
+            "_id": "cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZDFjYTlhMGMxLWQxNDUtNGFjYi1hY2EyLWNiMmI1ZmU1MjliOXBhcmVudF9saXN0X19pZHN1bW1hcnlfX2xpc3RpZDQyNTRkMzE5LTFiYzctNGY4MS1iNGFiLWI1ZTZmMzQwMmI2OQ==",
+            "alias": "TB",
+            "id": "4254d319-1bc7-4f81-b4ab-b5e6f3402b69",
+            "market": "Tampa Bay",
+            "name": "Buccaneers",
+            "points": 14,
+            "reference": 4970,
+            "remaining_timeouts": 2,
+            "used_timeouts": 1,
+            "parent_api__id": "boxscores",
+            "dd_updated__id": 1464834061361,
+            "game__id": "1ca9a0c1-d145-4acb-aca2-cb2b5fe529b9",
+            "parent_list__id": "summary__list"
+        }
+
+        self.__parse_and_send(data, (sport_db + '.' + 'team', parent_api))
+
+class TestGameBoxscoreParser(AbstractTest):
+    """ tests the send() part only """
+
+    def setUp(self):
+        self.parser = GameBoxscoreParser()
+
+    def __parse_and_send(self, unwrapped_obj, target):
+        # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
+        # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+        self.parser.send()
+
+    def test_1(self):
+        sport_db = 'nflo'
+        parent_api = 'boxscores'
+
+        data = {
+            "_id": "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZQ==",
+            "attendance": 76512,
+            "clock": "00:00",
+            "entry_mode": "INGEST",
+            "id": "0141a0a5-13e5-4b28-b19f-0c3923aaef6e",
+            "number": 8,
+            "quarter": 4,
+            "reference": 56510,
+            "scheduled": "2015-09-13T17:02:41+00:00",
+            "status": "closed",
+            "utc_offset": -5,
+            "weather": "Partly Cloudy Temp: 69 F, Humidity: 58%, Wind: NW 10 mph",
+            "xmlns": "http://feed.elasticstats.com/schema/nfl/premium/boxscore-v2.0.xsd",
+            "parent_api__id": "boxscores",
+            "dd_updated__id": 1464834044370,
+            "summary__list": {
+                "season": "46aa2ca3-c2fc-455d-8256-1f7893a87113",
+                "week": "581edacd-e641-43d6-9e69-76b29a306643",
+                "venue": "7c11bb2d-4a53-4842-b842-0f1c63ed78e9",
+                "home": "22052ff7-c065-42ee-bc8f-c4691c50e624",
+                "away": "4809ecb0-abd3-451d-9c4a-92a90b83ca06"
+            },
+            "situation__list": {
+                "clock": "00:00",
+                "down": 2,
+                "yfd": 11,
+                "possession": "4809ecb0-abd3-451d-9c4a-92a90b83ca06",
+                "location": "4809ecb0-abd3-451d-9c4a-92a90b83ca06"
+            },
+            "last_event__list": {
+                "event": "c68447b0-425f-4e7b-8200-581ca222c03d"
+            },
+            "scoring__list": [
+                {
+                    "quarter": "fd31368b-a159-4f56-a022-afc691e34755"
+                },
+                {
+                    "quarter": "17ee8c4c-3e1c-4dbb-83eb-f54fabe2a117"
+                },
+                {
+                    "quarter": "da1c72aa-a5eb-44db-a23f-f9e2284d7968"
+                },
+                {
+                    "quarter": "99063002-e5ee-4239-b686-f5aaa192e5d8"
+                }
+            ],
+            "scoring_drives__list": [
+                {
+                    "drive": "a956d9cb-d8ab-408c-91fc-442f06e338ff"
+                },
+                {
+                    "drive": "37c135a1-9d50-4da7-a975-f93a5bc2bfb5"
+                },
+                {
+                    "drive": "d7474f02-e785-4638-b604-1065174d4a67"
+                },
+                {
+                    "drive": "3b6e7850-bfa5-4ac8-90f4-9bd14a5a12c9"
+                }
+            ]
+        }
+
+        self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
 
 class TestPlayParser(AbstractTest):
     """
@@ -32,27 +152,38 @@ class TestPlayParser(AbstractTest):
     def setUp(self):
         self.parser = PlayParser()
 
-    def __parse_and_send(self, unwrapped_obj):
-        oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
-        self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
+    def __parse_and_send(self, unwrapped_obj, target):
 
+        # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
+        # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+
+        # #
+        # # get the 'player' srids
+        # player_srids = self.parser.get_srids_for_field('player')
+        # print('"player" field srids:', str(player_srids))
         #
-        # get the 'player' srids
-        player_srids = self.parser.get_srids_for_field('player')
-        print('"player" field srids:', str(player_srids))
-
-        # get the game srid from the 'game__id' field
-        #game_srid = self.parser.get_srids_for_field('game__id')
-        game_srid = self.parser.get_srid_game('game__id')
-        print('"game" field srid:', str(game_srid))
-
+        # # get the game srid from the 'game__id' field
+        # #game_srid = self.parser.get_srids_for_field('game__id')
+        # game_srid = self.parser.get_srid_game('game__id')
+        # print('"game" field srid:', str(game_srid))
         #
-        # look up the player stats (TODO get the game srid as well)
-        player_stats_found = self.parser.find_player_stats()
-        print('player_stats_found:', str(player_stats_found), ' BECAUSE THERE ARE NONE IN THE TEST DB!')
+        # #
+        # # look up the player stats (TODO get the game srid as well)
+        # player_stats_found = self.parser.find_player_stats()
+        # print('player_stats_found:', str(player_stats_found), ' BECAUSE THERE ARE NONE IN THE TEST DB!')
+
+        #print('get_send_data:', self.parser.get_send_data())
+
+        # print('SL', self.parser.StartLocationCache().fetch(self.parser.ts, self.parser.play_srid))
+        # print('SP', self.parser.StartPossessionCache().fetch(self.parser.ts, self.parser.play_srid))
+        # print('EL', self.parser.EndLocationCache().fetch(self.parser.ts, self.parser.play_srid))
+        # print('EP', self.parser.EndPossessionCache().fetch(self.parser.ts, self.parser.play_srid))
 
         # test sending with pusher. we cant do this with codeship though! (so remove it when done)
-        self.parser.send()#force=True)
+        #self.parser.send()#force=True)
 
     def test_1(self):
         """ kickoff (touchback) """
@@ -104,7 +235,52 @@ class TestPlayParser(AbstractTest):
 
     def test_3(self):
         """ passing play """
-        unwrapped_obj = {
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+
+        start_possession = {'alias': 'WAS', 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'parent_api__id': 'pbp',
+            'play__id': '7e49db54-68d0-444d-b244-690f3930b77b', 'reference': 4971.0, 'market': 'Washington',
+            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQ3ZTQ5ZGI1NC02OGQwLTQ0NGQtYjI0NC02OTBmMzkzMGI3N2JpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
+            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins', 'dd_updated__id': 1464841517401,
+            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+            'parent_list__id': 'start_situation__list'}
+        self.__parse_and_send(start_possession, (sport_db + '.' + 'possession', parent_api))
+        # required_parts = self.parser.update_required_parts(self.parser.ts, self.parser.play_srid)
+        # self.assertTrue(None in required_parts)
+
+        end_possession = {'alias': 'WAS', 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'parent_api__id': 'pbp',
+             'play__id': '7e49db54-68d0-444d-b244-690f3930b77b', 'reference': 4971.0, 'market': 'Washington',
+             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkN2U0OWRiNTQtNjhkMC00NDRkLWIyNDQtNjkwZjM5MzBiNzdiaWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
+             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins', 'dd_updated__id': 1464841517401,
+             'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+             'parent_list__id': 'end_situation__list'}
+        self.__parse_and_send(end_possession, (sport_db + '.' + 'possession', parent_api))
+        # required_parts = self.parser.update_required_parts(self.parser.ts, self.parser.play_srid)
+        # self.assertTrue(None in required_parts)
+
+        start_location = {'play__id': '7e49db54-68d0-444d-b244-690f3930b77b', 'alias': 'WAS',
+             'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'parent_api__id': 'pbp', 'yardline': 25.0,
+             'reference': 4971.0, 'market': 'Washington',
+             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQ3ZTQ5ZGI1NC02OGQwLTQ0NGQtYjI0NC02OTBmMzkzMGI3N2JpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
+             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins', 'dd_updated__id': 1464841517401,
+             'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+             'parent_list__id': 'start_situation__list'}
+        self.__parse_and_send(start_location, (sport_db + '.' + 'location', parent_api))
+        # required_parts = self.parser.update_required_parts(self.parser.ts, self.parser.play_srid)
+        # self.assertTrue(None in required_parts)
+
+        end_location = {'play__id': '7e49db54-68d0-444d-b244-690f3930b77b', 'alias': 'WAS',
+             'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'parent_api__id': 'pbp', 'yardline': 29.0,
+             'reference': 4971.0, 'market': 'Washington',
+             '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkN2U0OWRiNTQtNjhkMC00NDRkLWIyNDQtNjkwZjM5MzBiNzdiaWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
+             'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins', 'dd_updated__id': 1464841517401,
+             'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+             'parent_list__id': 'end_situation__list'}
+        self.__parse_and_send(end_location, (sport_db + '.' + 'location', parent_api))
+        # required_parts = self.parser.update_required_parts(self.parser.ts, self.parser.play_srid)
+        # self.assertTrue(None in required_parts)
+
+        play = {
             'start_situation__list': {'yfd': 5.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '14:30',
                                       'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 2.0},
             'away_points': 0.0, 'reference': 103.0,
@@ -127,8 +303,7 @@ class TestPlayParser(AbstractTest):
                                   'player': '7979b613-6dbf-4534-8166-6430433c1ec3', 'confirmed': 'true'}},
             'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'dd_updated__id': 1464841517401,
             'wall_clock': '2015-09-13T17:03:57+00:00'}
-
-        self.__parse_and_send(unwrapped_obj)
+        self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
 
 class GameStatusChangedSignal(AbstractTest):
 
