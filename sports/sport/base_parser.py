@@ -219,6 +219,17 @@ class AbstractDataDenParseable(object):
         #print( fieldname, str(self.srid_finder.get_for_field(fieldname)))
         return self.srid_finder.get_for_field(fieldname)
 
+    def get_send_data(self, additional_data=None):
+        """
+        if there is a manager class set, use it to reduce and shrink the data,
+        otherwise just return self.o (the base dataden object)
+        """
+        if self.manager_class is None:
+            return self.o
+
+        manager = self.manager_class(self.o)
+        return manager.get_data()
+
     def send(self):
         """
         inheriting classes should override this method to send/pusher/signal
@@ -1021,16 +1032,16 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         """
         return self.live_stats_cache.update_pbp( self.get_obj() )
 
-    def get_send_data(self, additional_data=None):
-        """
-        if there is a manager class set, use it to reduce and shrink the data,
-        otherwise just return self.o (the base dataden object)
-        """
-        if self.manager_class is None:
-            return self.o
-
-        manager = self.manager_class(self.o)
-        return manager.get_data()
+    # def get_send_data(self, additional_data=None):
+    #     """
+    #     if there is a manager class set, use it to reduce and shrink the data,
+    #     otherwise just return self.o (the base dataden object)
+    #     """
+    #     if self.manager_class is None:
+    #         return self.o
+    #
+    #     manager = self.manager_class(self.o)
+    #     return manager.get_data()
 
     def send(self, force=False):
         """
