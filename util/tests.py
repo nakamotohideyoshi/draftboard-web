@@ -8,6 +8,84 @@ from util.dicts import (
     Shrinker,
 )
 from sports.mlb.parser import PitchPbp
+from util.fairmatch import (
+    FairMatch,
+    FairMatchNoCancel,
+)
+
+class TestFairMatch(TestCase):
+    """
+    example of weird (error?) situation. #27 doesnt get back into the selection pool in Round 3.
+
+        #contests_forced : [[25, 18, 5, 31, 33, 29, 24, 23, 30, 22]]
+        #unused_entries  : [5, 18, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
+
+        contests_forced : [[, , , , , , , 23, , 22]]
+        unused_entries  : [, , , , 26, 27, 28, , , , 32, ]
+
+        from util.fairmatch import FairMatchNoCancel
+        entry_pool = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,21,22,22,23,23,24,24,25,26,26,26,27,27,28,28,28,29,29,29,30,30,30,31,31,31,32,32,32,33,33,33]
+        contest_size = 10
+        fmnc = FairMatchNoCancel(entry_pool, contest_size)
+        fmnc.run()
+        fmnc.print_debug_info()
+
+        ++++ beginning of round 1 ++++
+        (pre-round) entry pool: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 21, 22, 22, 23, 23, 24, 24, 25, 26, 26, 26, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31, 31, 32, 32, 32, 33, 33, 33]
+        excluded(for fairness): []
+        round uniques         : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
+        remaining entries     : [21, 22, 23, 24, 26, 26, 27, 28, 28, 29, 29, 30, 30, 31, 31, 32, 32, 33, 33] including any entries in exclude (debug)
+        remaining uniques     : [32, 33, 21, 22, 23, 24, 26, 27, 28, 29, 30, 31] not including excludes. potential additional entries this round
+            making contest: [18, 8, 11, 32, 9, 15, 21, 28, 26, 5] force: False
+            making contest: [12, 30, 1, 17, 33, 6, 27, 24, 20, 19] force: False
+            making contest: [14, 13, 23, 3, 10, 16, 29, 7, 25, 2] force: False
+                -> [4, 22, 31] didnt get filled.
+                -> randomly chose: [29, 33, 28, 32, 21, 23, 24] from [29, 33, 28, 32, 21, 23, 24, 26, 30, 27] (avoiding these obviously: [4, 22, 31] )
+            making contest: [4, 22, 31, 29, 33, 28, 32, 21, 23, 24] force: True ** = superlay is possible here.
+            (exclude [29, 33, 28, 32, 21, 23, 24] in round 2)
+
+        ++++ beginning of round 2 ++++
+        (pre-round) entry pool: [22, 26, 26, 27, 28, 29, 30, 30, 31, 31, 32, 33]
+        excluded(for fairness): [29, 33, 28, 32, 21, 23, 24]
+        round uniques         : [31, 26, 27, 22, 30]
+        remaining entries     : [26, 28, 29, 30, 31, 32, 33] including any entries in exclude (debug)
+        remaining uniques     : [26, 30, 31] not including excludes. potential additional entries this round
+                -> [27, 22, 30, 31, 26] didnt get filled.
+                -> randomly chose: [] from [] (avoiding these obviously: [27, 22, 30, 31, 26] )
+            (exclude [] in round 3)
+
+        ++++ beginning of round 3 ++++
+        (pre-round) entry pool: [26, 28, 29, 30, 31, 32, 33]
+        excluded(for fairness): []
+        round uniques         : [32, 33, 26, 28, 29, 30, 31]
+        remaining entries     : [] including any entries in exclude (debug)
+        remaining uniques     : [] not including excludes. potential additional entries this round
+                -> [31, 32, 28, 30, 33, 26, 29] didnt get filled.
+                -> randomly chose: [] from [] (avoiding these obviously: [31, 32, 28, 30, 33, 26, 29] )
+            (exclude [] in round 4)
+        done!
+                get 10x entry from [32, 33, 22, 26, 27, 28, 29, 30, 31] ignoring entries in []
+                get 10x entry from [26, 30, 31] ignoring entries in []
+
+    make sure we properly exclude entries in the final 1st entry step
+    where we potentially use additional 2nd entries to fill a contest.
+    """
+
+    def setUp(self):
+        self.fm = FairMatch([1,2,3,4], 3)
+
+class TestFairMatchNoCancel(TestCase):
+    """
+    the "no cancel" version of fairmatch runs FairMatch,
+    and as a final step it will place all unused entries
+    into contests which may result in overlay.
+    """
+
+    def setUp(self):
+        self.entry_pool = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 21, 22, 22, 23, 23, 24,
+                      24, 25, 26, 26, 26, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 30, 31, 31, 31, 32, 32, 32, 33, 33, 33]
+        self.contest_size = 10
+        self.fmnc = FairMatchNoCancel([1,2,3,4], 3)
 
 class ReducerTest(TestCase):
 
