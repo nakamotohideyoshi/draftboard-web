@@ -20,7 +20,131 @@ from sports.nfl.parser import (
     TeamBoxscoreParser,
     TeamHierarchy,
     PlayParser,
+
+    # reducers, shrinkers, managers
+    PlayReducer,
+    PlayShrinker,
+    PlayManager,
 )
+import re
+
+class TestPlayManagerRegexScraping(AbstractTest):
+    """
+    the nfl play will have some datapoints extracted from the text description.
+
+    lets make sure were doing it right.
+    """
+
+    def setUp(self):
+        self.data = {} # TODO
+
+    def test_1(self):
+        pass # TODO
+
+class TestPlayManager(AbstractTest):
+    """ parse some information out of the human readable text description """
+
+    def setUp(self):
+        # actual example from mongo of an NFL official feed play object (from the pbp feed)
+        self.data = {
+            "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkMGIxYWVhNzAtNmRhMC00YzZkLWIzZjUtMTUwZDVmZTczYWY2aWRkNTYzZjkzYy02ZjlmLTQ5MzEtOGNmYi1lNTRmZDlkNWZhMTc=",
+            "away_points": 0,
+            "clock": "5:49",
+            "home_points": 3,
+            "id": "d563f93c-6f9f-4931-8cfb-e54fd9d5fa17",
+            "play_clock": 14,
+            "reference": 508,
+            "sequence": 508,
+            "type": "pass",
+            "wall_clock": "2015-09-13T17:21:38+00:00",
+            "parent_api__id": "pbp",
+            "dd_updated__id": 1464841517401,
+            "game__id": "0141a0a5-13e5-4b28-b19f-0c3923aaef6e",
+            "quarter__id": "fd31368b-a159-4f56-a022-afc691e34755",
+            "parent_list__id": "play_by_play__list",
+            "drive__id": "0b1aea70-6da0-4c6d-b3f5-150d5fe73af6",
+            "start_situation__list": {
+                "clock": "5:49",
+                "down": 1,
+                "yfd": 10,
+                "possession": "22052ff7-c065-42ee-bc8f-c4691c50e624",
+                "location": "22052ff7-c065-42ee-bc8f-c4691c50e624"
+            },
+            "end_situation__list": {
+                "clock": "5:41",
+                "down": 2,
+                "yfd": 10,
+                "possession": "22052ff7-c065-42ee-bc8f-c4691c50e624",
+                "location": "22052ff7-c065-42ee-bc8f-c4691c50e624"
+            },
+            "description": "(5:49) 8-K.Cousins pass incomplete deep right to 11-D.Jackson. WAS-11-D.Jackson was injured during the play. He is Out.  11-Jackson has a hamstring injury",
+            "alt_description": "(5:49) K.Cousins pass incomplete deep right to D.Jackson. WAS-D.Jackson was injured during the play. He is Out.  11-Jackson has a hamstring injury",
+            "statistics__list": {
+                "pass__list": {
+                    "att_yards": 47,
+                    "attempt": 1,
+                    "complete": 0,
+                    "confirmed": "true",
+                    "goaltogo": 0,
+                    "inside_20": 0,
+                    "team": "22052ff7-c065-42ee-bc8f-c4691c50e624",
+                    "player": "bbd0942c-6f77-4f83-a6d0-66ec6548019e"
+                },
+                "receive__list": {
+                    "confirmed": "true",
+                    "goaltogo": 0,
+                    "inside_20": 0,
+                    "target": 1,
+                    "team": "22052ff7-c065-42ee-bc8f-c4691c50e624",
+                    "player": "3e618eb6-41f2-4f20-ad70-2460f9366f43"
+                }
+            }
+        }
+
+    def test_reducer(self):
+        """ reduce() method should remove the key-values in the data """
+        play_reducer = PlayReducer(self.data)
+        reduced = play_reducer.reduce()
+        # ensure the fields named in the reducer no longer exist in the 'reduced' data
+        for field in PlayReducer.remove_fields:
+            self.assertIsNone(reduced.get(field))
+
+    def test_shrinker(self):
+        """ shrink() method should rename the top level keys in the data using its 'fields' property """
+        play_shrinker = PlayShrinker(self.data)
+        shrunk = play_shrinker.shrink()
+        # this is not a great test, but at the very least it ensures
+        # we didnt add additional key-values on accident, plus
+        # it provides a straightforward usage example
+
+    def test_manager(self):
+        """
+        manager get_data() performs (in order)
+            1.  a reduce
+            2.  a shrink
+            3.  optionally updates its data with an additional dict
+        """
+        additional_data = {'special_field_1' : 'special_value_1'}
+        play_manager = PlayManager(self.data)
+
+        # the fields in additional_data should NOT show up in the
+        # data returned by get_data() -- because we didnt add additional_data
+        play_data = play_manager.get_data()
+        for field in additional_data.keys():
+            self.assertFalse(field in play_data.keys())
+
+        # the fields in additional_data should show up in the
+        # data because we called get_data() with additional_data
+        play_data_with_additions = play_manager.get_data(additional_data)
+        for field in additional_data.keys():
+            self.assertTrue(field in play_data_with_additions.keys())
+
+    def test_manager(self):
+        """
+        PlayManager get_data() adds the custom, desired fields from parsing 'description' field.
+        """
+        play_manager = PlayManager(self.data)
+        # TODO
 
 class TestTeamBoxscoreParser(AbstractTest):
     """ tests the send() part only """
