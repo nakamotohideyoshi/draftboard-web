@@ -7,6 +7,7 @@ import forEach from 'lodash/forEach';
 import merge from 'lodash/merge';
 import sortBy from 'lodash/sortBy';
 import uniqWith from 'lodash/uniqWith';
+import { validateLineup } from '../lib/lineup.js';
 import { addMessage } from './message-actions.js';
 import log from '../lib/logging.js';
 
@@ -148,22 +149,6 @@ function saveLineupFail(err) {
       err,
     });
   };
-}
-
-
-// TODO: some basic save lineup validation
-// Check for salary cap restrictions
-function validateLineup(lineup) {
-  const errors = [];
-  // Does each slot have a player in it?
-  for (const slot of lineup) {
-    if (!slot.player) {
-      errors.push('lineup is not completely filled.');
-      break;
-    }
-  }
-
-  return errors;
 }
 
 
