@@ -607,7 +607,7 @@ class PlayReducer(Reducer):
         # 'end_situation__list',    # ex: {"yfd": 5, "location": <srid>, "down": 2, "clock": "14:30", "possession": <srid>}
     ]
 
-class PlayShrinker(Shrinker): # TODO - test
+class PlayShrinker(Shrinker):
     fields = {
         'dd_updated__id' : 'ts',
         'alt_description' : 'description',
@@ -617,9 +617,35 @@ class PlayShrinker(Shrinker): # TODO - test
         'end_situation__list' : 'end_situation',
     }
 
-class PlayManager(Manager): # TODO - test
+class ExtraInfo(object):
+    pass # TODO this is going to be our description scraper
+
+class PlayManager(Manager):
     reducer_class = PlayReducer
     shrinker_class = PlayShrinker
+
+    field_formation     = 'formation'
+    field_pass_side     = 'pass_side'
+    field_pass_depth    = 'pass_depth'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # update some custom fields we will inject into the data
+        # and do it previous to any reductions/shrinkers/adds
+        self.update_formation()
+        self.update_pass_side()
+        self.update_pass_depth()
+
+    def update_formation(self):
+        """ parse the formation by looking for the '(Shotgun)' text """
+
+
+    def update_pass_side(self):
+        pass # TODO
+
+    def update_pass_depth(self):
+        pass # TODO
 
 class PossessionReducer(Reducer):
     remove_fields = [
