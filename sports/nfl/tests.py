@@ -25,21 +25,169 @@ from sports.nfl.parser import (
     PlayReducer,
     PlayShrinker,
     PlayManager,
+
+    # extra data "description parser"
+    ExtraInfo,
 )
 import re
 
-class TestPlayManagerRegexScraping(AbstractTest):
+# examples for TestPlayManagerRegexScraping
+# (14:35) (No Huddle, Shotgun) R.Tannehill pass incomplete short right to J.Landry (D.Hall).
+# (13:51) (Shotgun) A.Morris right guard to WAS 39 for 6 yards (K.Misi).
+# (13:19) K.Cousins pass short left to J.Reed to MIA 49 for 12 yards (Br.McCain, J.Taylor).
+# (12:40) PENALTY on WAS-Trent.Williams, False Start, 5 yards, enforced at MIA 49 - No Play.
+# (12:16) A.Morris right guard to MIA 45 for 9 yards (K.Misi, R.Jones).
+# (11:40) A.Morris left end to MIA 45 for no gain (K.Misi, K.Sheppard).
+# (11:40) (Shotgun) K.Cousins pass short left to J.Reed to MIA 36 for 9 yards (N.Suh; R.Jones).
+# (10:20) A.Morris left end to MIA 26 for 10 yards (J.Jenkins).
+# (9:40) K.Cousins sacked at MIA 34 for -8 yards (J.Phillips).
+# (9:00) A.Morris up the middle to MIA 29 for 5 yards (K.Misi).
+# (8:24) (Shotgun) C.Thompson right guard to MIA 27 for 2 yards (K.Misi).
+# (7:45) K.Forbath 45 yard field goal is GOOD, Center-N.Sundberg, Holder-T.Way.
+# K.Forbath kicks 73 yards from WAS 35 to MIA -8. L.James to MIA 21 for 29 yards (K.Jarrett, J.Johnson).
+# (7:33) (Shotgun) R.Tannehill pass short middle to G.Jennings to MIA 29 for 8 yards (K.Robinson).
+# (7:01) L.Miller right end to MIA 30 for 1 yard (K.Robinson; D.Ihenacho).
+# (6:21) (Shotgun) L.Miller right guard to MIA 30 for no gain (D.Ihenacho, J.Hatcher).
+# (6:02) M.Darr punts 57 yards to WAS 13, Center-J.Denney. J.Crowder to WAS 23 for 10 yards (Z.Bowman; M.Thomas).
+# (5:49) K.Cousins pass incomplete deep right to D.Jackson. WAS-D.Jackson was injured during the play. He is Out.  11-Jackson has a hamstring injury
+# (5:41) A.Morris right guard to WAS 29 for 6 yards (K.Sheppard).
+# (4:59) (Shotgun) K.Cousins pass short middle to P.Garcon to WAS 41 for 12 yards (J.Taylor, J.Jenkins).
+# (4:19) (No Huddle, Shotgun) M.Jones right guard to WAS 43 for 2 yards (N.Suh). PENALTY on MIA-C.Wake, Defensive Offside, 5 yards, enforced at WAS 41 - No Play.
+# (3:56) M.Jones right end to WAS 46 for no gain (C.Mosley, K.Misi).
+# (3:16) K.Cousins pass incomplete short left to J.Reed. MIA-O.Vernon was injured during the play. His return is Questionable.  50- Vernon has an ankle injury
+# (3:11) (Shotgun) K.Cousins pass deep right to P.Garcon pushed ob at MIA 36 for 18 yards (W.Aikens).
+# (2:31) A.Morris left end to MIA 32 for 4 yards (T.Fede, E.Mitchell).
+# (1:58) A.Morris up the middle to MIA 29 for 3 yards (J.Jenkins).
+# (1:20) (Shotgun) C.Thompson left end to MIA 27 for 2 yards (J.Jenkins, Br.McCain).
+# (:32) K.Forbath 46 yard field goal is No Good, Wide Right, Center-N.Sundberg, Holder-T.Way.
+# (:27) (Shotgun) R.Tannehill pass incomplete short right to J.Cameron (J.Hatcher).
+# (:22) (Shotgun) R.Tannehill pass short left to J.Landry to MIA 44 for 8 yards (D.Goldson, K.Robinson).
+# (15:00) (Shotgun) R.Tannehill pass short middle to J.Landry to MIA 49 for 5 yards (K.Robinson).
+# (14:35) (No Huddle, Shotgun) R.Tannehill pass incomplete short right to J.Landry (D.Hall).
+# (14:32) (Shotgun) L.Miller right tackle to 50 for 1 yard (D.Ihenacho; T.Murphy). WAS-D.Ihenacho was injured during the play. He is Out.  24-Ihenacho has a wrist injury
+# (14:00) (Shotgun) R.Tannehill pass incomplete short middle to J.Landry. Penalty on MIA-J.James, Illegal Formation, declined."""
+
+class TestRushPlayManagerRegexScraping(AbstractTest):
+
+    def setUp(self):
+        self.play_type = 'rush'  # this would come in the SportRadar play data
+
+    def test_rush_1(self):
+        """ test wildcat this one is a rush """
+        description = """(2:00) (Shotgun) Direct snap to M.Bennett.  M.Bennett up the middle to 50 for 7 yards (F.Cox)."""
+        extra_info_instance = ExtraInfo(self.play_type, description)
+        data = extra_info_instance.get_data()
+        # print('data:', str(data))
+        self.assertIsNotNone(data.get(self.play_type))
+
+        # more tests
+        self.assertTrue(data.get(ExtraInfo.wildcat))
+
+    def test_rush_2(self):
+        """ test QB scramble, side: middle"""
+        description = """(6:22) T.Taylor scrambles right end pushed ob at RIC 36 for 11 yards (A.Barr)."""
+        extra_info_instance = ExtraInfo(self.play_type, description)
+        data = extra_info_instance.get_data()
+        # print('data:', str(data))
+        self.assertIsNotNone(data.get(self.play_type))
+
+        # more tests
+        rush_data = data.get(self.play_type)
+        self.assertTrue(rush_data.get(ExtraInfo.scramble))
+        self.assertEquals(ExtraInfo.side_right, rush_data.get(ExtraInfo.side))
+
+    def test_rush_3(self):
+        """ handoff to rusher up the middle """
+        description = """(7:37) L.Murray up the middle to 50 for 7 yards (C.Woodson)."""
+        extra_info_instance = ExtraInfo(self.play_type, description)
+        data = extra_info_instance.get_data()
+        # print('data:', str(data))
+        self.assertIsNotNone(data.get(self.play_type))
+
+        # more tests
+        rush_data = data.get(self.play_type)
+        self.assertFalse(rush_data.get(ExtraInfo.scramble))
+        self.assertEquals(ExtraInfo.side_middle, rush_data.get(ExtraInfo.side))
+
+class TestPassPlayManagerRegexScraping(AbstractTest):
     """
     the nfl play will have some datapoints extracted from the text description.
 
     lets make sure were doing it right.
+
+    a few notes on regular expressions
+
+        In [1]: import re
+        In [2]: description = "(:27) (Shotgun) R.Tannehill pass incomplete short right to J.Cameron (J.Hatcher)."
+        In [3]: l_description = description.lower()
+        In [19]: re.findall(r'(short|deep|left|middle|right)', l_description)
+        Out[19]: ['short', 'right']
+        In [42]: re.findall(r'shotgun', l_description)
+        Out[42]: ['shotgun']
+
+        In [22]: d2 = "(14:35) (No Huddle, Shotgun) R.Tannehill pass incomplete short right to J.Landry (D.Hall)."
+        In [23]: l_d2 = d2.lower()
+        In [39]: re.findall(r'(no[\s]+huddle|shotgun)', l_d2)
+        Out[39]: ['no huddle', 'shotgun']
+        In [41]: re.findall(r'no[\s]+huddle', l_d2)
+        Out[41]: ['no huddle']
+
     """
 
     def setUp(self):
-        self.data = {} # TODO
+        self.play_type = 'pass' # this would come in the SportRadar play data
 
-    def test_1(self):
-        pass # TODO
+    def test_pass_1(self):
+        """ test formation: shotgun """
+        description = """(:27) (Shotgun) R.Tannehill pass incomplete short right to J.Cameron (J.Hatcher)."""
+        extra_info_instance = ExtraInfo(self.play_type, description)
+        data = extra_info_instance.get_data()
+        #print('data:', str(data))
+        self.assertIsNotNone(data.get(self.play_type))
+
+        # more tests
+        self.assertEquals(ExtraInfo.str_formation_shotgun, data.get(ExtraInfo.formation))
+
+    def test_pass_2(self):
+        """ test no huddle and formation: shotgun """
+        description = """(14:35) (No Huddle, Shotgun) R.Tannehill pass incomplete short right to J.Landry (D.Hall)."""
+        extra_info_instance = ExtraInfo(self.play_type, description)
+        data = extra_info_instance.get_data()
+        #print('data:', str(data))
+        pass_data = data.get(self.play_type)
+        self.assertIsNotNone(pass_data)
+
+        # more tests
+        self.assertTrue(data.get(ExtraInfo.no_huddle))
+        self.assertEquals(ExtraInfo.str_formation_shotgun, data.get(ExtraInfo.formation))
+        # distance: short
+        self.assertEquals(ExtraInfo.distance_short, pass_data.get(ExtraInfo.distance))
+        # side: right
+        self.assertEquals(ExtraInfo.side_right, pass_data.get(ExtraInfo.side))
+
+    def test_pass_3(self):
+        """ test formation: default """
+        description = """(9:37) D.Carr pass short right to O.Beckham pushed ob at IRV 3 for 14 yards (H.Smith)."""
+        extra_info_instance = ExtraInfo(self.play_type, description)
+        data = extra_info_instance.get_data()
+        # print('data:', str(data))
+        self.assertIsNotNone(data.get(self.play_type))
+
+        # more tests
+        self.assertFalse(data.get(ExtraInfo.no_huddle))
+        self.assertEquals(ExtraInfo.default_formation, data.get(ExtraInfo.formation))
+
+    def test_pass_4(self):
+        """ test intercepted flag """
+        description = """(3:46) T.Taylor pass deep left intended for O.Beckham INTERCEPTED by D.Rodgers-Cromartie [E.Ansah] at IRV 0. D.Rodgers-Cromartie to IRV 32 for 32 yards (T.Kelce)."""
+        extra_info_instance = ExtraInfo(self.play_type, description)
+        data = extra_info_instance.get_data()
+        # print('data:', str(data))
+        self.assertIsNotNone(data.get(self.play_type))
+
+        # more tests
+        self.assertTrue(data.get(ExtraInfo.intercepted))
+        self.assertEquals(ExtraInfo.default_formation, data.get(ExtraInfo.formation))
 
 class TestPlayManager(AbstractTest):
     """ parse some information out of the human readable text description """
