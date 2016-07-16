@@ -364,8 +364,8 @@ class GameBoxscores(DataDenGameBoxscores):
     game_status         = GameStatus(GameStatus.mlb)
 
     # for pusher to know the channel & event
-    channel = push.classes.PUSHER_BOXSCORES
-    event = 'game.boxscores'
+    channel = push.classes.PUSHER_BOXSCORES   # 'boxscores', its not sport specific
+    event = 'game'
 
     def __init__(self):
         super().__init__()
@@ -376,7 +376,8 @@ class GameBoxscores(DataDenGameBoxscores):
 
         # pusher it
         # NOTE: existing format: push.classes.PUSHER_BOXSCORES, 'game'
-        #   we should consider switching to nfl style:
+        #     ... but...
+        #   we should consider switching to the cleaner nfl style:
         #   DataDenPush('sport', 'game.boxscore').send(data)
         push.classes.DataDenPush(self.channel, self.event).send(data)
 
