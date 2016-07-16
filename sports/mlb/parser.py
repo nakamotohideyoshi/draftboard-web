@@ -333,12 +333,15 @@ class GameBoxscoreReducer(Reducer):
     """ pop off fields named in the 'remove_fields' property """
     remove_fields = [
         '_id',
+        'parent_api__id',
     ]
 
 class GameBoxscoreShrinker(Shrinker):
     """ in underlying data, rename key to value for all key-value-pairs in 'fields' """
     fields = {
-        'id' : 'srid_game'
+        'id' : 'srid_game',
+        'dd_updated__id': 'ts',
+        'game__id': 'srid_game',
     }
 
 class GameBoxscoreManager(Manager):
@@ -375,10 +378,6 @@ class GameBoxscores(DataDenGameBoxscores):
         data = self.get_send_data()
 
         # pusher it
-        # NOTE: existing format: push.classes.PUSHER_BOXSCORES, 'game'
-        #     ... but...
-        #   we should consider switching to the cleaner nfl style:
-        #   DataDenPush('sport', 'game.boxscore').send(data)
         push.classes.DataDenPush(self.channel, self.event).send(data)
 
     def parse(self, obj, target=None):

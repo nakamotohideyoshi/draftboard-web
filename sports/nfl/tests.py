@@ -306,7 +306,7 @@ class TestTeamBoxscoreParser(AbstractTest):
         parts = target[0].split('.')
         oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
         self.parser.parse(oplog_obj, target=target)
-        self.parser.send()
+        #self.parser.send()
 
     def test_1(self):
         sport_db = 'nflo'
