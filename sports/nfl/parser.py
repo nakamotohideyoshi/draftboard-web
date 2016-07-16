@@ -1,6 +1,7 @@
 #
 # sports/nfl/parser.py
 
+import re
 from django.db.transaction import atomic
 from sports.sport.base_parser import AbstractDataDenParseable
 import sports.nfl.models
@@ -618,7 +619,174 @@ class PlayShrinker(Shrinker):
     }
 
 class ExtraInfo(object):
-    pass # TODO this is going to be our description scraper
+    """
+    extracts consistent tokens from the human readable play description text,
+     to name one example: the pass or rush 'side' of the field which is
+     typically one of the values in the list: ['left', 'middle', 'right']
+    """
+
+    # the NFLOfficial play objects have a "type" field. primarily we care
+    # if the value of the "type" field is 'pass' or 'rush' but it can be other things
+    type_pass = 'pass'
+    type_rush = 'rush'
+    expected_types = [type_pass, type_rush]
+
+    # formation type, if unknown, we call it 'default'
+    formation           = 'formation'
+    default_formation   = 'default'
+
+    # pass/rush dict keys
+    side                = 'side'
+    distance            = 'distance'
+    scramble            = 'scramble'
+
+    # major event flags
+    touchdown           = 'touchdown'
+    intercepted         = 'intercepted'
+    fumbles             = 'fumbles'
+    no_huddle           = 'no_huddle'
+    wildcat             = 'wildcat'
+
+    # specific values for distance, and side known as 99.99% likely
+    distance_short  = 'short'
+    distance_deep   = 'deep'
+    side_left       = 'left'
+    side_middle     = 'middle'
+    side_right      = 'right'
+
+    # regular expressions we will hunt for (all lowercase)
+    regex_distance  = r'(short|deep)'
+    regex_side      = r'(left|middle|right)'
+    regex_no_huddle = r'no[\s]+huddle'
+    regex_wildcat   = r'direct[\s]+snap'
+
+    # formation is only a single thing right now and its simpler to string match it
+    str_formation_shotgun = 'shotgun'
+    str_touchdown = 'touchdown'
+    str_intercepted = 'intercepted'
+    str_fumbles = 'fumbles'
+    str_scrambles = 'scrambles'
+
+    def __init__(self, type, description):
+        """
+        create an ExtraInfo object from a play description (the human readable text)
+        :param description: ex: (10:20) A.Morris left end to MIA 26 for 10 yards (J.Jenkins).
+        """
+        self.type = type
+        self.description = description
+        self.ld_description = self.description.lower()
+
+        # initialize our underlying dict with default values
+        self.data = {
+            self.formation : self.default_formation,
+            self.touchdown : False,
+            self.intercepted : False,
+            self.fumbles : False,
+            self.wildcat : False,
+        }
+
+        # 1. parse things that could always be there (ie: extra_data top level fields)
+        # set flags for important events like: touchdowns, interceptions, fumbles...
+        self.update_major_flags()
+
+        # 2. if 'type' is in the execpted_types, parse its specific information
+        self.data[self.type] = self.get_play_type_data(self.type)
+
+    def get_data(self):
+        """ return the data as a dict """
+        return self.data
+
+    def update_major_flags(self):
+        """ """
+        # get the string name of the offensive formation
+        self.data[self.formation]   = self.parse_formation()        # in ['shotgun', 'default']
+
+        # flags
+        self.data[self.no_huddle]   = self.parse_no_huddle()        # bool
+        self.data[self.touchdown]   = self.parse_touchdown()        # bool
+        self.data[self.intercepted] = self.parse_intercepted()      # bool
+        self.data[self.fumbles]     = self.parse_fumbles()          # bool
+        self.data[self.wildcat]     = self.parse_wildcat()          # bool
+
+        return self.data
+
+    def parse_formation(self):
+        """ extract and return the formation """
+        formation_name = self.default_formation
+        if self.str_formation_shotgun in self.ld_description:
+            formation_name = self.str_formation_shotgun
+
+        return formation_name
+
+    def parse_no_huddle(self):
+        """ return boolean indicating if its offense is using the no-huddle """
+        matches = re.findall(self.regex_no_huddle, self.ld_description)
+        return len(matches) > 0
+
+    def parse_touchdown(self):
+        """ return boolean touchdown flag """
+        return self.str_touchdown in self.ld_description
+
+    def parse_intercepted(self):
+        """ return boolean intercepted flag """
+        return self.str_intercepted in self.ld_description
+
+    def parse_fumbles(self):
+        """ return boolean fumbles flag """
+        return self.str_fumbles in self.ld_description
+
+    def parse_wildcat(self):
+        """ return boolean wildcat flag """
+        matches = re.findall(self.regex_wildcat, self.ld_description)
+        return len(matches) > 0
+
+    def parse_distance(self):
+        """ """
+        matches = re.findall(self.regex_distance, self.ld_description)
+        #print('matches:', str(matches))
+        if len(matches) > 0:
+            return matches[0]
+        return None # we might want to raise an exception here # TODO - no 'distance' found
+
+    def parse_side(self):
+        """ """
+        matches = re.findall(self.regex_side, self.ld_description)
+        #print('matches:', str(matches))
+        if len(matches) > 0:
+            return matches[0]
+        return None  # we might want to raise an exception here # TODO - no 'side' found
+
+    def parse_scramble(self):
+        """ return boolean scrambles flag, specifically for the 'rush' data """
+        return self.str_scrambles in self.ld_description
+
+    def get_play_type_data(self, type):
+        """ build the special data for the play type passed in """
+        if type == self.type_pass:
+            return self.get_pass_data()
+
+        elif type == self.type_rush:
+            return self.get_rush_data()
+
+        else:
+            # we dont parse specific info for this play type
+            return {}
+
+    def get_pass_data(self):
+        """ special data for 'pass' play """
+        pass_data = {
+            self.distance: self.parse_distance(),   # in ['short', 'deep']
+            self.side: self.parse_side(),           # in ['left', 'middle', 'right']
+        }
+        return pass_data
+
+    def get_rush_data(self):
+        """ special data for 'rush' play """
+        rush_data = {
+            self.scramble: self.parse_scramble(),   # True indicates QB is rusher, otherwise false
+            self.side: self.parse_side(),           # in ['left', 'middle', 'right']
+        }
+        return rush_data
 
 class PlayManager(Manager):
     reducer_class = PlayReducer
