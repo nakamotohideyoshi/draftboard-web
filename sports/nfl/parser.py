@@ -408,6 +408,9 @@ class GameBoxscoreParser(AbstractDataDenParseable):
 
     manager_class       = GameBoxscoreManager
 
+    channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
+    event = 'game'
+
     def __init__(self):
         super().__init__()
 
@@ -462,22 +465,11 @@ class GameBoxscoreParser(AbstractDataDenParseable):
 
         self.boxscore.save()
 
-    # def get_send_data(self):
-    #     """ build the linked object from the parts """
-    #
-    #     #
-    #     # assumes that everthing must exist at this point for us to be able to build it!
-    #     data = GameBoxscoreManager(self.o).get_data()
-    #
-    #     # print('get_send_data:', str(data))
-    #     return data
-
     def send(self, *args, **kwargs):
         data = self.get_send_data()
-        # super().send()
 
         # pusher it
-        push.classes.DataDenPush('nfl','game.boxscore').send(data)
+        push.classes.DataDenPush(self.channel, self.event).send(data)
 
 class TeamBoxscoreReducer(Reducer):
     remove_fields = [
@@ -522,6 +514,9 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
     team_model          = Team
 
     manager_class       = TeamBoxscoreManager
+
+    channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
+    event = 'team'
 
     def __init__(self):
         super().__init__()
@@ -579,12 +574,10 @@ class TeamBoxscoreParser(AbstractDataDenParseable):
 
     def send(self, *args, **kwargs):
         data = self.get_send_data()
-        # super().send()
 
         # pusher it
-        push.classes.DataDenPush('nfl','team.boxscore').send(data)
+        push.classes.DataDenPush(self.channel, self.event).send(data)
 
-#########
 class PlayReducer(Reducer):
     remove_fields = [
         'away_points',
