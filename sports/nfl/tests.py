@@ -459,7 +459,9 @@ class TestPlayParser(AbstractTest):
 
     def test_1(self):
         """ kickoff (touchback) """
-        unwrapped_obj = {
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+        play = {
             'start_situation__list': {'yfd': 0.0, 'location': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'clock': '15:00',
                                       'possession': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'down': 0.0},
             'away_points': 0.0, 'reference': 63.0,
@@ -479,11 +481,14 @@ class TestPlayParser(AbstractTest):
             'type': 'kickoff', 'play_clock': 12.0, 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
             'dd_updated__id': 1464841517401, 'wall_clock': '2015-09-13T17:02:41+00:00'}
 
-        self.__parse_and_send(unwrapped_obj)
+        #self.__parse_and_send(unwrapped_obj)
+        self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
 
     def test_2(self):
         """ rushing play """
-        unwrapped_obj = {
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+        play = {
             'start_situation__list': {'yfd': 10.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '15:00',
                                       'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 1.0},
             'away_points': 0.0, 'reference': 82.0,
@@ -503,7 +508,8 @@ class TestPlayParser(AbstractTest):
             'type': 'rush', 'play_clock': 12.0, 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
             'dd_updated__id': 1464841517401, 'wall_clock': '2015-09-13T17:03:26+00:00'}
 
-        self.__parse_and_send(unwrapped_obj)
+        #self.__parse_and_send(unwrapped_obj)
+        self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
 
     def test_3(self):
         """ passing play """

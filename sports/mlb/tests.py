@@ -166,8 +166,9 @@ class TestEventPbp(AbstractTest):
     def test_event_pbp_parse(self):
         """
         """
+
         event_pbp = PitchPbp()
-        event_pbp.parse(self.oplog_obj)
+        event_pbp.parse(self.oplog_obj, target=('mlb.pitch','pbp'))
 
         game_srids = event_pbp.get_srids_for_field(self.game_srid_field)
         self.assertIsInstance( game_srids, list )
