@@ -128,34 +128,3 @@ $table-row-hover-bg: #f9fafb;
   }
 
 }
-
-
-/**
- * Contest list filters.
- */
-
-// Contest Type
-.contest-list-filter--contest-type {
-  float: left;
-}
-
-
-// Contest Sport
-.contest-list-filter--sport {
-  display: inline-block;
-  z-index: 100;
-
-  .contest-sport-filter {
-    padding: 0 5px 0 0;
-  }
-
-  &__title {
-    color: #6d718a;
-    font-size: 9px;
-    font-weight: 500;
-    margin-bottom: 0px;
-    padding-bottom: 0px;
-    text-transform: uppercase;
-  }
-
-}

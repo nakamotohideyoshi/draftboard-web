@@ -35,18 +35,14 @@ const initialState = {
       property: 'start',
       direction: 'asc',
     },
-    // Default to 'all' contest type matches.
-    contestTypeFilter: {
-      filterProperty: 'contestType',
-      match: '',
-    },
-    contestFeeFilter: {
-      match: { minVal: 0, maxVal: null },
-    },
     contestSearchFilter: {},
     sportFilter: {
       match: '',
       filterProperty: 'sport',
+    },
+    skillLevelFilter: {
+      match: '',
+      filterProperty: 'skill_level',
     },
   },
 };

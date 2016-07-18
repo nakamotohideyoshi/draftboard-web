@@ -11751,13 +11751,6 @@ module.exports = {
         "property": "start",
         "direction": "asc"
       },
-      "contestTypeFilter": {},
-      "contestFeeFilter": {
-        "match": {
-          "minVal": 0,
-          "maxVal": null
-        }
-      },
       "contestSearchFilter": {},
       "sportFilter": {}
     }
