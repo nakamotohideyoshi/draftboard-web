@@ -262,7 +262,7 @@ export const removeUnusedDraftGroups = () => (dispatch, getState) => {
 
   forEach(getState().liveDraftGroups, (draftGroup) => {
     const id = draftGroup.id;
-    const lineups = filter(currentLineups, (lineup) => lineup.draft_group === id);
+    const lineups = filter(currentLineups, (lineup) => lineup.draftGroup === id);
 
     // if there are no lineups the group is related to, then remove
     if (lineups.length === 0) {

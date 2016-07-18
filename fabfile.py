@@ -99,8 +99,6 @@ def _db_export(db_name, dump_path='/tmp/dfs_exported.dump'):
 
 def _get_local_git_db():
     """Add local git branch and db name for use when pushing"""
-
-    _puts('Determining envirnoment git branch, dbname')
     env.local_git_branch = operations.local('git rev-parse --abbrev-ref HEAD', capture=True)
     env.db_name = 'dfs_' + env.local_git_branch
 
@@ -224,6 +222,7 @@ def flush_pyc():
 def generate_replayer():
     """
     fab [virtual_machine_type] generate_replayer --set start=2016-03-01,end=2016-03-02,[sport=mlb],[download=true]
+    fab local docker generate_replayer --set start=2016-05-22,end=2016-05-23,sport=nba
 
     Command that generates a database dump consisting of data between two dates, and TimeMachine instances for every
     draft group between the two.
@@ -268,25 +267,24 @@ def generate_replayer():
 
     temp_db = 'generate_replayer'
 
-    psql_cmd = 'psql'
+    psql_user = ''
     if env.virtual_machine_type == 'vagrant':
-        psql_cmd = 'sudo -u postgres psql'
+        psql_user = 'sudo -u postgres'
 
     with warn_only():
         _importdb(temp_db, '%s/%s' % (tmp_dir, startFilename))
 
         # remove all updates
         operations.local(
-            'sudo -u postgres psql -d %s -c "DROP TABLE replayer_update, replayer_replay;"' % (
+            '%s psql -d %s -c "DROP TABLE replayer_update, replayer_replay;"' % (
+                psql_user,
                 temp_db
             )
         )
 
     # load in needed tables from end
-    _puts('Loading replay tables from end dump into %s' % temp_db)
-
     operations.local('%s pg_restore --no-acl --no-owner -d %s %s %s/%s' % (
-        psql_cmd,
+        psql_user,
         temp_db,
         '-t replayer_replay -t replayer_update',
         tmp_dir,
@@ -295,8 +293,8 @@ def generate_replayer():
 
     # delete updates older than the time you did step 1 from replayer_update
     operations.local(
-        '%s -d %s -c "DELETE FROM replayer_update WHERE ts < \'%s\';"' % (
-            psql_cmd,
+        '%s psql -d %s -c "DELETE FROM replayer_update WHERE ts < \'%s\';"' % (
+            psql_user,
             temp_db,
             env.start
         )
@@ -308,29 +306,29 @@ def generate_replayer():
         (_python(), env.start, env.end)
     )
 
-    # remove all scheduled tasks except for contest pools
-    operations.local('%s -d %s -c "update djcelery_periodictask set enabled=\'f\';"' % (
-        psql_cmd,
-        temp_db
-    ))
+    # # remove all scheduled tasks except for contest pools
+    # operations.local('%s psql -d %s -c "update djcelery_periodictask set enabled=\'f\';"' % (
+    #     psql_user,
+    #     temp_db
+    # ))
 
-    # remove other sport replayer updates, time machines, if sport is chosen
-    if 'sport' in env and env.sport in ['mlb', 'nba', 'nhl']:
-        operations.local('%s -d %s -c "delete from replayer_update where ns not ILIKE \'%%%s%%\';"' % (
-            psql_cmd,
-            temp_db,
-            env.sport
-        ))
-        operations.local('%s -d %s -c "delete from replayer_timemachine where replay not ILIKE \'%%%s%%\';"' % (
-            psql_cmd,
-            temp_db,
-            env.sport
-        ))
-        operations.local('%s -d %s -c "update djcelery_periodictask set enabled=\'t\' where task=\'contest.schedule.tasks.create_scheduled_contest_pools\' AND args ILIKE \'%%%s%%\';"' % (
-            psql_cmd,
-            temp_db,
-            env.sport
-        ))
+    # # remove other sport replayer updates, time machines, if sport is chosen
+    # if 'sport' in env and env.sport in ['mlb', 'nba', 'nhl']:
+    #     operations.local('%s psql -d %s -c "delete from replayer_update where ns not ILIKE \'%%%s%%\';"' % (
+    #         psql_user,
+    #         temp_db,
+    #         env.sport
+    #     ))
+    #     operations.local('%s psql -d %s -c "delete from replayer_timemachine where replay not ILIKE \'%%%s%%\';"' % (
+    #         psql_user,
+    #         temp_db,
+    #         env.sport
+    #     ))
+    #     operations.local('%s psql -d %s -c "update djcelery_periodictask set enabled=\'t\' where task=\'contest.schedule.tasks.create_scheduled_contest_pools\' AND args ILIKE \'%%%s%%\';"' % (
+    #         psql_user,
+    #         temp_db,
+    #         env.sport
+    #     ))
 
     # export finished db
     _db_export(temp_db, '/tmp/replayer_generated.dump')

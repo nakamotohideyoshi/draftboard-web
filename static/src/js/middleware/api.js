@@ -5,11 +5,14 @@ import Cookies from 'js-cookie';
 import fetch from 'isomorphic-fetch';
 
 
+// custom API domain for local dev testing
+const { API_DOMAIN = '' } = process.env;
+
 // based on https://git.io/vo1Js
 
 // Fetches an API response and normalizes the result JSON according to schema.
 // This makes every API response have the same shape, regardless of how nested it was.
-const callApi = (endpoint, callback) => fetch(endpoint, {
+const callApi = (endpoint, callback) => fetch(`${API_DOMAIN}${endpoint}`, {
   credentials: 'same-origin',
   Accept: 'application/json',
   'X-CSRFToken': Cookies.get('csrftoken'),

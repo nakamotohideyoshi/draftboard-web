@@ -6,7 +6,8 @@ import LobbyContainer from '../../../components/lobby/lobby-container.jsx';
 import ContestRangeSliderFilter from '../../../components/contest-list/contest-range-slider-filter.jsx';
 import allContestsFix from '../../../fixtures/json/redux-state/upcoming-contests/all-contests.js';
 import UpcomingContestSelectorFix from '../../../fixtures/json/selectors-output/contest-pools-selector.js';
-
+// This is an example of a data payload from a pusher contest_pool.upate event.
+import pusherUpdateEventData from '../../../fixtures/json/pusher-event-data/contest-pool-update.js';
 
 const defaultTestProps = {
   allContests: allContestsFix,
@@ -49,43 +50,6 @@ const defaultTestProps = {
   upcomingContestUpdateReceived: () => true,
   // highestContestBuyin: React.PropTypes.number,
   removeContestPoolEntry: () => true,
-};
-
-// This is an example of a data payload from a pusher contest_pool.upate event.
-const pusherUpdateEventData = {
-  start: '2016-06-02T23:05:00Z',
-  current_entries: 1,
-  sport: 'mlb',
-  prize_structure: {
-    id: 20,
-    name: '$100 10 Entry Tournament',
-    buyin: 100,
-    ranks: [
-      {
-        rank: 1,
-        value: 400,
-      },
-      {
-        rank: 2,
-        value: 300,
-      },
-      {
-        rank: 3,
-        value: 200,
-      },
-    ],
-    prize_pool: 900,
-    is_h2h: false,
-  },
-  entries: 0,
-  status: 'scheduled',
-  max_entries: 3,
-  buyin: 100,
-  name: '$100 MLB 10-Man Tourney',
-  id: 1522,
-  contest_size: 10,
-  draft_group: 1784,
-  prize_pool: 900,
 };
 
 

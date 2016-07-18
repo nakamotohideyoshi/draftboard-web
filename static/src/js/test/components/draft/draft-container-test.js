@@ -13,6 +13,7 @@ import activeDraftGroupBoxScoresSelectorFix from '../../../fixtures/json/active-
 
 const defaultTestProps = {
   fetchDraftGroupBoxScoresIfNeeded: () => true,
+  fetchUpcomingDraftGroupUpdatesIfNeeded: () => true,
   fetchDraftGroupIfNeeded: () => Promise.resolve(),
   fetchUpcomingLineups: () => Promise.resolve(),
   importLineup: () => true,

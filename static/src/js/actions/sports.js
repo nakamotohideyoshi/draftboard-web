@@ -9,9 +9,10 @@ import sortBy from 'lodash/sortBy';
 import { addMessage } from './message-actions';
 import { dateNow, hasExpired } from '../lib/utils';
 
-
 // get custom logger for actions
 const logAction = log.getLogger('action');
+// custom API domain for local dev testing
+const { API_DOMAIN = '' } = process.env;
 
 
 // global constants
@@ -25,7 +26,7 @@ export const SPORT_CONST = {
     periodMinutes: 12,
     periods: 4,
     players: 8,
-    pregameStatuses: ['scheduled', 'created'],
+    pregameStatuses: ['scheduled', 'created', 'time-tbd'],
     seasonStats: {
       types: ['fp', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers'],
       names: ['FPPG', 'PPG', 'RPG', 'APG', 'STLPG', 'BLKPG', 'TOPG'],
@@ -242,7 +243,7 @@ const receiveGames = (sport, games) => {
   const gamesCompleted = map(
     sortBy(
       filter(
-        games, (game) => game.hasOwnProperty('boxscore') && doneStatuses.indexOf(game.boxscore.status) !== -1
+        games, (game) => game.hasOwnProperty('boxscore') && doneStatuses.indexOf(game.status) !== -1
       ),
       (filteredGame) => filteredGame.start
     ),
@@ -428,7 +429,7 @@ const fetchGames = (sport) => (dispatch) => {
   dispatch(requestGames(sport));
 
   return request.get(
-    `/api/sports/scoreboard-games/${sport}/`
+    `${API_DOMAIN}/api/sports/scoreboard-games/${sport}/`
   ).set({
     'X-REQUESTED-WITH': 'XMLHttpRequest',
     Accept: 'application/json',
@@ -473,7 +474,7 @@ const fetchTeams = (sport) => (dispatch) => {
   dispatch(requestTeams(sport));
 
   return request.get(
-    `/api/sports/teams/${sport}/`
+    `${API_DOMAIN}/api/sports/teams/${sport}/`
   ).set({
     'X-REQUESTED-WITH': 'XMLHttpRequest',
     Accept: 'application/json',
