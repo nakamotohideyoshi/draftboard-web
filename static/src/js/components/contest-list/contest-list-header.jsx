@@ -1,10 +1,16 @@
 import React from 'react';
 import renderComponent from '../../lib/render-component';
 import store from '../../store';
-import * as AppActions from '../../stores/app-state-store.js';
 import * as ReactRedux from 'react-redux';
-
+import { updateFilter } from '../../actions/contest-pool-actions.js';
+import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
 const { Provider, connect } = ReactRedux;
+
+// Options for the skill level filter.
+const skillLevelFilters = [
+  { title: 'Veteran', column: 'skill_level', match: 'veteran' },
+  { title: 'Rookie', column: 'skill_level', match: 'rookie' },
+];
 
 
 /*
@@ -24,72 +30,53 @@ function mapStateToProps(state) {
  * @param  {function} dispatch The dispatch method to pass actions into
  * @return {object}            All of the methods to map to the component
  */
-function mapDispatchToProps() {
-  return {};
+function mapDispatchToProps(dispatch) {
+  return {
+    updateFilter: (filterName, filterProperty, match) => dispatch(
+      updateFilter(filterName, filterProperty, match)
+    ),
+  };
 }
 
 
 /**
  * Render the header for a contest list - Displays currently active filters.
  */
-const ContestListHeader = React.createClass({
+const ContestListHeader = (props) => {
+  // Determine the skill level filter title.
+  let currentSkillLevel = '';
 
-  propTypes: {
-    contests: React.PropTypes.object,
-    filters: React.PropTypes.object,
-  },
-
-
-  toggleFilters() {
-    AppActions.toggleContestFilters();
-  },
-
-  render() {
-    // Determine the contest type filter title.
-    let currentLeague;
-
-    if (this.props.filters.hasOwnProperty('sportFilter')) {
-      currentLeague = (
-        <span>
-          <span className="cmp-contest-list--sport">
-            {this.props.filters.sportFilter.title} Contests
-          </span>
-          <span className="cmp-contest-list__header-divider">/</span>
-        </span>
-      );
+  if (props.filters.skillLevelFilter.hasOwnProperty('match')) {
+    if (props.filters.skillLevelFilter.match) {
+      currentSkillLevel = props.filters.skillLevelFilter.match.toUpperCase();
     }
+  }
 
-    if (!currentLeague || this.props.filters.sportFilter.title === 'All') {
-      currentLeague = '';
-    }
 
-    // Determine the league filter title.
-    let currentContestType;
-
-    if (this.props.filters.sportFilter.hasOwnProperty('match')) {
-      if (this.props.filters.sportFilter.match) {
-        currentContestType = this.props.filters.sportFilter.match.toUpperCase();
-      }
-    }
-
-    if (!currentContestType || currentContestType === 'All') {
-      currentContestType = 'All Upcoming';
-    }
-
-    return (
-      <div className="cmp-contest-list__header">
-        <h2>
-          {currentLeague}
-          <span
-            className="cmp-contest-list__header-type"
-            onClick={this.toggleFilters}
-          >{currentContestType}</span>
-        </h2>
+  return (
+    <div className="cmp-contest-list__header">
+      <h4 className="title">Choose a Skill Level</h4>
+      <div className="cmp-skill-level-filter">
+        <CollectionMatchFilter
+          className="contest-list-filter--skill-level"
+          filters={skillLevelFilters}
+          filterName="skillLevelFilter"
+          filterProperty="skill_level"
+          match={currentSkillLevel}
+          onUpdate={props.updateFilter}
+          activeFilter={props.filters.skillLevelFilter}
+        />
       </div>
-    );
-  },
+    </div>
+  );
+};
 
-});
+// Set the components propType validation.
+ContestListHeader.propTypes = {
+  contests: React.PropTypes.object,
+  filters: React.PropTypes.object,
+  updateFilter: React.PropTypes.func,
+};
 
 
 // Wrap the component to inject dispatch and selected state into it.
