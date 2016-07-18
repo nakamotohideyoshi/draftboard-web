@@ -168,20 +168,20 @@ class FairMatch(object):
         if verbose:
             print('')
             print('++++ beginning of round %s ++++' % str(round))
-            print('(pre-round) entry pool:', str(entries))
+            print('(pre-round) entry pool:', str(entries), '   (%s total)'%str(len(entries)))
 
         # get the unique entries for this round
         round_uniques, remaining_entries = self.get_and_remove_uniques(entries, exclude)
         remaining_uniques = list(set(remaining_entries) - set(exclude))
         if verbose:
-            print('excluded(for fairness):', str(exclude))
-            print('round uniques         :', str(round_uniques))
-            print('remaining entries     :', str(remaining_entries), 'including any entries in exclude (debug)')
-            print('remaining uniques     :', str(remaining_uniques), 'not including excludes. potential additional entries this round')
+            print('excluded(for fairness):', str(sorted(exclude)))
+            print('round uniques         :', str(sorted(round_uniques)), '   (%s total)' % str(len(round_uniques)))
+            print('remaining entries     :', str(sorted(remaining_entries)), 'including any entries in exclude (debug)')
+            print('remaining uniques     :', str(sorted(remaining_uniques)), 'not including excludes. potential additional entries this round')
 
         #exclude_users_for_fairness = []
         unchosen_second_entries = []
-
+        selected_additional_entries = []
         while True:
             # shuffle the entries and then select enough for a contest
             shuffle(round_uniques)
@@ -250,18 +250,17 @@ class FairMatch(object):
         # self.contests['unused_entries'] = unused_entries
 
         #
-        print('*** post run() information ***')
+        print('*** %s *** post run() information ***' % self.__class__.__name__)
         # print(self.contests)
         for k,v in self.contests.items():
             if k == 'entry_pool':
                 continue
             print('%-16s:'%k, v)
-        print(len(self.contests['contests']), 'contests created')
-        #unused_entries = self.contests['entry_pool']
-        # for c in self.contests['contests']:
-        #     for entry in c:
-        #         unused_entries.remove(entry)
-        #print('unused entries:', str(self.contests['unused_entries']))
+
+        standard = len(self.contests['contests'])
+        forced = len(self.contests['contests_forced'])
+        total = standard + forced
+        print('%s total contests (%s standard, %s forced)' % (total, standard, forced))
 
 class FairMatchNoCancel(FairMatch):
     """
@@ -296,3 +295,8 @@ class FairMatchNoCancel(FairMatch):
             # for entry in contest_entries:
             #     unused_entries
             self.contests[self.unused_entries] = entries # set the remaining entries
+
+    def print_debug_info(self):
+        super().print_debug_info()
+        no_cancel_contests = len(self.contests['contests_no_cancel'])
+        print('%s additional "NoCancel" contests' % no_cancel_contests)
