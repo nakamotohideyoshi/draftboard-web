@@ -52,8 +52,10 @@ class TeamHierarchy(DataDenTeamHierarchy):
     def parse(self, obj):
         super().parse(obj)  # setup PlayerStats instance
 
-        o = obj.get_o()
-        self.team.alias     = o.get('id', None)   # nfl ids are the team acronym, which is the alias
+        # the classic feed had to override this, but the new Official feed now does not
+        # o = obj.get_o()
+        # self.team.alias = o.get('id', None)   # nfl ids are the team acronym, which is the alias
+
         self.team.save() # commit changes
 
 class SeasonSchedule(DataDenSeasonSchedule):

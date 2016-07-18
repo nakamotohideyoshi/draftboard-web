@@ -11,6 +11,28 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.utils.html import format_html
 
+class SkillLevel(models.Model):
+    """
+    Tiers:                      enforced (bool)
+        veteran:    $10+        True
+        rookie:     $0+         True
+        all:        $0(na)      False             # special level, wont/cant/shouldnt block Entries ever
+
+    """
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    name = models.CharField(unique=True, max_length=32, null=False)
+
+    gte = models.FloatField(default=0.0, null=False,
+                            help_text='this SkillLevel is for buyins Greater-than-or-Equal (gte) to this value.')
+
+    enforced = models.BooleanField(default=True, null=False)
+
+    def __str__(self):
+        return 'SkillLevel: %s, >= %s, enforced: %s' % (self.name, self.gte, self.enforced)
+
 class AbstractContest(models.Model):
     """
     Represents all the settings, and statuses of a Contest.
@@ -70,6 +92,8 @@ class AbstractContest(models.Model):
 
     doubleup    = models.BooleanField(default=False, null=False,
                             help_text='whether this contest has a double-up style prize structure')
+
+    skill_level = models.ForeignKey(SkillLevel, null=False)
 
     def is_started(self):
         """

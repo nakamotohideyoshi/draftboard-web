@@ -55,10 +55,6 @@ class CreateLineupAPIView(generics.CreateAPIView):
         try:
             draft_group = DraftGroup.objects.get(pk=draft_group_id)
         except DraftGroup.DoesNotExist:
-            # return Response(
-            #     'Draft group does not exist',
-            #     status=status.HTTP_403_FORBIDDEN
-            # )
             raise APIException('Draft group does not exist.')
 
         #
@@ -66,50 +62,29 @@ class CreateLineupAPIView(generics.CreateAPIView):
         try:
             lm = LineupManager( request.user )
         except:
-            # return Response(
-            #     'Invalid user',
-            #     status=status.HTTP_403_FORBIDDEN
-            # )
             raise APIException('Invalid user')
 
         try:
             lineup = lm.create_lineup( players, draft_group, name )
 
-            # except NotEnoughTeamsException as e:
-            #     return Response(
-            #         'Lineup must include players from at least three different teams.',
-            #         status=status.HTTP_403_FORBIDDEN
-            #     )
-            # except InvalidLineupSalaryException:
-            #     return Response(
-            #         'Lineup exceeds max salary.',
-            #         status=status.HTTP_403_FORBIDDEN
-            #     )
-            # except CreateLineupExpiredDraftgroupException:
-            #     return Response(
-            #         'You can no longer create lineups for this draft group',
-            #         status=status.HTTP_403_FORBIDDEN
-            #     )
-            # except InvalidLineupSizeException:
-            #     return Response(
-            #         'You have not drafted enough players.',
-            #         status=status.HTTP_403_FORBIDDEN
-            #     )
-            # except LineupInvalidRosterSpotException:
-            #     return Response(
-            #         'One or more of the players are invalid for the roster.',
-            #         status=status.HTTP_403_FORBIDDEN
-            #     )
-            # except PlayerDoesNotExistInDraftGroupException as e:
-            #     return Response(
-            #         str(e),
-            #         status=status.HTTP_403_FORBIDDEN
-            #     )
-            # except: # catch anything
-            #     return Response(
-            #         'Unknown error.',
-            #         status=status.HTTP_403_FORBIDDEN
-            #     )
+        except NotEnoughTeamsException:
+            raise APIException('Lineup must include players from at least three different teams')
+
+        except InvalidLineupSalaryException:
+            raise APIException('Lineup exceeds max salary')
+
+        except CreateLineupExpiredDraftgroupException:
+            raise APIException('You can no longer create lineups for this draft group')
+
+        except InvalidLineupSizeException:
+            raise APIException('You have not drafted enough players')
+
+        except LineupInvalidRosterSpotException:
+            raise APIException('One or more of the players are invalid for the roster')
+
+        except PlayerDoesNotExistInDraftGroupException:
+            raise APIException('Player is not contained in the list of draftable players')
+
         except Exception as e:
             raise APIException(e)
 
