@@ -13,7 +13,8 @@ import { SPORT_CONST } from '../actions/sports';
 
 // get custom logger for actions
 const logAction = log.getLogger('action');
-
+// custom API domain for local dev testing
+const { API_DOMAIN = '' } = process.env;
 
 // dispatch to reducer methods
 
@@ -185,7 +186,7 @@ const fetchContestLineups = (id, sport) => (dispatch) => {
 
   dispatch(requestContestLineups(id));
 
-  return fetch(`/api/contest/all-lineups/${id}/`, {
+  return fetch(`${API_DOMAIN}/api/contest/all-lineups/${id}/`, {
     credentials: 'same-origin',
     Accept: 'application/json',
     'X-CSRFToken': Cookies.get('csrftoken'),
@@ -241,7 +242,7 @@ const fetchContestLineupsUsernames = (id) => (dispatch) => {
 
   dispatch(requestContestLineupsUsernames(id));
 
-  return fetch('/api/lineup/usernames/', {
+  return fetch(`${API_DOMAIN}/api/lineup/usernames/`, {
     credentials: 'same-origin',
     method: 'POST',
     headers: {

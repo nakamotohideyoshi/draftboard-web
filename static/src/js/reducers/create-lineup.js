@@ -3,7 +3,7 @@ import merge from 'lodash/merge';
 import find from 'lodash/find';
 import forEach from 'lodash/forEach';
 import log from '../lib/logging.js';
-
+import { rosterTemplates, salaryCaps } from '../lib/lineup.js';
 
 const initialState = {
   errorMessage: null,
@@ -14,58 +14,6 @@ const initialState = {
   contestSalaryLimit: 0,
   availablePositions: [],
   lineupCanBeSaved: false,
-};
-
-// Roster templates for empty lineup cards.
-const rosterTemplates = {
-  nfl: [
-    { idx: 0, name: 'QB', positions: ['QB'], player: null },
-    { idx: 1, name: 'RB', positions: ['RB', 'FB'], player: null },
-    { idx: 2, name: 'RB', positions: ['RB', 'FB'], player: null },
-    { idx: 3, name: 'WR', positions: ['WR'], player: null },
-    { idx: 4, name: 'WR', positions: ['WR'], player: null },
-    { idx: 5, name: 'TE', positions: ['TE'], player: null },
-    { idx: 6, name: 'FX', positions: ['RB', 'FB', 'WR', 'TE'], player: null },
-    { idx: 7, name: 'FX', positions: ['RB', 'FB', 'WR', 'TE'], player: null },
-  ],
-  nba: [
-    { idx: 0, name: 'G', positions: ['PG', 'SG'], player: null },
-    { idx: 1, name: 'G', positions: ['PG', 'SG'], player: null },
-    { idx: 2, name: 'F', positions: ['SF', 'PF'], player: null },
-    { idx: 3, name: 'F', positions: ['SF', 'PF'], player: null },
-    { idx: 4, name: 'C', positions: ['C'], player: null },
-    { idx: 5, name: 'FX', positions: ['PG', 'SG', 'SF', 'PF', 'C'], player: null },
-    { idx: 6, name: 'FX', positions: ['PG', 'SG', 'SF', 'PF', 'C'], player: null },
-    { idx: 7, name: 'FX', positions: ['PG', 'SG', 'SF', 'PF', 'C'], player: null },
-  ],
-  nhl: [
-    { idx: 0, name: 'F', positions: ['C', 'LW', 'RW'], player: null },
-    { idx: 1, name: 'F', positions: ['C', 'LW', 'RW'], player: null },
-    { idx: 2, name: 'F', positions: ['C', 'LW', 'RW'], player: null },
-    { idx: 3, name: 'D', positions: ['D'], player: null },
-    { idx: 4, name: 'D', positions: ['D'], player: null },
-    { idx: 5, name: 'FX', positions: ['C', 'D', 'LW', 'RW'], player: null },
-    { idx: 6, name: 'FX', positions: ['C', 'D', 'LW', 'RW'], player: null },
-    { idx: 7, name: 'G', positions: ['G'], player: null },
-  ],
-  mlb: [
-    { idx: 0, name: 'SP', positions: ['SP'], player: null },
-    { idx: 1, name: 'C', positions: ['C'], player: null },
-    { idx: 2, name: '1B', positions: ['1B', 'DH'], player: null },
-    { idx: 3, name: '2B', positions: ['2B'], player: null },
-    { idx: 4, name: '3B', positions: ['3B'], player: null },
-    { idx: 5, name: 'SS', positions: ['SS'], player: null },
-    { idx: 6, name: 'OF', positions: ['LF', 'CF', 'RF'], player: null },
-    { idx: 7, name: 'OF', positions: ['LF', 'CF', 'RF'], player: null },
-    { idx: 8, name: 'OF', positions: ['LF', 'CF', 'RF'], player: null },
-  ],
-};
-
-const salaryCaps = {
-  nba: 50000,
-  nfl: 50000,
-  nhl: 50000,
-  mlb: 50000,
 };
 
 
