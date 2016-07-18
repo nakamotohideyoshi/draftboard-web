@@ -112,12 +112,12 @@ export const onBoxscoreGameReceived = (message) => (dispatch, getState) => {
       break;
     }
     case 'nba': {
-      const status = message.boxscore.status;
+      const status = message.status;
+      updatedFields.status = status;
 
       updatedFields.boxscore = {
         clock: message.boxscore.clock,
         quarter: message.boxscore.quarter,
-        status,
       };
       break;
     }
