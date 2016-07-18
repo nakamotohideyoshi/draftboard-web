@@ -20,6 +20,13 @@ const getDefaultLevel = () => {
   return 'ERROR';
 };
 
+// Are we in the live section? It's not very helpful to see redux logs there so we use this to
+// filter them out.
+const isLivePage = window.location.pathname.substring(0, 6) === '/live/';
+// Is our environment set to test? We use this so redux logger actions are hidden
+// when running tests.
+const isTestingEnv = process.env.NODE_ENV === 'test';
+
 // default if setLevel isn't used, see
 // https://www.npmjs.com/package/loglevel for more info
 log.setDefaultLevel(getDefaultLevel());
@@ -56,6 +63,6 @@ export const reduxLoggerLevel = log.levels.TRACE;
 // configure redux-logging to show messages about reducer state
 // show for TRACE, DEBUG, INFO, WARN levels
 export const logger = createLogger({
-  predicate: () => log.getLevel() < reduxLoggerLevel,
+  predicate: () => !isLivePage && !isTestingEnv,
   collapsed: true,
 });

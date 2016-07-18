@@ -71,7 +71,7 @@ const LineupCardList = React.createClass({
     focusedLineupId: React.PropTypes.number,
     focusedSport: React.PropTypes.string.isRequired,
     draftGroupInfo: React.PropTypes.object,
-    openDraftGroupSelectionModal: React.PropTypes.func,
+    openDraftGroupSelectionModal: React.PropTypes.func.isRequired,
     closeDraftGroupSelectionModal: React.PropTypes.func,
     draftGroupSelectionModalIsOpen: React.PropTypes.bool,
     removeContestPoolEntry: React.PropTypes.func.isRequired,

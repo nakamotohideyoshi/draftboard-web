@@ -16,6 +16,7 @@ import findIndex from 'lodash/findIndex';
 import { addMessage } from '../../actions/message-actions.js';
 import { fetchDraftGroupIfNeeded, setFocusedPlayer, updateFilter, updateOrderByFilter }
   from '../../actions/draft-group-players-actions.js';
+import { fetchUpcomingDraftGroupUpdatesIfNeeded } from '../../actions/upcoming-draft-group-updates.js';
 import { fetchDraftGroupBoxScoresIfNeeded, setActiveDraftGroupId }
   from '../../actions/upcoming-draft-groups-actions.js';
 import { createLineupViaCopy, fetchUpcomingLineups, createLineupAddPlayer, removePlayer,
@@ -64,6 +65,8 @@ function mapDispatchToProps(dispatch) {
   return {
     fetchDraftGroupBoxScoresIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupBoxScoresIfNeeded(draftGroupId)),
     fetchDraftGroupIfNeeded: (draftGroupId) => dispatch(fetchDraftGroupIfNeeded(draftGroupId)),
+    fetchUpcomingDraftGroupUpdatesIfNeeded: (draftGroupId) =>
+      dispatch(fetchUpcomingDraftGroupUpdatesIfNeeded(draftGroupId)),
     draftPlayer: (player) => dispatch(createLineupAddPlayer(player)),
     unDraftPlayer: (playerId) => dispatch(removePlayer(playerId)),
     focusPlayer: (playerId) => dispatch(setFocusedPlayer(playerId)),
@@ -88,6 +91,7 @@ const DraftContainer = React.createClass({
     fetchDraftGroupBoxScoresIfNeeded: React.PropTypes.func.isRequired,
     fetchDraftGroupIfNeeded: React.PropTypes.func.isRequired,
     fetchUpcomingLineups: React.PropTypes.func.isRequired,
+    fetchUpcomingDraftGroupUpdatesIfNeeded: React.PropTypes.func.isRequired,
     filters: React.PropTypes.object.isRequired,
     createLineupViaCopy: React.PropTypes.func.isRequired,
     editLineupInit: React.PropTypes.func,
@@ -195,6 +199,8 @@ const DraftContainer = React.createClass({
   loadData() {
     this.props.setActiveDraftGroupId(this.props.params.draftgroupId);
     this.props.fetchDraftGroupBoxScoresIfNeeded(this.props.params.draftgroupId);
+    this.props.fetchUpcomingDraftGroupUpdatesIfNeeded(this.props.params.draftgroupId);
+
     // Fetch draftgroup and lineups, once we have those we can do most anything in this section.
     // Wrap this in a promise for testing purposes.
     return new Promise((resolve) => {

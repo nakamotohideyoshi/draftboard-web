@@ -196,7 +196,7 @@ class InformationAPIView (generics.GenericAPIView):
 
         * |api-text| :dfs:`account/information/`
     """
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    #authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
     serializer_class = InformationSerializer
 
@@ -472,7 +472,7 @@ class PayPalDepositCreditCardAPIView(APIView, PayPalDepositMixin):
         }
 
     """
-    authentication_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, )
     serializer_class = CreditCardPaymentSerializer
 
     def post(self, request, *args, **kwargs):
@@ -517,7 +517,7 @@ class PayPalDepositSavedCardAPIView(APIView):
         {"amount":77.00,"token":"CARD-6WP04454GN306160EK5ZOADI"}
 
     """
-    authentication_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, )
     serializer_class = SavedCardPaymentSerializer
 
     def post(self, request, *args, **kwargs):
@@ -607,8 +607,33 @@ class PayPalSavedCardAddAPIView(APIView):
 
     """
 
-    authentication_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, )
     serializer_class = SavedCardAddSerializer
+
+    def validate_information(self, info):
+        missing_fields = []
+        #print('address1', info.address1)
+        if not info.address1:
+            #print('  not address1')
+            missing_fields.append('address1')
+        #print('address2', info.address2)
+        # if not info.address2:
+        #     print('  not address2')
+        #print('city',  info.city)
+        if not info.city:
+            #print('  not city')
+            missing_fields.append('city')
+        #print('state', info.state)
+        if not info.state:
+            #print('  not state')
+            missing_fields.append('state')
+        #print('zipcode', info.zipcode)
+        if not info.zipcode:
+            # print('  not zipcode')
+            missing_fields.append('zipcode')
+
+        if len(missing_fields) > 0:
+            raise APIException('Accout Information is missing: ' +  str(missing_fields))
 
     def create_paypal_saved_card(self, user, card_type, number, exp_month, exp_year, cvv2): # TODO - test
         """
@@ -632,6 +657,7 @@ class PayPalSavedCardAddAPIView(APIView):
 
         # get the billing address information
         info = Information.objects.get(user=user) # TODO - all the fields we use should exist (its possible they do not)
+        self.validate_information(info)
 
         # populate the CardData with required billing info
         line1 = info.address1
@@ -696,12 +722,16 @@ class PayPalSavedCardAddAPIView(APIView):
         try:
             save_card_api_data = self.create_paypal_saved_card(user, card_type, number, exp_month, exp_year, cvv2)
         except Information.DoesNotExist:
-            return APIException("Incomplete information. Is the billing address filled out?")
+            raise APIException("Incomplete information. Is billing address filled out?")
 
         # use the paypal api response to stash some
         # information about the saved card in our db.
         # we do not save sensitive information for security reasons!
         token = save_card_api_data.get('id')
+        if token is None:
+            paypal_details = save_card_api_data.get('details')
+            raise APIException(paypal_details)
+
         last_4 = number[-4:] # slice off the last 4 digits
         saved_card = self.create_saved_card_details(user, token, card_type, last_4, exp_month, exp_year)
 
@@ -715,7 +745,7 @@ class PayPalSavedCardDeleteAPIView(APIView):
         {"token": "Card-99999"}
 
     """
-    authentication_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, )
     serializer_class = SavedCardDeleteSerializer
 
     def post(self, request, *args, **kwargs):
@@ -749,7 +779,7 @@ class PayPalSavedCardListAPIView(APIView):
     quickly deposit money to the site.
     """
 
-    authentication_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, )
     response_serializer = SavedCardSerializer
 
     def get(self, request, *args, **kwargs):
@@ -771,7 +801,7 @@ class SetSavedCardDefaultAPIView(APIView):
     the arguments to this method should be passed
     in the POST as application/json, ie: {"token":"theToken"}
     """
-    authentication_classes = (IsAuthenticated, )
+    permission_classes = (IsAuthenticated, )
     serializer_class = SetSavedCardDefaultSerializer
 
     def post(self, request):

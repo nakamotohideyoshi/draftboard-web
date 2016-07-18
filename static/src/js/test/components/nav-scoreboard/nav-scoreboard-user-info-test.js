@@ -7,13 +7,15 @@ import NavScoreboardUserInfo from '../../../components/nav-scoreboard/nav-scoreb
 const expect = require('chai').expect;
 
 const defaultProps = {
-  name: "John",
-  balance: "100$"
+  name: 'John',
+  cashBalance: {
+    amount: 100,
+  },
 };
 
-describe("NavScoreboardUserInfo Component", function() {
+describe('NavScoreboardUserInfo Component', function () {
 
-  beforeEach(function(done) {
+  beforeEach(function (done) {
     var self = this;
     document.body.innerHTML = '';
     // The DOM element that the component will be rendered to.
@@ -22,10 +24,10 @@ describe("NavScoreboardUserInfo Component", function() {
     this.component = ReactDOM.render(
       <NavScoreboardUserInfo
         name={defaultProps.name}
-        balance={defaultProps.balance}
-        />,
+        balance={defaultProps.cashBalance.amount}
+    />,
       this.targetElement,
-      function() {
+      function () {
         // Once it has been rendered...
         // Grab it from the DOM.
         self.element = ReactDOM.findDOMNode(this);
@@ -34,11 +36,11 @@ describe("NavScoreboardUserInfo Component", function() {
     );
   });
 
-  afterEach(function() {
+  afterEach(function () {
     document.body.innerHTML = '';
   });
 
-  it('should render a div tag, name and balance', function() {
+  it('should render a div tag, name and balance', function () {
     expect(this.element.tagName).to.equal('DIV');
     expect(
       this.element.querySelectorAll('.name').length
@@ -51,7 +53,6 @@ describe("NavScoreboardUserInfo Component", function() {
     ).to.equal(1);
     expect(
       this.element.querySelector('.balance').firstChild.textContent
-    ).to.equal(defaultProps.balance);
+    ).to.equal(`$${defaultProps.cashBalance.amount}.00`);
   });
-
 });

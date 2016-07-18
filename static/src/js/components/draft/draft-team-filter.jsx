@@ -98,6 +98,9 @@ const DraftTeamFilter = React.createClass({
   },
 
 
+  scrollDistance: 400,
+
+
   handleTeamClick(teamId, e) {
     e.stopPropagation();
     const newTeams = this.props.selectedTeams.slice();
@@ -125,8 +128,14 @@ const DraftTeamFilter = React.createClass({
    */
   handleScrollLeft() {
     const content = this.refs.content;
-    const left = parseInt(content.style.left, 10) | 0;
-    this.refs.content.style.left = `${(left + 400)}px`;
+    const currentOffset = parseInt(content.style.left, 10) | 0;
+
+    // if a full scroll would be less than 0 offset, just go to 0;
+    if (Math.abs(currentOffset) < this.scrollDistance) {
+      this.refs.content.style.left = 0;
+    } else {
+      this.refs.content.style.left = `${(currentOffset + this.scrollDistance)}px`;
+    }
   },
 
 
@@ -135,8 +144,16 @@ const DraftTeamFilter = React.createClass({
    */
   handleScrollRight() {
     const content = this.refs.content;
-    const left = parseInt(content.style.left, 10) | 0;
-    content.style.left = `${(left - 400)}px`;
+    const contentWidth = parseInt(this.refs.content.clientWidth, 10) | 0;
+    // subtract 40 to account for the arrows that overlay the container.
+    const containerWidth = (parseInt(this.refs.container.clientWidth, 10) | 0) - 48;
+    const currentOffset = parseInt(content.style.left, 10) | 0;
+
+    if (Math.abs(currentOffset - this.scrollDistance) < (contentWidth - containerWidth)) {
+      content.style.left = `${(currentOffset - this.scrollDistance)}px`;
+    } else {
+      content.style.left = `-${(contentWidth - containerWidth)}px`;
+    }
   },
 
 
@@ -194,7 +211,7 @@ const DraftTeamFilter = React.createClass({
 
     return (
       <div className="cmp-draft-team-filter">
-        <div className="slider">
+        <div className="slider" ref="container">
 
           <div className="arrow">
             <div className="left-arrow-icon" onClick={this.handleScrollLeft}></div>

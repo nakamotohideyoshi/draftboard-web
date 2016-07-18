@@ -7,6 +7,9 @@ import zipObject from 'lodash/zipObject';
 import { dateNow } from '../lib/utils';
 import { SPORT_CONST } from './sports';
 
+// custom API domain for local dev testing
+const { API_DOMAIN = '' } = process.env;
+
 
 // dispatch to reducer methods
 
@@ -94,7 +97,7 @@ const fetchPlayersStats = (lineupId) => (dispatch) => {
   dispatch(requestPlayersStats(lineupId));
 
   return request.get(
-    `/api/contest/lineup/${lineupId}/`
+    `${API_DOMAIN}/api/contest/lineup/${lineupId}/`
   ).set({
     'X-REQUESTED-WITH': 'XMLHttpRequest',
     Accept: 'application/json',
