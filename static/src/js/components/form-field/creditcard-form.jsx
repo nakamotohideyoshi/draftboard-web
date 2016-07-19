@@ -10,21 +10,16 @@ const CreditcardForm = React.createClass({
   render() {
     return (
       <ReactCardFormContainer
-
         container="react-credit-card-animator"
-
-        formInputsNames={
-        {
+        formInputsNames={{
           number: 'CCnumber',
           expiry: 'CCexpiry',
           cvc: 'CCcvc',
           name: 'CCname',
-        }
-        }
+        }}
       >
 
         <div id="react-credit-card-animator" />
-
         <form className="form form--credit_card_input" onSubmit={this.newPaymentMethod}>
           <div className="form-field">
             <label className="form-field__label" htmlFor="CCnumber">Card number</label>
@@ -48,7 +43,6 @@ const CreditcardForm = React.createClass({
 
           <input type="submit" className="button button--flat-alt1" value="ADD CARD" />
         </form>
-
       </ReactCardFormContainer>
     );
   },
