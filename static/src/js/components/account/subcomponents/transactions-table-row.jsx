@@ -30,7 +30,7 @@ const TransactionsTableRow = React.createClass({
         <td>{this.props.transaction.details[0].description}</td>
         <td>
           <a
-            classNameName="transaction-info"
+            className="transaction-info"
             onClick={this.handleDetailsClick}
             href="#"
           >

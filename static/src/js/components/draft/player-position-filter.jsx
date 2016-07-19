@@ -35,7 +35,7 @@ const PlayerPositionFilter = React.createClass({
 
 
   selectNextRosterSlotFilter(lineup) {
-    const nextSlot = find(lineup, (slot) => slot.player === null);
+    const nextSlot = find(lineup, (slot) => !slot.player);
 
     if (nextSlot) {
       const autoActiveFilter = find(this.props.positions, { title: nextSlot.name });

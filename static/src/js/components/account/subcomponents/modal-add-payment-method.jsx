@@ -1,7 +1,7 @@
 import React from 'react';
-// import renderComponent from '../../../lib/render-component';
+import renderComponent from '../../../lib/render-component';
 import Modal from '../../modal/modal.jsx';
-// import CreditcardForm from '../../form-field/creditcard-form.jsx';
+import CreditcardForm from '../../form-field/creditcard-form.jsx';
 
 
 /**
@@ -41,6 +41,8 @@ const ModalAddPaymentMethod = React.createClass({
       >
         <div>
           <div className="cmp-modal__content">
+
+            <CreditcardForm />
             <div id="creditcard-form" />
           </div>
         </div>

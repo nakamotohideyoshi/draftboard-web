@@ -3,32 +3,32 @@ import request from 'superagent';
 import Cookies from 'js-cookie';
 
 
-function fetchPaymentsSuccess(body) {
+function fetchPaymentMethodsSuccess(body) {
   return {
-    type: types.FETCH_PAYMENTS_SUCCESS,
+    type: types.FETCH_PAYMENT_METHODS_SUCCESS,
     body,
   };
 }
 
 
-function fetchPaymentsFail(ex) {
+function fetchPaymentMethodsFail(ex) {
   return {
-    type: types.FETCH_PAYMENTS_FAIL,
+    type: types.FETCH_PAYMENT_METHODS_FAIL,
     ex,
   };
 }
 
-export function fetchPayments() {
+export function fetchPaymentMethods() {
   return (dispatch) => request
-    .get('/account/api/account/payments/')
+    .get('/api/account/paypal/saved-card/list/')
     .set({ 'X-REQUESTED-WITH': 'XMLHttpRequest' })
     .set('Accept', 'application/json')
     .end((err, res) => {
       if (err) {
-        return dispatch(fetchPaymentsFail(err));
+        return dispatch(fetchPaymentMethodsFail(err));
       }
 
-      return dispatch(fetchPaymentsSuccess(res.body));
+      return dispatch(fetchPaymentMethodsSuccess(res.body));
     });
 }
 
@@ -51,7 +51,7 @@ function addPaymentMethodFail(ex) {
 
 export function addPaymentMethod(postData) {
   return (dispatch) => request
-    .post('/account/api/account/payments/add/')
+    .post('/api/account/paypal/saved-card/add/')
     .send(postData)
     .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
     .end((err, res) => {
