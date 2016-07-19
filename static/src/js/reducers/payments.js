@@ -12,7 +12,7 @@ const initialState = {
 module.exports = (state = initialState, action) => {
   switch (action.type) {
 
-    case ActionTypes.FETCH_PAYMENTS_SUCCESS:
+    case ActionTypes.FETCH_PAYMENT_METHODS_SUCCESS:
       return merge({}, state, {
         payments: action.body,
       });

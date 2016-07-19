@@ -25,7 +25,7 @@ const NavScoreboardUserInfo = React.createClass({
         <div className="name">{name}</div>
         <div className="balance">
           <span>{humanizeCurrency(balance, false)}</span>
-          <a href="/account/settings/deposits/" className="add-funds">Add funds</a>
+          <a href="/account/deposits/" className="add-funds">Add funds</a>
         </div>
       </div>
     );
