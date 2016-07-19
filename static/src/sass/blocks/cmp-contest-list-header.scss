@@ -3,26 +3,25 @@
  * This is the header that displays the current filters
  */
 .cmp-contest-list__header {
-  padding-bottom: 20px;
 
-  h2 {
+  .title {
     color: #9295a6;
-    font-weight: 500;
     display: block;
     font-family: $font-open-sans;
-    font-size:10px;
-    padding-bottom: 15px;
+    font-size: 10px;
+    font-weight: 500;
+    padding-bottom: 0;
     position: relative;
+    text-transform: uppercase;
   }
 
   .cmp-collection-match-filter {
     font-family: $font-oswald;
 
     &__option {
-      font-size: 26px;
+      font-size: 25px;
     }
   }
-
 
   &-type {
     background: url(../img/common/select-arrow.png) no-repeat 100% 50%;
