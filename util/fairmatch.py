@@ -175,7 +175,7 @@ class FairMatch(object):
         """
 
         # the list of unique entries to select from
-        uniques = list(set(entries))
+        uniques = list(set(entries) - set(exclude))
         n_uniques = len(uniques)
 
         if n_uniques < self.contest_size:
