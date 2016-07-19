@@ -8,8 +8,8 @@ const { Provider, connect } = ReactRedux;
 
 // Options for the skill level filter.
 const skillLevelFilters = [
-  { title: 'Veteran', column: 'skill_level', match: 'veteran' },
   { title: 'Rookie', column: 'skill_level', match: 'rookie' },
+  { title: 'Veteran', column: 'skill_level', match: 'veteran' },
 ];
 
 
