@@ -2,11 +2,7 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
-import { updateUserAddress } from '../../actions/user';
-// import DepositsAddPaymentMethod from './subcomponents/deposits-add-payment-method.jsx';
 import DepositsPayments from './subcomponents/deposits-payments.jsx';
-import SettingsAddress from './subcomponents/settings-address.jsx';
-
 import {
   fetchPaymentMethods,
   addPaymentMethod,
@@ -15,20 +11,18 @@ import {
   deposit,
 } from '../../actions/payments';
 
-
 const { Provider, connect } = ReactRedux;
+
 
 function mapStateToProps(state) {
   return {
     user: state.user.info,
-    addressFormErrors: state.user.addressFormErrors,
     payments: state.payments.payments,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    updateUserAddress: (postData) => dispatch(updateUserAddress(postData)),
     fetchPaymentMethods: () => dispatch(fetchPaymentMethods()),
     addPaymentMethod: (postData) => dispatch(addPaymentMethod(postData)),
     setPaymentMethodDefault: (id) => dispatch(setPaymentMethodDefault(id)),
@@ -42,9 +36,6 @@ const Deposits = React.createClass({
 
   propTypes: {
     user: React.PropTypes.object.isRequired,
-    addressFormErrors: React.PropTypes.object.isRequired,
-    updateUserAddress: React.PropTypes.func.isRequired,
-
     payments: React.PropTypes.array.isRequired,
     fetchPaymentMethods: React.PropTypes.func.isRequired,
 
@@ -146,13 +137,6 @@ const Deposits = React.createClass({
 
           </fieldset>
         </div>
-
-        <SettingsAddress
-          info={this.props.user}
-          errors={{}}
-          onHandleSubmit={this.props.updateUserAddress}
-        />
-
       </div>
     );
   },
