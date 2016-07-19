@@ -455,8 +455,8 @@ class GameBoxscores(DataDenGameBoxscores):
         # when its final
         self.boxscore.srid_win       = win_list.get('player', None)
         self.boxscore.srid_loss      = loss_list.get('player', None)
-        #boxscore.srid_hold      = hold_list.get('player', None)
-        #boxscore.srid_save      = save_list.get('player', None)
+        #boxscore.srid_hold         = hold_list.get('player', None)
+        #boxscore.srid_save         = save_list.get('player', None)
         #boxscore.srid_blown_save = blown_save_list.get('player', None)
 
         outcome_list    = self.o.get('outcome__list', None)

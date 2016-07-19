@@ -305,6 +305,36 @@ class TestPlayParser(AbstractTest):
             'wall_clock': '2015-09-13T17:03:57+00:00'}
         self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
 
+    def test_4(self):
+        """ kick_return example """
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+        play = {
+            'alt_description': 'M.Bosher kicks 69 yards from ATL 35 to TEN -4. T.McBride to TEN 25 for 29 yards (K.White).',
+            'id': '9098ec62-d4c2-49df-a452-60170c144715', 'quarter__id': '7b99cfe4-ca29-4868-8577-01b2b6cd34e9',
+            'clock': '7:35', 'type': 'kickoff',
+            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDYzYjRkMzc0LTljN2MtNDE2ZS04YWE5LTQ1NmUyMmEzNmFmNnF1YXJ0ZXJfX2lkN2I5OWNmZTQtY2EyOS00ODY4LTg1NzctMDFiMmI2Y2QzNGU5cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTU3ZTdmYTktY2MyYS00ZWI0LTg5MzQtOTQ4MTA3ZTczZmQ2aWQ5MDk4ZWM2Mi1kNGMyLTQ5ZGYtYTQ1Mi02MDE3MGMxNDQ3MTU=',
+            'reference': 3493.0, 'away_points': 24.0, 'home_points': 31.0, 'wall_clock': '2015-08-14T01:39:07+00:00',
+            'statistics__list': {'kick__list': {'attempt': 1.0, 'yards': 69.0, 'endzone': 1.0, 'confirmed': 'true',
+                                                'player': '947ba5a9-71de-4cc5-839a-884cfa49544b',
+                                                'team': 'e6aa13a4-0055-48a9-bc41-be28dc106929'},
+                                 'defense__list': {'confirmed': 'true', 'tackle': 1.0,
+                                                   'player': 'aada7f5b-2b2b-456f-a3fa-7b834dbdb52b',
+                                                   'team': 'e6aa13a4-0055-48a9-bc41-be28dc106929'},
+                                 'return__list': {'category': 'kick_return', 'return': 1.0, 'yards': 29.0,
+                                                  'confirmed': 'true', 'player': '24779156-67f5-45ac-a73e-09184d4d314a',
+                                                  'team': 'd26a1ca5-722d-4274-8f97-c92e49c96315'}},
+            'game__id': '63b4d374-9c7c-416e-8aa9-456e22a36af6', 'dd_updated__id': 1464854648745,
+            'end_situation__list': {'location': 'd26a1ca5-722d-4274-8f97-c92e49c96315', 'yfd': 10.0, 'down': 1.0,
+                                    'clock': '7:29', 'possession': 'd26a1ca5-722d-4274-8f97-c92e49c96315'},
+            'parent_list__id': 'play_by_play__list',
+            'start_situation__list': {'location': 'e6aa13a4-0055-48a9-bc41-be28dc106929', 'yfd': 0.0, 'down': 0.0,
+                                      'clock': '7:35', 'possession': 'e6aa13a4-0055-48a9-bc41-be28dc106929'},
+            'sequence': 3493.0, 'play_clock': 5.0,
+            'description': '5-M.Bosher kicks 69 yards from ATL 35 to TEN -4. 16-T.McBride to TEN 25 for 29 yards (27-K.White).',
+            'drive__id': 'a57e7fa9-cc2a-4eb4-8934-948107e73fd6', 'parent_api__id': 'pbp'}
+        self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
+
 class GameStatusChangedSignal(AbstractTest):
 
     def __create_team(self, alias, market):
