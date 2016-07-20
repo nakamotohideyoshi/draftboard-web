@@ -169,7 +169,8 @@ class ContestPoolCreator(object):
                                                                   prize_structure=self.prize_structure,
                                                                   start=self.start,
                                                                   end=self.get_end(),
-                                                                  draft_group=self.draft_group)
+                                                                  draft_group=self.draft_group,
+                                                                  skill_level=self.skill_level)
         if self.set_name:
             contest_pool.name = self.build_name()
             # save() will get called later
@@ -304,6 +305,9 @@ class AbstractContestCreator(object):
         if isinstance(site_sport, str):
             self.site_sport = SiteSport.objects.get(name=site_sport)
         self.prize_structure    = prize_structure
+        slm = SkillLevelManager()
+        skill_level = slm.get_for_amount(self.prize_structure.buyin)
+        self.skill_level        = skill_level
         self.start              = start  # start of the contest
         self.end                = end  # live games must start before this datetime
 
