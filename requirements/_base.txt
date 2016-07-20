@@ -87,6 +87,4 @@ flower==0.8.4
 
 urllib3==1.14
 
-pycrypto==2.6.1
-
 paypalrestsdk==1.11.5
