@@ -135,14 +135,6 @@ class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
     def setUp(self):
         # setup a salary pool and draft group
         self.sport = 'test' # build_world() should create a sport called 'test'
-        # if DraftGroup.objects.all().count() == 0:
-        #     self.build_world()
-        #     self.draft_group = self.world.draftgroup
-        # else:
-        #     self.draft_group = DraftGroup.objects.filter().order_by('-created')[0]
-        #
-        # # get a headsup prize_structure (most recently created)
-        # self.prize_structure = PrizeStructure.objects.filter().order_by('-created')[0]
 
         # if the "world" doesnt exist (ie: games, playerstats, draftgroups) create it.
         ContestPool.objects.all().delete() # so we can run with --keepdb locally for quicker testing
@@ -176,12 +168,6 @@ class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
             start = timezone.now()
         if duration is None:
             duration = int(300)
-        # if draft_group is not None:
-        #     # create a dummy child of DraftGroup
-        #     class DraftGroupChild(DraftGroup):
-        #         def __init__(self):
-        #             pass
-        #     draft_group = DraftGroupChild()
 
         # try to construct a ContestPool
         try:
@@ -228,6 +214,9 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
         # get a headsup prize_structure (most recently created)
         self.prize_structure = PrizeStructure.objects.filter().order_by('-created')[0]
 
+        # get instance of the SkillLevelManager
+        self.skill_level_manager = SkillLevelManager()
+
         # if the "world" doesnt exist (ie: games, playerstats, draftgroups) create it.
         ContestPool.objects.all().delete() # so we can run with --keepdb locally for quicker testing
 
@@ -258,6 +247,17 @@ class ContestPoolManagerCreateTest(AbstractTest, BuildWorldMixin):
     def test_create_simple_default_values_existing_draft_group(self):
         creator = self.__call_construct(draft_group=self.draft_group)
         contest_pool, created = creator.get_or_create()
+
+    def test_skill_level_set_on_create(self):
+        creator = self.__call_construct(draft_group=self.draft_group)
+        contest_pool, created = creator.get_or_create()
+
+        target_skill_level = self.skill_level_manager.get_for_amount(contest_pool.prize_structure.buyin)
+
+        # the only comparison that doesnt really matter is the pk
+        self.assertEquals(target_skill_level.name, contest_pool.skill_level.name)
+        self.assertEquals(target_skill_level.gte, contest_pool.skill_level.gte)
+        self.assertEquals(target_skill_level.enforced, contest_pool.skill_level.enforced)
 
 class ContestManagerTest(AbstractTest):
     """

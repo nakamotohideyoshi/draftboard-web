@@ -2,7 +2,11 @@
 # contest/forms.py
 
 import django.forms as forms
-from django.forms import ModelForm, ModelChoiceField, ValidationError
+from django.forms import (
+    ModelForm,
+    ModelChoiceField,
+    ValidationError,
+)
 from django.forms.widgets import SplitDateTimeWidget
 from contest.models import Contest
 from util.midnight import midnight

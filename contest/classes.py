@@ -51,6 +51,8 @@ from util.dfsdate import DfsDate
 
 class SkillLevelManager(object):
 
+    class CanNotEnterSkillLevel(Exception): pass
+
     # the main model class
     model_class = SkillLevel
 
@@ -69,8 +71,30 @@ class SkillLevelManager(object):
             if skill_level.gte <= amount:
                 return skill_level
 
-    # TODO
-    # def get-whether-user-can-join-level()
+    def validate_can_enter(self, user, contest_pool):
+        """
+        will raise CanNotEnterSkillLevel if the user is blocked from that ContestPool.
+
+        otherwise does nothing.
+
+        :param user:
+        :param contest_pool:
+        :return:
+        """
+
+        # the contest attempting to be joined
+        target_skill_level = contest_pool.skill_level
+
+        # find any enforced skill_levels we have an entry in not matching our target.
+        # if any are found, that means we cant join and must raise exception
+        entries = Entry.objects.filter(
+            user=user,
+            contest_pool__draft_group=contest_pool.draft_group,
+            contest_pool__skill_level__enforced=True)\
+            .exclude(contest_pool__skill_level=target_skill_level)
+
+        if entries.count() > 0:
+            raise self.CanNotEnterSkillLevel()
 
 class ContestPoolCreator(object):
 
@@ -119,6 +143,10 @@ class ContestPoolCreator(object):
 
         # whether or not to set a name at creation time
         self.set_name = set_name
+
+        # skill level
+        slm = SkillLevelManager()
+        self.skill_level = slm.get_for_amount(self.prize_structure.buyin)
 
     def get_or_create(self):
         """
