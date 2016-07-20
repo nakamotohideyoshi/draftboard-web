@@ -127,3 +127,7 @@ mysite/smugglin/
 .bundle/*
 
 *.dump
+
+# pyenv named '.pythonenv'
+.pythonenv/*
+

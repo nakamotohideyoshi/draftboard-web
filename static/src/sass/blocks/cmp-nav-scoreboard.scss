@@ -110,6 +110,7 @@ $nav-scoreboard-foreground-color: #25A758;
     height: $nav-scoreboard-height;
     padding: 0px 15px 0 10px;
     line-height: $nav-scoreboard-height;
+    white-space: nowrap;
 
     .name {
       color: $nav-scoreboard-secondary-font-color;

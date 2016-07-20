@@ -1,7 +1,6 @@
 import React from 'react';
 import moment from 'moment';
 import forEach from 'lodash/forEach';
-import sortBy from 'lodash/sortBy';
 import classNames from 'classnames';
 
 
@@ -31,42 +30,44 @@ const DraftTeamFilter = React.createClass({
   getGames() {
     const self = this;
     const games = [];
-    const sortedGames = sortBy(this.props.boxScores, 'start');
 
-    forEach(sortedGames, (game) => {
-      const homeClasses = classNames('team home', {
-        selected: self.isTeamSelected(self.props.selectedTeams, game.srid_home),
+    Object
+      .values(this.props.boxScores)
+      .sort((p, n) => (new Date(p.start)) - (new Date(n.start)))
+      .forEach((game) => {
+        const homeClasses = classNames('team home', {
+          selected: self.isTeamSelected(self.props.selectedTeams, game.srid_home),
+        });
+        const awayClasses = classNames('team away', {
+          selected: self.isTeamSelected(self.props.selectedTeams, game.srid_away),
+        });
+
+        games.push([
+          <div
+            className="game scroll-item"
+            key={game.pk}
+            onClick={self.handleGameClick.bind(self, game)}
+            ref={`game-${game.pk}`}
+          >
+            <div className="left">
+              <div className={awayClasses} onClick={self.handleTeamClick.bind(self, game.srid_away)}>
+                <span className="teamName">{self.getTeamAlias(game.srid_away)}</span>
+              </div>
+
+              <div className={homeClasses} onClick={self.handleTeamClick.bind(self, game.srid_home)}>
+                <span className="teamName">{self.getTeamAlias(game.srid_home)}</span>
+              </div>
+            </div>
+
+            <div className="right">
+              <div className="start_time">
+                {moment(game.start, moment.ISO_8601).format('h:mma')}
+              </div>
+            </div>
+          </div>,
+          <div className="separator half"></div>,
+        ]);
       });
-      const awayClasses = classNames('team away', {
-        selected: self.isTeamSelected(self.props.selectedTeams, game.srid_away),
-      });
-
-      games.push([
-        <div
-          className="game scroll-item"
-          key={game.pk}
-          onClick={self.handleGameClick.bind(self, game)}
-          ref={`game-${game.pk}`}
-        >
-          <div className="left">
-            <div className={awayClasses} onClick={self.handleTeamClick.bind(self, game.srid_away)}>
-              <span className="teamName">{self.getTeamAlias(game.srid_away)}</span>
-            </div>
-
-            <div className={homeClasses} onClick={self.handleTeamClick.bind(self, game.srid_home)}>
-              <span className="teamName">{self.getTeamAlias(game.srid_home)}</span>
-            </div>
-          </div>
-
-          <div className="right">
-            <div className="start_time">
-              {moment(game.start, moment.ISO_8601).format('h:mma')}
-            </div>
-          </div>
-        </div>,
-        <div className="separator half"></div>,
-      ]);
-    });
 
     return games;
   },
