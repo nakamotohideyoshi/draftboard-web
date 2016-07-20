@@ -99,6 +99,10 @@ $results-selected-text-color: #2bb677;
             color: $results-selected-text-color;
           }
         }
+
+        &.future {
+          cursor: not-allowed;
+        }
       }
 
       .separator {
@@ -222,7 +226,6 @@ $results-selected-text-color: #2bb677;
 
 
     .lineup {
-      width: 380px;
       background-color: white;
       display: inline-block;
       margin-right: 40px;
@@ -232,43 +235,111 @@ $results-selected-text-color: #2bb677;
       .header {
         color: #46495e;
         font-size: 16px;
+        font-weight: 400;
         position: relative;
         padding-left: 35px;
         line-height: 65px;
-        border-bottom: 1px solid $results-bg-text-color;
-        background: url('../img/blocks/results/basketball.jpg') no-repeat 15px center;
+        border-bottom: 1px solid #ebedf2;
+        background: url('../img/blocks/results/basketball.png') no-repeat 15px center;
         background-size: 12.5px auto;
 
         .to-contests {
           display: inline-block;
           position: absolute;
-          right: 17px;
+          top: -5px;
+          right: 30px;
           text-transform: uppercase;
-          font-size: 9.5px;
+          font-size: 18.5px;
+          transform: scale(1.2);
           font-size: 500;
           color: #878a9f;
+          z-index: 5;
 
           span {
             cursor: pointer;
+            position: absolute;
+            transform: rotate(90deg);
           }
 
-          .arrow-right {
-            display: inline-block;
-            width: 12px;
+          &:hover {
+            color: #46495E;
+
+            .to-contests--popup {
+              display: block;
+            }
+          }
+
+          &--popup {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: -100px;
             text-align: center;
-            font-size: 13px;
-            font-weight: bold;
-            transform: scaleX(0.5) translateY(1px);
-            color: $results-fg-text-color;
+            background: white;
+            box-shadow: 0px 0px 104px -30px rgba(0,0,0,0.75);
+            z-index: 5;
+            font-size: 11px;
+            font-weight: 100;
+            line-height: 11px;
+            min-width: 200px;
+            padding: 10px 0;
+            text-align: left;
+            border: 1px solid #ebedf2;
+            border-radius: 3px;
+
+            .triangle {
+              width: 0;
+              height: 0;
+              border-style: solid;
+              border-width: 0 10px 10px 10px;
+              border-color: transparent transparent #ffffff transparent;
+              position: absolute;
+              top: -10px;
+              left: 50%;
+              margin-left: -10px;
+            }
+
+            .triangle-border {
+              width: 0;
+              height: 0;
+              border-style: solid;
+              border-width: 0 10px 10px 10px;
+              border-color: transparent transparent #ebedf2 transparent;
+              position: absolute;
+              top: -11px;
+              left: 50%;
+              margin-left: -10px;
+            }
+
+            .item {
+              color: #9C9FAF;
+              cursor: pointer;
+              text-transform: initial;
+              padding: 10px 0 10px 20px;
+
+              a {
+                color: #9C9FAF;
+
+                &:hover {
+                  color: #878a9f;
+                  text-decoration: none;
+                }
+              }
+
+              &:hover {
+                color: #878a9f;
+              }
+            }
           }
         }
 
         .right-stat-title {
           font-size: 8px;
           position: absolute;
-          right: 15px;
+          right: 20px;
           top: 53px;
           line-height: 1.5;
+          color: #6d718a;
         }
       }
 
@@ -279,12 +350,17 @@ $results-selected-text-color: #2bb677;
           line-height: 35px;
           border-bottom: 1px solid #ebedf2;
 
+          &:hover {
+            background-color: #f8fafb;
+          }
+
           .position {
             color: $results-fg-text-color;
             font-size: 9px;
             text-transform: uppercase;
             min-width: 10px;
             display: inline-block;
+            color: #9c9faf;
           }
 
           .circle {
@@ -300,8 +376,14 @@ $results-selected-text-color: #2bb677;
 
           .name {
             color: $results-fg-text-color;
-            font-size: 13px;
+            font-size: 12px;
           }
+
+          .team {
+            font-size: 12px;
+            color: #9c9faf;
+          }
+
           .score {
             color: #46495e;
             font-family: $font-oswald;
@@ -309,6 +391,10 @@ $results-selected-text-color: #2bb677;
             position: absolute;
             right: 20px;
             top: 9px;
+
+            &.score-zero {
+              color: #c3c4ce;
+            }
           }
         }
       }
@@ -430,77 +516,147 @@ $results-selected-text-color: #2bb677;
       width: 380px;
       display: inline-block;
       margin-right: 40px;
-      background-color: #343849;
+      background-color: #3a3f52;
       cursor: pointer;
+      overflow: hidden;
 
       .header {
         color: white;
         font-size: 16px;
         position: relative;
-        padding-left: 20px;
+        padding-left: 40px;
         line-height: 65px;
         border-bottom: 1px solid #535970;
-        background-color: #3a3f52;
+        background: #4c5560 url('../img/blocks/results/basketball.png') no-repeat 15px 27px;
+        background-size: 12.5px auto;
 
         .to-lineup {
+          background: url('../img/blocks/results/back.jpg') no-repeat center center;
+          background-size: 25px 18px;
+          width: 25px;
+          height: 18px;
+          cursor: pointer;
+
           display: inline-block;
-          font-size: 9.5px;
-          font-weight: 500;
           position: absolute;
-          right: 20px;
-          text-transform: uppercase;
+          top: 25px;
+          right: 10px;
+        }
 
-          span {
-            cursor: pointer;
-          }
+        .titles {
+          font-size: 8px;
+          line-height: 1.5;
+          color: #c3c4ce;
+          width: 100%;
+          position: relative;
+          left: -25px;
 
-          .arrow-right {
+          &--pos {
             display: inline-block;
-            width: 12px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: bold;
-            transform: scaleX(0.5) translateY(1px);
+            width: 35px;
+          }
+          &--contest {
+            display: inline-block;
+            width: 180px;
+          }
+          &--winning {
+            display: inline-block;
+            width: 30px;
+            position: relative;
+            left: 15px;
           }
         }
       }
 
       .list {
+        overflow-y: scroll;
+        height: 414px;
+
         .contest {
           @extend %clearfix;
           position: relative;
           padding: 0 20px;
           line-height: 35px;
-          border-bottom: 1px solid #3d4358;
+          border-bottom: 1px solid #535970;
           vertical-align: middle;
+          background: #474f59;
+
+          &:hover {
+            background: #505964;
+          }
 
           .title {
-            color: white;
+            width: 185px;
+            color: #c3c4ce;
             display: inline-block;
             margin: 0 10px 0 0;
             overflow: hidden;
             text-overflow: ellipsis;
             vertical-align: middle;
             white-space: nowrap;
-
             font-size: 11px;
           }
 
-          .place, .prize {
+          .place {
+            width: 25px;
+            display: inline-block;
+            color: #c5c7ce;
+            margin-right: 6px;
             font-family: $font-oswald;
             font-size: 13px;
-            float: right;
-          }
-
-          .place {
-            display: inline-block;
-            color: #6d718a;
-            margin-right: 6px;
           }
 
           .prize {
+            width: 24px;
             display: inline-block;
-            color: white;
+            color: #26c661;
+            font-family: $font-oswald;
+            font-size: 13px;
+            text-align: right;
+
+            &.prize-zero {
+              color: #c5c7ce;
+            }
+          }
+        }
+      }
+
+      .footer-live {
+        text-align: center;
+        background: #343849;
+        border-top: 1px solid #535970;
+
+        .watch-live {
+          border-right: 1px solid #5b5f79;
+          color: #fff;
+          display: inline-block;
+          font-family: $font-oswald;
+          font-size: 16px;
+          padding: 30px 0;
+          text-align: center;
+          text-transform: uppercase;
+          white-space: nowrap;
+          width: 44%;
+        }
+
+        .item {
+          display: inline-block;
+          width: 28%;
+          padding: 20px 24px;
+          position: relative;
+          top: 4px;
+
+          .title {
+            color: #9c9faf;
+            display: block;
+            font-size: 9px;
+            text-transform: uppercase;
+          }
+
+          .value {
+            color: #fff;
+            font-family: $font-oswald;
+            font-size: 17px;
           }
         }
       }
@@ -511,8 +667,37 @@ $results-selected-text-color: #2bb677;
     //   perspective: 1000;
     // }
 
-    .flip-container.hover .flipper {
-      transform: rotateY(180deg);
+    .flip-container {
+      .flipper, .lineup, .contests {
+        transition: 0.6s;
+      }
+
+      .flipper {
+        position: relative;
+        transform: rotateY(0deg);
+        transform-style: preserve-3d;
+        transform-origin: center center;
+
+        .lineup {
+          filter: blur(0px);
+        }
+
+        .contests {
+          filter: blur(20px);
+        }
+      }
+
+      &.hover .flipper {
+        transform: rotateY(180deg);
+
+        .lineup {
+          filter: blur(20px);
+        }
+
+        .contests {
+          filter: blur(0px);
+        }
+      }
     }
 
     .flip-container.shown-contest-pane .pane {
@@ -620,17 +805,10 @@ $results-selected-text-color: #2bb677;
     }
 
     .flip-container, .lineup, .contests {
-      width: 320px;
+      width: 290px;
       min-height: 480px;
       display: inline-block;
       margin-right: 40px;
-    }
-
-    .flipper {
-      transition: 0.6s;
-      transform-style: preserve-3d;
-
-      position: relative;
     }
 
     .lineup, .contests {

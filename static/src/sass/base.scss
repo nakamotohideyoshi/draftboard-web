@@ -215,6 +215,7 @@ html.section-live body {
   // Avoid the IE 10-11 `min-height` bug by using `height`.
   // Use `%` instead of `vh` since `vh` is buggy in older mobile Safari.
   height: 100%;
+  overflow: auto;
 }
 
 // http://www.paulirish.com/2012/box-sizing-border-box-ftw/
@@ -225,7 +226,6 @@ html.section-live body {
 html, body {
   color: $primary-text;
   margin: 0;
-  overflow: auto;
 }
 
 h1, h2, h3, h4, h5, h6 {

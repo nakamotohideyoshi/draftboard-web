@@ -37,14 +37,14 @@ const ResultsDatePicker = React.createClass({
     this.setState({ shown: false });
   },
 
-  handleSelectDate(...args) {
-    this.props.onSelectDate.apply(this, args);
+  handleSelectDate(year, month, day) {
+    this.props.onSelectDate(year, month + 1, day);
   },
 
   render() {
     const datePicker = this.state.shown ? (
       <DatePicker year={this.props.year}
-        month={this.props.month}
+        month={this.props.month - 1}
         day={this.props.day}
         onSelectDate={this.handleSelectDate}
       />
