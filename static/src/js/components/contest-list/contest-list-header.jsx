@@ -52,7 +52,6 @@ const ContestListHeader = (props) => {
     }
   }
 
-
   return (
     <div className="cmp-contest-list__header">
       <h4 className="title">Choose a Skill Level</h4>

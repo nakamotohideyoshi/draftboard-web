@@ -2,7 +2,7 @@ import React from 'react';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
 import Component from '../../../components/contest-list/contest-list-header.jsx';
-
+import CollectionMatchFilter from '../../../components/filters/collection-match-filter.jsx';
 
 const defaultTestProps = {
   contests: {},
@@ -33,5 +33,6 @@ describe('<ContestListHeader /> Component', () => {
 
   it('should render a skill level filter.', () => {
     expect(wrapper.find('.contest-list-filter--skill-level')).to.have.length(1);
+    expect(wrapper.find(CollectionMatchFilter)).to.have.length(1);
   });
 });
