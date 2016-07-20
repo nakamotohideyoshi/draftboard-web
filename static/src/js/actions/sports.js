@@ -282,12 +282,12 @@ export const calculateTimeRemaining = (sport, game) => {
   }
   const boxScore = game.boxscore;
 
+  // if the game is done, then set to 0
+  if (endStatuses.indexOf(game.status) > -1) return 0;
+
   switch (sport) {
     // MLB uses half innings as its time remaining.
     case 'mlb': {
-      // if the game is done, then set to 0
-      if (endStatuses.indexOf(game.status) > -1) return 0;
-
       let durationComplete = parseInt(boxScore.inning || 0, 10) * 2;
 
       // determine whether to add half inning for being in the bottom
@@ -310,10 +310,8 @@ export const calculateTimeRemaining = (sport, game) => {
 
     case 'nba':
     case 'nhl':
+    case 'nfl':
     default: {
-      // if the game is done, then set to 0
-      if (endStatuses.indexOf(boxScore.status) > -1) return 0;
-
       // if the game hasn't started but we have boxscore, return with full minutes
       if (boxScore.quarter === '') {
         return sportConst.gameDuration;
