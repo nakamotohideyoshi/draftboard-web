@@ -4,7 +4,7 @@ import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import { stringifyMLBWhen } from '../../actions/events/pbp';
 import { SPORT_CONST } from '../../actions/sports';
-import { humanizeFP } from '../../actions/sports';
+import { humanizeFP } from '../../lib/utils/numbers';
 
 function preloader() {
   return (
