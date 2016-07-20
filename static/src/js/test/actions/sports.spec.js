@@ -28,7 +28,7 @@ describe('actions.sports', () => {
 
     nock('http://localhost')
       .get('/api/sports/scoreboard-games/mlb/')
-      .reply(200, { body: {
+      .reply(200, {
         'c6742f5c-2270-4cff-b29e-bc2528fb7182': {
           srid: 'c6742f5c-2270-4cff-b29e-bc2528fb7182',
           status: 'scheduled',
@@ -39,7 +39,7 @@ describe('actions.sports', () => {
           game_number: 1,
           day_night: 'N',
         },
-      } });
+      });
 
     // data coming out
     const expectedActions = [{
@@ -65,7 +65,7 @@ describe('actions.sports', () => {
 
     nock('http://localhost')
       .get('/api/sports/teams/mlb/')
-      .reply(200, { body: [
+      .reply(200, [
         {
           id: 6,
           srid: '833a51a9-0d84-410f-bd77-da08c3e5e26e',
@@ -80,7 +80,7 @@ describe('actions.sports', () => {
           alias: 'TB',
           city: 'Tampa Bay',
         },
-      ] });
+      ]);
 
     // data coming out
     const expectedActions = [{
