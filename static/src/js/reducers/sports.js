@@ -52,7 +52,7 @@ module.exports = (state = {
       return update(state, {
         [action.sport]: {
           $merge: {
-            teams: action.teams,
+            teams: action.response.teams,
             isFetchingTeams: false,
             teamsExpireAt: action.expiresAt,
           },
@@ -72,7 +72,7 @@ module.exports = (state = {
     case ActionTypes.RECEIVE_GAMES:
       return update(state, {
         games: {
-          $merge: action.games,
+          $merge: action.response.games,
         },
         [action.sport]: {
           $merge: {
@@ -80,7 +80,7 @@ module.exports = (state = {
             gamesExpireAt: action.expiresAt,
           },
           gameIds: {
-            $set: action.gameIds,
+            $set: action.response.gameIds,
           },
         },
       });

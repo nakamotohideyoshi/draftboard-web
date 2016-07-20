@@ -1,4 +1,3 @@
-const request = require('superagent-promise')(require('superagent'), Promise);
 import * as ActionTypes from '../action-types';
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
@@ -7,6 +6,7 @@ import map from 'lodash/map';
 import merge from 'lodash/merge';
 import sortBy from 'lodash/sortBy';
 import { addMessage } from './message-actions';
+import { CALL_API } from '../middleware/api';
 import { dateNow, hasExpired } from '../lib/utils';
 
 // get custom logger for actions
@@ -203,32 +203,6 @@ export const SPORT_CONST = {
 
 // dispatch to reducer methods
 
-
-/**
- * Dispatch information to reducer that we are trying to get games
- * Used to prevent repeat calls while requesting.
- * NOTE: Set expires to 30 sec when retrieve, and then set again with receive, that way if gets stuck it unfreezes
- * NOTE: this method must be wrapped with dispatch()
- * @return {object}   Changes for reducer
- */
-const requestGames = (sport) => ({
-  sport,
-  type: ActionTypes.REQUEST_GAMES,
-  expiresAt: dateNow() + 1000 * 60,  // 1 minute
-});
-
-/**
- * Dispatch information to reducer that we are trying to get teams
- * Used to prevent repeat calls while requesting.
- * NOTE: this method must be wrapped with dispatch()
- * @return {object}   Changes for reducer
- */
-const requestTeams = (sport) => ({
-  sport,
-  type: ActionTypes.REQUEST_TEAMS,
-  expiresAt: dateNow() + 1000 * 60,  // 1 minute
-});
-
 /**
  * Dispatch parsed API information related to relevant games
  * Also pass through an updated at so that we can expire and re-poll after a period of time.
@@ -263,33 +237,9 @@ const receiveGames = (sport, games) => {
   const gameIds = gamesNotCompleted.concat(gamesCompleted);
 
   return {
-    type: ActionTypes.RECEIVE_GAMES,
     sport,
     games,
     gameIds,
-    expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
-  };
-};
-
-/**
- * Dispatch parsed API information related to relevant games
- * Also pass through an updated at so that we can expire and re-poll after a period of time.
- * NOTE: this method must be wrapped with dispatch()
- * @param  {string} sport     Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
- * @param  {object} response  API response object
- * @return {object}           Changes for reducer
- */
-const receiveTeams = (sport, response) => {
-  const newTeams = {};
-  forEach(response, (team) => {
-    newTeams[team.srid] = team;
-  });
-
-  return {
-    type: ActionTypes.RECEIVE_TEAMS,
-    sport,
-    teams: newTeams,
-    expiresAt: dateNow() + 1000 * 60 * 60 * 6,  // 6 hours
   };
 };
 
@@ -423,42 +373,42 @@ export const calculateTimeRemaining = (sport, game) => {
  * @param  {string} sport     Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-const fetchGames = (sport) => (dispatch) => {
-  logAction.debug('actions.fetchGames');
+const fetchGames = (sport) => ({
+  [CALL_API]: {
+    types: [
+      ActionTypes.REQUEST_GAMES,
+      ActionTypes.RECEIVE_GAMES,
+      ActionTypes.ADD_MESSAGE,
+    ],
+    expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
+    endpoint: `${API_DOMAIN}/api/sports/scoreboard-games/${sport}/`,
+    callback: (json) => {
+      // add in the sport so we know how to differentiate it.
+      const games = merge({}, json || {});
+      forEach(games, (game, id) => {
+        games[id].sport = sport;
 
-  dispatch(requestGames(sport));
+        // if no boxscore, default to upcoming = 100% remaining
+        if (game.hasOwnProperty('boxscore') === false) {
+          games[id].timeRemaining = {
+            duration: SPORT_CONST[sport].gameDuration,
+            decimal: 0.9999,
+          };
+        } else {
+          const durationRemaining = calculateTimeRemaining(sport, game);
+          const decimalRemaining = calcDecimalRemaining(durationRemaining, SPORT_CONST[sport].gameDuration);
 
-  return request.get(
-    `${API_DOMAIN}/api/sports/scoreboard-games/${sport}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    Accept: 'application/json',
-  }).then((res) => {
-    // add in the sport so we know how to differentiate it.
-    const games = merge({}, res.body || {});
-    forEach(games, (game, id) => {
-      games[id].sport = sport;
+          games[id].timeRemaining = {
+            duration: durationRemaining,
+            decimal: decimalRemaining,
+          };
+        }
+      });
 
-      // if no boxscore, default to upcoming = 100% remaining
-      if (game.hasOwnProperty('boxscore') === false) {
-        games[id].timeRemaining = {
-          duration: SPORT_CONST[sport].gameDuration,
-          decimal: 0.9999,
-        };
-      } else {
-        const durationRemaining = calculateTimeRemaining(sport, game);
-        const decimalRemaining = calcDecimalRemaining(durationRemaining, SPORT_CONST[sport].gameDuration);
-
-        games[id].timeRemaining = {
-          duration: durationRemaining,
-          decimal: decimalRemaining,
-        };
-      }
-    });
-
-    return dispatch(receiveGames(sport, games));
-  });
-};
+      return receiveGames(sport, games);
+    },
+  },
+});
 
 /**
  * TODO switch to fetch
@@ -468,28 +418,28 @@ const fetchGames = (sport) => (dispatch) => {
  * @param  {string} sport     Sport for these games ['nba', 'nfl', 'nhl', 'mlb']
  * @return {promise}          Promise that resolves with API response body to reducer
  */
-const fetchTeams = (sport) => (dispatch) => {
-  logAction.debug('actions.fetchGames');
+const fetchTeams = (sport) => ({
+  [CALL_API]: {
+    types: [
+      ActionTypes.REQUEST_TEAMS,
+      ActionTypes.RECEIVE_TEAMS,
+      ActionTypes.ADD_MESSAGE,
+    ],
+    expiresAt: dateNow() + 1000 * 60 * 60 * 6,  // 6 hours
+    endpoint: `${API_DOMAIN}/api/sports/teams/${sport}/`,
+    callback: (json) => {
+      const newTeams = {};
+      forEach(json, (team) => {
+        newTeams[team.srid] = team;
+      });
 
-  dispatch(requestTeams(sport));
-
-  return request.get(
-    `${API_DOMAIN}/api/sports/teams/${sport}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    Accept: 'application/json',
-  }).then(
-    (res) => dispatch(receiveTeams(sport, res.body))
-  ).catch((err) => {
-    dispatch(addMessage({
-      header: 'Failed to connect to API.',
-      content: 'Please refresh the page to reconnect.',
-      level: 'warning',
-      id: 'apiFailure',
-    }));
-    log.error(err);
-  });
-};
+      return {
+        sport,
+        teams: newTeams,
+      };
+    },
+  },
+});
 
 /**
  * Method to determine whether we need to fetch games for a sport
