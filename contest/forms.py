@@ -2,7 +2,11 @@
 # contest/forms.py
 
 import django.forms as forms
-from django.forms import ModelForm, ModelChoiceField, ValidationError
+from django.forms import (
+    ModelForm,
+    ModelChoiceField,
+    ValidationError,
+)
 from django.forms.widgets import SplitDateTimeWidget
 from contest.models import Contest
 from util.midnight import midnight
@@ -239,66 +243,3 @@ class ContestFormAdd(ContestForm):
                                       'no upcoming games in the date range specified.')
 
             self.cleaned_data['draft_group'] = draft_group
-
-# class TemplateContestForm(ContestForm):
-#     pass # TODO TODO TODO
-#
-# class TemplateContestFormAdd(ContestFormAdd):
-#
-#     class Meta:
-#         abstract    = False
-#         model       = Contest
-#
-#         #
-#         # explicitly state the fields to display,
-#         # including any fields you will override with a widget
-#         fields = [
-#             'site_sport',
-#             'name',
-#             'prize_structure',
-#             'max_entries',
-#             'entries',
-#             'gpp',
-#             'respawn',
-#             'doubleup'
-#         ]
-#
-#     # use the fields which we are explicity stating in the Meta class
-#     fieldsets = (
-#         # step 1: create the contest you want to add to the schedule
-#         ('Step 1: Edit the Contest Template', {
-#             'fields': (
-#                 'site_sport',
-#                 'name',
-#
-#                 'prize_structure',
-#                 'max_entries',
-#                 'entries',
-#
-#                 'gpp',
-#                 'respawn',
-#                 'doubleup'
-#             )
-#         }),
-#
-#         # step 2: choose the start time, and set a duration (hours) for the contest to run
-#         ('Step 2: Choose a Start time, and Duration (hours).', {
-#             'fields': (
-#                 'start_time',       # a Time object, not a DateTime object
-#                 'duration_minutes', # the end_time will, therefore be: (start_time + timedelta(minutes=duration_minutes))
-#             )
-#         }),
-#
-#         # step 3: select the days of the week you would like this contest to run
-#         ('Step 3: Schedule this Contest for the selected days.', {
-#             'fields': (
-#                 'monday',
-#                 'tuesday',
-#                 'wednesday',
-#                 'thursday',
-#                 'friday',
-#                 'saturday',
-#                 'sunday'
-#             )
-#         })
-#     )

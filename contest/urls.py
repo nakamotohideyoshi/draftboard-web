@@ -6,7 +6,6 @@ from django.conf.urls import url
 from contest.views import (
     LobbyAPIView,
     AllLineupsView,
-    # UserUpcomingAPIView,
     UserUpcomingContestPoolAPIView,
     UserLiveAPIView,
     UserHistoryAPIView,
@@ -16,12 +15,9 @@ from contest.views import (
     SingleContestAPIView,
     RegisteredUsersAPIView,
     EnterLineupAPIView,
-    EnterLineupStatusAPIView,
     PayoutsAPIView,
     EditEntryLineupAPIView,
-    EditEntryLineupStatusAPIView,
     RemoveAndRefundEntryAPIView,
-    RemoveAndRefundEntryStatusAPIView,
     UserPlayHistoryAPIView,
     ContestRanksAPIView,
     UserUpcomingContestPoolAndLiveContestEntriesAPIView,
@@ -42,14 +38,13 @@ urlpatterns = patterns(
     # be used subsequently to check if the buy was successful.
     (r'^enter-lineup/$', EnterLineupAPIView.as_view()),
 
-    #
-    # check if the "buyin" -- that is /api/contest/enter-lineup/ -- was successful
-    (r'^enter-lineup-status/(?P<task_id>[a-z0-9-]+)/$', EnterLineupStatusAPIView.as_view()),
+    # #
+    # # check if the "buyin" -- that is /api/contest/enter-lineup/ -- was successful
+    # (r'^enter-lineup-status/(?P<task_id>[a-z0-9-]+)/$', EnterLineupStatusAPIView.as_view()),
 
     #
     # edit entry (ie: edit a lineup that is associated in a contest)
     (r'^edit-entry/$', EditEntryLineupAPIView.as_view()),
-    (r'^edit-entry-status/(?P<task_id>[a-z0-9-]+)/$', EditEntryLineupStatusAPIView.as_view()),
 
     #
     # get the info for a single Contest by its id
@@ -113,7 +108,5 @@ urlpatterns = patterns(
     #
     # Request to remove a contest pool Entry, and refund the user
     (r'^unregister-entry/(?P<entry_id>[0-9]+)/$', RemoveAndRefundEntryAPIView.as_view()),
-    # Check the status of an unregister request.
-    (r'^unregister-entry-status/(?P<task_id>[a-z0-9-]+)/$',
-        RemoveAndRefundEntryStatusAPIView.as_view()),
+
 )

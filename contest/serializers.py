@@ -5,11 +5,10 @@ from rest_framework import serializers
 from contest.models import (
     Contest,
     ClosedContest,
-
     Entry,
     ClosedEntry,
-
     ContestPool,
+    SkillLevel,
 )
 from lineup.models import (
     Lineup,
@@ -20,6 +19,14 @@ from lineup.serializers import (
     LineupSerializer,
     PlayerSerializer,
 )
+
+class SkillLevelSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = SkillLevel
+        fields = (
+            'name',
+        )
 
 class RankSerializer(serializers.ModelSerializer):
 
@@ -53,6 +60,7 @@ class PrizeStructureSerializer(serializers.ModelSerializer):
 
 class ContestPoolSerializer(serializers.ModelSerializer):
 
+    skill_level = SkillLevelSerializer()
     prize_structure = PrizeStructureSerializer()
     contest_size = serializers.SerializerMethodField()
 
@@ -64,10 +72,12 @@ class ContestPoolSerializer(serializers.ModelSerializer):
         model = ContestPool
         fields = ('id','name','sport','status','start','buyin',
                   'draft_group','max_entries', 'prize_structure','prize_pool',
-                  'entries','current_entries','contest_size')
+                  'entries','current_entries','contest_size','skill_level')
 
 
 class ContestSerializer(serializers.ModelSerializer):
+
+    skill_level = SkillLevelSerializer()
 
     class Meta:
 
@@ -75,7 +85,7 @@ class ContestSerializer(serializers.ModelSerializer):
         fields = ('id','name','sport','status','start','buyin',
                   'draft_group','max_entries', 'prize_structure','prize_pool',
                   'entries','current_entries','gpp','doubleup',
-                  'respawn')
+                  'respawn','skill_level')
 
 
 class ContestIdSerializer(serializers.ModelSerializer):
