@@ -4,6 +4,7 @@ import PureRenderMixin from 'react-addons-pure-render-mixin';
 import {
   getDaysForMonth, weekdayNumToName, monthNumToName, daysToWeekView,
 } from '../../lib/time.js';
+import { isDateInTheFuture } from '../../lib/utils';
 
 const DatePicker = React.createClass({
 
@@ -60,7 +61,7 @@ const DatePicker = React.createClass({
       year--;
     }
 
-    this.setState({ year, month, day: 1 });
+    this.setState({ year, month, day: null });
   },
 
   handleSelectNextMonth() {
@@ -71,7 +72,7 @@ const DatePicker = React.createClass({
       year++;
     }
 
-    this.setState({ year, month, day: 1 });
+    this.setState({ year, month, day: null });
   },
 
   genMonthTable() {
@@ -87,12 +88,19 @@ const DatePicker = React.createClass({
             day.getMonth() === this.state.month) className += 'selected ';
         if (day.getMonth() !== this.state.month) className += 'inactive ';
 
-        const selectHandler = this.handleSelectDate.bind(
-          this,
-          day.getFullYear(),
-          day.getMonth(),
-          day.getDate()
-        );
+        const isInTheFuture = isDateInTheFuture(day.getTime());
+        let selectHandler = null;
+
+        if (isInTheFuture) {
+          className += 'inactive ';
+        } else {
+          selectHandler = this.handleSelectDate.bind(
+            this,
+            day.getFullYear(),
+            day.getMonth(),
+            day.getDate()
+          );
+        }
 
         return (
           <td key={day.getTime()} className={className} onClick={selectHandler}>

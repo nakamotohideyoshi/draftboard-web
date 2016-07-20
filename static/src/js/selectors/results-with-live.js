@@ -37,7 +37,7 @@ export const resultsWithLive = createSelector(
 
       if (currentLineups.hasRelatedInfo === true) {
         const lineupSelector = currentLineupsStats[lineup.id];
-        const draftGroup = liveDraftGroups[lineup.draftGroupId] || {};
+        const draftGroup = liveDraftGroups[lineup.draftGroup] || {};
         const hasEnded = draftGroup.closed !== null && draftGroup.closed < dateNow();
 
         const lineupEntriesInfo = lineupSelector.upcomingContestsStats ||
@@ -67,9 +67,11 @@ export const resultsWithLive = createSelector(
             player_meta: {
               srid: player.srid,
             },
+            salary: draftGroup.playersInfo && draftGroup.playersInfo[player.id].salary,
           })),
           entries: lineupEntriesInfo,
           start: lineup.start,
+          draftGroupId: draftGroup.id,
           liveStats: {
             entries: size(lineup.contests),
             points: lineupSelector.fp,
