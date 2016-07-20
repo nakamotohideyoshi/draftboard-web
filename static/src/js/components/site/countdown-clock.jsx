@@ -3,7 +3,9 @@ import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { timeRemaining } from '../../lib/utils';
 
 // assets
-require('../../../sass/blocks/site/countdown-clock.scss');
+if (process.env.NODE_ENV !== 'test') {
+  require('../../../sass/blocks/site/countdown-clock.scss');
+}
 
 
 /**

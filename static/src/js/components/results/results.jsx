@@ -2,9 +2,7 @@ import map from 'lodash/map';
 import moment from 'moment';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
-import ResultsHeader from './results-header.jsx';
-import ResultsLineups from './results-lineups.jsx';
-import ResultsStats from './results-stats.jsx';
+import ResultsStatic from './results-static.jsx';
 import store from '../../store';
 import uniqBy from 'lodash/uniqBy';
 import { dateNow } from '../../lib/utils';
@@ -80,6 +78,12 @@ const Results = React.createClass({
     } else {
       const today = moment(dateNow());
 
+      // We change results, draft groups, everything over at 10AM UTC, so
+      // until then show the yesterdays results.
+      if (today.hour() < 10) {
+        today.add(-1, 'days');
+      }
+
       this.handleSelectDate(
         parseInt(today.format('YYYY'), 10),
         parseInt(today.format('M'), 10),
@@ -129,36 +133,14 @@ const Results = React.createClass({
   },
 
   render() {
-    const { year, month, day } = this.state;
-
-    let dayResults = this.props.results[this.state.formattedDate] || null;
-    if (this.state.dateIsToday === true) {
-      dayResults = this.props.resultsWithLive || null;
-    }
-
-    let statsAndLineups;
-    if (dayResults !== null) {
-      statsAndLineups = (
-        <div>
-          <ResultsStats stats={dayResults.overall} />
-          <ResultsLineups
-            dateIsToday={this.state.dateIsToday}
-            lineups={dayResults.lineups}
-          />
-        </div>
-      );
-    }
-
     return (
-      <div className="inner">
-        <ResultsHeader
-          year={year}
-          month={month}
-          day={day}
+        <ResultsStatic
+          params={this.props.params}
+          results={this.props.results}
+          resultsWithLive={this.props.resultsWithLive}
           onSelectDate={this.handleSelectDate}
+          date={this.state}
         />
-        {statsAndLineups}
-      </div>
     );
   },
 });

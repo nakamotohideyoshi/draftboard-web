@@ -1,6 +1,7 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { getDaysForMonth, weekdayNumToName } from '../../lib/time.js';
+import { dateNow } from '../../lib/utils';
 
 
 const ResultsDaysSlider = React.createClass({
@@ -26,7 +27,7 @@ const ResultsDaysSlider = React.createClass({
     return getDaysForMonth(this.props.year, this.props.month).map(d => ({
       id: d.toString(),
       daynum: d.getDate(),
-      weekday: weekdayNumToName(d.getDay()),
+      weekday: weekdayNumToName(d.getDay() === 0 ? 6 : d.getDay() - 1),
       selected: d.getDate() === this.props.day,
     }));
   },
@@ -105,16 +106,29 @@ const ResultsDaysSlider = React.createClass({
   },
 
   render() {
-    const items = this.getItemsList().map(i => [
-      <div key={i.id}
-        className={`item${(i.selected ? ' selected' : '')}`}
-        onClick={this.handleSelectDate.bind(this, i.daynum)}
-      >
-        {i.weekday}
-        <span className="value">{i.daynum}</span>
-      </div>,
-      <div className="separator" key={`${i.id}|s`}><span /></div>,
-    ]).reduce(
+    const items = this.getItemsList().map(i => {
+      const itemTime = (new Date(
+        this.props.year,
+        this.props.month - 1,
+        i.daynum
+      )).getTime();
+      const isInTheFuture = itemTime > dateNow();
+
+      let className = 'item';
+      if (i.selected) className += ' selected';
+      if (isInTheFuture) className += ' future';
+
+      return [
+        <div key={i.id}
+          className={className}
+          onClick={isInTheFuture ? null : this.handleSelectDate.bind(this, i.daynum)}
+        >
+          {i.weekday}
+          <span className="value">{i.daynum}</span>
+        </div>,
+        <div className="separator" key={`${i.id}|s`}><span /></div>,
+      ];
+    }).reduce(
       // Just flatten the array on a single level. Not using lodash here,
       // because this may result in unexpected behavior depending on the
       // rendered React component internal representation.
