@@ -7,7 +7,7 @@ import merge from 'lodash/merge';
 import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import React from 'react';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
-import { humanizeFP } from '../../actions/sports';
+import { humanizeFP } from '../../lib/utils/numbers';
 
 // assets
 require('../../../sass/blocks/live/live-lineup-player.scss');

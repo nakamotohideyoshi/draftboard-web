@@ -17,7 +17,6 @@ const { API_DOMAIN = '' } = process.env;
 
 // global constants
 
-
 // constant related to game durations
 export const SPORT_CONST = {
   nba: {
@@ -249,31 +248,6 @@ const receiveGames = (sport, games) => {
 /**
  * TODO move to lib.utils
  *
- * Humanize fantasy points to be readable by user
- *
- * @param  {mixed}  fp           Fantasy points in either string or number
- * @param  {bool} showPlusMinus  Whether to show +,- before the number
- * @return {string}              Humanized fantasy points, rounded to whole if int, else hundredths
- */
-export const humanizeFP = (fp, showPlusMinus = false) => {
-  switch (typeof fp) {
-    case 'number': {
-      const cleanedFp = Math.ceil(fp * 100) / 100;
-
-      if (!showPlusMinus) return cleanedFp;
-
-      const sign = (cleanedFp > 0) ? '+' : '-';
-      return `${sign}${cleanedFp}`;
-    }
-    case 'string':
-    default:
-      return fp;
-  }
-};
-
-/**
- * TODO move to lib.utils
- *
  * Calculate the amount of time remaining in decimal between 0 and 1, where 1 is 100% of the time remaining
  * @param  {number} durationRemaining Number of minutes remaining
  * @param  {number} totalQuantity     Total number of minutes/innings/measurement possible for a player
@@ -491,7 +465,6 @@ const shouldFetchTeams = (state, sport) => {
 
 
 // primary methods
-
 
 /**
  * Fetch games if we need to

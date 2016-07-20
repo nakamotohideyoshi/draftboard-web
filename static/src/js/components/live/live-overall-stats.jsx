@@ -3,7 +3,7 @@ import React from 'react';
 import LiveOverallStatsBg from './live-overall-stats-bg';
 import { describeArc, polarToCartesian } from '../../lib/utils/shapes';
 import { humanizeCurrency } from '../../lib/utils/currency';
-import { humanizeFP } from '../../actions/sports';
+import { humanizeFP } from '../../lib/utils/numbers';
 import { percentageHexColor } from '../../lib/utils/colors';
 
 // assets
