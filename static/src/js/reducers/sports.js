@@ -10,31 +10,27 @@ module.exports = (state = {
   types: ['nba', 'nhl', 'mlb', 'nfl'],
   nba: {
     gameIds: [],
-    isFetchingTeams: false,
-    isFetchingGames: false,
     gamesExpireAt: dateNow(),
     teamsExpireAt: dateNow(),
+    teams: {},
   },
   nfl: {
     gameIds: [],
-    isFetchingTeams: false,
-    isFetchingGames: false,
     gamesExpireAt: dateNow(),
     teamsExpireAt: dateNow(),
+    teams: {},
   },
   nhl: {
     gameIds: [],
-    isFetchingTeams: false,
-    isFetchingGames: false,
     gamesExpireAt: dateNow(),
     teamsExpireAt: dateNow(),
+    teams: {},
   },
   mlb: {
     gameIds: [],
-    isFetchingTeams: false,
-    isFetchingGames: false,
     gamesExpireAt: dateNow(),
     teamsExpireAt: dateNow(),
+    teams: {},
   },
 }, action = {}) => {
   switch (action.type) {
@@ -42,49 +38,54 @@ module.exports = (state = {
       return update(state, {
         [action.sport]: {
           $merge: {
-            isFetchingTeams: true,
             teamsExpireAt: action.expiresAt,
           },
         },
       });
 
-    case ActionTypes.RECEIVE_TEAMS:
+    case ActionTypes.RECEIVE_TEAMS: {
+      const { teams } = action.response;
+
+      if (Object.keys(teams).length === 0) return state;
+
       return update(state, {
-        [action.sport]: {
+        [action.response.sport]: {
           $merge: {
-            teams: action.response.teams,
-            isFetchingTeams: false,
+            teams,
             teamsExpireAt: action.expiresAt,
           },
         },
       });
+    }
 
     case ActionTypes.REQUEST_GAMES:
       return update(state, {
         [action.sport]: {
           $merge: {
-            isFetchingGames: true,
             gamesExpireAt: action.expiresAt,
           },
         },
       });
 
-    case ActionTypes.RECEIVE_GAMES:
+    case ActionTypes.RECEIVE_GAMES: {
+      const { games, gameIds, sport } = action.response;
+
+      if (gameIds.length === 0) return state;
+
       return update(state, {
         games: {
-          $merge: action.response.games,
+          $merge: games,
         },
-        [action.sport]: {
+        [sport]: {
           $merge: {
-            isFetchingGames: false,
             gamesExpireAt: action.expiresAt,
           },
           gameIds: {
-            $set: action.response.gameIds,
+            $set: gameIds,
           },
         },
       });
-
+    }
     case ActionTypes.UPDATE_GAME:
       if (!(action.gameId in state.games)) break;
 

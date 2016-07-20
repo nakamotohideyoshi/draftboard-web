@@ -382,6 +382,7 @@ const fetchGames = (sport) => ({
     ],
     expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
     endpoint: `${API_DOMAIN}/api/sports/scoreboard-games/${sport}/`,
+    requestFields: { sport },
     callback: (json) => {
       // add in the sport so we know how to differentiate it.
       const games = merge({}, json || {});
@@ -427,15 +428,16 @@ const fetchTeams = (sport) => ({
     ],
     expiresAt: dateNow() + 1000 * 60 * 60 * 6,  // 6 hours
     endpoint: `${API_DOMAIN}/api/sports/teams/${sport}/`,
+    requestFields: { sport },
     callback: (json) => {
-      const newTeams = {};
-      forEach(json, (team) => {
-        newTeams[team.srid] = team;
+      const teams = {};
+      json.forEach((team) => {
+        teams[team.srid] = team;
       });
 
       return {
         sport,
-        teams: newTeams,
+        teams,
       };
     },
   },
