@@ -162,3 +162,7 @@ class EntryAdmin(admin.ModelAdmin):
                             "/admin/contest/contest/",
                              entry.contest.pk,
                              str(entry.contest))
+
+@admin.register(contest.models.SkillLevel)
+class SkillLevelAdmin(admin.ModelAdmin):
+    list_display = ['name', 'gte', 'enforced']
