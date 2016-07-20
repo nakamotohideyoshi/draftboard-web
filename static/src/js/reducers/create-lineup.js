@@ -117,7 +117,7 @@ const findAvailablePositions = (state) => {
 const isPlayerInLineup = (player, state) => typeof find(
   state.lineup,
   (lineupPlayer) =>
-    lineupPlayer.player !== null && lineupPlayer.player.player_id === player.player_id
+    lineupPlayer.player && lineupPlayer.player.player_id === player.player_id
 ) !== 'undefined';
 
 
@@ -280,7 +280,7 @@ module.exports = (state = initialState, action) => {
 
     case ActionTypes.CREATE_LINEUP_SAVE_FAIL:
       return merge({}, state, {
-        errorMessage: action.err,
+        errorMessage: action.err.detail,
       });
 
 
