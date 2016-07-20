@@ -23,13 +23,6 @@ const ContestList = React.createClass({
   },
 
 
-  componentDidMount() {
-    // Listen to j/k keypress actions to focus contests.
-    // KeypressActions.keypressJ.listen(this.focusNextRow);
-    // KeypressActions.keypressK.listen(this.focusPreviousRow);
-  },
-
-
   render() {
     const visibleRows = [];
 
@@ -72,7 +65,7 @@ const ContestList = React.createClass({
             <th
               className="table__sortable"
               onClick={this.props.setOrderBy.bind(null, 'sport')}
-            ></th>
+            >&npsp;</th>
             <th
               className="table__sortable"
               onClick={this.props.setOrderBy.bind(null, 'name')}
@@ -93,7 +86,7 @@ const ContestList = React.createClass({
               onClick={this.props.setOrderBy.bind(null, 'start')}
             >Live In</th>
             <th>Max Entries</th>
-            <th></th>
+            <th>&nbsp;</th>
           </tr>
         </thead>
         <tbody>
