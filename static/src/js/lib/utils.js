@@ -7,6 +7,11 @@ import moment from 'moment';
  */
 export const dateNow = () => new Date().getTime() - (window.dfs.replayerTimeDelta * 1000);
 
+/**
+ * Checks if provided date is in the future.
+ * @return {Number} timestamp
+ */
+export const isDateInTheFuture = (timestamp) => timestamp > dateNow();
 
 /**
  * Adds a leading 0 to turn single-digit numbers into 2-digit ones. Used for displaying time.

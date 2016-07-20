@@ -1,5 +1,6 @@
 import CountdownClock from '../site/countdown-clock';
 import { humanizeCurrency } from '../../lib/utils/currency';
+import { humanizeFP } from '../../actions/sports';
 import { isTimeInFuture } from '../../lib/utils';
 import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
@@ -11,6 +12,7 @@ const ResultsLineup = React.createClass({
   propTypes: {
     dateIsToday: React.PropTypes.bool,
     id: React.PropTypes.number.isRequired,
+    draftGroupId: React.PropTypes.number,
     name: React.PropTypes.string,
     sport: React.PropTypes.string.isRequired,
     players: React.PropTypes.arrayOf(
@@ -31,6 +33,7 @@ const ResultsLineup = React.createClass({
     }),
     start: React.PropTypes.string,
     liveStats: React.PropTypes.shape({
+      totalBuyin: React.PropTypes.number,
       entries: React.PropTypes.number,
       fees: React.PropTypes.number,
       points: React.PropTypes.number,
@@ -84,7 +87,9 @@ const ResultsLineup = React.createClass({
 
   renderLineup() {
     const { sport } = this.props;
+    const isLive = this.props.hasOwnProperty('liveStats');
     const isUpcoming = isTimeInFuture(this.props.start);
+    const isFinished = this.props.hasOwnProperty('stats');
 
     const players = this.props.players.map((player) => {
       let decimalRemaining = 0;
@@ -92,6 +97,21 @@ const ResultsLineup = React.createClass({
       // if live, then show progress bar
       if (this.props.dateIsToday === true && isUpcoming === false) {
         decimalRemaining = player.timeRemaining.decimal;
+      }
+
+      let team;
+      if (player.player_meta.team) {
+        team = (<span className="team">- {player.player_meta.team.alias}</span>);
+      }
+
+      let score = player.fantasy_points;
+      if (!isFinished && isUpcoming === true) {
+        score = `$${player.salary.toLocaleString('en')}`;
+      }
+
+      let scoreClassName = 'score';
+      if (score === 0) {
+        scoreClassName += ' score-zero';
       }
 
       return (
@@ -111,27 +131,25 @@ const ResultsLineup = React.createClass({
           </div>
 
           <span className="name">{player.full_name}</span>
-          <span className="score">{player.fantasy_points}</span>
+          {team}
+          <span className={scoreClassName}>
+            {score}
+          </span>
         </div>
       );
     });
 
     let rightStatTitle = 'PTS';
-    if (isUpcoming === true) {
-      rightStatTitle = 'AVG';
+    if (!isFinished && isUpcoming === true) {
+      rightStatTitle = 'Salary';
     }
 
     let lineupStats = (<div />);
+    let popup = (<div />);
 
-    if (this.props.hasOwnProperty('stats')) {
+    if (isFinished) {
       lineupStats = (
         <div className="footer">
-          <div className="item">
-            <span className="title">Fees</span>
-            <span className="value">
-              {humanizeCurrency(this.props.stats.buyin)}
-            </span>
-          </div>
           <div className="item">
             <span className="title">Won</span>
             <span className="value">
@@ -139,14 +157,24 @@ const ResultsLineup = React.createClass({
             </span>
           </div>
           <div className="item">
-            <span className="title">Entries</span>
+            <span className="title">PTS</span>
             <span className="value">
               {this.props.stats.entries}
             </span>
           </div>
         </div>
       );
-    } else if (this.props.hasOwnProperty('liveStats')) {
+
+      popup = (
+        <div className="to-contests--popup">
+          <div className="triangle-border"></div>
+          <div className="triangle"></div>
+          <div className="item" onClick={this.handleSwitchToContests}>
+            View Entered Contests
+          </div>
+        </div>
+      );
+    } else if (isLive) {
       // if upcoming
       if (isUpcoming === true) {
         lineupStats = (
@@ -162,10 +190,28 @@ const ResultsLineup = React.createClass({
             <div className="item">
               <span className="title">Fees&nbsp;/&nbsp;Entries</span>
               <span className="value">
-                <span className="fees">{humanizeCurrency(this.props.liveStats.fees)}</span>
+                <span className="fees">{humanizeCurrency(this.props.liveStats.totalBuyin)}</span>
                 &nbsp;/&nbsp;
                 {this.props.liveStats.entries}
               </span>
+            </div>
+          </div>
+        );
+
+        let editLineupURL = `/draft/${this.props.draftGroupId}/lineup/${this.props.id}/edit`;
+        let copyLineupURL = `/draft/${this.props.draftGroupId}/lineup/${this.props.id}/copy`;
+        popup = (
+          <div className="to-contests--popup">
+            <div className="triangle-border"></div>
+            <div className="triangle"></div>
+            <div className="item">
+              <a href={editLineupURL}>Edit Lineup</a>
+            </div>
+            <div className="item">
+              <a href={copyLineupURL}>New Lineup via Copy</a>
+            </div>
+            <div className="item" onClick={this.handleSwitchToContests}>
+              View Entered Contests
             </div>
           </div>
         );
@@ -186,8 +232,18 @@ const ResultsLineup = React.createClass({
             <div className="item">
               <span className="title">Pts</span>
               <span className="value">
-                {this.props.liveStats.points}
+                {humanizeFP(this.props.liveStats.points)}
               </span>
+            </div>
+          </div>
+        );
+
+        popup = (
+          <div className="to-contests--popup">
+            <div className="triangle-border"></div>
+            <div className="triangle"></div>
+            <div className="item" onClick={this.handleSwitchToContests}>
+              View Entered Contests
             </div>
           </div>
         );
@@ -199,10 +255,11 @@ const ResultsLineup = React.createClass({
         <div className="header">
           {this.props.name || 'Your Lineup'}
 
-          <div className="to-contests" onClick={this.handleSwitchToContests}>
+          <div className="to-contests">
             <span>
-              Contests <div className="arrow-right">&gt;</div>
+              …
             </span>
+            {popup}
           </div>
 
           <div className="right-stat-title">
@@ -218,6 +275,7 @@ const ResultsLineup = React.createClass({
   },
 
   renderContests() {
+    const isLive = this.props.hasOwnProperty('liveStats');
     const isUpcoming = this.props.dateIsToday && isTimeInFuture(this.props.start);
 
     const entries = this.props.entries.map((entry) => {
@@ -235,17 +293,51 @@ const ResultsLineup = React.createClass({
         );
       }
 
+      let prizeClassName = 'prize';
+      if (!payout.amount || payout.amount === 0) {
+        prizeClassName += ' prize-zero';
+      }
+
       return (
         <div key={contest.id}
           className="contest"
           onClick={this.handleShowContestPane.bind(this, contest.id, entry)}
         >
+          <div className="place">{entry.final_rank}</div>
           <div className="title">{contest.name}</div>
-          <div className="prize">{humanizeCurrency(payout.amount || 0)}</div>
-          <div className="place">{this.numToPlace(entry.final_rank)}</div>
+          <div className={prizeClassName}>{humanizeCurrency(payout.amount || 0)}</div>
         </div>
       );
     });
+
+    // TODO: titles
+    // <div className="right-stat-title">
+    //   {rightStatTitle}
+    // </div>
+
+    let footer = (<div />);
+
+    if (isLive) {
+      footer = (
+        <div className="footer-live">
+          <a className="watch-live" target="_blank" href={`/live/${this.props.sport}/lineups/${this.props.id}/`}>
+            Watch Live
+          </a>
+          <div className="item">
+            <span className="title">Winning</span>
+            <span className="value">
+              {humanizeCurrency(this.props.liveStats.potentialWinnings.amount)}
+            </span>
+          </div>
+          <div className="item">
+            <span className="title">Pts</span>
+            <span className="value">
+              {humanizeFP(this.props.liveStats.points)}
+            </span>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div key={this.props.id} className="contests">
@@ -253,12 +345,17 @@ const ResultsLineup = React.createClass({
           {this.props.entries.length} Contests
 
           <div className="to-lineup" onClick={this.handleSwitchToLineup}>
-            Lineup <div className="arrow-right">&gt;</div>
+          </div>
+          <div className="titles">
+            <div className="titles--pos">Pos</div>
+            <div className="titles--contest">Contest</div>
+            <div className="titles--winning">Winning</div>
           </div>
         </div>
         <div className="list">
           {entries}
         </div>
+        {footer}
       </div>
     );
   },

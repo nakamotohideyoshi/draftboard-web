@@ -3,8 +3,11 @@ import React from 'react';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 
 // assets
-require('../../../sass/site/player-pmr-headshot.scss');
-import defaultPlayerSrc from '../../../img/blocks/draft-list/lineup-no-player.png';
+let defaultPlayerSrc;
+if (process.env.NODE_ENV !== 'test') {
+  require('../../../sass/site/player-pmr-headshot.scss');
+  defaultPlayerSrc = require('../../../img/blocks/draft-list/lineup-no-player.png');
+}
 
 
 /**

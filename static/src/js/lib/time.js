@@ -7,7 +7,7 @@ import log from './logging.js';
 
 /**
  * Returns a list of Date objects. Each object represents a day
- * from the provided month.
+ * from the provided month. Months are zero based.
  * @return {Array}
  */
 export function getDaysForMonth(year, month) {
@@ -36,13 +36,13 @@ export function getDaysForThisMonth() {
  */
 export function weekdayNumToName(dayNum) {
   switch (dayNum) {
-    case 0: return 'SUN';
-    case 1: return 'MON';
-    case 2: return 'TUE';
-    case 3: return 'WED';
-    case 4: return 'THU';
-    case 5: return 'FRI';
-    case 6: return 'SAT';
+    case 0: return 'MON';
+    case 1: return 'TUE';
+    case 2: return 'WED';
+    case 3: return 'THU';
+    case 4: return 'FRI';
+    case 5: return 'SAT';
+    case 6: return 'SUN';
     default:
       throw new Error(`Unknown weekday number: ${dayNum}`);
   }
