@@ -4,6 +4,20 @@
 from functools import reduce
 from collections import Counter
 
+# %cpaste
+# class Dict2(dict):
+#     class ValueDoesNotExist(Exception): pass
+#     def get(self, field, *args, **kwargs):
+#         val = super().get(field)
+#         if val is None:
+#             raise self.ValueDoesNotExist('lol %s wasnt there' % field)
+#         return val
+#
+# --
+# d2 = Dict2({'k':'v'})
+# d2.get('k')
+# d2.get('steve')
+
 class DictTools:
 
     @staticmethod
