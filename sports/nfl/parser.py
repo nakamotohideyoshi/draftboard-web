@@ -247,42 +247,6 @@ class PlayerStats(DataDenPlayerStats):
          11
         $>
 
-    ###
-    # for 2015 stats:
-    #
-    # players__list 0
-    # player_records__list 0
-    # rushing__list 2929
-    # receiving__list 5965
-    # punts__list 703
-    # punt_returns__list 875
-    # penalties__list 3998
-    # passing__list 980
-    # kickoffs__list 741
-    # kick_returns__list 834
-    # fumbles__list 1763
-    # field_goals__list 584
-    # kicks__list 613
-    # defense__list 14518
-    # int_returns__list 533
-    # misc_returns__list 24
-    # conversions__list 261
-    # kick__list 0
-    # rush__list 0
-    # pass__list 0
-    # receive__list 0
-    # penalty__list 0
-    # statistics__list 0
-    # field_goal__list 0
-    # extra_point__list 0
-    # return__list 0
-    # fumble__list 0
-    # conversion__list 0
-    # punt__list 0
-    # block__list 0
-    # defense_conversion__list 0
-# misc__list 0
-    ###
     """
 
     game_model          = Game
@@ -607,7 +571,7 @@ class PlayShrinker(Shrinker):
     fields = {
         'dd_updated__id' : 'ts',
         'alt_description' : 'description',
-        'game__id' : 'srid_game',
+        'game__id' : 'game_srid',
         'statistics__list' : 'statistics',
         'start_situation__list' : 'start_situation',
         'end_situation__list' : 'end_situation',
@@ -784,6 +748,10 @@ class ExtraInfo(object):
         return rush_data
 
 class PlayManager(Manager):
+    """
+    wraps the Reducer & Shrinker tools for compacting and cleaning up NFL pbp data.
+    """
+
     reducer_class = PlayReducer
     shrinker_class = PlayShrinker
 
@@ -793,22 +761,6 @@ class PlayManager(Manager):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # update some custom fields we will inject into the data
-        # and do it previous to any reductions/shrinkers/adds
-        self.update_formation()
-        self.update_pass_side()
-        self.update_pass_depth()
-
-    def update_formation(self):
-        """ parse the formation by looking for the '(Shotgun)' text """
-
-
-    def update_pass_side(self):
-        pass # TODO
-
-    def update_pass_depth(self):
-        pass # TODO
 
 class PossessionReducer(Reducer):
     remove_fields = [
@@ -899,6 +851,8 @@ class PlayParser(DataDenPbpDescription):
     class EndLocationCache(QuickCache):
         name = 'EndLocationCache_nflo_pbp'
         field_id = 'play__id'
+
+    field_pbp_object = 'pbp'
 
     game_model              = Game
     pbp_model               = Pbp
@@ -1013,7 +967,7 @@ class PlayParser(DataDenPbpDescription):
         play['end_situation__list']['location']     = LocationManager(end_location).get_data()
 
         data = {
-            'play' : PlayManager(play).get_data(),
+            self.field_pbp_object : PlayManager(play).get_data(),
         }
 
         #print('get_send_data:', str(data))
