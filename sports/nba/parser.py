@@ -39,10 +39,40 @@ import push.classes
 from sports.sport.base_parser import (
     TsxContentParser,
 )
+from util.dicts import (
+    Reducer,
+    Shrinker,
+    Manager,
+)
+
+class TeamBoxscoreReducer(Reducer):
+    remove_fields = [
+        '_id',
+        'parent_api__id',
+    ]
+
+class TeamBoxscoreShrinker(Shrinker):
+    fields = {
+        'id' : 'srid_team',
+        'dd_updated__id' : 'ts',
+        'game__id' : 'srid_game',
+    }
+
+class TeamBoxscoreManager(Manager):
+    reducer_class = TeamBoxscoreReducer
+    shrinker_class = TeamBoxscoreShrinker
 
 class TeamBoxscores(DataDenTeamBoxscores):
 
     gameboxscore_model = GameBoxscore
+
+    # setting manager_class will cause it to
+    # reduce and shrink the data before getting sent to client
+    manager_class = TeamBoxscoreManager
+
+    # for pusher to know the channel & event
+    channel = push.classes.PUSHER_BOXSCORES  # 'boxscores', its not sport specific
+    event = 'team'
 
     def __init__(self):
         super().__init__()
@@ -50,6 +80,32 @@ class TeamBoxscores(DataDenTeamBoxscores):
     def parse(self, obj, target=None):
         super().parse( obj, target )
         # super() does all the work !
+
+    def send(self, *args, **kwargs):
+        # build the data (with Manager class instance if its set)
+        data = self.get_send_data()
+
+        # pusher it
+        push.classes.DataDenPush(self.channel, self.event).send(data)
+
+class GameBoxscoreReducer(Reducer):
+    """ pop off fields named in the 'remove_fields' property """
+    remove_fields = [
+        '_id',
+    ]
+
+class GameBoxscoreShrinker(Shrinker):
+    """ in underlying data, rename key to value for all key-value-pairs in 'fields' """
+    fields = {
+        'id' : 'srid_game'
+    }
+
+class GameBoxscoreManager(Manager):
+    """
+    get_data() method calls reduce() and shrink() automatically
+    """
+    reducer_class = GameBoxscoreReducer
+    shrinker_class = GameBoxscoreShrinker
 
 class GameBoxscores(DataDenGameBoxscores):
     """
@@ -59,11 +115,19 @@ class GameBoxscores(DataDenGameBoxscores):
     gameboxscore_model  = GameBoxscore
     team_model          = Team
 
+    # setting manager_class will cause it to
+    # reduce and shrink the data before getting sent to client
+    manager_class = GameBoxscoreManager
+
     # the Game model
     game_model = Game
 
     # an instance of GameStatus helps us determine the "primary" status
     game_status = GameStatus(GameStatus.nba)
+
+    # for pusher to know the channel & event
+    channel = push.classes.PUSHER_BOXSCORES  # 'boxscores', its not sport specific
+    event = 'game'
 
     def __init__(self):
         super().__init__()
@@ -81,6 +145,13 @@ class GameBoxscores(DataDenGameBoxscores):
         self.boxscore.times_tied    = self.o.get('times_tied', 0)
 
         self.boxscore.save()
+
+    def send(self, *args, **kwargs):
+        # build the data (with Manager class instance if its set)
+        data = self.get_send_data()
+
+        # pusher it
+        push.classes.DataDenPush(self.channel, self.event).send(data)
 
 class PlayerRosters(DataDenPlayerRosters):
 
@@ -482,13 +553,13 @@ class DataDenNba(AbstractDataDenParser):
         elif self.target == ('nba.game','schedule'): GameSchedule().parse( obj )
         elif self.target == ('nba.game','boxscores'):
             GameBoxscores().parse( obj )
-            DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+
         #
         # nba.team
         elif self.target == ('nba.team','hierarchy'): TeamHierarchy().parse( obj )
         elif self.target == ('nba.team','boxscores'):
             TeamBoxscores().parse( obj )
-            DataDenPush( push.classes.PUSHER_BOXSCORES, 'team' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+
         #
         # nba.period
         elif self.target == ('nba.quarter','pbp'):

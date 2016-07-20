@@ -59,6 +59,11 @@ from draftgroup.classes import (
     GameUpdateManager,
 )
 import scoring.classes
+from util.dicts import (
+    Reducer,
+    Shrinker,
+    Manager,
+)
 
 def get_redis_instance():
     url = os.environ.get('REDISCLOUD_URL') # TODO get this env var from settings
@@ -324,10 +329,36 @@ class HomeAwaySummary(DataDenTeamBoxscores):
         #print( 'boxscore results | home_score %s | away_score %s' % (str(self.boxscore.home_score),str(self.boxscore.away_score)))
         self.boxscore.save()
 
+class GameBoxscoreReducer(Reducer):
+    """ pop off fields named in the 'remove_fields' property """
+    remove_fields = [
+        '_id',
+        'parent_api__id',
+    ]
+
+class GameBoxscoreShrinker(Shrinker):
+    """ in underlying data, rename key to value for all key-value-pairs in 'fields' """
+    fields = {
+        'id' : 'srid_game',
+        'dd_updated__id': 'ts',
+        'game__id': 'srid_game',
+    }
+
+class GameBoxscoreManager(Manager):
+    """
+    get_data() method calls reduce() and shrink() automatically
+    """
+    reducer_class = GameBoxscoreReducer
+    shrinker_class = GameBoxscoreShrinker
+
 class GameBoxscores(DataDenGameBoxscores):
 
     gameboxscore_model  = GameBoxscore
     team_model          = Team
+
+    # setting manager_class will cause it to
+    # reduce and shrink the data before getting sent to client
+    manager_class       = GameBoxscoreManager
 
     # the Game model
     game_model          = Game
@@ -335,8 +366,19 @@ class GameBoxscores(DataDenGameBoxscores):
     # an instance of GameStatus helps us determine the "primary" status
     game_status         = GameStatus(GameStatus.mlb)
 
+    # for pusher to know the channel & event
+    channel = push.classes.PUSHER_BOXSCORES   # 'boxscores', its not sport specific
+    event = 'game'
+
     def __init__(self):
         super().__init__()
+
+    def send(self, *args, **kwargs):
+        # build the data (with Manager class instance if its set)
+        data = self.get_send_data()
+
+        # pusher it
+        push.classes.DataDenPush(self.channel, self.event).send(data)
 
     def parse(self, obj, target=None):
         super().parse( obj, target )
@@ -2474,7 +2516,10 @@ class DataDenMlb(AbstractDataDenParser):
         #
         elif self.target == ('mlb.game','boxscores'):
             GameBoxscores().parse( obj )  # top level boxscore info
-            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+
+            # TODO modify te GameBoxscores parser class to
+            # Reduce/Shrink the underlying data with a Manager object
+            # push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
 
         # runner objects (from pbp)
         elif self.target == ('mlb.runner','pbp'):

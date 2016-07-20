@@ -10,7 +10,66 @@ from sports.mlb.parser import (
     GameSchedule,
     TeamHierarchy,
     PitchPbp,
+    GameBoxscores,
 )
+
+class GameBoxscoresParserManagerClassTest(AbstractTest):
+
+    def setUp(self):
+        self.parser = GameBoxscores()
+
+    def __parse_and_send(self, unwrapped_obj, target):
+        # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
+        # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+        print('self.o:', str(self.parser.o))
+        print('about to call send()...')
+        self.parser.send()
+        print('... called send()')
+
+    def test_1(self):
+        sport_db = 'mlb'
+        parent_api = 'boxscores'
+        data = {
+            "_id": "cGFyZW50X2FwaV9faWRib3hzY29yZXNpZGM4MjQ1NmFjLWE0YjktNGNhZi04MTI0LTBhZmE3NGY5Y2YzNA==",
+            "attendance": 37441,
+            "away_team": "27a59d3b-ff7c-48ea-b016-4798f560f5e1",
+            "coverage": "full",
+            "day_night": "N",
+            "game_number": 1,
+            "home_team": "43a39081-52b4-4f93-ad29-da7f329ea960",
+            "id": "c82456ac-a4b9-4caf-8124-0afa74f9cf34",
+            "scheduled": "2015-05-10T01:10:00+00:00",
+            "status": "closed",
+            "xmlns": "http://feed.elasticstats.com/schema/baseball/v5/game.xsd",
+            "parent_api__id": "boxscores",
+            "dd_updated__id": 1431234264301,
+            "venue": "f1c03dac-3c0f-437c-a325-8d5702cd321a",
+            "broadcast__list": {
+                "network": "ROOT SPORTS"
+            },
+            "final__list": {  ##### when the game is OVER it holds this
+                "inning": 9,
+                "inning_half": "T"
+            },
+            "home": "43a39081-52b4-4f93-ad29-da7f329ea960",
+            "away": "27a59d3b-ff7c-48ea-b016-4798f560f5e1",
+            "pitching__list": {
+                "win__list": {
+                    "player": "9760f1d6-9560-45ed-bc73-5ec2205905a2"
+                },
+                "loss__list": {
+                    "player": "a193c72e-e252-49c4-8ae5-2836039afda7"
+                },
+                "hold__list": {
+                    "player": "6f61629a-8c64-4469-b67a-48d470b7c990"
+                }
+            }
+        }
+
+        self.__parse_and_send(data, (sport_db + '.' + 'game', parent_api))
 
 class TestSeasonScheduleParser(AbstractTest):
     """
@@ -107,8 +166,9 @@ class TestEventPbp(AbstractTest):
     def test_event_pbp_parse(self):
         """
         """
+
         event_pbp = PitchPbp()
-        event_pbp.parse(self.oplog_obj)
+        event_pbp.parse(self.oplog_obj, target=('mlb.pitch','pbp'))
 
         game_srids = event_pbp.get_srids_for_field(self.game_srid_field)
         self.assertIsInstance( game_srids, list )
