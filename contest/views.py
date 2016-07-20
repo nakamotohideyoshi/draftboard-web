@@ -16,7 +16,11 @@ from rest_framework import renderers
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.exceptions import ValidationError, NotFound
+from rest_framework.exceptions import (
+    ValidationError,
+    NotFound,
+    APIException,
+)
 from contest.serializers import (
     ContestSerializer,
     UpcomingEntrySerializer,
@@ -36,6 +40,7 @@ from contest.serializers import (
 )
 from contest.classes import (
     ContestLineupManager,
+    SkillLevelManager,
 )
 from contest.models import (
     Contest,
@@ -433,93 +438,6 @@ class ContestRanksAPIView(generics.GenericAPIView):
         serialized_data = self.serializer_class( self.get_object(contest_id), many=True ).data
         return Response(serialized_data)
 
-# class EnterLineupAPIView(generics.CreateAPIView):
-#     """
-#     enter a lineup into the contest. (exceptions may occur based on user balance, etc...)
-#     """
-#     permission_classes      = (IsAuthenticated,)
-#     serializer_class        = EnterLineupSerializer
-#     # renderer_classes        = (JSONRenderer, BrowsableAPIRenderer)
-#
-#     def post(self, request, format=None):
-#         #print( request.data )
-#         lineup_id       = request.data.get('lineup')
-#         contest_id      = request.data.get('contest')
-#
-#         # ensure the contest is valid
-#         try:
-#             contest = Contest.objects.get( pk=contest_id )
-#         except Contest.DoesNotExist:
-#             return Response( 'Contest does not exist', status=status.HTTP_403_FORBIDDEN )
-#
-#         # ensure the lineup is valid for this user
-#         try:
-#             lineup = Lineup.objects.get( pk=lineup_id, user=request.user )
-#         except Lineup.DoesNotExist:
-#             return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
-#
-#         #
-#         # call the buyin task
-#         bm = BuyinManager( request.user )
-#         # TODO must use task not the regular way
-#         try:
-#             bm.buyin( contest, lineup )
-#         except ContestLineupMismatchedDraftGroupsException:
-#             return Response( 'This lineup was not drafted from the same group as this contest.', status=status.HTTP_403_FORBIDDEN )
-#         except ContestIsInProgressOrClosedException:
-#             return Response( 'You may no longer enter this contest', status=status.HTTP_403_FORBIDDEN )
-#         except ContestCouldNotEnterException:
-#             return Response( 'ContestCouldNotEnterException', status=status.HTTP_403_FORBIDDEN )
-#         except ContestIsNotAcceptingLineupsException:
-#             return Response( 'Contest is not accepting entries', status=status.HTTP_403_FORBIDDEN )
-#         except (ContestMaxEntriesReachedException, ContestIsFullException) as e:
-#             return Response( 'Contest is full', status=status.HTTP_403_FORBIDDEN )
-#         except (OverdraftException) as e:
-#             return Response('You have insufficient funds to enter this contest.', status=status.HTTP_403_FORBIDDEN )
-#
-#         # If Entry creation was successful, return the created Entry object.
-#         entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
-#         serializer = CurrentEntrySerializer(entry, many=False)
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-# class EnterLineupAPIView(generics.CreateAPIView): # original for CONTESTS
-#     """
-#     enter a lineup into the contest. (exceptions may occur based on user balance, etc...)
-#     """
-#     permission_classes      = (IsAuthenticated,)
-#     serializer_class        = EnterLineupSerializer
-#     # renderer_classes        = (JSONRenderer, BrowsableAPIRenderer)
-#
-#     def post(self, request, format=None):
-#         lineup_id       = request.data.get('lineup')
-#         contest_id      = request.data.get('contest')
-#
-#         #print('contest_id', str(contest_id), 'str:', isinstance(contest_id, str))
-#         # ensure the contest is valid
-#         try:
-#             contest = Contest.objects.get( pk=contest_id )
-#         except Contest.DoesNotExist:
-#             return Response( 'Contest does not exist', status=status.HTTP_403_FORBIDDEN )
-#
-#         # ensure the lineup is valid for this user
-#         try:
-#             lineup = Lineup.objects.get( pk=lineup_id, user=request.user )
-#         except Lineup.DoesNotExist:
-#             return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
-#
-#         #
-#         # call the buyin task - it has a time_limit of ~20 seconds before it will timeout
-#         task_result = buyin_task.delay( request.user, contest, lineup=lineup )
-#
-#         #
-#         # return task id
-#         return Response({'buyin_task_id':task_result.id}, status=status.HTTP_201_CREATED)
-#
-#         # If Entry creation was successful, return the created Entry object.
-#         # entry = Entry.objects.get(contest__id=contest_id, lineup__id=lineup_id)
-#         # serializer = CurrentEntrySerializer(entry, many=False)
-#         # return Response(serializer.data, status=status.HTTP_201_CREATED)
-
 class EnterLineupAPIView(generics.CreateAPIView):
     """
     enter a lineup into a ContestPool. (exceptions may occur based on user balance, etc...)
@@ -533,51 +451,49 @@ class EnterLineupAPIView(generics.CreateAPIView):
 
         # ensure the ContestPool exists
         try:
-            contest = ContestPool.objects.get( pk=contest_pool_id )
+            contest_pool = ContestPool.objects.get( pk=contest_pool_id )
         except ContestPool.DoesNotExist:
-            return Response( 'ContestPool does not exist', status=status.HTTP_403_FORBIDDEN )
+            #return Response( 'ContestPool does not exist', status=status.HTTP_403_FORBIDDEN )
+            raise APIException('ContestPool does not exist')
 
         # ensure the lineup is valid for this user
         try:
             lineup = Lineup.objects.get( pk=lineup_id, user=request.user )
         except Lineup.DoesNotExist:
-            return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
+            #return Response( 'Lineup does not exist', status=status.HTTP_403_FORBIDDEN )
+            raise APIException('Lineup does not exist')
 
-        #
-        # call the buyin task - it has a time_limit of ~20 seconds before it will timeout
-        # print('before:', str(timezone.now()))
-        # # task_result = buyin_task.delay( request.user, contest, lineup=lineup )
-        # task_result = buyin_task.apply(args=(request.user, contest, lineup))
-        # print('after:', str(timezone.now()))
-        #
-        # #
-        # # return task id
-        # return Response({'buyin_task_id':task_result.id}, status=status.HTTP_201_CREATED)
+        # check if this user can enter this skill level
+        skill_level_manager = SkillLevelManager()
+        try:
+            skill_level_manager.validate_can_enter(request.user, contest_pool)
+        except SkillLevelManager.CanNotEnterSkillLevel:
+            raise APIException('You may not enter this Skill Level.')
 
-        task_result = buyin_task.delay(request.user, contest, lineup=lineup)
+        task_result = buyin_task.delay(request.user, contest_pool, lineup=lineup)
         # get() blocks the view from returning until the task completes its work
         task_result.get()
         task_helper = TaskHelper(buyin_task, task_result.id)
         #print('task_helper.get_data()', task_helper.get_data())
         data = task_helper.get_data()
         data['buyin_task_id'] = task_result.id # dont break what was there by adding this extra field
-        return Response(data, status=status.HTTP_201_CREATED)
+        return Response(data, status=status.HTTP_200_OK)
 
-class EnterLineupStatusAPIView(generics.GenericAPIView):
-
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = EnterLineupStatusSerializer
-
-    def get(self, request, task_id, format=None):
-        """
-        Given the 'task' parameter, return the status of the task (ie: the buyin)
-
-        :param request:
-        :param format:
-        :return:
-        """
-        task_helper = TaskHelper(buyin_task, task_id)
-        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
+# class EnterLineupStatusAPIView(generics.GenericAPIView):
+#
+#     permission_classes      = (IsAuthenticated,)
+#     serializer_class        = EnterLineupStatusSerializer
+#
+#     def get(self, request, task_id, format=None):
+#         """
+#         Given the 'task' parameter, return the status of the task (ie: the buyin)
+#
+#         :param request:
+#         :param format:
+#         :return:
+#         """
+#         task_helper = TaskHelper(buyin_task, task_id)
+#         return Response(task_helper.get_data(), status=status.HTTP_200_OK)
 
 class PayoutsAPIView(generics.ListAPIView):
     """
@@ -610,41 +526,22 @@ class EditEntryLineupAPIView(APIView):
         #
         # validate the parameters passed in here.
         if players is None:
-            return Response({'error':'you must supply the "players" parameter -- the list of player ids'},
-                                        status=status.HTTP_400_BAD_REQUEST )
+            raise APIException('you must supply the list of Player ids.')
+
         if entry_id is None:
-            return Response({'error':'you must supply the "entry" parameter -- the Entry id'},
-                                        status=status.HTTP_400_BAD_REQUEST )
+            raise APIException('you must supply the Entry id')
+
         try:
             entry = Entry.objects.get(pk=entry_id, user=request.user)
         except Entry.DoesNotExist:
-            return Response({'error':'invalid "entry" parameter -- does not exist'},
-                                        status=status.HTTP_400_BAD_REQUEST )
-        #
+            raise APIException('invalid Entry id')
+
         # execute task
         task_result = edit_entry.delay(request.user, players, entry)
         # get() blocks the view until the task completes its work
         task_result.get()
         task_helper = TaskHelper(edit_entry, task_result.id)
         return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
-
-class EditEntryLineupStatusAPIView(generics.GenericAPIView):
-    """
-    get status information for the task which performed work for the "edit entry" api
-    """
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = EditEntryLineupStatusSerializer
-
-    def get(self, request, task_id, format=None):
-        """
-        Given the 'task' parameter, return the status of the task (ie: from performing the edit-entry)
-
-        :param request:
-        :param format:
-        :return:
-        """
-        task_helper = TaskHelper(edit_entry, task_id)
-        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
 
 class RemoveAndRefundEntryAPIView(APIView):
     """
@@ -659,25 +556,20 @@ class RemoveAndRefundEntryAPIView(APIView):
 
         # validate the parameters passed in here.
         if entry_id is None:
-            return Response({'error':'you must supply the "entry" parameter -- the Entry id'},
-                                        status=status.HTTP_400_BAD_REQUEST )
+            raise APIException('you must supply the Entry id')
+
         try:
             entry = Entry.objects.get(pk=entry_id, user=request.user)
         except Entry.DoesNotExist:
-            return Response({'error':'invalid "entry" parameter -- does not exist'},
-                                        status=status.HTTP_400_BAD_REQUEST )
+            raise APIException('Entry does not exist.')
 
-        #
         # except for the admin, only the user who created the Entry can unregister it
         user = self.request.user
-        #print( user, user.is_superuser, entry.user, 'user == entry.user -> %s' % str(user==entry.user))
         if not (user.is_superuser or user == entry.user):
-            return Response({'error':'only an admin or the creating user can unregister this entry'},
-                                            status=status.HTTP_403_FORBIDDEN )
+            raise APIException('You are restricted from unregistering this Entry.')
 
-        #if entry.contest_pool not in UpcomingContestPool.objects.all():
         if entry.contest_pool not in UpcomingContestPool.objects.all():
-            return Response({'error':'Cannot unregister at this time.'}, status=status.HTTP_403_FORBIDDEN)
+            raise APIException('You may not unregister at this time.')
 
         #
         # execute the unregister task (non-blocking) and return the task_id
@@ -686,53 +578,6 @@ class RemoveAndRefundEntryAPIView(APIView):
         task_result.get()
         task_helper = TaskHelper(unregister_entry_task, task_result.id)
         return Response(task_helper.get_data(), status=status.HTTP_201_CREATED)
-
-class RemoveAndRefundEntryStatusAPIView(generics.GenericAPIView):
-    """
-    get status information for the task which performed the "unregister entry" action
-    """
-    permission_classes      = (IsAuthenticated,)
-    serializer_class        = RemoveAndRefundEntryStatusSerializer
-
-    def get(self, request, task_id, format=None):
-        """
-        Given the 'task' parameter, return the status of the task (ie: from performing the edit-entry)
-
-        :param request:
-        :param format:
-        :return:
-        """
-        task_helper = TaskHelper(unregister_entry_task, task_id)
-        return Response(task_helper.get_data(), status=status.HTTP_200_OK)
-
-# class UserPlayHistoryAPIView(generics.ListAPIView):
-#     """
-#     get the entry history for a user lineups on a day
-#     """
-#
-#     permission_classes      = (IsAuthenticated,)
-#     serializer_class        = UserLineupHistorySerializer
-#
-#     def get_queryset(self):
-#         """
-#         retrieve the Lineup objects
-#         """
-#         rng     = DfsDate.get_current_dfs_date_range()
-#         yyyy    = int(self.kwargs['year'])
-#         mm      = int(self.kwargs['month'])
-#         dd      = int(self.kwargs['day'])
-#         start   = rng[0].replace( yyyy, mm, dd )
-#         end     = start + timedelta(days=1)
-#         print('range(%s, %s)' % (start, end))
-#
-#         # get a list of the lineups in historical entries for the day
-#         history_entries = ClosedEntry.objects.filter( user=self.request.user,
-#                                                        contest__start__range=(start, end) ) #,
-#                                                        #contest__status=Contest.CLOSED )
-#         for he in history_entries:
-#             print( he, str(he.contest) )
-#         historical_entry_lineups = [ e.lineup for e in history_entries ]
-#         return historical_entry_lineups
 
 class UserPlayHistoryAPIView(APIView):
     """

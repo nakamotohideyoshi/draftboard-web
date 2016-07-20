@@ -2,6 +2,12 @@
 # contest/admin.py
 
 from django.contrib import admin
+from django.forms import (
+    ModelForm,
+    ModelChoiceField,
+    ValidationError,
+)
+from django.contrib import messages
 import contest.models
 import contest.forms
 from contest.refund.tasks import refund_task
@@ -21,6 +27,26 @@ CONTEST_LIST_FILTERS    = ['name','status','start']
 @admin.register(contest.models.LobbyContestPool)
 class LobbyContestPoolAdmin(admin.ModelAdmin):
 
+    class ContestPoolForm(ModelForm):
+
+        def clean_skill_level(self):
+            """ do not let the SkillLevel be changed to anything that is enforced """
+            field = 'skill_level'
+            skill_level = self.cleaned_data[field]
+            if field in self.changed_data and skill_level.enforced == True:
+                #
+                msg = 'Not Updated! You may only change the SkillLevel on ' \
+                      'active ContestPools to a level that is not enforced!'
+                raise ValidationError(msg)
+
+            return skill_level
+
+    # provides some validation
+    form = ContestPoolForm
+
+    # we need to allow certain fields to avoid getting 'read_only' mode
+    non_read_only_fields = ['name','skill_level']
+
     list_display    = CONTEST_POOL_LIST_DISPLAY
     list_filter     = CONTEST_POOL_LIST_FILTERS
     search_fields   = CONTEST_POOL_SEARCH_FIELDS
@@ -28,6 +54,9 @@ class LobbyContestPoolAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         if obj:
             arr = [f.name for f in self.model._meta.fields]
+            for f in self.non_read_only_fields:
+                if f in arr:
+                    arr.remove(f)
             return arr
         return []
 
@@ -162,3 +191,17 @@ class EntryAdmin(admin.ModelAdmin):
                             "/admin/contest/contest/",
                              entry.contest.pk,
                              str(entry.contest))
+
+@admin.register(contest.models.SkillLevel)
+class SkillLevelAdmin(admin.ModelAdmin):
+
+    list_display = ['name', 'gte', 'enforced']
+
+    def get_readonly_fields(self, request, obj=None):
+        return [f.name for f in self.model._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False

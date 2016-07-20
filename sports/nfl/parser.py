@@ -1,6 +1,7 @@
 #
 # sports/nfl/parser.py
 
+import re
 from django.db.transaction import atomic
 from sports.sport.base_parser import AbstractDataDenParseable
 import sports.nfl.models
@@ -38,6 +39,7 @@ from util.dicts import (
     Shrinker,
     Manager,
 )
+from mysite.utils import QuickCache
 
 class TeamHierarchy(DataDenTeamHierarchy):
     """
@@ -51,8 +53,10 @@ class TeamHierarchy(DataDenTeamHierarchy):
     def parse(self, obj):
         super().parse(obj)  # setup PlayerStats instance
 
-        o = obj.get_o()
-        self.team.alias     = o.get('id', None)   # nfl ids are the team acronym, which is the alias
+        # the classic feed had to override this, but the new Official feed now does not
+        # o = obj.get_o()
+        # self.team.alias = o.get('id', None)   # nfl ids are the team acronym, which is the alias
+
         self.team.save() # commit changes
 
 class SeasonSchedule(DataDenSeasonSchedule):
@@ -336,7 +340,33 @@ class PlayerStats(DataDenPlayerStats):
 
         self.ps.save()
 
-class GameBoxscores(AbstractDataDenParseable):
+class GameBoxscoreReducer(Reducer):
+    remove_fields = [
+        '_id',
+        'scoring_drives__list',
+        'entry_mode',
+        'situation__list',
+        'number',
+        'last_event__list',
+        'xmlns',
+        'scoring__list',
+        'reference',
+        'utc_offset',
+        'parent_api__id',
+    ]
+
+class GameBoxscoreShrinker(Shrinker):
+    fields = {
+        'summary__list' : 'summary',
+        'dd_updated__id' : 'ts',
+        'id' : 'srid_game'
+    }
+
+class GameBoxscoreManager(Manager):
+    reducer_class = GameBoxscoreReducer
+    shrinker_class = GameBoxscoreShrinker
+
+class GameBoxscoreParser(AbstractDataDenParseable):
     """
     example data for a GameBoxscore:
         {
@@ -374,34 +404,29 @@ class GameBoxscores(AbstractDataDenParseable):
             'weather': 'Partly Cloudy Temp: 69 F, Humidity: 58%, Wind: NW 10 mph'
         }
     """
+
     gameboxscore_model  = GameBoxscore
     team_model          = Team
+
+    manager_class       = GameBoxscoreManager
+
+    channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
+    event = 'game'
 
     def __init__(self):
         super().__init__()
 
-    def parse(self, obj):
+    def parse(self, obj, target):
         """
         :param obj:
         :return:
         """
 
-        # #
-        # ###############################################################
-        # # nfl official data game boxscores must setup:
-        # #   self.original_obj, self.o, self.srid_finder
-        # ###############################################################
-        # self.original_obj = obj
-        # if self.wrapped:
-        #     self.o  = obj.get_o()
-        # else:
-        #     self.o  = obj
-        # # construct an SridFinder with the dictionary data
-        # self.srid_finder = SridFinder(self.o)
-        # ###############################################################
-        # ###############################################################
-        super().parse(obj, target=None)
-        o = self.o
+        # parse triggered object will set original_obj
+        # to the current object (with wrapper)
+        # and set the self.o (to the unwrapped object)
+        self.parse_triggered_object(obj)
+        o = self.o # everything uses 'o already
 
         summary_list = o.get('summary__list', {})
 
@@ -442,7 +467,120 @@ class GameBoxscores(AbstractDataDenParseable):
 
         self.boxscore.save()
 
-class PlayReducer(Reducer): # TODO - test
+    def send(self, *args, **kwargs):
+        data = self.get_send_data()
+
+        # pusher it
+        push.classes.DataDenPush(self.channel, self.event).send(data)
+
+class TeamBoxscoreReducer(Reducer):
+    remove_fields = [
+        '_id',
+        'parent_list__id',
+        'reference',
+        'parent_api__id',
+    ]
+
+class TeamBoxscoreShrinker(Shrinker):
+    fields = {
+        'id' : 'srid_team',
+        'dd_updated__id' : 'ts',
+        'game__id' : 'srid_game',
+    }
+
+class TeamBoxscoreManager(Manager):
+    reducer_class = TeamBoxscoreReducer
+    shrinker_class = TeamBoxscoreShrinker
+
+class TeamBoxscoreParser(AbstractDataDenParseable):
+    """
+    example data for a TeamBoxscore:
+        {
+            "_id": "cGFyZW50X2FwaV9faWRib3hzY29yZXNnYW1lX19pZDFjYTlhMGMxLWQxNDUtNGFjYi1hY2EyLWNiMmI1ZmU1MjliOXBhcmVudF9saXN0X19pZHN1bW1hcnlfX2xpc3RpZDQyNTRkMzE5LTFiYzctNGY4MS1iNGFiLWI1ZTZmMzQwMmI2OQ==",
+            "alias": "TB",
+            "id": "4254d319-1bc7-4f81-b4ab-b5e6f3402b69",
+            "market": "Tampa Bay",
+            "name": "Buccaneers",
+            "points": 14,
+            "reference": 4970,
+            "remaining_timeouts": 2,
+            "used_timeouts": 1,
+            "parent_api__id": "boxscores",
+            "dd_updated__id": 1464834061361,
+            "game__id": "1ca9a0c1-d145-4acb-aca2-cb2b5fe529b9",
+            "parent_list__id": "summary__list"
+        }
+    """
+
+    gameboxscore_model  = GameBoxscore
+    team_model          = Team
+
+    manager_class       = TeamBoxscoreManager
+
+    channel = push.classes.PUSHER_BOXSCORES  # 'boxscores'
+    event = 'team'
+
+    def __init__(self):
+        super().__init__()
+
+    def parse(self, obj, target):
+        """
+        :param obj:
+        :return:
+        """
+
+        # parse triggered object will set original_obj
+        # to the current object (with wrapper)
+        # and set the self.o (to the unwrapped object)
+        self.parse_triggered_object(obj)
+        # o = self.o # everything uses 'o already
+        #
+        # summary_list = o.get('summary__list', {})
+        #
+        # srid_game   = o.get('id', None)
+        # srid_home   = summary_list.get('home', None)
+        # srid_away   = summary_list.get('away', None)
+        #
+        # try:
+        #     h = self.team_model.objects.get( srid=srid_home )
+        # except self.team_model.DoesNotExist:
+        #     #print( str(o) )
+        #     #print( 'Team (home_team) does not exist for srid so not creating GameBoxscore')
+        #     return
+        #
+        # try:
+        #     a = self.team_model.objects.get( srid=srid_away )
+        # except self.team_model.DoesNotExist:
+        #     #print( str(o) )
+        #     #print( 'Team (away_team) does not exist for srid so not creating GameBoxscore')
+        #     return
+
+        # try:
+        #     self.boxscore = self.gameboxscore_model.objects.get(srid_game=srid_game)
+        # except self.gameboxscore_model.DoesNotExist:
+        #     self.boxscore = self.gameboxscore_model()
+        #     self.boxscore.srid_game = srid_game
+
+        # self.boxscore.srid_home     = srid_home
+        # self.boxscore.home          = h
+        # self.boxscore.away          = a
+        # self.boxscore.srid_away     = srid_away
+        #
+        # self.boxscore.quarter       = o.get('quarter', 0)
+        # self.boxscore.clock         = o.get('clock', '' )
+        # self.boxscore.coverage      = o.get('coverage', '')    # deprecated, but it will default to empty string
+        # self.boxscore.status        = o.get('status', '')
+        # self.boxscore.title         = o.get('title', '')
+
+        # self.boxscore.save()
+
+    def send(self, *args, **kwargs):
+        data = self.get_send_data()
+
+        # pusher it
+        push.classes.DataDenPush(self.channel, self.event).send(data)
+
+class PlayReducer(Reducer):
     remove_fields = [
         'away_points',
         'wall_clock',
@@ -462,21 +600,305 @@ class PlayReducer(Reducer): # TODO - test
         'description',              # has the player numbers - use 'alt_description'
         'drive__id',                # srid of the drive this play is contained within
         # 'game__id',               # game srid
-        'end_situation__list',    # ex: {"yfd": 5, "location": <srid>, "down": 2, "clock": "14:30", "possession": <srid>}
+        # 'end_situation__list',    # ex: {"yfd": 5, "location": <srid>, "down": 2, "clock": "14:30", "possession": <srid>}
     ]
 
-class PlayShrinker(Shrinker): # TODO - test
+class PlayShrinker(Shrinker):
     fields = {
+        'dd_updated__id' : 'ts',
         'alt_description' : 'description',
         'game__id' : 'srid_game',
-        'start_situation__list' : 'start',
+        'statistics__list' : 'statistics',
+        'start_situation__list' : 'start_situation',
+        'end_situation__list' : 'end_situation',
     }
 
-class PlayManager(Manager): # TODO - test
+class ExtraInfo(object):
+    """
+    extracts consistent tokens from the human readable play description text,
+     to name one example: the pass or rush 'side' of the field which is
+     typically one of the values in the list: ['left', 'middle', 'right']
+    """
+
+    # the NFLOfficial play objects have a "type" field. primarily we care
+    # if the value of the "type" field is 'pass' or 'rush' but it can be other things
+    type_pass = 'pass'
+    type_rush = 'rush'
+    expected_types = [type_pass, type_rush]
+
+    # formation type, if unknown, we call it 'default'
+    formation           = 'formation'
+    default_formation   = 'default'
+
+    # pass/rush dict keys
+    side                = 'side'
+    distance            = 'distance'
+    scramble            = 'scramble'
+
+    # major event flags
+    touchdown           = 'touchdown'
+    intercepted         = 'intercepted'
+    fumbles             = 'fumbles'
+    no_huddle           = 'no_huddle'
+    wildcat             = 'wildcat'
+
+    # specific values for distance, and side known as 99.99% likely
+    distance_short  = 'short'
+    distance_deep   = 'deep'
+    side_left       = 'left'
+    side_middle     = 'middle'
+    side_right      = 'right'
+
+    # regular expressions we will hunt for (all lowercase)
+    regex_distance  = r'(short|deep)'
+    regex_side      = r'(left|middle|right)'
+    regex_no_huddle = r'no[\s]+huddle'
+    regex_wildcat   = r'direct[\s]+snap'
+
+    # formation is only a single thing right now and its simpler to string match it
+    str_formation_shotgun = 'shotgun'
+    str_touchdown = 'touchdown'
+    str_intercepted = 'intercepted'
+    str_fumbles = 'fumbles'
+    str_scrambles = 'scrambles'
+
+    def __init__(self, type, description):
+        """
+        create an ExtraInfo object from a play description (the human readable text)
+        :param description: ex: (10:20) A.Morris left end to MIA 26 for 10 yards (J.Jenkins).
+        """
+        self.type = type
+        self.description = description
+        self.ld_description = self.description.lower()
+
+        # initialize our underlying dict with default values
+        self.data = {
+            self.formation : self.default_formation,
+            self.touchdown : False,
+            self.intercepted : False,
+            self.fumbles : False,
+            self.wildcat : False,
+        }
+
+        # 1. parse things that could always be there (ie: extra_data top level fields)
+        # set flags for important events like: touchdowns, interceptions, fumbles...
+        self.update_major_flags()
+
+        # 2. if 'type' is in the execpted_types, parse its specific information
+        self.data[self.type] = self.get_play_type_data(self.type)
+
+    def get_data(self):
+        """ return the data as a dict """
+        return self.data
+
+    def update_major_flags(self):
+        """ """
+        # get the string name of the offensive formation
+        self.data[self.formation]   = self.parse_formation()        # in ['shotgun', 'default']
+
+        # flags
+        self.data[self.no_huddle]   = self.parse_no_huddle()        # bool
+        self.data[self.touchdown]   = self.parse_touchdown()        # bool
+        self.data[self.intercepted] = self.parse_intercepted()      # bool
+        self.data[self.fumbles]     = self.parse_fumbles()          # bool
+        self.data[self.wildcat]     = self.parse_wildcat()          # bool
+
+        return self.data
+
+    def parse_formation(self):
+        """ extract and return the formation """
+        formation_name = self.default_formation
+        if self.str_formation_shotgun in self.ld_description:
+            formation_name = self.str_formation_shotgun
+
+        return formation_name
+
+    def parse_no_huddle(self):
+        """ return boolean indicating if its offense is using the no-huddle """
+        matches = re.findall(self.regex_no_huddle, self.ld_description)
+        return len(matches) > 0
+
+    def parse_touchdown(self):
+        """ return boolean touchdown flag """
+        return self.str_touchdown in self.ld_description
+
+    def parse_intercepted(self):
+        """ return boolean intercepted flag """
+        return self.str_intercepted in self.ld_description
+
+    def parse_fumbles(self):
+        """ return boolean fumbles flag """
+        return self.str_fumbles in self.ld_description
+
+    def parse_wildcat(self):
+        """ return boolean wildcat flag """
+        matches = re.findall(self.regex_wildcat, self.ld_description)
+        return len(matches) > 0
+
+    def parse_distance(self):
+        """ """
+        matches = re.findall(self.regex_distance, self.ld_description)
+        #print('matches:', str(matches))
+        if len(matches) > 0:
+            return matches[0]
+        return None # we might want to raise an exception here # TODO - no 'distance' found
+
+    def parse_side(self):
+        """ """
+        matches = re.findall(self.regex_side, self.ld_description)
+        #print('matches:', str(matches))
+        if len(matches) > 0:
+            return matches[0]
+        return None  # we might want to raise an exception here # TODO - no 'side' found
+
+    def parse_scramble(self):
+        """ return boolean scrambles flag, specifically for the 'rush' data """
+        return self.str_scrambles in self.ld_description
+
+    def get_play_type_data(self, type):
+        """ build the special data for the play type passed in """
+        if type == self.type_pass:
+            return self.get_pass_data()
+
+        elif type == self.type_rush:
+            return self.get_rush_data()
+
+        else:
+            # we dont parse specific info for this play type
+            return {}
+
+    def get_pass_data(self):
+        """ special data for 'pass' play """
+        pass_data = {
+            self.distance: self.parse_distance(),   # in ['short', 'deep']
+            self.side: self.parse_side(),           # in ['left', 'middle', 'right']
+        }
+        return pass_data
+
+    def get_rush_data(self):
+        """ special data for 'rush' play """
+        rush_data = {
+            self.scramble: self.parse_scramble(),   # True indicates QB is rusher, otherwise false
+            self.side: self.parse_side(),           # in ['left', 'middle', 'right']
+        }
+        return rush_data
+
+class PlayManager(Manager):
     reducer_class = PlayReducer
     shrinker_class = PlayShrinker
 
+    field_formation     = 'formation'
+    field_pass_side     = 'pass_side'
+    field_pass_depth    = 'pass_depth'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # update some custom fields we will inject into the data
+        # and do it previous to any reductions/shrinkers/adds
+        self.update_formation()
+        self.update_pass_side()
+        self.update_pass_depth()
+
+    def update_formation(self):
+        """ parse the formation by looking for the '(Shotgun)' text """
+
+
+    def update_pass_side(self):
+        pass # TODO
+
+    def update_pass_depth(self):
+        pass # TODO
+
+class PossessionReducer(Reducer):
+    remove_fields = [
+        'game__id',
+        'quarter__id',
+        'play__id',
+        'reference',
+        '_id',
+        'dd_updated__id',
+        'parent_api__id',
+        'id',
+        'parent_list__id',
+        'drive__id',
+    ]
+
+class PossessionShrinker(Shrinker):
+    fields = {} # there arent any
+
+class PossessionManager(Manager):
+    reducer_class = PossessionReducer
+    shrinker_class = PossessionShrinker
+
+class LocationReducer(Reducer):
+    remove_fields = [
+        'parent_list__id',
+        'play__id',
+        'id',
+        'game__id',
+        'parent_api__id',
+        'drive__id',
+        '_id',
+        'dd_updated__id',
+        'quarter__id',
+        'reference',
+    ]
+
+class LocationShrinker(Shrinker):
+    fields = { } # there arent any
+
+class LocationManager(Manager):
+    reducer_class = LocationReducer
+    shrinker_class = LocationShrinker
+
+# # for the 'statistics__list' : 'pass__list' stats
+# class PassReducer(Reducer):
+#     remove_fields = [] # TODO
+# class PassShrinker(Shrinker):
+#     fields = {} # TODO
+# class PassManager(Manager):
+#     reducer_class = PassReducer
+#     shrinker_class = PassShrinker
+#
+# # for the 'statistics__list' : 'receive__list' stats
+# class ReceiveReducer(Reducer):
+#     remove_fields = [] # TODO
+# class ReceiveShrinker(Shrinker):
+#     fields = {} # TODO
+# class ReceiveManager(Manager):
+#     reducer_class = ReceiveReducer
+#     shrinker_class = ReceiveShrinker
+#
+# # for the 'statistics__list' : 'rush__list' stats
+# class RushReducer(Reducer):
+#     remove_fields = [] # TODO
+# class RushShrinker(Shrinker):
+#     fields = {} # TODO
+# class RushManager(Manager):
+#     reducer_class = RushReducer
+#     shrinker_class = RushShrinker
+
 class PlayParser(DataDenPbpDescription):
+
+    class PlayCache(QuickCache):
+        name = 'PlayCache_nflo_pbp'
+
+    class StartPossessionCache(QuickCache):
+        name = 'StartPossessionCache_nflo_pbp'
+        field_id = 'play__id'
+
+    class StartLocationCache(QuickCache):
+        name = 'StartLocationCache_nflo_pbp'
+        field_id = 'play__id'
+
+    class EndPossessionCache(QuickCache):
+        name = 'EndPossessionCache_nflo_pbp'
+        field_id = 'play__id'
+
+    class EndLocationCache(QuickCache):
+        name = 'EndLocationCache_nflo_pbp'
+        field_id = 'play__id'
 
     game_model              = Game
     pbp_model               = Pbp
@@ -491,14 +913,114 @@ class PlayParser(DataDenPbpDescription):
 
     def __init__(self):
         super().__init__()
+        self.ts = None
+        self.play_srid = None
 
-    def parse(self, obj, target=None):
+    def update_required_parts(self, ts, play_srid):
+        """ must be called after we've cached the item we just set with parse() """
+
+        # very important to set ts, and play_srid internally now
+        # because they are the values enabling us to get our complete object
+        self.ts = ts
+        self.play_srid = play_srid
+
+        # these three items are required in order to send this item
+        required_parts = []
+
+        play = self.PlayCache().fetch(ts, play_srid)
+        required_parts.append(play)
+
+        start_location = self.StartPossessionCache().fetch(ts, play_srid)
+        required_parts.append(start_location)
+
+        start_possession = self.StartLocationCache().fetch(ts, play_srid)
+        required_parts.append(start_possession)
+
+        end_location = self.EndPossessionCache().fetch(ts, play_srid)
+        required_parts.append(end_location)
+
+        end_possession = self.EndLocationCache().fetch(ts, play_srid)
+        required_parts.append(end_possession)
+
+        return required_parts
+
+    def cache_target(self, o, target):
+        ts = o.get('dd_updated__id')
+        play_srid = None
+        if target == ('nflo.play', 'pbp'):
+            play_srid = o.get('id')
+            self.PlayCache(o)
+            #tmp_o = c.fetch(ts, play_srid)
+        elif target == ('nflo.possession', 'pbp'):
+            play_srid = o.get('play__id')
+            situation_type = o.get('parent_list__id')
+            if situation_type == 'start_situation__list':
+                self.StartPossessionCache(o)
+            else: # 'end_situation__list'
+                self.EndPossessionCache(o)
+        elif target == ('nflo.location', 'pbp'):
+            play_srid = o.get('play__id')
+            situation_type = o.get('parent_list__id')
+            if situation_type == 'start_situation__list':
+                self.StartLocationCache(o)
+            else: # 'end_situation__list'
+                self.EndLocationCache(o)
+
+        if ts is not None and play_srid is not None:
+            return (ts, play_srid)
+        # else:
+        return None
+
+    def parse(self, obj, target):
         # this strips off the dataden oplog wrapper, and sets the SridFinder internally.
         # now we can use self.o which is the data object we care about.
         self.parse_triggered_object(obj)
 
+        # update the current object it its own cache first
+        ts, play_srid = self.cache_target(self.o, target)
+
+        # completes all the required parts (if they exist yet)
+        required_parts = self.update_required_parts(ts, play_srid)
+
+        if None not in required_parts:
+            self.send()
+
+    def get_send_data(self):
+        """ build the linked object from the parts """
+
+        #
+        # assumes that everthing must exist at this point for us to be able to build it!
+        play = self.PlayCache().fetch(self.ts, self.play_srid)
+
+        start_location = self.StartLocationCache().fetch(self.ts, self.play_srid)
+        start_possession = self.StartPossessionCache().fetch(self.ts, self.play_srid)
+
+        end_location = self.EndLocationCache().fetch(self.ts, self.play_srid)
+        end_possession = self.EndPossessionCache().fetch(self.ts, self.play_srid)
+
+        # "start_situation__list": {
+        #   "down": 2,
+        #   "yfd": 5,
+        #   "location": "22052ff7-c065-42ee-bc8f-c4691c50e624",
+        #   "clock": "14:30",
+        #   "possession": "22052ff7-c065-42ee-bc8f-c4691c50e624"
+        # }
+
+        play['start_situation__list']['possession'] = PossessionManager(start_possession).get_data()
+        play['start_situation__list']['location']   = LocationManager(start_location).get_data()
+
+        play['end_situation__list']['possession']   = PossessionManager(end_possession).get_data()
+        play['end_situation__list']['location']     = LocationManager(end_location).get_data()
+
+        data = {
+            'play' : PlayManager(play).get_data(),
+        }
+
+        #print('get_send_data:', str(data))
+        return data
+
     def send(self, *args, **kwargs):
-        super().send(force=True)
+        super().send() #force=True)
 
 class Injury(DataDenInjury):
 
@@ -546,15 +1068,19 @@ class DataDenNfl(AbstractDataDenParser):
     mongo_db_for_sport = 'nflo'
 
     triggers = [
-        (mongo_db_for_sport,'team','hierarchy'),
-        (mongo_db_for_sport,'season','schedule'),
-        (mongo_db_for_sport,'game','schedule'),
-        (mongo_db_for_sport,'player','rosters'),
-        (mongo_db_for_sport,'game','boxscores'),
-        (mongo_db_for_sport,'player','stats'),
+        (mongo_db_for_sport, 'team', 'hierarchy'),
+        (mongo_db_for_sport, 'season', 'schedule'),
+        (mongo_db_for_sport, 'game', 'schedule'),
+        (mongo_db_for_sport, 'player', 'rosters'),
+        (mongo_db_for_sport, 'game', 'boxscores'),
+        (mongo_db_for_sport, 'team', 'boxscores'),
+        (mongo_db_for_sport, 'player', 'stats'),
 
         # play by play
         (mongo_db_for_sport, 'play', 'pbp'),
+        (mongo_db_for_sport, 'location', 'pbp'),
+        (mongo_db_for_sport, 'possession', 'pbp'),
+
     ]
 
     def __init__(self):
@@ -583,10 +1109,15 @@ class DataDenNfl(AbstractDataDenParser):
             GameSchedule().parse( obj )
 
         #
-        #
+        # TODO
         elif self.target == (self.mongo_db_for_sport+'.game','boxscores'):
-            GameBoxscores().parse( obj )
-            push.classes.DataDenPush( push.classes.PUSHER_BOXSCORES, 'game' ).send( obj, async=settings.DATADEN_ASYNC_UPDATES )
+            GameBoxscoreParser().parse( obj )
+
+        #
+        # TODO
+        elif self.target == (self.mongo_db_for_sport+'.team','boxscores'):
+            # dont send it unless its from the parent__list: 'summary__list'
+            TeamBoxscoreParser().parse( obj )
 
         #
         #
@@ -607,11 +1138,13 @@ class DataDenNfl(AbstractDataDenParser):
             PlayerStats().parse( obj )
 
         #
-        # pbp -> plays
-        elif self.target == (self.mongo_db_for_sport + '.play', 'pbp'):
-            parser.PlayParser()
-            parser.parse(obj)
-            pasers.send()
+        # pbp -> its a 'play' and corresponding 'location' and 'possession' objects
+        elif self.target == (self.mongo_db_for_sport + '.play', 'pbp') \
+            or self.target == (self.mongo_db_for_sport + '.location', 'pbp') \
+            or self.target == (self.mongo_db_for_sport + '.possession', 'pbp'):
+
+            parser = PlayParser()
+            parser.parse(obj, self.target) # will call send() if it can
         #
         #
         else: self.unimplemented( self.target[0], self.target[1] )
