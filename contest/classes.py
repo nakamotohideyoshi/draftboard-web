@@ -320,7 +320,8 @@ class AbstractContestCreator(object):
                      site_sport=self.site_sport,
                      prize_structure=self.prize_structure,
                      start=self.start,
-                     end=self.end)
+                     end=self.end,
+                     skill_level=self.skill_level)
         return c
 
 class ContestCreator(AbstractContestCreator):
