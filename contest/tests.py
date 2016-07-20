@@ -25,6 +25,7 @@ from contest.classes import (
     ContestCreator,
     ContestPoolCreator,
     FairMatch,
+    SkillLevelManager,
 )
 from sports.classes import SiteSportManager
 from sports.models import (
@@ -96,10 +97,32 @@ class FairMatchTest(unittest.TestCase):
         self.assertEqual(True, True)
         fm.print_debug_info()
 
-# class TestResetDataBase(AbstractTest, ResetDatabaseMixin):
-#
-#     def test_reset_it(self):
-#         self.reset_db()
+class SkillLevelManagerTest(AbstractTest):
+
+    def setUp(self):
+        # check if it migrations the initial SkillLevels
+        self.slm = SkillLevelManager()
+
+    def test_1(self):
+        """ default db has some SkillLevel objects """
+        self.assertTrue( len(self.slm.skill_levels) > 0 )
+
+    def test_2(self):
+        """ get_for_amount() """
+        sl_gte = 9999
+        amount1 = sl_gte
+        amount2 = sl_gte + 1
+        sl, created = self.slm.model_class.objects.get_or_create(name='test-max-skill',
+                                                                gte=sl_gte, enforced=True)
+        manager = SkillLevelManager()
+        skill_level = manager.get_for_amount(amount1)
+        self.assertIsNotNone(skill_level)
+        self.assertTrue(skill_level.gte <= amount1)
+
+        manager = SkillLevelManager()
+        skill_level = manager.get_for_amount(amount2)
+        self.assertIsNotNone(skill_level)
+        self.assertTrue(skill_level.gte <= amount2)
 
 class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
     """

@@ -13,6 +13,7 @@ import struct
 from .models import (
     Contest,
     ContestPool,
+    SkillLevel,
 )
 from sports.models import (
     SiteSport,
@@ -47,6 +48,29 @@ from draftgroup.classes import DraftGroupManager
 from roster.classes import RosterManager
 from contest.buyin.models import Buyin
 from util.dfsdate import DfsDate
+
+class SkillLevelManager(object):
+
+    # the main model class
+    model_class = SkillLevel
+
+    # by default we only care about enforced skill levels
+    enforced = True
+
+    def __init__(self):
+        self.skill_levels = self.get_skill_levels()
+
+    def get_skill_levels(self):
+        """ returns a QuerySet of the SkillLevel objects in ascending order """
+        return self.model_class.objects.filter(enforced=self.enforced).order_by('gte')
+
+    def get_for_amount(self, amount):
+        for skill_level in self.skill_levels:
+            if skill_level.gte <= amount:
+                return skill_level
+
+    # TODO
+    # def get-whether-user-can-join-level()
 
 class ContestPoolCreator(object):
 
