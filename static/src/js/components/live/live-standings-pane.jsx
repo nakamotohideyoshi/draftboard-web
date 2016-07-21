@@ -11,7 +11,7 @@ import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import { bindActionCreators } from 'redux';
 import { fetchLineupUsernames } from '../../actions/lineup-usernames';
 import { humanizeCurrency } from '../../lib/utils/currency';
-import { humanizeFP } from '../../actions/sports';
+import { humanizeFP } from '../../lib/utils/numbers';
 import { SPORT_CONST } from '../../actions/sports.js';
 import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching.js';
 
