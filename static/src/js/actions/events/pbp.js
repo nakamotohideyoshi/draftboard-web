@@ -3,9 +3,10 @@ import log from '../../lib/logging';
 import map from 'lodash/map';
 import orderBy from 'lodash/orderBy';
 import random from 'lodash/random';
-import { trackUnexpected } from '../track-exceptions';
 import { addEventAndStartQueue } from '../events';
-import { humanizeFP, SPORT_CONST, isGameReady } from '../sports';
+import { humanizeFP } from '../../lib/utils/numbers';
+import { SPORT_CONST, isGameReady } from '../sports';
+import { trackUnexpected } from '../track-exceptions';
 
 // get custom logger for actions
 const logAction = log.getLogger('action');
