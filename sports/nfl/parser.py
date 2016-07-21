@@ -802,7 +802,7 @@ class PlayManager(Manager):
 
     def update_formation(self):
         """ parse the formation by looking for the '(Shotgun)' text """
-
+        pass
 
     def update_pass_side(self):
         pass # TODO
