@@ -1,4 +1,4 @@
-import { humanizeFP } from '../../../actions/sports';
+import { humanizeFP } from '../../../lib/utils/numbers';
 import React from 'react';
 
 // assets
