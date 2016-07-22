@@ -1020,7 +1020,7 @@ class PlayParser(DataDenPbpDescription):
         return data
 
     def send(self, *args, **kwargs):
-        super().send() #force=True)
+        super().send(*args, **kwargs) #force=True)
 
 class Injury(DataDenInjury):
 

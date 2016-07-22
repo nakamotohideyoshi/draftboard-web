@@ -8,6 +8,7 @@ import collections
 import hashlib
 import six
 import time
+import push.models
 from pusher import Pusher
 from pusher.http import Request, make_query_string, GET, POST, request_method
 from pusher.signature import sign
@@ -29,7 +30,6 @@ from dataden.cache.caches import (
     LinkedExpiringObjectQueueTable,
 )
 from push.tasks import linker_pusher_send_task, PUSH_TASKS_STATS_LINKER
-
 
 #
 # on production this will be an empty string,
@@ -193,6 +193,8 @@ class AbstractPush(object):
             """
             self.cache.set( self.linker_queue_name, linked_expiring_object_queue_table_instance, 48*60*60 )
 
+    sent_model_class = push.models.Sent
+
     def __init__(self, channel):
 
         # print( 'settings.PUSHER_APP_ID', settings.PUSHER_APP_ID,
@@ -335,22 +337,18 @@ class AbstractPush(object):
         """
 
         if settings.PUSHER_ENABLED:
-            #
-            # example line item from sumo logic for this trigger() method:
-            # 673 <190>1 2016-05-05T03:35:04.445152+00:00 host app purger.3 -
-            # [2016-05-04 23:35:04,445: WARNING/Worker-7]
-            # PSHR_VALUE={'pk': 17630, 'model': 'mlb.playerstatshitter',
-            # 'fields': {'s': 0.0, 'srid_player': 'ecdcb57f-d0c5-4409-89ee-6680a77588de',
-            # 'srid_game': 'c9141a4f-7ae7-4a64-b9ec-4f9535096b41',
-            # 'game_id': 5315, 't': 0.0, 'started': False, 'bb': 0.0, 'lob': 0.0, 'player_type': 57,
-            # 'ktotal': 0.0, 'ab': 4.0, 'xbh': 0, 'updated': '2016-05-05T03:33:08.809Z',
-            # 'hr': 0.0, 'cs': 0.0, 'sb': 0.0, 'rbi': 0.0, 'played': False, 'ap': 4.0,
-            # 'fantasy_points': 9.0, 'player_id': 390, 'game_type': 55, 'd': 2.0,
-            # 'hbp': 0.0, 'created': '2016-05-05T00:06:24.243Z', 'position': 22, 'r': 1.0}}
-            pusher_start_ts = int(time.time())
 
+            # get the current timestamp
+            pusher_start_ts = int(time.time())
             # use pusher to send the data to clients!
-            self.pusher.trigger( self.channel, self.event, data )
+            response = self.pusher.trigger( self.channel, self.event, data )
+
+            model = self.sent_model_class.objects.create(
+                channel=self.channel,
+                event=self.event,
+                api_response=response,
+                data=data,
+            )
 
             pusher_completed_ts = int(time.time())
             log_msg = 'PSHR_NOW="%s", PSHR_NOW_TS=%s, PSHR_LOG=Send, PSHR_CHANNEL=%s, ' \

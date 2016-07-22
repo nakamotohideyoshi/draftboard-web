@@ -10,3 +10,15 @@ class PusherWebhook(models.Model):
 
     callback = JSONField()
 
+class Sent(models.Model):
+
+    created = models.DateTimeField(auto_now_add=True)
+
+    channel = models.CharField(max_length=64, null=False)
+    event = models.CharField(max_length=64, null=False)
+
+    api_response = JSONField()
+
+    data = JSONField()
+
+
