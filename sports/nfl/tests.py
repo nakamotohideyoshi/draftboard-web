@@ -424,12 +424,15 @@ class TestPlayParser(AbstractTest):
     def setUp(self):
         self.parser = PlayParser()
 
-    def __parse_and_send(self, unwrapped_obj, target):
+    def __parse_and_send(self, unwrapped_obj, target, tag=None):
 
         # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
         # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
         parts = target[0].split('.')
         oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        if tag is not None:
+            print('tag:', tag)
+
         self.parser.parse(oplog_obj, target=target)
 
         # #
@@ -455,7 +458,8 @@ class TestPlayParser(AbstractTest):
         # print('EP', self.parser.EndPossessionCache().fetch(self.parser.ts, self.parser.play_srid))
 
         # test sending with pusher. we cant do this with codeship though! (so remove it when done)
-        #self.parser.send()#force=True)
+        # for x in range(20): # try to get rate limited to see the response data
+        #     self.parser.send(force=True) # fun times
 
     def test_1(self):
         """ kickoff (touchback) """
