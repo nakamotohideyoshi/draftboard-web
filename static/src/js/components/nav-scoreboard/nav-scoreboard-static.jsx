@@ -99,8 +99,12 @@ const NavScoreboardStatic = React.createClass({
    */
   renderSliderContent() {
     if (this.state.selectedType === TYPE_SELECT_LINEUPS) {
+      if (Object.keys(this.props.myCurrentLineupsSelector).length === 0) return null;
+
       return <NavScoreboardLineupsList lineups={this.props.myCurrentLineupsSelector} />;
     } else if (this.state.selectedType === TYPE_SELECT_GAMES) {
+      if (!this.props.sportsSelector[this.state.selectedKey].gameIds) return null;
+
       return (
         <NavScoreboardGamesList
           sport={this.props.sportsSelector[this.state.selectedKey]}

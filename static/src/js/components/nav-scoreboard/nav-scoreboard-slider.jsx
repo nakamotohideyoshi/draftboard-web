@@ -129,6 +129,14 @@ const NavScoreboardSlider = React.createClass({
   render() {
     const scrollableClass = this.isScrollableVal ? '' : ' not-scrollable';
 
+    if (!this.props.children || this.props.children.length === 0) {
+      return (
+        <div className="cmp-nav-scoreboard--slider">
+          <div ref="content" />
+        </div>
+      );
+    }
+
     return (
       <div className="cmp-nav-scoreboard--slider">
         <div className={`arrow left${scrollableClass}`} onClick={this.handleScrollLeft}>
