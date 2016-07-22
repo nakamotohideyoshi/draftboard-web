@@ -2,5 +2,12 @@
 # admin.py
 
 from django.contrib import admin
+from push.models import PusherWebhook
 
-# TODO add the webhook table JSON field
+@admin.register(PusherWebhook)
+class PusherWebhookAdmin(admin.ModelAdmin):
+
+    list_display = ['created', 'ts', 'callback']
+
+    def ts(self, obj):
+        return int(obj.created.strftime('%s'))
