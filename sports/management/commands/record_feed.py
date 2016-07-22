@@ -63,7 +63,7 @@ class Command(BaseCommand):
             return model
 
     # help is a Command inner variable
-    help = 'usage: ./manage.py record_feed <url> <name> <gameSrid> <iterations>'
+    help = 'usage: ./manage.py record_feed <url> <name> <gameSrid> <iterations> <delayMillis>'
 
     def add_arguments(self, parser):
         # Positional arguments
@@ -86,9 +86,10 @@ class Command(BaseCommand):
         name = arguments[1]
         game_srid = arguments[2]
         iterations = int(arguments[3])
+        delay_ms = int(arguments[4])
 
         # print args
         self.stdout.write(str(arguments))
 
         recorder = self.RecordFeedJson(url, name, game_srid, LiveFeed)
-        recorder.start(iterations=iterations)
+        recorder.start(iterations=iterations, delay_ms=delay_ms)
