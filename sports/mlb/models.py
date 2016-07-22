@@ -264,6 +264,17 @@ class RealTimeAtBat(models.Model):   # django.contrib.contenttypes.xxxx where ge
                         help_text='sportsradar global id')
     at_bat = JSONField()
 
+class LiveFeed(models.Model):
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    name = models.CharField(max_length=32, null=False, help_text='dataden parent api of feed')
+
+    game_srid = models.CharField(max_length=64, null=False, help_text='sportsradar global id')
+
+    data = JSONField()
+
 class PlayerStatsSeason( sports.models.PlayerStatsSeason ):
     class Meta:
         abstract = True

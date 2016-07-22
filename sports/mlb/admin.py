@@ -75,3 +75,10 @@ class PbpDescriptionAdmin(admin.ModelAdmin):
 @admin.register(sports.mlb.models.Injury)
 class InjuryAdmin(admin.ModelAdmin):
     list_display = ['iid','status','description']
+
+@admin.register(sports.mlb.models.LiveFeed)
+class LiveFeedAdmin(admin.ModelAdmin):
+    list_display = ['created', 'ts', 'name', 'game_srid', 'data']
+
+    def ts(self, obj):
+        return int(obj.created.strftime('%s'))
