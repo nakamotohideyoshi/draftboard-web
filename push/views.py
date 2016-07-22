@@ -10,6 +10,7 @@ from rest_framework.exceptions import ValidationError, NotFound
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.views import APIView
+from push.models import PusherWebhook
 
 # referenced http://pusher.com/docs/server_api_guide#/lang=python
 class PusherSendView(View):
@@ -39,6 +40,15 @@ class PusherReceiverTemplateView(TemplateView):
 
 class Webhook1(APIView):
 
+    model_class = PusherWebhook
+
     def post(self, request, *args, **kwargs):
-        print(self.request.data)
+
+        data = self.request.data
+        print(data)
+
+        model = self.model_class.objects.create(
+            callback=data
+        )
+
         return Response(status=200)
