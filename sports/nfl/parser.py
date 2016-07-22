@@ -755,12 +755,64 @@ class PlayManager(Manager):
     reducer_class = PlayReducer
     shrinker_class = PlayShrinker
 
-    field_formation     = 'formation'
-    field_pass_side     = 'pass_side'
-    field_pass_depth    = 'pass_depth'
+    field_statistics    = 'statistics__list'
+
+    field_defense       = 'defense__list'
+    field_kick          = 'kick__list'
+
+    field_pass          = 'pass__list'
+    field_return        = 'return__list'
+    field_rush          = 'rush__list'
+    field_receive       = 'receive__list'
+
+    ignore_fields = [
+        field_defense, field_kick
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.clean_statistics_list()
+
+        self.update_extra_info()
+
+    def update_extra_info(self):
+        """ parse the description text and inject extra info """
+        type = self.raw_data.get('type')
+        description = self.raw_data.get('alt_description')
+        self.raw_data['extra_info'] = ExtraInfo(type, description).get_data()
+
+    def clean_statistics_list(self):
+        # get statistics list  -- dont forget to replace it after we clean it up
+        statistics = self.raw_data.get(self.field_statistics)
+        if statistics is None:
+            return # nothing to do - it didnt exist
+
+        # there are some lists we will just want to pop off
+        for field in self.ignore_fields:
+            try:
+                statistics.pop(field)
+            except KeyError:
+                pass # it wasnt there to begin with - so dont worry about it
+
+        # 1. cleanup pass__list
+        # convert sack to a boolean
+        pass_list = statistics.get(self.field_pass, {})
+        sack = pass_list.get('sack')
+        if pass_list != {} and sack is not None:
+            pass_list['sack'] = self.int2bool(sack)
+            # and now put this data back into the internal data
+            statistics[self.field_pass] = pass_list
+            self.raw_data[self.field_statistics] = statistics
+
+        # 2. cleanup return__list
+        return_list = statistics.get(self.field_return, {})
+        retrn = return_list.get('return')
+        if return_list != {} and retrn is not None:
+            return_list['return'] = self.int2bool(retrn)
+            # put it back in
+            statistics[self.field_return] = return_list
+            self.raw_data[self.field_statistics] = statistics
 
 class PossessionReducer(Reducer):
     remove_fields = [
