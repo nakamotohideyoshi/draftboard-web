@@ -488,27 +488,64 @@ class TestPlayParser(AbstractTest):
         """ rushing play """
         sport_db = 'nflo'
         parent_api = 'pbp'
-        play = {
-            'start_situation__list': {'yfd': 10.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '15:00',
-                                      'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 1.0},
-            'away_points': 0.0, 'reference': 82.0,
-            'end_situation__list': {'yfd': 5.0, 'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'clock': '14:30',
-                                    'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 2.0},
-            'alt_description': '(15:00) A.Morris left tackle to WAS 25 for 5 yards (K.Sheppard).',
-            'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_api__id': 'pbp', 'clock': '15:00',
-            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'statistics__list': {
-                'rush__list': {'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'yards': 5.0, 'goaltogo': 0.0,
-                               'attempt': 1.0, 'player': 'bd10efdf-d8e7-4e23-ab1a-1e42fb65131b', 'inside_20': 0.0,
-                               'confirmed': 'true'},
-                'defense__list': {'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06', 'tackle': 1.0,
-                                  'player': '7190fb71-0916-4f9d-88a0-8c1a8c1c9d0d', 'confirmed': 'true'}},
-            'id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71', 'sequence': 82.0, 'parent_list__id': 'play_by_play__list',
-            'home_points': 0.0, 'description': '(15:00) 46-A.Morris left tackle to WAS 25 for 5 yards (52-K.Sheppard).',
-            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQzYTJlOWJiNC02Yjc5LTQ3M2EtYjg2YS01MjJiOTJlODhjNzE=',
-            'type': 'rush', 'play_clock': 12.0, 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
-            'dd_updated__id': 1464841517401, 'wall_clock': '2015-09-13T17:03:26+00:00'}
 
-        #self.__parse_and_send(unwrapped_obj)
+        start_location = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'market': 'Washington',
+                          'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'reference': 4971.0, 'yardline': 20.0,
+                          'parent_list__id': 'start_situation__list', 'dd_updated__id': 1464841517401,
+                          'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins',
+                          '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQzYTJlOWJiNC02Yjc5LTQ3M2EtYjg2YS01MjJiOTJlODhjNzFpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
+                          'alias': 'WAS', 'play__id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71',
+                          'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e'}
+        self.__parse_and_send(start_location, (sport_db + '.' + 'location', parent_api))
+
+        start_possession = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624',
+                            'market': 'Washington', 'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755',
+                            'reference': 4971.0, 'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+                            'parent_list__id': 'start_situation__list', 'dd_updated__id': 1464841517401,
+                            'name': 'Redskins',
+                            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmcGxheV9faWQzYTJlOWJiNC02Yjc5LTQ3M2EtYjg2YS01MjJiOTJlODhjNzFpZDIyMDUyZmY3LWMwNjUtNDJlZS1iYzhmLWM0NjkxYzUwZTYyNA==',
+                            'alias': 'WAS', 'play__id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71',
+                            'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff'}
+        self.__parse_and_send(start_possession, (sport_db + '.' + 'possession', parent_api))
+
+        end_location = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'market': 'Washington',
+                        'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'reference': 4971.0, 'yardline': 25.0,
+                        'parent_list__id': 'end_situation__list', 'dd_updated__id': 1464841517401,
+                        'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'name': 'Redskins',
+                        '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkM2EyZTliYjQtNmI3OS00NzNhLWI4NmEtNTIyYjkyZTg4YzcxaWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
+                        'alias': 'WAS', 'play__id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71',
+                        'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e'}
+        self.__parse_and_send(end_location, (sport_db + '.' + 'location', parent_api))
+
+        end_possession = {'parent_api__id': 'pbp', 'id': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'market': 'Washington',
+                          'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'reference': 4971.0,
+                          'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e', 'parent_list__id': 'end_situation__list',
+                          'dd_updated__id': 1464841517401, 'name': 'Redskins',
+                          '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZGE5NTZkOWNiLWQ4YWItNDA4Yy05MWZjLTQ0MmYwNmUzMzhmZnBsYXlfX2lkM2EyZTliYjQtNmI3OS00NzNhLWI4NmEtNTIyYjkyZTg4YzcxaWQyMjA1MmZmNy1jMDY1LTQyZWUtYmM4Zi1jNDY5MWM1MGU2MjQ=',
+                          'alias': 'WAS', 'play__id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71',
+                          'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff'}
+        self.__parse_and_send(end_possession, (sport_db + '.' + 'possession', parent_api))
+
+        play = {'parent_api__id': 'pbp', 'id': '3a2e9bb4-6b79-473a-b86a-522b92e88c71',
+                'start_situation__list': {'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 1.0, 'yfd': 10.0,
+                                          'clock': '15:00', 'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624'},
+                'drive__id': 'a956d9cb-d8ab-408c-91fc-442f06e338ff', 'game__id': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e',
+                'statistics__list': {'defense__list': {'confirmed': 'true', 'tackle': 1.0,
+                                                       'player': '7190fb71-0916-4f9d-88a0-8c1a8c1c9d0d',
+                                                       'team': '4809ecb0-abd3-451d-9c4a-92a90b83ca06'},
+                                     'rush__list': {'inside_20': 0.0, 'yards': 5.0,
+                                                    'player': 'bd10efdf-d8e7-4e23-ab1a-1e42fb65131b',
+                                                    'team': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'confirmed': 'true',
+                                                    'attempt': 1.0, 'goaltogo': 0.0}}, 'reference': 82.0,
+                'type': 'rush', 'wall_clock': '2015-09-13T17:03:26+00:00',
+                'description': '(15:00) 46-A.Morris left tackle to WAS 25 for 5 yards (52-K.Sheppard).',
+                'dd_updated__id': 1464841517401, 'play_clock': 12.0,
+                'quarter__id': 'fd31368b-a159-4f56-a022-afc691e34755', 'clock': '15:00',
+                '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDAxNDFhMGE1LTEzZTUtNGIyOC1iMTlmLTBjMzkyM2FhZWY2ZXF1YXJ0ZXJfX2lkZmQzMTM2OGItYTE1OS00ZjU2LWEwMjItYWZjNjkxZTM0NzU1cGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkYTk1NmQ5Y2ItZDhhYi00MDhjLTkxZmMtNDQyZjA2ZTMzOGZmaWQzYTJlOWJiNC02Yjc5LTQ3M2EtYjg2YS01MjJiOTJlODhjNzE=',
+                'parent_list__id': 'play_by_play__list', 'away_points': 0.0, 'home_points': 0.0,
+                'end_situation__list': {'location': '22052ff7-c065-42ee-bc8f-c4691c50e624', 'down': 2.0, 'yfd': 5.0,
+                                        'clock': '14:30', 'possession': '22052ff7-c065-42ee-bc8f-c4691c50e624'},
+                'alt_description': '(15:00) A.Morris left tackle to WAS 25 for 5 yards (K.Sheppard).', 'sequence': 82.0}
         self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
 
     def test_3(self):
