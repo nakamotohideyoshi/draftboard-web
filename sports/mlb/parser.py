@@ -67,6 +67,7 @@ from util.dicts import (
 
 def get_redis_instance():
     url = os.environ.get('REDISCLOUD_URL') # TODO get this env var from settings
+    print('REDISCLOUD_URL:', str(url))
     if url is None:
         return Redis()
     else:
@@ -1655,12 +1656,15 @@ class QuickCache(object):
         return ret_val
 
     #@timeit
-    def stash(self, data):
+    def stash(self, data, timestamp=None):
         #
         self.validate_stashable(data)
 
         #
         ts = data.get('dd_updated__id')
+        if timestamp is not None:
+            ts = 0
+
         gid = data.get('id')
         k = self.get_key(ts, gid)
         #print('>>> stash key: %s' % k)
@@ -1732,8 +1736,19 @@ class PitchPbp(DataDenPbpDescription):
 
     # the primary objects of a linked object are cached with these classes:
     class AtBatCache(QuickCache):
+        # at_bat will be cached by the ts and at bat srid
         name = 'AtBat'
-        # at_bat will be cached by the at bat srid
+
+    class AtBatRecentCache(QuickCache):
+        # the most recent atbat we have for the special ts: 0, and the usual srid
+        name = 'AtBatRecent'
+
+        def fetch(self, gid):
+            return super().fetch(0, gid)
+
+        def stash(self, data):
+            return super().stash(data, 0)
+
 
     class PitchCache(QuickCache):
         name = 'Pitch'
@@ -1814,31 +1829,19 @@ class PitchPbp(DataDenPbpDescription):
 
     def send(self):
 
+        print('sendddddd')
         # skip send() method entirely if 'raw' is True!
         if self.raw == True:
+            print('raw - returning')
             return
 
         if self.ts is None:
-            # err_msg = 'send() self.ts is None. make sure parse_xxxx() methods set it!'
-            # raise Exception(err_msg)
-            return # TODO this really shouldnt raise an exception. but we need to know it happened sometimes
+            err_msg = 'send() self.ts is None. make sure parse_xxxx() methods set it!'
+            print('err_msg')
+            raise Exception(err_msg)
 
         raw_requirements = None
         try:
-            # print('# send() because: ---- ts %s ---- pitch %s ----- at_bat %s -----+' % (self.ts,
-            #                                     self.srid_pitch, self.srid_at_bat))
-
-            # if self.srid_pitch is None and self.srid_at_bat is None:
-            #     # this should simply return out of the method without doing anything
-            #     # because weve tried to call send() without a
-            #     # one of the two necessary objects required to
-            #     # attempt to send the mlb linked data
-            #     part1 = 'send() self.srid_pitch and self.srid_at_bat are both None!'
-            #     part2 = ' one of the two objects are required at a minimum.'
-            #     err_msg = '%s %s' % (part1, part2)
-            #     print(err_msg)
-            #     #raise Exception(err_msg)
-            #     return
 
             if self.srid_pitch is None and self.srid_at_bat is None:
                 # this should simply return out of the method without doing anything
@@ -1848,32 +1851,36 @@ class PitchPbp(DataDenPbpDescription):
                 part1 = 'send() self.srid_pitch and self.srid_at_bat are both None!'
                 part2 = ' one of the two objects are required at a minimum.'
                 err_msg = '%s %s' % (part1, part2)
-                #print(err_msg)
-                #raise Exception(err_msg)
-                #return
+                print(err_msg)
+                raise Exception(err_msg)
+                return
 
             if self.srid_pitch is not None:
+                print('AAA')
                 raw_requirements = self.reconstruct_from_pitch(self.ts, self.srid_pitch)
 
             else:
+                print('BBB')
+                # i think we need to be able to reconstruct from sipmly the at_bat srid (no ts involved)
                 raw_requirements = self.reconstruct_from_at_bat(self.ts, self.srid_at_bat)
 
         except self.MissingCachedObjectException as e:
-            #print('# MissingCachedObjectException', str(e))
+            print('# MissingCachedObjectException', str(e))
             return None
 
-        self.debug_print(raw_requirements, 'raw linked object before reduce/shrink/updates')
+        #self.debug_print(raw_requirements, 'raw linked object before reduce/shrink/updates')
 
         #
         # convert the raw requirements data by reducing, shrinking,
         # and updating in order to get the final data we can send to clients
         linked_pbp = self.build_linked_pbp_stats_data(raw_requirements)
+        print('mlb linked pbp obj:', str(linked_pbp))
 
         #
         # right about here is where we need to check the
         # cache to see if we can send this linked object!
         is_sendable, key, cache_instance = self.can_send(raw_requirements)
-
+        print('mlb linked pbp is sendable:', str(is_sendable))
         if is_sendable:
             # if the cached hash value doesnt exist, we need to send it
             # print('sending')
@@ -1900,13 +1907,20 @@ class PitchPbp(DataDenPbpDescription):
         cache_key = 'mlblinkedpbp-%s-%s' % (ts, id)
         # the send_hsh should only exist if we havent sent it yet
         is_sendable = r.get(cache_key) is None
+        print(pitch, ' ------ ', ts, id, cache_key, is_sendable, 'but r.get(cache_key):', r.get(cache_key))
         return is_sendable, cache_key, r
 
     def reconstruct_from_pitch(self, ts, srid_pitch):
         return self.reconstruct(ts, srid_pitch)
 
     def reconstruct_from_at_bat(self, ts, srid_at_bat):
+        print('ts:', str(ts), 'srid_at_bat:', str(srid_at_bat))
         at_bat = self.AtBatCache().fetch(ts, srid_at_bat)
+        if at_bat is None:
+            print('srid_at_bat:', str(srid_at_bat))
+            at_bat = self.AtBatRecentCache().fetch(srid_at_bat)
+            print('    ', str(at_bat))
+
         if at_bat is None:
             err_msg = 'reconstruct_from_at_bat() - ts, srid_at_bat: %s, %s' % (ts, srid_at_bat)
             raise self.MissingCachedObjectException(err_msg)
@@ -1917,6 +1931,8 @@ class PitchPbp(DataDenPbpDescription):
             srid_pitch = pitchs[-1].get('pitch')
         except IndexError:
             srid_pitch = at_bat.get('pitch')
+
+        print('we got pitch srid:', str(srid_pitch))
 
         return self.reconstruct(ts, srid_pitch)
 
@@ -1940,6 +1956,8 @@ class PitchPbp(DataDenPbpDescription):
 
         # a) get the at_bat, using the srid from the pitch
         found_ab = self.AtBatCache().fetch(ts, abid) # could also use pitch.get() and extract ts
+        if found_ab is None:
+            found_ab = self.AtBatRecentCache().fetch(abid)
         if found_ab is None:
             raise self.MissingCachedObjectException('base reconstruct() missing at_bat')
 
@@ -1983,6 +2001,7 @@ class PitchPbp(DataDenPbpDescription):
         self.data[self.at_bat]          = found_ab
         self.data[self.zone_pitches]    = found_zone_pitches
         self.data[self.runners]         = found_runners
+        #print('self.data:' , str(self.data))
         return self.data
 
     def get_all_newest(self, known_srids, cached_objects, field_srid, field_ts, match_ts=None):
@@ -2014,6 +2033,9 @@ class PitchPbp(DataDenPbpDescription):
         return found_objects
 
     def stash_at_bat(self, at_bat):
+        # set this to be the most recently seen at_bat for the srid as well
+        self.AtBatRecentCache(at_bat)
+        # set it specifically for its timestamp ('ts') as well!
         return self.AtBatCache(at_bat)
 
     def stash_pitch(self, pitch):
