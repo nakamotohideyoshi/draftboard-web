@@ -182,3 +182,106 @@ class TestEventPbp(AbstractTest):
         # we are going to use the list of player srids for the PlayerStats filter()
         player_srids = event_pbp.get_srids_for_field(self.player_srid_field)
         self.assertTrue( set(self.target_player_srids) <= set(player_srids) )
+
+class TestMlbLinkedPbp(AbstractTest): # the PitchPbp parser!
+
+    def setUp(self):
+        self.parser = PitchPbp()
+
+    def __parse_and_send(self, unwrapped_obj, target):
+        # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
+        # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+
+    def test_1(self):
+        """ a pitch with no runners, 1st pitch of at bat (zone_pitch is missing some info) """
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        # there is no runner
+        # runner = {}
+        # self.__parse_and_send(runner, (sport_db + '.' + 'runner', parent_api))
+
+        at_bat = {"parent_api__id": "pbp", "game__id": "21a6d1be-caa3-4c44-a62f-7e09c4d57e35",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDIxYTZkMWJlLWNhYTMtNGM0NC1hNjJmLTdlMDljNGQ1N2UzNWlkODZjZGJjOGYtNjFlNS00MzMxLWE0MDktNTAzZmJhYjM5OTk2",
+                  "hitter_id": "962bf98a-22a3-4958-b296-f569bfd7407f", "dd_updated__id": 1469231566313,
+                  "id": "86cdbc8f-61e5-4331-a409-503fbab39996", "pitch": "26bc459d-9dc7-4df2-bf3f-82139189ec54"}
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+        zone_pitch = {"game__id": "21a6d1be-caa3-4c44-a62f-7e09c4d57e35", "id": "93413a68-2c05-405a-a38c-9ee983b36913",
+                   "pitch_count": 45.0, "at_bat__id": "86cdbc8f-61e5-4331-a409-503fbab39996",
+                   "dd_updated__id": 1469231566313,
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDIxYTZkMWJlLWNhYTMtNGM0NC1hNjJmLTdlMDljNGQ1N2UzNWF0X2JhdF9faWQ4NmNkYmM4Zi02MWU1LTQzMzEtYTQwOS01MDNmYmFiMzk5OTZwaXRjaF9faWQyNmJjNDU5ZC05ZGM3LTRkZjItYmYzZi04MjEzOTE4OWVjNTRpZDkzNDEzYTY4LTJjMDUtNDA1YS1hMzhjLTllZTk4M2IzNjkxMw==",
+                   "parent_api__id": "pbp", "pitcher_hand": "L", "hitter_hand": "B",
+                   "pitch__id": "26bc459d-9dc7-4df2-bf3f-82139189ec54"}
+        self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"created_at": "2016-07-22T23:52:37Z",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDIxYTZkMWJlLWNhYTMtNGM0NC1hNjJmLTdlMDljNGQ1N2UzNWF0X2JhdF9faWQ4NmNkYmM4Zi02MWU1LTQzMzEtYTQwOS01MDNmYmFiMzk5OTZpZDI2YmM0NTlkLTlkYzctNGRmMi1iZjNmLTgyMTM5MTg5ZWM1NA==",
+                 "game__id": "21a6d1be-caa3-4c44-a62f-7e09c4d57e35",
+                 "at_bat__id": "86cdbc8f-61e5-4331-a409-503fbab39996",
+                 "flags__list": {"is_bunt_shown": "false", "is_wild_pitch": "false", "is_hit": "false",
+                                 "is_bunt": "false", "is_ab_over": "false", "is_triple_play": "false",
+                                 "is_double_play": "false", "is_on_base": "false", "is_passed_ball": "false",
+                                 "is_ab": "false"}, "id": "26bc459d-9dc7-4df2-bf3f-82139189ec54",
+                 "dd_updated__id": 1469231566313, "status": "official",
+                 "count__list": {"strikes": 1.0, "outs": 2.0, "pitch_count": 1.0, "balls": 0.0},
+                 "pitcher": "93413a68-2c05-405a-a38c-9ee983b36913", "parent_api__id": "pbp", "outcome_id": "kF"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        # # do some more zone pitches and start off with an incomplete one!
+        # zone_pitch = {}  # 'pitcher' object but its a pitch not _the_ pitcher
+        # self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+        # zone_pitch = {}  # 'pitcher' object but its a pitch not _the_ pitcher
+        # self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+        # zone_pitch = {}  # 'pitcher' object but its a pitch not _the_ pitcher
+        # self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+
+    def test_2(self):
+        """ a pitch with no runners, 1st pitch of at bat (zone_pitch is seen for the second time """
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        # there is no runner
+        # runner = {}
+        # self.__parse_and_send(runner, (sport_db + '.' + 'runner', parent_api))
+
+        # note the at bat is BEHIND though for its timestamp because it already happened!
+        at_bat = {"parent_api__id": "pbp", "game__id": "21a6d1be-caa3-4c44-a62f-7e09c4d57e35",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDIxYTZkMWJlLWNhYTMtNGM0NC1hNjJmLTdlMDljNGQ1N2UzNWlkODZjZGJjOGYtNjFlNS00MzMxLWE0MDktNTAzZmJhYjM5OTk2",
+                  "hitter_id": "962bf98a-22a3-4958-b296-f569bfd7407f", "dd_updated__id": 1469231566313,
+                  "id": "86cdbc8f-61e5-4331-a409-503fbab39996", "pitch": "26bc459d-9dc7-4df2-bf3f-82139189ec54"}
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+        zone_pitch = {
+            "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDIxYTZkMWJlLWNhYTMtNGM0NC1hNjJmLTdlMDljNGQ1N2UzNWF0X2JhdF9faWQ4NmNkYmM4Zi02MWU1LTQzMzEtYTQwOS01MDNmYmFiMzk5OTZwaXRjaF9faWQyNmJjNDU5ZC05ZGM3LTRkZjItYmYzZi04MjEzOTE4OWVjNTRpZDkzNDEzYTY4LTJjMDUtNDA1YS1hMzhjLTllZTk4M2IzNjkxMw==",
+            "game__id": "21a6d1be-caa3-4c44-a62f-7e09c4d57e35", "pitch_speed": 93.0,
+            "id": "93413a68-2c05-405a-a38c-9ee983b36913", "at_bat__id": "86cdbc8f-61e5-4331-a409-503fbab39996",
+            "pitch__id": "26bc459d-9dc7-4df2-bf3f-82139189ec54", "hitter_hand": "R", "pitch_count": 45.0,
+            "dd_updated__id": 1469231584574, "pitch_zone": 5.0, "pitcher_hand": "L", "parent_api__id": "pbp",
+            "pitch_type": "FA"}
+        self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"pitcher": "93413a68-2c05-405a-a38c-9ee983b36913", "parent_api__id": "pbp",
+                 "flags__list": {"is_double_play": "false", "is_bunt": "false", "is_on_base": "false",
+                                 "is_ab_over": "false", "is_triple_play": "false", "is_wild_pitch": "false",
+                                 "is_ab": "false", "is_passed_ball": "false", "is_hit": "false",
+                                 "is_bunt_shown": "false"}, "dd_updated__id": 1469231584574,
+                 "id": "26bc459d-9dc7-4df2-bf3f-82139189ec54",
+                 "count__list": {"balls": 0.0, "outs": 2.0, "pitch_count": 1.0, "strikes": 1.0},
+                 "created_at": "2016-07-22T23:52:37Z",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDIxYTZkMWJlLWNhYTMtNGM0NC1hNjJmLTdlMDljNGQ1N2UzNWF0X2JhdF9faWQ4NmNkYmM4Zi02MWU1LTQzMzEtYTQwOS01MDNmYmFiMzk5OTZpZDI2YmM0NTlkLTlkYzctNGRmMi1iZjNmLTgyMTM5MTg5ZWM1NA==",
+                 "status": "official", "outcome_id": "kF", "updated_at": "2016-07-22T23:52:46Z",
+                 "at_bat__id": "86cdbc8f-61e5-4331-a409-503fbab39996",
+                 "game__id": "21a6d1be-caa3-4c44-a62f-7e09c4d57e35"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        # # do some more zone pitches and start off with an incomplete one!
+        # zone_pitch = {}  # 'pitcher' object but its a pitch not _the_ pitcher
+        # self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+        # zone_pitch = {}  # 'pitcher' object but its a pitch not _the_ pitcher
+        # self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+        # zone_pitch = {}  # 'pitcher' object but its a pitch not _the_ pitcher
+        # self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
