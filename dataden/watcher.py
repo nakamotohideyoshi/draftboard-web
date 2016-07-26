@@ -156,6 +156,15 @@ class OpLogObjWrapper( OpLogObj ):
         # now create the OpLogObj with our spoofed obj
         super().__init__(wrapped_obj)
 
+class OpLogObjWithTs(OpLogObj):
+    """
+    override OpLogObj not to exclude any of the fields
+    of the main DataDen object (note: we always ignore
+    the mongo oplog wrapper when hsh() is called).
+    """
+
+    exclude_field_names = []
+
 class Trigger(object):
     """
     uses local.oplog.rs to implement mongo triggers
@@ -169,6 +178,8 @@ class Trigger(object):
     DEFAULT_CURSOR_TYPE = CursorType.TAILABLE_AWAIT
 
     live_stats_cache_class = LiveStatsCache
+
+    oplogobj_class = OpLogObj
 
     def __init__(self, cache='default', clear=False, init=False,
                                 db=None, coll=None, parent_api=None, cursor_type=None ):
@@ -235,16 +246,16 @@ class Trigger(object):
 
         :return:
         """
-        #self.display()
 
         if last_ts:
-            self.last_ts = last_ts # user wants to start from at least this specific ts
+            # user wants to start from at least this specific ts
+            self.last_ts = last_ts
         else:
-            self.last_ts = self.get_last_ts() # get most recent ts, (by default, dont reparse the world)
+            # get most recent ts, (by default, dont reparse the world)
+            self.last_ts = self.get_last_ts()
 
-        #print('last_ts():', str(self.last_ts))
-        self.timer.start()
-        self.reload_triggers() # do this pre query() being called
+        # do this previous to query() being called
+        self.reload_triggers()
 
         #
         # using a tailable cursor allows us to loop on it
@@ -252,30 +263,18 @@ class Trigger(object):
         # the oplog based on whatever our query is!
         cur = self.get_cursor( self.oplog, self.query(), cursor_type=self.cursor_type )
         while cur.alive:
+
             try:
                 obj = cur.next()
             except StopIteration:
-                #print('waiting')
                 continue
 
-            hashable_object = OpLogObj(obj)
-            self.last_ts = hashable_object.get_ts()
-
             #
-            # the live stats cache will filter out objects
-            # from being sent unless its the first time
-            # they've been seen, or if there have been changes
-            if self.live_stats_cache.update( hashable_object ):
-                # primarily for sumo logic, log this object making
-                # sure to include the 'ts' timestamp from the oplog
-                self.log_for_sumo( hashable_object )
-
+            # the live stats cache will add every item it sees to the redis cache
+            if self.live_stats_cache.update( self.oplogobj_class(obj) ):
                 # the object is new or has been updated.
                 # send the update signal along with the object to Pusher/etc...
                 Update( hashable_object ).send(async=True)
-
-            ns = hashable_object.get_ns()
-            parent_api = hashable_object.get_parent_api()
 
     def log_for_sumo(self, hashable_object):
         """
@@ -313,11 +312,9 @@ class Trigger(object):
 
         :return:
         """
-        #self.timer.start()
         cur = self.oplog.find().sort([('$natural', -1)])
         for obj in cur:
-            self.last_ts = OpLogObj( obj ).get_ts()
-            #self.timer.stop(msg='get_last_ts()')
+            self.last_ts = self.oplogobj_class( obj ).get_ts()
             return self.last_ts
 
     def query(self):
@@ -398,13 +395,17 @@ class Trigger(object):
         cur = cur.hint(hint)
         return cur
 
-    # def display(self):
-    #     print('%s [ trigger running on <<< %s.%s %s >>' % (self.__class__.__name__,
-    #                                 self.db_name, self.coll_name, 'parent_api: %s' % self.parent_api) )
-
     def trigger_debug(self, object):
         print( object )
 
     def trigger(self):
         raise UnimplementedTriggerCallbackException(
             self.__class__.__name__ + 'must implement trigger() method')
+
+class TriggerAll(Trigger):
+    """
+    this trigger sends out all objects all objects it sees
+    after placing them in the cache.
+    """
+
+    oplogobj_class = OpLogObjWithTs

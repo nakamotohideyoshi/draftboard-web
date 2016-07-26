@@ -62,8 +62,11 @@ class Command(BaseCommand):
 
         # play range of Updates by pk
         elif len(update_pks) == 2:
+
             rp = ReplayManager()
             # truncate chars is how many characters of each object to print out.
+            # TODO try using the async mode with multiple tasks to test concurrency
+            # TODO if you can get it working in non concurrent mode
             rp.play_range( update_pks[0], update_pks[1], async=False, truncate_chars=99999 )
 
         # if length is 3 and the first value in the list is

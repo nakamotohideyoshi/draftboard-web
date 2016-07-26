@@ -510,12 +510,12 @@ class ReplayManager(object):
         parser.parse_obj( db, collection, ast.literal_eval( update.o ), async=async )
 
     def play_range(self, update_id, end_update_id, async=False, truncate_chars=None):
-        updates = replayer.models.Update.objects.filter(pk__range=(update_id, end_update_id))
+        updates = replayer.models.Update.objects.filter(pk__range=(update_id, end_update_id)).order_by('ts')
         if updates.count() <= 0:
             print('there are no updates in the range (%s, %s)' % (str(update_id), str(end_update_id) ))
             return
 
-        self.play_all(updates=updates, async=async)
+        self.play_all(updates=updates, async=async, truncate_chars=truncate_chars)
 
     def play_range_by_ts(self, ts_start, ts_end, max=None, async=False, truncate_chars=None):
         if ts_end < ts_start:
