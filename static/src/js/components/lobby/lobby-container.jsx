@@ -9,17 +9,13 @@ import { fetchPrizeIfNeeded } from '../../actions/prizes.js';
 import { fetchContestPools, enterContest, setFocusedContest, updateOrderByFilter }
   from '../../actions/contest-pool-actions.js';
 import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions.js';
-import { focusedContestInfoSelector, focusedLineupSelector, highestContestBuyin }
+import { focusedContestInfoSelector, focusedLineupSelector, entrySkillLevelsSelector }
   from '../../selectors/lobby-selectors.js';
 import { contestPoolsSelector } from '../../selectors/contest-pools-selector.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
-import { updateFilter, upcomingContestUpdateReceived }
-  from '../../actions/contest-pool-actions.js';
+import { upcomingContestUpdateReceived } from '../../actions/contest-pool-actions.js';
 import * as AppActions from '../../stores/app-state-store.js';
-import CollectionMatchFilter from '../filters/collection-match-filter.jsx';
-import CollectionSearchFilter from '../filters/collection-search-filter.jsx';
 import ContestList from '../contest-list/contest-list.jsx';
-import ContestRangeSliderFilter from '../contest-list/contest-range-slider-filter.jsx';
 import renderComponent from '../../lib/render-component';
 import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx';
 import { addMessage } from '../../actions/message-actions.js';
@@ -47,11 +43,11 @@ function mapStateToProps(state) {
     contestFilters: state.contestPools.filters,
     focusedContest: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
+    entrySkillLevels: entrySkillLevelsSelector(state),
     hoveredLineupId: state.upcomingLineups.hoveredLineupId,
     lineupsInfo: upcomingLineupsInfo(state),
     orderByDirection: state.contestPools.filters.orderBy.direction,
     orderByProperty: state.contestPools.filters.orderBy.property,
-    highestContestBuyin: highestContestBuyin(state),
   };
 }
 
@@ -69,9 +65,6 @@ function mapDispatchToProps(dispatch) {
     fetchContestPools: () => dispatch(fetchContestPools()),
     fetchUpcomingDraftGroupsInfo: () => dispatch(fetchUpcomingDraftGroupsInfo()),
     setFocusedContest: (contestId) => dispatch(setFocusedContest(contestId)),
-    updateFilter: (filterName, filterProperty, match) => dispatch(
-      updateFilter(filterName, filterProperty, match)
-    ),
     updateOrderByFilter: (property, direction) => dispatch(
       updateOrderByFilter(property, direction)
     ),
@@ -105,14 +98,13 @@ const LobbyContainer = React.createClass({
     orderByDirection: React.PropTypes.string,
     orderByProperty: React.PropTypes.string,
     setFocusedContest: React.PropTypes.func,
-    updateFilter: React.PropTypes.func,
     contestFilters: React.PropTypes.object,
     updateOrderByFilter: React.PropTypes.func,
     routerPush: React.PropTypes.func,
     addMessage: React.PropTypes.func,
     upcomingContestUpdateReceived: React.PropTypes.func,
-    highestContestBuyin: React.PropTypes.number,
     removeContestPoolEntry: React.PropTypes.func,
+    entrySkillLevels: React.PropTypes.object.isRequired,
   },
 
 
@@ -120,12 +112,6 @@ const LobbyContainer = React.createClass({
     return {
       showConfirmModal: false,
       contestToEnter: null,
-      contestTypeFilters: [
-        { title: 'All', column: 'contestType', match: '' },
-        { title: 'Guaranteed', column: 'contestType', match: 'gpp' },
-        { title: 'Double-Up', column: 'contestType', match: 'double-up' },
-        { title: 'Heads-Up', column: 'contestType', match: 'h2h' },
-      ],
     };
   },
 
@@ -181,12 +167,6 @@ const LobbyContainer = React.createClass({
   },
 
 
-  // When one of the contest filters change.
-  handleFilterChange(filterName, filterProperty, match) {
-    this.props.updateFilter(filterName, filterProperty, match);
-  },
-
-
   // Enter the currently focused lineup into a contest.
   handleEnterContest(contest) {
     // If the user has chosen not to confirm entries, enter the contest.
@@ -238,35 +218,6 @@ const LobbyContainer = React.createClass({
   render() {
     return (
       <div>
-        <div className="contest-list-filter-set">
-          <CollectionMatchFilter
-            className="contest-list-filter--contest-type"
-            filters={this.state.contestTypeFilters}
-            activeFilter={this.props.contestFilters.contestTypeFilter}
-            filterName="contestTypeFilter"
-            filterProperty="contestType"
-            match=""
-            onUpdate={this.handleFilterChange}
-          />
-
-          <div className="contest-list-filter-set__group">
-            <ContestRangeSliderFilter
-              className="contest-list-filter--contest-fee"
-              filterName="contestFeeFilter"
-              filterProperty="buyin"
-              onUpdate={this.handleFilterChange}
-              maxValLimit={this.props.highestContestBuyin}
-            />
-
-            <CollectionSearchFilter
-              className="contest-list-filter--contest-name"
-              filterName="contestSearchFilter"
-              filterProperty="name"
-              onUpdate={this.handleFilterChange}
-            />
-          </div>
-        </div>
-
         <ContestList
           contests={this.props.filteredContests}
           draftGroupsWithLineups={this.props.draftGroupsWithLineups}
@@ -278,6 +229,7 @@ const LobbyContainer = React.createClass({
           lineupsInfo={this.props.lineupsInfo}
           setFocusedContest={this.handleFocusContest}
           setOrderBy={this.handleSetOrderBy}
+          entrySkillLevels = {this.props.entrySkillLevels}
         />
 
         <ContestListConfirmModal
@@ -287,6 +239,7 @@ const LobbyContainer = React.createClass({
           lineup={this.props.focusedLineup}
           isOpen={this.state.showConfirmModal}
           lineupsInfo={this.props.lineupsInfo}
+          entrySkillLevels = {this.props.entrySkillLevels}
         />
       </div>
     );

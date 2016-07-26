@@ -21,6 +21,7 @@ const ContestListConfirmModal = React.createClass({
     isOpen: React.PropTypes.bool,
     entries: React.PropTypes.object,
     lineupsInfo: React.PropTypes.object,
+    entrySkillLevels: React.PropTypes.object.isRequired,
   },
 
 
@@ -125,6 +126,7 @@ const ContestListConfirmModal = React.createClass({
                   lineupsInfo={this.props.lineupsInfo}
                   onEnterClick={this.handleConfirmEntry}
                   onEnterSuccess={this.close}
+                  entrySkillLevels = {this.props.entrySkillLevels}
                   buttonClasses= {{
                     default: 'button--med button--lrg-len button--flat',
                     contestEntered: 'button--med button--lrg-len button--flat',

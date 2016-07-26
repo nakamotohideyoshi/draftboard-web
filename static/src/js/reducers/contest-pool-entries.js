@@ -1,5 +1,4 @@
 import merge from 'lodash/merge';
-// import find from 'lodash/find';
 import remove from 'lodash/remove';
 import * as actionTypes from '../action-types.js';
 
@@ -30,6 +29,7 @@ module.exports = (state = initialState, action) => {
       const newState = merge({}, state, {
         isFetching: false,
       });
+
       // replace old entries for the current ones.
       newState.entries = action.response;
       return newState;

@@ -45,3 +45,22 @@
     }
   }
 }
+
+
+.section-lobby.page-lobby {
+  .sidebar {
+    &--header-title {
+      color: #747682;
+      display: block;
+      font-family: $font-open-sans;
+      font-size: 10px;
+      padding-bottom: 15px;
+      position: relative;
+    }
+
+    &--header-inner {
+      position: relative;
+      padding-bottom: 20px;
+    }
+  }
+}
