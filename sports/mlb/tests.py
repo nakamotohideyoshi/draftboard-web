@@ -643,3 +643,75 @@ class TestMlbLinkedPbp(AbstractTest): # the PitchPbp parser!
              "hit_location": 11.0, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "status": "official",
              "id": "2ecb54f5-4fdf-4c73-bdce-a1cb5db339b9", "hit_type": "FB", "dd_updated__id": 1469380171751}
         self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+    def test_8(self):
+        """
+        test xander bogaerts at bat
+
+            per espn, the whole inning went:
+                Sandy Leon	Ball, León (singled)
+                Brock Holt	Strike (looking), (popped out)
+                Mookie Betts	Strike (looking), Strike (looking), Betts (fouled out)
+                Dustin Pedroia	Ball, Ball, Ball, Strike (looking), Ball, (walked, Leon to second)
+                Xander Bogaerts	Ball, Ball, Strike (looking), Strike (foul) (popped out to shortstop)
+
+        """
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        pitcher = {"pitcher_hand": "R", "pitch_zone": 12.0, "pitch_type": "CU", "dd_updated__id": 1469497407373,
+                   "pitch_speed": 82.0, "pitch__id": "c8f11efb-9edd-4653-9b8a-617fb9650b30",
+                   "at_bat__id": "71f664ce-5bbb-46fa-9ede-c5136befed3c",
+                   "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd", "parent_api__id": "pbp", "hitter_hand": "R",
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGF0X2JhdF9faWQ3MWY2NjRjZS01YmJiLTQ2ZmEtOWVkZS1jNTEzNmJlZmVkM2NwaXRjaF9faWRjOGYxMWVmYi05ZWRkLTQ2NTMtOWI4YS02MTdmYjk2NTBiMzBpZDUxMDZjNzQ5LTQxODUtNDM4Zi1iN2IyLTAxOThiMTRhNTdjYg==",
+                   "id": "5106c749-4185-438f-b7b2-0198b14a57cb", "pitch_count": 13.0}
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        runner = {"parent_list__id": "runners__list", "first_name": "Dustin", "out": "false",
+                  "dd_updated__id": 1469497407373, "at_bat__id": "71f664ce-5bbb-46fa-9ede-c5136befed3c",
+                  "jersey_number": 15.0, "pitch__id": "c8f11efb-9edd-4653-9b8a-617fb9650b30",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGF0X2JhdF9faWQ3MWY2NjRjZS01YmJiLTQ2ZmEtOWVkZS1jNTEzNmJlZmVkM2NwaXRjaF9faWRjOGYxMWVmYi05ZWRkLTQ2NTMtOWI4YS02MTdmYjk2NTBiMzBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ0MDA4NWMwNS1mYTA2LTRlZWMtOWY0MS1mMDI0NTk4MGY2YTA=",
+                  "parent_api__id": "pbp", "ending_base": 1.0, "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd",
+                  "id": "40085c05-fa06-4eec-9f41-f0245980f6a0", "last_name": "Pedroia", "preferred_name": "Dustin",
+                  "starting_base": 1.0}
+        self.__parse_and_send(runner, (sport_db + '.' + 'runner', parent_api))
+
+        at_bat = {"hitter_id": "272abdba-ae99-4137-a6dd-5615f234adfc", "pitch": "c8f11efb-9edd-4653-9b8a-617fb9650b30",
+                  "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd", "id": "71f664ce-5bbb-46fa-9ede-c5136befed3c",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGlkNzFmNjY0Y2UtNWJiYi00NmZhLTllZGUtYzUxMzZiZWZlZDNj",
+                  "parent_api__id": "pbp", "dd_updated__id": 1469497407373}
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+        runner = {"first_name": "Sandy", "starting_base": 2.0, "parent_api__id": "pbp", "jersey_number": 3.0,
+                  "ending_base": 2.0, "at_bat__id": "71f664ce-5bbb-46fa-9ede-c5136befed3c",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGF0X2JhdF9faWQ3MWY2NjRjZS01YmJiLTQ2ZmEtOWVkZS1jNTEzNmJlZmVkM2NwaXRjaF9faWRjOGYxMWVmYi05ZWRkLTQ2NTMtOWI4YS02MTdmYjk2NTBiMzBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQyNGQwNTdhOS00ZGVmLTRlOWUtYmU4My0zZWNhMDFjOWM5MjI=",
+                  "last_name": "Leon", "dd_updated__id": 1469497407373, "preferred_name": "Sandy",
+                  "id": "24d057a9-4def-4e9e-be83-3eca01c9c922", "pitch__id": "c8f11efb-9edd-4653-9b8a-617fb9650b30",
+                  "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd", "parent_list__id": "runners__list",
+                  "out": "false"}
+        self.__parse_and_send(runner, (sport_db + '.' + 'runner', parent_api))
+
+        # ninja object - not part of the sox game for this pbp! but lets send it anyways
+        pitcher = {"pitch_zone": 11.0, "dd_updated__id": 1469497407381, "pitch_speed": 75.0, "pitcher_hand": "R",
+                   "at_bat__id": "e8793b64-663b-4583-b7f3-87dd8162dd74",
+                   "game__id": "0522df7a-dbb4-40d2-a5c1-a4586f56f502",
+                   "pitch__id": "34b916c0-e9b6-498a-8e15-cb92101eb578",
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZDA1MjJkZjdhLWRiYjQtNDBkMi1hNWMxLWE0NTg2ZjU2ZjUwMmF0X2JhdF9faWRlODc5M2I2NC02NjNiLTQ1ODMtYjdmMy04N2RkODE2MmRkNzRwaXRjaF9faWQzNGI5MTZjMC1lOWI2LTQ5OGEtOGUxNS1jYjkyMTAxZWI1NzhpZDUwOWVlNDI1LWNhZTQtNGNhMi05MmM2LTIzYzYyMWU5Y2UyYQ==",
+                   "parent_api__id": "pbp", "id": "509ee425-cae4-4ca2-92c6-23c621e9ce2a", "pitch_count": 1.0,
+                   "hitter_hand": "L", "pitch_type": "CU"}
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"at_bat__id": "71f664ce-5bbb-46fa-9ede-c5136befed3c", "updated_at": "2016-07-26T01:43:19Z",
+                 "runners__list": [{"runner": "40085c05-fa06-4eec-9f41-f0245980f6a0"},
+                                   {"runner": "24d057a9-4def-4e9e-be83-3eca01c9c922"}], "outcome_id": "bB",
+                 "flags__list": {"is_double_play": "false", "is_wild_pitch": "false", "is_hit": "false",
+                                 "is_triple_play": "false", "is_bunt_shown": "false", "is_ab": "false",
+                                 "is_passed_ball": "false", "is_on_base": "false", "is_bunt": "false",
+                                 "is_ab_over": "false"}, "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd",
+                 "dd_updated__id": 1469497407373, "status": "official",
+                 "count__list": {"pitch_count": 1.0, "balls": 1.0, "outs": 2.0, "strikes": 0.0},
+                 "pitcher": "5106c749-4185-438f-b7b2-0198b14a57cb",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGF0X2JhdF9faWQ3MWY2NjRjZS01YmJiLTQ2ZmEtOWVkZS1jNTEzNmJlZmVkM2NpZGM4ZjExZWZiLTllZGQtNDY1My05YjhhLTYxN2ZiOTY1MGIzMA==",
+                 "id": "c8f11efb-9edd-4653-9b8a-617fb9650b30", "created_at": "2016-07-26T01:43:16Z",
+                 "parent_api__id": "pbp"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
