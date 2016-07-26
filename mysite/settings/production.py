@@ -6,7 +6,7 @@ from dj_database_url import config as heroku_db_config
 import urllib
 
 # Constant for determining environment
-DOMAIN = 'draftboard-prod.herokuapp.com'
+DOMAIN = 'www.draftboard.com'
 
 DATABASES = {
     'default': heroku_db_config()
@@ -52,6 +52,9 @@ INSTALLED_APPS += (
     # sentry for heroku
     'raven.contrib.django.raven_compat',
 )
+
+# SSL redirect
+MIDDLEWARE_CLASSES += ('mysite.middleware.ssl_redirect.SSLRedirect',)
 
 # Pusher
 PUSHER_APP_ID = '144195'
