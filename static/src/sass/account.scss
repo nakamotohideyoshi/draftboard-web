@@ -3,7 +3,6 @@
 $white: #fff;
 $red: #d83036;
 $green: #34cc68;
-$grey-light: #dcdde7;
 $grey-dark: #5d6072;
 
 $width-left: 490px;  // minimum width from comp
@@ -126,14 +125,8 @@ $account-height: 600px;
 
             box-shadow: none;
             transition: none 0s ease 0s;
-            border-width: 0px 0px 1px;
-            border-style: none none solid;
-            border-color: -moz-use-text-color -moz-use-text-color $grey-light;
-            -moz-border-top-colors: none;
-            -moz-border-right-colors: none;
-            -moz-border-bottom-colors: none;
-            -moz-border-left-colors: none;
-            border-image: none;
+            border: 0;
+            border-bottom: 1px solid #9ca1ae;
 
             &:focus {
               border-color: $green;
