@@ -42,8 +42,8 @@ const defaultTestProps = {
   routerPush: () => true,
   addMessage: () => true,
   upcomingContestUpdateReceived: () => true,
-  // highestContestBuyin: React.PropTypes.number,
   removeContestPoolEntry: () => true,
+  entrySkillLevels: {},
 };
 
 

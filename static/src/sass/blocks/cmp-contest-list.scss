@@ -51,6 +51,24 @@ $table-row-hover-bg: #f9fafb;
 
     .enter-contest-button {
       min-width: 11em;
+      // Make the tooltip not go off the screen by positioning it to go to the left
+      .tooltip {
+        display: block;
+
+        &__content {
+          left: 0;
+
+          &:after,
+          &:before {
+            left: 80%;
+          }
+        }
+
+        &--bottom-arrow {
+          left: auto;
+          right: 10%;
+        }
+      }
     }
   }
 

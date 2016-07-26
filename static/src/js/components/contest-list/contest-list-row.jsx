@@ -29,6 +29,7 @@ const ContestListRow = React.createClass({
     lineupsInfo: React.PropTypes.object,
     contest: React.PropTypes.object.isRequired,
     setFocusedContest: React.PropTypes.func,
+    entrySkillLevels: React.PropTypes.object.isRequired,
   },
 
 
@@ -185,6 +186,7 @@ const ContestListRow = React.createClass({
               contestHasStarted: 'button--sm button--flat',
               maxEntered: 'button--sm button--flat',
             }}
+            entrySkillLevels={this.props.entrySkillLevels}
           />
         </td>
       </tr>

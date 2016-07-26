@@ -596,6 +596,7 @@ export const fetchSportsIfNeeded = () => (dispatch, getState) => {
       dispatch(fetchSportIfNeeded(sport));
     });
   } catch (err) {
+    // TODO: This is silently gobbling up any errors.
     dispatch(addMessage({
       header: 'Failed to connect to API.',
       content: 'Please refresh the page to reconnect.',

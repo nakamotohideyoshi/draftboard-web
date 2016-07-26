@@ -8,8 +8,8 @@ const { Provider, connect } = ReactRedux;
 
 // Options for the skill level filter.
 const skillLevelFilters = [
-  { title: 'Rookie', column: 'skill_level', match: 'rookie' },
-  { title: 'Veteran', column: 'skill_level', match: 'veteran' },
+  { title: 'Rookie', column: 'skill_level', match: ['rookie', 'all'] },
+  { title: 'Veteran', column: 'skill_level', match: ['veteran', 'all'] },
 ];
 
 
@@ -42,33 +42,23 @@ function mapDispatchToProps(dispatch) {
 /**
  * Render the header for a contest list - Displays currently active filters.
  */
-const ContestListHeader = (props) => {
-  // Determine the skill level filter title.
-  let currentSkillLevel = '';
-
-  if (props.filters.skillLevelFilter.hasOwnProperty('match')) {
-    if (props.filters.skillLevelFilter.match) {
-      currentSkillLevel = props.filters.skillLevelFilter.match.toUpperCase();
-    }
-  }
-
-  return (
-    <div className="cmp-contest-list__header">
-      <h4 className="title">Choose a Skill Level</h4>
-      <div className="cmp-skill-level-filter">
-        <CollectionMatchFilter
-          className="contest-list-filter--skill-level"
-          filters={skillLevelFilters}
-          filterName="skillLevelFilter"
-          filterProperty="skill_level"
-          match={currentSkillLevel}
-          onUpdate={props.updateFilter}
-          activeFilter={props.filters.skillLevelFilter}
-        />
-      </div>
+const ContestListHeader = (props) => (
+  <div className="cmp-contest-list__header">
+    <h4 className="title">Choose a Skill Level</h4>
+    <div className="cmp-skill-level-filter">
+      <CollectionMatchFilter
+        className="contest-list-filter--skill-level"
+        filters={skillLevelFilters}
+        filterName="skillLevelFilter"
+        filterProperty="skill_level.name"
+        match={props.filters.skillLevelFilter.match}
+        onUpdate={props.updateFilter}
+        activeFilter={props.filters.skillLevelFilter}
+      />
     </div>
-  );
-};
+  </div>
+);
+
 
 // Set the components propType validation.
 ContestListHeader.propTypes = {
