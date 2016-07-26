@@ -103,6 +103,9 @@ if (window.dfs.wipeLocalStorage === '1') {
 // set new version
 window.localStorage.setItem('version', window.dfs.gitCommitUUID);
 
+// Registration
+require('components/account/register');
+
 // Global
 require('actions/keypress-actions');
 require('components/site/pane')();

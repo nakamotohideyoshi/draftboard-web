@@ -46,13 +46,18 @@ from cash.classes import (
 from braces.views import LoginRequiredMixin
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives, EmailMessage
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.template import loader
 from rest_framework import response, status
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from rest_framework import permissions
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import views as auth_views
+from django.contrib.auth import login as authLogin
+from django.contrib.auth import authenticate, logout
 from rest_framework.exceptions import APIException
+
 
 class AuthAPIView(APIView):
     """
@@ -67,7 +72,7 @@ class AuthAPIView(APIView):
         user = authenticate(username=args.get('username'),
                             password=args.get('password'))
         if user is not None:
-            login(request, user)
+            authLogin(request, user)
             #
             # return a 201
             return Response({}, status=status.HTTP_200_OK)
@@ -130,6 +135,7 @@ class PasswordResetAPIView(APIView):
             return Response({}, status=status.HTTP_200_OK)
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
+
 class RegisterAccountAPIView(generics.CreateAPIView):
     """
     Registers new users.
@@ -144,19 +150,23 @@ class RegisterAccountAPIView(generics.CreateAPIView):
     def post(self, request, format=None):
         data = request.data
         serializer = RegisterUserSerializer(data=data)
+
         if serializer.is_valid():
             username = data.get('username')
             email = data.get('email')
-            # The serializer does not check if the email field is None
-            if email is None:
-                return Response("Email is required", status=status.HTTP_400_BAD_REQUEST)
-
             password = data.get('password')
+
             user = User.objects.create(username=username, email=email)
             user.set_password(password)
             user.save()
+
+            newUser = authenticate(username=user.username, password=password)
+            if newUser is not None:
+                authLogin(request, newUser)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserAPIView(generics.GenericAPIView):
     """
@@ -409,7 +419,28 @@ class SetDefaultPaymentMethodAPI(APIView):
     def post(self, request, *args, **kwargs):
         return Response(status=201)
 
+
+def login(request, **kwargs):
+    """
+    Extension of the Django login view, redirects to the feed if already logged in.
+    Unfortunately Django does not use class based views for auth so we must keep this old as well.
+    """
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(reverse('frontend:lobby'))
+
+    return auth_views.login(request)
+
+
 class RegisterView(TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        """
+        if already logged in, redirect to lobby, otherwise allow page
+        """
+        if request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('frontend:lobby'))
+
+        return super(RegisterView, self).get(request, *args, **kwargs)
 
     template_name = 'registration/register.html'
 
