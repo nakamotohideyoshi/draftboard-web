@@ -285,3 +285,361 @@ class TestMlbLinkedPbp(AbstractTest): # the PitchPbp parser!
         # self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
         # zone_pitch = {}  # 'pitcher' object but its a pitch not _the_ pitcher
         # self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+
+    def test_3(self):
+
+        sport_db  ='mlb'
+        parent_api = 'pbp'
+
+        zone_pitch = {"parent_api__id": "pbp", "pitcher_hand": "L",
+                      "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQwNzI0ZGRiYy0xOTJiLTRhNzktYjc2NC0wZDQwNGJjY2FjZTBpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg==",
+                      "pitch__id": "0724ddbc-192b-4a79-b764-0d404bccace0", "pitch_count": 1.0,
+                      "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                      "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+                      "dd_updated__id": 1469380108438, "pitch_type": "FA", "pitch_zone": 11.0, "hitter_hand": "L"}
+        self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"created_at": "2016-07-24T17:08:19Z", "updated_at": "2016-07-24T17:08:24Z",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDA3MjRkZGJjLTE5MmItNGE3OS1iNzY0LTBkNDA0YmNjYWNlMA==",
+                 "status": "official", "parent_api__id": "pbp", "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                 "id": "0724ddbc-192b-4a79-b764-0d404bccace0", "dd_updated__id": 1469380108438,
+                 "flags__list": {"is_hit": "false", "is_bunt": "false", "is_on_base": "false",
+                                 "is_triple_play": "false", "is_passed_ball": "false", "is_ab": "false",
+                                 "is_ab_over": "false", "is_bunt_shown": "false", "is_double_play": "false",
+                                 "is_wild_pitch": "false"}, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                 "count__list": {"outs": 0.0, "pitch_count": 1.0, "strikes": 0.0, "balls": 1.0},
+                 "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2", "outcome_id": "bB"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        at_bat = {"pitch": "0724ddbc-192b-4a79-b764-0d404bccace0", "id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                  "dd_updated__id": 1469380108438, "hitter_id": "52ff4ff2-ed67-481b-a15b-409ab013e212",
+                  "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "parent_api__id": "pbp",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGlkZGE1ZjcwYjEtYjUwMS00NGQwLWE2NjEtMzFlODlmODU1NWE0"}
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+    def test_4(self):
+        """
+        zone pitch (the 'pitcher' data) is missing the zone/type
+        information and we need to get it on subsequent parse
+        """
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        pitcher = {"parent_api__id": "pbp", "pitcher_hand": "L", "pitch__id": "699450eb-2c4a-48e9-9294-bf0f95e1ec13",
+                   "pitch_count": 2.0, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                   "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2", "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                   "dd_updated__id": 1469380117486, "hitter_hand": "L",
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQ2OTk0NTBlYi0yYzRhLTQ4ZTktOTI5NC1iZjBmOTVlMWVjMTNpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg=="}
+
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"created_at": "2016-07-24T17:08:36Z",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDY5OTQ1MGViLTJjNGEtNDhlOS05Mjk0LWJmMGY5NWUxZWMxMw==",
+                 "status": "official", "parent_api__id": "pbp", "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                 "id": "699450eb-2c4a-48e9-9294-bf0f95e1ec13", "dd_updated__id": 1469380117486,
+                 "flags__list": {"is_hit": "false", "is_bunt": "false", "is_on_base": "false",
+                                 "is_triple_play": "false", "is_passed_ball": "false", "is_ab": "false",
+                                 "is_ab_over": "false", "is_bunt_shown": "false", "is_double_play": "false",
+                                 "is_wild_pitch": "false"}, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                 "count__list": {"outs": 0.0, "pitch_count": 2.0, "strikes": 0.0, "balls": 2.0},
+                 "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2", "outcome_id": "bB"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        at_bat = {"game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                  "dd_updated__id": 1469380117486, "hitter_id": "52ff4ff2-ed67-481b-a15b-409ab013e212",
+                  "pitchs": [{"pitch": "0724ddbc-192b-4a79-b764-0d404bccace0"},
+                             {"pitch": "699450eb-2c4a-48e9-9294-bf0f95e1ec13"}], "parent_api__id": "pbp",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGlkZGE1ZjcwYjEtYjUwMS00NGQwLWE2NjEtMzFlODlmODU1NWE0"}
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+
+    def test_5(self):
+        """
+        at_bat -> zone pitch -> pitch
+        """
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        # pitch 1
+        zone_pitch = {"parent_api__id": "pbp", "pitcher_hand": "L",
+                      "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQwNzI0ZGRiYy0xOTJiLTRhNzktYjc2NC0wZDQwNGJjY2FjZTBpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg==",
+                      "pitch__id": "0724ddbc-192b-4a79-b764-0d404bccace0", "pitch_count": 1.0,
+                      "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                      "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                      "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+                      "dd_updated__id": 1469380108438, "pitch_type": "FA", "pitch_zone": 11.0, "hitter_hand": "L"}
+
+        self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"created_at": "2016-07-24T17:08:19Z", "updated_at": "2016-07-24T17:08:24Z",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDA3MjRkZGJjLTE5MmItNGE3OS1iNzY0LTBkNDA0YmNjYWNlMA==",
+                 "status": "official", "parent_api__id": "pbp",
+                 "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                 "id": "0724ddbc-192b-4a79-b764-0d404bccace0", "dd_updated__id": 1469380108438,
+                 "flags__list": {"is_hit": "false", "is_bunt": "false", "is_on_base": "false",
+                                 "is_triple_play": "false", "is_passed_ball": "false", "is_ab": "false",
+                                 "is_ab_over": "false", "is_bunt_shown": "false", "is_double_play": "false",
+                                 "is_wild_pitch": "false"}, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                 "count__list": {"outs": 0.0, "pitch_count": 1.0, "strikes": 0.0, "balls": 1.0},
+                 "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2", "outcome_id": "bB"}
+
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        at_bat = {"pitch": "0724ddbc-192b-4a79-b764-0d404bccace0", "id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                  "dd_updated__id": 1469380108438, "hitter_id": "52ff4ff2-ed67-481b-a15b-409ab013e212",
+                  "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "parent_api__id": "pbp",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGlkZGE1ZjcwYjEtYjUwMS00NGQwLWE2NjEtMzFlODlmODU1NWE0"}
+
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+    def test_6(self):
+        """
+        zonepitch -> pitch, at_bat   (should send)
+        """
+
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        # pitch 1
+        zone_pitch = {"parent_api__id": "pbp", "pitcher_hand": "L",
+                      "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQwNzI0ZGRiYy0xOTJiLTRhNzktYjc2NC0wZDQwNGJjY2FjZTBpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg==",
+                      "pitch__id": "0724ddbc-192b-4a79-b764-0d404bccace0", "pitch_count": 1.0,
+                      "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                      "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+                      "dd_updated__id": 1469380108438, "pitch_type": "FA", "pitch_zone": 11.0, "hitter_hand": "L"}
+
+        self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"created_at": "2016-07-24T17:08:19Z", "updated_at": "2016-07-24T17:08:24Z",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDA3MjRkZGJjLTE5MmItNGE3OS1iNzY0LTBkNDA0YmNjYWNlMA==",
+                 "status": "official", "parent_api__id": "pbp", "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                 "id": "0724ddbc-192b-4a79-b764-0d404bccace0", "dd_updated__id": 1469380108438,
+                 "flags__list": {"is_hit": "false", "is_bunt": "false", "is_on_base": "false",
+                                 "is_triple_play": "false", "is_passed_ball": "false", "is_ab": "false",
+                                 "is_ab_over": "false", "is_bunt_shown": "false", "is_double_play": "false",
+                                 "is_wild_pitch": "false"}, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                 "count__list": {"outs": 0.0, "pitch_count": 1.0, "strikes": 0.0, "balls": 1.0},
+                 "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2", "outcome_id": "bB"}
+
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        at_bat = {"pitch": "0724ddbc-192b-4a79-b764-0d404bccace0", "id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                  "dd_updated__id": 1469380108438, "hitter_id": "52ff4ff2-ed67-481b-a15b-409ab013e212",
+                  "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "parent_api__id": "pbp",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGlkZGE1ZjcwYjEtYjUwMS00NGQwLWE2NjEtMzFlODlmODU1NWE0"}
+
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+    def test_7(self):
+        """
+        order:
+            #1 zonepitch -> pitch -> at_bat
+            #2 pitch -> zonepitch
+            #3 zonepitch -> pitch
+        """
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        # pitch 1
+        zone_pitch = {"parent_api__id": "pbp", "pitcher_hand": "L",
+                      "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQwNzI0ZGRiYy0xOTJiLTRhNzktYjc2NC0wZDQwNGJjY2FjZTBpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg==",
+                      "pitch__id": "0724ddbc-192b-4a79-b764-0d404bccace0", "pitch_count": 1.0,
+                      "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                      "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+                      "dd_updated__id": 1469380108438, "pitch_type": "FA", "pitch_zone": 11.0, "hitter_hand": "L"}
+
+        self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"created_at": "2016-07-24T17:08:19Z", "updated_at": "2016-07-24T17:08:24Z",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDA3MjRkZGJjLTE5MmItNGE3OS1iNzY0LTBkNDA0YmNjYWNlMA==",
+                 "status": "official", "parent_api__id": "pbp", "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                 "id": "0724ddbc-192b-4a79-b764-0d404bccace0", "dd_updated__id": 1469380108438,
+                 "flags__list": {"is_hit": "false", "is_bunt": "false", "is_on_base": "false",
+                                 "is_triple_play": "false", "is_passed_ball": "false", "is_ab": "false",
+                                 "is_ab_over": "false", "is_bunt_shown": "false", "is_double_play": "false",
+                                 "is_wild_pitch": "false"}, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                 "count__list": {"outs": 0.0, "pitch_count": 1.0, "strikes": 0.0, "balls": 1.0},
+                 "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2", "outcome_id": "bB"}
+
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        at_bat = {"pitch": "0724ddbc-192b-4a79-b764-0d404bccace0", "id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                  "dd_updated__id": 1469380108438, "hitter_id": "52ff4ff2-ed67-481b-a15b-409ab013e212",
+                  "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "parent_api__id": "pbp",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGlkZGE1ZjcwYjEtYjUwMS00NGQwLWE2NjEtMzFlODlmODU1NWE0"}
+
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+        # the pitch (not the zone pitch) for #2
+        pitch = {"parent_api__id": "pbp",
+                 "flags__list": {"is_bunt": "false", "is_ab_over": "false", "is_ab": "false", "is_triple_play": "false",
+                                 "is_hit": "false", "is_wild_pitch": "false", "is_bunt_shown": "false",
+                                 "is_passed_ball": "false", "is_on_base": "false", "is_double_play": "false"},
+                 "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4", "id": "699450eb-2c4a-48e9-9294-bf0f95e1ec13",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDY5OTQ1MGViLTJjNGEtNDhlOS05Mjk0LWJmMGY5NWUxZWMxMw==",
+                 "created_at": "2016-07-24T17:08:36Z", "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                 "outcome_id": "bB", "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2", "dd_updated__id": 1469380126531,
+                 "status": "official", "count__list": {"balls": 2.0, "pitch_count": 2.0, "outs": 0.0, "strikes": 0.0},
+                 "updated_at": "2016-07-24T17:08:40Z"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        # pitch 2
+        pitcher = {"pitch_speed": 90.0, "parent_api__id": "pbp", "pitcher_hand": "L",
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQ2OTk0NTBlYi0yYzRhLTQ4ZTktOTI5NC1iZjBmOTVlMWVjMTNpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg==",
+                   "pitch__id": "699450eb-2c4a-48e9-9294-bf0f95e1ec13", "pitch_count": 2.0,
+                   "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                   "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+                   "dd_updated__id": 1469380126531, "pitch_type": "FA", "pitch_zone": 11.0, "hitter_hand": "L"}
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        # pitch 3
+        pitcher = {"parent_api__id": "pbp", "pitcher_hand": "L", "pitch_type": "FA",
+                   "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4", "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+                   "pitch_zone": 4.0, "pitch_speed": 91.0, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                   "hitter_hand": "L",
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQxNDIyNWM0Ny1jZWExLTQwYmQtOWI1OC1lYWRmMjVlMDk3YTRpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg==",
+                   "pitch_count": 3.0, "pitch__id": "14225c47-cea1-40bd-9b58-eadf25e097a4",
+                   "dd_updated__id": 1469380153671}
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"created_at": "2016-07-24T17:08:52Z", "updated_at": "2016-07-24T17:09:10Z",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDE0MjI1YzQ3LWNlYTEtNDBiZC05YjU4LWVhZGYyNWUwOTdhNA==",
+                 "status": "official", "parent_api__id": "pbp", "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                 "id": "14225c47-cea1-40bd-9b58-eadf25e097a4", "dd_updated__id": 1469380153671,
+                 "flags__list": {"is_hit": "false", "is_bunt": "false", "is_on_base": "false",
+                                 "is_triple_play": "false", "is_passed_ball": "false", "is_ab": "false",
+                                 "is_ab_over": "false", "is_bunt_shown": "false", "is_double_play": "false",
+                                 "is_wild_pitch": "false"}, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                 "count__list": {"outs": 0.0, "pitch_count": 3.0, "strikes": 1.0, "balls": 2.0},
+                 "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2", "outcome_id": "kF"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+    def test_7(self):
+        """
+        order:
+            #1 zonepitch -> pitch -> at_bat
+            #2 pitch -> zonepitch
+            #3 zonepitch -> pitch
+            #4
+        """
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        # pitch 1
+        zone_pitch = {"parent_api__id": "pbp", "pitcher_hand": "L",
+                      "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQwNzI0ZGRiYy0xOTJiLTRhNzktYjc2NC0wZDQwNGJjY2FjZTBpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg==",
+                      "pitch__id": "0724ddbc-192b-4a79-b764-0d404bccace0", "pitch_count": 1.0,
+                      "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                      "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                      "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+                      "dd_updated__id": 1469380108438, "pitch_type": "FA", "pitch_zone": 11.0, "hitter_hand": "L"}
+
+        self.__parse_and_send(zone_pitch, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"created_at": "2016-07-24T17:08:19Z", "updated_at": "2016-07-24T17:08:24Z",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDA3MjRkZGJjLTE5MmItNGE3OS1iNzY0LTBkNDA0YmNjYWNlMA==",
+                 "status": "official", "parent_api__id": "pbp",
+                 "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                 "id": "0724ddbc-192b-4a79-b764-0d404bccace0", "dd_updated__id": 1469380108438,
+                 "flags__list": {"is_hit": "false", "is_bunt": "false", "is_on_base": "false",
+                                 "is_triple_play": "false", "is_passed_ball": "false", "is_ab": "false",
+                                 "is_ab_over": "false", "is_bunt_shown": "false", "is_double_play": "false",
+                                 "is_wild_pitch": "false"}, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                 "count__list": {"outs": 0.0, "pitch_count": 1.0, "strikes": 0.0, "balls": 1.0},
+                 "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2", "outcome_id": "bB"}
+
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        at_bat = {"pitch": "0724ddbc-192b-4a79-b764-0d404bccace0", "id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                  "dd_updated__id": 1469380108438, "hitter_id": "52ff4ff2-ed67-481b-a15b-409ab013e212",
+                  "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "parent_api__id": "pbp",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGlkZGE1ZjcwYjEtYjUwMS00NGQwLWE2NjEtMzFlODlmODU1NWE0"}
+
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+        # the pitch (not the zone pitch) for #2
+        pitch = {"parent_api__id": "pbp",
+                 "flags__list": {"is_bunt": "false", "is_ab_over": "false", "is_ab": "false",
+                                 "is_triple_play": "false",
+                                 "is_hit": "false", "is_wild_pitch": "false", "is_bunt_shown": "false",
+                                 "is_passed_ball": "false", "is_on_base": "false", "is_double_play": "false"},
+                 "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4", "id": "699450eb-2c4a-48e9-9294-bf0f95e1ec13",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDY5OTQ1MGViLTJjNGEtNDhlOS05Mjk0LWJmMGY5NWUxZWMxMw==",
+                 "created_at": "2016-07-24T17:08:36Z", "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                 "outcome_id": "bB", "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+                 "dd_updated__id": 1469380126531,
+                 "status": "official",
+                 "count__list": {"balls": 2.0, "pitch_count": 2.0, "outs": 0.0, "strikes": 0.0},
+                 "updated_at": "2016-07-24T17:08:40Z"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        # pitch 2
+        pitcher = {"pitch_speed": 90.0, "parent_api__id": "pbp", "pitcher_hand": "L",
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQ2OTk0NTBlYi0yYzRhLTQ4ZTktOTI5NC1iZjBmOTVlMWVjMTNpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg==",
+                   "pitch__id": "699450eb-2c4a-48e9-9294-bf0f95e1ec13", "pitch_count": 2.0,
+                   "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                   "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+                   "dd_updated__id": 1469380126531, "pitch_type": "FA", "pitch_zone": 11.0, "hitter_hand": "L"}
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        # pitch 3
+        pitcher = {"parent_api__id": "pbp", "pitcher_hand": "L", "pitch_type": "FA",
+                   "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                   "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+                   "pitch_zone": 4.0, "pitch_speed": 91.0, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                   "hitter_hand": "L",
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQxNDIyNWM0Ny1jZWExLTQwYmQtOWI1OC1lYWRmMjVlMDk3YTRpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg==",
+                   "pitch_count": 3.0, "pitch__id": "14225c47-cea1-40bd-9b58-eadf25e097a4",
+                   "dd_updated__id": 1469380153671}
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"created_at": "2016-07-24T17:08:52Z", "updated_at": "2016-07-24T17:09:10Z",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDE0MjI1YzQ3LWNlYTEtNDBiZC05YjU4LWVhZGYyNWUwOTdhNA==",
+                 "status": "official", "parent_api__id": "pbp",
+                 "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+                 "id": "14225c47-cea1-40bd-9b58-eadf25e097a4", "dd_updated__id": 1469380153671,
+                 "flags__list": {"is_hit": "false", "is_bunt": "false", "is_on_base": "false",
+                                 "is_triple_play": "false", "is_passed_ball": "false", "is_ab": "false",
+                                 "is_ab_over": "false", "is_bunt_shown": "false", "is_double_play": "false",
+                                 "is_wild_pitch": "false"}, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84",
+                 "count__list": {"outs": 0.0, "pitch_count": 3.0, "strikes": 1.0, "balls": 2.0},
+                 "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2", "outcome_id": "kF"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+        # pitch count # 4 below, with atbat, pitch, pitcher objects all required:
+
+        pitcher = {"pitch_count": 4.0, "pitch__id": "2ecb54f5-4fdf-4c73-bdce-a1cb5db339b9", "parent_api__id": "pbp",
+               "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4", "pitch_type": "FA",
+               "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "id": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+               "pitch_zone": 8.0, "pitch_speed": 91.0, "dd_updated__id": 1469380171751, "hitter_hand": "L",
+                   "pitcher_hand": "L",
+               "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRwaXRjaF9faWQyZWNiNTRmNS00ZmRmLTRjNzMtYmRjZS1hMWNiNWRiMzM5YjlpZDk3NjBmMWQ2LTk1NjAtNDVlZC1iYzczLTVlYzIyMDU5MDVhMg=="}
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        at_bat = {"parent_api__id": "pbp", "hitter_id": "52ff4ff2-ed67-481b-a15b-409ab013e212",
+              "pitchs": [{"pitch": "0724ddbc-192b-4a79-b764-0d404bccace0"},
+                         {"pitch": "699450eb-2c4a-48e9-9294-bf0f95e1ec13"},
+                         {"pitch": "14225c47-cea1-40bd-9b58-eadf25e097a4"},
+                         {"pitch": "2ecb54f5-4fdf-4c73-bdce-a1cb5db339b9"}],
+              "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+              "dd_updated__id": 1469380171751,
+              "description": "Nori Aoki flies out to left field to Michael Saunders.",
+              "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGlkZGE1ZjcwYjEtYjUwMS00NGQwLWE2NjEtMzFlODlmODU1NWE0"}
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+        pitch = {"count__list": {"pitch_count": 4.0, "strikes": 1.0, "balls": 2.0, "outs": 1.0},
+             "parent_api__id": "pbp", "created_at": "2016-07-24T17:09:21Z",
+             "pitcher": "9760f1d6-9560-45ed-bc73-5ec2205905a2",
+             "fielders__list": {"putout": "07f8d416-1b0b-452c-a677-4e7a6d15d24a"}, "outcome_id": "oFO",
+             "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGZiM2JhMzUxLTYxOGMtNDE2My1hMTJkLTliZTdiYjgxN2I4NGF0X2JhdF9faWRkYTVmNzBiMS1iNTAxLTQ0ZDAtYTY2MS0zMWU4OWY4NTU1YTRpZDJlY2I1NGY1LTRmZGYtNGM3My1iZGNlLWExY2I1ZGIzMzliOQ==",
+             "updated_at": "2016-07-24T17:09:28Z",
+             "flags__list": {"is_wild_pitch": "false", "is_bunt": "false", "is_ab": "true",
+                             "is_passed_ball": "false", "is_on_base": "false", "is_triple_play": "false",
+                             "is_ab_over": "true", "is_double_play": "false", "is_hit": "false",
+                             "is_bunt_shown": "false"}, "at_bat__id": "da5f70b1-b501-44d0-a661-31e89f8555a4",
+             "hit_location": 11.0, "game__id": "fb3ba351-618c-4163-a12d-9be7bb817b84", "status": "official",
+             "id": "2ecb54f5-4fdf-4c73-bdce-a1cb5db339b9", "hit_type": "FB", "dd_updated__id": 1469380171751}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
