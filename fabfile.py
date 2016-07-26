@@ -16,10 +16,9 @@ ENVS = {
         'local_git_branch': 'master',
         'heroku_repo': 'draftboard-prod',
     },
-    # 'staging': {
-    #     'local_git_branch': 'master',
-    #     'heroku_repo': 'draftboard-staging',
-    # },
+    'delorean': {
+        'heroku_repo': 'draftboard-delorean',
+    },
     'dev': {
         'heroku_repo': 'draftboard-dev',
     },
@@ -510,13 +509,13 @@ def dev():
     _get_local_git_db()
 
 
-def testing():
+def delorean():
     """fab testing [virtual_machine_type] [command]"""
 
-    testing = ENVS['testing']
+    delorean = ENVS['delorean']
 
-    env.environment = 'testing'
-    env.heroku_repo = testing['heroku_repo']
+    env.environment = 'delorean'
+    env.heroku_repo = delorean['heroku_repo']
     _get_local_git_db()
 
 
