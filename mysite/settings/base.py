@@ -138,7 +138,7 @@ PLAYER_IMAGES_URL = 'http://djh3pixt0wof0.cloudfront.net'
 APPEND_SLASH = True
 
 # Only allow site to be hosted on our domain
-ALLOWED_HOSTS = ['.draftboard-staging.herokuapp.com', '*.draftboard-staging.herokuapp.com', ]
+ALLOWED_HOSTS = ['.draftboard-prod.herokuapp.com', '*.draftboard-prod.herokuapp.com', '*.draftboard.com']
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '9^1kzl5mo3pfgy1f402)27s*jz=s00^#rtznm_2)i!tkz7s-ed'
