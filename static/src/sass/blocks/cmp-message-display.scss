@@ -110,6 +110,11 @@
   }
 }
 
+// account override (change this to BEM)
+html.section-logged-out-account .cmp-message-display {
+  top: 0;
+}
+
 
 /**
  * React transitions

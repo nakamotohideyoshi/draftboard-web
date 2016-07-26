@@ -1,29 +1,22 @@
+@import './variables.scss';
+
 $white: #fff;
 $red: #d83036;
 $green: #34cc68;
 $grey-light: #dcdde7;
 $grey-dark: #5d6072;
 
-$open-sans: "Open Sans", "Arial", "Helvetica", sans-serif;
-$width-left: 490px;
-$footer-height: 150px;
+$width-left: 490px;  // minimum width from comp
 $account-height: 600px;
 
 
 .account {
-  height: 100%;
-  min-height: $account-height;
-  margin: 0;
-
   // this section is in the __content but above the v-middle on the screen
   &__header {
-    position: absolute;
-    top: 100px;
-    width: 100%;
+    display: block;
     margin: 0 auto;
-
-    text-align: center;
-    min-height: 50px;
+    padding: 10vh 0 4vh;
+    width: 100%;
 
     &__logo {
       // align logo with the h1
@@ -39,34 +32,25 @@ $account-height: 600px;
     h1 {
       display: inline-block;
       margin-left: 10px;
-      color: $grey-dark;
-      font-size: 12px;
-      font-family: $open-sans;
-      font-weight: 600;
-      letter-spacing: 5px;
+      color: #46495e;
+      font-size: 11px;
+      font-family: "Open Sans", "Arial", "Helvetica", sans-serif;
+      font-weight: 300;
+      letter-spacing: 4px;
     }
   }
 
   &__left {
-    background: $white;
-    height: 100%;
-    left: 0;
-    min-height: $account-height;
-    position: absolute;
+    background: #fff;
+    max-width: $width-left;
+    min-height: 100%;
+    position: relative;
     text-align: center;
-    top: 0;
-    width: $width-left;
+    width: 34%;  // ratio from comp, 982px/2880px
     z-index: 1;
 
-    // every display: inline-block inner elem will be centered
-    text-align: center;
-
     &__content {
-      // position it in the center at the left side
-      position: relative;
-      top: 50%;
-      transform: translateY(-50%);
-
+      margin-bottom: 150px;  // max height of footer
 
       &__checkmark-success {
         width: 250px;
@@ -81,7 +65,7 @@ $account-height: 600px;
       &__text {
         color: #5d6072;
         font-size: 14px;
-        font-family: $open-sans;
+        font-family: $font-open-sans;
         letter-spacing: 1.5px;
       }
 
@@ -92,26 +76,38 @@ $account-height: 600px;
         // this sizes makes sure the biggest form (registration) is kept intact
         min-height: 350px;
 
+        &__non-field-errors {
+          font-size: 12px;
+          color: #fff;
+          background: #e33c3c;
+          padding: 10px 0;
+        }
+
         &__input-layout {
+          position: relative;
+          text-align: left;
           margin-top: 15px;
 
           p {
-            float: left;
+            display: inline-block;
             font-size: 12px;
-            font-family: $open-sans;
+            font-family: $font-open-sans;
             text-align: left;
+            width: 70%;
+            vertical-align: top;
           }
 
           label {
-            position: relative;
-            top: -40px;
-            float: left;
-            color: $grey-dark;
-            font-size: 13px;
-            font-family: $open-sans;
-            font-weight: 400;
+            color: #b0b2c1;
+            font-size: 9.5px;
+            font-family: $font-open-sans;
+            font-weight: 500;
             letter-spacing: 1px;
             text-transform: uppercase;
+
+            span {
+              font-size: 10px;
+            }
           }
 
           label:hover {
@@ -121,17 +117,12 @@ $account-height: 600px;
           input[type=text],
           input[type=email],
           input[type=password] {
-            padding-top: 10px;
-            padding-bottom: 10px;
-            height: 50px;
+            padding: 0;
             width: 100%;
-            min-width: 250px;
 
-            color: $grey-dark;
-            font-size: 18px;
-            font-family: $open-sans;
-            font-weight: 400;
-            letter-spacing: 1px;
+            color: #46495e;
+            font-size: 16px;
+            font-family: $font-open-sans;
 
             box-shadow: none;
             transition: none 0s ease 0s;
@@ -148,16 +139,6 @@ $account-height: 600px;
               border-color: $green;
               transition: none;
               outline-width: 0;
-
-              & + label {
-                color: $grey-light;
-                top: -55px;
-              }
-            }
-
-            &:valid + label {
-              color: $grey-light;
-              top: -55px;
             }
           }
 
@@ -165,12 +146,11 @@ $account-height: 600px;
             display: inline-block;
             width: 100%;
             padding: 12px 0;
-            margin-top: 20px;
             vertical-align: middle;
 
             color: $white;
             font-size: 11px;
-            font-family: $open-sans;
+            font-family: $font-open-sans;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 3px;
@@ -180,14 +160,9 @@ $account-height: 600px;
 
             border: none;
             border-radius: 2px;
-            background: #219d87; /* Old browsers */
-            background: -moz-linear-gradient(left, rgb(33,157,135) 0%, rgb(52,204,104) 100%); /* FF3.6+ */
-            background: -webkit-gradient(linear, left top, right top, color-stop(0%,rgb(33,157,135)), color-stop(100%,rgb(52,204,104))); /* Chrome,Safari4+ */
-            background: -webkit-linear-gradient(left, rgb(33,157,135) 0%,rgb(52,204,104) 100%); /* Chrome10+,Safari5.1+ */
-            background: -o-linear-gradient(left, rgb(33,157,135) 0%,rgb(52,204,104) 100%); /* Opera 11.10+ */
-            background: -ms-linear-gradient(left, rgb(33,157,135) 0%,rgb(52,204,104) 100%); /* IE10+ */
-            background: linear-gradient(to right, rgb(33,157,135) 0%,rgb(52,204,104) 100%); /* W3C */
-            box-shadow: 12px 20.785px 57px 0px rgba(21, 89, 65, 0.149);
+            background-image: linear-gradient(0deg, rgb(33,157,135) 0%, rgb(52,204,104) 100%);
+            box-shadow: 0px 24px 57px 0px rgba(21, 89, 65, 0.38);
+            margin: 20px 0 58px;
 
             cursor: pointer;
             transition: all 0.2s;
@@ -203,42 +178,36 @@ $account-height: 600px;
           input[type=checkbox] {
             width: 20px;
             height: 20px;
-            clear: left;
-            float: left;
+            display: inline-block;
+            vertical-align: top;
           }
 
           // show arrow on the right side of the button
           .arrow {
-            display: inline-block;
-            position: relative;
-            top: -25px;
-            right: 12px;
-            width: 19px;
-            height: 11px;
-            float: right;
-            background: url(../img/account/arrow.png);
-            background-repeat: no-repeat;
+            background: url(../img/account/arrow.png) no-repeat;
             background-size: cover;
+            display: inline-block;
+            height: 11px;
+            position: absolute;
+            right: 12px;
+            top: 98px;
+            width: 19px;
           }
 
           .forgot-password-link > a {
-            clear: left;
-            float: left;
             color: $green;
-            font-size: 10px;
-            font-family: $open-sans;
-            font-weight: 500;
+            font-size: 9px;
+            font-family: $font-open-sans;
             text-decoration: none;
             text-transform: uppercase;
             letter-spacing: 1px;
-            cursor: pointer;
           }
 
         }
 
         // if the input is errored change some (make red colors) styles
         &__input-layout.errored {
-          label {
+          label, p {
             color: $red;
           }
 
@@ -273,177 +242,40 @@ $account-height: 600px;
           color: $white;
           background-color: $red;
           font-size: 13px;
-          font-family: $open-sans;
+          font-family: $font-open-sans;
           font-weight: 200;
           padding: 8px;
-        }
-      }
-    }
-
-    // keep at bottom
-    &__footer {
-      position: absolute;
-      bottom: 0;
-      height: $footer-height;
-      width: $width-left;
-
-      &__content {
-        // take up the whole parent element
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-
-        z-index: 8;
-
-        background: $white;
-        color: #5d6072;
-        font-size: 16px;
-        font-family: $open-sans;
-        font-weight: 400;
-        border-top: 1px solid $grey-light;
-        vertical-align: middle;
-        line-height: $footer-height;
-      }
-
-      // switch footer content with this one when footer is hovered
-      &__content-onhover {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-
-        // hide until footer is hovered
-        z-index: 7;
-
-        background: $white;
-        font-size: 16px;
-        font-family: $open-sans;
-        font-weight: 400;
-        border-top: 1px solid $grey-light;
-        border: none;
-
-        vertical-align: middle;
-      }
-
-      // on hover, lower the z-index so to show &__hovered element
-      &__content:hover {
-        z-index: 6;
-      }
-
-      // once onhover is ontop, increase its z-index so to stay there while hovered
-      &__content-onhover:hover {
-        z-index: 9;
-        display: visible;
-      }
-
-      // style specific for elements INSIDE the footer
-      &__create-account {
-        height: 100%;
-        background-image: url(../img/account/create_account_footer.jpg);
-        background-repeat: no-repeat;
-        background-size: cover;
-        background-position: center;
-
-        a {
-          color: $white;
-          display: block;
-          font-family: $open-sans;
-          font-size: 11px;
-          font-weight: 500;
-          height: 100%;
-          letter-spacing: 3px;
-          line-height: 150px;
-          text-align: center;
-          text-decoration: none;
-          text-transform: uppercase;
-          // weird bg issue
-          width: 101%;
-        }
-
-        a:hover {
-          color: $grey-light;
-        }
-
-        .arrow {
-          background: url(../img/account/arrow.png) no-repeat;
-          background-size: 100% auto;
-          display: inline-block;
-          height: 11px;
-          margin-left: 5px;
-          position: relative;
-          top: 1px;
-          width: 19px;
-        }
-      }
-
-      &__login {
-        height: 100%;
-
-        &__content {
-          position: relative;
-          top: 50%;
-          transform: translateY(-50%);
-          display: inline-block;
-          margin: 0 auto;
-
-          a {
-            color: $grey-dark;
-            font-size: 11px;
-            font-family: $open-sans;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            text-align: center;
-            text-decoration: none;
-          }
-
-          a:hover {
-            color: #000;
-          }
         }
       }
     }
   }
 
   &__right {
-    background: url(../img/account/background.jpg);
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: right;
+    background: url(../img/blocks/account/register/bg.jpg) no-repeat top right;
+    background-size: auto 100%;  // default to height 100%, media query covers aspect >= 1:1
     height: 100%;
     overflow: hidden;
     position: fixed;
-    padding-left: 490px;
-    width: 100%;
-
-    // every display: inline-block inner elem will be centered (like margin 0 auto)
+    right: 0;
     text-align: center;
+    top: 0;
 
     &__inner {
-      // the following center vertically on parent with position: absolute
+      background: url(../img/blocks/live-countdown/glow.png) no-repeat center center;
+      background-size: 100% auto;
+      margin: 0 auto;
+      padding-bottom: 70%;  // important! same height as width via padding-bottom
       position: relative;
       top: 50%;
       transform: translateY(-50%);
-      display: inline-block;
-
-      width: 90%;
-      // so to display the circle from the background properly
-      max-width: 624px;
-      min-height: 550px;
-      background: url(../img/account/circle.png);
-      background-repeat: no-repeat;
-      background-size: 100% auto;
-      background-position: right;
+      width: 70%;
 
       &__content {
-        // I have no idea why this centers it.
-        position: relative;
-        top: 125%;
-        transform: translateY(125%);
-        display: inline-block;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        left: 0;
+        right: 0;
 
         > div {
           margin-bottom: 30px;
@@ -451,9 +283,10 @@ $account-height: 600px;
 
         &__title {
           color: $white;
-          font-size: 40px;
-          font-family: $open-sans;
-          font-weight: 300;
+          font-size: 3.5vw;
+          font-family: $font-oswald;
+          font-weight: 400;
+          text-transform: uppercase;
         }
 
         // separator is simple grey line between the title and the text
@@ -466,41 +299,90 @@ $account-height: 600px;
 
         &__text {
           text-transform: uppercase;
-          color: $grey-dark;
-          font-size: 15px;
-          font-family: $open-sans;
-          font-weight: 400;
+          color: #fefefe;
+          font-size: 0.7vw;
+          font-family: $font-open-sans;
+          font-weight: 600;
+          letter-spacing: 1px;
         }
       }
     }
   }
 
-}
-
-
-@media (max-width: 1024px) {
-  .account {
-    &__right__inner__content__title {
-      font-size: 32px;
-    }
-
-    &__right__inner__content__text {
-      margin: 0 auto;
-      width: 180px;
+  &--register {
+    .account__header {
+      padding: 4vh 0 3vh;
     }
   }
 }
 
 
+// ratio of width/height that requires change of background to be width 100%
+@media (min-aspect-ratio: 21/12) {
+  .account__right {
+    background-size: 80% auto;
+  }
+}
 
-@media (max-width: 959px) {
+@media (min-width: 1440px) {
+  .account__right {
+    padding-left: 490px;
+    width: 100%;
+
+    &__inner {
+      max-width: 1150px;
+    }
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1439px) {
+  .account__right {
+    width: 66%;
+  }
+}
+
+
+@media (max-width: 1024px) {
   .account {
-
     &__left {
+      width: 44%;
+
+      &__footer {
+        width: 44%;
+      }
+    }
+
+    &__right {
+      width: 56%;
+
+      &__inner {
+        width: 80%;  // since width of __right goes up 10%, so does this
+      }
+    }
+  }
+}
+
+// inputs get some height
+@media (min-width: 768px) {
+  .account__left__content__form__input-layout input[type=text],
+  .account__left__content__form__input-layout input[type=email],
+  .account__left__content__form__input-layout input[type=password] {
+    padding: 10px 0 14px;
+  }
+}
+
+
+
+@media (max-width: 768px) {
+  .account {
+    &__left {
+      margin: 0 auto;
       width: 100%;
 
-      // @!@@@!@!@!@! this is because I can't seem to understand
-      // how to make footer with no position: absolute
+      &__content__form {
+        width: 80%;
+      }
+
       &__footer {
         width: 100%;
       }

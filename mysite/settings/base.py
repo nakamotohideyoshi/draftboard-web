@@ -1,15 +1,18 @@
+from braintree import Configuration, Environment
+from django.conf.locale.en import formats as en_formats
+from django.core.exceptions import ImproperlyConfigured
 from os import environ
 from os.path import join
 from sys import stdout
 from unipath import Path
+import braintree
 import datetime
-from django.conf.locale.en import formats as en_formats
+import os
 
 en_formats.DATETIME_FORMAT = "l, M d P"
-#en_formats.DATETIME_FORMAT = "m/d/Y h:i:s P"
+# en_formats.DATETIME_FORMAT = "m/d/Y h:i:s P"
 # en_formats.DATETIME_FORMAT = "l m.d.Y  @  P"
 
-from django.core.exceptions import ImproperlyConfigured
 
 def get_env_variable(var_name):
     """ Get the environment variable or return exception """
@@ -19,25 +22,22 @@ def get_env_variable(var_name):
         error_msg = "Set the %s env variable" % var_name
         raise ImproperlyConfigured(error_msg)
 
-#
-#
 SITE = 'www.draftboard.com'
 
 # Application constants
 # ----------------------------------------------------------
 
 # Constant definitions
-PROJECT_ROOT    = Path(__file__).ancestor(3)
-STATIC_ROOT     = PROJECT_ROOT.child('collected_static')
-INTERNAL_IPS    = ()
+PROJECT_ROOT = Path(__file__).ancestor(3)
+STATIC_ROOT = PROJECT_ROOT.child('collected_static')
+INTERNAL_IPS = ()
 
-import os
 
-BASE_DIR        = os.path.dirname(os.path.dirname(__file__))
-SITE_ROOT       = os.path.dirname(os.path.realpath(__file__))
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 #
 # fixtures directory: /PATH/TO/BASE_PROJECT_DIR/test/fixtures
-FIXTURES_DIR    = (os.path.join(BASE_DIR, 'test/fixtures'),)  # for $> manage.py test
+FIXTURES_DIR = (os.path.join(BASE_DIR, 'test/fixtures'),)  # for $> manage.py test
 
 
 LOGIN_URL = '/login/'
@@ -71,17 +71,17 @@ DEBUG = False
 
 TEMPLATES = [
     {
-        'BACKEND' : 'django.template.backends.django.DjangoTemplates',
-        'DIRS'    : [
-            #join(BASE_DIR, 'templates'),
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            join(BASE_DIR, 'templates'),
             join(BASE_DIR, 'account/templates'),
             join(BASE_DIR, 'prize/templates'),
             join(BASE_DIR, 'salary/templates'),
             join(BASE_DIR, 'sports/templates'),
             join(BASE_DIR, 'contest/schedule'),
         ],
-        #'APP_DIRS': True, # defaults to False
-        'OPTIONS' : {
+        # 'APP_DIRS': True, # defaults to False
+        'OPTIONS': {
             # TEMPLATE_CONTEXT_PROCESSORS = (
             #     'django.core.context_processors.static',
             #     'django.core.context_processors.request',
@@ -91,7 +91,7 @@ TEMPLATES = [
             #     # CSRF token masking
             #     'debreach.context_processors.csrf',
             # )
-            'context_processors' : [
+            'context_processors': [
                 "django.contrib.auth.context_processors.auth",
                 "django.template.context_processors.debug",
                 "django.template.context_processors.i18n",
@@ -112,12 +112,12 @@ TEMPLATES = [
                 'debreach.context_processors.csrf',
             ],
 
-            'loaders' : [
+            'loaders': [
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader'
             ],
 
-            'debug' : DEBUG, # set the template debug to the same as global settings debug
+            'debug': DEBUG,  # set the template debug to the same as global settings debug
         }
     },
 ]
@@ -183,48 +183,27 @@ CACHALOT_CACHE = 'cachalot'
 # Use Pipeline for static asset management
 STATICFILES_STORAGE = 'mysite.storage.WhitenoisePipelineStorage'
 PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
-PIPELINE_JS = {
-    # 'lib': {
-    #     'source_filenames': (
-    #         'js/lib/moment.js',
-    #         'js/lib/jsnlog.js',
-    #         'js/lib/modernizr-2.8.3.js',
-    #         'js/lib/pagedown/Markdown.Converter.js',
-    #         'js/lib/pagedown/Markdown.Sanitizer.js',
-    #         'js/lib/pagedown/Markdown.Editor.js',
-    #         'js/lib/angular/angular.js',
-    #         'js/lib/angular/angular-animate.min.js',
-    #         'js/lib/angular/angular-route.min.js',
-    #         'js/lib/angular/angular-resource.min.js',
-    #         'js/lib/angular/angular-cookies.min.js',
-    #         'js/lib/rioplayer/rioplayer.1.0.0.js',
-    #         'js/lib/ui-bootstrap/ui-bootstrap-modal-0.10.0.js',
-    #         'js/lib/ui-bootstrap/ui-bootstrap-modal-tpls-0.10.0.js',
-    #         'js/lib/socket.io.js',
-    #     ),
-    #     'output_filename': 'js/lib.js',
-    # },
-}
+PIPELINE_JS = {}
 
 #
 ##########################################################################
 #        cash -Withdrawal Rules
 ##########################################################################
-DFS_CASH_WITHDRAWAL_APPROVAL_REQ_AMOUNT          = 100.00
-DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO      = 750.00
+DFS_CASH_WITHDRAWAL_APPROVAL_REQ_AMOUNT = 100.00
+DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO = 750.00
 
 #
 ##########################################################################
 #        pusher - LIVE
 ##########################################################################
-PUSHER_APP_ID   = '144195'
-PUSHER_KEY      = '9754d03a7816e43abb64'
-PUSHER_SECRET   = 'fcbe16f4bf9e8c0b2b51'
+PUSHER_APP_ID = '144195'
+PUSHER_KEY = '9754d03a7816e43abb64'
+PUSHER_SECRET = 'fcbe16f4bf9e8c0b2b51'
 #
 # our own prefix to globally apply to pusher channels.
 # this should be an empty string for production,
 # but locally you may wish to override it for testing.
-PUSHER_CHANNEL_PREFIX = ''     #   *** MUST REMAIN EMPTY IN PRODUCTION ***
+PUSHER_CHANNEL_PREFIX = ''  # *** MUST REMAIN EMPTY IN PRODUCTION ***
 
 #
 # default: True.  whether Pusher will actually send objects its told to send()
@@ -234,19 +213,17 @@ PUSHER_ENABLED = True
 ##########################################################################
 #        paypal client_id, secret keys
 ##########################################################################
-PAYPAL_CLIENT_ID    = None
-PAYPAL_SECRET       = None
+PAYPAL_CLIENT_ID = None
+PAYPAL_SECRET = None
 
 #
 ##########################################################################
 #        django_braintree
 ##########################################################################
-import braintree
-BRAINTREE_MERCHANT      = 'xh2x3fhngf3nnkk5'
-BRAINTREE_PUBLIC_KEY    = 'th4fw4rpz3rhn8bq'
-BRAINTREE_PRIVATE_KEY   = '9122b2a8557887e27a6de0da7221a7d7'
-BRAINTREE_MODE          = braintree.Environment.Sandbox
-from braintree import Configuration, Environment
+BRAINTREE_MERCHANT = 'xh2x3fhngf3nnkk5'
+BRAINTREE_PUBLIC_KEY = 'th4fw4rpz3rhn8bq'
+BRAINTREE_PRIVATE_KEY = '9122b2a8557887e27a6de0da7221a7d7'
+BRAINTREE_MODE = braintree.Environment.Sandbox
 
 Configuration.configure(
     Environment.Sandbox,
@@ -267,7 +244,7 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',  # use for testing by browser
     ),
 
-    #'DEFAULT_PAGINATION_CLASS': None
+    # 'DEFAULT_PAGINATION_CLASS': None
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination'
 }
 
@@ -282,9 +259,7 @@ JWT_AUTH = {
 # Django installs
 # ----------------------------------------------------------
 INSTALLED_APPS = (
-    #'suit',
-    #
-    # # django defaults
+    # django defaults
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -292,8 +267,9 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+
     # testing this out
-    #'django_toolbar',
+    # 'django_toolbar',
 
     'djcelery',
     # 3rd party installs
@@ -303,7 +279,7 @@ INSTALLED_APPS = (
     'django_extensions',      # shell_plus
 
     # --- removed for testing only ---
-    #'cachalot',              # caching models
+    # 'cachalot',              # caching models
     'pipeline',               # minifying/compressing static assets
 
     #
@@ -320,7 +296,7 @@ INSTALLED_APPS = (
     'fpp',
     'promocode',
     'promocode.bonuscash',
-    'keyprefix', # cache namespace
+    'keyprefix',  # cache namespace
     'dataden',   # DataDen/MongoDB triggers
     'sports',
     'sports.mlb',
@@ -342,8 +318,8 @@ INSTALLED_APPS = (
     'test',
     'salary',
     'draftgroup',
-    'frontend', # front end styles, layout, etc
-    'mysite', # just for management command access
+    'frontend',  # front end styles, layout, etc
+    'mysite',  # just for management command access
     'replayer',
     'pp',       # our implementation of a few required paypal apis
 
@@ -358,13 +334,13 @@ INSTALLED_APPS = (
 # EMAIL_BACKEND       = 'djrill.mail.backends.djrill.DjrillBackend'
 # DEFAULT_FROM_EMAIL  = 'support@draftboard.com'
 
-EMAIL_USE_TLS       = True
-EMAIL_HOST          = 'smtp.mandrillapp.com'
-EMAIL_HOST_USER     = 'devs@draftboard.com'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.mandrillapp.com'
+EMAIL_HOST_USER = 'devs@draftboard.com'
 EMAIL_HOST_PASSWORD = 'bfNdCw7LpBD4UUrYG91YVw'
-EMAIL_PORT          = 587
-DEFAULT_FROM_EMAIL  = 'support@draftboard.com'
-SERVER_EMAIL        = DEFAULT_FROM_EMAIL
+EMAIL_PORT = 587
+DEFAULT_FROM_EMAIL = 'support@draftboard.com'
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 MIDDLEWARE_CLASSES = (
     # CSRF token masking
@@ -431,44 +407,44 @@ SUIT_CONFIG = {
     'MENU': (
 
         # # To reorder existing apps use following definition
-        {'app':'sites', 'label': 'Sites'},
-        {'app':'auth', 'label': 'Accounts'},
+        {'app': 'sites', 'label': 'Sites'},
+        {'app': 'auth', 'label': 'Accounts'},
 
-        {'app':'account', 'label': 'Notifications'},
-        {'app':'cash', 'label': 'Bank'},
-        {'app':'contest', 'label': 'Contest'},
-        {'app':'finance', 'label': 'Test'},
-        {'app':'fpp', 'label': 'FPP'},
-        {'app':'lobby', 'label': 'Lobby Banners'},
+        {'app': 'account', 'label': 'Notifications'},
+        {'app': 'cash', 'label': 'Bank'},
+        {'app': 'contest', 'label': 'Contest'},
+        {'app': 'finance', 'label': 'Test'},
+        {'app': 'fpp', 'label': 'FPP'},
+        {'app': 'lobby', 'label': 'Lobby Banners'},
 
-        {'app':'prize', 'label': 'Prize',
-            'models':[
-                {'label': 'Prize Structures', 'url':'/admin/prize/prizestructure/'},
-                {'label': 'Cash Prize Structure Creator', 'url':'/api/prize/generator/'},
-                {'label': 'Cash Prize Structure Creator (Flat)', 'url':'/api/prize/flat/'},
-                {'label': 'Ticket Prize Structure Creator', 'url':'/api/prize/ticket/'},
+        {'app': 'prize', 'label': 'Prize',
+            'models': [
+                {'label': 'Prize Structures', 'url': '/admin/prize/prizestructure/'},
+                {'label': 'Cash Prize Structure Creator', 'url': '/api/prize/generator/'},
+                {'label': 'Cash Prize Structure Creator (Flat)', 'url': '/api/prize/flat/'},
+                {'label': 'Ticket Prize Structure Creator', 'url': '/api/prize/ticket/'},
             ]
          },
         # /api/prize/flat/
         # /api/prize/ticket/
         # /api/prize/generator/
 
-        {'app':'salary', 'label': 'Salary'},
+        {'app': 'salary', 'label': 'Salary'},
 
-        {'app':'schedule', 'label': 'Contest Scheduler'},
+        {'app': 'schedule', 'label': 'Contest Scheduler'},
 
 
-        #{'app':'sports', 'label': 'Sports'},
-        {'app':'nfl', 'label': 'NFL'},
-        {'app':'nba', 'label': 'NBA'},
-        {'app':'nhl', 'label': 'NHL'},
-        {'app':'mlb', 'label': 'MLB'},
-        {'app':'ticket', 'label': 'Ticket',
-            'models':[
-                 {'label': 'Prize', 'url':'/admin/ticket/ticketamount/'},
+        # {'app':'sports', 'label': 'Sports'},
+        {'app': 'nfl', 'label': 'NFL'},
+        {'app': 'nba', 'label': 'NBA'},
+        {'app': 'nhl', 'label': 'NHL'},
+        {'app': 'mlb', 'label': 'MLB'},
+        {'app': 'ticket', 'label': 'Ticket',
+            'models': [
+                {'label': 'Prize', 'url': '/admin/ticket/ticketamount/'},
             ],
          },
-        {'app':'rakepaid', 'label': 'Loyalty Program'},
+        {'app': 'rakepaid', 'label': 'Loyalty Program'},
 
         # #
         # # # If you want to link app models from different app use full name:
@@ -490,8 +466,8 @@ SUIT_CONFIG = {
         #         ('Flat',     '/api/prize/flat/',         'auth.add_user'),
         #     )
         # )
-    ) # end MENU_ORDER
-} # end SUIT_CONFIG
+    )  # end MENU_ORDER
+}  # end SUIT_CONFIG
 
 # GLOBAL CONSTANTS
 USERNAME_DRAFTBOARD = "draftboard"
@@ -503,13 +479,13 @@ GIT_COMMIT_UUID = os.environ.get('GIT_COMMIT_UUID', 'LOCAL')
 
 #
 # DataDen license key for account: devs@draftboard.com
-DATADEN_LICENSE_KEY     = '20491e2a4feda595b7347708915b200b'
-DATADEN_ASYNC_UPDATES   = True  # uses celery for signaling stat updates from triggers
+DATADEN_LICENSE_KEY = '20491e2a4feda595b7347708915b200b'
+DATADEN_ASYNC_UPDATES = True  # uses celery for signaling stat updates from triggers
 
 #
 # DATETIME_DELTA_SECONDS_KEY is the key in the cache for the delta seconds timeshift on timezone.now()
-DATETIME_DELTA_ENABLE       = False    # dont change in base.py,   change to True in local.py, etc...
-DATETIME_DELTA_SECONDS_KEY  = 'DATETIME_DELTA_SECONDS_KEY'
+DATETIME_DELTA_ENABLE = False    # dont change in base.py,   change to True in local.py, etc...
+DATETIME_DELTA_SECONDS_KEY = 'DATETIME_DELTA_SECONDS_KEY'
 
 
 # Set django-lockdown to run on heroku for now

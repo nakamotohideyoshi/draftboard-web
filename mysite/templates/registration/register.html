@@ -1,46 +1,19 @@
 {% extends 'registration/base.html' %}
 
+{% block body_class %}account--register{% endblock body_class %}
 
 {% block content_form %}
-
-<form class="account__left__content__form">
-
-  <div class="account__left__content__form__input-layout">{% comment %}errored{% endcomment %}
-    <input id="email" type="text" name="email" required />
-    <label for="email">email</label>
-  </div>
-
-  <div class="account__left__content__form__input-layout">{% comment %}errored{% endcomment %}
-    <input id="username" type="text" name="username" required />
-    <label for="username">username</label>
-  </div>
-
-  <div class="account__left__content__form__input-layout">{% comment %}errored{% endcomment %}
-    <input id="password1" type="password" name="password1" required />
-    <label for="password1">password</label>
-  </div>
-
-  <div class="account__left__content__form__input-layout">{% comment %}errored{% endcomment %}
-    <input id="password2" type="password" name="password2" required />
-    <label for="password2">confirm password</label>
-  </div>
-
-  <div class="account__left__content__form__input-layout">{% comment %}errored{% endcomment %}
-    <p><input name="terms" type="checkbox" value="terms" />I am at least 18 years or older and accept the <a href="#">Terms &amp; Agreement.</p></a>
-  </div>
-
-  <div class="account__left__content__form__input-layout">
-    <input type="submit" value="Create account" />
-    <span class="arrow"></span>
-  </div>
-</form>
+<div id="account-register"></div>
 {% endblock %}
 
-{% block footer_no_hover %}Already have an account?{% endblock %}
-{% block footer_on_hover %}
-<div class="account__left__footer__login">
-  <div class="account__left__footer__login__content">
-    <a href="{% url 'login' %}">Log in</a>
-  </div>
-</div>
-{% endblock %}
+{% block account_footer %}
+  <a href="{% url 'login' %}" class="logged-out-footer">
+    <div class="logged-out-footer__bait">
+      Already have an account?
+    </div>
+    <div class="logged-out-footer__hook">
+      Log In
+      <span class="logged-out-footer__arrow"></span>
+    </div>
+  </a>
+{% endblock account_footer %}
