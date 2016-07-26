@@ -17,7 +17,7 @@ describe('reducers.contest-pools', () => {
     assert.typeOf(defaultState.filters.orderBy, 'object');
     assert.typeOf(defaultState.filters.sportFilter, 'object');
     assert.typeOf(defaultState.filters.skillLevelFilter, 'object');
-    assert.equal(defaultState.filters.skillLevelFilter.filterProperty, 'skill_level');
+    assert.equal(defaultState.filters.skillLevelFilter.filterProperty, 'skill_level.name');
     assert.deepEqual(defaultState.allContests, {});
     assert.deepEqual(defaultState.filteredContests, {});
     assert.deepEqual(defaultState.entrants, {});

@@ -28,15 +28,15 @@ const contestsWithMatchingSport = createSelector(
 
 
 /**
- * Then filter that list by the FEE selection dropdown...
+ * Then filter that list by the Skill Level selection...
  */
-// const feeSelectorProperty = (state) => state.contestPools.filters.contestFeeFilter.filterProperty;
-// const feeSelectorMatch = (state) => state.contestPools.filters.contestFeeFilter.match;
+const skillLevelFilterProperty = (state) => state.contestPools.filters.skillLevelFilter.filterProperty;
+const skillLevelFilterMatch = (state) => state.contestPools.filters.skillLevelFilter.match;
 
 // filter the contests by skill level.
 const contestsWithMatchingSkillLevel = createSelector(
-  [contestsWithMatchingSport],
-  (collection) => collection
+  [contestsWithMatchingSport, skillLevelFilterProperty, skillLevelFilterMatch],
+  (collection, filterProperty, searchString) => matchFilter(collection, filterProperty, searchString)
 );
 
 

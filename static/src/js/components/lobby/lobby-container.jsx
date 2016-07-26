@@ -9,7 +9,7 @@ import { fetchPrizeIfNeeded } from '../../actions/prizes.js';
 import { fetchContestPools, enterContest, setFocusedContest, updateOrderByFilter }
   from '../../actions/contest-pool-actions.js';
 import { fetchUpcomingDraftGroupsInfo } from '../../actions/upcoming-draft-groups-actions.js';
-import { focusedContestInfoSelector, focusedLineupSelector, highestContestBuyin }
+import { focusedContestInfoSelector, focusedLineupSelector, entrySkillLevelsSelector }
   from '../../selectors/lobby-selectors.js';
 import { contestPoolsSelector } from '../../selectors/contest-pools-selector.js';
 import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
@@ -43,11 +43,11 @@ function mapStateToProps(state) {
     contestFilters: state.contestPools.filters,
     focusedContest: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
+    entrySkillLevels: entrySkillLevelsSelector(state),
     hoveredLineupId: state.upcomingLineups.hoveredLineupId,
     lineupsInfo: upcomingLineupsInfo(state),
     orderByDirection: state.contestPools.filters.orderBy.direction,
     orderByProperty: state.contestPools.filters.orderBy.property,
-    highestContestBuyin: highestContestBuyin(state),
   };
 }
 
@@ -103,8 +103,8 @@ const LobbyContainer = React.createClass({
     routerPush: React.PropTypes.func,
     addMessage: React.PropTypes.func,
     upcomingContestUpdateReceived: React.PropTypes.func,
-    highestContestBuyin: React.PropTypes.number,
     removeContestPoolEntry: React.PropTypes.func,
+    entrySkillLevels: React.PropTypes.object.isRequired,
   },
 
 
@@ -229,6 +229,7 @@ const LobbyContainer = React.createClass({
           lineupsInfo={this.props.lineupsInfo}
           setFocusedContest={this.handleFocusContest}
           setOrderBy={this.handleSetOrderBy}
+          entrySkillLevels = {this.props.entrySkillLevels}
         />
 
         <ContestListConfirmModal
@@ -238,6 +239,7 @@ const LobbyContainer = React.createClass({
           lineup={this.props.focusedLineup}
           isOpen={this.state.showConfirmModal}
           lineupsInfo={this.props.lineupsInfo}
+          entrySkillLevels = {this.props.entrySkillLevels}
         />
       </div>
     );

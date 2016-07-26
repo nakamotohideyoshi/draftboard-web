@@ -1,13 +1,13 @@
 module.exports = {
   'allContests': {
-    '1041': {
-      'id': 1041,
-      'name': '$100 MLB 10-Man Tourney',
-      'sport': 'mlb',
+    '1662': {
+      'id': 1662,
+      'name': '$100 NFL 10-Man Tourney',
+      'sport': 'nfl',
       'status': 'scheduled',
-      'start': '2016-05-11T23:05:00Z',
+      'start': '2016-09-11T17:00:00Z',
       'buyin': 100,
-      'draft_group': 268,
+      'draft_group': 1791,
       'max_entries': 3,
       'prize_structure': {
         'id': 20,
@@ -16,99 +16,174 @@ module.exports = {
         'ranks': [
           {
             'rank': 1,
-            'value': 400
+            'value': 400,
           },
           {
             'rank': 2,
-            'value': 300
+            'value': 300,
           },
           {
             'rank': 3,
-            'value': 200
-          }
+            'value': 200,
+          },
         ],
-        'prize_pool': 900
+        'prize_pool': 900,
+        'is_h2h': false,
       },
       'prize_pool': 900,
       'entries': 0,
-      'current_entries': 0
+      'current_entries': 0,
+      'contest_size': 10,
+      'skill_level': {
+        'name': 'veteran',
+      },
     },
-    '1079': {
-      'id': 1079,
-      'name': '$1 NBA 50/50',
-      'sport': 'nba',
+    '1663': {
+      'id': 1663,
+      'name': '$100 NFL H2H',
+      'sport': 'nfl',
       'status': 'scheduled',
-      'start': '2016-05-12T00:00:00Z',
-      'buyin': 1,
-      'draft_group': 269,
+      'start': '2016-09-11T17:00:00Z',
+      'buyin': 100,
+      'draft_group': 1791,
       'max_entries': 3,
       'prize_structure': {
-        'id': 85,
-        'name': '$1 Fair Match 50/50',
-        'buyin': 1,
+        'id': 7,
+        'name': '$100 H2H',
+        'buyin': 100,
         'ranks': [
           {
             'rank': 1,
-            'value': 1.8
+            'value': 180,
+          },
+        ],
+        'prize_pool': 180,
+        'is_h2h': true,
+      },
+      'prize_pool': 180,
+      'entries': 0,
+      'current_entries': 0,
+      'contest_size': 2,
+      'skill_level': {
+        'name': 'veteran',
+      },
+    },
+    '2559': {
+      'id': 2559,
+      'name': '$2 MLB 10-Man Tourney',
+      'sport': 'mlb',
+      'status': 'scheduled',
+      'start': '2016-07-25T23:05:00Z',
+      'buyin': 2,
+      'draft_group': 1857,
+      'max_entries': 3,
+      'prize_structure': {
+        'id': 49,
+        'name': '$2 10-Entry (3 paid)',
+        'buyin': 2,
+        'ranks': [
+          {
+            'rank': 1,
+            'value': 8,
           },
           {
             'rank': 2,
-            'value': 1.8
+            'value': 6,
           },
           {
             'rank': 3,
-            'value': 1.8
+            'value': 4,
           },
-          {
-            'rank': 4,
-            'value': 1.8
-          },
-          {
-            'rank': 5,
-            'value': 1.8
-          }
         ],
-        'prize_pool': 9
+        'prize_pool': 18,
+        'is_h2h': false,
       },
-      'prize_pool': 9,
+      'prize_pool': 18,
       'entries': 0,
-      'current_entries': 0
+      'current_entries': 0,
+      'contest_size': 10,
+      'skill_level': {
+        'name': 'rookie',
+      },
     },
-    '1080': {
-      'id': 1080,
-      'name': '$1 NBA H2H',
-      'sport': 'nba',
-      'status': 'scheduled',
-      'start': '2016-05-12T00:00:00Z',
-      'buyin': 1,
-      'draft_group': 269,
-      'max_entries': 3,
-      'prize_structure': {
-        'id': 1,
-        'name': '$1 H2H',
-        'buyin': 1,
-        'ranks': [
-          {
-            'rank': 1,
-            'value': 1.8
-          }
-        ],
-        'prize_pool': 1.8
-      },
-      'prize_pool': 1.8,
-      'entries': 0,
-      'current_entries': 0
-    }
   },
   'filteredContests': {
-    '1041': {
-      'id': 1041,
-      'name': '$100 MLB 10-Man Tourney',
+    '2559': {
+      'id': 2559,
+      'name': '$2 MLB 10-Man Tourney',
       'sport': 'mlb',
       'status': 'scheduled',
-      'start': '2016-05-11T23:05:00Z',
+      'start': '2016-07-25T23:05:00Z',
+      'buyin': 2,
+      'draft_group': 1857,
+      'max_entries': 3,
+      'prize_structure': {
+        'id': 49,
+        'name': '$2 10-Entry (3 paid)',
+        'buyin': 2,
+        'ranks': [
+          {
+            'rank': 1,
+            'value': 8,
+          },
+          {
+            'rank': 2,
+            'value': 6,
+          },
+          {
+            'rank': 3,
+            'value': 4,
+          },
+        ],
+        'prize_pool': 18,
+        'is_h2h': false,
+      },
+      'prize_pool': 18,
+      'entries': 0,
+      'current_entries': 0,
+      'contest_size': 10,
+      'skill_level': {
+        'name': 'rookie',
+      },
+    },
+    '1663': {
+      'id': 1663,
+      'name': '$100 NFL H2H',
+      'sport': 'nfl',
+      'status': 'scheduled',
+      'start': '2016-09-11T17:00:00Z',
       'buyin': 100,
-      'draft_group': 268,
+      'draft_group': 1791,
+      'max_entries': 3,
+      'prize_structure': {
+        'id': 7,
+        'name': '$100 H2H',
+        'buyin': 100,
+        'ranks': [
+          {
+            'rank': 1,
+            'value': 180,
+          },
+        ],
+        'prize_pool': 180,
+        'is_h2h': true,
+      },
+      'prize_pool': 180,
+      'entries': 0,
+      'current_entries': 0,
+      'contest_size': 2,
+      'skill_level': {
+        'name': 'veteran',
+      },
+    },
+    '1662': {
+      'id': 1662,
+      'name': '$100 NFL 10-Man Tourney',
+      'sport': 'nfl',
+      'status': 'scheduled',
+      'start': '2016-09-11T17:00:00Z',
+      'buyin': 100,
+      'draft_group': 1791,
       'max_entries': 3,
       'prize_structure': {
         'id': 20,
@@ -117,102 +192,53 @@ module.exports = {
         'ranks': [
           {
             'rank': 1,
-            'value': 400
+            'value': 400,
           },
           {
             'rank': 2,
-            'value': 300
+            'value': 300,
           },
           {
             'rank': 3,
-            'value': 200
-          }
+            'value': 200,
+          },
         ],
-        'prize_pool': 900
+        'prize_pool': 900,
+        'is_h2h': false,
       },
       'prize_pool': 900,
       'entries': 0,
-      'current_entries': 0
-    },
-    '1079': {
-      'id': 1079,
-      'name': '$1 NBA 50/50',
-      'sport': 'nba',
-      'status': 'scheduled',
-      'start': '2016-05-12T00:00:00Z',
-      'buyin': 1,
-      'draft_group': 269,
-      'max_entries': 3,
-      'prize_structure': {
-        'id': 85,
-        'name': '$1 Fair Match 50/50',
-        'buyin': 1,
-        'ranks': [
-          {
-            'rank': 1,
-            'value': 1.8
-          },
-          {
-            'rank': 2,
-            'value': 1.8
-          },
-          {
-            'rank': 3,
-            'value': 1.8
-          },
-          {
-            'rank': 4,
-            'value': 1.8
-          },
-          {
-            'rank': 5,
-            'value': 1.8
-          }
-        ],
-        'prize_pool': 9
+      'current_entries': 0,
+      'contest_size': 10,
+      'skill_level': {
+        'name': 'veteran',
       },
-      'prize_pool': 9,
-      'entries': 0,
-      'current_entries': 0
     },
-    '1080': {
-      'id': 1080,
-      'name': '$1 NBA H2H',
-      'sport': 'nba',
-      'status': 'scheduled',
-      'start': '2016-05-12T00:00:00Z',
-      'buyin': 1,
-      'draft_group': 269,
-      'max_entries': 3,
-      'prize_structure': {
-        'id': 1,
-        'name': '$1 H2H',
-        'buyin': 1,
-        'ranks': [
-          {
-            'rank': 1,
-            'value': 1.8
-          }
-        ],
-        'prize_pool': 1.8
-      },
-      'prize_pool': 1.8,
-      'entries': 0,
-      'current_entries': 0
-    }
   },
   'focusedContestId': null,
   'isFetchingEntrants': false,
+  'isFetchingContestPools': false,
   'entrants': {
 
   },
   'filters': {
     'orderBy': {
       'property': 'start',
-      'direction': 'asc'
+      'direction': 'asc',
+    },
+    'contestSearchFilter': {
+
     },
     'sportFilter': {
-
-    }
-  }
+      'match': 'mlb',
+      'filterProperty': 'sport',
+    },
+    'skillLevelFilter': {
+      'match': [
+        'rookie',
+        'all',
+      ],
+      'filterProperty': 'skill_level.name',
+    },
+  },
 };

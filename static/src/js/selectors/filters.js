@@ -1,5 +1,4 @@
 import filter from 'lodash/filter';
-import log from '../lib/logging.js';
 
 
 /**
@@ -23,8 +22,8 @@ export const stringSearchFilter = (collection, filterProperty, searchString) =>
     let searchTarget = item;
 
     nestedProps.forEach((property) => {
-      if (item.hasOwnProperty(property)) {
-        searchTarget = item[property];
+      if (searchTarget.hasOwnProperty(property)) {
+        searchTarget = searchTarget[property];
       }
     });
 
@@ -49,17 +48,25 @@ export const matchFilter = (collection, filterProperty, match) => filter(collect
     return true;
   }
 
-  if (!item.hasOwnProperty(filterProperty)) {
-    log.warn('CollectionMatchFilter.filter() Row does not contain property',
-      filterProperty);
-    return true;
-  }
+  // We can account for nested resources here. so if we want to search for the row.player.name
+  // property, just set 'row.player.name' as the search property, this will drill down into the
+  // nested properties for it's search target.
+  const nestedProps = filterProperty.split('.');
+  let searchTarget = item;
+
+  nestedProps.forEach((property) => {
+    if (searchTarget.hasOwnProperty(property)) {
+      searchTarget = searchTarget[property];
+    }
+  });
+
 
   // If we have a string, just check for equality.
   // We will have a string as a match for sport matching in the lobby. ex: 'nba'
   if (typeof match === 'string') {
-    return match.toLowerCase() === item[filterProperty].toLowerCase();
+    return match.toLowerCase() === searchTarget.toLowerCase();
   }
+
 
   // If we have an array as a match, check each element for equality individually and return an
   // array of matches.
@@ -67,7 +74,7 @@ export const matchFilter = (collection, filterProperty, match) => filter(collect
   // We will have an array as a match for position matching in the draft section ex: ['pg', 'sg']
   const matches = filter(
     match,
-    (matchItem) => matchItem.toLowerCase() === item[filterProperty].toLowerCase()
+    (matchItem) => matchItem.toLowerCase() === searchTarget.toLowerCase()
   );
 
   // If the array contains a match, return true.

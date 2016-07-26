@@ -40,9 +40,11 @@ const initialState = {
       match: '',
       filterProperty: 'sport',
     },
+    // Default to Rookie.
+    // TODO: Store a cookie to default to the one the user last chose.
     skillLevelFilter: {
-      match: '',
-      filterProperty: 'skill_level',
+      match: ['rookie', 'all'],
+      filterProperty: 'skill_level.name',
     },
   },
 };
