@@ -6,7 +6,7 @@ from dj_database_url import config as heroku_db_config
 import urllib
 
 # Constant for determining environment
-DOMAIN = 'draftboard-staging.herokuapp.com'
+DOMAIN = 'draftboard-prod.herokuapp.com'
 
 DATABASES = {
     'default': heroku_db_config()
