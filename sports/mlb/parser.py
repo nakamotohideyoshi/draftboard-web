@@ -67,7 +67,6 @@ from util.dicts import (
 
 def get_redis_instance():
     url = os.environ.get('REDISCLOUD_URL') # TODO get this env var from settings
-    print('REDISCLOUD_URL:', str(url))
     if url is None:
         return Redis()
     else:
@@ -1265,11 +1264,13 @@ class ZonePitchManager(AbstractManager):
 
     def get_data(self, additional_data=None):
         """ override parent get_data() to perform on all the list items """
-        sorter = ZonePitchSorter(self.zone_pitches, self.at_bat)
-        sorted_zone_pitches = sorter.sort()
+        # sorter = ZonePitchSorter(self.zone_pitches, self.at_bat)
+        # sorted_zone_pitches = sorter.sort()
 
         reduced_and_shrunk_zone_pitches = []
-        for zp in sorted_zone_pitches:
+        #for zp in sorted_zone_pitches:
+        for pc, zp in enumerate(self.zone_pitches):
+            zp['at_bat_pitch_count'] = pc+1 # +1 so its not 0-based
             reducer = ZonePitchReducer(zp)
             reduced_zp = reducer.reduce()
             shrinker = ZonePitchShrinker(reduced_zp)
@@ -1874,13 +1875,13 @@ class PitchPbp(DataDenPbpDescription):
         # convert the raw requirements data by reducing, shrinking,
         # and updating in order to get the final data we can send to clients
         linked_pbp = self.build_linked_pbp_stats_data(raw_requirements)
-        print('mlb linked pbp obj:', str(linked_pbp))
+        #print('mlb linked pbp obj:', str(linked_pbp))
 
         #
         # right about here is where we need to check the
         # cache to see if we can send this linked object!
         is_sendable, key, cache_instance = self.can_send(raw_requirements)
-        print('mlb linked pbp is sendable:', str(is_sendable))
+        #print('mlb linked pbp is sendable:', str(is_sendable))
         if is_sendable:
             # if the cached hash value doesnt exist, we need to send it
             # print('sending')
@@ -1901,13 +1902,23 @@ class PitchPbp(DataDenPbpDescription):
         :return:
         """
         r = get_redis_instance()
-        pitch = raw_requirements.get('pitch')
-        ts = pitch.get('dd_updated__id')
-        id = pitch.get('id')
-        cache_key = 'mlblinkedpbp-%s-%s' % (ts, id)
-        # the send_hsh should only exist if we havent sent it yet
-        is_sendable = r.get(cache_key) is None
-        print(pitch, ' ------ ', ts, id, cache_key, is_sendable, 'but r.get(cache_key):', r.get(cache_key))
+        is_sendable = False
+        cache_key = None
+        recent_zone_pitches = raw_requirements.get('zone_pitches',[])
+        if len(recent_zone_pitches) > 0:
+            # pitch = raw_requirements.get('pitch')
+            # print('')
+            # print('_______ raw zone pitches _______')
+            # print(str(recent_zone_pitches))
+            # print('')
+            # print('')
+            last_zp = recent_zone_pitches[-1] # get the most recent one, off the end of the zone_pitches list
+            ts = last_zp.get('dd_updated__id')
+            id = last_zp.get('id')
+            cache_key = 'MlbPbpLastZonePitch-%s-%s' % (ts, id)
+            # the send_hsh should only exist if we havent sent it yet
+            is_sendable = r.get(cache_key) is None
+            # print(last_zp, ' ------ ', ts, id, cache_key, is_sendable, 'but r.get(cache_key):', r.get(cache_key))
         return is_sendable, cache_key, r
 
     def reconstruct_from_pitch(self, ts, srid_pitch):
@@ -1950,13 +1961,17 @@ class PitchPbp(DataDenPbpDescription):
         pid = found_pitch.get('id')
         abid = found_pitch.get('at_bat__id')
         zps = self.ZonePitchCacheList().fetch(abid) # get zone pitches for the at bat
+        print('abid:', str(abid), 'zps:')
+        for zp in zps:
+            print('     ', str(zp))
+        #print('zps:', str(zps))
         # if zps == []:
         #     raise Exception('ZonePitchCacheList zone_pitches is empty! This means we dont have the zone_pitch for the pitch(pbp) object! go no further')
         rnrs = self.RunnerCacheList().fetch(pid)    # get runners for the pitch
 
         # a) get the at_bat, using the srid from the pitch
-        found_ab = self.AtBatCache().fetch(ts, abid) # could also use pitch.get() and extract ts
-        if found_ab is None:
+        found_ab = self.AtBatCache().fetch(ts, abid)
+        if found_ab is None or found_ab.get(''):
             found_ab = self.AtBatRecentCache().fetch(abid)
         if found_ab is None:
             raise self.MissingCachedObjectException('base reconstruct() missing at_bat')
@@ -1976,9 +1991,10 @@ class PitchPbp(DataDenPbpDescription):
             srid_pitchs = [ v.get('pitch') for v in pitchs ]
 
         # raises MissingCachedObjectException
-        found_zone_pitches = self.get_all_newest(srid_pitchs, zps, 'pitch__id', 'dd_updated__id')
-        # print("found_zone_pitches = self.get_all_newest(srid_pitchs, zps, 'pitch__id', 'dd_updated__id')")
-        #print('found_zone_pitches:', str(found_zone_pitches))
+        found_zone_pitches = self.get_all_newest_zone_pitches(zps, 'pitch__id', 'dd_updated__id')
+        print('found_zone_pitches:')
+        for fzp in found_zone_pitches:
+            print('        ', str(fzp))
         if len(found_zone_pitches) == 0:
             raise self.MissingCachedObjectException('[found_]zone_pitches was 0!')
 
@@ -2004,11 +2020,38 @@ class PitchPbp(DataDenPbpDescription):
         #print('self.data:' , str(self.data))
         return self.data
 
+    def get_all_newest_zone_pitches(self, cached_objects, field_srid, field_ts):
+        # get a list of the latest zone_pitches with no duplicates
+        newest_zone_pitches = []
+        for zp in cached_objects:
+            if zp.get(field_srid) in newest_zone_pitches:
+                continue # skip dupes
+            target = None
+            others = list(cached_objects)
+            for o in others:
+                if zp.get(field_srid) == o.get(field_srid):
+                    if target is None:
+                        # set a copy of whats currently the newest zone pitch
+                        target = zp.copy()
+                    elif o.get(field_ts) >= target.get(field_ts):
+                        target = o.copy()
+            if target is None:
+                raise Exception('target zone_pitch should never be None here! it should have existed!')
+            newest_zone_pitches.append(target)
+        # return the list (which should be in order too!)
+        return newest_zone_pitches
+
     def get_all_newest(self, known_srids, cached_objects, field_srid, field_ts, match_ts=None):
+        # we should probably get all known pitches instead of balking if we cant get all
+        # because we really want to send this information out if possible even if its missing
+        # the first pitch of the atbat or something...
+
         found_objects = []
+        #print('    match_ts(%s) known_srids: %s' % (str(match_ts), str(known_srids)) )
         for srid in known_srids:
             found_object = None
             for obj in cached_objects:
+                print('       ', str(obj.get(field_srid)))
                 srids_match = srid == obj.get(field_srid)
                 obj_ts = obj.get(field_ts)
                 found_object_ts = 0
@@ -2027,7 +2070,7 @@ class PitchPbp(DataDenPbpDescription):
             if found_object is not None:
                 found_objects.append(found_object)
             else:
-                err_msg = 'known_srids had %s but our cached object list didnt (yet)' % srid
+                err_msg = 'known_srids had %s but our cached list (probably zone pitches) wasnt totally complete' % srid
                 #print(err_msg)
                 raise self.MissingCachedObjectException(err_msg)
         return found_objects
@@ -2235,6 +2278,8 @@ class PitchPbp(DataDenPbpDescription):
             self.stats : [ ps.to_json() for ps in player_stats ],
         }
 
+        print('zone_pitches after manager and prior to sending:')
+        print('      ', str(pbp.get(self.zone_pitches)))
         # return the linked data
         return pbp
 
@@ -2526,7 +2571,7 @@ class DataDenMlb(AbstractDataDenParser):
         elif self.target == ('mlb.pitcher','pbp'):
             # dont parse incomplete zone pitches
             o = obj.get_o()
-            if o.get('pitch_zone') is None or o.get('pitch_type') is None or o.get('pitch_speed') is None:
+            if o.get('pitch_zone') is None or o.get('pitch_type') is None: # or o.get('pitch_speed') is None:
                 return
 
             # potentially build the main (linked) mlb pbp object
