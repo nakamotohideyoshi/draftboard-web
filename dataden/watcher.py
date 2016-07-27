@@ -269,9 +269,11 @@ class Trigger(object):
             except StopIteration:
                 continue
 
-            #
+            # create a hashable object as the key to cache it with
+            hashable_object = self.oplogobj_class(obj)
+
             # the live stats cache will add every item it sees to the redis cache
-            if self.live_stats_cache.update( self.oplogobj_class(obj) ):
+            if self.live_stats_cache.update( hashable_object ):
                 # the object is new or has been updated.
                 # send the update signal along with the object to Pusher/etc...
                 Update( hashable_object ).send(async=True)
@@ -409,3 +411,44 @@ class TriggerAll(Trigger):
     """
 
     oplogobj_class = OpLogObjWithTs
+
+    def run(self, last_ts=None):
+        """
+        use the live stats cache to update() the hashable
+        objects from the oplog but instead of only
+        sending objects without changes based on the return
+        value of update() this method sends every
+        object, every time!
+        """
+
+        if last_ts:
+            # user wants to start from at least this specific ts
+            self.last_ts = last_ts
+        else:
+            # get most recent ts, (by default, dont reparse the world)
+            self.last_ts = self.get_last_ts()
+
+        # do this previous to query() being called
+        self.reload_triggers()
+
+        #
+        # using a tailable cursor allows us to loop on it
+        # and we will pick up new objects as they come into
+        # the oplog based on whatever our query is!
+        cur = self.get_cursor(self.oplog, self.query(), cursor_type=self.cursor_type)
+        while cur.alive:
+
+            try:
+                obj = cur.next()
+            except StopIteration:
+                continue
+
+            # create a hashable object as the key to cache it with
+            hashable_object = self.oplogobj_class(obj)
+
+            # the live stats cache will add every item it sees to the redis cache
+            self.live_stats_cache.update(hashable_object)
+
+            # the object is new or has been updated.
+            # send the update signal along with the object to Pusher/etc...
+            Update(hashable_object).send(async=True)
