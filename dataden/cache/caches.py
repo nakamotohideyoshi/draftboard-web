@@ -154,7 +154,7 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
         if override:
             ns = livestat.get_ns()
             o = livestat.get_o()
-            print('override trigger filter! ns: %s, o:' % (ns, str(o)))
+            print('override trigger filter! ns: %s, o: %s' % (ns, str(o)))
 
         #
         # the return value, a boolean, is True if it was added, otherwise False
