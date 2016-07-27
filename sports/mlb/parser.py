@@ -1261,6 +1261,13 @@ class ZonePitchManager(Manager):
     reducer_class = ZonePitchReducer
     shrinker_class = ZonePitchShrinker
 
+    defaults = {
+        'mph' : 0.0,
+        'z' : 5,
+        't' : 'UNK',
+        'valid' : False
+    }
+
     def __init__(self, zone_pitches, at_bat):
         self.zone_pitches = zone_pitches
         self.at_bat = at_bat
@@ -1281,6 +1288,10 @@ class ZonePitchManager(Manager):
             shrunk_zp = shrinker.shrink()
             reduced_and_shrunk_zone_pitches.append(shrunk_zp)
             for rszp in reduced_and_shrunk_zone_pitches:
+                # make sure they are complete... with invalid information though and a flag
+                for k,v in self.defaults.items():
+                    if rszp.get(k) is None:
+                        rszp[k] = v
                 self.add_data(rszp, additional_data)
         return reduced_and_shrunk_zone_pitches
 
@@ -1898,17 +1909,47 @@ class OidExtras(object):
     def get_data(self):
         return self.data
 
-    def update_outcome(self, outcome_id):
+    def update_outcome(self, outcome_id, fp_change=0.0):
         oid_fp, oid_summary = self.score_system.get_outcome_fantasy_points(outcome_id)
-        self.add(self.OID_FP, oid_fp)
+        # oid_fp is not used now -- use the PlayerStats model's 'fp_change' property instead
+        self.add(self.OID_FP, fp_change) # amount of draftboard fantasy points from the last play
         self.add(self.OID_SUMMARY, oid_summary)
+
+class PitchExtras(OidExtras):
+    """
+    set some additional data in the 'pitch' (in the pushered version called 'pbp' actually)
+
+    this is where the real-life pitcher's information,
+    and last change in fantasy points is added.
+    """
+
+    score_system_class = scoring.classes.MlbSalaryScoreSystem
+
+    # STATS_STR = 'stats_str'
+    #
+    # ab_bat_extra_data = {
+    #     STATS_STR: '',
+    # }
+    #
+    # def __init__(self):
+    #     """
+    #     create AtBatExtras with the additional key-values in a custom dict
+    #     to get a few more fields we want
+    #     """
+    #     super().__init__(self.ab_bat_extra_data)
+    #
+    # def update_player_stats(self, player_stats):
+    #     # self.add(self.FIRST_NAME, player_stats.player.first_name)
+    #     # self.add(self.LAST_NAME, player_stats.player.last_name)
+    #     # self.add(self.SRID_TEAM, player_stats.player.team.srid)
+    #     self.add(self.STATS_STR, PlayerStatsToStr(player_stats).get_description())
+
 
 class AtBatExtras(OidExtras):
     """
     used to add additional data, especially outcome information and fantasy points
     """
 
-    # set the class with the method: get_outcome_fantasy_points( outcome_id )
     score_system_class = scoring.classes.MlbSalaryScoreSystem
 
     FIRST_NAME  = 'fn'
@@ -2079,25 +2120,6 @@ class ReqAtBat(Req):
             raise Exception(err_msg)
 
         return srid_pitchs
-
-    # TODO use PitcherCacheList instead (may verify with get_pitch_ids()...
-    # def get_zone_pitches(self):
-    #     """
-    #     return a list of the zone pitches, or None if not a single one can be found
-    #     """
-    #     zone_pitches = None
-    #     pitch_ids = self.get_pitch_ids()
-    #     #print('                             ** pitch_ids:', str(pitch_ids))
-    #     for srid in pitch_ids:
-    #         if zone_pitches is None:
-    #             zone_pitches = []
-    #         # append any additional zone pitches
-    #         zone_pitch = PitcherCache().fetch(self.get_ts(), srid)
-    #         if zone_pitch is None:
-    #             return None
-    #         # but if its not None, append it
-    #         zone_pitches.append(zone_pitch)
-    #     return zone_pitches
 
     def build(self):
         """ try to build the whole pbp object from only this (one of many) required parts """
@@ -2370,7 +2392,6 @@ class PbpParser(DataDenPbpDescription):
         # the send_hsh should only exist if we havent sent it yet
         is_sendable = r.get(cache_key) is None
         return is_sendable, cache_key, r
-    #####
 
     def get_req_from(self, data, target):
         """
@@ -2403,7 +2424,6 @@ class PbpParser(DataDenPbpDescription):
         #     print('')
         #     print(k, ' : ', str(v))
 
-        additional_pitch_data = {'oid_fp': 1.7}         # TODO for testing
         pitch = requirements.get('pitch')
         srid_pitcher = pitch.get('pitcher')
         at_bat = requirements.get(self.at_bat)
@@ -2411,7 +2431,7 @@ class PbpParser(DataDenPbpDescription):
         srid_at_bat_hitter = at_bat.get('hitter_id')
         zone_pitches = requirements.get(self.zone_pitches)
         runners = requirements.get(self.runners)
-        additional_runner_data = {'oid_fp': 3.7}        # TODO for testing
+        additional_runner_data = {'oid_fp': 0.0}  # TODO for testing -- need to hook up runner fantasy points
 
         srid_runners = [r.get('id') for r in runners]  # not pulled from original data, but i think its fine
         # player_stats
@@ -2419,17 +2439,30 @@ class PbpParser(DataDenPbpDescription):
         # at_bat_stats
         at_bat_player_stats_hitter = self.find_at_bat_hitter_player_stats(srid_game, srid_at_bat_hitter)
 
+        # create the at_bat extras (the hitters extra fields)
         at_bat_extras = AtBatExtras()
-        at_bat_extras.update_outcome(pitch.get('outcome_id'))
+        at_bat_extras.update_outcome(pitch.get('outcome_id'), at_bat_player_stats_hitter.fp_change)
         if at_bat_player_stats_hitter is not None:
             at_bat_extras.update_player_stats(at_bat_player_stats_hitter)
 
+        # create the pitch extras (pitchers extra stats)
+        try:
+            pitch_extras = PitchExtras()
+            pitch_extras.update_outcome(pitch.get('outcome_id'), pitcher_player_stats.fp_change)
+        except Exception as e:
+            print(str(e))
+            pitch_extras = PitchExtras()
+
         # get reduce/shrink manager instances
         pbp = {
-            self.pitch: PitchPbpManager(pitch).get_data(additional_pitch_data),
+            self.pitch: PitchPbpManager(pitch).get_data(pitch_extras.get_data()),
+
             self.at_bat: AtBatManager(at_bat).get_data(at_bat_extras.get_data()),
+
             self.zone_pitches: ZonePitchManager(zone_pitches, at_bat).get_data(),
+
             self.runners: RunnerManager(runners).get_data(additional_runner_data),
+
             self.stats: [ps.to_json() for ps in player_stats],
         }
 
