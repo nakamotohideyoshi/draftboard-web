@@ -2659,7 +2659,7 @@ class ReqAtBat(Req):
             srid_pitchs = [found_pitch_srid]
         else:
             # pitchs was not none, and we can get the srids
-            srid_pitchs = [v.get(self.field_pitch) for v in self.pitchs]
+            srid_pitchs = [v.get(self.field_pitch) for v in pitchs]
 
         # srid_pitchs shouldnt be None here now:
         if srid_pitchs is None:
