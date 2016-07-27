@@ -7,7 +7,9 @@ import { stringifyMLBWhen } from '../../actions/events/pbp';
 import { trackUnexpected } from '../../actions/track-exceptions';
 
 // assets
-require('../../../sass/blocks/site/game-time.scss');
+if (process.env.NODE_ENV !== 'test') {
+  require('../../../sass/blocks/site/game-time.scss');
+}
 
 
 /**
