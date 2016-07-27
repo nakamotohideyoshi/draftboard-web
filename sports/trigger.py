@@ -4,6 +4,7 @@
 from django.core.cache import cache
 from dataden.cache.caches import LiveStatsCache
 from dataden.watcher import (
+    OpLogObj,
     Trigger,
     TriggerAll,
 )
@@ -37,38 +38,29 @@ class SportTrigger(Trigger):
             for t in self.triggers:
                 print('    ', t)
 
-class SportTriggerAll(TriggerAll):
-    """
-    the __init__() and reload_triggers() are basically copies
-    from SportTrigger right now. should pull into a parent class # TODO
-    """
+class MlbOpLogObj(OpLogObj):
 
-    def __init__(self, sport):
-        self.sport = sport
+    ns = 'mlb.at_bat'
 
-        # call super method
-        super().__init__()
-
-        # internal debug field to help us print out the triggers the first time only
-        self.showed_triggers = False
-
-    def reload_triggers(self):
+    def override_new(self):
         """
-        override parent method, so we can set only the triggers for this sport
+        always pretend its the first time we've seen an object
+        from this namespace (ie: 'ns') if it doesnt yet
+        have a description value (we need it to pass the trigger filter for pbp stuff)
         """
+        if self.get_ns() == self.ns and self.get_o().get('description') is None:
+            return True
+        return False
 
-        # sets self.triggers with ALL triggers.
-        super().reload_triggers()
+class TriggerMlb(SportTrigger):
+    """
+    nearly idential to the default Trigger, but sets
+    a special OpLogObj subclass that will allow for
+    at_bat objects to always be sent out if their
+    description field is not yet set for pbp purposes.
+    """
 
-        # get only specific triggers models for this sport
-        self.triggers = self.triggers.filter(db=self.sport)
-
-        if self.showed_triggers == False:
-            self.showed_triggers = True
-
-            # print them to the screen so we know exactly which are about to be used
-            for t in self.triggers:
-                print('    ', t)
+    oplogobj_class = MlbOpLogObj
 
 class CacheList(object):
     """

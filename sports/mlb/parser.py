@@ -2600,31 +2600,31 @@ class ReqPitch(Req):
         ts = self.get_ts()
         id = self.get_id()
 
-        # TODO remove this debug print later
-        print(tag, 'ts', ts, 'id', id)
+        # # TODO remove this debug print later
+        # print(tag, 'ts', ts, 'id', id)
 
         # 1. get the at_bat
         at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
         if at_bat is None:
-            print('    ', tag, 'at_bat -> None')
+            #print('    ', tag, 'at_bat -> None')
             return None
-        print('    ', tag, 'at_bat -> yes')
+        #print('    ', tag, 'at_bat -> yes')
 
         # 2. get 'pitches' ie: zone_pitches
         zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
         if zone_pitches is None:
-            print(tag, 'pitches -> None (ie: zone_pitches)')
+            #print(tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        print('    ', tag, 'pitches -> yes')
+        #print('    ', tag, 'pitches -> yes')
 
         # 3. get any existing runners
         runners = self.get_runners()
         if runners is None:
-            print('    ', tag, 'runners -> None (didnt find all, if we found any)')
+            #print('    ', tag, 'runners -> None (didnt find all, if we found any)')
             return None
-        print('    ', tag, 'runners -> yes')
+        #print('    ', tag, 'runners -> yes')
 
-        print('found all!') # TODO remove debug prints
+        #print('found all!') # TODO remove debug prints
         return self.build_from(self.data, at_bat, zone_pitches, runners)
 
 class ReqAtBat(Req):
@@ -2692,15 +2692,15 @@ class ReqAtBat(Req):
         ts = self.get_ts()
         id = self.get_id()
 
-        # TODO debug remove this eventually
-        print(tag, 'ts', ts, 'id', id)
+        # # TODO debug remove this eventually
+        # print(tag, 'ts', ts, 'id', id)
 
         # 1. get the 'pitches' (zone_pitches)  --- this will return None if it cant get ALL of them
         zone_pitches = self.get_zone_pitches()
         if zone_pitches is None:
-            print('    ', tag, 'pitches -> None (ie: zone_pitches)')
+            #print('    ', tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        print('    ', tag, 'pitches -> yes')
+        #print('    ', tag, 'pitches -> yes')
 
         # 2. get the main 'pitch' id from the last zone_pitch in the list (if exists)
         last_zone_pitch = zone_pitches[-1]
@@ -2708,19 +2708,19 @@ class ReqAtBat(Req):
         pitch_id = ReqPitcher(last_zone_pitch, stash_now=False).get_pitch_id()
         pitch = PitchCache().fetch(ts, pitch_id)
         if pitch is None:
-            print('    ', tag, 'pitch -> None')
+            #print('    ', tag, 'pitch -> None')
             return None
-        print('    ', tag, 'pitch -> yes')
+        #print('    ', tag, 'pitch -> yes')
 
         # 3. Get the runners (if any exist, we need to get all).
         #    Returns an empty list if there were none to get. # TODO (?)
         runners = ReqPitch(pitch, stash_now=False).get_runners()
         if runners is None:
-            print(tag, 'runners -> None (found None, or less than we wanted to)')
+            #print(tag, 'runners -> None (found None, or less than we wanted to)')
             return None
-        print('    ', tag, 'runners -> yes')
+        #print('    ', tag, 'runners -> yes')
 
-        print('found all!') # TODO remove debug prints
+        #print('found all!') # TODO remove debug prints
         return self.build_from(pitch, self.data, zone_pitches, runners)
 
 class ReqPitcher(Req):
@@ -2755,40 +2755,40 @@ class ReqPitcher(Req):
         ts = self.get_ts()
         id = self.get_id() # yes the id of the Pitch (not the zone_pitch ie 'pitcher')
 
-        # TODO remove this eventually its debug
-        print(tag, 'ts', ts, 'id', id)
+        # # TODO remove this eventually its debug
+        # print(tag, 'ts', ts, 'id', id)
 
         # construct the rest of the mlb pbp from cache, now that we know this piece (or try)
 
         # 1. get the 'pitch'
         pitch = PitchCache().fetch(ts, id)
         if pitch is None:
-            print('    ',tag, 'pitch -> None')
+            #print('    ',tag, 'pitch -> None')
             return None
-        print('    ', tag, 'pitch -> yes')
+        #print('    ', tag, 'pitch -> yes')
 
         # 2. get the at_bat
         at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
         if at_bat is None:
-            print(tag, 'at_bat -> None')
+            #print(tag, 'at_bat -> None')
             return None
-        print('    ', tag, 'at_bat -> yes')
+        #print('    ', tag, 'at_bat -> yes')
 
         # 3. get the list of all the 'pitcher' objects (ie: zone pitches)
         zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
         if zone_pitches is None:
-            print(tag, 'pitches -> None (ie: zone_pitches)')
+            #print(tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        print('    ', tag, 'pitches -> yes')
+        #print('    ', tag, 'pitches -> yes')
 
         # 4. get runners if any exist
         runners = ReqPitch(pitch, stash_now=False).get_runners()
         if runners is None:
-            print(tag, 'runners -> None (found None, or less than we wanted to)')
+            #print(tag, 'runners -> None (found None, or less than we wanted to)')
             return None
-        print('    ', tag, 'runners -> yes')
+        #print('    ', tag, 'runners -> yes')
 
-        print('found all!') # TODO remove debug prints
+        #print('found all!') # TODO remove debug prints
         return self.build_from(pitch, at_bat, zone_pitches, runners)
 
 class ReqRunner(Req):
@@ -2817,38 +2817,38 @@ class ReqRunner(Req):
         ts = self.get_ts()
         id = self.get_id()
 
-        # TODO remove this eventually
-        print(tag, 'ts', ts, 'id', id)
+        # # TODO remove this eventually
+        # print(tag, 'ts', ts, 'id', id)
 
         # 1. get the main 'pitch' (kind of like the pbp object)
         pitch = PitchCache().fetch(ts, id)
         if pitch is None:
-            print('    ', tag, 'pitch -> None')
+            #print('    ', tag, 'pitch -> None')
             return None
-        print('    ', tag, 'pitch -> yes')
+        #print('    ', tag, 'pitch -> yes')
 
         # 2. get the 'at_bat'
         at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
         if at_bat is None:
-            print(tag, 'at_bat -> None')
+            #print(tag, 'at_bat -> None')
             return None
-        print('    ', tag, 'at_bat -> yes')
+        #print('    ', tag, 'at_bat -> yes')
 
         # 3. get the 'pitches' ie: the zone_pitches
         zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
         if zone_pitches is None:
-            print(tag, 'pitches -> None (ie: zone_pitches)')
+            #print(tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        print('    ', tag, 'pitches -> yes')
+        #print('    ', tag, 'pitches -> yes')
 
         # 4. get ALL the runners
         runners = ReqPitch(pitch, stash_now=False).get_runners()
         if runners is None:
-            print(tag, 'runners -> None (found None, or less than we wanted to)')
+            #print(tag, 'runners -> None (found None, or less than we wanted to)')
             return None
-        print('    ', tag, 'runners -> yes')
+        #print('    ', tag, 'runners -> yes')
 
-        print('found all!') # TODO remove debug prints
+        #print('found all!') # TODO remove debug prints
         return self.build_from(pitch, at_bat, zone_pitches, runners)
 
 class PbpParser(DataDenPbpDescription):

@@ -145,10 +145,22 @@ class LiveStatsCache( UsesCacheKeyPrefix ):
         self.__validate_livestat(livestat)
 
         #
+        # allow the livestat class to override the return
+        # value to make this object capable of passing
+        # thru the trigger filter based on its own logic
+        # even if the underlying data has not changed.
+        override = livestat.override_new()
+        # TODO remove this debug
+        if override:
+            ns = livestat.get_ns()
+            o = livestat.get_o()
+            print('override trigger filter! ns: %s, o:' % (ns, str(o)))
+
+        #
         # the return value, a boolean, is True if it was added, otherwise False
         was_added = self.c.add( self.get_key(livestat.hsh()), livestat.get_id(),
                               self.get_to(), version=self.key_version )
-        return was_added
+        return override or was_added
 
     def update_pbp(self, livestat):
         """

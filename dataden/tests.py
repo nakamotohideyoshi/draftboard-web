@@ -86,7 +86,7 @@ class TestLiveStatsCache(TestCase):
         spoofed_dataden_pbp_object  = {'_id':pbp_dataden_obj_id, 'parent_api__id':'any_parent_api'}
         oplog_obj = OpLogObjWrapper('any_db','any_coll', spoofed_dataden_pbp_object)
 
-        # the first time we call update_pbp() it shoudl return true,
+        # the first time we call update_pbp() it should return true,
         # indicating we just added it
         self.assertTrue( self.live_stats_cache.update_pbp( oplog_obj ) )
         # the following time we call update_pbp() with the same object,
