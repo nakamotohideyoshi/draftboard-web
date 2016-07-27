@@ -23,6 +23,7 @@ Hello WOrld!
 
 // This is to be handled separately from the whole app afterwards
 @import "./account.scss";
+@import "./blocks/logged-out/logged-out-footer.scss";
 
 // In here we can @import anything that doesn't belong to a specific component
 // For css that does belong to a component, just require() it in the component's jsx file.
@@ -70,7 +71,6 @@ Hello WOrld!
 @import "./blocks/cmp-message-display.scss";
 
 /* Components */
-@import "./blocks/cmp-range-slider.scss";
 @import "./blocks/cmp-contest-list.scss";
 @import "./blocks/cmp-contest-list-header.scss";
 @import "./blocks/cmp-contest-list-sport-filter.scss";

@@ -23,6 +23,7 @@ const EnterContestButton = React.createClass({
     onEnterFail: React.PropTypes.func,
     buttonText: React.PropTypes.object,
     buttonClasses: React.PropTypes.object,
+    entrySkillLevels: React.PropTypes.object.isRequired,
   },
 
 
@@ -157,6 +158,24 @@ const EnterContestButton = React.createClass({
   },
 
 
+  matchesCurrentSkillLevel(contest) {
+    // IF we have no entries at all, allow anything.
+    if (!this.props.entrySkillLevels) {
+      return true;
+    }
+    // If we have no current entries for this sport, allow entry.
+    if (!this.props.entrySkillLevels[contest.sport]) {
+      return true;
+    }
+    // If the contest allows any skill level to enter, allow entry.
+    if (contest.skill_level.name === 'all') {
+      return true;
+    }
+    // If we have a lineup entered into a contest, check for a match.
+    return contest.skill_level.name === this.props.entrySkillLevels[contest.sport];
+  },
+
+
   hasReachedMaxEntries(contest) {
     // Is our current entry count less than the contest's max entry value?
     if (contest.entryInfo) {
@@ -216,6 +235,29 @@ const EnterContestButton = React.createClass({
           {this.props.buttonText.started}
         </span>
       );
+    }
+
+
+    if (this.props.contest) {
+      if (!this.matchesCurrentSkillLevel(this.props.contest)) {
+        classes = this.props.buttonClasses.maxEntered;
+        return (
+          <div
+            className={`button button--disabled ${classes} entered enter-contest-button`}
+            onClick={this.ignoreClick}
+            onMouseLeave={this.handleMouseOut}
+          >
+            Wrong Skill Level
+            <Tooltip
+              isVisible
+              position={'bottom'}
+            >
+              <span>You may only enter into 1 skill level per sport.</span>
+            </Tooltip>
+
+          </div>
+        );
+      }
     }
 
 

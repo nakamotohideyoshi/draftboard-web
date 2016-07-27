@@ -21,6 +21,7 @@ const defaultTestProps = {
     Object.keys(storeUpcomingContestsFix.allContests)[0]
   ],
   setFocusedContest: () => true,
+  entrySkillLevels: {},
 };
 
 

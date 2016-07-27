@@ -1,11 +1,14 @@
+#
+# settings.py for 'draftboard-dev' heroku app
+
 from dj_database_url import config as heroku_db_config
 from urllib.parse import urlparse
 
 from .base import *
 
 # Constant for determining environment
-DOMAIN = 'draftboard-testing.herokuapp.com'
-ALLOWED_HOSTS = ['.draftboard-testing.herokuapp.com', '*.draftboard-testing.herokuapp.com', ]
+DOMAIN = 'draftboard-delorean.herokuapp.com'
+ALLOWED_HOSTS = ['.draftboard-delorean.herokuapp.com', '*.draftboard-delorean.herokuapp.com', ]
 
 # Connect Heroku database
 # Based on https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-of-active-connections
@@ -42,29 +45,20 @@ CACHES = {
     },
 }
 
-# Set django-lockdown to run on heroku for now
-USE_LOCKDOWN = os.environ.get('USE_LOCKDOWN', 'False') == 'True'
-if USE_LOCKDOWN:
-    INSTALLED_APPS += ('lockdown',)
-    MIDDLEWARE_CLASSES += ('lockdown.middleware.LockdownMiddleware',)
-    LOCKDOWN_PASSWORDS = (os.environ.get('LOCKDOWN_PASSWORD', 'False'),)
-    # LOCKDOWN_URL_EXCEPTIONS = (r'^/some/url/not/locked/down/$',)
-
 # Static assets, served via django-whitenoise
 STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
 
 # Testing mode off for production
 DEBUG = False
-# Match template debugging to what environment debug is
-TEMPLATE_DEBUG = DEBUG
 
-# Cache templates
-TEMPLATE_LOADERS = (
-    ('django.template.loaders.cached.Loader', (
-        'django.template.loaders.filesystem.Loader',
-        'django.template.loaders.app_directories.Loader',
-    )),
-)
+# this breaks django 1.9 and was fixed by getting stuffed in the TEMPLATE dict in base.py
+# # Cache templates
+# TEMPLATE_LOADERS = (
+#     ('django.template.loaders.cached.Loader', (
+#         'django.template.loaders.filesystem.Loader',
+#         'django.template.loaders.app_directories.Loader',
+#     )),
+# )
 
 # Add gunicorn
 INSTALLED_APPS += (
@@ -78,19 +72,26 @@ INSTALLED_APPS += (
 PUSHER_APP_ID = '159447'
 PUSHER_KEY = '32343d7634872062c03e'
 PUSHER_SECRET = environ.get('PUSHER_SECRET')
+PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true') # heroku config vars are strings!
+
+#
+##########################################################################
+#        paypal client_id, secret keys
+##########################################################################
+PAYPAL_CLIENT_ID    = environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_SECRET       = environ.get('PAYPAL_SECRET')
 
 #
 # dataden mongo database connection
-MONGO_AUTH_DB   = 'admin'
-MONGO_USER      = 'admin'
-MONGO_PASSWORD  = 'dataden1'
-MONGO_PORT      = 27017  # NOTE: any port specified in the connection uri string overrides this port
-MONGO_HOST      = 'mongodb://%s:%s@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/%s?replicaSet=rs-ds057273' % (MONGO_USER, MONGO_PASSWORD, MONGO_AUTH_DB)
-# MONGO_CONNECTION_URI = 'mongodb://admin:dataden1@ds057273-a0.mongolab.com:57273,ds057273-a1.mongolab.com:57273/admin?replicaSet=rs-ds057273'
-
-# # if this config var exists, override the default production value
-# dataden_mongo_uri = urlparse(environ.get('DATADEN_MONGO_URI'))
-# if dataden_mongo_uri:
-#     MONGO_HOST = dataden_mongo_uri
+MONGO_SERVER_ADDRESS    = environ.get('MONGO_SERVER_ADDRESS')   # ie: '123.132.123.123'
+MONGO_AUTH_DB           = environ.get('MONGO_AUTH_DB')          # 'admin'
+MONGO_USER              = environ.get('MONGO_USER')             # 'admin'
+MONGO_PASSWORD          = environ.get('MONGO_PASSWORD')         # 'dataden1'
+MONGO_PORT              = int(environ.get('MONGO_PORT'))         # 27017     cast MONGO_PORT to integer!
+MONGO_HOST = environ.get('MONGO_HOST') % ( MONGO_USER,
+                                            MONGO_PASSWORD,
+                                            MONGO_SERVER_ADDRESS,
+                                            MONGO_PORT,
+                                            MONGO_AUTH_DB )
 
 DATETIME_DELTA_ENABLE = True   # dont do this once production environemnt is actual live!

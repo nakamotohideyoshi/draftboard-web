@@ -16,6 +16,7 @@
     padding: 0 0 3px;
     text-transform: uppercase;
     letter-spacing: .09em;
+    border-bottom: 2px solid transparent;
 
     &:hover {
       color: #6d718a;
@@ -23,12 +24,11 @@
 
     &--active {
       color: #46495e;
-      border: 0px solid transparent;
-      -moz-border-image: -moz-linear-gradient(right, #1f907c 0%, #34cc68 100%);
-      -webkit-border-image: -webkit-linear-gradient(right, #1f907c 0%, #34cc68 100%);
-      border-image: linear-gradient(to right, #1f907c 0%, #34cc68 100%);
-      border-image-slice: 1;
-      border-bottom: 2px solid;
+      // -moz-border-image: -moz-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+      // -webkit-border-image: -webkit-linear-gradient(right, #1f907c 0%, #34cc68 100%);
+      // border-image: linear-gradient(to right, #1f907c 0%, #34cc68 100%);
+      // border-image-slice: 1;
+      border-bottom: 2px solid #46495e;
 
       &:hover {
         cursor: default;
