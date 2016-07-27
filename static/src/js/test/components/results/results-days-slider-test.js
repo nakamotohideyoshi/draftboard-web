@@ -1,12 +1,12 @@
-require('../../test-dom')();
+'use strict';
+
 import React from 'react';
-import ReactDOM from 'react-dom';
-import ReactTestUtils from 'react-addons-test-utils';
-import ResultsDaysSlider from '../../../components/results/results-days-slider.jsx';
 import sinon from 'sinon';
 import { expect } from 'chai';
+import { mount } from 'enzyme';
 
 const utils = require('../../../lib/utils');
+import ResultsDaysSlider from '../../../components/results/results-days-slider.jsx';
 
 let selectedDate = null;
 const defaultProps = {
@@ -20,64 +20,26 @@ const defaultProps = {
 
 describe("ResultsDaysSlider Component", function() {
 
-  beforeEach(function(done) {
-    var self = this;
-    selectedDate = null;
-    document.body.innerHTML = '';
-    // The DOM element that the component will be rendered to.
-    this.targetElement = document.body.appendChild(document.createElement('div'));
-    // Render the component into our fake jsdom element.
-    this.renderComponent = (callback, props = defaultProps) => {
-      this.component = ReactDOM.render(
-        React.createElement(ResultsDaysSlider, props),
-        this.targetElement,
-        function() {
-          // Once it has been rendered...
-          // Grab it from the DOM.
-          self.componentElement = ReactDOM.findDOMNode(this);
-          callback();
-        }
-      );
-    };
+  function renderComponent(props = defaultProps) {
+    return mount(<ResultsDaysSlider {...props} />);
+  }
 
-    done();
+  it('should render all days for provided month', () => {
+    const wrapper = renderComponent();
+    const items = wrapper.find('.item');
+
+    expect(wrapper.find('.results-days-slider')).to.have.length(1);
+    expect(items).to.have.length(28);
+    expect(items.first().hasClass('selected')).to.equal(true);
+
+    const weekDaysNames = items.map((elm) => elm.text().slice(0, 3)).join(',');
+    expect(weekDaysNames).to.equal(
+      'SUN,MON,TUE,WED,THU,FRI,SAT,SUN,MON,TUE,WED,THU,FRI,SAT,SUN,MON,TUE,WED,THU,FRI,SAT,SUN,MON,TUE,WED,THU,FRI,SAT'
+    );
   });
 
-  afterEach(function() {
-    document.body.innerHTML = '';
-  });
-
-  it('should render all days for provided month', function(done) {
-    this.renderComponent(() => {
-      const items = [].slice.apply(this.componentElement.querySelectorAll('.item'));
-
-      expect(this.componentElement.tagName).to.equal('DIV');
-      expect(items.length).to.equal(28);
-      expect(items[0].className).to.equal("item selected");
-
-      const weekDaysNames = items.map((elm) => elm.textContent.slice(0, 3)).join(',');
-      expect(weekDaysNames).to.equal(
-        'SUN,MON,TUE,WED,THU,FRI,SAT,SUN,MON,TUE,WED,THU,FRI,SAT,SUN,MON,TUE,WED,THU,FRI,SAT,SUN,MON,TUE,WED,THU,FRI,SAT'
-      );
-
-      done();
-    });
-  });
-
-  it('should scroll to initially provided date', function(done) {
-    this.renderComponent(() => {
-      expect(this.componentElement.tagName).to.equal('DIV');
-
-      expect(
-        this.componentElement.querySelectorAll('.item')[11].className
-      ).to.equal("item selected");
-
-      setTimeout(() => {
-        expect(this.component.scrollItem).to.equal(11);
-
-        done();
-      }, 10);
-    }, {
+  it('should scroll to initially provided date', function() {
+    const wrapper = renderComponent({
       year: 2015,
       month: 1,
       day: 12,
@@ -85,35 +47,14 @@ describe("ResultsDaysSlider Component", function() {
         selectedDate = [year, month, day];
       }
     });
+
+    expect(wrapper.find('.item').at(11).hasClass('selected')).to.equal(true);
+    expect(wrapper.instance().scrollItem).to.equal(11);
   });
 
-  it('should scroll left/right provided date', function(done) {
-    this.renderComponent(() => {
-      expect(this.componentElement.tagName).to.equal('DIV');
 
-      expect(
-        this.componentElement.querySelectorAll('.item')[11].className
-      ).to.equal("item selected");
-
-      expect(this.component.scrollItem).to.equal(11);
-
-      ReactTestUtils.Simulate.click(
-        this.componentElement.querySelector('.arrow-right')
-      );
-
-      setImmediate(() => {
-        expect(this.component.scrollItem).to.equal(12);
-
-        ReactTestUtils.Simulate.click(
-          this.componentElement.querySelector('.arrow-left')
-        );
-
-        setImmediate(() => {
-          expect(this.component.scrollItem).to.equal(11);
-          done();
-        });
-      });
-    }, {
+  it('should scroll left/right provided date', function() {
+    const wrapper = renderComponent({
       day: 12,
       month: 1,
       year: 2015,
@@ -121,64 +62,30 @@ describe("ResultsDaysSlider Component", function() {
         selectedDate = [year, month, day];
       }
     });
-  });
 
+    expect(wrapper.find('.item').at(11).hasClass('selected')).to.equal(true);
+    expect(wrapper.instance().scrollItem).to.equal(11);
+
+    wrapper.find('.arrow-right').simulate('click');
+    expect(wrapper.instance().scrollItem).to.equal(12);
+
+    wrapper.find('.arrow-left').simulate('click');
+    expect(wrapper.instance().scrollItem).to.equal(11);
+  });
 
   it('should be able to select a date', function() {
-    this.renderComponent(() => {
-      expect(this.componentElement.tagName).to.equal('DIV');
+    const wrapper = renderComponent();
 
-      expect(
-        this.componentElement.querySelectorAll('.item')[0].className
-      ).to.equal("item selected");
-
-      ReactTestUtils.Simulate.click(
-        this.componentElement.querySelectorAll('.item')[5]
-      );
-
-      expect(selectedDate.toString()).to.equal([2015, 1, 6].toString());
-    });
+    expect(wrapper.find('.item').at(0).hasClass('selected')).to.equal(true);
+    wrapper.find('.item').at(5).simulate('click');
+    expect(selectedDate.toString()).to.equal([2015, 1, 6].toString());
   });
 
-  it('should not be able to select a future date', function(done) {
+  it('should not be able to select a future date', function() {
     const date = new Date(2016, 3, 12);
     const stub = sinon.stub(utils, "dateNow", () => date);
     const today = new Date(utils.dateNow());
-
-    this.renderComponent(() => {
-      expect(this.componentElement.tagName).to.equal('DIV');
-
-      expect(
-        this.componentElement.querySelectorAll('.item')[today.getDate() - 1].className
-      ).to.equal("item selected");
-
-      expect(
-        this.componentElement.querySelectorAll('.item')[today.getDate()].className
-      ).to.equal("item future");
-
-      ReactTestUtils.Simulate.click(
-        this.componentElement.querySelectorAll('.item')[today.getDate() - 1]
-      );
-
-      expect(selectedDate.toString()).to.equal([
-        today.getFullYear(),
-        today.getMonth() + 1,
-        today.getDate()
-      ].toString());
-
-      ReactTestUtils.Simulate.click(
-        this.componentElement.querySelectorAll('.item')[today.getDate()]
-      );
-
-      expect(selectedDate.toString()).to.equal([
-        today.getFullYear(),
-        today.getMonth() + 1,
-        today.getDate()
-      ].toString());
-
-      utils.dateNow.restore();
-      done();
-    }, {
+    const wrapper = renderComponent({
       day: today.getDate(),
       month: today.getMonth() + 1,
       year: today.getFullYear(),
@@ -186,5 +93,28 @@ describe("ResultsDaysSlider Component", function() {
         selectedDate = [year, month, day];
       }
     });
+
+    expect(
+      wrapper.find('.item').at(today.getDate() - 1).hasClass('selected')
+    ).to.equal(true);
+    expect(
+      wrapper.find('.item').at(today.getDate()).hasClass('future')
+    ).to.equal(true);
+
+    wrapper.find('.item').at(today.getDate() - 1).simulate('click');
+    expect(selectedDate.toString()).to.equal([
+      today.getFullYear(),
+      today.getMonth() + 1,
+      today.getDate()
+    ].toString());
+
+    wrapper.find('.item').at(today.getDate()).simulate('click');
+    expect(selectedDate.toString()).to.equal([
+      today.getFullYear(),
+      today.getMonth() + 1,
+      today.getDate()
+    ].toString());
+
+    utils.dateNow.restore();
   });
 });

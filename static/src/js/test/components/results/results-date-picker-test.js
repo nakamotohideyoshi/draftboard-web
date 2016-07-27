@@ -1,11 +1,11 @@
 'use strict';
 
-require('../../test-dom')();
-const React = require('react');
-const ReactDOM = require('react-dom');
-const ReactTestUtils = require('react-addons-test-utils');
+import React from 'react';
+import { expect } from 'chai';
+import { shallow } from 'enzyme';
+
 import ResultsDatePicker from '../../../components/results/results-date-picker.jsx';
-const expect = require('chai').expect;
+import DatePicker from '../../../components/site/date-picker.jsx';
 
 let selectedDate = null;
 const defaultProps = {
@@ -19,47 +19,16 @@ const defaultProps = {
 
 describe("ResultsDatePicker Component", function() {
 
-  beforeEach(function(done) {
-    var self = this;
-    document.body.innerHTML = '';
-    // The DOM element that the component will be rendered to.
-    this.targetElement = document.body.appendChild(document.createElement('div'));
-    // Render the component into our fake jsdom element.
-    this.component = ReactDOM.render(
-      React.createElement(ResultsDatePicker, defaultProps),
-      this.targetElement,
-      function() {
-        // Once it has been rendered...
-        // Grab it from the DOM.
-        self.componentElement = ReactDOM.findDOMNode(this);
-        done();
-      }
-    );
-  });
+  function renderComponent(props = defaultProps) {
+    return shallow(<ResultsDatePicker {...props} />);
+  }
 
-  afterEach(function() {
-    document.body.innerHTML = '';
-  });
-
-  it('should be hidden by default and able to show/hide', function() {
-    expect(this.componentElement.tagName).to.equal('DIV');
-
-    expect(
-      this.componentElement.querySelectorAll('.date-picker').length
-    ).to.equal(0);
-
-    ReactTestUtils.Simulate.click(
-      this.componentElement.querySelector('.toggle')
-    );
-
-    expect(
-      this.componentElement.querySelectorAll('.date-picker').length
-    ).to.equal(1);
-
-    document.body.click();
-
-    expect(
-      this.componentElement.querySelectorAll('.date-picker').length
-    ).to.equal(0);
+  it('should render all expected children', () => {
+    const wrapper = renderComponent();
+    expect(wrapper.find(DatePicker)).to.have.length(0);
+    wrapper.find('.toggle').simulate('click');
+    expect(wrapper.find(DatePicker)).to.have.length(1);
+    wrapper.find('.toggle').simulate('click');
+    expect(wrapper.find(DatePicker)).to.have.length(0);
   });
 });
