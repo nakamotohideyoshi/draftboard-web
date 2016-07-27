@@ -10,7 +10,6 @@ from sports.mlb.parser import (
     SeasonSchedule,
     GameSchedule,
     TeamHierarchy,
-    PitchPbp,
     PbpParser,  # new mlb linked data parser/sender
     GameBoxscores,
 
@@ -206,55 +205,55 @@ class TestGameScheduleParser(AbstractTest):
         self.game_parser.parse( game_oplog_obj )
         self.assertEquals( 1, sports.mlb.models.Game.objects.all().count() )
 
-class TestEventPbp(AbstractTest):
-    """
-    test parse an actual object which once came from dataden. (sanity check)
-
-    there is a more generic test in sports.sport.tests
-    """
-
-    def setUp(self):
-        self.obj_str = """{'ns': 'mlb.pitch', 'o': {'fielders__list': {'putout': 'eb4fe55f-14ba-4da5-ba4c-5e8df005fa0a'}, 'count__list': {'outs': 2.0, 'strikes': 3.0, 'pitch_count': 5.0, 'balls': 2.0}, 'updated_at': '2015-10-07T00:15:07Z', 'id': 'd0113392-a710-4da9-9b7c-e3d1f1deb6e3', 'flags__list': {'is_ab_over': 'true', 'is_on_base': 'false', 'is_triple_play': 'false', 'is_bunt': 'false', 'is_passed_ball': 'false', 'is_ab': 'true', 'is_wild_pitch': 'false', 'is_double_play': 'false', 'is_bunt_shown': 'false', 'is_hit': 'false'}, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGU4ZWNhNzIyLWNlYWUtNGM0My1hOWYwLWNlZGFiMWU4YmIwN2lkZDAxMTMzOTItYTcxMC00ZGE5LTliN2MtZTNkMWYxZGViNmUz', 'status': 'official', 'created_at': '2015-10-07T00:15:02Z', 'game__id': 'e8eca722-ceae-4c43-a9f0-cedab1e8bb07', 'parent_api__id': 'pbp', 'pitcher': 'fdfda40f-e77b-4cc2-a72c-11951460beda', 'outcome_id': 'kKS', 'dd_updated__id': 1444422139504}, 'h': 0, 'op': 'u', 'o2': {'_id': None}, 'ts': 0, 'v': 2}"""
-        self.data = literal_eval(self.obj_str) # convert to dict
-        self.oplog_obj = OpLogObj(self.data)
-
-        # the field we will try to get a game srid from
-        self.game_srid_field        = 'game__id'
-
-        # 'game__id': 'e8eca722-ceae-4c43-a9f0-cedab1e8bb07',
-        # 'parent_api__id': 'pbp',
-        # 'pitcher': 'fdfda40f-e77b-4cc2-a72c-11951460beda'
-        # a list of the game_srids we expect to get back (only 1 for this test)
-        self.target_game_srids      = ['e8eca722-ceae-4c43-a9f0-cedab1e8bb07']
-
-        # the field name we will search for player srid(s)
-        self.player_srid_field      = 'pitcher'
-        # the list of player srids we expect to find in this object
-        self.target_player_srids    = ['fdfda40f-e77b-4cc2-a72c-11951460beda']
-
-        self.player_stats_class     = sports.mlb.models.PlayerStatsPitcher
-
-        # TODO - this whole test is built assuming only 1 PlayerStats class type
-
-    def test_event_pbp_parse(self):
-        """
-        """
-
-        event_pbp = PitchPbp()
-        event_pbp.parse(self.oplog_obj, target=('mlb.pitch','pbp'))
-
-        game_srids = event_pbp.get_srids_for_field(self.game_srid_field)
-        self.assertIsInstance( game_srids, list )
-        self.assertEquals( set(game_srids), set(self.target_game_srids) )
-        self.assertEquals( len(set(game_srids)), 1 )
-
-        # we are going to use the game_srid for a PlayerStats filter()
-        game_srid = list(set(game_srids))[0]
-        self.assertIsInstance( game_srid, str ) # the srid should be a string
-
-        # we are going to use the list of player srids for the PlayerStats filter()
-        player_srids = event_pbp.get_srids_for_field(self.player_srid_field)
-        self.assertTrue( set(self.target_player_srids) <= set(player_srids) )
+# class TestEventPbp(AbstractTest):
+#     """
+#     test parse an actual object which once came from dataden. (sanity check)
+#
+#     there is a more generic test in sports.sport.tests
+#     """
+#
+#     def setUp(self):
+#         self.obj_str = """{'ns': 'mlb.pitch', 'o': {'fielders__list': {'putout': 'eb4fe55f-14ba-4da5-ba4c-5e8df005fa0a'}, 'count__list': {'outs': 2.0, 'strikes': 3.0, 'pitch_count': 5.0, 'balls': 2.0}, 'updated_at': '2015-10-07T00:15:07Z', 'id': 'd0113392-a710-4da9-9b7c-e3d1f1deb6e3', 'flags__list': {'is_ab_over': 'true', 'is_on_base': 'false', 'is_triple_play': 'false', 'is_bunt': 'false', 'is_passed_ball': 'false', 'is_ab': 'true', 'is_wild_pitch': 'false', 'is_double_play': 'false', 'is_bunt_shown': 'false', 'is_hit': 'false'}, '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGU4ZWNhNzIyLWNlYWUtNGM0My1hOWYwLWNlZGFiMWU4YmIwN2lkZDAxMTMzOTItYTcxMC00ZGE5LTliN2MtZTNkMWYxZGViNmUz', 'status': 'official', 'created_at': '2015-10-07T00:15:02Z', 'game__id': 'e8eca722-ceae-4c43-a9f0-cedab1e8bb07', 'parent_api__id': 'pbp', 'pitcher': 'fdfda40f-e77b-4cc2-a72c-11951460beda', 'outcome_id': 'kKS', 'dd_updated__id': 1444422139504}, 'h': 0, 'op': 'u', 'o2': {'_id': None}, 'ts': 0, 'v': 2}"""
+#         self.data = literal_eval(self.obj_str) # convert to dict
+#         self.oplog_obj = OpLogObj(self.data)
+#
+#         # the field we will try to get a game srid from
+#         self.game_srid_field        = 'game__id'
+#
+#         # 'game__id': 'e8eca722-ceae-4c43-a9f0-cedab1e8bb07',
+#         # 'parent_api__id': 'pbp',
+#         # 'pitcher': 'fdfda40f-e77b-4cc2-a72c-11951460beda'
+#         # a list of the game_srids we expect to get back (only 1 for this test)
+#         self.target_game_srids      = ['e8eca722-ceae-4c43-a9f0-cedab1e8bb07']
+#
+#         # the field name we will search for player srid(s)
+#         self.player_srid_field      = 'pitcher'
+#         # the list of player srids we expect to find in this object
+#         self.target_player_srids    = ['fdfda40f-e77b-4cc2-a72c-11951460beda']
+#
+#         self.player_stats_class     = sports.mlb.models.PlayerStatsPitcher
+#
+#         # TODO - this whole test is built assuming only 1 PlayerStats class type
+#
+#     def test_event_pbp_parse(self):
+#         """
+#         """
+#
+#         event_pbp = PitchPbp()
+#         event_pbp.parse(self.oplog_obj, target=('mlb.pitch','pbp'))
+#
+#         game_srids = event_pbp.get_srids_for_field(self.game_srid_field)
+#         self.assertIsInstance( game_srids, list )
+#         self.assertEquals( set(game_srids), set(self.target_game_srids) )
+#         self.assertEquals( len(set(game_srids)), 1 )
+#
+#         # we are going to use the game_srid for a PlayerStats filter()
+#         game_srid = list(set(game_srids))[0]
+#         self.assertIsInstance( game_srid, str ) # the srid should be a string
+#
+#         # we are going to use the list of player srids for the PlayerStats filter()
+#         player_srids = event_pbp.get_srids_for_field(self.player_srid_field)
+#         self.assertTrue( set(self.target_player_srids) <= set(player_srids) )
 
 class TestMlbLinkedPbp(AbstractTest): # the PitchPbp parser!
 
@@ -875,4 +874,56 @@ class PbpParserTest(AbstractTest):
                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGF0X2JhdF9faWQ3MWY2NjRjZS01YmJiLTQ2ZmEtOWVkZS1jNTEzNmJlZmVkM2NpZGM4ZjExZWZiLTllZGQtNDY1My05YjhhLTYxN2ZiOTY1MGIzMA==",
                  "id": "c8f11efb-9edd-4653-9b8a-617fb9650b30", "created_at": "2016-07-26T01:43:16Z",
                  "parent_api__id": "pbp"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+    def test_2(self):
+        """ test with a base runner """
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        # zone pitch 1 came in before the rest of the data (based on its dd_updated__id)
+        pitcher = {
+            "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGQyYjRlNWFlLTRiYTQtNDJiYS05NTA5LTc0YTBjNjdhZWZlYmF0X2JhdF9faWRiZmVjZjI3NC1jMTU1LTQ2YmItODAwOC0yYTk5NjhmZjliODhwaXRjaF9faWRkZmI2ZTIwZS02OTJjLTRmNDEtOGIwNi04MjFlYzc0N2JmYmNpZDlmYjE4ODM4LTZhYzgtNDNiNi1iYmRkLTY5ZjlmOGE5ODNhYw==",
+            "pitch__id": "dfb6e20e-692c-4f41-8b06-821ec747bfbc", "dd_updated__id": 1469637786169,
+            "id": "9fb18838-6ac8-43b6-bbdd-69f9f8a983ac", "pitcher_hand": "R", "parent_api__id": "pbp",
+            "game__id": "d2b4e5ae-4ba4-42ba-9509-74a0c67aefeb", "at_bat__id": "bfecf274-c155-46bb-8008-2a9968ff9b88",
+            "hitter_hand": "R", "pitch_count": 12.0}
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        # zone pitch 2
+        pitcher = {"at_bat__id": "bfecf274-c155-46bb-8008-2a9968ff9b88", "parent_api__id": "pbp", "pitch_count": 13.0,
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGQyYjRlNWFlLTRiYTQtNDJiYS05NTA5LTc0YTBjNjdhZWZlYmF0X2JhdF9faWRiZmVjZjI3NC1jMTU1LTQ2YmItODAwOC0yYTk5NjhmZjliODhwaXRjaF9faWRhYmY2NTBhMy1jMGYwLTQ5MzYtYTIxNi04MTk2ZTAwMDMxZGZpZDlmYjE4ODM4LTZhYzgtNDNiNi1iYmRkLTY5ZjlmOGE5ODNhYw==",
+                   "pitch__id": "abf650a3-c0f0-4936-a216-8196e00031df", "dd_updated__id": 1469637804257,
+                   "hitter_hand": "R", "game__id": "d2b4e5ae-4ba4-42ba-9509-74a0c67aefeb",
+                   "id": "9fb18838-6ac8-43b6-bbdd-69f9f8a983ac", "pitcher_hand": "R"}
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        at_bat = {"steal": "4f83cbab-526f-46e5-8d54-39c77b8afb0f", "dd_updated__id": 1469637804257,
+                  "hitter_id": "f4c666e5-2a05-4258-8ddc-da6e0cffdb57", "id": "bfecf274-c155-46bb-8008-2a9968ff9b88",
+                  "parent_api__id": "pbp",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGQyYjRlNWFlLTRiYTQtNDJiYS05NTA5LTc0YTBjNjdhZWZlYmlkYmZlY2YyNzQtYzE1NS00NmJiLTgwMDgtMmE5OTY4ZmY5Yjg4",
+                  "pitchs": [{"pitch": "dfb6e20e-692c-4f41-8b06-821ec747bfbc"},
+                             {"pitch": "abf650a3-c0f0-4936-a216-8196e00031df"}],
+                  "game__id": "d2b4e5ae-4ba4-42ba-9509-74a0c67aefeb"}
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+        runner = {"jersey_number": 4.0, "parent_api__id": "pbp", "id": "8f6f5bdf-9712-472e-8af5-12d5fb1e52e8",
+                  "at_bat__id": "bfecf274-c155-46bb-8008-2a9968ff9b88", "out": "false", "first_name": "William",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGQyYjRlNWFlLTRiYTQtNDJiYS05NTA5LTc0YTBjNjdhZWZlYmF0X2JhdF9faWRiZmVjZjI3NC1jMTU1LTQ2YmItODAwOC0yYTk5NjhmZjliODhwaXRjaF9faWRhYmY2NTBhMy1jMGYwLTQ5MzYtYTIxNi04MTk2ZTAwMDMxZGZwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ4ZjZmNWJkZi05NzEyLTQ3MmUtOGFmNS0xMmQ1ZmIxZTUyZTg=",
+                  "pitch__id": "abf650a3-c0f0-4936-a216-8196e00031df", "dd_updated__id": 1469637804257,
+                  "starting_base": 1.0, "last_name": "Myers", "preferred_name": "Wil", "ending_base": 1.0,
+                  "game__id": "d2b4e5ae-4ba4-42ba-9509-74a0c67aefeb", "parent_list__id": "runners__list"}
+        self.__parse_and_send(runner, (sport_db + '.' + 'runner', parent_api))
+
+        pitch = {"id": "abf650a3-c0f0-4936-a216-8196e00031df",
+                 "flags__list": {"is_on_base": "false", "is_wild_pitch": "false", "is_hit": "false", "is_bunt": "false",
+                                 "is_ab": "false", "is_bunt_shown": "false", "is_triple_play": "false",
+                                 "is_double_play": "false", "is_passed_ball": "false", "is_ab_over": "false"},
+                 "pitcher": "9fb18838-6ac8-43b6-bbdd-69f9f8a983ac",
+                 "count__list": {"balls": 0.0, "strikes": 2.0, "outs": 1.0, "pitch_count": 2.0},
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGQyYjRlNWFlLTRiYTQtNDJiYS05NTA5LTc0YTBjNjdhZWZlYmF0X2JhdF9faWRiZmVjZjI3NC1jMTU1LTQ2YmItODAwOC0yYTk5NjhmZjliODhpZGFiZjY1MGEzLWMwZjAtNDkzNi1hMjE2LTgxOTZlMDAwMzFkZg==",
+                 "status": "official", "runners__list": {"runner": "8f6f5bdf-9712-472e-8af5-12d5fb1e52e8"},
+                 "dd_updated__id": 1469637804257, "outcome_id": "kKL",
+                 "at_bat__id": "bfecf274-c155-46bb-8008-2a9968ff9b88", "created_at": "2016-07-27T16:43:22Z",
+                 "game__id": "d2b4e5ae-4ba4-42ba-9509-74a0c67aefeb", "parent_api__id": "pbp"}
         self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))

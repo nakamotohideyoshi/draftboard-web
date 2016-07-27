@@ -1151,9 +1151,9 @@ class ZonePitchReducer(AbstractStatReducer):
         '_id',
         'parent_api__id',
         'game__id',
-        # 'id',
-        #'at_bat__id',
-        #'pitch__id',
+        'id',               # comment out for testing
+        'at_bat__id',       # comment out for testing
+        'pitch__id',        # comment out for testing
         'dd_updated__id',
         'hitter_hand',
         'pitcher_hand',
@@ -1271,9 +1271,6 @@ class ZonePitchManager(Manager):
         # sorted_zone_pitches = sorter.sort()
 
         reduced_and_shrunk_zone_pitches = []
-        #for zp in sorted_zone_pitches:
-        # order them, and remove older ones where duplicates are found
-
 
         # iterate, number them (in-atbat order), and reduce + shrink them
         for pc, zp in enumerate(self.zone_pitches):
@@ -1706,6 +1703,18 @@ class QuickCacheList(QuickCache):
         """
         return self.cache.rpush(k, data)
 
+    def remove_duplicates_by_field(self, l, field, reverse=True):
+        added = []
+        ret_list = []
+        if reverse:
+            l.reverse()
+        for obj in l:
+            obj_id = obj.get(field)
+            if obj_id not in added:
+                added.append(obj_id)
+                ret_list.append(obj)
+        return ret_list
+
     #@timeit
     def stash(self, data):
         """ adds the data to its corresponding list in the cache """
@@ -1717,7 +1726,7 @@ class QuickCacheList(QuickCache):
 
         #
         ret_val = self.add_to_cache_method(k, data)
-        #print('stashed: key', str(k), ':', str(data))
+        #print(self.name, 'stashed: key', str(k), ':', str(data))
         return ret_val
 
     def get_key(self, gid):
@@ -1729,672 +1738,72 @@ class QuickCacheList(QuickCache):
         # get a list of dicts from the key
         k = self.get_key(gid)
         l = self.cache.lrange(k, 0, -1) # start with 0, get thru last!
-        return [ self.bytes_2_dict(dict_bytes) for dict_bytes in l ]
-
-class PitchPbp(DataDenPbpDescription):
-    """
-    given an object whose namespace, parent api is a target like:
-     ('mlb.pitch','pbp') this object is capable of emitting
-     the play by play information with send()
-    """
-
-    # exceptions
-    class AtBatNotFoundException(Exception): pass
-    class MultipleAtBatObjectsFoundException(Exception): pass
-    class MissingCachedObjectException(Exception): pass
-    class IgnoreObjectException(Exception): pass
-
-    # the primary objects of a linked object are cached with these classes:
-    class AtBatCache(QuickCache):
-        # at_bat will be cached by the ts and at bat srid
-        name = 'AtBat'
-
-    class AtBatRecentCache(QuickCache):
-        # the most recent atbat we have for the special ts: 0, and the usual srid
-        name = 'AtBatRecent'
-
-        def fetch(self, gid):
-            return super().fetch(0, gid)
-
-        def stash(self, data):
-            return super().stash(data, 0)
-
-
-    class PitchCache(QuickCache):
-        name = 'Pitch'
-        # pitch will be cached by the pitch srid
-
-    class ZonePitchCacheList(QuickCacheList):
-        name = 'ZonePitches'
-        field_id = 'at_bat__id' # cache zone pitches by at_bat srid
-
-    class RunnerCacheList(QuickCacheList):
-        name = 'Runners'
-        field_id = 'pitch__id'  # cache runners based on pitch srid
-
-    cache_classes = [AtBatCache, PitchCache, ZonePitchCacheList, RunnerCacheList]
-
-    # the number of seconds we hold linked objects in the cache to prevent double sending
-    cache_timeout = 60*60*12
-
-    game_model              = Game
-    pbp_model               = Pbp
-    portion_model           = GamePortion
-    pbp_description_model   = PbpDescription
-    #
-    player_stats_model      = sports.mlb.models.PlayerStatsPitcher
-    pusher_sport_pbp        = push.classes.PUSHER_MLB_PBP
-    pusher_sport_stats      = push.classes.PUSHER_MLB_STATS
-
-    at_bat_srid_field       = 'at_bat__id'
-
-    # field name of the pitch when it goes out as linked pbp data
-    pitch_pbp       = 'pbp'
-
-    # fields of the reconstructed data
-    pitch           = 'pitch'
-    at_bat          = 'at_bat'
-    at_bat_stats    = 'at_bat_stats'
-    zone_pitches    = 'zone_pitches'
-    runners         = 'runners'
-    stats           = 'stats'
-
-    def __init__(self, raw=False):
-        """
-        :param raw: False by default. set to True for testing/debugging to see the un-reduced, un-shrunk data.
-                    *warning* setting raw=True also bypasses the send() method. (calling send() will have no effect).
-        :return:
-        """
-        super().__init__()
-        self.player_stats_pitcher_model  = sports.mlb.models.PlayerStatsPitcher      # mlb pitcher stats
-        self.player_stats_hitter_model   = sports.mlb.models.PlayerStatsHitter       # mlb hitter stats
-
-        self.at_bat_object = None
-
-        # updated when an object is parsed
-        self.srid_pitch = None
-        self.srid_at_bat = None
-        self.ts = None
-
-        # False by default.
-        # True will disable reducers, shrinkers, and send() method
-        self.raw = raw
-
-        # the dict used for the reconstruction.
-        self.data = {
-            self.pitch : None,
-            self.at_bat : None,
-            self.at_bat_stats : None,
-            self.zone_pitches : None,
-            self.runners : None,
-            self.stats : None,
-        }
-
-    def debug_print(self, data, msg=''):
-        #print('')
-        # print('%s' % msg)
-        #print(msg, '= """%s"""' % str(data))
-        #print('')
-        pass
-
-    def send(self):
-
-        print('sendddddd')
-        # skip send() method entirely if 'raw' is True!
-        if self.raw == True:
-            print('raw - returning')
-            return
-
-        if self.ts is None:
-            err_msg = 'send() self.ts is None. make sure parse_xxxx() methods set it!'
-            print('err_msg')
-            raise Exception(err_msg)
-
-        raw_requirements = None
-        try:
-
-            if self.srid_pitch is None and self.srid_at_bat is None:
-                # this should simply return out of the method without doing anything
-                # because weve tried to call send() without a
-                # one of the two necessary objects required to
-                # attempt to send the mlb linked data
-                part1 = 'send() self.srid_pitch and self.srid_at_bat are both None!'
-                part2 = ' one of the two objects are required at a minimum.'
-                err_msg = '%s %s' % (part1, part2)
-                print(err_msg)
-                raise Exception(err_msg)
-                return
-
-            if self.srid_pitch is not None:
-                print('AAA')
-                raw_requirements = self.reconstruct_from_pitch(self.ts, self.srid_pitch)
-
-            else:
-                print('BBB')
-                # i think we need to be able to reconstruct from sipmly the at_bat srid (no ts involved)
-                raw_requirements = self.reconstruct_from_at_bat(self.ts, self.srid_at_bat)
-
-        except self.MissingCachedObjectException as e:
-            print('# MissingCachedObjectException', str(e))
-            return None
-
-        #self.debug_print(raw_requirements, 'raw linked object before reduce/shrink/updates')
-
-        #
-        # convert the raw requirements data by reducing, shrinking,
-        # and updating in order to get the final data we can send to clients
-        linked_pbp = self.build_linked_pbp_stats_data(raw_requirements)
-        #print('mlb linked pbp obj:', str(linked_pbp))
-
-        #
-        # right about here is where we need to check the
-        # cache to see if we can send this linked object!
-        is_sendable, key, cache_instance = self.can_send(raw_requirements)
-        #print('mlb linked pbp is sendable:', str(is_sendable))
-        if is_sendable:
-            # if the cached hash value doesnt exist, we need to send it
-            # print('sending')
-            cache_instance.set(key, True, self.cache_timeout)
-            push.classes.DataDenPush( self.pusher_sport_pbp, 'linked', hash=key ).send( linked_pbp )
-
-        else:
-            #print('already sent linked object with key:', key)
-            pass
-
-    def can_send(self, raw_requirements):
-        """
-        returns a tuple in the form (bool, str) where
-         the bool is True if we can send (ie: if we havent yet sent) the data
-         and the str is the cache_key so we can easily cache it when we do send it
-
-        :param raw_requirements:
-        :return:
-        """
-        r = get_redis_instance()
-        is_sendable = False
-        cache_key = None
-        recent_zone_pitches = raw_requirements.get('zone_pitches',[])
-        if len(recent_zone_pitches) > 0:
-            # pitch = raw_requirements.get('pitch')
-            # print('')
-            # print('_______ raw zone pitches _______')
-            # print(str(recent_zone_pitches))
-            # print('')
-            # print('')
-            last_zp = recent_zone_pitches[-1] # get the most recent one, off the end of the zone_pitches list
-            ts = last_zp.get('dd_updated__id')
-            id = last_zp.get('id')
-            cache_key = 'MlbPbpLastZonePitch-%s-%s' % (ts, id)
-            # the send_hsh should only exist if we havent sent it yet
-            is_sendable = r.get(cache_key) is None
-            # print(last_zp, ' ------ ', ts, id, cache_key, is_sendable, 'but r.get(cache_key):', r.get(cache_key))
-        return is_sendable, cache_key, r
-
-    def reconstruct_from_pitch(self, ts, srid_pitch):
-        return self.reconstruct(ts, srid_pitch)
-
-    def reconstruct_from_at_bat(self, ts, srid_at_bat):
-        print('ts:', str(ts), 'srid_at_bat:', str(srid_at_bat))
-        at_bat = self.AtBatCache().fetch(ts, srid_at_bat)
-        if at_bat is None:
-            print('srid_at_bat:', str(srid_at_bat))
-            at_bat = self.AtBatRecentCache().fetch(srid_at_bat)
-            print('    ', str(at_bat))
-
-        if at_bat is None:
-            err_msg = 'reconstruct_from_at_bat() - ts, srid_at_bat: %s, %s' % (ts, srid_at_bat)
-            raise self.MissingCachedObjectException(err_msg)
-        # get the srid of the last pitch in the pitchs list
-        srid_pitch = None
-        try:
-            pitchs = at_bat.get('pitchs', [])
-            srid_pitch = pitchs[-1].get('pitch')
-        except IndexError:
-            srid_pitch = at_bat.get('pitch')
-
-        print('we got pitch srid:', str(srid_pitch))
-
-        return self.reconstruct(ts, srid_pitch)
-
-    #@timeit
-    def reconstruct(self, ts, srid_pitch):
-        # zeroes out the internal constructed data
-        for k in self.data.keys():
-            self.data[k] = None
-
-        # now get the pitch (although if its None, we definitely dont have everything yet
-        found_pitch = self.PitchCache().fetch(ts, srid_pitch)
-        if found_pitch is None:
-            raise self.MissingCachedObjectException('base reconstruct() missing pitch')
-
-        pid = found_pitch.get('id')
-        abid = found_pitch.get('at_bat__id')
-        zps = self.ZonePitchCacheList().fetch(abid) # get zone pitches for the at bat
-        print('abid:', str(abid), 'zps:')
-        for zp in zps:
-            print('     ', str(zp))
-        #print('zps:', str(zps))
-        # if zps == []:
-        #     raise Exception('ZonePitchCacheList zone_pitches is empty! This means we dont have the zone_pitch for the pitch(pbp) object! go no further')
-        rnrs = self.RunnerCacheList().fetch(pid)    # get runners for the pitch
-
-        # a) get the at_bat, using the srid from the pitch
-        found_ab = self.AtBatCache().fetch(ts, abid)
-        if found_ab is None or found_ab.get(''):
-            found_ab = self.AtBatRecentCache().fetch(abid)
-        if found_ab is None:
-            raise self.MissingCachedObjectException('base reconstruct() missing at_bat')
-
-        # b) find the zone pitches
-        pitchs = found_ab.get('pitchs', None)
-        if pitchs is None:
-            # the at bat must have a pitch in it (the 1st one, thats not in a list yet!)
-            found_pitch_srid = found_ab.get('pitch')
-            if found_pitch_srid is None:
-                print('>>>>>> the found_ab with the missing pitch:      found_ab:', str(found_ab))
-                err_msg = 'didnt expect found_pitch_srid (a single one in the at, not in a list) to be None!'
-                #print(err_msg)
-                raise Exception(err_msg)
-            srid_pitchs = [ found_pitch_srid ]
-        else:
-            # pitchs was not none, and we can get the srids
-            srid_pitchs = [ v.get('pitch') for v in pitchs ]
-
-        # raises MissingCachedObjectException
-        found_zone_pitches = self.get_all_newest_zone_pitches(zps, 'pitch__id', 'dd_updated__id')
-        print('found_zone_pitches:')
-        for fzp in found_zone_pitches:
-            print('        ', str(fzp))
-        if len(found_zone_pitches) == 0:
-            raise self.MissingCachedObjectException('[found_]zone_pitches was 0!')
-
-        # c) find the runners
-        rlist = found_pitch.get('runners__list', [])
-        if isinstance(rlist, dict):
-            rlist = [rlist] # convert from dict to list if it was a single item
-        #srid_runners = [ r.get('runner') for r in rlist ]
-
-        #found_runners = self.get_all_newest(srid_runners, rnrs, 'id', 'dd_updated__id', match_ts=ts)
-        found_runners = self.get_all_newest_runners(rnrs, 'id', 'dd_updated__id')
-
-        self.data[self.pitch]           = found_pitch
-        self.data[self.at_bat]          = found_ab
-        self.data[self.zone_pitches]    = found_zone_pitches
-        self.data[self.runners]         = found_runners
-
-        return self.data
-
-    def get_all_newest_zone_pitches(self, cached_objects, field_srid, field_ts):
-        # get a list of the latest zone_pitches with no duplicates
-        newest_zone_pitches = []
-        for zp in cached_objects:
-            if zp.get(field_srid) in newest_zone_pitches:
-                continue # skip dupes
-            target = None
-            others = list(cached_objects)
-            for o in others:
-                if zp.get(field_srid) == o.get(field_srid):
-                    if target is None:
-                        # set a copy of whats currently the newest zone pitch
-                        target = zp.copy()
-                    elif o.get(field_ts) >= target.get(field_ts):
-                        target = o.copy()
-            if target is None:
-                raise Exception('target zone_pitch should never be None here! it should have existed!')
-            newest_zone_pitches.append(target)
-        # return the list (which should be in order too!)
-        return newest_zone_pitches
-
-    def get_all_newest_runners(self, cached_objects, field_srid, field_ts):
-        # get a list of the latest runners with no duplicates
-        newest = []
-        for zp in cached_objects:
-            if zp.get(field_srid) in newest:
-                continue  # skip dupes
-            target = None
-            others = list(cached_objects)
-            for o in others:
-                if zp.get(field_srid) == o.get(field_srid):
-                    if target is None:
-                        # set a copy of whats currently the newest zone pitch
-                        target = zp.copy()
-                    elif o.get(field_ts) >= target.get(field_ts):
-                        target = o.copy()
-            if target is None:
-                raise Exception('target runner should never be None here! it should have existed!')
-                newest.append(target)
-        # return the list (which should be in order too!)
-        return newest
-
-    # def get_all_newest(self, known_srids, cached_objects, field_srid, field_ts, match_ts=None):
-    #     # we should probably get all known pitches instead of balking if we cant get all
-    #     # because we really want to send this information out if possible even if its missing
-    #     # the first pitch of the atbat or something...
-    #     print('')
-    #     print('    get_all_newest() -- this is only used for runners now.' )
-    #     print('         known_srids:', str(known_srids))
-    #     for runner in cached_objects:
-    #         print('        runner:', str(runner))
-    #     found_objects = []
-    #     print('    match_ts(%s) known_srids: %s' % (str(match_ts), str(known_srids)) )
-    #     for srid in known_srids:
-    #         found_object = None
-    #         for obj in cached_objects:
-    #             print('       ', str(obj.get(field_srid)))
-    #             srids_match = srid == obj.get(field_srid)
-    #             obj_ts = obj.get(field_ts)
-    #             found_object_ts = 0
-    #             if found_object is not None:
-    #                 found_object_ts = found_object.get(field_ts)
-    #             is_newer_ts = obj_ts >= found_object_ts
-    #             # if the param 'match_ts' is not None, disallow
-    #             # matches with different timestamps altogether
-    #             if match_ts is not None and obj_ts != match_ts:
-    #                 continue
-    #             # in our search of the whole list,
-    #             # lets use the newest one based on dd timestamp
-    #             if srids_match and is_newer_ts:
-    #                 found_object = obj
-    #         # if we found it, append to the list
-    #         if found_object is not None:
-    #             found_objects.append(found_object)
-    #         else:
-    #             err_msg = 'known_srids had %s but our cached list (probably zone pitches) wasnt totally complete' % srid
-    #             #print(err_msg)
-    #             raise self.MissingCachedObjectException(err_msg)
-    #     return found_objects
-
-    def stash_at_bat(self, at_bat):
-        # set this to be the most recently seen at_bat for the srid as well
-        self.AtBatRecentCache(at_bat)
-        # set it specifically for its timestamp ('ts') as well!
-        return self.AtBatCache(at_bat)
-
-    def stash_pitch(self, pitch):
-        #self.srid_pitch = pitch.get('id')
-        return self.PitchCache(pitch)
-
-    def stash_zone_pitch(self, zone_pitch):
-        return self.ZonePitchCacheList(zone_pitch)
-
-    def stash_runner(self, runner):
-        return self.RunnerCacheList(runner)
-
-    def __update_sendability(self, obj, target):
-
-        if target == ('mlb.pitch','pbp'):
-            # if it was a pickoff move:
-            if obj.get('steal') is not None:
-                raise self.IgnoreObjectException(obj)
-
-            self.stash_pitch(obj)
-            # set the pitch srid
-            self.srid_pitch = obj.get('id')
-
-        elif target == ('mlb.at_bat','pbp'):
-            # if it was a pickoff move (kind of unrelated to the at bat):
-            if obj.get('steal') is not None:
-                raise self.IgnoreObjectException(obj)
-
-            self.stash_at_bat(obj)
-            # set the at bats srid
-            self.srid_at_bat = obj.get('id')
-
-        elif target == ('mlb.pitcher','pbp'):
-            # ignore pickoff throw
-            if obj.get('steal__id') is not None:
-                raise self.IgnoreObjectException(obj)
-            # do NOT cache zone pitches with incomplete information.
-            if obj.get('pitch_zone') is None or obj.get('pitch_type') is None:
-                raise self.IgnoreObjectException(obj)
-
-            self.stash_zone_pitch(obj)
-            # set the internal at bat id from the zone pitch data,
-            # since they are grouped by at bat
-            self.srid_at_bat = obj.get('at_bat__id')
-
-        elif target == ('mlb.runner','pbp'):
-            #print('>>>>>> RUNNER >>>>>>')
-            self.stash_runner(obj)
-            #print('>>>>>>     stashed:', str(self.o))
-            # pitch srid comes from 'pitch__id' field of a runner,
-            # since runners are grouped by pitch
-            self.srid_pitch = obj.get('pitch__id')
-            #print('>>>>>>     pitch__id:', str(self.srid_pitch))
-
-        else:
-            err_msg = 'unknown target %s in __update_sendability()' % str(target)
-            raise Exception(err_msg)
-
-        # set the internal timestamp field so we can link this object to others
-        self.ts = obj.get('dd_updated__id')
-
-    def parse(self, obj, target): # =None):
-        """
-        the object must first be parsed before send() can be called
-
-        :param obj: a dataden.watcher.OpLogObj object
-        :param target: required, the trigger of the obj
-        """
-        # TODO toss out the objects we dont care about with 'steal' keys
-        # TODO in them that are simply the Pitcher checking the baserunner ie: 'CK' outcomeid
-
-        # check if we have all the necessary things to build the object.
-        # ignore objects like when the pitch is just a check on the runner.
-        # the ignoreable things
-        try:
-            self.__update_sendability(obj.get_o(), target)
-        except self.IgnoreObjectException:
-            return
-
-        #
-        self.original_obj = obj
-        self.srid_finder = SridFinder(obj.get_o()) # get the data from the oplogobj
-        self.o = obj.get_o() # we didnt call super so we should do this
-
-        #
-        self.send()
-
-    class OidExtras(object):
-
-        class ScoreSystemClassNotSetException(Exception): pass
-
-        # sub-classes must set 'score_system_class'
-        score_system_class = None
-
-        OID_FP      = 'oid_fp'
-        OID_SUMMARY = 'oid_summary'
-
-        defaults = {
-            OID_FP      : 0.0,
-            OID_SUMMARY : '',
-        }
-
-        def __init__(self, data=None):
-            #
-            self.data = self.defaults.copy()
-
-            # the __init__ param 'data' will overwrite matching
-            # keys in self.data, FYI.
-            if data is not None:
-                self.data.update(data)
-
-            #
-            if self.score_system_class is None:
-                err_msg = 'in class: %s' % self.__class_.__name__
-                raise self.ScoreSystemClassNotSetException(err_msg)
-            self.score_system = self.score_system_class()
-
-        def add(self, key, val):
-            self.data[key] = val
-
-        def get_data(self):
-            return self.data
-
-        def update_outcome(self, outcome_id):
-            oid_fp, oid_summary = self.score_system.get_outcome_fantasy_points(outcome_id)
-            self.add(self.OID_FP, oid_fp)
-            self.add(self.OID_SUMMARY, oid_summary)
-
-    class AtBatExtras(OidExtras):
-        """
-        used to add additional data, especially outcome information and fantasy points
-        """
-
-        # set the class with the method: get_outcome_fantasy_points( outcome_id )
-        score_system_class = scoring.classes.MlbSalaryScoreSystem
-
-        FIRST_NAME  = 'fn'
-        LAST_NAME   = 'ln'
-        SRID_TEAM   = 'srid_team'
-        STATS_STR   = 'stats_str'
-
-        ab_bat_extra_data = {
-            FIRST_NAME  : '',
-            LAST_NAME   : '',
-            SRID_TEAM   : '',
-            STATS_STR   : '0 for 0',
-        }
-
-        def __init__(self):
-            """
-            create AtBatExtras with the additional key-values in a custom dict
-            to get a few more fields we want
-            """
-            super().__init__(self.ab_bat_extra_data)
-
-        def update_player_stats(self, player_stats):
-            self.add(self.FIRST_NAME, player_stats.player.first_name)
-            self.add(self.LAST_NAME, player_stats.player.last_name)
-            self.add(self.SRID_TEAM, player_stats.player.team.srid)
-            self.add(self.STATS_STR, PlayerStatsToStr(player_stats).get_description())
-
-    class RunnerExtras(OidExtras):
-        """
-        used to add additional data, especially outcome information and fantasy points
-        """
-
-        # set the class with the method: get_outcome_fantasy_points( outcome_id )
-        score_system_class = scoring.classes.MlbSalaryScoreSystem
-
-    @timeit
-    def build_linked_pbp_stats_data(self, requirements):
-        """
-        override default method from parent to add the linked objects
-        """
-        additional_pitch_data = {'oid_fp':1.7}
-        pitch = requirements.get(self.pitch)
-        srid_pitcher = pitch.get('pitcher')
-        at_bat = requirements.get(self.at_bat)
-        #print('description, hello????', str(at_bat))
-        srid_game = at_bat.get('game__id')
-        srid_at_bat_hitter = at_bat.get('hitter_id')
-        zone_pitches = requirements.get(self.zone_pitches)
-        runners = requirements.get(self.runners)
-        additional_runner_data = {'oid_fp':3.7} # TODO for testing
-        srid_runners = [ r.get('id') for r in runners ] # not pulled from original data, but i think its fine
-        # player_stats
-        player_stats = self.find_player_stats(srid_game, srid_pitcher, srid_at_bat_hitter, srid_runners)
-        # at_bat_stats
-        at_bat_player_stats_hitter = self.find_at_bat_hitter_player_stats(srid_game, srid_at_bat_hitter)
-        # additional_hitter_data = {
-        #     'fn' : at_bat_player_stats_hitter.player.first_name,
-        #     'ln' : at_bat_player_stats_hitter.player.last_name,
-        #     'srid_team' : at_bat_player_stats_hitter.player.team.srid,
-        #     'oid_fp' : 2.7,
-        # }
-
-        # moved into AtBatExtras!
-        # at_bat_stats_str = PlayerStatsToStr(at_bat_player_stats_hitter).get_description()
-        # if at_bat_stats_str is None:
-        #     at_bat_stats_str = '0 for 0'
-        at_bat_extras = self.AtBatExtras()
-        at_bat_extras.update_outcome(pitch.get('outcome_id'))
-        if at_bat_player_stats_hitter is not None:
-            at_bat_extras.update_player_stats(at_bat_player_stats_hitter)
-
-        # get reduce/shrink manager instances
-        pbp = {
-            self.pitch_pbp : PitchPbpManager(pitch).get_data(additional_pitch_data),
-            self.at_bat : AtBatManager(at_bat).get_data(at_bat_extras.get_data()),
-            self.zone_pitches : ZonePitchManager(zone_pitches, at_bat).get_data(),
-            self.runners : RunnerManager(runners).get_data(additional_runner_data),
-            self.stats : [ ps.to_json() for ps in player_stats ],
-        }
-
-        print('zone_pitches after manager and prior to sending:')
-        print('      ', str(pbp.get(self.zone_pitches)))
-        # return the linked data
-        return pbp
-
-    def __find_player_stats(self, player_stats_class, srid_game, srid_players=[]):
-        #print('__find_player_stats', str(player_stats_class), 'srid_game', srid_game, 'srid_players:', str(srid_players))
-        player_stats = player_stats_class.objects.filter( srid_game=srid_game, srid_player__in=srid_players)
-        #print('    ', str(player_stats.count()))
-        return player_stats
-
-    def find_at_bat_hitter_player_stats(self, game, hitter):
-        """ get the PlayerStatsHitter instance for the current at bat player """
-        player_stats = self.__find_player_stats(self.player_stats_hitter_model, game, [hitter])
-        #print('find_at_bat_hitter_player_stats():', str(player_stats))
-        count = player_stats.count()
-        if count == 1:
-            return player_stats[0]
-
-        elif count < 1:
-            return None
-
-        # otherwise something bad is happening
-        err_msg = '%s PlayerStatsHitter object(s) found for game[%s]-player[%s]' % (str(count),game, hitter)
-        raise Exception(err_msg)
-
-    def find_player_stats(self, game, pitcher, hitter, runners=[]):
-        """ all arguments are srids, runners is a list of srids """
-        player_stats = []
-
-        #print('game', game, 'pitcher', pitcher, 'hitter', hitter, 'runners:', str(runners))
-        # append the (single) instance for the hitter playerstats
-        player_stats_hitter = self.find_at_bat_hitter_player_stats(game, hitter)
-        if player_stats_hitter is not None:
-            player_stats.append(player_stats_hitter)
-        #print('add hitter stats:', str(player_stats))
-
-        # extend the list of playerstats for the remaining srids
-        player_stats.extend(self.__find_player_stats(self.player_stats_pitcher_model, game, [pitcher]))
-        #print('add pitcher stats:', str(player_stats))
-        player_stats.extend(self.__find_player_stats(self.player_stats_hitter_model, game, runners))
-        #print('add runner stats:', str(player_stats))
-        player_srids = []
-        player_stats_no_duplicates = []
-        #print(player_stats)
-        for ps in player_stats:
-            if ps.srid_player not in player_srids:
-                player_srids.append(ps.srid_player) # add to list of srids weve seen
-                player_stats_no_duplicates.append(ps) # add to return list
-
-        # return the list that ensures no duplicates
-        return player_stats_no_duplicates
-
-##################################################################
-#### PbpParser helper classes below
-##################################################################
+        ret_list = [ self.bytes_2_dict(dict_bytes) for dict_bytes in l ]
+        #print(self.name, 'fetched: key', str(k), ':', str(ret_list))
+        return ret_list
 
 #
 ###############################################################
 # the cache objects help us store short lived dataden objects
 ###############################################################
 class PitchCache(QuickCache):
+    """  """
     name = 'PitchCache_mlb_pbp'
 
 class AtBatCache(QuickCache):
+    """  """
     name = 'AtBatCache_mlb_pbp'
 
-class PitcherCache(QuickCache):  # zone pitch cache
+class PitcherCache(QuickCache):
+    """ zone pitch cache - object from mongo called a 'mlb.pitcher' """
     name = 'PitcherCache_mlb_pbp'
     field_id = 'pitch__id'
 
 class RunnerCache(QuickCache):
+    """  """
     name = 'RunnerCache_mlb_pbp'
+
+class PitcherCacheList(QuickCacheList):
+    """ cache 'mlb.pitcher' (zone pitches) objects by the at_bat's srid """
+    name = 'PitcherCacheList_mlb_pbp'
+    field_id = 'at_bat__id'
+
+    field_at_bat_pitch_count = 'pitch_count'
+
+    def fetch(self, id):
+        """ override fetch() to return None if it would otherwise return an empty list """
+        l = super().fetch(id)
+        if l == []:
+            return None
+        ret_list = self.remove_duplicates_by_field(l, self.field_at_bat_pitch_count)
+        ret_list.reverse() # now flip it back to the regular direction again
+        return ret_list
+
+class RunnerCacheList(QuickCacheList):
+    """ cache runner objects by the at_bat id which they happened during """
+    name = 'RunnerCacheList_mlb_pbp'
+    field_id = 'at_bat__id'
+
+    field_runner_id = 'id'
+
+    def fetch(self, id):
+        l = super().fetch(id)
+        return self.remove_duplicates_by_field(l, self.field_runner_id)
+        # remove duplicates
+        # # print('')
+        # # print('')
+        # # print('')
+        # added = []
+        # runners = []
+        # l.reverse()
+        # for r in l:
+        #     r_id = r.get(self.field_runner_id)
+        #     if r_id not in added:
+        #         added.append(r_id)
+        #         runners.append(r)
+        #
+        # return runners
+
 
 #
 ###############################################################
@@ -2600,31 +2009,34 @@ class ReqPitch(Req):
         ts = self.get_ts()
         id = self.get_id()
 
-        # # TODO remove this debug print later
-        # print(tag, 'ts', ts, 'id', id)
+        # TODO remove this debug print later
+        print(tag, 'ts', ts, 'id', id)
 
         # 1. get the at_bat
         at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
         if at_bat is None:
-            #print('    ', tag, 'at_bat -> None')
+            print('    ', tag, 'at_bat -> None')
             return None
-        #print('    ', tag, 'at_bat -> yes')
+        print('    ', tag, 'at_bat -> yes')
 
         # 2. get 'pitches' ie: zone_pitches
-        zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
+        #zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
+        zone_pitches = PitcherCacheList().fetch(self.get_at_bat_id()) # could also use: at_bat.get('id')
+        print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
         if zone_pitches is None:
-            #print(tag, 'pitches -> None (ie: zone_pitches)')
+            print('    ', tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        #print('    ', tag, 'pitches -> yes')
+        print('    ', tag, 'pitches -> yes')
 
         # 3. get any existing runners
-        runners = self.get_runners()
+        #runners = self.get_runners()
+        runners = RunnerCacheList().fetch(self.get_at_bat_id())
         if runners is None:
-            #print('    ', tag, 'runners -> None (didnt find all, if we found any)')
+            print('    ', tag, 'runners -> None (didnt find all, if we found any)')
             return None
-        #print('    ', tag, 'runners -> yes')
+        print('    ', tag, 'runners -> yes')
 
-        #print('found all!') # TODO remove debug prints
+        print('found all!') # TODO remove debug prints
         return self.build_from(self.data, at_bat, zone_pitches, runners)
 
 class ReqAtBat(Req):
@@ -2668,23 +2080,24 @@ class ReqAtBat(Req):
 
         return srid_pitchs
 
-    def get_zone_pitches(self):
-        """
-        return a list of the zone pitches, or None if not a single one can be found
-        """
-        zone_pitches = None
-        pitch_ids = self.get_pitch_ids()
-        #print('                             ** pitch_ids:', str(pitch_ids))
-        for srid in pitch_ids:
-            if zone_pitches is None:
-                zone_pitches = []
-            # append any additional zone pitches
-            zone_pitch = PitcherCache().fetch(self.get_ts(), srid)
-            if zone_pitch is None:
-                return None
-            # but if its not None, append it
-            zone_pitches.append(zone_pitch)
-        return zone_pitches
+    # TODO use PitcherCacheList instead (may verify with get_pitch_ids()...
+    # def get_zone_pitches(self):
+    #     """
+    #     return a list of the zone pitches, or None if not a single one can be found
+    #     """
+    #     zone_pitches = None
+    #     pitch_ids = self.get_pitch_ids()
+    #     #print('                             ** pitch_ids:', str(pitch_ids))
+    #     for srid in pitch_ids:
+    #         if zone_pitches is None:
+    #             zone_pitches = []
+    #         # append any additional zone pitches
+    #         zone_pitch = PitcherCache().fetch(self.get_ts(), srid)
+    #         if zone_pitch is None:
+    #             return None
+    #         # but if its not None, append it
+    #         zone_pitches.append(zone_pitch)
+    #     return zone_pitches
 
     def build(self):
         """ try to build the whole pbp object from only this (one of many) required parts """
@@ -2692,15 +2105,18 @@ class ReqAtBat(Req):
         ts = self.get_ts()
         id = self.get_id()
 
-        # # TODO debug remove this eventually
-        # print(tag, 'ts', ts, 'id', id)
+        # TODO debug remove this eventually
+        print(tag, 'ts', ts, 'id', id)
 
         # 1. get the 'pitches' (zone_pitches)  --- this will return None if it cant get ALL of them
-        zone_pitches = self.get_zone_pitches()
-        if zone_pitches is None:
-            #print('    ', tag, 'pitches -> None (ie: zone_pitches)')
+        #zone_pitches = self.get_zone_pitches()
+        zone_pitches = PitcherCacheList().fetch(self.get_id())
+
+        print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
+        if zone_pitches is None or len(zone_pitches) < len(self.get_pitch_ids()):
+            print('    ', tag, 'pitchers -> None or [] (ie: zone_pitches)')
             return None
-        #print('    ', tag, 'pitches -> yes')
+        print('    ', tag, 'pitchers -> yes')
 
         # 2. get the main 'pitch' id from the last zone_pitch in the list (if exists)
         last_zone_pitch = zone_pitches[-1]
@@ -2708,19 +2124,20 @@ class ReqAtBat(Req):
         pitch_id = ReqPitcher(last_zone_pitch, stash_now=False).get_pitch_id()
         pitch = PitchCache().fetch(ts, pitch_id)
         if pitch is None:
-            #print('    ', tag, 'pitch -> None')
+            print('    ', tag, 'pitch -> None')
             return None
-        #print('    ', tag, 'pitch -> yes')
+        print('    ', tag, 'pitch -> yes')
 
         # 3. Get the runners (if any exist, we need to get all).
-        #    Returns an empty list if there were none to get. # TODO (?)
-        runners = ReqPitch(pitch, stash_now=False).get_runners()
+        #    Returns an empty list if there were none to get.
+        # runners = ReqPitch(pitch, stash_now=False).get_runners()
+        runners = RunnerCacheList().fetch(self.get_id())
         if runners is None:
-            #print(tag, 'runners -> None (found None, or less than we wanted to)')
+            print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
             return None
-        #print('    ', tag, 'runners -> yes')
+        print('    ', tag, 'runners -> yes')
 
-        #print('found all!') # TODO remove debug prints
+        print('found all!') # TODO remove debug prints
         return self.build_from(pitch, self.data, zone_pitches, runners)
 
 class ReqPitcher(Req):
@@ -2755,40 +2172,43 @@ class ReqPitcher(Req):
         ts = self.get_ts()
         id = self.get_id() # yes the id of the Pitch (not the zone_pitch ie 'pitcher')
 
-        # # TODO remove this eventually its debug
-        # print(tag, 'ts', ts, 'id', id)
+        # TODO remove this eventually its debug
+        print(tag, 'ts', ts, 'id', id)
 
         # construct the rest of the mlb pbp from cache, now that we know this piece (or try)
 
         # 1. get the 'pitch'
         pitch = PitchCache().fetch(ts, id)
         if pitch is None:
-            #print('    ',tag, 'pitch -> None')
+            print('    ',tag, 'pitch -> None')
             return None
-        #print('    ', tag, 'pitch -> yes')
+        print('    ', tag, 'pitch -> yes')
 
         # 2. get the at_bat
         at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
         if at_bat is None:
-            #print(tag, 'at_bat -> None')
+            print('    ', tag, 'at_bat -> None')
             return None
-        #print('    ', tag, 'at_bat -> yes')
+        print('    ', tag, 'at_bat -> yes')
 
         # 3. get the list of all the 'pitcher' objects (ie: zone pitches)
-        zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
+        #zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
+        zone_pitches = PitcherCacheList().fetch(self.get_id())
+        print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
         if zone_pitches is None:
-            #print(tag, 'pitches -> None (ie: zone_pitches)')
+            print('    ', tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        #print('    ', tag, 'pitches -> yes')
+        print('    ', tag, 'pitches -> yes')
 
         # 4. get runners if any exist
-        runners = ReqPitch(pitch, stash_now=False).get_runners()
+        #runners = ReqPitch(pitch, stash_now=False).get_runners()
+        runners = RunnerCacheList().fetch(self.get_at_bat_id())
         if runners is None:
-            #print(tag, 'runners -> None (found None, or less than we wanted to)')
+            print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
             return None
-        #print('    ', tag, 'runners -> yes')
+        print('    ', tag, 'runners -> yes')
 
-        #print('found all!') # TODO remove debug prints
+        print('found all!') # TODO remove debug prints
         return self.build_from(pitch, at_bat, zone_pitches, runners)
 
 class ReqRunner(Req):
@@ -2817,38 +2237,41 @@ class ReqRunner(Req):
         ts = self.get_ts()
         id = self.get_id()
 
-        # # TODO remove this eventually
-        # print(tag, 'ts', ts, 'id', id)
+        # TODO remove this eventually
+        print(tag, 'ts', ts, 'id', id)
 
         # 1. get the main 'pitch' (kind of like the pbp object)
         pitch = PitchCache().fetch(ts, id)
         if pitch is None:
-            #print('    ', tag, 'pitch -> None')
+            print('    ', tag, 'pitch -> None')
             return None
-        #print('    ', tag, 'pitch -> yes')
+        print('    ', tag, 'pitch -> yes')
 
         # 2. get the 'at_bat'
         at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
         if at_bat is None:
-            #print(tag, 'at_bat -> None')
+            print('    ', tag, 'at_bat -> None')
             return None
-        #print('    ', tag, 'at_bat -> yes')
+        print('    ', tag, 'at_bat -> yes')
 
         # 3. get the 'pitches' ie: the zone_pitches
-        zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
+        #zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
+        zone_pitches = PitcherCacheList().fetch(at_bat.get('id'))
+        print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
         if zone_pitches is None:
-            #print(tag, 'pitches -> None (ie: zone_pitches)')
+            print('    ', tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        #print('    ', tag, 'pitches -> yes')
+        print('    ', tag, 'pitches -> yes')
 
         # 4. get ALL the runners
-        runners = ReqPitch(pitch, stash_now=False).get_runners()
+        #runners = ReqPitch(pitch, stash_now=False).get_runners()
+        runners = RunnerCacheList().fetch(at_bat.get('id'))
         if runners is None:
-            #print(tag, 'runners -> None (found None, or less than we wanted to)')
+            print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
             return None
-        #print('    ', tag, 'runners -> yes')
+        print('    ', tag, 'runners -> yes')
 
-        #print('found all!') # TODO remove debug prints
+        print('found all!') # TODO remove debug prints
         return self.build_from(pitch, at_bat, zone_pitches, runners)
 
 class PbpParser(DataDenPbpDescription):
@@ -2862,6 +2285,9 @@ class PbpParser(DataDenPbpDescription):
 
     pusher_sport_pbp = push.classes.PUSHER_MLB_PBP
     pusher_sport_pbp_event = 'linked'
+
+    # until we could potentially send a duplicate if we parsed it again
+    cache_timeout = 60*60*18
 
     # the mlb object has a manager for each subobject, no need for this class.
     # the super() call to get_send_data() should just send the data as-is
@@ -2885,9 +2311,9 @@ class PbpParser(DataDenPbpDescription):
         # to the rest of the objects for the pitch if they exist
         self.ts = None
 
-    def send(self, *args, **kwargs):
-        # note: passing force=True to send() will allow sending more than once
-        super().send()
+    # def send(self, *args, **kwargs):
+    #     # note: passing force=True to send() will allow sending more than once
+    #     super().send()
 
     def parse(self, obj, target):
         """ parse a dataden object that has a mongo oplog wrapper on it """
@@ -2906,9 +2332,45 @@ class PbpParser(DataDenPbpDescription):
         # if it cant build it, will return None
         self.pbp_raw = req.build()
 
-        # send it
-        if self.pbp_raw is not None:
-            self.send()
+        # attempt to send it. send() method checks if it can & wont send duplicates
+        self.send()
+
+    def send(self):
+
+        if self.pbp_raw is None:
+            print('self.pbp_raw: is None. not sending')
+            return
+
+        # if self.pbp_raw is not None:
+        # right about here is where we need to check the
+        # cache to see if we can send this linked object!
+        is_sendable, key, cache_instance = self.can_send(self.pbp_raw)
+
+        if is_sendable:
+            # if the cached hash value doesnt exist, we need to send it
+            # print('sending')
+            cache_instance.set(key, True, self.cache_timeout)
+            push.classes.DataDenPush(self.pusher_sport_pbp,
+                            self.pusher_sport_pbp_event, hash=key).send(self.get_send_data())
+
+    def can_send(self, raw_requirements):
+        """
+        returns a tuple in the form (bool, str) where
+         the bool is True if we can send (ie: if we havent yet sent) the data
+         and the str is the cache_key so we can easily cache it when we do send it
+        :param raw_requirements:
+        :return:
+        """
+        r = get_redis_instance()
+        pitch = self.pbp_raw.get('pitch') # in the raw, its still 'pitch' here not yet 'pbp' !
+        ts = pitch.get('dd_updated__id')
+        id = pitch.get('id')
+        # cache_key = 'mlblinkedpbp-%s-%s' % (ts, id)
+        cache_key = 'mlblinkedpbp-%s' % id  # just the pitch id, otherwise we can send same pitch, diff times
+        # the send_hsh should only exist if we havent sent it yet
+        is_sendable = r.get(cache_key) is None
+        return is_sendable, cache_key, r
+    #####
 
     def get_req_from(self, data, target):
         """
@@ -2921,9 +2383,11 @@ class PbpParser(DataDenPbpDescription):
             return ReqAtBat(data)
 
         elif target == ('mlb.pitcher', 'pbp'):
+            pcl = PitcherCacheList(data) # add it to a list
             return ReqPitcher(data)
 
         elif target == ('mlb.runner', 'pbp'):
+            rcl = RunnerCacheList(data) # add to the list
             return ReqRunner(data)
 
         else:
@@ -2932,11 +2396,12 @@ class PbpParser(DataDenPbpDescription):
     def get_send_data(self):
         """ build the linked object from the internal Req(s) for sending to the client """
         requirements = self.pbp_raw
-        # TODO print out the dict
-        print('++++++++++')
-        for k,v in requirements.items():
-            print('')
-            print(k, ' : ', str(v))
+
+        # # TODO print out the dict
+        # print('++++++++++')
+        # for k,v in requirements.items():
+        #     print('')
+        #     print(k, ' : ', str(v))
 
         additional_pitch_data = {'oid_fp': 1.7}         # TODO for testing
         pitch = requirements.get('pitch')
