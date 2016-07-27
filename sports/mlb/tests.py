@@ -37,23 +37,25 @@ class CustomMlbAtBatLivestatPassesAsNewObjectTest(AbstractTest):
 
         cache = self.cache_class(clear=True)
 
-        # at_bat_no_description = {
-        #     'dd_updated__id': 1469581577314,
-        #     'game__id': '530ca8e9-dd8a-4c19-9ba2-1f25a2ea8818',
-        #     'hitter_id': '31d992e8-1016-484a-b7c3-2b5851442cc5',
-        #     'id': '5baa2323-c8cb-476a-ba1e-0c0de56b370a',
-        #     'parent_api__id': 'pbp',
-        #     'pitchs': [{'pitch': 'c108e24b-e60e-451a-91d9-86fb576865a1'},
-        #                {'pitch': '783c97f1-9a36-4645-8de6-9d9de77bef6b'},
-        #                {'pitch': 'd113b5c5-55f4-4b73-a63d-268f1d1f44f6'},
-        #                {'pitch': 'c4573125-c646-4ca9-8232-05e8686301ee'},
-        #                {'pitch': 'd337ddf6-7b0a-495f-92db-e48fddca9c11'},
-        #                {'pitch': 'd17d7831-50db-47ee-8f43-0f57495b0903'}],
-        #     'steal': 'dc649929-dbc0-4406-845b-20059552bcd1'
-        # }
-        # olo_wrapper = OpLogObjWrapper('mlb','at_bat', at_bat_no_description)
-        # at_bat_olo_no_description = MlbOpLogObj(olo_wrapper)
-        # self.assertTrue(at_bat_olo_no_description.override_new())
+        at_bat_no_description_obj = {
+            'dd_updated__id': 1469581577314,
+            'game__id': '530ca8e9-dd8a-4c19-9ba2-1f25a2ea8818',
+            'hitter_id': '31d992e8-1016-484a-b7c3-2b5851442cc5',
+            'id': '5baa2323-c8cb-476a-ba1e-0c0de56b370a',
+            'parent_api__id': 'pbp',
+            'pitchs': [{'pitch': 'c108e24b-e60e-451a-91d9-86fb576865a1'},
+                       {'pitch': '783c97f1-9a36-4645-8de6-9d9de77bef6b'},
+                       {'pitch': 'd113b5c5-55f4-4b73-a63d-268f1d1f44f6'},
+                       {'pitch': 'c4573125-c646-4ca9-8232-05e8686301ee'},
+                       {'pitch': 'd337ddf6-7b0a-495f-92db-e48fddca9c11'},
+                       {'pitch': 'd17d7831-50db-47ee-8f43-0f57495b0903'}],
+            'steal': 'dc649929-dbc0-4406-845b-20059552bcd1'
+        }
+        # wrap it with the oplog wrapper so itll work
+        data = OpLogObjWrapper.wrap(at_bat_no_description_obj, ns='mlb.at_bat')
+        at_bat_no_description = MlbOpLogObj(data)
+
+        self.assertTrue(at_bat_no_description.override_new())
 
         # # add 1st time - should always return true 1st time
         # self.assertTrue( cache.update(olo) )
