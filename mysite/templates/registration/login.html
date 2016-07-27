@@ -1,6 +1,5 @@
 {% extends 'registration/base.html' %}
 
-{% block html_class %}section-login{% endblock %}
 {% block content_form %}
 
 <form class="account__left__content__form" action='.' method='POST'>
@@ -19,13 +18,13 @@
   {% endif %}
 
   <div class="account__left__content__form__input-layout {% if errors %} errored{% endif %}">
-    <input id="username" type="text" name="username" {% if form.username.errors %}value={{ username }}{% endif %} required />
     <label for="username">username</label>
+    <input id="username" type="text" name="username" {% if form.username.errors %}value={{ username }}{% endif %} required />
   </div>
 
   <div class="account__left__content__form__input-layout {% if form.password.errors %} errored{% endif %}">
-    <input id="password" type="password" name="password" required />
     <label for="password">password</label>
+    <input id="password" type="password" name="password" required />
 
     <div class="forgot-password-link"><a href="{% url 'password_reset' %}">forgot password?</a></div>
   </div>

@@ -9,33 +9,32 @@
 {% endblock css %}
 
 
-
+{% block html_class %}section-logged-out-account{% endblock html_class %}
 {% block body_class %}account{% endblock body_class %}
 
 {% block body %}
   <div class="account__left">
     {% block content_header %}
-    <div class="account__header">
+    <a href="/" class="account__header">
       <div class="account__header__logo"></div><h1>draftboard</h1>
-    </div>
+    </a>
     {% endblock %}
 
     <div class="account__left__content">
       {% block content_form %}{% endblock %}
     </div>
 
-    <div class="account__left__footer">
-      <div class="account__left__footer__content">
-        {% block footer_no_hover %}Don't have an account?{% endblock %}
-      </div>
-      <div class="account__left__footer__content-onhover">
-        {% block footer_on_hover %}
-          <div class="account__left__footer__create-account">
-            <a href="{% url 'register' %}">Create an account<span class="arrow"></span></a>
-          </div>
-        {% endblock %}
-      </div>
-    </div>
+    {% block account_footer %}
+      <a href="{% url 'register' %}" class="logged-out-footer">
+        <div class="logged-out-footer__bait">
+          Don't have an account?
+        </div>
+        <div class="logged-out-footer__hook">
+          Create an account
+          <span class="logged-out-footer__arrow"></span>
+        </div>
+      </a>
+    {% endblock account_footer %}
 
   </div>
 
@@ -43,7 +42,7 @@
   <div class="account__right">
     <div class="account__right__inner">
       <div class="account__right__inner__content">
-        <div class="account__right__inner__content__title">It's anyone's game.</div>
+        <div class="account__right__inner__content__title">It's anyone's game</div>
         <div class="account__right__inner__content__separator"></div>
         <div class="account__right__inner__content__text">sign up &amp; get up to $200 matched bonus</div>
       </div>
@@ -53,6 +52,3 @@
 
 
 {% endblock body %}
-
-
-{% block javascript %}{% endblock javascript %}

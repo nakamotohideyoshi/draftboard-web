@@ -147,10 +147,6 @@ const AppActions = {
     }
   },
 
-  toggleContestFilters() {
-    this.toggleClass('appstate--contest-filters-open');
-  },
-
   // Toggle the included class. If opening, then close all other live panes
   toggleLiveRightPane(className) {
     const possiblePanes = [

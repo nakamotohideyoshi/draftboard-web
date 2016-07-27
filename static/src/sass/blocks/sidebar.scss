@@ -8,8 +8,7 @@
   position: relative;
 
   &--header {
-    // background: rgba(19, 26, 37, 0.5);
-    background: rgba(19, 26, 37, .80);
+    background: rgba(19, 26, 37, .50);
     position: absolute;
     top: $nav-scoreboard-height;
     left: 0;
@@ -20,7 +19,7 @@
   &--header-inner {
       margin: 0 auto;
       max-width: 290px;
-      padding: 40px 0;
+      padding: 30px 0;
   }
 
   &--header-title {

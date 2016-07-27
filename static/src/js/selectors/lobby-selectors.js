@@ -1,7 +1,8 @@
 import { createSelector } from 'reselect';
-import { upcomingLineupsInfo } from './upcoming-lineups-info.js';
-import sortBy from 'lodash/sortBy';
+import { upcomingLineupsInfo } from './upcoming-lineups-info';
 import filter from 'lodash/filter';
+import reduce from 'lodash/reduce';
+import log from '../lib/logging';
 
 
 /**
@@ -90,22 +91,55 @@ export const focusedLineupSelector = createSelector(
 
 
 /**
- * Find the highest buyin for a contest - this is used for contest filters.
+ * Skill Level Map.
+ *
+ * A user may only enter into 1 skill level per sport. This keeps track of which
+ * skill levels they have chosen to enter for each sport.
+ *
+ * example output:
+ * {
+ * 	nba: 'veteran',
+ * 	nfl: 'rookie',
+ * 	nhl: 'rookie',
+ * }
  */
-export const highestContestBuyin = createSelector(
+export const entrySkillLevelsSelector = createSelector(
+  (state) => state.contestPoolEntries.entries,
   (state) => state.contestPools.allContests,
-  (contests) => {
-    const sortedContests = sortBy(contests, ['buyin']).reverse();
-
-    if (sortedContests.length) {
-      return parseFloat(sortedContests[0].buyin);
+  (entries, contestPools) => {
+    if (!entries || !contestPools) {
+      return {};
     }
 
-    // If we don't have any contests, don't return anything. This is important.
-    // if we set it to a default value, the RangeSlider will get rendered with
-    // that default, and when we get contests with actual values, it will force
-    // a re-render and because that is a jquery plugin, we only want to render
-    // it once.
-    return null;
+    if (!Object.keys(entries).length || !Object.keys(contestPools).length) {
+      log.info('Either entries or contest pools don\'t exist.');
+      return {};
+    }
+
+    // Create a map for each sport's skill level.
+    const skillLevelsMap = reduce(entries, (previousValue, entry) => {
+      // Make sure we have the contest pool the entry is in.
+      if (!(entry.contest_pool in contestPools)) {
+        log.error(`Contest #${entry.contest_pool} not found. - referenced from entry #${entry.id}.`);
+        return;
+      }
+
+      // Ignore any contest pools that allow 'all' skill levels.
+      if (contestPools[entry.contest_pool].skill_level.name === 'all') {
+        return;
+      }
+
+      // If we already have an skill level set for this sport, ignore this one.
+      // TODO: do a check to make sure we have no skill level conflicts.
+      if (previousValue && entry.sport in previousValue) {
+        return previousValue;
+      }
+
+      const newValue = Object.assign({}, previousValue);
+      newValue[entry.sport] = contestPools[entry.contest_pool].skill_level.name;
+      return newValue;
+    }, {});
+
+    return skillLevelsMap || {};
   }
 );
