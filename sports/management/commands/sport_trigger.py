@@ -4,6 +4,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from sports.trigger import (
     SportTrigger,
+    SportTriggerAll,
     MlbTrigger,
 )
 from raven.contrib.django.raven_compat.models import client
@@ -44,12 +45,13 @@ class Command(BaseCommand):
         while True:
             try:
                 if sport == 'mlb':
-                    sport_trigger = MlbTrigger()
+                    #sport_trigger = MlbTrigger()
+                    sport_trigger = SportTriggerAll(sport)
                 else:
                     sport_trigger = SportTrigger(sport)
 
                 sport_trigger.run()
             except Exception as e:
-                #print(e)
+                print(e)
                 print('exception caught in ./manage.py sport_trigger [%s]... restarting trigger!' % sport)
                 client.captureException()

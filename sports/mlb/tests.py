@@ -10,7 +10,20 @@ from sports.mlb.parser import (
     GameSchedule,
     TeamHierarchy,
     PitchPbp,
+    PbpParser,  # new mlb linked data parser/sender
     GameBoxscores,
+
+    # caches
+    PitchCache,
+    AtBatCache,
+    PitcherCache,
+    RunnerCache,
+
+    # Req[uirement] objects
+    ReqPitch,
+    ReqAtBat,
+    ReqPitcher,
+    ReqRunner,
 )
 
 class GameBoxscoresParserManagerClassTest(AbstractTest):
@@ -700,6 +713,94 @@ class TestMlbLinkedPbp(AbstractTest): # the PitchPbp parser!
                    "parent_api__id": "pbp", "id": "509ee425-cae4-4ca2-92c6-23c621e9ce2a", "pitch_count": 1.0,
                    "hitter_hand": "L", "pitch_type": "CU"}
         self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        pitch = {"at_bat__id": "71f664ce-5bbb-46fa-9ede-c5136befed3c", "updated_at": "2016-07-26T01:43:19Z",
+                 "runners__list": [{"runner": "40085c05-fa06-4eec-9f41-f0245980f6a0"},
+                                   {"runner": "24d057a9-4def-4e9e-be83-3eca01c9c922"}], "outcome_id": "bB",
+                 "flags__list": {"is_double_play": "false", "is_wild_pitch": "false", "is_hit": "false",
+                                 "is_triple_play": "false", "is_bunt_shown": "false", "is_ab": "false",
+                                 "is_passed_ball": "false", "is_on_base": "false", "is_bunt": "false",
+                                 "is_ab_over": "false"}, "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd",
+                 "dd_updated__id": 1469497407373, "status": "official",
+                 "count__list": {"pitch_count": 1.0, "balls": 1.0, "outs": 2.0, "strikes": 0.0},
+                 "pitcher": "5106c749-4185-438f-b7b2-0198b14a57cb",
+                 "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGF0X2JhdF9faWQ3MWY2NjRjZS01YmJiLTQ2ZmEtOWVkZS1jNTEzNmJlZmVkM2NpZGM4ZjExZWZiLTllZGQtNDY1My05YjhhLTYxN2ZiOTY1MGIzMA==",
+                 "id": "c8f11efb-9edd-4653-9b8a-617fb9650b30", "created_at": "2016-07-26T01:43:16Z",
+                 "parent_api__id": "pbp"}
+        self.__parse_and_send(pitch, (sport_db + '.' + 'pitch', parent_api))
+
+class QuickCacheAndReqTest(AbstractTest):
+
+    def setUp(self):
+        pass
+
+    def test_1(self):
+        pitcher = {"pitcher_hand": "R", "pitch_zone": 12.0, "pitch_type": "CU", "dd_updated__id": 1469497407373,
+                   "pitch_speed": 82.0, "pitch__id": "c8f11efb-9edd-4653-9b8a-617fb9650b30",
+                   "at_bat__id": "71f664ce-5bbb-46fa-9ede-c5136befed3c",
+                   "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd", "parent_api__id": "pbp", "hitter_hand": "R",
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGF0X2JhdF9faWQ3MWY2NjRjZS01YmJiLTQ2ZmEtOWVkZS1jNTEzNmJlZmVkM2NwaXRjaF9faWRjOGYxMWVmYi05ZWRkLTQ2NTMtOWI4YS02MTdmYjk2NTBiMzBpZDUxMDZjNzQ5LTQxODUtNDM4Zi1iN2IyLTAxOThiMTRhNTdjYg==",
+                   "id": "5106c749-4185-438f-b7b2-0198b14a57cb", "pitch_count": 13.0}
+
+        c = PitcherCache(pitcher)
+        self.assertIsNotNone(c.fetch(1469497407373, "c8f11efb-9edd-4653-9b8a-617fb9650b30"))
+
+class PbpParserTest(AbstractTest):
+
+    def setUp(self):
+        self.parser = PbpParser()
+
+    def __parse_and_send(self, unwrapped_obj, target):
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+
+    def test_1(self):
+        """
+        test xander bogaerts at bat
+
+            per espn, the whole inning went:
+                Sandy Leon	Ball, León (singled)
+                Brock Holt	Strike (looking), (popped out)
+                Mookie Betts	Strike (looking), Strike (looking), Betts (fouled out)
+                Dustin Pedroia	Ball, Ball, Ball, Strike (looking), Ball, (walked, Leon to second)
+                Xander Bogaerts	Ball, Ball, Strike (looking), Strike (foul) (popped out to shortstop)
+
+        """
+        sport_db = 'mlb'
+        parent_api = 'pbp'
+
+        pitcher = {"pitcher_hand": "R", "pitch_zone": 12.0, "pitch_type": "CU", "dd_updated__id": 1469497407373,
+                   "pitch_speed": 82.0, "pitch__id": "c8f11efb-9edd-4653-9b8a-617fb9650b30",
+                   "at_bat__id": "71f664ce-5bbb-46fa-9ede-c5136befed3c",
+                   "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd", "parent_api__id": "pbp", "hitter_hand": "R",
+                   "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGF0X2JhdF9faWQ3MWY2NjRjZS01YmJiLTQ2ZmEtOWVkZS1jNTEzNmJlZmVkM2NwaXRjaF9faWRjOGYxMWVmYi05ZWRkLTQ2NTMtOWI4YS02MTdmYjk2NTBiMzBpZDUxMDZjNzQ5LTQxODUtNDM4Zi1iN2IyLTAxOThiMTRhNTdjYg==",
+                   "id": "5106c749-4185-438f-b7b2-0198b14a57cb", "pitch_count": 13.0}
+        self.__parse_and_send(pitcher, (sport_db + '.' + 'pitcher', parent_api))
+
+        runner = {"parent_list__id": "runners__list", "first_name": "Dustin", "out": "false",
+                  "dd_updated__id": 1469497407373, "at_bat__id": "71f664ce-5bbb-46fa-9ede-c5136befed3c",
+                  "jersey_number": 15.0, "pitch__id": "c8f11efb-9edd-4653-9b8a-617fb9650b30",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGF0X2JhdF9faWQ3MWY2NjRjZS01YmJiLTQ2ZmEtOWVkZS1jNTEzNmJlZmVkM2NwaXRjaF9faWRjOGYxMWVmYi05ZWRkLTQ2NTMtOWI4YS02MTdmYjk2NTBiMzBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQ0MDA4NWMwNS1mYTA2LTRlZWMtOWY0MS1mMDI0NTk4MGY2YTA=",
+                  "parent_api__id": "pbp", "ending_base": 1.0, "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd",
+                  "id": "40085c05-fa06-4eec-9f41-f0245980f6a0", "last_name": "Pedroia", "preferred_name": "Dustin",
+                  "starting_base": 1.0}
+        self.__parse_and_send(runner, (sport_db + '.' + 'runner', parent_api))
+
+        at_bat = {"hitter_id": "272abdba-ae99-4137-a6dd-5615f234adfc", "pitch": "c8f11efb-9edd-4653-9b8a-617fb9650b30",
+                  "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd", "id": "71f664ce-5bbb-46fa-9ede-c5136befed3c",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGlkNzFmNjY0Y2UtNWJiYi00NmZhLTllZGUtYzUxMzZiZWZlZDNj",
+                  "parent_api__id": "pbp", "dd_updated__id": 1469497407373}
+        self.__parse_and_send(at_bat, (sport_db + '.' + 'at_bat', parent_api))
+
+        runner = {"first_name": "Sandy", "starting_base": 2.0, "parent_api__id": "pbp", "jersey_number": 3.0,
+                  "ending_base": 2.0, "at_bat__id": "71f664ce-5bbb-46fa-9ede-c5136befed3c",
+                  "_id": "cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGRjYjhiZjE1LWZkY2UtNDgxMy1iOWY2LWRhMDBmY2QyNThjZGF0X2JhdF9faWQ3MWY2NjRjZS01YmJiLTQ2ZmEtOWVkZS1jNTEzNmJlZmVkM2NwaXRjaF9faWRjOGYxMWVmYi05ZWRkLTQ2NTMtOWI4YS02MTdmYjk2NTBiMzBwYXJlbnRfbGlzdF9faWRydW5uZXJzX19saXN0aWQyNGQwNTdhOS00ZGVmLTRlOWUtYmU4My0zZWNhMDFjOWM5MjI=",
+                  "last_name": "Leon", "dd_updated__id": 1469497407373, "preferred_name": "Sandy",
+                  "id": "24d057a9-4def-4e9e-be83-3eca01c9c922", "pitch__id": "c8f11efb-9edd-4653-9b8a-617fb9650b30",
+                  "game__id": "dcb8bf15-fdce-4813-b9f6-da00fcd258cd", "parent_list__id": "runners__list",
+                  "out": "false"}
+        self.__parse_and_send(runner, (sport_db + '.' + 'runner', parent_api))
 
         pitch = {"at_bat__id": "71f664ce-5bbb-46fa-9ede-c5136befed3c", "updated_at": "2016-07-26T01:43:19Z",
                  "runners__list": [{"runner": "40085c05-fa06-4eec-9f41-f0245980f6a0"},
