@@ -164,6 +164,16 @@ class OpLogObjWrapper( OpLogObj ):
         # now create the OpLogObj with our spoofed obj
         super().__init__(wrapped_obj)
 
+    @staticmethod
+    def wrap(data, ns=None):
+        oplog_obj = OpLogObjWrapper.OPLOG_WRAPPER.copy()
+        if ns is not None:
+            # ns, the "namespace" is the <db>.<collection> the object comes from
+            # as an example here is an at-bat from mlb:   'mlb.at_bat'
+            oplog_obj['ns'] = ns
+        oplog_obj['o'] = data
+        return oplog_obj
+
 class OpLogObjWithTs(OpLogObj):
     """
     override OpLogObj not to exclude any of the fields

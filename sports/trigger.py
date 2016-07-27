@@ -40,7 +40,7 @@ class SportTrigger(Trigger):
 
 class MlbOpLogObj(OpLogObj):
 
-    ns = 'mlb.at_bat'
+    object_namespace = 'mlb.at_bat'
 
     def override_new(self):
         """
@@ -48,7 +48,9 @@ class MlbOpLogObj(OpLogObj):
         from this namespace (ie: 'ns') if it doesnt yet
         have a description value (we need it to pass the trigger filter for pbp stuff)
         """
-        if self.get_ns() == self.ns and self.get_o().get('description') is None:
+        if self.get_ns() == self.object_namespace and self.get_o().get('description') is None:
+            my_ns = self.get_ns()
+            print('(override!) my_ns: %s' % my_ns)
             return True
         return False
 
