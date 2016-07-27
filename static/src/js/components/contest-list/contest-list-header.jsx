@@ -56,6 +56,11 @@ const ContestListHeader = (props) => (
         activeFilter={props.filters.skillLevelFilter}
       />
     </div>
+    <div className="help">?</div>
+
+    <a href="" className="fairmatch button button--medium button--outline button--outline-alt1">
+      What is FairMatch&trade;?
+    </a>
   </div>
 );
 
