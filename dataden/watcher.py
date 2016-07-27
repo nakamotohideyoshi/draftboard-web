@@ -66,6 +66,14 @@ class OpLogObj( Hashable ):
     def __str__(self):
         return str(self.original_obj)
 
+    def override_new(self):
+        """
+        subclasses can override this method to provide their own logic
+        to return a boolean indicating if this object should bypass the
+        trigger filter or not -- even if its not the first time its seen.
+        """
+        return False
+
     def get_ns(self):
         """
         return the namespace. its a string like this: 'nba.player', ie: 'DB.COLLECTION'
@@ -261,6 +269,7 @@ class Trigger(object):
         # using a tailable cursor allows us to loop on it
         # and we will pick up new objects as they come into
         # the oplog based on whatever our query is!
+
         cur = self.get_cursor( self.oplog, self.query(), cursor_type=self.cursor_type )
         while cur.alive:
 

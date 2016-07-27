@@ -4,8 +4,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from sports.trigger import (
     SportTrigger,
-    SportTriggerAll,
-    MlbTrigger,
+    TriggerMlb,
 )
 from raven.contrib.django.raven_compat.models import client
 
@@ -45,8 +44,11 @@ class Command(BaseCommand):
         while True:
             try:
                 if sport == 'mlb':
-                    #sport_trigger = MlbTrigger()
-                    sport_trigger = SportTriggerAll(sport)
+                    # special trigger allows at_bats to pass filter
+                    # as if they were changed objects until
+                    # their 'description' is set (at bat over indicator)
+                    sport_trigger = TriggerMlb(sport)
+
                 else:
                     sport_trigger = SportTrigger(sport)
 
