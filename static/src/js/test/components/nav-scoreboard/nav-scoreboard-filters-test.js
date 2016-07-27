@@ -1,10 +1,10 @@
 'use strict';
 
-require('../../test-dom')();
-const React = require('react');
-const ReactDOM = require('react-dom');
+import React from 'react';
+import { expect } from 'chai';
+import { mount } from 'enzyme';
+
 import NavScoreboardFilters from '../../../components/nav-scoreboard/nav-scoreboard-filters.jsx';
-const expect = require('chai').expect;
 
 const defaultProps = {
   selected: "$$$A$$$",
@@ -23,67 +23,46 @@ const defaultProps = {
   onChangeSelection: (() => {})
 };
 
-function render(props, callback) {
-    const targetElement = document.body.appendChild(document.createElement('div'));
-    const component = ReactDOM.render(
-      React.createElement(NavScoreboardFilters, props),
-      targetElement, function() {
-        setTimeout(() => {
-          callback(component, ReactDOM.findDOMNode(this));
-        });
-    });
-}
-
 describe("NavScoreboardFilters Component", function() {
 
-  afterEach(function() {
-    document.body.innerHTML = '';
+  function renderComponent(props = defaultProps) {
+    return mount(<NavScoreboardFilters {...props} />);
+  }
+
+  it('should render', function() {
+    const wrapper = renderComponent();
+    expect(wrapper.find('.cmp-nav-scoreboard--filters')).to.have.length(1);
   });
 
-  it('should render a div tag', function(done) {
-    render(defaultProps, (component, domElement) => {
-      expect(domElement.tagName).to.equal('DIV');
-      done();
-    });
+  it('should render a selected option', function() {
+    const wrapper = renderComponent();
+    expect(wrapper.find('.cmp-nav-scoreboard--filters')).to.have.length(1);
+
+    const selected = wrapper.find('.select-list--selected');
+    expect(selected).to.have.length(1);
+    expect(selected.text()).to.equal(defaultProps.selected);
   });
 
-  it('should render a selected option', function(done) {
-    render(defaultProps, (component, domElement) => {
-      const elm = domElement.querySelectorAll('.cmp-nav-scoreboard--filters .select-list--selected');
+  it('should show/hide menu options', function() {
+    const wrapper = renderComponent();
 
-      expect(elm.length).to.equal(1);
-      expect(elm[0].textContent).to.equal(defaultProps.selected);
-      done();
-    });
-  });
+    expect(wrapper.find('.select-list--options.visible')).to.have.length(0);
 
-  it('should show/hide menu options', function(done) {
-    render(defaultProps, (component, domElement) => {
-      const elm = (() => {
-        return domElement.querySelectorAll('.select-list--options.visible');
-      });
+    wrapper.instance().handleMenuShow();
+    expect(wrapper.find('.select-list--options.visible')).to.have.length(1);
 
-      expect(elm().length).to.equal(0);
-
-      component.handleMenuShow();
-      expect(elm().length).to.equal(1);
-
-      component.handleMenuLeave();
-      expect(elm().length).to.equal(0);
-      done();
-    });
+    wrapper.instance().handleMenuLeave();
+    expect(wrapper.find('.select-list--options.visible')).to.have.length(0);
   });
 
   it('should select first option if not selected', function(done) {
     const { options } = defaultProps;
     const selected = null;
     const onChangeSelection = (option) => {
-      expect(option).to.equal(props.options[1].option);
+      expect(option).to.equal(options[1].option);
       done();
     };
-    const props = { selected, options, onChangeSelection };
 
-    render(props, (component, domElement) => {});
-
+    renderComponent({ selected, options, onChangeSelection });
   });
 });
