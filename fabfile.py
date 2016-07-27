@@ -462,7 +462,7 @@ def syncdb(app=None):
     operations.require('environment')
 
     if app is None:
-        app = 'staging'
+        app = 'production'
 
     target_server = ENVS[app]['heroku_repo']
 

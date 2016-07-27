@@ -295,6 +295,7 @@ class Trigger(object):
             if self.live_stats_cache.update( hashable_object ):
                 # the object is new or has been updated.
                 # send the update signal along with the object to Pusher/etc...
+                print('trigger:', str(obj))
                 Update( hashable_object ).send(async=True)
 
     def log_for_sumo(self, hashable_object):
