@@ -17,6 +17,11 @@ const NavScoreboardLineupsList = React.createClass({
 
   render() {
     const lineupsList = map(this.props.lineups, (lineup) => lineup);
+
+    if (lineupsList.length === 0) {
+      return <div className="cmp-nav-scoreboard--lineups-list" />;
+    }
+
     const list = lineupsList.map((lineup) => [
       <NavScoreboardLineup key={lineup.id} lineup={lineup} />,
       <NavScoreboardSeparator key={`${lineup.id}s`} half />,
