@@ -12,7 +12,7 @@ celerybeat: celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler
 #
 # a worker for misc, very short-lived tasks (ie: milliseconds, hopefully).
 #celery: celery -A mysite worker -l info -n celery1.%h
-celery: celery -A mysite worker -l info            
+celery: celery -A mysite worker -l info
 
 # respawn after X tasks, w/ autoscaler
 celery2: celery -A mysite worker -l info --maxtasksperchild=10 --autoscale=2,8
