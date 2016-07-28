@@ -10,6 +10,9 @@ celerybeat: celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler
 # a worker for misc, very short-lived tasks (ie: milliseconds, hopefully).
 celery: celery -A mysite worker -l info -n celery1.%h
 
+# respawn after X tasks, w/ autoscaler
+celery2: celery -A mysite worker --maxtasksperchild=5000 --autoscale=4,16
+
 #
 # purger is also a normal celery worker.
 # this worker always wipes out the brokers existing/pending tasks on startup.
