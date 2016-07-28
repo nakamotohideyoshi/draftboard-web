@@ -2298,6 +2298,10 @@ class ReqRunner(Req):
 
 class PbpParser(DataDenPbpDescription):
 
+    class BuildSendableDataException(Exception):
+        """ exception for when there was an error shrink/reducing/adding extras """
+        pass
+
     game_model = Game
     pbp_model = Pbp
     portion_model = GamePortion
@@ -2371,9 +2375,14 @@ class PbpParser(DataDenPbpDescription):
         if is_sendable:
             # if the cached hash value doesnt exist, we need to send it
             # print('sending')
+            try:
+                sendable_data = self.get_send_data()
+            except:
+                raise self.BuildSendableDataException(self.__class__.__name__ + str(e))
+
             cache_instance.set(key, True, self.cache_timeout)
             push.classes.DataDenPush(self.pusher_sport_pbp,
-                            self.pusher_sport_pbp_event, hash=key).send(self.get_send_data())
+                            self.pusher_sport_pbp_event, hash=key).send(sendable_data)
 
     def can_send(self, raw_requirements):
         """
