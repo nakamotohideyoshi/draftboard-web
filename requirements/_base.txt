@@ -86,6 +86,6 @@ python-dateutil==2.4.2
 # Flower (celery task metrics/logging/captures)
 flower==0.8.4
 
-urllib3==1.14
+urllib3==1.16   # urllib3==1.14
 
 paypalrestsdk==1.11.5
