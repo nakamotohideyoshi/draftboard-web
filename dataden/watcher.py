@@ -200,8 +200,15 @@ class Trigger(object):
             self.obj_list = obj_list
             self.live_stats_cache = live_stats_cache
 
+            try:
+                size = len(obj_list)
+                print(self.__class__.__name__ + ' total_updates:%s:' % str(size))
+            except:
+                pass
+
         def run(self):
             """ start working by calling: start() """
+            ctr = 0
             for obj in self.obj_list:
                 # create a hashable object as the key to cache it with
                 hashable_object = self.oplogobj_class(obj)
@@ -210,8 +217,10 @@ class Trigger(object):
                 if self.live_stats_cache.update( hashable_object ):
                     # the object is new or has been updated.
                     # send the update signal along with the object to Pusher/etc...
-                    print('(thread)trigger:', str(obj))
+                    ctr += 1
                     Update( hashable_object ).send(async=True)
+
+            print(self.__class__.__name__ + ' new_updates:%s:' % str(ctr))
 
     work_size   = 250
 
@@ -243,7 +252,8 @@ class Trigger(object):
                 having to type the db, coll, and parent_api
         """
         self.init         = init            # default: False, if True, parse entire log
-        self.client       = MongoClient(settings.MONGO_HOST, settings.MONGO_PORT)
+        #self.client       = MongoClient(settings.MONGO_HOST, settings.MONGO_PORT)
+        self.client = MongoClient() # localhost/default port
         self.last_ts      = None
 
         #
@@ -308,12 +318,23 @@ class Trigger(object):
         # the oplog based on whatever our query is!
         obj_list = []
         ctr = 0
+        total = 0
         cur = self.get_cursor(self.query())
         while cur.alive:
 
             try:
                 obj = cur.next()
             except StopIteration:
+                # we should realize theres nothing left and
+                # send current UpdateWorker unless theres
+                # actually 0 things left to send
+                if len(obj_list) > 0:
+                    worker = self.UpdateWorker(obj_list, self.oplogobj_class, self.live_stats_cache)
+                    worker.start()  # join it? will it die? should we hold onto it?
+                    # and reset ctr and obj_list
+                    ctr = 0
+                    obj_list = []  # and reset obj_list
+
                 continue
 
             ctr += 1
