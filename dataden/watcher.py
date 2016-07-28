@@ -230,8 +230,8 @@ class Trigger(object):
     PARENT_API__ID = 'parent_api__id'
 
     # originally, it works fine, just slow startup for complex queries/big oplogs
-    #cursor_type = CursorType.TAILABLE_AWAIT
-    cursor_type = CursorType.TAILABLE
+    cursor_type = CursorType.TAILABLE_AWAIT
+    #cursor_type = CursorType.TAILABLE
 
     live_stats_cache_class = LiveStatsCache
 
@@ -318,7 +318,6 @@ class Trigger(object):
         # the oplog based on whatever our query is!
         obj_list = []
         ctr = 0
-        total = 0
         cur = self.get_cursor(self.query())
         while cur.alive:
 

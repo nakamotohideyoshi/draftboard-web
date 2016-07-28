@@ -2259,41 +2259,41 @@ class ReqRunner(Req):
         ts = self.get_ts()
         id = self.get_id()
 
-        # TODO remove this eventually
-        print(tag, 'ts', ts, 'id', id)
+        # # TODO remove this eventually
+        # print(tag, 'ts', ts, 'id', id)
 
         # 1. get the main 'pitch' (kind of like the pbp object)
         pitch = PitchCache().fetch(ts, id)
         if pitch is None:
-            print('    ', tag, 'pitch -> None')
+            #print('    ', tag, 'pitch -> None')
             return None
-        print('    ', tag, 'pitch -> yes')
+        #print('    ', tag, 'pitch -> yes')
 
         # 2. get the 'at_bat'
         at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
         if at_bat is None:
-            print('    ', tag, 'at_bat -> None')
+            #print('    ', tag, 'at_bat -> None')
             return None
-        print('    ', tag, 'at_bat -> yes')
+        #print('    ', tag, 'at_bat -> yes')
 
         # 3. get the 'pitches' ie: the zone_pitches
         #zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
         zone_pitches = PitcherCacheList().fetch(at_bat.get('id'))
-        print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
+        #print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
         if zone_pitches is None:
-            print('    ', tag, 'pitches -> None (ie: zone_pitches)')
+            #print('    ', tag, 'pitches -> None (ie: zone_pitches)')
             return None
-        print('    ', tag, 'pitches -> yes')
+        #print('    ', tag, 'pitches -> yes')
 
         # 4. get ALL the runners
         #runners = ReqPitch(pitch, stash_now=False).get_runners()
         runners = RunnerCacheList().fetch(at_bat.get('id'))
         if runners is None:
-            print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
+            #print('    ', tag, 'runners -> None (found None, or less than we wanted to)')
             return None
-        print('    ', tag, 'runners -> yes')
+        #print('    ', tag, 'runners -> yes')
 
-        print('found all!') # TODO remove debug prints
+        #print('found all!') # TODO remove debug prints
         return self.build_from(pitch, at_bat, zone_pitches, runners)
 
 class PbpParser(DataDenPbpDescription):
@@ -2460,7 +2460,7 @@ class PbpParser(DataDenPbpDescription):
             pitch_extras = PitchExtras()
             pitch_extras.update_outcome(pitch.get('outcome_id'), pitcher_player_stats.fp_change)
         except Exception as e:
-            print(str(e))
+            #print(str(e))
             pitch_extras = PitchExtras()
 
         # get reduce/shrink manager instances
