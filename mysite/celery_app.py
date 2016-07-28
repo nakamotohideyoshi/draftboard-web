@@ -40,6 +40,9 @@ app = Celery('mysite')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(settings.INSTALLED_APPS)
 
+# i want to know if DEBUG is on or not
+print('settings.DEBUG:', settings.DEBUG)
+
 # # hook up the database backend
 # app.conf.update(
 #     CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
@@ -248,15 +251,17 @@ app.conf.update(
     # testing this out, but the BROKER_TRANSPORT_OPTIONS seems to be the
     # setting that actually caps the max connections when were viewing
     # connections on the redis side
-    CELERY_REDIS_MAX_CONNECTIONS = 5,
+    CELERY_REDIS_MAX_CONNECTIONS = 200,
 
-    # testing this out
-    BROKER_TRANSPORT_OPTIONS = {
-        'max_connections': 5,
-    },
-
-    # None causes a connection to be created and closed for each use
-    BROKER_POOL_LIMIT = None,  # default: 10
+    #
+    #
+    # # testing this out
+    # BROKER_TRANSPORT_OPTIONS = {
+    #     'max_connections': 5,
+    # },
+    #
+    # # None causes a connection to be created and closed for each use
+    # BROKER_POOL_LIMIT = None,  # default: 10
 
 )
 
