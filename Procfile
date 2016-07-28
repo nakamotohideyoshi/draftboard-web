@@ -9,7 +9,7 @@ celerybeat: celery -A mysite beat -S djcelery.schedulers.DatabaseScheduler
 #
 # a worker for misc, very short-lived tasks (ie: milliseconds, hopefully).
 #celery: celery -A mysite worker -l info -n celery1.%h
-celery: celery -A mysite worker -l info -n
+celery: celery -A mysite worker
 
 # respawn after X tasks, w/ autoscaler
 celery2: celery -A mysite worker --maxtasksperchild=10 --autoscale=2,8
@@ -19,6 +19,9 @@ celery3: celery -A mysite worker --time-limit=600 --soft-time-limit=20 --maxtask
 
 # another test
 celery4: celery -A mysite worker --time-limit=600 --soft-time-limit=20 --maxtasksperchild=10 --autoscale=1,2
+
+# another test
+celery5: celery -A mysite worker -c 256 -P eventlet --time-limit=600 --soft-time-limit=20 --maxtasksperchild=10
 
 #
 # purger is also a normal celery worker.
