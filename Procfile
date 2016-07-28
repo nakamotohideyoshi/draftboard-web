@@ -1,5 +1,5 @@
 #web: newrelic-admin run-program gunicorn --pythonpath mysite mysite.wsgi -b 0.0.0.0:$PORT --workers $GUNICORN_WORKERS --max-requests $GUNICORN_MAX_REQUESTS --timeout $GUNICORN_TIMEOUT
-web: newrelic-admin run-program python hellodjango/manage.py run_gunicorn -b "0.0.0.0:$PORT" -w 3
+web: newrelic-admin run-program python manage.py run_gunicorn -b "0.0.0.0:$PORT" -w 3
 
 #
 # runs the celerybeat scheduled tasks from the CELERYBEAT_SCHEDULE
