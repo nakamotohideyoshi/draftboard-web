@@ -1,7 +1,9 @@
 {% load pipeline %}
 {% load staticfiles %}
-{% spaceless %}
+{% load cache %}
 
+{% cache 0 tmpl-homepage using="django_templates" %}
+{% spaceless %}
 <!DOCTYPE html>
 <html lang="en" class="{% block html_class %}{% endblock %}">
 <head>
@@ -19,21 +21,13 @@
 </head>
 <body>
   <section class="home-page" id="home-page">
-    <div class="home-page--logo">
-      DRAFTBOARD
-    </div>
+    {% include "frontend/partials/company-header.html" with modifiers="company-header--homepage" %}
 
-    <div class="home-page--top-menu">
-      <a href="/lobby" class="view-contests">VIEW CONTESTS</a>
-      <a href="/login" class="login">LOGIN</a>
-      <a href="/register" class="sign-up">SIGN UP</a>
-    </div>
-
-    <div class="home-page--header">
-      <div class="home-page--header--bg">
-        <div class="home-page--header--inner">
-          <div class="home-page--header--small-title">Daily fantasy sports leagues</div>
-          <div class="home-page--header--title">
+    <div class="home-page--hero">
+      <div class="home-page--hero--bg">
+        <div class="home-page--hero--inner">
+          <div class="home-page--hero--small-title">Daily fantasy sports leagues</div>
+          <div class="home-page--hero--title">
             <div class="home-page--desktop">
               For the love of the game.
             </div>
@@ -41,7 +35,7 @@
               IT's anyone's game
             </div>
           </div>
-          <a href="#" class="home-page--header--start-btn">
+          <a href="/register" class="home-page--hero--start-btn">
             Get in the action <div class="arrow"></div>
           </a>
         </div>
@@ -197,19 +191,9 @@
       <div style="clear:both;"></div>
     </div>
 
-    <div class="home-page--footer">
-      <div class="home-page--footer--credits">
-        ©2016 Run It Once Entertainment, LLC. - All Rights Reserved
-      </div>
-      <div class="home-page--footer--logo"></div>
-      <ul class="home-page--footer--menu">
-        <li><a href="#">About us</a></li>
-        <li><a href="#">Affiliates</a></li>
-        <li><a href="#">Help</a></li>
-        <li><a href="#">Legal</a></li>
-      </ul>
-    </div>
+    {% include "frontend/partials/company-footer.html" %}
   </section>
 </body>
 </html>
 {% endspaceless %}
+{% endcache %}

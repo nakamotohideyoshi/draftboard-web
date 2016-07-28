@@ -23,70 +23,30 @@
 <body class="{% block body_class %}{% endblock %}">
   {% block body %}
 
-    <nav class="nav-main">
-      <div class="inner">
-        <ul class="nav-main__primary">
-          <li class="{% if request.path|slice:'1:5' == 'lobb' %}active{% endif %}">
-            <a href="/lobby/">Contests</a>
-          </li>
-          <li class="{% if request.path|slice:'1:5' == 'live' %}active{% endif %}">
-            <a href="/live/">Live</a>
-          </li>
-          <li class="{% if request.path|slice:'1:5' == 'resu' %}active{% endif %}">
-            <a href="/results/">Results</a>
-          </li>
-          <li class="{% if request.path|slice:'1:5' == 'acco' %}active{% endif %}">
-            <a href="/account/settings/">My Account</a>
-          </li>
-          <li>
-            <a href="/logout/">Sign Out</a>
-          </li>
-        </ul>
-
-        <ul class="nav-main__secondary">
-          <li>
-            <a href="#">About Draftboard</a>
-          </li>
-          <li>
-            <a href="#">Press &amp; Media</a>
-          </li>
-          <li>
-            <a href="#">Help</a>
-          </li>
-          <li>
-            <a href="#">Terms of Use</a>
-          </li>
-          <li>
-            <a href="#">Privacy Policy</a>
-          </li>
-        </ul>
-
-        <div class="nav-main__sponsors"></div>
-      </div>
-    </nav>
+    {% include 'frontend/partials/nav-main.html' %}
 
     {% block content_container %}
     <div class="content-container">
       {% include 'frontend/partials/nav-scoreboard.html' %}
 
-      <aside class="sidebar">
-        {% block sidebar-header %}{% endblock %}
-        <div class="sidebar-inner">
-          <div class="sidebar-content">
-            {% block sidebar %}{% endblock %}
+        <aside class="sidebar">
+          {% block sidebar-header %}{% endblock %}
+          <div class="sidebar-inner">
+            <div class="sidebar-content">
+              {% block sidebar %}{% endblock %}
+            </div>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      <section class="page-content">
-        {% block page-content-header %}{% endblock %}
+        <section class="page-content">
+          {% block page-content-header %}{% endblock %}
 
-        <div class="page-content__content">
-          {% block page_content %}
-            .page-content
-          {% endblock %}
-        </div>
-      </section>
+          <div class="page-content__content">
+            {% block page_content %}
+              .page-content
+            {% endblock %}
+          </div>
+        </section>
     </div>
     {% endblock content_container %}
 
