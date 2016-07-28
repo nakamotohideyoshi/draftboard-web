@@ -252,8 +252,8 @@ class Trigger(object):
                 having to type the db, coll, and parent_api
         """
         self.init         = init            # default: False, if True, parse entire log
-        #self.client       = MongoClient(settings.MONGO_HOST, settings.MONGO_PORT)
-        self.client = MongoClient() # localhost/default port
+        self.client       = MongoClient(settings.MONGO_HOST, settings.MONGO_PORT)
+        #self.client = MongoClient() # localhost/default port
         self.last_ts      = None
 
         #
