@@ -8,6 +8,7 @@
 # has not been battle tested on heroku yet. currently it will
 # bring a vagrant VM to its knees.
 
+from util.timesince import timeit
 from django.conf import settings
 ASYNC_UPDATES = settings.DATADEN_ASYNC_UPDATES # False for dev
 
@@ -15,6 +16,8 @@ from dataden.util.hsh import Hashable
 from dataden.util.simpletimer import SimpleTimer
 from dataden.cache.caches import LiveStatsCache, TriggerCache
 
+from bson.timestamp import Timestamp
+import pymongo
 from pymongo import MongoClient
 from pymongo.cursor import _QUERY_OPTIONS, CursorType
 import re, time
@@ -194,7 +197,7 @@ class Trigger(object):
     PARENT_API__ID = 'parent_api__id'
 
     # originally, it works fine, just slow startup for complex queries/big oplogs
-    #DEFAULT_CURSOR_TYPE = CursorType.TAILABLE_AWAIT
+    #cursor_type = CursorType.TAILABLE_AWAIT
     cursor_type = CursorType.TAILABLE
 
     live_stats_cache_class = LiveStatsCache
@@ -202,7 +205,7 @@ class Trigger(object):
     oplogobj_class = OpLogObj
 
     def __init__(self, cache='default', clear=False, init=False,
-                                db=None, coll=None, parent_api=None, cursor_type=None ):
+                                db=None, coll=None, parent_api=None):
         """
         by default, uses all the enabled Trigger(s), see /admin/dataden/trigger/
 
@@ -233,17 +236,14 @@ class Trigger(object):
 
         self.timer      = SimpleTimer()
 
-        self.db_local   = self.client.get_database( self.DB_LOCAL )
-        self.oplog      = self.db_local.get_collection( self.OPLOG )
+        # self.db_local   = self.client.get_database( self.DB_LOCAL )
+        # self.oplog      = self.db_local.get_collection( self.OPLOG )
+        #self.oplog = self.client.local.oplog.rs
 
         # self.live_stats_cache   = LiveStatsCache( cache, clear=clear )
         self.live_stats_cache = self.live_stats_cache_class( cache, clear=clear )
 
         self.trigger_cache = TriggerCache()
-
-        if cursor_type is not None:
-            self.cursor_type = cursor_type
-        print(self.cursor_type)
 
     def single_trigger_override(self):
         """
@@ -272,9 +272,9 @@ class Trigger(object):
         if last_ts:
             # user wants to start from at least this specific ts
             self.last_ts = last_ts
-        # else:
-        #     # get most recent ts, (by default, dont reparse the world)
-        #     self.last_ts = self.get_last_ts()
+        else:
+            # get most recent ts, (by default, dont reparse the world)
+            self.last_ts = self.get_last_ts(now=True) # now=True means dont query it, just guess it
 
         # do this previous to query() being called
         self.reload_triggers()
@@ -283,7 +283,7 @@ class Trigger(object):
         # using a tailable cursor allows us to loop on it
         # and we will pick up new objects as they come into
         # the oplog based on whatever our query is!
-        cur = self.get_cursor( self.oplog, self.query())
+        cur = self.get_cursor(self.query())
         while cur.alive:
 
             try:
@@ -330,17 +330,31 @@ class Trigger(object):
     def get_ns(self):
         return '%s.%s' % (self.db_name, self.coll_name)
 
-    # def get_last_ts(self):
-    #     """
-    #     sets the last_ts internally, and then returns the same value.
-    #     must be called before query() is generated
-    #
-    #     :return:
-    #     """
-    #     cur = self.oplog.find().sort([('$natural', -1)])
-    #     for obj in cur:
-    #         self.last_ts = self.oplogobj_class( obj ).get_ts()
-    #         return self.last_ts
+    @timeit
+    def get_last_ts(self, now=True):
+        """
+        sets the last_ts internally, and then returns the same value.
+        must be called before query() is generated
+
+        :return:
+        """
+        # first = oplog.find().sort('$natural', pymongo.DESCENDING).limit(-1).next()
+        # ts = first['ts']
+
+        # originally, works, but sorting large oplog time consuming
+        # if now:
+        #     now = time.time()
+        #     self.last_ts = Timestamp(int(now), int((now*10000000) % 10000000))
+        # else:
+
+        first = self.client.local.oplog.rs.find().sort('$natural', pymongo.DESCENDING).limit(-1).next()
+        self.last_ts = first.get('ts')
+        return self.last_ts
+        # cur = self.client.local.oplog.rs.find().sort([('$natural', -1)])
+        # for obj in cur:
+        #     self.last_ts = self.oplogobj_class( obj ).get_ts()
+        #     return self.last_ts
+
 
     def query(self):
         """
@@ -380,18 +394,16 @@ class Trigger(object):
             q_triggers = []
             for trig in self.triggers:
                 where_args = [
-                    {'ns':'%s.%s'%(trig.db,trig.collection)},
-                    {'o.%s'%self.PARENT_API__ID:trig.parent_api}
+                    {'ns':'%s.%s' % (trig.db,trig.collection)},
+                    {'o.%s' % self.PARENT_API__ID:trig.parent_api}
                 ]
                 q_triggers.append(
                     { '$and' : where_args }
                 )
 
             q = {
-                #'ts' : {'$gt' : self.last_ts},   # older version required this
-
+                'ts' : {'$gt' : self.last_ts},
                 '$or' : q_triggers,
-
             }
 
         if self.init == True:  # explicity showing if its == True, because this will be rare
@@ -400,7 +412,8 @@ class Trigger(object):
 
         return q
 
-    def get_cursor(self, collection, query, hint=[('$natural', 1)]):
+    @timeit
+    def get_cursor(self, query, hint=[('$natural', 1)]):
         """
         Gets a Cursor for the given collection and target query.
         If cursor_type is None it defaults to CursorType.TAILABLE_AWAIT.
@@ -414,8 +427,21 @@ class Trigger(object):
         """
         # if cursor_type is None:
         #     cursor_type = CursorType.TAILABLE_AWAIT
-        cur = collection.find(query, cursor_type=self.cursor_type)
-        #cur = cur.hint(hint)
+
+        # while True:
+        #     cursor = oplog.find({'ts': {'$gt': ts}}, tailable=True, await_data=True)
+        #     # oplogReplay flag - not exposed in the public API
+        #     cursor.add_option(8)
+        #     while cursor.alive:
+        #         for doc in cursor:
+        #             ts = doc['ts']
+        #             # Do something...
+        #         time.sleep(1)
+
+        cur = self.client.local.oplog.rs.find(query, cursor_type=self.cursor_type) # , await_data=True)
+        #cur = collection.find(query, cursor_type=self.cursor_type)
+        ##cur.add_option(8)
+        #cur = cur.hint(hint) # maybe later
         return cur
 
     def trigger_debug(self, object):
