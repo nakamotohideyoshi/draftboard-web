@@ -8,6 +8,7 @@ import urllib
 # Constant for determining environment
 DOMAIN = 'www.draftboard.com'
 
+ALLOWED_HOSTS = [ DOMAIN, 'draftboard-prod.herokuapp.com']
 DATABASES = {
     'default': heroku_db_config()
 }
@@ -23,7 +24,7 @@ CACHES = {
         'LOCATION': "redis://:%s@%s:%s/0" % (redis_url.password, redis_url.hostname, redis_url.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_KWARGS': {"max_connections": 5}
+            'CONNECTION_POOL_KWARGS': {"max_connections": 16}
         },
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
