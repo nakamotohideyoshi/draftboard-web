@@ -31,7 +31,7 @@ class UpdateAdmin(admin.ModelAdmin):
         o = literal_eval(update.o)
         o_ts = int(o.get('dd_updated__id')) / 1000
         ts = int(update.ts.strftime('%s')) - 5 * 60 * 60 # UTC will have to be modified when its -4 hrs
-        print('o_ts:', str(o_ts), 'ts:', str(ts))
+        #print('o_ts:', str(o_ts), 'ts:', str(ts))
         return str(int(ts - o_ts)) + ' sec'
 
 @admin.register(replayer.models.TimeMachine)
