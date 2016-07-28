@@ -304,7 +304,7 @@ class Trigger(object):
         # using a tailable cursor allows us to loop on it
         # and we will pick up new objects as they come into
         # the oplog based on whatever our query is!
-        obj_list = None
+        obj_list = []
         ctr = 0
         cur = self.get_cursor(self.query())
         while cur.alive:
