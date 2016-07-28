@@ -194,9 +194,11 @@ class Trigger(object):
 
     class UpdateWorker(Thread):
 
-        def __init__(self, obj_list, *args, **kwargs):
+        def __init__(self, obj_list, oplogobj_class, live_stats_cache, *args, **kwargs):
             super().__init__(*args, **kwargs)
+            self.oplogobj_class = oplogobj_class
             self.obj_list = obj_list
+            self.live_stats_cache = live_stats_cache
 
         def run(self):
             """ start working by calling: start() """
@@ -318,7 +320,7 @@ class Trigger(object):
             obj_list.append(obj)
 
             if ctr >= self.work_size:
-                worker = self.UpdateWorker(obj_list)
+                worker = self.UpdateWorker(obj_list, self.oplogobj_class, self.live_stats_cache)
                 worker.start() # join it? will it die? should we hold onto it?
                 # and reset ctr and obj_list
                 ctr = 0
