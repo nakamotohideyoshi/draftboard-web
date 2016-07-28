@@ -53,6 +53,7 @@ class Command(BaseCommand):
                     sport_trigger = SportTrigger(sport)
 
                 sport_trigger.run()
+
             except Exception as e:
                 print(e)
                 print('exception caught in ./manage.py sport_trigger [%s]... restarting trigger!' % sport)

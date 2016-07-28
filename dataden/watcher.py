@@ -193,7 +193,9 @@ class Trigger(object):
 
     PARENT_API__ID = 'parent_api__id'
 
-    DEFAULT_CURSOR_TYPE = CursorType.TAILABLE_AWAIT
+    # originally, it works fine, just slow startup for complex queries/big oplogs
+    #DEFAULT_CURSOR_TYPE = CursorType.TAILABLE_AWAIT
+    cursor_type = CursorType.TAILABLE
 
     live_stats_cache_class = LiveStatsCache
 
@@ -235,11 +237,13 @@ class Trigger(object):
         self.oplog      = self.db_local.get_collection( self.OPLOG )
 
         # self.live_stats_cache   = LiveStatsCache( cache, clear=clear )
-        self.live_stats_cache   = self.live_stats_cache_class( cache, clear=clear )
+        self.live_stats_cache = self.live_stats_cache_class( cache, clear=clear )
 
-        self.trigger_cache      = TriggerCache()
+        self.trigger_cache = TriggerCache()
 
-        self.cursor_type = cursor_type
+        if cursor_type is not None:
+            self.cursor_type = cursor_type
+        print(self.cursor_type)
 
     def single_trigger_override(self):
         """
@@ -268,9 +272,9 @@ class Trigger(object):
         if last_ts:
             # user wants to start from at least this specific ts
             self.last_ts = last_ts
-        else:
-            # get most recent ts, (by default, dont reparse the world)
-            self.last_ts = self.get_last_ts()
+        # else:
+        #     # get most recent ts, (by default, dont reparse the world)
+        #     self.last_ts = self.get_last_ts()
 
         # do this previous to query() being called
         self.reload_triggers()
@@ -279,8 +283,7 @@ class Trigger(object):
         # using a tailable cursor allows us to loop on it
         # and we will pick up new objects as they come into
         # the oplog based on whatever our query is!
-
-        cur = self.get_cursor( self.oplog, self.query(), cursor_type=self.cursor_type )
+        cur = self.get_cursor( self.oplog, self.query())
         while cur.alive:
 
             try:
@@ -327,17 +330,17 @@ class Trigger(object):
     def get_ns(self):
         return '%s.%s' % (self.db_name, self.coll_name)
 
-    def get_last_ts(self):
-        """
-        sets the last_ts internally, and then returns the same value.
-        must be called before query() is generated
-
-        :return:
-        """
-        cur = self.oplog.find().sort([('$natural', -1)])
-        for obj in cur:
-            self.last_ts = self.oplogobj_class( obj ).get_ts()
-            return self.last_ts
+    # def get_last_ts(self):
+    #     """
+    #     sets the last_ts internally, and then returns the same value.
+    #     must be called before query() is generated
+    #
+    #     :return:
+    #     """
+    #     cur = self.oplog.find().sort([('$natural', -1)])
+    #     for obj in cur:
+    #         self.last_ts = self.oplogobj_class( obj ).get_ts()
+    #         return self.last_ts
 
     def query(self):
         """
@@ -385,10 +388,8 @@ class Trigger(object):
                 )
 
             q = {
-                'ts' : {'$gt' : self.last_ts},   # older version required this
-                #'ts' : {'$gt' : str( self.last_ts.time * 1000 + self.last_ts.inc) },
-                # 'ns' : { '$in' : ns_list },
-                # 'o.%s' % self.PARENT_API__ID : { '$in': api_list },
+                #'ts' : {'$gt' : self.last_ts},   # older version required this
+
                 '$or' : q_triggers,
 
             }
@@ -399,7 +400,7 @@ class Trigger(object):
 
         return q
 
-    def get_cursor(self, collection, query, cursor_type=None, hint=[('$natural', 1)]):
+    def get_cursor(self, collection, query, hint=[('$natural', 1)]):
         """
         Gets a Cursor for the given collection and target query.
         If cursor_type is None it defaults to CursorType.TAILABLE_AWAIT.
@@ -411,10 +412,10 @@ class Trigger(object):
         :param hint:
         :return:
         """
-        if cursor_type is None:
-            cursor_type = CursorType.TAILABLE_AWAIT
-        cur = collection.find(query, cursor_type=cursor_type)
-        cur = cur.hint(hint)
+        # if cursor_type is None:
+        #     cursor_type = CursorType.TAILABLE_AWAIT
+        cur = collection.find(query, cursor_type=self.cursor_type)
+        #cur = cur.hint(hint)
         return cur
 
     def trigger_debug(self, object):
