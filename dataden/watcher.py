@@ -8,6 +8,7 @@
 # has not been battle tested on heroku yet. currently it will
 # bring a vagrant VM to its knees.
 
+from threading import Thread
 from util.timesince import timeit
 from django.conf import settings
 ASYNC_UPDATES = settings.DATADEN_ASYNC_UPDATES # False for dev
@@ -191,6 +192,27 @@ class Trigger(object):
     uses local.oplog.rs to implement mongo triggers
     """
 
+    class UpdateWorker(Thread):
+
+        def __init__(self, obj_list, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.obj_list = obj_list
+
+        def run(self):
+            """ start working by calling: start() """
+            for obj in self.obj_list:
+                # create a hashable object as the key to cache it with
+                hashable_object = self.oplogobj_class(obj)
+
+                # the live stats cache will add every item it sees to the redis cache
+                if self.live_stats_cache.update( hashable_object ):
+                    # the object is new or has been updated.
+                    # send the update signal along with the object to Pusher/etc...
+                    print('(thread)trigger:', str(obj))
+                    Update( hashable_object ).send(async=True)
+
+    work_size   = 250
+
     DB_LOCAL    = 'local'
     OPLOG       = 'oplog.rs'
 
@@ -205,7 +227,7 @@ class Trigger(object):
     oplogobj_class = OpLogObj
 
     def __init__(self, cache='default', clear=False, init=False,
-                                db=None, coll=None, parent_api=None):
+                                db=None, coll=None, parent_api=None, t=None):
         """
         by default, uses all the enabled Trigger(s), see /admin/dataden/trigger/
 
@@ -215,14 +237,8 @@ class Trigger(object):
         if 'db', 'coll', and 'parent_api' all exist, just run
         the Trigger with a single trigger enabled, specified by those params
 
-        :param db:
-        :param coll:
-        :param parent_api:
-        :param cache:
-        :param clear:
-        :param init:
-        :param triggers:
-        :return:
+        't' can be used to pass a dataden.models.Trigger instead of
+                having to type the db, coll, and parent_api
         """
         self.init         = init            # default: False, if True, parse entire log
         self.client       = MongoClient(settings.MONGO_HOST, settings.MONGO_PORT)
@@ -233,6 +249,11 @@ class Trigger(object):
         self.db_name      = db              # ie: 'nba', 'nfl'
         self.coll_name    = coll            # ie: 'player', 'standings'
         self.parent_api   = parent_api      # dataden's name for the feed to look in
+        if t is not None:
+            ns_parts = t.ns.split('.')
+            self.db_name = ns_parts[0]
+            self.coll_name = ns_parts[1]
+            self.parent_api = t.parent_api
 
         self.timer      = SimpleTimer()
 
@@ -283,6 +304,8 @@ class Trigger(object):
         # using a tailable cursor allows us to loop on it
         # and we will pick up new objects as they come into
         # the oplog based on whatever our query is!
+        obj_list = None
+        ctr = 0
         cur = self.get_cursor(self.query())
         while cur.alive:
 
@@ -291,15 +314,28 @@ class Trigger(object):
             except StopIteration:
                 continue
 
-            # create a hashable object as the key to cache it with
-            hashable_object = self.oplogobj_class(obj)
+            ctr += 1
+            obj_list.append(obj)
 
-            # the live stats cache will add every item it sees to the redis cache
-            if self.live_stats_cache.update( hashable_object ):
-                # the object is new or has been updated.
-                # send the update signal along with the object to Pusher/etc...
-                print('trigger:', str(obj))
-                Update( hashable_object ).send(async=True)
+            if ctr >= self.work_size:
+                worker = self.UpdateWorker(obj_list)
+                worker.start() # join it? will it die? should we hold onto it?
+                # and reset ctr and obj_list
+                ctr = 0
+                obj_list = []  # and reset obj_list
+
+            # starves the last couple object every round....
+
+            # work method now:
+            # # create a hashable object as the key to cache it with
+            # hashable_object = self.oplogobj_class(obj)
+            #
+            # # the live stats cache will add every item it sees to the redis cache
+            # if self.live_stats_cache.update( hashable_object ):
+            #     # the object is new or has been updated.
+            #     # send the update signal along with the object to Pusher/etc...
+            #     print('trigger:', str(obj))
+            #     Update( hashable_object ).send(async=True)
 
     def log_for_sumo(self, hashable_object):
         """
@@ -372,7 +408,7 @@ class Trigger(object):
         if self.single_trigger_override():
             #
             # single trigger specified
-            single_trig = '<<< %s.%s %s >>>' % (self.db_name, self.coll_name, self.parent_api)
+            #single_trig = '<<< %s.%s %s >>>' % (self.db_name, self.coll_name, self.parent_api)
             #print('single_trigger_override() True - triggering on %s' % single_trig)
             q = {
                 'ts' : {'$gt' : self.last_ts},
