@@ -25,7 +25,7 @@ const config = Object.assign(
       homepage: [
         // Enable Webpack's dev server hot reloads for this entry.
         'webpack/hot/dev-server',
-        path.join(__dirname, 'static', 'src', 'sass', 'blocks', 'homepage.scss'),
+        path.join(__dirname, 'static', 'src', 'sass', 'homepage.scss'),
       ],
     },
     // Devserver config

@@ -1,0 +1,69 @@
+@import '../variables.scss';
+
+
+//
+// Layout for company related pages, such as `About` and `Terms & Conditions`
+// Static page, has header, .body-copy content, footer
+// Based on the `Terms_and_Conditions.psd` in Dropbox
+//
+// - this class should be used on the body element of the page
+// - sticky footer trick based on https://goo.gl/ZtYfAS
+//
+
+$block: '.layout-company';
+$header-height: 150px;  // based on design
+$footer-height: 130px;  // based on design
+
+#{$block} {
+  margin: 0 auto;
+  min-width: 320px;
+  width: 100%;
+
+  &__header {
+    height: $header-height;
+    left: 0;
+    position: absolute;
+    top: 0;
+  }
+
+  &__header,
+  &__footer {
+    overflow: hidden;
+    width: 100%;
+  }
+
+  &__content {
+    min-height: calc(100vh - #{$footer-height});
+    padding-top: $header-height;
+    padding-bottom: 100px;  // magic space between footer and end of content
+  }
+
+  &__footer {
+    height: $footer-height;
+  }
+}
+
+
+// @media (min-width: 1024px) {
+//   #{$block} {
+//     font-size: 16px;  // size of the paragraph text
+//   }
+// }
+
+// @media (min-width: 769px) and (max-width: 1024px) {
+//   #{$block} {
+//     font-size: 14px;  // size of the paragraph text
+//   }
+// }
+
+@media (min-width: 769px) {
+  #{$block} {
+    // max-width: 1280px;
+  }
+}
+
+@media (max-width: 768px) {
+  #{$block} {
+  }
+}
+
