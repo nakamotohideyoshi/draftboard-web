@@ -1,39 +1,38 @@
 {% extends 'registration/base.html' %}
+{% block title %}Log In | Draftboard{% endblock title %}
 
 {% block content_form %}
+  <form class="account__left__content__form" action='.' method='POST'>
+    {% csrf_token %}
 
-<form class="account__left__content__form" action='.' method='POST'>
-  {% csrf_token %}
+    {% if form.non_field_errors %}
+      {% for error in form.non_field_errors %}
+        <div class="error-info">
+          {{ error }}
+        </div>
+      {% endfor %}
+    {% endif %}
 
-  {% if form.non_field_errors %}
-    {% for error in form.non_field_errors %}
-      <div class="error-info">
-        {{ error }}
-      </div>
-    {% endfor %}
-  {% endif %}
+    {% if form.errors %}
+      <div class="error-info">Oops! Your username or pasword are incorrect.</div>
+    {% endif %}
 
-  {% if form.errors %}
-    <div class="error-info">Oops! Your username or pasword are incorrect.</div>
-  {% endif %}
+    <div class="account__left__content__form__input-layout {% if errors %} errored{% endif %}">
+      <label for="username">username</label>
+      <input id="username" type="text" name="username" {% if form.username.errors %}value={{ username }}{% endif %} required />
+    </div>
 
-  <div class="account__left__content__form__input-layout {% if errors %} errored{% endif %}">
-    <label for="username">username</label>
-    <input id="username" type="text" name="username" {% if form.username.errors %}value={{ username }}{% endif %} required />
-  </div>
+    <div class="account__left__content__form__input-layout {% if form.password.errors %} errored{% endif %}">
+      <label for="password">password</label>
+      <input id="password" type="password" name="password" required />
 
-  <div class="account__left__content__form__input-layout {% if form.password.errors %} errored{% endif %}">
-    <label for="password">password</label>
-    <input id="password" type="password" name="password" required />
+      <div class="forgot-password-link"><a href="{% url 'password_reset' %}">forgot password?</a></div>
+    </div>
 
-    <div class="forgot-password-link"><a href="{% url 'password_reset' %}">forgot password?</a></div>
-  </div>
-
-  <div class="account__left__content__form__input-layout">
-    <input type="hidden" name="next" value="{{ request.GET.next }}">
-    <input type="submit" value="Login" />
-    <span class="arrow"></span>
-  </div>
-</form>
-
+    <div class="account__left__content__form__input-layout">
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+      <input type="submit" value="Login" />
+      <span class="arrow"></span>
+    </div>
+  </form>
 {% endblock %}

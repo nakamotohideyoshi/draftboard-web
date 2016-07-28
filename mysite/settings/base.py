@@ -510,6 +510,7 @@ if USE_LOCKDOWN:
         r'^/api/',
         r'^/api-token-auth/',
         r'^/api-token-refresh/',
+        r'^/static/',
     )
 
 #

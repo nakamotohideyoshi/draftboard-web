@@ -150,7 +150,8 @@ export const Register = React.createClass({
         >
           <input ref="terms" name="terms" type="checkbox" value="terms" required />
           <p>
-            I am at least 18 years or older and accept the <a href="#">Terms &amp; Agreement.</a>
+            I am at least 18 years or older and accept the
+            <a href="/terms-conditions/" target="_blank">Terms &amp; Agreement.</a>
           </p>
         </div>
 

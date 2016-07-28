@@ -74,5 +74,12 @@ urlpatterns = patterns(
         r'^account/withdraw/$',
         views.FrontendSettingsWithdrawTemplateView.as_view(),
         name='account-withdraw'
-    )
+    ),
+
+    # body copy pages
+    url(
+        r'^terms-conditions/$',
+        views.FrontendTermsConditionsTemplateView.as_view(),
+        name='terms-conditions'
+    ),
 )
