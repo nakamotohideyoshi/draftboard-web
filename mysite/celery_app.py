@@ -68,7 +68,7 @@ app.conf.update(
     # BROKER_URL = 'redis://localhost:6379/0',
     # CELERY_RESULT_BACKEND = settings.CACHES['default']['LOCATION'],
     # BROKER_URL = settings.CACHES['default']['LOCATION'],
-    #CELERY_RESULT_BACKEND = os.environ.get('REDISCLOUD_URL'),
+    CELERY_RESULT_BACKEND = broker_url,
     BROKER_URL = broker_url,
 
     #: Only add pickle to this list if your broker is secured
