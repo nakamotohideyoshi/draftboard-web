@@ -1262,14 +1262,24 @@ class ZonePitchManager(Manager):
     shrinker_class = ZonePitchShrinker
 
     defaults = {
-        'mph' : 0.0,
-        'z' : 5,
-        't' : 'UNK',
-        'valid' : False
+        #'mph' : 0.0,
+        #'z' : 5,
+        #'t' : 'UNK',
+        #'valid' : False
     }
 
     def __init__(self, zone_pitches, at_bat):
-        self.zone_pitches = zone_pitches
+        #
+        # this is a semi-hack so the rest of the system works properly.
+        # at the last minute before we build the data to be sent out,
+        # remove any pitches that lack a 'pitch_zone' so they wont
+        # be show on the front end.
+        self.zone_pitches = []
+        for zp in zone_pitches:
+            if zp.get('pitch_zone') is None:
+                continue
+            self.zone_pitches.append(zp)
+        #
         self.at_bat = at_bat
 
     def get_data(self, additional_data=None):
@@ -2264,7 +2274,7 @@ class ReqRunner(Req):
 class PbpParser(DataDenPbpDescription):
 
     # for zone pitches that are lacking the pitch_zone
-    class IncompleteZonePitch(Exception): pass
+    #class IncompleteZonePitch(Exception): pass
 
     # we dont want to include pickoff pitches, but they come in like zone pitches
     class PickoffPitchException(Exception): pass
@@ -2320,8 +2330,6 @@ class PbpParser(DataDenPbpDescription):
         # get it and build its proper Req object for the target
         try:
             req = self.get_req_from(self.o, target)
-        except self.IncompleteZonePitch as e:
-            return # dont parse this into the cache if its lacking the pitch zone
         except self.PickoffPitchException as e:
             return # nothing to do for a zone pitch thats not actually a zone pitch
 
@@ -2385,10 +2393,6 @@ class PbpParser(DataDenPbpDescription):
             return ReqAtBat(data)
 
         elif target == ('mlb.pitcher', 'pbp'):
-            if data.get('pitch_zone') is None:
-                # ignore incomplete pitches
-                raise self.IncompleteZonePitch()
-
             if data.get('steal__id') is not None:
                 # ignore pickoff throws which come in looking like zone pitches!
                 raise self.PickoffPitchException()
