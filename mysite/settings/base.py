@@ -133,7 +133,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 # Static assets, served via django-whitenoise
 STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/build/'
-PLAYER_IMAGES_URL = 'http://djh3pixt0wof0.cloudfront.net'
+PLAYER_IMAGES_URL = '//static-players.draftboard.com'
 
 # Redirects to same URL with end slash if it can't find the page
 APPEND_SLASH = True
@@ -185,18 +185,6 @@ CACHALOT_CACHE = 'cachalot'
 STATICFILES_STORAGE = 'mysite.storage.WhitenoisePipelineStorage'
 PIPELINE_JS_COMPRESSOR = 'pipeline.compressors.jsmin.JSMinCompressor'
 PIPELINE_JS = {}
-
-# URLs to redirect to SSL
-SSL_URLS = ({
-    r'/login/',
-    r'/register/',
-    r'/admin/',
-})
-
-# Don't force these urls to be redirected to SSL or non-SSL, let them be served up however the request was.
-NO_REDIRECT_URLS = (
-    r'/api/*',
-)
 
 #
 ##########################################################################
@@ -362,6 +350,7 @@ MIDDLEWARE_CLASSES = (
     # GZIP and security protection for it
     'django.middleware.gzip.GZipMiddleware',
     'debreach.middleware.RandomCommentMiddleware',
+    'django.middleware.security.SecurityMiddleware',
 
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

@@ -61,8 +61,15 @@ INSTALLED_APPS += (
     'raven.contrib.django.raven_compat',
 )
 
-# SSL redirect
-MIDDLEWARE_CLASSES += ('mysite.middleware.ssl_redirect.SSLRedirect',)
+# SSL
+# NOTE: we redirect all traffic to HTTPS at the DNS level, no need at application level
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 3600
+# SECURE_HSTS_SECONDS = 31536000  # one year, prevents accepting traffic via HTTP
+
+# set this once all subdomains are under HTTPS
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 # Pusher
 PUSHER_APP_ID = '144195'
