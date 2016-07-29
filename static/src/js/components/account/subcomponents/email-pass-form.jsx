@@ -105,7 +105,7 @@ const EmailPassForm = React.createClass({
 
           { 'email' in this.props.errors &&
             <div className="form-field-message form-field-message--error form-field-message--settings">
-              <p className="form-field-message__description">{ this.props.errors.email.description }</p>
+              <p className="form-field-message__description">{ this.props.errors.email[0] }</p>
             </div>
           }
         </div>
@@ -123,7 +123,7 @@ const EmailPassForm = React.createClass({
 
           { 'password' in this.props.errors &&
             <div className="form-field-message form-field-message--error form-field-message--settings">
-              <p className="form-field-message__description">{ this.props.errors.password.description }</p>
+              <p className="form-field-message__description">{ this.props.errors.password[0] }</p>
             </div>
           }
           </div>
