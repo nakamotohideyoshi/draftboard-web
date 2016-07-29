@@ -84,9 +84,13 @@ const SettingsEmailNotifications = React.createClass({
 
 
   renderErrors() {
-    if (this.props.errors) {
+    if (this.props.errors.length) {
       return (
-        <div className="error"><p>{this.props.errors}</p></div>
+        <div
+          className="form-field-message form-field-message--error form-field-message--settings"
+        >
+          <p className="form-field-message__description">{this.props.errors}</p>
+        </div>
       );
     }
 
