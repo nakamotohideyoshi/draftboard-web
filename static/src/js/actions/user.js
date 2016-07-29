@@ -48,10 +48,10 @@ function updateUserInfoSuccess(body) {
   };
 }
 
-function updateUserInfoFail(ex) {
+function updateUserInfoFail(body) {
   return {
     type: types.UPDATE_USER_INFO_FAIL,
-    ex,
+    body,
   };
 }
 
@@ -63,7 +63,12 @@ export function updateUserInfo(postData = {}) {
     .send(postData)
     .end((err, res) => {
       if (err) {
-        return dispatch(updateUserInfoFail(err));
+        // // If validation errors are provided, pass them along.
+        if (res.body.detail) {
+          return dispatch(updateUserInfoFail({ fullname: [res.body.detail] }));
+        }
+        // Otherwise just pass the response error.
+        return dispatch(updateUserInfoFail(res.body));
       }
 
       return dispatch(updateUserInfoSuccess(res.body));
@@ -97,17 +102,11 @@ function validateUserEmailPass(data) {
   const errors = {};
 
   if (data.password !== data.passwordConfirm) {
-    errors.password = {
-      title: 'Passwords',
-      description: 'Passwords do not match',
-    };
+    errors.password = ['Passwords do not match'];
   }
 
   if (data.email === '') {
-    errors.email = {
-      title: 'Email Address',
-      description: 'Email cannot be empty',
-    };
+    errors.email = ['Email cannot be empty'];
   }
 
   return errors;
@@ -127,6 +126,10 @@ export function updateUserEmailPass(formData = {}) {
     if (postData.password === '') {
       delete postData.password;
       delete postData.passwordConfirm;
+    } else {
+      // Set the post value to be underscore-ized because this is what the server expects.
+      postData.password_confirm = postData.passwordConfirm;
+      delete postData.passwordConfirm;
     }
 
     // If we don't have any errors, send the request to the server.
@@ -136,7 +139,12 @@ export function updateUserEmailPass(formData = {}) {
     .send(postData)
     .end((err, res) => {
       if (err) {
-        return dispatch(updateUserEmailPassFail(err));
+        // We have a data validation error that contains specific error messages.
+        if (res.status === 400) {
+          return dispatch(updateUserEmailPassFail({ errors: res.body }));
+        }
+        // Catch-all for any other error response types.
+        return dispatch(updateUserEmailPassFail({ errors: { password: [res.body.detail] } }));
       }
 
       return dispatch(updateUserEmailPassSuccess(res.body));
@@ -235,18 +243,29 @@ export function fetchEmailNotificationSettings() {
       .end((err, res) => {
         if (err) {
           log.error("Could not fetch user's email notification settings", err);
+          // Reject the promise.
           reject(err);
-          dispatch({
+
+          // If validation errors are provided, pass them along.
+          if (res.body.detail) {
+            return dispatch({
+              type: types.FETCH_EMAIL_NOTIFICATIONS_FAIL,
+              body: res.detail,
+            });
+          }
+
+          // If no specific validation errors, just send the response body.
+          return dispatch({
             type: types.FETCH_EMAIL_NOTIFICATIONS_FAIL,
             body: res.body,
           });
-        } else {
-          dispatch({
-            type: types.FETCH_EMAIL_NOTIFICATIONS_SUCCESS,
-            body: res.body,
-          });
-          resolve(res);
         }
+
+        dispatch({
+          type: types.FETCH_EMAIL_NOTIFICATIONS_SUCCESS,
+          body: res.body,
+        });
+        return resolve(res);
       });
     });
   };
@@ -270,9 +289,18 @@ export function updateEmailNotificationSettings(formData) {
       .end((err, res) => {
         if (err) {
           log.error("Could not update user's email notification settings", err);
+
+          // If validation errors are provided, pass them along.
+          if (res.body.detail) {
+            return dispatch({
+              type: types.UPDATE_EMAIL_NOTIFICATIONS_FAIL,
+              err: res.body.detail,
+            });
+          }
+
           dispatch({
             type: types.UPDATE_EMAIL_NOTIFICATIONS_FAIL,
-            err,
+            err: err.message,
           });
           reject(err);
         } else {

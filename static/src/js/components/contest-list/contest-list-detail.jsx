@@ -166,7 +166,7 @@ const ContestListDetail = React.createClass({
   getTabNav() {
     const tabs = [
       { title: 'Payout', tab: 'prizes' },
-      { title: 'Entries', tab: 'entries' },
+      { title: 'My Entries', tab: 'entries' },
       { title: 'Games', tab: 'games' },
     ];
 
