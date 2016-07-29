@@ -111,10 +111,11 @@ TEMPLATES = [
                 # testing this here... had to move it in here in django 1.9
                 'debreach.context_processors.csrf',
             ],
-
             'loaders': [
-                'django.template.loaders.filesystem.Loader',
-                'django.template.loaders.app_directories.Loader'
+                ('django.template.loaders.cached.Loader', [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ]),
             ],
 
             'debug': DEBUG,  # set the template debug to the same as global settings debug

@@ -185,7 +185,7 @@ export const Live = React.createClass({
     // BEM CSS block name
     const block = 'live';
 
-    if (this.state.windowWidth < 1025) return (<LiveUnsupported />);
+    if (this.state.windowWidth < 768) return (<LiveUnsupported />);
 
     // don't do anything until we have lineups!
     if (!uniqueLineups.haveLoaded) return (<div className={`${block}`}><LiveLoading isContestPools={false} /></div>);
