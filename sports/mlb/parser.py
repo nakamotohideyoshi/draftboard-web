@@ -1758,11 +1758,11 @@ class QuickCacheList(QuickCache):
 # the cache objects help us store short lived dataden objects
 ###############################################################
 class PitchCache(QuickCache):
-    """  """
+    """ cache for objects from mongo namespace 'mlb.pitch' """
     name = 'PitchCache_mlb_pbp'
 
 class AtBatCache(QuickCache):
-    """  """
+    """ cache for objects from mongo namespace 'mlb.at_bat' """
     name = 'AtBatCache_mlb_pbp'
 
 class PitcherCache(QuickCache):
@@ -1771,7 +1771,7 @@ class PitcherCache(QuickCache):
     field_id = 'pitch__id'
 
 class RunnerCache(QuickCache):
-    """  """
+    """ cache for objects from mongo namespace 'mlb.runner' """
     name = 'RunnerCache_mlb_pbp'
 
 class PitcherCacheList(QuickCacheList):
@@ -1800,21 +1800,6 @@ class RunnerCacheList(QuickCacheList):
     def fetch(self, id):
         l = super().fetch(id)
         return self.remove_duplicates_by_field(l, self.field_runner_id)
-        # remove duplicates
-        # # print('')
-        # # print('')
-        # # print('')
-        # added = []
-        # runners = []
-        # l.reverse()
-        # for r in l:
-        #     r_id = r.get(self.field_runner_id)
-        #     if r_id not in added:
-        #         added.append(r_id)
-        #         runners.append(r)
-        #
-        # return runners
-
 
 #
 ###############################################################
@@ -1924,26 +1909,6 @@ class PitchExtras(OidExtras):
     """
 
     score_system_class = scoring.classes.MlbSalaryScoreSystem
-
-    # STATS_STR = 'stats_str'
-    #
-    # ab_bat_extra_data = {
-    #     STATS_STR: '',
-    # }
-    #
-    # def __init__(self):
-    #     """
-    #     create AtBatExtras with the additional key-values in a custom dict
-    #     to get a few more fields we want
-    #     """
-    #     super().__init__(self.ab_bat_extra_data)
-    #
-    # def update_player_stats(self, player_stats):
-    #     # self.add(self.FIRST_NAME, player_stats.player.first_name)
-    #     # self.add(self.LAST_NAME, player_stats.player.last_name)
-    #     # self.add(self.SRID_TEAM, player_stats.player.team.srid)
-    #     self.add(self.STATS_STR, PlayerStatsToStr(player_stats).get_description())
-
 
 class AtBatExtras(OidExtras):
     """
@@ -2298,9 +2263,14 @@ class ReqRunner(Req):
 
 class PbpParser(DataDenPbpDescription):
 
-    class BuildSendableDataException(Exception):
-        """ exception for when there was an error shrink/reducing/adding extras """
-        pass
+    # for zone pitches that are lacking the pitch_zone
+    class IncompleteZonePitch(Exception): pass
+
+    # we dont want to include pickoff pitches, but they come in like zone pitches
+    class PickoffPitchException(Exception): pass
+
+    # error reducing, shrinking, or adding extras
+    class BuildSendableDataException(Exception): pass
 
     game_model = Game
     pbp_model = Pbp
@@ -2337,10 +2307,6 @@ class PbpParser(DataDenPbpDescription):
         # to the rest of the objects for the pitch if they exist
         self.ts = None
 
-    # def send(self, *args, **kwargs):
-    #     # note: passing force=True to send() will allow sending more than once
-    #     super().send()
-
     def parse(self, obj, target):
         """ parse a dataden object that has a mongo oplog wrapper on it """
 
@@ -2352,7 +2318,12 @@ class PbpParser(DataDenPbpDescription):
 
         # it should already be cached! (adding if its not an ok idea perhaps)
         # get it and build its proper Req object for the target
-        req = self.get_req_from(self.o, target)
+        try:
+            req = self.get_req_from(self.o, target)
+        except self.IncompleteZonePitch as e:
+            return # dont parse this into the cache if its lacking the pitch zone
+        except self.PickoffPitchException as e:
+            return # nothing to do for a zone pitch thats not actually a zone pitch
 
         # now ask the req for the whole pbp obj.
         # if it cant build it, will return None
@@ -2414,6 +2385,14 @@ class PbpParser(DataDenPbpDescription):
             return ReqAtBat(data)
 
         elif target == ('mlb.pitcher', 'pbp'):
+            if data.get('pitch_zone') is None:
+                # ignore incomplete pitches
+                raise self.IncompleteZonePitch()
+
+            if data.get('steal__id') is not None:
+                # ignore pickoff throws which come in looking like zone pitches!
+                raise self.PickoffPitchException()
+
             pcl = PitcherCacheList(data) # add it to a list
             return ReqPitcher(data)
 
@@ -2722,7 +2701,9 @@ class DataDenMlb(AbstractDataDenParser):
 
         #
         elif self.target == ('mlb.game','boxscores'):
-            GameBoxscores().parse( obj )  # top level boxscore info
+            boxscore_parser = GameBoxscores()
+            boxscore_parser.parse( obj )  # top level boxscore info
+            boxscore_parser.send()
 
             # TODO modify te GameBoxscores parser class to
             # Reduce/Shrink the underlying data with a Manager object
