@@ -27,31 +27,46 @@ module.exports = (state = initialState, action) => {
   switch (action.type) {
 
     // Fetch user info (name, address, dob)
-    case ActionTypes.FETCH_USER_INFO_SUCCESS:
-      return merge({}, state, {
-        infoFormErrors: {},
+    case ActionTypes.FETCH_USER_INFO_SUCCESS: {
+      const newState = merge({}, state, {
         info: action.body,
       });
+      newState.infoFormErrors = {};
+      return newState;
+    }
 
 
-    case ActionTypes.UPDATE_USER_INFO_SUCCESS:
+    case ActionTypes.UPDATE_USER_INFO_SUCCESS: {
       // TODO: update user with the response
-      return merge({}, state, {
+      const newState = merge({}, state, {
         info: action.body,
-        infoFormErrors: {},
       });
+      newState.infoFormErrors = {};
+      return newState;
+    }
 
-    case ActionTypes.UPDATE_USER_INFO_FAIL:
-      return merge({}, state, {
-        infoFormErrors: action.ex.response.body.errors,
-      });
+
+    case ActionTypes.UPDATE_USER_INFO_FAIL: {
+      const newState = merge({}, state, {});
+      newState.infoFormErrors = action.body;
+      return newState;
+    }
 
 
     // Email Pass
-    case ActionTypes.UPDATE_USER_EMAIL_PASS_FAIL:
-      return merge({}, state, {
-        emailPassFormErrors: action.body.errors,
-      });
+    case ActionTypes.UPDATE_USER_EMAIL_PASS_FAIL: {
+      const newState = merge({}, state, {});
+      newState.emailPassFormErrors = action.body.errors || {};
+      return newState;
+    }
+
+
+    case ActionTypes.UPDATE_USER_EMAIL_PASS_SUCCESS: {
+      const newState = merge({}, state, { info: action.body });
+      // Clear any existing errors.
+      newState.emailPassFormErrors = {};
+      return newState;
+    }
 
 
     /**
@@ -103,6 +118,7 @@ module.exports = (state = initialState, action) => {
       return merge({}, state, {
         notificationSettings: {
           isFetchingEmail: false,
+          emailErrors: action.body,
         },
       });
 
@@ -128,7 +144,7 @@ module.exports = (state = initialState, action) => {
       return merge({}, state, {
         notificationSettings: {
           isUpdatingEmail: false,
-          emailErrors: [action.err.message],
+          emailErrors: [action.err],
         },
       });
 

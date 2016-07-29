@@ -30,7 +30,11 @@ const Withdrawals = React.createClass({
   handleWithdraw(event) {
     event.preventDefault();
     // gather data
-    this.props.onWithdraw({});
+    this.props.onWithdraw({
+      amount: this.refs.amount.value,
+      email: this.refs.email.value,
+      ssn: this.refs.ssn.value,
+    });
   },
 
   render() {
@@ -45,6 +49,7 @@ const Withdrawals = React.createClass({
 
             <span className="input-symbol-dollar">
               <input
+                ref="amount"
                 className="form-field__text-input"
                 type="text"
                 name="amount"
@@ -56,7 +61,7 @@ const Withdrawals = React.createClass({
           </div>
 
           <div className="form-field form-field--with-help">
-            <label className="form-field__label" htmlFor="notifications">Withdraw Method</label>
+            <label className="form-field__label" htmlFor="paypal-email">Withdraw Method</label>
             <div className="form-field__content">
               <p className="form-field__info">
                 You may receive your withdraw thru PayPal or a mailed check. Mailed checks may take
@@ -64,11 +69,30 @@ const Withdrawals = React.createClass({
               </p>
 
               <input
+                ref="email"
                 className="form-field__text-input"
                 type="email"
                 id="paypal-email"
                 name="paypal-email"
                 placeholder="Paypal associated email address..."
+              />
+            </div>
+          </div>
+
+
+          <div className="form-field form-field--with-help">
+            <label className="form-field__label" htmlFor="ssn">SSN</label>
+            <div className="form-field__content">
+              <p className="form-field__info">
+                Your Social Security Number must be provided for tax purposes.
+              </p>
+
+              <input
+                ref="ssn"
+                className="form-field__text-input"
+                type="text"
+                id="ssn"
+                name="ssn"
               />
             </div>
           </div>

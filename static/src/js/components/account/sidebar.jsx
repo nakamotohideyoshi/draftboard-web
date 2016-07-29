@@ -2,7 +2,6 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store.js';
 import renderComponent from '../../lib/render-component.js';
-import { fetchUserInfo } from '../../actions/user';
 const { Provider, connect } = ReactRedux;
 import { humanizeCurrency } from '../../lib/utils/currency.js';
 
@@ -14,10 +13,9 @@ function mapStateToProps(state) {
   };
 }
 
-function mapDispatchToProps(dispatch) {
-  return {
-    fetchUserInfo: () => dispatch(fetchUserInfo()),
-  };
+
+function mapDispatchToProps() {
+  return {};
 }
 
 
@@ -45,7 +43,6 @@ const Sidebar = (props) => (
 Sidebar.propTypes = {
   user: React.PropTypes.object.isRequired,
   cashBalance: React.PropTypes.number,
-  fetchUserInfo: React.PropTypes.func.isRequired,
 };
 
 
