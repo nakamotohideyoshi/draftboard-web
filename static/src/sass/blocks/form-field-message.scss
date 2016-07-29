@@ -46,14 +46,14 @@
     }
 
     .form-field-message__description {
-      color: #e8bfc1;
+      color: #fff;
     }
   }
 
   // default positioning within the settings area
   &--settings {
     position: absolute;
-    padding: 14px 16px 10px 16px;
+    padding: 14px 16px;
     right: 0;
     top: -6px;
   }
