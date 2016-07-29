@@ -18,13 +18,9 @@ celery: celery -A mysite worker -l info
 celery2: celery -A mysite worker -l info --maxtasksperchild=10 --autoscale=2,8
 
 # another - if eacher worker spawns a celeryd, we dont need many of them thats for sure
-celery3: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=20 --maxtasksperchild=10
-
-# another test
-celery4: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=20 --maxtasksperchild=10 --autoscale=1,2
-
-# another test
-celery5: celery -A mysite worker -l info -c 256 -P eventlet --time-limit=600 --soft-time-limit=20 --maxtasksperchild=10
+celery60: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=60 --maxtasksperchild=10
+celery120: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=120 --maxtasksperchild=10
+celery300: celery -A mysite worker -l info --time-limit=600 --soft-time-limit=300 --maxtasksperchild=10
 
 #
 # purger is also a normal celery worker.
