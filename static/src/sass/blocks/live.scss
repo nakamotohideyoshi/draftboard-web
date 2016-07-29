@@ -30,6 +30,10 @@ $block: '.live';
         background-image: url(../img/blocks/live-countdown/bg-mlb.jpg);
         background-size: cover;
       }
+
+      #{$block}__venues {
+        padding: 0;
+      }
     }
 
     &-nba {
@@ -47,7 +51,7 @@ $block: '.live';
   &__venues {
     display: table;
     height: 100%;
-    padding: 0 $live-lineup-width;
+    padding: 0 320px;
     position: absolute;
     width: 100%;
   }

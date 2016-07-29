@@ -1,3 +1,4 @@
+$block: '.results-page';
 $results-fg-text-color: #46495e;
 $results-bg-text-color: #BDC0C2;
 $results-selected-text-color: #2bb677;
@@ -5,24 +6,18 @@ $results-selected-text-color: #2bb677;
 .results-page {
   background: transparent url(../img/blocks/live/bg.jpg) no-repeat left top;
   background-size: 100% auto;
-  height: 100%;
   margin: 0 auto;
-  min-width: 1024px;
   position: relative;
   width: 100%;
 
   &--header {
     height: 130px;
-    padding: 0 88px;
     margin-top: 60px;
     position: relative;
     background-color: #ffffff;
     text-transform: uppercase;
 
     .title {
-      display: inline-block;
-      padding-top: 40px;
-
       .text {
         color: #9c9fae;
         font-size: 9.5px;
@@ -37,9 +32,6 @@ $results-selected-text-color: #2bb677;
 
     .results-days-slider {
       display: inline-block;
-      position: relative;
-      top: 4px;
-      margin-left: 30px;
 
       .arrow-left, .arrow-right {
         color: #878a9f;
@@ -156,8 +148,6 @@ $results-selected-text-color: #2bb677;
     .draft-a-team {
       display: inline-block;
       position: absolute;
-      right: 100px;
-      top: 58px;
       color: #46485d;
       font-size: 9.5px;
       border: solid 1px $results-selected-text-color;
@@ -174,9 +164,6 @@ $results-selected-text-color: #2bb677;
   }
 
   &--stats {
-    height: 50px;
-    padding-left: 88px;
-    line-height: 50px;
     background-color: #EDEEF1;
 
     .item {
@@ -198,7 +185,6 @@ $results-selected-text-color: #2bb677;
         font-family: $font-oswald;
         font-size: 15px;
         margin-left: 6px;
-        margin-right: 36px;
       }
     }
   }
@@ -222,7 +208,7 @@ $results-selected-text-color: #2bb677;
   }
 
   &--lineups {
-    padding: 40px 0 0 88px;
+    padding: 40px 0 0;
 
 
     .lineup {
@@ -805,7 +791,6 @@ $results-selected-text-color: #2bb677;
     }
 
     .flip-container, .lineup, .contests {
-      width: 290px;
       min-height: 480px;
       display: inline-block;
       margin-right: 40px;
@@ -826,6 +811,143 @@ $results-selected-text-color: #2bb677;
 
     .contests {
       transform: rotateY(180deg);
+    }
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .results-page {
+    &--header {
+      padding: 0 28px;
+
+      .draft-a-team {
+        right: 28px;
+      }
+    }
+
+    &--lineups {
+      padding-left: 28px;
+    }
+  }
+}
+
+@media (min-width: 1024px) {
+  .results-page {
+    &--header {
+      padding: 0 88px;
+
+      .draft-a-team {
+        right: 100px;
+      }
+    }
+
+    &--lineups {
+      padding-left: 88px;
+    }
+  }
+}
+
+@media (min-width: 768px) {
+  .results-page {
+    height: 100%;
+
+    &--header {
+
+      .title {
+        display: inline-block;
+        padding-top: 40px;
+      }
+
+      .results-days-slider {
+        position: relative;
+        top: 4px;
+        margin-left: 30px;
+      }
+
+      .draft-a-team {
+        top: 58px;
+      }
+    }
+
+    &--stats {
+      height: 50px;
+      padding-left: 88px;
+      line-height: 50px;
+
+      .item .value {
+        margin-right: 36px;
+      }
+    }
+
+    &--lineups {
+      .flip-container, .lineup, .contests {
+        width: 290px;
+      }
+    }
+  }
+}
+
+
+@media (max-width: 767px) {
+  #{$block} {
+    &--header {
+      .title {
+        display: block;
+        padding-top: 10px;
+        padding-left: 5%;
+      }
+
+      .results-days-slider {
+        display: inline-block;
+        position: absolute;
+        right: 0;
+        top: 60px;
+        transform: scale(0.9);
+      }
+
+      .results-date-picker {
+        padding-top: 18px;
+      }
+
+      .draft-a-team {
+        right: 5%;
+        top: 20px;
+      }
+    }
+
+    &--stats {
+      padding: 10px 5%;
+      line-height: 2;
+      text-align: center;
+
+      .item .value {
+        margin-right: 19px;
+      }
+    }
+
+    &--lineups {
+      padding-left: 5%;
+
+      .flip-container.shown-contest-pane .pane {
+        width: 90%;
+
+        .pane-upper .header {
+          background-size: auto 100%;
+          min-height: 380px;
+        }
+
+        .tab-nav li {
+          margin: 5px 9px;
+        }
+      }
+
+      .flip-container, .lineup, .contests {
+        width: 100%;
+      }
+
+      .flip-container {
+        width: 95%;
+      }
     }
   }
 }

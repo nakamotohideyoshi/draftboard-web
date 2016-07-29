@@ -352,7 +352,7 @@ const fetchGames = (sport) => ({
       ActionTypes.RECEIVE_GAMES,
       ActionTypes.ADD_MESSAGE,
     ],
-    expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
+    expiresAt: dateNow() + 1000 * 60 * 2,  // 2 minutes
     endpoint: `${API_DOMAIN}/api/sports/scoreboard-games/${sport}/`,
     requestFields: { sport },
     callback: (json) => {

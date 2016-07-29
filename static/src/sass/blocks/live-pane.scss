@@ -1,5 +1,7 @@
 @import "../variables.scss";
 
+$live-pane-width: 36vw;
+
 
 // right or left hand pane that slides out on trigger. also includes a back button to close out.
 .live-pane {
@@ -8,6 +10,7 @@
   position: fixed;
   top: 0;
   transition: all 230ms cubic-bezier(.8,.16,.18,.85);
+  max-width: 480px;
   width: $live-pane-width;
   z-index: $zindex-modal;
 
