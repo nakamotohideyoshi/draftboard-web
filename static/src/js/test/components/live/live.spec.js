@@ -30,10 +30,10 @@ describe('<Live /> Component', () => {
     document.body.innerHTML = '';
   });
 
-  it('should render message if under 1024px', () => {
+  it('should render message if under 768px', () => {
     const wrapper = renderComponent(defaultTestProps);
 
-    wrapper.setState({ windowWidth: 800 });
+    wrapper.setState({ windowWidth: 700 });
 
     expect(wrapper.find(LiveUnsupported)).to.have.length(1);
   });
