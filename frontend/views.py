@@ -155,3 +155,7 @@ class FrontendPaneTemplateView(TemplateView):
     """
 
     template_name = 'frontend/partials/pane.html'
+
+
+class FrontendTermsConditionsTemplateView(TemplateView):
+    template_name = 'frontend/terms-conditions.html'

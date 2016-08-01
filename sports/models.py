@@ -370,15 +370,13 @@ class PlayerStats(models.Model):
     player              = GenericForeignKey('player_type', 'player_id')
 
     fantasy_points      = models.FloatField(default=0.0, null=False)
+    fp_change           = models.FloatField(default=0.0, null=False)
 
     # reference the position FROM THE PLAYER WHEN THEY PLAYED THE GAME.
     #   ie: the players position might be different now! but we want
     #       the position they were when the played in the game!
     position    = models.ForeignKey(Position, null=False,
                     related_name='%(app_label)s_%(class)s_playerstats_position')
-
-    #position            = models.CharField(max_length=16, null=False, default='')
-    # primary_position    = models.CharField(max_length=16, null=False, default='')
 
     def get_cache_token(self):
         """
@@ -417,8 +415,8 @@ class PlayerStats(models.Model):
         unique_together = ('srid_player','srid_game')
 
     def __str__(self):
-        return 'game %s | player %s | fantasy_points %s | %s' % (self.srid_game,
-                           self.srid_player, self.fantasy_points, str(self.player))
+        return 'game %s | player %s | fantasy_points %s | %s | last change (%s)' % (self.srid_game,
+                           self.srid_player, self.fantasy_points, str(self.player), str(self.fp_change))
 
     def save(self, *args, **kwargs):
         if self.FANTASY_POINTS_OVERRIDE in kwargs:

@@ -1,10 +1,10 @@
 'use strict';
 
-require('../../test-dom')();
-const React = require('react');
-const ReactDOM = require('react-dom');
+import React from 'react';
+import { expect } from 'chai';
+import { shallow } from 'enzyme';
+
 import ResultsStats from '../../../components/results/results-stats.jsx';
-const expect = require('chai').expect;
 
 const defaultProps = {
   stats: {
@@ -18,50 +18,32 @@ const defaultProps = {
 
 describe("ResultsStats Component", function() {
 
-  beforeEach(function(done) {
-    var self = this;
-    document.body.innerHTML = '';
-    // The DOM element that the component will be rendered to.
-    this.targetElement = document.body.appendChild(document.createElement('div'));
-    // Render the component into our fake jsdom element.
-    this.component = ReactDOM.render(
-      React.createElement(ResultsStats, defaultProps),
-      this.targetElement,
-      function() {
-        // Once it has been rendered...
-        // Grab it from the DOM.
-        self.componentElement = ReactDOM.findDOMNode(this);
-        done();
-      }
-    );
-  });
-
-  afterEach(function() {
-    document.body.innerHTML = '';
-  });
+  function renderComponent(props = defaultProps) {
+    return shallow(<ResultsStats {...props} />);
+  }
 
   it('should render all provided stats', function() {
-    expect(this.componentElement.tagName).to.equal('DIV');
+    const wrapper = renderComponent();
+    expect(wrapper.find('.results-page--stats')).to.have.length(1);
 
     expect(
-      this.componentElement.querySelector('.winnings .value').textContent.trim()
+      wrapper.find('.winnings').find('.value').text().trim()
     ).to.equal('$' + defaultProps.stats.winnings);
 
     expect(
-      this.componentElement.querySelector('.possible .value').textContent.trim()
+      wrapper.find('.possible').find('.value').text().trim()
     ).to.equal('$' + defaultProps.stats.possible);
 
     expect(
-      this.componentElement.querySelector('.buyins .value').textContent.trim()
+      wrapper.find('.buyins').find('.value').text().trim()
     ).to.equal('$' + defaultProps.stats.buyins);
 
     expect(
-      this.componentElement.querySelector('.entries .value').textContent.trim()
+      wrapper.find('.entries').find('.value').text().trim()
     ).to.equal(defaultProps.stats.entries.toString());
 
     expect(
-      this.componentElement.querySelector('.contests .value').textContent.trim()
+      wrapper.find('.contests').find('.value').text().trim()
     ).to.equal(defaultProps.stats.contests.toString());
   });
-
 });

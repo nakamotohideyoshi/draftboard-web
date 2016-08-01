@@ -15,6 +15,13 @@ $nav-scoreboard-foreground-color: #25A758;
   width: 100%;
   z-index: $zindex-nav-scoreboard;
 
+  &:after {
+    content: '';
+    position: relative;
+    height: $nav-scoreboard-height;
+    width: 100%;
+  }
+
   // We need a single top-level element that react renders to (aaaannoying).
   .inner {
     background: $nav-scoreboard-background-color;
@@ -38,10 +45,11 @@ $nav-scoreboard-foreground-color: #25A758;
   &--logged-out-info {
     a {
       text-transform: uppercase;
-      font-size: 12px;
+      font-size: 10px;
       color: #fff;
-      padding: 22px 10px 0;
+      padding: 0 10px;
       display: inline-block;
+      line-height: 5.4;  // line-height is ratio of height of nav / font size
     }
   }
 
@@ -62,11 +70,12 @@ $nav-scoreboard-foreground-color: #25A758;
   }
 
   &--menu {
-    min-width: 65px;
-    max-width: 65px;
+    height: $nav-scoreboard-height;
+    position: relative;
+    width: $nav-scoreboard-height;
 
     .mobile-forum-hamburger {
-      position: relative;
+      position: absolute;
       top: 16px;
       left: 23px;
 
@@ -191,7 +200,7 @@ $nav-scoreboard-foreground-color: #25A758;
     overflow: hidden;
 
     .cmp-nav-scoreboard--separator {
-      border-left: solid 1px #3e4452;
+      border-left: solid 1px #242736;
     }
 
     .slider-content {
@@ -371,7 +380,7 @@ $nav-scoreboard-foreground-color: #25A758;
   position: relative;
 
   &--options {
-    background: #272b3a;
+    background: $nav-scoreboard-background-color;
     display: none;
     top: 54px;
     left: -24px;

@@ -210,11 +210,18 @@ html.section-login {
 // is used in the draft section to lazy-load images.
 html.section-live,
 html.section-live body,
-html.section-login,
-html.section-live body {
+html.section-logged-out-account,
+html.section-logged-out-account body {
   // Avoid the IE 10-11 `min-height` bug by using `height`.
   // Use `%` instead of `vh` since `vh` is buggy in older mobile Safari.
   height: 100%;
+}
+
+// prevent overflow in live
+html.section-live,
+html.section-live body {
+  min-height: 754px;
+  min-width: 1024px;
   overflow: auto;
 }
 

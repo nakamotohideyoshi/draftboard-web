@@ -17,10 +17,12 @@ module.exports = (state = initialState, action) => {
         payments: action.body,
       });
 
+
     case ActionTypes.ADD_PAYMENT_METHOD_SUCCESS:
       return merge({}, state, {
         payments: state.payments.append(action.body),
       });
+
 
     case ActionTypes.SET_PAYMENT_METHOD_DEFAULT_SUCCESS:
       return merge({}, state, {
@@ -35,30 +37,36 @@ module.exports = (state = initialState, action) => {
         }),
       });
 
+
     case ActionTypes.REMOVE_PAYMENT_METHOD_SUCCESS:
       return merge({}, state, {
         payments: state.payments.filter((payment) => payment.id !== action.id),
       });
+
 
     case ActionTypes.DEPOSIT_SUCCESS:
       return merge({}, state, {
         depositFormErrors: {},
       });
 
+
     case ActionTypes.DEPOSIT_FAIL:
       return merge({}, state, {
         depositFormErrors: action.ex.response.body.errors,
       });
 
-    case ActionTypes.WITHDRAW_SUCCESS:
+
+    case ActionTypes.WITHDRAW_AMOUNT_SUCCESS:
       return merge({}, state, {
         withdrawalFormErrors: {},
       });
 
-    case ActionTypes.WITHDRAW_FAIL:
+
+    case ActionTypes.WITHDRAW_AMOUNT_FAIL:
       return merge({}, state, {
         withdrawalFormErrors: action.ex.response.body.errors,
       });
+
 
     default:
       return state;

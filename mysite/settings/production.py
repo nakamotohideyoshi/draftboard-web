@@ -6,8 +6,9 @@ from dj_database_url import config as heroku_db_config
 import urllib
 
 # Constant for determining environment
-DOMAIN = 'draftboard-staging.herokuapp.com'
+DOMAIN = 'www.draftboard.com'
 
+ALLOWED_HOSTS = [ DOMAIN, 'draftboard-prod.herokuapp.com']
 DATABASES = {
     'default': heroku_db_config()
 }
@@ -23,7 +24,7 @@ CACHES = {
         'LOCATION': "redis://:%s@%s:%s/0" % (redis_url.password, redis_url.hostname, redis_url.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'CONNECTION_POOL_KWARGS': {"max_connections": 5}
+            'CONNECTION_POOL_KWARGS': {"max_connections": 16}
         },
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
@@ -35,6 +36,14 @@ CACHES = {
         'LOCATION': "redis://:%s@%s:%s/0" % (redis_url.password, redis_url.hostname, redis_url.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    },
+    # separate for template caching so we can clear when we want
+    "django_templates": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        'LOCATION': "redis://:%s@%s:%s/0" % (redis_url.password, redis_url.hostname, redis_url.port),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     },
 }
@@ -53,31 +62,41 @@ INSTALLED_APPS += (
     'raven.contrib.django.raven_compat',
 )
 
+# SSL
+# NOTE: we redirect all traffic to HTTPS at the DNS level, no need at application level
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 3600
+# SECURE_HSTS_SECONDS = 31536000  # one year, prevents accepting traffic via HTTP
+
+# set this once all subdomains are under HTTPS
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
 # Pusher
 PUSHER_APP_ID = '144195'
 PUSHER_KEY = '9754d03a7816e43abb64'
 PUSHER_SECRET = environ.get('PUSHER_SECRET')
-PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true') # heroku config vars are strings!
+PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true')  # heroku config vars are strings!
 
 #
 ##########################################################################
 #        paypal client_id, secret keys
 ##########################################################################
-PAYPAL_CLIENT_ID    = environ.get('PAYPAL_CLIENT_ID')
-PAYPAL_SECRET       = environ.get('PAYPAL_SECRET')
+PAYPAL_CLIENT_ID = environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_SECRET = environ.get('PAYPAL_SECRET')
 
 #
 # dataden mongo database connection
-MONGO_SERVER_ADDRESS    = environ.get('MONGO_SERVER_ADDRESS')   # ie: '123.132.123.123'
-MONGO_AUTH_DB           = environ.get('MONGO_AUTH_DB')          # 'admin'
-MONGO_USER              = environ.get('MONGO_USER')             # 'admin'
-MONGO_PASSWORD          = environ.get('MONGO_PASSWORD')         # 'dataden1'
-MONGO_PORT              = int(environ.get('MONGO_PORT'))        # 27017              cast MONGO_PORT to integer!
-MONGO_HOST = environ.get('MONGO_HOST') % ( MONGO_USER,
-                                            MONGO_PASSWORD,
-                                            MONGO_SERVER_ADDRESS,
-                                            MONGO_PORT,
-                                            MONGO_AUTH_DB )
+MONGO_SERVER_ADDRESS = environ.get('MONGO_SERVER_ADDRESS')   # ie: '123.132.123.123'
+MONGO_AUTH_DB = environ.get('MONGO_AUTH_DB')          # 'admin'
+MONGO_USER = environ.get('MONGO_USER')             # 'admin'
+MONGO_PASSWORD = environ.get('MONGO_PASSWORD')         # 'dataden1'
+MONGO_PORT = int(environ.get('MONGO_PORT'))        # 27017              cast MONGO_PORT to integer!
+MONGO_HOST = environ.get('MONGO_HOST') % (MONGO_USER,
+                                          MONGO_PASSWORD,
+                                          MONGO_SERVER_ADDRESS,
+                                          MONGO_PORT,
+                                          MONGO_AUTH_DB)
 
 # previous MONGO_HOST:
 # mongodb://%s:%s@ds057273-a1.mongolab.com:57273,ds057273-a0.mongolab.com:57273/%s?replicaSet=rs-ds057273

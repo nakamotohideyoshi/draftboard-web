@@ -17,12 +17,26 @@ Hello WOrld!
 // Font import
 @import url(https://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700|Oswald:300,400|Droid+Sans+Mono:400);
 
-// Reusable mixins
-@import "./mixins/_media-queries.scss";
+
+// ----------------------------------------------------
 
 
-// This is to be handled separately from the whole app afterwards
+// Eventually split out these portions of the site into their own bundles:
+// ----------------------------------------------------
+
+// Account pages, such as /login, /register
 @import "./account.scss";
+@import "./blocks/logged-out/logged-out-footer.scss";
+
+// Company related static pages, such as /about, /terms-conditions
+@import "./layouts/layout-company.scss";
+@import "./blocks/company/company-header.scss";
+@import "./blocks/company/company-footer.scss";
+@import "./blocks/body-copy.scss";
+
+
+// ----------------------------------------------------
+
 
 // In here we can @import anything that doesn't belong to a specific component
 // For css that does belong to a component, just require() it in the component's jsx file.
@@ -32,7 +46,7 @@ Hello WOrld!
 @import "./team-colors.scss";
 
 // Per the BEM methodology, these are where the blocks are imported
-// @import "./blocks/homepage.scss";
+// In time these should be only imported into the related react component and removed from here
 @import "./blocks/pane-tabbed-content.scss";
 @import "./blocks/lobby.scss";
 @import "./blocks/balance-summary.scss";
@@ -70,7 +84,6 @@ Hello WOrld!
 @import "./blocks/cmp-message-display.scss";
 
 /* Components */
-@import "./blocks/cmp-range-slider.scss";
 @import "./blocks/cmp-contest-list.scss";
 @import "./blocks/cmp-contest-list-header.scss";
 @import "./blocks/cmp-contest-list-sport-filter.scss";

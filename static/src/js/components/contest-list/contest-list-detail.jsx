@@ -1,23 +1,24 @@
 import React from 'react';
 import { Provider, connect } from 'react-redux';
 import store from '../../store';
-import log from '../../lib/logging.js';
+import log from '../../lib/logging';
 import renderComponent from '../../lib/render-component';
 import PrizeStructure from './prize-structure.jsx';
 import GamesList from './games-list.jsx';
 import EntryList from './entry-list.jsx';
 import EnterContestButton from './enter-contest-button.jsx';
 import { enterContest, setFocusedContest, removeContestPoolEntry }
-  from '../../actions/contest-pool-actions.js';
-import * as AppActions from '../../stores/app-state-store.js';
+  from '../../actions/contest-pool-actions';
+import * as AppActions from '../../stores/app-state-store';
 import { humanizeCurrency } from '../../lib/utils/currency';
 import { push as routerPush } from 'react-router-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
 import CountdownClock from '../site/countdown-clock.jsx';
-import { fetchDraftGroupBoxScoresIfNeeded } from '../../actions/upcoming-draft-groups-actions.js';
-import { focusedContestInfoSelector, focusedLineupSelector } from '../../selectors/lobby-selectors.js';
-import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info.js';
+import { fetchDraftGroupBoxScoresIfNeeded } from '../../actions/upcoming-draft-groups-actions';
+import { focusedContestInfoSelector, focusedLineupSelector, entrySkillLevelsSelector }
+  from '../../selectors/lobby-selectors';
+import { upcomingLineupsInfo } from '../../selectors/upcoming-lineups-info';
 import PubSub from 'pubsub-js';
 
 
@@ -35,6 +36,7 @@ function mapStateToProps(state) {
     boxScores: state.upcomingDraftGroups.boxScores,
     teams: state.sports,
     lineupsInfo: upcomingLineupsInfo(state),
+    entrySkillLevels: entrySkillLevelsSelector(state),
   };
 }
 
@@ -77,6 +79,7 @@ const ContestListDetail = React.createClass({
     teams: React.PropTypes.object,
     lineupsInfo: React.PropTypes.object,
     routerPush: React.PropTypes.func,
+    entrySkillLevels: React.PropTypes.object.isRequired,
   },
 
   getInitialState() {
@@ -163,7 +166,7 @@ const ContestListDetail = React.createClass({
   getTabNav() {
     const tabs = [
       { title: 'Payout', tab: 'prizes' },
-      { title: 'Entries', tab: 'entries' },
+      { title: 'My Entries', tab: 'entries' },
       { title: 'Games', tab: 'games' },
     ];
 
@@ -216,6 +219,7 @@ const ContestListDetail = React.createClass({
           contestHasStarted: 'button--med button--med-len button--gradient',
           maxEntered: 'button--med button--med-len button--gradient',
         }}
+        entrySkillLevels = {this.props.entrySkillLevels}
       />
     );
   },
@@ -296,7 +300,7 @@ const ContestListDetail = React.createClass({
 
 
   stripContestFromUrl() {
-    this.props.routerPush('/lobby/');
+    this.props.routerPush('/contests/');
   },
 
 
@@ -348,8 +352,8 @@ const history = syncHistoryWithStore(browserHistory, store);
 renderComponent(
   <Provider store={store}>
     <Router history={history}>
-      <Route path="/lobby/" component={ContestListDetailConnected} />
-      <Route path="/lobby/:contestId/" component={ContestListDetailConnected} />
+      <Route path="/contests/" component={ContestListDetailConnected} />
+      <Route path="/contests/:contestId/" component={ContestListDetailConnected} />
     </Router>
   </Provider>,
   '.cmp-contest-list-detail'

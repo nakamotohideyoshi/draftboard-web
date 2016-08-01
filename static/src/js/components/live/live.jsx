@@ -6,6 +6,7 @@ import LiveHeader from './live-header';
 import LiveLineup from './live-lineup';
 import LiveLoading from './live-loading';
 import LiveStandingsPane from './live-standings-pane';
+import LiveUnsupported from './live-unsupported';
 import log from '../../lib/logging';
 import React from 'react';
 import renderComponent from '../../lib/render-component';
@@ -85,6 +86,7 @@ export const Live = React.createClass({
   getInitialState() {
     return {
       setTimeoutEntries: null,
+      windowWidth: window.innerWidth,
     };
   },
 
@@ -94,6 +96,9 @@ export const Live = React.createClass({
    */
   componentWillMount() {
     const { actions, params } = this.props;
+
+    // to show message if unsupported size
+    window.addEventListener('resize', this.handleResize);
 
     // update what we are watching based on where we are in the live section
     if (params.hasOwnProperty('myLineupId')) {
@@ -155,6 +160,15 @@ export const Live = React.createClass({
     }
   },
 
+  // remove event handler
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.handleResize);
+  },
+
+  handleResize() {
+    this.setState({ windowWidth: window.innerWidth });
+  },
+
   render() {
     const {
       actions,
@@ -170,6 +184,8 @@ export const Live = React.createClass({
 
     // BEM CSS block name
     const block = 'live';
+
+    if (this.state.windowWidth < 768) return (<LiveUnsupported />);
 
     // don't do anything until we have lineups!
     if (!uniqueLineups.haveLoaded) return (<div className={`${block}`}><LiveLoading isContestPools={false} /></div>);

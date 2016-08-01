@@ -2,8 +2,9 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
-import { updateUserInfo, updateUserEmailPass, fetchEmailNotificationSettings, updateEmailNotificationSettings } from
-  '../../actions/user';
+import { updateUserInfo, updateUserEmailPass, fetchEmailNotificationSettings,
+          updateEmailNotificationSettings, fetchUserInfo }
+  from '../../actions/user';
 import EmailPassForm from './subcomponents/email-pass-form.jsx';
 import SettingsEmailNotifications from './subcomponents/settings-email-notifications.jsx';
 import SettingsAddress from './subcomponents/settings-address.jsx';
@@ -27,6 +28,7 @@ function mapDispatchToProps(dispatch) {
     updateUserInfo: (formData) => dispatch(updateUserInfo(formData)),
     updateEmailNotificationSettings: (formData) => dispatch(updateEmailNotificationSettings(formData)),
     fetchEmailNotificationSettings: () => dispatch(fetchEmailNotificationSettings()),
+    fetchUserInfo: () => dispatch(fetchUserInfo()),
   };
 }
 
@@ -48,10 +50,12 @@ const Settings = React.createClass({
     fetchEmailNotificationSettings: React.PropTypes.func.isRequired,
     updateEmailNotificationSettings: React.PropTypes.func.isRequired,
     emailNotificationFormErrors: React.PropTypes.array,
+    fetchUserInfo: React.PropTypes.func.isRequired,
   },
 
   componentWillMount() {
     this.props.fetchEmailNotificationSettings();
+    this.props.fetchUserInfo();
   },
 
   render() {

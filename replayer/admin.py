@@ -9,6 +9,7 @@ import replayer.tasks
 import replayer.classes
 from datetime import timedelta
 from util.timeshift import set_system_time, reset_system_time
+from ast import literal_eval
 # change the datetime to show seconds for replayer/admin.py
 # from django.conf.locale.en import formats as en_formats
 # #en_formats.DATETIME_FORMAT = "m/d/Y h:i:s P"
@@ -20,9 +21,18 @@ class ReplayAdmin(admin.ModelAdmin):
 
 @admin.register(replayer.models.Update)
 class UpdateAdmin(admin.ModelAdmin):
-    list_display = ['ts','ns','o']
+    list_display = ['id','delta','ts','ns','o']
     list_filter = ['ns']
-    search_fields = ['ts','ns','o']
+    search_fields = ['id','ts','ns','o']
+
+    def delta(self, update):
+        # TODO - calculate the difference in seconds between the 'ts' field
+        # of the model save() and the 'dd_updated__id' of the object
+        o = literal_eval(update.o)
+        o_ts = int(o.get('dd_updated__id')) / 1000
+        ts = int(update.ts.strftime('%s')) - 5 * 60 * 60 # UTC will have to be modified when its -4 hrs
+        #print('o_ts:', str(o_ts), 'ts:', str(ts))
+        return str(int(ts - o_ts)) + ' sec'
 
 @admin.register(replayer.models.TimeMachine)
 class TimeMachineAdmin(admin.ModelAdmin):

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% comment %}
+  Company layout, see layouts/layout-company.scss as a starting point
+{% endcomment %}
+
+{% block body_class %}layout-company{% endblock %}
+
+{% block body %}
+  {% include "frontend/partials/company-header.html" %}
+
+  <section class="layout-company__content body-copy body-copy--{% block body-copy-modifier %}{% endblock %}">
+    {% block content %}{% endblock content %}
+  </section>
+
+  {% include "frontend/partials/company-footer.html" %}
+{% endblock body %}

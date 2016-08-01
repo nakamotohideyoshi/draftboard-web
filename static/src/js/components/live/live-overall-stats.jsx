@@ -1,9 +1,9 @@
 import ordinal from '../../lib/ordinal.js';
 import React from 'react';
 import LiveOverallStatsBg from './live-overall-stats-bg';
+import Odometer from '../site/odometer';
 import { describeArc, polarToCartesian } from '../../lib/utils/shapes';
 import { humanizeCurrency } from '../../lib/utils/currency';
-import { humanizeFP } from '../../lib/utils/numbers';
 import { percentageHexColor } from '../../lib/utils/colors';
 
 // assets
@@ -213,7 +213,12 @@ const LiveOverallStats = React.createClass({
               <div className={`${BLOCK}__fp-title`}>
                 Points
               </div>
-              <h4 className={`${BLOCK}__fp`}>{humanizeFP(fp)}</h4>
+              <h4 className={`${BLOCK}__fp`}>
+                <Odometer
+                  modifiers={['live-overall-stats']}
+                  value={fp}
+                />
+              </h4>
             </div>
             <div className={`${BLOCK}__time-remaining`}>
               <div className={`${BLOCK}__duration`}>{timeRemaining.duration}</div>

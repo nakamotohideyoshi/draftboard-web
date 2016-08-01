@@ -10,6 +10,9 @@ import sports.classes
 from scoring.classes import (
     MlbSalaryScoreSystem,
 )
+from rest_framework.exceptions import (
+    APIException,
+)
 from sports.serializers import FantasyPointsSerializer
 from sports.nba.serializers import (
     InjurySerializer,
@@ -414,6 +417,7 @@ class PlayerHistoryMlbPitcherAPIView(PlayerHistoryAPIView):
         """
         return [PlayerStatsPitcher]
 
+
 class PlayerHistoryMlbAPIView(PlayerHistoryAPIView):
 
     score_system_class = MlbSalaryScoreSystem
@@ -441,16 +445,18 @@ class PlayerHistoryMlbAPIView(PlayerHistoryAPIView):
         try:
             sport = self.kwargs['sport']
         except KeyError:
-            sport = 'mlb' # this is simply a default for teh documentation tools
-
-        player = self.get_mlb_player()
+            sport = 'mlb'  # this is simply a default for teh documentation tools
 
         # its going to be either PlayerHistoryPitcherSerializer, or PlayerHistoryHitterSerializer
-        player_stats_class_list_of_one = self.get_player_stats_class(sport=sport)
-        player_stats_class = player_stats_class_list_of_one[0]
+        try:
+            player_stats_class_list_of_one = self.get_player_stats_class(sport=sport)
+            player_stats_class = player_stats_class_list_of_one[0]
 
-        if issubclass(player_stats_class, PlayerStatsPitcher):
-            return PlayerHistoryPitcherSerializer
+            if issubclass(player_stats_class, PlayerStatsPitcher):
+                return PlayerHistoryPitcherSerializer
+        except Exception:
+            pass
+
         #
         # default to returning hitter serializer
         return PlayerHistoryHitterSerializer
