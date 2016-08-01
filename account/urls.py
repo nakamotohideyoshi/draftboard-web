@@ -2,6 +2,7 @@
 # account/urls.py
 
 from django.conf.urls import url
+
 from account.views import (
     AuthAPIView,
     ForgotPasswordAPIView,
@@ -13,6 +14,8 @@ from account.views import (
 )
 
 from .views import (
+
+    # paypal apis:
     PayPalDepositWithPayPalAccountAPIView,              # TODO
     PayPalDepositWithPayPalAccountSuccessAPIView,       # TODO part of flow using paypal account
     PayPalDepositWithPayPalAccountFailAPIView,          # TODO part of flow using paypal account
@@ -22,6 +25,10 @@ from .views import (
     PayPalSavedCardDeleteAPIView,
     PayPalSavedCardListAPIView,
     SetSavedCardDefaultAPIView,
+
+    # paypal vzero apis
+    VZeroGetClientTokenView,
+    VZeroDepositView,
 )
 
 urlpatterns = [
@@ -70,5 +77,14 @@ urlpatterns = [
 
     # set a specific saved card to be the default using its token
     url(r'^paypal/saved-card/default/$', SetSavedCardDefaultAPIView.as_view()),
+
+    #
+    # paypal vzero - get a client token
+    url(r'^vzero/client-token/$', VZeroGetClientTokenView.as_view()),
+
+    #
+    # paypal vzero - make a deposit with shipping information,
+    #                as well as the amount and payment_method_nonce
+    url(r'^vzero/deposit/$', VZeroDepositView.as_view()),
 
 ]
