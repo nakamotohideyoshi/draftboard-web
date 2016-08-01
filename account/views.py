@@ -38,6 +38,13 @@ import account.tasks
 from pp.classes import (
     CardData,
     PayPal,
+
+    VZero,
+    VZeroTransaction,
+)
+from pp.serializers import (
+    VZeroShippingSerializer,
+    VZeroDepositSerializer,
 )
 from cash.classes import (
     CashTransaction,
@@ -61,7 +68,6 @@ def schema_view(request):
     """
     generator = schemas.SchemaGenerator(title='Draftboard API')
     return response.Response(generator.get_schema(request=request))
-
 
 class AuthAPIView(APIView):
     """
@@ -898,3 +904,79 @@ class SetSavedCardDefaultAPIView(APIView):
 
         # return success response of simply http 200
         return Response(status=200)
+
+class VZeroGetClientTokenView(APIView):
+    """
+    retrieve a paypal vzero client token
+    """
+
+    permission_classes = (IsAuthenticated, )
+    serializer_classes = None
+
+    def get(self, request, *args, **kwargs):
+        user = self.request.user
+
+        # TODO - check if its anonymous user(?)
+        vzero = VZero(user)
+        client_token = vzero.get_client_token()
+
+        return Response(
+            {
+                'client_token': client_token
+            },
+            status=200
+        )
+
+class VZeroDepositView(APIView):
+    """
+    deposit to the site using paypal vzero
+
+    this api requires the client to provide a 'payment_method_nonce'
+    which was acquired from having previously retrieved a
+    'client_token' from the server and dont any client side setup necessary.
+
+    example:
+
+        >>> {"first_name":"Steve","last_name":"Steverton","street_address":"1 Steve St","extended_address":"Suite 1","locality":"Dover","region":"NH","postal_code":"03820","country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
+
+    """
+
+    permission_classes = (IsAuthenticated, )
+    serializer_class = VZeroDepositSerializer
+
+    def post(self, request, *args, **kwargs):
+        # get the django user
+        user = self.request.user
+
+        # validate the validity of the params
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        transaction_data = serializer.data
+
+        shipping_serializer = VZeroShippingSerializer(data=self.request.data)
+        shipping_serializer.is_valid(raise_exception=True)
+        shipping_data = shipping_serializer.data
+
+        # using the information (payment_method_nonce, amount, shipping info)
+        # make the deposit using the VZero object to create the transaction (sale)
+        transaction = VZeroTransaction()
+        transaction.update_data(shipping_data=shipping_data, transaction_data=transaction_data)
+        vzero = VZero()
+
+        try:
+            response = vzero.create_transaction(transaction)
+            print(response.text)
+        except VZero.VZeroException as e:
+            raise APIException(e)
+
+        # TODO add a transaction type
+
+        # TODO create a model for saving the transaction information
+
+        # TODO handle errors
+
+        # TODO add a method to be able to actually deposit into the user balance on success!
+
+        # TODO fix up the success Response below:
+        return Response(status=200)
+
