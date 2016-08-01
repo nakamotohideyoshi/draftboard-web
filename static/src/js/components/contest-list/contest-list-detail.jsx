@@ -300,7 +300,7 @@ const ContestListDetail = React.createClass({
 
 
   stripContestFromUrl() {
-    this.props.routerPush('/lobby/');
+    this.props.routerPush('/contests/');
   },
 
 
@@ -352,8 +352,8 @@ const history = syncHistoryWithStore(browserHistory, store);
 renderComponent(
   <Provider store={store}>
     <Router history={history}>
-      <Route path="/lobby/" component={ContestListDetailConnected} />
-      <Route path="/lobby/:contestId/" component={ContestListDetailConnected} />
+      <Route path="/contests/" component={ContestListDetailConnected} />
+      <Route path="/contests/:contestId/" component={ContestListDetailConnected} />
     </Router>
   </Provider>,
   '.cmp-contest-list-detail'

@@ -2,7 +2,7 @@
   <div class="inner">
     <ul class="nav-main__primary">
       <li class="{% if request.path|slice:'1:5' == 'lobb' %}active{% endif %}">
-        <a href="/lobby/">Contests</a>
+        <a href="/contests/">Contests</a>
       </li>
 
       {% if user.is_authenticated %}

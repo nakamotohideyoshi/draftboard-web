@@ -38,12 +38,12 @@ urlpatterns = patterns(
         name='live'
     ),
     url(
-        r'^lobby/$',
+        r'^contests/$',
         views.FrontendLobbyTemplateView.as_view(),
         name='lobby'
     ),
     # Contest detail view in lobby.
-    (r'^lobby/(?P<contest_id>\d+)/$', views.FrontendLobbyTemplateView.as_view()),
+    (r'^contests/(?P<contest_id>\d+)/$', views.FrontendLobbyTemplateView.as_view()),
     url(
         r'^results/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',
         views.FrontendResultsTemplateView.as_view(),
