@@ -939,6 +939,7 @@ class VZeroDepositView(APIView):
         serializer = self.serializer_class(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         transaction_data = serializer.data
+        amount = transaction_data.get('amount')
 
         shipping_serializer = VZeroShippingSerializer(data=self.request.data)
         shipping_serializer.is_valid(raise_exception=True)
@@ -948,22 +949,21 @@ class VZeroDepositView(APIView):
         # make the deposit using the VZero object to create the transaction (sale)
         transaction = VZeroTransaction()
         transaction.update_data(shipping_data=shipping_data, transaction_data=transaction_data)
-        vzero = VZero()
 
+        vzero = VZero()
         try:
-            response = vzero.create_transaction(transaction)
-            print(response.text)
+            transaction_id = vzero.create_transaction(transaction)
         except VZero.VZeroException as e:
             raise APIException(e)
 
-        # TODO add a transaction type
+        # TODO add a transaction type (?)
 
         # TODO create a model for saving the transaction information
 
-        # TODO handle errors
+        # create the draftboard cash deposit with the transaction id
+        ct = CashTransaction(self.request.user)
+        ct.deposit_vzero(amount, transaction_id)
 
-        # TODO add a method to be able to actually deposit into the user balance on success!
-
-        # TODO fix up the success Response below:
+        # return success response if everything went ok
         return Response(status=200)
 
