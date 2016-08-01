@@ -1,5 +1,6 @@
 /* eslint no-param-reassign: 0 */
 import React from 'react';
+import { humanizeFP } from '../../lib/utils/numbers';
 
 
 /**
@@ -26,7 +27,7 @@ const LineupCardPlayer = (props) => (
         - {props.player.player_meta.team.alias}
       </span>
     </span>
-    <span className="cmp-lineup-card__salary">${props.player.salary.toLocaleString('en')}</span>
+    <span className="cmp-lineup-card__average"><span className="text">{ humanizeFP(props.player.fppg) }</span></span>
   </li>
 );
 

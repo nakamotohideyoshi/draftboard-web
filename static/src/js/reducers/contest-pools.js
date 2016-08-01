@@ -35,18 +35,16 @@ const initialState = {
       property: 'start',
       direction: 'asc',
     },
-    // Default to 'all' contest type matches.
-    contestTypeFilter: {
-      filterProperty: 'contestType',
-      match: '',
-    },
-    contestFeeFilter: {
-      match: { minVal: 0, maxVal: null },
-    },
     contestSearchFilter: {},
     sportFilter: {
       match: '',
       filterProperty: 'sport',
+    },
+    // Default to Rookie.
+    // TODO: Store a cookie to default to the one the user last chose.
+    skillLevelFilter: {
+      match: ['rookie', 'all'],
+      filterProperty: 'skill_level.name',
     },
   },
 };

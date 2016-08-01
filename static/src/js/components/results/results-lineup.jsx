@@ -1,6 +1,6 @@
 import CountdownClock from '../site/countdown-clock';
 import { humanizeCurrency } from '../../lib/utils/currency';
-import { humanizeFP } from '../../actions/sports';
+import { humanizeFP } from '../../lib/utils/numbers';
 import { isTimeInFuture } from '../../lib/utils';
 import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
@@ -169,7 +169,7 @@ const ResultsLineup = React.createClass({
         <div className="to-contests--popup">
           <div className="triangle-border"></div>
           <div className="triangle"></div>
-          <div className="item" onClick={this.handleSwitchToContests}>
+          <div className="item switch-to-contests" onClick={this.handleSwitchToContests}>
             View Entered Contests
           </div>
         </div>
@@ -210,7 +210,7 @@ const ResultsLineup = React.createClass({
             <div className="item">
               <a href={copyLineupURL}>New Lineup via Copy</a>
             </div>
-            <div className="item" onClick={this.handleSwitchToContests}>
+            <div className="item switch-to-contests" onClick={this.handleSwitchToContests}>
               View Entered Contests
             </div>
           </div>
@@ -242,7 +242,7 @@ const ResultsLineup = React.createClass({
           <div className="to-contests--popup">
             <div className="triangle-border"></div>
             <div className="triangle"></div>
-            <div className="item" onClick={this.handleSwitchToContests}>
+            <div className="item switch-to-contests" onClick={this.handleSwitchToContests}>
               View Entered Contests
             </div>
           </div>
@@ -309,11 +309,6 @@ const ResultsLineup = React.createClass({
         </div>
       );
     });
-
-    // TODO: titles
-    // <div className="right-stat-title">
-    //   {rightStatTitle}
-    // </div>
 
     let footer = (<div />);
 

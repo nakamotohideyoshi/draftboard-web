@@ -1,0 +1,51 @@
+<nav class="nav-main">
+  <div class="inner">
+    <ul class="nav-main__primary">
+      <li class="{% if request.path|slice:'1:5' == 'lobb' %}active{% endif %}">
+        <a href="/contests/">Contests</a>
+      </li>
+
+      {% if user.is_authenticated %}
+        <li class="{% if request.path|slice:'1:5' == 'live' %}active{% endif %}">
+          <a href="/live/">Live</a>
+        </li>
+        <li class="{% if request.path|slice:'1:5' == 'resu' %}active{% endif %}">
+          <a href="/results/">Results</a>
+        </li>
+        <li class="{% if request.path|slice:'1:5' == 'acco' %}active{% endif %}">
+          <a href="/account/settings/">My Account</a>
+        </li>
+        <li>
+          <a href="/logout/">Sign Out</a>
+        </li>
+      {% else %}
+        <li>
+          <a href="/login/">Log In</a>
+        </li>
+        <li>
+          <a href="/register/">Sign Up</a>
+        </li>
+      {% endif %}
+    </ul>
+
+    <ul class="nav-main__secondary">
+      <li>
+        <a href="#">About Draftboard</a>
+      </li>
+      <li>
+        <a href="#">Press &amp; Media</a>
+      </li>
+      <li>
+        <a href="#">Help</a>
+      </li>
+      <li>
+        <a href="/terms-conditions/">Terms of Use</a>
+      </li>
+      <li>
+        <a href="#">Privacy Policy</a>
+      </li>
+    </ul>
+
+    <div class="nav-main__sponsors"></div>
+  </div>
+</nav>

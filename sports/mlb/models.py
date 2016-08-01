@@ -166,12 +166,18 @@ class PlayerStats( sports.models.PlayerStats ):
     def save(self, *args, **kwargs):
         # perform score update
         scorer = scoring.classes.MlbSalaryScoreSystem()
-        self.fantasy_points = scorer.score_player( self )
+
+        old_fantasy_points = self.fantasy_points
+        new_fantasy_points = scorer.score_player(self)
+        self.fantasy_points = new_fantasy_points
+        self.fp_change = new_fantasy_points - old_fantasy_points
 
         #
         # send the pusher obj for fantasy points with scoring
-        self.set_cache_token()
-        push.classes.DataDenPush( push.classes.PUSHER_MLB_STATS, 'player').send( self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
+        if self.fp_change != 0.0:
+            self.set_cache_token()
+            push.classes.DataDenPush( push.classes.PUSHER_MLB_STATS, 'player').send(
+                                self.to_json(), async=settings.DATADEN_ASYNC_UPDATES )
 
         super().save(*args, **kwargs)
 

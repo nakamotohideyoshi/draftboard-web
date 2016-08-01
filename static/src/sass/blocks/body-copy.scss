@@ -1,0 +1,121 @@
+@import '../variables.scss';
+
+
+//
+// Block for body copy, pages like `About`, `Terms & Conditions`, etc
+// Based on the `Terms_and_Conditions.psd` in Dropbox
+//
+// This is not BEM, instead we opt to style based on HTML element as it's body copy
+// Silo-ing the code though, to prevent leaking into other sections of the site
+//
+// Decided to set the <p> font-size via media queries and then use ems to size everything from it, KISS FTW
+//
+
+$block: '.body-copy';
+$nav-scoreboard-height: 54px;
+
+#{$block} {
+  margin: 0 auto;
+  text-align: left;
+
+  h1 {
+    color: #132339;
+    font-family: $font-oswald;
+    font-weight: normal;
+    line-height: 1.8;
+    margin: 1.9em 0 0;  // useful so that we can position sup easier
+    padding: 0;
+    position: relative;
+    text-align: center;
+
+    sup {
+      color: #b0b2c1;
+      font-family: $font-open-sans;
+      font-size: 0.15em;
+      font-weight: 400;  // comp had 600 but looked closer @ 400 in browser
+      left: 0;
+      letter-spacing: 1.5px;
+      position: absolute;
+      right: 0;
+      top: -0.6em;
+    }
+  }
+
+  &__h1-divider {
+    background: #d3d7dd;
+    border: none;
+    height: 0.2em;
+    margin: 0 auto 4.375em;  // 70px @ 1700px comp
+    width: 4vw;
+  }
+
+  p {
+    color: #46495e;
+    font-family: $font-open-sans;
+    font-size: 1em;
+    font-weight: 300;
+    line-height: 1.8;
+    margin: 0;
+    padding: 0.6em 0 1.2em;
+
+    strong {
+      font-weight: 600;
+    }
+  }
+
+  h2 {
+    color: #132339;
+    font-family: $font-oswald;
+    font-weight: 400;
+    line-height: 1.8;
+    margin: 0;
+    padding: 1em 0 0.5em;
+
+    #{$block}__section-number {
+      border-bottom: 3px solid #d3d7dd;
+      color: #d3d7dd;
+      display: inline-block;
+    }
+  }
+}
+
+@media (min-width: 1024px) {
+  #{$block} {
+    font-size: 16px;  // size of the paragraph text
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  #{$block} {
+    font-size: 14px;  // size of the paragraph text
+  }
+}
+
+@media (min-width: 769px) {
+  #{$block} {
+    max-width: 1280px;
+    width: 80%;
+
+    h1 {
+      font-size: 4.375em;
+    }
+    h2 {
+      font-size: 2.2em;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  #{$block} {
+    font-size: 12px;  // size of the paragraph text
+    width: 90%;
+
+    h1 {
+      font-size: 3em;
+    }
+
+    h2 {
+      font-size: 1.6em;
+    }
+  }
+}

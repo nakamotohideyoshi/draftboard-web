@@ -1,6 +1,7 @@
 #
 # serializers.py
 
+from re import search
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from account.models import (
@@ -9,6 +10,8 @@ from account.models import (
     UserEmailNotification,
     SavedCardDetails,
 )
+from django.contrib.auth import get_user_model
+
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -27,9 +30,64 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class RegisterUserSerializer(serializers.ModelSerializer):
+    password_confirm = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = User
-        fields = ("username", "email", "password")
+        fields = ("username", "email", "password", "password_confirm")
+
+    def return_no_password(self, obj):
+        """
+        Make sure password is never given back, even encrypted
+        """
+        return None
+
+    def validate_email(self, value):
+        """
+        Extra check on email for whether it's in use
+        """
+        UserModel = get_user_model()
+
+        if UserModel.objects.filter(email__iexact=value):
+            # notice how i don't say the email already exists, prevents people from hacking to find someone's email
+            raise serializers.ValidationError('This email/username is not valid.')
+
+        return value
+
+    def validate_username(self, value):
+        """
+        Validation method to ensure that the username is valid, of proper length and unique
+        """
+        UserModel = get_user_model()
+
+        if UserModel.objects.filter(username__iexact=value):
+            # notice how i don't say the email already exists, prevents people from hacking to find someone's email
+            raise serializers.ValidationError('This email/username is not valid.')
+
+        # TODO add in blacklist of usernames
+
+        if not search(r'^%s{3,}$' % '[a-zA-Z0-9_.-]', value):
+            raise serializers.ValidationError('Must be 3 or more alphanumeric characters.')
+
+        return value
+
+    def validate(self, data):
+        """
+        Check length and password strength
+        """
+        if 'password' in data and 'password_confirm' in data:
+            pw1 = data['password']
+            pw2 = data['password_confirm']
+            if pw1 != pw2:
+                raise serializers.ValidationError('The two password fields didn\'t match.')
+
+            if len(pw1) < 8:
+                raise serializers.ValidationError('The password must be a minimum 8 characters in length')
+
+        elif 'password' in data or 'password_confirm' in data:
+            raise serializers.ValidationError('You must submit matching passwords')
+
+        return data
 
 
 class UserSerializerNoPassword(serializers.ModelSerializer):

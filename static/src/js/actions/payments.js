@@ -125,7 +125,7 @@ export function removePaymentMethod(id) {
 
 function withdrawSuccess(body) {
   return {
-    type: types.WITHDRAW_SUCCESS,
+    type: types.WITHDRAW_AMOUNT_SUCCESS,
     body,
   };
 }
@@ -133,17 +133,17 @@ function withdrawSuccess(body) {
 
 function withdrawFail(ex) {
   return {
-    type: types.WITHDRAW_FAIL,
+    type: types.WITHDRAW_AMOUNT_FAIL,
     ex,
   };
 }
 
 
-export function withdraw() {
+export function withdraw(postData) {
   return (dispatch) => request
     .post('/account/api/account/payments/withdraw/')
     .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
-    .send({})
+    .send(postData)
     .end((err, res) => {
       if (err) {
         return dispatch(withdrawFail(err));

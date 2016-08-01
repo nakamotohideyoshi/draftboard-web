@@ -160,7 +160,7 @@ const LineupCard = React.createClass({
               </header>
 
               <div className="cmp-lineup-card__list-header">
-                <span className="cmp-lineup-card__list-header-salary">Salary</span>
+                <span className="cmp-lineup-card__list-header-salary">AVG</span>
               </div>
 
               <ul className="players">

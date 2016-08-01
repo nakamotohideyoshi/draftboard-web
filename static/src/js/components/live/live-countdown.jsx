@@ -31,7 +31,7 @@ const LiveCountdown = (props) => {
         >
           Edit Lineup
         </a>
-        <a href="/lobby/" className={`${block}__action`}>Enter Contests</a>
+        <a href="/contests/" className={`${block}__action`}>Enter Contests</a>
       </div>
     </section>
   );

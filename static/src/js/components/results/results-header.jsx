@@ -51,7 +51,7 @@ const ResultsHeader = React.createClass({
         <div className="search">
           <div className="icon"></div>
         </div>
-        <a href="/lobby/" className="draft-a-team">
+        <a href="/contests/" className="draft-a-team">
           Draft a team
         </a>
       </div>

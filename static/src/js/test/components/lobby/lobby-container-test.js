@@ -3,7 +3,6 @@ import sinon from 'sinon';
 import { expect } from 'chai';
 import { mount } from 'enzyme';
 import LobbyContainer from '../../../components/lobby/lobby-container.jsx';
-import ContestRangeSliderFilter from '../../../components/contest-list/contest-range-slider-filter.jsx';
 import allContestsFix from '../../../fixtures/json/redux-state/upcoming-contests/all-contests.js';
 import UpcomingContestSelectorFix from '../../../fixtures/json/selectors-output/contest-pools-selector.js';
 // This is an example of a data payload from a pusher contest_pool.upate event.
@@ -17,16 +16,11 @@ const defaultTestProps = {
       property: 'start',
       direction: 'asc',
     },
-    // Default to 'all' contest type matches.
-    contestTypeFilter: {
-      filterProperty: 'contestType',
+    sportFilter: {},
+    skillLevelFilter: {
+      filterProperty: 'skill_level',
       match: '',
     },
-    contestFeeFilter: {
-      match: { minVal: 0, maxVal: null },
-    },
-    contestSearchFilter: {},
-    sportFilter: {},
   },
   enterContest: () => true,
   featuredContests: [],
@@ -48,8 +42,8 @@ const defaultTestProps = {
   routerPush: () => true,
   addMessage: () => true,
   upcomingContestUpdateReceived: () => true,
-  // highestContestBuyin: React.PropTypes.number,
   removeContestPoolEntry: () => true,
+  entrySkillLevels: {},
 };
 
 
@@ -68,14 +62,6 @@ describe('<LobbyContainer /> Component', () => {
 
   afterEach(() => {
     document.body.innerHTML = '';
-  });
-
-
-  it('should render contest filters.', () => {
-    expect(wrapper.find('.contest-list-filter-set')).to.have.length(1);
-    expect(wrapper.find('.contest-list-filter--contest-type')).to.have.length(1);
-    expect(wrapper.find(ContestRangeSliderFilter)).to.have.length(1);
-    expect(wrapper.find('.contest-list-filter--contest-name')).to.have.length(1);
   });
 
 

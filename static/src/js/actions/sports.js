@@ -352,7 +352,7 @@ const fetchGames = (sport) => ({
       ActionTypes.RECEIVE_GAMES,
       ActionTypes.ADD_MESSAGE,
     ],
-    expiresAt: dateNow() + 1000 * 60 * 5,  // 5 minutes
+    expiresAt: dateNow() + 1000 * 60 * 2,  // 2 minutes
     endpoint: `${API_DOMAIN}/api/sports/scoreboard-games/${sport}/`,
     requestFields: { sport },
     callback: (json) => {
@@ -519,6 +519,7 @@ export const fetchSportsIfNeeded = () => (dispatch, getState) => {
       dispatch(fetchSportIfNeeded(sport));
     });
   } catch (err) {
+    // TODO: This is silently gobbling up any errors.
     dispatch(addMessage({
       header: 'Failed to connect to API.',
       content: 'Please refresh the page to reconnect.',

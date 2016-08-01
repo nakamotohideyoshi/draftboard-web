@@ -1,44 +1,23 @@
 'use strict';
 
-require('../../test-dom')();
-const React = require('react');
-const ReactDOM = require('react-dom');
+import React from 'react';
+import { expect } from 'chai';
+import { shallow } from 'enzyme';
+
 import ResultsHeader from '../../../components/results/results-header.jsx';
-const expect = require('chai').expect;
 
 describe("ResultsHeader Component", function() {
 
-  beforeEach(function(done) {
-    var self = this;
-    document.body.innerHTML = '';
-    // The DOM element that the component will be rendered to.
-    this.targetElement = document.body.appendChild(document.createElement('div'));
-    // Render the component into our fake jsdom element.
-    this.component = ReactDOM.render(
-      (
-        <ResultsHeader
-          year={2016}
-          month={1}
-          day={18}
-          onSelectDate={function(){}}
-        />
-      ),
-      this.targetElement,
-      function() {
-        // Once it has been rendered...
-        // Grab it from the DOM.
-        self.componentElement = ReactDOM.findDOMNode(this);
-        done();
-      }
-    );
-  });
+  function renderComponent() {
+    return shallow(<ResultsHeader
+                     year={2016}
+                     month={1}
+                     day={18}
+                     onSelectDate={function(){}} />);
+  }
 
-  afterEach(function() {
-    document.body.innerHTML = '';
+  it('should render all expected children', () => {
+    const wrapper = renderComponent();
+    expect(wrapper.find('.results-page--header')).to.have.length(1);
   });
-
-  it('should render', function() {
-    expect(this.componentElement.tagName).to.equal('DIV');
-  });
-
 });

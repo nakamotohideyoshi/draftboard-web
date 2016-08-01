@@ -969,7 +969,7 @@ class PlayParser(DataDenPbpDescription):
         if ts is not None and play_srid is not None:
             return (ts, play_srid)
         # else:
-        return None
+        return None # TODO dont return None! raise something... the caller expects a tuple...
 
     def parse(self, obj, target):
         # this strips off the dataden oplog wrapper, and sets the SridFinder internally.

@@ -40,12 +40,23 @@ app = Celery('mysite')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(settings.INSTALLED_APPS)
 
+# i want to know if DEBUG is on or not
+print('celery_app settings.DEBUG:', settings.DEBUG)
+
 # # hook up the database backend
 # app.conf.update(
 #     CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
 # )
 
 ALL_SPORTS = ['nba','nhl','mlb','nfl']
+
+#
+broker_url = None
+redis_url = os.environ.get('REDISCLOUD_URL')
+if redis_url is None:
+    broker_url = settings.CACHES['default']['LOCATION']
+else:
+    broker_url = '%s/0' % redis_url
 
 #
 # put the settings here, otherwise they could be in
@@ -55,8 +66,10 @@ app.conf.update(
     #CELERY_RESULT_BACKEND='djcelery.backends.cache:CacheBackend',
     # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0',
     # BROKER_URL = 'redis://localhost:6379/0',
-    CELERY_RESULT_BACKEND = settings.CACHES['default']['LOCATION'],
-    BROKER_URL = settings.CACHES['default']['LOCATION'],
+    # CELERY_RESULT_BACKEND = settings.CACHES['default']['LOCATION'],
+    # BROKER_URL = settings.CACHES['default']['LOCATION'],
+    CELERY_RESULT_BACKEND = broker_url,
+    BROKER_URL = broker_url,
 
     #: Only add pickle to this list if your broker is secured
     #: from unwanted access (see userguide/security.html)
@@ -248,15 +261,17 @@ app.conf.update(
     # testing this out, but the BROKER_TRANSPORT_OPTIONS seems to be the
     # setting that actually caps the max connections when were viewing
     # connections on the redis side
-    CELERY_REDIS_MAX_CONNECTIONS = 5,
+    #CELERY_REDIS_MAX_CONNECTIONS = 200,
 
-    # testing this out
-    BROKER_TRANSPORT_OPTIONS = {
-        'max_connections': 5,
-    },
-
-    # None causes a connection to be created and closed for each use
-    BROKER_POOL_LIMIT = None,  # default: 10
+    #
+    #
+    # # testing this out
+    # BROKER_TRANSPORT_OPTIONS = {
+    #     'max_connections': 5,
+    # },
+    #
+    # # None causes a connection to be created and closed for each use
+    # BROKER_POOL_LIMIT = None,  # default: 10
 
 )
 

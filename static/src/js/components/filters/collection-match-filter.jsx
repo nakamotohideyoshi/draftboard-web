@@ -1,6 +1,7 @@
 import React from 'react';
 import log from '../../lib/logging';
 import find from 'lodash/find';
+import isEqual from 'lodash/isEqual';
 
 
 /**
@@ -64,7 +65,7 @@ const CollectionMatchFilter = React.createClass({
       // Add active class if the filter is currently active.
       if (
         this.props.activeFilter === '' && filter.match === '' ||
-        this.props.activeFilter.match === filter.match
+        isEqual(this.props.activeFilter.match, filter.match)
       ) {
         cssClass += ' cmp-collection-match-filter__option--active';
       }
@@ -90,7 +91,7 @@ const CollectionMatchFilter = React.createClass({
       // Add active class if the filter is currently active.
       if (
         this.props.activeFilter === '' && filter.match === '' ||
-        this.props.activeFilter.match === filter.match
+        isEqual(this.props.activeFilter.match, filter.match)
       ) {
         cssClass += ' cmp-collection-match-filter__option--active';
       }

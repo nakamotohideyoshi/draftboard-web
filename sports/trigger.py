@@ -3,15 +3,23 @@
 
 from django.core.cache import cache
 from dataden.cache.caches import LiveStatsCache
-from dataden.watcher import Trigger
+import dataden.models
+from dataden.watcher import (
+    OpLogObj,
+    Trigger,
+    TriggerAll,
+)
+import time
+from random import Random
+from threading import Thread
 
 class SportTrigger(Trigger):
 
-    def __init__(self, sport):
+    def __init__(self, sport, *args, **kwargs):
         self.sport = sport
 
         # call super method
-        super().__init__()
+        super().__init__(*args, **kwargs)
 
         # internal debug field to help us print out the triggers the first time only
         self.showed_triggers = False
@@ -33,6 +41,76 @@ class SportTrigger(Trigger):
             # print them to the screen so we know exactly which are about to be used
             for t in self.triggers:
                 print('    ', t)
+
+class MlbOpLogObj(OpLogObj):
+
+    object_namespace = 'mlb.at_bat'
+
+    def override_new(self):
+        """
+        always pretend its the first time we've seen an object
+        from this namespace (ie: 'ns') if it doesnt yet
+        have a description value (we need it to pass the trigger filter for pbp stuff)
+        """
+        if self.get_ns() == self.object_namespace and self.get_o().get('description') is None:
+            my_ns = self.get_ns()
+            print('(override!) my_ns: %s' % my_ns)
+            return True
+        return False
+
+class TriggerMlb(SportTrigger):
+    """
+    nearly identical to the default Trigger, but sets
+    a special OpLogObj subclass that will allow for
+    at_bat objects to always be sent out if their
+    description field is not yet set for pbp purposes.
+    """
+
+    oplogobj_class = MlbOpLogObj
+
+# class TriggerWorker(Thread):
+#
+#     def __init__(self, trigger_class, trigger_model, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.trigger_class = trigger_class
+#         self.trigger_model = trigger_model
+#
+#     def run(self):
+#         trigger = self.trigger_class(sport=self.trigger_model.db, t=self.trigger_model)
+#         trigger.run() # not of a thread, of the super Trigger class
+#
+# class TriggerThreaded(object):
+#     """
+#     uses 1 thread per trigger
+#     """
+#
+#     default_threads = 8
+#     trigger_class = SportTrigger            # default. you can override this
+#
+#     def __init__(self, sport, t=None):
+#         self.sport = sport
+#         self.threads = t
+#         if self.threads is None:
+#             self.threads = self.default_threads
+#
+#         # get only specific triggers models for this sport
+#         self.trigger_models = dataden.models.Trigger.objects.filter(db=self.sport, enabled=True)
+#
+#     def run(self):
+#
+#         workers = []
+#
+#         for trigger_model in self.trigger_models:
+#             tw = TriggerWorker(self.trigger_class, trigger_model)
+#             workers.append(tw)
+#             tw.start()
+#
+#         for tw in threads:
+#             tw.join()
+#
+# class TriggerThreadedMlb(TriggerThreaded):
+#
+#     trigger_class = TriggerMlb
 
 class CacheList(object):
     """

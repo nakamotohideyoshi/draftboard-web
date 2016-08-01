@@ -79,8 +79,8 @@ const SettingsAddress = React.createClass({
   renderErrors(errors) {
     const errorList = [];
 
-    forEach(errors, (error) => {
-      errorList.push(<h6 className="form-field-message__title">{ error }</h6>);
+    forEach(errors, (error, index) => {
+      errorList.push(<p key={index} className="form-field-message__description">{ error }</p>);
     });
 
     if (!errorList.length) {
@@ -89,7 +89,7 @@ const SettingsAddress = React.createClass({
 
     return (
       <div className="form-field-message form-field-message--error form-field-message--settings">
-        {errorList}
+        { errorList }
       </div>
     );
   },

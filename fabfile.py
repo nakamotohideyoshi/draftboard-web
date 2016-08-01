@@ -14,11 +14,10 @@ import hashlib
 ENVS = {
     'production': {
         'local_git_branch': 'master',
-        'heroku_repo': 'draftboard-staging',  # currently draftboard-staging is the production server
+        'heroku_repo': 'draftboard-prod',
     },
-    'staging': {
-        'local_git_branch': 'master',
-        'heroku_repo': 'draftboard-staging',
+    'delorean': {
+        'heroku_repo': 'draftboard-delorean',
     },
     'dev': {
         'heroku_repo': 'draftboard-dev',
@@ -254,14 +253,14 @@ def generate_replayer():
         bucket = c.get_bucket(AWS_STORAGE_BUCKET_NAME)
 
         # download start
-        startS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
-        keyStart = bucket.get_key('draftboard-staging/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
+        startS3Filename = '%s-10-00-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.start
+        keyStart = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % startS3Filename)
         keyStart.get_contents_to_filename('%s/%s.gz' % (tmp_dir, startFilename), cb=_show_progress, num_cb=10)
         operations.local('gunzip %s/%s.gz' % (tmp_dir, startFilename))
 
         # download end
-        endS3Filename = '%s-10-00-draftboard-staging-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
-        keyEnd = bucket.get_key('draftboard-staging/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
+        endS3Filename = '%s-10-00-draftboard-prod-HEROKU_POSTGRESQL_ONYX_URL.dump.gz' % env.end
+        keyEnd = bucket.get_key('draftboard-prod/HEROKU_POSTGRESQL_ONYX_URL/%s' % endS3Filename)
         keyEnd.get_contents_to_filename('%s/%s.gz' % (tmp_dir, endFilename), cb=_show_progress, num_cb=10)
         operations.local('gunzip %s/%s.gz' % (tmp_dir, endFilename))
 
@@ -438,8 +437,8 @@ def restore_db():
 
     _puts('s3 url -> %s' % url)
 
-    # example:heroku pg:backups restore 'https://draftboard-db-dumps.s3.amazonaws.com/dfs_master.dump?Signature=Ft3MxTcq%2BySJ9Y7lkBp1Vig5sTY%3D&Expires=1449611209&AWSAccessKeyId=AKIAIJC5GEI5Y3BEMETQ&response-content-type=application/octet-stream' DATABASE_URL --app draftboard-staging --confirm draftboard-staging
-    operations.local("heroku pg:backups restore '%s' DATABASE_URL --app draftboard-staging --confirm draftboard-staging" % url)
+    # example:heroku pg:backups restore 'https://draftboard-db-dumps.s3.amazonaws.com/dfs_master.dump?Signature=Ft3MxTcq%2BySJ9Y7lkBp1Vig5sTY%3D&Expires=1449611209&AWSAccessKeyId=AKIAIJC5GEI5Y3BEMETQ&response-content-type=application/octet-stream' DATABASE_URL --app draftboard-prod --confirm draftboard-prod
+    operations.local("heroku pg:backups restore '%s' DATABASE_URL --app draftboard-prod --confirm draftboard-prod" % url)
 
 
 def s3ls():
@@ -463,7 +462,7 @@ def syncdb(app=None):
     operations.require('environment')
 
     if app is None:
-        app = 'staging'
+        app = 'production'
 
     target_server = ENVS[app]['heroku_repo']
 
@@ -510,13 +509,13 @@ def dev():
     _get_local_git_db()
 
 
-def testing():
+def delorean():
     """fab testing [virtual_machine_type] [command]"""
 
-    testing = ENVS['testing']
+    delorean = ENVS['delorean']
 
-    env.environment = 'testing'
-    env.heroku_repo = testing['heroku_repo']
+    env.environment = 'delorean'
+    env.heroku_repo = delorean['heroku_repo']
     _get_local_git_db()
 
 

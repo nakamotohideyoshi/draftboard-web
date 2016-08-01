@@ -1,0 +1,128 @@
+//
+// Header for .layout-company
+// Based on the `Terms_and_Conditions.psd` in Dropbox
+//
+
+$block: '.company-header';
+
+#{$block} {
+  margin: 0 auto;
+
+  &--homepage {
+    #{$block}__bg {
+      display: none;
+    }
+
+    #{$block}__logo,
+    #{$block}__nav {
+      top: 22%;
+    }
+  }
+
+  // this is full width as opposed to 80% of __header
+  &__bg {
+    background: #03081c url('../img/blocks/company/company-header/bg.jpg') no-repeat center bottom;
+    background-size: auto 90%;
+    border-radius: 50%;
+    height: 110%;
+    left: -40%;
+    position: absolute;
+    top: -12%;
+    width: 180%;
+  }
+
+  &__inner {
+    height: 100%;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  &__logo,
+  &__nav {
+    position: absolute;
+    top: 36%;
+    transform: translateY(-50%);
+  }
+
+  &__logo {
+    background: transparent url('../img/blocks/homepage/logo.png') no-repeat left top;
+    background-size: auto 2.7em;
+    color: white;
+    display: block;
+    font-size: 1em;
+    height: 3em;
+    left: 0;
+    letter-spacing: 3px;
+    line-height: 2.7;
+    text-indent: 3.6em;
+  }
+
+  &__nav {
+    position: absolute;
+    right: 0;
+    line-height: 2.7em;
+    letter-spacing: 1px;
+    text-align: right;
+    transform: translateY(-50%);
+  }
+
+  &__nav-item {
+    color: white;
+    display: inline-block;
+    font-size: 0.9em;
+    margin: 0 4px;
+    padding: 2px 20px;
+    border-radius: 30px;
+    text-align: center;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &--active {
+      color: #2c3043;
+      background-color: white;
+      text-decoration: none;
+    }
+  }
+}
+
+
+// @media (min-width: 1024px) {
+//   #{$block} {
+//     font-size: 16px;  // size of the paragraph text
+//   }
+// }
+
+// @media (min-width: 769px) and (max-width: 1024px) {
+//   #{$block} {
+//     font-size: 14px;  // size of the paragraph text
+//   }
+// }
+
+@media (min-width: 769px) {
+  #{$block} {
+    font-size: 11px;  // ems for children
+
+    &__inner {
+      max-width: 1280px;
+      width: 80%;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  #{$block} {
+    font-size: 10px;  // ems for children
+
+    &__inner {
+      width: 90%;
+    }
+
+    &__nav-item {
+      margin: 0;
+      padding: 2px 5px;
+    }
+  }
+}
+

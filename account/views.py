@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework import generics
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
 from django.views.generic.base import TemplateView
 from account.models import (
@@ -26,7 +26,6 @@ from account.serializers import (
     UserSerializerNoPassword,
     InformationSerializer,
     UserEmailNotificationSerializer,
-    EmailNotificationSerializer,
     UpdateUserEmailNotificationSerializer,
     SavedCardSerializer,
     SetSavedCardDefaultSerializer,
@@ -43,16 +42,13 @@ from pp.classes import (
 from cash.classes import (
     CashTransaction,
 )
-from braces.views import LoginRequiredMixin
-from django.conf import settings
-from django.core.mail import EmailMultiAlternatives, EmailMessage
-from django.template import loader
-from rest_framework import response, status
-from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import send_mail
-from rest_framework import permissions
-from django.contrib.auth import authenticate, login, logout
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
+from django.contrib.auth import views as auth_views
+from django.contrib.auth import login as authLogin
+from django.contrib.auth import authenticate, logout
 from rest_framework.exceptions import APIException
+
 
 class AuthAPIView(APIView):
     """
@@ -67,7 +63,7 @@ class AuthAPIView(APIView):
         user = authenticate(username=args.get('username'),
                             password=args.get('password'))
         if user is not None:
-            login(request, user)
+            authLogin(request, user)
             #
             # return a 201
             return Response({}, status=status.HTTP_200_OK)
@@ -79,6 +75,7 @@ class AuthAPIView(APIView):
     def delete(self, request, *args, **kwargs):
         logout(request)
         return Response({}, status=status.HTTP_200_OK)
+
 
 class ForgotPasswordAPIView(APIView):
     """
@@ -114,6 +111,7 @@ class ForgotPasswordAPIView(APIView):
         # return success no matter what
         return Response({}, status=status.HTTP_200_OK)
 
+
 class PasswordResetAPIView(APIView):
     # handles
     # https://www.draftboard.com/api/account/password-reset-confirm/MjA0/47k-95ee193717cb75448cf0/
@@ -130,6 +128,7 @@ class PasswordResetAPIView(APIView):
             return Response({}, status=status.HTTP_200_OK)
         return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
+
 class RegisterAccountAPIView(generics.CreateAPIView):
     """
     Registers new users.
@@ -144,19 +143,23 @@ class RegisterAccountAPIView(generics.CreateAPIView):
     def post(self, request, format=None):
         data = request.data
         serializer = RegisterUserSerializer(data=data)
+
         if serializer.is_valid():
             username = data.get('username')
             email = data.get('email')
-            # The serializer does not check if the email field is None
-            if email is None:
-                return Response("Email is required", status=status.HTTP_400_BAD_REQUEST)
-
             password = data.get('password')
+
             user = User.objects.create(username=username, email=email)
             user.set_password(password)
             user.save()
+
+            newUser = authenticate(username=user.username, password=password)
+            if newUser is not None:
+                authLogin(request, newUser)
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserAPIView(generics.GenericAPIView):
     """
@@ -181,6 +184,7 @@ class UserAPIView(generics.GenericAPIView):
         user = self.get_object()
         data = request.data
         serializer = UserSerializer(user, data=data, partial=True)
+
         if serializer.is_valid():
             if(data.get('email')):
                 user.email = data.get('email')
@@ -188,7 +192,9 @@ class UserAPIView(generics.GenericAPIView):
                 user.set_password(data.get('password'))
             user.save()
             return Response(UserSerializerNoPassword(user).data, status=status.HTTP_200_OK)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class InformationAPIView (generics.GenericAPIView):
     """
@@ -196,7 +202,7 @@ class InformationAPIView (generics.GenericAPIView):
 
         * |api-text| :dfs:`account/information/`
     """
-    #authentication_classes = (SessionAuthentication, BasicAuthentication)
+    # authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
     serializer_class = InformationSerializer
 
@@ -247,6 +253,7 @@ class InformationAPIView (generics.GenericAPIView):
 #     permission_classes = (IsAdminUser,)
 #     serializer_class = EmailNotificationSerializer
 #     queryset = EmailNotification.objects.all()
+
 
 class UserEmailNotificationAPIView (generics.GenericAPIView):
     """
@@ -322,6 +329,7 @@ class UserEmailNotificationAPIView (generics.GenericAPIView):
 
         return self.get(request)
 
+
 class WithdrawAPI(APIView):
 
     renderer_classes = (JSONRenderer, )
@@ -330,14 +338,15 @@ class WithdrawAPI(APIView):
         return Response(
             status=409,
             data={'errors': {
-                    'ssn': {
-                        'title': 'SSN needed.',
-                        'description': """By law restrictions, if you are willing to withdraw
+                'ssn': {
+                    'title': 'SSN needed.',
+                    'description': """By law restrictions, if you are willing to withdraw
                             more than $700, ssn is needed."""
-                    }
                 }
             }
+            }
         )
+
 
 class DepositAPI(APIView):
 
@@ -345,6 +354,7 @@ class DepositAPI(APIView):
 
     def post(self, request, *args, **kwargs):
         return Response(status=202)
+
 
 class PaymentsAPI(APIView):
 
@@ -382,6 +392,7 @@ class PaymentsAPI(APIView):
             }
         ])
 
+
 class AddPaymentMethodAPI(APIView):
 
     renderer_classes = (JSONRenderer, )
@@ -395,12 +406,14 @@ class AddPaymentMethodAPI(APIView):
             'id': 14,
         })
 
+
 class RemovePaymentMethodAPI(APIView):
 
     renderer_classes = (JSONRenderer, )
 
     def delete(self, request, *args, **kwargs):
         return Response(status=204)
+
 
 class SetDefaultPaymentMethodAPI(APIView):
 
@@ -409,7 +422,28 @@ class SetDefaultPaymentMethodAPI(APIView):
     def post(self, request, *args, **kwargs):
         return Response(status=201)
 
+
+def login(request, **kwargs):
+    """
+    Extension of the Django login view, redirects to the feed if already logged in.
+    Unfortunately Django does not use class based views for auth so we must keep this old as well.
+    """
+    if request.user.is_authenticated():
+        return HttpResponseRedirect(reverse('frontend:lobby'))
+
+    return auth_views.login(request)
+
+
 class RegisterView(TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        """
+        if already logged in, redirect to lobby, otherwise allow page
+        """
+        if request.user.is_authenticated():
+            return HttpResponseRedirect(reverse('frontend:lobby'))
+
+        return super(RegisterView, self).get(request, *args, **kwargs)
 
     template_name = 'registration/register.html'
 
@@ -417,15 +451,26 @@ class RegisterView(TemplateView):
 ##########################################################
 # PayPal specific views
 ###########################################################
-class PayPalDepositWithPayPalAccountAPIView(APIView): pass          # TODO
-class PayPalDepositWithPayPalAccountSuccessAPIView(APIView): pass   # TODO
-class PayPalDepositWithPayPalAccountFailAPIView(APIView): pass      # TODO
+
+
+class PayPalDepositWithPayPalAccountAPIView(APIView):
+    pass          # TODO
+
+
+class PayPalDepositWithPayPalAccountSuccessAPIView(APIView):
+    pass   # TODO
+
+
+class PayPalDepositWithPayPalAccountFailAPIView(APIView):
+    pass      # TODO
+
 
 class PayPalDepositMixin:
     """
     it may be useful to have a mixin that can validate and perform our
     own server side deposit (a CashTransaction)
     """
+
     def deposit(self, user, payment_data):
         print('     ', str(payment_data))
         # check the payment state to determine if the funds deposit was successful
@@ -461,6 +506,7 @@ class PayPalDepositMixin:
         # money deposited!
         return Response(status=200)
 
+
 class PayPalDepositCreditCardAPIView(APIView, PayPalDepositMixin):
     """
     example of the POST data:
@@ -488,7 +534,7 @@ class PayPalDepositCreditCardAPIView(APIView, PayPalDepositMixin):
         last_name = self.request.data.get('last_name')
         amount = self.request.data.get('amount')
 
-        #return Response(status=200)
+        # return Response(status=200)
 
         pp = PayPal()
         pp.auth()
@@ -501,7 +547,7 @@ class PayPalDepositCreditCardAPIView(APIView, PayPalDepositMixin):
         # execute paypal api call
         try:
             payment_data = pp.pay_with_credit_card(amount, type, number, exp_month, exp_year,
-                                                cvv2, first_name, last_name)
+                                                   cvv2, first_name, last_name)
         except PayPal.PayPalException as e:
             raise APIException(e)
 
@@ -509,6 +555,7 @@ class PayPalDepositCreditCardAPIView(APIView, PayPalDepositMixin):
         # paypal response and deposit a cash transaction
         # in the users account if the pp transaction was successful
         return self.deposit(self.request.user, payment_data)
+
 
 class PayPalDepositSavedCardAPIView(APIView):
     """
@@ -612,36 +659,36 @@ class PayPalSavedCardAddAPIView(APIView):
 
     def validate_information(self, info):
         missing_fields = []
-        #print('address1', info.address1)
+        # print('address1', info.address1)
         if not info.address1:
-            #print('  not address1')
+            # print('  not address1')
             missing_fields.append('address1')
-        #print('address2', info.address2)
+        # print('address2', info.address2)
         # if not info.address2:
         #     print('  not address2')
-        #print('city',  info.city)
+        # print('city',  info.city)
         if not info.city:
-            #print('  not city')
+            # print('  not city')
             missing_fields.append('city')
-        #print('state', info.state)
+        # print('state', info.state)
         if not info.state:
-            #print('  not state')
+            # print('  not state')
             missing_fields.append('state')
-        #print('zipcode', info.zipcode)
+        # print('zipcode', info.zipcode)
         if not info.zipcode:
             # print('  not zipcode')
             missing_fields.append('zipcode')
 
         if len(missing_fields) > 0:
-            raise APIException('Accout Information is missing: ' +  str(missing_fields))
+            raise APIException('Accout Information is missing: ' + str(missing_fields))
 
-    def create_paypal_saved_card(self, user, card_type, number, exp_month, exp_year, cvv2): # TODO - test
+    # TODO - test
+    def create_paypal_saved_card(self, user, card_type, number, exp_month, exp_year, cvv2):
         """
         using paypal api, try to save a card, and return the data
         """
 
         # ensure the users first_name and last_name exist! we require them
-
 
         card_data = CardData()
 
@@ -656,19 +703,20 @@ class PayPalSavedCardAddAPIView(APIView):
         card_data.set_card_field(CardData.LAST_NAME, user.last_name)
 
         # get the billing address information
-        info = Information.objects.get(user=user) # TODO - all the fields we use should exist (its possible they do not)
+        # TODO - all the fields we use should exist (its possible they do not)
+        info = Information.objects.get(user=user)
         self.validate_information(info)
 
         # populate the CardData with required billing info
         line1 = info.address1
-        line2 = info.address2 # unused currently
+        # line2 = info.address2  # unused currently
         card_data.set_billing_field(CardData.LINE_1, line1)
         card_data.set_billing_field(CardData.CITY, info.city)
         card_data.set_billing_field(CardData.STATE, info.state)
-        card_data.set_billing_field(CardData.COUNTRY_CODE, 'US') # TODO allow others?
+        card_data.set_billing_field(CardData.COUNTRY_CODE, 'US')  # TODO allow others?
         card_data.set_billing_field(CardData.POSTAL_CODE, info.zipcode)
 
-        #print('card_data.get_data():', str(card_data.get_data()))
+        # print('card_data.get_data():', str(card_data.get_data()))
 
         # call paypal api
         pp = PayPal()
@@ -676,7 +724,8 @@ class PayPalSavedCardAddAPIView(APIView):
         saved_card_data = pp.save_card(card_data.get_data())
         return saved_card_data
 
-    def create_saved_card_details(self, user, token, card_type, last_4, exp_month, exp_year): # TODO - finish/test
+    # TODO - finish/test
+    def create_saved_card_details(self, user, token, card_type, last_4, exp_month, exp_year):
         """
         once we have successfully saved a card using paypal's api,
         create a reference to that saved card (especially the token)
@@ -710,17 +759,18 @@ class PayPalSavedCardAddAPIView(APIView):
 
         # get the card type properties so we can create a SavedCardDetails instance
         # the first/last name will come from the user object internally
-        #first_name  = args.get('first_name')       # TODO - validate the CARDHOLDER first name
-        #last_name   = args.get('last_name')        # TODO - validate the CARDHOLDER last name
-        card_type   = args.get('type')
-        number      = args.get('number')
-        exp_month   = args.get('exp_month')
-        exp_year    = args.get('exp_year')
-        cvv2        = args.get('cvv2')
+        # first_name  = args.get('first_name')       # TODO - validate the CARDHOLDER first name
+        # last_name   = args.get('last_name')        # TODO - validate the CARDHOLDER last name
+        card_type = args.get('type')
+        number = args.get('number')
+        exp_month = args.get('exp_month')
+        exp_year = args.get('exp_year')
+        cvv2 = args.get('cvv2')
 
         # save the card using paypal
         try:
-            save_card_api_data = self.create_paypal_saved_card(user, card_type, number, exp_month, exp_year, cvv2)
+            save_card_api_data = self.create_paypal_saved_card(
+                user, card_type, number, exp_month, exp_year, cvv2)
         except Information.DoesNotExist:
             raise APIException("Incomplete information. Is billing address filled out?")
 
@@ -732,11 +782,13 @@ class PayPalSavedCardAddAPIView(APIView):
             paypal_details = save_card_api_data.get('details')
             raise APIException(paypal_details)
 
-        last_4 = number[-4:] # slice off the last 4 digits
-        saved_card = self.create_saved_card_details(user, token, card_type, last_4, exp_month, exp_year)
+        last_4 = number[-4:]  # slice off the last 4 digits
+        saved_card = self.create_saved_card_details(
+            user, token, card_type, last_4, exp_month, exp_year)
 
         # return serialized data of the new saved card
         return Response(SavedCardSerializer(saved_card, many=False).data, status=200)
+
 
 class PayPalSavedCardDeleteAPIView(APIView):
     """
@@ -771,6 +823,7 @@ class PayPalSavedCardDeleteAPIView(APIView):
 
         return Response(status=200)
 
+
 class PayPalSavedCardListAPIView(APIView):
     """
     get a list of the saved cards.
@@ -784,17 +837,18 @@ class PayPalSavedCardListAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         user = self.request.user
-        #print('PayPalSavedCardListAPIView user:', user)
+        # print('PayPalSavedCardListAPIView user:', user)
 
         saved_cards = None
         try:
             saved_cards = SavedCardDetails.objects.filter(user=user)
         except TypeError:
-           raise APIException("Invalid user: %s" % user)
+            raise APIException("Invalid user: %s" % user)
 
         # serialize the list of saved cards
         serialized_data = self.response_serializer(saved_cards, many=True).data
         return Response(serialized_data)
+
 
 class SetSavedCardDefaultAPIView(APIView):
     """
@@ -817,10 +871,10 @@ class SetSavedCardDefaultAPIView(APIView):
         try:
             saved_cards = SavedCardDetails.objects.filter(user=user)
         except TypeError:
-           return Response(status=405)
+            return Response(status=405)
 
         # update this specific card to default=True
-        enabled_cards = saved_cards.filter(token=token) # filter() returns a queryset
+        enabled_cards = saved_cards.filter(token=token)  # filter() returns a queryset
         if enabled_cards.count() >= 1:
             # update all the cards to default=False
             saved_cards.update(default=False)

@@ -8,6 +8,8 @@
 # has not been battle tested on heroku yet. currently it will
 # bring a vagrant VM to its knees.
 
+from threading import Thread
+from util.timesince import timeit
 from django.conf import settings
 ASYNC_UPDATES = settings.DATADEN_ASYNC_UPDATES # False for dev
 
@@ -15,6 +17,8 @@ from dataden.util.hsh import Hashable
 from dataden.util.simpletimer import SimpleTimer
 from dataden.cache.caches import LiveStatsCache, TriggerCache
 
+from bson.timestamp import Timestamp
+import pymongo
 from pymongo import MongoClient
 from pymongo.cursor import _QUERY_OPTIONS, CursorType
 import re, time
@@ -65,6 +69,14 @@ class OpLogObj( Hashable ):
 
     def __str__(self):
         return str(self.original_obj)
+
+    def override_new(self):
+        """
+        subclasses can override this method to provide their own logic
+        to return a boolean indicating if this object should bypass the
+        trigger filter or not -- even if its not the first time its seen.
+        """
+        return False
 
     def get_ns(self):
         """
@@ -156,22 +168,77 @@ class OpLogObjWrapper( OpLogObj ):
         # now create the OpLogObj with our spoofed obj
         super().__init__(wrapped_obj)
 
+    @staticmethod
+    def wrap(data, ns=None):
+        oplog_obj = OpLogObjWrapper.OPLOG_WRAPPER.copy()
+        if ns is not None:
+            # ns, the "namespace" is the <db>.<collection> the object comes from
+            # as an example here is an at-bat from mlb:   'mlb.at_bat'
+            oplog_obj['ns'] = ns
+        oplog_obj['o'] = data
+        return oplog_obj
+
+class OpLogObjWithTs(OpLogObj):
+    """
+    override OpLogObj not to exclude any of the fields
+    of the main DataDen object (note: we always ignore
+    the mongo oplog wrapper when hsh() is called).
+    """
+
+    exclude_field_names = []
+
 class Trigger(object):
     """
     uses local.oplog.rs to implement mongo triggers
     """
+
+    class UpdateWorker(Thread):
+
+        def __init__(self, obj_list, oplogobj_class, live_stats_cache, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.oplogobj_class = oplogobj_class
+            self.obj_list = obj_list
+            self.live_stats_cache = live_stats_cache
+
+            try:
+                size = len(obj_list)
+                print(self.__class__.__name__ + ' total_updates:%s:' % str(size))
+            except:
+                pass
+
+        def run(self):
+            """ start working by calling: start() """
+            ctr = 0
+            for obj in self.obj_list:
+                # create a hashable object as the key to cache it with
+                hashable_object = self.oplogobj_class(obj)
+
+                # the live stats cache will add every item it sees to the redis cache
+                if self.live_stats_cache.update( hashable_object ):
+                    # the object is new or has been updated.
+                    # send the update signal along with the object to Pusher/etc...
+                    ctr += 1
+                    Update( hashable_object ).send(async=True)
+
+            print(self.__class__.__name__ + ' new_updates:%s:' % str(ctr))
+
+    work_size   = 250
 
     DB_LOCAL    = 'local'
     OPLOG       = 'oplog.rs'
 
     PARENT_API__ID = 'parent_api__id'
 
-    DEFAULT_CURSOR_TYPE = CursorType.TAILABLE_AWAIT
+    # originally, it works fine, just slow startup for complex queries/big oplogs
+    cursor_type = CursorType.TAILABLE_AWAIT
+    #cursor_type = CursorType.TAILABLE
 
     live_stats_cache_class = LiveStatsCache
 
+    oplogobj_class = OpLogObj
+
     def __init__(self, cache='default', clear=False, init=False,
-                                db=None, coll=None, parent_api=None, cursor_type=None ):
+                                db=None, coll=None, parent_api=None, t=None):
         """
         by default, uses all the enabled Trigger(s), see /admin/dataden/trigger/
 
@@ -181,17 +248,12 @@ class Trigger(object):
         if 'db', 'coll', and 'parent_api' all exist, just run
         the Trigger with a single trigger enabled, specified by those params
 
-        :param db:
-        :param coll:
-        :param parent_api:
-        :param cache:
-        :param clear:
-        :param init:
-        :param triggers:
-        :return:
+        't' can be used to pass a dataden.models.Trigger instead of
+                having to type the db, coll, and parent_api
         """
         self.init         = init            # default: False, if True, parse entire log
         self.client       = MongoClient(settings.MONGO_HOST, settings.MONGO_PORT)
+        #self.client = MongoClient() # localhost/default port
         self.last_ts      = None
 
         #
@@ -199,18 +261,22 @@ class Trigger(object):
         self.db_name      = db              # ie: 'nba', 'nfl'
         self.coll_name    = coll            # ie: 'player', 'standings'
         self.parent_api   = parent_api      # dataden's name for the feed to look in
+        if t is not None:
+            ns_parts = t.ns.split('.')
+            self.db_name = ns_parts[0]
+            self.coll_name = ns_parts[1]
+            self.parent_api = t.parent_api
 
         self.timer      = SimpleTimer()
 
-        self.db_local   = self.client.get_database( self.DB_LOCAL )
-        self.oplog      = self.db_local.get_collection( self.OPLOG )
+        # self.db_local   = self.client.get_database( self.DB_LOCAL )
+        # self.oplog      = self.db_local.get_collection( self.OPLOG )
+        #self.oplog = self.client.local.oplog.rs
 
         # self.live_stats_cache   = LiveStatsCache( cache, clear=clear )
-        self.live_stats_cache   = self.live_stats_cache_class( cache, clear=clear )
+        self.live_stats_cache = self.live_stats_cache_class( cache, clear=clear )
 
-        self.trigger_cache      = TriggerCache()
-
-        self.cursor_type = cursor_type
+        self.trigger_cache = TriggerCache()
 
     def single_trigger_override(self):
         """
@@ -235,47 +301,63 @@ class Trigger(object):
 
         :return:
         """
-        #self.display()
 
         if last_ts:
-            self.last_ts = last_ts # user wants to start from at least this specific ts
+            # user wants to start from at least this specific ts
+            self.last_ts = last_ts
         else:
-            self.last_ts = self.get_last_ts() # get most recent ts, (by default, dont reparse the world)
+            # get most recent ts, (by default, dont reparse the world)
+            self.last_ts = self.get_last_ts(now=True) # now=True means dont query it, just guess it
 
-        #print('last_ts():', str(self.last_ts))
-        self.timer.start()
-        self.reload_triggers() # do this pre query() being called
+        # do this previous to query() being called
+        self.reload_triggers()
 
         #
         # using a tailable cursor allows us to loop on it
         # and we will pick up new objects as they come into
         # the oplog based on whatever our query is!
-        cur = self.get_cursor( self.oplog, self.query(), cursor_type=self.cursor_type )
+        obj_list = []
+        ctr = 0
+        cur = self.get_cursor(self.query())
         while cur.alive:
+
             try:
                 obj = cur.next()
             except StopIteration:
-                #print('waiting')
+                # we should realize theres nothing left and
+                # send current UpdateWorker unless theres
+                # actually 0 things left to send
+                if len(obj_list) > 0:
+                    worker = self.UpdateWorker(obj_list, self.oplogobj_class, self.live_stats_cache)
+                    worker.start()  # join it? will it die? should we hold onto it?
+                    # and reset ctr and obj_list
+                    ctr = 0
+                    obj_list = []  # and reset obj_list
+
                 continue
 
-            hashable_object = OpLogObj(obj)
-            self.last_ts = hashable_object.get_ts()
+            ctr += 1
+            obj_list.append(obj)
 
+            if ctr >= self.work_size:
+                worker = self.UpdateWorker(obj_list, self.oplogobj_class, self.live_stats_cache)
+                worker.start() # join it? will it die? should we hold onto it?
+                # and reset ctr and obj_list
+                ctr = 0
+                obj_list = []  # and reset obj_list
+
+            # starves the last couple object every round....
+
+            # work method now:
+            # # create a hashable object as the key to cache it with
+            # hashable_object = self.oplogobj_class(obj)
             #
-            # the live stats cache will filter out objects
-            # from being sent unless its the first time
-            # they've been seen, or if there have been changes
-            if self.live_stats_cache.update( hashable_object ):
-                # primarily for sumo logic, log this object making
-                # sure to include the 'ts' timestamp from the oplog
-                self.log_for_sumo( hashable_object )
-
-                # the object is new or has been updated.
-                # send the update signal along with the object to Pusher/etc...
-                Update( hashable_object ).send(async=True)
-
-            ns = hashable_object.get_ns()
-            parent_api = hashable_object.get_parent_api()
+            # # the live stats cache will add every item it sees to the redis cache
+            # if self.live_stats_cache.update( hashable_object ):
+            #     # the object is new or has been updated.
+            #     # send the update signal along with the object to Pusher/etc...
+            #     print('trigger:', str(obj))
+            #     Update( hashable_object ).send(async=True)
 
     def log_for_sumo(self, hashable_object):
         """
@@ -306,19 +388,31 @@ class Trigger(object):
     def get_ns(self):
         return '%s.%s' % (self.db_name, self.coll_name)
 
-    def get_last_ts(self):
+    @timeit
+    def get_last_ts(self, now=True):
         """
         sets the last_ts internally, and then returns the same value.
         must be called before query() is generated
 
         :return:
         """
-        #self.timer.start()
-        cur = self.oplog.find().sort([('$natural', -1)])
-        for obj in cur:
-            self.last_ts = OpLogObj( obj ).get_ts()
-            #self.timer.stop(msg='get_last_ts()')
-            return self.last_ts
+        # first = oplog.find().sort('$natural', pymongo.DESCENDING).limit(-1).next()
+        # ts = first['ts']
+
+        # originally, works, but sorting large oplog time consuming
+        # if now:
+        #     now = time.time()
+        #     self.last_ts = Timestamp(int(now), int((now*10000000) % 10000000))
+        # else:
+
+        first = self.client.local.oplog.rs.find().sort('$natural', pymongo.DESCENDING).limit(-1).next()
+        self.last_ts = first.get('ts')
+        return self.last_ts
+        # cur = self.client.local.oplog.rs.find().sort([('$natural', -1)])
+        # for obj in cur:
+        #     self.last_ts = self.oplogobj_class( obj ).get_ts()
+        #     return self.last_ts
+
 
     def query(self):
         """
@@ -336,7 +430,7 @@ class Trigger(object):
         if self.single_trigger_override():
             #
             # single trigger specified
-            single_trig = '<<< %s.%s %s >>>' % (self.db_name, self.coll_name, self.parent_api)
+            #single_trig = '<<< %s.%s %s >>>' % (self.db_name, self.coll_name, self.parent_api)
             #print('single_trigger_override() True - triggering on %s' % single_trig)
             q = {
                 'ts' : {'$gt' : self.last_ts},
@@ -358,20 +452,16 @@ class Trigger(object):
             q_triggers = []
             for trig in self.triggers:
                 where_args = [
-                    {'ns':'%s.%s'%(trig.db,trig.collection)},
-                    {'o.%s'%self.PARENT_API__ID:trig.parent_api}
+                    {'ns':'%s.%s' % (trig.db,trig.collection)},
+                    {'o.%s' % self.PARENT_API__ID:trig.parent_api}
                 ]
                 q_triggers.append(
                     { '$and' : where_args }
                 )
 
             q = {
-                'ts' : {'$gt' : self.last_ts},   # older version required this
-                #'ts' : {'$gt' : str( self.last_ts.time * 1000 + self.last_ts.inc) },
-                # 'ns' : { '$in' : ns_list },
-                # 'o.%s' % self.PARENT_API__ID : { '$in': api_list },
+                'ts' : {'$gt' : self.last_ts},
                 '$or' : q_triggers,
-
             }
 
         if self.init == True:  # explicity showing if its == True, because this will be rare
@@ -380,7 +470,8 @@ class Trigger(object):
 
         return q
 
-    def get_cursor(self, collection, query, cursor_type=None, hint=[('$natural', 1)]):
+    @timeit
+    def get_cursor(self, query, hint=[('$natural', 1)]):
         """
         Gets a Cursor for the given collection and target query.
         If cursor_type is None it defaults to CursorType.TAILABLE_AWAIT.
@@ -392,15 +483,24 @@ class Trigger(object):
         :param hint:
         :return:
         """
-        if cursor_type is None:
-            cursor_type = CursorType.TAILABLE_AWAIT
-        cur = collection.find(query, cursor_type=cursor_type)
-        cur = cur.hint(hint)
-        return cur
+        # if cursor_type is None:
+        #     cursor_type = CursorType.TAILABLE_AWAIT
 
-    # def display(self):
-    #     print('%s [ trigger running on <<< %s.%s %s >>' % (self.__class__.__name__,
-    #                                 self.db_name, self.coll_name, 'parent_api: %s' % self.parent_api) )
+        # while True:
+        #     cursor = oplog.find({'ts': {'$gt': ts}}, tailable=True, await_data=True)
+        #     # oplogReplay flag - not exposed in the public API
+        #     cursor.add_option(8)
+        #     while cursor.alive:
+        #         for doc in cursor:
+        #             ts = doc['ts']
+        #             # Do something...
+        #         time.sleep(1)
+
+        cur = self.client.local.oplog.rs.find(query, cursor_type=self.cursor_type) # , await_data=True)
+        #cur = collection.find(query, cursor_type=self.cursor_type)
+        ##cur.add_option(8)
+        #cur = cur.hint(hint) # maybe later
+        return cur
 
     def trigger_debug(self, object):
         print( object )
@@ -408,3 +508,52 @@ class Trigger(object):
     def trigger(self):
         raise UnimplementedTriggerCallbackException(
             self.__class__.__name__ + 'must implement trigger() method')
+
+class TriggerAll(Trigger):
+    """
+    this trigger sends out all objects all objects it sees
+    after placing them in the cache.
+    """
+
+    oplogobj_class = OpLogObjWithTs
+
+    def run(self, last_ts=None):
+        """
+        use the live stats cache to update() the hashable
+        objects from the oplog but instead of only
+        sending objects without changes based on the return
+        value of update() this method sends every
+        object, every time!
+        """
+
+        if last_ts:
+            # user wants to start from at least this specific ts
+            self.last_ts = last_ts
+        else:
+            # get most recent ts, (by default, dont reparse the world)
+            self.last_ts = self.get_last_ts()
+
+        # do this previous to query() being called
+        self.reload_triggers()
+
+        #
+        # using a tailable cursor allows us to loop on it
+        # and we will pick up new objects as they come into
+        # the oplog based on whatever our query is!
+        cur = self.get_cursor(self.oplog, self.query(), cursor_type=self.cursor_type)
+        while cur.alive:
+
+            try:
+                obj = cur.next()
+            except StopIteration:
+                continue
+
+            # create a hashable object as the key to cache it with
+            hashable_object = self.oplogobj_class(obj)
+
+            # the live stats cache will add every item it sees to the redis cache
+            self.live_stats_cache.update(hashable_object)
+
+            # the object is new or has been updated.
+            # send the update signal along with the object to Pusher/etc...
+            Update(hashable_object).send(async=True)

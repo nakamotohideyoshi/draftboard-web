@@ -31,7 +31,7 @@ class PlayerStatsAdmin(mysite.mixins.generic_search.GenericSearchMixin, admin.Mo
 
     #model           = Salary
     #list_filter     = ['first_name', 'flagged', 'pool']
-    search_fields   = ('player__first_name', 'player__last_name')
+    search_fields   = ('srid_game', 'srid_player', 'player__first_name', 'player__last_name')
     ordering        = ['-created']
     # def has_add_permission(self, request):
     #     return False

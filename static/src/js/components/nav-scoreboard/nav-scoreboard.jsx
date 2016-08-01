@@ -77,9 +77,11 @@ const NavScoreboard = React.createClass({
     this.props.actions.fetchSportsIfNeeded();
 
     // if the user is logged in
-    if (this.state.user.username !== '' && !this.state.isLivePage) {
-      this.props.actions.fetchCurrentLineupsAndRelated();
+    if (this.state.user.username !== '') {
       this.props.actions.fetchCashBalanceIfNeeded();
+      if (!this.state.isLivePage) {
+        this.props.actions.fetchCurrentLineupsAndRelated();
+      }
     }
 
     this.startListening();
