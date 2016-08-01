@@ -74,6 +74,12 @@ class PayPalTransaction(models.Model):
     transaction             = models.ForeignKey( Transaction )
     paypal_transaction_id   = models.CharField( max_length=128, null=False )
 
+class VZeroTransaction(models.Model):
+    """ for paypal vzero transactions like deposits """
+    created = models.DateTimeField(auto_now_add=True, null=True)
+    transaction = models.ForeignKey(Transaction)
+    transaction_identifier = models.CharField(max_length=128, null=False)
+
 class AdminCashDeposit( models.Model ):
     """
     keep track of times the admin has deposited cash
