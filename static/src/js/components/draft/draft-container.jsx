@@ -29,6 +29,7 @@ import './draft-player-detail.jsx';
 import { push as routerPush } from 'react-router-redux';
 import { Router, Route, browserHistory } from 'react-router';
 import { syncHistoryWithStore } from 'react-router-redux';
+import CountdownClock from '../../components/site/countdown-clock.jsx';
 
 
 /*
@@ -317,7 +318,7 @@ const DraftContainer = React.createClass({
     return (
       <div>
         <h2 className="player-list__header">
-          <span className="player-list__header-title">{this.props.sport} DraftBoard</span>
+          <span className="player-list__header-title">{this.props.sport} Draft</span>
           <span className="player-list__header-divider">/</span>
           <span
             className="player-list__header-games"
@@ -345,6 +346,13 @@ const DraftContainer = React.createClass({
             newLineup={this.props.newLineup}
             activeFilter={this.props.filters.positionFilter}
           />
+
+          <div className="cmp-draft-countdown">
+            <CountdownClock
+              time={this.props.draftGroupTime}
+              timePassedDisplay="Live"
+            />
+          </div>
 
         </div>
 

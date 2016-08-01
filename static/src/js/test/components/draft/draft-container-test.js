@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import { mount } from 'enzyme';
 import merge from 'lodash/merge';
 import DraftContainer from '../../../components/draft/draft-container.jsx';
+import CountdownClock from '../../../components/site/countdown-clock.jsx';
 import CollectionSearchFilter from '../../../components/filters/collection-search-filter.jsx';
 import CollectionMatchFilter from '../../../components/filters/collection-match-filter.jsx';
 import DraftTeamFilter from '../../../components/draft/draft-team-filter.jsx';
@@ -72,6 +73,7 @@ describe('<DraftContainer /> Component', () => {
     expect(wrapper.find(DraftTeamFilter)).to.have.length(1);
     expect(wrapper.find(CollectionMatchFilter)).to.have.length(1);
     expect(wrapper.find(CollectionSearchFilter)).to.have.length(1);
+    expect(wrapper.find(CountdownClock)).to.have.length(1);
   });
 
   it('should load data once mounted.', () => {
