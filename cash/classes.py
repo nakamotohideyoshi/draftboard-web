@@ -115,6 +115,13 @@ class CashTransaction(CanDeposit, AbstractTransaction):
         saved_card_transaction.transaction = self.transaction_detail.transaction
         saved_card_transaction.save()
 
+    def deposit_vzero(self, amount, transaction_id):
+        self.deposit(amount)
+        vzero_transaction = cash.models.VZeroTransaction()
+        vzero_transaction.transaction_identifier = transaction_id
+        vzero_transaction.transaction = self.transaction_detail.transaction
+        vzero_transaction.save()
+
     def get_balance_string_formatted(self):
         """
 
