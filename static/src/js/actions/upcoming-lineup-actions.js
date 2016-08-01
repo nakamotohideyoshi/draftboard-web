@@ -182,7 +182,7 @@ export function saveLineup(lineup, title, draftGroupId) {
           dispatch(saveLineupFail(res.body));
         } else {
           // Upon save success, send user to the lobby.
-          document.location.href = '/lobby/?lineup-saved=true';
+          document.location.href = '/contests/?lineup-saved=true';
         }
       });
   };
@@ -250,7 +250,7 @@ export function saveLineupEdit(lineup, title, lineupId) {
               lineupId,
             });
             // Redirect to lobby with url param.
-            document.location.href = '/lobby/?lineup-saved=true';
+            document.location.href = '/contests/?lineup-saved=true';
           }
         }
       });

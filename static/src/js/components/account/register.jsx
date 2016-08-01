@@ -77,7 +77,7 @@ export const Register = React.createClass({
     ).then(
       // only redirect if success is true, otherwise is error that got caught in action
       response => {
-        if (response.success === true) window.location.href = '/lobby';
+        if (response.success === true) window.location.href = '/contests/';
       }).catch(
       // reject = show errors
       errors => {

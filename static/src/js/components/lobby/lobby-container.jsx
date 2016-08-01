@@ -126,7 +126,7 @@ const LobbyContainer = React.createClass({
     if (window.location.search.indexOf('lineup-saved=true') !== -1) {
       // remove the param from the URL.
       const strippedParams = removeParamFromURL(window.location.search, 'lineup-saved');
-      this.props.routerPush(`/lobby/${strippedParams}`);
+      this.props.routerPush(`/contests/${strippedParams}`);
       this.props.addMessage({
         header: 'Lineup Saved!',
         content: 'Now enter it into some contests',
@@ -196,7 +196,7 @@ const LobbyContainer = React.createClass({
 
 
   handleFocusContest(contest) {
-    this.props.routerPush(`/lobby/${contest.id}/`);
+    this.props.routerPush(`/contests/${contest.id}/`);
     this.props.setFocusedContest(contest.id);
     AppActions.openPane();
   },

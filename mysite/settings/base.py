@@ -42,7 +42,7 @@ FIXTURES_DIR = (os.path.join(BASE_DIR, 'test/fixtures'),)  # for $> manage.py te
 
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
-LOGIN_REDIRECT_URL = '/lobby/'
+LOGIN_REDIRECT_URL = '/contests/'
 
 #
 # Django 1.8 removed TEMPLATE_DIRS. It is now TEMPLATES = {}
