@@ -1,6 +1,6 @@
 import CountdownClock from '../site/countdown-clock';
 import { humanizeCurrency } from '../../lib/utils/currency';
-import { humanizeFP } from '../../actions/sports';
+import { humanizeFP } from '../../lib/utils/numbers';
 import { isTimeInFuture } from '../../lib/utils';
 import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import PureRenderMixin from 'react-addons-pure-render-mixin';

@@ -4,6 +4,7 @@ import { expect } from 'chai';
 import { mount } from 'enzyme';
 
 import LiveOverallStats from '../../../components/live/live-overall-stats.jsx';
+import Odometer from '../../../components/site/odometer.jsx';
 
 
 /**
@@ -42,7 +43,7 @@ describe('<LiveOverallStats /> Component', () => {
     expect(wrapper.find('.live-overall-stats__name').text()).to.equal('My Lineup');
     expect(wrapper.find('.live-overall-stats__rank').text()).to.equal('40th /');
     expect(wrapper.find('.live-overall-stats__amount').text()).to.equal('$2.12');
-    expect(wrapper.find('.live-overall-stats__fp').text()).to.equal('20.34');
+    expect(wrapper.find(Odometer)).to.have.length(1);
     expect(wrapper.find('.live-overall-stats__duration').text()).to.equal('153');
   });
 

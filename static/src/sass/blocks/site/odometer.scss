@@ -1,0 +1,83 @@
+@import "../../variables.scss";
+
+
+//
+// BEM block for odometer, used with Odometer component
+// Based from mixin from https://github.com/HubSpot/odometer/blob/master/sass/_mixins.sass
+//
+
+$block: '.odometer';
+
+#{$block} {
+  display: inline-block;
+  position: relative;
+
+  &--live-overall-stats {
+    color: #fff;
+    font-family: $font-oswald;
+    font-size: 52px;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  &-digit {
+    display: inline-block;
+    position: relative;
+
+    #{$block}-digit-spacer {
+      display: inline-block;
+      visibility: hidden;
+    }
+
+    #{$block}-digit-inner {
+      text-align: left;
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: hidden;
+    }
+
+    #{$block}-ribbon {
+      display: block;
+    }
+
+    #{$block}-ribbon-inner {
+      display: block;
+      -webkit-backface-visibility: hidden;
+    }
+
+    #{$block}-value {
+      display: block;
+      text-align: center;
+      -webkit-transform: translateZ(0);
+
+      &#{$block}-last-value {
+        position: absolute;
+      }
+    }
+  }
+
+  &-animating-up {
+    #{$block}-ribbon-inner {
+      transition: transform 2s;
+    }
+
+    &#{$block}-animating #{$block}-ribbon-inner {
+      transform: translateY(-100%);
+    }
+  }
+
+  &-animating-down {
+    #{$block}-ribbon-inner {
+      transform: translateY(-100%);
+    }
+
+    &#{$block}-animating #{$block}-ribbon-inner {
+      transition: transform 2s;
+      transform: translateY(0);
+    }
+  }
+}

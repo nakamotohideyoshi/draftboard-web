@@ -8,3 +8,6 @@ static/src/js/lib/time.js
 
 # ignore pusher-stub-test
 static/src/js/lib/pusher-test-stub/*
+
+# ignore third party odometer
+static/src/js/lib/odometer.js
