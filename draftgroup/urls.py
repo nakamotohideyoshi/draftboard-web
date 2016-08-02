@@ -1,7 +1,6 @@
 #
 # draftgroup/urls.py
 
-from django.conf.urls import patterns
 from django.conf.urls import url
 from draftgroup.views import (
     DraftGroupAPIView,
@@ -15,39 +14,40 @@ from draftgroup.views import (
     PlayerAndGameUpdateAPIView,
 )
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
 
     #
     # get the current draft groups (live, and upcoming)
-    (r'current/$', CurrentDraftGroupAPIView.as_view()),
+    url(r'current/$', CurrentDraftGroupAPIView.as_view()),
 
     #
     # get the upcoming draft groups
-    (r'upcoming/$', UpcomingDraftGroupAPIView.as_view()),
+    url(r'upcoming/$', UpcomingDraftGroupAPIView.as_view()),
 
     #
     # get recent play by play for this draftgroup
-    (r'^pbp/(?P<draft_group_id>[0-9]+)/$', DraftGroupPbpDescriptionView.as_view()),
+    url(r'^pbp/(?P<draft_group_id>[0-9]+)/$', DraftGroupPbpDescriptionView.as_view()),
 
     #
     # get the boxscores for this draft group
-    (r'^boxscores/(?P<draft_group_id>[0-9]+)/$', DraftGroupGameBoxscoresView.as_view()),
+    url(r'^boxscores/(?P<draft_group_id>[0-9]+)/$', DraftGroupGameBoxscoresView.as_view()),
 
     #
     # get the draftgroup players (including the fantasy points for each player currently).
     # use this api to get the fantasy_points for each player in a draftgroup.
-    (r'^fantasy-points/(?P<draft_group_id>[0-9]+)/$', DraftGroupFantasyPointsView.as_view()),
+    url(r'^fantasy-points/(?P<draft_group_id>[0-9]+)/$', DraftGroupFantasyPointsView.as_view()),
 
     #
     # get the game updates for draft group by its id
-    (r'^game-updates/(?P<draft_group_id>[0-9]+)/$', GameUpdateAPIView.as_view()),
-    (r'^player-updates/(?P<draft_group_id>[0-9]+)/$', PlayerUpdateAPIView.as_view()),
+    url(r'^game-updates/(?P<draft_group_id>[0-9]+)/$', GameUpdateAPIView.as_view()),
+    url(r'^player-updates/(?P<draft_group_id>[0-9]+)/$', PlayerUpdateAPIView.as_view()),
+
     # get the game and player updates
-    (r'^updates/(?P<draft_group_id>[0-9]+)/$', PlayerAndGameUpdateAPIView.as_view()),
+    url(r'^updates/(?P<draft_group_id>[0-9]+)/$', PlayerAndGameUpdateAPIView.as_view()),
 
     #
     # Get the draftgroup players for a draftgroup id.
     # Use this api to get the lists of draftable players for a contest.
-    (r'^(?P<pk>[0-9]+)/$', DraftGroupAPIView.as_view()),
-)
+    url(r'^(?P<pk>[0-9]+)/$', DraftGroupAPIView.as_view()),
+
+]

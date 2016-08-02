@@ -14,7 +14,6 @@ ALLOWED_HOSTS = ['.draftboard-delorean.herokuapp.com', '*.draftboard-delorean.he
 # Based on https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-of-active-connections
 # and Django 1.6 we can set 10 persistent connections bc we have a limit of 400 connections with our Premium 2 database.
 # 4 workers * up to 10 dynos * 10 connections = 400
-# TODO django16 upgrade to persistent connections
 DATABASES = {
     'default': heroku_db_config()
 }

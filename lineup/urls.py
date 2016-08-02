@@ -1,7 +1,7 @@
 #
 # lineup/urls.py
 
-from django.conf.urls import patterns
+from django.conf.urls import url
 from lineup.views import (
     UserUpcomingAPIView,
     UserLiveAPIView,
@@ -14,40 +14,40 @@ from lineup.views import (
     EditLineupStatusAPIView,
 )
 
-urlpatterns = patterns( '',
+urlpatterns = [
 
     #
     # create a new lineup (it may merge with an existing lineup if its identical)
-    (r'^create/$', CreateLineupAPIView.as_view()),
+    url(r'^create/$', CreateLineupAPIView.as_view()),
 
     #
     # edit existing lineup
-    (r'^edit/$', EditLineupAPIView.as_view()),
-    (r'^edit-status/(?P<task_id>[a-z0-9-]+)/$', EditLineupStatusAPIView.as_view()),
+    url(r'^edit/$', EditLineupAPIView.as_view()),
+    url(r'^edit-status/(?P<task_id>[a-z0-9-]+)/$', EditLineupStatusAPIView.as_view()),
 
     #
     # get the players for the lineup
-    (r'^(?P<pk>[0-9]+)$', PlayersAPIView.as_view()),
+    url(r'^(?P<pk>[0-9]+)$', PlayersAPIView.as_view()),
 
     #
     # get a logged in user's upcoming contests
-    (r'^current/$', UserCurrentAPIView.as_view()),
+    url(r'^current/$', UserCurrentAPIView.as_view()),
 
     #
     # get a logged in user's upcoming contests
-    (r'^upcoming/$', UserUpcomingAPIView.as_view()),
+    url(r'^upcoming/$', UserUpcomingAPIView.as_view()),
 
     #
     # get a logged in user's live contests
-    (r'^live/$', UserLiveAPIView.as_view()),
+    url(r'^live/$', UserLiveAPIView.as_view()),
 
     #
     # get a logged in user's historical contests
-    (r'^history/$', UserHistoryAPIView.as_view()),
+    url(r'^history/$', UserHistoryAPIView.as_view()),
 
     #
     # for the given lineup_ids, get the username of the owner
     # LineupUserAPIView
-    (r'^usernames/$', LineupUserAPIView.as_view()),
+    url(r'^usernames/$', LineupUserAPIView.as_view()),
 
-)
+]
