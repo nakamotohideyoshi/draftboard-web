@@ -12,6 +12,12 @@ import forEach from 'lodash/forEach';
 const ContestList = (props) => {
   const visibleRows = [];
 
+  if (props.isFetchingContestPools) {
+    visibleRows.push(
+      <tr><td colSpan="8">Loading Contests</td></tr>
+    );
+  }
+
   // Build up a list of rows to be displayed.
   forEach(props.contests, (row) => {
     let isEntered = false;
@@ -95,6 +101,7 @@ ContestList.propTypes = {
   setFocusedContest: React.PropTypes.func,
   setOrderBy: React.PropTypes.func,
   entrySkillLevels: React.PropTypes.object.isRequired,
+  isFetchingContestPools: React.PropTypes.bool.isRequired,
 };
 
 
