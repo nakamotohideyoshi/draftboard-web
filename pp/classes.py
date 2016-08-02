@@ -3,40 +3,35 @@
 
 from django.conf import settings
 import requests
-import random
 import json
 from util.timesince import timeit
-import paypalrestsdk as paypal
-from rest_framework.exceptions import (
-    APIException,
-)
-import pp.serializers
 from pp.models import (
     SavedCardPaymentData,
-    CreditCardPaymentData,
-    PayPalAccountPaymentData,
+    CreditCardPaymentData
 )
 import braintree
 import cash
 
+
 class VZeroShipping(object):
 
-    class ValidationError(Exception): pass
+    class ValidationError(Exception):
+        pass
 
-    field_first_name            = "first_name"
-    field_last_name             = "last_name"
-    #field_company               = "company"
-    field_street_address        = "street_address"
-    field_extended_address      = "extended_address"
-    field_locality              = "locality"            # for US: this is the city, ie: "Austin"
-    field_region                = "region"              # for US: this is the state code, ie: "TX"
-    field_postal_code           = "postal_code"         # for US: this is the zipcode, ie: "12345"
-    field_country_code_alpha2   = "country_code_alpha2"
+    field_first_name = "first_name"
+    field_last_name = "last_name"
+    # field_company               = "company"
+    field_street_address = "street_address"
+    field_extended_address = "extended_address"
+    field_locality = "locality"            # for US: this is the city, ie: "Austin"
+    field_region = "region"              # for US: this is the state code, ie: "TX"
+    field_postal_code = "postal_code"         # for US: this is the zipcode, ie: "12345"
+    field_country_code_alpha2 = "country_code_alpha2"
 
     valid_fields = [
         field_first_name,
         field_last_name,
-        #field_company,
+        # field_company,
         field_street_address,
         field_extended_address,
         field_locality,
@@ -51,7 +46,7 @@ class VZeroShipping(object):
             self.data = {
                 "first_name":           None,           # "Jen",
                 "last_name":            None,           # "Smith",
-                #"company":              "",             # "ABC Co.",
+                # "company":              "",             # "ABC Co.",
                 "street_address":       None,           # "1 E 1st St",
                 "extended_address":     "",             # "Suite 403",
                 "locality":             None,           # "Bartlett",
@@ -89,20 +84,22 @@ class VZeroShipping(object):
         vzero_shipping_serializer.is_valid(raise_exception=True)
         self.update_data(vzero_shipping_serializer.data)
 
+
 class VZeroTransaction(object):
 
-    class ValidationError(Exception): pass
+    class ValidationError(Exception):
+        pass
 
     default_customer_cc_statement_description = "Draftboard"
     default_paypal_email_receipt = "draftboard.com deposit"
 
     default_currency = "USD"
-    choices_currency = [default_currency] # we may add CAD (canadien) eventually...
+    choices_currency = [default_currency]  # we may add CAD (canadien) eventually...
 
-    field_amount                = "amount"
-    field_currency              = "merchant_account_id"     # strange name, but here we set the currency
-    field_payment_method_nonce  = "payment_method_nonce"
-    field_shipping              = "shipping"
+    field_amount = "amount"
+    field_currency = "merchant_account_id"     # strange name, but here we set the currency
+    field_payment_method_nonce = "payment_method_nonce"
+    field_shipping = "shipping"
 
     valid_fields = [
         field_amount,
@@ -117,25 +114,25 @@ class VZeroTransaction(object):
         # we will perform validation on it before being used.
         self.data = {
 
-            "amount" : None,                                        # TODO - this will need to be set
+            "amount": None,                                        # TODO - this will need to be set
             "merchant_account_id": self.default_currency,           # defaults to "USD"
-            "payment_method_nonce" : None,                          # TODO - will need to set
-            "order_id" : "Mapped to PayPal Invoice Number",
+            "payment_method_nonce": None,                          # TODO - will need to set
+            "order_id": "Mapped to PayPal Invoice Number",
             "descriptor": {
                 #
                 # Descriptor displayed in customer CC statements. [22 char max]
-                "name" : self.default_customer_cc_statement_description
+                "name": self.default_customer_cc_statement_description
             },
 
             "shipping": None,                                       # TODO - validate its been set
 
-            "options" : {
-                "paypal" : {
-                    "custom_field" : "PayPal custom field",
+            "options": {
+                "paypal": {
+                    "custom_field": "PayPal custom field",
                     #
                     # "Description for PayPal email receipt"
-                    "description" : self.default_paypal_email_receipt,
-              },
+                    "description": self.default_paypal_email_receipt,
+                },
             }
         }
 
@@ -156,7 +153,8 @@ class VZeroTransaction(object):
 
     def update_transaction_data(self, data):
         self.update_field(self.field_amount, data.get(self.field_amount))
-        self.update_field(self.field_payment_method_nonce, data.get(self.field_payment_method_nonce))
+        self.update_field(self.field_payment_method_nonce,
+                          data.get(self.field_payment_method_nonce))
 
     def update_data(self, shipping_data, transaction_data):
         """
@@ -172,15 +170,17 @@ class VZeroTransaction(object):
         # raise exceptions if any required fields are not set
         self.validate()
 
+
 class VZero(object):
 
-    class VZeroException(Exception): pass
+    class VZeroException(Exception):
+        pass
 
     access_token = settings.VZERO_ACCESS_TOKEN
 
-    def __init__(self, access_token=None): # add user param ?
+    def __init__(self, access_token=None):  # add user param ?
         # django user who is performing a transaction
-        #self.user = user
+        # self.user = user
 
         # override the access_token if its specified
         if access_token is not None:
@@ -223,9 +223,11 @@ class VZero(object):
         if not result.is_success:
             #
             # example of deep errors (a list)
-            #   [<ValidationError {attribute: 'payment_method_nonce', message: 'Unknown or expired payment_method_nonce.', code: '91565'} at 140660839155080>]
+            #   [<ValidationError {attribute: 'payment_method_nonce', message: 'Unknown or expired
+            #   payment_method_nonce.', code: '91565'} at 140660839155080>]
             # TODO remove this debugging print eventually !
-            print("braintree transaction | Failure deep errors: %s" % str(result.errors.deep_errors))
+            print("braintree transaction | Failure deep errors: %s" %
+                  str(result.errors.deep_errors))
             for e in result.errors.deep_errors:
                 raise self.VZeroException(e.message)
 
@@ -238,8 +240,11 @@ class VZero(object):
 # these 4 un-classed methods are for testing. they come from wikipedia
 #    source: https://en.wikipedia.org/wiki/Luhn_algorithm
 # and they can help us create testing credit card numbers
+
+
 def digits_of(number):
     return list(map(int, str(number)))
+
 
 def luhn_checksum(card_number):
     digits = digits_of(card_number)
@@ -250,13 +255,19 @@ def luhn_checksum(card_number):
         total += sum(digits_of(2 * digit))
     return total % 10
 
+
 def is_luhn_valid(card_number):
     return luhn_checksum(card_number) == 0
 
+
 def calculate_luhn(partial_card_number):
-    check_digit = luhn_checksum(int(partial_card_number) * 10)   # Append a zero check digit to the partial number and calculate checksum
-    return check_digit if check_digit == 0 else 10 - check_digit # If the (sum mod 10) == 0, then the check digit is 0
-                                                                 # Else, the check digit = 10 - (sum mod 10)
+    # Append a zero check digit to the partial number and calculate checksum
+    check_digit = luhn_checksum(int(partial_card_number) * 10)
+    # If the (sum mod 10) == 0, then the check digit is 0
+    return check_digit if check_digit == 0 else 10 - check_digit
+    # Else, the check digit = 10 - (sum mod 10)
+
+
 class CardData(object):
     # card = {
     #     "payer_id":external_user_id,
@@ -276,23 +287,25 @@ class CardData(object):
     #     }
     # }
 
-    class InvalidCardFieldException(Exception): pass
+    class InvalidCardFieldException(Exception):
+        pass
 
-    class InvalidBillingFieldException(Exception): pass
+    class InvalidBillingFieldException(Exception):
+        pass
 
-    BILLING_ADDRESS_DATA    = 'billing_address'
+    BILLING_ADDRESS_DATA = 'billing_address'
 
     # will get set when external_customer_id set
-    PAYER_ID                = 'payer_id'
+    PAYER_ID = 'payer_id'
 
-    EXTERNAL_CUSTOMER_ID    = 'external_customer_id'        # string
-    TYPE                    = 'type'                        # card type, ie: 'visa'
-    NUMBER                  = 'number'                      # credit card number, ie: "4417119669820331" (string)
-    EXPIRE_MONTH            = 'expire_month'                # exp month (string)
-    EXPIRE_YEAR             = 'expire_year'                 # exp year (string)
-    CVV2                    = 'cvv2'                        # cvv2 code
-    FIRST_NAME              = 'first_name'
-    LAST_NAME               = 'last_name'
+    EXTERNAL_CUSTOMER_ID = 'external_customer_id'        # string
+    TYPE = 'type'                        # card type, ie: 'visa'
+    NUMBER = 'number'                      # credit card number, ie: "4417119669820331" (string)
+    EXPIRE_MONTH = 'expire_month'                # exp month (string)
+    EXPIRE_YEAR = 'expire_year'                 # exp year (string)
+    CVV2 = 'cvv2'                        # cvv2 code
+    FIRST_NAME = 'first_name'
+    LAST_NAME = 'last_name'
 
     # used for validation
     CARD_FIELDS = [
@@ -300,11 +313,11 @@ class CardData(object):
     ]
 
     # billing address information
-    LINE_1                  = 'line1'                       # first line of address
-    CITY                    = 'city'                        # ie: 'Saratoga' (string)
-    COUNTRY_CODE            = 'country_code'                # ie: 'US'
-    STATE                   = 'state'                       # ie: 'CA'
-    POSTAL_CODE             = 'postal_code'                 # ie: '95070' (string)
+    LINE_1 = 'line1'                       # first line of address
+    CITY = 'city'                        # ie: 'Saratoga' (string)
+    COUNTRY_CODE = 'country_code'                # ie: 'US'
+    STATE = 'state'                       # ie: 'CA'
+    POSTAL_CODE = 'postal_code'                 # ie: '95070' (string)
 
     # used for validation
     BILLING_FIELDS = [
@@ -315,21 +328,21 @@ class CardData(object):
         self.data = data
         if self.data is None:
             self.data = {
-                self.PAYER_ID : None,
-                self.EXTERNAL_CUSTOMER_ID : None,
-                self.TYPE : None,
-                self.NUMBER : None,
-                self.EXPIRE_MONTH : None,
-                self.EXPIRE_YEAR : None,
-                self.CVV2 : None,
-                self.FIRST_NAME : None,
-                self.LAST_NAME : None,
-                self.BILLING_ADDRESS_DATA : {
-                    self.LINE_1 : None,
-                    self.CITY : None,
-                    self.COUNTRY_CODE : None,
-                    self.STATE : None,
-                    self.POSTAL_CODE : None,
+                self.PAYER_ID: None,
+                self.EXTERNAL_CUSTOMER_ID: None,
+                self.TYPE: None,
+                self.NUMBER: None,
+                self.EXPIRE_MONTH: None,
+                self.EXPIRE_YEAR: None,
+                self.CVV2: None,
+                self.FIRST_NAME: None,
+                self.LAST_NAME: None,
+                self.BILLING_ADDRESS_DATA: {
+                    self.LINE_1: None,
+                    self.CITY: None,
+                    self.COUNTRY_CODE: None,
+                    self.STATE: None,
+                    self.POSTAL_CODE: None,
                 }
             }
 
@@ -375,55 +388,63 @@ class CardData(object):
 #     def __init__(self, data):
 #         self.data = data
 
+
 class PayPal(object):
     #
     # apparently this is possible:
     # HTTP [503] Service Unavailable
-    # BODY [{"name":"INTERNAL_SERVICE_ERROR","information_link":"https://api.sandbox.paypal.com/docs/api/#INTERNAL_SERVICE_ERROR","debug_id":"1635acf4b1f6c"}]
+    # BODY
+    # [{"name":"INTERNAL_SERVICE_ERROR","information_link":"https://api.sandbox.paypal.com/docs/api/#INTERNAL_SERVICE_ERROR","debug_id":"1635acf4b1f6c"}]
 
     # this can also happen during payments:
     # In [9]: r = p.pay_with_credit_card(25, 'mastercard', '5500005555555559', 12, 2018, 111, 'Betsy', 'Buyer')
     # headers: {'Accept-Encoding': 'gzip, deflate', 'User-Agent': 'python-requests/2.6.0 CPython/3.4.3 Linux/3.13.0-49-generic', 'Accept': '*/*', 'Connection': 'keep-alive'}
     # cookies: <RequestsCookieJar[<Cookie X-PP-SILOVER=name%3DSANDBOX3.API.1%26silo_version%3D1880%26app%3Dplatformapiserv%26TIME%3D3092539479%26HTTP_X_PP_AZ_LOCATOR%3D for .paypal.com/>]>
     # HTTP [400] Bad Request
-    # BODY [{"name":"UNKNOWN_ERROR","message":"An unknown error has occurred","information_link":"https://developer.paypal.com/webapps/developer/docs/api/#UNKNOWN_ERROR","debug_id":"ce216adf53370"}]
+    # BODY [{"name":"UNKNOWN_ERROR","message":"An unknown error has
+    # occurred","information_link":"https://developer.paypal.com/webapps/developer/docs/api/#UNKNOWN_ERROR","debug_id":"ce216adf53370"}]
 
-    class UnimplementedMethodException(Exception): pass
+    class UnimplementedMethodException(Exception):
+        pass
 
-    class AuthException(Exception): pass
+    class AuthException(Exception):
+        pass
 
-    class PayPalException(Exception): pass
+    class PayPalException(Exception):
+        pass
 
-    class PayWithCreditCardException(Exception): pass
+    class PayWithCreditCardException(Exception):
+        pass
 
-    class PayWithSavedCardException(Exception): pass
+    class PayWithSavedCardException(Exception):
+        pass
 
-    class InvalidSavedCardIdException(Exception): pass
+    class InvalidSavedCardIdException(Exception):
+        pass
 
     # TODO add pay wtih paypal account exception
 
-    api = 'https://api.sandbox.paypal.com' # 'https://api.paypal.com'
+    api = 'https://api.sandbox.paypal.com'  # 'https://api.paypal.com'
 
-    api_vault       = api + '/v1/vault'
-    api_payments    = api + '/v1/payments'
+    api_vault = api + '/v1/vault'
+    api_payments = api + '/v1/payments'
     api_oauth_token = api + '/v1/oauth2/token'
 
     def __init__(self):
-        self.client_id  = 'ARqP3lkXhhR_jmm6NkyoKQfuOcBsn1KBYtlzZGHEvGDCQ-ajNoxpQD2mDScpT6tkgsI7qFgVJ-KgzpFE'
-        self.secret     = 'EOKSd-HCNfWE17mu8e7uyjs2egSla2yXs7joweXCLdimCY8yv-FcCx7LeP1do0gMb9vExJSmjyw9hwRu'
-        self.session    = requests.Session()
-        self.auth_data  = None # set when auth() has been called
+        self.session = requests.Session()
+        self.auth_data = None  # set when auth() has been called
 
-        # response values for debugging - officially speaking, dont use outside of the methods that set them
-        self.r_login                = None
-        self.r_save_card            = None
-        self.r_delete_card          = None
-        self.r_show_card_details    = None
-        self.r_payment              = None
+        # response values for debugging - officially speaking, dont use outside of
+        # the methods that set them
+        self.r_login = None
+        self.r_save_card = None
+        self.r_delete_card = None
+        self.r_show_card_details = None
+        self.r_payment = None
 
     def get_headers(self):
-        headers = { 'Content-Type' : 'application/json',
-                    'Authorization' : 'Bearer %s' % self.get_access_token() }
+        headers = {'Content-Type': 'application/json',
+                   'Authorization': 'Bearer %s' % self.get_access_token()}
         return headers
 
     def pay_with_paypal(self):
@@ -446,8 +467,8 @@ class PayPal(object):
         # print('formatted_amount before [%.2f]' % amount)
         formatted_amount = amount
         print('formatted_amount before [%.2f]' % amount)
-        #if isinstance(formatted_amount, str) or isinstance(formatted_amount, int):
-            # attempt to cast to float() and format into 2 decimal place string
+        # if isinstance(formatted_amount, str) or isinstance(formatted_amount, int):
+        # attempt to cast to float() and format into 2 decimal place string
         formatted_amount = '%.2f' % float(formatted_amount)
         print('formatted_amount after [%s]' % formatted_amount)
         return formatted_amount
@@ -467,8 +488,10 @@ class PayPal(object):
                 "funding_instruments": [
                     {
                         "credit_card_token": {
-                            "credit_card_id" : saved_card_id,              # ie: "CARD-1MD19612EW4364010KGFNJQI",
-                            "payer_id" : external_customer_id               # ie: "ppuser12345",
+                            # ie: "CARD-1MD19612EW4364010KGFNJQI",
+                            "credit_card_id": saved_card_id,
+                            # ie: "ppuser12345",
+                            "payer_id": external_customer_id
                         }
                     }
                 ]
@@ -476,7 +499,7 @@ class PayPal(object):
             "transactions": [
                 {
                     "amount": {
-                        "total" : formatted_amount,       # ie:"total": "7.47",
+                        "total": formatted_amount,       # ie:"total": "7.47",
                         "currency": "USD"
                     },
                     "description": "This is the payment transaction description."
@@ -484,12 +507,13 @@ class PayPal(object):
             ]
         }
 
-        #print('payment_data', str(payment_data))
+        # print('payment_data', str(payment_data))
 
         url = self.api_payments + '/payment'
 
         # call the api to process the payment
-        self.r_payment = self.session.post(url, data=json.dumps(payment_data), headers=self.get_headers())
+        self.r_payment = self.session.post(url, data=json.dumps(
+            payment_data), headers=self.get_headers())
 
         payment_data = self.get_http_response_dict(self.session, self.r_payment)
         self.save_payment_data(SavedCardPaymentData, payment_data)
@@ -499,7 +523,9 @@ class PayPal(object):
         return payment_data
 
     @timeit
-    def pay_with_credit_card(self, amount, type, number, exp_month, exp_year, cvv2, first_name, last_name):
+    def pay_with_credit_card(
+        self, amount, type, number, exp_month, exp_year, cvv2, first_name, last_name
+    ):
         formatted_amount = self.get_formatted_amount(amount)
 
         payment_data = {
@@ -509,13 +535,13 @@ class PayPal(object):
                 "funding_instruments": [
                     {
                         "credit_card": {
-                            "number"        : number,           # ie: "5500005555555559"
-                            "type"          : type,             # ie: "mastercard"
-                            "expire_month"  : exp_month,        # ie: 12
-                            "expire_year"   : exp_year,         # ie: 2018
-                            "cvv2"          : cvv2,             # ie: 111
-                            "first_name"    : first_name,       # ie: "Betsy"
-                            "last_name"     : last_name         # ie: "Buyer"
+                            "number": number,           # ie: "5500005555555559"
+                            "type": type,             # ie: "mastercard"
+                            "expire_month": exp_month,        # ie: 12
+                            "expire_year": exp_year,         # ie: 2018
+                            "cvv2": cvv2,             # ie: 111
+                            "first_name": first_name,       # ie: "Betsy"
+                            "last_name": last_name         # ie: "Buyer"
                         }
                     }
                 ]
@@ -523,7 +549,7 @@ class PayPal(object):
             "transactions": [
                 {
                     "amount": {
-                        "total" : formatted_amount,       # ie:"total": "7.47",
+                        "total": formatted_amount,       # ie:"total": "7.47",
                         "currency": "USD"
                     },
                     "description": "This is the payment transaction description."
@@ -531,12 +557,13 @@ class PayPal(object):
             ]
         }
 
-        #print('$$$$ payment_data:', str(payment_data))
+        # print('$$$$ payment_data:', str(payment_data))
 
         url = self.api_payments + '/payment'
 
         # call the api to process the payment
-        self.r_payment = self.session.post(url, data=json.dumps(payment_data), headers=self.get_headers())
+        self.r_payment = self.session.post(url, data=json.dumps(
+            payment_data), headers=self.get_headers())
 
         # raise exceptions if the payment was not successful!
         self.validate_pay_with_credit_card(self.r_payment)
@@ -556,24 +583,23 @@ class PayPal(object):
         # print('')
         # print('')
 
-        message = payment_data.get('message','')
+        # message = payment_data.get('message', '')
         name = payment_data.get('name')
-        details = payment_data.get('details',[])
+        details = payment_data.get('details', [])
 
         if name is not None:
             if name == 'INVALID_RESOURCE_ID':
                 raise self.InvalidSavedCardIdException()
-        #print('payment_data:', str(payment_data))
+        # print('payment_data:', str(payment_data))
         print('payment_data issues below:')
         for issue_data in details:
             err_msg = '%s - %s' % (name, str(issue_data.get('issue')))
             print(err_msg)
             raise self.PayPalException(err_msg)
 
-
     def validate_pay_with_credit_card(self, r):
         # TODO pass this while i work on testing
-        pass # TODO remove
+        pass  # TODO remove
 
         # message = r.get('message','')
         # name = r.get('name','')
@@ -587,42 +613,43 @@ class PayPal(object):
         #     raise self.PayWithCreditCardException(err_msg)
 
     def get_http_response_dict(self, session, r, verbose=False):
-        #print( 'headers:', self.session.headers )
-        #print( 'cookies:', str(self.session.cookies) )
-        #status = r.status_code
+        # print( 'headers:', self.session.headers )
+        # print( 'cookies:', str(self.session.cookies) )
+        # status = r.status_code
         # if status <= 299:
         #     raise self.PayPalApiException()
         if verbose:
-            print( 'HTTP [%s] %s' % (str(r.status_code), str(r.reason)) )
-            print( 'BODY [%s]' % str(r.text) )
+            print('HTTP [%s] %s' % (str(r.status_code), str(r.reason)))
+            print('BODY [%s]' % str(r.text))
         if r.text is None or r.text == '':
             return {}
         # else its valid
         return json.loads(r.text)
 
     def validate_auth(self, r):
-        #print('r.status_code:', r.status_code)
+        # print('r.status_code:', r.status_code)
         if r.status_code >= 400:
             raise self.AuthException('PayPal.auth() error authenticating:' + str(r.reason))
 
     def auth(self):
-        headers = { 'Accept' : 'application/json', 'Accept-Language' : 'en_US' }
+        headers = {'Accept': 'application/json', 'Accept-Language': 'en_US'}
         post_data = {
-            'grant_type' : 'client_credentials'
+            'grant_type': 'client_credentials'
         }
-        #self.session = requests.Session()
-        self.r_login = self.session.post( self.api_oauth_token,
-                                          headers=headers, data=post_data,
-                                          auth=(self.client_id, self.secret))
+        # self.session = requests.Session()
+        self.r_login = self.session.post(self.api_oauth_token,
+                                         headers=headers, data=post_data,
+                                         auth=(self.client_id, self.secret))
         self.validate_auth(self.r_login)
 
-        #self.auth_data = json.loads( self.r_login.text )
+        # self.auth_data = json.loads( self.r_login.text )
         self.auth_data = self.get_http_response_dict(self.session, self.r_login)
         return self.auth_data
 
     def get_access_token(self):
         if self.auth_data is None:
-            raise self.AuthException('you must first call auth() before you can get an access_token')
+            raise self.AuthException(
+                'you must first call auth() before you can get an access_token')
         access_token = self.auth_data.get('access_token')
         if access_token is None:
             raise self.AuthException('unexpected error - access_token was None!')
@@ -642,7 +669,8 @@ class PayPal(object):
         # make the call with the existing session object, performing a POST request
         url = self.api_vault + '/credit-cards'
 
-        self.r_save_card = self.session.post(url, data=json.dumps(card_data), headers=self.get_headers())
+        self.r_save_card = self.session.post(
+            url, data=json.dumps(card_data), headers=self.get_headers())
 
         return self.get_http_response_dict(self.session, self.r_save_card)
 
