@@ -193,7 +193,11 @@ class AbstractPush(object):
             """
             self.cache.set( self.linker_queue_name, linked_expiring_object_queue_table_instance, 48*60*60 )
 
+    # the model to save send data
     sent_model_class = push.models.Sent
+
+    # number of seconds to delay (using celery countdown) the task that sends the pusher data
+    delay_seconds = None
 
     def __init__(self, channel):
 
@@ -311,7 +315,11 @@ class AbstractPush(object):
             # print('----------------------------------------')
             # print('')
             # print('')
-            task_result = pusher_send_task.apply_async( (self, data), serializer='pickle' )
+            countdown_seconds = 0
+            if self.delay_seconds is not None:
+                countdown_seconds = self.delay_seconds
+            task_result = pusher_send_task.apply_async( (self, data),
+                                    serializer='pickle', countdown=countdown_seconds )
         else:
             self.trigger( data )
 
@@ -423,6 +431,10 @@ class DataDenPush( AbstractPush ):
 
         # overrides / sets a single hash for composite objects (like pbp linked data)
         self.set_primary_object_hash(hash)
+
+class PlayerStatsPush(DataDenPush):
+
+    delay_seconds = 1
 
 class StatsDataDenPush( AbstractPush ):
     """
