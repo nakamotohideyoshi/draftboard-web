@@ -1,18 +1,16 @@
-from django.conf.urls import patterns
 from django.conf.urls import url
 from frontend import views
 
 
-urlpatterns = patterns(
-    '',
-    (r'^$', views.FrontendHomepageTemplateView.as_view()),
+urlpatterns = [
+    url(r'^$', views.FrontendHomepageTemplateView.as_view()),
     # Draft Page
-    (
+    url(
         r'^draft/(?P<draft_group_id>\d+)/$',
         views.FrontendDraftTemplateView.as_view()
     ),
     # Copy/edit actions on draft page.
-    (
+    url(
         r'^draft/(?P<draft_group_id>\d+)/lineup/(?P<lineup_id>\d+)/(?P<action>edit|copy)/$',
         views.FrontendDraftTemplateView.as_view()
     ),
@@ -43,7 +41,10 @@ urlpatterns = patterns(
         name='lobby'
     ),
     # Contest detail view in lobby.
-    (r'^contests/(?P<contest_id>\d+)/$', views.FrontendLobbyTemplateView.as_view()),
+    url(
+        r'^contests/(?P<contest_id>\d+)/$',
+        views.FrontendLobbyTemplateView.as_view()
+    ),
     url(
         r'^results/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/$',
         views.FrontendResultsTemplateView.as_view(),
@@ -82,4 +83,4 @@ urlpatterns = patterns(
         views.FrontendTermsConditionsTemplateView.as_view(),
         name='terms-conditions'
     ),
-)
+]

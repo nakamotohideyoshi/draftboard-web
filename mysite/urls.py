@@ -4,6 +4,7 @@
 from django.conf import settings
 from django.conf.urls import url, include
 from django.contrib.staticfiles import views
+from rest_framework_jwt import views as jwt_views
 import account.urls
 import cash.urls
 import contest.urls
@@ -36,9 +37,9 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 
     # JWT support.
-    url(r'^api-token-auth/', 'rest_framework_jwt.views.obtain_jwt_token'),
-    url(r'^api-token-refresh/', 'rest_framework_jwt.views.refresh_jwt_token'),
-    url(r'^api-token-verify/', 'rest_framework_jwt.views.verify_jwt_token'),
+    url(r'^api-token-auth/', jwt_views.obtain_jwt_token),
+    url(r'^api-token-refresh/', jwt_views.refresh_jwt_token),
+    url(r'^api-token-verify/', jwt_views.verify_jwt_token),
 
     # TEMP to show pusher
     url(r'^push/', include(push.urls, namespace='push')),
