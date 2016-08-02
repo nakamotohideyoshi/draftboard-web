@@ -20,7 +20,6 @@ import renderComponent from '../../lib/render-component';
 import ContestListConfirmModal from '../contest-list/contest-list-confirm-modal.jsx';
 import { addMessage } from '../../actions/message-actions.js';
 import { removeParamFromURL } from '../../lib/utils.js';
-// import log from '../../lib/logging.js';
 import Pusher from '../../lib/pusher.js';
 
 // These components are needed in the lobby, but will take care of rendering themselves.
@@ -37,6 +36,7 @@ const { Provider, connect } = ReactRedux;
 function mapStateToProps(state) {
   return {
     allContests: state.contestPools.allContests,
+    isFetchingContestPools: state.contestPools.isFetchingContestPools,
     draftGroupsWithLineups: state.upcomingLineups.draftGroupsWithLineups,
     featuredContests: state.featuredContests.banners,
     filteredContests: contestPoolsSelector(state),
@@ -94,6 +94,7 @@ const LobbyContainer = React.createClass({
     focusedContest: React.PropTypes.object,
     focusedLineup: React.PropTypes.object,
     hoveredLineupId: React.PropTypes.number,
+    isFetchingContestPools: React.PropTypes.bool.isRequired,
     lineupsInfo: React.PropTypes.object,
     orderByDirection: React.PropTypes.string,
     orderByProperty: React.PropTypes.string,
@@ -229,7 +230,8 @@ const LobbyContainer = React.createClass({
           lineupsInfo={this.props.lineupsInfo}
           setFocusedContest={this.handleFocusContest}
           setOrderBy={this.handleSetOrderBy}
-          entrySkillLevels = {this.props.entrySkillLevels}
+          entrySkillLevels={this.props.entrySkillLevels}
+          isFetchingContestPools={this.props.isFetchingContestPools}
         />
 
         <ContestListConfirmModal
