@@ -82,6 +82,14 @@ PAYPAL_CLIENT_ID    = environ.get('PAYPAL_CLIENT_ID')
 PAYPAL_SECRET       = environ.get('PAYPAL_SECRET')
 
 #
+###########################################################################
+# Sandbox Account:  paypal-facilitator@draftboard.com
+# Access Token:     access_token$sandbox$c6yfbzrdmyjqbf6k$4218ebe110f341437affed2f726cd6fa
+# Expiry Date:      01 Aug 2026
+##########################################################################
+VZERO_ACCESS_TOKEN = 'access_token$sandbox$c6yfbzrdmyjqbf6k$4218ebe110f341437affed2f726cd6fa'
+
+#
 # dataden mongo database connection
 MONGO_SERVER_ADDRESS    = environ.get('MONGO_SERVER_ADDRESS')   # ie: '123.132.123.123'
 MONGO_AUTH_DB           = environ.get('MONGO_AUTH_DB')          # 'admin'
