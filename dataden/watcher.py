@@ -208,21 +208,25 @@ class Trigger(object):
 
         def run(self):
             """ start working by calling: start() """
-            ctr = 0
-            for obj in self.obj_list:
-                # create a hashable object as the key to cache it with
-                hashable_object = self.oplogobj_class(obj)
+            try:
+                ctr = 0
+                for obj in self.obj_list:
+                    # create a hashable object as the key to cache it with
+                    hashable_object = self.oplogobj_class(obj)
 
-                # the live stats cache will add every item it sees to the redis cache
-                if self.live_stats_cache.update( hashable_object ):
-                    # the object is new or has been updated.
-                    # send the update signal along with the object to Pusher/etc...
-                    ctr += 1
-                    Update( hashable_object ).send(async=True)
+                    # the live stats cache will add every item it sees to the redis cache
+                    if self.live_stats_cache.update( hashable_object ):
+                        # the object is new or has been updated.
+                        # send the update signal along with the object to Pusher/etc...
+                        ctr += 1
+                        Update( hashable_object ).send(async=True)
 
-            print(self.__class__.__name__ + ' new_updates:%s:' % str(ctr))
+                print(self.__class__.__name__ + ' new_updates:%s:' % str(ctr))
 
-    work_size   = 250
+            except Exception as e:
+                print(self.__class__.__name__ + ' couldnt get redis connection')
+
+    work_size   = 375
 
     DB_LOCAL    = 'local'
     OPLOG       = 'oplog.rs'
@@ -405,7 +409,7 @@ class Trigger(object):
         #     self.last_ts = Timestamp(int(now), int((now*10000000) % 10000000))
         # else:
 
-        first = self.client.local.oplog.rs.find().sort('$natural', pymongo.DESCENDING).limit(-1).next()
+        first = self.client.local.oplog.rs.find().sort('$natural', pymongo.DESCENDING).limit(1).next()
         self.last_ts = first.get('ts')
         return self.last_ts
         # cur = self.client.local.oplog.rs.find().sort([('$natural', -1)])
