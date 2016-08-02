@@ -487,15 +487,15 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         draft_group.save()
         draft_group.refresh_from_db()
 
-        #
-        # as a final step, signal that this DraftGroup
-        # can have any relevant GameUpdates created
-        try:
-            sport = draft_group.salary_pool.site_sport.name # ie: 'mlb', or 'nfl', etc...
-            sig = CheckForGameUpdatesSignal( draft_group.pk, sport, game_srids=list(game_srids.keys()))
-            sig.send()
-        except Exception as e:
-            print('unable to send CheckForGameUpdatesSignal, skipping...')
+        # #
+        # # as a final step, signal that this DraftGroup
+        # # can have any relevant GameUpdates created
+        # try:
+        #     sport = draft_group.salary_pool.site_sport.name # ie: 'mlb', or 'nfl', etc...
+        #     sig = CheckForGameUpdatesSignal( draft_group.pk, sport, game_srids=list(game_srids.keys()))
+        #     sig.send()
+        # except Exception as e:
+        #     print('unable to send CheckForGameUpdatesSignal, skipping...')
 
         #
         return draft_group

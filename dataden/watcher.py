@@ -226,7 +226,7 @@ class Trigger(object):
             except Exception as e:
                 print(self.__class__.__name__ + ' couldnt get redis connection')
 
-    work_size   = 1000
+    work_size   = 375
 
     DB_LOCAL    = 'local'
     OPLOG       = 'oplog.rs'
