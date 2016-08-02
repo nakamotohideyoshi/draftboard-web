@@ -1,8 +1,10 @@
 #
 # contest/urls.py
 
+from django.views.decorators.cache import cache_page
 from django.conf.urls import patterns
 from django.conf.urls import url
+from django.conf import settings
 from contest.views import (
     LobbyAPIView,
     AllLineupsView,
@@ -37,12 +39,7 @@ urlpatterns = patterns(
     # This endpoint returns a task id which should
     # be used subsequently to check if the buy was successful.
     (r'^enter-lineup/$', EnterLineupAPIView.as_view()),
-
-    # #
-    # # check if the "buyin" -- that is /api/contest/enter-lineup/ -- was successful
-    # (r'^enter-lineup-status/(?P<task_id>[a-z0-9-]+)/$', EnterLineupStatusAPIView.as_view()),
-
-    #
+#
     # edit entry (ie: edit a lineup that is associated in a contest)
     (r'^edit-entry/$', EditEntryLineupAPIView.as_view()),
 
@@ -85,7 +82,9 @@ urlpatterns = patterns(
 
     #
     # get the complete set of specially packed lineups for a contest
-    (r'^all-lineups/(?P<contest_id>[0-9]+)/$', AllLineupsView.as_view()),
+    #    note: we can specify the cache we want to use with the 'cache' argument of cache_view()
+    (r'^all-lineups/(?P<contest_id>[0-9]+)/$',
+        cache_page(60*24, cache=settings.API_CACHE_NAME)(AllLineupsView.as_view())),
 
     #
     # get a users Entry history. For each lineup returned

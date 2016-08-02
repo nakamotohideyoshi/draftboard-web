@@ -40,14 +40,7 @@ app = Celery('mysite')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(settings.INSTALLED_APPS)
 
-# i want to know if DEBUG is on or not
-print('celery_app settings.DEBUG:', settings.DEBUG)
-
-# # hook up the database backend
-# app.conf.update(
-#     CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
-# )
-
+#
 ALL_SPORTS = ['nba','nhl','mlb','nfl']
 
 #
