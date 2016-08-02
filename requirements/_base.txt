@@ -14,10 +14,10 @@ django-braces==1.8.0
 django-celery==3.1.17
 django-lockdown==1.2 # django 1.9.7 uses 1.2 hopefully # for django 1.8 its 1.1
 django-redis==4.3.0
-django-rest-swagger==0.3.4      # 0.3.5 does NOT work! theres a bug!
+django-rest-swagger==2.0.2
 django-suit==0.2.18
-djangorestframework==3.3.3      # 3.1.1
-djangorestframework-jwt==1.7.2
+djangorestframework==3.4.1
+djangorestframework-jwt==1.8
 django-test-without-migrations==0.4
 docutils==0.12
 eventlet==0.17.4
