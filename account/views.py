@@ -914,10 +914,11 @@ class VZeroGetClientTokenView(APIView):
     serializer_classes = None
 
     def get(self, request, *args, **kwargs):
-        user = self.request.user
+        # do we need the user?
+        #user = self.request.user
 
         # TODO - check if its anonymous user(?)
-        vzero = VZero(user)
+        vzero = VZero()
         client_token = vzero.get_client_token()
 
         return Response(
