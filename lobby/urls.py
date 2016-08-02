@@ -1,13 +1,10 @@
 #
 # lobby/urls.py
 
-from django.conf.urls import patterns
+from django.conf.urls import url
 from lobby.views import ContestBannerAPIView
 
-urlpatterns = patterns( '',
-
-    #
+urlpatterns = [
     # get all the contest banners
-    (r'^featured-content/$', ContestBannerAPIView.as_view()),
-
-)
+    url(r'^featured-content/$', ContestBannerAPIView.as_view()),
+]
