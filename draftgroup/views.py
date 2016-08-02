@@ -23,6 +23,7 @@ from draftgroup.serializers import (
     GameUpdateSerializer,
     PlayerUpdateSerializer,
 )
+from django.conf import settings
 from django.core.cache import caches
 from sports.classes import SiteSportManager
 import json
@@ -89,6 +90,11 @@ class PlayerAndGameUpdateAPIView(APIView, GetSerializedDataMixin):
 class DraftGroupAPIView(generics.GenericAPIView):
     """
     return the draft group players for the given draftgroup id
+
+    note: this view should *not* use the django cache_page() mechanism
+    because it uses a bit more complicated strategy involving the draft group status.
+
+    however, it can definitely use the special api view cache if it exists.
     """
 
     DEFAULT_CACHE_TIMEOUT = 12 * 60 * 60 # timeout in seconds
@@ -109,7 +115,7 @@ class DraftGroupAPIView(generics.GenericAPIView):
         given the GET param 'id', get the draft_group
         """
         draft_group = self.get_object(pk)
-        c = caches['default']
+        c = caches[settings.API_CACHE_NAME]
         serialized_data = c.get(self.get_cache_key(pk), None)
         if serialized_data is None or (draft_group.closed is not None and serialized_data.get('closed', None) is None):
             serialized_data = DraftGroupSerializer( self.get_object(pk), many=False ).data
