@@ -5,6 +5,7 @@ from django.contrib.auth import views as auth_views
 from account.views import (
     login,
     RegisterView,
+    schema_view,
 
     # Dummy API endpoints TO BE REMOVED
     # UserBasicAPI,
@@ -36,7 +37,7 @@ urlpatterns = [
     url(r'', include('frontend.urls', namespace='frontend')),
 
     # TODO swagger docs should not be on production
-    url(r'^docs/', include('rest_framework_swagger.urls')),
+    url(r'^docs/', schema_view),
 
     # THE FOLLOWING ARE TO BE REMOVED
     # url(r'^account/api/account/user/$', UserBasicAPI.as_view()),
