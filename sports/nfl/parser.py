@@ -247,42 +247,6 @@ class PlayerStats(DataDenPlayerStats):
          11
         $>
 
-    ###
-    # for 2015 stats:
-    #
-    # players__list 0
-    # player_records__list 0
-    # rushing__list 2929
-    # receiving__list 5965
-    # punts__list 703
-    # punt_returns__list 875
-    # penalties__list 3998
-    # passing__list 980
-    # kickoffs__list 741
-    # kick_returns__list 834
-    # fumbles__list 1763
-    # field_goals__list 584
-    # kicks__list 613
-    # defense__list 14518
-    # int_returns__list 533
-    # misc_returns__list 24
-    # conversions__list 261
-    # kick__list 0
-    # rush__list 0
-    # pass__list 0
-    # receive__list 0
-    # penalty__list 0
-    # statistics__list 0
-    # field_goal__list 0
-    # extra_point__list 0
-    # return__list 0
-    # fumble__list 0
-    # conversion__list 0
-    # punt__list 0
-    # block__list 0
-    # defense_conversion__list 0
-# misc__list 0
-    ###
     """
 
     game_model          = Game
@@ -784,31 +748,71 @@ class ExtraInfo(object):
         return rush_data
 
 class PlayManager(Manager):
+    """
+    wraps the Reducer & Shrinker tools for compacting and cleaning up NFL pbp data.
+    """
+
     reducer_class = PlayReducer
     shrinker_class = PlayShrinker
 
-    field_formation     = 'formation'
-    field_pass_side     = 'pass_side'
-    field_pass_depth    = 'pass_depth'
+    field_statistics    = 'statistics__list'
+
+    field_defense       = 'defense__list'
+    field_kick          = 'kick__list'
+
+    field_pass          = 'pass__list'
+    field_return        = 'return__list'
+    field_rush          = 'rush__list'
+    field_receive       = 'receive__list'
+
+    ignore_fields = [
+        field_defense, field_kick
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # update some custom fields we will inject into the data
-        # and do it previous to any reductions/shrinkers/adds
-        self.update_formation()
-        self.update_pass_side()
-        self.update_pass_depth()
+        self.clean_statistics_list()
 
-    def update_formation(self):
-        """ parse the formation by looking for the '(Shotgun)' text """
-        pass
+        self.update_extra_info()
 
-    def update_pass_side(self):
-        pass # TODO
+    def update_extra_info(self):
+        """ parse the description text and inject extra info """
+        type = self.raw_data.get('type')
+        description = self.raw_data.get('alt_description')
+        self.raw_data['extra_info'] = ExtraInfo(type, description).get_data()
 
-    def update_pass_depth(self):
-        pass # TODO
+    def clean_statistics_list(self):
+        # get statistics list  -- dont forget to replace it after we clean it up
+        statistics = self.raw_data.get(self.field_statistics)
+        if statistics is None:
+            return # nothing to do - it didnt exist
+
+        # there are some lists we will just want to pop off
+        for field in self.ignore_fields:
+            try:
+                statistics.pop(field)
+            except KeyError:
+                pass # it wasnt there to begin with - so dont worry about it
+
+        # 1. cleanup pass__list
+        # convert sack to a boolean
+        pass_list = statistics.get(self.field_pass, {})
+        sack = pass_list.get('sack')
+        if pass_list != {} and sack is not None:
+            pass_list['sack'] = self.int2bool(sack)
+            # and now put this data back into the internal data
+            statistics[self.field_pass] = pass_list
+            self.raw_data[self.field_statistics] = statistics
+
+        # 2. cleanup return__list
+        return_list = statistics.get(self.field_return, {})
+        retrn = return_list.get('return')
+        if return_list != {} and retrn is not None:
+            return_list['return'] = self.int2bool(retrn)
+            # put it back in
+            statistics[self.field_return] = return_list
+            self.raw_data[self.field_statistics] = statistics
 
 class PossessionReducer(Reducer):
     remove_fields = [
@@ -899,6 +903,8 @@ class PlayParser(DataDenPbpDescription):
     class EndLocationCache(QuickCache):
         name = 'EndLocationCache_nflo_pbp'
         field_id = 'play__id'
+
+    field_pbp_object = 'pbp'
 
     game_model              = Game
     pbp_model               = Pbp
@@ -1013,7 +1019,7 @@ class PlayParser(DataDenPbpDescription):
         play['end_situation__list']['location']     = LocationManager(end_location).get_data()
 
         data = {
-            'play' : PlayManager(play).get_data(),
+            self.field_pbp_object : PlayManager(play).get_data(),
         }
 
         #print('get_send_data:', str(data))
