@@ -1,18 +1,13 @@
-from braintree import Configuration, Environment
 from django.conf.locale.en import formats as en_formats
 from django.core.exceptions import ImproperlyConfigured
 from os import environ
 from os.path import join
 from sys import stdout
 from unipath import Path
-import braintree
 import datetime
 import os
 
-en_formats.DATETIME_FORMAT = "l, M d P"
-# en_formats.DATETIME_FORMAT = "m/d/Y h:i:s P"
-# en_formats.DATETIME_FORMAT = "l m.d.Y  @  P"
-
+en_formats.DATETIME_FORMAT = "l, M d P"             # [ "m/d/Y h:i:s P", "l m.d.Y  @  P" ]
 
 def get_env_variable(var_name):
     """ Get the environment variable or return exception """
@@ -24,51 +19,26 @@ def get_env_variable(var_name):
 
 SITE = 'www.draftboard.com'
 
-# Application constants
-# ----------------------------------------------------------
-
-# Constant definitions
 PROJECT_ROOT = Path(__file__).ancestor(3)
 STATIC_ROOT = PROJECT_ROOT.child('collected_static')
 INTERNAL_IPS = ()
 
-
+#
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
-#
+
 # fixtures directory: /PATH/TO/BASE_PROJECT_DIR/test/fixtures
 FIXTURES_DIR = (os.path.join(BASE_DIR, 'test/fixtures'),)  # for $> manage.py test
 
-
+#
 LOGIN_URL = '/login/'
 LOGOUT_URL = '/logout/'
 LOGIN_REDIRECT_URL = '/contests/'
 
-#
-# Django 1.8 removed TEMPLATE_DIRS. It is now TEMPLATES = {}
-# https://docs.djangoproject.com/en/1.8/ref/templates/upgrading/
-# TEMPLATE_DIRS = ( PROJECT_ROOT.child('templates'), )
-
-# TEMPLATES = (
-#     {
-#         'BACKEND':'django.template.backends.django.DjangoTemplates',
-#         'DIRS': [],
-#         'APP_DIRS': True,
-#         'OPTIONS': {
-#             'context_processors': [
-#                 'django.template.context_processors.debug',
-#                 'django.template.context_processors.request',
-#                 'django.contrib.auth.context_processors.auth',
-#                  ...
-#             ],
-#             'debug': DEBUG,
-#         },
-#     },
-# )
-
 # Testing mode by default
 DEBUG = False
 
+# django (>= 1.9) template settings
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -82,15 +52,6 @@ TEMPLATES = [
         ],
         # 'APP_DIRS': True, # defaults to False
         'OPTIONS': {
-            # TEMPLATE_CONTEXT_PROCESSORS = (
-            #     'django.core.context_processors.static',
-            #     'django.core.context_processors.request',
-            #     'django.contrib.auth.context_processors.auth',
-            #
-            #
-            #     # CSRF token masking
-            #     'debreach.context_processors.csrf',
-            # )
             'context_processors': [
                 "django.contrib.auth.context_processors.auth",
                 "django.template.context_processors.debug",
@@ -150,33 +111,24 @@ ROOT_URLCONF = 'mysite.urls'
 # CORS requests for OAuth
 CORS_ORIGIN_ALLOW_ALL = True
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/1.7/topics/i18n/
-# ----------------------------------------------------------
-
+# locale
 LANGUAGE_CODE = 'en-us'
-#
+
 # using 'America/New_York' will make the admin
 # display times in EST, however, in code
 # the models (because of the server!) will
 # have datetimes stored in UTC. This is quite useful!
 TIME_ZONE = 'America/New_York'
-# TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-#
 # for the editing/display format of time objects in the admin
 TIME_INPUT_FORMATS = [
     '%H:%M',        # '14:30'
     '%H:%M:%S',     # '14:30:59'
     '%H:%M:%S.%f',  # '14:30:59.000200'
 ]
-
-# Third party settings
-# ----------------------------------------------------------
 
 # cachalot cache
 CACHALOT_CACHE = 'cachalot'
@@ -191,7 +143,7 @@ PIPELINE_JS = {}
 #        cash -Withdrawal Rules
 ##########################################################################
 DFS_CASH_WITHDRAWAL_APPROVAL_REQ_AMOUNT = 100.00
-DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO = 750.00
+DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO = 600.00
 
 #
 ##########################################################################
@@ -200,6 +152,7 @@ DFS_CASH_WITHDRAWAL_AMOUNT_REQUEST_TAX_INFO = 750.00
 PUSHER_APP_ID = '144195'
 PUSHER_KEY = '9754d03a7816e43abb64'
 PUSHER_SECRET = 'fcbe16f4bf9e8c0b2b51'
+
 #
 # our own prefix to globally apply to pusher channels.
 # this should be an empty string for production,
@@ -219,19 +172,9 @@ PAYPAL_SECRET = None
 
 #
 ##########################################################################
-#        django_braintree
+# paypal vzero minimal deposit server access_token
 ##########################################################################
-BRAINTREE_MERCHANT = 'xh2x3fhngf3nnkk5'
-BRAINTREE_PUBLIC_KEY = 'th4fw4rpz3rhn8bq'
-BRAINTREE_PRIVATE_KEY = '9122b2a8557887e27a6de0da7221a7d7'
-BRAINTREE_MODE = braintree.Environment.Sandbox
-
-Configuration.configure(
-    Environment.Sandbox,
-    BRAINTREE_MERCHANT,     # sandbox BRAINTREE_MERCHANT_ID,
-    BRAINTREE_PUBLIC_KEY,
-    BRAINTREE_PRIVATE_KEY
-)
+VZERO_ACCESS_TOKEN = None
 
 # REST currently defaulting to session authentication
 REST_FRAMEWORK = {
@@ -258,7 +201,6 @@ JWT_AUTH = {
 }
 
 # Django installs
-# ----------------------------------------------------------
 INSTALLED_APPS = (
     # django defaults
     'django.contrib.admin',
@@ -297,8 +239,8 @@ INSTALLED_APPS = (
     'fpp',
     'promocode',
     'promocode.bonuscash',
-    'keyprefix',  # cache namespace
-    'dataden',   # DataDen/MongoDB triggers
+    'keyprefix',
+    'dataden',              # DataDen/MongoDB triggers
     'sports',
     'sports.mlb',
     'sports.nba',
@@ -319,21 +261,13 @@ INSTALLED_APPS = (
     'test',
     'salary',
     'draftgroup',
-    'frontend',  # front end styles, layout, etc
-    'mysite',  # just for management command access
+    'frontend',             # front end styles, layout, etc
+    'mysite',               # just for management command access
     'replayer',
-    'pp',       # our implementation of a few required paypal apis
-
+    'pp',                   # our implementation of a few required paypal apis
     'lobby',
     'rest_framework_swagger',
-
 )
-
-#
-# Mandrill settings
-# MANDRILL_API_KEY    = 'W5fUepyUtAf7U4l1-K4Y7g'
-# EMAIL_BACKEND       = 'djrill.mail.backends.djrill.DjrillBackend'
-# DEFAULT_FROM_EMAIL  = 'support@draftboard.com'
 
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.mandrillapp.com'
@@ -361,19 +295,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-# TEMPLATE_CONTEXT_PROCESSORS = (
-#     'django.core.context_processors.static',
-#     'django.core.context_processors.request',
-#     'django.contrib.auth.context_processors.auth',
-#
-#
-#     # CSRF token masking
-#     'debreach.context_processors.csrf',
-# )
-
 # Django Logging
-# ----------------------------------------------------------
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -404,72 +326,6 @@ LOGGING = {
         },
     },
 }
-
-SUIT_CONFIG = {
-    'MENU': (
-
-        # # To reorder existing apps use following definition
-        {'app': 'sites', 'label': 'Sites'},
-        {'app': 'auth', 'label': 'Accounts'},
-
-        {'app': 'account', 'label': 'Notifications'},
-        {'app': 'cash', 'label': 'Bank'},
-        {'app': 'contest', 'label': 'Contest'},
-        {'app': 'finance', 'label': 'Test'},
-        {'app': 'fpp', 'label': 'FPP'},
-        {'app': 'lobby', 'label': 'Lobby Banners'},
-
-        {'app': 'prize', 'label': 'Prize',
-            'models': [
-                {'label': 'Prize Structures', 'url': '/admin/prize/prizestructure/'},
-                {'label': 'Cash Prize Structure Creator', 'url': '/api/prize/generator/'},
-                {'label': 'Cash Prize Structure Creator (Flat)', 'url': '/api/prize/flat/'},
-                {'label': 'Ticket Prize Structure Creator', 'url': '/api/prize/ticket/'},
-            ]
-         },
-        # /api/prize/flat/
-        # /api/prize/ticket/
-        # /api/prize/generator/
-
-        {'app': 'salary', 'label': 'Salary'},
-
-        {'app': 'schedule', 'label': 'Contest Scheduler'},
-
-
-        # {'app':'sports', 'label': 'Sports'},
-        {'app': 'nfl', 'label': 'NFL'},
-        {'app': 'nba', 'label': 'NBA'},
-        {'app': 'nhl', 'label': 'NHL'},
-        {'app': 'mlb', 'label': 'MLB'},
-        {'app': 'ticket', 'label': 'Ticket',
-            'models': [
-                {'label': 'Prize', 'url': '/admin/ticket/ticketamount/'},
-            ],
-         },
-        {'app': 'rakepaid', 'label': 'Loyalty Program'},
-
-        # #
-        # # # If you want to link app models from different app use full name:
-        # # ('sites', ('auth.user', 'auth.group')),
-        #
-        # # To add custom item, define it as tuple or list:
-        # # For parent: (Name, Link, Icon, Permission) - Last two are optional
-        # # For child: (Name, Link, Permission) - Last one is optional
-        # # You can also mix custom and native apps and models
-        # # Link can be absolute url or url name
-        # # Permission can be string or tuple/list for multiple
-        # # If MENU_OPEN_FIRST_CHILD=True and children exists, you can leave parent link blank
-        #
-        # # Example:
-        # (('Prize Structure Creator', '/api/prize/generator/', 'icon-cog', ('auth.add_group',)),
-        #     (
-        #         ('Cash',     '/api/prize/generator/',    'auth.add_user'),
-        #         ('Ticket',   '/api/prize/ticket/',       'auth.add_user'),
-        #         ('Flat',     '/api/prize/flat/',         'auth.add_user'),
-        #     )
-        # )
-    )  # end MENU_ORDER
-}  # end SUIT_CONFIG
 
 # GLOBAL CONSTANTS
 USERNAME_DRAFTBOARD = "draftboard"
@@ -517,3 +373,12 @@ TEST_SETUP = None
 
 # defaults to false, though we made turn this on in production.py
 SLACK_UPDATES = False
+
+# heroku redis url - used for caching pages/views
+HEROKU_REDIS_URL = None
+
+# defaults to use the default cache, but
+# if server has Heroku Redis add-on should be set to
+# the named cache that uses the heroku redis instance
+API_CACHE_NAME = 'default'
+
