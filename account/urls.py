@@ -2,7 +2,6 @@
 # account/urls.py
 
 from django.conf.urls import url
-
 from account.views import (
     AuthAPIView,
     ForgotPasswordAPIView,
@@ -12,20 +11,17 @@ from account.views import (
     InformationAPIView,
     UserEmailNotificationAPIView,
 )
-
 from .views import (
-
     # paypal apis:
-    PayPalDepositWithPayPalAccountAPIView,              # TODO
-    PayPalDepositWithPayPalAccountSuccessAPIView,       # TODO part of flow using paypal account
-    PayPalDepositWithPayPalAccountFailAPIView,          # TODO part of flow using paypal account
+    PayPalDepositWithPayPalAccountAPIView,              # not fully implemented
+    PayPalDepositWithPayPalAccountSuccessAPIView,       # not fully implemented
+    PayPalDepositWithPayPalAccountFailAPIView,          # not fully implemented
     PayPalDepositCreditCardAPIView,
     PayPalDepositSavedCardAPIView,
     PayPalSavedCardAddAPIView,
     PayPalSavedCardDeleteAPIView,
     PayPalSavedCardListAPIView,
     SetSavedCardDefaultAPIView,
-
     # paypal vzero apis
     VZeroGetClientTokenView,
     VZeroDepositView,

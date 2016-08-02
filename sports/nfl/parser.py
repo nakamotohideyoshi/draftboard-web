@@ -133,16 +133,31 @@ class PlayerRosters(DataDenPlayerRosters):
     team_model      = Team
     player_model    = Player
 
+    # dont add players that play these positions to the system
+    exclude_positions = [
+        'DST','DE', 'OLB', 'CB',  'K',
+        'DT', 'DT', 'FS',  'OT',  'OG',
+        'SS', 'C',  'MLB', 'P',   'LB',
+        'OL', 'LS', 'NT',  'SAF', 'G',
+        'DB', 'T',
+    ]
+
     def __init__(self):
         super().__init__()
         self.position_key = 'position'
 
     def parse(self, obj, target=None):
-        super().parse( obj )
-
-        #
         # set the fields that arent set, and update the players name (super() grabs invalid fields)
         o = obj.get_o()
+
+        # ignore players that arent relevant for fantasy purposes
+        position = o.get(self.position_key)
+        if position in self.exclude_positions:
+            return # skip parsing this player
+
+        # super sets up some internal stuff and is required to be
+        # called before parsing nfl player specific fields
+        super().parse( obj )
 
         # override the first name with preferred first name
         self.player.first_name = o.get('preferred_name')
@@ -1115,23 +1130,23 @@ class DataDenNfl(AbstractDataDenParser):
             GameSchedule().parse( obj )
 
         #
-        # TODO
+        # parse a game obj from the boxscores feed
         elif self.target == (self.mongo_db_for_sport+'.game','boxscores'):
-            GameBoxscoreParser().parse( obj )
-
+            game_boxscore_parser = GameBoxscoreParser()
+            game_boxscore_parser.parse(obj, self.target)
         #
-        # TODO
+        # parse a team object from the boxscores feed
         elif self.target == (self.mongo_db_for_sport+'.team','boxscores'):
             # dont send it unless its from the parent__list: 'summary__list'
-            TeamBoxscoreParser().parse( obj )
-
+            team_boxscore_parser = TeamBoxscoreParser()
+            team_boxscore_parser.parse(obj, self.target)
         #
-        #
+        # parse a team object from the hierarchy feed
         elif self.target == (self.mongo_db_for_sport+'.team','hierarchy'):
             TeamHierarchy().parse( obj )
 
         #
-        #
+        # parse a player from the rosters feed
         elif self.target == (self.mongo_db_for_sport+'.player','rosters'):
             try:
                 PlayerRosters().parse( obj )
@@ -1139,7 +1154,7 @@ class DataDenNfl(AbstractDataDenParser):
                 print(e)
 
         #
-        #
+        # parse a players stats (from a game) from the stats feed
         elif self.target == (self.mongo_db_for_sport+'.player','stats'):
             PlayerStats().parse( obj )
 
@@ -1162,7 +1177,7 @@ class DataDenNfl(AbstractDataDenParser):
         and rosters parent api so it can flag players
         who are no long on the teams roster on_active_roster = False
         """
-        super().cleanup_rosters(self.sport,                         # datadeb sport db, ie: 'nba'
+        super().cleanup_rosters(self.mongo_db_for_sport,            # name of mongo db for the sport
                                 sports.nfl.models.Team,             # model class for the Team
                                 sports.nfl.models.Player,           # model class for the Player
                                 parent_api='rosters')               # parent api where the roster players found
