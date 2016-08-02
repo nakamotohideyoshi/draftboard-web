@@ -2,7 +2,7 @@
 # settings.py for 'draftboard-dev' heroku app
 
 from dj_database_url import config as heroku_db_config
-from urllib.parse import urlparse
+import urllib
 
 from .base import *
 
@@ -28,7 +28,7 @@ heroku_redis_url = urllib.parse.urlparse(HEROKU_REDIS_URL)
 API_CACHE_NAME = 'api'
 
 # Redis caching
-redis_url = urlparse(environ.get('REDISCLOUD_URL'))
+redis_url = urllib.parse.urlparse(environ.get('REDISCLOUD_URL'))
 
 CACHES = {
     #
