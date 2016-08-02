@@ -207,17 +207,17 @@ app.conf.update(
         },
         'nhl_season_fppg' : {
             'task'      : 'salary.tasks.generate_season_fppgs',
-            'schedule'  : crontab(hour='9'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule'  : crontab(hour='9', minute='10'), # 9 AM (UTC) - which is ~ 4 AM EST
             'args'      : ('nhl',),
         },
         'nfl_season_fppg' : {
             'task'      : 'salary.tasks.generate_season_fppgs',
-            'schedule'  : crontab(hour='9'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule'  : crontab(hour='9', minute='20'), # 9 AM (UTC) - which is ~ 4 AM EST
             'args'      : ('nfl',),
         },
         'mlb_season_fppg' : {
             'task'      : 'salary.tasks.generate_season_fppgs',
-            'schedule'  : crontab(hour='9'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule'  : crontab(hour='9', minute='30'), # 9 AM (UTC) - which is ~ 4 AM EST
             'args'      : ('mlb',),
         },
 
@@ -235,15 +235,15 @@ app.conf.update(
         },
         'nhl_cleanup_rosters' : {
             'task'      : 'sports.nhl.tasks.cleanup_rosters',
-            'schedule'  : crontab(hour='3'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule'  : crontab(hour='3', minute='10'), # 9 AM (UTC) - which is ~ 4 AM EST
         },
         'nfl_cleanup_rosters' : {
             'task'      : 'sports.nfl.tasks.cleanup_rosters',
-            'schedule'  : crontab(hour='3'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule'  : crontab(hour='3', minute='20'), # 9 AM (UTC) - which is ~ 4 AM EST
         },
         'mlb_cleanup_rosters' : {
             'task'      : 'sports.mlb.tasks.cleanup_rosters',
-            'schedule'  : crontab(hour='3'), # 9 AM (UTC) - which is ~ 4 AM EST
+            'schedule'  : crontab(hour='3', minute='30'), # 9 AM (UTC) - which is ~ 4 AM EST
         },
     },
 
