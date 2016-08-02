@@ -1,9 +1,14 @@
-from django.conf.urls import patterns
+#
+# urls.py
 
-from .views import TicketAvailableListAPIView
-
-urlpatterns = patterns('',
-    (r'^available/$', TicketAvailableListAPIView.as_view()),
-
+from django.conf.urls import url
+from .views import (
+    TicketAvailableListAPIView,
 )
+
+urlpatterns = [
+
+    url(r'^available/$', TicketAvailableListAPIView.as_view()),
+
+]
 
