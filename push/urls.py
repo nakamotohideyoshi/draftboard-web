@@ -1,5 +1,4 @@
 from django.conf.urls import url
-
 from push import views
 
 urlpatterns = [

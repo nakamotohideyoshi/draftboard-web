@@ -38,6 +38,7 @@ urlpatterns = [
     # be used subsequently to check if the buy was successful.
     url(r'^enter-lineup/$', EnterLineupAPIView.as_view()),
 
+    #
     # edit entry (ie: edit a lineup that is associated in a contest)
     url(r'^edit-entry/$', EditEntryLineupAPIView.as_view()),
 

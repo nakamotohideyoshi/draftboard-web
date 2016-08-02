@@ -2,7 +2,6 @@
 # sports/urls.py
 
 from django.conf.urls import url
-
 from sports.views import (
     PlayerCsvView,
     LeagueInjuryAPIView,
