@@ -1776,6 +1776,17 @@ class AtBatCache(QuickCache):
     """ cache for objects from mongo namespace 'mlb.at_bat' """
     name = 'AtBatCache_mlb_pbp'
 
+class LastAtBatCache(QuickCache):
+    """ cache for the most recent at bat by its srid alone (does not factor ts in the key) """
+    name = 'LastAtBatCache_mlb_pbp'
+
+    def fetch(self, gid):
+        return super().fetch(0, gid)
+
+    # @timeit
+    def stash(self, data):
+        return super().stash(data, timestamp=0)
+
 class PitcherCache(QuickCache):
     """ zone pitch cache - object from mongo called a 'mlb.pitcher' """
     name = 'PitcherCache_mlb_pbp'
@@ -2179,18 +2190,25 @@ class ReqPitcher(Req):
 
         # construct the rest of the mlb pbp from cache, now that we know this piece (or try)
 
-        # 1. get the 'pitch'
+        # 1. get the at_bat
+        at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
+        if at_bat is None:
+            # print('    ', tag, 'at_bat -> None')
+            # return None
+            at_bat = LastAtBatCache().fetch(self.get_at_bat_id())
+            if at_bat is None:
+                return None
+
+        ts = at_bat.get('dd_updated__id')
+        
+        # 2. get the 'pitch'
         pitch = PitchCache().fetch(ts, id)
         if pitch is None:
             #print('    ',tag, 'pitch -> None')
             return None
         #print('    ', tag, 'pitch -> yes')
 
-        # 2. get the at_bat
-        at_bat = AtBatCache().fetch(ts, self.get_at_bat_id())
-        if at_bat is None:
-            #print('    ', tag, 'at_bat -> None')
-            return None
+
         #print('    ', tag, 'at_bat -> yes')
 
         # 3. get the list of all the 'pitcher' objects (ie: zone pitches)
@@ -2396,6 +2414,11 @@ class PbpParser(DataDenPbpDescription):
             return ReqPitch(data)
 
         elif target == ('mlb.at_bat', 'pbp'):
+            # stash this at bat object by its id only
+            # if it has the description set (meaning its over and wont be sent again except for changes)
+            if data.get('description') is not None:
+                x = LastAtBatCache().stash(data)
+
             return ReqAtBat(data)
 
         elif target == ('mlb.pitcher', 'pbp'):
