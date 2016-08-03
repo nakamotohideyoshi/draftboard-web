@@ -1274,12 +1274,13 @@ class ZonePitchManager(Manager):
         # at the last minute before we build the data to be sent out,
         # remove any pitches that lack a 'pitch_zone' so they wont
         # be show on the front end.
-        self.zone_pitches = []
-        for zp in zone_pitches:
-            if zp.get('pitch_zone') is None:
-                continue
-            self.zone_pitches.append(zp)
+        # self.zone_pitches = []
+        # for zp in zone_pitches:
+        #     if zp.get('pitch_zone') is None:
+        #         continue
+        #     self.zone_pitches.append(zp)
         #
+        self.zone_pitches = zone_pitches
         self.at_bat = at_bat
 
     def get_data(self, additional_data=None):
@@ -2125,6 +2126,10 @@ class ReqAtBat(Req):
             return None
         #print('    ', tag, 'pitch -> yes')
 
+        at_bat_pitch_count = int((pitch.get('count', {}.get('pitch_count'))))  # CBAN TODO
+        if len(zone_pitches) != at_bat_pitch_count:
+            return None
+
         # 3. Get the runners (if any exist, we need to get all).
         #    Returns an empty list if there were none to get.
         # runners = ReqPitch(pitch, stash_now=False).get_runners()
@@ -2190,9 +2195,10 @@ class ReqPitcher(Req):
 
         # 3. get the list of all the 'pitcher' objects (ie: zone pitches)
         #zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
-        zone_pitches = PitcherCacheList().fetch(self.get_id())
+        zone_pitches = PitcherCacheList().fetch(self.get_at_bat_id())
         #print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
-        if zone_pitches is None:
+        at_bat_pitch_count = int((pitch.get('count',{}.get('pitch_count')))) # CBAN TODO
+        if zone_pitches is None or len(zone_pitches) != at_bat_pitch_count:
             #print('    ', tag, 'pitches -> None (ie: zone_pitches)')
             return None
         #print('    ', tag, 'pitches -> yes')
@@ -2274,7 +2280,7 @@ class ReqRunner(Req):
 class PbpParser(DataDenPbpDescription):
 
     # for zone pitches that are lacking the pitch_zone
-    #class IncompleteZonePitch(Exception): pass
+    class IncompleteZonePitch(Exception): pass
 
     # we dont want to include pickoff pitches, but they come in like zone pitches
     class PickoffPitchException(Exception): pass
@@ -2393,6 +2399,11 @@ class PbpParser(DataDenPbpDescription):
             return ReqAtBat(data)
 
         elif target == ('mlb.pitcher', 'pbp'):
+            #
+            if data.get('pitch_zone') is None:
+                # ignore incomplete pitches
+                raise self.IncompleteZonePitch()
+            #
             if data.get('steal__id') is not None:
                 # ignore pickoff throws which come in looking like zone pitches!
                 raise self.PickoffPitchException()
@@ -2410,12 +2421,6 @@ class PbpParser(DataDenPbpDescription):
     def get_send_data(self):
         """ build the linked object from the internal Req(s) for sending to the client """
         requirements = self.pbp_raw
-
-        # # TODO print out the dict
-        # print('++++++++++')
-        # for k,v in requirements.items():
-        #     print('')
-        #     print(k, ' : ', str(v))
 
         pitch = requirements.get('pitch')
         srid_pitcher = pitch.get('pitcher')
@@ -2438,6 +2443,15 @@ class PbpParser(DataDenPbpDescription):
         if at_bat_player_stats_hitter is not None:
             at_bat_extras.update_player_stats(at_bat_player_stats_hitter)
 
+        # get the PlayerStats objects as json
+        pitcher_player_stats = None
+        player_stats_json = []
+        for ps in player_stats:
+            j = ps.to_json()
+            if j.get('fields', {}).get('srid_player') == srid_pitcher:
+                pitcher_player_stats = ps
+            player_stats_json.append(j)
+
         # create the pitch extras (pitchers extra stats)
         try:
             pitch_extras = PitchExtras()
@@ -2456,7 +2470,7 @@ class PbpParser(DataDenPbpDescription):
 
             self.runners: RunnerManager(runners).get_data(additional_runner_data),
 
-            self.stats: [ps.to_json() for ps in player_stats],
+            self.stats: player_stats_json,
         }
 
         return pbp
