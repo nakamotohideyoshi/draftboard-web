@@ -7,7 +7,7 @@ const DepositsPayments = (props) => {
       <DepositsPaymentsRow
         key={method.id}
         method={method}
-        onSetDefault={props.onSetDefault}
+        // onSetDefault={props.onSetDefault}
         onRemovePaymentMethod={props.onRemovePaymentMethod}
       />
     )
@@ -29,7 +29,7 @@ const DepositsPayments = (props) => {
 
 DepositsPayments.propTypes = {
   payments: React.PropTypes.array.isRequired,
-  onSetDefault: React.PropTypes.func.isRequired,
+  // onSetDefault: React.PropTypes.func.isRequired,
   onRemovePaymentMethod: React.PropTypes.func.isRequired,
 };
 

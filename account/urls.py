@@ -51,12 +51,14 @@ urlpatterns = [
     # draftboard apis using paypal apis to move money to/from the site
     # r'^password-reset-confirm/(?P<uid>.+)/(?P<token>.+)/$'
 
-
     # TODO - currently unimplemented
     # make a deposit with a paypal account
     url(r'^paypal/deposit/account/$', PayPalDepositWithPayPalAccountAPIView.as_view()),
+
     # TODO - deposit with paypal success endpoint
-    url(r'^paypal/deposit/account/success/$', PayPalDepositWithPayPalAccountSuccessAPIView.as_view()),
+    url(r'^paypal/deposit/account/success/$',
+        PayPalDepositWithPayPalAccountSuccessAPIView.as_view()),
+
     # TODO - deposit with paypal failure endpoint
     url(r'^paypal/deposit/account/fail/$', PayPalDepositWithPayPalAccountFailAPIView.as_view()),
 
@@ -86,5 +88,4 @@ urlpatterns = [
     # paypal vzero - make a deposit with shipping information,
     #                as well as the amount and payment_method_nonce
     url(r'^vzero/deposit/$', VZeroDepositView.as_view()),
-
 ]
