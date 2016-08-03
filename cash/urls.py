@@ -3,7 +3,10 @@
 
 from django.conf.urls import url
 from cash.views import TransactionHistoryAPIView, BalanceAPIView, DepositView
-from cash.withdraw.views import CheckWithdrawAPIView
+from cash.withdraw.views import (
+    CheckWithdrawAPIView,
+    PayPalWithdrawAPIView,
+)
 
 urlpatterns = [
 
@@ -13,8 +16,10 @@ urlpatterns = [
 
     url(r'^balance/$', BalanceAPIView.as_view()),
 
-    #
     # user can request a withdraw of their funds via check
     url(r'^withdraw/check/$', CheckWithdrawAPIView.as_view()),
+
+    # user requests withdraw via paypal
+    url(r'^withdraw/paypal/$', PayPalWithdrawAPIView.as_view()),
 
 ]
