@@ -60,7 +60,7 @@ class Update(AbstractSignal):
         """
         if async:
             updateable = Updateable( self )
-            stat_update.apply_async( (updateable, ), serializer='pickle' )
+            stat_update.apply_async( (updateable, ), serializer='pickle', queue='realtime' )
         else:
             super().send( o=self.o )
 
