@@ -90,7 +90,7 @@ class VZeroTransaction(object):
     class ValidationError(Exception):
         pass
 
-    default_customer_cc_statement_description = "Draftboard"
+    default_customer_cc_statement_description = "drftbrd*deposit"
     default_paypal_email_receipt = "draftboard.com deposit"
 
     default_currency = "USD"
