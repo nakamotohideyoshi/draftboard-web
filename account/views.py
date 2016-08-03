@@ -56,6 +56,7 @@ from django.contrib.auth import login as authLogin
 from django.contrib.auth import authenticate, logout
 from rest_framework.exceptions import APIException
 
+
 class AuthAPIView(APIView):
     """
     Login endpoint. POST to login. DELETE to logout.
@@ -892,6 +893,7 @@ class SetSavedCardDefaultAPIView(APIView):
         # return success response of simply http 200
         return Response(status=200)
 
+
 class VZeroGetClientTokenView(APIView):
     """
     retrieve a paypal vzero client token
@@ -915,6 +917,7 @@ class VZeroGetClientTokenView(APIView):
             status=200
         )
 
+
 class VZeroDepositView(APIView):
     """
     deposit to the site using paypal vzero
@@ -925,8 +928,9 @@ class VZeroDepositView(APIView):
 
     example:
 
-        >>> {"first_name":"Steve","last_name":"Steverton","street_address":"1 Steve St","extended_address":"Suite 1","locality":"Dover","region":"NH","postal_code":"03820","country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
-
+        >>> {"first_name":"Steve","last_name":"Steverton","street_address":"1 Steve St",
+            "extended_address":"Suite 1","locality":"Dover","region":"NH","postal_code":"03820",
+            "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
     """
 
     permission_classes = (IsAuthenticated, )
@@ -936,15 +940,25 @@ class VZeroDepositView(APIView):
         # get the django user
         user = self.request.user
 
+        shipping_data = {
+            'first_name': user.information.fullname,
+            'last_name': user.information.fullname,
+            'street_address': user.information.address1,
+            'extended_address': user.information.address2,
+            'locality': user.information.city,
+            'region': user.information.state,
+            'postal_code': user.information.zipcode
+        }
+
         # validate the validity of the params
         serializer = self.serializer_class(data=self.request.data)
         serializer.is_valid(raise_exception=True)
         transaction_data = serializer.data
-        amount = transaction_data.get('amount')
+        amount = float(transaction_data.get('amount'))
 
-        shipping_serializer = VZeroShippingSerializer(data=self.request.data)
-        shipping_serializer.is_valid(raise_exception=True)
-        shipping_data = shipping_serializer.data
+        # shipping_serializer = VZeroShippingSerializer(data=self.request.data)
+        # shipping_serializer.is_valid(raise_exception=True)
+        # shipping_data = shipping_serializer.data
 
         # using the information (payment_method_nonce, amount, shipping info)
         # make the deposit using the VZero object to create the transaction (sale)
@@ -967,4 +981,3 @@ class VZeroDepositView(APIView):
 
         # return success response if everything went ok
         return Response(status=200)
-
