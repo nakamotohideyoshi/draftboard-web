@@ -9,5 +9,5 @@ class CheckWithdrawSerializer(serializers.Serializer):
 
 class PayPalWithdrawSerializer(serializers.Serializer):
 
-    amount  = serializers.CharField()
-    email   = serializers.CharField()
+    amount  = serializers.DecimalField(max_digits=7, decimal_places=2)
+    email   = serializers.EmailField()
