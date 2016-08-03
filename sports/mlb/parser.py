@@ -2137,7 +2137,7 @@ class ReqAtBat(Req):
             return None
         #print('    ', tag, 'pitch -> yes')
 
-        at_bat_pitch_count = int((pitch.get('count', {}.get('pitch_count'))))  # CBAN TODO
+        at_bat_pitch_count = int((pitch.get('count__list', {}.get('pitch_count'))))  # CBAN TODO
         if len(zone_pitches) != at_bat_pitch_count:
             return None
 
@@ -2200,7 +2200,7 @@ class ReqPitcher(Req):
                 return None
 
         ts = at_bat.get('dd_updated__id')
-        
+
         # 2. get the 'pitch'
         pitch = PitchCache().fetch(ts, id)
         if pitch is None:
@@ -2215,7 +2215,7 @@ class ReqPitcher(Req):
         #zone_pitches = ReqAtBat(at_bat, stash_now=False).get_zone_pitches()
         zone_pitches = PitcherCacheList().fetch(self.get_at_bat_id())
         #print('    ', tag, 'PitcherCacheList contents:', str(zone_pitches))
-        at_bat_pitch_count = int((pitch.get('count',{}.get('pitch_count')))) # CBAN TODO
+        at_bat_pitch_count = int((pitch.get('count__list',{}.get('pitch_count')))) # CBAN TODO
         if zone_pitches is None or len(zone_pitches) != at_bat_pitch_count:
             #print('    ', tag, 'pitches -> None (ie: zone_pitches)')
             return None
