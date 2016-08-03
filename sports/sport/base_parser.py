@@ -1032,17 +1032,6 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         """
         return self.live_stats_cache.update_pbp( self.get_obj() )
 
-    # def get_send_data(self, additional_data=None):
-    #     """
-    #     if there is a manager class set, use it to reduce and shrink the data,
-    #     otherwise just return self.o (the base dataden object)
-    #     """
-    #     if self.manager_class is None:
-    #         return self.o
-    #
-    #     manager = self.manager_class(self.o)
-    #     return manager.get_data()
-
     def send(self, force=False):
         """
         pusher the pbp + stats info as one piece of data.
