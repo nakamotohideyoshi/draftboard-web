@@ -3,7 +3,10 @@
 
 import re
 from django.db.transaction import atomic
-from sports.sport.base_parser import AbstractDataDenParseable
+from sports.sport.base_parser import (
+    AbstractDataDenParseable,
+    SridFinder,
+)
 import sports.nfl.models
 from sports.nfl.models import (
     Team,
@@ -919,7 +922,8 @@ class PlayParser(DataDenPbpDescription):
         name = 'EndLocationCache_nflo_pbp'
         field_id = 'play__id'
 
-    field_pbp_object = 'pbp'
+    field_pbp_object        = 'pbp'
+    field_stats             = 'stats'
 
     game_model              = Game
     pbp_model               = Pbp
@@ -992,6 +996,13 @@ class PlayParser(DataDenPbpDescription):
         # else:
         return None # TODO dont return None! raise something... the caller expects a tuple...
 
+    # def get_srid_game(self, fieldname): # returns a string
+
+    # def find_player_stats(self, player_srids=None):
+    #     game_srid = self.get_srid_game('game__id')
+    #     return self.player_stats_model.objects.filter(srid_game=game_srid,
+    #                                                   srid_player__in=player_srids)
+
     def parse(self, obj, target):
         # this strips off the dataden oplog wrapper, and sets the SridFinder internally.
         # now we can use self.o which is the data object we care about.
@@ -1013,9 +1024,23 @@ class PlayParser(DataDenPbpDescription):
         # assumes that everthing must exist at this point for us to be able to build it!
         play = self.PlayCache().fetch(self.ts, self.play_srid)
 
+        #
+        # get the PlayerStats model instances associated with this play
+        # which can be found using the game and player srids
+        srid_finder = SridFinder(play)
+        srid_games = srid_finder.get_for_field('game__id')
+        srid_players = srid_finder.get_for_field('player')
+        player_stats = self.player_stats_model.objects.filter(srid_game__in=srid_games,
+                                                              srid_player__in=srid_players)
+        print('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (str(player_stats.count()),
+                                                        str(srid_games), str(srid_players)))
+        player_stats_json = [ ps.to_json() for ps in player_stats ]
+
+        #
         start_location = self.StartLocationCache().fetch(self.ts, self.play_srid)
         start_possession = self.StartPossessionCache().fetch(self.ts, self.play_srid)
 
+        #
         end_location = self.EndLocationCache().fetch(self.ts, self.play_srid)
         end_possession = self.EndPossessionCache().fetch(self.ts, self.play_srid)
 
@@ -1035,6 +1060,7 @@ class PlayParser(DataDenPbpDescription):
 
         data = {
             self.field_pbp_object : PlayManager(play).get_data(),
+            self.field_stats : player_stats_json,
         }
 
         #print('get_send_data:', str(data))
