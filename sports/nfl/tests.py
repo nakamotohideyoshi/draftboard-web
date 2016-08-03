@@ -761,6 +761,69 @@ class TestPlayParser(AbstractTest):
             'parent_list__id': 'play_by_play__list'}
         self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
 
+    def test_10(self):
+        sport_db = 'nflo'
+        parent_api = 'pbp'
+
+        start_location = {'parent_list__id': 'start_situation__list', 'id': '97354895-8c77-4fd4-a860-32e62ea7382a',
+                          'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c', 'market': 'New England',
+                          'reference': 4960.0, 'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
+                          'dd_updated__id': 1464842199562, 'alias': 'NE', 'name': 'Patriots',
+                          'play__id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
+                          '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFjYmIzMDAxLTZiYjYtNDFjZS05ZTkxLTk0MmFiZDI4NGU0Y3F1YXJ0ZXJfX2lkODA3NWIyNDctYmIyNi00ZjQ5LWEzNDItOTY4ZjA0ODM1ZDJkcGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkMjFkZGViN2QtMTNmYS00YjgxLWJiMWYtZDA4MDQ4NDFlMDk3cGxheV9faWRkYTFkYmRmMS1iNTAxLTQ4ZGQtYTcyOC03MmI5ZDhmMzFlYzhpZDk3MzU0ODk1LThjNzctNGZkNC1hODYwLTMyZTYyZWE3MzgyYQ==',
+                          'yardline': 35.0, 'parent_api__id': 'pbp',
+                          'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
+        self.__parse_and_send(start_location, (sport_db + '.' + 'location', parent_api))
+
+        start_possession = {'parent_list__id': 'start_situation__list', 'id': '97354895-8c77-4fd4-a860-32e62ea7382a',
+                            'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c', 'market': 'New England',
+                            'reference': 4960.0, 'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
+                            'dd_updated__id': 1464842199562, 'alias': 'NE', 'name': 'Patriots',
+                            'play__id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
+                            '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFjYmIzMDAxLTZiYjYtNDFjZS05ZTkxLTk0MmFiZDI4NGU0Y3F1YXJ0ZXJfX2lkODA3NWIyNDctYmIyNi00ZjQ5LWEzNDItOTY4ZjA0ODM1ZDJkcGFyZW50X2xpc3RfX2lkc3RhcnRfc2l0dWF0aW9uX19saXN0ZHJpdmVfX2lkMjFkZGViN2QtMTNmYS00YjgxLWJiMWYtZDA4MDQ4NDFlMDk3cGxheV9faWRkYTFkYmRmMS1iNTAxLTQ4ZGQtYTcyOC03MmI5ZDhmMzFlYzhpZDk3MzU0ODk1LThjNzctNGZkNC1hODYwLTMyZTYyZWE3MzgyYQ==',
+                            'parent_api__id': 'pbp', 'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
+        self.__parse_and_send(start_possession, (sport_db + '.' + 'possession', parent_api))
+
+        end_location = {'parent_list__id': 'end_situation__list', 'id': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
+                        'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c', 'market': 'Pittsburgh', 'reference': 4966.0,
+                        'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d', 'dd_updated__id': 1464842199562,
+                        'alias': 'PIT', 'name': 'Steelers', 'play__id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
+                        '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFjYmIzMDAxLTZiYjYtNDFjZS05ZTkxLTk0MmFiZDI4NGU0Y3F1YXJ0ZXJfX2lkODA3NWIyNDctYmIyNi00ZjQ5LWEzNDItOTY4ZjA0ODM1ZDJkcGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZDIxZGRlYjdkLTEzZmEtNGI4MS1iYjFmLWQwODA0ODQxZTA5N3BsYXlfX2lkZGExZGJkZjEtYjUwMS00OGRkLWE3MjgtNzJiOWQ4ZjMxZWM4aWRjYjJmOWYxZi1hYzY3LTQyNGUtOWU3Mi0xNDc1Y2IwZWQzOTg=',
+                        'yardline': 20.0, 'parent_api__id': 'pbp', 'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
+        self.__parse_and_send(end_location, (sport_db + '.' + 'location', parent_api))
+
+        end_possession = {'parent_list__id': 'end_situation__list', 'id': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
+                          'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c', 'market': 'Pittsburgh',
+                          'reference': 4966.0, 'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d',
+                          'dd_updated__id': 1464842199562, 'alias': 'PIT', 'name': 'Steelers',
+                          'play__id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
+                          '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFjYmIzMDAxLTZiYjYtNDFjZS05ZTkxLTk0MmFiZDI4NGU0Y3F1YXJ0ZXJfX2lkODA3NWIyNDctYmIyNi00ZjQ5LWEzNDItOTY4ZjA0ODM1ZDJkcGFyZW50X2xpc3RfX2lkZW5kX3NpdHVhdGlvbl9fbGlzdGRyaXZlX19pZDIxZGRlYjdkLTEzZmEtNGI4MS1iYjFmLWQwODA0ODQxZTA5N3BsYXlfX2lkZGExZGJkZjEtYjUwMS00OGRkLWE3MjgtNzJiOWQ4ZjMxZWM4aWRjYjJmOWYxZi1hYzY3LTQyNGUtOWU3Mi0xNDc1Y2IwZWQzOTg=',
+                          'parent_api__id': 'pbp', 'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097'}
+        self.__parse_and_send(end_possession, (sport_db + '.' + 'possession', parent_api))
+
+        play = {'parent_list__id': 'play_by_play__list', 'id': 'da1dbdf1-b501-48dd-a728-72b9d8f31ec8',
+                'game__id': 'acbb3001-6bb6-41ce-9e91-942abd284e4c',
+                'start_situation__list': {'down': 0.0, 'possession': '97354895-8c77-4fd4-a860-32e62ea7382a',
+                                          'location': '97354895-8c77-4fd4-a860-32e62ea7382a', 'yfd': 0.0,
+                                          'clock': '15:00'}, 'reference': 36.0,
+                'quarter__id': '8075b247-bb26-4f49-a342-968f04835d2d', 'dd_updated__id': 1464842199562,
+                'statistics__list': {
+                    'return__list': {'team': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398', 'confirmed': 'true',
+                                     'touchback': 1.0, 'category': 'kick_return'},
+                    'kick__list': {'gross_yards': 74.0, 'confirmed': 'true', 'touchback': 1.0, 'attempt': 1.0,
+                                   'team': '97354895-8c77-4fd4-a860-32e62ea7382a',
+                                   'player': 'a527b7db-0b52-4379-9e4c-2e08c1fe1bed', 'yards': 65.0}},
+                'alt_description': 'S.Gostkowski kicks 65 yards from NE 35 to end zone, Touchback.',
+                'wall_clock': '2015-09-11T00:41:06+00:00', 'type': 'kickoff', 'home_points': 0.0,
+                'end_situation__list': {'down': 1.0, 'possession': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398',
+                                        'location': 'cb2f9f1f-ac67-424e-9e72-1475cb0ed398', 'yfd': 10.0,
+                                        'clock': '15:00'}, 'sequence': 36.0, 'away_points': 0.0,
+                '_id': 'cGFyZW50X2FwaV9faWRwYnBnYW1lX19pZGFjYmIzMDAxLTZiYjYtNDFjZS05ZTkxLTk0MmFiZDI4NGU0Y3F1YXJ0ZXJfX2lkODA3NWIyNDctYmIyNi00ZjQ5LWEzNDItOTY4ZjA0ODM1ZDJkcGFyZW50X2xpc3RfX2lkcGxheV9ieV9wbGF5X19saXN0ZHJpdmVfX2lkMjFkZGViN2QtMTNmYS00YjgxLWJiMWYtZDA4MDQ4NDFlMDk3aWRkYTFkYmRmMS1iNTAxLTQ4ZGQtYTcyOC03MmI5ZDhmMzFlYzg=',
+                'drive__id': '21ddeb7d-13fa-4b81-bb1f-d0804841e097',
+                'description': '3-S.Gostkowski kicks 65 yards from NE 35 to end zone, Touchback.',
+                'parent_api__id': 'pbp', 'clock': '15:00'}
+        self.__parse_and_send(play, (sport_db + '.' + 'play', parent_api))
+
 class GameStatusChangedSignal(AbstractTest):
 
     def __create_team(self, alias, market):
