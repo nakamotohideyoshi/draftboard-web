@@ -982,15 +982,23 @@ class VZeroDepositView(APIView):
         try:
             transaction_id = vzero.create_transaction(transaction)
         except VZero.VZeroException as e:
-            raise APIException(e)
+            # print('e:',e)
+            # print('str(e):',str(e))
+            raise APIException(str(e))
+
+        except Exception:
+            raise APIException('vzero create transaction error')
 
         # TODO add a transaction type (?)
 
         # TODO create a model for saving the transaction information
 
         # create the draftboard cash deposit with the transaction id
-        ct = CashTransaction(self.request.user)
-        ct.deposit_vzero(amount, transaction_id)
+        try:
+            ct = CashTransaction(self.request.user)
+            ct.deposit_vzero(amount, transaction_id)
+        except Exception:
+            raise APIException('Error adding funds to draftboard account. Please contact admin@draftboard.com')
 
         # return success response if everything went ok
         return Response(status=200)
