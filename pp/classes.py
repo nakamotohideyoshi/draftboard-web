@@ -1,6 +1,8 @@
 #
 # classes.py
 
+import random
+import string
 from django.conf import settings
 import requests
 import json
@@ -11,7 +13,6 @@ from pp.models import (
 )
 import braintree
 import cash
-
 
 class VZeroShipping(object):
 
@@ -112,12 +113,15 @@ class VZeroTransaction(object):
     def __init__(self):
         # construct the data with some None values internally.
         # we will perform validation on it before being used.
+
+        self.order_id = ''.join(random.choice(string.ascii_uppercase) for i in range(12))
+
         self.data = {
 
             "amount": None,                                        # TODO - this will need to be set
             "merchant_account_id": self.default_currency,           # defaults to "USD"
             "payment_method_nonce": None,                          # TODO - will need to set
-            "order_id": "Mapped to PayPal Invoice Number",
+            "order_id": self.order_id, # 'test_duplicate_order_id', # self.order_id,
             "descriptor": {
                 #
                 # Descriptor displayed in customer CC statements. [22 char max]
@@ -128,7 +132,7 @@ class VZeroTransaction(object):
 
             "options": {
                 "paypal": {
-                    "custom_field": "PayPal custom field",
+                    #"custom_field": #optional "PayPal custom field",
                     #
                     # "Description for PayPal email receipt"
                     "description": self.default_paypal_email_receipt,
@@ -173,8 +177,7 @@ class VZeroTransaction(object):
 
 class VZero(object):
 
-    class VZeroException(Exception):
-        pass
+    class VZeroException(Exception): pass
 
     access_token = settings.VZERO_ACCESS_TOKEN
 
@@ -226,16 +229,31 @@ class VZero(object):
             #   [<ValidationError {attribute: 'payment_method_nonce', message: 'Unknown or expired
             #   payment_method_nonce.', code: '91565'} at 140660839155080>]
             # TODO remove this debugging print eventually !
-            print("braintree transaction | Failure deep errors: %s" %
+            print("paypal vzero | Failure deep errors: %s" %
                   str(result.errors.deep_errors))
             for e in result.errors.deep_errors:
                 raise self.VZeroException(e.message)
 
-        #
-        # success
-        # TODO remove this debugging print eventually !
-        print("braintree transaction | Success ID: %s" % str(result.transaction.id))
-        return result.transaction.id
+            msg = 'result.message does not exist'
+            try:
+                msg = result.message
+            except:
+                raise self.VZeroException('PayPal v.zero deposit failed.')
+
+            print('paypal vzero result.is_success == False! result.message:', str(msg))
+            raise self.VZeroException(str(msg))
+
+        else:
+
+            #
+            # success
+            # TODO remove this debugging print eventually !
+            #print('paypal vzero result.message:', str(result.message))
+            print("paypal vzero transaction | Success ID: %s" % str(result.transaction.id))
+            return result.transaction.id
+
+        # fall back on this exception
+        raise self.VZeroException('Unknown Paypal v.zero error')
 
 # these 4 un-classed methods are for testing. they come from wikipedia
 #    source: https://en.wikipedia.org/wiki/Luhn_algorithm
