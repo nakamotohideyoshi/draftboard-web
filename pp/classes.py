@@ -733,8 +733,7 @@ class PayPal(object):
         return self.get_http_response_dict(self.session, self.r_list_cards)
 
 class Payout( object ):
-    #
-    #
+
     WITHDRAW_STATUS_PROCESSED = cash.withdraw.constants.WithdrawStatusConstants.Processed.value
 
     IN_PROGRESS_STATUSES = [
@@ -786,16 +785,7 @@ class Payout( object ):
         self.model_instance.save()
         return json.loads( self.r_login.text )
 
-    def payout_async(self, withdraws=[]):
-        """
-        call the payout() method using a celery task to perform asynchronous payout
-
-        :param withdraws:
-        :return:
-        """
-        pass
-
-    def payout(self, get_until_processed=True):
+    def payout(self):
         """
         this method takes very tangible time - usually like 15-30 seconds.
 
@@ -833,11 +823,28 @@ class Payout( object ):
             'Authorization' : '%s %s' % (j.get('token_type'), j.get('access_token'))
         }
         self.sender_batch_id = ''.join(random.choice(string.ascii_uppercase) for i in range(12))
+        #     "sender_batch_header":{
+        #                               "email_subject": "You have a payment"
+        #                           },
+        #     "items":[
+        #         {
+        #             "recipient_type": "EMAIL",
+        #             "amount": {
+        #                 "value": 12.34,
+        #                 "currency": "USD"
+        #             },
+        #             "receiver": "shirt-supplier-one@mail.com",
+        #             "note": "Payment for recent T-Shirt delivery",
+        #             "sender_item_id": "A123"
+        #         }
+        #     ]
+        #
+        # }'
         post_data = {
             "sender_batch_header" : {
-                "sender_batch_id"   : "%s" % self.sender_batch_id,
-                "email_subject"     : "You have a Payout!",
-                "recipient_type"    : "EMAIL"
+                #"sender_batch_id"   : "%s" % self.sender_batch_id,
+                "email_subject"     : "Your draftboard.com cashout",
+                #"recipient_type"    : "EMAIL"
             },
             "items" : [
                 {
@@ -846,9 +853,10 @@ class Payout( object ):
                         "value"     : "%s" % str( float( abs( self.model_instance.amount ) ) ),
                         "currency"  : "USD"
                     },
-                    "note"              : "Thanks for your patronage!",
-                    "sender_item_id"    : "201403140001",
-                    "receiver"          : "%s" % self.model_instance.email
+                    "receiver": "%s" % self.model_instance.email,
+                    "note"              : "Thanks for playing on draftboard.com!",
+                    "sender_item_id"    : "201403140001", # should probably be unique TODO
+
                 }
             ]
         }
@@ -859,90 +867,94 @@ class Payout( object ):
         print( self.r_payout.status_code )
         print( 'POST', self.api_payout )
         print( self.r_payout.text )
-        j = json.loads( self.r_payout.text )
+        data = json.loads( self.r_payout.text )
+        print('response:', str(data))
+        return data
 
-        #
-        # this error is possible:
-        # {"name":"VALIDATION_ERROR","message":"Invalid request - see details.",
-        #   "debug_id":"943be7f1a0f95",
-        #   "information_link":"https://developer.paypal.com/webapps/developer/docs/api/#VALIDATION_ERROR",
-        #   "details":[{"field":"items[0].receiver","issue":"Required field missing"}]}
-        try:
-            self.payout_batch_id = j.get('batch_header').get('payout_batch_id')
-        except AttributeError: # ie: 'batch_header' didnt exist
-            # stash error in paypal model withdraw
-            self.model_instance.paypal_errors = self.r_payout.text
-            self.model_instance.save()
-            print( self.r_payout.text )
-            print( 'payout failed! check the admin page for withdraws for error messages from paypal')
-            return
+class PayoutResponse(object):
+    """
+    wrapper for extracting information from the response JSON of the Payout.payout() method
 
-        #
-        # set the payal transaction id in the model, along with the current status
-        self.paypal_transaction = self.payout_batch_id
-        self.model_instance.paypal_transaction = self.paypal_transaction
-        self.model_instance.payout_status = j.get('batch_header').get('batch_status')
-        self.model_instance.save()
+    example data:
+        {"batch_header": {"payout_batch_id": "P7RQ3D5274JEG", "batch_status": "SUCCESS",
+                              "time_created": "2016-08-05T20:52:43Z", "time_completed": "2016-08-05T20:52:47Z",
+                              "sender_batch_header": {"email_subject": "Your draftboard.com cashout"},
+                              "amount": {"currency": "USD", "value": "20.0"},
+                              "fees": {"currency": "USD", "value": "0.4"}}, "items": [
+            {"payout_item_id": "3YFMJGAD4VYVW", "transaction_id": "1AC51241YM081982B",
+             "transaction_status": "UNCLAIMED", "payout_item_fee": {"currency": "USD", "value": "0.4"},
+             "payout_batch_id": "P7RQ3D5274JEG", "payout_item": {"amount": {"currency": "USD", "value": "20.0"},
+                                                                 "note": "Thanks for playing on draftboard.com!",
+                                                                 "receiver": "valid@email.com",
+                                                                 "recipient_type": "EMAIL",
+                                                                 "sender_item_id": "201403140001"},
+             "time_processed": "2016-08-05T20:52:46Z",
+             "errors": {"name": "RECEIVER_UNCONFIRMED", "message": "Receiver is unconfirmed",
+                        "information_link": "https://developer.paypal.com/webapps/developer/docs/api/#RECEIVER_UNCONFIRMED"},
+             "links": [{"href": "https://api.sandbox.paypal.com/v1/payments/payouts-item/3YFMJGAD4VYVW", "rel": "item",
+                        "method": "GET"}]}], "links": [
+            {"href": "https://api.sandbox.paypal.com/v1/payments/payouts/P7RQ3D5274JEG", "rel": "self",
+             "method": "GET"}]}
 
-        if get_until_processed:
-            #
-            # call get() until we've updated to the PROCESSED status
-            while True: # scary - but we will make sure to add very long timeout to the calling task
-                time.sleep( 5.0 )
-                get_json = self.get()
-                payout_status = get_json.get('batch_header').get('batch_status')
-                print( 'payout GET status:', payout_status )
-                if payout_status in self.PROCESSED_STATUSES: # ie: failure may be in here!
-                    #
-                    # update the master success in the admin, plus any papal error
-                    self.model_instance.status = self.STATUS_SUCCESS
-                    self.model_instance.save()
-                    break
 
-        return j
+    """
 
-    def get(self, batch_id=None, save=True):
-        if batch_id is None:
-            batch_id = self.payout_batch_id
-        print( 'get', batch_id )
+    class TransactionItemDoesNotExist(Exception): pass
+    class TransactionStatusException(Exception): pass
 
-        j = json.loads( self.r_login.text )
-        headers = {
-            'Authorization' : '%s %s' % (j.get('token_type'), j.get('access_token'))
-        }
-        self.r_get = self.session.get( self.api_payout + '/' + str(batch_id), headers=headers )
-        print( self.r_get.status_code )
-        print( 'GET', self.api_payout )
-        print( self.r_get.text )
+    # data fields
+    field_items         = 'items'
+    field_batch_header  = 'batch_header'
+    field_links         = 'links'
 
-        j = json.loads( self.r_get.text )
+    field_errors   = 'errors'
+    field_payout_item_id = 'payout_item_id'
+    field_transaction_id = 'transaction_id'
+    field_transaction_status = 'transaction_status'
 
-        if save:
-            self.model_instance.get_status = j.get('batch_header').get('batch_status')
-            self.model_instance.save()
+    def __init__(self, data):
+        self.data = data
 
-        return j
+    def get_items(self):
+        items = self.data.get(self.field_items, [])
+        if items is None or items == []:
+            err_msg = '"%s" field did not exist in paypal response' % self.field_items
+            raise self.TransactionItemDoesNotExist(err_msg)
+        return items
 
-    def payout_debug_test_error_50_percent(self):
+    def get_item(self):
         """
-        delays for a few seconds, and then, randomly decides to succeed or error.
-
-        returns a randomly generated string of 12 characters upon success
-
-        :return:
+        get the transaction in the items list, assuming there will only be one item
+        because of only doing one payout.
         """
-        r = random.Random()
-        status = bool( r.randrange(0, 2) )     # randomly a 0 or a 1
+        items = self.get_items()
+        num_items = len(items)
+        if num_items != 1:
+            err_msg = 'expected one item, but got %s' % str(num_items)
+            raise self.TransactionItemDoesNotExist(err_msg)
 
-        random_transaction_id = ''.join(random.choice(string.ascii_uppercase) for i in range(12))
-        self.debug_delay_sec_payout( status=status )
+        # return the only item in the list
+        return items[0]
 
-# def test_app():
-#     heartbeat.delay()
-#
-# def test_payout(pk=1):
-#     #p = Payout( to_email='testtest@coderden.com', amount=0.10 )
-#     #return payout.delay( instance=p )
-#     ppw = cash.withdraw.models.PayPalWithdraw.objects.get( pk = pk )
-#     p = Payout( model_instance=ppw )
-#     return payout.apply_async( (p, ), serializer='pickle' )
+    def get_errors(self):
+        # example of one error im not sure about: 'Receiver is unconfirmed'
+        errors = self.get_item().get(self.field_errors)
+        print('errors:', str(errors))
+        return errors
+
+    def get_payout_item_id(self):
+        payout_item_id = self.get_item().get(self.field_payout_item_id)
+        print('payout_item_id:', str(payout_item_id))
+        return payout_item_id
+
+    def get_transaction_id(self):
+        transaction_id = self.get_item().get(self.field_transaction_id)
+        print('transaction_id:', str(transaction_id))
+        return transaction_id
+
+    def get_transaction_status(self):
+        transaction_status = self.get_item().get(self.field_transaction_status)
+        print('transaction_status:', str(transaction_status))
+        return transaction_status
+
+

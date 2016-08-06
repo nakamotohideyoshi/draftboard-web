@@ -25,6 +25,10 @@ from cash.withdraw.classes import (
     PayPalWithdraw,
 )
 from rest_framework.exceptions import APIException
+from mysite.exceptions import (
+    MaxCurrentWithdrawsException,
+)
+
 class CheckWithdrawAPIView(generics.CreateAPIView):
     """
     api for user to submit a withdraw request
@@ -64,13 +68,15 @@ class PayPalWithdrawAPIView(APIView):
 
         user = self.request.user
         amount = self.request.data.get('amount')
+        email = self.request.data.get('email')
 
-        raise APIException('Unimplemented')
-        # withdraw = CheckWithdraw(request.user)
-        # withdraw.withdraw( amount )
-
-        # except Exception:
-        #     return Response( 'Error', status=status.HTTP_403_FORBIDDEN )
+        try:
+            withdraw = PayPalWithdraw(user)
+            withdraw.set_paypal_email(email)
+            withdraw.withdraw(amount)
+        except MaxCurrentWithdrawsException as e:
+            msg = 'Withdraw request declined. You currently have the maximum outstanding requests.'
+            raise APIException(msg)
 
         # on successful lineup creation:
         return Response({'message':'Withdraw request submitted for approval.'}, status=200)
