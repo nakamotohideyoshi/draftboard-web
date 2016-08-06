@@ -4,8 +4,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_save
 from django.utils import timezone
 from mysite.legal import state_choices          # list of tuples, ie: [('NH','NH'), ..., ]
-
 from cash.models import CashTransactionDetail
+from django.contrib.postgres.fields import JSONField
 
 import datetime
 
@@ -29,9 +29,14 @@ class Withdraw(models.Model):
     Abstract implementation fo the withdraw
     """
     created                 = models.DateTimeField(auto_now_add=True, null=True)
-    cash_transaction_detail = models.OneToOneField( CashTransactionDetail , null=False )
+    cash_transaction_detail = models.OneToOneField(CashTransactionDetail, null=False)
     status                  = models.ForeignKey( WithdrawStatus, null=False )
-    status_updated          = models.DateTimeField(auto_now=True)
+    status_updated          = models.DateTimeField(auto_now=True,
+                                    verbose_name='NetProfit @ Withdraw Time')
+    net_profit              = models.DecimalField(decimal_places=2, max_digits=7,
+                                    verbose_name='NetProfit @ Withdraw Time')
+    processed_at            = models.DateTimeField(null=True,
+                                    verbose_name='Proccessed At')
 
     class Meta:
         abstract = True
@@ -58,16 +63,16 @@ class Withdraw(models.Model):
 
 class PayPalWithdraw(Withdraw):
     email               = models.EmailField(null=False)
-    paypal_transaction  = models.CharField( max_length=255, null=False )
+
+    paypal_payout_item          = models.CharField(max_length=255, null=False, default='',
+                                        verbose_name='PayPal Payout Item ID')
+    paypal_transaction          = models.CharField(max_length=255, null=False, default='',
+                                        verbose_name='PayPal Transaction ID')
+    paypal_transaction_status   = models.CharField(max_length=255, null=False, default='',
+                                        verbose_name='PayPal Transaction Status')
 
     started_processing  = models.DateTimeField(null=True)
     paypal_errors       = models.CharField(max_length=2048, default='')
-
-    # this is the batch_status, which starts "PROCESSING" when payment is called
-    #  and becomes "PENDING" soon after
-    auth_status         = models.CharField(max_length=128, default='', null=True)
-    payout_status       = models.CharField(max_length=128, default='', null=True)
-    get_status          = models.CharField(max_length=128, default='', null=True)
 
     def __str__(self):
         return '%s paypal-account-email[  %s  ]' % (self.__class__.__name__, self.email)
@@ -165,3 +170,17 @@ class CashoutWithdrawSetting(models.Model):
 
     max_withdraw_amount  = models.DecimalField(decimal_places=2, max_digits=9, default=10000.00)
     min_withdraw_amount  = models.DecimalField(decimal_places=2, max_digits=9, default=5.00)
+
+class PayoutTransaction(models.Model):
+    """
+    every response from having tried to process a paypal payout
+    """
+
+    created = models.DateTimeField(auto_now_add=True)
+
+    data = JSONField()
+
+    withdraw_type = models.ForeignKey(ContentType)
+    withdraw_id = models.PositiveIntegerField()
+    withdraw = GenericForeignKey('withdraw_type', 'withdraw_id')
+

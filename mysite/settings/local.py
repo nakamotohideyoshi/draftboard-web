@@ -5,6 +5,8 @@ from .base import *
 from subprocess import check_output
 import urllib
 
+DOMAIN = 'localhost'
+
 def get_db_name():
     # Determine db name according to git branch
     git_branch_cmd = 'git rev-parse --abbrev-ref HEAD'
