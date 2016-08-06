@@ -74,6 +74,13 @@ app.conf.update(
 
     CELERYBEAT_SCHEDULE = {
         #
+        #
+        'notify_withdraws' : {
+            'task' : 'cash.withdraw.tasks.notify_recent_withdraws',
+            'schedule' : crontab(minute=0, hour='17'), # ~ noon
+        },
+
+        #
         # contest pool schedule manager updates the upcoming
         # days with what is going to be created.
         'nba_contest_pool_schedule_manager' : {
@@ -245,6 +252,7 @@ app.conf.update(
             'task'      : 'sports.mlb.tasks.cleanup_rosters',
             'schedule'  : crontab(hour='3', minute='30'), # 9 AM (UTC) - which is ~ 4 AM EST
         },
+
     },
 
     CELERY_ENABLE_UTC = True,
