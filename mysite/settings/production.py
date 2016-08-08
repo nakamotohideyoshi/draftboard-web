@@ -102,6 +102,7 @@ PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true')  # heroku config v
 ##########################################################################
 #        paypal client_id, secret keys
 ##########################################################################
+PAYPAL_REST_API_BASE = environ.get('PAYPAL_REST_API_BASE')
 PAYPAL_CLIENT_ID = environ.get('PAYPAL_CLIENT_ID')
 PAYPAL_SECRET = environ.get('PAYPAL_SECRET')
 
