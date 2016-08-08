@@ -2,14 +2,11 @@ import React from 'react';
 import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
-import DepositsPayments from './subcomponents/deposits-payments.jsx';
-import {
-  fetchPaymentMethods,
-  addPaymentMethod,
-  setPaymentMethodDefault,
-  removePaymentMethod,
-  deposit,
-} from '../../actions/payments';
+// import DepositsPayments from './subcomponents/deposits-payments.jsx';
+import { deposit } from '../../actions/payments';
+import { setupOnDomElementId } from '../../lib/paypal/paypal';
+import log from '../../lib/logging';
+
 
 const { Provider, connect } = ReactRedux;
 
@@ -17,16 +14,12 @@ const { Provider, connect } = ReactRedux;
 function mapStateToProps(state) {
   return {
     user: state.user.info,
-    payments: state.payments.payments,
+    payPalNonce: state.payments.payPalNonce,
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    fetchPaymentMethods: () => dispatch(fetchPaymentMethods()),
-    addPaymentMethod: (postData) => dispatch(addPaymentMethod(postData)),
-    setPaymentMethodDefault: (id) => dispatch(setPaymentMethodDefault(id)),
-    removePaymentMethod: (id) => dispatch(removePaymentMethod(id)),
     deposit: (postData) => dispatch(deposit(postData)),
   };
 }
@@ -36,18 +29,13 @@ const Deposits = React.createClass({
 
   propTypes: {
     user: React.PropTypes.object.isRequired,
-    payments: React.PropTypes.array.isRequired,
-    fetchPaymentMethods: React.PropTypes.func.isRequired,
-
-    addPaymentMethod: React.PropTypes.func.isRequired,
-    setPaymentMethodDefault: React.PropTypes.func.isRequired,
-    removePaymentMethod: React.PropTypes.func.isRequired,
     deposit: React.PropTypes.func.isRequired,
+    payPalNonce: React.PropTypes.string.isRequired,
   },
 
 
   componentWillMount() {
-    this.props.fetchPaymentMethods();
+    setupOnDomElementId();
   },
 
 
@@ -73,10 +61,14 @@ const Deposits = React.createClass({
   },
 
 
-  submitDeposit(event) {
+  submitDeposit() {
     event.preventDefault();
-    // gather post data
-    this.props.deposit({});
+    if (this.props.payPalNonce !== '') {
+      // gather post data
+      this.props.deposit(this.props.payPalNonce, 1);
+    } else {
+      log.error('nonce is blank!');
+    }
   },
 
 
@@ -127,16 +119,14 @@ const Deposits = React.createClass({
             </span>
           </div>
 
-          <DepositsPayments
-            payments={this.props.payments}
-            onSetDefault={this.props.setPaymentMethodDefault}
-            onRemovePaymentMethod={this.props.removePaymentMethod}
-          />
-
-          <input type="submit" className="button button--flat-alt1" value="Deposit" />
-
           </fieldset>
         </div>
+        <h5>PayPal</h5>
+        <div id="paypal-container">
+          PP Container
+        </div>
+
+        <input onClick={this.submitDeposit} type="submit" className="button button--flat-alt1" value="Deposit" />
       </div>
     );
   },

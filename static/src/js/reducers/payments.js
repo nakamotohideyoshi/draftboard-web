@@ -1,4 +1,4 @@
-import ActionTypes from '../action-types';
+import actionTypes from '../action-types';
 import merge from 'lodash/merge';
 
 
@@ -6,63 +6,47 @@ const initialState = {
   payments: [],
   depositFormErrors: {},
   withdrawalFormErrors: {},
+  payPalClientToken: '',
+  payPalNonce: '',
 };
 
 
 module.exports = (state = initialState, action) => {
   switch (action.type) {
 
-    case ActionTypes.FETCH_PAYMENT_METHODS_SUCCESS:
+    case actionTypes.FETCH_PAYPAL_CLIENT_TOKEN_SUCCESS: {
       return merge({}, state, {
-        payments: action.body,
+        payPalClientToken: action.response.client_token,
       });
+    }
 
 
-    case ActionTypes.ADD_PAYMENT_METHOD_SUCCESS:
+    case actionTypes.PAYPAL_NONCE_RECEIVED: {
       return merge({}, state, {
-        payments: state.payments.append(action.body),
+        payPalNonce: action.nonce,
       });
+    }
 
 
-    case ActionTypes.SET_PAYMENT_METHOD_DEFAULT_SUCCESS:
-      return merge({}, state, {
-        payments: state.payments.map((payment) => {
-          const toUpdate = payment;
-          if (payment.id === action.id) {
-            toUpdate.isDefault = true;
-          } else {
-            toUpdate.isDefault = false;
-          }
-          return toUpdate;
-        }),
-      });
-
-
-    case ActionTypes.REMOVE_PAYMENT_METHOD_SUCCESS:
-      return merge({}, state, {
-        payments: state.payments.filter((payment) => payment.id !== action.id),
-      });
-
-
-    case ActionTypes.DEPOSIT_SUCCESS:
+    case actionTypes.DEPOSIT_SUCCESS:
       return merge({}, state, {
         depositFormErrors: {},
       });
 
 
-    case ActionTypes.DEPOSIT_FAIL:
+    case actionTypes.DEPOSIT_FAIL:
       return merge({}, state, {
         depositFormErrors: action.ex.response.body.errors,
       });
 
 
-    case ActionTypes.WITHDRAW_AMOUNT_SUCCESS:
+    case actionTypes.WITHDRAW_AMOUNT_SUCCESS:
       return merge({}, state, {
         withdrawalFormErrors: {},
       });
 
 
-    case ActionTypes.WITHDRAW_AMOUNT_FAIL:
+    case actionTypes.WITHDRAW_AMOUNT_FAIL:
       return merge({}, state, {
         withdrawalFormErrors: action.ex.response.body.errors,
       });

@@ -2,22 +2,19 @@
 
 from django.contrib import admin
 from django.contrib.auth.models import User
-from cash.withdraw.models import WithdrawStatus, AutomaticWithdraw, PendingWithdrawMax, \
-                                                        PayPalWithdraw, CheckWithdraw
-
-
+from cash.withdraw.models import (
+    WithdrawStatus,
+    AutomaticWithdraw,
+    PendingWithdrawMax,
+    PayPalWithdraw,
+    CheckWithdraw,
+    PayoutTransaction,
+)
 import cash.withdraw.classes
-# from cash.withdraw.classes import PayPalWithdraw as PpWithdraw
-# from cash.withdraw.classes import CheckWithdraw as CkWithdraw
-
 from mysite.exceptions import AdminDoNotDeleteException
-
 from django.contrib.contenttypes.models import ContentType
-
-# special inline kinds for GenericForeignKey fields
 from django.contrib.admin import TabularInline, StackedInline
 from django.contrib.contenttypes.admin import GenericTabularInline, GenericStackedInline
-
 from django.utils.html import format_html_join
 from django.utils.safestring import mark_safe
 from django.core import urlresolvers
@@ -80,20 +77,25 @@ class CheckWithdrawAdmin(admin.ModelAdmin):
 @admin.register(PayPalWithdraw)
 class PayPalWithdrawAdmin(admin.ModelAdmin):
 
-    list_display    = ['created','status','amount','user','email','paypal_transaction','get_status','paypal_errors']
+    list_display    = ['created','status','amount','user','email','processed_at','net_profit','paypal_errors',
+                       'paypal_transaction','paypal_transaction_status','paypal_payout_item']
+    list_filter     = ['email','status']
+    search_fields   = ['email','paypal_transaction','status']
 
     # non PayPalWithdraw models should throw an exception if this is called on them.
     def paypal_confirm_and_send_payout(self, request, queryset):
         processing = 0
         for obj in queryset:
-            print( obj.pk, obj.content_type, 'withdraw:', obj.withdraw )
-
             ppw = cash.withdraw.classes.PayPalWithdraw( pk=obj.pk )
-            try:
-                ppw.payout()
-                processing += 1
-            except:
-                pass
+
+            #try:
+            ppw.payout()
+            processing += 1
+            # except Exception as e:
+            #     print('Exception:', str(e))
+            #     # raise APIException(str(e))
+            #     self.message_user(request, str(e))
+            #     return
 
         total = len(queryset)
         self.message_user( request, '%s / %s selected withdraws are processing. %s could not be processed.' % (
@@ -103,18 +105,23 @@ class PayPalWithdrawAdmin(admin.ModelAdmin):
     #
     def decline_withdraw_request(self, request, queryset):
         for obj in queryset:
-            print( obj.pk, obj.content_type, 'withdraw:', obj.withdraw )
+            #print( obj.pk, obj.content_type, 'withdraw:', obj.withdraw )
 
             ppw = cash.withdraw.classes.PayPalWithdraw( pk=obj.pk )
             ppw.cancel()
         total = len(queryset)
         self.message_user( request, '%s PayPal withdraw(s) cancelled and refunded.' )
-    decline_withdraw_request.short_description = 'Decline & refund the selected PayPal withdraw(s)'
+    decline_withdraw_request.short_description = 'Cancel the selected PayPal withdraw(s)'
+
+    def delete_request(self, request, queryset):
+        count = queryset.count()
+        queryset.delete()
+        self.message_user(request, 'deleted %s withdraw request(s)' % str(count))
 
     #
     # the 'action' list is where we can specify
     # functions wed like to show in the admin dropdown menu
-    actions = [ paypal_confirm_and_send_payout, decline_withdraw_request ]
+    actions = [ paypal_confirm_and_send_payout, decline_withdraw_request, delete_request ]
 
 @admin.register(AutomaticWithdraw)
 class AutomaticWithdrawAdmin(admin.ModelAdmin):
@@ -125,3 +132,7 @@ class AutomaticWithdrawAdmin(admin.ModelAdmin):
 class PendingWithdrawMaxAdmin(admin.ModelAdmin):
     list_display = ['updated','max_pending']
     list_editable = ['max_pending']
+
+@admin.register(PayoutTransaction)
+class PayoutTransactionAdmin(admin.ModelAdmin):
+    list_display = ['created','withdraw','data']

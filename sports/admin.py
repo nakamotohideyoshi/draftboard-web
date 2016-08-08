@@ -15,9 +15,9 @@ class PlayerAdmin(admin.ModelAdmin):
     """
     inherited by sub module sports like nfl, nba, mlb, nhl
     """
-    list_display    = ['first_name','last_name','on_active_roster','position','team','srid']
+    list_display    = ['first_name','last_name','on_active_roster','position','team','srid','status']
 
-    list_filter     = ['first_name','last_name','team','position','on_active_roster']
+    list_filter     = ['on_active_roster','position','last_name','first_name']
     search_fields   = ['srid','first_name','last_name','position__name']
 
 class PlayerLineupName(admin.ModelAdmin):

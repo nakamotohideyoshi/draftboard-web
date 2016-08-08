@@ -2,10 +2,13 @@
 # prize/urls.py
 
 from django.conf.urls import url
-from prize.views import CreatePrizeStructureView, PrizeGeneratorView, \
-    TicketPrizeStructureCreatorView, \
-    FlatCashPrizeStructureCreatorView, \
-    PrizeStructureAPIView
+from prize.views import (
+    CreatePrizeStructureView,
+    PrizeGeneratorView,
+    TicketPrizeStructureCreatorView,
+    FlatCashPrizeStructureCreatorView,
+    PrizeStructureAPIView,
+)
 
 urlpatterns = [
     # deprecated

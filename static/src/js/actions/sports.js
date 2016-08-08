@@ -32,7 +32,12 @@ export const SPORT_CONST = {
     },
   },
   nfl: {
-    pregameStatuses: [],
+    gameDuration: 60,
+    lineupByteLength: 20,
+    periodMinutes: 15,
+    periods: 4,
+    players: 8,
+    pregameStatuses: ['scheduled'],
     seasonStats: {
       types: [],
       names: [],
@@ -628,6 +633,7 @@ export const updateGameTime = (event) => (dispatch, getState) => {
 
   switch (game.sport) {
     case 'nba':
+    case 'nfl':
     case 'nhl': {
       // if the boxscore doesn't have quarter yet, update the game
       if (game.boxscore.hasOwnProperty('quarter') === false) {
