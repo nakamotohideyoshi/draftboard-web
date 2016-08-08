@@ -2,7 +2,7 @@
 # settings.py for 'draftboard-dev' heroku app
 
 from dj_database_url import config as heroku_db_config
-from urllib.parse import urlparse
+import urllib
 
 from .base import *
 
@@ -21,15 +21,23 @@ DATABASES = {
 DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 60
 
+# heroku redis - for api views/pages
+HEROKU_REDIS_URL = environ.get('REDIS_URL')
+heroku_redis_url = urllib.parse.urlparse(HEROKU_REDIS_URL)
+# since we should have a heroku redis instance for production, override the default api cache name
+API_CACHE_NAME = 'api'
+
 # Redis caching
-redis_url = urlparse(environ.get('REDISCLOUD_URL'))
+redis_url = urllib.parse.urlparse(environ.get('REDISCLOUD_URL'))
 
 CACHES = {
+    #
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
         'LOCATION': "redis://:%s@%s:%s/0" % (redis_url.password, redis_url.hostname, redis_url.port),
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {"max_connections": 10}
         },
         # expire caching at max, 1 month
         'TIMEOUT': 2592000
@@ -43,6 +51,17 @@ CACHES = {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
     },
+
+    # api view cache
+    API_CACHE_NAME: {
+        "BACKEND": "django_redis.cache.RedisCache",
+        'LOCATION': "redis://:%s@%s:%s/0" % (heroku_redis_url.password,
+                                             heroku_redis_url.hostname,
+                                             heroku_redis_url.port),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
 }
 
 # Static assets, served via django-whitenoise
@@ -50,15 +69,6 @@ STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
 
 # Testing mode off for production
 DEBUG = False
-
-# this breaks django 1.9 and was fixed by getting stuffed in the TEMPLATE dict in base.py
-# # Cache templates
-# TEMPLATE_LOADERS = (
-#     ('django.template.loaders.cached.Loader', (
-#         'django.template.loaders.filesystem.Loader',
-#         'django.template.loaders.app_directories.Loader',
-#     )),
-# )
 
 # Add gunicorn
 INSTALLED_APPS += (
@@ -80,6 +90,13 @@ PUSHER_ENABLED = 't' in environ.get('PUSHER_ENABLED', 'true') # heroku config va
 ##########################################################################
 PAYPAL_CLIENT_ID    = environ.get('PAYPAL_CLIENT_ID')
 PAYPAL_SECRET       = environ.get('PAYPAL_SECRET')
+
+#
+###########################################################################
+# Sandbox Account:  paypal-facilitator@draftboard.com
+# Access Token:     (from environment var)
+##########################################################################
+VZERO_ACCESS_TOKEN = environ.get('VZERO_ACCESS_TOKEN')
 
 #
 # dataden mongo database connection

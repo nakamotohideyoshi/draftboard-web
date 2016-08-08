@@ -68,50 +68,6 @@ class TriggerMlb(SportTrigger):
 
     oplogobj_class = MlbOpLogObj
 
-# class TriggerWorker(Thread):
-#
-#     def __init__(self, trigger_class, trigger_model, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.trigger_class = trigger_class
-#         self.trigger_model = trigger_model
-#
-#     def run(self):
-#         trigger = self.trigger_class(sport=self.trigger_model.db, t=self.trigger_model)
-#         trigger.run() # not of a thread, of the super Trigger class
-#
-# class TriggerThreaded(object):
-#     """
-#     uses 1 thread per trigger
-#     """
-#
-#     default_threads = 8
-#     trigger_class = SportTrigger            # default. you can override this
-#
-#     def __init__(self, sport, t=None):
-#         self.sport = sport
-#         self.threads = t
-#         if self.threads is None:
-#             self.threads = self.default_threads
-#
-#         # get only specific triggers models for this sport
-#         self.trigger_models = dataden.models.Trigger.objects.filter(db=self.sport, enabled=True)
-#
-#     def run(self):
-#
-#         workers = []
-#
-#         for trigger_model in self.trigger_models:
-#             tw = TriggerWorker(self.trigger_class, trigger_model)
-#             workers.append(tw)
-#             tw.start()
-#
-#         for tw in threads:
-#             tw.join()
-#
-# class TriggerThreadedMlb(TriggerThreaded):
-#
-#     trigger_class = TriggerMlb
-
 class CacheList(object):
     """
     a list implementation. the list is stored in cache using a combination

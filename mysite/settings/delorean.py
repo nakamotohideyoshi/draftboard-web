@@ -14,7 +14,6 @@ ALLOWED_HOSTS = ['.draftboard-delorean.herokuapp.com', '*.draftboard-delorean.he
 # Based on https://devcenter.heroku.com/articles/python-concurrency-and-database-connections#number-of-active-connections
 # and Django 1.6 we can set 10 persistent connections bc we have a limit of 400 connections with our Premium 2 database.
 # 4 workers * up to 10 dynos * 10 connections = 400
-# TODO django16 upgrade to persistent connections
 DATABASES = {
     'default': heroku_db_config()
 }
@@ -51,15 +50,6 @@ STATIC_URL = environ.get('DJANGO_STATIC_HOST', '') + '/static/'
 # Testing mode off for production
 DEBUG = False
 
-# this breaks django 1.9 and was fixed by getting stuffed in the TEMPLATE dict in base.py
-# # Cache templates
-# TEMPLATE_LOADERS = (
-#     ('django.template.loaders.cached.Loader', (
-#         'django.template.loaders.filesystem.Loader',
-#         'django.template.loaders.app_directories.Loader',
-#     )),
-# )
-
 # Add gunicorn
 INSTALLED_APPS += (
     'gunicorn',
@@ -82,6 +72,12 @@ PAYPAL_CLIENT_ID    = environ.get('PAYPAL_CLIENT_ID')
 PAYPAL_SECRET       = environ.get('PAYPAL_SECRET')
 
 #
+##########################################################################
+# paypal vzero minimal deposit server access_token
+##########################################################################
+VZERO_ACCESS_TOKEN = environ.get('VZERO_ACCESS_TOKEN')
+
+#
 # dataden mongo database connection
 MONGO_SERVER_ADDRESS    = environ.get('MONGO_SERVER_ADDRESS')   # ie: '123.132.123.123'
 MONGO_AUTH_DB           = environ.get('MONGO_AUTH_DB')          # 'admin'
@@ -94,4 +90,4 @@ MONGO_HOST = environ.get('MONGO_HOST') % ( MONGO_USER,
                                             MONGO_PORT,
                                             MONGO_AUTH_DB )
 
-DATETIME_DELTA_ENABLE = True   # dont do this once production environemnt is actual live!
+DATETIME_DELTA_ENABLE = True   # time travel

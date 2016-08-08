@@ -1,6 +1,7 @@
 import filter from 'lodash/filter';
 import log from '../../lib/logging';
 import map from 'lodash/map';
+import merge from 'lodash/merge';
 import orderBy from 'lodash/orderBy';
 import random from 'lodash/random';
 import { addEventAndStartQueue } from '../events';
@@ -37,6 +38,21 @@ const compileEventPlayers = (message, sport) => {
     }
     case 'nba':
       return map(message.statistics__list, event => event.player);
+    case 'nfl': {
+      const eventPlayers = [];
+      const statsList = message.pbp.statistics || {};
+
+      // faster to not camelize the object
+      /* eslint-disable camelcase */
+      const { receive__list = {}, pass__list = {}, rush__list = {}, return__list = {} } = statsList;
+      if ('player' in receive__list) eventPlayers.push(receive__list.player);
+      if ('player' in pass__list) eventPlayers.push(pass__list.player);
+      if ('player' in rush__list) eventPlayers.push(rush__list.player);
+      if ('player' in return__list) eventPlayers.push(return__list.player);
+      /* eslint-enable camelcase */
+
+      return eventPlayers;
+    }
     default:
       return [];
   }
@@ -131,6 +147,23 @@ const consolidateZonePitches = (zonePitches) => {
 };
 
 /**
+ * Convert yardline to decimal, used by transposeFieldPosition
+ * @param  {number} yardline  Range of -10 to 110, represents yardline in NFL
+ * @param  {string} direction Direction of drive from user's perspective, options are ['leftToRight', 'rightToLeft']
+ * @return {number}           Range of -0.05 to 1.05
+ */
+const yardlineToDecimal = (yardline, driveDirection) => {
+  let asDecimal = yardline / 100;
+
+  // inverse if away team
+  if (driveDirection === 'rightToLeft') asDecimal = 1 - asDecimal;
+
+  if (asDecimal > 1) return 1.05;  // touchdown
+  if (asDecimal < 0) return -0.05;  // touchback
+  return asDecimal;
+};
+
+/**
  * TODO move to lib.utils
  *
  * Helper method to convert an object of pitch types into a readable sentence
@@ -198,7 +231,7 @@ export const stringifyMLBWhen = (inning, half) => {
  * @return {boolean}        True if we want to use, false if we don't
  */
 const isMessageUsed = (message, sport) => {
-  logAction.trace('actions.isMessageUsed');
+  logAction.debug('actions.isMessageUsed');
 
   const reasons = [];
 
@@ -306,6 +339,112 @@ const getNBAData = (message, gameId) => {
 };
 
 /*
+ * Converts `nfl_pbp.linked` to the relevant data we need
+ *
+ * @param  {object} message  The received event from Pusher
+ * @param  {string} gameId   Game SRID
+ */
+const getNFLData = (message, gameId, game) => {
+  logAction.debug('actions.getNFLData');
+
+  // faster to not camelize the object
+  /* eslint-disable camelcase */
+  const {
+    clock,
+    description,
+    end_situation = {},
+    extra_info = {},
+    id,
+    start_situation = {},
+    statistics = {},
+    type,
+  } = message.pbp;
+  const {
+    fumbles = false,
+    touchdown = false,
+    formation = 'default',
+  } = extra_info;
+
+  const startLocation = start_situation.location || {};
+  const endLocation = end_situation.location || {};
+  /* eslint-enable camelcase */
+
+  // use defense to determine direction because offense has no constant team field
+  const driveDirection = (game.srid_away === statistics.defense__list.team) ? 'leftToRight' : 'rightToLeft';
+
+  const data = {
+    description,
+    driveDirection,
+    eventPlayers: compileEventPlayers(message, 'nfl'),
+    fumbles,
+    formation,
+    gameId,
+    id,
+    sport: 'nfl',
+    touchdown,
+    type,
+    when: {
+      clock,
+      quarter: game.boxscore.quarter || 0,
+    },
+    yardlineEnd: yardlineToDecimal(endLocation.yardline, driveDirection),
+    yardlineStart: yardlineToDecimal(startLocation.yardline, driveDirection),
+  };
+  let extraData;
+
+  switch (type) {
+    case 'pass': {
+      /* eslint-disable camelcase */
+      const { receive__list = {}, pass__list = {} } = statistics;
+      const { intercepted } = extra_info;
+      const { distance = 'short', side = 'middle' } = extra_info.pass || {};
+      const { att_yards = 0, complete = 0, sack = false } = pass__list;
+      const { yards_after_catch = 0 } = receive__list;
+      /* eslint-enable camelcase */
+
+      extraData = {
+        attemptedYards: att_yards,
+        completed: complete > 0,
+        distance,  // options are ['short', 'deep']
+        formation: 'shotgun',  // options are ['shotgun', 'default']
+        intercepted,
+        sack,
+        side,  // side thrown to options are ['left', 'middle', 'right']
+        yardsAfterCatch: yards_after_catch,
+      };
+
+      // optional field
+      if (sack === true) extraData.sackYards = pass__list.sack_yards;
+      break;
+    }
+    case 'rush': {
+      const { scramble = false, side = 'middle' } = extra_info.rush || {};
+
+      extraData = {
+        scramble,  // true indicates QB sneak
+        side,
+      };
+      break;
+    }
+    case 'kickoff': {
+      /* eslint-disable camelcase */
+      const { return__list = {} } = statistics;
+      const { yards = 0 } = return__list;
+      /* eslint-enable camelcase */
+
+      extraData = {
+        returnYards: yards,
+      };
+      break;
+    }
+    default:
+      break;
+  }
+
+  return merge(data, extraData);
+};
+
+/*
  * Take a pusher call, validate, then reshape to fit into store.events
  * `message` depends on sport:
  * - MLB `mlb_pbp.linked` docs here https://git.io/vofyM
@@ -333,6 +472,11 @@ export const onPBPReceived = (message, sport) => (dispatch, getState) => {
     case 'nba':
       relevantData = getNBAData(message, gameId);
       break;
+    case 'nfl': {
+      const game = state.sports.games[gameId];
+      relevantData = getNFLData(message, gameId, game);
+      break;
+    }
     default:
       break;
   }

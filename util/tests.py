@@ -6,6 +6,7 @@ from ast import literal_eval
 from util.dicts import (
     Reducer,
     Shrinker,
+    Manager,
 )
 from sports.mlb.parser import PitchPbp
 from util.fairmatch import (
@@ -267,6 +268,53 @@ class ShrinkerTest(TestCase):
         # which is effectively how we know we didnt overwrite
         # the existing 'key1' value!
         self.assertTrue(ts.data == orig)
+
+class ManagerTest(TestCase):
+
+    def setUp(self):
+
+        class MyReducer(Reducer):
+            remove_fields = []
+
+        class MyShrinker(Shrinker):
+            fields = {}
+
+        class MyManager(Manager):
+            reducer_class = MyReducer
+            shrinker_class = MyShrinker
+
+        # test methods can get their own instance
+        self.manager_instance = MyManager({})
+
+    def test_0(self):
+        """ test int2bool """
+        val = 0
+        self.assertEqual(False, self.manager_instance.int2bool(val))
+
+    def test_1(self):
+        """ test int2bool """
+        val = 1
+        self.assertEqual(True, self.manager_instance.int2bool(val))
+
+    def test_2(self):
+        """ test int2bool """
+        val = 0.0
+        self.assertEqual(False, self.manager_instance.int2bool(val))
+
+    def test_3(self):
+        """ test int2bool """
+        val = 1.0
+        self.assertEqual(True, self.manager_instance.int2bool(val))
+
+    def test_4(self):
+        """ test str2bool """
+        val = 'false'
+        self.assertEqual(False, self.manager_instance.str2bool(val))
+
+    def test_5(self):
+        """ test str2bool """
+        val = 'true'
+        self.assertEqual(True, self.manager_instance.str2bool(val))
 
 #
 ##################################################################################################
