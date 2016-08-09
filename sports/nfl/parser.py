@@ -589,7 +589,7 @@ class PlayShrinker(Shrinker):
     fields = {
         'dd_updated__id' : 'ts',
         'alt_description' : 'description',
-        'game__id' : 'game_srid',
+        'game__id' : 'srid_game',
         'statistics__list' : 'statistics',
         'start_situation__list' : 'start_situation',
         'end_situation__list' : 'end_situation',
