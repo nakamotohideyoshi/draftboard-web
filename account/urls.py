@@ -25,6 +25,7 @@ from .views import (
     # paypal vzero apis
     VZeroGetClientTokenView,
     VZeroDepositView,
+    TruliooVerifyUserAPIView,
 )
 
 urlpatterns = [
@@ -84,4 +85,7 @@ urlpatterns = [
     # paypal vzero - make a deposit with shipping information,
     #                as well as the amount and payment_method_nonce
     url(r'^vzero/deposit/$', VZeroDepositView.as_view()),
+
+    # verify a user using Trulioo
+    url(r'^verify-user/$', TruliooVerifyUserAPIView.as_view()),
 ]

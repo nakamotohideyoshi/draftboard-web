@@ -33,6 +33,7 @@ from account.serializers import (
     SavedCardDeleteSerializer,
     SavedCardPaymentSerializer,
     CreditCardPaymentSerializer,
+    TruliooVerifyUserSerializer,
 )
 import account.tasks
 from pp.classes import (
@@ -58,7 +59,9 @@ from rest_framework.exceptions import APIException
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework import response, schemas
 from rest_framework_swagger.renderers import OpenAPIRenderer, SwaggerUIRenderer
-
+from trulioo.classes import (
+    Trulioo,
+)
 
 @api_view()
 @renderer_classes([OpenAPIRenderer, SwaggerUIRenderer])
@@ -999,6 +1002,48 @@ class VZeroDepositView(APIView):
             ct.deposit_vzero(amount, transaction_id)
         except Exception:
             raise APIException('Error adding funds to draftboard account. Please contact admin@draftboard.com')
+
+        # return success response if everything went ok
+        return Response(status=200)
+
+class TruliooVerifyUserAPIView(APIView):
+    """
+    verify the user is real based on the information specified.
+    this will create a log of the trulioo transaction in the django admin
+
+    example POST param (JSON):
+
+        {"first":"FullSteve","last":"Stevenson","birth_day":1,"birth_month":1,"birth_year":1990,"postal_code":"11111"}
+
+    """
+
+    permission_classes = (IsAuthenticated, )
+    serializer_class = TruliooVerifyUserSerializer
+
+    def post(self, request, *args, **kwargs):
+        # use the serializer to validate the arguments
+        self.serializer_class(data=self.request.data).is_valid(raise_exception=True)
+        # get the django user
+        user = self.request.user
+
+        args = self.request.data
+        first = args.get('first')
+        last = args.get('last')
+        birth_day = args.get('birth_day')
+        birth_month = args.get('birth_month')
+        birth_year = args.get('birth_year')
+        postal_code = args.get('postal_code')
+
+        # use Trulioo class to verify the user
+        verified = False
+        try:
+            t = Trulioo()
+            verified = t.verify_minimal(first, last, birth_day, birth_month, birth_year, postal_code, user=user)
+        except Exception as e:
+            raise APIException(str(e))
+
+        if verified == False:
+            raise APIException('User verification was unsuccessful. Please contact support@draftboard.com')
 
         # return success response if everything went ok
         return Response(status=200)

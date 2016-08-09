@@ -180,3 +180,11 @@ class CreditCardPaymentSerializer(SavedCardAddSerializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     amount = serializers.FloatField()
+
+class TruliooVerifyUserSerializer(serializers.Serializer):
+    first = serializers.CharField()
+    last = serializers.CharField()
+    birth_day = serializers.IntegerField()
+    birth_month = serializers.IntegerField()
+    birth_year = serializers.IntegerField()
+    postal_code = serializers.CharField()
