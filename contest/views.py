@@ -352,7 +352,6 @@ class AllLineupsView(View):
             #return HttpResponse( ''.join('{:02x}'.format(x) for x in clm.get_bytes() ) )
             return HttpResponse(clm.get_http_payload(), content_type='application/octet-stream')
 
-
 class SingleLineupView(View):
     """
     get a single lineup for any contest, lineup_id combination.

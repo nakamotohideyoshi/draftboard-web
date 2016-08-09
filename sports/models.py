@@ -273,6 +273,9 @@ class Injury(models.Model):
         abstract = True
 
 class Player(models.Model):
+
+    STATUS_UNKNOWN = 'UNKNOWN'
+
     created = models.DateTimeField(auto_now_add=True)
     srid = models.CharField(max_length=64, unique=True, null=False,
                                 help_text='the sportsradar global id')

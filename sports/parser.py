@@ -304,7 +304,11 @@ class DataDenParser(object):
         :param mongo_obj:
         :return:
         """
-        Update( OpLogObjWrapper( db, coll, mongo_obj ) ).send( async=async )
+        try:
+            Update( OpLogObjWrapper( db, coll, mongo_obj ) ).send( async=async )
+        except Exception as e:
+            print('ns: %s.%s | mongo_obj: %s' % (db, coll, str(mongo_obj)))
+            raise Exception(e)
 
     def setup_all(self):
         """

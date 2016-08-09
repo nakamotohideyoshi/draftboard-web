@@ -4,6 +4,20 @@
 from functools import reduce
 from collections import Counter
 
+# %cpaste
+# class Dict2(dict):
+#     class ValueDoesNotExist(Exception): pass
+#     def get(self, field, *args, **kwargs):
+#         val = super().get(field)
+#         if val is None:
+#             raise self.ValueDoesNotExist('lol %s wasnt there' % field)
+#         return val
+#
+# --
+# d2 = Dict2({'k':'v'})
+# d2.get('k')
+# d2.get('steve')
+
 class DictTools:
 
     @staticmethod
@@ -195,6 +209,10 @@ class Manager(object):
     reducer_class = None
     shrinker_class = None
 
+    str_true = "true"
+    str_false = "false"
+    str_bools = [str_true, str_false]
+
     def __init__(self, raw_data):
         """
         adds the key values in the 'stats' dict into the
@@ -205,6 +223,30 @@ class Manager(object):
             raise self.InvalidShrinker('"shrinker_class" cant be None')
 
         self.raw_data = raw_data
+
+    def int2bool(self, val):
+        """ takes str2bool a step further and turns """
+
+        # convert floats to ints
+        if isinstance(val, float):
+            val = int(val)
+
+        if not isinstance(val, int):
+            return val # could raise here... idk
+
+        return val == 1
+
+    def str2bool(self, val):
+        """ guess what this method does. you got it. """
+        if not isinstance(val, str):
+            return val
+
+        if val == self.str_false:
+            return False
+        elif val == self.str_true:
+            return True
+        else:
+            return False  # default !?
 
     def get_data(self, additional_data=None):
         # reduce the raw data - pop() unwanted fields
