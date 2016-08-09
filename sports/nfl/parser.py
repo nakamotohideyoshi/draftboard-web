@@ -3,7 +3,10 @@
 
 import re
 from django.db.transaction import atomic
-from sports.sport.base_parser import AbstractDataDenParseable
+from sports.sport.base_parser import (
+    AbstractDataDenParseable,
+    SridFinder,
+)
 import sports.nfl.models
 from sports.nfl.models import (
     Team,
@@ -133,16 +136,31 @@ class PlayerRosters(DataDenPlayerRosters):
     team_model      = Team
     player_model    = Player
 
+    # dont add players that play these positions to the system
+    exclude_positions = [
+        'DST','DE', 'OLB', 'CB',  'K',
+        'DT', 'DT', 'FS',  'OT',  'OG',
+        'SS', 'C',  'MLB', 'P',   'LB',
+        'OL', 'LS', 'NT',  'SAF', 'G',
+        'DB', 'T',
+    ]
+
     def __init__(self):
         super().__init__()
         self.position_key = 'position'
 
     def parse(self, obj, target=None):
-        super().parse( obj )
-
-        #
         # set the fields that arent set, and update the players name (super() grabs invalid fields)
         o = obj.get_o()
+
+        # ignore players that arent relevant for fantasy purposes
+        position = o.get(self.position_key)
+        if position in self.exclude_positions:
+            return # skip parsing this player
+
+        # super sets up some internal stuff and is required to be
+        # called before parsing nfl player specific fields
+        super().parse( obj )
 
         # override the first name with preferred first name
         self.player.first_name = o.get('preferred_name')
@@ -247,42 +265,6 @@ class PlayerStats(DataDenPlayerStats):
          11
         $>
 
-    ###
-    # for 2015 stats:
-    #
-    # players__list 0
-    # player_records__list 0
-    # rushing__list 2929
-    # receiving__list 5965
-    # punts__list 703
-    # punt_returns__list 875
-    # penalties__list 3998
-    # passing__list 980
-    # kickoffs__list 741
-    # kick_returns__list 834
-    # fumbles__list 1763
-    # field_goals__list 584
-    # kicks__list 613
-    # defense__list 14518
-    # int_returns__list 533
-    # misc_returns__list 24
-    # conversions__list 261
-    # kick__list 0
-    # rush__list 0
-    # pass__list 0
-    # receive__list 0
-    # penalty__list 0
-    # statistics__list 0
-    # field_goal__list 0
-    # extra_point__list 0
-    # return__list 0
-    # fumble__list 0
-    # conversion__list 0
-    # punt__list 0
-    # block__list 0
-    # defense_conversion__list 0
-# misc__list 0
-    ###
     """
 
     game_model          = Game
@@ -784,31 +766,71 @@ class ExtraInfo(object):
         return rush_data
 
 class PlayManager(Manager):
+    """
+    wraps the Reducer & Shrinker tools for compacting and cleaning up NFL pbp data.
+    """
+
     reducer_class = PlayReducer
     shrinker_class = PlayShrinker
 
-    field_formation     = 'formation'
-    field_pass_side     = 'pass_side'
-    field_pass_depth    = 'pass_depth'
+    field_statistics    = 'statistics__list'
+
+    field_defense       = 'defense__list'
+    field_kick          = 'kick__list'
+
+    field_pass          = 'pass__list'
+    field_return        = 'return__list'
+    field_rush          = 'rush__list'
+    field_receive       = 'receive__list'
+
+    ignore_fields = [
+        field_defense, field_kick
+    ]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # update some custom fields we will inject into the data
-        # and do it previous to any reductions/shrinkers/adds
-        self.update_formation()
-        self.update_pass_side()
-        self.update_pass_depth()
+        self.clean_statistics_list()
 
-    def update_formation(self):
-        """ parse the formation by looking for the '(Shotgun)' text """
-        pass
+        self.update_extra_info()
 
-    def update_pass_side(self):
-        pass # TODO
+    def update_extra_info(self):
+        """ parse the description text and inject extra info """
+        type = self.raw_data.get('type')
+        description = self.raw_data.get('alt_description')
+        self.raw_data['extra_info'] = ExtraInfo(type, description).get_data()
 
-    def update_pass_depth(self):
-        pass # TODO
+    def clean_statistics_list(self):
+        # get statistics list  -- dont forget to replace it after we clean it up
+        statistics = self.raw_data.get(self.field_statistics)
+        if statistics is None:
+            return # nothing to do - it didnt exist
+
+        # there are some lists we will just want to pop off
+        for field in self.ignore_fields:
+            try:
+                statistics.pop(field)
+            except KeyError:
+                pass # it wasnt there to begin with - so dont worry about it
+
+        # 1. cleanup pass__list
+        # convert sack to a boolean
+        pass_list = statistics.get(self.field_pass, {})
+        sack = pass_list.get('sack')
+        if pass_list != {} and sack is not None:
+            pass_list['sack'] = self.int2bool(sack)
+            # and now put this data back into the internal data
+            statistics[self.field_pass] = pass_list
+            self.raw_data[self.field_statistics] = statistics
+
+        # 2. cleanup return__list
+        return_list = statistics.get(self.field_return, {})
+        retrn = return_list.get('return')
+        if return_list != {} and retrn is not None:
+            return_list['return'] = self.int2bool(retrn)
+            # put it back in
+            statistics[self.field_return] = return_list
+            self.raw_data[self.field_statistics] = statistics
 
 class PossessionReducer(Reducer):
     remove_fields = [
@@ -900,6 +922,9 @@ class PlayParser(DataDenPbpDescription):
         name = 'EndLocationCache_nflo_pbp'
         field_id = 'play__id'
 
+    field_pbp_object        = 'pbp'
+    field_stats             = 'stats'
+
     game_model              = Game
     pbp_model               = Pbp
     portion_model           = GamePortion
@@ -971,6 +996,13 @@ class PlayParser(DataDenPbpDescription):
         # else:
         return None # TODO dont return None! raise something... the caller expects a tuple...
 
+    # def get_srid_game(self, fieldname): # returns a string
+
+    # def find_player_stats(self, player_srids=None):
+    #     game_srid = self.get_srid_game('game__id')
+    #     return self.player_stats_model.objects.filter(srid_game=game_srid,
+    #                                                   srid_player__in=player_srids)
+
     def parse(self, obj, target):
         # this strips off the dataden oplog wrapper, and sets the SridFinder internally.
         # now we can use self.o which is the data object we care about.
@@ -992,9 +1024,23 @@ class PlayParser(DataDenPbpDescription):
         # assumes that everthing must exist at this point for us to be able to build it!
         play = self.PlayCache().fetch(self.ts, self.play_srid)
 
+        #
+        # get the PlayerStats model instances associated with this play
+        # which can be found using the game and player srids
+        srid_finder = SridFinder(play)
+        srid_games = srid_finder.get_for_field('game__id')
+        srid_players = srid_finder.get_for_field('player')
+        player_stats = self.player_stats_model.objects.filter(srid_game__in=srid_games,
+                                                              srid_player__in=srid_players)
+        print('%s PlayerStats found for srid_game="%s", srid_player__in=%s' % (str(player_stats.count()),
+                                                        str(srid_games), str(srid_players)))
+        player_stats_json = [ ps.to_json() for ps in player_stats ]
+
+        #
         start_location = self.StartLocationCache().fetch(self.ts, self.play_srid)
         start_possession = self.StartPossessionCache().fetch(self.ts, self.play_srid)
 
+        #
         end_location = self.EndLocationCache().fetch(self.ts, self.play_srid)
         end_possession = self.EndPossessionCache().fetch(self.ts, self.play_srid)
 
@@ -1013,14 +1059,15 @@ class PlayParser(DataDenPbpDescription):
         play['end_situation__list']['location']     = LocationManager(end_location).get_data()
 
         data = {
-            'play' : PlayManager(play).get_data(),
+            self.field_pbp_object : PlayManager(play).get_data(),
+            self.field_stats : player_stats_json,
         }
 
         #print('get_send_data:', str(data))
         return data
 
     def send(self, *args, **kwargs):
-        super().send() #force=True)
+        super().send(*args, **kwargs) #force=True)
 
 class Injury(DataDenInjury):
 
@@ -1109,23 +1156,23 @@ class DataDenNfl(AbstractDataDenParser):
             GameSchedule().parse( obj )
 
         #
-        # TODO
+        # parse a game obj from the boxscores feed
         elif self.target == (self.mongo_db_for_sport+'.game','boxscores'):
-            GameBoxscoreParser().parse( obj )
-
+            game_boxscore_parser = GameBoxscoreParser()
+            game_boxscore_parser.parse(obj, self.target)
         #
-        # TODO
+        # parse a team object from the boxscores feed
         elif self.target == (self.mongo_db_for_sport+'.team','boxscores'):
             # dont send it unless its from the parent__list: 'summary__list'
-            TeamBoxscoreParser().parse( obj )
-
+            team_boxscore_parser = TeamBoxscoreParser()
+            team_boxscore_parser.parse(obj, self.target)
         #
-        #
+        # parse a team object from the hierarchy feed
         elif self.target == (self.mongo_db_for_sport+'.team','hierarchy'):
             TeamHierarchy().parse( obj )
 
         #
-        #
+        # parse a player from the rosters feed
         elif self.target == (self.mongo_db_for_sport+'.player','rosters'):
             try:
                 PlayerRosters().parse( obj )
@@ -1133,7 +1180,7 @@ class DataDenNfl(AbstractDataDenParser):
                 print(e)
 
         #
-        #
+        # parse a players stats (from a game) from the stats feed
         elif self.target == (self.mongo_db_for_sport+'.player','stats'):
             PlayerStats().parse( obj )
 
@@ -1156,7 +1203,7 @@ class DataDenNfl(AbstractDataDenParser):
         and rosters parent api so it can flag players
         who are no long on the teams roster on_active_roster = False
         """
-        super().cleanup_rosters(self.sport,                         # datadeb sport db, ie: 'nba'
+        super().cleanup_rosters(self.mongo_db_for_sport,            # name of mongo db for the sport
                                 sports.nfl.models.Team,             # model class for the Team
                                 sports.nfl.models.Player,           # model class for the Player
                                 parent_api='rosters')               # parent api where the roster players found

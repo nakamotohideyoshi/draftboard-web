@@ -109,12 +109,11 @@ class AbstractDataDenParser(object):
         teams = team_class.objects.all()
 
         for team in teams:
-            #print(str(team))
+            print('cleanup_rosters:', str(team))
             # get all the sports players for that team
             players = player_class.objects.filter(team=team, on_active_roster=True)
             player_srids = [ p.srid for p in players ]
-            #print('player_srids:', str(player_srids))
-
+            # print('player_srids:', str(player_srids))
 
             # from dataden, get all the players recently parsed for this team.
             dd_recent_players = dd.find_recent(sport, 'player', parent_api, target={'team__id':team.srid})
@@ -122,17 +121,13 @@ class AbstractDataDenParser(object):
             for p in dd_recent_players:
                 dd_recent_player_srids.append(p.get('id'))
 
-            # print('dd_recent_player_srids:', str(active_player_srids))
-            #
-            # print('... count:', str(len(player_srids)))
-            # print('... count(recents):', str(len(active_player_srids)))
-
             # subtract the set of dd-recent players from the set of team players
             deactivate_player_srids = set(player_srids) - set(dd_recent_player_srids)
 
             # flag the remaining set NOT_ON_ROSTER !
             #print('set of srids to deactivate (for current team):', str(len(deactivate_player_srids)))
-            players.filter(srid__in=deactivate_player_srids).update(on_active_roster=False)
+            players.filter(srid__in=deactivate_player_srids).update(on_active_roster=False,
+                                                                    status=player_class.STATUS_UNKNOWN)
 
 class AbstractDataDenParseable(object):
     """
@@ -497,6 +492,8 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
     team_model      = None
     player_model    = None
 
+    default_roster_status = 'UNKNOWN'
+
     def __init__(self):
         if self.team_model is None:
             raise Exception('"team_model" cant be None!')
@@ -536,7 +533,10 @@ class DataDenPlayerRosters(AbstractDataDenParseable):
             err_msg = '"%s" was None! cannot create player if their position is invalid!' % self.position_key
             raise self.PositionDoesNotExist(err_msg)
 
-        status              = o.get('status')   # roster status, ie: basically whether they are on it
+        # get the players roster status
+        status = o.get('status')
+        if status is None:
+            status = self.default_roster_status
 
         #
         # get the team - if it doesnt exist, return,
@@ -1031,17 +1031,6 @@ class DataDenPbpDescription(AbstractDataDenParseable):
         :return: True if object was just added. else returns False
         """
         return self.live_stats_cache.update_pbp( self.get_obj() )
-
-    # def get_send_data(self, additional_data=None):
-    #     """
-    #     if there is a manager class set, use it to reduce and shrink the data,
-    #     otherwise just return self.o (the base dataden object)
-    #     """
-    #     if self.manager_class is None:
-    #         return self.o
-    #
-    #     manager = self.manager_class(self.o)
-    #     return manager.get_data()
 
     def send(self, force=False):
         """

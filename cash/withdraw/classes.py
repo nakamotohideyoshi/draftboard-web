@@ -1,9 +1,21 @@
+#
+# classes.py
+
 from . import models
-from mysite.exceptions import IncorrectVariableTypeException, VariableNotSetException, \
-                            InvalidArgumentException, AmbiguousArgumentException, \
-                            UnimplementedException, MaxCurrentWithdrawsException, \
-                            CashoutWithdrawOutOfRangeException, CheckWithdrawCheckNumberRequiredException, \
-                            AmountNegativeException, AmountZeroException, WithdrawCalledTwiceException
+from mysite.exceptions import (
+    IncorrectVariableTypeException,
+    VariableNotSetException,
+    InvalidArgumentException,
+    AmbiguousArgumentException,
+    UnimplementedException,
+    MaxCurrentWithdrawsException,
+    CashoutWithdrawOutOfRangeException,
+    CheckWithdrawCheckNumberRequiredException,
+    AmountNegativeException,
+    AmountZeroException,
+    WithdrawCalledTwiceException,
+)
+from django.utils import timezone
 from django.contrib.auth.models import User
 from mysite.classes import  AbstractSiteUserClass
 from account.classes import AccountInformation
@@ -11,14 +23,16 @@ from cash.classes import CashTransaction
 from .constants import WithdrawStatusConstants
 from .exceptions import WithdrawStatusException
 from django.conf import settings
-from cash.exceptions import  TaxInformationException, OverdraftException
-from cash.tax.classes import TaxManager
+from cash.exceptions import TaxInformationException, OverdraftException
+from cash.tax.classes import (
+    TaxManager,
+)
 from transaction.constants import TransactionTypeConstants
 from transaction.models import TransactionType
 from cash.withdraw.models import WithdrawStatus
-import pp.classes  # for Payout
-
+import pp.classes
 from decimal import Decimal
+from django.db.transaction import atomic
 
 class WithdrawMinMax(object):
     """
@@ -119,6 +133,7 @@ class AbstractWithdraw( AbstractSiteUserClass ):
     ]
 
     withdraw_class = None # this represents the class of the model
+    payout_transaction_model_class = models.PayoutTransaction
 
     def __init__(self, user, pk):
         """
@@ -162,6 +177,19 @@ class AbstractWithdraw( AbstractSiteUserClass ):
 
         if(not issubclass(self.withdraw_class, models.Withdraw)):
             raise IncorrectVariableTypeException(type(self).__name__, "withdraw_class")
+
+    def save_payout_history(self, withdraw_object, api_response_data):
+        """
+        save the paypal api response (as json) along with the WithdrawRequest
+
+        :param withdraw_object:
+        :param api_response_data:
+        :return:
+        """
+        model_instance = self.payout_transaction_model_class()
+        model_instance.withdraw = withdraw_object
+        model_instance.data = api_response_data
+        model_instance.save()
 
     def validate_withdraw(self, amount):
         """
@@ -260,6 +288,9 @@ class AbstractWithdraw( AbstractSiteUserClass ):
         if self.withdraw_object == None:
             print( 'creating withdraw_object in parent')
             self.withdraw_object = self.withdraw_class()
+
+            tm = TaxManager(self.user)
+            self.withdraw_object.net_profit = tm.calendar_year_net_profit()
 
         #
         # throws exceptions if insufficient funds, or tax info required
@@ -399,15 +430,41 @@ class PayPalWithdraw(AbstractWithdraw):
         else:
             return self.paypal_email
 
+    @atomic
     def payout(self):
         """
         Pays out the user via PayPal
         """
-        super().payout()    # primarily validates that it can payout, and sets status to indicate processing
 
-        #
-        # task off the long running process of the payout
-        r = pp.classes.test_payout( self.withdraw_object.pk )
+        # validates that it can payout, and sets status to indicate processing
+        super().payout()
+
+        # process the payout
+        payout = pp.classes.Payout(self.withdraw_object)
+        data = payout.payout()
+        payout_response = pp.classes.PayoutResponse(data)
+
+        # save the paypal json api response and link it to this withdraw object
+        self.save_payout_history(self.withdraw_object, data)
+
+        # depending on the paypal transaction status...
+        errors = payout_response.get_errors()
+
+        self.withdraw_object.paypal_payout_item = payout_response.get_payout_item_id()
+        self.withdraw_object.paypal_transaction = payout_response.get_transaction_id()
+        self.withdraw_object.paypal_transaction_status = payout_response.get_transaction_status()
+
+        if errors is None or errors == []:
+            self.withdraw_object.status = self.get_withdraw_status(WithdrawStatusConstants.Processed.value)
+            self.withdraw_object.processed_at = timezone.now()
+        else:
+            print('withdraw.classes: errors list was non-empty!')
+            print('errors:', str(errors))
+            self.withdraw_object.status = self.get_withdraw_status(WithdrawStatusConstants.Pending.value)
+            self.withdraw_object.paypal_errors = str(errors.get('message'))
+
+        # save the model with the paypal information
+        self.withdraw_object.save()
 
 #-------------------------------------------------------------------
 #-------------------------------------------------------------------

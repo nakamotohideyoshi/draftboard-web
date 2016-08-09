@@ -38,6 +38,13 @@ import account.tasks
 from pp.classes import (
     CardData,
     PayPal,
+
+    VZero,
+    VZeroTransaction,
+)
+from pp.serializers import (
+    VZeroShippingSerializer,
+    VZeroDepositSerializer,
 )
 from cash.classes import (
     CashTransaction,
@@ -897,4 +904,101 @@ class SetSavedCardDefaultAPIView(APIView):
             card.save()
 
         # return success response of simply http 200
+        return Response(status=200)
+
+
+class VZeroGetClientTokenView(APIView):
+    """
+    retrieve a paypal vzero client token
+    """
+
+    permission_classes = (IsAuthenticated, )
+    serializer_classes = None
+
+    def get(self, request, *args, **kwargs):
+        # do we need the user?
+        #user = self.request.user
+
+        # TODO - check if its anonymous user(?)
+        vzero = VZero()
+        client_token = vzero.get_client_token()
+
+        return Response(
+            {
+                'client_token': client_token
+            },
+            status=200
+        )
+
+
+class VZeroDepositView(APIView):
+    """
+    deposit to the site using paypal vzero
+
+    this api requires the client to provide a 'payment_method_nonce'
+    which was acquired from having previously retrieved a
+    'client_token' from the server and dont any client side setup necessary.
+
+    example:
+
+        >>> {"first_name":"Steve","last_name":"Steverton","street_address":"1 Steve St",
+            "extended_address":"Suite 1","locality":"Dover","region":"NH","postal_code":"03820",
+            "country_code_alpha2":"US","amount":"100.00","payment_method_nonce":"FAKE_NONCE"}
+    """
+
+    permission_classes = (IsAuthenticated, )
+    serializer_class = VZeroDepositSerializer
+
+    def post(self, request, *args, **kwargs):
+        # get the django user
+        user = self.request.user
+
+        shipping_data = {
+            'first_name': user.information.fullname,
+            'last_name': user.information.fullname,
+            'street_address': user.information.address1,
+            'extended_address': user.information.address2,
+            'locality': user.information.city,
+            'region': user.information.state,
+            'postal_code': user.information.zipcode
+        }
+
+        # validate the validity of the params
+        serializer = self.serializer_class(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        transaction_data = serializer.data
+        amount = float(transaction_data.get('amount'))
+
+        # shipping_serializer = VZeroShippingSerializer(data=self.request.data)
+        # shipping_serializer.is_valid(raise_exception=True)
+        # shipping_data = shipping_serializer.data
+
+        # using the information (payment_method_nonce, amount, shipping info)
+        # make the deposit using the VZero object to create the transaction (sale)
+        transaction = VZeroTransaction()
+        transaction.update_data(shipping_data=shipping_data, transaction_data=transaction_data)
+
+        vzero = VZero()
+        try:
+            transaction_id = vzero.create_transaction(transaction)
+        except VZero.VZeroException as e:
+            # print('e:',e)
+            # print('str(e):',str(e))
+            raise APIException(str(e))
+
+        except Exception:
+            raise APIException('vzero create transaction error')
+
+        # TODO add a transaction type (?)
+
+        # TODO create a model for saving the transaction information
+
+        # create the draftboard cash deposit with the transaction id
+        try:
+            ct = CashTransaction(self.request.user)
+            ct.deposit_vzero(amount, transaction_id)
+        except Exception:
+            raise APIException('Error adding funds to draftboard account. Please contact admin@draftboard.com')
+
+        # return success response if everything went ok
         return Response(status=200)

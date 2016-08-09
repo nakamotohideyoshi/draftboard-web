@@ -11,17 +11,20 @@ from account.views import (
     InformationAPIView,
     UserEmailNotificationAPIView,
 )
-
 from .views import (
-    PayPalDepositWithPayPalAccountAPIView,              # TODO
-    PayPalDepositWithPayPalAccountSuccessAPIView,       # TODO part of flow using paypal account
-    PayPalDepositWithPayPalAccountFailAPIView,          # TODO part of flow using paypal account
+    # paypal apis:
+    PayPalDepositWithPayPalAccountAPIView,              # not fully implemented
+    PayPalDepositWithPayPalAccountSuccessAPIView,       # not fully implemented
+    PayPalDepositWithPayPalAccountFailAPIView,          # not fully implemented
     PayPalDepositCreditCardAPIView,
     PayPalDepositSavedCardAPIView,
     PayPalSavedCardAddAPIView,
     PayPalSavedCardDeleteAPIView,
     PayPalSavedCardListAPIView,
     SetSavedCardDefaultAPIView,
+    # paypal vzero apis
+    VZeroGetClientTokenView,
+    VZeroDepositView,
 )
 
 urlpatterns = [
@@ -44,12 +47,14 @@ urlpatterns = [
     # draftboard apis using paypal apis to move money to/from the site
     # r'^password-reset-confirm/(?P<uid>.+)/(?P<token>.+)/$'
 
-
     # TODO - currently unimplemented
     # make a deposit with a paypal account
     url(r'^paypal/deposit/account/$', PayPalDepositWithPayPalAccountAPIView.as_view()),
+
     # TODO - deposit with paypal success endpoint
-    url(r'^paypal/deposit/account/success/$', PayPalDepositWithPayPalAccountSuccessAPIView.as_view()),
+    url(r'^paypal/deposit/account/success/$',
+        PayPalDepositWithPayPalAccountSuccessAPIView.as_view()),
+
     # TODO - deposit with paypal failure endpoint
     url(r'^paypal/deposit/account/fail/$', PayPalDepositWithPayPalAccountFailAPIView.as_view()),
 
@@ -71,4 +76,12 @@ urlpatterns = [
     # set a specific saved card to be the default using its token
     url(r'^paypal/saved-card/default/$', SetSavedCardDefaultAPIView.as_view()),
 
+    #
+    # paypal vzero - get a client token
+    url(r'^vzero/client-token/$', VZeroGetClientTokenView.as_view()),
+
+    #
+    # paypal vzero - make a deposit with shipping information,
+    #                as well as the amount and payment_method_nonce
+    url(r'^vzero/deposit/$', VZeroDepositView.as_view()),
 ]

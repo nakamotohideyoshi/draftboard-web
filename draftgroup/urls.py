@@ -40,6 +40,7 @@ urlpatterns = [
     # get the game updates for draft group by its id
     url(r'^game-updates/(?P<draft_group_id>[0-9]+)/$', GameUpdateAPIView.as_view()),
     url(r'^player-updates/(?P<draft_group_id>[0-9]+)/$', PlayerUpdateAPIView.as_view()),
+
     # get the game and player updates
     url(r'^updates/(?P<draft_group_id>[0-9]+)/$', PlayerAndGameUpdateAPIView.as_view()),
 
