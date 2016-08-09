@@ -133,3 +133,11 @@ SLACK_UPDATES = False
 slack_updates = environ.get('SLACK_UPDATES', None)
 if slack_updates is not None and 't' in str(slack_updates).lower():
     SLACK_UPDATES = True
+
+#
+##########################################################################
+# trulioo creds
+##########################################################################
+TRULIOO_API_BASE_URL    = environ.get('TRULIOO_API_BASE_URL')
+TRULIOO_USER            = environ.get('TRULIOO_USER')
+TRULIOO_PASSWORD        = environ.get('TRULIOO_PASSWORD')

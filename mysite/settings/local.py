@@ -156,8 +156,19 @@ DISABLE_REPLAYER_UPDATE_RECORDING = True
 #
 MIDDLEWARE_CLASSES = ('mysite.middleware.query_count_debug.QueryCountDebugMiddleware',) + MIDDLEWARE_CLASSES
 
-LOGGING['loggers'].update({'mysite.middleware.query_count_debug.QueryCountDebugMiddleware': {
-    'handlers': ['console'],
-    'level': 'DEBUG',
-}
-})
+LOGGING['loggers'].update(
+    {
+        'mysite.middleware.query_count_debug.QueryCountDebugMiddleware': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+        }
+    }
+)
+
+#
+##########################################################################
+# trulioo creds
+##########################################################################
+TRULIOO_API_BASE_URL    = 'https://api.globaldatacompany.com'
+TRULIOO_USER            = 'Draftboard_Demo_API' #'Draftboard_Demo_Portal'
+TRULIOO_PASSWORD        = 'Pt8MbXrGAeivr{K8'  # 'g6*gYBthcMFa6RoG'

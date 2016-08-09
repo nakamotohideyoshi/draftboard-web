@@ -113,3 +113,11 @@ MONGO_HOST = environ.get('MONGO_HOST') % ( MONGO_USER,
                                             MONGO_AUTH_DB )
 
 DATETIME_DELTA_ENABLE = True   # dont do this once production environemnt is actual live!
+
+#
+##########################################################################
+# trulioo creds
+##########################################################################
+TRULIOO_API_BASE_URL    = environ.get('TRULIOO_API_BASE_URL')
+TRULIOO_USER            = environ.get('TRULIOO_USER')
+TRULIOO_PASSWORD        = environ.get('TRULIOO_PASSWORD')
