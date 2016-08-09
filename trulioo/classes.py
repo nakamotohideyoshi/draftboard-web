@@ -5,6 +5,7 @@ from django.conf import settings
 from util.timesince import timeit
 import json
 import requests
+from trulioo.models import Verification
 
 # this allegedly lists some of the required/optional fields of the Normalized API:
 #   https://portal.globaldatacompany.com/NormalizedApiGuidelines/Report?configurationName=Identity%20Verification&Country=US
@@ -13,17 +14,30 @@ class DataWithSetField(object):
 
     data = None # child class will override this dict
     def set_field(self, field, obj):
-
         self.data[field] = obj
 
-class LocationData(DataWithSetField): # TODO - finish implementing
+class LocationData(DataWithSetField):
+    """
+    more info:  https://api.globaldatacompany.com/Help/ResourceModel?modelName=Location
+    """
 
     field = 'Location'
 
-    def __init__(self):
-        self.data = {
+    field_building_number   = 'BuildingNumber'          # house/civic/builing number of home address
+    field_building_name     = 'BuildingName'            # name of the building of home address
+    field_unit_number       = 'UnitNumber'              # flat/unit/apt number of home address
+    field_street_name       = 'StreetName'              # street name of primary residence
+    field_street_type       = 'StreetType'              # 'St', 'Rd', etc...
+    field_city              = 'City'                    # city of home address
+    field_suburb            = 'Suburb'                  # suburb/subdivision/municipality of home address
+    field_county            = 'County'                  # county/district of home address
+    field_state_province_code = 'StateProvinceCode'     # for UnitedStates, expected 2 character code
+    field_country           = 'Country'                 # country of physical address (ISO 3166-1 alpha-2 code)
+    field_postal_code       = 'PostalCode'              # zip code or postal code of home address
+    field_additional_fields = 'AdditionalFields'        # not usually used
 
-        }
+    def __init__(self):
+        self.data = {}
 
 class CommunicationData(DataWithSetField):
     """
@@ -68,19 +82,19 @@ class PersonInfoData(DataWithSetField):
 
     def __init__(self):
         self.data = {
-            self.field_first_given_name: '',            # "sample string 1",
-            self.field_middle_name: '',                 #  "sample string 2",
-            self.field_first_surname: '',               #  "sample string 3",
-            self.field_second_surname: '',              #  "sample string 4",
-            self.field_iso_latin1_name: '',             #  "sample string 5",
-            self.field_day_of_birth: 0, #  ,
-            self.field_month_of_birth: 0, #  ,
-            self.field_year_of_birth: 0, #  ,
-            self.field_minimum_age: 0, #  ,
-            self.field_gender: '',                      # "sample string 6",
-            "AdditionalFields": {
-                self.field_additional_fullname : '',    # "sample string 1"
-            }
+            # self.field_first_given_name: '',            # "sample string 1",
+            # self.field_middle_name: '',                 #  "sample string 2",
+            # self.field_first_surname: '',               #  "sample string 3",
+            # self.field_second_surname: '',              #  "sample string 4",
+            # self.field_iso_latin1_name: '',             #  "sample string 5",
+            # self.field_day_of_birth: 0, #  ,
+            # self.field_month_of_birth: 0, #  ,
+            # self.field_year_of_birth: 0, #  ,
+            # self.field_minimum_age: 0, #  ,
+            # self.field_gender: '',                      # "sample string 6",
+            # "AdditionalFields": {
+            #     self.field_additional_fullname : '',    # "sample string 1"
+            # }
         }
 
 class VerifyData(DataWithSetField):
@@ -152,9 +166,33 @@ class VerifyData(DataWithSetField):
         if data_fields is None or data_fields == {}:
             raise self.VerifyDataValidationError(self.field_data_fields + ' is None or empty {}')
 
-        for f in self.required_data_fields_subfields:
-            if self.data[self.field_data_fields].get(f) is None:
-                raise self.VerifyDataValidationError(f + ' must be set! it was None.')
+        # for f in self.required_data_fields_subfields:
+        #     if self.data[self.field_data_fields].get(f) is None:
+        #         raise self.VerifyDataValidationError(f + ' must be set! it was None.')
+
+class TruliooResponse(object):
+
+    field_record = 'Record'
+    field_transaction_id = 'TransactionID'
+    field_record_status = 'RecordStatus'
+    field_transaction_record_id = 'TransactionRecordID'
+
+    def __init__(self, data):
+        self.data = data
+        self.record = self.data.get(self.field_record, {})
+
+    def get_record_status(self):
+        record_status = self.record.get(self.field_record_status)  # returns 'nomatch' or something else, not sure yet
+        return record_status
+
+    def get_transaction(self):
+        return self.data.get(self.field_transaction_id)
+
+    def get_transaction_record(self):
+        return self.record.get(self.field_transaction_record_id)
+
+    def get_errors(self):
+        return self.record.get('Errors', [])
 
 class Trulioo(object):
     """
@@ -169,6 +207,13 @@ class Trulioo(object):
     """
 
     class TruliooException(Exception): pass # TODO - be more specific once we know the types of errors(?)
+
+    # the api ultimately returns 'match' or 'nomatch'.
+    # 'match' indicates the person was verified successfully and is a real person.
+    verification_status_match = 'match'
+
+    # the default country to use in the name/address verification, particularly verify(), verify_minimal() methods
+    default_country = 'US'
 
     # TODO - eventually we will want to default to False here
     demo = True # the verification will be matched against pre-configured entities and not charged to customer
@@ -188,6 +233,8 @@ class Trulioo(object):
     def __init__(self):
         self.session = requests.Session()
         self.r = None  # save the last server response
+        self.response_json = None
+        self.verification_model = None
 
     def build_url(self, endpoint):
         return '%s%s' % (self.api_base_url, endpoint)
@@ -227,25 +274,99 @@ class Trulioo(object):
 
         exceptions will be thrown if the user is not able to be validated/green-lighted.
 
-        :param DataFields:
+        returns the entire JSON response from the verification API
         """
 
         data = verify_obj.get_data()
+        print('verify_obj.data:', str(data)) # TODO debug - remove this
 
-        print('verify_obj.data:', str(data))
-
+        # build the api url and call it, getting a JSON message back as the response
         url = self.build_url(self.url_verify)
         response = self.call(url, data)
+
+        # check the response for errors
         if isinstance(response, str):
             err_msg = 'api error: %s' % response
             print(err_msg)
             raise self.TruliooException(err_msg)
-
         errors1 = response.get('ModelState')
         if errors1 is not None:
             raise self.TruliooException(str(errors1))
 
-        # potential response (as json):
-        # {'Message': 'The request is invalid.',
-        #  'ModelState': {'request': ['Unknown property email']}}
-        return response # as json
+        # check the various parts of the response for errors
+        # record = response.get('Record', {})
+        # record_status = record.get('RecordStatus') # returns 'nomatch' or something else, not sure yet
+        # print('RecordStatus:', record_status)
+        tr = TruliooResponse(response)
+        record_status = tr.get_record_status()
+
+        # raise the first error found
+        record_errors = tr.get_errors()
+        for record_error in record_errors:
+            message = record_error.get('Message')
+            print('first record error found:', message)
+            raise self.TruliooException(message)
+
+        # return the json response
+        return response
+
+    def verify_minimal(self, first, last, birth_day, birth_month, birth_year,
+                                        postal_code, country_code=None, user=None):
+        """
+        verify a user based on the given information, using Trulioo.
+
+        returns a boolean indicating if the user was successfully matched/verified (True) or not (False)
+
+        :param first: string first name
+        :param last: string last name
+        :param birth_day: integer between 1 and 31 inclusive
+        :param birth_month: integer between 1 and 12 inclusive
+        :param birth_year: integer 4 digit year
+        :param postal_code: string zip/postal code (must be string to capture leading 0's)
+        :param country_code: optionally specify the country. default: 'US'
+        :param user: optionally specify the django user which will cause the backend to save the transaction ids
+        :return: boolean indicating Trulioo Verification success. True => match, False => nomatch (failure to verify)
+        """
+
+        country = country_code
+        if country is None:
+            country = self.default_country
+
+        verify = VerifyData()
+        verify.set_field(VerifyData.field_country_code, country)
+
+        # set an empty PersonInfo object
+        person = PersonInfoData()
+        person.set_field(PersonInfoData.field_first_given_name, first)
+        person.set_field(PersonInfoData.field_first_surname, last)
+        person.set_field(PersonInfoData.field_day_of_birth, birth_day)
+        person.set_field(PersonInfoData.field_month_of_birth, birth_month)
+        person.set_field(PersonInfoData.field_year_of_birth, birth_year)
+        verify.set_data(person)
+
+        # set an empty Location object
+        location = LocationData()
+        location.set_field(LocationData.field_postal_code, postal_code)
+        verify.set_data(location)
+
+        # verify the person using primary verify method
+        self.response_json = self.verify(verify)
+        print(self.response_json)
+
+        tr = TruliooResponse(self.response_json)
+        record_status = tr.get_record_status()
+
+        # if the user was passed in, then save a Verification model instance of this verification
+        self.verification_model = self.save_verification(user, tr)
+
+        # return the success of failure of the verification
+        return record_status == self.verification_status_match # 'match' indicates success
+
+    def save_verification(self, user, trulioo_response):
+        transaction = trulioo_response.get_transaction()                # its a string identifier
+        transaction_record = trulioo_response.get_transaction_record()  # its a string identifier
+        record_status = trulioo_response.get_record_status()
+
+        v = Verification.objects.create(user=user, transaction=transaction,
+                        transaction_record=transaction_record, record_status=record_status)
+        return v

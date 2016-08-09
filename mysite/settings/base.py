@@ -266,6 +266,7 @@ INSTALLED_APPS = (
     'replayer',
     'pp',                   # our implementation of a few required paypal apis
     'lobby',
+    'trulioo',
     'rest_framework_swagger',
 )
 
