@@ -1,11 +1,18 @@
 # cash/admin.py
 
 from django.contrib import admin
-from cash.models import CashTransactionDetail, CashBalance, AdminCashDeposit, \
-                         BraintreeTransaction, AdminCashWithdrawal
+from cash.models import (
+    CashTransactionDetail,
+    CashBalance,
+    AdminCashDeposit,
+    BraintreeTransaction,
+    AdminCashWithdrawal,
+    VZeroTransaction,
+)
 from cash.forms import AdminCashDepositForm, AdminCashWithdrawalForm
 from contest.payout.models import Payout,FPP,Rake
 from contest.buyin.models import Buyin
+
 @admin.register(CashTransactionDetail)
 class CashTransactionDetailAdmin(admin.ModelAdmin):
 
@@ -19,7 +26,10 @@ class CashTransactionDetailAdmin(admin.ModelAdmin):
         for class_action in arr_classes:
             try:
                 val = class_action.objects.get(transaction=obj.transaction)
-                return type(val).__name__ + ": "+val.contest.name
+                if val.contest is None:
+                    return type(val).__name__
+                else:
+                    return type(val).__name__ + ": "+ val.contest.name
             except class_action.DoesNotExist:
                 pass
         if obj.amount > 0:
@@ -114,3 +124,8 @@ class AdminCashWithdrawalFormAdmin(admin.ModelAdmin):
 # class BraintreeTransactionAdmin(admin.ModelAdmin):
 #
 #     list_display = ['created','transaction','braintree_transaction']
+
+@admin.register(VZeroTransaction)
+class VZeroTransaction(admin.ModelAdmin):
+
+    list_display = ['created','transaction','transaction_identifier']

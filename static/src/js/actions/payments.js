@@ -2,12 +2,14 @@ import * as actionTypes from '../action-types';
 import request from 'superagent';
 import Cookies from 'js-cookie';
 import { CALL_API } from '../middleware/api';
-// import { addMessage } from './message-actions.js';
-// import log from '../lib/logging.js';
+import { addMessage } from './message-actions.js';
+import { fetchCashBalanceIfNeeded } from './user';
+import log from '../lib/logging.js';
+import PubSub from 'pubsub-js';
 
 
 /**
- * Contests Pool Entry Actions
+ * Payment Actions
  */
 export const fetchPayPalClientToken = () => (dispatch) => {
   const apiActionResponse = dispatch({
@@ -34,6 +36,20 @@ export const fetchPayPalClientToken = () => (dispatch) => {
 
   // Return the promise chain in case we want to use it elsewhere.
   return apiActionResponse;
+};
+
+
+// Get a client token if we dont' already have one.
+export const fetchPayPalClientTokenIfNeeded = () => (dispatch, getState) => {
+  const appState = getState();
+
+  if (!appState.payments.payPalClientToken) {
+    log.info('No paypal client token, fetching...');
+    return dispatch(fetchPayPalClientToken());
+  }
+
+  log.info('Paypal client token found, not fetching.');
+  return Promise.resolve();
 };
 
 
@@ -83,9 +99,24 @@ function depositFail(ex) {
   };
 }
 
-// TODO: make deposit amount based on UI selected choice.
-export function deposit(nonce, amount = 2) {
-  return (dispatch) => request
+
+/**
+ * Make a Deposit.
+ * @param  {string} nonce  the nonce token from paypal.
+ * @param  {number|string} amount the amount of USD to deposit.
+ */
+export function deposit(nonce, amount) {
+  return (dispatch) => {
+    if (!amount) {
+      log.error('No amount was set to deposit.');
+      return dispatch(depositFail('No amount was set to deposit.'));
+    }
+
+    dispatch({
+      type: actionTypes.DEPOSITING,
+    });
+
+    request
     .post('/api/account/vzero/deposit/')
     .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
     .send({
@@ -94,8 +125,24 @@ export function deposit(nonce, amount = 2) {
     })
     .end((err, res) => {
       if (err) {
+        dispatch(addMessage({
+          level: 'warning',
+          header: 'Deposit Failed',
+          content: res.text,
+        }));
+
         return dispatch(depositFail(err));
       }
+
+      dispatch(addMessage({
+        level: 'success',
+        header: 'Deposit was Successful.',
+        content: 'Your available funds have been updated.',
+      }));
+
+      dispatch(fetchCashBalanceIfNeeded());
+      PubSub.publish('account.depositSuccess');
       return dispatch(depositSuccess(res.body));
     });
+  };
 }

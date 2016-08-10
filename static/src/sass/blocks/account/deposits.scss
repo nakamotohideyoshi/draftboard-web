@@ -1,0 +1,22 @@
+#account-deposits {
+  padding-bottom: 80px;
+
+  // Paypal button styles.
+  #paypal-container {
+    min-height: 80px;
+
+    .paypal-button-tag-content {
+      display: none;
+    }
+
+    .paypal-button.paypal-style-checkout.paypal-size-small .paypal-button-content {
+      // height: 80px !important;
+      padding: 10px 20px !important;
+    }
+
+    #braintree-paypal-button {
+      max-width: 100% !important;
+    }
+  }
+
+}
