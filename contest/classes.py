@@ -64,9 +64,12 @@ class SkillLevelManager(object):
 
     def get_skill_levels(self):
         """ returns a QuerySet of the SkillLevel objects in ascending order """
-        return self.model_class.objects.filter(enforced=self.enforced).order_by('gte')
+        return self.model_class.objects.filter(enforced=self.enforced).order_by('-gte')
 
     def get_for_amount(self, amount):
+        # when the skill level objects are ordered descending,
+        # loop thru them and find the first skill level
+        # for which this amount is greater than or equal to.
         for skill_level in self.skill_levels:
             if skill_level.gte <= amount:
                 return skill_level
@@ -84,14 +87,16 @@ class SkillLevelManager(object):
 
         # the contest attempting to be joined
         target_skill_level = contest_pool.skill_level
+        if target_skill_level.enforced == False:
+            return # the skill level of this contest is not enforced -- anyone can join no matter what
 
         # find any enforced skill_levels we have an entry in not matching our target.
         # if any are found, that means we cant join and must raise exception
         entries = Entry.objects.filter(
             user=user,
             contest_pool__draft_group=contest_pool.draft_group,
-            contest_pool__skill_level__enforced=True)\
-            .exclude(contest_pool__skill_level=target_skill_level)
+            contest_pool__skill_level__enforced=True
+        ).exclude(contest_pool__skill_level=target_skill_level)
 
         if entries.count() > 0:
             raise self.CanNotEnterSkillLevel()

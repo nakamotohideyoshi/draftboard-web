@@ -31,7 +31,8 @@ class SkillLevel(models.Model):
     enforced = models.BooleanField(default=True, null=False)
 
     def __str__(self):
-        return 'SkillLevel: %s, >= %s, enforced: %s' % (self.name, self.gte, self.enforced)
+        return 'SkillLevel [pk=%s]: %s, >= %s, enforced: %s' % (self.pk,
+                                        self.name, self.gte, self.enforced)
 
 class AbstractContest(models.Model):
     """
