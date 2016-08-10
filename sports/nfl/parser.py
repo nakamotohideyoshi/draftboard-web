@@ -53,7 +53,7 @@ class TeamHierarchy(DataDenTeamHierarchy):
     def __init__(self):
         super().__init__()
 
-    def parse(self, obj):
+    def parse(self, obj, target):
         super().parse(obj)  # setup PlayerStats instance
 
         # the classic feed had to override this, but the new Official feed now does not
@@ -1160,16 +1160,20 @@ class DataDenNfl(AbstractDataDenParser):
         elif self.target == (self.mongo_db_for_sport+'.game','boxscores'):
             game_boxscore_parser = GameBoxscoreParser()
             game_boxscore_parser.parse(obj, self.target)
+            game_boxscore_parser.send()
         #
         # parse a team object from the boxscores feed
         elif self.target == (self.mongo_db_for_sport+'.team','boxscores'):
             # dont send it unless its from the parent__list: 'summary__list'
             team_boxscore_parser = TeamBoxscoreParser()
             team_boxscore_parser.parse(obj, self.target)
+            team_boxscore_parser.send()
+
         #
         # parse a team object from the hierarchy feed
         elif self.target == (self.mongo_db_for_sport+'.team','hierarchy'):
-            TeamHierarchy().parse( obj )
+            team_hierarchy = TeamHierarchy()
+            team_hierarchy.parse(obj, self.target)
 
         #
         # parse a player from the rosters feed

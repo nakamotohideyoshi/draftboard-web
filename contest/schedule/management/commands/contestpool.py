@@ -6,6 +6,7 @@ from contest.schedule.classes import ScheduleManager
 from contest.schedule.classes import ContestPoolCreator
 from prize.models import PrizeStructure
 from sports.classes import SiteSportManager
+from random import Random
 
 class Command(NoArgsCommand):
 
@@ -42,7 +43,11 @@ class Command(NoArgsCommand):
                               '%s matching srid: %s\n' % (SiteSportManager.SPORTS, game_srid))
 
         # get a prize structure that hopefully exists
-        prize_structure = PrizeStructure.objects.all()[5]
+        prize_structures = PrizeStructure.objects.all()
+        count = prize_structures.count()
+        r = Random()
+        prize_structure = prize_structures[r.randint(0, count-1)]
+        self.stdout.write('randomly chosen prize structure: %s' % str(prize_structure))
 
         #
         contest_pool_creator = ContestPoolCreator(the_sport, prize_structure, game.start, 500)

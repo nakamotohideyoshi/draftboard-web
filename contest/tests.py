@@ -108,21 +108,37 @@ class SkillLevelManagerTest(AbstractTest):
         self.assertTrue( len(self.slm.skill_levels) > 0 )
 
     def test_2(self):
-        """ get_for_amount() """
-        sl_gte = 9999
-        amount1 = sl_gte
-        amount2 = sl_gte + 1
-        sl, created = self.slm.model_class.objects.get_or_create(name='test-max-skill',
-                                                                gte=sl_gte, enforced=True)
-        manager = SkillLevelManager()
-        skill_level = manager.get_for_amount(amount1)
-        self.assertIsNotNone(skill_level)
-        self.assertTrue(skill_level.gte <= amount1)
+        """
+        test get_for_amount() for edges cases around the inflection points
+        turn over skill levels, etc...
+        """
+
+        # expectations
+        expected_data = [
+            # amount   # skill_level
+            (11.0,  'veteran'),
+            (10.0,  'veteran'),
+            (9.0,   'rookie'),
+            (1.0,   'rookie'),
+            (0.0,   'rookie'),
+        ]
 
         manager = SkillLevelManager()
-        skill_level = manager.get_for_amount(amount2)
-        self.assertIsNotNone(skill_level)
-        self.assertTrue(skill_level.gte <= amount2)
+        print('all skill levels:')
+        for sl in manager.get_skill_levels():
+            print('    ', str(sl))
+
+        for amount, expected_name in expected_data:
+            sl = manager.get_for_amount(amount)
+            name = sl.name
+            print('    amount: %s | expected_name[%s] name[%s]' % (amount, expected_name, name))
+            self.assertEquals(expected_name, name)
+
+    def test_3(self):
+        """
+
+        """
+        pass
 
 class ContestPoolManagerTest(AbstractTest): #, BuildWorldMixin):
     """

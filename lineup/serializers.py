@@ -30,7 +30,7 @@ class NflPlayerSerializer(serializers.ModelSerializer):
     team = NflTeamSerializer()
     class Meta:
         model   = NflPlayer
-        fields  = AbstractTeamSerializer.FIELDS
+        fields  = AbstractPlayerSerializer.FIELDS
 
 class NbaTeamSerializer(serializers.ModelSerializer):
     class Meta:

@@ -14,6 +14,8 @@ from sports.nfl.models import (
 )
 from dataden.watcher import OpLogObj, OpLogObjWrapper
 from sports.nfl.parser import (
+    DataDenNfl,
+
     SeasonSchedule,
     GameSchedule,
     GameBoxscoreParser,
@@ -30,6 +32,45 @@ from sports.nfl.parser import (
     ExtraInfo,
 )
 import re
+
+class TeamHierarchyParserTest(AbstractTest):
+
+    def setUp(self):
+        self.parser = TeamHierarchy()
+
+    def __parse_and_send(self, unwrapped_obj, target):
+        # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
+        # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
+        parts = target[0].split('.')
+        oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
+        self.parser.parse(oplog_obj, target=target)
+        # self.parser.send()
+
+    def test_1(self):
+        sport_db = 'nflo'
+        parent_api = 'hierarchy'
+
+        data = {
+            "_id": "cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkM2M2ZDMxOGEtNjE2NC00MjkwLTliYmMtYmY5YmIyMWNjNGI4Y29uZmVyZW5jZV9faWQxYmRlZmUxMi02Y2IyLTRkNmEtYjIwOC1iMDQ2MDJhZTc5YzNkaXZpc2lvbl9faWRiOTVjZDI3ZC1kNjMxLTRmZTEtYmMwNS0wYWU0N2ZjMGIxNGJpZDQ4MDllY2IwLWFiZDMtNDUxZC05YzRhLTkyYTkwYjgzY2EwNg==",
+            "alias": "MIA",
+            "id": "4809ecb0-abd3-451d-9c4a-92a90b83ca06",
+            "market": "Miami",
+            "name": "Dolphins",
+            "parent_api__id": "hierarchy",
+            "dd_updated__id": 1470773235406,
+            "league__id": "3c6d318a-6164-4290-9bbc-bf9bb21cc4b8",
+            "conference__id": "1bdefe12-6cb2-4d6a-b208-b04602ae79c3",
+            "division__id": "b95cd27d-d631-4fe1-bc05-0ae47fc0b14b",
+            "references__list": {
+                "reference": "MIA"
+            },
+            "venue": "50a5c833-1570-4c38-abc7-7914cf87dbde"
+        }
+
+        self.__parse_and_send(data, (sport_db + '.' + 'team', parent_api))
+
+        # check if the team is there and the alias is correct now
+        self.assertEquals(self.parser.team.alias, data.get('alias'))
 
 # examples for TestPlayManagerRegexScraping
 # (14:35) (No Huddle, Shotgun) R.Tannehill pass incomplete short right to J.Landry (D.Hall).
@@ -298,15 +339,14 @@ class TestTeamBoxscoreParser(AbstractTest):
     """ tests the send() part only """
 
     def setUp(self):
-        self.parser = TeamBoxscoreParser()
+        self.parser = DataDenNfl()
 
     def __parse_and_send(self, unwrapped_obj, target):
         # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
         # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
         parts = target[0].split('.')
         oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
-        self.parser.parse(oplog_obj, target=target)
-        #self.parser.send()
+        self.parser.parse(oplog_obj)
 
     def test_1(self):
         sport_db = 'nflo'
@@ -334,15 +374,15 @@ class TestGameBoxscoreParser(AbstractTest):
     """ tests the send() part only """
 
     def setUp(self):
-        self.parser = GameBoxscoreParser()
+        self.parser = DataDenNfl()
 
     def __parse_and_send(self, unwrapped_obj, target):
         # oplog_obj = OpLogObjWrapper('nflo', 'play', unwrapped_obj)
         # self.parser.parse(oplog_obj, target=('nflo.play', 'pbp'))
         parts = target[0].split('.')
         oplog_obj = OpLogObjWrapper(parts[0], parts[1], unwrapped_obj)
-        self.parser.parse(oplog_obj, target=target)
-        self.parser.send()
+        self.parser.parse(oplog_obj)
+        # self.parser.send()
 
     def test_1(self):
         sport_db = 'nflo'
