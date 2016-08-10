@@ -956,5 +956,3 @@ class PayoutResponse(object):
         transaction_status = self.get_item().get(self.field_transaction_status)
         print('transaction_status:', str(transaction_status))
         return transaction_status
-
-
