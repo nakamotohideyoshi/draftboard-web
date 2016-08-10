@@ -28,9 +28,12 @@ class DataDenParser(object):
     NAMESPACE = 'ns'
 
     parsers = {
-        'nba' : sports.nba.parser.DataDenNba,
-        'mlb' : sports.mlb.parser.DataDenMlb,
-        'nhl' : sports.nhl.parser.DataDenNhl,
+        'nba'   : sports.nba.parser.DataDenNba,
+
+        'mlb'   : sports.mlb.parser.DataDenMlb,
+
+        'nhl'   : sports.nhl.parser.DataDenNhl,   # 'nhl' and 'nhlo' use the same parser!
+        'nhlo'  : sports.nhl.parser.DataDenNhl,
 
         'nfl'   : sports.nfl.parser.DataDenNfl,   # 'nfl' and 'nflo' use the same parser!
         'nflo'  : sports.nfl.parser.DataDenNfl,
@@ -56,7 +59,7 @@ class DataDenParser(object):
         ('mlb','runner','pbp'),         # baserunners
 
         #
-        # NBA    ... pbp quarter + event parsing:
+        # NBA
         ('nba','quarter','pbp'),        # parent of the following
         ('nba','event','pbp'),          # contains the play data, including players
 
@@ -117,6 +120,8 @@ class DataDenParser(object):
         # ('nfl','player','stats'),
 
     ]
+    # Note: its important that we add the NFLO triggers though,
+    #   so that the DataDenParser.setup() method works the same for all sports!
     DEFAULT_TRIGGERS.extend(sports.nfl.parser.DataDenNfl.triggers)
 
     def __init__(self):
@@ -174,6 +179,7 @@ class DataDenParser(object):
             self.__valid_sport(sport) # exception if it is not valid
 
         parser = self.__get_parser(sport)
+        print('type(parser):', str(type(parser)))
 
         # create all the default triggers
         for t in parser.get_triggers():
@@ -181,6 +187,7 @@ class DataDenParser(object):
             coll        = t[1]
             parent_api  = t[2]
             trg = Trigger.create( db, coll, parent_api, enable=enable )
+
         print('created triggers')
 
         # create all the pbp triggers (or for the specified sport!

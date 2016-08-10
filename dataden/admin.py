@@ -7,6 +7,7 @@ import dataden.models
 @admin.register(dataden.models.Trigger)
 class TriggerAdmin(admin.ModelAdmin):
     list_display = ['enabled', 'ns', 'parent_api']
+    list_filter = ['enabled','db','collection','parent_api']
 
 @admin.register(dataden.models.LiveStatsCacheConfig)
 class LiveStatsCacheConfigAdmin(admin.ModelAdmin):

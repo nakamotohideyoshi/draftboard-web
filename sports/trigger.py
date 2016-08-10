@@ -12,11 +12,21 @@ from dataden.watcher import (
 import time
 from random import Random
 from threading import Thread
+#from sports.parser import DataDenParser
+import sports.parser
 
 class SportTrigger(Trigger):
 
     def __init__(self, sport, *args, **kwargs):
         self.sport = sport
+
+        # update the triggers! basically we always forget to manually add
+        # new triggers if we change sport specific code that needs new ones.
+        # the next few lines uses sports.parser.DataDenParser.setup_triggers()
+        # update the current triggers in the database automatically.
+        # TODO ... circular imports are awesome
+        parser = sports.parser.DataDenParser()
+        parser.setup_triggers(self.sport)
 
         # call super method
         super().__init__(*args, **kwargs)

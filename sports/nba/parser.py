@@ -533,6 +533,23 @@ class Injury(DataDenInjury):
 
 class DataDenNba(AbstractDataDenParser):
 
+    # the name of the mongo database
+    mongo_db_for_sport = 'nba'
+
+    # currently these are just so the sport_trigger can automatically
+    # create them if its started and there are any that do not exist!
+    triggers = [
+        (mongo_db_for_sport, 'team', 'hierarchy'),
+        (mongo_db_for_sport, 'season_schedule', 'schedule'),
+        (mongo_db_for_sport, 'game', 'schedule'),
+        (mongo_db_for_sport, 'player', 'rosters'),
+        (mongo_db_for_sport, 'game', 'boxscores'),
+        (mongo_db_for_sport, 'team', 'boxscores'),
+        (mongo_db_for_sport, 'player', 'stats'),
+        (mongo_db_for_sport, 'quarter', 'pbp'),
+        (mongo_db_for_sport, 'event', 'pbp'),
+    ]
+
     def __init__(self):
         self.sport = 'nba'
 

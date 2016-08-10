@@ -1118,9 +1118,9 @@ class DataDenNfl(AbstractDataDenParser):
         (mongo_db_for_sport, 'team', 'hierarchy'),
         (mongo_db_for_sport, 'season', 'schedule'),
         (mongo_db_for_sport, 'game', 'schedule'),
-        (mongo_db_for_sport, 'player', 'rosters'),
+        (mongo_db_for_sport, 'player', 'rosters'),      # check this, didnt see any in Update table, dev server
         (mongo_db_for_sport, 'game', 'boxscores'),
-        (mongo_db_for_sport, 'team', 'boxscores'),
+        (mongo_db_for_sport, 'team', 'boxscores'),      # check this, didnt see any in Update table, dev server
         (mongo_db_for_sport, 'player', 'stats'),
 
         # play by play
