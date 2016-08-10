@@ -48,6 +48,6 @@ dataden_init: java -Xmx1024m -jar dataden/dataden.jar -k 20491e2a4feda595b734770
 # 1x Dyno sport triggers using mongolab.com --> M3 <-- instance
 trigger_nba: python manage.py sport_trigger nba --settings=mysite.settings.production_mongolab_m3
 trigger_nhl: python manage.py sport_trigger nhl --settings=mysite.settings.production_mongolab_m3
-trigger_nfl: python manage.py sport_trigger nfl --settings=mysite.settings.production_mongolab_m3
+trigger_nfl: python manage.py sport_trigger nflo --settings=mysite.settings.production_mongolab_m3
 trigger_mlb: python manage.py sport_trigger mlb --settings=mysite.settings.production_mongolab_m3
 
