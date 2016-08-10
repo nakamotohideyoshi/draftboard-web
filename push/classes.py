@@ -193,6 +193,9 @@ class AbstractPush(object):
             """
             self.cache.set( self.linker_queue_name, linked_expiring_object_queue_table_instance, 48*60*60 )
 
+    # the model to save send data
+    sent_model_class = push.models.Sent
+
     # number of seconds to delay (using celery countdown) the task that sends the pusher data
     delay_seconds = None
     sent_model_class = push.models.Sent

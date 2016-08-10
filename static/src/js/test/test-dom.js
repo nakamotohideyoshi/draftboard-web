@@ -6,7 +6,8 @@
 module.exports = (markup) => {
   if (typeof document !== 'undefined') { return; }
   const jsdom = require('jsdom').jsdom;
-
+  // Needed for the braintree-web package.
+  global.Braintree = {};
   // the second parameter for url is because of react-router-redux, see https://goo.gl/pDwoDa
   global.document = jsdom(markup || '<!doctype html><html><body></body></html>', { url: 'http://localhost' });
   global.window = document.defaultView;
@@ -20,6 +21,7 @@ module.exports = (markup) => {
   global.Image = () => {
     console.warn('Warning: The `Image` method is being mocked from test-dom.js.');
   };
+
 
   // ... add whatever browser globals your tests might need ...
   global.window.dfs = {

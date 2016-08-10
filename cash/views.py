@@ -4,6 +4,7 @@
 from time import time
 from django.contrib.auth.models import User
 from rest_framework import status
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from rest_framework.pagination import LimitOffsetPagination
@@ -27,7 +28,7 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
     """
     Allows the logged in user to get their transaction history
 
-        * |api-text| :dfs:`cash/history/`
+        * |api-text| :dfs:`cash/transactions/`
 
         .. note::
 
@@ -36,9 +37,13 @@ class TransactionHistoryAPIView(generics.GenericAPIView):
             it is not set, by default it will return the max which is 30.
             If anything greater than 30 is set, it will return the 30 days.
     """
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
+
+    #authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
     serializer_class = TransactionHistorySerializer
+
+    def get_queryset(self, *args, **kwargs):
+        return Transaction
 
     def get_user_for_id(self, user_id=None):
         """
