@@ -2680,6 +2680,31 @@ class ProbablePitcherParser(AbstractDataDenParseable):
 
 class DataDenMlb(AbstractDataDenParser):
 
+    # the name of the mongo database
+    mongo_db_for_sport = 'mlb'
+
+    # currently these are just so the sport_trigger can automatically
+    # create them if its started and there are any that do not exist!
+    triggers = [
+        (mongo_db_for_sport, 'team', 'hierarchy'),
+        (mongo_db_for_sport, 'season_schedule', 'schedule_pre'),
+        (mongo_db_for_sport, 'season_schedule', 'schedule_reg'),
+        (mongo_db_for_sport, 'season_schedule', 'schedule_pst'),
+        (mongo_db_for_sport, 'game', 'schedule_pre'),
+        (mongo_db_for_sport, 'game', 'schedule_reg'),
+        (mongo_db_for_sport, 'game', 'schedule_pst'),
+        (mongo_db_for_sport, 'player', 'team_profile'),
+        (mongo_db_for_sport, 'game', 'boxscores'),
+        (mongo_db_for_sport, 'home', 'summary'),
+        (mongo_db_for_sport, 'away', 'summary'),
+        (mongo_db_for_sport, 'player', 'summary'),
+        (mongo_db_for_sport, 'probable_pitcher', 'daily_summary'),
+        (mongo_db_for_sport, 'at_bat', 'pbp'),
+        (mongo_db_for_sport, 'pitch', 'pbp'),
+        (mongo_db_for_sport, 'pitcher', 'pbp'),
+        (mongo_db_for_sport, 'runner', 'pbp'),
+    ]
+
     def __init__(self):
         self.game_model = sports.mlb.models.Game
         self.sport = 'mlb'

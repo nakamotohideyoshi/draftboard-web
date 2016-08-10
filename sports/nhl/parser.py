@@ -323,6 +323,18 @@ class Injury(DataDenInjury):
 
 class DataDenNhl(AbstractDataDenParser):
 
+    # the name of the mongo database
+    mongo_db_for_sport = 'nhlo'
+
+    # currently these are just so the sport_trigger can automatically
+    # create them if its started and there are any that do not exist!
+    triggers = [
+
+        # TODO - we will need to figure this out when we integrate NHL Official data
+        (mongo_db_for_sport, '???', '???'),
+
+    ]
+
     def __init__(self):
         self.game_model = Game # current unused
         self.sport = 'nhl'
