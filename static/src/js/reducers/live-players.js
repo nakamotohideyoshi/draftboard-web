@@ -1,42 +1,45 @@
 import update from 'react-addons-update';
 import * as ActionTypes from '../action-types';
-import { dateNow } from '../lib/utils';
 
 
 module.exports = (state = {
-  isFetching: [],
   relevantPlayers: {},
   fetched: [],
-  expiresAt: dateNow(),
-}, action) => {
+  expiresAt: {},
+}, action = {}) => {
   switch (action.type) {
     case ActionTypes.REQUEST_LIVE_PLAYERS_STATS:
       return update(state, {
-        $merge: {
-          expiresAt: action.expiresAt,
+        expiresAt: {
+          $merge: {
+            [action.lineupId]: action.expiresAt,
+          },
         },
       });
 
     case ActionTypes.RECEIVE_LIVE_PLAYERS_STATS: {
+      const { lineupId, players } = action.response;
       const newState = update(state, {
         // add in players
         relevantPlayers: {
-          $merge: action.players,
+          $merge: players,
         },
         // add to fetched list
         fetched: {
-          $push: [action.lineupId],
+          $push: [lineupId],
         },
       });
 
-      newState.isFetching = newState.isFetching.filter(item => item !== action.lineupId);
-      newState.expiresAt = action.expiresAt;
+      newState.expiresAt[lineupId] = action.expiresAt;
 
       return newState;
     }
 
 
     case ActionTypes.UPDATE_LIVE_PLAYER_STATS:
+      // don't bother if player doesn't exist yet
+      if (!(action.playerSRID in state.relevantPlayers)) return state;
+
       return update(state, {
         relevantPlayers: {
           $merge: {

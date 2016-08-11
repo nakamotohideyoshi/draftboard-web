@@ -9,11 +9,11 @@ import reducer from '../../reducers/current-lineups';
 
 describe('actions.currentLineups', () => {
   before(() => {
-    // nock.disableNetConnect();
+    nock.disableNetConnect();
   });
 
   after(() => {
-    // nock.enableNetConnect();
+    nock.enableNetConnect();
   });
 
   afterEach(() => {
@@ -23,7 +23,7 @@ describe('actions.currentLineups', () => {
   it('should correctly fetch current lineups', () => {
     // initial store, state
     const store = mockStore({
-      lineups: reducer(undefined, {}),
+      currentLineups: reducer(undefined, {}),
     });
 
     nock('http://localhost')
@@ -62,7 +62,7 @@ describe('actions.currentLineups', () => {
       lineups: reducer(undefined, {}),
     });
 
-    nock('127.0.0.1/')
+    nock('http://localhost')
       .get('/api/lineup/upcoming/')
       .reply(200, { body: [
         {
