@@ -9,7 +9,6 @@ import * as AppActions from '../../stores/app-state-store';
 import LivePMRProgressBar from './live-pmr-progress-bar';
 import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import { bindActionCreators } from 'redux';
-import { fetchLineupUsernames } from '../../actions/lineup-usernames';
 import { humanizeCurrency } from '../../lib/utils/currency';
 import { humanizeFP } from '../../lib/utils/numbers';
 import { SPORT_CONST } from '../../actions/sports.js';
@@ -26,7 +25,6 @@ const OWNERSHIP_TAB = 'ownership';
  */
 const mapDispatchToProps = (dispatch) => ({
   actions: bindActionCreators({
-    fetchLineupUsernames,
     updateLiveMode,
     updateWatchingAndPath,
   }, dispatch),
@@ -68,7 +66,6 @@ export const LiveStandingsPane = React.createClass({
   },
 
   componentDidMount() {
-    // this.props.actions.fetchLineupUsernames(this.props.watching.contestId)
     this.handleSearchByUsername = debounce(this.handleSearchByUsername, 150);
 
     if (this.props.openOnStart) {
