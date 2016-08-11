@@ -383,39 +383,19 @@ class SingleContestLineupView(View):
             lineup_data = clm.get_lineup_data( user= request.user, lineup_id=lineup_id )
             return HttpResponse( json.dumps(lineup_data), content_type="application/json" )
 
-class RegisteredUsersAPIView(generics.GenericAPIView):
+
+class RegisteredUsersAPIView(generics.ListAPIView):
     """
     get the lineup Players
     """
-    serializer_class        = RegisteredUserSerializer
+    serializer_class = RegisteredUserSerializer
 
-    def get_object(self, contest_id):
-        #
-        # get the count of the # of lineups each distinct user has in the contest
-        # In [53]: from django.db.models import Count
-        # In [49]: entries = Entry.objects.filter( contest=c ).values('lineup__user__username').annotate(total=Count('lineup__user')).order_by('total')
-        #
-        # In [50]: entries
-        # Out[50]: [{'total': 1, 'lineup__user__username': 'Villain34'}, {'total': 3, 'lineup__user__username': 'Hero'}]
-
-        #
-        # ***
-        # WARNING - YOU MUST ALSO EDIT contest/serializers.RegisteredUserSerializer if you modify the values()  !!!
-        # ***
-        entries = Entry.objects.filter( contest__pk=contest_id ).values('lineup__user__username').annotate(total_entries=Count('lineup__user'))
-        # example:
-        # [
-        #   {'total_entries': 3, 'lineup__user__username': 'Hero'},
-        #   {'total_entries': 1, 'lineup__user__username': 'Villain34'}
-        # ]
-        return entries
-
-    def get(self, request, contest_id, format=None):
+    def get_queryset(self):
         """
         get the registered user information
         """
-        serialized_data = RegisteredUserSerializer( self.get_object(contest_id), many=True ).data
-        return Response(serialized_data)
+        return Entry.objects.filter(contest__pk=self.kwargs['contest_id']).select_related('lineup__user__username')
+
 
 class ContestRanksAPIView(generics.GenericAPIView):
     """
