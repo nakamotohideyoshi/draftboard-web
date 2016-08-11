@@ -12,7 +12,6 @@ const eventsMultipart = require('./events-multipart');
 const fantasyHistory = require('./fantasy-history');
 const featuredContests = require('./featured-contests');
 const injuries = require('./injuries');
-const lineupUsernames = require('./lineup-usernames');
 const liveContests = require('./live-contests');
 const liveDraftGroups = require('./live-draft-groups');
 const livePlayers = require('./live-players');
@@ -64,7 +63,6 @@ export default combineReducers({
   upcomingDraftGroups,
   upcomingDraftGroupUpdates,
   upcomingLineups,
-  lineupUsernames,
   user,
   watching,
 });
