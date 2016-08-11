@@ -604,7 +604,7 @@ class UserPlayHistoryAPIView(APIView):
                     winnings += payouts.get(entry=history_entry).amount
                 except Payout.DoesNotExist:
                     pass
-                print( possible, 'plus', history_entry.contest.prize_structure.generator.first_place)
+                # print( possible, 'plus', history_entry.contest.prize_structure.generator.first_place)
                 possible += history_entry.contest.prize_structure.generator.first_place
                 contest_map[ history_entry.contest.pk ] = history_entry.contest
 
