@@ -4,7 +4,6 @@ import { combineReducers } from 'redux';
 const asyncFailures = require('./async-failures');
 const contestPoolEntries = require('./contest-pool-entries');
 const createLineup = require('./create-lineup');
-const currentDraftGroups = require('./current-draft-groups');
 const currentLineups = require('./current-lineups');
 const draftGroupPlayers = require('./draft-group-players');
 const draftGroupPlayersFilters = require('./draft-group-players-filters');
@@ -13,7 +12,6 @@ const eventsMultipart = require('./events-multipart');
 const fantasyHistory = require('./fantasy-history');
 const featuredContests = require('./featured-contests');
 const injuries = require('./injuries');
-const lineupUsernames = require('./lineup-usernames');
 const liveContests = require('./live-contests');
 const liveDraftGroups = require('./live-draft-groups');
 const livePlayers = require('./live-players');
@@ -42,7 +40,6 @@ export default combineReducers({
   contestPools,
   contestPoolEntries,
   createLineup,
-  currentDraftGroups,
   currentLineups,
   draftGroupPlayers,
   draftGroupPlayersFilters,
@@ -66,7 +63,6 @@ export default combineReducers({
   upcomingDraftGroups,
   upcomingDraftGroupUpdates,
   upcomingLineups,
-  lineupUsernames,
   user,
   watching,
 });

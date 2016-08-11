@@ -1,11 +1,11 @@
-const request = require('superagent-promise')(require('superagent'), Promise);
+import ActionTypes from '../action-types';
 import filter from 'lodash/filter';
 import forEach from 'lodash/forEach';
 import merge from 'lodash/merge';
-import reduce from 'lodash/reduce';
-import ActionTypes from '../action-types';
-import log from '../lib/logging';
 import moment from 'moment';
+import reduce from 'lodash/reduce';
+import { CALL_API } from '../middleware/api';
+import { dateNow } from '../lib/utils';
 
 
 /**
@@ -37,7 +37,6 @@ const receiveResults = (when, response) => {
   return {
     response: filteredResponse,
     when,
-    type: ActionTypes.RECEIVE_RESULTS,
   };
 };
 
@@ -50,72 +49,19 @@ const receiveResults = (when, response) => {
  */
 const shouldFetchResults = (state, when) => state.results.hasOwnProperty(when) === false;
 
-const fetchResults = (whenStr) => (dispatch) => {
-  log.info('actions.fetchResults()', whenStr);
-  const when = moment(whenStr, 'YYYY-MM-DD');
-
-  return request.get(
-    `/api/contest/play-history/${when.format('YYYY/MM/DD')}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    Accept: 'application/json',
-  }).then(
-    (res) => dispatch(receiveResults(whenStr, res.body))
-  );
-
-  // dispatch(receiveResults(id, {
-  //   stats: {
-  //     winnings: '0$',
-  //     possible: '$542,50',
-  //     fees: '$220',
-  //     entries: 24,
-  //     contests: 18,
-  //   },
-  //   lineups: [
-  //     {
-  //       id: 1,
-  //       name: 'Warrior\'s Stack',
-  //       players: [
-  //         {
-  //           id: 1,
-  //           name: 'name.1',
-  //           score: 70,
-  //           image: '../img/blocks/results/avatar.png',
-  //           position: 'pg',
-  //         },
-  //         {
-  //           id: 2,
-  //           name: 'name.1',
-  //           score: 70,
-  //           image: '../img/blocks/results/avatar.png',
-  //           position: 'pg',
-  //         },
-  //       ],
-  //       contests: [
-  //         {
-  //           id: 1,
-  //           factor: 2,
-  //           title: '$25 - Anonymous Head-to-Head',
-  //           place: 16,
-  //           prize: '$20',
-  //         },
-  //         {
-  //           id: 2,
-  //           factor: 1,
-  //           title: '$10,000 - Guaranteed Tier Anonymous Head-to-Head',
-  //           place: 1,
-  //           prize: '$500',
-  //         },
-  //       ],
-  //       stats: {
-  //         fees: '$120',
-  //         won: '$1,850.50',
-  //         entries: 22,
-  //       },
-  //     },
-  //   ],
-  // }));
-};
+const fetchResults = (whenStr) => ({
+  [CALL_API]: {
+    types: [
+      ActionTypes.REQUEST_RESULTS,
+      ActionTypes.RECEIVE_RESULTS,
+      ActionTypes.ADD_MESSAGE,
+    ],
+    expiresAt: dateNow() + 1000 * 60 * 60 * 24 * 30,  // 1 month
+    endpoint: `/api/contest/play-history/${moment(whenStr, 'YYYY-MM-DD').format('YYYY/MM/DD')}/`,
+    requestFields: { whenStr },
+    callback: (json) => receiveResults(whenStr, json),
+  },
+});
 
 /**
  * Retrive a day worth of results if needed
