@@ -4,7 +4,6 @@ import { combineReducers } from 'redux';
 const asyncFailures = require('./async-failures');
 const contestPoolEntries = require('./contest-pool-entries');
 const createLineup = require('./create-lineup');
-const currentDraftGroups = require('./current-draft-groups');
 const currentLineups = require('./current-lineups');
 const draftGroupPlayers = require('./draft-group-players');
 const draftGroupPlayersFilters = require('./draft-group-players-filters');
@@ -42,7 +41,6 @@ export default combineReducers({
   contestPools,
   contestPoolEntries,
   createLineup,
-  currentDraftGroups,
   currentLineups,
   draftGroupPlayers,
   draftGroupPlayersFilters,
