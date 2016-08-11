@@ -1,10 +1,10 @@
-const request = require('superagent-promise')(require('superagent'), Promise);
 import * as ActionTypes from '../action-types';
 import forEach from 'lodash/forEach';
 import map from 'lodash/map';
 import merge from 'lodash/merge';
 import zipObject from 'lodash/zipObject';
-import { dateNow } from '../lib/utils';
+import { CALL_API } from '../middleware/api';
+import { dateNow, hasExpired } from '../lib/utils';
 import { SPORT_CONST } from './sports';
 
 // custom API domain for local dev testing
@@ -12,18 +12,6 @@ const { API_DOMAIN = '' } = process.env;
 
 
 // dispatch to reducer methods
-
-/**
- * Dispatch information to reducer that we are trying to get player stats
- * Used to prevent repeat calls while requesting.
- * NOTE: this method must be wrapped with dispatch()
- * @return {object}   Changes for reducer
- */
-const requestPlayersStats = (lineupId) => ({
-  lineupId,
-  type: ActionTypes.REQUEST_LIVE_PLAYERS_STATS,
-  expiresAt: dateNow() + 1000 * 60,  // 1 minute before trying again
-});
 
 /**
  * Dispatch API response object of contest lineups (in bytes and parsed json)
@@ -65,10 +53,8 @@ const receivePlayersStats = (lineupId, response) => {
   });
 
   return {
-    type: ActionTypes.RECEIVE_LIVE_PLAYERS_STATS,
     lineupId,
     players,
-    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
   };
 };
 
@@ -93,18 +79,19 @@ export const updateLivePlayersStats = (playerSRID, fields) => ({
  * @param  {number} lineupId   Lineup ID
  * @return {promise}           Promise that resolves with API response body to reducer
  */
-const fetchPlayersStats = (lineupId) => (dispatch) => {
-  dispatch(requestPlayersStats(lineupId));
-
-  return request.get(
-    `${API_DOMAIN}/api/contest/lineup/${lineupId}/`
-  ).set({
-    'X-REQUESTED-WITH': 'XMLHttpRequest',
-    Accept: 'application/json',
-  }).then(
-    (res) => dispatch(receivePlayersStats(lineupId, res.body))
-  );
-};
+const fetchPlayersStats = (lineupId) => ({
+  [CALL_API]: {
+    types: [
+      ActionTypes.REQUEST_LIVE_PLAYERS_STATS,
+      ActionTypes.RECEIVE_LIVE_PLAYERS_STATS,
+      ActionTypes.ADD_MESSAGE,
+    ],
+    expiresAt: dateNow() + 1000 * 60 * 10,  // 10 minutes
+    endpoint: `${API_DOMAIN}/api/contest/lineup/${lineupId}/`,
+    requestFields: { lineupId },
+    callback: (json) => receivePlayersStats(lineupId, json),
+  },
+});
 
 /**
  * Method to determine whether we need to fetch a contest.
@@ -113,19 +100,17 @@ const fetchPlayersStats = (lineupId) => (dispatch) => {
  * @return {boolean}        True if we should fetch, false if not
  */
 const shouldFetchPlayersStats = (state, lineupId) => {
+  // fetch if first time
+  if (!(lineupId in state.livePlayers.expiresAt)) return true;
+
+  // fetch if expired
+  if (hasExpired(state.livePlayers.expiresAt[lineupId])) return true;
+
+  // fetch if lineup has started
   const lineup = state.currentLineups.items[lineupId] || {};
+  if (dateNow() > lineup.start) return true;
 
-  // if we have not yet expired, don't fetch
-  if (dateNow() < state.livePlayers.expiresAt) {
-    return false;
-  }
-
-  // if it has started yet, get
-  if (dateNow() < lineup.start) {
-    return false;
-  }
-
-  return true;
+  return false;
 };
 
 
