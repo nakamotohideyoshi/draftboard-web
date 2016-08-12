@@ -42,20 +42,20 @@ class Command(BaseCommand):
         self.stdout.write('running trigger for: %s' % sport)
 
         # PUT THIS 'WHILE' back in! # TODO
-        #while True:
-        #try:
-        if sport == 'mlb':
-            # special trigger allows at_bats to pass filter
-            # as if they were changed objects until
-            # their 'description' is set (at bat over indicator)
-            sport_trigger = TriggerMlb(sport)
+        while True:
+            try:
+                if sport == 'mlb':
+                    # special trigger allows at_bats to pass filter
+                    # as if they were changed objects until
+                    # their 'description' is set (at bat over indicator)
+                    sport_trigger = TriggerMlb(sport)
 
-        else:
-            sport_trigger = SportTrigger(sport)
+                else:
+                    sport_trigger = SportTrigger(sport)
 
-        sport_trigger.run()
+                sport_trigger.run()
 
-        # except Exception as e:
-        #     print(str(e))
-        #     print('exception caught in ./manage.py sport_trigger [%s]... restarting trigger!' % sport)
-        #     client.captureException()
+            except Exception as e:
+                print(str(e))
+                print('exception caught in ./manage.py sport_trigger [%s]... restarting trigger!' % sport)
+                client.captureException()
