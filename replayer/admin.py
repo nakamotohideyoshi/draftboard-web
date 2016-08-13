@@ -10,10 +10,18 @@ import replayer.classes
 from datetime import timedelta
 from util.timeshift import set_system_time, reset_system_time
 from ast import literal_eval
+from djcelery.models import PeriodicTask
+
 # change the datetime to show seconds for replayer/admin.py
 # from django.conf.locale.en import formats as en_formats
 # #en_formats.DATETIME_FORMAT = "m/d/Y h:i:s P"
 # en_formats.DATETIME_FORMAT = "m/d/Y P"
+
+def enable_contest_pool_contest_spawner():
+    # make sure the task that spawns ContestPool's Contest(s) is running
+    pt = PeriodicTask.objects.get(name='generate_contest_pool_contests')
+    pt.enabled = True
+    pt.save()
 
 @admin.register(replayer.models.Replay)
 class ReplayAdmin(admin.ModelAdmin):
@@ -158,6 +166,10 @@ class TimeMachineAdmin(admin.ModelAdmin):
             timemachine.save()
 
     def start_replayer(self, request, queryset):
+        #
+        enable_contest_pool_contest_spawner()
+
+        #
         if len(queryset) > 1:
             self.message_user(request, 'You may only perform this action on one Replay at a time.')
             return
@@ -198,7 +210,10 @@ class TimeMachineAdmin(admin.ModelAdmin):
         :param queryset:
         :return:
         """
+        #
+        enable_contest_pool_contest_spawner()
 
+        #
         print('ensure default TicketAmount(s) and headsup PrizeStructures exist...')
         rp = replayer.classes.ReplayManager()
         rp.build_world()   # put initialization like making default tickets, and prize structures in this method!
@@ -217,5 +232,10 @@ class TimeMachineAdmin(admin.ModelAdmin):
         set_system_time( dt_set_time )
         print( 'set_system_time( %s )' % str(dt_set_time) )
 
-    actions = [load_initial_database, set_time_one_hour_before_replay_start, fill_existing_contests, start_replayer, stop_replayer]
+    # actions = [load_initial_database, set_time_one_hour_before_replay_start, fill_existing_contests, start_replayer, stop_replayer]
+    actions = [#load_initial_database,
+               set_time_one_hour_before_replay_start,
+               #fill_existing_contests,
+               start_replayer,
+               stop_replayer]
 
