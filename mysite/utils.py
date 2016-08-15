@@ -1,19 +1,18 @@
 #
 # mysite/utils.py
 
-import os
+# import os
 import urllib
 from ast import literal_eval
 from redis import Redis
+from django.conf import settings
+
 
 def get_redis_instance():
-    url = os.environ.get('REDISCLOUD_URL') # TODO get this env var from settings
-    if url is None:
-        return Redis()
-    else:
-        redis_url = urllib.parse.urlparse(os.environ.get('REDISCLOUD_URL')) # TODO get this env var from settings
-        r = Redis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password, db=0)
-        return r
+    redis_url = urllib.parse.urlparse(settings.REDISCLOUD_URL)
+    r = Redis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password, db=0)
+    return r
+
 
 class QuickCache(object):
     """
@@ -34,7 +33,8 @@ class QuickCache(object):
 
     """
 
-    class BytesIsNoneException(Exception): pass
+    class BytesIsNoneException(Exception):
+        pass
 
     name = 'QuickCache'
     timeout_seconds = 60 * 5
@@ -48,7 +48,7 @@ class QuickCache(object):
     field_timestamp = 'dd_updated__id'
 
     def __init__(self, data=None, stash_now=True, override_cache=None):
-        #self.key_prefix_pattern = self.name + '--%s--'            # ex: 'QuickCache--%s--'
+        # self.key_prefix_pattern = self.name + '--%s--'            # ex: 'QuickCache--%s--'
         self.key_prefix_pattern = self.name + self.extra_key
         self.scan_pattern = self.key_prefix_pattern + '*'         # ex: 'QuickCache--%s--*'
         self.key_pattern = self.key_prefix_pattern + '%s'         # ex: 'QuickCache--%s--%s'

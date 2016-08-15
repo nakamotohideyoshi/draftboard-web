@@ -1,18 +1,18 @@
-from subprocess import check_output
+from os import environ
 from .local import *
 
 
 DATABASES = {
-  'default': {
-    'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    'NAME': 'test',
-    'USER': os.environ.get('PG_USER'),
-    'PASSWORD': os.environ.get('PG_PASSWORD'),
-    'HOST': '127.0.0.1',
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'test',
+        'USER': environ.get('PG_USER'),
+        'PASSWORD': environ.get('PG_PASSWORD'),
+        'HOST': '127.0.0.1',
 
-    # https://codeship.com/documentation/databases/postgresql/
-    'PORT': 5434,    # currently using 5434 uses postgres 9.4
-  }
+        # https://codeship.com/documentation/databases/postgresql/
+        'PORT': 5434,    # currently using 5434 uses postgres 9.4
+    }
 }
 
 #
