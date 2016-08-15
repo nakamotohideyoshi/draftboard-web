@@ -6,6 +6,7 @@ import { addMessage } from './message-actions.js';
 import { fetchCashBalanceIfNeeded } from './user';
 import log from '../lib/logging.js';
 import PubSub from 'pubsub-js';
+import * as responseTypes from '../lib/utils/response-types';
 
 
 /**
@@ -55,32 +56,86 @@ export const fetchPayPalClientTokenIfNeeded = () => (dispatch, getState) => {
 
 function withdrawSuccess(body) {
   return {
-    type: actionTypes.WITHDRAW_AMOUNT_SUCCESS,
+    type: actionTypes.WITHDRAW_FUNDS_SUCCESS,
     body,
   };
 }
 
 
-function withdrawFail(ex) {
+function withdrawFail(body) {
   return {
-    type: actionTypes.WITHDRAW_AMOUNT_FAIL,
-    ex,
+    type: actionTypes.WITHDRAW_FUNDS_FAIL,
+    body,
   };
 }
 
 
 export function withdraw(postData) {
-  return (dispatch) => request
-    .post('/account/api/account/payments/withdraw/')
+  return (dispatch) => {
+    dispatch({
+      type: actionTypes.WITHDRAW_FUNDS,
+    });
+
+    request
+    .post('/api/cash/withdraw/paypal/')
     .set({ 'X-CSRFToken': Cookies.get('csrftoken') })
     .send(postData)
     .end((err, res) => {
       if (err) {
-        return dispatch(withdrawFail(err));
+        // Placeholder to determine the message to show the user.
+        let content = '';
+
+        // It's a field validation error.
+        if (responseTypes.isFieldValidationErrorObject(res)) {
+          // A general APIException was thown, just show a banner message.
+          if (responseTypes.isExceptionDetail(res)) {
+            content = res.body.detail;
+          }
+
+          // Show error banner to user.
+          dispatch(addMessage({
+            level: 'warning',
+            header: 'Withdraw Failed',
+            content,
+          }));
+
+          return dispatch(withdrawFail(res.body));
+        }
+
+        // If it's an array, it is a vanilla request error.
+        if (responseTypes.isExceptionDetail(res)) {
+          content = res.body[0];
+        }
+
+        // It's a server error.
+        // If there is text provided in the body, display that.
+        if (responseTypes.isRawTextError(res)) {
+          content = res.body;
+        } else {
+          // Otherwise we don't know wtf this is, probably a nasty 500 bubbling up.
+          content = res.statusText;
+        }
+
+        // Show error banner to user.
+        dispatch(addMessage({
+          level: 'warning',
+          header: 'Withdraw Failed',
+          content,
+        }));
+
+        return dispatch(withdrawFail({ nonField: [res.body] }));
       }
 
-      return dispatch(withdrawSuccess(res.body));
+      // Request succeeded.
+      dispatch(addMessage({
+        level: 'success',
+        header: 'Success',
+        content: 'Withdraw request submitted for approval',
+      }));
+      PubSub.publish('account.withdrawSuccess');
+      return dispatch(withdrawSuccess(res));
     });
+  };
 }
 
 
