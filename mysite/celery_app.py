@@ -13,16 +13,15 @@
 # Of course, this is only an example of how to run celery concurrently in your terminals...
 
 from __future__ import absolute_import
-
-import os
-import redis
 from celery import Celery
 from celery.schedules import crontab
-import celery.states
 from datetime import timedelta
-import time
+from django.conf import settings
 from django.core.cache import cache
-from hashlib import md5
+import celery.states
+import os
+import redis
+import time
 
 #
 # setdefault ONLY sets the default value if the key (ie: DJANGO_SETTINGS_MODULE)
@@ -31,8 +30,6 @@ from hashlib import md5
 # manage.py for more explanation)
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings.production')
 
-from django.conf import settings
-
 app = Celery('mysite')
 
 # Using a string here means the worker will not have to
@@ -40,68 +37,60 @@ app = Celery('mysite')
 app.config_from_object('django.conf:settings')
 app.autodiscover_tasks(settings.INSTALLED_APPS)
 
-#
-ALL_SPORTS = ['nba','nhl','mlb','nfl']
+ALL_SPORTS = ['nba', 'nhl', 'mlb', 'nfl']
 
-#
-broker_url = None
-redis_url = os.environ.get('REDISCLOUD_URL')
-if redis_url is None:
-    broker_url = settings.CACHES['default']['LOCATION']
-else:
-    broker_url = '%s/0' % redis_url
+broker_url = settings.CACHES['default']['LOCATION']
 
-#
 # put the settings here, otherwise they could be in
 # the main settings.py file, but this is cleaner
 app.conf.update(
-    #CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
-    #CELERY_RESULT_BACKEND='djcelery.backends.cache:CacheBackend',
+    # CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend',
+    # CELERY_RESULT_BACKEND='djcelery.backends.cache:CacheBackend',
     # CELERY_RESULT_BACKEND = 'redis://localhost:6379/0',
     # BROKER_URL = 'redis://localhost:6379/0',
     # CELERY_RESULT_BACKEND = settings.CACHES['default']['LOCATION'],
     # BROKER_URL = settings.CACHES['default']['LOCATION'],
-    CELERY_RESULT_BACKEND = broker_url,
-    BROKER_URL = broker_url,
+    CELERY_RESULT_BACKEND=broker_url,
+    BROKER_URL=broker_url,
 
     #: Only add pickle to this list if your broker is secured
     #: from unwanted access (see userguide/security.html)
-    CELERY_ACCEPT_CONTENT = ['pickle'],     #['json'],
-    CELERY_TASK_SERIALIZER = 'pickle',      #'json',
-    CELERY_RESULT_SERIALIZER = 'pickle',    #'json',
+    CELERY_ACCEPT_CONTENT=['pickle'],  # ['json'],
+    CELERY_TASK_SERIALIZER='pickle',  # 'json',
+    CELERY_RESULT_SERIALIZER='pickle',  # 'json',
 
-    #CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler',
+    # CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler',
 
-    CELERYBEAT_SCHEDULE = {
+    CELERYBEAT_SCHEDULE={
         #
         #
-        'notify_withdraws' : {
-            'task' : 'cash.withdraw.tasks.notify_recent_withdraws',
-            'schedule' : crontab(minute=0, hour='17'), # ~ noon
+        'notify_withdraws': {
+            'task': 'cash.withdraw.tasks.notify_recent_withdraws',
+            'schedule': crontab(minute=0, hour='17'),  # ~ noon
         },
 
         #
         # contest pool schedule manager updates the upcoming
         # days with what is going to be created.
-        'nba_contest_pool_schedule_manager' : {
-            'task' : 'contest.schedule.tasks.contest_pool_schedule_manager',
-            'schedule' : timedelta(hours=4),
-            'args'      : ('nba',),
+        'nba_contest_pool_schedule_manager': {
+            'task': 'contest.schedule.tasks.contest_pool_schedule_manager',
+            'schedule': timedelta(hours=4),
+            'args': ('nba',),
         },
-        'nhl_contest_pool_schedule_manager' : {
-            'task' : 'contest.schedule.tasks.contest_pool_schedule_manager',
-            'schedule' : timedelta(hours=4, minutes=3),  # staggered
-            'args'      : ('nhl',),
+        'nhl_contest_pool_schedule_manager': {
+            'task': 'contest.schedule.tasks.contest_pool_schedule_manager',
+            'schedule': timedelta(hours=4, minutes=3),  # staggered
+            'args': ('nhl',),
         },
-        'mlb_contest_pool_schedule_manager' : {
-            'task' : 'contest.schedule.tasks.contest_pool_schedule_manager',
-            'schedule' : timedelta(hours=4, minutes=7), # staggered
-            'args'      : ('mlb',),
+        'mlb_contest_pool_schedule_manager': {
+            'task': 'contest.schedule.tasks.contest_pool_schedule_manager',
+            'schedule': timedelta(hours=4, minutes=7),  # staggered
+            'args': ('mlb',),
         },
-        'nfl_contest_pool_schedule_manager' : {
-            'task' : 'contest.schedule.tasks.contest_pool_schedule_manager',
-            'schedule' : timedelta(hours=4, minutes=13), # staggered
-            'args'      : ('nfl',),
+        'nfl_contest_pool_schedule_manager': {
+            'task': 'contest.schedule.tasks.contest_pool_schedule_manager',
+            'schedule': timedelta(hours=4, minutes=13),  # staggered
+            'args': ('nfl',),
         },
 
         #
@@ -122,10 +111,10 @@ app.conf.update(
         # generate the underlying contests for ContestPools at their start
         ########################################################################
         # checks all sports all sports
-        'generate_contest_pool_contests' : {
-            'task'      : 'contest.tasks.spawn_contest_pool_contests',
-            'schedule'  : timedelta(seconds=60), # every 60 seconds
-            #'args'      : ('nba',),
+        'generate_contest_pool_contests': {
+            'task': 'contest.tasks.spawn_contest_pool_contests',
+            'schedule': timedelta(seconds=60),  # every 60 seconds
+            # 'args'      : ('nba',),
         },
 
         #
@@ -133,136 +122,136 @@ app.conf.update(
         # generate the scheduled blocks for upcoming days
         ########################################################################
         # nba
-        'nba_create_scheduled_block_contest_pools' : {
-            'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
-            'schedule'  : timedelta(seconds=60), # every 60 seconds
-            'args'      : ('nba',),
+        'nba_create_scheduled_block_contest_pools': {
+            'task': 'contest.schedule.tasks.create_scheduled_contest_pools',
+            'schedule': timedelta(seconds=60),  # every 60 seconds
+            'args': ('nba',),
         },
         # nhl
-        'nhl_create_scheduled_block_contest_pools' : {
-            'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
-            'schedule'  : timedelta(seconds=60), # every 60 seconds
-            'args'      : ('nhl',),
+        'nhl_create_scheduled_block_contest_pools': {
+            'task': 'contest.schedule.tasks.create_scheduled_contest_pools',
+            'schedule': timedelta(seconds=60),  # every 60 seconds
+            'args': ('nhl',),
         },
         # mlb
-        'mlb_create_scheduled_block_contest_pools' : {
-            'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
-            'schedule'  : timedelta(seconds=60), # every 60 seconds
-            'args'      : ('mlb',),
+        'mlb_create_scheduled_block_contest_pools': {
+            'task': 'contest.schedule.tasks.create_scheduled_contest_pools',
+            'schedule': timedelta(seconds=60),  # every 60 seconds
+            'args': ('mlb',),
         },
         # nfl
-        'nfl_create_scheduled_block_contest_pools' : {
-            'task'      : 'contest.schedule.tasks.create_scheduled_contest_pools',
-            'schedule'  : timedelta(seconds=60), # every 60 seconds
-            'args'      : ('nfl',),
+        'nfl_create_scheduled_block_contest_pools': {
+            'task': 'contest.schedule.tasks.create_scheduled_contest_pools',
+            'schedule': timedelta(seconds=60),  # every 60 seconds
+            'args': ('nfl',),
         },
 
         #
         ########################################################################
         # generate salaries each day at 8am (est)
         ########################################################################
-        'nba_generate_salaries' : {
-            'task'      : 'salary.tasks.generate_salaries_for_sport',
-            'schedule'  : crontab(minute=0, hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
-            'args'      : ('nba',),
+        'nba_generate_salaries': {
+            'task': 'salary.tasks.generate_salaries_for_sport',
+            'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+            'args': ('nba',),
         },
-        'nhl_generate_salaries' : {
-            'task'      : 'salary.tasks.generate_salaries_for_sport',
-            'schedule'  : crontab(minute=0, hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
-            'args'      : ('nhl',),
+        'nhl_generate_salaries': {
+            'task': 'salary.tasks.generate_salaries_for_sport',
+            'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+            'args': ('nhl',),
         },
-        'mlb_generate_salaries' : {
-            'task'      : 'salary.tasks.generate_salaries_for_sport',
-            'schedule'  : crontab(minute=0, hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
-            'args'      : ('mlb',),
+        'mlb_generate_salaries': {
+            'task': 'salary.tasks.generate_salaries_for_sport',
+            'schedule': crontab(minute=0, hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+            'args': ('mlb',),
         },
         # nfl done on thursdays only
-        'nfl_generate_salaries' : {
-            'task'      : 'salary.tasks.generate_salaries_for_sport',
-            'schedule'  : crontab(minute=0, day_of_week='thu', hour='14'), # 2 PM (UTC) - which is ~ 9 AM EST
-            'args'      : ('nfl',),
+        'nfl_generate_salaries': {
+            'task': 'salary.tasks.generate_salaries_for_sport',
+            'schedule': crontab(minute=0, day_of_week='thu', hour='14'),  # 2 PM (UTC) - which is ~ 9 AM EST
+            'args': ('nfl',),
         },
 
         #
         # update injury information for the sports
-        'nba_injuries' : {
+        'nba_injuries': {
             'task': 'sports.nba.tasks.update_injuries',
             'schedule': timedelta(minutes=30),
         },
 
-        'nhl_injuries' : {
+        'nhl_injuries': {
             'task': 'sports.nhl.tasks.update_injuries',
             'schedule': timedelta(minutes=30),
         },
 
-        'nfl_injuries' : {
+        'nfl_injuries': {
             'task': 'sports.nfl.tasks.update_injuries',
             'schedule': timedelta(minutes=30),
         },
 
-        'mlb_injuries' : {
+        'mlb_injuries': {
             'task': 'sports.mlb.tasks.update_injuries',
             'schedule': timedelta(minutes=30),
         },
 
         #
         # update the season_fppg for each sport
-        'nba_season_fppg' : {
-            'task'      : 'salary.tasks.generate_season_fppgs',
-            'schedule'  : crontab(hour='9'), # 9 AM (UTC) - which is ~ 4 AM EST
-            'args'      : ('nba',),
+        'nba_season_fppg': {
+            'task': 'salary.tasks.generate_season_fppgs',
+            'schedule': crontab(hour='9'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'args': ('nba',),
         },
-        'nhl_season_fppg' : {
-            'task'      : 'salary.tasks.generate_season_fppgs',
-            'schedule'  : crontab(hour='9', minute='10'), # 9 AM (UTC) - which is ~ 4 AM EST
-            'args'      : ('nhl',),
+        'nhl_season_fppg': {
+            'task': 'salary.tasks.generate_season_fppgs',
+            'schedule': crontab(hour='9', minute='10'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'args': ('nhl',),
         },
-        'nfl_season_fppg' : {
-            'task'      : 'salary.tasks.generate_season_fppgs',
-            'schedule'  : crontab(hour='9', minute='20'), # 9 AM (UTC) - which is ~ 4 AM EST
-            'args'      : ('nfl',),
+        'nfl_season_fppg': {
+            'task': 'salary.tasks.generate_season_fppgs',
+            'schedule': crontab(hour='9', minute='20'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'args': ('nfl',),
         },
-        'mlb_season_fppg' : {
-            'task'      : 'salary.tasks.generate_season_fppgs',
-            'schedule'  : crontab(hour='9', minute='30'), # 9 AM (UTC) - which is ~ 4 AM EST
-            'args'      : ('mlb',),
+        'mlb_season_fppg': {
+            'task': 'salary.tasks.generate_season_fppgs',
+            'schedule': crontab(hour='9', minute='30'),  # 9 AM (UTC) - which is ~ 4 AM EST
+            'args': ('mlb',),
         },
 
         #
         # payout task
-        'notify_admin_contests_automatically_paid_out' : {
-            'task'      : 'contest.tasks.notify_admin_contests_automatically_paid_out',
-            'schedule'  : timedelta(minutes=5),
+        'notify_admin_contests_automatically_paid_out': {
+            'task': 'contest.tasks.notify_admin_contests_automatically_paid_out',
+            'schedule': timedelta(minutes=5),
         },
 
         # cleanup rosters
-        'nba_cleanup_rosters' : {
-            'task'      : 'sports.nba.tasks.cleanup_rosters',
-            'schedule'  : crontab(hour='3'), # 9 AM (UTC) - which is ~ 4 AM EST
+        'nba_cleanup_rosters': {
+            'task': 'sports.nba.tasks.cleanup_rosters',
+            'schedule': crontab(hour='3'),  # 9 AM (UTC) - which is ~ 4 AM EST
         },
-        'nhl_cleanup_rosters' : {
-            'task'      : 'sports.nhl.tasks.cleanup_rosters',
-            'schedule'  : crontab(hour='3', minute='10'), # 9 AM (UTC) - which is ~ 4 AM EST
+        'nhl_cleanup_rosters': {
+            'task': 'sports.nhl.tasks.cleanup_rosters',
+            'schedule': crontab(hour='3', minute='10'),  # 9 AM (UTC) - which is ~ 4 AM EST
         },
-        'nfl_cleanup_rosters' : {
-            'task'      : 'sports.nfl.tasks.cleanup_rosters',
-            'schedule'  : crontab(hour='3', minute='20'), # 9 AM (UTC) - which is ~ 4 AM EST
+        'nfl_cleanup_rosters': {
+            'task': 'sports.nfl.tasks.cleanup_rosters',
+            'schedule': crontab(hour='3', minute='20'),  # 9 AM (UTC) - which is ~ 4 AM EST
         },
-        'mlb_cleanup_rosters' : {
-            'task'      : 'sports.mlb.tasks.cleanup_rosters',
-            'schedule'  : crontab(hour='3', minute='30'), # 9 AM (UTC) - which is ~ 4 AM EST
+        'mlb_cleanup_rosters': {
+            'task': 'sports.mlb.tasks.cleanup_rosters',
+            'schedule': crontab(hour='3', minute='30'),  # 9 AM (UTC) - which is ~ 4 AM EST
         },
 
     },
 
-    CELERY_ENABLE_UTC = True,
-    CELERY_TIMEZONE = 'UTC',
-    CELERY_TRACK_STARTED = True,
+    CELERY_ENABLE_UTC=True,
+    CELERY_TIMEZONE='UTC',
+    CELERY_TRACK_STARTED=True,
 
     # testing this out, but the BROKER_TRANSPORT_OPTIONS seems to be the
     # setting that actually caps the max connections when were viewing
     # connections on the redis side
-    #CELERY_REDIS_MAX_CONNECTIONS = 200,
+    # CELERY_REDIS_MAX_CONNECTIONS = 200,
 
     #
     #
@@ -275,6 +264,7 @@ app.conf.update(
     # BROKER_POOL_LIMIT = None,  # default: 10
 
 )
+
 
 class locking(object):
     """
@@ -294,9 +284,9 @@ class locking(object):
         If there are decorator arguments, the function
         to be decorated is not passed to the constructor!
         """
-        #print("Inside __init__()")
-        self.unique_lock_name       = unique_lock_name
-        self.timeout                = timeout
+        # print("Inside __init__()")
+        self.unique_lock_name = unique_lock_name
+        self.timeout = timeout
 
     def __call__(self, f):
         """
@@ -306,14 +296,15 @@ class locking(object):
         """
 
         def wrapped_f(*args):
-            #print("Decorator arguments:", self.unique_lock_name, self.timeout)
+            # print("Decorator arguments:", self.unique_lock_name, self.timeout)
 
             # the redis lock is blocking, and will auto-release
             with redis.Redis().lock(self.unique_lock_name, timeout=self.timeout):
                 # call the function this decorator is decorating!
                 return f(*args)
 
-        return wrapped_f # return the return vlue of our wrapped method if there are any
+        return wrapped_f  # return the return vlue of our wrapped method if there are any
+
 
 class TaskHelper(object):
     """
@@ -340,9 +331,9 @@ class TaskHelper(object):
     ]
 
     def __init__(self, t, task_id):
-        self.t          = t
-        self.task_id    = task_id
-        self.task       = t.AsyncResult( task_id )
+        self.t = t
+        self.task_id = task_id
+        self.task = t.AsyncResult(task_id)
 
     def get_task_data(self):
         """
@@ -352,8 +343,8 @@ class TaskHelper(object):
 
         status = self.task.status
         return {
-            'status' : status,
-            'description' : self.get_status_description(status)
+            'status': status,
+            'description': self.get_status_description(status)
         }
 
     def get_status_description(self, status):
@@ -396,7 +387,7 @@ class TaskHelper(object):
         :return: string note about the data returned.
         """
         fmt_str = 'status will be in %s. if status is in %s, you may poll this api.'
-        s = fmt_str% (str(self.statuses), str(self.pending_statuses))
+        s = fmt_str % (str(self.statuses), str(self.pending_statuses))
         return s
 
     def get_overall_status(self):
@@ -426,38 +417,38 @@ class TaskHelper(object):
         """
 
         # defaults
-        exception   = None
-        result      = None
-        r           = self.task.result
+        exception = None
+        result = None
+        r = self.task.result
 
         if r is not None and issubclass(type(r), Exception):
             #
             # return exception information here, including class name, and msg
             exception = {
-                'name' : type(r).__name__,   # ie: 'Exception'
-                'msg'   : str(r)
+                'name': type(r).__name__,   # ie: 'Exception'
+                'msg': str(r)
             }
 
         else:
             #
             # if you want to return valid data returned by the task, do it here
             result = {
-                'value' : r, # a sucessful task may return None, or possibly an object
+                'value': r,  # a sucessful task may return None, or possibly an object
             }
 
         # the top-level 'status' is not the task status, it
         # is a more general indication of the success/pending/failure
         data = {
-            'task_id'       : self.task_id,
-            'status'        : self.get_overall_status(),
-            'note'          : self.get_note(),
-            'task'          : self.get_task_data(),
+            'task_id': self.task_id,
+            'status': self.get_overall_status(),
+            'note': self.get_note(),
+            'task': self.get_task_data(),
 
             # 'exception' OR 'result' will be set upon SUCCESS/FAILURE.
             # it is possible that the 'result' will have a null value
             # in it if the task is successful but simply had no return value!
-            'exception'     : exception,
-            'result'        : result,
+            'exception': exception,
+            'result': result,
         }
         return data
 
@@ -468,35 +459,42 @@ class TaskHelper(object):
 # #: from unwanted access (see userguide/security.html)
 # CELERY_ACCEPT_CONTENT = ['json']
 
+
 @app.task(bind=True)
 def debug_task(self):
     print('Request: {0!r}'.format(self.request))
 
+
 @app.task(bind=True, time_limit=2)
 def pause(self, t=5.0, msg='finished'):
-    time.sleep( t )
-    print( msg )
+    time.sleep(t)
+    print(msg)
     return True
+
 
 @app.task(bind=True)
 def pause_then_raise(self, t=5.0, msg='finished'):
-    time.sleep( t )
+    time.sleep(t)
     raise Exception('this was throw on purpose to test')
     return True
 
+
 @app.task(bind=True)
 def heartbeat(self):
-    print( 'heartbeat' )
+    print('heartbeat')
+
 
 @app.task(bind=True, time_limit=300)
 def payout(self, instance, **kwargs):
-    r_payout    = instance.payout()
+    r_payout = instance.payout()
 
-@app.task(bind=True, time_limit=60) # 60 seconds is an eternity for a stat update
+
+@app.task(bind=True, time_limit=60)  # 60 seconds is an eternity for a stat update
 def stat_update(self, updateable, **kwargs):
     #
     # call send() on a dataden.signals.Updateable instance
     updateable.send()
+
 
 @app.task(bind=True)
 def save_model_instance(self, instance):
@@ -517,4 +515,4 @@ def save_model_instance(self, instance):
         finally:
             release_lock()
     else:
-        pass # if it couldnt aquire the lock thats really too bad, isnt it?...
+        pass  # if it couldnt aquire the lock thats really too bad, isnt it?...

@@ -65,14 +65,11 @@ from util.dicts import (
     Manager,
 )
 
+
 def get_redis_instance():
-    url = os.environ.get('REDISCLOUD_URL') # TODO get this env var from settings
-    if url is None:
-        return Redis()
-    else:
-        redis_url = urllib.parse.urlparse(os.environ.get('REDISCLOUD_URL')) # TODO get this env var from settings
-        r = Redis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password, db=0)
-        return r
+    redis_url = urllib.parse.urlparse(settings.REDISCLOUD_URL)
+    r = Redis(host=redis_url.hostname, port=redis_url.port, password=redis_url.password, db=0)
+    return r
 
 class HomeAwaySummary(DataDenTeamBoxscores):
 
