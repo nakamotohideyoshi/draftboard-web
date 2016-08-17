@@ -5,6 +5,7 @@ import merge from 'lodash/merge';
 const initialState = {
   payments: [],
   isDepositing: false,
+  isWithdrawing: false,
   depositFormErrors: {},
   withdrawalFormErrors: {},
   payPalClientToken: '',
@@ -67,16 +68,29 @@ module.exports = (state = initialState, action) => {
       });
 
 
-    case actionTypes.WITHDRAW_AMOUNT_SUCCESS:
+    case actionTypes.WITHDRAW_FUNDS: {
       return merge({}, state, {
-        withdrawalFormErrors: {},
+        isWithdrawing: true,
       });
+    }
 
 
-    case actionTypes.WITHDRAW_AMOUNT_FAIL:
-      return merge({}, state, {
-        withdrawalFormErrors: action.ex.response.body.errors,
+    case actionTypes.WITHDRAW_FUNDS_SUCCESS: {
+      const newState = merge({}, state, {
+        isWithdrawing: false,
       });
+      newState.withdrawalFormErrors = {};
+      return newState;
+    }
+
+
+    case actionTypes.WITHDRAW_FUNDS_FAIL: {
+      const newState = merge({}, state, {
+        isWithdrawing: false,
+      });
+      newState.withdrawalFormErrors = action.body;
+      return newState;
+    }
 
 
     default:

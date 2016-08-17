@@ -2,29 +2,36 @@
 
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Two column layout
+// One column layout
+// --------------------------------------------------------------
+// |                                                            |
+// |                                                            |
+// |                       section                              |
+// |                                                            |
+// |                                                            |
+// --------------------------------------------------------------
 
-// Example:  https://projects.invisionapp.com/d/main#/console/2830423/71010260/preview
-
-// at < 1024px, show them in vertical line for now until pedro comes back with opinions on what to do
-// -----------------
-// |      nav      |
-// |      ---      |
-// |    section    |
-// -----------------
 .one-col {
 
   .content-container {
+    // full, equal-height columns.
+    display: flex;
+    align-items: stretch;
     background: #fff;
     min-height: 100%;
     perspective-origin: left;
     transform-origin: left;
-    transition: all 316ms cubic-bezier(.8,.16,.18,.85);
   }
 
-  // .cmp-nav-scoreboard {
-  //   display: none;
-  // }
+  .page-content {
+    flex-direction: column;
+    width: 100%;
+    padding: 30px 3%;
+    position: relative;
+    // the top margin is to offset the area for the sports ticker
+    margin: $nav-scoreboard-height auto 0;
+  }
+
 
   // for < 768px only use the hamburglar for menu
   // ---------------
@@ -33,39 +40,15 @@
   // |             |
   // ---------------
   @media (max-width: $break-tablet) {
-
   }
 
 
-  // at > 768px, show the left hand minimal nav + 3 column
-  // --------------------------------------------------------------
-  // |         |                                                  |
-  // |         |                                                  |
-  // |   nav   |                    section                       |
-  // |         |                                                  |
-  // |         |                                                  |
-  // --------------------------------------------------------------
+  // at > 768px
   @media (min-width: $break-tablet + 1) {
-    .page-content__content,
-    .page-content__header-content {
-      // the top padding is to offset the area for the sports ticker
-      padding: 30px 70px 0;
-      position: relative;
-      margin: $nav-scoreboard-height auto 0;
-      // Let it be as wide as possible - blame DrewDro
-      // max-width: 970px;
-    }
   }
 
 
   // at > 1024px, show the fixed contest navigation along the top of the page
-  // --------------------------------------------------------------
-  // |         |                                                  |
-  // |         |                                                  |
-  // |   nav   |                    section                       |
-  // |         |                                                  |
-  // |         |                                                  |
-  // --------------------------------------------------------------
   @media (min-width: $break-laptop + 1) {
     .cmp-nav-scoreboard {
       display: block;
@@ -74,39 +57,95 @@
 }
 
 
+// ---------------------------------------------------------------------------------------------------------------------
+// Two column layout - Note that this extends .one-col.
+//
+//                    .content-container
+// --------------------------------------------------------------
+// |         |                                                  |
+// |         |                                                  |
+// |.sidebar |                .page-content                     |
+// |         |                                                  |
+// |         |                                                  |
+// --------------------------------------------------------------
+
 .two-col {
-  // this layout is the same as two column, except that the sidebar now exists
+  // this layout is the same as one column, except that the sidebar now exists
   @extend .one-col;
 
-  .sidebar {
-    left: 0;
-    padding-top: $nav-scoreboard-height;
-    top: 0;
-    position: fixed;
-    height: 100%;
-    width: $sidebar-width;
-  }
-
   .content-container {
+    // Bump the content section over to account for a fixed sidebar.
     margin-left: $sidebar-width;
   }
 
-  // anything larger than a tablet (768px).
-  @media (min-width: $break-tablet + 1) {
+  // The sidebar is fixed and scrolls independently from the main window.
+  .sidebar {
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+    min-height: 100vh;
+    left: 0;
+    min-width: $sidebar-width;
+    padding-top: $nav-scoreboard-height;
+    position: fixed;
+    top: 0;
+    width: $sidebar-width;
   }
 
   // anything smaller than a laptop (1024px).
   @media (max-width: $break-laptop) {
+    // This layout cannot accommodate everything, so force a scroll on small screens.
+    min-width: $break-laptop;
+
+    .content-container {
+      // Remove the side margin because the sidebar is no longer fixed.
+      margin-left: 0;
+    }
+
+    // change sidebar from fixed to absolute so it scrolls with the page.
+    // Shrink down the sidebar margin + width.
+    .sidebar {
+      padding-top: 0;
+      position: relative;
+      height: auto;
+      min-width: 318px;
+      width: 318px;
+
+      .sidebar-content {
+        margin-left: 10px;
+        margin-right: 10px;
+      }
+    }
   }
 
-  // anything larger than 1024px.
-  @media (min-width: $break-laptop + 1) {
+
+  // anything smaller than 1024px.
+  @media (max-width: $break-laptop) {
+    // Shrink the side padding of page content.
+    .page-content {
+      padding: 30px 1%;
+    }
   }
+
 
   // the biggest size.
   @media (min-width: $break-desktop + 1) {
   }
+
+
+  // anything larger than a tablet (768px).
+  @media (min-width: $break-tablet + 1) {
+
+  }
+
+
+  // for < 768px - small/old phones.
+  @media (max-width: $break-tablet) {
+
+  }
+
 }
+
 
 // not sure if this should go here, it's not BEM but neither is the layout structure sooo...
 .one-col--live .content-container {
