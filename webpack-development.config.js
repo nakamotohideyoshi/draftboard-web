@@ -1,6 +1,9 @@
 const path = require('path');
 const baseConfig = require('./webpack-base.config.js');
 const webpack = require('webpack');
+const Dashboard = require('webpack-dashboard');
+const DashboardPlugin = require('webpack-dashboard/plugin');
+const dashboard = new Dashboard();
 
 
 // Override base configuration entries with those for the PRODUCTION build.
@@ -35,6 +38,7 @@ const config = Object.assign(
       colors: true,
       host: '0.0.0.0',
       port: 8090,
+      quiet: true, // lets WebpackDashboard do its thing
       // stats: 'errors-only'
     },
     debug: true,
@@ -47,6 +51,7 @@ const config = Object.assign(
  * API_DOMAIN requires a scenario at the end of the URL. current options are ['nba-live', 'mlb-live']
  */
 config.plugins = config.plugins.concat([
+  new DashboardPlugin(dashboard.setData),
   // removes a lot of debugging code in React
   new webpack.DefinePlugin({
     'process.env': {

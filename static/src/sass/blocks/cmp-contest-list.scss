@@ -74,7 +74,7 @@ $table-row-hover-bg: #f9fafb;
 
   .user-entries {
     color: #9698ab;
-    width: 90px;
+    max-width: 7em;
   }
 
   td.sport {
@@ -90,8 +90,10 @@ $table-row-hover-bg: #f9fafb;
     min-width: 85px;
   }
 
-  .prizes {
-    color: $primary-green;
+  .payouts {
+    span {
+      display: inline-block;
+    }
   }
 
   .cmp-countdown-clock {
