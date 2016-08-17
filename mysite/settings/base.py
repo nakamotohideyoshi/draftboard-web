@@ -129,6 +129,7 @@ INSTALLED_APPS = (
     'replayer',
     'pp',  # our implementation of a few required paypal apis
     'lobby',
+    'swish',
     'rest_framework_swagger',
 )
 
@@ -284,6 +285,8 @@ PAYPAL_SECRET = 'EOKSd-HCNfWE17mu8e7uyjs2egSla2yXs7joweXCLdimCY8yv-FcCx7LeP1do0g
 # Expiry Date:      01 Aug 2026
 VZERO_ACCESS_TOKEN = 'access_token$sandbox$c6yfbzrdmyjqbf6k$4218ebe110f341437affed2f726cd6fa'
 
+# Swish analytics
+SWISH_API_KEY = 'e7ec4ca5fca54a01ac0038205b8235e9'
 
 # Third party settings
 # ----------------------------------------------------------
