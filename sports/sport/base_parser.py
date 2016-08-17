@@ -112,14 +112,17 @@ class AbstractDataDenParser(object):
             print('cleanup_rosters:', str(team))
             # get all the sports players for that team
             players = player_class.objects.filter(team=team, on_active_roster=True)
+            players_not_on_roster = player_class.objects.filter(team=team, on_active_roster=False)
+
             player_srids = [ p.srid for p in players ]
-            # print('player_srids:', str(player_srids))
+            print('    # player_srids:', str(len(player_srids)))
 
             # from dataden, get all the players recently parsed for this team.
             dd_recent_players = dd.find_recent(sport, 'player', parent_api, target={'team__id':team.srid})
             dd_recent_player_srids = []
             for p in dd_recent_players:
                 dd_recent_player_srids.append(p.get('id'))
+            print('    # dd_recent_player_srids:', str(len(dd_recent_player_srids)))
 
             # subtract the set of dd-recent players from the set of team players
             deactivate_player_srids = set(player_srids) - set(dd_recent_player_srids)
@@ -128,6 +131,10 @@ class AbstractDataDenParser(object):
             #print('set of srids to deactivate (for current team):', str(len(deactivate_player_srids)))
             players.filter(srid__in=deactivate_player_srids).update(on_active_roster=False,
                                                                     status=player_class.STATUS_UNKNOWN)
+
+            # but srid that is in dd_recent_player_srids we can set their on_active_roster=True
+            # although we wont know their status unless we loop thru carefully.
+            players_not_on_roster.filter(srid__in=dd_recent_player_srids).update(on_active_roster=True)
 
 class AbstractDataDenParseable(object):
     """
