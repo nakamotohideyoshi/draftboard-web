@@ -1,6 +1,7 @@
 #
 # draftgroup/classes.py
 
+from django.contrib.contenttypes.models import ContentType
 from django.dispatch import receiver
 import mysite.exceptions
 from .exceptions import (
@@ -12,6 +13,7 @@ from .exceptions import (
 from django.db.transaction import atomic
 from .models import (
     DraftGroup,
+    UpcomingDraftGroup, # proxy model which limits DraftGroup models to upcoming only
     Player,
     GameTeam,
     PlayerUpdate,
@@ -511,16 +513,81 @@ class AbstractUpdateManager(object):
     def __init__(self):
         pass
 
+    def add(self, update_id, category, type, value):
+        """
+        create or update a PlayerUpdate
+
+        :param update_id:
+        :param category:
+        :param type:
+        :param value:
+        :return:
+        """
+
+        self.validate_update_id(update_id)
+        self.validate_category(category)
+        self.validate_type(type)
+        self.validate_value(value)
+
+        created = False
+        try:
+            gu = self.model.objects.get(update_id=update_id)
+        except self.model.DoesNotExist:
+            gu = self.model()
+            gu.update_id = update_id
+            gu.category = category
+            gu.type = type
+            created = True
+
+        if gu.value is None or gu.value != value:
+            gu.value = value
+            gu.save()
+
+        if created == True:
+            # add it if we are in the process of creating it
+            for draft_group in self.draft_groups:
+                gu.draft_groups.add(draft_group)  # ManyToMany relationship!
+
+        return gu
+
+    def validate_update_id(self, update_id):
+        pass # ?
+
+    def validate_category(self, category):
+        if category not in [x[0] for x in self.model.CATEGORIES]:
+            raise self.CategoryException()
+
+    def validate_type(self, type):
+        pass # ?
+
+    def validate_value(self, value):
+        pass # ?
+
 class PlayerUpdateManager(AbstractUpdateManager):
     """
     This class should exclusively be used as the interface
     to adding draftgroup.models.PlayerUpdate objects to draftgroups.
 
+    usage ex:
+
+        from django.contrib.contenttypes.models import ContentType
+        import sports.nfl.models
+        from draftgroup.models import Player, PlayerUpdate
+        from draftgroup.classes import PlayerUpdateManager
+        sport = 'nfl'
+        player_srid = '41c44740-d0f6-44ab-8347-3b5d515e5ecf' # TB12
+        update_id = 'abcde'
+        category = PlayerUpdate.INJURY # alternatives: NEWS, START, LINEUP
+        type = 'rotowire'
+        value = 'hes the GOAT ' + update_id
+        pum = PlayerUpdateManager(sport, player_srid, now=True)
+        update_obj = pum.add(update_id, category, type, value)
+
     """
 
     model = PlayerUpdate
 
-    def __init__(self, sport, player_srid, draft_groups=None, now=None):
+    def __init__(self, sport, player_srid, now=None):
         """
 
         :param sport:
@@ -533,33 +600,38 @@ class PlayerUpdateManager(AbstractUpdateManager):
 
         self.sport = sport
         self.player_srid = player_srid
+        self.ssm = SiteSportManager()
+        self.site_sport = self.ssm.get_site_sport(self.sport)
+        self.sport_player_model_class = self.ssm.get_player_class(self.site_sport)
         self.now = now
         if self.now is None:
             self.now = timezone.now()
-        self.draft_groups = draft_groups
-        if self.draft_groups is None:
-            self.draft_groups = self.get_applicable_draft_groups(self.now)
-        print('found', len(self.draft_groups), 'draft_groups:', str(self.draft_groups))
 
-    def add(self, update_id, category, value):
-        """
-        create or update a PlayerUpdate
+        self.draft_groups = self.get_draft_groups(self.player_srid)
 
-        :param update_id:
-        :param category:
-        :param value:
-        :return:
-        """
-        pass # TODO
-
-    def get_applicable_draft_groups(self, dt):
+    def get_draft_groups(self, player_srid):
         """
         return a queryset of draft groups which we think the
-        update is for , stirctly based on the time param 'dt'
+        update is for , strictly based on the time param 'dt'
         :param dt:
         :return:
         """
-        return [] # TODO
+        # get all DraftGroup objects which include this Player (by their SRID)
+        # we should use UpcomingDraftGroup so we only
+        # associate PlayerUpdate objects with relevant draftgroups
+        p = self.sport_player_model_class.objects.get(srid=player_srid)
+        ctype = ContentType.objects.get_for_model(p)
+        Player.objects.filter(salary_player__player_type__pk=ctype.pk, salary_player__player_id=p.pk)
+        draft_group_players = Player.objects.filter(draft_group__in=UpcomingDraftGroup.objects.all(),
+                                        salary_player__player_type__pk=ctype.pk,
+                                        salary_player__player_id=p.pk).distinct('draft_group')
+        return [dgp.draft_group for dgp in draft_group_players]
+
+    def add(self, *args, **kwargs):
+        update_obj = super().add(*args, **kwargs)
+        update_obj.player_srid = self.player_srid
+        update_obj.save()
+        return update_obj
 
 class GameUpdateManager(AbstractUpdateManager):
     """
@@ -588,15 +660,6 @@ class GameUpdateManager(AbstractUpdateManager):
         self.draft_groups = self.get_draft_groups(self.game_srid)
         print('found', len(self.draft_groups), 'draft_groups:', str(self.draft_groups))
 
-    # def validate_game_srid(self, game_srid):
-    #     """
-    #     given a game_srid, return the sports.<sport>.Game model
-    #
-    #     :param game_srid:
-    #     :return:
-    #     """
-    #     pass # TODO decide if were going to look the game up
-
     def add_probable_pitcher(self, team_srid, player_srid):
         """
         helper method that calls add() with the GameUpdate.LINEUP category
@@ -615,7 +678,6 @@ class GameUpdateManager(AbstractUpdateManager):
         :return:
         """
 
-        # TODO - validation methods
         self.validate_update_id(update_id)
         self.validate_category(category)
         self.validate_type(type)
@@ -645,13 +707,3 @@ class GameUpdateManager(AbstractUpdateManager):
         """
         game_teams = GameTeam.objects.filter(game_srid=game_srid).distinct('draft_group')
         return [ gt.draft_group for gt in game_teams ]
-
-    def validate_update_id(self, update_id): pass # TODO
-
-    def validate_category(self, category):
-        if category not in [ x[0] for x in self.model.CATEGORIES ]:
-            raise self.CategoryException()
-
-    def validate_type(self, type): pass # TODO
-
-    def validate_value(self, value): pass # TODO

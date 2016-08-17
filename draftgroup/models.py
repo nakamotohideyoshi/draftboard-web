@@ -158,6 +158,10 @@ class Player( models.Model ):
     game_team = models.ForeignKey(GameTeam, null=False)
 
     @property
+    def srid(self):
+        return self.salary_player.player.srid
+
+    @property
     def player(self):
         return self.salary_player.player
 
