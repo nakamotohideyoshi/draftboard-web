@@ -65,10 +65,11 @@ class AbstractDraftGroupManager(object):
 
         If not pool exists for the given site_sport, raise SalaryPoolException
         """
-
         valid_positions = []
         for rsp in RosterSpotPosition.objects.filter(roster_spot__site_sport=site_sport):
-            valid_positions.append(rsp.position.name)
+            rsp_name = rsp.position.name
+            if rsp_name not in valid_positions:
+                valid_positions.append(rsp_name)
 
         active_pools = Pool.objects.filter(site_sport=site_sport, active=True)
         if len(active_pools) == 0:
@@ -79,10 +80,14 @@ class AbstractDraftGroupManager(object):
         salaried_players = Salary.objects.filter( pool=pool )
         # remove players not on active roster
         for sp in salaried_players:
+            print('is position.name[%s] in valid_positions[%s]' % (str(sp.player.position.name), str(valid_positions)))
             if sp.player.position.name not in valid_positions:
                 continue  # ignore players who cant fit on the roster anyways.
-            if sp.player.on_active_roster:
+            if sp.player.on_active_roster == True:
                 players.append( sp )
+                print('added player:', str(sp), 'len(players) --> %s' % str(len(players)))
+            else:
+                print('didnt add player')
         # return active players
         return self.Salaries( pool, list(players) )
 
@@ -244,6 +249,7 @@ class DraftGroupManager( AbstractDraftGroupManager ):
         :return:
         """
 
+        print(str(site_sport), start, 'to', end) # TODO remove
         # return the most recently created draftgroup for the site_sport
         dgs = DraftGroup.objects.filter( salary_pool__site_sport=site_sport,
                                          start=start, end=end ).order_by('-created')
