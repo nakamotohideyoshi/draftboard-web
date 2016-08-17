@@ -3,12 +3,16 @@ import * as ReactRedux from 'react-redux';
 import store from '../../store';
 import renderComponent from '../../lib/render-component';
 import { withdraw } from '../../actions/payments';
-
+import forEach from 'lodash/forEach';
+import classNames from 'classnames';
+import PubSub from 'pubsub-js';
 const { Provider, connect } = ReactRedux;
+
 
 function mapStateToProps(state) {
   return {
     errors: state.payments.withdrawalFormErrors,
+    isWithdrawing: state.payments.isWithdrawing,
   };
 }
 
@@ -25,21 +29,65 @@ const Withdrawals = React.createClass({
   propTypes: {
     errors: React.PropTypes.object.isRequired,
     onWithdraw: React.PropTypes.func.isRequired,
+    isWithdrawing: React.PropTypes.bool.isRequired,
   },
 
+
+  getDefaultProps() {
+    return {
+      isWithdrawing: false,
+    };
+  },
+
+
+  componentWillMount() {
+    PubSub.subscribe('account.withdrawSuccess', () => this.resetForm());
+  },
+
+
+  resetForm() {
+    this.refs.amount.value = '';
+    this.refs.email.value = '';
+  },
+
+
   handleWithdraw(event) {
-    event.preventDefault();
-    // gather data
-    this.props.onWithdraw({
-      amount: this.refs.amount.value,
-      email: this.refs.email.value,
-      ssn: this.refs.ssn.value,
+    if (!this.props.isWithdrawing) {
+      event.preventDefault();
+      // gather data
+      this.props.onWithdraw({
+        amount: this.refs.amount.value,
+        email: this.refs.email.value,
+      });
+    }
+  },
+
+  renderErrors(errors) {
+    const errorList = [];
+
+    forEach(errors, (error, index) => {
+      errorList.push(<p key={index} className="form-field-message__description">{ error }</p>);
     });
+
+    if (!errorList.length) {
+      return '';
+    }
+
+    return (
+      <div className="form-field-message form-field-message--error form-field-message--settings">
+        { errorList }
+      </div>
+    );
   },
 
   render() {
+    const withdrawClasses = classNames(
+      'button button--flat-alt1',
+      { 'button--disabled': this.props.isWithdrawing }
+    );
+
     return (
-      <div>
+      <div className="cmp-account-withdrawals">
         <form className="form" method="post" onSubmit={this.handleWithdraw}>
         <fieldset className="form__fieldset">
           <div className="form-field">
@@ -51,21 +99,23 @@ const Withdrawals = React.createClass({
               <input
                 ref="amount"
                 className="form-field__text-input"
-                type="text"
+                type="number"
                 name="amount"
                 id="amount"
                 placeholder="700"
                 required
+                min="5"
+                max="1000"
               />
             </span>
+            {this.renderErrors(this.props.errors.amount)}
           </div>
 
           <div className="form-field form-field--with-help">
-            <label className="form-field__label" htmlFor="paypal-email">Withdraw Method</label>
+            <label className="form-field__label" htmlFor="paypal-email">PayPal Email</label>
             <div className="form-field__content">
               <p className="form-field__info">
-                You may receive your withdraw thru PayPal or a mailed check. Mailed checks may take
-                between 7-12 business days to arrive.
+                You will receive your withdraw via PayPal. Enter the email associated with your PayPal account.
               </p>
 
               <input
@@ -75,29 +125,13 @@ const Withdrawals = React.createClass({
                 id="paypal-email"
                 name="paypal-email"
                 placeholder="Paypal associated email address..."
+                required
               />
             </div>
+            {this.renderErrors(this.props.errors.email)}
           </div>
 
-
-          <div className="form-field form-field--with-help">
-            <label className="form-field__label" htmlFor="ssn">SSN</label>
-            <div className="form-field__content">
-              <p className="form-field__info">
-                Your Social Security Number must be provided for tax purposes.
-              </p>
-
-              <input
-                ref="ssn"
-                className="form-field__text-input"
-                type="text"
-                id="ssn"
-                name="ssn"
-              />
-            </div>
-          </div>
-
-          <input type="submit" className="button button--flat-alt1" value="Withdraw" />
+          <input ref="submit" type="submit" className={ withdrawClasses } value="Withdraw" />
         </fieldset>
         </form>
       </div>
@@ -121,4 +155,7 @@ renderComponent(
 );
 
 
+// Export the React component (for testing).
+module.exports = Withdrawals;
+// Export the store-injected ReactRedux component.
 export default WithdrawalsConnected;

@@ -71,12 +71,28 @@
 .section-lobby.page-lobby.appstate--pane--open,
 body.appstate-enterContestButtonHover {
   .sidebar {
-    z-index: 1005;
+    z-index: $zindex-lobby-sidebar;
   }
 }
 
 body.appstate-enterContestButtonHover.appstate-modal-open {
   .sidebar {
     z-index: 1;
+  }
+}
+
+
+
+
+// Anything lower than 1024px,
+@media (max-width: $break-laptop) {
+  .sidebar {
+    min-width: 318px;
+    width: 318px;
+
+    .sidebar-content {
+      margin-left: 10px;
+      margin-right: 10px;
+    }
   }
 }

@@ -19,7 +19,7 @@
   width: $pane-width;
   will-change: right, transition, transform;
   transform: translateZ(0); // To prevent repaint on scroll.
-  z-index: $zindex-modal + 1;
+  z-index: $zindex-modal + 6;
 
   &__close {
     background: url('../img/blocks/pane/btn-close-arrow.png') no-repeat;
