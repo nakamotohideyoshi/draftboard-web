@@ -1,11 +1,23 @@
+#
+# classes.py
+
 from transaction.classes import AbstractTransaction
 from transaction.constants import TransactionTypeConstants
 from transaction.models import TransactionType, Transaction
-#from .models import Ticket, TicketAmount
-import ticket.models # transaction.models.
+import ticket.models
 from mysite.classes import  AbstractSiteUserClass
-from mysite.exceptions import AmountZeroException, AmountNegativeException, TooManyArgumentsException, TooLittleArgumentsException, IncorrectVariableTypeException
-from .exceptions import  InvalidTicketAmountException, TicketAlreadyUsedException, UserDoesNotHaveTicketException
+from mysite.exceptions import (
+    AmountZeroException,
+    AmountNegativeException,
+    TooManyArgumentsException,
+    TooLittleArgumentsException,
+    IncorrectVariableTypeException,
+)
+from .exceptions import (
+    InvalidTicketAmountException,
+    TicketAlreadyUsedException,
+    UserDoesNotHaveTicketException,)
+
 from transaction.classes import CanDeposit
 from dfslog.classes import Logger, ErrorCodes
 
