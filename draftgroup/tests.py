@@ -1,35 +1,97 @@
 #
 # draftgroup/tests.py
 
+import json
 from dataden.util.timestamp import DfsDateTimeUtil
 from datetime import datetime, time
 from test.models import GameChild
-from mysite.exceptions import InvalidSiteSportTypeException, \
-                                InvalidStartTypeException, InvalidEndTypeException, \
-                                SalaryPoolException, NoGamesInRangeException
-
-from draftgroup.models import GameTeam
+from mysite.exceptions import (
+    InvalidSiteSportTypeException,
+    InvalidStartTypeException,
+    InvalidEndTypeException,
+    SalaryPoolException,
+    NoGamesInRangeException,
+)
+from draftgroup.models import (
+    GameTeam,
+    PlayerUpdate,
+    GameUpdate,
+)
+from draftgroup.classes import (
+    DraftGroupManager,
+    PlayerUpdateManager,
+    GameUpdateManager,
+)
 from sports.models import SiteSport
 from salary.dummy import Dummy as SalaryDummy
-
 from test.classes import AbstractTest
 from salary.dummy import Dummy
 from prize.classes import CashPrizeStructureCreator
 from django.utils import timezone
 from datetime import timedelta
 from cash.classes import CashTransaction
-from draftgroup.classes import DraftGroupManager
 from django.test.utils import override_settings
 from contest.models import Contest
 from contest.classes import ContestCreator
 from draftgroup.tasks import on_game_closed
 from sports.classes import SiteSportManager
+from swish.classes import UpdateData
 
-# class DraftGroupSimpleTest(AbstractTest):
-#
-#     def setUp(self):
-#         pass # this is a stub for a new test
-#
+class PlayerUpdateTest(AbstractTest):
+
+    def setUp(self):
+        pass # TODO need to add some PlayerChild model instances for testing ;(
+
+    def __player_update_manager_add(self, swish_update):
+        # the sport, and the player's srid will be required to create the PlayerUpdate using the manager
+        sport = swish_update.get_sport()
+        # get out the fields required to create a PlayerUpdate model
+        player_name = swish_update.get_field(UpdateData.field_player_name)
+        player_srid = 'some-srid-todo' # TODO we have to infer the player by name-matching
+
+        # get the fields required to create a draftgroup.models.PlayerUpdate
+        update_id = swish_update.get_update_id()
+        updated_at = swish_update.get_updated_at()
+
+        # hard code this to use the category: 'injury' for testing
+        category = 'injury'
+        type = swish_update.get_field(UpdateData.field_source)
+        value = swish_update.get_field(UpdateData.field_text)
+
+        # create a PlayerUpdate model in the db
+        player_update_manager = PlayerUpdateManager(sport)
+        update_model = player_update_manager.add(
+            update_id,
+            category,
+            type,
+            value,
+            published_at=updated_at
+        )
+        return update_model
+
+    def test_1(self):
+        data = """{"id": 295783, "date": "2016-08-16", "time": "18:11:55", "datetime": "2016-08-16 18:11:55",
+                "datetimeUtc": "2016-08-16 22:11:55", "sportId": 2, "sport": "NFL", "teamId": 348, "teamAbbr": "NE",
+                "playerId": 381091, "playerName": "Rob Gronkowski", "position": "TE",
+                "text": "Rob Gronkowski: The unspecified injury that caused Gronkowski to miss practice Tuesday is being described as a bruise, the  Boston Herald reports.",
+                "type": null, "sourceId": 5, "source": "rotowire", "sourceOrigin": "rotowire",
+                "urlOrigin": "https://rotowire.com", "swishStatusId": 9, "swishStatus": "week-to-week",
+                "swishStatusConfidence": 0.344101}"""
+        data = json.loads(data)
+        swish_update = UpdateData(data)
+
+        # have the PlayerUpdateManager return a PlayerUpdate model
+        update_model = self.__player_update_manager_add(swish_update)
+        # TODO - validate its ok
+
+class GameUpdateTest(AbstractTest):
+
+    def setUp(self):
+        pass # set anything that all tests will use
+
+    def test_1(self):
+        pass
+
 # class DraftGroupOnGameClosedRaceCondition(AbstractTest):
 #
 #     def setUp(self):

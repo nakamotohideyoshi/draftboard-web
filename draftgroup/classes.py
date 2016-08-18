@@ -516,12 +516,16 @@ class AbstractUpdateManager(object):
 
     class ValueException(Exception): pass
 
+    class PlayerDoesNotExist(Exception): pass
+
     def __init__(self):
         pass
 
-    def add(self, update_id, category, type, value):
+    def add(self, update_id, category, type, value, published_at=None):
         """
         create or update a PlayerUpdate
+
+        *this method DOES NOT CALL .save() on the model, letting the subclasses do that.
 
         :param update_id:
         :param category:
@@ -535,26 +539,35 @@ class AbstractUpdateManager(object):
         self.validate_type(type)
         self.validate_value(value)
 
+        # parse and return a datetime object representing the publish time
+        updated_at = published_at
+        if updated_at is None:
+            updated_at = datetime.now()
+
         created = False
         try:
-            gu = self.model.objects.get(update_id=update_id)
+            update = self.model.objects.get(update_id=update_id)
         except self.model.DoesNotExist:
-            gu = self.model()
-            gu.update_id = update_id
-            gu.category = category
-            gu.type = type
+            update = self.model()
+            update.update_id = update_id
+            update.category = category
+            update.type = type
             created = True
 
-        if gu.value is None or gu.value != value:
-            gu.value = value
-            gu.save()
+        if update.updated_at is None or update.updated_at != updated_at:
+            update.updated_at = updated_at
+
+        if update.value is None or update.value != value:
+            update.value = value
 
         if created == True:
             # add it if we are in the process of creating it
-            for draft_group in self.draft_groups:
-                gu.draft_groups.add(draft_group)  # ManyToMany relationship!
+            for draft_group in self.get_draft_groups():
+                update.draft_groups.add(draft_group)  # ManyToMany relationship!
 
-        return gu
+        # let the subclasses set the srid & any other fields specific to their type of update
+
+        return update
 
     def validate_update_id(self, update_id):
         pass # ?
@@ -593,7 +606,7 @@ class PlayerUpdateManager(AbstractUpdateManager):
 
     model = PlayerUpdate
 
-    def __init__(self, sport, player_srid, now=None):
+    def __init__(self, sport):
         """
 
         :param sport:
@@ -604,28 +617,37 @@ class PlayerUpdateManager(AbstractUpdateManager):
         """
         super().__init__()
 
+        self.player_name = None
         self.sport = sport
-        self.player_srid = player_srid
-        self.ssm = SiteSportManager()
-        self.site_sport = self.ssm.get_site_sport(self.sport)
-        self.sport_player_model_class = self.ssm.get_player_class(self.site_sport)
-        self.now = now
-        if self.now is None:
-            self.now = timezone.now()
+        self.sport_player_model_class = self.get_player_model_class(self.sport)
 
-        self.draft_groups = self.get_draft_groups(self.player_srid)
+    def get_player_model_class(self, sport):
+        ssm = SiteSportManager()
+        site_sport = ssm.get_site_sport(sport)
+        sport_player_model_class = ssm.get_player_class(site_sport)
+        return sport_player_model_class
 
-    def get_draft_groups(self, player_srid):
+    def get_player_srid_for_name(self, name):
+        # TODO look up the player using their full name, passed in
+        return '41c44740-d0f6-44ab-8347-3b5d515e5ecf' # TODO
+
+    def get_draft_groups(self):
         """
         return a queryset of draft groups which we think the
         update is for , strictly based on the time param 'dt'
         :param dt:
         :return:
         """
+        player_srid = self.get_player_srid_for_name(self.player_name)
+
         # get all DraftGroup objects which include this Player (by their SRID)
         # we should use UpcomingDraftGroup so we only
         # associate PlayerUpdate objects with relevant draftgroups
-        p = self.sport_player_model_class.objects.get(srid=player_srid)
+        try:
+            p = self.sport_player_model_class.objects.get(srid=player_srid)
+        except self.sport_player_model_class.DoesNotExist:
+            err_msg = 'could not find draftboard player with srid: %s' % str(player_srid)
+            raise self.PlayerDoesNotExist(err_msg)
         ctype = ContentType.objects.get_for_model(p)
         Player.objects.filter(salary_player__player_type__pk=ctype.pk, salary_player__player_id=p.pk)
         draft_group_players = Player.objects.filter(draft_group__in=UpcomingDraftGroup.objects.all(),
@@ -633,13 +655,22 @@ class PlayerUpdateManager(AbstractUpdateManager):
                                         salary_player__player_id=p.pk).distinct('draft_group')
         return [dgp.draft_group for dgp in draft_group_players]
 
+        # TODO we should determine the player's srid in here, not outside this class!
+
+        # TODO we should choose the 'category' inside this class !
+
     def add(self, *args, **kwargs):
+        # internally set the playerName - it will be used to look up the player srid, etc...
+        self.player_name = 'TOM BRADY TODO' # TODO fix this
+
+
+        # create the model instance
         update_obj = super().add(*args, **kwargs)
-        update_obj.player_srid = self.player_srid
+        update_obj.player_srid = self.player_srid # TODO
         update_obj.save()
         return update_obj
 
-class GameUpdateManager(AbstractUpdateManager):
+class GameUpdateManager(AbstractUpdateManager): # TODO need to fix this to be more like PlayerUpdateManager
     """
     This class should exclusively be used as the interface
     to adding draftgroup.models.GameUpdate objects to draftgroups.
