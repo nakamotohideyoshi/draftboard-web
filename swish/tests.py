@@ -1,43 +1,71 @@
 #
 # tests.py
 
+import json
 from django.test import TestCase
 from test.classes import (
     AbstractTest,
 )
 from swish.classes import (
+    UpdateData,
     SwishAnalytics,
     SwishNFL,
 )
+from util.utctime import UtcTime
+
+class UpdateDataTest(AbstractTest):
+
+    def setUp(self):
+        pass
+
+    def test_1(self):
+        data_str = """{"id": 295783, "date": "2016-08-16", "time": "18:11:55", "datetime": "2016-08-16 18:11:55",
+                "datetimeUtc": "2016-08-16 22:11:55", "sportId": 2, "sport": "NFL", "teamId": 348, "teamAbbr": "NE",
+                "playerId": 381091, "playerName": "Rob Gronkowski", "position": "TE",
+                "text": "Rob Gronkowski: The unspecified injury that caused Gronkowski to miss practice Tuesday is being described as a bruise, the  Boston Herald reports.",
+                "type": null, "sourceId": 5, "source": "rotowire", "sourceOrigin": "rotowire",
+                "urlOrigin": "https://rotowire.com", "swishStatusId": 9, "swishStatus": "week-to-week",
+                "swishStatusConfidence": 0.344101}"""
+        data = json.loads(data_str)
+        ud = UpdateData(data)
+        updated_at = ud.get_updated_at()
+        self.assertEquals(updated_at.tzinfo, UtcTime.TZ_UTC)
+        self.assertEquals(ud.get_update_id(), str(data.get('id')))
+
+        # get a random field and make sure get_field() works
+        self.assertIsNotNone(ud.get_field(UpdateData.field_player_name))
 
 class SwishTest(AbstractTest):
 
     def setUp(self):
-        self.data_1 = {
+        pass
+
+    def test_1(self):
+        data = """{
             "status": true,
             "sport": "nfl",
             "endpoint": "/nfl/players/injuries",
             "request": {
-            "team": [
-              "ne"
-            ],
-            "sport": [
-              "2"
-            ],
-            "start": [
-              "2016-08-15"
-            ],
-            "end": [
-              "2016-08-16"
-            ]
+                "team": [
+                  "ne"
+                ],
+                "sport": [
+                  "2"
+                ],
+                "start": [
+                  "2016-08-15"
+                ],
+                "end": [
+                  "2016-08-16"
+                ]
             },
             "error": {
-            "status": false
+                "status": false
             },
             "data": {
-            "status": true,
-            "count": 2,
-            "results": [
+              "status": true,
+              "count": 2,
+              "results": [
                 {
                     "id": 295404,
                     "date": "2016-08-16",
@@ -86,9 +114,11 @@ class SwishTest(AbstractTest):
                 }
             ]
           }
-        }
+        }"""
+        data = json.loads(data)
+        # TODO
 
     def test_2(self):
         nfl = SwishNFL()
-        data = nfl.get_injuries()
-        print(str(data))
+        updates = nfl.get_updates() # returns a list of UpdateData objects
+        self.assertIsNotNone(updates)
