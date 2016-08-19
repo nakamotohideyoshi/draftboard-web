@@ -16,6 +16,8 @@ class SwishAnalytics(object):
 
     api_base_url = 'https://api.swishanalytics.com'
     api_injuries = '/players/injuries'
+    api_projections_game = '/players/fantasy'
+    api_projections_season = '/players/fantasy/remaining'   # exists also: '/players/fantasy/season'
 
     api_key = settings.SWISH_API_KEY
 
