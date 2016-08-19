@@ -197,7 +197,27 @@ class Player( models.Model ):
         # each player should only exist once in each group!
         unique_together = ('draft_group','salary_player')
 
-class PlayerUpdate(models.Model):
+class AbstractUpdate(models.Model):
+    """
+    abstract parent model for PlayerUpdate, GameUpdate
+    which includes some common fields of updates
+    that come from rotowire/espn/twitter/etc...
+    """
+
+    created = models.DateTimeField(auto_now_add=True)
+
+    update_id = models.CharField(max_length=128, null=True)
+
+    # this should be set to the time the source info claims it was posted/published
+    updated_at = models.DateTimeField(null=False)
+
+    type = models.CharField(max_length=128, null=False, default='')
+    value = models.CharField(max_length=1024 * 8, null=False, default='')
+
+    class Meta:
+        abstract = True
+
+class PlayerUpdate(AbstractUpdate):
     NEWS    = 'news'
     INJURY  = 'injury'
     LINEUP  = 'lineup'
@@ -210,9 +230,9 @@ class PlayerUpdate(models.Model):
         (START, 'Start'),
     ]
 
-    created = models.DateTimeField(auto_now_add=True)
+    #created = models.DateTimeField(auto_now_add=True)
 
-    update_id = models.CharField(max_length=128, null=True) # maybe not neccessary
+    #update_id = models.CharField(max_length=128, null=True) # maybe not neccessary
 
     draft_groups = models.ManyToManyField(DraftGroup)
 
@@ -222,10 +242,13 @@ class PlayerUpdate(models.Model):
 
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
 
-    type = models.CharField(max_length=128, null=False, default='')
-    value = models.CharField(max_length=1024*8, null=False, default='')
+    #type = models.CharField(max_length=128, null=False, default='')
+    #value = models.CharField(max_length=1024*8, null=False, default='')
 
-class GameUpdate(models.Model):
+    class Meta:
+        abstract = False
+
+class GameUpdate(AbstractUpdate):
     NEWS    = 'news'
     LINEUP  = 'lineup'
 
@@ -234,9 +257,9 @@ class GameUpdate(models.Model):
         (LINEUP, 'Lineup'),
     ]
 
-    created = models.DateTimeField(auto_now_add=True)
+    #created = models.DateTimeField(auto_now_add=True)
 
-    update_id = models.CharField(max_length=128, null=True)
+    #update_id = models.CharField(max_length=128, null=True)
 
     draft_groups = models.ManyToManyField(DraftGroup)
 
@@ -245,8 +268,9 @@ class GameUpdate(models.Model):
 
     category = models.CharField(max_length=64, choices=CATEGORIES, null=False, default=NEWS)
 
-    type = models.CharField(max_length=128, null=False, default='')
-    value = models.CharField(max_length=1024*8, null=False, default='')
+    #type = models.CharField(max_length=128, null=False, default='')
+    #value = models.CharField(max_length=1024*8, null=False, default='')
 
-
+    class Meta:
+        abstract = False
 
