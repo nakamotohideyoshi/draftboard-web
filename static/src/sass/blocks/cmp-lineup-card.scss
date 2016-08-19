@@ -820,3 +820,12 @@ body.section-lobby.page-draft {
     width: 240px;
   }
 }
+
+
+
+// Anything lower than 1024px,
+@media (max-width: $break-laptop) {
+  .lineup-sidebar-list {
+    margin-top: 175px;
+  }
+}
