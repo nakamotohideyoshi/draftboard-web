@@ -440,6 +440,9 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         start_str   = o.get('scheduled')
         start       = DataDenDatetime.from_string( start_str )
         status      = o.get('status')
+        if status is None or status == '':
+            err_msg = 'mongo game object %s has a "status" of None or empty string!' % str(o)
+            raise Exception(err_msg)
 
         srid_season = o.get(self.field_season_srid)
         srid_home   = o.get('home')
@@ -485,12 +488,8 @@ class DataDenGameSchedule(AbstractDataDenParseable):
         # so dont allow this class to ever move to an older status.
         # only allow it to progress the status, ie:
         # scheduled -> inprogress | inprogress -> complete | complete -> closed
-        # TODO logic is a bit sketchy ... lets pay attention to this
-        current_status = self.game.status
-        if current_status is None or status == GameStatus.closed:
+        if self.game.status != GameStatus.closed:
             self.game.status = status
-
-        # child class must save the self.game !
 
 class DataDenPlayerRosters(AbstractDataDenParseable):
 
