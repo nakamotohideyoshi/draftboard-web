@@ -24,7 +24,10 @@ from draftgroup.classes import (
 )
 from sports.models import SiteSport
 from salary.dummy import Dummy as SalaryDummy
-from test.classes import AbstractTest
+from test.classes import (
+    AbstractTest,
+    BuildWorldMixin,
+)
 from salary.dummy import Dummy
 from prize.classes import CashPrizeStructureCreator
 from django.utils import timezone
@@ -37,12 +40,43 @@ from draftgroup.tasks import on_game_closed
 from sports.classes import SiteSportManager
 from swish.classes import UpdateData
 
-class PlayerUpdateTest(AbstractTest):
+class PlayerUpdateManagerEmptyDraftGroup(PlayerUpdateManager):
+    """
+    sub-class so we dont need valid SRIDs.
+    tests everything else to do with PlayerUpdateManager.
+    """
+
+    player_srid = 'Srid-PlayerUpdateManagerEmptyDraftGroup'.lower()
+
+    def get_draft_groups(self):
+        return []
+
+class PlayerUpdateTest(AbstractTest, BuildWorldMixin):
 
     def setUp(self):
-        pass # TODO need to add some PlayerChild model instances for testing ;(
+        # use the custom test-only subclass
+        self.manager_class = PlayerUpdateManagerEmptyDraftGroup
+
+        # self.sport = 'nfl' # build_world() would default to create a sport called 'test'
+        # self.build_world()
+        # self.draft_group = self.world.draftgroup
+        #
+        # # creates some dummy players
+        # self.user = self.get_admin_user()
+        # self.create_valid_lineup(self.user)
+        #
+        # # get the sports.<sport>.models.Player model class for this sport
+        # self.ssm = SiteSportManager()
+        # self.site_sport = self.ssm.get_site_sport(self.sport)
+        # self.player_class = self.ssm.get_player_class(self.site_sport)
+        #
+        # self.player = self.player_class.objects.filter()[0]
+        # print(self.player.srid) # TODO # lineup/classes.py line 365 in __validate_lineup: counter[player.team.pk] += 1 NoneType object has no attribute 'pk'
+        pass
 
     def __player_update_manager_add(self, swish_update):
+        #
+
         # the sport, and the player's srid will be required to create the PlayerUpdate using the manager
         sport = swish_update.get_sport()
         # get out the fields required to create a PlayerUpdate model
@@ -59,7 +93,7 @@ class PlayerUpdateTest(AbstractTest):
         value = swish_update.get_field(UpdateData.field_text)
 
         # create a PlayerUpdate model in the db
-        player_update_manager = PlayerUpdateManager(sport)
+        player_update_manager = self.manager_class(sport)
         update_model = player_update_manager.add(
             update_id,
             category,
@@ -67,6 +101,8 @@ class PlayerUpdateTest(AbstractTest):
             value,
             published_at=updated_at
         )
+        print(update_model.update_id, update_model.category,
+              update_model.type, update_model.value, update_model.updated_at)
         return update_model
 
     def test_1(self):

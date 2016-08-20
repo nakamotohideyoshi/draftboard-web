@@ -27,7 +27,6 @@ from contest.serializers import (
     CurrentEntrySerializer,
     RegisteredUserSerializer,
     EnterLineupSerializer,
-    EnterLineupStatusSerializer,
     PayoutSerializer,
     EditEntryLineupSerializer,
     EditEntryLineupStatusSerializer,
@@ -457,22 +456,6 @@ class EnterLineupAPIView(generics.CreateAPIView):
         data = task_helper.get_data()
         data['buyin_task_id'] = task_result.id # dont break what was there by adding this extra field
         return Response(data, status=status.HTTP_200_OK)
-
-# class EnterLineupStatusAPIView(generics.GenericAPIView):
-#
-#     permission_classes      = (IsAuthenticated,)
-#     serializer_class        = EnterLineupStatusSerializer
-#
-#     def get(self, request, task_id, format=None):
-#         """
-#         Given the 'task' parameter, return the status of the task (ie: the buyin)
-#
-#         :param request:
-#         :param format:
-#         :return:
-#         """
-#         task_helper = TaskHelper(buyin_task, task_id)
-#         return Response(task_helper.get_data(), status=status.HTTP_200_OK)
 
 class PayoutsAPIView(generics.ListAPIView):
     """
