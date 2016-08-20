@@ -908,63 +908,77 @@ class GameStatusChangedSignal(AbstractTest):
         self.game.status = self.COMPLETE
         self.game.save()
 
-class DstPlayerCreation(AbstractTest):
-    """
-    Ensure that the nfl teams DST player objects get created
-    when a new team is created.
-    """
-    def setUp(self):
-        self.srid_team  = 'TEST'            # default team srid/alias
-        self.player     = None
+# class DstPlayerCreation(AbstractTest):
+#     """
+#     Ensure that the nfl teams DST player objects get created
+#     when a new team is created.
+#     """
+#     def setUp(self):
+#         self.srid_team  = 'TEST'            # default team srid/alias
+#         self.player     = None
+#
+#     def create_team(self, srid):
+#         t = Team()
+#         t.srid          = srid
+#         t.srid_venue    = srid + 'venue'    # doesnt have to be real for this test
+#         t.name          = 'Test Team'       # doesnt have to be valid
+#         t.alias         = srid              # alias is the id for nfl teams
+#         t.save() # this save should create dst Player object via signal
+#         return t
+#
+#     def get_dst_player(self, srid_team):
+#         return Player.objects.get(srid=srid_team)
+#
+#     def test_dst_player_is_created_when_new_team_is_saved(self):
+#         # it shouldnt exist now, and SHOULD throw DoesNotExist
+#         self.assertRaises(Player.DoesNotExist, lambda: self.get_dst_player(srid_team=self.srid_team) )
+#
+#         # now create the Team object, and check again
+#         t = self.create_team( self.srid_team )
+#         try:
+#             self.player = self.get_dst_player( srid_team=self.srid_team )
+#         except:
+#             self.player = None
+#
+#         self.assertIsNotNone( self.player )
+#         self.assertEquals( self.srid_team, t.srid )
 
-    def create_team(self, srid):
-        t = Team()
-        t.srid          = srid
-        t.srid_venue    = srid + 'venue'    # doesnt have to be real for this test
-        t.name          = 'Test Team'       # doesnt have to be valid
-        t.alias         = srid              # alias is the id for nfl teams
-        t.save() # this save should create dst Player object via signal
-        return t
-
-    def get_dst_player(self, srid_team):
-        return Player.objects.get(srid=srid_team)
-
-    def test_dst_player_is_created_when_new_team_is_saved(self):
-        # it shouldnt exist now, and SHOULD throw DoesNotExist
-        self.assertRaises(Player.DoesNotExist, lambda: self.get_dst_player(srid_team=self.srid_team) )
-
-        # now create the Team object, and check again
-        t = self.create_team( self.srid_team )
-        try:
-            self.player = self.get_dst_player( srid_team=self.srid_team )
-        except:
-            self.player = None
-
-        self.assertIsNotNone( self.player )
-        self.assertEquals( self.srid_team, t.srid )
-
-class TestSeasonScheduleParser(AbstractTest):
+class SeasonScheduleParserTest(AbstractTest):
     """
     tests sports.nfl.parser.SeasonSchedule
     """
 
     def setUp(self):
-        self.obj_str = """{'_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWlkaHR0cDovL2FwaS5zcG9ydHNkYXRhbGxjLm9yZy9uZmwtcnQxLzIwMTUvUkVHL3NjaGVkdWxlLnhtbA==', 'parent_api__id': 'schedule', 'weeks': [{'week': {'games': [{'game': 'acbb3001-6bb6-41ce-9e91-942abd284e4c'}, {'game': '9920f2a3-720f-4973-998a-eae9b965b8d2'}, {'game': '95091eb4-5bb9-445d-b3f8-023df4dd8d33'}, {'game': '8c65a3c5-9e23-419d-be18-a7663eb53550'}, {'game': '51689a76-5dce-46a1-aa90-c2c04f806340'}, {'game': '83b72efe-7955-4fa4-9149-9eaccbbf0f20'}, {'game': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e'}, {'game': 'eeda7ddd-91df-4993-9cd0-0e8be266f930'}, {'game': 'f2a0bd05-7dff-47b9-97b8-4e5d1a2aceca'}, {'game': 'f32eedba-9552-4200-8e82-4e591bbfcbf5'}, {'game': '56d3f529-89a1-40a8-a323-4811aacc0044'}, {'game': '1ca9a0c1-d145-4acb-aca2-cb2b5fe529b9'}, {'game': 'fee3509f-34b8-461c-946e-a945b73c2bc1'}, {'game': 'c8ca977e-77ad-42fc-a80b-0d4a78e73b87'}, {'game': '2b75bc2a-a0ee-40c7-8a74-e8b1a6e9c256'}, {'game': '718a4f52-c6af-4080-b955-95e8769b68a7'}], 'week': 1.0}}, {'week': {'games': [{'game': '554aac47-088a-42fc-9888-366c3cec5968'}, {'game': 'beaa013f-71cf-463a-8ff4-3b589d69a21e'}, {'game': '9a4d58be-7c83-4b6c-9be7-be686fa945a1'}, {'game': 'd3c8897f-a676-4c0e-beea-5ad1ad7b2cd7'}, {'game': '270b3161-ab73-488e-a25b-8dfbfb752590'}, {'game': '150b2028-7122-4a8d-a015-4b6b1631f290'}, {'game': '28e73389-51ff-4220-91aa-47de855f910b'}, {'game': 'a334f89b-48ed-4e26-a9c1-3d695765e3bd'}, {'game': '83fab116-f034-4f9a-b769-c4e461466a72'}, {'game': '39c307b6-0f85-4124-acb4-7a3a6de07c8f'}, {'game': '55ec637d-4ca8-402c-96ee-840777f87b68'}, {'game': 'c7c45e93-5d60-4389-84e1-971c8ce8807e'}, {'game': 'cc799f7f-542d-43c4-84d0-d4c7d72d7702'}, {'game': '597ee855-a149-49a6-8a35-013fa088449a'}, {'game': 'f325594a-cd1d-43b3-b091-035cfa4d32b1'}, {'game': '8e72ff56-7740-4fe4-b818-78344716abe0'}], 'week': 2.0}}], 'id': 'http://api.sportsdatallc.org/nfl-rt1/2015/REG/schedule.xml', 'dd_updated__id': 1456974079451, 'xmlns': 'http://feed.elasticstats.com/schema/nfl/schedule-v1.0.xsd', 'season': 2015.0, 'type': 'REG'}"""
+        self.sport = 'nflo'
+        self.obj_str = """{'_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWlkNjU5ZDJiZDAtYzQzZS00YmIwLTg1MDMtOWQ1NzY5MTFkMDI5',
+            'dd_updated__id': 1471578967708,
+            'id': '659d2bd0-c43e-4bb0-8503-9d576911d029',
+            'name': 'PRE',
+            'parent_api__id': 'schedule',
+            'type': 'PRE',
+            'weeks': [{'week': '60bfeef5-51db-4e2f-bb85-377a6386ac6d'},
+             {'week': '1d810a06-3f3b-4865-a0ba-f28091dd8d6f'},
+             {'week': '79300bc5-2fc5-489a-9d4f-ef641e6f5885'},
+             {'week': '051e133e-75ef-4818-835a-87e84fdc53b2'},
+             {'week': 'acd0b2ac-8d64-4eac-8f34-365b807e996d'}],
+            'xmlns': 'http://feed.elasticstats.com/schema/nfl/premium/schedule-v2.0.xsd',
+            'year': 2016.0
+        }"""
         self.season_parser = SeasonSchedule()
-
-    def __validate_season(self, season_model, expected_season_year, expected_season_type):
-        self.assertEquals(season_model.season_year, expected_season_year)
-        self.assertEquals(season_model.season_type, expected_season_type)
 
     def test_pst_season(self):
         obj = literal_eval(self.obj_str)
-        srid = obj.get('id') # the srid will be found in the 'id' field
-        oplog_obj = OpLogObjWrapper('nfl','season', obj)
-        self.season_parser.parse( oplog_obj )
+        srid = obj.get(SeasonSchedule.field_srid) # the srid will be found in the 'id' field
+        obj_season_year = obj.get(SeasonSchedule.field_season_year)
+        obj_season_type = obj.get(SeasonSchedule.field_season_type)
+        oplog_obj = OpLogObjWrapper(self.sport,'season', obj)
+        self.season_parser.parse(oplog_obj)
         season = sports.nfl.models.Season.objects.get(srid=srid)
-        self.__validate_season( season, 2015, 'reg' )
 
-class TestGameScheduleParser(AbstractTest):
+        self.assertEquals(season.season_year, obj_season_year)
+        self.assertEquals(season.season_type, obj_season_type.lower())
+
+class GameScheduleParserTest(AbstractTest):
     """
     tests sports.nfl.parser.GameSchedule -- the parser for sports.nfl.models.Game objects
 
@@ -972,35 +986,218 @@ class TestGameScheduleParser(AbstractTest):
     """
 
     def setUp(self):
-        self.sport = 'nfl'
-        self.season_str = """{'season': 2015.0, 'xmlns': 'http://feed.elasticstats.com/schema/nfl/schedule-v1.0.xsd', 'id': 'http://api.sportsdatallc.org/nfl-rt1/2015/PRE/schedule.xml', 'weeks': [{'week': {'week': 0.0, 'game': 'b5b6dcbf-3e3b-4e0c-9eaf-ba978545dcaf'}}, {'week': {'week': 1.0, 'games': [{'game': 'e0b0b391-8d15-4b81-b0fc-aa148b8713fc'}, {'game': '0ed4c4ee-f594-4e10-b156-0799062a94c8'}, {'game': 'e237815c-78eb-4960-a1cf-0dbf98908255'}, {'game': '346b5340-e0a8-42de-a2c7-13b83041b9d3'}, {'game': '4a66009c-c873-47a7-af96-2b28b75ff6da'}, {'game': '7875bd80-22ae-44b1-bd6b-6672de6359a9'}, {'game': '63b4d374-9c7c-416e-8aa9-456e22a36af6'}, {'game': '45bafeba-5f30-4d56-a504-02fa3ede6b5d'}, {'game': '19f6b700-3c8f-4783-899e-e348d572bfbe'}, {'game': 'b4dda772-c8cf-4a0d-8b1a-8cee09ebc0d7'}, {'game': 'f0c8a8ec-3c8f-484c-be72-28029a885c80'}, {'game': 'acdd07a4-a86b-4a86-8e3e-7cc26321b936'}, {'game': '8a215abc-52bc-439f-9718-f8b6810e5fe4'}, {'game': '28deac36-f997-4774-a820-83f85627bce1'}, {'game': 'b35b0d8d-b77c-4503-8339-8f48fb9239a4'}, {'game': '5bd30dc8-35b2-4c2b-9ba6-8cb1e9eecec5'}]}}, {'week': {'week': 2.0, 'games': []}}], 'type': 'PRE', 'dd_updated__id': 1456974034293, 'parent_api__id': 'schedule', '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWlkaHR0cDovL2FwaS5zcG9ydHNkYXRhbGxjLm9yZy9uZmwtcnQxLzIwMTUvUFJFL3NjaGVkdWxlLnhtbA=='}"""
-        self.away_team_str = """{'parent_api__id': 'hierarchy', 'market': 'Pittsburgh', 'league__id': 'NFL', 'conference__id': 'AFC', 'venue': '7349a2e6-0ac9-410b-8bd2-ca58c9f7aa34', 'division__id': 'AFC_NORTH', 'id': 'PIT', 'dd_updated__id': 1456973389372, 'name': 'Steelers', '_id': 'cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkTkZMY29uZmVyZW5jZV9faWRBRkNkaXZpc2lvbl9faWRBRkNfTk9SVEhpZFBJVA=='}"""
-        self.home_team_str = """{'parent_api__id': 'hierarchy', 'market': 'Jacksonville', 'league__id': 'NFL', 'conference__id': 'AFC', 'venue': '4c5c036d-dd3d-4183-b595-71a43a97560f', 'division__id': 'AFC_SOUTH', 'id': 'JAC', 'dd_updated__id': 1456973389372, 'name': 'Jaguars', '_id': 'cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkTkZMY29uZmVyZW5jZV9faWRBRkNkaXZpc2lvbl9faWRBRkNfU09VVEhpZEpBQw=='}"""
-        self.game_str = """{'parent_api__id': 'schedule', 'season__id': 'http://api.sportsdatallc.org/nfl-rt1/2015/PRE/schedule.xml', 'away': 'PIT', 'scheduled': '2015-08-14T23:30:00+00:00', 'home_rotation': '', 'away_rotation': '', 'dd_updated__id': 1456974034293, '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZXNlYXNvbl9faWRodHRwOi8vYXBpLnNwb3J0c2RhdGFsbGMub3JnL25mbC1ydDEvMjAxNS9QUkUvc2NoZWR1bGUueG1saWQxOWY2YjcwMC0zYzhmLTQ3ODMtODk5ZS1lMzQ4ZDU3MmJmYmU=', 'id': '19f6b700-3c8f-4783-899e-e348d572bfbe', 'weather__list': {'humidity': 49.0, 'wind__list': {'direction': 'NE', 'speed': 14.0}, 'condition': 'Partly Cloudy ', 'temperature': 90.0}, 'status': 'closed', 'broadcast__list': {'network': '', 'satellite': '', 'cable': '', 'internet': ''}, 'home': 'JAC', 'links__list': [{'link': {'rel': 'statistics', 'href': '/2015/PRE/1/PIT/JAC/statistics.xml', 'type': 'application/xml'}}, {'link': {'rel': 'summary', 'href': '/2015/PRE/1/PIT/JAC/summary.xml', 'type': 'application/xml'}}, {'link': {'rel': 'pbp', 'href': '/2015/PRE/1/PIT/JAC/pbp.xml', 'type': 'application/xml'}}, {'link': {'rel': 'boxscore', 'href': '/2015/PRE/1/PIT/JAC/boxscore.xml', 'type': 'application/xml'}}, {'link': {'rel': 'roster', 'href': '/2015/PRE/1/PIT/JAC/roster.xml', 'type': 'application/xml'}}, {'link': {'rel': 'injuries', 'href': '/2015/PRE/1/PIT/JAC/injuries.xml', 'type': 'application/xml'}}, {'link': {'rel': 'depthchart', 'href': '/2015/PRE/1/PIT/JAC/depthchart.xml', 'type': 'application/xml'}}], 'venue': '4c5c036d-dd3d-4183-b595-71a43a97560f'}"""
+        self.sport = 'nflo'
 
-        self.season_parser = SeasonSchedule()
-        self.away_team_parser = TeamHierarchy()
-        self.home_team_parser = TeamHierarchy()
-        self.game_parser = GameSchedule()
+    # def setUp(self):
+    #     self.sport = 'nfl'
+    #     self.season_str = """{'season': 2015.0, 'xmlns': 'http://feed.elasticstats.com/schema/nfl/schedule-v1.0.xsd', 'id': 'http://api.sportsdatallc.org/nfl-rt1/2015/PRE/schedule.xml', 'weeks': [{'week': {'week': 0.0, 'game': 'b5b6dcbf-3e3b-4e0c-9eaf-ba978545dcaf'}}, {'week': {'week': 1.0, 'games': [{'game': 'e0b0b391-8d15-4b81-b0fc-aa148b8713fc'}, {'game': '0ed4c4ee-f594-4e10-b156-0799062a94c8'}, {'game': 'e237815c-78eb-4960-a1cf-0dbf98908255'}, {'game': '346b5340-e0a8-42de-a2c7-13b83041b9d3'}, {'game': '4a66009c-c873-47a7-af96-2b28b75ff6da'}, {'game': '7875bd80-22ae-44b1-bd6b-6672de6359a9'}, {'game': '63b4d374-9c7c-416e-8aa9-456e22a36af6'}, {'game': '45bafeba-5f30-4d56-a504-02fa3ede6b5d'}, {'game': '19f6b700-3c8f-4783-899e-e348d572bfbe'}, {'game': 'b4dda772-c8cf-4a0d-8b1a-8cee09ebc0d7'}, {'game': 'f0c8a8ec-3c8f-484c-be72-28029a885c80'}, {'game': 'acdd07a4-a86b-4a86-8e3e-7cc26321b936'}, {'game': '8a215abc-52bc-439f-9718-f8b6810e5fe4'}, {'game': '28deac36-f997-4774-a820-83f85627bce1'}, {'game': 'b35b0d8d-b77c-4503-8339-8f48fb9239a4'}, {'game': '5bd30dc8-35b2-4c2b-9ba6-8cb1e9eecec5'}]}}, {'week': {'week': 2.0, 'games': []}}], 'type': 'PRE', 'dd_updated__id': 1456974034293, 'parent_api__id': 'schedule', '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWlkaHR0cDovL2FwaS5zcG9ydHNkYXRhbGxjLm9yZy9uZmwtcnQxLzIwMTUvUFJFL3NjaGVkdWxlLnhtbA=='}"""
+    #     self.away_team_str = """{'parent_api__id': 'hierarchy', 'market': 'Pittsburgh', 'league__id': 'NFL', 'conference__id': 'AFC', 'venue': '7349a2e6-0ac9-410b-8bd2-ca58c9f7aa34', 'division__id': 'AFC_NORTH', 'id': 'PIT', 'dd_updated__id': 1456973389372, 'name': 'Steelers', '_id': 'cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkTkZMY29uZmVyZW5jZV9faWRBRkNkaXZpc2lvbl9faWRBRkNfTk9SVEhpZFBJVA=='}"""
+    #     self.home_team_str = """{'parent_api__id': 'hierarchy', 'market': 'Jacksonville', 'league__id': 'NFL', 'conference__id': 'AFC', 'venue': '4c5c036d-dd3d-4183-b595-71a43a97560f', 'division__id': 'AFC_SOUTH', 'id': 'JAC', 'dd_updated__id': 1456973389372, 'name': 'Jaguars', '_id': 'cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkTkZMY29uZmVyZW5jZV9faWRBRkNkaXZpc2lvbl9faWRBRkNfU09VVEhpZEpBQw=='}"""
+    #     self.game_str = """{'parent_api__id': 'schedule', 'season__id': 'http://api.sportsdatallc.org/nfl-rt1/2015/PRE/schedule.xml', 'away': 'PIT', 'scheduled': '2015-08-14T23:30:00+00:00', 'home_rotation': '', 'away_rotation': '', 'dd_updated__id': 1456974034293, '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZXNlYXNvbl9faWRodHRwOi8vYXBpLnNwb3J0c2RhdGFsbGMub3JnL25mbC1ydDEvMjAxNS9QUkUvc2NoZWR1bGUueG1saWQxOWY2YjcwMC0zYzhmLTQ3ODMtODk5ZS1lMzQ4ZDU3MmJmYmU=', 'id': '19f6b700-3c8f-4783-899e-e348d572bfbe', 'weather__list': {'humidity': 49.0, 'wind__list': {'direction': 'NE', 'speed': 14.0}, 'condition': 'Partly Cloudy ', 'temperature': 90.0}, 'status': 'closed', 'broadcast__list': {'network': '', 'satellite': '', 'cable': '', 'internet': ''}, 'home': 'JAC', 'links__list': [{'link': {'rel': 'statistics', 'href': '/2015/PRE/1/PIT/JAC/statistics.xml', 'type': 'application/xml'}}, {'link': {'rel': 'summary', 'href': '/2015/PRE/1/PIT/JAC/summary.xml', 'type': 'application/xml'}}, {'link': {'rel': 'pbp', 'href': '/2015/PRE/1/PIT/JAC/pbp.xml', 'type': 'application/xml'}}, {'link': {'rel': 'boxscore', 'href': '/2015/PRE/1/PIT/JAC/boxscore.xml', 'type': 'application/xml'}}, {'link': {'rel': 'roster', 'href': '/2015/PRE/1/PIT/JAC/roster.xml', 'type': 'application/xml'}}, {'link': {'rel': 'injuries', 'href': '/2015/PRE/1/PIT/JAC/injuries.xml', 'type': 'application/xml'}}, {'link': {'rel': 'depthchart', 'href': '/2015/PRE/1/PIT/JAC/depthchart.xml', 'type': 'application/xml'}}], 'venue': '4c5c036d-dd3d-4183-b595-71a43a97560f'}"""
+    #
+    #     self.season_parser = SeasonSchedule()
+    #     self.away_team_parser = TeamHierarchy()
+    #     self.home_team_parser = TeamHierarchy()
+    #     self.game_parser = GameSchedule()
+    #
+    # def test_game_schedule_parse(self):
+    #     """
+    #     as a prerequisite, parse the seasonschedule, and both home & away teams
+    #     """
+    #     # parse the season_schedule obj
+    #     season_oplog_obj = OpLogObjWrapper(self.sport,'season',literal_eval(self.season_str))
+    #     self.season_parser.parse( season_oplog_obj )
+    #     self.assertEquals( 1, sports.nfl.models.Season.objects.filter(season_year=2015,season_type='pre').count() ) # should have parsed 1 thing
+    #
+    #     away_team_oplog_obj = OpLogObjWrapper(self.sport,'team',literal_eval(self.away_team_str))
+    #     self.away_team_parser.parse( away_team_oplog_obj )
+    #     self.assertEquals( 1, sports.nfl.models.Team.objects.all().count() ) # should be 1 team in there now
+    #
+    #     home_team_oplog_obj = OpLogObjWrapper(self.sport,'team',literal_eval(self.home_team_str))
+    #     self.home_team_parser.parse( home_team_oplog_obj )
+    #     self.assertEquals( 2, sports.nfl.models.Team.objects.all().count() ) # should be 2 teams in there now
+    #
+    #     # now attempt to parse the game
+    #     game_oplog_obj = OpLogObjWrapper(self.sport,'game',literal_eval(self.game_str))
+    #     self.game_parser.parse( game_oplog_obj )
+    #     self.assertEquals( 1, sports.nfl.models.Game.objects.all().count() )
 
-    def test_game_schedule_parse(self):
+    def __parse_obj(self, db, coll, data):
         """
-        as a prerequisite, parse the seasonschedule, and both home & away teams
+        calls DataDenNfl().parse( data ) using the 'db' and 'coll' to create the namespace
+        and creates the target using the namespace, and the 'parent_api__id' field from the mongo obj data
+
+        :param db:
+        :param coll:
+        :param data:
+        :return: data passed in
         """
-        # parse the season_schedule obj
-        season_oplog_obj = OpLogObjWrapper(self.sport,'season',literal_eval(self.season_str))
-        self.season_parser.parse( season_oplog_obj )
-        self.assertEquals( 1, sports.nfl.models.Season.objects.filter(season_year=2015,season_type='pre').count() ) # should have parsed 1 thing
+        oplog_obj = OpLogObjWrapper(db, coll, data)
+        parser = DataDenNfl()
+        parser.parse(oplog_obj)
+        return data
 
-        away_team_oplog_obj = OpLogObjWrapper(self.sport,'team',literal_eval(self.away_team_str))
-        self.away_team_parser.parse( away_team_oplog_obj )
-        self.assertEquals( 1, sports.nfl.models.Team.objects.all().count() ) # should be 1 team in there now
+    def __parse_obj_str(self, db, coll, obj_str):
+        """
+        calls DataDenNfl().parse( obj ) after converting 'obj_str' param into a proper object
 
-        home_team_oplog_obj = OpLogObjWrapper(self.sport,'team',literal_eval(self.home_team_str))
-        self.home_team_parser.parse( home_team_oplog_obj )
-        self.assertEquals( 2, sports.nfl.models.Team.objects.all().count() ) # should be 2 teams in there now
+        db -> the sport, ie: 'nflo'
+        coll -> the collection name, ie: 'team', or 'game', etc...
+        parent_api -> the feed, ie: 'hierarchy', 'pbp', etc...
 
-        # now attempt to parse the game
-        game_oplog_obj = OpLogObjWrapper(self.sport,'game',literal_eval(self.game_str))
-        self.game_parser.parse( game_oplog_obj )
-        self.assertEquals( 1, sports.nfl.models.Game.objects.all().count() )
+        :param obj_str: the unwrapped mongo object
+
+        returns the dict of the original data so we can assert on anything we want to
+        """
+
+        data = literal_eval(obj_str)
+        # oplog_obj = OpLogObjWrapper(db, coll, data)
+        # parser = DataDenNfl()
+        # parser.parse(oplog_obj)
+        # return data
+        return self.__parse_obj(db, coll, data)
+
+    def test_status_change(self):
+        """
+        parse in a game, and then change the stats from scheduled to inprogress
+        and make sure it gets updated.
+        """
+
+        # parse a season object (Game objects will require it)
+        season_str = """{'_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWlkNjU5ZDJiZDAtYzQzZS00YmIwLTg1MDMtOWQ1NzY5MTFkMDI5',
+          'dd_updated__id': 1471578967708,
+          'id': '659d2bd0-c43e-4bb0-8503-9d576911d029',
+          'name': 'PRE',
+          'parent_api__id': 'schedule',
+          'type': 'PRE',
+          'weeks': [{'week': '60bfeef5-51db-4e2f-bb85-377a6386ac6d'},
+           {'week': '1d810a06-3f3b-4865-a0ba-f28091dd8d6f'},
+           {'week': '79300bc5-2fc5-489a-9d4f-ef641e6f5885'},
+           {'week': '051e133e-75ef-4818-835a-87e84fdc53b2'},
+           {'week': 'acd0b2ac-8d64-4eac-8f34-365b807e996d'}],
+          'xmlns': 'http://feed.elasticstats.com/schema/nfl/premium/schedule-v2.0.xsd',
+          'year': 2016.0}"""
+        data = self.__parse_obj_str(self.sport, 'season', season_str)
+        qs = sports.nfl.models.Season.objects.filter(srid=data.get('id'))
+        self.assertTrue(1 <= qs.count()) # should be at least 1, more tests will confirm its the one we expect
+        season = qs[0]
+        self.assertEquals(data.get('year'), season.season_year)             # the year matches
+        self.assertTrue(season.season_type in SeasonSchedule.season_types)  # the season type is correct
+
+        # parse a team
+        away_team_str = """{'_id': 'cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkM2M2ZDMxOGEtNjE2NC00MjkwLTliYmMtYmY5YmIyMWNjNGI4Y29uZmVyZW5jZV9faWRiMTgwOGU1Zi1kNDBiLTQ3YzAtOGFmOC01MTc1YzBmZGNkMjZkaXZpc2lvbl9faWQ2ZGMxOTMzZi1jYTkwLTQ2ZTYtYWFmNy05Yjk1Y2M0NDMwNmFpZGEyMDQ3MWI0LWE4ZDktNDBjNy05NWFkLTkwY2MzMGU0NjkzMg==',
+         'alias': 'GB',
+         'conference__id': 'b1808e5f-d40b-47c0-8af8-5175c0fdcd26',
+         'dd_updated__id': 1471601765520,
+         'division__id': '6dc1933f-ca90-46e6-aaf7-9b95cc44306a',
+         'id': 'a20471b4-a8d9-40c7-95ad-90cc30e46932',
+         'league__id': '3c6d318a-6164-4290-9bbc-bf9bb21cc4b8',
+         'market': 'Green Bay',
+         'name': 'Packers',
+         'parent_api__id': 'hierarchy',
+         'references__list': {'reference': 'GB'},
+         'venue': '5a60dd3a-302c-41c6-ab0f-dd335c1103c2'}"""
+        data = self.__parse_obj_str(self.sport, 'team', away_team_str)
+        qs = sports.nfl.models.Team.objects.filter(srid=data.get('id'))
+        self.assertTrue(1 == qs.count())  # should be at least 1, more tests will confirm its the one we expect
+        team = qs[0]
+        self.assertEquals(data.get('name'), team.name)
+        self.assertEquals(data.get('alias'), team.alias)
+
+        # parse the other team
+        home_team_str = """{'_id': 'cGFyZW50X2FwaV9faWRoaWVyYXJjaHlsZWFndWVfX2lkM2M2ZDMxOGEtNjE2NC00MjkwLTliYmMtYmY5YmIyMWNjNGI4Y29uZmVyZW5jZV9faWQxYmRlZmUxMi02Y2IyLTRkNmEtYjIwOC1iMDQ2MDJhZTc5YzNkaXZpc2lvbl9faWRlNDQ3ZTdjMC01OTk3LTRiYjctYmVhMy1hYWFlNDhhZWRjYjhpZDgyY2Y5NTY1LTZlYjktNGYwMS1iZGJkLTVhYTBkNDcyZmNkOQ==',
+         'alias': 'IND',
+         'conference__id': '1bdefe12-6cb2-4d6a-b208-b04602ae79c3',
+         'dd_updated__id': 1471601765520,
+         'division__id': 'e447e7c0-5997-4bb7-bea3-aaae48aedcb8',
+         'id': '82cf9565-6eb9-4f01-bdbd-5aa0d472fcd9',
+         'league__id': '3c6d318a-6164-4290-9bbc-bf9bb21cc4b8',
+         'market': 'Indianapolis',
+         'name': 'Colts',
+         'parent_api__id': 'hierarchy',
+         'references__list': {'reference': 'IND'},
+         'venue': '6ed18563-53e0-46c2-a91d-12d73a16456d'}"""
+        data = self.__parse_obj_str(self.sport, 'team', home_team_str)
+        qs = sports.nfl.models.Team.objects.filter(srid=data.get('id'))
+        self.assertTrue(1 == qs.count())  # should be at least 1, more tests will confirm its the one we expect
+        team = qs[0]
+        self.assertEquals(data.get('name'), team.name)
+        self.assertEquals(data.get('alias'), team.alias)
+
+        # parse the game (requires Season, and both the home and away Team objects to exist)
+        # note: for this test we actually need to delete it if it exists, so the test can run properly
+        scheduled_game_str = """{
+            '_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZXNlYXNvbl9faWQ2NTlkMmJkMC1jNDNlLTRiYjAtODUwMy05ZDU3NjkxMWQwMjl3ZWVrX19pZDYwYmZlZWY1LTUxZGItNGUyZi1iYjg1LTM3N2E2Mzg2YWM2ZGlkYTFhMzQzYjctMDYzMS00YzA0LWJkODgtZGFkNWM4OWY1MWJj',
+            'attendance': 0.0,
+            'away': 'a20471b4-a8d9-40c7-95ad-90cc30e46932',
+            'broadcast__list': {'internet': 'WatchESPN',
+            'network': 'ESPN',
+            'satellite': 206.0},
+            'dd_updated__id': 1471578967708,
+            'entry_mode': 'INGEST',
+            'home': '82cf9565-6eb9-4f01-bdbd-5aa0d472fcd9',
+            'id': 'a1a343b7-0631-4c04-bd88-dad5c89f51bc',
+            'number': 1.0,
+            'parent_api__id': 'schedule',
+            'reference': 56836.0,
+            'scheduled': '2016-08-08T00:00:00+00:00',
+            'season__id': '659d2bd0-c43e-4bb0-8503-9d576911d029',
+            'status': 'scheduled',
+            'utc_offset': -5.0,
+            'venue': 'de94507b-cb7b-4684-a0ff-fad0131847e5',
+            'weather': 'Temp:  F, Wind:   mph',
+            'week__id': '60bfeef5-51db-4e2f-bb85-377a6386ac6d'
+        }"""
+        # delete existing Game objects with matching srid to ensure the following tests are valid
+        data = literal_eval(scheduled_game_str)
+        srid_game = data.get('id')
+        sports.nfl.models.Game.objects.filter(srid=srid_game).delete()
+        qs = sports.nfl.models.Game.objects.filter(srid=srid_game)
+        self.assertEquals(0, qs.count())
+
+        # make sure this game was created properly
+        data = self.__parse_obj_str(self.sport, 'game', scheduled_game_str)
+        qs = sports.nfl.models.Game.objects.filter(srid=srid_game)
+        self.assertEquals(1, qs.count())  # should be at least 1, more tests will confirm its the one we expect
+        game = qs[0]
+        self.assertEquals('scheduled', game.status)
+
+        #
+        # now parse the game in the inprogress state (its 'status' field is only change to make sure it changes
+        inprogress = 'inprogress'
+        data['status'] = inprogress
+        data = self.__parse_obj(self.sport, 'game', data)
+        qs = sports.nfl.models.Game.objects.filter(srid=srid_game)
+        self.assertEquals(1, qs.count()) # there should still only be 1
+        game = qs[0]
+        self.assertEquals(inprogress, game.status)
+
+        #
+        # change the status again
+        complete = 'complete'
+        data['status'] = complete
+        data = self.__parse_obj(self.sport, 'game', data)
+        qs = sports.nfl.models.Game.objects.filter(srid=srid_game)
+        self.assertEquals(1, qs.count())  # there should still only be 1
+        game = qs[0]
+        self.assertEquals(complete, game.status)
+
+        #
+        # change the status again - to the final state it should ever be in if it successfully finished
+        closed = 'closed'
+        data['status'] = closed
+        data = self.__parse_obj(self.sport, 'game', data)
+        qs = sports.nfl.models.Game.objects.filter(srid=srid_game)
+        self.assertEquals(1, qs.count())  # there should still only be 1
+        game = qs[0]
+        self.assertEquals(closed, game.status)
+
+        #
+        # now we shoudnt be able to change it from the 'closed' status
+        inprogress = 'inprogress'
+        data['status'] = inprogress
+        data = self.__parse_obj(self.sport, 'game', data)
+        qs = sports.nfl.models.Game.objects.filter(srid=srid_game)
+        self.assertEquals(1, qs.count())  # there should still only be 1
+        game = qs[0]
+        self.assertNotEquals(inprogress, game.status)

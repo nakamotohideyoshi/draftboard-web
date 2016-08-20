@@ -115,12 +115,13 @@ class GameSchedule(DataDenGameSchedule):
     def __init__(self):
         super().__init__()
 
-    def parse(self, obj):
+    def parse(self, obj, target=None):
         """
         parse the object and save the draftboard model
         """
         super().parse(obj)
         if self.game is None:
+            #print('GAME IS NONE')
             return
 
         o = obj.get_o()
@@ -130,6 +131,10 @@ class GameSchedule(DataDenGameSchedule):
         weather_info            = o.get('weather', '')
         self.game.weather_json  = weather_info
         self.game.save()
+
+
+        #self.game.refresh_from_db()
+        #print('saved game! status:', str(self.game.status))
 
 class PlayerRosters(DataDenPlayerRosters):
 
@@ -1148,12 +1153,12 @@ class DataDenNfl(AbstractDataDenParser):
         #
         #
         if self.target == (self.mongo_db_for_sport+'.season','schedule'):
-            SeasonSchedule().parse( obj )
+            SeasonSchedule().parse(obj, self.target)
 
         #
         #
         elif self.target == (self.mongo_db_for_sport+'.game','schedule'):
-            GameSchedule().parse( obj )
+            GameSchedule().parse(obj, self.target)
 
         #
         # parse a game obj from the boxscores feed
