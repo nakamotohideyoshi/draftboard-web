@@ -908,61 +908,75 @@ class GameStatusChangedSignal(AbstractTest):
         self.game.status = self.COMPLETE
         self.game.save()
 
-class DstPlayerCreation(AbstractTest):
-    """
-    Ensure that the nfl teams DST player objects get created
-    when a new team is created.
-    """
-    def setUp(self):
-        self.srid_team  = 'TEST'            # default team srid/alias
-        self.player     = None
+# class DstPlayerCreation(AbstractTest):
+#     """
+#     Ensure that the nfl teams DST player objects get created
+#     when a new team is created.
+#     """
+#     def setUp(self):
+#         self.srid_team  = 'TEST'            # default team srid/alias
+#         self.player     = None
+#
+#     def create_team(self, srid):
+#         t = Team()
+#         t.srid          = srid
+#         t.srid_venue    = srid + 'venue'    # doesnt have to be real for this test
+#         t.name          = 'Test Team'       # doesnt have to be valid
+#         t.alias         = srid              # alias is the id for nfl teams
+#         t.save() # this save should create dst Player object via signal
+#         return t
+#
+#     def get_dst_player(self, srid_team):
+#         return Player.objects.get(srid=srid_team)
+#
+#     def test_dst_player_is_created_when_new_team_is_saved(self):
+#         # it shouldnt exist now, and SHOULD throw DoesNotExist
+#         self.assertRaises(Player.DoesNotExist, lambda: self.get_dst_player(srid_team=self.srid_team) )
+#
+#         # now create the Team object, and check again
+#         t = self.create_team( self.srid_team )
+#         try:
+#             self.player = self.get_dst_player( srid_team=self.srid_team )
+#         except:
+#             self.player = None
+#
+#         self.assertIsNotNone( self.player )
+#         self.assertEquals( self.srid_team, t.srid )
 
-    def create_team(self, srid):
-        t = Team()
-        t.srid          = srid
-        t.srid_venue    = srid + 'venue'    # doesnt have to be real for this test
-        t.name          = 'Test Team'       # doesnt have to be valid
-        t.alias         = srid              # alias is the id for nfl teams
-        t.save() # this save should create dst Player object via signal
-        return t
-
-    def get_dst_player(self, srid_team):
-        return Player.objects.get(srid=srid_team)
-
-    def test_dst_player_is_created_when_new_team_is_saved(self):
-        # it shouldnt exist now, and SHOULD throw DoesNotExist
-        self.assertRaises(Player.DoesNotExist, lambda: self.get_dst_player(srid_team=self.srid_team) )
-
-        # now create the Team object, and check again
-        t = self.create_team( self.srid_team )
-        try:
-            self.player = self.get_dst_player( srid_team=self.srid_team )
-        except:
-            self.player = None
-
-        self.assertIsNotNone( self.player )
-        self.assertEquals( self.srid_team, t.srid )
-
-class TestSeasonScheduleParser(AbstractTest):
+class SeasonScheduleParserTest(AbstractTest):
     """
     tests sports.nfl.parser.SeasonSchedule
     """
 
     def setUp(self):
-        self.obj_str = """{'_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWlkaHR0cDovL2FwaS5zcG9ydHNkYXRhbGxjLm9yZy9uZmwtcnQxLzIwMTUvUkVHL3NjaGVkdWxlLnhtbA==', 'parent_api__id': 'schedule', 'weeks': [{'week': {'games': [{'game': 'acbb3001-6bb6-41ce-9e91-942abd284e4c'}, {'game': '9920f2a3-720f-4973-998a-eae9b965b8d2'}, {'game': '95091eb4-5bb9-445d-b3f8-023df4dd8d33'}, {'game': '8c65a3c5-9e23-419d-be18-a7663eb53550'}, {'game': '51689a76-5dce-46a1-aa90-c2c04f806340'}, {'game': '83b72efe-7955-4fa4-9149-9eaccbbf0f20'}, {'game': '0141a0a5-13e5-4b28-b19f-0c3923aaef6e'}, {'game': 'eeda7ddd-91df-4993-9cd0-0e8be266f930'}, {'game': 'f2a0bd05-7dff-47b9-97b8-4e5d1a2aceca'}, {'game': 'f32eedba-9552-4200-8e82-4e591bbfcbf5'}, {'game': '56d3f529-89a1-40a8-a323-4811aacc0044'}, {'game': '1ca9a0c1-d145-4acb-aca2-cb2b5fe529b9'}, {'game': 'fee3509f-34b8-461c-946e-a945b73c2bc1'}, {'game': 'c8ca977e-77ad-42fc-a80b-0d4a78e73b87'}, {'game': '2b75bc2a-a0ee-40c7-8a74-e8b1a6e9c256'}, {'game': '718a4f52-c6af-4080-b955-95e8769b68a7'}], 'week': 1.0}}, {'week': {'games': [{'game': '554aac47-088a-42fc-9888-366c3cec5968'}, {'game': 'beaa013f-71cf-463a-8ff4-3b589d69a21e'}, {'game': '9a4d58be-7c83-4b6c-9be7-be686fa945a1'}, {'game': 'd3c8897f-a676-4c0e-beea-5ad1ad7b2cd7'}, {'game': '270b3161-ab73-488e-a25b-8dfbfb752590'}, {'game': '150b2028-7122-4a8d-a015-4b6b1631f290'}, {'game': '28e73389-51ff-4220-91aa-47de855f910b'}, {'game': 'a334f89b-48ed-4e26-a9c1-3d695765e3bd'}, {'game': '83fab116-f034-4f9a-b769-c4e461466a72'}, {'game': '39c307b6-0f85-4124-acb4-7a3a6de07c8f'}, {'game': '55ec637d-4ca8-402c-96ee-840777f87b68'}, {'game': 'c7c45e93-5d60-4389-84e1-971c8ce8807e'}, {'game': 'cc799f7f-542d-43c4-84d0-d4c7d72d7702'}, {'game': '597ee855-a149-49a6-8a35-013fa088449a'}, {'game': 'f325594a-cd1d-43b3-b091-035cfa4d32b1'}, {'game': '8e72ff56-7740-4fe4-b818-78344716abe0'}], 'week': 2.0}}], 'id': 'http://api.sportsdatallc.org/nfl-rt1/2015/REG/schedule.xml', 'dd_updated__id': 1456974079451, 'xmlns': 'http://feed.elasticstats.com/schema/nfl/schedule-v1.0.xsd', 'season': 2015.0, 'type': 'REG'}"""
+        self.sport = 'nflo'
+        self.obj_str = """{'_id': 'cGFyZW50X2FwaV9faWRzY2hlZHVsZWlkNjU5ZDJiZDAtYzQzZS00YmIwLTg1MDMtOWQ1NzY5MTFkMDI5',
+            'dd_updated__id': 1471578967708,
+            'id': '659d2bd0-c43e-4bb0-8503-9d576911d029',
+            'name': 'PRE',
+            'parent_api__id': 'schedule',
+            'type': 'PRE',
+            'weeks': [{'week': '60bfeef5-51db-4e2f-bb85-377a6386ac6d'},
+             {'week': '1d810a06-3f3b-4865-a0ba-f28091dd8d6f'},
+             {'week': '79300bc5-2fc5-489a-9d4f-ef641e6f5885'},
+             {'week': '051e133e-75ef-4818-835a-87e84fdc53b2'},
+             {'week': 'acd0b2ac-8d64-4eac-8f34-365b807e996d'}],
+            'xmlns': 'http://feed.elasticstats.com/schema/nfl/premium/schedule-v2.0.xsd',
+            'year': 2016.0
+        }"""
         self.season_parser = SeasonSchedule()
-
-    def __validate_season(self, season_model, expected_season_year, expected_season_type):
-        self.assertEquals(season_model.season_year, expected_season_year)
-        self.assertEquals(season_model.season_type, expected_season_type)
 
     def test_pst_season(self):
         obj = literal_eval(self.obj_str)
-        srid = obj.get('id') # the srid will be found in the 'id' field
-        oplog_obj = OpLogObjWrapper('nfl','season', obj)
-        self.season_parser.parse( oplog_obj )
+        srid = obj.get(SeasonSchedule.field_srid) # the srid will be found in the 'id' field
+        obj_season_year = obj.get(SeasonSchedule.field_season_year)
+        obj_season_type = obj.get(SeasonSchedule.field_season_type)
+        oplog_obj = OpLogObjWrapper(self.sport,'season', obj)
+        self.season_parser.parse(oplog_obj)
         season = sports.nfl.models.Season.objects.get(srid=srid)
-        self.__validate_season( season, 2015, 'reg' )
+
+        self.assertEquals(season.season_year, obj_season_year)
+        self.assertEquals(season.season_type, obj_season_type.lower())
 
 class GameScheduleParserTest(AbstractTest):
     """

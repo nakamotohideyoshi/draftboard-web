@@ -2457,10 +2457,13 @@ class PbpParser(DataDenPbpDescription):
         # at_bat_stats
         at_bat_player_stats_hitter = self.find_at_bat_hitter_player_stats(srid_game, srid_at_bat_hitter)
 
-        # create the at_bat extras (the hitters extra fields)
+        # create the at_bat extras (the hitters extra fields) -- apparently the hitter can be None
+        #    so moved the .fp_change access to inside the next if statement
         at_bat_extras = AtBatExtras()
-        at_bat_extras.update_outcome(pitch.get('outcome_id'), at_bat_player_stats_hitter.fp_change)
+        # at_bat_extras.update_outcome(pitch.get('outcome_id'), at_bat_player_stats_hitter.fp_change)
         if at_bat_player_stats_hitter is not None:
+            #at_bat_extras = AtBatExtras()
+            at_bat_extras.update_outcome(pitch.get('outcome_id'), at_bat_player_stats_hitter.fp_change)
             at_bat_extras.update_player_stats(at_bat_player_stats_hitter)
 
         # get the PlayerStats objects as json
