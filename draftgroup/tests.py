@@ -2,9 +2,7 @@
 # draftgroup/tests.py
 
 import json
-from dataden.util.timestamp import DfsDateTimeUtil
-from datetime import datetime, time
-from test.models import GameChild
+from datetime import datetime
 from mysite.exceptions import (
     InvalidSiteSportTypeException,
     InvalidStartTypeException,
@@ -12,41 +10,25 @@ from mysite.exceptions import (
     SalaryPoolException,
     NoGamesInRangeException,
 )
-from draftgroup.models import (
-    GameTeam,
-    PlayerUpdate,
-    GameUpdate,
-)
 from draftgroup.classes import (
     DraftGroupManager,
     PlayerUpdateManager,
-    GameUpdateManager,
 )
 from sports.models import SiteSport
-from salary.dummy import Dummy as SalaryDummy
 from test.classes import (
     AbstractTest,
     BuildWorldMixin,
 )
-from salary.dummy import Dummy
-from prize.classes import CashPrizeStructureCreator
+import test.models
 from django.utils import timezone
 from datetime import timedelta
-from cash.classes import CashTransaction
-from django.test.utils import override_settings
-from contest.models import Contest
-from contest.classes import ContestCreator
-from draftgroup.tasks import on_game_closed
-from sports.classes import SiteSportManager
 from swish.classes import UpdateData
 
-class PlayerUpdateManagerEmptyDraftGroup(PlayerUpdateManager):
+class PlayerUpdateManagerNoDraftGroups(PlayerUpdateManager):
     """
     sub-class so we dont need valid SRIDs.
     tests everything else to do with PlayerUpdateManager.
     """
-
-    player_srid = 'Srid-PlayerUpdateManagerEmptyDraftGroup'.lower()
 
     def get_draft_groups(self):
         return []
@@ -54,79 +36,53 @@ class PlayerUpdateManagerEmptyDraftGroup(PlayerUpdateManager):
 class PlayerUpdateTest(AbstractTest, BuildWorldMixin):
 
     def setUp(self):
+        self.sport = 'test'
+
         # use the custom test-only subclass
-        self.manager_class = PlayerUpdateManagerEmptyDraftGroup
+        self.manager_class = PlayerUpdateManagerNoDraftGroups
 
-        # self.sport = 'nfl' # build_world() would default to create a sport called 'test'
-        # self.build_world()
-        # self.draft_group = self.world.draftgroup
-        #
-        # # creates some dummy players
-        # self.user = self.get_admin_user()
-        # self.create_valid_lineup(self.user)
-        #
-        # # get the sports.<sport>.models.Player model class for this sport
-        # self.ssm = SiteSportManager()
-        # self.site_sport = self.ssm.get_site_sport(self.sport)
-        # self.player_class = self.ssm.get_player_class(self.site_sport)
-        #
-        # self.player = self.player_class.objects.filter()[0]
-        # print(self.player.srid) # TODO # lineup/classes.py line 365 in __validate_lineup: counter[player.team.pk] += 1 NoneType object has no attribute 'pk'
-        pass
+        # build_world() would default to create a sport called 'test'
+        self.build_world()
+        self.draft_group = self.world.draftgroup
+        # print(str(self.draft_group))
+        self.srid = 'the-gronker' # we will manually set this in a player later
 
-    def __player_update_manager_add(self, swish_update):
-        #
+        # get all players build_world() created
+        self.players = test.models.PlayerChild.objects.all()
 
-        # the sport, and the player's srid will be required to create the PlayerUpdate using the manager
-        sport = swish_update.get_sport()
-        # get out the fields required to create a PlayerUpdate model
-        player_name = swish_update.get_field(UpdateData.field_player_name)
-        player_srid = 'some-srid-todo' # TODO we have to infer the player by name-matching
+        if self.players.count() == 0:
+            raise Exception('there must be players at this point, for this test to work')
+
+        self.player = self.players[ self.players.count() - 1 ] # get the last one in the list
+
+        self.player.srid = self.srid
+        self.player.first_name = 'Rob'
+        self.player.last_name = 'Gronkowski'
+        self.player.save() # change the player to gronk
+        self.player.refresh_from_db()
+
+    def test_1(self):
+        """ make up a PlayerUpdate and add it with the draftgroup PlayerUpdateManager """
 
         # get the fields required to create a draftgroup.models.PlayerUpdate
-        update_id = swish_update.get_update_id()
-        updated_at = swish_update.get_updated_at()
-
-        # hard code this to use the category: 'injury' for testing
+        update_id = '12345'
+        updated_at = None # will cause it to use the current time
         category = 'injury'
-        type = swish_update.get_field(UpdateData.field_source)
-        value = swish_update.get_field(UpdateData.field_text)
+        update_type = 'rotowire' # create a source
+        value = 'Hes really good. We saw him in a game today, and he caught 13 TDs.'
 
-        # create a PlayerUpdate model in the db.
-        player_update_manager = self.manager_class(sport)
+        # have the PlayerUpdateManager return a PlayerUpdate model
+        player_update_manager = self.manager_class(self.sport)
         update_model = player_update_manager.add(
+            self.player.srid,
             update_id,
             category,
-            type,
+            update_type,
             value,
             published_at=updated_at
         )
-        print(update_model.update_id, update_model.category,
-              update_model.type, update_model.value, update_model.updated_at)
-        return update_model
-
-    def test_1(self):
-        data = """{"id": 295783, "date": "2016-08-16", "time": "18:11:55", "datetime": "2016-08-16 18:11:55",
-                "datetimeUtc": "2016-08-16 22:11:55", "sportId": 2, "sport": "NFL", "teamId": 348, "teamAbbr": "NE",
-                "playerId": 381091, "playerName": "Rob Gronkowski", "position": "TE",
-                "text": "Rob Gronkowski: The unspecified injury that caused Gronkowski to miss practice Tuesday is being described as a bruise, the  Boston Herald reports.",
-                "type": null, "sourceId": 5, "source": "rotowire", "sourceOrigin": "rotowire",
-                "urlOrigin": "https://rotowire.com", "swishStatusId": 9, "swishStatus": "week-to-week",
-                "swishStatusConfidence": 0.344101}"""
-        data = json.loads(data)
-        swish_update = UpdateData(data)
-
-        # have the PlayerUpdateManager return a PlayerUpdate model
-        update_model = self.__player_update_manager_add(swish_update)
-        # TODO - validate its ok
-
-class GameUpdateTest(AbstractTest):
-
-    def setUp(self):
-        pass # set anything that all tests will use
-
-    def test_1(self):
-        pass
+        self.assertIsNotNone(update_model)
+        print('test_1 update_model: ', update_model)
 
 # class DraftGroupOnGameClosedRaceCondition(AbstractTest):
 #

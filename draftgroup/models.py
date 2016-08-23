@@ -268,6 +268,9 @@ class PlayerUpdate(AbstractUpdate):
     class Meta:
         abstract = False
 
+    def __str__(self):
+        return 'pk:%s | %s | %s' % (str(self.pk), self.player_srid, self.category)
+
 class GameUpdate(AbstractUpdate):
     NEWS    = 'news'
     LINEUP  = 'lineup'

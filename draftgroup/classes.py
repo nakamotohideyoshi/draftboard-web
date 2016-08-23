@@ -519,7 +519,7 @@ class AbstractUpdateManager(object):
     class PlayerDoesNotExist(Exception): pass
 
     def __init__(self):
-        pass
+        self.players_not_found = None
 
     def add(self, update_id, category, type, value, published_at=None):
         """
@@ -542,7 +542,7 @@ class AbstractUpdateManager(object):
         # parse and return a datetime object representing the publish time
         updated_at = published_at
         if updated_at is None:
-            updated_at = datetime.now()
+            updated_at = timezone.now()
 
         created = False
         try:
@@ -701,12 +701,28 @@ class PlayerUpdateManager(AbstractUpdateManager):
             # because its expected we should find all the players a
             # high percentage of the time -- or else admin needs
             # to update the PlayerLookup model for each missing player!
-            raise self.PlayerDoesNotExist('for name: %s' % str(name))
+            self.add_player_not_found(name)
+            part1 = 'for name: %s' % str(name)
+            part2 = 'check the internal "players_not_found" list'
+            err_msg = '%s | %s' % (part1, part2)
+            raise self.PlayerDoesNotExist(err_msg)
 
         # return the found player
         return lookup_data.get(LookupItem.field_srid)
 
-    # TODO - associate with the relevant draft groups
+    def add_player_not_found(self, name):
+        """
+        adds the player name to the internal list of players not found by name.
+
+        returns True is the player was added to the list, False if they were already in the list.
+        """
+        if self.players_not_found is None:
+            self.players_not_found = []
+        if name not in self.players_not_found:
+            self.players_not_found.append(name)
+            return True
+        return False
+
     # def update_applicable_draft_groups(self, update):
     #     return super().update_applicable_draft_groups(update)
 
@@ -739,6 +755,9 @@ class PlayerUpdateManager(AbstractUpdateManager):
         # TODO we should choose the 'category' inside this class !
 
     def add(self, player_srid, *args, **kwargs):
+        """
+        example super().add() arguments: update_id, category, type, value, published_at=None
+        """
         # create the model instance
         update_obj = super().add(*args, **kwargs)
         update_obj.player_srid = player_srid
