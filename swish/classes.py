@@ -112,6 +112,23 @@ class SwishAnalytics(object):
 
     class SwishApiException(Exception): pass
 
+    # known swish status id(s) and their string names
+    statuses = [
+        (1, 'starting'),
+        (2, 'active'),
+        (3, 'probable'),
+        (4, 'gametime-decision'),
+        (5, 'questionable'),
+        (6, 'doubtful'),
+        (7, 'out'),
+        (8, 'day-to-day'),
+        (9, 'week-to-week'),
+        (10, 'month-to-month'),
+        (11, 'out-for-season'),
+        (13, 'waived'),
+        (14, 'traded'),
+    ]
+
     # we will save the api call response in this table
     history_model_class = History
 

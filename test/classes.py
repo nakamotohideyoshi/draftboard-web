@@ -2,9 +2,11 @@
 # test/classes.py
 
 import django.test
-from django.contrib.auth.models import User
 import threading
-from django.db import connections
+from django.db import (
+    connections,
+    IntegrityError,
+)
 from prize.classes import CashPrizeStructureCreator
 from cash.classes import CashTransaction
 from test.models import (
@@ -91,6 +93,11 @@ class BuildWorldMixin( object ):
     def build_world(self):
         self.world = BuildWorldForTesting()
         self.world.build_world()
+
+    def get_or_create_player(self):
+        #player, created = PlayerChild.objects.get_or_create()
+        # TODO
+        pass
 
     def create_valid_lineup(self, user):
         self.one = PlayerChild.objects.filter(position =self.world.position1)[0]
@@ -417,16 +424,23 @@ class AbstractTest(django.test.TestCase, MasterAbstractTest):
 
 def create_site_sports():
     sports  = [ 'test',  'nfl',  'mlb',  'nba',  'nhl' ]
-    seasons = [  1999,    2015,   2016,   2015,   2015 ]
-    for sport, season in zip(sports, seasons):
-        site_sport, created = SiteSport.objects.get_or_create(name=sport)
-        site_sport.current_season = season
-        # if created == True:
-        #     # if it was newly created, set the current_season as well
-        #     site_sport.current_season = season
-        #     site_sport.save()
+    #seasons = [  1999,    2015,   2016,   2015,   2015 ]
+
+    current_season = timezone.now().year # use the year that it is currently
+    for sport in sports:
+        site_sport = None
+        created = False
+        try:
+            site_sport = SiteSport.objects.get(name=sport)
+        except SiteSport.DoesNotExist:
+            # create it
+            site_sport, created = SiteSport.objects.get_or_create(name=sport,
+                                            current_season=current_season)
+        print('SiteSport [%s] just created -> %s' % (str(site_sport), str(created)))
 
 class BuildWorldForTesting(object):
+
+    sport = 'test'
 
     def build_world(self):
         TicketManager.create_default_ticket_amounts()
@@ -445,7 +459,7 @@ class BuildWorldForTesting(object):
     #-------------------------------------------------------------------
     # Shared setup methods for the test cases
     def create_sport_and_rosters(self):
-        self.sitesport, created = SiteSport.objects.get_or_create(name='test')
+        self.sitesport = SiteSport.objects.get(name=self.sport)
 
         position1                = Position()
         position1.name           = "1"
