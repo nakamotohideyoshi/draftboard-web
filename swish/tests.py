@@ -6,6 +6,9 @@ from django.test import TestCase
 from test.classes import (
     AbstractTest,
 )
+from swish.models import (
+    PlayerLookup,
+)
 from swish.classes import (
     UpdateData,
     SwishAnalytics,
@@ -116,7 +119,8 @@ class SwishTest(AbstractTest):
           }
         }"""
         data = json.loads(data)
-        # TODO
+        ud = UpdateData(data)
+        self.assertIsNotNone(ud)
 
     def test_2(self):
         nfl = SwishNFL()

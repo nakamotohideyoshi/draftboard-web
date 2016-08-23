@@ -560,14 +560,22 @@ class AbstractUpdateManager(object):
         if update.value is None or update.value != value:
             update.value = value
 
+        # for newly created Update models we need to
+        # to associated any relevant draft_groups
         if created == True:
-            # add it if we are in the process of creating it
-            for draft_group in self.get_draft_groups():
-                update.draft_groups.add(draft_group)  # ManyToMany relationship!
+            self.update_applicable_draft_groups(update)
 
         # let the subclasses set the srid & any other fields specific to their type of update
 
         return update
+
+    def update_applicable_draft_groups(self, update):
+        """
+        subclasses can override this method to associate the update with one or more draftgroups
+
+        this method is stubbed out for this abstract/parent class
+        """
+        pass
 
     def validate_update_id(self, update_id):
         pass # ?
@@ -581,6 +589,21 @@ class AbstractUpdateManager(object):
 
     def validate_value(self, value):
         pass # ?
+
+class LookupItem(object):
+
+    field_srid = 'srid'
+    field_model = 'model'
+
+    def __init__(self, model):
+        self.model = model
+        self.data = {
+            'srid' : model.srid,
+            'model' : model,
+        }
+
+    def get_data(self):
+        return self.data
 
 class PlayerUpdateManager(AbstractUpdateManager):
     """
@@ -606,6 +629,9 @@ class PlayerUpdateManager(AbstractUpdateManager):
 
     model = PlayerUpdate
 
+    history_model_class = None  # if None, wont be saved
+    lookup_model_class = None   # if None, relies solely on name-matching
+
     def __init__(self, sport):
         """
 
@@ -620,6 +646,19 @@ class PlayerUpdateManager(AbstractUpdateManager):
         self.player_name = None
         self.sport = sport
         self.sport_player_model_class = self.get_player_model_class(self.sport)
+        self.players = None
+
+    def build_player_lookup_table(self):
+        """
+        return a dictionary that indexes player fullnames to objects with their draftboard information
+        to help us determine a player who is coming from a third party service for which no srid exists.
+        """
+        players = {}
+        for player in self.sport_player_model_class.objects.all():
+            player_data = LookupItem(player).get_data()
+            player_name = '%s %s' % (player.first_name, player.last_name)
+            players[player_name] = player_data
+        return players
 
     def get_player_model_class(self, sport):
         ssm = SiteSportManager()
@@ -627,9 +666,49 @@ class PlayerUpdateManager(AbstractUpdateManager):
         sport_player_model_class = ssm.get_player_class(site_sport)
         return sport_player_model_class
 
+    def get_player_srid_for_pid(self, pid):
+        """
+        retrieve the player's srid by specifying the third party service pid for the player.
+
+        if multiple entries have been added for the 'pid' to the PlayerLookup model use the most recent.
+
+        :param pid:
+        """
+        if self.lookup_model_class is None:
+            return None
+
+        lookups = self.lookup_model_class.objects.filter(pid=pid).order_by('-created')
+        if lookups.count() <= 0:
+            return None
+
+        # otherwise, return the first model in the queryset
+        return lookups[0]
+
     def get_player_srid_for_name(self, name):
-        # TODO look up the player using their full name, passed in
-        return '41c44740-d0f6-44ab-8347-3b5d515e5ecf' # TODO
+        """
+        this is where the name-matching happens.
+        eventually we will want to be able to link third-party players to
+        their known srids internally.
+
+        for now we simply use string matching on the [full] name the third party service gives us.
+        """
+        if self.players is None:
+            self.players = self.build_player_lookup_table()
+
+        lookup_data = self.players.get(name)
+        if lookup_data is None:
+            # the caller should handle this for players not found
+            # because its expected we should find all the players a
+            # high percentage of the time -- or else admin needs
+            # to update the PlayerLookup model for each missing player!
+            raise self.PlayerDoesNotExist('for name: %s' % str(name))
+
+        # return the found player
+        return lookup_data.get(LookupItem.field_srid)
+
+    # TODO - associate with the relevant draft groups
+    # def update_applicable_draft_groups(self, update):
+    #     return super().update_applicable_draft_groups(update)
 
     def get_draft_groups(self):
         """
@@ -659,16 +738,44 @@ class PlayerUpdateManager(AbstractUpdateManager):
 
         # TODO we should choose the 'category' inside this class !
 
-    def add(self, *args, **kwargs):
-        # internally set the playerName - it will be used to look up the player srid, etc...
-        self.player_name = 'TOM BRADY TODO' # TODO fix this
-
-
+    def add(self, player_srid, *args, **kwargs):
         # create the model instance
         update_obj = super().add(*args, **kwargs)
-        update_obj.player_srid = self.player_srid # TODO
+        update_obj.player_srid = player_srid
         update_obj.save()
         return update_obj
+
+    def get_srid_for(self, pid=None, name=None):
+        """
+        attempt to get the player's SRID based on the values passed to this method
+
+        this method raises an exception if all arguments are None.
+
+        :param pid: the player id (aka 'pid') to look up in the lookup model class (if set)
+        :param name: the players full name
+        :return: the player's SRID if found, otherwise returns None
+        """
+        if pid is None and name is None:
+            raise Exception('get_srid_for() error - all arguments are None.')
+
+        player_srid = None # we dont know it yet
+
+        # 1. first try to find the srid using the PlayerLookup model
+        if pid is not None:
+            player_srid = self.get_player_srid_for_pid(pid)
+        # return it if found.
+        if player_srid is not None:
+            return player_srid
+
+        # 1b. check if someone set the players name as their pid in draftboards system
+        if name is not None:
+            player_srid = self.get_player_srid_for_pid(name)
+        # return it if found.
+        if player_srid is not None:
+            return player_srid
+
+        # 2. fall back on using string matching on the name to find the player
+        return self.get_player_srid_for_name(name)
 
 class GameUpdateManager(AbstractUpdateManager): # TODO need to fix this to be more like PlayerUpdateManager
     """
