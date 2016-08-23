@@ -30,18 +30,33 @@
     padding: 0;
   }
 
+  &__arrow {
+    right: 25px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px;
+  }
+
+  &__arrow-line {
+    fill: none;
+    stroke: #d0d3db;
+    stroke-linecap: round;
+    stroke-miterlimit: 10;
+    stroke-width: 3px;
+  }
+
   // Sport + DraftGroup selection
   &__group,
   &__sport {
-    background: #fff url(../img/blocks/draft-group-select/arrows.png) no-repeat;
-    background-size: 15px auto;
-    background-position: 90% 38px;
+    background: #fff;
     border-bottom: 1px solid #d8dadf;
     cursor: pointer;
     display: block;
     list-style: none;
     margin: 0 5px;
     padding: 15px 25px;
+    position: relative;
     text-align: left;
     transition: margin .25s;
 
@@ -51,7 +66,6 @@
     }
 
     &:hover {
-      background-position: 90% -73px;
       margin: 0;
 
       .cmp-draft-group-select {
@@ -61,6 +75,10 @@
 
         &__sub {
           color: #46495e;
+        }
+
+        &__arrow-line {
+          stroke: #34cc68;
         }
       }
     }

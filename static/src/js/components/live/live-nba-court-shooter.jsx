@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  removeAnimationEvent,
+  removeCurrentEvent,
   shiftOldestGameEvent,
   showAnimationEventResults,
 } from '../../actions/events';
@@ -18,7 +18,6 @@ const LiveNBACourtShooter = React.createClass({
   getInitialState() {
     // needed event props
     const event = this.props.event;
-    const key = event.id;
     const xCoord = event.location.coord_x;
     const yCoord = event.location.coord_y;
 
@@ -73,7 +72,7 @@ const LiveNBACourtShooter = React.createClass({
     setTimeout(() => {
       // show the results, remove the animation
       store.dispatch(showAnimationEventResults(event));
-      store.dispatch(removeAnimationEvent(key));
+      store.dispatch(removeCurrentEvent());
 
       // enter the next item in the queue once everything is done
       setTimeout(() => {

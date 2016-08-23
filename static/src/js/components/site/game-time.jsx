@@ -72,13 +72,14 @@ const GameTime = (props) => {
       }
 
       case 'nba':
-      case 'nhl': {
+      case 'nhl':
+      case 'nfl': {
         if (!('clock' in boxscore) || !('periodDisplay' in boxscore)) {
           modifiers.push('has-not-started');
           value = moment(start).format('h:mma');
 
           // this shouldn't happen
-          trackUnexpected('<GameTime /> in live NBA but no clock|periodDisplay', { props });
+          trackUnexpected('<GameTime /> in live but no clock|periodDisplay', { props });
           break;
         }
 

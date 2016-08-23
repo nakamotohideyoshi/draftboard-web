@@ -8,6 +8,7 @@ import PlayerPmrHeadshotComponent from '../site/PlayerPmrHeadshotComponent';
 import React from 'react';
 import { generateBlockNameWithModifiers } from '../../lib/utils/bem';
 import { humanizeFP } from '../../lib/utils/numbers';
+import { SPORT_CONST } from '../../actions/sports';
 
 // assets
 require('../../../sass/blocks/live/live-lineup-player.scss');
@@ -49,8 +50,8 @@ const LiveLineupPlayer = React.createClass({
     // only show when there's an event
     if (Object.keys(this.props.eventDescription).length === 0) return null;
 
-    const { points, info, when } = this.props.eventDescription;
-    const eventProps = { info, points, when };
+    const { points, description, when } = this.props.eventDescription;
+    const eventProps = { description, points, when };
 
     return (
       <div key="5" className="live-lineup-player__event-description">
@@ -69,6 +70,7 @@ const LiveLineupPlayer = React.createClass({
     const { game, player } = this.props;
     const { boxscore = {}, sport, start } = game;
     const { status } = boxscore;
+    let whichStats = {};
 
     const gameTimeProps = {
       boxscore,
@@ -78,14 +80,23 @@ const LiveLineupPlayer = React.createClass({
       status,
     };
 
-    // ordered stats
-    const statTypes = ['points', 'rebounds', 'steals', 'assists', 'blocks', 'turnovers'];
-    const statNames = ['PTS', 'RB', 'ST', 'ASST', 'BLK', 'TO'];
+    switch (sport) {
+      case 'nfl': {
+        const { position } = this.props.player;
+        const statsType = (position === 'QB') ? 'qb' : 'nonQb';
+        whichStats = SPORT_CONST[this.props.sport].seasonStats[statsType];
+        break;
+      }
+      default:
+        whichStats = SPORT_CONST[this.props.sport].seasonStats;
+    }
 
-    const renderedStats = statTypes.map((statType, index) => (
+    const { types, names } = whichStats;
+
+    const renderedStats = types.map((statType, index) => (
       <li key={statType} className="live-lineup-player__hover-stat">
         <div className="hover-stats__amount">{values[statType] || 0}</div>
-        <div className="hover-stats__name">{statNames[index]}</div>
+        <div className="hover-stats__name">{names[index]}</div>
       </li>
     ));
 

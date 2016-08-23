@@ -5,8 +5,8 @@ import merge from 'lodash/merge';
 import union from 'lodash/union';
 
 const initialState = {
-  animationEvents: {},
-  gamesQueue: {},
+  animationEvent: null,
+  queue: [],
   playerEventDescriptions: {},
   playerHistories: {},
   playersPlaying: [],
@@ -15,41 +15,6 @@ const initialState = {
 // Reducer for the pusher events coming through
 module.exports = (state = initialState, action = {}) => {
   switch (action.type) {
-
-    case ActionTypes.EVENT_ADD_ANIMATION:
-      return update(state, {
-        animationEvents: {
-          $merge: {
-            [action.key]: action.value,
-          },
-        },
-      });
-
-    case ActionTypes.EVENT_ADD_GAME_QUEUE:
-      return update(state, {
-        gamesQueue: {
-          $merge: {
-            [action.gameId]: {
-              queue: [],
-            },
-          },
-        },
-      });
-
-    case ActionTypes.EVENT_GAME_QUEUE_PUSH:
-      if (state.gamesQueue.hasOwnProperty(action.gameId) === false) {
-        throw new Error(`Cannot push an event to a game that does not exist, gameId ${action.gameId}`);
-      }
-
-      return update(state, {
-        gamesQueue: {
-          [action.gameId]: {
-            queue: {
-              $push: [action.event],
-            },
-          },
-        },
-      });
 
     case ActionTypes.EVENT_PLAYER_ADD_DESCRIPTION:
       return update(state, {
@@ -67,16 +32,19 @@ module.exports = (state = initialState, action = {}) => {
         },
       });
 
-    case ActionTypes.EVENT_REMOVE_ANIMATION: {
-      const animationEvents = merge({}, state.animationEvents);
-      delete animationEvents[action.key];
-
-      return update(state, {
-        $merge: {
-          animationEvents,
-        },
-      });
+    case ActionTypes.EVENT__SET_CURRENT: {
+      const newState = merge({}, state);
+      newState.animationEvent = action.value;
+      return newState;
     }
+
+    case ActionTypes.EVENT__REMOVE_CURRENT:
+      // perf optimization, memoization
+      if (state.animationEvent === null) return state;
+
+      return merge({}, state, {
+        animationEvent: null,
+      });
 
     case ActionTypes.EVENT_PLAYER_REMOVE_DESCRIPTION: {
       const playerEventDescriptions = merge({}, state.playerEventDescriptions);
@@ -93,26 +61,20 @@ module.exports = (state = initialState, action = {}) => {
       });
     }
 
+    case ActionTypes.EVENT_GAME_QUEUE_PUSH: {
+      const newState = merge({}, state);
+      newState.queue.push(action.event);
+      return newState;
+    }
+
     case ActionTypes.EVENT_SHIFT_GAME_QUEUE: {
-      // if no queue, return
-      if (!(action.gameId in state.gamesQueue)) return state;
+      const newState = merge({}, state);
 
-      const queue = [...state.gamesQueue[action.gameId].queue];
+      // if queue empty, return for performance optimizations
+      if (newState.queue.length === 0) return state;
 
-      // if queue empty, return
-      if (queue.length === 0) return state;
-
-      queue.shift();
-
-      return update(state, {
-        gamesQueue: {
-          [action.gameId]: {
-            $set: {
-              queue,
-            },
-          },
-        },
-      });
+      newState.queue.shift();
+      return newState;
     }
 
     case ActionTypes.EVENT_UNION_PLAYERS_PLAYING:

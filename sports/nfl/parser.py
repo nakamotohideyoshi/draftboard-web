@@ -934,6 +934,7 @@ class PlayParser(DataDenPbpDescription):
     pbp_model               = Pbp
     portion_model           = GamePortion
     pbp_description_model   = PbpDescription
+    pusher_sport_pbp_event  = 'linked'
 
     player_stats_model      = sports.nfl.models.PlayerStats
     pusher_sport_pbp        = push.classes.PUSHER_NFL_PBP

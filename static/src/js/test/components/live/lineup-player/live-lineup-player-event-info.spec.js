@@ -13,9 +13,11 @@ describe('<LiveLineupPlayerEventInfo /> Component', () => {
   const renderComponent = (props) => mount(<LiveLineupPlayerEventInfo {...props} />);
 
   const defaultTestProps = {
-    info: 'Someone did something',
+    description: 'Someone did something',
     points: 10,
-    when: '5:32',
+    when: {
+      clock: '5:32',
+    },
   };
 
   afterEach(() => {
@@ -41,7 +43,7 @@ describe('<LiveLineupPlayerEventInfo /> Component', () => {
     const wrapper = renderComponent(defaultTestProps);
 
     expect(wrapper.find('.live-lineup-player-event-info__points').text()).to.equal('+10');
-    expect(wrapper.find('.live-lineup-player-event-info__info').text()).to.equal(defaultTestProps.info);
-    expect(wrapper.find('.live-lineup-player-event-info__when').text()).to.equal(defaultTestProps.when);
+    expect(wrapper.find('.live-lineup-player-event-info__description').text()).to.equal(defaultTestProps.description);
+    expect(wrapper.find('.live-lineup-player-event-info__when').text()).to.equal(defaultTestProps.when.clock);
   });
 });

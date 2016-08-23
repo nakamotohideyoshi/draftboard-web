@@ -4,6 +4,7 @@ import React from 'react';
 import uniq from 'lodash/uniq';
 import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
+import { fetchCurrentLineupsAndRelated } from '../../actions/current-lineups.js';
 import { updateWatchingAndPath } from '../../actions/watching.js';
 
 // assets
@@ -17,6 +18,7 @@ require('../../../sass/blocks/live/live-choose-lineup.scss');
  */
 const mapDispatchToProps = (dispatch) => ({
   actions: bindActionCreators({
+    fetchCurrentLineupsAndRelated,
     updateWatchingAndPath,
   }, dispatch),
 });
@@ -43,6 +45,8 @@ export const LiveChooseLineup = React.createClass({
     // if there's only one lineup, then just go to it
     if (this.props.lineups.length === 1) {
       this.selectLineup(this.props.lineups[0]);
+    } else {
+      this.setSingleSport();
     }
   },
 
@@ -55,17 +59,15 @@ export const LiveChooseLineup = React.createClass({
   },
 
   getModalContent() {
-    return this.shouldChoseSport() ? this.renderSports() : this.renderLineups();
+    return this.state.selectedSport ? this.renderLineups() : this.renderSports();
   },
 
-  shouldChoseSport() {
-    if (this.state.selectedSport) return false;
-
+  setSingleSport() {
     const differentSports = uniq(
       this.props.lineups.map((lineup) => lineup.sport)
     );
 
-    return differentSports.length > 1;
+    if (differentSports.length === 1) this.setState({ selectedSport: differentSports[0] });
   },
 
   selectSport(sport) {
@@ -81,6 +83,7 @@ export const LiveChooseLineup = React.createClass({
     };
 
     this.props.actions.updateWatchingAndPath(path, changedFields);
+    this.props.actions.fetchCurrentLineupsAndRelated(true);
   },
 
   sportLineups() {
@@ -111,25 +114,39 @@ export const LiveChooseLineup = React.createClass({
       >
         <h4 className={`${block}__name`}>{sport.toUpperCase()}</h4>
         <div className={`${block}__info`}>{sportLineups[sport]} lineups</div>
+        <svg className={`${block}__arrow`} viewBox="0 0 39.1 21.79">
+          <line className={`${block}__arrow-line`} x1="1.5" y1="10.84" x2="37.6" y2="10.84" />
+          <line className={`${block}__arrow-line`} x1="27.49" y1="1.5" x2="37.6" y2="10.84" />
+          <line className={`${block}__arrow-line`} x1="27.36" y1="20.29" x2="37.6" y2="10.84" />
+        </svg>
       </li>
     ));
   },
 
   renderLineups() {
-    const { block } = this.state;
+    const { block, selectedSport } = this.state;
 
-    return this.props.lineups.map((lineup) => (
-      <li
-        key={lineup.id}
-        className={`${block}__option`}
-        onClick={this.selectLineup.bind(this, lineup)}
-      >
-        <h4 className={`${block}__name`}>{lineup.name}</h4>
-        <div className={`${block}__info`}>
-          {moment(lineup.start).format('MMM Do, h:mma')}
-        </div>
-      </li>
-    ));
+    return this.props.lineups.filter(
+      lineup => selectedSport === lineup.sport
+    ).map(
+      (lineup) => (
+        <li
+          key={lineup.id}
+          className={`${block}__option`}
+          onClick={this.selectLineup.bind(this, lineup)}
+        >
+          <h4 className={`${block}__name`}>{lineup.name}</h4>
+          <div className={`${block}__info`}>
+            {moment(lineup.start).format('MMM Do, h:mma')}
+          </div>
+          <svg className={`${block}__arrow`} viewBox="0 0 39.1 21.79">
+            <line className={`${block}__arrow-line`} x1="1.5" y1="10.84" x2="37.6" y2="10.84" />
+            <line className={`${block}__arrow-line`} x1="27.49" y1="1.5" x2="37.6" y2="10.84" />
+            <line className={`${block}__arrow-line`} x1="27.36" y1="20.29" x2="37.6" y2="10.84" />
+          </svg>
+        </li>
+      )
+    );
   },
 
   render() {
@@ -137,9 +154,9 @@ export const LiveChooseLineup = React.createClass({
       return (<LiveLoading isContestPools={false} />);
     }
 
-    const { block } = this.state;
+    const { block, selectedSport } = this.state;
 
-    let title = (this.shouldChoseSport()) ? 'Choose a sport' : 'Choose a lineup';
+    let title = selectedSport ? 'Choose a lineup' : 'Choose a sport';
     if (this.props.lineups.length === 0) title = 'You have no entered lineups.';
 
     return (
