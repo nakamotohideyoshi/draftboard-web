@@ -51,7 +51,21 @@ const LivePlayerPane = React.createClass({
    */
   renderStatsAverage() {
     const seasonStats = this.props.seasonStats;
-    const { types, names } = SPORT_CONST[this.props.sport].seasonStats;
+    const { sport } = this.props;
+    let whichStats = {};
+
+    switch (sport) {
+      case 'nfl': {
+        const { position } = this.props.player;
+        const statsType = (position === 'QB') ? 'qb' : 'nonQb';
+        whichStats = SPORT_CONST[this.props.sport].seasonStats[statsType];
+        break;
+      }
+      default:
+        whichStats = SPORT_CONST[this.props.sport].seasonStats;
+    }
+
+    const { types, names } = whichStats;
 
     let renderedStats;
     if (seasonStats.hasOwnProperty('fp') === true) {

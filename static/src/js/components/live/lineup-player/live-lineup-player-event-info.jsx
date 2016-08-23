@@ -12,23 +12,23 @@ require('../../../../sass/blocks/live/lineup-player/live-lineup-player-event-inf
  * @return {jsx}          JSX of component
  */
 const LiveLineupPlayerEventInfo = (props) => {
-  const { points = null, info, when } = props;
+  const { points = null, description, when } = props;
   const block = 'live-lineup-player-event-info';
   const pointsDom = (points !== null) ? (<div className={`${block}__points`}>{humanizeFP(points, true)}</div>) : '';
 
   return (
     <div className={block}>
       {pointsDom}
-      <div className={`${block}__info`}>{info}</div>
-      <div className={`${block}__when`}>{when}</div>
+      <div className={`${block}__description`}>{description}</div>
+      <div className={`${block}__when`}>{when.clock}</div>
     </div>
   );
 };
 
 LiveLineupPlayerEventInfo.propTypes = {
-  info: React.PropTypes.string.isRequired,
+  description: React.PropTypes.string.isRequired,
   points: React.PropTypes.number,
-  when: React.PropTypes.string.isRequired,
+  when: React.PropTypes.object.isRequired,
 };
 
 export default LiveLineupPlayerEventInfo;

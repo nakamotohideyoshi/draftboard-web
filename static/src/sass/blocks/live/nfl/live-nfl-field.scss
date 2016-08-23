@@ -1,0 +1,63 @@
+//
+// BEM block for React LiveNFLField
+// - this is the field background, then there are LiveNBAFieldPlayers within it
+//
+
+$block: '.live-nfl-field';
+$imgDir: '../../../../img/blocks/live/nfl/live-nfl-field/';
+
+#{$block} {
+  background: transparent url('#{$imgDir}field.png') no-repeat center top;
+  background-size: 1326px 337px;
+  height: 337px;
+  width: 1326px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform-origin: 0 0;
+
+  &--debug {
+    border: 1px solid red;
+
+    #{$block}__item {
+      background-color: rgba(0, 0, 0, .15);
+      border: 1px solid green;
+
+      &:before {
+        background-color: red;
+        border-radius: 50%;
+        box-shadow: 2px 2px 2px rgba(0, 0, 0, .2);
+        content: '';
+        display: block;
+        height: 4px;
+        left: -2px;
+        position: absolute;
+        top: -2px;
+        width: 4px;
+      }
+    }
+  }
+}
+
+// annoying media queries to scale the football field, would love a dynamic way to accomplish this
+// but afaik you can't use calc() + percentage of width within a transform property
+@media (min-width: 1024px) and (max-width: 1279px) {
+  #{$block} {
+    transform: scale(0.55) translate(-50%, -50%);
+  }
+}
+@media (min-width: 1280px) and (max-width: 1439px) {
+  #{$block} {
+    transform: scale(0.6) translate(-50%, -50%);
+  }
+}
+@media (min-width: 1440px) and (max-width: 1599px) {
+  #{$block} {
+    transform: scale(0.72) translate(-50%, -50%);
+  }
+}
+@media (min-width: 1600px) {
+  #{$block} {
+    transform: scale(0.9) translate(-50%, -50%);
+  }
+}

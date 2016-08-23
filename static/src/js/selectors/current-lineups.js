@@ -26,7 +26,7 @@ const lineupsSelector = (state) => state.currentLineups;
 export const uniqueLineupsSelector = createSelector(
   [lineupsSelector],
   (lineups) => {
-    const uniqueLineupsArray = uniqBy(map(lineups.items, (lineup) => lineup), 'lineup');
+    const uniqueLineupsArray = uniqBy(map(lineups.items, (lineup) => lineup), 'id');
     const uniqueLineups = zipObject(
       map(uniqueLineupsArray, 'id'),
       // add in hasStarted to values

@@ -39,13 +39,13 @@ $block: '.live-choose-lineup';
   }
 
   &__option {
-    background: #fff url(../../../img/blocks/draft-group-select/arrows.png) no-repeat 90% 38px;
-    background-size: 15px auto;
+    background: #fff;
     border-bottom: 1px solid #d8dadf;
     cursor: pointer;
     display: block;
     margin: 0 5px;
     padding: 15px 25px;
+    position: relative;
     transition: margin 0.25s;
 
     &:last-child {
@@ -53,7 +53,6 @@ $block: '.live-choose-lineup';
     }
 
     &:hover {
-      background-position: 90% -73px;  // green arrow
       margin: 0;
 
       #{$block}__name {
@@ -63,7 +62,27 @@ $block: '.live-choose-lineup';
       #{$block}__info {
         color: #46495e;
       }
+
+      #{$block}__arrow-line {
+        stroke: #34cc68;
+      }
     }
+  }
+
+  &__arrow {
+    right: 25px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 15px;
+  }
+
+  &__arrow-line {
+    fill: none;
+    stroke: #d0d3db;
+    stroke-linecap: round;
+    stroke-miterlimit: 10;
+    stroke-width: 3px;
   }
 
   &__name {

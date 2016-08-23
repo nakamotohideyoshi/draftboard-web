@@ -6,6 +6,7 @@ import React from 'react';
 import size from 'lodash/size';
 import uniqBy from 'lodash/uniq';
 import { bindActionCreators } from 'redux';
+import { fetchSinglePlayerBoxScoreHistoryIfNeeded } from '../../actions/player-box-score-history-actions';
 import { updateLiveMode, updateWatchingAndPath } from '../../actions/watching';
 import {
   relevantPlayerBoxScoreHistoriesSelector,
@@ -25,6 +26,7 @@ require('../../../sass/blocks/live/live-lineup.scss');
  */
 const mapDispatchToProps = (dispatch) => ({
   actions: bindActionCreators({
+    fetchSinglePlayerBoxScoreHistoryIfNeeded,
     updateLiveMode,
     updateWatchingAndPath,
   }, dispatch),
@@ -114,6 +116,8 @@ const LiveLineup = React.createClass({
    */
   openPlayerPane(playerId) {
     this.setState({ viewPlayerDetails: playerId });
+
+    this.props.actions.fetchSinglePlayerBoxScoreHistoryIfNeeded(this.props.watching.sport, playerId);
 
     setTimeout(() => {
       if (this.props.whichSide === 'opponent') {

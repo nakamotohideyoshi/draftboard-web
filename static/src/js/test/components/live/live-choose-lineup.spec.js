@@ -111,6 +111,7 @@ describe('<LiveChooseLineup /> Component', () => {
       {}, lineupsSameSportProps, {
         actions: {
           updateWatchingAndPath: sinon.spy(),
+          fetchCurrentLineupsAndRelated: () => ({}),
         },
       }
     );

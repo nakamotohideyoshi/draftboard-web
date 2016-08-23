@@ -16,6 +16,8 @@ const LobbyDraftGroupSelectionSportItem = React.createClass({
 
 
   render() {
+    const block = 'cmp-draft-group-select';
+
     return (
       <li
         className="cmp-draft-group-select__sport"
@@ -25,6 +27,11 @@ const LobbyDraftGroupSelectionSportItem = React.createClass({
         <div className="cmp-draft-group-select__sub">
           {this.props.sportContestCounts[this.props.sport]} contests
         </div>
+        <svg className={`${block}__arrow`} viewBox="0 0 39.1 21.79">
+          <line className={`${block}__arrow-line`} x1="1.5" y1="10.84" x2="37.6" y2="10.84" />
+          <line className={`${block}__arrow-line`} x1="27.49" y1="1.5" x2="37.6" y2="10.84" />
+          <line className={`${block}__arrow-line`} x1="27.36" y1="20.29" x2="37.6" y2="10.84" />
+        </svg>
       </li>
     );
   },

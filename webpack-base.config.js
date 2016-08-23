@@ -55,6 +55,10 @@ module.exports = {
           'file-loader?name=img/[name]-[sha512:hash:base64:7].[ext]',
         ],
       },
+      {
+        test: /\.json$/,
+        loader: 'json-loader',
+      },
     ],
   },
 

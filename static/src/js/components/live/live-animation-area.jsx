@@ -1,6 +1,7 @@
 import { connect } from 'react-redux';
 import React from 'react';
 import LiveMLBStadium from './mlb/live-mlb-stadium';
+import LiveNFLField from './nfl/live-nfl-field';
 import LiveNBACourt from './live-nba-court';
 
 
@@ -10,7 +11,7 @@ import LiveNBACourt from './live-nba-court';
  * @return {object}       All of the methods we want to map to the component
  */
 const mapStateToProps = (state) => ({
-  animationEvents: state.events.animationEvents,
+  animationEvent: state.events.animationEvent,
   eventsMultipart: state.eventsMultipart,
   watching: state.watching,
 });
@@ -59,8 +60,16 @@ export const LiveAnimationArea = (props) => {
     case 'nba':
       venues.push(
         <LiveNBACourt
-          animationEvents={props.animationEvents}
+          animationEvent={props.animationEvent}
           key="nba"
+        />
+      );
+      break;
+    case 'nfl':
+      venues.push(
+        <LiveNFLField
+          animationEvent={props.animationEvent}
+          key="nfl"
         />
       );
       break;
@@ -76,7 +85,7 @@ export const LiveAnimationArea = (props) => {
 };
 
 LiveAnimationArea.propTypes = {
-  animationEvents: React.PropTypes.object.isRequired,
+  animationEvent: React.PropTypes.object,
   eventsMultipart: React.PropTypes.object.isRequired,
   watching: React.PropTypes.object.isRequired,
 };
