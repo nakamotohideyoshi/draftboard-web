@@ -197,6 +197,26 @@ class Player( models.Model ):
         # each player should only exist once in each group!
         unique_together = ('draft_group','salary_player')
 
+class AbstractPlayerLookup(models.Model):
+    """
+    abstract model for other apps to use to create a table that
+    links a Player to a third-party 'pid' (a player id)
+    """
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    # the GFK to the sports.<SPORT>.Player instance
+    player_type = models.ForeignKey(ContentType, related_name='%(app_label)s_%(class)s_player_lookup')
+    player_id = models.PositiveIntegerField()
+    player = GenericForeignKey('player_type', 'player_id')
+
+    # the third-party service's id for this player
+    pid = models.CharField(max_length=255, null=False)
+
+    class Meta:
+        abstract = True
+
 class AbstractUpdate(models.Model):
     """
     abstract parent model for PlayerUpdate, GameUpdate

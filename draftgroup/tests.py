@@ -92,7 +92,7 @@ class PlayerUpdateTest(AbstractTest, BuildWorldMixin):
         type = swish_update.get_field(UpdateData.field_source)
         value = swish_update.get_field(UpdateData.field_text)
 
-        # create a PlayerUpdate model in the db
+        # create a PlayerUpdate model in the db.
         player_update_manager = self.manager_class(sport)
         update_model = player_update_manager.add(
             update_id,

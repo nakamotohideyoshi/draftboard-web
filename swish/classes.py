@@ -6,8 +6,59 @@ import requests
 import json
 import dateutil
 from django.conf import settings
+from django.db.transaction import atomic
 from datetime import datetime, date, timedelta
 from util.utctime import UtcTime
+import draftgroup.classes
+from swish.models import (
+    History,
+    PlayerLookup,
+)
+
+class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
+    """
+    Swish Analytics own class for injecting PlayerUpdate objects into the backend
+    particularly so they show up in /api/draft-group/updates/{draft-group-id}/
+    """
+
+    # model class for looking up player -> third party id mappings set by admin
+    lookup_model_class = PlayerLookup
+
+    @atomic
+    def update(self, swish_update):
+        """
+        override. update this third party data and enter it as a PlayerUpdate
+
+        :param swish_update:
+        """
+
+        # get the players' swish id
+        pid = swish_update.get_field(UpdateData.field_player_id)
+        name = swish_update.get_field(UpdateData.field_player_name)
+
+        # try to get this player using the PlayerLookup (if the model is set)
+        # otherwise falls back on simple name-matching
+        player_srid = self.get_srid_for(pid=pid, name=name) # TODO catch self.PlayerDoesNotExist
+
+        # internally calls super().update(player_srid, *args, **kwargs)
+        update_id = swish_update.get_update_id()
+        updated_at = swish_update.get_updated_at()
+
+        # hard code this to use the category: 'injury' for testing
+        category = 'injury'
+        type = swish_update.get_field(UpdateData.field_source)
+        value = swish_update.get_field(UpdateData.field_text)
+
+        # create a PlayerUpdate model in the db.
+        update_obj = self.add(
+            player_srid,
+            update_id,
+            category,
+            type,
+            value,
+            published_at=updated_at
+        )
+        return update_obj
 
 class UpdateData(object):
     """ wrapper for each update object. this class is constructed with the JSON of an individual update """
@@ -61,6 +112,9 @@ class SwishAnalytics(object):
 
     class SwishApiException(Exception): pass
 
+    # we will save the api call response in this table
+    history_model_class = History
+
     api_base_url = 'https://api.swishanalytics.com'
     api_injuries = '/players/injuries'
     api_projections_game = '/players/fantasy'
@@ -78,13 +132,30 @@ class SwishAnalytics(object):
         # the list of updates (UpdateData objects) if it has been parsed will be set here
         self.updates = None
 
+    def get_sport(self):
+        return self.sport
+
+    def save_history(self, response):
+        """ save the http_status and the JSON of the response in the database """
+        history = self.history_model_class()
+        history.http_status = response.status_code
+        try:
+            data = json.loads(response.text)
+        except ValueError:
+            # set a default value because the History model cant set None for the data
+            data = {}
+
+        history.data = data
+        history.save()
+        # TODO raise exception if we could not parse anything in the body of the request
+
     def call_api(self, url):
         """ retrieve the api as json """
+        print('swish url:', str(url))
         self.r = self.session.get(url)
-        status_code = self.r.status_code
-        if status_code >= 300:
-            err_msg = 'http [%s]' % str(status_code)
-            raise self.SwishApiException(err_msg)
+
+        # save the response in the database
+        #self.save_history(self.r)
 
         # otherwise convert it to JSON and return the the data
         return json.loads(self.r.text)
@@ -121,5 +192,3 @@ class SwishNBA(SwishAnalytics):
 
 class SwishMLB(SwishAnalytics):
     sport = 'mlb'
-
-

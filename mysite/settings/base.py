@@ -103,7 +103,7 @@ INSTALLED_APPS = (
     'promocode',
     'promocode.bonuscash',
     'keyprefix',
-    'dataden',  # DataDen/MongoDB triggers
+    'dataden',                  # DataDen/MongoDB triggers
     'sports',
     'sports.mlb',
     'sports.nba',
@@ -118,18 +118,19 @@ INSTALLED_APPS = (
     'contest.refund',
     'contest.schedule',
     'scoring',
-    'scoring.baseball',  # generate stat-strings
+    'scoring.baseball',         # generate stat-strings
     'roster',
     'rakepaid',
     'test',
     'salary',
     'draftgroup',
-    'frontend',  # front end styles, layout, etc
-    'mysite',  # just for management command access
+    'frontend',                 # front end styles, layout, etc
+    'mysite',                   # just for management command access
     'replayer',
-    'pp',  # our implementation of a few required paypal apis
+    'pp',                       # our implementation of a few required paypal apis
     'lobby',
-    'swish',
+    'swish',                    # Swish Analytics
+    'statscom',                 # STATS.com
     'rest_framework_swagger',
 )
 
