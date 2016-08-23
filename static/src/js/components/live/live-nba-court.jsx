@@ -7,26 +7,23 @@ import LiveNBACourtShooter from './live-nba-court-shooter';
  * The court in the middle of the page
  */
 const LiveNBACourt = (props) => {
-  const currentEvents = Object.keys(props.animationEvents).map((key) => {
-    const event = props.animationEvents[key];
-
-    return (
-      <LiveNBACourtShooter
-        event={ event }
-        key={ event.id }
-      />
-    );
-  });
+  const { animationEvent } = props;
+  const currentEvent = (animationEvent === null) ? null : (
+    <LiveNBACourtShooter
+      event={ animationEvent }
+      key={ animationEvent.id }
+    />
+  );
 
   return (
     <section className="live__court live-nba-court">
-      { currentEvents }
+      { currentEvent }
     </section>
   );
 };
 
 LiveNBACourt.propTypes = {
-  animationEvents: React.PropTypes.object.isRequired,
+  animationEvent: React.PropTypes.object,
 };
 
 export default LiveNBACourt;

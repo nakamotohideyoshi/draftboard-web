@@ -1,4 +1,4 @@
-import { assert, expect } from 'chai';
+import { assert } from 'chai';
 import merge from 'lodash/merge';
 import reducer from '../../reducers/events';
 import * as types from '../../action-types';
@@ -9,8 +9,8 @@ describe('reducers.events', () => {
 
   it('should return the initial state', () => {
     assert.deepEqual(defaultState, {
-      animationEvents: {},
-      gamesQueue: {},
+      animationEvent: null,
+      queue: [],
       playerEventDescriptions: {},
       playerHistories: {},
       playersPlaying: [],
@@ -28,106 +28,37 @@ describe('reducers.events', () => {
   });
 
 
-  it('should handle EVENT_ADD_ANIMATION', () => {
+  it('should handle EVENT__SET_CURRENT', () => {
     let newState = reducer(defaultState, {
-      type: types.EVENT_ADD_ANIMATION,
-      key: 'myKey',
+      type: types.EVENT__SET_CURRENT,
       value: { foo: 'bar' },
     });
     assert.deepEqual(
-      newState.animationEvents.myKey,
+      newState.animationEvent,
       { foo: 'bar' }
     );
 
     // should replace existing animation event
     newState = merge({}, defaultState, {
-      animationEvents: {
-        key: 'myKey',
-        value: { oldKey: 'oldValue' },
-      },
+      animationEvent: { oldKey: 'oldValue' },
     });
     newState = reducer(newState, {
-      type: types.EVENT_ADD_ANIMATION,
-      key: 'myKey',
+      type: types.EVENT__SET_CURRENT,
       value: { foo: 'bar' },
     });
     assert.deepEqual(
-      newState.animationEvents.myKey,
+      newState.animationEvent,
       { foo: 'bar' }
     );
   });
 
 
-  it('should handle EVENT_ADD_GAME_QUEUE', () => {
-    assert.deepEqual(
-      reducer(undefined, {
-        type: types.EVENT_ADD_GAME_QUEUE,
-        gameId: '123',
-      }),
-      {
-        animationEvents: {},
-        gamesQueue: {
-          123: {
-            queue: [],
-          },
-        },
-        playerEventDescriptions: {},
-        playerHistories: {},
-        playersPlaying: [],
-      }
-    );
-
-    // should not be called if already added, but allow overwriting for now
-    assert.deepEqual(
-      reducer({
-        animationEvents: {},
-        gamesQueue: {
-          123: {
-            queue: [],
-          },
-        },
-        playerEventDescriptions: {},
-        playerHistories: {},
-        playersPlaying: [],
-      }, {
-        type: types.EVENT_ADD_GAME_QUEUE,
-        gameId: '123',
-      }),
-      {
-        animationEvents: {},
-        gamesQueue: {
-          123: {
-            queue: [],
-          },
-        },
-        playerEventDescriptions: {},
-        playerHistories: {},
-        playersPlaying: [],
-      }
-    );
-  });
-
-
   it('should handle EVENT_GAME_QUEUE_PUSH', () => {
-    // should fail if there is no game to add to
-    expect(
-      // expect needs a function not a result, so wrap in an anonymous func
-      () => reducer(undefined, {
-        type: types.EVENT_GAME_QUEUE_PUSH,
-        gameId: '123',
-        event: { foo: 'bar' },
-      })
-    ).to.throw(Error);
-
     // should work normally
     assert.deepEqual(
       reducer({
-        animationEvents: {},
-        gamesQueue: {
-          123: {
-            queue: [{ foo: 'bar' }],
-          },
-        },
+        animationEvent: null,
+        queue: [{ foo: 'bar' }],
         playerEventDescriptions: {},
         playerHistories: {},
         playersPlaying: [],
@@ -137,12 +68,8 @@ describe('reducers.events', () => {
         event: { bar: 'baz' },
       }),
       {
-        animationEvents: {},
-        gamesQueue: {
-          123: {
-            queue: [{ foo: 'bar' }, { bar: 'baz' }],
-          },
-        },
+        animationEvent: null,
+        queue: [{ foo: 'bar' }, { bar: 'baz' }],
         playerEventDescriptions: {},
         playerHistories: {},
         playersPlaying: [],
@@ -223,36 +150,20 @@ describe('reducers.events', () => {
 
 
   it('should handle EVENT_SHIFT_GAME_QUEUE', () => {
-    // don't bother deleting if no queue
+    // don't bother if nothing in the queue
     let newState = reducer(defaultState, {
       type: types.EVENT_SHIFT_GAME_QUEUE,
-      gameId: 'myGameQueueIdValue',
     });
-    assert.deepEqual(newState.gamesQueue, {});
-
-    // don't bother if nothing in the queue
-    newState = merge({}, defaultState, {
-      gamesQueue: {
-        myGameQueueIdValue: { queue: [] },
-      },
-    });
-    newState = reducer(newState, {
-      type: types.EVENT_SHIFT_GAME_QUEUE,
-      gameId: 'myGameQueueIdValue',
-    });
-    assert.deepEqual(newState.gamesQueue.myGameQueueIdValue.queue, []);
+    assert.deepEqual(newState.queue, []);
 
     // should shift if exists
     newState = merge({}, defaultState, {
-      gamesQueue: {
-        myGameQueueIdValue: { queue: ['history1', 'history2'] },
-      },
+      queue: ['history1', 'history2'],
     });
     newState = reducer(newState, {
       type: types.EVENT_SHIFT_GAME_QUEUE,
-      gameId: 'myGameQueueIdValue',
     });
-    assert.deepEqual(newState.gamesQueue.myGameQueueIdValue.queue, ['history2']);
+    assert.deepEqual(newState.queue, ['history2']);
   });
 
 

@@ -1,0 +1,229 @@
+{
+    "plays": {
+        "reception_pass_left": "reception-side-blue.png",
+        "reception_pass_middle": "reception-basket-blue.png",
+        "reception_pass_right": "reception-side-blue.png",
+        "reception_pass_deep_left": "reception-basket-blue.png",
+        "reception_pass_deep_middle": "reception-basket-blue.png",
+        "reception_pass_deep_right": "reception-basket-blue.png",
+        "reception_interception": "reception-interception-white.png",
+        "qb_shotgun_scramble_left": "qb-shotgun-scramble-blue.png",
+        "qb_shotgun_scramble_right": "qb-shotgun-scramble-blue.png",
+        "qb_shotgun_scramble_middle": "qb-shotgun-scramble-blue.png",
+        "qb_shotgun_handoff_left": "qb-shotgun-handoff-left-blue.png",
+        "qb_shotgun_handoff_middle": "qb-shotgun-handoff-right-blue.png",
+        "qb_shotgun_handoff_right": "qb-shotgun-handoff-right-blue.png",
+        "qb_shotgun_pass_left": "qb-shotgun-pass-left-blue.png",
+        "qb_shotgun_pass_middle": "qb-shotgun-pass-middle-blue.png",
+        "qb_shotgun_pass_right": "qb-shotgun-pass-right-blue.png",
+        "qb_shotgun_pass_deep_left": "qb-shotgun-pass-middle-blue.png",
+        "qb_shotgun_pass_deep_middle": "qb-shotgun-pass-middle-blue.png",
+        "qb_shotgun_pass_deep_right": "qb-shotgun-pass-middle-blue.png",
+        "qb_default_scramble_left": "qb-default-scramble-blue.png",
+        "qb_default_scramble_right": "qb-default-scramble-blue.png",
+        "qb_default_scramble_middle": "qb-default-scramble-blue.png",
+        "qb_default_handoff_left": "qb-default-handoff-left-blue.png",
+        "qb_default_handoff_middle": "qb-default-handoff-left-blue.png",
+        "qb_default_handoff_right": "qb-default-handoff-right-blue.png",
+        "qb_default_pass_left": "qb-default-pass-left-blue.png",
+        "qb_default_pass_middle": "qb-default-pass-middle-blue.png",
+        "qb_default_pass_right": "qb-default-pass-right-blue.png",
+        "qb_default_pass_deep_left": "qb-default-pass-deep-middle-blue.png",
+        "qb_default_pass_deep_middle": "qb-default-pass-deep-middle-blue.png",
+        "qb_default_pass_deep_right": "qb-default-pass-deep-middle-blue.png"
+    },
+    "clips": [
+        {
+            "file": "reception-side-blue.png",
+            "frame_width": 180,
+            "frame_height": 100,
+            "offset_x": 148,
+            "offset_y": 76,
+            "colors": {
+                "mine" : "reception-side-blue.png",
+                "opponent": "reception-side-red.png",
+                "both": "reception-side-white.png"
+            }
+        },
+        {
+            "file": "reception-basket-blue.png",
+            "frame_width": 190,
+            "frame_height": 110,
+            "offset_x": 156,
+            "offset_y": 84,
+            "colors": {
+                "mine" : "reception-basket-blue.png",
+                "opponent": "reception-basket-red.png",
+                "both": "reception-basket-white.png"
+            }
+        },
+        {
+            "file": "reception-interception-white.png",
+            "frame_width": 180,
+            "frame_height": 130,
+            "offset_x": 28,
+            "offset_y": 106,
+            "colors": {
+                "mine" : "reception-interception-white.png",
+                "opponent": "reception-interception-white.png",
+                "both": "reception-interception-white.png"
+            }
+        },
+        {
+            "file": "qb-shotgun-scramble-blue.png",
+            "frame_width": 200,
+            "frame_height": 90,
+            "offset_x": 184,
+            "offset_y": 66,
+            "colors": {
+                "mine" : "qb-shotgun-scramble-blue.png",
+                "opponent": "qb-shotgun-scramble-red.png",
+                "both": "qb-shotgun-scramble-blue.png"
+            }
+        },
+        {
+            "file": "qb-shotgun-handoff-left-blue.png",
+            "frame_width": 190,
+            "frame_height": 120,
+            "offset_x": 142,
+            "offset_y": 68,
+            "colors": {
+                "mine" : "qb-shotgun-handoff-left-blue.png",
+                "opponent": "qb-shotgun-handoff-left-red.png",
+                "both": "qb-shotgun-handoff-left-blue.png"
+            }
+        },
+        {
+            "file": "qb-shotgun-handoff-right-blue.png",
+            "frame_width": 200,
+            "frame_height": 120,
+            "offset_x": 134,
+            "offset_y": 72,
+            "colors": {
+                "mine" : "qb-shotgun-handoff-right-blue.png",
+                "opponent": "qb-shotgun-handoff-right-red.png",
+                "both": "qb-shotgun-handoff-right-blue.png"
+            }
+        },
+        {
+            "file": "qb-shotgun-pass-left-blue.png",
+            "frame_width": 160,
+            "frame_height": 100,
+            "offset_x": 158,
+            "offset_y": 76,
+            "colors": {
+                "mine" : "qb-shotgun-pass-left-blue.png",
+                "opponent": "qb-shotgun-pass-left-red.png",
+                "both": "qb-shotgun-pass-left-white.png"
+            }
+        },
+        {
+            "file": "qb-shotgun-pass-middle-blue.png",
+            "frame_width": 180,
+            "frame_height": 110,
+            "offset_x": 178,
+            "offset_y": 84,
+            "colors": {
+                "mine" : "qb-shotgun-pass-middle-blue.png",
+                "opponent": "qb-shotgun-pass-middle-red.png",
+                "both": "qb-shotgun-pass-middle-white.png"
+            }
+        },
+        {
+            "file": "qb-shotgun-pass-right-blue.png",
+            "frame_width": 140,
+            "frame_height": 90,
+            "offset_x": 134,
+            "offset_y": 52,
+            "colors": {
+                "mine" : "qb-shotgun-pass-right-blue.png",
+                "opponent": "qb-shotgun-pass-right-red.png",
+                "both": "qb-shotgun-pass-right-white.png"
+            }
+        },
+        {
+            "file": "qb-default-scramble-blue.png",
+            "frame_width": 170,
+            "frame_height": 80,
+            "offset_x": 144,
+            "offset_y": 56,
+            "colors": {
+                "mine" : "qb-default-scramble-blue.png",
+                "opponent": "qb-default-scramble-red.png",
+                "both": "qb-default-scramble-blue.png"
+            }
+        },
+        {
+            "file": "qb-default-handoff-left-blue.png",
+            "frame_width": 190,
+            "frame_height": 100,
+            "offset_x": 148,
+            "offset_y": 80,
+            "colors": {
+                "mine" : "qb-default-handoff-left-blue.png",
+                "opponent": "qb-default-handoff-left-red.png",
+                "both": "qb-default-handoff-left-white.png"
+            }
+        },
+        {
+            "file": "qb-default-handoff-right-blue.png",
+            "frame_width": 190,
+            "frame_height": 100,
+            "offset_x": 144,
+            "offset_y": 66,
+            "colors": {
+                "mine" : "qb-default-handoff-right-blue.png",
+                "opponent": "qb-default-handoff-right-red.png",
+                "both": "qb-default-handoff-right-white.png"
+            }
+        },
+        {
+            "file": "qb-default-pass-left-blue.png",
+            "frame_width": 190,
+            "frame_height": 90,
+            "offset_x": 158,
+            "offset_y": 70,
+            "colors": {
+                "mine" : "qb-default-pass-left-blue.png",
+                "opponent": "qb-default-pass-left-red.png",
+                "both": "qb-default-pass-left-white.png"
+            }
+        },
+        {
+            "file": "qb-default-pass-middle-blue.png",
+            "frame_width": 180,
+            "frame_height": 90,
+            "offset_x": 160,
+            "offset_y": 72,
+            "colors": {
+                "mine" : "qb-default-pass-middle-blue.png",
+                "opponent": "qb-default-pass-middle-red.png",
+                "both": "qb-default-pass-middle-white.png"
+            }
+        },
+        {
+            "file": "qb-default-pass-right-blue.png",
+            "frame_width": 150,
+            "frame_height": 90,
+            "offset_x": 120,
+            "offset_y": 60,
+            "colors": {
+                "mine" : "qb-default-pass-right-blue.png",
+                "opponent": "qb-default-pass-right-red.png",
+                "both": "qb-default-pass-right-white.png"
+            }
+        },
+        {
+            "file": "qb-default-pass-deep-middle-blue.png",
+            "frame_width": 210,
+            "frame_height": 110,
+            "offset_x": 188,
+            "offset_y": 90,
+            "colors": {
+                "mine" : "qb-default-pass-deep-middle-blue.png",
+                "opponent": "qb-default-pass-deep-middle-red.png",
+                "both": "qb-default-pass-deep-middle-white.png"
+            }
+        }
+    ]
+}

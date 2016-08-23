@@ -82,6 +82,8 @@ const addLineupsPlayers = () => (dispatch, getState) => {
     }
   });
 
+  if (Object.keys(lineupsPlayers).length === 0) return Promise.resolve();
+
   // returning a promise such that we can chain this method
   return dispatch(storeLineupsPlayers(lineupsPlayers));
 };

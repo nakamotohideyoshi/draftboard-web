@@ -4,7 +4,6 @@ import forEach from 'lodash/forEach';
 import log from '../lib/logging';
 import { CALL_API } from '../middleware/api';
 import { dateNow, hasExpired } from '../lib/utils';
-import { fetchPlayerBoxScoreHistoryIfNeeded } from './player-box-score-history-actions';
 import { fetchTeamsIfNeeded } from './sports';
 import { normalize, Schema, arrayOf } from 'normalizr';
 import { trackUnexpected } from './track-exceptions';
@@ -242,8 +241,7 @@ export const fetchDraftGroupIfNeeded = (id, sport) => (dispatch, getState) => {
     dispatch(fetchTeamsIfNeeded(sport)),
   ])
   .then(() =>
-    dispatch(fetchDraftGroupFPIfNeeded(id)),
-    dispatch(fetchPlayerBoxScoreHistoryIfNeeded(sport))
+    dispatch(fetchDraftGroupFPIfNeeded(id))
   )
   .then(() =>
     dispatch(confirmDraftGroupStored(id))

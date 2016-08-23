@@ -5,6 +5,7 @@ const initialState = {
   isFetching: false,
   nba: {},
   mlb: {},
+  nfl: {},
 };
 
 /**
@@ -12,8 +13,18 @@ const initialState = {
  *
  * These actions live in - player-history-actions.js
  */
-module.exports = (state = initialState, action) => {
+module.exports = (state = initialState, action = {}) => {
   switch (action.type) {
+
+    case ActionTypes.PLAYER_HISTORY_SINGLE__RECEIVE: {
+      const { id, sport, fields } = action.response;
+
+      return merge({}, state, {
+        [sport]: {
+          [id]: fields,
+        },
+      });
+    }
 
     case ActionTypes.FETCHING_PLAYER_BOX_SCORE_HISTORY:
       return merge({}, state, {

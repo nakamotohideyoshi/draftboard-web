@@ -15,7 +15,7 @@ $block: '.live-lineup-player-event-info';
   white-space: nowrap;
 
   &__points,
-  &__info,
+  &__description,
   &__when {
     display: inline-block;
   }
@@ -27,7 +27,7 @@ $block: '.live-lineup-player-event-info';
     margin-right: 12px;
   }
 
-  &__info {
+  &__description {
     color: #fff;
     font-size: 12px;
     margin-right: 4px;

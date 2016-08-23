@@ -192,40 +192,48 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
     );
   });
 
-  it('should properly find quarterback, receiver IDs and include in pass message', () => {
-    const response = store.dispatch(actions.onPBPReceived(defaultPassReceptionMessage, 'nfl'));
-    assert.deepEqual(
-      response.message.eventPlayers,
-      ['player2-receiver', 'player1-quarterback']
-    );
-  });
+  // it('should properly find quarterback, receiver IDs and include in pass message', () => {
+  //   const response = store.dispatch(actions.onPBPReceived(defaultPassReceptionMessage, 'nfl'));
+  //   assert.deepEqual(
+  //     response.message.eventPlayers,
+  //     ['player2-receiver', 'player1-quarterback']
+  //   );
+  // });
 
   it('should add pass pbp event if valid', () => {
     const response = store.dispatch(actions.onPBPReceived(defaultPassReceptionMessage, 'nfl'));
-    assert.deepEqual(
-      response.message,
-      {
-        description: '(14:30) (Shotgun) K.Cousins pass short right to A.Roberts to WAS 29 for 4 yards (B.Grimes).',
-        driveDirection: 'leftToRight',
-        eventPlayers: ['player2-receiver', 'player1-quarterback'],
-        fumbles: false,
-        formation: 'shotgun',
-        gameId: 'game1',
-        id: '7e49db54-68d0-444d-b244-690f3930b77b',
-        sport: 'nfl',
-        touchdown: false,
-        type: 'pass',
-        when: { clock: '14:30', quarter: 1 },
-        yardlineEnd: 0.29,
-        yardlineStart: 0.25,
+    const testAgainst = {
+      description: '(14:30) (Shotgun) K.Cousins pass short right to A.Roberts to WAS 29 for 4 yards (B.Grimes).',
+      driveDirection: 'leftToRight',
+      eventPlayers: ['player2-receiver', 'player1-quarterback'],
+      formation: 'shotgun',
+      fumbles: false,
+      gameId: 'game1',
+      side: 'middle',
+      sport: 'nfl',
+      touchdown: false,
+      type: 'pass',
+      when: { clock: '14:30', quarter: 1 },
+      yardlineEnd: 0.29,
+      yardlineStart: 0.25,
+      pass: {
         attemptedYards: 2,
         completed: true,
         distance: 'short',
         intercepted: false,
         sack: false,
+        sackYards: 0,
         side: 'right',
         yardsAfterCatch: 2,
-      }
+      },
+    };
+
+    // is a timestamp, remove to compare
+    delete(response.message.id);
+
+    assert.deepEqual(
+      response.message,
+      testAgainst
     );
     assert.equal(
       response.type,
@@ -243,25 +251,32 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
 
   it('should add rush pbp event if valid', () => {
     const response = store.dispatch(actions.onPBPReceived(defaultRushMessage, 'nfl'));
+    const testAgainst = {
+      description: '(15:00) A.Morris left tackle to WAS 25 for 5 yards (K.Sheppard).',
+      driveDirection: 'leftToRight',
+      eventPlayers: ['player1-rb'],
+      fumbles: false,
+      formation: 'default',
+      gameId: 'game1',
+      side: 'middle',
+      sport: 'nfl',
+      touchdown: false,
+      type: 'rush',
+      when: { clock: '15:00', quarter: 1 },
+      yardlineEnd: 0.25,
+      yardlineStart: 0.2,
+      rush: {
+        side: 'left',
+        scramble: false,
+      },
+    };
+
+    // is a timestamp, remove to compare
+    delete(response.message.id);
+
     assert.deepEqual(
       response.message,
-      {
-        description: '(15:00) A.Morris left tackle to WAS 25 for 5 yards (K.Sheppard).',
-        driveDirection: 'leftToRight',
-        eventPlayers: ['player1-rb'],
-        fumbles: false,
-        formation: 'default',
-        gameId: 'game1',
-        id: '7e49db54-68d0-444d-b244-690f3930b77b',
-        sport: 'nfl',
-        touchdown: false,
-        type: 'rush',
-        when: { clock: '15:00', quarter: 1 },
-        yardlineEnd: 0.25,
-        yardlineStart: 0.2,
-        scramble: false,
-        side: 'left',
-      }
+      testAgainst
     );
     assert.equal(
       response.type,
@@ -279,24 +294,31 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
 
   it('should add kickoff pbp event if valid', () => {
     const response = store.dispatch(actions.onPBPReceived(defaultKickoffMessage, 'nfl'));
+    const testAgainst = {
+      description: 'M.Bosher kicks 69 yards from ATL 35 to TEN -4. T.McBride to TEN 25 for 29 yards (K.White).',
+      driveDirection: 'leftToRight',
+      eventPlayers: ['player1-rb'],
+      formation: 'default',
+      fumbles: false,
+      gameId: 'game1',
+      side: 'middle',
+      sport: 'nfl',
+      touchdown: false,
+      type: 'kickoff',
+      when: { clock: '7:29', quarter: 1 },
+      yardlineEnd: 0.25,
+      yardlineStart: 0.35,
+      kickoff: {
+        returnYards: 29,
+      },
+    };
+
+    // is a timestamp, remove to compare
+    delete(response.message.id);
+
     assert.deepEqual(
       response.message,
-      {
-        description: 'M.Bosher kicks 69 yards from ATL 35 to TEN -4. T.McBride to TEN 25 for 29 yards (K.White).',
-        driveDirection: 'leftToRight',
-        eventPlayers: ['player1-rb'],
-        fumbles: false,
-        formation: 'default',
-        gameId: 'game1',
-        id: '7e49db54-68d0-444d-b244-690f3930b77b',
-        sport: 'nfl',
-        touchdown: false,
-        type: 'kickoff',
-        when: { clock: '7:29', quarter: 1 },
-        yardlineEnd: 0.25,
-        yardlineStart: 0.35,
-        returnYards: 29,
-      }
+      testAgainst
     );
     assert.equal(
       response.type,
@@ -318,30 +340,39 @@ describe('actions.events.pbp.onPBPReceived (nfl)', () => {
     delete(message.pbp.statistics.receive__list);
 
     const response = store.dispatch(actions.onPBPReceived(message, 'nfl'));
-    assert.deepEqual(
-      response.message,
-      { description: '(14:30) (Shotgun) K.Cousins pass short right to A.Roberts to WAS 29 for 4 yards (B.Grimes).',
-        driveDirection: 'leftToRight',
-        eventPlayers: ['player1-quarterback'],
-        fumbles: false,
-        formation: 'shotgun',
-        gameId: 'game1',
-        id: '7e49db54-68d0-444d-b244-690f3930b77b',
-        sport: 'nfl',
-        touchdown: false,
-        type: 'pass',
-        when: { clock: '14:30', quarter: 1 },
-        yardlineEnd: 0.29,
-        yardlineStart: 0.25,
+
+    const testAgainst = {
+      description: '(14:30) (Shotgun) K.Cousins pass short right to A.Roberts to WAS 29 for 4 yards (B.Grimes).',
+      driveDirection: 'leftToRight',
+      eventPlayers: ['player1-quarterback'],
+      formation: 'shotgun',
+      fumbles: false,
+      gameId: 'game1',
+      side: 'middle',
+      sport: 'nfl',
+      touchdown: false,
+      type: 'pass',
+      when: { clock: '14:30', quarter: 1 },
+      yardlineEnd: 0.29,
+      yardlineStart: 0.25,
+      pass: {
         attemptedYards: 2,
         completed: true,
         distance: 'short',
         intercepted: false,
         sack: true,
+        sackYards: -8,
         side: 'right',
         yardsAfterCatch: 0,
-        sackYards: -8,
-      }
+      },
+    };
+
+    // is a timestamp, remove to compare
+    delete(response.message.id);
+
+    assert.deepEqual(
+      response.message,
+      testAgainst
     );
     assert.equal(
       response.type,
