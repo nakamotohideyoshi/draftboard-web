@@ -13,13 +13,14 @@ const { API_DOMAIN = '' } = process.env;
 // Fetches an API response and normalizes the result JSON according to schema.
 // This makes every API response have the same shape, regardless of how nested it was.
 const callApi = (endpoint, callback) => fetch(`${API_DOMAIN}${endpoint}`, {
+  method: 'GET',
   credentials: 'same-origin',
   Accept: 'application/json',
   'X-CSRFToken': Cookies.get('csrftoken'),
 }).then(response => {
   // First, reject a response that isn't in the 200 range.
   if (!response.ok) {
-    log.error(`API request failed: ${endpoint}`, response);
+    log.debug(`API request failed: ${endpoint}`, response);
     // Log the request error to Sentry with some info.
     Raven.captureMessage(
       `API request failed: ${endpoint}`,

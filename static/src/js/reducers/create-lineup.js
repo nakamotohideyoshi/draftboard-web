@@ -199,6 +199,8 @@ const removePlayer = (playerId, state) => {
       }
     }
   }
+
+  log.error('player not found in lineup!', playerId, state.lineup);
 };
 
 
