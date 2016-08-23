@@ -26,6 +26,10 @@ export const SPORT_CONST = {
     periods: 4,
     players: 8,
     pregameStatuses: ['scheduled', 'created', 'time-tbd'],
+    liveStats: {
+      types: ['points', 'rebounds', 'steals', 'assists', 'blocks', 'turnovers'],
+      names: ['PTS', 'RB', 'ST', 'ASST', 'BLK', 'TO'],
+    },
     seasonStats: {
       types: ['fp', 'points', 'rebounds', 'assists', 'steals', 'blocks', 'turnovers'],
       names: ['FPPG', 'PPG', 'RPG', 'APG', 'STLPG', 'BLKPG', 'TOPG'],
@@ -38,9 +42,25 @@ export const SPORT_CONST = {
     periods: 4,
     players: 8,
     pregameStatuses: ['scheduled'],
+    liveStats: {
+      qb: {
+        types: ['avg_pass_yds', 'avg_pass_td', 'avg_rush_yds', 'avg_rush_td', 'avg_ints', 'avg_off_fum_lost'],
+        names: ['YPAS', 'PTD', 'YRSH', 'RTD', 'INT', 'FUM'],
+      },
+      nonQb: {
+        types: ['avg_rush_yds', 'avg_rec_rec', 'avg_rec_yds', 'avg_rush_td', 'avg_off_fum_lost'],
+        names: ['YRSH', 'REC', 'YREC', 'TD', 'FUM'],
+      },
+    },
     seasonStats: {
-      types: [],
-      names: [],
+      qb: {
+        types: ['avg_pass_yds', 'avg_pass_td', 'avg_rush_yds', 'avg_rush_td', 'avg_ints', 'avg_off_fum_lost'],
+        names: ['YPAS', 'PTD', 'YRSH', 'RTD', 'INT', 'FUM'],
+      },
+      nonQb: {
+        types: ['avg_rush_yds', 'avg_rec_rec', 'avg_rec_yds', 'avg_rush_td', 'avg_off_fum_lost'],
+        names: ['YRSH', 'REC', 'YREC', 'TD', 'FUM'],
+      },
     },
   },
   nhl: {
@@ -557,11 +577,16 @@ export const isGameReady = (state, dispatch, sport, gameId) => {
   const games = state.sports.games;
 
   // check if game is needed
-  if (!games.hasOwnProperty(gameId)) return false;
+  if (!games.hasOwnProperty(gameId)) {
+    logAction.debug('actions.isGameReady - game does not exist', gameId);
+    return false;
+  }
 
   // if no boxscore from the server, ask for it
   if (!games[gameId].hasOwnProperty('boxscore')) {
     dispatch(fetchSportIfNeeded(sport, true));
+
+    logAction.debug('actions.isGameReady - boxscore does not exist', gameId);
     return false;
   }
 

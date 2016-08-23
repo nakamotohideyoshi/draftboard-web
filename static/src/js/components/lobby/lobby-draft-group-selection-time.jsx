@@ -29,6 +29,7 @@ const LobbyDraftGroupSelectionTime = React.createClass({
 
   render() {
     const self = this;
+    const block = 'cmp-draft-group-select';
 
     const groups = map(self.props.draftGroups, (group) => {
       if (group.sport === self.props.selectedSport) {
@@ -44,6 +45,11 @@ const LobbyDraftGroupSelectionTime = React.createClass({
                 {group.contestCount} contests - {group.num_games} games
               </div>
             </a>
+            <svg className={`${block}__arrow`} viewBox="0 0 39.1 21.79">
+              <line className={`${block}__arrow-line`} x1="1.5" y1="10.84" x2="37.6" y2="10.84" />
+              <line className={`${block}__arrow-line`} x1="27.49" y1="1.5" x2="37.6" y2="10.84" />
+              <line className={`${block}__arrow-line`} x1="27.36" y1="20.29" x2="37.6" y2="10.84" />
+            </svg>
           </li>
         );
       }

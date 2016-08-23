@@ -1,13 +1,14 @@
 import filter from 'lodash/filter';
 import log from '../../lib/logging';
 import map from 'lodash/map';
-import merge from 'lodash/merge';
+// import merge from 'lodash/merge';
 import orderBy from 'lodash/orderBy';
 import random from 'lodash/random';
 import { addEventAndStartQueue } from '../events';
 import { humanizeFP } from '../../lib/utils/numbers';
 import { SPORT_CONST, isGameReady } from '../sports';
 import { trackUnexpected } from '../track-exceptions';
+import { dateNow } from '../../lib/utils';
 
 // get custom logger for actions
 const logAction = log.getLogger('action');
@@ -354,7 +355,6 @@ const getNFLData = (message, gameId, game) => {
     description,
     end_situation = {},
     extra_info = {},
-    id,
     start_situation = {},
     statistics = {},
     type,
@@ -369,18 +369,22 @@ const getNFLData = (message, gameId, game) => {
   const endLocation = end_situation.location || {};
   /* eslint-enable camelcase */
 
-  // use defense to determine direction because offense has no constant team field
-  const driveDirection = (game.srid_away === statistics.defense__list.team) ? 'leftToRight' : 'rightToLeft';
+  // use offense to determine direction because offense has no constant team field
+  let driveDirection = 'leftToRight';
+  if ('down_conversion__list' in statistics) {
+    driveDirection = (game.srid_away === statistics.down_conversion__list.team) ? 'rightToLeft' : 'leftToRight';
+  }
 
   const data = {
     description,
     driveDirection,
     eventPlayers: compileEventPlayers(message, 'nfl'),
-    fumbles,
     formation,
+    fumbles,
     gameId,
-    id,
+    id: dateNow(),  // since we don't pass through an ID, use timestamp
     sport: 'nfl',
+    side: 'middle',  // hardcoding start position, vertically, to the middle
     touchdown,
     type,
     when: {
@@ -390,7 +394,7 @@ const getNFLData = (message, gameId, game) => {
     yardlineEnd: yardlineToDecimal(endLocation.yardline, driveDirection),
     yardlineStart: yardlineToDecimal(startLocation.yardline, driveDirection),
   };
-  let extraData;
+  // let extraData;
 
   switch (type) {
     case 'pass': {
@@ -398,29 +402,27 @@ const getNFLData = (message, gameId, game) => {
       const { receive__list = {}, pass__list = {} } = statistics;
       const { intercepted } = extra_info;
       const { distance = 'short', side = 'middle' } = extra_info.pass || {};
-      const { att_yards = 0, complete = 0, sack = false } = pass__list;
+      const { att_yards = 0, complete = 0, sack = false, sack_yards = 0 } = pass__list;
       const { yards_after_catch = 0 } = receive__list;
       /* eslint-enable camelcase */
 
-      extraData = {
+      data.pass = {
         attemptedYards: att_yards,
         completed: complete > 0,
         distance,  // options are ['short', 'deep']
-        formation: 'shotgun',  // options are ['shotgun', 'default']
         intercepted,
         sack,
+        sackYards: sack_yards,  // figure out why this isn't coming through
         side,  // side thrown to options are ['left', 'middle', 'right']
         yardsAfterCatch: yards_after_catch,
       };
 
-      // optional field
-      if (sack === true) extraData.sackYards = pass__list.sack_yards;
       break;
     }
     case 'rush': {
       const { scramble = false, side = 'middle' } = extra_info.rush || {};
 
-      extraData = {
+      data.rush = {
         scramble,  // true indicates QB sneak
         side,
       };
@@ -432,7 +434,7 @@ const getNFLData = (message, gameId, game) => {
       const { yards = 0 } = return__list;
       /* eslint-enable camelcase */
 
-      extraData = {
+      data.kickoff = {
         returnYards: yards,
       };
       break;
@@ -441,7 +443,8 @@ const getNFLData = (message, gameId, game) => {
       break;
   }
 
-  return merge(data, extraData);
+  return data;
+  // return merge(data, extraData);
 };
 
 /*

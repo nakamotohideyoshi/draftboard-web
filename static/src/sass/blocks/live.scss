@@ -58,11 +58,18 @@ $block: '.live';
   &__venues-inner {
     display: table-cell;
     vertical-align: middle;
+    position: relative;
   }
 
   &__venue-mlb {
     width: 100%;
     min-height: 215px;  // same height has pitch-zone, since it's absolute
     text-align: center;
+  }
+
+  &__venue-nfl {
+    width: 100%;
+    min-height: 215px;  // same height has pitch-zone, since it's absolute
+    position: relative;
   }
 }

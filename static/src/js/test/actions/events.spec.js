@@ -33,61 +33,6 @@ const event = {
 };
 const gameId = '73e40c5f-c690-4936-8853-339ed43dcc76';
 
-describe('actions.events.storeEvent', () => {
-  it('should correctly save a new event', () => {
-    // initial store, state
-    const store = mockStore({
-      events: eventsReducer(undefined, {}),
-    });
-
-    // data coming out
-    const expectedActions = [{
-      type: 'BATCHING_REDUCER.BATCH',
-      payload: [
-        {
-          gameId,
-          type: types.EVENT_ADD_GAME_QUEUE,
-        },
-        {
-          type: types.EVENT_GAME_QUEUE_PUSH,
-          gameId,
-          event,
-        },
-      ],
-    }];
-
-    store.dispatch(actions.storeEvent(gameId, event));
-    assert.deepEqual(store.getActions(), expectedActions);
-  });
-
-  it('should correctly add an event to existing game queue', () => {
-    // initial store, state
-    const store = mockStore({
-      events: {
-        gamesQueue: {
-          [gameId]: [{}],
-        },
-      },
-    });
-
-    // data coming out
-    const expectedActions = [{
-      type: 'BATCHING_REDUCER.BATCH',
-      payload: [
-        {
-          type: types.EVENT_GAME_QUEUE_PUSH,
-          gameId,
-          event,
-        },
-      ],
-    }];
-
-    store.dispatch(actions.storeEvent(gameId, event));
-    assert.deepEqual(store.getActions(), expectedActions);
-  });
-});
-
-
 describe('actions.events.addEventAndStartQueue', () => {
   // initial state to mock the store with
   const defaultEventStore = {
@@ -113,30 +58,12 @@ describe('actions.events.addEventAndStartQueue', () => {
     };
 
     // initial store, state
-    const store = mockStore(Object.assign({}, defaultEventStore, {
-      events: {
-        gamesQueue: {
-          game1: {
-            queue: [defaultMessage],
-          },
-        },
-      },
-    }));
+    const store = mockStore(defaultEventStore);
 
     // data coming out
     const expectedActions = [{
-      type: 'BATCHING_REDUCER.BATCH',
-      payload: [
-        {
-          gameId,
-          type: types.EVENT_ADD_GAME_QUEUE,
-        },
-        {
-          type: types.EVENT_GAME_QUEUE_PUSH,
-          gameId,
-          event,
-        },
-      ],
+      type: types.EVENT_GAME_QUEUE_PUSH,
+      event,
     }];
 
     return store.dispatch(actions.addEventAndStartQueue(gameId, defaultMessage, 'pbp', 'mlb'))
@@ -180,15 +107,7 @@ describe('actions.events.showGameEvent', () => {
 
   it('should update player stats if no relevant players involved', () => {
     // initial store, state
-    const store = mockStore(Object.assign({}, defaultStore, {
-      events: {
-        gamesQueue: {
-          game1: {
-            queue: [],
-          },
-        },
-      },
-    }));
+    const store = mockStore(defaultStore);
 
     const response = store.dispatch(actions.showGameEvent(defaultMessage));
     // false because we don't have any of these players in a draft group
@@ -211,15 +130,7 @@ describe('actions.events.showGameEvent', () => {
     });
 
     // initial store, state
-    const store = mockStore(Object.assign({}, defaultStore, {
-      events: {
-        gamesQueue: {
-          game1: {
-            queue: [],
-          },
-        },
-      },
-    }));
+    const store = mockStore(defaultStore);
 
     // data coming out
     const expectedActions = [{

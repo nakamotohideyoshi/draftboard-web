@@ -6,6 +6,9 @@ static/src/js/lib/easing.js
 static/src/js/lib/smooth-scroll-to.js
 static/src/js/lib/time.js
 
+# Ignore nfl-animations until cleaned up
+static/src/js/lib/live-animations/*
+
 # ignore pusher-stub-test
 static/src/js/lib/pusher-test-stub/*
 
