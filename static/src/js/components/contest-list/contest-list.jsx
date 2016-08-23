@@ -12,9 +12,9 @@ import forEach from 'lodash/forEach';
 const ContestList = (props) => {
   const visibleRows = [];
 
-  if (props.isFetchingContestPools) {
+  if (props.isFetchingContestPools && props.contests.length === 0) {
     visibleRows.push(
-      <tr><td colSpan="8">Loading Contests</td></tr>
+      <tr key="loading"><td colSpan="8">Loading Contests</td></tr>
     );
   }
 

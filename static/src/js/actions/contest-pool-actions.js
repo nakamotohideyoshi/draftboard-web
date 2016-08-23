@@ -1,4 +1,5 @@
-import request from 'superagent';
+import Raven from 'raven-js';
+// import request from 'superagent';
 import { normalize, Schema, arrayOf } from 'normalizr';
 import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
@@ -6,7 +7,12 @@ import * as actionTypes from '../action-types';
 import { addMessage } from './message-actions.js';
 import { CALL_API } from '../middleware/api';
 import { fetchCashBalanceIfNeeded } from './user.js';
-
+import fetch from 'isomorphic-fetch';
+// custom API domain for local dev testing
+let { API_DOMAIN = '' } = process.env;
+// For some dumb reason fetch isn't adding the domain for POST requests, when testing we need
+// a full domain in order for nock to work.
+if (process.env.NODE_ENV === 'test') { API_DOMAIN = 'http://localhost:80'; }
 
 const contestSchema = new Schema('contests', {
   idAttribute: 'id',
@@ -166,53 +172,85 @@ export function enterContest(contestPoolId, lineupId) {
       lineupId,
     });
 
-    request
-    .post('/api/contest/enter-lineup/')
-    .set({
-      'X-REQUESTED-WITH': 'XMLHttpRequest',
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      Accept: 'application/json',
-    })
-    .send(postData)
-    .end((err, res) => {
-      if (err) {
-        log.error('Contest entry request status error:', res);
+
+    // Make an API request.
+    return fetch(`${API_DOMAIN}/api/contest/enter-lineup/`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        'X-CSRFToken': Cookies.get('csrftoken'),
+        username: Cookies.get('username'),
+      },
+      body: JSON.stringify(postData),
+    }).then((response) => {
+      // First, reject a response that isn't in the 200 range.
+      if (!response.ok) {
+        // Log the request error to Sentry with some info.
+        Raven.captureMessage(
+          'API request failed: /api/contest/enter-lineup/',
+          { extra: {
+            status: response.status,
+            statusText: response.statusText,
+            url: response.url,
+          },
+        });
+
         // Fetch the user's current contest pool entries which will force the UI to update.
         dispatch(fetchContestPoolEntries());
         // Re-Fetch the contest list that will have an updated current_entries count.
         dispatch(fetchContestPools());
 
-        dispatch(addMessage({
-          header: 'Unable to join contest.',
-          level: 'warning',
-          content: res.text,
-        }));
-        // Tell the state the entry attempt failed.
-        dispatch({
-          type: actionTypes.ENTERING_CONTEST_POOL_FAIL,
-          contestPoolId,
-          lineupId,
-        });
-      } else {
-        // Because the user just entered a contest, their cash balance should be different.
-        dispatch(fetchCashBalanceIfNeeded());
-        // Fetch the user's current contest pool entries which will force the UI to update.
-        dispatch(fetchContestPoolEntries());
-        // Re-Fetch the contest list that will have an updated current_entries count.
-        dispatch(fetchContestPools());
-        // Display a success message to the user.
-        dispatch(addMessage({
-          level: 'success',
-          header: 'Your lineup has been entered.',
-          ttl: 2000,
-        }));
-        // Tell the state the entry attempt succeeded.
-        dispatch({
-          type: actionTypes.ENTERING_CONTEST_POOL_SUCCESS,
-          contestPoolId,
-          lineupId,
-        });
+        // Read the text of the response and show it in a banner message
+        return response.json().then(
+          json => {
+            // Tell the state the entry attempt failed.
+            dispatch({
+              type: actionTypes.ENTERING_CONTEST_POOL_FAIL,
+              contestPoolId,
+              lineupId,
+            });
+
+            // Show the user a message
+            dispatch(addMessage({
+              header: 'Unable to join contest.',
+              level: 'warning',
+              content: json.detail,
+            }));
+
+            // Kill the promise chain.
+            return Promise.reject({ contestPoolId, lineupId, response: json });
+          }
+        );
       }
+
+      // If the request was a success, parse the (hopefully) json from the response body.
+      return response.json().then(json => ({ json, response }));
+    }).then((json) => {
+      // Because the user just entered a contest, their cash balance should be different.
+      dispatch(fetchCashBalanceIfNeeded());
+      // Fetch the user's current contest pool entries which will force the UI to update.
+      dispatch(fetchContestPoolEntries());
+      // Re-Fetch the contest list that will have an updated current_entries count.
+      dispatch(fetchContestPools());
+      // Display a success message to the user.
+      dispatch(addMessage({
+        level: 'success',
+        header: 'Your lineup has been entered.',
+        ttl: 2000,
+      }));
+      // Tell the state the entry attempt succeeded.
+      dispatch({
+        type: actionTypes.ENTERING_CONTEST_POOL_SUCCESS,
+        contestPoolId,
+        lineupId,
+      });
+
+      return Promise.resolve(json);
+    }).catch((ex) => {
+      log.error(ex);
     });
   };
 }
@@ -301,21 +339,42 @@ export function removeContestPoolEntry(entry) {
       entry,
     });
 
-    request
-    .post(`/api/contest/unregister-entry/${entry.id}/`)
-    .set({
-      'X-REQUESTED-WITH': 'XMLHttpRequest',
-      'X-CSRFToken': Cookies.get('csrftoken'),
-      Accept: 'application/json',
-    })
-    .end((err, res) => {
-      if (err) {
+    // Make an API request.
+    fetch(`/api/contest/unregister-entry/${entry.id}/`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-REQUESTED-WITH': 'XMLHttpRequest',
+        'X-CSRFToken': Cookies.get('csrftoken'),
+        username: Cookies.get('username'),
+      },
+    }).then((response) => {
+      // First, reject a response that isn't in the 200 range.
+      if (!response.ok) {
+        log.debug(`API request failed: /api/contest/unregister-entry/${entry.id}/`, response);
+        // Log the request error to Sentry with some info.
+        Raven.captureMessage(
+          'API request failed: /api/contest/unregister-entry/{entry.id}',
+          { extra: {
+            status: response.status,
+            statusText: response.statusText,
+            url: response.url,
+            entry: entry.id,
+          },
+        });
+
         // Show the user an error message.
-        dispatch(addMessage({
-          header: 'Unable to remove contest entry.',
-          content: res.body.error,
-          level: 'warning',
-        }));
+        response.text().then(
+          text => {
+            dispatch(addMessage({
+              header: 'Unable to remove contest entry.',
+              level: 'warning',
+              content: text,
+            }));
+          }
+        );
 
         // tell the state it failed.
         dispatch({
@@ -330,26 +389,32 @@ export function removeContestPoolEntry(entry) {
         // Re-Fetch the contest list that will have an updated current_entries count.
         dispatch(fetchContestPools());
 
-        log.error(res);
-      } else {
-        dispatch({
-          type: actionTypes.REMOVING_CONTEST_POOL_ENTRY_SUCCESS,
-          entry,
-        });
-
-        // Because the user just entered a contest, their cash balance should be different.
-        dispatch(fetchCashBalanceIfNeeded());
-        // Fetch the user's current contest pool entries which will force the UI to update.
-        dispatch(fetchContestPoolEntries());
-        // Re-Fetch the contest list that will have an updated current_entries count.
-        dispatch(fetchContestPools());
-        // Display a success message to the user.
-        dispatch(addMessage({
-          level: 'success',
-          header: 'Your lineup entry has been removed.',
-          ttl: 3000,
-        }));
+        // Kill the promise chain.
+        return Promise.reject(response);
       }
+
+      dispatch({
+        type: actionTypes.REMOVING_CONTEST_POOL_ENTRY_SUCCESS,
+        entry,
+      });
+
+      // Because the user just entered a contest, their cash balance should be different.
+      dispatch(fetchCashBalanceIfNeeded());
+      // Fetch the user's current contest pool entries which will force the UI to update.
+      dispatch(fetchContestPoolEntries());
+      // Re-Fetch the contest list that will have an updated current_entries count.
+      dispatch(fetchContestPools());
+      // Display a success message to the user.
+      dispatch(addMessage({
+        level: 'success',
+        header: 'Your lineup entry has been removed.',
+        ttl: 3000,
+      }));
+
+      // If the request was a success, parse the (hopefully) json from the response body.
+      return response.json().then(json => ({ json, response }));
+    }).then((json) => {
+      log.debug(json);
     });
   };
 }
