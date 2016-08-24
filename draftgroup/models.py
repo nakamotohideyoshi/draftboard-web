@@ -234,6 +234,14 @@ class AbstractUpdate(models.Model):
     type = models.CharField(max_length=128, null=False, default='')
     value = models.CharField(max_length=1024 * 8, null=False, default='')
 
+    # swish status
+    status = models.CharField(max_length=128, null=False, default='na')
+
+    # a name, typically, for twitter this will be @their_twitter_name
+    source_origin = models.CharField(max_length=255, null=True)
+    # a url, of the original post, ie: for twitter, link straight to the tweet
+    url_origin = models.CharField(max_length=255, null=True)
+
     class Meta:
         abstract = True
 

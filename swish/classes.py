@@ -49,6 +49,13 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
         type = swish_update.get_field(UpdateData.field_source)
         value = swish_update.get_field(UpdateData.field_text)
 
+        # get status
+        status = swish_update.get_field(UpdateData.field_swish_status, 'unknown')
+        # get source_origin
+        source_origin = swish_update.get_field(UpdateData.field_source_origin, 'unknown')
+        # get url_origin
+        url_origin = swish_update.get_field(UpdateData.field_url_origin, '')
+
         # create a PlayerUpdate model in the db.
         update_obj = self.add(
             player_srid,
@@ -56,6 +63,9 @@ class PlayerUpdateManager(draftgroup.classes.PlayerUpdateManager):
             category,
             type,
             value,
+            status,
+            source_origin,
+            url_origin,
             published_at=updated_at
         )
         return update_obj
@@ -73,12 +83,21 @@ class UpdateData(object):
     field_source = 'source'
     field_source_origin = 'sourceOrigin'    # ie: rotowire, twitter, etc...
     field_swish_status = 'swishStatus'      # ie: 'week-to-week', etc...
+    field_url_origin = 'urlOrigin'          # for twitter, the url to the post
 
     def __init__(self, data):
         self.data = data
 
-    def get_field(self, field):
-        return self.data.get(field)
+    def get_field(self, field, default=None):
+        """
+        get the named field. the default return value can be specified
+         in the case that a None value would be found.
+
+        :param field:
+        :param default:
+        :return:
+        """
+        return self.data.get(field, default)
 
     def get_updated_at(self):
         """
@@ -152,19 +171,19 @@ class SwishAnalytics(object):
     def get_sport(self):
         return self.sport
 
-    def save_history(self, response):
-        """ save the http_status and the JSON of the response in the database """
-        history = self.history_model_class()
-        history.http_status = response.status_code
-        try:
-            data = json.loads(response.text)
-        except ValueError:
-            # set a default value because the History model cant set None for the data
-            data = {}
-
-        history.data = data
-        history.save()
-        # TODO raise exception if we could not parse anything in the body of the request
+    # def save_history(self, response):
+    #     """ save the http_status and the JSON of the response in the database """
+    #     history = self.history_model_class()
+    #     history.http_status = response.status_code
+    #     try:
+    #         data = json.loads(response.text)
+    #     except ValueError:
+    #         # set a default value because the History model cant set None for the data
+    #         data = {}
+    #
+    #     history.data = data
+    #     history.save()
+    #     # we could raise exception if we could not parse anything in the body of the request
 
     def call_api(self, url):
         """ retrieve the api as json """
