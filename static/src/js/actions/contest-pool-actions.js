@@ -1,5 +1,4 @@
 import Raven from 'raven-js';
-// import request from 'superagent';
 import { normalize, Schema, arrayOf } from 'normalizr';
 import Cookies from 'js-cookie';
 import log from '../lib/logging.js';
@@ -231,24 +230,36 @@ export function enterContest(contestPoolId, lineupId) {
     }).then((json) => {
       // Because the user just entered a contest, their cash balance should be different.
       dispatch(fetchCashBalanceIfNeeded());
-      // Fetch the user's current contest pool entries which will force the UI to update.
-      dispatch(fetchContestPoolEntries());
       // Re-Fetch the contest list that will have an updated current_entries count.
       dispatch(fetchContestPools());
-      // Display a success message to the user.
-      dispatch(addMessage({
-        level: 'success',
-        header: 'Your lineup has been entered.',
-        ttl: 2000,
-      }));
-      // Tell the state the entry attempt succeeded.
-      dispatch({
-        type: actionTypes.ENTERING_CONTEST_POOL_SUCCESS,
-        contestPoolId,
-        lineupId,
-      });
 
-      return Promise.resolve(json);
+      // Fetch the user's current contest pool entries which will force the UI to update.
+      //
+      // Before we show + tell the user that their entry was a success, grab all of their entries
+      // from the API.
+      //
+      // We do this because our options are to:
+      // A: Stuff the entry that was just created into our current state.
+      // B: Grab ALL entries from the server to make sure we are in sync.
+      //
+      // B is the chosen path.
+      return dispatch(fetchContestPoolEntries()).then(() => {
+        // Tell the state the entry attempt succeeded.
+        dispatch({
+          type: actionTypes.ENTERING_CONTEST_POOL_SUCCESS,
+          contestPoolId,
+          lineupId,
+        });
+
+        // Display a success message to the user.
+        dispatch(addMessage({
+          level: 'success',
+          header: 'Your lineup has been entered.',
+          ttl: 2000,
+        }));
+
+        return Promise.resolve(json);
+      });
     }).catch((ex) => {
       log.error(ex);
     });
@@ -260,67 +271,70 @@ export function enterContest(contestPoolId, lineupId) {
  *
  * Fetch the usernames of users who have entered into a specific contest.
  *
+ * NOTE: disabled due to contest pool entrants not making much sense, but only commented out
+ * because legal issues may necessitate this feature.
+ *
  */
 
 // Do we need to fetch the specified contest entrants?
-function shouldFetchContestEntrants(state, contestId) {
-  const entrants = state.contestPools.entrants;
-
-  if (entrants.hasOwnProperty(contestId)) {
-    // does the state already have entrants for this contest?
-    return false;
-  } else if (state.contestPools.isFetchingEntrants) {
-    // are we currently fetching it?
-    return false;
-  }
-
-  // Default to true.
-  return true;
-}
-
-
-const fetchContestEntrants = (contestId) => (dispatch) => {
-  const apiActionResponse = dispatch({
-    [CALL_API]: {
-      types: [
-        actionTypes.FETCHING_CONTEST_ENTRANTS,
-        actionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS,
-        actionTypes.ADD_MESSAGE,
-      ],
-      endpoint: `/api/contest/registered-users/${contestId}/`,
-      callback: (json) => {
-        /* eslint-disable no-param-reassign */
-        json.contestId = contestId;
-        /* eslint-enable no-param-reassign */
-        return json;
-      },
-    },
-  });
-
-  apiActionResponse.then((action) => {
-    // If something fails, the 3rd action is dispatched, then this.
-    if (action.error) {
-      dispatch({
-        type: actionTypes.FETCH_CONTEST_ENTRANTS_FAIL,
-        response: action.error,
-      });
-    }
-  });
-
-  // Return the promise chain in case we want to use it elsewhere.
-  return apiActionResponse;
-};
-
-
-export function fetchContestEntrantsIfNeeded(contestId) {
-  return (dispatch, getState) => {
-    if (shouldFetchContestEntrants(getState(), contestId)) {
-      return dispatch(fetchContestEntrants(contestId));
-    }
-
-    return Promise.resolve();
-  };
-}
+// function shouldFetchContestEntrants(state, contestId) {
+//   const entrants = state.contestPools.entrants;
+//
+//   if (entrants.hasOwnProperty(contestId)) {
+//     // does the state already have entrants for this contest?
+//     return false;
+//   } else if (state.contestPools.isFetchingEntrants) {
+//     // are we currently fetching it?
+//     return false;
+//   }
+//
+//   // Default to true.
+//   return true;
+// }
+//
+//
+// const fetchContestEntrants = (contestId) => (dispatch) => {
+//   const apiActionResponse = dispatch({
+//     [CALL_API]: {
+//       types: [
+//         actionTypes.FETCHING_CONTEST_ENTRANTS,
+//         actionTypes.FETCH_CONTEST_ENTRANTS_SUCCESS,
+//         actionTypes.ADD_MESSAGE,
+//       ],
+//       endpoint: `/api/contest/registered-users/${contestId}/`,
+//       callback: (json) => {
+//         /* eslint-disable no-param-reassign */
+//         json.contestId = contestId;
+//         /* eslint-enable no-param-reassign */
+//         return json;
+//       },
+//     },
+//   });
+//
+//   apiActionResponse.then((action) => {
+//     // If something fails, the 3rd action is dispatched, then this.
+//     if (action.error) {
+//       dispatch({
+//         type: actionTypes.FETCH_CONTEST_ENTRANTS_FAIL,
+//         response: action.error,
+//       });
+//     }
+//   });
+//
+//   // Return the promise chain in case we want to use it elsewhere.
+//   return apiActionResponse;
+// };
+//
+//
+// export function fetchContestEntrantsIfNeeded(contestId) {
+//   return (dispatch, getState) => {
+//     if (shouldFetchContestEntrants(getState(), contestId)) {
+//       return dispatch(fetchContestEntrants(contestId));
+//     }
+//
+//     return Promise.resolve();
+//   };
+// }
 
 
 export function upcomingContestUpdateReceived(contest) {
@@ -340,7 +354,7 @@ export function removeContestPoolEntry(entry) {
     });
 
     // Make an API request.
-    fetch(`/api/contest/unregister-entry/${entry.id}/`, {
+    return fetch(`${API_DOMAIN}/api/contest/unregister-entry/${entry.id}/`, {
       method: 'POST',
       credentials: 'same-origin',
       headers: {
@@ -353,44 +367,32 @@ export function removeContestPoolEntry(entry) {
     }).then((response) => {
       // First, reject a response that isn't in the 200 range.
       if (!response.ok) {
-        log.debug(`API request failed: /api/contest/unregister-entry/${entry.id}/`, response);
-        // Log the request error to Sentry with some info.
-        Raven.captureMessage(
-          'API request failed: /api/contest/unregister-entry/{entry.id}',
-          { extra: {
-            status: response.status,
-            statusText: response.statusText,
-            url: response.url,
-            entry: entry.id,
-          },
-        });
-
-        // Show the user an error message.
-        response.text().then(
-          text => {
+        // Extract the text and dispatch some actions.
+        return response.json().then(
+          json => {
             dispatch(addMessage({
               header: 'Unable to remove contest entry.',
               level: 'warning',
-              content: text,
+              content: json.detail,
             }));
+
+            // tell the state it failed.
+            dispatch({
+              type: actionTypes.REMOVING_CONTEST_POOL_ENTRY_FAIL,
+              entry,
+            });
+
+            // Because the user just entered a contest, their cash balance should be different.
+            dispatch(fetchCashBalanceIfNeeded());
+            // Fetch the user's current contest pool entries which will force the UI to update.
+            dispatch(fetchContestPoolEntries());
+            // Re-Fetch the contest list that will have an updated current_entries count.
+            dispatch(fetchContestPools());
+
+            // Kill the promise chain.
+            return Promise.reject({ entry, response: json });
           }
         );
-
-        // tell the state it failed.
-        dispatch({
-          type: actionTypes.REMOVING_CONTEST_POOL_ENTRY_FAIL,
-          entry,
-        });
-
-        // Because the user just entered a contest, their cash balance should be different.
-        dispatch(fetchCashBalanceIfNeeded());
-        // Fetch the user's current contest pool entries which will force the UI to update.
-        dispatch(fetchContestPoolEntries());
-        // Re-Fetch the contest list that will have an updated current_entries count.
-        dispatch(fetchContestPools());
-
-        // Kill the promise chain.
-        return Promise.reject(response);
       }
 
       dispatch({
@@ -415,6 +417,15 @@ export function removeContestPoolEntry(entry) {
       return response.json().then(json => ({ json, response }));
     }).then((json) => {
       log.debug(json);
+    }).catch((ex) => {
+      // Log the request error to Sentry with some info.
+      Raven.captureMessage(
+        'API request failed: /api/contest/unregister-entry/{entry.id}',
+        { extra: {
+          ex,
+          entry: entry.id,
+        },
+      });
     });
   };
 }
