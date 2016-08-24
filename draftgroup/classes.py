@@ -521,7 +521,8 @@ class AbstractUpdateManager(object):
     def __init__(self):
         self.players_not_found = None
 
-    def add(self, update_id, category, type, value, published_at=None):
+    def add(self, update_id, category, type, value,
+            status, source_origin, url_origin, published_at=None):
         """
         create or update a PlayerUpdate
 
@@ -550,15 +551,25 @@ class AbstractUpdateManager(object):
         except self.model.DoesNotExist:
             update = self.model()
             update.update_id = update_id
-            update.category = category
-            update.type = type
             created = True
+
+        update.category = category
+        update.type = type
 
         if update.updated_at is None or update.updated_at != updated_at:
             update.updated_at = updated_at
 
         if update.value is None or update.value != value:
             update.value = value
+
+        if update.status is None or update.status != status:
+            update.status = status
+
+        if update.source_origin is None or update.source_origin != source_origin:
+            update.source_origin = source_origin
+
+        if update.url_origin is None or update.url_origin != url_origin:
+            update.url_origin = url_origin
 
         # for newly created Update models we need to
         # to associated any relevant draft_groups

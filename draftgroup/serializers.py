@@ -38,7 +38,7 @@ class PlayerUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PlayerUpdate
-        fields = ('updated_at','category','type','value','srid')
+        fields = ('updated_at','category','type','value','srid','status','source_origin','url_origin')
 
 class GameUpdateSerializer(serializers.ModelSerializer):
 
@@ -48,7 +48,7 @@ class GameUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GameUpdate
-        fields = ('updated_at','category','type','value','srid')
+        fields = ('updated_at','category','type','value','srid','status','source_origin','url_origin')
 
 class AbstractDraftGroupSerializer(serializers.ModelSerializer):
     """
