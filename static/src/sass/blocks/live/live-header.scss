@@ -12,4 +12,148 @@ $block: '.live-header';
   position: relative;
   text-align: center;
   z-index: $zindex-live-header;
+
+  &__animation-info {
+    bottom: 22%;
+    left: 50%;
+    overflow: hidden;
+    max-width: 280px;
+    position: absolute;
+    transform: translateX(-50%);
+    width: 30%;
+    height: 154px;  // TODO remove this magic number somehow
+
+    &__type,
+    &__description {
+      transform: translateY(70px);
+      opacity: 0;
+    }
+
+    &__type {
+      color: white;
+      font-family: $font-oswald;
+      font-size: 30px;
+      font-weight: bold;
+      line-height: 2.2;
+      margin: 0;
+      opacity: 0;
+      padding: 0;
+      transform: translateY(70px);
+    }
+
+    &__description {
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    &--show {
+      #{$block}__animation-info__type {
+        animation-name: showType;
+        animation-iteration-count: 1;
+        animation-timing-function: ease-out;
+        animation-duration: 0.4s;
+
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      #{$block}__animation-info__description {
+        animation-name: showDescription;
+        animation-duration: 0.7s;
+        animation-timing-function: ease-out;
+        animation-iteration-count: 1;
+
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @-moz-keyframes showType {
+      0% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      65% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    @-webkit-keyframes showType {
+      0% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      65% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    @keyframes showType {
+      0% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      65% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+
+    @-moz-keyframes showDescription {
+      0% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      70% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    @-webkit-keyframes showDescription {
+      0% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      70% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+    @keyframes showDescription {
+      0% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      70% {
+        opacity: 0;
+        transform: translateY(70px);
+      }
+      100% {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  }
 }

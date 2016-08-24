@@ -43,7 +43,7 @@ $imgDir: '../../../../img/blocks/live/nfl/live-nfl-field/';
 // but afaik you can't use calc() + percentage of width within a transform property
 @media (min-width: 1024px) and (max-width: 1279px) {
   #{$block} {
-    transform: scale(0.55) translate(-50%, -50%);
+    transform: scale(0.45) translate(-50%, -50%);
   }
 }
 @media (min-width: 1280px) and (max-width: 1439px) {
