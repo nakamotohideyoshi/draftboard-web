@@ -3,7 +3,7 @@ import forEach from 'lodash/forEach';
 import merge from 'lodash/merge';
 import update from 'react-addons-update';
 import { dateNow } from '../lib/utils';
-import { trackUnexpected } from '../actions/track-exceptions';
+// import { trackUnexpected } from '../actions/track-exceptions';
 
 
 // shortcut method to $set new state if the key doesn't exist, otherwise $merges the properties in to existing
@@ -145,10 +145,10 @@ module.exports = (state = {}, action = {}) => {
       if (!state[action.id]) return state;
 
       if (state[action.id].playersStats.hasOwnProperty(action.playerId) === false) {
-        trackUnexpected('UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP unchanged', {
-          action,
-          reasonWhy: `No player stats for ${action.playerId} in draft group ${action.id}`,
-        });
+        // trackUnexpected('UPDATE_LIVE_DRAFT_GROUP_PLAYER_FP unchanged', {
+        //   action,
+        //   reasonWhy: `No player stats for ${action.playerId} in draft group ${action.id}`,
+        // });
 
         return state;
       }
