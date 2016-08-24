@@ -92,3 +92,7 @@ MONGO_HOST = environ.get('MONGO_HOST') % ( MONGO_USER,
                                             MONGO_AUTH_DB )
 
 DATETIME_DELTA_ENABLE = True   # time travel
+
+# dont allow updates to be saved.
+# they are only being sent if they already exist!
+DISABLE_REPLAYER_UPDATE_RECORDING = True
