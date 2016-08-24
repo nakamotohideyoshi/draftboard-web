@@ -1,10 +1,32 @@
 module.exports = [
   {
-    "id": 1,
-    "contest": 2,
-    "lineup": 1,
-    "lineup_name": "Curry's Chicken",
-    "draft_group": 1,
-    "start": "2015-10-15T23:00:00Z"
-  }
-]
+    'id': 2659,
+    'contest_pool': 3066,
+    'contest': null,
+    'lineup': 495,
+    'draft_group': 1884,
+    'start': '2016-08-19T23:05:00Z',
+    'lineup_name': '',
+    'sport': 'mlb',
+  },
+  {
+    'id': 2658,
+    'contest_pool': 3065,
+    'contest': null,
+    'lineup': 495,
+    'draft_group': 1884,
+    'start': '2016-08-19T23:05:00Z',
+    'lineup_name': '',
+    'sport': 'mlb',
+  },
+  {
+    'id': 2657,
+    'contest_pool': 3065,
+    'contest': null,
+    'lineup': 495,
+    'draft_group': 1884,
+    'start': '2016-08-19T23:05:00Z',
+    'lineup_name': '',
+    'sport': 'mlb',
+  },
+];
