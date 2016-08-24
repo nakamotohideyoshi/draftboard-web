@@ -3,6 +3,7 @@
 
 from dj_database_url import config as heroku_db_config
 from urllib.parse import urlparse
+from urllib import parse
 
 from .base import *
 
