@@ -20,6 +20,12 @@ DATABASES = {
 DATABASES['default']['autocommit'] = True
 DATABASES['default']['CONN_MAX_AGE'] = 60
 
+# Heroku Redis - for api views/pages
+HEROKU_REDIS_URL = environ.get('REDIS_URL')
+heroku_redis_url = parse.urlparse(HEROKU_REDIS_URL)
+# since we should have a heroku redis instance for production, override the default api cache name
+API_CACHE_NAME = 'api'
+
 # Redis caching
 redis_url = urlparse(environ.get('REDISCLOUD_URL'))
 
@@ -42,6 +48,26 @@ CACHES = {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
         },
     },
+
+    # separate for template caching so we can clear when we want
+    'django_templates': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:%s@%s:%s/0' % (redis_url.password, redis_url.hostname, redis_url.port),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    },
+
+    # api view cache
+    API_CACHE_NAME: {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://:%s@%s:%s/0' % (heroku_redis_url.password,
+                                             heroku_redis_url.hostname,
+                                             heroku_redis_url.port),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+    }
 }
 
 # Static assets, served via django-whitenoise
