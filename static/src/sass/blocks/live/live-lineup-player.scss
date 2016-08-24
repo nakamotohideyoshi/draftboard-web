@@ -152,6 +152,7 @@ $block: '.live-lineup-player';
       z-index: initial;
       transform: initial;
       width: 330px;
+      visibility: visible;
     }
   }
 
@@ -169,6 +170,7 @@ $block: '.live-lineup-player';
     opacity: 0;
     z-index: -1;
     transform: translateY(15px);
+    visibility: hidden;
 
     ul {
       list-style: none;
