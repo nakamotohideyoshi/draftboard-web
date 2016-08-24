@@ -158,7 +158,8 @@ export function saveLineup(lineup, title, draftGroupId) {
 
     // If we have errors, dispatch a fail action with them.
     if (lineupErrors.length > 0) {
-      return dispatch(saveLineupFail(lineupErrors));
+      // format the errors exactly like how the server response with errors.
+      return dispatch(saveLineupFail({ detail: lineupErrors }));
     }
 
     // Build an array of player_ids.

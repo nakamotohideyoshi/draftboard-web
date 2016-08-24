@@ -30,6 +30,7 @@ import PubSub from 'pubsub-js';
 function mapStateToProps(state) {
   return {
     allContests: state.contestPools.allContests,
+    isFetchingContestPools: state.contestPools.isFetchingContestPools,
     focusedContestInfo: focusedContestInfoSelector(state),
     focusedLineup: focusedLineupSelector(state),
     focusedContestId: state.contestPools.focusedContestId,
@@ -73,6 +74,7 @@ const ContestListDetail = React.createClass({
       React.PropTypes.number,
     ]),
     focusedLineup: React.PropTypes.object,
+    isFetchingContestPools: React.PropTypes.bool.isRequired,
     params: React.PropTypes.object,
     removeContestPoolEntry: React.PropTypes.func.isRequired,
     setFocusedContest: React.PropTypes.func,
