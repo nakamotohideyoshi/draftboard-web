@@ -35,21 +35,11 @@ $block: '.game-time';
     color: #babdc9;
     display: inline-block;
     font-size: 9.5px;
-    line-height: 2;
+    line-height: 1.8;
+    vertical-align: top;
 
     #{$block}__half-inning path {
       fill: #878b9c;
-    }
-
-    &#{$block}--has-not-started {
-      top: -1px;
-      vertical-align: top;
-    }
-
-    &#{$block}--game-complete,
-    &#{$block}--is-live {
-      top: 1px;
-      vertical-align: bottom;
     }
   }
 

@@ -20,16 +20,20 @@ import {
 const logAction = log.getLogger('action');
 
 
+const showCurrentResults = () => ({
+  type: ActionTypes.EVENT__SHOW_CURRENT_RESULT,
+});
+
 const setCurrentAnimation = (value) => ({
   type: ActionTypes.EVENT__SET_CURRENT,
   value,
 });
 
-const addPlayerEventDescription = (key, value) => ({
-  type: ActionTypes.EVENT_PLAYER_ADD_DESCRIPTION,
-  key,
-  value,
-});
+// const addPlayerEventDescription = (key, value) => ({
+//   type: ActionTypes.EVENT_PLAYER_ADD_DESCRIPTION,
+//   key,
+//   value,
+// });
 
 const differencePlayersPlaying = (players) => ({
   type: ActionTypes.EVENT_DIFFERENCE_PLAYERS_PLAYING,
@@ -61,10 +65,10 @@ export const removeCurrentEvent = (key) => ({
   key,
 });
 
-const removePlayerEventDescription = (key) => ({
-  type: ActionTypes.EVENT_PLAYER_REMOVE_DESCRIPTION,
-  key,
-});
+// const removePlayerEventDescription = (key) => ({
+//   type: ActionTypes.EVENT_PLAYER_REMOVE_DESCRIPTION,
+//   key,
+// });
 
 const unshiftPlayerHistory = (key, value) => ({
   type: ActionTypes.EVENT_UNSHIFT_PLAYER_HISTORY,
@@ -110,15 +114,15 @@ const whichSide = (watching, relevantPlayersInEvent, opponentLineup, relevantGam
   return 'mine';
 };
 
-const showThenHidePlayerEventDescription = (key, value) => (dispatch) => {
-  logAction.debug('actions.showThenHidePlayerEventDescription');
+// const showThenHidePlayerEventDescription = (key, value) => (dispatch) => {
+//   logAction.debug('actions.showThenHidePlayerEventDescription');
 
-  dispatch(addPlayerEventDescription(key, value));
+//   dispatch(addPlayerEventDescription(key, value));
 
-  setTimeout(() => {
-    dispatch(removePlayerEventDescription(key));
-  }, 3000);
-};
+//   setTimeout(() => {
+//     dispatch(removePlayerEventDescription(key));
+//   }, 3000);
+// };
 
 export const showAnimationEventResults = (animationEvent) => (dispatch) => {
   logAction.debug('actions.showAnimationEventResults');
@@ -164,7 +168,7 @@ export const showAnimationEventResults = (animationEvent) => (dispatch) => {
         const playerEventDescription = merge({}, eventDescription, { playerId });
 
         calls.push(dispatch(unshiftPlayerHistory(playerId, playerEventDescription)));
-        calls.push(dispatch(showThenHidePlayerEventDescription(playerId, playerEventDescription)));
+        calls.push(dispatch(showCurrentResults()));
       });
 
       // update player stats if we have them
