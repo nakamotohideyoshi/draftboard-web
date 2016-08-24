@@ -311,7 +311,7 @@ describe('actions.contestPoolActions.enterContest', () => {
       .reply(200, contestPoolFix)
       // mock enter-lineup endpoint failure
       .post('/api/contest/enter-lineup/')
-      .reply(400, { detail: 'something is wrong.' });
+      .reply(400, { detail: 'this should fail and log - contest-pool-actions.spec' });
 
     return store.dispatch(actions.enterContest(contestPoolId, lineupId))
       .then(() => {
@@ -341,15 +341,156 @@ describe('actions.contestPoolActions.enterContest', () => {
 });
 
 
-describe('actions.contestPoolActions.fetchContestEntrants', () => {
-  // TODO: write test
-});
+// describe('actions.contestPoolActions.fetchContestEntrants', () => {
+
+// });
 
 
 describe('actions.contestPoolActions.upcomingContestUpdateReceived', () => {
-  // TODO: write test
+  let store = {};
+
+  beforeEach(() => {
+    store = mockStore();
+  });
+
+  it('should create an action.', () => {
+    const contest = {
+      id: 666,
+    };
+
+    store.dispatch(actions.upcomingContestUpdateReceived(contest));
+
+    assert.isDefined(
+      find(store.getActions(), { type: actionTypes.UPCOMING_CONTESTS_UPDATE_RECEIVED, contest }),
+      'upcomingContestUpdateReceived thunk is not dispatching the correct action.'
+    );
+  });
 });
 
+
 describe('actions.contestPoolActions.removeContestPoolEntry', () => {
-  // TODO: write test
+  let store = {};
+
+  before(() => {
+    nock.disableNetConnect();
+  });
+
+  beforeEach(() => {
+    // initial store, state
+    store = mockStore({
+      contestPoolEntries: contestPoolEntriesReducer(undefined, {}),
+      user: userReducer(undefined, {}),
+      contestPools: contestPoolsReducer(undefined, {}),
+    });
+  });
+
+
+  after(() => {
+    nock.enableNetConnect();
+  });
+
+
+  afterEach(() => {
+    nock.cleanAll();
+  });
+
+
+  it('should deregister from a contest', () => {
+    const entry = {
+      id: 666,
+    };
+
+    // mock enter-lineup endpoint
+    nock('http://localhost')
+      .post(`/api/contest/unregister-entry/${entry.id}/`)
+      .reply(200, { status: 'SUCCESS' })
+      // mock entries endpoint
+      .get('/api/contest/contest-pools/entries/')
+      .reply(200, contestPoolEntriesFix)
+      // mock the lobby
+      .get('/api/contest/lobby/')
+      .reply(200, contestPoolFix);
+
+    return store.dispatch(actions.removeContestPoolEntry(entry))
+      .then(() => {
+        const dispatchedActions = store.getActions();
+        // Did the action get dispatched?
+        assert.isDefined(
+          find(dispatchedActions, {
+            type: actionTypes.REMOVING_CONTEST_POOL_ENTRY,
+            entry,
+          }), 'deregistering action not dispatched'
+        );
+
+        assert.isDefined(
+          find(dispatchedActions, { type: actionTypes.FETCHING_CASH_BALANCE }),
+          'after entering contest, balance is not fetched'
+        );
+
+        assert.isDefined(
+          find(dispatchedActions, { type: actionTypes.FETCH_CONTEST_POOLS }),
+          'after entering contest, contest pools are not fetched'
+        );
+
+        assert.isDefined(
+          find(dispatchedActions, { type: actionTypes.ADD_MESSAGE }),
+          'after entering contest, message is not shown'
+        );
+
+        assert.isDefined(
+          find(dispatchedActions, { type: actionTypes.FETCHING_CONTEST_POOL_ENTRIES }),
+          'after entering contest, entries are not fetched'
+        );
+
+        assert.isDefined(find(
+          dispatchedActions, {
+            type: actionTypes.REMOVING_CONTEST_POOL_ENTRY_SUCCESS,
+            entry,
+          }), 'success action not dispatched'
+        );
+      });
+  });
+
+
+  it('should fail properly.', () => {
+    const entry = {
+      id: 666,
+    };
+
+    // mock entries endpoint
+    nock('http://localhost')
+      .get('/api/contest/contest-pools/entries/')
+      .reply(200, contestPoolEntriesFix)
+      // mock the lobby
+      .get('/api/contest/lobby/')
+      .reply(200, contestPoolFix)
+      // mock enter-lineup endpoint failure
+      .post(`/api/contest/unregister-entry/${entry.id}/`)
+      .reply(400, { detail: 'this should fail and log - contest-pool-actions.spec' });
+
+    return store.dispatch(actions.removeContestPoolEntry(entry))
+      .then(() => {
+        const dispatchedActions = store.getActions();
+
+        assert.isDefined(
+          find(dispatchedActions, { type: actionTypes.REMOVING_CONTEST_POOL_ENTRY_FAIL, entry }),
+          'When fetch fails, the fail action is not being dispatched'
+        );
+
+        assert.isDefined(
+          find(dispatchedActions, { type: actionTypes.FETCH_CONTEST_POOLS }),
+          'after entering contest, contest pools are not fetched'
+        );
+
+        assert.isDefined(
+          find(dispatchedActions, { type: actionTypes.ADD_MESSAGE }),
+          'after entering contest, message is not shown'
+        );
+
+        assert.isDefined(
+          find(dispatchedActions, { type: actionTypes.FETCHING_CONTEST_POOL_ENTRIES }),
+          'after entering contest, entries are not fetched'
+        );
+      });
+  });
 });
