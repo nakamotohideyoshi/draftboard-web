@@ -76,6 +76,8 @@ class ReplayManager(object):
 
     DEFAULT_CACHE                   = 'default'
     CACHE_KEY_RECORDING_IN_PROGRESS = 'recording_in_progress'
+    CACHE_KEY_PAUSE_ACTIVE_REPLAY   = 'CACHE_KEY_PAUSE_ACTIVE_REPLAY'
+
     db_name                         = settings.DATABASES['default']['NAME']
 
     def __init__(self, timemachine=None):
@@ -265,6 +267,14 @@ class ReplayManager(object):
         last    = start         # trailing time since which we have no parsed Updates
         while last <= end:      # break out of while once our 'last' update time is past the end
             time.sleep( tick )  # every 'tick' seconds, get all the updates since the last update
+
+            # check if we are paused!
+            # (Pause) ie: stash a value in the cache             /api/replayer/pause/1/
+            # (Resume) ie: remove that value from the cache      /api/replayer/pause/0/
+            if self.is_paused():
+                self.set_system_time(last) # keep
+                continue
+
             now = timezone.now()
             updates = replayer.models.Update.objects.filter( ts__range=( last, now ) )
             print( '%s | %s updates this tick' % (str(now), str(len(updates))))
@@ -289,6 +299,26 @@ class ReplayManager(object):
                     self.timemachine.playback_status = 'FINISHED'
                     self.timemachine.save()
                 return # because there are literally no more updates
+
+    def flag_paused(self, enable):
+        """
+        set a value in the cache to pause the replayer (if it is active)
+        """
+        if enable:
+            caches[ ReplayManager.DEFAULT_CACHE ].set(
+                self.CACHE_KEY_PAUSE_ACTIVE_REPLAY, True, 60*60) # pause for an hour max
+        else:
+            caches[ ReplayManager.DEFAULT_CACHE ].set(
+                self.CACHE_KEY_PAUSE_ACTIVE_REPLAY, None, 0)
+
+    def is_paused(self):
+        """
+        returns whether the replay is currently paused as a boolean
+
+        True: paused
+        False: not paused
+        """
+        return caches[ ReplayManager.DEFAULT_CACHE ].get(self.CACHE_KEY_PAUSE_ACTIVE_REPLAY, False)
 
     def flag_cache(self, enable):
         """

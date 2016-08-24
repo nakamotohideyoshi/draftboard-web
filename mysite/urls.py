@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^api/ticket/', include(ticket.urls)),
     url(r'^api/prize/', include(prize.urls)),
     url(r'^api/push/', include('push.urls')),
+    url(r'^api/replayer/', include('replayer.urls')),
     url(r'^api/salary/', include(salary.urls)),
     url(r'^api/sports/', include(sports.urls)),
 
