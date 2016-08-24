@@ -47,13 +47,23 @@ $block: '.live';
     }
   }
 
+  // modify to center venues between lineups
+  &--showing-opponent-lineup #{$block}__venues {
+    width: 100%;
+  }
+
+  // modify to have venue show between my lineup and right pane
+  &--right-panes-open #{$block}__venues {
+    width: 76%;
+  }
+
   // vertically center the stats of the venue
   &__venues {
     display: table;
     height: 100%;
-    padding: 0 320px;
     position: absolute;
-    width: 100%;
+    transform: translateZ(0);
+    transition: width 600ms cubic-bezier(.65, .47, .35, 1);
   }
   &__venues-inner {
     display: table-cell;
